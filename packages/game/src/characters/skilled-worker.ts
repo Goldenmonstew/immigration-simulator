@@ -12,8 +12,8 @@ const events: GameEvent[] = [
       en: 'The folder on the desk',
     },
     text: {
-      zhCN: '续签日期越来越近，林遥把文件夹放到茶杯旁。',
-      en: 'Renewal draws closer; Yao puts the folder beside the teacup.',
+      zhCN: '续签日期越来越近，你把文件夹放到茶杯旁。',
+      en: 'Renewal draws closer; you put the folder beside the teacup.',
     },
     weight: 3,
     choices: [
@@ -111,8 +111,8 @@ const events: GameEvent[] = [
       en: 'A recruiter’s email',
     },
     text: {
-      zhCN: '测试团队约林遥聊聊新岗位，邮件里还有一张办公室狗的照片。',
-      en: 'A testing team invites Yao to discuss a role, with a photo of the office dog.',
+      zhCN: '测试团队约你聊聊新岗位，邮件里还有一张办公室狗的照片。',
+      en: 'A testing team invites you to discuss a role, with a photo of the office dog.',
     },
     weight: 3,
     choices: [
@@ -161,8 +161,8 @@ const events: GameEvent[] = [
       en: 'A new pass',
     },
     text: {
-      zhCN: '新公司发来担保材料，林遥的旧工牌仍挂在胸前。',
-      en: 'The new company sends sponsorship papers; Yao still wears the old pass.',
+      zhCN: '新公司发来担保材料，你的旧工牌仍挂在胸前。',
+      en: 'The new company sends sponsorship papers; you still wear the old pass.',
     },
     weight: 3,
     choices: [
@@ -236,7 +236,7 @@ const events: GameEvent[] = [
     },
     text: {
       zhCN: '爸妈学会了视频通话，镜头却总对着天花板。',
-      en: 'Yao’s parents master video calls, mostly pointing the camera at the ceiling.',
+      en: 'Your parents master video calls, mostly pointing the camera at the ceiling.',
     },
     weight: 3,
     choices: [
@@ -280,8 +280,8 @@ const events: GameEvent[] = [
       en: 'A familiar breakfast',
     },
     text: {
-      zhCN: '相聚的日子结束，早餐桌上又只剩一副碗筷，林遥还是多煮了一个蛋。',
-      en: 'The visit is over; breakfast is back to one bowl, though Yao still boils an extra egg.',
+      zhCN: '相聚的日子结束，早餐桌上又只剩一副碗筷，你还是多煮了一个蛋。',
+      en: 'The visit is over; breakfast is back to one bowl, though you still boil an extra egg.',
     },
     weight: 3,
     choices: [
@@ -342,8 +342,8 @@ const events: GameEvent[] = [
       en: 'Time zones for two',
     },
     text: {
-      zhCN: '伴侣下班时林遥正开晨会，聊天总差一个合适的钟点。',
-      en: 'Yao starts morning meetings as a partner finishes work; the clocks never quite meet.',
+      zhCN: '伴侣下班时你正开晨会，聊天总差一个合适的钟点。',
+      en: 'You start morning meetings as a partner finishes work; the clocks never quite meet.',
     },
     weight: 3,
     choices: [
@@ -458,8 +458,8 @@ const events: GameEvent[] = [
       en: 'A team dinner',
     },
     text: {
-      zhCN: '项目上线了，同事点了酒，林遥把车钥匙放在桌边。',
-      en: 'The project launches; colleagues order drinks as Yao puts car keys on the table.',
+      zhCN: '项目上线了，同事点了酒，你把车钥匙放在桌边。',
+      en: 'The project launches; colleagues order drinks as you put car keys on the table.',
     },
     weight: 3,
     choices: [
@@ -556,8 +556,8 @@ const events: GameEvent[] = [
       en: 'The annual review',
     },
     text: {
-      zhCN: '经理问林遥明年想做什么，窗外的雨替沉默打了拍子。',
-      en: 'A manager asks about next year; rain provides the rhythm while Yao thinks.',
+      zhCN: '经理问你明年想做什么，窗外的雨替沉默打了拍子。',
+      en: 'A manager asks about next year; rain provides the rhythm while you think.',
     },
     weight: 3,
     choices: [
@@ -601,8 +601,8 @@ const events: GameEvent[] = [
       en: 'A new starter’s first day',
     },
     text: {
-      zhCN: '林遥带新人认路，第一次发现自己已经不需要看门牌。',
-      en: 'Showing a new starter around, Yao realises the door signs are no longer needed.',
+      zhCN: '你带新人认路，第一次发现自己已经不需要看门牌。',
+      en: 'Showing a new starter around, you realise the door signs are no longer needed.',
     },
     weight: 3,
     choices: [
@@ -656,8 +656,8 @@ const events: GameEvent[] = [
       en: 'An overseas assignment',
     },
     text: {
-      zhCN: '海外项目缺一位测试员，林遥盯着地图看了一会儿。',
-      en: 'An overseas project needs a tester; Yao studies the map for a while.',
+      zhCN: '海外项目缺一位测试员，你盯着地图看了一会儿。',
+      en: 'An overseas project needs a tester; you study the map for a while.',
     },
     weight: 3,
     choices: [
@@ -706,8 +706,8 @@ const events: GameEvent[] = [
       en: 'Eight months in a suitcase',
     },
     text: {
-      zhCN: '项目终于收尾，林遥翻出这段时间的行程记录。',
-      en: 'The project closes; Yao looks back through the travel diary.',
+      zhCN: '项目终于收尾，你翻出这段时间的行程记录。',
+      en: 'The project closes; you look back through the travel diary.',
     },
     weight: 3,
     choices: [
@@ -765,8 +765,8 @@ const events: GameEvent[] = [
       en: 'A possible free Friday',
     },
     text: {
-      zhCN: '公司提议缩短工时，林遥开始想象周五上午的公园。',
-      en: 'Shorter hours are offered; Yao imagines Friday mornings in the park.',
+      zhCN: '公司提议缩短工时，你开始想象周五上午的公园。',
+      en: 'Shorter hours are offered; you imagine Friday mornings in the park.',
     },
     weight: 3,
     choices: [
@@ -815,8 +815,8 @@ const events: GameEvent[] = [
       en: 'A free Friday',
     },
     text: {
-      zhCN: '日历多出了一块空白，林遥差点又往里面填上会议。',
-      en: 'A blank space appears in the calendar; Yao almost fills it with a meeting.',
+      zhCN: '日历多出了一块空白，你差点又往里面填上会议。',
+      en: 'A blank space appears in the calendar; you almost fill it with a meeting.',
     },
     weight: 3,
     choices: [
@@ -875,8 +875,8 @@ const events: GameEvent[] = [
       en: 'Bad news at home',
     },
     text: {
-      zhCN: '伴侣的合同没续上，林遥把外卖软件暂时挪出了首页。',
-      en: 'A partner’s contract ends; Yao moves the takeaway app off the home screen.',
+      zhCN: '伴侣的合同没续上，你把外卖软件暂时挪出了首页。',
+      en: 'A partner’s contract ends; you move the takeaway app off the home screen.',
     },
     weight: 3,
     choices: [
@@ -990,8 +990,8 @@ const events: GameEvent[] = [
       en: 'Closing the project',
     },
     text: {
-      zhCN: '项目终于交付，林遥的桌面从十几个窗口变成了一张壁纸。',
-      en: 'The project ships; Yao’s desktop goes from a dozen windows to a wallpaper.',
+      zhCN: '项目终于交付，你的桌面从十几个窗口变成了一张壁纸。',
+      en: 'The project ships; your desktop goes from a dozen windows to a wallpaper.',
     },
     weight: 3,
     choices: [
@@ -1035,7 +1035,7 @@ const events: GameEvent[] = [
       en: 'The bonus line',
     },
     text: {
-      zhCN: '年终奖金到账，公司又问林遥愿不愿接后续维护。',
+      zhCN: '年终奖金到账，公司又问你愿不愿接后续维护。',
       en: 'The annual bonus arrives, with an offer of follow-up maintenance work.',
     },
     weight: 3,
@@ -1097,8 +1097,8 @@ const events: GameEvent[] = [
       en: 'Rain on the way to work',
     },
     text: {
-      zhCN: '林遥走进办公室时鞋还在滴水，同事递来一包纸巾。',
-      en: 'Yao arrives with dripping shoes; a colleague offers tissues.',
+      zhCN: '你走进办公室时鞋还在滴水，同事递来一包纸巾。',
+      en: 'You arrive with dripping shoes; a colleague offers tissues.',
     },
     weight: 3,
     choices: [
@@ -1146,8 +1146,8 @@ const events: GameEvent[] = [
       en: 'A saved bowl of soup',
     },
     text: {
-      zhCN: '早上林遥才发现，室友给昨晚加班的她留了一碗汤。',
-      en: 'In the morning Yao discovers the soup her flatmate saved after last night’s late shift.',
+      zhCN: '早上你才发现，室友给昨晚加班的你留了一碗汤。',
+      en: 'In the morning you discover the soup your flatmate saved after last night’s late shift.',
     },
     weight: 3,
     choices: [
@@ -1200,7 +1200,7 @@ const events: GameEvent[] = [
       en: 'A disappearing bug',
     },
     text: {
-      zhCN: 'bug 在演示前自己消失了，林遥和同事都不太敢高兴。',
+      zhCN: 'bug 在演示前自己消失了，你和同事都不太敢高兴。',
       en: 'A bug disappears before the demo; nobody quite dares celebrate.',
     },
     weight: 3,
@@ -1254,8 +1254,8 @@ const events: GameEvent[] = [
       en: 'A call in the park',
     },
     text: {
-      zhCN: '林遥坐在长椅上给家里打电话，鸭子抢走了背景音。',
-      en: 'Yao calls home from a bench; the ducks dominate the soundtrack.',
+      zhCN: '你坐在长椅上给家里打电话，鸭子抢走了背景音。',
+      en: 'You call home from a bench; the ducks dominate the soundtrack.',
     },
     weight: 3,
     choices: [
@@ -1303,8 +1303,8 @@ const events: GameEvent[] = [
       en: 'A sudden inspection',
     },
     text: {
-      zhCN: '房东说过两天来检查，林遥看了看满屋晾着的衣服。',
-      en: 'The landlord plans a visit in a couple of days; laundry covers Yao’s room.',
+      zhCN: '房东说过两天来检查，你看了看满屋晾着的衣服。',
+      en: 'The landlord plans a visit in a couple of days; laundry covers your room.',
     },
     weight: 3,
     choices: [
@@ -1357,8 +1357,8 @@ const events: GameEvent[] = [
       en: 'Promotion cake',
     },
     text: {
-      zhCN: '同事买了小蛋糕，林遥的新职称在糖霜上差点写不下。',
-      en: 'Colleagues buy a cake; Yao’s new title barely fits in the icing.',
+      zhCN: '同事买了小蛋糕，你的新职称在糖霜上差点写不下。',
+      en: 'Colleagues buy a cake; your new title barely fits in the icing.',
     },
     weight: 3,
     choices: [
@@ -1407,8 +1407,8 @@ const events: GameEvent[] = [
       en: 'Noodles at the market',
     },
     text: {
-      zhCN: '林遥在集市闻到熟悉的香味，排队时忘了看手机。',
-      en: 'A familiar smell stops Yao at the market; the phone stays in a pocket.',
+      zhCN: '你在集市闻到熟悉的香味，排队时忘了看手机。',
+      en: 'A familiar smell stops you at the market; the phone stays in a pocket.',
     },
     weight: 3,
     choices: [
@@ -1460,8 +1460,8 @@ const events: GameEvent[] = [
       en: 'A light by the window',
     },
     text: {
-      zhCN: '天黑得越来越早，林遥给窗边添了一盏小灯。',
-      en: 'Darkness arrives earlier; Yao adds a little light by the window.',
+      zhCN: '天黑得越来越早，你给窗边添了一盏小灯。',
+      en: 'Darkness arrives earlier; you add a little light by the window.',
     },
     weight: 3,
     choices: [
@@ -1513,8 +1513,8 @@ const events: GameEvent[] = [
       en: 'A box on the checklist',
     },
     text: {
-      zhCN: '林遥翻出 Life in the UK 书，里面夹着去年的车票。',
-      en: 'Yao finds last year’s train ticket inside the Life in the UK book.',
+      zhCN: '你翻出 Life in the UK 书，里面夹着去年的车票。',
+      en: 'You find last year’s train ticket inside the Life in the UK book.',
     },
     weight: 3,
     choices: [
@@ -1564,8 +1564,8 @@ const events: GameEvent[] = [
       en: 'A development offer',
     },
     text: {
-      zhCN: '新团队愿意把担保手续一起办好，林遥读了两遍邀请函。',
-      en: 'A new team offers to arrange sponsorship; Yao reads the offer twice.',
+      zhCN: '新团队愿意把担保手续一起办好，你读了两遍邀请函。',
+      en: 'A new team offers to arrange sponsorship; you read the offer twice.',
     },
     weight: 3,
     choices: [
@@ -1635,8 +1635,8 @@ const events: GameEvent[] = [
       en: 'Salary talks',
     },
     text: {
-      zhCN: '林遥把做过的项目列成一页纸，经理认真看完了。',
-      en: 'Yao lists completed projects on one page; the manager reads it carefully.',
+      zhCN: '你把做过的项目列成一页纸，经理认真看完了。',
+      en: 'You list completed projects on one page; the manager reads it carefully.',
     },
     weight: 3,
     choices: [
@@ -1689,8 +1689,8 @@ const events: GameEvent[] = [
       en: 'A hospital room back home',
     },
     text: {
-      zhCN: '父母的病情反复，林遥和亲人回顾这次照顾怎么分工。',
-      en: 'A parent’s health fluctuates; Yao and relatives look back on how they shared the care.',
+      zhCN: '父母的病情反复，你和亲人回顾这次照顾怎么分工。',
+      en: 'A parent’s health fluctuates; you and relatives look back on how they shared the care.',
     },
     weight: 3,
     choices: [
@@ -1759,8 +1759,8 @@ const events: GameEvent[] = [
       en: 'Another payslip',
     },
     text: {
-      zhCN: '伴侣开始工作，林遥发现冰箱上的预算表终于有了空白。',
-      en: 'A partner starts work; the budget on Yao’s fridge finally has room to breathe.',
+      zhCN: '伴侣开始工作，你发现冰箱上的预算表终于有了空白。',
+      en: 'A partner starts work; the budget on your fridge finally has room to breathe.',
     },
     weight: 3,
     choices: [
@@ -1822,8 +1822,8 @@ const events: GameEvent[] = [
       en: 'Room apart',
     },
     text: {
-      zhCN: '两个人最近总为小事争执，林遥提出认真聊一次。',
-      en: 'Small arguments keep recurring; Yao asks for a proper conversation.',
+      zhCN: '两个人最近总为小事争执，你提出认真聊一次。',
+      en: 'Small arguments keep recurring; you ask for a proper conversation.',
     },
     weight: 3,
     choices: [
@@ -1876,8 +1876,8 @@ const events: GameEvent[] = [
       en: 'Years after graduation',
     },
     text: {
-      zhCN: '同学的海外聚会散了，群里的合照刷了一整晚，林遥一张张往回翻。',
-      en: 'The overseas reunion is over; photos fill the group chat all night, and Yao scrolls back through them.',
+      zhCN: '同学的海外聚会散了，群里的合照刷了一整晚，你一张张往回翻。',
+      en: 'The overseas reunion is over; photos fill the group chat all night, and you scroll back through them.',
     },
     weight: 3,
     choices: [
@@ -1933,8 +1933,8 @@ const events: GameEvent[] = [
       en: 'The annual statement',
     },
     text: {
-      zhCN: '新项目邀请压在年结单上，林遥边看边算还有几个周末。',
-      en: 'A project offer rests on the annual statement; Yao counts the free weekends.',
+      zhCN: '新项目邀请压在年结单上，你边看边算还有几个周末。',
+      en: 'A project offer rests on the annual statement; you count the free weekends.',
     },
     weight: 3,
     choices: [
@@ -1985,8 +1985,8 @@ const events: GameEvent[] = [
       en: 'A forgotten letter',
     },
     text: {
-      zhCN: '政府欠款通知夹在广告里，林遥清理桌子时才看见。',
-      en: 'A government-debt notice hides among adverts until Yao clears the desk.',
+      zhCN: '政府欠款通知夹在广告里，你清理桌子时才看见。',
+      en: 'A government-debt notice hides among adverts until you clear the desk.',
     },
     weight: 3,
     choices: [
@@ -2047,8 +2047,8 @@ const events: GameEvent[] = [
       en: 'A friend by the sea',
     },
     text: {
-      zhCN: '海边回来一周了，林遥的鞋缝里还有沙，朋友又发来一张合照。',
-      en: 'A week after the seaside there is still sand in Yao’s shoes, and the friend sends another photo.',
+      zhCN: '海边回来一周了，你的鞋缝里还有沙，朋友又发来一张合照。',
+      en: 'A week after the seaside there is still sand in your shoes, and the friend sends another photo.',
     },
     weight: 3,
     choices: [
@@ -2108,8 +2108,8 @@ const events: GameEvent[] = [
       en: 'The missing payment',
     },
     text: {
-      zhCN: '旧项目款结清，新一轮邀约又来了，林遥看了看日历。',
-      en: 'The old project is paid; a new offer arrives, and Yao checks the calendar.',
+      zhCN: '旧项目款结清，新一轮邀约又来了，你看了看日历。',
+      en: 'The old project is paid; a new offer arrives, and you check the calendar.',
     },
     weight: 3,
     choices: [
@@ -2168,8 +2168,8 @@ const events: GameEvent[] = [
       en: 'The spare room at home',
     },
     text: {
-      zhCN: '家里的备用房间一直留着，林遥回想这次住了多久。',
-      en: 'The family keeps the spare room ready; Yao recalls the length of this visit.',
+      zhCN: '家里的备用房间一直留着，你回想这次住了多久。',
+      en: 'The family keeps the spare room ready; you recall the length of this visit.',
     },
     weight: 3,
     choices: [

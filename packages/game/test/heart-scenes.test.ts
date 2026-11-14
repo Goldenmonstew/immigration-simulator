@@ -70,14 +70,14 @@ describe('10.1 complete heart scenes', () => {
     (_id, event) => {
       const paragraphs = event.text.zhCN.split('\n');
       expect(paragraphs.length).toBeGreaterThanOrEqual(3);
-      expect(paragraphs.length).toBeLessThanOrEqual(5);
+      expect(paragraphs.length).toBeLessThanOrEqual(6);
       for (const paragraph of paragraphs) {
         expect(paragraph.trim()).not.toBe('');
-        expect(paragraph.length).toBeLessThanOrEqual(40);
+        expect(paragraph.length).toBeLessThanOrEqual(50);
       }
       const length = paragraphs.join('').length;
-      expect(length).toBeGreaterThanOrEqual(80);
-      expect(length).toBeLessThanOrEqual(160);
+      expect(length).toBeGreaterThanOrEqual(120);
+      expect(length).toBeLessThanOrEqual(260);
       const english = event.text.en.split('\n');
       expect(english).toHaveLength(paragraphs.length);
       expect(english.every((paragraph) => paragraph.trim() !== '')).toBe(true);
@@ -85,6 +85,9 @@ describe('10.1 complete heart scenes', () => {
       expect(event.title.en.trim()).not.toBe('');
       expect(event.choices.length).toBeGreaterThanOrEqual(2);
       expect(event.choices.length).toBeLessThanOrEqual(3);
+      expect(
+        new Set(event.choices.map((choice) => choice.label.zhCN)).size,
+      ).toBe(event.choices.length);
       expect(event.once).toBe(true);
       expect(event.channel).toBe(`npc:${event.heart!.npc}`);
       for (const choice of event.choices) {

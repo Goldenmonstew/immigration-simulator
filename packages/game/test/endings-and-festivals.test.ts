@@ -69,7 +69,8 @@ describe('10.5 ending narratives', () => {
       expect(paragraphs.join('').length).toBeGreaterThanOrEqual(80);
       expect(paragraphs.join('').length).toBeLessThanOrEqual(160);
       expect(ending.en.split('\n')).toHaveLength(paragraphs.length);
-      expect(ending.zhCN).toContain(character.name.zhCN.split('·')[0]);
+      expect(ending.zhCN).toContain('你');
+      expect(ending.zhCN).not.toMatch(/林遥|陈嘉宁|嘉宁|索菲娅/);
       expect(ending.zhCN).toContain('递交后的回执');
       expect(ending.zhCN).not.toMatch(/获批|批准|\d/);
       expect(
