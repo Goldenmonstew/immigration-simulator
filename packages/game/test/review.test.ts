@@ -1,3 +1,4 @@
+import { policyStories } from '../src/events/policy';
 import {
   perform,
   availableActivities,
@@ -76,6 +77,7 @@ describe('8.1 review corrections', () => {
   test('the weight pool excludes used one-offs and conflicting scheduled housing cards', () => {
     const original = characters[0].events;
     const common = commonEvents.splice(0);
+    const news = policyStories.splice(0);
     const move = {
       ...common.find((e) => e.id === 'common-flat-after')!,
       requires: [],
@@ -112,6 +114,7 @@ describe('8.1 review corrections', () => {
     } finally {
       characters[0].events = original;
       commonEvents.push(...common);
+      policyStories.push(...news);
     }
   });
 });

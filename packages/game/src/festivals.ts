@@ -278,8 +278,8 @@ export const festivalDialogue: Record<
     {
       festival: 'lunar-new-year',
       text: {
-        zhCN: '饺子漏馅了，喂，画个封口容易，手真不听使唤！',
-        en: "Dumpling's leaking! Hey, easy to draw a sealed edge. My fingers won't do it.",
+        zhCN: '饺子漏馅了，画个封口容易，手真不听使唤！',
+        en: "Dumpling's leaking! easy to draw a sealed edge. My fingers won't do it.",
       },
     },
     {
@@ -292,8 +292,8 @@ export const festivalDialogue: Record<
     {
       festival: 'summer-fair',
       text: {
-        zhCN: '评比标签齐得烦人，喂，借张给我画黄瓜侧脸！',
-        en: 'These show labels are annoyingly neat. Hey, lend me one for a cucumber profile!',
+        zhCN: '评比标签挤在一起，借张给我画黄瓜侧脸！',
+        en: 'These show labels are annoyingly neat. lend me one for a cucumber profile!',
       },
     },
     {

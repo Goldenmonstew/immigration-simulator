@@ -1,3 +1,4 @@
+import { policyStories } from '../src/events/policy';
 import {
   perform,
   availableActivities,
@@ -278,6 +279,7 @@ describe('authored exclusive chains', () => {
       const character = characters.find((c) => c.id === id)!;
       const original = character.events;
       const common = commonEvents.splice(0);
+      const news = policyStories.splice(0);
       character.events = original
         .filter((e) => [first, follow].includes(e.id))
         .map((e) => ({ ...e, when: e.when?.filter((c) => !('weather' in c)) }));
@@ -295,6 +297,7 @@ describe('authored exclusive chains', () => {
       } finally {
         character.events = original;
         commonEvents.push(...common);
+        policyStories.push(...news);
       }
     },
   );

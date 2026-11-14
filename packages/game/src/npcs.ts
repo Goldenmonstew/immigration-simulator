@@ -136,8 +136,8 @@ const margaretLines = lines('margaret', [
     "Morning. Bins are in. All that wind, and it won't sweep for me.",
   ],
   [
-    '旧外套耐穿。种子漏进口袋，还能长出个菜园。',
-    'Good old coat. Enough seed in its pockets for another plot.',
+    '旧外套留着，我想把这圈袖口补厚点，剪刀递来。',
+    "Keep the old coat. I'd thicken this cuff. Scissors here.",
   ],
   [
     '又塞来一本花卉目录。看图免费，往后可不免费。',
@@ -152,8 +152,8 @@ const margaretLines = lines('margaret', [
     "Go round that slab. Step on it and you'll be washing your socks.",
   ],
   [
-    '知更鸟又跟着铲子。它吃虫，我出力。分工真好。',
-    "Robin's following the spade again. It eats; I dig. Lovely arrangement.",
+    '知更鸟又跟着铲子了，站远点，让它把这条虫叼走。',
+    'Robin following the spade again. Stand back, let it take that worm.',
   ],
   [
     '钥匙在围裙里。找它比翻完这块地还费劲。',
@@ -164,8 +164,8 @@ const margaretLines = lines('margaret', [
     "Fence is leaning again. Fix it? Let's see if it falls first.",
   ],
   [
-    '胡萝卜歪成这样，洗起来费水，吃着倒没差。',
-    'Crooked carrot. More washing, same dinner.',
+    '歪萝卜也切进锅里，尝一块，今天我想炖软些。',
+    'Crooked carrots in the pot too. Taste one. Softer stew today.',
   ],
   [
     '土豆才出芽，晚霜还没走。春天真会拖事。',
@@ -176,8 +176,8 @@ const margaretLines = lines('margaret', [
     "Tulips are up. Which ones did I plant? We'll see when they flower.",
   ],
   [
-    '草莓网得补。春天忙的事，鸽子一件也不做。',
-    'Strawberry net needs mending. Pigeons never do the spring jobs.',
+    '草莓网这里松了，帮我提住，我把底下那圈压好。',
+    "Strawberry net loose here. Hold it up; I'll secure the bottom.",
   ],
   [
     '红了也等一等！我这番茄还酸得倒牙。',
@@ -220,8 +220,8 @@ const margaretLines = lines('margaret', [
     "Cloud's thick. More weather coming, I'd say. Put the tea on.",
   ],
   [
-    '雪一盖，杂草都看不见。就当我收拾过了。',
-    "Snow's hidden the weeds. Let's call that tidied.",
+    '雪把路遮住了，先扶这边篱笆，我去取扫帚。',
+    "Snow over the path. Hold this fence; I'll get the broom.",
   ],
   [
     '你认出这件破雨衣了。倒比认花苗快。',
@@ -311,155 +311,164 @@ for (let i = 36; i < 40; i++) margaretLines[i].festival = 'bonfire-night';
 
 const adeLines = lines('ade', [
   [
-    '早。今日清单：开机，找密码，怀疑密码。',
-    "Morning. Today's list: log in, find password, doubt password.",
-  ],
-  ['会有饼干。补充：会很长。', 'Meeting has biscuits. Addendum: long meeting.'],
-  [
-    '午饭已解冻。纠正，只有盒盖解冻了。',
-    'Lunch defrosted. Correction: just the lid.',
+    '早，先开机（密码我记在家里了），我去取备用本。',
+    "Morning. Boot up first (the password is at home). I'll fetch my spare book.",
   ],
   [
-    '工牌线缠耳机。两件设备，一个死结。',
-    'Badge caught in headphones. Two devices, one knot.',
-  ],
-  ['茶包补了。牛奶那项，暂未认领。', 'Tea restocked. Milk item: unassigned.'],
-  [
-    '通勤报告：车赶上了，气还没喘回来。',
-    'Commute report: caught bus. Breath still pending.',
+    '我说会很短（这是愿望），所以午饭先带进去。',
+    "I said a short meeting (that was a wish). I'll take lunch in.",
   ],
   [
-    '报销单转了三个人。还没转到付款那位。',
-    'Expenses reached three people. None able to pay them.',
+    '午饭能热了（盒盖先拿开），我刚试了下温度。',
+    "Lunch can warm up now (lid off first). I've just checked it.",
   ],
   [
-    '办公室暖气：已开启，效果待确认。',
-    'Office heating: on. Effect: awaiting confirmation.',
+    '我解耳机线，你拿工牌（别拽，我耳朵还在里面）。',
+    "I'll free the headphones. Hold the pass (gently, my ear is in there).",
   ],
   [
-    '办公室香蕉要清走。别再成立工作组了。',
-    'Office banana needs removing. No working group, please.',
+    '牛奶我去补（上次轮到我），你先把茶泡上。',
+    "I'll get milk (it was my turn last time). Put the tea on.",
   ],
   [
-    '午饭排窗边。今天有太阳，资源充分利用。',
-    'Lunch by the window. Sunshine today. Use available resources.',
+    '车赶上了（跑过来的），让我喘完这口再说。',
+    'Caught the bus (ran for it). Let me catch my breath first.',
   ],
   [
-    '春天通勤新增项目：找花粉药。',
-    'Spring commute gets a new task: find hay-fever tablets.',
+    '报销得找经手人（名字我忘了），我从第一封查起。',
+    "Need whoever handled the expenses (forgot the name). I'll trace the first email.",
   ],
   [
-    '春季目标：准时。水仙花不算迟到理由。',
-    "Spring target: punctuality. Daffodils aren't an excuse.",
+    '我把暖气开了（刚才才开），等会儿再试这边。',
+    "Heating's on (only just). I'll check this side in a bit.",
   ],
   [
-    '夏季休假表贴满冰箱。午饭无处申诉。',
-    "Summer leave covers the fridge. Lunch can't appeal.",
+    '香蕉我今天带走（那是我的），袋子先给我一只。',
+    "I'll take the bananas today (they're mine). Pass me a bag.",
   ],
   [
-    '夏天巴士像会议室。热，还不能中途退出。',
-    'Summer bus: meeting-room heat, no early exit.',
+    '今天午饭坐窗边（太阳还在），我把饭盒拿来。',
+    "Window seat for lunch (while the sun lasts). I'll get my box.",
   ],
   [
-    '秋天上班先擦鞋。落叶不接受请假。',
-    "Autumn commute: wipe shoes. Leaves won't accept leave requests.",
+    '春天先找药（花粉那种），钥匙旁边我留了一盒。',
+    'Spring: find the tablets first (for pollen). I left a box by the keys.',
   ],
   [
-    '天黑得早。下班路线开始需要反光衣了。',
-    'Dark early. Homeward commute now requires a reflective jacket.',
+    '我想春天早点到（提前一班车），先试一个星期。',
+    "I'd like earlier spring arrivals (one bus earlier). I'll try a week.",
   ],
   [
-    '冬季通勤清单少了手套。总是少这项。',
-    'Winter commute list is missing gloves. Always that item.',
+    '夏季休假表我重贴了（遮住午饭那格），往上移点？',
+    'I moved the summer leave chart (covered lunch). A little higher?',
   ],
   [
-    '冬天上班，路灯亮着。下班也亮着。',
-    'Winter work: streetlights on going in. Still on coming home.',
+    '夏天这班车我想换掉（先试走路），到树下歇会儿。',
+    "I'd change this summer bus (try walking first). Stop under the tree.",
   ],
   [
-    '雨进领口了。包没湿，人不在保护范围内。',
-    "Rain down my collar. Bag's dry. Person wasn't covered.",
+    '秋天鞋底的叶子先刮掉（我带进来的），扫帚给我。',
+    'Scrape the autumn leaves off first (I brought them in). Pass the broom.',
   ],
   [
-    '裤脚湿了。散热器工位还有空缺吗？',
-    'Wet trousers. Any vacancies by the radiator?',
-  ],
-  ['休息日又晴天？这是排班系统的奇迹。', 'Sunny day off? Rota-system miracle.'],
-  [
-    '天气审批状态：厚云，附件缺太阳。',
-    'Weather approval status: thick cloud. Sunshine attachment missing.',
+    '下班要带反光衣（天黑得早了），我再检查下包。',
+    "Need my reflective jacket after work (dark early now). I'll check my bag.",
   ],
   [
-    '雪天通勤状态：取消。终于有个明确答复。',
-    'Snow commute status: cancelled. Finally, a clear answer.',
+    '冬季手套放这里（给自己说的），明早请提醒我看。',
+    'Winter gloves go here (telling myself). Remind me to look tomorrow.',
   ],
   [
-    '午饭议程：一起排队。我负责抱怨等待时长。',
-    "Lunch agenda: queue together. I'll handle complaints about the wait.",
+    '冬天出门先认灯下的路（有冰），我带你绕那块。',
+    "In winter, check the lit path (there's ice). I'll go round with you.",
   ],
   [
-    '备用线存储位置：抽屉。具体哪个，检索中。',
-    'Spare cable location: drawer. Which drawer? Search in progress.',
+    '我先擦领口（雨灌进去了），这半边外套还能穿。',
+    "I'll dry my collar (rain got in). This half of the coat's still usable.",
   ],
   [
-    '窗边坐。会议状态：取消。饼干预算：批准。',
-    'Sit by the window. Meeting: cancelled. Biscuit budget: approved.',
+    '裤脚得先晾（椅背我擦过），坐近点也留条过道。',
+    "Trouser cuffs need drying (I've wiped the chair). Leave room to pass.",
   ],
   [
-    '帮我审一句开场白：经理，这工作量得重算。',
-    'Review my opening line: Manager, this workload needs recalculating.',
+    '休息日我想走走（先吃早饭），你选河边那条吗？',
+    "I'd like a walk on my day off (breakfast first). The river path?",
   ],
   [
-    '三明治切成表格了。工作是否超标？是。',
-    'Sandwich cut into a spreadsheet. Too much work? Yes.',
+    '云这么厚，我带外套（也许会闷），到了再脱。',
+    "Thick cloud. I'll bring a coat (might get stuffy). Take it off there.",
   ],
   [
-    '加班走时叫我。更正：到点走时叫我。',
-    'Tell me when you leave overtime. Correction: when you leave on time.',
+    '下雪我走大路（已经看过路面），出门时间往前挪。',
+    "Snow: I'll take the main road (checked the surface). Leave earlier.",
   ],
   [
-    '项目做不完。先向你口头报备，我还没敢发邮件。',
-    "Project won't be finished. Verbal notice to you first. Haven't dared email yet.",
+    '午饭先排队（这回我去），你帮我占半张桌吧。',
+    'Lunch queue first (my turn). Save me half a table.',
   ],
   [
-    '又到续签准备了？我自己的清单也没划完。',
-    "Renewal prep again? Haven't finished my own checklist either.",
+    '线在抽屉里（哪格还得找），我把东西一格格拿出。',
+    "Cable's in a drawer (still checking which). I'll empty one at a time.",
   ],
   [
-    '续签收件箱刷新了。更正：又刷了一次。',
-    'Refreshed the renewal inbox. Correction: refreshed it again.',
+    '窗边能坐（会已经取消），我先把电脑盖上。',
+    "Window seat's free (meeting cancelled). I'll close the laptop.",
   ],
   [
-    '升职了。祝贺！职责清单请另存，留个旧版。',
-    'Promoted. Congratulations! Save the job description separately. Keep the old version.',
+    '我想跟经理重谈工作量（先练一遍），你听听？',
+    'I want to renegotiate the workload (one rehearsal first). Listen?',
   ],
   [
-    '英语过了？评估关闭。午饭议题：炸鱼还是鸡？',
-    'Passed English? Assessment closed. Lunch agenda: fish or chicken?',
+    '三明治先吃（表格放远点），我今天还想准点走。',
+    "Sandwich first (forms over there). I'd like to leave on time today.",
   ],
   [
-    '周末工作群静音。紧急事项：等上班。',
-    'Weekend work chat muted. Urgent items: wait for work.',
+    '到点走时叫我（加班那句撤回），包我已经装好了。',
+    "Call me at finishing time (withdraw the overtime bit). Bag's packed.",
   ],
   [
-    '工作日才过一半。剩余待办，暂不统计。',
-    'Workday half done. Remaining tasks: not counting yet.',
+    '这项目做不完（我漏算了），邮件我现在就发。',
+    "This project won't finish (I miscalculated). I'll email now.",
   ],
   [
-    '烟花清晰。办公室投影仪，下次参考。',
-    'Clear fireworks. Office projector, take note.',
+    '你又准备续签了？我清单也摊着（照片那页还空）。',
+    "Renewal prep again? My checklist's open too (photo page still blank).",
   ],
   [
-    '太妃糖在手。牙医预约不属于今晚议程。',
-    "Toffee acquired. Dentist booking isn't on tonight's agenda.",
+    '我想关掉收件箱（只关一会儿），先跟你吃午饭。',
+    "I'd close the inbox (for a little while) and have lunch with you.",
   ],
   [
-    '篝火暖正面。背面需求，尚未处理。',
-    'Fire warms the front. Back requirement: unresolved.',
+    '升职了，祝贺！旧职责留着（以后得核工时）。',
+    'Promotion, congratulations! Keep the old duties (to check hours later).',
   ],
   [
-    '这边烟少。观赏位置已优化，会议申请驳回。',
-    'Less smoke here. Viewing position optimised. Meeting request denied.',
+    '英语过了？吃点东西吧（你挑），我去端盘子。',
+    "English passed? Let's eat (your choice). I'll get plates.",
+  ],
+  [
+    '周末工作群我关了（周一再开），先把窗打开。',
+    'Muted work chat for the weekend (back Monday). Open the window first.',
+  ],
+  [
+    '工作日剩下半天（先做一项），做完我去倒水。',
+    'Half a workday left (one task first). Water after that.',
+  ],
+  [
+    '烟花这会儿看得清（我站开些），你的杯子先扶稳。',
+    "Clear view of fireworks now (I'll step aside). Steady your cup.",
+  ],
+  [
+    '太妃糖我留半块（牙刚补过），你试试这张糖纸。',
+    'Half the toffee for me (recent filling). Try this wrapper.',
+  ],
+  [
+    '我往火边转一点（后背还冷），这位置给你留着。',
+    "I'll turn towards the fire (back's still cold). Kept this spot for you.",
+  ],
+  [
+    '这边烟少（刚才看过风向），咱们往旁边挪点。',
+    "Less smoke here (just checked the wind). Let's shift this way.",
   ],
 ]);
 for (const [season, indices] of [
@@ -915,12 +924,12 @@ const supporting: [
         'Hey, coffee first! Stared at that folder all day. My eyes are square.',
       ],
       [
-        '拒信又看一遍。烦死了，同一行字还要拐着写！',
+        '拒信又看一遍。同一行字还要拐着写！',
         'Read the refusal letter again. Maddening. That sentence goes round in circles!',
       ],
       [
-        '等电话就织围巾，喂，这长度能拴住巴士了！',
-        'Knitting while I wait for the phone. Hey, this could tether a bus!',
+        '等电话就织围巾，这长度能拴住巴士了！',
+        'Knitting while I wait for the phone. this could tether a bus!',
       ],
       [
         '陪我去车站速写？喂，车票钱可没算进去。',
@@ -1158,8 +1167,8 @@ const extraDailyLines: Record<string, [string, string][]> = {
       "Guessing the soup ingredients now? Sorry, folks, a wrong answer won't remove the celery!",
     ],
     [
-      '杯垫全垫桌脚了。杯子坐哪？好问题，下一题。',
-      'Mats under table legs. Where do glasses sit? Next question.',
+      '杯垫全垫桌脚了！给我一张菜单，杯子先放这儿。',
+      'Coasters under all the legs! Menu here, cup on that for now.',
     ],
     [
       '门铃声音怪？它也想当主持，可惜只会一句。',
@@ -1170,8 +1179,8 @@ const extraDailyLines: Record<string, [string, string][]> = {
       'Practised team names. Cat asleep. Must be my soothing delivery.',
     ],
     [
-      '那把椅子稳。惊喜留给题目，别留给屁股。',
-      'Steady chair. Surprises in the quiz, not under your backside.',
+      '那把椅子稳，坐吧！我去把摇晃那把搬到后面。',
+      'That chair is steady, sit! Wobbly one goes out the back.',
     ],
     [
       '厨房钟慢，薯条不管。计时交给鼻子，危险。',
@@ -1190,12 +1199,12 @@ const extraDailyLines: Record<string, [string, string][]> = {
       'Clean shades. Pub suddenly looks promising.',
     ],
     [
-      '春天门一开，花粉也入队。它打算包揽喷嚏题。',
-      "Spring door open. Pollen's on the team. Sneezing specialist.",
+      '春天这门还是得开，打喷嚏的进来先拿纸巾吧！',
+      'Spring door stays open. Sneezing arrivals, tissues first!',
     ],
     [
-      '夏天冰化得快。计分慢的队，自备游泳圈。',
-      'Summer ice melts fast. Slow scorers, bring a lifebelt.',
+      '夏天冰化得快，我再拿一碗来，先把杯子挪开！',
+      'Summer ice melts fast. Another bowl coming. Shift the glasses!',
     ],
     [
       '落叶进店不买饮料。我还不能把它列黑名单。',
@@ -1258,8 +1267,8 @@ const extraDailyLines: Record<string, [string, string][]> = {
       'Close the quiz book. Spilt tea makes genuine riddles.',
     ],
     [
-      '等续签信？本店加一道题：邮箱刷得过我擦杯子吗？',
-      'Waiting for your renewal letter? Bonus round: can you refresh faster than I polish glasses?',
+      '等续签信啊？茶先倒满，你讲到哪儿我都接着听。',
+      "Waiting on renewal? Full cup first. I'll listen wherever your story starts.",
     ],
     [
       '擦杯子擦湿袖口。水多没用，经验也没用。',
@@ -1434,32 +1443,32 @@ const extraDailyLines: Record<string, [string, string][]> = {
   ],
   lina: [
     [
-      '拜托，这包能装画稿，文件夹专门硌我肋骨。',
-      'Please, this bag fits sketches. That folder just digs into my ribs.',
+      '这包能装画稿，文件夹专门硌我肋骨。',
+      'This bag fits sketches. That folder just digs into my ribs.',
     ],
     [
       '咖啡凉透了——色卡倒好看。喝？算了吧。',
       "Coffee's stone cold. Nice colour swatch, though. Drink it? Pass.",
     ],
     [
-      '喂，围巾歪就歪了，我可懒得拆这一大截！',
-      "Hey, crooked scarf stays crooked. I'm not unravelling all that!",
+      '围巾歪就歪了，我可懒得拆这一大截！',
+      "Crooked scarf stays crooked. I'm not unravelling all that!",
     ],
     [
-      '猫鼻印真好画，喂，你倒等我削完铅笔啊！',
-      "Great cat noseprint. Hey, wait till I've sharpened my pencil!",
+      '猫鼻印真好画，你倒等我削完铅笔啊！',
+      "Great cat noseprint. wait till I've sharpened my pencil!",
     ],
     [
       '先吃蛋糕！邮箱刚刷过，再刷能长出糖霜吗？',
       "Cake first! Just checked my inbox. Check again and it'll grow icing?",
     ],
     [
-      '便签全塞画稿袋，烦死了，要的那张偏在最底下。',
+      '便签全塞画稿袋，要的那张偏在最底下。',
       'Notes stuffed in the sketch bag. Typical. The one I want is at the bottom.',
     ],
     [
-      '面煮多了，喂，这是晚饭还是我那团乱线稿？',
-      'Too many noodles. Hey, dinner or one of my tangled sketches?',
+      '面煮多了，这是晚饭还是我那团乱线稿？',
+      'Too many noodles. dinner or one of my tangled sketches?',
     ],
     [
       '图书馆拉链真响，我只想拿铅笔，又全看我。',
@@ -1470,7 +1479,7 @@ const extraDailyLines: Record<string, [string, string][]> = {
       'Meant to draw the pond. Drew a coffee cup. Right, another coffee.',
     ],
     [
-      '新鞋磨脚，烦死了，速写还得蹲着找角度。',
+      '新鞋磨脚，速写还得蹲着找角度。',
       'New shoes rubbing. Brilliant. Still have to crouch for sketching angles.',
     ],
     [
@@ -1478,11 +1487,11 @@ const extraDailyLines: Record<string, [string, string][]> = {
       'Such pale spring shoots. Made my green too dark again. Start over!',
     ],
     [
-      '夏天亮得晃眼，喂，阴影再黑点才压得住。',
-      "Summer light's blinding. Hey, deeper shadows or it'll wash out.",
+      '夏天亮得晃眼，阴影再黑点才压得住。',
+      "Summer light's blinding. deeper shadows or it'll wash out.",
     ],
     [
-      '秋叶擦靴子像拆信，拜托，连走路都躲不开！',
+      '秋叶擦靴子像拆信，连走路都躲不开！',
       'Autumn leaves against my boots sound like opening letters. Even out walking!',
     ],
     [
@@ -1494,7 +1503,7 @@ const extraDailyLines: Record<string, [string, string][]> = {
       "Rain's blurring the road. Drawing the café instead. Can't afford more soaked paper.",
     ],
     [
-      '晴天赶紧带速写本，喂，太阳也得排我档期！',
+      '晴天赶紧带速写本，太阳也得排我档期！',
       "Sun's out. Sketchbook, quick! Even the sun has to fit my schedule.",
     ],
     [
@@ -1506,16 +1515,16 @@ const extraDailyLines: Record<string, [string, string][]> = {
       "Weekend alarm off! Sketch bag's here. Haven't shut up shop and fled.",
     ],
     [
-      '拒信折痕硬得划手，喂，还附送一道纸口子！',
-      "Refusal letter's fold cuts my hand. Hey, complimentary paper cut!",
+      '拒信折痕硬得划手，还附送一道纸口子！',
+      "Refusal letter's fold cuts my hand. complimentary paper cut!",
     ],
     [
       '你记得我少糖，太好了，咖啡总算少吵一回。',
       'You remembered less sugar. Great. One less argument over coffee.',
     ],
     [
-      '上回那半个故事还听吗？喂，今天可没好结尾。',
-      'Want the rest of that story? Hey, no happy ending ready today.',
+      '上回那半个故事还听吗？今天可没好结尾。',
+      'Want the rest of that story? no happy ending ready today.',
     ],
     [
       '跟你走路我就收手机，老刷邮箱连电都白费。',
@@ -1526,23 +1535,23 @@ const extraDailyLines: Record<string, [string, string][]> = {
       "Kept the yarn. Come learn a join. I'll yell if you cut the wrong bit.",
     ],
     [
-      '我想讲害怕的事。拜托，励志那套先收起来。',
-      'I want to talk about being scared. Please, put the inspirational speech away.',
+      '我想讲害怕的事。励志那套先收起来。',
+      'I want to talk about being scared. put the inspirational speech away.',
     ],
     [
-      '喂，那鸭子像画歪的逗号！还敢瞪我。',
-      "Hey, that duck's a wonky comma! And it's glaring at me.",
+      '那鸭子像画歪的逗号！还敢瞪我。',
+      "That duck's a wonky comma! And it's glaring at me.",
     ],
     [
       '正面写问题，背面画鱼。烦了就翻，省纸！',
       'Questions on the front, fish on the back. Had enough? Turn it over. Saves paper!',
     ],
     [
-      '你忙续签？喂，连散步也带文件夹，手不酸吗？',
-      "Renewal keeping you busy? Hey, folder on a walk too? Doesn't your arm ache?",
+      '你忙续签？连散步也带文件夹，手不酸吗？',
+      "Renewal keeping you busy? folder on a walk too? Doesn't your arm ache?",
     ],
     [
-      '电话一响我就碰倒勺，烦死了，咖啡都被吓醒。',
+      '电话一响我就碰倒勺，咖啡都被吓醒。',
       "Phone rings, spoon goes flying. Brilliant. Even the coffee's startled.",
     ],
     [
@@ -1877,8 +1886,8 @@ const scenes: [
     'ade',
     '茶歇也有议程',
     'A tea-break agenda',
-    '工作日的茶歇，阿德打开一个写着「休息」的表格，里面还有开始时间和结束时间。\n你问这算不算又在工作。他看了看屏幕：「状态更正：管理休息。听着像多了一项工作。」\n他承认自己总怕漏掉事，连同事随口说的午饭，也会先记下再决定吃不吃。\n「茶不用提交报告吧？」你问。他把电脑扣上，杯子还没喝：「模板状态：未建。请勿提醒经理。」\n阿德把空白表格留在屏幕里，没有填今天的茶歇。「要是有人问产出，」他说，「茶消耗一口，表格填了零项。」',
-    'On a workday tea break, Ade opens a spreadsheet called “Breaks”. It has start and finish times.\nYou ask whether that counts as more work. “Status correction: managing breaks. Sounds like an extra task.” He studies the screen.\nHe admits he worries about missing things. Even a passing lunch suggestion gets written down before he decides whether to eat.\n“No report due for the tea?” you ask. He closes the laptop. “Template status: uncreated. Please don’t remind the manager.” The cup is untouched.\nAde leaves today’s break unfilled on the sheet. “If anyone asks about output,” he says, “one sip consumed, zero fields completed.”',
+    '工作日的茶歇，阿德打开一个写着「休息」的表格，里面还有开始时间和结束时间。\n你问这算不算又在工作。他看了看屏幕：「我在管理休息（这话不太对），先关掉表格。」\n他承认自己总怕漏掉事，连同事随口说的午饭，也会先记下再决定吃不吃。\n「茶不用提交报告吧？」你问。他把电脑扣上，杯子还没喝：「茶先喝（经理那项先别提），我还没拿杯子。」\n阿德把空白表格留在屏幕里，没有填今天的茶歇。「要是有人问产出，」他说，「茶消耗一口，表格填了零项。」',
+    'On a workday tea break, Ade opens a spreadsheet called “Breaks”. It has start and finish times.\nYou ask whether that counts as more work. “I am managing rest (that sounds wrong). Closing the sheet first.” He studies the screen.\nHe admits he worries about missing things. Even a passing lunch suggestion gets written down before he decides whether to eat.\n“No report due for the tea?” you ask. He closes the laptop. “Tea first (leave the manager out of it). I have not picked up the cup.” The cup is untouched.\nAde leaves today’s break unfilled on the sheet. “If anyone asks about output,” he says, “one sip consumed, zero fields completed.”',
     '聊一件今天不打算解决的事',
     'Discuss a problem you will leave unsolved',
     '安静喝茶，不列下一步',
@@ -1888,8 +1897,8 @@ const scenes: [
     'ade',
     '自动回复之外',
     'Beyond the automatic reply',
-    '阿德在茶歇里点开收件箱，又立刻关掉。他说只是看一封工作邮件，随即自己摇了头。\n「更正：续签邮件。」他说，「自动回复都背下来了。我还是想看看它有没有换个措辞。」\n你说他平时很少提。他把杯柄转了一圈：「风险：讲多了，茶歇议题就只剩续签。」\n你问要不要讲准备到哪里。他说可以，也可以聊工作；这次想由自己决定哪件先说。\n他关掉提醒：「邮件含义：待确认。剩余茶歇由我提议程，工作或者准备材料。」',
-    'Ade opens his inbox on the tea break, then closes it. He claims it was a work email, before shaking his head.\n“Correction: renewal email. I know the automatic reply by heart. Still checking whether they’ve changed a word.”\nYou say he rarely mentions it. He turns the cup handle. “Risk: mention it too often and every tea-break agenda becomes renewal.”\nYou ask whether he wants to explain where he is with preparation. He could, or talk work. This time he wants to choose which comes first.\nHe silences notifications. “Email meaning: unconfirmed. I’ll set the remaining agenda: work or paperwork.”',
+    '阿德在茶歇里点开收件箱，又立刻关掉。他说只是看一封工作邮件，随即自己摇了头。\n「那句撤回（是续签邮件）。」他说，「自动回复都背下来了。我还是想看看它有没有换个措辞。」\n你说他平时很少提。他把杯柄转了一圈：「我怕讲多了（这事还没准信），整场就只剩它。」\n你问要不要讲准备到哪里。他说可以，也可以聊工作；这次想由自己决定哪件先说。\n他关掉提醒：「邮件含义：待确认。剩余茶歇由我提议程，工作或者准备材料。」',
+    'Ade opens his inbox on the tea break, then closes it. He claims it was a work email, before shaking his head.\n“Withdraw that (it was the renewal email). I know the automatic reply by heart. Still checking whether they’ve changed a word.”\nYou say he rarely mentions it. He turns the cup handle. “I fear talking too much (still no firm news) will leave room for nothing else.”\nYou ask whether he wants to explain where he is with preparation. He could, or talk work. This time he wants to choose which comes first.\nHe silences notifications. “Email meaning: unconfirmed. I’ll set the remaining agenda: work or paperwork.”',
     '让他讲自己想讲的准备过程',
     'Hear the preparation he wants to discuss',
     '换个工作话题，等他再提',
@@ -1899,8 +1908,8 @@ const scenes: [
     'ade',
     '可靠的人也会忘',
     'Reliable people forget too',
-    '茶歇时，阿德翻出一份旧检查表，页角写着「让别人确认」。那行字被他反复描黑了。\n他说刚来这里工作时，漏接过一通家里的电话。后来每件事都写下来，却还是记不住该给谁回电。\n「绩效评语是可靠，漏接电话这项就更难报。」他说。你问他那些表格到底是在帮谁记住。\n他看了一会儿：「一半帮工作，一半证明我没散架。比例未经审计。」笑完又有点不好意思。\n他把检查表转过来，让那行黑字朝着自己：「本次范围：停一项，或者交出一项。全部人生暂缓优化。」',
-    'At tea break Ade finds an old checklist. “Ask someone to check” has been inked over repeatedly in one corner.\nWhen he first worked here, he missed a call from home. He started writing everything down, yet still forgot whom to call back.\n“Performance review said reliable. Made that missed call harder to report.” You ask whom all those spreadsheets are helping to remember.\nHe considers it. “Half for work. Half to prove I haven’t fallen apart. Unaudited figures.” He laughs, then looks a little embarrassed.\nHe turns the blackened instruction towards himself. “Scope this time: stop one thing, or hand one over. Whole-life optimisation deferred.”',
+    '茶歇时，阿德翻出一份旧检查表，页角写着「让别人确认」。那行字被他反复描黑了。\n他说刚来这里工作时，漏接过一通家里的电话。后来每件事都写下来，却还是记不住该给谁回电。\n「绩效评语是可靠，漏接电话这项就更难报。」他说。你问他那些表格到底是在帮谁记住。\n他看了一会儿：「一半帮工作（大概），另一半怕自己散架。」笑完又有点不好意思。\n他把检查表转过来，让那行黑字朝着自己：「本次范围：停一项，或者交出一项。全部人生暂缓优化。」',
+    'At tea break Ade finds an old checklist. “Ask someone to check” has been inked over repeatedly in one corner.\nWhen he first worked here, he missed a call from home. He started writing everything down, yet still forgot whom to call back.\n“Performance review said reliable. Made that missed call harder to report.” You ask whom all those spreadsheets are helping to remember.\nHe considers it. “Half for work (roughly), half from fear I might fall apart.” He laughs, then looks a little embarrassed.\nHe turns the blackened instruction towards himself. “Scope this time: stop one thing, or hand one over. Whole-life optimisation deferred.”',
     '一起删掉不必要的检查项',
     'Cut unnecessary checks together',
     '问哪些事可以交给同事',
@@ -1910,8 +1919,8 @@ const scenes: [
     'ade',
     '别替我说没事',
     'Do not say I am fine',
-    '茶歇时，阿德发现自己交出的工作表有一处错误。他重新算了两遍，脸色比杯子里的茶还淡。\n「报告暂缓。先核对一遍。」他说。你问是还没确认，还是想等没人看见时补好。他没回答。\n错误能修，但已经有人照表安排工作。现在公开，阿德得承认失手；先查完再说，别人可能多白忙一阵。\n他终于说：「目标：保住可靠的评语。当前方案：挺不可靠。」这一次他自己也笑不出来。\n你可以支持立即告知受影响的人，也可以陪他先核清范围再报告。你不替他发信，也不答应替他遮过去。',
-    'At tea break Ade finds an error in a worksheet he submitted. After checking twice, he looks paler than his tea.\n“Report deferred. One more check first.” You ask whether it is unconfirmed or he hopes to fix it unseen. He does not answer.\nThe error is repairable, but others are already arranging work from it. Speaking now means admitting failure; investigating first may waste more of their effort.\nFinally he says, “Target: retain reliable in my review. Current proposal: fairly unreliable.” This time he cannot make himself laugh.\nYou can support notifying the affected people immediately, or help establish the scope before reporting. You will neither send it for him nor promise to conceal it.',
+    '茶歇时，阿德发现自己交出的工作表有一处错误。他重新算了两遍，脸色比杯子里的茶还淡。\n「我再核一遍（已经核两遍了），然后就说。」他说。你问是还没确认，还是想等没人看见时补好。他没回答。\n错误能修，但已经有人照表安排工作。现在公开，阿德得承认失手；先查完再说，别人可能多白忙一阵。\n他终于说：「我想保住可靠（先说实话），其实是怕被看见。」这一次他自己也笑不出来。\n你可以支持立即告知受影响的人，也可以陪他先核清范围再报告。你不替他发信，也不答应替他遮过去。',
+    'At tea break Ade finds an error in a worksheet he submitted. After checking twice, he looks paler than his tea.\n“One more check (already checked twice), then I will say it.” You ask whether it is unconfirmed or he hopes to fix it unseen. He does not answer.\nThe error is repairable, but others are already arranging work from it. Speaking now means admitting failure; investigating first may waste more of their effort.\nFinally he says, “I want to stay reliable (truth first). Actually I fear being seen.” This time he cannot make himself laugh.\nYou can support notifying the affected people immediately, or help establish the scope before reporting. You will neither send it for him nor promise to conceal it.',
     '支持现在告知，先承认出错',
     'Support telling people now and admitting the mistake',
     '先核清影响再报告，承担延误',
@@ -2426,8 +2435,8 @@ lina.lines.push({
   id: 'lina-stayed',
   requires: ['lina-stayed'],
   text: text(
-    '我留下来了！先收画稿，喂，街角那幅还得重画。',
-    "I'm staying! Pack the sketches first. Hey, still have to redraw that corner.",
+    '我留下来了！先收画稿，街角那幅还得重画。',
+    "I'm staying! Pack the sketches first. still have to redraw that corner.",
   ),
 });
 
@@ -2596,8 +2605,8 @@ const introductions: Record<string, Text> = {
     'Rahman, shop on the corner. Come in, my friend. What sort of tea takes your fancy?',
   ),
   lina: text(
-    '我是莉娜，画街景。喂，小心手肘，颜料没干！',
-    "Lina. Street sketches. Hey, mind your elbow. Paint's wet!",
+    '我是莉娜，画街景。小心手肘，颜料没干！',
+    "Lina. Street sketches. mind your elbow. Paint's wet!",
   ),
   gareth: text(
     '我是加雷思，送信的。先认名字，门牌以后再认。',
@@ -2631,8 +2640,8 @@ const recentCopy: Record<string, [string, string][]> = {
       'Passed English! Read this flower name. Left my glasses in the shed again.',
     ],
     [
-      'Life in the UK 过了？得了，题册拿来垫泥靴！',
-      'Passed Life in the UK? Right, put that book under my muddy boots!',
+      'Life in the UK 过了？题册合上，坐下吃口热的。',
+      'Passed Life in the UK? Book closed. Sit and eat something hot.',
     ],
     [
       '刚回来？瞧，苗蹿高了！你行李还没它长得快。',
@@ -2653,40 +2662,40 @@ const recentCopy: Record<string, [string, string][]> = {
   ],
   ade: [
     [
-      '续签办完？任务关闭。我这材料夹还卡在照片栏。',
-      "Renewal done? Task closed. My folder's still stuck on the photo section.",
+      '续签办完了？我想庆祝（先合上材料夹），去吃咖喱吧。',
+      "Renewed? I'd celebrate (close the folder first). Curry?",
     ],
     [
-      '加薪确认了？祝贺！薪资栏更新，午饭继续自带。',
-      'Pay rise confirmed? Congratulations! Salary field updated. Still packing lunch.',
+      '加薪确认了？祝贺（午饭还带着），先给你腾个位。',
+      "Pay rise confirmed? Congratulations (still brought lunch). I'll make room.",
     ],
     [
-      '换工了？交接关闭。新密码记录位置：你脑子？',
-      'Changed jobs? Handover closed. New password storage: your head?',
+      '新工作要记密码（我忘过），你想先试哪条通勤路？',
+      'New job means a password (forgot mine once). Which commute to try first?',
     ],
     [
-      '英语过关！结项餐我提议咖喱，否决请举手。',
-      'Passed English! Proposing curry for project closure. Hands up to object.',
+      '英语过了！我想请客（咖喱那家），你把时间定一下。',
+      'English passed! My treat (the curry place). Pick a time.',
     ],
     [
-      'Life in the UK 过了？待办已划掉，笔芯也快没了。',
-      "Passed Life in the UK? Task crossed off. Pen's nearly out too.",
+      'Life in the UK 过了？清单少一项（先别添新的）。',
+      'Passed Life in the UK? One task gone (leave it gone for now).',
     ],
     [
-      '回来了？时差暂列通勤风险，闹钟请再核一次。',
-      'Back? Jet lag logged as a commuting risk. Recheck that alarm.',
+      '回来了，先休息（我差点问工作），路上累不累？',
+      'Back! Rest first (nearly asked about work). Tiring journey?',
     ],
     [
-      '预算紧？午饭合并采购，我的饭盒够装两份。',
-      'Budget tight? Joint lunch purchase. My box holds two portions.',
+      '钱紧就合着带午饭（我多煮），你留个盒子给我。',
+      "Money tight? Joint lunches (I'll cook extra). Leave me a box.",
     ],
     [
-      '状态很差？今日任务移出：听我念报表。',
-      "Feeling awful? Removed from today's tasks: listening to my report.",
+      '今天很差啊？我的报表先合上（这回真的），你说吧。',
+      'Rough day? Report closed (really, this time). Tell me.',
     ],
     [
-      '熟了以后直接报异常：我烦死那张报销表了。',
-      "Now we're familiar, direct incident report: that expenses form is driving me mad.",
+      '现在敢当面讲了（报销那张），我其实早就烦透了。',
+      "Can say it to you now (that expenses form). I'm fed up with it.",
     ],
   ],
   helen: [
@@ -2775,8 +2784,8 @@ const recentCopy: Record<string, [string, string][]> = {
       'A pay rise? The landlord was about to put prices up—kidding! Jokes are still free.',
     ],
     [
-      '换工作啦？本店题纸的职业栏还写旧的，我给你改！',
-      "New job? Your old one's on the quiz sheet. The landlord will fix that!",
+      '换工作啦？下班还顺路来吗？那张椅子我给你留！',
+      "New job! Still on your route home? I'll keep that chair!",
     ],
     [
       '英语过了！各位加一道听力：老板这笑话冷不冷？',
@@ -2795,12 +2804,12 @@ const recentCopy: Record<string, [string, string][]> = {
       'Money tight? Water it is! The landlord still owes you for that last terrible joke.',
     ],
     [
-      '今天糟透啦？哎，我把麦关了，来骂老板新出的题！',
-      "Awful day? Right, mic off. Come and tear the landlord's new questions apart!",
+      '今天糟透啦？坐吧，我把音乐关掉，先喝一口热的！',
+      'Rotten day? Sit, music off. Something hot first!',
     ],
     [
-      '最近你敢当面说题烂了！各位，这是熟客的特权。',
-      "You tell me my questions are rubbish now! Folks, that's a regular's privilege.",
+      '你现在连汤咸了都直说，老板这次真得少放一勺！',
+      'You tell me when the soup is salty now. Boss has to use one spoon less!',
     ],
   ],
   rahman: [
@@ -2847,12 +2856,12 @@ const recentCopy: Record<string, [string, string][]> = {
       'Renewal done? Hey, shut the folder. Want to sketch you having coffee.',
     ],
     [
-      '加薪了！拜托，庆功别买我这块干蛋糕，换家店！',
-      'Pay rise! Please, celebrate somewhere else. Not with this dry cake!',
+      '加薪了！庆功别买我这块干蛋糕，换家店！',
+      'Pay rise! celebrate somewhere else. Not with this dry cake!',
     ],
     [
-      '换工作啦？喂，旧工位那张画记得拿，别白送他们。',
-      "New job? Hey, take that drawing off your old desk. Don't leave them a freebie.",
+      '换工作啦？旧工位那张画记得拿，别白送他们。',
+      "New job? take that drawing off your old desk. Don't leave them a freebie.",
     ],
     [
       '英语过了！喂，替我跟咖啡师说蛋糕太干，练口语！',
@@ -2863,8 +2872,8 @@ const recentCopy: Record<string, [string, string][]> = {
       'Passed Life in the UK? Turn the practice sheet over. Cat sketch for me!',
     ],
     [
-      '回来了？喂，先讲路上有什么怪招牌，我要画！',
-      'Back? Hey, tell me the odd shop signs first. I want to draw them!',
+      '回来了？先讲路上有什么怪招牌，我要画！',
+      'Back? tell me the odd shop signs first. I want to draw them!',
     ],
     [
       '钱紧就点一杯，喂，我纸还够，空杯也能画。',
@@ -2875,8 +2884,8 @@ const recentCopy: Record<string, [string, string][]> = {
       'Rotten mood? Come swear at this paint box with me. Price went up again!',
     ],
     [
-      '敢给你看未完稿了，喂，咖啡别往边上搁啊。',
-      'Showing you unfinished work now. Hey, coffee away from the edge!',
+      '敢给你看未完稿了，咖啡别往边上搁啊。',
+      'Showing you unfinished work now. coffee away from the edge!',
     ],
   ],
   gareth: [
@@ -3033,40 +3042,40 @@ const recentCopy: Record<string, [string, string][]> = {
   ],
   'yao-flatmate': [
     [
-      '续签办完。文件进硬袋；画纸蓝袋，仍旧分开存。',
-      'Renewal done. Papers in stiff folder; drawing paper blue folder, still separate.',
+      '续签办完就把文件装硬袋，蓝袋还留给画纸，免得混起来。',
+      'File the renewed papers in the stiff bag, keeping blue for art paper so they stay separate.',
     ],
     [
-      '升职加薪，庆祝吃饭。报销单压平；便签会掉胶。',
-      'Promotion, raise, meal out. Flatten receipt; sticky note adhesive comes loose.',
+      '升职庆祝这顿我想慢慢吃，报销单先压平，便签容易掉胶。',
+      "I'd take our time over the promotion meal; flatten the expenses sheet first as notes peel away.",
     ],
     [
-      '新工作几点出门？插座错开十分钟；我把纸条改掉。',
-      "New job departure time? Ten-minute socket gap; I'll change the note.",
+      '新工作出门时间定了再改纸条，插座错开十分钟就够用。',
+      'Once your new leaving time is set, change the note; ten minutes apart will share the socket.',
     ],
     [
-      '英语过了。证书量一下；硬袋四角要留出余量。',
-      'Passed English. Measure certificate; stiff folder needs clearance at all four corners.',
+      '英语过了先量证书，硬袋四角留出余量，装进去才不会折。',
+      "Measure the passed English certificate first, leaving corner clearance so it won't fold.",
     ],
     [
-      'Life in the UK 过了。证明平放；离水壶一臂远。',
-      "Passed Life in the UK. Papers flat; an arm's length from the kettle.",
+      'Life in the UK 过了就把证明平放，离水壶远一点。',
+      'Lay the passed Life in the UK evidence flat, away from the kettle.',
     ],
     [
-      '回来了。箱子竖放靠墙；过道宽度照旧，汤在小锅。',
-      "You're back. Case upright by wall; passage width unchanged, soup in small pan.",
+      '回来的箱子先竖放靠墙，过道宽度照旧，小锅里还留着汤。',
+      'Returned suitcase upright by the wall, keeping the passage clear; soup is in the small pot.',
     ],
     [
-      '钱紧，先修旧框。量内径就行；外框报价另算。',
-      'Money tight, repair old frame. Measure inner edge; outer-frame quote separate.',
+      '钱紧就先量旧框内径，修得动才动手，外框那笔报价另算。',
+      "Money tight? Measure the old frame's inside before repairing it; the outer-frame quote is separate.",
     ],
     [
-      '今天难受就坐。右边椅脚已调平；我把裁纸机停掉。',
-      "Rough day, sit. Right chair legs levelled; I'll stop the paper cutter.",
+      '今天难受先坐稳，右边椅脚我调平了，裁纸机也停下来了。',
+      "Sit steadily if today hurts; the right chair's level now and the cutter's stopped.",
     ],
     [
-      '熟了就直报尺寸。框歪几毫米，说几毫米；我重裁。',
-      "Know me now, give exact sizes. Frame out by millimetres, say how many; I'll recut.",
+      '熟了就把框歪的尺寸直说，差几毫米报几毫米，我来重裁。',
+      "Now we're familiar, tell me exactly how far the frame is out; I'll recut those millimetres.",
     ],
   ],
 };
@@ -3400,14 +3409,14 @@ const heartReplies: Record<string, [Text, Text]> = {
       en: 'Left the door you told me about off the page. Hey, drawing this side only!',
     },
     {
-      zhCN: '上次只聊颜色真痛快，喂，灰就是灰，省掉解释！',
-      en: 'Just colours last time. What a relief! Hey, grey is grey. Explanation saved!',
+      zhCN: '上次只聊颜色真痛快，灰就是灰，省掉解释！',
+      en: 'Just colours last time. What a relief! grey is grey. Explanation saved!',
     },
   ],
   'heart-lina-4': [
     {
-      zhCN: '最初来这儿干什么，我还记得。喂，地图箭头还在呢！',
-      en: "I remember why I came here. Hey, arrow's still on the map!",
+      zhCN: '最初来这儿干什么，我还记得。地图箭头还在呢！',
+      en: "I remember why I came here. arrow's still on the map!",
     },
     {
       zhCN: '你听过我为什么难收行李，喂，光画稿就塞满两箱！',
@@ -3416,7 +3425,7 @@ const heartReplies: Record<string, [Text, Text]> = {
   ],
   'heart-lina-6': [
     {
-      zhCN: '你听我讲过停笔那阵，烦死了，那盒蓝还剩大半呢。',
+      zhCN: '你听我讲过停笔那阵，那盒蓝还剩大半呢。',
       en: 'You heard about when I stopped drawing. Maddening. Most of that blue was still left.',
     },
     {
@@ -3430,14 +3439,14 @@ const heartReplies: Record<string, [Text, Text]> = {
       en: "Show stays, introduction rewritten. Add a sneaky inspirational title and I'll tear it down!",
     },
     {
-      zhCN: '撤展少个机会，我知道。拜托，顶那标题我更来气！',
+      zhCN: '撤展少个机会，我知道。顶那标题我更来气！',
       en: 'One less opportunity with the show withdrawn. I know! That title made me angrier.',
     },
   ],
   'heart-lina-10': [
     {
-      zhCN: '你画的桌子我认得！喂，下幅画咖啡渍也行，省布景。',
-      en: 'Know your table now! Hey, coffee stain next is fine. Saves arranging a subject.',
+      zhCN: '你画的桌子我认得！下幅画咖啡渍也行，省布景。',
+      en: 'Know your table now! coffee stain next is fine. Saves arranging a subject.',
     },
     {
       zhCN: '今天画普通东西！标题写「梨」，拜托，够用了吧。',
@@ -3646,52 +3655,52 @@ const heartReplies: Record<string, [Text, Text]> = {
   ],
   'heart-yao-flatmate-2': [
     {
-      zhCN: '共用范围定了。架子中线擦掉；分区标签还在。',
-      en: 'Shared area settled. Shelf centre line erased; section labels remain.',
+      zhCN: '共用范围定了，架子中线擦掉，分区标签还在。',
+      en: 'Shared area settled. Shelf centre line erased, section labels remain.',
     },
     {
-      zhCN: '你那件私物单独标了。借用前问；合租协议照写。',
-      en: 'Your private item separately marked. Ask before borrowing; stays in flat agreement.',
+      zhCN: '你那件私物单独标了，借用前问，合租协议照写。',
+      en: 'Your private item separately marked. Ask before borrowing, stays in flat agreement.',
     },
   ],
   'heart-yao-flatmate-4': [
     {
-      zhCN: '你认领那项已问过。清单加了人名；返工少一轮。',
-      en: 'You asked about your item. Name added to list; one fewer round of rework.',
+      zhCN: '你认领那项已问过，清单加了人名，返工少一轮。',
+      en: 'You asked about your item. Name added to list, one fewer round of rework.',
     },
     {
-      zhCN: '负责人填齐。那句「你会说」划掉；责任按项分。',
-      en: "All owners filled in. “You're good at explaining” crossed out; duties item by item.",
+      zhCN: '负责人填齐，那句「你会说」划掉，责任按项分。',
+      en: "All owners filled in. “You're good at explaining” crossed out, duties item by item.",
     },
   ],
   'heart-yao-flatmate-6': [
     {
-      zhCN: '安静喝汤那回记住了。关机；两碗放齐就行。',
-      en: 'Remembered that quiet soup. Switch off; just two bowls side by side.',
+      zhCN: '安静喝汤那回记住了，等关机后，两碗放齐就行。',
+      en: 'Remembered that quiet soup. Switch off, just two bowls side by side.',
     },
     {
-      zhCN: '按约定，独处会直说。时间报清；脸色没有刻度。',
-      en: "As agreed, I'll say when I want time alone. Clear times; faces have no scale.",
+      zhCN: '按约定，独处会直说，时间报清，脸色没有刻度。',
+      en: "As agreed, I'll say when I want time alone. Clear times, faces have no scale.",
     },
   ],
   'heart-yao-flatmate-8': [
     {
-      zhCN: '上板先征求同意。字写齐也先问；已擦掉重写。',
-      en: 'Ask agreement before pinning. Straight handwriting still needs asking; erased and redone.',
+      zhCN: '上板先征求同意，字写齐也先问，已擦掉重写。',
+      en: 'Ask agreement before pinning. Straight handwriting still needs asking, erased and redone.',
     },
     {
-      zhCN: '那次谈到一半暂停。铅笔留板边；继续时从这行起。',
-      en: 'That discussion paused halfway. Pencil beside board; resume from this line.',
+      zhCN: '那次谈到一半暂停，铅笔留板边，继续时从这行起。',
+      en: 'That discussion paused halfway. Pencil beside board, resume from this line.',
     },
   ],
   'heart-yao-flatmate-10': [
     {
-      zhCN: '你加的停顿已描上。地图铅笔画；两个人都能改。',
-      en: 'Your added pause marked. Pencil map; both can alter it.',
+      zhCN: '你加的停顿已描上，地图铅笔画，两个人都能改。',
+      en: 'Your added pause marked. Pencil map, both can alter it.',
     },
     {
-      zhCN: '地图新改一笔。门口宽度重新量；鞋架已挪开。',
-      en: 'Another map revision. Entrance width remeasured; shoe rack moved.',
+      zhCN: '地图新改一笔，门口宽度重新量，鞋架已挪开。',
+      en: 'Another map revision. Entrance width remeasured, shoe rack moved.',
     },
   ],
 };
