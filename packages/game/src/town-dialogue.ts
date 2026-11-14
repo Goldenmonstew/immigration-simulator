@@ -79,8 +79,8 @@ const copy: Record<string, [string, string][]> = {
       'Keep the cracked pot. Put it round a sound one for protection.',
     ],
     [
-      '蛋盒分种子。写清名字，我可没本事凭样子认全。',
-      "Seeds in an egg box. Label them. I can't recognise every one.",
+      '蛋盒给我装种子，名字写在盖上，这回留大点字。',
+      'Egg box for seeds. Names on the lid, larger letters this time.',
     ],
     [
       '小屋挂绳别叠着。找个壶，要解半天结。',
@@ -95,8 +95,8 @@ const copy: Record<string, [string, string][]> = {
       "New trowel rubs. I'll use this one with the paint flaking off.",
     ],
     [
-      '豆子铺在报纸上。新闻看不了，晚饭倒能看见。',
-      "Beans over the paper. Can't read the news; can see dinner.",
+      '豆子铺这张报纸上吧，晚饭留一把给我，其余你分。',
+      'Beans on this newspaper. A handful for my dinner; share the rest.',
     ],
     [
       '壶盖拴住了。响就响吧，总好过掉到土里。',
@@ -141,66 +141,69 @@ const copy: Record<string, [string, string][]> = {
       "Sofia, you set today's agenda. I'll handle shutting up and remembering it.",
     ],
     [
-      '复印机输出空白。需求描述里没说要有字。',
-      'Copier printed blank. Requirements never specified words.',
+      '复印件我去重打（刚才少选一页），这张先给我。',
+      "I'll reprint it (missed a page in the selection). That sheet, please.",
     ],
     [
-      '你经历过续签了。我的材料还在核对，没结论。',
-      "You've been through renewal. Still checking my papers. No conclusion.",
+      '你经历过续签了。我也还在核对（先说到这里）。',
+      "You've been through renewal. I'm still checking (that's as far as I can say).",
     ],
     [
-      '烤饼硬了。办公室防滑垫，倒是有着落。',
-      'Scones are hard. Office non-slip mats sorted, then.',
+      '烤饼我热一下（自己烤的），黄油放在你手边。',
+      "I'll warm the scones (made them myself). Butter's beside you.",
     ],
     [
-      '抽屉卡尺子。故障定位完成，工作尚未开始。',
-      'Ruler jammed the drawer. Fault found. Work not started.',
+      '抽屉卡住了（我塞的尺），给我点空地方来清。',
+      "Drawer's stuck (my ruler in there). Give me room to clear it.",
     ],
     [
-      '戴夫的题册没目录。我申请的目录也没下文。',
-      "No index in Dave's quiz book. My index request went nowhere.",
+      '戴夫那本我想借（先问本人），拿来查一段旧题。',
+      "I'd borrow Dave's book (ask him first) to check an old question.",
     ],
     [
-      '拉赫曼算完了，我计算器才开机。流程得改。',
-      'Rahman finished before my calculator started. Process needs reviewing.',
+      '钱还没数完（我按错键），让拉赫曼先核他的。',
+      'Still counting (wrong calculator key). Let Rahman check his first.',
     ],
     [
-      '莉娜画路线很快。我的流程图还卡在第一个框。',
-      "Lina draws routes fast. My flowchart's stuck at box one.",
+      '莉娜画完了？我想看（得先擦手），墨还没干。',
+      "Lina finished? I'd like a look (wash hands first). Ink's still wet.",
     ],
     [
-      '跟你讲过后，续签那栏写成「等信」，总算写准。',
-      'After our talk, the renewal column says waiting for a letter. Accurate at last.',
+      '上回讲完后我记了「等信」（只确认了这一项）。',
+      'After our talk I wrote waiting for a letter (only that part is certain).',
     ],
     [
-      '待办讲完了。切换角色：你汇报，我当记录员。',
-      "Task list done. Role swap: you report, I'll take minutes.",
+      '你说说今天吧（我会记住），自己的待办先合上。',
+      "Tell me about today (I'll remember). My task list can close.",
     ],
     [
-      '笔夹耳朵上了。库存查错位置，难怪找不到。',
-      'Pen behind my ear. Inventory checked the wrong location.',
+      '笔还在耳朵上（我自己放的），先还你那一支。',
+      "Pen's behind my ear (put it there myself). Yours back first.",
     ],
     [
-      '回形针小人没拆。难得有个不要求绩效的同事。',
-      'Kept the paper-clip figure. A colleague without performance targets.',
+      '回形针那个小人留着（桌子我来收），它放左边。',
+      "Keep the paper-clip figure (I'll clear the desk). Left-hand side.",
     ],
     [
-      '耳机又打结。昨日解决方案，今日不适用。',
-      "Headphones tangled again. Yesterday's fix no longer applies.",
+      '耳机又缠了（我昨晚乱收的），解开再放进盒。',
+      'Headphones tangled (put them away badly). Untangle, then box.',
     ],
     [
-      '仙人掌是塑料的。我给它建了浇水提醒。',
-      'Cactus was plastic. I made it a watering reminder.',
+      '那盆是塑料的（我浇过水），托盘得先擦干。',
+      'Plastic plant (I watered it). Dry the tray first.',
     ],
     [
-      '快捷键贴杯上。喝茶时顺便培训，算工时吗？',
-      'Shortcuts on my mug. Training over tea. Billable time?',
+      '快捷键我贴错了（旧版软件），喝完茶就去换。',
+      "Wrong shortcut label (old software). I'll change it after tea.",
     ],
     [
-      '新本子先写错一个字。破除完美要求，完成。',
-      'First word in new notebook: wrong. Perfection requirement removed.',
+      '新本子第一行写错了（先留着），下一行接着记。',
+      'Error on line one (leave it there). Carry on below.',
     ],
-    ['计时器响了。计的什么？未记录。', 'Timer rang. Timing what? No record.'],
+    [
+      '计时器响了（烤饼那一炉），我去关，你接着讲。',
+      "Timer rang (batch of scones). I'll turn it off. Carry on.",
+    ],
   ],
   helen: [
     [
@@ -405,68 +408,68 @@ const copy: Record<string, [string, string][]> = {
   ],
   dave: [
     [
-      '林遥，报错能出成题吗？惩罚是重启，公平。',
-      'Yao, make errors into quiz questions? Penalty: reboot.',
+      '林遥，你这电脑声音小点好，我还得听厨房喊菜！',
+      'Yao, turn that computer down a touch. Need to hear the kitchen!',
     ],
     [
-      '林遥，小票不是题纸。虽然算钱也挺考脑子。',
-      "Yao, receipt's not a quiz. Though the total tests you.",
+      '林遥，小票先拿稳！汤来了，腾开这半张桌。',
+      'Yao, keep that receipt! Soup coming. Half the table clear, please.',
     ],
     [
-      '林遥，程序出错就重启，主持出错能这么办吗？',
-      'Yao, you reboot a broken programme. Can you do that to a quiz host?',
+      '林遥，我把灯调亮点，你看屏幕还是看菜单？',
+      'Yao, lights up a little. Screen or menu for you?',
     ],
     [
-      '嘉宁，孩子愿意出题？我得先保护主持的面子。',
-      'Your child writes questions, Ka Ning? Protect my dignity first.',
+      '嘉宁，孩子吃什么？我去厨房问还有没有小碟。',
+      "Ka Ning, what's your child having? I'll ask about small plates.",
     ],
     [
-      '嘉宁，接送群要出问答，我肯定初赛淘汰。',
-      "School-run chat quiz, Ka Ning? I'd fail the heats.",
+      '嘉宁，接送群的事坐下讲，我这壶刚续过水。',
+      'Ka Ning, sit and tell me about the school-run group. Fresh water in the pot.',
     ],
     [
-      '嘉宁，家长也能组队。队名别写接送待命。',
-      "Parents can team up, Ka Ning. Don't call it School-run Standby.",
+      '嘉宁，一家人坐靠窗这桌吧，椅子我来添。',
+      "Ka Ning, window table for the family. I'll fetch chairs.",
     ],
     [
       '索菲娅，家乡笑话讲来听。笑慢了，算我网慢。',
-      "Joke from home, Sofia? Slow laugh means my connection's bad.",
+      'Sofia, tell a hometown joke. Late laugh is my connection.',
     ],
     [
-      '你和杰米组队？先说好，抢答不等于抢话。',
-      "You and Jamie teaming up? Buzzing isn't talking over each other.",
+      '你和杰米要分着点？我多拿个碟，汤别分洒了！',
+      'Sharing with Jamie? Extra plate. Keep the soup in its bowl!',
     ],
     [
       '索菲娅，讲错一个词不扣分。扣分归我说了算。',
-      "Wrong word loses no points, Sofia. I'm in charge of points.",
+      'One wrong word loses no points, Sofia. Points are my department.',
     ],
     [
       '黑板写错字了。特邀校对员，工资是一声谢谢。',
-      'Typo on the board. Guest proofreader paid in thanks.',
+      'Blackboard typo. Guest proofreader, paid in thanks.',
     ],
     [
-      '队名这么长？好，念完就该中场休息了。',
-      'Team name that long? Break time by the end of it.',
+      '你这名字我怕念错，先教老板一遍，来，慢些。',
+      'Might get your name wrong. Teach the boss once, slowly.',
     ],
     [
-      '钓到梭子鱼了？问它会不会答题，缺个队员。',
-      "Caught a pike? Ask if it quizzes. We're a player short.",
+      '钓到梭子鱼啦？手张这么大，我得腾张桌听！',
+      'Caught a pike? Hands that far apart? Need table space for this story!',
     ],
     [
-      '客人说题太难。我说对，否则我哪有优越感？',
-      'Quiz too hard? Of course. Where else would I feel clever?',
+      '客人嫌吵，我把音乐关了。来，先让我说完。',
+      'Too loud for a customer, so music off. Let me finish, then.',
     ],
     [
-      '阿德想给题册编目录。先给我脑子也编一个。',
-      'Ade wants a quiz index. My brain could use one too.',
+      '阿德借我那支笔还在这儿，我每回找都先喊他。',
+      "Ade's pen's still here. I call him first whenever I need it.",
     ],
     [
-      '海伦问问题等答案。我有时等到忘了问题。',
-      'Helen waits for answers. I sometimes forget the question meanwhile.',
+      '海伦上回来借书，我还夹着菜单，差点一起借走。',
+      'Helen borrowed a book. Nearly lent my menu with it.',
     ],
     [
-      '拉赫曼算得比计分器快。得请他当裁判。',
-      'Rahman beats the scorer. Must recruit him as judge.',
+      '拉赫曼这回来得早，我能跟他一起坐着吃口热的。',
+      "Rahman's early. I can sit and eat something hot with him.",
     ],
     [
       '听过老板掉链子，你还来？本店荣幸，真的。',
@@ -609,8 +612,8 @@ const copy: Record<string, [string, string][]> = {
   ],
   lina: [
     [
-      '林遥，画坏翻面啊！喂，我的纸可贵着呢。',
-      'Turn a bad sketch over, Yao! Hey, my paper costs money.',
+      '林遥，画坏翻面啊！我的纸可贵着呢。',
+      'Turn a bad sketch over, Yao! my paper costs money.',
     ],
     [
       '林遥，围巾两头差一截，拆？我才懒得拆！',
@@ -625,16 +628,16 @@ const copy: Record<string, [string, string][]> = {
       "Child draws big people, Ka Ning? Fine. House isn't paying for the sketch!",
     ],
     [
-      '嘉宁，你自己的路线呢？喂，别又拿全家的糊弄我。',
-      "Your own route, Ka Ning? Hey, don't hand me the whole family's again.",
+      '嘉宁，你自己的路线呢？别又拿全家的糊弄我。',
+      "Your own route, Ka Ning? don't hand me the whole family's again.",
     ],
     [
       '嘉宁，先让孩子选颜料，涂紫就紫，洗笔我来。',
       "Let your child pick the paint, Ka Ning. Purple it is. I'll wash the brushes.",
     ],
     [
-      '索菲娅，又拍侧脸？喂，正脸画坏了还能翻纸！',
-      'Another profile, Sofia? Hey, bad full-face portrait, just turn the paper over!',
+      '索菲娅，又拍侧脸？正脸画坏了还能翻纸！',
+      'Another profile, Sofia? bad full-face portrait, just turn the paper over!',
     ],
     [
       '你说给杰米听的那扇家门，我要画！里面什么色？',
@@ -645,24 +648,24 @@ const copy: Record<string, [string, string][]> = {
       'Half the paper each, Sofia! However much we draw, we buy our own coffee.',
     ],
     [
-      '蓝丝带折皱了？喂，别熨，我正缺这种褶子画。',
-      'Ribbon creased? Hey, leave the iron. Need those folds for a drawing.',
+      '蓝丝带折皱了？别熨，我正缺这种褶子画。',
+      'Ribbon creased? leave the iron. Need those folds for a drawing.',
     ],
     [
-      '画完又卡标题！拜托，叫「还没想好」行吧？',
-      "Finished drawing, stuck on title! Please, can I call it “Haven't Decided”?",
+      '画完又卡标题！叫「还没想好」行吧？',
+      "Finished drawing, stuck on title! can I call it “Haven't Decided”?",
     ],
     [
       '鱼只露背，喂，底下我乱画，你有意见就游上来！',
       "Fish shows its back. Hey, I'll invent the rest. Object? Swim up here!",
     ],
     [
-      '门把手画反了！烦死了，怪不得开得像往里砸。',
+      '门把手画反了！怪不得开得像往里砸。',
       "Drew the handle backwards! No wonder it looks like it's smashing inwards.",
     ],
     [
-      '海伦问歪线？喂，那是路，我拿脚走过的！',
-      "Helen asked about the crooked line. Hey, it's a road. I've walked it!",
+      '海伦问歪线？那是路，我拿脚走过的！',
+      "Helen asked about the crooked line. it's a road. I've walked it!",
     ],
     [
       '玛格丽特认出小屋了，喂，我门还画错了呢！',
@@ -673,16 +676,16 @@ const copy: Record<string, [string, string][]> = {
       "Draw on the back of wrapping paper! Front hurts my eyes. Paint won't show.",
     ],
     [
-      '那段旧事你听过，我直接接着骂，喂，听着啊。',
-      'You know the old story. Picking up my rant where I left it. Hey, listen.',
+      '那段旧事你听过，我直接接着骂，听着啊。',
+      'You know the old story. Picking up my rant where I left it. listen.',
     ],
     [
       '跟你讲过，画稿里那条路我居然舍得擦了。稀奇！',
       'Told you about it. Actually managed to erase that road in my sketch. Wonders!',
     ],
     [
-      '削笔屑像花，喂，别压，我要照这个卷儿画。',
-      'Shavings look like flowers. Hey, leave them. Want to draw that curl.',
+      '削笔屑像花，别压，我要照这个卷儿画。',
+      'Shavings look like flowers. leave them. Want to draw that curl.',
     ],
     [
       '新橡皮也太贵了！我擦一块，心里就骂一次。',
@@ -693,8 +696,8 @@ const copy: Record<string, [string, string][]> = {
       'Double-stitched bag base! Sketches fell out last time. Swore all the way down the street.',
     ],
     [
-      '空本先夹书签，喂，抢个开画位置也算开始嘛。',
-      'Bookmark in the empty pad. Hey, claiming my starting page counts as starting.',
+      '空本先夹书签，抢个开画位置也算开始嘛。',
+      'Bookmark in the empty pad. claiming my starting page counts as starting.',
     ],
     [
       '咖啡渍像岛，船却像土豆——行，画把叉吃了它！',
@@ -705,8 +708,8 @@ const copy: Record<string, [string, string][]> = {
       "Drawing's hiding the book title? Hey, move my picture before borrowing it.",
     ],
     [
-      '短铅笔卷纸里，又滚跑！拜托，我连纸都省着用。',
-      "Stubby pencil rolled in paper. Rolled away again! Please, I'm rationing paper too.",
+      '短铅笔卷纸里，又滚跑！我连纸都省着用。',
+      "Stubby pencil rolled in paper. Rolled away again! I'm rationing paper too.",
     ],
   ],
   gareth: [
@@ -1449,28 +1452,28 @@ const everydayCopy: Record<string, [string, string][]> = {
   ],
   lina: [
     [
-      '我最烦画手，脸明明笑着，拳头却攥死；喂，模特松一下行吗，我的炭笔都快掰断了。',
-      "Hands drive me mad. Face smiles, fist clenched. Hey, model, loosen up! I'm nearly snapping the charcoal.",
+      '我最烦画手，脸明明笑着，拳头却攥死；模特松一下行吗，我的炭笔都快掰断了。',
+      "Hands drive me mad. Face smiles, fist clenched. model, loosen up! I'm nearly snapping the charcoal.",
     ],
     [
       '河岸我又画直了，水像堵住。烦死了，站远才能看清弯，可离远我又认不出自己的画。',
       'Drew the bank straight again. Water looks blocked. Maddening. Stand back to see the bend; too far to see my drawing.',
     ],
     [
-      '换个针法就像换线了！喂，怪不得我老买同色，店员也真敢卖，明明家里还堆着一袋。',
+      '换个针法就像换线了！怪不得我老买同色，店员也真敢卖，明明家里还堆着一袋。',
       'Different stitch, looks like different yarn! No wonder I buy the same colour. Shop happily sells it. Bagful at home!',
     ],
     [
-      '街景里的人我最后画，喂，谁叫他们走那么快？我才描到鞋，人家已拐了两个路口。',
-      "People go in last in street scenes. Hey, why so fast? Got as far as a shoe and they've turned two corners.",
+      '街景里的人我最后画，谁叫他们走那么快？我才描到鞋，人家已拐了两个路口。',
+      "People go in last in street scenes. why so fast? Got as far as a shoe and they've turned two corners.",
     ],
     [
       '两种颜色挨一起就吵，分开看都好。烦死了，我挑半天的绿，挨着红就像圣诞包装纸。',
       'Two colours fight side by side. Fine alone. My carefully chosen green turns into Christmas wrapping beside red. Typical.',
     ],
     [
-      '你夸像，我偏看见擦坏的角，喂，夸大声点行吗？我这破眼睛，总先挑自己画的毛病。',
-      'You say it looks right; I see the rubbed corner. Hey, louder praise? These eyes always pick faults in my own work.',
+      '你夸像，我偏看见擦坏的角，夸大声点行吗？我这破眼睛，总先挑自己画的毛病。',
+      'You say it looks right; I see the rubbed corner. louder praise? These eyes always pick faults in my own work.',
     ],
     [
       '毛线小样我得留，扔掉就忘针法。上回嫌乱收拾一通，结果拆了半条围巾才想起来。',
@@ -1481,23 +1484,23 @@ const everydayCopy: Record<string, [string, string][]> = {
       "Drawing that flattened grass. Hey, don't sit yet! Person sits there, I redraw. Only just mixed that dark green.",
     ],
     [
-      '衣服褪色我倒爱，新的亮得像画材店样本。拜托，我出门喝咖啡，又不是替颜料打广告。',
-      "Like faded clothes. New ones glow like art-shop samples. Please, I'm getting coffee, not advertising paint.",
+      '衣服褪色我倒爱，新的亮得像画材店样本。我出门喝咖啡，又不是替颜料打广告。',
+      "Like faded clothes. New ones glow like art-shop samples. I'm getting coffee, not advertising paint.",
     ],
     [
-      '你看桥，我看鞋泥，喂，各画各的！我这张纸可挤不下两个人的桥，更挤不下那排树。',
-      "You see the bridge, I see muddy shoes. Hey, draw our own! My paper can't fit two bridges, never mind those trees.",
+      '你看桥，我看鞋泥，各画各的！我这张纸可挤不下两个人的桥，更挤不下那排树。',
+      "You see the bridge, I see muddy shoes. draw our own! My paper can't fit two bridges, never mind those trees.",
     ],
     [
       '织一行我就停一下，漏针返工才真烦。你讲啊，我耳朵闲着，手上这节拆完才能接话。',
       'Pause after each row. Dropped stitches are a pain. Go on, ears are free. Need to undo this bit before I answer.',
     ],
     [
-      '苹果削掉一角好画多了，喂，圆得太整齐像广告！我可没收水果店的钱，干吗画那么亮。',
+      '苹果削掉一角好画多了，圆得太整齐像广告！我可没收水果店的钱，干吗画那么亮。',
       "Apple's easier with a corner cut. Too perfect looks like an ad! Fruit shop isn't paying. Why make it that shiny?",
     ],
     [
-      '要我画快？行，喂，画坏你负责咖啡钱！上次赶街景，钟楼画成烟囱，我还擦不干净。',
+      '要我画快？行，画坏你负责咖啡钱！上次赶街景，钟楼画成烟囱，我还擦不干净。',
       "Faster sketch? Fine! Bad drawing, coffee's on you. Rushed a street scene once. Clock tower became an indelible chimney.",
     ],
     [
@@ -1505,11 +1508,11 @@ const everydayCopy: Record<string, [string, string][]> = {
       'Plain cloth needs touching. Photos flatten it. Maddening! Tried three pencils to keep that roughness in the sketch.',
     ],
     [
-      '楼梯回声我也想画，画完像排牙。喂，谁有意见先上去踩两脚，再来教我怎么改稿。',
-      'Tried drawing staircase echoes. Looks like teeth. Hey, critics can stomp upstairs before telling me how to fix it.',
+      '楼梯回声我也想画，画完像排牙。谁有意见先上去踩两脚，再来教我怎么改稿。',
+      'Tried drawing staircase echoes. Looks like teeth. critics can stomp upstairs before telling me how to fix it.',
     ],
     [
-      '狗尾巴我又认成鼻子了，喂，它卷那么紧干吗！两张脸现在擦掉哪张，我都觉得心虚。',
+      '狗尾巴我又认成鼻子了，它卷那么紧干吗！两张脸现在擦掉哪张，我都觉得心虚。',
       "Mistook the dog's tail for its nose again. Why curl so tight? Two faces now. Feel guilty erasing either one.",
     ],
     [
@@ -1517,11 +1520,11 @@ const everydayCopy: Record<string, [string, string][]> = {
       "Leaving a gap in this circle! Closed, it's a stamp. Drawing a cup mark, not stamping someone's paperwork approved.",
     ],
     [
-      '毛线贴手是真软，喂，先让我摸会儿再问织什么！我买的时候脑子一热，图样还没挑。',
-      "This yarn's so soft. Hey, let me feel it before asking what I'm making! Impulse purchase. Haven't picked a pattern.",
+      '毛线贴手是真软，先让我摸会儿再问织什么！我买的时候脑子一热，图样还没挑。',
+      "This yarn's so soft. let me feel it before asking what I'm making! Impulse purchase. Haven't picked a pattern.",
     ],
     [
-      '这块空白又留错了，画挤成一团！烦死了，擦掉半个屋顶也救不回，我得重新找张纸。',
+      '这块空白又留错了，画挤成一团！擦掉半个屋顶也救不回，我得重新找张纸。',
       "Left the gap wrong. Everything's cramped! Half a roof erased, still hopeless. Maddening. Need another sheet.",
     ],
     [
@@ -1529,11 +1532,11 @@ const everydayCopy: Record<string, [string, string][]> = {
       "Pencil sideways brings out the grain. Saves all those dots! Complained it was rough. Now I won't change paper.",
     ],
     [
-      '布洗过才软，我刚买那块硬得能刮颜料！喂，我是缝包，不是拿它刮干净整张画板。',
-      'Cloth softens after washing. New bit could scrape paint! Hey, making a bag, not cleaning the entire palette with it.',
+      '布洗过才软，我刚买那块硬得能刮颜料！我是缝包，不是拿它刮干净整张画板。',
+      'Cloth softens after washing. New bit could scrape paint! making a bag, not cleaning the entire palette with it.',
     ],
     [
-      '又把线拉太紧，衣服皱成拒信！烦死了，我还得拆开，剪刀怎么偏偏这时候找不到。',
+      '又把线拉太紧，衣服皱成拒信！我还得拆开，剪刀怎么偏偏这时候找不到。',
       "Pulled thread too tight again. Cloth's crumpled like the refusal letter! Now to unpick it. Where are the scissors?",
     ],
     [
@@ -1541,7 +1544,7 @@ const everydayCopy: Record<string, [string, string][]> = {
       "Leave the brightest water as white paper. Hey, who filled it in? Blot it now. Tear it, and it's another redraw.",
     ],
     [
-      '炭粉又抹上脸，拜托，画稿倒护好了，我这鼻子怎么办！先借镜子，别先拿手机拍我。',
+      '炭粉又抹上脸，画稿倒护好了，我这鼻子怎么办！先借镜子，别先拿手机拍我。',
       'Charcoal on my face again. Sketch is safe. What about my nose? Mirror first, please. Put the camera away.',
     ],
   ],

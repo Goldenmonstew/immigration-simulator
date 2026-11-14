@@ -11,6 +11,7 @@ import { skilledWorker } from './characters/skilled-worker';
 import { hongKongBno } from './characters/hong-kong-bno';
 import { familyPartner } from './characters/family-partner';
 import { commonEvents, systemEvents } from './events/common';
+import { policyStories } from './events/policy';
 import { extensionFor, locationActions, places } from './locations';
 import { npcs, heartEvents, townHeartLetters } from './npcs';
 import { items, recipes } from './items';
@@ -47,8 +48,8 @@ const openingEvents: Record<string, GameEvent> = {
     id: 'opening-skilled-worker',
     title: { zhCN: '门边的纸箱', en: 'Boxes by the door' },
     text: {
-      zhCN: '林遥在镇上的公寓和周沅刚合租，门边还堆着没拆的纸箱。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本先放进包里。\n窗外通向菜地和池塘，街角有咖啡馆。今天先从哪儿走起？',
-      en: 'Yao has just started sharing a town flat with Yuan. Unopened boxes still stand by the door.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. The textbook goes in the bag.\nOutside lie the allotment and pond, with a café on the corner. Where to start today?',
+      zhCN: '你在镇上的公寓和周沅刚合租，门边还堆着没拆的纸箱。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本先放进包里。\n窗外通向菜地和池塘，街角有咖啡馆。今天先从哪儿走起？',
+      en: 'You have just started sharing a town flat with Yuan. Unopened boxes still stand by the door.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. The textbook goes in the bag.\nOutside lie the allotment and pond, with a café on the corner. Where to start today?',
     },
     weight: 1,
     once: true,
@@ -68,8 +69,8 @@ const openingEvents: Record<string, GameEvent> = {
     id: 'opening-hong-kong-bno',
     title: { zhCN: '餐桌旁的书包', en: 'The school bag by the table' },
     text: {
-      zhCN: '陈嘉宁和文舒、乐言住在镇上的租屋，餐桌旁靠着孩子的书包。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本放在书包旁。\n镇上能种菜、钓鱼，也能去酒吧坐坐。厨房窗外已经有人经过。',
-      en: 'Ka Ning shares a rented home in town with Man Shu and Lok Yin. The child’s school bag rests by the table.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. A textbook lies beside the school bag.\nThere are vegetables to grow, fish to catch and a pub to sit in. Someone is already passing the kitchen window.',
+      zhCN: '你和文舒、乐言住在镇上的租屋，餐桌旁靠着孩子的书包。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本放在书包旁。\n镇上能种菜、钓鱼，也能去酒吧坐坐。厨房窗外已经有人经过。',
+      en: 'You share a rented home in town with Man Shu and Lok Yin. The child’s school bag rests by the table.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. A textbook lies beside the school bag.\nThere are vegetables to grow, fish to catch and a pub to sit in. Someone is already passing the kitchen window.',
     },
     weight: 1,
     once: true,
@@ -89,8 +90,8 @@ const openingEvents: Record<string, GameEvent> = {
     id: 'opening-family-partner',
     title: { zhCN: '厨房里的早晨', en: 'A morning in the kitchen' },
     text: {
-      zhCN: '索菲娅和杰米住在镇上的租屋，厨房的锅盖还没找到合适的位置。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本挨着食谱。\n街角能买菜喝咖啡，池塘边有长椅，社区菜地也能租下一块。',
-      en: 'Sofia shares a rented home in town with Jamie. The saucepan lid still has no proper place in the kitchen.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. The textbook sits beside the recipes.\nThere is shopping and coffee on the corner, a bench by the pond, and an allotment plot to rent.',
+      zhCN: '你和杰米住在镇上的租屋，厨房的锅盖还没找到合适的位置。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本挨着食谱。\n街角能买菜喝咖啡，池塘边有长椅，社区菜地也能租下一块。',
+      en: 'You share a rented home in town with Jamie. The saucepan lid still has no proper place in the kitchen.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. The textbook sits beside the recipes.\nThere is shopping and coffee on the corner, a bench by the pond, and an allotment plot to rent.',
     },
     weight: 1,
     once: true,
@@ -110,16 +111,16 @@ const openingEvents: Record<string, GameEvent> = {
 
 const settlementScenes: Record<string, Text> = {
   'skilled-worker': {
-    zhCN: '林遥把递交后的回执放在桌上，边角压着那串早已磨亮的钥匙。\n周沅把茶杯推过来，顺手将桌边翘起的纸角压平，没再问还缺什么。\n文件夹合上时，里面的车票轻轻滑了一下。林遥伸手接住，放回原处。\n她把杯子移出文件夹留下的方印，坐下来，听厨房里的水壶慢慢安静。',
-    en: 'Yao puts the submission receipt on the table, its corner beneath her well-worn keys.\nYuan slides a cup of tea across and flattens a curling paper edge, without asking what is still missing.\nA train ticket slips as the folder closes. Yao catches it and puts it back.\nShe moves her cup out of the square left by the folder and sits, listening as the kitchen kettle falls quiet.',
+    zhCN: '你把递交后的回执放在桌上，边角压着那串早已磨亮的钥匙。\n周沅把茶杯推过来，顺手将桌边翘起的纸角压平，没再问还缺什么。\n文件夹合上时，里面的车票轻轻滑了一下。你伸手接住，放回原处。\n你把杯子移出文件夹留下的方印，坐下来，听厨房里的水壶慢慢安静。',
+    en: 'You put the submission receipt on the table, its corner beneath your well-worn keys.\nYuan slides a cup of tea across and flattens a curling paper edge, without asking what is still missing.\nA train ticket slips as the folder closes. You catch it and put it back.\nYou move your cup out of the square left by the folder and sit, listening as the kitchen kettle falls quiet.',
   },
   'hong-kong-bno': {
-    zhCN: '陈嘉宁把递交后的回执夹好，餐桌上的文件终于能挪回抽屉里。\n文舒端来热茶，先挪开桌角的饭盒，才发现杯垫还压在文件夹下面。\n乐言把画纸铺到空出来的地方，笔帽滚向嘉宁，被她伸手轻轻拦住。\n她将笔帽放回画纸旁，靠着椅背看孩子添上窗户，茶杯就在手边。',
-    en: 'Ka Ning files the submission receipt. The papers on the dining table can finally go back in the drawer.\nMan Shu brings tea and shifts a lunch box, then finds the coasters underneath the folder.\nLok Yin spreads drawing paper over the cleared space. A pen lid rolls towards Ka Ning, who catches it.\nShe puts it beside the drawing and leans back to watch the child add a window, her tea within reach.',
+    zhCN: '你把递交后的回执夹好，餐桌上的文件终于能挪回抽屉里。\n文舒端来热茶，先挪开桌角的饭盒，才发现杯垫还压在文件夹下面。\n乐言把画纸铺到空出来的地方，笔帽滚向你，被你伸手轻轻拦住。\n你将笔帽放回画纸旁，靠着椅背看孩子添上窗户，茶杯就在手边。',
+    en: 'You file the submission receipt. The papers on the dining table can finally go back in the drawer.\nMan Shu brings tea and shifts a lunch box, then finds the coasters underneath the folder.\nLok Yin spreads drawing paper over the cleared space. A pen lid rolls towards you, and you catch it.\nYou put it beside the drawing and lean back to watch the child add a window, your tea within reach.',
   },
   'family-partner': {
-    zhCN: '索菲娅把递交后的回执放进抽屉，手指在文件夹的折角上停了一下。\n桌上还摊着写过又改的便条，她把有用的夹好，余下的翻过来当草稿。\n杯沿留下的茶印已经干了，她拿湿布慢慢擦掉，露出原来的木纹。\n她把空出来的地方留给晚饭，坐下脱掉鞋子，窗外传来熟悉的关门声。',
-    en: 'Sofia puts the submission receipt in the drawer, pausing over a bent corner of the folder.\nRewritten notes still cover the table. She files the useful ones and turns the others over for scrap paper.\nThe tea ring has dried. She wipes it slowly away, revealing the grain of the wood.\nShe leaves the cleared space for dinner and sits down to take off her shoes. A familiar door closes outside.',
+    zhCN: '你把递交后的回执放进抽屉，手指在文件夹的折角上停了一下。\n桌上还摊着写过又改的便条，你把有用的夹好，余下的翻过来当草稿。\n杯沿留下的茶印已经干了，你拿湿布慢慢擦掉，露出原来的木纹。\n你把空出来的地方留给晚饭，坐下脱掉鞋子，窗外传来熟悉的关门声。',
+    en: 'You put the submission receipt in the drawer, pausing over a bent corner of the folder.\nRewritten notes still cover the table. You file the useful ones and turn the others over for scrap paper.\nThe tea ring has dried. You wipe it slowly away, revealing the grain of the wood.\nYou leave the cleared space for dinner and sit down to take off your shoes. A familiar door closes outside.',
   },
 };
 const festivalResults: Record<FestivalId, Text[]> = {
@@ -259,6 +260,7 @@ function pool(state: GameState) {
     ...commonEvents,
     ...characterOf(state.characterId).events,
     ...systemEvents,
+    ...policyStories.map((story) => story.event),
     ...Object.values(openingEvents),
     ...heartEvents,
     ...townHeartLetters,
@@ -327,7 +329,13 @@ function timeWindow(event: GameEvent, start: number, end: number) {
   return { start, end };
 }
 function available(state: GameState, event: GameEvent, drawing = false) {
+  const story = policyStories.find((story) => story.event.id === event.id);
   return (
+    (!story ||
+      ((!story.character || story.character === state.characterId) &&
+        story.published <= state.date &&
+        state.date < story.until &&
+        state.day.date < story.until)) &&
     !(
       state.timeline.lifeInTheUk &&
       'passed' in state.timeline.lifeInTheUk &&
@@ -374,6 +382,9 @@ function draw(state: GameState, count: number) {
     );
     setFlags(state, [`quarter-board-${notice.id}`]);
   }
+  for (const { event } of policyStories)
+    if (available(state, event) && !state.eventQueue.includes(event.id))
+      state.eventQueue.push(event.id);
   for (let i = 0; i < count; i++) {
     const candidates = [
       ...commonEvents,
@@ -781,6 +792,25 @@ export function activities(state: GameState, place: PlaceId): Activity[] {
     .filter((a) => {
       if (a.id === 'assessment') return true;
       if (
+        a.id.startsWith('furnish-') &&
+        state.flags.includes(`furnished-${a.id.slice(8)}`)
+      )
+        return false;
+      if (
+        a.id === 'rent-brighter-home' &&
+        (state.flags.includes('brighter-home') ||
+          state.stats.money <
+            b.lifestyleReserve[state.characterId] +
+              b.housingDeposit +
+              b.housingMoveCost)
+      )
+        return false;
+      if (
+        a.id === 'walking-club' &&
+        state.flags.includes('quarter-walking-club')
+      )
+        return false;
+      if (
         state.pendingEvent ||
         state.trip ||
         state.day.minute + a.minutes > closingTime(state, place)
@@ -912,6 +942,15 @@ export function doActivity(state: GameState, actionId: string): GameState {
   const next = structuredClone(state);
   const changed = applyEffects(next, action.effects);
   next.day.done.push(action.id);
+  if (action.id === 'rent-brighter-home')
+    setFlags(next, ['brighter-home', 'quarter-housing-change']);
+  if (action.id === 'leave-brighter-home') {
+    next.flags = next.flags.filter((flag) => flag !== 'brighter-home');
+    setFlags(next, ['quarter-housing-change']);
+  }
+  if (action.id === 'walking-club') setFlags(next, ['quarter-walking-club']);
+  if (action.id.startsWith('furnish-'))
+    setFlags(next, [`furnished-${action.id.slice(8)}`]);
   if (action.id === 'extend')
     setFlags(next, ['visa-renewed', 'quarter-visa-renewed']);
   if (action.id === 'overtime') setFlags(next, ['worked-overtime']);
@@ -1071,6 +1110,13 @@ export function resolve(state: GameState, choiceId: string): GameState {
   const changed = applyEffects(next, choice.effects);
   setFlags(next, choice.sets);
   if (
+    next.flags.includes('brighter-home') &&
+    choice.sets?.includes('cheap-housing')
+  ) {
+    next.flags = next.flags.filter((flag) => flag !== 'brighter-home');
+    applyEffects(next, [{ type: 'money', delta: b.housingDeposit }]);
+  }
+  if (
     [
       'sw-salary-talk',
       'bno-salary-review',
@@ -1181,7 +1227,15 @@ export function endQuarter(state: GameState): GameState {
         ).length *
           b.rentRisePerQuarter,
     },
-    { type: 'stat', key: 'mood', delta: -b.moodDecay },
+    {
+      type: 'stat',
+      key: 'mood',
+      delta:
+        -b.moodDecay -
+        Math.round(
+          Math.max(0, state.stats.mood - b.moodWearThreshold) * b.moodWearRate,
+        ),
+    },
     // Slow skills fade a whole point every other quarter so stats stay integers.
     { type: 'stat', key: 'english', delta: played % 2 ? 0 : -b.englishDecay },
     { type: 'stat', key: 'career', delta: played % 2 ? 0 : -b.careerDecay },
@@ -1190,9 +1244,50 @@ export function endQuarter(state: GameState): GameState {
       key: 'health',
       delta:
         -b.healthDecay -
+        Math.round(
+          Math.max(0, state.stats.health - b.healthWearThreshold) *
+            b.healthWearRate,
+        ) -
         (lifestyle.some((e) => e.id === 'overtime')
           ? b.overtimeHealthDecay
           : 0),
+    },
+  ]);
+  // A rolling short let returns its deposit if the next rent would eat into
+  // the household reserve. It never silently finances an upgrade with debt.
+  if (
+    next.flags.includes('brighter-home') &&
+    next.stats.money < b.lifestyleReserve[state.characterId] + b.housingRent
+  ) {
+    next.flags = next.flags.filter((flag) => flag !== 'brighter-home');
+    applyEffects(next, [{ type: 'money', delta: b.housingDeposit }]);
+    recordLife(next, 'brighter-home-return', {
+      zhCN: '明亮住处的短租到期，你退回原住处，押金回到账户，额外房租停止。',
+      en: 'The brighter home’s short let ends. You return to the original place, recover the deposit and stop paying the extra rent.',
+    });
+  }
+  const brighter = next.flags.includes('brighter-home');
+  const furniture = Object.entries(b.furnishings).filter(([id]) =>
+    next.flags.includes(`furnished-${id}`),
+  );
+  const club = next.flags.includes('quarter-walking-club');
+  applyEffects(next, [
+    { type: 'money', delta: brighter ? -b.housingRent : 0 },
+    {
+      type: 'stat',
+      key: 'mood',
+      delta:
+        (brighter ? b.housingMood : 0) +
+        (club ? b.clubMood : 0) +
+        furniture.reduce((sum, [, item]) => sum + item.mood, 0),
+    },
+    {
+      type: 'stat',
+      key: 'health',
+      delta:
+        (brighter ? b.housingHealth : 0) +
+        (club ? b.clubHealth : 0) +
+        furniture.reduce((sum, [, item]) => sum + item.health, 0),
     },
   ]);
   let promoted = false;
@@ -1310,11 +1405,10 @@ export function isOver(state: GameState) {
   return state.ending !== undefined;
 }
 export function narrative(state: GameState): Text[] {
-  const name = characterOf(state.characterId).name;
   const sentences: Text[] = [
     {
-      zhCN: `${name.zhCN}在 ${characterOf(state.characterId).startDate} 开始记录小镇生活。`,
-      en: `${name.en} began keeping a town diary on ${characterOf(state.characterId).startDate}.`,
+      zhCN: `你在 ${characterOf(state.characterId).startDate} 开始记录小镇生活。`,
+      en: `You began keeping a town diary on ${characterOf(state.characterId).startDate}.`,
     },
   ];
   const friends = npcs
@@ -1547,6 +1641,11 @@ function beginDay(state: GameState, index: DayState['index']) {
     if (id.startsWith('system-')) continue;
     const event = pool(state).find((e) => e.id === id)!;
     const channel = event.channel ?? 'morning';
+    if (policyStories.some((story) => story.event === event) && !state.trip) {
+      state.eventQueue.splice(state.eventQueue.indexOf(id), 1);
+      state.day.deliveries.push({ eventId: id, channel });
+      continue;
+    }
     if (state.trip && channel === 'morning') {
       // A town-set morning card does not happen while the player is abroad;
       // it goes back to the pool and may be drawn in a later quarter.
@@ -1848,6 +1947,49 @@ export function fastForward(state: GameState): GameState {
       );
     if (next.pendingEvent || isOver(next) || next.date !== date) break;
     if (next.day.minute < 1260) next = tick(next, 1260 - next.day.minute);
+    if (next.pendingEvent || next.date !== date) break;
+    // Finish the quarter’s ordinary routines before opening any extra post.
+    // If the drawn scenes needed a visit we missed, read a home or letter scene.
+    const read = next.log.filter(
+      (entry) =>
+        entry.kind === 'event' &&
+        entry.year === next.year &&
+        entry.quarter === next.quarter &&
+        !pool(next).find((event) => event.id === entry.id)?.heart,
+    ).length;
+    if (next.day.index === 2 && read < b.routineEventCards) {
+      const letters = [
+        ...commonEvents,
+        ...characterOf(next.characterId).events,
+      ].filter(
+        (event) =>
+          event.once &&
+          event.choices.every((choice) =>
+            choice.effects.every(
+              (effect) =>
+                effect.type === 'stat' ||
+                effect.type === 'none' ||
+                (effect.type === 'money' &&
+                  Math.abs(effect.delta) <= b.routineEventMoneyLimit),
+            ),
+          ) &&
+          available(next, event) &&
+          (!event.channel || ['morning', 'letter'].includes(event.channel)) &&
+          !next.eventQueue.includes(event.id) &&
+          !next.day.deliveries.some(
+            (delivery) => delivery.eventId === event.id,
+          ),
+      );
+      if (letters.length) {
+        const letter = letters[Math.floor(random(next) * letters.length)];
+        next.day.deliveries.push({
+          eventId: letter.id,
+          channel: letter.channel ?? 'morning',
+        });
+        deliver(next, 'leftovers');
+        if (next.pendingEvent) break;
+      }
+    }
     if (next.pendingEvent || next.date !== date) break;
     next = sleep(next);
   }

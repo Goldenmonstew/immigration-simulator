@@ -110,6 +110,59 @@ export function extensionFor(route: Route) {
 }
 
 export const locationActions: Activity[] = [
+  ...[
+    [
+      'reading-chair',
+      '阅读椅（每季心情、健康各加一点）',
+      'Reading chair (+1 mood and health/quarter)',
+    ],
+    [
+      'warm-curtains',
+      '厚窗帘（每季心情加一点）',
+      'Warm curtains (+1 mood/quarter)',
+    ],
+    ['desk-lamp', '台灯（每季健康加一点）', 'Desk lamp (+1 health/quarter)'],
+  ].map(([id, zhCN, en]): Activity => ({
+    id: `furnish-${id}`,
+    place: 'shop',
+    minutes: b.minutes.buy,
+    label: {
+      zhCN: `添置${zhCN} · £${b.furnishings[id].price}，限一件`,
+      en: `Buy ${en} · £${b.furnishings[id].price}, one per home`,
+    },
+    effects: [{ type: 'money', delta: -b.furnishings[id].price }],
+  })),
+  {
+    id: 'rent-brighter-home',
+    place: 'home',
+    label: {
+      zhCN: `租明亮住处（押金 £${b.housingDeposit}、搬家 £${b.housingMoveCost}，每季加租 £${b.housingRent}；心情、健康持续改善；余额低时退租返押金）`,
+      en: `Rent a brighter home (£${b.housingDeposit} deposit, £${b.housingMoveCost} moving cost, +£${b.housingRent}/quarter; ongoing mood and health; low balance ends the let and returns the deposit)`,
+    },
+    minutes: b.minutes.paperwork,
+    effects: [{ type: 'money', delta: -b.housingDeposit - b.housingMoveCost }],
+  },
+  {
+    id: 'leave-brighter-home',
+    place: 'home',
+    label: {
+      zhCN: '退租明亮住处，退回押金',
+      en: 'Leave the brighter home and recover the deposit',
+    },
+    minutes: b.minutes.paperwork,
+    when: [{ flag: 'brighter-home' }],
+    effects: [{ type: 'money', delta: b.housingDeposit }],
+  },
+  {
+    id: 'walking-club',
+    place: 'bench',
+    label: {
+      zhCN: `报名本季徒步私教班（£${b.clubFee}；本季心情、健康加成）`,
+      en: `Join this quarter’s guided hiking coaching (£${b.clubFee}; mood and health this quarter)`,
+    },
+    minutes: b.minutes.bench,
+    effects: [{ type: 'money', delta: -b.clubFee }],
+  },
   {
     id: 'pub-quiz',
     place: 'pub',

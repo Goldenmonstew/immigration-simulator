@@ -32,6 +32,7 @@ import {
 import type { GameEvent, GameState, PlaceId, StatKey } from '../src';
 import { balance as b } from '../src/balance';
 import { heartEvents } from '../src/npcs';
+import { beforeTimeEconomy } from './time-and-economy-baseline';
 
 const median = (values: number[]) => {
   const sorted = [...values].sort((a, b) => a - b);
@@ -81,7 +82,10 @@ function play(
         (c) =>
           !c.effects.some((e) => e.type === 'criminal' || e.type === 'ending'),
       );
-      state = resolve(state, choices[pick(choices.length)].id);
+      const news =
+        event.id.startsWith('news-') ||
+        event.id === 'sw-settlement-window-letter';
+      state = resolve(state, choices[news ? 0 : pick(choices.length)].id);
       record();
     }
     record();
@@ -104,6 +108,16 @@ function play(
             readNotices.add(notice.id);
       record();
       drain();
+      if (
+        strategy === 'active' &&
+        id === 'bench' &&
+        state.stats.money >=
+          b.lifestyleReserve[state.characterId] + b.housingRent + b.clubFee &&
+        activities(state, 'bench').some((a) => a.id === 'walking-club')
+      ) {
+        state = doActivity(state, 'walking-club');
+        drain();
+      }
     }
   };
   for (let iteration = 0; !isOver(state); iteration++) {
@@ -292,6 +306,19 @@ function play(
         drain();
       }
     }
+    for (const action of activities(state, 'shop').filter((action) =>
+      action.id.startsWith('furnish-'),
+    )) {
+      const price = b.furnishings[action.id.slice(8)].price;
+      if (
+        state.stats.money >=
+          b.lifestyleReserve[state.characterId] + b.housingRent + price &&
+        state.day.minute + b.minutes.buy <= 1200
+      ) {
+        state = doActivity(state, action.id);
+        drain();
+      }
+    }
     if (state.dayNumber !== day || isOver(state)) {
       record();
       continue;
@@ -326,6 +353,10 @@ function play(
       continue;
     }
     visit('home');
+    if (activities(state, 'home').some((a) => a.id === 'rent-brighter-home')) {
+      state = doActivity(state, 'rent-brighter-home');
+      drain();
+    }
     const recipe = recipes.find((r) =>
       Object.entries(r.needs).every(
         ([item, qty]) => state.inventory[item] >= qty,
@@ -386,6 +417,10 @@ function play(
     noticeCount: readNotices.size,
     fifth,
     quarterSamples,
+    debtEvents: state.log.filter(
+      (e) => e.kind === 'event' && e.id === 'system-debt',
+    ).length,
+    negativeQuarters: quarterSamples.filter((s) => s.money < 0).length,
     heard: listenedLines,
     uniqueLines: lines.length,
     words: chineseCharacters,
@@ -419,6 +454,22 @@ describe('v3 seeded strategies', () => {
           const runs = Array.from({ length: 20 }, (_, index) =>
             play(character.id, index + 1, strategy),
           );
+          console.log(
+            'RUNS_V11_2',
+            JSON.stringify({
+              character: character.id,
+              strategy,
+              runs: runs.map((run) => ({
+                eventCards: run.eventCards,
+                debtEvents: run.debtEvents,
+                negativeQuarters: run.negativeQuarters,
+                ending: run.state.ending,
+                quarters: run.quarterSamples.length,
+                fifth: run.fifth,
+                tenth: run.quarterSamples[39],
+              })),
+            }),
+          );
           const fifth = runs.flatMap((run) => (run.fifth ? [run.fifth] : []));
           const tenth = runs
             .filter(
@@ -434,6 +485,15 @@ describe('v3 seeded strategies', () => {
             );
 
           if (strategy === 'fast-forward') {
+            expect(
+              runs.reduce(
+                (sum, run) =>
+                  sum +
+                  (run.eventCards * b.quartersPerYear) /
+                    run.quarterSamples.length,
+                0,
+              ) / runs.length,
+            ).toBeGreaterThanOrEqual(6);
             expect(fifth).toHaveLength(20);
             expect(median(fifth.map((s) => s.money))).toBeGreaterThanOrEqual(
               18000,
@@ -485,6 +545,38 @@ describe('v3 seeded strategies', () => {
               sceneCounts.reduce((sum, count) => sum + count, 0) / runs.length,
             ).toBeGreaterThanOrEqual(32);
           if (active) {
+            const baseline = beforeTimeEconomy[character.id];
+            expect(
+              runs.reduce((sum, run) => sum + run.debtEvents, 0),
+            ).toBeLessThanOrEqual(baseline.debtEvents);
+            expect(
+              runs.reduce((sum, run) => sum + run.negativeQuarters, 0),
+            ).toBeLessThanOrEqual(baseline.negativeQuarters);
+            expect(
+              runs.filter((run) => run.state.ending === 'overstayed').length,
+            ).toBeLessThanOrEqual(baseline.overstayed);
+            for (const stats of [fifth, tenth])
+              for (const key of ['mood', 'health'] as const) {
+                expect(median(stats.map((s) => s[key]))).toBeGreaterThanOrEqual(
+                  55,
+                );
+                expect(median(stats.map((s) => s[key]))).toBeLessThanOrEqual(
+                  85,
+                );
+              }
+            // A percentage reduction is meaningful only for a positive baseline.
+            // The other two measured medians were already negative; report them
+            // alongside survivor counts rather than treating a larger debt as success.
+            const beforeMoney = median(baseline.tenthMoney)!;
+            if (beforeMoney > 0)
+              expect(median(tenth.map((s) => s.money))).toBeLessThanOrEqual(
+                beforeMoney * 0.6,
+              );
+            for (const [index, run] of runs.entries())
+              expect(
+                run.eventCards,
+                `seed ${index + 1} event-card growth`,
+              ).toBeLessThanOrEqual(Math.max(...baseline.eventCards) * 1.5);
             const lowest = runs.reduce((a, c) =>
               a.totalContent < c.totalContent ? a : c,
             );
