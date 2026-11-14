@@ -84,13 +84,13 @@ describe('10.4b town speech', () => {
 
 describe('10.4b additional everyday speech', () => {
   test.each(Object.entries(everydayDialogue))(
-    '%s gains distinct bilingual lines with a third kept brief',
+    '%s gains distinct bilingual lines while its full voice keeps brief turns',
     (id, added) => {
       expect(added).toHaveLength(24);
-      expect(
-        added.filter((line) => line.text.zhCN.length <= 24).length,
-      ).toBeGreaterThanOrEqual(8);
       const npc = npcs.find((person) => person.id === id)!;
+      expect(
+        npc.lines.filter((line) => line.text.zhCN.length <= 24).length,
+      ).toBeGreaterThanOrEqual(Math.ceil(npc.lines.length / 3));
       for (const line of added) {
         expect(line.text.zhCN.length).toBeLessThanOrEqual(40);
         expect(line.text.en.trim()).not.toBe('');

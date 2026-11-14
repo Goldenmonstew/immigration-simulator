@@ -4,410 +4,425 @@ const t = (zhCN: string, en: string): Text => ({ zhCN, en });
 const dialogue: Record<string, [string, string][]> = {
   jamie: [
     [
-      '杯子放原位了，这次把手朝着你。',
-      'Your cup is back. Handle facing you this time.',
+      '哎，茶给你！等等，把手转过来，烫！',
+      'Tea for you! Hang on, turn the handle round. Hot!',
     ],
     [
-      '收音机又只收到厨房的杂音。',
-      'The radio is picking up kitchen noises again.',
+      '我跟你说，这破收音机一修好，球赛就清楚了！',
+      "I'm telling you, once this radio works, we'll hear the match properly!",
     ],
     [
-      '面包太硬了，我得先和刀商量。',
-      'Bread is hard. I need a word with the knife first.',
+      '这面包还能救！切丁烤脆，先让我找一下烤盘。',
+      'We can rescue this bread! Toast some cubes. Let me find the baking tray first.',
     ],
     [
-      '你的拖鞋在沙发边，没被吸尘器带走。',
-      'Your slippers are by the sofa. The vacuum spared them.',
+      '哎，穿拖鞋试试！左脚那只，我补得有点像球靴。',
+      'Try your slippers! The left one I mended feels a bit like a football boot.',
     ],
     [
-      '今晚锅盖都找齐了，算个好开头。',
-      'Found every saucepan lid tonight. A good start.',
+      '汤盖找到了！盐也……等等，我刚加过了吧？',
+      'Found the soup lid! Now the salt... hang on, did I already add it?',
     ],
     [
-      '袜子又少一只，要给洗衣机写信吗？',
-      'Another sock missing. Shall we write to the washing machine?',
+      '我踢五人足球都凑得齐人，怎么袜子总差一只？',
+      "I can get a whole five-a-side team together. Why can't I find two socks?",
     ],
     [
-      '我把账单夹好了，食谱没夹进去。',
-      'Bills filed. No recipes among them this time.',
+      '饭来喽！账单先夹好，我这手像摸过一桶油。',
+      "Dinner's up! Bills away first. My hands are absolutely covered in grease.",
     ],
     [
-      '这张桌子总往我这边倒茶。',
-      'This table keeps spilling tea in my direction.',
+      '茶先端着！我垫个桌脚，哎，球赛小册借我一下。',
+      "Hold the tea! I'll wedge the leg. Pass me that match programme.",
     ],
     [
-      '旧照片里的围巾，我还找得到。',
-      'I can still find the scarf in that old photograph.',
+      '看，合照里那条围巾！针脚跟我踢的球一样歪。',
+      'Look, the scarf from our photo! Stitches as crooked as my shots.',
     ],
     [
-      '晚饭留着呢，先把湿外套脱下来。',
-      'Dinner is saved. Get that wet coat off first.',
+      '淋成这样！脱外套，我去盛饭。哎，拿锅垫先。',
+      "You're soaked! Coat off, I'll dish up. Ah, oven glove first.",
     ],
     [
-      '春天的球根长了，我今天没去掀土看。',
-      'Spring bulbs are growing. I resisted digging to check today.',
+      '春天种球根啦！这回我认准头尾，上回种反了！',
+      "Spring bulbs! I'll check which end is up. Put them in upside down last time!",
     ],
     [
-      '夏天的窗帘太薄，太阳总不肯下山。',
-      'Summer curtains are too thin. The sun won’t go to bed.',
+      '夏天这光直晃眼，我找块布——球衣？尺寸不够！',
+      "This summer light's blinding. I'll find some cloth... football shirt? Too small!",
     ],
     [
-      '落叶进了玄关，鞋子像带回来一个公园。',
-      'Leaves in the hall. Our shoes brought home a park.',
+      '秋叶全冲进玄关了！门底那刷子得换，守门失职。',
+      'Autumn leaves charging into the hall! New door brush. Terrible goalkeeping.',
     ],
     [
-      '冬天我把毯子挪到你那边了。',
-      'Moved the blanket to your side for winter.',
+      '冬天咱俩抢这毯子，比我队里抢任意球还认真。',
+      'We fight harder over this winter blanket than my team does over free kicks.',
     ],
     [
-      '雨衣挂稳了，地板还在等它道歉。',
-      'Raincoat hung up. The floor still awaits its apology.',
+      '雨衣挂我修的杆！哎，先轻点，我刚才说早了。',
+      'Wet coat on the rail I fixed! Ah, gently. Spoke too soon there.',
     ],
     [
-      '太阳照着餐桌，今天不用找那盏小灯。',
-      'Sun on the table. No need to find the little lamp today.',
-    ],
-    ['雪天先看窗外吧，茶我来倒。', 'Watch the snow. I’ll pour the tea.'],
-    [
-      '周末难得都闲着，电影挑短一点的？',
-      'A rare free weekend. Shall we choose a shorter film?',
+      '出太阳啦！咱们搬椅子出去吃，我拿盘子你拿茶？',
+      "Sun's out! Let's eat outside. I get the plates, you get the tea?",
     ],
     [
-      '我把明天的提醒写好了，没再画成纪念日。',
-      "Tomorrow's reminder is written. No anniversary doodle this time.",
+      '下雪了！我先试门槛滑不滑——哎哟，确实滑。',
+      "Snow! I'll test the step... whoa, yes, definitely slippery.",
     ],
     [
-      '和你坐着，水壶慢一点也没关系。',
-      'Sitting with you, I don’t mind the slow kettle.',
+      '周末炖锅菜，再听场球？我保证先调对电台！',
+      "Stew and a match this weekend? I promise I'll tune the radio properly first!",
     ],
     [
-      '上次你笑的那段，我今天才懂。',
-      'Finally understood the bit you laughed at last time.',
+      '明天的事我贴提醒了，在球赛日历右边，你瞧瞧？',
+      "Put tomorrow's reminder up. Right of the football calendar. Can you see it?",
     ],
     [
-      '我们那张糊照片，我反倒最喜欢。',
-      'That blurred photograph of us is my favourite.',
+      '你刚才讲到哪了？哎，我把壶关掉，老跟你抢声。',
+      "Where were you? Ah, I'll switch the kettle off. Keeps talking over you.",
     ],
     [
-      '书架空出一格，给我们以后带回的东西。',
-      'A shelf cleared for things we’ll bring home later.',
+      '哈哈，懂了！上次你那笑话，我反应比守门还慢！',
+      'Ha, got it! That joke of yours. Slower than my goalkeeping!',
     ],
     [
-      '沙发上的垫子翻好了，这面没有茶渍。',
-      'I’ve turned the sofa cushion over. No tea stains on this side.',
+      '这合照晃得！那天我还举着锅铲，一脸要罚点球。',
+      "What a blurry photo! Me waving a spatula like I'm taking a penalty.",
     ],
     [
-      '今天不想赶路，陪我把茶喝完吧。',
-      'No rushing today. Stay until we finish the tea.',
+      '书架先少塞点呀，我得钻进去修那块破背板！',
+      "Leave some space on the shelf, will you? I've got to get in and fix that wretched back!",
     ],
     [
-      '办公室的杯子拿回家，放哪都不顺手。',
-      'The office mug feels out of place at home.',
+      '垫子翻过来就——哎，两面都有茶。确实是我。',
+      'Turn the cushion over and... ah. Tea both sides. Yes, that was me.',
     ],
     [
-      '表格先放一边，我想把这口茶喝热。',
-      'Forms aside for a moment. I want this tea while it’s hot.',
+      '来陪我喝杯茶！我想吐槽球队，真的太离谱了。',
+      'Come have tea! I need to complain about my team. Absolute shambles.',
     ],
     [
-      '夜灯的开关找到了，原来被小袜子盖住。',
-      'Found the night light switch. Tiny socks were covering it.',
+      '办公室杯子搬回来了，放球赛杯旁边，怎么看都碍眼。',
+      'Brought my office mug back. Beside the football mug, it just looks wrong.',
     ],
     [
-      '新班表我贴上了，没挡住你的便签。',
-      'New rota up. I left your note visible.',
+      '咨询表我看得头大！先让我喝口热茶，再接着填完。',
+      "This advice form's doing my head in! Some hot tea first, then I'll finish filling it in.",
     ],
     [
-      '今天走楼梯得慢一点，扶手擦干净了。',
-      'Stairs slowly today. The handrail is clean.',
+      '宝宝那只小袜子我留着呢，比我的球靴补丁还小！',
+      "I've kept the baby's tiny sock. Smaller than the patch on my football boot!",
+    ],
+    [
+      '全职班表出来了！家务得重分，我那场球也得挪。',
+      "Full-time rota's out! We'll need to split chores again. Move my football too.",
+    ],
+    [
+      '楼梯我得慢点爬，今天这腿比踢完一场球还沉！',
+      'Slow up these stairs today. These legs are heavier than after a whole match!',
     ],
   ],
   'ka-ning-partner': [
     [
-      '嘉宁，饭盒在最上层，别又拿成孩子的。',
-      "Ka Ning, your lunch is on top. Don’t take the child's again.",
+      '嘉宁，讲好先，饭盒看名字拿！乐言那盒吃完会喊饿。',
+      "Ka Ning, let's get this straight: names on lunchboxes! Lok Yin's won't fill you up.",
     ],
     [
-      '这把伞装得下两个人，装不下两只包。',
-      'This umbrella fits two people, but not two bags.',
+      '这伞挤两个人够，包你提。我可没答应兼做行李架。',
+      'Two fit under this umbrella. You carry the bags. Never agreed to be the luggage rack too.',
     ],
     [
-      '我把简历收起来了，餐桌今晚能吃饭。',
-      'CV put away. The dinner table can host dinner tonight.',
+      '今晚我收起简历了，有个条件：吃饭聊电影，成交？',
+      "CV's away tonight. One condition: films over dinner. Deal?",
     ],
     [
-      '旧车票没扔，在装相片的小盒子里。',
-      'Kept the old tickets in the photograph box.',
+      '相片盒里的旧车票归我留，讲好先，清理得问过我。',
+      'I keep those tickets in the photo box. Clear this up first: ask before clearing them out.',
     ],
     [
-      '电饭锅响了，我以为有人按门铃。',
-      'The rice cooker beeped. Thought it was the doorbell.',
+      '电饭锅响，我跑去开门！你笑够了就告诉我是哪一个。',
+      "Rice cooker pinged, I answered the door! Once you've finished laughing, tell me which noise it was.",
     ],
     [
-      '今天在菜里多放了颜色，孩子先挑红的。',
-      'More colour in dinner. The child chose the red bits first.',
+      '乐言说黄色的菜都算一类。你负责说服，我负责煮青菜。',
+      "Lok Yin says yellow food is one group. You do the persuading, I'll cook the greens.",
     ],
     [
-      '接送表贴稳了，磁铁终于有正经事做。',
-      'School-run rota secured. The magnets finally have a job.',
+      '接送表漏一格就算我的？这个算法，我要跟你重新谈。',
+      'Blank on pickup rota means me? We need to renegotiate that particular calculation.',
     ],
     [
-      '家里的电话我来拨，你先把茶喝了。',
-      'I’ll call home. Finish your tea first.',
+      '给家里打电话，讲好先，今天我先说，表姐等我回话呢。',
+      "Call home: let's agree I speak first today. My cousin's waiting for my answer.",
     ],
     [
-      '那件外套我缝好了，针线还在找出口。',
-      'Mended the coat. Still finding a home for the needle.',
+      '外套缝好啦！成交条件：今晚你洗碗，工钱先付。',
+      'Coat mended! Deal is, you wash up tonight. Payment upfront.',
     ],
     [
-      '窗台的葱又长了，孩子已经准备收租。',
-      'The spring onions grew. The child is preparing to charge rent.',
+      '乐言管葱，你管漏出来的泥。我负责笑，这回分好了。',
+      'Lok Yin gets the onions, you get the spilled soil. I get to laugh. Sorted this time.',
     ],
     [
-      '春天的鞋柜总多出一层泥。',
-      'The shoe rack gains a layer of mud every spring.',
+      '春天鞋柜我肯收，有个条件：你的泥鞋你自己刷。',
+      "I'll sort the spring shoe cupboard. Condition: you scrub your own muddy shoes.",
     ],
     [
-      '夏天我把厚被收了，箱子比人还热。',
-      'Packed the winter duvet. The box is warmer than we are.',
+      '夏天厚被收起来啦！先量旧箱，省下的钱我想买相纸。',
+      "Summer duvets away! Measure old boxes first. I'd like photo paper with the money saved.",
     ],
     [
-      '秋叶夹在书里，借书还得先检查。',
-      'Autumn leaves in books. Better check before returning them.',
+      '秋叶夹书可以，归还前你取。罚款这笔我可没答应出。',
+      "Press autumn leaves in books, fine. You remove them before returning. Fines aren't on me.",
     ],
     [
-      '冬天那只保温杯，终于不用等人想起。',
-      'In winter the flask finally gets remembered.',
+      '冬天出门，手套自己查。我带热水，交换条件公平吧？',
+      'Winter outing, check your own gloves. I bring hot water. Fair exchange?',
     ],
     [
-      '雨把肩膀淋湿了，回家先换件衣服。',
-      'Rain soaked my shoulder. A dry shirt first at home.',
+      '下雨又只湿我肩膀！下次我挑伞，你负责背那把大的。',
+      'Rain, and only my shoulders wet again! I choose the next umbrella, you carry the big one.',
     ],
     [
-      '太阳一出来，洗衣篮就有了野心。',
-      'Sunshine gives the laundry basket ambitions.',
+      '太阳出来，我晒大衣；袜子你晒。讲好先，这叫分工。',
+      "Sun's out. I hang coats, you hang socks. Let's be clear, that's sharing the job.",
     ],
     [
-      '雪天在窗边看一会儿，别忘了关烤箱。',
-      'Watch the snow from the window. Remember the oven though.',
+      '雪看够就关窗啦。暖气费涨了，我要追究谁开窗。',
+      "Finished looking at snow? Shut the window. If heating goes up, I'm investigating who opened it.",
     ],
     [
-      '周末一起把漏风的门缝找出来？',
-      'Shall we find the draught in the door this weekend?',
+      '周末找漏风处，你趴门边，我找材料。做完一起吃点心？',
+      'Weekend draught hunt. You by the door, I find materials. Dim sum after?',
     ],
     [
-      '今天学到个新菜名，晚饭先不考你。',
-      'Learnt a new dish name. No dinner test for you yet.',
+      '今晚我试新菜，讲好先，尝一口再说表姐那版更好吃。',
+      "Trying a new dish. Agree to taste it before telling me my cousin's version is better.",
     ],
     [
-      '你那杯茶我记得，不用再问一遍。',
-      'I remember your tea. No need to ask again.',
+      '你的茶泡好了！轮到你记我放几块糖，来，考一考。',
+      "Your tea's ready! Your turn to remember my sugar. Go on, let's test you.",
     ],
     [
-      '这条路走熟了，我还是喜欢跟你并排。',
-      'I know the route now. Still like walking beside you.',
+      '这条路熟啦！我想聊表姐那段恋爱，你要听哪一版？',
+      "Know this road now! Want my cousin's romance story? Which version do you want?",
     ],
     [
-      '相册给你留了一页，等下回一起挑。',
-      'A page saved in the album. We can choose pictures later.',
+      '相册这张我喜欢，你要换，就拿一张两个人都点头的。',
+      'I like this album photo. Want to swap it? Find one we both agree on.',
     ],
     [
-      '厨房安静下来了，我想再坐一会儿。',
-      'Kitchen quiet at last. I fancy sitting a little longer.',
+      '厨房收好，轮到我挑节目。遥控器给我，这回说定了。',
+      'Kitchen done, my turn to choose a programme. Remote here. Agreed this time.',
     ],
     [
-      '你皱眉的时候，我把计算器拿远一点。',
-      'When you frown, I move the calculator a little further away.',
+      '你皱眉，到底是哪件？先讲清楚，我才知道该吵还是笑。',
+      'That frown, which thing is it? Tell me first so I know whether to argue or laugh.',
     ],
     [
-      '慢慢吃吧，今天没人在门口等接送。',
-      'Eat slowly. Nobody is waiting for a school run now.',
+      '今天省了接送，我要睡个午觉。有个条件：闹钟你管。',
+      "No school run today, I'm having a nap. One condition: you handle the alarm.",
     ],
     [
-      '录用信先放好了，今晚想煮点特别的。',
-      'Offer letter put away. Something special for dinner tonight.',
+      '录用信我留着！讲好先，下次见表姐，由我讲这份工作。',
+      'Keeping my offer letter! Next call with my cousin, I get to tell her about this job.',
     ],
     [
-      '找工作的页面关了，眼睛得看看别的。',
-      'Closed the job listings. My eyes need something else.',
+      '招聘页关了。今天等得烦，我想给表姐打电话，聊点八卦。',
+      'Job page closed. Fed up waiting today. Calling my cousin for some gossip.',
     ],
     [
-      '闹钟又得响早一点，先找齐两只鞋。',
-      'The alarm needs an earlier start. Matching shoes first.',
+      '明早要上班。早餐各做各的，周末换我煮粥，成交？',
+      'Work early tomorrow. Own breakfasts, I make congee at the weekend. Deal?',
     ],
     [
-      '我们来时那只箱子，还装得下旧地图。',
-      'The suitcase we arrived with still holds the old map.',
+      '来时的箱子还在。你说扔，我说留；先拍照给表姐评理。',
+      'Still got our arrival suitcase. You say bin it, I say keep it. Photo to my cousin for a verdict.',
     ],
     [
-      '名字写在信箱里了，胶带还贴得很歪。',
-      'Names in the letterbox. The tape is still crooked.',
+      '信箱上的名字补齐了。我的要全名，讲好先，别再省字。',
+      "Names on the letterbox fixed. My full name. Let's agree, no abbreviating it again.",
     ],
   ],
   'ka-ning-child': [
     [
-      '我把书拿正了，故事会不会变快？',
-      'Book the right way up now. Will the story go faster?',
+      '这本书从另一头看，最后那个人还知道前面发生过什么吗？',
+      'If I read this book backwards, does the person at the end know what happened before?',
     ],
     [
-      '午饭想有三种颜色，土豆只算一种。',
-      'Three colours in lunch please. Potato only counts as one.',
+      '午饭全是黄色算配色，还是算没蔬菜？',
+      'If lunch is all yellow, is that a colour scheme or no vegetables?',
     ],
     [
-      '我的鞋没变小，是脚偷偷加班。',
-      'My shoes did not shrink. My feet worked overtime.',
+      '鞋又紧了。是脚长大不用预约吗？',
+      'My shoes are tight again. Do feet grow without making an appointment?',
     ],
     [
-      '画里的猫不是猫，是还没画完的老虎。',
-      'Not a cat in my drawing. An unfinished tiger.',
+      '画上这只猫先保密！我还没给它发名字牌。',
+      "This cat in my drawing is secret! Haven't issued its name badge yet.",
     ],
     [
-      '葱长高了，我的农场需要更大窗台。',
-      'The onions grew. My farm needs a bigger windowsill.',
-    ],
-    ['那片叶子给我留着，它像一只手。', 'Save that leaf. It looks like a hand.'],
-    [
-      '这本书封面好像饼干，可以先读它吗？',
-      'This cover looks like a biscuit. Can we read it first?',
+      '窗台的葱没上过学，怎么也知道往光那边长？',
+      "The onions haven't been to school. How do they know which way the light is?",
     ],
     [
-      '我找到蓝毛衣了，名字倒着也认得。',
-      'I found the blue jumper. I can recognise my name upside down too.',
+      '这叶子五个尖！跟我五根手指一样，算数能借它一只手吗？',
+      'Five points on this leaf! Like my five fingers. Can I borrow its hand for sums?',
     ],
     [
-      '这张通知没折成船，老师会高兴吗？',
-      'I didn’t fold this note into a boat. Will the teacher be pleased?',
+      '封面好看，里面不好看，算不算书骗人？',
+      "If the cover's good and the story isn't, has the book lied?",
     ],
     [
-      '画一张菜单吧，我想把晚饭圈出来。',
-      'Draw a menu. I want to circle dinner.',
+      '名字写在毛衣里面。毛衣不识字，为什么不是写外面？',
+      "My name's inside the jumper. It can't read. Why isn't it on the outside?",
     ],
     [
-      '春天的小花不肯排队，草地上到处都是。',
-      'Spring flowers won’t queue. They’re all over the grass.',
+      '学校通知要家长签。你签错地方，我能给你圈出来吗？',
+      'A parent has to sign the school letter. Can I circle it if you sign the wrong bit?',
     ],
     [
-      '夏天的影子拉得好长，我快够到篱笆了。',
-      'My summer shadow’s so long I can nearly reach the fence.',
+      '晚饭我先画下来！吃过打星，没吃过画问号，算我的菜单。',
+      "I'll draw dinner first! Stars for tried, question marks for untried. My menu.",
     ],
     [
-      '秋叶夹好了，明天看看有没有变薄。',
-      'Leaves pressed. Tomorrow we can see if they got thinner.',
+      '春天草地的花不在花坛里。谁负责点名？',
+      'Spring flowers grow outside the flowerbed. Who takes their register?',
     ],
     [
-      '冬天哈气像冒烟，我是小火车。',
-      'Winter breath looks like smoke. I’m a little train.',
+      '夏天影子这么长，我的身高能不能算上它？',
+      "My shadow's so long in summer. Can it count towards my height?",
     ],
     [
-      '雨在窗上赛跑，我挑最慢的那滴。',
-      'Rain racing on the window. I picked the slowest drop.',
+      '秋叶夹在书里会变平。作业夹进去也会简单点吗？',
+      'Autumn leaves flatten in books. Would my homework get easier if I pressed it too?',
     ],
     [
-      '太阳晒着地毯，猫会不会抢座位？',
-      'Sun on the rug. Will the cat claim the seat?',
+      '冬天说话会冒白气。小声说，白气也会小一点吗？',
+      'Your breath shows in winter. If you whisper, is the cloud smaller?',
     ],
     [
-      '雪地脚印是我画的路，还没画完。',
-      'My footprints are a road in the snow. Not finished yet.',
+      '雨滴在玻璃上赛跑。窗台算终点，还是算掉下去了？',
+      'Raindrops race down the glass. Is the sill the finish, or have they fallen off?',
     ],
     [
-      '周末可以走公园那条长一点的路吗？',
-      'Can we take the longer park route this weekend?',
+      '太阳照到地毯了。把书放那里，是不是算户外阅读？',
+      "Sun's on the carpet. If I read there, does it count as reading outdoors?",
     ],
     [
-      '我今天想读你那页，不挑最短的。',
-      'I want your page today. Not choosing the shortest.',
+      '雪上的脚印能看出谁走过。能看出谁走错路吗？',
+      'Footprints in snow show who went past. Do they show who went the wrong way?',
     ],
     [
-      '你坐旁边，我就敢把这个词念出来。',
-      'Sit beside me and I can say this word aloud.',
+      '周末走公园远路！近路我闯过关了，这次换地图。',
+      'Long way through the park this weekend! Cleared the short route. New map this time.',
     ],
     [
-      '这张画给你，别放在账单下面。',
-      'This drawing is for you. Not underneath the bills please.',
+      '这个词有两种念法。它自己听得出区别吗？',
+      'This word has two pronunciations. Can it hear the difference itself?',
     ],
     [
-      '我给你留了最大的那块，边上有点歪。',
-      'Saved you the biggest piece. A bit crooked at the edge.',
+      '我念到句号你才举手！这是我定的朗读规则。',
+      "Hand up only when I reach the full stop! That's my reading rule.",
     ],
     [
-      '今天的事先讲给你，不想讲给手机。',
-      "Today's story is for you first, not the phone.",
+      '画送你！先答那条歪线是什么，猜中才给好看分。',
+      'Drawing for you! Guess what the crooked line is. Then you get pretty-picture points.',
     ],
     [
-      '把书签放这儿，我们明晚从这里接着。',
-      'Bookmark here. Tomorrow night we start from this spot.',
+      '最大那块给你！我检查过，正的，歪掉那块我自己吃。',
+      "Biggest piece for you! Checked it, straight one. I'll eat the wonky bit.",
     ],
     [
-      '你猜我长高了吗？门框上的线会说。',
-      'Guess if I grew. The marks on the doorframe know.',
+      '学校有件事，我要从头讲！你猜错人也得扣分。',
+      'School story! From the beginning. Points off if you guess the wrong person.',
     ],
     [
-      '给外婆发照片，我来挑笑得最大的。',
-      'Send Granny a photo. I’ll choose the biggest smile.',
+      '书签夹这页，下回我讲！你负责问为什么，老师今天换我。',
+      "Bookmark here, I tell it next time! You ask why. I'm the teacher today.",
     ],
     [
-      '我的树要排练，风来的时候不能乱跑。',
-      'My tree needs rehearsal. It must not run when the wind comes.',
+      '门框那条线是我的身高。搬家以后，线跟谁走？',
+      "That mark's my height. If we move, who gets the line?",
     ],
     [
-      '豆袋掉了，再捡起来也能继续跑。',
-      'I dropped the beanbag. I can pick it up and keep running.',
+      '给外婆发照片能发声音吗？有些事只看脸看不出来。',
+      "Can we send Grandma sounds with the photos? You can't tell everything from a face.",
     ],
     [
-      '学校那张照片，我少了牙还笑得最多。',
-      'In the school photo I’ve got fewer teeth and the biggest smile.',
+      '秋天排练我演树。树不用说台词，那它怎么提意见？',
+      "I'm a tree in the autumn play. No lines. How does it give an opinion?",
     ],
     [
-      '今晚再讲一遍吧，换我学鸭子叫。',
-      'That story again tonight. My turn for the duck noises.',
+      '夏天运动会掉了豆袋还能跑。那为什么还要记停顿？',
+      'You can keep running after dropping the beanbag at summer sports day. Why do they still count the stop?',
+    ],
+    [
+      '学校合照我看旁边，那边有人快打喷嚏！照片拍到声音吗？',
+      'I looked sideways in the school photo. Someone was sneezing! Can photos catch sounds?',
+    ],
+    [
+      '今晚故事换我讲。鸭子的台词用哪种语言都像鸭子。',
+      "I'll tell the story tonight. Duck dialogue sounds like duck in either language.",
     ],
   ],
 };
-const householdReactions: Record<
-  string,
-  Pick<Npc['reactions'], 'liked' | 'neutral' | 'disliked'>
-> = {
+const householdReactions: Record<string, Npc['reactions']> = {
   jamie: {
-    liked: t(
-      '我把食谱挪开，给你带的东西腾个位置。',
-      'I’ll move the recipe book and make room for this.',
-    ),
-    neutral: t(
-      '你出门还想着我啊，先放杯子旁边。',
-      'You thought of me while you were out. By my cup for now.',
-    ),
-    disliked: t(
-      '这味道比我的炖菜还大胆，先搁门外吧。',
-      'Bolder than my stew. Outside the door for now, eh?',
-    ),
+    loved: {
+      zhCN: '哎，正中球门！今晚我做饭，你点，真的你点。',
+      en: "Get in, right in the goal! I'll cook tonight. You choose, really.",
+    },
+    liked: {
+      zhCN: '好东西！等等，我手全是油，先擦一擦。',
+      en: 'Lovely! Hang on, hands covered in grease. Quick wipe first.',
+    },
+    neutral: {
+      zhCN: '哎，谢谢！放桌上，我先挪开那堆收音机零件。',
+      en: "Ah, cheers! Table there. I'll move those radio bits first.",
+    },
+    disliked: {
+      zhCN: '哎，这个真用不上！旧收音机已经快堆不下啦。',
+      en: "Ah, can't use this one! Barely room for my old radios already.",
+    },
   },
   'ka-ning-partner': {
-    liked: t(
-      '正合心意，我把桌上那叠纸收一收。',
-      'Lovely. I’ll clear that pile of papers off the table.',
-    ),
-    neutral: t(
-      '收到啦，等我擦干手再好好看。',
-      'Thank you. Let me dry my hands and have a proper look.',
-    ),
-    disliked: t(
-      '先别放饭盒旁边，我拿个袋子装着。',
-      'Away from the lunch boxes, please. I’ll fetch a bag.',
-    ),
+    loved: {
+      zhCN: '这个我真喜欢！讲好先，礼物收下，家务另谈。',
+      en: 'I love this! Agree first: gift accepted, chores discussed separately.',
+    },
+    liked: {
+      zhCN: '选得合我意！下次换我挑，你可得接招。',
+      en: 'Good choice! My turn to pick next. Be ready.',
+    },
+    neutral: {
+      zhCN: '谢谢！有个条件，先替我挪挪柜子里的相册。',
+      en: 'Thanks! One condition, help shift the albums in the cupboard first.',
+    },
+    disliked: {
+      zhCN: '这个不合意，咱们换个选法，下回先问我，成交？',
+      en: 'Not my taste. New deal: ask me next time. Agreed?',
+    },
   },
   'ka-ning-child': {
-    liked: t(
-      '我要画下来，旁边写是你送的！',
-      'I’ll draw it and write that it’s from you!',
-    ),
-    neutral: t(
-      '这是给我的呀？我先给它起个名字。',
-      'For me? I’ll give it a name first.',
-    ),
-    disliked: t(
-      '它闻起来像池塘的袜子，可以住外面吗？',
-      'It smells like pond socks. Can it live outside?',
-    ),
+    loved: {
+      zhCN: '就是我想要的！猜中加一分，你怎么猜的？',
+      en: 'Just what I wanted! Point for guessing right. How did you do it?',
+    },
+    liked: {
+      zhCN: '喜欢！说谢谢跟拆礼物可以一起比赛吗？',
+      en: 'I like it! Can thank-you and unwrapping race each other?',
+    },
+    neutral: {
+      zhCN: '我的了？那现在轮到我定玩法，对吧？',
+      en: 'Mine now? My turn to make the rules, right?',
+    },
+    disliked: {
+      zhCN: '这件我不喜欢。说实话这一关，会扣我的分吗？',
+      en: "Don't like this one. Honesty level, do I lose points?",
+    },
   },
 };
 const members: [string, string, string, string, string[]][] = [
@@ -534,17 +549,7 @@ export const familyNpcs: Npc[] = members.map(
       ),
       disliked: ['old-boot', 'shopping-trolley', 'pike'],
     },
-    reactions: {
-      loved: t(
-        id.endsWith('child')
-          ? '给我的？我要放在最喜欢的盘子里。'
-          : '还记着我喜欢这个呢，过来一起坐。',
-        id.endsWith('child')
-          ? 'For me? My favourite plate for this.'
-          : 'You remembered my favourite. Come and sit with me.',
-      ),
-      ...householdReactions[id],
-    },
+    reactions: householdReactions[id],
     lines: dialogue[id].map(([zhCN, en], i) => ({
       id: `${id}-daily-${i + 1}`,
       text: t(zhCN, en),
@@ -592,8 +597,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-31',
       text: {
-        zhCN: '下班把鞋带解开，今天总算不用赶了。',
-        en: 'Laces undone after work. I can stop rushing now.',
+        zhCN: '收工！鞋带又踩住了，我这脚下比带球时还笨！',
+        en: "Finished! Standing on my laces again. Feet even clumsier than when I'm dribbling!",
       },
       dayKinds: ['workday'],
       when: [
@@ -606,8 +611,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-32',
       text: {
-        zhCN: '刚收工，先把收音机调到没有杂音的台。',
-        en: 'Work finished. First, a station without the crackle.',
+        zhCN: '下班喽！先修收音机，再做饭——你想吃什么来着？',
+        en: 'Home from work! Radio, then dinner... what did you fancy again?',
       },
       dayKinds: ['workday'],
       when: [
@@ -620,8 +625,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-33',
       text: {
-        zhCN: '下班路上想好烤土豆，到了门口忘了配料。',
-        en: 'I planned baked potatoes on the way home, then forgot the toppings at the door.',
+        zhCN: '下班馋了一路烤土豆，到家一看，一颗也没买！',
+        en: "Dreamed of jacket potatoes all the way home. Got here, found I'd bought absolutely none!",
       },
       dayKinds: ['workday'],
       when: [
@@ -634,8 +639,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-34',
       text: {
-        zhCN: '刚回到家，外套口袋里还装着工牌。',
-        en: 'Home from work. My staff pass is still in the coat pocket.',
+        zhCN: '工牌还挂着呢！等等，切洋葱得先把这绳塞进去。',
+        en: 'Still wearing my work badge! Hang on, tuck the strap in before the onions.',
       },
       dayKinds: ['workday'],
       when: [
@@ -648,8 +653,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-35',
       text: {
-        zhCN: '工作做完了，这会儿只想把洋葱切好。',
-        en: 'Work done. Right now I only want to get this onion chopped.',
+        zhCN: '工作收场，厨房开场！怎么有糊味？这开场可糟了。',
+        en: "Work finished, kitchen kickoff! What's that burning smell? Terrible opening.",
       },
       dayKinds: ['workday'],
       when: [
@@ -662,8 +667,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-36',
       text: {
-        zhCN: '下班以后这段安静，我想和你一起用。',
-        en: 'I want to share this quiet bit after work with you.',
+        zhCN: '下班腿都软了！咱们坐会儿，我连球赛都想躺着听。',
+        en: "Work's done my legs in! Let's sit. I could listen to football lying down.",
       },
       dayKinds: ['workday'],
       when: [
@@ -676,8 +681,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-37',
       text: {
-        zhCN: '还没找到工作，我试着不再盯着钟走。',
-        en: 'Still between jobs. I’m trying not to watch the clock.',
+        zhCN: '工作还没着落。我翻招聘页，怎么又切成菜谱了？',
+        en: 'Still no job. Looking at listings. How did I end up on recipes again?',
       },
       requires: ['family-jamie-unemployed'],
       forbids: ['family-jamie-reemployed', 'family-pip-applied'],
@@ -685,8 +690,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-38',
       text: {
-        zhCN: '没上班的日子，买菜也想换条路走。',
-        en: 'While I’m out of work, I’m trying a different route to the shops.',
+        zhCN: '找工作真磨人，买菜碰上旧同事，我差点躲罐头后面。',
+        en: "Job-hunting's wearing me out. Saw an old colleague shopping. Nearly hid behind the tins.",
       },
       requires: ['family-jamie-unemployed'],
       forbids: ['family-jamie-reemployed', 'family-pip-applied'],
@@ -694,8 +699,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-39',
       text: {
-        zhCN: '新工作下班了，我没再走到旧站台去。',
-        en: 'Home from the new job. I didn’t wander to the old stop.',
+        zhCN: '新工作的杯子带回来了！先吃饭，我有一肚子事要讲。',
+        en: "Brought my new work mug home! Dinner first. I've got so much to tell you.",
       },
       requires: ['family-jamie-reemployed'],
       forbids: ['family-pip-applied'],
@@ -709,8 +714,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-40',
       text: {
-        zhCN: '今天收工后有力气挑菜，想试试芜菁。',
-        en: 'Finished work with enough energy to choose vegetables. Turnips, perhaps.',
+        zhCN: '重新上班也累啊！今天这锅你接，我申请换人！',
+        en: "Being back at work's tiring! Take over the pan? I'm asking for a substitution!",
       },
       requires: ['family-jamie-reemployed'],
       forbids: ['family-pip-applied'],
@@ -724,40 +729,40 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-41',
       text: {
-        zhCN: '春天把窗开一点，窗帘总想溜到外面。',
-        en: 'Leave the window ajar in spring and the curtain tries to escape.',
+        zhCN: '春天开窗喽！等等，这合页叫得比球场边的我还响。',
+        en: 'Spring, windows open! Hang on, that hinge is louder than me on the touchline.',
       },
       season: 2,
     },
     {
       id: 'jamie-daily-42',
       text: {
-        zhCN: '秋天的南瓜太大，案板只够放半个。',
-        en: 'An autumn pumpkin. Only half fits on the chopping board.',
+        zhCN: '这秋天的南瓜，哎哟，得用我最大的案板才压得住！',
+        en: 'Look at this autumn pumpkin! Blimey, needs my biggest chopping board.',
       },
       season: 4,
     },
     {
       id: 'jamie-daily-43',
       text: {
-        zhCN: '雪把后门堵了一点，先从前门出去吧。',
-        en: 'Snow’s edged against the back door. Front door today.',
+        zhCN: '后门被雪封了！咱们走前门，等等，我拿铲子。',
+        en: "Snow's blocked the back! Front door it is. Hang on, shovel first.",
       },
       weather: ['snow'],
     },
     {
       id: 'jamie-daily-44',
       text: {
-        zhCN: '周末给炖菜留点时间，不靠拧大火来催它。',
-        en: 'The weekend stew can take its time. No rushing it with a higher flame.',
+        zhCN: '周末炖菜得慢火，上回球赛加时，我把它烧成一锅炭！',
+        en: 'Low heat for weekend stew. Last extra time, I burnt it to a pan of charcoal!',
       },
       dayKinds: ['weekend'],
     },
     {
       id: 'jamie-daily-45',
       text: {
-        zhCN: '暂别工作后，下午的药盒换了个位置。',
-        en: 'While I’m away from work, the afternoon pillbox has a new spot.',
+        zhCN: '停工后老忘下午的药。我摆水杯边了，这回总该看见！',
+        en: "Keep forgetting afternoon tablets since stopping work. By the water now. Surely I'll see them this time!",
       },
       requires: ['family-pip-applied'],
       when: [
@@ -770,32 +775,32 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-46',
       text: {
-        zhCN: '上次歇脚后，我把常用的锅移到低处。',
-        en: "Since my last rest, I've moved the everyday pans lower.",
+        zhCN: '听完咨询我把重锅放低了，搬一次腰就抗议，真服了。',
+        en: 'After that advice I moved the heavy pans down. My back complains every lift. Honestly.',
       },
       requires: ['family-pip-advice'],
     },
     {
       id: 'jamie-daily-47',
       text: {
-        zhCN: '这锅盐放稳了，轮到我听你讲今天。',
-        en: 'Salt sorted. My turn to hear about your day.',
+        zhCN: '盐试过了，火关了，哎，这下你说！我听着呢。',
+        en: "Salt checked, hob off. Right, tell me! I'm listening.",
       },
       heartsMin: 2,
     },
     {
       id: 'jamie-daily-48',
       text: {
-        zhCN: '你尝过的菜，我会在页边画一个小勾。',
-        en: 'I put a small tick beside the dishes you’ve tasted.',
+        zhCN: '你爱吃那道我写下了，夹在球赛小册里，得好好找！',
+        en: "Wrote down your favourite inside the match programme. I'll have to look properly!",
       },
       heartsMin: 2,
     },
     {
       id: 'jamie-daily-49',
       text: {
-        zhCN: '灯还亮着，你想说话我就把书放下。',
-        en: 'The light’s still on. If you want a chat, I’ll put the book down.',
+        zhCN: '这么晚还亮灯！你也醒着？我在听旧球赛录音呢。',
+        en: "Light's still on this late! You awake too? I'm listening to an old match recording.",
       },
       heartsMin: 6,
       when: [
@@ -807,8 +812,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-50',
       text: {
-        zhCN: '这盘给你试味，失败也算我们一起的。',
-        en: 'Taste this batch. If it’s a disaster, it’s ours together.',
+        zhCN: '哎，尝口这盘！诚实点，我承受得住，球队天天练我。',
+        en: 'Try this! Be honest. I can take it. My team gives me plenty of practice.',
       },
       heartsMin: 6,
     },
@@ -817,8 +822,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-31',
       text: {
-        zhCN: '回家先擦干双手，纸巾里竟带着一截线头。',
-        en: 'Home at last. Drying my hands, I find a loose thread in the tissue.',
+        zhCN: '回家啦，先洗手。收据晚点核，我想先给表姐回个电话。',
+        en: 'Home! Hands washed first. Receipts later, I want to ring my cousin back.',
       },
       dayKinds: ['workday'],
       when: [
@@ -831,8 +836,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-32',
       text: {
-        zhCN: '刚到家，今晚不想再对着表格吃饭。',
-        en: 'Just got in. No spreadsheets beside dinner tonight.',
+        zhCN: '到家这顿饭，你讲个笑话换我收表格，条件够好了吧？',
+        en: "Home dinner: give me a joke and I'll put the spreadsheets away. Generous terms, right?",
       },
       dayKinds: ['workday'],
       when: [
@@ -845,8 +850,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-33',
       text: {
-        zhCN: '回来路上买了根胡萝卜，饭盒终于有新颜色。',
-        en: 'Picked up a carrot on the way home. A new colour for the lunch box.',
+        zhCN: '路上补了胡萝卜。下次换你记，讲好先，别全靠我想起。',
+        en: "Bought carrots on the way. Your turn to remember next time. Let's agree that now.",
       },
       dayKinds: ['workday'],
       when: [
@@ -859,8 +864,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-34',
       text: {
-        zhCN: '今天的事办完了，我把手机提醒调成了静音。',
-        en: 'Today’s errands are done. I’ve silenced the reminders on my phone.',
+        zhCN: '今天的事做完，手机静音。临时加活，可以，先跟我谈。',
+        en: "Today's jobs done, phone silent. Extra job? Fine, negotiate with me first.",
       },
       dayKinds: ['workday'],
       when: [
@@ -873,8 +878,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-35',
       text: {
-        zhCN: '在外面跑了一天，最想先换掉这双硬鞋。',
-        en: 'Out all day. These stiff shoes can come off first.',
+        zhCN: '跑一天啦，我先换鞋！谁喊我再出门，谁得陪我吃点心。',
+        en: 'Out all day, shoes off! Whoever sends me out again owes me a dim sum trip.',
       },
       dayKinds: ['workday'],
       when: [
@@ -887,8 +892,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-36',
       text: {
-        zhCN: '到家后这一小段，我不想边吃边算账。',
-        en: 'For this bit after getting home, I’d rather eat without doing sums.',
+        zhCN: '回家先讲件私事。我想学拍夜景，接下来你有空教我吗？',
+        en: 'Home, personal news first. I want to learn night photography. Time to show me?',
       },
       dayKinds: ['workday'],
       when: [
@@ -901,8 +906,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-37',
       text: {
-        zhCN: '找工作这阵，散步时尽量不刷招聘页。',
-        en: 'While job hunting, I’m trying to keep listings off my walks.',
+        zhCN: '还在找工作。讲好先，散步聊八卦，招聘页回家再看。',
+        en: "Still job-hunting. Let's agree: gossip on our walk, listings when we're home.",
       },
       requires: ['bno-partner-between-jobs'],
       forbids: ['bno-partner-restarted'],
@@ -910,8 +915,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-38',
       text: {
-        zhCN: '还在等下一份工作，先把这顿饭认真做好。',
-        en: 'Still between jobs. This meal deserves some care anyway.',
+        zhCN: '又没找到工作，烦啊！我写做过的事，你帮我挑一句顺的？',
+        en: "Still no job. Frustrating! I'll write what I've done. Help me pick a sentence that flows?",
       },
       requires: ['bno-partner-between-jobs'],
       forbids: ['bno-partner-restarted'],
@@ -919,8 +924,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-39',
       text: {
-        zhCN: '新工作收工了，午饭盒比昨天轻得多。',
-        en: 'Finished at the new job. The lunch box is lighter than yesterday.',
+        zhCN: '我重新上班了，接送要照说好的来。谁临时改，谁找替手。',
+        en: "I'm back at work. School runs as agreed. Whoever changes a slot finds the cover.",
       },
       requires: ['bno-partner-restarted'],
       dayKinds: ['workday'],
@@ -933,8 +938,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-40',
       text: {
-        zhCN: '重新上班后，回家路上的灯也认熟了。',
-        en: 'Back at work, I’m learning the lights along the route home.',
+        zhCN: '重新上班，家务重谈！有个条件：别把我晚饭时间也算空档。',
+        en: "Back at work, chores renegotiated! Condition: my dinner time isn't a spare slot.",
       },
       requires: ['bno-partner-restarted'],
       dayKinds: ['workday'],
@@ -947,71 +952,71 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-41',
       text: {
-        zhCN: '春天的薄外套找到了，袖口还别着线。',
-        en: 'Found the spring jacket. A thread is still pinned to the cuff.',
+        zhCN: '春天外套找到了！省下这笔，我想买本摄影杂志。',
+        en: "Found my spring coat! That money saved, I'd like a photography magazine.",
       },
       season: 2,
     },
     {
       id: 'ka-ning-partner-daily-42',
       text: {
-        zhCN: '冬天的饭盒凉得快，外面加层布试试。',
-        en: 'Lunch cools quickly in winter. I’ll try wrapping the box in cloth.',
+        zhCN: '冬天饭盒凉太快。你试旧保温袋，我煮热点，咱们两边试。',
+        en: "Lunch cools fast in winter. You test the old insulated bag, I'll pack it hotter. Both try.",
       },
       season: 1,
     },
     {
       id: 'ka-ning-partner-daily-43',
       text: {
-        zhCN: '雨声盖过电饭锅，我差点错过它的提示。',
-        en: 'The rain drowned out the rice cooker. I nearly missed its beep.',
+        zhCN: '雨声盖过饭锅了！计时器谁听见谁关，讲好先，别叫远的。',
+        en: 'Rain drowned out the rice cooker! Whoever hears the timer switches it off. Agree now.',
       },
       weather: ['rain'],
     },
     {
       id: 'ka-ning-partner-daily-44',
       text: {
-        zhCN: '周末把针线摊开，这次不赶着缝完。',
-        en: 'Sewing laid out for the weekend. No rush to finish this time.',
+        zhCN: '周末补衣服，按洞排。谁插队，谁给我煮茶，成交？',
+        en: 'Weekend mending, biggest holes first. Queue-jumping costs a cup of tea. Deal?',
       },
       dayKinds: ['weekend'],
     },
     {
       id: 'ka-ning-partner-daily-45',
       text: {
-        zhCN: '孩子那张猫还留着，边上的字也舍不得剪。',
-        en: 'The child’s cat is still here. I can’t bear to trim the writing beside it.',
+        zhCN: '简历那只猫还在呢。表姐说拿去面试，我说她替我答题？',
+        en: "Cat's still on my CV. Cousin says take it to interviews. Will she answer for it, then?",
       },
       requires: ['bno-partner-cv-seen'],
     },
     {
       id: 'ka-ning-partner-daily-46',
       text: {
-        zhCN: '箱里的旧地图折反了，难怪怎么都合不上。',
-        en: 'The old map was folded backwards. No wonder the case wouldn’t close.',
+        zhCN: '旧地图折反，拆开重折就好！你拿这头，我拉那头。',
+        en: 'Old map folded backwards. Open it, fold again! You take this end, I pull that one.',
       },
     },
     {
       id: 'ka-ning-partner-daily-47',
       text: {
-        zhCN: '你挑布料吧，颜色这件事我愿意听你的。',
-        en: 'You choose the fabric. I trust you on the colour.',
+        zhCN: '布我来量，你选色。有个条件：别选完又说随便我。',
+        en: "I'll measure fabric, you pick colour. One condition: don't choose then say it's up to me.",
       },
       heartsMin: 2,
     },
     {
       id: 'ka-ning-partner-daily-48',
       text: {
-        zhCN: '等会儿一起拆这根线，不急着拆完。',
-        en: 'Help me unpick this seam in a bit. It can take its time.',
+        zhCN: '这根线一起拆，别又夸我手快就全递给我，讲好先！',
+        en: 'Unpick this together. No praising my quick hands then handing over the lot. Agree first!',
       },
       heartsMin: 2,
     },
     {
       id: 'ka-ning-partner-daily-49',
       text: {
-        zhCN: '我想把相册空白那页留给下一次出门。',
-        en: 'I’d like to save that empty album page for our next outing.',
+        zhCN: '相册留一页给我！下次我拍完你们，换你给我拍一张。',
+        en: "Save me an album page! Next time I've photographed you all, your turn to photograph me.",
       },
       heartsMin: 6,
       requires: ['family-album-started'],
@@ -1020,8 +1025,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-50',
       text: {
-        zhCN: '饭盒扣好后，来陪我看看窗外也行。',
-        en: 'Once the lunch box is shut, you could come and watch the view with me.',
+        zhCN: '饭盒扣好了。接下来我想翻摄影书，晚点你喊我吃饭？',
+        en: 'Lunchbox shut. I want my photography book next. You call me for dinner later?',
       },
       heartsMin: 6,
     },
@@ -1030,8 +1035,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-child-daily-31',
       text: {
-        zhCN: '放学了，书包先坐椅子，我坐你旁边。',
-        en: 'School’s out. My bag gets the chair; I’ll sit beside you.',
+        zhCN: '放学啦！我有三件事，一件好笑，两件要你猜。',
+        en: "School's out! Three things to tell. One funny, two you have to guess.",
       },
       dayKinds: ['workday'],
       when: [
@@ -1043,8 +1048,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-child-daily-32',
       text: {
-        zhCN: '今天下课我没忘水壶，差点忘了自己。',
-        en: 'I remembered my bottle after class. Nearly left myself behind instead.',
+        zhCN: '水壶带回了，老师那句忘在教室了。能单独拿回来吗？',
+        en: "Brought my bottle, left the teacher's words in class. Can I go back just for them?",
       },
       dayKinds: ['workday'],
       when: [
@@ -1056,8 +1061,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-child-daily-33',
       text: {
-        zhCN: '放学回来才发现，袖子里藏着一块橡皮。',
-        en: 'Home from school. There was a rubber hiding in my sleeve.',
+        zhCN: '放学发现橡皮在袖口。它是不是也想提早回家？',
+        en: 'Found an eraser up my sleeve after school. Did it want to go home early too?',
       },
       dayKinds: ['workday'],
       when: [
@@ -1069,8 +1074,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-child-daily-34',
       text: {
-        zhCN: '功课摊开了，最难那题先给它空个座位。',
-        en: 'Homework open. I’ve saved the hard question an empty space.',
+        zhCN: '功课这题卡关了！你给提示，答案我自己找。',
+        en: "Stuck on this homework level! Give me a hint, I'll find the answer.",
       },
       dayKinds: ['workday'],
       when: [
@@ -1082,8 +1087,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-child-daily-35',
       text: {
-        zhCN: '下课铃响以后，大家的拉链也一起唱了。',
-        en: 'After the bell, everyone’s zips sang together.',
+        zhCN: '下课大家一起拉书包。拉链响得像第二个下课铃。',
+        en: 'Everyone zipped their bags at once after class. Like a second school bell.',
       },
       dayKinds: ['workday'],
       when: [
@@ -1095,8 +1100,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-child-daily-36',
       text: {
-        zhCN: '放学路上捡的小石头，洗干净才给你看。',
-        en: 'I’ll wash my stone from the walk home before I show you.',
+        zhCN: '放学带了块石头。名字叫纪念品，不叫书包垃圾。',
+        en: "Brought a stone home from school. It's a souvenir, not rubbish in my bag.",
       },
       dayKinds: ['workday'],
       when: [
@@ -1108,8 +1113,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-child-daily-37',
       text: {
-        zhCN: '学校的事我想说三件，你先别猜最后一件。',
-        en: 'Three things from school. Don’t guess the last one yet.',
+        zhCN: '学校的事三件，第三件先锁住。钥匙我还没找好。',
+        en: "Three school things. Third one's locked. Haven't found its key yet.",
       },
       dayKinds: ['workday'],
       when: [
@@ -1121,8 +1126,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-child-daily-38',
       text: {
-        zhCN: '作业写完啦，铅笔比我先躺下了。',
-        en: 'Homework done. My pencil lay down before I did.',
+        zhCN: '功课写完！先宣布：完成分和正确分，得分开算。',
+        en: 'Homework finished! Announcement: finishing points and right-answer points count separately.',
       },
       dayKinds: ['workday'],
       when: [
@@ -1134,72 +1139,72 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-child-daily-39',
       text: {
-        zhCN: '春天的蚂蚁好忙，它们有没有课间？',
-        en: 'Spring ants are busy. Do they have break time?',
+        zhCN: '春天蚂蚁搬东西。它们的老师会说别拖拖拉拉吗？',
+        en: 'Ants carry things in spring. Does their teacher tell them to hurry up?',
       },
       season: 2,
     },
     {
       id: 'ka-ning-child-daily-40',
       text: {
-        zhCN: '夏天的凉鞋有洞，脚趾也能看风景。',
-        en: 'Summer sandals have windows. My toes get a view too.',
+        zhCN: '夏天凉鞋露着脚趾。为什么不算鞋子没穿好？',
+        en: "Summer sandals leave your toes out. Why doesn't that count as putting your shoes on wrong?",
       },
       season: 3,
     },
     {
       id: 'ka-ning-child-daily-41',
       text: {
-        zhCN: '秋天拾的果壳，口袋一走就响。',
-        en: 'Autumn nutshells. My pocket rattles when I walk.',
+        zhCN: '秋天果壳装口袋里很响。上课前得先让它们安静。',
+        en: "Autumn seed cases rattle in my pocket. I'll need to quieten them before class.",
       },
       season: 4,
     },
     {
       id: 'ka-ning-child-daily-42',
       text: {
-        zhCN: '冬天手套连着绳，像两个人拉着手。',
-        en: 'Winter mittens on a string look like two people holding hands.',
+        zhCN: '冬天手套连着绳。要是意见不同，谁去左边谁去右边？',
+        en: 'Winter gloves come on a string. If they disagree, which one goes left?',
       },
       season: 1,
     },
     {
       id: 'ka-ning-child-daily-43',
       text: {
-        zhCN: '下雨时窗玻璃糊了，我用手指开个小窗。',
-        en: 'Rain’s blurred the glass. My finger can make a tiny window.',
+        zhCN: '下雨窗上全是雾。写错字擦掉，老师看不到吧？',
+        en: "Rain's fogged the window. If I rub out a wrong word, the teacher won't see?",
       },
       weather: ['rain'],
     },
     {
       id: 'ka-ning-child-daily-44',
       text: {
-        zhCN: '雪人还没鼻子，可是我也想吃那根胡萝卜。',
-        en: 'The snowman needs a nose, but I want that carrot too.',
+        zhCN: '雪人要用胡萝卜。我想吃一口，鼻子短点它介意吗？',
+        en: 'The snowman needs a carrot. If I eat some, will it mind a shorter nose?',
       },
       weather: ['snow'],
     },
     {
       id: 'ka-ning-child-daily-45',
       text: {
-        zhCN: '周末的闹钟不响，我的小肚子会响。',
-        en: 'The weekend alarm is quiet. My tummy isn’t.',
+        zhCN: '周末不用闹钟。肚子会叫，但它报的都是吃饭时间。',
+        en: 'No alarm at weekends. My stomach rings, but only for meals.',
       },
       dayKinds: ['weekend'],
     },
     {
       id: 'ka-ning-child-daily-46',
       text: {
-        zhCN: '这次敢念长词了，你听我慢慢拆开。',
-        en: 'I’m ready for the long word. Listen while I take it apart.',
+        zhCN: '这个长词我来闯！你等句号，抢着说就算你犯规。',
+        en: "I'll tackle that long word! Wait for the full stop. Jump in and it's a foul.",
       },
       heartsMin: 2,
     },
     {
       id: 'ka-ning-child-daily-47',
       text: {
-        zhCN: '外婆回信了，说门框上那条线她也看见了。',
-        en: 'Granny wrote back. She saw the line on the doorframe too.',
+        zhCN: '外婆说身高线收到了！下次我给她画箭头，指我长高那边。',
+        en: "Grandma got my height line! Next time I'll draw an arrow where I grew.",
       },
       heartsMin: 2,
       requires: ['heart-child-photo'],
@@ -1207,24 +1212,24 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-child-daily-48',
       text: {
-        zhCN: '我把蜡笔按长短排好了，最短那支还画得动。',
-        en: 'I lined the crayons up by length. The shortest one still works.',
+        zhCN: '蜡笔排好队！短的也准参加，能画出字就没淘汰。',
+        en: "Crayons lined up! Short ones qualify too. If they can draw a word, they're still in.",
       },
       heartsMin: 6,
     },
     {
       id: 'ka-ning-child-daily-49',
       text: {
-        zhCN: '这本书读错也没关系，我等你再念一次。',
-        en: 'It’s all right to get this book wrong. I’ll wait for another try.',
+        zhCN: '哈哈，你念错了！这次我举手，轮到你等我说完。',
+        en: 'Ha, you read it wrong! Hand up this time. Your turn to let me finish.',
       },
       heartsMin: 6,
     },
     {
       id: 'ka-ning-child-daily-50',
       text: {
-        zhCN: '我想讲今天最小的事，一只蚂蚁那么小。',
-        en: 'I want to tell you the smallest thing today. Ant-sized.',
+        zhCN: '我要讲件小事。先约好，讲到句号你才能去忙！',
+        en: 'Little story to tell. Agree first, you can go when I reach the full stop!',
       },
       heartsMin: 6,
     },
@@ -1282,28 +1287,28 @@ familyNpcs.push({
   },
   reactions: {
     loved: t(
-      '这份正中喜好，我把手洗干净再接！',
-      'Just my favourite. Let me wash my hands before I take it!',
+      '正合我意。收下；工具挪开，桌面留给它。',
+      'Exactly right. Accepted; tools aside, clear space on the table.',
     ),
     liked: t(
-      '真好，得给它找个没有纸屑的地方。',
-      'Lovely. Somewhere without paper shavings for this.',
+      '喜欢。放右边空板上；那块干净，没沾装裱胶。',
+      'Like it. Empty board on right; clean there, no mounting glue.',
     ),
     neutral: t(
-      '我先放在自己的架子上，免得混了。',
-      'On my shelf for now, so it won’t get mixed up.',
+      '收到。先量占地；我自己排位置。',
+      "Received. Measure footprint first; I'll position it.",
     ),
     disliked: t(
-      '这气味会钻进纸里，还是放远一点吧。',
-      'That smell will get into the paper. Further away, please.',
+      '这份我用不上。先搁门边；公共架子已经排满。',
+      "Can't use this one. Leave it by the door; shared shelf already fully arranged.",
     ),
   },
   lines: [
     {
       id: 'yao-flatmate-intro',
       text: t(
-        '我是周沅，做装裱的。刚合租，纸屑跑到你门口就叫我。',
-        'I’m Yuan, a picture framer. Now we’re sharing, give me a shout if paper scraps reach your door.',
+        '周沅，装裱员。合租先划使用范围；纸屑我扫。',
+        'Yuan. Picture framer. Shared areas first; I clear my paper scraps.',
       ),
       once: true,
       when: [{ yearMax: 1 }],
@@ -1311,8 +1316,8 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-1',
       text: {
-        zhCN: '冰箱左边那格还空着，归你。',
-        en: "The left fridge shelf is still free. It's yours.",
+        zhCN: '首轮分配：冰箱左格给你；尺寸不够，再调层板。',
+        en: 'First allocation: left fridge shelf yours. Too small, adjust the shelf.',
       },
       heartsMax: 1,
       when: [{ yearMax: 1 }],
@@ -1320,135 +1325,135 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-2',
       text: {
-        zhCN: '门后那把折尺是我的，不是房东的。',
-        en: 'The folding ruler behind the door is mine, not the landlord’s.',
+        zhCN: '门后折尺归我。三节折回；关节松了会差两毫米。',
+        en: 'Folding rule by the door is mine. Fold three sections back. Loose joint loses two millimetres.',
       },
     },
     {
       id: 'yao-flatmate-daily-3',
       text: {
-        zhCN: '盐和糖写了名字，我对手误没有信心。',
-        en: 'Salt and sugar labelled. I don’t trust my hands to choose.',
+        zhCN: '盐、糖已贴字。黑字白底；按盖色分，容易拿错。',
+        en: 'Salt and sugar labelled. Black on white; lid colours are too easy to mix up.',
       },
     },
     {
       id: 'yao-flatmate-daily-4',
       text: {
-        zhCN: '汤可以多煮一点，洗锅的事不会变多。',
-        en: 'More soup doesn’t make more pans to wash.',
+        zhCN: '汤多一碗。用同一口锅；台面占用面积不变。',
+        en: 'One extra bowl of soup. Same pan; same amount of worktop.',
       },
     },
     {
       id: 'yao-flatmate-daily-5',
       text: {
-        zhCN: '冰箱门的声音大，轻推一下就行。',
-        en: 'The fridge door’s loud. A gentle push will do.',
+        zhCN: '冰箱铰链松一毫米。轻推，等维修。',
+        en: 'Fridge hinge loose by a millimetre. Push gently. Repair pending.',
       },
     },
     {
       id: 'yao-flatmate-daily-6',
       text: {
-        zhCN: '租约放在文件袋里，没混进装裱的废纸。',
-        en: 'The tenancy papers are in their wallet, clear of the framing offcuts.',
+        zhCN: '租约：灰袋。装裱纸：蓝袋。两种纸，分开存。',
+        en: 'Lease: grey folder. Mounting paper: blue. Two kinds of paper, stored apart.',
       },
     },
     {
       id: 'yao-flatmate-daily-7',
       text: {
-        zhCN: '房东的检查邮件，我先标在门背的纸上。',
-        en: 'I mark the landlord’s inspection emails on the sheet behind the door.',
+        zhCN: '房东检查日期在门后。时段待定；我只记确认过的。',
+        en: 'Landlord inspection date behind the door. Time pending; I record confirmed times.',
       },
     },
     {
       id: 'yao-flatmate-daily-8',
       text: {
-        zhCN: '我会修画框，修不了这只一直滴的龙头。',
-        en: 'I can mend frames. This dripping tap is beyond me.',
+        zhCN: '画框能修；水龙头交水工。螺纹规格对不上。',
+        en: 'Frames, I can repair. Tap, plumber. Wrong thread specification.',
       },
     },
     {
       id: 'yao-flatmate-daily-9',
       text: {
-        zhCN: '装裱剩的小纸角，贴便签倒挺合适。',
-        en: 'Offcuts from framing make good corners for notes.',
+        zhCN: '装裱纸角裁好了。四边齐；拿几片去做标签。',
+        en: 'Mounting offcuts cut. Four straight edges. Take some for labels.',
       },
     },
     {
       id: 'yao-flatmate-daily-10',
       text: {
-        zhCN: '一碗汤的份量很难猜，多半锅倒容易。',
-        en: 'One bowl of soup is hard to judge. Half a pan is easier.',
+        zhCN: '汤按碗分。八分满；装到沿口，端起来会洒。',
+        en: 'Soup by the bowl. Four-fifths full; to the rim and it spills when carried.',
       },
     },
     {
       id: 'yao-flatmate-daily-11',
       text: {
-        zhCN: '春天把窗开条缝，胶水的气味散得快。',
-        en: 'A crack in the window helps the glue smell clear in spring.',
+        zhCN: '春天开窗三指宽。散胶味；纸面避开直风。',
+        en: 'Spring window: three fingers wide. Glue fumes out; keep paper out of the draught.',
       },
       season: 2,
     },
     {
       id: 'yao-flatmate-daily-12',
       text: {
-        zhCN: '夏天的胶带太黏，连我的指纹都想留下。',
-        en: 'Summer tape’s so sticky it wants to keep my fingerprints.',
+        zhCN: '夏天胶带黏度高。废纸试贴；正稿先压在板下。',
+        en: 'Summer tape is tacky. Test on scrap; keep the original under the board.',
       },
       season: 3,
     },
     {
       id: 'yao-flatmate-daily-13',
       text: {
-        zhCN: '秋天鞋底带进来的叶子，别夹进画框。',
-        en: 'Keep the autumn leaves from our shoes out of the frames.',
+        zhCN: '秋叶有水印风险。鞋底清干净；画纸另放。',
+        en: 'Autumn leaves risk water stains. Clean the soles; keep drawing paper apart.',
       },
       season: 4,
     },
     {
       id: 'yao-flatmate-daily-14',
       text: {
-        zhCN: '冬天裁纸先搓手，手指不能跟着打盹。',
-        en: "I rub my hands before cutting paper in winter. Can't have my fingers nodding off.",
+        zhCN: '冬天手热透再裁。冷手偏线，重裁要损一条边。',
+        en: 'Warm hands before winter cutting. Cold hands drift; recutting loses an edge.',
       },
       season: 1,
     },
     {
       id: 'yao-flatmate-daily-15',
       text: {
-        zhCN: '雨把门垫浸透了，我竖起来晾一会儿。',
-        en: 'The rain soaked the doormat. I’ve propped it up to dry.',
+        zhCN: '雨浸透门垫。晾起；右侧通行，离木柜远点。',
+        en: 'Rain-soaked mat. Hung up; use the right side, away from the wooden cupboard.',
       },
       weather: ['rain'],
     },
     {
       id: 'yao-flatmate-daily-16',
       text: {
-        zhCN: '太阳照进来才看清，玻璃擦出了条纹。',
-        en: 'Sunshine reveals every streak I left on the glass.',
+        zhCN: '晴天检查玻璃。斜看三十度；擦痕在右上角。',
+        en: 'Check glass in sun. Thirty-degree angle; streaks at top right.',
       },
       weather: ['sunny'],
     },
     {
       id: 'yao-flatmate-daily-17',
       text: {
-        zhCN: '雪天鞋放托盘里吧，玄关不是溜冰场。',
-        en: 'Snowy shoes on the tray. The hall isn’t an ice rink.',
+        zhCN: '雪鞋进托盘。水流到板缝，会把地板边缘泡翘。',
+        en: 'Snowy shoes in the tray. Water in the joins curls the floorboard edges.',
       },
       weather: ['snow'],
     },
     {
       id: 'yao-flatmate-daily-18',
       text: {
-        zhCN: '周末不裁直线，我想随便撕一张纸。',
-        en: 'No straight cuts at weekends. I fancy tearing some paper.',
+        zhCN: '周末画曲线。直线本周裁够了；尺收进抽屉。',
+        en: 'Curves this weekend. Cut enough straight lines this week; ruler in the drawer.',
       },
       dayKinds: ['weekend'],
     },
     {
       id: 'yao-flatmate-daily-19',
       text: {
-        zhCN: '刚下班，围裙口袋里又带回两颗图钉。',
-        en: 'Just home from work. Two drawing pins in the apron pocket again.',
+        zhCN: '下班带回图钉两颗。进铁盒；散在地上会扎脚。',
+        en: 'Two drawing pins home from work. Metal tin; loose ones go through feet.',
       },
       dayKinds: ['workday'],
       when: [
@@ -1460,8 +1465,8 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-20',
       text: {
-        zhCN: '收工后不想量尺寸，面条抓多少算多少。',
-        en: 'After work I won’t measure anything. A handful of noodles will do.',
+        zhCN: '收工。面条凭手抓；装裱尺寸今天已经量够了。',
+        en: 'Finished work. Noodles by the handful; enough frame measuring today.',
       },
       dayKinds: ['workday'],
       when: [
@@ -1473,8 +1478,8 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-21',
       text: {
-        zhCN: '下班回来先听水烧开，比机器声音顺耳。',
-        en: 'Home from work, I’d rather hear water boil than machinery.',
+        zhCN: '下班先烧水。裁纸机响了一天；我耳朵还在嗡。',
+        en: 'Kettle first after work. Paper cutter all day; my ears are still humming.',
       },
       dayKinds: ['workday'],
       when: [
@@ -1486,8 +1491,8 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-22',
       text: {
-        zhCN: '今天裱了幅大画，收工后肩膀终于能放松。',
-        en: 'A large frame today. My shoulders can loosen up after work.',
+        zhCN: '大画裱完。肩膀僵；箱子先靠墙，搬运等明天。',
+        en: 'Large picture mounted. Stiff shoulders; boxes by the wall, moving tomorrow.',
       },
       dayKinds: ['workday'],
       when: [
@@ -1499,8 +1504,8 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-23',
       text: {
-        zhCN: '刚把工服挂好，晾衣架又向我这边歪。',
-        en: 'Work clothes hung up. The drying rack leans my way again.',
+        zhCN: '工服挂右边。架子左低右高；重量往高处配。',
+        en: 'Work coat on the right. Rack lower left, higher right; weight to the high side.',
       },
       dayKinds: ['workday'],
       when: [
@@ -1512,8 +1517,8 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-24',
       text: {
-        zhCN: '下班带回的纸袋，倒出来全是纸屑。',
-        en: 'The bag I brought back from work is mostly paper shavings.',
+        zhCN: '下班带回边角料一袋。先按纸厚分；薄片还能试胶。',
+        en: 'Bag of offcuts from work. Sort by thickness first; thin ones for glue tests.',
       },
       dayKinds: ['workday'],
       when: [
@@ -1525,8 +1530,8 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-25',
       text: {
-        zhCN: '早上我先用烤面包机，你用水壶吧。',
-        en: 'I’ll take the toaster this morning; you take the kettle.',
+        zhCN: '早上分插座：我烤面包，你烧水。延长线额定不够。',
+        en: "Morning sockets: my toaster, your kettle. Extension isn't rated for both.",
       },
       when: [
         {
@@ -1537,8 +1542,8 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-26',
       text: {
-        zhCN: '这么晚还醒着？我把切菜声留到明天。',
-        en: 'Still up this late? Chopping can wait until tomorrow.',
+        zhCN: '夜间切菜暂停。砧板振动穿墙；明天垫块布再切。',
+        en: 'Night chopping paused. Board vibrates through the wall; cloth underneath tomorrow.',
       },
       when: [
         {
@@ -1549,40 +1554,40 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-27',
       text: {
-        zhCN: '你的口味记住了，下次不靠便签也行。',
-        en: 'I know your taste now. Won’t need a note next time.',
+        zhCN: '你的口味记在食谱边了。铅笔字；改口味，能擦。',
+        en: 'Your taste noted beside the recipe. Pencil; erasable if it changes.',
       },
       heartsMin: 2,
     },
     {
       id: 'yao-flatmate-daily-28',
       text: {
-        zhCN: '这段广播挺好笑，留着想和你一起听。',
-        en: 'Saved this funny bit of radio for us to hear together.',
+        zhCN: '广播笑话已录。剪掉前面广告；两分钟，听这段。',
+        en: 'Radio joke recorded. Ads cut from the start; two minutes, listen here.',
       },
       heartsMin: 4,
     },
     {
       id: 'yao-flatmate-daily-29',
       text: {
-        zhCN: '你回来一开门，我就知道该多拿个碗。',
-        en: 'When you open the door, I know to get another bowl.',
+        zhCN: '听见钥匙就多拿碗。两只并排；你惯用的在右。',
+        en: 'Keys at the door, another bowl out. Side by side; yours on the right.',
       },
       heartsMin: 6,
     },
     {
       id: 'yao-flatmate-daily-30',
       text: {
-        zhCN: '我今天不太想说话，坐一会儿也算聊天。',
-        en: 'I’m quiet today. Sitting together can count as a chat.',
+        zhCN: '今天只想看你坐旁边。装裱做了一天，嘴也想收工。',
+        en: 'Just want you beside me today. Framing all day; my mouth wants to clock off too.',
       },
       heartsMin: 8,
     },
     {
       id: 'yao-flatmate-daily-31',
       text: {
-        zhCN: '你伴侣来英国那会儿，日历翻得特别勤。',
-        en: 'When your partner came to the UK, the calendar got a lot of use.',
+        zhCN: '伴侣来访日期已记。日历右边；留白够加回程。',
+        en: "Partner's visit dates noted. Right margin; room left for the return.",
       },
       requires: ['partner-arrived'],
       forbids: ['partner-separated'],
@@ -1590,8 +1595,8 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-32',
       text: {
-        zhCN: '你伴侣说起初来英国的事，我才知道那箱子有多沉。',
-        en: 'Your partner told me about first arriving in the UK. That suitcase sounded heavy.',
+        zhCN: '你伴侣那只箱子我量过。能进床底；轮子得侧着。',
+        en: "Measured your partner's case. Fits under the bed; wheels sideways.",
       },
       requires: ['partner-arrived'],
       forbids: ['partner-separated'],
@@ -1599,48 +1604,48 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-33',
       text: {
-        zhCN: '一起住久了，连谁的锅铲都不用看。',
-        en: 'After living together this long, I can tell the spatulas apart.',
+        zhCN: '锅铲共用。裁纸刀分开；刀口角度各人磨得不同。',
+        en: 'Shared spatulas. Separate paper knives; we sharpen different edge angles.',
       },
       heartsMin: 6,
     },
     {
       id: 'yao-flatmate-daily-34',
       text: {
-        zhCN: '冰箱那排纸角还牢着，字倒被蒸汽泡胖了。',
-        en: 'The fridge’s paper corners hold. The steam has fattened the lettering.',
+        zhCN: '冰箱纸角重粘了。换薄胶；这回压足了时间。',
+        en: 'Fridge labels reglued. Thinner adhesive; held down long enough this time.',
       },
       requires: ['flatmate-shelf'],
     },
     {
       id: 'yao-flatmate-daily-35',
       text: {
-        zhCN: '那份检查清单夹好了，下回房东来也不用乱找。',
-        en: 'The inspection checklist’s filed. No scramble next time the landlord visits.',
+        zhCN: '房检清单夹好。旧磨损附照片；按原图核对。',
+        en: 'Inspection checklist clipped. Old damage photographed; compare with originals.',
       },
       requires: ['flatmate-checklist'],
     },
     {
       id: 'yao-flatmate-daily-36',
       text: {
-        zhCN: '空白那格留着呢，今天也能往上添一点。',
-        en: 'That blank square’s still there. Something can go in it today.',
+        zhCN: '留言写位置、尺寸、谁处理。一个问号，我量不出。',
+        en: "Notes need location, size, who's doing it. Can't measure a question mark.",
       },
       requires: ['flatmate-board'],
     },
     {
       id: 'yao-flatmate-daily-37',
       text: {
-        zhCN: '有人敲门我会先应一声，你不用急着跑。',
-        en: 'I’ll answer a knock. No need for you to run for it.',
+        zhCN: '敲门我应。鞋柜挡路就挪五厘米；门得开到底。',
+        en: "I'll answer the knock. Move shoe rack five centimetres if it blocks; door needs full travel.",
       },
       heartsMin: 4,
     },
     {
       id: 'yao-flatmate-daily-38',
       text: {
-        zhCN: '新来的时候我也拿错过垃圾桶，贴字管用。',
-        en: 'When I was new, I chose the wrong bin too. Labels helped.',
+        zhCN: '合租初期按标签分垃圾。字贴正面；色盖只作辅助。',
+        en: 'New flatshare: sort rubbish by labels. Text facing front; lid colour as backup.',
       },
       heartsMax: 3,
       when: [{ yearMax: 1 }],
@@ -1648,66 +1653,66 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-39',
       text: {
-        zhCN: '房东要修东西，约时间的邮件别忘了抄我。',
-        en: 'Copy me into emails arranging the landlord’s repairs.',
+        zhCN: '维修邮件抄送我。到访时段要确认；我有装裱排期。',
+        en: 'Copy me on repairs. Confirm visit times; I have framing booked.',
       },
     },
     {
       id: 'yao-flatmate-daily-40',
       text: {
-        zhCN: '我做饭用这条旧围裙，装裱那条不进厨房。',
-        en: 'This old apron is for cooking. The framing one stays out of the kitchen.',
+        zhCN: '厨房围裙挂左钩。带胶那条留工间；交叉用了要洗。',
+        en: 'Kitchen apron, left hook. Glue-stained one stays in workshop; wash if mixed up.',
       },
     },
     {
       id: 'yao-flatmate-daily-41',
       text: {
-        zhCN: '那个玻璃罐别急着扔，还能装松开的扣子。',
-        en: 'Keep that jar. It can hold loose buttons.',
+        zhCN: '玻璃罐按口径分。小号放扣子，大号装垫片；贴字。',
+        en: 'Jars by mouth width. Small for buttons, large for washers; label them.',
       },
     },
     {
       id: 'yao-flatmate-daily-42',
       text: {
-        zhCN: '我在草稿上画歪了墙，幸好真墙还挺直。',
-        en: 'Drew the wall crooked. Luckily the real one’s still straight.',
+        zhCN: '草稿墙线斜两度。真墙也斜；我用水平尺验过。',
+        en: 'Wall in sketch two degrees off. Real wall too; spirit-level checked.',
       },
     },
     {
       id: 'yao-flatmate-daily-43',
       text: {
-        zhCN: '这箱纸先放我房间，公共地方得能走路。',
-        en: 'This paper box goes in my room. We need room to walk.',
+        zhCN: '纸箱进我房。过道留转身宽度；门口还要开伞。',
+        en: 'Paper box in my room. Turning room in passage; umbrella opens by the door.',
       },
     },
     {
       id: 'yao-flatmate-daily-44',
       text: {
-        zhCN: '汤勺比碗还长，只好让它斜着休息。',
-        en: 'The ladle’s longer than the bowl. A diagonal rest for it.',
+        zhCN: '长汤勺横放。罐深不足；竖着会顶翻旁边那把。',
+        en: 'Long ladle sideways. Jar too shallow; upright knocks the next one over.',
       },
     },
     {
       id: 'yao-flatmate-daily-45',
       text: {
-        zhCN: '周末小店不赶着去，路过公园也行。',
-        en: 'No rush to the shop at weekends. We could pass the park.',
+        zhCN: '周末绕公园去小店。旧告示的字距，我想拍张近照。',
+        en: "Shop via park this weekend. Want a close-up of the old notice's letter spacing.",
       },
       dayKinds: ['weekend'],
     },
     {
       id: 'yao-flatmate-daily-46',
       text: {
-        zhCN: '云把天盖住了，窗边看颜色倒没那么刺眼。',
-        en: 'Cloud cover makes judging colours by the window easier on my eyes.',
+        zhCN: '阴天校色。窗边无直射；两张白纸并排比底色。',
+        en: 'Overcast for colour matching. No direct light; two whites side by side for undertone.',
       },
       weather: ['cloudy'],
     },
     {
       id: 'yao-flatmate-daily-47',
       text: {
-        zhCN: '晚上把音箱挪开一点，隔壁墙比纸还薄。',
-        en: 'I move the speaker at night. This wall’s thinner than paper.',
+        zhCN: '夜间音箱离墙一掌。低音走墙体；隔壁听不清歌词。',
+        en: 'Speaker a hand from wall at night. Bass travels through it; neighbours miss the words.',
       },
       when: [
         {
@@ -1718,8 +1723,8 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-48',
       text: {
-        zhCN: '早餐别碰那只裂边碗，我留它装纸夹。',
-        en: 'Not that chipped bowl for breakfast. It holds paper clips now.',
+        zhCN: '裂口碗改装纸夹。早餐用右边整口的；沿口我查过。',
+        en: 'Chipped bowl for clips now. Whole-rimmed one on right for breakfast; edge checked.',
       },
       when: [
         {
@@ -1730,56 +1735,56 @@ familyNpcs.push({
     {
       id: 'yao-flatmate-daily-49',
       text: {
-        zhCN: '你讲今天，我负责把不冒烟的面煮好。',
-        en: 'Tell me about your day. I’ll concentrate on noodles that don’t smoke.',
+        zhCN: '面煮三分钟。你讲今天的事；我先关抽油烟机。',
+        en: 'Noodles, three minutes. Tell me about today; extractor off first.',
       },
       heartsMin: 4,
     },
     {
       id: 'yao-flatmate-daily-50',
       text: {
-        zhCN: '门背的小图还在，连斜掉的角也舍不得改。',
-        en: 'The little map’s still behind the door. I’m keeping its crooked corner.',
+        zhCN: '门后小图保留。偏角三度，暂不重描；出口已标清。',
+        en: 'Little door map retained. Three-degree tilt, no retracing yet; exits labelled.',
       },
       requires: ['flatmate-map'],
     },
     {
       id: 'yao-flatmate-daily-51',
       text: {
-        zhCN: '这盘饺子留个角，我想画下大家摆菜的样子。',
-        en: 'Leave a corner by the dumplings. I want to sketch the dishes.',
+        zhCN: '新年饺子想画。先拍俯视图；吃完按照片起稿。',
+        en: 'Want to draw New Year dumplings. Photo from above first; sketch from it after eating.',
       },
       festival: 'lunar-new-year',
     },
     {
       id: 'yao-flatmate-daily-52',
       text: {
-        zhCN: '五月节的彩带别借我量，会越量越长。',
-        en: 'No measuring the May Day ribbons. They’ll only get longer.',
+        zhCN: '五月彩带有弹性。量长度用尺；拉伸误差太大。',
+        en: 'May ribbons stretch. Use a rule for length; too much stretch error.',
       },
       festival: 'may-day',
     },
     {
       id: 'yao-flatmate-daily-53',
       text: {
-        zhCN: '夏日集市的标签好看，我只学它的排字。',
-        en: 'Lovely summer-fair labels. I’m studying just the lettering.',
+        zhCN: '夏日集市标签字距匀。奖状那行偏紧；我职业病。',
+        en: 'Summer fair labels evenly spaced. Prize certificate tighter; occupational habit.',
       },
       festival: 'summer-fair',
     },
     {
       id: 'yao-flatmate-daily-54',
       text: {
-        zhCN: '烟花刚开，我画的线就跟不上了。',
-        en: 'The fireworks open faster than I can draw them.',
+        zhCN: '烟花只描轨迹。定一条线；追着光改，会叠成团。',
+        en: 'Fireworks: trace one path. Fix a line; chasing the light makes a tangle.',
       },
       festival: 'bonfire-night',
     },
     {
       id: 'yao-flatmate-daily-55',
       text: {
-        zhCN: '圣诞集市的木牌歪着，我看得脖子也歪了。',
-        en: 'The Christmas-market sign’s crooked. My neck’s following it.',
+        zhCN: '圣诞集市木牌右低。差半指宽；加垫片就能调平。',
+        en: 'Christmas-market sign lower right. Half a finger; a washer would level it.',
       },
       festival: 'christmas-market',
     },
@@ -1800,21 +1805,21 @@ const moments: {
     npc: 'jamie',
     hearts: 2,
     title: {
-      zhCN: '没合上的食谱',
-      en: 'The open recipe book',
+      zhCN: '修不好的汤',
+      en: 'Soup is not a repair job',
     },
     text: {
-      zhCN: '杰米用杯子压住食谱，纸页卷回来，锅里的洋葱已经开始催人。\n你扶住锅柄，他终于腾出手翻页。「原来下一行才说要关小火。」\n他把火调低，又把案板挪到旁边，给你的手留出位置，勺子已经搁在干净碟里。\n「这次先别管像不像照片。」他指指勺子，锅里的香味和卷起的书页都等着你。',
-      en: 'Jamie pins the recipe open with a mug. The page curls back while the onions demand attention.\nYou steady the pan so he can turn the page. “The next line says turn the heat down.”\nHe lowers the flame and shifts the chopping board, leaving room for your hand. A tasting spoon waits on a clean plate.\n“Never mind whether it looks like the picture.” He points at the spoon; both the pan and the curled recipe page await your attention.',
+      zhCN: '杰米说自己能把松动的柜门修好，炖汤却总拿不准。你问汤少了什么，他认真列出厨房现有的东西。\n「我不是问库存。」你说。他愣一下，尝了尝自己的那碗：「哎，我说岔了，是怕你不爱吃。」\n他习惯用做饭表示欢迎，却常常只问够不够，不问你究竟想吃什么，好像饿不着就算照顾好了。\n你说家里可以有不一样的口味。他点头，把那句「我都可以」收回，承认自己也有不想吃的菜。\n他翻出沾油的食谱，边上写着「别凭感觉」。你问谁写的，他指自己：「写的时候，我可有把握了！」\n汤没变得完美。杰米尝了一口，终于没问「够不够」：「说喜欢什么吧！你先，哎，还是我先？」',
+      en: 'Jamie says he can fix a loose cupboard door but never quite gets soup right. Asked what it lacks, he lists the kitchen supplies.\n“I wasn’t asking for stock.” He pauses and tastes his bowl. “Ah, wrong thing. I’m scared you won’t like it.”\nCooking is his way to welcome you. He usually asks whether there is enough, rather than what you want, as though not going hungry settles care.\nYou say a home can hold different tastes. He nods, withdraws “Anything’s fine” and admits there are dishes he would rather not eat too.\nHe finds the grease-spotted recipe. “Don’t go by feel” is written in the margin. You ask who wrote it. He points to himself. “Oh, I was certain when I wrote it!”\nThe soup stays imperfect. Jamie tastes it and finally asks something other than “Enough?” “What do we like, then! You first. Ah, shall I?”',
     },
     labels: [
       {
-        zhCN: '扶着锅一起试味',
-        en: 'Steady the pan and taste together',
+        zhCN: '直说你喜欢的味道',
+        en: 'Say which flavours you like',
       },
       {
-        zhCN: '替食谱压平卷角',
-        en: 'Flatten the curled recipe page',
+        zhCN: '问他真正喜欢吃什么',
+        en: 'Ask what he actually likes eating',
       },
     ],
   },
@@ -1822,40 +1827,40 @@ const moments: {
     npc: 'jamie',
     hearts: 4,
     title: {
-      zhCN: '少一颗螺丝',
-      en: 'One screw short',
+      zhCN: '熟悉也会走错',
+      en: 'Familiar ground can trip you',
     },
     text: {
-      zhCN: '杰米把厨房椅子倒过来，指着松开的椅脚，掌心只剩下一颗螺丝。\n「另一颗大概退休了。」他摸遍裤袋，找出一张洗得发软的旧信封。\n他把螺丝放在纸上，拿起铅笔比了比，说这回得带着图去买，免得又跑错。\n椅背歪向你这边。他腾出手找尺子，请你扶着描线，或先把松椅子移开。',
-      en: 'Jamie turns a kitchen chair over. The leg is loose and there is only one screw in his palm.\n“The other one must have retired.” His pockets produce an old envelope softened in the wash.\nHe places the screw on it and tries a pencil beside it. A drawing should save another wasted trip to the shop.\nThe chair back tilts towards you. Reaching for a ruler, he asks you to hold it for tracing or move the loose chair aside.',
+      zhCN: '杰米说自己小时候在这里迷过路，明明认得街名，却为了不被笑，硬说是在带别人抄近路。\n你问后来谁找到他的。他说自己绕回来，家里没有人知道。他把这事当笑话讲了很多年。\n「现在听着不太好笑。」你说。他点头：「哎，住这儿久了，连迷路都怕人笑话！」\n你刚到时，他也常抢着解释，仿佛熟悉小镇的人不该犹豫，却很少问你要不要另找一种走法。\n他翻出手机拍过的一块路牌，说小时候总认错。你照着念，他也跟着念，念到一半才发现手机拿反了。\n他想了想：「你想自己找路，就你带队！」说完又笑，「哎，我这腿又差点抢跑。」',
+      en: 'Jamie once got lost here as a child. He knew the street names but claimed to be taking a shortcut so nobody would laugh.\nYou ask who found him. He got back by circling round, and nobody at home knew. He has told it as a joke for years.\n“Doesn’t sound very funny now.” He nods. “Ah, lived here so long I’m scared people will laugh if I get lost!”\nWhen you first arrived he rushed to explain, as if a local should never hesitate. He rarely asked whether you wanted to find another way.\nHe finds a phone photograph of a sign he used to mistake as a child. You read it; he joins in, then realises he is holding the phone upside down.\nHe considers it. “If you want your own route, you lead the team!” Then a smile. “Ah, my legs nearly ran ahead again.”',
     },
     labels: [
       {
-        zhCN: '扶住椅背描螺丝',
-        en: 'Hold the chair and trace the screw',
+        zhCN: '问他如今还有什么没把握',
+        en: 'Ask what still makes him unsure',
       },
       {
-        zhCN: '把松椅子搬到墙边',
-        en: 'Move the loose chair against the wall',
+        zhCN: '讲一件你想自己摸索的事',
+        en: 'Name something you want to find out yourself',
       },
     ],
   },
   {
     npc: 'jamie',
     hearts: 6,
-    title: { zhCN: '调不准的广播', en: 'The wandering radio signal' },
+    title: { zhCN: '不靠修东西回答', en: 'An answer without a toolkit' },
     text: {
-      zhCN: '后门旁的收音机只收到杂音。杰米把天线拉长，里面忽然传出半句天气预报。\n「连下雨都只肯说一半。」他转动旋钮，手一松，那句话又退回沙沙声里。\n你们把它挪到花盆旁，院子里一片叶子翻过来，天线也跟着轻轻摇。\n他笑着让开旋钮的位置，问你要不要试试；或者就留着杂音，先听一会儿花园。',
-      en: 'The radio by the back door only hisses. Jamie extends the aerial and catches half a weather forecast.\n“Won’t even finish telling us about the rain.” He turns the dial; as he lets go, the words sink into static.\nYou move it beside a flowerpot. A leaf turns over in the garden, and the aerial sways with it.\nLaughing, he leaves the dial to you. Would you like a try, or shall the static stay while you both listen to the garden?',
+      zhCN: '杰米翻着工具盒，过一会儿才承认，没有东西坏。他说手里忙一点，难说的话就能迟一点开口。\n你问是什么话。他把盒子关上：「哎，我怕你在这儿不开心，觉得我当初吹得太轻松！」\n你说不开心的日子不全是他的责任。他却习惯先找能修的东西，连你的沉默也被他当成故障。\n「我不是门铰链。」你说。他笑了一下，随后认真点头，第一次没有接着列出解决的办法。\n一颗螺丝从盒盖滚下来，他下意识接住，又摊开手掌：「这颗倒能修！哎，先放下。」你笑了，难说的话还没走。\n工具盒安静放着。杰米看了它一眼，没有再伸手：「你说，我先听！哎，又想拿工具了，收手。」',
+      en: 'Jamie searches his toolbox, then admits nothing is broken. Busy hands let him postpone a difficult sentence a little longer.\nYou ask which sentence. He closes the box. “Ah, I’m scared you’re unhappy here and think I made it all sound too easy!”\nYou say unhappy days are not all his responsibility. He instinctively looks for something to fix, even treating your silence like a fault.\n“I’m not a door hinge.” He laughs, then nods properly. For once he does not follow it with a list of solutions.\nA screw rolls off the lid. He catches it automatically, then opens his hand. “This one I can fix! Ah, put it down first.” You laugh. The difficult subject has not gone anywhere.\nThe toolbox stays quiet. Jamie glances at it without reaching. “Go on, I’m listening! Ah, reaching for the tools again. Hand back.”',
     },
     labels: [
       {
-        zhCN: '转动旋钮找清楚的声音',
-        en: 'Turn the dial to find a clear voice',
+        zhCN: '说清哪件事你只想被听见',
+        en: 'Name something you only want him to hear',
       },
       {
-        zhCN: '陪他听一会儿花园的响动',
-        en: 'Stay and listen to the garden with him',
+        zhCN: '请他把自己的害怕讲完',
+        en: 'Ask him to finish saying what frightens him',
       },
     ],
   },
@@ -1863,21 +1868,21 @@ const moments: {
     npc: 'jamie',
     hearts: 8,
     title: {
-      zhCN: '椅脚下的小垫',
-      en: 'A pad beneath the chair',
+      zhCN: '椅子不是借口',
+      en: 'The chair is not an excuse',
     },
     text: {
-      zhCN: '杰米把旧椅子搬到门边，摊开几片软木，拿来一支短得握不住的笔。\n「这回轮到它站稳了。」他蹲了一会便坐下来，请你替他比着椅脚描线。\n桌边剪好的那片太窄，他翻过软木重新量，铅笔头又从指缝滑到了你面前。\n椅脚还轻轻摇着。他摊开手让你挑，是先剪合适的垫子，还是坐上去找摇晃的方向。',
-      en: 'Jamie carries the old chair to the door and lays out cork offcuts and an awkwardly short pencil.\n“Its turn to stand steady.” He crouches, then sits and asks you to trace around the leg.\nThe first pad is too narrow. He measures fresh cork, and the pencil stub slips through his fingers towards you.\nThe chair still rocks. He opens his hand: cut a better pad first, or sit down to find which way it leans?',
+      zhCN: '杰米把摇晃的椅子修好，仍不肯坐下。你问还差什么，他又检查一遍已经拧紧的螺丝。\n「你总说等我忙完。」你说，「可总有下一样要修。」他停住手，承认自己也听见这句话了。\n他怕一坐下来，就得谈没有工具能解决的事；你也累了，不想总等到自己爆发，才换来一次认真相处。\n你可以坚持现在坐下谈，不再往后拖；也可以说今天已经没有力气，约定另一天，接受他暂时以为你在退开。\n椅面留着一个旧杯圈。杰米说擦不掉，你说这回没人叫他擦，他的手才从抹布旁收回来。\n椅脚不晃了，谈话却没有自动站稳。杰米扣上工具盒：「哎，哪天都行！我记下，修东西再多也得赴约。」',
+      en: 'Jamie finishes fixing the wobbling chair but will not sit. Asked what remains, he checks the tightened screws again.\n“You always say once I’m finished. There’s always another job.” His hands stop. He admits hearing himself say it too.\nHe fears questions no tool can solve. You are tired of waiting until you explode before getting serious time together.\nYou can insist on talking now without postponement, or admit you have no strength today and agree another day, accepting that he may feel you pulling away.\nAn old cup ring marks the seat. Jamie says it will not come off. You say nobody asked him to clean it this time. His hand leaves the cloth alone.\nThe chair is steady; the conversation is not. Jamie shuts the toolbox. “Ah, any day! I’ll write it down. Even with repairs to do, I’m showing up.”',
     },
     labels: [
       {
-        zhCN: '比着椅脚剪软木',
-        en: 'Cut the cork around the chair leg',
+        zhCN: '坚持现在坐下，不再拖延谈话',
+        en: 'Insist on sitting now without postponing',
       },
       {
-        zhCN: '坐下替他试稳不稳',
-        en: 'Sit and test whether it rocks',
+        zhCN: '承认今天无力，另约时间并承担误会',
+        en: 'Admit you cannot today, arrange time and accept the misunderstanding',
       },
     ],
     sets: ['family-chairs-mended'],
@@ -1885,14 +1890,17 @@ const moments: {
   {
     npc: 'jamie',
     hearts: 10,
-    title: { zhCN: '椅背上的木牌', en: 'Labels on the chairs' },
+    title: { zhCN: '给椅子取名字', en: 'Names for the chairs' },
     text: {
-      zhCN: '杰米剪了两块薄木牌，一块画锅，一块画勺，用细绳系在椅背下方。\n「转过来就认得出。」他拨了拨锅牌，那把贴过软木的椅子只发出一点轻响。\n他给勺子添上一滴汤，又拿起彩笔问你，锅里还该有什么，桌上留着空白纸。\n两杯水已经放好，两把椅子仍隔着一点距离。他请你添完那道菜，再挪过来试坐。',
-      en: 'Jamie cuts two thin wooden labels, draws a pan on one and a spoon on the other, and ties them beneath the chair backs.\n“Turn them round and you’ll know.” He flicks the pan label. The chair with cork pads makes only a small sound.\nHe adds a drop of soup to the spoon, then asks what belongs in the pan. There is spare paper on the table.\nTwo glasses of water are ready, the chairs still a little apart. He invites you to finish the dish and pull your chair over.',
+      zhCN: '修好的椅子被杰米起名叫「先坐下」，另一把叫「听完再说」。你问这名字会不会太长。\n「比我找借口短多啦！」他说。你笑，他也笑，却没有再添一句把认真藏起来的玩笑。\n他仍爱修东西，也仍会猜错你的心情。现在猜不准时，能先问一句，而不是立刻去拧螺丝。\n你们决定不固定谁坐哪把椅子，谁想说话就先坐。一个人坐下，另一个也不必马上变成问题解决者。\n他把名字写在纸牌上，试着系到椅背，结打大了，自己坐下先硌了一下。「哎哟，名字把我硌了！」他说。\n杰米拍一下「先坐下」的椅背：「你要换名字就换！哎，挂上也能摘。」他自己先坐，不再检查椅脚。',
+      en: 'Jamie names the repaired chair “Sit down first” and the other “Hear it out”. You ask whether the names are too long.\n“A lot shorter than my excuses!” You both laugh, and he adds no further joke to hide the serious part.\nHe still likes fixing things and still misreads your mood. When unsure now, he can ask before reaching for a screwdriver.\nYou decide neither chair belongs to one person. Whoever wants to talk sits first; the other need not immediately become a problem-solver.\nHe writes the names on paper tags and tries tying them to the chair backs. The oversized knot pokes him when he sits. “Ow, the name’s poking me!” he says.\nJamie pats “Sit down first”. “Change the name if you want! Ah, can always take the tag off.” He sits without inspecting the legs again.',
     },
     labels: [
-      { zhCN: '在锅牌下添一颗番茄', en: 'Add a tomato below the pan' },
-      { zhCN: '把两把椅子挪近一点', en: 'Move the chairs closer together' },
+      { zhCN: '先坐下，让他听你说', en: 'Sit first and let him listen' },
+      {
+        zhCN: '给两把椅子改个更短的名字',
+        en: 'Suggest shorter names for both chairs',
+      },
     ],
     requires: ['family-chairs-mended'],
     sets: ['family-named-chairs'],
@@ -1901,21 +1909,21 @@ const moments: {
     npc: 'ka-ning-partner',
     hearts: 2,
     title: {
-      zhCN: '简历背面的猫',
-      en: 'The cat behind the CV',
+      zhCN: '简历不是全家福',
+      en: 'A CV is not a family portrait',
     },
     text: {
-      zhCN: '文舒整理旧简历时翻过一页，孩子画的猫从密密麻麻的字背后露出来。\n纸已经挨着废纸袋。你把它抽回来，猫的一只耳朵差点留在袋口。\n「这份倒舍不得扔。」她抚平纸上的折痕，把多余的那叠推到一旁。\n你们给小猫找了一块干净地方，餐桌空下来，终于能放下一盘饭。',
-      en: 'Man Shu turns over an old CV. The child’s cat appears behind the crowded lines of type.\nThe page is beside the scrap bag. You rescue it before one ear catches on the rim.\n“Can’t throw this version away.” She smooths its creases and shifts the other copies aside.\nYou find the cat a clean space. The table has room for a plate of food again.',
+      zhCN: '文舒把看过的简历翻到背面，孩子画的猫挤在工作经历后面。她说那天写到一半就去接孩子了。\n你笑说猫也算参与项目。她摇头：「讲好先，我的工作经历，别全算成管家。」\n她说那时找工作，不只想添一笔收入，也想有人问她会做什么。这份心思到现在没有变。\n你说自己没想到那句玩笑会绕回家务。她指着简历：「先谈我想做什么，再谈家务，成交？」\n她指指猫旁的一行小字，是当年面试想说的话。孩子把句号画成猫粮，她到现在仍认得自己当时要说什么。\n文舒把简历正面朝上：「先谈哪边都可以。有个条件：另一边还要谈，别顺手替我答应。」',
+      en: 'Man Shu turns the reviewed CV over. The child’s cat crowds behind her work history. She stopped writing that day to do the school run.\nYou joke that the cat counts as project work. She shakes her head. “Let’s get this straight. My work experience isn’t all housekeeping.”\nShe says job-hunting then meant more than another household income. She wanted to be asked what she could do. That wish has not changed.\nYou had not realised your joke led back to chores. She points to the CV. “First the work I want, then splitting chores. Deal?”\nShe points to a small line beside the cat: something she meant to say at an interview then. The child turned its full stop into cat food. Even now, she still knows what she meant to say then.\nMan Shu turns the CV face up. “Either can come first. One condition: we discuss the other too. No agreeing on my behalf.”',
     },
     labels: [
       {
-        zhCN: '把猫贴到冰箱',
-        en: 'Put the cat on the fridge',
+        zhCN: '先听她说想做什么工作',
+        en: 'Hear what work she wants to do first',
       },
       {
-        zhCN: '夹进透明袋压平',
-        en: 'Flatten the drawing in a clear sleeve',
+        zhCN: '先重新分清接送和做饭',
+        en: 'Start by reallocating school runs and cooking',
       },
     ],
     requires: ['bno-partner-cv-seen'],
@@ -1924,21 +1932,21 @@ const moments: {
     npc: 'ka-ning-partner',
     hearts: 4,
     title: {
-      zhCN: '相册的空页',
-      en: 'An empty album page',
+      zhCN: '相册也要署名',
+      en: 'Who made the album',
     },
     text: {
-      zhCN: '文舒把相册摊在膝上，旧车票从夹层滑出来，一角磨得露出白边。\n「来时装得太急。」她指着几张还没排好的照片，请你一起认顺序。\n你们把同一天的放在一起，没有照片的那页暂时空着，刚好隔开两趟出门。\n她用铅笔在空页旁写上「以后」，又把笔递过来，让你加上自己的字。',
-      en: 'Man Shu opens the album on her knees. Old tickets slip out, their corners worn white.\n“Packed in such a rush.” She asks you to help put the loose photographs in order.\nYou group the ones from the same day. A page without photographs stays empty, separating the two outings.\nShe pencils “Later” beside the blank page and passes you the pencil to add something.',
+      zhCN: '文舒开始整理相册，几张照片旁都写了她的说明。你说看着像她写的家庭年报，她没有跟着笑。\n「我拍我贴，大家看完夸一家人，这笔功劳怎么算？」她说完，又把语气放缓。\n她不是不想记这些事，只是不想连全家应该记住什么，都自动落到自己头上，还被算成爱好。\n你问怎样一起做。她让你选一张自己记得的照片，先说发生了什么，不翻她写好的说明。\n一张照片拍进了她半截手指。你以为会淘汰，她却留下：「我总算入镜！半根手指，也算我的。」\n她选一张照片推到中间：「讲好先，这回你说。谁做了什么？说完再看我写的。」',
+      en: 'Man Shu begins an album, adding captions to several photographs. You call it her family annual report. She does not laugh.\n“I take them, arrange them, everyone praises the family. How’s that credit split?” She finishes, then softens her voice.\nShe wants the memories, but does not want deciding what the whole family remembers to fall to her automatically and then be called her hobby.\nYou ask how to do it together. She asks you to choose a photograph and describe what happened without checking her caption.\nOne photograph includes half her finger. You expect it to be rejected. She keeps it. “I’m finally in it! Half a finger still counts as me.”\nShe places a photograph between you. “Agree first: your version this time. Who did what? Then you can read mine.”',
     },
     labels: [
       {
-        zhCN: '在空页旁写个地点',
-        en: 'Write a place beside the blank page',
+        zhCN: '各自写同一张照片的记忆',
+        en: 'Each caption the same photograph from memory',
       },
       {
-        zhCN: '按日期排好旧车票',
-        en: 'Arrange the old tickets by date',
+        zhCN: '把照片背后谁做了什么写进去',
+        en: 'Name the work behind the photograph',
       },
     ],
     sets: ['family-album-started'],
@@ -1947,21 +1955,21 @@ const moments: {
     npc: 'ka-ning-partner',
     hearts: 6,
     title: {
-      zhCN: '窗边的两杯茶',
-      en: 'Two cups by the window',
+      zhCN: '清单以外的我',
+      en: 'Me beyond the list',
     },
     text: {
-      zhCN: '孩子回房看书了，文舒合上计算器，连同那叠没算完的纸一起收进抽屉。\n她端来两杯茶，把窗边的位置留给你，自己靠着椅背慢慢松开肩膀。\n「先不说账单，讲件没有用的事吧。」她想了想，说起路边一扇蓝门。\n你们轮流添上一点细节，茶渐渐不烫了。抽屉里的计算器始终没有再响。',
-      en: 'The child has gone off to read. Man Shu closes the calculator and puts it away with the unfinished sums.\nShe brings two cups, saves you the window seat and slowly lets her shoulders relax.\n“Something useless, before the bills.” After thinking, she describes a blue door she passed.\nYou take turns adding details as the tea cools. The calculator stays quiet in its drawer.',
+      zhCN: '夜里过了八点，文舒把计算器关掉，先说这次不核账。你习惯性问明天还要做什么，她叹了口气。\n「安排记住，人漏啦？」她问。你说她可以歇会儿，她摇头：「讲好先，我要聊天。休息我自己会安排。」\n她讲起从前爱看的电影，才说了开头，就发现自己又在解释为什么没有时间继续看。\n你请她不用交代理由。文舒想了一会儿，重新从那个荒唐的情节讲起，越说越觉得好笑。\n她学着片中人郑重宣布一件蠢事，声音太像平时核账，自己先笑弯了腰，连结尾都说不下去。\n她把那个荒唐情节重新讲了一遍，自己笑得最早：「这段归闲聊，讲好先，别又顺口谈到明天买菜！」',
+      en: 'After eight at night Man Shu switches off the calculator and says this is not an accounts check. You automatically ask what needs doing tomorrow. She sighs.\n“Remembered the jobs, missed the person?” You say she can rest. She shakes her head. “Let’s be clear, I want a chat. I can arrange my own rest.”\nShe begins describing a film she used to love, then catches herself explaining why she has had no time to continue watching.\nYou say no justification is needed. She thinks, starts again with the ridiculous plot and begins laughing as she tells it.\nShe solemnly announces something foolish in the character’s voice. It sounds so much like her accounts checks that she doubles up laughing before reaching the end.\nShe starts the ridiculous plot again and laughs first. “This counts as chatting. Agree now, don’t wander back to tomorrow’s shopping!”',
     },
     labels: [
       {
-        zhCN: '慢慢喝茶讲那扇门',
-        en: 'Take time over tea and the blue door',
+        zhCN: '陪她把那段电影聊完',
+        en: 'Hear the film plot right through',
       },
       {
-        zhCN: '给她挪好椅背的靠垫',
-        en: 'Set a cushion behind her chair',
+        zhCN: '说一件只为自己想做的事',
+        en: 'Share something you want just for yourself',
       },
     ],
     when: [
@@ -1974,21 +1982,21 @@ const moments: {
     npc: 'ka-ning-partner',
     hearts: 8,
     title: {
-      zhCN: '没拍好的那张',
-      en: 'The imperfect photograph',
+      zhCN: '这页不归我补',
+      en: 'This page is not mine to finish',
     },
     text: {
-      zhCN: '文舒把几张新照片摆在相册旁，你们都眯着眼的一张被她留在手边。\n「别急着扔，它有风。」她指着被吹翻的衣领，再看一眼整整齐齐的合照。\n她把歪照片比在空页上，胶角还没揭开，旁边留出够两个人轮流写字的地方。\n纸上那条路走到一半就被裁掉。她拿来铅笔和胶角，请你挑一样，陪她把这页补好。',
-      en: 'Man Shu spreads new photographs beside the album, keeping the one where you are both squinting.\n“Don’t throw it out. It has the wind.” She points at the turned-up collar, then at the tidier portrait.\nShe tries the crooked photograph against the blank page. The mounting corners are still sealed, with room left for you both to write.\nThe road runs out at the edge of the picture. She brings a pencil and mounting corners, asking you to choose one and help finish the page.',
+      zhCN: '相册摊着一页新照片，你说等文舒有空再整理。她把胶角放下：「讲好先，你说有空，就是又派给我啦？」\n你说不是故意的。她点头：「知道。可每次照旧，最后还不是我做？」\n她想固定分工，你却不愿每件家庭小事都像排班。两个人说的是同一本相册，担心的并不是同一件事。\n这页你可以自己贴完，答应以后主动轮流；也可以一起贴完，却坦承不愿立刻答应轮班，继续谈怎样才公平。\n胶角粘到她袖口，她揭下来放在桌上，没有像往常那样顺手把所有散片一起收好。\n这页最终要贴好，但不能贴完就算解决。文舒说：「有个条件：咱们继续谈，别拖到最后又算我的。」',
+      en: 'The album lies open at a new page. You suggest Man Shu arrange it when free. She puts down the photo corners. “Let’s get this straight, ‘when free’ means me again?”\nYou say you did not intend that. She nods. “I know. But every time we carry on, who ends up doing it?”\nShe wants fixed responsibilities. You do not want every family task turned into a rota. One album, two different fears.\nYou can finish this page yourself and commit to unprompted turns, or finish it together but refuse to promise a rota yet, keeping fairness open for discussion.\nA photo corner sticks to her sleeve. She peels it off onto the table without automatically tidying every loose piece as usual.\nThe page must eventually be mounted, but finishing it is no settlement. “One condition: we keep talking. No dragging it out until it’s mine again.”',
     },
     labels: [
       {
-        zhCN: '写下那条路，再贴好照片',
-        en: 'Write the route and fix in the photograph',
+        zhCN: '承担这页，以后主动轮流整理',
+        en: 'Take this page and commit to unprompted turns',
       },
       {
-        zhCN: '扶住相册让她贴牢',
-        en: 'Hold the album while she fixes it in',
+        zhCN: '一起贴完这页，但不勉强承诺轮班',
+        en: 'Finish this page together without promising a rota yet',
       },
     ],
     requires: ['family-album-started'],
@@ -1997,19 +2005,19 @@ const moments: {
   {
     npc: 'ka-ning-partner',
     hearts: 10,
-    title: { zhCN: '相册旁的抽屉', en: 'The drawer by the album' },
+    title: { zhCN: '不是她一个人记', en: 'Not hers to remember alone' },
     text: {
-      zhCN: '文舒把相册放到矮柜上，翻到那张被风吹歪的合照，胶角已经快松了。\n她拉开底下的抽屉，旧车票挤在一起，有张购物纸也混在里面。\n「那次买齐了扣子，倒把外套忘在店里。」她看着纸上的圈圈，先笑出了声。\n合照旁还留着窄空隙，抽屉也装得下新东西。她把购物纸和新胶角递过来，请你选。',
-      en: 'Man Shu places the album on the low cabinet and opens it at the windy photograph, its mounting corner coming loose.\nTickets crowd the drawer below. A shopping list has slipped among them.\n“All the buttons bought, and my coat left in the shop.” The circles on the list make her laugh.\nA narrow gap remains beside the photograph, and the drawer has room for more. She offers you the list and a fresh mounting corner to choose from.',
+      zhCN: '文舒拿出相册，这次先问你记下了哪件事。你讲完，她才翻到自己的记录，两页竟然没有撞题。\n「今个月我总算收了一份你的功课！」她说。你问这算不算夸奖，她答：「算！剩下的继续谈。」\n分工还会争，谁更辛苦也未必说得齐；这次你记得自己开始，文舒没有把这一步算成一切解决。\n你们决定以后每次整理都各选一件事，谁选谁写，文舒不再替所有人的记忆收尾，空缺就等本人。\n她的照片背面还留着买菜单，最后一项写「别忘了自己」。你问买了什么，她说先买了新笔。\n文舒把笔放在你自己的那页旁：「讲好先，做好的、做砸的，各写自己的。我的那页，我自己讲。」',
+      en: 'Man Shu brings out the album and first asks what you recorded. After your story she opens her page. You have chosen entirely different things.\n“At last I’ve got your contribution for this month!” You ask whether that is praise. “It is! The rest we keep discussing.”\nResponsibilities still cause arguments, and you may disagree over who is more tired. You remembered to begin this time; Man Shu does not call that a complete solution.\nYou agree each will choose and write one memory when arranging the album. She will no longer finish everyone’s contribution; missing pieces wait for their owners.\nA shopping list remains on the back of her photograph. Last item: “Don’t forget yourself.” You ask what she bought. She says a new pen came first.\nMan Shu places a pen by your page. “Agree first: good or gone wrong, each writes their own. My page, my story to tell.”',
     },
     labels: [
       {
-        zhCN: '替合照换好松掉的胶角',
-        en: 'Replace the photograph’s loose corner',
+        zhCN: '记一件属于她自己的进展',
+        en: 'Record progress that belongs to her',
       },
       {
-        zhCN: '把购物纸夹到那张合照旁',
-        en: 'Put the list beside that photograph',
+        zhCN: '记一件你自己没做好的事',
+        en: 'Record something you could have done better',
       },
     ],
     requires: ['family-album-page'],
@@ -2019,21 +2027,21 @@ const moments: {
     npc: 'ka-ning-child',
     hearts: 2,
     title: {
-      zhCN: '倒过来的书签',
-      en: 'The upside-down bookmark',
+      zhCN: '鸭子会不会翻译',
+      en: 'Can ducks translate',
     },
     text: {
-      zhCN: '乐言抱来一本书，先把封面转正，又低头检查书签有没有跟着一起倒过来。\n孩子往旁边挪了挪，让出半张坐垫。「这次你一页，我一页，长的也算。」\n你读到一半停下，乐言没有抢着翻页，手指轻轻压住了快滑走的书签。\n故事里的鸭子还没找到门。孩子把书往你这边推一点，等你们一起接着找。',
-      en: 'Lok Yin arrives with a book, turns the cover upright and checks the bookmark has turned too.\nThe child makes room on the cushion. “One page each. Long ones count.”\nWhen you pause halfway through, Lok Yin holds the slipping bookmark instead of turning ahead.\nThe duck in the story has not found its door. The book moves towards you so you can keep looking together.',
+      zhCN: '乐言打开一本鸭子故事，先问鸭子在不同地方叫得一不一样。你说不知道，孩子立刻很满意。\n「那你不能先教我。」乐言指着图，「这关靠猜！谁笑，谁念下一页。」\n你照自己的叫法学了一声，孩子认真纠正，又停下来，问这是不是跟学校里听到的口音一样。\n你说一个人可以听见不止一种声音。乐言想了想，让两只鸭子各叫各的，没有替它们选队。\n乐言用书角遮住嘴，说这样才考得出鸭子的水平。你刚叫一声，孩子连书都笑得拿不稳了。\n乐言让两只鸭子各叫各的，自己先笑出了声：「好，扣我一分！下一页你也得配音，鸭子有嘴就要出声。」',
+      en: 'Lok Yin opens a duck story and asks whether ducks sound different in different places. Your “I don’t know” is immediately satisfying.\n“Then you can’t teach me first. Guessing level! Laugh, and you read the next page.” A finger taps the picture.\nYou try your duck noise. Lok Yin corrects it, then pauses and asks whether this is like the accents heard at school.\nYou say a person can hear more than one kind of voice. After a thought, each duck gets its own noise. Neither has to choose a side.\nLok Yin hides a mouth behind the book’s corner: a proper duck test needs hidden faces. Your first noise makes the child laugh too hard to hold it steady.\nLok Yin lets each duck keep its noise and laughs first. “Fine, one point off me! Your voices next page too. Ducks with mouths have to make noises.”',
     },
     labels: [
       {
-        zhCN: '轮流读故事',
-        en: 'Take turns reading',
+        zhCN: '让乐言先给两只鸭子配音',
+        en: 'Let Lok Yin voice both ducks first',
       },
       {
-        zhCN: '替孩子扶住快滑走的书签',
-        en: 'Hold the slipping bookmark for the child',
+        zhCN: '配一个完全不像鸭子的声音',
+        en: 'Make a noise nothing like a duck',
       },
     ],
   },
@@ -2041,21 +2049,21 @@ const moments: {
     npc: 'ka-ning-child',
     hearts: 4,
     title: {
-      zhCN: '画里的空位',
-      en: 'A space in the picture',
+      zhCN: '画里谁先开口',
+      en: 'Who speaks in the picture',
     },
     text: {
-      zhCN: '乐言把蜡笔铺成半圈，画纸上有一扇门，门前的人却只画了一半。\n「这边留给你，别画得太高。」孩子用手掌挡住一小块，认真量了量。\n乐言把自己的头发补得乱一点，说这样才像刚起床，又指指门边空着的位置。\n最短的蜡笔滚到你手边，孩子问先画哪个：门边的你，还是以后两个人站着的影子？',
-      en: 'Lok Yin arranges crayons in a semicircle. The person outside a drawn doorway is only half finished.\n“Your space here. Not too tall.” A small palm shields part of the paper while measuring it.\nLok Yin adds messy hair to look like someone just out of bed and points at the space beside the door.\nThe shortest crayon rolls towards you. Which comes first: you beside the door, or the shadows where you will both stand?',
+      zhCN: '乐言画了一扇门，门里门外各有一个说话框。你问里面写什么，孩子先把纸盖住。\n「学校一队，家里一队！先保密，我还没定谁先开口。」\n你问为什么不能一起说。乐言皱眉，说那样听起来很吵，而且有些笑话换个说法就不好笑了。\n你没有挑哪种更好，孩子才把画翻回来，让门开着，自己在两个框之间添了一条弯弯的线。\n乐言给门上添了一个猫洞，说听不懂的词可以先从下面溜进去。你问那猫又该怎么办，孩子却说猫根本不用解释。\n乐言在两个说话框之间添了一条弯线：「这条是排队线！说太快就退后，我还没叫到你的号。」',
+      en: 'Lok Yin draws a door with a speech bubble on either side. Asked what they say, the child covers the page first.\n“School team, home team! Secret first. Haven’t picked who starts.”\nYou ask whether both can speak. Lok Yin frowns: that would be noisy, and some jokes stop being funny when said another way.\nYou choose neither as better. The picture turns back, the door stays open, and a wavy line appears between the bubbles.\nLok Yin adds a cat flap for words that are not understood to slip through underneath. You ask what the cat is supposed to do, then. But the child says cats never have to explain.\nLok Yin adds a wavy line between the bubbles. “This is the queue line! Too fast, go back. Haven’t called your number yet.”',
     },
     labels: [
       {
-        zhCN: '在空位画上自己',
-        en: 'Draw yourself in the space',
+        zhCN: '按乐言排的顺序读出来',
+        en: 'Read in the order Lok Yin chooses',
       },
       {
-        zhCN: '给两个人添上影子',
-        en: 'Add shadows beneath both people',
+        zhCN: '请乐言教你一个学校里的说法',
+        en: 'Ask Lok Yin to teach you a school expression',
       },
     ],
     sets: ['family-shared-drawing'],
@@ -2064,21 +2072,21 @@ const moments: {
     npc: 'ka-ning-child',
     hearts: 6,
     title: {
-      zhCN: '门框上的新线',
-      en: 'A new mark on the frame',
+      zhCN: '门框不能请假',
+      en: 'The doorframe cannot come',
     },
     text: {
-      zhCN: '乐言贴着门框站好，头发还翘着一撮，脚跟已经悄悄落回地板上。\n「这次不踮脚。」孩子说完便屏住气，眼睛一路追着你手里的铅笔。\n新线旁还空着，乐言用指尖比比旧线，说拍照也得把低一点的那条留下。\n手机放在桌边，日期还等着写。孩子重新站直，请你看好，头发这回可没替自己加高。',
-      en: 'Lok Yin stands against the doorframe, one tuft of hair still sticking up, and quietly lowers both heels.\n“No tiptoes this time.” The child holds a breath, eyes following the pencil in your hand.\nThere is space beside the new mark. Lok Yin measures from the old one and asks for both lines to appear in the photograph.\nThe phone waits on the table, the date still unwritten. Standing straight again, the child asks you to check: the hair adds no height this time.',
+      zhCN: '乐言比着门框上记身高的线，问要是以后搬家，是不是就要重新从最下面长起。\n你说人不会变矮，孩子摆手：「我知道。我问别人怎么知道我不是一下子长这么高的。」\n旧线旁边有一处乱笔，乐言说那是自己偷偷踮脚的证据，不能擦，擦掉就少了一段故事。\n你问要不要记在别处。孩子认真考虑：「门框不能请假跟我们走。照片倒不用买车票。」\n孩子拿书压住翘起的头发，又觉得太像顶着屋顶。你刚伸手，乐言立刻站得很直：「暂停！头发翘，量算作弊。」\n乐言看了一眼你的手机，又指指旧线：「先记这段！头发那次扣身高分，但准讲故事。」',
+      en: 'Lok Yin studies the height marks on the doorframe. Would moving mean growing from the bottom all over again?\nYou say a person does not shrink. The child waves that away. “I know. How will people know I didn’t grow this tall in one go?”\nA scribble beside an old mark is evidence of secretly standing on tiptoe. It must stay: rubbing it out would remove part of the story.\nYou ask about recording the marks elsewhere. “The doorframe can’t take leave and come. Photos don’t need train tickets.”\nThe child flattens the sticking-up hair with a book, then says it feels like wearing a roof. As you reach over, Lok Yin immediately stands very straight. “Pause! Hair’s up. Measuring is cheating.”\nLok Yin glances at your phone, then points to an old mark. “Record this bit! Hair loses height points, but the story qualifies.”',
     },
     labels: [
       {
-        zhCN: '写好日期再拍照',
-        en: 'Date the mark and take a photo',
+        zhCN: '先拍下旧线，也拍进乱笔',
+        en: 'Photograph the marks, scribble included',
       },
       {
-        zhCN: '扶平头发比一比旧线',
-        en: 'Smooth the hair and compare the old mark',
+        zhCN: '请乐言给每条线讲一句话',
+        en: 'Ask for a sentence about every mark',
       },
     ],
   },
@@ -2086,21 +2094,21 @@ const moments: {
     npc: 'ka-ning-child',
     hearts: 8,
     title: {
-      zhCN: '寄给外婆的笑脸',
-      en: 'A smile for Granny',
+      zhCN: '这张我来选',
+      en: 'I choose this photograph',
     },
     text: {
-      zhCN: '乐言把几张照片排在地毯上，一边挑，一边用两根手指遮住自己的缺牙。\n「这张笑得最大，可是门框也照进去了。」孩子歪着头，迟迟不肯拿走它。\n你说门框也能留着，乐言便找来纸，写一行歪字，解释自己已经长高多少。\n照片压在写好的纸旁，孩子又加了一句「外婆别忘了也照一张」，才递给你。',
-      en: 'Lok Yin lines photographs up on the rug, covering the missing teeth with two fingers while choosing.\n“Biggest smile, but the doorframe’s in it.” The child tilts their head without removing the picture.\nYou can keep the doorframe too. Lok Yin finds paper and explains the new height in a crooked line.\nBeside the picture goes one more line: “Granny, don’t forget to send one of you too.” Then it’s handed to you.',
+      zhCN: '乐言挑一张寄给外婆的照片，你说另一张脸更清楚。孩子把选中的照片翻扣在桌上。\n「你总选乖小孩那张！这张我讲笑话，歪嘴能加好笑分。」乐言说。\n你确实希望外婆看清孩子，乐言却想让她知道自己会说什么，而不是只看一张摆好的笑脸。\n你可以尊重孩子的选择，让乐言自己写说明；也可以坚持这次由你挑清楚的照片，承认孩子会失望。\n照片旁有一张写坏的信纸，「外婆」两个字特别大。乐言认真地说要写大一点，是怕信封里的话挤得她看不见。\n乐言没再把照片翻过来：「等等，寄的是我吧？」你得回答这句话，不能只用一句为你好把分歧封上。',
+      en: 'Lok Yin chooses a photograph for Grandma. You prefer another with a clearer face. The chosen picture goes face down.\n“You always pick the good-child one! I’m telling a joke here. Crooked mouth gets funny points.”\nYou really want Grandma to see clearly. Lok Yin wants her to know what the child says, not only see an arranged smile.\nYou can respect the choice and let Lok Yin write a caption, or insist on choosing the clearer photograph yourself this time, acknowledging the disappointment.\nA spoiled letter draft lies beside the photographs, with “Grandma” especially large. Lok Yin solemnly says the writing must be larger to stop the other words in the envelope crowding her out.\nThe picture stays face down. “Wait, that’s me being sent, right?” You must answer that, without sealing the disagreement with “It’s for your own good.”',
     },
     labels: [
       {
-        zhCN: '把照片和字一起发给外婆',
-        en: 'Send Granny the picture with its message',
+        zhCN: '尊重乐言选择，让孩子自己说明',
+        en: 'Respect the choice and let Lok Yin explain',
       },
       {
-        zhCN: '帮孩子描清字再发给外婆',
-        en: 'Make the writing clear and send it to Granny',
+        zhCN: '坚持挑脸更清楚的，承认孩子会失望',
+        en: 'Choose the clearer face yourself and acknowledge the disappointment',
       },
     ],
     sets: ['heart-child-photo'],
@@ -2108,17 +2116,20 @@ const moments: {
   {
     npc: 'ka-ning-child',
     hearts: 10,
-    title: { zhCN: '带得走的身高', en: 'Height to take along' },
+    title: { zhCN: '不用从头长高', en: 'No need to grow again' },
     text: {
-      zhCN: '乐言拿来一卷长纸，把纸端对准门框底下，另一头递给你，让你举稳。\n「要是搬家，门框不能装进箱子。」孩子认真指给你看，一条条旧线都得带走。\n纸边先画了个小箭头，留给以后长高的自己。乐言把那本鸭子故事抱来，压住卷起的纸。\n铅笔和手机都放在旁边。孩子问你先抄线还是先补日期，书和长纸以后要放在一起。',
-      en: 'Lok Yin brings a long roll of paper, lines it up with the doorframe and asks you to hold it steady.\n“The frame won’t fit in a moving box.” A careful finger points out every old line that must come along.\nA small arrow saves room for a taller future self. The duck story holds down the curling paper.\nPencil and phone wait nearby. The child asks whether to copy marks or add dates first; the storybook and height roll will stay together.',
+      zhCN: '乐言把门框上的线抄到一卷长纸上，还抄了那次踮脚的歪记号。你问为什么连作弊也带走。\n「不然以后我说自己从来不踮脚，谁知道我在吹牛？」孩子说完，把自己的名字写在纸边。\n照片寄出去以后，乐言发现外婆也量了自己，只是没有变高。纸上便添了一条不同的线。\n照片那次的意见未必一样，乐言仍决定量身高先问本人，再让那个人选一句话，不只记数字和日期。\n纸卷差点自己滚走，乐言拿鸭子故事压住：「鸭子也报名！我长高了，这书怎么还在原来那关？」\n乐言把长纸慢慢卷起，又停住：「还有谁报名？大人也能写！只量我，这个游戏人数不够。」',
+      en: 'Lok Yin copies the doorframe marks onto a long paper roll, including the crooked evidence of tiptoeing. You ask why the cheating comes too.\n“Otherwise I could say I never did it. Who’d know I was boasting?” A name goes along the paper’s edge.\nAfter receiving the photograph, Grandma measured herself as well, though she had not grown. A different sort of line joins the roll.\nYou may still differ over the photograph. Lok Yin decides height recording starts with permission and each person’s own sentence, not only numbers and dates.\nThe roll nearly escapes. Lok Yin pins it with the duck story. “Ducks enter too! I got taller. Why’s this book still on the old level?”\nLok Yin rolls the paper slowly, then stops. “Who else is entering? Grown-ups can write too! Only measuring me, this game needs more players.”',
     },
     labels: [
       {
-        zhCN: '扶着长纸抄好旧线',
-        en: 'Hold the paper while copying the marks',
+        zhCN: '在长纸上写一句自己的话',
+        en: 'Write your own sentence on the roll',
       },
-      { zhCN: '在纸边写好每条线的日期', en: 'Date each mark along the paper' },
+      {
+        zhCN: '让乐言选今天要记的话',
+        en: 'Let Lok Yin choose today’s sentence',
+      },
     ],
     requires: ['heart-child-photo'],
     sets: ['family-height-roll'],
@@ -2127,21 +2138,21 @@ const moments: {
     npc: 'yao-flatmate',
     hearts: 2,
     title: {
-      zhCN: '冰箱左边那格',
-      en: 'The left fridge shelf',
+      zhCN: '架子不画中线',
+      en: 'No line down the shelf',
     },
     text: {
-      zhCN: '周沅蹲在冰箱前，拿出几片装裱剩下的纸角，量了量左边那格的宽度。\n「用铅笔写，搬动东西也好改。」她递给你一张空签，自己先写上名字。\n你们把各自的盒子挪好，最底下留出一小块共用的地方，纸签还摊在手边。\n她轻推冰箱门，响声明显小了，又撑开门请你挑位置，左边那格正好贴得下空签。',
-      en: 'Yuan crouches by the fridge, sizing the left shelf with paper corners left over from framing.\n“Pencil. Easier to change when things move.” She offers a blank label and writes her own name.\nYour boxes find separate places. A small shared patch stays clear at the bottom; the labels are still beside you.\nShe eases the door shut, making it quieter, then opens it for you to choose a position. The blank label fits on the left shelf.',
+      zhCN: '周沅量完共用架子的宽，撕掉原先画中线的纸。你问不用分清楚吗，她说先说清用途。\n「私物单放。共用工具，用完归原位。」她把句子停在这里，没有补一句随便就好。\n你笑她像在装裱一份合租合同。她点头：「架宽量过了。现在分使用范围。」说完才露出一点笑。\n她不想每次找东西都猜谁在让谁，也不想因为住在一起，就把所有东西自动算成大家的。\n架子上一个旧碗卡住纸签，周沅量过才说：「签宽合格。碗偏了三度。」她把尺横放，没替你移碗。\n周沅把量尺收好：「直接报。共用什么，私物什么，分别标。」她没有先写你的名字，等你自己定边界。',
+      en: 'Yuan measures the shared shelf, then removes the paper marking its middle. You ask whether it needs dividing. She wants its purpose clear first.\n“Private items separate. Shared tools back in position after use.” She stops there, without adding that anything will do.\nYou joke she is framing a flatshare agreement. She nods. “Shelf width measured. Usage areas next.” Only then does she smile a little.\nShe does not want finding things to involve guessing who is accommodating whom, or living together to make every possession automatically communal.\nAn old bowl traps a label on the shelf. Yuan measures before saying, “Label width correct. Bowl three degrees off.” She rests the ruler across it without moving your bowl.\nYuan puts away the ruler. “State it. Shared items, private items. Label separately.” She leaves your name unwritten while you decide your edges.',
     },
     labels: [
       {
-        zhCN: '写好名字贴在左边',
-        en: 'Write your name on the left shelf',
+        zhCN: '一起定清哪些东西共用',
+        en: 'Agree which things are shared',
       },
       {
-        zhCN: '替她按住纸角贴牢',
-        en: 'Hold the paper corner while she fixes it',
+        zhCN: '先说自己不想借出的东西',
+        en: 'Name something you would rather not lend',
       },
     ],
     sets: ['flatmate-shelf'],
@@ -2150,21 +2161,21 @@ const moments: {
     npc: 'yao-flatmate',
     hearts: 4,
     title: {
-      zhCN: '检查前的清单',
-      en: 'Before the inspection',
+      zhCN: '清单上的主语',
+      en: 'The subject of the checklist',
     },
     text: {
-      zhCN: '房东约了下周来检查。周沅拿着便签站在玄关，把「有问题」三个字划掉了。\n「写清楚，比写严重管用。」她示意你听龙头的滴答，又指指松动的门把手。\n她只记好要问的事，没有把满屋晾衣架算成故障，纸也终于没被挤皱。\n门背的夹子还空着。她递来铅笔，请你补清哪个龙头，或先扶住门陪她试把手。',
-      en: 'The landlord has arranged an inspection next week. In the hall, Yuan crosses out “Something wrong” on a note.\n“Clearer beats louder.” She points out the dripping tap and the loose door handle.\nShe lists the questions. The drying racks do not count as faults, and the page stays uncrumpled.\nThe clip behind the door is empty. She offers you a pencil: describe which tap, or hold the door while she checks the handle?',
+      zhCN: '周沅把屋里待修的地方写进清单，每项前面都加了「谁来问」。你说记毛病就够了吧。\n「缺工序。漏水，拍照，找房东；谁负责？」她说以前住过的地方，问房东的事默认都归她。\n大家夸她说得清楚，后来连她自己的事也挤到后面。她不想在新一份清单里再次变成隐形主语。\n你问要不要轮着来。她说可以，但别把「你比较会说」又写成轮到自己时的例外。\n便签卷起一角，她压了两回，干脆把那角折好：「翘两毫米。折角，暂不固定上墙。」\n她在「谁来问」下面停笔：「这项你认领。名字自己填；我停笔。」清单列着问题，不再把一个人列成全部办法。',
+      en: 'Yuan adds “Who asks?” before every repair on the checklist. You suggest recording the faults alone would be enough.\n“Missing steps. Leak, photograph, contact landlord. Whose job?” In a previous home, questions to the landlord defaulted to her.\nPeople praised her clarity until even her own concerns moved to the back. She does not want to become the new checklist’s invisible subject.\nYou suggest taking turns. That works, she says, provided “You’re better at explaining” does not become an exception on your turn.\nA corner curls up. After pressing it twice, she folds it neatly instead. “Two millimetres raised. Fold corner; no permanent wall fixing yet.”\nHer pen stops beneath “Who asks?” “Choose your item. Fill your own name; my pen stops here.” The list holds problems, without one person becoming every solution.',
     },
     labels: [
       {
-        zhCN: '把龙头的位置写清楚',
-        en: 'Describe which tap is dripping',
+        zhCN: '先认领一项，由你自己去问',
+        en: 'Take one item and ask about it yourself',
       },
       {
-        zhCN: '扶住门让她试把手',
-        en: 'Hold the door while she tests the handle',
+        zhCN: '一起给每一项分清负责人',
+        en: 'Assign responsibility for every item together',
       },
     ],
     requires: ['flatmate-shelf'],
@@ -2174,21 +2185,21 @@ const moments: {
     npc: 'yao-flatmate',
     hearts: 6,
     title: {
-      zhCN: '没有问完的话',
-      en: 'A question left alone',
+      zhCN: '汤不用讲道理',
+      en: 'Soup needs no argument',
     },
     text: {
-      zhCN: '你回到合租屋时，周沅正把一锅汤分进碗里，听见门响便多拿了一只。\n「想讲就讲，不想讲先喝。」她把长柄勺斜放着，一滴汤落在碗边。\n桌上只摆着两张擦过又没舍得扔的纸巾。她挪好自己的碗，给你的那只让出位置。\n汤的热气慢慢散开，她尝过后拿不准盐够不够，举起勺子，请你坐下来一起试。',
-      en: 'Back at the shared flat, you find Yuan serving soup. The door opens and she reaches for another bowl.\n“Talk if you want. Or just eat.” She rests the long ladle diagonally, leaving a drop on the rim.\nTwo reused paper napkins wait on the table. She shifts her bowl to make room for yours.\nAs the steam clears, she cannot decide about the salt. Holding up the ladle, she asks you to sit and try it together.',
+      zhCN: '晚些时候，周沅喝着汤，说今天不想讲工作。你刚准备转个轻松话题，她又叫住你。\n「话题暂停。只喝汤。」她说。你问会不会太冷清，她摇头：「生气我会报。现在是收工。」\n她以前总怕一起住的人误会，明明累了，还得说几句证明彼此没事，最后连休息也像在交代。\n你说这回不用证明。周沅喝了一口，才告诉你，自己其实担心不继续聊天，会显得不够欢迎你。\n她尝汤时发现一片姜，以为是土豆，又放回碗边：「姜片。我切的；厚度跟土豆重了。」\n汤的热气慢慢散开，周沅没有找下一个话题。「确认收到就行。」她说，「今天就喝汤，我还要添半碗。」',
+      en: 'Later in the day Yuan drinks soup and says she does not want work talk. You start changing to something lighter. She stops you.\n“Topics paused. Just soup.” You ask whether that feels cold. She shakes her head. “I’ll state it if angry. Clocked off now.”\nShe used to fear misunderstandings with housemates. Exhausted, she still spoke to prove nothing was wrong, until even resting became an explanation.\nYou say she need not prove it now. After a sip she admits worrying that not continuing the conversation might make you feel unwelcome.\nShe mistakes a slice of ginger for potato while tasting the soup, then puts it at the bowl’s edge. “Ginger. My cutting; same thickness as the potato.”\nThe steam thins. Yuan finds no next topic. “Acknowledge receipt,” she says. “Just soup today. Another half bowl for me.”',
     },
     labels: [
       {
-        zhCN: '坐下替两碗汤试味',
-        en: 'Sit and taste the two bowls of soup',
+        zhCN: '一起安静喝汤，不填话题',
+        en: 'Drink quietly without supplying a topic',
       },
       {
-        zhCN: '拿起长勺替她盛满那碗',
-        en: 'Fill her bowl with the long ladle',
+        zhCN: '约一句表示需要独处的短话',
+        en: 'Agree on a short phrase for time alone',
       },
     ],
     requires: ['flatmate-checklist'],
@@ -2203,21 +2214,21 @@ const moments: {
     npc: 'yao-flatmate',
     hearts: 8,
     title: {
-      zhCN: '门背的空格',
-      en: 'The empty square',
+      zhCN: '告示板不是派工单',
+      en: 'The board is not a work order',
     },
     text: {
-      zhCN: '周沅把一块旧装裱背板靠在门边，上面画着几格，最中间那格还空着。\n「这格不写缴费，也不写检查。」她擦掉边角的胶痕，让你挑一支颜色。\n她拿纸角比好位置，画了条散步路线，拐弯却拐到格子外头，两个人都笑了。\n挂钩已经装好，背板还靠着门。她请你重画那条路，或帮忙把板挂上去，铅笔就留在旁边。',
-      en: 'Yuan leans an old backing board beside the door. It has squares, with the middle one empty.\n“No bills or inspections in this bit.” She rubs away old glue and asks you to choose a colour.\nTrying paper corners in place, she draws a walking route, but the turn escapes the square and makes you both laugh.\nThe hook is ready; the board still leans against the door. She asks you to redraw the route or help hang the board, with a pencil left beside it.',
+      zhCN: '周沅在旧装裱背板上做了告示板，你发现上面写着一串提醒，自己的名字却只出现在最后。\n你说像接到派工单。她先说只是怕漏事，随后停住：「漏了确认工序。是我排的。」\n她知道边框要留得清楚，却还是把合住的人装进自己的尺寸。你也正累着，不想立刻再开一场合租会议。\n你可以现在重谈，写下先同意再安排的规矩；也可以要求今天先各自冷静，接受暂时没有新办法。\n背板角上还贴着旧价签，她刮到一半，看着露出的数字：「旧框价签。刮掉；这回报零工时。」\n周沅擦掉没问过你的安排：「暂停。铅笔留这；从头核。」板上没有谁赢的记号，也没有假装已经重新量准。',
+      en: 'Yuan makes a noticeboard from old mounting board. A chain of reminders ends with your name only at the bottom.\nYou call it a work order. She begins explaining fear of omissions, then stops. “Confirmation step missed. My scheduling.”\nShe knows clear edges matter, yet has fitted a housemate to her dimensions. You are tired too and do not want another flat meeting immediately.\nYou can renegotiate now and require agreement before arrangements, or ask for space today, accepting that no new method is ready yet.\nAn old price label remains on the board’s corner. Halfway through scraping it off, she looks at the exposed figures. “Old frame label. Scrape off; zero labour hours billed this time.”\nYuan erases plans made without your agreement. “Paused. Pencil here; check from start.” No victory mark appears, nor a pretence that everything fits again.',
     },
     labels: [
       {
-        zhCN: '在空格写下一条散步路线',
-        en: 'Put a walking route in the empty square',
+        zhCN: '现在重谈，先同意再安排',
+        en: 'Renegotiate now: agreement before arrangements',
       },
       {
-        zhCN: '扶住背板让她挂直',
-        en: 'Hold the board while she hangs it straight',
+        zhCN: '今天先各自冷静，承诺以后再谈',
+        en: 'Take space today and agree to return to it',
       },
     ],
     requires: ['flatmate-quiet-soup'],
@@ -2226,16 +2237,16 @@ const moments: {
   {
     npc: 'yao-flatmate',
     hearts: 10,
-    title: { zhCN: '屋里的小地图', en: 'A map of the flat' },
+    title: { zhCN: '地图画上停顿', en: 'Pauses on the map' },
     text: {
-      zhCN: '周沅把门背的板放到桌上，擦掉空格里那条拐到格子外头的散步路线。\n「这回从屋里画起。」她画出厨房和门口的小方格，把笔交给你补路。\n她又添上留汤的锅和玄关鞋架，地图看着比屋子还挤，门口到厨房仍断着一截。\n板边留好挂铅笔的绳，墙上还是原来的钩子。她请你接好路线，或把笔系牢再挂回去。',
-      en: 'Yuan puts the board on the table and rubs out the walking route that wandered outside its square.\n“Start inside the flat this time.” She draws small squares for the kitchen and entrance, offering you the pencil to join them.\nShe adds the soup pan and hall shoe rack. The map looks more crowded than the flat, with a gap still leading to the kitchen.\nString for the pencil waits beside the board; the same wall hook is ready. She asks you to finish the route or tie on the pencil before it goes back.',
+      zhCN: '周沅把屋里的小地图画在告示板背面，厨房旁画汤碗，门口画鞋，房门前却只画了一个停顿号。\n「门前三步，停。先敲门。」她说。你问要不要标她常去的路，她摇头：「只标使用范围。去向不登记。」\n你们对告示板未必全谈妥了。周沅说人的需要还会变，地图只能提醒问话，不能证明一切已经合适。\n周沅决定铅笔就挂在板边，谁觉得哪条路不舒服，随时指出来，不必等攒够一场争执才重画。\n她给鞋架画得太窄，鞋尖挤出线外。你指出来，周沅重画：「鞋架重画。实际宽度，多出五厘米。」\n周沅把铅笔挂好，没给地图封框：「改动直接标。铅笔软芯，橡皮在右；按新尺寸重画。」',
+      en: 'Yuan draws a little map of the flat on the board’s reverse. A soup bowl by the kitchen, shoes at the entrance, a pause before each bedroom door.\n“Three steps before door, stop. Knock first.” You ask about marking her usual routes. She shakes her head. “Usage areas only. Movements not logged.”\nThe noticeboard may not be fully agreed yet. Yuan says needs change: a map can remind you to ask, not prove everything already fits.\nYuan will keep a pencil on the board. Either can point out an uncomfortable route without saving enough grievances for an argument before redrawing.\nShe draws the shoe rack too narrow, toes protruding past the line. When you point it out, Yuan redraws it. “Redraw rack. Actual width, five centimetres more.”\nYuan hangs up the pencil, leaving the map unframed. “Mark changes directly. Soft pencil, eraser right; redraw to the new measurements.”',
     },
     labels: [
-      { zhCN: '把铅笔系到背板旁', en: 'Tie the pencil beside the board' },
+      { zhCN: '添一处你自己需要的停顿', en: 'Add a pause you need' },
       {
-        zhCN: '画上门口通往厨房的线',
-        en: 'Draw the route from the entrance to the kitchen',
+        zhCN: '请她先改一处现在不合适的',
+        en: 'Ask her to change something that no longer fits',
       },
     ],
     requires: ['flatmate-board'],

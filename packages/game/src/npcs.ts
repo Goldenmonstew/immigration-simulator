@@ -13,82 +13,82 @@ const lines = (npc: string, pairs: [string, string][]): Npc['lines'] =>
 const giftReplies: Record<string, [Text, Text]> = {
   margaret: [
     text(
-      '真贴心，我把园艺手套摘了再收。',
-      'Lovely thought. Let me take my gardening gloves off.',
+      '我领了！等等，泥手套还没摘，差点又糟蹋东西。',
+      'I’ll take it! Wait, muddy gloves still on. Nearly made a mess again.',
     ),
     text(
-      '谢谢啊，小屋里得给它找个位置。',
-      'Thank you. I’ll find it a spot in the shed.',
+      '放干地儿！我那袋土漏着呢，离远点。',
+      'Dry spot! That compost bag’s leaking. Keep it clear.',
     ),
   ],
   ade: [
     text(
-      '这个可比会议纪要讨喜，谢谢！',
-      'Much nicer than meeting minutes. Thanks!',
+      '礼物收到。状态更新：高兴。请记录原话。',
+      'Gift received. Status update: pleased. Please record that verbatim.',
     ),
     text(
-      '收到，我腾一下那个乱抽屉。',
-      'Thanks. I’ll clear a bit of that chaotic drawer.',
+      '收到，谢谢。物品已入库，心情待上报。',
+      'Received, thanks. Item logged. Mood report pending.',
     ),
   ],
   helen: [
     text(
-      '谢谢，讲义堆旁边总算添点别的了。',
-      'Thank you. Something besides handouts on my desk at last.',
+      '你怎么想到送这个？我想听选它的那段故事。',
+      'What made you choose this? I’d love the story behind it.',
     ),
     text(
-      '这份心意我收下了，先挪开眼镜。',
-      'Thank you for thinking of me. Let me move my glasses.',
+      '谢谢！用哪个词说这心意好？我又开始找词了。',
+      'Thank you! What’s the word for this kindness? There I go hunting words again.',
     ),
   ],
   priya: [
     text(
-      '你真会挑时候，我刚好能喘口气。',
-      'Good timing. I’ve just got a moment to breathe.',
+      '先确认，真给我的？谢谢，我放拼图桌旁。',
+      'Quick check: for me? Thanks. Goes beside the jigsaw table.',
     ),
     text(
-      '谢谢，我先挪开那支漏墨的笔。',
-      'Thanks. I’ll move that leaky pen out of the way.',
+      '收到，谢谢。接待台先放，我腾只手。',
+      'Received, thank you. Reception desk for a moment while I free a hand.',
     ),
   ],
   dave: [
     text(
-      '好眼光！这份礼物可不用抢答。',
-      'Good choice! No buzzer needed for this one.',
+      '会挑！这礼物归老板，抢答铃现在才响，晚啦！',
+      'Good choice! Gift goes to the landlord. Buzzer just rang. Too late!',
     ),
     text(
-      '谢啦，我给它留个不沾杯圈的位置。',
-      'Cheers. I’ll find a spot without a beer ring.',
+      '谢谢，意外加赛的礼物环节，我很支持。',
+      'Thanks. Surprise gift round. Strongly in favour.',
     ),
   ],
   rahman: [
     text(
-      '还给我带了东西，门铃该替你多响一声。',
-      'A gift for me? The doorbell owes you an extra ring.',
+      '谢谢惦记，老朋友，这份归我，价签我收起来。',
+      'Kind of you, my friend. This one is mine. Putting the price labels away.',
     ),
     text(
-      '谢谢惦记，我放自己那一边，不上货架。',
-      'Thank you. On my side of the counter, off the shelves.',
+      '老朋友，礼物我收下，这回倒是我欠你回礼了。',
+      'My friend, gladly accepted. Now I owe you a gift in return.',
     ),
   ],
   lina: [
     text(
-      '今天包里总算多了件让人高兴的东西。',
-      'Something cheerful for my bag today. Thank you.',
+      '这个好！拜托，先替我拿着，画稿袋快塞炸了。',
+      'Lovely! Please hold it a second. Sketch bag is ready to burst.',
     ),
     text(
-      '谢谢你，我把杯子挪开一点。',
-      'Thank you. I’ll shift my coffee cup a little.',
+      '收到了！喂，等我把这堆画稿压平，给它腾位置。',
+      'Got it! Hey, let me flatten these sketches and make some space.',
     ),
   ],
   gareth: [
     text(
-      '这回轮到我收东西了，真不错。',
-      'My turn to receive something. Lovely.',
+      '谢谢，先装邮袋侧边。到家第一个拿出来。',
+      'Thanks. Side of the postbag first. First thing out at home.',
     ),
     text(
-      '谢谢，放外套口袋，免得混进邮包。',
-      'Thanks. Coat pocket, so it won’t get mixed up with the post.',
+      '收好了。左转那条路回家，我正好带过去。',
+      'Safely away. Left turn for home. I can take it that way.',
     ),
   ],
 };
@@ -132,161 +132,161 @@ const schedule = (
 ];
 const margaretLines = lines('margaret', [
   [
-    '早啊。垃圾桶我推回来了，风倒是没帮忙。',
-    'Morning. I brought the bins in. The wind was no help.',
+    '早。桶推回来了。风这么大，倒不肯替我扫地。',
+    "Morning. Bins are in. All that wind, and it won't sweep for me.",
   ],
   [
-    '这件外套有年头了，口袋里还留着旧便士。',
-    'This coat is ancient. Still has an old penny in the pocket.',
+    '旧外套耐穿。种子漏进口袋，还能长出个菜园。',
+    'Good old coat. Enough seed in its pockets for another plot.',
   ],
   [
-    '邮差又把隔壁的目录塞给我，我快能开店了。',
-    'Another catalogue meant for next door. I could open a shop.',
+    '又塞来一本花卉目录。看图免费，往后可不免费。',
+    "Another plant catalogue. Looking is free. The rest isn't.",
   ],
   [
-    '水壶刚响，你来得比门铃还准。',
-    'Kettle just clicked. Better timing than the doorbell.',
+    '茶刚好。先喝，种子袋上的说明看着就口渴。',
+    "Tea's ready. Have some. Those seed instructions make me thirsty.",
   ],
   [
-    '别踩那块砖，它会往鞋里喷雨水。',
-    'Mind that paving slab. It squirts rainwater straight into your shoe.',
-  ],
-  ['我家的知更鸟只认铲子，不认我。', 'My robin recognises the spade, not me.'],
-  [
-    '菜地小屋那把钥匙，总在最里面的口袋。',
-    'The shed key always finds the deepest pocket.',
+    '绕过那块砖。踩下去，袜子就得重洗。',
+    "Go round that slab. Step on it and you'll be washing your socks.",
   ],
   [
-    '隔壁修了半天篱笆，最后只是换了个角度。',
-    'Next door spent hours on the fence. It merely leans differently.',
+    '知更鸟又跟着铲子。它吃虫，我出力。分工真好。',
+    "Robin's following the spade again. It eats; I dig. Lovely arrangement.",
   ],
   [
-    '这根胡萝卜分了三条腿，走路应该挺稳。',
-    'Three legs on this carrot. Must be steady on its feet.',
+    '钥匙在围裙里。找它比翻完这块地还费劲。',
+    "Key's in my apron. Finding it takes longer than digging the plot.",
   ],
   [
-    '土豆还没出芽，我已经替它担心晚霜了。',
-    'The potatoes aren’t up yet and I’m worrying about frost.',
+    '篱笆又歪了。修不修？我先看看会不会倒。',
+    "Fence is leaning again. Fix it? Let's see if it falls first.",
   ],
   [
-    '郁金香冒头了，园艺中心也该给我寄账单了。',
-    'Tulips are up. The garden centre bill can’t be far behind.',
+    '胡萝卜歪成这样，洗起来费水，吃着倒没差。',
+    'Crooked carrot. More washing, same dinner.',
   ],
   [
-    '草莓要盖网，鸽子比我起得早。',
-    'Net the strawberries. The pigeons get up before I do.',
+    '土豆才出芽，晚霜还没走。春天真会拖事。',
+    "Potatoes are up; frost hasn't gone. Spring does drag things out.",
   ],
   [
-    '番茄红了一个，我巡视了四遍。',
-    'One tomato turned red. I’ve inspected it four times.',
+    '郁金香冒头了。我种的哪种？花开了才知道。',
+    "Tulips are up. Which ones did I plant? We'll see when they flower.",
   ],
   [
-    '向日葵挡住了小屋，我得侧身找门。',
-    'The sunflowers hid the shed. I’ve got to edge round for the door.',
+    '草莓网得补。春天忙的事，鸽子一件也不做。',
+    'Strawberry net needs mending. Pigeons never do the spring jobs.',
   ],
   [
-    '落叶能堆肥，扫不完就这么安慰自己。',
-    'Leaves make compost. That’s what I say when I can’t finish sweeping.',
+    '红了也等一等！我这番茄还酸得倒牙。',
+    "Red doesn't mean ready! My tomatoes still make your teeth curl.",
   ],
   [
-    '芜菁炖汤不错，锅盖还能顺便暖暖手。',
-    'Turnips make good soup. The lid warms your hands too.',
+    '向日葵挡住小屋门了。高是高，种错地方了。',
+    'Sunflowers are blocking the shed. Tall, yes. Wrong place, though.',
   ],
   [
-    '霜把草地描白了，蜗牛今天倒省了闹钟。',
-    'Frost edged the grass white. The snails can sleep in.',
+    '叶子扫了又落。拿去堆肥，总算没白折腾。',
+    "Sweep the leaves; down come more. At least there's compost.",
   ],
   [
-    '冬天的小屋闻着像湿手套和旧报纸。',
-    'The shed smells of damp gloves and old newspapers in winter.',
+    '芜菁炖到软，秋天的晚饭就算有着落了。',
+    "Cook the turnips soft. That's autumn dinner sorted.",
   ],
   [
-    '这雨细得像没下，袖口可不这么想。',
-    'Rain so fine you’d think it wasn’t raining. My cuffs disagree.',
+    '这霜！草地硬得铲不动。冬天总算劝我歇了。',
+    "Look at that frost. Can't get a spade in. Winter's made me rest.",
   ],
   [
-    '浇水壶今天休假，我替它高兴。',
-    'The watering can has the day off. Good for it.',
+    '冬天小屋里潮。手套摊开，团着更晾不干。',
+    "Shed's damp in winter. Spread your gloves out; don't bundle them.",
   ],
   [
-    '太阳出来了，连那张塑料椅都像新买的。',
-    'Sun’s out. Even the plastic chair looks new.',
+    '雨细也算雨。看我袖子，全湿了。',
+    'Fine rain is still rain. Look at my sleeves. Soaked.',
   ],
   [
-    '云压得低，茶倒得满一点。',
-    'Low clouds. Best fill the teacup a little higher.',
+    '又下雨。省了浇水，可没省下我的牢骚。',
+    "Rain again. Saved the watering. Didn't save you my complaining.",
   ],
   [
-    '雪盖住杂草，这下大家的菜地都一样整齐。',
-    'Snow covers the weeds. All our plots look equally tidy now.',
+    '太阳出来了。坐干地方，别往土里一屁股下去。',
+    "Sun's out. Find a dry seat, not a patch of soil.",
   ],
   [
-    '你还认得我这件旧雨衣，眼力真好。',
-    'You recognised me in this old raincoat. Good eyes.',
+    '这么厚的云，怕是还要变天。茶先泡上。',
+    "Cloud's thick. More weather coming, I'd say. Put the tea on.",
   ],
   [
-    '给你留了张干椅子，我拿塑料袋罩着的。',
-    'Saved you a dry chair. Kept a carrier bag over it.',
+    '雪一盖，杂草都看不见。就当我收拾过了。',
+    "Snow's hidden the weeds. Let's call that tidied.",
   ],
   [
-    '你一来，茶杯就不用孤零零摆一只了。',
-    'With you here, I needn’t put out just one cup.',
+    '你认出这件破雨衣了。倒比认花苗快。',
+    'You know this old raincoat now. Quicker than spotting seedlings.',
   ],
   [
-    '小屋备用钥匙挂那儿了，门得抬一下再锁。',
-    'Spare shed key’s there. Lift the door before locking it.',
+    '椅子罩着呢。掀开坐，别跟我一起淋雨。',
+    "Chair's covered. Lift it and sit. No need for both of us to get wet.",
+  ],
+  ['茶杯自己拿，泥手套给我摘了！', 'Help yourself to a cup. Muddy gloves off!'],
+  [
+    '小屋门往上抬再锁。这破毛病，我也没修成。',
+    'Lift the shed door to lock it. Never did manage to fix that.',
   ],
   [
-    '窗边那盆花，邻居已经问了两回。',
-    'Next door has asked twice about the flowers by the window.',
+    '瞧窗边那盆，叶尖又黄了。我得换袋土。',
+    'Look at the yellow tips on that plant. I need different compost.',
   ],
   [
-    '晚点回来也敲门，我听得到水壶以外的声音。',
-    'Knock even if you’re late. I hear things besides the kettle.',
+    '找我就敲门，重一点！小屋里刮风听不清。',
+    "Knock hard if you want me! Can't hear over the wind in the shed.",
   ],
   [
-    '有空替我尝口酱？我这舌头只会说甜。',
-    'Try the jam when you can? My tongue only says “sweet”.',
+    '尝尝我这酱，酸就直说！我已经加过糖了。',
+    "Taste my jam. Say if it's sour! I've already added sugar.",
   ],
   [
-    '文件夹又厚了？我给你腾块干燥的桌角。',
-    'Folder getting thicker? I’ll clear you a dry corner of the table.',
+    '又理续签文件？桌上的种子我挪开，你来摊。',
+    "Renewal papers again? I'll move the seeds. Spread them out here.",
   ],
   [
-    '等回信那阵子，拔草倒挺解闷。',
-    'Weeding passed the time when I was waiting for a letter.',
+    '等续签信真磨人。得了，先骂几句，我听着！',
+    "That renewal wait drags. Go on, have a good grumble. I'm listening!",
   ],
   [
-    '听说换新工牌了？旧的别扔，开罐头用不上也留着。',
-    'New work badge? Keep the old one. Even if it won’t open a tin.',
+    '升职了？好！带块蛋糕来，我可只种得出菜。',
+    'Promoted? Good! Bring cake. I can only grow vegetables.',
   ],
   [
-    '考完了？来坐，今天不抽问单词。',
-    'Test done? Sit down. No vocabulary questions today.',
+    '英语过了？来念我种子袋，我就认得那张图。',
+    'Passed English? Read my seed packet. I only recognise the picture.',
   ],
   [
-    '周六的面包车一来，整条街都闻着饿。',
-    'Saturday’s bread van makes the whole street hungry.',
+    '周末面包车一停，大家都忘了要减买东西。',
+    "Weekend bread van stops, and everyone forgets they're cutting back.",
   ],
   [
-    '工作日安静些，鸽子倒像轮班似的。',
-    'Quieter on weekdays. The pigeons seem to work shifts though.',
+    '工作日菜地清静，正好拔草。瞧这根，气死我。',
+    'Quiet on the plot on weekdays. Time to weed. Look at this brute!',
   ],
   [
-    '烟花一响，我差点把茶包当糖放。',
-    'That firework nearly made me put a teabag in for sugar.',
+    '烟花一响，茶洒了一点。得，还替草地浇了。',
+    'Firework made me spill my tea. There. Watered the grass too.',
   ],
   [
-    '太妃糖得慢慢吃，我的假牙也来过节了。',
-    'Easy with the toffee. My false teeth are celebrating too.',
+    '太妃糖少咬一口。这假牙可比糖贵多了。',
+    'Small bite of toffee. These teeth cost a lot more than sweets.',
   ],
   [
-    '火光照着泥靴，今晚不用擦也挺亮。',
-    'Firelight on muddy boots. Shiny without polishing tonight.',
+    '火光照着泥靴。看着干净，明天还得刷。',
+    'Muddy boots look clean in firelight. Still need scrubbing tomorrow.',
   ],
   [
-    '每年都说站远点，最后还是你替我拿热茶。',
-    'Every year I say I’ll stand back. You still end up holding my tea.',
+    '看烟花我站后边。不是怕，前边烟味太大。',
+    "I'll watch from the back. Not scared. Too much smoke at the front.",
   ],
 ]);
 for (const i of [9, 10, 11]) margaretLines[i].season = 2;
@@ -311,161 +311,155 @@ for (let i = 36; i < 40; i++) margaretLines[i].festival = 'bonfire-night';
 
 const adeLines = lines('ade', [
   [
-    '早。打印机比我先开始抱怨了。',
-    'Morning. The printer started complaining before I did.',
+    '早。今日清单：开机，找密码，怀疑密码。',
+    "Morning. Today's list: log in, find password, doubt password.",
+  ],
+  ['会有饼干。补充：会很长。', 'Meeting has biscuits. Addendum: long meeting.'],
+  [
+    '午饭已解冻。纠正，只有盒盖解冻了。',
+    'Lunch defrosted. Correction: just the lid.',
   ],
   [
-    '今天的会有饼干，我对议程重新有了信心。',
-    'Biscuits at today’s meeting. My faith in the agenda is restored.',
+    '工牌线缠耳机。两件设备，一个死结。',
+    'Badge caught in headphones. Two devices, one knot.',
+  ],
+  ['茶包补了。牛奶那项，暂未认领。', 'Tea restocked. Milk item: unassigned.'],
+  [
+    '通勤报告：车赶上了，气还没喘回来。',
+    'Commute report: caught bus. Breath still pending.',
   ],
   [
-    '谁把微波炉调到解冻？我的午饭过冬了。',
-    'Who left the microwave on defrost? My lunch has overwintered.',
+    '报销单转了三个人。还没转到付款那位。',
+    'Expenses reached three people. None able to pay them.',
   ],
   [
-    '工牌挂绳又缠住耳机了，它俩感情比我好。',
-    'Badge lanyard tangled in my headphones again. Those two are close.',
-  ],
-  ['茶包我买了，牛奶这回轮到谁？', 'I got teabags. Whose turn is the milk?'],
-  [
-    '巴士提前到了，司机看我跑得很有节奏。',
-    'Bus came early. Driver watched me run quite rhythmically.',
+    '办公室暖气：已开启，效果待确认。',
+    'Office heating: on. Effect: awaiting confirmation.',
   ],
   [
-    '我那张报销单在三个收件箱里旅行。',
-    'My expenses form is touring three inboxes.',
+    '办公室香蕉要清走。别再成立工作组了。',
+    'Office banana needs removing. No working group, please.',
   ],
   [
-    '办公室的暖气有自己的时区。',
-    'The office heating operates in its own time zone.',
+    '午饭排窗边。今天有太阳，资源充分利用。',
+    'Lunch by the window. Sunshine today. Use available resources.',
   ],
   [
-    '周五留下的香蕉，周一变成了团队议题。',
-    'Friday’s banana became a team discussion on Monday.',
+    '春天通勤新增项目：找花粉药。',
+    'Spring commute gets a new task: find hay-fever tablets.',
   ],
   [
-    '窗边有阳光，午饭先让三明治晒一会儿。',
-    'Sun by the window. I’ll let the sandwich enjoy it first.',
+    '春季目标：准时。水仙花不算迟到理由。',
+    "Spring target: punctuality. Daffodils aren't an excuse.",
   ],
   [
-    '春天一到，我的通勤卡又和花粉一起失踪。',
-    'Spring arrives and my travelcard disappears in a cloud of pollen.',
+    '夏季休假表贴满冰箱。午饭无处申诉。',
+    "Summer leave covers the fridge. Lunch can't appeal.",
   ],
   [
-    '公园的水仙开了，我绕路还差点迟到。',
-    'Daffodils in the park. Took a detour and nearly ran late.',
+    '夏天巴士像会议室。热，还不能中途退出。',
+    'Summer bus: meeting-room heat, no early exit.',
   ],
   [
-    '冰箱贴满了假期表，门快打不开了。',
-    'Holiday rotas all over the fridge. Nearly sealed the door shut.',
+    '秋天上班先擦鞋。落叶不接受请假。',
+    "Autumn commute: wipe shoes. Leaves won't accept leave requests.",
   ],
   [
-    '夏天的巴士像温室，还种满了乘客。',
-    'Summer buses are greenhouses planted with passengers.',
+    '天黑得早。下班路线开始需要反光衣了。',
+    'Dark early. Homeward commute now requires a reflective jacket.',
   ],
   [
-    '落叶堵住排水口，我的皮鞋先发现的。',
-    'Leaves blocked the drain. My shoes discovered it first.',
+    '冬季通勤清单少了手套。总是少这项。',
+    'Winter commute list is missing gloves. Always that item.',
   ],
   [
-    '天黑得早，我那件反光衣终于有戏份了。',
-    'Dark early. My reflective jacket finally gets a role.',
+    '冬天上班，路灯亮着。下班也亮着。',
+    'Winter work: streetlights on going in. Still on coming home.',
   ],
   [
-    '冬天找手套，总能找到两只不同的。',
-    'In winter I always find two gloves. Never a matching pair.',
+    '雨进领口了。包没湿，人不在保护范围内。',
+    "Rain down my collar. Bag's dry. Person wasn't covered.",
   ],
   [
-    '天没亮就出门，路灯成了我的同事。',
-    'Out before daylight. The streetlights are practically colleagues.',
+    '裤脚湿了。散热器工位还有空缺吗？',
+    'Wet trousers. Any vacancies by the radiator?',
+  ],
+  ['休息日又晴天？这是排班系统的奇迹。', 'Sunny day off? Rota-system miracle.'],
+  [
+    '天气审批状态：厚云，附件缺太阳。',
+    'Weather approval status: thick cloud. Sunshine attachment missing.',
   ],
   [
-    '雨从领口进去，伞全程在保护我的背包。',
-    'Rain down my collar. Umbrella did a fine job protecting my bag.',
+    '雪天通勤状态：取消。终于有个明确答复。',
+    'Snow commute status: cancelled. Finally, a clear answer.',
   ],
   [
-    '裤脚湿了半截，散热器那边还有空位吗？',
-    'Trouser hems soaked. Any room left by the radiator?',
+    '午饭议程：一起排队。我负责抱怨等待时长。',
+    "Lunch agenda: queue together. I'll handle complaints about the wait.",
   ],
   [
-    '晴天居然碰上休息日，得截张图。',
-    'Sunshine on a day off. Better take a screenshot.',
+    '备用线存储位置：抽屉。具体哪个，检索中。',
+    'Spare cable location: drawer. Which drawer? Search in progress.',
   ],
   [
-    '这云像老板说的“很快就好”。',
-    'Those clouds look like the boss’s “nearly done”.',
+    '窗边坐。会议状态：取消。饼干预算：批准。',
+    'Sit by the window. Meeting: cancelled. Biscuit budget: approved.',
   ],
   [
-    '雪把车站变好看了，也让显示屏变诚实了：取消。',
-    'Snow prettied up the station. The board simply says: cancelled.',
+    '帮我审一句开场白：经理，这工作量得重算。',
+    'Review my opening line: Manager, this workload needs recalculating.',
   ],
   [
-    '你也来买午饭？一起排，队能显得短点。',
-    'Lunch queue too? Join me. Might feel shorter.',
+    '三明治切成表格了。工作是否超标？是。',
+    'Sandwich cut into a spreadsheet. Too much work? Yes.',
   ],
   [
-    '我的备用充电线在抽屉，你知道那个抽屉。',
-    'Spare cable’s in the drawer. You know which drawer.',
+    '加班走时叫我。更正：到点走时叫我。',
+    'Tell me when you leave overtime. Correction: when you leave on time.',
   ],
   [
-    '给你留了靠窗的位子，窗缝我拿纸堵了。',
-    'Saved the window seat. Stuffed paper in the draught.',
+    '项目做不完。先向你口头报备，我还没敢发邮件。',
+    "Project won't be finished. Verbal notice to you first. Haven't dared email yet.",
   ],
   [
-    '有句话想找你练练，跟经理说的时候别结巴。',
-    'Can I practise a sentence on you? Before I try it on the manager.',
+    '又到续签准备了？我自己的清单也没划完。',
+    "Renewal prep again? Haven't finished my own checklist either.",
   ],
   [
-    '今天别聊工作，我连三明治都切成表格了。',
-    'No work talk today. I’ve cut my sandwich into a spreadsheet.',
+    '续签收件箱刷新了。更正：又刷了一次。',
+    'Refreshed the renewal inbox. Correction: refreshed it again.',
   ],
   [
-    '要是你加班，走时敲我桌子，别又各自等着。',
-    'If you’re staying late, tap my desk before leaving. No waiting for each other again.',
+    '升职了。祝贺！职责清单请另存，留个旧版。',
+    'Promoted. Congratulations! Save the job description separately. Keep the old version.',
   ],
   [
-    '这边给你留个位置，茶杯当占座牌了。',
-    'Kept a seat here. Your mug is doing the reserving.',
+    '英语过了？评估关闭。午饭议题：炸鱼还是鸡？',
+    'Passed English? Assessment closed. Lunch agenda: fish or chicken?',
   ],
   [
-    '快到续签那阵了？我抽屉也翻乱了。',
-    'Renewal coming round? My drawers are a mess too.',
+    '周末工作群静音。紧急事项：等上班。',
+    'Weekend work chat muted. Urgent items: wait for work.',
   ],
   [
-    '等邮件时我总刷收件箱，垃圾邮件倒挺准时。',
-    'I keep refreshing for that email. Spam is remarkably punctual.',
+    '工作日才过一半。剩余待办，暂不统计。',
+    'Workday half done. Remaining tasks: not counting yet.',
   ],
   [
-    '新职位那行字真长，工牌得横着戴吧。',
-    'Long new job title. You’ll have to wear the badge sideways.',
+    '烟花清晰。办公室投影仪，下次参考。',
+    'Clear fireworks. Office projector, take note.',
   ],
   [
-    '考完英语想吃什么？这题没有标准答案。',
-    'What do you fancy after the English test? No model answer for that one.',
+    '太妃糖在手。牙医预约不属于今晚议程。',
+    "Toffee acquired. Dentist booking isn't on tonight's agenda.",
   ],
   [
-    '周末不碰工作群，除了有人发猫。',
-    'No work chat at weekends. Unless someone posts a cat.',
+    '篝火暖正面。背面需求，尚未处理。',
+    'Fire warms the front. Back requirement: unresolved.',
   ],
   [
-    '周二已经开始想周六了，算不算提前备课？',
-    'Thinking about Saturday on Tuesday. Does that count as preparation?',
-  ],
-  [
-    '烟花比办公室的投影清楚多了。',
-    'Fireworks are much clearer than the office projector.',
-  ],
-  [
-    '我拿了太妃糖，牙医暂时不在群里。',
-    'Got some toffee. The dentist isn’t in this group chat.',
-  ],
-  [
-    '篝火烤热了脸，背后还是英国天气。',
-    'Face warm by the bonfire. British weather still at my back.',
-  ],
-  [
-    '明年还站这儿吧，这边没有烟往脸上跑。',
-    'Same spot next year? The smoke misses our faces here.',
+    '这边烟少。观赏位置已优化，会议申请驳回。',
+    'Less smoke here. Viewing position optimised. Meeting request denied.',
   ],
 ]);
 for (const [season, indices] of [
@@ -493,161 +487,164 @@ for (let i = 36; i < 40; i++) adeLines[i].festival = 'bonfire-night';
 
 const helenLines = lines('helen', [
   [
-    '早，门有点沉，得连同昨天的雨一起推开。',
-    'Morning. Heavy door. You have to push yesterday’s rain out with it.',
+    '早！开场白选哪句？学生刚教我一句新问候。',
+    'Morning! Which opening line? A student just taught me a new greeting.',
   ],
   [
-    '白板笔又干了，它比我们更早放学。',
-    'Marker’s dry again. It finishes class before we do.',
+    '白板笔干了。谁有一句话，能替我描述这灾难？',
+    "Marker's dry. Anyone have a sentence for this disaster?",
   ],
   [
-    '我带了两副眼镜，两副都在找。',
-    'Brought two pairs of glasses. Looking for both.',
+    '我两副眼镜都丢了。「两副」该算优势吗？',
+    'Lost both pairs of glasses. Should two pairs count as an advantage?',
   ],
   [
-    '今天听力材料里那辆巴士，比真的准时。',
-    'The bus in today’s listening exercise is more punctual than the real one.',
+    '录音里的巴士准时。写教材的人坐过车吗？',
+    'Bus in the recording is punctual. Has its writer used one?',
   ],
   [
-    '这间教室的钟一直很有自己的主意。',
-    'The clock in this classroom has strong opinions of its own.',
+    '钟慢了，肚子说下课。你赞成哪个版本？',
+    "Clock's slow; stomach says class is over. Which version gets your vote?",
   ],
   [
-    '茶杯别放讲义上，上次圆圈被当成重点了。',
-    'Cup off the handout. Last time the tea ring became a key point.',
+    '杯印像重点圈。你看，老师也会误导人。',
+    'Cup ring looks like emphasis. Teachers mislead people too.',
   ],
   [
-    '图书馆那本大字书又被借走了，眼睛也受欢迎。',
-    'Large-print book’s out again. Someone else’s eyes had the same idea.',
+    '大字书借走了。你读过那本的对白吗？',
+    "Large-print book's out on loan. Have you read the dialogue in it?",
   ],
   [
-    '我写了购物单，最后拿它讲了一节课。',
-    'Wrote a shopping list. Ended up teaching a lesson with it.',
+    '购物单当教材？学生问我「一把」究竟多大。',
+    'Shopping list as a lesson? A student asked how big a handful is.',
   ],
   [
-    '不用收椅子，下一班学员已经在门口脱雨衣了。',
-    'Leave the chairs. The next class is peeling off raincoats at the door.',
+    '雨里还有学生来！椅子先摆着，例句一会儿读。',
+    'Students still coming through the rain! Leave the chairs. Sentences can wait.',
   ],
   [
-    '有人问我的口音哪来的，我说公交终点站。',
-    'Someone asked where my accent was from. I said the bus terminus.',
+    '我的口音哪里来的？问得具体些，能讲一下午。',
+    "Where's my accent from? Ask more precisely; I could talk all afternoon.",
   ],
   [
-    '春假刚过，粉笔盒里长了片落花。',
-    'Back after the Easter holidays. Found a fallen petal in the chalk box.',
+    '春天落花进了粉笔盒。你会叫它客人，还是杂物？',
+    'Spring petals in the chalk box. Guests or clutter?',
   ],
   [
-    '窗外鸟叫太响，听力练习有伴奏了。',
-    'Birds outside are loud. Free accompaniment for listening practice.',
+    '鸟叫盖过录音了。听见几种？这次我也没答案。',
+    "Birds louder than the recording. How many kinds? I don't know either.",
   ],
   [
-    '电风扇只会吹走最重要的那页纸。',
-    'The fan blows away only the most important sheet.',
+    '夏天电扇吹走讲义。我们先捡事实，再捡例句。',
+    'Summer fan scattered the handouts. Facts first, examples next.',
   ],
   [
-    '天亮这么久，回家还以为有一节晚课。',
-    'Light so late I get home thinking there’s another evening class.',
+    '夏天这么亮，你怎么跟自己说「下班了」？',
+    "So bright in summer. How do you tell yourself work's finished?",
   ],
   [
-    '秋季学期的走廊又有湿外套味了。',
-    'The autumn-term corridor smells of wet coats again.',
+    '秋季开课，满走廊湿外套。比名单更早报到。',
+    'Autumn term: wet coats everywhere. Arrived before the register.',
   ],
   [
-    '树叶夹在书里，可惜不是我刚读的那页。',
-    'Leaf in my book. Sadly not on the page I’d reached.',
+    '秋叶夹错页了。你说这算「书签迷路」吗？',
+    'Autumn leaf in the wrong page. Would you call that a lost bookmark?',
   ],
   [
-    '手冻僵时，签名会比平时更有艺术性。',
-    'Cold hands make my signature rather more artistic.',
+    '冬天我写字像密码。你读成哪个词了？',
+    "My handwriting's a code in winter. What word did you read there?",
   ],
   [
-    '暖气边的位置坐满了，大家的听力突然很集中。',
-    'Seats by the radiator filled first. Very attentive listeners there.',
+    '暖气边坐满了。冬天的听力练习，先争位置。',
+    'Radiator seats full. Winter listening starts with finding a place.',
   ],
   [
-    '雨声比录音还清楚，我得把音量再调一点。',
-    'Rain’s clearer than the recording. I’ll turn it up a touch.',
+    '雨声盖过录音了。刚才那句，你听成了什么？',
+    'Rain drowned out the recording. What did you hear in that sentence?',
   ],
   [
-    '湿伞搁门后吧，它也需要下课休息。',
-    'Umbrella behind the door. It needs a break too.',
+    '湿伞放门后！学生把「滑倒」演给我看过了。',
+    'Wet umbrellas behind the door! A student has already demonstrated slippery.',
   ],
   [
-    '晴天的窗玻璃，能看见上次擦漏的地方。',
-    'Sun through the windows reveals every bit I missed cleaning.',
+    '太阳一照，玻璃上全是手印。「擦过」算完成时吗？',
+    'Sun shows every fingerprint. Does wiped count as a completed action?',
   ],
   [
-    '云把教室照成旧照片，灯倒还没坏。',
-    'Clouds make the room look like an old photograph. The lights still work.',
+    '云遮住光了。叫灰暗，还是柔和？看你画什么。',
+    "Cloud softened the light. Gloomy or gentle? Depends what you're drawing.",
   ],
   [
-    '雪天来上课的人，鞋底都带着一段故事。',
-    'Everyone arriving on a snow day brings a story on their soles.',
+    '雪天鞋底带进水。故事先等等，地要擦干。',
+    'Snow on soles, water on floor. Stories later. Dry it first.',
   ],
   [
-    '又碰见了。上次那本书读到哪儿了？',
-    'You again. How far did you get with that book?',
-  ],
-  ['你坐这儿吧，这张桌子不晃。', 'Sit here. This desk doesn’t wobble.'],
-  [
-    '我记得你喝茶不放糖，今天没拿错吧？',
-    'No sugar in your tea, I remember. Got it right today?',
+    '上次那本读到哪句？我在一个破折号那儿卡住了。',
+    'Which sentence did you reach? I got stuck at a dash.',
   ],
   [
-    '有句话今天说得很顺，我刚才都忘了记笔记。',
-    'That sentence flowed so well I forgot to take notes.',
+    '这桌子终于稳了。你还记得我上课洒茶那回吗？',
+    "Table's finally steady. Remember when I spilt tea during class?",
   ],
   [
-    '这本书给你留着，里面还有我年轻时的铅笔字。',
-    'Kept this book for you. My younger self’s pencil notes are still inside.',
+    '你茶还加糖吗？上次我把学生的习惯记反了。',
+    "Still taking sugar? Got a student's preference backwards last time.",
   ],
   [
-    '今天换你挑话题，我已经讲过三遍天气了。',
-    'Your choice of topic. I’ve done the weather three times today.',
+    '你刚才说得顺。我差点又拿出批作业的笔。',
+    'You spoke easily then. Nearly got my marking pen out again.',
   ],
   [
-    '路上碰见也喊我名字，别隔着菜摊叫老师啦。',
-    'Use my name in town. No “Teacher!” across the vegetable stall.',
+    '这本书有我的旧笔记。读错的地方也没擦掉。',
+    'My old notes are in this book. Kept the wrong readings too.',
   ],
   [
-    '文件忙的时候，来这儿安静坐一会儿也行。',
-    'When paperwork gets busy, you can always sit quietly here.',
+    '今天你挑题，我练听力。你说太快也算真实材料。',
+    "You choose the topic. I'll practise listening. Fast speech counts as authentic material.",
   ],
   [
-    '等回音挺磨人的，我有一整壶茶。',
-    'Waiting for news wears you out. I’ve a whole pot of tea.',
+    '街上叫海伦。「老师」我一听就想找作业。',
+    'Helen in the street. Hear teacher and I start hunting for homework.',
   ],
   [
-    '升职了？那今天的聊天得换个新开头。',
-    'Promotion? We’ll need a new opening for today’s conversation.',
+    '续签文件看累了？挑个最拗口的词，我也念念。',
+    "Tired of renewal papers? Pick the most awkward word. I'll try saying it.",
   ],
   [
-    '考完先把笔放下，手指也该松口气。',
-    'Test over? Put the pen down. Give your fingers a breather.',
+    '等续签信时，「耐心」这个词听起来多讨厌？',
+    'How irritating does the word patience sound while waiting for a renewal letter?',
   ],
   [
-    '周末课的饼干比晚课多，别告诉晚课那班。',
-    'More biscuits in the weekend class. Don’t tell the evening lot.',
+    '升职了？用一句话讲新岗位，我来猜日常干什么。',
+    "Promoted? Describe the job in one sentence. I'll guess what you do all day.",
   ],
   [
-    '下班来上课辛苦了，热水壶刚烧好。',
-    'Long day before class. The kettle’s just boiled.',
+    '英语过了！你最想大声说哪句？我把红笔收好。',
+    "Passed English! What would you like to shout? Red pen's put away.",
   ],
   [
-    '今晚的“轰”不用查词典，大家都听懂了。',
-    'No dictionary needed for tonight’s “bang”. Everyone understood.',
+    '周末课饼干多。这个比较句，晚课那班别听见。',
+    "More biscuits in weekend class. Don't let the evening class hear.",
   ],
   [
-    '太妃糖粘住牙，我现在不适合示范发音。',
-    'Toffee stuck to my teeth. Not the best moment for pronunciation practice.',
+    '下班来晚课累吧？先喝水，今天谁想挑例句？',
+    'Tired coming to class after work? Water first. Who wants to choose the examples?',
   ],
   [
-    '烟花散了还有火光，倒不急着找回教案。',
-    'Fireworks done, bonfire still glowing. Lesson plans can wait.',
+    '烟花这声轰，你会写成哪个拟声词？',
+    'What word would you use for that firework bang?',
   ],
   [
-    '给你留了围巾这一头，站近点就不漏风。',
-    'Here’s the other end of my scarf. Closer together keeps the draught out.',
+    '太妃糖粘牙。现在示范发音，会误人子弟。',
+    'Toffee on my teeth. My pronunciation would mislead everyone now.',
+  ],
+  [
+    '烟花散了，该用哪个词？学生上回写「开花倒放」。',
+    'What word for a fading firework? A student wrote flowers in reverse.',
+  ],
+  [
+    '围巾这一头归你。分句我会，分围巾没练过。',
+    "This end's yours. I teach clauses, not sharing scarves.",
   ],
 ]);
 for (const [season, indices] of [
@@ -708,12 +705,12 @@ export const npcs: Npc[] = [
     reactions: reactions(
       'margaret',
       text(
-        '你记着我喜欢的东西呢，快来喝杯茶。',
-        'You remembered what I like. Come and have a cup of tea.',
+        '好！这比园艺目录那堆花架子强，泥手先擦擦。',
+        'Good! Better than that fancy rubbish in the gardening catalogue. Let me wipe my hands.',
       ),
       text(
-        '这味儿……我先放小屋外面吧。',
-        'That smell… best leave it outside the shed.',
+        '得了，这个我用不来！下回给我留个旧盆就成。',
+        'Honestly, I can’t use this! Next time an old flowerpot will do.',
       ),
     ),
     lines: margaretLines,
@@ -721,7 +718,10 @@ export const npcs: Npc[] = [
   {
     id: 'ade',
     name: text('阿德', 'Ade'),
-    role: text('同事，也在准备续签', 'Colleague, also preparing a renewal'),
+    role: text(
+      '在镇上工作，也在准备续签',
+      'Works in town, also preparing a renewal',
+    ),
     schedule: schedule(
       [
         { from: 0, at: 'bus-stop' },
@@ -752,12 +752,12 @@ export const npcs: Npc[] = [
     reactions: reactions(
       'ade',
       text(
-        '蛋糕级别的好消息！我去拿两把叉子。',
-        'Cake-level good news! I’ll get two forks.',
+        '需求命中。采购评价：比我自己选的准。',
+        'Requirement met. Procurement review: better choice than mine.',
       ),
       text(
-        '这个先别靠近我的午饭，拜托。',
-        'Please keep that away from my lunch.',
+        '用途待确认。下次采购建议：换一项。',
+        'Purpose unconfirmed. Next procurement recommendation: something else.',
       ),
     ),
     lines: adeLines,
@@ -796,12 +796,12 @@ export const npcs: Npc[] = [
     reactions: reactions(
       'helen',
       text(
-        '这正好配我那只缺了角的杯子，谢谢。',
-        'Just the thing for my chipped cup. Thank you.',
+        '这礼物选得真好！我学生说的「正中下怀」，是这意思？',
+        'What a lovely choice! Just what I wanted. That’s the phrase my student used, isn’t it?',
       ),
       text(
-        '谢谢惦记，不过它还是留在教室外吧。',
-        'Kind thought, but let’s leave it outside the classroom.',
+        '这个我用着不合适。「不合适」说得够清楚吗？',
+        'This doesn’t suit me. Is doesn’t suit me clear enough?',
       ),
     ),
     lines: helenLines,
@@ -824,18 +824,24 @@ const supporting: [
     'gp',
     [
       [
-        '预约本翻旧了，封皮比我先下班。',
-        'The appointment book cover has clocked off before me.',
+        '预约先核姓名。上回封皮换新，重名照旧。',
+        'Name first, please. New appointment book, same duplicated names.',
       ],
-      ['电话停了？我先喝口水。', 'Phones quiet? Time for a sip of water.'],
       [
-        '那把椅子别坐，靠背有自己的想法。',
-        'Avoid that chair. The back has ideas of its own.',
+        '电话刚停，耳机先摘。你也来杯水？',
+        "Phone's stopped. Headset off first. Water for you too?",
       ],
-      ['周末终于不用拼读姓氏了。', 'A weekend off spelling surnames.'],
       [
-        '伞套在门边，地板今天已经喝够了。',
-        'Umbrella bags by the door. The floor’s had enough to drink.',
+        '请坐右边那把，左边已报修。',
+        "Right-hand chair, please. The left one's reported for repair.",
+      ],
+      [
+        '周末我拼海景。边块找齐了，海全是蓝的。',
+        'Seascape jigsaw this weekend. Found the edges. The sea is all blue.',
+      ],
+      [
+        '请走干的那边，伞套在接待台旁。',
+        'Dry side of the floor, please. Umbrella sleeves by reception.',
       ],
     ],
   ],
@@ -851,17 +857,20 @@ const supporting: [
         'Quiz questions locked away. Now to find the key.',
       ],
       [
-        '杯垫别叠，昨天倒了一座塔。',
-        'Don’t stack the beer mats. Lost a whole tower yesterday.',
+        '杯垫别堆塔。倒一回，全场就都记住你了。',
+        "Don't stack the mats. Collapse once, achieve lasting fame.",
       ],
       [
-        '无酒精的也有，我给你找个干杯子。',
-        'Alcohol-free too. Let me find a dry glass.',
+        '不喝酒？好，难题少一项。杯子照样要大的？',
+        'No alcohol? One less question. Big glass still?',
       ],
-      ['答题笔都系绳了，照样少了两支。', 'Pens tied down. Still two missing.'],
       [
-        '雨停再走？门口那滩挺有深度。',
-        'Wait for the rain? That puddle has ambitions.',
+        '笔系了绳还少。答题抢手，文具更抢手。',
+        'Pens tied down, still missing. Answers popular; stationery more so.',
+      ],
+      [
+        '雨太大？欢迎来挑战本店室内天气：干的。',
+        'Heavy rain? Try our indoor weather. Dry.',
       ],
     ],
   ],
@@ -873,21 +882,24 @@ const supporting: [
     'shop',
     [
       [
-        '零钱有，正好硬币把抽屉卡住了。',
-        'Plenty of change. Coins have jammed the drawer again.',
+        '老朋友，换零钱吗？我把硬币摊柜台上，咱们数清。',
+        "Need change, my friend? I'll spread the coins on the counter and we'll count them.",
       ],
       [
-        '报纸还剩一份，雨替它翻过页了。',
-        'One paper left. Rain’s already turned a page.',
-      ],
-      ['种子在茶旁边，别一块泡了。', 'Seeds beside the tea. Don’t brew both.'],
-      [
-        '这儿开了几十年，门铃还是这个调。',
-        'Decades here. Doorbell still sings the same note.',
+        '最后那份报纸淋湿了，我给你减价，边上也破了点。',
+        "That last paper got wet. I'll reduce it for you. The edge is torn too.",
       ],
       [
-        '今天的蛋糕到了，我数了两遍才忍住。',
-        'Cakes arrived. Counted them twice to resist one.',
+        '来，茶在这排，种子在旁边，拿错了我可泡不了。',
+        "Here, tea along this shelf, seeds next to it. Pick the wrong packet and I can't brew it.",
+      ],
+      [
+        '老朋友，这门铃从开店响到现在，进货时都舍不得换。',
+        "That bell's been here since I opened, my friend. Can't bring myself to order a new one.",
+      ],
+      [
+        '蛋糕进货又多了，算我贪吃，刚才已经替库存吃掉一块。',
+        "Ordered too much cake again. Blame my appetite. I've already eaten one from the stock.",
       ],
     ],
   ],
@@ -899,24 +911,24 @@ const supporting: [
     'cafe',
     [
       [
-        '今天先喝咖啡，文件夹放椅子上歇歇。',
-        'Coffee first. The folder can rest on that chair.',
+        '喂，先喝咖啡！文件夹看一天了，我眼都方了。',
+        'Hey, coffee first! Stared at that folder all day. My eyes are square.',
       ],
       [
-        '我把信又读了一遍，这次没洒茶。',
-        'Read the letter again. No tea spilt this time.',
+        '拒信又看一遍。烦死了，同一行字还要拐着写！',
+        'Read the refusal letter again. Maddening. That sentence goes round in circles!',
       ],
       [
-        '等回电话时，我把围巾织长了一截。',
-        'Scarf grew a bit while I waited for a call.',
+        '等电话就织围巾，喂，这长度能拴住巴士了！',
+        'Knitting while I wait for the phone. Hey, this could tether a bus!',
       ],
       [
-        '能陪我走到车站吗？还不急着坐车。',
-        'Walk to the station with me? No train to catch yet.',
+        '陪我去车站速写？喂，车票钱可没算进去。',
+        "Station for some sketches? Hey, train tickets weren't in the budget.",
       ],
       [
-        '今天想聊点别的，比如这块太干的蛋糕。',
-        'Something else today. Like this very dry cake.',
+        '今天只聊蛋糕！干成这样，还敢收我咖啡的钱。',
+        'Cake talk only today! This dry, and they still charge me for coffee.',
       ],
     ],
   ],
@@ -928,24 +940,24 @@ const supporting: [
     'postbox',
     [
       [
-        '棕色信封先放平，别让它吓着茶杯。',
-        'Brown envelope flat first. Don’t let it frighten the teacup.',
+        '到家，关门，再认棕信封收件人。先核门牌。',
+        "Home, door shut, check the brown envelope's name. House number first.",
       ],
       [
-        '这条街的门牌，雨天就爱躲起来。',
-        'Street numbers love hiding in the rain.',
+        '门牌被挡了。雨不雨，都得找准这一户。',
+        "Number's hidden. Rain or not, must find the right door.",
       ],
       [
-        '狗已经认得我的鞋，不必再闻一遍。',
-        'Dog knows these shoes. No second sniff needed.',
+        '那只狗认得鞋。左脚先闻，顺序一直这样。',
+        'Dog knows my shoes. Left first. Same order.',
       ],
       [
-        '包里最重的是超市传单，不是秘密。',
-        'Heaviest things in the bag are supermarket leaflets, not secrets.',
+        '往下压，邮袋才扣得住。里头全是传单。',
+        'Press down to close the postbag. All leaflets in there.',
       ],
       [
-        '信送完了，我也能坐一下那张长椅了。',
-        'Post done. My turn on the bench.',
+        '走这边，到长椅停。我的送信路线平时绕过去。',
+        'This way. Stop at the bench. My postal round usually goes past.',
       ],
     ],
   ],
@@ -999,700 +1011,709 @@ for (const [id, zhCN, en, role, at, pairs] of supporting)
 const extraDailyLines: Record<string, [string, string][]> = {
   priya: [
     [
-      '订书机躲在纸堆下，我听见它笑了。',
-      'The stapler is under the papers. I can hear it laughing.',
+      '找到了，订书机压在预约单底下。',
+      'Found it. Stapler was under the appointment slips.',
     ],
     [
-      '那盆塑料花倒是不怕我忘记浇水。',
-      'At least the plastic flowers survive my forgetting to water them.',
+      '我买塑料花，省下时间拼图。',
+      'I buy plastic flowers. More time for jigsaws.',
     ],
     [
-      '门口的新垫子专收泥，不收脚步声。',
-      'The new mat catches mud, but not the sound of footsteps.',
+      '新门垫卷边，接待台又多一张报修单。',
+      'New mat curls up. Another repair form at reception.',
     ],
     [
-      '我的午饭在冰箱，叉子在另一个宇宙。',
-      'My lunch is in the fridge. My fork is in another universe.',
+      '交班带了午饭，叉子还在厨房。真行。',
+      "Brought lunch for the handover. Fork's still in my kitchen. Brilliant.",
     ],
     [
-      '有人把杂志按颜色排了，我舍不得动。',
-      'Someone arranged the magazines by colour. I can’t disturb them.',
+      '候诊杂志先挑日期。配色好看也会过期。',
+      'Dates first on waiting-room magazines. Nice colours can still be out of date.',
     ],
     [
-      '这支笔总漏墨，我的拇指先签到了。',
-      'This pen leaks. My thumb has signed in first.',
+      '请再报姓名，笔漏墨，写成一团了。',
+      'Name again, please. Pen leaked. Got a blob here.',
     ],
     [
-      '今天带了梨，午休时它已经滚到包底。',
-      'Brought a pear. It rolled to the bottom of my bag before lunch.',
+      '拼图盒压扁了午饭梨，我吃前得削掉半边。',
+      'Jigsaw box squashed my lunchtime pear. Half of it needs cutting off.',
     ],
     [
-      '我给椅脚贴了垫，终于听得见自己想事。',
-      'Pads on the chair legs. I can finally hear myself think.',
+      '候诊椅贴垫了，挪椅声总算歇下。',
+      'Pads on the waiting-room chairs. Finally, less scraping.',
     ],
     [
-      '同事说我电话里的声音比本人清醒。',
-      'My colleague says I sound more awake on the phone than in person.',
+      '我接电话能笑着说话，摘耳机就打哈欠。',
+      'I can smile down the phone. Headset off, straight into a yawn.',
     ],
     [
-      '小孩画的太阳，贴得比窗户还高。',
-      'A child drew a sun. It is stuck higher than the window.',
+      '儿童区那张太阳画挂高了，蹲着看全是反光。',
+      "That sun drawing's too high in the children's corner. All glare at their height.",
     ],
     [
-      '春天的风把门口传单都翻到背面了。',
-      'Spring wind turned all the leaflets over outside.',
+      '春风把接待传单吹混了，过期的顺手撤掉。',
+      'Spring wind mixed up the reception leaflets. Took the old ones out too.',
     ],
     [
-      '夏天我用凉水瓶压住午饭的餐巾。',
-      'In summer my cold water bottle holds the lunch napkin down.',
+      '夏天午饭贴姓名放冰箱，我的叉子又漏了。',
+      'Summer lunch: named container in the fridge. Forgotten my fork again.',
     ],
     [
-      '落叶黏在门上，看起来像预约便签。',
-      'Leaves stuck to the door look like appointment notes.',
+      '门上那片秋叶像新通知，害我去核日期。',
+      'Autumn leaf on the door looked like a notice. Went to check the date.',
     ],
     [
-      '冬天我先暖手，才摸那把金属钥匙。',
-      'In winter I warm my hands before touching the metal key.',
+      '冬天手套里藏钥匙，摸半天像找拼图边块。',
+      'Winter keys inside my gloves. Like hunting a jigsaw edge piece.',
     ],
     [
-      '雨天每把伞都滴在同一块地砖上。',
-      'Every wet umbrella drips on the very same tile.',
+      '雨天门口那块砖要擦，我去放防滑牌。',
+      "That tile by the door needs drying. I'll get the wet-floor sign.",
     ],
     [
-      '太阳照到前台时，眼镜也想下班。',
-      'When sunlight reaches the desk, my glasses want a break too.',
+      '前台帘子放下来，太阳照得姓名都看不清。',
+      "Reception blind down. Sun's making the names impossible to read.",
     ],
     [
-      '雪粘在鞋底，走廊忽然多了小脚印。',
-      'Snow sticks to soles, leaving little footprints in the corridor.',
+      '请靠扶手走，雪水都带进走廊了。',
+      "Handrail side, please. Snow's melted all along the corridor.",
     ],
     [
-      '周末我散步不带工作那只包。',
-      'On weekend walks I leave my work bag behind.',
+      '周末沿池塘走，我专门找拼图盒上的那只鸟。',
+      'Weekend walk round the pond. Looking for the bird on my jigsaw box.',
     ],
     [
-      '下班后最喜欢听的，是水壶咔嗒一声。',
-      'My favourite sound after work is the kettle clicking off.',
+      '交班后耳机印还在，水壶响我都想报姓名。',
+      'Headset mark lasts after handover. Kettle whistles; I nearly ask its name.',
     ],
     [
-      '你的杯子我认得，手柄有个小蓝点。',
-      'I know your cup. A little blue dot on the handle.',
+      '先确认，还是热水？接待员也会记错杯子。',
+      'Just checking: hot water again? Receptionists can mix up mugs too.',
     ],
     [
-      '又来买茶？我上次那包还舍不得拆。',
-      'More tea? I’ve been saving the packet from last time.',
+      '拆这包茶吧，我拼图时爱喝，凉了也有味。',
+      'Open this tea. I drink it over jigsaws. Still tastes good cold.',
     ],
     [
-      '你在这儿，我可以把半句笑话讲完。',
-      'With you here I can finish that half-told joke.',
+      '跟你聊得顺，我差点说「下一位」。职业病！',
+      'Easy talking to you. Nearly said “Next, please.” Occupational hazard!',
     ],
     [
-      '上回你扶的门，今天终于不吱呀了。',
-      'The door you held last time has finally stopped squeaking.',
+      '门铰链修好了，接待台终于收回报修牌。',
+      'Door hinge fixed. Reception can put the repair sign away.',
     ],
     [
-      '我给你留了张没沾咖啡的纸巾。',
-      'Saved you a napkin without coffee on it.',
+      '纸巾请拿，下面压着我半张拼图目录。',
+      "Help yourself to tissues. Half my jigsaw catalogue's underneath.",
     ],
     ['今天不赶时间，绕池塘走走？', 'No hurry today. A walk round the pond?'],
     [
-      '我的针线盒能修袖口，修不了闹钟。',
-      'My sewing kit repairs cuffs, but not alarm clocks.',
+      '我带针线，交班时常把袖口勾在抽屉上。',
+      'I carry sewing things. Always catch my cuff on the drawer at handover.',
     ],
     [
-      '等信很累吧，我把这张桌子清出来了。',
-      'Waiting for a letter is tiring. I cleared this table for you.',
+      '等回信累吧？坐这边，我也刚摘掉接线耳机。',
+      'Waiting for a reply is tiring. Sit here. Just got my headset off too.',
     ],
     [
-      '文件忙完了吗？我的拼图还缺一块蓝天。',
-      'Paperwork done? My puzzle is still missing a patch of sky.',
+      '续签表看到哪页？我核预约单也总漏翻背面。',
+      'Which page of the renewal form? I keep missing the backs of appointment slips.',
     ],
     [
-      '我把购物单写在手上，洗手后全忘了。',
-      'Wrote my shopping list on my hand. Washing my hands erased it.',
+      '购物单洗掉了，手上只剩半个拼图店名字。',
+      "Washed my shopping list off. Half the jigsaw shop's name survived.",
     ],
     [
-      '那只麻雀每天来，从没预约过。',
-      'That sparrow visits every day without an appointment.',
+      '窗外麻雀又啄玻璃，叫号声都盖过了。',
+      "Sparrow's tapping the window again. Louder than the call system.",
     ],
     [
-      '休息时我把手机扣过来，茶才喝得热。',
-      'On breaks I turn my phone over. My tea stays hot that way.',
+      '休息铃已设好，接线耳机先归盒。',
+      'Break alarm set. Headset goes back in its box.',
     ],
     [
-      '围巾是自己织的，两头不太认识。',
-      'Knitted this scarf myself. The ends don’t quite match.',
+      '围巾是我织的，接电话腾手时漏了好几针。',
+      'Knitted this scarf. Dropped several stitches reaching for the phone.',
     ],
     [
-      '杯沿缺了一点，喝茶得找对方向。',
-      'A chip in the rim. Tea needs the right angle.',
+      '杯口缺了，得跟候诊室那批一起换。',
+      'Chipped rim. Needs replacing with that batch from the waiting room.',
     ],
     [
-      '听见你的脚步，我就知道茶该续了。',
-      'Hearing your footsteps tells me it’s time for more tea.',
+      '听脚步就认出你了，比核姓名还快。',
+      'Knew your footsteps. Quicker than checking the name.',
     ],
     [
-      '今天想坐着发会儿呆，你也可以坐。',
-      'I fancy sitting quietly today. There is room beside me.',
+      '脑子里还在叫号，我先把耳机印揉掉。',
+      'Still calling names in my head. Let me rub this headset mark.',
     ],
   ],
   dave: [
     [
-      '黑板擦丢了，菜单暂时多了一朵云。',
-      'Lost the board eraser. The menu has gained a cloud.',
+      '黑板擦丢了。菜单那团不是新菜，是擦不掉。',
+      "Lost the eraser. That cloud isn't a new dish.",
     ],
     [
-      '今天的汤不在测验里，放心尝。',
-      'The soup isn’t part of the quiz. Taste away.',
+      '猜汤料也抢答？各位，答错芹菜照样得吃！',
+      "Guessing the soup ingredients now? Sorry, folks, a wrong answer won't remove the celery!",
     ],
     [
-      '桌脚垫了杯垫，杯子反倒没垫的了。',
-      'Beer mats under the table legs. None left for the glasses.',
+      '杯垫全垫桌脚了。杯子坐哪？好问题，下一题。',
+      'Mats under table legs. Where do glasses sit? Next question.',
     ],
     [
-      '门铃像只打嗝的鸟，我还挺喜欢。',
-      'The doorbell sounds like a hiccupping bird. I rather like it.',
+      '门铃声音怪？它也想当主持，可惜只会一句。',
+      'Odd doorbell? Wants to host. Only knows one line.',
     ],
     [
-      '我练习念队名，猫已经听得睡着了。',
-      'Practising team names. The cat has fallen asleep listening.',
+      '队名念过了。猫睡了，可能是我念得太温柔。',
+      'Practised team names. Cat asleep. Must be my soothing delivery.',
     ],
     [
-      '那张椅子留着，坐下不会突然矮一截。',
-      'Keep that chair. It won’t suddenly lose height.',
+      '那把椅子稳。惊喜留给题目，别留给屁股。',
+      'Steady chair. Surprises in the quiz, not under your backside.',
     ],
     [
-      '厨房的钟慢一点，炸薯条可不等它。',
-      'The kitchen clock is slow. The chips won’t wait for it.',
+      '厨房钟慢，薯条不管。计时交给鼻子，危险。',
+      "Kitchen clock's slow. Chips don't care. Timing by nose is risky.",
     ],
     [
-      '我给笔装了新芯，题目可没换简单的。',
-      'New ink in the pens. The questions are no easier.',
+      '笔芯新换的。题不会，也不能怪笔了。',
+      "Fresh ink. Wrong answer? Can't blame the pen now.",
     ],
     [
-      '上回有人把答题纸当购物单带走了。',
+      '有人拿答题纸当购物单。好歹有几题答得上。',
       'Someone took the answer sheet home as a shopping list.',
     ],
     [
-      '灯罩擦干净了，酒吧年轻了一个下午。',
-      'Cleaned the lampshades. The pub looked younger for an afternoon.',
+      '灯罩一擦，本店突然显得有前途了。',
+      'Clean shades. Pub suddenly looks promising.',
     ],
     [
-      '春天把门撑开，花粉也来答题。',
-      'Door propped open in spring. Even pollen joins the quiz.',
+      '春天门一开，花粉也入队。它打算包揽喷嚏题。',
+      "Spring door open. Pollen's on the team. Sneezing specialist.",
     ],
     [
-      '夏天的冰块化得比大家算分还快。',
-      'Summer ice melts faster than we can add up the scores.',
+      '夏天冰化得快。计分慢的队，自备游泳圈。',
+      'Summer ice melts fast. Slow scorers, bring a lifebelt.',
     ],
     [
-      '落叶跟着客人进门，不肯买饮料。',
-      'Leaves follow customers in, refusing to buy a drink.',
+      '落叶进店不买饮料。我还不能把它列黑名单。',
+      "Autumn leaves buy nothing. Can't even bar them.",
     ],
     [
-      '冬天的围巾挂满了，衣帽架像棵树。',
-      'Winter scarves turn the coat stand into a tree.',
-    ],
-    ['雨敲棚顶，今天有免费鼓手。', 'Rain on the awning. A free drummer today.'],
-    [
-      '太阳一出，大家突然都认识花园的门。',
-      'Sun comes out and everyone discovers the garden door.',
+      '冬天衣帽架满了。再挂一件，它就有意见了。',
+      "Winter coat stand's full. One more and it'll resign.",
     ],
     [
-      '雪天黑板上写热汤，粉笔都像暖和了。',
-      'Hot soup on the snowy-day board. Even the chalk looks warmer.',
+      '雨替我们打鼓。没点歌权，还不用付小费。',
+      "Rain's drumming. No requests, no tip required.",
     ],
     [
-      '周末的报纸没人翻体育版以外的页。',
-      'At weekends nobody gets beyond the sports pages.',
+      '太阳一出，全员转移花园。室内椅子遭到冷落。',
+      'Sun out, everyone in the garden. Chairs indoors feel rejected.',
     ],
     [
-      '这支麦克风只在我讲笑话时咳嗽。',
-      'This microphone only coughs during my jokes.',
+      '下雪卖热汤。粉笔写完菜单，我也想点一碗。',
+      'Snow means hot soup. Wrote the board; now I want some.',
     ],
     [
-      '你老位置空着，杯垫我刚换过。',
-      'Your usual seat is free. Fresh mat and all.',
+      '周末报纸只看体育？好，别的版替我垫桌子。',
+      'Only sport at weekends? Other pages can level my tables.',
     ],
     [
-      '你来帮我听听，这道题有没有说清楚。',
-      'Listen to this question for me. Is it clear enough?',
+      '麦克风只对笑话咳嗽。它的审美，很不礼貌。',
+      'Mic coughs at my jokes. Rude taste.',
     ],
     [
-      '上回那个队名我记住了，拼写得再问。',
-      'I remember your team name. I’ll need the spelling again.',
+      '哟，又来了！老样子？等我猜，猜错这轮你主持。',
+      'Back again! The usual? Let me guess. Get it wrong and you can host this round.',
     ],
     [
-      '给你一支好写的笔，别告诉隔壁桌。',
-      'A decent pen for you. Don’t tell the next table.',
+      '来，试一道题！听不懂就喊停，出题人就在这儿。',
+      "Try this question! Shout if it makes no sense. The culprit's right here.",
     ],
     [
-      '你笑得这么早，我还没讲到包袱呢。',
-      'Laughing already? I haven’t reached the punchline.',
+      '队名我记得，拼法不敢说。我的学历到发音为止。',
+      'Remember your team name, not the spelling. Education stopped at sound.',
     ],
     [
-      '关店后我也爱坐着，换到桌子这边。',
-      'After closing I like sitting on this side of the table.',
+      '好写的笔归你。别宣扬，我还有公平形象要装。',
+      'Good pen for you. Quietly. I have fairness to pretend.',
     ],
     [
-      '新歌单没改成功，又放回那张老唱片。',
-      'New playlist failed. Back to the old record.',
+      '你已经笑了？算了，包袱给你，别让它摔着。',
+      'Laughing already? Catch the punchline for me, then.',
     ],
     [
-      '题册先合上吧，杯子底下会留圈。',
-      'Close the quiz book for now. Cups leave rings.',
+      '各位，老板申请坐客席。谁敢叫我擦桌子？',
+      "The landlord requests a seat in the audience, folks. Who's going to ask him to wipe it?",
     ],
     [
-      '等消息时来坐吧，今天没人催你交卷。',
-      'Sit here while waiting for news. No answer sheet due today.',
+      '歌单又放老唱片。不是怀旧，是新列表点错了。',
+      'Old record again. Not nostalgia. Wrong playlist button.',
     ],
     [
-      '我擦杯子时常把自己擦得满袖口水。',
-      'Polishing glasses usually leaves my sleeves wetter than the glasses.',
+      '题册先合上。茶洒上去，题就真成谜了。',
+      'Close the quiz book. Spilt tea makes genuine riddles.',
     ],
     [
-      '台球杆修好了，准头得各人自己修。',
-      'Cue repaired. Everyone must fix their own aim.',
+      '等续签信？本店加一道题：邮箱刷得过我擦杯子吗？',
+      'Waiting for your renewal letter? Bonus round: can you refresh faster than I polish glasses?',
     ],
     [
-      '小碟子换了，大饼干依旧放不下。',
-      'New saucers. The big biscuits still don’t fit.',
+      '擦杯子擦湿袖口。水多没用，经验也没用。',
+      "Polished glasses, soaked sleeves. More water didn't help. Experience either.",
     ],
     [
-      '客人夸窗户亮，我刚擦的是镜子。',
-      'Someone praised the bright window. I had polished the mirror.',
+      '球杆修了。打歪的，我这儿暂不保修。',
+      "Cue fixed. Crooked aim isn't under warranty.",
     ],
     [
-      '收摊时数椅子，总有一把藏在门后。',
-      'Counting chairs at closing. One always hides behind the door.',
+      '换大碟子了。饼干还嫌挤，要求挺高。',
+      'Bigger saucers. Biscuits still cramped. Demanding lot.',
     ],
     [
-      '我给自己泡的茶，最后总是端给别人。',
-      'Tea I make for myself always ends up with someone else.',
+      '有人夸窗户亮。那是镜子，先别告诉他。',
+      "Someone praised the window. It's a mirror. Don't tell them yet.",
     ],
     [
-      '今晚要是没人点歌，我就哼自己的。',
-      'If nobody requests a song tonight, I’ll hum my own.',
+      '少一把椅子。等等，我坐的这把算了吗？',
+      "One chair short. Wait. Counted the one I'm sitting on?",
+    ],
+    [
+      '哎哟，给自己泡的茶又端给客人了！老板这记性！',
+      'Oh, brilliant. Given my own tea to a customer again! Some landlord I am.',
+    ],
+    [
+      '没人点歌？我就唱了。这算预警，听清楚啊。',
+      "No requests? I'll sing. That's a warning, everyone.",
     ],
   ],
   rahman: [
     [
-      '价签笔找到了，在装价签笔的盒子外面。',
-      'Found the pricing pen. Outside the box marked pricing pens.',
+      '来，借过一下，我那支写价签的笔又滚柜台底了。',
+      "Excuse me a moment. My pricing pen's rolled under the counter again.",
     ],
     [
-      '货架最上层那罐茶，我也得踩小凳。',
-      'Even I need the stool for that tea on the top shelf.',
+      '要高处的茶罐？我搬凳子，老朋友，替我看一下柜台。',
+      "The tea up there? I'll fetch a stool. Watch the counter a moment, my friend.",
     ],
     [
-      '有人把饼干放到肥皂旁，香味倒挺一致。',
-      'Biscuits beside the soap. Similar smell, admittedly.',
+      '谁把姜饼摆肥皂旁边了？闻一闻，亏了两样货。',
+      'Who shelved ginger biscuits beside the soap? Smell that. Two lines of stock spoiled.',
     ],
     [
-      '门铃一响我就抬头，在家也这样。',
-      'I look up at every doorbell. Even at home.',
+      '在家听门铃也想喊欢迎光临，家里人都笑我开分店。',
+      "Hear a bell at home and I call out welcome. My family says I've opened a branch.",
     ],
     [
-      '今天送来的箱子比里面的货还结实。',
-      "Today's boxes are sturdier than their contents.",
+      '这批纸箱倒结实，老朋友，搬东西的话我留给你。',
+      "Good sturdy boxes this delivery, my friend. I'll save them if you're moving anything.",
     ],
     [
-      '旧算盘还留着，用来镇住新收银机。',
-      'Kept the old abacus. It intimidates the new till.',
+      '这算盘跟我开过店，珠子卡住那格，我闭眼都找得到。',
+      'Had this abacus since opening. I can find the sticky bead with my eyes shut.',
     ],
     [
-      '我的收音机只在新闻开始时没电。',
-      'My radio only runs out of battery when the news begins.',
+      '收音机没电，我进了一箱电池，偏偏全卖完了。',
+      "Radio's flat. Ordered a whole box of batteries and sold every last one.",
     ],
     [
-      '面包放高一点，邻居的狗很懂礼貌地盯着。',
-      "Bread up high. The neighbour's dog stares very politely.",
+      '面包放高些，老朋友，上回狗进店我还没来得及报价。',
+      'Put that bread higher, my friend. Last dog got to it before I could quote a price.',
     ],
     [
-      '这串钥匙跟了我好多年，圆环都亮了。',
-      'These keys have been with me for years. The ring is polished smooth.',
+      '店钥匙磨得这么亮，是我天天开门关门磨的。',
+      "Shop key's polished bright. That's me opening and locking up every day.",
     ],
     [
-      '进门当心纸箱，我正和它们商量搬家。',
-      'Mind the boxes. We are negotiating their relocation.',
+      '来，借过，货车把箱子卸门口了，我得挪去后仓。',
+      "Coming through. Delivery driver's left boxes in the doorway. Back room they go.",
     ],
     [
-      '春天的种子袋，总比我的计划多。',
-      'Spring seed packets always outnumber my plans.',
+      '春天种子卖得好，我给自己留那包，却找不到花盆了。',
+      "Seeds sell well in spring. Saved a packet for myself; now I can't find a pot.",
     ],
     [
-      '夏天西红柿熟得快，冰箱的门更忙了。',
-      'Tomatoes ripen fast in summer. The fridge door gets busy.',
+      '夏天这批番茄熟过头了，今天我按软果的价卖。',
+      "Summer tomatoes are overripe. I'm charging the soft-fruit price today.",
     ],
     [
-      '秋天我把热茶摆到离门近一点的地方。',
-      'In autumn I move the hot tea closer to the door.',
+      '秋天进店先来口热茶，老朋友，我刚换了新的茶叶。',
+      'Have some hot tea coming in this autumn, my friend. Just opened a fresh packet.',
     ],
     [
-      '冬天的玻璃蒙雾，招牌像在做梦。',
-      'Winter fog on the glass. The sign looks half asleep.',
+      '冬天店玻璃起雾，擦完招牌还得擦我的眼镜。',
+      'Shop window fogs up in winter. Wipe the sign, then my glasses.',
     ],
     [
-      '下雨天，门垫比收银机忙。',
-      'On rainy days the doormat is busier than the till.',
+      '下雨这门垫能拧出水，老朋友，货袋先搁高一点。',
+      'You could wring out the doormat in this rain, my friend. Keep your shopping bag up.',
     ],
     [
-      '太阳照到糖罐上，整个柜台都发亮。',
-      'Sun on the sugar jar makes the whole counter shine.',
+      '太阳晒到糖罐了，我得挪货架，已经粘了两块。',
+      "Sun's reached the sweet jar. Need to move that shelf. Two sweets stuck already.",
     ],
     [
-      '雪把门前盖住了，我得重新找台阶。',
-      'Snow covered the entrance. I’ve got to find the step again.',
+      '台阶积雪，我拿铲子来，老朋友，先在柜台边等一下。',
+      "Snow on the step. I'll get the shovel. Wait by the counter, my friend.",
     ],
     [
-      '周末早晨报纸卖完，街上才像醒了。',
+      '周末报纸卖得早，那叠我特意留着，老客订好的。',
       'Once the weekend papers sell out, the street feels awake.',
     ],
     [
-      '几十年前刚来时，我连这条街名都念不顺。',
-      "Decades ago I could barely pronounce this street's name.",
+      '刚来认街名，我把每块招牌画账本上，店名还抄错过。',
+      'When I first came I drew shop signs in the ledger to learn the streets. Even copied one name wrong.',
     ],
     [
-      '你常买的茶在这里，我没挪地方。',
-      'Your usual tea is here. I haven’t moved it.',
+      '你常买的茶又到货了，还是那一层，价签也换好了。',
+      "Your usual tea's back in stock. Same shelf. New price label's up too.",
     ],
     [
-      '看你走过来，我就把硬币拿好了。',
-      'Saw you coming and got the change ready.',
+      '老朋友，零钱都替你抓好了，今天换买大袋的？',
+      'Got your change ready, my friend. Going for the big bag today?',
     ],
     [
-      '上回你帮我按住纸箱，我还记着呢。',
-      'I remember you holding that box steady for me.',
+      '老朋友，店里这桩旧事，我还只跟你讲过。',
+      "My friend, you're the only one I've told that old shop story to.",
     ],
     [
-      '今天别急着走，我想听你说完上次的事。',
-      'No hurry today. I want to hear the rest of that story.',
+      '你上次说到一半我就去找零了，老朋友，接着说？',
+      'Went to fetch change halfway through your story last time, my friend. Go on?',
     ],
     [
-      '那张老照片里有我，找围裙最歪的那个。',
-      'I’m in that old photograph. Look for the crooked apron.',
+      '开店那照片里的我，围裙系歪了，正赶着接货。',
+      "That's me in the opening photo, apron crooked, rushing to take a delivery.",
     ],
     [
-      '入籍那天拍的照片，领带歪得很认真。',
-      'My citizenship-day photograph has a very determined crooked tie.',
+      '入籍照片里领带歪了，我还拿去复印，弄得哪张都歪。',
+      "Tie's crooked in my citizenship photo. Had copies made, so it's crooked in every one.",
     ],
     [
-      '入籍第二天照样早起开店，茶也照样凉。',
-      'The day after citizenship, I still opened early. Tea still went cold.',
+      '入籍以后第二天照旧开店，送货的先问我面包订几箱。',
+      "Opened as usual the day after citizenship. Driver's first question was how many bread crates.",
     ],
     [
-      '第一次在这里过冬，买了顶太大的帽子。',
-      'My first winter here I bought a hat far too large.',
+      '头回在这儿过冬，我买的帽子太大，找零都得仰头看。',
+      'First winter here, bought a hat too big. Had to tilt my head back to count change.',
     ],
     [
-      '等信的时候，我总把门铃听成邮车。',
-      'Waiting for a letter, I mistook every doorbell for the post van.',
+      '等续签信这阵，老朋友，来店里坐，我也等过那些信。',
+      "While you wait for the renewal letter, sit in the shop, my friend. I've waited for those letters too.",
     ],
     [
-      '纸袋放柜台下，塑料袋老爱飘走。',
-      'Paper bags under the counter. Plastic ones keep floating away.',
+      '纸袋就放柜台下，老朋友，你常买的那袋米正好装。',
+      'Bags under the counter, my friend. Just right for your usual bag of rice.',
     ],
     [
-      '我把旧店牌留着，油漆比我头发还黑。',
-      'Kept the old shop sign. Its paint is darker than my hair.',
+      '旧店牌还存后仓，油漆掉进米袋过，后来我包上了。',
+      "Old shop sign's in the back. Paint flaked into a rice sack once. Wrapped it up after that.",
     ],
     [
-      '今天想早点关门，给窗台的花换水。',
-      "Fancy closing early today to change the flowers' water.",
+      '老朋友，我想早点关店去看花，营业牌得改一改。',
+      'Thinking of closing early to see the flowers, my friend. Need to change the hours sign.',
     ],
     [
-      '那只猫只看鱼罐头，从不看价签。',
-      'That cat studies the fish tins, never their prices.',
+      '那猫进店直奔最贵的鱼罐头，老朋友，它眼光比我贵。',
+      'That cat goes straight for our priciest fish tin, my friend. Dearer tastes than mine.',
     ],
     [
-      '小店灯亮起来，我才觉得下午到了。',
-      'When the shop lights come on, it feels like afternoon.',
+      '店灯一亮老客就探头，问的头一句倒是我吃饭没有。',
+      "Switch on the shop light and regulars pop in. First thing they ask is whether I've eaten.",
     ],
     [
-      '我总把找零数出声，算是给硬币道别。',
-      'I count change aloud. Saying goodbye to the coins.',
+      '来，找你的零钱，我数出声，老朋友，你跟着再点点。',
+      "Here's your change, my friend. I'll count aloud. Check it along with me.",
     ],
     [
-      '下次带杯子来，别让茶只剩我一个人喝。',
-      'Bring your cup next time. Tea needn’t be just for me.',
+      '老朋友，带你的杯子来，柜台后我给自己留了好茶。',
+      'Bring your mug, my friend. Saved some good tea for myself behind the counter.',
     ],
   ],
   lina: [
     [
-      '今天把文件夹换成帆布包，肩膀轻一点。',
-      'Canvas bag instead of the folder today. Easier on my shoulder.',
+      '拜托，这包能装画稿，文件夹专门硌我肋骨。',
+      'Please, this bag fits sketches. That folder just digs into my ribs.',
     ],
     [
-      '我学会把冷咖啡当另一种饮料了。',
-      'I’ve learnt to treat cold coffee as a different drink.',
+      '咖啡凉透了——色卡倒好看。喝？算了吧。',
+      "Coffee's stone cold. Nice colour swatch, though. Drink it? Pass.",
     ],
     [
-      '织到一半的围巾，已经比我有方向感。',
-      'This half-knitted scarf has more sense of direction than me.',
+      '喂，围巾歪就歪了，我可懒得拆这一大截！',
+      "Hey, crooked scarf stays crooked. I'm not unravelling all that!",
     ],
     [
-      '那扇门上有猫的鼻印，我每次都认得。',
-      'Cat nose prints on that door. I recognise them every time.',
+      '猫鼻印真好画，喂，你倒等我削完铅笔啊！',
+      "Great cat noseprint. Hey, wait till I've sharpened my pencil!",
     ],
     [
-      '今天不刷新邮箱，先把蛋糕上的莓吃了。',
-      'No refreshing the inbox yet. Berries on the cake first.',
+      '先吃蛋糕！邮箱刚刷过，再刷能长出糖霜吗？',
+      "Cake first! Just checked my inbox. Check again and it'll grow icing?",
     ],
     [
-      '我把便签贴在包里，开包像翻日历。',
-      'Notes inside my bag. Opening it feels like turning a calendar.',
+      '便签全塞画稿袋，烦死了，要的那张偏在最底下。',
+      'Notes stuffed in the sketch bag. Typical. The one I want is at the bottom.',
     ],
     [
-      '昨晚煮的面太多，锅盖都盖不住。',
-      'Too many noodles last night. The lid would not close.',
+      '面煮多了，喂，这是晚饭还是我那团乱线稿？',
+      'Too many noodles. Hey, dinner or one of my tangled sketches?',
     ],
     [
-      '图书馆的角落安静得能听见拉链。',
-      'That library corner is quiet enough to hear a zip.',
+      '图书馆拉链真响，我只想拿铅笔，又全看我。',
+      'Zips are loud in libraries. Wanted a pencil. Whole room looked up.',
     ],
     [
-      '今天带了铅笔，想把池塘画得不像杯子。',
-      'Brought a pencil. Trying to draw the pond without making it a cup.',
+      '说好画池塘，画成咖啡杯了——行，我去续杯。',
+      'Meant to draw the pond. Drew a coffee cup. Right, another coffee.',
     ],
     [
-      '新鞋还硬，我正跟它商量走慢点。',
-      'New shoes are stiff. We are negotiating a slower pace.',
+      '新鞋磨脚，烦死了，速写还得蹲着找角度。',
+      'New shoes rubbing. Brilliant. Still have to crouch for sketching angles.',
     ],
     [
-      '春天的枝条有芽，我总忍不住数。',
-      'Buds on spring branches. I keep counting them.',
+      '春芽这么嫩，我的绿又涂老了，重来！',
+      'Such pale spring shoots. Made my green too dark again. Start over!',
     ],
     [
-      '夏天太亮，窗帘也像没睡醒。',
-      'Summer is so bright. Even the curtains look tired.',
+      '夏天亮得晃眼，喂，阴影再黑点才压得住。',
+      "Summer light's blinding. Hey, deeper shadows or it'll wash out.",
     ],
     [
-      '落叶在靴子边响，像有人拆信。',
-      'Leaves by my boots sound like someone opening a letter.',
+      '秋叶擦靴子像拆信，拜托，连走路都躲不开！',
+      'Autumn leaves against my boots sound like opening letters. Even out walking!',
     ],
     [
-      '冬天把围巾绕好，鼻尖还是会跑出来。',
-      'Scarf wrapped for winter. My nose still escapes.',
+      '冬天鼻尖冻红，省腮红的钱了，真会省！',
+      "Red nose in winter. Saving on blusher. Aren't I thrifty!",
     ],
     [
-      '雨天不用决定去哪，咖啡馆已经替我选了。',
-      'Rain chooses the café for me. One fewer decision.',
+      '雨把路晕开了，我去画咖啡馆，纸可赔不起。',
+      "Rain's blurring the road. Drawing the café instead. Can't afford more soaked paper.",
     ],
     [
-      '太阳出来，我的速写本总算不怕湿。',
-      'Sun out. The sketchbook can stop fearing the rain.',
+      '晴天赶紧带速写本，喂，太阳也得排我档期！',
+      "Sun's out. Sketchbook, quick! Even the sun has to fit my schedule.",
     ],
     [
-      '雪落在长椅上，坐下前得先借个位。',
-      'Snow on the bench. Need to ask it to move first.',
+      '雪把椅子涂白了，拜托，谁坐谁的画报废。',
+      "Snow's painted the bench white. Whoever sits there ruins that picture.",
     ],
     [
-      '周末我把闹钟关了，猫没同意。',
-      'Turned off the weekend alarm. The cat disagreed.',
+      '周末闹钟关掉！画稿袋还在，我又没关门跑路。',
+      "Weekend alarm off! Sketch bag's here. Haven't shut up shop and fled.",
     ],
     [
-      '拒签信折过的地方，还能摸到一道棱。',
-      'I can still feel the crease in the refusal letter.',
+      '拒信折痕硬得划手，喂，还附送一道纸口子！',
+      "Refusal letter's fold cuts my hand. Hey, complimentary paper cut!",
     ],
     [
-      '你记得我不爱太甜，今天这杯正好。',
-      'You remembered I don’t like it too sweet. This is just right.',
+      '你记得我少糖，太好了，咖啡总算少吵一回。',
+      'You remembered less sugar. Great. One less argument over coffee.',
     ],
     [
-      '上回没讲完的故事，我带着后半段来了。',
-      'Brought the rest of that unfinished story with me.',
+      '上回那半个故事还听吗？喂，今天可没好结尾。',
+      'Want the rest of that story? Hey, no happy ending ready today.',
     ],
     [
-      '跟你走路，我终于不总盯着手机。',
-      'Walking with you, I finally stop staring at the phone.',
+      '跟你走路我就收手机，老刷邮箱连电都白费。',
+      'Phone away walking with you. Refreshing email just wastes the battery.',
     ],
     [
-      '这团毛线替你留着，下回教你接线。',
-      'Saved this wool for you. I’ll show you how to join it.',
+      '毛线留着了，想学接线就来，剪错我会喊啊。',
+      "Kept the yarn. Come learn a join. I'll yell if you cut the wrong bit.",
     ],
     [
-      '我想聊聊害怕的事，能先找个安静角落吗？',
-      'I want to talk about frightening things. Can we find a quiet corner first?',
+      '我想讲害怕的事。拜托，励志那套先收起来。',
+      'I want to talk about being scared. Please, put the inspirational speech away.',
     ],
     [
-      '今天想笑一下，刚才那只鸭子帮了忙。',
-      'Wanted a laugh today. That duck helped.',
+      '喂，那鸭子像画歪的逗号！还敢瞪我。',
+      "Hey, that duck's a wonky comma! And it's glaring at me.",
     ],
     [
-      '我把要问的事写好了，纸背画了一条鱼。',
-      'Wrote my questions down. Drew a fish on the back.',
+      '正面写问题，背面画鱼。烦了就翻，省纸！',
+      'Questions on the front, fish on the back. Had enough? Turn it over. Saves paper!',
     ],
     [
-      '有时不知道说什么，我们就看看水吧。',
-      'Sometimes words won’t come. We can watch the water.',
+      '你忙续签？喂，连散步也带文件夹，手不酸吗？',
+      "Renewal keeping you busy? Hey, folder on a walk too? Doesn't your arm ache?",
     ],
     [
-      '手机响的时候，咖啡匙总比我先跳起来。',
-      'When the phone rings, the coffee spoon jumps before I do.',
+      '电话一响我就碰倒勺，烦死了，咖啡都被吓醒。',
+      "Phone rings, spoon goes flying. Brilliant. Even the coffee's startled.",
     ],
     [
-      '这张车站地图折不开了，路都挤在一起。',
-      'The station map won’t unfold. All the roads are squeezed together.',
+      '地图收好了，又折反！拜托，画稿都没它难伺候。',
+      'Map away. Folded it backwards again! Sketches are less trouble.',
     ],
     [
-      '今天把抽屉理了，找回一枚旧发夹。',
-      'Tidied a drawer today. Found an old hair clip.',
-    ],
-    ['我给自己留了一个空白下午。', 'I kept one afternoon completely free.'],
-    [
-      '这家店的椅子很熟悉，坐下不用想。',
-      'These café chairs feel familiar. Sitting needs no thinking.',
+      '旧银发夹找到了，颜料缝里卡着，怪不得！',
+      'Found my old silver hairclip. Jammed between the paints. Of course!',
     ],
     [
-      '昨天买的面包，今天烤一下还能很好吃。',
-      "Yesterday's bread is good again after a little toasting.",
+      '下午我要乱画，谁再问计划，我就画谁的丑照。',
+      'Aimless sketching this afternoon. Ask my plans again and you get an ugly portrait.',
     ],
     [
-      '我在学缝包带，总把线留得太短。',
-      'Learning to mend bag straps. Always cut the thread too short.',
+      '这把椅子磨出我印子了，咖啡馆该给我打折！',
+      'Worn my shape into this chair. Café owes me a discount!',
     ],
     [
-      '多坐一会儿吧，我还没喝到杯底。',
-      'Stay a little longer. I haven’t reached the bottom of my cup.',
+      '旧面包烤脆，边都焦黑——炭笔色，真会烧。',
+      'Old bread toasted. Edges black. Charcoal shade. Excellent burning technique.',
+    ],
+    [
+      '包带又缝短了！画稿卡住，这回得拆两层线。',
+      'Shortened the strap again! Sketches jammed. Two rows of stitches to undo.',
+    ],
+    [
+      '再坐会儿嘛，我铅笔才削好，屁股都没坐热。',
+      "Stay a bit. Only just sharpened my pencil. Seat's barely warm.",
     ],
   ],
   gareth: [
     [
-      '这袋传单太厚，像整条街订了同一本书。',
-      'Such a thick bag of leaflets. As if the street ordered the same book.',
+      '先送这一袋传单。轻了，后半条街好走些。',
+      "Leaflets first. Lighter for the street's second half.",
     ],
     [
-      '门牌擦亮以后，我差点没认出来。',
-      'Polished house number. Nearly did not recognise it.',
+      '门牌擦亮了。拐角那户，远远就认得。',
+      'Clean number. Recognise that corner house from a distance.',
     ],
     [
-      '那只狗今天叼了球，我算是带球上班了。',
-      'The dog brought a ball. Apparently that is part of my round now.',
+      '狗叼着球。我往左，它还跟左。得请主人来。',
+      'Dog has a ball. Follows me left. Need the owner.',
     ],
     [
-      '邮筒上的鸟没搬家，我绕它开锁。',
-      'Bird still on the postbox. I unlock around it.',
+      '邮筒上有鸟。转到右侧，开锁取信。',
+      'Bird on the postbox. Round to the right. Unlock and collect.',
     ],
     [
-      '橡皮筋缠在袖口，比手表还准时。',
-      'Rubber band round my cuff. More punctual than my watch.',
+      '橡皮筋留袖口。先拆这一捆，下一捆再说。',
+      'Bands on my sleeve. This bundle first, next bundle later.',
     ],
     [
-      '新鞋走路太响，猫老远就准备躲了。',
-      'Noisy new shoes. Cats prepare to hide from far away.',
+      '新鞋咯吱响。走到小巷口，猫先撤了。',
+      "New shoes squeak. Reach the lane mouth; cat's already gone.",
     ],
     [
-      '有人把邮箱漆成蓝色，信看起来凉快了。',
-      'Someone painted their letterbox blue. The letters look cooler.',
+      '邮箱刷蓝了。路还是那条，得重新认标记。',
+      'Blue-painted letterbox. Same route, new landmark.',
     ],
     [
-      '这顶帽子防雨，唯独帽檐爱存水。',
-      'Waterproof hat. The brim insists on storing rain.',
+      '帽檐积雨。进门先往外甩，别甩人脚边。',
+      'Rain in the brim. Shake it outside, away from feet.',
     ],
     [
-      '我收工后总先解鞋带，再想晚饭。',
-      'After work I untie my shoes before considering dinner.',
+      '投递结束，先松鞋带。右脚后跟又磨了。',
+      "Round finished. Laces loose first. Right heel's rubbed again.",
     ],
     [
-      '有张明信片画着太阳，包里都暖和一点。',
-      'A sunny postcard makes the whole bag feel warmer.',
+      '明信片画太阳。我只认地址，图是抬眼看见的。',
+      'Sun on a postcard. Only reading the address; picture was there.',
     ],
     [
-      '春天送信时，篱笆总想替我梳头。',
-      'Spring hedges keep trying to comb my hair on the round.',
+      '春天篱笆长出来。原来的通道，要侧身过。',
+      'Spring hedge growing out. Sideways through the old gap.',
     ],
     [
-      '夏天我带水，包里的信不肯替我拿。',
-      'In summer I carry water. The letters refuse to help.',
+      '夏天水放包侧边。和信分开，洒过就记得了。',
+      'Summer water beside the bag. Separate from letters. Learned by spilling.',
     ],
     [
-      '秋天信箱里混着叶子，我把两样分开。',
-      'Autumn leaves in letterboxes. I sort them from the post.',
+      '秋叶落进信箱。叶子取出来，信再放进去。',
+      'Autumn leaves in letterbox. Leaves out, letters in.',
     ],
     [
-      '冬天的门环摸一下，就能把手叫醒。',
-      'A winter door knocker wakes my fingers instantly.',
+      '冬天门环冰手。先戴手套，别嫌慢。',
+      "Winter knocker's cold. Gloves first. Takes what it takes.",
     ],
     [
-      '雨把地址打湿了，幸好我认得这条街。',
-      'Rain blurred the address. Lucky I know this street.',
+      '雨湿了地址。先核对门牌，别凭熟路猜。',
+      "Rain on address. Check the number. Don't guess by habit.",
     ],
     [
-      '晴天我能少拧一次袜子。',
-      'Sunshine means one less pair of socks to wring out.',
+      '晴天这段好走！过桥往右，袜子还是干的。',
+      'Good going in sunshine! Right after the bridge. Socks still dry.',
     ],
     [
-      '雪上留下的路线，比导航诚实。',
-      'My tracks in snow are more honest than the navigation app.',
+      '雪里看脚印没用。那是旧路，还得看冰。',
+      "Snow tracks are yesterday's route. Still watch for ice.",
     ],
     [
       '周末不背邮包，肩膀还会自己往上提。',
       'No weekend postbag. My shoulder still lifts itself.',
     ],
     [
-      '棕色信封也可能只是改收垃圾的日子。',
-      'A brown envelope can simply mean a new bin day.',
+      '棕信封先认收件人。地址对了，内容得你自己看。',
+      'Name first on that brown envelope. Address right; contents are for you.',
     ],
     [
-      '你的门铃我认得，像短了一拍的歌。',
-      'I know your doorbell. A song missing a beat.',
+      '你门铃短一拍。听见那声，我就知道走对门。',
+      "Your bell's a beat short. Know the right door by it.",
     ],
     [
-      '你帮我扶那次车，我还没谢够。',
-      'Still have not thanked you enough for steadying the bike.',
+      '你上回听我讲小巷的事。这回带你走到那拐角？',
+      'You heard my story about the lane. Shall I walk you to that corner?',
     ],
     [
-      '收工后一起坐会儿？我带了自己的杯子。',
-      'Sit together after my round? I brought my own cup.',
+      '收工往你那儿绕。台阶下碰头，先约好了。',
+      'Detour to yours after the round. Meet below the steps. Arrangement made.',
     ],
     [
-      '你那双鞋修好了？我也该去一趟。',
-      'Shoes repaired? I ought to take mine in too.',
+      '修鞋铺：过邮局，右拐。我正要送这双过去。',
+      'Shoe repair: past the post office, right. Taking this pair over myself.',
     ],
     [
-      '有时送完一条街，最想听见别人叫名字。',
-      'After a whole street, sometimes I just want someone to use my name.',
+      '一路喊邮差。到街尾有人叫「加雷思」，我就停了。',
+      'Postman all along the road. Someone called Gareth at the end. I stopped.',
     ],
     [
-      '我给旧邮包装了新扣，还能继续走。',
-      'New buckle on the old postbag. It can keep going.',
+      '邮袋扣子换了。先压再拧，旧手势得改改。',
+      'New postbag clasp. Press, then turn. Need to change the old hand movement.',
     ],
     [
-      '别急着猜信里是什么，先把茶放稳。',
-      'No hurry guessing the letter. Put the tea somewhere steady first.',
+      '茶杯靠里，信封放干处。门牌核过了，再拆。',
+      'Cup farther in. Envelope somewhere dry. Number checked. Now open it.',
     ],
     [
-      '文件夹看着沉，要我替你扶一下门吗？',
-      'That folder looks heavy. Shall I hold the door?',
+      '续签材料夹好。去车站先右转，修路那段绕开。',
+      'Renewal papers clipped. Right turn for the station. Avoid the roadworks.',
     ],
     [
-      '等回信时，信箱盖一响就想去看看吧。',
-      'Waiting for a letter, every rattle of the letterbox makes you look.',
+      '等续签信，听见信箱响就下楼？我也跑过那楼梯。',
+      "Waiting for renewal post? Downstairs at every flap? I've run those stairs too.",
     ],
     [
-      '今天有封写得很漂亮的信，我只看了地址。',
-      'Beautiful handwriting today. I only read the address.',
-    ],
-    ['这辆车的铃比我嗓门还响。', 'The bike bell is louder than my voice.'],
-    [
-      '我把手套晾在暖气旁，差点忘了带走。',
-      'Dried my gloves by the radiator. Nearly left them there.',
+      '这地址字写得清。过桥，第二个路口，我送得到。',
+      'Clear address. Bridge, second turning. I can deliver that.',
     ],
     [
-      '街角那扇门总夹袖子，我学会侧着站。',
-      'That corner door catches sleeves. I’ve learnt to stand sideways.',
+      '铃修响了。到弯道才按，别一路催人。',
+      'Bell loud again. Ring at the bend, not all the way.',
     ],
     [
-      '我不怕绕路，只怕午饭的汤先凉了。',
-      'I don’t mind a detour. I just mind my soup going cold.',
+      '冬天手套先晾干。湿的套上，走出门更冷。',
+      'Dry winter gloves first. Wet ones get colder outside.',
     ],
     [
-      '这张明信片没地址，是我拿来试笔的。',
-      'No address on this postcard. I was testing a pen.',
+      '街角门夹袖子。侧身，邮袋往后，再推。',
+      'Corner gate catches sleeves. Sideways, postbag back, then push.',
     ],
     [
-      '明天换条近路，今天先把风景走完。',
-      'A shortcut tomorrow. Today I’ll finish the scenic route.',
+      '近路我认得。得先看看门开没开，不能白绕。',
+      'Know the shortcut. Check the gate first, save a wasted loop.',
+    ],
+    [
+      '空明信片是我的。试笔画了个拐角，还没写街名。',
+      "Blank postcard's mine. Tested the pen drawing a corner. No street name yet.",
+    ],
+    [
+      '下回换条路回去。今天沿熟路，脚有点累。',
+      'Another route next time. Familiar way today. Tired feet.',
     ],
   ],
 };
@@ -1725,32 +1746,32 @@ const favourites: Record<string, [string[], string[], string, string]> = {
   priya: [
     ['tea', 'salad'],
     ['flowers', 'biscuits'],
-    '正想歇一会儿，这份心意来得真巧。',
-    'I was just ready for a break. What lovely timing.',
+    '这个真喜欢！收到，我把它放拼图桌上。',
+    'Love this! Received. Going on my jigsaw table.',
   ],
   dave: [
     ['cake', 'fish-and-potatoes'],
     ['biscuits', 'baked-potato'],
-    '这个值得单开一轮庆祝，我去找盘子。',
-    'This deserves a celebration round. Let me get a plate.',
+    '答对了，正中喜好！奖品是我闭嘴三秒。',
+    'Correct! Favourite. Prize: three seconds of silence from me.',
   ],
   rahman: [
     ['tea', 'strawberry-jam'],
     ['flowers', 'corn'],
-    '你记着我的口味，今晚能慢慢尝了。',
-    'You remembered my taste. I can enjoy this slowly tonight.',
+    '老朋友，挑到店主心坎里了！我收柜台后自己用。',
+    'My friend, just what the proprietor wanted! Keeping it behind the counter for myself.',
   ],
   lina: [
     ['flowers', 'strawberry'],
     ['tea', 'biscuits'],
-    '给我的？今天这张桌子好看多了。',
-    'For me? This table looks much brighter today.',
+    '喂，你真挑中我爱的了！颜料手先擦擦，我来拿。',
+    'Hey, you picked a favourite! Let me wipe these painty hands and take it.',
   ],
   gareth: [
     ['tea', 'baked-potato'],
     ['biscuits', 'cake'],
-    '送完这一袋，就坐下来慢慢享用。',
-    'Once this bag is delivered, I’ll sit down and enjoy it.',
+    '给我的？收左袋，和信分开。过桥带回家。',
+    'For me? Left pocket, separate from the letters. Home over the bridge.',
   ],
 };
 for (const npc of npcs.filter((n) => favourites[n.id])) {
@@ -1760,23 +1781,23 @@ for (const npc of npcs.filter((n) => favourites[n.id])) {
   npc.reactions.loved = text(zhCN, en);
   npc.reactions.disliked = text(
     npc.id === 'gareth'
-      ? '这可不能装进邮包，纸会跟着遭殃。'
+      ? '谢谢，这个用不了。买它得绕远吧？下回省那段路。'
       : npc.id === 'dave'
-        ? '这个先别进厨房，我去找个空桶。'
+        ? '心意满分，配对失败。下次别让它晋级了。'
         : npc.id === 'priya'
-          ? '这个气味，候诊室可受不了。'
+          ? '先确认，下回能换一种吗？这份我用不上。'
           : npc.id === 'rahman'
-            ? '先别放货架上，我拿个袋子。'
-            : '谢谢惦记，不过先放远一点吧。',
+            ? '老朋友，这个店主真用不上，拿去换件你喜欢的吧。'
+            : '谢谢啦，可这真没挑中。喂，下次我跟你逛！',
     npc.id === 'gareth'
-      ? 'Not in the postbag. The letters would suffer.'
+      ? 'Thanks, can’t use this. Bit of a detour to buy it? Save that stretch next time.'
       : npc.id === 'dave'
-        ? 'Keep that out of the kitchen. I’ll find a bucket.'
+        ? 'Full marks for thought. Wrong match. No rematch for this one.'
         : npc.id === 'priya'
-          ? 'The waiting room could not bear that smell.'
+          ? "Quick check: could we try something different next time? I won't use this."
           : npc.id === 'rahman'
-            ? 'Off the shelf, please. Let me find a bag.'
-            : 'Kind thought, but a little further away please.',
+            ? 'My friend, the proprietor really has no use for this. Exchange it for something you like.'
+            : 'Thanks, but this really misses for me. Hey, next time I will browse with you!',
   );
 }
 // The receptionist stays at the surgery on wet workdays; Dave serves until closing.
@@ -1810,445 +1831,445 @@ const scenes: [
 ][] = [
   [
     'margaret',
-    '小屋钥匙',
-    'The shed key',
-    '玛格丽特领你回菜地，拎着两只水壶顶住小屋门，钥匙却滑进最深的口袋。\n你伸手托住一只水壶，她终于摸出钥匙，门板仍倔强地卡在地上。\n「得往上抬一点。」她把门把让给你，自己弯腰挪开挡路的花盆。\n门开了，里面全是泥和旧报纸的气味。她侧身扶住门，先给你让出路。',
-    'Margaret leads you back to the allotment. Holding two watering cans against the shed door, she finds her key has slipped deep into her pocket.\nYou support one can. She finds the key, but the door still catches on the ground.\n“Lift it a little.” She leaves you the handle and moves a flowerpot out of the way.\nThe door opens onto mud and old newspapers. She holds the door sideways, making room for you.',
-    '接过水壶放到架上',
-    'Put the watering can on the shelf',
-    '抬起门把让她进屋',
-    'Lift the handle and let her in',
+    '杂草不认牌子',
+    'Weeds cannot read',
+    '玛格丽特摊开种植本，番茄那页夹着一张杂草照片。她说自己查了半天，最后查到的是晚饭。\n「你到底种什么？」你问。她把本子合上：「能吃的！这棵倒好，连蜗牛都嫌。」\n你说想跟着她的表安排自己的菜地，她皱起眉头，指出上面连她自己漏掉的日子也记着。\n「得了，照抄连这两次烂苗也抄上！」她拿铅笔圈住两次重种的记录，没有把它们擦掉。\n她又翻开那两次重种的记录：「秘诀？得了！先讲我怎么把番茄种成这副德性。」',
+    'Margaret opens her growing notebook. A weed photograph marks the tomato page. She spent ages identifying it, then got distracted by dinner.\n“What do you actually grow?” you ask. “Food! That one there? Even the slugs turned it down.” She shuts the book.\nYou suggest following her plan for your own plot. She frowns: the notebook includes days she forgot about the plants altogether.\n“Go on, copy the two trays of rotten seedlings too!” She circles two sowings that needed doing again, leaving both entries visible.\nShe opens the failed sowings again. “Secrets? Oh, come off it! Start with how I made this mess of the tomatoes.”',
+    '先问那两次为什么失败',
+    'Ask what went wrong twice',
+    '先选自己想吃的菜',
+    'Choose what you want to eat first',
   ],
   [
     'margaret',
-    '有名字的木牌',
-    'A name on a stake',
-    '玛格丽特约你去小屋看木牌，你的名字写在上面，墨迹还没干透。\n「字比我的芜菁直。」她把牌转给你看，末尾那一笔却蹭到了手背。\n她用鞋尖在空地划个小圈，举起木牌比了比，名字正好被一根草挡住。\n你拔掉那根草，她笑着把木牌递来，另一只手上还留着洗不掉的墨线。',
-    'Margaret invites you to the shed to see a wooden stake. Your name is on it, the ink still damp.\n“Straighter than my turnips.” She turns it towards you, smearing the final stroke on the back of her hand.\nShe marks a circle in the soil with her shoe and holds up the stake. A blade of grass hides your name.\nYou pull the grass out. Laughing, she offers you the stake; a stubborn ink line remains on her other hand.',
-    '一起把木牌插稳',
-    'Set the stake together',
-    '端茶给她洗掉墨迹',
-    'Bring tea and help with the ink',
+    '退休后的星期一',
+    'Mondays after retirement',
+    '玛格丽特翻到一张旧值班表，纸边被订书钉咬出细孔。她说以前连喝茶也得看钟。\n「退休那天很高兴？」你问。「头一天高兴。后来每个星期一都不知道往哪儿站。」\n她起初把菜地排得像班表，连发芽也估好了日子。没长出来的那一栏，差点让她撕掉。\n「我把水仙也排了班，笑话不笑话！」她说完笑了一下，又承认自己至今不喜欢被人问整天都在忙什么。\n她把值班表折回原样，手指在星期一那格停了一下：「得了，我退休了！星期一我就想坐着骂这鬼天气。」',
+    'Margaret finds an old duty rota, its edge bitten by staple holes. Even a cup of tea used to depend on the clock.\n“Were you happy to retire?” “First day. Then I never knew where to put myself on a Monday.”\nShe first scheduled the plot like a working week, down to germination dates. One empty column nearly made her tear the page out.\n“Put the daffodils on a rota! Can you believe it?” She laughs, then admits she still dislikes being asked what keeps her busy all day.\nShe folds the rota back up, a finger lingering on Monday. “I’m retired! On Monday I want to sit and curse this blasted weather.”',
+    '问以前的工作有什么舍不得',
+    'Ask what she misses about work',
+    '陪她看看没有安排的日子',
+    'Sit with the unplanned days',
   ],
   [
     'margaret',
-    '少一把椅子',
-    'One chair short',
-    '玛格丽特领你去小屋找折椅，手指忽然停在一处磨白的扶手上。\n「我丈夫总坐这把。」她把椅子展开，铰链响了一声，人却没坐下。\n你在旁边等着。她用拇指擦掉扶手上的一点土，才把椅子往你这边推。\n她另搬来一把小凳，两人之间隔着水壶。壶嘴滴着水，她终于说起往事。',
-    'Margaret takes you to the shed for a folding chair. Her fingers pause on its worn white arm.\n“My husband always sat here.” She opens it. The hinge squeaks, but she stays standing.\nYou wait beside her. She rubs a speck of soil off the arm, then slides the chair towards you.\nShe fetches a small stool. A watering can drips between you as she finally begins a story.',
-    '坐下来听她讲往事',
-    'Sit and hear her story',
-    '陪她擦净折椅扶手',
-    'Help clean the chair arms',
+    '不是他的豆架',
+    'Not his bean frame',
+    '种植本里有一张褪色照片，玛格丽特和一个男人站在豆架旁。男人的脸被叶子遮了一半。\n她说那是已故的伴侣，架子搭得好看，摘豆却总要搬凳子。她当年为这事没少骂他。\n「都叫我别动，说留个念想！」她把照片翻过来，「我想他，也想摘得到自己的豆子。」\n你问她打算怎么办。她说已经想好要拆，只是每次别人叹气，她就得解释自己并没忘。\n她把照片放在膝上：「锤子先放下！听我讲完，想他归想他，架子当年就搭错了。」',
+    'The notebook holds a faded photograph of Margaret beside a man and a bean frame. Leaves hide half his face.\nHe was her late partner. The frame looked grand, but picking beans required a stool. She used to give him an earful about it.\n“Everyone says leave it alone, keep it for the memories! I miss him. I’d also like to reach my beans.” She turns the photograph over.\nYou ask what she intends to do. She has decided to dismantle it; every sympathetic sigh makes her explain she has not forgotten him.\nShe rests the photograph on her knee. “Hammer down first! Hear me out. I miss him. That frame was still built wrong.”',
+    '听她讲自己的新架子',
+    'Hear her plan for her own frame',
+    '请她接着骂旧架子',
+    'Let her finish complaining about the old one',
   ],
   [
     'margaret',
-    '明年的种子',
-    'Seeds for next year',
-    '玛格丽特招呼你去小屋分种子，一粒卡在报纸折缝里，怎么拨都不肯走。\n你抬起纸角，她接住那粒种子，笑着说连它也舍不得分家。\n她将种子分进两只纸袋，在给你的那包画了朵花，又添上一片歪叶子。\n「明年再种。」她把你的纸袋递过来，自己的那包还等着收进小屋最上层。',
-    'Margaret invites you to the shed to divide her dried seeds. One sticks in a newspaper fold and refuses to move.\nYou lift the paper. She catches the seed and laughs that even it dislikes being separated.\nShe divides the seeds between two packets, drawing a flower and a crooked leaf on yours.\n“We’ll plant them next year.” She offers your packet; hers is still waiting to go on the shed’s top shelf.',
-    '在纸袋上写好明年的约定',
-    'Write next year’s plan on the packet',
-    '把她的种子收进小屋',
-    'Put her seeds in the shed',
+    '谁替谁决定',
+    'Who gets to decide',
+    '玛格丽特听说有人替她申请了一块更小的菜地，连「省得她累」都写进了说明。\n你说出发点大概是好意。她把种植本拍在膝上：「好家伙，我这张嘴还在呢！怎么轮不到我说？」\n她承认膝盖痛过，也不打算种满每一垄。你担心她累坏，却也听得出，她最气的是没被问过。\n你可以支持她保留原地，让她自己决定怎么种；也可以坦承你赞成缩小，哪怕她暂时不肯接受。\n「得了，赞成再点头！」她说，「我这膝盖我自己管！」她等着你的实话，没有把本子收起来。',
+    'Margaret learns someone requested a smaller plot for her, even explaining that it would save her getting tired.\nYou suggest they meant well. She slaps her notebook against her knee. “Good grief, I still have a mouth! When do I get a say?”\nShe admits her knee has hurt and will not plant every row. You worry about exhaustion, but hear that not being asked is what angers her most.\nYou can support keeping the original plot and letting her choose how to use it, or admit you favour less ground, even if she will not accept that yet.\n“Oh, nod if you mean it! I’ll see to my own knee!” She waits for your honest answer, leaving the notebook open.',
+    '支持她保留菜地，自己决定怎么种',
+    'Support keeping the plot and letting her decide',
+    '坦承你赞成缩小，接受她不高兴',
+    'Admit you favour a smaller plot and accept her displeasure',
   ],
   [
     'ade',
-    '复印机旁',
-    'By the copier',
-    '阿德拿着一叠歪掉的复印件站在机器旁，第二页的字几乎要爬出纸边。\n「这台也得先认识人吗？」他笑着问，又把原稿转了一个方向。\n你凑过去看，纸盘里卡着半张旧通知。他停下按钮，等你把纸抽出来。\n机器终于吐出一张完整的纸。阿德抽出剩下那叠，请你替他对一对页码。',
-    'Ade stands by the copier with crooked copies. The words on page two almost run off the edge.\n“Does this thing need an introduction?” He laughs and turns the original round.\nYou look closer. Half an old notice is stuck in the tray. He stops pressing buttons while you pull it out.\nA complete page finally emerges. Ade spreads out the rest of the stack and asks you to check the page numbers.',
-    '一起重新复印这叠纸',
-    'Copy the stack again together',
-    '把自己的夹子借给他',
-    'Lend him your folder clip',
+    '茶歇也有议程',
+    'A tea-break agenda',
+    '工作日的茶歇，阿德打开一个写着「休息」的表格，里面还有开始时间和结束时间。\n你问这算不算又在工作。他看了看屏幕：「状态更正：管理休息。听着像多了一项工作。」\n他承认自己总怕漏掉事，连同事随口说的午饭，也会先记下再决定吃不吃。\n「茶不用提交报告吧？」你问。他把电脑扣上，杯子还没喝：「模板状态：未建。请勿提醒经理。」\n阿德把空白表格留在屏幕里，没有填今天的茶歇。「要是有人问产出，」他说，「茶消耗一口，表格填了零项。」',
+    'On a workday tea break, Ade opens a spreadsheet called “Breaks”. It has start and finish times.\nYou ask whether that counts as more work. “Status correction: managing breaks. Sounds like an extra task.” He studies the screen.\nHe admits he worries about missing things. Even a passing lunch suggestion gets written down before he decides whether to eat.\n“No report due for the tea?” you ask. He closes the laptop. “Template status: uncreated. Please don’t remind the manager.” The cup is untouched.\nAde leaves today’s break unfilled on the sheet. “If anyone asks about output,” he says, “one sip consumed, zero fields completed.”',
+    '聊一件今天不打算解决的事',
+    'Discuss a problem you will leave unsolved',
+    '安静喝茶，不列下一步',
+    'Drink quietly, without next steps',
   ],
   [
     'ade',
-    '茶歇的空位',
-    'A seat at the tea break',
-    '茶水间只剩一把椅子，阿德的包正坐在上面，拉链还大大张着嘴。\n他看见你，赶紧把包抱到脚边，露出半块被压扁的三明治。\n「包吃得比我多。」他把餐巾摊平，问你要不要听今天那场会的后半段。\n茶杯还在水壶旁冒热气。他朝空椅子扬扬下巴，手里的手机只亮了锁屏。',
-    'Only one chair is left in the break room. Ade’s bag occupies it, zip gaping.\nHe sees you and moves it to his feet, revealing half a flattened sandwich.\n“The bag’s eaten more than I have.” He spreads a napkin and offers the rest of the morning’s meeting story.\nHis tea is still steaming by the kettle. He nods towards the empty chair; his phone only shows its lock screen.',
-    '坐下一起歇一会儿',
-    'Sit down for a break',
-    '替他把热茶端过来',
-    'Bring his tea over',
+    '自动回复之外',
+    'Beyond the automatic reply',
+    '阿德在茶歇里点开收件箱，又立刻关掉。他说只是看一封工作邮件，随即自己摇了头。\n「更正：续签邮件。」他说，「自动回复都背下来了。我还是想看看它有没有换个措辞。」\n你说他平时很少提。他把杯柄转了一圈：「风险：讲多了，茶歇议题就只剩续签。」\n你问要不要讲准备到哪里。他说可以，也可以聊工作；这次想由自己决定哪件先说。\n他关掉提醒：「邮件含义：待确认。剩余茶歇由我提议程，工作或者准备材料。」',
+    'Ade opens his inbox on the tea break, then closes it. He claims it was a work email, before shaking his head.\n“Correction: renewal email. I know the automatic reply by heart. Still checking whether they’ve changed a word.”\nYou say he rarely mentions it. He turns the cup handle. “Risk: mention it too often and every tea-break agenda becomes renewal.”\nYou ask whether he wants to explain where he is with preparation. He could, or talk work. This time he wants to choose which comes first.\nHe silences notifications. “Email meaning: unconfirmed. I’ll set the remaining agenda: work or paperwork.”',
+    '让他讲自己想讲的准备过程',
+    'Hear the preparation he wants to discuss',
+    '换个工作话题，等他再提',
+    'Talk work and let him raise it later',
   ],
   [
     'ade',
-    '收件箱刷新',
-    'Refresh the inbox',
-    '阿德的茶已经凉透，屏幕上还是那封旧邮件，鼠标指针停在刷新旁边。\n「我知道再点也不会快。」他说完又点了一次，这回自己也笑不出来。\n你没去碰电脑，只把空茶杯往桌边挪了挪。他终于抬头，揉了揉眼睛。\n他把屏幕合上，问你能不能陪他待一会儿，聊什么都行，先别聊结果。',
-    'Ade’s tea is cold. The same old email fills the screen, cursor hovering beside refresh.\n“I know clicking won’t speed it up.” He clicks again, unable to make himself laugh this time.\nYou leave the computer alone and move the empty cup towards the edge. He looks up and rubs his eyes.\nHe closes the screen and asks you to stay a while. Anything to talk about, except the result for now.',
-    '陪他绕楼散步',
-    'Walk round the building with him',
-    '给他换杯热茶',
-    'Make him fresh tea',
+    '可靠的人也会忘',
+    'Reliable people forget too',
+    '茶歇时，阿德翻出一份旧检查表，页角写着「让别人确认」。那行字被他反复描黑了。\n他说刚来这里工作时，漏接过一通家里的电话。后来每件事都写下来，却还是记不住该给谁回电。\n「绩效评语是可靠，漏接电话这项就更难报。」他说。你问他那些表格到底是在帮谁记住。\n他看了一会儿：「一半帮工作，一半证明我没散架。比例未经审计。」笑完又有点不好意思。\n他把检查表转过来，让那行黑字朝着自己：「本次范围：停一项，或者交出一项。全部人生暂缓优化。」',
+    'At tea break Ade finds an old checklist. “Ask someone to check” has been inked over repeatedly in one corner.\nWhen he first worked here, he missed a call from home. He started writing everything down, yet still forgot whom to call back.\n“Performance review said reliable. Made that missed call harder to report.” You ask whom all those spreadsheets are helping to remember.\nHe considers it. “Half for work. Half to prove I haven’t fallen apart. Unaudited figures.” He laughs, then looks a little embarrassed.\nHe turns the blackened instruction towards himself. “Scope this time: stop one thing, or hand one over. Whole-life optimisation deferred.”',
+    '一起删掉不必要的检查项',
+    'Cut unnecessary checks together',
+    '问哪些事可以交给同事',
+    'Ask what he could trust colleagues with',
   ],
   [
     'ade',
-    '留在抽屉的工牌',
-    'The badge in the drawer',
-    '阿德找充电线时带出一张旧工牌，塑料套已经发黄，背面却写得很清楚。\n那是你的分机号。他用拇指抹了抹笔迹，说这个号码一直没有换。\n「有阵子就记得打给你。」他把工牌放在两人中间，没有再翻那堆线。\n你们说起刚认识时卡纸的机器，他笑出声来，才把工牌放回容易拿到的一格。',
-    'Looking for a charging cable, Ade pulls out an old badge. Its sleeve is yellow, but the writing on the back is clear.\nIt is your extension. He rubs the writing with his thumb and says the number has never changed.\n“For a while, yours was the only number I remembered to call.” He leaves it between you and stops searching.\nYou remember the copier jam when you first met. He laughs and returns the badge to a drawer within easy reach.',
-    '和他约好下周的午饭',
-    'Arrange lunch next week',
-    '给旧工牌拍张照片',
-    'Photograph the old badge',
+    '别替我说没事',
+    'Do not say I am fine',
+    '茶歇时，阿德发现自己交出的工作表有一处错误。他重新算了两遍，脸色比杯子里的茶还淡。\n「报告暂缓。先核对一遍。」他说。你问是还没确认，还是想等没人看见时补好。他没回答。\n错误能修，但已经有人照表安排工作。现在公开，阿德得承认失手；先查完再说，别人可能多白忙一阵。\n他终于说：「目标：保住可靠的评语。当前方案：挺不可靠。」这一次他自己也笑不出来。\n你可以支持立即告知受影响的人，也可以陪他先核清范围再报告。你不替他发信，也不答应替他遮过去。',
+    'At tea break Ade finds an error in a worksheet he submitted. After checking twice, he looks paler than his tea.\n“Report deferred. One more check first.” You ask whether it is unconfirmed or he hopes to fix it unseen. He does not answer.\nThe error is repairable, but others are already arranging work from it. Speaking now means admitting failure; investigating first may waste more of their effort.\nFinally he says, “Target: retain reliable in my review. Current proposal: fairly unreliable.” This time he cannot make himself laugh.\nYou can support notifying the affected people immediately, or help establish the scope before reporting. You will neither send it for him nor promise to conceal it.',
+    '支持现在告知，先承认出错',
+    'Support telling people now and admitting the mistake',
+    '先核清影响再报告，承担延误',
+    'Check the scope before reporting and accept the delay',
   ],
   [
     'helen',
-    '晃动的桌子',
-    'The wobbly desk',
-    '海伦蹲在桌脚旁，把一本薄书塞进去，桌上的课本塔跟着晃了一下。\n「这本总算用上了。」她刚松手，最上面的书就沿着桌边慢慢滑过来。\n你伸手按住书堆，她找来一块折得厚厚的硬纸，准备替换桌脚下的薄书。\n她抬头指指窗边的空架子，又看看你扶住的书堆，等你挑个能腾开手的办法。',
-    'Helen crouches by a desk leg and slides a thin book underneath. The tower of textbooks wobbles.\n“Found a use for this one.” As she lets go, the top book begins to slide.\nYou hold the stack. She finds a thick fold of card, ready to replace the thin book beneath the leg.\nShe points at an empty shelf by the window, then looks at the books in your hands, waiting for a plan.',
-    '扶稳桌子让她垫纸',
-    'Steady the desk while she fits the card',
-    '把课本搬到窗边',
-    'Move the books to the window',
+    '不改的那个词',
+    'The word left uncorrected',
+    '海伦读到你随手写的一句话，在一个词下面停住笔。你以为她要改，她却把纸转回来。\n「你说这个词时，想到什么？」她问。你讲起一个很具体的画面，她听完才笑。\n「这个词留着，行吗？」她说，「我刚才只想到词典，你讲的画面我想再听一遍。」\n你问她上课也这么松吗。她摇头，说该教的会教，但现在不是测验，你也没有交作业。\n她把笔盖扣上：「换你问？比如，海伦，刚才那支笔究竟想改哪个词？」',
+    'Helen pauses over a word in a sentence you wrote. You expect a correction. Instead, she turns the page back towards you.\n“What were you picturing when you used that word?” You describe something specific. She listens, then smiles.\n“Shall we keep that word for now? I only had the dictionary in mind. Could I hear your picture again?”\nYou ask whether her classes are this relaxed. She shakes her head: she teaches what needs teaching. This is not a test, and you submitted no homework.\nShe caps the pen. “Your question now? Try: Helen, which word was that pen going to change?”',
+    '换个词，把那个画面讲下去',
+    'Try another word and continue the picture',
+    '问她为什么没有改掉它',
+    'Ask why she left the word alone',
   ],
   [
     'helen',
-    '窗边的书签',
-    'The bookmark by the window',
-    '海伦把借来的书推给你，窗边的风翻起一页，露出夹在里面的纸条。\n纸条上写着上回没聊完的话题，下面画了一个很小的问号。\n「这不是作业。」她先把问号划掉，又笑着说划掉以后看起来更像作业。\n你翻到空白的背面，她把铅笔放在两人中间，等着你写下想聊的那一句。',
-    'Helen slides a borrowed book towards you. A breeze by the window reveals a note between the pages.\nIt names the conversation you left unfinished, with a tiny question mark underneath.\n“It isn’t homework.” She crosses out the question mark, then laughs that it looks more like homework now.\nYou turn the note over. She places a pencil between you, waiting for the thing you want to talk about.',
-    '在纸背写下自己的话题',
-    'Write your topic on the back',
-    '陪她聊完上次的话',
-    'Finish the earlier conversation',
+    '老师也会找词',
+    'Teachers look for words too',
+    '海伦的旧书里夹着一张手写便条，只有面包、车站、谢谢几个词，每个词旁边都画了箭头。\n她说曾在外地生活，明明备好了一整页话，走到柜台前却只记得自己在紧张。\n「后来有人替我说完，大家都觉得很方便。」她停住，「我却连问『还能让我再试一次吗』都卡住了。」\n你问那个人是好心吧。她点头，说好心和难受可以同时存在，不必挑一个当结论。\n她把便条夹回书里：「你有这样一句吗？讲到一半，词都到了嘴边，却被人接走了？」',
+    'A handwritten note slips from Helen’s old book: bread, station, thank you, each with an arrow beside it.\nShe once lived elsewhere. She prepared a whole page of speech, then reached a counter and remembered only how nervous she was.\n“Someone finished for me. Everyone thought that was convenient.” She pauses. “I couldn’t even ask, could I have another try?”\nYou ask whether they meant well. She nods. Kindness and discomfort can both be true; neither has to cancel the other.\nShe returns the note to the book. “Have you had a sentence like that? Words ready on your tongue, then someone took them?”',
+    '听她讲那次没说完的经历',
+    'Hear the story she did not finish',
+    '讲自己被接走的一句话',
+    'Share a sentence someone took over',
   ],
   [
     'helen',
-    '没写完的讲义',
-    'The unfinished handout',
-    '海伦理讲义时翻出一张旧稿，自己的名字被划了两遍，旁边还有个墨点。\n「第一次站上讲台，连名字都拼错了。」她说得很轻，手却没把那页藏回去。\n你看着纸上的修改，她又讲起当时怎么越解释越乱，最后借了学生的笔。\n讲义散在桌上。她问你有没有也想装作没发生的事，随后把椅子往你这边挪了挪。',
-    'Among her handouts, Helen finds an old draft. Her own name is crossed out twice beside an ink blot.\n“First time teaching. I even misspelt my name.” Her voice is quiet, but she does not hide the page.\nYou study the corrections as she describes making it worse and finally borrowing a student’s pen.\nPapers cover the table. She asks whether you have a story you wish had never happened, and moves her chair closer.',
-    '讲讲自己出过的糗',
-    'Share your own mishap',
-    '陪她把旧讲义排好',
-    'Sort the old handouts together',
+    '红笔收起来',
+    'Putting away the red pen',
+    '海伦拿出一张以前批过的作业，红字几乎比原文多。她说那位学生后来不再交自己的故事。\n「他连写三篇『今天天晴』。」她说。你问是不是进步了，她摇头：「他怕满纸红字吧。」\n她当时夸过那篇天气作文，后来才发现，自己不知道那个学生原本想讲的家是什么样。\n「你说，他还记得我改的时态，还是记得那满纸红字？」她把红笔收进包里，第一次没有马上解释教学方法。\n海伦把旧作业翻扣着，没有再指给你看哪处改得对。「我又在等你夸我反省得好，是吗？」她说。',
+    'Helen shows you an old marked assignment. Red ink almost outnumbers the original words. Its writer stopped submitting personal stories afterwards.\n“Today it is sunny. His next three essays all began like that.” You ask whether that was progress. She shakes her head. “Perhaps he was afraid of all that red ink.”\nShe praised that weather essay at the time. Later she realised she had never learned what the home in his first story actually looked like.\n“Do you think he remembers my tense corrections, or all that red ink?” She puts away her red pen without immediately explaining her teaching method.\nHelen turns the assignment face down, without showing which corrections were right. “Am I waiting for you to praise how well I’ve reflected again,” she says.',
+    '问她后来怎样教得不同',
+    'Ask what she changed in her teaching',
+    '直说温柔纠正也可能伤人',
+    'Say gentle correction can still hurt',
   ],
   [
     'helen',
-    '不点名的下午',
-    'An afternoon without the register',
-    '海伦把点名册收进包里，只端着两杯茶走到长椅边，包带滑到了脚旁。\n你刚叫了声老师，她就晃晃杯子：「下午不点名，叫我海伦吧。」\n她坐下才发现两杯放反了，重新换过来，自己先笑得差点喝不下茶。\n你们聊起书里那段没讲完的故事。她在小纸片上记下你说到的那一页。',
-    'Helen puts the register in her bag and brings two cups to the bench. The bag strap slips by her feet.\nYou begin with “Teacher”, and she lifts a cup. “No register this afternoon. Call me Helen.”\nSitting down, she notices the cups are reversed. She swaps them, laughing too much to drink.\nYou return to the unfinished story from the book. She notes the page you mention on a scrap of paper.',
-    '叫她海伦并接过茶杯',
-    'Call her Helen and take the tea',
-    '把滑到脚边的包带收好',
-    'Gather the bag strap by her feet',
+    '不是你的练习题',
+    'Not your practice exercise',
+    '午后的谈话里，海伦下意识改了你的说法。你停下来，她又补一句只是想帮你说得自然。\n「可我刚才说的是自己，不是练习题。」你说。她握着笔，没有立刻用另一个比喻解释。\n她承认自己一紧张就躲回老师的身份；你也承认，有时害怕被误解，确实想知道怎样说得更准。\n这次你可以坚持先完整讲完，不接受纠正；也可以请她一起改刚才那句，但要求以后先问你是否需要。\n海伦放下笔：「我刚才叫它『帮忙』，你会用哪个词？先由你定。」她等你决定，没有把沉默当成允许开始讲解。',
+    'During an afternoon conversation Helen corrects your wording automatically. When you stop, she says she wanted it to sound natural.\n“I was talking about myself. It wasn’t an exercise.” She holds her pen without reaching for another explanatory metaphor.\nShe admits hiding in the teacher role when nervous. You admit that fear of misunderstanding sometimes makes you want more precise words too.\nYou can insist on finishing without correction, or ask her to revise this sentence together, with the agreement that she asks permission in future.\nHelen puts the pen down. “I called it help. What word would you use? Your choice first.” She waits, refusing to treat silence as permission to teach.',
+    '坚持先讲完，这次不改措辞',
+    'Insist on finishing without changing the wording',
+    '这次一起改，以后必须先问',
+    'Revise together this time; require asking in future',
   ],
   [
     'priya',
-    '一支能写的笔',
-    'A working pen',
-    '普里娅甩了甩笔，墨水没落在便签上，倒在拇指旁边留下了深蓝的一点。\n一摞便签跟着滑开，你递去纸巾，她先用手腕按住最上面的那张。\n「这支笔只认皮肤。」她在废纸背面划了一道，笔帽却滚进便签底下。\n纸上仍然空白。她叹口气又笑了，指指散开的便签，请你帮忙腾出一只手。',
-    'Priya shakes a pen. Instead of marking the note, it leaves a dark blue spot beside her thumb.\nThe notes slide apart. You offer a tissue while she pins the top one with her wrist.\n“It only writes on skin.” She tries a line on scrap paper, but the cap rolls beneath the notes.\nThe page stays blank. She sighs, laughs and gestures at the scattered notes, asking for a hand.',
-    '扶住散开的便签',
-    'Hold the scattered notes',
-    '替她找回漏墨笔的帽子',
-    'Find the leaking pen’s cap',
+    '不接的电话',
+    'The unanswered call',
+    '普里娅的手机响了一声，她看见来电名字，把声音关掉。你问是不是诊所又出了什么事。\n「朋友问停车。接待员连车位也得熟。」她说。你以为她马上会回，她却问刚才的话还接着讲吗。\n你笑说她总能把次序排清楚。她摇头：「工作时得排。现在轮到你，先让我把这句听完整。」\n手机又亮了，她没有解释谁在打，也没向你讲任何病人的事。屏幕暗下去，谈话还在。\n「继续讲，还是坐会儿？请选。」她问。手机屏幕暗下去了，普里娅仍看着你，等你自己开口。',
+    "Priya's phone rings. She sees the caller's name and silences it. You ask whether something has happened at the clinic.\n“A friend asking about parking. Receptionists must know spaces too.” You expect her to reply. Instead, she asks if you want to finish your story.\nYou joke that she always gets the order right. She shakes her head. “Have to at work. Your turn now. Let me hear this bit properly.”\nThe phone lights again. She gives no details about the caller or any patients. The screen goes dark while your conversation continues.\n“Carry on or sit a while? Your choice, please.” With the screen dark, Priya still looks at you, waiting for you to speak.",
+    '把刚才没讲完的话讲完',
+    'Finish what you were saying',
+    '一起安静，不填满这次停顿',
+    'Be quiet without filling the pause',
   ],
   [
     'priya',
-    '不响的手机',
-    'A quiet phone',
-    '普里娅坐到长椅上，手机刚亮，她就把它翻过来压在包边。\n你停在旁边，她挪开包，空出的座位上还留着一条提手的印子。\n「念名字久了，差点忘了我也有名字。」她揉揉喉咙，又轻轻报了一遍。\n你没有接着问工作的事。她把背靠稳，等呼吸慢下来，才指给你看路边的小狗。',
-    'Priya sits on the bench. Her phone lights up; she turns it face down beside her bag.\nYou pause nearby. She moves the bag, leaving the mark of its handle on the empty seat.\n“So many names, I almost forget I have one.” She rubs her throat and quietly says her own.\nYou leave work out of the conversation. Settling back and breathing more slowly, she points out a dog on the path.',
-    '挨着她在长椅坐下',
-    'Sit beside her on the bench',
-    '给她递一杯热茶',
-    'Offer her warm tea',
+    '下班以后',
+    'After the shift',
+    '晚些时候，普里娅把工牌留在包里，问你要不要坐一会儿。你说她今天看着很累。\n「同一句解释好多遍，嗓子快冒烟了。」她说。你刚问是谁没听懂，她便摇头：「隐私留诊所。」\n她以前总想把每次交谈都处理妥当，回家还会想，是不是语气换一下就能让那天轻松一点。\n「我要讲的是我自己。交班了，脑里还在核姓名。」她说。你等了一会儿，她才补上：「累在这儿。」\n她往后靠了一点：「先确认，听我讲，还是换话题？我也得选。今天我最想聊聊自己的拼图。」',
+    "Later, Priya leaves her badge in her bag and asks if you want to sit. You say she looks tired.\n“Same explanation over and over. My throat’s nearly gone.” You ask who failed to understand. “Privacy stays at the clinic.”\nShe used to want every conversation handled perfectly. At home she wondered whether a different tone would have made the day easier.\n“I'm talking about me. Handover done, still checking names in my head.” After a pause, she adds, “That's the tiring part.”\nShe leans back. “Quick check: hear me out or change subject? I get a choice too. Today I'd like my jigsaw to have a turn.”",
+    '听她讲自己的感受，不问人名',
+    'Hear her feelings without asking for names',
+    '问她想聊的非工作小事',
+    'Ask about something away from work',
   ],
   [
     'priya',
-    '缺角的拼图',
-    'The missing jigsaw corner',
-    '普里娅倒出半盒拼图，先挑出一块蓝天，递到你手里，桌上全是相似的蓝。\n「这会儿不用叫下一位。」她把盒盖立起来，给两个人腾出同样宽的位置。\n你们找到一条云的边，拼了几次都不合。她转过那块拼片，忽然笑了起来。\n原来它是倒着的。她没有马上接走你手里的蓝天，等你自己找到能接上的地方。',
-    'Priya tips out half a jigsaw and hands you a piece of sky. Similar blues cover the table.\n“No calling the next person for a bit.” She props up the lid and clears equal space for you both.\nYou find the edge of a cloud, but the pieces will not fit. She turns one round and laughs.\nIt was upside down. She leaves the sky in your hand, waiting for you to find its place.',
-    '和她找齐角上的拼片',
-    'Find the corner pieces together',
-    '先拼出一小块蓝天',
-    'Start a patch of sky',
+    '随叫随到的人',
+    'Always available',
+    '普里娅说，镇上有人在她买菜时递来一张写满问题的纸。开头是「反正你最清楚」。\n「你替他看了？」你问。「我请他走预约。」她答得很快，随后却低头拨了拨包上的拉链。\n她刚到这里时很愿意被人需要；有人叫得出名字，比独自回家好。后来名字像变成了服务铃。\n「接线耳机摘了，名字还在响。」她说。你没有替对方找理由，她抬起头，肩膀松开了一点。\n「『现在请走预约。』我要练熟这句。」她说。你没有替对方找理由，普里娅抬起头：「买菜归买菜。」',
+    'Priya says someone handed her a page of questions while she was shopping. It began, “You know all about this anyway.”\n“Did you look?” you ask. “I told them to book an appointment.” Quick answer; then she fiddles with the zip on her bag.\nWhen she arrived, being needed felt good. A familiar name beat going home alone. Gradually, her name had become a service bell.\n“Headset off, my name still ringing.” You offer no excuse for the other person. She looks up, her shoulders easing.\n“‘Please book an appointment.’ Practising that till it sticks.” You offer no excuse for them. Priya looks up. “Shopping is for shopping.”',
+    '听她练一句自己想说的拒绝',
+    'Hear the refusal she wants to use',
+    '说明你来见她，不办事',
+    'Say you came to see her, with no errands',
   ],
   [
     'priya',
-    '前台以外的名字',
-    'A name beyond the desk',
-    '有人从旁边经过，随口叫了声前台。普里娅下意识抬头，手已经摸到手机。\n她看见你，把手机放回去，笑着说：「这会儿只想做普里娅，不接转线。」\n你把茶挪到窗边，她跟着坐过来，说起一段一直没机会讲完的旅行。\n讲到迷路那截，她自己先笑了。那杯茶慢慢少下去，这回没有被电话打断。',
-    'Someone passes and calls her “Reception”. Priya looks up, already reaching for her phone.\nSeeing you, she puts it down. “Just Priya for now. No transferring calls.”\nYou move the tea to the window. She follows and begins a travel story she has never had time to finish.\nAt the part about getting lost, she laughs first. The tea slowly disappears, without a phone interrupting.',
-    '叫她普里娅接着听',
-    'Use her name and keep listening',
-    '请她讲完那次旅行',
-    'Hear the rest of the trip',
+    '先问过我',
+    'Ask me first',
+    '普里娅发现你向别人提过，她或许能帮忙看一封信。你说自己只想让那个人少跑一趟。\n「先问本人。接待台都这样。」她说。你解释只是随口一提，她仍看着你：「对方已当预约记下了。」\n你确实没有恶意，也觉得她的话有点重；她却说，自己每次都得替这种好意善后，已经累了。\n你可以承认越过界线，自己收回推荐；也可以坦白你仍觉得反应过重，接受这次谈话可能就此冷下来。\n普里娅没有替你找台阶：「你可以不同意。我的答复是拒接，请走预约。」两个人都听见了对方的不舒服。',
+    "Priya discovers you told someone she might look at a letter. You say you only wanted to save that person a trip.\n“Ask the person first. Even reception does that.” You explain it was a passing remark. She looks at you. “They've booked it in their head.”\nYou meant no harm and find her words harsh. She says she is exhausted from cleaning up after this kind of kindness.\nYou can admit crossing a boundary and withdraw the recommendation, or say you find her reaction excessive and accept that the conversation may go cold.\nPriya offers no easy exit. “You can disagree. My answer is a refusal. Please book properly.” Both of you hear the other's discomfort.",
+    '承认越界，自己收回推荐',
+    'Acknowledge the boundary and withdraw the recommendation',
+    '坦白觉得反应过重，承担冷场',
+    'Say you find the response excessive and accept the chill',
   ],
   [
     'dave',
-    '藏起来的答案',
-    'The hidden answers',
-    '戴夫在吧台试读下一场问答，把答案页塞回夹子，纸面却朝着吧台边的熟客。\n你抬手提醒，他低头看了看，叹口气，粉笔停在刚才那道题旁边。\n「这一轮测眼力。」他把新题写得格外小，熟客立刻抗议，他自己也笑了。\n答案纸还翘在夹子外。他一手端着饮料，一手举着粉笔，回头请你帮忙。',
-    'Dave is trying out the next quiz at the bar. He files the answers facing the regulars.\nYou signal. He looks down and sighs, his chalk hovering beside the previous question.\n“Eyesight round.” He writes the new question unusually small. The regulars protest at once, making him laugh too.\nThe answers still poke out of the folder. Drink in one hand and chalk in the other, he turns to ask for help.',
-    '替他挡住答案纸页',
-    'Shield the answer sheet',
-    '帮他擦去那道旧题',
-    'Wipe off the old question',
+    '老板也答错',
+    'The landlord gets it wrong',
+    '午后的戴夫念出一道问答题，自己先报了答案。你指出题目问的是作者，他答的却是酒名。\n「跨领域得分不行吗？」他问。你说这样人人都能赢，他拍了下手：「生意听着不错。」\n笑过以后，他把题划掉，说有些客人不是来抢答的，却总被他顺手拉进比赛。\n你问不比赛能干什么。他把题册翻到背面，那里记着一串客人推荐的歌，拼写各不相同。\n「先声明，这回不计分。」他说。你还没开口，他自己补上：「老板例外也取消。真是艰难的一天。」',
+    'In the afternoon Dave reads a quiz question and supplies the answer himself. You point out it asked for an author; he named a drink.\n“No marks for crossing disciplines?” You say everyone could win that way. He claps. “Promising business model.”\nAfter the laugh, he crosses out the question. Some customers have not come to compete, yet he keeps pulling them into the game.\nYou ask what happens without a contest. He turns to the back of the book, where song requests appear in several different spellings.\n“No points this time.” Before you speak, he adds, “Landlord’s exemption cancelled too. Difficult day for management.”',
+    '出一道老板也不会的题',
+    'Set a question even the landlord cannot answer',
+    '先不抢答，听他说点别的',
+    'Skip the quiz and hear something else',
   ],
   [
     'dave',
-    '空着的队名',
-    'A blank team name',
-    '戴夫给你留了张答题纸，队名那栏空着，削好的铅笔横在上面。\n他念出几种名字，自己先摇头，最后一种太长，差点连气都接不上。\n「好名字得能喊出来。」他说着又试了一遍，把吧台边的客人也逗笑了。\n你把纸转向两人之间，他低下头看着空白的一栏，这回认真等你提一个。',
-    'Dave saves an answer sheet for you, the team name blank and a sharpened pencil laid across it.\nHe reads out suggestions, rejecting each. The last is so long he nearly runs out of breath.\n“A good name has to be shoutable.” He tries again, making someone at the bar laugh.\nYou turn the sheet between you. He bends over the blank line, properly waiting for your suggestion.',
-    '写下一个离谱的队名',
-    'Write a ridiculous team name',
-    '拉他一起想个短名字',
-    'Think of a short name together',
+    '笑声的账单',
+    'The cost of a laugh',
+    '戴夫在营业本上画了两道线，一道是进账，一道是他觉得必须让每个人高兴的次数。\n「哪道更长？」你问。「第二道没有收据，报不了销。」他说完，下意识等你笑。\n他接手酒吧时怕冷场，谁不笑就再讲一个。后来客人记得他的包袱，他却记不清自己喜不喜欢。\n你问这样不累吗。他说累，但安静下来就会想到空杯子、关门的店，以及还没付的账单。\n戴夫敲敲第二栏：「客人笑了，老板我连哪句真想笑都记不清。」他没再等掌声，把那句实话原样放着。',
+    'Dave draws two columns in the takings book: money in, and the times he feels obliged to make everyone happy.\n“Which is longer?” “Second one comes without receipts. Can’t claim it back.” He automatically waits for your laugh.\nWhen he took over, silence frightened him. No laugh meant another joke. Customers remembered his punchlines; he stopped knowing whether he liked them.\nYou ask whether it is exhausting. It is, but quiet makes him think about empty glasses, closed businesses and unpaid bills.\nDave taps the second column. “Guests laughed. The landlord here can’t even remember which bits he found funny.” He waits for no applause, leaving the plain sentence as it is.',
+    '问他自己爱听哪种笑话',
+    'Ask what actually makes him laugh',
+    '让他讲一件不带包袱的事',
+    'Ask for something without a punchline',
   ],
   [
     'dave',
-    '关门后的老歌',
-    'An old song after closing',
-    '最后一位客人走了，戴夫把门牌翻过来，擦杯子的手终于慢了下来。\n他找出一张旧唱片，唱针落下前先沙沙响了几声，比开场白还长。\n「这首不用抢答。」他把干布搭在肩上，低声跟了一句，又忘了下句词。\n你们没有替他找歌词。杯子一只只倒扣好，唱片这一面还没放完，他就坐了下来。',
-    'The last customer leaves. Dave turns the sign and finally slows his glass polishing.\nHe finds an old record. It crackles before the music, longer than one of his introductions.\n“No buzzer for this one.” Cloth over his shoulder, he sings a line and forgets the next.\nNeither of you looks up the words. Glasses go upside down to dry, and he sits before the side finishes.',
-    '坐着听完唱片这一面',
-    'Stay for this side of the record',
-    '替他收好最后一桌',
-    'Clear the last table',
+    '唱片里的空白',
+    'The quiet on the record',
+    '夜里过了十点，戴夫把一张老唱片放好，先说「这次老板自己点歌」，请你听完再评价。\n歌声沙哑，前奏还长。他说以前有人陪他听，后来去了别的地方，店里的歌单却再没改过。\n「唱片替我加班，够忠心吧？」他笑。你没接，他也没补第二个笑话，只把音量放低。\n你问他想念的是人还是那时候的自己。他看着转动的唱片：「哎，给老板开个后门，两个答案都收吧。」\n唱片转到安静的一段。戴夫张嘴像要报下一首，随后又闭上；这回没有客人催，他也不用替安静解围。',
+    'After ten at night Dave puts on an old record. “Landlord’s own request this time.” Could you hear it out before judging?\nThe voice is rough and the introduction long. Someone used to listen with him, then moved elsewhere. The pub playlist never changed.\n“Record’s doing overtime for me. Loyal staff.” He laughs. You do not pick it up. He adds no second joke, just lowers the volume.\nYou ask whether he misses the person or himself back then. He watches the record turn. “Give the landlord a break, eh? Let him enter both answers.”\nThe record reaches a quiet stretch. Dave opens his mouth as if announcing the next track, then closes it. No customer is rushing him. Silence needs no rescue.',
+    '问问那个陪他听歌的人',
+    'Ask about the person who listened with him',
+    '把唱片听完，不追问过去',
+    'Hear the record out without questioning him',
   ],
   [
     'dave',
-    '不算分的一轮',
-    'A round without scores',
-    '戴夫拿出第一本题册，书脊用胶带贴了几层，页边挤着旧朋友的队名。\n你们读到同一处，一起笑了。他伸手挡住下一行，说那题到现在还有人争。\n「这轮不算分。」他把铅笔放到你面前，让你给页边那块空白找个名字。\n纸页松了一角，他用掌心压着，指指铅笔和夹子，请你挑个顺手的来。',
-    'Dave brings out his first quiz book. Tape covers the spine; old friends’ team names fill the margins.\nYou laugh at the same note. He covers the next line, saying people still argue about that question.\n“No scores this round.” He sets a pencil before you and offers the remaining margin for a name.\nA loose page curls. Holding it flat, he points at the pencil and clip, asking which you would rather use.',
-    '在页边添上你们的队名',
-    'Add your team name in the margin',
-    '替他夹牢松开的书页',
-    'Clip the loose pages',
+    '这个梗不接',
+    'Not taking that joke',
+    '戴夫说，有位常客要他把某个人等信的焦虑编进问答题，理由是「大家都熟，开得起」。\n他拒绝了，对方说他忽然没趣。那桌后来少点了饮料，他看见账单时还是心疼。\n「拿那事逗笑，老板我做不来。少卖几杯，账单可照样来！」他说。这回没把自己说成轻松赢了一场的人。\n你可以支持他当众讲明不拿谁的处境取笑，承担流失客人的风险；也可以建议别公开争执，先保住生意。\n戴夫看着你：「那题老板删定了。你说顾生意，我懂，可听见还是扎得慌。」',
+    'Dave says a regular wanted a quiz question about someone’s anxiety waiting for a letter. “We all know each other. They can take it.”\nHe refused and was called humourless. That table ordered fewer drinks. The smaller bill still hurt.\n“Landlord can’t make a joke of that. Sell fewer drinks, though, and the bills still turn up!” He does not call this an easy victory.\nYou can support a public boundary against mocking anyone’s circumstances, risking lost customers, or advise avoiding an open dispute to protect the business.\nDave looks at you. “That question’s deleted. Landlord’s decision. I get protecting the trade, but hearing it still stings.”',
+    '支持公开说清边界，接受客人离开',
+    'Support a public boundary despite losing customers',
+    '建议不公开争执，先保住生意',
+    'Advise avoiding a public dispute to protect the pub',
   ],
   [
     'rahman',
-    '门铃下的纸箱',
-    'Boxes by the bell',
-    '拉赫曼招呼你回店拆纸箱，弯腰找剪刀，门铃一响，箱子又往过道滑了一点。\n你按住箱角，他终于腾出双手，从围裙口袋摸出那把一直没找到的剪刀。\n「原来它跟着我走。」他笑着举起剪刀，封口处翘起的硬纸又碰到了围裙。\n箱里传出瓶子轻轻相碰的声音。他挪开脚边的空箱，问你能不能再搭把手。',
-    'Rahman calls you back to the shop to unpack. As he hunts for scissors, the doorbell rings and the box shifts.\nYou hold a corner. With both hands free, he finds the missing scissors in his apron pocket.\n“They’ve been following me.” He raises the scissors, laughing, as the raised cardboard flap catches his apron.\nBottles clink inside. Moving an empty box away from your feet, he asks for another hand with the seal.',
-    '按住纸箱让他拆封',
-    'Hold the box while he opens it',
-    '接过剪刀替他剪胶带',
-    'Take the scissors and cut the tape',
+    '不进账本的事',
+    'Off the books',
+    '拉赫曼在柜台里翻账本，一张饼干配方掉了出来。你说原来店里连点心也归库存管理。\n「老朋友，这批我自己烤坏了，放柜台后吃，哪能贴价签卖出去。」他说。\n你问他有没有真正不算账的时候。他用铅笔点点配方，说每样材料都能记，合不合口味却得试。\n他把账本合上，认真争论饼干究竟该脆还是该软，语气比谈进货还郑重，直到自己先笑了。\n「老朋友，脆的还是软的，你选？我站脆的。这盘烤得太脆，倒是全归店主自己了。」',
+    'Rahman opens his ledger behind the counter and a biscuit recipe slips out. You suggest even snacks have stock control here.\n“Burnt this batch myself, my friend. Eating it behind the counter. Hardly going to stick a price on it.”\nYou ask whether he ever stops counting. He taps the recipe: ingredients can be measured; whether it tastes good needs trying.\nHe closes the ledger and argues for crisp rather than soft biscuits, more solemnly than he discusses deliveries, until he laughs at himself.\n“Crisp or soft, my friend? I favour crisp. Baked this tray a bit too crisp. All for the proprietor now.”',
+    '支持脆饼，争论烤到什么程度',
+    'Defend crisp biscuits and debate the bake',
+    '坚持软饼，问他肯不肯尝试',
+    'Defend soft biscuits and ask him to try',
   ],
   [
     'rahman',
-    '旧店牌',
-    'The old shop sign',
-    '拉赫曼约你进店看旧招牌。他从柜台后抽出来，围裙上立刻多了道灰。\n他念出褪色的字，念到最后一个音节停住，用手指描了描掉漆的边。\n「刚开张时，天天怕人找不到。」他说那会儿总把牌往外多挪一点。\n你扶着店牌，他讲起街上后来换过的店铺。门铃又响，他把店牌靠稳，留出擦灰的地方。',
-    'Rahman invites you into the shop to see the old sign. Pulling it from behind the counter leaves dust across his apron.\nHe reads the faded words, pauses on the last syllable and traces the flaking edge.\n“At first I worried nobody would find us.” He used to move the sign a little further out each day.\nYou support it as he recalls shops the street has lost. The bell rings; he steadies the sign, leaving room to clean it.',
-    '听他讲旧街上的店铺',
-    'Hear about the old street',
-    '陪他擦净店牌的灰',
-    'Clean the dusty sign together',
+    '没有走的那一年',
+    'The year he did not leave',
+    '拉赫曼从柜台下找出一张旧店面广告，照片里的招牌还没换。他说那年原打算把店转出去。\n「后来为什么没走？」你问。他说那时早已入籍，原以为办完许多事，就会知道该住哪里。\n广告登出去以后，他却开始认真看每天经过的人，不是看他们买什么，是看自己会不会想念。\n「老朋友，看着老客，我就又把那张广告收了。」他说，又承认也不是每个留下来的日子都开心，有时照样后悔。\n他把广告压在账本底下：「老朋友，舍不得和后悔，我都记得。你想听哪边？开了这么多年店，可有得讲。」',
+    'Rahman finds an old shop-sale advert beneath the counter. The sign in its photograph predates the current one. He intended to sell that year.\n“Why didn’t you leave?” He had been a citizen for some time. He thought finishing enough official business would tell him where to live.\nOnce the advert appeared, he began watching the people passing, not what they bought, but whether he would miss them.\n“Saw the regulars, my friend, and put the advert away again.” He admits staying has not made every day happy. Sometimes he still regrets it.\nHe rests the advert beneath the ledger. “Things I’d miss and things I regret, my friend. Remember both. Which shall I tell you? Years of shop stories to choose from.”',
+    '问最舍不得哪件日常小事',
+    'Ask which everyday detail he would miss',
+    '听听他也会后悔的日子',
+    'Hear about the days he regrets staying',
   ],
   [
     'rahman',
-    '照片里的领带',
-    'The tie in the photo',
-    '拉赫曼请你回店看旧照片。入籍那天的领带歪着，手里攥紧的纸却平平整整。\n「出门照过镜子，走到门口就忘了。」他说完摸摸领口，好像领带还在那里。\n你问照片外面有什么，他把相册放低，说起那天回家以后忘了下米的锅。\n大事讲着讲着成了一顿迟来的饭。他不再整理照片的角，只让相册在两人中间摊着。',
-    'Rahman invites you back to the shop to look at old photographs. On citizenship day his tie is crooked; the papers in his grip are perfectly straight.\n“Checked the mirror. Forgot by the door.” He touches his collar as though the tie were still there.\nYou ask what was outside the picture. Lowering the album, he remembers the pot he forgot to put rice in.\nThe big day becomes a late meal. He stops straightening the corners and leaves the album open between you.',
-    '陪他翻完这页相册',
-    'Look through the album page',
-    '问问那天迟来的晚饭',
-    'Ask about the late dinner',
+    '门铃不算邀请',
+    'A bell is not an invitation',
+    '店门铃响过以后，拉赫曼说自己在家听见同样的声音也会抬头，像漏掉一个客人就算亏损。\n他刚开店时不敢关门，觉得今天少做一点，明天别人就会忘记有这家店，有他这个人。\n「老朋友，那阵我连家里吃饭都算着赶回来开门。」他说。你问什么时候发现的，他指指一张没用过的戏票。\n那次他原想去听演出，临走又接着营业。演出结束了，店也没有多卖什么，他却仍不敢怪自己。\n拉赫曼看着那张废戏票：「老朋友，后来还有演出。那回我守着柜台等客人，连歌都没听上。」',
+    'After the shop bell rings, Rahman says he looks up at the same sound at home, as if missing a customer were always a loss.\nWhen he first opened, he feared shutting the door. Do less today and perhaps tomorrow people would forget the shop, and the person in it.\n“Even eating at home, my friend, I was counting the minutes till I could reopen.” You ask when he noticed. He points at an unused concert ticket.\nHe meant to attend, then kept trading instead. The concert ended, the shop sold little extra, and he still could not let himself be angry.\nRahman studies the unused ticket. “Other concerts later, my friend. That night I stayed behind this counter waiting for customers. Missed every song.”',
+    '问他现在还想去听什么',
+    'Ask what he would like to hear now',
+    '承认那张没用的票也是损失',
+    'Acknowledge the unused ticket as a loss',
   ],
   [
     'rahman',
-    '另一只杯子',
-    'The other cup',
-    '拉赫曼收摊时叫住你，锁好门，才从柜台下拿出另一只杯子。\n他把杯子放在你这边，门边的小凳还伸着一条腿，正好挡住两人中间的路。\n「这会儿不用找零钱。」他仍摸了摸围裙，自己笑着把手收回来。\n热茶沿着杯壁慢慢落下。他指指空着的位置，问你能不能留下讲讲近来的事。',
-    'Closing up, Rahman calls you back in, locks the door and brings a second cup from below the counter.\nHe puts it on your side. The stool by the door has one leg sticking into the space between you.\n“No change to count now.” He still pats his apron, then laughs and takes his hand away.\nHot tea runs down the cup’s side. He gestures at the empty space and asks you to stay and tell him how you have been.',
-    '坐着陪他把茶喝完',
-    'Stay and finish the tea together',
-    '收进店门旁的小凳',
-    'Bring in the stool by the door',
+    '关门不是结账',
+    'Closing is not settling up',
+    '拉赫曼准备歇一次店，有位熟客说大家都靠他方便，开店的人怎么能说不在就不在。\n你问能不能只缩短营业。他看着你：「老朋友，预订我都交代了，连票也买了，还要我留柜台后？」\n他怕顾客不再回来，也知道自己早把可能的抱怨提前进货，堆得比货架还满，挤掉了想做的事。\n你可以支持照原计划关门；也可以坦承仍赞成先缩短营业，少损失些收入，接受他觉得你也在劝他别走。\n「老朋友，交代完预订我就关门，票买好了。」他没要你保证生意不受影响，也没把主意收回。',
+    'Rahman plans to close for a break. A regular says people depend on his convenience: how can a shopkeeper simply be absent?\nYou ask about shorter hours instead. “Orders sorted, ticket bought, my friend. Still want me behind the counter?” He looks at you.\nHe fears customers will not return. He also stocks possible complaints in advance, higher than the shelves, crowding out what he wants to do.\nYou can support the closure as planned, or admit you still favour shorter hours to limit lost income, accepting that this may sound like another plea to stay.\n“I’ll sort the orders and shut up shop, my friend. Ticket’s bought.” He asks for no guarantee about business and does not withdraw his own plan.',
+    '支持按原计划歇店，不附保证',
+    'Support the planned closure without promising no losses',
+    '建议先缩短营业，接受他不赞成',
+    'Suggest shorter hours and accept his disagreement',
   ],
   [
     'lina',
-    '帆布包里的纸',
-    'Papers in the canvas bag',
-    '莉娜把拒签信从帆布包里拿出来，先折好翘起的纸角，又沿折痕压了一遍。\n「能坐一会儿吗？」她没把信推给你，只把旁边那张椅子拉开。\n你坐下后，她才说起自己反复读过的那几行，讲到一半停下来喝了口水。\n她把喝空的杯子推到旁边，指尖离开纸角，问你有没有空再听一段。',
-    'Lina takes the refusal letter from her canvas bag, folds a raised corner and presses its crease again.\n“Can you stay a while?” She keeps the letter beside her and pulls out the next chair.\nOnce you sit, she begins describing the lines she has read so often, then pauses for water.\nShe moves her empty glass aside, takes her fingers off the corner and asks if you can hear a little more.',
-    '替她倒满喝空的水杯',
-    'Refill her empty glass',
-    '听她慢慢把话说完',
-    'Let her finish in her own time',
+    '画歪的门',
+    'The crooked door',
+    '莉娜把一张速写转给你看，门是歪的，门边那个人却站得像尺子。她说画反了重点。\n你问门是不是真的歪。她笑：「喂，门很正！我光顾着画等人的那个，墙才跑掉，气死我了。」\n你想夸画得像，她却问你先看见什么。你说了一个细节，她立刻把自己的解释收住。\n「拜托，我又在给你配旁白！」她说。纸上的人没有名字，也不需要由她猜出在等什么。\n莉娜把自己的解释咽回去：「你先讲看见什么！喂，我画的是门，门后的事还得你自己说。」',
+    "Lina turns a sketch towards you. The door leans; the person beside it stands like a ruler. She says she emphasised the wrong thing.\nYou ask if the real door leans. She laughs. “Hey, door's straight! Concentrated on the person waiting. Wall wandered off. Infuriating.”\nYou start to praise the likeness, but she asks what you noticed first. You name a detail. She promptly stops explaining her own view.\n“Please, I'm doing your commentary again!” The person on paper has no name. She need not guess what they are waiting for.\nLina swallows her explanation. “You tell me what you saw first! Hey, I drew the door. You're telling the bit behind it.”",
+    '讲门让你想起的地方',
+    'Describe the place the door reminds you of',
+    '只谈纸上的颜色和线条',
+    'Discuss just the colours and lines',
   ],
   [
     'lina',
-    '没织完的围巾',
-    'The unfinished scarf',
-    '莉娜把没织完的围巾铺在桌上，手指沿最后一行走过去，数到一半又重来。\n「今天不想看文件。」她把帆布包挪到脚边，一根针却滚进了桌脚后面。\n她按住将要散开的线团，说这颜色让她想起池塘边的栏杆，又低头看看地面。\n针还躲在桌脚后。莉娜把围巾卷好，问你先找回来，还是去池塘边换口气。',
-    'Lina lays the unfinished scarf on the table, counting along its last row, then starting again.\n“No paperwork today.” She moves the canvas bag to her feet. A needle rolls behind the table leg.\nCatching the wool, she says its colour reminds her of the pond railings, then glances at the floor.\nThe needle is still hiding. She rolls the scarf and asks whether to find it first or go to the pond for some air.',
-    '替她找回桌脚后的针',
-    'Find the needle behind the table leg',
-    '陪她沿池塘走一圈',
-    'Walk round the pond together',
+    '没画成的城市',
+    'The city she did not draw',
+    '莉娜翻出一张写了很多地名的纸，只有小镇的名字旁边画着一团擦不干净的灰。\n她说刚来时把这里当作中转，连风景都只画在散纸上，怕买一本厚本子像答应永远留下。\n「后来呢？」你问。她点点灰色那团：「喂，后来认识人了！箭头画得再清楚，也塞不回原来那箱。」\n她没有把中转说成错误，也不愿别人替她把故乡画成失去的地方。两边都有她没讲完的事。\n她沿着灰色那团比了个圈，没有落笔：「最初来干什么，和现在为什么难走，拜托，分开问！」',
+    "Lina unfolds a sheet of place names. Only the town's name has a grey patch beside it that refuses to erase.\nShe first treated this as a stopover, drawing scenery on loose sheets. Buying a thick book felt like promising to stay forever.\n“What happened?” You ask. She taps the grey. “Hey, I got to know people! Neat arrows won't pack them back in that first box.”\nShe does not call the stopover a mistake or let others draw home as something lost. There are unfinished stories on both sides.\nShe traces a circle round the grey without marking it. “Why I came and why packing's hard now. Please, ask those separately!”",
+    '问她最初来这里的理由',
+    'Ask why she first came here',
+    '听现在难以收拾行李的原因',
+    'Hear why packing is difficult now',
   ],
   [
     'lina',
-    '地图折痕',
-    'Creases in the map',
-    '莉娜摊开车站地图，纸张又沿旧折痕弹回来，几条路线被挤成了一团。\n她用手掌压住，问到一半又停了，最后只说想走走平时熟悉的路。\n你们把地图合上，沿街慢慢走。经过拐角时，她指给你看一扇认得的旧门。\n「下一站先不讲。」她把地图塞回包里。面包店亮着灯，她指指橱窗里歪掉的价签。',
-    'Lina opens the station map. Old creases pull it shut again, bunching the routes together.\nShe presses it flat, begins a question, then only says she wants to walk a familiar route.\nYou fold the map and walk slowly along the street. At the corner she points out an old door she knows.\n“No next stop just yet.” She puts the map away. A bakery glows at the corner; she points out its crooked price card.',
-    '陪她走完整条熟悉的街',
-    'Walk the familiar street with her',
-    '坐下陪她看列车来往',
-    'Sit and watch the trains together',
+    '不能画成答案',
+    'No drawing is an answer',
+    '莉娜把一封折过的信夹在速写本里，只让你看见边缘。她说那次拒签以后，很久不想碰画笔。\n你问画画不是她放松的办法吗。她说是，可人人叫她「画下来就好了」，好像难受也该交作品。\n「烦死了，画完能退材料费吗？」她说。你点头，她才继续讲那阵子自己连喜欢的颜色都嫌吵。\n她现在又在画，不是为了证明恢复得不错。你可以听她说那段停笔的日子，也可以聊眼前一条线。\n她把信收回去，速写本仍摊着：「今天画不画，我自己挑！喂，纸上这条线就认作线，听见没？」',
+    "Lina keeps a folded letter inside her sketchbook, showing only its edge. After that refusal, she says, she left her brushes untouched for a long time.\nYou ask whether drawing used to relax her. Yes, but everyone said, “Draw it and you'll feel better,” as if distress required finished work.\n“Infuriating. Finish a drawing and do they refund the materials?” You nod. She goes on: even her favourite colours felt loud then.\nShe is drawing again, not to prove recovery. You can hear about the time she stopped, or talk about a line in front of you.\nShe puts the letter away, leaving the sketchbook open. “Drawing today is my choice! Hey, this line's a line. Got that?”",
+    '听她讲不想画的那段日子',
+    'Hear about the time she could not draw',
+    '只谈眼前一条线，不解释心情',
+    'Discuss one line without interpreting her feelings',
   ],
   [
     'lina',
-    '留着的椅子',
-    'A chair kept free',
-    '莉娜把咖啡馆的椅子拉开，杯旁压着一张你画过的纸，角上留着半个圆。\n「今天先听你说。」她把手机收进包里，把纸转过来，空白的一面朝着你。\n你刚提起最近一件小事，她便把杯子挪开，露出那个没画完的圆，等你继续。\n她从包里找出铅笔，搁在两人中间，说以后没话讲，也可以各画上一笔。',
-    'Lina pulls out the café chair. A drawing you made lies by her cup, half a circle at its edge.\n“Your turn first today.” She puts her phone away and turns the blank side towards you.\nYou begin to mention a small recent event. She moves her cup, revealing the unfinished circle, ready to hear the rest.\nShe finds a pencil and leaves it between you: on days without words, each of you can add a line.',
-    '讲一件最近发生的小事',
-    'Share a small recent story',
-    '拿铅笔补完那张画',
-    'Finish the drawing with the pencil',
+    '别替我装框',
+    'Do not frame it for me',
+    '莉娜听见有人把她的画介绍成「一个等待留下的人」。你本来想说，对方大概只是想帮忙宣传。\n「喂，我画的又不是等！」她说，「走掉、回来、谁都别管我去哪儿，我全画过，眼瞎吗？」\n她知道去留仍有不确定，也怕拒绝介绍就失去一次展出的机会。但把自己交成一个标题，她不愿意。\n你可以支持她要求改介绍，也可以建议先撤下这次展出，等她自己写好。两边都有她在乎的东西。\n「我人在什么地方，画先归我！」她说。你刚要回答，她又补一句：「拜托，励志标题给我删掉！」',
+    "Lina hears her work introduced as “A person waiting to stay”. You were about to say the speaker probably wanted to help publicise it.\n“Hey, I'm not drawing waiting! Leaving, returning, going where I choose. Drawn all of it. Have they even looked?”\nHer future remains uncertain. Refusing the introduction may cost an exhibition, which frightens her. But she refuses to become a title.\nYou can support demanding a new introduction and keeping the show, or suggest withdrawing until she writes her own. Both cost something she values.\n“Wherever I am, the drawings are mine first!” Before you answer she adds, “Please, delete that inspirational title!”",
+    '支持她要求改介绍，保留展出',
+    'Support changing the introduction and keeping the show',
+    '支持先撤展，让她自己重写',
+    'Support withdrawing until she writes it herself',
   ],
   [
     'gareth',
-    '松掉的车篮',
-    'The loose basket',
-    '加雷思扶着晃动的车篮，刚一松手，里面的空袋就向车把另一侧歪过去。\n你托住车篮，他弯腰摸到松开的扣子，帽檐碰上铃铛，叮地响了一下。\n「铃比我先道谢。」他抬起头，给你看那枚差一点就掉进砖缝的小扣。\n两个人把车扶正，他又晃了晃车篮才放心。这回腾出的手，终于能摘下帽子擦汗。',
-    'Gareth holds a wobbling basket. As he lets go, the empty bag tips across the handlebars.\nYou support the basket while he finds the loose clip. His cap catches the bell with a ding.\n“Bell thanked you first.” Looking up, he shows you the clip that nearly fell between the paving stones.\nYou straighten the bike. He tests the basket before finally freeing a hand to take off his cap and wipe his brow.',
-    '替他扣牢车篮的小扣',
-    'Fasten the basket clip',
-    '扶稳车让他修好',
-    'Hold the bike while he fixes it',
+    '路从脚下认',
+    'Learning the round',
+    '加雷思说起小镇的路，先左转，再经过低墙，最后才报街名。你问为什么地址总被排在后面。\n「先左转，过矮墙。到了拐角，我才想起查街名。」他说。你照他的话比画，结果把两条巷子叠成了一条。\n他没有笑你，重新从转角讲起，还提醒那块松砖不是路标，修好以后可不能跟着它走。\n你问能不能靠门牌认。他说当然，但住户的名字不是闲聊的地图，信件里的事更不能拿来指路。\n「这回你领，路口等你报方向。」他说完停住，没有按习惯先迈步；路线说得熟，轮到听别人说时还得重新学。',
+    'Gareth gives directions left first, low wall next, street name last. You ask why the address always comes afterwards.\n“Left first, past the low wall. Reach the corner, then I check the street name.” You trace his route and somehow fold two lanes into one.\nHe does not laugh, just starts again at the corner. The loose paving slab is not a proper landmark: it might get repaired.\nYou ask about house numbers. Those are fine, he says. Residents’ names are no conversational map, and letters are never directions.\n“Your lead. I’ll wait at the crossing for your directions.” He stops instead of taking his usual first step. Giving familiar directions is one thing; hearing someone else’s takes practice.',
+    '跟他认路，只记公共路标',
+    'Learn the route using public landmarks',
+    '讲自己的路线，让他听听',
+    'Describe your own usual route',
   ],
   [
     'gareth',
-    '收工的长椅',
-    'The bench after work',
-    '加雷思把空邮包放在长椅脚边，先揉揉肩膀，才发现自己还侧着半边身子。\n「今天的重量还没下班。」他换了个坐姿，用手帕擦净旁边那一截椅面。\n他把自己的杯子端稳，朝空位挪挪手帕，问起路上那家换了颜色的大门。\n说到一半他才想起不用赶下一户，于是放下杯子，把刚才漏掉的细节又补了回来。',
-    'Gareth leaves his empty postbag by the bench and rubs his shoulder, still leaning to one side.\n“The weight hasn’t clocked off yet.” He shifts and wipes the place beside him with a handkerchief.\nHe steadies his cup, shifts the handkerchief towards the empty seat and asks about the freshly painted door along the road.\nHalfway through, he remembers there is no next house to reach. Setting down the cup, he returns to the detail he missed.',
-    '和他在长椅并排坐下',
-    'Sit beside him on the bench',
-    '帮他扶稳手里的茶杯',
-    'Steady his teacup',
+    '走完以后',
+    'After the round',
+    '晚些时候，加雷思把空邮包扣好，告诉你今天把一条走熟的路绕了两遍，纯粹是不想马上回去。\n你问家里有什么事。他摇头：「没事。走完整条投递路线，回到自家门口，就只剩钥匙响。」\n他以前以为熟路走久了，人也就自然在这里扎根；后来发现被人认得，并不等于有人知道你寂寞。\n「这句又绕回去了，像我多走那圈。」他皱眉。你说听懂了，他才不再急着把它缩成一句准确的方向。\n「还是绕。到自家门口呢？」他皱眉。你说听懂了，加雷思才不再往回改句子，邮包扣子也终于不必再检查一次。',
+    'Later in the evening, Gareth fastens his empty postbag. He walked a familiar road twice today because he did not want to go home yet.\nYou ask whether something is wrong at home. He shakes his head. “Nothing. Finish the round, reach my own door, just the sound of my key.”\nHe thought knowing a round would root him here. Being recognised, he learned, does not mean someone knows you are lonely.\n“Round again with that sentence. Like that extra lap.” He frowns. You say you understand, and he stops trying to reduce it to precise directions.\n“Still roundabout. At my own front door, then what?” He frowns. When you say you understand, Gareth stops revising the sentence. The postbag buckle finally needs no further check.',
+    '陪他走一段不送信的路',
+    'Walk a stretch with no deliveries',
+    '坐下，只听他自己的事',
+    'Sit and hear about him alone',
   ],
   [
     'gareth',
-    '藏在包底的卡',
-    'The card at the bottom',
-    '加雷思清理邮包，掏出一张包在薄纸里的感谢卡，彩笔字大得挤出了边框。\n「是个孩子写的。」他念到其中一个字时卡住，重新从那一行的开头念。\n你没有替他接下去。他终于读顺，把卡翻过来，背面还画着一辆轮子不圆的车。\n他用指尖抹平卡边，说这张不在投递单上。薄纸已经破了，他仍舍不得换掉整张卡。',
-    'Cleaning his postbag, Gareth finds a thank-you card in tissue. Large coloured letters spill over its border.\n“A child wrote it.” He stumbles on a word and starts the line again.\nYou let him finish. Turning it over, he reveals a bike drawn with wheels that are not quite round.\nHe smooths the edge: this one is not on the delivery list. Its tissue is torn, but the card itself will stay.',
-    '听他重新读完整张卡',
-    'Hear him read the whole card',
-    '找只干燥的袋子护住卡',
-    'Find a dry cover for the card',
+    '新路线没有我',
+    'A round without me',
+    '加雷思拿出一张改过的路线图，几条熟悉的街被划给别的轮次。他说不是坏安排，腿能少走一点。\n「那你为什么不高兴？」你问。「少走三段巷子。」他答完又停住，「那三段也少了等我按门铃的人。」\n他想过退休，第一反应却不是休息，而是以后经过那些门，要拿什么理由停下来打招呼。\n你说可以只是经过。他看着地图，像在检查一条没标明长度的路：「经过，敲门，邮袋放家？没这么走过。」\n他把新路线图折好，没折回旧痕里：「少走那三段，我想自己绕回来。先约好，再敲门。」',
+    'Gareth shows you a revised round map. Familiar streets have moved to another run. It is not a bad arrangement: less walking for his legs.\n“Why aren’t you happy?” “Three fewer lanes.” He stops. “Fewer people waiting for my ring in those lanes.”\nHe has thought about retirement. His first thought was not rest, but what excuse he would have to stop at those doors and say hello.\nYou suggest simply passing by. He studies the map like a road with no distance marked. “Pass, knock, postbag at home? Haven’t tried that route.”\nHe folds the revised map without following its old creases. “Those three missing lanes, I’d like to circle back myself. Arrange it first, then knock.”',
+    '问工作以外最想走哪条路',
+    'Ask which route he wants beyond work',
+    '听他讲怕失去的日常',
+    'Hear which daily ritual he fears losing',
   ],
   [
     'gareth',
-    '不用送的信',
-    'A letter without a round',
-    '加雷思从自己外套里拿出一张卡，没有地址，也没贴邮票，纸角被压得很平。\n「这回不是替别人送。」他递过来之后没有走开，像怕你找不到拆开的地方。\n你们凑近读完那几句话，他把帽子翻来覆去，最后自己也凑过来看。\n卡上没有需要回复的日期。他问字能不能认清，你点头，他才把帽子重新戴好。',
-    'Gareth takes a card from his own coat, without address or stamp, its corners carefully pressed.\n“Not delivering for someone else this time.” He stays nearby as if worried you cannot find the opening.\nYou lean closer to read it together. He turns his cap over, then leans in to look himself.\nThere is no reply deadline. He asks whether the writing is clear; at your nod, he finally puts his cap back on.',
-    '把他的卡放进书里',
-    'Keep his card in a book',
-    '请他去喝一杯茶',
-    'Take him for a cup of tea',
+    '这条路谁知道',
+    'Who knows this route',
+    '加雷思说，有人想请他列出镇上独居住户的地址，好安排关怀。他只给了公开活动的联系方式。\n「邀请贴邮局旁，门牌留我手上。」他说。你担心最需要陪伴的人反而不会看公告，两个人一时没接上话。\n他知道这种担心不是假的，也不愿把熟门熟路变成替别人决定哪扇门应该被敲，哪种安静需要打断。\n你可以支持只发公开邀请；也可以主张他先以自己名义询问熟人是否愿意参加，不交出名单，却要多迈一步。\n加雷思没有马上答应。他说自己也可能需要有人陪，但愿不愿让人知道，仍想由自己先开口。',
+    'Gareth says someone requested addresses of residents living alone for a care scheme. He supplied public activity contacts instead.\n“Invitation by the post office. House numbers stay with me.” You worry that those needing company most may not see a notice. For a moment you talk past each other.\nHe knows that concern is real. He does not want knowing the round to mean deciding whose door should be knocked or whose quiet interrupted.\nYou can support public invitations only, or argue he should personally ask acquaintances whether they want to join, sharing no list but taking another step.\nGareth does not immediately agree. He may need company too, he says, but still wants to choose when he tells someone.',
+    '支持只公开邀请，不替住户决定',
+    'Support public invitations without deciding for residents',
+    '建议他以自己名义问熟人，仍不交名单',
+    'Urge him to ask acquaintances personally, without sharing a list',
   ],
 ];
 const tenHeartScenes: typeof scenes = [
   [
     'margaret',
-    '钥匙有了家',
-    'A home for the key',
-    '玛格丽特约你去小屋试备用钥匙，旧绳圈递到手上，她抱着那把磨白的折椅。\n「得往上抬，手还记得吧？」门开了，她仍抱着折椅，没有收回钥匙。\n你把水壶挪到旁边，替她留出放脚的地方。她说起丈夫种坏的豆子，自己笑了。\n门内的空钩就在手边，折椅仍抱在她怀里。她请你挑个位置，钥匙也留在这里。',
-    'Margaret asks you back to the shed to try the spare key. She hands you its old string loop, holding the worn folding chair.\n“Lift it. Hands still remember?” When the door opens, she keeps holding the folded chair without taking the key back.\nYou move the watering can aside, leaving her room for her feet. Her husband’s failed beans make her laugh.\nThe empty hook is within reach; the chair is still in her arms. She asks you to choose a place, with the key staying here too.',
-    '把钥匙挂上门内的空钩',
-    'Hang the key on the inside hook',
-    '替她展开那把旧折椅',
-    'Unfold the old chair for her',
+    '失败也记一笔',
+    'Failures go in too',
+    '玛格丽特的新种植本没有工整日历，封面写着「吃到了什么」，背面写着「别再干这事」。\n她翻开给你看，先记豆架搭得够不够着。你们对菜地大小还可能有分歧，旧照片照样夹着。\n「得了，我明年还可能改主意！」她说。「明年又搭高呢？」你问。她瞪你一眼：「那就再拆，木头又没上锁！」\n她决定每次看见你，都问一件种成或种坏的事，答案不必听着体面，也不替对方找借口。\n她把本子合起来：「谁先讲？烂苗也算！我那盆番茄还够骂到下回呢。」',
+    'Margaret’s new notebook has no neat calendar. The front says “Things I ate”; the back says “Don’t do this again”.\nShe shows you the entry on reaching the beans. You may still disagree about the plot’s size. The old photograph stays tucked inside.\n“Oh, I might change my mind again next year!” “Build it higher next year?” you ask. She glares. “Then down it comes again. Nobody locked the timber!”\nShe proposes asking about one success or failure whenever you meet. No respectable-sounding answers required, and no excuses supplied for each other.\nShe shuts the notebook. “Who goes first? Rotten seedlings count! That tomato tray will keep me grumbling till next time.”',
+    '先讲自己最近的失手',
+    'Tell her your latest mistake first',
+    '让她先讲种坏的东西',
+    'Ask her to start with a failed crop',
   ],
   [
     'ade',
-    '不刷新的茶歇',
-    'A break without refreshing',
-    '阿德把旧工牌从抽屉里拿出来，塑料套裂了一边，背面的分机号仍看得清。\n「现在直接叫你就行。」他试着喊一声，又低头笑，手里的手机没有解锁。\n他掀开点心盒，糖霜沾上袖口。没去拿纸，先把旁边那把椅子拉出来。\n茶喝到一半，手机震了一声。他把它推进抽屉，招呼你过来，点心盒旁还留着空。',
-    'Ade takes the old badge from the drawer. The sleeve is split, but your extension is still readable.\n“I can just call your name now.” He tries it and laughs, leaving his phone locked.\nHe opens the snack box and icing catches his cuff. Before wiping it, he pulls out the chair beside him.\nHalfway through the tea, his phone buzzes. He slides it into the drawer and waves you over. There is still space beside the snack box.',
-    '把点心盒推到两人中间',
-    'Put the snack box between you',
-    '坐下陪他把茶喝完',
-    'Sit down and finish the tea together',
+    '不提交的茶歇',
+    'A break with nothing due',
+    '阿德的茶歇提醒换了名字，叫「暂不处理」。他给你看完便扣上手机，连倒计时也没设。\n「有消息？」你问。他摇头：「状态混合：有待办，有已办。本次茶歇暂停汇报。」\n你问他会不会又把休息做成新任务。他想了想：「风险存在。参与方式：自愿，退出请口头通知。」\n你们约定碰面先问要不要谈工作，对方说不要，就不再补一句「顺便问个事」。\n阿德把手机推远一点：「任务负责人栏：空。议程先问你。」他看着你，认真等一句可以不是「都行」的回答。',
+    'Ade has renamed his tea-break reminder “Not dealing with it now”. He shows you, turns the phone face down and sets no timer.\n“Any news?” you ask. He shakes his head. “Mixed status: some pending, some done. Reporting paused for this break.”\nYou ask whether he is turning rest into another task. “Risk acknowledged. Participation voluntary. Verbal notice if you withdraw.”\nYou agree to ask whether the other wants to discuss work first. A no will not be followed by “Just one quick thing”.\nAde moves the phone farther away. “Task owner field: blank. Your agenda first.” He waits properly for an answer that need not be “Anything’s fine”.',
+    '先说这次不谈工作',
+    'Say you do not want work talk today',
+    '让他先问，不替你猜答案',
+    'Let him ask rather than guess your answer',
   ],
   [
     'helen',
-    '不交的作业',
-    'Work never handed in',
-    '海伦翻出那页拼错自己名字的旧讲义，放在一本空白本旁，没有把错处遮住。\n「这次不用重抄。」她找来一枚大纸夹，夹住本子快合拢的那一边。\n她在废纸上画出当时蹲着的自己，鞋画得像两只小船，笔尖停在空白本上方。\n书架上留好一格，没有分数也没有交稿日。她请你给本子添个开头，旧讲义也在旁边。',
-    'Helen sets the handout with her misspelt name beside a blank notebook, leaving the mistake uncovered.\n“No copying it out this time.” She finds a large clip to hold the notebook open.\nOn scrap paper she draws herself crouching, shoes like little boats. Her pencil hovers over the new notebook.\nA shelf space is ready, without marks or deadlines. She asks you to start the notebook, with the old handout beside it.',
-    '在空白页画出摇晃的书堆',
-    'Draw the wobbling pile on the blank page',
-    '把那页旧讲义夹进本子',
-    'Keep the old handout in the notebook',
+    '先问一句',
+    'One question first',
+    '海伦给自己做了一张小书签，上面没有名言，只写着「你想让我听，还是一起想办法」。\n她说书签也不是万能的，尤其当她急着证明自己有用时，还是会忘。你说那就提醒她。\n「你会怎么提醒？可别又像交作业！」她笑。你问这句话要不要修改，她摆摆手：「这句保留原稿，行吗？」\n你们约定以后碰面都可以问一次，不用先把心事整理成漂亮的段落，也允许半途换答案。\n海伦把书签夹好，忽然说：「今天换我找开头。你能等我把这一句想好吗？」她望着你，没有用老师的笑盖过去。',
+    'Helen has made herself a bookmark. No quotation, just “Would you like me to listen, or think it through with you?”\nShe says it is no cure-all. She still forgets when eager to prove she is useful. You offer to remind her.\n“How will you remind me? Please don’t make it homework!” She laughs. You ask whether that sentence needs correcting. She waves it off. “Can I keep my original wording on that one?”\nYou agree either can ask when you meet. Feelings need no polished paragraphs, and the answer can change halfway through.\nHelen marks her place. “My turn to find an opening today. Will you wait while I work out this sentence?” She looks at you without covering it with a teacher’s smile.',
+    '今天先听我说，不找办法',
+    'Ask her just to listen today',
+    '请她讲自己的事，你来听',
+    'Invite her to speak while you listen',
   ],
   [
     'priya',
-    '拼图外的蓝天',
-    'Sky beyond the jigsaw',
-    '普里娅把最后一块蓝天放进拼图，没有立刻拆掉，手掌还按着快散开的边框。\n「这回找个不会被收走的地方。」她挪开书架上的旧收据，量了量空出来的宽度。\n她拿来薄框放在桌边，一块云却翻到地上。两个人低头，正好同时看见它。\n手机亮了一下。她把屏幕扣住，先请你搭把手，书架上的位置还等着这片蓝天。',
-    'Priya fits the final sky piece, keeping her palm against the loose border rather than taking it apart.\n“Somewhere it can stay this time.” She clears receipts from the shelf and measures the gap.\nShe brings a slim frame to the table. A cloud piece flips onto the floor, where you both spot it at once.\nHer phone lights up. She turns it over and asks for a hand first. The shelf space is waiting for this patch of blue.',
-    '扶住薄框让她装好拼图',
-    'Steady the frame for the jigsaw',
-    '把翻掉的云放回蓝天',
-    'Return the fallen cloud to the sky',
+    '可以回答不要',
+    'No is an answer',
+    '普里娅见到你，先问：「先确认，今天聊吗？」你把同样的问题问回去，她想了想，说想歇着。\n你们坐了一会儿，先前的分歧未必全讲通了，但这次她说不要，你没有立刻追问或替她找原因。\n「以前静下来，我就想叫下一位。」她说。你问现在呢。她看看你：「认得你了，省掉核姓名那步。」\n你们约定以后见面仍先问一句；要是有人说不要，就可以一起安静，也可以各自去做自己的事。\n她后来开口说：「这回我选静坐，你选留下还是先走。请便。」两个人都省下了赔一场更好谈话的力气。',
+    "Priya greets you. “Quick check: talking today?” You ask her the same. She considers it and says she'd like a rest.\nYou sit a while. Your old disagreement may remain unresolved, but when she declines, you neither press her nor supply a reason.\n“Used to want to call the next person when things went quiet.” What about now? “Know your name. Can skip that check.”\nYou agree to keep asking first when you meet. If either declines, you can sit quietly together or each do your own thing.\nShe eventually says, “I choose quiet. Your choice: stay or head off. Please yourself.” Neither has to spend energy making up a better conversation.",
+    '留下来，安静也算相处',
+    'Stay and let quiet count as company',
+    '先告辞，不追问什么时候聊',
+    'Say goodbye without asking when she will talk',
   ],
   [
     'dave',
-    '题册的空白页',
-    'The blank quiz-book page',
-    '戴夫翻到旧题册最后一页，胶带黏住了纸角，他小心撕开，露出一行没写完的题。\n「答案我也忘了。」他找来那张写歪队名的纸，垫在下面，免得铅笔戳穿。\n你们试着补完题目，补到后来成了互相出新题，谁都没拿出计分板。\n一页纸又松了。他把铅笔和夹子放在吧台上，请你留个新答案，或帮这页找到位置。',
-    'Dave opens the last page of the old quiz book. He eases tape from the corner to reveal an unfinished question.\n“Forgot the answer too.” The crooked team-name sheet goes underneath to stop the pencil making a hole.\nFinishing the question turns into setting each other new ones. Neither of you reaches for a scoreboard.\nAnother page comes loose. He sets a pencil and clip on the bar, asking for a new answer or a place to keep the page.',
-    '给那道题补个新答案',
-    'Write a new answer for the question',
-    '替他夹牢题册松掉的纸页',
-    'Clip the quiz book’s loose pages',
+    '老板暂停营业腔',
+    'The host takes a break',
+    '戴夫翻开新题册，第一页竟然没有题，只有一句「老板也可以不知道」。你说这像作弊声明。\n「各位，这是老板的免责条款！」他接得很快，笑完却没有再把声音放到能盖过全场的程度。\n他仍担心收入，也未必赞同你处理客人的办法，只是不再把每次沉默都当成必须抢救的事故。\n你们约好以后见面可以说一句「先别主持」，说过以后，戴夫就按一个普通人的音量接着聊。\n戴夫看看题册，又看看你：「要用新暗号，现在就能试。老板也有休息权，虽然还没写进饮料单。」',
+    'Dave opens his new quiz book. Its first page has no question, only “The landlord is allowed not to know”. You call it a cheating notice.\n“Folks, a disclaimer for the landlord!” The reply comes quickly, but afterwards he does not raise his voice to fill the whole room.\nHe still worries about takings and may disagree with your approach to customers. He no longer treats every silence as an emergency he must rescue.\nYou agree that either can say “No hosting for a minute”. Dave will then carry on at an ordinary person’s volume.\nDave looks from the quiz book to you. “Try the new phrase whenever you like. The landlord gets a break too. Hasn’t reached the drinks menu yet.”',
+    '说一次「先别主持」',
+    'Try “No hosting for a minute”',
+    '请老板回答一道没把握的题',
+    'Ask the landlord a question he is unsure about',
   ],
   [
     'rahman',
-    '门铃旁的合照',
-    'A photo by the bell',
-    '拉赫曼约你回店挂旧招牌，牌刚擦净，钉子就从围裙口袋里滚进了货箱。\n你替他扶着牌，他一层层翻箱底，先翻出开张那天剩下的包装纸。\n纸背还能认出几笔旧账。他找回钉子，把纸放在脱漆的牌角旁，举起手机。\n「挂好拍张照？」他请你过来比位置，门铃恰在试拍时响了，屏幕上只留了半张侧脸。',
-    'Rahman asks you back to the shop to hang the old sign. It is clean, but the nail drops from his apron into a box.\nYou hold the sign while he searches, finding wrapping paper left from opening day first.\nOld sums show on the reverse. He finds the nail, lays the paper by the chipped corner and raises his phone.\n“A photo once it’s up?” He invites you to try a position. The bell rings just as the camera clicks for a test shot, catching only half his face.',
-    '扶住店牌让他裹好破角',
-    'Hold the sign while he pads its corner',
-    '陪他站到店牌旁拍张照片',
-    'Stand beside the sign for a photograph',
+    '自己的那一栏',
+    'A column of his own',
+    '拉赫曼的账本多了一栏，标题叫「店主不在」。下面不是营业损失，而是他真正出门做过的事。\n你说听着仍像记账。他笑：「老朋友，拿惯账本了。这回写演出，价钱都写漏，倒把座位记住了。」\n旧店面广告还在，没被当成留下的誓言。他说以后也可能搬走，只是不再等一本证件替他想清楚。\n你们约定见面时，他可以先讲一件店外的事，你也可以回报一件不用证明有价值的小事。\n拉赫曼合上账本：「老朋友，谁先讲店外的事？演出那乐手把琴弓掉了。」他没摸计算器，等你想一件。',
+    'Rahman’s ledger has a new column: “Proprietor absent”. It records what he actually did outside, rather than lost sales.\nYou say it still sounds like bookkeeping. He smiles. “Used to a ledger, my friend. Wrote down the concert, forgot the price, remembered the seat.”\nThe sale advert remains, without becoming a vow to stay. He may move someday. He no longer expects a document to decide that for him.\nYou agree he can begin meetings with something beyond the shop. You can bring something small that needs no proof of value in return.\nRahman closes the ledger. “Who starts with life outside, my friend? Musician at my concert dropped his bow.” He leaves the calculator alone and waits while you think.',
+    '让他先讲店外的生活',
+    'Ask him to start with life outside the shop',
+    '先讲自己的无用小事',
+    'Start with your own small, useless pleasure',
   ],
   [
     'lina',
-    '两个人的画册',
-    'A sketchbook for two',
-    '莉娜把那张没画完的纸贴进薄画册，圆圈被胶水沾住，皱出了一道小山脊。\n「杯子留下了，这个也别丢。」她拿铅笔沿着皱褶画路，问路口该往哪边走。\n她翻出旧街的速写，指指那扇认得的门，画册里的路却还没走到那里。\n帆布包搁在脚边，画册摊着，空白处够再画一栋屋子。她把铅笔转过来请你接着画。',
-    'Lina pastes the unfinished drawing into a thin sketchbook. Glue wrinkles the circle into a little ridge.\n“The cup stayed. Keep this too.” She draws a road along the wrinkle and asks which way it should turn.\nAn old-street sketch shows the familiar door, but the road in the sketchbook has not reached it yet.\nHer canvas bag rests at her feet. The open page has room for another house; she turns the pencil round and asks you to carry on.',
-    '在她画的路旁添一扇门',
-    'Add a door beside her road',
-    '把画册摊平继续画台阶',
-    'Flatten the sketchbook and keep drawing the steps',
+    '画外也在生活',
+    'Life outside the drawing',
+    '留下来的莉娜给你看新画，第一张没有小镇标志，也没有信封，只画了一只看着很凶的梨。\n「它拒绝被吃？」你问。「它就是梨！」她笑起来，「喂，配人生旁白加钱啊，你付吗？」\n她仍会为以后担心，但不再把每一张画都做成感谢留下的证明，也不要求自己永远喜欢这里。\n你们约定以后偶尔互相画一样眼前的东西，不问进度，不评好坏；想停一次，也不用解释。\n她把梨的画转正：「下次画什么？拜托，半只梨也成！吃掉那半记得讲味道，我这只酸得要命。」',
+    "Having stayed, Lina shows you a new painting. No town symbol or envelope. Just a rather fierce-looking pear.\n“Refusing to be eaten?” you ask. “It's a pear!” She laughs. “Hey, life-story commentary costs extra. Are you paying?”\nShe still worries about the future. Each picture no longer has to prove gratitude for staying, nor must she always like the town.\nYou agree to draw something in front of you for each other occasionally. No progress checks or marks; skipping once needs no explanation.\nShe straightens the pear picture. “Next subject? Please, half a pear will do! Tell me how the eaten half tasted. Mine's horribly sour.”",
+    '画自己的桌子，按约定回一幅',
+    'Draw your table in reply',
+    '请她画一样普通得不用解释的东西',
+    'Ask for something ordinary that needs no explanation',
   ],
   [
     'gareth',
-    '盒盖上的车轮',
-    'Wheels on the box lid',
-    '加雷思带来一只硬纸盒，把孩子画的感谢卡放进去，旧薄纸已经补了好几处。\n「自己的东西，老放邮包底下。」你带来他那张不用邮票的卡，他犹豫该放哪边。\n他拿隔纸比了比，说一格留给收到的，一格留给还想亲手送出去的，盒里正好够宽。\n盒盖还空着，彩笔和隔纸一齐递来。他请你搭把手，让这些卡不用再挤邮包底。',
-    'Gareth brings a stiff box and lays the child’s thank-you card inside, its tissue patched in several places.\n“Always my own things at the bottom of the bag.” You’ve brought his unstamped card; he isn’t sure which side it belongs on.\nHe measures a divider: one side for cards received, one for cards still to hand over. The box is just wide enough.\nThe lid is blank. He offers you pens and the divider, asking for help so the cards need not crowd the bottom of his postbag.',
-    '替纸盒折好两格隔纸',
-    'Fold the two compartments for the box',
-    '在盒盖画上那辆小车',
-    'Draw the bicycle on the lid',
+    '不用投递的路',
+    'A walk without deliveries',
+    '加雷思给你指一条路，起点不是邮筒，终点也不是哪户门前。他说这是自己想走的一段。\n你问为什么选这里。「过桥就见树。邮袋放家，回头走河边。」他说完，又想了想：「这段能并排走。」\n他仍会担心退休以后的日子，但不再要求每次停步都有工作理由，也开始主动约人一起走。\n你们约定见面时先问想往哪儿，答案可以临时改；要是只想坐着，加雷思也不拿步数算输赢。\n他把路线图收好，抬头等你：「到路口了。左还是右，你定？」旁边没有催着投递的信，脚步不必先替谁作答。',
+    'Gareth points out a route with neither a postbox at the start nor a resident’s door at the end. It is simply a stretch he wants to walk.\nYou ask why this one. “Trees past the bridge. Postbag at home. Back along the river.” He thinks. “Room to walk side by side here.”\nHe still worries about life after retirement. He no longer needs a work reason for every stop and has begun inviting people out himself.\nYou agree to ask which direction you feel like taking. Answers may change. Sitting is fine; Gareth will not judge by the step count.\nHe puts away the map and looks up. “At the crossing. Left or right? You choose?” No letters hurry him. His feet need not answer on anyone’s behalf.',
+    '这回让他带路，走他想走的',
+    'Let him lead along the route he wants',
+    '提出自己的方向，一起改路线',
+    'Suggest your direction and change the route together',
   ],
 ];
 export const heartEvents: GameEvent[] = scenes.map(
@@ -2364,10 +2385,10 @@ for (const choice of heartEvents.find((event) => event.id === 'heart-lina-8')!
 export const townHeartLetters: GameEvent[] = [
   {
     id: 'letter-lina-10',
-    title: text('寄回的半幅画', 'The drawing sent back'),
+    title: text('寄来的半幅画', 'A drawing from elsewhere'),
     text: text(
-      '莉娜寄回那张画，空白处添了她的新桌子。「以后想起来就各画一半吧。」信封里还有一张留给你的白纸。',
-      'Lina sends back the drawing, adding her new table in the blank space. “Half each, whenever one of us remembers?” There is a fresh sheet for you in the envelope.',
+      '莉娜寄来街景，折起的半面画着新桌子。「另一半你画！喂，画歪照寄，邮票可贵了。」她在背面认真写了自己的介绍。',
+      'Lina sends a street sketch, her new table on one folded half. “Your half next! Hey, crooked ones still get posted. Stamps cost money.” Her own introduction is written on the back.',
     ),
     weight: 1,
     once: true,
@@ -2405,8 +2426,8 @@ lina.lines.push({
   id: 'lina-stayed',
   requires: ['lina-stayed'],
   text: text(
-    '留下的杯子洗好了，下次换我请咖啡。',
-    'Washed the cup that stayed. Coffee is on me next time.',
+    '我留下来了！先收画稿，喂，街角那幅还得重画。',
+    "I'm staying! Pack the sketches first. Hey, still have to redraw that corner.",
   ),
 });
 
@@ -2506,33 +2527,33 @@ for (const event of heartEvents)
 
 const lineCopy: Record<string, Text> = {
   'dave-1': text(
-    '这回题目我锁抽屉了，钥匙还在找。',
-    'This quiz’s questions are locked away. Now to find the key.',
+    '题目锁好了，钥匙没找到。公平竞赛，连我也偷看不了。',
+    "Questions locked away. Key lost. Fair play; even I can't peek.",
   ),
   'dave-daily-9': text(
-    '上回有人把答题纸当购物单带走了。',
-    'Last time someone took the answer sheet home as a shopping list.',
+    '有人拿答题纸当购物单。好歹有几题答得上。',
+    'Someone used a quiz sheet for shopping. At least they answered a few.',
   ),
   'rahman-daily-18': text(
-    '周末早晨报纸卖完，街上才像醒了。',
-    'Once the weekend morning papers sell out, the street feels awake.',
+    '周末报纸卖得早，那叠我特意留着，老客订好的。',
+    "Papers go early at weekends. Saved that stack specially. Regulars' orders.",
   ),
   'gareth-daily-18': text(
-    '周末的邮筒也得看一眼，肩膀倒轻松些。',
-    'Still checking the postbox at weekends. Easier on the shoulder, though.',
+    '周末散步也拐邮筒那边。走过头才想起休班。',
+    "Even weekend walks turn by the postbox. Pass it before remembering I'm off.",
   ),
   'priya-daily-25': text(
-    '绕池塘慢慢走一圈？今天不赶时间。',
-    'Fancy a slow lap of the pond? I’ve got time today.',
+    '周末绕池塘？我想找那只绿头鸭的拼图。',
+    'Pond this weekend? Looking for a jigsaw with that green-headed duck.',
   ),
 };
 for (const npc of npcs)
   for (const line of npc.lines)
     if (lineCopy[line.id]) line.text = lineCopy[line.id];
 heartEvents.find((e) => e.id === 'heart-helen-4')!.title.en =
-  'The bookmark by the window';
+  'Teachers look for words too';
 heartEvents.find((e) => e.id === 'heart-helen-8')!.title.en =
-  'An afternoon without the register';
+  'Not your practice exercise';
 
 for (const npc of npcs)
   npc.lines.push(
@@ -2551,36 +2572,36 @@ for (const event of heartEvents) {
 
 const introductions: Record<string, Text> = {
   margaret: text(
-    '我是玛格丽特，退休后常在菜地。口袋这副手套总有泥。',
-    'I’m Margaret. Retired, mostly at the allotment now. These gloves in my pocket always have soil on them.',
+    '我是玛格丽特，退休了，常在菜地。别碰那袋土，破了。',
+    "Margaret. Retired. Usually at the allotment. Mind that compost bag; it's split.",
   ),
   ade: text(
-    '我是阿德，和你在同家公司。工牌夹子老夹住领子。',
-    'I’m Ade, from your company. This badge clip keeps catching my collar.',
+    '我是阿德，在镇上上班。待办：认识你。这项完成了。',
+    "Ade. I work in town. Task: meet you. That one's done.",
   ),
   helen: text(
-    '我是海伦，在语言学校教英语。包里总有漏出来的讲义。',
-    'I’m Helen. I teach English at the college. There are always handouts escaping from my bag.',
+    '我是海伦，教英语。你想怎么称呼？我先记准。',
+    "I'm Helen. I teach English. What do you like to be called?",
   ),
   priya: text(
-    '我是普里娅，在诊所接待。那支漏墨的笔总跟着我。',
-    'I’m Priya, the surgery receptionist. That leaky pen follows me everywhere.',
+    '我是普里娅，诊所接待。姓名请报慢些，我记。',
+    "Priya, clinic reception. Name slowly, please. I'll note it.",
   ),
   dave: text(
-    '我是戴夫，管酒吧也出问答题。粉笔头快比指甲短了。',
-    'I’m Dave. I run the pub and write the quiz. My chalk is nearly shorter than my fingernail.',
+    '我是戴夫，开酒吧的。先认识人，抢答铃待会儿再按。',
+    'Dave. I run the pub. Meet people first. Buzzer later.',
   ),
   rahman: text(
-    '我是拉赫曼，开街角小店。钥匙太多，门铃都等急了。',
-    'I’m Rahman. I run the corner shop. So many keys, even the doorbell gets impatient.',
+    '我是拉赫曼，街角开店。来，老朋友，看看想喝哪种茶？',
+    'Rahman, shop on the corner. Come in, my friend. What sort of tea takes your fancy?',
   ),
   lina: text(
-    '我是莉娜，喜欢画街景。速写本这块圆印是咖啡杯留下的。',
-    'I’m Lina. I like sketching the streets. This ring on my sketchbook came from a coffee cup.',
+    '我是莉娜，画街景。喂，小心手肘，颜料没干！',
+    "Lina. Street sketches. Hey, mind your elbow. Paint's wet!",
   ),
   gareth: text(
-    '我是加雷思，给镇上送信。邮包这枚扣子比我还准时。',
-    'I’m Gareth. I deliver the town’s post. This buckle on my bag is more punctual than I am.',
+    '我是加雷思，送信的。先认名字，门牌以后再认。',
+    'Gareth. I deliver the post. Name first. House number later.',
   ),
 };
 for (const npc of npcs.filter((person) => !person.characters))
@@ -2589,3 +2610,1101 @@ for (const npc of npcs.filter((person) => !person.characters))
     text: introductions[npc.id],
     once: true,
   });
+
+// Recent circumstances use the current season; permanent memories stay separate.
+const recentCopy: Record<string, [string, string][]> = {
+  margaret: [
+    [
+      '刚办完续签？得了，茶我泡！种子袋替你挪开。',
+      "Renewal done? Right, I'll make tea! Move my seed packets for you.",
+    ],
+    [
+      '加薪了？好啊！带块蛋糕，我这儿只有芜菁。',
+      "Pay rise? Lovely! Bring cake. All I've got is turnips.",
+    ],
+    [
+      '换工作了？先认新同事，我这块地自己锄得动！',
+      'New job? Get to know the people. I can hoe my own plot!',
+    ],
+    [
+      '英语过了！来念这袋花名，我眼镜又落小屋了。',
+      'Passed English! Read this flower name. Left my glasses in the shed again.',
+    ],
+    [
+      'Life in the UK 过了？得了，题册拿来垫泥靴！',
+      'Passed Life in the UK? Right, put that book under my muddy boots!',
+    ],
+    [
+      '刚回来？瞧，苗蹿高了！你行李还没它长得快。',
+      'Back already? Look how those seedlings shot up! Faster than you can unpack.',
+    ],
+    [
+      '钱紧？我有旧盆！洗得腰都酸了，你正好拿走。',
+      'Short of money? Got old pots! Washed them till my back ached. Take some.',
+    ],
+    [
+      '今天难受？坐我这园艺凳，先让我骂完这鬼风！',
+      'Rough day? Take my gardening stool. Let me finish cursing this wind!',
+    ],
+    [
+      '最近敢嫌我酱酸了？好！总算有人说实话。',
+      'You dare call my jam sour now? Good! Someone finally tells the truth.',
+    ],
+  ],
+  ade: [
+    [
+      '续签办完？任务关闭。我这材料夹还卡在照片栏。',
+      "Renewal done? Task closed. My folder's still stuck on the photo section.",
+    ],
+    [
+      '加薪确认了？祝贺！薪资栏更新，午饭继续自带。',
+      'Pay rise confirmed? Congratulations! Salary field updated. Still packing lunch.',
+    ],
+    [
+      '换工了？交接关闭。新密码记录位置：你脑子？',
+      'Changed jobs? Handover closed. New password storage: your head?',
+    ],
+    [
+      '英语过关！结项餐我提议咖喱，否决请举手。',
+      'Passed English! Proposing curry for project closure. Hands up to object.',
+    ],
+    [
+      'Life in the UK 过了？待办已划掉，笔芯也快没了。',
+      "Passed Life in the UK? Task crossed off. Pen's nearly out too.",
+    ],
+    [
+      '回来了？时差暂列通勤风险，闹钟请再核一次。',
+      'Back? Jet lag logged as a commuting risk. Recheck that alarm.',
+    ],
+    [
+      '预算紧？午饭合并采购，我的饭盒够装两份。',
+      'Budget tight? Joint lunch purchase. My box holds two portions.',
+    ],
+    [
+      '状态很差？今日任务移出：听我念报表。',
+      "Feeling awful? Removed from today's tasks: listening to my report.",
+    ],
+    [
+      '熟了以后直接报异常：我烦死那张报销表了。',
+      "Now we're familiar, direct incident report: that expenses form is driving me mad.",
+    ],
+  ],
+  helen: [
+    [
+      '刚续签完？哪张表最绕口？我想拿来练长句。',
+      "Renewal done? Which form had the knottiest sentence? I'd like it for practice.",
+    ],
+    [
+      '升职了！你怎么解释新职位？借我一句当例句？',
+      'Promoted! How do you explain the new role? May I borrow that as an example?',
+    ],
+    [
+      '新岗位哪个词最怪？我学生连「欢迎加入」都抄错过。',
+      'Oddest word in the new job? A student once even copied welcome aboard wrong.',
+    ],
+    [
+      '英语过了！你最满意哪句？我把它写进下堂课？',
+      'Passed English! Proudest of which sentence? May I use it next lesson?',
+    ],
+    [
+      'Life in the UK 过了？哪题措辞最绕？给我看看。',
+      'Passed Life in the UK? Which question was worst worded? Show me.',
+    ],
+    [
+      '刚回来，哪种声音最想念？我回来先听不惯门铃。',
+      'Back again. Which sound did you miss? My doorbell sounded odd when I returned.',
+    ],
+    [
+      '钱紧时怎么拒绝邀约？「改天」我上回说得太含糊。',
+      "How do you turn down invitations when money's tight? My maybe another day was too vague.",
+    ],
+    [
+      '今天难受，哪句话惹的？或者我给你念段侦探小说？',
+      'Rough day. Was something said? Or shall I read you a bit of detective fiction?',
+    ],
+    [
+      '现在敢考倒我了？来，出个词，我先合上词典。',
+      'Ready to stump me now? Give me a word. Dictionary closed first.',
+    ],
+  ],
+  priya: [
+    [
+      '续签办完了？先确认，水要温的凉的？嗓子讲干了吧。',
+      'Renewal done? Quick check: warm water or cold? Throat dry from all that talking?',
+    ],
+    [
+      '加薪啦？我庆祝就买拼图，你想买哪样？',
+      "Pay rise? I'd celebrate with a jigsaw. What would you pick?",
+    ],
+    [
+      '新工作开始了？先确认，同事姓名记住几个？',
+      "New job started? Quick check: how many colleagues' names so far?",
+    ],
+    [
+      '英语考过啦！我要用接电话的正式语气说：恭喜！',
+      'English passed! Let me use my proper telephone voice: congratulations!',
+    ],
+    [
+      'Life in the UK 过了？拼图桌借你放杯庆功茶。',
+      'Passed Life in the UK? Space on my jigsaw table for your celebratory tea.',
+    ],
+    [
+      '回来了？先确认，行李齐了？我收包也常漏耳机。',
+      'Back? Quick check: all bags here? I keep leaving my headset behind.',
+    ],
+    [
+      '钱紧？我带茶包，拼图桌旁的椅子随便坐。',
+      "Money tight? I've got teabags. Help yourself to a chair by the jigsaw.",
+    ],
+    [
+      '今天很难受？先坐这边，我把耳机收了，听你讲。',
+      "Rough day? Sit here. I'll put the headset away and hear you out.",
+    ],
+    [
+      '最近一看见你就想聊拼图，预约用语都省了。',
+      'See you lately and start talking jigsaws. Skip the appointment language.',
+    ],
+  ],
+  dave: [
+    [
+      '续签忙完啦！各位，这位刚从文件山下山，喝什么？',
+      "Renewal done! Folks, this one's climbed down Paperwork Mountain. What'll you have?",
+    ],
+    [
+      '加薪啦？老板本想提价——开玩笑，笑话照旧免费！',
+      'A pay rise? The landlord was about to put prices up—kidding! Jokes are still free.',
+    ],
+    [
+      '换工作啦？本店题纸的职业栏还写旧的，我给你改！',
+      "New job? Your old one's on the quiz sheet. The landlord will fix that!",
+    ],
+    [
+      '英语过了！各位加一道听力：老板这笑话冷不冷？',
+      "Passed English! Bonus listening round, folks: how terrible was the landlord's joke?",
+    ],
+    [
+      'Life in the UK 过啦？来，挑战本店饼干盲猜！',
+      'Passed Life in the UK? Right, time for our mystery biscuit challenge!',
+    ],
+    [
+      '回来啦！各位，远行队员归队，外地笑话带了吗？',
+      "You're back! Folks, our travelling teammate returns. Brought any jokes from away?",
+    ],
+    [
+      '钱紧？来杯水！老板欠你上回的冷笑话，还没还清。',
+      'Money tight? Water it is! The landlord still owes you for that last terrible joke.',
+    ],
+    [
+      '今天糟透啦？哎，我把麦关了，来骂老板新出的题！',
+      "Awful day? Right, mic off. Come and tear the landlord's new questions apart!",
+    ],
+    [
+      '最近你敢当面说题烂了！各位，这是熟客的特权。',
+      "You tell me my questions are rubbish now! Folks, that's a regular's privilege.",
+    ],
+  ],
+  rahman: [
+    [
+      '续签忙完了，老朋友，我给你留了块刚到的薄饼。',
+      'Renewal done, my friend. Saved you a flatbread from the fresh delivery.',
+    ],
+    [
+      '加薪了？老朋友，尝尝新进的茶，先让我沾点喜气。',
+      'A rise, my friend? Try the new tea. Let the shop share some of that good news.',
+    ],
+    [
+      '换工作了？通勤还经过小店吗，老朋友，面包给你留？',
+      'New job? Still passing the shop, my friend? Shall I save your bread?',
+    ],
+    [
+      '英语过了，老朋友！来，念念我这念不顺的新茶名。',
+      "Passed English, my friend! Help me pronounce this new tea name I've been stumbling over.",
+    ],
+    [
+      'Life in the UK 过了？老朋友，我那本旧题书还压货单呢。',
+      "Passed Life in the UK, my friend? My old quiz book's still weighing down delivery sheets.",
+    ],
+    [
+      '刚回来，老朋友！旅途的茶好喝吗？给小店推荐一款。',
+      'Back again, my friend! Good tea on your travels? Recommend one for the shop.',
+    ],
+    [
+      '钱紧的话，老朋友，米有散装，我给你称今天够吃的。',
+      "If money's tight, my friend, I've got loose rice. I'll weigh enough for today.",
+    ],
+    [
+      '今天难受？老朋友，坐柜台后，我给你倒杯自己留的茶。',
+      'Rough day, my friend? Sit behind the counter. Have some of the tea I keep for myself.',
+    ],
+    [
+      '老朋友，最近敢跟你聊卖店的旧打算了，货单先放放。',
+      'My friend, lately I can tell you about that old plan to sell up. Delivery sheets can wait.',
+    ],
+  ],
+  lina: [
+    [
+      '续签忙完啦？喂，文件夹先合上，我要画你喝咖啡。',
+      'Renewal done? Hey, shut the folder. Want to sketch you having coffee.',
+    ],
+    [
+      '加薪了！拜托，庆功别买我这块干蛋糕，换家店！',
+      'Pay rise! Please, celebrate somewhere else. Not with this dry cake!',
+    ],
+    [
+      '换工作啦？喂，旧工位那张画记得拿，别白送他们。',
+      "New job? Hey, take that drawing off your old desk. Don't leave them a freebie.",
+    ],
+    [
+      '英语过了！喂，替我跟咖啡师说蛋糕太干，练口语！',
+      "English passed! Hey, tell the barista this cake's dry. Speaking practice!",
+    ],
+    [
+      'Life in the UK 过了？题册翻面，借我画猫！',
+      'Passed Life in the UK? Turn the practice sheet over. Cat sketch for me!',
+    ],
+    [
+      '回来了？喂，先讲路上有什么怪招牌，我要画！',
+      'Back? Hey, tell me the odd shop signs first. I want to draw them!',
+    ],
+    [
+      '钱紧就点一杯，喂，我纸还够，空杯也能画。',
+      "Money tight, one coffee then. Hey, paper's plentiful. Can draw an empty cup.",
+    ],
+    [
+      '今天心情很烂？来，陪我骂这盒又涨价的颜料！',
+      'Rotten mood? Come swear at this paint box with me. Price went up again!',
+    ],
+    [
+      '敢给你看未完稿了，喂，咖啡别往边上搁啊。',
+      'Showing you unfinished work now. Hey, coffee away from the edge!',
+    ],
+  ],
+  gareth: [
+    [
+      '续签办完，材料夹好。回家过桥左拐，我走这边。',
+      'Renewal done. Papers clipped. Left across the bridge for home. My way too.',
+    ],
+    [
+      '加薪了？带你绕面包店庆祝，过邮局右拐。',
+      'Pay rise? Celebratory bakery detour. Right past the post office.',
+    ],
+    [
+      '新通勤先认一遍。过桥左转？我送信走到那路口。',
+      'Learn the new commute. Left after the bridge? My round reaches that crossing.',
+    ],
+    [
+      '英语过了！替我念这新街名，我总和隔壁巷混。',
+      'Passed English! Read this new street name. I keep confusing it with the next lane.',
+    ],
+    [
+      'Life in the UK 过了？庆祝走河边，邮袋先放下。',
+      'Passed Life in the UK? Celebration along the river. Put the postbag down first.',
+    ],
+    [
+      '回来了？从车站直走，门牌还在，花盆倒挪了。',
+      "Back? Straight from the station. House number's there. Flowerpot's moved, though.",
+    ],
+    [
+      '钱紧，走河边这圈。经过邮局，避开商店街。',
+      'Money tight. River circuit. Past the post office, away from the shopping street.',
+    ],
+    [
+      '心情差？到桥头停，右侧有长椅，我先卸邮袋。',
+      "Rough mood? Stop at the bridge. Bench on the right. I'll unload the postbag.",
+    ],
+    [
+      '今天专程找你，邮袋放家了。往桥那边走？',
+      'Came specially today. Postbag at home. Shall we head for the bridge?',
+    ],
+  ],
+  jamie: [
+    [
+      '续签办完喽！我炖锅肉，你可得把文件从汤边挪远点！',
+      "Renewal done! I'll make a stew. You'll have to move those papers away from the soup!",
+    ],
+    [
+      '升职加薪啦！我开火庆祝，你点菜，这回真的听你的！',
+      "Promotion and a raise! I'll cook to celebrate. You choose. Really your call this time!",
+    ],
+    [
+      '换新工作啦！通勤我陪你试，可别信我那条所谓近路。',
+      "New job! I'll try the commute with you. Don't trust my supposed shortcut, though.",
+    ],
+    [
+      '英语过啦，好球！今晚试我那破收音机的球赛解说？',
+      'Passed English! Get in! Fancy tackling the commentary on my battered radio tonight?',
+    ],
+    [
+      'Life in the UK 过啦！我烤土豆，哎，土豆这次买了！',
+      'Passed Life in the UK! Jacket potatoes. Ah, yes, I bought them this time!',
+    ],
+    [
+      '回来啦！我给你留了饭，哎，箱子先放，我把汤端来。',
+      "You're back! Saved you dinner. Ah, put the case down, I'll get the soup.",
+    ],
+    [
+      '钱有点紧啊？冰箱我来翻，瞧，这土豆能救一顿！',
+      "Money tight? I'll raid the fridge. Look, these potatoes will get us a meal!",
+    ],
+    [
+      '哎，你脸色真差。我关球赛，来，今天到底怎么了？',
+      "You look rough. Football off. Come on, what's happened today?",
+    ],
+    [
+      '咱们现在能直说啦！比如那道菜，我是真的吃腻了。',
+      "We can say things straight now! Like that dish. Honestly, I've had enough of it.",
+    ],
+  ],
+  'ka-ning-partner': [
+    [
+      '续签办完，今晚我想吃点心。庆祝谁订位，来，谈一下。',
+      "Renewal done, I want dim sum tonight. Who books our celebration? Let's discuss.",
+    ],
+    [
+      '升职加薪要庆祝！新工作量也要谈，家里的活可没自动减少。',
+      "Celebrate that promotion and raise! Discuss the workload too. Housework hasn't shrunk by itself.",
+    ],
+    [
+      '换工作了，接送得重谈。讲好先，你的新时间也得算我那边。',
+      'New job, school runs need talking through. Agree first: your new hours have to fit mine too.',
+    ],
+    [
+      '英语过了，去吃点心！有个条件：今天由你打电话订位。',
+      'Passed English, dim sum! One condition: you ring and book today.',
+    ],
+    [
+      'Life in the UK 过啦！庆祝你挑，收拾轮到你，成交？',
+      'Passed Life in the UK! You choose the celebration, your turn to clear up. Deal?',
+    ],
+    [
+      '回来啦！先讲最好玩那件，行李我陪你拆，边拆边讲。',
+      "You're back! Best story first. I'll help unpack, tell it while we do.",
+    ],
+    [
+      '钱紧就重谈预算。我的摄影杂志别自动删，先问过我。',
+      "Money tight, let's discuss the budget. Ask before my photography magazine gets cut.",
+    ],
+    [
+      '今天心情差，家务咱们少做点。我有个条件：饭得好好吃。',
+      "Rough mood today, let's do fewer chores. One condition: a proper dinner.",
+    ],
+    [
+      '最近你也肯出主意啦！讲好先，提出的那项你带头做。',
+      "You're suggesting things now! Let's agree, you start the job you suggest.",
+    ],
+  ],
+  'ka-ning-child': [
+    [
+      '续签办完了？那今晚文件关门，轮到我的故事开门吧？',
+      'Renewal finished? Papers closed tonight, my stories get to open now?',
+    ],
+    [
+      '升职算升级吧？换椅子还是换关卡？加薪我会算！',
+      "Promotion's levelling up, right? New chair or new level? I can count the pay rise!",
+    ],
+    [
+      '你换工作了。旧同事还算同事吗，还是直接算朋友？',
+      "You've changed jobs. Are the old colleagues still colleagues, or do they become friends?",
+    ],
+    [
+      '英语过了！我要出朗读关，你也得念到句号才算赢。',
+      "Passed English! I'll set a reading level. You have to reach the full stop to win too.",
+    ],
+    [
+      'Life in the UK 过了？那我问小镇的问题，算不算加试？',
+      'Passed Life in the UK? Do my town questions count as an extra test?',
+    ],
+    [
+      '回来啦！先声明，我第一句没问礼物，这回能加一分吗？',
+      "You're back! Declaration: didn't ask for presents first. A point this time?",
+    ],
+    [
+      '钱紧，那玩免费寻宝！我定规则，找到怪石头算一分。',
+      'Money tight, free treasure hunt! My rules. One point for finding a funny stone.',
+    ],
+    [
+      '今天你不开心，那我讲学校那只飞虫！笑不笑都算听过了。',
+      "You're sad today. I'll tell you about the bug at school! Counts as heard, laugh or no laugh.",
+    ],
+    [
+      '现在我敢说暂停了！跟玩游戏一样，举手就先停一轮。',
+      'I can say pause now! Like a game. Hand up, one round paused.',
+    ],
+  ],
+  'yao-flatmate': [
+    [
+      '续签办完。文件进硬袋；画纸蓝袋，仍旧分开存。',
+      'Renewal done. Papers in stiff folder; drawing paper blue folder, still separate.',
+    ],
+    [
+      '升职加薪，庆祝吃饭。报销单压平；便签会掉胶。',
+      'Promotion, raise, meal out. Flatten receipt; sticky note adhesive comes loose.',
+    ],
+    [
+      '新工作几点出门？插座错开十分钟；我把纸条改掉。',
+      "New job departure time? Ten-minute socket gap; I'll change the note.",
+    ],
+    [
+      '英语过了。证书量一下；硬袋四角要留出余量。',
+      'Passed English. Measure certificate; stiff folder needs clearance at all four corners.',
+    ],
+    [
+      'Life in the UK 过了。证明平放；离水壶一臂远。',
+      "Passed Life in the UK. Papers flat; an arm's length from the kettle.",
+    ],
+    [
+      '回来了。箱子竖放靠墙；过道宽度照旧，汤在小锅。',
+      "You're back. Case upright by wall; passage width unchanged, soup in small pan.",
+    ],
+    [
+      '钱紧，先修旧框。量内径就行；外框报价另算。',
+      'Money tight, repair old frame. Measure inner edge; outer-frame quote separate.',
+    ],
+    [
+      '今天难受就坐。右边椅脚已调平；我把裁纸机停掉。',
+      "Rough day, sit. Right chair legs levelled; I'll stop the paper cutter.",
+    ],
+    [
+      '熟了就直报尺寸。框歪几毫米，说几毫米；我重裁。',
+      "Know me now, give exact sizes. Frame out by millimetres, say how many; I'll recut.",
+    ],
+  ],
+};
+const recentFlags = [
+  'quarter-visa-renewed',
+  'quarter-promoted',
+  'quarter-job-changed',
+  'quarter-exam-passed',
+  'quarter-life-passed',
+  'quarter-returned',
+];
+for (const npc of npcs)
+  for (const [i, pair] of recentCopy[npc.id].entries())
+    npc.lines.push({
+      id: `${npc.id}-recent-${i + 1}`,
+      text: text(...pair),
+      ...(i < 6
+        ? { requires: [recentFlags[i]] }
+        : i === 6
+          ? { when: [{ stat: 'money', max: b.livingCosts }] }
+          : i === 7
+            ? { when: [{ stat: 'mood', max: 30 }] }
+            : { requires: [`quarter-friendship-${npc.id}`] }),
+    });
+
+// Each choice has its own spoken memory, alongside the existing shared flags.
+const heartReplies: Record<string, [Text, Text]> = {
+  'heart-margaret-2': [
+    {
+      zhCN: '问我种坏的？得了，先讲那盘全烂的番茄！',
+      en: 'What went wrong? Right, start with that whole tray of rotten tomatoes!',
+    },
+    {
+      zhCN: '你挑爱吃的菜了？好！香菜我就少种一行。',
+      en: 'Picked your favourites? Good! One less row of coriander, then.',
+    },
+  ],
+  'heart-margaret-4': [
+    {
+      zhCN: '舍不得的？以前上班有人等我开门，如今就蜗牛。',
+      en: "What do I miss? People waiting for me to open up. Now it's slugs.",
+    },
+    {
+      zhCN: '我照你说的空了几天。得了，又跑去买种子了！',
+      en: 'Tried leaving days empty, like you said. Ended up buying more seeds!',
+    },
+  ],
+  'heart-margaret-6': [
+    {
+      zhCN: '豆架照我的搭了！照片挂回去，凳子可扔了。',
+      en: 'Built the frame my way! Photo goes back up. Stool can go.',
+    },
+    {
+      zhCN: '旧豆架那毛病，讲完还气！他把凳子也做得晃。',
+      en: 'Still cross about that old frame! Even the stool he built wobbled.',
+    },
+  ],
+  'heart-margaret-8': [
+    {
+      zhCN: '地保住了！少种几垄是我自己改主意，记住喽。',
+      en: "Kept the plot! I'm planting fewer rows because I chose to, mind.",
+    },
+    {
+      zhCN: '你还想叫我缩菜地？得了，先尝这盘豆！',
+      en: 'Still want me to shrink the plot? Here, taste these beans first!',
+    },
+  ],
+  'heart-margaret-10': [
+    {
+      zhCN: '按说好的来：你这回种死了什么？我先忍着笑。',
+      en: "As agreed: what did you kill off this time? I'll try to keep a straight face.",
+    },
+    {
+      zhCN: '这回我先！鼻涕虫把苗吃光了，气得我扔铲子。',
+      en: 'Me first! Slugs ate every seedling. Threw my trowel in a temper.',
+    },
+  ],
+  'heart-ade-2': [
+    {
+      zhCN: '那件小事仍未解决。进度栏我写了「茶歇中」。',
+      en: 'That small problem remains unresolved. Progress field says on tea break.',
+    },
+    {
+      zhCN: '茶歇议程清空。杯子状态：又续了一口。',
+      en: 'Tea-break agenda cleared. Cup status: another sip taken.',
+    },
+  ],
+  'heart-ade-4': [
+    {
+      zhCN: '准备进度讲过了。你的记录员表现：合格。',
+      en: 'Preparation progress reported. Your performance taking notes: satisfactory.',
+    },
+    {
+      zhCN: '今天切回工作议题。那封续签信暂存文件夹。',
+      en: 'Back to the work agenda today. Renewal letter parked in its folder.',
+    },
+  ],
+  'heart-ade-6': [
+    {
+      zhCN: '检查表缩短了。本人状态：还行，暂未散架。',
+      en: 'Checklist shortened. Personal status: all right. Still in one piece.',
+    },
+    {
+      zhCN: '工作移交完成。对方直接接了，交接会议取消。',
+      en: 'Task transferred. They just accepted it. Handover meeting cancelled.',
+    },
+  ],
+  'heart-ade-8': [
+    {
+      zhCN: '错表已认。补救项目：挨个通知，邮件写了又删。',
+      en: 'Worksheet error admitted. Recovery task: notify everyone. Keep rewriting the email.',
+    },
+    {
+      zhCN: '核清后才报告。影响栏补一项：同事白忙了会儿。',
+      en: 'Reported after checking. Impact field updated: colleagues wasted some time.',
+    },
+  ],
+  'heart-ade-10': [
+    {
+      zhCN: '按约定，工作议题关闭。另案讨论：午饭。',
+      en: 'As agreed, work agenda closed. Separate business: lunch.',
+    },
+    {
+      zhCN: '会前确认：工作，还是别的？我先收起报销单。',
+      en: 'Agenda check: work or something else? Putting my expenses away first.',
+    },
+  ],
+  'heart-helen-2': [
+    {
+      zhCN: '你换的那个词，我记到教案里了。原来还能这样用？',
+      en: 'Put your replacement word in my lesson notes. Never knew it could work like that.',
+    },
+    {
+      zhCN: '那次停笔你记得吗？我差点把你的词改成课本那个。',
+      en: 'Remember when I stopped my pen? Nearly swapped your word for the textbook one.',
+    },
+  ],
+  'heart-helen-4': [
+    {
+      zhCN: '那张旧便条我还留着。「车站」旁的箭头画反了。',
+      en: 'Still have that old note. The arrow beside station points the wrong way.',
+    },
+    {
+      zhCN: '你讲那句时，我差点抢答。你当时想用哪个词？',
+      en: 'Nearly jumped in with an answer then. Which word had you wanted?',
+    },
+  ],
+  'heart-helen-6': [
+    {
+      zhCN: '先问「故事讲完了吗」，我把这句写在红笔盒上了。',
+      en: 'Have you finished your story? Wrote that on the red-pen box.',
+    },
+    {
+      zhCN: '你说温柔也会打断，我回去重看那篇天气作文了。',
+      en: 'You said gentle interruptions still interrupt. Reread that weather essay afterwards.',
+    },
+  ],
+  'heart-helen-8': [
+    {
+      zhCN: '那回句子留原样了。你说的「自己」，我现在记得。',
+      en: 'Left that sentence as it was. I remember your word myself now.',
+    },
+    {
+      zhCN: '那回一起改过，下回我得先问：「现在要老师吗？」',
+      en: "Revised it together then. Next time I'll ask: would you like the teacher now?",
+    },
+  ],
+  'heart-helen-10': [
+    {
+      zhCN: '今天只听，你选哪句开头？我把书签翻到这面。',
+      en: 'Just listening today. Which sentence comes first? Turning the bookmark to this side.',
+    },
+    {
+      zhCN: '今天换我找词。要是我又讲成上课，你打断我？',
+      en: 'My turn to find the words. Will you stop me if this turns into a lesson?',
+    },
+  ],
+  'heart-priya-2': [
+    {
+      zhCN: '上次轮到你讲完，这回也照办，我暂缓叫号。',
+      en: 'You got to finish last time. Same this time. Holding off calling the next name.',
+    },
+    {
+      zhCN: '那回一起静坐，我脑里拼上块蓝天，差点喊下一位。',
+      en: 'Sat quietly together. Fitted some sky in my head. Nearly called “Next!”',
+    },
+  ],
+  'heart-priya-4': [
+    {
+      zhCN: '你那回只听我讲感受，回家终于少复盘一通电话。',
+      en: 'You heard my feelings that time. One fewer call to replay when I got home.',
+    },
+    {
+      zhCN: '上次改聊电影了，今天接着？诊所话题留交班讲。',
+      en: 'We switched to films last time. Carry on? Clinic talk can wait for handover.',
+    },
+  ],
+  'heart-priya-6': [
+    {
+      zhCN: '「现在不处理，请走预约。」那句我练熟，终于用上了。',
+      en: "“I'm off duty. Please book an appointment.” Practised that line. Finally used it.",
+    },
+    {
+      zhCN: '你那回专程来看我，我还习惯性找笔核姓名呢。',
+      en: 'You came just to see me. Still reached for a pen to check your name.',
+    },
+  ],
+  'heart-priya-8': [
+    {
+      zhCN: '推荐你已收回，谢了。接待台以外又能认得我了。',
+      en: 'You withdrew the recommendation. Thanks. People might see me away from reception again.',
+    },
+    {
+      zhCN: '上次仍有分歧，我把「请走预约」那句留给对方。',
+      en: 'We still disagreed. Kept “Please book an appointment” for the person concerned.',
+    },
+  ],
+  'heart-priya-10': [
+    {
+      zhCN: '按约定先问一声，今天静坐？我脑里还拼着蓝天。',
+      en: 'Our usual check first. Quiet today? Still fitting sky in my head.',
+    },
+    {
+      zhCN: '上次你先走，我拼上最后那片天。下次先问再约。',
+      en: 'You left me to it. Fitted the last bit of sky. Check before we make the next plan.',
+    },
+  ],
+  'heart-dave-2': [
+    {
+      zhCN: '你那道题我还没答出来。老板特权：允许拖延。',
+      en: 'Still haven’t solved your question. Landlord’s privilege: postponement.',
+    },
+    {
+      zhCN: '今天先不开场。你已经见过没麦克风的我了。',
+      en: 'No opening announcement today. You’ve met me without the microphone.',
+    },
+  ],
+  'heart-dave-4': [
+    {
+      zhCN: '我喜欢的笑话？老板答错还能继续开店那种。',
+      en: 'My favourite joke? The landlord gets it wrong and still keeps the pub.',
+    },
+    {
+      zhCN: '老板今天这桩麻烦，确实编不成笑话。你还听吗？',
+      en: "Today's landlord trouble really won't make a joke. Still want to hear it?",
+    },
+  ],
+  'heart-dave-6': [
+    {
+      zhCN: '那个人的事讲完，再放唱片，我总算能听进副歌了。',
+      en: 'After telling you about them, I put the record on and finally heard the chorus again.',
+    },
+    {
+      zhCN: '再听一面？来，客串本店唱片师，翻面归你！',
+      en: 'Other side? Come on, guest DJ. You get to turn it over!',
+    },
+  ],
+  'heart-dave-8': [
+    {
+      zhCN: '当众把规矩讲了，少卖几杯也心疼。老板认这笔。',
+      en: 'Said it in front of everyone. Fewer drinks still hurts. The landlord owns that bill.',
+    },
+    {
+      zhCN: '你劝顾生意，老板听着难受，那题我还是删了。',
+      en: 'You said protect the trade. Hard for the landlord to hear. Still deleted that question.',
+    },
+  ],
+  'heart-dave-10': [
+    {
+      zhCN: '暗号收到，主持下班！哎，戴夫本人想吃块饼干。',
+      en: 'Code received. Host off duty! Dave himself would like a biscuit.',
+    },
+    {
+      zhCN: '这题老板真不会。来，给诚实答案按一次抢答铃！',
+      en: 'Landlord honestly has no idea. Come on, ring the buzzer for an honest answer!',
+    },
+  ],
+  'heart-rahman-2': [
+    {
+      zhCN: '老朋友，你也站脆饼这边，我给自己那盘又多烤了会儿。',
+      en: "You're on the crisp side too, my friend. Gave my own tray a little longer.",
+    },
+    {
+      zhCN: '软饼我试烤了，老朋友，正摆后面晾着，来尝？',
+      en: 'Tried baking them soft, my friend. Cooling out the back. Want a taste?',
+    },
+  ],
+  'heart-rahman-4': [
+    {
+      zhCN: '老朋友，你问舍不得谁，卖店广告一拿出来，我就想起老客。',
+      en: "You asked who I'd miss, my friend. Take out the sale advert and I picture the regulars.",
+    },
+    {
+      zhCN: '你问后悔过没，老朋友，开店这么久，我真有几回想卖。',
+      en: 'Asked if I regretted it, my friend. After all these years, yes, a few times I really wanted to sell.',
+    },
+  ],
+  'heart-rahman-6': [
+    {
+      zhCN: '老朋友，我又挑了场演出，票压在自己那张货单下面。',
+      en: "Picked another concert, my friend. Ticket's under my delivery sheet.",
+    },
+    {
+      zhCN: '那张废票还在，老朋友，一翻账本就掉出来，我收了又收。',
+      en: "Old unused ticket's still there, my friend. Falls out of the ledger. Keep putting it back.",
+    },
+  ],
+  'heart-rahman-8': [
+    {
+      zhCN: '按原计划关店歇过了，老朋友，回来我还真想念门铃声。',
+      en: "Closed for the break as planned, my friend. Coming back, I found I'd missed that bell.",
+    },
+    {
+      zhCN: '你劝短开点，我还是关店歇了，老朋友，收入我心里有数。',
+      en: 'You suggested shorter hours. I closed for the break anyway, my friend. I know what it cost.',
+    },
+  ],
+  'heart-rahman-10': [
+    {
+      zhCN: '来，老朋友，我先讲店外的事，演出那排座椅可真硬。',
+      en: "Here, my friend, I'll start with outside the shop. Those concert seats were hard!",
+    },
+    {
+      zhCN: '老朋友，轮到你讲店外的了，我把货单塞抽屉，省得走神。',
+      en: "Your turn for life outside, my friend. Delivery sheets in the drawer so I don't get distracted.",
+    },
+  ],
+  'heart-lina-2': [
+    {
+      zhCN: '你讲过的那扇门，我留在纸外了。喂，我只画这边！',
+      en: 'Left the door you told me about off the page. Hey, drawing this side only!',
+    },
+    {
+      zhCN: '上次只聊颜色真痛快，喂，灰就是灰，省掉解释！',
+      en: 'Just colours last time. What a relief! Hey, grey is grey. Explanation saved!',
+    },
+  ],
+  'heart-lina-4': [
+    {
+      zhCN: '最初来这儿干什么，我还记得。喂，地图箭头还在呢！',
+      en: "I remember why I came here. Hey, arrow's still on the map!",
+    },
+    {
+      zhCN: '你听过我为什么难收行李，喂，光画稿就塞满两箱！',
+      en: "You heard why packing's hard. Hey, sketches fill two boxes alone!",
+    },
+  ],
+  'heart-lina-6': [
+    {
+      zhCN: '你听我讲过停笔那阵，烦死了，那盒蓝还剩大半呢。',
+      en: 'You heard about when I stopped drawing. Maddening. Most of that blue was still left.',
+    },
+    {
+      zhCN: '这条线就这么歪！上回只聊它怎么画，我舒服多了。',
+      en: 'Line stays that crooked! Talking just about drawing it last time felt much better.',
+    },
+  ],
+  'heart-lina-8': [
+    {
+      zhCN: '展出留了，介绍改了。喂，再偷加励志标题我就拆！',
+      en: "Show stays, introduction rewritten. Add a sneaky inspirational title and I'll tear it down!",
+    },
+    {
+      zhCN: '撤展少个机会，我知道。拜托，顶那标题我更来气！',
+      en: 'One less opportunity with the show withdrawn. I know! That title made me angrier.',
+    },
+  ],
+  'heart-lina-10': [
+    {
+      zhCN: '你画的桌子我认得！喂，下幅画咖啡渍也行，省布景。',
+      en: 'Know your table now! Hey, coffee stain next is fine. Saves arranging a subject.',
+    },
+    {
+      zhCN: '今天画普通东西！标题写「梨」，拜托，够用了吧。',
+      en: "Ordinary stuff today! Title: “Pear.” Please, that's plenty.",
+    },
+  ],
+  'heart-gareth-2': [
+    {
+      zhCN: '路认得了？左转，过矮墙。松砖那块快修了。',
+      en: "Know the route? Left, past the low wall. Loose paving's being fixed soon.",
+    },
+    {
+      zhCN: '你讲的路我走过了。过桥右拐，街名我又核一次。',
+      en: 'Walked your route. Right after the bridge. Checked the street name again.',
+    },
+  ],
+  'heart-gareth-4': [
+    {
+      zhCN: '邮袋放家了。今天往哪走？先在台阶下碰头。',
+      en: 'Postbag at home. Which way today? Meet below the steps first.',
+    },
+    {
+      zhCN: '上回只讲我自己，讲到拐角还没完。你都听到了。',
+      en: 'Only talked about myself last time. Still going at the corner. You heard it all.',
+    },
+  ],
+  'heart-gareth-6': [
+    {
+      zhCN: '工作外那条路走了。过桥到树下，原来有张长椅。',
+      en: "Tried that route outside work. Across the bridge, under the tree. There's a bench.",
+    },
+    {
+      zhCN: '怕没人等这事，说出口了。回家还是过邮筒右拐。',
+      en: 'Said it: afraid nobody will wait for me. Still right past the postbox for home.',
+    },
+  ],
+  'heart-gareth-8': [
+    {
+      zhCN: '公开邀请贴了。过邮局就能看见，名单还是空的。',
+      en: 'Public invitation up. Visible past the post office. List still empty.',
+    },
+    {
+      zhCN: '你说先问熟人，我记着。邮袋里这张名单留我手上。',
+      en: 'You said ask people I know first. Remembered. This list stays in my postbag.',
+    },
+  ],
+  'heart-gareth-10': [
+    {
+      zhCN: '今天我领？过桥往树走，到那边停，邮袋在家。',
+      en: "I'm leading? Over the bridge to the trees. Stop there. Postbag's home.",
+    },
+    {
+      zhCN: '今天你定方向。到路口我先停，你说哪边再走。',
+      en: "You choose today. I'll stop at the crossing. Move when you say which way.",
+    },
+  ],
+  'heart-jamie-2': [
+    {
+      zhCN: '今天调味先问你，哎，问口味！又差点只问够不够。',
+      en: "I'll ask about seasoning first. Ah, taste! Nearly asked only whether there's enough again.",
+    },
+    {
+      zhCN: '你问我真爱吃什么，我愣了！辣香肠，先算一道好了。',
+      en: "You asked what I actually like. Stumped me! Spicy sausage. Let's count that as one.",
+    },
+  ],
+  'heart-jamie-4': [
+    {
+      zhCN: '还有拿不准的！五人足球排人，我老怕把谁给落下。',
+      en: "There's more I'm unsure of! Even picking five-a-side, I worry I'll leave someone out.",
+    },
+    {
+      zhCN: '你自己试这条路！哎，我收住脚，差点又抢先带路。',
+      en: 'Try your own route! Ah, feet stay put. Nearly marched in front again.',
+    },
+  ],
+  'heart-jamie-6': [
+    {
+      zhCN: '哎，你说，我把工具盒扣上！手伸过去你就拍我。',
+      en: 'Go on. Toolbox shut! Give my hand a tap if I reach for it.',
+    },
+    {
+      zhCN: '我也怕啊，哎，修收音机修得再响，也得把这话说出来。',
+      en: "I'm scared too. Ah, even fixing the radio at full blast won't get those words said.",
+    },
+  ],
+  'heart-jamie-8': [
+    {
+      zhCN: '那天真坐下来谈了，比修完椅子难多了，你说是不是！',
+      en: "We actually sat and talked that day. Much harder than fixing the chair, wasn't it!",
+    },
+    {
+      zhCN: '另约那天我记着呢！你累了就改，咱们说好接着谈。',
+      en: "I remember the day we agreed! Change it if you're tired. We've agreed to keep talking.",
+    },
+  ],
+  'heart-jamie-10': [
+    {
+      zhCN: '哎，坐这把！我也坐，螺丝刀已经进盒了，你检查。',
+      en: "This chair! I'll sit too. Screwdriver's in the box. You can check.",
+    },
+    {
+      zhCN: '椅子按你改的叫！咱们自己家，取名还得问裁判啊？',
+      en: "Your new name for the chair it is! Our house. Who's refereeing the names anyway?",
+    },
+  ],
+  'heart-ka-ning-partner-2': [
+    {
+      zhCN: '你记得我想做的工作啦！下次见表姐，我自己讲，你补充。',
+      en: 'You remember the work I want! Next cousin call, I tell her, you add to it.',
+    },
+    {
+      zhCN: '分工说定后，求职终于能专心。接送临时换，记得先来谈。',
+      en: 'Jobs agreed, I can focus on applications. If a school run changes, discuss it first.',
+    },
+  ],
+  'heart-ka-ning-partner-4': [
+    {
+      zhCN: '那张照片，你那版我留着。表姐听了笑，说还想听第三版。',
+      en: 'Kept your version of that photo. My cousin laughed and wants a third version too.',
+    },
+    {
+      zhCN: '相册记了谁做的。下回按这个分，想改，我们提前谈。',
+      en: 'Album says who did what. Same split next time; discuss changes beforehand.',
+    },
+  ],
+  'heart-ka-ning-partner-6': [
+    {
+      zhCN: '电影那段还没讲完！明天的菜明天说，讲好先，这段归我。',
+      en: "Film story's unfinished! Tomorrow's groceries tomorrow. Agree this stretch is mine.",
+    },
+    {
+      zhCN: '你那点私心还记着吧？我记摄影课，你那件也拿出来谈。',
+      en: "Remember that wish just for you? I've got photography lessons. Put yours on the table too.",
+    },
+  ],
+  'heart-ka-ning-partner-8': [
+    {
+      zhCN: '轮到你那页，真自己动手了！我说好要夸，这回兑现。',
+      en: "Your album page, and you started it yourself! Promised I'd praise that. Here it is.",
+    },
+    {
+      zhCN: '分工还在谈，但相册没全塞给我。这个变化，我认账。',
+      en: "Still talking responsibilities, but the album didn't all land on me. I'll give you that.",
+    },
+  ],
+  'heart-ka-ning-partner-10': [
+    {
+      zhCN: '那页是我的进展！讲好先，给表姐看时别改成全家事迹。',
+      en: "That's my progress on that page! Agree now: keep it mine when showing my cousin.",
+    },
+    {
+      zhCN: '没做好的也写，你先写一件，我跟一件，成交？',
+      en: 'Write what went wrong too. One from you, one from me. Deal?',
+    },
+  ],
+  'heart-ka-ning-child-2': [
+    {
+      zhCN: '今天两只鸭子还各叫各的。你不许偷偷合并。',
+      en: 'The ducks still get separate noises today. No secretly merging them.',
+    },
+    {
+      zhCN: '你那只不像鸭子，但可以演。书里也没说不行。',
+      en: 'Yours didn’t sound like a duck. Still gets a part. The book didn’t forbid it.',
+    },
+  ],
+  'heart-ka-ning-child-4': [
+    {
+      zhCN: '门里门外今天交换先说！我画的门，开门顺序我来定。',
+      en: 'Inside and outside swap who speaks first today! My drawn door, my opening order.',
+    },
+    {
+      zhCN: '学校那个说法还会吗？忘了就举手，我再教一遍！',
+      en: "Remember the school version? Hand up if you've forgotten. I'll teach it again!",
+    },
+  ],
+  'heart-ka-ning-child-6': [
+    {
+      zhCN: '乱笔也拍进去了吧？那是踮脚记录，不是垃圾。',
+      en: 'The scribble’s in the photo, right? Tiptoe evidence. Not rubbish.',
+    },
+    {
+      zhCN: '最高那条有故事！先听，我踮脚那次得算犯规分。',
+      en: 'Top line has a story! Listen first. Tiptoeing gets penalty points.',
+    },
+  ],
+  'heart-ka-ning-child-8': [
+    {
+      zhCN: '歪嘴那张寄到了。外婆说她也想听那个笑话。',
+      en: 'The crooked-mouth photo arrived. Grandma wants to hear the joke too.',
+    },
+    {
+      zhCN: '你挑了清楚那张。我还留着歪嘴的，不是废片。',
+      en: 'You chose the clear one. I kept the crooked-mouth one. It isn’t a reject.',
+    },
+  ],
+  'heart-ka-ning-child-10': [
+    {
+      zhCN: '你的话也卷进去了！大人没长高，也准报名这个游戏。',
+      en: 'Your words are in the roll too! Grown-ups can enter this game without growing taller.',
+    },
+    {
+      zhCN: '今天记哪件我定好了！先保密，你猜中也暂时没奖。',
+      en: "Picked today's record! Secret first. Even guessing right gets no prize yet.",
+    },
+  ],
+  'heart-yao-flatmate-2': [
+    {
+      zhCN: '共用范围定了。架子中线擦掉；分区标签还在。',
+      en: 'Shared area settled. Shelf centre line erased; section labels remain.',
+    },
+    {
+      zhCN: '你那件私物单独标了。借用前问；合租协议照写。',
+      en: 'Your private item separately marked. Ask before borrowing; stays in flat agreement.',
+    },
+  ],
+  'heart-yao-flatmate-4': [
+    {
+      zhCN: '你认领那项已问过。清单加了人名；返工少一轮。',
+      en: 'You asked about your item. Name added to list; one fewer round of rework.',
+    },
+    {
+      zhCN: '负责人填齐。那句「你会说」划掉；责任按项分。',
+      en: "All owners filled in. “You're good at explaining” crossed out; duties item by item.",
+    },
+  ],
+  'heart-yao-flatmate-6': [
+    {
+      zhCN: '安静喝汤那回记住了。关机；两碗放齐就行。',
+      en: 'Remembered that quiet soup. Switch off; just two bowls side by side.',
+    },
+    {
+      zhCN: '按约定，独处会直说。时间报清；脸色没有刻度。',
+      en: "As agreed, I'll say when I want time alone. Clear times; faces have no scale.",
+    },
+  ],
+  'heart-yao-flatmate-8': [
+    {
+      zhCN: '上板先征求同意。字写齐也先问；已擦掉重写。',
+      en: 'Ask agreement before pinning. Straight handwriting still needs asking; erased and redone.',
+    },
+    {
+      zhCN: '那次谈到一半暂停。铅笔留板边；继续时从这行起。',
+      en: 'That discussion paused halfway. Pencil beside board; resume from this line.',
+    },
+  ],
+  'heart-yao-flatmate-10': [
+    {
+      zhCN: '你加的停顿已描上。地图铅笔画；两个人都能改。',
+      en: 'Your added pause marked. Pencil map; both can alter it.',
+    },
+    {
+      zhCN: '地图新改一笔。门口宽度重新量；鞋架已挪开。',
+      en: 'Another map revision. Entrance width remeasured; shoe rack moved.',
+    },
+  ],
+};
+for (const event of heartEvents) {
+  const npc = npcs.find((person) => person.id === event.heart!.npc)!;
+  for (const [i, choice] of event.choices.entries()) {
+    const flag = `${event.id}-${choice.id}`;
+    choice.sets = [...(choice.sets ?? []), flag];
+    npc.lines.push({
+      id: `${flag}-reply`,
+      text: heartReplies[event.id][i],
+      requires: [flag],
+      once: true,
+    });
+  }
+}
