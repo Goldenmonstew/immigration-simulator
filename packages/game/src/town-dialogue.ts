@@ -105,100 +105,100 @@ const copy: Record<string, [string, string][]> = {
   ],
   ade: [
     [
-      '林遥，重启有效，原因未知。能这么写报告吗？',
-      'Yao, reboot worked. Cause unknown. Acceptable report?',
+      '林遥，公司电脑重启好了（原因没找着），同事等着用。',
+      "Yao, work computer's running again (cause still unknown). Colleague needs it.",
     ],
     [
-      '林遥，手册有索引。总算有人考虑了下班时间。',
-      'Yao, booklet has an index. Someone considered finishing time.',
+      '林遥，雇主给的材料找到了（在旧邮件里），我再核日期。',
+      "Yao, found the employer's papers (in an old email). Checking the dates again.",
     ],
     [
-      '林遥，不聊代码了。换个议题：午饭怎么分工？',
-      'No code talk, Yao. New agenda: lunch responsibilities?',
+      '林遥，同事叫我吃午饭（又忘看钟），代码先放着。',
+      'Yao, colleague called me for lunch (lost track again). Code can wait.',
     ],
     [
-      '嘉宁，接送和排班撞了，谁有权改哪张表？',
-      'Ka Ning, school run clashes with work. Who can alter which rota?',
+      '嘉宁，你接送赶得上吗？我换班的邮件还没回。',
+      'Ka Ning, can you make the school run? Still waiting on my shift-swap email.',
     ],
     [
-      '嘉宁，工作外的待办也这么长吗？我的没末页。',
-      'Ka Ning, home task list long too? Mine has no last page.',
+      '嘉宁，我下班还得理续签清单（漏了自己的名字）。',
+      'Ka Ning, renewal checklist after work (left my own name off it).',
     ],
     [
-      '学校义卖排到周末？嘉宁，你的休息归谁批？',
-      'School sale at the weekend, Ka Ning? Who approves your rest?',
+      '学校周末义卖？我得查班次（差点又直接答应）。',
+      'School sale this weekend? Need to check my shifts (nearly said yes again).',
     ],
     [
-      '索菲娅，两个人的日程合并后，空白还剩多少？',
-      'Sofia, merge two calendars. How much blank space remains?',
+      '索菲娅，我把续签日期抄到班表了（抄反了一栏）。',
+      'Sofia, put my renewal dates on my rota (wrong column).',
     ],
     [
-      '你和杰米怎么分待办？我一分类就忘了做。',
-      'How do you and Jamie split tasks? I sort mine and forget them.',
+      '你和杰米忙得过来吗？我续签材料又装错文件夹。',
+      'You and Jamie managing all right? Put my renewal papers in the wrong folder again.',
     ],
     [
-      '索菲娅，今天议题由你提。我负责闭嘴记牢。',
-      "Sofia, you set today's agenda. I'll handle shutting up and remembering it.",
+      '索菲娅，续签费用我重算了（车费漏了），这回记上。',
+      'Sofia, redid my renewal budget (left out fares). Added them this time.',
     ],
     [
-      '复印件我去重打（刚才少选一页），这张先给我。',
-      "I'll reprint it (missed a page in the selection). That sheet, please.",
+      '续签复印件少了一页（我少选的），得再跑一趟。',
+      'One page missing from my renewal copies (my selection). Another trip needed.',
     ],
     [
       '你经历过续签了。我也还在核对（先说到这里）。',
       "You've been through renewal. I'm still checking (that's as far as I can say).",
     ],
     [
-      '烤饼我热一下（自己烤的），黄油放在你手边。',
-      "I'll warm the scones (made them myself). Butter's beside you.",
+      '烤饼分给同事了（留了你的），黄油在你手边。',
+      "Shared the scones with colleagues (saved yours). Butter's beside you.",
     ],
     [
-      '抽屉卡住了（我塞的尺），给我点空地方来清。',
-      "Drawer's stuck (my ruler in there). Give me room to clear it.",
+      '公司的抽屉卡住了（我塞的尺），得清出点空。',
+      "Office drawer's stuck (my ruler in there). Need to clear some space.",
     ],
     [
       '戴夫那本我想借（先问本人），拿来查一段旧题。',
       "I'd borrow Dave's book (ask him first) to check an old question.",
     ],
     [
-      '钱还没数完（我按错键），让拉赫曼先核他的。',
-      'Still counting (wrong calculator key). Let Rahman check his first.',
+      '续签的钱又数错了（按错键），我先核自己的账。',
+      'Miscounted my renewal savings (wrong key). Checking my own sums first.',
     ],
     [
       '莉娜画完了？我想看（得先擦手），墨还没干。',
       "Lina finished? I'd like a look (wash hands first). Ink's still wet.",
     ],
     [
-      '上回讲完后我记了「等信」（只确认了这一项）。',
-      'After our talk I wrote waiting for a letter (only that part is certain).',
+      '上回说完还在等雇主回信（只问材料），我又看了邮箱。',
+      "Still waiting for my employer's reply (only asked about papers). Checked the inbox again.",
     ],
     [
-      '你说说今天吧（我会记住），自己的待办先合上。',
-      "Tell me about today (I'll remember). My task list can close.",
+      '说说你的今天吧（我的班上完了），续签清单先合上。',
+      "Tell me about your day (my shift's done). Renewal checklist closed for now.",
     ],
     [
-      '笔还在耳朵上（我自己放的），先还你那一支。',
-      "Pen's behind my ear (put it there myself). Yours back first.",
+      '同事找的笔在我耳朵上（我自己放的），先还回去。',
+      "Colleague's missing pen is behind my ear (put it there myself). Giving it back.",
     ],
     [
-      '回形针那个小人留着（桌子我来收），它放左边。',
-      "Keep the paper-clip figure (I'll clear the desk). Left-hand side.",
+      '同事做的回形针小人留着（我收桌子），放工牌旁。',
+      "Keeping my colleague's paper-clip figure (clearing my desk). Beside the work pass.",
     ],
     [
-      '耳机又缠了（我昨晚乱收的），解开再放进盒。',
-      'Headphones tangled (put them away badly). Untangle, then box.',
+      '通勤耳机又缠了（昨晚乱收的），先解开再装盒。',
+      'Commuting headphones tangled (put away badly last night). Untangle before boxing them.',
     ],
     [
       '那盆是塑料的（我浇过水），托盘得先擦干。',
       'Plastic plant (I watered it). Dry the tray first.',
     ],
     [
-      '快捷键我贴错了（旧版软件），喝完茶就去换。',
-      "Wrong shortcut label (old software). I'll change it after tea.",
+      '公司的快捷键贴错了（旧版软件），喝完茶去换。',
+      'Wrong office shortcut label (old software). Changing it after tea.',
     ],
     [
-      '新本子第一行写错了（先留着），下一行接着记。',
-      'Error on line one (leave it there). Carry on below.',
+      '续签本第一页写错了（把班次抄来了），翻页重写。',
+      'Wrong first page in my renewal notebook (copied my shifts). Starting on the next page.',
     ],
     [
       '计时器响了（烤饼那一炉），我去关，你接着讲。',
@@ -309,20 +309,20 @@ const copy: Record<string, [string, string][]> = {
   ],
   priya: [
     [
-      '林遥，先确认你休班，再请教电脑。',
-      "Yao, checking you're off duty before I ask about computers.",
+      '林遥，先核你下班了吧？前台电脑我明天再问。',
+      "Yao, checking you're off duty. Reception computer questions can wait till tomorrow.",
     ],
     [
       '林遥，伞挂这边，跟接待台一样留条过道。',
       'Umbrella here, Yao. Clear passage, like at reception.',
     ],
     [
-      '林遥，我关了来电铃，接线耳机都嫌头疼。',
-      'Ringer off, Yao. Even the headset was giving me a headache.',
+      '林遥，接待电话转好了，下班我这边关铃。',
+      'Yao, reception calls transferred. Off duty, turning my ringer off.',
     ],
     [
-      '嘉宁，孩子鞋合脚吗？雨衣大还能卷袖。',
-      'Ka Ning, shoes fit your child? Big raincoat sleeves can be rolled up.',
+      '嘉宁，孩子的名字请本人报，前台也得核准。',
+      'Ka Ning, let your child give their name. Reception needs it right too.',
     ],
     [
       '名字请本人报，我这边照原音记。',
@@ -345,8 +345,8 @@ const copy: Record<string, [string, string][]> = {
       "Which bit did you miss, Sofia? I'll repeat it at my phone-answering pace.",
     ],
     [
-      '蓝丝带到手！先确认，你最满意哪棵菜？',
-      'Got your ribbon! Quick check: which vegetable are you proudest of?',
+      '蓝丝带拿到了？先坐这边，前台语气没收住。',
+      "Got the ribbon? Sit here first. Haven't switched my reception voice off.",
     ],
     [
       '候诊室人名保密。换一题，拼图你找边吗？',
@@ -358,12 +358,12 @@ const copy: Record<string, [string, string][]> = {
       'Boiler visit booked? Write the slot down. I worry about missing appointments too.',
     ],
     [
-      '戴夫讲笑话像电话转接，总算转到重点了。',
-      "Dave's jokes are like call transfers. Eventually you reach the point.",
+      '戴夫讲笑话像前台转接，总得核一遍转哪边。',
+      "Dave's jokes are like reception transfers. Always checking where they're going.",
     ],
     [
-      '玛格丽特问苗，我选了塑料花，省出拼图时间。',
-      'Margaret offered seedlings. Chose plastic flowers. More jigsaw time.',
+      '接待台的花换塑料了，午休能多拼几块。',
+      'Plastic flowers at reception. A few more jigsaw pieces in my lunch break.',
     ],
     [
       '海伦听人讲完才追问，接待台该请她来示范。',
@@ -374,36 +374,36 @@ const copy: Record<string, [string, string][]> = {
       'After telling you my side, I replay fewer calls when I get home.',
     ],
     [
-      '上次轮到我讲，接着来？这次是耳机的后续。',
-      "My turn last time. Carry on? There's more about the headset.",
+      '上回说到接待耳机，先核一下，你听到哪了？',
+      'We were talking reception headsets. Quick check: where did I get to?',
     ],
     [
-      '请拿张新表，错的那张交给我碎掉。',
-      'Fresh form, please. Give me the wrong one for shredding.',
+      '请先核这张预约表，错的交前台碎掉。',
+      'Please check this appointment form first. Reception will shred the wrong one.',
     ],
     [
       '我的杯子认缺口，接待台那批也好区分。',
       'I know my mug by the chip. Helps with that batch at reception too.',
     ],
     [
-      '谢意已收到！这句我电话里一天说好多回。',
-      'Thanks received! Say that on the phone all day.',
+      '预约电话挂完又说谢谢，这句下班还收不住。',
+      "Another thanks after an appointment call. Can't stop saying it off duty.",
     ],
     [
-      '今天接电话接饱了，我借把椅子坐。',
-      'Had my fill of phone calls. Borrowing a chair.',
+      '接待台的队伍交接了，我这边先坐一下。',
+      "Handed over the reception queue. I'm sitting down for a bit.",
     ],
     [
-      '针线在接线耳机旁，袖口勾破过几回。',
-      "Sewing kit's beside the headset. Caught my cuff a few times.",
+      '针线放前台备件盒了，袖口总被抽屉勾。',
+      "Sewing kit in reception's spares box. Drawer keeps snagging my cuff.",
     ],
     [
       '休息时段写进预约本了，这回真轮到我。',
       'My break is in the appointment book. Finally my turn.',
     ],
     [
-      '我在脑子里找拼图边块，刚才漏听半句。',
-      'Hunting jigsaw edges in my head. Missed half of that.',
+      '我先核完预约顺序，下班才轮到拼图边块。',
+      'Appointment order first. Jigsaw edges get their turn after work.',
     ],
   ],
   dave: [
@@ -612,104 +612,104 @@ const copy: Record<string, [string, string][]> = {
   ],
   lina: [
     [
-      '林遥，画坏翻面啊！我的纸可贵着呢。',
-      'Turn a bad sketch over, Yao! my paper costs money.',
+      '林遥，拒签那阵我也盯屏幕，眼都花了。',
+      'Yao, I stared at screens after my refusal too. Eyes went blurry.',
     ],
     [
-      '林遥，围巾两头差一截，拆？我才懒得拆！',
-      "Scarf ends don't match, Yao. Unravel it? Can't be bothered!",
+      '林遥，我问到一家咨询机构，先查接待时间。',
+      'Yao, found an advice charity. Checking their opening hours first.',
     ],
     [
-      '林遥，盯完屏幕看画稿，喂，这白怎么全发蓝？',
-      'Screen then sketch, Yao. Hey, why does all this white look blue?',
+      '林遥，替我看看补材料的附件怎么传不上去。',
+      "Yao, can you see why my extra documents won't upload?",
     ],
     [
-      '嘉宁，孩子把人画大挺好，房子又没付画稿费！',
-      "Child draws big people, Ka Ning? Fine. House isn't paying for the sketch!",
+      '嘉宁，补材料那回我漏吃午饭，你吃了吗？',
+      'Ka Ning, I missed lunch chasing documents that time. Have you eaten?',
     ],
     [
       '嘉宁，你自己的路线呢？别又拿全家的糊弄我。',
       "Your own route, Ka Ning? don't hand me the whole family's again.",
     ],
     [
-      '嘉宁，先让孩子选颜料，涂紫就紫，洗笔我来。',
-      "Let your child pick the paint, Ka Ning. Purple it is. I'll wash the brushes.",
+      '嘉宁，咨询我要自己讲，喂，你陪着就行。',
+      "Ka Ning, I'll speak at the advice session. Hey, just come along.",
     ],
     [
-      '索菲娅，又拍侧脸？正脸画坏了还能翻纸！',
-      'Another profile, Sofia? bad full-face portrait, just turn the paper over!',
+      '索菲娅，拒签那阵你陪我走过，今天换我。',
+      'Sofia, you walked with me after my refusal. My turn today.',
     ],
     [
       '你说给杰米听的那扇家门，我要画！里面什么色？',
       'That door back home you told Jamie about. I want to draw it! Colour inside?',
     ],
     [
-      '索菲娅，纸对半分！画多画少，咖啡都得自己请。',
-      'Half the paper each, Sofia! However much we draw, we buy our own coffee.',
+      '索菲娅，Plan B 我改过，别又替我收行李。',
+      "Sofia, I've changed Plan B. Don't start packing for me again.",
     ],
     [
-      '蓝丝带折皱了？别熨，我正缺这种褶子画。',
-      'Ribbon creased? leave the iron. Need those folds for a drawing.',
+      '蓝丝带拿好了，别塞我补材料的包，会皱。',
+      'Keep that ribbon safe. My document bag will crumple it.',
     ],
     [
-      '画完又卡标题！叫「还没想好」行吧？',
-      "Finished drawing, stuck on title! can I call it “Haven't Decided”?",
+      '拒签理由我圈了，拜托，别再从头念一遍。',
+      "Marked the refusal reasons. Please don't read the whole thing to me again.",
     ],
     [
-      '鱼只露背，喂，底下我乱画，你有意见就游上来！',
-      "Fish shows its back. Hey, I'll invent the rest. Object? Swim up here!",
+      '律师那串问题问完，咖啡都续两回了。',
+      'Got through my solicitor questions. Two coffee refills later.',
     ],
     [
-      '门把手画反了！怪不得开得像往里砸。',
-      "Drew the handle backwards! No wonder it looks like it's smashing inwards.",
+      '补材料的扫描件歪了，喂，字还认得吧？',
+      'Scanned documents came out crooked. Hey, still readable, right?',
     ],
     [
-      '海伦问歪线？那是路，我拿脚走过的！',
-      "Helen asked about the crooked line. it's a road. I've walked it!",
+      '海伦帮我读拒签那句，我先把火压下去。',
+      'Helen helped read that refusal sentence. Had to calm down first.',
     ],
     [
-      '玛格丽特认出小屋了，喂，我门还画错了呢！',
-      'Margaret recognised the shed. Hey, I even drew the wrong door!',
+      '玛格丽特问咨询怎么样，我先跟她骂车费。',
+      'Margaret asked how the advice went. Started by grumbling about the fare.',
     ],
     [
-      '包装纸翻面画！正面花得我眼疼，颜料还不显色。',
-      "Draw on the back of wrapping paper! Front hurts my eyes. Paint won't show.",
+      '附件名全改了，烦，怎么还说找不到。',
+      'Renamed every attachment. Ugh, why does it still say missing?',
     ],
     [
       '那段旧事你听过，我直接接着骂，听着啊。',
       'You know the old story. Picking up my rant where I left it. listen.',
     ],
     [
-      '跟你讲过，画稿里那条路我居然舍得擦了。稀奇！',
-      'Told you about it. Actually managed to erase that road in my sketch. Wonders!',
+      '那次拒签后停笔的事，你听过，我接着讲。',
+      "You heard how I stopped drawing after the refusal. I'll carry on from there.",
     ],
     [
-      '削笔屑像花，别压，我要照这个卷儿画。',
-      'Shavings look like flowers. leave them. Want to draw that curl.',
+      '咨询问题列了满屏，手机却先睡着了。',
+      'A whole screen of advice questions. Phone fell asleep before I did.',
     ],
     [
-      '新橡皮也太贵了！我擦一块，心里就骂一次。',
-      'New eraser costs a fortune! Every rub gets a curse from me.',
+      '复印材料又花钱，拜托，这项真漏算了。',
+      'More money copying documents. Come on, I really missed that cost.',
     ],
     [
-      '包底缝两层！上次画稿掉地上，我骂了整条街。',
-      'Double-stitched bag base! Sketches fell out last time. Swore all the way down the street.',
+      '补材料那包缝了两层，肩带还是先投降。',
+      'Sewed that document bag twice. Strap still gave up first.',
     ],
     [
-      '空本先夹书签，抢个开画位置也算开始嘛。',
-      'Bookmark in the empty pad. claiming my starting page counts as starting.',
+      'Plan B 先查住处，喂，行李我自己来。',
+      "Checking somewhere to live for Plan B. Hey, I'll do my own packing.",
     ],
     [
-      '咖啡渍像岛，船却像土豆——行，画把叉吃了它！',
-      "Coffee stain's an island, boat's a potato. Right, draw a fork and eat it!",
+      '拒签后那笔开销我记漏了，咖啡倒一杯没漏。',
+      'Missed an expense after the refusal. Counted every coffee, though.',
     ],
     [
-      '画挡住书名了？喂，借书先把我这幅挪开啊。',
-      "Drawing's hiding the book title? Hey, move my picture before borrowing it.",
+      '咨询回信我自己拆，拜托，别先猜结果。',
+      "I'll open the advice reply myself. Please don't guess what it says.",
     ],
     [
-      '短铅笔卷纸里，又滚跑！我连纸都省着用。',
-      "Stubby pencil rolled in paper. Rolled away again! I'm rationing paper too.",
+      '截止日写在手机上，闹钟比我还暴躁。',
+      "Deadline's in my phone. Alarm's got a worse temper than me.",
     ],
   ],
   gareth: [
@@ -962,20 +962,20 @@ const everydayCopy: Record<string, [string, string][]> = {
   ],
   ade: [
     [
-      '待办能写两页，完成的只有半行。初步结论：排版有问题。暂时不讨论执行能力。',
-      'Two pages of tasks, half a line done. Initial finding: layout issue. Execution ability is outside this discussion.',
+      '续签待办写了两页，完成的只有半行。材料夹已经塞不下了，我先把买菜那张拿出来。',
+      "Two pages of renewal tasks, half a line done. Folder's full already. Taking the shopping list out first.",
     ],
     [
-      '会议提前结束，我捏着饼干发愣。剩余时间归属不明，手册没写；更正，饼干倒吃完了。',
-      'Meeting finished early. Stood there holding a biscuit. Ownership of spare time unclear. Correction: finished the biscuit, though.',
+      '同事提早结束会议，我捏着饼干发愣。原本以为还得加班，现在得查哪班车回去。',
+      'Colleague finished the meeting early. Stood holding a biscuit. Expected overtime; now checking the bus home.',
     ],
     [
-      '工作餐先热透。冰块不属于员工福利，当然，要是公司愿意包午饭，我可以重谈。',
-      "Heat work lunch through. Ice isn't a benefit. Though if the company provides lunch, I'm open to negotiation.",
+      '工作餐还冻着（只化了表面），公司的微波炉得再排一次。这回我会把中间拨开。',
+      'Work lunch still frozen (only the surface thawed). Back in the office microwave queue. Splitting the middle this time.',
     ],
     [
-      '培训视频一暂停，讲师还对着人笑。学习进度停了，心理压力倒是持续正常增长。',
-      'Pause training and the presenter keeps smiling. Learning stops; psychological pressure progresses normally.',
+      '公司的培训视频卡了，讲师还对着人笑。同事问我学到哪了，我只记得他那件衬衫。',
+      "Work training video froze with the presenter smiling. Colleague asked how far I'd got. Only remember his shirt.",
     ],
     [
       '同事把杯子摆成团队合照。我的把手没出镜，申请重拍遭拒，理由是糖包已经拆开了。',
@@ -986,76 +986,76 @@ const everydayCopy: Record<string, [string, string][]> = {
       'One less bus stop, one more bakery. Net gain positive so far. Extra bread purchases not yet included.',
     ],
     [
-      '衬衫没熨也能开视频会。我研究过可见范围，结论是领口重要，肚子部分暂缓处理。',
-      'Unironed shirt works on calls. Studied the view. Collar essential. Stomach area: maintenance deferred.',
+      '上班视频会只拍领口（我试过了），衬衫肚子那片还皱着。等会儿站起来就露馅。',
+      'Work calls only show my collar (tested it). Shirt still creased round my stomach. Standing up will give me away.',
     ],
     [
-      '午饭试味试完了。主餐项目可以取消，至于为什么还想吃，暂时没有合理解释。',
-      'Tasted all of lunch while cooking. Main course cancelled. Why am I still hungry? No reasonable explanation yet.',
+      '明天带给同事的午饭被我试掉半盒（只是试味），得再煮一点。先把饭盒扣上。',
+      "Tasted half tomorrow's lunch for my colleague (just checking seasoning). Need another batch. Lid on first.",
     ],
     [
       '自行车备用通勤方案恢复。维修副产物：满手链条油，肥皂消耗超预算，毛巾建议报废。',
       'Backup cycle commute restored. Repair by-product: chain oil everywhere. Soap over budget. Recommend writing off the towel.',
     ],
     [
-      '提前冲到路口，仍得等红灯。到达指标完成，过街指标延迟。我站着把午饭清单重写了。',
-      'Ran to the crossing. Red light. Arrival target met; crossing target delayed. Rewrote the lunch list while standing there.',
+      '赶上班跑到路口，还是得等红灯。同事从后头慢慢走来，手里的茶一滴也没洒。',
+      'Ran to the crossing on my way to work. Still red. Colleague strolled up behind me without spilling any tea.',
     ],
     [
-      '安静键盘有个好处，没人听见我删掉重写。表面产出稳定，实际进度还得另行报告。',
-      'Quiet keyboards hide my deleting. Apparent output steady. Actual progress still reported separately.',
+      '同事换了安静键盘，我听不见他下班了。等我抬头，公司那排灯只剩我这盏。',
+      "Colleague's quiet new keyboard hides when he leaves. Looked up to find only my light still on in that row.",
     ],
     [
-      '剥橙子不计工分，我还追求一次剥完。纠正：我可能只是把考核标准带进了午饭。',
-      'No target for peeling oranges. Still want one whole peel. Correction: perhaps I brought appraisal criteria to lunch.',
+      '午休剥橙子还想一次剥完，同事已经吃完了（我才剥一半）。橙皮先别扔，我较上劲了。',
+      "Trying for one whole orange peel at lunch. Colleague's finished (I'm halfway through). Keep the peel. I'm committed now.",
     ],
     [
-      '午休运动征求意见。我的意见是先午休，至于运动，建议下次再开会专门研究。',
-      'Consultation on lunchtime exercise. My view: lunch first. Exercise merits a separate meeting later.',
+      '同事约午休跑步，我答应了（忘了带鞋）。跑鞋在家，饭盒在手，今天先吃饭。',
+      "Agreed to a colleague's lunchtime run (forgot my trainers). Shoes at home, lunch in hand. Eating first today.",
     ],
     [
-      '家里挂画歪了，任务延期。访客意见已收到：是歪的。解决方案仍在寻找合适的钉子。',
-      'Crooked picture at home. Task postponed. Visitor feedback received: crooked. Resolution awaiting a suitable nail.',
+      '续签清单和买菜单贴反了，超市袋里没找到那页材料。牛奶倒买了，回家得重理。',
+      'Swapped my renewal and shopping lists. No documents in the supermarket bag. Got the milk; sorting again at home.',
     ],
     [
-      '旧音箱拆完，多出一盒零件。交接清单漏项：螺丝原来在哪。现在先给盒子写个编号。',
-      'Dismantled the old speaker. Extra box of parts. Handover omission: where the screws went. Giving the box a number first.',
+      '雇主回了材料邮件（附件还没打开），我先把接收日期记下。又把月份抄成了班次。',
+      'Employer replied about the papers (attachment still unopened). Recording the date first. Copied my shift for the month again.',
     ],
     [
-      '同事笑完我才懂。反馈延迟不等于没有收到，只是本轮会议可能已经进入下一项。',
-      "Understood after everyone laughed. Delayed feedback isn't absent feedback. Meeting may have moved on, though.",
+      '同事笑完我才听懂，我也想笑（嘴里还有饭）。等咽下去，他们已经讲起下一件了。',
+      "Got my colleague's joke after everyone laughed. Want to laugh too (mouth full). Swallowed; they've moved on.",
     ],
     [
-      '吐司采购标准只有一条：边要脆。面包店要是也问我长期规划，我就换一家买。',
-      "One toast criterion: crisp edges. If the bakery asks my long-term plan too, I'll buy elsewhere.",
+      '通勤路上的面包店认得我了。店员问照旧，我还在想续签费，差点把银行卡收回去。',
+      'Bakery on my commute knows me now. Asked for my usual; I was thinking about renewal fees and nearly put my card away.',
     ],
     [
-      '新袜子太滑，室内通勤请降低速度。此建议来源于本人，验证方式就不展开了。',
-      'Slippery new socks. Reduce indoor commuting speed. First-hand recommendation. Validation details omitted.',
+      '新鞋底太滑（刚试出来），通勤先走慢一点。同事问我怎么突然肯早出门了。',
+      "New soles are slippery (just discovered). Slower commute today. Colleague asked why I'm suddenly willing to leave early.",
     ],
     [
-      '口琴练习收到邻居敲墙反馈，内容明确：停。当前改进方案是戴耳机，问题：口琴用不了。',
-      "Harmonica practice received wall-knocking feedback: stop. Proposed fix: headphones. Issue: harmonicas don't support them.",
+      '等续签回信时练口琴，邻居敲墙了。我停下来（正好也喘口气），邮箱里还是旧信。',
+      'Practising harmonica while waiting for renewal news. Neighbour knocked. Stopped (needed a breath anyway). Same old inbox.',
     ],
     [
-      '电梯叮了，任务接收人明确：我。相比之下，工作邮件抄送全员，仍在等待有人认领。',
-      'Lift dinged. Assigned recipient: me. Work email copied everyone, by comparison. Still awaiting someone to claim it.',
+      '公司电梯叮了，我跟着同事走出去（错了一层）。工牌还在手里，又得按一次上行。',
+      'Work lift dinged. Followed my colleague out (wrong floor). Pass still in hand. Up button again.',
     ],
     [
-      '烤饼裂口登记为果酱入口。同事要求撤回这个命名；已驳回，理由是他吃了两块。',
-      "Scone crack logged as jam access. Colleague requested the name be withdrawn. Denied: he'd eaten two.",
+      '烤饼带到公司裂开了，我往里涂果酱。同事吃了两块，才提醒我衬衫也沾上了。',
+      'Scones cracked on the way to work. Filled them with jam. Colleague ate two before pointing out the jam on my shirt.',
     ],
     [
-      '同事谈跑步，我把背坐直了。阶段性成果一项，先不讨论它与原目标有什么关系。',
-      'Colleagues discussed running. I sat straighter. One milestone. Relation to the original objective not discussed.',
+      '同事谈跑步，我只把背坐直了。工作椅又往下滑一格，得起来找那根调节杆。',
+      'Colleagues discussed running. I just sat straighter. Work chair sank another notch. Up to find the lever.',
     ],
     [
-      '洗碗只唱副歌，执行顺利。家里收到重复播放投诉，本人决定增加一段，歌词仍在查询。',
-      'Chorus on repeat while washing up. Delivery smooth. Repetition complaint received. Adding a verse. Lyrics still under investigation.',
+      '下班洗碗还哼公司的等候音乐，唱到一半才认出来。想换一首，脑子里只剩这段。',
+      'Humming the office hold music while washing up after work. Recognised it halfway through. Tried another tune; only know this bit.',
     ],
     [
-      '剪纸预留修改余量，实际剪歪了。更正：余量也剪掉了。已申请新纸，剪刀暂时停用。',
-      'Left a margin for changes. Cut it crooked. Correction: cut off the margin too. New paper requested. Scissors temporarily suspended.',
+      '续签日期记了两处（都在同一本里），本子却找不到了。我先翻通勤包，饼干也碎在里面。',
+      "Renewal dates recorded twice (both in one notebook). Can't find the book. Checking my work bag; biscuits crumbled in there too.",
     ],
   ],
   helen: [
@@ -1170,12 +1170,12 @@ const everydayCopy: Record<string, [string, string][]> = {
       'Ask them directly. Same names are my reception nightmare. Checked three times, then found it was another person entirely.',
     ],
     [
-      '等电话我照样先吃饭，叉子刚拿起来铃就响；我今天已经把那口豌豆热了两回。',
-      'I eat while waiting for calls. Lift the fork, phone rings. Reheated that mouthful of peas twice today.',
+      '接待台的预约电话一响，我就把饭盖上。今天这口豌豆热了两回，叉子还没碰到。',
+      "Appointment phone rings at reception; lid goes on lunch. Heated these peas twice today. Fork hasn't touched them.",
     ],
     [
-      '我拼海景先找边块，剩下全是蓝。盒上说舒缓心情，我找了半天，差点打去投诉。',
-      'I start seascapes with the edges. All blue after that. Box says “Relaxing.” Nearly rang up to complain.',
+      '核预约先对姓名，拼海景先找边块。偏偏海全是蓝的，下班也得盯着一排找不同。',
+      'Names first for appointments, edges first for a seascape jigsaw. All blue, though. Spotting differences even off duty.',
     ],
     [
       '接待台钥匙、家门钥匙各挂一边。换小包后总掏错，开自家门也像正在等人交班。',
@@ -1186,8 +1186,8 @@ const everydayCopy: Record<string, [string, string][]> = {
       'I stop by the pond to find birds. They pose so neatly in jigsaws. Real ones duck into reeds. Wasted search.',
     ],
     [
-      '拼图店的收据我夹盒里，少块得找得到。我那幅海景少了块天，吃饭都盯着地板找。',
-      'Jigsaw receipts stay in the box in case pieces are missing. Lost a bit of sky. Kept scanning the floor through dinner.',
+      '前台缺表我会登记，拼图少块也一样。那片蓝天的编号找了半天，原来盒子拿反了。',
+      "Log missing forms at reception, missing jigsaw pieces too. Hunted that sky piece's number. Had the box upside down.",
     ],
     [
       '我讲错姓名会自己重报，耳机那头已经等得够久；你在旁边帮喊，两边声音就撞上了。',
@@ -1202,8 +1202,8 @@ const everydayCopy: Record<string, [string, string][]> = {
       'I check appointments with the person themselves. Family can say a whole lot before the person booking has spoken.',
     ],
     [
-      '我泡茶爱淡些，带去拼图桌也省得留深印。上次洒一滴，那块白云就再也配不上了。',
-      'I like weak tea, especially by the jigsaw. Less staining. One drop last time and that cloud never matched again.',
+      '请先核预约时间，别只说「下午」。我自己的茶凉到什么时段倒记不得，耳机都摘了。',
+      "Please check the appointment time, not just “afternoon”. Can't recall when my own tea went cold. Headset's already off.",
     ],
     [
       '围巾选素色，接线耳机缠进去好找。花纹那条像拼图，解到午休，我饭都快凉透了。',
@@ -1218,32 +1218,32 @@ const everydayCopy: Record<string, [string, string][]> = {
       'I drink water before handover. Calls keep stealing half the glass. Now I leave the lid off beside me as a reminder.',
     ],
     [
-      '这次聚会我想改天，海景拼图还剩一角。你会笑我吧？那块蓝的，我昨晚梦里都在找。',
-      "I'd move the get-together. One corner of the seascape left. Laugh if you like. Dreamed about that blue piece last night.",
+      '接待台连着核重名，下班再看海景全是蓝。今天聚会我想改天，眼睛实在分不清了。',
+      "Same-name checks at reception, then an all-blue jigsaw at home. Can we move today's get-together? My eyes can't tell things apart.",
     ],
     [
-      '午饭我分小盒，电话一响就盖上。上次带面条，吃一半去接线，回来它已抱成一团。',
-      'Small lunch containers; lid on when the phone rings. Took noodles once. Came back from a call to a solid lump.',
+      '接待午休刚开始，预约电话就响。我把面条盖上，回来全粘成一团，这顿得用叉子拧。',
+      'Reception lunch break starts, appointment phone rings. Covered my noodles; came back to a lump. Have to twist this lunch apart.',
     ],
     [
-      '我买拼图杂志先翻缺块服务那页，书店老板都认得。上回他直接递来，问我又丢了哪片天。',
-      'First page I check in jigsaw magazines is missing-piece support. Bookseller handed one over: “Lost more sky?”',
+      '前台补预约本，我先核型号；买拼图杂志也先翻缺块服务。书店老板都认得那一页了。',
+      'Check the format before ordering reception appointment books. Check missing-piece service in jigsaw magazines. Bookseller knows the page now.',
     ],
     [
       '家门钥匙现在挂拼图块钥匙圈，摸得到凸边。接待台那串用圆环，闭着眼也能分开。',
       'My home key has a jigsaw-piece fob. Feel the tabs. Reception keys have a round ring. Can tell them apart by touch.',
     ],
     [
-      '过路口我先停，接话时也停。上回边走边报电话号码，报到最后才发觉过了该拐的街。',
-      'I stop at crossings and stop talking too. Recited a phone number while walking once. Finished it a street past my turn.',
+      '预约电话里我先复述时段，走路也会念。上回念到最后，发现已经走过该拐的路口。',
+      "Repeat the slot back on appointment calls. Keep saying it walking home. Last time I finished and found I'd missed my turning.",
     ],
     [
-      '我发呆时在脑子里拼蓝天，那块就是对不上。你给我讲笑话，我怕脑里那块又转错方向。',
-      "When I stare, I'm fitting blue sky in my head. Piece won't go. Tell a joke and I'll turn it the wrong way again.",
+      '前台的预约顺序我记得牢，自己的拼图倒忘了哪块。下班脑里还在叫下一位，真得停停。',
+      "Know reception's appointment order by heart. Forgot my jigsaw piece, though. Still calling the next person in my head after work. Need a break.",
     ],
     [
-      '旧耳机坏了先找接待台备件盒，上次只坏海绵垫。我拆完发现左垫装右边，压得耳朵疼。',
-      'Old headset trouble? I try the reception spares box. Just the foam last time. Put the left pad on the right. Sore ear.',
+      '前台耳机坏了，请先查备件盒。我上回只换海绵垫，左右装反，交班时耳朵都压红了。',
+      'Reception headset broken? Check the spares box first. Swapped cushions last time, wrong sides. Red ears by handover.',
     ],
     [
       '我自己去拼图店转转，待会儿找你。你猜老板这回摆什么？又是海景，我就找他理论。',
@@ -1452,96 +1452,96 @@ const everydayCopy: Record<string, [string, string][]> = {
   ],
   lina: [
     [
-      '我最烦画手，脸明明笑着，拳头却攥死；模特松一下行吗，我的炭笔都快掰断了。',
-      "Hands drive me mad. Face smiles, fist clenched. model, loosen up! I'm nearly snapping the charcoal.",
+      '拒签以后我最烦「放轻松」，谁轻松了？材料找不到时，我连洗衣机里都翻过。',
+      "After the refusal, I hated “relax”. Who's relaxed? Lost a document once and even searched the washing machine.",
     ],
     [
-      '河岸我又画直了，水像堵住。烦死了，站远才能看清弯，可离远我又认不出自己的画。',
-      'Drew the bank straight again. Water looks blocked. Maddening. Stand back to see the bend; too far to see my drawing.',
+      '律师问我最想弄清什么，我张嘴就骂车费。烦死了，真正要问的到回家才想起。',
+      'Solicitor asked what I needed to know. I started ranting about bus fares. Ugh, remembered the real question at home.',
     ],
     [
       '换个针法就像换线了！怪不得我老买同色，店员也真敢卖，明明家里还堆着一袋。',
       'Different stitch, looks like different yarn! No wonder I buy the same colour. Shop happily sells it. Bagful at home!',
     ],
     [
-      '街景里的人我最后画，谁叫他们走那么快？我才描到鞋，人家已拐了两个路口。',
-      "People go in last in street scenes. why so fast? Got as far as a shoe and they've turned two corners.",
+      '咨询机构的电话存好了，喂，名字别只写「咨询」。我上回拨到修锅炉那家去了。',
+      "Saved the advice charity's number. Hey, label it properly. Last time I rang the boiler repair service.",
     ],
     [
-      '两种颜色挨一起就吵，分开看都好。烦死了，我挑半天的绿，挨着红就像圣诞包装纸。',
-      'Two colours fight side by side. Fine alone. My carefully chosen green turns into Christmas wrapping beside red. Typical.',
+      '补材料那阵一开邮箱就紧张，拜托，超市打折也用这种标题？吓完我还想赚我钱。',
+      'Every email startled me while gathering documents. Please, why does the supermarket use that subject line? Scare me, then sell to me.',
     ],
     [
-      '你夸像，我偏看见擦坏的角，夸大声点行吗？我这破眼睛，总先挑自己画的毛病。',
-      'You say it looks right; I see the rubbed corner. louder praise? These eyes always pick faults in my own work.',
+      '我想问律师能不能上诉，话到嘴边先打了嗝。咖啡喝太快，这下连生气都断断续续。',
+      "Wanted to ask the solicitor whether I could appeal. Hiccupped instead. Too much coffee; couldn't even stay cross in one go.",
     ],
     [
       '毛线小样我得留，扔掉就忘针法。上回嫌乱收拾一通，结果拆了半条围巾才想起来。',
       'Have to keep yarn samples. Bin them, forget the stitch. Tidied up once, then unravelled half a scarf to remember.',
     ],
     [
-      '树下草压歪那块我要画，喂，先别坐！人坐上去我又得重描，我才刚调好那点暗绿。',
-      "Drawing that flattened grass. Hey, don't sit yet! Person sits there, I redraw. Only just mixed that dark green.",
+      'Plan B 查过房租，喂，我要住处，又不是整栋楼。页面关了，计算器还亮着。',
+      'Checked rent for Plan B. Hey, I need somewhere to live, not a whole building. Page closed, calculator still glowing.',
     ],
     [
-      '衣服褪色我倒爱，新的亮得像画材店样本。我出门喝咖啡，又不是替颜料打广告。',
-      "Like faded clothes. New ones glow like art-shop samples. I'm getting coffee, not advertising paint.",
+      '拒签后那只包我还背着，拉链一响就想起赶咨询。现在买菜也背，里面终于有番茄了。',
+      'Still use the bag from after the refusal. Zip reminds me of rushing for advice. Takes tomatoes shopping now, at least.',
     ],
     [
-      '你看桥，我看鞋泥，各画各的！我这张纸可挤不下两个人的桥，更挤不下那排树。',
-      "You see the bridge, I see muddy shoes. draw our own! My paper can't fit two bridges, never mind those trees.",
+      '咨询要问的我录成语音，结果街上巴士太响，回家只听见刹车。问题倒是全被盖住了。',
+      'Recorded my advice questions. Bus was so loud all I heard at home was brakes. Drowned out every question.',
     ],
     [
       '织一行我就停一下，漏针返工才真烦。你讲啊，我耳朵闲着，手上这节拆完才能接话。',
       'Pause after each row. Dropped stitches are a pain. Go on, ears are free. Need to undo this bit before I answer.',
     ],
     [
-      '苹果削掉一角好画多了，圆得太整齐像广告！我可没收水果店的钱，干吗画那么亮。',
-      "Apple's easier with a corner cut. Too perfect looks like an ad! Fruit shop isn't paying. Why make it that shiny?",
+      '拒签那阵人人问下一步，烦，我连午饭都没定。后来真把「先吃饭」写进计划里了。',
+      "Everyone wanted my next step after the refusal. Ugh, hadn't picked lunch. Actually put “eat first” in the plan eventually.",
     ],
     [
-      '要我画快？行，画坏你负责咖啡钱！上次赶街景，钟楼画成烟囱，我还擦不干净。',
-      "Faster sketch? Fine! Bad drawing, coffee's on you. Rushed a street scene once. Clock tower became an indelible chimney.",
+      '补材料跑了几趟，鞋底先薄了。拜托，清单还在加，至少让我坐着把新添那项看完。',
+      'Wore my soles thin chasing documents. Please, the list keeps growing. Let me sit down to read the new item.',
     ],
     [
-      '素布得摸才知道纹路，拍照全拍平了，烦死了！画稿里想留这点粗糙，我换了三支笔。',
-      'Plain cloth needs touching. Photos flatten it. Maddening! Tried three pencils to keep that roughness in the sketch.',
+      '慈善机构回信说约个时间，我把问题写满手机。出门电量才剩一点，又得回头找充电器。',
+      'Advice charity replied about a meeting. Filled my phone with questions. Nearly flat when I left; back for the charger.',
     ],
     [
-      '楼梯回声我也想画，画完像排牙。谁有意见先上去踩两脚，再来教我怎么改稿。',
-      'Tried drawing staircase echoes. Looks like teeth. critics can stomp upstairs before telling me how to fix it.',
+      '拒签理由我能背了，喂，超市买什么倒忘光。拿着空篮子站半天，还以为自己在排咨询。',
+      'Know the refusal reasons by heart. Hey, forgot the shopping instead. Stood with an empty basket as if waiting for advice.',
     ],
     [
-      '狗尾巴我又认成鼻子了，它卷那么紧干吗！两张脸现在擦掉哪张，我都觉得心虚。',
-      "Mistook the dog's tail for its nose again. Why curl so tight? Two faces now. Feel guilty erasing either one.",
+      '我把截止日设成提醒，手机响一次就去拿包。后来连烤面包响，我都差点冲去车站。',
+      'Set a deadline reminder and grabbed my bag whenever it rang. Toaster went off later; nearly ran for the bus.',
     ],
     [
-      '这个圆我就留口，喂，合上也太像印章了！我画的是杯印，又不是给谁的材料盖通过。',
-      "Leaving a gap in this circle! Closed, it's a stamp. Drawing a cup mark, not stamping someone's paperwork approved.",
+      '拒签后的备选方案我会自己改，拜托，别一开口就替我选。咖啡我都还没决定喝哪种。',
+      "I'll revise my own options after the refusal. Please don't choose them for me. Haven't even decided on coffee yet.",
     ],
     [
       '毛线贴手是真软，先让我摸会儿再问织什么！我买的时候脑子一热，图样还没挑。',
       "This yarn's so soft. let me feel it before asking what I'm making! Impulse purchase. Haven't picked a pattern.",
     ],
     [
-      '这块空白又留错了，画挤成一团！擦掉半个屋顶也救不回，我得重新找张纸。',
-      "Left the gap wrong. Everything's cramped! Half a roof erased, still hopeless. Maddening. Need another sheet.",
+      '找律师那阵问了好多遍费用，烦，怕漏项也怕问多。最后人家说：先让我把这句讲完。',
+      "Kept asking about solicitor's fees. Ugh, feared missing something and feared asking too much. They said, let me finish first.",
     ],
     [
-      '铅笔横着涂就带出纸纹了，喂，省我补那么多点！买纸时嫌它粗，现在又舍不得换。',
-      "Pencil sideways brings out the grain. Saves all those dots! Complained it was rough. Now I won't change paper.",
+      '补材料的备份我存了两份，偏偏都叫「最后版」。现在两份一起开，更分不清谁是最后。',
+      "Two document backups, both called “final”. Opened them together. Still can't tell which one's final.",
     ],
     [
-      '布洗过才软，我刚买那块硬得能刮颜料！我是缝包，不是拿它刮干净整张画板。',
-      'Cloth softens after washing. New bit could scrape paint! making a bag, not cleaning the entire palette with it.',
+      '咨询后绕去买蛋糕，拜托，别问这算不算庆祝。我就是饿，奶油又不用写申请理由。',
+      "Cake after the advice session. Please don't ask if it's a celebration. I'm hungry. Cream doesn't need an application reason.",
     ],
     [
-      '又把线拉太紧，衣服皱成拒信！我还得拆开，剪刀怎么偏偏这时候找不到。',
-      "Pulled thread too tight again. Cloth's crumpled like the refusal letter! Now to unpick it. Where are the scissors?",
+      '拒签那阵我连线都拉太紧，衣服全皱了。现在一摸到那道褶，就想起等回信有多累。',
+      'Pulled every stitch too tight after the refusal. Clothes all puckered. That crease still reminds me how tiring waiting was.',
     ],
     [
-      '水面最亮的地方留纸白，喂，谁又替我涂满了！这下拿纸巾吸，吸破可又得重画一张。',
-      "Leave the brightest water as white paper. Hey, who filled it in? Blot it now. Tear it, and it's another redraw.",
+      '查 Plan B 时去烧水，回来网页全关了。喂，住处的名字我还没记下来啊。',
+      "Boiled water halfway through researching Plan B. Came back to closed tabs. Hey, I hadn't even saved that place's name.",
     ],
     [
       '炭粉又抹上脸，画稿倒护好了，我这鼻子怎么办！先借镜子，别先拿手机拍我。',
