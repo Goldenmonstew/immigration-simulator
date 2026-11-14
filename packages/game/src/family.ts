@@ -4,246 +4,246 @@ const t = (zhCN: string, en: string): Text => ({ zhCN, en });
 const dialogue: Record<string, [string, string][]> = {
   jamie: [
     [
-      '哎，茶给你！等等，把手转过来，烫！',
-      'Tea for you! Hang on, turn the handle round. Hot!',
+      '索菲娅，咱们的茶！哎，光顾找你，茶包都没放！',
+      'Sofia, our tea! Ah, busy looking for you. Forgot the teabags!',
     ],
     [
-      '我跟你说，这破收音机一修好，球赛就清楚了！',
-      "I'm telling you, once this radio works, we'll hear the match properly!",
+      '索菲娅，咱家收音机快修好啦！哎，球赛又快踢完了。',
+      "Sofia, our radio's nearly fixed! Ah, match nearly over again.",
     ],
     [
-      '这面包还能救！切丁烤脆，先让我找一下烤盘。',
-      'We can rescue this bread! Toast some cubes. Let me find the baking tray first.',
+      '咱们的面包还能救！哎，先刮掉我烤黑的边。',
+      'We can rescue our bread! Ah, scrape off the edges I burnt first.',
     ],
     [
-      '穿拖鞋试试呀！左边我垫软了，等等，先别踩到那根线。',
-      'Try the slippers! Softened the left one. Hang on, mind that thread.',
+      '咱们看球穿这双！等等，我把拖鞋补反了。',
+      "These for watching the match! Wait, I've mended the slippers backwards.",
     ],
     [
-      '汤盖找到了！盐也……等等，我刚加过了吧？',
-      'Found the soup lid! Now the salt... hang on, did I already add it?',
+      '索菲娅，咱家汤盖找到了！盐也……哎，刚加过吧？',
+      "Sofia, found our soup lid! And the salt... ah, added that already, didn't I?",
     ],
     [
-      '袜子到底去哪儿了！我把洗衣机都照过一遍，你看沙发底下？',
-      'Where do the socks go! Shone a torch into the washer. Try under the sofa?',
+      '球袜又少一只！咱家沙发底下快能凑队了。',
+      'Another missing football sock! Nearly a whole team under our sofa.',
     ],
     [
-      '饭来喽！账单先夹好，我这手像摸过一桶油。',
-      "Dinner's up! Bills away first. My hands are absolutely covered in grease.",
+      '咱们开饭！哎，我把饭端到球赛前头了。',
+      "Our dinner's up! Ah, managed to serve it before kick-off.",
     ],
     [
-      '茶先端着呀，我垫桌脚！哎，那张厚纸在哪，刚还拿着呢。',
-      "Hold the tea, I'll wedge the table! Where is that thick card? Just had it.",
+      '咱们先托住茶！我垫的桌脚又越垫越歪。',
+      'Hold our tea steady! My table wedge has made it even wonkier.',
     ],
     [
-      '合照这围巾还是你织的吧！我认得那截补线，哎，真好看。',
-      'You knitted that photo scarf! I know that mended stretch. Looks lovely.',
+      '索菲娅，咱们合照真好！哎，我只顾看你，眼又闭了。',
+      'Sofia, love our photo! Ah, looking at you. Shut my eyes again.',
     ],
     [
-      '淋成这样！脱外套，我去盛饭。哎，拿锅垫先。',
-      "You're soaked! Coat off, I'll dish up. Ah, oven glove first.",
+      '索菲娅，咱们湿外套先挂家里！哎，干衣架也湿了。',
+      "Sofia, let's hang our wet coats at home! Ah, drying rack's wet too.",
     ],
     [
-      '春天种球根啦！这回我认准头尾，上回种反了！',
-      "Spring bulbs! I'll check which end is up. Put them in upside down last time!",
+      '春天咱们种球根！哎，我又差点把头尾种反。',
+      'Spring bulbs for us! Ah, nearly put them upside down again.',
     ],
     [
-      '夏天这光直晃眼！搬椅子，等等，我先把窗帘挂回去。',
-      'Blinding summer light! Move the chair. Wait, curtains back up first.',
+      '夏天咱们搬饭到院子！索菲娅，哎，我把椅子锁屋里了。',
+      "Our dinner in the garden this summer! Sofia, ah, I've locked the chairs inside.",
     ],
     [
-      '秋叶又挤满玄关了！我换个门底刷，别急，我找螺丝刀。',
-      'Autumn leaves all over the hall! New door brush. Hold on, screwdriver first.',
+      '秋叶全进咱家了！我的球靴又带进一摊泥。',
+      'Autumn leaves all through our hall! My football boots brought mud too.',
     ],
     [
-      '冬天我想买条大毯子！咱俩都裹住，哎，沙发还有没有空？',
-      'I want a huge winter blanket! Both wrapped up. Is there sofa space left?',
+      '索菲娅，咱们裹家里的大毯子！哎，冬天还漏脚。',
+      'Sofia, our big blanket round us! Ah, feet still out in winter.',
     ],
     [
-      '雨衣挂我修的杆！哎，先轻点，我刚才说早了。',
-      'Wet coat on the rail I fixed! Ah, gently. Spoke too soon there.',
+      '咱家衣杆修好了！哎，我说早了，先接住。',
+      "Our coat rail's fixed! Ah, spoke too soon. Catch it.",
     ],
     [
-      '出太阳啦！咱们搬椅子出去吃，我拿盘子你拿茶？',
-      "Sun's out! Let's eat outside. I get the plates, you get the tea?",
+      '出太阳啦，咱们搬出去吃！我拿茶，哎，空壶。',
+      "Sun's out, let's eat outside! I've got the tea. Ah, empty pot.",
     ],
     [
-      '下雪了！我先试门槛滑不滑——哎哟，确实滑。',
-      "Snow! I'll test the step... whoa, yes, definitely slippery.",
+      '索菲娅，咱家门口雪滑！我这守门的脚也扑空了。',
+      "Sofia, slippery snow at our door! These goalkeeper's feet missed too.",
     ],
     [
-      '周末炖锅菜，再听场球？我保证先调对电台！',
-      "Stew and a match this weekend? I promise I'll tune the radio properly first!",
+      '索菲娅，咱家周末炖菜听球！哎，这回先调对台。',
+      'Sofia, stew and football at home this weekend! Ah, tune the radio properly first.',
     ],
     [
-      '明天那件我贴提醒了！日历右边，等等，别把旧便条撕走。',
-      'Reminder up for tomorrow! Right of the calendar. Wait, keep the old note.',
+      '咱们明天的事贴好了！哎，把旧球票盖住了。',
+      "Our reminder for tomorrow's up! Ah, covered the old match ticket.",
     ],
     [
-      '你刚才讲到哪了？哎，我把壶关掉，老跟你抢声。',
-      "Where were you? Ah, I'll switch the kettle off. Keeps talking over you.",
+      '你接着讲！咱家这壶比我还吵，我先关掉。',
+      "Keep going! Our kettle's louder than me. Switching it off.",
     ],
     [
-      '哈哈，懂了！上次你那笑话，我反应比守门还慢！',
-      'Ha, got it! That joke of yours. Slower than my goalkeeping!',
+      '索菲娅，你在咱家讲那笑话！哈哈，我反应比守门慢！',
+      'Sofia, that joke you told at home! Ha, slower reaction than my goalkeeping!',
     ],
     [
-      '这合照晃得！我还举着锅铲，哎，再拍一张，锅先放下。',
-      'Blurry photo! Still waving the spatula. Another one, pan down first.',
+      '哎，咱们再合照！我刚才又举锅铲挡脸了。',
+      'Ah, another photo of us! Hid my face with the spatula again.',
     ],
     [
-      '书架先少塞点呀，我得钻进去修那块破背板！',
-      "Leave some space on the shelf, will you? I've got to get in and fix that wretched back!",
+      '咱家书架我修！哎，钻进去了，怎么出来啊。',
+      "I'll fix our bookshelf! Ah, got inside. How do I get out?",
     ],
     [
-      '垫子翻过来就——哎，两面都有茶。确实是我。',
-      'Turn the cushion over and... ah. Tea both sides. Yes, that was me.',
+      '咱家垫子翻面！哎，两面都有茶，我真行。',
+      'Flip our cushion! Ah, tea both sides. Nice work, me.',
     ],
     [
-      '来陪我喝杯茶！我想吐槽球队，真的太离谱了。',
-      'Come have tea! I need to complain about my team. Absolute shambles.',
+      '索菲娅，咱们坐家里喝茶！球队那球，哎，越想越气。',
+      'Sofia, tea at home with me! That goal. Ah, angrier the more I think about it.',
     ],
     [
-      '办公室杯子搬回来了！哎，先放高点，我想晚饭时用它。',
-      "Office mug's home! Put it higher for now. I'd use it at dinner.",
+      '办公室杯子搬回家啦！咱们晚饭用，哎，还得洗。',
+      "Office mug's home! Let's use it at dinner. Ah, needs washing first.",
     ],
     [
-      '咨询表我看得头大！先让我喝口热茶，再接着填完。',
-      "This advice form's doing my head in! Some hot tea first, then I'll finish filling it in.",
+      '索菲娅，咨询表咱们一起看！哎，我把茶压上头了。',
+      "Sofia, let's look at the advice form together! Ah, put the tea on top of it.",
     ],
     [
-      '宝宝这小袜子我留着呢！哎，手别伸那么大，线快撑开啦。',
-      "Kept the baby's tiny sock! Ah, not your whole hand. You'll stretch it.",
+      '咱们宝宝的小袜子！哎，我手太大，差点撑开。',
+      "Our baby's tiny socks! Ah, hands too big. Nearly stretched them.",
     ],
     [
-      '全职班表出来了！家务得重分，我那场球也得挪。',
-      "Full-time rota's out! We'll need to split chores again. Move my football too.",
+      '索菲娅，全职班表出了！咱家晚饭我接手，球赛往后挪。',
+      "Sofia, full-time rota's out! I'll take our dinners. Football can move.",
     ],
     [
-      '这楼梯我得慢点爬！哎，你先上，我拿稳杯子再跟来。',
-      "Stairs slowly for me! You go. I'll steady this cup, then follow.",
+      '索菲娅，咱家楼梯慢点爬！我这脚比球场散场还磨蹭。',
+      'Sofia, slowly up our stairs! My feet are slower than leaving the pitch.',
     ],
   ],
   'ka-ning-partner': [
     [
-      '饭盒按名字拿，我那份晚点吃。你现在热，还是带走？',
-      "Names on the lunchboxes. Mine's for later. Heat yours now or take it?",
+      '乐言的饭盒另放，你那份我留家里。现在热，还是带走？',
+      "Lok Yin's lunchbox goes separately; yours is at home. Heat it now or take it?",
     ],
     [
-      '我来撑伞，包归你提。走车站那边，还是穿小巷？',
-      "I'll hold the umbrella, you take the bag. Station side or the lane?",
+      '嘉宁，我撑伞，你提家里的菜。走车站，还是穿小巷？',
+      "Ka Ning, I'll hold the umbrella; you take our groceries. Station or lane?",
     ],
     [
-      '今晚我想看电影，简历先合上。你挑旧片还是新片？',
-      'I want a film tonight. Closing the CV. An old favourite or a new one?',
+      '嘉宁，今晚家务先停，我想看电影。旧片还是新片？',
+      'Ka Ning, chores can wait tonight. I want a film. Old favourite or new one?',
     ],
     [
-      '旧车票我想留下，相片盒归我理。你先收书还是衣服？',
-      "I'd keep the old tickets and sort the photos. Books or clothes for you?",
+      '从香港搬来那箱相片归我理。你先收家里的书，还是衣服？',
+      "I'll sort the photos we moved from Hong Kong. Our books or clothes for you first?",
     ],
     [
-      '饭锅响了我才想起米还没洗。你择菜吧，我补这一步。',
-      "The cooker rang before I'd washed the rice. You sort the veg; I'll fix that.",
+      '讲好先，嘉宁择菜我煮饭。乐言那份，我少放葱。',
+      "Let's agree first: Ka Ning does veg, I cook. Fewer spring onions for Lok Yin.",
     ],
     [
       '我想煮青菜，你那份拌饭还是另放？乐言的我会留。',
       "I'm cooking greens. Yours with rice or on the side? I'll save Lok Yin's.",
     ],
     [
-      '接送漏的那格先留着，我明晚要改简历。你接早还是晚？',
-      'Leave the rota gap for now. CV tomorrow evening. Can you do early or late?',
+      '讲好先，我要改简历。嘉宁，乐言接早还是接晚？',
+      "Let's agree first: time for my CV. Ka Ning, early or late pickup for Lok Yin?",
     ],
     [
-      '我先给表姐回电话。你的那通现在打，还是饭后打？',
-      "I'll call my cousin first. Your call now, or after dinner?",
+      '讲好先，我给香港表姐回电话。你的现在打，还是全家吃完饭？',
+      'Agree first: my cousin in Hong Kong first. Your call now or after the family eats?',
     ],
     [
-      '外套缝好了，我手指得歇歇。今晚你洗碗还是擦灶？',
-      'Coat mended. My fingers need a rest. Dishes or hob tonight?',
+      '乐言外套缝好了。嘉宁，讲好先，你洗碗还是擦灶？',
+      "Lok Yin's coat is mended. Ka Ning, agree first: dishes or hob for you?",
     ],
     [
       '乐言种的葱先留窗边，我要擦桌。你收盆，还是扫地？',
       "Lok Yin's onions stay by the window. I'll wipe the table. Pots or floor for you?",
     ],
     [
-      '春天鞋柜我想腾半层放相纸。你的泥鞋准备放哪一格？',
-      "I'd free half a spring shelf for photo paper. Which cubby for your muddy shoes?",
+      '春天我要半层鞋柜放相纸。讲好先，全家的泥鞋另外排。',
+      "Half a shelf for photo paper this spring. Agree first: the family's muddy shoes elsewhere.",
     ],
     [
-      '夏天厚被我来收，想顺便换床单。你拆这边，还是拿新的？',
-      "I'll store the summer duvet and change sheets. Strip this side or fetch clean ones?",
+      '家里厚被我收，夏天换薄的。你拆咱们这套，还是拿新的？',
+      "I'll store our thick duvet for summer. Strip our cover or fetch a clean one?",
     ],
     [
-      '秋叶我想夹在自己的书里，你那本我先拿出来了。',
-      "I'd press the autumn leaves in my own book. I've taken yours out first.",
+      '乐言捡的秋叶归他收。讲好先，嘉宁，你也理自己的。',
+      'Lok Yin puts his autumn leaves away. Agree first: Ka Ning, sort yours too.',
     ],
     [
-      '冬天我带热水，你带手套。要我装满壶，还是留点空？',
-      "I'll bring hot water this winter, you bring gloves. Full flask or room at the top?",
+      '冬天全家出门我带热水。乐言的手套你装，还是我装？',
+      "Hot water's my job on winter family outings. Lok Yin's gloves: will you pack them or shall I?",
     ],
     [
-      '我这边肩膀又湿了，明天我要撑大的。你提袋还是背包？',
-      "My shoulder's wet again. Big umbrella for me tomorrow. Bag or backpack for you?",
+      '接乐言又淋湿肩膀。嘉宁，明天你撑伞还是背书包？',
+      'Wet shoulder from collecting Lok Yin again. Ka Ning, umbrella or schoolbag for you tomorrow?',
     ],
     [
-      '太阳出来我想先晒相纸。你的袜子挂上层还是下层？',
-      "Sun's out. I'd dry the photo paper first. Your socks on the upper or lower rail?",
+      '全家的衣服还没晒完。你挂乐言的，还是先挂自己的？',
+      "Family washing's not all out yet. Hang Lok Yin's first or yours?",
     ],
     [
-      '雪先看到这里，我要关窗开暖气。你还看就去门边看。',
-      'Enough snow-watching for me. Closing the window and turning the heat on. Watch by the door if you like.',
+      '乐言看雪看够了，我要开暖气。讲好先，家里的窗关上。',
+      "Lok Yin's had his snow-watching. I want the heating. Agree first: close our window.",
     ],
     [
-      '周末我找补门缝的材料。你先量，还是陪我去小店？',
-      "I'll find draught-proofing this weekend. Measure first or come to the shop?",
+      '嘉宁，家里门缝还漏风。周末你先量，还是陪我买材料？',
+      "Ka Ning, our door's still draughty. Measure first this weekend or buy materials with me?",
     ],
     [
-      '今晚我想按自己的口味煮。你先尝汤，还是等配饭？',
-      'Cooking it to my taste tonight. Try the broth now or with rice?',
+      '讲好先，今晚按我的口味。你和乐言先尝汤，还是配饭？',
+      'Agree first: my tastes tonight. You and Lok Yin try soup first or with rice?',
     ],
     [
       '茶泡好了，我想多坐一会儿。你的糖现在加还是等凉？',
       "Tea's ready. I'd like to sit a while. Sugar now or when it cools?",
     ],
     [
-      '这条路我认得，今天想多绕一点。你走河边还是过桥？',
-      "I know this road. I'd like a longer walk. Riverside or across the bridge?",
+      '从香港搬来后，这条路倒熟了。嘉宁，走河边还是过桥？',
+      'Know this road since we moved from Hong Kong. Ka Ning, riverside or across the bridge?',
     ],
     [
-      '相册这张我想留，你挑一张摆旁边。要横版还是竖版？',
-      'I want this photo kept. Choose one beside it. Landscape or portrait?',
+      '乐言这张我想留。嘉宁，你挑全家福，还是挑自己的？',
+      'I want this photo of Lok Yin kept. Ka Ning, pick a family one or one of yourself?',
     ],
     [
-      '厨房我收好了，接下来想挑节目。你坐这边还是靠窗？',
-      "Kitchen's done. I'd like to choose a programme. Here or by the window for you?",
+      '家里厨房我收了。讲好先，乐言睡后节目我挑，你坐哪？',
+      "Our kitchen's done. Agree first: my programme once Lok Yin's asleep. Where will you sit?",
     ],
     [
       '你皱眉我也猜不准。我想听具体那件，现在说还是饭后？',
       "I can't read that frown. I'd like the actual story. Now or after dinner?",
     ],
     [
-      '今天省了接送，我要睡个午觉。你用厨房还是客厅？',
-      "No school run today. I'm taking a nap. Kitchen or living room for you?",
+      '周末免接乐言，我想睡午觉。嘉宁，你带钥匙还是等我醒？',
+      'No Lok Yin school run this weekend; I want a nap. Ka Ning, take a key or wait till I wake?',
     ],
     [
-      '录用信我想自己讲给表姐听，合约上还有一段要问清。',
-      "I'd like to tell my cousin about the offer myself. One contract section still needs checking.",
+      '讲好先，录用的事我自己讲。表姐等着听，合约还得问清。',
+      "Let's agree first: I'll tell my own job news. Cousin's waiting; contract needs clarifying.",
     ],
     [
-      '今天找工作等得累，我想歇一下。你陪我走还是先回家？',
-      'Job-hunting has worn me out. I want a break. Walk with me or head home first?',
+      '找工作等得累。嘉宁，陪我在家坐坐，还是一起出门？',
+      "Job-hunting's worn me out. Ka Ning, sit with me at home or go out together?",
     ],
     [
-      '明早我要上班，早餐各做各的。周末你想吃粥还是面？',
-      'Work tomorrow. Separate breakfasts. Rice porridge or noodles at the weekend?',
+      '明早上班各做早餐。嘉宁，周末全家吃粥还是面？',
+      'Separate breakfasts for work tomorrow. Ka Ning, family porridge or noodles this weekend?',
     ],
     [
-      '来时的箱子我还要用，先收在床底。你那只准备留哪？',
-      'I still need the arrival suitcase. Under the bed for now. Where will yours go?',
+      '香港搬来的箱子我留床底。你那只留家里，还是送人？',
+      'Keeping my Hong Kong suitcase under the bed. Yours stays here or goes to someone else?',
     ],
     [
-      '信箱上我要留全名，这一行我来写。你贴右边还是下面？',
-      "My full name on the letterbox; I'll write it. Your label beside it or below?",
+      '家里信箱我要留全名。嘉宁，你的贴右边还是下面？',
+      'My full name on our letterbox. Ka Ning, your label beside it or below?',
     ],
   ],
   'ka-ning-child': [
@@ -597,8 +597,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-31',
       text: {
-        zhCN: '收工喽！鞋带踩住了，等等，我先把饭盒放下来再解。',
-        en: 'Finished! Standing on my lace. Wait, lunchbox down before untying it.',
+        zhCN: '收工喽，咱们先开饭！哎，饭盒还扣着呢。',
+        en: "Work done, let's eat! Ah, lunch box still fastened.",
       },
       dayKinds: ['workday'],
       when: [
@@ -611,8 +611,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-32',
       text: {
-        zhCN: '下班喽！先修收音机，再做饭——你想吃什么来着？',
-        en: 'Home from work! Radio, then dinner... what did you fancy again?',
+        zhCN: '下班喽，咱们煮面！哎，锅里怎么全是冷水。',
+        en: "Home from work, noodles for us! Ah, why's the water still cold?",
       },
       dayKinds: ['workday'],
       when: [
@@ -625,8 +625,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-33',
       text: {
-        zhCN: '下班馋了一路烤土豆，到家一看，一颗也没买！',
-        en: "Dreamed of jacket potatoes all the way home. Got here, found I'd bought absolutely none!",
+        zhCN: '索菲娅，咱们今晚烤土豆！哎，回家才发现一颗没买。',
+        en: "Sofia, jacket potatoes for us tonight! Ah, got home and hadn't bought any.",
       },
       dayKinds: ['workday'],
       when: [
@@ -639,8 +639,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-34',
       text: {
-        zhCN: '工牌还挂着呢！等等，切洋葱得先把这绳塞进去。',
-        en: 'Still wearing my work badge! Hang on, tuck the strap in before the onions.',
+        zhCN: '工牌还挂着就切洋葱！哎，咱们这厨师真赶。',
+        en: "Chopping onions with my work pass on! Ah, our chef's in a rush.",
       },
       dayKinds: ['workday'],
       when: [
@@ -653,8 +653,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-35',
       text: {
-        zhCN: '工作收场，厨房开场！怎么有糊味？这开场可糟了。',
-        en: "Work finished, kitchen kickoff! What's that burning smell? Terrible opening.",
+        zhCN: '索菲娅，咱家厨房开场！哎，才下班就把洋葱炒糊了。',
+        en: "Sofia, our kitchen's kicking off! Ah, home from work and burnt the onions already.",
       },
       dayKinds: ['workday'],
       when: [
@@ -681,8 +681,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-37',
       text: {
-        zhCN: '工作还没着落。我翻招聘页，怎么又切成菜谱了？',
-        en: 'Still no job. Looking at listings. How did I end up on recipes again?',
+        zhCN: '索菲娅，咱家电脑给你！哎，我找工作又点成球赛了。',
+        en: "Sofia, our computer's yours! Ah, job-hunting turned into football again.",
       },
       requires: ['family-jamie-unemployed'],
       forbids: ['family-jamie-reemployed', 'family-pip-applied'],
@@ -690,8 +690,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-38',
       text: {
-        zhCN: '找工作真磨人，买菜碰上旧同事，我差点躲罐头后面。',
-        en: "Job-hunting's wearing me out. Saw an old colleague shopping. Nearly hid behind the tins.",
+        zhCN: '索菲娅，买咱家菜碰见旧同事！工作没着落，球赛都忘聊。',
+        en: 'Sofia, old colleague while buying our groceries! No job yet; forgot the football too.',
       },
       requires: ['family-jamie-unemployed'],
       forbids: ['family-jamie-reemployed', 'family-pip-applied'],
@@ -699,8 +699,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-39',
       text: {
-        zhCN: '新工作的杯子带回来了！先吃饭，我有一肚子事要讲。',
-        en: "Brought my new work mug home! Dinner first. I've got so much to tell you.",
+        zhCN: '新工作一肚子事！咱们先吃，哎，别让我嘴占满。',
+        en: "So much about the new job! Dinner first. Ah, don't let me hog the talk.",
       },
       requires: ['family-jamie-reemployed'],
       forbids: ['family-pip-applied'],
@@ -714,8 +714,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-40',
       text: {
-        zhCN: '重新上班也累啊！今天这锅你接，我申请换人！',
-        en: "Being back at work's tiring! Take over the pan? I'm asking for a substitution!",
+        zhCN: '索菲娅，重新上班真累！咱家这锅换你，我先投降。',
+        en: "Sofia, back at work and knackered! Our pan's yours. I surrender.",
       },
       requires: ['family-jamie-reemployed'],
       forbids: ['family-pip-applied'],
@@ -729,40 +729,40 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-41',
       text: {
-        zhCN: '春天开窗喽！哎，这合页还在叫，我带油来，你扶一下？',
-        en: "Spring window open! Hinge still squeaks. I'll get oil. Hold it?",
+        zhCN: '春天开窗喽！咱家合页还在叫，哎，球赛都听不清。',
+        en: "Spring windows open! Our hinge is squealing. Ah, can't hear the match.",
       },
       season: 2,
     },
     {
       id: 'jamie-daily-42',
       text: {
-        zhCN: '这秋天的南瓜，哎哟，得用我最大的案板才压得住！',
-        en: 'Look at this autumn pumpkin! Blimey, needs my biggest chopping board.',
+        zhCN: '秋天南瓜真大！哎，咱家案板快被我挤走了。',
+        en: 'Huge autumn pumpkin! Ah, nearly pushed our chopping board off.',
       },
       season: 4,
     },
     {
       id: 'jamie-daily-43',
       text: {
-        zhCN: '后门被雪封了！咱们走前门，等等，我拿铲子。',
-        en: "Snow's blocked the back! Front door it is. Hang on, shovel first.",
+        zhCN: '后门雪封了，咱们走前门！哎，铲子也锁后头了。',
+        en: "Snow at the back door. Let's use the front! Ah, shovel's locked out back too.",
       },
       weather: ['snow'],
     },
     {
       id: 'jamie-daily-44',
       text: {
-        zhCN: '周末炖菜得慢火，上回球赛加时，我把它烧成一锅炭！',
-        en: 'Low heat for weekend stew. Last extra time, I burnt it to a pan of charcoal!',
+        zhCN: '咱家周末炖菜得慢火！索菲娅，上回球赛加时，我烧成炭啦。',
+        en: 'Low heat for our weekend stew! Sofia, last extra time I burnt it to charcoal.',
       },
       dayKinds: ['weekend'],
     },
     {
       id: 'jamie-daily-45',
       text: {
-        zhCN: '停工后老忘下午的药。我摆水杯边了，这回总该看见！',
-        en: "Keep forgetting afternoon tablets since stopping work. By the water now. Surely I'll see them this time!",
+        zhCN: '停工后下午的药总忘！咱家水杯边摆好了，这回记着。',
+        en: 'Keep forgetting afternoon medicine since stopping work! Set it beside our water glass. Remember this time.',
       },
       requires: ['family-pip-applied'],
       when: [
@@ -775,32 +775,32 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-46',
       text: {
-        zhCN: '听完咨询我把重锅放低了，搬一次腰就抗议，真服了。',
-        en: 'After that advice I moved the heavy pans down. My back complains every lift. Honestly.',
+        zhCN: '听完咨询，咱家重锅放低啦！哎，我的腰先投降。',
+        en: "Advice heard, our heavy pan's lower now! Ah, my back gave in first.",
       },
       requires: ['family-pip-advice'],
     },
     {
       id: 'jamie-daily-47',
       text: {
-        zhCN: '盐试过了，火关了，哎，这下你说！我听着呢。',
-        en: "Salt checked, hob off. Right, tell me! I'm listening.",
+        zhCN: '索菲娅，咱家火关了，坐下说！哎，又只顾讲我的锅。',
+        en: "Sofia, our stove's off. Sit and talk! Ah, nearly talked only about my pan again.",
       },
       heartsMin: 2,
     },
     {
       id: 'jamie-daily-48',
       text: {
-        zhCN: '你爱吃那道我写下了！夹在收音机后边，等等，得先关电。',
-        en: 'Wrote down your favourite dish! Behind the radio. Wait, switch it off first.',
+        zhCN: '咱们爱吃的都记下啦！哎，我又写在球赛时刻旁。',
+        en: 'Noted what we like to eat! Ah, beside the football times again.',
       },
       heartsMin: 2,
     },
     {
       id: 'jamie-daily-49',
       text: {
-        zhCN: '这么晚还亮灯！你也醒着？我在听旧球赛录音呢。',
-        en: "Light's still on this late! You awake too? I'm listening to an old match recording.",
+        zhCN: '索菲娅，咱们床头灯还亮着！哎，我听旧球赛又听醒了。',
+        en: "Sofia, our bedside light's still on! Ah, old match recording's woken me right up.",
       },
       heartsMin: 6,
       when: [
@@ -812,8 +812,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'jamie-daily-50',
       text: {
-        zhCN: '尝口这盘呀！你直说，我拿本子记，哎，等我找到笔。',
-        en: "Try this plate! Tell me straight. I'll write it down, once I find a pen.",
+        zhCN: '尝咱们这盘！哎，我放盐时又忘了尝，先认错。',
+        en: 'Try our dinner! Ah, forgot to taste while salting it. My fault first.',
       },
       heartsMin: 6,
     },
@@ -822,8 +822,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-31',
       text: {
-        zhCN: '我回来了，先给表姐打电话。晚饭你先热，还是等我？',
-        en: "I'm home. Calling my cousin first. Heat dinner now or wait for me?",
+        zhCN: '下班先给表姐打电话。讲好先，嘉宁，家里晚饭先热还是等我？',
+        en: "Cousin's call after work first. Agree, Ka Ning: heat our dinner now or wait for me?",
       },
       dayKinds: ['workday'],
       when: [
@@ -850,8 +850,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-33',
       text: {
-        zhCN: '胡萝卜我补了，下次购物得换你记。清单写纸上还是手机？',
-        en: 'Got the carrots. Your turn to remember next time. Paper list or phone?',
+        zhCN: '家里胡萝卜我补了。嘉宁，下次你记纸上还是手机？',
+        en: 'Got our carrots. Ka Ning, your turn next time: paper list or phone?',
       },
       dayKinds: ['workday'],
       when: [
@@ -864,8 +864,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-34',
       text: {
-        zhCN: '手机我静音了，今晚要看摄影书。临时的活明天再分。',
-        en: "Phone's muted. Photography book tonight. We can divide new chores tomorrow.",
+        zhCN: '讲好先，今晚我看摄影书。乐言的家课你先陪，我来收饭桌。',
+        en: "Agree first: my photography book tonight. You help Lok Yin with homework; I'll clear our table.",
       },
       dayKinds: ['workday'],
       when: [
@@ -878,8 +878,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-35',
       text: {
-        zhCN: '跑一天了，我先换鞋。要吃点心，你蒸还是我去买？',
-        en: 'Long day. Shoes off first. Want dim sum? Steam some, or shall I buy it?',
+        zhCN: '全家跑一天了，我先换鞋。嘉宁，点心你蒸还是我买？',
+        en: 'Long day out for the family. Shoes off first. Ka Ning, steam dim sum or shall I buy it?',
       },
       dayKinds: ['workday'],
       when: [
@@ -892,8 +892,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-36',
       text: {
-        zhCN: '我想学拍夜景，周末留一晚出去。你同行还是在家看书？',
-        en: 'I want to learn night photography. One evening out this weekend. Join me or read at home?',
+        zhCN: '周末留一晚拍夜景。嘉宁，你同行，还是在家陪乐言？',
+        en: 'One evening for night photography this weekend. Ka Ning, join me or stay home with Lok Yin?',
       },
       dayKinds: ['workday'],
       when: [
@@ -924,8 +924,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-39',
       text: {
-        zhCN: '重新上班后的接送照表来，我的那格改动得先跟我说。',
-        en: "School runs follow the rota now I'm back at work. Tell me before changing my slot.",
+        zhCN: '重新上班也按乐言接送表走。讲好先，嘉宁，改我的格先问。',
+        en: "Back at work, still Lok Yin's school rota. Agree, Ka Ning: ask before changing my slot.",
       },
       requires: ['bno-partner-restarted'],
       dayKinds: ['workday'],
@@ -938,8 +938,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-40',
       text: {
-        zhCN: '重新上班，晚饭时间我得留给自己。你负责买还是负责煮？',
-        en: 'Back at work, I need my dinner hour. Will you shop or cook?',
+        zhCN: '重新上班，家里晚饭得换手。嘉宁，你负责买还是煮？',
+        en: 'Back at work, our dinners need another pair of hands. Ka Ning, shop or cook?',
       },
       requires: ['bno-partner-restarted'],
       dayKinds: ['workday'],
@@ -952,71 +952,71 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-41',
       text: {
-        zhCN: '春天外套找到了，我想把省下的钱买杂志。这期有夜景。',
-        en: "Found the spring coat. I'd put the saved money towards the magazine. Night photos this issue.",
+        zhCN: '春天外套找到了。讲好先，省的钱我想买夜景杂志。',
+        en: "Found the spring coat. Let's agree first: I'd like that saving for a night-photo magazine.",
       },
       season: 2,
     },
     {
       id: 'ka-ning-partner-daily-42',
       text: {
-        zhCN: '冬天饭盒凉得快，我想试旧保温袋。你带汤还是带饭？',
-        en: "Winter lunch goes cold fast. I'd try the old insulated bag. Soup or rice for you?",
+        zhCN: '冬天全家的饭盒试旧保温袋。乐言带饭，你带汤还是饭？',
+        en: "Old insulated bag for the family's winter lunches. Rice for Lok Yin; soup or rice for you?",
       },
       season: 1,
     },
     {
       id: 'ka-ning-partner-daily-43',
       text: {
-        zhCN: '雨声太响，饭锅我听不到。我去关，你把窗边衣服收进来。',
-        en: "Rain drowns out the cooker. I'll switch it off; bring in the clothes by the window.",
+        zhCN: '雨进家里窗边了。讲好先，我关饭锅，嘉宁收衣服。',
+        en: "Rain's coming through our window. Agree first: I turn off the cooker, Ka Ning gets the washing.",
       },
       weather: ['rain'],
     },
     {
       id: 'ka-ning-partner-daily-44',
       text: {
-        zhCN: '周末我只补两件衣服。你先挑要穿哪件，余下的下回做。',
-        en: "Two repairs this weekend. Pick what you'll wear first. The others wait.",
+        zhCN: '周末只补两件衣服，先补乐言的。讲好先，嘉宁的下回补。',
+        en: "Mending two things this weekend, Lok Yin's first. Agree first: Ka Ning's next time.",
       },
       dayKinds: ['weekend'],
     },
     {
       id: 'ka-ning-partner-daily-45',
       text: {
-        zhCN: '简历那只猫我还留着，表姐看照片就会问。我想重新拍一张。',
-        en: "Kept the CV cat. My cousin asks whenever she sees it. I'd like a new photo.",
+        zhCN: '讲好先，简历那只猫还留着。我想重拍，表姐又问照片了。',
+        en: "Let's agree first: keeping that cat on my CV. Want a new photo; cousin's asking again.",
       },
       requires: ['bno-partner-cv-seen'],
     },
     {
       id: 'ka-ning-partner-daily-46',
       text: {
-        zhCN: '旧地图我想重折，桌上得腾块地方。你收杯子还是把书挪开？',
-        en: "I'd refold the map. Need table space. Cups away or books aside for you?",
+        zhCN: '香港带来的地图我重折。嘉宁，家里桌上杯子还是书先挪？',
+        en: 'Refolding the map from Hong Kong. Ka Ning, cups or books off our table first?',
       },
     },
     {
       id: 'ka-ning-partner-daily-47',
       text: {
-        zhCN: '布我来量，颜色你选深的还是浅的？我自己的那块想要蓝。',
-        en: "I'll measure. Dark or pale for yours? I'd like blue for my own piece.",
+        zhCN: '家里窗帘我量。嘉宁，选深色还是浅色？我想卧室用蓝。',
+        en: "I'll measure our curtains. Ka Ning, dark or pale? I'd like blue for our bedroom.",
       },
       heartsMin: 2,
     },
     {
       id: 'ka-ning-partner-daily-48',
       text: {
-        zhCN: '这根线我要一起拆，你从这头，还是从扣子那头开始？',
-        en: "We'll unpick this together. Start here or at the button end?",
+        zhCN: '乐言衣扣得重新缝。你先拆这头，还是从扣子那头开始？',
+        en: "Lok Yin's button needs resewing. Unpick this end or start at the button end?",
       },
       heartsMin: 2,
     },
     {
       id: 'ka-ning-partner-daily-49',
       text: {
-        zhCN: '相册留一页给我，下次我也要入镜。你拿相机还是我架起来？',
-        en: 'One album page for me; I want to be in the picture. Will you hold the camera or shall I set it up?',
+        zhCN: '全家相册得有我入镜。嘉宁，你拿相机，还是我架起来？',
+        en: 'I need to be in our family album. Ka Ning, hold the camera or shall I set it up?',
       },
       heartsMin: 6,
       requires: ['family-album-started'],
@@ -1025,8 +1025,8 @@ const additionalLines: Record<string, Npc['lines']> = {
     {
       id: 'ka-ning-partner-daily-50',
       text: {
-        zhCN: '饭盒扣好了，我要翻摄影书。你现在吃，还是晚点跟我一起？',
-        en: "Lunchbox closed. I'm reading my photo book. Eat now or later with me?",
+        zhCN: '乐言的饭盒扣好了，我看摄影书。嘉宁，现在吃还是等我？',
+        en: "Lok Yin's lunchbox is closed. My photography book now. Ka Ning, eat now or wait for me?",
       },
       heartsMin: 6,
     },
@@ -1809,8 +1809,8 @@ const moments: {
       en: 'Soup is not a repair job',
     },
     text: {
-      zhCN: '杰米说自己能把松动的柜门修好，炖汤却总拿不准。你问汤少了什么，他认真列出厨房现有的东西。\n「我不是问库存。」你说。他愣一下，尝了尝自己的那碗：「哎，我说岔了，是怕你不爱吃。」\n他习惯用做饭表示欢迎，却常常只问够不够，不问你究竟想吃什么，好像饿不着就算照顾好了。\n你说家里可以有不一样的口味。他点头，把那句「我都可以」收回，承认自己也有不想吃的菜。\n他翻出沾油的食谱，边上写着「别凭感觉」。你问谁写的，他指自己：「写的时候，我可有把握了！」\n汤没变得完美。杰米尝了一口，终于没问「够不够」：「说喜欢什么吧！你先，哎，还是我先？」',
-      en: 'Jamie says he can fix a loose cupboard door but never quite gets soup right. Asked what it lacks, he lists the kitchen supplies.\n“I wasn’t asking for stock.” He pauses and tastes his bowl. “Ah, wrong thing. I’m scared you won’t like it.”\nCooking is his way to welcome you. He usually asks whether there is enough, rather than what you want, as though not going hungry settles care.\nYou say a home can hold different tastes. He nods, withdraws “Anything’s fine” and admits there are dishes he would rather not eat too.\nHe finds the grease-spotted recipe. “Don’t go by feel” is written in the margin. You ask who wrote it. He points to himself. “Oh, I was certain when I wrote it!”\nThe soup stays imperfect. Jamie tastes it and finally asks something other than “Enough?” “What do we like, then! You first. Ah, shall I?”',
+      zhCN: '杰米说自己能把松动的柜门修好，炖汤却总拿不准。你问汤少了什么，他认真列出厨房现有的东西。\n「我不是问库存。」你说。他愣一下，尝了尝自己的那碗：「索菲娅，咱家这锅怕你不爱吃！」\n他习惯用做饭表示欢迎，却常常只问够不够，不问你究竟想吃什么，好像饿不着就算照顾好了。\n你说家里可以有不一样的口味。他点头，把那句「我都可以」收回，承认自己也有不想吃的菜。\n他翻出沾油的食谱，边上写着「别凭感觉」。你问谁写的，他指自己：「写的时候，我可有把握了！」\n汤没变得完美。杰米尝了一口，终于没问「够不够」：「咱家菜单一块写！索菲娅，写你爱吃的。」',
+      en: 'Jamie says he can fix a loose cupboard door but never quite gets soup right. Asked what it lacks, he lists the kitchen supplies.\n“I wasn’t asking for stock.” He pauses and tastes his bowl. “Sofia, scared you won’t like our soup!”\nCooking is his way to welcome you. He usually asks whether there is enough, rather than what you want, as though not going hungry settles care.\nYou say a home can hold different tastes. He nods, withdraws “Anything’s fine” and admits there are dishes he would rather not eat too.\nHe finds the grease-spotted recipe. “Don’t go by feel” is written in the margin. You ask who wrote it. He points to himself. “Oh, I was certain when I wrote it!”\nThe soup stays imperfect. Jamie tastes it and finally asks something other than “Enough?” “Let’s write our menu together! Sofia, what do you love?”',
     },
     labels: [
       {
@@ -1831,8 +1831,8 @@ const moments: {
       en: 'Familiar ground can trip you',
     },
     text: {
-      zhCN: '杰米说自己小时候在这里迷过路，明明认得街名，却为了不被笑，硬说是在带别人抄近路。\n你问后来谁找到他的。他说自己绕回来，家里没有人知道。他把这事当笑话讲了很多年。\n「现在听着不太好笑。」你说。他点头：「哎，住这儿久了，连迷路都怕人笑话！」\n你刚到时，他也常抢着解释，仿佛熟悉小镇的人不该犹豫，却很少问你要不要另找一种走法。\n他翻出手机拍过的一块路牌，说小时候总认错。你照着念，他也跟着念，念到一半才发现手机拿反了。\n他想了想：「你想自己找路，就你带队！」说完又笑，「哎，我这腿又差点抢跑。」',
-      en: 'Jamie once got lost here as a child. He knew the street names but claimed to be taking a shortcut so nobody would laugh.\nYou ask who found him. He got back by circling round, and nobody at home knew. He has told it as a joke for years.\n“Doesn’t sound very funny now.” He nods. “Ah, lived here so long I’m scared people will laugh if I get lost!”\nWhen you first arrived he rushed to explain, as if a local should never hesitate. He rarely asked whether you wanted to find another way.\nHe finds a phone photograph of a sign he used to mistake as a child. You read it; he joins in, then realises he is holding the phone upside down.\nHe considers it. “If you want your own route, you lead the team!” Then a smile. “Ah, my legs nearly ran ahead again.”',
+      zhCN: '杰米说自己小时候在这里迷过路，明明认得街名，却为了不被笑，硬说是在带别人抄近路。\n你问后来谁找到他的。他说自己绕回来，家里没有人知道。他把这事当笑话讲了很多年。\n「现在听着不太好笑。」你说。他点头：「索菲娅，球都敢射偏，带咱们出门倒怕人笑！」\n你刚到时，他也常抢着解释，仿佛熟悉小镇的人不该犹豫，却很少问你要不要另找一种走法。\n他翻出手机拍过的一块路牌，说小时候总认错。你照着念，他也跟着念，念到一半才发现手机拿反了。\n他想了想：「咱们这回你带队，索菲娅！」说完又笑，「哎，我这腿又差点抢跑。」',
+      en: 'Jamie once got lost here as a child. He knew the street names but claimed to be taking a shortcut so nobody would laugh.\nYou ask who found him. He got back by circling round, and nobody at home knew. He has told it as a joke for years.\n“Doesn’t sound very funny now.” He nods. “Sofia, I can miss a shot, but dread looking daft taking us out!”\nWhen you first arrived he rushed to explain, as if a local should never hesitate. He rarely asked whether you wanted to find another way.\nHe finds a phone photograph of a sign he used to mistake as a child. You read it; he joins in, then realises he is holding the phone upside down.\nHe considers it. “You lead us this time, Sofia!” Then a smile. “Ah, my legs nearly ran ahead again.”',
     },
     labels: [
       {
@@ -1850,8 +1850,8 @@ const moments: {
     hearts: 6,
     title: { zhCN: '不靠修东西回答', en: 'An answer without a toolkit' },
     text: {
-      zhCN: '杰米翻着工具盒，过一会儿才承认，没有东西坏。他说手里忙一点，难说的话就能迟一点开口。\n你问是什么话。他把盒子关上：「哎，我怕你在这儿不开心，觉得我当初吹得太轻松！」\n你说不开心的日子不全是他的责任。他却习惯先找能修的东西，连你的沉默也被他当成故障。\n「我不是门铰链。」你说。他笑了一下，随后认真点头，第一次没有接着列出解决的办法。\n一颗螺丝从盒盖滚下来，他下意识接住，又摊开手掌：「这颗倒能修！哎，先放下。」你笑了，难说的话还没走。\n工具盒安静放着。杰米看了它一眼，没有再伸手：「你说，我先听！哎，又想拿工具了，收手。」',
-      en: 'Jamie searches his toolbox, then admits nothing is broken. Busy hands let him postpone a difficult sentence a little longer.\nYou ask which sentence. He closes the box. “Ah, I’m scared you’re unhappy here and think I made it all sound too easy!”\nYou say unhappy days are not all his responsibility. He instinctively looks for something to fix, even treating your silence like a fault.\n“I’m not a door hinge.” He laughs, then nods properly. For once he does not follow it with a list of solutions.\nA screw rolls off the lid. He catches it automatically, then opens his hand. “This one I can fix! Ah, put it down first.” You laugh. The difficult subject has not gone anywhere.\nThe toolbox stays quiet. Jamie glances at it without reaching. “Go on, I’m listening! Ah, reaching for the tools again. Hand back.”',
+      zhCN: '杰米翻着工具盒，过一会儿才承认，没有东西坏。他说手里忙一点，难说的话就能迟一点开口。\n你问是什么话。他把盒子关上：「索菲娅，咱们这家过得不开心，我怕当初吹过头！」\n你说不开心的日子不全是他的责任。他却习惯先找能修的东西，连你的沉默也被他当成故障。\n「我不是门铰链。」你说。他笑了一下，随后认真点头，第一次没有接着列出解决的办法。\n一颗螺丝从盒盖滚下来，他下意识接住，又摊开手掌：「这颗倒能修！哎，先放下。」你笑了，难说的话还没走。\n工具盒安静放着。杰米看了它一眼，没有再伸手：「索菲娅，咱们先说话！哎，家里这工具先收住。」',
+      en: 'Jamie searches his toolbox, then admits nothing is broken. Busy hands let him postpone a difficult sentence a little longer.\nYou ask which sentence. He closes the box. “Sofia, if we’re unhappy at home, I’m scared I made it sound too easy!”\nYou say unhappy days are not all his responsibility. He instinctively looks for something to fix, even treating your silence like a fault.\n“I’m not a door hinge.” He laughs, then nods properly. For once he does not follow it with a list of solutions.\nA screw rolls off the lid. He catches it automatically, then opens his hand. “This one I can fix! Ah, put it down first.” You laugh. The difficult subject has not gone anywhere.\nThe toolbox stays quiet. Jamie glances at it without reaching. “Sofia, let’s talk first! Ah, our tools can stay put.”',
     },
     labels: [
       {
@@ -1872,8 +1872,8 @@ const moments: {
       en: 'The chair is not an excuse',
     },
     text: {
-      zhCN: '杰米把摇晃的椅子修好，仍不肯坐下。你问还差什么，他又检查一遍已经拧紧的螺丝。\n「你总说等我忙完。」你说，「可总有下一样要修。」他停住手，承认自己也听见这句话了。\n他怕一坐下来，就得谈没有工具能解决的事；你也累了，不想总等到自己爆发，才换来一次认真相处。\n你可以坚持现在坐下谈，不再往后拖；也可以说今天已经没有力气，约定另一天，接受他暂时以为你在退开。\n椅面留着一个旧杯圈。杰米说擦不掉，你说这回没人叫他擦，他的手才从抹布旁收回来。\n椅脚不晃了，谈话却没有自动站稳。杰米扣上工具盒：「哎，哪天都行！我记下，修东西再多也得赴约。」',
-      en: 'Jamie finishes fixing the wobbling chair but will not sit. Asked what remains, he checks the tightened screws again.\n“You always say once I’m finished. There’s always another job.” His hands stop. He admits hearing himself say it too.\nHe fears questions no tool can solve. You are tired of waiting until you explode before getting serious time together.\nYou can insist on talking now without postponement, or admit you have no strength today and agree another day, accepting that he may feel you pulling away.\nAn old cup ring marks the seat. Jamie says it will not come off. You say nobody asked him to clean it this time. His hand leaves the cloth alone.\nThe chair is steady; the conversation is not. Jamie shuts the toolbox. “Ah, any day! I’ll write it down. Even with repairs to do, I’m showing up.”',
+      zhCN: '杰米把摇晃的椅子修好，仍不肯坐下。你问还差什么，他又检查一遍已经拧紧的螺丝。\n「你总说等我忙完。」你说，「可总有下一样要修。」他停住手，承认自己也听见这句话了。\n他怕一坐下来，就得谈没有工具能解决的事；你也累了，不想总等到自己爆发，才换来一次认真相处。\n你可以坚持现在坐下谈，不再往后拖；也可以说今天已经没有力气，约定另一天，接受他暂时以为你在退开。\n椅面留着一个旧杯圈。杰米说擦不掉，你说这回没人叫他擦，他的手才从抹布旁收回来。\n椅脚不晃了，谈话却没有自动站稳。杰米扣上工具盒：「索菲娅，咱们的事我记下！家里再多活也得赴约。」',
+      en: 'Jamie finishes fixing the wobbling chair but will not sit. Asked what remains, he checks the tightened screws again.\n“You always say once I’m finished. There’s always another job.” His hands stop. He admits hearing himself say it too.\nHe fears questions no tool can solve. You are tired of waiting until you explode before getting serious time together.\nYou can insist on talking now without postponement, or admit you have no strength today and agree another day, accepting that he may feel you pulling away.\nAn old cup ring marks the seat. Jamie says it will not come off. You say nobody asked him to clean it this time. His hand leaves the cloth alone.\nThe chair is steady; the conversation is not. Jamie shuts the toolbox. “Sofia, I’ll note our time! However much needs doing at home, I’m turning up.”',
     },
     labels: [
       {
@@ -1892,8 +1892,8 @@ const moments: {
     hearts: 10,
     title: { zhCN: '给椅子取名字', en: 'Names for the chairs' },
     text: {
-      zhCN: '修好的椅子被杰米起名叫「先坐下」，另一把叫「听完再说」。你问这名字会不会太长。\n「比我找借口短多啦！」他说。你笑，他也笑，却没有再添一句把认真藏起来的玩笑。\n他仍爱修东西，也仍会猜错你的心情。现在猜不准时，能先问一句，而不是立刻去拧螺丝。\n你们决定不固定谁坐哪把椅子，谁想说话就先坐。一个人坐下，另一个也不必马上变成问题解决者。\n他把名字写在纸牌上，试着系到椅背，结打大了，自己坐下先硌了一下。「哎哟，名字把我硌了！」他说。\n杰米拍一下「先坐下」的椅背：「你要换名字就换！哎，挂上也能摘。」他自己先坐，不再检查椅脚。',
-      en: 'Jamie names the repaired chair “Sit down first” and the other “Hear it out”. You ask whether the names are too long.\n“A lot shorter than my excuses!” You both laugh, and he adds no further joke to hide the serious part.\nHe still likes fixing things and still misreads your mood. When unsure now, he can ask before reaching for a screwdriver.\nYou decide neither chair belongs to one person. Whoever wants to talk sits first; the other need not immediately become a problem-solver.\nHe writes the names on paper tags and tries tying them to the chair backs. The oversized knot pokes him when he sits. “Ow, the name’s poking me!” he says.\nJamie pats “Sit down first”. “Change the name if you want! Ah, can always take the tag off.” He sits without inspecting the legs again.',
+      zhCN: '修好的椅子被杰米起名叫「先坐下」，另一把叫「听完再说」。你问这名字会不会太长。\n「咱家名字，比我借口短啦！」他说。你笑，他也笑，却没有再添一句把认真藏起来的玩笑。\n他仍爱修东西，也仍会猜错你的心情。现在猜不准时，能先问一句，而不是立刻去拧螺丝。\n你们决定不固定谁坐哪把椅子，谁想说话就先坐。一个人坐下，另一个也不必马上变成问题解决者。\n他把名字写在纸牌上，试着系到椅背，结打大了，自己坐下先硌了一下。「哎哟，名字把我硌了！」他说。\n杰米拍一下「先坐下」的椅背：「索菲娅，咱家椅子换名就换！哎，又硌了。」他自己先坐，不再检查椅脚。',
+      en: 'Jamie names the repaired chair “Sit down first” and the other “Hear it out”. You ask whether the names are too long.\n“Our chairs’ names are shorter than my excuses!” You both laugh, and he adds no further joke to hide the serious part.\nHe still likes fixing things and still misreads your mood. When unsure now, he can ask before reaching for a screwdriver.\nYou decide neither chair belongs to one person. Whoever wants to talk sits first; the other need not immediately become a problem-solver.\nHe writes the names on paper tags and tries tying them to the chair backs. The oversized knot pokes him when he sits. “Ow, the name’s poking me!” he says.\nJamie pats “Sit down first”. “Sofia, change our chairs’ names whenever! Ah, poked myself again.” He sits without inspecting the legs again.',
     },
     labels: [
       { zhCN: '先坐下，让他听你说', en: 'Sit first and let him listen' },
@@ -1913,8 +1913,8 @@ const moments: {
       en: 'A CV is not a family portrait',
     },
     text: {
-      zhCN: '文舒把看过的简历翻到背面，孩子画的猫挤在工作经历后面。她说那天写到一半就去接孩子了。\n你笑说猫也算参与项目。她摇头：「讲好先，我的工作经历，别全算成管家。」\n她说那时找工作，不只想添一笔收入，也想有人问她会做什么。这份心思到现在没有变。\n你说自己没想到那句玩笑会绕回家务。她指着简历：「我想先谈工作。家务留饭后，还是明早接着谈？」\n她指指猫旁的一行小字，是当年面试想说的话。孩子把句号画成猫粮，她到现在仍认得自己当时要说什么。\n文舒把简历正面朝上：「先谈哪边都可以。有个条件：另一边还要谈，别顺手替我答应。」',
-      en: 'Man Shu turns the reviewed CV over. The child’s cat crowds behind her work history. She stopped writing that day to do the school run.\nYou joke that the cat counts as project work. She shakes her head. “Let’s get this straight. My work experience isn’t all housekeeping.”\nShe says job-hunting then meant more than another household income. She wanted to be asked what she could do. That wish has not changed.\nYou had not realised your joke led back to chores. She points to the CV. “I want work first. Chores after dinner, or tomorrow morning?”\nShe points to a small line beside the cat: something she meant to say at an interview then. The child turned its full stop into cat food. Even now, she still knows what she meant to say then.\nMan Shu turns the CV face up. “Either can come first. One condition: we discuss the other too. No agreeing on my behalf.”',
+      zhCN: '文舒把看过的简历翻到背面，孩子画的猫挤在工作经历后面。她说那天写到一半就去接孩子了。\n你笑说猫也算参与项目。她摇头：「嘉宁，讲好先，我的工作经历别全算管家。」\n她说那时找工作，不只想添一笔收入，也想有人问她会做什么。这份心思到现在没有变。\n你说自己没想到那句玩笑会绕回家务。她指着简历：「我想先谈工作。家务留饭后，还是明早接着谈？」\n她指指猫旁的一行小字，是当年面试想说的话。孩子把句号画成猫粮，她到现在仍认得自己当时要说什么。\n文舒把简历正面朝上：「讲好先，乐言接送还得分。嘉宁，先谈工作还是接送？」',
+      en: 'Man Shu turns the reviewed CV over. The child’s cat crowds behind her work history. She stopped writing that day to do the school run.\nYou joke that the cat counts as project work. She shakes her head. “Ka Ning, let’s agree first: my work experience isn’t all housekeeping.”\nShe says job-hunting then meant more than another household income. She wanted to be asked what she could do. That wish has not changed.\nYou had not realised your joke led back to chores. She points to the CV. “I want work first. Chores after dinner, or tomorrow morning?”\nShe points to a small line beside the cat: something she meant to say at an interview then. The child turned its full stop into cat food. Even now, she still knows what she meant to say then.\nMan Shu turns the CV face up. “Agree first: Lok Yin’s school runs still need splitting. Ka Ning, work or pickups first?”',
     },
     labels: [
       {
@@ -1936,8 +1936,8 @@ const moments: {
       en: 'Who made the album',
     },
     text: {
-      zhCN: '文舒开始整理相册，几张照片旁都写了她的说明。你说看着像她写的家庭年报，她没有跟着笑。\n「我拍我贴，大家看完夸一家人，这笔功劳怎么算？」她说完，又把语气放缓。\n她不是不想记这些事，只是不想连全家应该记住什么，都自动落到自己头上，还被算成爱好。\n你问怎样一起做。她让你选一张自己记得的照片，先说发生了什么，不翻她写好的说明。\n一张照片拍进了她半截手指。你以为会淘汰，她却留下：「我总算入镜！半根手指，也算我的。」\n她选一张照片推到中间：「我这页写好了。你先讲，还是先贴自己的那张？」',
-      en: 'Man Shu begins an album, adding captions to several photographs. You call it her family annual report. She does not laugh.\n“I take them, arrange them, everyone praises the family. How’s that credit split?” She finishes, then softens her voice.\nShe wants the memories, but does not want deciding what the whole family remembers to fall to her automatically and then be called her hobby.\nYou ask how to do it together. She asks you to choose a photograph and describe what happened without checking her caption.\nOne photograph includes half her finger. You expect it to be rejected. She keeps it. “I’m finally in it! Half a finger still counts as me.”\nShe places a photograph between you. “My page is written. Tell yours first, or stick your photo down?”',
+      zhCN: '文舒开始整理相册，几张照片旁都写了她的说明。你说看着像她写的家庭年报，她没有跟着笑。\n「嘉宁，讲好先，全家相册不能只漏我名字。」她说完，又把语气放缓。\n她不是不想记这些事，只是不想连全家应该记住什么，都自动落到自己头上，还被算成爱好。\n你问怎样一起做。她让你选一张自己记得的照片，先说发生了什么，不翻她写好的说明。\n一张照片拍进了她半截手指。你以为会淘汰，她却留下：「我总算入镜了。讲好先，半根手指也算我。」\n她选一张照片推到中间：「我这页写好了。嘉宁，你先讲乐言这张，还是贴自己的？」',
+      en: 'Man Shu begins an album, adding captions to several photographs. You call it her family annual report. She does not laugh.\n“Ka Ning, agree first: mine can’t be the only name missing from our family album.” She finishes, then softens her voice.\nShe wants the memories, but does not want deciding what the whole family remembers to fall to her automatically and then be called her hobby.\nYou ask how to do it together. She asks you to choose a photograph and describe what happened without checking her caption.\nOne photograph includes half her finger. You expect it to be rejected. She keeps it. “Finally in it. Let’s agree first: half a finger still counts as me.”\nShe places a photograph between you. “My page is written. Ka Ning, Lok Yin’s photo story first, or stick yours down?”',
     },
     labels: [
       {
@@ -1959,8 +1959,8 @@ const moments: {
       en: 'Me beyond the list',
     },
     text: {
-      zhCN: '夜里过了八点，文舒把计算器关掉，先说这次不核账。你习惯性问明天还要做什么，她叹了口气。\n「安排记住，人漏啦？」她问。你说她可以歇会儿，她摇头：「讲好先，我要聊天。休息我自己会安排。」\n她讲起从前爱看的电影，才说了开头，就发现自己又在解释为什么没有时间继续看。\n你请她不用交代理由。文舒想了一会儿，重新从那个荒唐的情节讲起，越说越觉得好笑。\n她学着片中人郑重宣布一件蠢事，声音太像平时核账，自己先笑弯了腰，连结尾都说不下去。\n她把那个荒唐情节重新讲了一遍，自己笑得最早：「我还想聊这部。你接着听，还是也讲一段自己的？」',
-      en: 'After eight at night Man Shu switches off the calculator and says this is not an accounts check. You automatically ask what needs doing tomorrow. She sighs.\n“Remembered the jobs, missed the person?” You say she can rest. She shakes her head. “Let’s be clear, I want a chat. I can arrange my own rest.”\nShe begins describing a film she used to love, then catches herself explaining why she has had no time to continue watching.\nYou say no justification is needed. She thinks, starts again with the ridiculous plot and begins laughing as she tells it.\nShe solemnly announces something foolish in the character’s voice. It sounds so much like her accounts checks that she doubles up laughing before reaching the end.\nShe starts the ridiculous plot again and laughs first. “I want more of this film. Listen on, or tell a scene of your own?”',
+      zhCN: '夜里过了八点，文舒把计算器关掉，先说这次不核账。你习惯性问明天还要做什么，她叹了口气。\n「嘉宁，家事记住，人漏啦？」她问。你说她可以歇会儿，她摇头：「讲好先，我要聊天。休息我自己会安排。」\n她讲起从前爱看的电影，才说了开头，就发现自己又在解释为什么没有时间继续看。\n你请她不用交代理由。文舒想了一会儿，重新从那个荒唐的情节讲起，越说越觉得好笑。\n她学着片中人郑重宣布一件蠢事，声音太像平时核账，自己先笑弯了腰，连结尾都说不下去。\n她把那个荒唐情节重新讲了一遍，自己笑得最早：「香港那时就爱这部。嘉宁，你接着听，还是讲自己的？」',
+      en: 'After eight at night Man Shu switches off the calculator and says this is not an accounts check. You automatically ask what needs doing tomorrow. She sighs.\n“Ka Ning, remembered the chores, missed the person?” You say she can rest. She shakes her head. “Let’s be clear, I want a chat. I can arrange my own rest.”\nShe begins describing a film she used to love, then catches herself explaining why she has had no time to continue watching.\nYou say no justification is needed. She thinks, starts again with the ridiculous plot and begins laughing as she tells it.\nShe solemnly announces something foolish in the character’s voice. It sounds so much like her accounts checks that she doubles up laughing before reaching the end.\nShe starts the ridiculous plot again and laughs first. “Loved this back in Hong Kong. Ka Ning, listen on or tell your own scene?”',
     },
     labels: [
       {
@@ -1986,8 +1986,8 @@ const moments: {
       en: 'This page is not mine to finish',
     },
     text: {
-      zhCN: '相册摊着一页新照片，你说等文舒有空再整理。她把胶角放下：「讲好先，你说有空，就是又派给我啦？」\n你说不是故意的。她点头：「知道。可每次照旧，最后还不是我做？」\n她想固定分工，你却不愿每件家庭小事都像排班。两个人说的是同一本相册，担心的并不是同一件事。\n这页你可以自己贴完，答应以后主动轮流；也可以一起贴完，却坦承不愿立刻答应轮班，继续谈怎样才公平。\n胶角粘到她袖口，她揭下来放在桌上，没有像往常那样顺手把所有散片一起收好。\n这页最终要贴好，但不能贴完就算解决。文舒说：「我还想谈清楚。现在说下次，还是晚饭后接着？」',
-      en: 'The album lies open at a new page. You suggest Man Shu arrange it when free. She puts down the photo corners. “Let’s get this straight, ‘when free’ means me again?”\nYou say you did not intend that. She nods. “I know. But every time we carry on, who ends up doing it?”\nShe wants fixed responsibilities. You do not want every family task turned into a rota. One album, two different fears.\nYou can finish this page yourself and commit to unprompted turns, or finish it together but refuse to promise a rota yet, keeping fairness open for discussion.\nA photo corner sticks to her sleeve. She peels it off onto the table without automatically tidying every loose piece as usual.\nThe page must eventually be mounted, but finishing it is no settlement. “I want this settled properly. Plan the next time now, or talk after dinner?”',
+      zhCN: '相册摊着一页新照片，你说等文舒有空再整理。她把胶角放下：「嘉宁，讲好先，全家相册等我，就是又派我？」\n你说不是故意的。她点头：「知道。讲好先，从香港搬来就我理，这回分工。」\n她想固定分工，你却不愿每件家庭小事都像排班。两个人说的是同一本相册，担心的并不是同一件事。\n这页你可以自己贴完，答应以后主动轮流；也可以一起贴完，却坦承不愿立刻答应轮班，继续谈怎样才公平。\n胶角粘到她袖口，她揭下来放在桌上，没有像往常那样顺手把所有散片一起收好。\n这页最终要贴好，但不能贴完就算解决。文舒说：「我还想谈清楚。现在说下次，还是晚饭后接着？」',
+      en: 'The album lies open at a new page. You suggest Man Shu arrange it when free. She puts down the photo corners. “Ka Ning, agree first: waiting for me means our family album’s mine again?”\nYou say you did not intend that. She nods. “I know. Agree first: I’ve done it since we moved from Hong Kong. Share it this time.”\nShe wants fixed responsibilities. You do not want every family task turned into a rota. One album, two different fears.\nYou can finish this page yourself and commit to unprompted turns, or finish it together but refuse to promise a rota yet, keeping fairness open for discussion.\nA photo corner sticks to her sleeve. She peels it off onto the table without automatically tidying every loose piece as usual.\nThe page must eventually be mounted, but finishing it is no settlement. “I want this settled properly. Plan the next time now, or talk after dinner?”',
     },
     labels: [
       {
@@ -2007,8 +2007,8 @@ const moments: {
     hearts: 10,
     title: { zhCN: '不是她一个人记', en: 'Not hers to remember alone' },
     text: {
-      zhCN: '文舒拿出相册，这次先问你记下了哪件事。你讲完，她才翻到自己的记录，两页竟然没有撞题。\n「今个月我总算收了一份你的功课！」她说。你问这算不算夸奖，她答：「算！剩下的继续谈。」\n分工还会争，谁更辛苦也未必说得齐；这次你记得自己开始，文舒没有把这一步算成一切解决。\n你们决定以后每次整理都各选一件事，谁选谁写，文舒不再替所有人的记忆收尾，空缺就等本人。\n她的照片背面还留着买菜单，最后一项写「别忘了自己」。你问买了什么，她说先买了新笔。\n文舒把笔放在你自己的那页旁：「讲好先，做好的、做砸的，各写自己的。我的那页，我自己讲。」',
-      en: 'Man Shu brings out the album and first asks what you recorded. After your story she opens her page. You have chosen entirely different things.\n“At last I’ve got your contribution for this month!” You ask whether that is praise. “It is! The rest we keep discussing.”\nResponsibilities still cause arguments, and you may disagree over who is more tired. You remembered to begin this time; Man Shu does not call that a complete solution.\nYou agree each will choose and write one memory when arranging the album. She will no longer finish everyone’s contribution; missing pieces wait for their owners.\nA shopping list remains on the back of her photograph. Last item: “Don’t forget yourself.” You ask what she bought. She says a new pen came first.\nMan Shu places a pen by your page. “Agree first: good or gone wrong, each writes their own. My page, my story to tell.”',
+      zhCN: '文舒拿出相册，这次先问你记下了哪件事。你讲完，她才翻到自己的记录，两页竟然没有撞题。\n「嘉宁，这月总算收了你的相册功课。」她说。你问这算不算夸奖，她答：「算。讲好先，剩下的继续谈。」\n分工还会争，谁更辛苦也未必说得齐；这次你记得自己开始，文舒没有把这一步算成一切解决。\n你们决定以后每次整理都各选一件事，谁选谁写，文舒不再替所有人的记忆收尾，空缺就等本人。\n她的照片背面还留着买菜单，最后一项写「别忘了自己」。你问买了什么，她说先买了新笔。\n文舒把笔放在你自己的那页旁：「讲好先，全家相册各写各的。嘉宁，我那页得由我讲。」',
+      en: 'Man Shu brings out the album and first asks what you recorded. After your story she opens her page. You have chosen entirely different things.\n“Ka Ning, finally got your album homework this month.” You ask whether that is praise. “It is. Let’s agree first: we still discuss the rest.”\nResponsibilities still cause arguments, and you may disagree over who is more tired. You remembered to begin this time; Man Shu does not call that a complete solution.\nYou agree each will choose and write one memory when arranging the album. She will no longer finish everyone’s contribution; missing pieces wait for their owners.\nA shopping list remains on the back of her photograph. Last item: “Don’t forget yourself.” You ask what she bought. She says a new pen came first.\nMan Shu places a pen by your page. “Agree first: each writes their part of our family album. Ka Ning, my page is mine to tell.”',
     },
     labels: [
       {

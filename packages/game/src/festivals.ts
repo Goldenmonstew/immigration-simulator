@@ -130,36 +130,36 @@ export const festivalDialogue: Record<
     {
       festival: 'lunar-new-year',
       text: {
-        zhCN: '饺子封口完成。比我们归档利索。',
-        en: 'Dumpling sealed. Quicker than our filing.',
+        zhCN: '饺子封口了。我续签材料夹还敞着，先吃这只。',
+        en: "Dumpling sealed. My renewal folder's still open. Eating this one first.",
       },
     },
     {
       festival: 'may-day',
       text: {
-        zhCN: '五月节项目交付：彩带缠手。负责人就是我。',
-        en: 'May Day deliverable: tangled ribbon. Responsible person: me.',
+        zhCN: '五月节彩带缠住工牌了。下班忘摘，得先解绳。',
+        en: "May Day ribbon's caught my work pass. Forgot to take it off. Untangle first.",
       },
     },
     {
       festival: 'summer-fair',
       text: {
-        zhCN: '玉米排得整齐。请不要给它们安排会议。',
-        en: "Corn lined up neatly. Please don't book it a meeting.",
+        zhCN: '集市碰见同事，我们都带了午饭，买的点心往哪装。',
+        en: "Met a colleague at the fair. Both brought lunch. Where do the cakes we've bought go?",
       },
     },
     {
       festival: 'bonfire-night',
       text: {
-        zhCN: '热饮到手。今晚唯一按时完成的任务。',
-        en: "Hot drink acquired. Tonight's one task completed on time.",
+        zhCN: '同事替我顶完班，我赶上烟花了。热饮还烫着。',
+        en: "Colleague covered the end of my shift. Made the fireworks. Drink's still hot.",
       },
     },
     {
       festival: 'christmas-market',
       text: {
-        zhCN: '圣诞摊位灯真亮。差点以为要打卡。',
-        en: 'Bright Christmas stalls. Nearly clocked in.',
+        zhCN: '圣诞摊位灯亮了，我还在算续签费用，先收起计算器。',
+        en: 'Christmas stalls lit up. Still adding up renewal costs. Putting the calculator away.',
       },
     },
   ],
@@ -278,29 +278,29 @@ export const festivalDialogue: Record<
     {
       festival: 'lunar-new-year',
       text: {
-        zhCN: '饺子漏馅了，画个封口容易，手真不听使唤！',
-        en: "Dumpling's leaking! easy to draw a sealed edge. My fingers won't do it.",
+        zhCN: '新年饺子先吃，拒签那事今晚少占我脑子。',
+        en: 'Dumplings first this New Year. The refusal gets less of my head tonight.',
       },
     },
     {
       festival: 'may-day',
       text: {
-        zhCN: '五月节带彩笔，文件夹留家里！谁提材料谁请咖啡。',
-        en: "May Day: coloured pencils, folder at home! Mention paperwork and coffee's on you.",
+        zhCN: '五月节文件留家里，拜托，给我放半天假。',
+        en: 'Documents stay home for May Day. Please, give me half a day off.',
       },
     },
     {
       festival: 'summer-fair',
       text: {
-        zhCN: '评比标签挤在一起，借张给我画黄瓜侧脸！',
-        en: 'These show labels are annoyingly neat. lend me one for a cucumber profile!',
+        zhCN: '集市先逛，咨询车费我另留了，没乱花。',
+        en: "Fair first. Kept the advice bus fare separate. Haven't spent it.",
       },
     },
     {
       festival: 'bonfire-night',
       text: {
-        zhCN: '烟花快得要命！我才蘸好颜料，它就炸完了。',
-        en: "Fireworks are ridiculously quick! Paint on the brush, and they're finished.",
+        zhCN: '烟花一炸我就看手机，烦，等回信等惯了。',
+        en: 'Firework goes off, I check my phone. Ugh, waiting for replies does that.',
       },
     },
     {
@@ -352,36 +352,36 @@ export const festivalDialogue: Record<
     {
       festival: 'lunar-new-year',
       text: {
-        zhCN: '新年这饺子我会煎！哎，等等，得先看哪面贴锅。',
-        en: 'I can fry these New Year dumplings! Ah, hang on, which side goes down?',
+        zhCN: '新年咱们煎饺子！哎，我又拿锅铲练铲球了。',
+        en: 'Frying our New Year dumplings! Ah, tackling them like a football again.',
       },
     },
     {
       festival: 'may-day',
       text: {
-        zhCN: '五月节彩带结，我会！跟修窗帘一样——怎么又绕反了？',
-        en: "May Day ribbon knot? I know this! Like mending curtains... how's it backwards again?",
+        zhCN: '五月节彩带我来！哎，咱家窗帘也是这么被我绕乱的。',
+        en: "May Day ribbons, I'll do it! Ah, tangled our curtains exactly this way.",
       },
     },
     {
       festival: 'summer-fair',
       text: {
-        zhCN: '夏日集市这篮菜够煮全队的汤！先等比赛完，我再动锅。',
-        en: "Enough veg at this summer fair for the whole team's soup! I'll get the pan after the judging.",
+        zhCN: '索菲娅，这篮够咱家和全队喝汤！哎，先看完集市比赛。',
+        en: 'Sofia, enough soup for us and the whole team! Ah, fair judging first.',
       },
     },
     {
       festival: 'bonfire-night',
       text: {
-        zhCN: '烟花开场！糖纸给我，你专心端热饮，小心杯口烫。',
-        en: 'Fireworks kickoff! Give me the wrappers, you hold the drinks. Watch that hot rim.',
+        zhCN: '烟花开场，咱们端稳茶！哎，我又光顾抬头了。',
+        en: "Fireworks, let's hold our tea steady! Ah, there I go staring upwards again.",
       },
     },
     {
       festival: 'christmas-market',
       text: {
-        zhCN: '圣诞卡得买厚的，我写字那力气跟踢任意球似的！',
-        en: 'Thick Christmas cards for me. I write with about the force of a free kick!',
+        zhCN: '索菲娅，咱家圣诞卡买厚的！我下笔像踢任意球，哎，穿了。',
+        en: 'Sofia, thick Christmas cards for us! Write like a free kick. Ah, right through it.',
       },
     },
   ],
@@ -389,36 +389,36 @@ export const festivalDialogue: Record<
     {
       festival: 'lunar-new-year',
       text: {
-        zhCN: '新年这盒先开！我运过来，你拆盒，这回轮到你。',
-        en: 'Open this box for New Year! I transported it, you unpack. Your turn this time.',
+        zhCN: '从香港带来的新年盒先开。讲好先，我运过来，这回你拆。',
+        en: 'Our New Year box from Hong Kong first. Agree first: I brought it, you unpack this time.',
       },
     },
     {
       festival: 'may-day',
       text: {
-        zhCN: '五月节讲好先，你看乐言，我去坐。下轮换你歇！',
-        en: 'May Day deal: you watch Lok Yin, I sit. Next round you get the break!',
+        zhCN: '五月节讲好先，你陪乐言，我先歇。下轮换你还是一起走？',
+        en: "Let's agree for May Day: you stay with Lok Yin, I rest. Your break next or leave together?",
       },
     },
     {
       festival: 'summer-fair',
       text: {
-        zhCN: '夏日集市的菜没压坏！我包的，你搬的，夸奖一人半份。',
-        en: 'Summer fair veg intact! I wrapped, you carried. Half the credit each.',
+        zhCN: '全家的菜我包你搬。讲好先，嘉宁，集市夸奖一人一半。',
+        en: "I packed the family's fair vegetables, you carried. Agree, Ka Ning: half the praise each.",
       },
     },
     {
       festival: 'bonfire-night',
       text: {
-        zhCN: '烟花开始啦！手套给你，换你替我端茶，我要看这朵。',
-        en: 'Fireworks! Gloves for you, hold my tea in exchange. I want to see this one.',
+        zhCN: '乐言这边我牵着。嘉宁，烟花开了，你端茶还是我放桌上？',
+        en: "I'm holding Lok Yin's hand. Ka Ning, fireworks starting: hold my tea or shall I put it down?",
       },
     },
     {
       festival: 'christmas-market',
       text: {
-        zhCN: '圣诞这串小灯我想买。有个条件：挂哪儿让我挑！',
-        en: 'I want these Christmas lights. One condition: I choose where they go!',
+        zhCN: '圣诞灯我想买回家。讲好先，乐言那串让他自己挑。',
+        en: "I'd like Christmas lights for home. Agree first: Lok Yin picks his own string.",
       },
     },
   ],
