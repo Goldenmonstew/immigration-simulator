@@ -16,6 +16,7 @@ import {
   isOver,
   newGame,
   npcAt,
+  peopleAt,
   npcs,
   plant,
   recipes,
@@ -40,7 +41,12 @@ const median = (values: number[]) => {
         2
     : null;
 };
-function play(character: string, seed: number, active: boolean) {
+function play(
+  character: string,
+  seed: number,
+  strategy: 'fast-forward' | 'active' | 'casual',
+) {
+  const active = strategy !== 'fast-forward';
   let state = newGame(character, seed);
   let cursor = seed | 0;
   const pick = (n: number) => {
@@ -112,6 +118,83 @@ function play(character: string, seed: number, active: boolean) {
       continue;
     }
     const day = state.dayNumber;
+    if (strategy === 'casual') {
+      const stops = [
+        ['home', ['home-street']],
+        ['shop', ['high-street-west', 'high-street-east']],
+        ['cafe', []],
+        ['work', []],
+        ['gp', []],
+        ['library', ['library-steps']],
+        ['allotment', ['allotment-gate', 'allotment-plots']],
+        ['pond', ['park-pond']],
+        ['bench', ['park-bench', 'park-path']],
+        ['green', ['green-centre', 'green-stall']],
+        ['station', ['station-front', 'bus-stop']],
+        ['college', ['college-steps']],
+        ['pub', ['pub-garden']],
+        ['board', ['postbox']],
+      ] as const;
+      const visits = 4 + pick(3);
+      const route = [...stops];
+      // Walk a random route without targeting any person's friendship level.
+      for (
+        let step = 0;
+        step < visits && state.dayNumber === day && !isOver(state);
+        step++
+      ) {
+        const index = pick(route.length);
+        const [place, anchors] = route.splice(index, 1)[0];
+        visit(place, 540 + step * 120);
+        if (state.dayNumber !== day || isOver(state)) break;
+        if (
+          place === 'shop' &&
+          pick(3) === 0 &&
+          state.stats.money > 100 &&
+          shop(state, 'shop').some((item) => item.id === 'tea')
+        ) {
+          state = buy(state, 'tea', 1);
+          drain();
+        }
+        const encountered = townsfolk(state).filter(
+          (person) =>
+            peopleAt(state, place).includes(person.id) ||
+            (anchors as readonly string[]).includes(npcAt(state, person.id)),
+        );
+        for (const person of encountered) {
+          if (state.dayNumber !== day || isOver(state)) break;
+          if (state.day.minute + b.minutes.talk > b.midnight) break;
+          if (
+            !peopleAt(state, place).includes(person.id) &&
+            !(anchors as readonly string[]).includes(npcAt(state, person.id))
+          )
+            continue;
+          if (state.day.talked.includes(person.id)) continue;
+          state = talk(state, person.id);
+          if (state.outcome?.kind === 'talk' && state.outcome.text) {
+            listenedLines++;
+            chineseCharacters +=
+              state.outcome.text.zhCN.match(/\p{Script=Han}/gu)?.length ?? 0;
+          }
+          drain();
+          if (
+            state.dayNumber === day &&
+            !isOver(state) &&
+            state.inventory.tea > 0 &&
+            pick(6) === 0 &&
+            state.day.minute + b.minutes.gift <= b.midnight &&
+            npcAt(state, person.id) !== 'away' &&
+            !state.day.gifted.includes(person.id)
+          ) {
+            state = gift(state, person.id, 'tea');
+            drain();
+          }
+        }
+      }
+      if (state.dayNumber === day && !isOver(state)) state = sleep(state);
+      record();
+      continue;
+    }
     if (playedDays.has(day)) {
       state = sleep(state);
       record();
@@ -327,149 +410,203 @@ function play(character: string, seed: number, active: boolean) {
 
 describe('v3 seeded strategies', () => {
   for (const character of characters) {
-    test(`${character.id}: 20 seeds, fast-forward and active daily play`, () => {
-      const summary = [];
-      for (const active of [false, true]) {
-        const runs = Array.from({ length: 20 }, (_, index) =>
-          play(character.id, index + 1, active),
-        );
-        const fifth = runs.flatMap((run) => (run.fifth ? [run.fifth] : []));
-        const tenth = runs
-          .filter(
-            (run) =>
-              run.state.log.filter((e) => e.kind === 'quarter').length === 40,
-          )
-          .map((run) => run.state.stats);
-        const medians = (stats: GameState['stats'][]) =>
-          Object.fromEntries(
-            (['money', 'mood', 'health', 'english', 'career'] as StatKey[]).map(
-              (key) => [key, median(stats.map((s) => s[key]))],
-            ),
+    for (const strategy of ['fast-forward', 'active', 'casual'] as const) {
+      test(`${character.id}: 20 seeds, ${strategy}`, () => {
+        const started = performance.now();
+        const active = strategy === 'active';
+        const summary = [];
+        {
+          const runs = Array.from({ length: 20 }, (_, index) =>
+            play(character.id, index + 1, strategy),
           );
+          const fifth = runs.flatMap((run) => (run.fifth ? [run.fifth] : []));
+          const tenth = runs
+            .filter(
+              (run) =>
+                run.state.log.filter((e) => e.kind === 'quarter').length === 40,
+            )
+            .map((run) => run.state.stats);
+          const medians = (stats: GameState['stats'][]) =>
+            Object.fromEntries(
+              (
+                ['money', 'mood', 'health', 'english', 'career'] as StatKey[]
+              ).map((key) => [key, median(stats.map((s) => s[key]))]),
+            );
 
-        if (!active) {
-          expect(fifth).toHaveLength(20);
-          expect(median(fifth.map((s) => s.money))).toBeGreaterThanOrEqual(
-            18000,
-          );
-          expect(median(fifth.map((s) => s.money))).toBeLessThanOrEqual(40000);
-          for (const key of ['mood', 'health', 'english', 'career'] as const) {
-            expect(
-              median(fifth.map((s) => s[key])),
-              `year 5 ${key}`,
-            ).toBeGreaterThanOrEqual(50);
-            expect(
-              median(fifth.map((s) => s[key])),
-              `year 5 ${key}`,
-            ).toBeLessThanOrEqual(85);
-            expect(
-              median(tenth.map((s) => s[key])),
-              `year 10 ${key}`,
-            ).toBeGreaterThanOrEqual(35);
+          if (strategy === 'fast-forward') {
+            expect(fifth).toHaveLength(20);
+            expect(median(fifth.map((s) => s.money))).toBeGreaterThanOrEqual(
+              18000,
+            );
+            expect(median(fifth.map((s) => s.money))).toBeLessThanOrEqual(
+              40000,
+            );
+            for (const key of [
+              'mood',
+              'health',
+              'english',
+              'career',
+            ] as const) {
+              expect(
+                median(fifth.map((s) => s[key])),
+                `year 5 ${key}`,
+              ).toBeGreaterThanOrEqual(50);
+              expect(
+                median(fifth.map((s) => s[key])),
+                `year 5 ${key}`,
+              ).toBeLessThanOrEqual(85);
+              expect(
+                median(tenth.map((s) => s[key])),
+                `year 10 ${key}`,
+              ).toBeGreaterThanOrEqual(35);
+            }
+            // Each attribute stays away from either boundary in at least three
+            // quarters out of four across the seeded histories.
+            const interior = (
+              ['mood', 'health', 'english', 'career'] as const
+            ).filter(
+              (key) =>
+                runs
+                  .flatMap((r) => r.quarterSamples)
+                  .filter((s) => s[key] > 0 && s[key] < 100).length /
+                  runs.flatMap((r) => r.quarterSamples).length >
+                0.75,
+            );
+            expect(interior).toHaveLength(4);
           }
-          // Each attribute stays away from either boundary in at least three
-          // quarters out of four across the seeded histories.
-          const interior = (
-            ['mood', 'health', 'english', 'career'] as const
-          ).filter(
-            (key) =>
-              runs
-                .flatMap((r) => r.quarterSamples)
-                .filter((s) => s[key] > 0 && s[key] < 100).length /
-                runs.flatMap((r) => r.quarterSamples).length >
-              0.75,
-          );
-          expect(interior).toHaveLength(4);
-        }
-        if (active) {
-          const content = Object.fromEntries(
-            (['dialogue', 'events', 'hearts', 'notices'] as const).map(
-              (category) => [
-                category,
-                runs.reduce((sum, run) => sum + run.content[category], 0) /
-                  runs.length,
-              ],
+          const sceneCounts = runs.map((run) =>
+            Object.values(run.heartScenes).reduce(
+              (sum, count) => sum + count,
+              0,
             ),
           );
-          const total =
-            runs.reduce((sum, run) => sum + run.totalContent, 0) / runs.length;
-          const uniqueLines =
-            runs.reduce((sum, run) => sum + run.uniqueLines, 0) / runs.length;
-          const heard =
-            runs.reduce((sum, run) => sum + run.heard, 0) / runs.length;
-          const uniqueRatio = uniqueLines / heard;
-          const meanUniqueRatio =
-            runs.reduce((sum, run) => sum + run.uniqueLines / run.heard, 0) /
-            runs.length;
-          console.log(
-            'CONTENT_V3',
-            JSON.stringify({
-              character: character.id,
-              seeds: '1-20',
-              content,
-              total,
-              uniqueLines,
-              heard,
-              uniqueRatio,
-              meanUniqueRatio,
-              eventCards:
-                runs.reduce((sum, run) => sum + run.eventCards, 0) /
-                runs.length,
-              noticeCount:
-                runs.reduce((sum, run) => sum + run.noticeCount, 0) /
-                runs.length,
-            }),
+          if (strategy === 'casual')
+            expect(
+              sceneCounts.reduce((sum, count) => sum + count, 0) / runs.length,
+            ).toBeGreaterThanOrEqual(32);
+          if (active) {
+            const lowest = runs.reduce((a, c) =>
+              a.totalContent < c.totalContent ? a : c,
+            );
+            console.log(
+              'CONTENT_RANGE_V11',
+              JSON.stringify({
+                character: character.id,
+                minSeed: runs.indexOf(lowest) + 1,
+                minTotal: lowest.totalContent,
+                minContent: lowest.content,
+                maxTotal: Math.max(...runs.map((run) => run.totalContent)),
+                minUniqueRatio: Math.min(
+                  ...runs.map((run) => run.uniqueLines / run.heard),
+                ),
+                maxHeartScenes: Math.max(...sceneCounts),
+                meanHeartScenes:
+                  sceneCounts.reduce((sum, count) => sum + count, 0) /
+                  runs.length,
+              }),
+            );
+            expect(Math.max(...sceneCounts)).toBeLessThanOrEqual(55);
+            for (const [index, run] of runs.entries()) {
+              expect(
+                run.totalContent,
+                `${character.id} seed ${index + 1}`,
+              ).toBeGreaterThanOrEqual(15000);
+              expect(run.uniqueLines / run.heard).toBeGreaterThanOrEqual(0.8);
+            }
+            const content = Object.fromEntries(
+              (['dialogue', 'events', 'hearts', 'notices'] as const).map(
+                (category) => [
+                  category,
+                  runs.reduce((sum, run) => sum + run.content[category], 0) /
+                    runs.length,
+                ],
+              ),
+            );
+            const total =
+              runs.reduce((sum, run) => sum + run.totalContent, 0) /
+              runs.length;
+            const uniqueLines =
+              runs.reduce((sum, run) => sum + run.uniqueLines, 0) / runs.length;
+            const heard =
+              runs.reduce((sum, run) => sum + run.heard, 0) / runs.length;
+            const uniqueRatio = uniqueLines / heard;
+            const meanUniqueRatio =
+              runs.reduce((sum, run) => sum + run.uniqueLines / run.heard, 0) /
+              runs.length;
+            console.log(
+              'CONTENT_V3',
+              JSON.stringify({
+                character: character.id,
+                seeds: '1-20',
+                content,
+                total,
+                uniqueLines,
+                heard,
+                uniqueRatio,
+                meanUniqueRatio,
+                eventCards:
+                  runs.reduce((sum, run) => sum + run.eventCards, 0) /
+                  runs.length,
+                noticeCount:
+                  runs.reduce((sum, run) => sum + run.noticeCount, 0) /
+                  runs.length,
+              }),
+            );
+            expect(uniqueLines).toBeGreaterThanOrEqual(450);
+            expect(total).toBeGreaterThanOrEqual(15000);
+            expect(uniqueRatio).toBeGreaterThanOrEqual(0.8);
+            expect(meanUniqueRatio).toBeGreaterThanOrEqual(0.8);
+          }
+          expect(runs.every((run) => run.state.ending !== undefined)).toBe(
+            true,
           );
-          expect(uniqueLines).toBeGreaterThanOrEqual(450);
-          expect(total).toBeGreaterThanOrEqual(15000);
-          expect(uniqueRatio).toBeGreaterThanOrEqual(0.8);
-          expect(meanUniqueRatio).toBeGreaterThanOrEqual(0.8);
-        }
-        expect(runs.every((run) => run.state.ending !== undefined)).toBe(true);
-        expect(runs.every((run) => run.state.day.minute <= 1440)).toBe(true);
-        summary.push({
-          character: character.id,
-          strategy: active ? 'active' : 'fast-forward',
-          seeds: '1-20',
-          fifthN: fifth.length,
-          fifth: medians(fifth),
-          tenthN: tenth.length,
-          tenth: medians(tenth),
-          meanLines: runs.reduce((sum, r) => sum + r.heard, 0) / runs.length,
-          meanUniqueLines:
-            runs.reduce((sum, r) => sum + r.uniqueLines, 0) / runs.length,
-          meanChineseCharacters:
-            runs.reduce((sum, r) => sum + r.words, 0) / runs.length,
-          meanUniqueChineseCharacters:
-            runs.reduce((sum, r) => sum + r.uniqueWords, 0) / runs.length,
-          meanHeartScenes: Object.fromEntries(
-            [2, 4, 6, 8, 10].map((threshold) => [
-              threshold,
-              runs.reduce((sum, r) => sum + r.heartScenes[threshold], 0) /
-                runs.length,
-            ]),
-          ),
-          tenHeartReach: Object.fromEntries(
-            npcs
-              .filter(
-                (npc) =>
-                  !npc.characters || npc.characters.includes(character.id),
-              )
-              .map((npc) => [
-                npc.id,
-                runs.filter((run) => (run.peakFriendship[npc.id] ?? 0) >= 1000)
-                  .length / runs.length,
+          expect(runs.every((run) => run.state.day.minute <= 1440)).toBe(true);
+          summary.push({
+            character: character.id,
+            strategy,
+            elapsedMs: Math.round(performance.now() - started),
+            seeds: '1-20',
+            fifthN: fifth.length,
+            fifth: medians(fifth),
+            tenthN: tenth.length,
+            tenth: medians(tenth),
+            meanLines: runs.reduce((sum, r) => sum + r.heard, 0) / runs.length,
+            meanUniqueLines:
+              runs.reduce((sum, r) => sum + r.uniqueLines, 0) / runs.length,
+            meanChineseCharacters:
+              runs.reduce((sum, r) => sum + r.words, 0) / runs.length,
+            meanUniqueChineseCharacters:
+              runs.reduce((sum, r) => sum + r.uniqueWords, 0) / runs.length,
+            meanHeartScenes: Object.fromEntries(
+              [2, 4, 6, 8, 10].map((threshold) => [
+                threshold,
+                runs.reduce((sum, r) => sum + r.heartScenes[threshold], 0) /
+                  runs.length,
               ]),
-          ),
-        });
-      }
-      console.log('BALANCE_V3', JSON.stringify(summary));
-    }, 180_000); // 40 seeded full games; the CI runner takes about 3x as long as a laptop.
+            ),
+            tenHeartReach: Object.fromEntries(
+              npcs
+                .filter(
+                  (npc) =>
+                    !npc.characters || npc.characters.includes(character.id),
+                )
+                .map((npc) => [
+                  npc.id,
+                  runs.filter(
+                    (run) => (run.peakFriendship[npc.id] ?? 0) >= 1000,
+                  ).length / runs.length,
+                ]),
+            ),
+          });
+        }
+        console.log('BALANCE_V3', JSON.stringify(summary));
+      }, 135_000); // Each 20-seed strategy: local target 45s; CI takes about 3x as long.
+    }
   }
   test('full games reproduce across seeds and JSON restoration retains the one random stream', () => {
     for (const seed of [1, 17, 42]) {
-      const first = play('skilled-worker', seed, false);
-      expect(play('skilled-worker', seed, false)).toEqual(first);
+      const first = play('skilled-worker', seed, 'fast-forward');
+      expect(play('skilled-worker', seed, 'fast-forward')).toEqual(first);
       expect(first.state).toEqual(JSON.parse(JSON.stringify(first.state)));
     }
   });

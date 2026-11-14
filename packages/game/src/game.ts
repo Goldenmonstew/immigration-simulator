@@ -588,12 +588,16 @@ function applyEffects(state: GameState, effects: Effect[]): boolean {
           (state.inventory[e.item] ?? 0) + e.delta,
         );
         break;
-      case 'friendship':
+      case 'friendship': {
+        const before = hearts(state, e.npc);
         state.friendship[e.npc] = Math.max(
           0,
           Math.min(b.friendshipMax, (state.friendship[e.npc] ?? 0) + e.delta),
         );
+        if (hearts(state, e.npc) > before)
+          setFlags(state, [`quarter-friendship-${e.npc}`]);
         break;
+      }
       case 'absence': {
         const from = addDays(state.date, e.startOffsetDays);
         state.timeline.absences.push({ from, to: addDays(from, e.days - 1) });
@@ -622,6 +626,7 @@ function applyEffects(state: GameState, effects: Effect[]): boolean {
             ? addDays(current.validTo, 1)
             : addDays(state.date, e.gapDays ?? 0);
         if (e.start !== 'afterCurrent') {
+          setFlags(state, ['quarter-job-changed']);
           state.timeline.episodes = state.timeline.episodes.filter(
             (episode) => episode.validFrom < state.date,
           );
@@ -664,12 +669,19 @@ function applyEffects(state: GameState, effects: Effect[]): boolean {
           !old ||
           ('cefrLevel' in old &&
             ranks.indexOf(e.cefrLevel) > ranks.indexOf(old.cefrLevel))
-        )
+        ) {
           state.timeline.english = { cefrLevel: e.cefrLevel };
+          setFlags(state, ['quarter-exam-passed']);
+        }
         changedTimeline = true;
         break;
       }
       case 'lifeInTheUk':
+        if (
+          !state.timeline.lifeInTheUk ||
+          !('passed' in state.timeline.lifeInTheUk)
+        )
+          setFlags(state, ['quarter-life-passed']);
         state.timeline.lifeInTheUk = { passed: true };
         changedTimeline = true;
         break;
@@ -900,7 +912,8 @@ export function doActivity(state: GameState, actionId: string): GameState {
   const next = structuredClone(state);
   const changed = applyEffects(next, action.effects);
   next.day.done.push(action.id);
-  if (action.id === 'extend') setFlags(next, ['visa-renewed']);
+  if (action.id === 'extend')
+    setFlags(next, ['visa-renewed', 'quarter-visa-renewed']);
   if (action.id === 'overtime') setFlags(next, ['worked-overtime']);
   if (action.id === 'rent-plot') {
     next.plots = Array.from({ length: b.plots }, () => ({ growth: 0 }));
@@ -1054,8 +1067,21 @@ export function resolve(state: GameState, choiceId: string): GameState {
     throw new Error(`Choice is not available: ${choiceId}`);
   const next = structuredClone(state);
   delete next.pendingEvent;
+  const previousSalary = episodeAt(state)?.salary;
   const changed = applyEffects(next, choice.effects);
   setFlags(next, choice.sets);
+  if (
+    [
+      'sw-salary-talk',
+      'bno-salary-review',
+      'bno-cafe-manager',
+      'family-first-full-payslip',
+    ].includes(event.id) &&
+    previousSalary !== undefined &&
+    (episodeAt(next)?.salary ?? previousSalary) > previousSalary
+  )
+    setFlags(next, ['quarter-promoted']);
+  if (event.id === 'bno-new-employer') setFlags(next, ['quarter-job-changed']);
   if (event.id === 'town-lina-papers') {
     const chance =
       choice.id === 'stay' ? b.linaStaySupported : b.linaStayUnaccompanied;
@@ -1220,7 +1246,7 @@ export function endQuarter(state: GameState): GameState {
       type: 'OVERSTAYING',
       date: addDays(coveredUntil, 1),
     });
-  recordReturn(next);
+  const returned = recordReturn(next);
   recalculate(next);
   // Engine short circuits only adult illegal entry, not OVERSTAYING.
   // Expiry ends this game; the two assessments remain unmodified engine output.
@@ -1231,6 +1257,7 @@ export function endQuarter(state: GameState): GameState {
     finish(next, 'timeout');
   if (!isOver(next)) {
     next.flags = next.flags.filter((f) => !f.startsWith('quarter-'));
+    if (returned) setFlags(next, ['quarter-returned']);
     if (promoted) setFlags(next, ['quarter-promoted']);
     next.quarter = quarterAt(next.date);
     next.year =
@@ -1739,6 +1766,7 @@ function recordReturn(state: GameState) {
   const trip = state.trip;
   delete state.trip;
   state.timeline.absences.push({ from: trip.from, to: trip.to });
+  setFlags(state, ['quarter-returned']);
   state.outcome = {
     kind: 'travel',
     text: {
@@ -1891,11 +1919,16 @@ export function talk(state: GameState, npc: string): GameState {
     (line) =>
       line.festival === next.day.festival && line.festival !== undefined,
   );
+  const recentLines = fresh.filter((line) =>
+    line.id.startsWith(`${npc}-recent-`),
+  );
   const options = festivalLines.length
     ? festivalLines
-    : fresh.length
-      ? fresh
-      : ordinary;
+    : recentLines.length
+      ? recentLines
+      : fresh.length
+        ? fresh
+        : ordinary;
   const line =
     introduction ?? options[Math.floor(random(next) * options.length)];
   if (line && !next.heard.includes(line.id)) next.heard.push(line.id);
@@ -1915,6 +1948,10 @@ export function talk(state: GameState, npc: string): GameState {
       (event) =>
         event.heart!.npc === npc &&
         hearts(next, npc) >= event.heart!.hearts &&
+        (event.heart!.hearts === 2 ||
+          next.firedEvents.includes(
+            `heart-${npc}-${event.heart!.hearts - 2}`,
+          )) &&
         available(next, event),
     );
     if (heart && makePending(next, heart.id)) next.day.done.push('heart-scene');
