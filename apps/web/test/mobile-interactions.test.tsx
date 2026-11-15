@@ -10,7 +10,10 @@ import { mockResults } from '../lib/mock-results';
 import * as questionnaire from '../lib/questionnaire';
 
 vi.mock('react', { spy: true });
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/',
+}));
 
 afterEach(() => {
   vi.restoreAllMocks();

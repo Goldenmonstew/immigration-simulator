@@ -1,13 +1,17 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from '../i18n/locale';
 import styles from '../app/site.module.css';
+import game from '../app/game/game.module.css';
 
 export function SiteShell({ children }: { children: ReactNode }) {
   const { t, locale, setLocale } = useTranslation();
+  const pathname = usePathname();
+  const isGame = pathname === '/game' || pathname === '/game/';
   useEffect(() => {
     let details: [HTMLDetailsElement, boolean][] | undefined;
     const beforePrint = () => {
@@ -35,20 +39,27 @@ export function SiteShell({ children }: { children: ReactNode }) {
     };
   }, []);
   return (
-    <>
+    <div className={isGame ? game.theme : undefined}>
       <title>{t('site.name')}</title>
       <a className={styles.skip} href="#main">
         {t('site.skip')}
       </a>
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <Link href="/">{t('site.name')}</Link>
-          <nav className={styles.navigation} aria-label={t('site.navigation')}>
-            <Link href="/policy">{t('site.policy')}</Link>
-            <Link href="/about">{t('site.about')}</Link>
-          </nav>
+      <header className={isGame ? game.siteHeader : styles.header}>
+        <div className={isGame ? game.siteHeaderInner : styles.headerInner}>
+          <Link href="/">
+            {t(isGame ? 'game.returnSimulator' : 'site.name')}
+          </Link>
+          {!isGame && (
+            <nav
+              className={styles.navigation}
+              aria-label={t('site.navigation')}
+            >
+              <Link href="/policy">{t('site.policy')}</Link>
+              <Link href="/about">{t('site.about')}</Link>
+            </nav>
+          )}
           <div
-            className={styles.languages}
+            className={isGame ? game.languages : styles.languages}
             role="group"
             aria-label={t('site.language')}
           >
@@ -72,7 +83,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       {children}
-      <footer className={styles.footer}>
+      <footer className={`${styles.footer} ${isGame ? game.siteFooter : ''}`}>
         <p>{t('site.footer')}</p>
         <p className={styles.footerLinks}>
           <Link href="/policy">{t('site.policy')}</Link>
@@ -86,6 +97,6 @@ export function SiteShell({ children }: { children: ReactNode }) {
           </a>
         </p>
       </footer>
-    </>
+    </div>
   );
 }

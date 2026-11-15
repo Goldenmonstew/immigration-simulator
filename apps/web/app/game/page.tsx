@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useTranslation } from '../../i18n/locale';
-import site from '../site.module.css';
+import styles from './game.module.css';
 
 const GameClient = dynamic(() => import('./game-client'), {
   ssr: false,
@@ -14,7 +14,7 @@ function GameLoading() {
 }
 export default function GamePage() {
   return (
-    <main id="main" className={site.main}>
+    <main id="main" className={styles.main}>
       <GameClient />
     </main>
   );
