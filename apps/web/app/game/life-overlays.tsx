@@ -30,7 +30,7 @@ import {
   dayDate,
   localText,
   money,
-  weatherIcon,
+  GameIcon,
   EffectHints,
   EventNotes,
   VisaReminder,
@@ -109,7 +109,7 @@ export function MorningCard({
   return (
     <div className={styles.morning}>
       <div className={styles.weatherIcon} aria-hidden="true">
-        {weatherIcon[state.day.weather]}
+        <GameIcon name={state.day.weather} />
       </div>
       <h3>
         {dayDate(state.day.date, locale)} · {t(`game.${state.day.kind}`)}

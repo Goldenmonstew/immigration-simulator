@@ -26,6 +26,8 @@ import {
   ControlHint,
   Ending,
   EventCard,
+  GameIcon,
+  InteractButton,
   localText,
   LocationMenu,
   Modal,
@@ -418,6 +420,7 @@ export default function GameClient() {
       {places.map((p) => (
         <button
           key={p.id}
+          aria-current={current!.day.place === p.id ? 'location' : undefined}
           disabled={!drawer && paused}
           className={!isPlaceOpen(current!, p) ? styles.closedPlace : undefined}
           aria-label={
@@ -430,7 +433,7 @@ export default function GameClient() {
           {localText(p.name, locale)}
           {!isPlaceOpen(current!, p) && (
             <span className={styles.closedMarker} aria-hidden="true">
-              🔒
+              <GameIcon name="lock" />
             </span>
           )}
         </button>
@@ -471,7 +474,7 @@ export default function GameClient() {
                     {t(muted ? 'game.muted' : 'game.unmuted')}
                   </span>
                   <span className={styles.mobileOnly} aria-hidden="true">
-                    {muted ? '♪̸' : '♫'}
+                    <GameIcon name={muted ? 'muted' : 'sound'} />
                   </span>
                 </button>
                 <button
@@ -486,7 +489,7 @@ export default function GameClient() {
                     {t('game.fastShort')}
                   </span>
                   <span className={styles.mobileOnly} aria-hidden="true">
-                    ⏩
+                    <GameIcon name="fast" />
                   </span>
                 </button>
                 <button
@@ -501,7 +504,7 @@ export default function GameClient() {
                     {t('game.endDayShort')}
                   </span>
                   <span className={styles.mobileOnly} aria-hidden="true">
-                    ☾
+                    <GameIcon name="moon" />
                   </span>
                 </button>
               </StatusBar>
@@ -542,13 +545,15 @@ export default function GameClient() {
                       {t('game.loading')}
                     </p>
                   )}
-                  {!!interaction && !paused && (
-                    <button
-                      className={styles.interactButton}
-                      onClick={() => setInteractRequest((n) => n + 1)}
-                    >
-                      {t('game.interact')}
-                    </button>
+                  {!current.trip && !returned && (
+                    <div className={styles.interactionBar}>
+                      {!!interaction && !paused && (
+                        <InteractButton
+                          interaction={interaction}
+                          onInteract={() => setInteractRequest((n) => n + 1)}
+                        />
+                      )}
+                    </div>
                   )}
                   {!!mailbox(current).length && (
                     <span
@@ -564,6 +569,12 @@ export default function GameClient() {
                 </div>
                 {destinations(false)}
               </div>
+              <ProgressBars
+                state={current}
+                onOpen={(id) => {
+                  if (!paused) openOverlay({ kind: 'detail', id });
+                }}
+              />
               <ControlHint />
               <div className={styles.toolbar}>
                 <button
@@ -595,12 +606,6 @@ export default function GameClient() {
                   {t('game.changeCharacter')}
                 </button>
               </div>
-              <ProgressBars
-                state={current}
-                onOpen={(id) => {
-                  if (!paused) openOverlay({ kind: 'detail', id });
-                }}
-              />
             </>
           )}
           {(sceneReady || current.trip || returned) &&

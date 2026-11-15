@@ -246,10 +246,24 @@ export default function SimulatePage() {
                 </button>
               </aside>
             )}
-            <p className={styles.progress}>
+            <p id="form-progress-label" className={styles.progress}>
               {t('form.step')} {position + 1} {t('form.of')} {sequence.length} —{' '}
               {t('form.title')}
             </p>
+            <div
+              className={styles.stepProgress}
+              role="progressbar"
+              aria-labelledby="form-progress-label"
+              aria-valuemin={0}
+              aria-valuemax={sequence.length}
+              aria-valuenow={position + 1}
+            >
+              <span
+                style={{
+                  width: `${((position + 1) / sequence.length) * 100}%`,
+                }}
+              />
+            </div>
             <h1 ref={heading} tabIndex={-1}>
               {t(`step.${steps[active.step]}`)}
             </h1>

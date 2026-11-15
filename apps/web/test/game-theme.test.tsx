@@ -79,9 +79,16 @@ test('mobile layout switches the sidebar to a dock and sheet while reserving can
   );
   expect(mobile).toMatch(/\.destinationSheet\s*\{[^}]*max-height: 65dvh/s);
   expect(mobile).toContain('env(safe-area-inset-bottom)');
-  expect(canvasCss).toMatch(
-    /@media \(max-width: 760px\)[\s\S]*height: clamp\(320px, calc\(100dvh - 240px\), 560px\)/,
+  expect(canvasCss).toContain(
+    'calc(100dvh - 420px - env(safe-area-inset-bottom))',
   );
+  expect(canvasCss).toMatch(
+    /\.canvas\.interior\s*\{[^}]*height: auto;[^}]*aspect-ratio: 18 \/ 13;[^}]*max-height: 310px/s,
+  );
+  expect(css).toMatch(/\.interactionBar\s*\{[^}]*min-height: 60px/s);
+  const interaction = css.match(/\.interactButton\s*\{([^}]*)\}/)![1];
+  expect(interaction).toContain('white-space: nowrap');
+  expect(interaction).not.toContain('position: absolute');
   expect(css).not.toContain(':root');
   expect(css).not.toContain(':global');
 });
@@ -136,4 +143,40 @@ test('the five attribute fills have graphical contrast against the meter track',
       3,
     );
   }
+});
+
+test('nearby places have a lighter frame while only the current interaction gets a large gold frame', () => {
+  const highlighted = canvasCss.match(
+    /\.label\[data-highlighted='true'\]\s*\{([^}]*)\}/,
+  )![1];
+  expect(highlighted).toContain('border-color: #c89b54');
+  expect(highlighted).not.toContain('font-size: 14px');
+  const nearby = canvasCss.match(
+    /\.homeLabel\[data-nearby='true'\]\s*\{([^}]*)\}/,
+  )![1];
+  expect(nearby).toContain('font-size: 14px');
+  expect(nearby).toContain('font-weight: 700');
+  expect(nearby).toContain('box-shadow: 0 0 0 2px #ffe082');
+  expect(css).toMatch(
+    /\.theme\.theme \.hud :focus-visible\s*\{[^}]*outline-color: var\(--gold\)/s,
+  );
+});
+
+test('assessment theming preserves website defaults and supplies warm game overrides', () => {
+  const result = readFileSync(
+    new URL('../app/result/result.module.css', import.meta.url),
+    'utf8',
+  );
+  const siteCss = readFileSync(
+    new URL('../app/site.module.css', import.meta.url),
+    'utf8',
+  );
+  expect(result).toContain('var(--assessment-outcome, #f3f2f1)');
+  expect(result).toContain('var(--assessment-outcome-margin, 24px -8px)');
+  expect(result).toContain('var(--assessment-link, #1d70b8)');
+  expect(css).toContain('--assessment-outcome-margin: 24px 0');
+  expect(css).toContain('--assessment-outcome: var(--lining)');
+  expect(css).toContain('--assessment-link: var(--primary-hover)');
+  expect(siteCss).toContain('var(--badge-background, #e5eef5)');
+  expect(siteCss).toContain('var(--badge-announced-background, #fff2cc)');
 });

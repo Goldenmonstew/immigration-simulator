@@ -22,6 +22,8 @@ function textLayer() {
   const children: HTMLSpanElement[] = [];
   return {
     children,
+    clientWidth: 864,
+    clientHeight: 624,
     ownerDocument: {
       createElement: () => {
         const element = {
@@ -362,7 +364,9 @@ class Drawing extends Sprite {
   fillRect = vi.fn<
     (x: number, y: number, width: number, height: number) => Drawing
   >(() => this);
-  fillCircle = vi.fn(() => this);
+  fillCircle = vi.fn<(x: number, y: number, radius: number) => Drawing>(
+    () => this,
+  );
   fillTriangle = vi.fn(() => this);
   fillRoundedRect = vi.fn(() => this);
   lineStyle = vi.fn(() => this);
@@ -549,7 +553,7 @@ test.each([2, 3])(
   (devicePixelRatio) => {
     vi.stubGlobal('window', { devicePixelRatio });
     const layer = textLayer();
-    const text = new SceneText(layer, 10, 20, '公告栏', 'label');
+    const text = new SceneText(layer, 40, 20, '公告栏', 'label');
     const camera = {
       matrix: new TransformMatrix(3, 0, 0, 3, 0, 0),
       zoom: 3,
@@ -564,12 +568,12 @@ test.each([2, 3])(
     expect(layer.children).toHaveLength(1);
     expect(text.element.textContent).toBe('公告栏');
     expect(text.element.style.transform).toBe(
-      'translate3d(30px, 60px, 0) translate(-50%, 0)',
+      'translate3d(120px, 60px, 0) translate(-50%, 0)',
     );
     text.y -= 4;
     text.alpha = 0.5;
     text.setVisible(false).render(camera);
-    expect(text.element.style.transform).toContain('30px, 48px');
+    expect(text.element.style.transform).toContain('120px, 48px');
     expect(text.element.style.opacity).toBe('0.5');
     expect(text.element.style.visibility).toBe('hidden');
     text.destroy();
@@ -608,6 +612,8 @@ test('place labels remain visible at a distance, highlight near the player or on
   render();
   expect(shop.label!.visible).toBe(true);
   expect(shop.label!.element.dataset.highlighted).toBe('true');
+  expect(shop.label!.element.dataset.nearby).toBe('false');
+  expect(home.label!.element.dataset.nearby).toBe('true');
   Object.assign(scene.input.manager, { isOver: false });
   render();
   expect(shop.label!.visible).toBe(true);
@@ -718,17 +724,19 @@ test('saved furnishings and brighter rent survive a fresh scene and re-entry; en
   const { scene, view, layers } = loadScene(true, saved);
   const light = () => Reflect.get(scene, 'sky') as Drawing;
   for (const name of furniture) expect(layers.get(name)!.visible).toBe(true);
-  expect(light().fillStyle).toHaveBeenLastCalledWith(0xffedbc, 0.26);
+  expect(light().fillStyle).toHaveBeenLastCalledWith(0xffd88b, 0.035);
   scene.sync({ ...view, interior: false });
   scene.sync(view);
   for (const name of furniture) expect(layers.get(name)!.visible).toBe(true);
-  expect(light().fillStyle).toHaveBeenLastCalledWith(0xffedbc, 0.26);
+  expect(light().fillStyle).toHaveBeenLastCalledWith(0xffd88b, 0.035);
   light().clear.mockClear();
   light().fillRect.mockClear();
+  light().fillCircle.mockClear();
   saved.flags = saved.flags.filter((flag) => flag !== 'brighter-home');
   scene.sync(view);
   expect(light().clear).toHaveBeenCalledOnce();
   expect(light().fillRect).not.toHaveBeenCalled();
+  expect(light().fillCircle).not.toHaveBeenCalled();
   gameStorage(saved.characterId, saved);
   const reloaded = loadScene(true, gameStorage(saved.characterId).state!);
   expect(
@@ -1023,19 +1031,105 @@ test('brighter home is warmer by day, restrained after dusk and never changes ou
   const { scene, view } = loadScene(true);
   view.state.flags.push('brighter-home');
   for (const [minute, alpha] of [
-    [720, 0.26],
-    [1080, 0.16],
-    [1260, 0.16],
+    [720, 0.035],
+    [1080, 0.02],
+    [1260, 0.02],
   ]) {
     view.state.day.minute = minute;
     scene.sync(view);
     expect(
       (Reflect.get(scene, 'sky') as Drawing).fillStyle,
-    ).toHaveBeenLastCalledWith(0xffedbc, alpha);
+    ).toHaveBeenLastCalledWith(0xffd88b, alpha);
   }
   view.state.day.weather = 'sunny';
   scene.sync({ ...view, interior: false });
   expect(
     (Reflect.get(scene, 'sky') as Drawing).fillStyle,
   ).toHaveBeenLastCalledWith(0x162750, 0.48);
+});
+
+test.each(['label', 'homeLabel'] as const)(
+  'edge %s labels fit inside the layer and fully offscreen labels stay hidden',
+  (kind) => {
+    const layer = textLayer();
+    Object.assign(layer, { clientWidth: 320, clientHeight: 250 });
+    const camera = {
+      zoom: 1,
+      getWorldPoint: (x: number, y: number) => ({ x, y }),
+    };
+    const label = new SceneText(layer, 0, 0, 'Long label', kind);
+    for (const [x, y] of [
+      [0, 1],
+      [319, 249],
+      [160, 125],
+    ]) {
+      Object.assign(label, { x, y });
+      label.render(camera);
+      expect(label.element.style.visibility).toBe('visible');
+      const match = label.element.style.transform.match(
+        /translate3d\(([-\d.]+)px, ([-\d.]+)px/,
+      )!;
+      const left = Number(match[1]) - label.element.offsetWidth / 2;
+      const top =
+        Number(match[2]) -
+        (kind === 'homeLabel' ? label.element.offsetHeight : 0);
+      expect(left).toBeGreaterThanOrEqual(6);
+      expect(left + label.element.offsetWidth).toBeLessThanOrEqual(314);
+      expect(top).toBeGreaterThanOrEqual(6);
+      expect(top + label.element.offsetHeight).toBeLessThanOrEqual(244);
+    }
+    // Font-size/content changes are measured again; resizing is picked up next frame.
+    Object.assign(label.element, { offsetWidth: 180, offsetHeight: 60 });
+    Object.assign(layer, { clientWidth: 240, clientHeight: 180 });
+    Object.assign(label, { x: 239, y: 179 });
+    label.render(camera);
+    expect(label.element.style.transform).toContain('144px');
+    label.x = 1000;
+    label.render(camera);
+    expect(label.element.style.visibility).toBe('hidden');
+    label.x = 120;
+    label.render(camera);
+    expect(label.element.style.visibility).toBe('visible');
+  },
+);
+
+test.each([
+  [355, 256],
+  [854, 360],
+  [355, 310],
+])(
+  'indoor camera at %s × %s uses fitting half-step zoom with pixel rounding',
+  (width, height) => {
+    const { scene, camera } = loadScene(true);
+    Object.assign(scene.scale, { width, height });
+    Reflect.get(scene, 'resizeCamera').call(scene);
+    expect(Number.isInteger(camera.zoom * 2)).toBe(true);
+    expect(camera.zoom * homeMap.width * 16).toBeLessThanOrEqual(width);
+    expect(camera.zoom * homeMap.height * 16).toBeLessThanOrEqual(height);
+    expect(Reflect.get(camera, 'roundPixels')).toBe(true);
+  },
+);
+
+test('bright rent lights the window and a purchased lamp locally, clearing both when rent ends', () => {
+  const { scene, view } = loadScene(true);
+  const light = Reflect.get(scene, 'sky') as Drawing;
+  expect(light.fillCircle).not.toHaveBeenCalled();
+  view.state.flags.push('brighter-home');
+  scene.sync(view);
+  expect(light.fillRect).not.toHaveBeenCalled();
+  expect(light.fillCircle.mock.calls.map(([x, y]) => [x, y])).toEqual(
+    Array(3).fill([40, 48]),
+  );
+  light.fillCircle.mockClear();
+  view.state.flags.push('furnished-desk-lamp');
+  scene.sync(view);
+  expect(light.fillCircle.mock.calls.map(([x, y]) => [x, y])).toEqual([
+    ...Array(3).fill([40, 48]),
+    ...Array(3).fill([136, 64]),
+  ]);
+  light.fillCircle.mockClear();
+  view.state.flags = view.state.flags.filter((f) => f !== 'brighter-home');
+  scene.sync(view);
+  expect(light.fillCircle).not.toHaveBeenCalled();
+  expect(light.clear).toHaveBeenCalled();
 });

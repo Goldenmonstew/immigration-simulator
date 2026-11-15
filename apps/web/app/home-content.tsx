@@ -19,7 +19,7 @@ export default function Home() {
           <summary>{t('home.scopeTitle')}</summary>
           <p>{t('home.scope')}</p>
         </details>
-        <div className={styles.actions}>
+        <div className={`${styles.actions} ${styles.homeActions}`}>
           <Link className={styles.button} href="/simulate">
             {t('home.start')}
           </Link>

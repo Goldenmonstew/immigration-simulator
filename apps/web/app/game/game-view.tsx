@@ -46,12 +46,48 @@ import {
   itemIcon,
 } from './session';
 import { groupedMemories, type DayMemory } from './diary';
+import type { Interaction } from './scene';
 import styles from './game.module.css';
 
 export function localText(text: Text, locale: string) {
   return locale === 'en' ? text.en : text.zhCN;
 }
-export const weatherIcon = { sunny: '☀', cloudy: '☁', rain: '☂', snow: '❄' };
+const iconPaths = {
+  lock: 'M6 10h12v11H6z M8 10V6a4 4 0 0 1 8 0v4 M12 14v3',
+  sound: 'M3 9h4l5-4v14l-5-4H3z M16 8a6 6 0 0 1 0 8 M19 5a10 10 0 0 1 0 14',
+  muted: 'M3 9h4l5-4v14l-5-4H3z M16 9l6 6 M22 9l-6 6',
+  fast: 'M3 5l8 7-8 7z M13 5l8 7-8 7z',
+  moon: 'M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11z',
+  mood: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z M8 9h.01 M16 9h.01 M8 14q4 5 8 0',
+  health: 'M12 21S2 15 2 8a5 5 0 0 1 10-1A5 5 0 0 1 22 8c0 7-10 13-10 13z',
+  english: 'M3 3h7q2 0 2 2 0-2 2-2h7v16h-7q-2 0-2 2-0-2-2-2H3z M12 5v16',
+  career: 'M3 7h18v14H3z M8 7V3h8v4 M3 12q9 6 18 0 M12 12v4',
+  visa: 'M5 2h14v20H5z M16 10a4 4 0 1 1-8 0 4 4 0 0 1 8 0z M8 18h8',
+  sunny:
+    'M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z M12 1v3 M12 20v3 M1 12h3 M20 12h3 M4 4l2 2 M18 18l2 2 M4 20l2-2 M18 6l2-2',
+  cloudy: 'M7 19a5 5 0 1 1 0-10 7 7 0 0 1 13 2 4 4 0 0 1-1 8z',
+  rain: 'M7 15a4 4 0 1 1 0-8 6 6 0 0 1 11 1 3.5 3.5 0 0 1 0 7z M7 18l-1 3 M12 18l-1 3 M17 18l-1 3',
+  snow: 'M12 2v20 M3 7l18 10 M3 17L21 7 M9 3l3 3 3-3 M9 21l3-3 3 3 M3 10l4-1-1-4 M18 19l-1-4 4-1 M3 14l4 1-1 4 M18 5l-1 4 4 1',
+};
+export function GameIcon({ name }: { name: keyof typeof iconPaths }) {
+  return (
+    <svg
+      className={styles.icon}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d={iconPaths[name]} />
+    </svg>
+  );
+}
 export const clockTime = (minute: number) =>
   `${Math.floor(minute / 60)
     .toString()
@@ -147,8 +183,7 @@ export function CharacterSelect({
   );
 }
 
-export function ControlHint() {
-  const { t } = useTranslation();
+function useTouchPointer() {
   const [touch, setTouch] = useState(false);
   useEffect(() => {
     const media = window.matchMedia('(pointer: coarse)');
@@ -157,10 +192,52 @@ export function ControlHint() {
     media.addEventListener('change', update);
     return () => media.removeEventListener('change', update);
   }, []);
+  return touch;
+}
+
+export function ControlHint() {
+  const { t } = useTranslation();
+  const touch = useTouchPointer();
   return (
     <p className={styles.controls}>
       {t(touch ? 'game.touchControls' : 'game.controls')}
     </p>
+  );
+}
+
+export function InteractButton({
+  interaction,
+  onInteract,
+}: {
+  interaction: Interaction;
+  onInteract: () => void;
+}) {
+  const { t, locale } = useTranslation();
+  const touch = useTouchPointer();
+  const name =
+    interaction.kind === 'home'
+      ? t(
+          interaction.id === 'exit'
+            ? 'game.exitHome'
+            : `game.${interaction.id}`,
+        )
+      : interaction.kind === 'plot'
+        ? t('game.plot').replace('{count}', String(interaction.id + 1))
+        : localText(
+            (interaction.kind === 'npc' ? npcs : places).find(
+              (p) => p.id === interaction.id,
+            )!.name,
+            locale,
+          );
+  const label =
+    interaction.kind === 'home' && interaction.id === 'exit'
+      ? name
+      : t('game.interact').replace('{name}', name);
+  return (
+    <button className={styles.interactButton} onClick={onInteract}>
+      {!touch && <span aria-hidden="true">[E] </span>}
+      {label}
+    </button>
   );
 }
 
@@ -181,18 +258,19 @@ export function StatusBar({
       aria-label={t('game.visa').replace('{count}', String(months))}
       title={urgent ? t('game.visaUrgent') : undefined}
     >
+      {compact && <GameIcon name="visa" />}
       {t(compact ? 'game.visaShort' : 'game.visa').replace(
         '{count}',
         String(months),
       )}
     </span>
   );
-  const icons: Record<StatKey, string> = {
+  const icons: Record<StatKey, ReactNode> = {
     money: '£',
-    mood: '☺',
-    health: '♥',
-    english: '✎',
-    career: '◆',
+    mood: <GameIcon name="mood" />,
+    health: <GameIcon name="health" />,
+    english: <GameIcon name="english" />,
+    career: <GameIcon name="career" />,
   };
   return (
     <header className={styles.hud}>
@@ -223,7 +301,7 @@ export function StatusBar({
           title={t(`game.${state.day.weather}`)}
           aria-label={t(`game.${state.day.weather}`)}
         >
-          {weatherIcon[state.day.weather]}
+          <GameIcon name={state.day.weather} />
         </span>
         <span className={styles.desktopOnly}>
           {t('game.day').replace('{day}', String(state.day.index + 1))}
@@ -921,34 +999,6 @@ export function Ending({
         </p>
       ))}
       <LifeMemories state={state} />
-      <h2>{t('game.achievements')}</h2>
-      <div className={styles.achievementColumns}>
-        {[true, false].map((earned) => {
-          const items = [
-            ...achievements,
-            ...(characters.find(
-              (character) => character.id === state.characterId,
-            )!.achievements ?? []),
-          ].filter((item) => state.achievements.includes(item.id) === earned);
-          return (
-            <section key={String(earned)}>
-              <h3>{t(earned ? 'game.earned' : 'game.unearned')}</h3>
-              {items.length ? (
-                <ul>
-                  {items.map((item) => (
-                    <li key={item.id}>
-                      <strong>{localText(item.name, locale)}</strong>
-                      <p>{localText(item.description, locale)}</p>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>{t('game.noAchievements')}</p>
-              )}
-            </section>
-          );
-        })}
-      </div>
       <div className={styles.buttons}>
         <Link
           className={styles.button}
@@ -970,6 +1020,44 @@ export function Ending({
         >
           {t('game.changeCharacter')}
         </button>
+      </div>
+      <h2>{t('game.achievements')}</h2>
+      <div className={styles.achievementColumns}>
+        {[true, false].map((earned) => {
+          const items = [
+            ...achievements,
+            ...(characters.find(
+              (character) => character.id === state.characterId,
+            )!.achievements ?? []),
+          ].filter((item) => state.achievements.includes(item.id) === earned);
+          const list = items.length ? (
+            <ul>
+              {items.map((item) => (
+                <li key={item.id}>
+                  <strong>{localText(item.name, locale)}</strong>
+                  <p>{localText(item.description, locale)}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>{t('game.noAchievements')}</p>
+          );
+          return earned ? (
+            <section key="earned">
+              <h3>
+                {t('game.earned')} ({items.length})
+              </h3>
+              {list}
+            </section>
+          ) : (
+            <details key="unearned">
+              <summary>
+                {t('game.unearned')} ({items.length})
+              </summary>
+              {list}
+            </details>
+          );
+        })}
       </div>
       {state.result.shortCircuit && (
         <p className={styles.notice}>{state.result.shortCircuit.message}</p>

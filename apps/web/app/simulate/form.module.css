@@ -2,6 +2,16 @@
   color: #505a5f;
   margin-bottom: 8px;
 }
+.stepProgress {
+  height: 6px;
+  margin-bottom: 24px;
+  background: #e5eef5;
+}
+.stepProgress > span {
+  display: block;
+  height: 100%;
+  background: #1d70b8;
+}
 .saved {
   font-size: 0.95rem;
   color: #505a5f;

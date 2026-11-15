@@ -47,7 +47,16 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <header className={isGame ? game.siteHeader : styles.header}>
         <div className={isGame ? game.siteHeaderInner : styles.headerInner}>
           <Link href="/">
-            {t(isGame ? 'game.returnSimulator' : 'site.name')}
+            {isGame ? (
+              t('game.returnSimulator')
+            ) : (
+              <>
+                <span className={styles.fullLabel}>{t('site.name')}</span>
+                <span className={styles.compactLabel}>
+                  {t('site.shortName')}
+                </span>
+              </>
+            )}
           </Link>
           {!isGame && (
             <nav
@@ -67,17 +76,23 @@ export function SiteShell({ children }: { children: ReactNode }) {
               type="button"
               lang="zh-CN"
               aria-pressed={locale === 'zh-CN'}
+              aria-label={t('site.chinese')}
               onClick={() => setLocale('zh-CN')}
             >
-              {t('site.chinese')}
+              <span className={styles.fullLabel}>{t('site.chinese')}</span>
+              <span className={styles.compactLabel}>
+                {t('site.chineseShort')}
+              </span>
             </button>
             <button
               type="button"
               lang="en"
               aria-pressed={locale === 'en'}
+              aria-label="English"
               onClick={() => setLocale('en')}
             >
-              English
+              <span className={styles.fullLabel}>English</span>
+              <span className={styles.compactLabel}>EN</span>
             </button>
           </div>
         </div>

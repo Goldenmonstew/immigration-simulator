@@ -10,6 +10,7 @@ import TownCanvas from '../app/game/town-canvas';
 import {
   CharacterSelect,
   ControlHint,
+  InteractButton,
   Ending,
   LifeMemories,
   EventCard,
@@ -1576,11 +1577,14 @@ test.each(['zh-CN', 'en'] as const)(
 test('closed destination buttons stay clickable and still open the hours menu', () => {
   const h = client(at(430));
   const view = h.render();
-  const button = view.buttons.find((b) => b.label === '公司🔒')!;
+  const button = view.buttons.find((b) => b.label === '公司')!;
   expect(button.disabled).toBe(false);
   expect(view.html).toContain('closedPlace');
   expect(view.html).toContain('aria-label="公司 · 关门"');
-  expect(view.html).toMatch(/closedMarker[^>]*aria-hidden="true">🔒<\/span>/);
+  expect(view.html).toMatch(
+    /closedMarker[^>]*aria-hidden="true"><svg[^>]*stroke="currentColor"/,
+  );
+  expect(view.html).not.toContain('🔒');
   button.click();
   expect(h.render().props(TownCanvas).destination?.location).toBe('work');
   h.render().props(TownCanvas).onInteract({ kind: 'place', id: 'work' });
@@ -2156,5 +2160,123 @@ test('the destination dock pauses the scene, closes without travel, and sends th
   expect(view.props(TownCanvas).state).toEqual(before);
   view.props(TownCanvas).onInteract({ kind: 'place', id: 'work' });
   expect(h.render().props(LocationMenu).location).toBe('work');
+  h.dispose();
+});
+
+test.each(['zh-CN', 'en'] as const)(
+  'interaction button tracks touch, keyboard and target changes in %s',
+  (locale) => {
+    const media = {
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    };
+    vi.stubGlobal('window', { matchMedia: vi.fn(() => media) });
+    let interaction: React.ComponentProps<
+      typeof InteractButton
+    >['interaction'] = { kind: 'home', id: 'bed' };
+    const onInteract = vi.fn();
+    const h = harness(
+      () => InteractButton({ interaction, onInteract }),
+      locale,
+    );
+    h.render();
+    h.flush();
+    const check = (name: string, exit = false) => {
+      const expected = exit
+        ? name
+        : t('game.interact', locale).replace('{name}', name);
+      const view = h.render();
+      expect(view.buttons[0].label).toBe(
+        `${media.matches ? '' : '[E] '}${expected}`,
+      );
+      expect(view.html).not.toContain('Space');
+      expect(view.html).not.toContain('空格');
+      view.buttons[0].click();
+    };
+    check(t('game.bed', locale));
+    interaction = { kind: 'home', id: 'desk' };
+    check(t('game.desk', locale));
+    media.matches = false;
+    media.addEventListener.mock.calls[0][1]();
+    check(t('game.desk', locale));
+    interaction = { kind: 'home', id: 'exit' };
+    check(t('game.exitHome', locale), true);
+    interaction = { kind: 'npc', id: 'margaret' };
+    const person = core.npcs.find((p) => p.id === 'margaret')!;
+    check(locale === 'en' ? person.name.en : person.name.zhCN);
+    interaction = { kind: 'place', id: 'shop' };
+    const place = core.places.find((p) => p.id === 'shop')!;
+    check(locale === 'en' ? place.name.en : place.name.zhCN);
+    interaction = { kind: 'plot', id: 0 };
+    media.matches = true;
+    media.addEventListener.mock.calls[0][1]();
+    check(t('game.plot', locale).replace('{count}', '1'));
+    expect(onInteract).toHaveBeenCalledTimes(7);
+    h.dispose();
+    expect(media.removeEventListener).toHaveBeenCalledWith(
+      'change',
+      media.addEventListener.mock.calls[0][1],
+    );
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'ending keeps primary actions before achievements, with unearned entries collapsed and counted in %s',
+  (locale) => {
+    const state = { ...active(locale), ending: 'left' as const };
+    const all = [
+      ...core.achievements,
+      ...(core.characters.find((c) => c.id === state.characterId)!
+        .achievements ?? []),
+    ];
+    for (const earned of [[], [all[0].id], all.map((a) => a.id)]) {
+      state.achievements = earned;
+      const change = vi.fn();
+      const view = renderView(
+        () => Ending({ state, onChange: change }),
+        locale,
+      );
+      const achievementHeading = view.html.indexOf(
+        t('game.achievements', locale),
+      );
+      for (const action of [
+        'game.openTimeline',
+        'game.replay',
+        'game.changeCharacter',
+      ] as const)
+        expect(view.html.indexOf(t(action, locale))).toBeLessThan(
+          achievementHeading,
+        );
+      const disclosure = view.html.match(
+        /<details([^>]*)><summary>([^<]*)<\/summary>([\s\S]*?)<\/details>/,
+      )!;
+      expect(disclosure[1]).not.toContain('open');
+      expect(disclosure[2]).toBe(
+        `${t('game.unearned', locale)} (${all.length - earned.length})`,
+      );
+      for (const item of all) {
+        const name = locale === 'en' ? item.name.en : item.name.zhCN;
+        expect(disclosure[3].includes(name)).toBe(!earned.includes(item.id));
+      }
+      view.click(t('game.replay', locale));
+      expect(change.mock.calls.at(-1)![0].characterId).toBe(state.characterId);
+      expect(change.mock.calls.at(-1)![0].ending).toBeUndefined();
+      view.click(t('game.changeCharacter', locale));
+      expect(change).toHaveBeenLastCalledWith(undefined);
+    }
+  },
+);
+
+test('location selection follows the entered place while closed locations remain accessible', () => {
+  const h = client(at(430));
+  expect(h.render().html).toMatch(
+    /<button[^>]*aria-current="location"[^>]*>家<\/button>/,
+  );
+  h.render().props(TownCanvas).onInteract({ kind: 'place', id: 'shop' });
+  expect(h.render().html).toMatch(
+    /<button[^>]*aria-current="location"[^>]*>街角小店/,
+  );
+  expect(h.render().html.match(/aria-current="location"/g)).toHaveLength(1);
   h.dispose();
 });

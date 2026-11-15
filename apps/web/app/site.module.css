@@ -96,6 +96,9 @@
   color: #fff;
   text-decoration: underline;
 }
+.compactLabel {
+  display: none;
+}
 .navigation {
   display: flex;
   flex-wrap: wrap;
@@ -132,7 +135,7 @@
   line-height: 1.65;
 }
 .muted {
-  color: #505a5f;
+  color: var(--assessment-muted, #505a5f);
 }
 .policy {
   margin-bottom: 36px;
@@ -154,12 +157,13 @@
   padding: 3px 10px;
   font-size: 0.95rem;
   font-weight: 700;
-  background: #e5eef5;
-  color: #16324f;
+  background: var(--badge-background, #e5eef5);
+  color: var(--badge-color, #16324f);
+  border-radius: var(--badge-radius, 0);
 }
 .announced {
-  background: #fff2cc;
-  color: #594500;
+  background: var(--badge-announced-background, #fff2cc);
+  color: var(--badge-announced-color, #594500);
 }
 .button,
 .secondary {
@@ -183,13 +187,14 @@
   color: #fff;
 }
 .body .secondary {
-  background: #f3f2f1;
-  color: #0b0c0c;
-  border-bottom-color: #929191;
+  background: var(--assessment-outcome, #f3f2f1);
+  color: var(--assessment-ink, #0b0c0c);
+  border-bottom-color: var(--assessment-border, #929191);
+  border-radius: var(--assessment-radius, 0);
 }
 .body .secondary:hover {
-  background: #dbdad9;
-  color: #0b0c0c;
+  background: var(--assessment-border, #dbdad9);
+  color: var(--assessment-ink, #0b0c0c);
 }
 .actions {
   display: flex;
@@ -279,39 +284,55 @@
   }
   .headerInner {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
-    gap: 0 12px;
-    padding: 4px 20px;
+    gap: 8px;
+    padding: 4px 12px;
   }
   .headerInner > a {
     display: flex;
     align-items: center;
     min-height: 44px;
-    font-size: 18px;
+    font-size: 14px;
     line-height: 1.2;
+    white-space: nowrap;
+  }
+  .header .fullLabel {
+    display: none;
+  }
+  .header .compactLabel {
+    display: inline;
   }
   .languages {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 1;
     gap: 4px;
   }
   .body .languages button {
     font-size: 14px;
     line-height: 1.2;
+    min-width: 44px;
     padding: 4px 8px;
   }
   .navigation {
-    grid-column: 1 / -1;
+    grid-column: 2;
+    grid-row: 1;
     flex-wrap: nowrap;
-    gap: 16px;
+    gap: 8px;
   }
   .navigation a {
     display: flex;
     align-items: center;
     min-height: 44px;
-    font-size: 16px;
+    font-size: 14px;
     line-height: 1.4;
+    white-space: nowrap;
+  }
+  .homeActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 12px;
   }
   .policy {
     margin-bottom: 28px;
