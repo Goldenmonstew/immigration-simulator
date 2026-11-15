@@ -375,9 +375,9 @@ export class TownScene extends Phaser.Scene {
       : undefined;
     for (const spot of this.spots) {
       if (!spot.label) continue;
-      spot.label.setVisible(
-        this.view.interior ||
-          distance(spot, this.cell) <= 5 ||
+      spot.label.setVisible(true);
+      spot.label.element.dataset.highlighted = String(
+        distance(spot, this.cell) <= 5 ||
           !!(hover && spot.bounds.contains(hover.x, hover.y)),
       );
       spot.label.element.dataset.nearby = String(

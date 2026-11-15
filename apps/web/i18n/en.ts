@@ -11,6 +11,12 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.returnedText':
     'Your journey has been added to your timeline. The town is waiting for you.',
   'game.promotion': 'Promotion!',
+  'game.title': 'Immigration Life',
+  'game.returnSimulator': '← Simulator',
+  'game.places': 'Places',
+  'game.fastShort': 'Fast fwd',
+  'game.endDayShort': 'End day',
+  'game.tapToReveal': 'Tap the dialogue to reveal the full line',
   'game.entry': 'Play a round · Immigration Life',
   'game.disclaimer':
     'Fictional characters and events for learning. This is not immigration advice.',
@@ -41,6 +47,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Local storage is unavailable. You can keep playing, but progress may be lost when you refresh or close the page.',
   'game.yearQuarter': 'Year {year} · Quarter {quarter}',
   'game.actionsLeft': '{count} action points',
+  'game.visaShort': 'Visa {count}m',
   'game.visa': 'Visa: {count} months left',
   'game.visaUrgent': 'Visa expiry approaching',
   'game.money': 'Savings',

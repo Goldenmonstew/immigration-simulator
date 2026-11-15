@@ -11,6 +11,7 @@ import {
   isOver,
   hearts,
   mailbox,
+  npcs,
   places,
   sleep,
   shop,
@@ -65,12 +66,12 @@ import TownCanvas from './town-canvas';
 import type { Interaction, SceneFeedback } from './scene';
 import { recordMemories, type DayMemory, type ChangeSource } from './diary';
 import styles from './game.module.css';
-import site from '../site.module.css';
 type Overlay =
   | { kind: 'place'; id: PlaceId }
   | { kind: 'dialogue'; id: string }
   | { kind: 'plot'; id: number }
   | { kind: 'bag' }
+  | { kind: 'destinations' }
   | { kind: 'kitchen' }
   | { kind: 'mailbox' }
   | { kind: 'fishing' }
@@ -387,6 +388,9 @@ export default function GameClient() {
     if (overlay.kind === 'plot')
       return t('game.plot').replace('{count}', String(overlay.id + 1));
     if (overlay.kind === 'detail') return t('game.progressChanges');
+    if (overlay.kind === 'destinations') return t('game.destinations');
+    if (overlay.kind === 'dialogue')
+      return localText(npcs.find((n) => n.id === overlay.id)!.name, locale);
     return t(
       overlay.kind === 'bag'
         ? 'game.bag'
@@ -405,6 +409,34 @@ export default function GameClient() {
     conversation.current = undefined;
     openOverlay(menu);
   };
+  const destinations = (drawer: boolean) => (
+    <nav
+      className={`${styles.destinations} ${drawer ? '' : styles.desktopDestinations}`}
+      aria-label={t('game.destinations')}
+      inert={!drawer && paused}
+    >
+      {places.map((p) => (
+        <button
+          key={p.id}
+          disabled={!drawer && paused}
+          className={!isPlaceOpen(current!, p) ? styles.closedPlace : undefined}
+          aria-label={
+            !isPlaceOpen(current!, p)
+              ? `${localText(p.name, locale)} · ${t('game.closedLabel')}`
+              : undefined
+          }
+          onClick={() => walkTo(p.id)}
+        >
+          {localText(p.name, locale)}
+          {!isPlaceOpen(current!, p) && (
+            <span className={styles.closedMarker} aria-hidden="true">
+              🔒
+            </span>
+          )}
+        </button>
+      ))}
+    </nav>
+  );
   return (
     <div
       className={styles.game}
@@ -424,27 +456,53 @@ export default function GameClient() {
               <StatusBar state={current}>
                 <button
                   className={styles.music}
+                  aria-label={t(muted ? 'game.muted' : 'game.unmuted')}
+                  title={t(muted ? 'game.muted' : 'game.unmuted')}
                   aria-pressed={!muted}
                   onClick={() => {
                     setMuted(!muted);
                     saveMuted(!muted);
                   }}
                 >
-                  {t(muted ? 'game.muted' : 'game.unmuted')}
+                  <span className={styles.srOnly}>
+                    {t(muted ? 'game.muted' : 'game.unmuted')}
+                  </span>
+                  <span className={styles.desktopOnly} aria-hidden="true">
+                    {t(muted ? 'game.muted' : 'game.unmuted')}
+                  </span>
+                  <span className={styles.mobileOnly} aria-hidden="true">
+                    {muted ? '♪̸' : '♫'}
+                  </span>
                 </button>
                 <button
                   className={styles.music}
                   disabled={paused}
+                  aria-label={t('game.fastForward')}
+                  title={t('game.fastForward')}
                   onClick={() => setConfirmation('fast')}
                 >
-                  {t('game.fastForward')}
+                  <span className={styles.srOnly}>{t('game.fastForward')}</span>
+                  <span className={styles.desktopOnly} aria-hidden="true">
+                    {t('game.fastShort')}
+                  </span>
+                  <span className={styles.mobileOnly} aria-hidden="true">
+                    ⏩
+                  </span>
                 </button>
                 <button
                   className={styles.music}
                   disabled={paused}
+                  aria-label={t('game.endDay')}
+                  title={t('game.endDay')}
                   onClick={() => setConfirmation('sleep')}
                 >
-                  {t('game.endDay')}
+                  <span className={styles.srOnly}>{t('game.endDay')}</span>
+                  <span className={styles.desktopOnly} aria-hidden="true">
+                    {t('game.endDayShort')}
+                  </span>
+                  <span className={styles.mobileOnly} aria-hidden="true">
+                    ☾
+                  </span>
                 </button>
               </StatusBar>
               <div className={styles.townLayout}>
@@ -504,51 +562,33 @@ export default function GameClient() {
                     </span>
                   )}
                 </div>
-                <nav
-                  className={styles.destinations}
-                  aria-label={t('game.destinations')}
-                  inert={paused}
-                >
-                  {places.map((p) => (
-                    <button
-                      key={p.id}
-                      disabled={paused}
-                      className={
-                        !isPlaceOpen(current, p)
-                          ? styles.closedPlace
-                          : undefined
-                      }
-                      aria-label={
-                        !isPlaceOpen(current, p)
-                          ? `${localText(p.name, locale)} · ${t('game.closedLabel')}`
-                          : undefined
-                      }
-                      onClick={() => walkTo(p.id)}
-                    >
-                      {localText(p.name, locale)}
-                      {!isPlaceOpen(current, p) && (
-                        <span
-                          className={styles.closedMarker}
-                          aria-hidden="true"
-                        >
-                          🔒
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </nav>
+                {destinations(false)}
               </div>
               <ControlHint />
               <div className={styles.toolbar}>
                 <button
-                  className={site.secondary}
+                  className={`${styles.secondary} ${styles.destinationTrigger}`}
+                  disabled={paused}
+                  aria-haspopup="dialog"
+                  aria-expanded={overlay?.kind === 'destinations'}
+                  aria-controls="game-destinations"
+                  onClick={() => openOverlay({ kind: 'destinations' })}
+                >
+                  {t('game.places')}
+                </button>
+                <button
+                  className={styles.secondary}
                   disabled={paused}
                   onClick={() => openOverlay({ kind: 'bag' })}
                 >
-                  {t('game.bag')} / {t('game.friends')}
+                  {t('game.bag')}
+                  <span className={styles.desktopOnly}>
+                    {' '}
+                    / {t('game.friends')}
+                  </span>
                 </button>
                 <button
-                  className={site.secondary}
+                  className={styles.secondary}
                   disabled={paused}
                   onClick={() => choose(undefined)}
                 >
@@ -647,11 +687,11 @@ export default function GameClient() {
                   </p>
                 )}
                 <div className={styles.buttons}>
-                  <button className={site.button} onClick={beginRoutine}>
+                  <button className={styles.button} onClick={beginRoutine}>
                     {t('game.confirm')}
                   </button>
                   <button
-                    className={site.secondary}
+                    className={styles.secondary}
                     onClick={() => setConfirmation(undefined)}
                   >
                     {t('game.cancel')}
@@ -664,9 +704,12 @@ export default function GameClient() {
                 title={title()}
                 onClose={close}
                 dialogue={overlay.kind === 'dialogue'}
+                sheet={overlay.kind === 'destinations'}
                 wide={overlay.kind === 'place' && overlay.id === 'council'}
               >
-                {overlay.kind === 'place' ? (
+                {overlay.kind === 'destinations' ? (
+                  destinations(true)
+                ) : overlay.kind === 'place' ? (
                   <LocationMenu
                     state={current}
                     location={overlay.id}
@@ -702,7 +745,7 @@ export default function GameClient() {
                       )}
                     {overlay.id === 'pond' && (
                       <button
-                        className={site.button}
+                        className={styles.button}
                         onClick={() => openOverlay({ kind: 'fishing' })}
                       >
                         {t('game.fish')}
@@ -711,19 +754,19 @@ export default function GameClient() {
                     {overlay.id === 'home' && (
                       <div className={styles.buttons}>
                         <button
-                          className={site.secondary}
+                          className={styles.secondary}
                           onClick={() => openOverlay({ kind: 'kitchen' })}
                         >
                           {t('game.kitchen')}
                         </button>
                         <button
-                          className={site.secondary}
+                          className={styles.secondary}
                           onClick={() => openOverlay({ kind: 'mailbox' })}
                         >
                           {t('game.mailbox')}
                         </button>
                         <button
-                          className={site.secondary}
+                          className={styles.secondary}
                           onClick={() => setConfirmation('sleep')}
                         >
                           {t('game.sleep')}

@@ -46,7 +46,6 @@ import {
   itemIcon,
 } from './session';
 import { groupedMemories, type DayMemory } from './diary';
-import site from '../site.module.css';
 import styles from './game.module.css';
 
 export function localText(text: Text, locale: string) {
@@ -89,27 +88,34 @@ export function CharacterSelect({
   const { t, locale } = useTranslation();
   return (
     <section className={styles.welcome}>
-      <h1>Immigration Life</h1>
-      <p className={site.lead}>{t('game.intro')}</p>
+      <h1>{t('game.title')}</h1>
+      {locale === 'zh-CN' && (
+        <p className={styles.subtitle} lang="en">
+          Immigration Life
+        </p>
+      )}
+      <p className={styles.lead}>{t('game.intro')}</p>
       <h2>{t('game.chooseCharacter')}</h2>
       <div className={styles.characters}>
         {characters.map((character) => (
           <article key={character.id} className={styles.character}>
-            <span
-              className={styles.portrait}
-              style={{
-                backgroundImage: `url("${spritePath(character.id)}")`,
-              }}
-              role="img"
-              aria-label={localText(character.name, locale)}
-            />
-            <div>
+            <span className={styles.portraitFrame}>
+              <span
+                className={styles.portrait}
+                style={{
+                  backgroundImage: `url("${spritePath(character.id)}")`,
+                }}
+                role="img"
+                aria-label={localText(character.name, locale)}
+              />
+            </span>
+            <div className={styles.characterBody}>
               <h3>{localText(character.name, locale)}</h3>
               <p>{localText(character.intro, locale)}</p>
               <div className={styles.buttons}>
                 {saves[character.id] && (
                   <button
-                    className={site.button}
+                    className={styles.button}
                     onClick={() =>
                       onChange(withGameLocale(saves[character.id]!, locale))
                     }
@@ -118,7 +124,9 @@ export function CharacterSelect({
                   </button>
                 )}
                 <button
-                  className={saves[character.id] ? site.secondary : site.button}
+                  className={
+                    saves[character.id] ? styles.secondary : styles.button
+                  }
                   onClick={() =>
                     onChange(
                       newGame(character.id, Date.now() % 2 ** 31, locale),
@@ -167,51 +175,90 @@ export function StatusBar({
   const name = characters.find((item) => item.id === state.characterId)!.name;
   const { months, renewed } = visaStatus(state);
   const urgent = months <= 6 && !renewed;
+  const visa = (compact = false) => (
+    <span
+      className={urgent ? `${styles.urgent} ${styles.visaFlash}` : styles.visa}
+      aria-label={t('game.visa').replace('{count}', String(months))}
+      title={urgent ? t('game.visaUrgent') : undefined}
+    >
+      {t(compact ? 'game.visaShort' : 'game.visa').replace(
+        '{count}',
+        String(months),
+      )}
+    </span>
+  );
+  const icons: Record<StatKey, string> = {
+    money: '£',
+    mood: '☺',
+    health: '♥',
+    english: '✎',
+    career: '◆',
+  };
   return (
     <header className={styles.hud}>
       <div className={styles.hudTop}>
-        <strong>{localText(name, locale)}</strong>
-        <span className={styles.season}>
-          {t('game.yearQuarter')
-            .replace('{year}', String(state.year))
-            .replace('{quarter}', String(state.quarter))}{' '}
-          · {t(`game.season${state.quarter}`)}
-        </span>
-        <time dateTime={state.day.date}>{dayDate(state.day.date, locale)}</time>
+        <div className={styles.hudContext}>
+          <strong className={styles.desktopOnly}>
+            {localText(name, locale)}
+          </strong>
+          <span className={styles.desktopOnly}>
+            {t('game.yearQuarter')
+              .replace('{year}', String(state.year))
+              .replace('{quarter}', String(state.quarter))}{' '}
+            · {t(`game.season${state.quarter}`)}
+          </span>
+          <time className={styles.desktopOnly} dateTime={state.day.date}>
+            {dayDate(state.day.date, locale)}
+          </time>
+          <span
+            className={styles.mobileOnly}
+            title={`${localText(name, locale)} · ${dayDate(state.day.date, locale)}`}
+          >
+            {localText(name, locale)} · Y{state.year}{' '}
+            {t(`game.season${state.quarter}`)} D{state.day.index + 1}
+          </span>
+        </div>
         <strong className={styles.clock}>{clockTime(state.day.minute)}</strong>
-        <span aria-label={t(`game.${state.day.weather}`)}>
-          {weatherIcon[state.day.weather]} {t(`game.${state.day.weather}`)}
+        <span
+          title={t(`game.${state.day.weather}`)}
+          aria-label={t(`game.${state.day.weather}`)}
+        >
+          {weatherIcon[state.day.weather]}
         </span>
-        <span>
+        <span className={styles.desktopOnly}>
           {t('game.day').replace('{day}', String(state.day.index + 1))}
         </span>
-        <span
-          className={
-            urgent ? `${styles.urgent} ${styles.visaFlash}` : styles.visa
-          }
-          title={urgent ? t('game.visaUrgent') : undefined}
-        >
-          {t('game.visa').replace('{count}', String(months))}
-        </span>
-        {children}
+        <span className={styles.desktopOnly}>{visa()}</span>
+        <div className={styles.hudActions}>{children}</div>
       </div>
-      <div className={styles.stats}>
-        {statKeys.map((key) => (
-          <div className={styles.stat} key={key}>
-            <div>
-              <span>{t(`game.${key}`)}</span>
-              <strong>
-                {key === 'money' ? money(state.stats[key]) : state.stats[key]}
-              </strong>
+      <div className={styles.hudBottom}>
+        <span className={styles.mobileOnly}>{visa(true)}</span>
+        <div className={styles.stats}>
+          {statKeys.map((key) => (
+            <div className={styles.stat} data-stat={key} key={key}>
+              <div>
+                <span className={styles.statLabel}>
+                  <span aria-hidden="true">{icons[key]} </span>
+                  {t(`game.${key}`)}
+                </span>
+                {key !== 'money' && (
+                  <span className={styles.statIcon} aria-hidden="true">
+                    {icons[key]}
+                  </span>
+                )}
+                <strong>
+                  {key === 'money' ? money(state.stats[key]) : state.stats[key]}
+                </strong>
+              </div>
+              <meter
+                aria-label={t(`game.${key}`)}
+                min={key === 'money' ? Math.min(0, state.stats.money) : 0}
+                max={key === 'money' ? Math.max(10000, state.stats.money) : 100}
+                value={state.stats[key]}
+              />
             </div>
-            <meter
-              aria-label={t(`game.${key}`)}
-              min={key === 'money' ? Math.min(0, state.stats.money) : 0}
-              max={key === 'money' ? Math.max(10000, state.stats.money) : 100}
-              value={state.stats[key]}
-            />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </header>
   );
@@ -289,7 +336,7 @@ export function ProgressDetail({
   const assessment = state.result.byRuleSet[id]!;
   return (
     <>
-      <p className={site.lead}>{t(`outcome.${assessment.outcome}`)}</p>
+      <p className={styles.lead}>{t(`outcome.${assessment.outcome}`)}</p>
       <dl className={styles.facts}>
         <div>
           <dt>{t('result.pathway')}</dt>
@@ -305,7 +352,7 @@ export function ProgressDetail({
         </div>
       </dl>
       <p>{t('game.progressHint')}</p>
-      <button className={site.button} onClick={onVisit}>
+      <button className={styles.button} onClick={onVisit}>
         {t('game.councilDetails')}
       </button>
     </>
@@ -385,7 +432,7 @@ export function LocationMenu({
         <p>{t('game.endingConfirm')}</p>
         <div className={styles.buttons}>
           <button
-            className={site.button}
+            className={styles.button}
             onClick={() => {
               setEndingAction(undefined);
               onChange(doActivity(state, endingAction.id));
@@ -394,7 +441,7 @@ export function LocationMenu({
             {t('game.confirm')}
           </button>
           <button
-            className={site.secondary}
+            className={styles.secondary}
             onClick={() => setEndingAction(undefined)}
           >
             {t('game.cancel')}
@@ -477,7 +524,7 @@ export function LocationMenu({
               {people.map((id) => (
                 <button
                   key={id}
-                  className={site.secondary}
+                  className={styles.secondary}
                   onClick={() => onTalk?.(id)}
                 >
                   {localText(npcs.find((n) => n.id === id)!.name, locale)} ·{' '}
@@ -522,7 +569,7 @@ export function VisaReminder({
       <p>
         {t('game.visaReminder').replace('{count}', String(visaMonths(state)))}
       </p>
-      <button className={site.secondary} onClick={onVisit}>
+      <button className={styles.secondary} onClick={onVisit}>
         {t('game.visaVisit')}
       </button>
     </section>
@@ -543,7 +590,7 @@ export function EventCard({
       {localText(event.text, locale)
         .split('\n')
         .map((paragraph, index) => (
-          <p key={index} className={site.lead}>
+          <p key={index} className={styles.lead}>
             {paragraph}
           </p>
         ))}
@@ -608,7 +655,7 @@ export function ActionFeedback({
       {JSON.stringify(before.timeline) !== JSON.stringify(after.timeline) && (
         <p>{t('game.timelineChanged')}</p>
       )}
-      <button className={site.button} onClick={onContinue}>
+      <button className={styles.button} onClick={onContinue}>
         {t('game.continuePlaying')}
       </button>
     </>
@@ -756,14 +803,14 @@ export function QuarterSummary({
           </div>
           {!isOver(after) && (
             <p>
-              <button className={site.secondary} onClick={onVisit}>
+              <button className={styles.secondary} onClick={onVisit}>
                 {t('game.councilDetails')}
               </button>
             </p>
           )}
         </>
       )}
-      <button className={site.button} onClick={onContinue}>
+      <button className={styles.button} onClick={onContinue}>
         {t(isOver(after) ? 'game.seeEnding' : 'game.nextQuarter')}
       </button>
     </>
@@ -904,25 +951,28 @@ export function Ending({
       </div>
       <div className={styles.buttons}>
         <Link
-          className={site.button}
+          className={styles.button}
           href={`/result#s=${encodeDraft(gameDraft(state))}`}
         >
           {t('game.openTimeline')}
         </Link>
         <button
-          className={site.secondary}
+          className={styles.secondary}
           onClick={() =>
             onChange(newGame(state.characterId, Date.now() % 2 ** 31, locale))
           }
         >
           {t('game.replay')}
         </button>
-        <button className={site.secondary} onClick={() => onChange(undefined)}>
+        <button
+          className={styles.secondary}
+          onClick={() => onChange(undefined)}
+        >
           {t('game.changeCharacter')}
         </button>
       </div>
       {state.result.shortCircuit && (
-        <p className={site.notice}>{state.result.shortCircuit.message}</p>
+        <p className={styles.notice}>{state.result.shortCircuit.message}</p>
       )}
       <AssessmentColumns
         result={state.result}
@@ -939,12 +989,14 @@ export function Modal({
   onClose,
   wide = false,
   dialogue = false,
+  sheet = false,
 }: {
   title: string;
   children: ReactNode;
   onClose?: () => void;
   wide?: boolean;
   dialogue?: boolean;
+  sheet?: boolean;
 }) {
   const { t } = useTranslation();
   const ref = useRef<HTMLDialogElement>(null);
@@ -961,16 +1013,22 @@ export function Modal({
   return (
     <dialog
       ref={ref}
+      id={sheet ? 'game-destinations' : undefined}
       tabIndex={-1}
-      className={`${styles.modal} ${wide ? styles.wideModal : ''} ${dialogue ? styles.dialogueModal : ''}`}
+      className={`${styles.modal} ${wide ? styles.wideModal : ''} ${dialogue ? styles.dialogueModal : ''} ${sheet ? styles.destinationSheet : ''}`}
       aria-labelledby="game-dialog-heading"
       onCancel={(event) => {
         event.preventDefault();
         onClose?.();
       }}
     >
-      <header className={styles.modalHeader}>
-        <h2 id="game-dialog-heading">{title}</h2>
+      <header className={dialogue ? styles.dialogueHeader : styles.modalHeader}>
+        <h2
+          id="game-dialog-heading"
+          className={dialogue ? styles.srOnly : undefined}
+        >
+          {title}
+        </h2>
         {onClose && (
           <button className={styles.close} onClick={onClose}>
             {t('game.close')}

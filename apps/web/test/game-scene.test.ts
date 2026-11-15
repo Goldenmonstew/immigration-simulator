@@ -577,7 +577,7 @@ test.each([2, 3])(
   },
 );
 
-test('place labels sit below buildings, reveal near the player or on hover, and clear on entering home', () => {
+test('place labels remain visible at a distance, highlight near the player or on hover, and clear on entering home', () => {
   const { scene, view, camera, overlay } = loadScene(false);
   const spots = Reflect.get(scene, 'spots') as {
     x: number;
@@ -598,16 +598,20 @@ test('place labels sit below buildings, reveal near the player or on hover, and 
   render();
   expect(home.label!.visible).toBe(true);
   expect(home.label!.element.dataset.nearby).toBe('true');
-  expect(shop.label!.visible).toBe(false);
+  expect(home.label!.element.dataset.highlighted).toBe('true');
+  expect(shop.label!.visible).toBe(true);
+  expect(shop.label!.element.dataset.highlighted).toBe('false');
   Object.assign(scene.input, {
     activePointer: { x: shop.bounds.x, y: shop.bounds.y },
     manager: { isOver: true },
   });
   render();
   expect(shop.label!.visible).toBe(true);
+  expect(shop.label!.element.dataset.highlighted).toBe('true');
   Object.assign(scene.input.manager, { isOver: false });
   render();
-  expect(shop.label!.visible).toBe(false);
+  expect(shop.label!.visible).toBe(true);
+  expect(shop.label!.element.dataset.highlighted).toBe('false');
   const oldElements = Array.from(overlay.children);
   scene.sync({ ...view, interior: true });
   render();

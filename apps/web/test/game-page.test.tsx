@@ -131,6 +131,7 @@ type Props = {
   children?: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
+  'aria-label'?: string;
   onChange?: (event: { target: { value: string } }) => void;
 };
 function walk(
@@ -152,8 +153,12 @@ function content(node: React.ReactNode): string {
     .join('');
 }
 function renderView(make: () => React.ReactNode, locale: Locale = 'zh-CN') {
-  const buttons: { label: string; click: () => void; disabled?: boolean }[] =
-    [];
+  const buttons: {
+    label: string;
+    accessibleLabel?: string;
+    click: () => void;
+    disabled?: boolean;
+  }[] = [];
   let tree: React.ReactNode;
   function Probe() {
     tree = make();
@@ -161,6 +166,7 @@ function renderView(make: () => React.ReactNode, locale: Locale = 'zh-CN') {
       if (e.type === 'button' && e.props.onClick)
         buttons.push({
           label: content(e.props.children),
+          accessibleLabel: e.props['aria-label'],
           click: e.props.onClick,
           disabled: e.props.disabled,
         });
@@ -176,7 +182,9 @@ function renderView(make: () => React.ReactNode, locale: Locale = 'zh-CN') {
     html,
     buttons,
     click(prefix: string) {
-      const b = buttons.find((b) => b.label.startsWith(prefix));
+      const b = buttons.find(
+        (b) => b.label.startsWith(prefix) || b.accessibleLabel === prefix,
+      );
       expect(b, `Button: ${prefix}`).toBeDefined();
       expect(b!.disabled).not.toBe(true);
       b!.click();
@@ -418,7 +426,8 @@ test.each(['zh-CN', 'en'] as const)(
       h.render();
       h.flush();
       let view = h.render();
-      expect(view.html).toContain('revealSlot');
+      expect(view.html).toContain('lineMeasure');
+      expect(view.html).toContain('revealHint');
       expect(view.html).toContain(
         `aria-label="${paragraphs[index].replaceAll('"', '&quot;').replaceAll("'", '&#x27;')}"`,
       );
@@ -441,7 +450,11 @@ test.each(['zh-CN', 'en'] as const)(
       expect(
         view.buttons.some((b) => b.label === t('game.reveal', locale)),
       ).toBe(false);
-      expect(view.html).toMatch(/<div class="[^"]*revealSlot[^"]*"><\/div>/);
+      expect(
+        view.buttons.find((b) => b.accessibleLabel === t('game.reveal', locale))
+          ?.disabled,
+      ).toBe(true);
+      expect(view.html).toContain('revealHint');
       expect(hasChoices(view)).toBe(index === paragraphs.length - 1);
       expect(onChange).not.toHaveBeenCalled();
       if (index < paragraphs.length - 1) {
@@ -2105,3 +2118,43 @@ test.each(['zh-CN', 'en'] as const)(
     expect(ending).toContain(t('game.replay', locale));
   },
 );
+
+test('the destination dock pauses the scene, closes without travel, and sends the chosen destination to the canvas', () => {
+  vi.useFakeTimers();
+  const h = client(at(480));
+  h.render().props(TownCanvas).onInteract({ kind: 'home', id: 'exit' });
+  h.render();
+  h.flush();
+  const before = h.render().props(TownCanvas).state;
+  expect(h.render().html).toContain('aria-expanded="false"');
+  h.render().click(t('game.places'));
+  let view = h.render();
+  h.flush();
+  expect(view.props(Modal).sheet).toBe(true);
+  expect(view.html).toContain('id="game-destinations"');
+  expect(view.html).toContain('aria-expanded="true"');
+  expect(view.props(TownCanvas).paused).toBe(true);
+  vi.advanceTimersByTime(4000);
+  expect(h.render().props(TownCanvas).state).toEqual(before);
+  view.props(Modal).onClose!();
+  view = h.render();
+  h.flush();
+  expect(view.props(TownCanvas).paused).toBe(false);
+  expect(view.props(TownCanvas).destination).toBeUndefined();
+  view.click(t('game.places'));
+  view = h.render();
+  h.flush();
+  const sheet = renderView(() => view.props(Modal).children);
+  expect(sheet.buttons).toHaveLength(core.places.length);
+  expect(sheet.buttons.every((b) => !b.disabled)).toBe(true);
+  sheet.click('公司');
+  view = h.render();
+  h.flush();
+  expect(view.html).not.toContain('id="game-destinations"');
+  expect(view.props(TownCanvas).paused).toBe(false);
+  expect(view.props(TownCanvas).destination?.location).toBe('work');
+  expect(view.props(TownCanvas).state).toEqual(before);
+  view.props(TownCanvas).onInteract({ kind: 'place', id: 'work' });
+  expect(h.render().props(LocationMenu).location).toBe('work');
+  h.dispose();
+});

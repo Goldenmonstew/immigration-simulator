@@ -38,7 +38,6 @@ import {
 import { itemIcon, spritePath, needsVisaReminder } from './session';
 import { playSound } from './sound';
 import styles from './game.module.css';
-import site from '../site.module.css';
 type Change = { state: GameState; onChange: (state: GameState) => void };
 // Core availability is authoritative, including the remaining minutes today.
 function useLifeAction(onChange: Change['onChange']) {
@@ -87,7 +86,7 @@ export function TravelCard({
       <time dateTime={state.day.date}>{dayDate(state.day.date, locale)}</time>
       <p>{t(returned ? 'game.returnedText' : 'game.abroadText')}</p>
       <button
-        className={site.button}
+        className={styles.button}
         disabled={!!state.pendingEvent && !returned}
         onClick={onContinue}
       >
@@ -129,7 +128,7 @@ export function MorningCard({
       {state.day.index === 0 && needsVisaReminder(state) && (
         <VisaReminder state={state} onVisit={onVisit} />
       )}
-      <button className={site.button} onClick={onContinue}>
+      <button className={styles.button} onClick={onContinue}>
         {t('game.beginDay')}
       </button>
     </div>
@@ -223,6 +222,10 @@ export function Dialogue({
   }, [letters, line, npc]);
   return (
     <>
+      <h2 className={styles.nameplate}>
+        {localText(person.name, locale)}
+        <small>{localText(person.role, locale)}</small>
+      </h2>
       {action.message}
       {heartChange && (
         <p role="status" className={styles.heartChange}>
@@ -230,34 +233,45 @@ export function Dialogue({
         </p>
       )}
       <div className={styles.dialogueBody}>
-        <span
-          className={styles.portrait}
-          style={{ backgroundImage: `url("${spritePath(npc)}")` }}
-          aria-hidden="true"
-        />
+        <span className={styles.portraitFrame}>
+          <span
+            className={styles.portrait}
+            style={{ backgroundImage: `url("${spritePath(npc)}")` }}
+            aria-hidden="true"
+          />
+        </span>
         <div>
-          <strong>{localText(person.name, locale)}</strong>
-          <small> {localText(person.role, locale)}</small>
           <HeartProgress state={state} npc={npc} />
-          <p aria-live="polite" aria-label={line}>
-            {line.slice(0, letters)}
-            <span aria-hidden="true">{letters < line.length ? '▍' : ''}</span>
-          </p>
-        </div>
-      </div>
-      <div className={styles.revealSlot}>
-        {letters < line.length && (
           <button
-            className={styles.close}
+            className={styles.dialogueText}
+            aria-label={t('game.reveal')}
+            aria-describedby="game-dialogue-line"
+            disabled={letters >= line.length}
             onClick={() => setLetters(line.length)}
           >
-            {t('game.reveal')}
+            <span
+              id="game-dialogue-line"
+              className={styles.srOnly}
+              aria-label={line}
+            >
+              {line}
+            </span>
+            <span className={styles.dialogueLine} aria-hidden="true">
+              <span className={styles.lineMeasure}>{line}</span>
+              <span className={styles.lineTyped}>
+                {line.slice(0, letters)}
+                <span aria-hidden="true">
+                  {letters < line.length ? '▍' : ''}
+                </span>
+              </span>
+            </span>
+            <span className={styles.revealHint}>{t('game.tapToReveal')}</span>
           </button>
-        )}
+        </div>
       </div>
       {event && !lastParagraph && letters >= line.length && (
         <button
-          className={site.button}
+          className={styles.button}
           onClick={() => {
             setLetters(0);
             setParagraph((n) => n + 1);
@@ -305,20 +319,25 @@ export function Dialogue({
                   </button>
                 ))}
             </div>
-          ) : (
-            <button
-              className={site.secondary}
-              disabled={state.day.gifted.includes(npc) || !stillHere}
-              onClick={() => setGifting(true)}
-            >
-              {t(
-                state.day.gifted.includes(npc) ? 'game.giftDone' : 'game.gift',
-              )}
+          ) : null}
+          <div className={styles.dialogueActions}>
+            {!gifting && (
+              <button
+                className={styles.secondary}
+                disabled={state.day.gifted.includes(npc) || !stillHere}
+                onClick={() => setGifting(true)}
+              >
+                {t(
+                  state.day.gifted.includes(npc)
+                    ? 'game.giftDone'
+                    : 'game.gift',
+                )}
+              </button>
+            )}
+            <button className={styles.button} onClick={onClose}>
+              {t('game.finishedTalking')}
             </button>
-          )}
-          <button className={site.button} onClick={onClose}>
-            {t('game.finishedTalking')}
-          </button>
+          </div>
         </>
       )}
       {event && <EventNotes choices={event.choices} />}
@@ -384,7 +403,7 @@ export function Inventory({
                 </strong>
                 {items.find((i) => i.id === id)?.edible && (
                   <button
-                    className={site.secondary}
+                    className={styles.secondary}
                     onClick={() => action.run(() => eat(state, id))}
                   >
                     {t('game.eat')}
@@ -394,7 +413,7 @@ export function Inventory({
             ))}
           </div>
           <p>{t('game.kitchenHint')}</p>
-          <button className={site.secondary} onClick={onKitchen}>
+          <button className={styles.secondary} onClick={onKitchen}>
             {t('game.cook')}
           </button>
         </>
@@ -469,7 +488,7 @@ export function Shop({ state, place, onChange }: Change & { place: PlaceId }) {
               {money(i.price!)} × {qty}
             </span>
             <button
-              className={site.secondary}
+              className={styles.secondary}
               disabled={state.stats.money < i.price! * qty}
               onClick={() => onChange(buy(state, i.id, qty))}
             >
@@ -503,14 +522,14 @@ export function PlotMenu({ state, plot, onChange }: Change & { plot: number }) {
       </p>
       <div className={styles.buttons}>
         <button
-          className={site.secondary}
+          className={styles.secondary}
           disabled={p.wateredOn === state.dayNumber}
           onClick={() => action.run(() => water(state, plot))}
         >
           {t(p.wateredOn === state.dayNumber ? 'game.watered' : 'game.water')}
         </button>
         <button
-          className={site.button}
+          className={styles.button}
           disabled={p.growth < seed!.grows!.days}
           onClick={() => action.run(() => harvest(state, plot))}
         >
@@ -546,7 +565,7 @@ export function Mailbox({ state, onChange }: Change) {
       </p>
       {mailbox(state).length ? (
         <button
-          className={site.button}
+          className={styles.button}
           onClick={() => onChange(readMail(state))}
         >
           {t('game.readMail')}
@@ -627,7 +646,7 @@ export function Fishing({ state, onChange }: Change) {
       </p>
       {phase === 'waiting' || phase === 'bite' ? (
         <button
-          className={site.button}
+          className={styles.button}
           onClick={() =>
             finish(stage.current === 'bite' && Date.now() <= deadline.current)
           }
@@ -635,7 +654,7 @@ export function Fishing({ state, onChange }: Change) {
           {t('game.reel')}
         </button>
       ) : (
-        <button className={site.button} onClick={cast}>
+        <button className={styles.button} onClick={cast}>
           {t('game.cast')}
         </button>
       )}
