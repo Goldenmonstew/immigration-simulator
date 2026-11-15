@@ -9,6 +9,9 @@
   padding: 24px;
   min-width: 0;
 }
+.announcedCard {
+  border-top-color: #b58800;
+}
 .sources {
   display: flex;
   flex-wrap: wrap;

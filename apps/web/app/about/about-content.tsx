@@ -22,7 +22,10 @@ export default function AboutContent() {
         <h2 id="about-columns">{t('about.columnsTitle')}</h2>
         <div className={styles.ruleSets}>
           {displayedRuleSets.map((ruleSet) => (
-            <article key={ruleSet.id} className={styles.card}>
+            <article
+              key={ruleSet.id}
+              className={`${styles.card} ${ruleSet.kind === 'ANNOUNCED' ? styles.announcedCard : ''}`}
+            >
               <h3>{t(`policy.${ruleSet.kind}`)}</h3>
               <p
                 className={`${site.badge} ${ruleSet.kind === 'ANNOUNCED' ? site.announced : ''}`}

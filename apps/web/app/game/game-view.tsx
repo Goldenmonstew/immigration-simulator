@@ -952,6 +952,7 @@ export function Modal({
     const previous = document.activeElement as HTMLElement | null;
     const dialog = ref.current!;
     dialog.showModal();
+    dialog.focus({ preventScroll: true });
     return () => {
       dialog.close();
       previous?.focus({ preventScroll: true });
@@ -960,6 +961,7 @@ export function Modal({
   return (
     <dialog
       ref={ref}
+      tabIndex={-1}
       className={`${styles.modal} ${wide ? styles.wideModal : ''} ${dialogue ? styles.dialogueModal : ''}`}
       aria-labelledby="game-dialog-heading"
       onCancel={(event) => {

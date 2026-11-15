@@ -2,7 +2,8 @@
   margin: 0;
   color: #0b0c0c;
   background: #fff;
-  font-family: Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
   font-size: 18px;
   line-height: 1.65;
   overflow-wrap: anywhere;
@@ -21,6 +22,11 @@
   outline: 3px solid #ffdd00;
   outline-offset: 2px;
   box-shadow: 0 0 0 5px #0b0c0c;
+}
+.body h1[tabindex='-1']:focus,
+.body h2[tabindex='-1']:focus {
+  outline: none;
+  box-shadow: none;
 }
 .body h1,
 .body h2,
@@ -176,13 +182,14 @@
   background: #005a30;
   color: #fff;
 }
-.secondary {
+.body .secondary {
   background: #f3f2f1;
   color: #0b0c0c;
   border-bottom-color: #929191;
 }
-.secondary:hover {
+.body .secondary:hover {
   background: #dbdad9;
+  color: #0b0c0c;
 }
 .actions {
   display: flex;

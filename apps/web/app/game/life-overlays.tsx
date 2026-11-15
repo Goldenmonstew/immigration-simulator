@@ -161,7 +161,7 @@ function HeartProgress({ state, npc }: { state: GameState; npc: string }) {
   const { t } = useTranslation();
   return (
     <>
-      <span aria-label={`${hearts(state, npc)} / 10`}>
+      <span className={styles.hearts} aria-label={`${hearts(state, npc)} / 10`}>
         {'♥'.repeat(hearts(state, npc))}
         {'♡'.repeat(10 - hearts(state, npc))}
       </span>
@@ -245,14 +245,16 @@ export function Dialogue({
           </p>
         </div>
       </div>
-      {letters < line.length && (
-        <button
-          className={styles.close}
-          onClick={() => setLetters(line.length)}
-        >
-          {t('game.reveal')}
-        </button>
-      )}
+      <div className={styles.revealSlot}>
+        {letters < line.length && (
+          <button
+            className={styles.close}
+            onClick={() => setLetters(line.length)}
+          >
+            {t('game.reveal')}
+          </button>
+        )}
+      </div>
       {event && !lastParagraph && letters >= line.length && (
         <button
           className={site.button}

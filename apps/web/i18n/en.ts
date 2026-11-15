@@ -60,7 +60,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.fullHearts': 'All hearts full',
   'game.destinations': 'Where to?',
   'game.endQuarter': 'End this quarter',
-  'game.close': 'Back to town',
+  'game.close': '✕ Close',
   'game.continuePlaying': 'Continue',
   'game.actionCost': '{count} action points',
   'game.noActions': 'No actions are available right now.',

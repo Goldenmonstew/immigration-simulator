@@ -51,7 +51,7 @@ export const zhCN = {
   'game.fullHearts': '已满心',
   'game.destinations': '走到哪里？',
   'game.endQuarter': '结束这一季',
-  'game.close': '回到小镇',
+  'game.close': '✕ 关闭',
   'game.continuePlaying': '继续',
   'game.actionCost': '{count} 行动点',
   'game.noActions': '此刻没有可用行动。',
