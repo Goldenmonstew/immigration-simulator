@@ -118,20 +118,20 @@ function checkEffects(effects: Effect[]) {
   }
 }
 describe('v3 content contract', () => {
-  test('120 common events, all characters, bilingual content, legal effect shapes and flags', () => {
+  test('127 common events, all characters, bilingual content, legal effect shapes and flags', () => {
     const all = [
       ...commonEvents,
       ...characters.flatMap((c) => c.events),
       ...systemEvents,
     ];
     expect(commonEvents.filter((e) => !e.id.startsWith('town-'))).toHaveLength(
-      120,
+      127,
     );
     expect(commonEvents.filter((e) => e.id.startsWith('town-'))).toHaveLength(
       70,
     );
-    expect(characters[0].events).toHaveLength(70);
-    expect(characters.slice(1).map((c) => c.events.length)).toEqual([80, 80]);
+    expect(characters[0].events).toHaveLength(71);
+    expect(characters.slice(1).map((c) => c.events.length)).toEqual([82, 82]);
     expect(new Set(all.map((e) => e.id)).size).toBe(all.length);
     const produced = new Set([
       'visa-renewed',

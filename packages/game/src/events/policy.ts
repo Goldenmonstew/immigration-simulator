@@ -1,7 +1,8 @@
 import type { GameEvent } from '../types';
 
 // News dates: docs/SOURCES.md publication register. All town reactions are fiction.
-// News delivery windows last one editorial quarter after publication. The
+// News delivery windows last one editorial quarter after publication. Character
+// follow-ups allow later quarterly draws after the news has been read. The
 // reminder starts two editorial quarters before its registered legal cutoff.
 export const policyStories: {
   published: string;
@@ -106,6 +107,161 @@ export const policyStories: {
           label: {
             zhCN: '记下标题，回家找原文',
             en: 'Note the title to read at home',
+          },
+          effects: [{ type: 'none' }],
+        },
+      ],
+    },
+  },
+  {
+    // SRC-032, published 2026-10-28, §7.9 "Backing business and British
+    // Industry", "Implementing MAC recommendations on visa salary requirements":
+    // spring 2027 is an implementation window, not an effective Rules date.
+    // The end of this delivery window is editorial, not a policy deadline.
+    published: '2026-10-28',
+    until: '2027-01-28',
+    event: {
+      id: 'news-budget-2026',
+      title: { zhCN: '沾着茶渍的预算新闻', en: 'Budget news with a tea stain' },
+      text: {
+        zhCN: '你在茶渍旁读到预算案：拟于2027年春季调整工作签证薪资要求。有人追问新金额，你指着「待细则」那一栏。',
+        en: 'Beside a tea stain, you read the Budget plan to change work visa salary requirements in spring 2027. Someone asks for new amounts; you point to the details still to come.',
+      },
+      weight: 0,
+      once: true,
+      channel: 'morning',
+      choices: [
+        {
+          id: 'read',
+          label: {
+            zhCN: '你把实施窗口与待定细节分开记',
+            en: 'Note the window separately from the pending details',
+          },
+          effects: [{ type: 'none' }],
+          sets: ['budget-news-read'],
+        },
+        {
+          id: 'talk',
+          label: {
+            zhCN: '你和邻居约好等正式规则再核对',
+            en: 'Agree with a neighbour to check the formal Rules when published',
+          },
+          effects: [{ type: 'none' }],
+          sets: ['budget-news-read'],
+        },
+      ],
+    },
+  },
+  {
+    // SRC-033, Q40064, answered 2026-11-04, Answer ¶2–6 and ¶10:
+    // announced salary measures; further details will follow, no new amount.
+    // Delivery starts on the answer date. The longer editorial window lets a
+    // quarterly player read the news before drawing this follow-up.
+    published: '2026-11-04',
+    until: '2027-08-04',
+    character: 'skilled-worker',
+    event: {
+      id: 'budget-hr-papers',
+      title: { zhCN: 'HR 的附件', en: 'An attachment from HR' },
+      text: {
+        zhCN: '读过预算新闻，HR 又来信请你核对岗位与工资材料。议会答复仍说细节待公布，你先把旧工资单从抽屉里找出来。',
+        en: 'After the Budget news, HR asks you to check your job and pay records. The parliamentary answer still says details will follow. You find the old payslips in a drawer.',
+      },
+      weight: 0,
+      once: true,
+      channel: 'letter',
+      requires: ['budget-news-read'],
+      choices: [
+        {
+          id: 'check',
+          label: {
+            zhCN: '你逐项核对岗位说明与工资单',
+            en: 'Compare the job description with your payslips',
+          },
+          effects: [{ type: 'none' }],
+        },
+        {
+          id: 'ask',
+          label: {
+            zhCN: '你回信问清材料清单',
+            en: 'Reply to clarify the document checklist',
+          },
+          effects: [{ type: 'none' }],
+        },
+      ],
+    },
+  },
+  {
+    // SRC-001 CP 1707, physical p25–26, "Which routes are outside of the
+    // Earned Settlement framework" / "Existing Government commitments".
+    // Publication 2026-11-02; the follow-up delivery window is editorial.
+    published: '2026-11-02',
+    until: '2027-08-02',
+    character: 'hong-kong-bno',
+    event: {
+      id: 'budget-bno-neighbour',
+      title: { zhCN: '校门口的追问', en: 'A question at the school gate' },
+      text: {
+        zhCN: '邻居把预算新闻和定居标题混在一起问你。你翻出回应中 BN(O) 在框架外的段落，孩子正拉着你的衣角。',
+        en: 'A neighbour mixes the Budget news with settlement headlines. You find the response saying BN(O) is outside the framework, while your child tugs your sleeve.',
+      },
+      weight: 0,
+      once: true,
+      channel: 'morning',
+      requires: ['budget-news-read'],
+      choices: [
+        {
+          id: 'show',
+          label: {
+            zhCN: '你给邻居看原文，再接孩子回家',
+            en: 'Show the passage, then take your child home',
+          },
+          effects: [{ type: 'none' }],
+        },
+        {
+          id: 'save',
+          label: {
+            zhCN: '你存下原文，晚饭后和伴侣核对',
+            en: 'Save it to check with your partner after dinner',
+          },
+          effects: [{ type: 'none' }],
+        },
+      ],
+    },
+  },
+  {
+    // SRC-001 CP 1707, physical p18, "British connections": eligible
+    // partners of British citizens retain a distinct proposed pathway, subject
+    // to route and mandatory requirements. Publication 2026-11-02;
+    // the delivery end is editorial. No automatic qualification is implied.
+    published: '2026-11-02',
+    until: '2027-08-02',
+    character: 'family-partner',
+    event: {
+      id: 'budget-family-calendar',
+      title: { zhCN: '日历上的两栏', en: 'Two columns on the calendar' },
+      text: {
+        zhCN: '杰米把预算剪报递给你。你们另翻定居回应中英国公民伴侣的段落：他的护照和你待核的申请材料，仍是两栏。',
+        en: 'Jamie hands you the Budget cutting. You separately find the settlement response on partners of British citizens: his passport and your application papers still occupy different columns.',
+      },
+      weight: 0,
+      once: true,
+      channel: 'letter',
+      requires: ['budget-news-read'],
+      choices: [
+        {
+          id: 'sort',
+          label: {
+            zhCN: '你们按自己的家庭路线整理材料',
+            en: 'Sort the papers for your own family route together',
+          },
+          effects: [{ type: 'none' }],
+        },
+        {
+          id: 'ask',
+          label: {
+            zhCN: '你记下还要核对的条件',
+            en: 'Write down the requirements you still need to check',
           },
           effects: [{ type: 'none' }],
         },

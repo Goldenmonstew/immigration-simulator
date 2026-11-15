@@ -1,4 +1,5 @@
 import { skilledWorkerAdditions } from './skilled-worker-additions';
+import { characterLifeEvents } from '../events/life';
 import { extensionCost } from '../locations';
 import type { Character, GameEvent } from '../types';
 
@@ -1926,52 +1927,49 @@ const events: GameEvent[] = [
     once: true,
   },
   {
+    // SRC-041 physical p1 questions 2–3 / p4 questions 8–10 inform this
+    // fictional care interruption, not a government exemption. Earnings below
+    // are individual scenario facts; contract salary is unchanged.
     id: 'sw-income-audit',
     channel: 'place:home',
     title: {
-      zhCN: '桌上的年结单',
-      en: 'The annual statement',
+      zhCN: '照护表旁的年结单',
+      en: 'The statement beside the care rota',
     },
     text: {
-      zhCN: '新项目邀请压在年结单上，你边看边算还有几个周末。',
-      en: 'A project offer rests on the annual statement; you count the free weekends.',
+      zhCN: '你把照护家人的时段发给经理。回信列了带薪假与减时的办法，你在年结单旁腾出一块地方。',
+      en: 'You send your family care rota to your manager. The reply lists paid leave and shorter hours. You clear a space beside the annual statement.',
     },
     weight: 3,
     choices: [
       {
         id: 'first',
         label: {
-          zhCN: '接受新项目邀请',
-          en: 'Accept the new project',
+          zhCN: '你用攒下的带薪假，核对本年收入',
+          en: 'Use accrued paid leave and check the year’s earnings',
         },
-        effects: [
-          {
-            type: 'income',
-            taxYear: 'current',
-            earnings: 57000,
-          },
-        ],
+        effects: [{ type: 'none' }],
         note: {
-          zhCN: '本情节写入全年税前收入 £57,000，政策后果由引擎计算。',
-          en: 'This scenario records £57,000 in annual gross earnings; the engine calculates policy consequences.',
+          zhCN: '带薪假不改写已记录的收入；政策后果由引擎计算。',
+          en: 'Paid leave leaves recorded earnings unchanged; the engine assesses policy consequences.',
         },
       },
       {
         id: 'second',
         label: {
-          zhCN: '保留现在的工时',
-          en: 'Keep the current hours',
+          zhCN: '你协商减时，记录少收的工资',
+          en: 'Agree shorter hours and record the reduced earnings',
         },
         effects: [
           {
             type: 'income',
             taxYear: 'current',
-            earnings: 53000,
+            earnings: 30000,
           },
         ],
         note: {
-          zhCN: '本情节写入全年税前收入 £53,000，政策后果由引擎计算。',
-          en: 'This scenario records £53,000 in annual gross earnings; the engine calculates policy consequences.',
+          zhCN: '本情节写入税年收入 £30,000；合同工资不变，政策后果由引擎计算，照护豁免待细则。',
+          en: 'Records fictional tax-year earnings of £30,000 without changing contract salary. The engine assesses consequences; care exemptions await details.',
         },
       },
     ],
@@ -2259,5 +2257,9 @@ export const skilledWorker: Character = {
   },
   sprite: 'characters/3.png',
   stats: { money: 9000, mood: 65, health: 75, english: 45, career: 10 },
-  events: [...events, ...skilledWorkerAdditions],
+  events: [
+    ...events,
+    ...skilledWorkerAdditions,
+    ...characterLifeEvents['skilled-worker'],
+  ],
 };

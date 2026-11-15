@@ -32,6 +32,9 @@ import {
 import type { GameEvent, GameState, PlaceId, StatKey } from '../src';
 import { balance as b } from '../src/balance';
 import { heartEvents } from '../src/npcs';
+import { commonEvents } from '../src/events/common';
+import { characterLifeEvents, lifeEvents } from '../src/events/life';
+import { policyStories } from '../src/events/policy';
 import { beforeTimeEconomy } from './time-and-economy-baseline';
 
 const median = (values: number[]) => {
@@ -485,6 +488,59 @@ describe('v3 seeded strategies', () => {
             );
 
           if (strategy === 'fast-forward') {
+            // Paired 12.4 comparison: same seeds and routine, removing only the
+            // added cards for the baseline. The unchanged scheduler and public
+            // API run both campaigns; no prerequisites are injected.
+            const savedCommon = [...commonEvents];
+            const savedCharacter = character.events;
+            const savedPolicy = [...policyStories];
+            let baseline;
+            try {
+              commonEvents.splice(
+                0,
+                commonEvents.length,
+                ...commonEvents.filter((event) => !lifeEvents.includes(event)),
+              );
+              character.events = character.events.filter(
+                (event) => !characterLifeEvents[character.id].includes(event),
+              );
+              policyStories.splice(
+                0,
+                policyStories.length,
+                ...policyStories.filter(
+                  (story) =>
+                    story.event.id !== 'news-budget-2026' &&
+                    !story.event.id.startsWith('budget-'),
+                ),
+              );
+              baseline = Array.from({ length: 20 }, (_, index) =>
+                play(character.id, index + 1, strategy),
+              );
+            } finally {
+              commonEvents.splice(0, commonEvents.length, ...savedCommon);
+              character.events = savedCharacter;
+              policyStories.splice(0, policyStories.length, ...savedPolicy);
+            }
+            const annualRate = (samples: typeof runs) =>
+              samples.reduce(
+                (sum, run) =>
+                  sum +
+                  (run.eventCards * b.quartersPerYear) /
+                    run.quarterSamples.length,
+                0,
+              ) / samples.length;
+            expect(annualRate(runs)).toBeGreaterThanOrEqual(
+              annualRate(baseline),
+            );
+            console.log(
+              'POLICY_LIFE_EVENT_RATE',
+              JSON.stringify({
+                character: character.id,
+                before: annualRate(baseline),
+                after: annualRate(runs),
+                seeds: runs.length,
+              }),
+            );
             expect(
               runs.reduce(
                 (sum, run) =>

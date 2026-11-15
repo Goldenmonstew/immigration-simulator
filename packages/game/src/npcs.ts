@@ -106,6 +106,7 @@ const schedule = (
   work: Npc['schedule'][number]['stops'],
   weekend: Npc['schedule'][number]['stops'],
   rain: Npc['schedule'][number]['stops'],
+  wetWeekend: Npc['schedule'][number]['stops'],
 ): Npc['schedule'] => [
   {
     festival: true,
@@ -120,12 +121,7 @@ const schedule = (
   {
     weather: ['rain', 'snow'],
     dayKinds: ['weekend', 'special'],
-    stops: [
-      { from: 0, at: 'home-street' },
-      { from: 600, at: 'cafe' },
-      { from: 840, at: 'library' },
-      { from: 1080, at: 'home-street' },
-    ],
+    stops: wetWeekend,
   },
   { dayKinds: ['workday'], stops: work },
   { dayKinds: ['weekend', 'special'], stops: weekend },
@@ -714,6 +710,12 @@ export const npcs: Npc[] = [
           { from: 840, at: 'library' },
           { from: 1020, at: 'home-street' },
         ],
+        [
+          { from: 0, at: 'home-street' },
+          { from: 600, at: 'cafe' },
+          { from: 840, at: 'library' },
+          { from: 1080, at: 'home-street' },
+        ],
       ),
     ],
     gifts: {
@@ -745,22 +747,28 @@ export const npcs: Npc[] = [
       [
         { from: 0, at: 'bus-stop' },
         { from: 540, at: 'work' },
-        { from: 1020, at: 'cafe' },
+        { from: 1020, at: 'park-bench' },
         { from: 1140, at: 'pub' },
-        { from: 1320, at: 'home-street' },
+        { from: 1320, at: 'bus-stop' },
       ],
       [
-        { from: 0, at: 'home-street' },
+        { from: 0, at: 'bus-stop' },
         { from: 600, at: 'pond' },
         { from: 840, at: 'cafe' },
         { from: 1080, at: 'pub-garden' },
-        { from: 1260, at: 'home-street' },
+        { from: 1260, at: 'bus-stop' },
       ],
       [
-        { from: 0, at: 'home-street' },
+        { from: 0, at: 'bus-stop' },
         { from: 540, at: 'work' },
         { from: 1020, at: 'pub' },
-        { from: 1260, at: 'home-street' },
+        { from: 1260, at: 'bus-stop' },
+      ],
+      [
+        { from: 0, at: 'bus-stop' },
+        { from: 600, at: 'cafe' },
+        { from: 840, at: 'pub' },
+        { from: 1080, at: 'bus-stop' },
       ],
     ),
     gifts: {
@@ -787,24 +795,30 @@ export const npcs: Npc[] = [
     role: text('语言学校 ESOL 老师', 'ESOL teacher at the college'),
     schedule: schedule(
       [
-        { from: 0, at: 'home-street' },
+        { from: 0, at: 'library-steps' },
         { from: 540, at: 'library' },
         { from: 780, at: 'college' },
         { from: 1260, at: 'college-steps' },
-        { from: 1320, at: 'home-street' },
+        { from: 1320, at: 'library-steps' },
       ],
       [
-        { from: 0, at: 'home-street' },
+        { from: 0, at: 'library-steps' },
         { from: 600, at: 'college' },
         { from: 840, at: 'library-steps' },
         { from: 1020, at: 'park-path' },
-        { from: 1140, at: 'home-street' },
+        { from: 1140, at: 'library-steps' },
       ],
       [
-        { from: 0, at: 'home-street' },
+        { from: 0, at: 'library-steps' },
         { from: 540, at: 'library' },
         { from: 780, at: 'college' },
-        { from: 1260, at: 'home-street' },
+        { from: 1260, at: 'library-steps' },
+      ],
+      [
+        { from: 0, at: 'library-steps' },
+        { from: 600, at: 'college' },
+        { from: 840, at: 'library' },
+        { from: 1080, at: 'library-steps' },
       ],
     ),
     gifts: {
@@ -827,20 +841,12 @@ export const npcs: Npc[] = [
   },
 ];
 
-const supporting: [
-  string,
-  string,
-  string,
-  string,
-  Npc['schedule'][number]['stops'][number]['at'],
-  [string, string][],
-][] = [
+const supporting: [string, string, string, string, [string, string][]][] = [
   [
     'priya',
     '普里娅',
     'Priya',
     'GP 诊所前台',
-    'gp',
     [
       [
         '预约先核姓名。上回封皮换新，重名照旧。',
@@ -869,7 +875,6 @@ const supporting: [
     '戴夫',
     'Dave',
     '酒吧老板，pub quiz 主持',
-    'pub',
     [
       [
         '今晚题目我锁抽屉了，钥匙还在找。',
@@ -898,7 +903,6 @@ const supporting: [
     '拉赫曼',
     'Rahman',
     '街角小店老板，早已入籍',
-    'shop',
     [
       [
         '老朋友，换零钱吗？我把硬币摊柜台上，咱们数清。',
@@ -927,7 +931,6 @@ const supporting: [
     '莉娜',
     'Lina',
     '正在为拒签找办法的朋友',
-    'cafe',
     [
       [
         '喂，拒签那封信先合上，咖啡都凉了。',
@@ -956,7 +959,6 @@ const supporting: [
     '加雷思',
     'Gareth',
     '邮差',
-    'postbox',
     [
       [
         '到家，关门，再认棕信封收件人。先核门牌。',
@@ -988,32 +990,144 @@ const roles: Record<string, string> = {
   lina: 'Friend finding a way through a visa refusal',
   gareth: 'Postal worker',
 };
-for (const [id, zhCN, en, role, at, pairs] of supporting)
+const supportingSchedules: Record<string, Npc['schedule']> = {
+  priya: schedule(
+    [
+      { from: 0, at: 'high-street-east' },
+      { from: 540, at: 'gp' },
+      { from: 1020, at: 'cafe' },
+      { from: 1080, at: 'high-street-east' },
+    ],
+    [
+      { from: 0, at: 'high-street-east' },
+      { from: 600, at: 'park-path' },
+      { from: 1080, at: 'bench' },
+      { from: 1260, at: 'high-street-east' },
+    ],
+    [
+      { from: 0, at: 'high-street-east' },
+      { from: 540, at: 'gp' },
+      { from: 1020, at: 'cafe' },
+      { from: 1080, at: 'high-street-east' },
+    ],
+    [
+      { from: 0, at: 'high-street-east' },
+      { from: 600, at: 'gp' },
+      { from: 840, at: 'cafe' },
+      { from: 1080, at: 'high-street-east' },
+    ],
+  ),
+  dave: schedule(
+    [
+      { from: 0, at: 'pub-garden' },
+      { from: 660, at: 'pub-garden' },
+      { from: 720, at: 'pub' },
+      { from: 1380, at: 'pub-garden' },
+    ],
+    [
+      { from: 0, at: 'pub-garden' },
+      { from: 660, at: 'pub-garden' },
+      { from: 720, at: 'pub' },
+      { from: 1380, at: 'pub-garden' },
+    ],
+    [
+      { from: 0, at: 'pub-garden' },
+      { from: 660, at: 'pub-garden' },
+      { from: 720, at: 'pub' },
+      { from: 1380, at: 'pub-garden' },
+    ],
+    [
+      { from: 0, at: 'pub-garden' },
+      { from: 660, at: 'pub-garden' },
+      { from: 720, at: 'pub' },
+      { from: 1380, at: 'pub-garden' },
+    ],
+  ),
+  rahman: schedule(
+    [
+      { from: 0, at: 'shop' },
+      { from: 540, at: 'shop' },
+      { from: 1080, at: 'high-street-west' },
+      { from: 1260, at: 'shop' },
+    ],
+    [
+      { from: 0, at: 'shop' },
+      { from: 600, at: 'shop' },
+      { from: 1080, at: 'high-street-west' },
+      { from: 1260, at: 'shop' },
+    ],
+    [
+      { from: 0, at: 'shop' },
+      { from: 540, at: 'shop' },
+      { from: 1080, at: 'high-street-west' },
+      { from: 1260, at: 'shop' },
+    ],
+    [
+      { from: 0, at: 'shop' },
+      { from: 600, at: 'shop' },
+      { from: 1080, at: 'high-street-west' },
+      { from: 1260, at: 'shop' },
+    ],
+  ),
+  lina: schedule(
+    [
+      { from: 0, at: 'park-pond' },
+      { from: 540, at: 'cafe' },
+      { from: 1080, at: 'park-path' },
+      { from: 1260, at: 'park-pond' },
+    ],
+    [
+      { from: 0, at: 'park-pond' },
+      { from: 600, at: 'cafe' },
+      { from: 1080, at: 'park-bench' },
+      { from: 1260, at: 'park-pond' },
+    ],
+    [
+      { from: 0, at: 'park-pond' },
+      { from: 540, at: 'cafe' },
+      { from: 1080, at: 'library-steps' },
+      { from: 1260, at: 'park-pond' },
+    ],
+    [
+      { from: 0, at: 'park-pond' },
+      { from: 600, at: 'library' },
+      { from: 840, at: 'cafe' },
+      { from: 1080, at: 'park-pond' },
+    ],
+  ),
+  gareth: schedule(
+    [
+      { from: 0, at: 'postbox' },
+      { from: 540, at: 'postbox' },
+      { from: 1080, at: 'station-front' },
+      { from: 1260, at: 'postbox' },
+    ],
+    [
+      { from: 0, at: 'postbox' },
+      { from: 600, at: 'postbox' },
+      { from: 1080, at: 'station-front' },
+      { from: 1260, at: 'postbox' },
+    ],
+    [
+      { from: 0, at: 'postbox' },
+      { from: 540, at: 'shop' },
+      { from: 1080, at: 'station-front' },
+      { from: 1260, at: 'postbox' },
+    ],
+    [
+      { from: 0, at: 'postbox' },
+      { from: 600, at: 'station' },
+      { from: 840, at: 'shop' },
+      { from: 1080, at: 'postbox' },
+    ],
+  ),
+};
+for (const [id, zhCN, en, role, pairs] of supporting)
   npcs.push({
     id,
     name: text(zhCN, en),
     role: text(role, roles[id]),
-    schedule: schedule(
-      [
-        { from: 0, at: 'home-street' },
-        { from: 540, at },
-        { from: 1080, at: 'high-street-east' },
-        { from: 1260, at: 'home-street' },
-      ],
-      [
-        { from: 0, at: 'home-street' },
-        { from: 600, at: id === 'priya' ? 'park-path' : at },
-        { from: 1080, at: 'bench' },
-      ],
-      [
-        { from: 0, at: 'home-street' },
-        {
-          from: 540,
-          at: id === 'priya' ? 'cafe' : id === 'gareth' ? 'shop' : at,
-        },
-        { from: 1080, at: 'cafe' },
-      ],
-    ),
+    schedule: supportingSchedules[id],
     gifts: {
       loved: [],
       liked: ['tea', 'biscuits'],
@@ -1819,22 +1933,6 @@ for (const npc of npcs.filter((n) => favourites[n.id])) {
             : 'Thanks, but this really misses for me. Hey, next time I will browse with you!',
   );
 }
-// The receptionist stays at the surgery on wet workdays; Dave serves until closing.
-npcs.find((n) => n.id === 'priya')!.schedule[1].stops = [
-  { from: 0, at: 'home-street' },
-  { from: 540, at: 'gp' },
-  { from: 1020, at: 'cafe' },
-  { from: 1080, at: 'home-street' },
-];
-const dave = npcs.find((n) => n.id === 'dave')!;
-for (const rule of dave.schedule.filter((r) => r.festival !== true))
-  rule.stops = [
-    { from: 0, at: 'home-street' },
-    { from: 660, at: 'pub-garden' },
-    { from: 720, at: 'pub' },
-    { from: 1380, at: 'home-street' },
-  ];
-
 npcs.push(...familyNpcs);
 
 const scenes: [
