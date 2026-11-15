@@ -606,7 +606,7 @@ const additionalLines: Record<string, Npc['lines']> = {
           minuteMin: 1020,
         },
       ],
-      forbids: ['family-jamie-unemployed', 'family-pip-applied'],
+      forbids: ['family-pip-applied'],
     },
     {
       id: 'jamie-daily-32',
@@ -620,7 +620,7 @@ const additionalLines: Record<string, Npc['lines']> = {
           minuteMin: 1020,
         },
       ],
-      forbids: ['family-jamie-unemployed', 'family-pip-applied'],
+      forbids: ['family-pip-applied'],
     },
     {
       id: 'jamie-daily-33',
@@ -634,7 +634,7 @@ const additionalLines: Record<string, Npc['lines']> = {
           minuteMin: 1020,
         },
       ],
-      forbids: ['family-jamie-unemployed', 'family-pip-applied'],
+      forbids: ['family-pip-applied'],
     },
     {
       id: 'jamie-daily-34',
@@ -648,7 +648,7 @@ const additionalLines: Record<string, Npc['lines']> = {
           minuteMin: 1020,
         },
       ],
-      forbids: ['family-jamie-unemployed', 'family-pip-applied'],
+      forbids: ['family-pip-applied'],
     },
     {
       id: 'jamie-daily-35',
@@ -662,7 +662,7 @@ const additionalLines: Record<string, Npc['lines']> = {
           minuteMin: 1020,
         },
       ],
-      forbids: ['family-jamie-unemployed', 'family-pip-applied'],
+      forbids: ['family-pip-applied'],
     },
     {
       id: 'jamie-daily-36',
@@ -676,7 +676,7 @@ const additionalLines: Record<string, Npc['lines']> = {
           minuteMin: 1020,
         },
       ],
-      forbids: ['family-jamie-unemployed', 'family-pip-applied'],
+      forbids: ['family-pip-applied'],
     },
     {
       id: 'jamie-daily-37',
