@@ -418,6 +418,7 @@ test.each(['zh-CN', 'en'] as const)(
       h.render();
       h.flush();
       let view = h.render();
+      expect(view.html).toContain('revealSlot');
       expect(view.html).toContain(
         `aria-label="${paragraphs[index].replaceAll('"', '&quot;').replaceAll("'", '&#x27;')}"`,
       );
@@ -440,6 +441,7 @@ test.each(['zh-CN', 'en'] as const)(
       expect(
         view.buttons.some((b) => b.label === t('game.reveal', locale)),
       ).toBe(false);
+      expect(view.html).toMatch(/<div class="[^"]*revealSlot[^"]*"><\/div>/);
       expect(hasChoices(view)).toBe(index === paragraphs.length - 1);
       expect(onChange).not.toHaveBeenCalled();
       if (index < paragraphs.length - 1) {
@@ -1561,15 +1563,88 @@ test.each(['zh-CN', 'en'] as const)(
 test('closed destination buttons stay clickable and still open the hours menu', () => {
   const h = client(at(430));
   const view = h.render();
-  const button = view.buttons.find((b) => b.label === '公司 · 关门')!;
+  const button = view.buttons.find((b) => b.label === '公司🔒')!;
   expect(button.disabled).toBe(false);
   expect(view.html).toContain('closedPlace');
+  expect(view.html).toContain('aria-label="公司 · 关门"');
+  expect(view.html).toMatch(/closedMarker[^>]*aria-hidden="true">🔒<\/span>/);
   button.click();
   expect(h.render().props(TownCanvas).destination?.location).toBe('work');
   h.render().props(TownCanvas).onInteract({ kind: 'place', id: 'work' });
   expect(h.render().html).toContain('09:00–20:00');
   expect(h.render().html).toContain(t('game.closed'));
   h.dispose();
+});
+
+test.each(['zh-CN', 'en'] as const)(
+  'home, chat and shop dialogs close without claiming to leave the current scene in %s',
+  (locale) => {
+    const state = at(600, 'home', locale);
+    const onClose = vi.fn();
+    const onChange = vi.fn();
+    const contexts = [
+      {
+        title: locale === 'en' ? 'Home' : '家',
+        children: (
+          <LocationMenu state={state} location="home" onChange={onChange} />
+        ),
+      },
+      {
+        title: t('game.talk', locale),
+        children: (
+          <Dialogue
+            state={state}
+            npc="yao-flatmate"
+            onChange={onChange}
+            onClose={onClose}
+          />
+        ),
+      },
+      {
+        title: locale === 'en' ? 'Corner shop' : '街角小店',
+        children: (
+          <LocationMenu state={state} location="shop" onChange={onChange} />
+        ),
+      },
+    ];
+    for (const context of contexts) {
+      const view = renderView(() => Modal({ ...context, onClose }), locale);
+      const close = locale === 'en' ? '✕ Close' : '✕ 关闭';
+      expect(view.buttons.map((button) => button.label)).toContain(close);
+      expect(view.html).not.toContain(
+        locale === 'en' ? 'Back to town' : '回到小镇',
+      );
+      view.click(close);
+    }
+    expect(onClose).toHaveBeenCalledTimes(contexts.length);
+  },
+);
+
+test('opening a dialog focuses its labelled container and closing restores the trigger', () => {
+  const previous = { focus: vi.fn() };
+  const dialog = { showModal: vi.fn(), focus: vi.fn(), close: vi.fn() };
+  vi.stubGlobal('document', { activeElement: previous });
+  vi.spyOn(React, 'useRef').mockReturnValue({ current: dialog });
+  let effect: React.EffectCallback | undefined;
+  vi.spyOn(React, 'useEffect').mockImplementation((callback) => {
+    effect = callback;
+  });
+  const view = renderView(() =>
+    Modal({ title: '家', children: <button>休息</button> }),
+  );
+  expect(view.html).toContain('tabindex="-1"');
+  expect(view.html).toContain('aria-labelledby="game-dialog-heading"');
+  const cleanup = effect!();
+  expect(dialog.showModal).toHaveBeenCalledOnce();
+  expect(dialog.focus).toHaveBeenCalledExactlyOnceWith({ preventScroll: true });
+  expect(dialog.showModal.mock.invocationCallOrder[0]).toBeLessThan(
+    dialog.focus.mock.invocationCallOrder[0],
+  );
+  if (typeof cleanup === 'function') cleanup();
+  expect(dialog.close).toHaveBeenCalledOnce();
+  expect(previous.focus).toHaveBeenCalledExactlyOnceWith({
+    preventScroll: true,
+  });
 });
 
 // Phase 10.5 C: small presentation fixes and deliberate ending actions.

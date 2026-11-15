@@ -62,6 +62,7 @@ export default function TownCanvas(props: TownCanvasProps) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<TownScene | undefined>(undefined);
   const latest = useRef(props);
+  const textLayer = useRef<HTMLDivElement>(null);
   latest.current = props;
 
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function TownCanvas(props: TownCanvasProps) {
         (interaction) => latest.current.onNearby(interaction),
         () => latest.current.onReady(),
         () => latest.current.onStep(),
+        textLayer.current!,
       );
       scene.current = town;
       if (latest.current.destination)
@@ -80,7 +82,7 @@ export default function TownCanvas(props: TownCanvasProps) {
       return new Phaser.Game({
         type,
         parent: element,
-        backgroundColor: '#a8c580',
+        backgroundColor: latest.current.interior ? '#2a1f18' : '#a8c580',
         pixelArt: true,
         roundPixels: true,
         input: { keyboard: { target: element } },
@@ -125,12 +127,14 @@ export default function TownCanvas(props: TownCanvasProps) {
   return (
     <div
       ref={host}
-      className={styles.canvas}
+      className={`${styles.canvas} ${props.interior ? styles.interior : ''}`}
       role="application"
       aria-label={t('game.town')}
       tabIndex={props.paused ? -1 : 0}
       onPointerDown={() => host.current?.focus({ preventScroll: true })}
       onBlur={() => scene.current?.halt()}
-    />
+    >
+      <div ref={textLayer} className={styles.textLayer} aria-hidden="true" />
+    </div>
   );
 }

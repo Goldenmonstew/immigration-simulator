@@ -11,6 +11,7 @@ import {
   type Outcome,
 } from '@uk-immigration/game';
 import { cropIds, spritePath, visibleResidents, homeSpot } from './session';
+import { SceneText } from './scene-text';
 type Cell = { x: number; y: number };
 export type Interaction =
   | { kind: 'place'; id: PlaceId }
@@ -34,7 +35,7 @@ export type SceneView = {
 type Spot = Cell & {
   interaction: Interaction;
   bounds: Phaser.Geom.Rectangle;
-  label: Phaser.GameObjects.Text;
+  label?: SceneText;
 };
 type Walker = {
   sprite: Phaser.GameObjects.Sprite;
@@ -77,7 +78,7 @@ export class TownScene extends Phaser.Scene {
   private lampLights: Phaser.GameObjects.Graphics[] = [];
   private sky?: Phaser.GameObjects.Graphics;
   private rain?: Phaser.GameObjects.Graphics;
-  private postBadge?: Phaser.GameObjects.Text;
+  private postBadge?: SceneText;
   private destination?: PlaceId;
   private queued?: Interaction;
   private entered?: string;
@@ -94,7 +95,7 @@ export class TownScene extends Phaser.Scene {
   }[] = [];
   private lunchCells = new Set<string>();
   private transients = new Map<
-    Phaser.GameObjects.Text | Phaser.GameObjects.Sprite,
+    SceneText | Phaser.GameObjects.Sprite,
     {
       duration: number;
       rise: number;
@@ -103,13 +104,14 @@ export class TownScene extends Phaser.Scene {
     }
   >();
   private dayNumber: number;
-  private worldObjects: Phaser.GameObjects.GameObject[] = [];
+  private worldObjects: (Phaser.GameObjects.GameObject | SceneText)[] = [];
   constructor(
     view: SceneView,
     private onInteract: (i: Interaction) => void,
     private onNearby: (i?: Interaction) => void,
     private onReady: () => void,
     private onStep: () => void,
+    private textLayer: HTMLDivElement,
   ) {
     super('town');
     this.view = view;
@@ -181,10 +183,7 @@ export class TownScene extends Phaser.Scene {
         return;
       }
       const spot = this.spots.find(
-        (s) =>
-          s.bounds.contains(point.x, point.y) ||
-          s.label.getBounds().contains(point.x, point.y) ||
-          distance(s, cell) === 0,
+        (s) => s.bounds.contains(point.x, point.y) || distance(s, cell) === 0,
       );
       this.destination = undefined;
       if (spot) {
@@ -196,14 +195,22 @@ export class TownScene extends Phaser.Scene {
       }
     });
     this.scale.on('resize', this.resizeCamera, this);
-    this.events.once('shutdown', () =>
-      this.scale.off('resize', this.resizeCamera, this),
-    );
+    this.game.events.on('postrender', this.renderText, this);
+    this.events.once('shutdown', () => {
+      this.scale.off('resize', this.resizeCamera, this);
+      this.game.events.off('postrender', this.renderText, this);
+      for (const object of this.worldObjects)
+        if (object instanceof SceneText) object.destroy();
+      for (const object of this.transients.keys())
+        if (object instanceof SceneText) object.destroy();
+    });
     this.ready = true;
     this.loadWorld();
     this.onReady();
   }
-  private own<T extends Phaser.GameObjects.GameObject>(object: T): T {
+  private own<T extends Phaser.GameObjects.GameObject | SceneText>(
+    object: T,
+  ): T {
     this.worldObjects.push(object);
     return object;
   }
@@ -279,16 +286,13 @@ export class TownScene extends Phaser.Scene {
         props('buildingHeight') ?? 16,
       );
       const label = this.own(
-        this.add
-          .text(bounds.centerX, bounds.y - 3, '', {
-            fontFamily: 'Arial, "PingFang SC", sans-serif',
-            fontSize: '8px',
-            color: '#fff7df',
-            backgroundColor: '#294a49',
-            padding: { x: 3, y: 2 },
-          })
-          .setOrigin(0.5, 1)
-          .setDepth(1000),
+        new SceneText(
+          this.textLayer,
+          bounds.centerX,
+          this.view.interior ? bounds.y - 2 : bounds.y + bounds.height + 2,
+          '',
+          this.view.interior ? 'homeLabel' : 'label',
+        ),
       );
       this.spots.push({ ...cell, interaction, bounds, label });
       this.anchors.set(obj.name, cell);
@@ -310,14 +314,10 @@ export class TownScene extends Phaser.Scene {
             .setVisible(false),
         );
         this.cropSprites[Number(p.name)] = sprite;
-        const label = this.own(
-          this.add.text(p.x! + 8, p.y! + 8, '', { fontSize: '8px' }),
-        );
         this.spots.push({
           ...cell,
           interaction: { kind: 'plot', id: Number(p.name) },
           bounds: new Phaser.Geom.Rectangle(p.x!, p.y!, 16, 16),
-          label,
         });
       }
       for (const lamp of map.getObjectLayer('lamps')!.objects) {
@@ -348,19 +348,16 @@ export class TownScene extends Phaser.Scene {
     this.sky = this.own(this.add.graphics().setScrollFactor(0).setDepth(1500));
     this.rain = this.own(this.add.graphics().setScrollFactor(0).setDepth(1600));
     this.postBadge = this.own(
-      this.add
-        .text(
-          this.view.interior ? 14 * 16 : 5 * 16,
-          this.view.interior ? 8 * 16 : 10 * 16,
-          '',
-          {
-            fontSize: '9px',
-            color: '#fff',
-            backgroundColor: '#9e3d35',
-            padding: { x: 2, y: 1 },
-          },
-        )
-        .setDepth(1200),
+      new SceneText(
+        this.textLayer,
+        this.view.interior ? 14 * 16 : 5 * 16,
+        this.view.interior ? 8 * 16 : 10 * 16,
+        '',
+        'badge',
+      ),
+    );
+    this.cameras.main.setBackgroundColor(
+      this.view.interior ? '#2a1f18' : '#a8c580',
     );
     this.cameras.main
       .setBounds(0, 0, map.widthInPixels, map.heightInPixels)
@@ -369,6 +366,29 @@ export class TownScene extends Phaser.Scene {
     this.sync(this.view);
     if (this.destination && !this.view.interior)
       this.walkToLocation(this.destination);
+  }
+  private renderText() {
+    const camera = this.cameras.main;
+    const pointer = this.input.activePointer;
+    const hover = this.input.manager.isOver
+      ? camera.getWorldPoint(pointer.x, pointer.y)
+      : undefined;
+    for (const spot of this.spots) {
+      if (!spot.label) continue;
+      spot.label.setVisible(
+        this.view.interior ||
+          distance(spot, this.cell) <= 5 ||
+          !!(hover && spot.bounds.contains(hover.x, hover.y)),
+      );
+      spot.label.element.dataset.nearby = String(
+        this.nearby?.kind === spot.interaction.kind &&
+          this.nearby?.id === spot.interaction.id,
+      );
+    }
+    for (const object of this.worldObjects)
+      if (object instanceof SceneText) object.render(camera);
+    for (const object of this.transients.keys())
+      if (object instanceof SceneText) object.render(camera);
   }
   private resizeCamera() {
     if (!this.map) return;
@@ -420,13 +440,13 @@ export class TownScene extends Phaser.Scene {
           : view.state.flags.includes('quarter-community-lunch-food')
             ? 'game.lunchFood'
             : undefined;
-        spot.label.setText(
+        spot.label!.setText(
           p.id === 'green' && this.lunchVisible()
             ? `${t('game.lunchScene', view.locale)}${contribution ? `\n${t(contribution, view.locale)}` : ''}`
             : name,
         );
       } else if (spot.interaction.kind === 'home') {
-        spot.label.setText(
+        spot.label!.setText(
           t(
             spot.interaction.id === 'exit'
               ? 'game.exitHome'
@@ -785,17 +805,13 @@ export class TownScene extends Phaser.Scene {
         );
       }
     if (parts.length) {
-      const text = this.add
-        .text(this.player.x, this.player.y - 20, parts.join('\n'), {
-          fontSize: '9px',
-          fontFamily: 'Arial, sans-serif',
-          color: '#fff9ce',
-          stroke: '#263e39',
-          strokeThickness: 3,
-          align: 'center',
-        })
-        .setOrigin(0.5, 1)
-        .setDepth(1800);
+      const text = new SceneText(
+        this.textLayer,
+        this.player.x,
+        this.player.y - 20,
+        parts.join('\n'),
+        'feedback',
+      );
       this.float(text, 2200, 24);
     }
     if (out.kind === 'talk' || out.kind === 'gift') {
@@ -812,15 +828,13 @@ export class TownScene extends Phaser.Scene {
               : person?.gifts.disliked.includes(item)
                 ? '…'
                 : '☺';
-      const bubble = this.add
-        .text(actor.x, actor.y - 25, expression, {
-          fontSize: '10px',
-          color: '#b34150',
-          backgroundColor: '#fff8df',
-          padding: { x: 4, y: 3 },
-        })
-        .setOrigin(0.5, 1)
-        .setDepth(1800);
+      const bubble = new SceneText(
+        this.textLayer,
+        actor.x,
+        actor.y - 25,
+        expression,
+        'bubble',
+      );
       this.float(bubble, 1800, 8);
     }
     if (
@@ -835,7 +849,7 @@ export class TownScene extends Phaser.Scene {
     }
   }
   private float(
-    object: Phaser.GameObjects.Text | Phaser.GameObjects.Sprite,
+    object: SceneText | Phaser.GameObjects.Sprite,
     duration: number,
     rise: number,
   ) {
@@ -850,8 +864,13 @@ export class TownScene extends Phaser.Scene {
     ).matches;
     const travel = reduced ? 0 : rise;
     const bounds =
-      object instanceof Phaser.GameObjects.Text
-        ? object.getBounds()
+      object instanceof SceneText
+        ? new Phaser.Geom.Rectangle(
+            object.x - object.element.offsetWidth / this.cameras.main.zoom / 2,
+            object.y - object.element.offsetHeight / this.cameras.main.zoom,
+            object.element.offsetWidth / this.cameras.main.zoom,
+            object.element.offsetHeight / this.cameras.main.zoom,
+          )
         : undefined;
     if (bounds) {
       // Reserve the whole upward path, including every line of the text.

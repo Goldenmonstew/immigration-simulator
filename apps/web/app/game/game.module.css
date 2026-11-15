@@ -136,6 +136,7 @@
   gap: 6px;
 }
 .destinations button {
+  position: relative;
   min-width: 0;
   min-height: 44px;
   padding: 7px 4px;
@@ -144,6 +145,8 @@
   color: #254c3b;
   cursor: pointer;
   font-size: 0.9rem;
+  overflow-wrap: normal;
+  word-break: keep-all;
 }
 .destinations button:hover {
   background: #dcebe1;
@@ -213,6 +216,10 @@
 .modal::backdrop {
   background: rgb(11 28 39 / 60%);
 }
+.modal[tabindex='-1']:focus {
+  outline: none;
+  box-shadow: 6px 6px 0 rgb(22 50 79 / 30%);
+}
 .wideModal {
   width: min(1060px, calc(100% - 32px));
 }
@@ -241,6 +248,11 @@
 .choices {
   display: grid;
   gap: 14px;
+}
+.choices + .buttons,
+.choices + button,
+.modal .continueFast {
+  margin-top: 16px;
 }
 .choice {
   display: grid;
@@ -578,6 +590,13 @@
 .dialogueModal > button {
   margin: 6px 10px 6px 0;
 }
+.revealSlot {
+  min-height: 44px;
+  margin-bottom: 6px;
+}
+.hearts {
+  color: #b83b2e;
+}
 .morning {
   text-align: center;
 }
@@ -769,7 +788,7 @@
   color: #f3d891;
 }
 .heartChange {
-  color: #a43d52;
+  color: #b83b2e;
   font-weight: 700;
 }
 .festivalIntro {
@@ -792,6 +811,14 @@
   background: #eceeed;
   border-color: #b3bab6;
   color: #606863;
+}
+.closedMarker {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 0.6rem;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .eventNotes {

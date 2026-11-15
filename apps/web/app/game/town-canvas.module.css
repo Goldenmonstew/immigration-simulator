@@ -1,4 +1,5 @@
 .canvas {
+  position: relative;
   width: 100%;
   max-width: 960px;
   height: max(160px, min(480px, calc(100dvh - 220px)));
@@ -8,7 +9,70 @@
   touch-action: pan-y;
 }
 
+.canvas.interior {
+  background: #2a1f18;
+}
+
+.canvas.canvas:focus-visible {
+  outline: 2px solid #ffe082;
+  outline-offset: -2px;
+  box-shadow: none;
+}
+
 .canvas canvas {
   display: block;
   image-rendering: pixelated;
+}
+
+.textLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.sceneText {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  width: max-content;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre;
+  text-align: center;
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+.label,
+.homeLabel {
+  background: rgb(43 33 24 / 88%);
+  border: 1px solid #c89b54;
+  color: #fff8e7;
+}
+
+.label[data-nearby='true'],
+.homeLabel[data-nearby='true'] {
+  border-color: #ffe082;
+  box-shadow: 0 0 0 1px #ffe082;
+}
+
+.badge {
+  color: #fff;
+  background: #9e3d35;
+}
+
+.feedback {
+  color: #fff9ce;
+  background: rgb(38 62 57 / 94%);
+  font-size: 14px;
+}
+
+.bubble {
+  color: #b83b2e;
+  background: #fff8df;
+  font-size: 16px;
 }

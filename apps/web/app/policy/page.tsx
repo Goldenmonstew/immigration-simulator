@@ -64,11 +64,13 @@ export default function PolicyPage() {
           {allRuleSets.map((ruleSet) => (
             <article
               key={ruleSet.id}
-              className={styles.card}
+              className={`${styles.card} ${ruleSet.kind === 'ANNOUNCED' ? styles.announcedCard : ''}`}
               data-rule-set={ruleSet.id}
             >
               <h3>{t(`policy.${ruleSet.kind}`)}</h3>
-              <p className={site.badge}>
+              <p
+                className={`${site.badge} ${ruleSet.kind === 'ANNOUNCED' ? site.announced : ''}`}
+              >
                 <RuleSetStatus ruleSet={ruleSet} />
               </p>
               {!displayedRuleSets.includes(ruleSet) && (

@@ -518,11 +518,21 @@ export default function GameClient() {
                           ? styles.closedPlace
                           : undefined
                       }
+                      aria-label={
+                        !isPlaceOpen(current, p)
+                          ? `${localText(p.name, locale)} · ${t('game.closedLabel')}`
+                          : undefined
+                      }
                       onClick={() => walkTo(p.id)}
                     >
                       {localText(p.name, locale)}
                       {!isPlaceOpen(current, p) && (
-                        <small> · {t('game.closedLabel')}</small>
+                        <span
+                          className={styles.closedMarker}
+                          aria-hidden="true"
+                        >
+                          🔒
+                        </span>
                       )}
                     </button>
                   ))}
@@ -610,7 +620,11 @@ export default function GameClient() {
                     onChange={(next) => apply(next, 'resolve')}
                   />
                 )}{' '}
-                {routine === 'fast' && <p>{t('game.continueFast')}</p>}
+                {routine === 'fast' && (
+                  <p className={styles.continueFast}>
+                    {t('game.continueFast')}
+                  </p>
+                )}
               </Modal>
             ) : confirmation ? (
               <Modal

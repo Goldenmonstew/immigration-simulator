@@ -1,4 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest';
+import { createRequire } from 'node:module';
+import type * as Phaser from 'phaser';
 import {
   doActivity,
   newGame,
@@ -10,6 +12,36 @@ import { TownScene, type SceneView } from '../app/game/scene';
 import { gameStorage, homeSpot } from '../app/game/session';
 import townMap from '../public/game/town.json';
 import homeMap from '../public/game/home.json';
+import { SceneText, textPosition } from '../app/game/scene-text';
+
+const TransformMatrix = createRequire(import.meta.url)(
+  'phaser/src/gameobjects/components/TransformMatrix.js',
+) as typeof Phaser.GameObjects.Components.TransformMatrix;
+
+function textLayer() {
+  const children: HTMLSpanElement[] = [];
+  return {
+    children,
+    ownerDocument: {
+      createElement: () => {
+        const element = {
+          style: {},
+          dataset: {},
+          offsetWidth: 100,
+          offsetHeight: 40,
+          remove: () =>
+            children.splice(
+              children.indexOf(element as unknown as HTMLSpanElement),
+              1,
+            ),
+        };
+        return element;
+      },
+    },
+    appendChild: (element: HTMLSpanElement) => children.push(element),
+    replaceChildren: () => children.splice(0),
+  } as unknown as HTMLDivElement;
+}
 
 // Exercise the real routing/update logic without a browser or Phaser renderer.
 vi.mock('phaser', () => ({
@@ -25,6 +57,25 @@ vi.mock('phaser', () => ({
       ) {}
       get centerX() {
         return this.x + this.width / 2;
+      }
+      contains(x: number, y: number) {
+        return (
+          x >= this.x &&
+          x <= this.x + this.width &&
+          y >= this.y &&
+          y <= this.y + this.height
+        );
+      }
+      static Overlaps(
+        a: { x: number; y: number; width: number; height: number },
+        b: { x: number; y: number; width: number; height: number },
+      ) {
+        return (
+          a.x < b.x + b.width &&
+          a.x + a.width > b.x &&
+          a.y < b.y + b.height &&
+          a.y + a.height > b.y
+        );
       }
     },
   },
@@ -86,7 +137,14 @@ function setup(interior = false) {
   if (!interior) state.flags.push('family-jamie-unemployed');
   const view: SceneView = { state, locale: 'en', paused: false, interior };
   const onInteract = vi.fn();
-  const scene = new TownScene(view, onInteract, vi.fn(), vi.fn(), vi.fn());
+  const scene = new TownScene(
+    view,
+    onInteract,
+    vi.fn(),
+    vi.fn(),
+    vi.fn(),
+    textLayer(),
+  );
   const anchors = new Map(
     townMap.layers
       .filter((layer) => ['places', 'anchors'].includes(layer.name))
@@ -320,7 +378,15 @@ function loadScene(
   state = newGame('family-partner', 42, 'en'),
 ) {
   const view: SceneView = { state, locale: 'en', paused: false, interior };
-  const scene = new TownScene(view, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+  const overlay = textLayer();
+  const scene = new TownScene(
+    view,
+    vi.fn(),
+    vi.fn(),
+    vi.fn(),
+    vi.fn(),
+    overlay,
+  );
   const layers = new Map<string, TileLayer>();
   const tilesets = new Map<string, { setImage: ReturnType<typeof vi.fn> }>();
   const source = {
@@ -361,6 +427,11 @@ function loadScene(
   });
   const camera = {
     zoom: 1,
+    scrollX: 0,
+    scrollY: 0,
+    matrix: new TransformMatrix(),
+    setBackgroundColor: vi.fn(),
+    getWorldPoint: (x: number, y: number) => ({ x, y }),
     setBounds() {
       return this;
     },
@@ -419,12 +490,185 @@ function loadScene(
       rectangle: (x: number, y: number) => new Drawing(x, y),
     },
     cameras: { main: camera },
+    input: { activePointer: { x: 0, y: 0 }, manager: { isOver: false } },
     scale: { width: 864, height: 624 },
     tweens: { killTweensOf: vi.fn() },
   });
   Reflect.get(scene, 'loadWorld').call(scene);
-  return { scene, view, layers, tilesets, textures, createCanvas };
+  return {
+    scene,
+    view,
+    layers,
+    tilesets,
+    textures,
+    createCanvas,
+    camera,
+    overlay,
+  };
 }
+
+test.each([2, 2.5, 3])(
+  'DOM text follows the rendered camera at zoom %s, including scroll and resize',
+  (zoom) => {
+    const matrix = new TransformMatrix();
+    const camera = {
+      matrix,
+      zoom,
+      scrollX: 80,
+      scrollY: 40,
+      getWorldPoint(x: number, y: number) {
+        const point = this.matrix.applyInverse(x, y);
+        return { x: point.x + this.scrollX, y: point.y + this.scrollY };
+      },
+    };
+    matrix.applyITRS(400, 240, 0, zoom, zoom).translate(-400, -240);
+    expect(textPosition(camera, 480, 280)).toEqual({
+      x: expect.closeTo(400, 8),
+      y: expect.closeTo(240, 8),
+    });
+    expect(textPosition(camera, 496, 288)).toEqual({
+      x: expect.closeTo(400 + 16 * zoom, 8),
+      y: expect.closeTo(240 + 8 * zoom, 8),
+    });
+    camera.scrollX += 16;
+    expect(textPosition(camera, 496, 288)).toEqual({
+      x: expect.closeTo(400, 8),
+      y: expect.closeTo(240 + 8 * zoom, 8),
+    });
+    // A resized, centred room uses the new viewport's transform, not worldView rounding.
+    matrix.applyITRS(180, 160, 0, zoom, zoom).translate(-180, -160);
+    expect(textPosition(camera, 276, 200)).toEqual({
+      x: expect.closeTo(180, 8),
+      y: expect.closeTo(160, 8),
+    });
+  },
+);
+
+test.each([2, 3])(
+  'DOM text stays screen-sized at DPR %s and carries tween visibility/opacity',
+  (devicePixelRatio) => {
+    vi.stubGlobal('window', { devicePixelRatio });
+    const layer = textLayer();
+    const text = new SceneText(layer, 10, 20, '公告栏', 'label');
+    const camera = {
+      matrix: new TransformMatrix(3, 0, 0, 3, 0, 0),
+      zoom: 3,
+      scrollX: 0,
+      scrollY: 0,
+      getWorldPoint(x: number, y: number) {
+        const point = this.matrix.applyInverse(x, y);
+        return { x: point.x + this.scrollX, y: point.y + this.scrollY };
+      },
+    };
+    text.render(camera);
+    expect(layer.children).toHaveLength(1);
+    expect(text.element.textContent).toBe('公告栏');
+    expect(text.element.style.transform).toBe(
+      'translate3d(30px, 60px, 0) translate(-50%, 0)',
+    );
+    text.y -= 4;
+    text.alpha = 0.5;
+    text.setVisible(false).render(camera);
+    expect(text.element.style.transform).toContain('30px, 48px');
+    expect(text.element.style.opacity).toBe('0.5');
+    expect(text.element.style.visibility).toBe('hidden');
+    text.destroy();
+    expect(layer.children).toHaveLength(0);
+  },
+);
+
+test('place labels sit below buildings, reveal near the player or on hover, and clear on entering home', () => {
+  const { scene, view, camera, overlay } = loadScene(false);
+  const spots = Reflect.get(scene, 'spots') as {
+    x: number;
+    y: number;
+    interaction: { kind: string; id: string };
+    bounds: { x: number; y: number; height: number };
+    label?: SceneText;
+  }[];
+  const home = spots.find((s) => s.interaction.id === 'home')!;
+  const shop = spots.find((s) => s.interaction.id === 'shop')!;
+  for (const spot of spots.filter((s) => s.label))
+    expect(spot.label!.y).toBeGreaterThan(spot.bounds.y + spot.bounds.height);
+  Object.assign(scene, {
+    cell: { x: home.x, y: home.y },
+    nearby: home.interaction,
+  });
+  const render = () => Reflect.get(scene, 'renderText').call(scene);
+  render();
+  expect(home.label!.visible).toBe(true);
+  expect(home.label!.element.dataset.nearby).toBe('true');
+  expect(shop.label!.visible).toBe(false);
+  Object.assign(scene.input, {
+    activePointer: { x: shop.bounds.x, y: shop.bounds.y },
+    manager: { isOver: true },
+  });
+  render();
+  expect(shop.label!.visible).toBe(true);
+  Object.assign(scene.input.manager, { isOver: false });
+  render();
+  expect(shop.label!.visible).toBe(false);
+  const oldElements = Array.from(overlay.children);
+  scene.sync({ ...view, interior: true });
+  render();
+  expect(
+    oldElements.every((e) => !Array.from(overlay.children).includes(e)),
+  ).toBe(true);
+  expect(
+    (Reflect.get(scene, 'spots') as typeof spots).every(
+      (s) => s.label!.visible,
+    ),
+  ).toBe(true);
+  const exit = (Reflect.get(scene, 'spots') as typeof spots).find(
+    (s) => s.interaction.id === 'exit',
+  )!;
+  expect(exit.label!.y).toBeLessThan(exit.bounds.y);
+  expect(exit.label!.element.style.transform).toContain(
+    'translate(-50%, -100%)',
+  );
+  expect(camera.setBackgroundColor).toHaveBeenLastCalledWith('#2a1f18');
+  scene.sync(view);
+  expect(camera.setBackgroundColor).toHaveBeenLastCalledWith('#a8c580');
+});
+
+test('feedback text, hearts and expressions use the DOM layer and overlapping floats wait their turn', () => {
+  vi.stubGlobal('window', { matchMedia: () => ({ matches: false }) });
+  const { scene, view, overlay } = loadScene(true);
+  const tweens: { targets: SceneText; onComplete: () => void }[] = [];
+  Object.assign(scene.tweens, {
+    add: (tween: (typeof tweens)[number]) => tweens.push(tween),
+  });
+  scene.sync({
+    ...view,
+    feedback: {
+      token: 1,
+      hearts: { unknown: { before: 0, after: 1 } },
+      outcome: {
+        kind: 'talk',
+        npc: 'unknown',
+        statDeltas: { mood: 2 },
+        items: { potato: 1 },
+      },
+    },
+  });
+  const floats = Reflect.get(scene, 'transients') as Map<
+    SceneText,
+    { started: boolean }
+  >;
+  const [feedback, bubble] = [...floats.keys()];
+  expect(feedback.element.textContent).toContain('♥ 0 → 1');
+  expect(feedback.element.textContent).toContain('+2');
+  expect(feedback.element.textContent).toContain('+1');
+  expect(bubble.element.textContent).toBe('♪');
+  expect(tweens).toHaveLength(1);
+  expect(floats.get(bubble)!.started).toBe(false);
+  tweens[0].onComplete();
+  expect(Array.from(overlay.children)).not.toContain(feedback.element);
+  expect(tweens).toHaveLength(2);
+  expect(floats.get(bubble)!.started).toBe(true);
+  tweens[1].onComplete();
+  expect(floats.size).toBe(0);
+});
 
 const furniture = [
   'furnished-reading-chair',
