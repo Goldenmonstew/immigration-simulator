@@ -2,7 +2,7 @@
 
 适用于在本仓库工作的所有 agent：Codex CLI（astra / sol 等）与 Claude Code。Claude Code 通过 `CLAUDE.md` 引入本文件。
 
-2026-11-15 起（用户决定）：所有写代码、写内容、做调研的任务都交给 Codex 模型；Fable 只统筹、写 brief、验收和合并。
+2026-11-15 起（用户决定）：所有写代码、写内容、做调研的任务都交给 Codex 模型；Fable 只统筹、写 brief、验收和合并。agy（Gemini 模型）只做页面设计、布局与风格的评审，不写代码，结论由 Fable 转成 Codex 任务。
 
 ## 角色与边界
 
