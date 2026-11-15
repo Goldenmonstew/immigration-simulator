@@ -110,6 +110,56 @@ export function extensionFor(route: Route) {
 }
 
 export const locationActions: Activity[] = [
+  {
+    id: 'community-lunch-tables',
+    place: 'green',
+    label: {
+      zhCN: '为邻里聚餐借桌椅（免费）',
+      en: 'Borrow tables and chairs for the lunch (free)',
+    },
+    minutes: 30,
+    when: [{ flag: 'quarter-board-community-lunch' }, { dayKind: 'weekend' }],
+    effects: [{ type: 'none' }],
+  },
+  ...(['baked-potato', 'biscuits'] as const).map((food): Activity => ({
+    id: `community-lunch-${food}`,
+    place: 'green',
+    label:
+      food === 'baked-potato'
+        ? {
+            zhCN: '为邻里聚餐带一份烤土豆',
+            en: 'Bring a baked potato to share at lunch',
+          }
+        : {
+            zhCN: `为邻里聚餐带一包饼干（小店 £${b.prices.biscuits}）`,
+            en: `Bring biscuits to share at lunch (£${b.prices.biscuits} at the shop)`,
+          },
+    minutes: 15,
+    when: [
+      { flag: 'quarter-board-community-lunch' },
+      { dayKind: 'weekend' },
+      { item: food },
+    ],
+    effects: [{ type: 'item', item: food, delta: -1 }],
+  })),
+  {
+    id: 'community-lunch-attend',
+    place: 'green',
+    label: {
+      zhCN: '参加邻里聚餐（免费，空手也欢迎）',
+      en: 'Join the neighbourhood lunch (free, no food required)',
+    },
+    minutes: 60,
+    when: [
+      { flag: 'quarter-board-community-lunch' },
+      { dayKind: 'weekend' },
+      { minuteMin: 720, minuteMax: 900 },
+    ],
+    effects: [
+      { type: 'stat', key: 'mood', delta: b.festivalMood },
+      { type: 'friendship', npc: 'margaret', delta: b.festivalFriendship },
+    ],
+  },
   ...[
     [
       'reading-chair',

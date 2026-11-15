@@ -684,28 +684,38 @@ export const npcs: Npc[] = [
     id: 'margaret',
     name: text('玛格丽特', 'Margaret'),
     role: text('退休邻居，菜地老手', 'Retired neighbour and allotment regular'),
-    schedule: schedule(
-      [
-        { from: 0, at: 'home-street' },
-        { from: 540, at: 'allotment-plots' },
-        { from: 720, at: 'cafe' },
-        { from: 900, at: 'allotment' },
-        { from: 1080, at: 'home-street' },
-      ],
-      [
-        { from: 0, at: 'home-street' },
-        { from: 540, at: 'shop' },
-        { from: 660, at: 'allotment' },
-        { from: 960, at: 'park-bench' },
-        { from: 1080, at: 'home-street' },
-      ],
-      [
-        { from: 0, at: 'home-street' },
-        { from: 600, at: 'cafe' },
-        { from: 840, at: 'library' },
-        { from: 1020, at: 'home-street' },
-      ],
-    ),
+    schedule: [
+      {
+        dayKinds: ['weekend'],
+        when: [
+          { flag: 'quarter-board-community-lunch' },
+          { minuteMin: 420, minuteMax: 959 },
+        ],
+        stops: [{ from: 0, at: 'green' }],
+      },
+      ...schedule(
+        [
+          { from: 0, at: 'home-street' },
+          { from: 540, at: 'allotment-plots' },
+          { from: 720, at: 'cafe' },
+          { from: 900, at: 'allotment' },
+          { from: 1080, at: 'home-street' },
+        ],
+        [
+          { from: 0, at: 'home-street' },
+          { from: 540, at: 'shop' },
+          { from: 660, at: 'allotment' },
+          { from: 960, at: 'park-bench' },
+          { from: 1080, at: 'home-street' },
+        ],
+        [
+          { from: 0, at: 'home-street' },
+          { from: 600, at: 'cafe' },
+          { from: 840, at: 'library' },
+          { from: 1020, at: 'home-street' },
+        ],
+      ),
+    ],
     gifts: {
       loved: ['strawberry-jam', 'tulip'],
       liked: ['tea', 'flowers', 'potato'],
@@ -2449,6 +2459,15 @@ for (const npc of npcs)
     })),
   );
 
+margaretLines.push({
+  id: 'margaret-recent-community-lunch',
+  requires: ['quarter-community-lunch-followup'],
+  text: {
+    zhCN: '得了，上季聚餐那张合照！我闭着眼还攥着叉子。',
+    en: 'That lunch photo from last season! Eyes shut, still clutching my fork.',
+  },
+});
+
 // Scene-specific dialogue conditions are applied by stable id.
 const dialogueConditions: Record<string, Partial<Npc['lines'][number]>> = {
   'priya-4': { dayKinds: ['weekend'] },
@@ -3195,12 +3214,12 @@ const heartReplies: Record<string, [Text, Text]> = {
   ],
   'heart-ade-10': [
     {
-      zhCN: '按约定，工作议题关闭。另案讨论：午饭。',
-      en: 'As agreed, work agenda closed. Separate business: lunch.',
+      zhCN: '说好不聊工作（我把报表关了），午饭想吃什么？',
+      en: 'No work talk, as agreed (spreadsheet closed). What shall we have for lunch?',
     },
     {
-      zhCN: '会前确认：工作，还是别的？我先收起报销单。',
-      en: 'Agenda check: work or something else? Putting my expenses away first.',
+      zhCN: '今天想聊工作吗（报销单先收好），还是聊点别的？',
+      en: 'Want to talk work today (expenses put away first), or something else?',
     },
   ],
   'heart-helen-2': [

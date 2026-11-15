@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="16" viewBox="0 0 48 16" shape-rendering="crispEdges">
+  <!-- Original pixel furnishings for this project, dedicated to CC0 1.0. -->
+  <!-- Tiles 0 and 1 form a window with thick curtains; tile 2 is a desk lamp. -->
+  <path fill="#84684b" d="M2 2h28v14H2z"/>
+  <path fill="#c1d9cf" d="M4 3h24v11H4z"/>
+  <path fill="#e5eee0" d="M6 3h2v11H6zM10 3h1v11h-1zM24 3h2v11h-2z"/>
+  <path fill="#b59a74" d="M15 3h2v11h-2zM4 9h24v1H4zM2 14h28v2H2z"/>
+  <path fill="#684e3e" d="M0 0h32v2H0z"/>
+  <path fill="#925052" d="M1 2h10v3H9v3H8v4H7v4H1zM21 2h10v14h-6v-4h-1V8h-1V5h-2z"/>
+  <path fill="#b66c63" d="M2 2h2v13H2zM6 2h2v6H6zM28 2h2v13h-2zM24 2h2v6h-2z"/>
+  <path fill="#6d4249" d="M4 2h1v14H4zM27 2h1v14h-1z"/>
+  <path fill="#d8b877" d="M1 10h6v2H1zM25 10h6v2h-6z"/>
+  <path fill="#755c42" d="M39 7h2v6h-2zM36 13h8v2h-8z"/>
+  <path fill="#b89964" d="M39 8h1v5h-1zM37 13h6v1h-6z"/>
+  <path fill="#a88656" d="M37 2h6v2h1v2h1v2H35V6h1V4h1z"/>
+  <path fill="#f3d99b" d="M38 2h4v2h1v2h1v1h-8V6h1V4h1z"/>
+</svg>

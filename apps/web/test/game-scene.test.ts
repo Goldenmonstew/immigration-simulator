@@ -1,13 +1,30 @@
-import { expect, test, vi } from 'vitest';
-import { newGame, npcAt } from '@uk-immigration/game';
+import { afterEach, expect, test, vi } from 'vitest';
+import { newGame, npcAt, type GameState } from '@uk-immigration/game';
 import { TownScene, type SceneView } from '../app/game/scene';
+import { gameStorage, homeSpot } from '../app/game/session';
 import townMap from '../public/game/town.json';
+import homeMap from '../public/game/home.json';
 
 // Exercise the real routing/update logic without a browser or Phaser renderer.
 vi.mock('phaser', () => ({
   Scene: class {},
   Input: { Keyboard: { JustDown: () => false } },
+  Geom: {
+    Rectangle: class {
+      constructor(
+        public x: number,
+        public y: number,
+        public width: number,
+        public height: number,
+      ) {}
+      get centerX() {
+        return this.x + this.width / 2;
+      }
+    },
+  },
 }));
+
+afterEach(() => vi.unstubAllGlobals());
 
 class Sprite {
   visible = true;
@@ -227,4 +244,355 @@ test('choosing the same destination while standing at its door immediately opens
   });
   scene.walkToLocation('shop');
   expect(onInteract).toHaveBeenCalledTimes(2);
+});
+
+// Load the actual Tiled layers through the scene; only the drawing API is mocked.
+class TileLayer {
+  visible = false;
+  tiles: {
+    index: number;
+    x: number;
+    y: number;
+    pixelX: number;
+    pixelY: number;
+    tint: number;
+  }[];
+  constructor(
+    data: number[],
+    private width: number,
+  ) {
+    this.tiles = data.map((index, i) => ({
+      index,
+      x: i % width,
+      y: Math.floor(i / width),
+      pixelX: (i % width) * 16,
+      pixelY: Math.floor(i / width) * 16,
+      tint: 0xffffff,
+    }));
+  }
+  setDepth() {
+    return this;
+  }
+  setVisible(visible: boolean) {
+    this.visible = visible;
+    return this;
+  }
+  forEachTile(callback: (tile: TileLayer['tiles'][number]) => void) {
+    this.tiles.forEach(callback);
+  }
+  getTileAt(x: number, y: number) {
+    return this.tiles[y * this.width + x];
+  }
+  putTileAt(index: number, x: number, y: number) {
+    this.getTileAt(x, y).index = index;
+  }
+}
+
+class Drawing extends Sprite {
+  clear = vi.fn(() => this);
+  fillStyle = vi.fn(() => this);
+  fillRect = vi.fn(() => this);
+  fillCircle = vi.fn(() => this);
+  fillTriangle = vi.fn(() => this);
+  fillRoundedRect = vi.fn(() => this);
+  lineStyle = vi.fn(() => this);
+  lineBetween = vi.fn(() => this);
+  setScrollFactor() {
+    return this;
+  }
+  setText() {
+    return this;
+  }
+}
+
+function loadScene(
+  interior: boolean,
+  state = newGame('family-partner', 42, 'en'),
+) {
+  const view: SceneView = { state, locale: 'en', paused: false, interior };
+  const scene = new TownScene(view, vi.fn(), vi.fn(), vi.fn(), vi.fn());
+  const layers = new Map<string, TileLayer>();
+  const tilesets = new Map<string, { setImage: ReturnType<typeof vi.fn> }>();
+  const source = {
+    width: 640,
+    height: 16,
+    data: new Uint8ClampedArray(640 * 16 * 4),
+  };
+  for (let i = 0; i < source.data.length; i += 4) {
+    const gid = Math.floor(((i / 4) % 640) / 16) + 1;
+    source.data.set(
+      gid === 1
+        ? [64, 156, 98, 255]
+        : [26, 27, 28].includes(gid)
+          ? [123, 173, 44, 255]
+          : [185, 139, 94, 255],
+      i,
+    );
+  }
+  source.data.set([255, 0, 255, 0], (25 * 16 + 15) * 4);
+  source.data.set([140, 153, 154, 255], (27 * 16 + 15) * 4);
+  const makeTexture = (data = new Uint8ClampedArray(source.data.length)) => ({
+    data,
+    getSourceImage: () => source,
+    refresh: vi.fn(),
+    context: {
+      drawImage: (image: typeof source) => data.set(image.data),
+      getImageData: () => ({ data: data.slice() }),
+      putImageData: (image: { data: Uint8ClampedArray }) =>
+        data.set(image.data),
+    },
+  });
+  const textures = new Map([['town-tiles', makeTexture(source.data)]]);
+  const createCanvas = vi.fn((key: string, width: number, height: number) => {
+    expect([width, height]).toEqual([640, 16]);
+    const texture = makeTexture();
+    textures.set(key, texture);
+    return texture;
+  });
+  const camera = {
+    zoom: 1,
+    setBounds() {
+      return this;
+    },
+    startFollow() {
+      return this;
+    },
+    setZoom(zoom: number) {
+      this.zoom = zoom;
+      return this;
+    },
+    stopFollow() {},
+    removeBounds() {},
+    centerOn() {},
+  };
+  Object.assign(scene, {
+    ready: true,
+    textures: {
+      exists: (key: string) => textures.has(key),
+      get: (key: string) => textures.get(key),
+      createCanvas,
+    },
+    make: {
+      tilemap: ({ key }: { key: string }) => {
+        const source = key === 'home' ? homeMap : townMap;
+        layers.clear();
+        return {
+          width: source.width,
+          height: source.height,
+          widthInPixels: source.width * 16,
+          heightInPixels: source.height * 16,
+          addTilesetImage: (name: string) => {
+            expect(source.tilesets.some((t) => t.name === name)).toBe(true);
+            const tileset = { setImage: vi.fn() };
+            tilesets.set(name, tileset);
+            return tileset;
+          },
+          createLayer: (name: string) => {
+            const layer = new TileLayer(
+              source.layers.find((l) => l.name === name)!.data!,
+              source.width,
+            );
+            layers.set(name, layer);
+            return layer;
+          },
+          getLayer: (name: string) => ({ tilemapLayer: layers.get(name) }),
+          getObjectLayer: (name: string) =>
+            source.layers.find((l) => l.name === name),
+          destroy() {},
+        };
+      },
+    },
+    add: {
+      sprite: (x: number, y: number) => new Sprite(x, y),
+      text: (x: number, y: number) => new Drawing(x, y),
+      graphics: () => new Drawing(0, 0),
+      rectangle: (x: number, y: number) => new Drawing(x, y),
+    },
+    cameras: { main: camera },
+    scale: { width: 864, height: 624 },
+    tweens: { killTweensOf: vi.fn() },
+  });
+  Reflect.get(scene, 'loadWorld').call(scene);
+  return { scene, view, layers, tilesets, textures, createCanvas };
+}
+
+const furniture = [
+  'furnished-reading-chair',
+  'furnished-warm-curtains',
+  'furnished-desk-lamp',
+];
+
+test.each(furniture)(
+  'home displays only the purchased %s layer and removes it when its flag clears',
+  (flag) => {
+    const { scene, view, layers } = loadScene(true);
+    for (const name of furniture) expect(layers.get(name)!.visible).toBe(false);
+    expect(layers.get('collision')!.getTileAt(3, 8).index).toBeLessThanOrEqual(
+      0,
+    );
+    view.state.flags.push(flag);
+    scene.sync(view);
+    for (const name of furniture)
+      expect(layers.get(name)!.visible).toBe(name === flag);
+    expect(layers.get('collision')!.getTileAt(3, 8).index > 0).toBe(
+      flag === furniture[0],
+    );
+    view.state.flags = view.state.flags.filter((f) => f !== flag);
+    scene.sync(view);
+    expect(layers.get(flag)!.visible).toBe(false);
+    expect(layers.get('collision')!.getTileAt(3, 8).index).toBeLessThanOrEqual(
+      0,
+    );
+  },
+);
+
+test('saved furnishings and brighter rent survive a fresh scene and re-entry; ending rent clears the light', () => {
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, value: string) => storage.set(key, value),
+  });
+  const state = newGame('family-partner', 42, 'en');
+  state.flags.push(...furniture, 'brighter-home');
+  gameStorage(state.characterId, state);
+  const saved = gameStorage(state.characterId).state!;
+  expect(saved).toEqual(state);
+  const { scene, view, layers } = loadScene(true, saved);
+  const light = () => Reflect.get(scene, 'sky') as Drawing;
+  for (const name of furniture) expect(layers.get(name)!.visible).toBe(true);
+  expect(light().fillStyle).toHaveBeenLastCalledWith(0xffedbc, 0.13);
+  scene.sync({ ...view, interior: false });
+  scene.sync(view);
+  for (const name of furniture) expect(layers.get(name)!.visible).toBe(true);
+  expect(light().fillStyle).toHaveBeenLastCalledWith(0xffedbc, 0.13);
+  light().clear.mockClear();
+  light().fillRect.mockClear();
+  saved.flags = saved.flags.filter((flag) => flag !== 'brighter-home');
+  scene.sync(view);
+  expect(light().clear).toHaveBeenCalledOnce();
+  expect(light().fillRect).not.toHaveBeenCalled();
+  gameStorage(saved.characterId, saved);
+  const reloaded = loadScene(true, gameStorage(saved.characterId).state!);
+  expect(
+    (Reflect.get(reloaded.scene, 'sky') as Drawing).fillRect,
+  ).not.toHaveBeenCalled();
+  for (const name of furniture)
+    expect(reloaded.layers.get(name)!.visible).toBe(true);
+});
+
+test('four quarters recolour only grass and trees, including a new day and a return from home', () => {
+  const { scene, view, tilesets, textures, createCanvas } = loadScene(false);
+  const seasons: [GameState['quarter'], number[], number[]][] = [
+    [1, [156, 170, 174], [132, 148, 155]],
+    [2, [91, 170, 91], [147, 191, 68]],
+    [3, [64, 156, 98], [123, 173, 44]],
+    [4, [139, 146, 79], [193, 126, 54]],
+  ];
+  const original = textures.get('town-tiles')!.data.slice();
+  const check = (
+    quarter: GameState['quarter'],
+    grass: number[],
+    trees: number[],
+  ) => {
+    const key = quarter === 3 ? 'town-tiles' : `town-tiles-${quarter}`;
+    const texture = textures.get(key)!;
+    expect(tilesets.get('town')!.setImage).toHaveBeenLastCalledWith(texture);
+    expect([...texture.data.slice(0, 4)]).toEqual([...grass, 255]);
+    for (const gid of [26, 27, 28])
+      expect([
+        ...texture.data.slice((gid - 1) * 64, (gid - 1) * 64 + 4),
+      ]).toEqual([...trees, 255]);
+    expect([
+      ...texture.data.slice((25 * 16 + 15) * 4, (25 * 16 + 16) * 4),
+    ]).toEqual([255, 0, 255, 0]);
+    expect([
+      ...texture.data.slice((27 * 16 + 15) * 4, (27 * 16 + 16) * 4),
+    ]).toEqual([140, 153, 154, 255]);
+    for (let y = 0; y < 16; y++)
+      for (let gid = 1; gid <= 40; gid++) {
+        if ([1, 26, 27, 28].includes(gid)) continue;
+        const start = (y * 640 + (gid - 1) * 16) * 4;
+        expect(texture.data.slice(start, start + 64)).toEqual(
+          original.slice(start, start + 64),
+        );
+      }
+  };
+  for (const [quarter, grass, trees] of seasons) {
+    view.state.quarter = quarter;
+    scene.sync(view);
+    check(quarter, grass, trees);
+  }
+  view.state.quarter = 1;
+  view.state.dayNumber++;
+  scene.sync(view);
+  check(...seasons[0]);
+  scene.sync({ ...view, interior: true });
+  expect(Reflect.get(scene, 'townTiles')).toBeUndefined();
+  scene.sync(view);
+  check(...seasons[0]);
+  expect(createCanvas).toHaveBeenCalledTimes(3);
+  expect(textures.get('town-tiles')!.data).toEqual(original);
+  for (const quarter of [1, 2, 4])
+    expect(
+      textures.get(`town-tiles-${quarter}`)!.refresh,
+    ).toHaveBeenCalledOnce();
+});
+
+test('furnished home keeps every interaction and household position reachable', () => {
+  const { scene, view, layers } = loadScene(true);
+  view.state.flags.push(...furniture);
+  scene.sync(view);
+  const start = { x: 4, y: 5 };
+  const destinations = homeMap.layers
+    .find((l) => l.name === 'places')!
+    .objects!.map((o) => ({ x: o.x / 16, y: o.y / 16 }))
+    .concat([0, 1, 2].map(homeSpot));
+  for (const destination of destinations) {
+    expect(
+      layers.get('collision')!.getTileAt(destination.x, destination.y).index,
+    ).toBeLessThanOrEqual(0);
+    const path = Reflect.get(scene, 'findPath').call(
+      scene,
+      start,
+      destination,
+    ) as Cell[];
+    expect(path.at(-1)).toEqual(destination);
+    expect(path).not.toContainEqual({ x: 3, y: 8 });
+  }
+});
+
+test('green benches and flower beds stay clear of stalls and NPC gathering cells without cutting routes', () => {
+  const { scene, view, layers } = loadScene(false);
+  const props = [
+    { x: 35, y: 35, gid: 31 },
+    { x: 36, y: 35, gid: 32 },
+    { x: 31, y: 34, gid: 33 },
+    { x: 37, y: 34, gid: 33 },
+  ];
+  for (const prop of props) {
+    expect(layers.get('decor')!.getTileAt(prop.x, prop.y).index).toBe(prop.gid);
+    expect(layers.get('collision')!.getTileAt(prop.x, prop.y).index).toBe(1);
+    expect(prop.y * 16).toBeGreaterThan(519);
+    expect(Math.abs(prop.x - 34) + Math.abs(prop.y - 31)).toBeGreaterThan(2);
+  }
+  view.state.day.festival = 'summer-fair';
+  view.state.day.kind = 'special';
+  view.state.day.minute = 600;
+  view.state.dayNumber++;
+  scene.sync(view);
+  for (const destination of (
+    Reflect.get(scene, 'anchors') as Map<string, Cell>
+  ).values()) {
+    const path = Reflect.get(scene, 'findPath').call(
+      scene,
+      { x: 5, y: 12 },
+      destination,
+    ) as Cell[];
+    expect(path.at(-1)).toEqual(destination);
+    for (const { x, y } of props) expect(path).not.toContainEqual({ x, y });
+  }
+  for (const npc of (
+    Reflect.get(scene, 'residents') as Map<string, Walker>
+  ).values())
+    for (const { x, y } of props) expect(npc.cell).not.toEqual({ x, y });
 });

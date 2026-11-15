@@ -14,9 +14,12 @@ Phase 10.5 修完试玩发现的硬伤。之后用户决定，计划 §5 的方�
   - 最新的官方文件仍是 SRC-001，即 2026-11-02 的咨询回应，已入库。
   - 规则修改声明尚未提交议会。按 SRC-002 col 593，自 12 月起分批提交，2027 年起实施。
   - 届时按 `docs/tasks/phase-6-plan.md` §5 的触发流程另写任务。本阶段不改引擎。
-- **2026-10-28 预算案**：提到 Skilled Worker 薪资门槛与 going rate 调整、Graduate 签证时长、HPI 与 Global Talent 扩容。
-  - 都是已宣布、未写进 Rules 的政策，没有生效日期，也还没有入库的官方来源。
-  - 本阶段不进引擎和游戏数字，只跟踪。
+- **2026-10-28 预算案（2026-11-15 刷新，SRC-032）**：区分政策方向、实施窗口与确切生效日。
+  - **方向**：Graduate 大学例外、HPI 扩容见 §5.6 `Backing British business` → `Access to talent`（`#access-to-talent`），§7.9 另有同名措施清单；资格、名单、新 cap 与适用边界尚未完整公布。该段将 Global Talent endorsed funder pathway 扩大描述为已完成，不概括为所有措施都未生效。
+  - **实施窗口**：Skilled Worker 薪资及 going rate 改革计划自 **2027 年春季**实施；高技能人员最长六个月 curtailment 计划 **2027 年**实施（SRC-032 §7.9 两个相应条目；SRC-033，40064 Answer ¶2–6、¶9，对应 Budget ¶6.94–6.95）。
+  - **确切生效日与数字**：上述提案未给具体日期及全部参数，继续为 `UNKNOWN`（PD-076–079）。现行已入法的 Graduate 申请日分界另见 SRC-034 GR 8.1，不能被预算大学例外提前覆盖。
+  - **税务措施单列**：雇主 ISC／CoS 支付的 benefit-in-kind 豁免已有临时税收决议效力，针对 2026-10-28 起付款（SRC-047 Resolution 15(2) 及法定效力声明；范围见 SRC-046 #proposed-revisions）；不等于申请费或 IHS 减免，也不把 Finance Bill 草案当永久成法。
+  - 官方 HTML 与议会证据已登记归档。本阶段不据提案替换引擎和游戏数字；后续内容按各措施的实际状态引用。
 - **待 Opus 核对**：现行 Skilled Worker sponsor guidance 提到一项 going rate 过渡安排，以 2026-12-01 前提交申请为界。
   - 要核对引擎对 SRC-004 / SRC-017 里对应条款的处理。
   - 这项列为 11.4 候选，由用户决定是否开。
