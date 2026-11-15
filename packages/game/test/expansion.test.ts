@@ -283,9 +283,9 @@ describe('10.2 notices and festivals', () => {
 });
 
 describe('10.2 Yao stories', () => {
-  test('the 30-card expansion remains intact within Yao’s 71 cards, with ten flatmate, six partner, six work and eight town cards', () => {
+  test('the 30-card expansion remains intact within Yao’s 75 cards, with ten flatmate, six partner, six work and eight town cards', () => {
     expect(skilledWorkerAdditions).toHaveLength(30);
-    expect(characters[0].events).toHaveLength(71);
+    expect(characters[0].events).toHaveLength(75);
     expect(
       skilledWorkerAdditions.filter(
         (event) => event.channel === 'npc:yao-flatmate',

@@ -1,3 +1,4 @@
+import { lifeChains } from '../events/life-chains';
 import { skilledWorkerAdditions } from './skilled-worker-additions';
 import { characterLifeEvents } from '../events/life';
 import { extensionCost } from '../locations';
@@ -130,10 +131,11 @@ const events: GameEvent[] = [
             delta: 3,
           },
         ],
-        sets: ['job-invite-planned'],
+        sets: ['job-invite-planned', 'sw-lunch-invited'],
       },
       {
         id: 'skip',
+        sets: ['sw-lunch-invited'],
         label: {
           zhCN: '留在熟悉的团队',
           en: 'Stay with the familiar team',
@@ -2259,6 +2261,7 @@ export const skilledWorker: Character = {
   stats: { money: 9000, mood: 65, health: 75, english: 45, career: 10 },
   events: [
     ...events,
+    ...lifeChains['skilled-worker'],
     ...skilledWorkerAdditions,
     ...characterLifeEvents['skilled-worker'],
   ],

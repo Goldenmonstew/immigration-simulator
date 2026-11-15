@@ -1,6 +1,7 @@
 import { currentLaw2026_11 } from '@uk-immigration/policy-data';
 import type { Route } from '@uk-immigration/engine';
 import { festivalActivities } from './festivals';
+import { flowerbedActivities } from './community-flowerbed';
 import { balance as b } from './balance';
 import type { Activity, Place } from './types';
 
@@ -110,6 +111,7 @@ export function extensionFor(route: Route) {
 }
 
 export const locationActions: Activity[] = [
+  ...flowerbedActivities,
   {
     id: 'community-lunch-tables',
     place: 'green',

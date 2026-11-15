@@ -1,3 +1,4 @@
+import { lifeChains } from '../events/life-chains';
 import { characterLifeEvents } from '../events/life';
 import {
   currentLaw2026_11,
@@ -2070,6 +2071,7 @@ const events: GameEvent[] = [
     once: true,
     choices: [
       {
+        sets: ['family-ledger-invited'],
         id: 'replace',
         label: t('换一个耐用水壶', 'Buy a sturdy replacement kettle'),
         effects: [
@@ -2078,6 +2080,7 @@ const events: GameEvent[] = [
         ],
       },
       {
+        sets: ['family-ledger-invited'],
         id: 'pan',
         label: t('先用锅烧水', 'Boil water in a saucepan for now'),
         effects: [{ type: 'stat', key: 'mood', delta: -1 }],
@@ -2655,5 +2658,9 @@ export const familyPartner: Character = {
     governmentDebt: { outstanding: false },
   },
   stats: { money: 16000, mood: 70, health: 76, english: 45, career: 16 },
-  events: [...events, ...characterLifeEvents['family-partner']],
+  events: [
+    ...events,
+    ...lifeChains['family-partner'],
+    ...characterLifeEvents['family-partner'],
+  ],
 };

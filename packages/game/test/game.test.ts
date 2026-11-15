@@ -130,8 +130,8 @@ describe('v3 content contract', () => {
     expect(commonEvents.filter((e) => e.id.startsWith('town-'))).toHaveLength(
       70,
     );
-    expect(characters[0].events).toHaveLength(71);
-    expect(characters.slice(1).map((c) => c.events.length)).toEqual([82, 82]);
+    expect(characters[0].events).toHaveLength(75);
+    expect(characters.slice(1).map((c) => c.events.length)).toEqual([86, 86]);
     expect(new Set(all.map((e) => e.id)).size).toBe(all.length);
     const produced = new Set([
       'visa-renewed',

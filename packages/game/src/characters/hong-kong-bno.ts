@@ -1,3 +1,4 @@
+import { lifeChains } from '../events/life-chains';
 import { characterLifeEvents } from '../events/life';
 import { currentLaw2026_11 } from '@uk-immigration/policy-data';
 import type { Character, GameEvent } from '../types';
@@ -22,10 +23,11 @@ const events: GameEvent[] = [
         id: 'plan',
         label: { zhCN: '约老师聊聊', en: 'Arrange a chat with the teacher' },
         effects: [{ type: 'stat', key: 'english', delta: 2 }],
-        sets: ['bno-school-chat'],
+        sets: ['bno-school-chat', 'bno-uniform-invited'],
       },
       {
         id: 'skip',
+        sets: ['bno-uniform-invited'],
         label: { zhCN: '先和孩子一起读通知', en: 'Read the letter together' },
         effects: [{ type: 'stat', key: 'mood', delta: 3 }],
       },
@@ -2675,5 +2677,9 @@ export const hongKongBno: Character = {
     governmentDebt: { outstanding: false },
   },
   stats: { money: 12000, mood: 68, health: 76, english: 45, career: 18 },
-  events: [...events, ...characterLifeEvents['hong-kong-bno']],
+  events: [
+    ...events,
+    ...lifeChains['hong-kong-bno'],
+    ...characterLifeEvents['hong-kong-bno'],
+  ],
 };

@@ -15,6 +15,7 @@ import { policyStories } from './events/policy';
 import { extensionFor, locationActions, places } from './locations';
 import { npcs, heartEvents, townHeartLetters } from './npcs';
 import { items, recipes } from './items';
+import { completeFlowerbed, flowerbedAvailable } from './community-flowerbed';
 import {
   festivals,
   festivalFoods,
@@ -31,6 +32,7 @@ import type {
   DayState,
   FestivalId,
   ItemId,
+  LifeRecords,
   Npc,
   NpcLocation,
   PlaceId,
@@ -554,6 +556,15 @@ function recordLife(state: GameState, id: string, text: Text) {
     text,
   });
 }
+function recordItem(state: GameState, kind: keyof LifeRecords, itemId: ItemId) {
+  const records = (state.lifeRecords ??= {
+    fish: [],
+    dishes: [],
+    harvests: [],
+  });
+  if (kind === 'harvests' || !records[kind].some((r) => r.itemId === itemId))
+    records[kind].push({ itemId, year: state.year, quarter: state.quarter });
+}
 function recordIncome(
   state: GameState,
   date: IsoDate,
@@ -769,6 +780,7 @@ export function newGame(
       deliveries: [],
     },
     inventory: {},
+    lifeRecords: { fish: [], dishes: [], harvests: [] },
     friendship: {},
     plots: [],
     heard: [],
@@ -790,6 +802,8 @@ export function activities(state: GameState, place: PlaceId): Activity[] {
   return locationActions
     .filter((a) => a.place === place)
     .filter((a) => {
+      if (a.id.startsWith('flowerbed-') && !flowerbedAvailable(state, a.id))
+        return false;
       if (a.id === 'assessment') return true;
       if (
         a.id.startsWith('furnish-') &&
@@ -999,6 +1013,10 @@ export function doActivity(state: GameState, actionId: string): GameState {
     text: action.label,
     statDeltas: deltas(state, next),
   };
+  if (action.id.startsWith('flowerbed-')) {
+    next.outcome.text = completeFlowerbed(next, action.id);
+    actionLog.text = next.outcome.text;
+  }
   if (action.id === 'life-in-the-uk')
     next.outcome.text = {
       zhCN: 'Life in the UK 考试通过了，证明收进文件夹。',
@@ -2332,6 +2350,7 @@ export function harvest(state: GameState, plot: number): GameState {
   setFlags(next, [`${prefix}${total}`]);
   next.plots[plot] = { growth: 0 };
   next.outcome = { kind: 'harvest', items: { [grows.crop]: qty } };
+  recordItem(next, 'harvests', grows.crop);
   recordLife(next, 'harvest', items.find((i) => i.id === grows.crop)!.name);
   award(next, true);
   return advanceClock(next, b.minutes.harvest);
@@ -2363,6 +2382,7 @@ export function fish(state: GameState, caught: boolean): GameState {
     const item = available[Math.floor(random(next) * available.length)];
     applyEffects(next, [{ type: 'item', item, delta: 1 }]);
     if (!junk) {
+      recordItem(next, 'fish', item);
       recordLife(next, 'catch-fish', items.find((i) => i.id === item)!.name);
       if (item === 'pike') setFlags(next, ['caught-pike']);
     }
@@ -2400,6 +2420,7 @@ export function cook(state: GameState, recipe: string): GameState {
     })),
   );
   next.outcome = { kind: 'cook', text: dish.label, items: changes };
+  recordItem(next, 'dishes', dish.makes);
   return advanceClock(next, dish.minutes);
 }
 export function eat(state: GameState, item: ItemId): GameState {
