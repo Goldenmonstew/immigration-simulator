@@ -1,4 +1,4 @@
-// URLs transcribed from docs/SOURCES.md, SRC-001 through SRC-031.
+// URLs transcribed from docs/SOURCES.md, SRC-001 through SRC-048.
 export const sourceUrls: Record<string, string> = {
   'SRC-001':
     'https://assets.publishing.service.gov.uk/media/6ae90b0e5b14ba0182a272a4/A_Fairer_Pathway_to_Settlement_-_Government_response_to_the_consultation.pdf',
@@ -58,4 +58,32 @@ export const sourceUrls: Record<string, string> = {
   'SRC-030': 'https://www.gov.uk/skilled-worker-visa/how-much-it-costs',
   'SRC-031':
     'https://www.gov.uk/government/publications/visa-regulations-revised-table/home-office-immigration-and-nationality-fees-8-october-2026',
+  'SRC-032':
+    'https://www.gov.uk/government/publications/budget-2026-document/budget-2026-html',
+  'SRC-033':
+    'https://questions-statements.parliament.uk/written-questions/detail/2026-11-02/40064',
+  'SRC-034':
+    'https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-graduate',
+  'SRC-035':
+    'https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-high-potential-individual',
+  'SRC-036':
+    'https://www.gov.uk/government/publications/high-potential-individual-visa-global-universities-list/high-potential-individual-visa-global-universities-list-2026',
+  'SRC-037':
+    'https://questions-statements.parliament.uk/written-questions/detail/2026-11-02/39721',
+  'SRC-038':
+    'https://questions-statements.parliament.uk/written-questions/detail/2026-11-03/40262',
+  'SRC-039':
+    'https://questions-statements.parliament.uk/written-questions/detail/2026-11-10/41453',
+  'SRC-040': 'https://committees.parliament.uk/oralevidence/18236/html',
+  'SRC-041': 'https://committees.parliament.uk/publications/55734/standard/pdf/',
+  'SRC-042': 'https://www.gov.uk/evisa/travel-with-evisa',
+  'SRC-043': 'https://www.gov.uk/eta',
+  'SRC-044': 'https://www.gov.uk/healthcare-immigration-application/how-much-pay',
+  'SRC-045': 'https://www.gov.uk/life-in-the-uk-test',
+  'SRC-046':
+    'https://www.gov.uk/government/publications/income-tax-treatment-of-immigration-skills-charge-and-certificate-of-sponsorship-fees/income-tax-immigration-skills-charge-and-certificate-of-sponsorship-fees',
+  'SRC-047':
+    'https://hansard.parliament.uk/Commons/2026-11-03/debates/31AB917B-C6F4-41D2-B256-BAB5D978DA92/BudgetResolutions',
+  'SRC-048':
+    'https://www.gov.uk/government/publications/statement-of-changes-to-the-immigration-rules-hc-584-3-september-2026/statement-of-changes-to-the-immigration-rules-hc-584-3-september-2026-accessible',
 };
