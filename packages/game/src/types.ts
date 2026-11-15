@@ -128,6 +128,19 @@ export type LogEntry = {
   text: Text;
   statDeltas?: Partial<Record<StatKey, number>>;
 };
+export interface LifeRecord {
+  itemId: ItemId;
+  year: number;
+  quarter: Quarter;
+}
+export interface LifeRecords {
+  /** First actual catch of each fish; buying or receiving does not count. */
+  fish: LifeRecord[];
+  /** First actual cooking of each output item, not recipe or inventory ids. */
+  dishes: LifeRecord[];
+  /** One entry per harvest action, including repeated crops. */
+  harvests: LifeRecord[];
+}
 export interface GameState {
   version: 3;
   characterId: string;
@@ -143,6 +156,8 @@ export interface GameState {
   dayNumber: number;
   day: DayState;
   inventory: Record<ItemId, number>;
+  /** Missing in earlier v3 saves; treat as empty, populated on the next record. */
+  lifeRecords?: LifeRecords;
   friendship: Record<NpcId, number>;
   plots: Plot[];
   heard: string[];

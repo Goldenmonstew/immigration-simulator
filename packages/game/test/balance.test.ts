@@ -34,6 +34,7 @@ import { balance as b } from '../src/balance';
 import { heartEvents } from '../src/npcs';
 import { commonEvents } from '../src/events/common';
 import { characterLifeEvents, lifeEvents } from '../src/events/life';
+import { lifeChains } from '../src/events/life-chains';
 import { policyStories } from '../src/events/policy';
 import { beforeTimeEconomy } from './time-and-economy-baseline';
 
@@ -464,6 +465,11 @@ describe('v3 seeded strategies', () => {
               strategy,
               runs: runs.map((run) => ({
                 eventCards: run.eventCards,
+                lifeChainCards: run.state.log.filter((entry) =>
+                  lifeChains[character.id].some(
+                    (event) => event.id === entry.id,
+                  ),
+                ).length,
                 debtEvents: run.debtEvents,
                 negativeQuarters: run.negativeQuarters,
                 ending: run.state.ending,
@@ -488,6 +494,53 @@ describe('v3 seeded strategies', () => {
             );
 
           if (strategy === 'fast-forward') {
+            const withChains = character.events;
+            let beforeChains;
+            try {
+              character.events = withChains.filter(
+                (event) => !lifeChains[character.id].includes(event),
+              );
+              beforeChains = Array.from({ length: 20 }, (_, index) =>
+                play(character.id, index + 1, strategy),
+              );
+            } finally {
+              character.events = withChains;
+            }
+            const actualAnnualRate = (samples: typeof runs) =>
+              samples.reduce(
+                (sum, run) =>
+                  sum +
+                  (run.state.log.filter(
+                    (entry) =>
+                      entry.kind === 'event' &&
+                      !heartEvents.some((event) => event.id === entry.id),
+                  ).length *
+                    b.quartersPerYear) /
+                    run.quarterSamples.length,
+                0,
+              ) / samples.length;
+            expect(actualAnnualRate(runs)).toBeGreaterThanOrEqual(
+              actualAnnualRate(beforeChains),
+            );
+            console.log(
+              'LIFE_CHAIN_EVENT_RATE',
+              JSON.stringify({
+                character: character.id,
+                before: actualAnnualRate(beforeChains),
+                after: actualAnnualRate(runs),
+                seeds: runs.length,
+                chainCards: runs.reduce(
+                  (sum, run) =>
+                    sum +
+                    run.state.log.filter((entry) =>
+                      lifeChains[character.id].some(
+                        (event) => event.id === entry.id,
+                      ),
+                    ).length,
+                  0,
+                ),
+              }),
+            );
             // Paired 12.4 comparison: same seeds and routine, removing only the
             // added cards for the baseline. The unchanged scheduler and public
             // API run both campaigns; no prerequisites are injected.
