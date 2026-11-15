@@ -172,3 +172,59 @@ test.each(['zh-CN', 'en'] as const)(
     );
   },
 );
+
+test.each(['zh-CN', 'en'] as const)(
+  'CSS step progress follows forward/back steps and the principal branch in %s',
+  (locale) => {
+    let draft = questionnaire.createDraft();
+    const createDraft = vi
+      .spyOn(questionnaire, 'createDraft')
+      .mockImplementation(() => draft);
+    const state = vi.spyOn(React, 'useState');
+    const check = (current: number, total: number) => {
+      state
+        .mockReturnValueOnce([true, vi.fn()])
+        .mockReturnValueOnce([true, vi.fn()])
+        .mockReturnValueOnce([{}, vi.fn()])
+        .mockReturnValueOnce([false, vi.fn()]);
+      const html = renderToStaticMarkup(
+        <LocaleContext value={{ locale, setLocale: () => {} }}>
+          <SimulatePage />
+        </LocaleContext>,
+      );
+      expect(html).toContain(
+        `aria-valuemax="${total}" aria-valuenow="${current}"`,
+      );
+      expect(html).toContain(`width:${(current / total) * 100}%`);
+      expect(html).toContain('aria-labelledby="form-progress-label"');
+    };
+    check(1, 9);
+    draft = questionnaire.draftReducer(draft, { type: 'step', step: 1 });
+    check(2, 9);
+    draft = questionnaire.draftReducer(draft, { type: 'step', step: 0 });
+    check(1, 9);
+    draft.timeline.episodes = [
+      {
+        route: 'SKILLED_WORKER',
+        role: 'DEPENDANT',
+        validFrom: '2021-01-01',
+        validTo: '2030-01-01',
+      },
+    ];
+    draft.step = 9;
+    check(4, 10);
+    // principal-start creates a fresh timeline with the real factory.
+    createDraft.mockRestore();
+    draft = questionnaire.draftReducer(draft, { type: 'principal-start' });
+    vi.spyOn(questionnaire, 'createDraft').mockImplementation(() => draft);
+    check(1, 8);
+    draft.principalStep = 7;
+    check(8, 8);
+    draft = questionnaire.draftReducer(draft, {
+      type: 'principal-return',
+      completed: true,
+    });
+    draft.step = 8;
+    check(10, 10);
+  },
+);

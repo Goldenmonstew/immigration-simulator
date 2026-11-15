@@ -395,15 +395,18 @@ export class TownScene extends Phaser.Scene {
     const camera = this.cameras.main;
     camera.setZoom(
       this.view.interior
-        ? Math.min(
-            3,
-            this.scale.width / this.map.widthInPixels,
-            this.scale.height / this.map.heightInPixels,
-          )
+        ? Math.floor(
+            Math.min(
+              3,
+              this.scale.width / this.map.widthInPixels,
+              this.scale.height / this.map.heightInPixels,
+            ) * 2,
+          ) / 2
         : this.scale.width < 600
           ? 2
           : 2.5,
     );
+    camera.roundPixels = true;
     if (this.view.interior) {
       // A fitted room stays centred even when the viewport exceeds its bounds.
       camera.stopFollow();
@@ -769,11 +772,20 @@ export class TownScene extends Phaser.Scene {
       (this.scale.height - h) / 2,
     );
     if (this.view.interior) {
-      if (this.view.state.flags.includes('brighter-home'))
-        this.sky
-          .fillStyle(0xffedbc, minute >= 1080 ? 0.16 : 0.26)
-          .fillRect(0, 0, w, h);
+      this.sky.setScrollFactor(1).setPosition(0, 0);
+      if (this.view.state.flags.includes('brighter-home')) {
+        // Window and optional desk lamp, in home-map coordinates.
+        const lights = [{ x: 40, y: 48 }];
+        if (this.view.state.flags.includes('furnished-desk-lamp'))
+          lights.push({ x: 136, y: 64 });
+        for (const { x, y } of lights)
+          for (const radius of [48, 36, 24])
+            this.sky
+              .fillStyle(0xffd88b, minute >= 1080 ? 0.02 : 0.035)
+              .fillCircle(x, y, radius);
+      }
     } else {
+      this.sky.setScrollFactor(0);
       const color =
         minute >= 1260 ? 0x162750 : minute >= 1080 ? 0xdc9651 : 0x2c415b;
       const alpha =

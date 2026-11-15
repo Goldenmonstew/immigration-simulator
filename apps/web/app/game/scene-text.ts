@@ -19,7 +19,7 @@ export class SceneText {
   visible = true;
 
   constructor(
-    layer: HTMLDivElement,
+    private layer: HTMLDivElement,
     public x: number,
     public y: number,
     text: string,
@@ -42,10 +42,31 @@ export class SceneText {
   }
 
   render(camera: Camera) {
-    const { x, y } = textPosition(camera, this.x, this.y);
+    let { x, y } = textPosition(camera, this.x, this.y);
+    let visible = this.visible;
+    if (this.kind === 'label' || this.kind === 'homeLabel') {
+      const width = this.element.offsetWidth;
+      const height = this.element.offsetHeight;
+      const top = y - (this.kind === 'homeLabel' ? height : 0);
+      // Only pin labels which intersect the viewport; distant anchors stay offscreen.
+      visible &&=
+        x + width / 2 > 0 &&
+        x - width / 2 < this.layer.clientWidth &&
+        top + height > 0 &&
+        top < this.layer.clientHeight;
+      x = Math.max(
+        width / 2 + 6,
+        Math.min(x, this.layer.clientWidth - width / 2 - 6),
+      );
+      const clampedTop = Math.max(
+        6,
+        Math.min(top, this.layer.clientHeight - height - 6),
+      );
+      y = clampedTop + (this.kind === 'homeLabel' ? height : 0);
+    }
     this.element.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, ${this.kind === 'label' ? '0' : '-100%'})`;
     this.element.style.opacity = String(this.alpha);
-    this.element.style.visibility = this.visible ? 'visible' : 'hidden';
+    this.element.style.visibility = visible ? 'visible' : 'hidden';
   }
 
   destroy() {
