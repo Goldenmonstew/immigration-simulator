@@ -11,6 +11,7 @@ import {
   CharacterSelect,
   ControlHint,
   Ending,
+  LifeMemories,
   EventCard,
   LocationMenu,
   Modal,
@@ -40,6 +41,7 @@ import {
   withGameLocale,
   visibleResidents,
   homeSpot,
+  endingMemories,
 } from '../app/game/session';
 import {
   recordMemories,
@@ -1819,5 +1821,212 @@ test.each(['zh-CN', 'en'] as const)(
       'change',
       media.addEventListener.mock.calls[0][1],
     );
+  },
+);
+
+// Phase 12.5: memories use evidence from this save, never possession alone.
+function memoryGame(locale: Locale = 'zh-CN') {
+  const state = core.newGame('skilled-worker', 42, locale);
+  delete state.pendingEvent;
+  state.eventQueue = [];
+  state.quarter = 3;
+  state.day = {
+    ...state.day,
+    date: '2025-07-05',
+    index: 1,
+    kind: 'weekend',
+    minute: 480,
+    place: 'green',
+    deliveries: [],
+  };
+  delete state.day.festival;
+  return state;
+}
+
+test.each(['zh-CN', 'en'] as const)(
+  'empty experiences produce no memory slots in %s, even with goods in the bag',
+  (locale) => {
+    const state = memoryGame(locale);
+    expect(renderView(() => LifeMemories({ state }), locale).html).toBe('');
+    state.inventory = {
+      'seed-tomato': 2,
+      tomato: 3,
+      dumplings: 1,
+      'community-lunch-photo': 1,
+    };
+    state.friendship = { ade: 32 };
+    state.flags = [
+      'quarter-board-community-lunch',
+      'quarter-community-lunch-food',
+    ];
+    expect(renderView(() => LifeMemories({ state }), locale).html).toBe('');
+    const ending = renderView(
+      () => Ending({ state: { ...state, ending: 'left' }, onChange: vi.fn() }),
+      locale,
+    ).html;
+    expect(ending).not.toContain('life-memories-heading');
+    expect(ending).toContain('ending-');
+    for (const line of core.narrative({ ...state, ending: 'left' }))
+      expect(ending).toContain(
+        (locale === 'en' ? line.en : line.zhCN).split('\n')[0],
+      );
+  },
+);
+
+test('friends are the two highest positive friendships actually met in this character’s run', () => {
+  const state = memoryGame();
+  state.flags.push(
+    'talked-margaret',
+    'talked-ade',
+    'talked-helen',
+    'talked-dave',
+    'talked-jamie',
+  );
+  state.friendship = {
+    margaret: 210,
+    ade: 500,
+    helen: 320,
+    dave: 0,
+    priya: 900,
+    jamie: 1000,
+  };
+  const before = structuredClone(state);
+  expect(endingMemories(state).friends.map((npc) => npc.id)).toEqual([
+    'ade',
+    'helen',
+  ]);
+  const html = renderView(() => LifeMemories({ state })).html;
+  expect(html).toContain(spritePath('ade'));
+  expect(html).toContain(spritePath('helen'));
+  expect(html).not.toContain(spritePath('priya'));
+  expect(html).not.toContain(spritePath('jamie'));
+  expect(state).toEqual(before);
+});
+
+test.each(['reading-chair', 'warm-curtains', 'desk-lamp'])(
+  'purchasing %s adds only the furniture actually acquired to ending memories',
+  (id) => {
+    const state = memoryGame();
+    state.day.place = 'shop';
+    state.stats.money = 5000;
+    expect(endingMemories(state).furnishings).toEqual([]);
+    const after = core.doActivity(state, `furnish-${id}`);
+    expect(endingMemories(after).furnishings.map((item) => item.id)).toEqual([
+      id,
+    ]);
+    const html = renderView(() => LifeMemories({ state: after })).html;
+    expect(html.match(/<article/g)).toHaveLength(1);
+    expect(html).toContain(t('game.memoryHome'));
+    expect(html).not.toContain(t('game.memoryGarden'));
+  },
+);
+
+test('planting and harvesting keep the crop memory after the plot and bag are empty', () => {
+  const state = memoryGame();
+  state.day.place = 'allotment';
+  state.plots = [{ growth: 0 }];
+  state.inventory = { 'seed-tomato': 1, 'seed-corn': 1, potato: 3 };
+  expect(endingMemories(state).crops).toEqual([]);
+  const planted = core.plant(state, 0, 'seed-tomato');
+  expect(endingMemories(planted).crops.map((item) => item.id)).toEqual([
+    'tomato',
+  ]);
+  planted.plots[0].growth = core.items.find(
+    (item) => item.id === 'seed-tomato',
+  )!.grows!.days;
+  const harvested = core.harvest(planted, 0);
+  harvested.inventory = {};
+  expect(harvested.plots[0].seed).toBeUndefined();
+  expect(endingMemories(harvested).crops.map((item) => item.id)).toEqual([
+    'tomato',
+  ]);
+  const html = renderView(() => LifeMemories({ state: harvested })).html;
+  expect(html.match(/<article/g)).toHaveLength(1);
+  expect(html).toContain('/crops/tomato.png');
+  expect(html).not.toContain('/crops/potato.png');
+});
+
+test.each(['zh-CN', 'en'] as const)(
+  'lunch attendance gives the dedicated bag icon, diary entry and a lasting ending memory in %s',
+  (locale) => {
+    const state = memoryGame(locale);
+    state.flags.push('quarter-board-community-lunch');
+    const prepared = core.doActivity(state, 'community-lunch-tables');
+    expect(endingMemories(prepared).photo).toBe(false);
+    const noon = core.tick(prepared, 720 - prepared.day.minute);
+    const joined = core.doActivity(noon, 'community-lunch-attend');
+    const diary = recordMemories([], noon, joined, 'action');
+    expect(diary).toHaveLength(1);
+    expect(diary[0].key).toBe('action:community-lunch-attend:');
+    expect(diary[0].text.en).toContain('photograph');
+    expect(diary[0].text.zhCN).toContain('合照');
+    const bag = renderView(
+      () => Inventory({ state: joined, onChange: vi.fn(), onKitchen: vi.fn() }),
+      locale,
+    ).html;
+    expect(bag).toContain('/items/community-lunch-photo.svg');
+    expect(bag).toContain(
+      locale === 'en' ? 'Neighbourhood lunch photograph' : '邻里聚餐合照',
+    );
+    expect(
+      readFileSync(
+        new URL(
+          '../public/game/assets/items/community-lunch-photo.svg',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    ).toContain('<svg');
+    const gifted = core.gift(joined, 'margaret', 'community-lunch-photo');
+    expect(gifted.inventory['community-lunch-photo']).toBe(0);
+    gameStorage(gifted.characterId, gifted, diary);
+    const restored = gameStorage(gifted.characterId);
+    expect(restored.diary).toEqual(diary);
+    expect(endingMemories(restored.state!).photo).toBe(true);
+    expect(
+      renderView(() => LifeMemories({ state: restored.state! }), locale).html,
+    ).toContain('/items/community-lunch-photo.svg');
+    const journal = renderView(
+      () =>
+        QuarterSummary({
+          before: noon,
+          after: joined,
+          diary: restored.diary,
+          onContinue: vi.fn(),
+          onVisit: vi.fn(),
+        }),
+      locale,
+    ).html;
+    expect(journal).toContain(locale === 'en' ? 'photograph' : '合照');
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'a populated ending renders four evidence-backed slots and keeps both assessments in %s',
+  (locale) => {
+    let state = memoryGame(locale);
+    state.flags.push('quarter-board-community-lunch');
+    state = core.doActivity(state, 'community-lunch-tables');
+    state = core.tick(state, 720 - state.day.minute);
+    state = core.doActivity(state, 'community-lunch-attend');
+    state = core.enter(state, 'shop');
+    state.stats.money = 5000;
+    state = core.doActivity(state, 'furnish-reading-chair');
+    state = core.enter(state, 'allotment');
+    state.plots = [{ growth: 0 }];
+    state.inventory['seed-tomato'] = 1;
+    state = core.plant(state, 0, 'seed-tomato');
+    state.ending = 'left';
+    const memories = renderView(() => LifeMemories({ state }), locale).html;
+    expect(memories.match(/<article/g)).toHaveLength(4);
+    if (locale === 'en') expect(memories).not.toMatch(cjk);
+    const ending = renderView(
+      () => Ending({ state, onChange: vi.fn() }),
+      locale,
+    ).html;
+    expect(ending).toContain(memories);
+    for (const id of ['current-law', 'earned-settlement'])
+      expect(ending).toContain(`ending-${id}`);
+    expect(ending).toContain(t('game.replay', locale));
   },
 );

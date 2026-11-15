@@ -1,5 +1,11 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { newGame, npcAt, type GameState } from '@uk-immigration/game';
+import {
+  doActivity,
+  newGame,
+  npcAt,
+  tick,
+  type GameState,
+} from '@uk-immigration/game';
 import { TownScene, type SceneView } from '../app/game/scene';
 import { gameStorage, homeSpot } from '../app/game/session';
 import townMap from '../public/game/town.json';
@@ -45,6 +51,10 @@ class Sprite {
   setFrame() {
     return this;
   }
+  setDisplaySize() {
+    return this;
+  }
+  setTexture = vi.fn(() => this);
   play() {
     return this;
   }
@@ -291,7 +301,9 @@ class TileLayer {
 class Drawing extends Sprite {
   clear = vi.fn(() => this);
   fillStyle = vi.fn(() => this);
-  fillRect = vi.fn(() => this);
+  fillRect = vi.fn<
+    (x: number, y: number, width: number, height: number) => Drawing
+  >(() => this);
   fillCircle = vi.fn(() => this);
   fillTriangle = vi.fn(() => this);
   fillRoundedRect = vi.fn(() => this);
@@ -300,9 +312,7 @@ class Drawing extends Sprite {
   setScrollFactor() {
     return this;
   }
-  setText() {
-    return this;
-  }
+  setText = vi.fn(() => this);
 }
 
 function loadScene(
@@ -460,11 +470,11 @@ test('saved furnishings and brighter rent survive a fresh scene and re-entry; en
   const { scene, view, layers } = loadScene(true, saved);
   const light = () => Reflect.get(scene, 'sky') as Drawing;
   for (const name of furniture) expect(layers.get(name)!.visible).toBe(true);
-  expect(light().fillStyle).toHaveBeenLastCalledWith(0xffedbc, 0.13);
+  expect(light().fillStyle).toHaveBeenLastCalledWith(0xffedbc, 0.26);
   scene.sync({ ...view, interior: false });
   scene.sync(view);
   for (const name of furniture) expect(layers.get(name)!.visible).toBe(true);
-  expect(light().fillStyle).toHaveBeenLastCalledWith(0xffedbc, 0.13);
+  expect(light().fillStyle).toHaveBeenLastCalledWith(0xffedbc, 0.26);
   light().clear.mockClear();
   light().fillRect.mockClear();
   saved.flags = saved.flags.filter((flag) => flag !== 'brighter-home');
@@ -595,4 +605,189 @@ test('green benches and flower beds stay clear of stalls and NPC gathering cells
     Reflect.get(scene, 'residents') as Map<string, Walker>
   ).values())
     for (const { x, y } of props) expect(npc.cell).not.toEqual({ x, y });
+});
+
+function lunchState() {
+  const state = newGame('skilled-worker', 42, 'en');
+  state.quarter = 3;
+  state.day = {
+    ...state.day,
+    index: 1,
+    kind: 'weekend',
+    date: '2025-07-05',
+    minute: 480,
+    weather: 'sunny',
+    place: 'green',
+    deliveries: [],
+  };
+  delete state.day.festival;
+  delete state.pendingEvent;
+  state.eventQueue = [];
+  state.flags.push('quarter-board-community-lunch');
+  return state;
+}
+const lunchObjects = (scene: TownScene) =>
+  Reflect.get(scene, 'lunch') as {
+    object: Sprite;
+    requires?: 'tables' | 'food';
+    cell?: Cell;
+  }[];
+
+test('lunch objects follow the notice, summer weekend and 07:00–16:00 window, including after attendance', () => {
+  const { scene, view } = loadScene(false, lunchState());
+  const check = (shown: boolean) => {
+    const objects = lunchObjects(scene);
+    expect(objects.length).toBeGreaterThan(0);
+    expect(
+      objects.filter((p) => !p.requires).every((p) => p.object.visible),
+    ).toBe(shown);
+    if (!shown) expect(objects.every((p) => !p.object.visible)).toBe(true);
+  };
+  check(true);
+  for (const minute of [420, 719, 720, 959]) {
+    view.state.day.minute = minute;
+    scene.sync(view);
+    check(true);
+  }
+  for (const minute of [419, 960, 1260]) {
+    view.state.day.minute = minute;
+    scene.sync(view);
+    check(false);
+  }
+  view.state.day.minute = 780;
+  for (const kind of ['workday', 'special'] as const) {
+    view.state.day.kind = kind;
+    scene.sync(view);
+    check(false);
+  }
+  view.state.day.kind = 'weekend';
+  view.state.quarter = 4;
+  scene.sync(view);
+  check(false);
+  view.state.quarter = 3;
+  view.state.flags = [];
+  scene.sync(view);
+  check(false);
+  view.state.flags.push(
+    'quarter-board-community-lunch',
+    'quarter-community-lunch-attended',
+    'community-lunch-attended:2025',
+  );
+  scene.sync(view);
+  check(true);
+  const before = lunchObjects(scene);
+  scene.sync({ ...view, interior: true });
+  expect(before.every((p) => p.object.destroy.mock.calls.length === 1)).toBe(
+    true,
+  );
+  expect(lunchObjects(scene)).toEqual([]);
+  scene.sync(view);
+  check(true);
+  view.state.dayNumber++;
+  view.state.day.kind = 'special';
+  scene.sync(view);
+  check(false);
+});
+
+test.each(['tables', 'biscuits', 'baked-potato'])(
+  'real %s preparation updates the scene immediately and persists through reload',
+  (preparation) => {
+    const state = lunchState();
+    state.inventory[preparation] = 1;
+    const { scene, view } = loadScene(false, state);
+    expect(
+      lunchObjects(scene)
+        .filter((p) => p.requires)
+        .every((p) => !p.object.visible),
+    ).toBe(true);
+    const after = doActivity(state, `community-lunch-${preparation}`);
+    scene.sync({ ...view, state: after });
+    const check = (target: TownScene) => {
+      for (const part of lunchObjects(target).filter((p) => p.requires)) {
+        expect(part.object.visible).toBe(
+          part.requires === (preparation === 'tables' ? 'tables' : 'food'),
+        );
+        if (part.requires === 'food' && part.object.visible)
+          expect(part.object.setTexture).toHaveBeenLastCalledWith(
+            preparation === 'biscuits' ? 'lunch-biscuits' : 'lunch-meal',
+          );
+      }
+    };
+    check(scene);
+    const restored = loadScene(false, JSON.parse(JSON.stringify(after)));
+    check(restored.scene);
+    const joined = doActivity(
+      tick(after, 720 - after.day.minute),
+      'community-lunch-attend',
+    );
+    scene.sync({ ...view, state: joined });
+    check(scene);
+    expect(joined.inventory['community-lunch-photo']).toBe(1);
+    expect(joined.log.at(-1)?.text.en).toContain('photograph');
+  },
+);
+
+test('lunch leaves festival stalls, routes, the green entrance and actual residents intact', () => {
+  const state = doActivity(lunchState(), 'community-lunch-tables');
+  state.day.minute = 780;
+  // Coexistence probe: normal gameplay puts the summer fair on the next day.
+  state.day.festival = 'summer-fair';
+  const { scene, view } = loadScene(false, state);
+  const stalls = (Reflect.get(scene, 'worldObjects') as Drawing[]).find(
+    (object) =>
+      object.fillRect?.mock.calls.some(
+        (args) => args[0] === 487 && args[1] === 493,
+      ),
+  )!;
+  expect(stalls).toBeDefined();
+  const props = lunchObjects(scene).filter((p) => p.cell);
+  for (const { cell } of props) {
+    expect(cell!.y * 16).toBeGreaterThan(519);
+    expect(cell).not.toEqual({ x: 33, y: 33 });
+  }
+  for (const destination of (
+    Reflect.get(scene, 'anchors') as Map<string, Cell>
+  ).values()) {
+    const path = Reflect.get(scene, 'findPath').call(
+      scene,
+      { x: 5, y: 12 },
+      destination,
+    ) as Cell[];
+    expect(path.at(-1)).toEqual(destination);
+    for (const { cell } of props) expect(path).not.toContainEqual(cell);
+  }
+  const residents = Reflect.get(scene, 'residents') as Map<string, Walker>;
+  expect(npcAt(state, 'margaret')).toBe('green');
+  expect(residents.get('margaret')!.sprite.visible).toBe(true);
+  for (const [id, npc] of residents) {
+    expect(npc.at).toBe(npcAt(state, id));
+    for (const { cell } of props) expect(npc.cell).not.toEqual(cell);
+  }
+  view.state.day.minute = 960;
+  scene.sync(view);
+  expect(stalls.visible).toBe(true);
+  expect(stalls.destroy).not.toHaveBeenCalled();
+  for (const { cell } of props)
+    expect(Reflect.get(scene, 'passable').call(scene, cell)).toBe(true);
+});
+
+test('brighter home is warmer by day, restrained after dusk and never changes outdoor night lighting', () => {
+  const { scene, view } = loadScene(true);
+  view.state.flags.push('brighter-home');
+  for (const [minute, alpha] of [
+    [720, 0.26],
+    [1080, 0.16],
+    [1260, 0.16],
+  ]) {
+    view.state.day.minute = minute;
+    scene.sync(view);
+    expect(
+      (Reflect.get(scene, 'sky') as Drawing).fillStyle,
+    ).toHaveBeenLastCalledWith(0xffedbc, alpha);
+  }
+  view.state.day.weather = 'sunny';
+  scene.sync({ ...view, interior: false });
+  expect(
+    (Reflect.get(scene, 'sky') as Drawing).fillStyle,
+  ).toHaveBeenLastCalledWith(0x162750, 0.48);
 });
