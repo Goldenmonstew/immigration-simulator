@@ -1,15 +1,15 @@
 # 政府未定事项登记表（Pending Details）
 
-> 范围：Earned Settlement 框架中，政府在官方回应里**明确推迟**、**尚未规定**或**文内自相矛盾**的事项。规则引擎遇到这些事项时输出 `UNKNOWN`（或按本表声明假设），不得自行补全。
+> 范围：Earned Settlement、相关预算提案与现行规则中，政府**明确推迟**、**尚未规定**或原文存在歧义的事项，以及明确登记的建模假设。引擎遇到已建模的这些事项时输出 `UNKNOWN`（或按本表声明假设），不得自行补全；仅登记新提案不表示引擎已实现对应判断。
 >
-> 唯一来源：SRC-001，《A Fairer Pathway to Settlement: Government Response to the Consultation》（CP 1707，2026-11），归档于 `policy-sources/2026-11-02-cp1707-a-fairer-pathway-to-settlement-government-response.pdf`。
+> 基础来源：SRC-001，《A Fairer Pathway to Settlement: Government Response to the Consultation》（CP 1707，2026-11）；后续现行 Rules、议会材料与预算案分别在各行注明 SRC 与定位，完整快照及 sha256 见 `docs/SOURCES.md`。SRC-001 的 PDF 页码与其补充 HTML 锚点分开使用。
 >
-> 登记日期：2026-11-04。维护：Opus（规则语义）。
+> 初始登记：2026-11-04；本次来源与范围说明更新：2026-11-15（任务 12.2，sol）。
 
 ## 页码约定
 
 - 表中 `p<N>` 一律指 **PDF 页序**：封面为 p1，按 `pdftotext -layout` 输出的换页符切分计数。
-- 该 PDF 实际为 **62 页**（`pdfinfo` 结果），不是 `SOURCES.md` 与任务 brief 写的 60 页：p2 为空白页，p60–p61 为空白页，p62 为封底条码。
+- SRC-001 PDF 实际为 **62 页**（`pdfinfo` 结果）；早期任务 brief 的 60 页记法已校正：p2 为空白页，p60–p61 为空白页，p62 为封底条码。
 - 文档内印刷页码 = PDF 页序 − 4（印刷第 1 页即目录页 = p5）。
 - **注意**：`docs/00-project-analysis-and-plan.md` §3 与任务 brief 中引用的页码比 PDF 页序**小 1**（疑似计数时跳过了空白的 p2）。例如 brief 的 "p14 至少 3 年" 在本表为 p15，"p45 Table 1" 在本表为 p46，"p40 过渡一般原则" 在本表为 p41。本表全部按 PDF 页序重新核对。
 
@@ -18,7 +18,7 @@
 - **原文怎么说**：自己的话概括，不超过 2 句；不是引文。
 - **对引擎的影响**：什么输入组合下输出 `UNKNOWN`；在不输出 `UNKNOWN` 的地方，必须在结果页声明的假设。
 - **预计何时明确**：只写原文给出的时间点；原文没说写"原文未提及"。
-- "原文未提及"表示 SRC-001 中找不到相关表述，不代表政府不会规定。
+- "原文未提及"表示该行所引文件中找不到相关表述，不代表政府不会规定。除非另列 SRC，前六节的 `p<N>` 均指 SRC-001 PDF。
 
 ## 一、明确推迟或尚未规定的事项
 
@@ -26,10 +26,10 @@
 
 | ID | 事项 | 原文怎么说 | 出处 | 对引擎的影响 | 预计何时明确 |
 |---|---|---|---|---|---|
-| PD-001 | 技术与操作指引 | 实施前政府会发布进一步指引，补充技术和操作层面的细节，并会继续与受影响群体沟通。 | p10 | 所有依赖操作细节的判断（证据形式、计算口径、豁免认定）在指引发布前都只能基于本回应文件；结果页统一声明"规则依据为政府回应文件，非已生效的 Immigration Rules"。 | 实施前（p10），具体日期原文未提及 |
-| PD-002 | 完整影响评估（Impact Assessment） | 完整影响评估将在实施时一并发布；咨询结果详情与 Targeted Research 已随回应发布。 | p54；p9 | 不影响资格判断。影响评估、咨询结果与 Targeted Research 均未在 `SOURCES.md` 登记，引擎不得引用其中数字。 | 随实施发布（p54） |
-| PD-003 | 实施时间表 | PDF 内没有 Earned Settlement 的生效日期或分阶段时间表；文内出现的具体日期只有 2026-03-02（庇护申请分界）、2027-02-01（care worker 失去担保的宽限期）、2027-04-06（Legacy URS 分界）、2035（2024 前 Skilled Worker 续签期限）。议会陈述（2026-11-04 核实）：下议院称改动从 2026 年 12 月的那批 Immigration Rules 修改开始提交、2027 年内实施（SRC-002 col 593）；上议院称第一阶段 12 月开始、2027 年 1 月生效，2027、2028 年还有进一步修改（SRC-003 cols 1423–1424）。 | p26、p38、p43、p44；SRC-002 col 593；SRC-003 cols 1423–1424 | 两院说法给出了大致时间表，但没有生效日，也没说哪些要求进入第一阶段。Earned Settlement 规则集不设 `effectiveFrom`，按"假设在申请日适用"评估；每个 Earned Settlement 结果都附上述时间表作为假设。`POLICY_NOT_YET_IN_FORCE` 在 Statement of Changes 给出生效日之前不使用。 | 首批规则修改 2026-12 起提交（SRC-002、SRC-003）；生效日以届时的 Statement of Changes 为准 |
-| PD-004 | 新要求对实施前事件的追溯 | 原文只说申请按决定日有效的规则审理、在英不代表有权按旧规则定居；没有说实施前发生的 immigration breach、public funds 使用、犯罪记录是否按新标准计入。 | p41 | 申请人在规则生效前有 breach / public funds 使用 / 轻微犯罪记录时，"是否适用新后果"输出 `UNKNOWN`；如要给出结论，假设为"按决定日规则整体回看，含实施前事件"并声明。 | 原文未提及 |
+| PD-001 | 技术与操作指引 | 实施前政府会发布进一步指引，补充技术和操作层面的细节，并会继续与受影响群体沟通。 2026-11-04 的议会答复继续承诺发布技术与操作指引，未给完整细节。 | p10；SRC-037，39721 Answer ¶4 | 所有依赖操作细节的判断（证据形式、计算口径、豁免认定）在指引发布前都只能基于本回应文件；结果页统一声明"规则依据为政府回应文件，非已生效的 Immigration Rules"。 | 实施前（p10），具体日期原文未提及 |
+| PD-002 | 完整影响评估（Impact Assessment） | SRC-001 说完整影响评估随实施发布；后续议会答复承诺在实施前发布经济、平等、儿童影响评估，另说改革对未来定居数量的影响将列入 accompanying Impact Assessment。 | SRC-001 p54、p9；SRC-037，39721 Answer ¶4；SRC-039，41453 Answer ¶4 | 不影响资格判断。影响评估、咨询结果与 Targeted Research 均未在 `SOURCES.md` 登记，引擎不得引用其中数字。 | 后续答复承诺实施前（SRC-037 Answer ¶4）；具体日期未给出 |
+| PD-003 | 实施时间表 | PDF 内没有 Earned Settlement 的生效日期或分阶段时间表；文内出现的具体日期只有 2026-03-02（庇护申请分界）、2027-02-01（care worker 失去担保的宽限期）、2027-04-06（Legacy URS 分界）、2035（2024 前 Skilled Worker 续签期限）。议会陈述（2026-11-04 核实）：下议院称改动从 2026 年 12 月的那批 Immigration Rules 修改开始提交、2027 年内实施（SRC-002 col 593）；上议院称第一阶段 12 月开始、2027 年 1 月生效，2027、2028 年还有进一步修改（SRC-003 cols 1423–1424）；后续 39721 答复重申适用方向和评估／指引承诺，未补足每批条款的确切适用日。 | p26、p38、p43、p44；SRC-002 col 593；SRC-003 cols 1423–1424；SRC-037，39721 Answer ¶2、¶4 | 两院说法给出了大致时间表，但没有生效日，也没说哪些要求进入第一阶段。Earned Settlement 规则集不设 `effectiveFrom`，按"假设在申请日适用"评估；每个 Earned Settlement 结果都附上述时间表作为假设。`POLICY_NOT_YET_IN_FORCE` 在 Statement of Changes 给出生效日之前不使用。 | 首批规则修改 2026-12 起提交（SRC-002、SRC-003）；生效日以届时的 Statement of Changes 为准 |
+| PD-004 | 新要求对实施前事件的追溯 | 原文只说申请按决定日有效的规则审理、在英不代表有权按旧规则定居；没有说实施前发生的 immigration breach、public funds 使用、犯罪记录是否按新标准计入。 39721 答复重申多数未定居在英者受改革影响、指定群体获一次性过渡，但没有逐项说明实施前事件的计入口径。 | p41；SRC-037，39721 Answer ¶2 | 申请人在规则生效前有 breach / public funds 使用 / 轻微犯罪记录时，"是否适用新后果"输出 `UNKNOWN`；如要给出结论，假设为"按决定日规则整体回看，含实施前事件"并声明。 | 原文未提及 |
 
 ### B. Contribution（收入、公共服务、家庭收入、public funds）
 
@@ -41,9 +41,9 @@
 | PD-008 | 苏格兰纳税人的门槛 | Annex B 把 £50,271 与 £125,141 描述为 England 的 higher / additional rate 门槛；正文与 Table 1 只给数字，未说明苏格兰税率带不同时如何处理。 | p52；p15；p46 | 统一使用 Table 1 的数字，并对苏格兰纳税人声明"按原文数字，未按苏格兰税率带调整"的假设。 | 原文未提及 |
 | PD-009 | 收入要求豁免的完整范围 | 豁免"将包括"儿童、65 岁及以上、因身心状况无法满足者；用的是 "will include"，未说是否穷尽，也未说身心状况如何认定。 | p15 | 只对这三类豁免建模；用户声明其他理由（如全职照护者）时输出 `UNKNOWN`；身心状况豁免由用户自报并声明"未核实认定标准"。 | 原文未提及 |
 | PD-010 | 家庭合并收入的适用条件 | 合格的伴侣可合并收入达到 £25,142，须为 genuine and subsisting 关系，且只能一方依赖另一方收入；"eligible couples" 未定义。 | p17 | 两人是否为 "eligible couple"（例如伴侣不在英、伴侣持其他路线、未婚伴侣）输出 `UNKNOWN`，仅对"同一申请中的主申请人 + 伴侣 dependant"给结论；是否要求同一组 best years 合并，默认"同年合并"并声明。 | 原文未提及 |
-| PD-011 | Highest Talent Group 的范围与资格 | Table 1 把 "通过 Highest Talent Group" 列为 3 年路径的方式之一，但注 16 说该项待 MAC 报告审查；正文只在注 10 列出 "high talent permission" 路线，没说怎样凭此进入 3 年路径。 | p46 注 16；p23 注 10 | 3 年路径只按 £125,141（4 年中 3 年）计算；凭 Highest Talent Group 走 3 年一律输出 `UNKNOWN`。注 10 中 Global Talent / Innovator Founder 须"最近一次许可即为该路线"的条件照常建模。 | MAC 报告后，日期原文未提及 |
+| PD-011 | Highest Talent Group 的范围与资格 | Table 1 把 "通过 Highest Talent Group" 列为 3 年路径的方式之一，但注 16 说该项待 MAC 报告审查；正文只在注 10 列出 "high talent permission" 路线，没说怎样凭此进入 3 年路径。 2026-11-12 补充 HTML 的 In summary 表注仍将该资格留待 MAC 审查，不能把预算案 Global Talent 扩容当作定义。 | p46 注 16；p23 注 10；SRC-001 HTML #in-summary；SRC-032 §5.6 #access-to-talent | 3 年路径只按 £125,141（4 年中 3 年）计算；凭 Highest Talent Group 走 3 年一律输出 `UNKNOWN`。注 10 中 Global Talent / Innovator Founder 须"最近一次许可即为该路线"的条件照常建模。 | MAC 报告后，日期原文未提及 |
 | PD-012 | 公共服务 5 年路径的工作年限要求 | 正文说 Annex C 职业的合格人员 5 年可定居；Table 1 表述为"在合格公共服务职业工作满 5 年"。未说明中途换入 / 换出合格职业、或部分年份在非合格职业时怎样计算。 | p16；p46 注 17；p58–p59 | 5 年全部在 Annex C 职业内 → 适用；有任何非 Annex C 年份 → `UNKNOWN`（并另按收入路径计算供参考）。 | 原文未提及 |
-| PD-013 | specified public funds 的最终范围与弱势群体豁免 | 先沿用现行 public funds 定义；之后政府再决定哪些福利计入、哪些弱势群体可获保障或豁免，细节在实施前公布。 | p18 | 以现行定义（SOURCES.md SRC-006）为假设判断；用户属于可能的弱势群体（残障、家暴受害者等）且用过 public funds 时，"是否触发 20 年"输出 `UNKNOWN`。 | 实施前（p18） |
+| PD-013 | specified public funds 的最终范围与弱势群体豁免 | 先沿用现行 public funds 定义；之后政府再决定哪些福利计入、哪些弱势群体可获保障或豁免，细节在实施前公布。 委员会仍追问残障者可使用而不影响定居的支持范围及豁免制定方式；问题本身不确立豁免。 | p18；SRC-041 p4，问题 8–9 | 以现行定义（SOURCES.md SRC-006）为假设判断；用户属于可能的弱势群体（残障、家暴受害者等）且用过 public funds 时，"是否触发 20 年"输出 `UNKNOWN`。 | 实施前（p18） |
 | PD-014 | 伴侣使用 public funds 是否影响申请人 | 原文只说申请人本人在申请前 5 年不应使用 specified public funds；未说明家庭成员（伴侣、子女）领取的福利是否计入。 | p18 | 仅申请人本人使用 → 按 PD-013 判断；仅伴侣 / 子女使用 → `UNKNOWN`。 | 原文未提及 |
 
 ### C. Character（犯罪、债务、违规）
@@ -60,8 +60,8 @@
 | ID | 事项 | 原文怎么说 | 出处 | 对引擎的影响 | 预计何时明确 |
 |---|---|---|---|---|---|
 | PD-019 | B2 英语要求的生效日期 | B2 成为定居的标准英语要求，现有豁免（儿童、65 岁及以上、身心状况）保留；文内未给生效日期。SRC-007（HC 1691）核实（2026-11-04）：现行 Rules 已规定申请日 ≥ 2027-03-26 的定居申请须 B2，覆盖 Skilled Worker（SW 22A.1）、Long Residence（LR 13.1(b)）等多条路线（EM 5.60–5.62）。 | p21；SRC-007 p24、EM 5.60–5.62；SRC-004 SW 22A.1；SRC-005 LR 13.1 | Earned Settlement 栏：按规则集的口径，B2 视为在申请日适用（`ES-ENGLISH-B2`），Earned Settlement 自身的 B2 生效日仍未知（同 PD-003）。现行法律栏（`CL-ENGLISH`）：申请日 ≥ 2027-03-26 一律 B2；之前 Long Residence 为 B1，Skilled Worker 主申请人的定居规则不另设英语要求。因 2027-03-26 起现行规则也要求 B2，此后的申请两栏结论一致。 | 现行规则：2027-03-26（已定）；Earned Settlement：原文未提及 |
-| PD-020 | Life in the UK 考试改版 | 考试要求与现有豁免继续，政府正在审查考试内容使其更贴合当代英国。 | p21 | 不影响"是否需要考试"的判断；考试版本不建模。 | 原文未提及 |
-| PD-021 | A2 版 Life in the UK 考试（UK Resettlement Scheme 难民） | URS 难民只需 A2 英语，并在出现合适的 A2 版考试前免考。 | p9 注 3；p21 注 8；p39 | URS 难民：Life in the UK = 当前免考，结果页注明"A2 版考试推出后可能改变"；推出日期 `UNKNOWN`。 | 原文未提及 |
+| PD-020 | Life in the UK 考试改版 | 考试要求与现有豁免继续，政府正在审查考试内容使其更贴合当代英国。 现行预约页继续提供考试预约与备考说明，未据该页确认新版考试已推出。 | p21；SRC-045，Book the Life in the UK Test／#prepare-for-the-test | 不影响"是否需要考试"的判断；考试版本不建模。 | 原文未提及 |
+| PD-021 | A2 版 Life in the UK 考试（UK Resettlement Scheme 难民） | URS 难民只需 A2 英语，并在出现合适的 A2 版考试前免考。 现行预约页不是 UKRS A2 版推出公告，不能据此关闭本项。 | p9 注 3；p21 注 8；p39；SRC-045，Book the Life in the UK Test | URS 难民：Life in the UK = 当前免考，结果页注明"A2 版考试推出后可能改变"；推出日期 `UNKNOWN`。 | 原文未提及 |
 
 ### E. Residence（路线计入与组合）
 
@@ -69,7 +69,7 @@
 |---|---|---|---|---|---|
 | PD-022 | Leave Outside the Rules（LOTR）群体 | LOTR 被列入"不计入定居"的路线，但注 12 承认部分 LOTR 是否本意通向定居并不清楚，政府将进一步考虑并适时公布做法。 | p24 注 12 | 任何 LOTR 时间：计入与否输出 `UNKNOWN`，不按"不计入"直接给结论。 | "in due course"，日期原文未提及 |
 | PD-023 | 两张路线清单之外的路线 | 原文给出"计入"与"不计入"两张清单，并在注 9、10 中定义 core / high talent permission；未声明清单是否穷尽现行 Immigration Rules 的全部路线。 | p23 注 9、10；p24 | 路线分类表只收录两张清单与注脚中点名的路线；其余路线（例如 Domestic Worker in a Private Household、Adult Dependent Relative 等原文未点名的路线）一律输出 `UNKNOWN`。 | 原文未提及 |
-| PD-024 | Long Residence 关闭的时点与在途者 | Long Residence 路线将关闭，临时路线时间不再因累计满 10 年而计入；未给关闭日期，也没有为已在累计 Long Residence 的人设专门过渡。 | p23；p41 | 关闭日期 = `UNKNOWN`（同 PD-003）；在途者按 p41 一般原则（按决定日规则）处理，并在结果页提示"原文无针对性过渡安排"。 | 原文未提及 |
+| PD-024 | Long Residence 关闭的时点与在途者 | Long Residence 路线将关闭，临时路线时间不再因累计满 10 年而计入；未给关闭日期，也没有为已在累计 Long Residence 的人设专门过渡。 40262 答复另强调定居合格期不等于同长度的合法停留许可；不能把拟议合格期当作已获续签。 | p23；p41；SRC-038，40262 Answer ¶2 | 关闭日期 = `UNKNOWN`（同 PD-003）；在途者按 p41 一般原则（按决定日规则）处理，并在结果页提示"原文无针对性过渡安排"。 | 原文未提及 |
 | PD-025 | 路线组划分（切换即重新起算） | 保护类或人权类路线（例如难民、Article 8）的时间不能与工作或家庭路线合并，换组时新路径重新起算；未列出各路线分属哪一组。 | p25 | Family and Private Life 内部（Appendix FM 伴侣 vs Article 8 private life）之间切换是否重置，输出 `UNKNOWN`；工作 ↔ 保护的切换按重置建模。 | 原文未提及 |
 
 ### F. Dependants
@@ -82,7 +82,7 @@
 
 | ID | 事项 | 原文怎么说 | 出处 | 对引擎的影响 | 预计何时明确 |
 |---|---|---|---|---|---|
-| PD-027 | 弱势群体的详细安排 | 政府将与受影响群体及相关机构沟通，详细安排在明年的指引中公布；这些群体"在适当情况下"仍须满足强化的犯罪与英语要求。 | p33；p34；p26 | 框架外弱势群体（丧偶伴侣、UASC、local authority care 儿童、在英长大的青年、家暴受害者）：短路到"现行安排"，但"是否须满足 B2 / 新犯罪要求"输出 `UNKNOWN`。 | 原文 "next year"，即 2027 年（以回应发布于 2026-11 推算） |
+| PD-027 | 弱势群体的详细安排 | 政府将与受影响群体及相关机构沟通，详细安排在明年的指引中公布；这些群体"在适当情况下"仍须满足强化的犯罪与英语要求。 委员会继续询问 care leavers 路径与 migrant domestic abuse 受害者的支持，尚非政府实施答复。 | p33；p34；p26；SRC-041 p2 问题 5、p4 问题 10 | 框架外弱势群体（丧偶伴侣、UASC、local authority care 儿童、在英长大的青年、家暴受害者）：短路到"现行安排"，但"是否须满足 B2 / 新犯罪要求"输出 `UNKNOWN`。 | 原文 "next year"，即 2027 年（以回应发布于 2026-11 推算） |
 | PD-028 | 强化要求对 Afghan schemes 与 Windrush 的适用 | 框架外一节开头概括说这些路线上的个人须满足强化的犯罪与 B2 要求（除非有现有豁免或保障）；而 Afghan schemes 为按资格立即定居，Windrush 为确认既有身份，二者如何叠加强化要求，原文没有逐项说明。 | p25；p26 | Afghan schemes 与 Windrush：短路到现行安排；"是否须满足强化要求"输出 `UNKNOWN`。 | 原文未提及 |
 
 ### H. 难民（任务 3.4 起建模，见 `docs/contracts.md` §11）
@@ -113,14 +113,14 @@
 
 | ID | 事项 | 原文怎么说（各处概括） | 出处 | 对引擎的影响 | 预计何时明确 |
 |---|---|---|---|---|---|
-| PD-041 | 10 年路径的收入年数 | Contribution 一章先说须"至少 3 年"达到 £12,571，Annex B 也说"至少 3 年"；但同章 best years 段落与 Table 1 都写"申请前 7 年中 5 年"。 | p15、p52 vs p16、p46 | 按 Table 1 的"申请前 7 年中 5 年"判断（`ES-EARNINGS-10Y`，参数 `bestYears10Year`）：达标 < 5 年即 `FAIL`，不因 p15 的"至少 3 年"输出 `UNKNOWN`；结果中声明该假设并指出 p15 的另一说法。 | 原文未提及 |
-| PD-042 | 收入门槛挂钩的税种 | 个人门槛 £12,571 在正文说与所得税 basic rate 挂钩，Annex B 却说与 2026/27 NICs 门槛一致；家庭门槛 £25,142 说随 National Insurance 门槛变动。 | p15 vs p52；p17 | 当前两种门槛数值相同，不影响今天的判断；参数文件须为个人门槛与家庭门槛分别记录挂钩依据，两种税种门槛将来分离时输出 `UNKNOWN`。 | 原文未提及 |
+| PD-041 | 10 年路径的收入年数 | Contribution 一章先说须"至少 3 年"达到 £12,571，Annex B 也说"至少 3 年"；但同章 best years 段落与 Table 1 都写"申请前 7 年中 5 年"。 补充 HTML 的 Earnings／Annex B 与 How earnings will be assessed／In summary 仍保留上述分歧，不因格式更新关闭。 | p15、p52 vs p16、p46；SRC-001 HTML #earnings、#how-earnings-will-be-assessed、#in-summary、#annex-b-the-economic-case-for-change- | 按 Table 1 的"申请前 7 年中 5 年"判断（`ES-EARNINGS-10Y`，参数 `bestYears10Year`）：达标 < 5 年即 `FAIL`，不因 p15 的"至少 3 年"输出 `UNKNOWN`；结果中声明该假设并指出 p15 的另一说法。 | 原文未提及 |
+| PD-042 | 收入门槛挂钩的税种 | 个人门槛 £12,571 在正文说与所得税 basic rate 挂钩，Annex B 却说与 2026/27 NICs 门槛一致；家庭门槛 £25,142 说随 National Insurance 门槛变动。 补充 HTML 仍保留正文与 Annex B 的挂钩税种差异。 | p15 vs p52；p17；SRC-001 HTML #earnings、#household-income、#annex-b-the-economic-case-for-change- | 当前两种门槛数值相同，不影响今天的判断；参数文件须为个人门槛与家庭门槛分别记录挂钩依据，两种税种门槛将来分离时输出 `UNKNOWN`。 | 原文未提及 |
 | PD-043 | 难民在新路线推出前的时间是否计入 | 注 14 说 2026-03-02 前申请庇护的（非 Safe and Legal）难民转入 Core Protection，有难民身份的时间"都会计入"；正文同页又说 Core Protection 时间不计入 Protection Work and Study 的 10 年，且已在英时间如何计入"将另行说明"。 | p38 注 14 vs p38 正文 | 同 PD-029：按片段日期计算并声明。注 14 支持把 2026-03-02 前申请庇护者的现有难民许可按 `CORE_PROTECTION` 自获保护之日起填写。（任务 3.4） | 原文未提及 |
 | PD-044 | 非法入境的后果：20 年 breach 路径还是加 10 年 | 第 1 章把成年时非法入境与 qualifying breach 并列，暗示进入 20 年路径，同时说第 7 章的非法入境处理适用于所有移民；第 7 章则说非法入境者无论走哪条路线都"额外加 10 年"。 | p13 vs p38；p47–p48 | 非难民路线 + 成年后非法入境：短路 `IMMIGRATION_BREACH`，不作结论。保护类路线：按 Table 2 由 `ES-PROTECTION-PATHWAY` 加 10 年，不计入 `ES-BREACH`、不短路（任务 3.4）。 | 原文未提及 |
 | PD-045 | 2027-04-06 前 URS 难民的英语标准 | Legacy Safe and Legal Routes（含 2027-04-06 前抵达的 URS 难民）属框架外，框架外群体一般须满足 B2（除非有现有豁免）；第 7 章又说 URS 难民只需 A2。 | p25、p26 注 13 vs p37、p39 | 由 `resettlementScheme = UK_RESETTLEMENT_SCHEME` 与连续 Safe and Legal 段的起点推导：早于 2027-04-06 → Legacy Safe and Legal（框架外，短路 `OUTSIDE_FRAMEWORK`），`ES-ENGLISH-B2` 输出 `UNKNOWN`（PD-045）。2027-04-06 及以后抵达者按 A2。（任务 3.4） | 原文未提及 |
 | PD-046 | care worker 二次 Health and Care 签证后的定居年限 | 第 8 章说未达标者可再获 5 年 Health and Care 签证，之后"再次申请定居"；Annex A 把这部分人放在 10 年路径下估算，案例 B 只说会支持其转入真实的担保工作。 | p43、p45 vs p50 | 二次签证后的定居：按"总计满 10 年"展示并声明假设；是否仍属保留的 5 年 qualifying period 规则、是否适用 £25,000 等条件，输出 `UNKNOWN`。 | 原文未提及 |
 | PD-047 | public funds 回看期是否要求在 qualifying route 上 | 正文写"申请前紧接的 5 年"未使用 specified public funds；案例 D 写须在 qualifying route 上"连续 5 年"未使用。 | p18 vs p19 | 申请前 5 年内有部分时间不在 qualifying route 上时，输出 `UNKNOWN`；其余按正文判断。 | 原文未提及 |
-| PD-048 | 3 年 / 高人才的命名 | 第 4 章注 10 使用 "high talent group / high talent permission"（含 Skilled Worker）；Table 1 使用 "Highest Talent Group" 并注明待 MAC 审查。二者是否同一概念不明。 | p23 注 10 vs p46 注 16 | 路线分类表使用 "high talent permission"（注 10）；"Highest Talent Group" 资格按 PD-011 输出 `UNKNOWN`；持 Skilled Worker 不等于可走 3 年路径。 | MAC 报告后（p46），日期原文未提及 |
+| PD-048 | 3 年 / 高人才的命名 | 第 4 章注 10 使用 "high talent group / high talent permission"（含 Skilled Worker）；Table 1 使用 "Highest Talent Group" 并注明待 MAC 审查。二者是否同一概念不明。 补充 HTML 仍保留两种命名及 MAC 审查说明，未给出可统一二者的新定义。 | p23 注 10 vs p46 注 16；SRC-001 HTML Ch.4 注 10／#in-summary 表注 | 路线分类表使用 "high talent permission"（注 10）；"Highest Talent Group" 资格按 PD-011 输出 `UNKNOWN`；持 Skilled Worker 不等于可走 3 年路径。 | MAC 报告后（p46），日期原文未提及 |
 | PD-049 | Protection Work and Study 的名称 | "计入定居"的路线清单写作 "Core Protection Work and Study"；第 7 章与 Table 2 均写 "Protection Work and Study"。 | p23 vs p37、p38、p47 | 视为同一路线，路线枚举使用 "Protection Work and Study"，别名记录 "Core Protection Work and Study"。 | 原文未提及 |
 | PD-050 | 5 年路径是否"不受影响" | Annex B 称 5 年路径上的人不受 Earned Settlement 影响、仍为 5 年；但正文的强化最低要求（任何犯罪记录即拒绝、B2、无政府债务）适用于所有路径。 | p54 vs p12、p21、p46 | 以正文与 Table 1 为准：5 年路径仍须满足强化最低要求；Annex B 该句不作为规则依据。 | 原文未提及 |
 | PD-051 | 丧偶伴侣须满足的要求 | 第 4 章概括说框架外弱势群体"在适当情况下"须满足强化的犯罪与英语要求；第 6 章对丧偶伴侣只说须满足 suitability 与 character 要求，未提英语。 | p26 vs p34 | 丧偶伴侣：英语要求输出 `UNKNOWN`；suitability / character 按须满足处理（同 PD-027）。 | 2027 年指引（p33 "next year"） |
@@ -134,7 +134,7 @@
 |---|---|---|---|---|---|
 | PD-053 | qualifying residence 的连续性 | 原文只说哪些路线计入（p23）、哪些不计入（p24），以及保护 / 人权路线与工作 / 家庭路线切换时重新起算（p25）；没有说不计入路线上的时间或许可之间的空隙是"只扣除"还是"打断连续性"。 | p23–p25 | 合格期 = 截至申请日连续处于同一类计入路线的最后一段；中间夹有不计入路线（如 Student、Graduate）或许可之间空隙超过 1 天，都视为中断、从下一段起重新起算。若政府采用"只扣除"口径，日期可能提前。 | 原文未提及 |
 | PD-054 | Earned Settlement 的缺席口径 | 原文没有规定 Earned Settlement 下缺席多少天会打断连续居留。 | p22–p25 | 沿用现行 Appendix Continuous Residence CR 3.1（SRC-008）：任意 12 个月缺席不超过 180 天，超过则自该次缺席结束次日重新起算；缺席天数按含出境与入境当日计（偏保守）。CR 3.4 的可豁免缺席理由不建模。 | 原文未提及 |
-| PD-055 | dependant 随主申请人定居 | 同时到达的伴侣可与主申请人同时定居（须各自满足相关要求），后到的伴侣须完成同样的合格期；18 岁以下子女随父母定居并豁免收入、债务、英语、Life in the UK；18–24 岁保留 child-dependant 身份者须满足成人强制要求、不需个人收入；家庭符合资格时已满 25 岁者须独立符合资格。 | p29–p31 | **已建模（任务 2.2）**：请求带 `principal`（主申请人时间线）与 `dependantOf` 时，`ES-DEPENDANT-PATHWAY` 按主申请人在同一申请日的结果给 dependant 年限与日期（见 `docs/contracts.md` §8）；现行法律栏建模 Skilled Worker 的 dependent partner（`CL-SW-PARTNER-5Y`）。仍不能判断：没有 `principal` 或 `dependantOf` → `INSUFFICIENT_INFORMATION`；主申请人本身是 dependant（不递归）；现行法律下的 dependent child（Appendix Children 未登记）与主申请人已定居的伴侣（SW 39.1(b)）。原文未定的口径见 PD-056–PD-062。 | 原文规则已定；剩余为建模范围 |
+| PD-055 | dependant 随主申请人定居 | 同时到达的伴侣可与主申请人同时定居（须各自满足相关要求），后到的伴侣须完成同样的合格期；18 岁以下子女随父母定居并豁免收入、债务、英语、Life in the UK；18–24 岁保留 child-dependant 身份者须满足成人强制要求、不需个人收入；家庭符合资格时已满 25 岁者须独立符合资格。 | p29–p31 | **已建模**：Earned Settlement 的 `ES-DEPENDANT-PATHWAY` 见 `docs/contracts.md` §8；现行法律已注册 `CL-SW-PARTNER-5Y`、`CL-SW-CHILD`、`CL-HKBNO-DEPENDANT`、`CL-GT-DEPENDANT`、`CL-FAMILY-CHILD`（§9、§15、§16.5），Appendix Children 已登记为 SRC-018，Skilled Worker 主申请人已定居后的 SW 39.1(b)(i) 亦已支持。HK BN(O) 伴侣／成年子女按 `CL-HKBNO-RESIDENCE-5Y` 判断。缺少 `principal`／`dependantOf` 时仍可能信息不足；不递归评估主申请人本身也是 dependant 的情形。SW 39.1(b)(ii) 的英国出生子女分支仍未建模；Earned Settlement 主申请人已定居后的缺口见 PD-063，原文未定口径见 PD-056–PD-062。 | 原文规则已定；剩余为建模范围 |
 
 ## 四、家庭建模假设（任务 2.2 新增）
 
@@ -147,7 +147,7 @@ dependant 随主申请人定居（SRC-001 Ch.5）时，原文未规定、引擎�
 | PD-058 | 后到的子女 | 原文只讲后到的伴侣须完成同样的合格期；对后到的子女只说 18 岁以下子女随父母定居。 | p29；p31 | 子女不论何时加入，都按主申请人的定居时点随家庭定居，不另计自己的合格期，并声明假设。 | 原文未提及 |
 | PD-059 | "保留 child-dependant 身份"的认定 | 18–24 岁"保留 child-dependant 身份"者可随家庭定居；没有说怎样才算保留（是否须持续依赖父母、在学、未独立生活等）。 | p29–p30；p31 | 当前 episode 为 `DEPENDANT` 且 `dependantOf = 'PARENT'` 即视为保留，不输出 `UNKNOWN`；在 `assumptions` 声明。 | 原文未提及 |
 | PD-060 | 25 岁按哪一天的年龄 | 在"家庭符合定居资格时"已满 25 岁者须独立符合资格；没有说"符合资格时"是主申请人首次满足条件之日，还是家庭实际申请之日。 | p30；p31 | 按家庭首次符合资格日计算年龄：主申请人的合格居留起点 + 其路径年限（过去或未来都按这一天），不按模拟日；在 `assumptions` 声明。若按实际申请日，已过资格日才申请的家庭中，部分子女可能已不能随家庭定居。 | 原文未提及 |
-| PD-061 | "父母双方都定居"与单主申请人 | Individual C 是"父母双方都符合资格并一起申请"，Individual D 是"只有在父母双方都定居时"才能作为 dependant 定居；引擎只接收一个主申请人。 | p31 | 子女的结论只按一位主申请人评估，假设另一位家长同时定居，或就是主申请人的随行伴侣；在 `assumptions` 声明。单亲家庭、另一位家长不在英或另有路线的情形未建模。 | 原文未提及 |
+| PD-061 | "父母双方都定居"与单主申请人 | Individual C 是"父母双方都符合资格并一起申请"，Individual D 是"只有在父母双方都定居时"才能作为 dependant 定居；引擎只接收一个主申请人。 委员会追问单亲、父母进入较长路径、能否第一位父母定居即随同的安排；本次只补证据，现有假设保持。 | p31；SRC-041 p1，问题 2–3 | 子女的结论只按一位主申请人评估，假设另一位家长同时定居，或就是主申请人的随行伴侣；在 `assumptions` 声明。单亲家庭、另一位家长不在英或另有路线的情形未建模。 | 原文未提及 |
 | PD-062 | 成年 dependant 本人用过 public funds 或有 breach | 原文对主申请人规定：用过 specified public funds 或成年后有 qualifying breach 进入 20 年路径；对 dependant 只说随主申请人定居，没有说 dependant 本人的 public funds 或 breach 是否让其另走 20 年。 | p13；p18；p29–p30 | 伴侣或 18 岁及以上子女本人的 `ES-PUBLIC-FUNDS` 或 `ES-BREACH` 为 `FAIL` 时，`ES-DEPENDANT-PATHWAY` 输出 `UNKNOWN`（PD-062），结论最多为 `POTENTIALLY_ELIGIBLE`。 | 原文未提及 |
 
 ## 五、现行法律补全与剩余过渡安排（任务 2.5 新增）
@@ -175,9 +175,9 @@ dependant 随主申请人定居（SRC-001 Ch.5）时，原文未规定、引擎�
 | PD-069 | 合并"可定居路线"的时间 | HK 62.1(b) 要求连续 5 年持"可定居路线"（a route under which a person can settle）的许可；SETF 3.2 允许 10 年路线在满足条件时补计"任何含定居规则的其他路线"的时间。两处都没有列出哪些路线属于此类。 | SRC-020 HK 62.1(b)；SRC-022 SETF 3.2 | 只计本路线（BN(O) 段；家庭伴侣 10 年路线为 SETF 3.1 列出的许可）；紧接之前有其他路线的许可时，居留规则在假设里说明"若该路线可定居，实际日期可能更早"。结论按只计本路线的年限给出，可能偏晚。 | 原文未提及（需逐条路线核对其 Appendix 是否为 route to settlement） |
 | PD-070 | 5 年伴侣路线的"连续居住"如何因缺席中断 | E-ILRP.1.3 要求在英国连续居住至少 5 年（60 个月）；Appendix FM 没有引用 Appendix Continuous Residence，也没有规定多长的缺席会中断连续居住（E-ILRP.1.5 只对 FM-SE 26A 的期间免除"在英国"）。 | SRC-024 E-ILRP.1.3、E-ILRP.1.5 | `CL-FAMILY-RESIDENCE` 的 5 年路线不因缺席重新起算；填了缺席时在假设里说明（PD-070）。 | 原文未提及 |
 
-本任务另有以下未建模的点。它们是引擎范围的取舍，不是政府未定的细节，所以不设 PD 编号；结果页通过规则的解释或假设说明。
+本节的范围说明按当前规则注册表更新；以下区分已支持条件与仍保留的建模取舍，不为后者另设政府未定 PD。
 
-- 两条路线及家庭路线的 dependant（HK 57.1–HK 59.1 的子女与 adult dependant relative；GT 25.1–GT 34.2 的伴侣与子女；Appendix FM / Settlement Family Life 的子女）：`CL-SCOPE` 输出 `UNKNOWN`，解释"只建模该路线的主申请人"。
+- **后续已支持的 dependant**：HK BN(O) 伴侣／成年子女按 `CL-HKBNO-RESIDENCE-5Y`；未成年子女与 adult dependant relative 按 `CL-HKBNO-DEPENDANT`。Global Talent 的伴侣／子女按 `CL-GT-DEPENDANT`；家庭路线子女按 `CL-FAMILY-CHILD`，其中 10 年路线走 Appendix Settlement Family Life，5 年伴侣路线的子女走 Part 8 para 298（PD-074 已关闭）。依赖主申请人的分支须提供其时间线；各规则仍保留关系、年龄、照护与许可连续性等假设，不能概括成所有家属情形均已覆盖。
 - Global Talent 的 GT 10.1（背书未被撤回）与 GT 10.2（上一段许可期间在背书或奖项领域有收入）：按满足处理，写进 `CL-GT-RESIDENCE` 的假设。
 - GT 11.3(f)(h) 的 Tier 1 与 Representative of an Overseas Business：`Route` 中没有，不计入，写进假设。
 - 家庭伴侣 10 年路线的 SETF 3.1(e)（基于 Article 8 的 Leave Outside the Rules）：无法与其他 Leave Outside the Rules 区分，不计入；SETF 7.2–7.3（关系真实持续、以当前关系持许可满 1 年）按满足处理。
@@ -217,3 +217,15 @@ dependant 随主申请人定居（SRC-001 Ch.5）时，原文未规定、引擎�
 | ID | 事项 | 原文怎么说 | 出处 | 对引擎的影响 | 预计何时明确 |
 |---|---|---|---|---|---|
 | PD-075 | 伴侣领取特定福利时 adequate maintenance 的口径 | 伴侣领取 E-LTRP.3.3(a) 所列福利之一时，申请人可不按收入或储蓄门槛，改为证明伴侣能在不依赖 public funds 的情况下充分供养与安置其本人、申请人与 dependants（E-LTRP.3.3(b)）。Appendix FM 没有给出数字或算法；算法在 Appendix FM-SE 与内政部指引中，本仓库未登记。 | SRC-024 E-LTRP.3.1(c)、E-LTRP.3.3、E-LTRP.3.7(c) | 5 年伴侣路线：收入与储蓄都不满足财务门槛、且 `partnerSpecifiedBenefit` 为真时，`CL-FAMILY-FINANCIAL` 输出 `UNKNOWN`（PD-075）；其他要求都满足时结论为 `POTENTIALLY_ELIGIBLE`（`docs/contracts.md` §17.3）。 | 原文未提及（登记 Appendix FM-SE 与相关指引后可建模） |
+
+## 十一、预算提案与既有规则歧义（任务 12.2 新增）
+
+本节仅登记待定内容，不修改引擎、参数或现有规则集的生效范围。预算案给出的方向／季节／年份不等于精确生效日；现行已明确的 Graduate 申请日分界和 HPI cap 不列为政府未定。
+
+| ID | 事项 | 原文怎么说 | 出处 | 对引擎的影响 | 预计何时明确 |
+|---|---|---|---|---|---|
+| PD-076 | 新 work visa 薪资门槛、折扣与过渡 | 预算拟调整 occupation-specific 与一般门槛、年度更新、统一 new entrant 折扣并移除 PhD 折扣；议会答复重述方向和春季窗口，但没有列出新金额、完整资格或过渡边界。 | SRC-032 §7.9，Implementing Migration Advisory Committee (MAC) recommendations on visa salary requirements；SRC-033，40064 Answer ¶2–6、¶10（Budget ¶6.94） | 新一般门槛、各 SOC going rate、折扣数值、在途适用与是否涉及 settlement 表均为 `UNKNOWN`；保留 SRC-004 SW 24.3／SRC-017 的现行数据，不把 MAC 建议或旧工资数据计算结果当新法。 | 计划 2027 年春季；确切日期与细节原文未提及（SRC-033 Answer ¶2、¶10） |
+| PD-077 | Graduate 大学例外的认定与申请边界 | 预算拟让高合规且就业结果良好的大学毕业生获得两年 Graduate 许可；未定义新条件、认定大学名单或适用申请日。 | SRC-032 §5.6 #access-to-talent、§7.9 Extending the graduate visa from 18 months to two years for eligible universities；SRC-034 GR 4.1、GR 8.1 | 预算例外资格及适用日为 `UNKNOWN`，不覆盖已入法的 GR 8.1：非博士在 2027-01-01 前申请两年、自该日起申请 18 个月，博士三年（SRC-034 GR 8.1）。现引擎未实现 Graduate 发签时长判断。 | 新例外确切实施日原文未提及 |
+| PD-078 | HPI 扩容后的名单、cap 与实施边界 | 预算拟扩至全球 top 150 institutions 并按比例增加 cap；未给新名单、具体新 cap 或精确实施日。 | SRC-032 §5.6 #access-to-talent、§7.9 Expanding the High Potential Individual visa；SRC-035 HPI 1.6A、5.1–5.3；SRC-036 正文首段与大学表 | 新方案细节为 `UNKNOWN`；现行 8,000 年度 cap（SRC-035 HPI 1.6A）与按授予日匹配年度名单的要求照旧，不能把 SRC-036 的年度维护当作扩容完成。现引擎不判断 HPI 入境／发签资格。 | 新方案确切实施日原文未提及 |
+| PD-079 | 最长六个月 curtailment 的适用与分档 | 预算和议会答复拟让 highest skilled workers 获最长六个月找新工作的 curtailment 期间，时长取决于此前高薪岗位的工作年限；未给完整 eligible cohort、起算、分档或过渡。 | SRC-032 §7.9 Extending visa curtailment to six months；SRC-033，40064 Answer ¶9–10（Budget ¶6.95） | 资格、具体时长与边界为 `UNKNOWN`；不等同所有 Skilled Worker 自动享有六个月，不与 SRC-001 的 care worker 专门安排合并，现引擎不新增该判断。 | 计划 2027 年；确切日期与细节原文未提及（SRC-033 Answer ¶9–10） |
+| PD-080 | SW 24.3 row E 在 SW 14.5(c) 截止后的表格引用 | SW 14.5(c)(iii) 要求申请早于 2026-12-01；SW 24.3 row E 又直接引用 SW 14.5(c) 的表，SW 24.4(a) 引用 SW 14.1–14.5，未明确截止后 row E 能否继续用该表。 | SRC-004 SW 14.5(c)(iii)、SW 24.3 row E、SW 24.4(a)；既有审查见 docs/tasks/reports/11.4-going-rate-transition.md | row E 本就未建模，`CL-SW-SALARY`／`CL-SW-GOING-RATE` 保留范围假设，不改变现行输出；如以后纳入该群体，截止后该表是否可用应为 `UNKNOWN`，不能把此歧义扩成所有工签 going rate 的变化。 | 原文未提及；待官方澄清或后续修法 |
