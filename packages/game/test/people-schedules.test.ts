@@ -24,6 +24,42 @@ function weekday(
 }
 
 describe('10.1 household schedules', () => {
+  test('12.4 all eight town residents stay dispersed through every ordinary schedule boundary', () => {
+    const residents = npcs.filter((npc) => !npc.characters);
+    expect(residents).toHaveLength(8);
+    // Locations are piecewise constant. Checking every boundary and its previous
+    // minute covers the whole day, including dawn, dusk and the lunch override.
+    const minutes = new Set([0, 419, 420, 1080, 1439]);
+    for (const npc of residents)
+      for (const rule of npc.schedule) {
+        for (const stop of rule.stops) {
+          minutes.add(stop.from);
+          if (stop.from > 0) minutes.add(stop.from - 1);
+        }
+        for (const condition of rule.when ?? []) {
+          if ('minuteMin' in condition) minutes.add(condition.minuteMin!);
+          if ('minuteMax' in condition) minutes.add(condition.minuteMax! + 1);
+        }
+      }
+    for (const kind of ['workday', 'weekend', 'special'] as const)
+      for (const weather of ['sunny', 'cloudy', 'rain', 'snow'] as const)
+        for (const lunch of [false, true])
+          for (const minute of minutes) {
+            const state = weekday('skilled-worker', minute, weather);
+            state.day.kind = kind;
+            if (lunch) state.flags.push('quarter-board-community-lunch');
+            const occupied = new Map<string, string[]>();
+            for (const npc of residents) {
+              const at = npcAt(state, npc.id);
+              occupied.set(at, [...(occupied.get(at) ?? []), npc.id]);
+            }
+            for (const [at, people] of occupied)
+              expect(
+                people.length,
+                `${kind}/${weather}/${minute}/${at}: ${people.join(', ')}`,
+              ).toBeLessThanOrEqual(2);
+          }
+  });
   test.each(households)(
     '%s / %s leaves for work or school and comes home',
     (character, npc) => {

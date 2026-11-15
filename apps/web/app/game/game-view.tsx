@@ -42,6 +42,8 @@ import {
   visaStatus,
   isPlaceOpen,
   needsVisaReminder,
+  endingMemories,
+  itemIcon,
 } from './session';
 import { groupedMemories, type DayMemory } from './diary';
 import site from '../site.module.css';
@@ -768,6 +770,93 @@ export function QuarterSummary({
   );
 }
 
+export function LifeMemories({ state }: { state: GameState }) {
+  const { t, locale } = useTranslation();
+  const { friends, furnishings, crops, photo } = endingMemories(state);
+  if (!friends.length && !furnishings.length && !crops.length && !photo)
+    return null;
+  return (
+    <section aria-labelledby="life-memories-heading">
+      <h2 id="life-memories-heading">{t('game.lifeMemories')}</h2>
+      <div className={styles.memoryGrid}>
+        {!!friends.length && (
+          <article className={styles.memoryCard}>
+            <h3>{t('game.memoryFriends')}</h3>
+            <ul>
+              {friends.map((npc) => (
+                <li key={npc.id}>
+                  <span
+                    className={styles.memoryPortrait}
+                    role="img"
+                    aria-label={localText(npc.name, locale)}
+                    style={{ backgroundImage: `url("${spritePath(npc.id)}")` }}
+                  />
+                  <span>{localText(npc.name, locale)}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        )}
+        {!!furnishings.length && (
+          <article className={styles.memoryCard}>
+            <h3>{t('game.memoryHome')}</h3>
+            <ul>
+              {furnishings.map((item) => (
+                <li key={item.id}>
+                  <span
+                    className={styles.itemIcon}
+                    aria-hidden="true"
+                    style={{
+                      backgroundImage: `url("/game/assets/indoor/${item.atlas}")`,
+                      backgroundSize: `${item.frames * 32}px 32px`,
+                      backgroundPosition: `${-item.frame * 32}px 0`,
+                    }}
+                  />
+                  <span>{localText(item.name, locale)}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        )}
+        {photo && (
+          <article className={styles.memoryCard}>
+            <h3>{t('game.memoryLunch')}</h3>
+            <span
+              className={styles.memoryPhoto}
+              aria-hidden="true"
+              style={{
+                backgroundImage: `url("${itemIcon('community-lunch-photo')}")`,
+              }}
+            />
+            <p>{t('game.memoryLunchText')}</p>
+          </article>
+        )}
+        {!!crops.length && (
+          <article className={styles.memoryCard}>
+            <h3>{t('game.memoryGarden')}</h3>
+            <ul>
+              {crops.map((item) => (
+                <li key={item.id}>
+                  <span
+                    className={styles.itemIcon}
+                    aria-hidden="true"
+                    style={{
+                      backgroundImage: `url("${itemIcon(item.id)}")`,
+                      backgroundSize: '192px 32px',
+                      backgroundPosition: '-160px 0',
+                    }}
+                  />
+                  <span>{localText(item.name, locale)}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export function Ending({
   state,
   onChange,
@@ -784,6 +873,7 @@ export function Ending({
           {localText(line, locale)}
         </p>
       ))}
+      <LifeMemories state={state} />
       <h2>{t('game.achievements')}</h2>
       <div className={styles.achievementColumns}>
         {[true, false].map((earned) => {

@@ -87,6 +87,12 @@ export class TownScene extends Phaser.Scene {
   private focusNpc?: string;
   private windows?: Phaser.GameObjects.Graphics;
   private celebration?: Phaser.GameObjects.Graphics;
+  private lunch: {
+    object: Phaser.GameObjects.Sprite | Phaser.GameObjects.Graphics;
+    requires?: 'tables' | 'food';
+    cell?: Cell;
+  }[] = [];
+  private lunchCells = new Set<string>();
   private transients = new Map<
     Phaser.GameObjects.Text | Phaser.GameObjects.Sprite,
     {
@@ -117,6 +123,12 @@ export class TownScene extends Phaser.Scene {
     this.load.image('home-tiles', '/game/assets/indoor/tiles.png');
     this.load.image('home-details', '/game/assets/indoor/home-details.svg');
     this.load.image('item-fallback', '/game/assets/indoor/item.png');
+    this.load.spritesheet('lunch-furniture', '/game/assets/indoor/tiles.png', {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
+    this.load.image('lunch-meal', '/game/assets/items/meal.png');
+    this.load.image('lunch-biscuits', '/game/assets/items/biscuits.png');
     for (const id of [this.view.state.characterId, ...npcs.map((n) => n.id)])
       this.load.spritesheet(id, spritePath(id), {
         frameWidth: 16,
@@ -209,6 +221,8 @@ export class TownScene extends Phaser.Scene {
     this.lampLights = [];
     this.windows = undefined;
     this.celebration = undefined;
+    this.lunch = [];
+    this.lunchCells.clear();
     this.focusNpc = undefined;
     for (const o of this.transients.keys()) {
       this.tweens.killTweensOf(o);
@@ -329,6 +343,7 @@ export class TownScene extends Phaser.Scene {
         }
       });
       this.decorateFestival();
+      this.decorateLunch();
     }
     this.sky = this.own(this.add.graphics().setScrollFactor(0).setDepth(1500));
     this.rain = this.own(this.add.graphics().setScrollFactor(0).setDepth(1600));
@@ -397,7 +412,19 @@ export class TownScene extends Phaser.Scene {
         const p = places.find(
           (p) => p.id === (spot.interaction as { id: PlaceId }).id,
         )!;
-        spot.label.setText(view.locale === 'en' ? p.name.en : p.name.zhCN);
+        const name = view.locale === 'en' ? p.name.en : p.name.zhCN;
+        const contribution = view.state.flags.includes(
+          'quarter-community-lunch-tables',
+        )
+          ? 'game.lunchTables'
+          : view.state.flags.includes('quarter-community-lunch-food')
+            ? 'game.lunchFood'
+            : undefined;
+        spot.label.setText(
+          p.id === 'green' && this.lunchVisible()
+            ? `${t('game.lunchScene', view.locale)}${contribution ? `\n${t(contribution, view.locale)}` : ''}`
+            : name,
+        );
       } else if (spot.interaction.kind === 'home') {
         spot.label.setText(
           t(
@@ -429,6 +456,7 @@ export class TownScene extends Phaser.Scene {
       }
     });
     this.syncScenery();
+    this.syncLunch();
     this.syncResidents();
     const focus = view.focusNpc
       ? this.residents.get(view.focusNpc)?.sprite
@@ -631,6 +659,79 @@ export class TownScene extends Phaser.Scene {
       this.celebration = this.own(this.add.graphics().setDepth(1560));
     }
   }
+  private lunchVisible() {
+    const { state, interior } = this.view;
+    return (
+      !interior &&
+      state.quarter === 3 &&
+      state.flags.includes('quarter-board-community-lunch') &&
+      state.day.kind === 'weekend' &&
+      state.day.minute >= 420 &&
+      state.day.minute < 960
+    );
+  }
+  private decorateLunch() {
+    // South of the festival stalls, clear of the green's entrance and benches.
+    const furniture = (
+      x: number,
+      y: number,
+      frame: number,
+      requires?: 'tables',
+    ) => {
+      const object = this.own(
+        this.add
+          .sprite(x * size + 8, y * size + 8, 'lunch-furniture', frame)
+          .setDepth(y * size + size),
+      );
+      this.lunch.push({ object, cell: { x, y }, requires });
+    };
+    for (const x of [32, 33, 34]) furniture(x, 34, 7);
+    for (const x of [32, 34]) {
+      furniture(x, 35, 8);
+      furniture(x, 33, 8, 'tables');
+    }
+    const table = this.own(this.add.graphics().setDepth(561));
+    table.fillStyle(0xffedc2).fillRect(512, 545, 48, 8);
+    for (const x of [518, 535, 553]) {
+      table.fillStyle(0xfffcf1).fillCircle(x, 549, 3);
+      table.lineStyle(1, 0xb49d7c).lineBetween(x + 5, 547, x + 5, 551);
+    }
+    this.lunch.push({ object: table });
+    const food = this.own(
+      this.add
+        .sprite(536, 548, 'lunch-meal')
+        .setDisplaySize(12, 12)
+        .setDepth(562),
+    );
+    this.lunch.push({ object: food, requires: 'food' });
+  }
+  private syncLunch() {
+    const visible = this.lunchVisible();
+    this.lunchCells.clear();
+    for (const { object, requires, cell } of this.lunch) {
+      const shown =
+        visible &&
+        (!requires ||
+          this.view.state.flags.includes(
+            `quarter-community-lunch-${requires}`,
+          ));
+      object.setVisible(shown);
+      if (shown && cell) this.lunchCells.add(`${cell.x}:${cell.y}`);
+      if (shown && requires === 'food') {
+        const state = this.view.state;
+        const biscuits = state.log.some(
+          (entry) =>
+            entry.kind === 'action' &&
+            entry.year === state.year &&
+            entry.quarter === state.quarter &&
+            entry.id === 'community-lunch-biscuits',
+        );
+        (object as Phaser.GameObjects.Sprite).setTexture(
+          biscuits ? 'lunch-biscuits' : 'lunch-meal',
+        );
+      }
+    }
+  }
   private paintLight() {
     if (!this.sky) return;
     const minute = this.view.state.day.minute,
@@ -649,7 +750,9 @@ export class TownScene extends Phaser.Scene {
     );
     if (this.view.interior) {
       if (this.view.state.flags.includes('brighter-home'))
-        this.sky.fillStyle(0xffedbc, 0.13).fillRect(0, 0, w, h);
+        this.sky
+          .fillStyle(0xffedbc, minute >= 1080 ? 0.16 : 0.26)
+          .fillRect(0, 0, w, h);
     } else {
       const color =
         minute >= 1260 ? 0x162750 : minute >= 1080 ? 0xdc9651 : 0x2c415b;
@@ -805,6 +908,7 @@ export class TownScene extends Phaser.Scene {
       cell.y >= 0 &&
       cell.x < this.map.width &&
       cell.y < this.map.height &&
+      !this.lunchCells.has(`${cell.x}:${cell.y}`) &&
       !((this.collision?.getTileAt(cell.x, cell.y)?.index ?? -1) > 0)
     );
   }

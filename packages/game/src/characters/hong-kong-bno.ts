@@ -1,3 +1,4 @@
+import { characterLifeEvents } from '../events/life';
 import { currentLaw2026_11 } from '@uk-immigration/policy-data';
 import type { Character, GameEvent } from '../types';
 import { balance } from '../balance';
@@ -2674,5 +2675,5 @@ export const hongKongBno: Character = {
     governmentDebt: { outstanding: false },
   },
   stats: { money: 12000, mood: 68, health: 76, english: 45, career: 18 },
-  events,
+  events: [...events, ...characterLifeEvents['hong-kong-bno']],
 };
