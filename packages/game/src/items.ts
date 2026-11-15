@@ -13,6 +13,11 @@ const crops: [string, string, string, Quarter[]][] = [
 ];
 export const items: Item[] = [
   {
+    id: 'swap-pot',
+    name: { zhCN: '交换箱里的旧花盆', en: 'Second-hand swap-box pot' },
+    kind: 'gift',
+  },
+  {
     id: 'community-lunch-photo',
     name: { zhCN: '邻里聚餐合照', en: 'Neighbourhood lunch photograph' },
     kind: 'gift',

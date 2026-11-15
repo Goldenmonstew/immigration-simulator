@@ -158,6 +158,21 @@ export interface GameState {
   inventory: Record<ItemId, number>;
   /** Missing in earlier v3 saves; treat as empty, populated on the next record. */
   lifeRecords?: LifeRecords;
+  /** Missing in earlier v3 saves; only explicit May Day actions populate it. */
+  mayDay?: {
+    year: number;
+    preparation?: 'ribbons' | 'signs';
+    participation?: 'dance' | 'guide';
+    participationDay?: number;
+    indoors?: boolean;
+    followupSeen?: boolean;
+  };
+  /** Missing in earlier v3 saves; a resolved map encounter is never offered again. */
+  surpriseRecords?: {
+    id: SurpriseId;
+    choiceId: string;
+    dayNumber: number;
+  }[];
   friendship: Record<NpcId, number>;
   plots: Plot[];
   heard: string[];
@@ -217,6 +232,15 @@ export type AnchorId =
   | 'library-steps';
 /** 'away': out of town for work or school. */
 export type NpcLocation = PlaceId | AnchorId | 'away';
+export type SurpriseId = 'biscuit-cat' | 'swap-box' | 'lost-mitten';
+export interface MapSurprise {
+  id: SurpriseId;
+  phase: 'clue' | 'trace';
+  anchor: AnchorId;
+  text: Text;
+  /** Clues expire at this minute on the current representative day. */
+  expiresMinute?: number;
+}
 /** 'margaret' | 'priya' | 'ade' | 'helen' | 'dave' | 'rahman' | 'lina' | 'gareth' plus household ids. */
 export type NpcId = string;
 /** Seeds are `seed-<crop>`; the client maps unknown ids to a fallback icon. */
