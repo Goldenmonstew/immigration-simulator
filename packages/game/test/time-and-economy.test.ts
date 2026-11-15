@@ -89,12 +89,21 @@ describe('11.2 news and the old-rules window', () => {
           receive(at(story.until, character.id), story.event).pendingEvent,
         ).toBeUndefined();
       }
-      for (const text of textOf(story.event))
-        expect(text.zhCN + text.en).not.toMatch(/\d/);
+      for (const text of textOf(story.event)) {
+        // SRC-032 §7.9 supplies the Budget card's spring 2027 window.
+        const copy = text.zhCN + text.en;
+        expect(
+          story.event.id === 'news-budget-2026'
+            ? copy.replaceAll('2027', '')
+            : copy,
+        ).not.toMatch(/\d/);
+      }
     },
   );
   test('only Yao receives the reminder, before the exclusive cutoff, including through fast-forward', () => {
-    const story = policyStories.find((s) => s.character)!;
+    const story = policyStories.find(
+      (s) => s.event.id === 'sw-settlement-window-letter',
+    )!;
     expect(receive(at('2029-10-03'), story.event).pendingEvent).toBeUndefined();
     const before = receive(at('2030-04-03'), story.event);
     expect(before.pendingEvent).toBe(story.event.id);

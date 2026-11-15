@@ -1,3 +1,4 @@
+import { characterLifeEvents } from '../events/life';
 import {
   currentLaw2026_11,
   earnedSettlement2026_11,
@@ -2654,5 +2655,5 @@ export const familyPartner: Character = {
     governmentDebt: { outstanding: false },
   },
   stats: { money: 16000, mood: 70, health: 76, english: 45, career: 16 },
-  events,
+  events: [...events, ...characterLifeEvents['family-partner']],
 };
