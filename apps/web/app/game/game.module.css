@@ -303,6 +303,51 @@
 .ending {
   padding: 24px 0;
 }
+.memoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 16px;
+  margin: 20px 0 32px;
+}
+.memoryCard {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #b2c6b5;
+  background: #faf6e9;
+  overflow-wrap: anywhere;
+}
+.memoryCard h3 {
+  margin: 0 0 16px;
+}
+.memoryCard ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.memoryCard li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.memoryPortrait,
+.memoryPhoto {
+  display: block;
+  flex-shrink: 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+.memoryPortrait {
+  width: 48px;
+  height: 48px;
+  background-size: 192px 144px;
+}
+.memoryPhoto {
+  width: 72px;
+  height: 72px;
+  background-size: contain;
+}
 .story {
   max-width: 45em;
   line-height: 1.85;

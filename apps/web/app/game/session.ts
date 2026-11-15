@@ -87,6 +87,8 @@ export const cropIds = [
   'tulip',
 ];
 export const itemIcon = (id: string) => {
+  if (id === 'community-lunch-photo')
+    return '/game/assets/items/community-lunch-photo.svg';
   const crop = id.replace(/^seed-/, '');
   if (cropIds.includes(crop)) return `/game/assets/crops/${crop}.png`;
   if (['tea', 'biscuits', 'flowers', 'cake'].includes(id))
@@ -96,6 +98,62 @@ export const itemIcon = (id: string) => {
   if (item?.kind === 'food') return '/game/assets/items/meal.png';
   return '/game/assets/indoor/item.png';
 };
+
+export function endingMemories(state: GameState) {
+  const friends = townsfolk(state)
+    .filter(
+      (npc) =>
+        state.flags.includes(`talked-${npc.id}`) &&
+        (state.friendship[npc.id] ?? 0) > 0,
+    )
+    .sort((a, b) => state.friendship[b.id] - state.friendship[a.id])
+    .slice(0, 2);
+  const furnishings = [
+    {
+      id: 'reading-chair',
+      name: { zhCN: '阅读椅', en: 'Reading chair' },
+      atlas: 'tiles.png',
+      frame: 8,
+      frames: 15,
+    },
+    {
+      id: 'warm-curtains',
+      name: { zhCN: '厚窗帘', en: 'Warm curtains' },
+      atlas: 'home-details.svg',
+      frame: 0,
+      frames: 3,
+    },
+    {
+      id: 'desk-lamp',
+      name: { zhCN: '台灯', en: 'Desk lamp' },
+      atlas: 'home-details.svg',
+      frame: 2,
+      frames: 3,
+    },
+  ].filter((item) => state.flags.includes(`furnished-${item.id}`));
+  // Harvest logs retain the crop's bilingual name, but no item ID.
+  const crops = items.filter(
+    (item) =>
+      item.kind === 'crop' &&
+      (state.plots.some(
+        (plot) =>
+          items.find((seed) => seed.id === plot.seed)?.grows?.crop === item.id,
+      ) ||
+        state.log.some(
+          (entry) =>
+            entry.kind === 'action' &&
+            entry.id === 'harvest' &&
+            entry.text.en === item.name.en &&
+            entry.text.zhCN === item.name.zhCN,
+        )),
+  );
+  return {
+    friends,
+    furnishings,
+    crops,
+    photo: state.flags.includes('community-lunch-photo-received'),
+  };
+}
 export const visaMonths = (state: GameState) =>
   Math.floor(visaMonthsLeft(state));
 
