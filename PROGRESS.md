@@ -146,6 +146,7 @@
 | 140 | 12.6 合入 main（sol 7455986，merge 738ecf2）：生活记录按物品 ID 持久保存（首次钓到的鱼、首次做成的菜、每次收获，吃掉或送出后仍在，旧存档兼容）；林遥、嘉宁、索菲娅各一条 3–4 场的生活链；公共花坛三阶段（出力或捐苗都能推进，快进不自动完成）。Fable 验收：确认测试只新增断言、没有放宽；合并后 main 全仓 gate 通过（GATE EXIT 0，game 1,182、web 348）。收藏册与花坛的画面待 12.7（astra，12.9 之后）。12.10（sol：节日深化与地图小惊喜）开工 | packages/game/**, docs/tasks/reports/12.6-life-chains-and-collections.md, docs/tasks/12.10-festival-and-surprises.md, docs/tasks/phase-12-plan.md, PROGRESS.md |
 | 141 | 12.9 合入 main（astra f93e26d，merge 68c0e91）：/game 范围内换成"暖木与草甸"主题（关键配色对比度 5.4–15.5:1）；铭牌加头像的对话框，点台词可跳过打字机；桌面 HUD 两排、五色属性条；手机顶栏一行，底部 Dock 加地点抽屉，首屏能看到画布；选人页三列对齐、中文游戏名、像素相框；地点标签常显，附近的高亮。Fable 验收：合并后 main 全仓 gate 通过（GATE EXIT 0，game 1,182、web 354）；用 2 倍、3 倍无头截图核对桌面绿地、手机选人、室内、菜单、对话框。发现：手机端"互动 · E / 空格 / 点按"仍显示键盘按键并折行。agy 复评进行中 | apps/web/**, docs/tasks/reports/12.9-game-visual-direction.md, PROGRESS.md |
 | 142 | agy 复评（新截图 + 源码）入库：上一轮前 10 个问题中，P6、P9 已解决，其余部分解决；整体观感分 5.0 → 7.5（游戏 4.0 → 7.5）。遗留问题包括：手机 Dock 截断进度卡、互动按钮挡门并显示键盘按键、结局页内嵌的政务风评估表、标签两级不分、彩色 Emoji 等。排出 12.11（astra，复评低成本收尾，先于 12.7）；带表情立绘、横幅与招牌需要新素材，暂不做 | docs/research/2026-11-15-design-review-2.md, docs/tasks/12.11-design-polish.md, docs/tasks/phase-12-plan.md, PROGRESS.md |
+| 143 | 12.10 合入 main（sol 6af805d，merge 8b0df77）：五月节加上节前准备（两种分支）→ 当天按准备不同的结果 → 散场后回访，雨天有室内替代；三个地图小惊喜，先在锚点出现异样、走近才触发，过期不补、读档不重复。Fable 验收：测试只有新增；合并后 main 全仓 gate 通过（GATE EXIT 0，game 1,212、web 354）。sol 发现：网页端在事件选择后不显示 `outcome.text`，惊喜收尾文案需要 astra 接入，已并入 12.7 | packages/game/**, docs/tasks/reports/12.10-festival-and-surprises.md, docs/tasks/phase-12-plan.md, PROGRESS.md |
 
 ### 当前状态
 
