@@ -1,13 +1,15 @@
 # AGENTS.md — 本仓库所有 agent 的工作约定
 
-适用于在本仓库工作的所有 agent：Claude Code（Opus）、Codex CLI（astra / sol）等。Claude Code 通过 `CLAUDE.md` 引入本文件。
+适用于在本仓库工作的所有 agent：Codex CLI（astra / sol 等）与 Claude Code。Claude Code 通过 `CLAUDE.md` 引入本文件。
+
+2026-11-15 起（用户决定）：所有写代码、写内容、做调研的任务都交给 Codex 模型；Fable 只统筹、写 brief、验收和合并。
 
 ## 角色与边界
 
 - Fable（统筹 / 验收）拆任务、写 brief、评审契约、验收并合并到 `main`；不写业务代码。
 - 每个任务只做 brief 指定的范围。发现范围外的问题，写进最终报告的"发现与建议"，不要擅自实现。
 - 一个 package 同一时间只有一个 writer：
-  - `packages/engine` 与一切规则语义：仅 Opus
+  - `packages/engine` 与一切规则语义：仅 sol（规则改动须附 SRC 定位与测试）
   - `apps/web`：仅 astra
   - `packages/game`（游戏内容与纯逻辑）：仅 sol
   - 仓库脚手架、`packages/policy-data` 的 schema / 数据表 / fixtures 工具链、CI、lint：仅 sol
@@ -22,7 +24,7 @@
 ## 政策内容的硬规则
 
 - 任何政策数字（门槛、年限、日期）必须能追溯到 `docs/SOURCES.md` 的 `SRC-xxx` + 页码或段落号；没有来源的数字不要写进代码、数据或文档。
-- 规则语义只由 Opus 改；其他 agent 发现规则问题只报告。
+- 规则语义只由 sol 在 brief 指定的任务里改；其他 agent 发现规则问题只报告。
 - 政府未定的细节输出 `UNKNOWN`，并登记到 `docs/pending-details.md`；不要猜。
 - 不要在代码里硬编码裸数字门槛，一律走 `packages/policy-data` 的参数文件。
 - 不要用律所、媒体页面替代官方来源；二手来源只能用于交叉验证。
