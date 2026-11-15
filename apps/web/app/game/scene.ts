@@ -45,6 +45,16 @@ type Walker = {
   hide: boolean;
 };
 const size = 16;
+const landscapes = {
+  1: { grass: [156, 170, 174], trees: [132, 148, 155] }, // Winter: cool grey.
+  2: { grass: [91, 170, 91], trees: [147, 191, 68] }, // Spring: fresh green.
+  4: { grass: [139, 146, 79], trees: [193, 126, 54] }, // Autumn: ochre foliage.
+};
+const furnishingFlags = [
+  'furnished-reading-chair',
+  'furnished-warm-curtains',
+  'furnished-desk-lamp',
+];
 const distance = (a: Cell, b: Cell) =>
   Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 export class TownScene extends Phaser.Scene {
@@ -61,6 +71,9 @@ export class TownScene extends Phaser.Scene {
   private anchors = new Map<string, Cell>();
   private residents = new Map<string, Walker>();
   private cropSprites: Phaser.GameObjects.Sprite[] = [];
+  private furnishings: { flag: string; layer: Phaser.Tilemaps.TilemapLayer }[] =
+    [];
+  private townTiles?: Phaser.Tilemaps.Tileset;
   private lampLights: Phaser.GameObjects.Graphics[] = [];
   private sky?: Phaser.GameObjects.Graphics;
   private rain?: Phaser.GameObjects.Graphics;
@@ -102,6 +115,7 @@ export class TownScene extends Phaser.Scene {
     this.load.tilemapTiledJSON('home', '/game/home.json');
     this.load.image('town-tiles', '/game/assets/modern-city/tiles.png');
     this.load.image('home-tiles', '/game/assets/indoor/tiles.png');
+    this.load.image('home-details', '/game/assets/indoor/home-details.svg');
     this.load.image('item-fallback', '/game/assets/indoor/item.png');
     for (const id of [this.view.state.characterId, ...npcs.map((n) => n.id)])
       this.load.spritesheet(id, spritePath(id), {
@@ -190,6 +204,8 @@ export class TownScene extends Phaser.Scene {
     this.anchors.clear();
     this.residents.clear();
     this.cropSprites = [];
+    this.furnishings = [];
+    this.townTiles = undefined;
     this.lampLights = [];
     this.windows = undefined;
     this.celebration = undefined;
@@ -210,6 +226,13 @@ export class TownScene extends Phaser.Scene {
     map.createLayer('decor', tileset)!.setDepth(1);
     this.collision = map.createLayer('collision', tileset)!;
     this.collision.setVisible(false);
+    if (this.view.interior) {
+      const details = map.addTilesetImage('home-details', 'home-details')!;
+      this.furnishings = furnishingFlags.map((flag) => ({
+        flag,
+        layer: map.createLayer(flag, [tileset, details])!.setDepth(2),
+      }));
+    } else this.townTiles = tileset;
     const spawn = map.getObjectLayer('spawn')!.objects[0];
     this.cell = { x: spawn.x! / size, y: spawn.y! / size };
     if (fromHome && !this.view.interior) this.cell = { x: 5, y: 12 };
@@ -405,6 +428,7 @@ export class TownScene extends Phaser.Scene {
         );
       }
     });
+    this.syncScenery();
     this.syncResidents();
     const focus = view.focusNpc
       ? this.residents.get(view.focusNpc)?.sprite
@@ -423,6 +447,55 @@ export class TownScene extends Phaser.Scene {
       this.feedbackToken = view.feedback.token;
       this.feedback(view.feedback);
     }
+  }
+  private syncScenery() {
+    for (const { flag, layer } of this.furnishings) {
+      const visible = this.view.state.flags.includes(flag);
+      layer.setVisible(visible);
+      if (flag === 'furnished-reading-chair')
+        layer.forEachTile((tile) => {
+          if (tile.index > 0)
+            this.collision!.putTileAt(visible ? 1 : -1, tile.x, tile.y);
+        });
+    }
+    if (!this.townTiles) return;
+    const quarter = this.view.state.quarter;
+    const key = quarter === 3 ? 'town-tiles' : `town-tiles-${quarter}`;
+    if (quarter !== 3 && !this.textures.exists(key)) {
+      // Tile tint is WebGL-only. Cache a small atlas for both renderers instead.
+      const source = this.textures
+        .get('town-tiles')
+        .getSourceImage() as HTMLImageElement;
+      const texture = this.textures.createCanvas(
+        key,
+        source.width,
+        source.height,
+      )!;
+      const context = texture.context;
+      context.drawImage(source, 0, 0);
+      const pixels = context.getImageData(0, 0, source.width, source.height);
+      const data = pixels.data;
+      for (const gid of [1, 26, 27, 28]) {
+        const palette = landscapes[quarter][gid === 1 ? 'grass' : 'trees'];
+        for (let y = 0; y < size; y++)
+          for (let x = (gid - 1) * size; x < gid * size; x++) {
+            const i = (y * source.width + x) * 4;
+            // Preserve transparent pixels and the tree's neutral trunk/base.
+            if (
+              !data[i + 3] ||
+              data[i + 1] <= data[i] ||
+              data[i + 1] <= data[i + 2]
+            )
+              continue;
+            const shade = data[i + 1] / (gid === 1 ? 156 : 173);
+            for (let channel = 0; channel < 3; channel++)
+              data[i + channel] = Math.round(palette[channel] * shade);
+          }
+      }
+      context.putImageData(pixels, 0, 0);
+      texture.refresh();
+    }
+    this.townTiles.setImage(this.textures.get(key));
   }
   private syncResidents() {
     const residents = visibleResidents(this.view.state, this.view.interior);
@@ -574,7 +647,10 @@ export class TownScene extends Phaser.Scene {
       (this.scale.width - w) / 2,
       (this.scale.height - h) / 2,
     );
-    if (!this.view.interior) {
+    if (this.view.interior) {
+      if (this.view.state.flags.includes('brighter-home'))
+        this.sky.fillStyle(0xffedbc, 0.13).fillRect(0, 0, w, h);
+    } else {
       const color =
         minute >= 1260 ? 0x162750 : minute >= 1080 ? 0xdc9651 : 0x2c415b;
       const alpha =
