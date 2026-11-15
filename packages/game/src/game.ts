@@ -817,6 +817,21 @@ export function activities(state: GameState, place: PlaceId): Activity[] {
       )
         return false;
       if (a.oncePerDay && state.day.done.includes(a.id)) return false;
+      if (a.id.startsWith('community-lunch-')) {
+        if (
+          state.flags.includes(
+            `community-lunch-attended:${state.day.date.slice(0, 4)}`,
+          )
+        )
+          return false;
+        if (
+          a.id !== 'community-lunch-attend' &&
+          (state.flags.includes('quarter-community-lunch-tables') ||
+            state.flags.includes('quarter-community-lunch-food') ||
+            state.day.minute + a.minutes > 720)
+        )
+          return false;
+      }
       if (
         a.id === 'life-in-the-uk' &&
         state.timeline.lifeInTheUk &&
@@ -969,14 +984,15 @@ export function doActivity(state: GameState, actionId: string): GameState {
   if (changed) recalculate(next);
   const endingLog = next.log.filter((entry) => entry.kind === 'ending');
   next.log = next.log.filter((entry) => entry.kind !== 'ending');
-  next.log.push({
+  const actionLog: GameState['log'][number] = {
     year: state.year,
     quarter: state.quarter,
     kind: 'action',
     id: action.id,
     text: action.label,
     statDeltas: deltas(state, next),
-  });
+  };
+  next.log.push(actionLog);
   next.log.push(...endingLog);
   next.outcome = {
     kind: action.id.startsWith('travel-') ? 'travel' : 'activity',
@@ -1000,7 +1016,9 @@ export function doActivity(state: GameState, actionId: string): GameState {
             n.text.zhCN +
             (n.id === 'pub-quiz'
               ? `（${noticeDate(quizDate, 'zh-CN')} 18:00）`
-              : ''),
+              : n.id === 'community-lunch'
+                ? `（${noticeDate(quizDate, 'zh-CN')} 12:00–16:00，最晚15:00入席；当日上午到绿地借桌椅，或带烤土豆、饼干。）`
+                : ''),
         )
         .join('\n'),
       en: posted
@@ -1009,7 +1027,9 @@ export function doActivity(state: GameState, actionId: string): GameState {
             n.text.en +
             (n.id === 'pub-quiz'
               ? ` (${noticeDate(quizDate, 'en')}, 18:00)`
-              : ''),
+              : n.id === 'community-lunch'
+                ? ` (${noticeDate(quizDate, 'en')}, 12:00–16:00, last arrival 15:00; that morning, borrow tables on the green or bring a baked potato or biscuits.)`
+                : ''),
         )
         .join('\n'),
     };
@@ -1061,6 +1081,64 @@ export function doActivity(state: GameState, actionId: string): GameState {
       en: `You show ${quantity} ${cropName(crop, quantity)} and ${result.en}. Margaret helps return the harvest to your basket.`,
     };
   }
+  if (action.id === 'community-lunch-tables') {
+    setFlags(next, ['quarter-community-lunch-tables']);
+    next.outcome.text = {
+      zhCN: '你和玛格丽特搬来折叠桌。她拍了拍桌脚：「得了，歪的那张我坐！」',
+      en: 'You carry folding tables with Margaret. She pats a table leg. “Right, I’ll take the wonky one!”',
+    };
+  }
+  if (
+    ['community-lunch-baked-potato', 'community-lunch-biscuits'].includes(
+      action.id,
+    )
+  ) {
+    setFlags(next, ['quarter-community-lunch-food']);
+    const food = action.id.slice('community-lunch-'.length);
+    next.outcome.items = { [food]: -1 };
+    next.outcome.text =
+      action.id === 'community-lunch-baked-potato'
+        ? {
+            zhCN: '你把烤土豆放上长桌。玛格丽特留好盖子：「瞧这，午饭还没开就香了。」',
+            en: 'You set the baked potato on the table. Margaret keeps the lid handy. “Smells good already! Lunch hasn’t even started.”',
+          }
+        : {
+            zhCN: '你把饼干放上长桌。玛格丽特压住包装角：「得了，别让风先吃！」',
+            en: 'You put the biscuits on the table. Margaret weighs down the wrapper. “Don’t let the wind eat them first!”',
+          };
+  }
+  if (action.id === 'community-lunch-attend') {
+    setFlags(next, [
+      `community-lunch-attended:${state.day.date.slice(0, 4)}`,
+      'quarter-community-lunch-attended',
+      'talked-margaret',
+    ]);
+    next.outcome.text = state.flags.includes('quarter-community-lunch-tables')
+      ? {
+          zhCN: '你坐到借来的桌旁。玛格丽特敲敲桌脚：「瞧这，盘子都不晃了！」',
+          en: 'You sit at the borrowed table. Margaret taps a leg. “Look, even the plates stay steady!”',
+        }
+      : state.flags.includes('quarter-community-lunch-food')
+        ? {
+            zhCN: '你带来的食物摆上长桌。玛格丽特腾出盘子：「得了，给你自己也留点！」',
+            en: 'Your food joins the shared table. Margaret makes room for a plate. “Save some for yourself too!”',
+          }
+        : {
+            zhCN: '你空手坐下，玛格丽特往旁边挪了挪：「得了，先坐！这儿还有盘子。」',
+            en: 'You arrive empty-handed. Margaret shifts along. “Sit down! There’s a spare plate here.”',
+          };
+    if (!state.flags.includes('community-lunch-photo-received')) {
+      setFlags(next, ['community-lunch-photo-received']);
+      applyEffects(next, [
+        { type: 'item', item: 'community-lunch-photo', delta: 1 },
+      ]);
+      next.outcome.items = { 'community-lunch-photo': 1 };
+      next.outcome.text.zhCN += '\n你收好聚餐合照。';
+      next.outcome.text.en += '\nYou tuck away a photograph of the lunch.';
+    }
+  }
+  if (action.id.startsWith('community-lunch-'))
+    actionLog.text = next.outcome.text!;
   next.outcome.statDeltas = deltas(state, next);
   if (
     next.day.festival &&
@@ -1351,7 +1429,11 @@ export function endQuarter(state: GameState): GameState {
   if (!isOver(next) && completedQuarters === b.years * b.quartersPerYear)
     finish(next, 'timeout');
   if (!isOver(next)) {
+    const lunchAttended = next.flags.includes(
+      'quarter-community-lunch-attended',
+    );
     next.flags = next.flags.filter((f) => !f.startsWith('quarter-'));
+    if (lunchAttended) setFlags(next, ['quarter-community-lunch-followup']);
     if (returned) setFlags(next, ['quarter-returned']);
     if (promoted) setFlags(next, ['quarter-promoted']);
     next.quarter = quarterAt(next.date);
@@ -2039,8 +2121,13 @@ export function talk(state: GameState, npc: string): GameState {
     setFlags(next, [`quarter-talked-${npc}`]);
     setFlags(next, [`talked-${npc}`]);
   }
+  const jamieUnemployed =
+    npc === 'jamie' &&
+    next.flags.includes('family-jamie-unemployed') &&
+    !next.flags.includes('family-jamie-reemployed');
   const eligible = person.lines.filter(
     (line) =>
+      (!jamieUnemployed || !/^jamie-daily-3[1-6]$/.test(line.id)) &&
       (line.heartsMin === undefined || hearts(next, npc) >= line.heartsMin) &&
       (line.heartsMax === undefined || hearts(next, npc) <= line.heartsMax) &&
       (!line.season || line.season === next.quarter) &&
@@ -2071,8 +2158,19 @@ export function talk(state: GameState, npc: string): GameState {
       : fresh.length
         ? fresh
         : ordinary;
+  const lunchMemory = eligible.find(
+    (line) => line.id === 'margaret-recent-community-lunch',
+  );
   const line =
-    introduction ?? options[Math.floor(random(next) * options.length)];
+    lunchMemory ??
+    introduction ??
+    options[Math.floor(random(next) * options.length)];
+  if (line === lunchMemory && lunchMemory) {
+    next.flags = next.flags.filter(
+      (flag) => flag !== 'quarter-community-lunch-followup',
+    );
+    recordLife(next, 'community-lunch-followup', lunchMemory.text);
+  }
   if (line && !next.heard.includes(line.id)) next.heard.push(line.id);
   next.outcome = {
     kind: 'talk',

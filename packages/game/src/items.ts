@@ -12,6 +12,11 @@ const crops: [string, string, string, Quarter[]][] = [
   ['tulip', '郁金香', 'Tulip', [2]],
 ];
 export const items: Item[] = [
+  {
+    id: 'community-lunch-photo',
+    name: { zhCN: '邻里聚餐合照', en: 'Neighbourhood lunch photograph' },
+    kind: 'gift',
+  },
   ...crops.flatMap(([id, zhCN, en, seasons]): Item[] => [
     {
       id,

@@ -640,10 +640,11 @@ export const notices: { id: string; text: Text; season?: Quarter }[] = [
     season: 2,
   },
   {
-    id: 'summer-shade',
+    // Reuse the summer-shade slot without changing the seeded notice draw.
+    id: 'community-lunch',
     text: {
-      zhCN: '夏日绿地摆遮阳棚，帮忙的人请先认清哪边是入口。',
-      en: 'Summer shade tent on the green. Helpers: find the entrance first.',
+      zhCN: '邻里聚餐在村绿地，玛格丽特借桌椅；带点吃的，或空手来坐坐。',
+      en: 'Neighbourhood lunch on the green. Margaret is borrowing tables and chairs; bring food or just yourself.',
     },
     season: 3,
   },
