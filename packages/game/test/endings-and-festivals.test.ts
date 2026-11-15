@@ -112,6 +112,7 @@ describe('10.5 festival activity results', () => {
       ...before.day,
       kind: 'special',
       festival: 'may-day',
+      weather: 'sunny',
       minute: 420,
       place: 'green',
     };
@@ -140,6 +141,7 @@ describe('10.5 festival activity results', () => {
             ...before.day,
             kind: 'special',
             festival: festival.id,
+            weather: 'sunny',
             minute: 1080,
             place: 'green',
           };

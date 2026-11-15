@@ -494,6 +494,13 @@ describe('v3 seeded strategies', () => {
             );
 
           if (strategy === 'fast-forward') {
+            // Measured at a4a014f before 12.10: same seeds 1–20 and play().
+            // Count actual non-heart event log entries per elapsed game year.
+            const beforeFestivalAndSurprises: Record<string, number> = {
+              'skilled-worker': 6.779999999999999,
+              'hong-kong-bno': 7.752777777777778,
+              'family-partner': 7.714658119658121,
+            };
             const withChains = character.events;
             let beforeChains;
             try {
@@ -519,6 +526,9 @@ describe('v3 seeded strategies', () => {
                     run.quarterSamples.length,
                 0,
               ) / samples.length;
+            expect(actualAnnualRate(runs)).toBeGreaterThanOrEqual(
+              beforeFestivalAndSurprises[character.id],
+            );
             expect(actualAnnualRate(runs)).toBeGreaterThanOrEqual(
               actualAnnualRate(beforeChains),
             );

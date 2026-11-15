@@ -4,6 +4,7 @@ export {
   activities,
   doActivity,
   enter,
+  approachSurprise,
   tick,
   talk,
   gift,
@@ -36,4 +37,5 @@ export { places } from './locations';
 export { npcs } from './npcs';
 export { items, recipes } from './items';
 export { festivals } from './festivals';
+export { mapSurprises } from './map-surprises';
 export { achievements } from './achievements';

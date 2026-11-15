@@ -16,6 +16,12 @@ import { extensionFor, locationActions, places } from './locations';
 import { npcs, heartEvents, townHeartLetters } from './npcs';
 import { items, recipes } from './items';
 import { completeFlowerbed, flowerbedAvailable } from './community-flowerbed';
+import { completeMayDay, mayDayAvailable, mayDayVenue } from './may-day';
+import {
+  completeSurprise,
+  surpriseEventAt,
+  surpriseEvents,
+} from './map-surprises';
 import {
   festivals,
   festivalFoods,
@@ -29,6 +35,7 @@ import type {
   GameEvent,
   GameState,
   Activity,
+  AnchorId,
   DayState,
   FestivalId,
   ItemId,
@@ -266,6 +273,7 @@ function pool(state: GameState) {
     ...Object.values(openingEvents),
     ...heartEvents,
     ...townHeartLetters,
+    ...surpriseEvents,
   ];
 }
 /** Remaining calendar months rounded down; zero on the last valid day. */
@@ -800,8 +808,11 @@ export function activities(state: GameState, place: PlaceId): Activity[] {
   if (isOver(state) || !isOpen(state, place)) return [];
   const current = episodeAt(state);
   return locationActions
+    .map((a) => mayDayVenue(state, a))
     .filter((a) => a.place === place)
     .filter((a) => {
+      if (a.id.startsWith('may-') && !mayDayAvailable(state, a.id))
+        return false;
       if (a.id.startsWith('flowerbed-') && !flowerbedAvailable(state, a.id))
         return false;
       if (a.id === 'assessment') return true;
@@ -1157,6 +1168,11 @@ export function doActivity(state: GameState, actionId: string): GameState {
   }
   if (action.id.startsWith('community-lunch-'))
     actionLog.text = next.outcome.text!;
+  if (action.id.startsWith('may-')) {
+    next.outcome.text = completeMayDay(next, action.id, next.outcome.text!);
+    actionLog.text = next.outcome.text;
+    if (action.id === 'may-guide') setFlags(next, ['visited-festival:may-day']);
+  }
   next.outcome.statDeltas = deltas(state, next);
   if (
     next.day.festival &&
@@ -1233,7 +1249,7 @@ export function resolve(state: GameState, choiceId: string): GameState {
   }
   const endingLog = next.log.filter((e) => e.kind === 'ending');
   next.log = next.log.filter((e) => e.kind !== 'ending');
-  next.log.push({
+  const eventLog: GameState['log'][number] = {
     year: state.year,
     quarter: state.quarter,
     kind: 'event',
@@ -1244,8 +1260,18 @@ export function resolve(state: GameState, choiceId: string): GameState {
       en: `${event.title.en}: ${choice.label.en}`,
     },
     statDeltas: deltas(state, next),
-  });
+  };
+  next.log.push(eventLog);
   next.log.push(...endingLog);
+  const surpriseResult = completeSurprise(next, event.id, choiceId);
+  if (surpriseResult) {
+    next.outcome = {
+      kind: 'activity',
+      text: surpriseResult,
+      statDeltas: deltas(state, next),
+    };
+    eventLog.text = surpriseResult;
+  }
   if (changed) recalculate(next);
   award(next, true);
   if (!isOver(next)) {
@@ -1893,6 +1919,17 @@ export function enter(state: GameState, place: PlaceId): GameState {
     next.day.done.push('returned-home');
   if (place !== 'home' || next.day.done.includes('returned-home'))
     deliver(next, `place:${place}`);
+  return next;
+}
+/** The client calls this only after walking within interaction range of an anchor. */
+export function approachSurprise(
+  state: GameState,
+  anchor: AnchorId,
+): GameState {
+  const event = surpriseEventAt(state, anchor);
+  if (!event) return state;
+  const next = structuredClone(state);
+  makePending(next, event.id);
   return next;
 }
 export function mailbox(state: GameState): string[] {
