@@ -148,6 +148,7 @@
 | 142 | agy 复评（新截图 + 源码）入库：上一轮前 10 个问题中，P6、P9 已解决，其余部分解决；整体观感分 5.0 → 7.5（游戏 4.0 → 7.5）。遗留问题包括：手机 Dock 截断进度卡、互动按钮挡门并显示键盘按键、结局页内嵌的政务风评估表、标签两级不分、彩色 Emoji 等。排出 12.11（astra，复评低成本收尾，先于 12.7）；带表情立绘、横幅与招牌需要新素材，暂不做 | docs/research/2026-11-15-design-review-2.md, docs/tasks/12.11-design-polish.md, docs/tasks/phase-12-plan.md, PROGRESS.md |
 | 143 | 12.10 合入 main（sol 6af805d，merge 8b0df77）：五月节加上节前准备（两种分支）→ 当天按准备不同的结果 → 散场后回访，雨天有室内替代；三个地图小惊喜，先在锚点出现异样、走近才触发，过期不补、读档不重复。Fable 验收：测试只有新增；合并后 main 全仓 gate 通过（GATE EXIT 0，game 1,212、web 354）。sol 发现：网页端在事件选择后不显示 `outcome.text`，惊喜收尾文案需要 astra 接入，已并入 12.7 | packages/game/**, docs/tasks/reports/12.10-festival-and-surprises.md, docs/tasks/phase-12-plan.md, PROGRESS.md |
 | 144 | 12.11 合入 main（astra 150b2ee）：按 agy 复评 §二 的 8 条加主站 3 处收尾。手机室内画布不再留黑边，进度卡不被 Dock 截断；互动改为画布下方的单行操作条（如"互动：床"），触屏不显示按键；结局评估跟随游戏主题，操作按钮前置，未获得成就默认折叠；标签分两级高亮并钳位在边缘内；图标改单色 SVG；明亮住处改局部暖光；主站手机顶栏一行，问卷加进度条。Fable 验收：合并后 main 全仓 gate 通过（GATE EXIT 0，web 369）；手机 3 倍截图核对室内、首页、对话框。12.7（astra：收尾文案、收藏册、做过的菜、花坛、五月节与惊喜的画面）开工 | apps/web/**, docs/tasks/reports/12.11-design-polish.md, docs/tasks/12.7-life-content-visuals.md, docs/tasks/phase-12-plan.md, PROGRESS.md |
+| 145 | 12.7 合入 main（astra c52a2c0）：事件选择后显示收尾文案，快进时排到季末小结；收藏页列出鱼和菜，已得的显示图标与首次年季，未得的显示问号，另有收成统计；结局新增"做过的菜"和"公共花坛的小牌"；公共花坛三阶段画面；五月节的布置；三个地图惊喜的锚点异样与过期。Fable 验收：合并后 main 全仓 gate 通过（GATE EXIT 0，web 406）；2 倍、3 倍截图核对桌面与手机的收藏页、花坛第三阶段、当前地点高亮。Phase 12 计划内任务 12.1–12.11 完成 | apps/web/**, docs/tasks/reports/12.7-life-content-visuals.md, docs/tasks/phase-12-plan.md, PROGRESS.md |
 
 ### 当前状态
 
