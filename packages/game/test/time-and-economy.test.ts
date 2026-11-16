@@ -74,7 +74,7 @@ describe('11.2 news and the old-rules window', () => {
         for (let q = 0; q < 16; q++) {
           // completeQuarter drains every card; firedEvents is the independent receipt.
           state.stats.money = 100000;
-          state.timeline.episodes[0].validTo = '2040-01-01';
+          state.timeline.episodes.at(-1)!.validTo = '2040-01-01';
           state = completeQuarter(state);
           if (state.firedEvents.includes(story.event.id)) {
             delivered = true;
@@ -84,7 +84,7 @@ describe('11.2 news and the old-rules window', () => {
             ).toHaveLength(1);
           }
         }
-        expect(delivered, character.id).toBe(true);
+        expect(delivered, character.id).toBe(character.startDate < story.until);
         expect(
           receive(at(story.until, character.id), story.event).pendingEvent,
         ).toBeUndefined();
@@ -119,7 +119,7 @@ describe('11.2 news and the old-rules window', () => {
       ).toBeUndefined();
     let state = at('2029-07-15');
     state.stats.money = 100000;
-    state.timeline.episodes[0].validTo = '2040-01-01';
+    state.timeline.episodes.at(-1)!.validTo = '2040-01-01';
     state = completeQuarter(state);
     state = completeQuarter(state);
     expect(state.firedEvents).toContain(story.event.id);

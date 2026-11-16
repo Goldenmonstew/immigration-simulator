@@ -112,6 +112,37 @@ export function extensionFor(route: Route) {
 }
 
 export const locationActions: Activity[] = [
+  {
+    id: 'graduate-job-search',
+    place: 'work',
+    label: {
+      zhCN: '求职：投简历／面试／跟进 HR',
+      en: 'Job search: apply / interview / follow up with HR',
+    },
+    minutes: 60,
+    oncePerDay: true,
+    effects: [{ type: 'none' }],
+  },
+  {
+    id: 'graduate-check-offer',
+    place: 'visa',
+    label: {
+      zhCN: '核对合同薪资（标准薪资情景）',
+      en: 'Check the offer (standard-pay scenario)',
+    },
+    minutes: 0,
+    effects: [{ type: 'none' }],
+  },
+  {
+    id: 'graduate-switch',
+    place: 'visa',
+    label: {
+      zhCN: `转 Skilled Worker（费用 £${extensionCost}）`,
+      en: `Switch to Skilled Worker (£${extensionCost})`,
+    },
+    minutes: b.minutes.paperwork,
+    effects: [{ type: 'none' }],
+  },
   ...mayDayActivities,
   ...flowerbedActivities,
   {

@@ -15,7 +15,7 @@ describe('10.5 calendar seasons and festival dates', () => {
     '$id keeps all three days ordered and seasonal for forty quarters',
     (character) => {
       let state = clear(newGame(character.id, 1));
-      state.timeline.episodes[0].validTo = '2040-12-31';
+      state.timeline.episodes.at(-1)!.validTo = '2040-12-31';
       for (let quarter = 0; quarter < 40; quarter++) {
         const start = state.date;
         const endDate = new Date(`${start}T00:00:00Z`);

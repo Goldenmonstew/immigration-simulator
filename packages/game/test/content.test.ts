@@ -40,7 +40,9 @@ describe('9.3 people and stories', () => {
           ? ['jamie']
           : character.id === 'hong-kong-bno'
             ? ['ka-ning-partner', 'ka-ning-child']
-            : ['yao-flatmate'],
+            : character.id === 'graduate'
+              ? ['maeve']
+              : ['yao-flatmate'],
       );
       for (const npc of family) expect(npcAt(state, npc.id)).toBe('home');
     }
