@@ -8,9 +8,11 @@ import {
   resolve,
   type GameState,
   type MapSurprise,
+  type PlaceId,
 } from '@uk-immigration/game';
 import { TownScene, type Interaction, type SceneView } from '../app/game/scene';
 import type { SceneText } from '../app/game/scene-text';
+import { flowerbedStage, lifePlaceLabel } from '../app/game/scene-life';
 import town from '../public/game/town.json';
 
 vi.mock('phaser', () => ({
@@ -132,9 +134,8 @@ function setup(change: (state: GameState) => void = () => {}) {
     view.state = next;
     Reflect.get(scene, 'syncLifeScenery').call(scene);
   }
-  const label = (place: string) =>
-    Reflect.get(scene, 'lifePlaceLabel').call(scene, place) as
-      string | undefined;
+  const label = (place: PlaceId) =>
+    lifePlaceLabel(view.state, view.locale, place);
   const spots = () =>
     Reflect.get(scene, 'spots') as { interaction: Interaction }[];
   sync();
@@ -152,7 +153,7 @@ function setup(change: (state: GameState) => void = () => {}) {
 }
 
 test('flowerbed changes from empty ground through three flag-driven pictures and keeps the gate clear', () => {
-  const { scene, state, scenery, sync, label, anchors } = setup();
+  const { scene, state, view, scenery, sync, label, anchors } = setup();
   const bed = scenery.flowerbed;
   expect(bed.fillRect.mock.calls).toHaveLength(1);
   expect(label('allotment')).toBe('');
@@ -182,7 +183,7 @@ test('flowerbed changes from empty ground through three flag-driven pictures and
   state.quarter = 1;
   sync(JSON.parse(JSON.stringify(state)) as GameState);
   expect(label('allotment')).toContain('open');
-  expect(Reflect.get(scene, 'flowerbedStage').call(scene)).toBe(3);
+  expect(flowerbedStage(view.state.flags)).toBe(3);
 });
 
 test.each(['ribbons', 'signs'] as const)(
