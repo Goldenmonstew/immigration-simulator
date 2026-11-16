@@ -24,3 +24,4 @@
 - 2026-11-16：计划与 14.1 brief 入库，sol 开工。
 - 2026-11-16：用户改为由 Fable 亲自实现 14.1；合入 main，待 CI 生成截图基准图。
 - 2026-11-16：基准图提交，CI（check + e2e）全绿，部署改为在 CI 通过后执行，已实测生效。
+- 2026-11-16：14.2 工程补强（Fable 亲自做）：出错兜底与报错入口、预发 + 冒烟 + 正式发布 + Release（同时修正部署误进 Preview）、e2e 扩到 30 条、代码清理。报告见 `docs/tasks/reports/14.2-engineering-hardening.md`。
