@@ -92,7 +92,7 @@ export function GameIcon({ name }: { name: keyof typeof iconPaths }) {
     </svg>
   );
 }
-export const clockTime = (minute: number) =>
+const clockTime = (minute: number) =>
   `${Math.floor(minute / 60)
     .toString()
     .padStart(2, '0')}:${(minute % 60).toString().padStart(2, '0')}`;
@@ -711,7 +711,7 @@ export interface StateChange {
   diary?: DayMemory[];
   startStats?: GameState['stats'];
 }
-export function StatChanges({ before, after }: StateChange) {
+function StatChanges({ before, after }: StateChange) {
   const { t } = useTranslation();
   const changed = statKeys.filter(
     (key) => before.stats[key] !== after.stats[key],
@@ -737,25 +737,6 @@ export function StatChanges({ before, after }: StateChange) {
     <p>{t('game.noChanges')}</p>
   );
 }
-export function ActionFeedback({
-  before,
-  after,
-  onContinue,
-}: StateChange & { onContinue: () => void }) {
-  const { t } = useTranslation();
-  return (
-    <>
-      <StatChanges before={before} after={after} />
-      {JSON.stringify(before.timeline) !== JSON.stringify(after.timeline) && (
-        <p>{t('game.timelineChanged')}</p>
-      )}
-      <button className={styles.button} onClick={onContinue}>
-        {t('game.continuePlaying')}
-      </button>
-    </>
-  );
-}
-
 export function QuarterSummary({
   before,
   after,

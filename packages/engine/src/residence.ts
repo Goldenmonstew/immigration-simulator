@@ -61,7 +61,7 @@ export function continuousRun(
   }
 }
 
-export interface AbsenceLimit {
+interface AbsenceLimit {
   maxDays: number;
   windowMonths: number;
   /**

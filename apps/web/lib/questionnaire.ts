@@ -25,7 +25,7 @@ export const steps = [
 export const shortCircuitKeys = ['criminality'] as const;
 export const screeningKeys = ['criminality', 'breach', 'debt'] as const;
 export type ScreeningKey = (typeof screeningKeys)[number];
-export type Screening = Record<ScreeningKey, '' | 'yes' | 'no'> & {
+type Screening = Record<ScreeningKey, '' | 'yes' | 'no'> & {
   // Version 1 drafts may retain this obsolete answer; it is ignored.
   protection?: '' | 'yes' | 'no';
 };
@@ -43,7 +43,7 @@ export interface Draft {
   principalCompleted?: boolean;
 }
 
-export const emptyScreening = (): Screening => ({
+const emptyScreening = (): Screening => ({
   criminality: '',
   breach: '',
   debt: '',
@@ -88,7 +88,7 @@ export function stepSequence(draft: Draft): number[] {
   return [0, 1, 2, ...(needsPrincipal(draft) ? [9] : []), 3, 4, 5, 6, 7, 8];
 }
 
-export function today(): string {
+function today(): string {
   const date = new Date();
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }

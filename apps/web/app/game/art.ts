@@ -20,8 +20,8 @@ export const portraitIds = [
   'maeve',
 ];
 export const expressions = ['neutral', 'happy', 'worried'] as const;
-export type Expression = (typeof expressions)[number];
-export const artRoot = '/game/assets/meadow-town';
+type Expression = (typeof expressions)[number];
+const artRoot = '/game/assets/meadow-town';
 export const townBanner = `${artRoot}/town-banner.png`;
 
 export function portraitPath(id: string, expression = 'neutral') {

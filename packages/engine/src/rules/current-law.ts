@@ -57,7 +57,7 @@ const onMain = (timeline: PersonTimeline, date: IsoDate, route: Route) => {
 export const onHongKongBno = (timeline: PersonTimeline, date: IsoDate) =>
   onMain(timeline, date, 'HONG_KONG_BNO');
 
-export const onGlobalTalent = (timeline: PersonTimeline, date: IsoDate) =>
+const onGlobalTalent = (timeline: PersonTimeline, date: IsoDate) =>
   onMain(timeline, date, 'GLOBAL_TALENT');
 
 export const onUkAncestry = (timeline: PersonTimeline, date: IsoDate) =>
@@ -66,7 +66,7 @@ export const onUkAncestry = (timeline: PersonTimeline, date: IsoDate) =>
 export const onInnovatorFounder = (timeline: PersonTimeline, date: IsoDate) =>
   onMain(timeline, date, 'INNOVATOR_FOUNDER');
 
-export const onPrivateLife = (timeline: PersonTimeline, date: IsoDate) =>
+const onPrivateLife = (timeline: PersonTimeline, date: IsoDate) =>
   onMain(timeline, date, 'FAMILY_AND_PRIVATE_LIFE');
 
 /** Appendix FM partner on the date (any kind but PARENT, contracts §12.8). */
@@ -78,7 +78,7 @@ export function onFamilyPartner(timeline: PersonTimeline, date: IsoDate) {
 }
 
 /** Appendix FM partner on the 10-year route on the date. */
-export const onFamilyPartnerTenYear = (
+const onFamilyPartnerTenYear = (
   timeline: PersonTimeline,
   date: IsoDate,
 ) =>
@@ -86,7 +86,7 @@ export const onFamilyPartnerTenYear = (
   episodeOn(timeline, date)!.familyPermission === 'PARTNER_TEN_YEAR';
 
 /** Appendix FM partner on the 5-year route on the date. */
-export const onFamilyPartnerFiveYear = (
+const onFamilyPartnerFiveYear = (
   timeline: PersonTimeline,
   date: IsoDate,
 ) =>
@@ -120,7 +120,7 @@ export function hongKongBnoDependant(
 }
 
 /** Global Talent dependent partner or child on `date` (GT 25–34). */
-export function globalTalentDependant(
+function globalTalentDependant(
   timeline: PersonTimeline,
   date: IsoDate,
 ): 'PARTNER' | 'PARENT' | undefined {
@@ -129,7 +129,7 @@ export function globalTalentDependant(
 }
 
 /** Child of an Appendix FM partner or parent on `date`. */
-export const onFamilyChild = (timeline: PersonTimeline, date: IsoDate) =>
+const onFamilyChild = (timeline: PersonTimeline, date: IsoDate) =>
   dependantOn(timeline, date, 'FAMILY_PARTNER_OR_PARENT')?.dependantOf ===
   'PARENT';
 
@@ -434,7 +434,7 @@ export const clScope = defineRule(
   },
 );
 
-export const CR_3_1 = {
+const CR_3_1 = {
   maxDays: cl.values.continuousResidenceMaxAbsenceDays.value,
   windowMonths: cl.values.continuousResidenceWindowMonths.value,
 };
@@ -1200,7 +1200,7 @@ export const clFamilyFinancial = defineRule(
 );
 
 /** The relevant row of the table in SW 24.3 (row E is not modelled). */
-export interface SalaryRow {
+interface SalaryRow {
   row: 'A' | 'B' | 'C' | 'D';
   /** General salary, GBP per year. */
   threshold: number;
@@ -1696,7 +1696,7 @@ const inTable = (rows: { socCode: string }[], soc: string | undefined) =>
   soc !== undefined && rows.some((r) => r.socCode === soc);
 
 /** Undefined unless on Skilled Worker on the simulation date. */
-export function settlementSalaryRow({
+function settlementSalaryRow({
   timeline,
   simulationDate,
   locale,
@@ -2811,7 +2811,7 @@ export const clGtDependant = defineRule(
  * The Appendix FM permission the principal settles from: their current one,
  * or the last one before settling on that route.
  */
-export function principalFamilyPermission(
+function principalFamilyPermission(
   ctx: RuleContext,
 ): ImmigrationEpisode['familyPermission'] | 'NOT_ON_ROUTE' {
   const p = ctx.principal!.timeline;

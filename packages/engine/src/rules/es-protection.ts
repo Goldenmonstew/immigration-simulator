@@ -35,7 +35,7 @@ const adultIllegalEntries = (timeline: PersonTimeline) =>
  * Illegal entry as an adult (p13): none, the extra 10 years (p38), or every
  * such entry claimed to be protected by Article 31 (p39, PD-032).
  */
-export function illegalEntryOf(
+function illegalEntryOf(
   timeline: PersonTimeline,
 ): 'NONE' | 'ADDED' | 'ARTICLE_31' {
   const entries = adultIllegalEntries(timeline);
