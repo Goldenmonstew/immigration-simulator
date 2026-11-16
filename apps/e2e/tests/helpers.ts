@@ -15,9 +15,9 @@ export async function dismissCards(page: Page) {
   const dialog = openDialog(page);
   for (let i = 0; i < 6; i++) {
     if (!(await dialog.isVisible().catch(() => false))) return;
-    const title = (await dialog.locator('h2, h3').first().textContent()) ?? '';
-    // Place menus and talks are not cards; leave them to the test.
-    if (/^(家|聊天)$/.test(title.trim())) return;
+    // Place menus (they all show opening hours) and talks are not cards.
+    const text = await dialog.innerText();
+    if (/营业时间|Opening hours|待会儿见/.test(text)) return;
     await dialog
       .getByRole('button')
       .filter({ hasNotText: /关闭/ })
@@ -82,16 +82,32 @@ export function quietMorning(
   delete save.day.resumeMinute;
 }
 
-/** Walk to a place with the location button and wait for its menu. */
+/**
+ * Walk to a place with the location button and wait for its menu. A random
+ * event card may open on arrival instead; take its first choice, then ask for
+ * the menu again (standing at the door opens it directly).
+ */
 export async function walkTo(page: Page, place: string) {
-  await page
+  const button = page
     .getByRole('button', { name: new RegExp(`^${place}`) })
-    .first()
-    .click();
+    .first();
   const dialog = openDialog(page);
-  await expect(dialog.getByRole('heading', { name: place })).toBeVisible({
-    timeout: 30_000,
-  });
+  const menu = dialog.getByRole('heading', { name: place, exact: true });
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await button.click();
+    await expect(dialog).toBeVisible({ timeout: 30_000 });
+    if (await menu.isVisible()) return dialog;
+    // An event card: take its first choice, then let it close.
+    await dialog
+      .getByRole('button')
+      .filter({ hasNotText: /关闭/ })
+      .first()
+      .click();
+    await page.waitForTimeout(400);
+    if (await menu.isVisible()) return dialog;
+    if (await dialog.isVisible()) await dismissCards(page);
+  }
+  await expect(menu).toBeVisible();
   return dialog;
 }
 

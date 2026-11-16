@@ -15,7 +15,7 @@ export interface StateChange {
   diary?: DayMemory[];
   startStats?: GameState['stats'];
 }
-export function StatChanges({ before, after }: StateChange) {
+function StatChanges({ before, after }: StateChange) {
   const { t } = useTranslation();
   const changed = statKeys.filter(
     (key) => before.stats[key] !== after.stats[key],
