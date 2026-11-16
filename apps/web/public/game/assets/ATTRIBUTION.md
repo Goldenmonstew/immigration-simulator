@@ -1,6 +1,29 @@
 # 小镇 v3 素材署名
 
-取用日期：2026-11-06。以下图像与音频全部采用 **CC0 1.0 Universal**；许可原文保留于 `LICENSE.txt`。下载、裁切、拼接及调色脚本不入仓库。
+首批取用日期：2026-11-06；后续新增日期见各节。以下图像与音频全部采用 **CC0 1.0 Universal**；许可原文保留于 `LICENSE.txt`。下载、裁切、拼接及调色脚本不入仓库。
+
+## 13.1 人物立绘、横幅与招牌（2026-11-16）
+
+- 作者：本项目 / Codex gpt-6-astra；来源：本仓库 `apps/web/public/game/assets/meadow-town/`，本轮原创，未下载第三方候选图像。
+- 许可：**CC0 1.0 Universal**，完整原文保留于 `meadow-town/LICENSE.txt`，许可链接：https://creativecommons.org/publicdomain/zero/1.0/ 。该声明覆盖下列 55 张 PNG。
+- 制作方式：离线用整数坐标逐像素绘制；没有外部字体、嵌入图片、品牌标志或其他游戏角色。人物仅参考本仓库已有 Kenney CC0 行走图的发色、肤色与衣服主色，重新设计半身构图、五官、发型、服饰细节和表情，没有放大、描摹或拼贴原图。行走图原文件不变。
+- 45 张头像均为 64×64：下列每个 ID 分别有 `portraits/<id>-neutral.png`、`portraits/<id>-happy.png`、`portraits/<id>-worried.png`。平常、开心、担心三表情各 15 张。
+  - 主角：`skilled-worker`、`hong-kong-bno`、`family-partner`。
+  - 镇民：`margaret`、`priya`、`ade`、`helen`、`dave`、`rahman`、`lina`、`gareth`。
+  - 家人及室友：`jamie`、`ka-ning-partner`、`ka-ning-child`、`yao-flatmate`。
+- `town-banner.png`：960×320；从原创 480×160 像素场景按最近邻放大两倍，包含砖房、咖啡馆、钟楼、树木、行人、花坛与河桥；中心保留手机裁切主体。
+- 9 张招牌均为 24×24：`signs/cafe.png`（茶杯）、`shop.png`（篮子）、`pub.png`（杯子）、`gp.png`（听诊器）、`library.png`（打开的书）、`college.png`（对话气泡）、`council.png`（柱廊）、`visa.png`（文件）、`station.png`（列车）。不使用医疗机构或铁路品牌标志。
+- PNG 合计 **56,791 bytes（55.46 KiB）**：头像 46,719 bytes、横幅 7,769 bytes、招牌 2,303 bytes；完整许可文件另为 6,555 bytes。
+
+本轮先检索 OpenGameArt、itch.io、GitHub，并打开下列候选的许可页或文件核实 CC0；均未采用。规格判断依据作者发布页，不表示下载后做过完整图包审阅。
+
+| 候选            | 作者、来源 URL 与许可证据                                                                                                                                                | 未采用原因                                                    |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| RPG portraits   | Buch；https://opengameart.org/content/rpg-portraits ，发布页 CC0 及其链接的 CC0 1.0 许可页                                                                               | 9 位、32×32，每人三种配色，并非三种表情；不足以对应本轮 15 人 |
+| EverFace        | Efilheim；https://efilheim.itch.io/everface ，License 明确 CC0，并链接 CC0 1.0                                                                                           | 18 张、24×24、奇幻风；未声明每人三表情，无法直接匹配现有人物  |
+| Town Tiles      | surt；https://opengameart.org/content/town-tiles ，License(s) 标明 CC0，链接 CC0 1.0                                                                                     | 16×16 奇幻小镇瓦片，没有现成现代英国小镇横幅                  |
+| CC0 Sign Icons  | AntumDeluge 整理；https://opengameart.org/content/cc0-sign-icons ，License(s) 与 Licensing 均明确 CC0，链接 CC0 1.0                                                      | 通用路牌集合，未提供本轮九类设施的统一对应图标                |
+| Pixel Buildings | HoangLong256；https://github.com/HoangLong256/pixel-buildings ，README 明确 CC0；已读取 https://raw.githubusercontent.com/HoangLong256/pixel-buildings/main/LICENSE 全文 | 八方向、30° 等角建筑，与当前地图及横幅构图不直接匹配          |
 
 ## Kenney — Roguelike Modern City
 

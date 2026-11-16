@@ -5,6 +5,7 @@ import { PolicyStatus } from '../components/policy-status';
 import { SavedScenarios } from '../components/saved-scenarios';
 import { useTranslation } from '../i18n/locale';
 import { policyAsOf } from '../lib/policy';
+import { townBanner } from './game/art';
 import styles from './site.module.css';
 
 export default function Home() {
@@ -23,10 +24,15 @@ export default function Home() {
           <Link className={styles.button} href="/simulate">
             {t('home.start')}
           </Link>
-          <Link className={styles.secondary} href="/game">
-            {t('game.entry')}
-          </Link>
         </div>
+        <Link className={styles.gameEntry} href="/game">
+          <span
+            className={styles.gameBanner}
+            style={{ backgroundImage: `url("${townBanner}")` }}
+            aria-hidden="true"
+          />
+          <span className={styles.gameEntryTitle}>{t('game.entry')}</span>
+        </Link>
         <SavedScenarios />
         <section className={styles.section}>
           <h2>{t('home.before')}</h2>

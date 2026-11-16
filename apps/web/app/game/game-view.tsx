@@ -37,7 +37,6 @@ import {
   gameDraft,
   withGameLocale,
   statKeys,
-  spritePath,
   visaMonths,
   visaStatus,
   isPlaceOpen,
@@ -46,6 +45,7 @@ import {
   itemIcon,
 } from './session';
 import { groupedMemories, type DayMemory } from './diary';
+import { portraitPath, townBanner } from './art';
 import type { Interaction } from './scene';
 import styles from './game.module.css';
 
@@ -124,6 +124,11 @@ export function CharacterSelect({
   const { t, locale } = useTranslation();
   return (
     <section className={styles.welcome}>
+      <div
+        className={styles.townBanner}
+        style={{ backgroundImage: `url("${townBanner}")` }}
+        aria-hidden="true"
+      />
       <h1>{t('game.title')}</h1>
       {locale === 'zh-CN' && (
         <p className={styles.subtitle} lang="en">
@@ -139,7 +144,7 @@ export function CharacterSelect({
               <span
                 className={styles.portrait}
                 style={{
-                  backgroundImage: `url("${spritePath(character.id)}")`,
+                  backgroundImage: `url("${portraitPath(character.id)}")`,
                 }}
                 role="img"
                 aria-label={localText(character.name, locale)}
@@ -924,7 +929,9 @@ export function LifeMemories({ state }: { state: GameState }) {
                     className={styles.memoryPortrait}
                     role="img"
                     aria-label={localText(npc.name, locale)}
-                    style={{ backgroundImage: `url("${spritePath(npc.id)}")` }}
+                    style={{
+                      backgroundImage: `url("${portraitPath(npc.id, 'happy')}")`,
+                    }}
                   />
                   <span>{localText(npc.name, locale)}</span>
                 </li>
