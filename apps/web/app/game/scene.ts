@@ -103,6 +103,9 @@ export class TownScene extends Phaser.Scene {
   private lampLights: Phaser.GameObjects.Graphics[] = [];
   private sky?: Phaser.GameObjects.Graphics;
   private rain?: Phaser.GameObjects.Graphics;
+  private water?: Phaser.GameObjects.Graphics;
+  private waterTiles: Cell[] = [];
+  private waterPhase = -1;
   private postBadge?: SceneText;
   private destination?: PlaceId;
   private queued?: Interaction;
@@ -268,6 +271,9 @@ export class TownScene extends Phaser.Scene {
     this.anchors.clear();
     this.residents.clear();
     this.animals.clear();
+    this.water = undefined;
+    this.waterTiles = [];
+    this.waterPhase = -1;
     this.cropSprites = [];
     this.furnishings = [];
     this.townTiles = undefined;
@@ -361,6 +367,11 @@ export class TownScene extends Phaser.Scene {
       );
     }
     if (!this.view.interior) {
+      this.water = this.own(this.add.graphics().setDepth(0.5));
+      map.getLayer('ground')!.tilemapLayer.forEachTile((tile) => {
+        if (tile.index === 5 && (tile.x + tile.y) % 3 === 0)
+          this.waterTiles.push({ x: tile.pixelX, y: tile.pixelY });
+      });
       for (const a of map.getObjectLayer('anchors')!.objects)
         this.anchors.set(a.name, { x: a.x! / size, y: a.y! / size });
       for (const p of map.getObjectLayer('plots')!.objects) {
@@ -548,7 +559,7 @@ export class TownScene extends Phaser.Scene {
     }
     this.postBadge
       ?.setText(
-        mailbox(view.state).length ? `✉ ${mailbox(view.state).length}` : '',
+        mailbox(view.state).length ? String(mailbox(view.state).length) : '',
       )
       .setVisible(mailbox(view.state).length > 0);
     this.cropSprites.forEach((sprite, i) => {
@@ -1482,6 +1493,26 @@ export class TownScene extends Phaser.Scene {
         animal.next = (animal.next + 1) % animalRoutes[id].length;
     }
   }
+  private updateWater(time: number) {
+    const water = this.water;
+    if (!water) return;
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    water.setVisible(!reduced);
+    if (reduced) return;
+    const phase = Math.floor(time / 1800) % 3;
+    if (phase === this.waterPhase) return;
+    this.waterPhase = phase;
+    water.clear();
+    // Sparse integer-pixel glints sit below bridges, scenery and actors.
+    this.waterTiles.forEach(({ x, y }, index) => {
+      const step = (phase + index) % 3;
+      water.fillStyle(0xc4ded2, step === 1 ? 0.28 : 0.16);
+      water.fillRect(x + 4 + step, y + 6, 5, 1);
+      water.fillRect(x + 3 + step, y + 7, 2, 1);
+    });
+  }
   update(time: number, delta: number) {
     if (!this.ready || !this.player) return;
     const pond = this.anchors.get('pond');
@@ -1498,6 +1529,7 @@ export class TownScene extends Phaser.Scene {
     });
     this.weather(time);
     this.festivalEffects(time);
+    this.updateWater(time);
     if (this.view.paused) return;
     this.updateAnimals(delta);
     for (const [id, n] of this.residents) {

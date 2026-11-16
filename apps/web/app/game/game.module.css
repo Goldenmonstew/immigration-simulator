@@ -151,16 +151,26 @@
 .welcome {
   padding: 12px 0;
 }
-.townBanner {
-  width: 100%;
-  height: clamp(144px, 26vw, 210px);
+.welcomeIntro {
+  display: grid;
+  align-items: center;
+  gap: 24px;
   margin-bottom: 24px;
+}
+@media (min-width: 960px) {
+  .welcomeIntro {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 480px);
+  }
+}
+.townBanner {
+  width: min(480px, 100%);
+  aspect-ratio: 3 / 1;
   border: 2px solid var(--wood);
   border-radius: 8px;
-  background: var(--lining) no-repeat center / cover;
+  background: var(--lining) no-repeat center / contain;
   image-rendering: pixelated;
 }
-.welcome > p {
+.welcomeIntro p {
   max-width: 38em;
 }
 .subtitle {
@@ -703,6 +713,8 @@
   image-rendering: pixelated;
 }
 .memoryPortrait {
+  box-sizing: content-box;
+  border: 2px solid var(--line);
   width: 64px;
   height: 64px;
   background-size: contain;
@@ -760,11 +772,15 @@
 }
 .achievementColumns summary {
   font-weight: 700;
+  padding-top: 0;
+  font-size: 20px;
+  line-height: 1.4;
 }
 .achievementColumns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
+  margin-bottom: 32px;
 }
 .achievementColumns ul {
   padding-left: 20px;
@@ -1016,7 +1032,7 @@
 }
 .friendList li {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr) 160px;
+  grid-template-columns: 68px minmax(0, 1fr) 160px;
   align-items: center;
   gap: 12px;
   border-bottom: 1px solid var(--line);
@@ -1031,6 +1047,8 @@
   color: var(--muted);
 }
 .smallPortrait {
+  box-sizing: content-box;
+  border: 2px solid var(--line);
   width: 64px;
   height: 64px;
   background: no-repeat center / contain;
@@ -1164,6 +1182,19 @@
 .kitchen {
   text-align: center;
 }
+.kitchen > .buttons {
+  justify-content: center;
+  margin-top: 20px;
+}
+.theme .secondary[aria-pressed='true'] {
+  background: var(--hud);
+  color: var(--panel);
+  border-color: var(--amber-ink);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+.secondary[aria-pressed] .icon {
+  margin-right: 6px;
+}
 .kitchenSteps {
   text-align: left;
   padding-left: 28px;
@@ -1227,6 +1258,10 @@
   display: block;
   font-size: 3rem;
   color: var(--gold);
+}
+.travelIcon .icon {
+  width: 48px;
+  height: 48px;
 }
 .missingRules {
   display: block;
@@ -1447,7 +1482,7 @@
     padding: 10px;
   }
   .friendList li {
-    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-columns: 68px minmax(0, 1fr);
   }
   .friendList li > span:last-child {
     grid-column: 2;

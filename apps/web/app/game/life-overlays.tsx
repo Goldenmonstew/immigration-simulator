@@ -79,7 +79,7 @@ export function TravelCard({
       aria-label={t(returned ? 'game.returned' : 'game.abroad')}
     >
       <span className={styles.travelIcon} aria-hidden="true">
-        {returned ? '⌂' : '✈'}
+        <GameIcon name={returned ? 'home' : 'plane'} />
       </span>
       <h2>{t(returned ? 'game.returned' : 'game.abroad')}</h2>
       <p>
@@ -144,11 +144,11 @@ export function ItemIcon({ id }: { id: string }) {
       style={{
         backgroundImage: `url("${itemIcon(id)}")`,
         backgroundPosition: itemIcon(id).includes('/crops/')
-          ? '-160px 0'
-          : '0 0',
+          ? '100% 0'
+          : 'center',
         backgroundSize: itemIcon(id).includes('/crops/')
-          ? '192px 32px'
-          : '32px 32px',
+          ? '600% 100%'
+          : 'contain',
       }}
     />
   );
@@ -579,25 +579,31 @@ export function Kitchen({ state, onChange }: Change) {
                 .replace('{step}', String(step + 1))
                 .replace('{total}', String(steps.length))}
             </p>
-            <button
-              className={styles.button}
-              onClick={() =>
-                step === steps.length - 1 ? finish() : setStep(step + 1)
-              }
-            >
-              {steps[step]}
-            </button>
-            <button className={styles.button} onClick={finish}>
-              {t('game.kitchenSkip')}
-            </button>
           </>
         )}
-        <button
-          className={styles.button}
-          onClick={() => setRecipeId(undefined)}
-        >
-          {t('game.kitchenRecipes')}
-        </button>
+        <div className={styles.buttons}>
+          {!done && (
+            <>
+              <button
+                className={styles.button}
+                onClick={() =>
+                  step === steps.length - 1 ? finish() : setStep(step + 1)
+                }
+              >
+                {steps[step]}
+              </button>
+              <button className={styles.secondary} onClick={finish}>
+                {t('game.kitchenSkip')}
+              </button>
+            </>
+          )}
+          <button
+            className={styles.secondary}
+            onClick={() => setRecipeId(undefined)}
+          >
+            {t('game.kitchenRecipes')}
+          </button>
+        </div>
       </div>
     );
   }
@@ -855,11 +861,12 @@ export function Fishing({ state, onChange }: Change) {
     <div className={styles.fishing}>
       {action.message}
       <button
-        className={styles.button}
+        className={styles.secondary}
         aria-pressed={easy}
         disabled={busy}
         onClick={() => setEasy(!easy)}
       >
+        {easy && <GameIcon name="check" />}
         {t('game.fishEasy')}
       </button>
       <p>{t(easy ? 'game.fishEasyHint' : 'game.fishHint')}</p>

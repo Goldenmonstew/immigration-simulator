@@ -17,39 +17,39 @@ export default function AboutContent() {
         <h1>{t('about.title')}</h1>
         <p className={site.lead}>{t('about.intro')}</p>
         <p className={site.notice}>{t('about.limits')}</p>
-      </div>
-      <section className={site.section} aria-labelledby="about-columns">
-        <h2 id="about-columns">{t('about.columnsTitle')}</h2>
-        <div className={styles.ruleSets}>
-          {displayedRuleSets.map((ruleSet) => (
-            <article
-              key={ruleSet.id}
-              className={`${styles.card} ${ruleSet.kind === 'ANNOUNCED' ? styles.announcedCard : ''}`}
-            >
-              <h3>{t(`policy.${ruleSet.kind}`)}</h3>
-              <p
-                className={`${site.badge} ${ruleSet.kind === 'ANNOUNCED' ? site.announced : ''}`}
+        <section className={site.section} aria-labelledby="about-columns">
+          <h2 id="about-columns">{t('about.columnsTitle')}</h2>
+          <div className={styles.ruleSets}>
+            {displayedRuleSets.map((ruleSet) => (
+              <article
+                key={ruleSet.id}
+                className={`${styles.card} ${ruleSet.kind === 'ANNOUNCED' ? styles.announcedCard : ''}`}
               >
-                <RuleSetStatus ruleSet={ruleSet} />
-              </p>
-              <p>
-                {t(
-                  ruleSet.kind === 'LAW' ? 'about.currentLaw' : 'about.reforms',
-                )}
-              </p>
-              <p>
-                {t(
-                  ruleSet.kind === 'LAW'
-                    ? 'about.currentLawScope'
-                    : 'about.reformScope',
-                )}
-              </p>
-            </article>
-          ))}
-        </div>
-        <p className={site.notice}>{t('about.informationGaps')}</p>
-      </section>
-      <div className={site.narrow}>
+                <h3>{t(`policy.${ruleSet.kind}`)}</h3>
+                <p
+                  className={`${site.badge} ${ruleSet.kind === 'ANNOUNCED' ? site.announced : ''}`}
+                >
+                  <RuleSetStatus ruleSet={ruleSet} />
+                </p>
+                <p>
+                  {t(
+                    ruleSet.kind === 'LAW'
+                      ? 'about.currentLaw'
+                      : 'about.reforms',
+                  )}
+                </p>
+                <p>
+                  {t(
+                    ruleSet.kind === 'LAW'
+                      ? 'about.currentLawScope'
+                      : 'about.reformScope',
+                  )}
+                </p>
+              </article>
+            ))}
+          </div>
+          <p className={site.notice}>{t('about.informationGaps')}</p>
+        </section>
         <section className={site.section} aria-labelledby="about-sources">
           <h2 id="about-sources">{t('about.sourcesTitle')}</h2>
           <p>{t('about.sources')}</p>
