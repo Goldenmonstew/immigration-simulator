@@ -485,8 +485,8 @@ describe('actual travel, interrupted travel and financial boundaries', () => {
 });
 
 describe('townspeople, hearts, dialogue and gifts', () => {
-  test('eight residents and four household members have short bilingual lines, five heart scenes and valid schedules', () => {
-    expect(npcs).toHaveLength(12);
+  test('eight residents and five household members have short bilingual lines, five heart scenes and valid schedules', () => {
+    expect(npcs).toHaveLength(13);
     for (const npc of npcs) {
       expect(npc.lines.length).toBeGreaterThanOrEqual(npc.characters ? 55 : 40);
       for (const line of npc.lines) {
@@ -499,7 +499,7 @@ describe('townspeople, hearts, dialogue and gifts', () => {
           [...rule.stops.map((s) => s.from)].sort((a, b) => a - b),
         );
     }
-    expect(heartEvents).toHaveLength(60);
+    expect(heartEvents).toHaveLength(65);
     for (const event of heartEvents) {
       expect(event.choices.length).toBeGreaterThanOrEqual(2);
       expect(event.choices.length).toBeLessThanOrEqual(3);

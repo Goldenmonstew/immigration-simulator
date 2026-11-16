@@ -13,6 +13,7 @@ import { gameStorage, homeSpot } from '../app/game/session';
 import townMap from '../public/game/town.json';
 import homeMap from '../public/game/home.json';
 import { SceneText, textPosition } from '../app/game/scene-text';
+import { shopSignIds, signPath } from '../app/game/art';
 
 const TransformMatrix = createRequire(import.meta.url)(
   'phaser/src/gameobjects/components/TransformMatrix.js',
@@ -94,6 +95,7 @@ class Sprite {
   constructor(
     public x: number,
     public y: number,
+    public texture?: string,
   ) {}
   setOrigin() {
     return this;
@@ -488,7 +490,8 @@ function loadScene(
       },
     },
     add: {
-      sprite: (x: number, y: number) => new Sprite(x, y),
+      sprite: (x: number, y: number, texture: string) =>
+        new Sprite(x, y, texture),
       text: (x: number, y: number) => new Drawing(x, y),
       graphics: () => new Drawing(0, 0),
       rectangle: (x: number, y: number) => new Drawing(x, y),
@@ -510,6 +513,107 @@ function loadScene(
     overlay,
   };
 }
+
+test('Nora and Maeve preload their own 16px walking frames and use them at home', () => {
+  const state = newGame('graduate', 42, 'en');
+  state.day.minute = 480;
+  delete state.day.festival;
+  const { scene } = loadScene(true, state);
+  const load = {
+    image: vi.fn(),
+    tilemapTiledJSON: vi.fn(),
+    spritesheet: vi.fn(),
+  };
+  Object.assign(scene, { load });
+  scene.preload();
+  for (const id of ['graduate', 'maeve'])
+    expect(load.spritesheet).toHaveBeenCalledWith(
+      id,
+      `/game/assets/urban/${id}.png`,
+      {
+        frameWidth: 16,
+        frameHeight: 16,
+      },
+    );
+  expect((Reflect.get(scene, 'player') as Sprite).texture).toBe('graduate');
+  const residents = Reflect.get(scene, 'residents') as Map<string, Walker>;
+  expect(residents.get('maeve')!.sprite.texture).toBe('maeve');
+  expect(residents.get('maeve')!.sprite.visible).toBe(true);
+});
+
+test('all nine facade signs preload, leave doors and paths clear, and reset on entering and leaving home', () => {
+  const { scene, view } = loadScene(false);
+  const load = {
+    image: vi.fn(),
+    tilemapTiledJSON: vi.fn(),
+    spritesheet: vi.fn(),
+  };
+  Object.assign(scene, { load });
+  scene.preload();
+  const signs = () =>
+    (Reflect.get(scene, 'worldObjects') as Sprite[]).filter((object) =>
+      object.texture?.startsWith('sign-'),
+    );
+  expect(signs()).toHaveLength(9);
+  const objects = townMap.layers.find(
+    (layer) => layer.name === 'places',
+  )!.objects!;
+  const collision = townMap.layers.find(
+    (layer) => layer.name === 'collision',
+  )!.data!;
+  const originalPaths = new Map<string, Cell[]>();
+  for (const id of shopSignIds) {
+    expect(load.image).toHaveBeenCalledWith(`sign-${id}`, signPath(id));
+    const sign = signs().find((object) => object.texture === `sign-${id}`)!;
+    const door = objects.find((object) => object.name === id)!;
+    const bounds = Object.fromEntries(
+      door.properties!.map((p) => [p.name, p.value]),
+    );
+    expect(sign.x - 12).toBeGreaterThanOrEqual(bounds.buildingX);
+    expect(sign.x + 12).toBeLessThanOrEqual(
+      bounds.buildingX + bounds.buildingWidth,
+    );
+    expect(sign.y - 12).toBeGreaterThanOrEqual(bounds.buildingY);
+    // The visible door occupies the last facade tile above the path anchor.
+    expect(sign.y + 12).toBeLessThanOrEqual(door.y - 16);
+    for (
+      let y = Math.floor((sign.y - 12) / 16);
+      y <= Math.floor((sign.y + 11) / 16);
+      y++
+    )
+      for (
+        let x = Math.floor((sign.x - 12) / 16);
+        x <= Math.floor((sign.x + 11) / 16);
+        x++
+      )
+        expect(collision[y * townMap.width + x]).toBeGreaterThan(0);
+  }
+  const findPath = (destination: Cell) =>
+    Reflect.get(scene, 'findPath').call(
+      scene,
+      { x: 5, y: 12 },
+      destination,
+    ) as Cell[];
+  const anchors = Reflect.get(scene, 'anchors') as Map<string, Cell>;
+  for (const [id, destination] of anchors) {
+    const path = findPath(destination);
+    expect(path.at(-1), id).toEqual(destination);
+    originalPaths.set(id, path);
+  }
+  const before = signs();
+  scene.sync({ ...view, interior: true });
+  expect(signs()).toHaveLength(0);
+  expect(before.every((object) => object.destroy.mock.calls.length === 1)).toBe(
+    true,
+  );
+  scene.sync(view);
+  expect(signs()).toHaveLength(9);
+  for (const [id, destination] of Reflect.get(scene, 'anchors') as Map<
+    string,
+    Cell
+  >)
+    expect(findPath(destination)).toEqual(originalPaths.get(id));
+});
 
 test.each([2, 2.5, 3])(
   'DOM text follows the rendered camera at zoom %s, including scroll and resize',

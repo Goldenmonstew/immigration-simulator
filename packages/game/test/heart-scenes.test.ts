@@ -36,7 +36,7 @@ function beforeScene(event: GameEvent) {
 describe('10.1 complete heart scenes', () => {
   test('ten-heart scenes have individual endings rather than shared signing or annual promises', () => {
     const endings = heartEvents.filter((event) => event.heart!.hearts === 10);
-    expect(endings).toHaveLength(12);
+    expect(endings).toHaveLength(13);
     const copy = endings.map((event) =>
       [
         event.title.zhCN,
@@ -52,8 +52,8 @@ describe('10.1 complete heart scenes', () => {
     ).toBeLessThanOrEqual(3);
   });
   test('every person has exactly one scene at each of the five thresholds', () => {
-    expect(heartEvents).toHaveLength(60);
-    expect(new Set(heartEvents.map((event) => event.id)).size).toBe(60);
+    expect(heartEvents).toHaveLength(65);
+    expect(new Set(heartEvents.map((event) => event.id)).size).toBe(65);
     for (const npc of npcs) {
       const scenes = heartEvents.filter((event) => event.heart?.npc === npc.id);
       expect(

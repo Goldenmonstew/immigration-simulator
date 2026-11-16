@@ -64,7 +64,7 @@ test('mobile layout switches the sidebar to a dock and sheet while reserving can
     .split('@media (max-width: 600px) {')[0];
   expect(css).toMatch(/\.hudTop\s*\{[^}]*flex-wrap: nowrap/s);
   expect(css).toMatch(
-    /\.characters\s*\{[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/s,
+    /\.characters\s*\{[^}]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/s,
   );
   expect(css).toMatch(/\.character \.buttons\s*\{[^}]*margin-top: auto/s);
   expect(css).toMatch(/\.statIcon,\s*\.mobileOnly\s*\{\s*display: none/s);

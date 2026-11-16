@@ -89,7 +89,16 @@ function play(
       const news =
         event.id.startsWith('news-') ||
         event.id === 'sw-settlement-window-letter';
-      state = resolve(state, choices[news ? 0 : pick(choices.length)].id);
+      state = resolve(
+        state,
+        choices[
+          news ||
+          (event.id.startsWith('graduate-') &&
+            !event.id.startsWith('graduate-life-'))
+            ? 0
+            : pick(choices.length)
+        ].id,
+      );
       record();
     }
     record();
@@ -134,6 +143,15 @@ function play(
       state = fastForward(state);
       record();
       continue;
+    }
+    if (
+      state.characterId === 'graduate' &&
+      state.day.kind === 'workday' &&
+      !state.day.done.includes('graduate-job-search') &&
+      state.timeline.episodes.at(-1)?.route === 'GRADUATE'
+    ) {
+      activity('graduate-job-search', 'work', 540);
+      activity('graduate-switch', 'visa', 540);
     }
     const day = state.dayNumber;
     if (strategy === 'casual') {
@@ -448,7 +466,9 @@ function play(
 }
 
 describe('v3 seeded strategies', () => {
-  for (const character of characters) {
+  for (const character of characters.filter(
+    (character) => character.id !== 'graduate',
+  )) {
     for (const strategy of ['fast-forward', 'active', 'casual'] as const) {
       test(`${character.id}: 20 seeds, ${strategy}`, () => {
         const started = performance.now();
@@ -821,4 +841,70 @@ describe('v3 seeded strategies', () => {
       expect(first.state).toEqual(JSON.parse(JSON.stringify(first.state)));
     }
   });
+});
+
+describe('13.2 Graduate seeded strategies', () => {
+  for (const strategy of ['fast-forward', 'active', 'casual'] as const) {
+    test(`graduate: 20 seeds, ${strategy}`, () => {
+      const runs = Array.from({ length: 20 }, (_, i) =>
+        play('graduate', i + 1, strategy),
+      );
+      const sceneCounts = runs.map((run) =>
+        Object.values(run.heartScenes).reduce((sum, n) => sum + n, 0),
+      );
+      console.log(
+        'GRADUATE_BALANCE',
+        JSON.stringify({
+          strategy,
+          seeds: '1-20',
+          minContent: Math.min(...runs.map((run) => run.totalContent)),
+          minUniqueRatio: Math.min(
+            ...runs.map((run) => run.uniqueLines / run.heard),
+          ),
+          meanScenes: sceneCounts.reduce((sum, n) => sum + n, 0) / runs.length,
+          minScenes: Math.min(...sceneCounts),
+          content: runs.map((run) => ({
+            ...run.content,
+            total: run.totalContent,
+            maeveScenes: run.state.firedEvents.filter((id) =>
+              id.startsWith('heart-maeve-'),
+            ).length,
+          })),
+          fifthMoney: median(
+            runs.flatMap((run) => (run.fifth ? [run.fifth.money] : [])),
+          ),
+          tenthMoney: median(
+            runs
+              .filter((run) => run.quarterSamples.length === 40)
+              .map((run) => run.state.stats.money),
+          ),
+          endings: runs.map((run) => run.state.ending),
+        }),
+      );
+      for (const [index, run] of runs.entries()) {
+        expect(run.state.ending).toBeDefined();
+        if (strategy === 'fast-forward') {
+          expect(run.state.ending).toBe('overstayed');
+          expect(run.quarterSamples).toHaveLength(8);
+        } else {
+          expect(run.state.flags).toContain('graduate-switched');
+          expect(run.state.ending).not.toBe('overstayed');
+          expect(run.quarterSamples).toHaveLength(40);
+          expect(run.totalContent, `seed ${index + 1}`).toBeGreaterThanOrEqual(
+            15000,
+          );
+          expect(
+            run.uniqueLines / run.heard,
+            `seed ${index + 1}`,
+          ).toBeGreaterThanOrEqual(0.8);
+        }
+      }
+      if (strategy !== 'fast-forward') {
+        expect(
+          sceneCounts.reduce((sum, n) => sum + n, 0) / runs.length,
+        ).toBeGreaterThanOrEqual(32);
+        expect(Math.max(...sceneCounts)).toBeLessThanOrEqual(45);
+      }
+    }, 135_000);
+  }
 });

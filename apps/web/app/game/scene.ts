@@ -17,6 +17,7 @@ import {
 } from '@uk-immigration/game';
 import { cropIds, spritePath, visibleResidents, homeSpot } from './session';
 import { SceneText } from './scene-text';
+import { shopSignIds, signPath, signPosition } from './art';
 type Cell = { x: number; y: number };
 export type Interaction =
   | { kind: 'place'; id: PlaceId }
@@ -149,6 +150,7 @@ export class TownScene extends Phaser.Scene {
     this.load.image('town-tiles', '/game/assets/modern-city/tiles.png');
     this.load.image('home-tiles', '/game/assets/indoor/tiles.png');
     this.load.image('home-details', '/game/assets/indoor/home-details.svg');
+    for (const id of shopSignIds) this.load.image(`sign-${id}`, signPath(id));
     this.load.image('item-fallback', '/game/assets/indoor/item.png');
     this.load.spritesheet('lunch-furniture', '/game/assets/indoor/tiles.png', {
       frameWidth: 16,
@@ -324,6 +326,12 @@ export class TownScene extends Phaser.Scene {
       );
       this.spots.push({ ...cell, interaction, bounds, label });
       this.anchors.set(obj.name, cell);
+      if (!this.view.interior && shopSignIds.includes(obj.name)) {
+        const sign = signPosition({ x: obj.x!, y: obj.y! });
+        this.own(
+          this.add.sprite(sign.x, sign.y, `sign-${obj.name}`).setDepth(3),
+        );
+      }
       this.own(
         this.add
           .rectangle(cell.x * size + 8, cell.y * size + 13, 9, 2, 0xf4d98d, 0.8)

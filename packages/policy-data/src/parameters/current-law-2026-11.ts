@@ -6,6 +6,20 @@ export const currentLaw2026_11 = {
   ruleSetId: 'current-law-2026-11',
   asOf: '2026-11-04',
   values: {
+    // SRC-034 GR 8.1: non-doctoral applications before this date receive
+    // two years, measured from the decision date, not the application date.
+    graduateNonDoctoralEarlyGrantMonths: {
+      value: 24,
+      sources: [
+        { srcId: 'SRC-034', locator: 'GR 8.1, non-doctoral table row' },
+      ],
+    },
+    graduateNonDoctoralShorterGrantFrom: {
+      value: '2027-01-01',
+      sources: [
+        { srcId: 'SRC-034', locator: 'GR 8.1, non-doctoral table row' },
+      ],
+    },
     // GBP, standard in-country Skilled Worker application for up to 3 years;
     // not the Immigration Salary List or Health and Care fee.
     skilledWorkerExtensionFeeInUk: {

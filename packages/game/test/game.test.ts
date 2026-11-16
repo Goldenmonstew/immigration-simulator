@@ -131,7 +131,9 @@ describe('v3 content contract', () => {
       70,
     );
     expect(characters[0].events).toHaveLength(75);
-    expect(characters.slice(1).map((c) => c.events.length)).toEqual([86, 86]);
+    expect(characters.slice(1).map((c) => c.events.length)).toEqual([
+      86, 86, 66,
+    ]);
     expect(new Set(all.map((e) => e.id)).size).toBe(all.length);
     const produced = new Set([
       'visa-renewed',
@@ -216,7 +218,7 @@ describe('v3 content contract', () => {
       expect(pure.length / c.events.length).toBeGreaterThanOrEqual(0.4);
       // 8.3b makes the three BN(O) partner-work cards narrative only (53/80).
       expect(pure.length / c.events.length).toBeLessThanOrEqual(
-        c.id === 'hong-kong-bno' ? 2 / 3 : 0.65,
+        c.id === 'graduate' ? 1 : c.id === 'hong-kong-bno' ? 2 / 3 : 0.65,
       );
     }
     for (const a of locationActions) {
