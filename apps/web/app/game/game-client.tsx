@@ -514,7 +514,7 @@ export default function GameClient() {
                 <button
                   className={styles.music}
                   disabled={paused}
-                  aria-label={t('game.fastForward')}
+                  aria-label={t('game.fastShort')}
                   title={t('game.fastForward')}
                   onClick={() => setConfirmation('fast')}
                 >
@@ -529,7 +529,7 @@ export default function GameClient() {
                 <button
                   className={styles.music}
                   disabled={paused}
-                  aria-label={t('game.endDay')}
+                  aria-label={t('game.endDayShort')}
                   title={t('game.endDay')}
                   onClick={() => setConfirmation('sleep')}
                 >

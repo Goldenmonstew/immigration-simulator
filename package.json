@@ -12,7 +12,8 @@
     "test": "pnpm -r --workspace-concurrency=1 test",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r --workspace-concurrency=1 typecheck",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "e2e": "pnpm --filter e2e e2e"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
