@@ -313,6 +313,7 @@ export function StatusBar({
         </div>
         <strong className={styles.clock}>{clockTime(state.day.minute)}</strong>
         <span
+          role="img"
           title={t(`game.${state.day.weather}`)}
           aria-label={t(`game.${state.day.weather}`)}
         >
