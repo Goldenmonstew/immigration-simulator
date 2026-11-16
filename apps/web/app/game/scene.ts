@@ -17,6 +17,15 @@ import {
 } from '@uk-immigration/game';
 import { cropIds, spritePath, visibleResidents, homeSpot } from './session';
 import { SceneText } from './scene-text';
+import { setSoundEnvironment } from './sound';
+import {
+  animalIds,
+  animalPath,
+  animalRoutes,
+  animalStep,
+  visibleAnimals,
+  type Animal,
+} from './wildlife';
 import { shopSignIds, signPath, signPosition } from './art';
 type Cell = { x: number; y: number };
 export type Interaction =
@@ -83,6 +92,10 @@ export class TownScene extends Phaser.Scene {
   private spots: Spot[] = [];
   private anchors = new Map<string, Cell>();
   private residents = new Map<string, Walker>();
+  private animals = new Map<
+    Animal,
+    { sprite: Phaser.GameObjects.Sprite; next: number; elapsed: number }
+  >();
   private cropSprites: Phaser.GameObjects.Sprite[] = [];
   private furnishings: { flag: string; layer: Phaser.Tilemaps.TilemapLayer }[] =
     [];
@@ -151,6 +164,11 @@ export class TownScene extends Phaser.Scene {
     this.load.image('home-tiles', '/game/assets/indoor/tiles.png');
     this.load.image('home-details', '/game/assets/indoor/home-details.svg');
     for (const id of shopSignIds) this.load.image(`sign-${id}`, signPath(id));
+    for (const id of animalIds)
+      this.load.spritesheet(`animal-${id}`, animalPath(id), {
+        frameWidth: 16,
+        frameHeight: 16,
+      });
     this.load.image('item-fallback', '/game/assets/indoor/item.png');
     this.load.spritesheet('lunch-furniture', '/game/assets/indoor/tiles.png', {
       frameWidth: 16,
@@ -249,6 +267,7 @@ export class TownScene extends Phaser.Scene {
     this.spots = [];
     this.anchors.clear();
     this.residents.clear();
+    this.animals.clear();
     this.cropSprites = [];
     this.furnishings = [];
     this.townTiles = undefined;
@@ -378,6 +397,16 @@ export class TownScene extends Phaser.Scene {
           );
         }
       });
+      for (const id of animalIds) {
+        const start = animalRoutes[id][0];
+        const sprite = this.own(
+          this.add
+            .sprite(start.x * size + 8, start.y * size + 10, `animal-${id}`)
+            .setOrigin(0.5, 0.8)
+            .setDepth(start.y * size + 19),
+        );
+        this.animals.set(id, { sprite, next: 1, elapsed: 0 });
+      }
       this.decorateFestival();
       this.decorateLunch();
       this.lifeScenery = {
@@ -536,6 +565,9 @@ export class TownScene extends Phaser.Scene {
     this.syncScenery();
     this.syncLunch();
     this.syncResidents();
+    const visible = visibleAnimals(view.state, view.interior);
+    for (const [id, animal] of this.animals)
+      animal.sprite.setVisible(visible.includes(id));
     const focus = view.focusNpc
       ? this.residents.get(view.focusNpc)?.sprite
       : undefined;
@@ -1408,11 +1440,63 @@ export class TownScene extends Phaser.Scene {
     sprite.y += ((dy / len) * speed * delta) / 1000;
     return false;
   }
+  private updateAnimals(delta: number) {
+    if (!this.animals.size) return;
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    const occupied = [
+      this.player!,
+      ...[...this.residents.values()]
+        .filter((n) => n.sprite.visible)
+        .map((n) => n.sprite),
+    ];
+    for (const [id, animal] of this.animals) {
+      const { sprite } = animal;
+      if (!sprite.visible) continue;
+      const target = animalRoutes[id][animal.next];
+      // Water is duck habitat; land animals obey the existing map and scenery.
+      const allowed =
+        id === 'duck'
+          ? this.map
+              ?.getLayer('ground')
+              ?.tilemapLayer.getTileAt(target.x, target.y)?.index === 5
+          : this.passable(target);
+      if (!allowed) continue;
+      const goal = { x: target.x * size + 8, y: target.y * size + 10 };
+      const next = animalStep(sprite, goal, delta, occupied, reduced);
+      const moving = next.x !== sprite.x || next.y !== sprite.y;
+      if (moving) {
+        sprite.setFlipX(next.x < sprite.x);
+        animal.elapsed += Math.min(delta, 50);
+        sprite.setPosition(next.x, next.y);
+      }
+      sprite.setFrame(
+        !reduced && moving ? Math.floor(animal.elapsed / 400) % 2 : 0,
+      );
+      sprite.setDepth(sprite.y + 9);
+      if (sprite.x === goal.x && sprite.y === goal.y)
+        animal.next = (animal.next + 1) % animalRoutes[id].length;
+    }
+  }
   update(time: number, delta: number) {
     if (!this.ready || !this.player) return;
+    const pond = this.anchors.get('pond');
+    setSoundEnvironment({
+      weather: this.view.state.day.weather,
+      minute: this.view.state.day.minute,
+      interior: this.view.interior,
+      nearPond:
+        !!pond &&
+        Math.hypot(
+          this.player.x / size - pond.x,
+          this.player.y / size - pond.y,
+        ) <= 7,
+    });
     this.weather(time);
     this.festivalEffects(time);
     if (this.view.paused) return;
+    this.updateAnimals(delta);
     for (const [id, n] of this.residents) {
       if (!n.target) n.target = n.path.shift();
       if (n.target && this.move(n.sprite, n.target, 40, delta, id)) {

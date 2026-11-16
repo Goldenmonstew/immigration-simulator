@@ -14,6 +14,15 @@ import townMap from '../public/game/town.json';
 import homeMap from '../public/game/home.json';
 import { SceneText, textPosition } from '../app/game/scene-text';
 import { shopSignIds, signPath } from '../app/game/art';
+import {
+  animalIds,
+  animalPath,
+  animalRoutes,
+  animalStep,
+  visibleAnimals,
+} from '../app/game/wildlife';
+import * as sound from '../app/game/sound';
+import { readFileSync } from 'node:fs';
 
 const TransformMatrix = createRequire(import.meta.url)(
   'phaser/src/gameobjects/components/TransformMatrix.js',
@@ -103,9 +112,8 @@ class Sprite {
   setDepth() {
     return this;
   }
-  setFrame() {
-    return this;
-  }
+  setFrame = vi.fn(() => this);
+  setFlipX = vi.fn(() => this);
   setDisplaySize() {
     return this;
   }
@@ -1236,4 +1244,137 @@ test('bright rent lights the window and a purchased lamp locally, clearing both 
   scene.sync(view);
   expect(light.fillCircle).not.toHaveBeenCalled();
   expect(light.clear).toHaveBeenCalled();
+});
+
+test.each([
+  [1, 600, 'sunny', false, ['cat', 'robin']],
+  [2, 600, 'sunny', false, ['duck', 'cat', 'robin']],
+  [3, 600, 'cloudy', false, ['duck', 'cat']],
+  [4, 600, 'sunny', false, ['duck', 'cat', 'robin']],
+  [2, 419, 'sunny', false, []],
+  [2, 420, 'sunny', false, ['duck', 'robin']],
+  [2, 1020, 'sunny', false, ['duck', 'cat']],
+  [2, 1140, 'sunny', false, ['cat']],
+  [2, 1260, 'sunny', false, []],
+  [2, 600, 'rain', false, ['duck']],
+  [1, 600, 'snow', false, []],
+  [2, 600, 'sunny', true, []],
+] as const)(
+  'animals in quarter %i at %i, %s, indoors=%s',
+  (quarter, minute, weather, interior, expected) => {
+    const state = newGame('skilled-worker', 42);
+    state.quarter = quarter;
+    state.day.minute = minute;
+    state.day.weather = weather;
+    expect(visibleAnimals(state, interior)).toEqual(expected);
+  },
+);
+
+test('all animal routes stay in their habitat, away from doors and crop plots, with real sprite sheets', () => {
+  const ground = townMap.layers.find((l) => l.name === 'ground')!.data!;
+  const collision = townMap.layers.find((l) => l.name === 'collision')!.data!;
+  const interactions = townMap.layers
+    .filter((l) => ['places', 'plots'].includes(l.name))
+    .flatMap((l) => l.objects ?? []);
+  for (const id of animalIds) {
+    const route = animalRoutes[id];
+    const svg = readFileSync(
+      new URL(`../public${animalPath(id)}`, import.meta.url),
+      'utf8',
+    );
+    expect(svg).toContain('viewBox="0 0 32 16"');
+    expect(svg).not.toMatch(/<image|<script|href=/);
+    for (let i = 0; i < route.length; i++) {
+      const from = route[i],
+        to = route[(i + 1) % route.length];
+      for (let step = 0; step <= 100; step++) {
+        const x = Math.round(from.x + ((to.x - from.x) * step) / 100);
+        const y = Math.round(from.y + ((to.y - from.y) * step) / 100);
+        const cell = y * townMap.width + x;
+        expect(ground[cell] === 5).toBe(id === 'duck');
+        if (id !== 'duck') expect(collision[cell]).toBe(0);
+        expect(y === 35 && (x === 44 || x === 45)).toBe(false);
+        expect(interactions.some((p) => p.x / 16 === x && p.y / 16 === y)).toBe(
+          false,
+        );
+      }
+    }
+  }
+});
+
+test('animal movement yields to actors, freezes for reduced motion and caps hidden-tab time jumps', () => {
+  const from = { x: 100, y: 100 },
+    target = { x: 150, y: 100 };
+  const next = animalStep(from, target, 16, [], false);
+  expect(next.x).toBeGreaterThan(from.x);
+  expect(next.x).toBeLessThan(target.x);
+  expect(animalStep(from, target, 16, [{ x: 110, y: 100 }], false)).toEqual(
+    from,
+  );
+  expect(animalStep(from, target, 16, [], true)).toEqual(from);
+  expect(animalStep(from, target, 60000, [], false).x - from.x).toBeLessThan(1);
+  expect(animalStep(target, target, 16, [], false)).toEqual(target);
+});
+
+test('scene animals change visibility, animate, yield and never alter player pathfinding or interactions', () => {
+  let reduced = false;
+  vi.stubGlobal('window', { matchMedia: () => ({ matches: reduced }) });
+  const { scene, view } = setup();
+  view.state.quarter = 2;
+  view.state.day.minute = 600;
+  const route = animalRoutes.cat;
+  const sprite = new Sprite(route[0].x * 16 + 8, route[0].y * 16 + 10);
+  const animal = { sprite, next: 1, elapsed: 0 };
+  const findPath = (a: Cell, b: Cell) =>
+    Reflect.get(scene, 'findPath').call(scene, a, b);
+  const before = findPath({ x: 11, y: 24 }, { x: 16, y: 24 });
+  const spots = [...Reflect.get(scene, 'spots')];
+  Object.assign(scene, { animals: new Map([['cat', animal]]) });
+  scene.sync(view);
+  expect(sprite.visible).toBe(true);
+  for (let i = 0; i < 30; i++) scene.update(i * 16, 16);
+  expect(sprite.x).toBeGreaterThan(route[0].x * 16 + 8);
+  expect(sprite.setFrame).toHaveBeenCalledWith(1);
+  const position = { x: sprite.x, y: sprite.y };
+  reduced = true;
+  scene.update(500, 16);
+  expect({ x: sprite.x, y: sprite.y }).toEqual(position);
+  expect(sprite.setFrame).toHaveBeenLastCalledWith(0);
+  reduced = false;
+  view.paused = true;
+  scene.update(516, 16);
+  expect({ x: sprite.x, y: sprite.y }).toEqual(position);
+  view.paused = false;
+  Object.assign(scene, { player: new Sprite(sprite.x + 10, sprite.y) });
+  scene.update(532, 16);
+  expect({ x: sprite.x, y: sprite.y }).toEqual(position);
+  expect(findPath({ x: 11, y: 24 }, { x: 16, y: 24 })).toEqual(before);
+  expect(Reflect.get(scene, 'spots')).toEqual(spots);
+  view.state.day.minute = 1260;
+  scene.sync(view);
+  expect(sprite.visible).toBe(false);
+  view.state.day.minute = 600;
+  scene.sync(view);
+  expect(sprite.visible).toBe(true);
+});
+
+test('scene ambience follows actual player proximity instead of the last visited place', () => {
+  const environment = vi.spyOn(sound, 'setSoundEnvironment');
+  const { scene, view, anchors } = setup();
+  const pond = anchors.get('pond')!;
+  view.state.day.place = 'home';
+  Object.assign(scene, {
+    player: new Sprite(pond.x * 16 + 8, pond.y * 16 + 10),
+  });
+  scene.update(0, 16);
+  expect(environment).toHaveBeenLastCalledWith({
+    weather: 'sunny',
+    minute: 780,
+    interior: false,
+    nearPond: true,
+  });
+  Object.assign(scene, { player: new Sprite(10 * 16, 24 * 16) });
+  scene.update(16, 16);
+  expect(environment.mock.lastCall![0].nearPond).toBe(false);
+  environment.mockRestore();
 });

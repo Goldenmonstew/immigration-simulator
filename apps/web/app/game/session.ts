@@ -3,6 +3,7 @@ import {
   characters,
   currentEvent,
   items,
+  recipes,
   isOver,
   npcAt,
   townsfolk,
@@ -96,7 +97,9 @@ export const itemIcon = (id: string) => {
   if (['tea', 'biscuits', 'flowers', 'cake'].includes(id))
     return `/game/assets/items/${id}.png`;
   const item = items.find((item) => item.id === id);
-  if (item?.kind === 'fish') return '/game/assets/items/fish.png';
+  if (item?.kind === 'fish') return `/game/assets/meadow-town/fish/${id}.svg`;
+  if (recipes.some((recipe) => recipe.makes === id))
+    return `/game/assets/meadow-town/dishes/${id}.svg`;
   if (item?.kind === 'food') return '/game/assets/items/meal.png';
   return '/game/assets/indoor/item.png';
 };

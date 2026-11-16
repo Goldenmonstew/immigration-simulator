@@ -156,3 +156,48 @@ floor (24,2)；rug (24,5)；wall (24,14)；bedT (14,6)；bedB (14,7)；kitchen (
 | `items/cake.png` | maruki，[Foodies](https://opengameart.org/content/foodies)，作者发布页标明 CC0 / public domain | [Foodies.zip](https://opengameart.org/sites/default/files/Foodies.zip) 内 `foodies_sheet_borderless.png`，`(80, 0, 16, 16)`，第 5 列、第 0 行的草莓蛋糕 |
 | `items/fish.png` | Pixel-boy / Sparklin Labs，[ninja-adventure](https://github.com/sparklinlabs/superpowers-asset-packs/tree/master/ninja-adventure)，使用上面已列 CC0 许可 | [items/food/fish.png](https://raw.githubusercontent.com/sparklinlabs/superpowers-asset-packs/master/ninja-adventure/items/food/fish.png)，完整原图 `(0, 0, 16, 16)`，所有鱼类共用 |
 | `items/meal.png` | Pixel-boy / Sparklin Labs，[ninja-adventure](https://github.com/sparklinlabs/superpowers-asset-packs/tree/master/ninja-adventure)，使用上面已列 CC0 许可 | [items/food/noodle.png](https://raw.githubusercontent.com/sparklinlabs/superpowers-asset-packs/master/ninja-adventure/items/food/noodle.png)，完整原图 `(0, 0, 16, 16)`，菜品共用碗装食物图 |
+
+## 13.3 小游戏、环境音与小动物（2026-11-16）
+
+### 环境音
+
+2026-11-16 实时核实下列发布页的 **CC0 1.0 Universal** 声明。仅使用所列环境音，不包含素材包其余文件。原件保留在下载站，不把整个原始素材包加入仓库。室内底噪取自作者在 Freesound 发布的安静录音室录音，使用官方公开预览。许可原文沿用本目录 `LICENSE.txt`。
+
+统一处理：下混单声道、24 kHz 工作采样率、高通（鸟鸣 350 Hz / 室内 100 Hz / 雨和水 90 Hz）、低通 10 kHz、首尾 0.5 秒交叉混合、去直流、限制峰值为 0.6、端点 5 ms 平滑，编码为 Ogg Opus（32 kbps VBR）。Opus 容器标示 48 kHz 解码采样率。Web Audio 解码后按 buffer 循环，地点切换淡入淡出 0.35 秒；不使用计时器拼接多次播放。
+
+| 文件（相对本目录） | 作者 | 来源与许可证据 | 下载 | 取样 / 时长 | 大小 |
+| --- | --- | --- | --- | --- | ---: |
+| `ambience/rain.ogg` | rubberduck | [原发布页 CC0](https://opengameart.org/content/40-cc0-water-splash-slime-sfx) | [音频 / 素材包](https://opengameart.org/sites/default/files/water-splash-slime-sfx.zip) | `loop_rain.ogg`，取 0–6.8 秒；处理后 6.3 秒 | 23,053 bytes |
+| `ambience/water.ogg` | rubberduck | [原发布页 CC0](https://opengameart.org/content/40-cc0-water-splash-slime-sfx) | [音频 / 素材包](https://opengameart.org/sites/default/files/water-splash-slime-sfx.zip) | `loop_water_02.ogg`，取 0–7 秒；处理后 6.5 秒 | 23,750 bytes |
+| `ambience/birds.ogg` | isaiah658 | [原发布页 CC0](https://opengameart.org/content/ambient-bird-sounds) | [音频 / 素材包](https://opengameart.org/sites/default/files/birds-isaiah658_0.ogg) | 取 3–27 秒；处理后 23.5 秒 | 89,032 bytes |
+| `ambience/room.ogg` | pushkin | [原发布页 CC0](https://freesound.org/people/pushkin/sounds/146435/) | [音频 / 素材包](https://cdn.freesound.org/previews/146/146435_336074-hq.mp3) | 官方 HQ MP3 预览，取 15–33 秒；处理后 17.5 秒 | 64,549 bytes |
+
+四个环境音合计 **200,384 bytes**。保留原 BGM 0.17、脚步 0.12、其他音效 0.23；新增环境声 gain 为雨 / 水 0.12、鸟 0.18、室内 0.07（素材已预先降低电平）。既有产品没有单独音量滑块，沿用静音开关与页面隐藏暂停。
+
+### 原创像素 SVG
+
+作者：本项目 / Codex gpt-6-astra。来源 URL：[本仓库 meadow-town 素材目录](https://github.com/Goldenmonstew/uk-immigration-simulator/tree/main/apps/web/public/game/assets/meadow-town)（本轮本地新增，合并后该 URL 才包含新文件）。全部以整数坐标直接编写 SVG，无外部图片、字体、品牌或嵌入资源；不是下载或描摹第三方图像。按 **CC0 1.0 Universal** 发布，完整许可见 `meadow-town/LICENSE.txt`。
+
+鱼图用轮廓、鳍、斑纹和配色区分六种鱼；八份成品图与配方一一对应。鱼和菜均为 32×24。动物为 32×16 的两帧图，每帧 16×16；鸭游泳、猫走路、知更鸟跳动。动物行为及小游戏钓竿 / 鱼线 / 浮标的 CSS 图形也为本项目原创，沿用 CC0。
+
+| 文件（相对本目录） | 内容 | 许可 | 大小 |
+| --- | --- | --- | ---: |
+| `meadow-town/fish/bream.svg` | 鳊鱼（高身、长臀鳍） | 原创 CC0 | 374 bytes |
+| `meadow-town/fish/carp.svg` | 鲤鱼（金身、须） | 原创 CC0 | 412 bytes |
+| `meadow-town/fish/perch.svg` | 河鲈（背鳍、条纹） | 原创 CC0 | 421 bytes |
+| `meadow-town/fish/pike.svg` | 狗鱼（长身、尖吻） | 原创 CC0 | 425 bytes |
+| `meadow-town/fish/roach.svg` | 拟鲤（银身、红鳍） | 原创 CC0 | 360 bytes |
+| `meadow-town/fish/tench.svg` | 丁鱥（橄榄绿身、圆鳍） | 原创 CC0 | 409 bytes |
+| `meadow-town/dishes/baked-potato.svg` | 烤土豆 | 原创 CC0 | 402 bytes |
+| `meadow-town/dishes/corn-soup.svg` | 玉米浓汤 | 原创 CC0 | 371 bytes |
+| `meadow-town/dishes/dumplings.svg` | 饺子 | 原创 CC0 | 365 bytes |
+| `meadow-town/dishes/fish-and-potatoes.svg` | 鱼配土豆 | 原创 CC0 | 360 bytes |
+| `meadow-town/dishes/salad.svg` | 沙拉 | 原创 CC0 | 381 bytes |
+| `meadow-town/dishes/strawberry-jam.svg` | 草莓酱 | 原创 CC0 | 388 bytes |
+| `meadow-town/dishes/summer-corn.svg` | 烤玉米 | 原创 CC0 | 345 bytes |
+| `meadow-town/dishes/turnip-soup.svg` | 芜菁汤 | 原创 CC0 | 358 bytes |
+| `meadow-town/animals/cat.svg` | 猫 | 原创 CC0 | 664 bytes |
+| `meadow-town/animals/duck.svg` | 鸭子 | 原创 CC0 | 678 bytes |
+| `meadow-town/animals/robin.svg` | 知更鸟 | 原创 CC0 | 675 bytes |
+
+新增原创 SVG 共 17 张，合计 **7,388 bytes**。10.5b 一节的 `items/fish.png` 与 `items/meal.png` 为历史文件；本轮六种鱼与八份配方成品使用新 SVG，其他食物仍可使用原有通用图。

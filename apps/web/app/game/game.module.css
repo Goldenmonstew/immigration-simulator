@@ -1040,22 +1040,165 @@
   text-align: center;
 }
 .floatWater {
-  height: 90px;
-  background: #538f9e;
-  display: grid;
-  place-items: center;
+  position: relative;
+  height: 150px;
+  overflow: hidden;
+  background: linear-gradient(#c6d7c2 0 28%, #76a3a2 28% 34%, #538f9e 34%);
   border: 3px solid var(--wood);
   border-radius: 6px;
   margin: 16px 0;
 }
-.floatWater span {
-  color: var(--panel);
-  text-shadow: 0 -5px var(--heart);
-  font-size: 20px;
+.fishingRod {
+  position: absolute;
+  left: 12%;
+  top: 90px;
+  width: 95px;
+  height: 5px;
+  background: var(--wood);
+  transform-origin: left center;
+  transform: rotate(-35deg);
+  border-right: 16px solid var(--panel);
 }
-.floatBite span {
-  transform: translateY(12px);
-  color: var(--heart);
+.fishingLine {
+  position: absolute;
+  left: calc(12% + 77px);
+  top: 38px;
+  width: 46%;
+  height: 49px;
+  border-top: 1px solid #faf0d3;
+  border-right: 1px solid #faf0d3;
+  border-radius: 0 70% 0 0;
+}
+.fishingFloat {
+  position: absolute;
+  left: calc(58% + 72px);
+  top: 79px;
+  width: 8px;
+  height: 12px;
+  border-top: 6px solid #a84437;
+  background: #fff0cb;
+  z-index: 1;
+}
+.fishingRipple {
+  position: absolute;
+  left: calc(58% + 62px);
+  top: 89px;
+  width: 28px;
+  height: 6px;
+  border: 1px solid #bde1d8;
+  border-radius: 50%;
+}
+.floatWater[data-phase='casting'] .fishingRod {
+  animation: rodCast 450ms ease-out;
+}
+.floatWater[data-phase='waiting'] .fishingFloat {
+  animation: floatBob 1.6s ease-in-out infinite;
+}
+.floatWater[data-phase='bite'] .fishingFloat {
+  transform: translateY(9px);
+  background: #a84437;
+}
+.floatWater[data-phase='bite'] .fishingRipple {
+  animation: biteRipple 300ms ease-out infinite;
+}
+.floatWater[data-phase='reeling'] .fishingRod {
+  transform: rotate(-65deg);
+}
+.floatWater[data-phase='reeling'] .fishingFloat,
+.floatWater[data-phase='reeling'] .fishingLine {
+  animation: reelLine 500ms ease-in forwards;
+}
+.floatWater[data-phase='idle'] .fishingLine,
+.floatWater[data-phase='idle'] .fishingFloat,
+.floatWater[data-phase='idle'] .fishingRipple,
+.floatWater[data-phase='win'] .fishingLine,
+.floatWater[data-phase='win'] .fishingFloat,
+.floatWater[data-phase='win'] .fishingRipple,
+.floatWater[data-phase='miss'] .fishingLine,
+.floatWater[data-phase='miss'] .fishingFloat,
+.floatWater[data-phase='miss'] .fishingRipple {
+  visibility: hidden;
+}
+@keyframes rodCast {
+  from {
+    transform: rotate(-110deg);
+  }
+  to {
+    transform: rotate(-35deg);
+  }
+}
+@keyframes floatBob {
+  50% {
+    transform: translateY(3px);
+  }
+}
+@keyframes biteRipple {
+  to {
+    transform: scale(1.6);
+    opacity: 0.35;
+  }
+}
+@keyframes reelLine {
+  to {
+    transform: translate(-55px, -35px);
+    opacity: 0;
+  }
+}
+.catchCard {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 16px;
+  margin: 12px 0;
+  background: var(--lining);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.catchCard > span {
+  width: 72px;
+  height: 72px;
+}
+.catchCard p {
+  margin: 0;
+}
+.kitchen {
+  text-align: center;
+}
+.kitchenSteps {
+  text-align: left;
+  padding-left: 28px;
+}
+.kitchenSteps li {
+  padding: 6px;
+  color: var(--muted);
+}
+.kitchenSteps [aria-current='step'] {
+  color: var(--ink);
+  background: var(--lining);
+  font-weight: 700;
+}
+.kitchenSteps [data-done='true'] {
+  text-decoration: line-through;
+}
+.prepBoard {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  border: 3px solid var(--wood);
+  border-radius: 12px;
+  background: var(--lining);
+}
+.prepBoard > span {
+  opacity: 0.35;
+}
+.prepBoard > [data-added='true'] {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .floatWater span {
+    animation: none !important;
+  }
 }
 .outcomeToast,
 .notice,
