@@ -178,7 +178,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'about.sharePrivacy':
     'A share link contains all the inputs you entered, including principal applicant information. Anyone with the link can read and load those inputs, so share it only with people you trust.',
   'about.analyticsPrivacy':
-    'The site uses only Cloudflare Web Analytics for visitor statistics, without cookies. Questionnaire inputs and simulation results are not sent.',
+    'The site uses only Cloudflare Web Analytics for visitor statistics, without cookies. Questionnaire inputs and simulation results are not sent. When a page fails, its path, the error message, the version and the browser type are sent to an error log for this site on Cloudflare, kept for a few days and never including your inputs.',
   'about.feedbackTitle': 'Feedback',
   'about.feedbackIntro':
     'If you find a policy interpretation error, a figure that does not match its source or a page problem, please report it in a GitHub issue.',

@@ -1,0 +1,11 @@
+{
+  "name": "error-report",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "deploy": "pnpm dlx wrangler@4.157.0 deploy"
+  }
+}
