@@ -14,12 +14,7 @@ export function ErrorReporter() {
         `${event.filename}:${event.lineno}:${event.colno}`,
       );
     const onRejection = (event: PromiseRejectionEvent) =>
-      reportError(
-        'unhandledrejection',
-        event.reason instanceof Error
-          ? event.reason.message
-          : String(event.reason),
-      );
+      reportError('unhandledrejection', event.reason);
     window.addEventListener('error', onError);
     window.addEventListener('unhandledrejection', onRejection);
     return () => {

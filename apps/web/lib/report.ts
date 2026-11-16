@@ -24,23 +24,37 @@ const reportingHost =
   /^((staging|[0-9a-f]{8})\.)?uk-immigration-simulator\.pages\.dev$|^wanruncong\.uk$/;
 const sent = new Set<string>();
 
-/** The parts of an error that are safe to send: its type and React code. */
+const knownTypes = new Set([
+  'Error',
+  'TypeError',
+  'RangeError',
+  'ReferenceError',
+  'SyntaxError',
+  'URIError',
+  'EvalError',
+  'AggregateError',
+  'ChunkLoadError',
+  'AbortError',
+  'NotAllowedError',
+  'SecurityError',
+  'QuotaExceededError',
+  'InvalidStateError',
+]);
+
+/** The parts of an error that are safe to send: a known type and React code. */
 export function describe(error: unknown): string {
-  const name =
-    error instanceof Error
-      ? error.name
-      : typeof error === 'string'
-        ? 'string'
-        : typeof error;
-  const code =
-    error instanceof Error &&
-    /Minified React error #(\d+)/.exec(error.message)?.[1];
+  if (!(error instanceof Error)) return typeof error;
+  const name = knownTypes.has(error.name) ? error.name : 'Error';
+  const code = /Minified React error #(\d+)/.exec(error.message)?.[1];
   return code ? `${name} react#${code}` : name;
 }
 
-/** Strip a script URL down to its path so no query or hash is sent. */
+/** Reduce a script URL with :line:col to its path and position only. */
 export function codeLocation(source: string): string {
-  return source.replace(/^[a-z]+:\/\/[^/]+/i, '').replace(/[?#][^:]*/, '');
+  const [, url = source, position = ''] =
+    /^(.*?)((?::\d+){0,2})$/.exec(source) ?? [];
+  const path = url.replace(/^[a-z]+:\/\/[^/]+/i, '').replace(/[?#].*$/, '');
+  return `${path}${position}`;
 }
 
 export function reportError(kind: string, error: unknown, source = '') {

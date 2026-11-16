@@ -38,6 +38,12 @@ test('only the error type and React code are described, never its text', async (
     ),
   ).toBe('Error react#418');
   expect(describe('free text from a rejection')).toBe('string');
+  const custom = new Error('x');
+  custom.name = 'Alice Smith';
+  expect(describe(custom)).toBe('Error');
+  expect(
+    codeLocation('https://x.dev/a.js#s=Alice:alice@example.com:12:34'),
+  ).toBe('/a.js:12:34');
   expect(describe(undefined)).toBe('undefined');
   expect(
     codeLocation(
