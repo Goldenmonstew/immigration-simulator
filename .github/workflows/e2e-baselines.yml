@@ -1,0 +1,27 @@
+name: E2E screenshot baselines
+
+# Run by hand after an intended visual change; download the artifact and
+# commit it into apps/e2e/tests/__screenshots__.
+on:
+  workflow_dispatch:
+
+jobs:
+  baselines:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm --filter e2e exec playwright install --with-deps chromium
+      - run: pnpm e2e --update-snapshots
+        env:
+          E2E_SNAPSHOTS: '1'
+      - uses: actions/upload-artifact@v7
+        with:
+          name: e2e-screenshots
+          path: apps/e2e/tests/__screenshots__

@@ -11,3 +11,5 @@ next-env.d.ts
 .turbo/
 .worktrees/
 .claude/launch.json
+apps/e2e/test-results/
+apps/e2e/playwright-report/
