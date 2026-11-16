@@ -215,8 +215,8 @@
 }
 .gameBanner {
   display: block;
-  height: clamp(120px, 24vw, 190px);
-  background: #cbdad1 no-repeat center / cover;
+  aspect-ratio: 3 / 1;
+  background: #cbdad1 no-repeat center / contain;
   image-rendering: pixelated;
 }
 .gameEntryTitle {

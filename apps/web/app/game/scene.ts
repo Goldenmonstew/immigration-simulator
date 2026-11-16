@@ -348,7 +348,10 @@ export class TownScene extends Phaser.Scene {
       if (!this.view.interior && shopSignIds.includes(obj.name)) {
         const sign = signPosition({ x: obj.x!, y: obj.y! });
         this.own(
-          this.add.sprite(sign.x, sign.y, `sign-${obj.name}`).setDepth(3),
+          this.add
+            .sprite(sign.x, sign.y, `sign-${obj.name}`)
+            .setDisplaySize(16, 16)
+            .setDepth(3),
         );
       }
       this.own(

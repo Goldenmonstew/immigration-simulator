@@ -114,9 +114,7 @@ class Sprite {
   }
   setFrame = vi.fn(() => this);
   setFlipX = vi.fn(() => this);
-  setDisplaySize() {
-    return this;
-  }
+  setDisplaySize = vi.fn(() => this);
   setTexture = vi.fn(() => this);
   play() {
     return this;
@@ -549,7 +547,7 @@ test('Nora and Maeve preload their own 16px walking frames and use them at home'
   expect(residents.get('maeve')!.sprite.visible).toBe(true);
 });
 
-test('all nine facade signs preload, leave doors and paths clear, and reset on entering and leaving home', () => {
+test('all nine facade signs occupy solid wall tiles, leave doors and paths clear, and reset on entering and leaving home', () => {
   const { scene, view } = loadScene(false);
   const load = {
     image: vi.fn(),
@@ -569,6 +567,9 @@ test('all nine facade signs preload, leave doors and paths clear, and reset on e
   const collision = townMap.layers.find(
     (layer) => layer.name === 'collision',
   )!.data!;
+  const buildings = townMap.layers.find(
+    (layer) => layer.name === 'decor',
+  )!.data!;
   const originalPaths = new Map<string, Cell[]>();
   for (const id of shopSignIds) {
     expect(load.image).toHaveBeenCalledWith(`sign-${id}`, signPath(id));
@@ -577,24 +578,29 @@ test('all nine facade signs preload, leave doors and paths clear, and reset on e
     const bounds = Object.fromEntries(
       door.properties!.map((p) => [p.name, p.value]),
     );
-    expect(sign.x - 12).toBeGreaterThanOrEqual(bounds.buildingX);
-    expect(sign.x + 12).toBeLessThanOrEqual(
+    expect(sign.setDisplaySize).toHaveBeenCalledWith(16, 16);
+    expect(sign.x - 8).toBeGreaterThanOrEqual(bounds.buildingX);
+    expect(sign.x + 8).toBeLessThanOrEqual(
       bounds.buildingX + bounds.buildingWidth,
     );
-    expect(sign.y - 12).toBeGreaterThanOrEqual(bounds.buildingY);
+    expect(sign.y - 8).toBeGreaterThanOrEqual(bounds.buildingY);
     // The visible door occupies the last facade tile above the path anchor.
-    expect(sign.y + 12).toBeLessThanOrEqual(door.y - 16);
+    expect(sign.x + 8).toBeLessThanOrEqual(door.x);
+    expect(sign.y + 8).toBeLessThanOrEqual(door.y);
     for (
-      let y = Math.floor((sign.y - 12) / 16);
-      y <= Math.floor((sign.y + 11) / 16);
+      let y = Math.floor((sign.y - 8) / 16);
+      y <= Math.floor((sign.y + 7) / 16);
       y++
     )
       for (
-        let x = Math.floor((sign.x - 12) / 16);
-        x <= Math.floor((sign.x + 11) / 16);
+        let x = Math.floor((sign.x - 8) / 16);
+        x <= Math.floor((sign.x + 7) / 16);
         x++
-      )
+      ) {
         expect(collision[y * townMap.width + x]).toBeGreaterThan(0);
+        // Brick, grey or cream wall: no roof, window, awning or door tile.
+        expect([16, 19, 21]).toContain(buildings[y * townMap.width + x]);
+      }
   }
   const findPath = (destination: Cell) =>
     Reflect.get(scene, 'findPath').call(
