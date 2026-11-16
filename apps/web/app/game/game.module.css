@@ -949,6 +949,26 @@
   min-height: 44px;
   padding: 8px;
 }
+.collectionDate {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.collectionUnknown {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: var(--muted);
+  background: var(--secondary);
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  font-weight: 700;
+}
+.collectionHarvests {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  line-height: 1.7;
+}
 .itemIcon {
   display: inline-block;
   width: 32px;
@@ -1196,7 +1216,7 @@
     right: 0;
     bottom: 0;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
     margin: 0;
     padding: 6px 8px calc(6px + env(safe-area-inset-bottom));

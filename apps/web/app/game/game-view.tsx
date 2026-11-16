@@ -215,20 +215,22 @@ export function InteractButton({
   const { t, locale } = useTranslation();
   const touch = useTouchPointer();
   const name =
-    interaction.kind === 'home'
-      ? t(
-          interaction.id === 'exit'
-            ? 'game.exitHome'
-            : `game.${interaction.id}`,
-        )
-      : interaction.kind === 'plot'
-        ? t('game.plot').replace('{count}', String(interaction.id + 1))
-        : localText(
-            (interaction.kind === 'npc' ? npcs : places).find(
-              (p) => p.id === interaction.id,
-            )!.name,
-            locale,
-          );
+    interaction.kind === 'surprise'
+      ? localText(interaction.name, locale)
+      : interaction.kind === 'home'
+        ? t(
+            interaction.id === 'exit'
+              ? 'game.exitHome'
+              : `game.${interaction.id}`,
+          )
+        : interaction.kind === 'plot'
+          ? t('game.plot').replace('{count}', String(interaction.id + 1))
+          : localText(
+              (interaction.kind === 'npc' ? npcs : places).find(
+                (p) => p.id === interaction.id,
+              )!.name,
+              locale,
+            );
   const label =
     interaction.kind === 'home' && interaction.id === 'exit'
       ? name
@@ -897,8 +899,16 @@ export function QuarterSummary({
 
 export function LifeMemories({ state }: { state: GameState }) {
   const { t, locale } = useTranslation();
-  const { friends, furnishings, crops, photo } = endingMemories(state);
-  if (!friends.length && !furnishings.length && !crops.length && !photo)
+  const { friends, furnishings, crops, dishes, flowerbed, photo } =
+    endingMemories(state);
+  if (
+    !friends.length &&
+    !furnishings.length &&
+    !crops.length &&
+    !dishes.length &&
+    !flowerbed &&
+    !photo
+  )
     return null;
   return (
     <section aria-labelledby="life-memories-heading">
@@ -975,6 +985,32 @@ export function LifeMemories({ state }: { state: GameState }) {
                 </li>
               ))}
             </ul>
+          </article>
+        )}
+        {!!dishes.length && (
+          <article className={styles.memoryCard}>
+            <h3>{t('game.memoryDishes')}</h3>
+            <ul>
+              {dishes.map((item) => (
+                <li key={item.id}>
+                  <span
+                    className={styles.itemIcon}
+                    aria-hidden="true"
+                    style={{
+                      backgroundImage: `url("${itemIcon(item.id)}")`,
+                      backgroundSize: '32px 32px',
+                    }}
+                  />
+                  <span>{localText(item.name, locale)}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        )}
+        {flowerbed && (
+          <article className={styles.memoryCard}>
+            <h3>{t('game.memoryFlowerbed')}</h3>
+            <p>{t('game.memoryFlowerbedText')}</p>
           </article>
         )}
       </div>

@@ -15,7 +15,16 @@ export type DayMemory = Pick<
   key: string;
   count: number;
 };
-export type ChangeSource = 'action' | 'observe' | 'fast';
+export type ChangeSource = 'action' | 'observe' | 'fast' | 'resolve';
+
+export function resolvedOutcomeText(before: GameState, after: GameState) {
+  if (after.outcome && ['sleep', 'travel'].includes(after.outcome.kind)) return;
+  const text = after.outcome?.text;
+  // The core keeps the last outcome across events without a result of their own.
+  return text && JSON.stringify(text) !== JSON.stringify(before.outcome?.text)
+    ? text
+    : undefined;
+}
 
 export function recordMemories(
   diary: DayMemory[],
@@ -42,6 +51,21 @@ export function recordMemories(
     });
   }
   const out = after.outcome;
+  const result = source === 'resolve' && resolvedOutcomeText(before, after);
+  if (
+    result &&
+    !added.some(
+      (entry) => JSON.stringify(entry.text) === JSON.stringify(result),
+    )
+  )
+    added.push({
+      year: before.year,
+      quarter: before.quarter,
+      day,
+      key: `result:${before.pendingEvent}`,
+      text: result,
+      count: 1,
+    });
   if (
     source === 'action' &&
     out &&

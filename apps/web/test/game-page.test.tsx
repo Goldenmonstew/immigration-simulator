@@ -757,7 +757,7 @@ test('all new overlays are English-only, with an unknown-item fallback', () => {
     expect(renderView(make, 'en').html).not.toMatch(cjk);
 });
 
-function client(start: GameState) {
+function client(start: GameState, locale: Locale = 'zh-CN') {
   const documentStub = {
     hidden: false,
     addEventListener: vi.fn(),
@@ -765,7 +765,7 @@ function client(start: GameState) {
   };
   vi.stubGlobal('document', documentStub);
   gameStorage(start.characterId, start);
-  const h = harness(() => GameClient());
+  const h = harness(() => GameClient(), locale);
   h.render();
   h.flush();
   const selection = h.render().props(CharacterSelect);
@@ -2280,3 +2280,132 @@ test('location selection follows the entered place while closed locations remain
   expect(h.render().html.match(/aria-current="location"/g)).toHaveLength(1);
   h.dispose();
 });
+
+// Phase 12.7: event endings use the same persisted diary as the season review.
+test.each(['zh-CN', 'en'] as const)(
+  'a real map surprise shows its result once, pauses the clock and persists the ending in %s',
+  (locale) => {
+    vi.useFakeTimers();
+    const start = at(600, 'home', locale);
+    start.day.deliveries = [];
+    start.dayNumber = (Math.imul(start.seed ^ 1, 2654435761) >>> 0) % 3;
+    start.day.index = start.dayNumber as GameState['day']['index'];
+    const clue = core.mapSurprises(start).find((s) => s.phase === 'clue')!;
+    const h = client(start, locale);
+    h.render().props(TownCanvas).onInteract({ kind: 'home', id: 'exit' });
+    h.render().props(TownCanvas).onInteract({
+      kind: 'surprise',
+      id: clue.anchor,
+      name: clue.text,
+    });
+    const card = h.render().props(EventCard);
+    expect(card.state.pendingEvent).toBe('surprise-biscuit-cat');
+    const resolved = core.resolve(card.state, 'wait');
+    card.onChange(resolved);
+    h.render();
+    h.flush();
+    const view = h.render();
+    expect(view.props(Modal).title).toBe(t('game.eventResult', locale));
+    expect(view.props(OutcomeText).text).toEqual(resolved.outcome!.text);
+    expect(view.html).toContain(
+      resolved.outcome!.text![locale === 'en' ? 'en' : 'zhCN'],
+    );
+    expect(view.props(TownCanvas).paused).toBe(true);
+    vi.advanceTimersByTime(4000);
+    expect(h.render().props(TownCanvas).state.day.minute).toBe(
+      resolved.day.minute,
+    );
+    const saved = gameStorage(start.characterId);
+    expect(
+      saved.diary!.filter((m) => m.text.en === resolved.outcome!.text!.en),
+    ).toHaveLength(1);
+    view.click(t('game.continuePlaying', locale));
+    expect(h.render().html).not.toContain(t('game.eventResult', locale));
+    expect(h.render().props(TownCanvas).paused).toBe(false);
+    h.dispose();
+  },
+);
+
+test('an event without its own result never replays a previous activity outcome', () => {
+  const start = at(600);
+  start.day.deliveries = [];
+  start.pendingEvent = 'phone';
+  start.outcome = {
+    kind: 'activity',
+    text: { zhCN: '旧结果', en: 'Old result' },
+  };
+  const h = client(start);
+  h.render().props(EventCard).onChange(core.resolve(start, 'yes'));
+  expect(h.render().html).not.toContain('旧结果');
+  expect(h.render().html).not.toContain(t('game.eventResult'));
+  h.dispose();
+});
+
+test('fast-forward queues a new event result in the saved season review without an extra stop', () => {
+  vi.useFakeTimers();
+  const start = at(600);
+  start.day.deliveries = [];
+  start.eventQueue = ['phone'];
+  fixtures[2].when = [{ dayKind: 'weekend' }];
+  const text = {
+    zhCN: '收好纸条，明天见。',
+    en: 'You tuck away the note. See you tomorrow.',
+  };
+  try {
+    const h = client(start);
+    h.render().click(t('game.fastForward'));
+    h.render().click(t('game.confirm'));
+    h.render();
+    h.flush();
+    vi.advanceTimersByTime(280);
+    h.render();
+    h.flush();
+    const card = h.render().props(EventCard);
+    const next = core.resolve(card.state, 'yes');
+    // A presentation fixture: current surprise cards deliberately never enter fast-forward.
+    next.outcome = { kind: 'activity', text };
+    card.onChange(next);
+    expect(h.render().html).not.toContain(t('game.eventResult'));
+    h.render();
+    h.flush();
+    const view = h.render();
+    expect(
+      view.props(QuarterSummary).diary!.filter((m) => m.text.en === text.en),
+    ).toHaveLength(1);
+    expect(view.html).toContain(text.zhCN);
+    expect(view.html).not.toContain(t('game.eventResult'));
+    h.flush();
+    expect(
+      gameStorage(start.characterId).diary!.some((m) => m.text.en === text.en),
+    ).toBe(true);
+    view.props(QuarterSummary).onContinue();
+    expect(h.render().html).not.toContain(text.zhCN);
+    h.dispose();
+  } finally {
+    delete fixtures[2].when;
+  }
+});
+
+test('the collection toolbar entry opens the read-only collection tab', () => {
+  const h = client(at(600));
+  h.render().click(t('game.collection'));
+  expect(h.render().props(Inventory).initialTab).toBe('collection');
+  expect(h.render().html).toContain(t('game.collectionFish'));
+  h.dispose();
+});
+
+test.each(['zh-CN', 'en'] as const)(
+  'the surprise interaction bar names the clue in %s',
+  (locale) => {
+    const name = { zhCN: '台阶旁的交换箱', en: 'Swap box by the steps' };
+    const view = renderView(
+      () =>
+        InteractButton({
+          interaction: { kind: 'surprise', id: 'library-steps', name },
+          onInteract: vi.fn(),
+        }),
+      locale,
+    );
+    expect(view.html).toContain(name[locale === 'en' ? 'en' : 'zhCN']);
+  },
+);

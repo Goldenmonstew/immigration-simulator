@@ -151,6 +151,10 @@ export function endingMemories(state: GameState) {
     friends,
     furnishings,
     crops,
+    dishes: (state.lifeRecords?.dishes ?? []).map((record) =>
+      items.find((item) => item.id === record.itemId)!,
+    ),
+    flowerbed: state.flags.includes('flowerbed-open'),
     photo: state.flags.includes('community-lunch-photo-received'),
   };
 }
