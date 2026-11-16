@@ -149,6 +149,7 @@
 | 143 | 12.10 合入 main（sol 6af805d，merge 8b0df77）：五月节加上节前准备（两种分支）→ 当天按准备不同的结果 → 散场后回访，雨天有室内替代；三个地图小惊喜，先在锚点出现异样、走近才触发，过期不补、读档不重复。Fable 验收：测试只有新增；合并后 main 全仓 gate 通过（GATE EXIT 0，game 1,212、web 354）。sol 发现：网页端在事件选择后不显示 `outcome.text`，惊喜收尾文案需要 astra 接入，已并入 12.7 | packages/game/**, docs/tasks/reports/12.10-festival-and-surprises.md, docs/tasks/phase-12-plan.md, PROGRESS.md |
 | 144 | 12.11 合入 main（astra 150b2ee）：按 agy 复评 §二 的 8 条加主站 3 处收尾。手机室内画布不再留黑边，进度卡不被 Dock 截断；互动改为画布下方的单行操作条（如"互动：床"），触屏不显示按键；结局评估跟随游戏主题，操作按钮前置，未获得成就默认折叠；标签分两级高亮并钳位在边缘内；图标改单色 SVG；明亮住处改局部暖光；主站手机顶栏一行，问卷加进度条。Fable 验收：合并后 main 全仓 gate 通过（GATE EXIT 0，web 369）；手机 3 倍截图核对室内、首页、对话框。12.7（astra：收尾文案、收藏册、做过的菜、花坛、五月节与惊喜的画面）开工 | apps/web/**, docs/tasks/reports/12.11-design-polish.md, docs/tasks/12.7-life-content-visuals.md, docs/tasks/phase-12-plan.md, PROGRESS.md |
 | 145 | 12.7 合入 main（astra c52a2c0）：事件选择后显示收尾文案，快进时排到季末小结；收藏页列出鱼和菜，已得的显示图标与首次年季，未得的显示问号，另有收成统计；结局新增"做过的菜"和"公共花坛的小牌"；公共花坛三阶段画面；五月节的布置；三个地图惊喜的锚点异样与过期。Fable 验收：合并后 main 全仓 gate 通过（GATE EXIT 0，web 406）；2 倍、3 倍截图核对桌面与手机的收藏页、花坛第三阶段、当前地点高亮。Phase 12 计划内任务 12.1–12.11 完成 | apps/web/**, docs/tasks/reports/12.7-life-content-visuals.md, docs/tasks/phase-12-plan.md, PROGRESS.md |
+| 146 | Phase 13 规划（2026-11-16）：用户决定美术素材与第三波玩法"两个都去做"。13.1 astra 做带表情立绘（15 人 × 3 表情）、横幅与店铺招牌，只用核实过的 CC0 素材，或项目原创；13.2 sol 做第四位角色（毕业生转 Skilled Worker，Graduate 时长依 SRC-034 GR 8.1，引擎已有 GRADUATE 路线）；13.3 astra（小游戏、环境音、小动物）排在 13.1 之后 | docs/tasks/phase-13-plan.md, docs/tasks/13.1-art-assets.md, docs/tasks/13.2-graduate-character.md, PROGRESS.md |
 
 ### 当前状态
 
