@@ -142,7 +142,8 @@
   max-width: 1176px;
   margin: auto;
   padding: 20px 28px 72px;
-  min-height: 70vh;
+  /* Keeps the footer below the fold while the game loads, so it does not jump. */
+  min-height: 100vh;
 }
 .game {
   max-width: 1120px;

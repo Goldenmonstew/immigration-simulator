@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import type { RuleSetId } from '@uk-immigration/engine';
 import { useTranslation } from '../../i18n/locale';
 import {
@@ -65,7 +66,6 @@ import {
   stopSound,
   unlockSound,
 } from './sound';
-import TownCanvas from './town-canvas';
 import type { Interaction, SceneFeedback } from './scene';
 import {
   recordMemories,
@@ -74,6 +74,14 @@ import {
   type ChangeSource,
 } from './diary';
 import styles from './game.module.css';
+import canvasStyles from './town-canvas.module.css';
+
+// Phaser is most of the game's JavaScript; load it only once a town is on
+// screen, so the welcome screen and character select appear without it.
+const TownCanvas = dynamic(() => import('./town-canvas'), {
+  ssr: false,
+  loading: () => <div className={canvasStyles.canvas} />,
+});
 type Overlay =
   | { kind: 'place'; id: PlaceId }
   | { kind: 'dialogue'; id: string }

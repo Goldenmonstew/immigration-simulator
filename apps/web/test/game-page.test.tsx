@@ -58,6 +58,11 @@ import { portraitPath, townBanner } from '../app/game/art';
 import Home from '../app/home-content';
 vi.mock('react', { spy: true });
 vi.mock('../app/game/town-canvas', () => ({ default: () => null }));
+// game-client loads the canvas through next/dynamic; hand back the mock above.
+vi.mock('next/dynamic', async () => {
+  const canvas = await import('../app/game/town-canvas');
+  return { default: () => canvas.default };
+});
 vi.mock('../app/game/sound', () => ({
   playSound: vi.fn(),
   hideSound: vi.fn(),
