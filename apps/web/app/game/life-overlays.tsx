@@ -35,7 +35,8 @@ import {
   EventNotes,
   VisaReminder,
 } from './game-view';
-import { itemIcon, spritePath, needsVisaReminder } from './session';
+import { itemIcon, needsVisaReminder } from './session';
+import { dialogueExpression, portraitPath } from './art';
 import { playSound } from './sound';
 import styles from './game.module.css';
 type Change = { state: GameState; onChange: (state: GameState) => void };
@@ -191,13 +192,13 @@ export function Dialogue({
   const meetingPlace = useRef(npcAt(state, npc));
   const stillHere = npcAt(state, npc) === meetingPlace.current;
   const event = currentEvent(state);
-  const text = localText(
+  const spokenText =
     event?.text ??
-      feedbackText ??
-      (state.outcome?.npc === npc ? state.outcome?.text : undefined) ??
-      person.lines[0].text,
-    locale,
-  );
+    feedbackText ??
+    (state.outcome?.npc === npc ? state.outcome?.text : undefined) ??
+    person.lines[0].text;
+  const text = localText(spokenText, locale);
+  const expression = dialogueExpression(person, spokenText, event);
   const [paragraph, setParagraph] = useState(0);
   const paragraphs = event ? text.split('\n') : [text];
   const line = paragraphs[paragraph] ?? paragraphs[0];
@@ -236,7 +237,9 @@ export function Dialogue({
         <span className={styles.portraitFrame}>
           <span
             className={styles.portrait}
-            style={{ backgroundImage: `url("${spritePath(npc)}")` }}
+            style={{
+              backgroundImage: `url("${portraitPath(npc, expression)}")`,
+            }}
             aria-hidden="true"
           />
         </span>
@@ -391,7 +394,7 @@ export function Inventory({
             <li key={n.id}>
               <span
                 className={styles.smallPortrait}
-                style={{ backgroundImage: `url("${spritePath(n.id)}")` }}
+                style={{ backgroundImage: `url("${portraitPath(n.id)}")` }}
                 aria-hidden="true"
               />
               <span>

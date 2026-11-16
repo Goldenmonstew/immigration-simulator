@@ -151,6 +151,15 @@
 .welcome {
   padding: 12px 0;
 }
+.townBanner {
+  width: 100%;
+  height: clamp(144px, 26vw, 280px);
+  margin-bottom: 24px;
+  border: 2px solid var(--wood);
+  border-radius: 8px;
+  background: var(--lining) no-repeat center / cover;
+  image-rendering: pixelated;
+}
 .welcome > p {
   max-width: 38em;
 }
@@ -219,7 +228,7 @@
   width: 80px;
   height: 80px;
   image-rendering: pixelated;
-  background: no-repeat 0 0 / 320px 240px;
+  background: no-repeat center / contain;
 }
 .buttons,
 .toolbar {
@@ -696,7 +705,7 @@
 .memoryPortrait {
   width: 48px;
   height: 48px;
-  background-size: 192px 144px;
+  background-size: contain;
 }
 .memoryPhoto {
   width: 72px;
@@ -1007,7 +1016,7 @@
 }
 .friendList li {
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) 160px;
+  grid-template-columns: 48px minmax(0, 1fr) 160px;
   align-items: center;
   gap: 12px;
   border-bottom: 1px solid var(--line);
@@ -1022,9 +1031,9 @@
   color: var(--muted);
 }
 .smallPortrait {
-  width: 32px;
-  height: 32px;
-  background-size: 128px 96px;
+  width: 48px;
+  height: 48px;
+  background: no-repeat center / contain;
   image-rendering: pixelated;
 }
 .fishing {
@@ -1284,7 +1293,6 @@
   .dialogueBody .portrait {
     width: 60px;
     height: 60px;
-    background-size: 240px 180px;
   }
   .theme .dialogueText {
     font-size: 16px;
@@ -1296,7 +1304,7 @@
     padding: 10px;
   }
   .friendList li {
-    grid-template-columns: 32px minmax(0, 1fr);
+    grid-template-columns: 48px minmax(0, 1fr);
   }
   .friendList li > span:last-child {
     grid-column: 2;

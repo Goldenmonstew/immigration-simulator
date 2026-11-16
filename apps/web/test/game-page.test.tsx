@@ -54,6 +54,8 @@ import townMap from '../public/game/town.json';
 import homeMap from '../public/game/home.json';
 import { LocaleContext } from '../i18n/locale';
 import { decodeDraft, encodeDraft } from '../lib/share';
+import { portraitPath, townBanner } from '../app/game/art';
+import Home from '../app/home-content';
 vi.mock('react', { spy: true });
 vi.mock('../app/game/town-canvas', () => ({ default: () => null }));
 vi.mock('../app/game/sound', () => ({
@@ -298,7 +300,7 @@ test.each(['zh-CN', 'en'] as const)(
       locale,
     );
     for (const c of core.characters)
-      expect(select.html).toContain(spritePath(c.id));
+      expect(select.html).toContain(portraitPath(c.id));
     select.click(t('game.continue', locale));
     expect(onChange).toHaveBeenCalledWith(state);
     if (locale === 'en')
@@ -1988,12 +1990,79 @@ test('friends are the two highest positive friendships actually met in this char
     'helen',
   ]);
   const html = renderView(() => LifeMemories({ state })).html;
-  expect(html).toContain(spritePath('ade'));
-  expect(html).toContain(spritePath('helen'));
-  expect(html).not.toContain(spritePath('priya'));
-  expect(html).not.toContain(spritePath('jamie'));
+  expect(html).toContain(portraitPath('ade', 'happy'));
+  expect(html).toContain(portraitPath('helen', 'happy'));
+  expect(html).not.toContain(portraitPath('priya', 'happy'));
+  expect(html).not.toContain(portraitPath('jamie', 'happy'));
   expect(state).toEqual(before);
 });
+
+test.each(['zh-CN', 'en'] as const)(
+  'selection, home entry and each household list render the new art in %s',
+  (locale) => {
+    const select = renderView(
+      () => CharacterSelect({ saves: {}, onChange: vi.fn() }),
+      locale,
+    ).html;
+    expect(select).toContain(townBanner);
+    const home = renderView(() => <Home />, locale).html;
+    expect(home).toContain(townBanner);
+    expect(home).toContain('href="/game"');
+    expect(home).toContain(t('game.entry', locale));
+    for (const character of core.characters) {
+      expect(select).toContain(portraitPath(character.id));
+      const state = core.newGame(character.id, 42, locale);
+      const h = harness(
+        () => Inventory({ state, onChange: vi.fn(), onKitchen: vi.fn() }),
+        locale,
+      );
+      h.render().click(t('game.friends', locale));
+      const list = h.render().html;
+      for (const person of core.townsfolk(state))
+        expect(list).toContain(portraitPath(person.id));
+      expect(list).not.toContain('/game/assets/urban/');
+      h.dispose();
+    }
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'dialogue changes neutral → happy after a real gift, then follows the displayed reply in %s',
+  (locale) => {
+    let state = core.talk(active(locale), 'margaret');
+    const person = core.npcs.find((person) => person.id === 'margaret')!;
+    const h = harness(
+      () =>
+        Dialogue({
+          state,
+          npc: person.id,
+          onChange: vi.fn(),
+          onClose: vi.fn(),
+        }),
+      locale,
+    );
+    expect(h.render().html).toContain(portraitPath(person.id));
+    state = core.gift(state, person.id, 'tea');
+    expect(h.render().html).toContain(portraitPath(person.id, 'happy'));
+    const worried = renderView(
+      () =>
+        Dialogue({
+          state,
+          npc: person.id,
+          feedbackText: person.reactions.disliked,
+          onChange: vi.fn(),
+          onClose: vi.fn(),
+        }),
+      locale,
+    ).html;
+    expect(worried).toContain(portraitPath(person.id, 'worried'));
+    state.pendingEvent = 'heart-margaret-2';
+    expect(h.render().html).toContain(portraitPath(person.id));
+    state.pendingEvent = 'heart-margaret-10';
+    expect(h.render().html).toContain(portraitPath(person.id, 'happy'));
+    h.dispose();
+  },
+);
 
 test.each(['reading-chair', 'warm-curtains', 'desk-lamp'])(
   'purchasing %s adds only the furniture actually acquired to ending memories',
