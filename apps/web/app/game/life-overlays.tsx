@@ -1,6 +1,7 @@
 'use client';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../../i18n/locale';
+import type { TranslationKey } from '../../i18n';
 import {
   buy,
   cook,
@@ -515,6 +516,91 @@ export function LifeCollection({ state }: { state: GameState }) {
 export function Kitchen({ state, onChange }: Change) {
   const { t, locale } = useTranslation();
   const action = useLifeAction(onChange);
+  const [recipeId, setRecipeId] = useState<string>();
+  const [step, setStep] = useState(0);
+  const [done, setDone] = useState(false);
+  const settled = useRef(false);
+  const recipe = recipes.find((r) => r.id === recipeId);
+  const finish = () => {
+    if (!recipe || settled.current) return;
+    settled.current = true;
+    const accepted = action.run(() => cook(state, recipe.id));
+    setDone(accepted);
+    if (!accepted) settled.current = false;
+  };
+  if (recipe) {
+    const ingredients = Object.entries(recipe.needs);
+    const steps = [
+      ...ingredients.map(([id, qty]) =>
+        t('game.kitchenAdd')
+          .replace(
+            '{item}',
+            localText(items.find((i) => i.id === id)!.name, locale),
+          )
+          .replace('{count}', String(qty)),
+      ),
+      t(`game.prepare-${recipe.id}` as TranslationKey),
+      t('game.kitchenServe'),
+    ];
+    return (
+      <div className={styles.kitchen}>
+        <h3>{localText(recipe.label, locale)}</h3>
+        {action.message}
+        {done ? (
+          <div className={styles.catchCard} role="status">
+            <ItemIcon id={recipe.makes} />
+            <strong>
+              <ItemName id={recipe.makes} />
+            </strong>
+            <p>{t('game.kitchenComment')}</p>
+          </div>
+        ) : (
+          <>
+            <ol className={styles.kitchenSteps}>
+              {steps.map((label, index) => (
+                <li
+                  key={label}
+                  aria-current={index === step ? 'step' : undefined}
+                  data-done={index < step}
+                >
+                  {label}
+                </li>
+              ))}
+            </ol>
+            <div className={styles.prepBoard} aria-hidden="true">
+              {ingredients.map(([id], index) => (
+                <span key={id} data-added={index < step}>
+                  <ItemIcon id={id} />
+                </span>
+              ))}
+            </div>
+            <p role="status">
+              {t('game.kitchenStep')
+                .replace('{step}', String(step + 1))
+                .replace('{total}', String(steps.length))}
+            </p>
+            <button
+              className={styles.button}
+              onClick={() =>
+                step === steps.length - 1 ? finish() : setStep(step + 1)
+              }
+            >
+              {steps[step]}
+            </button>
+            <button className={styles.button} onClick={finish}>
+              {t('game.kitchenSkip')}
+            </button>
+          </>
+        )}
+        <button
+          className={styles.button}
+          onClick={() => setRecipeId(undefined)}
+        >
+          {t('game.kitchenRecipes')}
+        </button>
+      </div>
+    );
+  }
   return (
     <div className={styles.choices}>
       {action.message}
@@ -528,7 +614,12 @@ export function Kitchen({ state, onChange }: Change) {
               ([id, n]) => (state.inventory[id] ?? 0) < n,
             )
           }
-          onClick={() => action.run(() => cook(state, r.id))}
+          onClick={() => {
+            settled.current = false;
+            setDone(false);
+            setStep(0);
+            setRecipeId(r.id);
+          }}
         >
           <strong>{localText(r.label, locale)}</strong>
           <span>
@@ -667,30 +758,81 @@ export function Mailbox({ state, onChange }: Change) {
     </>
   );
 }
+type FishingPhase =
+  'idle' | 'casting' | 'waiting' | 'bite' | 'reeling' | 'win' | 'miss';
 export function Fishing({ state, onChange }: Change) {
   const { t } = useTranslation();
   const action = useLifeAction(onChange);
-  const [phase, setPhase] = useState<
-    'idle' | 'waiting' | 'bite' | 'win' | 'miss'
-  >('idle');
-  const stage = useRef(phase);
-  stage.current = phase;
+  const [phase, setPhase] = useState<FishingPhase>('idle');
+  const [easy, setEasy] = useState(false);
+  const [caught, setCaught] = useState<{ id: string; first: boolean }>();
+  const stage = useRef<FishingPhase>('idle');
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const deadline = useRef(0);
-  const latest = useRef({ state, onChange });
-  latest.current = { state, onChange };
+  const latest = useRef({ state, run: action.run });
+  latest.current = { state, run: action.run };
+  const show = (next: FishingPhase) => {
+    stage.current = next;
+    setPhase(next);
+  };
   const finish = (success: boolean) => {
     if (!['waiting', 'bite'].includes(stage.current)) return;
     clearTimeout(timer.current);
-    const accepted = action.run(() => fish(latest.current.state, success));
-    stage.current = accepted ? (success ? 'win' : 'miss') : 'idle';
-    setPhase(stage.current);
+    show('reeling');
+    timer.current = setTimeout(() => {
+      // A missed bite is a local retry: no clock, RNG, inventory or life-record changes.
+      if (!success) {
+        show('miss');
+        return;
+      }
+      const before = latest.current.state;
+      const accepted = latest.current.run(() => {
+        const next = fish(before, true);
+        const id = Object.keys(next.outcome?.items ?? {})[0];
+        setCaught({
+          id,
+          first:
+            !!next.lifeRecords?.fish.some((r) => r.itemId === id) &&
+            !before.lifeRecords?.fish.some((r) => r.itemId === id),
+        });
+        return next;
+      });
+      show(accepted ? 'win' : 'idle');
+    }, 500);
   };
+  const cast = () => {
+    if (!['idle', 'win', 'miss'].includes(stage.current)) return;
+    setCaught(undefined);
+    show('casting');
+    timer.current = setTimeout(() => {
+      show('waiting');
+      timer.current = setTimeout(
+        () => {
+          show('bite');
+          const windowMs = easy ? 2000 : 600;
+          deadline.current = Date.now() + windowMs;
+          timer.current = setTimeout(() => finish(false), windowMs);
+        },
+        1000 + Math.random() * 3000,
+      );
+    }, 450);
+  };
+  const activate = () => {
+    if (['waiting', 'bite'].includes(stage.current))
+      finish(stage.current === 'bite' && Date.now() < deadline.current);
+    else cast();
+  };
+  const input = useRef(activate);
+  input.current = activate;
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(tag ?? '')) return;
+      // Native buttons already support Space/Enter, including the mode switch.
+      if (e.key === ' ' && tag === 'BUTTON') return;
       if ([' ', 'e', 'E'].includes(e.key) && !e.repeat) {
         e.preventDefault();
-        finish(stage.current === 'bite' && Date.now() <= deadline.current);
+        input.current();
       }
     };
     window.addEventListener('keydown', key);
@@ -699,56 +841,60 @@ export function Fishing({ state, onChange }: Change) {
       clearTimeout(timer.current);
     };
   }, []);
-  const cast = () => {
-    stage.current = 'waiting';
-    setPhase('waiting');
-    timer.current = setTimeout(
-      () => {
-        stage.current = 'bite';
-        setPhase('bite');
-        deadline.current = Date.now() + 600;
-        timer.current = setTimeout(() => finish(false), 600);
-      },
-      1000 + Math.random() * 3000,
-    );
-  };
+  const busy = ['casting', 'waiting', 'bite', 'reeling'].includes(phase);
+  const status = {
+    idle: 'game.fish',
+    casting: 'game.castingFish',
+    waiting: 'game.waitingFish',
+    bite: 'game.bite',
+    reeling: 'game.reelingFish',
+    win: 'game.fishWin',
+    miss: 'game.fishMiss',
+  } as const;
   return (
     <div className={styles.fishing}>
       {action.message}
-      <p>{t('game.fishHint')}</p>
-      <div
-        className={`${styles.floatWater} ${phase === 'bite' ? styles.floatBite : ''}`}
-        aria-hidden="true"
+      <button
+        className={styles.button}
+        aria-pressed={easy}
+        disabled={busy}
+        onClick={() => setEasy(!easy)}
       >
-        <span>●</span>
+        {t('game.fishEasy')}
+      </button>
+      <p>{t(easy ? 'game.fishEasyHint' : 'game.fishHint')}</p>
+      <div className={styles.floatWater} data-phase={phase} aria-hidden="true">
+        <span className={styles.fishingRod} />
+        <span className={styles.fishingLine} />
+        <span className={styles.fishingFloat} />
+        <span className={styles.fishingRipple} />
       </div>
-      <p role="status">
-        {t(
-          phase === 'waiting'
-            ? 'game.waitingFish'
-            : phase === 'bite'
-              ? 'game.bite'
-              : phase === 'win'
-                ? 'game.fishWin'
-                : phase === 'miss'
-                  ? 'game.fishMiss'
-                  : 'game.fish',
-        )}
-      </p>
-      {phase === 'waiting' || phase === 'bite' ? (
-        <button
-          className={styles.button}
-          onClick={() =>
-            finish(stage.current === 'bite' && Date.now() <= deadline.current)
-          }
-        >
-          {t('game.reel')}
-        </button>
-      ) : (
-        <button className={styles.button} onClick={cast}>
-          {t('game.cast')}
-        </button>
+      <p role="status">{t(status[phase])}</p>
+      {caught && phase === 'win' && (
+        <div className={styles.catchCard}>
+          <ItemIcon id={caught.id} />
+          <strong>
+            <ItemName id={caught.id} />
+          </strong>
+          <p>
+            {t(
+              caught.first
+                ? 'game.fishFirst'
+                : items.find((i) => i.id === caught.id)?.kind === 'fish'
+                  ? 'game.fishCollected'
+                  : 'game.fishJunk',
+            )}
+          </p>
+        </div>
       )}
+      {phase === 'miss' && <p>{t('game.fishRetry')}</p>}
+      <button
+        className={styles.button}
+        disabled={phase === 'casting' || phase === 'reeling'}
+        onClick={activate}
+      >
+        {t(busy ? 'game.reel' : 'game.cast')}
+      </button>
     </div>
   );
 }

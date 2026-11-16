@@ -113,7 +113,7 @@ test('a real catch unlocks a named fish while the other fish stay unknown', () =
   const before = structuredClone(consumed);
   const html = render(<LifeCollection state={consumed} />);
   expect(html).toContain('1 / 6');
-  expect(html).toContain('fish.png');
+  expect(html).toContain(`/game/assets/meadow-town/fish/${id}.svg`);
   expect(html).toContain(items.find((item) => item.id === id)!.name.zhCN);
   for (const item of items.filter(
     (entry) => entry.kind === 'fish' && entry.id !== id,

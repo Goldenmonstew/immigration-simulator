@@ -566,6 +566,7 @@ test.each([true, false])(
       removeEventListener: vi.fn(),
     });
     let state = at(600, 'pond');
+    const original = structuredClone(state);
     const before = { ...state.inventory };
     const change = vi.fn((s: GameState) => {
       state = s;
@@ -575,21 +576,34 @@ test.each([true, false])(
     h.flush();
     h.render().click('抛竿');
     h.render();
+    expect(h.render().html).toContain('挥竿');
+    vi.advanceTimersByTime(450);
+    expect(h.render().html).toContain('看着浮标');
     vi.advanceTimersByTime(1000);
     expect(h.render().html).toContain('咬钩了');
     if (success) {
       vi.advanceTimersByTime(400);
       h.render().click('收竿');
     } else vi.advanceTimersByTime(601);
-    expect(change).toHaveBeenCalledOnce();
-    expect(state.outcome?.kind).toBe('catch');
-    expect(state.day.minute).toBe(630);
+    expect(h.render().html).toContain('收紧鱼线');
+    expect(change).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(500);
+    expect(change).toHaveBeenCalledTimes(success ? 1 : 0);
+    if (success) {
+      expect(state.outcome?.kind).toBe('catch');
+      expect(state.day.minute).toBe(630);
+      expect(h.render().html).toContain('首次收录');
+      expect(h.render().html).toContain('meadow-town/fish/');
+    } else {
+      expect(state).toEqual(original);
+      expect(h.render().html).toContain('鱼游走了');
+    }
     expect(
       Object.values(state.inventory).reduce((a, b) => a + b, 0) -
         Object.values(before).reduce((a, b) => a + b, 0),
     ).toBe(success ? 1 : 0);
     vi.advanceTimersByTime(1000);
-    expect(change).toHaveBeenCalledOnce();
+    expect(change).toHaveBeenCalledTimes(success ? 1 : 0);
     h.dispose();
   },
 );
@@ -616,7 +630,10 @@ test('kitchen consumes recipe ingredients and eating changes health', () => {
   const change = (s: GameState) => {
     state = s;
   };
-  renderView(() => Kitchen({ state, onChange: change })).click('烤土豆');
+  const h = harness(() => Kitchen({ state, onChange: change }));
+  h.render().click('烤土豆');
+  expect(state.inventory.potato).toBe(2);
+  h.render().click('跳过操作');
   expect(state.inventory.potato).toBe(1);
   expect(state.inventory['baked-potato']).toBe(1);
   const health = state.stats.health;
@@ -1231,8 +1248,9 @@ test('rejected late fishing never claims a catch or changes the state', () => {
   const h = harness(() => Fishing({ state, onChange }));
   h.render().click(t('game.cast'));
   h.render();
-  vi.advanceTimersByTime(1000);
+  vi.advanceTimersByTime(1450);
   h.render().click(t('game.reel'));
+  vi.advanceTimersByTime(500);
   expect(onChange).not.toHaveBeenCalled();
   expect(h.render().html).toContain(t('game.actionUnavailable'));
   expect(h.render().html).not.toContain(t('game.fishWin'));
@@ -1866,24 +1884,29 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
-test('tea, biscuits, flowers, cake, fish and meals use distinct real PNG assets', () => {
+test('tea, biscuits, flowers, cake, all fish and cooked meals use distinct real assets', () => {
   const ids = [
     'tea',
     'biscuits',
     'flowers',
     'cake',
-    core.items.find((i) => i.kind === 'fish')!.id,
-    'baked-potato',
+    ...core.items.filter((i) => i.kind === 'fish').map((i) => i.id),
+    ...core.recipes.map((r) => r.makes),
   ];
-  expect(new Set(ids.map(itemIcon)).size).toBe(6);
+  expect(new Set(ids.map(itemIcon)).size).toBe(ids.length);
   for (const id of ids) {
     expect(itemIcon(id)).not.toContain('/indoor/item.png');
     const png = readFileSync(
       new URL(`../public${itemIcon(id)}`, import.meta.url),
     );
-    expect(png.subarray(0, 8)).toEqual(
-      Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
-    );
+    if (itemIcon(id).endsWith('.svg')) {
+      expect(png.toString()).toContain('viewBox="0 0 32 24"');
+      expect(png.toString()).toContain('shape-rendering="crispEdges"');
+      expect(png.toString()).not.toMatch(/<image|<script|href=/);
+    } else
+      expect(png.subarray(0, 8)).toEqual(
+        Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+      );
   }
   for (const item of core.items.filter((i) =>
     ['fish', 'food'].includes(i.kind),
@@ -2543,5 +2566,165 @@ test.each(['zh-CN', 'en'] as const)(
       locale,
     );
     expect(view.html).toContain(name[locale === 'en' ? 'en' : 'zhCN']);
+  },
+);
+
+test.each(core.recipes)(
+  '$id kitchen steps and skipping produce exactly the same core result',
+  (recipe) => {
+    const initial = at(600, 'home');
+    initial.inventory = { ...recipe.needs };
+    const expected = core.cook(initial, recipe.id);
+    for (const skipAt of [-1, 0, 1]) {
+      let state = structuredClone(initial);
+      const onChange = vi.fn((next: GameState) => {
+        state = next;
+      });
+      const h = harness(() => Kitchen({ state, onChange }));
+      h.render().click(recipe.label.zhCN);
+      const steps = Object.keys(recipe.needs).length + 2;
+      expect(steps).toBeGreaterThanOrEqual(3);
+      expect(steps).toBeLessThanOrEqual(4);
+      for (let step = 0; step < steps; step++) {
+        const view = h.render();
+        expect(state).toEqual(initial);
+        expect(view.html).toContain(`第 ${step + 1} / ${steps} 步`);
+        const button = view.buttons.find(
+          (b) =>
+            b.label !== t('game.kitchenSkip') &&
+            b.label !== t('game.kitchenRecipes'),
+        )!;
+        const click =
+          skipAt === step
+            ? view.buttons.find((b) => b.label === t('game.kitchenSkip'))!.click
+            : button.click;
+        click();
+        if (skipAt === step || step === steps - 1) {
+          click();
+          break;
+        }
+      }
+      expect(onChange).toHaveBeenCalledOnce();
+      expect(state).toEqual(expected);
+      expect(h.render().html).toContain(`/dishes/${recipe.makes}.svg`);
+      expect(h.render().html).toContain(t('game.kitchenComment'));
+      h.render().click(t('game.kitchenRecipes'));
+      expect(
+        h.render().buttons.find((b) => b.label.startsWith(recipe.label.zhCN))!
+          .disabled,
+      ).toBe(true);
+      h.dispose();
+    }
+  },
+);
+
+test('kitchen cancel and rejected settlement do not consume ingredients or show a finished dish', () => {
+  const state = at(600, 'home');
+  state.inventory.potato = 2;
+  const onChange = vi.fn();
+  const h = harness(() => Kitchen({ state, onChange }));
+  h.render().click('烤土豆');
+  h.render().click(t('game.kitchenRecipes'));
+  expect(onChange).not.toHaveBeenCalled();
+  h.render().click('烤土豆');
+  state.day.minute = 1439;
+  h.render().click(t('game.kitchenSkip'));
+  expect(h.render().html).toContain(t('game.actionUnavailable'));
+  expect(h.render().html).not.toContain(t('game.kitchenComment'));
+  expect(state.inventory.potato).toBe(2);
+  expect(onChange).not.toHaveBeenCalled();
+});
+
+test.each(['keyboard', 'button'] as const)(
+  'easy fishing accepts a late bite with %s and records a repeat catch correctly',
+  (control) => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    const listeners = new Map<
+      string,
+      (e: {
+        key: string;
+        repeat?: boolean;
+        target?: { tagName: string };
+        preventDefault: () => void;
+      }) => void
+    >();
+    vi.stubGlobal('window', {
+      addEventListener: (
+        name: string,
+        fn: typeof listeners extends Map<string, infer F> ? F : never,
+      ) => listeners.set(name, fn),
+      removeEventListener: (name: string) => listeners.delete(name),
+    });
+    let state = at(600, 'pond');
+    const caughtId = Object.keys(core.fish(state, true).outcome!.items!)[0];
+    state.lifeRecords = {
+      fish: [{ itemId: caughtId, year: 1, quarter: 1 }],
+      dishes: [],
+      harvests: [],
+    };
+    const onChange = vi.fn((next: GameState) => {
+      state = next;
+    });
+    const h = harness(() => Fishing({ state, onChange }));
+    h.render();
+    h.flush();
+    h.render().click(t('game.fishEasy'));
+    const key = (value: string, repeat = false, tagName?: string) =>
+      listeners.get('keydown')!({
+        key: value,
+        repeat,
+        target: tagName ? { tagName } : undefined,
+        preventDefault: vi.fn(),
+      });
+    key(' ', false, 'BUTTON');
+    expect(h.render().html).not.toContain(t('game.castingFish'));
+    if (control === 'keyboard') key('e');
+    else h.render().click(t('game.cast'));
+    key('e', true);
+    expect(
+      h.render().buttons.find((b) => b.label === t('game.fishEasy'))!.disabled,
+    ).toBe(true);
+    vi.advanceTimersByTime(1450);
+    expect(h.render().html).toContain(t('game.bite'));
+    vi.advanceTimersByTime(1500);
+    if (control === 'keyboard') key(' ');
+    else h.render().click(t('game.reel'));
+    key('E');
+    vi.advanceTimersByTime(500);
+    expect(onChange).toHaveBeenCalledOnce();
+    expect(h.render().html).toContain(t('game.fishCollected'));
+    expect(h.render().html).not.toContain(t('game.fishFirst'));
+    h.dispose();
+    expect(listeners.size).toBe(0);
+  },
+);
+
+test.each(['early', 'timeout', 'unmount'] as const)(
+  'fishing %s leaves the entire game unchanged',
+  (caseName) => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    vi.stubGlobal('window', {
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
+    const state = at(600, 'pond');
+    const original = structuredClone(state);
+    const onChange = vi.fn();
+    const h = harness(() => Fishing({ state, onChange }));
+    h.render();
+    h.flush();
+    if (caseName === 'timeout') h.render().click(t('game.fishEasy'));
+    h.render().click(t('game.cast'));
+    vi.advanceTimersByTime(caseName === 'early' ? 450 : 1450);
+    if (caseName !== 'timeout') h.render().click(t('game.reel'));
+    if (caseName === 'unmount') h.dispose();
+    vi.advanceTimersByTime(3000);
+    expect(state).toEqual(original);
+    expect(onChange).not.toHaveBeenCalled();
+    if (caseName !== 'unmount')
+      expect(h.render().html).toContain(t('game.fishMiss'));
+    h.dispose();
   },
 );
