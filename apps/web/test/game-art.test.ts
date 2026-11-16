@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { expect, test } from 'vitest';
 import { characters, currentEvent, newGame, npcs } from '@uk-immigration/game';
+import { spritePath } from '../app/game/session';
 import {
   dialogueExpression,
   expressions,
@@ -24,8 +25,10 @@ function expectPng(path: string, width: number, height: number) {
   return createHash('sha256').update(image).digest('hex');
 }
 
-test('all three protagonists and twelve residents have distinct, complete 64px expression sets', () => {
-  expect(portraitIds).toHaveLength(15);
+test('all four protagonists and thirteen residents/family members have distinct, complete 64px expression sets', () => {
+  expect(characters).toHaveLength(4);
+  expect(npcs).toHaveLength(13);
+  expect(portraitIds).toHaveLength(17);
   expect(new Set(portraitIds)).toEqual(
     new Set([...characters, ...npcs].map((person) => person.id)),
   );
@@ -34,7 +37,20 @@ test('all three protagonists and twelve residents have distinct, complete 64px e
       expectPng(portraitPath(id, expression), 64, 64),
     ),
   );
-  expect(new Set(hashes).size).toBe(45);
+  expect(new Set(hashes).size).toBe(51);
+});
+
+test('every person resolves to their own portrait and distinct 64 by 48 walking sheet', () => {
+  const hashes = [...characters, ...npcs].map(({ id }) => {
+    for (const expression of expressions)
+      expect(portraitPath(id, expression)).toBe(
+        `/game/assets/meadow-town/portraits/${id}-${expression}.png`,
+      );
+    expect(spritePath(id)).toBe(`/game/assets/urban/${id}.png`);
+    return expectPng(spritePath(id), 64, 48);
+  });
+  expect(new Set(hashes).size).toBe(17);
+  expect(spritePath('unknown')).toBe(spritePath('skilled-worker'));
 });
 
 test('missing or unknown expressions keep the person and use their neutral portrait', () => {

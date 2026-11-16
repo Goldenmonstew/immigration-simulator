@@ -2064,6 +2064,73 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
+test.each(['zh-CN', 'en'] as const)(
+  'Nora and Maeve retain their own art across selection, household, dialogue and memories in %s',
+  (locale) => {
+    const root = '/game/assets/meadow-town/portraits/';
+    const select = renderView(
+      () => CharacterSelect({ saves: {}, onChange: vi.fn() }),
+      locale,
+    ).html;
+    expect(select).toContain(`${root}graduate-neutral.png`);
+    const state = core.newGame('graduate', 42, locale);
+    delete state.pendingEvent;
+    state.eventQueue = [];
+    state.day.place = 'home';
+    state.day.minute = 480;
+    delete state.day.festival;
+    const person = core.npcs.find((npc) => npc.id === 'maeve')!;
+    const list = harness(
+      () => Inventory({ state, onChange: vi.fn(), onKitchen: vi.fn() }),
+      locale,
+    );
+    list.render().click(t('game.friends', locale));
+    expect(list.render().html).toContain(`${root}maeve-neutral.png`);
+    list.dispose();
+
+    let conversation = core.talk(state, 'maeve');
+    const dialogue = harness(
+      () =>
+        Dialogue({
+          state: conversation,
+          npc: 'maeve',
+          onChange: vi.fn(),
+          onClose: vi.fn(),
+        }),
+      locale,
+    );
+    expect(dialogue.render().html).toContain(`${root}maeve-neutral.png`);
+    conversation.inventory.tea = 1;
+    conversation = core.gift(conversation, 'maeve', 'tea');
+    expect(dialogue.render().html).toContain(`${root}maeve-happy.png`);
+    const worried = renderView(
+      () =>
+        Dialogue({
+          state: conversation,
+          npc: 'maeve',
+          feedbackText: person.reactions.disliked,
+          onChange: vi.fn(),
+          onClose: vi.fn(),
+        }),
+      locale,
+    ).html;
+    expect(worried).toContain(`${root}maeve-worried.png`);
+    expect(worried).not.toContain(`${root}skilled-worker-`);
+    dialogue.dispose();
+
+    conversation.friendship.maeve = 500;
+    expect(endingMemories(conversation).friends.map((npc) => npc.id)).toContain(
+      'maeve',
+    );
+    const memories = renderView(
+      () => LifeMemories({ state: conversation }),
+      locale,
+    ).html;
+    expect(memories).toContain(`${root}maeve-happy.png`);
+    expect(memories).not.toContain(`${root}skilled-worker-`);
+  },
+);
+
 test.each(['reading-chair', 'warm-curtains', 'desk-lamp'])(
   'purchasing %s adds only the furniture actually acquired to ending memories',
   (id) => {

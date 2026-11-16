@@ -514,6 +514,33 @@ function loadScene(
   };
 }
 
+test('Nora and Maeve preload their own 16px walking frames and use them at home', () => {
+  const state = newGame('graduate', 42, 'en');
+  state.day.minute = 480;
+  delete state.day.festival;
+  const { scene } = loadScene(true, state);
+  const load = {
+    image: vi.fn(),
+    tilemapTiledJSON: vi.fn(),
+    spritesheet: vi.fn(),
+  };
+  Object.assign(scene, { load });
+  scene.preload();
+  for (const id of ['graduate', 'maeve'])
+    expect(load.spritesheet).toHaveBeenCalledWith(
+      id,
+      `/game/assets/urban/${id}.png`,
+      {
+        frameWidth: 16,
+        frameHeight: 16,
+      },
+    );
+  expect((Reflect.get(scene, 'player') as Sprite).texture).toBe('graduate');
+  const residents = Reflect.get(scene, 'residents') as Map<string, Walker>;
+  expect(residents.get('maeve')!.sprite.texture).toBe('maeve');
+  expect(residents.get('maeve')!.sprite.visible).toBe(true);
+});
+
 test('all nine facade signs preload, leave doors and paths clear, and reset on entering and leaving home', () => {
   const { scene, view } = loadScene(false);
   const load = {

@@ -4,6 +4,7 @@ export const portraitIds = [
   'skilled-worker',
   'hong-kong-bno',
   'family-partner',
+  'graduate',
   'margaret',
   'priya',
   'ade',
@@ -16,6 +17,7 @@ export const portraitIds = [
   'ka-ning-partner',
   'ka-ning-child',
   'yao-flatmate',
+  'maeve',
 ];
 export const expressions = ['neutral', 'happy', 'worried'] as const;
 export type Expression = (typeof expressions)[number];

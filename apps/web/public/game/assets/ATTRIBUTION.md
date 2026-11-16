@@ -2,6 +2,26 @@
 
 首批取用日期：2026-11-06；后续新增日期见各节。以下图像与音频全部采用 **CC0 1.0 Universal**；许可原文保留于 `LICENSE.txt`。下载、裁切、拼接及调色脚本不入仓库。
 
+## 13.1b 诺拉与梅芙（2026-11-16）
+
+- 6 张原创立绘：本项目 / Codex，使用内置 imagegen 辅助创作，以 13.1 本项目原创立绘为画风参考；没有第三方角色、品牌或外部字体。生成透明底人物后按最近邻导出为 64×64，人物前景收敛为最多 24 色，并合成与 13.1 一致的米色上下两色背景。适用 **CC0 1.0 Universal**，沿用 `meadow-town/LICENSE.txt` 的完整许可。外观是本轮美术设计，不新增人物背景设定。
+- 诺拉·阿齐兹（`graduate`）：黑色短发、金色发夹、芥末黄外套、米白领口与深蓝背包带。梅芙·凯利（`maeve`）：铜红发髻、雀斑、橙色上衣、深蓝维修围裙与工具口袋。
+- 2 张行走图：以本仓库 Kenney **RPG Urban Pack** 的现有 CC0 衍生图重新调色，作者为 Kenney / 本项目；来源 URL、下载 URL 与许可见下方 Kenney — RPG Urban Pack 一节，完整许可见 `LICENSE.txt`。`urban/graduate.png` 来自 `urban/yao-flatmate.png`，黑发、棕肤、黄色衣服；`urban/maeve.png` 来自 `urban/ka-ning-partner.png`，铜红发、浅肤、深蓝衣服。只替换颜色，保留原始透明度、轮廓和动作像素；未使用 imagegen 的行走图候选。
+- 行走图各 64×48，横向四列依次为下、左、右、上，纵向三行是动作帧，单帧 16×16；与现有 Phaser 加载及播放顺序一致。
+
+| 文件（相对本目录） | 尺寸 | 来源 / 许可 | 大小 |
+| --- | --- | --- | ---: |
+| `meadow-town/portraits/graduate-neutral.png` | 64×64 | 原创 / CC0 | 1,558 bytes |
+| `meadow-town/portraits/graduate-happy.png` | 64×64 | 原创 / CC0 | 1,533 bytes |
+| `meadow-town/portraits/graduate-worried.png` | 64×64 | 原创 / CC0 | 1,565 bytes |
+| `meadow-town/portraits/maeve-neutral.png` | 64×64 | 原创 / CC0 | 1,784 bytes |
+| `meadow-town/portraits/maeve-happy.png` | 64×64 | 原创 / CC0 | 1,667 bytes |
+| `meadow-town/portraits/maeve-worried.png` | 64×64 | 原创 / CC0 | 1,701 bytes |
+| `urban/graduate.png` | 64×48 | Kenney / 本项目调色 / CC0 | 1,347 bytes |
+| `urban/maeve.png` | 64×48 | Kenney / 本项目调色 / CC0 | 1,910 bytes |
+
+本轮新增 PNG 共 **8 张，13,065 bytes（12.76 KiB）**；其中立绘 9,808 bytes、行走图 3,257 bytes。合入后立绘共 **4 位主角 + 13 位镇民 / 家人，17 人 × 3 表情 = 51 张**；行走图共 17 张。此前 13.1 一节的数量和体积仅记录该批次。
+
 ## 13.1 人物立绘、横幅与招牌（2026-11-16）
 
 - 作者：本项目 / Codex gpt-6-astra；来源：本仓库 `apps/web/public/game/assets/meadow-town/`，本轮原创，未下载第三方候选图像。
