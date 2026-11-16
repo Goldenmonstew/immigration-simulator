@@ -10,9 +10,22 @@ import { achievements, lifeAchievements } from './achievements';
 import { skilledWorker } from './characters/skilled-worker';
 import { hongKongBno } from './characters/hong-kong-bno';
 import { familyPartner } from './characters/family-partner';
+import {
+  graduate,
+  graduateOpening,
+  graduateSettlement,
+  graduateRecruitment,
+  graduateEpisode,
+  graduateSalaryChecks,
+} from './characters/graduate';
 import { commonEvents, systemEvents } from './events/common';
 import { policyStories } from './events/policy';
-import { extensionFor, locationActions, places } from './locations';
+import {
+  extensionCost,
+  extensionFor,
+  locationActions,
+  places,
+} from './locations';
 import { npcs, heartEvents, townHeartLetters } from './npcs';
 import { items, recipes } from './items';
 import { completeFlowerbed, flowerbedAvailable } from './community-flowerbed';
@@ -50,9 +63,10 @@ import type {
   Text,
 } from './types';
 
-export const characters = [skilledWorker, hongKongBno, familyPartner];
+export const characters = [skilledWorker, hongKongBno, familyPartner, graduate];
 
 const openingEvents: Record<string, GameEvent> = {
+  graduate: graduateOpening,
   'skilled-worker': {
     id: 'opening-skilled-worker',
     title: { zhCN: '门边的纸箱', en: 'Boxes by the door' },
@@ -119,6 +133,7 @@ const openingEvents: Record<string, GameEvent> = {
 };
 
 const settlementScenes: Record<string, Text> = {
+  graduate: graduateSettlement,
   'skilled-worker': {
     zhCN: '你把递交后的回执放在桌上，边角压着那串早已磨亮的钥匙。\n周沅把茶杯推过来，顺手将桌边翘起的纸角压平，没再问还缺什么。\n文件夹合上时，里面的车票轻轻滑了一下。你伸手接住，放回原处。\n你把杯子移出文件夹留下的方印，坐下来，听厨房里的水壶慢慢安静。',
     en: 'You put the submission receipt on the table, its corner beneath your well-worn keys.\nYuan slides a cup of tea across and flattens a curling paper edge, without asking what is still missing.\nA train ticket slips as the folder closes. You catch it and put it back.\nYou move your cup out of the square left by the folder and sit, listening as the kitchen kettle falls quiet.',
@@ -402,6 +417,7 @@ function draw(state: GameState, count: number) {
       ...townHeartLetters,
     ].filter(
       (e) =>
+        !graduateRecruitment.includes(e) &&
         available(state, e, true) &&
         ![state.pendingEvent, ...state.eventQueue].some((id) =>
           pool(state)
@@ -512,8 +528,14 @@ function finish(state: GameState, ending: EndingId) {
       en: 'The suitcase closes, and the town slips behind the train window. You chose to leave the UK, ending this game.',
     },
     overstayed: {
-      zhCN: '许可到期前没有续签上，这段小镇生活在这里结束。\n下一局可以留意顶栏的剩余月数，去签证中心办续签。',
-      en: 'Your permission expired before you renewed it, ending this game.\nNext time, watch the months remaining in the top bar and visit the visa centre to renew.',
+      zhCN:
+        state.characterId === 'graduate'
+          ? '许可到期前没有接上新的有效许可，这段小镇生活在这里结束。\n下一局请留意剩余月数：Graduate 期间去公司求职、核对担保与 CoS，再到签证中心转换。'
+          : '许可到期前没有续签上，这段小镇生活在这里结束。\n下一局可以留意顶栏的剩余月数，去签证中心办续签。',
+      en:
+        state.characterId === 'graduate'
+          ? 'Your permission expired without new permission in place. This town life ends here.\nNext time, watch the months remaining: seek work, confirm sponsorship and a CoS, then switch at the visa centre.'
+          : 'Your permission expired before you renewed it, ending this game.\nNext time, watch the months remaining in the top bar and visit the visa centre to renew.',
     },
     criminal: {
       zhCN: '定罪记录让材料转交审查，故事在这里停笔。犯罪记录触发了这局游戏的结束。',
@@ -870,6 +892,25 @@ export function activities(state: GameState, place: PlaceId): Activity[] {
       )
         return false;
       if (!matches(state, a.when)) return false;
+      if (a.id === 'graduate-job-search')
+        return (
+          state.characterId === 'graduate' &&
+          current?.route === 'GRADUATE' &&
+          graduateRecruitment.some((event) => available(state, event))
+        );
+      if (a.id === 'graduate-check-offer' || a.id === 'graduate-switch') {
+        if (
+          state.characterId !== 'graduate' ||
+          current?.route !== 'GRADUATE' ||
+          !state.flags.includes('graduate-cos-ready')
+        )
+          return false;
+        return (
+          a.id === 'graduate-check-offer' ||
+          (state.stats.money >= extensionCost &&
+            graduateSalaryChecks(state).every((rule) => rule.status === 'PASS'))
+        );
+      }
       if (a.id === 'rent-plot' && state.plots.length) return false;
       if (
         a.id === 'festival' &&
@@ -908,6 +949,19 @@ export function activities(state: GameState, place: PlaceId): Activity[] {
     })
     .map((a) => {
       const action = structuredClone(a);
+      if (a.id === 'graduate-switch') {
+        const {
+          validFrom: _from,
+          validTo: _to,
+          ...episode
+        } = graduateEpisode(state);
+        void _from;
+        void _to;
+        action.effects = [
+          { type: 'money', delta: -extensionCost },
+          { type: 'newEpisode', episode, durationMonths: b.extensionMonths },
+        ];
+      }
       if (a.id.startsWith('summer-show-')) {
         const crop = a.id.slice(12);
         const name = items.find((i) => i.id === crop)!.name;
@@ -993,6 +1047,7 @@ export function doActivity(state: GameState, actionId: string): GameState {
     setFlags(next, [`furnished-${action.id.slice(8)}`]);
   if (action.id === 'extend')
     setFlags(next, ['visa-renewed', 'quarter-visa-renewed']);
+  if (action.id === 'graduate-switch') setFlags(next, ['graduate-switched']);
   if (action.id === 'overtime') setFlags(next, ['worked-overtime']);
   if (action.id === 'rent-plot') {
     next.plots = Array.from({ length: b.plots }, () => ({ growth: 0 }));
@@ -1024,6 +1079,28 @@ export function doActivity(state: GameState, actionId: string): GameState {
     text: action.label,
     statDeltas: deltas(state, next),
   };
+  if (action.id === 'graduate-check-offer') {
+    const checks = (locale: Locale) =>
+      graduateSalaryChecks({ ...state, locale })
+        .map((rule) => rule.explanation)
+        .join('\n');
+    next.outcome.text = {
+      zhCN: `${checks('zh-CN')}\n这里只核对标准薪资；担保、CoS 与其他审批条件由本情景假定已核实。`,
+      en: `${checks('en')}\nThis checks standard pay only. The scenario assumes sponsorship, CoS and other application requirements have been verified.`,
+    };
+    actionLog.text = next.outcome.text;
+  }
+  if (action.id === 'graduate-switch') {
+    next.outcome.text = {
+      zhCN: '你拿到本情景中的 Skilled Worker 许可，把合同和 CoS 收进文件夹；下一次出门，包里多了一份新的有效许可。',
+      en: 'You receive Skilled Worker permission in this scenario and file the contract and CoS. Next time you go out, the bag holds your new permission.',
+    };
+    actionLog.text = next.outcome.text;
+  }
+  if (action.id === 'graduate-job-search') {
+    const event = graduateRecruitment.find((event) => available(next, event))!;
+    makePending(next, event.id);
+  }
   if (action.id.startsWith('flowerbed-')) {
     next.outcome.text = completeFlowerbed(next, action.id);
     actionLog.text = next.outcome.text;

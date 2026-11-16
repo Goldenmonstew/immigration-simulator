@@ -2,6 +2,12 @@ import { everydayDialogue, townDialogue } from './town-dialogue';
 import { balance as b } from './balance';
 import { festivalDialogue } from './festivals';
 import { familyNpcs, familyHeartEvents } from './family';
+import {
+  graduateFlatmate,
+  graduateHeartEvents,
+  graduateRecent,
+  graduateHeartReplies,
+} from './characters/graduate-flatmate';
 import type { GameEvent, Npc, Text } from './types';
 
 const text = (zhCN: string, en: string): Text => ({ zhCN, en });
@@ -1934,6 +1940,7 @@ for (const npc of npcs.filter((n) => favourites[n.id])) {
   );
 }
 npcs.push(...familyNpcs);
+npcs.push(graduateFlatmate);
 
 const scenes: [
   string,
@@ -2536,6 +2543,7 @@ export const townHeartLetters: GameEvent[] = [
 ];
 
 heartEvents.push(...familyHeartEvents);
+heartEvents.push(...graduateHeartEvents);
 
 const lina = npcs.find((n) => n.id === 'lina')!;
 lina.lines[1].forbids = ['lina-stayed'];
@@ -2739,6 +2747,7 @@ for (const npc of npcs.filter((person) => !person.characters))
 
 // Recent circumstances use the current season; permanent memories stay separate.
 const recentCopy: Record<string, [string, string][]> = {
+  maeve: graduateRecent,
   margaret: [
     [
       '刚办完续签？得了，茶我泡！种子袋替你挪开。',
@@ -3220,6 +3229,7 @@ for (const npc of npcs)
 
 // Each choice has its own spoken memory, alongside the existing shared flags.
 const heartReplies: Record<string, [Text, Text]> = {
+  ...graduateHeartReplies,
   'heart-margaret-2': [
     {
       zhCN: '问我种坏的？得了，先讲那盘全烂的番茄！',

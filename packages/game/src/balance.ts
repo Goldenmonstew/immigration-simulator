@@ -104,6 +104,7 @@ export const balance = {
   livingCosts: 8155,
   // Fictional shared household budgets, unrelated to financial eligibility.
   householdCostContribution: {
+    graduate: 1500,
     'hong-kong-bno': 1050,
     'family-partner': 2200,
   } as Record<string, number>,
@@ -135,6 +136,7 @@ export const balance = {
   housingHealth: 1,
   // Larger shared households retain more cash for existing bills and renewals.
   lifestyleReserve: {
+    graduate: 16000,
     'skilled-worker': 10000,
     'hong-kong-bno': 24000,
     'family-partner': 36000,

@@ -77,7 +77,7 @@ describe('10.5 ending narratives', () => {
         new Set(
           characters.map((c) => end(c.id, 'settled').log.at(-1)!.text.zhCN),
         ).size,
-      ).toBe(3);
+      ).toBe(4);
     },
   );
 

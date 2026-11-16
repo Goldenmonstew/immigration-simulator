@@ -67,7 +67,7 @@ describe('12.4 Budget reactions', () => {
     },
   );
 
-  test.each(characters)(
+  test.each(characters.filter((character) => character.id !== 'graduate'))(
     '$id sees the news once and then only its own follow-up in actual quarterly play',
     (character) => {
       let state = newGame(character.id, 1);
@@ -133,7 +133,7 @@ describe('12.4 Budget reactions', () => {
 });
 
 describe('12.4 passport and visiting-family chains', () => {
-  test.each(characters)(
+  test.each(characters.filter((character) => character.id !== 'graduate'))(
     '$id preserves prerequisites, deliveries and completion across JSON saves',
     (character) => {
       let state = dateState('2028-06-15', character.id);
@@ -204,7 +204,9 @@ describe('12.4 passport and visiting-family chains', () => {
       early.year = 1;
       expect(receive(early, stages[0]).pendingEvent).toBeUndefined();
       expect(receive(early, visit).pendingEvent).toBeUndefined();
-      for (const other of characters.filter((c) => c.id !== character.id)) {
+      for (const other of characters.filter(
+        (c) => c.id !== character.id && c.id !== 'graduate',
+      )) {
         const foreign = characterLifeEvents[other.id].find((event) =>
           event.id.endsWith('-visit-plans'),
         )!;
@@ -214,7 +216,9 @@ describe('12.4 passport and visiting-family chains', () => {
   );
 
   test('the isolated chains use real quarterly draws and visits without injecting prerequisites', () => {
-    for (const character of characters) {
+    for (const character of characters.filter(
+      (character) => character.id !== 'graduate',
+    )) {
       const savedCommon = [...commonEvents];
       const savedCharacter = character.events;
       const seen = new Set<string>();
