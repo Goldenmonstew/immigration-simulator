@@ -17,7 +17,7 @@ Phase 12 计划内的任务已全部上线。agy 复评认为，剩下的观感�
 |---|---|---|---|
 | 13.1 | astra（web 与素材） | 人物表情立绘、游戏横幅、店铺招牌 | `docs/tasks/13.1-art-assets.md` |
 | 13.2 | sol（game，必要时 policy-data） | 第四位角色：毕业生转 Skilled Worker | `docs/tasks/13.2-graduate-character.md` |
-| 13.3 | astra（13.1 之后） | 钓鱼与厨房小游戏深化、环境音、小动物；如果 13.2 的新角色需要画面，也一并做 | 待写 |
+| 13.3 | astra（13.1 之后） | 钓鱼与厨房小游戏深化、环境音、小动物；如果 13.2 的新角色需要画面，也一并做 | `docs/tasks/13.3-minigames-ambience-animals.md` |
 
 - 13.1 与 13.2 改的 package 不同，可以并行。
 - 13.1 完成后，用截图请 agy 评美术。
@@ -26,3 +26,4 @@ Phase 12 计划内的任务已全部上线。agy 复评认为，剩下的观感�
 ## 进度
 
 - 2026-11-16：计划、13.1 / 13.2 brief 入库，astra、sol 开工。
+- 2026-11-16：13.1、13.2 与集成修正 13.1b 合入 main；Codex 盲测 82.3%；agy 第三轮美术评审进行中；13.3（astra）开工。
