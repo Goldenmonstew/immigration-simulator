@@ -119,6 +119,16 @@ export const zhCN = {
   'game.location.visa': '签证中心',
   'game.location.station': '火车站',
   'site.about': '方法说明',
+  'site.version': '版本 {version}',
+  'error.title': '这一页出了点问题',
+  'error.body':
+    '页面遇到了一个意外错误。你的问卷草稿和游戏存档都保存在本机浏览器里，没有丢失。可以先重试；如果问题反复出现，欢迎把下面的错误信息报告给我们。',
+  'error.retry': '重试',
+  'error.home': '回到首页',
+  'error.report': '在 GitHub 报告这个问题',
+  'error.privacy':
+    '报告会预先填好页面地址、版本号和错误信息，不包含你的输入；提交前你可以先检查内容。',
+  'result.reportRule': '这条有误？',
   'site.feedback': '反馈 · Feedback',
   'about.title': '这个模拟器如何工作',
   'about.intro':

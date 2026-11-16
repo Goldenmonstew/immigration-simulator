@@ -2,6 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 const port = Number(process.env.E2E_PORT ?? 4300);
 const ci = !!process.env.CI;
+// Set to run the smoke tests against a deployed site (e.g. staging).
+const remote = process.env.E2E_BASE_URL;
 
 export default defineConfig({
   testDir: 'tests',
@@ -11,10 +13,10 @@ export default defineConfig({
   workers: ci ? 2 : 3,
   reporter: ci ? [['list'], ['html', { open: 'never' }]] : 'list',
   // Screenshot baselines are generated on Linux in CI (see e2e-baselines.yml).
-  ignoreSnapshots: !ci && !process.env.E2E_SNAPSHOTS,
+  ignoreSnapshots: !!remote || (!ci && !process.env.E2E_SNAPSHOTS),
   snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
   use: {
-    baseURL: `http://localhost:${port}`,
+    baseURL: remote ?? `http://localhost:${port}`,
     locale: 'zh-CN',
     timezoneId: 'Europe/London',
     contextOptions: { reducedMotion: 'reduce' },
@@ -35,10 +37,12 @@ export default defineConfig({
       use: { ...devices['Pixel 7'], viewport: { width: 375, height: 812 } },
     },
   ],
-  webServer: {
-    command: 'node serve.ts',
-    url: `http://localhost:${port}`,
-    reuseExistingServer: !ci,
-    env: { E2E_PORT: String(port) },
-  },
+  webServer: remote
+    ? undefined
+    : {
+        command: 'node serve.ts',
+        url: `http://localhost:${port}`,
+        reuseExistingServer: !ci,
+        env: { E2E_PORT: String(port) },
+      },
 });

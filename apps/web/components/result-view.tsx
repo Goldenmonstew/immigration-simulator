@@ -8,6 +8,7 @@ import { punct } from '../i18n/punctuation';
 import { routeGroupNames, routeLabel } from '../i18n/routes';
 import { displayedRuleSets } from '../lib/policy';
 import { currentEpisode, type Draft } from '../lib/questionnaire';
+import { issueUrl } from '../lib/report';
 import { sourceUrls } from '../lib/sources';
 import { PolicyStatus, RuleSetStatus } from './policy-status';
 import { GapSummary } from './gap-summary';
@@ -267,6 +268,22 @@ export function AssessmentColumns({
                                         </span>
                                       ),
                                     )}
+                                    <a
+                                      href={issueUrl(
+                                        `[${rule.id}] ${rule.title}`,
+                                        [
+                                          `rule set: ${ruleSet.id}`,
+                                          `rule: ${rule.id}`,
+                                          `status: ${status}`,
+                                          '',
+                                          '<!-- What is wrong, and which official source says otherwise? Do not paste share links or personal details. -->',
+                                        ],
+                                      )}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      {t('result.reportRule')}
+                                    </a>
                                   </div>
                                 </details>
                                 {!!rule.pendingDetails?.length && (

@@ -8,14 +8,18 @@ import {
   walkTo,
 } from './helpers';
 
-test('the character picker lists every protagonist', async ({ page }) => {
-  await page.goto('/game');
-  for (const { name } of characters)
-    await expect(
-      page.getByRole('button', { name: new RegExp(`^和${name}`) }),
-    ).toBeVisible();
-  await expect(page).toHaveScreenshot('game-start.png');
-});
+test(
+  'the character picker lists every protagonist',
+  { tag: '@smoke' },
+  async ({ page }) => {
+    await page.goto('/game');
+    for (const { name } of characters)
+      await expect(
+        page.getByRole('button', { name: new RegExp(`^和${name}`) }),
+      ).toBeVisible();
+    await expect(page).toHaveScreenshot('game-start.png');
+  },
+);
 
 for (const { name } of characters) {
   test(`${name} can start a game`, async ({ page }) => {
@@ -24,19 +28,23 @@ for (const { name } of characters) {
   });
 }
 
-test('home menu, a chat, and a walk outside', async ({ page }) => {
-  await startGame(page);
-  const home = await walkTo(page, '家');
-  await home.getByRole('button', { name: /周沅 · 聊天/ }).click();
-  const talk = page.locator('dialog[open]');
-  await expect(talk.getByText('林遥的室友，装裱员')).toBeVisible();
-  await talk.getByRole('button', { name: '待会儿见' }).click();
-  await page
-    .locator('dialog[open]')
-    .getByRole('button', { name: /关闭/ })
-    .click();
-  await walkTo(page, '公园池塘');
-});
+test(
+  'home menu, a chat, and a walk outside',
+  { tag: '@smoke' },
+  async ({ page }) => {
+    await startGame(page);
+    const home = await walkTo(page, '家');
+    await home.getByRole('button', { name: /周沅 · 聊天/ }).click();
+    const talk = page.locator('dialog[open]');
+    await expect(talk.getByText('林遥的室友，装裱员')).toBeVisible();
+    await talk.getByRole('button', { name: '待会儿见' }).click();
+    await page
+      .locator('dialog[open]')
+      .getByRole('button', { name: /关闭/ })
+      .click();
+    await walkTo(page, '公园池塘');
+  },
+);
 
 test('the game resumes after a reload', async ({ page }) => {
   await startGame(page);
