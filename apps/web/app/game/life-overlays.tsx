@@ -153,7 +153,7 @@ export function ItemIcon({ id }: { id: string }) {
     />
   );
 }
-export function ItemName({ id }: { id: string }) {
+function ItemName({ id }: { id: string }) {
   const { locale, t } = useTranslation();
   const item = items.find((i) => i.id === id);
   return <>{item ? localText(item.name, locale) : t('game.itemFallback')}</>;

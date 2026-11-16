@@ -18,7 +18,7 @@ export const focusControls = {
   life: 'whatif-life',
   publicFunds: 'whatif-public-funds',
 } as const;
-export type WhatIfFocus = keyof typeof focusControls;
+type WhatIfFocus = keyof typeof focusControls;
 export interface WhatIfTarget {
   focus: WhatIfFocus;
   ruleId?: string;

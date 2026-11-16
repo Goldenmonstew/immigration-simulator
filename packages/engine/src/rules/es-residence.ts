@@ -238,7 +238,7 @@ function kindOf(route: Route): Kind | undefined {
   return 'WORK_OR_FAMILY';
 }
 
-export interface QualifyingResidence {
+interface QualifyingResidence {
   /** Start of the qualifying period after any restart. */
   start: IsoDate;
   run: Run;

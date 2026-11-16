@@ -24,7 +24,7 @@ export interface TownCanvasProps {
   destination?: { location: PlaceId; request: number };
 }
 
-export function observeTownSize(
+function observeTownSize(
   element: HTMLDivElement,
   createGame: (type: number) => Phaser.Game,
 ) {

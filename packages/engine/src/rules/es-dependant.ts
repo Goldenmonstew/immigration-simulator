@@ -18,7 +18,7 @@ import { esQualifyingResidence } from './es-residence';
 const RULE_SET = 'earned-settlement-2026-11';
 
 /** The pending details behind an assessment's UNKNOWN rules. */
-export function pendingOf(assessment: SettlementAssessment): string[] {
+function pendingOf(assessment: SettlementAssessment): string[] {
   return [
     ...new Set(
       assessment.rules.flatMap((r) =>
@@ -28,7 +28,7 @@ export function pendingOf(assessment: SettlementAssessment): string[] {
   ];
 }
 
-export interface DependantSettlement {
+interface DependantSettlement {
   /** The principal's pathway. */
   years: number;
   /** The dependant can apply `years` after this. */
