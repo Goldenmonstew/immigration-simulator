@@ -348,9 +348,13 @@ export function Inventory({
   state,
   onChange,
   onKitchen,
-}: Change & { onKitchen: () => void }) {
+  initialTab = 'bag',
+}: Change & {
+  onKitchen: () => void;
+  initialTab?: 'bag' | 'collection' | 'friends';
+}) {
   const { t, locale } = useTranslation();
-  const [tab, setTab] = useState<'bag' | 'friends'>('bag');
+  const [tab, setTab] = useState(initialTab);
   const action = useLifeAction(onChange);
   const inventory = Object.entries(state.inventory).filter(([, n]) => n > 0);
   return (
@@ -366,13 +370,22 @@ export function Inventory({
         </button>
         <button
           role="tab"
+          aria-selected={tab === 'collection'}
+          onClick={() => setTab('collection')}
+        >
+          {t('game.collection')}
+        </button>
+        <button
+          role="tab"
           aria-selected={tab === 'friends'}
           onClick={() => setTab('friends')}
         >
           {t('game.friends')}
         </button>
       </div>
-      {tab === 'friends' ? (
+      {tab === 'collection' ? (
+        <LifeCollection state={state} />
+      ) : tab === 'friends' ? (
         <ul className={styles.friendList}>
           {townsfolk(state).map((n) => (
             <li key={n.id}>
@@ -419,6 +432,81 @@ export function Inventory({
         </>
       )}
     </>
+  );
+}
+export function LifeCollection({ state }: { state: GameState }) {
+  const { t } = useTranslation();
+  const groups = [
+    {
+      id: 'fish',
+      title: t('game.collectionFish'),
+      entries: items.filter((item) => item.kind === 'fish'),
+      records: state.lifeRecords?.fish ?? [],
+    },
+    {
+      id: 'dishes',
+      title: t('game.collectionDishes'),
+      entries: recipes.map((recipe) =>
+        items.find((item) => item.id === recipe.makes)!,
+      ),
+      records: state.lifeRecords?.dishes ?? [],
+    },
+  ];
+  const harvests = state.lifeRecords?.harvests ?? [];
+  return (
+    <section aria-label={t('game.collection')}>
+      <p>{t('game.collectionHint')}</p>
+      {groups.map((group) => (
+        <section key={group.id} aria-labelledby={`collection-${group.id}`}>
+          <h3 id={`collection-${group.id}`}>
+            {group.title} · {group.records.length} / {group.entries.length}
+          </h3>
+          <div className={styles.itemGrid}>
+            {group.entries.map((item) => {
+              const record = group.records.find((r) => r.itemId === item.id);
+              return (
+                <article className={styles.itemCard} key={item.id}>
+                  {record ? (
+                    <>
+                      <ItemIcon id={item.id} />
+                      <strong>
+                        <ItemName id={item.id} />
+                      </strong>
+                      <small className={styles.collectionDate}>
+                        {t('game.collectionFirst')
+                          .replace('{year}', String(record.year))
+                          .replace(
+                            '{season}',
+                            t(`game.season${record.quarter}`),
+                          )}
+                      </small>
+                    </>
+                  ) : (
+                    <>
+                      <span
+                        className={styles.collectionUnknown}
+                        aria-hidden="true"
+                      >
+                        ?
+                      </span>
+                      <strong>{t('game.collectionUnknown')}</strong>
+                    </>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ))}
+      <p className={styles.collectionHarvests}>
+        {t('game.collectionHarvests')
+          .replace('{count}', String(harvests.length))
+          .replace(
+            '{kinds}',
+            String(new Set(harvests.map((r) => r.itemId)).size),
+          )}
+      </p>
+    </section>
   );
 }
 export function Kitchen({ state, onChange }: Change) {

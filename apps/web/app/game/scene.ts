@@ -3,12 +3,17 @@ import { t } from '../../i18n';
 import {
   items,
   mailbox,
+  mapSurprises,
   npcAt,
   npcs,
   places,
   type GameState,
   type PlaceId,
   type Outcome,
+  type AnchorId,
+  type MapSurprise,
+  type SurpriseId,
+  type Text,
 } from '@uk-immigration/game';
 import { cropIds, spritePath, visibleResidents, homeSpot } from './session';
 import { SceneText } from './scene-text';
@@ -17,6 +22,7 @@ export type Interaction =
   | { kind: 'place'; id: PlaceId }
   | { kind: 'npc'; id: string }
   | { kind: 'plot'; id: number }
+  | { kind: 'surprise'; id: AnchorId; name: Text }
   | { kind: 'home'; id: 'bed' | 'kitchen' | 'desk' | 'mailbox' | 'exit' };
 export type SceneFeedback = {
   token: number;
@@ -58,6 +64,11 @@ const furnishingFlags = [
 ];
 const distance = (a: Cell, b: Cell) =>
   Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+const surpriseNames: Record<SurpriseId, Text> = {
+  'biscuit-cat': { zhCN: '窗台下的条纹猫', en: 'A striped cat below the sill' },
+  'swap-box': { zhCN: '台阶旁的交换箱', en: 'A swap box by the steps' },
+  'lost-mitten': { zhCN: '长椅上的手套', en: 'A mitten on the bench' },
+};
 export class TownScene extends Phaser.Scene {
   private view: SceneView;
   private map?: Phaser.Tilemaps.Tilemap;
@@ -94,6 +105,20 @@ export class TownScene extends Phaser.Scene {
     cell?: Cell;
   }[] = [];
   private lunchCells = new Set<string>();
+  private lifeCells = new Set<string>();
+  private lifeScenery?: {
+    flowerbed: Phaser.GameObjects.Graphics;
+    mayDay: Phaser.GameObjects.Graphics;
+    surprises: Map<
+      SurpriseId,
+      {
+        drawing: Phaser.GameObjects.Graphics;
+        label: SceneText;
+        clue: MapSurprise;
+      }
+    >;
+  };
+  private approachedSurprise?: AnchorId;
   private transients = new Map<
     SceneText | Phaser.GameObjects.Sprite,
     {
@@ -230,6 +255,9 @@ export class TownScene extends Phaser.Scene {
     this.celebration = undefined;
     this.lunch = [];
     this.lunchCells.clear();
+    this.lifeCells.clear();
+    this.lifeScenery = undefined;
+    this.approachedSurprise = undefined;
     this.focusNpc = undefined;
     for (const o of this.transients.keys()) {
       this.tweens.killTweensOf(o);
@@ -344,6 +372,11 @@ export class TownScene extends Phaser.Scene {
       });
       this.decorateFestival();
       this.decorateLunch();
+      this.lifeScenery = {
+        flowerbed: this.own(this.add.graphics().setDepth(575)),
+        mayDay: this.own(this.add.graphics().setDepth(540)),
+        surprises: new Map(),
+      };
     }
     this.sky = this.own(this.add.graphics().setScrollFactor(0).setDepth(1500));
     this.rain = this.own(this.add.graphics().setScrollFactor(0).setDepth(1600));
@@ -385,6 +418,16 @@ export class TownScene extends Phaser.Scene {
           this.nearby?.id === spot.interaction.id,
       );
     }
+    for (const {
+      drawing,
+      label,
+      clue,
+    } of this.lifeScenery?.surprises.values() ?? [])
+      if (clue.phase === 'trace')
+        label.setVisible(
+          drawing.visible &&
+            distance(this.anchors.get(clue.anchor)!, this.cell) <= 5,
+        );
     for (const object of this.worldObjects)
       if (object instanceof SceneText) object.render(camera);
     for (const object of this.transients.keys())
@@ -430,6 +473,7 @@ export class TownScene extends Phaser.Scene {
     if (view.paused) this.halt();
     else if (wasPaused && this.destination)
       this.walkToLocation(this.destination);
+    this.syncLifeScenery();
     for (const spot of this.spots) {
       if (spot.interaction.kind === 'place') {
         const p = places.find(
@@ -443,10 +487,13 @@ export class TownScene extends Phaser.Scene {
           : view.state.flags.includes('quarter-community-lunch-food')
             ? 'game.lunchFood'
             : undefined;
+        const lifeLabel = this.lifePlaceLabel(p.id);
         spot.label!.setText(
           p.id === 'green' && this.lunchVisible()
             ? `${t('game.lunchScene', view.locale)}${contribution ? `\n${t(contribution, view.locale)}` : ''}`
-            : name,
+            : lifeLabel
+              ? `${name}\n${lifeLabel}`
+              : name,
         );
       } else if (spot.interaction.kind === 'home') {
         spot.label!.setText(
@@ -755,6 +802,290 @@ export class TownScene extends Phaser.Scene {
       }
     }
   }
+  private flowerbedStage() {
+    const { flags } = this.view.state;
+    return flags.includes('flowerbed-open')
+      ? 3
+      : flags.includes('flowerbed-planted')
+        ? 2
+        : flags.includes('flowerbed-marked')
+          ? 1
+          : 0;
+  }
+  private mayDayScene() {
+    const { state } = this.view;
+    if (state.day.festival === 'may-day')
+      return {
+        phase: 'festival' as const,
+        venue: ['rain', 'snow'].includes(state.day.weather)
+          ? 'council'
+          : 'green',
+      };
+    if (state.quarter === 2 && state.day.index < 2)
+      return { phase: 'preparation' as const, venue: 'council' };
+    return undefined;
+  }
+  private lifePlaceLabel(place: PlaceId) {
+    const en = this.view.locale === 'en';
+    if (place === 'allotment')
+      return (
+        en
+          ? [
+              '',
+              'Community flowerbed · marked out',
+              'Community flowerbed · planted',
+              'Community flowerbed · open',
+            ]
+          : ['', '公共花坛 · 已标界', '公共花坛 · 已栽种', '公共花坛 · 已挂牌']
+      )[this.flowerbedStage()];
+    const may = this.mayDayScene();
+    if (may?.venue !== place) return undefined;
+    const preparation =
+      this.view.state.mayDay?.year === this.view.state.year
+        ? this.view.state.mayDay.preparation
+        : undefined;
+    const contribution =
+      preparation === 'ribbons'
+        ? en
+          ? ' · your ribbons'
+          : ' · 你扎的彩带'
+        : preparation === 'signs'
+          ? en
+            ? ' · your signs'
+            : ' · 你画的路牌'
+          : '';
+    return (
+      (may.phase === 'preparation'
+        ? en
+          ? 'May Day preparations · indoors'
+          : '五月节准备 · 室内'
+        : place === 'council'
+          ? en
+            ? 'May Day · indoors'
+            : '五月节 · 室内'
+          : en
+            ? 'May Day'
+            : '五月节') + contribution
+    );
+  }
+  private syncLifeScenery() {
+    const scenery = this.lifeScenery;
+    if (!scenery) return;
+    const { state, locale } = this.view;
+    const en = locale === 'en';
+    const stage = this.flowerbedStage();
+    const g = scenery.flowerbed.clear();
+    this.lifeCells.clear();
+    // A two-tile bed inside the allotment fence, beside the gate and below the plots.
+    const gate = this.anchors.get('allotment-gate')!;
+    const x = (gate.x + 1) * size,
+      y = gate.y * size;
+    g.fillStyle(stage ? 0x826342 : 0x99aa75).fillRect(x, y + 2, 32, 12);
+    if (stage) {
+      for (const dx of [0, 1])
+        this.lifeCells.add(`${gate.x + 1 + dx}:${gate.y}`);
+      for (const dx of [1, 30]) {
+        g.fillStyle(0xb79159).fillRect(x + dx, y, 2, 15);
+        g.lineStyle(1, 0xe6cf9b).lineBetween(x + 2, y + 3, x + 30, y + 3);
+      }
+      if (stage >= 2) {
+        for (const dx of [6, 14, 22]) {
+          g.fillStyle(0x496d3c).fillRect(x + dx, y + 5, 2, 7);
+          g.fillStyle(0x719355).fillRect(x + dx - 2, y + 6, 6, 2);
+          if (stage === 3) g.fillStyle(0x719355).fillRect(x + dx, y + 3, 3, 2);
+        }
+      } else if (state.flags.includes('flowerbed-prepared')) {
+        g.fillStyle(0x57483a).fillRect(x + 5, y + 6, 20, 6);
+        g.fillStyle(0x8eaf68)
+          .fillRect(x + 7, y + 5, 3, 3)
+          .fillRect(x + 15, y + 5, 3, 3);
+      }
+      if (stage === 3 || state.flags.includes('flowerbed-tended')) {
+        const signY = y + (stage === 3 ? -6 : 1);
+        g.fillStyle(0x5b4731).fillRect(x + 28, signY + 4, 2, 11);
+        g.fillStyle(0xf0dbad).fillRect(x + 22, signY, 13, 7);
+        g.lineStyle(1, 0x6b583e).lineBetween(
+          x + 24,
+          signY + 3,
+          x + 32,
+          signY + 3,
+        );
+      }
+    }
+    const may = this.mayDayScene();
+    const m = scenery.mayDay.clear().setVisible(!!may);
+    if (may) {
+      const anchor = this.anchors.get(may.venue)!;
+      const indoors = may.venue === 'council';
+      // The town hall has a window display on the town map, not a separate interior map.
+      m.setPosition(
+        anchor.x * size + (indoors ? 8 : 38),
+        anchor.y * size + (indoors ? -12 : 9),
+      );
+      m.setDepth(indoors ? anchor.y * size : anchor.y * size + 16);
+      const preparation =
+        state.mayDay?.year === state.year
+          ? state.mayDay.preparation
+          : undefined;
+      const colors = [0xb85a54, 0xd6b95c, 0x6e9e9b];
+      if (may.phase === 'preparation') {
+        m.fillStyle(0x765538)
+          .fillRect(-19, -6, 38, 5)
+          .fillRect(-15, -1, 3, 6)
+          .fillRect(12, -1, 3, 6);
+        if (preparation === 'ribbons')
+          colors.forEach((color, i) =>
+            m.fillStyle(color).fillRect(-12 + i * 7, -13, 4, 10),
+          );
+        else if (preparation === 'signs')
+          for (const dx of [-10, 7]) {
+            m.fillStyle(0xf1d99d).fillRect(dx - 5, -15, 11, 8);
+            m.fillStyle(0x6f7d49).fillTriangle(
+              dx - 1,
+              -13,
+              dx + 4,
+              -11,
+              dx - 1,
+              -9,
+            );
+          }
+        else
+          m.fillStyle(0xf1d99d)
+            .fillRect(-12, -10, 12, 4)
+            .fillRect(5, -10, 8, 4);
+      } else {
+        m.fillStyle(0x805a39).fillRect(-1, -34, 3, 35);
+        colors.forEach((color, i) => {
+          const dx = (i - 1) * 17;
+          m.lineStyle(2, color).lineBetween(0, -31, dx, -9);
+          m.fillStyle(color).fillRect(dx - 2, -10, 4, 8);
+        });
+        for (const dx of [-5, 0, 5])
+          m.fillStyle(0x87a26b).fillRect(dx - 2, -36 + Math.abs(dx) / 2, 4, 4);
+        if (preparation === 'ribbons')
+          m.fillStyle(0xf0ddab).fillRect(-3, -30, 7, 3);
+        if (preparation === 'signs') {
+          m.fillStyle(0x805a39).fillRect(25, -12, 2, 16);
+          m.fillStyle(0xf1d99d).fillRect(18, -16, 15, 8);
+          m.fillStyle(0x6f7d49).fillTriangle(25, -15, 31, -12, 25, -9);
+        }
+      }
+    }
+    const visible = mapSurprises(state);
+    this.spots = this.spots.filter(
+      (spot) => spot.interaction.kind !== 'surprise',
+    );
+    for (const [id, entry] of scenery.surprises) {
+      if (visible.some((clue) => clue.id === id)) continue;
+      entry.drawing.setVisible(false);
+      entry.label.setVisible(false);
+    }
+    for (const clue of visible) {
+      const cell = this.anchors.get(clue.anchor)!;
+      let entry = scenery.surprises.get(clue.id);
+      if (!entry) {
+        entry = {
+          drawing: this.own(this.add.graphics().setDepth(cell.y * size + 12)),
+          label: this.own(
+            new SceneText(
+              this.textLayer,
+              cell.x * size + 8,
+              cell.y * size + 19,
+              '',
+              'label',
+            ),
+          ),
+          clue,
+        };
+        scenery.surprises.set(clue.id, entry);
+      }
+      entry.clue = clue;
+      entry.label
+        .setVisible(true)
+        .setText(
+          clue.phase === 'clue'
+            ? surpriseNames[clue.id][en ? 'en' : 'zhCN']
+            : clue.text[en ? 'en' : 'zhCN'],
+        );
+      entry.label.element.title = clue.text[en ? 'en' : 'zhCN'];
+      this.paintSurprise(
+        entry.drawing
+          .clear()
+          .setVisible(true)
+          .setPosition(cell.x * size, cell.y * size),
+        clue,
+      );
+      if (clue.phase === 'clue')
+        this.spots.unshift({
+          ...cell,
+          interaction: {
+            kind: 'surprise',
+            id: clue.anchor,
+            name: surpriseNames[clue.id],
+          },
+          bounds: new Phaser.Geom.Rectangle(
+            cell.x * size,
+            cell.y * size - 4,
+            size,
+            size + 4,
+          ),
+          label: entry.label,
+        });
+    }
+    if (
+      !visible.some(
+        (clue) =>
+          clue.phase === 'clue' && clue.anchor === this.approachedSurprise,
+      )
+    )
+      this.approachedSurprise = undefined;
+  }
+  private paintSurprise(g: Phaser.GameObjects.Graphics, clue: MapSurprise) {
+    const choice = this.view.state.surpriseRecords?.find(
+      (entry) => entry.id === clue.id,
+    )?.choiceId;
+    if (clue.phase === 'trace') {
+      if (clue.id === 'biscuit-cat' && choice === 'wait')
+        g.fillStyle(0xbac3b0).fillRect(3, 7, 11, 3).fillRect(5, 5, 7, 2);
+      else if (clue.id === 'lost-mitten' && choice === 'owner')
+        g.lineStyle(2, 0x82745a)
+          .lineBetween(7, 2, 7, 10)
+          .lineBetween(7, 10, 11, 10)
+          .lineBetween(11, 10, 11, 7);
+      else {
+        if (clue.id === 'swap-box' && choice === 'pot')
+          g.fillStyle(0xb28b59).fillRect(1, 3, 14, 11);
+        g.fillStyle(0xf0dcad).fillRect(3, 2, 10, 7);
+        g.lineStyle(1, 0x806345)
+          .lineBetween(5, 4, 11, 4)
+          .lineBetween(5, 6, 9, 6);
+      }
+      return;
+    }
+    if (clue.id === 'biscuit-cat') {
+      g.fillStyle(0xb78d5d).fillRect(3, 5, 10, 7).fillRect(2, 1, 7, 7);
+      g.fillTriangle(2, 2, 2, -2, 5, 1).fillTriangle(6, 1, 9, -2, 9, 3);
+      g.lineStyle(3, 0xb78d5d)
+        .lineBetween(12, 8, 16, 4)
+        .lineBetween(16, 4, 16, 0);
+      g.fillStyle(0x68523e)
+        .fillRect(9, 5, 2, 5)
+        .fillRect(14, 2, 3, 2)
+        .fillRect(3, 3, 1, 1)
+        .fillRect(7, 3, 1, 1);
+    } else if (clue.id === 'swap-box') {
+      g.fillStyle(0xb28b59).fillRect(1, 4, 14, 10);
+      g.fillStyle(0xd6b780)
+        .fillTriangle(0, 4, 5, 4, 2, 0)
+        .fillTriangle(11, 4, 16, 4, 14, 0);
+      g.fillStyle(0xad6950).fillRect(4, 1, 7, 7);
+      g.fillStyle(0xe3b88c).fillRect(3, 0, 9, 2);
+    } else {
+      g.lineStyle(1, 0xe4d2b2).lineBetween(7, -4, 7, 2);
+      g.fillStyle(0xa76260).fillRect(4, 2, 7, 9).fillRect(10, 5, 3, 4);
+      g.fillStyle(0xe6c39a).fillRect(4, 2, 7, 2);
+    }
+  }
   private paintLight() {
     if (!this.sky) return;
     const minute = this.view.state.day.minute,
@@ -940,6 +1271,7 @@ export class TownScene extends Phaser.Scene {
       cell.x < this.map.width &&
       cell.y < this.map.height &&
       !this.lunchCells.has(`${cell.x}:${cell.y}`) &&
+      !this.lifeCells.has(`${cell.x}:${cell.y}`) &&
       !((this.collision?.getTileAt(cell.x, cell.y)?.index ?? -1) > 0)
     );
   }
@@ -1022,6 +1354,13 @@ export class TownScene extends Phaser.Scene {
     if (this.nearby) this.activate(this.nearby);
   }
   private activate(i: Interaction) {
+    if (i.kind === 'surprise') {
+      const clue = mapSurprises(this.view.state).find(
+        (entry) => entry.phase === 'clue' && entry.anchor === i.id,
+      );
+      if (!clue || distance(this.anchors.get(i.id)!, this.cell) > 1) return;
+      this.approachedSurprise = i.id;
+    }
     if (i.kind === 'npc') {
       const npc = this.residents.get(i.id);
       if (!npc?.sprite.visible || npc.at === 'away') return;
@@ -1150,6 +1489,15 @@ export class TownScene extends Phaser.Scene {
       this.player.anims.stop();
       this.player.setFrame(this.direction);
     }
+    const surprise = this.spots.find(
+      (spot) =>
+        spot.interaction.kind === 'surprise' && distance(spot, this.cell) <= 1,
+    );
+    if (surprise && this.approachedSurprise !== surprise.interaction.id) {
+      this.activate(surprise.interaction);
+      return;
+    }
+    if (!surprise) this.approachedSurprise = undefined;
     const npc = [...this.residents].find(
       ([, n]) =>
         n.at !== 'away' && n.sprite.visible && distance(n.cell, this.cell) <= 1,

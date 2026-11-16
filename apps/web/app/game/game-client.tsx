@@ -4,6 +4,7 @@ import type { RuleSetId } from '@uk-immigration/engine';
 import { useTranslation } from '../../i18n/locale';
 import {
   activities,
+  approachSurprise,
   characters,
   currentEvent,
   enter,
@@ -66,13 +67,19 @@ import {
 } from './sound';
 import TownCanvas from './town-canvas';
 import type { Interaction, SceneFeedback } from './scene';
-import { recordMemories, type DayMemory, type ChangeSource } from './diary';
+import {
+  recordMemories,
+  resolvedOutcomeText,
+  type DayMemory,
+  type ChangeSource,
+} from './diary';
 import styles from './game.module.css';
 type Overlay =
   | { kind: 'place'; id: PlaceId }
   | { kind: 'dialogue'; id: string }
   | { kind: 'plot'; id: number }
   | { kind: 'bag' }
+  | { kind: 'collection' }
   | { kind: 'destinations' }
   | { kind: 'kitchen' }
   | { kind: 'mailbox' }
@@ -90,6 +97,7 @@ export default function GameClient() {
     { npc: string; menu?: Extract<Overlay, { kind: 'place' }> } | undefined
   >(undefined);
   const [outcomeText, setOutcomeText] = useState<Text>();
+  const [eventResult, setEventResult] = useState<Text>();
   const [feedback, setFeedback] = useState<SceneFeedback>();
   const [returned, setReturned] = useState<GameState['trip']>();
   const diary = useRef<DayMemory[]>([]);
@@ -166,6 +174,7 @@ export default function GameClient() {
     morning ||
     summary ||
     event ||
+    eventResult ||
     confirmation ||
     fading ||
     routine ||
@@ -173,17 +182,14 @@ export default function GameClient() {
     current?.trip ||
     (current && isOver(current))
   );
-  function apply(next: GameState, source: ChangeSource | 'resolve' = 'action') {
+  function apply(next: GameState, source: ChangeSource = 'action') {
     const before = latest.current!;
     latest.current = next;
     setState(next);
     if (next === before) return;
-    diary.current = recordMemories(
-      diary.current,
-      before,
-      next,
-      source === 'resolve' ? 'observe' : source,
-    );
+    diary.current = recordMemories(diary.current, before, next, source);
+    if (source === 'resolve' && routine !== 'fast')
+      setEventResult(resolvedOutcomeText(before, next));
     const changedHearts = Object.fromEntries(
       Object.keys(next.friendship)
         .filter((id) => hearts(before, id) !== hearts(next, id))
@@ -275,7 +281,15 @@ export default function GameClient() {
     return () => clearInterval(timer);
   }, [paused, interior, current?.characterId]);
   useEffect(() => {
-    if (!state || !routine || state.pendingEvent || summary || fading) return;
+    if (
+      !state ||
+      !routine ||
+      state.pendingEvent ||
+      eventResult ||
+      summary ||
+      fading
+    )
+      return;
     const next = routine === 'fast' ? fastForward(state) : sleep(state);
     if (next === state) {
       setRoutine(undefined);
@@ -284,12 +298,13 @@ export default function GameClient() {
     apply(next, routine === 'fast' ? 'fast' : 'observe');
     if (routine === 'sleep' && next.dayNumber !== state.dayNumber)
       setRoutine(undefined);
-  }, [state, routine, summary, fading]);
+  }, [state, routine, eventResult, summary, fading]);
   useEffect(() => {
     if (
       !state ||
       state.day.minute < 1440 ||
       state.pendingEvent ||
+      eventResult ||
       summary ||
       routine ||
       fading
@@ -298,7 +313,14 @@ export default function GameClient() {
     setInterior(true);
     setOverlay(undefined);
     setRoutine('sleep');
-  }, [state?.day.minute, state?.pendingEvent, summary, routine, fading]);
+  }, [
+    state?.day.minute,
+    state?.pendingEvent,
+    eventResult,
+    summary,
+    routine,
+    fading,
+  ]);
   const choose = (next?: GameState) => {
     latest.current = next;
     const saved =
@@ -311,6 +333,7 @@ export default function GameClient() {
     openOverlay();
     conversation.current = undefined;
     setFeedback(undefined);
+    setEventResult(undefined);
     setReturned(undefined);
     setSummary(undefined);
     setRoutine(undefined);
@@ -352,6 +375,9 @@ export default function GameClient() {
   const interact = (target: Interaction) => {
     playSound('menu');
     switch (target.kind) {
+      case 'surprise':
+        apply(approachSurprise(latest.current!, target.id), 'observe');
+        break;
       case 'place':
         visit(target.id);
         break;
@@ -391,6 +417,7 @@ export default function GameClient() {
       return t('game.plot').replace('{count}', String(overlay.id + 1));
     if (overlay.kind === 'detail') return t('game.progressChanges');
     if (overlay.kind === 'destinations') return t('game.destinations');
+    if (overlay.kind === 'collection') return t('game.collection');
     if (overlay.kind === 'dialogue')
       return localText(npcs.find((n) => n.id === overlay.id)!.name, locale);
     return t(
@@ -601,6 +628,13 @@ export default function GameClient() {
                 <button
                   className={styles.secondary}
                   disabled={paused}
+                  onClick={() => openOverlay({ kind: 'collection' })}
+                >
+                  {t('game.collection')}
+                </button>
+                <button
+                  className={styles.secondary}
+                  disabled={paused}
                   onClick={() => choose(undefined)}
                 >
                   {t('game.changeCharacter')}
@@ -609,7 +643,21 @@ export default function GameClient() {
             </>
           )}
           {(sceneReady || current.trip || returned) &&
-            (summary ? (
+            (eventResult ? (
+              <Modal
+                key="event-result"
+                title={t('game.eventResult')}
+                onClose={() => setEventResult(undefined)}
+              >
+                <OutcomeText text={eventResult} />
+                <button
+                  className={styles.button}
+                  onClick={() => setEventResult(undefined)}
+                >
+                  {t('game.continuePlaying')}
+                </button>
+              </Modal>
+            ) : summary ? (
               <Modal key="summary" title={t('game.quarterSummary')}>
                 <QuarterSummary
                   diary={summary.diary}
@@ -788,9 +836,12 @@ export default function GameClient() {
                     onChange={apply}
                     onClose={close}
                   />
-                ) : overlay.kind === 'bag' ? (
+                ) : overlay.kind === 'bag' || overlay.kind === 'collection' ? (
                   <Inventory
                     state={current}
+                    initialTab={
+                      overlay.kind === 'collection' ? 'collection' : 'bag'
+                    }
                     onChange={apply}
                     onKitchen={() => {
                       if (interior) openOverlay({ kind: 'kitchen' });

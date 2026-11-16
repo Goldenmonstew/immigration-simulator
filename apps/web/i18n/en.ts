@@ -36,6 +36,19 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.memoryLunchText':
     'You joined your neighbours at the long table and took a photograph together.',
   'game.memoryGarden': 'Things you planted',
+  'game.memoryDishes': 'Dishes you made',
+  'game.memoryFlowerbed': 'The community flowerbed sign',
+  'game.memoryFlowerbedText':
+    'The flowerbed you tended with your neighbours now has its own little sign.',
+  'game.collection': 'Collection',
+  'game.collectionFish': 'Fish you caught',
+  'game.collectionDishes': 'Dishes you made',
+  'game.collectionHint':
+    'Things you caught or cooked stay here, even after you eat or give them away.',
+  'game.collectionFirst': 'First: Year {year} · {season}',
+  'game.collectionUnknown': 'Not yet recorded',
+  'game.collectionHarvests':
+    'Harvest records: {count} harvests across {kinds} crops.',
   'game.lunchScene': 'Neighbourhood lunch · 12:00–16:00',
   'game.lunchTables': 'The tables and chairs you borrowed',
   'game.lunchFood': 'The food you brought is on the table',
@@ -614,4 +627,5 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.muted': 'Sound off',
   'game.unmuted': 'Sound on',
   'game.continueFast': 'Continue the routine after this event',
+  'game.eventResult': 'What happened next',
 };
