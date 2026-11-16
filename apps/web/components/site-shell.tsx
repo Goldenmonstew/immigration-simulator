@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from '../i18n/locale';
+import { buildVersion } from '../lib/report';
 import styles from '../app/site.module.css';
 import game from '../app/game/game.module.css';
 
@@ -110,6 +111,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
           >
             {t('site.feedback')}
           </a>
+          <span>{t('site.version').replace('{version}', buildVersion)}</span>
         </p>
       </footer>
     </div>

@@ -117,7 +117,16 @@ test.each(['zh-CN', 'en'] as const)(
       );
       expect(html).toContain(t('home.disclaimer', locale));
       expect(html).toContain(`<a href="/about">${t('about.link', locale)}</a>`);
-      expect(html).not.toContain('github.com/Goldenmonstew');
+      // Home stays free of GitHub links; result pages may link a rule to a
+      // pre-filled issue, which carries the rule id but never the user's inputs.
+      const links = [
+        ...html.matchAll(/href="(https:\/\/github\.com[^"]*)"/g),
+      ].map((match) => decodeURIComponent(match[1].replaceAll('&amp;', '&')));
+      if (page.key === 'home') expect(links).toEqual([]);
+      for (const link of links) {
+        expect(link).toMatch(/\/issues\/new\?labels=feedback&title=\[/);
+        expect(link).not.toMatch(/dateOfBirth|nationality|share=|#s=/);
+      }
     }
   },
 );

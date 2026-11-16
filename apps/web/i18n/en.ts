@@ -136,6 +136,16 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.location.visa': 'Visa centre',
   'game.location.station': 'Station',
   'site.about': 'About',
+  'site.version': 'Version {version}',
+  'error.title': 'Something went wrong on this page',
+  'error.body':
+    'The page hit an unexpected error. Your questionnaire draft and game saves are kept in this browser and have not been lost. Try again first; if it keeps happening, please report the error below.',
+  'error.retry': 'Try again',
+  'error.home': 'Back to the home page',
+  'error.report': 'Report this on GitHub',
+  'error.privacy':
+    'The report is pre-filled with the page address, version and error message, not your inputs; you can review it before submitting.',
+  'result.reportRule': 'Is this wrong?',
   'site.feedback': 'Feedback',
   'about.title': 'How this simulator works',
   'about.intro':
