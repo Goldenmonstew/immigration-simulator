@@ -68,8 +68,8 @@ test('fast-forwarding a quarter reaches the summary', async ({ page }) => {
     const dialog = page.locator('dialog[open]');
     if (await dialog.isVisible()) {
       await dialog
-        .getByRole('button')
-        .filter({ hasNotText: /关闭/ })
+        .getByRole('button', { disabled: false })
+        .filter({ hasNotText: /关闭|显示整句/ })
         .first()
         .click();
     }

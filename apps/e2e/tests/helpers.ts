@@ -19,8 +19,8 @@ export async function dismissCards(page: Page) {
     const text = await dialog.innerText();
     if (/营业时间|Opening hours|待会儿见/.test(text)) return;
     await dialog
-      .getByRole('button')
-      .filter({ hasNotText: /关闭/ })
+      .getByRole('button', { disabled: false })
+      .filter({ hasNotText: /关闭|显示整句/ })
       .first()
       .click();
     await page.waitForTimeout(300);
@@ -97,10 +97,14 @@ export async function walkTo(page: Page, place: string) {
     await button.click();
     await expect(dialog).toBeVisible({ timeout: 30_000 });
     if (await menu.isVisible()) return dialog;
+    // Anything other than an event card (another place menu, a talk) is a bug.
+    expect(await dialog.innerText()).not.toMatch(
+      /营业时间|Opening hours|待会儿见/,
+    );
     // An event card: take its first choice, then let it close.
     await dialog
-      .getByRole('button')
-      .filter({ hasNotText: /关闭/ })
+      .getByRole('button', { disabled: false })
+      .filter({ hasNotText: /关闭|显示整句/ })
       .first()
       .click();
     await page.waitForTimeout(400);
