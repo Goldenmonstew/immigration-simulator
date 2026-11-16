@@ -65,8 +65,8 @@ export const shopSignIds = [
 ];
 export const signPath = (id: string) => `${artRoot}/signs/${id}.png`;
 
-// The 24px plaque sits on the facade, above the 16px door and its path cell.
+// Display the plaque at 16px on the solid wall tile left of the door.
 export const signPosition = (door: { x: number; y: number }) => ({
-  x: door.x + 8,
-  y: door.y - 36,
+  x: door.x - 8,
+  y: door.y - 8,
 });
