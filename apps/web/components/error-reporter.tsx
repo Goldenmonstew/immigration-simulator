@@ -10,7 +10,7 @@ export function ErrorReporter() {
     const onError = (event: ErrorEvent) =>
       reportError(
         'error',
-        event.message,
+        event.error ?? event.message,
         `${event.filename}:${event.lineno}:${event.colno}`,
       );
     const onRejection = (event: PromiseRejectionEvent) =>

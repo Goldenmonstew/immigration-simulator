@@ -17,7 +17,7 @@ export default function ErrorPage({
   const { t } = useTranslation();
   const pathname = usePathname();
   useEffect(() => {
-    reportError('boundary', error.message, error.digest ?? '');
+    reportError('boundary', error, error.digest ?? '');
   }, [error]);
   const report = issueUrl(
     `[error] ${pathname}: ${error.message.slice(0, 80)}`,
