@@ -645,7 +645,7 @@ test('all nine facade signs occupy solid wall tiles, leave doors and paths clear
       }
   }
   const findPath = (destination: Cell) =>
-    Reflect.get(scene, 'findPath').call(
+    Reflect.get(scene, 'route').call(
       scene,
       { x: 5, y: 12 },
       destination,
@@ -977,7 +977,7 @@ test('furnished home keeps every interaction and household position reachable', 
     expect(
       layers.get('collision')!.getTileAt(destination.x, destination.y).index,
     ).toBeLessThanOrEqual(0);
-    const path = Reflect.get(scene, 'findPath').call(
+    const path = Reflect.get(scene, 'route').call(
       scene,
       start,
       destination,
@@ -1009,7 +1009,7 @@ test('green benches and flower beds stay clear of stalls and NPC gathering cells
   for (const destination of (
     Reflect.get(scene, 'anchors') as Map<string, Cell>
   ).values()) {
-    const path = Reflect.get(scene, 'findPath').call(
+    const path = Reflect.get(scene, 'route').call(
       scene,
       { x: 5, y: 12 },
       destination,
@@ -1164,7 +1164,7 @@ test('lunch leaves festival stalls, routes, the green entrance and actual reside
   for (const destination of (
     Reflect.get(scene, 'anchors') as Map<string, Cell>
   ).values()) {
-    const path = Reflect.get(scene, 'findPath').call(
+    const path = Reflect.get(scene, 'route').call(
       scene,
       { x: 5, y: 12 },
       destination,
@@ -1374,7 +1374,7 @@ test('scene animals change visibility, animate, yield and never alter player pat
   const sprite = new Sprite(route[0].x * 16 + 8, route[0].y * 16 + 10);
   const animal = { sprite, next: 1, elapsed: 0 };
   const findPath = (a: Cell, b: Cell) =>
-    Reflect.get(scene, 'findPath').call(scene, a, b);
+    Reflect.get(scene, 'route').call(scene, a, b);
   const before = findPath({ x: 11, y: 24 }, { x: 16, y: 24 });
   const spots = [...Reflect.get(scene, 'spots')];
   Object.assign(scene, { animals: new Map([['cat', animal]]) });

@@ -64,10 +64,10 @@
   min-width: 44px;
   min-height: 44px;
 }
-.theme a {
+.theme.theme a {
   color: var(--primary-hover);
 }
-.theme a:hover {
+.theme.theme a:hover {
   color: var(--primary-hover);
 }
 .theme.theme :focus-visible {
