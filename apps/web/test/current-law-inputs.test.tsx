@@ -402,6 +402,14 @@ test.each([false, true])(
           )
         )
           input = child.props;
+        // Questionnaire steps are hook-free components: expand them in place.
+        if (
+          typeof child.type === 'function' &&
+          child.type.name.endsWith('Step')
+        )
+          capture(
+            (child.type as (props: object) => React.ReactNode)(child.props),
+          );
         capture(child.props.children);
       });
     };
