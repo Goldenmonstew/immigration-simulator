@@ -385,6 +385,48 @@ class Drawing extends Sprite {
   setText = vi.fn(() => this);
 }
 
+test('water glints change slowly on water tiles and disappear when reduced motion is enabled', () => {
+  let reduced = true;
+  const matchMedia = vi.fn(() => ({ matches: reduced }));
+  vi.stubGlobal('window', { matchMedia });
+  const state = newGame('skilled-worker', 42);
+  state.day.weather = 'sunny';
+  delete state.day.festival;
+  const { scene, view, layers } = loadScene(false, state);
+  view.paused = true;
+  const water = Reflect.get(scene, 'water') as Drawing;
+  scene.update(0, 16);
+  expect(matchMedia).toHaveBeenCalledWith('(prefers-reduced-motion: reduce)');
+  expect(water.visible).toBe(false);
+  expect(water.fillRect).not.toHaveBeenCalled();
+  reduced = false;
+  scene.update(0, 16);
+  expect(water.visible).toBe(true);
+  const first = [...water.fillRect.mock.calls];
+  expect(first.length).toBeGreaterThan(0);
+  for (const rect of first) {
+    expect(rect.every(Number.isInteger)).toBe(true);
+    const [x, y] = rect;
+    expect(
+      layers.get('ground')!.getTileAt(Math.floor(x / 16), Math.floor(y / 16))!
+        .index,
+    ).toBe(5);
+  }
+  scene.update(1799, 16);
+  expect(water.fillRect.mock.calls).toEqual(first);
+  water.fillRect.mockClear();
+  scene.update(1800, 16);
+  expect(water.fillRect.mock.calls).not.toEqual(first);
+  reduced = true;
+  water.fillRect.mockClear();
+  scene.update(3600, 16);
+  expect(water.visible).toBe(false);
+  expect(water.fillRect).not.toHaveBeenCalled();
+  scene.sync({ ...view, interior: true });
+  expect(water.destroy).toHaveBeenCalledOnce();
+  expect(Reflect.get(scene, 'water')).toBeUndefined();
+});
+
 function loadScene(
   interior: boolean,
   state = newGame('family-partner', 42, 'en'),

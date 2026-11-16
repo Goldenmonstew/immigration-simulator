@@ -68,6 +68,15 @@ vi.mock('../app/game/sound', () => ({
   unlockSound: vi.fn(),
 }));
 const actualReact = await vi.importActual<typeof React>('react');
+function expectCelebrationIcon(html: string) {
+  const icon = html.match(
+    /class="[^"]*catchCard[^"]*"[^>]*>(<span[^>]*>)/,
+  )?.[1];
+  expect(icon).toBeDefined();
+  expect(icon).toContain('background-position:center');
+  expect(icon).toContain('background-size:contain');
+  expect(icon).not.toContain('32px');
+}
 const storage = new Map<string, string>();
 const cjk = /[\u3400-\u9fff]/;
 const fixtures: core.GameEvent[] = ['morning', 'letter', 'phone'].map((id) => ({
@@ -594,6 +603,7 @@ test.each([true, false])(
       expect(state.day.minute).toBe(630);
       expect(h.render().html).toContain('首次收录');
       expect(h.render().html).toContain('meadow-town/fish/');
+      expectCelebrationIcon(h.render().html);
     } else {
       expect(state).toEqual(original);
       expect(h.render().html).toContain('鱼游走了');
@@ -2440,6 +2450,76 @@ test('location selection follows the entered place while closed locations remain
   h.dispose();
 });
 
+test.each([
+  {
+    minute: 420,
+    kind: 'workday',
+    open: ['home', 'station', 'allotment', 'pond', 'board', 'green', 'bench'],
+  },
+  {
+    minute: 540,
+    kind: 'workday',
+    open: [
+      'home',
+      'work',
+      'college',
+      'library',
+      'gp',
+      'cafe',
+      'shop',
+      'council',
+      'visa',
+      'station',
+      'allotment',
+      'pond',
+      'board',
+      'green',
+      'bench',
+    ],
+  },
+  {
+    minute: 540,
+    kind: 'weekend',
+    open: [
+      'home',
+      'college',
+      'library',
+      'cafe',
+      'shop',
+      'council',
+      'visa',
+      'station',
+      'allotment',
+      'pond',
+      'board',
+      'green',
+      'bench',
+    ],
+  },
+])(
+  'destinations put open places first at $minute on $kind without changing group order',
+  ({ minute, kind, open }) => {
+    const start = at(minute);
+    start.day.kind = kind as GameState['day']['kind'];
+    const original = core.places.map((p) => p.id);
+    const h = client(start);
+    const destinations = h
+      .render()
+      .html.match(/<nav[^>]*aria-label="走到哪里？"[^>]*>(.*?)<\/nav>/)?.[1];
+    expect(destinations).toBeDefined();
+    const names = [...destinations!.matchAll(/<button[^>]*>([^<]+)/g)].map(
+      (match) => match[1],
+    );
+    const expected = [...open, ...original.filter((id) => !open.includes(id))];
+    expect(names).toEqual(
+      expected.map((id) => core.places.find((p) => p.id === id)!.name.zhCN),
+    );
+    expect(destinations).toMatch(/aria-current="location"[^>]*>家<\/button>/);
+    expect(core.places.map((p) => p.id)).toEqual(original);
+    h.dispose();
+  },
+);
+
 // Phase 12.7: event endings use the same persisted diary as the season review.
 test.each(['zh-CN', 'en'] as const)(
   'a real map surprise shows its result once, pauses the clock and persists the ending in %s',
@@ -2589,6 +2669,15 @@ test.each(core.recipes)(
         const view = h.render();
         expect(state).toEqual(initial);
         expect(view.html).toContain(`第 ${step + 1} / ${steps} 步`);
+        expect(view.html).toMatch(
+          /class="[^"]*buttons[^"]*"><button class="[^"]*button[^"]*"/,
+        );
+        for (const key of ['game.kitchenSkip', 'game.kitchenRecipes'] as const)
+          expect(view.html).toMatch(
+            new RegExp(
+              `<button class="[^"]*secondary[^"]*">${t(key)}</button>`,
+            ),
+          );
         const button = view.buttons.find(
           (b) =>
             b.label !== t('game.kitchenSkip') &&
@@ -2608,6 +2697,7 @@ test.each(core.recipes)(
       expect(state).toEqual(expected);
       expect(h.render().html).toContain(`/dishes/${recipe.makes}.svg`);
       expect(h.render().html).toContain(t('game.kitchenComment'));
+      expectCelebrationIcon(h.render().html);
       h.render().click(t('game.kitchenRecipes'));
       expect(
         h.render().buttons.find((b) => b.label.startsWith(recipe.label.zhCN))!
@@ -2669,7 +2759,13 @@ test.each(['keyboard', 'button'] as const)(
     const h = harness(() => Fishing({ state, onChange }));
     h.render();
     h.flush();
+    expect(h.render().html).toMatch(
+      /class="[^"]*secondary[^"]*" aria-pressed="false"/,
+    );
     h.render().click(t('game.fishEasy'));
+    expect(h.render().html).toMatch(
+      /class="[^"]*secondary[^"]*" aria-pressed="true"><svg/,
+    );
     const key = (value: string, repeat = false, tagName?: string) =>
       listeners.get('keydown')!({
         key: value,

@@ -444,27 +444,34 @@ export default function GameClient() {
       aria-label={t('game.destinations')}
       inert={!drawer && paused}
     >
-      {places.map((p) => (
-        <button
-          key={p.id}
-          aria-current={current!.day.place === p.id ? 'location' : undefined}
-          disabled={!drawer && paused}
-          className={!isPlaceOpen(current!, p) ? styles.closedPlace : undefined}
-          aria-label={
-            !isPlaceOpen(current!, p)
-              ? `${localText(p.name, locale)} · ${t('game.closedLabel')}`
-              : undefined
-          }
-          onClick={() => walkTo(p.id)}
-        >
-          {localText(p.name, locale)}
-          {!isPlaceOpen(current!, p) && (
-            <span className={styles.closedMarker} aria-hidden="true">
-              <GameIcon name="lock" />
-            </span>
-          )}
-        </button>
-      ))}
+      {[...places]
+        .sort(
+          (a, b) =>
+            Number(isPlaceOpen(current!, b)) - Number(isPlaceOpen(current!, a)),
+        )
+        .map((p) => (
+          <button
+            key={p.id}
+            aria-current={current!.day.place === p.id ? 'location' : undefined}
+            disabled={!drawer && paused}
+            className={
+              !isPlaceOpen(current!, p) ? styles.closedPlace : undefined
+            }
+            aria-label={
+              !isPlaceOpen(current!, p)
+                ? `${localText(p.name, locale)} · ${t('game.closedLabel')}`
+                : undefined
+            }
+            onClick={() => walkTo(p.id)}
+          >
+            {localText(p.name, locale)}
+            {!isPlaceOpen(current!, p) && (
+              <span className={styles.closedMarker} aria-hidden="true">
+                <GameIcon name="lock" />
+              </span>
+            )}
+          </button>
+        ))}
     </nav>
   );
   return (
@@ -590,7 +597,7 @@ export default function GameClient() {
                         String(mailbox(current).length),
                       )}
                     >
-                      ✉ {mailbox(current).length}
+                      <GameIcon name="mail" /> {mailbox(current).length}
                     </span>
                   )}
                 </div>

@@ -74,6 +74,21 @@ test('all 17 neutral portraits have pairwise distinct decoded pixel hashes', () 
   expect(new Set(hashes).size).toBe(17);
 });
 
+test.each(['graduate', 'family-partner', 'yao-flatmate', 'maeve', 'rahman'])(
+  '%s blush preserves neutral hair, freckles, glasses and beard pixels',
+  (id) => {
+    const neutral = portraitPixels(portraitPath(id));
+    const happy = portraitPixels(portraitPath(id, 'happy'));
+    const at = (pixels: Buffer, x: number, y: number) =>
+      pixels.subarray((y * 64 + x) * 4, (y * 64 + x + 1) * 4);
+    const skin = at(neutral, 32, 28);
+    for (const y of [34, 35])
+      for (const x of [21, 22, 23, 24, 39, 40, 41, 42])
+        if (!at(neutral, x, y).equals(skin))
+          expect(at(happy, x, y)).toEqual(at(neutral, x, y));
+  },
+);
+
 test.each(['graduate', 'maeve'])(
   '%s expressions keep the neutral palette and artwork outside the face',
   (id) => {

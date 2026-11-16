@@ -7,6 +7,7 @@ import { LocaleContext } from '../i18n/locale';
 import { t } from '../i18n';
 import game from '../app/game/game.module.css';
 import site from '../app/site.module.css';
+import { ItemIcon } from '../app/game/life-overlays';
 
 vi.mock('next/navigation', () => ({ usePathname: vi.fn() }));
 afterEach(() => vi.resetAllMocks());
@@ -19,6 +20,25 @@ const canvasCss = readFileSync(
   new URL('../app/game/town-canvas.module.css', import.meta.url),
   'utf8',
 );
+
+test('celebration icons fill a centered 72px slot and crops scale to their last atlas frame', () => {
+  expect(css).toMatch(/\.catchCard\s*\{[^}]*justify-items: center/s);
+  expect(css).toMatch(
+    /\.catchCard > span\s*\{[^}]*width: 72px;[^}]*height: 72px/s,
+  );
+  for (const id of ['perch', 'summer-corn', 'tea']) {
+    const html = renderToStaticMarkup(<ItemIcon id={id} />);
+    expect(html).toContain('background-size:contain');
+    expect(html).toContain('background-position:center');
+    expect(html).not.toContain('32px');
+  }
+  const crop = renderToStaticMarkup(<ItemIcon id="potato" />);
+  expect(crop).toContain('background-size:600% 100%');
+  expect(crop).toContain('background-position:100% 0');
+  expect(css).toMatch(
+    /\.theme \.secondary\[aria-pressed='true'\]\s*\{[^}]*background: var\(--hud\);[^}]*color: var\(--panel\)/s,
+  );
+});
 
 test.each(['zh-CN', 'en'] as const)(
   'entering and leaving /game scopes the warm theme and compact header in %s',

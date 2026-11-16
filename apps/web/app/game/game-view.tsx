@@ -53,6 +53,10 @@ export function localText(text: Text, locale: string) {
   return locale === 'en' ? text.en : text.zhCN;
 }
 const iconPaths = {
+  check: 'M5 12l4 4L19 6',
+  mail: 'M3 5h18v14H3z M3 5l9 7 9-7',
+  home: 'M3 11l9-8 9 8 M5 10v11h5v-7h4v7h5V10',
+  plane: 'M22 2L9 10l-7-1 6 5 2 8 3-8z M8 14L22 2',
   lock: 'M6 10h12v11H6z M8 10V6a4 4 0 0 1 8 0v4 M12 14v3',
   sound: 'M3 9h4l5-4v14l-5-4H3z M16 8a6 6 0 0 1 0 8 M19 5a10 10 0 0 1 0 14',
   muted: 'M3 9h4l5-4v14l-5-4H3z M16 9l6 6 M22 9l-6 6',
@@ -124,18 +128,22 @@ export function CharacterSelect({
   const { t, locale } = useTranslation();
   return (
     <section className={styles.welcome}>
-      <div
-        className={styles.townBanner}
-        style={{ backgroundImage: `url("${townBanner}")` }}
-        aria-hidden="true"
-      />
-      <h1>{t('game.title')}</h1>
-      {locale === 'zh-CN' && (
-        <p className={styles.subtitle} lang="en">
-          Immigration Life
-        </p>
-      )}
-      <p className={styles.lead}>{t('game.intro')}</p>
+      <div className={styles.welcomeIntro}>
+        <div>
+          <h1>{t('game.title')}</h1>
+          {locale === 'zh-CN' && (
+            <p className={styles.subtitle} lang="en">
+              Immigration Life
+            </p>
+          )}
+          <p className={styles.lead}>{t('game.intro')}</p>
+        </div>
+        <div
+          className={styles.townBanner}
+          style={{ backgroundImage: `url("${townBanner}")` }}
+          aria-hidden="true"
+        />
+      </div>
       <h2>{t('game.chooseCharacter')}</h2>
       <div className={styles.characters}>
         {characters.map((character) => (

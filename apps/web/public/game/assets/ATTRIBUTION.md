@@ -2,6 +2,14 @@
 
 首批取用日期：2026-11-06；后续新增日期见各节。以下图像与音频全部采用 **CC0 1.0 Universal**；许可原文保留于 `LICENSE.txt`。下载、裁切、拼接及调色脚本不入仓库。
 
+## 13.5 第四轮视觉收尾（2026-11-16）
+
+- 作者：本项目 / Codex gpt-6-astra。沿用本仓库原创素材，按 **CC0 1.0 Universal** 发布；完整许可见 `meadow-town/LICENSE.txt`。没有新增第三方素材。下列记录覆盖这些同名文件在早期批次的状态。
+- `meadow-town/portraits/{graduate,family-partner,yao-flatmate,maeve,rahman}-happy.png`：仅在 neutral 的纯肤色像素保留腮红，其余腮红坐标恢复 neutral 的发缘、雀斑、胡须与眼镜边框；保留 64×64 RGBA 与其他表情细节。
+- `meadow-town/portraits/rahman-{neutral,happy,worried}.png`：用左耳对应像素修净右耳 `(44..47, 27..35)` 的杂黑条（含紧邻评审范围的同色一列），不重绘其他区域。共修改 7 张立绘。
+- `meadow-town/animals/duck.svg`：第 2 帧翅膀下移 1px，拆开并错开水波；`meadow-town/dishes/summer-corn.svg`：玉米粒细线改为整数填充块。尺寸仍为 32×16 双帧与 32×24。
+- `app/game/game-view.tsx` 的信封、飞机、房屋、勾选 SVG，以及 `app/game/town-canvas.module.css` 的信封 SVG mask 为本项目原创单色图形；`app/game/scene.ts` 的低频水波为原创整数像素绘制，均沿用 CC0。
+
 ## 13.4 第三轮美术返修（2026-11-16）
 
 - 作者：本项目 / Codex gpt-6-astra。沿用 13.1 原始整数坐标绘制源稿，逐像素重绘 15 人的三表情、太阳和行人、三块招牌；没有新增外部图片、字体或品牌。诺拉与梅芙本轮改为同套约 2px 轮廓和头肩比例，不再逐表情重新生成整图。全部原创部分继续按 **CC0 1.0 Universal** 发布，许可全文为 `meadow-town/LICENSE.txt`。

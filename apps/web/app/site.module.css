@@ -227,6 +227,20 @@
 .gameEntry:hover .gameEntryTitle {
   text-decoration: underline;
 }
+.homeHero {
+  display: grid;
+  grid-template-columns: minmax(0, 720px);
+}
+@media (min-width: 960px) {
+  .homeHero {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
+    gap: 32px;
+  }
+  .body .homeHero .gameEntry {
+    margin: 0;
+  }
+}
 .notice {
   border-left: 5px solid #1d70b8;
   padding: 16px 20px;

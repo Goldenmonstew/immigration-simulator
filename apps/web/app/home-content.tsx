@@ -13,17 +13,19 @@ export default function Home() {
   return (
     <main id="main" className={styles.main}>
       <PolicyStatus asOf={policyAsOf} />
-      <div className={styles.narrow}>
-        <h1>{t('home.title')}</h1>
-        <p className={styles.lead}>{t('home.intro')}</p>
-        <details className={styles.scope}>
-          <summary>{t('home.scopeTitle')}</summary>
-          <p>{t('home.scope')}</p>
-        </details>
-        <div className={`${styles.actions} ${styles.homeActions}`}>
-          <Link className={styles.button} href="/simulate">
-            {t('home.start')}
-          </Link>
+      <div className={styles.homeHero}>
+        <div className={styles.narrow}>
+          <h1>{t('home.title')}</h1>
+          <p className={styles.lead}>{t('home.intro')}</p>
+          <details className={styles.scope}>
+            <summary>{t('home.scopeTitle')}</summary>
+            <p>{t('home.scope')}</p>
+          </details>
+          <div className={`${styles.actions} ${styles.homeActions}`}>
+            <Link className={styles.button} href="/simulate">
+              {t('home.start')}
+            </Link>
+          </div>
         </div>
         <Link className={styles.gameEntry} href="/game">
           <span
@@ -33,6 +35,8 @@ export default function Home() {
           />
           <span className={styles.gameEntryTitle}>{t('game.entry')}</span>
         </Link>
+      </div>
+      <div className={styles.narrow}>
         <SavedScenarios />
         <section className={styles.section}>
           <h2>{t('home.before')}</h2>
