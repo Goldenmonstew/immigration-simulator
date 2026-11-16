@@ -4,6 +4,7 @@ import { t } from '../i18n';
 import { LocaleProvider } from '../i18n/locale';
 import { SiteShell } from '../components/site-shell';
 import { ServiceWorker } from '../components/service-worker';
+import { ErrorReporter } from '../components/error-reporter';
 import styles from './site.module.css';
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="zh-CN">
       <body className={styles.body}>
         <ServiceWorker />
+        <ErrorReporter />
         <LocaleProvider>
           <SiteShell>{children}</SiteShell>
         </LocaleProvider>

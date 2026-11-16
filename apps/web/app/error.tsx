@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 import { useTranslation } from '../i18n/locale';
-import { issueUrl } from '../lib/report';
+import { issueUrl, reportError } from '../lib/report';
 import styles from './site.module.css';
 
 export default function ErrorPage({
@@ -15,6 +16,9 @@ export default function ErrorPage({
 }) {
   const { t } = useTranslation();
   const pathname = usePathname();
+  useEffect(() => {
+    reportError('boundary', error, error.digest ?? '');
+  }, [error]);
   const report = issueUrl(
     `[error] ${pathname}: ${error.message.slice(0, 80)}`,
     [

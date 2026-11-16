@@ -1,0 +1,9 @@
+# Receives client error reports from the static site. Each report becomes one
+# log line kept by Workers Logs (free plan); nothing else is stored.
+name = "uk-immigration-error-report"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+[observability]
+enabled = true
