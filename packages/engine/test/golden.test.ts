@@ -30,7 +30,13 @@ function summary(result: SimulationResult) {
           pathwayYears: a!.pathwayYears,
           earliestDate: a!.earliestDate,
           decidedBy: a!.decidedBy,
-          rules: Object.fromEntries(a!.rules.map((r) => [r.id, r.status])),
+          // Status, plus the pending-detail ids an UNKNOWN rests on.
+          rules: Object.fromEntries(
+            a!.rules.map((r) => [
+              r.id,
+              [r.status, ...(r.pendingDetails ?? [])].join(' '),
+            ]),
+          ),
         },
       ]),
     ),

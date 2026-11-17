@@ -1920,7 +1920,7 @@
           "ES-PUBLIC-FUNDS": "PASS",
           "ES-BREACH": "PASS",
           "ES-PROTECTION-PATHWAY": "PASS",
-          "ES-PROTECTION-CONTRIBUTION": "UNKNOWN",
+          "ES-PROTECTION-CONTRIBUTION": "UNKNOWN PD-030",
           "ES-ASYLUM-SUPPORT": "PASS"
         }
       }
@@ -1974,7 +1974,7 @@
           "ES-PUBLIC-FUNDS": "PASS",
           "ES-BREACH": "PASS",
           "ES-PROTECTION-PATHWAY": "PASS",
-          "ES-PROTECTION-CONTRIBUTION": "UNKNOWN",
+          "ES-PROTECTION-CONTRIBUTION": "UNKNOWN PD-030",
           "ES-ASYLUM-SUPPORT": "PASS"
         }
       }
@@ -2603,7 +2603,7 @@
           "ES-PUBLIC-FUNDS": "PASS",
           "ES-BREACH": "PASS",
           "ES-ASYLUM-SUPPORT": "PASS",
-          "ES-DEPENDANT-PATHWAY": "UNKNOWN"
+          "ES-DEPENDANT-PATHWAY": "UNKNOWN PD-063"
         }
       }
     }
@@ -2854,7 +2854,7 @@
           "CL-SCOPE": "PASS",
           "CL-FAMILY-RESIDENCE": "PASS",
           "CL-FAMILY-RELATIONSHIP": "PASS",
-          "CL-FAMILY-FINANCIAL": "UNKNOWN",
+          "CL-FAMILY-FINANCIAL": "UNKNOWN PD-075",
           "CL-ENGLISH": "PASS",
           "CL-KOL": "PASS",
           "CL-LR-RESIDENCE-10Y": "FAIL"
