@@ -1,16 +1,19 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useTranslation } from '../../i18n/locale';
 import styles from './game.module.css';
+import { WelcomeLoading } from './welcome';
 
 const GameClient = dynamic(() => import('./game-client'), {
   ssr: false,
   loading: GameLoading,
 });
 function GameLoading() {
-  const { t } = useTranslation();
-  return <p role="status">{t('game.loading')}</p>;
+  return (
+    <div className={styles.game}>
+      <WelcomeLoading />
+    </div>
+  );
 }
 export default function GamePage() {
   return (

@@ -78,6 +78,7 @@ import {
   type DayMemory,
   type ChangeSource,
 } from './diary';
+import { WelcomeLoading } from './welcome';
 import styles from './game.module.css';
 import canvasStyles from './town-canvas.module.css';
 
@@ -540,7 +541,7 @@ export default function GameClient() {
       onKeyDownCapture={unlockSound}
     >
       {!ready ? (
-        <p role="status">{t('game.loading')}</p>
+        <WelcomeLoading />
       ) : !current ? (
         <CharacterSelect saves={saves} onSelect={selectCharacter} />
       ) : (
