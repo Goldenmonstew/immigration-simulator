@@ -1,0 +1,2901 @@
+{
+  "G-SW-5Y-ON-DAY": {
+    "title": "Skilled Worker since 2021-06-01 on £52,000 (SOC 2136), applies the day 5 years are completed",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-SW-5Y-DAY-BEFORE": {
+    "title": "Same Skilled Worker, applies one day before 5 years",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "FAIL",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-SW-ABSENCE-200-DAYS": {
+    "title": "Same Skilled Worker, 200 days outside the UK in one 12-month period",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2028-07-29",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "FAIL",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2028-07-29",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-SW-NO-ENGLISH-LITUK": {
+    "title": "Same Skilled Worker, English and Life in the UK test not provided",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "INSUFFICIENT_INFORMATION",
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "UNKNOWN",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "INSUFFICIENT_INFORMATION",
+        "routeGroup": "CORE_PERMISSION",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "UNKNOWN",
+          "ES-KOL": "UNKNOWN",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-SW-B1-DAY-BEFORE-B2": {
+    "title": "Skilled Worker since 2022-03-01 with B1 English, applies on 2027-03-25 (the day before the B2 requirement)",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2027-03-25",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "FAIL",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-SW-B1-ON-B2-DATE": {
+    "title": "Same Skilled Worker with B1 English, applies on 2027-03-26 (the day the B2 requirement starts)",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "FAIL",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "FAIL",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-SW-PRE-2024-SALARY-BEFORE-CUTOFF": {
+    "title": "Skilled Worker since 2024-01-15 on £41,000, applies 2029-01-15 (old-salary window open)",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2029-01-15",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 10,
+        "earliestDate": "2034-01-15",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "FAIL",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-SW-PRE-2024-SALARY-AFTER-CUTOFF": {
+    "title": "Same Skilled Worker on £41,000, applies 2030-04-04 (the day the old-salary window closes)",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "pathwayYears": 10,
+        "earliestDate": "2034-01-15",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "FAIL",
+          "CL-SW-GOING-RATE": "FAIL",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 10,
+        "earliestDate": "2034-01-15",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "FAIL",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-SW-CARE-WORKER": {
+    "title": "Care worker (SOC 6135) on Skilled Worker since 2021-09-01 at £25,000",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-09-01",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-09-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT",
+          "ES-TRANSITIONAL-CARE-WORKER"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "FAIL",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "PASS",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-STUDENT-GRADUATE-SW": {
+    "title": "Student 2019–2022, Graduate 2022–2024, then Skilled Worker; applies 2026-11-16",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "pathwayYears": 10,
+        "earliestDate": "2029-09-15",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "FAIL",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "FAIL",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2029-09-15",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-LONG-RESIDENCE-10Y": {
+    "title": "Student 2016–2021, Graduate 2021–2023, Skilled Worker since 2023; 10 years lawful residence on 2026-09-15",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 10,
+        "earliestDate": "2026-09-15",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "FAIL",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "PASS"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 10,
+        "earliestDate": "2033-09-15",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "FAIL",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-VISIT-ONLY": {
+    "title": "Only visit visas, no qualifying residence",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "INSUFFICIENT_INFORMATION",
+        "rules": {
+          "CL-SCOPE": "UNKNOWN"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "FAIL",
+          "ES-RESIDENCE": "FAIL",
+          "ES-EARNINGS-3Y": "UNKNOWN",
+          "ES-EARNINGS-5Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-HKBNO-ONE-MONTH-SHORT": {
+    "title": "Hong Kong BN(O) Status Holder since 2021-12-01, applies 2026-11-01 (one month short of 5 years)",
+    "shortCircuit": "OUTSIDE_FRAMEWORK",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-12-01",
+        "decidedBy": [
+          "CL-HKBNO-RESIDENCE-5Y",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-HKBNO-RESIDENCE-5Y": "FAIL",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "REQUIRES_REGULATED_REVIEW",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "FAIL",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "UNKNOWN",
+          "ES-RESIDENCE": "UNKNOWN",
+          "ES-EARNINGS-3Y": "UNKNOWN",
+          "ES-EARNINGS-5Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-FAMILY-10Y-PARTNER": {
+    "title": "Partner of a British citizen on the 10-year Appendix FM route since 2016-10-01",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 10,
+        "earliestDate": "2026-10-01",
+        "decidedBy": [
+          "CL-FAMILY-RESIDENCE",
+          "CL-FAMILY-RELATIONSHIP",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-FAMILY-RESIDENCE": "PASS",
+          "CL-FAMILY-RELATIONSHIP": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "PASS"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-10-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BRITISH-CONNECTION",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "UNKNOWN",
+          "ES-EARNINGS-5Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-FAMILY-5Y-LOW-INCOME": {
+    "title": "Partner of a British citizen on the 5-year Appendix FM route, household income £21,000 and no savings",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-08-01",
+        "decidedBy": [
+          "CL-FAMILY-RESIDENCE",
+          "CL-FAMILY-RELATIONSHIP",
+          "CL-FAMILY-FINANCIAL",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-FAMILY-RESIDENCE": "PASS",
+          "CL-FAMILY-RELATIONSHIP": "PASS",
+          "CL-FAMILY-FINANCIAL": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-08-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BRITISH-CONNECTION",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "FAIL",
+          "ES-EARNINGS-10Y": "FAIL",
+          "ES-BRITISH-CONNECTION": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-GLOBAL-TALENT-3Y": {
+    "title": "Global Talent (exceptional talent) since 2023-08-01, applies after 3 years",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 3,
+        "earliestDate": "2026-08-01",
+        "decidedBy": [
+          "CL-GT-RESIDENCE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-GT-RESIDENCE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2028-08-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-REFUGEE-5Y": {
+    "title": "Refugee status since 2021-07-01, applies after 5 years",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-07-01",
+        "decidedBy": [
+          "CL-PROTECTION-RESIDENCE-5Y",
+          "CL-PROTECTION-STATUS"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-PROTECTION-RESIDENCE-5Y": "PASS",
+          "CL-PROTECTION-STATUS": "PASS",
+          "CL-ENGLISH": "UNKNOWN",
+          "CL-KOL": "UNKNOWN",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "PROTECTION",
+        "pathwayYears": 20,
+        "earliestDate": "2041-07-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PROTECTION-PATHWAY",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "UNKNOWN",
+          "ES-KOL": "UNKNOWN",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-PROTECTION-PATHWAY": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS"
+        }
+      }
+    }
+  },
+  "G-SW-PARTNER": {
+    "title": "Dependent partner (earning £26,000) of the 5-year Skilled Worker (G-SW-5Y-ON-DAY), applies the same day",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-PARTNER-5Y",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-PARTNER-5Y": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT",
+          "ES-DEPENDANT-PATHWAY"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-DEPENDANT-PATHWAY": "PASS"
+        }
+      }
+    }
+  },
+  "G-SW-CHILD": {
+    "title": "Child (born 2015) of the 5-year Skilled Worker, dependant since 2021-06-01",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-CHILD",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-CHILD": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT",
+          "ES-DEPENDANT-PATHWAY"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-DEPENDANT-PATHWAY": "PASS"
+        }
+      }
+    }
+  },
+  "G-SW-AGED-66-NO-ENGLISH": {
+    "title": "Skilled Worker aged 66 on the application date, no English test or Life in the UK test",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-CRIMINAL-RECORD": {
+    "title": "Same Skilled Worker with a criminal conviction in 2024",
+    "shortCircuit": "CRIMINALITY",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "REQUIRES_REGULATED_REVIEW",
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "REQUIRES_REGULATED_REVIEW",
+        "routeGroup": "CORE_PERMISSION",
+        "rules": {
+          "ES-CRIMINALITY": "FAIL",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-OVERSTAY-BREACH": {
+    "title": "Same Skilled Worker who overstayed for a period in 2020 before the current permission",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 20,
+        "earliestDate": "2041-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "FAIL",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-UNIVERSAL-CREDIT": {
+    "title": "Same Skilled Worker who received Universal Credit for 8 months in 2023",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 20,
+        "earliestDate": "2041-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "FAIL",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-INDIVIDUAL-C": {
+    "title": "Individual C: combined household income",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 10,
+        "earliestDate": "2026-11-04",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-FAMILY-RESIDENCE": "UNKNOWN",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "PASS"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 10,
+        "earliestDate": "2026-11-04",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "FAIL",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-INDIVIDUAL-D": {
+    "title": "Individual D: accessed public funds",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 10,
+        "earliestDate": "2026-11-04",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-PRIVATE-LIFE-RESIDENCE": "UNKNOWN",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "PASS"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "FAMILY_AND_PRIVATE_LIFE",
+        "pathwayYears": 20,
+        "earliestDate": "2035-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "FAIL",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "FAIL",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P16-MATERNITY-BEST-YEARS": {
+    "title": "Maternity leave: five qualifying earnings years out of seven",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 10,
+        "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-FAMILY-RESIDENCE": "UNKNOWN",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "PASS"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 10,
+        "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "FAIL",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P19-INDIVIDUAL-A": {
+    "title": "Individual A: social worker on the public-service pathway",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "INSUFFICIENT_INFORMATION",
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "UNKNOWN",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-11-04",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT",
+          "ES-PUBLIC-SERVICE"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "FAIL",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "PASS"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P19-INDIVIDUAL-B": {
+    "title": "Individual B: spouse of a British citizen",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "INSUFFICIENT_INFORMATION",
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-FAMILY-RESIDENCE": "UNKNOWN",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-11-04",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BRITISH-CONNECTION",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "FAIL",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P31-INDIVIDUAL-A": {
+    "title": "Individual A: dependant partner arrives with the principal",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "CL-SW-PARTNER-5Y",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-PARTNER-5Y": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT",
+          "ES-DEPENDANT-PATHWAY"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-DEPENDANT-PATHWAY": "PASS"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P31-INDIVIDUAL-B": {
+    "title": "Individual B: principal whose dependant partner arrives later",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "INSUFFICIENT_INFORMATION",
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "UNKNOWN",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER": {
+    "title": "Individual B: dependant partner joins two years later",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2028-04-06",
+        "decidedBy": [
+          "CL-SW-PARTNER-5Y",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-PARTNER-5Y": "FAIL",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2028-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT",
+          "ES-DEPENDANT-PATHWAY"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-DEPENDANT-PATHWAY": "FAIL"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P31-INDIVIDUAL-C": {
+    "title": "Individual C: 14-year-old child dependant",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "CL-SW-CHILD",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-CHILD": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT",
+          "ES-DEPENDANT-PATHWAY"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-DEPENDANT-PATHWAY": "PASS"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P31-INDIVIDUAL-D": {
+    "title": "Individual D: 22-year-old child dependant",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "CL-SW-CHILD",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-CHILD": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT",
+          "ES-DEPENDANT-PATHWAY"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-DEPENDANT-PATHWAY": "PASS"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P31-INDIVIDUAL-E": {
+    "title": "Individual E: child dependant aged 25",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "pathwayYears": 10,
+        "earliestDate": "2031-04-06",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-CHILD": "FAIL",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-DEPENDANT-PATHWAY": "FAIL"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P40-INDIVIDUAL-A": {
+    "title": "Individual A: UK Resettlement Scheme refugee",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2032-06-01",
+        "decidedBy": [
+          "CL-PROTECTION-RESIDENCE-5Y",
+          "CL-PROTECTION-STATUS"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-PROTECTION-RESIDENCE-5Y": "PASS",
+          "CL-PROTECTION-STATUS": "PASS",
+          "CL-ENGLISH": "FAIL",
+          "CL-KOL": "UNKNOWN",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "PROTECTION",
+        "pathwayYears": 5,
+        "earliestDate": "2032-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BREACH",
+          "ES-PROTECTION-PATHWAY"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-PROTECTION-PATHWAY": "PASS"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P40-INDIVIDUAL-B": {
+    "title": "Individual B: Core Protection, then work",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2032-03-01",
+        "decidedBy": [
+          "CL-PROTECTION-RESIDENCE-5Y",
+          "CL-PROTECTION-STATUS"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-PROTECTION-RESIDENCE-5Y": "FAIL",
+          "CL-PROTECTION-STATUS": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "PROTECTION",
+        "pathwayYears": 10,
+        "earliestDate": "2038-03-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-PROTECTION-PATHWAY",
+          "ES-PROTECTION-CONTRIBUTION",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-PROTECTION-PATHWAY": "PASS",
+          "ES-PROTECTION-CONTRIBUTION": "UNKNOWN PD-030",
+          "ES-ASYLUM-SUPPORT": "PASS"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P40-INDIVIDUAL-C": {
+    "title": "Individual C: illegal entry, then work",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2032-03-01",
+        "decidedBy": [
+          "CL-PROTECTION-RESIDENCE-5Y",
+          "CL-PROTECTION-STATUS"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-PROTECTION-RESIDENCE-5Y": "FAIL",
+          "CL-PROTECTION-STATUS": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "PROTECTION",
+        "pathwayYears": 20,
+        "earliestDate": "2048-03-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-PROTECTION-PATHWAY",
+          "ES-PROTECTION-CONTRIBUTION",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-PROTECTION-PATHWAY": "PASS",
+          "ES-PROTECTION-CONTRIBUTION": "UNKNOWN PD-030",
+          "ES-ASYLUM-SUPPORT": "PASS"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P40-INDIVIDUAL-D": {
+    "title": "Individual D: illegal entry, stays on Core Protection",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2032-03-01",
+        "decidedBy": [
+          "CL-PROTECTION-RESIDENCE-5Y",
+          "CL-PROTECTION-STATUS"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-PROTECTION-RESIDENCE-5Y": "FAIL",
+          "CL-PROTECTION-STATUS": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "PROTECTION",
+        "pathwayYears": 30,
+        "earliestDate": "2057-03-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PROTECTION-PATHWAY",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-PROTECTION-PATHWAY": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P45-INDIVIDUAL-A": {
+    "title": "Individual A: existing care worker meeting the requirements",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2028-04-06",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2028-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT",
+          "ES-TRANSITIONAL-CARE-WORKER"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "FAIL",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "PASS",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P45-INDIVIDUAL-B": {
+    "title": "Individual B: existing care worker not meeting the requirements",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "pathwayYears": 10,
+        "earliestDate": "2033-04-06",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "FAIL",
+          "CL-SW-GOING-RATE": "FAIL",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 10,
+        "earliestDate": "2033-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "FAIL",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "ES-OFFICIAL-P45-INDIVIDUAL-C": {
+    "title": "Individual C: care worker switching after the transitional cutoff",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 10,
+        "earliestDate": "2035-06-06",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "FAIL",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "PASS"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 10,
+        "earliestDate": "2035-06-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "FAIL",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "CL-HKBNO-FIVE-YEARS": {
+    "title": "Hong Kong BN(O) Status Holder: 5 years completed on the day",
+    "shortCircuit": "OUTSIDE_FRAMEWORK",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-02-01",
+        "decidedBy": [
+          "CL-HKBNO-RESIDENCE-5Y",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-HKBNO-RESIDENCE-5Y": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "REQUIRES_REGULATED_REVIEW",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "FAIL",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "UNKNOWN",
+          "ES-RESIDENCE": "UNKNOWN",
+          "ES-EARNINGS-3Y": "UNKNOWN",
+          "ES-EARNINGS-5Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "CL-GLOBAL-TALENT-THREE-YEARS": {
+    "title": "Global Talent, exceptional talent: 3 years completed on the day",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 3,
+        "earliestDate": "2026-11-04",
+        "decidedBy": [
+          "CL-GT-RESIDENCE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-GT-RESIDENCE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "FAIL",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "CL-FAMILY-PARTNER-FIVE-YEARS": {
+    "title": "Partner of a British citizen: 5-year route completed on the day",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-03-01",
+        "decidedBy": [
+          "CL-FAMILY-RESIDENCE",
+          "CL-FAMILY-RELATIONSHIP",
+          "CL-FAMILY-FINANCIAL",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-FAMILY-RESIDENCE": "PASS",
+          "CL-FAMILY-RELATIONSHIP": "PASS",
+          "CL-FAMILY-FINANCIAL": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "FAIL",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "UNKNOWN",
+          "ES-EARNINGS-5Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "CL-REFUGEE-FIVE-YEARS": {
+    "title": "Refugee: 5 years with protection completed on the day",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-03-01",
+        "decidedBy": [
+          "CL-PROTECTION-RESIDENCE-5Y",
+          "CL-PROTECTION-STATUS"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-PROTECTION-RESIDENCE-5Y": "PASS",
+          "CL-PROTECTION-STATUS": "PASS",
+          "CL-ENGLISH": "UNKNOWN",
+          "CL-KOL": "UNKNOWN",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "PROTECTION",
+        "pathwayYears": 20,
+        "earliestDate": "2041-03-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PROTECTION-PATHWAY",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "UNKNOWN",
+          "ES-KOL": "UNKNOWN",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-PROTECTION-PATHWAY": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS"
+        }
+      }
+    }
+  },
+  "CL-UK-ANCESTRY-FIVE-YEARS": {
+    "title": "UK Ancestry: 5 years completed on the day",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-09-01",
+        "decidedBy": [
+          "CL-ANCESTRY-RESIDENCE-5Y",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-ANCESTRY-RESIDENCE-5Y": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "FAIL",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "UNKNOWN",
+          "ES-EARNINGS-5Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "CL-INNOVATOR-FOUNDER-THREE-YEARS": {
+    "title": "Innovator Founder: 3 years completed on the day, two criteria met",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 3,
+        "earliestDate": "2026-05-01",
+        "decidedBy": [
+          "CL-INNOVATOR-RESIDENCE-3Y",
+          "CL-INNOVATOR-ENDORSEMENT",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-INNOVATOR-RESIDENCE-3Y": "PASS",
+          "CL-INNOVATOR-ENDORSEMENT": "PASS",
+          "CL-ENGLISH": "UNKNOWN",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "INSUFFICIENT_INFORMATION",
+        "routeGroup": "CORE_PERMISSION",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "UNKNOWN",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "UNKNOWN",
+          "ES-EARNINGS-5Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS": {
+    "title": "Private Life young adult (half-life test): 5 years completed on the day",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-07-01",
+        "decidedBy": [
+          "CL-PRIVATE-LIFE-RESIDENCE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-PRIVATE-LIFE-RESIDENCE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "FAMILY_AND_PRIVATE_LIFE",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "FAIL",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "UNKNOWN",
+          "ES-EARNINGS-5Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "CL-HKBNO-CHILD-WITH-PARENT": {
+    "title": "Hong Kong BN(O) child under 18 settling with the parent",
+    "shortCircuit": "OUTSIDE_FRAMEWORK",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-02-01",
+        "decidedBy": [
+          "CL-HKBNO-DEPENDANT",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-HKBNO-DEPENDANT": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "REQUIRES_REGULATED_REVIEW",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "UNKNOWN",
+          "ES-RESIDENCE": "UNKNOWN",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-DEPENDANT-PATHWAY": "UNKNOWN"
+        }
+      }
+    }
+  },
+  "CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS": {
+    "title": "Global Talent dependent partner: 5 years after the principal settled",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-GT-DEPENDANT",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-GT-DEPENDANT": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "FAIL",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-DEPENDANT-PATHWAY": "UNKNOWN PD-063"
+        }
+      }
+    }
+  },
+  "CL-FAMILY-CHILD-TEN-YEAR": {
+    "title": "Child of a 10-year route partner settling with the parent",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 10,
+        "earliestDate": "2026-03-01",
+        "decidedBy": [
+          "CL-FAMILY-CHILD",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-FAMILY-CHILD": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-DEPENDANT-PATHWAY": "FAIL"
+        }
+      }
+    }
+  },
+  "CL-FAMILY-FIVE-YEAR-CHILD-PROJECTED": {
+    "title": "Child of a 5-year route partner, a day before the parent qualifies",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2026-11-06",
+        "decidedBy": [
+          "CL-FAMILY-CHILD",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-FAMILY-CHILD": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-DEPENDANT-PATHWAY": "FAIL"
+        }
+      }
+    }
+  },
+  "CL-FAMILY-FIVE-YEAR-ADULT-CHILD-ENGLISH": {
+    "title": "Adult child of a 5-year route partner without an English level",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "INSUFFICIENT_INFORMATION",
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-FAMILY-CHILD": "PASS",
+          "CL-ENGLISH": "UNKNOWN",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "UNKNOWN",
+          "ES-ENGLISH-B2": "UNKNOWN",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-DEPENDANT-PATHWAY": "FAIL"
+        }
+      }
+    }
+  },
+  "CL-FAMILY-FIVE-YEAR-SAVINGS-PASS": {
+    "title": "Partner on the 5-year route: savings make up the income shortfall",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2029-06-01",
+        "decidedBy": [
+          "CL-FAMILY-RESIDENCE",
+          "CL-FAMILY-RELATIONSHIP",
+          "CL-FAMILY-FINANCIAL",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-FAMILY-RESIDENCE": "PASS",
+          "CL-FAMILY-RELATIONSHIP": "PASS",
+          "CL-FAMILY-FINANCIAL": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2029-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BRITISH-CONNECTION",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "UNKNOWN",
+          "ES-EARNINGS-5Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT": {
+    "title": "Partner on the 5-year route: savings short of the income shortfall",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "pathwayYears": 10,
+        "earliestDate": "2034-06-01",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-FAMILY-RESIDENCE": "PASS",
+          "CL-FAMILY-RELATIONSHIP": "PASS",
+          "CL-FAMILY-FINANCIAL": "FAIL",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2029-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BRITISH-CONNECTION",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "UNKNOWN",
+          "ES-EARNINGS-5Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT": {
+    "title": "Partner on the 5-year route whose partner receives Carer's Allowance",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "POTENTIALLY_ELIGIBLE",
+        "pathwayYears": 5,
+        "decidedBy": [
+          "CL-FAMILY-RESIDENCE",
+          "CL-FAMILY-RELATIONSHIP",
+          "CL-FAMILY-FINANCIAL",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-FAMILY-RESIDENCE": "PASS",
+          "CL-FAMILY-RELATIONSHIP": "PASS",
+          "CL-FAMILY-FINANCIAL": "UNKNOWN PD-075",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "pathwayYears": 5,
+        "earliestDate": "2029-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BRITISH-CONNECTION",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "PASS",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "UNKNOWN",
+          "ES-EARNINGS-5Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-BRITISH-CONNECTION": "PASS",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  }
+}

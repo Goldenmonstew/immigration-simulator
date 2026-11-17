@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: t('home.intro'),
   referrer: 'no-referrer',
   manifest: '/manifest.webmanifest',
-  icons: { apple: '/icon-192.png' },
+  icons: { icon: '/icon.svg', apple: '/icon-192.png' },
   appleWebApp: { capable: true },
   other: { 'apple-mobile-web-app-capable': 'yes' },
 };
