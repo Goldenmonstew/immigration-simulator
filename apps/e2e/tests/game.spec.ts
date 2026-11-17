@@ -23,9 +23,11 @@ test(
 
 test('the static page already has the welcome banner', async ({ request }) => {
   // The largest paint; it must not wait for the game scripts.
-  const html = await (await request.get('/game')).text();
-  expect(html).toContain('移民生活');
-  expect(html).toContain('/game/assets/meadow-town/town-banner.png');
+  const response = await request.get('/game');
+  expect(response.ok()).toBe(true);
+  const main = /<main[\s\S]*?<\/main>/.exec(await response.text())?.[0];
+  expect(main).toContain('<h1>移民生活</h1>');
+  expect(main).toContain('/game/assets/meadow-town/town-banner.png');
 });
 
 for (const { name } of characters) {
