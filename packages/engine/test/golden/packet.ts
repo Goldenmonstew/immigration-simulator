@@ -24,6 +24,13 @@ const COLUMN_NAMES: Record<string, string> = {
 
 const money = (n: number) => `£${n.toLocaleString('en-GB')}`;
 
+/** Every field of an input record, so the adviser sees exactly what the engine saw. */
+const describe = (o: object) =>
+  Object.entries(o)
+    .filter(([, v]) => v !== undefined)
+    .map(([k, v]) => `${k} ${typeof v === 'object' ? JSON.stringify(v) : v}`)
+    .join(', ');
+
 function ageOn(dob: string, date: string) {
   const [y, m, d] = dob.split('-').map(Number);
   const [Y, M, D] = date.split('-').map(Number);
@@ -31,63 +38,54 @@ function ageOn(dob: string, date: string) {
 }
 
 function facts(t: PersonTimeline, date: string): string[] {
+  const {
+    dateOfBirth,
+    nationality,
+    episodes,
+    absences,
+    incomeYears,
+    cashSavings,
+    english,
+    lifeInTheUk,
+    ...rest
+  } = t;
   const out = [
-    `Born ${t.dateOfBirth} (aged ${ageOn(t.dateOfBirth, date)} on the application date), nationality ${t.nationality}.`,
+    `Born ${dateOfBirth} (aged ${ageOn(dateOfBirth, date)} on the application date), nationality ${nationality}.`,
   ];
-  for (const e of t.episodes) {
-    const extra = [
-      e.role === 'DEPENDANT'
-        ? `dependant${e.dependantOf ? ` (${e.dependantOf.toLowerCase()})` : ''}`
-        : 'main applicant',
-      e.familyPermission && `family permission ${e.familyPermission}`,
-      e.socCode && `SOC ${e.socCode}`,
-      e.salary !== undefined && `salary ${money(e.salary)}`,
-      e.immigrationSalaryList && 'Immigration Salary List job',
-    ].filter(Boolean);
+  for (const { route, validFrom, validTo, salary, ...e } of episodes)
     out.push(
-      `Permission: ${e.route} from ${e.validFrom} to ${e.validTo} — ${extra.join(', ')}.`,
+      `Permission: ${route} from ${validFrom} to ${validTo}${salary === undefined ? '' : `, salary ${money(salary)}`}${Object.keys(e).length ? ` — ${describe(e)}` : ''}.`,
     );
-  }
-  if (!t.episodes.length) out.push('No permission history entered.');
+  if (!episodes.length) out.push('No permission history entered.');
   out.push(
-    t.absences.length
-      ? `Absences: ${t.absences.map((a) => `${a.from} to ${a.to}`).join('; ')}.`
+    absences.length
+      ? `Absences: ${absences.map((a) => `${a.from} to ${a.to}`).join('; ')}.`
       : 'No absences from the UK.',
   );
-  const earned = t.incomeYears.filter((y) => y.earnings !== undefined);
-  if (earned.length)
+  const known = incomeYears.filter(
+    (y) => y.earnings !== undefined || y.partnerEarnings !== undefined,
+  );
+  if (known.length)
     out.push(
-      `Income: ${earned
+      `Income: ${known
         .map(
           (y) =>
-            `${y.taxYear} ${money(y.earnings!)}${y.partnerEarnings !== undefined ? ` (+ partner ${money(y.partnerEarnings)})` : ''}`,
+            `${y.taxYear} ${y.earnings === undefined ? 'unknown' : money(y.earnings)}${y.partnerEarnings !== undefined ? ` (+ partner ${money(y.partnerEarnings)})` : ''}`,
         )
-        .join('; ')}.`,
+        .join('; ')}. Tax years not listed: not provided.`,
     );
-  if (t.cashSavings !== undefined)
-    out.push(`Cash savings: ${money(t.cashSavings)}.`);
-  if (t.benefits.length)
-    out.push(
-      `Benefits: ${t.benefits.map((b) => `${b.benefitType} ${b.from} to ${b.to ?? 'ongoing'}`).join('; ')}.`,
-    );
-  for (const r of t.relationships)
-    out.push(
-      `Relationship: ${r.type.toLowerCase()} who is ${r.otherPartyStatus.replaceAll('_', ' ').toLowerCase()}.`,
-    );
+  if (cashSavings !== undefined)
+    out.push(`Cash savings: ${money(cashSavings)}.`);
   out.push(
-    `English: ${t.english ? ('exempt' in t.english ? 'exempt' : `CEFR ${t.english.cefrLevel}`) : 'not provided'}. Life in the UK test: ${t.lifeInTheUk ? ('exempt' in t.lifeInTheUk ? 'exempt' : 'passed') : 'not provided'}.`,
+    `English: ${english ? describe(english) : 'not provided'}. Life in the UK test: ${lifeInTheUk ? describe(lifeInTheUk) : 'not provided'}.`,
   );
-  if (t.criminalRecord.length)
+  for (const [key, value] of Object.entries(rest)) {
+    if (value === undefined || (Array.isArray(value) && !value.length))
+      continue;
     out.push(
-      `Criminal record: convictions on ${t.criminalRecord.map((c) => c.date).join(', ')}.`,
+      `${key}: ${Array.isArray(value) ? value.map((v) => describe(v)).join('; ') : typeof value === 'object' ? describe(value) : value}.`,
     );
-  if (t.immigrationBreaches.length)
-    out.push(
-      `Immigration breaches: ${t.immigrationBreaches.map((b) => `${b.type} on ${b.date}`).join('; ')}.`,
-    );
-  if (t.governmentDebt?.outstanding) out.push('Outstanding government debt.');
-  if (t.asylumSupportRepayment)
-    out.push(`Asylum support repayment: ${t.asylumSupportRepayment}.`);
+  }
   return out;
 }
 
@@ -109,18 +107,24 @@ function sourceIndex(ids: Set<string>): string[] {
 
 export function reviewPacket(cases: Evaluated[]): string {
   const cited = new Set<string>();
-  const policyAsOf = cases[0].result.policyAsOf;
+  const outcomes = [
+    ...new Set(
+      cases.flatMap((c) =>
+        Object.values(c.result.byRuleSet).map((a) => a!.outcome),
+      ),
+    ),
+  ].sort();
   const lines = [
     '# Settlement simulator — review packet for a regulated adviser',
     '',
-    `Generated from the engine's golden cases. Policy checked up to ${policyAsOf}. ${cases.length} cases.`,
+    `Generated from the engine's golden cases. Policy checked up to ${cases[0].result.policyAsOf}. ${cases.length} cases.`,
     '',
     'This is an educational simulator, not advice. We would like a regulated adviser (OISC or a solicitor) to check whether its conclusions are right. For each case below please mark **Agree** or **Disagree**; when you disagree, give the outcome you expect and the paragraph of the Immigration Rules (or the CP 1707 page for the Earned Settlement column) that decides it.',
     '',
     'How to read a result:',
-    '- **LIKELY_ELIGIBLE / LIKELY_NOT_ELIGIBLE / UNKNOWN** is the simulator’s overall view for that rule set.',
-    '- **Pathway** is the qualifying period the simulator thinks applies, and **earliest date** the first date the person could apply on that pathway.',
-    '- **Decisive rules** are the checks the outcome rests on; each cites the source register id (SRC-xxx) and paragraph. Unknown checks are listed in full; other pathways that are not met are listed by id only.',
+    `- **Outcome** is the simulator’s overall view for that rule set. Outcomes used in this packet: ${outcomes.join(', ')}.`,
+    '- **Pathway** is the qualifying period the simulator thinks applies. **Earliest date** is the application date itself when the person already qualifies; otherwise it is the first later date the simulator projects for that pathway, assuming nothing else changes.',
+    '- **Decisive rules** are the checks the outcome rests on. Every failing or unknown check is then listed in full, except when the person is likely eligible: the failures left are other pathways not taken, listed by id only. Each check cites the source register id (SRC-xxx) and paragraph.',
     '- The Earned Settlement column models policy announced on 2 November 2026 (CP 1707). It is **not law yet**; please only flag it where it misreads the published policy.',
     '',
     '## Summary',
@@ -174,10 +178,15 @@ export function reviewPacket(cases: Evaluated[]): string {
       );
       const decisive = a.rules.filter((r) => a.decidedBy?.includes(r.id));
       const others = a.rules.filter((r) => !a.decidedBy?.includes(r.id));
-      const unknown = others.filter((r) => r.status === 'UNKNOWN');
+      // Once eligible, the remaining failures are pathways not taken;
+      // otherwise any failure may be what blocks the person.
+      const eligible = a.outcome === 'LIKELY_ELIGIBLE';
+      const flagged = others.filter(
+        (r) => r.status === 'UNKNOWN' || (!eligible && r.status === 'FAIL'),
+      );
       for (const [label, rules] of [
         ['Decisive rules', decisive],
-        ['Other unknown checks', unknown],
+        ['Failing or unknown checks', flagged],
       ] as const) {
         if (!rules.length) continue;
         lines.push('', `${label}:`, '');
@@ -188,19 +197,25 @@ export function reviewPacket(cases: Evaluated[]): string {
           );
         }
       }
-      const failed = others.filter((r) => r.status === 'FAIL');
-      if (failed.length)
+      const notTaken = eligible
+        ? others.filter((r) => r.status === 'FAIL')
+        : [];
+      if (notTaken.length)
         lines.push(
           '',
-          `Other pathways or checks not met: ${failed.map((r) => `\`${r.id}\``).join(', ')}.`,
+          `Other pathways not taken: ${notTaken.map((r) => `\`${r.id}\``).join(', ')}.`,
         );
-      if (a.assumptions.length)
+      if (a.assumptions.length) {
+        a.assumptions.forEach((x) =>
+          x.match(/SRC-\d+/g)?.forEach((s) => cited.add(s)),
+        );
         lines.push(
           '',
           'Assumptions:',
           '',
           ...a.assumptions.map((x) => `- ${x}`),
         );
+      }
     }
     lines.push(
       '',

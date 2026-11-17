@@ -1,4 +1,3 @@
-import { writeFileSync } from 'node:fs';
 import { fixtures } from '@uk-immigration/policy-data/fixtures';
 import { expect, test } from 'vitest';
 import { evaluate } from '../src/evaluate';
@@ -9,9 +8,10 @@ import { reviewPacket } from './golden/packet';
 // Golden master: the engine's current conclusion for every fixture and typical
 // case under every rule set. Wording changes do not matter here; any change in
 // an outcome, pathway, earliest date or rule status shows up as a diff in
-// __snapshots__/golden-cases.json and has to be reviewed on purpose.
-// `WRITE_PACKET=1 pnpm --filter @uk-immigration/engine test golden` also
-// rewrites docs/review/adviser-packet.md from the same results.
+// __snapshots__/golden-cases.json and has to be reviewed on purpose. The
+// adviser packet docs/review/adviser-packet.md is rendered from the same
+// results and checked the same way, so it cannot go stale; update both with
+// `pnpm --filter @uk-immigration/engine test golden -u`.
 
 const cases: { id: string; title: string; request: SimulationRequest }[] = [
   ...goldenCases,
@@ -29,6 +29,7 @@ function summary(result: SimulationResult) {
           routeGroup: a!.routeGroup,
           pathwayYears: a!.pathwayYears,
           earliestDate: a!.earliestDate,
+          decidedBy: a!.decidedBy,
           rules: Object.fromEntries(a!.rules.map((r) => [r.id, r.status])),
         },
       ]),
@@ -47,9 +48,7 @@ test('every golden case keeps its conclusion under both rule sets', async () => 
   await expect(JSON.stringify(snapshot, null, 2) + '\n').toMatchFileSnapshot(
     './__snapshots__/golden-cases.json',
   );
-  if (process.env.WRITE_PACKET)
-    writeFileSync(
-      new URL('../../../docs/review/adviser-packet.md', import.meta.url),
-      reviewPacket(results),
-    );
+  await expect(reviewPacket(results)).toMatchFileSnapshot(
+    '../../../docs/review/adviser-packet.md',
+  );
 });

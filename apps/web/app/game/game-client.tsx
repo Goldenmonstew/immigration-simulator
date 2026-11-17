@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { RuleSetId } from '@uk-immigration/engine';
 import { useTranslation } from '../../i18n/locale';
@@ -80,8 +80,18 @@ import canvasStyles from './town-canvas.module.css';
 // screen, so the welcome screen and character select appear without it.
 const TownCanvas = dynamic(() => import('./town-canvas'), {
   ssr: false,
-  loading: () => <div className={canvasStyles.canvas} />,
+  loading: CanvasPlaceholder,
 });
+// The placeholder takes the canvas's size, which differs indoors.
+const InteriorContext = createContext(false);
+function CanvasPlaceholder() {
+  const interior = useContext(InteriorContext);
+  return (
+    <div
+      className={`${canvasStyles.canvas} ${interior ? canvasStyles.interior : ''}`}
+    />
+  );
+}
 type Overlay =
   | { kind: 'place'; id: PlaceId }
   | { kind: 'dialogue'; id: string }
@@ -562,25 +572,29 @@ export default function GameClient() {
                       }}
                     />
                   ) : (
-                    <TownCanvas
-                      key={`${current.characterId}:${current.seed}`}
-                      state={current}
-                      feedback={feedback}
-                      approachNpc={approachNpc}
-                      focusNpc={
-                        event?.heart?.npc ??
-                        (overlay?.kind === 'dialogue' ? overlay.id : undefined)
-                      }
-                      locale={locale}
-                      paused={paused}
-                      interior={interior}
-                      onReady={() => setSceneReady(true)}
-                      onInteract={interact}
-                      onNearby={setInteraction}
-                      destination={destination}
-                      interactRequest={interactRequest}
-                      onStep={() => playSound('step')}
-                    />
+                    <InteriorContext value={interior}>
+                      <TownCanvas
+                        key={`${current.characterId}:${current.seed}`}
+                        state={current}
+                        feedback={feedback}
+                        approachNpc={approachNpc}
+                        focusNpc={
+                          event?.heart?.npc ??
+                          (overlay?.kind === 'dialogue'
+                            ? overlay.id
+                            : undefined)
+                        }
+                        locale={locale}
+                        paused={paused}
+                        interior={interior}
+                        onReady={() => setSceneReady(true)}
+                        onInteract={interact}
+                        onNearby={setInteraction}
+                        destination={destination}
+                        interactRequest={interactRequest}
+                        onStep={() => playSound('step')}
+                      />
+                    </InteriorContext>
                   )}
                   {!sceneReady && !current.trip && !returned && (
                     <p className={styles.loading} role="status">

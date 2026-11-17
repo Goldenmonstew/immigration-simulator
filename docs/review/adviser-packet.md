@@ -1,13 +1,13 @@
 # Settlement simulator — review packet for a regulated adviser
 
-Generated from the engine's golden cases. Policy checked up to 2026-11-04. 55 cases.
+Generated from the engine's golden cases. Policy checked up to 2026-11-04. 56 cases.
 
 This is an educational simulator, not advice. We would like a regulated adviser (OISC or a solicitor) to check whether its conclusions are right. For each case below please mark **Agree** or **Disagree**; when you disagree, give the outcome you expect and the paragraph of the Immigration Rules (or the CP 1707 page for the Earned Settlement column) that decides it.
 
 How to read a result:
-- **LIKELY_ELIGIBLE / LIKELY_NOT_ELIGIBLE / UNKNOWN** is the simulator’s overall view for that rule set.
-- **Pathway** is the qualifying period the simulator thinks applies, and **earliest date** the first date the person could apply on that pathway.
-- **Decisive rules** are the checks the outcome rests on; each cites the source register id (SRC-xxx) and paragraph. Unknown checks are listed in full; other pathways that are not met are listed by id only.
+- **Outcome** is the simulator’s overall view for that rule set. Outcomes used in this packet: INSUFFICIENT_INFORMATION, LIKELY_ELIGIBLE, LIKELY_NOT_ELIGIBLE, POTENTIALLY_ELIGIBLE, REQUIRES_REGULATED_REVIEW.
+- **Pathway** is the qualifying period the simulator thinks applies. **Earliest date** is the application date itself when the person already qualifies; otherwise it is the first later date the simulator projects for that pathway, assuming nothing else changes.
+- **Decisive rules** are the checks the outcome rests on. Every failing or unknown check is then listed in full, except when the person is likely eligible: the failures left are other pathways not taken, listed by id only. Each check cites the source register id (SRC-xxx) and paragraph.
 - The Earned Settlement column models policy announced on 2 November 2026 (CP 1707). It is **not law yet**; please only flag it where it misreads the published policy.
 
 ## Summary
@@ -18,12 +18,13 @@ How to read a result:
 | [G-SW-5Y-DAY-BEFORE](#g-sw-5y-day-before) | Same Skilled Worker, applies one day before 5 years | LIKELY_NOT_ELIGIBLE, 5y, 2026-06-01 | LIKELY_NOT_ELIGIBLE, 5y, 2026-06-01 |
 | [G-SW-ABSENCE-200-DAYS](#g-sw-absence-200-days) | Same Skilled Worker, 200 days outside the UK in one 12-month period | LIKELY_NOT_ELIGIBLE, 5y, 2028-07-29 | LIKELY_NOT_ELIGIBLE, 5y, 2028-07-29 |
 | [G-SW-NO-ENGLISH-LITUK](#g-sw-no-english-lituk) | Same Skilled Worker, English and Life in the UK test not provided | INSUFFICIENT_INFORMATION | INSUFFICIENT_INFORMATION |
-| [G-SW-B1-AFTER-2027-03-26](#g-sw-b1-after-2027-03-26) | Skilled Worker since 2022-04-01 with B1 English, applies on 2027-04-01 (after the B2 date) | LIKELY_NOT_ELIGIBLE | LIKELY_NOT_ELIGIBLE |
+| [G-SW-B1-DAY-BEFORE-B2](#g-sw-b1-day-before-b2) | Skilled Worker since 2022-03-01 with B1 English, applies on 2027-03-25 (the day before the B2 requirement) | LIKELY_ELIGIBLE, 5y, 2027-03-25 | LIKELY_NOT_ELIGIBLE |
+| [G-SW-B1-ON-B2-DATE](#g-sw-b1-on-b2-date) | Same Skilled Worker with B1 English, applies on 2027-03-26 (the day the B2 requirement starts) | LIKELY_NOT_ELIGIBLE | LIKELY_NOT_ELIGIBLE |
 | [G-SW-PRE-2024-SALARY-BEFORE-CUTOFF](#g-sw-pre-2024-salary-before-cutoff) | Skilled Worker since 2024-01-15 on £41,000, applies 2029-01-15 (old-salary window open) | LIKELY_ELIGIBLE, 5y, 2029-01-15 | LIKELY_NOT_ELIGIBLE, 10y, 2034-01-15 |
 | [G-SW-PRE-2024-SALARY-AFTER-CUTOFF](#g-sw-pre-2024-salary-after-cutoff) | Same Skilled Worker on £41,000, applies 2030-04-04 (the day the old-salary window closes) | LIKELY_NOT_ELIGIBLE, 10y, 2034-01-15 | LIKELY_NOT_ELIGIBLE, 10y, 2034-01-15 |
 | [G-SW-CARE-WORKER](#g-sw-care-worker) | Care worker (SOC 6135) on Skilled Worker since 2021-09-01 at £25,000 | LIKELY_ELIGIBLE, 5y, 2026-09-01 | LIKELY_ELIGIBLE, 5y, 2026-09-01 |
 | [G-STUDENT-GRADUATE-SW](#g-student-graduate-sw) | Student 2019–2022, Graduate 2022–2024, then Skilled Worker; applies 2026-11-16 | LIKELY_NOT_ELIGIBLE, 10y, 2029-09-15 | LIKELY_NOT_ELIGIBLE, 5y, 2029-09-15 |
-| [G-LONG-RESIDENCE-10Y](#g-long-residence-10y) | Student 2016–2020, Graduate 2020–2022, Skilled Worker since 2022; 10 years lawful residence on 2026-09-15 | LIKELY_ELIGIBLE, 10y, 2026-09-15 | LIKELY_NOT_ELIGIBLE, 10y, 2032-09-15 |
+| [G-LONG-RESIDENCE-10Y](#g-long-residence-10y) | Student 2016–2021, Graduate 2021–2023, Skilled Worker since 2023; 10 years lawful residence on 2026-09-15 | LIKELY_ELIGIBLE, 10y, 2026-09-15 | LIKELY_NOT_ELIGIBLE, 10y, 2033-09-15 |
 | [G-VISIT-ONLY](#g-visit-only) | Only visit visas, no qualifying residence | INSUFFICIENT_INFORMATION | LIKELY_NOT_ELIGIBLE |
 | [G-HKBNO-ONE-MONTH-SHORT](#g-hkbno-one-month-short) | Hong Kong BN(O) Status Holder since 2021-12-01, applies 2026-11-01 (one month short of 5 years) | LIKELY_NOT_ELIGIBLE, 5y, 2026-12-01 | REQUIRES_REGULATED_REVIEW |
 | [G-FAMILY-10Y-PARTNER](#g-family-10y-partner) | Partner of a British citizen on the 10-year Appendix FM route since 2016-10-01 | LIKELY_ELIGIBLE, 10y, 2026-10-01 | LIKELY_ELIGIBLE, 5y, 2026-10-01 |
@@ -77,11 +78,12 @@ How to read a result:
 Application date: 2026-06-01.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — main applicant, SOC 2136, salary £52,000.
-- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — main applicant, SOC 2136, salary £52,000.
+- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31, salary £52,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31, salary £52,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -95,7 +97,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The application date is before 2027-03-26, and Appendix Skilled Worker sets no separate English requirement for settlement (the B2 in SW 22A.1 applies only to later applications). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -124,7 +126,7 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -143,11 +145,12 @@ Assumptions:
 Application date: 2026-05-31.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — main applicant, SOC 2136, salary £52,000.
-- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — main applicant, SOC 2136, salary £52,000.
+- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31, salary £52,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31, salary £52,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -161,7 +164,9 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The application date is before 2027-03-26, and Appendix Skilled Worker sets no separate English requirement for settlement (the B2 in SW 22A.1 applies only to later applications). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Failing or unknown checks:
+
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: 4 full years by 2026-05-31; 10 years are completed on 2031-06-01. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -191,7 +196,13 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Failing or unknown checks:
+
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -211,11 +222,12 @@ Assumptions:
 Application date: 2026-06-01.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — main applicant, SOC 2136, salary £52,000.
-- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — main applicant, SOC 2136, salary £52,000.
+- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31, salary £52,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31, salary £52,000 — role MAIN, socCode 2136.
 - Absences: 2023-01-10 to 2023-07-28.
-- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -229,7 +241,9 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The application date is before 2027-03-26, and Appendix Skilled Worker sets no separate English requirement for settlement (the B2 in SW 22A.1 applies only to later applications). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Failing or unknown checks:
+
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-07-29: 2 full years by 2026-06-01; 10 years are completed on 2033-07-29. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -262,7 +276,13 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Failing or unknown checks:
+
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -283,21 +303,21 @@ Assumptions:
 Application date: 2026-06-01.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — main applicant, SOC 2136, salary £52,000.
-- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — main applicant, SOC 2136, salary £52,000.
+- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31, salary £52,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31, salary £52,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000.
+- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000. Tax years not listed: not provided.
 - English: not provided. Life in the UK test: not provided.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
 Outcome **INSUFFICIENT_INFORMATION**.
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `CL-KOL` Pass the Life in the UK test — **UNKNOWN**. Not provided whether the Life in the UK test has been passed. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
-
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: 5 full years by 2026-06-01; 10 years are completed on 2031-06-01. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -314,12 +334,15 @@ Assumptions:
 
 Outcome **INSUFFICIENT_INFORMATION**; route group CORE_PERMISSION.
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `ES-ENGLISH-B2` English for settlement (B2; A2 for UK Resettlement Scheme refugees) — **UNKNOWN**. English level not provided. Earned Settlement requires CEFR B2 (existing exemptions are retained). _(SRC-001 p21)_
 - `ES-KOL` Pass the Life in the UK test — **UNKNOWN**. Not provided whether the Life in the UK test has been passed. _(SRC-001 p21)_
-
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -331,24 +354,33 @@ Assumptions:
 
 > **Reviewer:** ☐ Agree ☐ Disagree — expected outcome: ________ — deciding paragraph: ________
 
-## G-SW-B1-AFTER-2027-03-26
+## G-SW-B1-DAY-BEFORE-B2
 
-**Skilled Worker since 2022-04-01 with B1 English, applies on 2027-04-01 (after the B2 date)**
+**Skilled Worker since 2022-03-01 with B1 English, applies on 2027-03-25 (the day before the B2 requirement)**
 
-Application date: 2027-04-01.
+Application date: 2027-03-25.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2022-04-01 to 2025-03-31 — main applicant, SOC 2136, salary £52,000.
-- Permission: SKILLED_WORKER from 2025-04-01 to 2028-03-31 — main applicant, SOC 2136, salary £52,000.
+- Permission: SKILLED_WORKER from 2022-03-01 to 2025-02-28, salary £52,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2025-03-01 to 2028-02-28, salary £52,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000; 2026-27 £52,000.
-- English: CEFR B1. Life in the UK test: passed.
+- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000. Tax years not listed: not provided.
+- English: cefrLevel B1. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
-Outcome **LIKELY_NOT_ELIGIBLE**.
+Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2027-03-25.
 
-Other pathways or checks not met: `CL-ENGLISH`, `CL-LR-RESIDENCE-10Y`.
+Decisive rules:
+
+- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2022-03-01: 5 years completed. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 3.1)_
+- `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **PASS**. Under SW 24.3 row C (continuous Skilled Worker permission since 2022-03-01, before 2024-04-04, with the application before 2030-04-04 (SW 4.2(b)(ii))), the general salary threshold is £31,300; the current salary of £52,000 meets it. _(SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
+- `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **PASS**. Under SW 24.3 row C, Appendix Skilled Occupations Table 2 gives a going rate of £34,500 for SOC 2136 (IT quality and testing professionals); the current salary of £52,000 meets it. _(SRC-004 SW 24.3; SRC-004 SW 6.1; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
+- `CL-ENGLISH` Settlement English requirement — **PASS**. The application date is before 2027-03-26, and Appendix Skilled Worker sets no separate English requirement for settlement (the B2 in SW 22A.1 applies only to later applications). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
+- `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
+
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -364,16 +396,75 @@ Assumptions:
 
 Outcome **LIKELY_NOT_ELIGIBLE**; route group CORE_PERMISSION.
 
-Other unknown checks:
+Failing or unknown checks:
 
-- `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 4 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 3 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
-
-Other pathways or checks not met: `ES-ENGLISH-B2`, `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+- `ES-ENGLISH-B2` English for settlement (B2; A2 for UK Resettlement Scheme refugees) — **FAIL**. English at B1, below the B2 required by Earned Settlement. This is a mandatory requirement and cannot be offset by earnings or other contributions. _(SRC-001 p21)_
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
 - Earned Settlement has been announced but is not yet in force; it is assessed as if it applied on the date of application. The rules are based on the government response (SRC-001), not on Immigration Rules in force (PD-001). The first rule changes are expected to be laid from December 2026 and take effect in January 2027, with further changes in 2027–2028 (SRC-002 col 593; SRC-003 cols 1423–1424); the actual dates will be set by the Statements of Changes (PD-003).
-- Continuous Skilled Worker permission since 2022-04-01, before 2024-04-04, so in the “pre-April 2024 cohort”: permission can be extended under the existing salary requirements until 2035 (p44; exact dates not set, PD-040). This tool calculates the settlement pathway under the standard pathways.
+- Continuous Skilled Worker permission since 2022-03-01, before 2024-04-04, so in the “pre-April 2024 cohort”: permission can be extended under the existing salary requirements until 2035 (p44; exact dates not set, PD-040). This tool calculates the settlement pathway under the standard pathways.
+- “No government debt” is based on what the user declared; the response does not say whether debt other than asylum support debt that is being repaid under a repayment plan meets the requirement (PD-018).
+- Earnings are gross earnings per UK tax year; the window is the complete tax years before the tax year of the application date, and every year is compared with the current thresholds (PD-005 / PD-006 / PD-007).
+- Minimum earnings are calculated as “5 of the 7 years before applying”, as in p16 and Table 1; p15 also says “at least 3 years” (PD-041).
+
+> **Reviewer:** ☐ Agree ☐ Disagree — expected outcome: ________ — deciding paragraph: ________
+
+## G-SW-B1-ON-B2-DATE
+
+**Same Skilled Worker with B1 English, applies on 2027-03-26 (the day the B2 requirement starts)**
+
+Application date: 2027-03-26.
+
+- Born 1992-04-10 (aged 34 on the application date), nationality IND.
+- Permission: SKILLED_WORKER from 2022-03-01 to 2025-02-28, salary £52,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2025-03-01 to 2028-02-28, salary £52,000 — role MAIN, socCode 2136.
+- No absences from the UK.
+- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000. Tax years not listed: not provided.
+- English: cefrLevel B1. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
+
+### Current Immigration Rules
+
+Outcome **LIKELY_NOT_ELIGIBLE**.
+
+Failing or unknown checks:
+
+- `CL-ENGLISH` Settlement English requirement — **FAIL**. English at B1, below the B2 required for settlement (applications from 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2022-03-01: 5 full years by 2027-03-26; 10 years are completed on 2032-03-01. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
+
+Assumptions:
+
+- The current rules are modelled only for Skilled Worker main applicants and their dependent partners / children (Appendix Skilled Worker, Appendix Children), Hong Kong BN(O) main applicants and their dependants (Appendix Hong Kong British National (Overseas)), Global Talent main applicants and their dependent partners / children (Appendix Global Talent), Appendix FM partners (the 10-year route under Appendix Settlement Family Life, the 5-year route under Appendix FM) and their children (Appendix Settlement Family Life on the 10-year route, paragraph 298 of Part 8 of the Immigration Rules on the 5-year route), main applicants with refugee status or humanitarian protection (Appendix Settlement Protection), UK Ancestry main applicants (Appendix UK Ancestry), Innovator Founder main applicants (Appendix Innovator Founder), Private Life main applicants (Appendix Private Life) and Long Residence (Appendix Long Residence); other requirements, such as Part Suitability, suitability under STP 2.1 and the sponsor still being approved (SW 24.1–24.2), are not modelled.
+- The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
+- SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
+- Not declared whether the job is on the Immigration Salary List; treated as not on the list.
+- “Granted under the rules in place before 2024-04-04” is judged by the start of the continuous Skilled Worker permission (SW 4.2(b)(ii)).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4).
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); periods that do not count under LR 11.2 (immigration bail and similar) and the 12-month requirement in LR 11.3 are not modelled.
+
+### Earned Settlement (announced in CP 1707, not yet in force)
+
+Outcome **LIKELY_NOT_ELIGIBLE**; route group CORE_PERMISSION.
+
+Failing or unknown checks:
+
+- `ES-ENGLISH-B2` English for settlement (B2; A2 for UK Resettlement Scheme refugees) — **FAIL**. English at B1, below the B2 required by Earned Settlement. This is a mandatory requirement and cannot be offset by earnings or other contributions. _(SRC-001 p21)_
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+
+Assumptions:
+
+- Earned Settlement has been announced but is not yet in force; it is assessed as if it applied on the date of application. The rules are based on the government response (SRC-001), not on Immigration Rules in force (PD-001). The first rule changes are expected to be laid from December 2026 and take effect in January 2027, with further changes in 2027–2028 (SRC-002 col 593; SRC-003 cols 1423–1424); the actual dates will be set by the Statements of Changes (PD-003).
+- Continuous Skilled Worker permission since 2022-03-01, before 2024-04-04, so in the “pre-April 2024 cohort”: permission can be extended under the existing salary requirements until 2035 (p44; exact dates not set, PD-040). This tool calculates the settlement pathway under the standard pathways.
 - “No government debt” is based on what the user declared; the response does not say whether debt other than asylum support debt that is being repaid under a repayment plan meets the requirement (PD-018).
 - Earnings are gross earnings per UK tax year; the window is the complete tax years before the tax year of the application date, and every year is compared with the current thresholds (PD-005 / PD-006 / PD-007).
 - Minimum earnings are calculated as “5 of the 7 years before applying”, as in p16 and Table 1; p15 also says “at least 3 years” (PD-041).
@@ -387,11 +478,12 @@ Assumptions:
 Application date: 2029-01-15.
 
 - Born 1996-03-02 (aged 32 on the application date), nationality CHN.
-- Permission: SKILLED_WORKER from 2024-01-15 to 2027-01-14 — main applicant, SOC 2134, salary £41,000.
-- Permission: SKILLED_WORKER from 2027-01-15 to 2030-01-14 — main applicant, SOC 2134, salary £41,000.
+- Permission: SKILLED_WORKER from 2024-01-15 to 2027-01-14, salary £41,000 — role MAIN, socCode 2134.
+- Permission: SKILLED_WORKER from 2027-01-15 to 2030-01-14, salary £41,000 — role MAIN, socCode 2134.
 - No absences from the UK.
-- Income: 2024-25 £41,000; 2025-26 £41,000; 2026-27 £41,000; 2027-28 £41,000; 2028-29 £41,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2024-25 £41,000; 2025-26 £41,000; 2026-27 £41,000; 2027-28 £41,000; 2028-29 £41,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -405,7 +497,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B2 required for settlement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -434,7 +526,14 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Failing or unknown checks:
+
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2024-25 to 2027-28; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **FAIL**. Earnings reached £50,271 in 0 of the 5 tax years 2023-24 to 2027-28; 3 needed; earnings not provided for 1 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -454,12 +553,13 @@ Assumptions:
 Application date: 2030-04-04.
 
 - Born 1996-03-02 (aged 34 on the application date), nationality CHN.
-- Permission: SKILLED_WORKER from 2024-01-15 to 2027-01-14 — main applicant, SOC 2134, salary £41,000.
-- Permission: SKILLED_WORKER from 2027-01-15 to 2030-01-14 — main applicant, SOC 2134, salary £41,000.
-- Permission: SKILLED_WORKER from 2030-01-15 to 2033-01-14 — main applicant, SOC 2134, salary £41,000.
+- Permission: SKILLED_WORKER from 2024-01-15 to 2027-01-14, salary £41,000 — role MAIN, socCode 2134.
+- Permission: SKILLED_WORKER from 2027-01-15 to 2030-01-14, salary £41,000 — role MAIN, socCode 2134.
+- Permission: SKILLED_WORKER from 2030-01-15 to 2033-01-14, salary £41,000 — role MAIN, socCode 2134.
 - No absences from the UK.
-- Income: 2024-25 £41,000; 2025-26 £41,000; 2026-27 £41,000; 2027-28 £41,000; 2028-29 £41,000; 2029-30 £41,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2024-25 £41,000; 2025-26 £41,000; 2026-27 £41,000; 2027-28 £41,000; 2028-29 £41,000; 2029-30 £41,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -471,7 +571,10 @@ Decisive rules:
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 - `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-01-15: 6 full years by 2030-04-04; 10 years are completed on 2034-01-15. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
-Other pathways or checks not met: `CL-SW-SALARY`, `CL-SW-GOING-RATE`.
+Failing or unknown checks:
+
+- `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **FAIL**. Under SW 24.3 row A (rows B–E do not apply), the general salary threshold is £41,700; the current salary of £41,000 is below it. _(SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
+- `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **FAIL**. Under SW 24.3 row A, Appendix Skilled Occupations Table 1 gives a going rate of £54,700 for SOC 2134 (Programmers and software development professionals); the current salary of £41,000 is below the going rate. _(SRC-004 SW 24.3; SRC-004 SW 6.1; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 
 Assumptions:
 
@@ -500,7 +603,14 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Failing or unknown checks:
+
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2025-26 to 2028-29; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **FAIL**. Earnings reached £50,271 in 0 of the 5 tax years 2024-25 to 2028-29; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -520,11 +630,12 @@ Assumptions:
 Application date: 2026-09-01.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality NGA.
-- Permission: SKILLED_WORKER from 2021-09-01 to 2024-08-31 — main applicant, SOC 6135, salary £25,000.
-- Permission: SKILLED_WORKER from 2024-09-01 to 2027-08-31 — main applicant, SOC 6135, salary £25,000.
+- Permission: SKILLED_WORKER from 2021-09-01 to 2024-08-31, salary £25,000 — role MAIN, socCode 6135.
+- Permission: SKILLED_WORKER from 2024-09-01 to 2027-08-31, salary £25,000 — role MAIN, socCode 6135.
 - No absences from the UK.
-- Income: 2021-22 £25,000; 2022-23 £25,000; 2023-24 £25,000; 2024-25 £25,000; 2025-26 £25,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £25,000; 2022-23 £25,000; 2023-24 £25,000; 2024-25 £25,000; 2025-26 £25,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -538,7 +649,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The application date is before 2027-03-26, and Appendix Skilled Worker sets no separate English requirement for settlement (the B2 in SW 22A.1 applies only to later applications). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -567,7 +678,7 @@ Decisive rules:
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **PASS**. Entered the care worker route on 2021-09-01, before the cut-off of 2025-05-12, with a salary of £25,000 that reaches £25,000: the 5-year qualifying period is retained. The strengthened minimum requirements, such as criminality and B2 English, still apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -589,12 +700,13 @@ Assumptions:
 Application date: 2026-11-16.
 
 - Born 1998-07-01 (aged 28 on the application date), nationality MYS.
-- Permission: STUDENT from 2019-09-15 to 2022-09-14 — main applicant.
-- Permission: GRADUATE from 2022-09-15 to 2024-09-14 — main applicant.
-- Permission: SKILLED_WORKER from 2024-09-15 to 2027-09-14 — main applicant, SOC 2134, salary £45,000.
+- Permission: STUDENT from 2019-09-15 to 2022-09-14 — role MAIN.
+- Permission: GRADUATE from 2022-09-15 to 2024-09-14 — role MAIN.
+- Permission: SKILLED_WORKER from 2024-09-15 to 2027-09-14, salary £45,000 — role MAIN, socCode 2134.
 - No absences from the UK.
-- Income: 2024-25 £45,000; 2025-26 £45,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2024-25 £45,000; 2025-26 £45,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -606,7 +718,10 @@ Decisive rules:
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 - `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2019-09-15: 7 full years by 2026-11-16; 10 years are completed on 2029-09-15. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
-Other pathways or checks not met: `CL-SW-RESIDENCE-5Y`, `CL-SW-GOING-RATE`.
+Failing or unknown checks:
+
+- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **FAIL**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2024-09-15: 2 full years by 2026-11-16; 5 years are completed on 2029-09-15. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 3.1)_
+- `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **FAIL**. Under SW 24.3 row A, Appendix Skilled Occupations Table 1 gives a going rate of £54,700 for SOC 2134 (Programmers and software development professionals); the current salary of £45,000 is below the going rate. _(SRC-004 SW 24.3; SRC-004 SW 6.1; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 
 Assumptions:
 
@@ -636,11 +751,14 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other unknown checks:
+Failing or unknown checks:
 
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed; earnings not provided for 2 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 2 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 5 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
-
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -655,17 +773,18 @@ Assumptions:
 
 ## G-LONG-RESIDENCE-10Y
 
-**Student 2016–2020, Graduate 2020–2022, Skilled Worker since 2022; 10 years lawful residence on 2026-09-15**
+**Student 2016–2021, Graduate 2021–2023, Skilled Worker since 2023; 10 years lawful residence on 2026-09-15**
 
 Application date: 2026-09-15.
 
 - Born 1997-11-20 (aged 28 on the application date), nationality PAK.
-- Permission: STUDENT from 2016-09-15 to 2020-09-14 — main applicant.
-- Permission: GRADUATE from 2020-09-15 to 2022-09-14 — main applicant.
-- Permission: SKILLED_WORKER from 2022-09-15 to 2027-09-14 — main applicant, SOC 2134, salary £48,000.
+- Permission: STUDENT from 2016-09-15 to 2021-09-14 — role MAIN.
+- Permission: GRADUATE from 2021-09-15 to 2023-09-14 — role MAIN.
+- Permission: SKILLED_WORKER from 2023-09-15 to 2028-09-14, salary £48,000 — role MAIN, socCode 2134.
 - No absences from the UK.
-- Income: 2022-23 £48,000; 2023-24 £48,000; 2024-25 £48,000; 2025-26 £48,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2023-24 £48,000; 2024-25 £48,000; 2025-26 £48,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -677,7 +796,7 @@ Decisive rules:
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 - `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-15: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
-Other pathways or checks not met: `CL-SW-RESIDENCE-5Y`.
+Other pathways not taken: `CL-SW-RESIDENCE-5Y`.
 
 Assumptions:
 
@@ -691,7 +810,7 @@ Assumptions:
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
-Outcome **LIKELY_NOT_ELIGIBLE**; pathway 10 years; earliest date 2032-09-15; route group CORE_PERMISSION.
+Outcome **LIKELY_NOT_ELIGIBLE**; pathway 10 years; earliest date 2033-09-15; route group CORE_PERMISSION.
 
 Decisive rules:
 
@@ -700,23 +819,30 @@ Decisive rules:
 - `ES-ENGLISH-B2` English for settlement (B2; A2 for UK Resettlement Scheme refugees) — **PASS**. English at B2, which meets B2. _(SRC-001 p21)_
 - `ES-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-001 p21)_
 - `ES-ROUTE-GROUP` Current route counts towards settlement — **PASS**. The current route, Skilled Worker, is in the Core permission / High talent groups and counts towards settlement. _(SRC-001 p23; SRC-001 p24; SRC-001 p25; SRC-001 p26)_
-- `ES-RESIDENCE` Continuous residence counting towards settlement — **FAIL**. Continuous residence counting towards settlement since 2022-09-15: 4 full years by 2026-09-15. The earlier time on Graduate does not count towards settlement; this tool assumes that time on a non-counting route also breaks continuous residence, rather than only being deducted from the qualifying period (PD-053). Not enough residence yet for the 10-year pathway; 10 years are completed on 2032-09-15. _(SRC-001 p22; SRC-001 p23; SRC-001 p24; SRC-001 p25; SRC-008 CR 3.1)_
-- `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 4 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 3 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
+- `ES-RESIDENCE` Continuous residence counting towards settlement — **FAIL**. Continuous residence counting towards settlement since 2023-09-15: 3 full years by 2026-09-15. The earlier time on Graduate does not count towards settlement; this tool assumes that time on a non-counting route also breaks continuous residence, rather than only being deducted from the qualifying period (PD-053). Not enough residence yet for the 10-year pathway; 10 years are completed on 2033-09-15. _(SRC-001 p22; SRC-001 p23; SRC-001 p24; SRC-001 p25; SRC-008 CR 3.1)_
+- `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 3 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
 - `ES-PUBLIC-FUNDS` No public funds in the 5 years before applying — **PASS**. No public funds received in the 5 years before applying. _(SRC-001 p18; SRC-006 #benefits-open-to-new-claims; SRC-006 #contributory-benefits-and-statutory-payments)_
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Failing or unknown checks:
+
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed; earnings not provided for 1 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **FAIL**. Earnings reached £50,271 in 0 of the 5 tax years 2021-22 to 2025-26; 3 needed; earnings not provided for 2 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
 - Earned Settlement has been announced but is not yet in force; it is assessed as if it applied on the date of application. The rules are based on the government response (SRC-001), not on Immigration Rules in force (PD-001). The first rule changes are expected to be laid from December 2026 and take effect in January 2027, with further changes in 2027–2028 (SRC-002 col 593; SRC-003 cols 1423–1424); the actual dates will be set by the Statements of Changes (PD-003).
-- Continuous Skilled Worker permission since 2022-09-15, before 2024-04-04, so in the “pre-April 2024 cohort”: permission can be extended under the existing salary requirements until 2035 (p44; exact dates not set, PD-040). This tool calculates the settlement pathway under the standard pathways.
+- Continuous Skilled Worker permission since 2023-09-15, before 2024-04-04, so in the “pre-April 2024 cohort”: permission can be extended under the existing salary requirements until 2035 (p44; exact dates not set, PD-040). This tool calculates the settlement pathway under the standard pathways.
 - “No government debt” is based on what the user declared; the response does not say whether debt other than asylum support debt that is being repaid under a repayment plan meets the requirement (PD-018).
 - The earlier time on Graduate does not count towards settlement; this tool assumes that time on a non-counting route also breaks continuous residence, rather than only being deducted from the qualifying period (PD-053).
 - Earnings are gross earnings per UK tax year; the window is the complete tax years before the tax year of the application date, and every year is compared with the current thresholds (PD-005 / PD-006 / PD-007).
 - Minimum earnings are calculated as “5 of the 7 years before applying”, as in p16 and Table 1; p15 also says “at least 3 years” (PD-041).
-- The earliest application date is projected on the basis that residence continues from 2022-09-15, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
+- The earliest application date is projected on the basis that residence continues from 2023-09-15, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 > **Reviewer:** ☐ Agree ☐ Disagree — expected outcome: ________ — deciding paragraph: ________
 
@@ -727,15 +853,16 @@ Assumptions:
 Application date: 2026-11-16.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality USA.
-- Permission: VISIT from 2026-06-01 to 2026-11-30 — main applicant.
+- Permission: VISIT from 2026-06-01 to 2026-11-30 — role MAIN.
 - No absences from the UK.
-- English: CEFR B2. Life in the UK test: passed.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
 Outcome **INSUFFICIENT_INFORMATION**.
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `CL-SCOPE` Within the scope of the modelled current rules — **UNKNOWN**. The current rules are modelled only for Skilled Worker (main applicants and their dependent partners / children), Hong Kong BN(O) and Global Talent main applicants and their dependants, Appendix FM partners and their children (Appendix Settlement Family Life on the 10-year route; paragraph 298 of Part 8 of the Immigration Rules for the children of 5-year route partners), main applicants with refugee status or humanitarian protection, UK Ancestry, Innovator Founder and Private Life main applicants, and Long Residence; the current route is none of these, and the 10 years for Long Residence are not met, so the settlement requirements of other routes cannot be assessed. _(SRC-004 SW 21.1; SRC-004 SW 39.1; SRC-004 SW 41A.1; SRC-005 LR 11.1; SRC-020 HK 62.1; SRC-021 GT 11.1; SRC-022 SETF 1.3; SRC-023 STP 1.3; SRC-026 UKA 13.1; SRC-027 INNF 18.1; SRC-028 PL 14.1; SRC-020 HK 57.1; SRC-021 GT 27.1; SRC-022 SETF 12.1; SRC-024 D-LTRC.1.1; SRC-029 para 298)_
 
@@ -747,13 +874,17 @@ Assumptions:
 
 Outcome **LIKELY_NOT_ELIGIBLE**.
 
-Other unknown checks:
+Failing or unknown checks:
 
+- `ES-ROUTE-GROUP` Current route counts towards settlement — **FAIL**. The current route, Visit, is a temporary route and does not count towards settlement; time starts to count only after switching to a counting route. _(SRC-001 p23; SRC-001 p24; SRC-001 p25; SRC-001 p26)_
+- `ES-RESIDENCE` Continuous residence counting towards settlement — **FAIL**. The current route, Visit, does not count towards settlement, so the counting residence is 0. _(SRC-001 p22; SRC-001 p23; SRC-001 p24; SRC-001 p25; SRC-008 CR 3.1)_
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **UNKNOWN**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **UNKNOWN**. Earnings reached £50,271 in 0 of the 5 tax years 2021-22 to 2025-26; 3 needed; earnings not provided for 5 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 0 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 7 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
-
-Other pathways or checks not met: `ES-ROUTE-GROUP`, `ES-RESIDENCE`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -771,9 +902,10 @@ Assumptions:
 Application date: 2026-11-01.
 
 - Born 1980-05-05 (aged 46 on the application date), nationality HKG.
-- Permission: HONG_KONG_BNO from 2021-12-01 to 2026-11-30 — main applicant.
+- Permission: HONG_KONG_BNO from 2021-12-01 to 2026-11-30 — role MAIN.
 - No absences from the UK.
-- English: CEFR B1. Life in the UK test: passed.
+- English: cefrLevel B1. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 **Short circuit — OUTSIDE_FRAMEWORK:** The current route is outside the Earned Settlement framework and keeps the existing settlement arrangements for that group (SRC-001 p25–p26). The strengthened criminality and B2 English requirements still apply, unless an existing exemption or protection applies.
 
@@ -787,7 +919,9 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B1, which meets the B1 required for settlement (Appendix Hong Kong BN(O) HK 60.1; the B2 introduced by HC 1691 does not cover this Appendix, EM 5.60). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (HK 61.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Failing or unknown checks:
+
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-12-01: 4 full years by 2026-11-01; 10 years are completed on 2031-12-01. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -799,15 +933,18 @@ Assumptions:
 
 Outcome **REQUIRES_REGULATED_REVIEW**.
 
-Other unknown checks:
+Failing or unknown checks:
 
+- `ES-ENGLISH-B2` English for settlement (B2; A2 for UK Resettlement Scheme refugees) — **FAIL**. English at B1, below the B2 required by Earned Settlement. This is a mandatory requirement and cannot be offset by earnings or other contributions. _(SRC-001 p21)_
 - `ES-ROUTE-GROUP` Current route counts towards settlement — **UNKNOWN**. The current route, Hong Kong BN(O), is outside the Earned Settlement framework and keeps the existing settlement arrangements for that group. The strengthened criminality and B2 English requirements still apply, unless an existing exemption or protection applies. _(SRC-001 p23; SRC-001 p24; SRC-001 p25; SRC-001 p26)_
 - `ES-RESIDENCE` Continuous residence counting towards settlement — **UNKNOWN**. The current route, Hong Kong BN(O), is outside the Earned Settlement framework, so residence is not calculated under it. _(SRC-001 p22; SRC-001 p23; SRC-001 p24; SRC-001 p25; SRC-008 CR 3.1)_
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **UNKNOWN**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **UNKNOWN**. Earnings reached £50,271 in 0 of the 5 tax years 2021-22 to 2025-26; 3 needed; earnings not provided for 5 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 0 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 7 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
-
-Other pathways or checks not met: `ES-ENGLISH-B2`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -825,10 +962,11 @@ Assumptions:
 Application date: 2026-10-01.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality BRA.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2016-10-01 to 2029-03-31 — main applicant, family permission PARTNER_TEN_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2016-10-01 to 2029-03-31 — role MAIN, familyPermission PARTNER_TEN_YEAR.
 - No absences from the UK.
-- Relationship: partner who is british citizen.
-- English: CEFR B2. Life in the UK test: passed.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus BRITISH_CITIZEN.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -865,13 +1003,13 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **UNKNOWN**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **UNKNOWN**. Earnings reached £50,271 in 0 of the 5 tax years 2021-22 to 2025-26; 3 needed; earnings not provided for 5 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 0 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 7 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
 
-Other pathways or checks not met: `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -889,12 +1027,13 @@ Assumptions:
 Application date: 2026-08-01.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality PHL.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2021-08-01 to 2027-01-31 — main applicant, family permission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2021-08-01 to 2027-01-31 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
 - No absences from the UK.
-- Income: 2021-22 £9,000 (+ partner £12,000); 2022-23 £9,000 (+ partner £12,000); 2023-24 £9,000 (+ partner £12,000); 2024-25 £9,000 (+ partner £12,000); 2025-26 £9,000 (+ partner £12,000).
+- Income: 2021-22 £9,000 (+ partner £12,000); 2022-23 £9,000 (+ partner £12,000); 2023-24 £9,000 (+ partner £12,000); 2024-25 £9,000 (+ partner £12,000); 2025-26 £9,000 (+ partner £12,000). Tax years not listed: not provided.
 - Cash savings: £0.
-- Relationship: partner who is british citizen.
-- English: CEFR B2. Life in the UK test: passed.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus BRITISH_CITIZEN.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -908,7 +1047,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (Appendix KoLL 2.2, through E-ILRP.1.6; applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (Appendix KoLL 2.3, through E-ILRP.1.6). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -936,7 +1075,7 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-EARNINGS-10Y`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-EARNINGS-10Y`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -954,10 +1093,11 @@ Assumptions:
 Application date: 2026-08-01.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality KOR.
-- Permission: GLOBAL_TALENT from 2023-08-01 to 2028-07-31 — main applicant.
+- Permission: GLOBAL_TALENT from 2023-08-01 to 2028-07-31 — role MAIN, globalTalentEndorsement TECH_NATION, globalTalentCriteria EXCEPTIONAL_TALENT.
 - No absences from the UK.
-- Income: 2023-24 £70,000; 2024-25 £70,000; 2025-26 £70,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2023-24 £70,000; 2024-25 £70,000; 2025-26 £70,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -969,7 +1109,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (Appendix Global Talent GT 13.1(a), applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (GT 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -995,11 +1135,14 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other unknown checks:
+Failing or unknown checks:
 
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed; earnings not provided for 1 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 3 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
-
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -1018,10 +1161,11 @@ Assumptions:
 Application date: 2026-07-01.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality SDN.
-- Permission: CORE_PROTECTION from 2021-07-01 to 2026-07-31 — main applicant.
+- Permission: CORE_PROTECTION from 2021-07-01 to 2026-07-31 — role MAIN.
 - No absences from the UK.
 - English: not provided. Life in the UK test: not provided.
-- Asylum support repayment: NOT_REQUIRED.
+- governmentDebt: outstanding false.
+- asylumSupportRepayment: NOT_REQUIRED.
 
 ### Current Immigration Rules
 
@@ -1032,12 +1176,12 @@ Decisive rules:
 - `CL-PROTECTION-RESIDENCE-5Y` 5 continuous years with refugee status or humanitarian protection — **PASS**. Continuously in the UK with refugee status or humanitarian protection since 2021-07-01: 5 years completed (STP 3.1). _(SRC-023 STP 1.3; SRC-023 STP 3.1)_
 - `CL-PROTECTION-STATUS` Protection status not revoked or renounced — **PASS**. No revocation or renunciation declared, so refugee status or humanitarian protection is taken as still held (STP 4.1). _(SRC-023 STP 4.1; SRC-023 STP 4.2; SRC-023 STP 5.2)_
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `CL-ENGLISH` Settlement English requirement — **UNKNOWN**. English level not provided; settlement requires CEFR B1 (Appendix Settlement Protection sets no English requirement for settlement; this level applies only to the 10-year Long Residence pathway, PD-072). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **UNKNOWN**. Not provided whether the Life in the UK test has been passed (Appendix Settlement Protection sets no Life in the UK requirement; this applies only to the 10-year Long Residence pathway, PD-072). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -1079,21 +1223,23 @@ Assumptions:
 Application date: 2026-06-01.
 
 - Born 1993-09-09 (aged 32 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — dependant (partner).
-- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — dependant (partner).
+- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — role DEPENDANT, dependantOf PARTNER.
+- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — role DEPENDANT, dependantOf PARTNER.
 - No absences from the UK.
-- Income: 2021-22 £26,000; 2022-23 £26,000; 2023-24 £26,000; 2024-25 £26,000; 2025-26 £26,000.
-- Relationship: partner who is other.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £26,000; 2022-23 £26,000; 2023-24 £26,000; 2024-25 £26,000; 2025-26 £26,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 Principal (the person they are a dependant of):
 
 - Born 1992-04-10 (aged 34 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — main applicant, SOC 2136, salary £52,000.
-- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — main applicant, SOC 2136, salary £52,000.
+- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31, salary £52,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31, salary £52,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -1105,7 +1251,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -1148,20 +1294,22 @@ Assumptions:
 Application date: 2026-06-01.
 
 - Born 2015-02-14 (aged 11 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — dependant (parent).
-- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — dependant (parent).
+- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — role DEPENDANT, dependantOf PARENT.
+- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — role DEPENDANT, dependantOf PARENT.
 - No absences from the UK.
-- Relationship: parent who is other.
 - English: not provided. Life in the UK test: not provided.
+- relationships: type PARENT, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 Principal (the person they are a dependant of):
 
 - Born 1992-04-10 (aged 34 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — main applicant, SOC 2136, salary £52,000.
-- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — main applicant, SOC 2136, salary £52,000.
+- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31, salary £52,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31, salary £52,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -1173,7 +1321,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Under 18 or aged 65 or over on the date of application: exempt from the English requirement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Under 18 or aged 65 or over on the date of application: exempt from the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -1216,11 +1364,12 @@ Assumptions:
 Application date: 2026-06-01.
 
 - Born 1960-03-01 (aged 66 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — main applicant, SOC 2136, salary £52,000.
-- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — main applicant, SOC 2136, salary £52,000.
+- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31, salary £52,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31, salary £52,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000.
+- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000. Tax years not listed: not provided.
 - English: not provided. Life in the UK test: not provided.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -1234,7 +1383,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Under 18 or aged 65 or over on the date of application: exempt from the English requirement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Under 18 or aged 65 or over on the date of application: exempt from the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -1263,7 +1412,7 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -1281,12 +1430,13 @@ Assumptions:
 Application date: 2026-06-01.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — main applicant, SOC 2136, salary £52,000.
-- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — main applicant, SOC 2136, salary £52,000.
+- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31, salary £52,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31, salary £52,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000.
-- English: CEFR B2. Life in the UK test: passed.
-- Criminal record: convictions on 2024-02-01.
+- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- criminalRecord: date 2024-02-01.
+- governmentDebt: outstanding false.
 
 **Short circuit — CRIMINALITY:** A criminal record has been declared. Under Earned Settlement any criminal record as an adult leads to refusal of settlement; under the current rules the outcome depends on the circumstances under Part Suitability. This tool does not reach a conclusion: please seek advice from a regulated immigration adviser.
 
@@ -1294,7 +1444,9 @@ Application date: 2026-06-01.
 
 Outcome **REQUIRES_REGULATED_REVIEW**.
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Failing or unknown checks:
+
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: 5 full years by 2026-06-01; 10 years are completed on 2031-06-01. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -1310,7 +1462,14 @@ Assumptions:
 
 Outcome **REQUIRES_REGULATED_REVIEW**; route group CORE_PERMISSION.
 
-Other pathways or checks not met: `ES-CRIMINALITY`, `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Failing or unknown checks:
+
+- `ES-CRIMINALITY` No criminal record — **FAIL**. 1 criminal record(s) declared, including at least one as an adult. Under Earned Settlement any criminal record of an adult applicant in the UK (including sentences, fines, community sentences and some out-of-court disposals) leads to refusal of settlement; overseas convictions may also lead to refusal. This needs a regulated adviser’s assessment. _(SRC-001 p12)_
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -1329,12 +1488,13 @@ Assumptions:
 Application date: 2026-06-01.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — main applicant, SOC 2136, salary £52,000.
-- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — main applicant, SOC 2136, salary £52,000.
+- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31, salary £52,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31, salary £52,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000.
-- English: CEFR B2. Life in the UK test: passed.
-- Immigration breaches: OVERSTAYING on 2020-03-01.
+- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- immigrationBreaches: type OVERSTAYING, date 2020-03-01.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -1348,7 +1508,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The application date is before 2027-03-26, and Appendix Skilled Worker sets no separate English requirement for settlement (the B2 in SW 22A.1 applies only to later applications). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -1375,7 +1535,14 @@ Decisive rules:
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **PASS**. Earnings reached £12,571 in 5 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 2 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-BREACH`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Failing or unknown checks:
+
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-BREACH` No qualifying immigration breach as an adult — **FAIL**. Qualifying immigration breach as an adult (Overstaying): the 20-year pathway applies however high the earnings. _(SRC-001 p13)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -1396,12 +1563,13 @@ Assumptions:
 Application date: 2026-06-01.
 
 - Born 1992-04-10 (aged 34 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31 — main applicant, SOC 2136, salary £52,000.
-- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31 — main applicant, SOC 2136, salary £52,000.
+- Permission: SKILLED_WORKER from 2021-06-01 to 2024-05-31, salary £52,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-06-01 to 2027-05-31, salary £52,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000.
-- Benefits: UNIVERSAL_CREDIT 2023-03-01 to 2023-10-31.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £52,000; 2022-23 £52,000; 2023-24 £52,000; 2024-25 £52,000; 2025-26 £52,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- benefits: benefitType UNIVERSAL_CREDIT, from 2023-03-01, to 2023-10-31.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -1415,7 +1583,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The application date is before 2027-03-26, and Appendix Skilled Worker sets no separate English requirement for settlement (the B2 in SW 22A.1 applies only to later applications). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -1442,7 +1610,14 @@ Decisive rules:
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **PASS**. Earnings reached £12,571 in 5 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 2 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-PUBLIC-FUNDS`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Failing or unknown checks:
+
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-PUBLIC-FUNDS` No public funds in the 5 years before applying — **FAIL**. Public funds received since 2021-06-01: Universal Credit. The 3 / 5 / 10-year pathways require no use of specified public funds in the 5 years before applying; otherwise 20 years on a qualifying route are needed. If they are not used again, the lookback contains no public funds from 2028-11-01, and the shorter pathways can be reassessed. _(SRC-001 p18; SRC-006 #benefits-open-to-new-claims; SRC-006 #contributory-benefits-and-statutory-payments)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -1465,15 +1640,16 @@ Assumptions:
 Application date: 2026-11-04.
 
 - Born 1988-04-12 (aged 38 on the application date), nationality IND.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2016-09-01 to 2019-02-28 — main applicant.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2019-03-01 to 2021-08-31 — main applicant.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2021-09-01 to 2024-02-29 — main applicant.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2024-03-01 to 2026-08-31 — main applicant.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2026-09-01 to 2029-02-28 — main applicant.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2016-09-01 to 2019-02-28 — role MAIN.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2019-03-01 to 2021-08-31 — role MAIN.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2021-09-01 to 2024-02-29 — role MAIN.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2024-03-01 to 2026-08-31 — role MAIN.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2026-09-01 to 2029-02-28 — role MAIN.
 - No absences from the UK.
-- Income: 2019-20 £9,000 (+ partner £28,000); 2020-21 £9,000 (+ partner £28,000); 2021-22 £9,000 (+ partner £28,000); 2022-23 £9,000 (+ partner £28,000); 2023-24 £9,000 (+ partner £28,000); 2024-25 £9,000 (+ partner £28,000); 2025-26 £9,000 (+ partner £28,000).
-- Relationship: partner who is settled.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2019-20 £9,000 (+ partner £28,000); 2020-21 £9,000 (+ partner £28,000); 2021-22 £9,000 (+ partner £28,000); 2022-23 £9,000 (+ partner £28,000); 2023-24 £9,000 (+ partner £28,000); 2024-25 £9,000 (+ partner £28,000); 2025-26 £9,000 (+ partner £28,000). Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus SETTLED.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -1485,7 +1661,7 @@ Decisive rules:
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 - `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **UNKNOWN**. Not provided whether the partner permission is on the 5-year or the 10-year route: the 5-year route follows Appendix FM, the 10-year route Appendix Settlement Family Life (SETF 3.1). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-008 CR 3.1)_
 
@@ -1511,7 +1687,7 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -1530,15 +1706,16 @@ Assumptions:
 Application date: 2026-11-04.
 
 - Born 1985-07-20 (aged 41 on the application date), nationality NGA.
-- Permission: FAMILY_AND_PRIVATE_LIFE from 2015-06-01 to 2017-11-30 — main applicant.
-- Permission: FAMILY_AND_PRIVATE_LIFE from 2017-12-01 to 2020-05-31 — main applicant.
-- Permission: FAMILY_AND_PRIVATE_LIFE from 2020-06-01 to 2022-11-30 — main applicant.
-- Permission: FAMILY_AND_PRIVATE_LIFE from 2022-12-01 to 2025-05-31 — main applicant.
-- Permission: FAMILY_AND_PRIVATE_LIFE from 2025-06-01 to 2027-11-30 — main applicant.
+- Permission: FAMILY_AND_PRIVATE_LIFE from 2015-06-01 to 2017-11-30 — role MAIN.
+- Permission: FAMILY_AND_PRIVATE_LIFE from 2017-12-01 to 2020-05-31 — role MAIN.
+- Permission: FAMILY_AND_PRIVATE_LIFE from 2020-06-01 to 2022-11-30 — role MAIN.
+- Permission: FAMILY_AND_PRIVATE_LIFE from 2022-12-01 to 2025-05-31 — role MAIN.
+- Permission: FAMILY_AND_PRIVATE_LIFE from 2025-06-01 to 2027-11-30 — role MAIN.
 - No absences from the UK.
-- Income: 2019-20 £20,000; 2020-21 £20,000; 2021-22 £20,000; 2022-23 £20,000; 2023-24 £20,000; 2024-25 £20,000; 2025-26 £20,000.
-- Benefits: UNIVERSAL_CREDIT 2023-01-01 to 2023-09-30.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2019-20 £20,000; 2020-21 £20,000; 2021-22 £20,000; 2022-23 £20,000; 2023-24 £20,000; 2024-25 £20,000; 2025-26 £20,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- benefits: benefitType UNIVERSAL_CREDIT, from 2023-01-01, to 2023-09-30.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -1550,7 +1727,7 @@ Decisive rules:
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (PL 17.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 - `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2015-06-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `CL-PRIVATE-LIFE-RESIDENCE` Private Life: 5 or 10 continuous years — **UNKNOWN**. Not provided what the Private Life permission was granted on: 5 years for permission as a child (PL 3.1) or as a young adult who met the half-life test (PL 4.1) (PL 14.1); 10 years otherwise (PL 14.2(a)). _(SRC-028 PL 14.1; SRC-028 PL 14.2; SRC-028 PL 14.3; SRC-028 PL 14.4; SRC-028 PL 15.1; SRC-008 CR 3.1)_
 
@@ -1575,7 +1752,15 @@ Decisive rules:
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **PASS**. Earnings reached £12,571 in 7 of the 7 tax years 2019-20 to 2025-26; 5 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-PUBLIC-FUNDS`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Failing or unknown checks:
+
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **FAIL**. Earnings reached £50,271 in 0 of the 5 tax years 2021-22 to 2025-26; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-PUBLIC-FUNDS` No public funds in the 5 years before applying — **FAIL**. Public funds received since 2021-11-04: Universal Credit. The 3 / 5 / 10-year pathways require no use of specified public funds in the 5 years before applying; otherwise 20 years on a qualifying route are needed. If they are not used again, the lookback contains no public funds from 2028-10-01, and the shorter pathways can be reassessed. _(SRC-001 p18; SRC-006 #benefits-open-to-new-claims; SRC-006 #contributory-benefits-and-statutory-payments)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -1597,15 +1782,16 @@ Assumptions:
 Application date: 2026-04-06.
 
 - Born 1988-04-12 (aged 37 on the application date), nationality IND.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2016-04-06 to 2018-10-05 — main applicant.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2018-10-06 to 2021-04-05 — main applicant.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2021-04-06 to 2023-10-05 — main applicant.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2023-10-06 to 2026-04-05 — main applicant.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2026-04-06 to 2028-10-05 — main applicant.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2016-04-06 to 2018-10-05 — role MAIN.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2018-10-06 to 2021-04-05 — role MAIN.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2021-04-06 to 2023-10-05 — role MAIN.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2023-10-06 to 2026-04-05 — role MAIN.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2026-04-06 to 2028-10-05 — role MAIN.
 - No absences from the UK.
-- Income: 2019-20 £20,000; 2020-21 £20,000; 2021-22 £20,000; 2022-23 £5,000; 2023-24 £5,000; 2024-25 £20,000; 2025-26 £20,000.
-- Relationship: partner who is settled.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2019-20 £20,000; 2020-21 £20,000; 2021-22 £20,000; 2022-23 £5,000; 2023-24 £5,000; 2024-25 £20,000; 2025-26 £20,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus SETTLED.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -1617,7 +1803,7 @@ Decisive rules:
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 - `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-04-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **UNKNOWN**. Not provided whether the partner permission is on the 5-year or the 10-year route: the 5-year route follows Appendix FM, the 10-year route Appendix Settlement Family Life (SETF 3.1). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-008 CR 3.1)_
 
@@ -1643,7 +1829,7 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -1661,21 +1847,21 @@ Assumptions:
 Application date: 2026-11-04.
 
 - Born 1988-04-12 (aged 38 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05 — main applicant, SOC 2461, salary £42,000.
-- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05 — main applicant, SOC 2461, salary £42,000.
+- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05, salary £42,000 — role MAIN, socCode 2461.
+- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05, salary £42,000 — role MAIN, socCode 2461.
 - No absences from the UK.
-- Income: 2021-22 £42,000; 2022-23 £42,000; 2023-24 £42,000; 2024-25 £42,000; 2025-26 £42,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £42,000; 2022-23 £42,000; 2023-24 £42,000; 2024-25 £42,000; 2025-26 £42,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
 Outcome **INSUFFICIENT_INFORMATION**.
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **UNKNOWN**. SOC 2461 is a Table 3 health / education occupation, whose going rate is set by national pay scales (Appendix Skilled Occupations Tables 3–5); this tool has not extracted the pay scales in Tables 4 / 5, so it cannot check them. _(SRC-004 SW 24.3; SRC-004 SW 6.1; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: 5 full years by 2026-11-04; 10 years are completed on 2031-04-06. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -1704,7 +1890,7 @@ Decisive rules:
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **PASS**. In an Annex C public service occupation (Social workers) continuously since 2021-04-06: 5 years completed. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`.
+Other pathways not taken: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`.
 
 Assumptions:
 
@@ -1723,23 +1909,23 @@ Assumptions:
 Application date: 2026-11-04.
 
 - Born 1988-04-12 (aged 38 on the application date), nationality IND.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2021-04-06 to 2023-10-05 — main applicant.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2023-10-06 to 2026-04-05 — main applicant.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2026-04-06 to 2028-10-05 — main applicant.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2021-04-06 to 2023-10-05 — role MAIN.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2023-10-06 to 2026-04-05 — role MAIN.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2026-04-06 to 2028-10-05 — role MAIN.
 - No absences from the UK.
-- Income: 2021-22 £42,000; 2022-23 £42,000; 2023-24 £42,000; 2024-25 £42,000; 2025-26 £42,000.
-- Relationship: partner who is british citizen.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £42,000; 2022-23 £42,000; 2023-24 £42,000; 2024-25 £42,000; 2025-26 £42,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus BRITISH_CITIZEN.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
 Outcome **INSUFFICIENT_INFORMATION**.
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **UNKNOWN**. Not provided whether the partner permission is on the 5-year or the 10-year route: the 5-year route follows Appendix FM, the 10-year route Appendix Settlement Family Life (SETF 3.1). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-008 CR 3.1)_
-
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: 5 full years by 2026-11-04; 10 years are completed on 2031-04-06. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -1763,7 +1949,7 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -1781,22 +1967,24 @@ Assumptions:
 Application date: 2026-04-06.
 
 - Born 1988-04-12 (aged 37 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05 — dependant (partner).
-- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05 — dependant (partner).
+- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05 — role DEPENDANT, dependantOf PARTNER.
+- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05 — role DEPENDANT, dependantOf PARTNER.
 - No absences from the UK.
-- Income: 2021-22 £20,000; 2022-23 £20,000; 2023-24 £20,000; 2024-25 £20,000; 2025-26 £20,000.
-- Relationship: partner who is other.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £20,000; 2022-23 £20,000; 2023-24 £20,000; 2024-25 £20,000; 2025-26 £20,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 Principal (the person they are a dependant of):
 
 - Born 1986-09-20 (aged 39 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05 — main applicant, SOC 2136, salary £55,000.
-- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05 — main applicant, SOC 2136, salary £55,000.
+- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05, salary £55,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05, salary £55,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £55,000; 2022-23 £55,000; 2023-24 £55,000; 2024-25 £55,000; 2025-26 £55,000.
-- Relationship: partner who is other.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £55,000; 2022-23 £55,000; 2023-24 £55,000; 2024-25 £55,000; 2025-26 £55,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -1808,7 +1996,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -1851,22 +2039,22 @@ Assumptions:
 Application date: 2026-04-06.
 
 - Born 1988-04-12 (aged 37 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05 — main applicant, salary £60,000.
-- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05 — main applicant, salary £60,000.
+- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05, salary £60,000 — role MAIN.
+- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05, salary £60,000 — role MAIN.
 - No absences from the UK.
-- Income: 2021-22 £60,000; 2022-23 £60,000; 2023-24 £60,000; 2024-25 £60,000; 2025-26 £60,000.
-- Relationship: partner who is other.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £60,000; 2022-23 £60,000; 2023-24 £60,000; 2024-25 £60,000; 2025-26 £60,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
 Outcome **INSUFFICIENT_INFORMATION**.
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **UNKNOWN**. SOC 2020 code for the current Skilled Worker job not provided, so the going rate cannot be looked up. _(SRC-004 SW 24.3; SRC-004 SW 6.1; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: 5 full years by 2026-04-06; 10 years are completed on 2031-04-06. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -1895,7 +2083,7 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -1914,21 +2102,23 @@ Assumptions:
 Application date: 2026-04-06.
 
 - Born 1988-04-12 (aged 37 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2023-04-06 to 2027-04-05 — dependant (partner).
+- Permission: SKILLED_WORKER from 2023-04-06 to 2027-04-05 — role DEPENDANT, dependantOf PARTNER.
 - No absences from the UK.
-- Income: 2023-24 £20,000; 2024-25 £20,000; 2025-26 £20,000.
-- Relationship: partner who is other.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2023-24 £20,000; 2024-25 £20,000; 2025-26 £20,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 Principal (the person they are a dependant of):
 
 - Born 1986-09-20 (aged 39 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05 — main applicant, SOC 2136, salary £55,000.
-- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05 — main applicant, SOC 2136, salary £55,000.
+- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05, salary £55,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05, salary £55,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £55,000; 2022-23 £55,000; 2023-24 £55,000; 2024-25 £55,000; 2025-26 £55,000.
-- Relationship: partner who is other.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £55,000; 2022-23 £55,000; 2023-24 £55,000; 2024-25 £55,000; 2025-26 £55,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -1940,7 +2130,9 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Failing or unknown checks:
+
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: 3 full years by 2026-04-06; 10 years are completed on 2033-04-06. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -1987,20 +2179,21 @@ Assumptions:
 Application date: 2026-04-06.
 
 - Born 2012-01-10 (aged 14 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-04-06 to 2027-04-05 — dependant (parent).
+- Permission: SKILLED_WORKER from 2021-04-06 to 2027-04-05 — role DEPENDANT, dependantOf PARENT.
 - No absences from the UK.
-- Relationship: parent who is other.
 - English: not provided. Life in the UK test: not provided.
+- relationships: type PARENT, otherPartyStatus OTHER.
 
 Principal (the person they are a dependant of):
 
 - Born 1986-09-20 (aged 39 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05 — main applicant, SOC 2136, salary £55,000.
-- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05 — main applicant, SOC 2136, salary £55,000.
+- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05, salary £55,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05, salary £55,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £55,000; 2022-23 £55,000; 2023-24 £55,000; 2024-25 £55,000; 2025-26 £55,000.
-- Relationship: partner who is other.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £55,000; 2022-23 £55,000; 2023-24 £55,000; 2024-25 £55,000; 2025-26 £55,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -2012,7 +2205,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Under 18 or aged 65 or over on the date of application: exempt from the English requirement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Under 18 or aged 65 or over on the date of application: exempt from the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -2055,20 +2248,22 @@ Assumptions:
 Application date: 2026-04-06.
 
 - Born 2004-01-10 (aged 22 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-04-06 to 2027-04-05 — dependant (parent).
+- Permission: SKILLED_WORKER from 2021-04-06 to 2027-04-05 — role DEPENDANT, dependantOf PARENT.
 - No absences from the UK.
-- Relationship: parent who is other.
-- English: CEFR B2. Life in the UK test: passed.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARENT, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 Principal (the person they are a dependant of):
 
 - Born 1986-09-20 (aged 39 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05 — main applicant, SOC 2136, salary £55,000.
-- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05 — main applicant, SOC 2136, salary £55,000.
+- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05, salary £55,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05, salary £55,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £55,000; 2022-23 £55,000; 2023-24 £55,000; 2024-25 £55,000; 2025-26 £55,000.
-- Relationship: partner who is other.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £55,000; 2022-23 £55,000; 2023-24 £55,000; 2024-25 £55,000; 2025-26 £55,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -2080,7 +2275,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -2124,20 +2319,22 @@ Assumptions:
 Application date: 2026-04-06.
 
 - Born 2001-01-10 (aged 25 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-04-06 to 2027-04-05 — dependant (parent).
+- Permission: SKILLED_WORKER from 2021-04-06 to 2027-04-05 — role DEPENDANT, dependantOf PARENT.
 - No absences from the UK.
-- Relationship: parent who is other.
-- English: CEFR B2. Life in the UK test: passed.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARENT, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 Principal (the person they are a dependant of):
 
 - Born 1986-09-20 (aged 39 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05 — main applicant, SOC 2136, salary £30,000.
-- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05 — main applicant, SOC 2136, salary £30,000.
+- Permission: SKILLED_WORKER from 2021-04-06 to 2024-04-05, salary £30,000 — role MAIN, socCode 2136.
+- Permission: SKILLED_WORKER from 2024-04-06 to 2027-04-05, salary £30,000 — role MAIN, socCode 2136.
 - No absences from the UK.
-- Income: 2021-22 £30,000; 2022-23 £30,000; 2023-24 £30,000; 2024-25 £30,000; 2025-26 £30,000.
-- Relationship: partner who is other.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2021-22 £30,000; 2022-23 £30,000; 2023-24 £30,000; 2024-25 £30,000; 2025-26 £30,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -2149,7 +2346,9 @@ Decisive rules:
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 - `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: 5 full years by 2026-04-06; 10 years are completed on 2031-04-06. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
-Other pathways or checks not met: `CL-SW-CHILD`.
+Failing or unknown checks:
+
+- `CL-SW-CHILD` Skilled Worker dependent child settling with the principal applicant — **FAIL**. The principal applicant cannot currently settle as a Skilled Worker, so the dependent child cannot settle with them under SW 39.1(a). _(SRC-004 SW 39.1; SRC-004 SW 41A.1; SRC-018 CHI 1.1; SRC-018 CHI 1.2; SRC-018 CHI 1A.1; SRC-018 CHI 2.1)_
 
 Assumptions:
 
@@ -2165,7 +2364,9 @@ Assumptions:
 
 Outcome **LIKELY_NOT_ELIGIBLE**; route group CORE_PERMISSION.
 
-Other pathways or checks not met: `ES-DEPENDANT-PATHWAY`.
+Failing or unknown checks:
+
+- `ES-DEPENDANT-PATHWAY` Settle with the principal applicant (dependant) — **FAIL**. Aged 30 when the family becomes eligible for settlement on 2031-04-06 (25 or over), so cannot settle with the family as a dependant; they must independently meet every mandatory and qualifying requirement of a settlement pathway, or switch to an immigration route of their own. _(SRC-001 p29; SRC-001 p30; SRC-001 p31)_
 
 Assumptions:
 
@@ -2185,10 +2386,11 @@ Assumptions:
 Application date: 2032-06-01.
 
 - Born 1990-03-12 (aged 42 on the application date), nationality SYR.
-- Permission: SAFE_AND_LEGAL from 2027-06-01 to 2032-06-30 — main applicant.
+- Permission: SAFE_AND_LEGAL from 2027-06-01 to 2032-06-30 — role MAIN, resettlementScheme UK_RESETTLEMENT_SCHEME.
 - No absences from the UK.
-- Benefits: UNIVERSAL_CREDIT 2028-01-01 to 2028-12-31.
-- English: CEFR A2. Life in the UK test: not provided.
+- English: cefrLevel A2. Life in the UK test: not provided.
+- benefits: benefitType UNIVERSAL_CREDIT, from 2028-01-01, to 2028-12-31.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -2199,11 +2401,11 @@ Decisive rules:
 - `CL-PROTECTION-RESIDENCE-5Y` 5 continuous years with refugee status or humanitarian protection — **PASS**. Continuously in the UK with refugee status or humanitarian protection since 2027-06-01: 5 years completed (STP 3.1). _(SRC-023 STP 1.3; SRC-023 STP 3.1)_
 - `CL-PROTECTION-STATUS` Protection status not revoked or renounced — **PASS**. No revocation or renunciation declared, so refugee status or humanitarian protection is taken as still held (STP 4.1). _(SRC-023 STP 4.1; SRC-023 STP 4.2; SRC-023 STP 5.2)_
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `CL-KOL` Pass the Life in the UK test — **UNKNOWN**. Not provided whether the Life in the UK test has been passed (Appendix Settlement Protection sets no Life in the UK requirement; this applies only to the 10-year Long Residence pathway, PD-072). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-ENGLISH`, `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-ENGLISH`, `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -2244,13 +2446,14 @@ Assumptions:
 Application date: 2030-01-01.
 
 - Born 1995-05-01 (aged 34 on the application date), nationality SDN.
-- Permission: CORE_PROTECTION from 2027-03-01 to 2028-02-29 — main applicant.
-- Permission: PROTECTION_WORK_AND_STUDY from 2028-03-01 to 2033-02-28 — main applicant.
-- Permission: PROTECTION_WORK_AND_STUDY from 2033-03-01 to 2038-08-31 — main applicant.
+- Permission: CORE_PROTECTION from 2027-03-01 to 2028-02-29 — role MAIN.
+- Permission: PROTECTION_WORK_AND_STUDY from 2028-03-01 to 2033-02-28 — role MAIN, sustainedActivity WORK.
+- Permission: PROTECTION_WORK_AND_STUDY from 2033-03-01 to 2038-08-31 — role MAIN, sustainedActivity WORK.
 - No absences from the UK.
-- Income: 2027-28 £20,000; 2028-29 £20,000; 2029-30 £20,000; 2030-31 £20,000; 2031-32 £20,000; 2032-33 £20,000; 2033-34 £20,000; 2034-35 £20,000; 2035-36 £20,000; 2036-37 £20,000; 2037-38 £20,000.
-- English: CEFR B2. Life in the UK test: passed.
-- Asylum support repayment: REPAID.
+- Income: 2027-28 £20,000; 2028-29 £20,000; 2029-30 £20,000; 2030-31 £20,000; 2031-32 £20,000; 2032-33 £20,000; 2033-34 £20,000; 2034-35 £20,000; 2035-36 £20,000; 2036-37 £20,000; 2037-38 £20,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
+- asylumSupportRepayment: REPAID.
 
 ### Current Immigration Rules
 
@@ -2261,7 +2464,9 @@ Decisive rules:
 - `CL-PROTECTION-RESIDENCE-5Y` 5 continuous years with refugee status or humanitarian protection — **FAIL**. Continuously in the UK with refugee status or humanitarian protection since 2027-03-01: 2 full years by 2030-01-01; 5 years are completed on 2032-03-01 (STP 3.1). _(SRC-023 STP 1.3; SRC-023 STP 3.1)_
 - `CL-PROTECTION-STATUS` Protection status not revoked or renounced — **PASS**. No revocation or renunciation declared, so refugee status or humanitarian protection is taken as still held (STP 4.1). _(SRC-023 STP 4.1; SRC-023 STP 4.2; SRC-023 STP 5.2)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Failing or unknown checks:
+
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: 2 full years by 2030-01-01; 10 years are completed on 2037-03-01. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2309,14 +2514,15 @@ Assumptions:
 Application date: 2030-01-01.
 
 - Born 1995-05-01 (aged 34 on the application date), nationality SDN.
-- Permission: CORE_PROTECTION from 2027-03-01 to 2028-02-29 — main applicant.
-- Permission: PROTECTION_WORK_AND_STUDY from 2028-03-01 to 2033-02-28 — main applicant.
-- Permission: PROTECTION_WORK_AND_STUDY from 2033-03-01 to 2038-08-31 — main applicant.
+- Permission: CORE_PROTECTION from 2027-03-01 to 2028-02-29 — role MAIN.
+- Permission: PROTECTION_WORK_AND_STUDY from 2028-03-01 to 2033-02-28 — role MAIN, sustainedActivity WORK.
+- Permission: PROTECTION_WORK_AND_STUDY from 2033-03-01 to 2038-08-31 — role MAIN, sustainedActivity WORK.
 - No absences from the UK.
-- Income: 2027-28 £20,000; 2028-29 £20,000; 2029-30 £20,000; 2030-31 £20,000; 2031-32 £20,000; 2032-33 £20,000; 2033-34 £20,000; 2034-35 £20,000; 2035-36 £20,000; 2036-37 £20,000; 2037-38 £20,000.
-- English: CEFR B2. Life in the UK test: passed.
-- Immigration breaches: ILLEGAL_ENTRY on 2026-08-10.
-- Asylum support repayment: REPAID.
+- Income: 2027-28 £20,000; 2028-29 £20,000; 2029-30 £20,000; 2030-31 £20,000; 2031-32 £20,000; 2032-33 £20,000; 2033-34 £20,000; 2034-35 £20,000; 2035-36 £20,000; 2036-37 £20,000; 2037-38 £20,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- immigrationBreaches: type ILLEGAL_ENTRY, date 2026-08-10.
+- governmentDebt: outstanding false.
+- asylumSupportRepayment: REPAID.
 
 ### Current Immigration Rules
 
@@ -2327,7 +2533,9 @@ Decisive rules:
 - `CL-PROTECTION-RESIDENCE-5Y` 5 continuous years with refugee status or humanitarian protection — **FAIL**. Continuously in the UK with refugee status or humanitarian protection since 2027-03-01: 2 full years by 2030-01-01; 5 years are completed on 2032-03-01 (STP 3.1). _(SRC-023 STP 1.3; SRC-023 STP 3.1)_
 - `CL-PROTECTION-STATUS` Protection status not revoked or renounced — **PASS**. No revocation or renunciation declared, so refugee status or humanitarian protection is taken as still held (STP 4.1). _(SRC-023 STP 4.1; SRC-023 STP 4.2; SRC-023 STP 5.2)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Failing or unknown checks:
+
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: 2 full years by 2030-01-01; 10 years are completed on 2037-03-01. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2375,12 +2583,13 @@ Assumptions:
 Application date: 2030-01-01.
 
 - Born 1995-05-01 (aged 34 on the application date), nationality SDN.
-- Permission: CORE_PROTECTION from 2027-03-01 to 2032-02-29 — main applicant.
+- Permission: CORE_PROTECTION from 2027-03-01 to 2032-02-29 — role MAIN.
 - No absences from the UK.
-- Income: 2027-28 £20,000; 2028-29 £20,000; 2029-30 £20,000; 2030-31 £20,000; 2031-32 £20,000; 2032-33 £20,000; 2033-34 £20,000; 2034-35 £20,000; 2035-36 £20,000; 2036-37 £20,000; 2037-38 £20,000.
-- English: CEFR B2. Life in the UK test: passed.
-- Immigration breaches: ILLEGAL_ENTRY on 2026-08-10.
-- Asylum support repayment: REPAID.
+- Income: 2027-28 £20,000; 2028-29 £20,000; 2029-30 £20,000; 2030-31 £20,000; 2031-32 £20,000; 2032-33 £20,000; 2033-34 £20,000; 2034-35 £20,000; 2035-36 £20,000; 2036-37 £20,000; 2037-38 £20,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- immigrationBreaches: type ILLEGAL_ENTRY, date 2026-08-10.
+- governmentDebt: outstanding false.
+- asylumSupportRepayment: REPAID.
 
 ### Current Immigration Rules
 
@@ -2391,7 +2600,9 @@ Decisive rules:
 - `CL-PROTECTION-RESIDENCE-5Y` 5 continuous years with refugee status or humanitarian protection — **FAIL**. Continuously in the UK with refugee status or humanitarian protection since 2027-03-01: 2 full years by 2030-01-01; 5 years are completed on 2032-03-01 (STP 3.1). _(SRC-023 STP 1.3; SRC-023 STP 3.1)_
 - `CL-PROTECTION-STATUS` Protection status not revoked or renounced — **PASS**. No revocation or renunciation declared, so refugee status or humanitarian protection is taken as still held (STP 4.1). _(SRC-023 STP 4.1; SRC-023 STP 4.2; SRC-023 STP 5.2)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Failing or unknown checks:
+
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: 2 full years by 2030-01-01; 10 years are completed on 2037-03-01. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2435,11 +2646,12 @@ Assumptions:
 Application date: 2028-04-06.
 
 - Born 1988-04-12 (aged 39 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2023-04-06 to 2026-04-05 — main applicant, SOC 6135, salary £30,000.
-- Permission: SKILLED_WORKER from 2026-04-06 to 2029-04-05 — main applicant, SOC 6135, salary £30,000.
+- Permission: SKILLED_WORKER from 2023-04-06 to 2026-04-05, salary £30,000 — role MAIN, socCode 6135.
+- Permission: SKILLED_WORKER from 2026-04-06 to 2029-04-05, salary £30,000 — role MAIN, socCode 6135.
 - No absences from the UK.
-- Income: 2023-24 £30,000; 2024-25 £30,000; 2025-26 £30,000; 2026-27 £30,000; 2027-28 £30,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2023-24 £30,000; 2024-25 £30,000; 2025-26 £30,000; 2026-27 £30,000; 2027-28 £30,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -2453,7 +2665,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B2 required for settlement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -2482,7 +2694,7 @@ Decisive rules:
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **PASS**. Entered the care worker route on 2023-04-06, before the cut-off of 2025-05-12, with a salary of £30,000 that reaches £25,000: the 5-year qualifying period is retained. The strengthened minimum requirements, such as criminality and B2 English, still apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -2504,11 +2716,12 @@ Assumptions:
 Application date: 2028-04-06.
 
 - Born 1988-04-12 (aged 39 on the application date), nationality IND.
-- Permission: SKILLED_WORKER from 2023-04-06 to 2026-04-05 — main applicant, SOC 6135, salary £20,000.
-- Permission: SKILLED_WORKER from 2026-04-06 to 2029-04-05 — main applicant, SOC 6135, salary £20,000.
+- Permission: SKILLED_WORKER from 2023-04-06 to 2026-04-05, salary £20,000 — role MAIN, socCode 6135.
+- Permission: SKILLED_WORKER from 2026-04-06 to 2029-04-05, salary £20,000 — role MAIN, socCode 6135.
 - No absences from the UK.
-- Income: 2023-24 £20,000; 2024-25 £20,000; 2025-26 £20,000; 2026-27 £20,000; 2027-28 £20,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2023-24 £20,000; 2024-25 £20,000; 2025-26 £20,000; 2026-27 £20,000; 2027-28 £20,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -2520,7 +2733,10 @@ Decisive rules:
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 - `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: 5 full years by 2028-04-06; 10 years are completed on 2033-04-06. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
-Other pathways or checks not met: `CL-SW-SALARY`, `CL-SW-GOING-RATE`.
+Failing or unknown checks:
+
+- `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **FAIL**. Under SW 24.3 row D (the job is on the Immigration Salary List, and continuous Skilled Worker permission since 2023-04-06, before 2024-04-04, with the application before 2030-04-04 (SW 4.2(b)(ii))), the general salary threshold is £25,000; the current salary of £20,000 is below it. _(SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
+- `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **FAIL**. Under SW 24.3 row D, Appendix Skilled Occupations Table 2aa gives a going rate of £25,000 for SOC 6135 (Care workers and home carers); the current salary of £20,000 is below the going rate. _(SRC-004 SW 24.3; SRC-004 SW 6.1; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 
 Assumptions:
 
@@ -2550,7 +2766,14 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Failing or unknown checks:
+
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2024-25 to 2027-28; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **FAIL**. Earnings reached £50,271 in 0 of the 5 tax years 2023-24 to 2027-28; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. Salary of £20,000 is below the £25,000 the transitional arrangements require, so settlement on this basis is not possible after 5 years; a further 5-year Health and Care visa can be applied for once, before applying for settlement. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -2571,14 +2794,15 @@ Assumptions:
 Application date: 2035-06-06.
 
 - Born 1988-04-12 (aged 47 on the application date), nationality IND.
-- Permission: GRADUATE from 2024-06-06 to 2025-06-05 — main applicant.
-- Permission: SKILLED_WORKER from 2025-06-06 to 2028-06-05 — main applicant, SOC 6135, salary £30,000.
-- Permission: SKILLED_WORKER from 2028-06-06 to 2031-06-05 — main applicant, SOC 6135, salary £30,000.
-- Permission: SKILLED_WORKER from 2031-06-06 to 2034-06-05 — main applicant, SOC 6135, salary £30,000.
-- Permission: SKILLED_WORKER from 2034-06-06 to 2037-06-05 — main applicant, SOC 6135, salary £30,000.
+- Permission: GRADUATE from 2024-06-06 to 2025-06-05 — role MAIN.
+- Permission: SKILLED_WORKER from 2025-06-06 to 2028-06-05, salary £30,000 — role MAIN, socCode 6135.
+- Permission: SKILLED_WORKER from 2028-06-06 to 2031-06-05, salary £30,000 — role MAIN, socCode 6135.
+- Permission: SKILLED_WORKER from 2031-06-06 to 2034-06-05, salary £30,000 — role MAIN, socCode 6135.
+- Permission: SKILLED_WORKER from 2034-06-06 to 2037-06-05, salary £30,000 — role MAIN, socCode 6135.
 - No absences from the UK.
-- Income: 2028-29 £30,000; 2029-30 £30,000; 2030-31 £30,000; 2031-32 £30,000; 2032-33 £30,000; 2033-34 £30,000; 2034-35 £30,000.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2028-29 £30,000; 2029-30 £30,000; 2030-31 £30,000; 2031-32 £30,000; 2032-33 £30,000; 2033-34 £30,000; 2034-35 £30,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -2590,7 +2814,7 @@ Decisive rules:
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 - `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2024-06-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
-Other pathways or checks not met: `CL-SW-SALARY`.
+Other pathways not taken: `CL-SW-SALARY`.
 
 Assumptions:
 
@@ -2619,7 +2843,7 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways or checks not met: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -2639,10 +2863,11 @@ Assumptions:
 Application date: 2026-02-01.
 
 - Born 1985-06-20 (aged 40 on the application date), nationality HKG.
-- Permission: HONG_KONG_BNO from 2021-02-01 to 2026-01-31 — main applicant.
-- Permission: HONG_KONG_BNO from 2026-02-01 to 2028-07-31 — main applicant.
+- Permission: HONG_KONG_BNO from 2021-02-01 to 2026-01-31 — role MAIN.
+- Permission: HONG_KONG_BNO from 2026-02-01 to 2028-07-31 — role MAIN.
 - No absences from the UK.
-- English: CEFR B1. Life in the UK test: passed.
+- English: cefrLevel B1. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 **Short circuit — OUTSIDE_FRAMEWORK:** The current route is outside the Earned Settlement framework and keeps the existing settlement arrangements for that group (SRC-001 p25–p26). The strengthened criminality and B2 English requirements still apply, unless an existing exemption or protection applies.
 
@@ -2656,7 +2881,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B1, which meets the B1 required for settlement (Appendix Hong Kong BN(O) HK 60.1; the B2 introduced by HC 1691 does not cover this Appendix, EM 5.60). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (HK 61.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -2667,15 +2892,18 @@ Assumptions:
 
 Outcome **REQUIRES_REGULATED_REVIEW**.
 
-Other unknown checks:
+Failing or unknown checks:
 
+- `ES-ENGLISH-B2` English for settlement (B2; A2 for UK Resettlement Scheme refugees) — **FAIL**. English at B1, below the B2 required by Earned Settlement. This is a mandatory requirement and cannot be offset by earnings or other contributions. _(SRC-001 p21)_
 - `ES-ROUTE-GROUP` Current route counts towards settlement — **UNKNOWN**. The current route, Hong Kong BN(O), is outside the Earned Settlement framework and keeps the existing settlement arrangements for that group. The strengthened criminality and B2 English requirements still apply, unless an existing exemption or protection applies. _(SRC-001 p23; SRC-001 p24; SRC-001 p25; SRC-001 p26)_
 - `ES-RESIDENCE` Continuous residence counting towards settlement — **UNKNOWN**. The current route, Hong Kong BN(O), is outside the Earned Settlement framework, so residence is not calculated under it. _(SRC-001 p22; SRC-001 p23; SRC-001 p24; SRC-001 p25; SRC-008 CR 3.1)_
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **UNKNOWN**. Earnings reached £125,141 in 0 of the 4 tax years 2021-22 to 2024-25; 3 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **UNKNOWN**. Earnings reached £50,271 in 0 of the 5 tax years 2020-21 to 2024-25; 3 needed; earnings not provided for 5 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 0 of the 7 tax years 2018-19 to 2024-25; 5 needed; earnings not provided for 7 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
-
-Other pathways or checks not met: `ES-ENGLISH-B2`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -2693,10 +2921,11 @@ Assumptions:
 Application date: 2026-11-04.
 
 - Born 1990-03-12 (aged 36 on the application date), nationality USA.
-- Permission: GLOBAL_TALENT from 2023-11-04 to 2028-11-03 — main applicant.
+- Permission: GLOBAL_TALENT from 2023-11-04 to 2028-11-03 — role MAIN, globalTalentEndorsement ARTS_COUNCIL_ENGLAND, globalTalentCriteria EXCEPTIONAL_TALENT.
 - No absences from the UK.
-- Income: 2023-24 £55,000; 2024-25 £55,000; 2025-26 £55,000.
-- English: CEFR B1. Life in the UK test: passed.
+- Income: 2023-24 £55,000; 2024-25 £55,000; 2025-26 £55,000. Tax years not listed: not provided.
+- English: cefrLevel B1. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -2708,7 +2937,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B1, which meets the B1 required for settlement (Appendix Global Talent GT 13.1(a), applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (GT 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -2721,11 +2950,15 @@ Assumptions:
 
 Outcome **LIKELY_NOT_ELIGIBLE**; route group CORE_PERMISSION.
 
-Other unknown checks:
+Failing or unknown checks:
 
+- `ES-ENGLISH-B2` English for settlement (B2; A2 for UK Resettlement Scheme refugees) — **FAIL**. English at B1, below the B2 required by Earned Settlement. This is a mandatory requirement and cannot be offset by earnings or other contributions. _(SRC-001 p21)_
+- `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed; earnings not provided for 1 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 3 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
-
-Other pathways or checks not met: `ES-ENGLISH-B2`, `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -2743,13 +2976,14 @@ Assumptions:
 Application date: 2026-03-01.
 
 - Born 1992-09-08 (aged 33 on the application date), nationality PHL.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2021-03-01 to 2023-08-31 — main applicant, family permission PARTNER_FIVE_YEAR.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2023-09-01 to 2026-02-28 — main applicant, family permission PARTNER_FIVE_YEAR.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2026-03-01 to 2028-08-31 — main applicant, family permission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2021-03-01 to 2023-08-31 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2023-09-01 to 2026-02-28 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2026-03-01 to 2028-08-31 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
 - No absences from the UK.
-- Income: 2024-25 £14,000 (+ partner £8,000).
-- Relationship: partner who is british citizen.
-- English: CEFR B1. Life in the UK test: passed.
+- Income: 2024-25 £14,000 (+ partner £8,000). Tax years not listed: not provided.
+- English: cefrLevel B1. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus BRITISH_CITIZEN.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -2763,7 +2997,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B1, which meets the B1 required for settlement (Appendix KoLL 2.2, through E-ILRP.1.6; applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (Appendix KoLL 2.3, through E-ILRP.1.6). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -2778,13 +3012,15 @@ Assumptions:
 
 Outcome **LIKELY_NOT_ELIGIBLE**; route group CORE_PERMISSION.
 
-Other unknown checks:
+Failing or unknown checks:
 
+- `ES-ENGLISH-B2` English for settlement (B2; A2 for UK Resettlement Scheme refugees) — **FAIL**. English at B1, below the B2 required by Earned Settlement. This is a mandatory requirement and cannot be offset by earnings or other contributions. _(SRC-001 p21)_
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **UNKNOWN**. Earnings reached £125,141 in 0 of the 4 tax years 2021-22 to 2024-25; 3 needed; earnings not provided for 3 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **UNKNOWN**. Earnings reached £50,271 in 0 of the 5 tax years 2020-21 to 2024-25; 3 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 1 of the 7 tax years 2018-19 to 2024-25; 5 needed; earnings not provided for 6 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
-
-Other pathways or checks not met: `ES-ENGLISH-B2`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -2802,10 +3038,11 @@ Assumptions:
 Application date: 2026-03-01.
 
 - Born 1992-04-10 (aged 33 on the application date), nationality SDN.
-- Permission: CORE_PROTECTION from 2021-03-01 to 2026-03-31 — main applicant.
+- Permission: CORE_PROTECTION from 2021-03-01 to 2026-03-31 — role MAIN.
 - No absences from the UK.
 - English: not provided. Life in the UK test: not provided.
-- Asylum support repayment: NOT_REQUIRED.
+- governmentDebt: outstanding false.
+- asylumSupportRepayment: NOT_REQUIRED.
 
 ### Current Immigration Rules
 
@@ -2816,12 +3053,12 @@ Decisive rules:
 - `CL-PROTECTION-RESIDENCE-5Y` 5 continuous years with refugee status or humanitarian protection — **PASS**. Continuously in the UK with refugee status or humanitarian protection since 2021-03-01: 5 years completed (STP 3.1). _(SRC-023 STP 1.3; SRC-023 STP 3.1)_
 - `CL-PROTECTION-STATUS` Protection status not revoked or renounced — **PASS**. No revocation or renunciation declared, so refugee status or humanitarian protection is taken as still held (STP 4.1). _(SRC-023 STP 4.1; SRC-023 STP 4.2; SRC-023 STP 5.2)_
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `CL-ENGLISH` Settlement English requirement — **UNKNOWN**. English level not provided; settlement requires CEFR B1 (Appendix Settlement Protection sets no English requirement for settlement; this level applies only to the 10-year Long Residence pathway, PD-072). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **UNKNOWN**. Not provided whether the Life in the UK test has been passed (Appendix Settlement Protection sets no Life in the UK requirement; this applies only to the 10-year Long Residence pathway, PD-072). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -2863,10 +3100,11 @@ Assumptions:
 Application date: 2026-09-01.
 
 - Born 1994-02-14 (aged 32 on the application date), nationality AUS.
-- Permission: UK_ANCESTRY from 2021-09-01 to 2026-08-31 — main applicant.
-- Permission: UK_ANCESTRY from 2026-09-01 to 2031-08-31 — main applicant.
+- Permission: UK_ANCESTRY from 2021-09-01 to 2026-08-31 — role MAIN.
+- Permission: UK_ANCESTRY from 2026-09-01 to 2031-08-31 — role MAIN.
 - No absences from the UK.
-- English: CEFR B1. Life in the UK test: passed.
+- English: cefrLevel B1. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -2878,7 +3116,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B1, which meets the B1 required for settlement (Appendix UK Ancestry UKA 15.1(a), applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (UKA 16.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -2890,13 +3128,15 @@ Assumptions:
 
 Outcome **LIKELY_NOT_ELIGIBLE**; route group CORE_PERMISSION.
 
-Other unknown checks:
+Failing or unknown checks:
 
+- `ES-ENGLISH-B2` English for settlement (B2; A2 for UK Resettlement Scheme refugees) — **FAIL**. English at B1, below the B2 required by Earned Settlement. This is a mandatory requirement and cannot be offset by earnings or other contributions. _(SRC-001 p21)_
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **UNKNOWN**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **UNKNOWN**. Earnings reached £50,271 in 0 of the 5 tax years 2021-22 to 2025-26; 3 needed; earnings not provided for 5 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 0 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 7 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
-
-Other pathways or checks not met: `ES-ENGLISH-B2`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -2914,10 +3154,11 @@ Assumptions:
 Application date: 2026-05-01.
 
 - Born 1988-11-03 (aged 37 on the application date), nationality NGA.
-- Permission: INNOVATOR_FOUNDER from 2023-05-01 to 2026-04-30 — main applicant.
-- Permission: INNOVATOR_FOUNDER from 2026-05-01 to 2029-04-30 — main applicant.
+- Permission: INNOVATOR_FOUNDER from 2023-05-01 to 2026-04-30 — role MAIN.
+- Permission: INNOVATOR_FOUNDER from 2026-05-01 to 2029-04-30 — role MAIN, innovatorSettlementCriteria ["INVESTMENT","JOBS"].
 - No absences from the UK.
-- English: not provided. Life in the UK test: passed.
+- English: not provided. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -2929,11 +3170,11 @@ Decisive rules:
 - `CL-INNOVATOR-ENDORSEMENT` Business criteria for the Innovator Founder settlement endorsement — **PASS**. The business has met 2 of the criteria (INNF 17.1(f)(i), INNF 17.1(f)(vi)), at least the 2 required by INNF 17.1(f). _(SRC-027 INNF 15.2(e); SRC-027 INNF 17.1; SRC-027 INNF 17.2; SRC-027 INNF 17.3; SRC-027 INNF 17.4)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (INNF 20.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `CL-ENGLISH` Settlement English requirement — **UNKNOWN**. English level not provided; settlement requires CEFR B1 (Appendix Innovator Founder sets no English requirement for a main applicant’s settlement, INNF 15.1–21.6; this level applies only to the 10-year Long Residence pathway). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -2945,14 +3186,16 @@ Assumptions:
 
 Outcome **INSUFFICIENT_INFORMATION**; route group CORE_PERMISSION.
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `ES-ENGLISH-B2` English for settlement (B2; A2 for UK Resettlement Scheme refugees) — **UNKNOWN**. English level not provided. Earned Settlement requires CEFR B2 (existing exemptions are retained). _(SRC-001 p21)_
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **UNKNOWN**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **UNKNOWN**. Earnings reached £50,271 in 0 of the 5 tax years 2021-22 to 2025-26; 3 needed; earnings not provided for 5 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 0 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 7 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
-
-Other pathways or checks not met: `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -2970,11 +3213,12 @@ Assumptions:
 Application date: 2026-07-01.
 
 - Born 2000-03-15 (aged 26 on the application date), nationality PAK.
-- Permission: FAMILY_AND_PRIVATE_LIFE from 2021-07-01 to 2023-12-31 — main applicant.
-- Permission: FAMILY_AND_PRIVATE_LIFE from 2024-01-01 to 2026-06-30 — main applicant.
-- Permission: FAMILY_AND_PRIVATE_LIFE from 2026-07-01 to 2028-12-31 — main applicant.
+- Permission: FAMILY_AND_PRIVATE_LIFE from 2021-07-01 to 2023-12-31 — role MAIN, privateLifeRoute YOUNG_ADULT.
+- Permission: FAMILY_AND_PRIVATE_LIFE from 2024-01-01 to 2026-06-30 — role MAIN, privateLifeRoute YOUNG_ADULT.
+- Permission: FAMILY_AND_PRIVATE_LIFE from 2026-07-01 to 2028-12-31 — role MAIN, privateLifeRoute YOUNG_ADULT.
 - No absences from the UK.
-- English: CEFR B1. Life in the UK test: passed.
+- English: cefrLevel B1. Life in the UK test: passed true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -2986,7 +3230,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B1, which meets the B1 required for settlement (Appendix Private Life PL 16.1(a), applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (PL 17.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -2998,13 +3242,16 @@ Assumptions:
 
 Outcome **LIKELY_NOT_ELIGIBLE**; route group FAMILY_AND_PRIVATE_LIFE.
 
-Other unknown checks:
+Failing or unknown checks:
 
+- `ES-ENGLISH-B2` English for settlement (B2; A2 for UK Resettlement Scheme refugees) — **FAIL**. English at B1, below the B2 required by Earned Settlement. This is a mandatory requirement and cannot be offset by earnings or other contributions. _(SRC-001 p21)_
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **UNKNOWN**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **UNKNOWN**. Earnings reached £50,271 in 0 of the 5 tax years 2021-22 to 2025-26; 3 needed; earnings not provided for 5 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 0 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 7 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
-
-Other pathways or checks not met: `ES-ENGLISH-B2`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+- `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
 
 Assumptions:
 
@@ -3022,18 +3269,19 @@ Assumptions:
 Application date: 2026-02-01.
 
 - Born 2014-09-01 (aged 11 on the application date), nationality HKG.
-- Permission: HONG_KONG_BNO from 2021-02-01 to 2026-07-31 — dependant (parent).
+- Permission: HONG_KONG_BNO from 2021-02-01 to 2026-07-31 — role DEPENDANT, dependantOf PARENT.
 - No absences from the UK.
-- Relationship: parent who is other.
 - English: not provided. Life in the UK test: not provided.
+- relationships: type PARENT, otherPartyStatus OTHER.
 
 Principal (the person they are a dependant of):
 
 - Born 1984-03-12 (aged 41 on the application date), nationality HKG.
-- Permission: HONG_KONG_BNO from 2021-02-01 to 2026-07-31 — main applicant.
+- Permission: HONG_KONG_BNO from 2021-02-01 to 2026-07-31 — role MAIN.
 - No absences from the UK.
-- Relationship: child who is other.
-- English: CEFR B1. Life in the UK test: passed.
+- English: cefrLevel B1. Life in the UK test: passed true.
+- relationships: type CHILD, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 **Short circuit — OUTSIDE_FRAMEWORK:** The current route is outside the Earned Settlement framework and keeps the existing settlement arrangements for that group (SRC-001 p25–p26). The strengthened criminality and B2 English requirements still apply, unless an existing exemption or protection applies.
 
@@ -3047,7 +3295,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Under 18 or aged 65 or over on the date of application: exempt from the English requirement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Under 18 or aged 65 or over on the date of application: exempt from the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -3060,7 +3308,7 @@ Assumptions:
 
 Outcome **REQUIRES_REGULATED_REVIEW**.
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `ES-ROUTE-GROUP` Current route counts towards settlement — **UNKNOWN**. The current route, Hong Kong BN(O), is outside the Earned Settlement framework and keeps the existing settlement arrangements for that group. The strengthened criminality and B2 English requirements still apply, unless an existing exemption or protection applies. _(SRC-001 p23; SRC-001 p24; SRC-001 p25; SRC-001 p26)_
 - `ES-RESIDENCE` Continuous residence counting towards settlement — **UNKNOWN**. The current route, Hong Kong BN(O), is outside the Earned Settlement framework, so residence is not calculated under it. _(SRC-001 p22; SRC-001 p23; SRC-001 p24; SRC-001 p25; SRC-008 CR 3.1)_
@@ -3079,19 +3327,22 @@ Assumptions:
 Application date: 2026-06-01.
 
 - Born 1987-08-14 (aged 38 on the application date), nationality USA.
-- Permission: GLOBAL_TALENT from 2021-06-01 to 2026-05-31 — dependant (partner).
-- Permission: GLOBAL_TALENT from 2026-06-01 to 2028-05-31 — dependant (partner).
+- Permission: GLOBAL_TALENT from 2021-06-01 to 2026-05-31 — role DEPENDANT, dependantOf PARTNER.
+- Permission: GLOBAL_TALENT from 2026-06-01 to 2028-05-31 — role DEPENDANT, dependantOf PARTNER.
 - No absences from the UK.
-- Relationship: partner who is settled.
-- English: CEFR B1. Life in the UK test: passed.
+- English: cefrLevel B1. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus SETTLED.
+- governmentDebt: outstanding false.
 
 Principal (the person they are a dependant of):
 
 - Born 1986-05-20 (aged 40 on the application date), nationality USA.
-- Permission: GLOBAL_TALENT from 2021-06-01 to 2024-05-31 — main applicant.
+- Permission: GLOBAL_TALENT from 2021-06-01 to 2024-05-31 — role MAIN, globalTalentEndorsement ARTS_COUNCIL_ENGLAND, globalTalentCriteria EXCEPTIONAL_TALENT.
 - No absences from the UK.
-- Relationship: partner who is other.
-- English: CEFR B2. Life in the UK test: passed.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
+- settled: date 2024-06-01, route GLOBAL_TALENT.
 
 ### Current Immigration Rules
 
@@ -3103,7 +3354,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B1, which meets the B1 required for settlement (Appendix Global Talent GT 32.1(a), applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (GT 33.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -3115,12 +3366,11 @@ Assumptions:
 
 Outcome **LIKELY_NOT_ELIGIBLE**.
 
-Other unknown checks:
+Failing or unknown checks:
 
+- `ES-ENGLISH-B2` English for settlement (B2; A2 for UK Resettlement Scheme refugees) — **FAIL**. English at B1, below the B2 required by Earned Settlement. This is a mandatory requirement and cannot be offset by earnings or other contributions. _(SRC-001 p21)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 0 of the 7 tax years 2019-20 to 2025-26; 5 needed; earnings not provided for 7 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
 - `ES-DEPENDANT-PATHWAY` Settle with the principal applicant (dependant) — **UNKNOWN**. The principal applicant settled on 2024-06-01. Earned Settlement only covers dependants settling at the same time as the principal applicant, or a partner who joined later completing the same qualifying period (p29–p31); it does not say how a dependant settles after the principal applicant has settled. _(SRC-001 p29; SRC-001 p30; SRC-001 p31)_
-
-Other pathways or checks not met: `ES-ENGLISH-B2`.
 
 Assumptions:
 
@@ -3138,19 +3388,19 @@ Assumptions:
 Application date: 2026-03-01.
 
 - Born 2012-07-15 (aged 13 on the application date), nationality PHL.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2019-03-01 to 2026-08-31 — dependant (parent).
+- Permission: FAMILY_PARTNER_OR_PARENT from 2019-03-01 to 2026-08-31 — role DEPENDANT, dependantOf PARENT.
 - No absences from the UK.
-- Relationship: parent who is british citizen.
 - English: not provided. Life in the UK test: not provided.
+- relationships: type PARENT, otherPartyStatus BRITISH_CITIZEN.
 
 Principal (the person they are a dependant of):
 
 - Born 1985-01-30 (aged 41 on the application date), nationality PHL.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2016-03-01 to 2026-08-31 — main applicant, family permission PARTNER_TEN_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2016-03-01 to 2026-08-31 — role MAIN, familyPermission PARTNER_TEN_YEAR.
 - No absences from the UK.
-- Relationship: partner who is british citizen.
-- Relationship: child who is other.
-- English: CEFR B1. Life in the UK test: passed.
+- English: cefrLevel B1. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus BRITISH_CITIZEN; type CHILD, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -3162,7 +3412,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Under 18 or aged 65 or over on the date of application: exempt from the English requirement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Under 18 or aged 65 or over on the date of application: exempt from the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -3175,7 +3425,9 @@ Assumptions:
 
 Outcome **LIKELY_NOT_ELIGIBLE**.
 
-Other pathways or checks not met: `ES-DEPENDANT-PATHWAY`.
+Failing or unknown checks:
+
+- `ES-DEPENDANT-PATHWAY` Settle with the principal applicant (dependant) — **FAIL**. The principal applicant does not currently meet the Earned Settlement requirements, so the dependant cannot settle with them; reassess once the principal applicant meets them. _(SRC-001 p29; SRC-001 p30; SRC-001 p31)_
 
 Assumptions:
 
@@ -3190,21 +3442,21 @@ Assumptions:
 Application date: 2026-11-05.
 
 - Born 2014-04-10 (aged 12 on the application date), nationality IND.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2021-11-06 to 2026-11-05 — dependant (parent).
+- Permission: FAMILY_PARTNER_OR_PARENT from 2021-11-06 to 2026-11-05 — role DEPENDANT, dependantOf PARENT.
 - No absences from the UK.
-- Relationship: parent who is british citizen.
 - English: not provided. Life in the UK test: not provided.
+- relationships: type PARENT, otherPartyStatus BRITISH_CITIZEN.
 
 Principal (the person they are a dependant of):
 
 - Born 1990-05-12 (aged 36 on the application date), nationality IND.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2021-11-06 to 2024-05-05 — main applicant, family permission PARTNER_FIVE_YEAR.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2024-05-06 to 2026-11-05 — main applicant, family permission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2021-11-06 to 2024-05-05 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2024-05-06 to 2026-11-05 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
 - No absences from the UK.
-- Income: 2025-26 £30,000.
-- Relationship: partner who is british citizen.
-- Relationship: child who is other.
-- English: CEFR B1. Life in the UK test: passed.
+- Income: 2025-26 £30,000. Tax years not listed: not provided.
+- English: cefrLevel B1. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus BRITISH_CITIZEN; type CHILD, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -3216,7 +3468,9 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Under 18 or aged 65 or over on the date of application: exempt from the English requirement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Under 18 or aged 65 or over on the date of application: exempt from the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Failing or unknown checks:
+
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-06: 4 full years by 2026-11-05; 10 years are completed on 2031-11-06. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -3232,7 +3486,9 @@ Assumptions:
 
 Outcome **LIKELY_NOT_ELIGIBLE**.
 
-Other pathways or checks not met: `ES-DEPENDANT-PATHWAY`.
+Failing or unknown checks:
+
+- `ES-DEPENDANT-PATHWAY` Settle with the principal applicant (dependant) — **FAIL**. The principal applicant does not currently meet the Earned Settlement requirements, so the dependant cannot settle with them; reassess once the principal applicant meets them. _(SRC-001 p29; SRC-001 p30; SRC-001 p31)_
 
 Assumptions:
 
@@ -3247,31 +3503,30 @@ Assumptions:
 Application date: 2026-11-05.
 
 - Born 2007-03-01 (aged 19 on the application date), nationality NGA.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2021-11-05 to 2027-05-04 — dependant (parent).
+- Permission: FAMILY_PARTNER_OR_PARENT from 2021-11-05 to 2027-05-04 — role DEPENDANT, dependantOf PARENT.
 - No absences from the UK.
-- Relationship: parent who is british citizen.
-- English: not provided. Life in the UK test: passed.
+- English: not provided. Life in the UK test: passed true.
+- relationships: type PARENT, otherPartyStatus BRITISH_CITIZEN.
 
 Principal (the person they are a dependant of):
 
 - Born 1980-09-03 (aged 46 on the application date), nationality NGA.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2021-11-05 to 2024-05-04 — main applicant, family permission PARTNER_FIVE_YEAR.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2024-05-05 to 2027-05-04 — main applicant, family permission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2021-11-05 to 2024-05-04 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2024-05-05 to 2027-05-04 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
 - No absences from the UK.
-- Income: 2025-26 £30,000.
-- Relationship: partner who is british citizen.
-- Relationship: child who is other.
-- English: CEFR B1. Life in the UK test: passed.
+- Income: 2025-26 £30,000. Tax years not listed: not provided.
+- English: cefrLevel B1. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus BRITISH_CITIZEN; type CHILD, otherPartyStatus OTHER.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
 Outcome **INSUFFICIENT_INFORMATION**.
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `CL-ENGLISH` Settlement English requirement — **UNKNOWN**. English level not provided; settlement requires CEFR B1 (paragraph 298(vii) of Part 8 of the Immigration Rules, Appendix KoLL 2.2; applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
-
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-05: 5 full years by 2026-11-05; 10 years are completed on 2031-11-05. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -3286,12 +3541,11 @@ Assumptions:
 
 Outcome **LIKELY_NOT_ELIGIBLE**.
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `ES-DEBT` No outstanding government debt — **UNKNOWN**. Government debt not provided (NHS debt, unpaid tax and National Insurance, litigation costs owed to the Home Office and similar). _(SRC-001 p12; SRC-001 p29)_
 - `ES-ENGLISH-B2` English for settlement (B2; A2 for UK Resettlement Scheme refugees) — **UNKNOWN**. English level not provided. Earned Settlement requires CEFR B2 (existing exemptions are retained). _(SRC-001 p21)_
-
-Other pathways or checks not met: `ES-DEPENDANT-PATHWAY`.
+- `ES-DEPENDANT-PATHWAY` Settle with the principal applicant (dependant) — **FAIL**. The principal applicant does not currently meet the Earned Settlement requirements, so the dependant cannot settle with them; reassess once the principal applicant meets them. _(SRC-001 p29; SRC-001 p30; SRC-001 p31)_
 
 Assumptions:
 
@@ -3307,13 +3561,14 @@ Assumptions:
 Application date: 2029-06-01.
 
 - Born 1993-02-14 (aged 36 on the application date), nationality BRA.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2024-06-01 to 2026-11-30 — main applicant, family permission PARTNER_FIVE_YEAR.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2026-12-01 to 2029-08-31 — main applicant, family permission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2024-06-01 to 2026-11-30 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2026-12-01 to 2029-08-31 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
 - No absences from the UK.
-- Income: 2028-29 £20,000.
+- Income: 2028-29 £20,000. Tax years not listed: not provided.
 - Cash savings: £25,000.
-- Relationship: partner who is british citizen.
-- English: CEFR B2. Life in the UK test: passed.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus BRITISH_CITIZEN.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -3327,7 +3582,7 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B2 required for settlement (Appendix KoLL 2.2, through E-ILRP.1.6; applications from 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (Appendix KoLL 2.3, through E-ILRP.1.6). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
 
 Assumptions:
 
@@ -3355,13 +3610,13 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **UNKNOWN**. Earnings reached £125,141 in 0 of the 4 tax years 2025-26 to 2028-29; 3 needed; earnings not provided for 3 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **UNKNOWN**. Earnings reached £50,271 in 0 of the 5 tax years 2024-25 to 2028-29; 3 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 1 of the 7 tax years 2022-23 to 2028-29; 5 needed; earnings not provided for 6 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
 
-Other pathways or checks not met: `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -3379,13 +3634,14 @@ Assumptions:
 Application date: 2029-06-01.
 
 - Born 1993-02-14 (aged 36 on the application date), nationality BRA.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2024-06-01 to 2026-11-30 — main applicant, family permission PARTNER_FIVE_YEAR.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2026-12-01 to 2029-08-31 — main applicant, family permission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2024-06-01 to 2026-11-30 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2026-12-01 to 2029-08-31 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
 - No absences from the UK.
-- Income: 2028-29 £20,000.
+- Income: 2028-29 £20,000. Tax years not listed: not provided.
 - Cash savings: £24,000.
-- Relationship: partner who is british citizen.
-- English: CEFR B2. Life in the UK test: passed.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus BRITISH_CITIZEN.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -3397,7 +3653,9 @@ Decisive rules:
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (Appendix KoLL 2.3, through E-ILRP.1.6). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 - `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: 5 full years by 2029-06-01; 10 years are completed on 2034-06-01. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
-Other pathways or checks not met: `CL-FAMILY-FINANCIAL`.
+Failing or unknown checks:
+
+- `CL-FAMILY-FINANCIAL` Financial requirement on the 5-year partner route — **FAIL**. Combined earnings of the applicant and partner in the 2028-29 tax year are £20,000, below the £29,000 of the general requirement (E-LTRP.3.1(a)): a shortfall of £9,000; cash savings of £24,000 are below £16,000 plus the shortfall, £25,000 in all, by £1,000 (E-LTRP.3.1(b); E-ILRP.1.3(1A)). If the partner receives a benefit listed in E-LTRP.3.3(a), E-LTRP.3.3 can apply instead. _(SRC-024 E-ILRP.1.3(1A); SRC-024 E-LTRP.3.1; SRC-024 E-LTRP.3.2; SRC-024 E-LTRP.3.3; SRC-024 E-LTRP.3.5; SRC-024 E-LTRP.3.7; SRC-024 E-LTRP.3.8)_
 
 Assumptions:
 
@@ -3426,13 +3684,13 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **UNKNOWN**. Earnings reached £125,141 in 0 of the 4 tax years 2025-26 to 2028-29; 3 needed; earnings not provided for 3 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **UNKNOWN**. Earnings reached £50,271 in 0 of the 5 tax years 2024-25 to 2028-29; 3 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 1 of the 7 tax years 2022-23 to 2028-29; 5 needed; earnings not provided for 6 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
 
-Other pathways or checks not met: `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -3450,12 +3708,14 @@ Assumptions:
 Application date: 2029-06-01.
 
 - Born 1993-02-14 (aged 36 on the application date), nationality BRA.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2024-06-01 to 2026-11-30 — main applicant, family permission PARTNER_FIVE_YEAR.
-- Permission: FAMILY_PARTNER_OR_PARENT from 2026-12-01 to 2029-08-31 — main applicant, family permission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2024-06-01 to 2026-11-30 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
+- Permission: FAMILY_PARTNER_OR_PARENT from 2026-12-01 to 2029-08-31 — role MAIN, familyPermission PARTNER_FIVE_YEAR.
 - No absences from the UK.
-- Income: 2028-29 £20,000.
-- Relationship: partner who is british citizen.
-- English: CEFR B2. Life in the UK test: passed.
+- Income: 2028-29 £20,000. Tax years not listed: not provided.
+- English: cefrLevel B2. Life in the UK test: passed true.
+- relationships: type PARTNER, otherPartyStatus BRITISH_CITIZEN.
+- partnerSpecifiedBenefit: true.
+- governmentDebt: outstanding false.
 
 ### Current Immigration Rules
 
@@ -3469,7 +3729,9 @@ Decisive rules:
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B2 required for settlement (Appendix KoLL 2.2, through E-ILRP.1.6; applications from 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (Appendix KoLL 2.3, through E-ILRP.1.6). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
-Other pathways or checks not met: `CL-LR-RESIDENCE-10Y`.
+Failing or unknown checks:
+
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: 5 full years by 2029-06-01; 10 years are completed on 2034-06-01. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 3.1; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -3497,13 +3759,13 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other unknown checks:
+Failing or unknown checks:
 
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **UNKNOWN**. Earnings reached £125,141 in 0 of the 4 tax years 2025-26 to 2028-29; 3 needed; earnings not provided for 3 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **UNKNOWN**. Earnings reached £50,271 in 0 of the 5 tax years 2024-25 to 2028-29; 3 needed; earnings not provided for 4 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-10Y` Minimum earnings: £12,571 in 5 of 7 years (or £25,142 combined household earnings) — **UNKNOWN**. Earnings reached £12,571 in 1 of the 7 tax years 2022-23 to 2028-29; 5 needed; earnings not provided for 6 year(s). _(SRC-001 p15; SRC-001 p16; SRC-001 p46; SRC-001 p17; SRC-001 p30)_
 
-Other pathways or checks not met: `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Other pathways not taken: `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -3517,6 +3779,8 @@ Assumptions:
 ## Sources cited
 
 - **SRC-001**: A Fairer Pathway to Settlement: Government Response to the Consultation (CP 1707, 62 页) — https://assets.publishing.service.gov.uk/media/6ae90b0e5b14ba0182a272a4/A_Fairer_Pathway_to_Settlement_-_Government_response_to_the_consultation.pdf
+- **SRC-002**: HC Deb 2 November 2026 vol 792 cols 583 起，"Immigration: Earned Settlement"（内政大臣口头陈述及问答）；时间表句在 col 593 — https://hansard.parliament.uk/Commons/2026-11-02/debates/09F388D2-539E-4B0A-ABE2-D3195B14AF0E/ImmigrationEarnedSettlement
+- **SRC-003**: HL Deb 2 November 2026 vol 860 cols 1415 起，"Immigration: Earned Settlement"（Lord Collins of Highbury 复述陈述及问答）；时间表句在 cols 1423–1424 — https://hansard.parliament.uk/Lords/2026-11-02/debates/5D3D04DB-0971-4B22-B841-6414AAFAA8C9/ImmigrationEarnedSettlement
 - **SRC-004**: Immigration Rules: Appendix Skilled Worker（版本 2026-10-08，HC 584；£41,700 + going rate 见 SW 4.2 Option A、SW 8.1；settlement 见 SW 21.1–SW 24.4；dependent partner / child settlement 见 SW 37.1–SW 46.2） — https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-skilled-worker
 - **SRC-005**: Immigration Rules: Appendix Long Residence（版本 2026-10-08，HC 584；settlement 合格期 LR 11.1–11.2，B2 自 2027-03-26 见 LR 13.1） — https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-long-residence
 - **SRC-006**: Public funds（Home Office guidance，HTML 版；SRC-001 p18 注 6 指向此页） — https://www.gov.uk/government/publications/public-funds--2/public-funds

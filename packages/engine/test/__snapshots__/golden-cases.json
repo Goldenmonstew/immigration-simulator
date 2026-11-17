@@ -6,6 +6,13 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
@@ -21,6 +28,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -49,6 +68,13 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "FAIL",
@@ -64,6 +90,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -92,6 +130,13 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2028-07-29",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "FAIL",
@@ -107,6 +152,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2028-07-29",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -167,8 +224,56 @@
       }
     }
   },
-  "G-SW-B1-AFTER-2027-03-26": {
-    "title": "Skilled Worker since 2022-04-01 with B1 English, applies on 2027-04-01 (after the B2 date)",
+  "G-SW-B1-DAY-BEFORE-B2": {
+    "title": "Skilled Worker since 2022-03-01 with B1 English, applies on 2027-03-25 (the day before the B2 requirement)",
+    "columns": {
+      "current-law-2026-11": {
+        "outcome": "LIKELY_ELIGIBLE",
+        "pathwayYears": 5,
+        "earliestDate": "2027-03-25",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
+        "rules": {
+          "CL-SCOPE": "PASS",
+          "CL-SW-RESIDENCE-5Y": "PASS",
+          "CL-SW-SALARY": "PASS",
+          "CL-SW-GOING-RATE": "PASS",
+          "CL-ENGLISH": "PASS",
+          "CL-KOL": "PASS",
+          "CL-LR-RESIDENCE-10Y": "FAIL"
+        }
+      },
+      "earned-settlement-2026-11": {
+        "outcome": "LIKELY_NOT_ELIGIBLE",
+        "routeGroup": "CORE_PERMISSION",
+        "rules": {
+          "ES-CRIMINALITY": "PASS",
+          "ES-DEBT": "PASS",
+          "ES-ENGLISH-B2": "FAIL",
+          "ES-KOL": "PASS",
+          "ES-ROUTE-GROUP": "PASS",
+          "ES-RESIDENCE": "PASS",
+          "ES-EARNINGS-3Y": "FAIL",
+          "ES-EARNINGS-5Y": "PASS",
+          "ES-EARNINGS-10Y": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
+          "ES-PUBLIC-FUNDS": "PASS",
+          "ES-BREACH": "PASS",
+          "ES-ASYLUM-SUPPORT": "PASS",
+          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
+          "ES-PUBLIC-SERVICE": "FAIL"
+        }
+      }
+    }
+  },
+  "G-SW-B1-ON-B2-DATE": {
+    "title": "Same Skilled Worker with B1 English, applies on 2027-03-26 (the day the B2 requirement starts)",
     "columns": {
       "current-law-2026-11": {
         "outcome": "LIKELY_NOT_ELIGIBLE",
@@ -194,7 +299,7 @@
           "ES-RESIDENCE": "PASS",
           "ES-EARNINGS-3Y": "FAIL",
           "ES-EARNINGS-5Y": "PASS",
-          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "PASS",
           "ES-BRITISH-CONNECTION": "FAIL",
           "ES-PUBLIC-FUNDS": "PASS",
           "ES-BREACH": "PASS",
@@ -213,6 +318,13 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2029-01-15",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
@@ -228,6 +340,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 10,
         "earliestDate": "2034-01-15",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -256,6 +380,11 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 10,
         "earliestDate": "2034-01-15",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
@@ -271,6 +400,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 10,
         "earliestDate": "2034-01-15",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -299,6 +440,13 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-09-01",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
@@ -314,6 +462,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-09-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT",
+          "ES-TRANSITIONAL-CARE-WORKER"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -342,6 +502,11 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 10,
         "earliestDate": "2029-09-15",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "FAIL",
@@ -357,6 +522,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2029-09-15",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -379,12 +556,17 @@
     }
   },
   "G-LONG-RESIDENCE-10Y": {
-    "title": "Student 2016–2020, Graduate 2020–2022, Skilled Worker since 2022; 10 years lawful residence on 2026-09-15",
+    "title": "Student 2016–2021, Graduate 2021–2023, Skilled Worker since 2023; 10 years lawful residence on 2026-09-15",
     "columns": {
       "current-law-2026-11": {
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 10,
         "earliestDate": "2026-09-15",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "FAIL",
@@ -399,7 +581,19 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 10,
-        "earliestDate": "2032-09-15",
+        "earliestDate": "2033-09-15",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -461,6 +655,11 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-12-01",
+        "decidedBy": [
+          "CL-HKBNO-RESIDENCE-5Y",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-HKBNO-RESIDENCE-5Y": "FAIL",
@@ -499,6 +698,12 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 10,
         "earliestDate": "2026-10-01",
+        "decidedBy": [
+          "CL-FAMILY-RESIDENCE",
+          "CL-FAMILY-RELATIONSHIP",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-FAMILY-RESIDENCE": "PASS",
@@ -513,6 +718,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-10-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BRITISH-CONNECTION",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -541,6 +758,13 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-08-01",
+        "decidedBy": [
+          "CL-FAMILY-RESIDENCE",
+          "CL-FAMILY-RELATIONSHIP",
+          "CL-FAMILY-FINANCIAL",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-FAMILY-RESIDENCE": "PASS",
@@ -556,6 +780,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-08-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BRITISH-CONNECTION",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -584,6 +820,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 3,
         "earliestDate": "2026-08-01",
+        "decidedBy": [
+          "CL-GT-RESIDENCE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-GT-RESIDENCE": "PASS",
@@ -597,6 +838,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2028-08-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -625,6 +878,10 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-07-01",
+        "decidedBy": [
+          "CL-PROTECTION-RESIDENCE-5Y",
+          "CL-PROTECTION-STATUS"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-PROTECTION-RESIDENCE-5Y": "PASS",
@@ -639,6 +896,16 @@
         "routeGroup": "PROTECTION",
         "pathwayYears": 20,
         "earliestDate": "2041-07-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PROTECTION-PATHWAY",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -661,6 +928,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-PARTNER-5Y",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-PARTNER-5Y": "PASS",
@@ -674,6 +946,17 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT",
+          "ES-DEPENDANT-PATHWAY"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -697,6 +980,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-CHILD",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-CHILD": "PASS",
@@ -710,6 +998,17 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT",
+          "ES-DEPENDANT-PATHWAY"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -733,6 +1032,13 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
@@ -748,6 +1054,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -816,6 +1134,13 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
@@ -831,6 +1156,16 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 20,
         "earliestDate": "2041-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -859,6 +1194,13 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
@@ -874,6 +1216,16 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 20,
         "earliestDate": "2041-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -902,6 +1254,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 10,
         "earliestDate": "2026-11-04",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-FAMILY-RESIDENCE": "UNKNOWN",
@@ -915,6 +1272,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 10,
         "earliestDate": "2026-11-04",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -943,6 +1312,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 10,
         "earliestDate": "2026-11-04",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-PRIVATE-LIFE-RESIDENCE": "UNKNOWN",
@@ -956,6 +1330,16 @@
         "routeGroup": "FAMILY_AND_PRIVATE_LIFE",
         "pathwayYears": 20,
         "earliestDate": "2035-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -984,6 +1368,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 10,
         "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-FAMILY-RESIDENCE": "UNKNOWN",
@@ -997,6 +1386,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 10,
         "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1038,6 +1439,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-11-04",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT",
+          "ES-PUBLIC-SERVICE"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1077,6 +1490,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-11-04",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BRITISH-CONNECTION",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1105,6 +1530,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "CL-SW-PARTNER-5Y",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-PARTNER-5Y": "PASS",
@@ -1118,6 +1548,17 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT",
+          "ES-DEPENDANT-PATHWAY"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1154,6 +1595,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-5Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1182,6 +1635,11 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2028-04-06",
+        "decidedBy": [
+          "CL-SW-PARTNER-5Y",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-PARTNER-5Y": "FAIL",
@@ -1195,6 +1653,17 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2028-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT",
+          "ES-DEPENDANT-PATHWAY"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1218,6 +1687,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "CL-SW-CHILD",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-CHILD": "PASS",
@@ -1231,6 +1705,17 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT",
+          "ES-DEPENDANT-PATHWAY"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1254,6 +1739,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "CL-SW-CHILD",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-CHILD": "PASS",
@@ -1267,6 +1757,17 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2026-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-ASYLUM-SUPPORT",
+          "ES-DEPENDANT-PATHWAY"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1290,6 +1791,11 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 10,
         "earliestDate": "2031-04-06",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-CHILD": "FAIL",
@@ -1324,6 +1830,10 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2032-06-01",
+        "decidedBy": [
+          "CL-PROTECTION-RESIDENCE-5Y",
+          "CL-PROTECTION-STATUS"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-PROTECTION-RESIDENCE-5Y": "PASS",
@@ -1338,6 +1848,16 @@
         "routeGroup": "PROTECTION",
         "pathwayYears": 5,
         "earliestDate": "2032-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BREACH",
+          "ES-PROTECTION-PATHWAY"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1359,6 +1879,10 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2032-03-01",
+        "decidedBy": [
+          "CL-PROTECTION-RESIDENCE-5Y",
+          "CL-PROTECTION-STATUS"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-PROTECTION-RESIDENCE-5Y": "FAIL",
@@ -1373,6 +1897,19 @@
         "routeGroup": "PROTECTION",
         "pathwayYears": 10,
         "earliestDate": "2038-03-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-PROTECTION-PATHWAY",
+          "ES-PROTECTION-CONTRIBUTION",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1396,6 +1933,10 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2032-03-01",
+        "decidedBy": [
+          "CL-PROTECTION-RESIDENCE-5Y",
+          "CL-PROTECTION-STATUS"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-PROTECTION-RESIDENCE-5Y": "FAIL",
@@ -1410,6 +1951,19 @@
         "routeGroup": "PROTECTION",
         "pathwayYears": 20,
         "earliestDate": "2048-03-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-PROTECTION-PATHWAY",
+          "ES-PROTECTION-CONTRIBUTION",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1433,6 +1987,10 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2032-03-01",
+        "decidedBy": [
+          "CL-PROTECTION-RESIDENCE-5Y",
+          "CL-PROTECTION-STATUS"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-PROTECTION-RESIDENCE-5Y": "FAIL",
@@ -1447,6 +2005,16 @@
         "routeGroup": "PROTECTION",
         "pathwayYears": 30,
         "earliestDate": "2057-03-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PROTECTION-PATHWAY",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1469,6 +2037,13 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2028-04-06",
+        "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
@@ -1484,6 +2059,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2028-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT",
+          "ES-TRANSITIONAL-CARE-WORKER"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1512,6 +2099,11 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 10,
         "earliestDate": "2033-04-06",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
@@ -1527,6 +2119,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 10,
         "earliestDate": "2033-04-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1555,6 +2159,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 10,
         "earliestDate": "2035-06-06",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
@@ -1570,6 +2179,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 10,
         "earliestDate": "2035-06-06",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-EARNINGS-10Y",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1599,6 +2220,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-02-01",
+        "decidedBy": [
+          "CL-HKBNO-RESIDENCE-5Y",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-HKBNO-RESIDENCE-5Y": "PASS",
@@ -1637,6 +2263,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 3,
         "earliestDate": "2026-11-04",
+        "decidedBy": [
+          "CL-GT-RESIDENCE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-GT-RESIDENCE": "PASS",
@@ -1676,6 +2307,13 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-03-01",
+        "decidedBy": [
+          "CL-FAMILY-RESIDENCE",
+          "CL-FAMILY-RELATIONSHIP",
+          "CL-FAMILY-FINANCIAL",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-FAMILY-RESIDENCE": "PASS",
@@ -1717,6 +2355,10 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-03-01",
+        "decidedBy": [
+          "CL-PROTECTION-RESIDENCE-5Y",
+          "CL-PROTECTION-STATUS"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-PROTECTION-RESIDENCE-5Y": "PASS",
@@ -1731,6 +2373,16 @@
         "routeGroup": "PROTECTION",
         "pathwayYears": 20,
         "earliestDate": "2041-03-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-PROTECTION-PATHWAY",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -1753,6 +2405,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-09-01",
+        "decidedBy": [
+          "CL-ANCESTRY-RESIDENCE-5Y",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-ANCESTRY-RESIDENCE-5Y": "PASS",
@@ -1792,6 +2449,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 3,
         "earliestDate": "2026-05-01",
+        "decidedBy": [
+          "CL-INNOVATOR-RESIDENCE-3Y",
+          "CL-INNOVATOR-ENDORSEMENT",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-INNOVATOR-RESIDENCE-3Y": "PASS",
@@ -1832,6 +2494,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-07-01",
+        "decidedBy": [
+          "CL-PRIVATE-LIFE-RESIDENCE",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-PRIVATE-LIFE-RESIDENCE": "PASS",
@@ -1872,6 +2539,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-02-01",
+        "decidedBy": [
+          "CL-HKBNO-DEPENDANT",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-HKBNO-DEPENDANT": "PASS",
@@ -1905,6 +2577,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-06-01",
+        "decidedBy": [
+          "CL-GT-DEPENDANT",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-GT-DEPENDANT": "PASS",
@@ -1938,6 +2615,11 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 10,
         "earliestDate": "2026-03-01",
+        "decidedBy": [
+          "CL-FAMILY-CHILD",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-FAMILY-CHILD": "PASS",
@@ -1971,6 +2653,11 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2026-11-06",
+        "decidedBy": [
+          "CL-FAMILY-CHILD",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-FAMILY-CHILD": "PASS",
@@ -2035,6 +2722,13 @@
         "outcome": "LIKELY_ELIGIBLE",
         "pathwayYears": 5,
         "earliestDate": "2029-06-01",
+        "decidedBy": [
+          "CL-FAMILY-RESIDENCE",
+          "CL-FAMILY-RELATIONSHIP",
+          "CL-FAMILY-FINANCIAL",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-FAMILY-RESIDENCE": "PASS",
@@ -2050,6 +2744,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2029-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BRITISH-CONNECTION",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -2078,6 +2784,11 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 10,
         "earliestDate": "2034-06-01",
+        "decidedBy": [
+          "CL-ENGLISH",
+          "CL-KOL",
+          "CL-LR-RESIDENCE-10Y"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-FAMILY-RESIDENCE": "PASS",
@@ -2093,6 +2804,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2029-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BRITISH-CONNECTION",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -2120,6 +2843,13 @@
       "current-law-2026-11": {
         "outcome": "POTENTIALLY_ELIGIBLE",
         "pathwayYears": 5,
+        "decidedBy": [
+          "CL-FAMILY-RESIDENCE",
+          "CL-FAMILY-RELATIONSHIP",
+          "CL-FAMILY-FINANCIAL",
+          "CL-ENGLISH",
+          "CL-KOL"
+        ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-FAMILY-RESIDENCE": "PASS",
@@ -2135,6 +2865,18 @@
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 5,
         "earliestDate": "2029-06-01",
+        "decidedBy": [
+          "ES-CRIMINALITY",
+          "ES-DEBT",
+          "ES-ENGLISH-B2",
+          "ES-KOL",
+          "ES-ROUTE-GROUP",
+          "ES-RESIDENCE",
+          "ES-BRITISH-CONNECTION",
+          "ES-PUBLIC-FUNDS",
+          "ES-BREACH",
+          "ES-ASYLUM-SUPPORT"
+        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",

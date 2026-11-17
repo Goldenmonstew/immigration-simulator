@@ -18,7 +18,7 @@
 
 ## 改动
 
-- `game-client.tsx` 用 `next/dynamic` 加载 `TownCanvas`（Phaser 只在它里面），小镇出现在屏幕上时才下载；加载期间用同尺寸的空画布占位，原有的"加载中"提示照常显示。
+- `game-client.tsx` 用 `next/dynamic` 加载 `TownCanvas`（Phaser 只在它里面），小镇出现在屏幕上时才下载；加载期间用与画布同尺寸（室内、室外分别对应）的空画布占位，原有的"加载中"提示照常显示。
 - 游戏页 `main` 最小高度从 70vh 改为 100vh，页脚在加载时就在首屏以下，不再跳动。
 - 根布局声明 `icon: /icon.svg`，浏览器不再请求不存在的 `/favicon.ico`。
 

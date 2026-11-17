@@ -19,9 +19,9 @@
 
 ## 二手来源（只用于交叉验证）
 
-几家律所和行业博客（11 月 8–11 日前后的文章）都说：Earned Settlement 的 Statement of Changes 还没有提交议会；有一篇预计 12 月提交。没有官方来源给出日期，所以不写进数据，`docs/pending-details.md` 里"生效日期未定"的条目保持不变。
+几家律所和行业博客（11 月 8–11 日前后的文章）都说：Earned Settlement 的 Statement of Changes 还没有提交议会；有一篇预计 12 月提交。这与 SOURCES 已登记的官方说法一致（SRC-002、SRC-003 议会答问：12 月开始提交规则修改，首批 2027 年 1 月生效），但具体生效日仍要以届时提交的 Statement of Changes 为准，所以不写进数据，`docs/pending-details.md` 里"生效日期未定"的条目保持不变。
 
 ## 下次需要重查的时点
 
-- 出现新的 Statement of Changes（尤其是落实 CP 1707 的那一份）时：规则集 `earned-settlement-2026-11` 要按正式条文重新核对，届时它从"已宣布、未生效"变为法律。
-- 2027-03-26 前后：settlement 英语 B2 生效（SRC-005 LR 13.1、SRC-014 EL 1.1），黄金案例 `G-SW-B1-AFTER-2027-03-26` 覆盖了这个边界。
+- 落实 CP 1707 的 Statement of Changes 提交议会时：规则集 `earned-settlement-2026-11` 要按正式条文重新核对，并记下其中写明的生效日；到生效日之后，它才从"已宣布、未生效"变为现行法律。
+- 2027-03-26 前后：settlement 英语 B2 生效（SRC-005 LR 13.1、SRC-014 EL 1.1），黄金案例 `G-SW-B1-DAY-BEFORE-B2`（03-25）与 `G-SW-B1-ON-B2-DATE`（03-26）覆盖了这个边界。

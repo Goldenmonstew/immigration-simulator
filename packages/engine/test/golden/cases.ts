@@ -94,17 +94,33 @@ export const goldenCases: GoldenCase[] = [
     },
   },
   {
-    id: 'G-SW-B1-AFTER-2027-03-26',
+    id: 'G-SW-B1-DAY-BEFORE-B2',
     title:
-      'Skilled Worker since 2022-04-01 with B1 English, applies on 2027-04-01 (after the B2 date)',
+      'Skilled Worker since 2022-03-01 with B1 English, applies on 2027-03-25 (the day before the B2 requirement)',
     request: {
-      simulationDate: '2027-04-01',
+      simulationDate: '2027-03-25',
       timeline: person({
         episodes: [
-          sw('2022-04-01', '2025-03-31'),
-          sw('2025-04-01', '2028-03-31'),
+          sw('2022-03-01', '2025-02-28'),
+          sw('2025-03-01', '2028-02-28'),
         ],
-        incomeYears: years(2022, 2026, 52000),
+        incomeYears: years(2021, 2025, 52000),
+        english: { cefrLevel: 'B1' },
+      }),
+    },
+  },
+  {
+    id: 'G-SW-B1-ON-B2-DATE',
+    title:
+      'Same Skilled Worker with B1 English, applies on 2027-03-26 (the day the B2 requirement starts)',
+    request: {
+      simulationDate: '2027-03-26',
+      timeline: person({
+        episodes: [
+          sw('2022-03-01', '2025-02-28'),
+          sw('2025-03-01', '2028-02-28'),
+        ],
+        incomeYears: years(2021, 2025, 52000),
         english: { cefrLevel: 'B1' },
       }),
     },
@@ -191,7 +207,7 @@ export const goldenCases: GoldenCase[] = [
   {
     id: 'G-LONG-RESIDENCE-10Y',
     title:
-      'Student 2016–2020, Graduate 2020–2022, Skilled Worker since 2022; 10 years lawful residence on 2026-09-15',
+      'Student 2016–2021, Graduate 2021–2023, Skilled Worker since 2023; 10 years lawful residence on 2026-09-15',
     request: {
       simulationDate: '2026-09-15',
       timeline: person({
@@ -202,17 +218,17 @@ export const goldenCases: GoldenCase[] = [
             route: 'STUDENT',
             role: 'MAIN',
             validFrom: '2016-09-15',
-            validTo: '2020-09-14',
+            validTo: '2021-09-14',
           },
           {
             route: 'GRADUATE',
             role: 'MAIN',
-            validFrom: '2020-09-15',
-            validTo: '2022-09-14',
+            validFrom: '2021-09-15',
+            validTo: '2023-09-14',
           },
-          sw('2022-09-15', '2027-09-14', 48000, '2134'),
+          sw('2023-09-15', '2028-09-14', 48000, '2134'),
         ],
-        incomeYears: years(2022, 2025, 48000),
+        incomeYears: years(2023, 2025, 48000),
       }),
     },
   },
