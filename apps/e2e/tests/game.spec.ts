@@ -46,6 +46,31 @@ test(
   },
 );
 
+// page.route cannot see requests the service worker answers.
+test.describe(() => {
+  test.use({ serviceWorkers: 'block' });
+  test('retry reloads the page when a story download fails', async ({
+    page,
+  }) => {
+    await page.goto('/game');
+    const start = page.getByRole('button', { name: /^和林遥/ });
+    await expect(start).toBeVisible();
+    // As after a deploy: this page's lazily loaded files are gone until a
+    // fresh page load.
+    let stale = true;
+    page.on('request', (request) => {
+      if (request.isNavigationRequest()) stale = false;
+    });
+    await page.route('**/_next/static/chunks/**', (route) =>
+      stale ? route.fulfill({ status: 404 }) : route.continue(),
+    );
+    await start.click();
+    await page.getByRole('button', { name: '重试' }).click();
+    await start.click();
+    await expect(page.locator('canvas')).toBeVisible();
+  });
+});
+
 test('the game resumes after a reload', async ({ page }) => {
   await startGame(page);
   await page.reload();

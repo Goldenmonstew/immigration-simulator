@@ -15,6 +15,11 @@ export default function ErrorPage({
   reset: () => void;
 }) {
   const { t } = useTranslation();
+  // After a deploy the old page's lazily loaded files are gone and only a fresh
+  // page load finds the new ones. Other errors keep reset(), which keeps
+  // in-memory state such as a draft that storage refused.
+  const retry =
+    error.name === 'ChunkLoadError' ? () => window.location.reload() : reset;
   const pathname = usePathname();
   useEffect(() => {
     reportError('boundary', error, error.digest ?? '');
@@ -34,7 +39,7 @@ export default function ErrorPage({
         <h1>{t('error.title')}</h1>
         <p>{t('error.body')}</p>
         <p className={styles.actions}>
-          <button type="button" className={styles.button} onClick={reset}>
+          <button type="button" className={styles.button} onClick={retry}>
             {t('error.retry')}
           </button>
           <Link className={styles.secondary} href="/">
