@@ -183,13 +183,20 @@ function episodeAt(state: GameState, date = state.date) {
 }
 function pool(state: GameState) {
   const character = characterOf(state.characterId);
+  const residentIds = new Set(
+    npcs
+      .filter((npc) => !npc.characters || npc.characters.includes(character.id))
+      .map((npc) => npc.id),
+  );
   return [
     ...commonEvents,
     ...character.events,
     ...systemEvents,
-    ...policyStories.map((story) => story.event),
+    ...policyStories
+      .filter((story) => !story.character || story.character === character.id)
+      .map((story) => story.event),
     character.opening,
-    ...heartEvents,
+    ...heartEvents.filter((event) => residentIds.has(event.heart!.npc)),
     ...townHeartLetters,
     ...surpriseEvents,
   ];
@@ -314,6 +321,7 @@ function draw(state: GameState, count: number) {
     if (available(state, event) && !state.eventQueue.includes(event.id))
       state.eventQueue.push(event.id);
   const character = characterOf(state.characterId);
+  const events = pool(state);
   for (let i = 0; i < count; i++) {
     const candidates = [
       ...commonEvents,
@@ -324,7 +332,7 @@ function draw(state: GameState, count: number) {
         !character.graduateRoute?.recruitment.includes(e) &&
         available(state, e, true) &&
         ![state.pendingEvent, ...state.eventQueue].some((id) =>
-          pool(state)
+          events
             .find((scheduled) => scheduled.id === id)
             ?.forbids?.some(
               (flag) =>

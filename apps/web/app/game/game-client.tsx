@@ -113,6 +113,7 @@ export default function GameClient() {
   const [state, setState] = useState<GameState>();
   const [saves, setSaves] = useState<Record<string, GameSave>>({});
   const [loadError, setLoadError] = useState<Error>();
+  const loadingCharacter = useRef(false);
   const [ready, setReady] = useState(false),
     [sceneReady, setSceneReady] = useState(false),
     [available, setAvailable] = useState(true);
@@ -373,6 +374,8 @@ export default function GameClient() {
     setInterior(next?.day.place === 'home');
   };
   const selectCharacter = async (id: string, action: 'new' | 'continue') => {
+    if (loadingCharacter.current) return;
+    loadingCharacter.current = true;
     setReady(false);
     try {
       await loadCharacter(id);
@@ -393,6 +396,7 @@ export default function GameClient() {
     } catch (error) {
       setLoadError(error as Error);
     } finally {
+      loadingCharacter.current = false;
       setReady(true);
     }
   };

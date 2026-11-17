@@ -10,7 +10,7 @@ import {
   type GameState,
 } from '@uk-immigration/game';
 import { TownScene, type SceneView } from '../app/game/scene';
-import { gameStorage, homeSpot } from '../app/game/session';
+import { gameStorage, homeSpot, previewGameSave } from '../app/game/session';
 import townMap from '../public/game/town.json';
 import homeMap from '../public/game/home.json';
 import { SceneText, textPosition } from '../app/game/scene-text';
@@ -880,7 +880,7 @@ test('saved furnishings and brighter rent survive a fresh scene and re-entry; en
   const state = newGame('family-partner', 42, 'en');
   state.flags.push(...furniture, 'brighter-home');
   gameStorage(state.characterId, state);
-  const saved = gameStorage(state.characterId).state!;
+  const saved = previewGameSave(state.characterId).state!;
   expect(saved).toEqual(state);
   const { scene, view, layers } = loadScene(true, saved);
   const light = () => Reflect.get(scene, 'sky') as Drawing;
@@ -899,7 +899,7 @@ test('saved furnishings and brighter rent survive a fresh scene and re-entry; en
   expect(light().fillRect).not.toHaveBeenCalled();
   expect(light().fillCircle).not.toHaveBeenCalled();
   gameStorage(saved.characterId, saved);
-  const reloaded = loadScene(true, gameStorage(saved.characterId).state!);
+  const reloaded = loadScene(true, previewGameSave(saved.characterId).state!);
   expect(
     (Reflect.get(reloaded.scene, 'sky') as Drawing).fillRect,
   ).not.toHaveBeenCalled();

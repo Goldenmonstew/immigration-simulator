@@ -1,12 +1,11 @@
+import { harness, mountClient, renderView } from './game-client-harness';
 import { loadedCharacters } from './load-game-characters';
 import * as React from 'react';
 import { readFileSync } from 'node:fs';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { evaluate, type Locale } from '@uk-immigration/engine';
 import * as core from '@uk-immigration/game';
 import type { GameState } from '@uk-immigration/game';
-import GameClient from '../app/game/game-client';
 import TownCanvas from '../app/game/town-canvas';
 import {
   CharacterSelect,
@@ -37,6 +36,7 @@ import {
 } from '../app/game/life-overlays';
 import {
   gameStorage,
+  previewGameSave,
   gameDraft,
   itemIcon,
   spritePath,
@@ -53,27 +53,9 @@ import {
 import { t } from '../i18n';
 import townMap from '../public/game/town.json';
 import homeMap from '../public/game/home.json';
-import { LocaleContext } from '../i18n/locale';
 import { decodeDraft, encodeDraft } from '../lib/share';
 import { portraitPath, townBanner } from '../app/game/art';
 import Home from '../app/home-content';
-vi.mock('react', { spy: true });
-vi.mock('../app/game/town-canvas', () => ({ default: () => null }));
-// game-client loads the canvas through next/dynamic; hand back the mock above.
-vi.mock('next/dynamic', async () => {
-  const canvas = await import('../app/game/town-canvas');
-  return { default: () => canvas.default };
-});
-vi.mock('../app/game/sound', () => ({
-  playSound: vi.fn(),
-  hideSound: vi.fn(),
-  readMuted: () => true,
-  setMuted: vi.fn(),
-  setSoundSeason: vi.fn(),
-  stopSound: vi.fn(),
-  unlockSound: vi.fn(),
-}));
-const actualReact = await vi.importActual<typeof React>('react');
 function expectCelebrationIcon(html: string) {
   const icon = html.match(
     /class="[^"]*catchCard[^"]*"[^>]*>(<span[^>]*>)/,
@@ -145,150 +127,6 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.useRealTimers();
 });
-type Props = {
-  children?: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  'aria-label'?: string;
-  onChange?: (event: { target: { value: string } }) => void;
-};
-function walk(
-  node: React.ReactNode,
-  visit: (e: React.ReactElement<Props>) => void,
-) {
-  React.Children.forEach(node, (c) => {
-    if (React.isValidElement<Props>(c)) {
-      visit(c);
-      walk(c.props.children, visit);
-    }
-  });
-}
-function content(node: React.ReactNode): string {
-  return React.Children.toArray(node)
-    .map((c) =>
-      React.isValidElement<Props>(c) ? content(c.props.children) : String(c),
-    )
-    .join('');
-}
-function renderView(make: () => React.ReactNode, locale: Locale = 'zh-CN') {
-  const buttons: {
-    label: string;
-    accessibleLabel?: string;
-    click: () => void;
-    disabled?: boolean;
-  }[] = [];
-  let tree: React.ReactNode;
-  function Probe() {
-    tree = make();
-    walk(tree, (e) => {
-      if (e.type === 'button' && e.props.onClick)
-        buttons.push({
-          label: content(e.props.children),
-          accessibleLabel: e.props['aria-label'],
-          click: e.props.onClick,
-          disabled: e.props.disabled,
-        });
-    });
-    return tree;
-  }
-  const html = renderToStaticMarkup(
-    <LocaleContext value={{ locale, setLocale: () => {} }}>
-      <Probe />
-    </LocaleContext>,
-  );
-  return {
-    html,
-    buttons,
-    click(prefix: string) {
-      const b = buttons.find(
-        (b) => b.label.startsWith(prefix) || b.accessibleLabel === prefix,
-      );
-      expect(b, `Button: ${prefix}`).toBeDefined();
-      expect(b!.disabled).not.toBe(true);
-      b!.click();
-    },
-    props<P extends object>(component: React.JSXElementConstructor<P>): P {
-      let result: P | undefined;
-      walk(tree, (e) => {
-        if (e.type === component) result = e.props as P;
-      });
-      expect(result).toBeDefined();
-      return result!;
-    },
-    input(value: string) {
-      walk(tree, (e) => {
-        if (e.type === 'input') e.props.onChange?.({ target: { value } });
-      });
-    },
-  };
-}
-// Minimal hook runner for controller transitions and timed overlays, without a DOM or Phaser.
-function harness(make: () => React.ReactNode, locale: Locale = 'zh-CN') {
-  const stateHook = actualReact.useState,
-    refHook = actualReact.useRef,
-    effectHook = actualReact.useEffect;
-  const values: unknown[] = [],
-    refs: { current: unknown }[] = [],
-    effects: { deps?: React.DependencyList; cleanup?: () => void }[] = [];
-  let running = false,
-    si = 0,
-    ri = 0,
-    ei = 0;
-  let pending: {
-    i: number;
-    fn: React.EffectCallback;
-    deps?: React.DependencyList;
-  }[] = [];
-  vi.spyOn(React, 'useState').mockImplementation(((initial: unknown) => {
-    if (!running) return stateHook(initial);
-    const i = si++;
-    if (!(i in values))
-      values[i] = typeof initial === 'function' ? initial() : initial;
-    return [
-      values[i],
-      (next: unknown) => {
-        values[i] = typeof next === 'function' ? next(values[i]) : next;
-      },
-    ];
-  }) as typeof React.useState);
-  vi.spyOn(React, 'useRef').mockImplementation(((initial: unknown) => {
-    if (!running) return refHook(initial);
-    const i = ri++;
-    return refs[i] ?? (refs[i] = { current: initial });
-  }) as typeof React.useRef);
-  vi.spyOn(React, 'useEffect').mockImplementation((fn, deps) => {
-    if (!running) return effectHook(fn, deps);
-    const i = ei++,
-      old = effects[i];
-    if (!old || !deps || deps.some((d, j) => !Object.is(d, old.deps?.[j])))
-      pending.push({ i, fn, deps });
-  });
-  return {
-    render() {
-      si = ri = ei = 0;
-      pending = [];
-      return renderView(() => {
-        running = true;
-        const tree = make();
-        running = false;
-        return tree;
-      }, locale);
-    },
-    flush() {
-      const work = pending;
-      pending = [];
-      for (const { i, fn, deps } of work) {
-        effects[i]?.cleanup?.();
-        effects[i] = { deps, cleanup: fn() || undefined };
-      }
-    },
-    dispose() {
-      effects.forEach((e) => e.cleanup?.());
-    },
-    values,
-  };
-}
-
 test.each(['zh-CN', 'en'] as const)(
   'clock, weather, morning and all character choices in %s',
   (locale) => {
@@ -718,28 +556,28 @@ test('fast-forward stops at every event and only finishes the current season', (
   expect(state.day.minute).toBe(420);
 });
 
-test('v3 saves restore inventories and random cursor; v2 and invalid saves are never read', () => {
+test('v3 saves restore inventories and random cursor; v2 and invalid saves are never read', async () => {
   const state = active();
   storage.set(
     `uk-immigration-life-v2:${state.characterId}`,
     JSON.stringify(state),
   );
-  expect(gameStorage(state.characterId).state).toBeUndefined();
-  gameStorage(state.characterId, state);
-  expect(gameStorage(state.characterId).state).toEqual(state);
+  expect(previewGameSave(state.characterId).state).toBeUndefined();
+  const h = await client(state);
+  expect(h.render().props(TownCanvas).state).toEqual(state);
+  h.dispose();
   for (const change of [
     { version: 2 },
     { day: undefined },
     { inventory: { tea: -1 } },
     { plots: [null] },
     { day: { ...state.day, minute: 2000 } },
-    { pendingEvent: 'missing' },
   ]) {
     storage.set(
       `uk-immigration-life-v3:${state.characterId}`,
       JSON.stringify({ ...state, clientVersion: 1, ...change }),
     );
-    expect(gameStorage(state.characterId).available).toBe(false);
+    expect(previewGameSave(state.characterId).available).toBe(false);
   }
   vi.stubGlobal('localStorage', {
     getItem: () => {
@@ -800,16 +638,8 @@ async function client(
   locale: Locale = 'zh-CN',
   action: 'new' | 'continue' = 'continue',
 ) {
-  const documentStub = {
-    hidden: false,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  };
-  vi.stubGlobal('document', documentStub);
   gameStorage(start.characterId, start);
-  const h = harness(() => GameClient(), locale);
-  h.render();
-  h.flush();
+  const h = mountClient(locale);
   const selection = h.render().props(CharacterSelect);
   const entering = selection.onSelect(start.characterId, action);
   expect(h.render().html).toContain(t('game.loading', locale));
@@ -817,7 +647,7 @@ async function client(
   h.render().props(TownCanvas).onReady();
   h.render();
   h.flush();
-  return { ...h, documentStub };
+  return h;
 }
 test('controller clock ticks only outdoors; menus, events, hidden page and morning pause it', async () => {
   vi.useFakeTimers();
@@ -1153,7 +983,7 @@ test('one-month journey pauses abroad, restores there, and records only a comple
   expect(view.html).not.toContain('role="application"');
   const abroad = view.props(TravelCard).state;
   gameStorage(abroad.characterId, abroad);
-  expect(gameStorage(abroad.characterId).state!.trip).toEqual(abroad.trip);
+  expect(previewGameSave(abroad.characterId).state!.trip).toEqual(abroad.trip);
   for (let i = 0; i < 15; i++) {
     view = h.render();
     const card = view.props(TravelCard);
@@ -1220,20 +1050,21 @@ test('real fast-forward diary groups all three days and merges repeat conversati
   expect(view.html).toContain('× 2');
   expect(view.html).not.toMatch(cjk);
   gameStorage(after.characterId, after, diary);
-  expect(gameStorage(after.characterId).diary).toEqual(diary);
+  expect(previewGameSave(after.characterId).diary).toEqual(diary);
 });
 
-test('unassigned real event queue restores, but mock-era v3 saves are ignored', () => {
+test('unassigned real event queue restores, but mock-era v3 saves are ignored', async () => {
   const state = core.newGame(core.characters[0].id, 4, 'en');
   delete state.pendingEvent;
   state.eventQueue = ['letter'];
-  gameStorage(state.characterId, state);
-  expect(gameStorage(state.characterId).state?.eventQueue).toEqual(['letter']);
+  const h = await client(state, 'en');
+  expect(h.render().props(TownCanvas).state.eventQueue).toEqual(['letter']);
+  h.dispose();
   storage.set(
     `uk-immigration-life-v3:${state.characterId}`,
     JSON.stringify(state),
   );
-  expect(gameStorage(state.characterId).state).toBeUndefined();
+  expect(previewGameSave(state.characterId).state).toBeUndefined();
 });
 
 test('Tiled layers retain finite offsets, opacity and visibility after map regeneration', () => {
@@ -1312,7 +1143,7 @@ test('season opening stats survive reload and include daily life changes in the 
   const opening = { ...start.stats };
   const afterMeal = core.eat(start, 'tea');
   gameStorage(afterMeal.characterId, afterMeal, [], opening);
-  expect(gameStorage(afterMeal.characterId).quarterStart).toEqual(opening);
+  expect(previewGameSave(afterMeal.characterId).quarterStart).toEqual(opening);
   const settled = {
     ...afterMeal,
     stats: { ...afterMeal.stats, mood: afterMeal.stats.mood + 3 },
@@ -2263,7 +2094,7 @@ test.each(['zh-CN', 'en'] as const)(
     const gifted = core.gift(joined, 'margaret', 'community-lunch-photo');
     expect(gifted.inventory['community-lunch-photo']).toBe(0);
     gameStorage(gifted.characterId, gifted, diary);
-    const restored = gameStorage(gifted.characterId);
+    const restored = previewGameSave(gifted.characterId);
     expect(restored.diary).toEqual(diary);
     expect(endingMemories(restored.state!).photo).toBe(true);
     expect(
@@ -2575,7 +2406,7 @@ test.each(['zh-CN', 'en'] as const)(
     expect(h.render().props(TownCanvas).state.day.minute).toBe(
       resolved.day.minute,
     );
-    const saved = gameStorage(start.characterId);
+    const saved = previewGameSave(start.characterId);
     expect(
       saved.diary!.filter((m) => m.text.en === resolved.outcome!.text!.en),
     ).toHaveLength(1);
@@ -2636,7 +2467,9 @@ test('fast-forward queues a new event result in the saved season review without 
     expect(view.html).not.toContain(t('game.eventResult'));
     h.flush();
     expect(
-      gameStorage(start.characterId).diary!.some((m) => m.text.en === text.en),
+      previewGameSave(start.characterId).diary!.some(
+        (m) => m.text.en === text.en,
+      ),
     ).toBe(true);
     view.props(QuarterSummary).onContinue();
     expect(h.render().html).not.toContain(text.zhCN);

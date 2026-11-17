@@ -352,16 +352,10 @@ export function previewGameSave(characterId: string): GameSave {
 // Storage is the external input boundary. Failed saves never interrupt play.
 export function gameStorage(
   characterId: string,
-  next?: GameState,
+  next: GameState,
   diary: DayMemory[] = [],
   quarterStart?: GameState['stats'],
 ): GameSave {
-  if (!next) {
-    const saved = previewGameSave(characterId);
-    return saved.state && !hasKnownEvents(saved.state)
-      ? { state: undefined, available: false }
-      : saved;
-  }
   try {
     localStorage.setItem(
       saveKey(characterId),
