@@ -2,7 +2,6 @@ import { describe, expect, test } from 'vitest';
 import {
   activities,
   buy,
-  characters,
   currentEvent,
   doActivity,
   enter,
@@ -17,7 +16,7 @@ import { balance as b } from '../src/balance';
 import { commonEvents, systemEvents } from '../src/events/common';
 import { policyStories } from '../src/events/policy';
 import { heartEvents, townHeartLetters } from '../src/npcs';
-import { clear, completeQuarter, quarter } from './helpers';
+import { characters, clear, completeQuarter, quarter } from './helpers';
 
 function at(date: string, character = 'skilled-worker') {
   const state = clear(newGame(character, 1));

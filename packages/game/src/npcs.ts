@@ -2,12 +2,6 @@ import { everydayDialogue, townDialogue } from './town-dialogue';
 import { balance as b } from './balance';
 import { festivalDialogue } from './festivals';
 import { familyNpcs, familyHeartEvents } from './family';
-import {
-  graduateFlatmate,
-  graduateHeartEvents,
-  graduateRecent,
-  graduateHeartReplies,
-} from './characters/graduate-flatmate';
 import type { GameEvent, Npc, Text } from './types';
 
 const text = (zhCN: string, en: string): Text => ({ zhCN, en });
@@ -1940,7 +1934,6 @@ for (const npc of npcs.filter((n) => favourites[n.id])) {
   );
 }
 npcs.push(...familyNpcs);
-npcs.push(graduateFlatmate);
 
 const scenes: [
   string,
@@ -2543,7 +2536,6 @@ export const townHeartLetters: GameEvent[] = [
 ];
 
 heartEvents.push(...familyHeartEvents);
-heartEvents.push(...graduateHeartEvents);
 
 const lina = npcs.find((n) => n.id === 'lina')!;
 lina.lines[1].forbids = ['lina-stayed'];
@@ -2630,7 +2622,7 @@ for (const id of [
   'gareth-daily-8',
 ])
   dialogueConditions[id] = { ...dialogueConditions[id], weather: ['rain'] };
-for (const npc of npcs) {
+function applyDialogueConditions(npc: Npc) {
   for (const line of npc.lines) {
     Object.assign(line, dialogueConditions[line.id]);
     if (line.festival === 'bonfire-night')
@@ -2639,6 +2631,7 @@ for (const npc of npcs) {
       line.when = [{ minuteMin: 960 }];
   }
 }
+for (const npc of npcs) applyDialogueConditions(npc);
 const heartConditions: Record<string, GameEvent['when']> = {
   'heart-ade-2': [{ dayKind: 'workday' }, { minuteMin: 540, minuteMax: 1019 }],
   'heart-ade-4': [{ dayKind: 'workday' }, { minuteMin: 540, minuteMax: 1019 }],
@@ -2747,7 +2740,6 @@ for (const npc of npcs.filter((person) => !person.characters))
 
 // Recent circumstances use the current season; permanent memories stay separate.
 const recentCopy: Record<string, [string, string][]> = {
-  maeve: graduateRecent,
   margaret: [
     [
       '刚办完续签？得了，茶我泡！种子袋替你挪开。',
@@ -3213,8 +3205,8 @@ const recentFlags = [
   'quarter-life-passed',
   'quarter-returned',
 ];
-for (const npc of npcs)
-  for (const [i, pair] of recentCopy[npc.id].entries())
+function addRecentLines(npc: Npc, pairs: [string, string][]) {
+  for (const [i, pair] of pairs.entries())
     npc.lines.push({
       id: `${npc.id}-recent-${i + 1}`,
       text: text(...pair),
@@ -3226,10 +3218,11 @@ for (const npc of npcs)
             ? { when: [{ stat: 'mood', max: 30 }] }
             : { requires: [`quarter-friendship-${npc.id}`] }),
     });
+}
+for (const npc of npcs) addRecentLines(npc, recentCopy[npc.id]);
 
 // Each choice has its own spoken memory, alongside the existing shared flags.
 const heartReplies: Record<string, [Text, Text]> = {
-  ...graduateHeartReplies,
   'heart-margaret-2': [
     {
       zhCN: '问我种坏的？得了，先讲那盘全烂的番茄！',
@@ -3831,16 +3824,33 @@ const heartReplies: Record<string, [Text, Text]> = {
     },
   ],
 };
-for (const event of heartEvents) {
-  const npc = npcs.find((person) => person.id === event.heart!.npc)!;
+function addHeartReplies(npc: Npc, event: GameEvent, replies: [Text, Text]) {
   for (const [i, choice] of event.choices.entries()) {
     const flag = `${event.id}-${choice.id}`;
     choice.sets = [...(choice.sets ?? []), flag];
     npc.lines.push({
       id: `${flag}-reply`,
-      text: heartReplies[event.id][i],
+      text: replies[i],
       requires: [flag],
       once: true,
     });
   }
+}
+for (const event of heartEvents) {
+  const npc = npcs.find((person) => person.id === event.heart!.npc)!;
+  addHeartReplies(npc, event, heartReplies[event.id]);
+}
+
+// Called once when the character module with this household member is evaluated.
+export function registerHouseholdNpc(
+  npc: Npc,
+  events: GameEvent[],
+  recent: [string, string][],
+  replies: Record<string, [Text, Text]>,
+) {
+  applyDialogueConditions(npc);
+  addRecentLines(npc, recent);
+  for (const event of events) addHeartReplies(npc, event, replies[event.id]);
+  npcs.push(npc);
+  heartEvents.push(...events);
 }

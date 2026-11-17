@@ -1,15 +1,8 @@
 import { describe, expect, test } from 'vitest';
-import {
-  characters,
-  currentEvent,
-  newGame,
-  readMail,
-  resolve,
-  talk,
-} from '../src';
+import { currentEvent, newGame, readMail, resolve, talk } from '../src';
 import type { GameState } from '../src';
-import { lifeChains } from '../src/events/life-chains';
-import { clear } from './helpers';
+import { lifeChains } from './character-life';
+import { characters, clear } from './helpers';
 
 const restore = (state: GameState): GameState =>
   JSON.parse(JSON.stringify(state));

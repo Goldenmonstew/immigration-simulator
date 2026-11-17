@@ -3,7 +3,6 @@ import { describe, expect, test } from 'vitest';
 import {
   activities,
   buy,
-  characters,
   cook,
   currentEvent,
   doActivity,
@@ -37,6 +36,7 @@ import { balance as b } from '../src/balance';
 import { commonEvents } from '../src/events/common';
 import { heartEvents } from '../src/npcs';
 import {
+  characters,
   afterOpening,
   clear,
   completeQuarter,

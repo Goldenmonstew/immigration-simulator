@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
   activities,
-  characters,
   doActivity,
   festivals,
   fish,
@@ -13,7 +12,7 @@ import {
 } from '../src';
 import type { EndingId, GameEvent } from '../src';
 import { festivalActivities } from '../src/festivals';
-import { clear } from './helpers';
+import { characters, clear } from './helpers';
 
 function end(characterId: string, ending: EndingId) {
   const character = characters.find((c) => c.id === characterId)!;

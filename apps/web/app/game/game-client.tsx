@@ -7,6 +7,8 @@ import {
   activities,
   approachSurprise,
   characters,
+  loadCharacter,
+  newGame,
   currentEvent,
   enter,
   fastForward,
@@ -53,6 +55,9 @@ import {
 } from './life-overlays';
 import {
   gameStorage,
+  hasKnownEvents,
+  previewGameSave,
+  type GameSave,
   withGameLocale,
   visaExpiresThisSeason,
   isPlaceOpen,
@@ -106,7 +111,8 @@ type Overlay =
 export default function GameClient() {
   const { t, locale } = useTranslation();
   const [state, setState] = useState<GameState>();
-  const [saves, setSaves] = useState<Record<string, GameState | undefined>>({});
+  const [saves, setSaves] = useState<Record<string, GameSave>>({});
+  const [loadError, setLoadError] = useState<Error>();
   const [ready, setReady] = useState(false),
     [sceneReady, setSceneReady] = useState(false),
     [available, setAvailable] = useState(true);
@@ -148,8 +154,10 @@ export default function GameClient() {
     undefined,
   );
   useEffect(() => {
-    const loaded = characters.map((c) => [c.id, gameStorage(c.id)] as const);
-    setSaves(Object.fromEntries(loaded.map(([id, s]) => [id, s.state])));
+    const loaded = characters.map(
+      (c) => [c.id, previewGameSave(c.id)] as const,
+    );
+    setSaves(Object.fromEntries(loaded));
     setAvailable(loaded.every(([, s]) => s.available));
     setMuted(readMuted());
     saveMuted(readMuted());
@@ -172,11 +180,19 @@ export default function GameClient() {
   }, [state, locale]);
   useEffect(() => {
     if (!ready || !state || state.locale !== locale) return;
-    setAvailable(
-      gameStorage(state.characterId, state, diary.current, quarterStart.current)
-        .available,
+    const saved = gameStorage(
+      state.characterId,
+      state,
+      diary.current,
+      quarterStart.current,
     );
-    setSaves((prev) => ({ ...prev, [state.characterId]: state }));
+    setAvailable(saved.available);
+    const slot = {
+      ...saved,
+      diary: diary.current,
+      quarterStart: quarterStart.current,
+    };
+    setSaves((prev) => ({ ...prev, [state.characterId]: slot }));
   }, [state, ready, locale]);
   useEffect(() => {
     if (state && !isOver(state))
@@ -339,12 +355,8 @@ export default function GameClient() {
     routine,
     fading,
   ]);
-  const choose = (next?: GameState) => {
+  const choose = (next?: GameState, saved?: GameSave) => {
     latest.current = next;
-    const saved =
-      next && saves[next.characterId]?.seed === next.seed
-        ? gameStorage(next.characterId)
-        : undefined;
     diary.current = saved?.diary ?? [];
     quarterStart.current = saved?.quarterStart ?? (next && { ...next.stats });
     setState(next);
@@ -359,6 +371,30 @@ export default function GameClient() {
     setSceneReady(false);
     setMorning(!!next && !next.trip && next.day.minute === 420);
     setInterior(next?.day.place === 'home');
+  };
+  const selectCharacter = async (id: string, action: 'new' | 'continue') => {
+    setReady(false);
+    try {
+      await loadCharacter(id);
+      if (action === 'new') {
+        choose(newGame(id, Date.now() % 2 ** 31, locale));
+      } else {
+        const saved = saves[id];
+        if (saved?.state && hasKnownEvents(saved.state)) {
+          choose(withGameLocale(saved.state, locale), saved);
+        } else {
+          setAvailable(false);
+          setSaves((prev) => ({
+            ...prev,
+            [id]: { state: undefined, available: false },
+          }));
+        }
+      }
+    } catch (error) {
+      setLoadError(error as Error);
+    } finally {
+      setReady(true);
+    }
   };
   const startTalk = (npc: string) => {
     conversation.current = {
@@ -492,6 +528,7 @@ export default function GameClient() {
         ))}
     </nav>
   );
+  if (loadError) throw loadError;
   return (
     <div
       className={styles.game}
@@ -501,7 +538,7 @@ export default function GameClient() {
       {!ready ? (
         <p role="status">{t('game.loading')}</p>
       ) : !current ? (
-        <CharacterSelect saves={saves} onChange={choose} />
+        <CharacterSelect saves={saves} onSelect={selectCharacter} />
       ) : (
         <>
           {isOver(current) && !summary ? (

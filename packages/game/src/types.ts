@@ -22,12 +22,23 @@ export type EndingId =
   'settled' | 'left' | 'overstayed' | 'criminal' | 'timeout';
 /** Calendar quarters: 1 winter, 2 spring, 3 summer, 4 autumn. */
 export type Quarter = 1 | 2 | 3 | 4;
-export interface Character {
+export interface CharacterProfile {
   id: string;
   name: Text;
   intro: Text;
   /** Relative to the client's game asset directory. */
   sprite: string;
+}
+
+export interface Character extends CharacterProfile {
+  opening: GameEvent;
+  settlement: Text;
+  graduateRoute?: {
+    recruitment: GameEvent[];
+    salaryCheckNote: Text;
+    switched: Text;
+    overstayed: Text;
+  };
   startDate: IsoDate;
   timeline: PersonTimeline;
   stats: Record<StatKey, number>;

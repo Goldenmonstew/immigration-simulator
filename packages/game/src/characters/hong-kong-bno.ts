@@ -1,5 +1,5 @@
-import { lifeChains } from '../events/life-chains';
-import { characterLifeEvents } from '../events/life';
+import { hongKongBnoProfile } from './metadata';
+import { lifeChains, characterLifeEvents } from './hong-kong-bno-life';
 import { currentLaw2026_11 } from '@uk-immigration/policy-data';
 import type { Character, GameEvent } from '../types';
 import { balance } from '../balance';
@@ -2641,13 +2641,32 @@ const events: GameEvent[] = [
 ];
 
 export const hongKongBno: Character = {
-  id: 'hong-kong-bno',
-  name: { zhCN: '陈嘉宁', en: 'Ka Ning Chan' },
-  intro: {
-    zhCN: '嘉宁在 2022 年中以 BN(O) Status Holder 身份来英，伴侣和一个孩子同行。一年后，校门口渐渐有了熟面孔。本局只评估嘉宁，人物与事件均为虚构。',
-    en: 'Ka Ning arrived in mid-2022 as a BN(O) Status Holder with a partner and one child. A year later, familiar faces are appearing at the school gate. Only Ka Ning is assessed; all characters and events are fictional.',
+  ...hongKongBnoProfile,
+  opening: {
+    id: 'opening-hong-kong-bno',
+    title: { zhCN: '餐桌旁的书包', en: 'The school bag by the table' },
+    text: {
+      zhCN: '你和文舒、乐言住在镇上的租屋，餐桌旁靠着孩子的书包。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本放在书包旁。\n镇上能种菜、钓鱼，也能去酒吧坐坐。厨房窗外已经有人经过。',
+      en: 'You share a rented home in town with Man Shu and Lok Yin. The child’s school bag rests by the table.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. A textbook lies beside the school bag.\nThere are vegetables to grow, fish to catch and a pub to sit in. Someone is already passing the kitchen window.',
+    },
+    weight: 1,
+    once: true,
+    channel: 'morning',
+    choices: [
+      {
+        id: 'begin',
+        label: {
+          zhCN: '收好餐桌，去镇上走走',
+          en: 'Clear the table and walk into town',
+        },
+        effects: [{ type: 'none' }],
+      },
+    ],
   },
-  sprite: 'characters/1.png',
+  settlement: {
+    zhCN: '你把递交后的回执夹好，餐桌上的文件终于能挪回抽屉里。\n文舒端来热茶，先挪开桌角的饭盒，才发现杯垫还压在文件夹下面。\n乐言把画纸铺到空出来的地方，笔帽滚向你，被你伸手轻轻拦住。\n你将笔帽放回画纸旁，靠着椅背看孩子添上窗户，茶杯就在手边。',
+    en: 'You file the submission receipt. The papers on the dining table can finally go back in the drawer.\nMan Shu brings tea and shifts a lunch box, then finds the coasters underneath the folder.\nLok Yin spreads drawing paper over the cleared space. A pen lid rolls towards you, and you catch it.\nYou put it beside the drawing and lean back to watch the child add a window, your tea within reach.',
+  },
   startDate: '2023-06-15',
   timeline: {
     dateOfBirth: '1985-06-20',
@@ -2677,9 +2696,5 @@ export const hongKongBno: Character = {
     governmentDebt: { outstanding: false },
   },
   stats: { money: 12000, mood: 68, health: 76, english: 45, career: 18 },
-  events: [
-    ...events,
-    ...lifeChains['hong-kong-bno'],
-    ...characterLifeEvents['hong-kong-bno'],
-  ],
+  events: [...events, ...lifeChains, ...characterLifeEvents],
 };

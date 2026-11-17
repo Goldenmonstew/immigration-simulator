@@ -1,67 +1,22 @@
-import { evaluate } from '@uk-immigration/engine';
-import type { ImmigrationEpisode } from '@uk-immigration/engine';
-import { currentLaw2026_11, goingRates } from '@uk-immigration/policy-data';
-import { balance as b } from '../balance';
-import type { Character, GameEvent, GameState, Text } from '../types';
+import './graduate-flatmate';
+import { currentLaw2026_11 } from '@uk-immigration/policy-data';
+import {
+  generalSalary,
+  graduateSalaries,
+  occupationalSalary,
+} from '../graduate-route';
+import type { Character, GameEvent, Text } from '../types';
+import { graduateProfile } from './metadata';
 
 const t = (zhCN: string, en: string): Text => ({ zhCN, en });
-const policy = currentLaw2026_11.values;
-// SRC-034 GR 8.1: this fictional MSc graduate applied before 2027-01-01.
-export const graduateApplicationDate = '2026-09-01';
 // Fictional decision/start date. GR 8.1 measures the grant from this decision.
 const decisionDate = '2026-09-15';
 const expiry = new Date(`${decisionDate}T00:00:00Z`);
 expiry.setUTCMonth(
-  expiry.getUTCMonth() + policy.graduateNonDoctoralEarlyGrantMonths.value,
+  expiry.getUTCMonth() +
+    currentLaw2026_11.values.graduateNonDoctoralEarlyGrantMonths.value,
 );
 expiry.setUTCDate(expiry.getUTCDate() - 1);
-// SRC-004 SW 4.2 Option A / SW 24.3 row A; SRC-017 Table 1, SOC 2136.
-// This scenario uses the full standard rate, with no new-entrant discount.
-const generalSalary = policy.skilledWorkerGeneralSalaryThreshold.value;
-const occupationalSalary = goingRates.rows.find(
-  (row) => row.table === '1' && row.socCode === '2136',
-)!.goingRate!;
-export const graduateSalaries = {
-  low: generalSalary - 1000,
-  // Fictional negotiated offer, not a policy threshold.
-  agreed: Math.max(generalSalary, occupationalSalary) + 2500,
-};
-export function graduateEpisode(state: GameState): ImmigrationEpisode {
-  const end = new Date(`${state.date}T00:00:00Z`);
-  // Fictional sponsored contract length, like existing Skilled Worker renewals.
-  end.setUTCMonth(end.getUTCMonth() + b.extensionMonths);
-  end.setUTCDate(end.getUTCDate() - 1);
-  return {
-    route: 'SKILLED_WORKER',
-    role: 'MAIN',
-    validFrom: state.date,
-    validTo: end.toISOString().slice(0, 10),
-    socCode: '2136',
-    salary: state.flags.includes('graduate-negotiated')
-      ? graduateSalaries.agreed
-      : graduateSalaries.low,
-  };
-}
-/** Preview the engine's standard salary checks; never infer a grant from settlement eligibility. */
-export function graduateSalaryChecks(state: GameState) {
-  const timeline = structuredClone(state.timeline);
-  const yesterday = new Date(`${state.date}T00:00:00Z`);
-  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-  timeline.episodes = timeline.episodes.filter(
-    (episode) => episode.validFrom < state.date,
-  );
-  for (const episode of timeline.episodes)
-    if (episode.validTo >= state.date)
-      episode.validTo = yesterday.toISOString().slice(0, 10);
-  timeline.episodes.push(graduateEpisode(state));
-  return evaluate({
-    simulationDate: state.date,
-    timeline,
-    locale: state.locale,
-  }).byRuleSet['current-law-2026-11']!.rules.filter((rule) =>
-    ['CL-SW-SALARY', 'CL-SW-GOING-RATE'].includes(rule.id),
-  );
-}
 
 // These cards are reached through the work-place job-search activity, not luck.
 // Only the visa-centre action can append a granted permission episode.
@@ -986,13 +941,24 @@ export const graduateSettlement: Text = t(
   'You set the settlement submission receipt on the table. The old graduation photo slips from the folder.\nMaeve carries the repaired radio into the kitchen. Your little arrow still marks the volume knob.\nYou prop the photo by the spice jar. No borrowed gown is needed for today.\nThe pan makes a sound. You each take a bowl; the cleared table has just enough room.',
 );
 export const graduate: Character = {
-  id: 'graduate',
-  name: t('诺拉·阿齐兹', 'Nora Aziz'),
-  intro: t(
-    '诺拉来自马来西亚，刚读完软件工程硕士。她爱给失败的演示取绰号，毕业后仍把镇上的路认成校园捷径。持 Graduate 许可，想在到期前找到担保工作。人物与事件均为虚构。',
-    'Nora Aziz from Malaysia has just completed an MSc in software engineering. She gives failed demos nicknames and still navigates town by campus shortcuts. With Graduate permission, she is looking for sponsored work before expiry. All characters and events are fictional.',
-  ),
-  sprite: 'urban/skilled-worker.png',
+  ...graduateProfile,
+  opening: graduateOpening,
+  settlement: graduateSettlement,
+  graduateRoute: {
+    recruitment: graduateRecruitment,
+    salaryCheckNote: t(
+      '这里只核对标准薪资；担保、CoS 与其他审批条件由本情景假定已核实。',
+      'This checks standard pay only. The scenario assumes sponsorship, CoS and other application requirements have been verified.',
+    ),
+    switched: {
+      zhCN: '你拿到本情景中的 Skilled Worker 许可，把合同和 CoS 收进文件夹；下一次出门，包里多了一份新的有效许可。',
+      en: 'You receive Skilled Worker permission in this scenario and file the contract and CoS. Next time you go out, the bag holds your new permission.',
+    },
+    overstayed: t(
+      '许可到期前没有接上新的有效许可，这段小镇生活在这里结束。\n下一局请留意剩余月数：Graduate 期间去公司求职、核对担保与 CoS，再到签证中心转换。',
+      'Your permission expired without new permission in place. This town life ends here.\nNext time, watch the months remaining: seek work, confirm sponsorship and a CoS, then switch at the visa centre.',
+    ),
+  },
   startDate: decisionDate,
   timeline: {
     // Fictional personal and Student dates, not prescribed study durations.

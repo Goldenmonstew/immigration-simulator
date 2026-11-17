@@ -13,12 +13,11 @@ import {
 } from '../src';
 import type { GameState } from '../src';
 import {
-  graduate,
   graduateApplicationDate,
-  graduateRecruitment,
   graduateSalaryChecks,
   graduateSalaries,
-} from '../src/characters/graduate';
+} from '../src/graduate-route';
+import { graduate, graduateRecruitment } from '../src/characters/graduate';
 import { graduateHeartEvents } from '../src/characters/graduate-flatmate';
 import { extensionCost } from '../src/locations';
 import { clear, completeQuarter, drain } from './helpers';

@@ -1,3 +1,4 @@
+import './load-game-characters';
 import { afterEach, expect, test, vi } from 'vitest';
 import { createRequire } from 'node:module';
 import type * as Phaser from 'phaser';

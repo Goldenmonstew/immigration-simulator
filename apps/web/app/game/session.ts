@@ -212,28 +212,32 @@ export function visaExpiresThisSeason(state: GameState): boolean {
   );
 }
 
-// Storage is the external input boundary. Failed saves never interrupt play.
-export function gameStorage(
-  characterId: string,
-  next?: GameState,
-  diary: DayMemory[] = [],
-  quarterStart?: GameState['stats'],
-): {
+export interface GameSave {
   state: GameState | undefined;
   available: boolean;
   diary?: DayMemory[];
   quarterStart?: GameState['stats'];
-} {
+}
+
+const saveKey = (characterId: string) =>
+  `uk-immigration-life-v3:${characterId}`;
+
+// Event IDs can only be checked after the player selects the character.
+export function hasKnownEvents(state: GameState): boolean {
+  return (
+    state.day.deliveries.every(({ eventId }) =>
+      currentEvent({ ...state, pendingEvent: eventId }),
+    ) &&
+    state.eventQueue.every((id) =>
+      currentEvent({ ...state, pendingEvent: id }),
+    ) &&
+    (state.pendingEvent === undefined || !!currentEvent(state))
+  );
+}
+
+export function previewGameSave(characterId: string): GameSave {
   try {
-    const key = `uk-immigration-life-v3:${characterId}`;
-    if (next) {
-      localStorage.setItem(
-        key,
-        JSON.stringify({ ...next, clientVersion: 1, diary, quarterStart }),
-      );
-      return { state: next, available: true };
-    }
-    const saved = localStorage.getItem(key);
+    const saved = localStorage.getItem(saveKey(characterId));
     if (!saved) return { state: undefined, available: true };
     const {
       clientVersion,
@@ -282,9 +286,7 @@ export function gameStorage(
       !Array.isArray(state.day.deliveries) ||
       !state.day.deliveries.every(
         (d) =>
-          d &&
-          typeof d.channel === 'string' &&
-          currentEvent({ ...state, pendingEvent: d.eventId }),
+          d && typeof d.channel === 'string' && typeof d.eventId === 'string',
       ) ||
       !['zh-CN', 'en'].includes(state.locale) ||
       !/^\d{4}-\d{2}-\d{2}$/.test(state.date) ||
@@ -302,9 +304,6 @@ export function gameStorage(
         (list) =>
           Array.isArray(list) && list.every((item) => typeof item === 'string'),
       ) ||
-      !state.eventQueue.every((id) =>
-        currentEvent({ ...state, pendingEvent: id }),
-      ) ||
       !Array.isArray(state.log) ||
       !state.log.every(
         (entry) =>
@@ -312,7 +311,8 @@ export function gameStorage(
           typeof entry.text?.zhCN === 'string' &&
           typeof entry.text?.en === 'string',
       ) ||
-      (state.pendingEvent !== undefined && !currentEvent(state))
+      (state.pendingEvent !== undefined &&
+        typeof state.pendingEvent !== 'string')
     )
       return { state: undefined, available: false };
     state.result = evaluate({
@@ -344,6 +344,30 @@ export function gameStorage(
           ? savedStart
           : state.stats,
     };
+  } catch {
+    return { state: undefined, available: false };
+  }
+}
+
+// Storage is the external input boundary. Failed saves never interrupt play.
+export function gameStorage(
+  characterId: string,
+  next?: GameState,
+  diary: DayMemory[] = [],
+  quarterStart?: GameState['stats'],
+): GameSave {
+  if (!next) {
+    const saved = previewGameSave(characterId);
+    return saved.state && !hasKnownEvents(saved.state)
+      ? { state: undefined, available: false }
+      : saved;
+  }
+  try {
+    localStorage.setItem(
+      saveKey(characterId),
+      JSON.stringify({ ...next, clientVersion: 1, diary, quarterStart }),
+    );
+    return { state: next, available: true };
   } catch {
     return { state: next, available: false };
   }

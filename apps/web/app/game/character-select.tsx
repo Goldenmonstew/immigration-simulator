@@ -1,18 +1,18 @@
 'use client';
 
 import { useTranslation } from '../../i18n/locale';
-import { characters, newGame, type GameState } from '@uk-immigration/game';
-import { withGameLocale } from './session';
+import { characters } from '@uk-immigration/game';
+import type { GameSave } from './session';
 import { portraitPath, townBanner } from './art';
 import styles from './game.module.css';
 import { localText } from './game-ui';
 
 export function CharacterSelect({
   saves,
-  onChange,
+  onSelect,
 }: {
-  saves: Record<string, GameState | undefined>;
-  onChange: (state: GameState) => void;
+  saves: Record<string, GameSave>;
+  onSelect: (id: string, action: 'new' | 'continue') => void;
 }) {
   const { t, locale } = useTranslation();
   return (
@@ -51,25 +51,21 @@ export function CharacterSelect({
               <h3>{localText(character.name, locale)}</h3>
               <p>{localText(character.intro, locale)}</p>
               <div className={styles.buttons}>
-                {saves[character.id] && (
+                {saves[character.id]?.state && (
                   <button
                     className={styles.button}
-                    onClick={() =>
-                      onChange(withGameLocale(saves[character.id]!, locale))
-                    }
+                    onClick={() => onSelect(character.id, 'continue')}
                   >
                     {t('game.continue')}
                   </button>
                 )}
                 <button
                   className={
-                    saves[character.id] ? styles.secondary : styles.button
+                    saves[character.id]?.state
+                      ? styles.secondary
+                      : styles.button
                   }
-                  onClick={() =>
-                    onChange(
-                      newGame(character.id, Date.now() % 2 ** 31, locale),
-                    )
-                  }
+                  onClick={() => onSelect(character.id, 'new')}
                 >
                   {t('game.startAs').replace(
                     '{name}',

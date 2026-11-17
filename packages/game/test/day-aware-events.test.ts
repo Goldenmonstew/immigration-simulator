@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest';
 import {
-  characters,
   currentEvent,
   enter,
   newGame,
@@ -14,7 +13,7 @@ import type { Channel, Condition, GameEvent, GameState } from '../src';
 import { commonEvents } from '../src/events/common';
 import { balance as b } from '../src/balance';
 import { heartEvents } from '../src/npcs';
-import { afterOpening, clear } from './helpers';
+import { characters, afterOpening, clear } from './helpers';
 
 function card(channel: Channel, when: Condition[] = []): GameEvent {
   return {

@@ -7,17 +7,8 @@ import type {
 import { RULE_SET_IDS } from '@uk-immigration/policy-data';
 import { balance as b } from './balance';
 import { achievements, lifeAchievements } from './achievements';
-import { skilledWorker } from './characters/skilled-worker';
-import { hongKongBno } from './characters/hong-kong-bno';
-import { familyPartner } from './characters/family-partner';
-import {
-  graduate,
-  graduateOpening,
-  graduateSettlement,
-  graduateRecruitment,
-  graduateEpisode,
-  graduateSalaryChecks,
-} from './characters/graduate';
+import { characterOf } from './characters';
+import { graduateEpisode, graduateSalaryChecks } from './graduate-route';
 import { commonEvents, systemEvents } from './events/common';
 import { policyStories } from './events/policy';
 import {
@@ -63,90 +54,6 @@ import type {
   Text,
 } from './types';
 
-export const characters = [skilledWorker, hongKongBno, familyPartner, graduate];
-
-const openingEvents: Record<string, GameEvent> = {
-  graduate: graduateOpening,
-  'skilled-worker': {
-    id: 'opening-skilled-worker',
-    title: { zhCN: '门边的纸箱', en: 'Boxes by the door' },
-    text: {
-      zhCN: '你在镇上的公寓和周沅刚合租，门边还堆着没拆的纸箱。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本先放进包里。\n窗外通向菜地和池塘，街角有咖啡馆。今天先从哪儿走起？',
-      en: 'You have just started sharing a town flat with Yuan. Unopened boxes still stand by the door.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. The textbook goes in the bag.\nOutside lie the allotment and pond, with a café on the corner. Where to start today?',
-    },
-    weight: 1,
-    once: true,
-    channel: 'morning',
-    choices: [
-      {
-        id: 'begin',
-        label: {
-          zhCN: '把钥匙放进口袋，出门看看',
-          en: 'Pocket the keys and look around',
-        },
-        effects: [{ type: 'none' }],
-      },
-    ],
-  },
-  'hong-kong-bno': {
-    id: 'opening-hong-kong-bno',
-    title: { zhCN: '餐桌旁的书包', en: 'The school bag by the table' },
-    text: {
-      zhCN: '你和文舒、乐言住在镇上的租屋，餐桌旁靠着孩子的书包。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本放在书包旁。\n镇上能种菜、钓鱼，也能去酒吧坐坐。厨房窗外已经有人经过。',
-      en: 'You share a rented home in town with Man Shu and Lok Yin. The child’s school bag rests by the table.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. A textbook lies beside the school bag.\nThere are vegetables to grow, fish to catch and a pub to sit in. Someone is already passing the kitchen window.',
-    },
-    weight: 1,
-    once: true,
-    channel: 'morning',
-    choices: [
-      {
-        id: 'begin',
-        label: {
-          zhCN: '收好餐桌，去镇上走走',
-          en: 'Clear the table and walk into town',
-        },
-        effects: [{ type: 'none' }],
-      },
-    ],
-  },
-  'family-partner': {
-    id: 'opening-family-partner',
-    title: { zhCN: '厨房里的早晨', en: 'A morning in the kitchen' },
-    text: {
-      zhCN: '你和杰米住在镇上的租屋，厨房的锅盖还没找到合适的位置。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本挨着食谱。\n街角能买菜喝咖啡，池塘边有长椅，社区菜地也能租下一块。',
-      en: 'You share a rented home in town with Jamie. The saucepan lid still has no proper place in the kitchen.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. The textbook sits beside the recipes.\nThere is shopping and coffee on the corner, a bench by the pond, and an allotment plot to rent.',
-    },
-    weight: 1,
-    once: true,
-    channel: 'morning',
-    choices: [
-      {
-        id: 'begin',
-        label: {
-          zhCN: '把锅盖放稳，带上外套',
-          en: 'Set the lid down and take a coat',
-        },
-        effects: [{ type: 'none' }],
-      },
-    ],
-  },
-};
-
-const settlementScenes: Record<string, Text> = {
-  graduate: graduateSettlement,
-  'skilled-worker': {
-    zhCN: '你把递交后的回执放在桌上，边角压着那串早已磨亮的钥匙。\n周沅把茶杯推过来，顺手将桌边翘起的纸角压平，没再问还缺什么。\n文件夹合上时，里面的车票轻轻滑了一下。你伸手接住，放回原处。\n你把杯子移出文件夹留下的方印，坐下来，听厨房里的水壶慢慢安静。',
-    en: 'You put the submission receipt on the table, its corner beneath your well-worn keys.\nYuan slides a cup of tea across and flattens a curling paper edge, without asking what is still missing.\nA train ticket slips as the folder closes. You catch it and put it back.\nYou move your cup out of the square left by the folder and sit, listening as the kitchen kettle falls quiet.',
-  },
-  'hong-kong-bno': {
-    zhCN: '你把递交后的回执夹好，餐桌上的文件终于能挪回抽屉里。\n文舒端来热茶，先挪开桌角的饭盒，才发现杯垫还压在文件夹下面。\n乐言把画纸铺到空出来的地方，笔帽滚向你，被你伸手轻轻拦住。\n你将笔帽放回画纸旁，靠着椅背看孩子添上窗户，茶杯就在手边。',
-    en: 'You file the submission receipt. The papers on the dining table can finally go back in the drawer.\nMan Shu brings tea and shifts a lunch box, then finds the coasters underneath the folder.\nLok Yin spreads drawing paper over the cleared space. A pen lid rolls towards you, and you catch it.\nYou put it beside the drawing and lean back to watch the child add a window, your tea within reach.',
-  },
-  'family-partner': {
-    zhCN: '你把递交后的回执放进抽屉，手指在文件夹的折角上停了一下。\n桌上还摊着写过又改的便条，你把有用的夹好，余下的翻过来当草稿。\n杯沿留下的茶印已经干了，你拿湿布慢慢擦掉，露出原来的木纹。\n你把空出来的地方留给晚饭，坐下脱掉鞋子，窗外传来熟悉的关门声。',
-    en: 'You put the submission receipt in the drawer, pausing over a bent corner of the folder.\nRewritten notes still cover the table. You file the useful ones and turn the others over for scrap paper.\nThe tea ring has dried. You wipe it slowly away, revealing the grain of the wood.\nYou leave the cleared space for dinner and sit down to take off your shoes. A familiar door closes outside.',
-  },
-};
 const festivalResults: Record<FestivalId, Text[]> = {
   'lunar-new-year': [
     {
@@ -269,23 +176,19 @@ function taxYearOf(date: IsoDate) {
   const year = Number(date.slice(0, 4)) - (date.slice(5) < '04-06' ? 1 : 0);
   return `${year}-${String((year + 1) % 100).padStart(2, '0')}`;
 }
-function characterOf(id: string) {
-  const character = characters.find((c) => c.id === id);
-  if (!character) throw new Error(`Unknown character: ${id}`);
-  return character;
-}
 function episodeAt(state: GameState, date = state.date) {
   return state.timeline.episodes
     .filter((e) => e.validFrom <= date && date <= e.validTo)
     .sort((a, c) => c.validFrom.localeCompare(a.validFrom))[0];
 }
 function pool(state: GameState) {
+  const character = characterOf(state.characterId);
   return [
     ...commonEvents,
-    ...characterOf(state.characterId).events,
+    ...character.events,
     ...systemEvents,
     ...policyStories.map((story) => story.event),
-    ...Object.values(openingEvents),
+    character.opening,
     ...heartEvents,
     ...townHeartLetters,
     ...surpriseEvents,
@@ -410,14 +313,15 @@ function draw(state: GameState, count: number) {
   for (const { event } of policyStories)
     if (available(state, event) && !state.eventQueue.includes(event.id))
       state.eventQueue.push(event.id);
+  const character = characterOf(state.characterId);
   for (let i = 0; i < count; i++) {
     const candidates = [
       ...commonEvents,
-      ...characterOf(state.characterId).events,
+      ...character.events,
       ...townHeartLetters,
     ].filter(
       (e) =>
-        !graduateRecruitment.includes(e) &&
+        !character.graduateRoute?.recruitment.includes(e) &&
         available(state, e, true) &&
         ![state.pendingEvent, ...state.eventQueue].some((id) =>
           pool(state)
@@ -521,21 +425,16 @@ function finish(state: GameState, ending: EndingId) {
   delete state.trip;
   delete state.pendingEvent;
   state.eventQueue = [];
+  const character = characterOf(state.characterId);
   const texts: Record<EndingId, Text> = {
-    settled: settlementScenes[state.characterId],
+    settled: character.settlement,
     left: {
       zhCN: '行李箱合上，小镇留在了车窗后面。你选择离开英国，这局生活到这里收好。',
       en: 'The suitcase closes, and the town slips behind the train window. You chose to leave the UK, ending this game.',
     },
-    overstayed: {
-      zhCN:
-        state.characterId === 'graduate'
-          ? '许可到期前没有接上新的有效许可，这段小镇生活在这里结束。\n下一局请留意剩余月数：Graduate 期间去公司求职、核对担保与 CoS，再到签证中心转换。'
-          : '许可到期前没有续签上，这段小镇生活在这里结束。\n下一局可以留意顶栏的剩余月数，去签证中心办续签。',
-      en:
-        state.characterId === 'graduate'
-          ? 'Your permission expired without new permission in place. This town life ends here.\nNext time, watch the months remaining: seek work, confirm sponsorship and a CoS, then switch at the visa centre.'
-          : 'Your permission expired before you renewed it, ending this game.\nNext time, watch the months remaining in the top bar and visit the visa centre to renew.',
+    overstayed: character.graduateRoute?.overstayed ?? {
+      zhCN: '许可到期前没有续签上，这段小镇生活在这里结束。\n下一局可以留意顶栏的剩余月数，去签证中心办续签。',
+      en: 'Your permission expired before you renewed it, ending this game.\nNext time, watch the months remaining in the top bar and visit the visa centre to renew.',
     },
     criminal: {
       zhCN: '定罪记录让材料转交审查，故事在这里停笔。犯罪记录触发了这局游戏的结束。',
@@ -896,7 +795,9 @@ export function activities(state: GameState, place: PlaceId): Activity[] {
         return (
           state.characterId === 'graduate' &&
           current?.route === 'GRADUATE' &&
-          graduateRecruitment.some((event) => available(state, event))
+          characterOf(state.characterId).graduateRoute!.recruitment.some(
+            (event) => available(state, event),
+          )
         );
       if (a.id === 'graduate-check-offer' || a.id === 'graduate-switch') {
         if (
@@ -1080,25 +981,25 @@ export function doActivity(state: GameState, actionId: string): GameState {
     statDeltas: deltas(state, next),
   };
   if (action.id === 'graduate-check-offer') {
+    const note = characterOf(state.characterId).graduateRoute!.salaryCheckNote;
     const checks = (locale: Locale) =>
       graduateSalaryChecks({ ...state, locale })
         .map((rule) => rule.explanation)
         .join('\n');
     next.outcome.text = {
-      zhCN: `${checks('zh-CN')}\n这里只核对标准薪资；担保、CoS 与其他审批条件由本情景假定已核实。`,
-      en: `${checks('en')}\nThis checks standard pay only. The scenario assumes sponsorship, CoS and other application requirements have been verified.`,
+      zhCN: `${checks('zh-CN')}\n${note.zhCN}`,
+      en: `${checks('en')}\n${note.en}`,
     };
     actionLog.text = next.outcome.text;
   }
   if (action.id === 'graduate-switch') {
-    next.outcome.text = {
-      zhCN: '你拿到本情景中的 Skilled Worker 许可，把合同和 CoS 收进文件夹；下一次出门，包里多了一份新的有效许可。',
-      en: 'You receive Skilled Worker permission in this scenario and file the contract and CoS. Next time you go out, the bag holds your new permission.',
-    };
+    next.outcome.text = characterOf(state.characterId).graduateRoute!.switched;
     actionLog.text = next.outcome.text;
   }
   if (action.id === 'graduate-job-search') {
-    const event = graduateRecruitment.find((event) => available(next, event))!;
+    const event = characterOf(
+      state.characterId,
+    ).graduateRoute!.recruitment.find((event) => available(next, event))!;
     makePending(next, event.id);
   }
   if (action.id.startsWith('flowerbed-')) {
@@ -1923,7 +1824,7 @@ function beginDay(state: GameState, index: DayState['index']) {
     });
   }
   if (state.dayNumber === 0) {
-    const opening = openingEvents[state.characterId];
+    const opening = characterOf(state.characterId).opening;
     state.day.deliveries.unshift({ eventId: opening.id, channel: 'morning' });
   }
   nextEvent(state);
@@ -2210,9 +2111,11 @@ export function fastForward(state: GameState): GameState {
   return next;
 }
 export function townsfolk(state: GameState): Npc[] {
+  // A character module can add its own household members to the roster.
+  const character = characterOf(state.characterId);
   return npcs.filter(
     (npc) =>
-      (!npc.characters || npc.characters.includes(state.characterId)) &&
+      (!npc.characters || npc.characters.includes(character.id)) &&
       !(npc.id === 'lina' && state.flags.includes('lina-left')),
   );
 }

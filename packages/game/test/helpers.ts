@@ -1,5 +1,7 @@
 import {
   activities,
+  characters as profiles,
+  loadCharacter,
   doActivity,
   enter,
   fastForward,
@@ -11,6 +13,11 @@ import {
 } from '../src';
 import { locationActions, places } from '../src/locations';
 import type { GameState, PlaceId } from '../src';
+
+// Content tests inspect and sometimes replace the loaded event arrays.
+export const characters = await Promise.all(
+  profiles.map(({ id }) => loadCharacter(id)),
+);
 
 /** Consume the guaranteed opening before isolating ordinary event delivery. */
 export function afterOpening(state: GameState): GameState {

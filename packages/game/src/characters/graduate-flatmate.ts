@@ -1,4 +1,5 @@
 import { balance as b } from '../balance';
+import { registerHouseholdNpc } from '../npcs';
 import type { GameEvent, Npc, Text } from '../types';
 const t = (zhCN: string, en: string): Text => ({ zhCN, en });
 // Maeve names everyday sounds and imitates them. She repairs radios, keeps
@@ -547,3 +548,10 @@ export const graduateHeartReplies: Record<string, [Text, Text]> = {
     ),
   ],
 };
+
+registerHouseholdNpc(
+  graduateFlatmate,
+  graduateHeartEvents,
+  graduateRecent,
+  graduateHeartReplies,
+);

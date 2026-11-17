@@ -1,3 +1,4 @@
+import './load-game-characters';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { inflateSync } from 'node:zlib';

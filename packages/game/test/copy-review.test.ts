@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
   activities,
-  characters,
   doActivity,
   enter,
   gift,
@@ -15,7 +14,7 @@ import type { Condition, GameState, Npc } from '../src';
 import { balance as b } from '../src/balance';
 import { commonEvents } from '../src/events/common';
 import { heartEvents } from '../src/npcs';
-import { clear } from './helpers';
+import { characters, clear } from './helpers';
 
 type Line = Npc['lines'][number];
 const gates: Record<string, Partial<Line>> = {};
