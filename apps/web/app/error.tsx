@@ -9,10 +9,8 @@ import styles from './site.module.css';
 
 export default function ErrorPage({
   error,
-  reset,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
 }) {
   const { t } = useTranslation();
   const pathname = usePathname();
@@ -34,7 +32,13 @@ export default function ErrorPage({
         <h1>{t('error.title')}</h1>
         <p>{t('error.body')}</p>
         <p className={styles.actions}>
-          <button type="button" className={styles.button} onClick={reset}>
+          {/* A full reload, not reset(): after a deploy the old page's lazily
+              loaded files are gone, and only a fresh page load finds the new ones. */}
+          <button
+            type="button"
+            className={styles.button}
+            onClick={() => window.location.reload()}
+          >
             {t('error.retry')}
           </button>
           <Link className={styles.secondary} href="/">
