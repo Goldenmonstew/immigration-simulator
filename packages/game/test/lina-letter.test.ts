@@ -1,6 +1,5 @@
 import { expect, test } from 'vitest';
 import {
-  characters,
   currentEvent,
   mailbox,
   newGame,
@@ -11,7 +10,7 @@ import {
 } from '../src';
 import { commonEvents } from '../src/events/common';
 import { heartEvents, townHeartLetters } from '../src/npcs';
-import { clear, completeQuarter } from './helpers';
+import { characters, clear, completeQuarter } from './helpers';
 
 test('Lina’s farewell scene leaves a shared memory for either choice', () => {
   const letter = townHeartLetters[0];

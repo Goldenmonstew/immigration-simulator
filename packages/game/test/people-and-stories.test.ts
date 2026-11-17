@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
   activities,
-  characters,
   doActivity,
   enter,
   gift,
@@ -13,7 +12,7 @@ import {
 } from '../src';
 import { balance as b } from '../src/balance';
 import { heartEvents } from '../src/npcs';
-import { clear, completeQuarter, drain, perform } from './helpers';
+import { characters, clear, completeQuarter, drain, perform } from './helpers';
 
 describe('11.1 people, context and remembered choices', () => {
   test('a later scene waits for the earlier chapter even when its context is unavailable', () => {

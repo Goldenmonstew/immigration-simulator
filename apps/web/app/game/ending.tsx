@@ -6,7 +6,7 @@ import { useTranslation } from '../../i18n/locale';
 import { encodeDraft } from '../../lib/share';
 import {
   achievements,
-  characters,
+  characterOf,
   narrative,
   newGame,
   type GameState,
@@ -182,9 +182,7 @@ export function Ending({
         {[true, false].map((earned) => {
           const items = [
             ...achievements,
-            ...(characters.find(
-              (character) => character.id === state.characterId,
-            )!.achievements ?? []),
+            ...(characterOf(state.characterId).achievements ?? []),
           ].filter((item) => state.achievements.includes(item.id) === earned);
           const list = items.length ? (
             <ul>

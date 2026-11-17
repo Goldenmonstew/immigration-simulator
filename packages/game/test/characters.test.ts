@@ -1,5 +1,6 @@
 import { policyStories } from '../src/events/policy';
 import {
+  characters,
   perform,
   availableActivities,
   quarter,
@@ -9,14 +10,7 @@ import {
 import { evaluate } from '@uk-immigration/engine';
 import { currentLaw2026_11 } from '@uk-immigration/policy-data';
 import { describe, expect, test } from 'vitest';
-import {
-  achievements,
-  characters,
-  currentEvent,
-  isOver,
-  newGame,
-  resolve,
-} from '../src';
+import { achievements, currentEvent, isOver, newGame, resolve } from '../src';
 import type { GameState } from '../src';
 import { commonEvents } from '../src/events/common';
 import { extensionFor } from '../src/locations';

@@ -1,5 +1,6 @@
 import { policyStories } from '../src/events/policy';
 import {
+  characters,
   perform,
   availableActivities,
   quarter,
@@ -8,7 +9,6 @@ import {
 } from './helpers';
 import { describe, expect, test } from 'vitest';
 import {
-  characters,
   currentEvent,
   narrative,
   newGame,

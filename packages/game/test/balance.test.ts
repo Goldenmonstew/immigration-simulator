@@ -1,9 +1,9 @@
+import { characters } from './helpers';
 import { notices } from '../src/festivals';
 import { describe, expect, test } from 'vitest';
 import {
   activities,
   buy,
-  characters,
   cook,
   currentEvent,
   doActivity,
@@ -33,8 +33,8 @@ import type { GameEvent, GameState, PlaceId, StatKey } from '../src';
 import { balance as b } from '../src/balance';
 import { heartEvents } from '../src/npcs';
 import { commonEvents } from '../src/events/common';
-import { characterLifeEvents, lifeEvents } from '../src/events/life';
-import { lifeChains } from '../src/events/life-chains';
+import { lifeEvents } from '../src/events/life';
+import { characterLifeEvents, lifeChains } from './character-life';
 import { policyStories } from '../src/events/policy';
 import { beforeTimeEconomy } from './time-and-economy-baseline';
 

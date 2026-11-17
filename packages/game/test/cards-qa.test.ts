@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import { characters, enter, readMail, resolve, tick } from '../src';
+import { enter, readMail, resolve, tick } from '../src';
 import type { GameEvent, PlaceId } from '../src';
 import { skilledWorkerAdditions } from '../src/characters/skilled-worker-additions';
 import { festivalEvents, noticeEvents } from '../src/events/days';
 import { placeEvents } from '../src/events/places';
-import { clear } from './helpers';
+import { characters, clear } from './helpers';
 
 const outdoor = [
   ...placeEvents.filter((event) =>

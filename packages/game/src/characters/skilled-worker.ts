@@ -1,6 +1,6 @@
-import { lifeChains } from '../events/life-chains';
+import { skilledWorkerProfile } from './metadata';
+import { lifeChains, characterLifeEvents } from './skilled-worker-life';
 import { skilledWorkerAdditions } from './skilled-worker-additions';
-import { characterLifeEvents } from '../events/life';
 import { extensionCost } from '../locations';
 import type { Character, GameEvent } from '../types';
 
@@ -2225,11 +2225,31 @@ const events: GameEvent[] = [
 ];
 
 export const skilledWorker: Character = {
-  id: 'skilled-worker',
-  name: { zhCN: '林遥', en: 'Yao Lin' },
-  intro: {
-    zhCN: '林遥是一名来自中国的软件开发者，2024 年初独自持 Skilled Worker 许可来英，年薪 £38,000，正在慢慢安顿生活。人物与事件均为虚构。',
-    en: 'Yao Lin is a software developer from China, settling into life after arriving alone in early 2024 with Skilled Worker permission and a £38,000 salary. All characters and events are fictional.',
+  ...skilledWorkerProfile,
+  opening: {
+    id: 'opening-skilled-worker',
+    title: { zhCN: '门边的纸箱', en: 'Boxes by the door' },
+    text: {
+      zhCN: '你在镇上的公寓和周沅刚合租，门边还堆着没拆的纸箱。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本先放进包里。\n窗外通向菜地和池塘，街角有咖啡馆。今天先从哪儿走起？',
+      en: 'You have just started sharing a town flat with Yuan. Unopened boxes still stand by the door.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. The textbook goes in the bag.\nOutside lie the allotment and pond, with a café on the corner. Where to start today?',
+    },
+    weight: 1,
+    once: true,
+    channel: 'morning',
+    choices: [
+      {
+        id: 'begin',
+        label: {
+          zhCN: '把钥匙放进口袋，出门看看',
+          en: 'Pocket the keys and look around',
+        },
+        effects: [{ type: 'none' }],
+      },
+    ],
+  },
+  settlement: {
+    zhCN: '你把递交后的回执放在桌上，边角压着那串早已磨亮的钥匙。\n周沅把茶杯推过来，顺手将桌边翘起的纸角压平，没再问还缺什么。\n文件夹合上时，里面的车票轻轻滑了一下。你伸手接住，放回原处。\n你把杯子移出文件夹留下的方印，坐下来，听厨房里的水壶慢慢安静。',
+    en: 'You put the submission receipt on the table, its corner beneath your well-worn keys.\nYuan slides a cup of tea across and flattens a curling paper edge, without asking what is still missing.\nA train ticket slips as the folder closes. You catch it and put it back.\nYou move your cup out of the square left by the folder and sit, listening as the kitchen kettle falls quiet.',
   },
   startDate: '2025-01-15',
   timeline: {
@@ -2257,12 +2277,11 @@ export const skilledWorker: Character = {
     immigrationBreaches: [],
     governmentDebt: { outstanding: false },
   },
-  sprite: 'characters/3.png',
   stats: { money: 9000, mood: 65, health: 75, english: 45, career: 10 },
   events: [
     ...events,
-    ...lifeChains['skilled-worker'],
+    ...lifeChains,
     ...skilledWorkerAdditions,
-    ...characterLifeEvents['skilled-worker'],
+    ...characterLifeEvents,
   ],
 };

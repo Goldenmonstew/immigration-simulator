@@ -31,8 +31,8 @@ export {
   isOver,
   narrative,
   visaMonthsLeft,
-  characters,
 } from './game';
+export { characters, characterOf, loadCharacter } from './characters';
 export { places } from './locations';
 export { npcs } from './npcs';
 export { items, recipes } from './items';

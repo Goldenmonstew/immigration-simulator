@@ -1,7 +1,6 @@
 import { evaluate } from '@uk-immigration/engine';
 import { describe, expect, test } from 'vitest';
 import {
-  characters,
   currentEvent,
   enter,
   newGame,
@@ -12,10 +11,11 @@ import {
   tick,
 } from '../src';
 import type { GameEvent, GameState, PlaceId } from '../src';
-import { characterLifeEvents, lifeEvents } from '../src/events/life';
+import { lifeEvents } from '../src/events/life';
+import { characterLifeEvents } from './character-life';
 import { commonEvents } from '../src/events/common';
 import { policyStories } from '../src/events/policy';
-import { clear, completeQuarter, drain } from './helpers';
+import { characters, clear, completeQuarter, drain } from './helpers';
 
 const restore = (state: GameState): GameState =>
   JSON.parse(JSON.stringify(state));

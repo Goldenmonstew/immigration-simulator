@@ -2,7 +2,6 @@ import { evaluate } from '@uk-immigration/engine';
 import { describe, expect, test } from 'vitest';
 import {
   activities,
-  characters,
   currentEvent,
   doActivity,
   enter,
@@ -13,7 +12,7 @@ import {
 } from '../src';
 import { commonEvents } from '../src/events/common';
 import { locationActions } from '../src/locations';
-import { clear } from './helpers';
+import { characters, clear } from './helpers';
 
 const id = 'life-in-the-uk';
 const cards = [...commonEvents, ...characters[0].events].filter((event) =>

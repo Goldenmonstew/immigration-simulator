@@ -188,3 +188,10 @@
 | 167 | 按 Codex 只读审核第 1 轮修正（4 项必须改）：长居案例的 Graduate 改到该路线开放之后（2021–2023）；审阅包对否定结论全文列出每条未满足 / 未知检查及来源，事实部分输出全部输入字段，导读改为准确的结论与日期定义，来源索引纳入假设引用的来源；室内画布的加载占位按室内尺寸。另采纳：快照加入 decidedBy，审阅包改由测试比对（`-u` 一起更新），B1 案例拆成 2027-03-25 / 03-26 两天，政策核对文档区分"提交"与"生效"。验证：全仓 gate 通过；e2e 全量 3 次中 1 次手机抽屉用例偶发失败（随机事件卡，已记入报告），其余全通过 | packages/engine/test/**, docs/review/adviser-packet.md, apps/web/app/game/game-client.tsx, docs/research/*.md, docs/tasks/reports/15-five-items.md, PROGRESS.md |
 | 168 | Codex 只读审核第 2 轮：无必须改，确认第 1 轮 4 项均已解决，InteriorContext 不会让画布重新挂载。采纳其剩余风险中的一项：黄金快照的规则状态附带 UNKNOWN 依据的 PD 编号。另一项（单元测试的 next/dynamic mock 覆盖不到真实下载等待）由 e2e 覆盖，不另加测试 | packages/engine/test/golden.test.ts, packages/engine/test/__snapshots__/golden-cases.json, PROGRESS.md |
 | 169 | 补测正式站手机性能（版本 b1bf394，Lighthouse 13.6.0）：游戏页分两批共测 3 次，性能分 55 → 84，LCP 6.3 → 4.5–4.6 s，TBT 340 → 0–50 ms，CLS 0.281 → 0 / 0.051 / 0，最佳实践 96 → 100，传输 956 → 620–621 KiB；首页 96 → 97，问卷 97 不变，两页最佳实践 96 → 100。写明剩下的 LCP 卡在欢迎页横幅要等游戏脚本渲染，偶发 CLS 0.051 位移的是存档状态行 | docs/research/2026-11-16-mobile-performance.md, PROGRESS.md |
+
+## 2026-11-17
+
+| # | 改动描述 | 涉及文件 |
+|---|---|---|
+| 170 | 任务 17（用户指定 Codex gpt-6.2-astra 实现，Fable 验收）：四个角色的剧情改为选定角色后才用 `import()` 加载，欢迎页与选角画面只带角色资料（姓名、简介、头像）；开新局、继续存档、刷新恢复都先等所选角色加载完。文案、数值、事件 id、存档格式不变。最大的非 Phaser 游戏包 811 → 324 KB（gzip 311 → 143 KB），选角前 JS 逐文件 gzip 合计 571 → 491 KB（−14%）。验证：全仓 gate 通过（game 1,316、web 485）；e2e 32 条通过；新旧代码同种子把四个角色各完整玩 4 局到结束，每步事件、选择与最终存档完全一致；浏览器里四个角色各只下载自己的剧情包，旧版生成的存档在新版能继续；本地 Lighthouse 游戏页 LCP 11.5 → 10.7 s、TBT 30 → 10 ms、传输 1,794 → 1,595 KiB（未压缩），性能分 75 不变 | packages/game/src/**, packages/game/test/**, apps/web/app/game/*, apps/web/test/*, docs/tasks/17-story-split.md, docs/tasks/reports/17-story-split.md, PROGRESS.md |
+| 171 | 任务 17 第 2 轮：按存档角色过滤政策新闻与镇民心事件；选角加载期间同步忽略重复选择。存档测试改走预览和继续，覆盖冷加载成功、失败、失效事件回选角并保留原档。欢迎页延后加载四个角色剧情模块，共享模块仍含角色对白。Fable 复核：全仓 gate 通过（web 488）；e2e 32 条通过；新旧代码 16 局完整对局仍逐步一致。详见第 2 轮报告 | packages/game/src/game.ts, apps/web/app/game/{game-client.tsx,session.ts}, apps/web/test/{game-character-loading.test.tsx,game-client-harness.tsx,game-page.test.tsx,game-scene.test.ts}, docs/tasks/reports/17-story-split.md, PROGRESS.md |

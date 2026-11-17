@@ -1,12 +1,11 @@
 import { notices } from '../src/festivals';
-import { perform, quarter } from './helpers';
+import { characters, perform, quarter } from './helpers';
 import { evaluate } from '@uk-immigration/engine';
 import { currentLaw2026_11 } from '@uk-immigration/policy-data';
 import { describe, expect, test } from 'vitest';
 import {
   activities,
   achievements,
-  characters,
   currentEvent,
   places,
   npcs,

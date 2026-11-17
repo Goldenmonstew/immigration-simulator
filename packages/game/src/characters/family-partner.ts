@@ -1,5 +1,5 @@
-import { lifeChains } from '../events/life-chains';
-import { characterLifeEvents } from '../events/life';
+import { familyPartnerProfile } from './metadata';
+import { lifeChains, characterLifeEvents } from './family-partner-life';
 import {
   currentLaw2026_11,
   earnedSettlement2026_11,
@@ -2622,13 +2622,32 @@ const events: GameEvent[] = [
 ];
 
 export const familyPartner: Character = {
-  id: 'family-partner',
-  name: t('索菲娅·莫拉', 'Sofia Mora'),
-  intro: t(
-    '索菲娅于 2024 年中以英国公民杰米的伴侣身份来英，兼职年薪 £12,000，杰米年薪 £20,000。两人正在学着把班表、账单和晚饭放进同一本日历。只评估索菲娅本人，人物与事件均为虚构。',
-    'Sofia arrived in mid-2024 as British citizen Jamie’s partner. She earns £12,000 part-time and Jamie earns £20,000. They are learning to fit shifts, bills and dinner into one calendar. Only Sofia is assessed; all characters and events are fictional.',
-  ),
-  sprite: 'characters/7.png',
+  ...familyPartnerProfile,
+  opening: {
+    id: 'opening-family-partner',
+    title: { zhCN: '厨房里的早晨', en: 'A morning in the kitchen' },
+    text: {
+      zhCN: '你和杰米住在镇上的租屋，厨房的锅盖还没找到合适的位置。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本挨着食谱。\n街角能买菜喝咖啡，池塘边有长椅，社区菜地也能租下一块。',
+      en: 'You share a rented home in town with Jamie. The saucepan lid still has no proper place in the kitchen.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. The textbook sits beside the recipes.\nThere is shopping and coffee on the corner, a bench by the pond, and an allotment plot to rent.',
+    },
+    weight: 1,
+    once: true,
+    channel: 'morning',
+    choices: [
+      {
+        id: 'begin',
+        label: {
+          zhCN: '把锅盖放稳，带上外套',
+          en: 'Set the lid down and take a coat',
+        },
+        effects: [{ type: 'none' }],
+      },
+    ],
+  },
+  settlement: {
+    zhCN: '你把递交后的回执放进抽屉，手指在文件夹的折角上停了一下。\n桌上还摊着写过又改的便条，你把有用的夹好，余下的翻过来当草稿。\n杯沿留下的茶印已经干了，你拿湿布慢慢擦掉，露出原来的木纹。\n你把空出来的地方留给晚饭，坐下脱掉鞋子，窗外传来熟悉的关门声。',
+    en: 'You put the submission receipt in the drawer, pausing over a bent corner of the folder.\nRewritten notes still cover the table. You file the useful ones and turn the others over for scrap paper.\nThe tea ring has dried. You wipe it slowly away, revealing the grain of the wood.\nYou leave the cleared space for dinner and sit down to take off your shoes. A familiar door closes outside.',
+  },
   startDate: '2025-06-15',
   timeline: {
     dateOfBirth: '1993-02-14',
@@ -2658,9 +2677,5 @@ export const familyPartner: Character = {
     governmentDebt: { outstanding: false },
   },
   stats: { money: 16000, mood: 70, health: 76, english: 45, career: 16 },
-  events: [
-    ...events,
-    ...lifeChains['family-partner'],
-    ...characterLifeEvents['family-partner'],
-  ],
+  events: [...events, ...lifeChains, ...characterLifeEvents],
 };

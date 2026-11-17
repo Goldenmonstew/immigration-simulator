@@ -1,11 +1,11 @@
+import { harness, mountClient, renderView } from './game-client-harness';
+import { loadedCharacters } from './load-game-characters';
 import * as React from 'react';
 import { readFileSync } from 'node:fs';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { evaluate, type Locale } from '@uk-immigration/engine';
 import * as core from '@uk-immigration/game';
 import type { GameState } from '@uk-immigration/game';
-import GameClient from '../app/game/game-client';
 import TownCanvas from '../app/game/town-canvas';
 import {
   CharacterSelect,
@@ -36,6 +36,7 @@ import {
 } from '../app/game/life-overlays';
 import {
   gameStorage,
+  previewGameSave,
   gameDraft,
   itemIcon,
   spritePath,
@@ -52,27 +53,9 @@ import {
 import { t } from '../i18n';
 import townMap from '../public/game/town.json';
 import homeMap from '../public/game/home.json';
-import { LocaleContext } from '../i18n/locale';
 import { decodeDraft, encodeDraft } from '../lib/share';
 import { portraitPath, townBanner } from '../app/game/art';
 import Home from '../app/home-content';
-vi.mock('react', { spy: true });
-vi.mock('../app/game/town-canvas', () => ({ default: () => null }));
-// game-client loads the canvas through next/dynamic; hand back the mock above.
-vi.mock('next/dynamic', async () => {
-  const canvas = await import('../app/game/town-canvas');
-  return { default: () => canvas.default };
-});
-vi.mock('../app/game/sound', () => ({
-  playSound: vi.fn(),
-  hideSound: vi.fn(),
-  readMuted: () => true,
-  setMuted: vi.fn(),
-  setSoundSeason: vi.fn(),
-  stopSound: vi.fn(),
-  unlockSound: vi.fn(),
-}));
-const actualReact = await vi.importActual<typeof React>('react');
 function expectCelebrationIcon(html: string) {
   const icon = html.match(
     /class="[^"]*catchCard[^"]*"[^>]*>(<span[^>]*>)/,
@@ -129,14 +112,14 @@ const at = (
 };
 beforeEach(() => {
   storage.clear();
-  for (const character of core.characters) character.events.push(...fixtures);
+  for (const character of loadedCharacters) character.events.push(...fixtures);
   vi.stubGlobal('localStorage', {
     getItem: (key: string) => storage.get(key) ?? null,
     setItem: (key: string, v: string) => storage.set(key, v),
   });
 });
 afterEach(() => {
-  for (const character of core.characters)
+  for (const character of loadedCharacters)
     character.events = character.events.filter(
       (event) => !fixtures.includes(event),
     );
@@ -144,150 +127,6 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.useRealTimers();
 });
-type Props = {
-  children?: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  'aria-label'?: string;
-  onChange?: (event: { target: { value: string } }) => void;
-};
-function walk(
-  node: React.ReactNode,
-  visit: (e: React.ReactElement<Props>) => void,
-) {
-  React.Children.forEach(node, (c) => {
-    if (React.isValidElement<Props>(c)) {
-      visit(c);
-      walk(c.props.children, visit);
-    }
-  });
-}
-function content(node: React.ReactNode): string {
-  return React.Children.toArray(node)
-    .map((c) =>
-      React.isValidElement<Props>(c) ? content(c.props.children) : String(c),
-    )
-    .join('');
-}
-function renderView(make: () => React.ReactNode, locale: Locale = 'zh-CN') {
-  const buttons: {
-    label: string;
-    accessibleLabel?: string;
-    click: () => void;
-    disabled?: boolean;
-  }[] = [];
-  let tree: React.ReactNode;
-  function Probe() {
-    tree = make();
-    walk(tree, (e) => {
-      if (e.type === 'button' && e.props.onClick)
-        buttons.push({
-          label: content(e.props.children),
-          accessibleLabel: e.props['aria-label'],
-          click: e.props.onClick,
-          disabled: e.props.disabled,
-        });
-    });
-    return tree;
-  }
-  const html = renderToStaticMarkup(
-    <LocaleContext value={{ locale, setLocale: () => {} }}>
-      <Probe />
-    </LocaleContext>,
-  );
-  return {
-    html,
-    buttons,
-    click(prefix: string) {
-      const b = buttons.find(
-        (b) => b.label.startsWith(prefix) || b.accessibleLabel === prefix,
-      );
-      expect(b, `Button: ${prefix}`).toBeDefined();
-      expect(b!.disabled).not.toBe(true);
-      b!.click();
-    },
-    props<P extends object>(component: React.JSXElementConstructor<P>): P {
-      let result: P | undefined;
-      walk(tree, (e) => {
-        if (e.type === component) result = e.props as P;
-      });
-      expect(result).toBeDefined();
-      return result!;
-    },
-    input(value: string) {
-      walk(tree, (e) => {
-        if (e.type === 'input') e.props.onChange?.({ target: { value } });
-      });
-    },
-  };
-}
-// Minimal hook runner for controller transitions and timed overlays, without a DOM or Phaser.
-function harness(make: () => React.ReactNode, locale: Locale = 'zh-CN') {
-  const stateHook = actualReact.useState,
-    refHook = actualReact.useRef,
-    effectHook = actualReact.useEffect;
-  const values: unknown[] = [],
-    refs: { current: unknown }[] = [],
-    effects: { deps?: React.DependencyList; cleanup?: () => void }[] = [];
-  let running = false,
-    si = 0,
-    ri = 0,
-    ei = 0;
-  let pending: {
-    i: number;
-    fn: React.EffectCallback;
-    deps?: React.DependencyList;
-  }[] = [];
-  vi.spyOn(React, 'useState').mockImplementation(((initial: unknown) => {
-    if (!running) return stateHook(initial);
-    const i = si++;
-    if (!(i in values))
-      values[i] = typeof initial === 'function' ? initial() : initial;
-    return [
-      values[i],
-      (next: unknown) => {
-        values[i] = typeof next === 'function' ? next(values[i]) : next;
-      },
-    ];
-  }) as typeof React.useState);
-  vi.spyOn(React, 'useRef').mockImplementation(((initial: unknown) => {
-    if (!running) return refHook(initial);
-    const i = ri++;
-    return refs[i] ?? (refs[i] = { current: initial });
-  }) as typeof React.useRef);
-  vi.spyOn(React, 'useEffect').mockImplementation((fn, deps) => {
-    if (!running) return effectHook(fn, deps);
-    const i = ei++,
-      old = effects[i];
-    if (!old || !deps || deps.some((d, j) => !Object.is(d, old.deps?.[j])))
-      pending.push({ i, fn, deps });
-  });
-  return {
-    render() {
-      si = ri = ei = 0;
-      pending = [];
-      return renderView(() => {
-        running = true;
-        const tree = make();
-        running = false;
-        return tree;
-      }, locale);
-    },
-    flush() {
-      const work = pending;
-      pending = [];
-      for (const { i, fn, deps } of work) {
-        effects[i]?.cleanup?.();
-        effects[i] = { deps, cleanup: fn() || undefined };
-      }
-    },
-    dispose() {
-      effects.forEach((e) => e.cleanup?.());
-    },
-    values,
-  };
-}
-
 test.each(['zh-CN', 'en'] as const)(
   'clock, weather, morning and all character choices in %s',
   (locale) => {
@@ -310,13 +149,16 @@ test.each(['zh-CN', 'en'] as const)(
     expect(onContinue).toHaveBeenCalledOnce();
     const select = renderView(
       () =>
-        CharacterSelect({ saves: { [state.characterId]: state }, onChange }),
+        CharacterSelect({
+          saves: { [state.characterId]: { state, available: true } },
+          onSelect: onChange,
+        }),
       locale,
     );
     for (const c of core.characters)
       expect(select.html).toContain(portraitPath(c.id));
     select.click(t('game.continue', locale));
-    expect(onChange).toHaveBeenCalledWith(state);
+    expect(onChange).toHaveBeenCalledWith(state.characterId, 'continue');
     if (locale === 'en')
       for (const v of [hud, morning, select]) expect(v.html).not.toMatch(cjk);
   },
@@ -714,28 +556,28 @@ test('fast-forward stops at every event and only finishes the current season', (
   expect(state.day.minute).toBe(420);
 });
 
-test('v3 saves restore inventories and random cursor; v2 and invalid saves are never read', () => {
+test('v3 saves restore inventories and random cursor; v2 and invalid saves are never read', async () => {
   const state = active();
   storage.set(
     `uk-immigration-life-v2:${state.characterId}`,
     JSON.stringify(state),
   );
-  expect(gameStorage(state.characterId).state).toBeUndefined();
-  gameStorage(state.characterId, state);
-  expect(gameStorage(state.characterId).state).toEqual(state);
+  expect(previewGameSave(state.characterId).state).toBeUndefined();
+  const h = await client(state);
+  expect(h.render().props(TownCanvas).state).toEqual(state);
+  h.dispose();
   for (const change of [
     { version: 2 },
     { day: undefined },
     { inventory: { tea: -1 } },
     { plots: [null] },
     { day: { ...state.day, minute: 2000 } },
-    { pendingEvent: 'missing' },
   ]) {
     storage.set(
       `uk-immigration-life-v3:${state.characterId}`,
       JSON.stringify({ ...state, clientVersion: 1, ...change }),
     );
-    expect(gameStorage(state.characterId).available).toBe(false);
+    expect(previewGameSave(state.characterId).available).toBe(false);
   }
   vi.stubGlobal('localStorage', {
     getItem: () => {
@@ -791,28 +633,26 @@ test('all new overlays are English-only, with an unknown-item fallback', () => {
     expect(renderView(make, 'en').html).not.toMatch(cjk);
 });
 
-function client(start: GameState, locale: Locale = 'zh-CN') {
-  const documentStub = {
-    hidden: false,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  };
-  vi.stubGlobal('document', documentStub);
+async function client(
+  start: GameState,
+  locale: Locale = 'zh-CN',
+  action: 'new' | 'continue' = 'continue',
+) {
   gameStorage(start.characterId, start);
-  const h = harness(() => GameClient(), locale);
-  h.render();
-  h.flush();
+  const h = mountClient(locale);
   const selection = h.render().props(CharacterSelect);
-  selection.onChange(start);
+  const entering = selection.onSelect(start.characterId, action);
+  expect(h.render().html).toContain(t('game.loading', locale));
+  await entering;
   h.render().props(TownCanvas).onReady();
   h.render();
   h.flush();
-  return { ...h, documentStub };
+  return h;
 }
-test('controller clock ticks only outdoors; menus, events, hidden page and morning pause it', () => {
+test('controller clock ticks only outdoors; menus, events, hidden page and morning pause it', async () => {
   vi.useFakeTimers();
   const start = at(480);
-  const h = client(start);
+  const h = await client(start);
   const v = h.render();
   const get = () => h.render().props(TownCanvas).state;
   vi.advanceTimersByTime(2000);
@@ -850,9 +690,9 @@ test('controller clock ticks only outdoors; menus, events, hidden page and morni
   h.dispose();
 });
 
-test('controller sleeping resumes after delivery then shows exactly one new morning', () => {
+test('controller sleeping resumes after delivery then shows exactly one new morning', async () => {
   vi.useFakeTimers();
-  const h = client(at(600));
+  const h = await client(at(600));
   h.render().click('今天到此为止');
   h.render().click('确认');
   h.render();
@@ -880,30 +720,37 @@ test('controller sleeping resumes after delivery then shows exactly one new morn
   h.dispose();
 });
 
-test('fresh controller waits for scene and morning before exposing the initial event', () => {
-  vi.useFakeTimers();
-  const h = client(initial());
-  let v = h.render();
-  expect(v.props(MorningCard).state.dayNumber).toBe(0);
-  v.props(MorningCard).onContinue();
-  v = h.render();
-  expect(v.props(EventCard).state.pendingEvent).toBe('morning');
-  h.dispose();
-});
+test.each(['new', 'continue'] as const)(
+  '%s loads only the chosen character and waits for scene and morning before exposing the initial event',
+  async (action) => {
+    vi.useFakeTimers();
+    const load = vi.spyOn(core, 'loadCharacter');
+    const h = await client(initial(), 'zh-CN', action);
+    expect(load.mock.calls).toEqual([['skilled-worker']]);
+    let v = h.render();
+    expect(v.props(MorningCard).state.dayNumber).toBe(0);
+    v.props(MorningCard).onContinue();
+    v = h.render();
+    expect(v.props(EventCard).state.pendingEvent).toBe(
+      action === 'new' ? 'opening-skilled-worker' : 'morning',
+    );
+    h.dispose();
+  },
+);
 
 test('display workday is a weekday without moving the policy anchor date', () => {
-  for (const character of core.characters) {
+  for (const character of loadedCharacters) {
     const state = initial('en', character.id);
     expect(state.date).toBe(character.startDate);
     expect([1, 2, 3, 4, 5]).toContain(new Date(state.day.date).getUTCDay());
   }
 });
 
-test('midnight returns home and sleeps automatically after remaining events', () => {
+test('midnight returns home and sleeps automatically after remaining events', async () => {
   vi.useFakeTimers();
   const state = at(1430, 'bench');
   state.day.deliveries = [];
-  const h = client(state);
+  const h = await client(state);
   vi.advanceTimersByTime(2000);
   for (let i = 0; i < 4; i++) {
     h.render();
@@ -1052,8 +899,8 @@ test('home residents use fixed accessible positions and never appear in the town
   }
 });
 
-test('controller clears gift feedback before a shop, mailbox, or reopened menu', () => {
-  const h = client(at(600));
+test('controller clears gift feedback before a shop, mailbox, or reopened menu', async () => {
+  const h = await client(at(600));
   h.render().props(TownCanvas).onInteract({ kind: 'npc', id: 'margaret' });
   const dialogue = h.render().props(Dialogue);
   const next = core.gift(dialogue.state, 'margaret', 'tea');
@@ -1079,8 +926,8 @@ test('controller clears gift feedback before a shop, mailbox, or reopened menu',
   h.dispose();
 });
 
-test('reading the board keeps the menu open with this season\u2019s notices', () => {
-  const h = client(at(600, 'board'));
+test('reading the board keeps the menu open with this season\u2019s notices', async () => {
+  const h = await client(at(600, 'board'));
   h.render().props(TownCanvas).onInteract({ kind: 'place', id: 'board' });
   const menu = h.render().props(LocationMenu);
   const next = core.doActivity(menu.state, 'board');
@@ -1110,10 +957,10 @@ test('outcome text renders each notice on a separate line in both locales', () =
   }
 });
 
-test('heart dialogue focuses the NPC and shows the actual heart change', () => {
+test('heart dialogue focuses the NPC and shows the actual heart change', async () => {
   const start = at(600);
   start.friendship.margaret = 190;
-  const h = client(start);
+  const h = await client(start);
   h.render().props(TownCanvas).onInteract({ kind: 'npc', id: 'margaret' });
   const view = h.render();
   expect(view.props(TownCanvas).focusNpc).toBe('margaret');
@@ -1122,9 +969,9 @@ test('heart dialogue focuses the NPC and shows the actual heart change', () => {
   h.dispose();
 });
 
-test('one-month journey pauses abroad, restores there, and records only a completed absence on return', () => {
+test('one-month journey pauses abroad, restores there, and records only a completed absence on return', async () => {
   const start = at(600, 'station');
-  const h = client(start);
+  const h = await client(start);
   h.render().props(TownCanvas).onInteract({ kind: 'place', id: 'station' });
   const menu = h.render().props(LocationMenu);
   menu.onChange(core.doActivity(menu.state, 'travel-1'));
@@ -1136,7 +983,7 @@ test('one-month journey pauses abroad, restores there, and records only a comple
   expect(view.html).not.toContain('role="application"');
   const abroad = view.props(TravelCard).state;
   gameStorage(abroad.characterId, abroad);
-  expect(gameStorage(abroad.characterId).state!.trip).toEqual(abroad.trip);
+  expect(previewGameSave(abroad.characterId).state!.trip).toEqual(abroad.trip);
   for (let i = 0; i < 15; i++) {
     view = h.render();
     const card = view.props(TravelCard);
@@ -1203,20 +1050,21 @@ test('real fast-forward diary groups all three days and merges repeat conversati
   expect(view.html).toContain('× 2');
   expect(view.html).not.toMatch(cjk);
   gameStorage(after.characterId, after, diary);
-  expect(gameStorage(after.characterId).diary).toEqual(diary);
+  expect(previewGameSave(after.characterId).diary).toEqual(diary);
 });
 
-test('unassigned real event queue restores, but mock-era v3 saves are ignored', () => {
+test('unassigned real event queue restores, but mock-era v3 saves are ignored', async () => {
   const state = core.newGame(core.characters[0].id, 4, 'en');
   delete state.pendingEvent;
   state.eventQueue = ['letter'];
-  gameStorage(state.characterId, state);
-  expect(gameStorage(state.characterId).state?.eventQueue).toEqual(['letter']);
+  const h = await client(state, 'en');
+  expect(h.render().props(TownCanvas).state.eventQueue).toEqual(['letter']);
+  h.dispose();
   storage.set(
     `uk-immigration-life-v3:${state.characterId}`,
     JSON.stringify(state),
   );
-  expect(gameStorage(state.characterId).state).toBeUndefined();
+  expect(previewGameSave(state.characterId).state).toBeUndefined();
 });
 
 test('Tiled layers retain finite offsets, opacity and visibility after map regeneration', () => {
@@ -1272,10 +1120,10 @@ test('rejected late fishing never claims a catch or changes the state', () => {
   h.dispose();
 });
 
-test('controller resolves a phone interruption without replaying or dropping the remaining work time', () => {
+test('controller resolves a phone interruption without replaying or dropping the remaining work time', async () => {
   const start = at(540, 'work');
   start.day.deliveries = [{ eventId: 'phone', channel: 'phone', minute: 720 }];
-  const h = client(start);
+  const h = await client(start);
   h.render().props(TownCanvas).onInteract({ kind: 'place', id: 'work' });
   const menu = h.render().props(LocationMenu);
   menu.onChange(core.doActivity(menu.state, 'work'));
@@ -1295,7 +1143,7 @@ test('season opening stats survive reload and include daily life changes in the 
   const opening = { ...start.stats };
   const afterMeal = core.eat(start, 'tea');
   gameStorage(afterMeal.characterId, afterMeal, [], opening);
-  expect(gameStorage(afterMeal.characterId).quarterStart).toEqual(opening);
+  expect(previewGameSave(afterMeal.characterId).quarterStart).toEqual(opening);
   const settled = {
     ...afterMeal,
     stats: { ...afterMeal.stats, mood: afterMeal.stats.mood + 3 },
@@ -1313,13 +1161,13 @@ test('season opening stats survive reload and include daily life changes in the 
   expect(changes).toContain(`+${settled.stats.mood - opening.mood}`);
 });
 
-test('sleeping through a promotion generates feedback and still shows the final quarter summary', () => {
+test('sleeping through a promotion generates feedback and still shows the final quarter summary', async () => {
   vi.useFakeTimers();
   const start = at(1200);
   start.day.index = 2;
   start.day.deliveries = [];
   start.stats.career = 60;
-  const h = client(start);
+  const h = await client(start);
   h.render().click(t('game.endDay'));
   h.render().click(t('game.confirm'));
   h.render();
@@ -1395,7 +1243,7 @@ test.each(core.characters)(
 // Phase 10.5 A: expiry, adjoining renewals and compact assessments.
 test.each(['zh-CN', 'en'] as const)(
   'season morning and fast-forward warn about unrenewed permission in %s',
-  (locale) => {
+  async (locale) => {
     const state = at(420, 'home', locale);
     state.timeline.episodes = [
       {
@@ -1422,7 +1270,7 @@ test.each(['zh-CN', 'en'] as const)(
     state.date = '2024-04-15';
     state.timeline.episodes[0].validTo = '2024-07-14';
     state.day.minute = 600;
-    const h = client(state);
+    const h = await client(state);
     h.render().click(t('game.fastForward'));
     expect(h.render().html).toContain(t('game.fastVisaWarning'));
     h.dispose();
@@ -1439,7 +1287,7 @@ test.each(['zh-CN', 'en'] as const)(
     );
     expect(view.html).not.toContain(t('game.visaReminderTitle', locale));
     state.day.minute = 600;
-    const renewed = client(state);
+    const renewed = await client(state);
     renewed.render().click(t('game.fastForward'));
     expect(renewed.render().html).not.toContain(t('game.fastVisaWarning'));
     renewed.dispose();
@@ -1539,11 +1387,11 @@ test.each(['zh-CN', 'en'] as const)(
 
 test.each(['home', 'work'] as const)(
   'chatting from the %s menu returns there, including a heart event',
-  (place) => {
+  async (place) => {
     const state = at(place === 'home' ? 480 : 600, place);
     state.day.deliveries = [];
     const npc = place === 'home' ? 'yao-flatmate' : 'ade';
-    const h = client(state);
+    const h = await client(state);
     h.render()
       .props(TownCanvas)
       .onInteract(
@@ -1566,11 +1414,11 @@ test.each(['home', 'work'] as const)(
   },
 );
 
-test('conversation returns to its menu after resolving a heart scene', () => {
+test('conversation returns to its menu after resolving a heart scene', async () => {
   const state = at(600, 'cafe');
   state.day.deliveries = [];
   state.friendship.margaret = 190;
-  const h = client(state);
+  const h = await client(state);
   h.render().props(TownCanvas).onInteract({ kind: 'place', id: 'cafe' });
   h.render().props(LocationMenu).onTalk!('margaret');
   const dialogue = h.render().props(Dialogue);
@@ -1609,8 +1457,8 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
-test('closed destination buttons stay clickable and still open the hours menu', () => {
-  const h = client(at(430));
+test('closed destination buttons stay clickable and still open the hours menu', async () => {
+  const h = await client(at(430));
   const view = h.render();
   const button = view.buttons.find((b) => b.label === '公司')!;
   expect(button.disabled).toBe(false);
@@ -1700,15 +1548,15 @@ test('opening a dialog focuses its labelled container and closing restores the t
 });
 
 // Phase 10.5 C: small presentation fixes and deliberate ending actions.
-test('a non-festival green has no empty shop or quantity input, while festival goods appear', () => {
+test('a non-festival green has no empty shop or quantity input, while festival goods appear', async () => {
   const state = at(600, 'green');
-  const h = client(state);
+  const h = await client(state);
   h.render().props(TownCanvas).onInteract({ kind: 'place', id: 'green' });
   expect(h.render().html).not.toContain(t('game.quantity'));
   h.dispose();
   vi.restoreAllMocks();
   state.day.festival = 'lunar-new-year';
-  const festival = client(state);
+  const festival = await client(state);
   festival
     .render()
     .props(TownCanvas)
@@ -1813,7 +1661,7 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
-test('fast-forward shows the interrupting event and summary directly, with a visa reminder instead of a stale morning', () => {
+test('fast-forward shows the interrupting event and summary directly, with a visa reminder instead of a stale morning', async () => {
   vi.useFakeTimers();
   const state = at(600);
   state.day.deliveries = [];
@@ -1828,7 +1676,7 @@ test('fast-forward shows the interrupting event and summary directly, with a vis
   state.date = '2024-01-15';
   fixtures[2].when = [{ dayKind: 'weekend' }];
   try {
-    const h = client(state);
+    const h = await client(state);
     h.render().click(t('game.fastForward'));
     h.render().click(t('game.confirm'));
     h.render();
@@ -2039,7 +1887,7 @@ test.each(['zh-CN', 'en'] as const)(
   'selection, home entry and each household list render the new art in %s',
   (locale) => {
     const select = renderView(
-      () => CharacterSelect({ saves: {}, onChange: vi.fn() }),
+      () => CharacterSelect({ saves: {}, onSelect: vi.fn() }),
       locale,
     ).html;
     expect(select).toContain(townBanner);
@@ -2107,7 +1955,7 @@ test.each(['zh-CN', 'en'] as const)(
   (locale) => {
     const root = '/game/assets/meadow-town/portraits/';
     const select = renderView(
-      () => CharacterSelect({ saves: {}, onChange: vi.fn() }),
+      () => CharacterSelect({ saves: {}, onSelect: vi.fn() }),
       locale,
     ).html;
     expect(select).toContain(`${root}graduate-neutral.png`);
@@ -2246,7 +2094,7 @@ test.each(['zh-CN', 'en'] as const)(
     const gifted = core.gift(joined, 'margaret', 'community-lunch-photo');
     expect(gifted.inventory['community-lunch-photo']).toBe(0);
     gameStorage(gifted.characterId, gifted, diary);
-    const restored = gameStorage(gifted.characterId);
+    const restored = previewGameSave(gifted.characterId);
     expect(restored.diary).toEqual(diary);
     expect(endingMemories(restored.state!).photo).toBe(true);
     expect(
@@ -2297,9 +2145,9 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
-test('the destination dock pauses the scene, closes without travel, and sends the chosen destination to the canvas', () => {
+test('the destination dock pauses the scene, closes without travel, and sends the chosen destination to the canvas', async () => {
   vi.useFakeTimers();
-  const h = client(at(480));
+  const h = await client(at(480));
   h.render().props(TownCanvas).onInteract({ kind: 'home', id: 'exit' });
   h.render();
   h.flush();
@@ -2401,8 +2249,7 @@ test.each(['zh-CN', 'en'] as const)(
     const state = { ...active(locale), ending: 'left' as const };
     const all = [
       ...core.achievements,
-      ...(core.characters.find((c) => c.id === state.characterId)!
-        .achievements ?? []),
+      ...(core.characterOf(state.characterId).achievements ?? []),
     ];
     for (const earned of [[], [all[0].id], all.map((a) => a.id)]) {
       state.achievements = earned;
@@ -2442,8 +2289,8 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
-test('location selection follows the entered place while closed locations remain accessible', () => {
-  const h = client(at(430));
+test('location selection follows the entered place while closed locations remain accessible', async () => {
+  const h = await client(at(430));
   expect(h.render().html).toMatch(
     /<button[^>]*aria-current="location"[^>]*>家<\/button>/,
   );
@@ -2503,11 +2350,11 @@ test.each([
   },
 ])(
   'destinations put open places first at $minute on $kind without changing group order',
-  ({ minute, kind, open }) => {
+  async ({ minute, kind, open }) => {
     const start = at(minute);
     start.day.kind = kind as GameState['day']['kind'];
     const original = core.places.map((p) => p.id);
-    const h = client(start);
+    const h = await client(start);
     const destinations = h
       .render()
       .html.match(/<nav[^>]*aria-label="走到哪里？"[^>]*>(.*?)<\/nav>/)?.[1];
@@ -2528,14 +2375,14 @@ test.each([
 // Phase 12.7: event endings use the same persisted diary as the season review.
 test.each(['zh-CN', 'en'] as const)(
   'a real map surprise shows its result once, pauses the clock and persists the ending in %s',
-  (locale) => {
+  async (locale) => {
     vi.useFakeTimers();
     const start = at(600, 'home', locale);
     start.day.deliveries = [];
     start.dayNumber = (Math.imul(start.seed ^ 1, 2654435761) >>> 0) % 3;
     start.day.index = start.dayNumber as GameState['day']['index'];
     const clue = core.mapSurprises(start).find((s) => s.phase === 'clue')!;
-    const h = client(start, locale);
+    const h = await client(start, locale);
     h.render().props(TownCanvas).onInteract({ kind: 'home', id: 'exit' });
     h.render().props(TownCanvas).onInteract({
       kind: 'surprise',
@@ -2559,7 +2406,7 @@ test.each(['zh-CN', 'en'] as const)(
     expect(h.render().props(TownCanvas).state.day.minute).toBe(
       resolved.day.minute,
     );
-    const saved = gameStorage(start.characterId);
+    const saved = previewGameSave(start.characterId);
     expect(
       saved.diary!.filter((m) => m.text.en === resolved.outcome!.text!.en),
     ).toHaveLength(1);
@@ -2570,7 +2417,7 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
-test('an event without its own result never replays a previous activity outcome', () => {
+test('an event without its own result never replays a previous activity outcome', async () => {
   const start = at(600);
   start.day.deliveries = [];
   start.pendingEvent = 'phone';
@@ -2578,14 +2425,14 @@ test('an event without its own result never replays a previous activity outcome'
     kind: 'activity',
     text: { zhCN: '旧结果', en: 'Old result' },
   };
-  const h = client(start);
+  const h = await client(start);
   h.render().props(EventCard).onChange(core.resolve(start, 'yes'));
   expect(h.render().html).not.toContain('旧结果');
   expect(h.render().html).not.toContain(t('game.eventResult'));
   h.dispose();
 });
 
-test('fast-forward queues a new event result in the saved season review without an extra stop', () => {
+test('fast-forward queues a new event result in the saved season review without an extra stop', async () => {
   vi.useFakeTimers();
   const start = at(600);
   start.day.deliveries = [];
@@ -2596,7 +2443,7 @@ test('fast-forward queues a new event result in the saved season review without 
     en: 'You tuck away the note. See you tomorrow.',
   };
   try {
-    const h = client(start);
+    const h = await client(start);
     h.render().click(t('game.fastForward'));
     h.render().click(t('game.confirm'));
     h.render();
@@ -2620,7 +2467,9 @@ test('fast-forward queues a new event result in the saved season review without 
     expect(view.html).not.toContain(t('game.eventResult'));
     h.flush();
     expect(
-      gameStorage(start.characterId).diary!.some((m) => m.text.en === text.en),
+      previewGameSave(start.characterId).diary!.some(
+        (m) => m.text.en === text.en,
+      ),
     ).toBe(true);
     view.props(QuarterSummary).onContinue();
     expect(h.render().html).not.toContain(text.zhCN);
@@ -2630,8 +2479,8 @@ test('fast-forward queues a new event result in the saved season review without 
   }
 });
 
-test('the collection toolbar entry opens the read-only collection tab', () => {
-  const h = client(at(600));
+test('the collection toolbar entry opens the read-only collection tab', async () => {
+  const h = await client(at(600));
   h.render().click(t('game.collection'));
   expect(h.render().props(Inventory).initialTab).toBe('collection');
   expect(h.render().html).toContain(t('game.collectionFish'));

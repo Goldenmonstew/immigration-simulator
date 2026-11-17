@@ -7,7 +7,6 @@ import { commonEvents } from '../src/events/common';
 import { placeEvents } from '../src/events/places';
 import { describe, expect, test } from 'vitest';
 import {
-  characters,
   doActivity,
   enter,
   festivals,
@@ -20,7 +19,7 @@ import {
 } from '../src';
 import { heartEvents } from '../src/npcs';
 import { townDialogue } from '../src/town-dialogue';
-import { clear, completeQuarter } from './helpers';
+import { characters, clear, completeQuarter } from './helpers';
 
 const routes = [
   ['SKILLED_WORKER', 'skilled-worker'],

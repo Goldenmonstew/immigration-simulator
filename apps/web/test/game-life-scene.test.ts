@@ -1,3 +1,4 @@
+import './load-game-characters';
 import { expect, test, vi } from 'vitest';
 import {
   approachSurprise,
