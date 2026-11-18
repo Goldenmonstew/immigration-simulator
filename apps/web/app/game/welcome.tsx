@@ -1,5 +1,6 @@
 'use client';
 
+import { preload } from 'react-dom';
 import { useTranslation } from '../../i18n/locale';
 import { townBanner } from './art';
 import styles from './game.module.css';
@@ -8,6 +9,7 @@ import styles from './game.module.css';
 // town banner (the largest paint) before the game scripts arrive.
 export function WelcomeIntro() {
   const { t, locale } = useTranslation();
+  preload(townBanner, { as: 'image', fetchPriority: 'high' });
   return (
     <div className={styles.welcomeIntro}>
       <div>
