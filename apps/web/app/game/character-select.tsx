@@ -3,9 +3,10 @@
 import { useTranslation } from '../../i18n/locale';
 import { characters } from '@uk-immigration/game';
 import type { GameSave } from './session';
-import { portraitPath, townBanner } from './art';
+import { portraitPath } from './art';
 import styles from './game.module.css';
 import { localText } from './game-ui';
+import { WelcomeIntro } from './welcome';
 
 export function CharacterSelect({
   saves,
@@ -17,22 +18,7 @@ export function CharacterSelect({
   const { t, locale } = useTranslation();
   return (
     <section className={styles.welcome}>
-      <div className={styles.welcomeIntro}>
-        <div>
-          <h1>{t('game.title')}</h1>
-          {locale === 'zh-CN' && (
-            <p className={styles.subtitle} lang="en">
-              Immigration Life
-            </p>
-          )}
-          <p className={styles.lead}>{t('game.intro')}</p>
-        </div>
-        <div
-          className={styles.townBanner}
-          style={{ backgroundImage: `url("${townBanner}")` }}
-          aria-hidden="true"
-        />
-      </div>
+      <WelcomeIntro />
       <h2>{t('game.chooseCharacter')}</h2>
       <div className={styles.characters}>
         {characters.map((character) => (
