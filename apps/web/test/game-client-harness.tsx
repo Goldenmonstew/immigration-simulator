@@ -178,7 +178,7 @@ export function mountClient(locale: Locale = 'zh-CN') {
   };
   vi.stubGlobal('document', documentStub);
   const h = harness(() => GameClient(), locale);
-  h.render();
+  const initialHtml = h.render().html;
   h.flush();
-  return { ...h, documentStub };
+  return { ...h, documentStub, initialHtml };
 }

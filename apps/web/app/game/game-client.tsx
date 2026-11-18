@@ -949,9 +949,9 @@ export default function GameClient() {
         </>
       )}
       <p className={styles.saveStatus} role="status">
-        {t(available ? 'game.saved' : 'game.storageUnavailable')}
+        {ready && t(available ? 'game.saved' : 'game.storageUnavailable')}
       </p>
-      <p className={styles.disclaimer}>{t('game.disclaimer')}</p>
+      {ready && <p className={styles.disclaimer}>{t('game.disclaimer')}</p>}
     </div>
   );
 }
