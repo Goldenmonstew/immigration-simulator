@@ -34,6 +34,27 @@ function delayCharacterLoad() {
   return { load, resolve, reject };
 }
 
+test('save status and disclaimer appear only when the game client is ready', async () => {
+  const h = mountClient();
+  const picker = h.render();
+  const { resolve } = delayCharacterLoad();
+  const entering = picker
+    .props(CharacterSelect)
+    .onSelect('skilled-worker', 'new');
+  const loadingStory = h.render().html;
+  resolve();
+  await entering;
+  const game = h.render().html;
+
+  for (const text of [t('game.saved'), t('game.disclaimer')]) {
+    expect(h.initialHtml).not.toContain(text);
+    expect(picker.html).toContain(text);
+    expect(loadingStory).not.toContain(text);
+    expect(game).toContain(text);
+  }
+  h.dispose();
+});
+
 test('continue rejects the same foreign event IDs before and after loading their owners and preserves the saves', async () => {
   await core.loadCharacter('skilled-worker');
   const state = core.newGame('skilled-worker', 42);
