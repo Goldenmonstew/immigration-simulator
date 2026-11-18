@@ -60,3 +60,18 @@ Fable 会逐项复核。
 ## 报告
 
 按 `AGENTS.md` 四段写入 `docs/tasks/reports/22-banner-priority-cls.md`。"做了什么"里按你建议的 commit 分组列出文件，例如横幅预加载一组、存档状态行一组。
+
+## 第 2 轮：按审核修正（2026-11-18）
+
+gpt-6.2-sol 只读审核了 PR #10，审核全文见 `/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t22/review.md`。预加载部分可以保留。下面两项请修正，其余约束同上（不加依赖，不改构建配置，不过度工程化，不碰 `.git`，不改性能文档和 `PROGRESS.md`）。
+
+1. **必须改：存档状态的播报节点要一直在。**
+   - 现状：`ready` 变为 `true` 时，`role="status"` 节点和文案在同一次渲染中插入。读屏器可能漏播这次更新，例如首次读取存档失败时的"存储不可用"（`game.storageUnavailable`）。
+   - 改法：`GameClient` 始终渲染同一个 `role="status"` 节点；未就绪时内容为空、不占布局空间，就绪后再填入文案。免责声明仍只在 `ready` 后渲染。
+   - 让空节点不占空间，用最简单的做法，例如 CSS `.saveStatus:empty { margin: 0; }`。不能因此恢复原来的位移：未就绪时这个节点的高度和外边距都应为 0。
+2. **补测试。**
+   - 扩展本轮新加的单测：未就绪时 HTML 里有空的 `role="status"` 节点、没有存档文案；就绪后同一节点里有文案。
+   - 最后一步改用现有的 `TownCanvas` props 断言，确认所选角色确实进入了游戏，而不只是两行文字重新出现。
+   - 加一条：存储不可用时，就绪后状态节点里是 `game.storageUnavailable` 的文案。复用 `game-page.test.tsx` 里已有的存储不可用写法。
+
+验收同上：`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过。在 `docs/tasks/reports/22-banner-priority-cls.md` 末尾追加"第 2 轮"一节，写明改了哪些文件、怎么验证的；Fable 写的验收一节不要改。

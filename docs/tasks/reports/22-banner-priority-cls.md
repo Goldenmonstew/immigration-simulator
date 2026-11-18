@@ -35,3 +35,34 @@ e2e、桌面和手机宽度走查（含选角后等待剧情的画面）、本�
   - 改动后 `layout-shifts` 不再列出存档状态行，"LCP 请求发现"三项检查都通过。
   - 数字写入 `docs/research/2026-11-16-mobile-performance.md`。
 - **没验证**：选角后加载剧情期间不显示这两行，只由单测覆盖；走查时剧情包已缓存，加载画面一闪而过。正式站结果待上线后测。
+
+## 第 2 轮：按审核修正（2026-11-18）
+
+### 1. 做了什么
+
+建议 Fable 作为一次修复提交。`apps/web/app/game/game-client.tsx` 始终渲染同一个存档 `role="status"` 段落。首次加载和选角后等待剧情时，段落为空，`apps/web/app/game/game.module.css` 将空段落的外边距归零。就绪后在原段落填入存档结果，并在下一行显示免责声明。
+
+`apps/web/test/game-character-loading.test.tsx` 覆盖这两个加载阶段和两个就绪阶段，最后从 `TownCanvas` 的 `state.characterId` 确认进入小镇的是所选角色。另加一条首次读取存储失败的用例，检查错误提示出现在存档播报节点内。
+
+### 2. 怎么验证的
+
+- 修改实现前，用 `pnpm --filter web exec vitest run test/game-character-loading.test.tsx -t 'the save status'` 运行两条回归用例，两条均因首次渲染缺少空播报节点而失败。修正后运行整个测试文件，5 条通过。
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码为 0。全仓单测 4,409 条通过，其中 web 491 条。引擎的 1 条文案导出测试按既有环境开关跳过。
+- 用 `python3` 检查 9 个导出 HTML 的 `<head>`，只有 `game.html` 含横幅的高优先级图片预加载。用 `rg` 在构建 CSS 中确认空存档段落命中 `:empty{margin:0}`。
+
+### 3. 没做或没验证的
+
+本轮未实测读屏播报或浏览器布局。e2e、桌面及手机走查、Lighthouse 复测和 Git 提交由 Fable 完成。
+
+### 4. 发现与建议
+
+Fable 验收时可禁用浏览器存储，确认读屏器在首次读取失败后播报存储不可用，并在实际限速下核对存档状态行是否产生位移。
+
+## Fable 复核第 2 轮（2026-11-18）
+
+- **全仓检查**：`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过，web 单测 491 条；`pnpm e2e` 34 条通过。
+- **禁用存储的浏览器检查**：用 Playwright 让 `localStorage` 读写都抛错，不提交到仓库。存档状态节点先以空内容出现，高度 0、上外边距 0；之后同一个节点填入"本机存储不可用"的提示，节点没有被替换。读屏器的实际播报没有实测。
+- **本地 Lighthouse 复测**（第 2 轮构建）：
+  - 实际限速 2 次：性能分 92、92，LCP 2.2 s，CLS 0；
+  - 模拟限速 2 次：性能分 75、75，LCP 9.8–10.0 s，CLS 0；
+  - 4 次的优先级提示都通过，`layout-shifts` 都为空。
