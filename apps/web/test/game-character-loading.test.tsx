@@ -2,6 +2,7 @@ import { mountClient } from './game-client-harness';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import * as core from '@uk-immigration/game';
 import { CharacterSelect } from '../app/game/character-select';
+import styles from '../app/game/game.module.css';
 import TownCanvas from '../app/game/town-canvas';
 import { t } from '../i18n';
 
@@ -34,7 +35,11 @@ function delayCharacterLoad() {
   return { load, resolve, reject };
 }
 
-test('save status and disclaimer appear only when the game client is ready', async () => {
+function saveStatus(text: string) {
+  return `<p class="${styles.saveStatus}" role="status">${text}</p>`;
+}
+
+test('the save status stays mounted and the disclaimer appears only when ready', async () => {
   const h = mountClient();
   const picker = h.render();
   const { resolve } = delayCharacterLoad();
@@ -44,14 +49,33 @@ test('save status and disclaimer appear only when the game client is ready', asy
   const loadingStory = h.render().html;
   resolve();
   await entering;
-  const game = h.render().html;
+  const game = h.render();
 
-  for (const text of [t('game.saved'), t('game.disclaimer')]) {
-    expect(h.initialHtml).not.toContain(text);
-    expect(picker.html).toContain(text);
-    expect(loadingStory).not.toContain(text);
-    expect(game).toContain(text);
+  for (const html of [h.initialHtml, loadingStory]) {
+    expect(html).toContain(saveStatus(''));
+    expect(html).not.toContain(t('game.saved'));
+    expect(html).not.toContain(t('game.disclaimer'));
   }
+  for (const html of [picker.html, game.html]) {
+    expect(html).toContain(saveStatus(t('game.saved')));
+    expect(html).toContain(t('game.disclaimer'));
+  }
+  expect(game.props(TownCanvas).state.characterId).toBe('skilled-worker');
+  h.dispose();
+});
+
+test('the save status reports unavailable storage after the initial read fails', () => {
+  vi.stubGlobal('localStorage', {
+    getItem: () => {
+      throw Error();
+    },
+    setItem: () => {
+      throw Error();
+    },
+  });
+  const h = mountClient();
+  expect(h.initialHtml).toContain(saveStatus(''));
+  expect(h.render().html).toContain(saveStatus(t('game.storageUnavailable')));
   h.dispose();
 });
 

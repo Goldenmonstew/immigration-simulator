@@ -549,6 +549,9 @@
   font-size: 13px;
   margin: 20px 0 0;
 }
+.saveStatus:empty {
+  margin: 0;
+}
 .disclaimer {
   margin-top: 8px;
 }
