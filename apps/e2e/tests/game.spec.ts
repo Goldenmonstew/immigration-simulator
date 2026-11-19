@@ -198,6 +198,43 @@ test('cooking works step by step and with skip', async ({ page }) => {
   await expect(kitchen.getByText('亲手做的一份，刚刚好。')).toBeVisible();
 });
 
+test('folding dumplings at Lunar New Year gives a result and a reward', async ({
+  page,
+}) => {
+  await startGame(page);
+  await patchSave(page, 'skilled-worker', [
+    quietMorning,
+    (save) => {
+      Object.assign(save.day, {
+        date: '2025-02-01',
+        index: 2,
+        kind: 'special',
+        festival: 'lunar-new-year',
+      });
+    },
+  ]);
+  await dismissCards(page);
+  await expect(page.locator('time[datetime="2025-02-01"]')).toBeVisible();
+
+  const dialog = page.locator('dialog[open]');
+  const bag = page.getByRole('button', { name: /^背包/ }).first();
+  const reward = dialog.getByText(/^百家宴饺子 × \d+$/);
+  await bag.click();
+  await expect(dialog.getByRole('tab', { name: '背包' })).toBeVisible();
+  await expect(reward).toHaveCount(0);
+  await dialog.getByRole('button', { name: /关闭/ }).click();
+
+  const green = await walkTo(page, '村绿地');
+  await expect(green.getByRole('heading', { name: '春节聚会' })).toBeVisible();
+  await green.getByRole('button', { name: /^一起包饺子/ }).click();
+  await expect(
+    green.getByRole('status').filter({ hasText: '你把饺子托盘传到桌尾' }),
+  ).toBeVisible();
+  await green.getByRole('button', { name: /关闭/ }).click();
+  await bag.click();
+  await expect(reward).toHaveText('百家宴饺子 × 1');
+});
+
 test('leaving the UK ends the game with life memories and a simulator link', async ({
   page,
 }) => {
