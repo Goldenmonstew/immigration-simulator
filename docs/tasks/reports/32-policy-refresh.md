@@ -48,3 +48,8 @@ Option E 的四年上限明确计入已持 Graduate、Skilled Worker、Tier 2 �
 - **建模 Student 的普通工时和课程后许可。** 在 `packages/game/src/characters/graduate.ts` 的 `graduate.timeline` 录入 CAS 课程类型、起止日及担保条件，工时另用学期日历和课程完成日判断。［SRC-051 ST 25.2–25.3、26.1–26.6；SRC-052 `#work-conditions`、`#student-period-to-grant`］
 - **补建 SW 24.3 row E，并测试过渡截止。** 在 `packages/engine/src/rules/current-law/skilled-worker.ts` 的 `settlementSalaryRow`、`CL-SW-SALARY`、`CL-SW-GOING-RATE` 覆盖该群体，核对 2026-12-01 前后两侧及独立的 going rate 分支。［SRC-004 SW 14.5(c)(iii)、24.3 row E、24.4(a)；SRC-050 §13.5、§22.4］
 - **修复来源检查并补归档。** 在 `packages/policy-data/scripts/check-sources.mjs` 按登记的官方 URL 和文档类型核对 JSON、HTML 与 PDF，然后重新跑完整检查，并为 SRC-049 补归档 Bill 173 及 Bill 173–EN 的原始 PDF 与 SHA-256。
+
+## Fable 验收（补记）
+
+- 任务 44（PR #21）合并后把 main 合入本分支，本机重跑 `node packages/policy-data/scripts/check-sources.mjs`：`Summary: 58 unchanged / 0 changed / 0 fetch failed / 1 dynamic`，退出 0（含本任务新登记的 SRC-049–052）。
+- 全仓 gate 通过（GATE EXIT 0：engine 2579、game 1316、web 491 等）。
