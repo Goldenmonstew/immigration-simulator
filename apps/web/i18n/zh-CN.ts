@@ -75,6 +75,10 @@ export const zhCN = {
   'game.effects': '预计变化',
   'game.timelineEffect': '更新时间线',
   'game.endingConfirm': '这会结束这一局。准备好和这段生活告别了吗？',
+  'game.reformSettlement': '按改革假设模拟递交',
+  'game.reformSettlementConfirm': '按改革假设模拟递交定居申请，并结束这一局？',
+  'game.settlementAssessmentAtSubmission':
+    '以下定居评估用的是模拟递交时的资料。',
   'game.endingEffect': '结束这段生活',
   'game.timelineChanged': '时间线与两栏评估已更新。',
   'game.changes': '这次发生的变化',
