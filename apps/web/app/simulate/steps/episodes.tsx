@@ -33,6 +33,8 @@ export function EpisodesStep({ form }: { form: FormKit }) {
       )}
       {timeline.episodes.map((episode, index) => {
         const prefix = `episode-${index}`;
+        const innovatorFounder =
+          episode.route === 'INNOVATOR_FOUNDER' && episode.role === 'MAIN';
         return (
           <fieldset key={index} className={styles.entry}>
             <legend>
@@ -211,80 +213,108 @@ export function EpisodesStep({ form }: { form: FormKit }) {
                   </select>
                 </Field>
               )}
-            {episode.route === 'INNOVATOR_FOUNDER' &&
-              episode.role === 'MAIN' && (
-                <fieldset className={styles.fieldset}>
-                  <legend className={styles.legend}>
-                    {t('episodes.innovatorSettlementCriteria')}
-                  </legend>
-                  <div className={styles.checkboxes}>
-                    <label>
-                      <input
-                        id={`${prefix}-innovator-unknown`}
-                        type="checkbox"
-                        checked={
-                          episode.innovatorSettlementCriteria === undefined
-                        }
-                        onChange={(event) =>
-                          updateEpisode(index, {
-                            innovatorSettlementCriteria: event.target.checked
-                              ? undefined
-                              : [],
-                          })
-                        }
-                      />
-                      <span>{t('form.unknown')}</span>
-                    </label>
-                    {episode.innovatorSettlementCriteria !== undefined && (
-                      <>
-                        <p className={styles.hint}>
-                          {t('episodes.innovatorCriteriaHint')}
-                        </p>
-                        {(
-                          [
-                            'INVESTMENT',
-                            'CUSTOMERS',
-                            'RESEARCH_AND_IP',
-                            'REVENUE',
-                            'EXPORT_REVENUE',
-                            'JOBS',
-                            'JOBS_WITH_SALARY',
-                          ] as const
-                        ).map((criterion) => (
-                          <label key={criterion}>
-                            <input
-                              id={`${prefix}-innovator-${criterion}`}
-                              type="checkbox"
-                              checked={episode.innovatorSettlementCriteria!.includes(
-                                criterion,
-                              )}
-                              onChange={(event) =>
-                                updateEpisode(index, {
-                                  innovatorSettlementCriteria: event.target
-                                    .checked
-                                    ? [
-                                        ...episode.innovatorSettlementCriteria!,
-                                        criterion,
-                                      ]
-                                    : episode.innovatorSettlementCriteria!.filter(
-                                        (value) => value !== criterion,
-                                      ),
-                                })
-                              }
-                            />
-                            <span>
-                              {t(`episodes.innovatorCriteria.${criterion}`)}
-                            </span>
-                          </label>
-                        ))}
-                        {episode.innovatorSettlementCriteria.length === 0 && (
-                          <p>{t('episodes.innovatorCriteriaNone')}</p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </fieldset>
-              )}
+            {innovatorFounder && (
+              <Field
+                id={`${prefix}-settlement-endorser`}
+                label={t('episodes.innovatorSettlementEndorser')}
+                hint={t('episodes.innovatorSettlementEndorserHint')}
+              >
+                <select
+                  {...fieldProps(`${prefix}-settlement-endorser`, true)}
+                  value={episode.innovatorSettlementEndorser ?? ''}
+                  onChange={(event) =>
+                    updateEpisode(index, {
+                      innovatorSettlementEndorser: (event.target.value ||
+                        undefined) as ImmigrationEpisode['innovatorSettlementEndorser'],
+                    })
+                  }
+                >
+                  <option value="">{t('form.unknown')}</option>
+                  <option value="NON_LEGACY">
+                    {t('episodes.innovatorEndorser.NON_LEGACY')}
+                  </option>
+                  <option value="LEGACY_SAME">
+                    {t('episodes.innovatorEndorser.LEGACY_SAME')}
+                  </option>
+                  <option value="LEGACY_DIFFERENT">
+                    {t('episodes.innovatorEndorser.LEGACY_DIFFERENT')}
+                  </option>
+                </select>
+              </Field>
+            )}
+            {innovatorFounder && (
+              <fieldset className={styles.fieldset}>
+                <legend className={styles.legend}>
+                  {t('episodes.innovatorSettlementCriteria')}
+                </legend>
+                <div className={styles.checkboxes}>
+                  <label>
+                    <input
+                      id={`${prefix}-innovator-unknown`}
+                      type="checkbox"
+                      checked={
+                        episode.innovatorSettlementCriteria === undefined
+                      }
+                      onChange={(event) =>
+                        updateEpisode(index, {
+                          innovatorSettlementCriteria: event.target.checked
+                            ? undefined
+                            : [],
+                        })
+                      }
+                    />
+                    <span>{t('form.unknown')}</span>
+                  </label>
+                  {episode.innovatorSettlementCriteria !== undefined && (
+                    <>
+                      <p className={styles.hint}>
+                        {t('episodes.innovatorCriteriaHint')}
+                      </p>
+                      {(
+                        [
+                          'INVESTMENT',
+                          'CUSTOMERS',
+                          'RESEARCH_AND_IP',
+                          'REVENUE',
+                          'EXPORT_REVENUE',
+                          'JOBS',
+                          'JOBS_WITH_SALARY',
+                        ] as const
+                      ).map((criterion) => (
+                        <label key={criterion}>
+                          <input
+                            id={`${prefix}-innovator-${criterion}`}
+                            type="checkbox"
+                            checked={episode.innovatorSettlementCriteria!.includes(
+                              criterion,
+                            )}
+                            onChange={(event) =>
+                              updateEpisode(index, {
+                                innovatorSettlementCriteria: event.target
+                                  .checked
+                                  ? [
+                                      ...episode.innovatorSettlementCriteria!,
+                                      criterion,
+                                    ]
+                                  : episode.innovatorSettlementCriteria!.filter(
+                                      (value) => value !== criterion,
+                                    ),
+                              })
+                            }
+                          />
+                          <span>
+                            {t(`episodes.innovatorCriteria.${criterion}`)}
+                          </span>
+                        </label>
+                      ))}
+                      {episode.innovatorSettlementCriteria.length === 0 && (
+                        <p>{t('episodes.innovatorCriteriaNone')}</p>
+                      )}
+                    </>
+                  )}
+                </div>
+              </fieldset>
+            )}
             {episode.route === 'FAMILY_AND_PRIVATE_LIFE' &&
               episode.role === 'MAIN' && (
                 <Field

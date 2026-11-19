@@ -176,6 +176,47 @@ describe('Hong Kong BN(O) dependants (SRC-020)', () => {
       'HK 59.1(c)',
     );
   });
+
+  test('A3#12: the last BN(O) grant before settlement determines HK 59.1(b)', () => {
+    const relative = {
+      dateOfBirth: '1958-04-01',
+      episodes: [
+        ep('HONG_KONG_BNO', 'DEPENDANT', '2021-01-01', {
+          dependantOf: 'RELATIVE',
+        }),
+      ],
+    };
+    const settled = { date: '2025-01-01', route: 'HONG_KONG_BNO' as const };
+    for (const dependantOf of ['RELATIVE', 'PARTNER', undefined] as const) {
+      const result = currentLaw(
+        relative,
+        {
+          settled,
+          episodes: [
+            ep('HONG_KONG_BNO', 'MAIN', '2020-01-01'),
+            ep('HONG_KONG_BNO', 'DEPENDANT', '2023-01-01', {
+              validTo: '2024-12-31',
+              dependantOf,
+            }),
+            ep('HONG_KONG_BNO', 'MAIN', '2025-01-02'),
+          ],
+        },
+        '2026-01-01',
+      );
+      if (dependantOf === 'PARTNER') {
+        expect(result.outcome).toBe('LIKELY_ELIGIBLE');
+        expect(rule(result, 'CL-HKBNO-DEPENDANT').explanation).toContain(
+          'HK 59.1(b)',
+        );
+      } else {
+        expect(result.outcome).toBe('INSUFFICIENT_INFORMATION');
+        expect(rule(result, 'CL-HKBNO-DEPENDANT')).toMatchObject({
+          status: 'UNKNOWN',
+          explanation: expect.stringContaining('HK 59.1(c)'),
+        });
+      }
+    }
+  });
 });
 
 describe('Global Talent dependants (SRC-021)', () => {
@@ -266,7 +307,7 @@ describe('Global Talent dependants (SRC-021)', () => {
     ).toBe('INSUFFICIENT_INFORMATION');
   });
 
-  test('child of a settled principal: years from the last Global Talent permission (assumption)', () => {
+  test('A3#10: a child of a settled principal can apply without the old endorsement (GT 27.1(b)(i))', () => {
     const child = {
       dateOfBirth: '2015-03-01',
       episodes: [
@@ -280,17 +321,18 @@ describe('Global Talent dependants (SRC-021)', () => {
     const result = currentLaw(
       child,
       {
-        ...principal('2020-06-01'),
+        episodes: [ep('GLOBAL_TALENT', 'MAIN', '2020-06-01')],
         settled: { date: '2023-06-01', route: 'GLOBAL_TALENT' },
       },
       '2026-06-01',
     );
     expect(result).toMatchObject({
       outcome: 'LIKELY_ELIGIBLE',
-      pathwayYears: 3,
+      earliestDate: '2026-06-01',
+      pathwayYears: 0,
     });
-    expect(result.assumptions.join('')).toContain(
-      '最后一个 Global Talent 主申请人片段',
+    expect(rule(result, 'CL-GT-DEPENDANT').explanation).toContain(
+      'GT 27.1(b)(i)',
     );
   });
 

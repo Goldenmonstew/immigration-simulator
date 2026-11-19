@@ -60,7 +60,7 @@ How to read a result:
 | [CL-FAMILY-PARTNER-FIVE-YEARS](#cl-family-partner-five-years) | Partner of a British citizen: 5-year route completed on the day | LIKELY_ELIGIBLE, 5y, 2026-03-01 | LIKELY_NOT_ELIGIBLE |
 | [CL-REFUGEE-FIVE-YEARS](#cl-refugee-five-years) | Refugee: 5 years with protection completed on the day | LIKELY_ELIGIBLE, 5y, 2026-03-01 | LIKELY_NOT_ELIGIBLE, 20y, 2041-03-01 |
 | [CL-UK-ANCESTRY-FIVE-YEARS](#cl-uk-ancestry-five-years) | UK Ancestry: 5 years completed on the day | LIKELY_ELIGIBLE, 5y, 2026-09-01 | LIKELY_NOT_ELIGIBLE |
-| [CL-INNOVATOR-FOUNDER-THREE-YEARS](#cl-innovator-founder-three-years) | Innovator Founder: 3 years completed on the day, two criteria met | LIKELY_ELIGIBLE, 3y, 2026-05-01 | INSUFFICIENT_INFORMATION |
+| [CL-INNOVATOR-FOUNDER-THREE-YEARS](#cl-innovator-founder-three-years) | Innovator Founder: 3 years completed on the day, two criteria met | INSUFFICIENT_INFORMATION | INSUFFICIENT_INFORMATION |
 | [CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS](#cl-private-life-young-adult-five-years) | Private Life young adult (half-life test): 5 years completed on the day | LIKELY_ELIGIBLE, 5y, 2026-07-01 | LIKELY_NOT_ELIGIBLE |
 | [CL-HKBNO-CHILD-WITH-PARENT](#cl-hkbno-child-with-parent) | Hong Kong BN(O) child under 18 settling with the parent | LIKELY_ELIGIBLE, 5y, 2026-02-01 | REQUIRES_REGULATED_REVIEW |
 | [CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS](#cl-global-talent-partner-five-years) | Global Talent dependent partner: 5 years after the principal settled | LIKELY_ELIGIBLE, 5y, 2026-06-01 | LIKELY_NOT_ELIGIBLE |
@@ -1751,7 +1751,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-PRIVATE-LIFE-RESIDENCE` Private Life: 5 or 10 continuous years — **UNKNOWN**. Not provided what the Private Life permission was granted on: 5 years for permission as a child (PL 3.1) or as a young adult who met the half-life test (PL 4.1) (PL 14.1); 10 years otherwise (PL 14.2(a)). _(SRC-028 PL 14.1; SRC-028 PL 14.2; SRC-028 PL 14.3; SRC-028 PL 14.4; SRC-028 PL 15.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-PRIVATE-LIFE-RESIDENCE` Private Life: 5 or 10 continuous years — **UNKNOWN**. Not provided what the Private Life permission was granted on: 5 years for permission as a child (PL 3.1) or as a young adult who met the half-life test (PL 4.1) (PL 14.1); 10 years otherwise (PL 14.2(a)). _(SRC-028 PL 14.1; SRC-028 PL 14.2; SRC-028 PL 14.3; SRC-028 PL 14.4(a)–(b); SRC-028 PL 15.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
 
 Assumptions:
 
@@ -3156,7 +3156,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-09-01.
 
 Decisive rules:
 
-- `CL-ANCESTRY-RESIDENCE-5Y` 5 continuous years on the UK Ancestry route — **PASS**. Continuous UK Ancestry permission as the main applicant since 2021-09-01: 5 years completed (UKA 13.1). _(SRC-026 UKA 10.3; SRC-026 UKA 12.1; SRC-026 UKA 13.1; SRC-026 UKA 14.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-ANCESTRY-RESIDENCE-5Y` 5 continuous years on the UK Ancestry route — **PASS**. Continuous UK Ancestry permission as the main applicant since 2021-09-01: 5 years completed (UKA 13.1). _(SRC-026 UKA 10.3; SRC-026 UKA 12.1; SRC-026 UKA 13.1; SRC-026 UKA 14.1; SRC-008 CR 1.1(d); SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B1, which meets the B1 required for settlement (Appendix UK Ancestry UKA 15.1(a), applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (UKA 16.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
@@ -3207,25 +3207,18 @@ Application date: 2026-05-01.
 
 ### Current Immigration Rules
 
-Outcome **LIKELY_ELIGIBLE**; pathway 3 years; earliest date 2026-05-01.
-
-Decisive rules:
-
-- `CL-INNOVATOR-RESIDENCE-3Y` 3 continuous years as an Innovator Founder — **PASS**. Continuous Innovator Founder permission since 2023-05-01: 3 years completed (INNF 18.1). _(SRC-027 INNF 18.1; SRC-027 INNF 19.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
-- `CL-INNOVATOR-ENDORSEMENT` Business criteria for the Innovator Founder settlement endorsement — **PASS**. The business has met 2 of the criteria (INNF 17.1(f)(i), INNF 17.1(f)(vi)), at least the 2 required by INNF 17.1(f). _(SRC-027 INNF 15.2(e); SRC-027 INNF 17.1; SRC-027 INNF 17.2; SRC-027 INNF 17.3; SRC-027 INNF 17.4)_
-- `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (INNF 20.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
+Outcome **INSUFFICIENT_INFORMATION**.
 
 Failing or unknown checks:
 
+- `CL-INNOVATOR-ENDORSEMENT` Innovator Founder settlement endorsement — **UNKNOWN**. The business meets the minimum number of criteria. Confirm whether a Legacy Endorsing Body issued the settlement letter and, if so, whether it supported the last grant of permission (INNF 17.5). _(SRC-027 INNF 15.2(e); SRC-027 INNF 17.1; SRC-027 INNF 17.2; SRC-027 INNF 17.3; SRC-027 INNF 17.4; SRC-027 INNF 17.5)_
 - `CL-ENGLISH` Settlement English requirement — **UNKNOWN**. English level not provided; settlement requires CEFR B1 (Appendix Innovator Founder sets no English requirement for a main applicant’s settlement, INNF 15.1–21.6; this level applies only to the 10-year Long Residence pathway). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
-
-Other pathways not taken: `CL-LR-RESIDENCE-10Y`.
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-05-01: expected to complete 10 years on 2033-05-01; the earliest projected application date for the residence requirement is 2033-04-03 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
 
 Assumptions:
 
 - The current rules are modelled only for Skilled Worker main applicants and their dependent partners / children (Appendix Skilled Worker, Appendix Children), Hong Kong BN(O) main applicants and their dependants (Appendix Hong Kong British National (Overseas)), Global Talent main applicants and their dependent partners / children (Appendix Global Talent), Appendix FM partners (the 10-year route under Appendix Settlement Family Life, the 5-year route under Appendix FM) and their children (Appendix Settlement Family Life on the 10-year route, paragraph 298 of Part 8 of the Immigration Rules on the 5-year route), main applicants with refugee status or humanitarian protection (Appendix Settlement Protection), UK Ancestry main applicants (Appendix UK Ancestry), Innovator Founder main applicants (Appendix Innovator Founder), Private Life main applicants (Appendix Private Life) and Long Residence (Appendix Long Residence); other requirements, such as Part Suitability, suitability under STP 2.1 and the sponsor still being approved (SW 24.1–24.2), are not modelled.
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate assumes qualifying permission on the reference date and that you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
-- Assumes the endorsing body will confirm INNF 17.1(a)–(e) (significant achievements against the business plan, registration with Companies House with you as a director or member, active trading, sustainability for at least the next 12 months, and your key role in day-to-day management); the endorsement letter must be issued no more than 3 months before the application and not withdrawn (INNF 15.2(e)). That team members cannot share a criterion (INNF 17.3) and that jobs must have existed for 12 months with at least 30 hours a week (INNF 17.4) are not checked.
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -3272,7 +3265,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-07-01.
 
 Decisive rules:
 
-- `CL-PRIVATE-LIFE-RESIDENCE` Private Life: 5 or 10 continuous years — **PASS**. 5-year qualifying period under PL 14.1; continuous qualifying permission (PL 14.3) since 2021-07-01: 5 years completed. _(SRC-028 PL 14.1; SRC-028 PL 14.2; SRC-028 PL 14.3; SRC-028 PL 14.4; SRC-028 PL 15.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-PRIVATE-LIFE-RESIDENCE` Private Life: 5 or 10 continuous years — **PASS**. 5-year qualifying period under PL 14.1; continuous qualifying permission (PL 14.3) since 2021-07-01: 5 years completed. _(SRC-028 PL 14.1; SRC-028 PL 14.2; SRC-028 PL 14.3; SRC-028 PL 14.4(a)–(b); SRC-028 PL 15.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B1, which meets the B1 required for settlement (Appendix Private Life PL 16.1(a), applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (PL 17.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 

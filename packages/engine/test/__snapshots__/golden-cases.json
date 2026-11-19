@@ -2446,18 +2446,11 @@
     "title": "Innovator Founder: 3 years completed on the day, two criteria met",
     "columns": {
       "current-law-2026-11": {
-        "outcome": "LIKELY_ELIGIBLE",
-        "pathwayYears": 3,
-        "earliestDate": "2026-05-01",
-        "decidedBy": [
-          "CL-INNOVATOR-RESIDENCE-3Y",
-          "CL-INNOVATOR-ENDORSEMENT",
-          "CL-KOL"
-        ],
+        "outcome": "INSUFFICIENT_INFORMATION",
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-INNOVATOR-RESIDENCE-3Y": "PASS",
-          "CL-INNOVATOR-ENDORSEMENT": "PASS",
+          "CL-INNOVATOR-ENDORSEMENT": "UNKNOWN",
           "CL-ENGLISH": "UNKNOWN",
           "CL-KOL": "PASS",
           "CL-LR-RESIDENCE-10Y": "FAIL"

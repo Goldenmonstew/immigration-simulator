@@ -13,6 +13,16 @@ import type {
 
 export const RULE_SET = 'current-law-2026-11';
 
+/** Uses permission start dates as the order of grants in the timeline. */
+export function lastPermissionBefore(
+  episodes: ImmigrationEpisode[],
+  date: IsoDate,
+): ImmigrationEpisode | undefined {
+  return episodes
+    .filter((e) => e.validFrom < date)
+    .sort((a, b) => b.validFrom.localeCompare(a.validFrom))[0];
+}
+
 export const isSkilledWorker = (e: ImmigrationEpisode) =>
   e.route === 'SKILLED_WORKER' && e.role === 'MAIN';
 
@@ -121,11 +131,15 @@ const PROTECTION_ROUTES: Route[] = [
 export const isProtection = (e: ImmigrationEpisode) =>
   e.role === 'MAIN' && PROTECTION_ROUTES.includes(e.route);
 
-/** Main applicant with refugee status or humanitarian protection on `date`. */
-export function onProtection(timeline: PersonTimeline, date: IsoDate) {
-  const current = episodeOn(timeline, date);
-  return current !== undefined && isProtection(current);
+/** STP 1.3: permission currently held or last granted, even if expired. */
+export function protectionPermission(timeline: PersonTimeline, date: IsoDate) {
+  const permission =
+    episodeOn(timeline, date) ?? lastPermissionBefore(timeline.episodes, date);
+  return permission && isProtection(permission) ? permission : undefined;
 }
+
+export const onProtection = (timeline: PersonTimeline, date: IsoDate) =>
+  protectionPermission(timeline, date) !== undefined;
 
 // Routes modelled for main applicants only: their dependants are out of scope.
 export const MAIN_ONLY_ROUTES: Route[] = [

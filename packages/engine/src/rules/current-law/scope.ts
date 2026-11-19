@@ -96,10 +96,15 @@ export const clScope = defineRule(
     if (onProtection(timeline, simulationDate)) {
       return {
         status: 'PASS',
-        explanation: L(
-          '当前以主申请人身份持 refugee status 或 humanitarian protection 的许可，按 Appendix Settlement Protection 与 Appendix Long Residence 评估。',
-          'Currently holds permission with refugee status or humanitarian protection as the main applicant; assessed under Appendix Settlement Protection and Appendix Long Residence.',
-        ),
+        explanation: current
+          ? L(
+              '当前以主申请人身份持 refugee status 或 humanitarian protection 的许可，按 Appendix Settlement Protection 与 Appendix Long Residence 评估。',
+              'Currently holds permission with refugee status or humanitarian protection as the main applicant; assessed under Appendix Settlement Protection and Appendix Long Residence.',
+            )
+          : L(
+              '最后获批的是主申请人保护许可，按 STP 1.3 纳入 Appendix Settlement Protection 评估。',
+              'The last grant was protection permission as a main applicant and is assessed under Appendix Settlement Protection (STP 1.3).',
+            ),
       };
     }
     if (onUkAncestry(timeline, simulationDate) || ukAncestryResidence(ctx)) {

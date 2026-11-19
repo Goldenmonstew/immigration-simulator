@@ -224,6 +224,7 @@ export function draftReducer(state: Draft, action: Action): Draft {
                 globalTalentCriteria: undefined,
                 familyPermission: undefined,
                 innovatorSettlementCriteria: undefined,
+                innovatorSettlementEndorser: undefined,
                 privateLifeRoute: undefined,
               }),
             };

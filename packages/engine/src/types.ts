@@ -147,6 +147,13 @@ export interface ImmigrationEpisode {
     | 'JOBS_WITH_SALARY'
   )[];
   /**
+   * INNOVATOR_FOUNDER MAIN only: who issued the settlement endorsement
+   * (INNF 17.5). A legacy body must also have supported the last grant.
+   * Missing = not provided.
+   */
+  innovatorSettlementEndorser?:
+    'NON_LEGACY' | 'LEGACY_SAME' | 'LEGACY_DIFFERENT';
+  /**
    * FAMILY_AND_PRIVATE_LIFE MAIN only: the basis of the Appendix Private Life
    * permission, which sets the settlement qualifying period. CHILD = granted
    * as a child (PL 3.1; or first granted under 18, PL 10.1); YOUNG_ADULT =

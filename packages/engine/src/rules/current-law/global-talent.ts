@@ -1,5 +1,4 @@
 import { currentLaw2026_11 as cl } from '@uk-immigration/policy-data';
-import { addYears } from '../../dates';
 import { episodeOn, currentResidence, settledBy } from '../../residence';
 import { defineRule, textFor } from '../../rule';
 import type { ImmigrationEpisode, RuleContext } from '../../types';
@@ -59,9 +58,27 @@ export function globalTalentQualifying({
   simulationDate,
 }: RuleContext) {
   if (!onGlobalTalent(timeline, simulationDate)) return undefined;
-  const period = globalTalentPeriod(episodeOn(timeline, simulationDate)!);
+  const current = episodeOn(timeline, simulationDate)!;
+  const initial = timeline.episodes
+    .filter(
+      (e) =>
+        e.route === 'GLOBAL_TALENT' &&
+        e.role === 'MAIN' &&
+        e.validFrom <= simulationDate,
+    )
+    .sort((a, b) => a.validFrom.localeCompare(b.validFrom))[0];
+  // GT 11.1(c) looks at the initial grant. A later episode can also
+  // report the initial basis if the earlier episode has no declaration.
+  const basis =
+    initial?.globalTalentEndorsement &&
+    (initial.globalTalentEndorsement === 'PRIZE' ||
+      current.globalTalentEndorsement === 'PRIZE')
+      ? initial
+      : current;
+  const period = globalTalentPeriod(basis);
   return {
     period,
+    endorsement: basis.globalTalentEndorsement,
     residence:
       period &&
       currentResidence(
@@ -111,10 +128,8 @@ export const clGtResidence = defineRule(
       ),
       ...(ctx.timeline.absences.length > 0 ? [absenceAssumption(L)] : []),
     ];
-    const { residence, period } = q;
-    const current = episodeOn(ctx.timeline, ctx.simulationDate)!;
+    const { residence, period, endorsement: body } = q;
     if (!period) {
-      const body = current.globalTalentEndorsement;
       return {
         status: 'UNKNOWN',
         explanation:
@@ -229,38 +244,14 @@ export function globalTalentDependantPathway(
         },
       };
     }
-    const last = principal.timeline.episodes
-      .filter((e) => e.route === 'GLOBAL_TALENT' && e.role === 'MAIN')
-      .sort((a, b) => (a.validFrom < b.validFrom ? -1 : 1))
-      .at(-1);
-    const period = last && globalTalentPeriod(last);
-    assumptions.push(
-      L(
-        '主申请人已定居：按其最后一个 Global Talent 主申请人片段的背书确定路径年限（GT 11.1–11.2）。',
-        'The principal applicant has settled: their pathway length is taken from the endorsement on their last Global Talent main applicant permission (GT 11.1–11.2).',
-      ),
-    );
-    if (!period) {
-      return {
-        years: partnerYears,
-        result: {
-          status: 'UNKNOWN',
-          explanation: L(
-            '未填写主申请人首次 Global Talent 许可依据的背书，无法给出其路径年限（GT 11.1–11.2）。',
-            'Not provided which endorsement the principal applicant’s initial Global Talent permission relied on, so their pathway length cannot be given (GT 11.1–11.2).',
-          ),
-          assumptions,
-        },
-      };
-    }
     return {
-      years: period.years,
-      start: addYears(simulationDate, -period.years),
+      years: 0,
+      applicationDate: simulationDate,
       result: {
         status: 'PASS',
         explanation: L(
-          `主申请人已于 ${settled.date} 以 Global Talent 定居，当时本人持其 dependent child 许可（GT 27.1(b)），可申请定居；子女本人没有居留年限要求。`,
-          `The principal applicant settled as a Global Talent on ${settled.date}, when this person held their dependent child permission (GT 27.1(b)), so they can apply for settlement; the child has no residence requirement of their own.`,
+          `主申请人已于 ${settled.date} 以 Global Talent 定居，当时本人持其 dependent child 许可（GT 27.1(b)(i)），可申请定居；子女本人没有居留年限要求。`,
+          `The principal applicant settled as a Global Talent on ${settled.date}, when this person held their dependent child permission (GT 27.1(b)(i)), so they can apply for settlement; the child has no residence requirement of their own.`,
         ),
         assumptions,
       },

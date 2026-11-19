@@ -7023,14 +7023,7 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
   "policyAsOf": "2026-11-04",
   "byRuleSet": {
     "current-law-2026-11": {
-      "outcome": "LIKELY_ELIGIBLE",
-      "pathwayYears": 3,
-      "earliestDate": "2026-05-01",
-      "decidedBy": [
-        "CL-INNOVATOR-RESIDENCE-3Y",
-        "CL-INNOVATOR-ENDORSEMENT",
-        "CL-KOL"
-      ],
+      "outcome": "INSUFFICIENT_INFORMATION",
       "rules": [
         {
           "id": "CL-SCOPE",
@@ -7127,7 +7120,7 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
         },
         {
           "id": "CL-INNOVATOR-ENDORSEMENT",
-          "title": "Innovator Founder 定居背书的业务条件",
+          "title": "Innovator Founder 定居背书",
           "sources": [
             {
               "srcId": "SRC-027",
@@ -7148,13 +7141,14 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             {
               "srcId": "SRC-027",
               "locator": "INNF 17.4"
+            },
+            {
+              "srcId": "SRC-027",
+              "locator": "INNF 17.5"
             }
           ],
-          "status": "PASS",
-          "explanation": "业务已满足 2 项（INNF 17.1(f)(i)、INNF 17.1(f)(vi)），达到 INNF 17.1(f) 的至少 2 项。",
-          "assumptions": [
-            "按 endorsing body 会确认 INNF 17.1(a)–(e)（对照原业务计划有显著成果、在 Companies House 登记且你是 director 或 member、仍在经营、未来至少 12 个月可持续、你在日常管理中起关键作用）处理；背书信须在申请前 3 个月内签发且未撤回（INNF 15.2(e)）。团队成员不能共用同一项（INNF 17.3），岗位须存在满 12 个月、每周至少 30 小时等（INNF 17.4），均未核实。"
-          ]
+          "status": "UNKNOWN",
+          "explanation": "已达到业务项目数要求。请确认定居背书信是否由 Legacy Endorsing Body 出具，以及如是，是否由支持上次获批许可的同一机构出具（INNF 17.5）。"
         },
         {
           "id": "CL-ENGLISH",
@@ -7335,7 +7329,6 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
         "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算以参考日仍有可计许可且递交时满足其他申请条件为前提，问卷没有决定日供计算。",
-        "按 endorsing body 会确认 INNF 17.1(a)–(e)（对照原业务计划有显著成果、在 Companies House 登记且你是 director 或 member、仍在经营、未来至少 12 个月可持续、你在日常管理中起关键作用）处理；背书信须在申请前 3 个月内签发且未撤回（INNF 15.2(e)）。团队成员不能共用同一项（INNF 17.3），岗位须存在满 12 个月、每周至少 30 小时等（INNF 17.4），均未核实。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
@@ -7794,7 +7787,7 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             },
             {
               "srcId": "SRC-028",
-              "locator": "PL 14.4"
+              "locator": "PL 14.4(a)–(b)"
             },
             {
               "srcId": "SRC-028",
@@ -8967,6 +8960,10 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-026",
               "locator": "UKA 14.1"
+            },
+            {
+              "srcId": "SRC-008",
+              "locator": "CR 1.1(d)"
             },
             {
               "srcId": "SRC-008",
@@ -10284,7 +10281,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-028",
-              "locator": "PL 14.4"
+              "locator": "PL 14.4(a)–(b)"
             },
             {
               "srcId": "SRC-028",

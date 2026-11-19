@@ -18,4 +18,5 @@ export { withRuleSet } from './rule';
 export {
   familyFiveYearStart,
   familyIncomeThreshold,
+  onProtection,
 } from './rules/current-law';
