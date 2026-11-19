@@ -173,6 +173,34 @@ describe('additional character timelines and decisions', () => {
       evaluate({ timeline: spent.timeline, simulationDate: spent.date }),
     );
   });
+  test('A7#7 the British connection card records seven days under the PD-054 reform assumption', () => {
+    const before = clear(newGame('family-partner', 1));
+    before.date = before.day.date = '2029-06-15';
+    before.timeline.episodes[0].validTo = '2032-06-14';
+    before.timeline.english = { cefrLevel: 'B2' };
+    before.timeline.lifeInTheUk = { passed: true };
+    before.timeline.absences = [{ from: '2028-10-01', to: '2029-03-23' }];
+    const residence = (state: GameState) =>
+      state.result.byRuleSet[REFORM]?.rules.find(
+        (r) => r.id === 'ES-RESIDENCE',
+      );
+    expect(residence(refresh(before))?.status).toBe('PASS');
+    before.pendingEvent = 'family-british-connection';
+    const { zhCN, en } = currentEvent(before)!.choices[1].note!;
+    expect(zhCN).toContain('按 PD-054 的模拟假设沿用现行离境口径');
+    expect(en).toContain('simulation assumption under PD-054');
+    for (const copy of [zhCN, en]) {
+      expect(copy).toContain('SRC-001');
+      expect(copy).toContain('British connection');
+      expect(copy).toMatch(/SRC-008,? CR 3\.1/);
+    }
+    const after = resolve(before, 'save');
+    expect(after.timeline.absences.at(-1)).toEqual({
+      from: '2029-05-16',
+      to: '2029-05-22',
+    });
+    expect(residence(after)?.status).toBe('FAIL');
+  });
   test('returning to part-time restores pay and keeping a contract preserves current earnings', () => {
     const trial = scene(
       clear(newGame('family-partner', 1)),

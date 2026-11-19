@@ -1426,8 +1426,8 @@ const events: GameEvent[] = [
           { type: 'stat', key: 'mood', delta: 2 },
         ],
         note: t(
-          'SRC-008 CR 3.1：British connection 不替代连续居留要求，已发生的离境仍记入。',
-          'SRC-008 CR 3.1: British connection does not replace continuous residence; completed absences are still recorded.',
+          '把这次离境记入时间线。改革仍要求连续居留（SRC-001 Ch. 2，British connection）。改革栏按 PD-054 的模拟假设沿用现行离境口径（SRC-008 CR 3.1）。',
+          'Record this trip in your timeline. The reform still requires continuous residence (SRC-001, Ch. 2, British connection). The reform column uses the current absence limit (SRC-008, CR 3.1) as a simulation assumption under PD-054.',
         ),
       },
     ],
