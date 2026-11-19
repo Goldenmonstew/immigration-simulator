@@ -2,7 +2,13 @@ import {
   currentLaw2026_11 as cl,
   routeNames,
 } from '@uk-immigration/policy-data';
-import { addYears, fullYears, fullYearsEn, taxYearsBefore } from '../../dates';
+import {
+  addDays,
+  addYears,
+  fullYears,
+  fullYearsEn,
+  taxYearsBefore,
+} from '../../dates';
 import {
   continuousRun,
   episodeOn,
@@ -49,6 +55,31 @@ export const countsForFamilyTenYear = (e: ImmigrationEpisode) =>
   e.route === 'FAMILY_PARTNER_OR_PARENT' ||
   e.route === 'FAMILY_AND_PRIVATE_LIFE';
 
+/** CR 3.6: exclude historic days only after a qualifying further grant. */
+function familyTenYearCountedTrips(timeline: PersonTimeline, date: IsoDate) {
+  const cutoff = cl.values.familyLifeHistoricAbsencesBefore.value;
+  return timeline.absences.flatMap((trip) => {
+    const laterGrant =
+      trip.from &&
+      trip.to &&
+      trip.from < cutoff &&
+      timeline.episodes.some(
+        (e) =>
+          e.route === 'FAMILY_PARTNER_OR_PARENT' &&
+          e.role === 'MAIN' &&
+          e.familyPermission !== undefined &&
+          trip.from < e.validFrom &&
+          trip.to <= e.validFrom &&
+          e.validFrom <= date,
+      );
+    return !laterGrant
+      ? [trip]
+      : trip.to <= cutoff
+        ? []
+        : [{ ...trip, from: addDays(cutoff, -1) }];
+  });
+}
+
 /**
  * Start of the continuous SETF 3.1 period ending on the simulation date, while
  * an Appendix FM partner on the 10-year route; `before` is the adjoining
@@ -64,6 +95,7 @@ export function familyTenYearResidence({
     simulationDate,
     countsForFamilyTenYear,
     cl.values.familyPartnerQualifyingYearsTen.value,
+    { countedTrips: familyTenYearCountedTrips(timeline, simulationDate) },
   );
 }
 
@@ -98,6 +130,7 @@ export const clFamilyResidence = defineRule(
       { srcId: 'SRC-024', locator: 'E-ILRP.1.3' },
       { srcId: 'SRC-024', locator: 'E-ILRP.1.4' },
       ...crResidenceSources,
+      { srcId: 'SRC-008', locator: 'CR 3.6' },
     ],
     pendingDetails: ['PD-069', 'PD-070'],
   },
@@ -182,7 +215,15 @@ export const clFamilyResidence = defineRule(
               ),
             ]
           : []),
-      ...(timeline.absences.length > 0 ? [absenceAssumption(L)] : []),
+      ...(timeline.absences.length > 0
+        ? [
+            absenceAssumption(L),
+            L(
+              '若行程后有明确的 Appendix FM 伴侣或父母许可，按 CR 3.6 排除分界日前的缺席整天。现有许可类型无法确认旧 paragraph 276ADE / 276BE(2) 的获批依据。',
+              'Whole days abroad before the cut-off are disregarded under CR 3.6 where the recorded trip was followed by an identified Appendix FM partner or parent grant. The recorded permission types do not identify grants under former paragraphs 276ADE or 276BE(2).',
+            ),
+          ]
+        : []),
     ];
     assumptions.push(...residenceAssumptions(timeline, simulationDate, run, L));
     return run.applicationDate === simulationDate

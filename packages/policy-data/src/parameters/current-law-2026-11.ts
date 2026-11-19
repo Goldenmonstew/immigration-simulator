@@ -6,6 +6,17 @@ export const currentLaw2026_11 = {
   ruleSetId: 'current-law-2026-11',
   asOf: '2026-11-04',
   values: {
+    familyLifeHistoricAbsencesBefore: {
+      value: '2022-06-20',
+      sources: [{ srcId: 'SRC-008', locator: 'CR 3.6' }],
+    },
+    settlementEnglishExceptionYears: {
+      value: 15,
+      sources: [
+        { srcId: 'SRC-014', locator: 'EL 1.1(d)(i)' },
+        { srcId: 'SRC-025', locator: 'KoLL 3.2(a)' },
+      ],
+    },
     // SRC-034 GR 8.1: non-doctoral applications before this date receive
     // two years, measured from the decision date, not the application date.
     graduateNonDoctoralEarlyGrantMonths: {
@@ -222,13 +233,18 @@ export const currentLaw2026_11 = {
     },
     // Settlement applications made on or after this date need B2 English
     // unless exempt (inserted by HC 1691).
-    // Also for a Skilled Worker's dependent partner or child (SW 44.1(b)).
     skilledWorkerSettlementEnglish: {
       value: { cefrLevel: 'B2', applicationsFrom: '2027-03-26' },
       sources: [
         { srcId: 'SRC-004', locator: 'SW 22A.1' },
+        { srcId: 'SRC-007', locator: 'p24, APP SW5' },
+      ],
+    },
+    skilledWorkerDependantSettlementEnglish: {
+      value: { cefrLevel: 'B2', applicationsFrom: '2027-03-26' },
+      sources: [
         { srcId: 'SRC-004', locator: 'SW 44.1(b)' },
-        { srcId: 'SRC-007', locator: 'p24' },
+        { srcId: 'SRC-007', locator: 'pp24–25, APP SW8' },
       ],
     },
     // A Skilled Worker's dependent partner or child applying before that date.

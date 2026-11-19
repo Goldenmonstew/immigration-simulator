@@ -143,16 +143,31 @@ export const MAIN_ONLY_ROUTES: Route[] = [
 export const isSkilledWorkerDependant = (e: ImmigrationEpisode) =>
   e.route === 'SKILLED_WORKER' && e.role === 'DEPENDANT';
 
+export const isSkilledWorkerPartner = (e: ImmigrationEpisode) =>
+  isSkilledWorkerDependant(e) && e.dependantOf === 'PARTNER';
+
+/** SW 39.1(b)(i): the current partner already held partner permission when P settled. */
+export function hasSettledSkilledWorkerPartner(
+  timeline: PersonTimeline,
+  principal: PersonTimeline,
+  date: IsoDate,
+): boolean {
+  const settled = principal.settled;
+  return (
+    settled?.route === 'SKILLED_WORKER' &&
+    settled.date !== '' &&
+    settled.date <= date &&
+    onSkilledWorkerPartner(timeline, date) &&
+    onSkilledWorkerPartner(timeline, settled.date)
+  );
+}
+
 export function onSkilledWorkerPartner(
   timeline: PersonTimeline,
   date: IsoDate,
 ): boolean {
   const current = episodeOn(timeline, date);
-  return (
-    current !== undefined &&
-    isSkilledWorkerDependant(current) &&
-    current.dependantOf === 'PARTNER'
-  );
+  return current !== undefined && isSkilledWorkerPartner(current);
 }
 
 export function onSkilledWorkerChild(
@@ -212,8 +227,8 @@ export function applicationPresence(
 
 export const absenceAssumption = (L: Lang) =>
   L(
-    '缺席按 CR 3.1–3.2 计算，以许可起始日推定适用的旧许可规则；出境与入境当日都计入缺席，CR 3.4 的豁免理由未建模。',
-    'Absences follow CR 3.1–3.2, using the permission start date to infer whether the old permission rules apply. Departure and return days count as absence. CR 3.4 exemptions are outside the model.',
+    '缺席按 CR 3.1–3.2 计算，只计出境与返英之间在境外度过的整天；旧许可规则按许可起始日推定，CR 3.4 的豁免理由未建模。',
+    'Absences follow CR 3.1–3.2 and count only whole days abroad between departure and return. The permission start date is used to infer whether the old permission rules apply. CR 3.4 exemptions are outside the model.',
   );
 
 export function residenceAssumptions(

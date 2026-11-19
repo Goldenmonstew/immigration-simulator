@@ -111,6 +111,15 @@ function unionAbsences(absences: Absence[]): Absence[] {
   return merged;
 }
 
+/** CR 3.1: travel days are excluded before clipping or splitting a trip. */
+function wholeDayAbsences(trips: Absence[]): Absence[] {
+  return unionAbsences(
+    trips
+      .filter(({ from, to }) => from && to && daysBetween(from, to) > 1)
+      .map(({ from, to }) => ({ from: addDays(from, 1), to: addDays(to, -1) })),
+  );
+}
+
 function absenceDays(absences: Absence[], from: IsoDate, to: IsoDate): number {
   return absences.reduce(
     (days, a) => days + overlapDays(a.from, a.to, from, to),
@@ -282,21 +291,36 @@ export function currentResidence(
   {
     longResidence = false,
     ancestryExpiry,
-  }: { longResidence?: boolean; ancestryExpiry?: IsoDate } = {},
+    countedTrips = timeline.absences,
+  }: {
+    longResidence?: boolean;
+    ancestryExpiry?: IsoDate;
+    countedTrips?: Absence[];
+  } = {},
 ): CurrentResidence | undefined {
-  const absences = unionAbsences(
+  const trips = unionAbsences(
     timeline.absences.filter((a) => a.from && a.to && a.from <= a.to),
   );
+  const absences = wholeDayAbsences(countedTrips);
   const limits: AbsenceLimit = longResidence
     ? longResidenceLimit
     : calendarLimit;
   const legacy = limits.legacy;
-  const older = legacy ? absences.filter((a) => a.from < legacy.before) : [];
+  // CR 3.3–3.4: the transition depends on when the trip started, even
+  // when its first whole day abroad falls on the cutoff.
+  const older = legacy
+    ? wholeDayAbsences(countedTrips.filter((a) => a.from < legacy.before))
+    : [];
   const { fixed, rolling } = legacy
-    ? { fixed: [], rolling: absences.filter((a) => a.from >= legacy.before) }
+    ? {
+        fixed: [],
+        rolling: wholeDayAbsences(
+          countedTrips.filter((a) => a.from >= legacy.before),
+        ),
+      }
     : partitionByPermission(timeline, absences);
   const treatment = (from: IsoDate, to: IsoDate, reference: IsoDate) =>
-    gapTreatment(timeline, absences, { from, to }, longResidence, reference);
+    gapTreatment(timeline, trips, { from, to }, longResidence, reference);
   const runAt = (date: IsoDate) =>
     continuousRun(
       timeline,

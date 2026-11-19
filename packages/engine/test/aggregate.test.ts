@@ -192,14 +192,17 @@ describe('current law', () => {
     });
   });
 
-  test('2 years of Skilled Worker projects 5 years and flags B2', () => {
+  test('A6#6 2 years of Skilled Worker projects 5 years and assesses B2 at filing', () => {
     const a = cl({ episodes: [sw('2025-02-01')] });
     expect(a).toMatchObject({
       outcome: 'LIKELY_NOT_ELIGIBLE',
       pathwayYears: 5,
       earliestDate: '2030-01-04',
     });
-    expect(a.assumptions.join('')).toContain('届时定居须达到英语 B2');
+    expect(a.rules.find((rule) => rule.id === 'CL-ENGLISH')).toMatchObject({
+      status: 'PASS',
+      explanation: expect.stringContaining('按预计申请日 2030-01-04 判断'),
+    });
   });
 
   test('£38,000 qualifies under SW 24.3 row C before 2024-04-04; from then it fails row A, and is insufficient without a SOC code', () => {
@@ -207,8 +210,17 @@ describe('current law', () => {
       cl({ episodes: [sw('2019-11-01', { salary: 38000 })] }).outcome,
     ).toBe('LIKELY_ELIGIBLE');
     expect(
-      cl({ episodes: [sw('2024-04-04', { salary: 38000 })] }, '2029-04-04')
-        .outcome,
+      cl(
+        {
+          episodes: [
+            sw('2024-04-04', {
+              salary: 38000,
+              sponsorshipCertificateDate: '2024-04-04',
+            }),
+          ],
+        },
+        '2029-04-04',
+      ).outcome,
     ).toBe('LIKELY_NOT_ELIGIBLE');
     expect(
       cl(
@@ -272,11 +284,11 @@ describe('current law', () => {
       missing.rules.filter((r) => r.id === 'CL-ENGLISH').map((r) => r.status),
     ).toEqual(['PASS']);
     expect(missing.assumptions.join('')).toContain(
-      'Long Residence 10 年路径须英语 B1（LR 13.1(a)），未填写英语水平',
+      'Long Residence 10 年路径按 LR 13.1 单独判断：未填写英语水平',
     );
     const a2 = cl({ episodes, english: { cefrLevel: 'A2' } });
     expect(a2.outcome).toBe('LIKELY_NOT_ELIGIBLE');
-    expect(a2.assumptions.join('')).toContain('当前英语水平不满足');
+    expect(a2.assumptions.join('')).toContain('低于定居要求的 B1');
     expect(cl({ episodes, english: { cefrLevel: 'B1' } })).toMatchObject({
       outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 10,

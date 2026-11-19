@@ -239,19 +239,19 @@ test('A3#6 the crossing trip counts only its pre-cutoff days towards 548, and ke
   const episodes = [permit('2016-11-04', { route: 'STUDENT' })];
   const historic = ['2017-01-01', '2019-01-01', '2021-01-01'].map((from) => ({
     from,
-    to: addDays(from, 179),
+    to: addDays(from, 181),
   }));
-  const cross = { from: '2024-04-03', to: '2024-04-24' };
+  const cross = { from: '2024-04-02', to: '2024-04-24' };
   expect(
     run(clLrResidence10Y, { episodes, absences: [...historic, cross] }).status,
   ).toBe('PASS');
   expect(
     run(clLrResidence10Y, {
       episodes,
-      absences: [...historic, { ...cross, from: '2024-04-02' }],
+      absences: [...historic, { ...cross, from: '2024-04-01' }],
     }).status,
   ).toBe('FAIL');
-  const crossing = { from: '2024-04-10', to: addDays('2024-04-10', 183) };
+  const crossing = { from: '2024-04-10', to: addDays('2024-04-10', 185) };
   expect(run(clLrResidence10Y, { episodes, absences: [crossing] }).status).toBe(
     'PASS',
   );

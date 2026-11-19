@@ -193,11 +193,15 @@ export const zhCN = {
   'principal.incomplete': '请完成主申请人的时间线后继续。',
   'principal.required': '请先完成主申请人的时间线。',
   'principal.prefix': '主申请人：',
+  'screening.settledWorkerPartner':
+    '主申请人的筛查需要专业复核。现行 Skilled Worker 伴侣定居按伴侣本人评估（SW 38.1、39.1(b)）。',
   'principal.settled': '主申请人是否已定居',
   'principal.settledDate': '定居获批日期',
   'principal.settledRoute': '定居时所持签证路线',
-  'episodes.immigrationSalaryList': '担保岗位是否在 Immigration Salary List 上',
-  'episodes.immigrationSalaryListHint': '不确定按不在清单处理。',
+  'episodes.immigrationSalaryList':
+    '此次获批许可的担保岗位是否在 Immigration Salary List 上',
+  'episodes.immigrationSalaryListHint':
+    '不确定可留空。清单资格取决于当时的 CoS 签发日、担保岗位和工作地区。',
   'episodes.dependantOf': '作为谁的 dependant',
   'episodes.partnerDependant': '伴侣的 dependant（本人为伴侣）',
   'episodes.childDependant': '父母的 dependant（本人为子女）',
