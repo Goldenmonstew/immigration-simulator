@@ -30,3 +30,39 @@
 
 - 问卷只有许可生效日和到期日，历史获批顺序按许可生效日推定。BN(O) 亲属的英国公民身份仍需要独立证据。
 - STP 1.2(c) 另有申请日须在英国的有效性条件，建议作为独立条目核对。[GOV.UK 原文](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-settlement-protection)
+
+## 合入 33a 第 3 轮
+
+### 冲突处理
+
+- `packages/engine/src/rules/current-law/ancestry.ts`。33a 撤回历史许可入口是为了把 A3#2 留给 33c。合并后，当前持 UK Ancestry 主申请人许可时按 CR 1.1(a)–(b) 使用已录入的许可和行程。转签后按 CR 1.1(d) 从最近一次 UK Ancestry 主申请人许可到期日倒算，到期时须已完成合格期。恢复 `residence.ts` 的到期参考日、`scope.ts` 的历史候选入口和 `aggregate.ts` 的申请日英语核对。境内要求也按实际申请日核对。回归测试覆盖转 Student 前提前递交、转签后合格、到期时差一天及递交日在境外。Commonwealth citizen 和 UKA 12.1 仍按既有模型假设披露。依据 SRC-008 CR 1.1(a)–(b)、(d) 与 SRC-026 UKA 10.2(d)、10.3、12.1–15.1。[Appendix Continuous Residence](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-continuous-residence#calculating-the-qualifying-period) · [Appendix UK Ancestry](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-uk-ancestry#validity-requirements-for-settlement-on-the-uk-ancestry-route)
+- `packages/engine/src/rules/current-law/hong-kong-bno.ts`。按 HK 59.1(b) 核对亲属已定居且定居前最后一次许可属于指定的 BN(O) 类别，移除对定居路线字段的额外限制。HK 59.1(c) 的英国公民分支仍需资料确认。亲属许可符合时，再按 HK 62.1(b) 核对本人的居留日期。已录入的到期或转签导致无可申请日时，输出 `FAIL`。亲属尚未定居时，沿用 33a 的同日核对。依据 SRC-020 HK 55.2(e)、59.1(a)–(c)、62.1(b)。[Appendix Hong Kong British National (Overseas)](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-hong-kong-british-national-overseas)
+- `packages/engine/test/__snapshots__/bilingual.test.ts.snap`。取 33a 一侧清除标记，再运行 `pnpm --filter @uk-immigration/engine test -u` 重生成。
+- `docs/review/adviser-packet.md`。取 33a 一侧清除标记，由同一条命令重生成并核对 `golden-cases.json`。
+
+保留 33a 的已录入许可投影、随行同日核对、境内递交及 Long Residence 跨分界行程处理。33a 的 Innovator Founder 位置回归测试补填符合 INNF 17.5 的 `NON_LEGACY` 背书机构，以便分别验证位置和投影。黄金案例继续使用原始输入。
+
+### 黄金案例变化
+
+逐项比较两侧提交及合并后生成的 56 个案例的结论、日期、路径、判定依据和规则状态。两项差异均来自已有分支修正，变动仅在现行法栏。
+
+| 案例 | 对照结果 | 原因 |
+|---|---|---|
+| `G-HKBNO-ONE-MONTH-SHORT` | 相对 33c，最早申请日由 2026-11-03 改为 2026-12-01，结论仍为 `LIKELY_NOT_ELIGIBLE`。与 33a 第 3 轮一致。 | 已录入许可于 2026-11-30 到期。满期落在许可期外，后续申请日依赖合格许可连续续接。 |
+| `CL-INNOVATOR-FOUNDER-THREE-YEARS` | 相对 33a 第 3 轮，`LIKELY_ELIGIBLE` 改为 `INSUFFICIENT_INFORMATION`，移除三年路径、2026-05-01 和对应判定依据。与 33c 一致。 | 原始输入缺少 INNF 17.5 的机构资料，`CL-INNOVATOR-ENDORSEMENT` 为 `UNKNOWN`。 |
+
+其余 54 个案例与两侧一致。合并没有产生与两侧均不同的黄金结论。本次两处变化未涉及问卷 Playwright 期望值或试玩手册第 7 节参考答案。
+
+### 验收结果
+
+| 命令 | 结果 |
+|---|---|
+| `pnpm --filter @uk-immigration/engine test -u` | 产物已刷新，补齐位置测试的背书资料后重跑通过 |
+| `pnpm --filter @uk-immigration/policy-data test` | 23 项通过 |
+| `pnpm --filter @uk-immigration/engine test` | 2,613 项通过，1 项按配置跳过 |
+| `pnpm --filter web test` | 502 项通过 |
+| `pnpm lint` | 通过 |
+| `pnpm typecheck` | 通过 |
+| `pnpm --filter @uk-immigration/engine build` | 通过 |
+
+冲突标记已从四个工作区文件清除。Git 索引仍记录这四个冲突，由 Fable 暂存并完成合并提交。Playwright 留给 Fable 验收。

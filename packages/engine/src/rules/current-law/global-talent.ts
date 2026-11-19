@@ -1,7 +1,7 @@
 import { currentLaw2026_11 as cl } from '@uk-immigration/policy-data';
 import { episodeOn, currentResidence, settledBy } from '../../residence';
 import { defineRule, textFor } from '../../rule';
-import type { ImmigrationEpisode, RuleContext } from '../../types';
+import type { ImmigrationEpisode, IsoDate, RuleContext } from '../../types';
 import {
   crResidenceSources,
   residenceAssumptions,
@@ -18,7 +18,8 @@ import {
 } from './skilled-worker';
 import {
   DependantPathway,
-  later,
+  jointApplication,
+  noJointApplication,
   needsPrincipal,
   notYetSettledAssumption,
   principalNotReady,
@@ -53,10 +54,10 @@ function globalTalentPeriod(
  * continuous GT 11.3 period (the same routes as SW 21.2) ending on the
  * simulation date (GT 12.1, CR 3.1).
  */
-export function globalTalentQualifying({
-  timeline,
-  simulationDate,
-}: RuleContext) {
+export function globalTalentQualifying(
+  { timeline, simulationDate }: RuleContext,
+  notBefore?: IsoDate,
+) {
   if (!onGlobalTalent(timeline, simulationDate)) return undefined;
   const current = episodeOn(timeline, simulationDate)!;
   const initial = timeline.episodes
@@ -86,6 +87,10 @@ export function globalTalentQualifying({
         simulationDate,
         countsForSkilledWorker,
         period.years,
+        {
+          appliesOn: (e) => e.route === 'GLOBAL_TALENT' && e.role === 'MAIN',
+          notBefore,
+        },
       ),
   };
 }
@@ -198,15 +203,21 @@ export function globalTalentDependantPathway(
   if (!principal) {
     return { years: partnerYears, result: needsPrincipal(L, assumptions) };
   }
-  const own =
-    kind === 'PARTNER'
-      ? currentResidence(
-          timeline,
-          simulationDate,
-          (e) => e.route === 'GLOBAL_TALENT' && e.role === 'DEPENDANT',
-          partnerYears,
-        )
-      : undefined;
+  const ownFrom = (notBefore?: IsoDate) =>
+    currentResidence(
+      timeline,
+      simulationDate,
+      (e) => e.route === 'GLOBAL_TALENT' && e.role === 'DEPENDANT',
+      kind === 'PARTNER' ? partnerYears : 0,
+      {
+        appliesOn: (e) =>
+          e.route === 'GLOBAL_TALENT' &&
+          e.role === 'DEPENDANT' &&
+          e.dependantOf === kind,
+        notBefore,
+      },
+    );
+  const own = kind === 'PARTNER' ? ownFrom() : undefined;
   assumptions.push(...residenceAssumptions(timeline, simulationDate, own, L));
   const who = kind === 'PARTNER' ? 'partner' : 'child';
   if (settled) {
@@ -230,6 +241,16 @@ export function globalTalentDependantPathway(
       };
     }
     if (kind === 'PARTNER') {
+      if (!own?.applicationDate) {
+        return {
+          years: partnerYears,
+          result: {
+            status: 'FAIL',
+            explanation: residencePending(own!, partnerYears, L),
+            assumptions,
+          },
+        };
+      }
       return {
         years: partnerYears,
         start: own?.start,
@@ -274,31 +295,46 @@ export function globalTalentDependantPathway(
       ),
     };
   }
+  const joint = jointApplication(
+    due,
+    ownFrom,
+    (notBefore) =>
+      globalTalentQualifying(
+        { timeline: principal.timeline, simulationDate },
+        notBefore,
+      )?.residence?.applicationDate,
+  );
+  if (!joint?.applicationDate) {
+    return {
+      years: kind === 'PARTNER' ? partnerYears : period.years,
+      result: noJointApplication(L, assumptions),
+    };
+  }
+  const { applicationDate } = joint;
   if (kind === 'PARENT') {
     return {
       years: period.years,
       start: q.residence?.start,
-      applicationDate: due,
+      applicationDate,
       result: {
         status: 'PASS',
         explanation: L(
-          `随主申请人定居：主申请人可于 ${due} 申请（${period.basis}），届时可一同申请（GT 27.1(a)）；子女本人没有居留年限要求。`,
-          `Settling with the principal applicant, who can apply on ${due} (${period.basis}), when they can apply together (GT 27.1(a)); the child has no residence requirement of their own.`,
+          `随主申请人定居：主申请人可于 ${applicationDate} 申请（${period.basis}），届时可一同申请（GT 27.1(a)）；子女本人没有居留年限要求。`,
+          `Settling with the principal applicant, who can apply on ${applicationDate} (${period.basis}), when they can apply together (GT 27.1(a)); the child has no residence requirement of their own.`,
         ),
         assumptions,
       },
     };
   }
-  const applicationDate = later(own!.applicationDate, due);
   return {
     years: partnerYears,
-    start: own?.start,
+    start: joint.start,
     applicationDate,
     result: {
       status: 'PASS',
       explanation: L(
-        `与主申请人同时获批（GT 27.1(a)）：主申请人可于 ${due} 申请，本人的 dependent partner 许可须连续满 ${partnerYears} 年（GT 30.1），${applicationDate} 起可申请。`,
-        `Settling at the same time as the principal applicant (GT 27.1(a)): the principal applicant can apply on ${due}, and this person’s dependent partner permission must reach ${partnerYears} continuous years (GT 30.1), so they can apply from ${applicationDate}.`,
+        `与主申请人同时获批（GT 27.1(a)）：主申请人与本人最早可于 ${applicationDate} 一同申请，本人的 dependent partner 许可须连续满 ${partnerYears} 年（GT 30.1）。`,
+        `Settling at the same time as the principal applicant (GT 27.1(a)): the earliest joint application date is ${applicationDate}, when this person also meets the ${partnerYears}-year requirement for dependent partners (GT 30.1).`,
       ),
       assumptions,
     },

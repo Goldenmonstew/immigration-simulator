@@ -88,7 +88,9 @@ function statusOf(c: Candidate): RuleOutcome['status'] {
 }
 
 const dueOf = (c: Candidate) =>
-  c.applicationDate ?? (c.start && addYears(c.start, c.years));
+  'applicationDate' in c
+    ? c.applicationDate
+    : c.start && addYears(c.start, c.years);
 
 /** The rule ids `c` rests on; toAssessment puts them in `rules` order. */
 const basisOf = (c: Candidate): RuleId[] => [
@@ -629,8 +631,7 @@ function assessCurrentLaw(
   const lrEnglish: RuleOutcome = lrEnglishDiffers
     ? { ...english, status: lrStatus }
     : english;
-  // A previous UK Ancestry grant can support a separate candidate under
-  // CR 1.1(d); its English requirement still follows the actual filing date.
+  // Under CR 1.1(d), residence and English use different dates.
   const ancestryB2 = cl.values.ukAncestrySettlementEnglish.value;
   const ancestryFromB2 = ctx.simulationDate >= ancestryB2.applicationsFrom;
   const ancestryRequired = ancestryFromB2
@@ -694,7 +695,9 @@ function assessCurrentLaw(
             {
               years: pathway.years,
               start: pathway.start,
-              applicationDate: pathway.applicationDate,
+              ...(pathway.applicationDate && {
+                applicationDate: pathway.applicationDate,
+              }),
               rules: pick(id, 'CL-ENGLISH', 'CL-KOL'),
               // An adult dependant relative also needs their own 5 years.
               ...(hkKind === 'RELATIVE' &&
@@ -869,8 +872,8 @@ function assessCurrentLaw(
   const assumptions = [
     clBaseAssumption(L),
     L(
-      `适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 ${cl.values.continuousResidenceReferenceDays.value} 天递交（CR 1.1(b)）。估算以参考日仍有可计许可且递交时满足其他申请条件为前提，问卷没有决定日供计算。`,
-      `For routes under Appendix Continuous Residence, you can apply up to ${cl.values.continuousResidenceReferenceDays.value} days before completing the qualifying period (CR 1.1(b)). The estimate assumes qualifying permission on the reference date and that you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.`,
+      `适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 ${cl.values.continuousResidenceReferenceDays.value} 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。`,
+      `For routes under Appendix Continuous Residence, you can apply up to ${cl.values.continuousResidenceReferenceDays.value} days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.`,
     ),
   ];
   if (lrEnglishDiffers) {

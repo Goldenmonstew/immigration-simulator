@@ -108,7 +108,7 @@ What-if、前向推算的结构化假设，都等用到时再加字段，不提�
   - 当前为 Family and Private Life 时只有 10 / 20 年（p23）。居留起点都是 `ES-RESIDENCE` 的合格期起点。
 - 现行法律：`CL-SCOPE` 为 `UNKNOWN` 时只输出这一条、结论 `INSUFFICIENT_INFORMATION`。适用的境内申请条文下，行程明确显示申请人在境外时，`CL-SCOPE` 可返回 `FAIL`，结论为 `LIKELY_NOT_ELIGIBLE`。否则候选为 Skilled Worker 5 年（`CL-SW-SALARY`、`CL-SW-GOING-RATE`（2.5）、`CL-ENGLISH`、`CL-KOL`，起点为连续 Skilled Worker 段）与 Long Residence 10 年（`CL-ENGLISH`、`CL-KOL`，起点为连续合法居留段；英语按 LR 13.1 的等级单独核对，与当前路线的等级不同时只改该候选里的状态，`rules[]` 仍只显示按当前路线的一条，差异写进 `assumptions`（4.5））；候选与居留规则共用可申请日的计算。Long Residence 的 `CL-LR-RESIDENCE-10Y` 也显示 LR 9.3 的申请日位置判断。
 
-候选日期以实际申请日为比较基准。引用 Appendix Continuous Residence 的现行路径按 SRC-008 CR 1.1 从申请日及其后最多 28 天内的可计入日期回溯。适用 UK Ancestry 的历史许可用其到期日回溯（CR 1.1(d)）。问卷没有决定日。缺席限额在可计合格期内核对，CR 3.2 的旧许可窗口按实际申请日周年分隔。合格期满期日与可申请日分别计算。未来日期按持续具备合格许可和申请条件推算。随主申请人同时申请时取主申请人的有效申请日期与本人所需申请日期的较晚者。Appendix FM 五年伴侣与 Appendix Settlement Protection 的日期仍按各自条文；Earned Settlement 用连续起点加路径年限。
+候选日期以实际申请日为比较基准。引用 Appendix Continuous Residence 的现行路径按 SRC-008 CR 1.1(a)–(b) 从申请日及其后最多 28 天内的可计入日期回溯。预测日期使用已录入的许可、到期与转签。候选申请日晚于最后一段已录入许可的到期日时，才假设合格许可连续续接。问卷没有决定日。缺席限额在可计合格期内核对，CR 3.2 的旧许可窗口按实际申请日周年分隔。Long Residence 按每趟申报行程的出发日确定适用规则，再对重叠日期去重（CR 3.3）。有境内申请要求的路线按候选申请日核对位置。随行申请在同一天分别核对双方，取双方都符合的最早日期。Appendix FM 五年伴侣与 Appendix Settlement Protection 的日期仍按各自条文。Earned Settlement 用连续起点加路径年限。
 
 判定（两个规则集共用）：
 

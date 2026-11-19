@@ -372,8 +372,12 @@ export const locationActions: Activity[] = [
     id: 'life-in-the-uk',
     place: 'college',
     label: {
-      zhCN: '参加 Life in the UK 考试',
-      en: 'Take the Life in the UK test',
+      zhCN: '参加 Life in the UK 考试（游戏内免费）',
+      en: 'Take the Life in the UK test (free in this game)',
+    },
+    note: {
+      zhCN: '游戏跳过预约，考完直接记为通过。现实中如需考试，须提前网上预约并付费（SRC-045「Book the Life in the UK Test」）。',
+      en: 'The game skips booking and records a pass straight away. If you need to take the real test, book online in advance and pay the fee (SRC-045, “Book the Life in the UK Test”).',
     },
     minutes: b.minutes.exam,
     oncePerDay: true,
@@ -451,7 +455,16 @@ export const locationActions: Activity[] = [
   {
     id: 'extend',
     place: 'visa',
-    label: { zhCN: '续签', en: 'Extend permission' },
+    // Actual grants depend on the route's requirements (SRC-004 SW 1.2
+    // and SW 4.2–4.4, SRC-020 HK 8.1, SRC-024 D-LTRP.1.1–1.3).
+    label: {
+      zhCN: '续签（本情景预设获批）',
+      en: 'Extend permission (assumed granted in this scenario)',
+    },
+    note: {
+      zhCN: '支付所示费用，在游戏里登记新许可。',
+      en: 'Pay the fee shown to record your new permission in the game.',
+    },
     minutes: b.minutes.paperwork,
     oncePerDay: true,
     when: [{ visaMonthsLeftMax: b.renewalWindowMonths }],

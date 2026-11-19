@@ -73,4 +73,27 @@ export function principalNotReady(
       };
 }
 
-export const later = (a: IsoDate, b: IsoDate) => (a > b ? a : b);
+/** CR 3.2 windows can change with the filing date. Recheck both on one day. */
+export function jointApplication<T extends { applicationDate?: IsoDate }>(
+  date: IsoDate,
+  ownFrom: (date: IsoDate) => T | undefined,
+  principalFrom: (date: IsoDate) => IsoDate | undefined,
+): T | undefined {
+  for (;;) {
+    const own = ownFrom(date);
+    if (!own?.applicationDate) return undefined;
+    const principal = principalFrom(own.applicationDate);
+    if (!principal) return undefined;
+    if (principal === own.applicationDate) return own;
+    date = principal;
+  }
+}
+
+export const noJointApplication = (L: Lang, assumptions: string[]) => ({
+  status: 'FAIL' as const,
+  explanation: L(
+    '按已申报的许可和行程，无法给出双方都满足条件的同一天申请日。',
+    'The recorded permissions and travel do not support a date when both applicants can apply together.',
+  ),
+  assumptions,
+});

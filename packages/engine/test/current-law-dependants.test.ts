@@ -162,11 +162,11 @@ describe('Hong Kong BN(O) dependants (SRC-020)', () => {
     expect(currentLaw(relative, undefined, '2027-01-01').outcome).toBe(
       'INSUFFICIENT_INFORMATION',
     );
-    // Settled from another route: only a British citizen meets HK 59.1(c).
+    // With a final Skilled Worker grant, only HK 59.1(c) could apply.
     const other = currentLaw(
       relative,
       {
-        ...principal('2015-01-01'),
+        episodes: [ep('SKILLED_WORKER', 'MAIN', '2015-01-01')],
         settled: { date: '2025-01-01', route: 'SKILLED_WORKER' },
       },
       '2027-01-01',
@@ -216,6 +216,41 @@ describe('Hong Kong BN(O) dependants (SRC-020)', () => {
         });
       }
     }
+  });
+
+  test('A3#12 / 33a review: a qualifying last grant still requires an own filing date', () => {
+    const permission = ep('HONG_KONG_BNO', 'DEPENDANT', '2022-01-01', {
+      dependantOf: 'RELATIVE',
+    });
+    const sponsor = {
+      ...principal('2015-01-01'),
+      settled: { date: '2025-01-01', route: 'SKILLED_WORKER' as const },
+    };
+    const projected = currentLaw(
+      { episodes: [permission] },
+      sponsor,
+      '2026-11-04',
+    );
+    expect(projected.earliestDate).toBe('2026-12-04');
+    expect(rule(projected, 'CL-HKBNO-DEPENDANT').explanation).toContain(
+      'HK 59.1(b)',
+    );
+
+    const switched = currentLaw(
+      {
+        episodes: [
+          { ...permission, validTo: '2026-12-01' },
+          ep('STUDENT', 'MAIN', '2026-12-02'),
+        ],
+      },
+      sponsor,
+      '2026-11-04',
+    );
+    expect(switched.pathwayYears).not.toBe(5);
+    expect(rule(switched, 'CL-HKBNO-DEPENDANT')).toMatchObject({
+      status: 'FAIL',
+      explanation: expect.stringContaining('无法给出'),
+    });
   });
 });
 

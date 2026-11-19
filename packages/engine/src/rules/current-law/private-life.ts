@@ -59,6 +59,10 @@ export function privateLifeQualifying({
         simulationDate,
         countsForFamilyTenYear,
         period.years,
+        {
+          appliesOn: (e) =>
+            e.route === 'FAMILY_AND_PRIVATE_LIFE' && e.role === 'MAIN',
+        },
       ),
   };
 }
