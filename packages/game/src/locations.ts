@@ -456,7 +456,7 @@ export const locationActions: Activity[] = [
     id: 'extend',
     place: 'visa',
     // Actual grants depend on the route's requirements (SRC-004 SW 1.2
-    // and SW 4.2–4.4, SRC-020 HK 9.1, SRC-024 D-LTRP.1.1–1.3).
+    // and SW 4.2–4.4, SRC-020 HK 8.1, SRC-024 D-LTRP.1.1–1.3).
     label: {
       zhCN: '续签（本情景预设获批）',
       en: 'Extend permission (assumed granted in this scenario)',

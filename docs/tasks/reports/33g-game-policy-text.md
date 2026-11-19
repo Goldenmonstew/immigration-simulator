@@ -6,12 +6,12 @@
 
 | 条目 | 改动与依据 | 实现文件 |
 | --- | --- | --- |
-| A7#1 | 通用续签入口注明本情景预设获批，所示费用用于在游戏里登记新许可。依据 SRC-004 SW 1.2、SW 4.2–4.4，SRC-020 HK 9.1，SRC-024 D-LTRP.1.1–1.3。 | `locations.ts`、`types.ts`、`location-menu.tsx` |
+| A7#1 | 通用续签入口注明本情景预设获批，所示费用用于在游戏里登记新许可。依据 SRC-004 SW 1.2、SW 4.2–4.4，SRC-020 HK 8.1，SRC-024 D-LTRP.1.1–1.3。 | `locations.ts`、`types.ts`、`location-menu.tsx` |
 | A7#3 | 只有改革栏通过时，定居按钮和确认框写明「按改革假设模拟递交」。依据 SRC-001 Ch. 2「British connection」、SRC-024 E-ILRP.1.3(1A) 和 PD-003。 | `location-menu.tsx`、`i18n/{zh-CN,en}.ts` |
 | A7#4 | 结局按递交时的储蓄显示两栏评估，余额与时间线继续反映扣费后的数值。存档重载及切换语言后仍显示递交时的评估。依据 SRC-024 E-LTRP.3.1(b)、E-ILRP.1.3(1A) 和 SRC-031 §9。 | `game.ts`、`types.ts`、`ending.tsx`、`i18n/{zh-CN,en}.ts` |
 | A7#5 | Graduate 报价预览引用转签的 SRC-004 SW 4.2 Option A，说明 going rate 按每周 37.5 小时比较。工时依据为 SRC-017 Table 1 表前说明及 SRC-004 SW 14.4。 | `graduate-route.ts`、`game.ts` |
 | A7#6 | 两张 BN(O) 卡说明游戏记录 Universal Credit 的领取事实，许可的 NRPF 条件及变更需要另行核对。依据 SRC-006「Benefits open to new claims」、SRC-020 HK 9.2(a)、HK 65.1。 | `characters/hong-kong-bno.ts` |
-| A7#7 | British connection 卡把连续居留归于改革要求，并将沿用 SRC-008 CR 3.1 标为 PD-054 的模拟假设。依据 SRC-001「Residence」及 Ch. 2「British connection」。 | `characters/family-partner.ts` |
+| A7#7 | British connection 卡把连续居留归于改革要求，并将沿用 SRC-008 CR 3.1 标为 PD-054 的模拟假设。依据 SRC-001 p9「Residence」及 Ch. 2「British connection」。 | `characters/family-partner.ts` |
 | A7#8 | 通用 Life in the UK 入口注明游戏免预约、免收费并直接记为通过，引用 SRC-045「Book the Life in the UK Test」的现实预约与付费要求。 | `locations.ts`、`types.ts`、`location-menu.tsx` |
 | A7#9 | 旧薪资档提醒的投递上限与中英文日期共用 `skilledWorkerPre2024ApplicationsBefore`，申请日仍须严格早于截止日。依据 SRC-004 SW 4.2(b)(ii)、SW 24.3 row C。 | `characters/skilled-worker-life.ts` |
 

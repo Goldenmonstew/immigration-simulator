@@ -192,6 +192,7 @@ describe('additional character timelines and decisions', () => {
     for (const copy of [zhCN, en]) {
       expect(copy).toContain('SRC-001');
       expect(copy).toContain('British connection');
+      expect(copy).toMatch(/SRC-001,? p9/);
       expect(copy).toMatch(/SRC-008,? CR 3\.1/);
     }
     const after = resolve(before, 'save');
