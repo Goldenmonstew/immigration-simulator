@@ -122,9 +122,19 @@ describe('13.2 Graduate character and engine integration', () => {
     const percent = `${values.skilledWorkerNewEntrantGoingRatePercent.value}%`;
     const years = values.skilledWorkerNewEntrantMaxCombinedYears.value;
     const { zhCN, en } = checked.outcome!.text!;
-    for (const value of [salary, percent, `${years} 年`, 'SW 12.2(f)'])
+    for (const value of [
+      `年薪须同时不低于 ${salary}`,
+      percent,
+      `${years} 年`,
+      'SW 12.2(f)',
+    ])
       expect(zhCN).toContain(value);
-    for (const value of [salary, percent, `${years} years`, 'SW 12.2(f)'])
+    for (const value of [
+      `${salary} a year`,
+      percent,
+      `${years} years`,
+      'SW 12.2(f)',
+    ])
       expect(en).toContain(value);
     state = job(completeQuarter(state));
     expect(state.flags).toContain('graduate-negotiated');
