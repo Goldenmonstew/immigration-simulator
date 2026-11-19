@@ -68,3 +68,15 @@ pnpm typecheck
 2. **结果页要讲清提前 28 天。** 现在多个案例的最早申请日按 CR 1.1 提前了 28 天。核对结果页与规则说明里是否有中英文的一句话讲明"可在满期前最多 28 天递交（CR 1.1）"，没有就加在该规则的说明或假设里（不要新加页面组件）。
 3. **同步依赖黄金结论的地方**：`apps/e2e/tests/questionnaire.spec.ts` 里两个场景的 `earliest` 期望值（G-SW-ABSENCE-200-DAYS 现为 2028-07-01，G-SW-5Y-ON-DAY 核对一下）；`docs/playtest/kit.md` 第 7 节参考答案表（A1–A3 对应的黄金案例）。你跑不了 Playwright，只改期望值，Fable 会跑。
 4. 重新生成快照，报告里更新"哪些黄金案例结论变了"的清单。
+
+## 第 3 轮（Fable 追加，按 gpt-6.2-sol 只读审核）
+
+审核意见全文：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/review33a-1.md`。5 条都要处理，每条用审核给的实测反例加回归测试：
+
+1. 最早申请日投影先按已录入的许可核对参考日（已录入的转签、到期要算进去），只对未知的未来期间作"持续持有可计许可"的假设（SRC-004 SW 21.2、22.1；SRC-008 CR 1.1）。
+2. 随行申请（Skilled Worker 伴侣、Global Talent 伴侣、BN(O) adult dependant relative 等）不要取双方日期的较晚值：在同一个候选递交日分别核对双方，找出双方都满足的最早日期。
+3. CR 1.1 提前递交的候选日，也要核对该日申请人是否在英国（BN(O) HK 55.2(e) 等有境内要求的路线：Global Talent、Innovator Founder、Settlement Family Life、Private Life 的调用点）；行程明确在境外的候选日不能算可申请。
+4. 缺席去重前先按每趟行程的出发日确定适用的旧制或新制（2024-04-11 分界），再对缺席天数去重；不要把分界日后出发的行程合并进分界前的那趟。
+5. 撤回 UK Ancestry 的入口扩展（A3#2 属于任务 33c，不在 33a 范围）：`ancestry.ts` 恢复到 origin/main 的入口条件，只保留 CR 1.1 计算本身的调用改动。
+
+重新生成快照，报告更新黄金案例变化清单。

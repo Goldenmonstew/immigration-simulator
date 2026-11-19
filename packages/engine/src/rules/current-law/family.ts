@@ -43,6 +43,8 @@ import {
 import { principalApplicationDate } from './skilled-worker';
 import {
   DependantPathway,
+  jointApplication,
+  noJointApplication,
   needsPrincipal,
   notYetSettledAssumption,
   principalNotReady,
@@ -85,17 +87,24 @@ function familyTenYearCountedTrips(timeline: PersonTimeline, date: IsoDate) {
  * an Appendix FM partner on the 10-year route; `before` is the adjoining
  * earlier permission that does not count, if any (SETF 3.2, PD-069).
  */
-export function familyTenYearResidence({
-  timeline,
-  simulationDate,
-}: RuleContext): CurrentResidence | undefined {
+export function familyTenYearResidence(
+  { timeline, simulationDate }: RuleContext,
+  notBefore?: IsoDate,
+): CurrentResidence | undefined {
   if (!onFamilyPartnerTenYear(timeline, simulationDate)) return undefined;
   return currentResidence(
     timeline,
     simulationDate,
     countsForFamilyTenYear,
     cl.values.familyPartnerQualifyingYearsTen.value,
-    { countedTrips: familyTenYearCountedTrips(timeline, simulationDate) },
+    {
+      appliesOn: (e) =>
+        e.route === 'FAMILY_PARTNER_OR_PARENT' &&
+        e.role === 'MAIN' &&
+        e.familyPermission === 'PARTNER_TEN_YEAR',
+      notBefore,
+      countedTrips: familyTenYearCountedTrips(timeline, simulationDate),
+    },
   );
 }
 
@@ -768,15 +777,38 @@ export function familyChildPathway(
       ),
     };
   }
+  const joint = jointApplication(
+    due,
+    (notBefore) =>
+      currentResidence(
+        timeline,
+        simulationDate,
+        (e) =>
+          e.route === 'FAMILY_PARTNER_OR_PARENT' &&
+          e.role === 'DEPENDANT' &&
+          e.dependantOf === 'PARENT',
+        0,
+        { notBefore },
+      ),
+    (notBefore) =>
+      familyTenYearResidence(
+        { timeline: principal.timeline, simulationDate },
+        notBefore,
+      )?.applicationDate,
+  );
+  if (!joint?.applicationDate) {
+    return { years, result: noJointApplication(L, assumptions) };
+  }
+  const { applicationDate } = joint;
   return {
     years,
-    start: addYears(due, -years),
-    applicationDate: due,
+    start: addYears(applicationDate, -years),
+    applicationDate,
     result: {
       status: 'PASS',
       explanation: L(
-        `${age}；随主申请人定居：主申请人可于 ${due} 申请，届时可一同申请（SETF 12.1(a)）；子女本人没有居留年限要求。`,
-        `${age}; settling with the principal applicant, who can apply on ${due}, when they can apply together (SETF 12.1(a)); the child has no residence requirement of their own.`,
+        `${age}；随主申请人定居：主申请人可于 ${applicationDate} 申请，届时可一同申请（SETF 12.1(a)）；子女本人没有居留年限要求。`,
+        `${age}; settling with the principal applicant, who can apply on ${applicationDate}, when they can apply together (SETF 12.1(a)); the child has no residence requirement of their own.`,
       ),
       assumptions,
     },

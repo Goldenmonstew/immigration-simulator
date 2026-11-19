@@ -117,24 +117,207 @@ test('A6#1 the Skilled Worker golden boundary and the reference date use separat
   ).toBe('FAIL');
 });
 
-test('A6#1 UK Ancestry can refer back to the last UK Ancestry expiry after changing routes', () => {
+test('33a review #5 a former UK Ancestry grant does not open a new route', () => {
   const episodes = [
     permit('2019-06-01', { route: 'UK_ANCESTRY', validTo: '2024-06-01' }),
     permit('2024-06-02', { route: 'STUDENT' }),
   ];
-  const a = current({ episodes }, '2026-11-04');
-  expect(a).toMatchObject({
-    outcome: 'LIKELY_ELIGIBLE',
-    earliestDate: '2026-11-04',
-  });
-  expect(a.rules.find((r) => r.id === 'CL-ANCESTRY-RESIDENCE-5Y')?.status).toBe(
-    'PASS',
-  );
+  const a = current({ episodes, nationality: 'USA' }, '2026-11-04');
+  expect(a.outcome).toBe('INSUFFICIENT_INFORMATION');
+  expect(a.rules.map((r) => r.id)).not.toContain('CL-ANCESTRY-RESIDENCE-5Y');
+
   expect(
-    a.assumptions.some(
-      (text) => text.includes('2024-06-01') && text.includes('CR 1.1'),
+    current(
+      { episodes: [permit('2019-06-01', { route: 'UK_ANCESTRY' })] },
+      '2024-05-04',
     ),
-  ).toBe(true);
+  ).toMatchObject({ outcome: 'LIKELY_ELIGIBLE', earliestDate: '2024-05-04' });
+});
+
+test('33a review #1 projected CR 1.1 references respect recorded expiry and switches', () => {
+  const sw = permit('2021-06-01', { validTo: '2026-05-15' });
+  const student = permit('2026-05-16', { route: 'STUDENT' });
+  const facts = { episodes: [sw, student] };
+  const before = current(facts, '2026-05-01');
+  expect(before).toMatchObject({
+    outcome: 'LIKELY_NOT_ELIGIBLE',
+    earliestDate: '2031-05-04',
+    pathwayYears: 10,
+  });
+  expect(before.decidedBy).toContain('CL-LR-RESIDENCE-10Y');
+  expect(
+    current(facts, '2026-05-04').rules.find(
+      (r) => r.id === 'CL-SW-RESIDENCE-5Y',
+    )?.status,
+  ).toBe('FAIL');
+
+  const qualifyingSwitch = {
+    episodes: [sw, { ...student, route: 'GLOBAL_TALENT' as const }],
+  };
+  expect(current(qualifyingSwitch, '2026-05-01').earliestDate).toBe(
+    '2026-05-04',
+  );
+  expect(current(qualifyingSwitch, '2026-05-04').outcome).toBe(
+    'LIKELY_ELIGIBLE',
+  );
+
+  const noFurtherRecord = { episodes: [sw] };
+  expect(current(noFurtherRecord, '2026-05-01')).toMatchObject({
+    outcome: 'LIKELY_NOT_ELIGIBLE',
+    earliestDate: '2026-05-16',
+  });
+  expect(current(noFurtherRecord, '2026-05-04').outcome).toBe(
+    'LIKELY_NOT_ELIGIBLE',
+  );
+});
+
+test.each(['SKILLED_WORKER', 'GLOBAL_TALENT'] as const)(
+  '33a review #2 %s rechecks historic absence windows for a joint application',
+  (route) => {
+    const principal = timeline({
+      episodes: [
+        permit('2021-08-29', {
+          route,
+          globalTalentEndorsement: 'TECH_NATION',
+          globalTalentCriteria: 'EXCEPTIONAL_PROMISE',
+        }),
+      ],
+    });
+    const facts = {
+      episodes: [
+        permit('2017-12-01', {
+          route,
+          role: 'DEPENDANT',
+          dependantOf: 'PARTNER',
+        }),
+      ],
+      absences: [
+        { from: '2021-12-01', to: '2022-02-28' },
+        { from: '2022-04-01', to: '2022-07-15' },
+      ],
+    };
+    expect(current(principal, '2026-01-01').earliestDate).toBe('2026-08-01');
+    const projected = current(facts, '2026-01-01', principal);
+    expect(projected.earliestDate).toBe('2026-11-16');
+    expect(current(facts, '2026-08-01', principal).outcome).toBe(
+      'LIKELY_NOT_ELIGIBLE',
+    );
+    expect(current(facts, '2026-11-15', principal).outcome).toBe(
+      'LIKELY_NOT_ELIGIBLE',
+    );
+    expect(current(facts, projected.earliestDate!, principal).outcome).toBe(
+      'LIKELY_ELIGIBLE',
+    );
+  },
+);
+
+test('33a review #2 BN(O) adult dependant relative and principal both need to be in the UK', () => {
+  const principal = timeline({
+    episodes: [permit('2021-11-24', { route: 'HONG_KONG_BNO' })],
+    absences: [{ from: '2026-11-01', to: '2026-11-10' }],
+  });
+  const facts = {
+    episodes: [
+      permit('2021-12-02', {
+        route: 'HONG_KONG_BNO',
+        role: 'DEPENDANT',
+        dependantOf: 'RELATIVE',
+      }),
+    ],
+    absences: [{ from: '2026-11-10', to: '2026-11-15' }],
+  };
+  const projected = current(facts, '2026-10-25', principal);
+  expect(projected.earliestDate).toBe('2026-11-16');
+  expect(current(facts, projected.earliestDate!, principal).outcome).toBe(
+    'LIKELY_ELIGIBLE',
+  );
+});
+
+test.each<{ episode: ImmigrationEpisode; source: string }>([
+  {
+    episode: permit('2021-11-24', { route: 'HONG_KONG_BNO' }),
+    source: 'HK 55.2(e)',
+  },
+  {
+    episode: permit('2023-11-24', {
+      route: 'GLOBAL_TALENT',
+      globalTalentEndorsement: 'RESEARCH_BODY',
+    }),
+    source: 'GT 8.2(d)',
+  },
+  {
+    episode: permit('2023-11-24', {
+      route: 'INNOVATOR_FOUNDER',
+      innovatorSettlementCriteria: ['INVESTMENT', 'REVENUE'],
+    }),
+    source: 'INNF 15.2(d)',
+  },
+  {
+    episode: permit('2016-11-24', {
+      route: 'FAMILY_PARTNER_OR_PARENT',
+      familyPermission: 'PARTNER_TEN_YEAR',
+    }),
+    source: 'SETF 1.2(d)',
+  },
+  {
+    episode: permit('2016-11-24', {
+      route: 'FAMILY_AND_PRIVATE_LIFE',
+      privateLifeRoute: 'ADULT',
+    }),
+    source: 'PL 11.2(d)',
+  },
+])(
+  '33a review #3 $source checks the actual and projected filing dates',
+  ({ episode, source }) => {
+    const facts = {
+      ...timeline({
+        episodes: [episode],
+        relationships: [
+          ...family('2016-11-24', 'PARTNER_TEN_YEAR').relationships,
+        ],
+      }),
+    };
+    const abroad = {
+      ...facts,
+      absences: [{ from: '2026-11-01', to: '2026-11-10' }],
+    };
+    const onApplication = current(abroad, '2026-11-04');
+    expect(current(facts, '2026-11-04').outcome).toBe('LIKELY_ELIGIBLE');
+    expect(onApplication.outcome).toBe('LIKELY_NOT_ELIGIBLE');
+    expect(onApplication.rules[0]).toMatchObject({
+      id: 'CL-SCOPE',
+      status: 'FAIL',
+      sources: [{ locator: source }],
+    });
+    expect(current(abroad, '2026-11-10').outcome).toBe(
+      'INSUFFICIENT_INFORMATION',
+    );
+
+    const futureTrip = {
+      ...facts,
+      absences: [{ from: '2026-10-26', to: '2026-11-10' }],
+    };
+    const projected = current(futureTrip, '2026-10-25');
+    expect(projected.earliestDate).toBe('2026-11-11');
+    expect(current(futureTrip, projected.earliestDate!).outcome).toBe(
+      'LIKELY_ELIGIBLE',
+    );
+  },
+);
+
+test('A3#6 / 33a review #4 Long Residence keeps a new departure on the cutoff in the rolling window', () => {
+  const episodes = [permit('2016-11-04', { route: 'STUDENT' })];
+  const older = { from: '2024-04-10', to: '2024-04-11' };
+  const rolling = { from: '2024-04-11', to: '2024-10-10' };
+  const facts = { episodes, absences: [older, rolling] };
+  expect(current(facts, '2026-11-04').outcome).not.toBe('LIKELY_ELIGIBLE');
+  expect(run(clLrResidence10Y, facts).status).toBe('FAIL');
+  expect(
+    current(
+      { episodes, absences: [{ from: older.from, to: rolling.to }] },
+      '2026-11-04',
+    ).outcome,
+  ).toBe('LIKELY_ELIGIBLE');
 });
 
 test('A1#9 and A6#2 an ordinary one-day permission gap restarts Skilled Worker residence', () => {

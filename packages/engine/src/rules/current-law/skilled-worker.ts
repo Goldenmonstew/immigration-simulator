@@ -17,6 +17,7 @@ import type { CurrentResidence } from '../../residence';
 import { defineRule, textFor } from '../../rule';
 import type { Lang } from '../../rule';
 import { gbp } from '../es-contribution';
+import { jointApplication, noJointApplication } from './dependants';
 import type { GoingRate, Route } from '@uk-immigration/policy-data';
 import type {
   ImmigrationEpisode,
@@ -59,16 +60,17 @@ export const countsForSkilledWorker = (e: ImmigrationEpisode) =>
  * Start of the continuous SW 21.2 period ending on the simulation date, while
  * on Skilled Worker.
  */
-export function skilledWorkerResidence({
-  timeline,
-  simulationDate,
-}: RuleContext): CurrentResidence | undefined {
+export function skilledWorkerResidence(
+  { timeline, simulationDate }: RuleContext,
+  notBefore?: IsoDate,
+): CurrentResidence | undefined {
   if (!onSkilledWorker(timeline, simulationDate)) return undefined;
   return currentResidence(
     timeline,
     simulationDate,
     countsForSkilledWorker,
     cl.values.skilledWorkerQualifyingYears.value,
+    { appliesOn: isSkilledWorker, notBefore },
   );
 }
 
@@ -623,6 +625,7 @@ function withoutPrincipalPathway(
  */
 export function skilledWorkerPartnerResidence(
   ctx: RuleContext,
+  counts = isSkilledWorkerPartner,
 ): CurrentResidence | undefined {
   const { timeline, simulationDate } = ctx;
   if (!ctx.principal || !onSkilledWorkerPartner(timeline, simulationDate)) {
@@ -633,17 +636,25 @@ export function skilledWorkerPartnerResidence(
     ? settled.date
     : principalApplicationDate(ctx, 'CL-SW-RESIDENCE-5Y');
   if (settled ? !settled.met : !principalDate) return undefined;
-  const own = currentResidence(
-    timeline,
-    simulationDate,
-    isSkilledWorkerPartner,
-    cl.values.skilledWorkerQualifyingYears.value,
-  )!;
-  const applicationDate =
-    principalDate && principalDate > own.applicationDate
-      ? principalDate
-      : own.applicationDate;
-  return { ...own, applicationDate };
+  const ownFrom = (notBefore?: IsoDate) =>
+    currentResidence(
+      timeline,
+      simulationDate,
+      counts,
+      cl.values.skilledWorkerQualifyingYears.value,
+      { notBefore, appliesOn: isSkilledWorkerPartner },
+    );
+  return settled
+    ? ownFrom()
+    : jointApplication(
+        principalDate!,
+        ownFrom,
+        (notBefore) =>
+          skilledWorkerResidence(
+            { timeline: ctx.principal!.timeline, simulationDate },
+            notBefore,
+          )?.applicationDate,
+      );
 }
 
 export const clSwPartner5Y = defineRule(
@@ -693,19 +704,18 @@ export const clSwPartner5Y = defineRule(
       ...(timeline.absences.length > 0 ? [absenceAssumption(L)] : []),
     ];
     const residence = skilledWorkerPartnerResidence(ctx);
-    if (residence && residence.applicationDate > simulationDate) {
-      const possible = currentResidence(
-        timeline,
-        simulationDate,
+    const applicationDate = residence?.applicationDate;
+    if (!applicationDate || applicationDate > simulationDate) {
+      const possible = skilledWorkerPartnerResidence(
+        ctx,
         (e) =>
           isSkilledWorkerDependant(e) &&
           (e.dependantOf === undefined || e.dependantOf === 'PARTNER'),
-        years,
       );
       if (
-        possible &&
-        possible.applicationDate < residence.applicationDate &&
-        possible.start < residence.start
+        possible?.applicationDate &&
+        (!applicationDate || possible.applicationDate < applicationDate) &&
+        (!residence || possible.start < residence.start)
       ) {
         return {
           status: 'UNKNOWN',
@@ -721,6 +731,13 @@ export const clSwPartner5Y = defineRule(
       ...residenceAssumptions(timeline, simulationDate, residence, L),
     );
     if (settled) {
+      if (settled.met && !residence?.applicationDate) {
+        return {
+          status: 'FAIL',
+          explanation: residencePending(residence!, years, L),
+          assumptions,
+        };
+      }
       return settled.met
         ? {
             status: 'PASS',
@@ -737,7 +754,9 @@ export const clSwPartner5Y = defineRule(
           };
     }
     if (!residence) {
-      return withoutPrincipalPathway(ctx, 'dependent partner', assumptions);
+      return principalApplicationDate(ctx, 'CL-SW-RESIDENCE-5Y')
+        ? noJointApplication(L, assumptions)
+        : withoutPrincipalPathway(ctx, 'dependent partner', assumptions);
     }
     return {
       status: 'PASS',
@@ -760,7 +779,25 @@ export function skilledWorkerChildDate(ctx: RuleContext): IsoDate | undefined {
   }
   const settled = settledPrincipal(ctx);
   if (settled) return settled.met ? settled.date : undefined;
-  return principalApplicationDate(ctx, 'CL-SW-RESIDENCE-5Y');
+  const due = principalApplicationDate(ctx, 'CL-SW-RESIDENCE-5Y');
+  if (!due) return undefined;
+  const { timeline, simulationDate } = ctx;
+  return jointApplication(
+    due,
+    (notBefore) =>
+      currentResidence(
+        timeline,
+        simulationDate,
+        (e) => isSkilledWorkerDependant(e) && e.dependantOf === 'PARENT',
+        0,
+        { notBefore },
+      ),
+    (notBefore) =>
+      skilledWorkerResidence(
+        { timeline: ctx.principal!.timeline, simulationDate },
+        notBefore,
+      )?.applicationDate,
+  )?.applicationDate;
 }
 
 export const clSwChild = defineRule(
@@ -852,7 +889,9 @@ export const clSwChild = defineRule(
     }
     const date = skilledWorkerChildDate(ctx);
     if (!date) {
-      return withoutPrincipalPathway(ctx, 'dependent child', assumptions);
+      return principalApplicationDate(ctx, 'CL-SW-RESIDENCE-5Y')
+        ? noJointApplication(L, assumptions)
+        : withoutPrincipalPathway(ctx, 'dependent child', assumptions);
     }
     return {
       status: 'PASS',

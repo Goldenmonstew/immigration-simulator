@@ -4,6 +4,7 @@ import * as React from 'react';
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { evaluate, type Locale } from '@uk-immigration/engine';
+import { currentLaw2026_11 } from '@uk-immigration/policy-data';
 import * as core from '@uk-immigration/game';
 import type { GameState } from '@uk-immigration/game';
 import TownCanvas from '../app/game/town-canvas';
@@ -56,6 +57,7 @@ import homeMap from '../public/game/home.json';
 import { decodeDraft, encodeDraft } from '../lib/share';
 import { portraitPath, townBanner } from '../app/game/art';
 import Home from '../app/home-content';
+import { AssessmentColumns } from '../components/result-view';
 function expectCelebrationIcon(html: string) {
   const icon = html.match(
     /class="[^"]*catchCard[^"]*"[^>]*>(<span[^>]*>)/,
@@ -1622,6 +1624,153 @@ test.each(['leave', 'settle'])(
     h.dispose();
   },
 );
+
+test.each(['zh-CN', 'en'] as const)(
+  'A7#1 low-paid Skilled Worker can record an assumed renewal with the fee shown in %s',
+  (locale) => {
+    const state = at(600, 'visa', locale);
+    state.date = state.day.date = '2026-11-19';
+    state.day.deliveries = [];
+    state.timeline.episodes[0].salary = 24000;
+    state.stats.money = 4048;
+    const onChange = vi.fn();
+    const view = renderView(
+      () => LocationMenu({ state, location: 'visa', onChange }),
+      locale,
+    );
+    expect(view.html).toContain(
+      locale === 'en'
+        ? 'Pay the fee shown to record your new permission in the game.'
+        : '支付所示费用，在游戏里登记新许可。',
+    );
+    expect(view.html).toContain('aria-describedby="action-note-extend"');
+    expect(view.html).toContain('−£4,048');
+    view.click(
+      locale === 'en'
+        ? 'Extend permission (assumed granted in this scenario)'
+        : '续签（本情景预设获批）',
+    );
+    const after: GameState = onChange.mock.lastCall![0];
+    expect(after.stats.money).toBe(state.stats.money - 4048);
+    expect(after.timeline.episodes[1]).toMatchObject({
+      route: 'SKILLED_WORKER',
+      validFrom: '2027-01-15',
+      salary: 24000,
+    });
+  },
+);
+
+function familyAtSettlement(locale: Locale) {
+  const state = core.newGame('family-partner', 42, locale);
+  delete state.pendingEvent;
+  state.eventQueue = [];
+  state.date = state.day.date = '2029-06-15';
+  state.day.minute = 600;
+  state.day.place = 'visa';
+  state.day.deliveries = [];
+  state.timeline.episodes[0].validTo = '2032-06-14';
+  state.timeline.english = { cefrLevel: 'B2' };
+  state.timeline.lifeInTheUk = { passed: true };
+  return state;
+}
+
+test.each(['zh-CN', 'en'] as const)(
+  'A7#3 when only the reform column passes, the button and confirmation name the assumption in %s',
+  (locale) => {
+    const state = familyAtSettlement(locale);
+    state.timeline.incomeYears = [
+      '2024-25',
+      '2025-26',
+      '2026-27',
+      '2027-28',
+      '2028-29',
+    ].map((taxYear) => ({ taxYear, earnings: 14000, partnerEarnings: 0 }));
+    state.result = evaluate({
+      timeline: state.timeline,
+      simulationDate: state.date,
+      locale,
+    });
+    expect(state.result.byRuleSet['current-law-2026-11']?.outcome).not.toBe(
+      'LIKELY_ELIGIBLE',
+    );
+    expect(state.result.byRuleSet['earned-settlement-2026-11']?.outcome).toBe(
+      'LIKELY_ELIGIBLE',
+    );
+    const onChange = vi.fn();
+    const h = harness(
+      () => LocationMenu({ state, location: 'visa', onChange }),
+      locale,
+    );
+    h.render().click(
+      locale === 'en'
+        ? 'Simulate submission under the reform assumptions'
+        : '按改革假设模拟递交',
+    );
+    expect(h.render().html).toContain(
+      t('game.reformSettlementConfirm', locale),
+    );
+    expect(onChange).not.toHaveBeenCalled();
+    h.render().click(t('game.confirm', locale));
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ ending: 'settled' }),
+    );
+    h.dispose();
+  },
+);
+
+test('A7#4 the restored ending in both languages shows the financial pass used at submission', () => {
+  const before = familyAtSettlement('zh-CN');
+  const law = 'current-law-2026-11';
+  const financial = (result: GameState['result']) =>
+    result.byRuleSet[law]?.rules.find((r) => r.id === 'CL-FAMILY-FINANCIAL');
+  before.stats.money = before.timeline.cashSavings = 25000;
+  before.timeline.incomeYears = [
+    { taxYear: '2028-29', earnings: 20000, partnerEarnings: 0 },
+  ];
+  before.timeline.relationships = [
+    { type: 'PARTNER', otherPartyStatus: 'SETTLED' },
+  ];
+  before.result = evaluate({
+    timeline: before.timeline,
+    simulationDate: before.date,
+    locale: before.locale,
+  });
+  expect(before.result.byRuleSet[law]?.outcome).toBe('LIKELY_ELIGIBLE');
+  expect(financial(before.result)?.status).toBe('PASS');
+  const after = core.doActivity(before, 'settle');
+  const fee = currentLaw2026_11.values.settlementApplicationFee.value;
+  expect(after.ending).toBe('settled');
+  expect(after.stats.money).toBe(25000 - fee);
+  expect(after.timeline.cashSavings).toBe(25000 - fee);
+  expect(financial(after.result)?.status).toBe('FAIL');
+  gameStorage(after.characterId, after);
+  const restored = previewGameSave(after.characterId).state!;
+  expect(restored.timeline.cashSavings).toBe(25000 - fee);
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const state = withGameLocale(restored, locale);
+    const view = renderView(() => Ending({ state, onChange: vi.fn() }), locale);
+    const displayed = view.props(AssessmentColumns).result;
+    expect(view.html).toContain(
+      t('game.settlementAssessmentAtSubmission', locale),
+    );
+    expect(displayed.byRuleSet[law]?.outcome).toBe('LIKELY_ELIGIBLE');
+    expect(financial(displayed)).toEqual(
+      financial(
+        evaluate({
+          timeline: before.timeline,
+          simulationDate: before.date,
+          locale,
+        }),
+      ),
+    );
+  }
+  delete restored.settlementApplication;
+  expect(
+    renderView(() => Ending({ state: restored, onChange: vi.fn() })).props(
+      AssessmentColumns,
+    ).result,
+  ).toBe(restored.result);
+});
 
 test.each(['zh-CN', 'en'] as const)(
   'event notes are outside choice buttons and deduplicated in ordinary and speaker cards in %s',

@@ -49,3 +49,46 @@
 
 - 任务 39 分支已将 Continuous residence 指引登记为 SRC-057。请 Fable 在 39 合并后给 A1#17 补该来源编号，并保留 `#count-whole-days`、`#the-12-month-period` 与 Example 2 的定位。
 - 任务 49 可直接使用现行法投影的语言规则结果和待确认条件，呈现条件性日期。
+
+## 合入 33a 第 3 轮
+
+### 冲突处理
+
+| 文件 | 合并结果与依据 |
+|---|---|
+| `packages/engine/src/aggregate.ts` | 采用 33a 的候选递交日及续接假设。连续居留计算没有给出递交日时，汇总层不会再用满期周年日补出一个日期。保留 33b A2#9、A2#10、A6#6 的路线专用英语、Life in the UK 和豁免计算，按投影递交日重算并披露待满足或待确认的条件。Long Residence 单独按 LR 13.1、14.1 核对。UK Ancestry 恢复当前持该路线许可的入口，并使用该路线的常规语言判断。SRC-008 CR 1.1(a)–(b)、SRC-004 SW 22A.1、23.1、44.1、45.1、SRC-005 LR 13.1、14.1、SRC-026 UKA 10.3、12.1–14.1。 |
+| `packages/engine/src/residence.ts` | 保留 33a 的已录入许可到期及转签核对、`notBefore` 和候选日境内核对。Long Residence 按每趟行程的实际出境日分组，然后在各组内剔除出境和返英日，再对重叠缺席整天去重。`countedTrips` 继续支持 CR 3.6 豁免。境内递交和 CR 4.1(d)(iii) 的有效许可核对使用原始行程日期，参考日搜索也保留实际返英日。SRC-008 CR 1.1、3.1–3.3、3.6、4.1(d)(iii)。[Home Office 整天计数指引](https://www.gov.uk/government/publications/continuous-residence-caseworker-guidance/continuous-residence-guidance-accessible-version#count-whole-days) [Long Residence 过渡示例](https://www.gov.uk/government/publications/continuous-residence-caseworker-guidance/continuous-residence-guidance-accessible-version#example-2---appendix-long-residence-qualifying-period-started-before-11-april-2024-and-was-completed-on-or-after-11-april-2024) |
+| `packages/engine/src/rules/current-law/family.ts` | 十年伴侣路线同时传入 CR 3.6 筛过的缺席和 33a 的候选日约束。随行子女用 `notBefore` 在同一候选递交日核对双方。主路线继续按实际递交日判断申请人是否在英国。SRC-008 CR 3.6、SRC-022 SETF 1.2(d)、1.3、4.1、12.1(a)。 |
+| `packages/engine/src/rules/current-law/skilled-worker.ts` | 主申请人尚未定居时，按 SW 39.1(a) 及 CR 3.2 在同一候选日分别重算双方。伴侣只计 SW 42.1、43.1 允许的伴侣许可。把历史身份未填的片段视作可能的伴侣许可重算后，若能得到更早的共同日期，返回 `UNKNOWN`。主申请人已定居时按 SW 39.1(b) 核对当时的许可，并继续保留伴侣本人的 SW 38.1–38.2 suitability 筛查。SRC-004 SW 37.2(d)–(e)、38.1–38.2、39.1、42.1、43.1、SRC-008 CR 3.2。 |
+| `packages/engine/test/__snapshots__/bilingual.test.ts.snap` | 用 33b 版本移除冲突标记，由引擎测试重生成。 |
+| `docs/review/adviser-packet.md` | 用 33b 版本移除冲突标记，由同一批引擎结果重生成。`packages/engine/test/__snapshots__/golden-cases.json` 也从 33b 基线重生成。 |
+
+两条随行日期回归同步调整。Skilled Worker 和 Global Talent 的同一组旧许可行程按整天合计 192 天，原来含出入境日时是 196 天。结合按申请日周年分窗和 CR 1.1(b)，两条回归的共同最早申请日由 2026-11-19 提前到 2026-11-16。测试验证 2026-08-01 和 2026-11-15 仍未满足，2026-11-16 通过。
+
+### 黄金案例变化
+
+逐栏比较合并前 33b（`edcdca7`）、33a 第 3 轮（`b62e54b`）及本次重生成结果的 56 个案例。每一栏的结论、日期、路径和规则状态均与至少一边一致。两边有差异的 6 个案例均在现行法栏。
+
+| 案例 | 合并结果 |
+|---|---|
+| `G-HKBNO-ONE-MONTH-SHORT` | 沿用 33a 的 2026-12-01。33b 原投影为 2026-11-03，而已录入许可于 2026-11-30 到期。新日期依赖随后连续续接许可，结论仍为 `LIKELY_NOT_ELIGIBLE`。 |
+| `G-SW-ABSENCE-200-DAYS` | 沿用 33b 的 2028-06-30。返英日不计作缺席整天，比 33a 的日期早一天。 |
+| `G-SW-CARE-WORKER`、`ES-OFFICIAL-P45-INDIVIDUAL-A` | 沿用 33b 的 `INSUFFICIENT_INFORMATION`。仍须以最近一次担保事实确认 ISL，SOC 本身无法确认适用门槛。 |
+| `G-STUDENT-GRADUATE-SW` | 沿用 33b 的五年 Skilled Worker 条件性投影。首段许可的旧规资格不明，going rate 为 `UNKNOWN`。两边日期均为 2029-08-18。 |
+| `ES-OFFICIAL-P45-INDIVIDUAL-C` | 沿用 33b 的 Skilled Worker 一般薪资 `UNKNOWN`，十年 Long Residence 总评及日期沿用两边的结果。 |
+
+现有问卷端到端期望及试玩手册第 7 节与合并后的相关黄金案例一致。
+
+### 验收结果
+
+| 命令 | 结果 |
+|---|---|
+| `pnpm --filter @uk-immigration/engine test -u` | 生成顾问包、黄金案例和双语快照。首轮刷新 35 处快照，并发现上述两处随行日期旧断言。更新断言后重跑通过，2,619 项通过、1 项可选文案导出跳过。 |
+| `pnpm --filter @uk-immigration/policy-data test` | 23 项通过。 |
+| `pnpm --filter @uk-immigration/engine test` | 2,619 项通过、1 项可选文案导出跳过。普通模式复核了生成内容。 |
+| `pnpm --filter web test` | 499 项通过。 |
+| `pnpm lint` | 通过。 |
+| `pnpm typecheck` | 通过。 |
+| `pnpm --filter @uk-immigration/engine build` | 通过。 |
+
+工作区文件的冲突标记已清除。Git 索引仍保留这 6 个文件的合并状态，由 Fable 验收、暂存和提交。Playwright 按 brief 由 Fable 运行。

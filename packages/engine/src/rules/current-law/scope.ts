@@ -12,6 +12,7 @@ import {
   onFamilyChild,
   onFamilyPartner,
   onFamilyPartnerFiveYear,
+  onFamilyPartnerTenYear,
   onGlobalTalent,
   onHongKongBno,
   onInnovatorFounder,
@@ -24,7 +25,6 @@ import {
 } from './shared';
 import { onFiveYearFamilyChild } from './family';
 import { longResidenceMet } from './long-residence';
-import { ukAncestryResidence } from './ancestry';
 
 export const clScope = defineRule(
   {
@@ -75,6 +75,28 @@ export const clScope = defineRule(
         sources: [{ srcId: 'SRC-024', locator: 'R-ILRP.1.1(a), E-ILRP.1.2' }],
       };
     }
+    if (presence && current) {
+      const source =
+        current.route === 'HONG_KONG_BNO'
+          ? { srcId: 'SRC-020', locator: 'HK 55.2(e)' }
+          : current.route === 'GLOBAL_TALENT'
+            ? {
+                srcId: 'SRC-021',
+                locator: current.role === 'MAIN' ? 'GT 8.2(d)' : 'GT 25.2(d)',
+              }
+            : onInnovatorFounder(timeline, simulationDate)
+              ? { srcId: 'SRC-027', locator: 'INNF 15.2(d)' }
+              : onPrivateLife(timeline, simulationDate)
+                ? { srcId: 'SRC-028', locator: 'PL 11.2(d)' }
+                : onFamilyPartnerTenYear(timeline, simulationDate)
+                  ? { srcId: 'SRC-022', locator: 'SETF 1.2(d)' }
+                  : ctx.principal &&
+                      onFamilyChild(timeline, simulationDate) &&
+                      !onFiveYearFamilyChild(ctx)
+                    ? { srcId: 'SRC-022', locator: 'SETF 10.2(d)' }
+                    : undefined;
+      if (source) return { ...presence, sources: [source] };
+    }
     if (onHongKongBno(timeline, simulationDate)) {
       return {
         status: 'PASS',
@@ -102,12 +124,12 @@ export const clScope = defineRule(
         ),
       };
     }
-    if (onUkAncestry(timeline, simulationDate) || ukAncestryResidence(ctx)) {
+    if (onUkAncestry(timeline, simulationDate)) {
       return {
         status: 'PASS',
         explanation: L(
-          '持有或曾持有可计入定居的 UK Ancestry 主申请人许可，按 Appendix UK Ancestry 与 Appendix Long Residence 评估。',
-          'Current or previous UK Ancestry main applicant permission qualifies for assessment under Appendix UK Ancestry and Appendix Long Residence.',
+          '当前持 UK Ancestry 主申请人许可，按 Appendix UK Ancestry 与 Appendix Long Residence 评估。',
+          'Currently holds UK Ancestry permission as the main applicant; assessed under Appendix UK Ancestry and Appendix Long Residence.',
         ),
       };
     }
