@@ -4,7 +4,7 @@
 
 用户 2026-11-19："codex 的额度要用不完了，你能开多少 codex 的会话，现在立马去做。能做哪些做哪些，把后面所有的任务都规划上。"随后补充："codex 现在还有 ultrafast 模式，直接用这个模式就行。"
 
-- **例外范围**：本规划列出的任务 31–47，凡标"sol 实现"的都由 Codex 写代码、文档或测试，包括 33、35、37 的规则语义改动。这是 AGENTS.md"Codex 只审核"的按任务例外（同任务 17、22），依据是上面用户的原话：用户要求开 Codex 会话"立马去做""能做哪些做哪些"，即由 Codex 执行这些任务，Fable 不再另行确认；AGENTS.md 不改。规则语义改动仍须附 SRC 定位与测试。
+- **例外范围**：本规划列出的任务 31–50，凡标"sol 实现"的都由 Codex 写代码、文档或测试，包括 33、35、37 的规则语义改动。这是 AGENTS.md"Codex 只审核"的按任务例外（同任务 17、22），依据是上面用户的原话：用户要求开 Codex 会话"立马去做""能做哪些做哪些"，即由 Codex 执行这些任务，Fable 不再另行确认；AGENTS.md 不改。规则语义改动仍须附 SRC 定位与测试。
 - **模型**：ultrafast 只有 `gpt-6.2-sol` 支持（`gpt-6.2-astra` 只有 fast 档），所以实现和审核都用 `gpt-6.2-sol` + `service_tier="ultrafast"`。实现和审核分开会话，审核会话不看实现会话的过程。
 - **Fable**：写 brief、复核核对结果、跑 gate 与 e2e、浏览器验收、提交、开 PR、合并、核对部署。Codex 沙箱不能写 `.git`、不能启动浏览器。
 - **并行上限**：只读核对不跑构建，可以多开；写代码的会话按文件不重叠来分，同时最多 3 个。gate 和 e2e 由 Fable 串行跑。
@@ -37,9 +37,9 @@
 | 45 | Codex 模拟试玩：3 个会话按 `docs/playtest/kit.md` 扮演试玩者（人物卡 A1–A3，中英文、手机），看 Fable 截的正式站截图走问卷，游戏用 `packages/game` 逻辑一步步玩；Fable 汇总为 `docs/playtest/results-2026-11-19-codex.md`。不替代真人试玩 | sol（用户 2026-11-19 要求） | — | 进行中 |
 | 46 | 访问统计与错误上报：用户 2026-11-19 要求接入；核实后两者都已在线（见"盘点来源"），不另开实现任务 | — | — | 已在线 |
 | 47 | agy 第 5 轮设计评审：Fable 用无头 Chrome 截正式站桌面 2 倍、手机 3 倍图，agy（gemini-4-hydrogen-xhigh）评审；结论转成修正任务 | agy 评审，修正由 sol 实现 | — | 进行中 |
-| 48 | agy 第 5 轮设计修正：评审（`docs/research/2026-11-19-design-review-5.md`，综合 8.7/10）提出的 11 处，主站（页脚贴底、国籍框宽、首页右栏卡、政策页来源清单、PD 徽章配色）、小游戏（选人页横幅露缝、室内缩放与短线残留、飘字与标签重叠、锁图标、结局菜肴图标）、手机（HUD 角色名截断与图标、结果页按钮收口） | sol 实现，Fable 截图验收 | 38、33g、41 合并之后（同改 `apps/web/app/game`） | 待开 |
-| 49 | 网站可用性（Codex 试玩 #1–3、#11–15、#18，并入 33f 的结果页表述修正 A6#6、#7、#11、#12 与 A4#9 文案）：What-if 可加临时离境并对比、结果页按命中路径分组、国籍按国名搜索、结果总览附近放 What-if 与修改入口、问卷几处说明、试玩人物卡 A1 | sol 实现，Fable 截图与 e2e 验收 | 33a 合并之后（同改结果页测试与黄金快照） | 待开 |
-| 50 | 游戏试玩修正（Codex 试玩 #4–10、#16–17）：续签后季度小结与顶栏的"签证剩余"一致、换季清作物前提示、考试当场给结果、诺拉求职进度与跨过到期日提醒、年末回望时点、几处文字接不上 | sol 实现 | 33g、41 合并之后；诺拉部分排在 35 之后 | 待开 |
+| 48 | agy 第 5 轮设计修正：评审（`docs/research/2026-11-19-design-review-5.md`，综合 8.7/10）提出的 11 处，主站（页脚贴底、国籍框宽、首页右栏卡、政策页来源清单、PD 徽章配色）、小游戏（选人页横幅露缝、室内缩放与短线残留、飘字与标签重叠、锁图标、结局菜肴图标）、手机（HUD 角色名截断与图标、结果页按钮收口） | sol 实现，Fable 截图验收 | 38、33g、41 合并之后（同改 `apps/web/app/game`）；结果页与国籍框部分排在 49 之后 | 待开 |
+| 49 | 网站可用性（Codex 试玩 #1–3、#11–15、#18，并入 33f 的结果页表述修正 A6#6、#7、#11、#12 与 A4#9 文案）：What-if 可加临时离境并对比、结果页按命中路径分组、国籍按国名搜索、结果总览附近放 What-if 与修改入口、问卷几处说明、试玩人物卡 A1 | sol 实现，Fable 截图与 e2e 验收 | 33a 合并之后；A4#9（`es-transitional.ts`）与 A6#6 的引擎部分（`aggregate.ts`）归 33d，49 只改网站 | 待开 |
+| 50 | 游戏试玩修正（Codex 试玩 #4–10、#16–17）：续签后季度小结与顶栏的"签证剩余"一致、换季清作物前提示、考试当场给结果、诺拉求职进度与跨过到期日提醒、年末回望时点、几处文字接不上 | sol 实现 | 33g、41 合并之后；诺拉部分（#7–9）按下方诺拉文件顺序，#8 沿用 35 的实际判定 | 待开 |
 | 43 | Fable 实机走"出门→聊天→钓鱼→做饭→回家"（手动操作，不用简易模式与跳过），补 13.5 缺的钓鱼与做饭成功卡实景截图 | Fable | — | 待开 |
 | 44 | 修来源检查脚本（32 的来源检查验收依赖它：44 第 3 轮同时重新登记 SRC-010，让全量检查退出 0；先合并 44，32 合入 44 的变更后、提交前须跑完整检查并通过）：`check-sources.mjs` 把 SRC-033 的书面问题 JSON 当成 Hansard JSON，取备注时抛 `TypeError`，32 修改前后都退出 1，每周 Check sources 跑不到后面的来源；修好后重跑完整检查；第 2 轮去掉 GOV.UK 布局与 HTML 实体误报、补齐多快照的 URL 映射 | sol 实现 | — | 进行中 |
 
@@ -48,12 +48,13 @@
 同一时间只给一个写入会话：
 
 - `packages/engine/src/rules/current-law/skilled-worker.ts`、`packages/policy-data/src/parameters/current-law-2026-11.ts`：33a → 33b → 35。37 若日后被触发：只有在 35 开工前触发且影响 Option E 时才 37 → 35，其余情况 35 → 37。
-- `packages/game/src/characters/graduate.ts`、`packages/game/src/graduate-route.ts`：33g → 35 → 40 → 34 中涉及诺拉的英文。
+- `packages/game/src/characters/graduate.ts`、`packages/game/src/graduate-route.ts`：33g → 35 → 40 → 50 的诺拉部分 → 34 中涉及诺拉的英文。
 - `packages/engine/test/golden.test.ts` 生成的黄金快照与 `docs/review/adviser-packet.md`：任何改结论的任务都要重新生成，按合并先后依次更新，不并行改。
 - `docs/SOURCES.md`、`docs/pending-details.md`、`apps/web/lib/sources.ts`、`policy-changelog.ts`：44 → 32 → 39 → 35（登记 PD），编号顺延；37 若被触发，按上一条的条件顺序插入（35 开工前触发且影响 Option E 时排在 35 之前，否则在 35 之后）；33 各子任务登记的新 PD 按合并先后顺延编号。
 - `packages/engine/src/aggregate.ts`、`residence.ts`、`types.ts`：33a 先合并，33b–33e 再开。
 - `apps/web/i18n/en.ts`、`zh-CN.ts` 与引擎规则文件里的英文说明：33 各子任务 → 34。33g 与 41 都会往词典里加行，按合并先后解决冲突。
 - `apps/e2e/tests/helpers.ts`：36 → 42。
+- `apps/web/components/result-view.tsx`、`apps/web/app/result/result-content.tsx`、问卷国籍控件：49 → 48 的结果页与国籍框部分（48 的样式按 49 改完的控件验收）。
 - `PROGRESS.md`：每个 PR 自己追加一行，合并时由 Fable 解决行号冲突。
 
 ### 任务 35 的契约
