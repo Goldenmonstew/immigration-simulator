@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
 import { URL } from 'node:url';
+import { TextDecoder } from 'node:util';
 
 const register = readFileSync(
   new URL('../../../docs/SOURCES.md', import.meta.url),
@@ -14,37 +15,20 @@ const register = readFileSync(
 const primarySources = register.split('## 一级来源')[1].split('\n## ')[0];
 const noteSections = register.split(/^#{2,3} /m);
 const counts = { unchanged: 0, changed: 0, failed: 0, dynamic: 0 };
-const namedEntities = new Map(
-  Object.entries({
-    amp: '&',
-    AMP: '&',
-    apos: "'",
-    gt: '>',
-    GT: '>',
-    lt: '<',
-    LT: '<',
-    quot: '"',
-    QUOT: '"',
-    nbsp: '\u00a0',
-    ensp: '\u2002',
-    emsp: '\u2003',
-    thinsp: '\u2009',
-    ndash: '–',
-    mdash: '—',
-    lsquo: '‘',
-    rsquo: '’',
-    ldquo: '“',
-    rdquo: '”',
-    hellip: '…',
-    bull: '•',
-    middot: '·',
-    pound: '£',
-    euro: '€',
-    copy: '©',
-    reg: '®',
-    trade: '™',
-  }),
-);
+// WHATWG entities.json entries found in policy-sources, plus the frac12 case.
+// The Check sources workflow runs this file without installing dependencies.
+const namedEntities = new Map([
+  ['amp', '&'],
+  ['frac12', '½'],
+  ['gt', '>'],
+  ['ldquo', '“'],
+  ['lt', '<'],
+  ['quot', '"'],
+  ['rdquo', '”'],
+  ['rsquo', '’'],
+  ['times', '×'],
+]);
+const windows1252 = new TextDecoder('windows-1252');
 
 // GitHub-hosted runners timed out on the larger PDFs at 30 s: allow 120 s
 // and retry once.
@@ -62,6 +46,27 @@ function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
 }
 
+function decodeEntities(text) {
+  return text.replace(
+    /&(?:#([0-9]+|[xX][0-9a-fA-F]+);?|([a-zA-Z][a-zA-Z0-9]+);)/g,
+    (entity, number, name) => {
+      if (name) return namedEntities.get(name) ?? entity;
+      const codePoint = Number(number.replace(/^[xX]/, '0x'));
+      if (
+        codePoint === 0 ||
+        codePoint > 0x10ffff ||
+        (codePoint >= 0xd800 && codePoint <= 0xdfff)
+      ) {
+        return '\uFFFD';
+      }
+      if (codePoint >= 0x80 && codePoint <= 0x9f) {
+        return windows1252.decode(Uint8Array.of(codePoint));
+      }
+      return String.fromCodePoint(codePoint);
+    },
+  );
+}
+
 function normalizedBody(html) {
   const cleaned = html
     .replace(/<!--[\s\S]*?-->/g, '')
@@ -73,40 +78,32 @@ function normalizedBody(html) {
     cleaned.match(/<main\b[^>]*>([\s\S]*?)<\/main\s*>/i) ??
     cleaned.match(/<body\b[^>]*>([\s\S]*?)<\/body\s*>/i);
   if (!body) throw new Error('HTML has no main or body element');
-  return (
-    body[1]
-      // Keep spaces at block boundaries without splitting words across inline tags.
-      .replace(
-        /<\/?([a-z][a-z\d:-]*)\b(?:[^"'<>]|"[^"]*"|'[^']*')*>/gi,
-        (_, tag) =>
-          /^(address|article|aside|blockquote|br|dd|details|div|dl|dt|fieldset|figcaption|figure|footer|form|h[1-6]|header|hr|li|main|nav|ol|p|pre|section|summary|table|tbody|td|tfoot|th|thead|tr|ul)$/i.test(
-            tag,
-          )
-            ? ' '
-            : '',
-      )
-      .replace(
-        /&(?:#(\d+|[xX][\da-fA-F]+);?|([a-zA-Z][a-zA-Z\d]+);)/g,
-        (entity, number, name) => {
-          if (name) return namedEntities.get(name) ?? entity;
-          const codePoint = Number(
-            number.startsWith('x') || number.startsWith('X')
-              ? `0${number}`
-              : number,
-          );
-          if (
-            codePoint === 0 ||
-            codePoint > 0x10ffff ||
-            (codePoint >= 0xd800 && codePoint <= 0xdfff)
-          ) {
-            return '\uFFFD';
-          }
-          return String.fromCodePoint(codePoint);
-        },
-      )
-      .replace(/\s+/g, ' ')
-      .trim()
+  const tokens = body[1].split(
+    /(<\/?[a-z][a-z\d:-]*\b(?:[^"'<>]|"[^"]*"|'[^']*')*>)/gi,
   );
+  const parts = [];
+  let text = '';
+  for (const [index, token] of tokens.entries()) {
+    if (index % 2 === 0) {
+      text += decodeEntities(token);
+      continue;
+    }
+    const [, closing, tag] = token.match(/^<(\/?)([a-z][a-z\d:-]*)/i);
+    if (closing && /^(td|th|tr)$/i.test(tag)) {
+      // Keep table boundaries as separate items so cell text cannot imitate them.
+      parts.push(text, tag.toLowerCase());
+      text = '';
+    } else if (
+      /^(address|article|aside|blockquote|br|dd|details|div|dl|dt|fieldset|figcaption|figure|footer|form|h[1-6]|header|hr|li|main|nav|ol|p|pre|section|summary|table|tbody|td|tfoot|th|thead|tr|ul)$/i.test(
+        tag,
+      )
+    ) {
+      // Keep spaces at block boundaries without splitting words across inline tags.
+      text += ' ';
+    }
+  }
+  parts.push(text);
+  return JSON.stringify(parts.map((part) => part.replace(/\s+/g, ' ').trim()));
 }
 
 function hansardBody(json) {
@@ -140,9 +137,7 @@ function jsonSnapshotUrl(notes) {
         pathname.endsWith('.json')) ||
       (hostname === 'questions-statements-api.parliament.uk' &&
         pathname.startsWith('/api/writtenquestions/questions/')) ||
-      (hostname === 'www.gov.uk' && pathname.startsWith('/api/content/')) ||
-      (hostname === 'committees-api.parliament.uk' &&
-        /^\/api\/OralEvidence\/\d+$/.test(pathname))
+      (hostname === 'www.gov.uk' && pathname.startsWith('/api/content/'))
     );
   });
 }
