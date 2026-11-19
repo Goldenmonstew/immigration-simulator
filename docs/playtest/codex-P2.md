@@ -30,7 +30,7 @@
 |---|---|---|
 | B1 · 现在能申请吗？最早哪天？ | 2026-11-16 大概不能申请永居。页面给 2029-09-15，我把它读作从 2019-09-15 起满 10 年的 Long Residence 日期，先拿它做计划。人物卡的签证 2027 年就到期，摘要没告诉我如何衔接到那一天。 | 符合 A2 参考答案。现行法律是「可能不符合」、10 年 Long Residence，页面给 2029-09-15。Skilled Worker 的五年也在同一天满。 |
 | B2 · 两栏有什么不同？ | 左栏按现在的法律算。右栏按已经公布、尚未生效的改革，假定它们在模拟日适用。两边日期一样，我差点当成同一条路径。再看一眼才发现左边写 `10 years`，右边写 `5 years`，两栏起算点也不同。 | 符合。第 7 节右栏也是「可能不符合」、5 年、2029-09-15。黄色 `Announced, not in force` 和栏上面的假设说明回答了规则是否生效。 |
-| B3 · 还差什么？ | Long Residence 目前只有 7 个整年，要继续积累到 10 年。往下读才发现 Skilled Worker 另算，它只有 2 个整年，离 5 年尚远，£45,000 也低于该岗位的 £54,700 `going rate`。第一眼看 `Not met (3)`，我差点当成三项必须全补。更早收入未知是右栏里单独列出的未决项。 | 符合第 7 节的两条居留时间线。工资差距来自左栏 `Skilled Worker settlement salary (going rate)`，我由随后的数字才懂 `going rate` 在这里是对应岗位的薪资要求。右栏的 `Unknown / unresolved (2)` 保留了对旧税年收入的不确定性。 |
+| B3 · 还差什么？ | Long Residence 目前只有 7 个整年，要继续积累到 10 年。往下读才发现 Skilled Worker 另算，它只有 2 个整年，离 5 年尚远，£45,000 也低于该岗位的 £54,700 `going rate`（SRC-017 Table 1，SOC 2134）。第一眼看 `Not met (3)`，我差点当成三项必须全补。更早收入未知是右栏里单独列出的未决项。 | 符合第 7 节的两条居留时间线。工资差距来自左栏 `Skilled Worker settlement salary (going rate)`，我由随后的数字才懂 `going rate` 在这里是对应岗位的薪资要求。右栏的 `Unknown / unresolved (2)` 保留了对旧税年收入的不确定性。 |
 | B4 · 会直接用结果递交吗？ | 不会。第 9 步和结果尾部说是一般政策信息和假设模拟，无法判定移民身份或保证申请结果。我会拿日期和规则清单去核对正式要求、许可和证据，必要时找受监管的顾问。 | 参考表没有单列此题。结果页的 `Seek regulated advice` 和 `It does not determine your legal immigration status or guarantee the outcome of an application.` 支持这个判断。 |
 
 ## 任务 C · 假设 2023 年离境 200 天
@@ -57,7 +57,7 @@
 | 第 1 年第 2 季，2027-03-23 | 回 Work 看到 `graduate-sponsor` · `HR wants to hire you.`。选 `Ask HR to verify the sponsor and role`，手上还没有可交的文件，光等回复也不踏实。状态里的健康在降，我顺路去 GP surgery。Priya 自我介绍为 `clinic reception`（`priya-intro`），选 `See the GP` 后健康加 6。之后回家休息，周末也在家恢复。节日早上 `graduate-life-weekend-chat` 给了回传水壶声、改约电话两个选择，我选 `Arrange another call`，然后睡过该季。 |
 | 第 1 年第 3 季，2027-06-29 | `graduate-salary` · `The contract figure`，HR 报 £40,700。可以 `Negotiate £44200 and an updated contract`，也可以 `Keep the original offer and check the papers`。我选谈薪，手头存款每季在降。去 Visa centre 仍然没有动作，我还不知道要等多久才有 CoS。回去上班补一点钱。周末休息，节日读到 `graduate-life-mattress`，在把床垫倒着挪和稍后再搬之间选 `Put it down and rest before retrying`，再睡到下一季。 |
 | 第 2 年第 4 季，2027-09-28，拿到 CoS | 再次在 Work 跟进，`graduate-cos` 写 `HR sends the CoS after checking the role and contract.`。可直接归档，也可 `Check the spelling with HR, then file it`。我选后者，第一次从上下文明白 CoS 是到签证中心之前必须拿到的担保文件。 |
-| 同日 10:00，签证中心查工资 | 这次出现 `Check the offer (standard-pay scenario)` 和 `Switch to Skilled Worker (£4048)`。我先点 `graduate-check-offer`，读到 £44,200 同时达到一般门槛 £41,700 和 SOC 2136 对应的 £41,200。后面一下子出现 `new entrants`、`SW 12.2(f)`、`Tier 2` 和合计年限，我重读才懂这是另一个工资选项，游戏只判这份 offer 的标准工资情景。我没有从这张卡得出 Nora 也通过了 new entrant 选项。 |
+| 同日 10:00，签证中心查工资 | 这次出现 `Check the offer (standard-pay scenario)` 和 `Switch to Skilled Worker (£4048)`。我先点 `graduate-check-offer`，读到 £44,200 同时达到一般门槛 £41,700（SRC-004 SW 4.2 Option A）和 SOC 2136 对应的 £41,200（SRC-017 Table 1）。后面一下子出现 `new entrants`、`SW 12.2(f)`、`Tier 2` 和合计年限，我重读才懂这是另一个工资选项，游戏只判这份 offer 的标准工资情景。我没有从这张卡得出 Nora 也通过了 new entrant 选项。 |
 | 同日 11:00，实际转换 | 选 `graduate-switch` 后，出现 `You receive Skilled Worker permission in this scenario and file the contract and CoS.`。余额从 £13,937 到 £9,889，剩余许可从 11 到 35 个月，同一按钮消失。状态从 Graduate 转成 Skilled Worker，SOC 2136、£44,200，旧许可记录接到 2027-09-14。游戏可玩日是 09-28，新许可记录使用 2027-09-15 至 2030-09-14。 |
 
 拿到 CoS 前，我靠休息和睡觉手动推进各季。看到同一句 `Job search: apply / interview / follow up with HR` 再出现时，我不知道它这次具体会做哪一环。谈薪后第二次跑去签证中心扑空，到这时我最想跳过的是已经做完本季主线后的周末和节日。首季我愿意查市政厅、逛店、种菜和看节日，后来也去了 GP，和室友及镇民聊过。我没有钓鱼、做实际的厨房动作，也没有收获萝卜。
