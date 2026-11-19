@@ -143,6 +143,8 @@ export interface LifeRecord {
   itemId: ItemId;
   year: number;
   quarter: Quarter;
+  /** Saved with first catches and first dishes. Earlier records omit it. */
+  memory?: { place: 'pond' | 'home'; weather: Weather };
 }
 export interface LifeRecords {
   /** First actual catch of each fish; buying or receiving does not count. */
@@ -200,6 +202,8 @@ export interface GameState {
   log: LogEntry[];
   result: SimulationResult;
   ending?: EndingId;
+  /** Savings before the in-game settlement application fee was charged. */
+  settlementApplication?: { cashSavings?: number };
   achievements: string[];
 }
 export type Progress = Record<
@@ -278,6 +282,7 @@ export interface Activity {
   id: string;
   place: PlaceId;
   label: Text;
+  note?: Text;
   minutes: number;
   effects: Effect[];
   when?: Condition[];
