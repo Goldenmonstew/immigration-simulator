@@ -59,3 +59,7 @@ Node 内置没有 HTML 命名实体表。仓库已有依赖中的完整表位于
 
 - 本机重跑 `node packages/policy-data/scripts/check-sources.mjs`：`Summary: 55 unchanged / 0 changed / 0 fetch failed / 1 dynamic`，退出 0。
 - policy-data 23 项、lint 通过。
+
+## 审核第 2 轮意见的处理（Fable）
+
+gpt-6.2-sol 第 2 轮又构造了三类漏报：两版都省略可省的 `</td>`、改 `colspan` 让一列改归另一年份；把金额包进 `<span hidden>`；用注释把实体拆开（`&frac<!--x-->12;`）。这些是合法但人为构造的 HTML，GOV.UK 与议会页面由模板生成，不会这样写；脚本的用途是每周提醒"官方页面变了、需要人工复核"，漏报的代价是晚一周发现，而照这个方向补下去等于在脚本里实现 HTML 解析器。按 AGENTS.md"不要过度工程化"，本任务不再处理，记作已知局限：脚本按标签文本比较，不处理省略结束标签、`colspan` 重排、`hidden` 属性与注释拆分实体。若以后官方页面真出现这类写法，再改为引入 HTML 解析库。
