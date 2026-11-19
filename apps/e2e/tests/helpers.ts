@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 export const characters = [
   { id: 'skilled-worker', name: '林遥' },
@@ -86,15 +86,20 @@ export function quietMorning(
  * Walk to a place with the location button and wait for its menu. A random
  * event card may open on arrival instead; take its first choice, then ask for
  * the menu again (standing at the door opens it directly).
+ * A custom selection action runs on every attempt.
  */
-export async function walkTo(page: Page, place: string) {
+export async function walkTo(
+  page: Page,
+  place: string,
+  selectPlace = (button: Locator) => button.click(),
+) {
   const button = page
     .getByRole('button', { name: new RegExp(`^${place}`) })
     .first();
   const dialog = openDialog(page);
   const menu = dialog.getByRole('heading', { name: place, exact: true });
   for (let attempt = 0; attempt < 3; attempt++) {
-    await button.click();
+    await selectPlace(button);
     await expect(dialog).toBeVisible({ timeout: 30_000 });
     if (await menu.isVisible()) return dialog;
     // Anything other than an event card (another place menu, a talk) is a bug.
