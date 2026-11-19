@@ -40,3 +40,13 @@ pnpm --filter web test -- sources
 ## 报告
 
 写 `docs/tasks/reports/32-policy-refresh.md`，最终消息同内容，四段：做了什么（按建议的 commit 分组列文件）、怎么验证的（命令 + 结果）、没做或没验证的、发现与建议（范围外，不实现；凡涉及规则或参数改动，写成可直接开任务的一句话 + 代码位置 + SRC 定位）。另在 `docs/research/2026-11-19-option-e-and-student.md` 写第 2 步的结论（Option E 4 年怎么算、学生打工与收尾期），每条带 SRC 定位。
+
+## 第 2 轮（Fable 追加，按 gpt-6.2-sol 只读审核）
+
+审核意见全文：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/review32-1.md`。本轮处理其中 3 条"问题"：
+
+1. 登记 2026-11-04 议会书面答复 40091（HPI 扩容：院校须在相关年份 THE、QS、ARWU 三个榜单中至少两个进入前 150），快照 + sha256，更新 PD-078（正式名单、新 cap、生效日仍待公布）。
+2. SRC-049 补法案原文快照：再试 `publications.parliament.uk` 的 PDF 或 HTML、或 bills.parliament.uk 发布 API 的原件链接；能取到就进快照列并核对第 15 条页码，取不到就把快照列写明"无原文快照"、状态保持 todo，并改正报告里"已被脚本检查覆盖"的说法。
+3. 登记 Home Office 关于许可被新许可替代（境内获批新许可后原许可不再有效）的指引小节（如 curtailment / cancellation 相关 guidance 或 Rules 中对应段落），让 PD-081 与研究记录的推导能回到原文；逐日边界与 s3C 在 SW 12.3 下的计法仍保留为待核。
+
+**编号**：任务 39 已在另一分支占用 SRC-053–057，本轮新登记的来源从 **SRC-058** 起编。新 PD 若有，从 PD-083 起（PD-082 留给任务 33d）。不改规则、参数和游戏代码。验收命令同上，报告更新。
