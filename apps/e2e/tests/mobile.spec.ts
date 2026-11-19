@@ -1,5 +1,13 @@
-import { expect, test } from '@playwright/test';
-import { noHorizontalScroll, startGame } from './helpers';
+import { expect, test, type Locator } from '@playwright/test';
+import { noHorizontalScroll, startGame, walkTo } from './helpers';
+
+async function tapPlaceInDrawer(button: Locator) {
+  await button
+    .page()
+    .getByRole('button', { name: '镇上地点', exact: true })
+    .tap();
+  await button.tap();
+}
 
 test('the character picker fits a phone', async ({ page }) => {
   await page.goto('/game');
@@ -19,23 +27,13 @@ test('first screen shows the town and the dock; the place drawer walks', async (
     ).toBeInViewport();
   await noHorizontalScroll(page);
 
-  await page.getByRole('button', { name: '镇上地点', exact: true }).tap();
-  await page.getByRole('button', { name: /^公园池塘/ }).tap();
-  const dialog = page.locator('dialog[open]');
-  await expect(dialog.getByRole('heading', { name: '公园池塘' })).toBeVisible({
-    timeout: 30_000,
-  });
+  await walkTo(page, '公园池塘', tapPlaceInDrawer);
   await noHorizontalScroll(page);
 });
 
 test('a chat fits the phone screen', async ({ page }) => {
   await startGame(page);
-  await page.getByRole('button', { name: '镇上地点', exact: true }).tap();
-  await page.getByRole('button', { name: /^家/ }).tap();
-  const home = page.locator('dialog[open]');
-  await expect(home.getByRole('heading', { name: '家' })).toBeVisible({
-    timeout: 30_000,
-  });
+  const home = await walkTo(page, '家', tapPlaceInDrawer);
   await home.getByRole('button', { name: /周沅 · 聊天/ }).tap();
   const talk = page.locator('dialog[open]');
   await expect(talk.getByRole('button', { name: '待会儿见' })).toBeInViewport();
