@@ -953,8 +953,8 @@ export const graduate: Character = {
   graduateRoute: {
     recruitment: graduateRecruitment,
     salaryCheckNote: t(
-      `这里只核对标准薪资档。新入职者（如从 Graduate 转来）另有较低档：年薪不低于 £${newEntrantSalary}，且不低于岗位 going rate 的 ${newEntrantPercent}%；但获批后 Skilled Worker、Graduate 与 Tier 2 许可合计不得超过 ${newEntrantYears} 年。本情景不计算这一上限，所以不用该档。担保、CoS 与其他审批条件由本情景假定已核实。`,
-      `This checks the standard pay option only. New entrants, such as people switching from Graduate, have a lower option: at least £${newEntrantSalary} and ${newEntrantPercent}% of the occupation's going rate. But once granted, combined Skilled Worker, Graduate and Tier 2 permission must not exceed ${newEntrantYears} years. This scenario does not calculate that limit, so it does not use the lower option. It assumes sponsorship, CoS and other application requirements have been verified.`,
+      `这里只核对标准薪资档。符合条件的新入职者（例如最近一次许可是 Graduate，SW 12.2(f)）另有较低档：年薪不低于 £${newEntrantSalary}，且不低于岗位 going rate 的 ${newEntrantPercent}%；但按该档授予的许可，与已有的 Skilled Worker、Graduate、Tier 2 许可合计不得超过 ${newEntrantYears} 年（SW 12.3）。本情景不计算这一合计，所以结果只说明报价是否达到标准档，诺拉能否按新入职者档申请仍未核定。担保、CoS 与其他审批条件由本情景假定已核实。`,
+      `This checks the standard pay option only. Eligible new entrants (for example, someone whose most recent permission is Graduate, SW 12.2(f)) have a lower option: at least £${newEntrantSalary} and ${newEntrantPercent}% of the occupation's going rate. But permission granted under it, added to any earlier Skilled Worker, Graduate and Tier 2 permission, must not exceed ${newEntrantYears} years in total (SW 12.3). This scenario does not calculate that total, so the result only shows whether the offer meets the standard option; whether Nora could use the new-entrant option is not decided. It assumes sponsorship, CoS and other application requirements have been verified.`,
     ),
     switched: {
       zhCN: '你拿到本情景中的 Skilled Worker 许可，把合同和 CoS 收进文件夹；下一次出门，包里多了一份新的有效许可。',
