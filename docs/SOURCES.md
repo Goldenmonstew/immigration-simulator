@@ -66,6 +66,10 @@
 | SRC-046 | POLICY | HMRC：Income Tax: immigration skills charge and certificate of sponsorship fees | https://www.gov.uk/government/publications/income-tax-treatment-of-immigration-skills-charge-and-certificate-of-sponsorship-fees/income-tax-immigration-skills-charge-and-certificate-of-sponsorship-fees | 2026-10-28 | 2026-11-15 | `policy-sources/2026-10-28-income-tax-immigration-skills-charge-and-cos-fees.html`（sha256 `708daf276a1f1e8369dfb466679e4838017801799722ff646b6b077e6e225085`） | archived |
 | SRC-047 | PARLIAMENT | HC Deb vol 792，Budget Resolutions，Resolution 15（临时税收决议） | https://hansard.parliament.uk/Commons/2026-11-03/debates/31AB917B-C6F4-41D2-B256-BAB5D978DA92/BudgetResolutions | 2026-11-03 | 2026-11-15 | `policy-sources/2026-11-03-hansard-commons-budget-resolutions.json`（sha256 `f918f906f9c470cbc1e5f5e1099e1f6b92b8cfce42d4fa3c4a345a46b63fef3e`） | archived |
 | SRC-048 | LAW | Statement of Changes to the Immigration Rules HC 584，accessible HTML | https://www.gov.uk/government/publications/statement-of-changes-to-the-immigration-rules-hc-584-3-september-2026/statement-of-changes-to-the-immigration-rules-hc-584-3-september-2026-accessible | 2026-09-03 | 2026-11-15 | `policy-sources/2026-09-03-hc584-statement-of-changes-accessible.html`（sha256 `db5275cd2da6a6b7ed45f4bbfbd67e59e6ace78b808ad267c8295cb73acedd1b`） | archived |
+| SRC-049 | PARLIAMENT | Finance Bill 2026–27，Bill 173 as introduced，第 15 条 | https://publications.parliament.uk/pa/bills/cbill/59-02/0173/260173.pdf | 一读 2026-11-03；刊印 2026-11-04 | 2026-11-19 | 议会官方发布元数据已归档（见登记备注），原件待归档 | todo |
+| SRC-050 | GUIDANCE | Home Office Skilled Worker caseworker guidance，v20.0 | https://www.gov.uk/government/publications/skilled-worker-visa-caseworker-guidance/skilled-worker-caseworker-guidance-accessible | 2026-08-03 | 2026-11-19 | `policy-sources/2026-08-03-skilled-worker-caseworker-guidance.html`（sha256 `c663d22e881510bb4c107e66227395ef7e670430ec7f3d4bcbf4a00966e30f03`） | archived |
+| SRC-051 | LAW | Immigration Rules Appendix Student，HC 584 | https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-student | 2026-10-08（页头手册 Updated 2026-10-29） | 2026-11-19 | `policy-sources/2026-10-08-immigration-rules-appendix-student.html`（sha256 `5e05c64b16e288e988bfd970a1eb68d6b80a18d36f454aab5b245e471906b598`） | archived |
+| SRC-052 | GUIDANCE | Home Office Student and Child Student caseworker guidance，v15.0 | https://www.gov.uk/government/publications/student-route-caseworker-guidance/student-and-child-student | 员工版 2026-10-09；网页更新 2026-10-16 | 2026-11-19 | `policy-sources/2026-10-16-student-and-child-student-caseworker-guidance.html`（sha256 `87f800b0fd8ad5abfd5222094978ea73d3674bc1156686bbc56fcf7230d35aa1`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -466,3 +470,26 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - HTML `first-published-at`／`public-updated-at` 为 2026-09-03；用 HTML 段号／锚点，不附未经核对的 PDF 页码。
 - `#implementation`：APP SW1–SW2 自 **2026-10-08**；APP ST8–ST10 自 **2026-11-30**，此前申请按旧规则；APP EU16 自 **2026-12-09**。后两批不是 Earned Settlement 首批规则。
 - `#app-sw1`／`#app-sw2`（资格评估机构称谓、特定 modern slavery 个案工作条件）；`#app-st8`／`#app-st9`／`#app-st10`（Student 生活费证明额）；`#app-eu16`（境内非 EEA 申请人身份证明）。与已登记 Appendix 的修法链对应，不据此更改本任务外的参数。
+
+## SRC-049 Finance Bill 2026–27（Bill 173）
+
+- Bill 173 as introduced，第 15 条（PDF 物理 p21、印刷第 8 页，第 5–20 行）拟在 ITEPA 2003 插入 s326C，豁免缴付 CoS 费和 Immigration Skills Charge 所产生的所得税，第 15(2) 条适用于 **2026-10-28 起支付**的款项。临时法定效力来自 SRC-047 Resolution 15。议会 Bill 4316 截至 2026-11-19 尚未成法，下议院二读排期为 2026-11-23。可对照[议会法案进度](https://bills.parliament.uk/bills/4316)、[官方 HTML 第 15 条](https://publications.parliament.uk/pa/bills/cbill/59-02/0173/260173.html)及[议会进度 API](https://bills-api.parliament.uk/api/v1/Bills/4316)。
+- [议会发布 API](https://bills-api.parliament.uk/api/v1/Bills/4316/Publications)的原始响应已存为 `policy-sources/2026-11-04-finance-bill-173-publications.json`（sha256 `83f243758675a15b0b5e44e6f3095e4106b1542f99b09d87e8fc82b2056fb56b`）。发布记录 68588 为正式 PDF，68590 为 HTML，68592 为 Bill 173–EN。通过官方 PDF 与 HTML 在线核对第 15 条，[Bill 173–EN](https://publications.parliament.uk/pa/bills/cbill/59-02/0173/en/260173en.pdf)物理 p37，Clause 15 ¶1–9 同样确认。命令行访问议会发布域名遇到 HTTP 403，元数据只证明文件身份和发布日期，原件待补。
+
+## SRC-050 Skilled Worker caseworker guidance
+
+- `§1.2 Publication`（`#publication`）标明 v20.0 于 2026-08-03 向 Home Office 工作人员发布，页头及[发布集合](https://www.gov.uk/government/publications/skilled-worker-visa-caseworker-guidance)同日。
+- `§11 Tradeable points requirement`（`#tradeable-points`）和 `§12.2 Occupations in Tables 1, 1a, 2, 2aa and 2a`（`#occupations-in-tables-1-1a-2-2aa-and-2a`）用于定位 Option E 及对应 going rate 表。`§16 New entrants`（`#new-entrants`）列六项备选资格，表第 6 项是 Graduate 分支，法律依据为 SRC-004 SW 4.2、12.1–12.3。
+- `§16.1 4-year time limit`（`#year-time-limit`）首段明确 Graduate、Skilled Worker、Tier 2 时间均计入，非连续也计入。指引说明整个申请期都须满足上限，担保人可同意修订 CoS，且没有提前换签的计算示例。`§23.1 Dates of permission granted`（`#dates-granted`）给境内获批起日及 CoS 结束后许可尾段。提前换签的未届尾段和逐日核算见 PD-081。
+- `§13.5 The going rate → Transitional arrangement for PhD-level roles`（`#transitional-arrangement-for-phd-level-roles`）明列 settlement 的申请截止日。`§22.4 Sponsorship and salary`（`#sponsorship-and-salary`）表后首段要求满足 SW 14.5(c) 的全部条件才能在 settlement 使用过渡安排（PD-080）。
+
+## SRC-051 Appendix Student
+
+- [单页 Content API](https://www.gov.uk/api/content/guidance/immigration-rules/immigration-rules-appendix-student)的 `public_updated_at` 为 `2026-10-08T08:54:41+01:00`，最近 `details.change_history` 为 HC 584，快照元数据同值。页头 2026-10-29 为手册日期。HC 584 已公布的后续生活费变动及过渡见 SRC-048 `#implementation`、`#app-st8`–`#app-st10`。
+- `#period-and-conditions-of-grant-for-a-student`：ST 25.1(b)（工作条件）、ST 25.2–25.3 及附表（按 CAS 课程期及课程类型计算许可收尾期）。
+- `#work-conditions-for-a-student`：ST 26.1（快照写作 `ST26.1.`）及表格（担保人及课程决定学期工时和非学期工作条件），ST 26.2–26.3（实习及特定选举职位）、ST 26.5–26.6、26.8（禁止工作及例外）。
+
+## SRC-052 Student and Child Student caseworker guidance
+
+- `Publication`（`#publication`）给出 v15.0 的员工版发布日期 2026-10-09，[发布集合](https://www.gov.uk/government/publications/student-route-caseworker-guidance)与 HTML 元数据给出网页更新时间 2026-10-16。`Work conditions`（`#work-conditions`）明确课程完成后仍有效的 Student 许可时间按非学期处理。`Student and Child Student: Prohibited work`（`#student-and-child-student-prohibited-work`）回指 ST 26.6、26.8。
+- `Student: period to grant`（`#student-period-to-grant`）回指 ST 25.3，另列境内延长许可在课程已经结束后才获批时的起算和短课例外。
