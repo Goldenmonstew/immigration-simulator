@@ -63,6 +63,16 @@ export function LocationMenu({
 }) {
   const { t, locale } = useTranslation();
   const [endingAction, setEndingAction] = useState<Activity>();
+  // SRC-001 Ch. 2 (British connection) is modeled under the PD-003 assumption.
+  const reformOnly =
+    state.result.byRuleSet['current-law-2026-11']?.outcome !==
+      'LIKELY_ELIGIBLE' &&
+    state.result.byRuleSet['earned-settlement-2026-11']?.outcome ===
+      'LIKELY_ELIGIBLE';
+  const actionLabel = (action: Activity) =>
+    action.id === 'settle' && reformOnly
+      ? t('game.reformSettlement')
+      : localText(action.label, locale);
   const place = places.find((p) => p.id === location)!;
   const open = isPlaceOpen(state, place);
   const people = [
@@ -90,8 +100,14 @@ export function LocationMenu({
   if (endingAction)
     return (
       <>
-        <h3>{localText(endingAction.label, locale)}</h3>
-        <p>{t('game.endingConfirm')}</p>
+        <h3>{actionLabel(endingAction)}</h3>
+        <p>
+          {t(
+            endingAction.id === 'settle' && reformOnly
+              ? 'game.reformSettlementConfirm'
+              : 'game.endingConfirm',
+          )}
+        </p>
         <div className={styles.buttons}>
           <button
             className={styles.button}
@@ -157,24 +173,38 @@ export function LocationMenu({
               )}
               <div className={styles.choices}>
                 {available.map((action) => (
-                  <button
-                    key={action.id}
-                    className={styles.choice}
-                    onClick={() =>
-                      action.effects.some((effect) => effect.type === 'ending')
-                        ? setEndingAction(action)
-                        : onChange(doActivity(state, action.id))
-                    }
-                  >
-                    <strong>{localText(action.label, locale)}</strong>
-                    <small>
-                      {t('game.minutes').replace(
-                        '{count}',
-                        String(action.minutes),
-                      )}
-                    </small>
-                    <EffectHints effects={action.effects} />
-                  </button>
+                  <div key={action.id}>
+                    <button
+                      className={styles.choice}
+                      aria-describedby={
+                        action.note && `action-note-${action.id}`
+                      }
+                      onClick={() =>
+                        action.effects.some(
+                          (effect) => effect.type === 'ending',
+                        )
+                          ? setEndingAction(action)
+                          : onChange(doActivity(state, action.id))
+                      }
+                    >
+                      <strong>{actionLabel(action)}</strong>
+                      <small>
+                        {t('game.minutes').replace(
+                          '{count}',
+                          String(action.minutes),
+                        )}
+                      </small>
+                      <EffectHints effects={action.effects} />
+                    </button>
+                    {action.note && (
+                      <p
+                        className={styles.eventNotes}
+                        id={`action-note-${action.id}`}
+                      >
+                        <small>{localText(action.note, locale)}</small>
+                      </p>
+                    )}
+                  </div>
                 ))}
               </div>
               {children}
