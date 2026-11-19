@@ -468,6 +468,7 @@ export function LifeCollection({ state }: { state: GameState }) {
           <div className={styles.itemGrid}>
             {group.entries.map((item) => {
               const record = group.records.find((r) => r.itemId === item.id);
+              const memory = record?.memory;
               return (
                 <article className={styles.itemCard} key={item.id}>
                   {record ? (
@@ -484,6 +485,14 @@ export function LifeCollection({ state }: { state: GameState }) {
                             t(`game.season${record.quarter}`),
                           )}
                       </small>
+                      {memory && (
+                        <small className={styles.collectionDate}>
+                          {t(`game.collectionMemory.${memory.place}`).replace(
+                            '{weather}',
+                            t(`game.collectionWeather.${memory.weather}`),
+                          )}
+                        </small>
+                      )}
                     </>
                   ) : (
                     <>
