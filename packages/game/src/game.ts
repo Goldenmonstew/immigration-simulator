@@ -53,6 +53,7 @@ import type {
   NpcLocation,
   PlaceId,
   Channel,
+  SettlementSource,
   Weather,
   Progress,
   StatKey,
@@ -62,16 +63,16 @@ import type {
 const festivalResults: Record<FestivalId, Text[]> = {
   'lunar-new-year': [
     {
-      zhCN: '你把饺子托盘传到桌尾，盘沿的面粉在袖口留了道白印。',
-      en: 'You pass the dumpling tray down the table. Flour from the edge leaves a white mark on your sleeve.',
+      zhCN: '你沿摊位走了一圈，替摊主按住卷起来的红纸价签。',
+      en: 'You browse the stalls and hold down a curling red price tag for a stallholder.',
     },
     {
-      zhCN: '你替邻座扶稳饺子盘，歪歪的封口换来一桌笑声。',
-      en: 'You steady a neighbour’s dumpling plate. The crooked folds make the whole table laugh.',
+      zhCN: '你在年货摊前停下来，摊主一掀盖，热气把价签都遮住了。',
+      en: 'You stop at a New Year stall. The stallholder lifts a lid and steam hides the prices.',
     },
     {
-      zhCN: '桌上的饺子终于排齐，你把空托盘摞好，指尖还粘着面粉。',
-      en: 'The dumplings are finally lined up. You stack the empty trays, flour still clinging to your fingers.',
+      zhCN: '你从摊位间穿过，帮摊主把滑下来的红桌布拉回桌角。',
+      en: 'You weave between the stalls and help pull a slipping red tablecloth back over the corner.',
     },
   ],
   'may-day': [
@@ -131,6 +132,20 @@ const festivalResults: Record<FestivalId, Text[]> = {
     },
   ],
 };
+const dumplingResults: Text[] = [
+  {
+    zhCN: '你捏好第一个饺子，把托盘传到桌尾，盘沿的面粉在袖口留了道白印。',
+    en: 'You fold your first dumpling and pass the tray down the table. Flour leaves a white mark on your sleeve.',
+  },
+  {
+    zhCN: '你替邻座扶稳饺子盘，自己捏的歪封口换来一桌笑声。',
+    en: 'You steady a neighbour’s dumpling plate. Your crooked fold makes the whole table laugh.',
+  },
+  {
+    zhCN: '你把包好的饺子排齐，又摞好空托盘，指尖还粘着面粉。',
+    en: 'You line up the dumplings you folded and stack the empty trays, flour still on your fingertips.',
+  },
+];
 const ribbonResults: Text[] = [
   {
     zhCN: '你绕过彩带结，和迎面的人笑着换位，袖口多了道折痕。',
@@ -159,6 +174,11 @@ const lanternResults: Text[] = [
     en: 'As the choir turns the page, you light a corner of the music. Your lantern leaves a warm pool on the paper.',
   },
 ];
+const celebrationResults: Partial<Record<FestivalId, Text[]>> = {
+  'lunar-new-year': dumplingResults,
+  'may-day': ribbonResults,
+  'christmas-market': lanternResults,
+};
 
 const dayMs = 86_400_000;
 const addDays = (date: IsoDate, days: number): IsoDate =>
@@ -748,6 +768,34 @@ export function newGame(
   beginDay(state, 0);
   return state;
 }
+function englishExam(state: GameState): {
+  level: 'B1' | 'B2' | undefined;
+  target: 'B1' | 'B2';
+  required: number;
+} {
+  const score = state.stats.english;
+  const level =
+    score >= b.englishB2 ? 'B2' : score >= b.englishB1 ? 'B1' : undefined;
+  const evidence = state.timeline.english;
+  const target =
+    level === 'B2' ||
+    (evidence && 'cefrLevel' in evidence && evidence.cefrLevel === 'B1')
+      ? 'B2'
+      : 'B1';
+  return {
+    level,
+    target,
+    required: target === 'B2' ? b.englishB2 : b.englishB1,
+  };
+}
+
+function failedExamText(target: 'B1' | 'B2'): Text {
+  return {
+    zhCN: `英语考试没通过，分数还没到 ${target}。`,
+    en: `You didn't pass the ${target} English test this time.`,
+  };
+}
+
 export function activities(state: GameState, place: PlaceId): Activity[] {
   if (isOver(state) || !isOpen(state, place)) return [];
   const current = episodeAt(state);
@@ -894,13 +942,14 @@ export function activities(state: GameState, place: PlaceId): Activity[] {
           en: `Show ${showQuantity(state, crop)} ${cropName(crop, showQuantity(state, crop))}`,
         };
       }
-      if (a.id === 'exam' && state.stats.english >= b.englishB1)
-        action.effects = [
-          {
-            type: 'english',
-            cefrLevel: state.stats.english >= b.englishB2 ? 'B2' : 'B1',
-          },
-        ];
+      if (a.id === 'exam') {
+        const { level, target, required } = englishExam(state);
+        action.note = {
+          zhCN: `本次目标 ${target}。备考进度 ${state.stats.english} / ${required}（游戏内英语属性）。`,
+          en: `This test aims for ${target}. Readiness ${state.stats.english} / ${required} (your in-game English stat).`,
+        };
+        if (level) action.effects = [{ type: 'english', cefrLevel: level }];
+      }
       if (a.id === 'extend' && current) {
         const terms = extensionFor(current.route)!;
         const { validFrom: _from, validTo: _to, ...episode } = current;
@@ -1072,16 +1121,12 @@ export function doActivity(state: GameState, actionId: string): GameState {
     ([, a]) => a.id === action.id,
   );
   if (celebration) {
-    const food = festivalFoods[celebration[0] as FestivalId];
+    const festival = celebration[0] as FestivalId;
+    const food = festivalFoods[festival];
     applyEffects(next, [{ type: 'item', item: food, delta: 1 }]);
     next.outcome.items = { [food]: 1 };
-    next.outcome.text = (
-      action.id === 'christmas-lanterns'
-        ? lanternResults
-        : action.id === 'may-ribbons'
-          ? ribbonResults
-          : festivalResults[celebration[0] as FestivalId]
-    )[(next.year - 1) % 3];
+    next.outcome.text = (celebrationResults[festival] ??
+      festivalResults[festival])[(next.year - 1) % 3];
   }
   if (action.id.startsWith('summer-show-')) {
     const crop = action.id.slice(12);
@@ -1190,15 +1235,18 @@ export function doActivity(state: GameState, actionId: string): GameState {
     return next;
   }
   if (action.id === 'exam') {
-    if (
-      state.stats.english < b.englishB1 ||
-      (state.timeline.english &&
-        'cefrLevel' in state.timeline.english &&
-        state.timeline.english.cefrLevel === 'B1' &&
-        state.stats.english < b.englishB2)
-    )
+    const { level, target } = englishExam(state);
+    if (level === target) {
+      setFlags(next, ['quarter-exam-passed']);
+      next.outcome.text = {
+        zhCN: `英语考试通过了，成绩是 ${level}。`,
+        en: `You passed the English test at ${level}.`,
+      };
+    } else {
       next.eventQueue.unshift('system-exam-failed');
-    else setFlags(next, ['quarter-exam-passed']);
+      next.outcome.text = failedExamText(target);
+    }
+    actionLog.text = next.outcome.text;
   }
   if (action.id.startsWith('travel-')) {
     next.trip = {
@@ -1210,9 +1258,18 @@ export function doActivity(state: GameState, actionId: string): GameState {
   return advanceClock(next, action.minutes);
 }
 export function currentEvent(state: GameState): GameEvent | undefined {
-  return isOver(state)
+  const event = isOver(state)
     ? undefined
     : pool(state).find((e) => e.id === state.pendingEvent);
+  if (event?.id !== 'system-exam-failed') return event;
+  const result = failedExamText(englishExam(state).target);
+  return {
+    ...event,
+    text: {
+      zhCN: `${result.zhCN}\n${event.text.zhCN}`,
+      en: `${result.en}\n${event.text.en}`,
+    },
+  };
 }
 export function resolve(state: GameState, choiceId: string): GameState {
   const event = currentEvent(state);
@@ -1308,12 +1365,29 @@ export function endQuarter(state: GameState): GameState {
       'Finish the three days and their deliveries before ending the quarter',
     );
   const next = structuredClone(state);
+  const wellbeing: NonNullable<GameState['log'][number]['wellbeing']> = [];
+  function settleWellbeing(
+    source: SettlementSource,
+    mood: number,
+    health: number,
+  ) {
+    const { mood: previousMood, health: previousHealth } = next.stats;
+    applyEffects(next, [
+      { type: 'stat', key: 'mood', delta: mood },
+      { type: 'stat', key: 'health', delta: health },
+    ]);
+    const moodChange = next.stats.mood - previousMood;
+    const healthChange = next.stats.health - previousHealth;
+    if (moodChange || healthChange)
+      wellbeing.push({ source, mood: moodChange, health: healthChange });
+  }
   const current = episodeAt(next);
-  const lifestyle = state.log.filter(
+  const workedOvertime = state.log.some(
     (e) =>
       e.year === state.year &&
       e.quarter === state.quarter &&
-      e.kind === 'action',
+      e.kind === 'action' &&
+      e.id === 'overtime',
   );
   const salary = current?.salary ?? 0;
   const income = next.timeline.incomeYears.find(
@@ -1352,32 +1426,24 @@ export function endQuarter(state: GameState): GameState {
         ).length *
           b.rentRisePerQuarter,
     },
-    {
-      type: 'stat',
-      key: 'mood',
-      delta:
-        -b.moodDecay -
-        Math.round(
-          Math.max(0, state.stats.mood - b.moodWearThreshold) * b.moodWearRate,
-        ),
-    },
     // Slow skills fade a whole point every other quarter so stats stay integers.
     { type: 'stat', key: 'english', delta: played % 2 ? 0 : -b.englishDecay },
     { type: 'stat', key: 'career', delta: played % 2 ? 0 : -b.careerDecay },
-    {
-      type: 'stat',
-      key: 'health',
-      delta:
-        -b.healthDecay -
-        Math.round(
-          Math.max(0, state.stats.health - b.healthWearThreshold) *
-            b.healthWearRate,
-        ) -
-        (lifestyle.some((e) => e.id === 'overtime')
-          ? b.overtimeHealthDecay
-          : 0),
-    },
   ]);
+  settleWellbeing(
+    'seasonWear',
+    -b.moodDecay -
+      Math.round(
+        Math.max(0, state.stats.mood - b.moodWearThreshold) * b.moodWearRate,
+      ),
+    -b.healthDecay -
+      Math.round(
+        Math.max(0, state.stats.health - b.healthWearThreshold) *
+          b.healthWearRate,
+      ),
+  );
+  if (workedOvertime)
+    settleWellbeing('overtimeWear', 0, -b.overtimeHealthDecay);
   // A rolling short let returns its deposit if the next rent would eat into
   // the household reserve. It never silently finances an upgrade with debt.
   if (
@@ -1395,26 +1461,18 @@ export function endQuarter(state: GameState): GameState {
   const furniture = Object.entries(b.furnishings).filter(([id]) =>
     next.flags.includes(`furnished-${id}`),
   );
-  const club = next.flags.includes('quarter-walking-club');
-  applyEffects(next, [
-    { type: 'money', delta: brighter ? -b.housingRent : 0 },
-    {
-      type: 'stat',
-      key: 'mood',
-      delta:
-        (brighter ? b.housingMood : 0) +
-        (club ? b.clubMood : 0) +
-        furniture.reduce((sum, [, item]) => sum + item.mood, 0),
-    },
-    {
-      type: 'stat',
-      key: 'health',
-      delta:
-        (brighter ? b.housingHealth : 0) +
-        (club ? b.clubHealth : 0) +
-        furniture.reduce((sum, [, item]) => sum + item.health, 0),
-    },
-  ]);
+  if (brighter) {
+    applyEffects(next, [{ type: 'money', delta: -b.housingRent }]);
+    settleWellbeing('brighterHome', b.housingMood, b.housingHealth);
+  }
+  if (next.flags.includes('quarter-walking-club'))
+    settleWellbeing('walkingClub', b.clubMood, b.clubHealth);
+  if (furniture.length)
+    settleWellbeing(
+      'furnishings',
+      furniture.reduce((sum, [, item]) => sum + item.mood, 0),
+      furniture.reduce((sum, [, item]) => sum + item.health, 0),
+    );
   let promoted = false;
   if (current?.salary !== undefined) {
     for (const threshold of b.promotionThresholds) {
@@ -1444,6 +1502,8 @@ export function endQuarter(state: GameState): GameState {
       en: 'Pay arrives, bills go out, and another season passes outside.',
     },
     statDeltas: deltas(state, next),
+    wellbeing,
+    clearedPlots: next.plots.filter((plot) => plot.seed).length,
   });
   for (const npc of townsfolk(next))
     if (!state.flags.includes(`quarter-talked-${npc.id}`))
@@ -2334,6 +2394,14 @@ export function buy(state: GameState, item: ItemId, qty: number): GameState {
   };
   return advanceClock(next, b.minutes.buy);
 }
+/** Minimum playable days to maturity with watering or rain each night. */
+export function cropDaysToMaturity(growthNeeded: number): number {
+  return Math.max(
+    0,
+    Math.ceil(growthNeeded / (b.growthPerDay + b.wateredGrowth)),
+  );
+}
+
 export function plant(state: GameState, plot: number, seed: ItemId): GameState {
   ready(state, 'allotment', b.minutes.plant);
   const grows = items.find((i) => i.id === seed)?.grows;

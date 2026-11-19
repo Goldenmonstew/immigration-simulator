@@ -130,6 +130,12 @@ export interface Achievement {
   description: Text;
   check: (state: GameState) => boolean;
 }
+export type SettlementSource =
+  | 'seasonWear'
+  | 'overtimeWear'
+  | 'brighterHome'
+  | 'walkingClub'
+  | 'furnishings';
 export type LogEntry = {
   year: number;
   quarter: Quarter;
@@ -138,6 +144,9 @@ export type LogEntry = {
   choiceId?: string;
   text: Text;
   statDeltas?: Partial<Record<StatKey, number>>;
+  // Quarter entries from older saves may have neither field.
+  wellbeing?: { source: SettlementSource; mood: number; health: number }[];
+  clearedPlots?: number;
 };
 export interface LifeRecord {
   itemId: ItemId;

@@ -69,6 +69,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.actionsLeft': '{count} action points',
   'game.visaShort': '{count}m',
   'game.visa': 'Visa: {count} months left',
+  'game.renewedThrough':
+    'You renewed this season. Your new permission runs until {date}.',
   'game.visaUrgent': 'Visa expiry approaching',
   'game.money': 'Savings',
   'game.mood': 'Mood',
@@ -109,9 +111,18 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.quarterSummary': 'This quarter in review',
   'game.quarterChanges':
     'Stat changes across the quarter (actions, events and settlement)',
+  'game.wellbeingAtSettlement':
+    'What made the biggest difference at the season’s end',
+  'game.settlementSource.seasonWear': 'The season’s wear and tear',
+  'game.settlementSource.overtimeWear': 'Extra wear from overtime',
+  'game.settlementSource.brighterHome': 'A brighter home',
+  'game.settlementSource.walkingClub': 'Walking club',
+  'game.settlementSource.furnishings': 'Home furnishings',
+  'game.cropsCleared':
+    'The season changed, and crops left in the ground were cleared from {count} of your plots.',
   'game.eventReview': 'What happened this quarter',
   'game.noEvents': 'A quiet quarter has its charms.',
-  'game.progressChanges': 'Before → after the fourth-quarter settlement',
+  'game.progressChanges': 'Before → after the start of your new game year',
   'game.nextQuarter': 'Welcome the next season',
   'game.seeEnding': 'Read your story',
   'game.achievements': 'Keepsakes along the way',
@@ -627,6 +638,11 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.watered': 'Watered today',
   'game.harvest': 'Harvest',
   'game.growth': 'Growth {count} / {days}',
+  'game.cropMaturity': 'Days to maturity with watering · {days}',
+  'game.cropMature': 'Ready to harvest.',
+  'game.cropTimeLeft': 'Days left this season after today · {days}',
+  'game.cropSeasonWarning':
+    'Any crops left in the ground will be cleared when the season changes.',
   'game.noSeeds': 'No seeds for this season. Visit the corner shop.',
   'game.rentFirst': 'Rent a plot at the allotment shed first.',
   'game.fish': 'Fish',

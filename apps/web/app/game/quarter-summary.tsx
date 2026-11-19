@@ -2,8 +2,13 @@
 
 import { useTranslation } from '../../i18n/locale';
 import { displayedRuleSets } from '../../lib/policy';
-import { isOver, progress, type GameState } from '@uk-immigration/game';
-import { statKeys, visaMonths, needsVisaReminder } from './session';
+import {
+  isOver,
+  progress,
+  type GameState,
+  type SettlementSource,
+} from '@uk-immigration/game';
+import { statKeys, visaStatus, needsVisaReminder } from './session';
 import { groupedMemories, type DayMemory } from './diary';
 import styles from './game.module.css';
 import { localText, signed, outcomeColor } from './game-ui';
@@ -67,6 +72,27 @@ export function QuarterSummary({
   const net = entries
     .filter((entry) => entry.kind === 'quarter')
     .reduce((sum, entry) => sum + (entry.statDeltas?.money ?? 0), 0);
+  const wellbeing = new Map<
+    SettlementSource,
+    { mood: number; health: number }
+  >();
+  for (const entry of settled) {
+    for (const { source, mood, health } of entry.wellbeing ?? []) {
+      const total = wellbeing.get(source) ?? { mood: 0, health: 0 };
+      wellbeing.set(source, {
+        mood: total.mood + mood,
+        health: total.health + health,
+      });
+    }
+  }
+  const cleared = settled.reduce(
+    (sum, entry) => sum + (entry.clearedPlots ?? 0),
+    0,
+  );
+  const visa = visaStatus(after);
+  const renewed = entries.some(
+    (entry) => entry.kind === 'action' && entry.id === 'extend',
+  );
   const quarterStart = { ...before, stats: startStats ?? before.stats };
   const previous = progress(before),
     next = progress(after);
@@ -87,11 +113,58 @@ export function QuarterSummary({
         </p>
       )}
       <StatChanges before={quarterStart} after={after} />
-      <p className={visaMonths(after) <= 6 ? styles.urgent : undefined}>
-        {t('game.visa').replace('{count}', String(visaMonths(after)))}
+      {wellbeing.size > 0 && (
+        <>
+          <h3>{t('game.wellbeingAtSettlement')}</h3>
+          <ul className={styles.review}>
+            {(['mood', 'health'] as const).map((key) => {
+              const sources = [...wellbeing]
+                .filter(([, change]) => change[key] !== 0)
+                .sort(([, a], [, b]) => Math.abs(b[key]) - Math.abs(a[key]))
+                .slice(0, 2);
+              return (
+                sources.length > 0 && (
+                  <li key={key}>
+                    <strong>{t(`game.${key}`)}</strong>{' '}
+                    {sources
+                      .map(
+                        ([source, change]) =>
+                          `${t(`game.settlementSource.${source}`)} ${signed(change[key], key)}`,
+                      )
+                      .join(' · ')}
+                  </li>
+                )
+              );
+            })}
+          </ul>
+        </>
+      )}
+      <p
+        className={
+          visa.months <= 6 && !visa.renewed ? styles.urgent : undefined
+        }
+      >
+        {t('game.visa').replace('{count}', String(visa.months))}
       </p>
+      {renewed && visa.validTo && (
+        <p>
+          {t('game.renewedThrough').replace(
+            '{date}',
+            new Date(visa.validTo).toLocaleDateString(
+              locale === 'en' ? 'en-GB' : locale,
+              {
+                dateStyle: 'medium',
+                timeZone: 'UTC',
+              },
+            ),
+          )}
+        </p>
+      )}
       {needsVisaReminder(after) && (
         <VisaReminder state={after} onVisit={onVisa} />
+      )}
+      {cleared > 0 && (
+        <p>{t('game.cropsCleared').replace('{count}', String(cleared))}</p>
       )}
       <h3>{t('game.daysReview')}</h3>
       {quarters.map((quarter) => (
@@ -137,7 +210,7 @@ export function QuarterSummary({
           )}
         </section>
       ))}
-      {before.quarter === 4 && (
+      {after.year > before.year && (
         <>
           <h3>{t('game.yearSummary')}</h3>
           <p>{t('game.progressChanges')}</p>

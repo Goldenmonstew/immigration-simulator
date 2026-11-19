@@ -839,6 +839,14 @@ export default function GameClient() {
                     location={overlay.id}
                     onChange={(next) => {
                       apply(next);
+                      if (
+                        next.pendingEvent &&
+                        next.pendingEvent !== 'system-exam-failed' &&
+                        next.log
+                          .slice(current.log.length)
+                          .some((entry) => entry.id === 'exam')
+                      )
+                        setEventResult(next.outcome?.text);
                       // Board notices and show results come back as text of
                       // their own; keep the menu open so they can be read.
                       const ownText =
