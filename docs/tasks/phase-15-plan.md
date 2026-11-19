@@ -23,7 +23,7 @@
 | 任务 | 内容 | 执行 | 依赖 | 状态 |
 |---|---|---|---|---|
 | 31 | 规则与文案逐条核对（8 个只读会话）：A1 现行法 Skilled Worker 与共用部分；A2 家庭、家属、英语；A3 其他现行路线；A4 改革的居留、基本要求、过渡；A5 改革的贡献、家属、受保护人群；A6 结果汇总、网站政策表述、顾问审阅包；A7 游戏里的政策事实（含续签简化）；A8 英文文案。Fable 逐条回原文复核，汇总为 `docs/research/2026-11-19-rules-audit.md`，并单独复核 15-five-items 列的三个顾问重点案例（G-OVERSTAY-BREACH、G-UNIVERSAL-CREDIT、G-LONG-RESIDENCE-10Y） | sol 只读 | — | 进行中 |
-| 32 | 来源刷新与补登记：查 HC 584 之后的新 Statement of Changes 与 PD-076–080 相关官方文件；登记 Skilled Worker caseworker guidance（Option E 的 4 年怎么算）和 Appendix Student（打工时长、收尾期）；更新 pending-details | sol 实现 | — | 进行中 |
+| 32 | 来源刷新与补登记（依赖 44）：查 HC 584 之后的新 Statement of Changes 与 PD-076–080 相关官方文件；登记 Skilled Worker caseworker guidance（Option E 的 4 年怎么算）和 Appendix Student（打工时长、收尾期）；更新 pending-details | sol 实现 | — | 进行中 |
 | 33 | 核对发现的修正：按 31 复核为"成立""部分成立"的约 60 条，拆成子任务：33a 连续居留与最早申请日（共用代码）、33b 现行法 Skilled Worker / 家庭 / 英语路线条件、33c 现行法其他路线条件、33d 改革的居留与基本要求与过渡、33e 改革的贡献与家属与受保护人群、33f 网站结果表述、33g 游戏里的政策表述。每条附 SRC 定位与回归测试 | sol 实现 | 31 | 33a、33g 进行中，其余按共享文件顺序开 |
 | 34 | 英文文案修正：按 A8 复核过的问题改词典与英文文本 | sol 实现 | 31（A8）；改到诺拉文案的部分排在 35 之后 | 待开 |
 | 35 | 建模 Option E：见下方"任务 35 的契约" | sol 实现 | 32、44；33a、33b、33g 合并之后 | 待开 |
@@ -38,7 +38,7 @@
 | 46 | 访问统计与错误上报：用户 2026-11-19 要求接入；核实后两者都已在线（见"盘点来源"），不另开实现任务 | — | — | 已在线 |
 | 47 | agy 第 5 轮设计评审：Fable 用无头 Chrome 截正式站桌面 2 倍、手机 3 倍图，agy（gemini-4-hydrogen-xhigh）评审；结论转成修正任务 | agy 评审，修正由 sol 实现 | — | 进行中 |
 | 43 | Fable 实机走"出门→聊天→钓鱼→做饭→回家"（手动操作，不用简易模式与跳过），补 13.5 缺的钓鱼与做饭成功卡实景截图 | Fable | — | 待开 |
-| 44 | 修来源检查脚本（32 的来源检查验收依赖它：先合并 44，再用 32 的来源变更跑完整检查后合并 32）：`check-sources.mjs` 把 SRC-033 的书面问题 JSON 当成 Hansard JSON，取备注时抛 `TypeError`，32 修改前后都退出 1，每周 Check sources 跑不到后面的来源；修好后重跑完整检查；第 2 轮去掉 GOV.UK 布局与 HTML 实体误报、补齐多快照的 URL 映射 | sol 实现 | — | 进行中 |
+| 44 | 修来源检查脚本（32 的来源检查验收依赖它：44 第 3 轮同时重新登记 SRC-010，让全量检查退出 0；先合并 44，再用 32 的来源变更跑完整检查后合并 32）：`check-sources.mjs` 把 SRC-033 的书面问题 JSON 当成 Hansard JSON，取备注时抛 `TypeError`，32 修改前后都退出 1，每周 Check sources 跑不到后面的来源；修好后重跑完整检查；第 2 轮去掉 GOV.UK 布局与 HTML 实体误报、补齐多快照的 URL 映射 | sol 实现 | — | 进行中 |
 
 ### 共享文件与顺序
 
@@ -47,7 +47,7 @@
 - `packages/engine/src/rules/current-law/skilled-worker.ts`、`packages/policy-data/src/parameters/current-law-2026-11.ts`：33a → 33b → 35。37 若日后被触发：不影响 Option E 时排在 35 之后；影响时 37 先合并，35 再按适用版本实现。
 - `packages/game/src/characters/graduate.ts`、`packages/game/src/graduate-route.ts`：33g → 35 → 40 → 34 中涉及诺拉的英文。
 - `packages/engine/test/golden.test.ts` 生成的黄金快照与 `docs/review/adviser-packet.md`：任何改结论的任务都要重新生成，按合并先后依次更新，不并行改。
-- `docs/SOURCES.md`、`docs/pending-details.md`、`apps/web/lib/sources.ts`、`policy-changelog.ts`：44 → 32 → 39 → 35（登记 PD）→ 37，编号顺延；33 各子任务登记的新 PD 按合并先后顺延编号。
+- `docs/SOURCES.md`、`docs/pending-details.md`、`apps/web/lib/sources.ts`、`policy-changelog.ts`：44 → 32 → 39 → 35（登记 PD），编号顺延；37 若被触发，按上一条的条件顺序插入（影响 Option E 时排在 35 之前）；33 各子任务登记的新 PD 按合并先后顺延编号。
 - `packages/engine/src/aggregate.ts`、`residence.ts`、`types.ts`：33a 先合并，33b–33e 再开。
 - `apps/web/i18n/en.ts`、`zh-CN.ts` 与引擎规则文件里的英文说明：33 各子任务 → 34。33g 与 41 都会往词典里加行，按合并先后解决冲突。
 - `apps/e2e/tests/helpers.ts`：36 → 42。
@@ -59,8 +59,8 @@
 - 新增 Skilled Worker **申请**检查（SW 4.2 Option E 与 SW 12.2、SW 12.3），与现有定居薪资检查（SW 24.3，`CL-SW-SALARY`、`CL-SW-GOING-RATE`）分开；定居规则的语义不变。
 - 输入：申请日、预计决定日、最近一次非访客许可（SW 12.2(f)：Graduate，若已到期，到期日距申请日须**不足** 2 年，恰好 2 年不成立）、CoS 起止日期、CoS 上的薪资与每周工时（going rate 按 SRC-017 Table 1 的每周 37.5 小时折算；一般年薪门槛只算可计入薪资）、SOC 代码对应的 going rate、拟授予许可期（按 CoS，SW 18.1，不用合同期）、过往 Skilled Worker / Graduate / Tier 2 许可的期间。缺个案输入时提示补资料；32 登记的 guidance 没写清的计算口径（PD-081）输出 `UNKNOWN`。
 - 每个政策数字带 SRC 段落定位，走 `packages/policy-data`。
-- 4 年合计：已持 Graduate / Skilled Worker / Tier 2 许可算到新许可起日（境内按决定日，SRC-050 §23.1），加上拟授予许可的全部期间（含 CoS 结束后的尾段，SW 18.1–18.1A）；不用递交日或合同期限代入。
-- 验收：资格（最近许可是 Graduate 与不是、Graduate 已到期不足 2 年、恰好 2 年、超过 2 年）、薪资（低于标准档但达到新入职者档、低于新入职者档、going rate 70% 边界）、合计期限（4 年内、恰好 4 年、超过 4 年）、缺输入，都有测试；诺拉情景的结果与说明随之更新；黄金快照与审阅包重新生成。
+- 4 年合计：累计各段已持 Graduate / Skilled Worker / Tier 2 许可**实际有效**的期间（许可之间的空档不计）；只有在决定日仍有效、被新许可替换的那段，在新许可起日截断（境内按决定日，SRC-050 §23.1）；再加拟授予许可的全部期间（含 CoS 结束后的尾段，SW 18.1–18.1A）。不用递交日或合同期限代入。PD-081 未明确的临界日或 3C 延续口径足以改变结论时输出 `UNKNOWN`。
+- 验收：资格（最近许可是 Graduate 与不是、Graduate 已到期不足 2 年、恰好 2 年、超过 2 年）、薪资（低于标准档但达到新入职者档、低于新入职者档、going rate 70% 边界）、合计期限（4 年内、恰好 4 年、超过 4 年、Graduate 已到期且与新许可之间有空档、PD-081 临界情形输出 `UNKNOWN`）、缺输入，都有测试；诺拉情景的结果与说明随之更新；黄金快照与审阅包重新生成。
 
 ### 任务 37 的触发
 
