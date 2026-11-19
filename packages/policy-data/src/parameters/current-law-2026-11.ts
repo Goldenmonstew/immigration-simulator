@@ -142,6 +142,22 @@ export const currentLaw2026_11 = {
         { srcId: 'SRC-004', locator: 'SW 24.3 row A' },
       ],
     },
+    // New entrant permission (SW 4.2 Option E): salary of at least this amount
+    // and this percentage of the going rate. SW 12.3 caps the combined Skilled
+    // Worker, Graduate and Tier 2 permission. Only explained in the game, not
+    // evaluated.
+    skilledWorkerNewEntrantSalaryThreshold: {
+      value: 33400,
+      sources: [{ srcId: 'SRC-004', locator: 'SW 4.2 Option E' }],
+    },
+    skilledWorkerNewEntrantGoingRatePercent: {
+      value: 70,
+      sources: [{ srcId: 'SRC-004', locator: 'SW 4.2 Option E' }],
+    },
+    skilledWorkerNewEntrantMaxCombinedYears: {
+      value: 4,
+      sources: [{ srcId: 'SRC-004', locator: 'SW 12.3' }],
+    },
     // GBP per year, settlement general salary for the other SW 24.3 rows:
     // B (Immigration Salary List), C (meets SW 4.2(b)), D (Immigration Salary
     // List and SW 4.2(b), or a Table 3 health or education occupation). Row E

@@ -9,6 +9,12 @@ import type { Character, GameEvent, Text } from '../types';
 import { graduateProfile } from './metadata';
 
 const t = (zhCN: string, en: string): Text => ({ zhCN, en });
+const values = currentLaw2026_11.values;
+// SRC-004 SW 4.2 Option E and SW 12.3, explained but not evaluated.
+const newEntrantSalary =
+  values.skilledWorkerNewEntrantSalaryThreshold.value.toLocaleString('en-GB');
+const newEntrantPercent = values.skilledWorkerNewEntrantGoingRatePercent.value;
+const newEntrantYears = values.skilledWorkerNewEntrantMaxCombinedYears.value;
 // Fictional decision/start date. GR 8.1 measures the grant from this decision.
 const decisionDate = '2026-09-15';
 const expiry = new Date(`${decisionDate}T00:00:00Z`);
@@ -132,8 +138,8 @@ export const graduateRecruitment: GameEvent[] = [
         effects: [{ type: 'stat', key: 'mood', delta: -2 }],
         sets: ['graduate-negotiated', 'graduate-offer-reviewed'],
         note: t(
-          `本情景按标准薪资核对：general salary £${generalSalary}，岗位 going rate £${occupationalSalary}；不采用折扣。`,
-          `This scenario checks standard pay: general salary £${generalSalary}, occupational going rate £${occupationalSalary}; no discount.`,
+          `本情景按标准薪资核对：general salary £${generalSalary}，岗位 going rate £${occupationalSalary}；不采用新入职者档。`,
+          `This scenario checks standard pay: general salary £${generalSalary}, occupational going rate £${occupationalSalary}; not the new-entrant option.`,
         ),
       },
       {
@@ -947,8 +953,8 @@ export const graduate: Character = {
   graduateRoute: {
     recruitment: graduateRecruitment,
     salaryCheckNote: t(
-      '这里只核对标准薪资；担保、CoS 与其他审批条件由本情景假定已核实。',
-      'This checks standard pay only. The scenario assumes sponsorship, CoS and other application requirements have been verified.',
+      `这里只核对标准薪资档。符合条件的新入职者另有较低档：年薪须同时不低于 £${newEntrantSalary} 和岗位 going rate 的 ${newEntrantPercent}%。像诺拉这样在 Graduate 许可仍有效时申请的人，符合 SW 12.2(f) 这一项新入职者条件。但按该档授予的许可，与已有的 Skilled Worker、Graduate、Tier 2 许可合计不得超过 ${newEntrantYears} 年，不连续的期间也计入（SW 12.3）。本情景不计算这一合计，所以结果只说明报价是否达到标准档，诺拉能否按新入职者档申请仍未核定。担保、CoS 与其他审批条件由本情景假定已核实。`,
+      `This checks the standard pay option only. Eligible new entrants have a lower option: a salary of at least £${newEntrantSalary} a year and at least ${newEntrantPercent}% of the occupation's going rate. Someone like Nora, applying while their Graduate permission is still valid, meets the SW 12.2(f) new-entrant condition. But permission granted under this option, added to any earlier Skilled Worker, Graduate and Tier 2 permission, must not exceed ${newEntrantYears} years in total, even if the periods are not continuous (SW 12.3). This scenario does not calculate that total, so the result only shows whether the offer meets the standard option; whether Nora could use the new-entrant option is not decided. It assumes sponsorship, CoS and other application requirements have been verified.`,
     ),
     switched: {
       zhCN: '你拿到本情景中的 Skilled Worker 许可，把合同和 CoS 收进文件夹；下一次出门，包里多了一份新的有效许可。',
