@@ -205,16 +205,18 @@ test('folding dumplings at Lunar New Year gives a result and a reward', async ({
   await patchSave(page, 'skilled-worker', [
     quietMorning,
     (save) => {
+      // Lin Yao's first-quarter Lunar New Year day (packages/game/test/life.test.ts).
       Object.assign(save.day, {
-        date: '2025-02-01',
+        date: '2025-02-08',
         index: 2,
         kind: 'special',
         festival: 'lunar-new-year',
       });
+      save.dayNumber = 2;
     },
   ]);
   await dismissCards(page);
-  await expect(page.locator('time[datetime="2025-02-01"]')).toBeVisible();
+  await expect(page.locator('time[datetime="2025-02-08"]')).toBeVisible();
 
   const dialog = page.locator('dialog[open]');
   const bag = page.getByRole('button', { name: /^背包/ }).first();
