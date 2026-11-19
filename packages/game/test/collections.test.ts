@@ -34,7 +34,12 @@ describe('12.6 persistent life records', () => {
         continue;
       }
       seen.add(id);
-      const record = { itemId: id, year: 1, quarter: before.quarter };
+      const record = {
+        itemId: id,
+        year: 1,
+        quarter: before.quarter,
+        memory: { place: 'pond', weather: 'sunny' },
+      };
       expect(caught.lifeRecords?.fish).toEqual([record]);
       for (const consumed of [eat(caught, id), gift(caught, 'margaret', id)]) {
         expect(consumed.inventory[id]).toBe(0);
@@ -43,7 +48,10 @@ describe('12.6 persistent life records', () => {
       const repeat = restore(caught);
       repeat.randomState = before.randomState;
       repeat.year = 2;
-      expect(fish(repeat, true).lifeRecords?.fish).toEqual([record]);
+      repeat.day.weather = 'cloudy';
+      const caughtAgain = fish(repeat, true);
+      expect(caughtAgain.outcome?.items).toEqual({ [id]: 1 });
+      expect(caughtAgain.lifeRecords?.fish).toEqual([record]);
     }
     expect([...seen].sort()).toEqual(
       items
@@ -57,11 +65,17 @@ describe('12.6 persistent life records', () => {
     '$id records the cooked output once and survives eating, gifting and JSON',
     (recipe) => {
       const before = clear(newGame('skilled-worker', 1));
+      before.day.weather = 'rain';
       before.inventory = Object.fromEntries(
         Object.entries(recipe.needs).map(([id, qty]) => [id, qty * 2]),
       );
       const made = cook(before, recipe.id);
-      const record = { itemId: recipe.makes, year: 1, quarter: before.quarter };
+      const record = {
+        itemId: recipe.makes,
+        year: 1,
+        quarter: before.quarter,
+        memory: { place: 'home', weather: 'rain' },
+      };
       expect(before.lifeRecords?.dishes).toEqual([]);
       expect(made.lifeRecords?.dishes).toEqual([record]);
       for (const consumed of [
@@ -73,7 +87,10 @@ describe('12.6 persistent life records', () => {
       }
       const repeat = restore(made);
       repeat.year = 2;
-      expect(cook(repeat, recipe.id).lifeRecords?.dishes).toEqual([record]);
+      repeat.day.weather = 'snow';
+      const madeAgain = cook(repeat, recipe.id);
+      expect(madeAgain.inventory[recipe.makes]).toBe(2);
+      expect(madeAgain.lifeRecords?.dishes).toEqual([record]);
     },
   );
 
@@ -114,7 +131,14 @@ describe('12.6 persistent life records', () => {
     expect(made.lifeRecords).toEqual({
       fish: [],
       harvests: [],
-      dishes: [{ itemId: 'baked-potato', year: 1, quarter: 1 }],
+      dishes: [
+        {
+          itemId: 'baked-potato',
+          year: 1,
+          quarter: 1,
+          memory: { place: 'home', weather: old.day.weather },
+        },
+      ],
     });
     const bought = buy(enter(restore(old), 'shop'), 'biscuits', 1);
     expect(bought.lifeRecords).toBeUndefined();
@@ -122,5 +146,16 @@ describe('12.6 persistent life records', () => {
       'Ingredients',
     );
     expect(old.lifeRecords).toBeUndefined();
+  });
+
+  test('cooking again does not backfill an earlier record without a memory', () => {
+    const old = clear(newGame('skilled-worker', 1));
+    old.year = 2;
+    old.inventory = { potato: 1 };
+    const record = { itemId: 'baked-potato', year: 1, quarter: 1 } as const;
+    old.lifeRecords!.dishes = [record];
+    const made = cook(restore(old), 'baked-potato');
+    expect(made.inventory['baked-potato']).toBe(1);
+    expect(made.lifeRecords?.dishes).toEqual([record]);
   });
 });

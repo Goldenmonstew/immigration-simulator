@@ -23,20 +23,27 @@ const cards = [...commonEvents, ...characters[0].events].filter((event) =>
 
 describe('10.5 Life in the UK action', () => {
   test.each(characters)(
-    '$id offers a free test, records the pass and recalculates both assessments',
+    'A7#8 $id discloses the game shortcut and records an immediate pass at no cost',
     (character) => {
       const before = clear(newGame(character.id, 1));
       before.day.minute = 540;
+      before.stats.money = 0;
       const action = activities(before, 'college').find((a) => a.id === id)!;
       expect(action).toMatchObject({
         label: {
-          zhCN: '参加 Life in the UK 考试',
-          en: 'Take the Life in the UK test',
+          zhCN: '参加 Life in the UK 考试（游戏内免费）',
+          en: 'Take the Life in the UK test (free in this game)',
         },
         oncePerDay: true,
         effects: [{ type: 'lifeInTheUk' }],
         minutes: locationActions.find((a) => a.id === 'exam')!.minutes,
       });
+      expect(action.note?.zhCN).toContain('须提前网上预约并付费（SRC-045');
+      expect(action.note?.en).toContain(
+        'book online in advance and pay the fee (SRC-045',
+      );
+      expect(action.note?.zhCN).toContain('直接记为通过');
+      expect(action.note?.en).toContain('records a pass straight away');
       expect(before.timeline.lifeInTheUk).toBeUndefined();
       const after = doActivity(enter(before, 'college'), id);
       expect(after.timeline.lifeInTheUk).toEqual({ passed: true });

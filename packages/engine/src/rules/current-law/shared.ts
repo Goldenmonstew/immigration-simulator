@@ -1,6 +1,6 @@
 import { currentLaw2026_11 as cl } from '@uk-immigration/policy-data';
 import { addDays, fullYears } from '../../dates';
-import { episodeOn } from '../../residence';
+import { applicationLocationIssue, episodeOn } from '../../residence';
 import type { CurrentResidence } from '../../residence';
 import type { Lang } from '../../rule';
 import type { Route } from '@uk-immigration/policy-data';
@@ -177,11 +177,8 @@ export function applicationPresence(
   date: IsoDate,
   L: Lang,
 ): Omit<RuleResult, 'sources'> | undefined {
-  if (
-    timeline.absences.some(
-      (a) => a.from && a.to && a.from < date && date < a.to,
-    )
-  ) {
+  const issue = applicationLocationIssue(timeline, date);
+  if (issue === 'FAIL') {
     return {
       status: 'FAIL',
       explanation: L(
@@ -190,15 +187,7 @@ export function applicationPresence(
       ),
     };
   }
-  if (
-    timeline.absences.some(
-      (a) =>
-        a.from === date ||
-        a.to === date ||
-        (!a.from && (!a.to || date <= a.to)) ||
-        (!a.to && date >= a.from),
-    )
-  ) {
+  if (issue === 'UNKNOWN') {
     return {
       status: 'UNKNOWN',
       explanation: L(
@@ -280,6 +269,12 @@ export function residencePending(
   years: number,
   L: Lang,
 ): string {
+  if (!residence.applicationDate) {
+    return L(
+      '按已申报的许可和行程，无法给出满足居留要求的申请日',
+      'the recorded permissions and travel do not support an application date for the residence requirement',
+    );
+  }
   return L(
     `预计 ${residence.completion} 满 ${years} 年，按 CR 1.1 最早于 ${residence.applicationDate} 满足申请的居留年限条件`,
     `expected to complete ${years} years on ${residence.completion}; the earliest projected application date for the residence requirement is ${residence.applicationDate} under CR 1.1`,

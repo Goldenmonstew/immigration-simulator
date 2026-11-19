@@ -32,6 +32,31 @@ export function settledBy(
   return settled && settled.date <= date ? settled : undefined;
 }
 
+/** Travel dates do not establish presence at the time of filing. */
+export function applicationLocationIssue(
+  timeline: PersonTimeline,
+  date: IsoDate,
+): 'FAIL' | 'UNKNOWN' | undefined {
+  if (
+    timeline.absences.some(
+      (a) => a.from && a.to && a.from < date && date < a.to,
+    )
+  ) {
+    return 'FAIL';
+  }
+  if (
+    timeline.absences.some(
+      (a) =>
+        a.from === date ||
+        a.to === date ||
+        (!a.from && (!a.to || date <= a.to)) ||
+        (!a.to && date >= a.from),
+    )
+  ) {
+    return 'UNKNOWN';
+  }
+}
+
 // Consecutive permissions with at most this many uncovered days between them
 // count as continuous (engine assumption, PD-053).
 const MAX_GAP_DAYS = 1;
@@ -268,7 +293,7 @@ export interface CurrentResidence {
   start: IsoDate;
   before?: ImmigrationEpisode;
   completion: IsoDate;
-  applicationDate: IsoDate;
+  applicationDate?: IsoDate;
   referenceDate: IsoDate;
   deductedDays: number;
 }
@@ -281,19 +306,27 @@ export function currentResidence(
   years: number,
   {
     longResidence = false,
-    ancestryExpiry,
-  }: { longResidence?: boolean; ancestryExpiry?: IsoDate } = {},
+    appliesOn = counts,
+    notBefore = application,
+  }: { longResidence?: boolean; appliesOn?: Counts; notBefore?: IsoDate } = {},
 ): CurrentResidence | undefined {
-  const absences = unionAbsences(
-    timeline.absences.filter((a) => a.from && a.to && a.from <= a.to),
+  const trips = timeline.absences.filter(
+    (a) => a.from && a.to && a.from <= a.to,
   );
+  const absences = unionAbsences(trips);
   const limits: AbsenceLimit = longResidence
     ? longResidenceLimit
     : calendarLimit;
   const legacy = limits.legacy;
-  const older = legacy ? absences.filter((a) => a.from < legacy.before) : [];
+  // Classify each departure under CR 3.3 before merging overlapping days.
+  const older = legacy
+    ? unionAbsences(trips.filter((a) => a.from < legacy.before))
+    : [];
   const { fixed, rolling } = legacy
-    ? { fixed: [], rolling: absences.filter((a) => a.from >= legacy.before) }
+    ? {
+        fixed: [],
+        rolling: unionAbsences(trips.filter((a) => a.from >= legacy.before)),
+      }
     : partitionByPermission(timeline, absences);
   const treatment = (from: IsoDate, to: IsoDate, reference: IsoDate) =>
     gapTreatment(timeline, absences, { from, to }, longResidence, reference);
@@ -363,46 +396,92 @@ export function currentResidence(
       deductedDays,
     };
   };
-  if (ancestryExpiry) {
-    const run = runAt(ancestryExpiry);
-    if (!run.episodes.length) return undefined;
-    const result = asOf(run, ancestryExpiry, application);
-    return result.completion <= ancestryExpiry ? result : undefined;
-  }
   const run = runAt(application);
   if (!run.episodes.length) return undefined;
   const advance = cl.values.continuousResidenceReferenceDays.value;
-  for (let day = 0; day <= advance; day++) {
-    const reference = addDays(application, day);
-    const observed = day === 0 ? run : runAt(reference);
-    if (
-      !observed.episodes.length ||
-      addYears(observed.episodes[0].validFrom, years) > reference
-    )
+  const earliestStart = timeline.episodes
+    .filter(counts)
+    .map((e) => e.validFrom)
+    .sort()[0];
+  const firstReference = addYears(earliestStart, years);
+  const lastRecorded = timeline.episodes
+    .map((e) => e.validTo)
+    .sort()
+    .at(-1)!;
+  const lastPermission = episodeOn(timeline, lastRecorded)!;
+  const renewal = appliesOn(lastPermission) && counts(lastPermission);
+  const lastRun = renewal ? runAt(lastRecorded) : undefined;
+  const fixedWindowsMatter =
+    absenceDays(fixed, earliestStart, fixed.at(-1)?.to ?? application) >
+    calendarLimit.maxDays;
+  const permissionChanges = timeline.episodes
+    .flatMap((e) => [e.validFrom, addDays(e.validTo, 1)])
+    .sort();
+  const referenceChanges = [
+    ...permissionChanges,
+    ...absences.flatMap((a) => [a.from, a.to]),
+  ].sort();
+  const openTrip = timeline.absences
+    .filter((a) => !a.to)
+    .map((a) => a.from || application)
+    .sort()[0];
+  let firstPossibleReference = firstReference;
+  let applied = later(notBefore, addDays(firstReference, -advance));
+  while (applied <= lastRecorded || renewal) {
+    if (applied > application && openTrip && applied >= openTrip) break;
+    const permission =
+      applied <= lastRecorded ? episodeOn(timeline, applied) : lastPermission;
+    if (!permission || !appliesOn(permission)) {
+      const change = permissionChanges.find((day) => day > applied);
+      if (!change) break;
+      applied = change;
       continue;
-    const result = asOf(observed, reference, application);
-    if (result.completion <= reference) return result;
+    }
+    if (
+      applied === application ||
+      !applicationLocationIssue(timeline, applied)
+    ) {
+      const end = addDays(applied, advance);
+      // Use recorded permissions for all references of a filing within the
+      // record. Assume uninterrupted renewal only for filings past its end.
+      const lastReference =
+        applied <= lastRecorded ? earlier(end, lastRecorded) : end;
+      let reference = later(applied, firstPossibleReference);
+      while (reference <= lastReference) {
+        const qualifying =
+          reference > lastRecorded ? lastRun! : runAt(reference);
+        const start = qualifying.episodes[0]?.validFrom;
+        let completion = start && addYears(start, years);
+        if (completion && completion <= reference) {
+          const result = asOf(qualifying, reference, applied);
+          if (result.completion <= reference) return result;
+          completion = result.completion;
+        }
+        // Between recorded changes the completion date is stable. Recheck
+        // each reference during travel, when the number of absent days changes.
+        const change = referenceChanges.find((day) => day > reference);
+        reference = absences.some(
+          (a) => a.from <= reference && reference < a.to,
+        )
+          ? addDays(reference, 1)
+          : completion && change
+            ? earlier(completion, change)
+            : (completion ?? change ?? addDays(reference, 1));
+        // CR 3.2 fixed windows have to be recalculated for the next filing.
+        if (!fixedWindowsMatter) firstPossibleReference = reference;
+      }
+      if (
+        lastReference === lastRecorded &&
+        firstPossibleReference > lastRecorded
+      ) {
+        applied = addDays(lastRecorded, 1);
+        continue;
+      }
+    }
+    applied = later(
+      addDays(applied, 1),
+      addDays(firstPossibleReference, -advance),
+    );
   }
-  // Projection assumes qualifying permission continues from the application
-  // date. Re-anchor CR 3.2 on each projected application date.
-  let next = later(
-    addDays(application, 1),
-    addDays(addYears(run.episodes[0].validFrom, years), -advance),
-  );
-  const hasFixedAbsences =
-    absenceDays(
-      fixed,
-      run.episodes[0].validFrom,
-      fixed.at(-1)?.to ?? application,
-    ) > calendarLimit.maxDays;
-  for (;;) {
-    const reference = addDays(next, advance);
-    const result = asOf(run, reference, next);
-    if (result.completion <= reference) return result;
-    // Without fixed anniversary windows a later reference can only retain or
-    // move forward the earliest valid start, so skip dates already ruled out.
-    next = hasFixedAbsences
-      ? addDays(next, 1)
-      : addDays(result.completion, -advance);
-  }
+  return { ...asOf(run, application, application), applicationDate: undefined };
 }

@@ -46,6 +46,13 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.collectionHint':
     'Things you caught or cooked stay here, even after you eat or give them away.',
   'game.collectionFirst': 'First: Year {year} · {season}',
+  'game.collectionMemory.pond':
+    'You caught it at the park pond on a {weather} day.',
+  'game.collectionMemory.home': 'You made it at home on a {weather} day.',
+  'game.collectionWeather.sunny': 'sunny',
+  'game.collectionWeather.cloudy': 'cloudy',
+  'game.collectionWeather.rain': 'rainy',
+  'game.collectionWeather.snow': 'snowy',
   'game.collectionUnknown': 'Not yet recorded',
   'game.collectionHarvests':
     'Harvest records: {count} harvests across {kinds} crops.',
@@ -89,6 +96,11 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.endingConfirm':
     'This will end this game. Ready to bring this story to a close?',
   'game.endingEffect': 'Ends this story',
+  'game.reformSettlement': 'Simulate submission under the reform assumptions',
+  'game.reformSettlementConfirm':
+    'Simulate submitting your settlement application under the reform assumptions and end this game?',
+  'game.settlementAssessmentAtSubmission':
+    'These settlement assessments use the details from when you submitted in the game.',
   'game.timelineChanged':
     'The timeline and both assessments have been updated.',
   'game.changes': 'What changed',

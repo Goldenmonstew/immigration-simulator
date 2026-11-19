@@ -1,5 +1,18 @@
+import { currentLaw2026_11 } from '@uk-immigration/policy-data';
 import { policyStories } from '../events/policy';
 import type { GameEvent } from '../types';
+
+const oldSalaryApplicationsBefore =
+  currentLaw2026_11.values.skilledWorkerPre2024ApplicationsBefore.value;
+const oldSalaryDeadline = new Date(oldSalaryApplicationsBefore);
+const deadlineInChinese = new Intl.DateTimeFormat('zh-CN', {
+  dateStyle: 'long',
+  timeZone: 'UTC',
+}).format(oldSalaryDeadline);
+const deadlineInEnglish = new Intl.DateTimeFormat('en-GB', {
+  dateStyle: 'long',
+  timeZone: 'UTC',
+}).format(oldSalaryDeadline);
 
 // Fictional scenes inspired by the research library L11, L15 and L02.
 // Existing invitation, school-letter and kettle cards open these follow-ups.
@@ -218,18 +231,17 @@ policyStories.push(
     },
   },
   {
-    // SRC-004 SW 4.2(b)(ii): "date of application is before 4 April 2030";
-    // SW 24.3 row C refers back to SW 4.2(b). The reminder starts two game
-    // quarters before that deadline; this lead time is an editorial choice.
+    // SRC-004 SW 4.2(b)(ii) sets the exclusive cutoff.
+    // SW 24.3 row C refers back to SW 4.2(b). The story's start is editorial.
     published: '2029-10-04',
-    until: '2030-04-04',
+    until: oldSalaryApplicationsBefore,
     character: 'skilled-worker',
     event: {
       id: 'sw-settlement-window-letter',
       title: { zhCN: '文件夹里的最后一页', en: 'The last page in the folder' },
       text: {
-        zhCN: '信里提醒：老规则下的申请窗口将到期，须在2030年4月4日前提交。你把信夹在最上面，市政厅能看定居还差什么。',
-        en: 'A letter reminds you that the old-rules application window is closing: submit before 4 April 2030. You put it on top of the folder. The town hall shows what settlement still needs.',
+        zhCN: `信里提醒你，按旧薪资档申请须在${deadlineInChinese}前递交。你把信夹在最上面，市政厅能看定居还差什么。`,
+        en: `A letter reminds you to apply before ${deadlineInEnglish} to use the old salary rates. You put it on top of the folder. The town hall shows what settlement still needs.`,
       },
       weight: 0,
       once: true,

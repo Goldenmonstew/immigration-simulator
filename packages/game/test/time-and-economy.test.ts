@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { currentLaw2026_11 } from '@uk-immigration/policy-data';
 import {
   activities,
   buy,
@@ -99,13 +100,18 @@ describe('11.2 news and the old-rules window', () => {
       }
     },
   );
-  test('only Yao receives the reminder, before the exclusive cutoff, including through fast-forward', () => {
+  test('A7#9 only Yao receives the reminder and the bilingual deadline matches the policy cutoff', () => {
     const story = policyStories.find(
       (s) => s.event.id === 'sw-settlement-window-letter',
     )!;
+    expect(story.until).toBe(
+      currentLaw2026_11.values.skilledWorkerPre2024ApplicationsBefore.value,
+    );
     expect(receive(at('2029-10-03'), story.event).pendingEvent).toBeUndefined();
     const before = receive(at('2030-04-03'), story.event);
     expect(before.pendingEvent).toBe(story.event.id);
+    expect(currentEvent(before)?.text.zhCN).toContain('2030年4月4日前');
+    expect(currentEvent(before)?.text.en).toContain('before 4 April 2030');
     expect(resolve(before, 'check').timeline).toEqual(before.timeline);
     for (const date of ['2030-04-04', '2030-04-05'])
       expect(receive(at(date), story.event).pendingEvent).toBeUndefined();
