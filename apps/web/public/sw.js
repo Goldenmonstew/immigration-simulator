@@ -15,11 +15,12 @@ self.addEventListener('install', (event) => {
         '/icon-512.png',
       ]);
       // Initial page assets load before the worker controls the tab.
+      // Inlined CSS lists several paths in one data-href; skip those.
       const assets = new Set();
       for (const page of PAGES) {
         const html = await (await cache.match(page)).text();
         for (const match of html.matchAll(
-          /(?:src|href)="(\/_next\/static\/[^"]+)"/g,
+          /(?:src|href)="(\/_next\/static\/[^"\s]+)"/g,
         ))
           assets.add(match[1]);
       }
