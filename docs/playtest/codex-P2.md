@@ -30,7 +30,7 @@
 |---|---|---|
 | B1 · 现在能申请吗？最早哪天？ | 2026-11-16 大概不能申请永居。页面给 2029-09-15，我把它读作从 2019-09-15 起满 10 年的 Long Residence 日期，先拿它做计划。人物卡的签证 2027 年就到期，摘要没告诉我如何衔接到那一天。 | 符合 A2 参考答案。现行法律是「可能不符合」、10 年 Long Residence，页面给 2029-09-15。Skilled Worker 的五年也在同一天满。 |
 | B2 · 两栏有什么不同？ | 左栏按现在的法律算。右栏按已经公布、尚未生效的改革，假定它们在模拟日适用。两边日期一样，我差点当成同一条路径。再看一眼才发现左边写 `10 years`，右边写 `5 years`，两栏起算点也不同。 | 符合。第 7 节右栏也是「可能不符合」、5 年、2029-09-15。黄色 `Announced, not in force` 和栏上面的假设说明回答了规则是否生效。 |
-| B3 · 还差什么？ | Long Residence 目前只有 7 个整年，要继续积累到 10 年。往下读才发现 Skilled Worker 另算，它只有 2 个整年，离 5 年尚远，£45,000 也低于该岗位的 £54,700 `going rate`（SRC-017 Table 1，SOC 2134）。第一眼看 `Not met (3)`，我差点当成三项必须全补。更早收入未知是右栏里单独列出的未决项。 | 符合第 7 节的两条居留时间线。工资差距来自左栏 `Skilled Worker settlement salary (going rate)`，我由随后的数字才懂 `going rate` 在这里是对应岗位的薪资要求。右栏的 `Unknown / unresolved (2)` 保留了对旧税年收入的不确定性。 |
+| B3 · 还差什么？ | Long Residence 目前只有 7 个整年，要继续积累到 10 年。往下读才发现 Skilled Worker 另算，它只有 2 个整年，离 5 年尚远，£45,000 也低于该岗位的 £54,700 `going rate`（SRC-017 Table 1，SOC 2134；定居时按 SRC-004 SW 24.3 表 A 行核对 going rate）。第一眼看 `Not met (3)`，我差点当成三项必须全补。更早收入未知是右栏里单独列出的未决项。 | 符合第 7 节的两条居留时间线。工资差距来自左栏 `Skilled Worker settlement salary (going rate)`，我由随后的数字才懂 `going rate` 在这里是对应岗位的薪资要求。右栏的 `Unknown / unresolved (2)` 保留了对旧税年收入的不确定性。 |
 | B4 · 会直接用结果递交吗？ | 不会。第 9 步和结果尾部说是一般政策信息和假设模拟，无法判定移民身份或保证申请结果。我会拿日期和规则清单去核对正式要求、许可和证据，必要时找受监管的顾问。 | 参考表没有单列此题。结果页的 `Seek regulated advice` 和 `It does not determine your legal immigration status or guarantee the outcome of an application.` 支持这个判断。 |
 
 ## 任务 C · 假设 2023 年离境 200 天
