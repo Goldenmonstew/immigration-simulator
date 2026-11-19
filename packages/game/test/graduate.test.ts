@@ -146,6 +146,25 @@ describe('13.2 Graduate character and engine integration', () => {
       activities(atVisa(clear(state)), 'visa').map((action) => action.id),
     ).toContain('graduate-switch');
   });
+  test('A7#5 the £44,200 offer preview cites switch rules and states the weekly hours in both languages', () => {
+    const before = atVisa(offer());
+    const after = doActivity(before, 'graduate-check-offer');
+    const { zhCN, en } = after.outcome!.text!;
+    for (const copy of [zhCN, en]) {
+      expect(copy).toContain('£44,200');
+      expect(copy).toContain('SRC-004');
+      expect(copy).toContain('SW 4.2 Option A');
+      expect(copy).toContain('SRC-017');
+      expect(copy).toContain('Table 1');
+      expect(copy).not.toContain('SW 24.3');
+    }
+    expect(zhCN).toContain('每周 37.5 小时');
+    expect(en).toContain('37.5-hour week');
+    expect(after.timeline).toEqual(before.timeline);
+    expect(activities(after, 'visa').map((action) => action.id)).toContain(
+      'graduate-switch',
+    );
+  });
   test('the visa centre charges the sourced fee and records a continuous new permission and income', () => {
     const before = offer();
     const insufficient = {

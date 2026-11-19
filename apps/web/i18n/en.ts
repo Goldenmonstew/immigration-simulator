@@ -96,6 +96,11 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.endingConfirm':
     'This will end this game. Ready to bring this story to a close?',
   'game.endingEffect': 'Ends this story',
+  'game.reformSettlement': 'Simulate submission under the reform assumptions',
+  'game.reformSettlementConfirm':
+    'Simulate submitting your settlement application under the reform assumptions and end this game?',
+  'game.settlementAssessmentAtSubmission':
+    'These settlement assessments use the details from when you submitted in the game.',
   'game.timelineChanged':
     'The timeline and both assessments have been updated.',
   'game.changes': 'What changed',

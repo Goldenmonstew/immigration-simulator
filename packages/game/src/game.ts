@@ -8,7 +8,11 @@ import { RULE_SET_IDS } from '@uk-immigration/policy-data';
 import { balance as b } from './balance';
 import { achievements, lifeAchievements } from './achievements';
 import { characterOf } from './characters';
-import { graduateEpisode, graduateSalaryChecks } from './graduate-route';
+import {
+  graduateEpisode,
+  graduateSalaryChecks,
+  graduateSalaryPreview,
+} from './graduate-route';
 import { commonEvents, systemEvents } from './events/common';
 import { policyStories } from './events/policy';
 import {
@@ -954,6 +958,10 @@ export function doActivity(state: GameState, actionId: string): GameState {
   if (!action) throw new Error(`Activity is not available: ${actionId}`);
   if (action.id === 'assessment') return state;
   const next = structuredClone(state);
+  // Show the assessment used to submit (SRC-024 E-ILRP.1.3(1A)).
+  // The in-game fee (SRC-031 §9) still reduces the household's cash.
+  if (action.id === 'settle')
+    next.settlementApplication = { cashSavings: state.timeline.cashSavings };
   const changed = applyEffects(next, action.effects);
   next.day.done.push(action.id);
   if (action.id === 'rent-brighter-home')
@@ -1002,9 +1010,7 @@ export function doActivity(state: GameState, actionId: string): GameState {
   if (action.id === 'graduate-check-offer') {
     const note = characterOf(state.characterId).graduateRoute!.salaryCheckNote;
     const checks = (locale: Locale) =>
-      graduateSalaryChecks({ ...state, locale })
-        .map((rule) => rule.explanation)
-        .join('\n');
+      graduateSalaryPreview({ ...state, locale });
     next.outcome.text = {
       zhCN: `${checks('zh-CN')}\n${note.zhCN}`,
       en: `${checks('en')}\n${note.en}`,

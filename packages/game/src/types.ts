@@ -202,6 +202,8 @@ export interface GameState {
   log: LogEntry[];
   result: SimulationResult;
   ending?: EndingId;
+  /** Savings before the in-game settlement application fee was charged. */
+  settlementApplication?: { cashSavings?: number };
   achievements: string[];
 }
 export type Progress = Record<
@@ -280,6 +282,7 @@ export interface Activity {
   id: string;
   place: PlaceId;
   label: Text;
+  note?: Text;
   minutes: number;
   effects: Effect[];
   when?: Condition[];
