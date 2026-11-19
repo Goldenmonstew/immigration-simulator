@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'vitest';
+import { evaluate } from '../src/evaluate';
 import { esResidence, esRouteGroup } from '../src/rules/es-residence';
 import type { ImmigrationEpisode, Route } from '../src/index';
-import { run } from './helpers';
+import { run, timeline } from './helpers';
 
 function on(
   route: Route,
@@ -122,7 +123,7 @@ describe('ES-RESIDENCE on protection routes', () => {
     expect(result.explanation).toContain('自 2027-03-01 起');
   });
 
-  test('moving back to Core Protection is unknown', () => {
+  test('A4#4 and A6#9 the Core Protection return stays unknown in the assessment', () => {
     const back = on('CORE_PROTECTION', {
       validFrom: '2033-03-01',
       validTo: '2038-02-28',
@@ -134,6 +135,20 @@ describe('ES-RESIDENCE on protection routes', () => {
     );
     expect(result.status).toBe('UNKNOWN');
     expect(result.pendingDetails).toEqual(['PD-064']);
+    const column = evaluate({
+      timeline: timeline({
+        episodes: [core, pws, back],
+        asylumSupportRepayment: 'NOT_REQUIRED',
+      }),
+      simulationDate: '2034-01-01',
+    }).byRuleSet['earned-settlement-2026-11']!;
+    expect(column.pathwayCompletionDate).toBe('2053-03-01');
+    expect(column.earliestDate).toBeUndefined();
+    expect(column.rules.find((r) => r.id === 'ES-RESIDENCE')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-064'],
+      explanation: expect.stringContaining('自 2033-03-01 起算'),
+    });
   });
 
   test('work-route time before a protection route does not count', () => {
@@ -196,6 +211,98 @@ describe('ES-RESIDENCE', () => {
     expect(result.status).toBe('PASS');
     expect(result.explanation).toContain('自 2025-02-01 起');
     expect(result.assumptions?.[0]).toContain('PD-053');
+  });
+
+  test('A4#2 and A6#9 earlier LOTR can change the residence start', () => {
+    const applicant = timeline({
+      episodes: [
+        on('LEAVE_OUTSIDE_THE_RULES', {
+          validFrom: '2020-01-01',
+          validTo: '2022-12-31',
+        }),
+        { ...sw('2023-01-01', '2033-01-01'), socCode: '2136', salary: 25000 },
+      ],
+      incomeYears: [
+        '2023-24',
+        '2024-25',
+        '2025-26',
+        '2026-27',
+        '2027-28',
+        '2028-29',
+      ].map((taxYear) => ({ taxYear, earnings: 25000 })),
+    });
+    const column = evaluate({
+      timeline: applicant,
+      simulationDate: '2030-01-01',
+    }).byRuleSet['earned-settlement-2026-11']!;
+    expect(column).toMatchObject({
+      outcome: 'POTENTIALLY_ELIGIBLE',
+      pathwayYears: 10,
+      pathwayCompletionDate: '2033-01-01',
+    });
+    expect(column.earliestDate).toBeUndefined();
+    expect(column.rules.find((r) => r.id === 'ES-RESIDENCE')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-022'],
+    });
+    const afterAbsence = run(
+      esResidence,
+      {
+        ...applicant,
+        absences: [{ from: '2024-01-01', to: '2024-08-01' }],
+      },
+      '2030-01-01',
+    );
+    expect(afterAbsence.status).toBe('PASS');
+    expect(afterAbsence.explanation).toContain('2024-08-02');
+  });
+
+  test('A4#3 and A6#9 Appendix FM ten-year permission to Private Life is unsettled', () => {
+    const family = on('FAMILY_PARTNER_OR_PARENT', {
+      validFrom: '2020-01-01',
+      validTo: '2025-12-31',
+      familyPermission: 'PARTNER_TEN_YEAR',
+    });
+    const privateLife = on('FAMILY_AND_PRIVATE_LIFE', {
+      validFrom: '2026-01-01',
+      validTo: '2031-01-01',
+      privateLifeRoute: 'ADULT',
+    });
+    const assess = (previous: ImmigrationEpisode) =>
+      evaluate({
+        timeline: timeline({
+          episodes: [previous, privateLife],
+          incomeYears: [
+            '2023-24',
+            '2024-25',
+            '2025-26',
+            '2026-27',
+            '2027-28',
+            '2028-29',
+          ].map((taxYear) => ({ taxYear, earnings: 25000 })),
+        }),
+        simulationDate: '2030-01-01',
+      }).byRuleSet['earned-settlement-2026-11']!;
+    const column = assess(family);
+    expect(column).toMatchObject({
+      outcome: 'POTENTIALLY_ELIGIBLE',
+      pathwayYears: 10,
+      pathwayCompletionDate: '2036-01-01',
+    });
+    expect(column.earliestDate).toBeUndefined();
+    expect(column.rules.find((r) => r.id === 'ES-RESIDENCE')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-025'],
+    });
+    const ordinary = assess({
+      ...family,
+      familyPermission: 'PARTNER_FIVE_YEAR',
+    });
+    expect(ordinary).toMatchObject({
+      outcome: 'LIKELY_NOT_ELIGIBLE',
+      earliestDate: '2036-01-01',
+    });
+    expect(ordinary.pathwayCompletionDate).toBeUndefined();
   });
 
   test('switching from Family and Private Life to work restarts the clock', () => {

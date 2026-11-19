@@ -1,13 +1,18 @@
 import {
   currentLaw2026_11 as cl,
   earnedSettlement2026_11 as es,
+  publicFundsBenefits,
 } from '@uk-immigration/policy-data';
 import type { Route, RouteGroup } from '@uk-immigration/policy-data';
-import { addYears } from './dates';
+import { addDays, addYears } from './dates';
 import { continuousRun, episodeOn } from './residence';
 import { runRule, textFor } from './rule';
 import type { Lang } from './rule';
-import { meetsCefr } from './rules/es-requirements';
+import {
+  esHighestTalent,
+  historicalEventsAssumption,
+  meetsCefr,
+} from './rules/es-requirements';
 import {
   ageExempt,
   familyChildPathway,
@@ -63,6 +68,8 @@ import type {
 interface Candidate {
   years: number;
   start?: IsoDate;
+  /** Earned Settlement: earlier start if pending residence policy allows it. */
+  possibleStart?: IsoDate;
   /** When set, the residence calculation has already resolved CR 1.1. */
   applicationDate?: IsoDate;
   rules: RuleOutcome[];
@@ -125,7 +132,14 @@ function decide(candidates: Candidate[], simulationDate: IsoDate): Decision {
   }
 
   const maybe = candidates
-    .filter((c) => statusOf(c) === 'UNKNOWN' && (met(c) || !dueOf(c)))
+    .filter(
+      (c) =>
+        statusOf(c) === 'UNKNOWN' &&
+        (met(c) ||
+          !dueOf(c) ||
+          (c.possibleStart &&
+            addYears(c.possibleStart, c.years) <= simulationDate)),
+    )
     .sort(byYears);
   if (maybe.length > 0) {
     const unknown = maybe.flatMap((c) =>
@@ -293,8 +307,8 @@ function protectionCandidates(
             { years: fallback, rules: mandatory },
           ]
         : [{ years: base, rules: mandatory }];
-  const start = esQualifyingResidence(ctx)?.start;
-  return candidates.map((c) => ({ ...c, start }));
+  const { start, possibleStart } = esQualifyingResidence(ctx) ?? {};
+  return candidates.map((c) => ({ ...c, start, possibleStart }));
 }
 
 /** `rules` with `id` failed for want of time, until `earliestDate`. */
@@ -382,6 +396,8 @@ function assessEarnedSettlement(
     );
   }
   const protection = esProtectionRouteOn(ctx.timeline, ctx.simulationDate);
+  const route = esRouteOn(ctx.timeline, ctx.simulationDate);
+  const groups = route ? groupsOf(route) : [];
   const rules = ruleList
     .filter((rule) =>
       protection
@@ -390,6 +406,9 @@ function assessEarnedSettlement(
           !ES_PROTECTION_ONLY.includes(rule.meta.id),
     )
     .map((rule) => runRule(rule, ctx));
+  // The eligibility criteria are pending (PD-011), so expose the independent
+  // talent route without using it to select a candidate or project a date.
+  if (groups.includes('HIGH_TALENT')) rules.push(runRule(esHighestTalent, ctx));
   const pick = (...ids: string[]) =>
     ids.map((id) => rules.find((r) => r.id === id)!);
   if (protection) {
@@ -418,9 +437,7 @@ function assessEarnedSettlement(
     'ES-TRANSITIONAL-CARE-WORKER',
     'ES-TRANSITIONAL-HEALTH-EDUCATION',
   ];
-  const start = esQualifyingResidence(ctx)?.start;
-  const route = esRouteOn(ctx.timeline, ctx.simulationDate);
-  const groups = route ? groupsOf(route) : [];
+  const { start, possibleStart } = esQualifyingResidence(ctx) ?? {};
   // Family and Private Life only qualifies for the 10 and 20-year pathways (p23).
   const shortPathways = !groups.includes('FAMILY_AND_PRIVATE_LIFE');
   const candidates: Candidate[] = [
@@ -445,7 +462,7 @@ function assessEarnedSettlement(
       years: v.pathwayYears20.value,
       rules: [...mandatory, ...pick('ES-EARNINGS-10Y')],
     },
-  ].map((c) => ({ ...c, start }));
+  ].map((c) => ({ ...c, start, possibleStart }));
 
   const L = textFor(ctx);
   const assumptions = [esBaseAssumption(L)];
@@ -491,23 +508,98 @@ function finishEarnedSettlement(
 ): SettlementAssessment {
   const L = textFor(ctx);
   const decision = decide(candidates, ctx.simulationDate);
+  const residenceUnknown =
+    rules.find((r) => r.id === 'ES-RESIDENCE')?.status === 'UNKNOWN';
+  const selected = candidates.find(
+    (c) =>
+      decision.decidedBy?.every((id) => basisOf(c).includes(id)) &&
+      c.years === decision.pathwayYears,
+  );
+  const due = selected && dueOf(selected);
+  const completion = due && due > ctx.simulationDate ? due : undefined;
+  const fundsFail = rules.some(
+    (r) => r.id === 'ES-PUBLIC-FUNDS' && r.status === 'FAIL',
+  );
+  if (fundsFail) assumptions.push(historicalEventsAssumption(L, 'publicFunds'));
+  const reassessment = fundsFail ? publicFundsReassessment(ctx) : undefined;
+  const shorterPathMayReopen =
+    reassessment &&
+    candidates.some(
+      (c) =>
+        c.years < (decision.pathwayYears ?? Infinity) &&
+        c.rules.some((r) => r.id === 'ES-PUBLIC-FUNDS') &&
+        c.rules.every((r) => r.id === 'ES-PUBLIC-FUNDS' || r.status !== 'FAIL'),
+    );
+  const conditionalCompletion =
+    completion &&
+    (residenceUnknown || (shorterPathMayReopen && reassessment < completion))
+      ? completion
+      : undefined;
+  const { earliestDate, projectedFrom, ...rest } = decision;
+  if (conditionalCompletion) {
+    assumptions.push(
+      L(
+        `按自 ${selected!.start} 起持续居留及其余要求届时满足的假设，所选 ${decision.pathwayYears} 年路径于 ${conditionalCompletion} 满期。`,
+        `On the assumption that residence continues from ${selected!.start} and the remaining requirements are met then, the selected ${decision.pathwayYears}-year pathway completes on ${conditionalCompletion}.`,
+      ),
+    );
+  }
+  if (reassessment) {
+    assumptions.push(
+      L(
+        `若不再领取所计入的 public funds，自 ${reassessment} 起可按较短路径重新评估。`,
+        `If no further counted public funds are received, shorter pathways can be reassessed from ${reassessment}.`,
+      ),
+    );
+  }
   // Not enough residence yet for the pathway the date was projected from:
   // ES-RESIDENCE shows that as the failing rule.
-  const shown = showProjected(
-    rules,
-    'ES-RESIDENCE',
-    decision,
-    L(
-      `${decision.pathwayYears} 年路径的居留还不够，${decision.earliestDate} 满 ${decision.pathwayYears} 年。`,
-      ` Not enough residence yet for the ${decision.pathwayYears}-year pathway; ${decision.pathwayYears} years are completed on ${decision.earliestDate}.`,
-    ),
-  );
+  const shown = residenceUnknown
+    ? rules
+    : showProjected(
+        rules,
+        'ES-RESIDENCE',
+        decision,
+        L(
+          `${decision.pathwayYears} 年路径的居留还不够，${decision.earliestDate} 满 ${decision.pathwayYears} 年。`,
+          ` Not enough residence yet for the ${decision.pathwayYears}-year pathway; ${decision.pathwayYears} years are completed on ${decision.earliestDate}.`,
+        ),
+      );
   return {
-    ...toAssessment(decision, shown, assumptions, L),
+    ...toAssessment(
+      conditionalCompletion ? rest : { ...rest, earliestDate, projectedFrom },
+      shown,
+      assumptions,
+      L,
+    ),
+    ...(conditionalCompletion && {
+      pathwayCompletionDate: conditionalCompletion,
+    }),
+    ...(reassessment && { publicFundsReassessmentDate: reassessment }),
     ...(rules.find((r) => r.id === 'ES-ROUTE-GROUP')?.status === 'PASS' && {
       routeGroup,
     }),
   };
+}
+
+// SRC-001 p18 and p39. The lookback includes the anniversary of the last use.
+function publicFundsReassessment({ timeline, simulationDate }: RuleContext) {
+  const years = es.values.publicFundsLookbackYears.value;
+  const from = addYears(simulationDate, -years);
+  const used = timeline.benefits.filter(
+    (b) =>
+      b.from <= simulationDate &&
+      (b.to ?? simulationDate) >= from &&
+      publicFundsBenefits.publicFunds.some(
+        (entry) => entry.benefitType === b.benefitType,
+      ),
+  );
+  if (used.some((b) => !b.to)) return undefined;
+  const lastUse = used
+    .map((b) => b.to!)
+    .sort()
+    .at(-1);
+  return lastUse && addDays(addYears(lastUse, years), 1);
 }
 
 const clBaseAssumption = (L: Lang) =>

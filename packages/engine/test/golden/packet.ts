@@ -124,6 +124,7 @@ export function reviewPacket(cases: Evaluated[]): string {
     'How to read a result:',
     `- **Outcome** is the simulator’s overall view for that rule set. Outcomes used in this packet: ${outcomes.join(', ')}.`,
     '- **Pathway** is the qualifying period the simulator thinks applies. **Earliest date** is the application date itself when the person already qualifies; otherwise it is the first later date the simulator projects for that pathway, assuming nothing else changes.',
+    '- **Conditional completion** is when the selected reform pathway would reach its residence period under the stated assumptions. **Public funds reassessment from** is the first day the recorded use falls outside the lookback, assuming no further counted use.',
     '- **Decisive rules** are the checks the outcome rests on. Every failing or unknown check is then listed in full, except when the person is likely eligible: the failures left are other pathways not taken, listed by id only. Each check cites the source register id (SRC-xxx) and paragraph.',
     '- The Earned Settlement column models policy announced on 2 November 2026 (CP 1707). It is **not law yet**; please only flag it where it misreads the published policy.',
     '',
@@ -136,7 +137,17 @@ export function reviewPacket(cases: Evaluated[]): string {
     const a = r.byRuleSet[id as keyof typeof r.byRuleSet];
     if (!a)
       return r.shortCircuit ? `short circuit: ${r.shortCircuit.reason}` : '—';
-    return `${a.outcome}${a.pathwayYears ? `, ${a.pathwayYears}y` : ''}${a.earliestDate ? `, ${a.earliestDate}` : ''}`;
+    return [
+      a.outcome,
+      a.pathwayYears && `${a.pathwayYears}y`,
+      a.earliestDate,
+      a.pathwayCompletionDate &&
+        `conditional completion ${a.pathwayCompletionDate}`,
+      a.publicFundsReassessmentDate &&
+        `public funds reassessment from ${a.publicFundsReassessmentDate}`,
+    ]
+      .filter(Boolean)
+      .join(', ');
   };
   for (const c of cases)
     lines.push(
@@ -176,6 +187,12 @@ export function reviewPacket(cases: Evaluated[]): string {
         '',
         `Outcome **${a.outcome}**${a.pathwayYears ? `; pathway ${a.pathwayYears} years` : ''}${a.earliestDate ? `; earliest date ${a.earliestDate}` : ''}${a.routeGroup ? `; route group ${a.routeGroup}` : ''}.`,
       );
+      if (a.pathwayCompletionDate)
+        lines.push(`Conditional completion: ${a.pathwayCompletionDate}.`);
+      if (a.publicFundsReassessmentDate)
+        lines.push(
+          `Public funds reassessment from ${a.publicFundsReassessmentDate}, if no further counted use.`,
+        );
       const decisive = a.rules.filter((r) => a.decidedBy?.includes(r.id));
       const others = a.rules.filter((r) => !a.decidedBy?.includes(r.id));
       // Once eligible, the remaining failures are pathways not taken;

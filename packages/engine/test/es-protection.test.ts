@@ -478,7 +478,9 @@ describe('ES-PROTECTION-CONTRIBUTION', () => {
       '2030-01-01',
     );
     expect(column.pathwayYears).toBe(20);
-    expect(column.earliestDate).toBe('2048-03-01');
+    expect(column.earliestDate).toBeUndefined();
+    expect(column.pathwayCompletionDate).toBe('2048-03-01');
+    expect(column.publicFundsReassessmentDate).toBe('2034-07-01');
   });
 });
 
@@ -508,6 +510,38 @@ describe('ES-ENGLISH-B2 for refugees', () => {
       english([{ ...ukrs()[0], resettlementScheme: 'OTHER_DESIGNATED' }], 'B1')
         .status,
     ).toBe('FAIL');
+  });
+
+  test('A4#5 A2 and no test on Safe and Legal depend on the missing scheme', () => {
+    const known = ukrs('2028-01-01');
+    const applicant = {
+      english: { cefrLevel: 'A2' as const },
+      lifeInTheUk: undefined,
+    };
+    const assess = (episodes: ImmigrationEpisode[]) =>
+      es({ ...applicant, episodes }, '2033-01-01').column;
+    const missing = [{ ...known[0], resettlementScheme: undefined }];
+    const rule = (a: ReturnType<typeof assess>, id: string) =>
+      a.rules.find((r) => r.id === id);
+    const unknown = assess(missing);
+    expect(unknown.outcome).toBe('INSUFFICIENT_INFORMATION');
+    for (const id of ['ES-ENGLISH-B2', 'ES-KOL']) {
+      expect(rule(unknown, id)).toMatchObject({
+        status: 'UNKNOWN',
+        explanation: expect.stringContaining('安置计划'),
+      });
+      expect(rule(assess(known), id)?.status).toBe('PASS');
+    }
+    expect(assess(known).outcome).toBe('LIKELY_ELIGIBLE');
+    expect(english(missing, 'A1', '2033-01-01').status).toBe('FAIL');
+    expect(english(missing, 'B2', '2033-01-01').status).toBe('PASS');
+    expect(
+      run(
+        esKol,
+        { episodes: missing, lifeInTheUk: { passed: true } },
+        '2033-01-01',
+      ).status,
+    ).toBe('PASS');
   });
 
   test('a legacy UK Resettlement Scheme arrival is unknown (PD-045)', () => {

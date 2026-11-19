@@ -17,6 +17,7 @@ const CARE_CODES = careWorkerOccupations.occupations
 
 const isCareWorker = (e: ImmigrationEpisode) =>
   e.route === 'SKILLED_WORKER' &&
+  e.role === 'MAIN' &&
   careWorkerOccupations.occupations.some((o) => o.socCode === e.socCode);
 
 export const esTransitionalCareWorker = defineRule(
@@ -36,6 +37,28 @@ export const esTransitionalCareWorker = defineRule(
   ({ timeline, simulationDate, locale }) => {
     const L = textFor({ locale });
     const current = episodeOn(timeline, simulationDate);
+    const threshold = es.values.careWorkerSalaryThreshold.value;
+    if (
+      current?.route === 'SKILLED_WORKER' &&
+      current.role === 'MAIN' &&
+      !current.socCode
+    ) {
+      return current.salary !== undefined && current.salary < threshold
+        ? {
+            status: 'FAIL',
+            explanation: L(
+              `薪资 ${gbp(current.salary)} 低于 care worker 过渡安排要求的 ${gbp(threshold)}。`,
+              `Salary of ${gbp(current.salary)} is below the ${gbp(threshold)} required for the care worker transitional arrangement.`,
+            ),
+          }
+        : {
+            status: 'UNKNOWN',
+            explanation: L(
+              '请补充当前担保岗位的 SOC 2020 代码，以判断能否适用 care worker 过渡安排。',
+              'Provide the SOC 2020 code of the current sponsored job to assess the care worker transitional arrangement.',
+            ),
+          };
+    }
     if (!current || !isCareWorker(current)) {
       return {
         status: 'FAIL',
@@ -50,8 +73,8 @@ export const esTransitionalCareWorker = defineRule(
       .episodes[0].validFrom;
     const assumptions = [
       L(
-        `截止点取 Immigration White Paper 的发布日 ${cutoff}（PD-035）；"进入或转入该路线"按这段连续 care worker 许可的起始日判断，职业按 SOC 2020 ${CARE_CODES} 认定（PD-036）。`,
-        `The cut-off is taken as the Immigration White Paper publication date, ${cutoff} (PD-035); “entered or switched into the route” is judged by the start of the current continuous care worker permission, and the occupation by SOC 2020 ${CARE_CODES} (PD-036).`,
+        `截止点取 Immigration White Paper 的发布日 ${cutoff}（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 ${CARE_CODES} 认定（PD-036）。`,
+        `The cut-off is the Immigration White Paper publication date, ${cutoff} (PD-035). For continuous care worker permission that started before the cut-off, the start date is used as a proxy for route entry, with occupation identified by SOC 2020 ${CARE_CODES} (PD-036).`,
       ),
     ];
     if (entered >= cutoff) {
@@ -68,15 +91,15 @@ export const esTransitionalCareWorker = defineRule(
             assumptions,
           }
         : {
-            status: 'FAIL',
+            status: 'UNKNOWN',
             explanation: L(
-              `自 ${entered} 起进入 care worker 路线，不早于 White Paper 发布日 ${cutoff}，不适用过渡安排，走标准 Earned Settlement 路径。`,
-              `Entered the care worker route on ${entered}, not before the White Paper publication date of ${cutoff}: the transitional arrangements do not apply, and the standard Earned Settlement pathways are used.`,
+              `care worker 许可从 ${entered} 起，位于截止点 ${cutoff} 当日或之后。仅凭许可日期无法排除在截止前申请；跨截止点时以申请、获批还是入境日为准仍待公布。`,
+              `Care worker permission starts on ${entered}, on or after the ${cutoff} cut-off. That date alone cannot rule out an application before the cut-off. Which date governs across the cut-off (application, grant or arrival) remains unsettled.`,
             ),
+            pendingDetails: ['PD-036'],
             assumptions,
           };
     }
-    const threshold = es.values.careWorkerSalaryThreshold.value;
     if (current.salary === undefined) {
       return {
         status: 'UNKNOWN',
@@ -91,9 +114,15 @@ export const esTransitionalCareWorker = defineRule(
       return {
         status: 'FAIL',
         explanation: L(
-          `薪资 ${gbp(current.salary)} 低于过渡安排要求的 ${gbp(threshold)}，满 5 年时不能凭此定居；可再申请一次 5 年 Health and Care 签证，之后再申请定居。`,
-          `Salary of ${gbp(current.salary)} is below the ${gbp(threshold)} the transitional arrangements require, so settlement on this basis is not possible after 5 years; a further 5-year Health and Care visa can be applied for once, before applying for settlement.`,
+          `薪资 ${gbp(current.salary)} 低于过渡安排要求的 ${gbp(threshold)}，满 ${es.values.pathwayYears5.value} 年时不能凭此定居。仅限从事该行业真实工作，才可再申请一次 ${es.values.pathwayYears5.value} 年 Health and Care 签证，之后可再申请定居（p43；p45 案例 B）。`,
+          `Salary of ${gbp(current.salary)} is below the ${gbp(threshold)} required, so settlement on this basis is unavailable after ${es.values.pathwayYears5.value} years. A further ${es.values.pathwayYears5.value}-year Health and Care visa can be applied for once, only for genuine work in the sector, before applying again for settlement (p43; p45 Individual B).`,
         ),
+        sources: [
+          {
+            srcId: 'SRC-001',
+            locator: 'p42–p43, Care workers; p45, Individual B',
+          },
+        ],
         assumptions,
       };
     }
@@ -138,6 +167,22 @@ export const esTransitionalHealthEducation = defineRule(
     const L = textFor({ locale });
     const current = episodeOn(timeline, simulationDate);
     const soc = current?.socCode;
+    const cutoff = es.values.whitePaperPublished.value;
+    const arrived = timeline.episodes.map((e) => e.validFrom).sort()[0];
+    if (
+      current?.route === 'SKILLED_WORKER' &&
+      current.role === 'MAIN' &&
+      !soc &&
+      arrived < cutoff
+    ) {
+      return {
+        status: 'UNKNOWN',
+        explanation: L(
+          '请补充当前担保岗位的 SOC 2020 代码，以判断能否适用医疗或教育岗位过渡安排。',
+          'Provide the SOC 2020 code of the current sponsored job to assess the health or education transitional arrangement.',
+        ),
+      };
+    }
     if (
       current?.route !== 'SKILLED_WORKER' ||
       current.role !== 'MAIN' ||
@@ -164,13 +209,11 @@ export const esTransitionalHealthEducation = defineRule(
         pendingDetails: ['PD-038'],
       };
     }
-    const cutoff = es.values.whitePaperPublished.value;
     const inJob = continuousRun(
       timeline,
       simulationDate,
       (e) => e.route === 'SKILLED_WORKER' && e.socCode === soc,
     ).episodes[0].validFrom;
-    const arrived = timeline.episodes.map((e) => e.validFrom).sort()[0];
     const assumptions = [
       L(
         `截止点取 Immigration White Paper 的发布日 ${cutoff}；职业按 SOC 2020 ${EXAMPLES.map((o) => o.socCode).join(' / ')} 认定，"来到英国"按最早一段许可的起始日判断（PD-038、PD-039）。`,

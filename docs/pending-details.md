@@ -229,3 +229,9 @@ dependant 随主申请人定居（SRC-001 Ch.5）时，原文未规定、引擎�
 | PD-078 | HPI 扩容后的名单、cap 与实施边界 | 预算拟扩至全球 top 150 institutions 并按比例增加 cap；未给新名单、具体新 cap 或精确实施日。 | SRC-032 §5.6 #access-to-talent、§7.9 Expanding the High Potential Individual visa；SRC-035 HPI 1.6A、5.1–5.3；SRC-036 正文首段与大学表 | 新方案细节为 `UNKNOWN`；现行 8,000 年度 cap（SRC-035 HPI 1.6A）与按授予日匹配年度名单的要求照旧，不能把 SRC-036 的年度维护当作扩容完成。现引擎不判断 HPI 入境／发签资格。 | 新方案确切实施日原文未提及 |
 | PD-079 | 最长六个月 curtailment 的适用与分档 | 预算和议会答复拟让 highest skilled workers 获最长六个月找新工作的 curtailment 期间，时长取决于此前高薪岗位的工作年限；未给完整 eligible cohort、起算、分档或过渡。 | SRC-032 §7.9 Extending visa curtailment to six months；SRC-033，40064 Answer ¶9–10（Budget ¶6.95） | 资格、具体时长与边界为 `UNKNOWN`；不等同所有 Skilled Worker 自动享有六个月，不与 SRC-001 的 care worker 专门安排合并，现引擎不新增该判断。 | 计划 2027 年；确切日期与细节原文未提及（SRC-033 Answer ¶9–10） |
 | PD-080 | SW 24.3 row E 在 SW 14.5(c) 截止后的表格引用 | SW 14.5(c)(iii) 要求申请早于 2026-12-01；SW 24.3 row E 又直接引用 SW 14.5(c) 的表，SW 24.4(a) 引用 SW 14.1–14.5，未明确截止后 row E 能否继续用该表。 | SRC-004 SW 14.5(c)(iii)、SW 24.3 row E、SW 24.4(a)；既有审查见 docs/tasks/reports/11.4-going-rate-transition.md | row E 本就未建模，`CL-SW-SALARY`／`CL-SW-GOING-RATE` 保留范围假设，不改变现行输出；如以后纳入该群体，截止后该表是否可用应为 `UNKNOWN`，不能把此歧义扩成所有工签 going rate 的变化。 | 原文未提及；待官方澄清或后续修法 |
+
+## 十二、护工过渡的居留合并（任务 33d）
+
+| ID | 事项 | 原文怎么说 | 出处 | 对引擎的影响 | 预计何时明确 |
+|---|---|---|---|---|---|
+| PD-081 | 护工过渡合格期能否合并普通 Appendix FM 伴侣许可 | 政府回应保留现有合格期，案例 A 要求符合现有路线要求，但没有列可合并的许可，也未说明过渡期是否沿用 SW 21.2。普通 Appendix FM 伴侣许可不在 SW 21.2(a)–(h) 清单中，(i) 仅有指定时期的等候例外。 | SRC-001 p42，Care workers；p45，Individual A；SRC-004 SW 21.1–21.2 | 现有改革过渡候选使用通用改革居留起点。若日期依赖合并普通伴侣许可，官方口径仍未定，待实施规则确认。任务 33d 只登记。 | 原文未提及 |

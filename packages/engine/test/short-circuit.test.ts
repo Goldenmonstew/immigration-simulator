@@ -22,6 +22,68 @@ describe('short circuits', () => {
     );
   });
 
+  test('A6#11 criminality warning distinguishes UK, overseas and minor offences in both languages', () => {
+    const applicant = timeline({ criminalRecord: [{ date: '2021-05-01' }] });
+    for (const [locale, matching] of [
+      ['zh-CN', ['英国境内的成年犯罪记录', '海外定罪须核对', '未成年时的犯罪']],
+      [
+        'en',
+        [
+          'adult criminal record in the UK',
+          'whether the conduct is also an offence in the UK',
+          'offences committed as a minor',
+        ],
+      ],
+    ] as const) {
+      const r = evaluate({
+        timeline: applicant,
+        simulationDate: SIMULATION_DATE,
+        locale,
+      });
+      expect(r.shortCircuit?.reason).toBe('CRIMINALITY');
+      for (const phrase of matching) {
+        expect(r.shortCircuit?.message.toLowerCase()).toContain(
+          phrase.toLowerCase(),
+        );
+      }
+    }
+  });
+
+  test.each([
+    ['BEREAVED_PARTNER', 'PD-051', 'B1'],
+    ['BEREAVED_PARTNER', 'PD-051', 'A2'],
+    ['DOMESTIC_ABUSE_VICTIM', 'PD-027', 'B1'],
+    ['AFGHAN_SCHEMES', 'PD-028', 'B1'],
+    ['WINDRUSH', 'PD-028', 'B1'],
+  ] as const)(
+    'A4#7 and A6#11 strengthened requirements are unsettled on %s (%s, %s)',
+    (route, detail, cefrLevel) => {
+      const applicant = timeline({
+        episodes: [{ ...timeline().episodes[1], route }],
+        english: { cefrLevel },
+      });
+      for (const locale of ['zh-CN', 'en'] as const) {
+        const r = evaluate({
+          timeline: applicant,
+          simulationDate: SIMULATION_DATE,
+          locale,
+        });
+        expect(r.shortCircuit).toMatchObject({
+          reason: 'OUTSIDE_FRAMEWORK',
+          message: expect.stringContaining(detail),
+        });
+        const a = r.byRuleSet['earned-settlement-2026-11']!;
+        expect(a.outcome).toBe('REQUIRES_REGULATED_REVIEW');
+        expect(
+          a.rules.find((rule) => rule.id === 'ES-ENGLISH-B2'),
+        ).toMatchObject({ status: 'UNKNOWN', pendingDetails: [detail] });
+        expect(
+          a.rules.find((rule) => rule.id === 'ES-CRIMINALITY')?.status,
+        ).toBe('UNKNOWN');
+      }
+    },
+  );
+
   test('an outside-framework route stops only the Earned Settlement column', () => {
     const r = result({
       episodes: [
