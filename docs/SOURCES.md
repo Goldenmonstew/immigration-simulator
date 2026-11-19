@@ -157,6 +157,21 @@
 | Paragon Law: A Fairer Pathway to Settlement explained | https://www.paragonlaw.co.uk/resources/earned-settlement-uk-fairer-pathway-to-ilr |
 | DavidsonMorris: Skilled Worker minimum salary 2026 | https://www.davidsonmorris.com/skilled-worker-visa-minimum-salary |
 
+## 二手来源（仅交叉验证，2026-11-19 用于核对学生、毕业生路线）
+
+UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19，核对结果见 [docs/research/2026-11-19-ukcisa-crosscheck.md](research/2026-11-19-ukcisa-crosscheck.md)。页面内各段更新日期不一，数字一律以一级来源为准。
+
+| 标题 | URL |
+|---|---|
+| UKCISA: Graduate route | https://www.ukcisa.org.uk/student-advice/working/graduate-route/ |
+| UKCISA: Skilled Worker route | https://www.ukcisa.org.uk/student-advice/working/skilled-worker-route/ |
+| UKCISA: Working after studies | https://www.ukcisa.org.uk/student-advice/working/working-after-studies/ |
+| UKCISA: Student work | https://www.ukcisa.org.uk/student-advice/working/student-work/ |
+| UKCISA: Student route eligibility and requirements | https://www.ukcisa.org.uk/student-advice/visas-and-immigration/student-route-eligibility-and-requirements/ |
+| UKCISA: Student route applying in the UK | https://www.ukcisa.org.uk/student-advice/visas-and-immigration/student-route-applying-in-the-uk/ |
+| UKCISA: Student route bringing your family | https://www.ukcisa.org.uk/student-advice/visas-and-immigration/student-route-bringing-your-family/ |
+| UKCISA: Student immigration the basics | https://www.ukcisa.org.uk/student-advice/visas-and-immigration/student-immigration-the-basics/ |
+
 ## 研究报告引用标记 → 来源映射（任务 0.3 已逐条核对，2026-11-04）
 
 报告 `docs/research/2026-11-03-deep-research-report.md` 的 57 处引用共用 30 个研究工具内部 ID，报告里没有给出任何 URL，工具当时实际打开的页面已无法还原。因此本表的方法是：**逐条找出引用该 ID 的句子，把句子里的论点与本表登记的快照原文核对，填入能支撑该论点的确定位置**。"报告行"指该文件的行号。SRC-001 的 `p<N>` 是 PDF 物理页（见上方定位约定）。
