@@ -186,6 +186,16 @@ for (const row of primarySources.match(/^\| SRC-\d+ \|.*$/gm)) {
         snapshot.endsWith('.html')
       ) {
         normalize = normalizedBody;
+      } else if (
+        url.startsWith('https://www.legislation.gov.uk/') &&
+        snapshot.endsWith('.html')
+      ) {
+        // The "up to date ... on or before <date>" status line changes daily.
+        normalize = (html) =>
+          normalizedBody(html).replace(
+            /in force on or before \d{1,2} [A-Z][a-z]+ \d{4}/g,
+            'in force on or before <date>',
+          );
       }
       const response = await fetchWithRetry(url);
       if (!response.ok) {
