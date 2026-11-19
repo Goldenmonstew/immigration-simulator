@@ -82,6 +82,26 @@ export const currentLaw2026_11 = {
       value: 12,
       sources: [{ srcId: 'SRC-008', locator: 'CR 3.1' }],
     },
+    continuousResidenceReferenceDays: {
+      value: 28,
+      sources: [{ srcId: 'SRC-008', locator: 'CR 1.1(b)' }],
+    },
+    continuousResidenceLegacyPermissionBefore: {
+      value: '2018-01-11',
+      sources: [{ srcId: 'SRC-008', locator: 'CR 3.2' }],
+    },
+    continuousResidenceGracePeriodFrom: {
+      value: '2020-08-01',
+      sources: [
+        { srcId: 'SRC-008', locator: 'CR 2.1(d), CR 4.1(d)(v), CR 4.3' },
+      ],
+    },
+    continuousResidenceGracePeriodTo: {
+      value: '2020-08-31',
+      sources: [
+        { srcId: 'SRC-008', locator: 'CR 2.1(d), CR 4.1(d)(v), CR 4.3' },
+      ],
+    },
 
     // Settlement applicants under 18 or aged 65 and over are exempt from the
     // English language and Life in the UK requirements.

@@ -259,10 +259,6 @@ export function esQualifyingResidence({
     run.episodes[0].validFrom,
     simulationDate,
     timeline.absences,
-    {
-      maxDays: cl.values.continuousResidenceMaxAbsenceDays.value,
-      windowMonths: cl.values.continuousResidenceWindowMonths.value,
-    },
   );
   return { start, run };
 }

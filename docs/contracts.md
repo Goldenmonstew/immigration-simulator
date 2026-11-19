@@ -106,13 +106,15 @@ What-if、前向推算的结构化假设，都等用到时再加字段，不提�
   - 10 年：强制 + `ES-BREACH` + `ES-PUBLIC-FUNDS` + `ES-EARNINGS-10Y`
   - 20 年：强制 + `ES-EARNINGS-10Y`（用过 public funds 或有 breach 时只剩这条）
   - 当前为 Family and Private Life 时只有 10 / 20 年（p23）。居留起点都是 `ES-RESIDENCE` 的合格期起点。
-- 现行法律：`CL-SCOPE` 不通过时只输出这一条、结论 `INSUFFICIENT_INFORMATION`。否则候选为 Skilled Worker 5 年（`CL-SW-SALARY`、`CL-SW-GOING-RATE`（2.5）、`CL-ENGLISH`、`CL-KOL`，起点为连续 Skilled Worker 段）与 Long Residence 10 年（`CL-ENGLISH`、`CL-KOL`，起点为连续合法居留段；英语按 LR 13.1 的等级单独核对，与当前路线的等级不同时只改该候选里的状态，`rules[]` 仍只显示按当前路线的一条，差异写进 `assumptions`（4.5））；居留规则 `CL-SW-RESIDENCE-5Y` / `CL-LR-RESIDENCE-10Y` 只用于展示，年限由起点计算。
+- 现行法律：`CL-SCOPE` 为 `UNKNOWN` 时只输出这一条、结论 `INSUFFICIENT_INFORMATION`。适用的境内申请条文下，行程明确显示申请人在境外时，`CL-SCOPE` 可返回 `FAIL`，结论为 `LIKELY_NOT_ELIGIBLE`。否则候选为 Skilled Worker 5 年（`CL-SW-SALARY`、`CL-SW-GOING-RATE`（2.5）、`CL-ENGLISH`、`CL-KOL`，起点为连续 Skilled Worker 段）与 Long Residence 10 年（`CL-ENGLISH`、`CL-KOL`，起点为连续合法居留段；英语按 LR 13.1 的等级单独核对，与当前路线的等级不同时只改该候选里的状态，`rules[]` 仍只显示按当前路线的一条，差异写进 `assumptions`（4.5））；候选与居留规则共用可申请日的计算。Long Residence 的 `CL-LR-RESIDENCE-10Y` 也显示 LR 9.3 的申请日位置判断。
 
-判定（两个规则集同一套）：
+候选日期以实际申请日为比较基准。引用 Appendix Continuous Residence 的现行路径按 SRC-008 CR 1.1 从申请日及其后最多 28 天内的可计入日期回溯。适用 UK Ancestry 的历史许可用其到期日回溯（CR 1.1(d)）。问卷没有决定日。缺席限额在可计合格期内核对，CR 3.2 的旧许可窗口按实际申请日周年分隔。合格期满期日与可申请日分别计算。未来日期按持续具备合格许可和申请条件推算。随主申请人同时申请时取主申请人的有效申请日期与本人所需申请日期的较晚者。Appendix FM 五年伴侣与 Appendix Settlement Protection 的日期仍按各自条文；Earned Settlement 用连续起点加路径年限。
 
-1. 有候选全部 `PASS` 且起点 + 年限 ≤ 申请日 → `LIKELY_ELIGIBLE`，`pathwayYears` 取最短，`earliestDate` = 申请日。
-2. 否则，有候选居留已满（或起点未知）且只有 `UNKNOWN`、没有 `FAIL` → 这些 `UNKNOWN` 都带 `pendingDetails` 时 `POTENTIALLY_ELIGIBLE`，`pathwayYears` 取该候选；否则 `INSUFFICIENT_INFORMATION`，不给 `pathwayYears`。两种都不给 `earliestDate`。
-3. 否则 `LIKELY_NOT_ELIGIBLE`；若还有未 `FAIL` 的候选，取起点 + 年限最早的一条给出 `pathwayYears` 与 `earliestDate`，并加假设"持续居留、收入等状况不变"。强制要求 `FAIL` 时所有候选都失败，不给年限与日期。
+判定（两个规则集共用）：
+
+1. 有候选全部 `PASS` 且该候选的可申请日 ≤ 实际申请日 → `LIKELY_ELIGIBLE`，`pathwayYears` 取最短，`earliestDate` = 申请日。
+2. 否则，有候选在实际申请日满足相应的居留时点（或时点未知）且只有 `UNKNOWN`、没有 `FAIL` → 这些 `UNKNOWN` 都带 `pendingDetails` 时 `POTENTIALLY_ELIGIBLE`，`pathwayYears` 取该候选；否则 `INSUFFICIENT_INFORMATION`，不给 `pathwayYears`。两种都不给 `earliestDate`。
+3. 否则 `LIKELY_NOT_ELIGIBLE`；若还有未 `FAIL` 的候选，取可申请日最早的一条给出 `pathwayYears` 与 `earliestDate`，并加假设"持续居留、收入等状况不变"。强制要求 `FAIL` 时所有候选都失败，不给年限与日期。
 
 短路（`SimulationResult.shortCircuit`）：`CRIMINALITY`（任何犯罪记录）与 `IMMIGRATION_BREACH`（成年后非法入境）让两栏都是 `REQUIRES_REGULATED_REVIEW`；`PROTECTION` 与 `OUTSIDE_FRAMEWORK`（当前路线）只让 Earned Settlement 一栏是 `REQUIRES_REGULATED_REVIEW`，现行法律照常评估。短路时规则照常运行、出现在 `rules` 里，但该栏不给 `pathwayYears` / `earliestDate`。保护类路线的短路自 Phase 3.4 起按 §11.5。
 

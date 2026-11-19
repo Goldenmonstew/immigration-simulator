@@ -130,12 +130,12 @@ test('without decidedBy all rules remain eligible for the summary', () => {
 });
 
 test.each(['zh-CN', 'en'] as const)(
-  'HK BN(O) before five years keeps Long Residence in why but not the %s gap summary',
+  'HK BN(O) before the CR 1.1 window explains early filing and keeps Long Residence in why in %s',
   (locale) => {
     const draft = {
       ...createDraft(),
       ...structuredClone(clHkbnoFiveYears.request),
-      simulationDate: '2026-01-31',
+      simulationDate: '2026-01-01',
       completed: true,
     };
     const result = runSimulation(draft, locale);
@@ -155,6 +155,11 @@ test.each(['zh-CN', 'en'] as const)(
       </LocaleContext>,
     );
     expect(html).toContain(alternative.title);
+    expect(html).toContain(
+      locale === 'en'
+        ? 'you can apply up to 28 days before completing the qualifying period (CR 1.1(b))'
+        : '可在合格居留期满前最多 28 天递交（CR 1.1(b)）',
+    );
     if (locale === 'en') expect(html).not.toMatch(/[\u3400-\u9fff：、（）]/);
   },
 );

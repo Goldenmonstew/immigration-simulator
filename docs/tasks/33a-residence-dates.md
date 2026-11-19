@@ -1,0 +1,70 @@
+# 任务 33a：连续居留与最早申请日的修正（gpt-6.2-sol 实现，Fable 验收）
+
+> 例外说明：2026-11-19 用户决定把 Phase 15 的任务交给 Codex 实现（见 `docs/tasks/phase-15-plan.md` 的例外范围，含规则语义改动），AGENTS.md 的"Codex 只审核"在本任务不适用；Fable 负责审核、提交、开 PR。你的沙箱不能写 `.git`、不能启动浏览器：**不要 commit，不要跑 Playwright**。
+
+## 背景
+
+任务 31 由 gpt-6.2-sol 分 8 块逐条核对规则与原文，另由 7 个独立会话逐条复核。原始核对报告与复核表（只读，绝对路径）：
+
+- A1 核对：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/audit-a1.md`
+- A2 核对：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/audit-a2.md`
+- A3 核对：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/audit-a3.md`
+- A4 核对：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/audit-a4.md`
+- A5 核对：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/audit-a5.md`
+- A6 核对：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/audit-a6.md`
+- A7 核对：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/audit-a7.md`
+- A8 核对：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/audit-a8.md`
+- A1 复核：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/verify-a1.md`
+- A2 复核：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/verify-a2.md`
+- A3 复核：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/verify-a3.md`
+- A4 复核：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/verify-a4.md`
+- A5 复核：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/verify-a5.md`
+- A6 复核：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/verify-a6.md`
+- A7 复核：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/verify-a7.md`
+
+复核表里判"成立""部分成立"的才修；判"不成立（明示简化）""已登记 PD"的不修。下面"要修的条目"按"核对块#编号"引用复核表的行。
+
+## 修正原则（每条都适用）
+
+1. 动手前自己回原文快照（`policy-sources/`）再核一遍；你不同意复核结论的，不改，在报告里写理由与原文位置。
+2. 最小改动：缺信息时优先输出 `UNKNOWN`（必要时在 `docs/pending-details.md` 新登记 PD，编号接在现有最大号之后）或在结果里明示假设，**不要为此新增问卷题目**；只有不加输入就会给出错误的"通过"、且用户能答得上来时，才加输入，并同步问卷界面、`apps/web/lib/share.ts` 校验和中英文案。
+3. 每条改动的规则带 SRC 段落定位；政策数字走 `packages/policy-data`，不写裸数字。
+4. 每条至少一个回归测试，用复核表给的最小输入例子；测试名写核对块与编号（如 `A1#7`）。
+5. 输出变化后重新生成快照：`pnpm --filter @uk-immigration/engine test -- -u`（黄金案例 `packages/engine/test/golden/`、双语快照、`docs/review/adviser-packet.md` 由测试生成）。在报告里列出哪些黄金案例的结论变了、为什么。
+6. 不改范围外的文件；发现范围外的问题写进"发现与建议"。不要过度工程化（见 AGENTS.md）。
+
+## 要修的条目
+
+都与连续居留计算、缺席窗口和"最早申请日"有关，集中在共用代码：
+
+- 最早申请日按 CR 1.1 倒算，而不是把满期周年日当作最早申请日：A1#7、A2#3、A3#1、A6#1。
+- 无许可空档与 CR 4.1–4.3 的例外（中断、扣除、计入分开处理）：A1#9、A3#5、A6#2。
+- 缺席窗口：合格期以外的缺席不应拖后窗口（A1#8）；Long Residence 按所选合格期计 548 天并守 2024-04-11 过渡边界（A3#6）；旧许可缺席窗口与重叠录入（A3#3、A6#3）；改革的滚动缺席峰值（A4#1）。
+- 申请日人在英国境外仍判通过：A1#12、A2#2（只在问卷已有的出入境资料能判断时给 FAIL；资料不明时 `UNKNOWN`）。
+
+A1#17（出境与返英两天都计入缺席）原文未登记、无法核实，不改，留给任务 39 登记指引。
+
+## 范围
+
+`packages/engine/src/residence.ts`、`aggregate.ts`、`dates.ts`、`rules/current-law/shared.ts`、`scope.ts`，以及为接上新结果必须改的路线规则调用处（只改调用，不改路线自身条件——那是任务 33b、33c）；`rules/es-residence.ts` 只改 A4#1；`packages/policy-data/src/parameters/`；对应测试与生成快照；`docs/contracts.md` 中定义候选日期的段落。
+
+## 验收命令
+
+```bash
+pnpm --filter @uk-immigration/policy-data test
+pnpm --filter @uk-immigration/engine test
+pnpm --filter web test
+pnpm lint
+pnpm typecheck
+```
+
+## 报告
+
+写 `docs/tasks/reports/33a-residence-dates.md`，最终消息同内容，四段：做了什么（按条目列，建议的 commit 分组与文件）、怎么验证的、没做或没验证的（含不同意复核结论的条目）、发现与建议。
+
+## 第 2 轮（Fable 追加）
+
+1. **担保伴侣的位置不要判 `UNKNOWN`。** 问卷没有这一题，用户无法补；现在 4 个五年伴侣黄金案例（G-FAMILY-5Y-LOW-INCOME、CL-FAMILY-PARTNER-FIVE-YEARS、CL-FAMILY-FIVE-YEAR-SAVINGS-PASS、CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT）都变成了"资料不足"，等于所有五年伴侣用户都拿不到结论。改为在结果里明示假设（中英文："假设申请日你的伴侣也在英国"一类，附原文条款），`CL-FAMILY-RELATIONSHIP` 恢复按已有资料判断；只有已有资料能看出担保伴侣不在英国时才另作处理。申请人本人的申请日位置维持本轮的 FAIL / UNKNOWN 处理。
+2. **结果页要讲清提前 28 天。** 现在多个案例的最早申请日按 CR 1.1 提前了 28 天。核对结果页与规则说明里是否有中英文的一句话讲明"可在满期前最多 28 天递交（CR 1.1）"，没有就加在该规则的说明或假设里（不要新加页面组件）。
+3. **同步依赖黄金结论的地方**：`apps/e2e/tests/questionnaire.spec.ts` 里两个场景的 `earliest` 期望值（G-SW-ABSENCE-200-DAYS 现为 2028-07-01，G-SW-5Y-ON-DAY 核对一下）；`docs/playtest/kit.md` 第 7 节参考答案表（A1–A3 对应的黄金案例）。你跑不了 Playwright，只改期望值，Fable 会跑。
+4. 重新生成快照，报告里更新"哪些黄金案例结论变了"的清单。

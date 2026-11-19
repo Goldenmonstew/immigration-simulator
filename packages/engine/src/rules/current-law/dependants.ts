@@ -10,6 +10,7 @@ import { RULE_SET } from './shared';
 export interface DependantPathway {
   years: number;
   start?: IsoDate;
+  applicationDate?: IsoDate;
   result: Omit<RuleResult, 'sources'>;
 }
 

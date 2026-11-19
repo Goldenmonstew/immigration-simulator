@@ -1,21 +1,22 @@
 import { currentLaw2026_11 as cl } from '@uk-immigration/policy-data';
-import { addYears, fullYears, fullYearsEn } from '../../dates';
-import {
-  continuousRun,
-  episodeOn,
-  restartAfterAbsences,
-  settledBy,
-} from '../../residence';
+import { addYears } from '../../dates';
+import { episodeOn, currentResidence, settledBy } from '../../residence';
 import { defineRule, textFor } from '../../rule';
-import type { ImmigrationEpisode, IsoDate, RuleContext } from '../../types';
+import type { ImmigrationEpisode, RuleContext } from '../../types';
 import {
-  CR_3_1,
+  crResidenceSources,
+  residenceAssumptions,
+  residenceCompleted,
+  residencePending,
   RULE_SET,
   absenceAssumption,
   globalTalentDependant,
   onGlobalTalent,
 } from './shared';
-import { countsForSkilledWorker, principalSettlesBy } from './skilled-worker';
+import {
+  countsForSkilledWorker,
+  principalApplicationDate,
+} from './skilled-worker';
 import {
   DependantPathway,
   later,
@@ -56,22 +57,19 @@ function globalTalentPeriod(
 export function globalTalentQualifying({
   timeline,
   simulationDate,
-}: RuleContext):
-  { start: IsoDate; period?: { years: number; basis: string } } | undefined {
+}: RuleContext) {
   if (!onGlobalTalent(timeline, simulationDate)) return undefined;
-  const { episodes } = continuousRun(
-    timeline,
-    simulationDate,
-    countsForSkilledWorker,
-  );
+  const period = globalTalentPeriod(episodeOn(timeline, simulationDate)!);
   return {
-    start: restartAfterAbsences(
-      episodes[0].validFrom,
-      simulationDate,
-      timeline.absences,
-      CR_3_1,
-    ),
-    period: globalTalentPeriod(episodeOn(timeline, simulationDate)!),
+    period,
+    residence:
+      period &&
+      currentResidence(
+        timeline,
+        simulationDate,
+        countsForSkilledWorker,
+        period.years,
+      ),
   };
 }
 
@@ -86,7 +84,7 @@ export const clGtResidence = defineRule(
       { srcId: 'SRC-021', locator: 'GT 11.2' },
       { srcId: 'SRC-021', locator: 'GT 11.3' },
       { srcId: 'SRC-021', locator: 'GT 12.1' },
-      { srcId: 'SRC-008', locator: 'CR 3.1' },
+      ...crResidenceSources,
     ],
     pendingDetails: [],
   },
@@ -113,7 +111,7 @@ export const clGtResidence = defineRule(
       ),
       ...(ctx.timeline.absences.length > 0 ? [absenceAssumption(L)] : []),
     ];
-    const { start, period } = q;
+    const { residence, period } = q;
     const current = episodeOn(ctx.timeline, ctx.simulationDate)!;
     if (!period) {
       const body = current.globalTalentEndorsement;
@@ -133,21 +131,24 @@ export const clGtResidence = defineRule(
       };
     }
     const { years, basis } = period;
-    const due = addYears(start, years);
-    return due <= ctx.simulationDate
+    const { start } = residence!;
+    assumptions.push(
+      ...residenceAssumptions(ctx.timeline, ctx.simulationDate, residence, L),
+    );
+    return residence!.applicationDate === ctx.simulationDate
       ? {
           status: 'PASS',
           explanation: L(
-            `按 ${basis} 合格期 ${years} 年；自 ${start} 起连续持可计入的许可（GT 11.3），已满 ${years} 年。`,
-            `${years}-year qualifying period under ${basis}; continuous qualifying permission (GT 11.3) since ${start}: ${years} years completed.`,
+            `按 ${basis} 合格期 ${years} 年；自 ${start} 起连续持可计入的许可（GT 11.3），${residenceCompleted(residence!, ctx.simulationDate, years, L)}。`,
+            `${years}-year qualifying period under ${basis}; continuous qualifying permission (GT 11.3) since ${start}: ${residenceCompleted(residence!, ctx.simulationDate, years, L)}.`,
           ),
           assumptions,
         }
       : {
           status: 'FAIL',
           explanation: L(
-            `按 ${basis} 合格期 ${years} 年；自 ${start} 起连续持可计入的许可（GT 11.3），截至 ${ctx.simulationDate} 满 ${fullYears(start, ctx.simulationDate)} 年；${due} 满 ${years} 年。`,
-            `${years}-year qualifying period under ${basis}; continuous qualifying permission (GT 11.3) since ${start}: ${fullYearsEn(start, ctx.simulationDate)} by ${ctx.simulationDate}; ${years} years are completed on ${due}.`,
+            `按 ${basis} 合格期 ${years} 年；自 ${start} 起连续持可计入的许可（GT 11.3），${residencePending(residence!, years, L)}。`,
+            `${years}-year qualifying period under ${basis}; continuous qualifying permission (GT 11.3) since ${start}: ${residencePending(residence!, years, L)}.`,
           ),
           assumptions,
         };
@@ -184,17 +185,14 @@ export function globalTalentDependantPathway(
   }
   const own =
     kind === 'PARTNER'
-      ? restartAfterAbsences(
-          continuousRun(
-            timeline,
-            simulationDate,
-            (e) => e.route === 'GLOBAL_TALENT' && e.role === 'DEPENDANT',
-          ).episodes[0].validFrom,
+      ? currentResidence(
+          timeline,
           simulationDate,
-          timeline.absences,
-          CR_3_1,
+          (e) => e.route === 'GLOBAL_TALENT' && e.role === 'DEPENDANT',
+          partnerYears,
         )
       : undefined;
+  assumptions.push(...residenceAssumptions(timeline, simulationDate, own, L));
   const who = kind === 'PARTNER' ? 'partner' : 'child';
   if (settled) {
     const then = episodeOn(timeline, settled.date);
@@ -219,12 +217,13 @@ export function globalTalentDependantPathway(
     if (kind === 'PARTNER') {
       return {
         years: partnerYears,
-        start: own,
+        start: own?.start,
+        applicationDate: own?.applicationDate,
         result: {
           status: 'PASS',
           explanation: L(
-            `主申请人已于 ${settled.date} 以 Global Talent 定居，当时本人持其 dependent partner 许可（GT 27.1(b)）；本人须连续满 ${partnerYears} 年（GT 30.1），${addYears(own!, partnerYears)} 起可申请。`,
-            `The principal applicant settled as a Global Talent on ${settled.date}, when this person held their dependent partner permission (GT 27.1(b)); they need ${partnerYears} continuous years of their own (GT 30.1), so they can apply from ${addYears(own!, partnerYears)}.`,
+            `主申请人已于 ${settled.date} 以 Global Talent 定居，当时本人持其 dependent partner 许可（GT 27.1(b)）；本人须连续满 ${partnerYears} 年（GT 30.1），${own!.applicationDate} 起可申请。`,
+            `The principal applicant settled as a Global Talent on ${settled.date}, when this person held their dependent partner permission (GT 27.1(b)); they need ${partnerYears} continuous years of their own (GT 30.1), so they can apply from ${own!.applicationDate}.`,
           ),
           assumptions,
         },
@@ -272,7 +271,8 @@ export function globalTalentDependantPathway(
     simulationDate,
   });
   const period = q?.period;
-  if (!q || !period || !principalSettlesBy(ctx, 'CL-GT-RESIDENCE')) {
+  const due = principalApplicationDate(ctx, 'CL-GT-RESIDENCE');
+  if (!q || !period || !due) {
     return {
       years: period?.years ?? partnerYears,
       result: principalNotReady(
@@ -283,30 +283,31 @@ export function globalTalentDependantPathway(
       ),
     };
   }
-  const due = addYears(q.start, period.years);
   if (kind === 'PARENT') {
     return {
       years: period.years,
-      start: q.start,
+      start: q.residence?.start,
+      applicationDate: due,
       result: {
         status: 'PASS',
         explanation: L(
-          `随主申请人定居：主申请人 ${due} 满 ${period.years} 年（${period.basis}），届时可一同申请（GT 27.1(a)）；子女本人没有居留年限要求。`,
-          `Settling with the principal applicant, who reaches ${period.years} years on ${due} (${period.basis}), when they can apply together (GT 27.1(a)); the child has no residence requirement of their own.`,
+          `随主申请人定居：主申请人可于 ${due} 申请（${period.basis}），届时可一同申请（GT 27.1(a)）；子女本人没有居留年限要求。`,
+          `Settling with the principal applicant, who can apply on ${due} (${period.basis}), when they can apply together (GT 27.1(a)); the child has no residence requirement of their own.`,
         ),
         assumptions,
       },
     };
   }
-  const start = later(own!, addYears(due, -partnerYears));
+  const applicationDate = later(own!.applicationDate, due);
   return {
     years: partnerYears,
-    start,
+    start: own?.start,
+    applicationDate,
     result: {
       status: 'PASS',
       explanation: L(
-        `与主申请人同时获批（GT 27.1(a)）：主申请人 ${due} 满 ${period.years} 年，本人的 dependent partner 许可须连续满 ${partnerYears} 年（GT 30.1），${addYears(start, partnerYears)} 起可申请。`,
-        `Settling at the same time as the principal applicant (GT 27.1(a)): the principal applicant reaches ${period.years} years on ${due}, and this person’s dependent partner permission must reach ${partnerYears} continuous years (GT 30.1), so they can apply from ${addYears(start, partnerYears)}.`,
+        `与主申请人同时获批（GT 27.1(a)）：主申请人可于 ${due} 申请，本人的 dependent partner 许可须连续满 ${partnerYears} 年（GT 30.1），${applicationDate} 起可申请。`,
+        `Settling at the same time as the principal applicant (GT 27.1(a)): the principal applicant can apply on ${due}, and this person’s dependent partner permission must reach ${partnerYears} continuous years (GT 30.1), so they can apply from ${applicationDate}.`,
       ),
       assumptions,
     },
@@ -331,7 +332,7 @@ export const clGtDependant = defineRule(
       { srcId: 'SRC-018', locator: 'CHI 1.1' },
       { srcId: 'SRC-018', locator: 'CHI 1A.1' },
       { srcId: 'SRC-018', locator: 'CHI 2.1' },
-      { srcId: 'SRC-008', locator: 'CR 3.1' },
+      ...crResidenceSources,
     ],
     pendingDetails: [],
   },

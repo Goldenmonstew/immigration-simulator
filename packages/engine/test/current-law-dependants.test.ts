@@ -67,13 +67,13 @@ describe('Hong Kong BN(O) dependants (SRC-020)', () => {
     );
   });
 
-  test('child: a day short projects the parent’s date', () => {
+  test('child: a day short qualifies within the parent’s CR 1.1 window', () => {
     expect(
       currentLaw(child, principal('2021-02-02'), '2026-02-01'),
     ).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 5,
-      earliestDate: '2026-02-02',
+      earliestDate: '2026-02-01',
     });
   });
 
@@ -113,9 +113,9 @@ describe('Hong Kong BN(O) dependants (SRC-020)', () => {
     expect(
       currentLaw(partner('2021-02-02'), undefined, '2026-02-01'),
     ).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 5,
-      earliestDate: '2026-02-02',
+      earliestDate: '2026-02-01',
     });
     // An adult child is assessed the same way.
     expect(
@@ -155,8 +155,8 @@ describe('Hong Kong BN(O) dependants (SRC-020)', () => {
     expect(rule(due, 'CL-HKBNO-DEPENDANT').explanation).toContain('HK 59.1(a)');
     const short = currentLaw(relative, principal('2021-02-01'), '2026-12-31');
     expect(short).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
-      earliestDate: '2027-01-01',
+      outcome: 'LIKELY_ELIGIBLE',
+      earliestDate: '2026-12-31',
     });
     expect(short.assumptions.join()).not.toContain('B2');
     expect(currentLaw(relative, undefined, '2027-01-01').outcome).toBe(
@@ -213,9 +213,9 @@ describe('Global Talent dependants (SRC-021)', () => {
     expect(
       currentLaw(partner('2021-06-02'), principal('2021-06-01'), '2026-06-01'),
     ).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 5,
-      earliestDate: '2026-06-02',
+      earliestDate: '2026-06-01',
     });
   });
 
@@ -228,7 +228,7 @@ describe('Global Talent dependants (SRC-021)', () => {
     expect(result).toMatchObject({
       outcome: 'LIKELY_NOT_ELIGIBLE',
       pathwayYears: 5,
-      earliestDate: '2027-06-01',
+      earliestDate: '2027-05-04',
     });
     expect(result.assumptions.join()).toContain('GT 32.1(b)');
   });
@@ -254,9 +254,9 @@ describe('Global Talent dependants (SRC-021)', () => {
     expect(
       currentLaw(child, principal('2023-06-01'), '2026-05-31'),
     ).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 3,
-      earliestDate: '2026-06-01',
+      earliestDate: '2026-05-31',
     });
   });
 
@@ -348,9 +348,9 @@ describe('children of Appendix FM partners (SRC-022, SRC-024)', () => {
     expect(
       currentLaw(child, principal('2016-03-02'), '2026-03-01'),
     ).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 10,
-      earliestDate: '2026-03-02',
+      earliestDate: '2026-03-01',
     });
   });
 

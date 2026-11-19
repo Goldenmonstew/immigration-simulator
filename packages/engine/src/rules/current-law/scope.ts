@@ -5,11 +5,13 @@ import type { Route } from '@uk-immigration/policy-data';
 import {
   MAIN_ONLY_ROUTES,
   RULE_SET,
+  applicationPresence,
   globalTalentDependant,
   hongKongBnoDependant,
   isSkilledWorkerDependant,
   onFamilyChild,
   onFamilyPartner,
+  onFamilyPartnerFiveYear,
   onGlobalTalent,
   onHongKongBno,
   onInnovatorFounder,
@@ -22,6 +24,7 @@ import {
 } from './shared';
 import { onFiveYearFamilyChild } from './family';
 import { longResidenceMet } from './long-residence';
+import { ukAncestryResidence } from './ancestry';
 
 export const clScope = defineRule(
   {
@@ -53,6 +56,25 @@ export const clScope = defineRule(
     const { timeline, simulationDate } = ctx;
     const L = textFor(ctx);
     const rn = (r: Route) => nameIn(L, routeNames[r]);
+    const current = episodeOn(timeline, simulationDate);
+    const presence = applicationPresence(timeline, simulationDate, L);
+    if (presence && current?.route === 'SKILLED_WORKER') {
+      return {
+        ...presence,
+        sources: [
+          {
+            srcId: 'SRC-004',
+            locator: current.role === 'MAIN' ? 'SW 19.2(d)' : 'SW 37.2(d)',
+          },
+        ],
+      };
+    }
+    if (presence && onFamilyPartnerFiveYear(timeline, simulationDate)) {
+      return {
+        ...presence,
+        sources: [{ srcId: 'SRC-024', locator: 'R-ILRP.1.1(a), E-ILRP.1.2' }],
+      };
+    }
     if (onHongKongBno(timeline, simulationDate)) {
       return {
         status: 'PASS',
@@ -80,12 +102,12 @@ export const clScope = defineRule(
         ),
       };
     }
-    if (onUkAncestry(timeline, simulationDate)) {
+    if (onUkAncestry(timeline, simulationDate) || ukAncestryResidence(ctx)) {
       return {
         status: 'PASS',
         explanation: L(
-          '当前持 UK Ancestry 主申请人许可，按 Appendix UK Ancestry 与 Appendix Long Residence 评估。',
-          'Currently holds UK Ancestry permission as the main applicant; assessed under Appendix UK Ancestry and Appendix Long Residence.',
+          '持有或曾持有可计入定居的 UK Ancestry 主申请人许可，按 Appendix UK Ancestry 与 Appendix Long Residence 评估。',
+          'Current or previous UK Ancestry main applicant permission qualifies for assessment under Appendix UK Ancestry and Appendix Long Residence.',
         ),
       };
     }
@@ -191,15 +213,19 @@ export const clScope = defineRule(
       };
     }
     if (longResidenceMet(ctx)) {
+      if (presence)
+        return {
+          ...presence,
+          sources: [{ srcId: 'SRC-005', locator: 'LR 9.3' }],
+        };
       return {
         status: 'PASS',
         explanation: L(
-          '已满 10 年连续合法居留，按 Appendix Long Residence 评估。',
-          '10 years of continuous lawful residence completed; assessed under Appendix Long Residence.',
+          '按 CR 1.1 核对已满足 Long Residence 的连续合法居留年限，按 Appendix Long Residence 评估。',
+          'Meets the continuous lawful residence period under CR 1.1 and is assessed under Appendix Long Residence.',
         ),
       };
     }
-    const current = episodeOn(timeline, simulationDate);
     if (
       current?.route === 'FAMILY_PARTNER_OR_PARENT' &&
       current.role === 'MAIN'

@@ -1,14 +1,13 @@
 import { currentLaw2026_11 as cl } from '@uk-immigration/policy-data';
-import { addYears, fullYears, fullYearsEn } from '../../dates';
-import {
-  continuousRun,
-  episodeOn,
-  restartAfterAbsences,
-} from '../../residence';
+import { episodeOn, currentResidence } from '../../residence';
+import type { CurrentResidence } from '../../residence';
 import { defineRule, textFor } from '../../rule';
-import type { ImmigrationEpisode, IsoDate, RuleContext } from '../../types';
+import type { ImmigrationEpisode, RuleContext } from '../../types';
 import {
-  CR_3_1,
+  crResidenceSources,
+  residenceAssumptions,
+  residenceCompleted,
+  residencePending,
   RULE_SET,
   absenceAssumption,
   onInnovatorFounder,
@@ -19,21 +18,16 @@ import {
  * (INNF 18.1) ending on the simulation date, while on that route (INNF 19.1,
  * CR 3.1).
  */
-export function innovatorFounderStart({
+export function innovatorFounderResidence({
   timeline,
   simulationDate,
-}: RuleContext): IsoDate | undefined {
+}: RuleContext): CurrentResidence | undefined {
   if (!onInnovatorFounder(timeline, simulationDate)) return undefined;
-  const { episodes } = continuousRun(
+  return currentResidence(
     timeline,
     simulationDate,
     (e) => e.route === 'INNOVATOR_FOUNDER' && e.role === 'MAIN',
-  );
-  return restartAfterAbsences(
-    episodes[0].validFrom,
-    simulationDate,
-    timeline.absences,
-    CR_3_1,
+    cl.values.innovatorFounderQualifyingYears.value,
   );
 }
 
@@ -46,15 +40,15 @@ export const clInnovatorResidence3Y = defineRule(
     sources: [
       { srcId: 'SRC-027', locator: 'INNF 18.1' },
       { srcId: 'SRC-027', locator: 'INNF 19.1' },
-      { srcId: 'SRC-008', locator: 'CR 3.1' },
+      ...crResidenceSources,
     ],
     pendingDetails: [],
   },
   (ctx) => {
     const L = textFor(ctx);
     const years = cl.values.innovatorFounderQualifyingYears.value;
-    const start = innovatorFounderStart(ctx);
-    if (!start) {
+    const residence = innovatorFounderResidence(ctx);
+    if (!residence) {
       return {
         status: 'FAIL',
         explanation: L(
@@ -65,21 +59,24 @@ export const clInnovatorResidence3Y = defineRule(
     }
     const assumptions =
       ctx.timeline.absences.length > 0 ? [absenceAssumption(L)] : [];
-    const due = addYears(start, years);
-    return due <= ctx.simulationDate
+    assumptions.push(
+      ...residenceAssumptions(ctx.timeline, ctx.simulationDate, residence, L),
+    );
+    const { start } = residence;
+    return residence.applicationDate === ctx.simulationDate
       ? {
           status: 'PASS',
           explanation: L(
-            `自 ${start} 起连续持 Innovator Founder 许可，已满 ${years} 年（INNF 18.1）。`,
-            `Continuous Innovator Founder permission since ${start}: ${years} years completed (INNF 18.1).`,
+            `自 ${start} 起连续持 Innovator Founder 许可，${residenceCompleted(residence, ctx.simulationDate, years, L)}（INNF 18.1）。`,
+            `Continuous Innovator Founder permission since ${start}: ${residenceCompleted(residence, ctx.simulationDate, years, L)} (INNF 18.1).`,
           ),
           assumptions,
         }
       : {
           status: 'FAIL',
           explanation: L(
-            `自 ${start} 起连续持 Innovator Founder 许可，截至 ${ctx.simulationDate} 满 ${fullYears(start, ctx.simulationDate)} 年；${due} 满 ${years} 年（INNF 18.1）。`,
-            `Continuous Innovator Founder permission since ${start}: ${fullYearsEn(start, ctx.simulationDate)} by ${ctx.simulationDate}; ${years} years are completed on ${due} (INNF 18.1).`,
+            `自 ${start} 起连续持 Innovator Founder 许可，${residencePending(residence, years, L)}（INNF 18.1）。`,
+            `Continuous Innovator Founder permission since ${start}: ${residencePending(residence, years, L)} (INNF 18.1).`,
           ),
           assumptions,
         };

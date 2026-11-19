@@ -1,29 +1,49 @@
 import { currentLaw2026_11 as cl } from '@uk-immigration/policy-data';
-import { addYears, fullYears, fullYearsEn } from '../../dates';
-import { continuousRun, restartAfterAbsences } from '../../residence';
+import { currentResidence, episodeOn } from '../../residence';
+import type { CurrentResidence } from '../../residence';
 import { defineRule, textFor } from '../../rule';
-import type { IsoDate, RuleContext } from '../../types';
-import { CR_3_1, RULE_SET, absenceAssumption, onUkAncestry } from './shared';
+import type { RuleContext } from '../../types';
+import {
+  crResidenceSources,
+  residenceAssumptions,
+  residenceCompleted,
+  residencePending,
+  RULE_SET,
+  absenceAssumption,
+  applicationPresence,
+  onUkAncestry,
+} from './shared';
 
 /**
  * Start of the continuous UK Ancestry main applicant permission (UKA 13.1)
  * ending on the simulation date, while on that route (UKA 14.1, CR 3.1).
  */
-export function ukAncestryStart({
+export function ukAncestryResidence({
   timeline,
   simulationDate,
-}: RuleContext): IsoDate | undefined {
-  if (!onUkAncestry(timeline, simulationDate)) return undefined;
-  const { episodes } = continuousRun(
+}: RuleContext): CurrentResidence | undefined {
+  const current = episodeOn(timeline, simulationDate);
+  if (!current) return undefined;
+  const ancestryExpiry = onUkAncestry(timeline, simulationDate)
+    ? undefined
+    : timeline.episodes
+        .filter(
+          (e) =>
+            e.route === 'UK_ANCESTRY' &&
+            e.role === 'MAIN' &&
+            e.validTo < simulationDate,
+        )
+        .map((e) => e.validTo)
+        .sort()
+        .at(-1);
+  if (!onUkAncestry(timeline, simulationDate) && !ancestryExpiry)
+    return undefined;
+  return currentResidence(
     timeline,
     simulationDate,
     (e) => e.route === 'UK_ANCESTRY' && e.role === 'MAIN',
-  );
-  return restartAfterAbsences(
-    episodes[0].validFrom,
-    simulationDate,
-    timeline.absences,
-    CR_3_1,
+    cl.values.ukAncestryQualifyingYears.value,
+    { ancestryExpiry },
   );
 }
 
@@ -38,15 +58,22 @@ export const clAncestryResidence5Y = defineRule(
       { srcId: 'SRC-026', locator: 'UKA 12.1' },
       { srcId: 'SRC-026', locator: 'UKA 13.1' },
       { srcId: 'SRC-026', locator: 'UKA 14.1' },
-      { srcId: 'SRC-008', locator: 'CR 3.1' },
+      ...crResidenceSources,
     ],
     pendingDetails: [],
   },
   (ctx) => {
     const L = textFor(ctx);
+    const presence = applicationPresence(ctx.timeline, ctx.simulationDate, L);
+    if (presence) {
+      return {
+        ...presence,
+        sources: [{ srcId: 'SRC-026', locator: 'UKA 10.2(d)' }],
+      };
+    }
     const years = cl.values.ukAncestryQualifyingYears.value;
-    const start = ukAncestryStart(ctx);
-    if (!start) {
+    const residence = ukAncestryResidence(ctx);
+    if (!residence) {
       return {
         status: 'FAIL',
         explanation: L(
@@ -62,21 +89,24 @@ export const clAncestryResidence5Y = defineRule(
       ),
       ...(ctx.timeline.absences.length > 0 ? [absenceAssumption(L)] : []),
     ];
-    const due = addYears(start, years);
-    return due <= ctx.simulationDate
+    assumptions.push(
+      ...residenceAssumptions(ctx.timeline, ctx.simulationDate, residence, L),
+    );
+    const { start } = residence;
+    return residence.applicationDate === ctx.simulationDate
       ? {
           status: 'PASS',
           explanation: L(
-            `自 ${start} 起连续持 UK Ancestry 主申请人许可，已满 ${years} 年（UKA 13.1）。`,
-            `Continuous UK Ancestry permission as the main applicant since ${start}: ${years} years completed (UKA 13.1).`,
+            `自 ${start} 起连续持 UK Ancestry 主申请人许可，${residenceCompleted(residence, ctx.simulationDate, years, L)}（UKA 13.1）。`,
+            `Continuous UK Ancestry permission as the main applicant since ${start}: ${residenceCompleted(residence, ctx.simulationDate, years, L)} (UKA 13.1).`,
           ),
           assumptions,
         }
       : {
           status: 'FAIL',
           explanation: L(
-            `自 ${start} 起连续持 UK Ancestry 主申请人许可，截至 ${ctx.simulationDate} 满 ${fullYears(start, ctx.simulationDate)} 年；${due} 满 ${years} 年（UKA 13.1）。`,
-            `Continuous UK Ancestry permission as the main applicant since ${start}: ${fullYearsEn(start, ctx.simulationDate)} by ${ctx.simulationDate}; ${years} years are completed on ${due} (UKA 13.1).`,
+            `自 ${start} 起连续持 UK Ancestry 主申请人许可，${residencePending(residence, years, L)}（UKA 13.1）。`,
+            `Continuous UK Ancestry permission as the main applicant since ${start}: ${residencePending(residence, years, L)} (UKA 13.1).`,
           ),
           assumptions,
         };

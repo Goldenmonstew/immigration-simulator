@@ -195,7 +195,7 @@ test.each(['yes', 'no'] as const)(
     expect(result.shortCircuit).toBeUndefined();
     expect(result.byRuleSet['current-law-2026-11']).toMatchObject({
       pathwayYears: 5,
-      earliestDate: '2030-01-01',
+      earliestDate: '2029-12-04',
     });
     const earned = result.byRuleSet['earned-settlement-2026-11'];
     expect(earned).toMatchObject({

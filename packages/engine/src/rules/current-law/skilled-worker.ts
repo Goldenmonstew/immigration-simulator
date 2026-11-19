@@ -5,13 +5,14 @@ import {
   immigrationSalaryListOccupations,
   nationalPayScaleOccupations,
 } from '@uk-immigration/policy-data';
-import { addYears, fullYears, fullYearsEn } from '../../dates';
+import { fullYears } from '../../dates';
 import {
   continuousRun,
   episodeOn,
-  restartAfterAbsences,
+  currentResidence,
   settledBy,
 } from '../../residence';
+import type { CurrentResidence } from '../../residence';
 import { defineRule, textFor } from '../../rule';
 import type { Lang } from '../../rule';
 import { gbp } from '../es-contribution';
@@ -24,7 +25,10 @@ import type {
   RuleResult,
 } from '../../types';
 import {
-  CR_3_1,
+  crResidenceSources,
+  residenceAssumptions,
+  residenceCompleted,
+  residencePending,
   RULE_SET,
   absenceAssumption,
   isSkilledWorker,
@@ -53,21 +57,16 @@ export const countsForSkilledWorker = (e: ImmigrationEpisode) =>
  * Start of the continuous SW 21.2 period ending on the simulation date, while
  * on Skilled Worker.
  */
-export function skilledWorkerStart({
+export function skilledWorkerResidence({
   timeline,
   simulationDate,
-}: RuleContext): IsoDate | undefined {
+}: RuleContext): CurrentResidence | undefined {
   if (!onSkilledWorker(timeline, simulationDate)) return undefined;
-  const { episodes } = continuousRun(
+  return currentResidence(
     timeline,
     simulationDate,
     countsForSkilledWorker,
-  );
-  return restartAfterAbsences(
-    episodes[0].validFrom,
-    simulationDate,
-    timeline.absences,
-    CR_3_1,
+    cl.values.skilledWorkerQualifyingYears.value,
   );
 }
 
@@ -81,14 +80,14 @@ export const clSwResidence5Y = defineRule(
       { srcId: 'SRC-004', locator: 'SW 21.1' },
       { srcId: 'SRC-004', locator: 'SW 21.2' },
       { srcId: 'SRC-004', locator: 'SW 22.1' },
-      { srcId: 'SRC-008', locator: 'CR 3.1' },
+      ...crResidenceSources,
     ],
     pendingDetails: [],
   },
   (ctx) => {
     const L = textFor(ctx);
     const years = cl.values.skilledWorkerQualifyingYears.value;
-    const start = skilledWorkerStart(ctx);
+    const residence = skilledWorkerResidence(ctx);
     const assumptions = [
       L(
         '连续期合并 SW 21.2 列出的 Skilled Worker、Global Talent、Innovator Founder、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Representative of an Overseas Business 与 Tier 1 本工具无法填写，不计入；SW 21.2(i) 的等待决定期间未建模。',
@@ -96,7 +95,7 @@ export const clSwResidence5Y = defineRule(
       ),
       ...(ctx.timeline.absences.length > 0 ? [absenceAssumption(L)] : []),
     ];
-    if (!start) {
+    if (!residence) {
       return {
         status: 'FAIL',
         explanation: L(
@@ -106,21 +105,24 @@ export const clSwResidence5Y = defineRule(
         assumptions,
       };
     }
-    const due = addYears(start, years);
-    return due <= ctx.simulationDate
+    assumptions.push(
+      ...residenceAssumptions(ctx.timeline, ctx.simulationDate, residence, L),
+    );
+    const { start } = residence;
+    return residence.applicationDate === ctx.simulationDate
       ? {
           status: 'PASS',
           explanation: L(
-            `自 ${start} 起连续持可计入 Skilled Worker 定居的许可（SW 21.2），已满 ${years} 年。`,
-            `Continuous permission counting towards Skilled Worker settlement (SW 21.2) since ${start}: ${years} years completed.`,
+            `自 ${start} 起连续持可计入 Skilled Worker 定居的许可（SW 21.2），${residenceCompleted(residence, ctx.simulationDate, years, L)}。`,
+            `Continuous permission counting towards Skilled Worker settlement (SW 21.2) since ${start}: ${residenceCompleted(residence, ctx.simulationDate, years, L)}.`,
           ),
           assumptions,
         }
       : {
           status: 'FAIL',
           explanation: L(
-            `自 ${start} 起连续持可计入 Skilled Worker 定居的许可（SW 21.2），截至 ${ctx.simulationDate} 满 ${fullYears(start, ctx.simulationDate)} 年；${due} 满 ${years} 年。`,
-            `Continuous permission counting towards Skilled Worker settlement (SW 21.2) since ${start}: ${fullYearsEn(start, ctx.simulationDate)} by ${ctx.simulationDate}; ${years} years are completed on ${due}.`,
+            `自 ${start} 起连续持可计入 Skilled Worker 定居的许可（SW 21.2），${residencePending(residence, years, L)}。`,
+            `Continuous permission counting towards Skilled Worker settlement (SW 21.2) since ${start}: ${residencePending(residence, years, L)}.`,
           ),
           assumptions,
         };
@@ -519,20 +521,13 @@ export const principalSettlesBy = (ctx: RuleContext, residence: RuleId) =>
   ctx.principal?.result.byRuleSet[RULE_SET]?.decidedBy?.includes(residence) ??
   false;
 
-/**
- * The start of P's Skilled Worker period when P's result rests on the
- * Skilled Worker pathway, so the dependant can settle at the same time as P
- * (SW 39.1(a)).
- */
-function principalSkilledWorkerStart(ctx: RuleContext): IsoDate | undefined {
-  if (!ctx.principal) return undefined;
-  const start = skilledWorkerStart({
-    timeline: ctx.principal.timeline,
-    simulationDate: ctx.simulationDate,
-  });
-  return start && principalSettlesBy(ctx, 'CL-SW-RESIDENCE-5Y')
-    ? start
-    : undefined;
+/** The date the principal can apply on the route the dependant relies on. */
+export function principalApplicationDate(
+  ctx: RuleContext,
+  residence: RuleId,
+): IsoDate | undefined {
+  if (!principalSettlesBy(ctx, residence)) return undefined;
+  return ctx.principal?.result.byRuleSet[RULE_SET]?.earliestDate;
 }
 
 /**
@@ -594,10 +589,7 @@ function withoutPrincipalPathway(
   assumptions: string[],
 ): Omit<RuleResult, 'sources'> {
   const L = textFor({ locale });
-  const principalOnSw = skilledWorkerStart({
-    timeline: principal!.timeline,
-    simulationDate,
-  });
+  const principalOnSw = onSkilledWorker(principal!.timeline, simulationDate);
   if (!principalOnSw) {
     return {
       status: 'UNKNOWN',
@@ -640,29 +632,29 @@ function withoutPrincipalPathway(
  * the Skilled Worker period (SW 39.1(a)). Undefined unless P has a Skilled
  * Worker pathway.
  */
-export function skilledWorkerPartnerStart(
+export function skilledWorkerPartnerResidence(
   ctx: RuleContext,
-): IsoDate | undefined {
+): CurrentResidence | undefined {
   const { timeline, simulationDate } = ctx;
   if (!ctx.principal || !onSkilledWorkerPartner(timeline, simulationDate)) {
     return undefined;
   }
   const settled = settledPrincipal(ctx);
-  // P already settled: only the partner's own 5 years remain (SW 42.1).
-  const principalStart = settled ? undefined : principalSkilledWorkerStart(ctx);
-  if (settled ? !settled.met : !principalStart) return undefined;
-  const { episodes } = continuousRun(
+  const principalDate = settled
+    ? settled.date
+    : principalApplicationDate(ctx, 'CL-SW-RESIDENCE-5Y');
+  if (settled ? !settled.met : !principalDate) return undefined;
+  const own = currentResidence(
     timeline,
     simulationDate,
     isSkilledWorkerDependant,
-  );
-  const own = restartAfterAbsences(
-    episodes[0].validFrom,
-    simulationDate,
-    timeline.absences,
-    CR_3_1,
-  );
-  return principalStart && principalStart > own ? principalStart : own;
+    cl.values.skilledWorkerQualifyingYears.value,
+  )!;
+  const applicationDate =
+    principalDate && principalDate > own.applicationDate
+      ? principalDate
+      : own.applicationDate;
+  return { ...own, applicationDate };
 }
 
 export const clSwPartner5Y = defineRule(
@@ -675,7 +667,7 @@ export const clSwPartner5Y = defineRule(
       { srcId: 'SRC-004', locator: 'SW 39.1' },
       { srcId: 'SRC-004', locator: 'SW 42.1' },
       { srcId: 'SRC-004', locator: 'SW 43.1' },
-      { srcId: 'SRC-008', locator: 'CR 3.1' },
+      ...crResidenceSources,
     ],
     pendingDetails: [],
   },
@@ -710,35 +702,38 @@ export const clSwPartner5Y = defineRule(
       ...(settled ? [] : [settledPrincipalAssumption(L)]),
       ...(timeline.absences.length > 0 ? [absenceAssumption(L)] : []),
     ];
-    const start = skilledWorkerPartnerStart(ctx);
+    const residence = skilledWorkerPartnerResidence(ctx);
+    assumptions.push(
+      ...residenceAssumptions(timeline, simulationDate, residence, L),
+    );
     if (settled) {
       return settled.met
         ? {
             status: 'PASS',
             explanation: L(
-              `${settled.explanation}；本人的 dependent partner 许可满 ${years} 年后，${addYears(start!, years)} 起可申请（SW 42.1）。`,
-              `${settled.explanation}; they can apply from ${addYears(start!, years)}, once their own dependent partner permission reaches ${years} years (SW 42.1).`,
+              `${settled.explanation}；本人的 dependent partner 合格期为 ${years} 年，可从 ${residence!.applicationDate} 起申请（SW 42.1）。`,
+              `${settled.explanation}; they can apply from ${residence!.applicationDate} based on their own ${years}-year qualifying period (SW 42.1).`,
             ),
             assumptions,
           }
         : { status: 'FAIL', explanation: settled.explanation, assumptions };
     }
-    if (!start) {
+    if (!residence) {
       return withoutPrincipalPathway(ctx, 'dependent partner', assumptions);
     }
     return {
       status: 'PASS',
       explanation: L(
-        `与主申请人一同定居：dependent partner 许可与主申请人的 Skilled Worker 期都满 ${years} 年后，${addYears(start, years)} 起可申请（SW 39.1(a)、SW 42.1）。`,
-        `Settling with the principal applicant: they can apply from ${addYears(start, years)}, once both the dependent partner permission and the principal applicant’s Skilled Worker period reach ${years} years (SW 39.1(a), SW 42.1).`,
+        `与主申请人一同定居：按本人与主申请人各自的 ${years} 年合格期，可从 ${residence.applicationDate} 起一同申请（SW 39.1(a)、SW 42.1）。`,
+        `Settling with the principal applicant: they can apply from ${residence.applicationDate}, based on their respective ${years}-year qualifying periods (SW 39.1(a), SW 42.1).`,
       ),
       assumptions,
     };
   },
 );
 
-/** The start P's 5 years run from; the child settles with P (SW 39.1(a)). */
-export function skilledWorkerChildStart(ctx: RuleContext): IsoDate | undefined {
+/** A child has no qualifying period and can apply with the principal. */
+export function skilledWorkerChildDate(ctx: RuleContext): IsoDate | undefined {
   if (
     !ctx.principal ||
     !onSkilledWorkerChild(ctx.timeline, ctx.simulationDate)
@@ -746,12 +741,8 @@ export function skilledWorkerChildStart(ctx: RuleContext): IsoDate | undefined {
     return undefined;
   }
   const settled = settledPrincipal(ctx);
-  if (!settled) return principalSkilledWorkerStart(ctx);
-  // P already settled: the child can apply now, so the start is put a full
-  // period before P's settlement date.
-  return settled.met
-    ? addYears(settled.date, -cl.values.skilledWorkerQualifyingYears.value)
-    : undefined;
+  if (settled) return settled.met ? settled.date : undefined;
+  return principalApplicationDate(ctx, 'CL-SW-RESIDENCE-5Y');
 }
 
 export const clSwChild = defineRule(
@@ -841,15 +832,15 @@ export const clSwChild = defineRule(
           }
         : { status: 'FAIL', explanation: settled.explanation, assumptions };
     }
-    const start = skilledWorkerChildStart(ctx);
-    if (!start) {
+    const date = skilledWorkerChildDate(ctx);
+    if (!date) {
       return withoutPrincipalPathway(ctx, 'dependent child', assumptions);
     }
     return {
       status: 'PASS',
       explanation: L(
-        `${age}；随主申请人定居：主申请人的 Skilled Worker 期 ${addYears(start, cl.values.skilledWorkerQualifyingYears.value)} 满 ${cl.values.skilledWorkerQualifyingYears.value} 年，届时可一同申请（SW 39.1(a)、SW 41A.1）；子女本人没有居留年限要求。`,
-        `${age}; settling with the principal applicant: the principal applicant’s Skilled Worker period reaches ${cl.values.skilledWorkerQualifyingYears.value} years on ${addYears(start, cl.values.skilledWorkerQualifyingYears.value)}, when they can apply together (SW 39.1(a), SW 41A.1); the child has no residence requirement of their own.`,
+        `${age}；随主申请人定居：可在 ${date} 与主申请人一同申请（SW 39.1(a)、SW 41A.1）；子女本人没有居留年限要求。`,
+        `${age}; settling with the principal applicant: they can apply together on ${date} (SW 39.1(a), SW 41A.1); the child has no residence requirement of their own.`,
       ),
       assumptions,
     };

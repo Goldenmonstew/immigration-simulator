@@ -6,9 +6,10 @@ import { addYears, fullYears, fullYearsEn, taxYearsBefore } from '../../dates';
 import {
   continuousRun,
   episodeOn,
-  restartAfterAbsences,
+  currentResidence,
   settledBy,
 } from '../../residence';
+import type { CurrentResidence } from '../../residence';
 import { defineRule, nameIn, textFor } from '../../rule';
 import type { Lang } from '../../rule';
 import { gbp } from '../es-contribution';
@@ -21,7 +22,10 @@ import type {
   RuleResult,
 } from '../../types';
 import {
-  CR_3_1,
+  crResidenceSources,
+  residenceAssumptions,
+  residenceCompleted,
+  residencePending,
   RULE_SET,
   absenceAssumption,
   minorOn,
@@ -30,7 +34,7 @@ import {
   onFamilyPartnerFiveYear,
   onFamilyPartnerTenYear,
 } from './shared';
-import { principalSettlesBy } from './skilled-worker';
+import { principalApplicationDate } from './skilled-worker';
 import {
   DependantPathway,
   needsPrincipal,
@@ -50,25 +54,17 @@ export const countsForFamilyTenYear = (e: ImmigrationEpisode) =>
  * an Appendix FM partner on the 10-year route; `before` is the adjoining
  * earlier permission that does not count, if any (SETF 3.2, PD-069).
  */
-export function familyTenYearStart({
+export function familyTenYearResidence({
   timeline,
   simulationDate,
-}: RuleContext): { start: IsoDate; before?: ImmigrationEpisode } | undefined {
+}: RuleContext): CurrentResidence | undefined {
   if (!onFamilyPartnerTenYear(timeline, simulationDate)) return undefined;
-  const { episodes, stoppedAt } = continuousRun(
+  return currentResidence(
     timeline,
     simulationDate,
     countsForFamilyTenYear,
+    cl.values.familyPartnerQualifyingYearsTen.value,
   );
-  return {
-    start: restartAfterAbsences(
-      episodes[0].validFrom,
-      simulationDate,
-      timeline.absences,
-      CR_3_1,
-    ),
-    before: stoppedAt,
-  };
 }
 
 /**
@@ -101,7 +97,7 @@ export const clFamilyResidence = defineRule(
       { srcId: 'SRC-022', locator: 'SETF 4.1' },
       { srcId: 'SRC-024', locator: 'E-ILRP.1.3' },
       { srcId: 'SRC-024', locator: 'E-ILRP.1.4' },
-      { srcId: 'SRC-008', locator: 'CR 3.1' },
+      ...crResidenceSources,
     ],
     pendingDetails: ['PD-069', 'PD-070'],
   },
@@ -153,7 +149,7 @@ export const clFamilyResidence = defineRule(
             assumptions,
           };
     }
-    const run = familyTenYearStart(ctx);
+    const run = familyTenYearResidence(ctx);
     if (!run) {
       return {
         status: 'UNKNOWN',
@@ -188,21 +184,21 @@ export const clFamilyResidence = defineRule(
           : []),
       ...(timeline.absences.length > 0 ? [absenceAssumption(L)] : []),
     ];
-    const due = addYears(start, years);
-    return due <= simulationDate
+    assumptions.push(...residenceAssumptions(timeline, simulationDate, run, L));
+    return run.applicationDate === simulationDate
       ? {
           status: 'PASS',
           explanation: L(
-            `10 年伴侣路线：自 ${start} 起连续持可计入的许可（SETF 3.1），已满 ${years} 年。`,
-            `10-year partner route: continuous qualifying permission (SETF 3.1) since ${start}: ${years} years completed.`,
+            `10 年伴侣路线：自 ${start} 起连续持可计入的许可（SETF 3.1），${residenceCompleted(run, simulationDate, years, L)}。`,
+            `10-year partner route: continuous qualifying permission (SETF 3.1) since ${start}: ${residenceCompleted(run, simulationDate, years, L)}.`,
           ),
           assumptions,
         }
       : {
           status: 'FAIL',
           explanation: L(
-            `10 年伴侣路线：自 ${start} 起连续持可计入的许可（SETF 3.1），截至 ${simulationDate} 满 ${fullYears(start, simulationDate)} 年；${due} 满 ${years} 年。`,
-            `10-year partner route: continuous qualifying permission (SETF 3.1) since ${start}: ${fullYearsEn(start, simulationDate)} by ${simulationDate}; ${years} years are completed on ${due}.`,
+            `10 年伴侣路线：自 ${start} 起连续持可计入的许可（SETF 3.1），${residencePending(run, years, L)}。`,
+            `10-year partner route: continuous qualifying permission (SETF 3.1) since ${start}: ${residencePending(run, years, L)}.`,
           ),
           assumptions,
         };
@@ -241,6 +237,10 @@ function fiveYearRelationship(
     ),
     assumptions: [
       L(
+        '假设申请日你的伴侣也在英国（Appendix FM R-ILRP.1.1(a)）。',
+        'This assumes your partner is also in the UK on the date you apply (Appendix FM R-ILRP.1.1(a)).',
+      ),
+      L(
         '按关系真实且持续、双方打算永久共同生活（E-LTRP.1.7–E-LTRP.1.10）处理，本工具未核对。',
         'The relationship is taken as genuine and subsisting, with both intending to live together permanently (E-LTRP.1.7–E-LTRP.1.10); this tool does not check these.',
       ),
@@ -258,6 +258,7 @@ export const clFamilyRelationship = defineRule(
       { srcId: 'SRC-022', locator: 'SETF 7.1' },
       { srcId: 'SRC-022', locator: 'SETF 7.2' },
       { srcId: 'SRC-022', locator: 'SETF 7.3' },
+      { srcId: 'SRC-024', locator: 'R-ILRP.1.1(a)' },
       { srcId: 'SRC-024', locator: 'E-ILRP.1.3(1A)' },
       { srcId: 'SRC-024', locator: 'E-LTRP.1.2' },
     ],
@@ -594,6 +595,7 @@ function fiveYearChildPathway(
     return {
       years: p.pathwayYears,
       start: addYears(p.earliestDate, -p.pathwayYears),
+      applicationDate: p.earliestDate,
       result: {
         status: 'PASS',
         explanation: L(
@@ -713,11 +715,8 @@ export function familyChildPathway(
       },
     };
   }
-  const principalStart = principalSettlesBy(ctx, 'CL-FAMILY-RESIDENCE')
-    ? familyTenYearStart({ timeline: principal.timeline, simulationDate })
-        ?.start
-    : undefined;
-  if (!principalStart) {
+  const due = principalApplicationDate(ctx, 'CL-FAMILY-RESIDENCE');
+  if (!due) {
     return {
       years,
       result: principalNotReady(
@@ -730,12 +729,13 @@ export function familyChildPathway(
   }
   return {
     years,
-    start: principalStart,
+    start: addYears(due, -years),
+    applicationDate: due,
     result: {
       status: 'PASS',
       explanation: L(
-        `${age}；随主申请人定居：主申请人 ${addYears(principalStart, years)} 满 ${years} 年，届时可一同申请（SETF 12.1(a)）；子女本人没有居留年限要求。`,
-        `${age}; settling with the principal applicant, who reaches ${years} years on ${addYears(principalStart, years)}, when they can apply together (SETF 12.1(a)); the child has no residence requirement of their own.`,
+        `${age}；随主申请人定居：主申请人可于 ${due} 申请，届时可一同申请（SETF 12.1(a)）；子女本人没有居留年限要求。`,
+        `${age}; settling with the principal applicant, who can apply on ${due}, when they can apply together (SETF 12.1(a)); the child has no residence requirement of their own.`,
       ),
       assumptions,
     },
