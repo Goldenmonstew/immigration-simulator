@@ -63,17 +63,43 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
+test.each(['zh-CN', 'en'] as const)(
+  'discovered entries from an old save show only their first date in %s',
+  (locale) => {
+    const state = active();
+    state.lifeRecords = {
+      fish: [{ itemId: 'perch', year: 1, quarter: 2 }],
+      dishes: [{ itemId: 'baked-potato', year: 2, quarter: 3 }],
+      harvests: [],
+    };
+    const html = render(<LifeCollection state={state} />, locale);
+    expect(html).toContain('1 / 6');
+    expect(html).toContain('1 / 8');
+    const details = Array.from(
+      html.matchAll(/<small[^>]*>(.*?)<\/small>/g),
+      ([, detail]) => detail,
+    );
+    expect(details).toEqual(
+      locale === 'en'
+        ? ['First: Year 1 · Spring', 'First: Year 2 · Summer']
+        : ['首次：第 1 年 · 春季', '首次：第 2 年 · 夏季'],
+    );
+  },
+);
+
 test.each(recipes)(
   '$id is shown after real cooking and stays in the collection and ending after eating and restoring',
   (recipe) => {
     const state = active();
     state.year = 2;
     state.quarter = 3;
+    state.day.weather = 'cloudy';
     state.inventory = { ...recipe.needs };
     const cooked = cook(state, recipe.id);
     const restored: GameState = JSON.parse(
       JSON.stringify(eat(cooked, recipe.makes)),
     );
+    restored.day.weather = 'sunny';
     expect(restored.inventory[recipe.makes]).toBe(0);
     expect(endingMemories(restored).dishes.map((item) => item.id)).toEqual([
       recipe.makes,
@@ -84,8 +110,10 @@ test.each(recipes)(
       const html = render(<LifeCollection state={restored} />, locale);
       expect(html).toContain('1 / 8');
       expect(html).toContain(name);
-      expect(html).toContain(
-        locale === 'en' ? 'First: Year 2 · Summer' : '首次：第 2 年 · 夏季',
+      expect(html).toMatch(
+        locale === 'en'
+          ? /First: Year 2 · Summer<\/small><small[^>]*>You made it at home on a cloudy day\.<\/small>/
+          : /首次：第 2 年 · 夏季<\/small><small[^>]*>那天有些阴，你在家做成了这道菜。<\/small>/,
       );
       const ending = render(
         <Ending state={{ ...restored, ending: 'left' }} onChange={() => {}} />,
@@ -102,6 +130,7 @@ test('a real catch unlocks a named fish while the other fish stay unknown', () =
   for (let seed = 1; seed <= 40; seed++) {
     const state = active(seed);
     state.day.place = 'pond';
+    state.day.weather = 'rain';
     const next = fish(state, true);
     if (next.lifeRecords?.fish.length) {
       caught = next;
@@ -116,6 +145,10 @@ test('a real catch unlocks a named fish while the other fish stay unknown', () =
   expect(html).toContain('1 / 6');
   expect(html).toContain(`/game/assets/meadow-town/fish/${id}.svg`);
   expect(html).toContain(items.find((item) => item.id === id)!.name.zhCN);
+  expect(html).toContain('那天下着雨，你在公园池塘钓到了它。');
+  expect(render(<LifeCollection state={consumed} />, 'en')).toContain(
+    'You caught it at the park pond on a rainy day.',
+  );
   for (const item of items.filter(
     (entry) => entry.kind === 'fish' && entry.id !== id,
   ))

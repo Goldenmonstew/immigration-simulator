@@ -6,6 +6,10 @@ import { balance } from '../balance';
 
 // Fictional household facts adapted from CL-HKBNO-FIVE-YEARS; only this adult is assessed.
 const policy = currentLaw2026_11.values;
+const universalCreditReceiptNote = {
+  zhCN: '这里仅记录你领取了 Universal Credit，它属于 public funds（SRC-006「Benefits open to new claims」）。BN(O) 许可通常附有不得领取 public funds 的条件（NRPF），符合条件可申请解除。许可条件及变更需另行核对（SRC-020 HK 9.2(a)、HK 65.1）。',
+  en: 'This records that you received Universal Credit, which counts as public funds (SRC-006, “Benefits open to new claims”). BN(O) permission normally comes with a no recourse to public funds (NRPF) condition. You can apply to have it lifted if you meet the requirements. Check the conditions on your permission and any changes separately (SRC-020, HK 9.2(a) and HK 65.1).',
+};
 const events: GameEvent[] = [
   {
     id: 'bno-school-gate',
@@ -572,10 +576,7 @@ const events: GameEvent[] = [
           },
           { type: 'money', delta: 600 },
         ],
-        note: {
-          zhCN: '本情节假定本人已领取 Universal Credit 并写入时间线的 benefits；是否影响许可条件由引擎按 SRC-006 的 public funds 清单处理。',
-          en: 'This scenario assumes the player received Universal Credit and records it in the timeline benefits; whether that affects conditions of permission is left to the engine under the SRC-006 public funds list.',
-        },
+        note: universalCreditReceiptNote,
       },
       {
         id: 'second',
@@ -1373,10 +1374,7 @@ const events: GameEvent[] = [
           },
           { type: 'money', delta: 500 },
         ],
-        note: {
-          zhCN: '本情节假定本人已领取 Universal Credit 并写入时间线的 benefits；是否影响许可条件由引擎按 SRC-006 的 public funds 清单处理。',
-          en: 'This scenario assumes the player received Universal Credit and records it in the timeline benefits; whether that affects conditions of permission is left to the engine under the SRC-006 public funds list.',
-        },
+        note: universalCreditReceiptNote,
       },
       {
         id: 'second',

@@ -309,22 +309,39 @@ describe('8.3b content chain corrections', () => {
       }
     }
   });
-  test('the BN(O) UC episode starts ninety days before the receipt is recalled', () => {
+  test('A7#6 both BN(O) cards record Universal Credit receipt and explain NRPF separately', () => {
     const before = clear(newGame('hong-kong-bno', 1));
+    before.year = 5;
+    before.date = before.day.date = '2028-06-15';
+    before.timeline.episodes[0].validTo = '2029-06-14';
+    before.timeline.lifeInTheUk = { passed: true };
     expect(before.timeline.benefits).toHaveLength(0);
-    const received = scene(
-      structuredClone(before),
-      'bno-benefit-decision',
-      'first',
-    );
-    expect(received.timeline.benefits).toHaveLength(1);
-    expect(received.timeline.benefits[0]).toMatchObject({
-      benefitType: 'UNIVERSAL_CREDIT',
-      from: '2023-03-17',
-    });
-    expect(
-      scene(before, 'bno-benefit-decision', 'second').timeline.benefits,
-    ).toHaveLength(0);
+    for (const [id, from] of [
+      ['bno-benefit-decision', '2028-03-17'],
+      ['bno-benefit-second-envelope', '2028-06-15'],
+    ]) {
+      const pending = { ...before, pendingEvent: id };
+      const note = currentEvent(pending)!.choices[0].note!;
+      expect(note.zhCN).toContain('仅记录你领取了 Universal Credit');
+      expect(note.en).toContain('records that you received Universal Credit');
+      for (const copy of [note.zhCN, note.en]) {
+        expect(copy).toContain('public funds');
+        expect(copy).toContain('SRC-006');
+        expect(copy).toContain('NRPF');
+        expect(copy).toContain('HK 9.2(a)');
+        expect(copy).toContain('HK 65.1');
+      }
+      const received = resolve(pending, 'first');
+      expect(received.timeline.benefits).toHaveLength(1);
+      expect(received.timeline.benefits[0]).toMatchObject({
+        benefitType: 'UNIVERSAL_CREDIT',
+        from,
+      });
+      expect(received.result.byRuleSet['current-law-2026-11']?.outcome).toBe(
+        'LIKELY_ELIGIBLE',
+      );
+      expect(resolve(pending, 'second').timeline.benefits).toHaveLength(0);
+    }
   });
   test('the family B2 update starts in year two', () => {
     const state = clear(newGame('family-partner', 1));

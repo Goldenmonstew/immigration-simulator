@@ -8,7 +8,11 @@ import { RULE_SET_IDS } from '@uk-immigration/policy-data';
 import { balance as b } from './balance';
 import { achievements, lifeAchievements } from './achievements';
 import { characterOf } from './characters';
-import { graduateEpisode, graduateSalaryChecks } from './graduate-route';
+import {
+  graduateEpisode,
+  graduateSalaryChecks,
+  graduateSalaryPreview,
+} from './graduate-route';
 import { commonEvents, systemEvents } from './events/common';
 import { policyStories } from './events/policy';
 import {
@@ -43,6 +47,7 @@ import type {
   DayState,
   FestivalId,
   ItemId,
+  LifeRecord,
   LifeRecords,
   Npc,
   NpcLocation,
@@ -493,14 +498,24 @@ function recordLife(state: GameState, id: string, text: Text) {
     text,
   });
 }
-function recordItem(state: GameState, kind: keyof LifeRecords, itemId: ItemId) {
+function recordItem(
+  state: GameState,
+  kind: keyof LifeRecords,
+  itemId: ItemId,
+  memory?: LifeRecord['memory'],
+) {
   const records = (state.lifeRecords ??= {
     fish: [],
     dishes: [],
     harvests: [],
   });
   if (kind === 'harvests' || !records[kind].some((r) => r.itemId === itemId))
-    records[kind].push({ itemId, year: state.year, quarter: state.quarter });
+    records[kind].push({
+      itemId,
+      year: state.year,
+      quarter: state.quarter,
+      ...(memory && { memory }),
+    });
 }
 function recordIncome(
   state: GameState,
@@ -943,6 +958,10 @@ export function doActivity(state: GameState, actionId: string): GameState {
   if (!action) throw new Error(`Activity is not available: ${actionId}`);
   if (action.id === 'assessment') return state;
   const next = structuredClone(state);
+  // Show the assessment used to submit (SRC-024 E-ILRP.1.3(1A)).
+  // The in-game fee (SRC-031 §9) still reduces the household's cash.
+  if (action.id === 'settle')
+    next.settlementApplication = { cashSavings: state.timeline.cashSavings };
   const changed = applyEffects(next, action.effects);
   next.day.done.push(action.id);
   if (action.id === 'rent-brighter-home')
@@ -991,9 +1010,7 @@ export function doActivity(state: GameState, actionId: string): GameState {
   if (action.id === 'graduate-check-offer') {
     const note = characterOf(state.characterId).graduateRoute!.salaryCheckNote;
     const checks = (locale: Locale) =>
-      graduateSalaryChecks({ ...state, locale })
-        .map((rule) => rule.explanation)
-        .join('\n');
+      graduateSalaryPreview({ ...state, locale });
     next.outcome.text = {
       zhCN: `${checks('zh-CN')}\n${note.zhCN}`,
       en: `${checks('en')}\n${note.en}`,
@@ -2407,7 +2424,10 @@ export function fish(state: GameState, caught: boolean): GameState {
     const item = available[Math.floor(random(next) * available.length)];
     applyEffects(next, [{ type: 'item', item, delta: 1 }]);
     if (!junk) {
-      recordItem(next, 'fish', item);
+      recordItem(next, 'fish', item, {
+        place: 'pond',
+        weather: next.day.weather,
+      });
       recordLife(next, 'catch-fish', items.find((i) => i.id === item)!.name);
       if (item === 'pike') setFlags(next, ['caught-pike']);
     }
@@ -2445,7 +2465,10 @@ export function cook(state: GameState, recipe: string): GameState {
     })),
   );
   next.outcome = { kind: 'cook', text: dish.label, items: changes };
-  recordItem(next, 'dishes', dish.makes);
+  recordItem(next, 'dishes', dish.makes, {
+    place: 'home',
+    weather: next.day.weather,
+  });
   return advanceClock(next, dish.minutes);
 }
 export function eat(state: GameState, item: ItemId): GameState {
