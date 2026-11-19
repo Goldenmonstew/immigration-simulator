@@ -46,6 +46,13 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.collectionHint':
     'Things you caught or cooked stay here, even after you eat or give them away.',
   'game.collectionFirst': 'First: Year {year} · {season}',
+  'game.collectionMemory.pond':
+    'You caught it at the park pond on a {weather} day.',
+  'game.collectionMemory.home': 'You made it at home on a {weather} day.',
+  'game.collectionWeather.sunny': 'sunny',
+  'game.collectionWeather.cloudy': 'cloudy',
+  'game.collectionWeather.rain': 'rainy',
+  'game.collectionWeather.snow': 'snowy',
   'game.collectionUnknown': 'Not yet recorded',
   'game.collectionHarvests':
     'Harvest records: {count} harvests across {kinds} crops.',

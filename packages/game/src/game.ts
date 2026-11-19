@@ -43,6 +43,7 @@ import type {
   DayState,
   FestivalId,
   ItemId,
+  LifeRecord,
   LifeRecords,
   Npc,
   NpcLocation,
@@ -493,14 +494,24 @@ function recordLife(state: GameState, id: string, text: Text) {
     text,
   });
 }
-function recordItem(state: GameState, kind: keyof LifeRecords, itemId: ItemId) {
+function recordItem(
+  state: GameState,
+  kind: keyof LifeRecords,
+  itemId: ItemId,
+  memory?: LifeRecord['memory'],
+) {
   const records = (state.lifeRecords ??= {
     fish: [],
     dishes: [],
     harvests: [],
   });
   if (kind === 'harvests' || !records[kind].some((r) => r.itemId === itemId))
-    records[kind].push({ itemId, year: state.year, quarter: state.quarter });
+    records[kind].push({
+      itemId,
+      year: state.year,
+      quarter: state.quarter,
+      ...(memory && { memory }),
+    });
 }
 function recordIncome(
   state: GameState,
@@ -2407,7 +2418,10 @@ export function fish(state: GameState, caught: boolean): GameState {
     const item = available[Math.floor(random(next) * available.length)];
     applyEffects(next, [{ type: 'item', item, delta: 1 }]);
     if (!junk) {
-      recordItem(next, 'fish', item);
+      recordItem(next, 'fish', item, {
+        place: 'pond',
+        weather: next.day.weather,
+      });
       recordLife(next, 'catch-fish', items.find((i) => i.id === item)!.name);
       if (item === 'pike') setFlags(next, ['caught-pike']);
     }
@@ -2445,7 +2459,10 @@ export function cook(state: GameState, recipe: string): GameState {
     })),
   );
   next.outcome = { kind: 'cook', text: dish.label, items: changes };
-  recordItem(next, 'dishes', dish.makes);
+  recordItem(next, 'dishes', dish.makes, {
+    place: 'home',
+    weather: next.day.weather,
+  });
   return advanceClock(next, dish.minutes);
 }
 export function eat(state: GameState, item: ItemId): GameState {
