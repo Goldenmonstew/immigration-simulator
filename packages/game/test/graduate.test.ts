@@ -117,6 +117,14 @@ describe('13.2 Graduate character and engine integration', () => {
     expect(checked.outcome?.text?.zhCN).toContain(
       graduateSalaries.low.toLocaleString('en-GB'),
     );
+    const values = currentLaw2026_11.values;
+    for (const text of Object.values(checked.outcome!.text!))
+      for (const value of [
+        `£${values.skilledWorkerNewEntrantSalaryThreshold.value.toLocaleString('en-GB')}`,
+        `${values.skilledWorkerNewEntrantGoingRatePercent.value}%`,
+        `${values.skilledWorkerNewEntrantMaxCombinedYears.value} `,
+      ])
+        expect(text).toContain(value);
     state = job(completeQuarter(state));
     expect(state.flags).toContain('graduate-negotiated');
     expect(graduateSalaryChecks(state).map((rule) => rule.status)).toEqual([
