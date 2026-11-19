@@ -94,4 +94,13 @@ export const sourceUrls: Record<string, string> = {
     'https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-student',
   'SRC-052':
     'https://www.gov.uk/government/publications/student-route-caseworker-guidance/student-and-child-student',
+  'SRC-053':
+    'https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-fm-se-family-members-specified-evidence',
+  'SRC-054':
+    'https://assets.publishing.service.gov.uk/media/6911ee0de9348ac8fb54f484/Appendix%2BFM%2Band%2BAdult%2BDependent%2BRelative%2BAdequate%2Bmaintenance%2Band%2Baccommodation.pdf',
+  'SRC-055': 'https://www.legislation.gov.uk/ukpga/1971/77/section/3C',
+  'SRC-056':
+    'https://www.gov.uk/government/publications/workers-and-temporary-workers-guidance-for-sponsors-part-2-sponsor-a-worker/workers-and-temporary-workers-guidance-for-sponsors-part-2-sponsor-a-worker-accessible--2',
+  'SRC-057':
+    'https://www.gov.uk/government/publications/continuous-residence-caseworker-guidance/continuous-residence-guidance-accessible-version',
 };

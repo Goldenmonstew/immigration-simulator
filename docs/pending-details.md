@@ -212,11 +212,11 @@ dependant 随主申请人定居（SRC-001 Ch.5）时，原文未规定、引擎�
 
 ## 十、现行法律栏家庭财务（任务 6.4 新增）
 
-以下条目的出处是现行 Immigration Rules 的 Appendix FM（SRC-024），段号为 Rules 段落号；"原文未提及"指该 Appendix 未作规定。
+以下条目以现行 Immigration Rules Appendix FM（SRC-024）及 Appendix FM-SE（SRC-053）为准，计算程序见 Home Office 指引（SRC-054）。
 
 | ID | 事项 | 原文怎么说 | 出处 | 对引擎的影响 | 预计何时明确 |
 |---|---|---|---|---|---|
-| PD-075 | 伴侣领取特定福利时 adequate maintenance 的口径 | 伴侣领取 E-LTRP.3.3(a) 所列福利之一时，申请人可不按收入或储蓄门槛，改为证明伴侣能在不依赖 public funds 的情况下充分供养与安置其本人、申请人与 dependants（E-LTRP.3.3(b)）。Appendix FM 没有给出数字或算法；算法在 Appendix FM-SE 与内政部指引中，本仓库未登记。 | SRC-024 E-LTRP.3.1(c)、E-LTRP.3.3、E-LTRP.3.7(c) | 5 年伴侣路线：收入与储蓄都不满足财务门槛、且 `partnerSpecifiedBenefit` 为真时，`CL-FAMILY-FINANCIAL` 输出 `UNKNOWN`（PD-075）；其他要求都满足时结论为 `POTENTIALLY_ELIGIBLE`（`docs/contracts.md` §17.3）。 | 原文未提及（登记 Appendix FM-SE 与相关指引后可建模） |
+| PD-075 | 伴侣领取特定福利时 adequate maintenance 的口径 | 伴侣当前领取指定福利时可走供养与安置证明分支。以当期可计每周净收入加合规储蓄的每周等值，扣除每周住房成本及 Council Tax，与决定日同等英国家庭的 Income Support 比较，等于基准也满足供养金额测试。 | SRC-024 E-LTRP.3.1(c)、3.3、3.4、3.7(c)、3.9、E-ILRP.1.3(1A)；SRC-053 ¶11–12B、¶18–20；SRC-054 p6–10、p12–19、p23–26 | **口径已明确，待实现（任务 39）**。`CL-FAMILY-FINANCIAL` 目前仍输出 `UNKNOWN`（PD-075）；建模需补足家庭资料、决定日费率、当前净收入、住房成本、合规储蓄及证据状态，另核住宿条件。详见 [任务 39 研究记录](research/2026-11-19-sources-batch-2.md#1-appendix-fm-的-adequate-maintenance)。 | 2026-11-19 已确认计算方法，待后续规则任务 |
 
 ## 十一、预算提案与既有规则歧义（任务 12.2 新增）
 
