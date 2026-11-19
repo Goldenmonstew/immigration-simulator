@@ -1,8 +1,5 @@
 import * as Phaser from 'phaser';
-import { t } from '../../i18n';
 import {
-  items,
-  mailbox,
   mapSurprises,
   npcAt,
   npcs,
@@ -11,12 +8,15 @@ import {
   type PlaceId,
   type Outcome,
   type AnchorId,
-  type MapSurprise,
-  type SurpriseId,
   type Text,
 } from '@uk-immigration/game';
 import { cropIds, spritePath, visibleResidents, homeSpot } from './session';
-import { SceneText } from './scene-text';
+import {
+  renderSceneLabels,
+  SceneText,
+  showSceneFeedback,
+  syncSceneLabels,
+} from './scene-text';
 import { setSoundEnvironment } from './sound';
 import {
   animalIds,
@@ -26,23 +26,34 @@ import {
   visibleAnimals,
   type Animal,
 } from './wildlife';
-import { shopSignIds, signPath, signPosition } from './art';
+import { shopSignIds, signPath } from './art';
 import { distance, findPath, type Cell } from './pathfinding';
 import {
-  drawBonfire,
-  drawFestivalStalls,
-  drawFlowerbed,
-  drawLunchTable,
-  drawMayDay,
-  drawPrecipitation,
-  drawSurprise,
-} from './scene-art';
+  createLifeScenery,
+  decorateFestival,
+  decorateLunch,
+  syncCrops,
+  syncLifeScenery,
+  syncLunch,
+  type LifeScenery,
+  type LunchProp,
+} from './scene-decor';
 import {
-  flowerbedStage,
-  lifePlaceLabel,
-  lunchVisible,
-  mayDayScene,
-} from './scene-life';
+  festivalEffects,
+  paintLight,
+  paintWeather,
+  updateWater,
+} from './scene-effects';
+import {
+  buildMap,
+  resizeMapCamera,
+  syncMapScenery,
+  tileSize as size,
+  type AnimalSprite,
+  type Furnishing,
+  type Spot,
+} from './scene-map';
+
 export type Interaction =
   | { kind: 'place'; id: PlaceId }
   | { kind: 'npc'; id: string }
@@ -63,11 +74,6 @@ export type SceneView = {
   feedback?: SceneFeedback;
   focusNpc?: string;
 };
-type Spot = Cell & {
-  interaction: Interaction;
-  bounds: Phaser.Geom.Rectangle;
-  label?: SceneText;
-};
 type Walker = {
   sprite: Phaser.GameObjects.Sprite;
   cell: Cell;
@@ -75,22 +81,6 @@ type Walker = {
   target?: Cell;
   at: string;
   hide: boolean;
-};
-const size = 16;
-const landscapes = {
-  1: { grass: [156, 170, 174], trees: [132, 148, 155] }, // Winter: cool grey.
-  2: { grass: [91, 170, 91], trees: [147, 191, 68] }, // Spring: fresh green.
-  4: { grass: [139, 146, 79], trees: [193, 126, 54] }, // Autumn: ochre foliage.
-};
-const furnishingFlags = [
-  'furnished-reading-chair',
-  'furnished-warm-curtains',
-  'furnished-desk-lamp',
-];
-const surpriseNames: Record<SurpriseId, Text> = {
-  'biscuit-cat': { zhCN: '窗台下的条纹猫', en: 'A striped cat below the sill' },
-  'swap-box': { zhCN: '台阶旁的交换箱', en: 'A swap box by the steps' },
-  'lost-mitten': { zhCN: '长椅上的手套', en: 'A mitten on the bench' },
 };
 export class TownScene extends Phaser.Scene {
   private view: SceneView;
@@ -105,13 +95,9 @@ export class TownScene extends Phaser.Scene {
   private spots: Spot[] = [];
   private anchors = new Map<string, Cell>();
   private residents = new Map<string, Walker>();
-  private animals = new Map<
-    Animal,
-    { sprite: Phaser.GameObjects.Sprite; next: number; elapsed: number }
-  >();
+  private animals = new Map<Animal, AnimalSprite>();
   private cropSprites: Phaser.GameObjects.Sprite[] = [];
-  private furnishings: { flag: string; layer: Phaser.Tilemaps.TilemapLayer }[] =
-    [];
+  private furnishings: Furnishing[] = [];
   private townTiles?: Phaser.Tilemaps.Tileset;
   private lampLights: Phaser.GameObjects.Graphics[] = [];
   private sky?: Phaser.GameObjects.Graphics;
@@ -129,25 +115,10 @@ export class TownScene extends Phaser.Scene {
   private focusNpc?: string;
   private windows?: Phaser.GameObjects.Graphics;
   private celebration?: Phaser.GameObjects.Graphics;
-  private lunch: {
-    object: Phaser.GameObjects.Sprite | Phaser.GameObjects.Graphics;
-    requires?: 'tables' | 'food';
-    cell?: Cell;
-  }[] = [];
+  private lunch: LunchProp[] = [];
   private lunchCells = new Set<string>();
   private lifeCells = new Set<string>();
-  private lifeScenery?: {
-    flowerbed: Phaser.GameObjects.Graphics;
-    mayDay: Phaser.GameObjects.Graphics;
-    surprises: Map<
-      SurpriseId,
-      {
-        drawing: Phaser.GameObjects.Graphics;
-        label: SceneText;
-        clue: MapSurprise;
-      }
-    >;
-  };
+  private lifeScenery?: LifeScenery;
   private approachedSurprise?: AnchorId;
   private transients = new Map<
     SceneText | Phaser.GameObjects.Sprite,
@@ -307,140 +278,37 @@ export class TownScene extends Phaser.Scene {
     for (const o of this.worldObjects) o.destroy();
     this.worldObjects = [];
     this.map?.destroy();
-    const key = this.view.interior ? 'home' : 'town';
-    const map = this.make.tilemap({ key });
-    this.map = map;
-    const tileset = map.addTilesetImage(key, `${key}-tiles`)!;
-    map.createLayer('ground', tileset)!;
-    map.createLayer('decor', tileset)!.setDepth(1);
-    this.collision = map.createLayer('collision', tileset)!;
-    this.collision.setVisible(false);
-    if (this.view.interior) {
-      const details = map.addTilesetImage('home-details', 'home-details')!;
-      this.furnishings = furnishingFlags.map((flag) => ({
-        flag,
-        layer: map.createLayer(flag, [tileset, details])!.setDepth(2),
-      }));
-    } else this.townTiles = tileset;
-    const spawn = map.getObjectLayer('spawn')!.objects[0];
-    this.cell = { x: spawn.x! / size, y: spawn.y! / size };
-    if (fromHome && !this.view.interior) this.cell = { x: 5, y: 12 };
-    this.player = this.own(
-      this.add
-        .sprite(
-          this.cell.x * size + 8,
-          this.cell.y * size + 10,
-          this.view.state.characterId,
-        )
-        .setOrigin(0.5, 0.8)
-        .setDepth(100),
-    );
-    for (const obj of map.getObjectLayer('places')!.objects) {
-      const cell = { x: obj.x! / size, y: obj.y! / size };
-      const props = (name: string) =>
-        obj.properties?.find(
-          (p: { name: string; value: number }) => p.name === name,
-        )?.value as number | undefined;
-      const interaction: Interaction = this.view.interior
-        ? {
-            kind: 'home',
-            id: obj.name as Extract<Interaction, { kind: 'home' }>['id'],
-          }
-        : { kind: 'place', id: obj.name as PlaceId };
-      const bounds = new Phaser.Geom.Rectangle(
-        props('buildingX') ?? obj.x!,
-        props('buildingY') ?? obj.y!,
-        props('buildingWidth') ?? 16,
-        props('buildingHeight') ?? 16,
-      );
-      const label = this.own(
-        new SceneText(
-          this.textLayer,
-          bounds.centerX,
-          this.view.interior ? bounds.y - 2 : bounds.y + bounds.height + 2,
-          '',
-          this.view.interior ? 'homeLabel' : 'label',
-        ),
-      );
-      this.spots.push({ ...cell, interaction, bounds, label });
-      this.anchors.set(obj.name, cell);
-      if (!this.view.interior && shopSignIds.includes(obj.name)) {
-        const sign = signPosition({ x: obj.x!, y: obj.y! });
-        this.own(
-          this.add
-            .sprite(sign.x, sign.y, `sign-${obj.name}`)
-            .setDisplaySize(16, 16)
-            .setDepth(3),
-        );
-      }
-      this.own(
-        this.add
-          .rectangle(cell.x * size + 8, cell.y * size + 13, 9, 2, 0xf4d98d, 0.8)
-          .setDepth(2),
-      );
-    }
+    const own = this.own.bind(this);
+    ({
+      map: this.map,
+      collision: this.collision,
+      furnishings: this.furnishings,
+      townTiles: this.townTiles,
+      cell: this.cell,
+      player: this.player,
+      spots: this.spots,
+      water: this.water,
+      waterTiles: this.waterTiles,
+      cropSprites: this.cropSprites,
+      lampLights: this.lampLights,
+      windows: this.windows,
+    } = buildMap(
+      this,
+      this.view,
+      fromHome,
+      this.textLayer,
+      own,
+      this.anchors,
+      this.animals,
+    ));
     if (!this.view.interior) {
-      this.water = this.own(this.add.graphics().setDepth(0.5));
-      map.getLayer('ground')!.tilemapLayer.forEachTile((tile) => {
-        if (tile.index === 5 && (tile.x + tile.y) % 3 === 0)
-          this.waterTiles.push({ x: tile.pixelX, y: tile.pixelY });
-      });
-      for (const a of map.getObjectLayer('anchors')!.objects)
-        this.anchors.set(a.name, { x: a.x! / size, y: a.y! / size });
-      for (const p of map.getObjectLayer('plots')!.objects) {
-        const cell = { x: p.x! / size, y: p.y! / size };
-        const sprite = this.own(
-          this.add
-            .sprite(p.x! + 8, p.y! + 8, 'crop-potato', 0)
-            .setDepth(2)
-            .setVisible(false),
-        );
-        this.cropSprites[Number(p.name)] = sprite;
-        this.spots.push({
-          ...cell,
-          interaction: { kind: 'plot', id: Number(p.name) },
-          bounds: new Phaser.Geom.Rectangle(p.x!, p.y!, 16, 16),
-        });
-      }
-      for (const lamp of map.getObjectLayer('lamps')!.objects) {
-        const g = this.own(this.add.graphics().setDepth(1550));
-        for (let r = 30; r > 0; r -= 5)
-          g.fillStyle(0xffd88b, 0.075).fillCircle(lamp.x! + 8, lamp.y! - 4, r);
-        this.lampLights.push(g);
-      }
-      this.windows = this.own(this.add.graphics().setDepth(1550));
-      map.getLayer('decor')!.tilemapLayer.forEachTile((tile) => {
-        if ([17, 20, 22].includes(tile.index)) {
-          this.windows!.fillStyle(0xffd889, 0.85).fillRect(
-            tile.pixelX + 5,
-            tile.pixelY + 5,
-            6,
-            7,
-          );
-          this.windows!.fillStyle(0xffd889, 0.08).fillCircle(
-            tile.pixelX + 8,
-            tile.pixelY + 8,
-            13,
-          );
-        }
-      });
-      for (const id of animalIds) {
-        const start = animalRoutes[id][0];
-        const sprite = this.own(
-          this.add
-            .sprite(start.x * size + 8, start.y * size + 10, `animal-${id}`)
-            .setOrigin(0.5, 0.8)
-            .setDepth(start.y * size + 19),
-        );
-        this.animals.set(id, { sprite, next: 1, elapsed: 0 });
-      }
-      this.decorateFestival();
-      this.decorateLunch();
-      this.lifeScenery = {
-        flowerbed: this.own(this.add.graphics().setDepth(575)),
-        mayDay: this.own(this.add.graphics().setDepth(540)),
-        surprises: new Map(),
-      };
+      this.celebration = decorateFestival(
+        this,
+        this.view.state.day.festival,
+        own,
+      );
+      this.lunch = decorateLunch(this, own);
+      this.lifeScenery = createLifeScenery(this, own);
     }
     this.sky = this.own(this.add.graphics().setScrollFactor(0).setDepth(1500));
     this.rain = this.own(this.add.graphics().setScrollFactor(0).setDepth(1600));
@@ -457,7 +325,7 @@ export class TownScene extends Phaser.Scene {
       this.view.interior ? '#2a1f18' : '#a8c580',
     );
     this.cameras.main
-      .setBounds(0, 0, map.widthInPixels, map.heightInPixels)
+      .setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels)
       .startFollow(this.player, true, 0.15, 0.15);
     this.resizeCamera();
     this.sync(this.view);
@@ -466,32 +334,15 @@ export class TownScene extends Phaser.Scene {
   }
   private renderText() {
     const camera = this.cameras.main;
-    const pointer = this.input.activePointer;
-    const hover = this.input.manager.isOver
-      ? camera.getWorldPoint(pointer.x, pointer.y)
-      : undefined;
-    for (const spot of this.spots) {
-      if (!spot.label) continue;
-      spot.label.setVisible(true);
-      spot.label.element.dataset.highlighted = String(
-        distance(spot, this.cell) <= 5 ||
-          !!(hover && spot.bounds.contains(hover.x, hover.y)),
-      );
-      spot.label.element.dataset.nearby = String(
-        this.nearby?.kind === spot.interaction.kind &&
-          this.nearby?.id === spot.interaction.id,
-      );
-    }
-    for (const {
-      drawing,
-      label,
-      clue,
-    } of this.lifeScenery?.surprises.values() ?? [])
-      if (clue.phase === 'trace')
-        label.setVisible(
-          drawing.visible &&
-            distance(this.anchors.get(clue.anchor)!, this.cell) <= 5,
-        );
+    renderSceneLabels(
+      camera,
+      this.input,
+      this.spots,
+      this.cell,
+      this.nearby,
+      this.anchors,
+      this.lifeScenery,
+    );
     for (const object of this.worldObjects)
       if (object instanceof SceneText) object.render(camera);
     for (const object of this.transients.keys())
@@ -499,27 +350,7 @@ export class TownScene extends Phaser.Scene {
   }
   private resizeCamera() {
     if (!this.map) return;
-    const camera = this.cameras.main;
-    camera.setZoom(
-      this.view.interior
-        ? Math.floor(
-            Math.min(
-              3,
-              this.scale.width / this.map.widthInPixels,
-              this.scale.height / this.map.heightInPixels,
-            ) * 2,
-          ) / 2
-        : this.scale.width < 600
-          ? 2
-          : 2.5,
-    );
-    camera.roundPixels = true;
-    if (this.view.interior) {
-      // A fitted room stays centred even when the viewport exceeds its bounds.
-      camera.stopFollow();
-      camera.removeBounds();
-      camera.centerOn(this.map.widthInPixels / 2, this.map.heightInPixels / 2);
-    }
+    resizeMapCamera(this, this.map, this.view.interior);
     this.paintLight();
   }
   sync(view: SceneView) {
@@ -538,63 +369,16 @@ export class TownScene extends Phaser.Scene {
     else if (wasPaused && this.destination)
       this.walkToLocation(this.destination);
     this.syncLifeScenery();
-    for (const spot of this.spots) {
-      if (spot.interaction.kind === 'place') {
-        const p = places.find(
-          (p) => p.id === (spot.interaction as { id: PlaceId }).id,
-        )!;
-        const name = view.locale === 'en' ? p.name.en : p.name.zhCN;
-        const contribution = view.state.flags.includes(
-          'quarter-community-lunch-tables',
-        )
-          ? 'game.lunchTables'
-          : view.state.flags.includes('quarter-community-lunch-food')
-            ? 'game.lunchFood'
-            : undefined;
-        const lifeLabel = lifePlaceLabel(
-          this.view.state,
-          this.view.locale,
-          p.id,
-        );
-        spot.label!.setText(
-          p.id === 'green' && lunchVisible(this.view.state, this.view.interior)
-            ? `${t('game.lunchScene', view.locale)}${contribution ? `\n${t(contribution, view.locale)}` : ''}`
-            : lifeLabel
-              ? `${name}\n${lifeLabel}`
-              : name,
-        );
-      } else if (spot.interaction.kind === 'home') {
-        spot.label!.setText(
-          t(
-            spot.interaction.id === 'exit'
-              ? 'game.exitHome'
-              : `game.${spot.interaction.id}`,
-            view.locale,
-          ),
-        );
-      }
-    }
-    this.postBadge
-      ?.setText(
-        mailbox(view.state).length ? String(mailbox(view.state).length) : '',
-      )
-      .setVisible(mailbox(view.state).length > 0);
-    this.cropSprites.forEach((sprite, i) => {
-      const p = view.state.plots[i],
-        crop = items.find((it) => it.id === p?.seed)?.grows?.crop;
-      sprite.setVisible(!!crop);
-      if (crop) {
-        const grows = items.find((it) => it.id === p.seed)!.grows!;
-        sprite.setTexture(
-          cropIds.includes(crop) ? `crop-${crop}` : 'item-fallback',
-          cropIds.includes(crop)
-            ? Math.min(4, Math.floor((p.growth / grows.days) * 4))
-            : 0,
-        );
-      }
-    });
-    this.syncScenery();
-    this.syncLunch();
+    syncSceneLabels(view, this.spots, this.postBadge);
+    syncCrops(view.state, this.cropSprites);
+    syncMapScenery(
+      this.textures,
+      view.state,
+      this.furnishings,
+      this.collision,
+      this.townTiles,
+    );
+    syncLunch(view, this.lunch, this.lunchCells);
     this.syncResidents();
     const visible = visibleAnimals(view.state, view.interior);
     for (const [id, animal] of this.animals)
@@ -614,57 +398,16 @@ export class TownScene extends Phaser.Scene {
     this.paintLight();
     if (view.feedback && view.feedback.token !== this.feedbackToken) {
       this.feedbackToken = view.feedback.token;
-      this.feedback(view.feedback);
+      showSceneFeedback(
+        this,
+        view.feedback,
+        view.locale,
+        this.textLayer,
+        this.player,
+        this.residents,
+        this.float.bind(this),
+      );
     }
-  }
-  private syncScenery() {
-    for (const { flag, layer } of this.furnishings) {
-      const visible = this.view.state.flags.includes(flag);
-      layer.setVisible(visible);
-      if (flag === 'furnished-reading-chair')
-        layer.forEachTile((tile) => {
-          if (tile.index > 0)
-            this.collision!.putTileAt(visible ? 1 : -1, tile.x, tile.y);
-        });
-    }
-    if (!this.townTiles) return;
-    const quarter = this.view.state.quarter;
-    const key = quarter === 3 ? 'town-tiles' : `town-tiles-${quarter}`;
-    if (quarter !== 3 && !this.textures.exists(key)) {
-      // Tile tint is WebGL-only. Cache a small atlas for both renderers instead.
-      const source = this.textures
-        .get('town-tiles')
-        .getSourceImage() as HTMLImageElement;
-      const texture = this.textures.createCanvas(
-        key,
-        source.width,
-        source.height,
-      )!;
-      const context = texture.context;
-      context.drawImage(source, 0, 0);
-      const pixels = context.getImageData(0, 0, source.width, source.height);
-      const data = pixels.data;
-      for (const gid of [1, 26, 27, 28]) {
-        const palette = landscapes[quarter][gid === 1 ? 'grass' : 'trees'];
-        for (let y = 0; y < size; y++)
-          for (let x = (gid - 1) * size; x < gid * size; x++) {
-            const i = (y * source.width + x) * 4;
-            // Preserve transparent pixels and the tree's neutral trunk/base.
-            if (
-              !data[i + 3] ||
-              data[i + 1] <= data[i] ||
-              data[i + 1] <= data[i + 2]
-            )
-              continue;
-            const shade = data[i + 1] / (gid === 1 ? 156 : 173);
-            for (let channel = 0; channel < 3; channel++)
-              data[i + channel] = Math.round(palette[channel] * shade);
-          }
-      }
-      context.putImageData(pixels, 0, 0);
-      texture.refresh();
-    }
-    this.townTiles.setImage(this.textures.get(key));
   }
   private syncResidents() {
     const residents = visibleResidents(this.view.state, this.view.interior);
@@ -753,281 +496,30 @@ export class TownScene extends Phaser.Scene {
     }
     return anchor;
   }
-  private decorateFestival() {
-    const festival = this.view.state.day.festival;
-    this.celebration = undefined;
-    if (!festival) return;
-    const g = this.own(this.add.graphics().setDepth(530));
-    drawFestivalStalls(g, festival);
-    if (festival === 'bonfire-night')
-      this.celebration = this.own(this.add.graphics().setDepth(1560));
-  }
-  private decorateLunch() {
-    // South of the festival stalls, clear of the green's entrance and benches.
-    const furniture = (
-      x: number,
-      y: number,
-      frame: number,
-      requires?: 'tables',
-    ) => {
-      const object = this.own(
-        this.add
-          .sprite(x * size + 8, y * size + 8, 'lunch-furniture', frame)
-          .setDepth(y * size + size),
-      );
-      this.lunch.push({ object, cell: { x, y }, requires });
-    };
-    for (const x of [32, 33, 34]) furniture(x, 34, 7);
-    for (const x of [32, 34]) {
-      furniture(x, 35, 8);
-      furniture(x, 33, 8, 'tables');
-    }
-    const table = this.own(this.add.graphics().setDepth(561));
-    drawLunchTable(table);
-    this.lunch.push({ object: table });
-    const food = this.own(
-      this.add
-        .sprite(536, 548, 'lunch-meal')
-        .setDisplaySize(12, 12)
-        .setDepth(562),
-    );
-    this.lunch.push({ object: food, requires: 'food' });
-  }
-  private syncLunch() {
-    const visible = lunchVisible(this.view.state, this.view.interior);
-    this.lunchCells.clear();
-    for (const { object, requires, cell } of this.lunch) {
-      const shown =
-        visible &&
-        (!requires ||
-          this.view.state.flags.includes(
-            `quarter-community-lunch-${requires}`,
-          ));
-      object.setVisible(shown);
-      if (shown && cell) this.lunchCells.add(`${cell.x}:${cell.y}`);
-      if (shown && requires === 'food') {
-        const state = this.view.state;
-        const biscuits = state.log.some(
-          (entry) =>
-            entry.kind === 'action' &&
-            entry.year === state.year &&
-            entry.quarter === state.quarter &&
-            entry.id === 'community-lunch-biscuits',
-        );
-        (object as Phaser.GameObjects.Sprite).setTexture(
-          biscuits ? 'lunch-biscuits' : 'lunch-meal',
-        );
-      }
-    }
-  }
   private syncLifeScenery() {
-    const scenery = this.lifeScenery;
-    if (!scenery) return;
-    const { state, locale } = this.view;
-    const en = locale === 'en';
-    const stage = flowerbedStage(this.view.state.flags);
-    const g = scenery.flowerbed.clear();
-    this.lifeCells.clear();
-    // A two-tile bed inside the allotment fence, beside the gate and below the plots.
-    const gate = this.anchors.get('allotment-gate')!;
-    const x = (gate.x + 1) * size,
-      y = gate.y * size;
-    if (stage)
-      for (const dx of [0, 1])
-        this.lifeCells.add(`${gate.x + 1 + dx}:${gate.y}`);
-    drawFlowerbed(g, x, y, stage, state.flags);
-    const may = mayDayScene(this.view.state);
-    const m = scenery.mayDay.clear().setVisible(!!may);
-    if (may) {
-      const anchor = this.anchors.get(may.venue)!;
-      const indoors = may.venue === 'council';
-      // The town hall has a window display on the town map, not a separate interior map.
-      m.setPosition(
-        anchor.x * size + (indoors ? 8 : 38),
-        anchor.y * size + (indoors ? -12 : 9),
-      );
-      m.setDepth(indoors ? anchor.y * size : anchor.y * size + 16);
-      const preparation =
-        state.mayDay?.year === state.year
-          ? state.mayDay.preparation
-          : undefined;
-      drawMayDay(m, may.phase, preparation);
-    }
-    const visible = mapSurprises(state);
-    this.spots = this.spots.filter(
-      (spot) => spot.interaction.kind !== 'surprise',
-    );
-    for (const [id, entry] of scenery.surprises) {
-      if (visible.some((clue) => clue.id === id)) continue;
-      entry.drawing.setVisible(false);
-      entry.label.setVisible(false);
-    }
-    for (const clue of visible) {
-      const cell = this.anchors.get(clue.anchor)!;
-      let entry = scenery.surprises.get(clue.id);
-      if (!entry) {
-        entry = {
-          drawing: this.own(this.add.graphics().setDepth(cell.y * size + 12)),
-          label: this.own(
-            new SceneText(
-              this.textLayer,
-              cell.x * size + 8,
-              cell.y * size + 19,
-              '',
-              'label',
-            ),
-          ),
-          clue,
-        };
-        scenery.surprises.set(clue.id, entry);
-      }
-      entry.clue = clue;
-      entry.label
-        .setVisible(true)
-        .setText(
-          clue.phase === 'clue'
-            ? surpriseNames[clue.id][en ? 'en' : 'zhCN']
-            : clue.text[en ? 'en' : 'zhCN'],
-        );
-      entry.label.element.title = clue.text[en ? 'en' : 'zhCN'];
-      drawSurprise(
-        entry.drawing
-          .clear()
-          .setVisible(true)
-          .setPosition(cell.x * size, cell.y * size),
-        clue,
-        state.surpriseRecords?.find((record) => record.id === clue.id)
-          ?.choiceId,
-      );
-      if (clue.phase === 'clue')
-        this.spots.unshift({
-          ...cell,
-          interaction: {
-            kind: 'surprise',
-            id: clue.anchor,
-            name: surpriseNames[clue.id],
-          },
-          bounds: new Phaser.Geom.Rectangle(
-            cell.x * size,
-            cell.y * size - 4,
-            size,
-            size + 4,
-          ),
-          label: entry.label,
-        });
-    }
-    if (
-      !visible.some(
-        (clue) =>
-          clue.phase === 'clue' && clue.anchor === this.approachedSurprise,
-      )
-    )
-      this.approachedSurprise = undefined;
+    if (!this.lifeScenery) return;
+    ({ spots: this.spots, approachedSurprise: this.approachedSurprise } =
+      syncLifeScenery(
+        this,
+        this.view,
+        this.lifeScenery,
+        this.anchors,
+        this.lifeCells,
+        this.spots,
+        this.textLayer,
+        this.own.bind(this),
+        this.approachedSurprise,
+      ));
   }
   private paintLight() {
-    if (!this.sky) return;
-    const minute = this.view.state.day.minute,
-      weather = this.view.state.day.weather;
-    this.sky.clear();
-    const w = this.scale.width / this.cameras.main.zoom,
-      h = this.scale.height / this.cameras.main.zoom;
-    // Scroll-factor zero still uses the camera's centred zoom transform.
-    this.sky.setPosition(
-      (this.scale.width - w) / 2,
-      (this.scale.height - h) / 2,
+    paintLight(
+      this,
+      this.view,
+      this.sky,
+      this.rain,
+      this.lampLights,
+      this.windows,
     );
-    this.rain?.setPosition(
-      (this.scale.width - w) / 2,
-      (this.scale.height - h) / 2,
-    );
-    if (this.view.interior) {
-      this.sky.setScrollFactor(1).setPosition(0, 0);
-      if (this.view.state.flags.includes('brighter-home')) {
-        // Window and optional desk lamp, in home-map coordinates.
-        const lights = [{ x: 40, y: 48 }];
-        if (this.view.state.flags.includes('furnished-desk-lamp'))
-          lights.push({ x: 136, y: 64 });
-        for (const { x, y } of lights)
-          for (const radius of [48, 36, 24])
-            this.sky
-              .fillStyle(0xffd88b, minute >= 1080 ? 0.02 : 0.035)
-              .fillCircle(x, y, radius);
-      }
-    } else {
-      this.sky.setScrollFactor(0);
-      const color =
-        minute >= 1260 ? 0x162750 : minute >= 1080 ? 0xdc9651 : 0x2c415b;
-      const alpha =
-        (minute >= 1260 ? 0.48 : minute >= 1080 ? 0.18 : 0) +
-        (weather === 'rain' ? 0.13 : weather === 'cloudy' ? 0.07 : 0);
-      this.sky.fillStyle(color, alpha).fillRect(0, 0, w, h);
-    }
-    this.lampLights.forEach((l) => l.setVisible(minute >= 1080));
-    this.windows?.setVisible(minute >= 1080);
-  }
-  private feedback(feedback: SceneFeedback) {
-    if (!this.player) return;
-    const out = feedback.outcome;
-    if (!out) return;
-    const parts: string[] = [];
-    if (feedback.promotion) parts.push(t('game.promotion', this.view.locale));
-    for (const change of Object.values(feedback.hearts ?? {}))
-      parts.push(`♥ ${change.before} → ${change.after}`);
-    for (const [key, value] of Object.entries(out.statDeltas ?? {}))
-      if (value)
-        parts.push(
-          `${value > 0 ? '+' : ''}${value} ${t(`game.${key as 'money' | 'mood' | 'health' | 'english' | 'career'}`, this.view.locale)}`,
-        );
-    for (const [id, n] of Object.entries(out.items ?? {}))
-      if (n) {
-        const item = items.find((i) => i.id === id);
-        parts.push(
-          `${n > 0 ? '+' : ''}${n} ${item ? (this.view.locale === 'en' ? item.name.en : item.name.zhCN) : t('game.itemFallback', this.view.locale)}`,
-        );
-      }
-    if (parts.length) {
-      const text = new SceneText(
-        this.textLayer,
-        this.player.x,
-        this.player.y - 20,
-        parts.join('\n'),
-        'feedback',
-      );
-      this.float(text, 2200, 24);
-    }
-    if (out.kind === 'talk' || out.kind === 'gift') {
-      const actor = this.residents.get(out.npc ?? '')?.sprite ?? this.player;
-      const person = npcs.find((n) => n.id === out.npc);
-      const item = Object.keys(out.items ?? {})[0];
-      const expression =
-        out.kind === 'talk'
-          ? '♪'
-          : person?.gifts.loved.includes(item)
-            ? '♥ ♥'
-            : person?.gifts.liked.includes(item)
-              ? '♥'
-              : person?.gifts.disliked.includes(item)
-                ? '…'
-                : '☺';
-      const bubble = new SceneText(
-        this.textLayer,
-        actor.x,
-        actor.y - 25,
-        expression,
-        'bubble',
-      );
-      this.float(bubble, 1800, 8);
-    }
-    if (
-      out.kind === 'harvest' ||
-      (out.kind === 'catch' && out.items) ||
-      feedback.promotion
-    ) {
-      const spark = this.add
-        .sprite(this.player.x, this.player.y - 8, 'spark')
-        .setDepth(1800);
-      this.float(spark, 500, 0);
-    }
   }
   private float(
     object: SceneText | Phaser.GameObjects.Sprite,
@@ -1250,26 +742,6 @@ export class TownScene extends Phaser.Scene {
         animal.next = (animal.next + 1) % animalRoutes[id].length;
     }
   }
-  private updateWater(time: number) {
-    const water = this.water;
-    if (!water) return;
-    const reduced = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches;
-    water.setVisible(!reduced);
-    if (reduced) return;
-    const phase = Math.floor(time / 1800) % 3;
-    if (phase === this.waterPhase) return;
-    this.waterPhase = phase;
-    water.clear();
-    // Sparse integer-pixel glints sit below bridges, scenery and actors.
-    this.waterTiles.forEach(({ x, y }, index) => {
-      const step = (phase + index) % 3;
-      water.fillStyle(0xc4ded2, step === 1 ? 0.28 : 0.16);
-      water.fillRect(x + 4 + step, y + 6, 5, 1);
-      water.fillRect(x + 3 + step, y + 7, 2, 1);
-    });
-  }
   update(time: number, delta: number) {
     if (!this.ready || !this.player) return;
     const pond = this.anchors.get('pond');
@@ -1284,9 +756,14 @@ export class TownScene extends Phaser.Scene {
           this.player.y / size - pond.y,
         ) <= 7,
     });
-    this.weather(time);
-    this.festivalEffects(time);
-    this.updateWater(time);
+    paintWeather(this, this.view, this.rain, time);
+    festivalEffects(this.celebration, this.view.state.day.minute, time);
+    this.waterPhase = updateWater(
+      this.water,
+      this.waterTiles,
+      this.waterPhase,
+      time,
+    );
     if (this.view.paused) return;
     this.updateAnimals(delta);
     for (const [id, n] of this.residents) {
@@ -1393,32 +870,5 @@ export class TownScene extends Phaser.Scene {
       this.nearby = near;
       this.onNearby(near);
     }
-  }
-  private festivalEffects(time: number) {
-    const g = this.celebration;
-    if (!g) return;
-    g.clear();
-    if (this.view.state.day.minute < 1080) return;
-    const reduced = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches;
-    drawBonfire(g, time, reduced);
-  }
-  private weather(time: number) {
-    if (!this.rain) return;
-    this.rain.clear();
-    if (this.view.interior) return;
-    const weather = this.view.state.day.weather;
-    if (weather !== 'rain' && weather !== 'snow') return;
-    const w = this.scale.width / this.cameras.main.zoom,
-      h = this.scale.height / this.cameras.main.zoom;
-    drawPrecipitation(
-      this.rain,
-      weather,
-      time,
-      w,
-      h,
-      this.scale.width < 600 ? 36 : 70,
-    );
   }
 }

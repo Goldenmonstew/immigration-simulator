@@ -103,4 +103,8 @@ export const sourceUrls: Record<string, string> = {
     'https://www.gov.uk/government/publications/workers-and-temporary-workers-guidance-for-sponsors-part-2-sponsor-a-worker/workers-and-temporary-workers-guidance-for-sponsors-part-2-sponsor-a-worker-accessible--2',
   'SRC-057':
     'https://www.gov.uk/government/publications/continuous-residence-caseworker-guidance/continuous-residence-guidance-accessible-version',
+  'SRC-058':
+    'https://questions-statements.parliament.uk/written-questions/detail/2026-11-02/40091',
+  'SRC-059':
+    'https://www.gov.uk/government/publications/immigration-status-and-enforcement-action-caseworker-guidance/cancellation-and-curtailment-of-permission-accessible',
 };

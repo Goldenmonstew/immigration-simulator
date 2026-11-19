@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { evaluate } from '@uk-immigration/engine';
 import { AssessmentColumns } from '../../components/result-view';
 import { useTranslation } from '../../i18n/locale';
 import { encodeDraft } from '../../lib/share';
@@ -146,6 +147,15 @@ export function Ending({
   onChange: (next: GameState | undefined) => void;
 }) {
   const { t, locale } = useTranslation();
+  const application = state.settlementApplication;
+  const result =
+    application && application.cashSavings !== state.timeline.cashSavings
+      ? evaluate({
+          simulationDate: state.date,
+          timeline: { ...state.timeline, cashSavings: application.cashSavings },
+          locale,
+        })
+      : state.result;
   return (
     <section className={styles.ending}>
       <h1>{t('game.ending')}</h1>
@@ -213,11 +223,12 @@ export function Ending({
           );
         })}
       </div>
-      {state.result.shortCircuit && (
-        <p className={styles.notice}>{state.result.shortCircuit.message}</p>
+      {application && <p>{t('game.settlementAssessmentAtSubmission')}</p>}
+      {result.shortCircuit && (
+        <p className={styles.notice}>{result.shortCircuit.message}</p>
       )}
       <AssessmentColumns
-        result={state.result}
+        result={result}
         simulationDate={state.date}
         idPrefix="ending-"
       />

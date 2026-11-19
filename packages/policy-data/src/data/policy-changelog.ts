@@ -102,4 +102,15 @@ export const policyChangelog: PolicyChange[] = [
       { srcId: 'SRC-047', locator: 'Budget Resolution 15(1)–(2)' },
     ],
   },
+  {
+    date: '2026-11-04',
+    title: 'Home Office 说明拟扩大 HPI 大学名单的筛选方法',
+    summary:
+      '院校须在相关年份的 THE、QS 和 ARWU 榜单中至少两个进入前 150。正式扩容名单、新申请 cap 和生效日仍待公布。',
+    titleEn:
+      'Home Office clarifies university criteria for the planned HPI expansion',
+    summaryEn:
+      'Universities must rank in the top 150 in at least two of the THE, QS and ARWU rankings for the relevant years. The expanded list, new application cap and effective date are still pending.',
+    sources: [{ srcId: 'SRC-058', locator: '40091, Answer ¶1–2' }],
+  },
 ];
