@@ -26,7 +26,7 @@
 | SRC-007 | LAW | Statement of Changes in Immigration Rules HC 1691（2026-03-05 提交议会）及其 Explanatory Memorandum：**已证实** 2027-03-26 起多条路线 settlement 英语要求升至 B2（Skilled Worker 见 APP SW5 插入的 SW 22A.1；EM 5.60–5.62） | https://www.gov.uk/government/publications/statement-of-changes-to-the-immigration-rules-hc-1619-5-march-2026 （正文 PDF：https://assets.publishing.service.gov.uk/media/69a9a1f58fd807b03bbe92e5/E03553349_-_HC_1691_-_Immigration_Rules_Changes__Web_Accessible_.pdf ；EM PDF：https://assets.publishing.service.gov.uk/media/69a9a2b8ac93547152b9b1eb/E03553349_-__HC_1691__-_EXPLANATORY_MEMORANDUM__Web_Accessible_.pdf ） | 2026-03-05 | 2026-11-04 | `policy-sources/2026-03-05-hc1691-statement-of-changes-immigration-rules.pdf`（sha256 `6192eb13f84577806c1c4766a45014704cf24a1deef859a66c2eb766c13083cb`）；`policy-sources/2026-03-05-hc1691-explanatory-memorandum.pdf`（sha256 `d4046133ae0f8ce429b20b9e3e81cac5688f6dd2e2474ca6f062ecc7e7271503`） | archived |
 | SRC-008 | LAW | Immigration Rules: Appendix Continuous Residence（版本 2025-11-11，HC 1333；180 天缺席规则 CR 3.1，连续居住中断 CR 4.1） | https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-continuous-residence | 2025-11-11 | 2026-11-04 | `policy-sources/2025-11-11-immigration-rules-appendix-continuous-residence.html`（sha256 `c277440028e7e31662248f9d5d8ac8c755fbc958c9f98151d0c1e1c2850f29c6`） | archived（任务 0.3 时其余 Appendix 未登记；后续 Settlement Family Life / Global Talent / UK Ancestry / Innovator Founder / Graduate 分见 SRC-022 / 021 / 026 / 027 / 034） |
 | SRC-009 | GUIDANCE | IAA registration explained（Immigration Advice Authority；§1.1 immigration advice / services 的法定定义，§1.3 未经资格提供属犯罪） | https://www.gov.uk/government/publications/iaa-adviser-registration-explained/iaa-adviser-registration-explained | 2026-10-05 | 2026-11-04 | `policy-sources/2026-10-05-iaa-registration-explained.html`（sha256 `980725d32782c7c4ab04ceb65b2a924736a57cbd23fbb45f0413817c0d8e6fa7`） | archived |
-| SRC-010 | REFERENCE | GOV.UK Content API 文档：首页（用途、限制、beta、无需认证、10 req/s）与 API reference（`content_id`、`public_updated_at` 字段） | https://content-api.publishing.service.gov.uk/ ；https://content-api.publishing.service.gov.uk/reference.html | —（页面无日期） | 2026-11-04 | `policy-sources/2026-11-04-govuk-content-api-docs.html`（sha256 `1eb1d87b17ec047cc07088d828dce83de7a3e4225ed08f6a6f94c0173a5c446d`）；`policy-sources/2026-11-04-govuk-content-api-reference.html`（sha256 `72861d6c58e48f8f0f9e14d94be29c68a969ffc32473913f9f774e5b136c9ab0`） | archived（第二阶段才用） |
+| SRC-010 | REFERENCE | GOV.UK Content API 文档：首页（用途、覆盖范围）与 API reference（字段、每客户端 10 req/s 限流） | https://content-api.publishing.service.gov.uk/ ；https://content-api.publishing.service.gov.uk/reference.html | —（页面无日期） | 2026-11-19 | `policy-sources/2026-11-19-govuk-content-api-docs.html`（sha256 `2eadf25194934d6796829e58e1ce1779cfba7148528bd72a13093f81c4ea8eb4`）；`policy-sources/2026-11-19-govuk-content-api-reference.html`（sha256 `ddc9550eeed71c3307f8fd0e5ab6a206bdad8f681acb5bc42baac8d0e2e9c3d3`） | archived（第二阶段才用） |
 | SRC-011 | REFERENCE | legislation.gov.uk "New Legislation" 页：Atom 订阅 feed 说明，及"与印刷版同步或至少 24 小时内上线"的目标 | https://www.legislation.gov.uk/new （feed：https://www.legislation.gov.uk/new/data.feed ，2026-11-04 实测返回 `application/atom+xml`） | —（动态页面） | 2026-11-04 | `policy-sources/2026-11-04-legislation-gov-uk-new-legislation.html`（sha256 `8878c1d2a2931bcf5c6eb96e03ad1facb62378a0338b3b44b186f2ef0359406d`） | archived（第二阶段才用） |
 | SRC-012 | POLICY | Restoring control over the immigration system: White Paper（CP 1326，80 页；发布日是 SRC-001 过渡安排的截止点；settlement B2 见 ¶257，10 年基准见 ¶264） | https://www.gov.uk/government/publications/restoring-control-over-the-immigration-system-white-paper （PDF：https://assets.publishing.service.gov.uk/media/6821f334ced319d02c906103/restoring-control-over-the-immigration-system-web-optimised.pdf ） | 2025-05-12 | 2026-11-04 | `policy-sources/2025-05-12-cp1326-restoring-control-white-paper.pdf`（sha256 `c5ff95a61effb96aff7ad83806cd6892e60c5fe9a2e949a9822b778fd22ad775`） | archived |
 | SRC-013 | POLICY | A Fairer Pathway to Settlement: statement and accompanying consultation on earned settlement（CP 1448，60 页；咨询期 2025-11-20 至 2026-02-13；RQF 6 以下 15 年等方案已被 SRC-001 取代，仅作历史对照） | https://www.gov.uk/government/consultations/earned-settlement （PDF：https://assets.publishing.service.gov.uk/media/691edda450b16caf978153d8/Command_Paper_final_-_reviewed7.pdf ） | 2025-11-20 | 2026-11-04 | `policy-sources/2025-11-20-cp1448-earned-settlement-consultation.pdf`（sha256 `0e56c34796ed482282aacdf2a50e40728fb0d603dd738019168ddab24c3bab07`） | archived |
@@ -75,6 +75,8 @@
 - 常用定位（物理页）：Introduction 与最低要求 p8–p9；"实施前发布技术与操作指引" p10；Ch.1 Character p11–p12；Ch.2 Contribution p14–p19（收入门槛与税档联动、收入豁免 p15，"best years" p16，家庭合并收入 p17，British connection 与 public funds p18，案例 Individual A–D p19）；Ch.3 Integration p20–p21（B2 及豁免 p21）；Ch.4 Residence p22–p24（core / high talent permission 定义在 p23 注 9、10，不计入路线清单 p24）；Ch.5 Dependants p28–p31（伴侣同时 / 后到 p29，案例 p31）；Ch.7 难民 p36–p40（Safe and Legal p37，Core Protection / Protection Work and Study 与非法入境 +10 p38（注 14 为 2026-03-02 前申请庇护者），Article 31、英语、public funds 与 asylum support 偿还 p39，案例 Individual A–D p40）；Ch.8 过渡安排 p41–p45（案例 p45）；Table 1 p46；Table 2（难民路径）p47–p48；完整影响评估 p54。
 
 - 2026-11-15 补存 [accessible HTML](https://www.gov.uk/government/consultations/earned-settlement/outcome/a-fairer-pathway-to-settlement-government-response-to-the-consultation) 与[咨询集合页](https://www.gov.uk/government/consultations/earned-settlement)。HTML 自身 `first-published-at`／`public-updated-at` 和集合页 `Updates to this page` 均为 2026-11-12；这是补充格式的日期，政策回应仍首发于 2026-11-02。内部 `updated-at` 不作为政策版本日；不另建等权政策编号，不覆盖原 PDF。
+- `policy-sources/2026-11-12-cp1707-government-response-accessible.html` → <https://www.gov.uk/government/consultations/earned-settlement/outcome/a-fairer-pathway-to-settlement-government-response-to-the-consultation>
+- `policy-sources/2026-11-12-earned-settlement-consultation.html` → <https://www.gov.uk/government/consultations/earned-settlement>
 - HTML 定位：`#earnings`、`#how-earnings-will-be-assessed`、`#household-income`、`#public-funds`、`#chapter-6-vulnerable-groups---how-will-vulnerable-groups-be-treated`、`#chapter-8-transitional-arrangements-and-existing-care-workers`、`#in-summary`、`#annex-b-the-economic-case-for-change-`。HTML 小节锚点与 PDF 页序分开引用；收入年数与挂钩税种的分歧仍在，不能据格式更新关闭 PD-041／042。
 
 ### SRC-002 下议院（HC Deb vol 792）
@@ -132,7 +134,10 @@
 
 ### SRC-010 / SRC-011 监控类参考
 
-- SRC-010 首页小节：`#what-you-can-do-with-this-api`（适合引用 GOV.UK 内容并保持更新）、`#what-you-can-39-t-do-with-this-api`（只覆盖 www.gov.uk 页面；不能直接取附件和图片；搜索等动态生成内容不可用）、`#beta-software`、`#authentication`（无需认证）、`#rate-limiting`（每客户端最多 10 请求/秒）。字段定义见 reference.html 的 content item schema（`content_id`、`public_updated_at`、`first_published_at`）。
+- SRC-010 首页小节 `#what-you-can-do-with-this-api` 说明如何引用 GOV.UK 内容并保持更新。`#what-you-can-39-t-do-with-this-api` 说明覆盖范围限于 www.gov.uk 页面，附件和图片无法直接获取，搜索等动态生成内容不可用。
+- SRC-010 的旧首页 `#quick-start` 和 `#authentication` 改见 [Get started](https://content-api.publishing.service.gov.uk/get-started.html) 和该页的 `#authentication`，使用 API 仍无需认证。旧首页 `#rate-limiting` 改见 [API reference 的 Rate limiting](https://content-api.publishing.service.gov.uk/reference.html#rate-limiting)，每客户端仍最多 10 请求/秒。旧首页 `#beta-software` 已移除。
+- SRC-010 的字段 `content_id`、`public_updated_at`、`first_published_at` 仍见 [API reference 的 ContentItem](https://content-api.publishing.service.gov.uk/reference.html#schema-contentitem)。Appendix 响应中的 `details.change_history` 按实际 JSON 核对，样例见 SRC-034、SRC-035。
+- SRC-010 旧版（抓取日 2026-11-04）保留 `policy-sources/2026-11-04-govuk-content-api-docs.html` 和 `policy-sources/2026-11-04-govuk-content-api-reference.html`。新页面未注明发布日期，快照以抓取日 2026-11-19 命名。
 - 本任务实际用 Content API（`https://www.gov.uk/api/content/<path>`）读取了各 Appendix 的 `public_updated_at` 与 `change_history`，可作为第二阶段变更检测的可行性证据。
 - SRC-011：`/new` 页面是动态的，快照只证明 2026-11-04 时的说明文字；feed 本身未入库（内容每天变）。
 
@@ -416,10 +421,26 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-033／037／038／039 议会书面问题
 
 - 2026-11-15 四个网页的 `curl` 抓取均返回 **HTTP 403**；在线网页可经阅读服务回读，实际快照采用议会官方 API 的完整单条 JSON（不是列表接口的截短 `answerText`），未保存拒绝页。
-- API 模式：`https://questions-statements-api.parliament.uk/api/writtenquestions/questions/<提问日>/<问题号>?expandMember=true`。分别为 `2026-11-02/40064`、`2026-11-02/39721`、`2026-11-03/40262`、`2026-11-10/41453`；`value.uin`／`value.dateTabled`／`value.dateAnswered` 可核身份与日期。定位为问题号 + 回答日 + `value.answerText` 内**非空 `<p>`** 顺序，不把自动换行或空白段计作一段。
+- `value.uin`／`value.dateTabled`／`value.dateAnswered` 可核身份与日期。定位为问题号 + 回答日 + `value.answerText` 内**非空 `<p>`** 顺序，不把自动换行或空白段计作一段。
+
+### SRC-033 书面问题 40064
+
+- [官方 API](https://questions-statements-api.parliament.uk/api/writtenquestions/questions/2026-11-02/40064?expandMember=true)
 - **SRC-033，40064，回答 2026-11-04**：Answer ¶2–6 对应 Budget ¶6.94（薪资措施和春季窗口），¶8 是引用 MAC 的判断，¶9 对应 ¶6.95（最长六个月与 2027 年），¶10 说细节后续发布。未回答新一般门槛的具体金额。
+
+### SRC-037 书面问题 39721
+
+- [官方 API](https://questions-statements-api.parliament.uk/api/writtenquestions/questions/2026-11-02/39721?expandMember=true)
 - **SRC-037，39721，回答 2026-11-04**：Answer ¶2（多数尚未定居的在英者、指定 care／public-sector 过渡不是普遍豁免），¶4（实施前发布经济、平等、儿童影响评估及进一步技术／操作指引）。不能据此补造在途者完整适用边界。
+
+### SRC-038 书面问题 40262
+
+- [官方 API](https://questions-statements-api.parliament.uk/api/writtenquestions/questions/2026-11-03/40262?expandMember=true)
 - **SRC-038，40262，回答 2026-11-10**：Answer ¶1（未做所问威慑效果估算），¶2（较长的定居合格期本身不授予同长度停留许可），¶3（无合法停留依据时的处理）。不是新授予许可规则。
+
+### SRC-039 书面问题 41453
+
+- [官方 API](https://questions-statements-api.parliament.uk/api/writtenquestions/questions/2026-11-10/41453?expandMember=true)
 - **SRC-039，41453，回答 2026-11-13**：Answer ¶2–3 的预测是无改革基线、有显著不确定性且不含 EUSS；¶4 说改革影响另列 accompanying Impact Assessment。不可换算为角色的获批概率。
 
 ## SRC-034 Appendix Graduate
@@ -434,17 +455,21 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ## SRC-036 HPI 大学清单 2026
 
+- `policy-sources/2026-11-04-high-potential-individual-global-universities-list-index.html` → <https://www.gov.uk/government/publications/high-potential-individual-visa-global-universities-list>
 - 子页 `first-published-at` 为 2026-11-01，`public-updated-at`／可见 Updated 为 2026-11-04；所附[集合页](https://www.gov.uk/government/publications/high-potential-individual-visa-global-universities-list) `Updates to this page` 分别记载加入 2026 名单和移除旧名单。文件名取子页版本日，不取名单标题的年份或授予期起点。
 - 子页正文首段（无独立锚点）将适用学历授予期间定为 **2026-11-01 至 2027-10-31**，随后表头为 `Alphabetical rankings lists 2026`／`Country`。这是现行年度清单，不能作为预算 top 150 新方案已实施的证据。
 
 ## SRC-040 Women and Equalities Committee 取证
 
-- 网页直接抓取 403；快照来自[官方文档 API](https://committees-api.parliament.uk/api/OralEvidence/18236/Document/Html) 返回的 base64 `data`，解码后保留原 HTML。所附[官方元数据](https://committees-api.parliament.uk/api/OralEvidence/18236) 的 `meetingDate` 为 2026-11-04，`publicationDate` 为 **2026-11-05**；HTML 卷首的取证与命令刊印日期均为 2026-11-04。二者区分登记，不能只把取证日当网上发布日。
+- `policy-sources/2026-11-05-wec-earned-settlement-oral-evidence-hc760.html` → <https://committees-api.parliament.uk/api/OralEvidence/18236/Document/Html>
+- `policy-sources/2026-11-05-wec-earned-settlement-oral-evidence-hc760-metadata.json` → <https://committees-api.parliament.uk/api/OralEvidence/18236>
+- 网页直接抓取 403；快照来自上述官方文档 API 返回的 base64 `data`，解码后保留原 HTML。官方元数据的 `meetingDate` 为 2026-11-04，`publicationDate` 为 **2026-11-05**；HTML 卷首的取证与命令刊印日期均为 2026-11-04。二者区分登记，不能只把取证日当网上发布日。
 - 定位 **HC 760，Q1–Q26**，引用时保留对应证人及问题号。该材料是证人意见与委员会审查，适合家庭处境素材，不是政府已接受的豁免或新的 Immigration Rules。
 
 ## SRC-041 Women and Equalities Committee 信函
 
-- 原 PDF URL 直接抓取 403；从[官方 API](https://committees-api.parliament.uk/api/Publications/55734/Document/309954/OriginalFormat) 的 base64 `data` 解码得到原 PDF（126,591 字节），不是重新排版或自行转写。信件日期与官方发布元数据均为 2026-11-05。
+- `policy-sources/2026-11-05-wec-earned-settlement-letter.pdf` → <https://committees-api.parliament.uk/api/Publications/55734/Document/309954/OriginalFormat>
+- 原 PDF URL 直接抓取 403；从上述官方 API 的 base64 `data` 解码得到原 PDF（126,591 字节）。信件日期与官方发布元数据均为 2026-11-05。
 - `pdfinfo`：**5 页**；`pdftotext -f N -l N -layout` 核对：物理 **p1 问题 1–3**（儿童影响评估、单亲／父母不同进度），**p2 问题 4–5**（儿童入籍与 care leavers），**p4 问题 8–10**（残障支持、豁免咨询、家暴支持），**p5 问题 11**（平等影响评估）。本 PDF 页脚恰与物理页相同；这些是问题，不是政府答复；不采用转引的第三方统计。
 
 ## SRC-042–045 动态生活指引
@@ -458,6 +483,9 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-046–047 雇主 ISC／CoS 税务
 
 - **SRC-046** 于 2026-10-28 发布；`#general-description-of-the-measure`、`#operative-date`、`#proposed-revisions`：针对雇主支付 ISC／CoS 的 benefit-in-kind 所得税豁免，适用付款日自 **2026-10-28** 起；不扩及 sponsor licence、visa application fee 或 IHS。该政策说明不独自证明法定效力。
+
+### SRC-047 下议院 Budget Resolutions
+
 - **SRC-047** 网页直接抓取 403，存档为[Hansard 官方 API](https://hansard-api.parliament.uk/debates/debate/31AB917B-C6F4-41D2-B256-BAB5D978DA92.json) 完整 JSON。定位 **HC Deb 2026-11-03 vol 792，Resolution 15 `Charges in connection with employment visas`，(1)–(2)**；标题 contribution `26110366000014`，付款日 `56bffe4a-fa6e-450d-8d67-e480fbe11be6`，法定效力声明 `891e7ed4-9876-42cd-a96c-84d71f3576ed`，通过结果 division `21AF684D-09F7-4DDF-A757-F344EFC811B1`。API 没有可用的数字栏号，故采用决议号和精确锚点，不补造 col。
 - 决议明确依据 Provisional Collection of Taxes Act 1968 具有临时法定效力，并有通过结果；不把随后 Finance Bill 的草案身份当作永久成法。其作用是税务处理，不是退还玩家移民费用。
 
