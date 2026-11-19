@@ -12,7 +12,39 @@ const register = readFileSync(
   'utf8',
 );
 const primarySources = register.split('## 一级来源')[1].split('\n## ')[0];
+const noteSections = register.split(/^#{2,3} /m);
 const counts = { unchanged: 0, changed: 0, failed: 0, dynamic: 0 };
+const namedEntities = new Map(
+  Object.entries({
+    amp: '&',
+    AMP: '&',
+    apos: "'",
+    gt: '>',
+    GT: '>',
+    lt: '<',
+    LT: '<',
+    quot: '"',
+    QUOT: '"',
+    nbsp: '\u00a0',
+    ensp: '\u2002',
+    emsp: '\u2003',
+    thinsp: '\u2009',
+    ndash: '–',
+    mdash: '—',
+    lsquo: '‘',
+    rsquo: '’',
+    ldquo: '“',
+    rdquo: '”',
+    hellip: '…',
+    bull: '•',
+    middot: '·',
+    pound: '£',
+    euro: '€',
+    copy: '©',
+    reg: '®',
+    trade: '™',
+  }),
+);
 
 // GitHub-hosted runners timed out on the larger PDFs at 30 s: allow 120 s
 // and retry once.
@@ -33,15 +65,48 @@ function sha256(value) {
 function normalizedBody(html) {
   const cleaned = html
     .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<(script|style|noscript)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '');
+    .replace(
+      /<(script|style|noscript|template)\b[^>]*>[\s\S]*?<\/\1\s*>/gi,
+      '',
+    );
   const body =
     cleaned.match(/<main\b[^>]*>([\s\S]*?)<\/main\s*>/i) ??
     cleaned.match(/<body\b[^>]*>([\s\S]*?)<\/body\s*>/i);
   if (!body) throw new Error('HTML has no main or body element');
-  return body[1]
-    .replace(/<(\/?[a-z][a-z\d:-]*)\b(?:[^"'<>]|"[^"]*"|'[^']*')*>/gi, '<$1>')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (
+    body[1]
+      // Keep spaces at block boundaries without splitting words across inline tags.
+      .replace(
+        /<\/?([a-z][a-z\d:-]*)\b(?:[^"'<>]|"[^"]*"|'[^']*')*>/gi,
+        (_, tag) =>
+          /^(address|article|aside|blockquote|br|dd|details|div|dl|dt|fieldset|figcaption|figure|footer|form|h[1-6]|header|hr|li|main|nav|ol|p|pre|section|summary|table|tbody|td|tfoot|th|thead|tr|ul)$/i.test(
+            tag,
+          )
+            ? ' '
+            : '',
+      )
+      .replace(
+        /&(?:#(\d+|[xX][\da-fA-F]+);?|([a-zA-Z][a-zA-Z\d]+);)/g,
+        (entity, number, name) => {
+          if (name) return namedEntities.get(name) ?? entity;
+          const codePoint = Number(
+            number.startsWith('x') || number.startsWith('X')
+              ? `0${number}`
+              : number,
+          );
+          if (
+            codePoint === 0 ||
+            codePoint > 0x10ffff ||
+            (codePoint >= 0xd800 && codePoint <= 0xdfff)
+          ) {
+            return '\uFFFD';
+          }
+          return String.fromCodePoint(codePoint);
+        },
+      )
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 function hansardBody(json) {
@@ -51,10 +116,50 @@ function hansardBody(json) {
     .join('\n');
 }
 
+function writtenQuestionBody(json) {
+  const { uin, dateTabled, dateAnswered, questionText, answerText } =
+    JSON.parse(json).value;
+  if (typeof questionText !== 'string' || typeof answerText !== 'string') {
+    throw new Error('Written question JSON has no question or answer text');
+  }
+  return JSON.stringify({
+    uin,
+    dateTabled,
+    dateAnswered,
+    questionText,
+    answerText,
+  });
+}
+
+function jsonSnapshotUrl(notes) {
+  const urls = notes?.match(/https:\/\/[^\s`）)]+/g);
+  return urls?.find((url) => {
+    const { hostname, pathname } = new URL(url);
+    return (
+      (hostname === 'hansard-api.parliament.uk' &&
+        pathname.endsWith('.json')) ||
+      (hostname === 'questions-statements-api.parliament.uk' &&
+        pathname.startsWith('/api/writtenquestions/questions/')) ||
+      (hostname === 'www.gov.uk' && pathname.startsWith('/api/content/')) ||
+      (hostname === 'committees-api.parliament.uk' &&
+        /^\/api\/OralEvidence\/\d+$/.test(pathname))
+    );
+  });
+}
+
 for (const row of primarySources.match(/^\| SRC-\d+ \|.*$/gm)) {
   const columns = row.split('|').map((column) => column.trim());
   const id = columns[1];
-  const urls = columns[4].match(/https:\/\/[^\s；，（）]+/g);
+  const notes = noteSections.find((section) => section.startsWith(`${id} `));
+  const snapshotUrls = new Map(
+    Array.from(
+      notes?.matchAll(
+        /^- `(policy-sources\/[^`]+)` → <(https:\/\/[^>\s]+)>$/gm,
+      ) ?? [],
+      ([, snapshot, url]) => [snapshot, url],
+    ),
+  );
+  const urls = columns[4]?.match(/https:\/\/[^\s；，（）]+/g) ?? [];
   const snapshots = [
     ...columns[7].matchAll(
       /`(policy-sources\/[^`]+)`（sha256 `([a-f0-9]{64})`）/g,
@@ -63,19 +168,39 @@ for (const row of primarySources.match(/^\| SRC-\d+ \|.*$/gm)) {
   const pdfUrls = urls.filter((url) => url.endsWith('.pdf'));
 
   for (const [index, [, snapshot, expected]] of snapshots.entries()) {
-    let url = snapshot.endsWith('.pdf') ? pdfUrls[index] : urls[index];
-    if (snapshot.endsWith('.json')) {
-      // The register records Hansard's snapshot API URL in its per-ID notes.
-      const notes = register.split(`### ${id} `)[1].split('\n### ')[0];
-      url = notes.match(/https:\/\/hansard-api\.parliament\.uk\/[^`]+/)[0];
-    }
     const label = `${id} ${snapshot}`;
     try {
+      let url = snapshotUrls.get(snapshot);
+      if (!url) {
+        if (snapshot.endsWith('.json')) url = jsonSnapshotUrl(notes);
+        else url = snapshot.endsWith('.pdf') ? pdfUrls[index] : urls[index];
+      }
+      if (!url) throw new Error('Missing snapshot URL in source register');
+
+      let normalize;
+      if (snapshot.endsWith('.json')) {
+        if (url.startsWith('https://hansard-api.parliament.uk/')) {
+          normalize = hansardBody;
+        } else if (
+          url.startsWith('https://questions-statements-api.parliament.uk/')
+        ) {
+          normalize = writtenQuestionBody;
+        }
+      } else if (
+        url.startsWith('https://www.gov.uk/') &&
+        snapshot.endsWith('.html')
+      ) {
+        normalize = normalizedBody;
+      }
       const response = await fetchWithRetry(url);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status} ${response.statusText}`);
       }
-      const bytes = Buffer.from(await response.arrayBuffer());
+      const bytes =
+        url.startsWith('https://committees-api.parliament.uk/api/') &&
+        new URL(url).pathname.includes('/Document/')
+          ? Buffer.from((await response.json()).data, 'base64')
+          : Buffer.from(await response.arrayBuffer());
       const actual = sha256(bytes);
       console.log(
         `${label}: raw sha256 (expected ${expected}, actual ${actual})`,
@@ -83,14 +208,7 @@ for (const row of primarySources.match(/^\| SRC-\d+ \|.*$/gm)) {
       if (id === 'SRC-011') {
         counts.dynamic++;
         console.log(`${label}: dynamic (动态列表，不计入 changed)`);
-      } else if (
-        (url.startsWith('https://www.gov.uk/') && snapshot.endsWith('.html')) ||
-        (url.startsWith('https://hansard-api.parliament.uk/') &&
-          snapshot.endsWith('.json'))
-      ) {
-        const normalize = snapshot.endsWith('.json')
-          ? hansardBody
-          : normalizedBody;
+      } else if (normalize) {
         const local = sha256(
           normalize(
             readFileSync(
