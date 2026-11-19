@@ -30,7 +30,7 @@
 | **Graduate 许可期** | 只建模诺拉的情景：`graduateNonDoctoralEarlyGrantMonths` 24 个月、`graduateNonDoctoralShorterGrantFrom` 2027-01-01（`packages/policy-data` 现行参数）；博士三年与 18 个月一档没有用于计算 | 非博士 2027 年 1 月 1 日前申请两年，"after 1 January 2027" 申请 18 个月；博士三年 | SRC-034 GR 8.1：before 1 January 2027 两年，"on or after 1 January 2027" 18 个月，博士三年，从决定日起算 | 一致。1 月 1 日当天以 GR 8.1 为准，适用 18 个月 |
 | **只能获批一次** | 游戏开场写明不能续签（注释引 GR 1.4） | 只能获批一次，不能延期，也不能拆成几段 | SRC-034 GR 1.4：曾获 Graduate 或 Doctorate Extension Scheme 许可的，不能再申请 | 一致 |
 | **预算案的大学例外** | PD-077 记为未定（UNKNOWN） | 2026-10-28 段写明尚无进一步细节 | SRC-032 §5.6、§7.9 只给方向 | 一致，PD-077 保持未定 |
-| **与定居的关系** | **现行规则：** 合资格的 Student、Graduate 居留可计入 Long Residence（LR 11.1(a)）。引擎说明里写明未建模 LR 11.2 不计入的期间和 LR 11.3 的 12 个月要求，"可计入"不等于引擎已核完 Long Residence 资格。 **Skilled Worker 5 年：** 诺拉这类居留不计入（SW 21.2 的可计入路线不含 Student、Graduate），引擎未建模 SW 21.2(i)。 **改革栏：** 按 SRC-001 p23–24，两者归为不计入。问卷允许录入这两类许可 | Graduate 本身不通向定居，只能经 Long Residence 计入 | SRC-005 LR 11.1(a)；SRC-004 SW 21.2；SRC-001 p23–24 | 现行规则部分一致。UKCISA 没提改革方案 |
+| **与定居的关系** | **现行规则：** 合资格的 Student、Graduate 居留可计入 Long Residence（LR 11.1(a)）。引擎说明里写明未建模 LR 11.2 不计入的期间和 LR 11.3 的 12 个月要求，"可计入"不等于引擎已核完 Long Residence 资格。 **Skilled Worker 5 年：** 诺拉这类居留不计入（SW 21.2 的可计入路线不含 Student、Graduate），引擎未建模 SW 21.2(i)。 **改革栏：** 按 SRC-001 p23–24，两者归为不计入。问卷允许录入这两类许可 | Graduate 本身不通向定居，只能经 Long Residence 计入 | SRC-005 LR 11.1(a)、LR 11.3；SRC-004 SW 21.2；SRC-001 p23–24 | 现行规则部分一致。UKCISA 没提改革方案 |
 | **许可起算日** | 诺拉 2026-09-01 递交，2026-09-15 获批，许可从决定日起算 24 个月 | 同 | SRC-034 GR 8.1 | 一致 |
 | **境内申请与学生许可** | 诺拉的学生许可到 2026-09-14，2026-09-01 在许可期内递交 | 只能在英国境内申请；一般指引是在 Student 许可到期前申请 | SRC-034 GR 1.2(d)：申请人须在英国境内；GR 1.3：须现持有或最后持有 Student 许可 | 诺拉的情景同时满足两条，不冲突。UKCISA 的"到期前申请"是一般指引，比 GR 1.3 的字面要求窄 |
 | **结业与学校通知** | 情景假定已满足 | 学校确认结业后，还要通知 Home Office | SRC-034 GR 4.2–4.3 | 一致 |
@@ -64,7 +64,7 @@ UKCISA 的 Skilled Worker 页写明，新入职者选项（new entrant，Option 
   - 换签时没用完的 Graduate 许可怎么计入，要看 Skilled Worker caseworker guidance，项目还没登记这份文件；
   - 实际许可期按 CoS 计算（SW 18.1），不等于合同期。
 - **游戏的两处简化。**
-  - 递交和获批合成了一个动作。开场写"到期前转换"，到期结局写"没有接上新许可"，玩家可能把"到期前获批"当成实际期限。UKCISA 称，到期前按期递交即可，等待期间按 3C 处理（待核）。
+  - 递交和获批合成了一个动作。开场写"到期前转换"，到期结局写"没有接上新许可"，玩家可能把"到期前获批"当成实际期限。UKCISA 称，在学校确认结业到 Student 许可到期这个窗口内递交后，如果学生许可到期时申请仍待决，原许可会按 3C 延续（待核）。
   - UKCISA 还列出符合条件的 Student 直接转 Skilled Worker 的路径（SRC-004 SW 1.5A、SW 12.2(e)），游戏没有这条。
 
 所以游戏现在的判定不一定错。但玩家可能把"£40,700 不够"理解成对所有毕业生都成立。
@@ -92,11 +92,12 @@ UKCISA 的 Skilled Worker 页写明，新入职者选项（new entrant，Option 
   - (b) 不能做职业运动员（主申请人条文只写 professional sportsperson，"教练也不行"是 UKCISA 的解释；家属条件明写包括教练）；
   - (c) 不能读 Student sponsor 开设、可走 Student 路线的课程；
   - (d) 学习受 ATAS 条件约束。
-- **Graduate 家属（SRC-034 GR 9.4A）。** 前提都是对应的 Student 正在申请或已获 Graduate 许可。
-  - (a)：现持有或最后获发 Student 的家属伴侣许可的人；
-  - (b)：现持有或最后获发 Student（或其家属伴侣）的家属子女许可的人；
-  - (c)：该学生最后一段学生许可期间在英国出生的子女；
-  - (d)：在英国出生、父母一方持有 Graduate 许可的子女。
+- **Graduate 家属（SRC-034 GR 9.4A）。**
+  - (a)–(c) 的共同前提：对应的 Student 正在申请或已获 Graduate 许可。
+    - (a)：现持有或最后获发 Student 的家属伴侣许可的人；
+    - (b)：现持有或最后获发 Student（或其家属伴侣）的家属子女许可的人；
+    - (c)：该学生最后一段学生许可期间在英国出生的子女。
+  - (d) 单独成立：在英国出生、父母一方现持 Graduate 许可的子女。
   - UKCISA 写有 (d) 的适用起始日，本次未对照修订记录，不写日期。
 - **费用。** 金额已对照官方原文，项目没有使用：
   - Graduate 境内申请费 £937（SRC-031 §7）；
