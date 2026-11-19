@@ -1,5 +1,5 @@
 import { currentLaw2026_11 as cl } from '@uk-immigration/policy-data';
-import { currentResidence, episodeOn } from '../../residence';
+import { currentResidence } from '../../residence';
 import type { CurrentResidence } from '../../residence';
 import { defineRule, textFor } from '../../rule';
 import type { RuleContext } from '../../types';
@@ -22,28 +22,12 @@ export function ukAncestryResidence({
   timeline,
   simulationDate,
 }: RuleContext): CurrentResidence | undefined {
-  const current = episodeOn(timeline, simulationDate);
-  if (!current) return undefined;
-  const ancestryExpiry = onUkAncestry(timeline, simulationDate)
-    ? undefined
-    : timeline.episodes
-        .filter(
-          (e) =>
-            e.route === 'UK_ANCESTRY' &&
-            e.role === 'MAIN' &&
-            e.validTo < simulationDate,
-        )
-        .map((e) => e.validTo)
-        .sort()
-        .at(-1);
-  if (!onUkAncestry(timeline, simulationDate) && !ancestryExpiry)
-    return undefined;
+  if (!onUkAncestry(timeline, simulationDate)) return undefined;
   return currentResidence(
     timeline,
     simulationDate,
     (e) => e.route === 'UK_ANCESTRY' && e.role === 'MAIN',
     cl.values.ukAncestryQualifyingYears.value,
-    { ancestryExpiry },
   );
 }
 
