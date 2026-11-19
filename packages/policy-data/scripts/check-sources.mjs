@@ -193,8 +193,8 @@ for (const row of primarySources.match(/^\| SRC-\d+ \|.*$/gm)) {
         // The "up to date ... on or before <date>" status line changes daily.
         normalize = (html) =>
           normalizedBody(html).replace(
-            /in force on or before \d{1,2} [A-Z][a-z]+ \d{4}/g,
-            'in force on or before <date>',
+            /up to date with all changes known to be in force on or before \d{1,2} [A-Z][a-z]+ \d{4}/,
+            'up to date with all changes known to be in force on or before <date>',
           );
       }
       const response = await fetchWithRetry(url);

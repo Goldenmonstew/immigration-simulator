@@ -22,6 +22,8 @@
 
 诺拉的既有故事设定为 `2026-09-01` 递交 Graduate，Student 许可有效至 `2026-09-14`，`2026-09-15` 获批并从决定日起取得 Graduate 许可。假定她在境内有效递交、原许可到期时仍待决，并且期间始终留在英国，Student 许可在届满至获批之间按 s.3C 延续。现有按日时间线的两个 episode 首尾相接，没有单独可显示的整天待决区间。任务 40 若把决定设在更晚，届满后的待决日仍应显示原路线条件，获批才切换。若决定在届满前作出，从新许可生效日切换；逾期后才递交的等待不能用 s.3C 补空档。Graduate 转 Skilled Worker 也应把递交、原许可届满和决定分别建模。按现行 Long Residence 的连续居住口径，3C 延续期间作为相关路线的许可时间。SW 12.3 的合计年限仍按 PD-081 单独核对。［SRC-055 s.3C(1)–(3)、SRC-034 GR 8.1、SRC-050 `#dates-granted`、SRC-057 `#time-spent-on-3c-or-3d-leave`；[连续居住指引](https://www.gov.uk/government/publications/continuous-residence-caseworker-guidance/continuous-residence-guidance-accessible-version#time-spent-on-3c-or-3d-leave)］
 
+**工作权限与许可路线要分开判断。** 待决期间按 s.3C 延续的是原 Student 许可及其条件；Student 一般不能填补永久全职岗位（SRC-051 ST 26.5(d)），但 ST 26.6 规定：在学位或以上全日制课程、合规记录良好的高校就读的 Student，有效递交 Graduate 申请后，自成功完成课程起可以在获批前开始永久全职岗位（Skilled Worker 申请则最早在课程结束前 3 个月），条件见 ST 26.6(a) 起各项。任务 40 应分别写清"许可路线仍是 Student（s.3C 延续）"与"这期间可以做什么工作（ST 26.5–26.6）"。
+
 ## 3. Workers and Temporary Workers 指引 Part 2
 
 | 主题 | SRC-056 定位 |
