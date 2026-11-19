@@ -23,12 +23,12 @@
 | 任务 | 内容 | 执行 | 依赖 | 状态 |
 |---|---|---|---|---|
 | 31 | 规则与文案逐条核对（8 个只读会话）：A1 现行法 Skilled Worker 与共用部分；A2 家庭、家属、英语；A3 其他现行路线；A4 改革的居留、基本要求、过渡；A5 改革的贡献、家属、受保护人群；A6 结果汇总、网站政策表述、顾问审阅包；A7 游戏里的政策事实（含续签简化）；A8 英文文案。Fable 逐条回原文复核，汇总为 `docs/research/2026-11-19-rules-audit.md`，并单独复核 15-five-items 列的三个顾问重点案例（G-OVERSTAY-BREACH、G-UNIVERSAL-CREDIT、G-LONG-RESIDENCE-10Y） | sol 只读 | — | 进行中 |
-| 32 | 来源刷新与补登记（依赖 44）：查 HC 584 之后的新 Statement of Changes 与 PD-076–080 相关官方文件；登记 Skilled Worker caseworker guidance（Option E 的 4 年怎么算）和 Appendix Student（打工时长、收尾期）；更新 pending-details | sol 实现 | — | 进行中 |
-| 33 | 核对发现的修正：按 31 复核为"成立""部分成立"的约 60 条，拆成子任务：33a 连续居留与最早申请日（共用代码）、33b 现行法 Skilled Worker / 家庭 / 英语路线条件、33c 现行法其他路线条件、33d 改革的居留与基本要求与过渡、33e 改革的贡献与家属与受保护人群、33f 网站结果表述、33g 游戏里的政策表述。每条附 SRC 定位与回归测试 | sol 实现 | 31 | 33a、33g 进行中，其余按共享文件顺序开 |
+| 32 | 来源刷新与补登记（依赖 44）：查 HC 584 之后的新 Statement of Changes 与 PD-076–080 相关官方文件；登记 Skilled Worker caseworker guidance（Option E 的 4 年怎么算）和 Appendix Student（打工时长、收尾期）；更新 pending-details | sol 实现 | 44 | 进行中 |
+| 33 | 核对发现的修正：按 31 复核为"成立""部分成立"的约 60 条，拆成子任务：33a 连续居留与最早申请日（共用代码）、33b 现行法 Skilled Worker / 家庭 / 英语路线条件、33c 现行法其他路线条件、33d 改革的居留与基本要求与过渡、33e 改革的贡献与家属与受保护人群、33f 网站结果表述（并入任务 49）、33g 游戏里的政策表述。每条附 SRC 定位与回归测试 | sol 实现 | 31 | 33a、33g 进行中，其余按共享文件顺序开 |
 | 34 | 英文文案修正：按 A8 复核过的问题改词典与英文文本 | sol 实现 | 31（A8）；改到诺拉文案的部分排在 35 之后 | 待开 |
 | 35 | 建模 Option E：见下方"任务 35 的契约" | sol 实现 | 32、44；33a、33b、33g 合并之后 | 待开 |
 | 36 | 手机 e2e 走地点改用 `walkTo`，保留打开抽屉与触屏点按，修"地点抽屉走到公园池塘"偶发失败 | sol 实现 | — | 进行中 |
-| 37 | 新官方变化落地：见下方"任务 37 的触发" | sol 实现 | 32 | 暂不触发：32 查到截至 2026-11-19 HC 584 仍是最新 Statement of Changes。以后若触发且影响 Option E，在两组共享文件上都让 37 先合并，35 再按适用版本实现 |
+| 37 | 新官方变化落地：见下方"任务 37 的触发" | sol 实现 | 32 | 暂不触发：32 查到截至 2026-11-19 HC 584 仍是最新 Statement of Changes。以后若在 35 开工前触发且影响 Option E，在两组共享文件上都让 37 先合并，35 再按适用版本实现；其余情况 35 → 37 |
 | 38 | 拆分 `scene.ts`：按职责拆成地图与寻路、标签层、天气与光照等模块，行为不变 | sol 实现 | — | 进行中 |
 | 39 | 第二批来源登记：Appendix FM-SE、adequate maintenance 指引（PD-075）、Immigration Act 1971 s3C（诺拉情景的 3C 延续）、11.4 报告建议的 Skilled Worker 担保人指引（与 32 登记的 caseworker guidance 是两份）；写明能否据此建模 | sol 实现 | 32（编号顺延） | 待开 |
 | 40 | 诺拉情景补两处说明：递交与获批的先后、3C 延续；符合条件的 Student 可直接转 Skilled Worker（SW 1.5A、SW 12.2(e)） | sol 实现 | 35、39 | 待开 |
@@ -37,17 +37,20 @@
 | 45 | Codex 模拟试玩：3 个会话按 `docs/playtest/kit.md` 扮演试玩者（人物卡 A1–A3，中英文、手机），看 Fable 截的正式站截图走问卷，游戏用 `packages/game` 逻辑一步步玩；Fable 汇总为 `docs/playtest/results-2026-11-19-codex.md`。不替代真人试玩 | sol（用户 2026-11-19 要求） | — | 进行中 |
 | 46 | 访问统计与错误上报：用户 2026-11-19 要求接入；核实后两者都已在线（见"盘点来源"），不另开实现任务 | — | — | 已在线 |
 | 47 | agy 第 5 轮设计评审：Fable 用无头 Chrome 截正式站桌面 2 倍、手机 3 倍图，agy（gemini-4-hydrogen-xhigh）评审；结论转成修正任务 | agy 评审，修正由 sol 实现 | — | 进行中 |
+| 48 | agy 第 5 轮设计修正：评审（`docs/research/2026-11-19-design-review-5.md`，综合 8.7/10）提出的 11 处，主站（页脚贴底、国籍框宽、首页右栏卡、政策页来源清单、PD 徽章配色）、小游戏（选人页横幅露缝、室内缩放与短线残留、飘字与标签重叠、锁图标、结局菜肴图标）、手机（HUD 角色名截断与图标、结果页按钮收口） | sol 实现，Fable 截图验收 | 38、33g、41 合并之后（同改 `apps/web/app/game`） | 待开 |
+| 49 | 网站可用性（Codex 试玩 #1–3、#11–15、#18，并入 33f 的结果页表述修正 A6#6、#7、#11、#12 与 A4#9 文案）：What-if 可加临时离境并对比、结果页按命中路径分组、国籍按国名搜索、结果总览附近放 What-if 与修改入口、问卷几处说明、试玩人物卡 A1 | sol 实现，Fable 截图与 e2e 验收 | 33a 合并之后（同改结果页测试与黄金快照） | 待开 |
+| 50 | 游戏试玩修正（Codex 试玩 #4–10、#16–17）：续签后季度小结与顶栏的"签证剩余"一致、换季清作物前提示、考试当场给结果、诺拉求职进度与跨过到期日提醒、年末回望时点、几处文字接不上 | sol 实现 | 33g、41 合并之后；诺拉部分排在 35 之后 | 待开 |
 | 43 | Fable 实机走"出门→聊天→钓鱼→做饭→回家"（手动操作，不用简易模式与跳过），补 13.5 缺的钓鱼与做饭成功卡实景截图 | Fable | — | 待开 |
-| 44 | 修来源检查脚本（32 的来源检查验收依赖它：44 第 3 轮同时重新登记 SRC-010，让全量检查退出 0；先合并 44，再用 32 的来源变更跑完整检查后合并 32）：`check-sources.mjs` 把 SRC-033 的书面问题 JSON 当成 Hansard JSON，取备注时抛 `TypeError`，32 修改前后都退出 1，每周 Check sources 跑不到后面的来源；修好后重跑完整检查；第 2 轮去掉 GOV.UK 布局与 HTML 实体误报、补齐多快照的 URL 映射 | sol 实现 | — | 进行中 |
+| 44 | 修来源检查脚本（32 的来源检查验收依赖它：44 第 3 轮同时重新登记 SRC-010，让全量检查退出 0；先合并 44，32 合入 44 的变更后、提交前须跑完整检查并通过）：`check-sources.mjs` 把 SRC-033 的书面问题 JSON 当成 Hansard JSON，取备注时抛 `TypeError`，32 修改前后都退出 1，每周 Check sources 跑不到后面的来源；修好后重跑完整检查；第 2 轮去掉 GOV.UK 布局与 HTML 实体误报、补齐多快照的 URL 映射 | sol 实现 | — | 进行中 |
 
 ### 共享文件与顺序
 
 同一时间只给一个写入会话：
 
-- `packages/engine/src/rules/current-law/skilled-worker.ts`、`packages/policy-data/src/parameters/current-law-2026-11.ts`：33a → 33b → 35。37 若日后被触发：不影响 Option E 时排在 35 之后；影响时 37 先合并，35 再按适用版本实现。
+- `packages/engine/src/rules/current-law/skilled-worker.ts`、`packages/policy-data/src/parameters/current-law-2026-11.ts`：33a → 33b → 35。37 若日后被触发：只有在 35 开工前触发且影响 Option E 时才 37 → 35，其余情况 35 → 37。
 - `packages/game/src/characters/graduate.ts`、`packages/game/src/graduate-route.ts`：33g → 35 → 40 → 34 中涉及诺拉的英文。
 - `packages/engine/test/golden.test.ts` 生成的黄金快照与 `docs/review/adviser-packet.md`：任何改结论的任务都要重新生成，按合并先后依次更新，不并行改。
-- `docs/SOURCES.md`、`docs/pending-details.md`、`apps/web/lib/sources.ts`、`policy-changelog.ts`：44 → 32 → 39 → 35（登记 PD），编号顺延；37 若被触发，按上一条的条件顺序插入（影响 Option E 时排在 35 之前）；33 各子任务登记的新 PD 按合并先后顺延编号。
+- `docs/SOURCES.md`、`docs/pending-details.md`、`apps/web/lib/sources.ts`、`policy-changelog.ts`：44 → 32 → 39 → 35（登记 PD），编号顺延；37 若被触发，按上一条的条件顺序插入（35 开工前触发且影响 Option E 时排在 35 之前，否则在 35 之后）；33 各子任务登记的新 PD 按合并先后顺延编号。
 - `packages/engine/src/aggregate.ts`、`residence.ts`、`types.ts`：33a 先合并，33b–33e 再开。
 - `apps/web/i18n/en.ts`、`zh-CN.ts` 与引擎规则文件里的英文说明：33 各子任务 → 34。33g 与 41 都会往词典里加行，按合并先后解决冲突。
 - `apps/e2e/tests/helpers.ts`：36 → 42。
@@ -85,7 +88,6 @@
 - Student 学期内工时与课程后收尾期建模（32 报告建议，SRC-051 ST 25.2–25.3、26.1–26.6）：诺拉情景目前不涉及。
 - SW 24.3 row E（PhD 级岗位过渡表）建模：PD-080 已由 SRC-050 明确，row E 仍未建模。
 - SRC-049 Finance Bill 原件 PDF 补归档（下载遇 403，现存议会发布元数据）。
-- SRC-010 Content API 文档改版后重新登记（44 发现）。
 - 6.2 报告留下的覆盖缺口：伴侣主申请人改走 Long Residence 时 FM 子女的 para 298（31 复核判为已记录的范围缺口）。
 - 新 Statement of Changes 的发现：每周 Check sources 只比较已登记来源的快照，不会发现新文件；每个阶段开工时由 Fable 或来源刷新任务查一次 gov.uk 集合页（本阶段由 32 查过）。
 
