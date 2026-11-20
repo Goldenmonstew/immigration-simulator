@@ -1,5 +1,16 @@
 # 任务 33c · 现行法其他路线的条件修正
 
+## Fable：合入 33a 最终版与 33b
+
+2026-11-20 起开发由 Fable 实现，Codex（gpt-6.2-sol）只读审核。33c 基于 33a 第 3 轮，合入 33b（含 33a 最终版）时手工解决冲突：
+- `residence.ts`：保留 33c 的 UK Ancestry 历史到期日参考（`ancestryExpiry`，CR 1.1(d)），并入 33b 的计入行程与 33a 的位置检查、section 3C 选项。
+- `hong-kong-bno.ts`：沿用 33c 按主申请人定居前最后一次许可核对 HK 59.1(b)；本人居留改用 33a 的 `hongKongBnoResidence`。
+- `aggregate.ts`：历史 UK Ancestry 许可的英语与 Life in the UK 改用 33b 的 `settlementEnglish`／`settlementKol`（`UK_ANCESTRY`，UKA 15.1、16.1），预计申请日同样按该路线核对。
+- `scope.ts`：33a 已把递交位置统一到 `currentLawApplicationPresence`，历史 UK Ancestry 的位置判断（UKA 10.2(d)）并入该函数。
+
+合并后 56 个黄金案例相对 33b 只有 `CL-INNOVATOR-FOUNDER-THREE-YEARS` 不同，与 33c 自身的结果一致（背书机构未申报，INNF 17.5）。
+
+
 ## 1. 做了什么
 
 建议提交 `Fix: 修正现行法其他定居路线的条件`，由 Fable 审核和提交。
