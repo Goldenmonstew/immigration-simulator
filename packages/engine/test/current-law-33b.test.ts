@@ -499,3 +499,37 @@ test('review33b-1 #3 a day without permission ends the pre-April 2024 salary coh
     )?.status,
   ).toBe('PASS');
 });
+
+test('review33b-2 a joint forecast keeps the date while the principal’s B2 is still to be met; the day itself does not pass', () => {
+  const principal = timeline({
+    episodes: [permit({ validFrom: '2021-11-04' })],
+    english: { cefrLevel: 'B1' },
+  });
+  const partner = {
+    episodes: [
+      permit({
+        validFrom: '2022-06-01',
+        role: 'DEPENDANT',
+        dependantOf: 'PARTNER',
+      }),
+    ],
+    english: { cefrLevel: 'B2' as const },
+  };
+  const forecast = current(partner, SIMULATION_DATE, principal);
+  expect(forecast).toMatchObject({
+    outcome: 'LIKELY_NOT_ELIGIBLE',
+    earliestDate: '2027-05-04',
+  });
+  expect(
+    forecast.rules.find((r) => r.id === 'CL-SW-PARTNER-5Y')?.explanation,
+  ).toContain('2027-05-04');
+  const onTheDay = current(partner, '2027-05-04', principal);
+  expect(onTheDay.outcome).not.toBe('LIKELY_ELIGIBLE');
+  expect(
+    onTheDay.rules.find((r) => r.id === 'CL-SW-PARTNER-5Y')?.status,
+  ).not.toBe('PASS');
+  const qualified = timeline({ ...principal, english: { cefrLevel: 'B2' } });
+  expect(current(partner, '2027-05-04', qualified).outcome).toBe(
+    'LIKELY_ELIGIBLE',
+  );
+});
