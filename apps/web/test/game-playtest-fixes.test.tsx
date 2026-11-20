@@ -5,6 +5,7 @@ import {
   endQuarter,
   harvest,
   newGame,
+  resolve,
   visaMonthsLeft,
   type GameState,
 } from '@uk-immigration/game';
@@ -81,6 +82,55 @@ test.each([
     }
   },
 );
+
+test('changing sponsor after renewal keeps the expiry granted at renewal in the summary', () => {
+  let state = newGame('skilled-worker', 42);
+  for (let i = 0; i < 5; i++) state = settle(state);
+  const before = withoutEvents(state);
+  Object.assign(before.day, { minute: 600, place: 'visa' });
+  const renewed = doActivity(before, 'extend');
+  expect(renewed.timeline.episodes.at(-1)?.validTo).toBe('2030-01-14');
+  const hired = resolve({ ...renewed, pendingEvent: 'sw-new-role' }, 'first');
+  expect(hired.timeline.episodes.at(-1)?.validTo).toBe('2029-04-14');
+  const after = settle(hired);
+  for (const locale of locales) {
+    const remaining = t('game.visa', locale).replace('{count}', '32');
+    const expiry = locale === 'en' ? '14 Jan 2030' : '2030年1月14日';
+    const html = summary(hired, after, locale);
+    expect(
+      renderView(() => StatusBar({ state: after }), locale).html,
+    ).toContain(remaining);
+    expect(html).toContain(remaining);
+    expect(html).toContain(
+      t('game.renewedThrough', locale).replace('{date}', expiry),
+    );
+    expect(html).not.toContain(
+      t('game.renewedThrough', locale).replace(
+        '{date}',
+        locale === 'en' ? '14 Apr 2029' : '2029年4月14日',
+      ),
+    );
+  }
+});
+
+test('older renewal logs confirm renewal without attributing a current expiry to it', () => {
+  const before = withoutEvents(newGame('skilled-worker', 42));
+  before.log.push({
+    year: before.year,
+    quarter: before.quarter,
+    kind: 'action',
+    id: 'extend',
+    text: { zhCN: '续签', en: 'Renew permission' },
+  });
+  const after = settle(before);
+  for (const locale of locales) {
+    const html = summary(before, after, locale);
+    expect(html).toContain(t('game.renewedThisSeason', locale));
+    expect(html).not.toContain(
+      t('game.renewedThrough', locale).split('{date}')[0],
+    );
+  }
+});
 
 test.each(['family-partner', 'hong-kong-bno', 'skilled-worker'])(
   '%s gets a year-end review only when the game year advances',

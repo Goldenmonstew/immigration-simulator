@@ -144,6 +144,7 @@ export type LogEntry = {
   choiceId?: string;
   text: Text;
   statDeltas?: Partial<Record<StatKey, number>>;
+  renewalValidTo?: IsoDate;
   // Quarter entries from older saves may have neither field.
   wellbeing?: { source: SettlementSource; mood: number; health: number }[];
   clearedPlots?: number;

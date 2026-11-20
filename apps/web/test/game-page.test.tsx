@@ -1140,6 +1140,50 @@ test('controller resolves a phone interruption without replaying or dropping the
   h.dispose();
 });
 
+for (const locale of ['zh-CN', 'en'] as const) {
+  test.each([
+    {
+      action: 'festival',
+      label: locale === 'en' ? 'Join the festival' : '逛节日摊位',
+      feedback: locale === 'en' ? 'You browse the stalls' : '你沿摊位走了一圈',
+    },
+    {
+      action: 'lunar-dumplings',
+      label: locale === 'en' ? 'Fold dumplings together' : '一起包饺子',
+      feedback:
+        locale === 'en' ? 'You fold your first dumpling' : '你捏好第一个饺子',
+    },
+  ])(
+    `$action shows its result after the New Year phone call in ${locale}`,
+    async ({ label, feedback }) => {
+      let start = core.newGame('skilled-worker', 176, locale);
+      while (start.pendingEvent || start.day.index < 2) {
+        start = start.pendingEvent
+          ? core.resolve(start, core.currentEvent(start)!.choices[0].id)
+          : core.sleep(start);
+      }
+      expect(start.day.festival).toBe('lunar-new-year');
+      start = core.tick(start, 18 * 60 + 14 - start.day.minute);
+      const h = await client(start, locale);
+      h.render().props(TownCanvas).onInteract({ kind: 'place', id: 'green' });
+      const menu = h.render().props(LocationMenu);
+      renderView(() => LocationMenu(menu), locale).click(label);
+      const call = h.render().props(EventCard);
+      expect(call.state.pendingEvent).toBe('sw-parents-call');
+      expect(call.state.day.minute).toBe(18 * 60 + 44);
+      renderView(() => EventCard(call), locale).click(
+        locale === 'en' ? 'Arrange a weekly call' : '约定每周通话',
+      );
+      const result = h.render();
+      expect(result.html).toContain(feedback);
+      result.click(t('game.continuePlaying', locale));
+      expect(h.render().html).not.toContain(feedback);
+      expect(h.render().props(TownCanvas).paused).toBe(false);
+      h.dispose();
+    },
+  );
+}
+
 test.each([
   { locale: 'zh-CN', score: 68, interrupted: false },
   { locale: 'en', score: 68, interrupted: false },

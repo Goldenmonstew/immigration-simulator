@@ -29,3 +29,11 @@ pnpm typecheck
 ## 报告
 
 写 `docs/tasks/reports/50-game-playtest-fixes.md`，最终消息同内容，四段。
+
+## 第 2 轮（Fable 追加；本轮起由 gpt-6.2-astra 实现，标准档）
+
+1. **CI e2e 失败**：已合并的 #28 新增了 `apps/e2e/tests/game.spec.ts` "folding dumplings at Lunar New Year gives a result and a reward"，断言旧的包饺子反馈"你把饺子托盘传到桌尾"；本任务 #17 改了这句。把该用例的期望改成本任务的新文案（只改期望文字，不改流程）。
+2. **审核意见**（全文 `/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/review50-1.md`）：
+   - #4 同季先续签、再接受新担保工作时，小结把换雇主签发的许可到期日写成"续签结果"。续签显示的日期要来自续签那次手续本身。
+   - #17 春节逛摊或包饺子被电话打断时（种子 176，第一年春节 18:14 选择、18:44 父母来电），客户端打开事件卡时清掉了结果文案，玩家看不到。中断保护目前只处理 `exam`，要让这两条结果也能在挂断后显示（与 #6 考试同样的处理）。补客户端测试，不只断言游戏状态。
+3. 跑 brief 的验收命令。

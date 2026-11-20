@@ -69,8 +69,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.actionsLeft': '{count} action points',
   'game.visaShort': '{count}m',
   'game.visa': 'Visa: {count} months left',
+  'game.renewedThisSeason': 'You renewed this season.',
   'game.renewedThrough':
-    'You renewed this season. Your new permission runs until {date}.',
+    'You renewed this season. The expiry date on that renewal was {date}.',
   'game.visaUrgent': 'Visa expiry approaching',
   'game.money': 'Savings',
   'game.mood': 'Mood',

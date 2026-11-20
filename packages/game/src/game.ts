@@ -1049,6 +1049,8 @@ export function doActivity(state: GameState, actionId: string): GameState {
     text: action.label,
     statDeltas: deltas(state, next),
   };
+  if (action.id === 'extend')
+    actionLog.renewalValidTo = next.timeline.episodes.at(-1)!.validTo;
   next.log.push(actionLog);
   next.log.push(...endingLog);
   next.outcome = {

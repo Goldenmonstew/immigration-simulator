@@ -90,7 +90,7 @@ export function QuarterSummary({
     0,
   );
   const visa = visaStatus(after);
-  const renewed = entries.some(
+  const renewals = entries.filter(
     (entry) => entry.kind === 'action' && entry.id === 'extend',
   );
   const quarterStart = { ...before, stats: startStats ?? before.stats };
@@ -146,20 +146,19 @@ export function QuarterSummary({
       >
         {t('game.visa').replace('{count}', String(visa.months))}
       </p>
-      {renewed && visa.validTo && (
-        <p>
-          {t('game.renewedThrough').replace(
-            '{date}',
-            new Date(visa.validTo).toLocaleDateString(
-              locale === 'en' ? 'en-GB' : locale,
-              {
-                dateStyle: 'medium',
-                timeZone: 'UTC',
-              },
-            ),
-          )}
+      {renewals.map((entry, index) => (
+        <p key={index}>
+          {entry.renewalValidTo
+            ? t('game.renewedThrough').replace(
+                '{date}',
+                new Date(entry.renewalValidTo).toLocaleDateString(
+                  locale === 'en' ? 'en-GB' : locale,
+                  { dateStyle: 'medium', timeZone: 'UTC' },
+                ),
+              )
+            : t('game.renewedThisSeason')}
         </p>
-      )}
+      ))}
       {needsVisaReminder(after) && (
         <VisaReminder state={after} onVisit={onVisa} />
       )}
