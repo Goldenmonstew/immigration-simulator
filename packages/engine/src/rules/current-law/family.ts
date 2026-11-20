@@ -7,6 +7,7 @@ import {
   continuousRun,
   episodeOn,
   currentResidence,
+  nextKnownApplicationDate,
   settledBy,
 } from '../../residence';
 import type { CurrentResidence } from '../../residence';
@@ -92,6 +93,30 @@ export function familyFiveYearStart({
     simulationDate,
     (e) => e.route === 'FAMILY_PARTNER_OR_PARENT' && e.role === 'MAIN',
   ).episodes[0].validFrom;
+}
+
+/** Appendix FM R-ILRP.1.1(a), E-ILRP.1.2 and E-ILRP.1.3. */
+export function familyFiveYearApplicationDate(
+  { timeline, simulationDate }: RuleContext,
+  start: IsoDate,
+): IsoDate | undefined {
+  const years = cl.values.familyPartnerQualifyingYearsFive.value;
+  const due = addYears(start, years);
+  const candidate = nextKnownApplicationDate(
+    timeline,
+    due > simulationDate ? due : simulationDate,
+  );
+  if (!candidate) return undefined;
+  const lastRecorded = timeline.episodes
+    .map((e) => e.validTo)
+    .sort()
+    .at(-1)!;
+  const recordedStart = familyFiveYearStart({
+    timeline,
+    simulationDate: candidate > lastRecorded ? lastRecorded : candidate,
+  });
+  if (recordedStart && addYears(recordedStart, years) <= candidate)
+    return candidate;
 }
 
 export const clFamilyResidence = defineRule(

@@ -67,6 +67,8 @@ describe('additional character timelines and decisions', () => {
         ? resolve(trip, currentEvent(trip)!.choices[0].id)
         : firstPending(trip);
     expect(trip.timeline.absences).toHaveLength(1);
+    expect(trip.date).toBe(trip.timeline.absences[0].to);
+    expect(rule(trip, 'CL-SCOPE').status).toBe('PASS');
     expect(rule(trip, 'CL-HKBNO-RESIDENCE-5Y').status).toBe('FAIL');
   });
   test.each([

@@ -80,3 +80,14 @@ pnpm typecheck
 5. 撤回 UK Ancestry 的入口扩展（A3#2 属于任务 33c，不在 33a 范围）：`ancestry.ts` 恢复到 origin/main 的入口条件，只保留 CR 1.1 计算本身的调用改动。
 
 重新生成快照，报告更新黄金案例变化清单。
+
+## 第 4 轮（Fable 追加）
+
+1. **全仓 gate 失败**（合入最新 main 后）：`packages/game/test/characters.test.ts` 的 "BN(O) keeps B1 on the five-year route while reform exclusion retains criminal checks" 在第 70 行报 `rule(trip, 'CL-HKBNO-RESIDENCE-5Y')` 为 undefined——游戏里出境 6 个月、回到英国的当天，BN(O) 五年居留规则不再出现。疑似返英当天被判为"申请人在境外"，`CL-SCOPE` FAIL 后路线规则被跳过。返英当天人已在英国，不应判为境外；路线居留规则在申请人位置有问题时也应照常给出（FAIL/UNKNOWN），而不是消失。修好后跑 `pnpm --filter @uk-immigration/game test` 全量。
+2. **第 2 轮审核的 4 条**（全文 `/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/review33a-2.md`）：
+   - 去重不能把两趟行程合成一趟：保留每趟行程用于单次上限与出入境时的许可核对，只对累计天数取并集。
+   - 主申请人在模拟日境外时，随行申请仍要在未来同一递交日核对双方（不要因模拟日 `CL-SCOPE` FAIL 就跳过同日搜索）。
+   - `G-HKBNO-ONE-MONTH-SHORT`：许可到期前 28 天内有效递交、参考日依赖 s3C 延续的情形，按"有条件"结果处理（披露假设），不要把预计申请日推到许可到期之后；已知转签与实际空档的检查保留。
+   - 五年 Appendix FM 伴侣的未来候选日也按 R-ILRP.1.1(a) 核对申请人位置。
+3. 两轮审核给出的**每个实测反例**都写成回归测试（测试名注明"review33a-1 #n"或"review33a-2 #n"）；改完后逐个重算这些反例，确认推荐日期在该日重算时确实通过。
+4. 改完跑 brief 的全部验收命令外加 `pnpm --filter @uk-immigration/game test`，重新生成快照，报告更新。

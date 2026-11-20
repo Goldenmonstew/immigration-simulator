@@ -57,6 +57,7 @@ export function hongKongBnoResidence(
         e.role === current.role &&
         e.dependantOf === current.dependantOf,
       notBefore,
+      allowSection3C: true,
     },
   );
 }

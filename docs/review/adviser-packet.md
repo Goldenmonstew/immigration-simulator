@@ -26,7 +26,7 @@ How to read a result:
 | [G-STUDENT-GRADUATE-SW](#g-student-graduate-sw) | Student 2019–2022, Graduate 2022–2024, then Skilled Worker; applies 2026-11-16 | LIKELY_NOT_ELIGIBLE, 10y, 2029-08-18 | LIKELY_NOT_ELIGIBLE, 5y, 2029-09-15 |
 | [G-LONG-RESIDENCE-10Y](#g-long-residence-10y) | Student 2016–2021, Graduate 2021–2023, Skilled Worker since 2023; 10 years lawful residence on 2026-09-15 | LIKELY_ELIGIBLE, 10y, 2026-09-15 | LIKELY_NOT_ELIGIBLE, 10y, 2033-09-15 |
 | [G-VISIT-ONLY](#g-visit-only) | Only visit visas, no qualifying residence | INSUFFICIENT_INFORMATION | LIKELY_NOT_ELIGIBLE |
-| [G-HKBNO-ONE-MONTH-SHORT](#g-hkbno-one-month-short) | Hong Kong BN(O) Status Holder since 2021-12-01, applies 2026-11-01 (one month short of 5 years) | LIKELY_NOT_ELIGIBLE, 5y, 2026-12-01 | REQUIRES_REGULATED_REVIEW |
+| [G-HKBNO-ONE-MONTH-SHORT](#g-hkbno-one-month-short) | Hong Kong BN(O) Status Holder since 2021-12-01, applies 2026-11-01 (one month short of 5 years) | LIKELY_NOT_ELIGIBLE, 5y, 2026-11-03 | REQUIRES_REGULATED_REVIEW |
 | [G-FAMILY-10Y-PARTNER](#g-family-10y-partner) | Partner of a British citizen on the 10-year Appendix FM route since 2016-10-01 | LIKELY_ELIGIBLE, 10y, 2026-10-01 | LIKELY_ELIGIBLE, 5y, 2026-10-01 |
 | [G-FAMILY-5Y-LOW-INCOME](#g-family-5y-low-income) | Partner of a British citizen on the 5-year Appendix FM route, household income £21,000 and no savings | LIKELY_ELIGIBLE, 5y, 2026-08-01 | LIKELY_ELIGIBLE, 5y, 2026-08-01 |
 | [G-GLOBAL-TALENT-3Y](#g-global-talent-3y) | Global Talent (exceptional talent) since 2023-08-01, applies after 3 years | LIKELY_ELIGIBLE, 3y, 2026-08-01 | LIKELY_NOT_ELIGIBLE, 5y, 2028-08-01 |
@@ -920,11 +920,11 @@ Application date: 2026-11-01.
 
 ### Current Immigration Rules
 
-Outcome **LIKELY_NOT_ELIGIBLE**; pathway 5 years; earliest date 2026-12-01.
+Outcome **LIKELY_NOT_ELIGIBLE**; pathway 5 years; earliest date 2026-11-03.
 
 Decisive rules:
 
-- `CL-HKBNO-RESIDENCE-5Y` 5 continuous years on the Hong Kong BN(O) route — **FAIL**. Continuous Hong Kong BN(O) permission since 2021-12-01: expected to complete 5 years on 2026-12-01; the earliest projected application date for the residence requirement is 2026-12-01 under CR 1.1 (HK 62.1(b)). _(SRC-020 HK 62.1; SRC-020 HK 63.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-HKBNO-RESIDENCE-5Y` 5 continuous years on the Hong Kong BN(O) route — **FAIL**. Continuous Hong Kong BN(O) permission since 2021-12-01: expected to complete 5 years on 2026-12-01; the earliest projected application date for the residence requirement is 2026-11-03 under CR 1.1 (HK 62.1(b)). _(SRC-020 HK 62.1; SRC-020 HK 63.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B1, which meets the B1 required for settlement (Appendix Hong Kong BN(O) HK 60.1; the B2 introduced by HC 1691 does not cover this Appendix, EM 5.60). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (HK 61.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-015 KOL 2.1)_
 
@@ -936,6 +936,7 @@ Assumptions:
 
 - The current rules are modelled only for Skilled Worker main applicants and their dependent partners / children (Appendix Skilled Worker, Appendix Children), Hong Kong BN(O) main applicants and their dependants (Appendix Hong Kong British National (Overseas)), Global Talent main applicants and their dependent partners / children (Appendix Global Talent), Appendix FM partners (the 10-year route under Appendix Settlement Family Life, the 5-year route under Appendix FM) and their children (Appendix Settlement Family Life on the 10-year route, paragraph 298 of Part 8 of the Immigration Rules on the 5-year route), main applicants with refugee status or humanitarian protection (Appendix Settlement Protection), UK Ancestry main applicants (Appendix UK Ancestry), Innovator Founder main applicants (Appendix Innovator Founder), Private Life main applicants (Appendix Private Life) and Long Residence (Appendix Long Residence); other requirements, such as Part Suitability, suitability under STP 2.1 and the sponsor still being approved (SW 24.1–24.2), are not modelled.
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
+- This date assumes you make a valid settlement application before your permission expires, stay in the UK, and the application is still pending and has not been withdrawn on 2026-12-01, so Immigration Act 1971 section 3C extends your permission to that reference date.
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2021-12-01, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 

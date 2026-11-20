@@ -32,7 +32,7 @@ export function settledBy(
   return settled && settled.date <= date ? settled : undefined;
 }
 
-/** Travel dates do not establish presence at the time of filing. */
+/** File after arrival on a recorded return day; departure time is unknown. */
 export function applicationLocationIssue(
   timeline: PersonTimeline,
   date: IsoDate,
@@ -48,13 +48,23 @@ export function applicationLocationIssue(
     timeline.absences.some(
       (a) =>
         a.from === date ||
-        a.to === date ||
-        (!a.from && (!a.to || date <= a.to)) ||
+        (!a.from && (!a.to || date < a.to)) ||
         (!a.to && date >= a.from),
     )
   ) {
     return 'UNKNOWN';
   }
+}
+
+export function nextKnownApplicationDate(
+  timeline: PersonTimeline,
+  from: IsoDate,
+): IsoDate | undefined {
+  if (!applicationLocationIssue(timeline, from)) return from;
+  return timeline.absences
+    .flatMap(({ to }) => (to && to >= from ? [to, addDays(to, 1)] : []))
+    .sort()
+    .find((date) => !applicationLocationIssue(timeline, date));
 }
 
 // Consecutive permissions with at most this many uncovered days between them
@@ -254,7 +264,7 @@ function exceedsFixedLimit(
 
 function gapTreatment(
   timeline: PersonTimeline,
-  absences: Absence[],
+  trips: Absence[],
   gap: Absence,
   longResidence: boolean,
   reference: IsoDate,
@@ -266,7 +276,7 @@ function gapTreatment(
     gap.from >= graceFrom &&
     gap.to <= cl.values.continuousResidenceGracePeriodTo.value &&
     episodeOn(timeline, addDays(graceFrom, -1)) &&
-    !absenceDays(absences, gap.from, gap.to)
+    !absenceDays(trips, gap.from, gap.to)
   ) {
     return 'COUNT';
   }
@@ -274,7 +284,7 @@ function gapTreatment(
   // satisfy the absence limits, checked on the selected qualifying period.
   if (
     longResidence &&
-    absences.some(
+    trips.some(
       (a) =>
         a.from < gap.from &&
         gap.to < a.to &&
@@ -296,6 +306,7 @@ export interface CurrentResidence {
   applicationDate?: IsoDate;
   referenceDate: IsoDate;
   deductedDays: number;
+  reliesOnSection3C?: true;
 }
 
 /** Compute both the CR 1.1 reference date and the separate application date. */
@@ -308,20 +319,27 @@ export function currentResidence(
     longResidence = false,
     appliesOn = counts,
     notBefore = application,
-  }: { longResidence?: boolean; appliesOn?: Counts; notBefore?: IsoDate } = {},
+    checkLocation = true,
+    allowSection3C = false,
+  }: {
+    longResidence?: boolean;
+    appliesOn?: Counts;
+    notBefore?: IsoDate;
+    checkLocation?: boolean;
+    allowSection3C?: boolean;
+  } = {},
 ): CurrentResidence | undefined {
-  const trips = timeline.absences.filter(
-    (a) => a.from && a.to && a.from <= a.to,
-  );
+  const trips = timeline.absences
+    .filter((a) => a.from && a.to && a.from <= a.to)
+    .sort((a, b) => a.from.localeCompare(b.from));
   const absences = unionAbsences(trips);
   const limits: AbsenceLimit = longResidence
     ? longResidenceLimit
     : calendarLimit;
   const legacy = limits.legacy;
-  // Classify each departure under CR 3.3 before merging overlapping days.
-  const older = legacy
-    ? unionAbsences(trips.filter((a) => a.from < legacy.before))
-    : [];
+  // Keep each CR 3.3 departure for the single-trip cap. Only totals use unions.
+  const olderTrips = legacy ? trips.filter((a) => a.from < legacy.before) : [];
+  const older = unionAbsences(olderTrips);
   const { fixed, rolling } = legacy
     ? {
         fixed: [],
@@ -329,7 +347,7 @@ export function currentResidence(
       }
     : partitionByPermission(timeline, absences);
   const treatment = (from: IsoDate, to: IsoDate, reference: IsoDate) =>
-    gapTreatment(timeline, absences, { from, to }, longResidence, reference);
+    gapTreatment(timeline, trips, { from, to }, longResidence, reference);
   const runAt = (date: IsoDate) =>
     continuousRun(
       timeline,
@@ -346,7 +364,7 @@ export function currentResidence(
     const breaks = (start: IsoDate, end = reference) => {
       if (legacy) {
         if (
-          older.some(
+          olderTrips.some(
             (a) => overlapDays(a.from, a.to, start, end) > legacy.maxSingleDays,
           ) ||
           absenceDays(older, start, earlier(end, addDays(legacy.before, -1))) >
@@ -371,12 +389,14 @@ export function currentResidence(
       }
       // A trip that breaks continuity on its own cannot provide the start
       // of the new period while the applicant is still on that same trip.
-      const trip = absences.find((a) => a.from <= start && start <= a.to);
-      if (
-        trip &&
-        breaks(later(first, trip.from), earlier(reference, trip.to))
-      ) {
-        start = addDays(trip.to, 1);
+      for (const trip of trips) {
+        if (
+          trip.from <= start &&
+          start <= trip.to &&
+          breaks(later(first, trip.from), earlier(reference, trip.to))
+        ) {
+          start = addDays(trip.to, 1);
+        }
       }
     }
     let deductedDays = 0;
@@ -421,14 +441,15 @@ export function currentResidence(
     ...permissionChanges,
     ...absences.flatMap((a) => [a.from, a.to]),
   ].sort();
-  const openTrip = timeline.absences
-    .filter((a) => !a.to)
-    .map((a) => a.from || application)
-    .sort()[0];
   let firstPossibleReference = firstReference;
   let applied = later(notBefore, addDays(firstReference, -advance));
   while (applied <= lastRecorded || renewal) {
-    if (applied > application && openTrip && applied >= openTrip) break;
+    if (checkLocation) {
+      const next = nextKnownApplicationDate(timeline, applied);
+      if (!next) break;
+      applied = next;
+      if (applied > lastRecorded && !renewal) break;
+    }
     const permission =
       applied <= lastRecorded ? episodeOn(timeline, applied) : lastPermission;
     if (!permission || !appliesOn(permission)) {
@@ -437,46 +458,53 @@ export function currentResidence(
       applied = change;
       continue;
     }
-    if (
-      applied === application ||
-      !applicationLocationIssue(timeline, applied)
-    ) {
-      const end = addDays(applied, advance);
-      // Use recorded permissions for all references of a filing within the
-      // record. Assume uninterrupted renewal only for filings past its end.
-      const lastReference =
-        applied <= lastRecorded ? earlier(end, lastRecorded) : end;
-      let reference = later(applied, firstPossibleReference);
-      while (reference <= lastReference) {
-        const qualifying =
-          reference > lastRecorded ? lastRun! : runAt(reference);
-        const start = qualifying.episodes[0]?.validFrom;
-        let completion = start && addYears(start, years);
-        if (completion && completion <= reference) {
-          const result = asOf(qualifying, reference, applied);
-          if (result.completion <= reference) return result;
-          completion = result.completion;
-        }
-        // Between recorded changes the completion date is stable. Recheck
-        // each reference during travel, when the number of absent days changes.
-        const change = referenceChanges.find((day) => day > reference);
-        reference = absences.some(
-          (a) => a.from <= reference && reference < a.to,
-        )
-          ? addDays(reference, 1)
-          : completion && change
-            ? earlier(completion, change)
-            : (completion ?? change ?? addDays(reference, 1));
-        // CR 3.2 fixed windows have to be recalculated for the next filing.
-        if (!fixedWindowsMatter) firstPossibleReference = reference;
-      }
+    const end = addDays(applied, advance);
+    // An in-time application can extend the permission held at filing
+    // under Immigration Act 1971 s3C while the decision is pending.
+    // Use this only beyond the last recorded grant (never over a known gap).
+    const inTime = applied <= lastRecorded;
+    const mayExtend =
+      allowSection3C && renewal && permission === lastPermission;
+    const lastReference =
+      inTime && !mayExtend ? earlier(end, lastRecorded) : end;
+    let reference = later(applied, firstPossibleReference);
+    while (reference <= lastReference) {
+      const section3C = inTime && reference > lastRecorded;
       if (
-        lastReference === lastRecorded &&
-        firstPossibleReference > lastRecorded
-      ) {
-        applied = addDays(lastRecorded, 1);
-        continue;
+        section3C &&
+        timeline.absences.some(
+          ({ from, to }) =>
+            (!from || from <= reference) && (!to || to > applied),
+        )
+      )
+        break;
+      const qualifying = reference > lastRecorded ? lastRun! : runAt(reference);
+      const start = qualifying.episodes[0]?.validFrom;
+      let completion = start && addYears(start, years);
+      if (completion && completion <= reference) {
+        const result = asOf(qualifying, reference, applied);
+        if (result.completion <= reference) {
+          return section3C ? { ...result, reliesOnSection3C: true } : result;
+        }
+        completion = result.completion;
       }
+      // Between recorded changes the completion date is stable. Recheck
+      // each reference during travel, when the number of absent days changes.
+      const change = referenceChanges.find((day) => day > reference);
+      reference = absences.some((a) => a.from <= reference && reference < a.to)
+        ? addDays(reference, 1)
+        : completion && change
+          ? earlier(completion, change)
+          : (completion ?? change ?? addDays(reference, 1));
+      // CR 3.2 fixed windows have to be recalculated for the next filing.
+      if (!fixedWindowsMatter) firstPossibleReference = reference;
+    }
+    if (
+      lastReference === lastRecorded &&
+      firstPossibleReference > lastRecorded
+    ) {
+      applied = addDays(lastRecorded, 1);
+      continue;
     }
     applied = later(
       addDays(applied, 1),
