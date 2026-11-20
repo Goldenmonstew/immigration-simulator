@@ -77,6 +77,7 @@
 | SRC-057 | GUIDANCE | Home Office Continuous residence caseworker guidance，v10.0 | https://www.gov.uk/government/publications/continuous-residence-caseworker-guidance/continuous-residence-guidance-accessible-version | 2026-10-08 | 2026-11-19 | `policy-sources/2026-10-08-continuous-residence-caseworker-guidance.html`（sha256 `fe80d4c8c759eb21c4c1ebef69b312483414723f1f0dacc2ab9470daa5f465dc`） | archived |
 | SRC-058 | PARLIAMENT | Written question 40091：HPI 扩容的大学排名筛选 | https://questions-statements.parliament.uk/written-questions/detail/2026-11-02/40091 | 提问 2026-11-02；回答 2026-11-04 | 2026-11-19 | `policy-sources/2026-11-04-written-question-40091.json`（sha256 `04df2bb18720e55d2f8f62d380750d7a6333a05dbbe8d496d1390b357d2ed8f2`） | archived |
 | SRC-059 | GUIDANCE | Home Office Cancellation and curtailment of permission，v12.0 | https://www.gov.uk/government/publications/immigration-status-and-enforcement-action-caseworker-guidance/cancellation-and-curtailment-of-permission-accessible | 员工版 2026-09-11；网页更新 2026-09-14 | 2026-11-19 | `policy-sources/2026-09-14-cancellation-and-curtailment-of-permission.html`（sha256 `1957b79a1d9a074d98c7722f9db134a8349bd5c3ec1284dafda6dc5eee11c96a`） | archived |
+| SRC-060 | LAW | Statement of Changes in Immigration Rules HC 590（2024-03-14）Implementation：2024-04-04 前签发 CoS 的 Skilled Worker 申请按 2024-04-03 的规则审理 | https://www.gov.uk/government/publications/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024-accessible-version | 2024-03-14 | 2026-11-20 | `policy-sources/2024-03-14-hc590-statement-of-changes-accessible.html`（sha256 `c538acdbce21a3f9cd49c99689efd8134c4f6b9bdbfca6646a01017826ce5ef8`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -561,3 +562,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 - `Publication`（`#publication`）注明 v12.0 于 2026-09-11 向 Home Office 员工发布，网页更新于 2026-09-14。
 - `Cancellation in points-based system (PBS) cases → Premature end of employment or study: cancellation process`（`#premature-end-of-employment-or-study-cancellation-process`）首个列表项明确，进一步许可获批后，新许可已替代原许可，无需另行取消原许可。上一小节的 `Individual granted permission in another category`（`#individual-granted-permission-in-another-category`）也给出改获其他类别许可时的办案操作。与 SRC-050 §23.1 合读可支持境内提前换签的许可期间推导，SW 12.3 逐日及 section 3C 的计法见 PD-081。
+
+## SRC-060 HC 590 Implementation
+
+- `Implementation`（`#implementation`）第三段：列明的条款于 2024-04-04 生效；以 2024-04-04 前由 sponsor 签发的 certificate of sponsorship 提出的入境或居留申请（及其伴侣、子女的随行申请），按 2024-04-03 有效的移民规则审理。所列条款含 APP SW1 至 APP SW28 与 APP SO1。与 SRC-004 SW 4.2(b)(ii) 合读，用于判断连续 Skilled Worker 许可的首段是否按旧规则获批。

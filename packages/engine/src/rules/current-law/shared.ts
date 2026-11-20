@@ -184,6 +184,8 @@ export function onSkilledWorkerChild(
 
 export const crResidenceSources = [
   { srcId: 'SRC-008', locator: 'CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3' },
+  // Travel days are not absences (A1#17).
+  { srcId: 'SRC-057', locator: 'Count whole days' },
 ];
 
 /** Explain when the declared travel prevents confirming an in-country filing. */

@@ -405,14 +405,18 @@ test('review33a-2 #1 Long Residence applies the single-absence limit to each of 
     outcome: 'LIKELY_ELIGIBLE',
     earliestDate: '2026-11-04',
   });
-  const total548 = [
+  // Whole days only (A1#17): 99 + 99 + 175 + 175 = 548, then one more day.
+  const total = (lastTripDays: number) => [
     ...trips,
-    { from: '2017-01-01', to: addDays('2017-01-01', 173) },
-    { from: '2021-01-01', to: addDays('2021-01-01', 172) },
+    { from: '2017-01-01', to: addDays('2017-01-01', 176) },
+    { from: '2021-01-01', to: addDays('2021-01-01', lastTripDays + 1) },
   ];
-  expect(current({ episodes, absences: total548 }, '2026-11-04').outcome).toBe(
-    'LIKELY_ELIGIBLE',
-  );
+  expect(
+    current({ episodes, absences: total(175) }, '2026-11-04').outcome,
+  ).toBe('LIKELY_ELIGIBLE');
+  expect(
+    current({ episodes, absences: total(176) }, '2026-11-04').outcome,
+  ).not.toBe('LIKELY_ELIGIBLE');
   expect(
     current({ episodes, absences: [{ from, to }] }, '2026-11-04').outcome,
   ).not.toBe('LIKELY_ELIGIBLE');

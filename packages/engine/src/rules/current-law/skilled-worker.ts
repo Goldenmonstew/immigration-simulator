@@ -200,8 +200,14 @@ function settlementSalaryRows({
   const current = episodeOn(timeline, simulationDate);
   if (!current || !isSkilledWorker(current)) return undefined;
   const L = textFor({ locale });
-  const first = continuousRun(timeline, simulationDate, isSkilledWorker)
-    .episodes[0];
+  // SW 4.2(b)(ii): held continuously since the old-rules grant. Unlike the
+  // residence run, no day without permission is tolerated.
+  const first = continuousRun(
+    timeline,
+    simulationDate,
+    isSkilledWorker,
+    () => false,
+  ).episodes[0];
   const pre2024 = underPre2024Rules(first);
   const transitional =
     simulationDate < cl.values.skilledWorkerPre2024ApplicationsBefore.value &&
@@ -449,8 +455,8 @@ export const clSwGoingRate = defineRule(
     }
     const assumptions = [
       L(
-        'going rate 按标准工时的全额年薪比较，未按实际工时折算（SW 14.4）。',
-        'The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).',
+        `going rate 按每周 ${cl.values.goingRateWeeklyHours.value} 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。`,
+        `The going rate is compared as the full annual salary for a ${cl.values.goingRateWeeklyHours.value}-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).`,
       ),
     ];
     const rates = rows.map((row) =>
@@ -532,10 +538,15 @@ export function skilledWorkerFiling(
   });
   const location = applicationLocationIssue(ctx.timeline, ctx.simulationDate);
   if (!jointFrom && !newGrant && !location) return residence;
-  // A date recovered from an uncertain departure needs confirmation. Other
-  // forecasts, joint ones included, can carry outstanding evidence, which
+  // A date recovered from an uncertain departure needs every requirement.
+  // Otherwise only a recorded grant's salary failing blocks the date: English
+  // and Life in the UK can still be met by then (A6#6), and missing evidence
   // keeps a dependant's result UNKNOWN (pendingOnJointDay).
-  const requirePass = location === 'UNKNOWN';
+  const blocks = (r: RuleOutcome) =>
+    location === 'UNKNOWN'
+      ? r.status !== 'PASS'
+      : r.status === 'FAIL' &&
+        (r.id === 'CL-SW-SALARY' || r.id === 'CL-SW-GOING-RATE');
   while (residence?.applicationDate) {
     const date = residence.applicationDate;
     const filing = {
@@ -546,24 +557,18 @@ export function skilledWorkerFiling(
     const requirements = [clSwSalary, clSwGoingRate, clEnglish, clKol].map(
       (rule) => runRule(rule, filing),
     );
-    if (
-      requirements.every(
-        (r) => r.status === 'PASS' || (!requirePass && r.status === 'UNKNOWN'),
-      )
-    )
-      return { ...residence, requirements };
+    if (!requirements.some(blocks)) return { ...residence, requirements };
     const change = changes.find((d) => d > date);
     if (!change) break;
     residence = skilledWorkerResidence(ctx, change);
   }
 }
 
-/** P's requirements still to be confirmed on the joint filing day. */
-const pendingOnJointDay = (joint?: {
+/** P's requirements still to be met or confirmed on the joint filing day. */
+export const pendingOnJointDay = (joint?: {
   applicationDate?: IsoDate;
   principal?: { requirements?: RuleOutcome[] };
-}) =>
-  joint?.principal?.requirements?.filter((r) => r.status === 'UNKNOWN') ?? [];
+}) => joint?.principal?.requirements?.filter((r) => r.status !== 'PASS') ?? [];
 
 const pendingJoint = (
   L: Lang,
@@ -576,8 +581,8 @@ const pendingJoint = (
   return {
     status: 'UNKNOWN',
     explanation: L(
-      `可在 ${date} 与主申请人一同申请，前提是主申请人当日的${titles}得到确认（SW 39.1(a)）。`,
-      `They could apply together with the principal applicant on ${date} if the principal applicant’s ${titlesEn} can be confirmed for that day (SW 39.1(a)).`,
+      `可在 ${date} 与主申请人一同申请，前提是主申请人当日的${titles}得到满足或确认（SW 39.1(a)）。`,
+      `They could apply together with the principal applicant on ${date} if the principal applicant’s ${titlesEn} can be met or confirmed for that day (SW 39.1(a)).`,
     ),
     assumptions,
   };
