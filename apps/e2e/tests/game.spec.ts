@@ -230,7 +230,7 @@ test('folding dumplings at Lunar New Year gives a result and a reward', async ({
   await expect(green.getByRole('heading', { name: '春节聚会' })).toBeVisible();
   await green.getByRole('button', { name: /^一起包饺子/ }).click();
   await expect(
-    green.getByRole('status').filter({ hasText: '你把饺子托盘传到桌尾' }),
+    green.getByRole('status').filter({ hasText: '你捏好第一个饺子' }),
   ).toBeVisible();
   await green.getByRole('button', { name: /关闭/ }).click();
   await bag.click();

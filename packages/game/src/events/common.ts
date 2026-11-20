@@ -3112,8 +3112,8 @@ export const systemEvents: GameEvent[] = [
       en: 'A test-day setback',
     },
     text: {
-      zhCN: '听力里的广播太快了，这次成绩单还不够换一张证明。',
-      en: 'The recording raced ahead; this result does not earn new evidence.',
+      zhCN: '听力录音已经播到下一题，你的笔还停在上一题。',
+      en: 'The recording moved on to the next question while your pencil was still on the last one.',
     },
     weight: 1,
     choices: [

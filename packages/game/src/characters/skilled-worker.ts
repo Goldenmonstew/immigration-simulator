@@ -1149,8 +1149,8 @@ const events: GameEvent[] = [
       en: 'A saved bowl of soup',
     },
     text: {
-      zhCN: '早上你才发现，室友给昨晚加班的你留了一碗汤。',
-      en: 'In the morning you discover the soup your flatmate saved after last night’s late shift.',
+      zhCN: '你一进门，就看见桌上扣着一只碗，旁边是室友的便签：“给你留了汤。”',
+      en: 'You come home to a covered bowl on the table. Your flatmate’s note says, “Saved you some soup.”',
     },
     weight: 3,
     choices: [
