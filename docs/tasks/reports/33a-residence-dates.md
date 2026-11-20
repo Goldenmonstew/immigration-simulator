@@ -2,6 +2,38 @@
 
 ## 1. 做了什么
 
+第七轮修复两处回退。以下编号沿用审核原文 `review33a-5`，建议 Fable 分两次提交。
+
+- **#2 工签预测**（`skilled-worker.ts`、`aggregate.ts`、对应引擎测试）。2023-01-01 起持工签、已录入 2027-01-01 续签的申请人，两段薪资和 going rate 均达标。只缺 Life in the UK 资料时，2026-11-01 的预测恢复为 **2027-12-04**，双语结果列出待确认的考试条件。确认共同递交日仍须主申请人在该日的各项检查均通过。[SRC-004 SW 21.1–24.3、39.1(a)](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-skilled-worker) · [SRC-008 CR 1.1(b)](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-continuous-residence)
+- **#1 五年伴侣财务过渡门槛**（`family.ts`、对应引擎测试、双语快照和顾问包）。同一伴侣在 2024-04-11 前有成功申请，2026-04-01 一天空档使五年居留从次日重新起算。家庭年收入 £22,000、无储蓄、无子女时，**£18,600 门槛仍适用**。预测从 Long Residence 的 2036-03-05 恢复为五年伴侣路线的 **2031-04-02**。判定契约和已有假设说明已同步。[SRC-024 E-ILRP.1.3(1A)、E-LTRP.3.5–3.7](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-fm-family-members)
+
+## 2. 怎么验证的
+
+两条审核反例均先在第六轮代码上复现失败，再通过 `evaluate()` 复算。工签案例在预计日居留通过，未补考试资料时仍为资料不足。补齐后，12 月 3 日尚早，12 月 4 日主申请人和随行子女均通过。伴侣案例 2031 年 4 月 1 日居留未满，4 月 2 日按五年路线通过，两天均适用过渡财务门槛。另在原有共同日期用例中补齐 SOC 职业代码，并验证缺代码时无法确认 going rate 和工签共同日期。
+
+逐项比较第六轮 `6dd0d09` 与本轮重新生成的黄金 JSON，**56 个案例、112 栏全部一致**，包括结论、决定路线、年限、最早申请日和逐条规则状态。整个黄金文件逐字节相同。双语快照和顾问包更新了伴侣财务假设及来源定位。
+
+| 命令 | 结果 |
+|---|---|
+| `pnpm --filter @uk-immigration/policy-data test` | 23 项通过 |
+| `pnpm --filter @uk-immigration/engine test -u`、`pnpm --filter @uk-immigration/engine test` | 快照生成及普通比对均通过，每次 2,623 项通过，1 项仅在显式导出文案时运行的测试跳过 |
+| `pnpm --filter web test` | 517 项通过 |
+| `pnpm --filter @uk-immigration/game test` | 1,331 项通过 |
+| `pnpm lint`、`pnpm typecheck`、`pnpm --filter @uk-immigration/engine build`、`git diff --check` | 全部通过 |
+
+## 3. 没做或没验证的
+
+问卷沿用已有字段。财务计算以最早申报的五年伴侣许可生效日近似首次成功申请的递交日，并假设为同一伴侣。结果中已用中英文披露。Playwright、浏览器验收、提交和 PR 由 Fable 负责。
+
+## 4. 发现与建议
+
+按本轮约定，BN(O) 子女成年时更换许可角色、Appendix FM 伴侣出入境跨税年两项风险留在 Fable 已登记的后续任务中。
+
+<details>
+<summary>第一至六轮的实施记录、黄金案例变化及验收结果</summary>
+
+## 1. 做了什么
+
 第六轮修复了 `review33a-4` 的全部三个反例。建议 Fable 按表中三项分组提交，每组带上 `residence-dates.test.ts` 中对应的回归及契约、快照变更。
 
 | 条目 | 实测结果 |
@@ -123,5 +155,7 @@
 - 复现了审核另列的 Long Residence 风险。2019-06-02 至 06-09 没有许可，两条重叠行程分别记录 07-01 和 06-05 返英。较长行程覆盖空档时，现有计算仍在 2026-11-04 给出 `LIKELY_ELIGIBLE`，尽管较短行程记录了无许可返英。此项在第五轮五条修正之外，建议单独处理有冲突的出入境记录（SRC-008 CR 4.1(d)(iii)、4.2）。
 
 - Long Residence 的当前路线 12 个月要求留在独立条目 A3#4，依据 SRC-005 LR 11.3–11.4。任务 39 登记 section 3C 和连续居留的官方指引时，可一并复核整日计数与跨 `2024-04-11` 的行程示例。
+
+</details>
 
 </details>

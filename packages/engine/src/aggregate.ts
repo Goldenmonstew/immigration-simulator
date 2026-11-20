@@ -914,6 +914,20 @@ function assessCurrentLaw(
       `For routes under Appendix Continuous Residence, you can apply up to ${cl.values.continuousResidenceReferenceDays.value} days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.`,
     ),
   ];
+  if (
+    decision.projectedFrom &&
+    decision.decidedBy?.includes('CL-SW-RESIDENCE-5Y')
+  ) {
+    for (const rule of swFiling?.requirements ?? []) {
+      if (rule.status === 'UNKNOWN')
+        assumptions.push(
+          L(
+            `预计于 ${decision.earliestDate} 递交工签定居申请，届时仍需确认「${rule.title}」。`,
+            `The projected Skilled Worker filing date of ${decision.earliestDate} depends on confirming “${rule.title}”.`,
+          ),
+        );
+    }
+  }
   for (const rule of adultChecks ?? []) {
     if (rule.status !== 'PASS')
       assumptions.push(

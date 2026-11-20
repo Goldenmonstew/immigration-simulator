@@ -561,15 +561,19 @@ describe('Skilled Worker dependent partner (SW 38–SW 46)', () => {
   });
 
   test('not before the principal completes the Skilled Worker period (SW 39.1(a))', () => {
-    const recent = [
-      episode({ validFrom: '2024-02-01', validTo: '2029-12-31' }),
-    ];
-    expect(
-      cl({ episodes: partnerFrom('2024-02-01') }, { episodes: recent }),
-    ).toMatchObject({
+    const recent = episode({
+      validFrom: '2024-02-01',
+      validTo: '2029-12-31',
+      socCode: '2136',
+    });
+    const partner = { episodes: partnerFrom('2024-02-01') };
+    expect(cl(partner, { episodes: [recent] })).toMatchObject({
       outcome: 'LIKELY_NOT_ELIGIBLE',
       earliestDate: '2029-01-04',
     });
+    expect(
+      cl(partner, { episodes: [{ ...recent, socCode: undefined }] }).decidedBy,
+    ).not.toContain('CL-SW-PARTNER-5Y');
   });
 
   test('a principal who cannot settle as a Skilled Worker fails the partner', () => {

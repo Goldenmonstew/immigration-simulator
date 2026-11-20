@@ -237,3 +237,4 @@
 |---|---|---|
 | 197 | 任务 50 第 2 轮。季度小结从续签记录读取当时签发的到期日，旧记录只确认已续签。新增同季换雇主和旧记录的双语回归。 | packages/game/src/{game,types}.ts, apps/web/app/game/quarter-summary.tsx, apps/web/i18n/{en,zh-CN}.ts, apps/web/test/game-playtest-fixes.test.tsx |
 | 198 | 春节逛摊和包饺子遭遇父母来电后，挂断即可读到对应反馈。种子 176 的客户端回归覆盖两项活动和两种语言，包饺子 e2e 用例同步更新期望文案。 | apps/web/app/game/game-client.tsx, apps/web/test/game-page.test.tsx, apps/e2e/tests/game.spec.ts, docs/tasks/reports/50-game-playtest-fixes.md |
+| 199 | 任务 33a 第七轮，修第六轮的两处回退：工签已录入续签、只缺 Life in the UK 资料时恢复有条件的居留日期，共同递交日仍须候选日各项通过；五年伴侣一天许可空档重置居留起点后，过渡财务门槛仍按同一伴侣的首次成功申请判断（SRC-024 E-LTRP.3.5–3.6）。56 个黄金案例相对第六轮不变。 | packages/engine/src/{aggregate.ts,rules/current-law/{skilled-worker,family}.ts}、packages/engine/test/{residence-dates,current-law}.test.ts、双语快照、docs/{contracts,pending-details}.md、docs/review/adviser-packet.md、docs/tasks/33a-residence-dates.md、docs/tasks/reports/33a-residence-dates.md |

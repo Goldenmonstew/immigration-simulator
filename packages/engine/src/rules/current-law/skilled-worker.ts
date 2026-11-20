@@ -545,9 +545,9 @@ export function principalApplicationDate(
 /** SW 24.2–24.3, 39.1(a): P must qualify on the actual (possibly joint) filing day. */
 export function skilledWorkerFiling(
   ctx: RuleContext,
-  notBefore = ctx.simulationDate,
+  jointFrom?: IsoDate,
 ): (CurrentResidence & { requirements?: RuleOutcome[] }) | undefined {
-  let residence = skilledWorkerResidence(ctx, notBefore);
+  let residence = skilledWorkerResidence(ctx, jointFrom);
   if (!residence?.applicationDate) return residence;
   const changes = permissionChanges(ctx.timeline);
   const current = episodeOn(ctx.timeline, ctx.simulationDate);
@@ -556,9 +556,11 @@ export function skilledWorkerFiling(
     const effective = episodeOn(ctx.timeline, day);
     return effective && effective !== current;
   });
-  // A forecast on the same grant retains the ordinary conditional projection.
-  if (!newGrant && !applicationLocationIssue(ctx.timeline, ctx.simulationDate))
-    return residence;
+  const location = applicationLocationIssue(ctx.timeline, ctx.simulationDate);
+  if (!jointFrom && !newGrant && !location) return residence;
+  // A joint filing or a date recovered from an uncertain departure needs
+  // confirmation. An ordinary forecast can carry outstanding evidence.
+  const requirePass = jointFrom !== undefined || location === 'UNKNOWN';
   while (residence?.applicationDate) {
     const date = residence.applicationDate;
     const filing = {
@@ -569,7 +571,11 @@ export function skilledWorkerFiling(
     const requirements = [clSwSalary, clSwGoingRate, clEnglish, clKol].map(
       (rule) => runRule(rule, filing),
     );
-    if (requirements.every((r) => r.status === 'PASS'))
+    if (
+      requirements.every(
+        (r) => r.status === 'PASS' || (!requirePass && r.status === 'UNKNOWN'),
+      )
+    )
       return { ...residence, requirements };
     const change = changes.find((d) => d > date);
     if (!change) break;

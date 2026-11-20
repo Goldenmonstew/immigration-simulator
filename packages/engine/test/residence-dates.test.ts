@@ -1056,3 +1056,101 @@ test('review33a-4 #3 one uncovered day restarts five-year Appendix FM residence'
     'CL-FAMILY-RESIDENCE',
   );
 });
+
+test('review33a-5 #1 a gap restarts Appendix FM residence but preserves the same partner’s transitional income threshold', () => {
+  const { episodes, relationships } = family('2023-01-01', 'PARTNER_FIVE_YEAR');
+  const facts = {
+    episodes: [
+      { ...episodes[0], validTo: '2026-03-31' },
+      { ...episodes[0], validFrom: '2026-04-02' },
+    ],
+    relationships: [...relationships],
+    incomeYears: ['2025-26', '2029-30'].map((taxYear) => ({
+      taxYear,
+      earnings: 22000,
+    })),
+    cashSavings: 0,
+  };
+  const forecast = current(facts, '2026-11-01');
+  expect(forecast).toMatchObject({
+    outcome: 'LIKELY_NOT_ELIGIBLE',
+    pathwayYears: 5,
+    earliestDate: '2031-04-02',
+  });
+  const dayBefore = current(facts, '2031-04-01');
+  expect(
+    dayBefore.rules.find((r) => r.id === 'CL-FAMILY-RESIDENCE')?.status,
+  ).toBe('FAIL');
+  const filed = current(facts, forecast.earliestDate!);
+  expect(filed.outcome).toBe('LIKELY_ELIGIBLE');
+  expect(filed.decidedBy).toContain('CL-FAMILY-RESIDENCE');
+  for (const assessment of [forecast, dayBefore, filed]) {
+    expect(
+      assessment.rules.find((r) => r.id === 'CL-FAMILY-FINANCIAL'),
+    ).toMatchObject({
+      status: 'PASS',
+      explanation: expect.stringContaining('£18,600'),
+    });
+  }
+});
+
+test('review33a-5 #2 a recorded Skilled Worker renewal keeps the residence forecast conditional on missing Life in the UK evidence', () => {
+  const principal = timeline({
+    episodes: [
+      permit('2023-01-01', { validTo: '2026-12-31' }),
+      permit('2027-01-01'),
+    ],
+    lifeInTheUk: undefined,
+  });
+  const child = {
+    dateOfBirth: '2015-01-01',
+    episodes: [
+      permit('2024-01-01', { role: 'DEPENDANT', dependantOf: 'PARENT' }),
+    ],
+  };
+  const forecast = current(principal, '2026-11-01');
+  expect(forecast).toMatchObject({
+    outcome: 'LIKELY_NOT_ELIGIBLE',
+    pathwayYears: 5,
+    earliestDate: '2027-12-04',
+  });
+  expect(forecast.decidedBy).toContain('CL-SW-RESIDENCE-5Y');
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const projected = evaluate({
+      timeline: principal,
+      simulationDate: '2026-11-01',
+      locale,
+    }).byRuleSet['current-law-2026-11']!;
+    expect(projected.assumptions).toContainEqual(
+      expect.stringMatching(/2027-12-04.*Life in the UK/),
+    );
+  }
+  const filed = current(principal, forecast.earliestDate!);
+  expect(filed.outcome).toBe('INSUFFICIENT_INFORMATION');
+  for (const assessment of [forecast, filed]) {
+    expect(assessment.rules.find((r) => r.id === 'CL-KOL')?.status).toBe(
+      'UNKNOWN',
+    );
+    for (const id of ['CL-SW-SALARY', 'CL-SW-GOING-RATE']) {
+      expect(assessment.rules.find((r) => r.id === id)?.status).toBe('PASS');
+    }
+  }
+  expect(filed.rules.find((r) => r.id === 'CL-SW-RESIDENCE-5Y')?.status).toBe(
+    'PASS',
+  );
+  expect(current(child, '2026-11-01', principal).decidedBy).not.toContain(
+    'CL-SW-CHILD',
+  );
+
+  const confirmed = { ...principal, lifeInTheUk: { passed: true as const } };
+  expect(current(confirmed, '2027-12-03').outcome).toBe('LIKELY_NOT_ELIGIBLE');
+  expect(current(confirmed, forecast.earliestDate!).outcome).toBe(
+    'LIKELY_ELIGIBLE',
+  );
+  const joint = current(child, '2026-11-01', confirmed);
+  expect(joint.earliestDate).toBe(forecast.earliestDate);
+  expect(joint.decidedBy).toContain('CL-SW-CHILD');
+  expect(current(child, joint.earliestDate!, confirmed).outcome).toBe(
+    'LIKELY_ELIGIBLE',
+  );
+});
