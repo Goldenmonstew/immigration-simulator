@@ -558,9 +558,10 @@ export function skilledWorkerFiling(
   });
   const location = applicationLocationIssue(ctx.timeline, ctx.simulationDate);
   if (!jointFrom && !newGrant && !location) return residence;
-  // A joint filing or a date recovered from an uncertain departure needs
-  // confirmation. An ordinary forecast can carry outstanding evidence.
-  const requirePass = jointFrom !== undefined || location === 'UNKNOWN';
+  // A date recovered from an uncertain departure needs confirmation. Other
+  // forecasts, joint ones included, can carry outstanding evidence, which
+  // keeps a dependant's result UNKNOWN (pendingOnJointDay).
+  const requirePass = location === 'UNKNOWN';
   while (residence?.applicationDate) {
     const date = residence.applicationDate;
     const filing = {
@@ -582,6 +583,31 @@ export function skilledWorkerFiling(
     residence = skilledWorkerResidence(ctx, change);
   }
 }
+
+/** P's requirements still to be confirmed on the joint filing day. */
+const pendingOnJointDay = (joint?: {
+  applicationDate?: IsoDate;
+  principal?: { requirements?: RuleOutcome[] };
+}) =>
+  joint?.principal?.requirements?.filter((r) => r.status === 'UNKNOWN') ?? [];
+
+const pendingJoint = (
+  L: Lang,
+  date: IsoDate,
+  pending: RuleOutcome[],
+  assumptions: string[],
+): Omit<RuleResult, 'sources'> => {
+  const titles = pending.map((r) => `「${r.title}」`).join('');
+  const titlesEn = pending.map((r) => `“${r.title}”`).join(', ');
+  return {
+    status: 'UNKNOWN',
+    explanation: L(
+      `可在 ${date} 与主申请人一同申请，前提是主申请人当日的${titles}得到确认（SW 39.1(a)）。`,
+      `They could apply together with the principal applicant on ${date} if the principal applicant’s ${titlesEn} can be confirmed for that day (SW 39.1(a)).`,
+    ),
+    assumptions,
+  };
+};
 
 /**
  * SW 39.1(b): P has settled. Met when P settled from Skilled Worker
@@ -687,7 +713,9 @@ function withoutPrincipalPathway(
  */
 export function skilledWorkerPartnerResidence(
   ctx: RuleContext,
-): CurrentResidence | undefined {
+):
+  | (CurrentResidence & { principal?: { requirements?: RuleOutcome[] } })
+  | undefined {
   const { timeline, simulationDate } = ctx;
   if (!ctx.principal || !onSkilledWorkerPartner(timeline, simulationDate)) {
     return undefined;
@@ -713,7 +741,11 @@ export function skilledWorkerPartnerResidence(
     ? ownFrom()
     : jointApplication(principalDate!, ownFrom, (notBefore) =>
         skilledWorkerFiling(
-          { timeline: ctx.principal!.timeline, simulationDate },
+          {
+            timeline: ctx.principal!.timeline,
+            simulationDate,
+            locale: ctx.locale,
+          },
           notBefore,
         ),
       );
@@ -792,6 +824,9 @@ export const clSwPartner5Y = defineRule(
         ? noJointApplication(L, assumptions)
         : withoutPrincipalPathway(ctx, 'dependent partner', assumptions);
     }
+    const pending = pendingOnJointDay(residence);
+    if (pending.length)
+      return pendingJoint(L, residence.applicationDate!, pending, assumptions);
     return {
       status: 'PASS',
       explanation: L(
@@ -804,7 +839,7 @@ export const clSwPartner5Y = defineRule(
 );
 
 /** A child has no qualifying period and can apply with the principal. */
-export function skilledWorkerChildDate(ctx: RuleContext): IsoDate | undefined {
+export function skilledWorkerChildFiling(ctx: RuleContext) {
   if (
     !ctx.principal ||
     !onSkilledWorkerChild(ctx.timeline, ctx.simulationDate)
@@ -812,19 +847,20 @@ export function skilledWorkerChildDate(ctx: RuleContext): IsoDate | undefined {
     return undefined;
   }
   const settled = settledPrincipal(ctx);
-  if (settled) return settled.met ? settled.date : undefined;
+  if (settled)
+    return settled.met ? { applicationDate: settled.date } : undefined;
   const due = principalApplicationDate(ctx, 'CL-SW-RESIDENCE-5Y');
   if (!due) return undefined;
-  const { timeline, simulationDate } = ctx;
+  const { timeline, simulationDate, locale } = ctx;
   return jointApplication(
     due,
     (notBefore) => childFiling(timeline, notBefore, 'SKILLED_WORKER'),
     (notBefore) =>
       skilledWorkerFiling(
-        { timeline: ctx.principal!.timeline, simulationDate },
+        { timeline: ctx.principal!.timeline, simulationDate, locale },
         notBefore,
       ),
-  )?.applicationDate;
+  );
 }
 
 export const clSwChild = defineRule(
@@ -914,12 +950,15 @@ export const clSwChild = defineRule(
           }
         : { status: 'FAIL', explanation: settled.explanation, assumptions };
     }
-    const date = skilledWorkerChildDate(ctx);
+    const filing = skilledWorkerChildFiling(ctx);
+    const date = filing?.applicationDate;
     if (!date) {
       return principalApplicationDate(ctx, 'CL-SW-RESIDENCE-5Y')
         ? noJointApplication(L, assumptions)
         : withoutPrincipalPathway(ctx, 'dependent child', assumptions);
     }
+    const pending = pendingOnJointDay(filing);
+    if (pending.length) return pendingJoint(L, date, pending, assumptions);
     return {
       status: 'PASS',
       explanation: L(

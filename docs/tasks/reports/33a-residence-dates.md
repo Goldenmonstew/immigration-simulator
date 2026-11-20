@@ -2,14 +2,22 @@
 
 ## 1. 做了什么
 
-第七轮修复两处回退。以下编号沿用审核原文 `review33a-5`，建议 Fable 分两次提交。
+**第八轮（Fable 实现，对应最终审核 `review33a-6`）**：主申请人只缺资料时，随行人不再被判为不符合。
+
+- 第七轮让普通预测保留只缺 Life in the UK 资料的工签日期，但共同递交日仍要求主申请人各项 `PASS`。随行子女和伴侣因此找不到共同日期，规则判 `FAIL`，结论改推 2033-12-04 的 Long Residence。
+- 现在共同递交日上主申请人有条件 `FAIL` 才顺延到下一段许可；只缺资料时保留该日。随行人的预测与主申请人一致，为 `LIKELY_NOT_ELIGIBLE` 和 **2027-12-04**，规则说明写明待确认的主申请人条件。到该日仍缺资料时，随行规则为 `UNKNOWN`，结论为 `INSUFFICIENT_INFORMATION`。出境当天位置不明时恢复的日期，仍须各项条件通过。[SRC-004 SW 23.1、39.1(a)](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-skilled-worker)
+- 第七轮新增的"缺 SOC 代码时伴侣不得按工签路线"断言改为：伴侣的结论和日期与主申请人一致（going rate 待确认）。
+
+**第七轮**修复两处回退。以下编号沿用审核原文 `review33a-5`。
 
 - **#2 工签预测**（`skilled-worker.ts`、`aggregate.ts`、对应引擎测试）。2023-01-01 起持工签、已录入 2027-01-01 续签的申请人，两段薪资和 going rate 均达标。只缺 Life in the UK 资料时，2026-11-01 的预测恢复为 **2027-12-04**，双语结果列出待确认的考试条件。确认共同递交日仍须主申请人在该日的各项检查均通过。[SRC-004 SW 21.1–24.3、39.1(a)](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-skilled-worker) · [SRC-008 CR 1.1(b)](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-continuous-residence)
 - **#1 五年伴侣财务过渡门槛**（`family.ts`、对应引擎测试、双语快照和顾问包）。同一伴侣在 2024-04-11 前有成功申请，2026-04-01 一天空档使五年居留从次日重新起算。家庭年收入 £22,000、无储蓄、无子女时，**£18,600 门槛仍适用**。预测从 Long Residence 的 2036-03-05 恢复为五年伴侣路线的 **2031-04-02**。判定契约和已有假设说明已同步。[SRC-024 E-ILRP.1.3(1A)、E-LTRP.3.5–3.7](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-fm-family-members)
 
 ## 2. 怎么验证的
 
-两条审核反例均先在第六轮代码上复现失败，再通过 `evaluate()` 复算。工签案例在预计日居留通过，未补考试资料时仍为资料不足。补齐后，12 月 3 日尚早，12 月 4 日主申请人和随行子女均通过。伴侣案例 2031 年 4 月 1 日居留未满，4 月 2 日按五年路线通过，两天均适用过渡财务门槛。另在原有共同日期用例中补齐 SOC 职业代码，并验证缺代码时无法确认 going rate 和工签共同日期。
+第八轮：`review33a-5 #2` 回归新增随行子女和伴侣两种情形，分别在 2026-11-01 预测和 2027-12-04 当日复算。`pnpm --filter @uk-immigration/engine test -u` 后黄金 JSON、双语快照和顾问包均无差异，引擎 2,623 项通过、1 项跳过；全仓 gate 与 e2e 结果见 PR 说明。
+
+第七轮：两条审核反例均先在第六轮代码上复现失败，再通过 `evaluate()` 复算。工签案例在预计日居留通过，未补考试资料时仍为资料不足。补齐后，12 月 3 日尚早，12 月 4 日主申请人和随行子女均通过。伴侣案例 2031 年 4 月 1 日居留未满，4 月 2 日按五年路线通过，两天均适用过渡财务门槛。另在原有共同日期用例中补齐 SOC 职业代码，并验证缺代码时无法确认 going rate 和工签共同日期。
 
 逐项比较第六轮 `6dd0d09` 与本轮重新生成的黄金 JSON，**56 个案例、112 栏全部一致**，包括结论、决定路线、年限、最早申请日和逐条规则状态。整个黄金文件逐字节相同。双语快照和顾问包更新了伴侣财务假设及来源定位。
 

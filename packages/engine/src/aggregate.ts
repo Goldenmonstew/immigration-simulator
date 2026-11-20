@@ -29,7 +29,7 @@ import {
   onSkilledWorker,
   onSkilledWorkerChild,
   onSkilledWorkerPartner,
-  skilledWorkerChildDate,
+  skilledWorkerChildFiling,
   skilledWorkerPartnerResidence,
   ukAncestryResidence,
 } from './rules/current-law';
@@ -555,7 +555,7 @@ function assessCurrentLaw(
   const swFiling = skilledWorkerFiling(ctx);
   const lrResidence = longResidence(ctx);
   const swPartnerResidence = skilledWorkerPartnerResidence(ctx);
-  const swChildDate = skilledWorkerChildDate(ctx);
+  const swChildDate = skilledWorkerChildFiling(ctx)?.applicationDate;
   const presence = applicationPresence(ctx.timeline, ctx.simulationDate, L);
   const privateLife = privateLifeQualifying(ctx);
   // Dependants (contracts §15).

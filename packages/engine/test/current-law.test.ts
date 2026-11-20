@@ -571,9 +571,18 @@ describe('Skilled Worker dependent partner (SW 38–SW 46)', () => {
       outcome: 'LIKELY_NOT_ELIGIBLE',
       earliestDate: '2029-01-04',
     });
+    // Without an occupation code the going rate is unknown: the partner
+    // follows the principal's conditional date.
+    const unknownSoc = { episodes: [{ ...recent, socCode: undefined }] };
+    const p = cl(unknownSoc, null);
+    const projected = cl(partner, unknownSoc);
+    expect(projected).toMatchObject({
+      outcome: p.outcome,
+      earliestDate: p.earliestDate,
+    });
     expect(
-      cl(partner, { episodes: [{ ...recent, socCode: undefined }] }).decidedBy,
-    ).not.toContain('CL-SW-PARTNER-5Y');
+      projected.rules.find((r) => r.id === 'CL-SW-PARTNER-5Y')?.explanation,
+    ).toContain(p.earliestDate);
   });
 
   test('a principal who cannot settle as a Skilled Worker fails the partner', () => {

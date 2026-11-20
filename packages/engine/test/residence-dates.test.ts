@@ -1138,9 +1138,30 @@ test('review33a-5 #2 a recorded Skilled Worker renewal keeps the residence forec
   expect(filed.rules.find((r) => r.id === 'CL-SW-RESIDENCE-5Y')?.status).toBe(
     'PASS',
   );
-  expect(current(child, '2026-11-01', principal).decidedBy).not.toContain(
-    'CL-SW-CHILD',
-  );
+  // review33a-6: the dependants follow the same conditional date. Missing
+  // evidence leaves them UNKNOWN on the day, not FAIL or Long Residence.
+  const partner = {
+    episodes: [
+      permit('2023-01-01', { role: 'DEPENDANT', dependantOf: 'PARTNER' }),
+    ],
+  };
+  for (const [facts, id] of [
+    [child, 'CL-SW-CHILD'],
+    [partner, 'CL-SW-PARTNER-5Y'],
+  ] as const) {
+    const projected = current(facts, '2026-11-01', principal);
+    expect(projected).toMatchObject({
+      outcome: 'LIKELY_NOT_ELIGIBLE',
+      earliestDate: forecast.earliestDate,
+    });
+    expect(projected.decidedBy).toContain(id);
+    expect(projected.rules.find((r) => r.id === id)?.explanation).toMatch(
+      /2027-12-04.*Life in the UK/,
+    );
+    const onTheDay = current(facts, forecast.earliestDate!, principal);
+    expect(onTheDay.outcome).toBe('INSUFFICIENT_INFORMATION');
+    expect(onTheDay.rules.find((r) => r.id === id)?.status).toBe('UNKNOWN');
+  }
 
   const confirmed = { ...principal, lifeInTheUk: { passed: true as const } };
   expect(current(confirmed, '2027-12-03').outcome).toBe('LIKELY_NOT_ELIGIBLE');

@@ -82,10 +82,13 @@ export function principalNotReady(
 }
 
 /** CR 3.2 windows can change with the filing date. Recheck both on one day. */
-export function jointApplication<T extends { applicationDate?: IsoDate }>(
+export function jointApplication<
+  T extends { applicationDate?: IsoDate },
+  P extends CurrentResidence,
+>(
   date: IsoDate,
   ownFrom: (date: IsoDate) => T | undefined,
-  principalFrom: (date: IsoDate) => CurrentResidence | undefined,
+  principalFrom: (date: IsoDate) => P | undefined,
 ) {
   for (;;) {
     const own = ownFrom(date);
