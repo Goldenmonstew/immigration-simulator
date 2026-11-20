@@ -7,15 +7,19 @@ import {
 } from '@uk-immigration/policy-data';
 import { fullYears } from '../../dates';
 import {
+  applicationLocationIssue,
   continuousRun,
   episodeOn,
   currentResidence,
+  permissionChanges,
   settledBy,
+  timelineAtFiling,
 } from '../../residence';
 import type { CurrentResidence } from '../../residence';
-import { defineRule, textFor } from '../../rule';
+import { defineRule, runRule, textFor } from '../../rule';
 import type { Lang } from '../../rule';
 import { gbp } from '../es-contribution';
+import { clEnglish, clKol } from './english';
 import {
   childFiling,
   jointApplication,
@@ -27,6 +31,7 @@ import type {
   IsoDate,
   RuleContext,
   RuleId,
+  RuleOutcome,
   RuleResult,
 } from '../../types';
 import {
@@ -313,6 +318,7 @@ export const clSwSalary = defineRule(
     title: 'Skilled Worker 定居薪资（general salary）',
     titleEn: 'Skilled Worker settlement salary (general salary)',
     sources: [
+      { srcId: 'SRC-004', locator: 'SW 24.2' },
       { srcId: 'SRC-004', locator: 'SW 24.3' },
       { srcId: 'SRC-004', locator: 'SW 4.2(b)' },
       { srcId: 'SRC-004', locator: 'SW A1.1' },
@@ -536,6 +542,41 @@ export function principalApplicationDate(
   return ctx.principal?.result.byRuleSet[RULE_SET]?.earliestDate;
 }
 
+/** SW 24.2–24.3, 39.1(a): P must qualify on the actual (possibly joint) filing day. */
+export function skilledWorkerFiling(
+  ctx: RuleContext,
+  notBefore = ctx.simulationDate,
+): (CurrentResidence & { requirements?: RuleOutcome[] }) | undefined {
+  let residence = skilledWorkerResidence(ctx, notBefore);
+  if (!residence?.applicationDate) return residence;
+  const changes = permissionChanges(ctx.timeline);
+  const current = episodeOn(ctx.timeline, ctx.simulationDate);
+  const newGrant = changes.some((day) => {
+    if (day <= ctx.simulationDate) return false;
+    const effective = episodeOn(ctx.timeline, day);
+    return effective && effective !== current;
+  });
+  // A forecast on the same grant retains the ordinary conditional projection.
+  if (!newGrant && !applicationLocationIssue(ctx.timeline, ctx.simulationDate))
+    return residence;
+  while (residence?.applicationDate) {
+    const date = residence.applicationDate;
+    const filing = {
+      ...ctx,
+      timeline: timelineAtFiling(ctx.timeline, date),
+      simulationDate: date,
+    };
+    const requirements = [clSwSalary, clSwGoingRate, clEnglish, clKol].map(
+      (rule) => runRule(rule, filing),
+    );
+    if (requirements.every((r) => r.status === 'PASS'))
+      return { ...residence, requirements };
+    const change = changes.find((d) => d > date);
+    if (!change) break;
+    residence = skilledWorkerResidence(ctx, change);
+  }
+}
+
 /**
  * SW 39.1(b): P has settled. Met when P settled from Skilled Worker
  * permission and the dependant then held permission as P's partner or child
@@ -665,7 +706,7 @@ export function skilledWorkerPartnerResidence(
   return settled
     ? ownFrom()
     : jointApplication(principalDate!, ownFrom, (notBefore) =>
-        skilledWorkerResidence(
+        skilledWorkerFiling(
           { timeline: ctx.principal!.timeline, simulationDate },
           notBefore,
         ),
@@ -773,7 +814,7 @@ export function skilledWorkerChildDate(ctx: RuleContext): IsoDate | undefined {
     due,
     (notBefore) => childFiling(timeline, notBefore, 'SKILLED_WORKER'),
     (notBefore) =>
-      skilledWorkerResidence(
+      skilledWorkerFiling(
         { timeline: ctx.principal!.timeline, simulationDate },
         notBefore,
       ),

@@ -1762,6 +1762,10 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
               "locator": "E-ILRP.1.4"
             },
             {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
@@ -2516,6 +2520,10 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
               "locator": "E-ILRP.1.4"
             },
             {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
@@ -3263,6 +3271,10 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             {
               "srcId": "SRC-024",
               "locator": "E-ILRP.1.4"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
             },
             {
               "srcId": "SRC-008",
@@ -4015,6 +4027,10 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-024",
               "locator": "E-ILRP.1.4"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
             },
             {
               "srcId": "SRC-008",
@@ -6466,6 +6482,10 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
           "id": "CL-HKBNO-RESIDENCE-5Y",
           "title": "Hong Kong BN(O) 连续 5 年",
           "sources": [
+            {
+              "srcId": "SRC-020",
+              "locator": "HK 57.1"
+            },
             {
               "srcId": "SRC-020",
               "locator": "HK 62.1"
@@ -9624,6 +9644,10 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "E-ILRP.1.4"
             },
             {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
@@ -10966,6 +10990,10 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
               "locator": "E-ILRP.1.4"
             },
             {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
@@ -11630,6 +11658,10 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "id": "CL-SW-SALARY",
           "title": "Skilled Worker 定居薪资（general salary）",
           "sources": [
+            {
+              "srcId": "SRC-004",
+              "locator": "SW 24.2"
+            },
             {
               "srcId": "SRC-004",
               "locator": "SW 24.3"
@@ -12345,6 +12377,10 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-024",
               "locator": "E-ILRP.1.4"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
             },
             {
               "srcId": "SRC-008",
@@ -13557,6 +13593,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "id": "CL-SW-SALARY",
           "title": "Skilled Worker 定居薪资（general salary）",
           "sources": [
+            {
+              "srcId": "SRC-004",
+              "locator": "SW 24.2"
+            },
             {
               "srcId": "SRC-004",
               "locator": "SW 24.3"
@@ -18603,6 +18643,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-004",
+              "locator": "SW 24.2"
+            },
+            {
+              "srcId": "SRC-004",
               "locator": "SW 24.3"
             },
             {
@@ -19340,6 +19384,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-004",
+              "locator": "SW 24.2"
+            },
+            {
+              "srcId": "SRC-004",
               "locator": "SW 24.3"
             },
             {
@@ -20074,6 +20122,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "id": "CL-SW-SALARY",
           "title": "Skilled Worker 定居薪资（general salary）",
           "sources": [
+            {
+              "srcId": "SRC-004",
+              "locator": "SW 24.2"
+            },
             {
               "srcId": "SRC-004",
               "locator": "SW 24.3"

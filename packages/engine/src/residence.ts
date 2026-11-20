@@ -81,12 +81,31 @@ export interface Run {
 type Counts = (episode: ImmigrationEpisode) => boolean;
 type AllowsGap = (from: IsoDate, to: IsoDate) => boolean;
 
-function permissionChanges(timeline: PersonTimeline): IsoDate[] {
+export function permissionChanges(timeline: PersonTimeline): IsoDate[] {
   return [
     ...new Set(
       timeline.episodes.flatMap((e) => [e.validFrom, addDays(e.validTo, 1)]),
     ),
   ].sort();
+}
+
+/** For a projected filing after the final grant, assume renewal of that grant only. */
+export function timelineAtFiling(
+  timeline: PersonTimeline,
+  date: IsoDate,
+): PersonTimeline {
+  const lastDay = timeline.episodes
+    .map((e) => e.validTo)
+    .sort()
+    .at(-1);
+  if (!lastDay || date <= lastDay) return timeline;
+  const lastGrant = episodeOn(timeline, lastDay);
+  return {
+    ...timeline,
+    episodes: timeline.episodes.map((e) =>
+      e === lastGrant ? { ...e, validTo: date } : e,
+    ),
+  };
 }
 
 /** Between consecutive grant boundaries episodeOn selects the same permission. */
@@ -307,6 +326,23 @@ function exceedsFixedLimit(
   return false;
 }
 
+/** CR 2.1(d), 4.1(d)(v), 4.3: lawful presence during the August grace period. */
+export function countedGracePeriod(
+  timeline: PersonTimeline,
+  from: IsoDate,
+  to: IsoDate,
+) {
+  const graceFrom = cl.values.continuousResidenceGracePeriodFrom.value;
+  return (
+    from >= graceFrom &&
+    to <= cl.values.continuousResidenceGracePeriodTo.value &&
+    !!episodeOn(timeline, addDays(graceFrom, -1)) &&
+    !timeline.absences.some(
+      (a) => a.from && a.to && overlapDays(a.from, a.to, from, to) > 0,
+    )
+  );
+}
+
 function gapTreatment(
   timeline: PersonTimeline,
   trips: Absence[],
@@ -314,17 +350,7 @@ function gapTreatment(
   longResidence: boolean,
   reference: IsoDate,
 ) {
-  // CR 2.1(d), 4.1(d)(v), 4.3: permission immediately before the August
-  // grace period and presence in the UK throughout the uncovered days.
-  const graceFrom = cl.values.continuousResidenceGracePeriodFrom.value;
-  if (
-    gap.from >= graceFrom &&
-    gap.to <= cl.values.continuousResidenceGracePeriodTo.value &&
-    episodeOn(timeline, addDays(graceFrom, -1)) &&
-    !absenceDays(trips, gap.from, gap.to)
-  ) {
-    return 'COUNT';
-  }
+  if (countedGracePeriod(timeline, gap.from, gap.to)) return 'COUNT';
   // CR 4.1(d)(iii), CR 4.2 and LR 11.2: the travel itself must also
   // satisfy the absence limits, checked on the selected qualifying period.
   if (

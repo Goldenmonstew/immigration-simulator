@@ -903,3 +903,156 @@ test('review33a-3 #5 five-year Appendix FM continues past a return in a permissi
   expect(filed.outcome).toBe('LIKELY_ELIGIBLE');
   expect(filed.decidedBy).toContain('CL-FAMILY-RESIDENCE');
 });
+
+test('review33a-4 #1 the return date uses the new Skilled Worker salary for both filings', () => {
+  const principal = timeline({
+    episodes: [
+      permit('2021-11-24', { validTo: '2026-11-04' }),
+      permit('2026-11-05', { salary: 30000 }),
+    ],
+    absences: [{ from: '2026-11-01', to: '2026-11-10' }],
+  });
+  const child = {
+    dateOfBirth: '2015-01-01',
+    episodes: [
+      permit('2024-01-01', { role: 'DEPENDANT', dependantOf: 'PARENT' }),
+    ],
+  };
+  const departing = current(principal, '2026-11-01');
+  expect(departing.outcome).toBe('INSUFFICIENT_INFORMATION');
+  expect(departing.earliestDate).toBe('2031-10-27');
+  expect(departing.decidedBy).toContain('CL-LR-RESIDENCE-10Y');
+  expect(current(principal, '2031-10-26').outcome).toBe('LIKELY_NOT_ELIGIBLE');
+  expect(current(principal, departing.earliestDate!).outcome).toBe(
+    'LIKELY_ELIGIBLE',
+  );
+  expect(current(child, '2026-11-01', principal).earliestDate).toBeUndefined();
+  const returned = current(principal, '2026-11-10');
+  for (const id of ['CL-SW-SALARY', 'CL-SW-GOING-RATE']) {
+    expect(returned.rules.find((r) => r.id === id)?.status).toBe('FAIL');
+  }
+  expect(current(child, '2026-11-10', principal).outcome).not.toBe(
+    'LIKELY_ELIGIBLE',
+  );
+
+  const restoredPay = {
+    ...principal,
+    episodes: [...principal.episodes, permit('2026-11-15')],
+  };
+  for (const [subject, sponsor, rule] of [
+    [restoredPay, undefined, 'CL-SW-RESIDENCE-5Y'],
+    [child, restoredPay, 'CL-SW-CHILD'],
+  ] as const) {
+    const projected = current(subject, '2026-11-01', sponsor);
+    expect(projected.earliestDate).toBe('2026-11-15');
+    expect(projected.decidedBy).toContain(rule);
+    expect(current(subject, '2026-11-14', sponsor).outcome).not.toBe(
+      'LIKELY_ELIGIBLE',
+    );
+    const filed = current(subject, projected.earliestDate!, sponsor);
+    expect(filed.outcome).toBe('LIKELY_ELIGIBLE');
+    expect(filed.decidedBy).toContain(rule);
+  }
+
+  // P can file on return, but the child's later return falls on the low-paid grant.
+  const laterChange = {
+    ...restoredPay,
+    episodes: [
+      principal.episodes[0],
+      permit('2026-11-05'),
+      permit('2026-11-11', { salary: 30000 }),
+      permit('2026-11-15'),
+    ],
+  };
+  const travellingChild = {
+    ...child,
+    absences: [{ from: '2026-11-02', to: '2026-11-12' }],
+  };
+  expect(current(laterChange, '2026-11-01').earliestDate).toBe('2026-11-10');
+  expect(current(travellingChild, '2026-11-01', laterChange).earliestDate).toBe(
+    '2026-11-15',
+  );
+  expect(current(travellingChild, '2026-11-14', laterChange).outcome).not.toBe(
+    'LIKELY_ELIGIBLE',
+  );
+  const joint = current(travellingChild, '2026-11-15', laterChange);
+  expect(joint.outcome).toBe('LIKELY_ELIGIBLE');
+  expect(joint.decidedBy).toContain('CL-SW-CHILD');
+});
+
+test('review33a-4 #2 a BN(O) child who turns 18 can file on their own five years', () => {
+  const grant = permit('2021-12-10', { route: 'HONG_KONG_BNO' });
+  const principal = timeline({ episodes: [grant] });
+  const child = {
+    dateOfBirth: '2008-11-05',
+    episodes: [
+      { ...grant, role: 'DEPENDANT' as const, dependantOf: 'PARENT' as const },
+    ],
+  };
+  const projected = current(child, '2026-11-01', principal);
+  expect(projected.earliestDate).toBe('2026-11-12');
+  expect(projected.decidedBy).toContain('CL-HKBNO-RESIDENCE-5Y');
+  expect(projected.decidedBy).not.toContain('CL-HKBNO-DEPENDANT');
+  expect(current(child, '2026-11-11', principal).outcome).toBe(
+    'LIKELY_NOT_ELIGIBLE',
+  );
+  const filed = current(child, projected.earliestDate!, principal);
+  expect(filed.outcome).toBe('LIKELY_ELIGIBLE');
+  expect(filed.decidedBy).toContain('CL-HKBNO-RESIDENCE-5Y');
+  for (const missing of [{ english: undefined }, { lifeInTheUk: undefined }]) {
+    const incomplete = current(
+      { ...child, ...missing },
+      '2026-11-01',
+      principal,
+    );
+    expect(incomplete.outcome).toBe('INSUFFICIENT_INFORMATION');
+    expect(incomplete.earliestDate).toBeUndefined();
+  }
+});
+
+test('review33a-4 #3 one uncovered day restarts five-year Appendix FM residence', () => {
+  const { episodes, relationships } = family('2021-11-04', 'PARTNER_FIVE_YEAR');
+  const facts = {
+    episodes: [
+      { ...episodes[0], validTo: '2026-11-08' },
+      { ...episodes[0], validFrom: '2026-11-10' },
+    ],
+    relationships: [...relationships],
+    absences: [{ from: '2026-11-01', to: '2026-11-09' }],
+    cashSavings: 100000,
+  };
+  const projected = current(facts, '2026-10-25');
+  expect(projected.earliestDate).toBe('2031-11-10');
+  expect(projected.decidedBy).toContain('CL-FAMILY-RESIDENCE');
+  expect(
+    current(facts, '2026-11-10').rules.find(
+      (r) => r.id === 'CL-FAMILY-RESIDENCE',
+    )?.status,
+  ).toBe('FAIL');
+  expect(current(facts, '2031-11-09').outcome).toBe('LIKELY_NOT_ELIGIBLE');
+  const filed = current(facts, projected.earliestDate!);
+  expect(filed.outcome).toBe('LIKELY_ELIGIBLE');
+  expect(filed.decidedBy).toContain('CL-FAMILY-RESIDENCE');
+
+  const adjacent = {
+    ...facts,
+    episodes: [
+      facts.episodes[0],
+      { ...facts.episodes[1], validFrom: '2026-11-09' },
+    ],
+  };
+  expect(current(adjacent, '2026-10-25').earliestDate).toBe('2026-11-09');
+  expect(current(adjacent, '2026-11-09').outcome).toBe('LIKELY_ELIGIBLE');
+  const grace = {
+    ...facts,
+    absences: [],
+    episodes: [
+      { ...episodes[0], validFrom: '2019-11-04', validTo: '2020-08-10' },
+      { ...episodes[0], validFrom: '2020-08-12' },
+    ],
+  };
+  expect(current(grace, '2024-11-03').earliestDate).toBe('2024-11-04');
+  expect(current(grace, '2024-11-04').decidedBy).toContain(
+    'CL-FAMILY-RESIDENCE',
+  );
+});

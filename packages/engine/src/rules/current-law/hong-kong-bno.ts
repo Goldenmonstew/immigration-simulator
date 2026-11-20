@@ -2,7 +2,7 @@ import {
   currentLaw2026_11 as cl,
   routeNames,
 } from '@uk-immigration/policy-data';
-import { addYears } from '../../dates';
+import { addDays, addYears } from '../../dates';
 import { episodeOn, currentResidence, settledBy } from '../../residence';
 import type { CurrentResidence } from '../../residence';
 import { defineRule, nameIn, textFor } from '../../rule';
@@ -43,7 +43,8 @@ export function hongKongBnoResidence(
   const kind = hongKongBnoDependant(timeline, simulationDate);
   if (
     !onHongKongBno(timeline, simulationDate) &&
-    (kind === undefined || kind === 'CHILD')
+    (kind === undefined ||
+      (kind === 'CHILD' && (!notBefore || minorOn(timeline, notBefore))))
   ) {
     return undefined;
   }
@@ -64,6 +65,19 @@ export function hongKongBnoResidence(
   );
 }
 
+/** HK 57.1, 62.1(b), 63.1: from adulthood the child can qualify independently. */
+export function adultChildResidence(ctx: RuleContext) {
+  const birthday = addYears(
+    ctx.timeline.dateOfBirth,
+    cl.values.settlementMinorAge.value,
+  );
+  // fullYears can reach the new age on 1 March for a leap-day birth.
+  return hongKongBnoResidence(
+    ctx,
+    minorOn(ctx.timeline, birthday) ? addDays(birthday, 1) : birthday,
+  );
+}
+
 export const clHkbnoResidence5Y = defineRule(
   {
     id: 'CL-HKBNO-RESIDENCE-5Y',
@@ -71,6 +85,7 @@ export const clHkbnoResidence5Y = defineRule(
     title: 'Hong Kong BN(O) 连续 5 年',
     titleEn: `${cl.values.hongKongBnoQualifyingYears.value} continuous years on the Hong Kong BN(O) route`,
     sources: [
+      { srcId: 'SRC-020', locator: 'HK 57.1' },
       { srcId: 'SRC-020', locator: 'HK 62.1' },
       { srcId: 'SRC-020', locator: 'HK 63.1' },
       ...crResidenceSources,
@@ -80,7 +95,9 @@ export const clHkbnoResidence5Y = defineRule(
   (ctx) => {
     const L = textFor(ctx);
     const years = cl.values.hongKongBnoQualifyingYears.value;
-    const run = hongKongBnoResidence(ctx);
+    const child =
+      hongKongBnoDependant(ctx.timeline, ctx.simulationDate) === 'CHILD';
+    const run = child ? adultChildResidence(ctx) : hongKongBnoResidence(ctx);
     if (!run) {
       return {
         status: 'FAIL',
@@ -92,6 +109,14 @@ export const clHkbnoResidence5Y = defineRule(
     }
     const { start, before } = run;
     const assumptions = [
+      ...(child
+        ? [
+            L(
+              '预计递交时已成年，按本人的连续居留、英语和 Life in the UK 条件评估（HK 57.1、60.1–63.1）。',
+              'At the projected filing date the applicant is an adult. Their own residence, English and Life in the UK requirements apply (HK 57.1, 60.1–63.1).',
+            ),
+          ]
+        : []),
       ...(before
         ? [
             L(

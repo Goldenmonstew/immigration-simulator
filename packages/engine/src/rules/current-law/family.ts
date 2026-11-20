@@ -5,6 +5,7 @@ import {
 import { addYears, fullYears, fullYearsEn, taxYearsBefore } from '../../dates';
 import {
   continuousRun,
+  countedGracePeriod,
   episodeOn,
   currentResidence,
   nextPermissionFiling,
@@ -93,6 +94,8 @@ export function familyFiveYearStart({
     timeline,
     simulationDate,
     (e) => e.route === 'FAMILY_PARTNER_OR_PARENT' && e.role === 'MAIN',
+    // E-ILRP.1.5A: no blanket tolerance for an uncovered day between grants.
+    (from, to) => countedGracePeriod(timeline, from, to),
   ).episodes[0].validFrom;
 }
 
@@ -128,6 +131,7 @@ export const clFamilyResidence = defineRule(
       { srcId: 'SRC-022', locator: 'SETF 4.1' },
       { srcId: 'SRC-024', locator: 'E-ILRP.1.3' },
       { srcId: 'SRC-024', locator: 'E-ILRP.1.4' },
+      { srcId: 'SRC-024', locator: 'E-ILRP.1.5A' },
       ...crResidenceSources,
     ],
     pendingDetails: ['PD-069', 'PD-070'],
