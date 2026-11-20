@@ -680,6 +680,7 @@ function withoutPrincipalPathway(
     };
   }
   const result = principal!.result.byRuleSet[RULE_SET];
+  const pending = result?.rules.filter((r) => r.status === 'UNKNOWN') ?? [];
   return result?.outcome === 'LIKELY_NOT_ELIGIBLE'
     ? {
         status: 'FAIL',
@@ -698,8 +699,8 @@ function withoutPrincipalPathway(
               `The principal applicant’s current-rules result is not on the Skilled Worker route (for example, it is under Long Residence), so when the ${who} could settle with them under SW 39.1(a) cannot be determined.`,
             )
           : L(
-              '主申请人的信息不足以判断其能否作为 Skilled Worker 定居。',
-              'The principal applicant’s details are not enough to determine whether they can settle as a Skilled Worker.',
+              `主申请人的信息不足以判断其能否作为 Skilled Worker 定居${pending.length ? `，待确认${pending.map((r) => `「${r.title}」`).join('')}` : ''}。`,
+              `The principal applicant’s details are not enough to determine whether they can settle as a Skilled Worker${pending.length ? `; still to confirm: ${pending.map((r) => `“${r.title}”`).join(', ')}` : ''}.`,
             ),
         assumptions,
       };

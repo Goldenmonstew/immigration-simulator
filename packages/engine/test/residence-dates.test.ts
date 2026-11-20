@@ -1160,7 +1160,10 @@ test('review33a-5 #2 a recorded Skilled Worker renewal keeps the residence forec
     );
     const onTheDay = current(facts, forecast.earliestDate!, principal);
     expect(onTheDay.outcome).toBe('INSUFFICIENT_INFORMATION');
-    expect(onTheDay.rules.find((r) => r.id === id)?.status).toBe('UNKNOWN');
+    expect(onTheDay.rules.find((r) => r.id === id)).toMatchObject({
+      status: 'UNKNOWN',
+      explanation: expect.stringContaining('Life in the UK'),
+    });
   }
 
   const confirmed = { ...principal, lifeInTheUk: { passed: true as const } };

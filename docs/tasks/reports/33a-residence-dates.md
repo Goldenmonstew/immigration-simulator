@@ -7,6 +7,7 @@
 - 第七轮让普通预测保留只缺 Life in the UK 资料的工签日期，但共同递交日仍要求主申请人各项 `PASS`。随行子女和伴侣因此找不到共同日期，规则判 `FAIL`，结论改推 2033-12-04 的 Long Residence。
 - 现在共同递交日上主申请人有条件 `FAIL` 才顺延到下一段许可；只缺资料时保留该日。随行人的预测与主申请人一致，为 `LIKELY_NOT_ELIGIBLE` 和 **2027-12-04**，规则说明写明待确认的主申请人条件。到该日仍缺资料时，随行规则为 `UNKNOWN`，结论为 `INSUFFICIENT_INFORMATION`。出境当天位置不明时恢复的日期，仍须各项条件通过。[SRC-004 SW 23.1、39.1(a)](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-skilled-worker)
 - 第七轮新增的"缺 SOC 代码时伴侣不得按工签路线"断言改为：伴侣的结论和日期与主申请人一致（going rate 待确认）。
+- 复核 `review33a-7` #2：到共同日期仍缺资料时，随行规则的说明列出主申请人待确认的条件（如 Life in the UK），不再只写"信息不足"。
 
 **第七轮**修复两处回退。以下编号沿用审核原文 `review33a-5`。
 
@@ -36,6 +37,8 @@
 ## 4. 发现与建议
 
 按本轮约定，BN(O) 子女成年时更换许可角色、Appendix FM 伴侣出入境跨税年两项风险留在 Fable 已登记的后续任务中。
+
+复核 `review33a-7` #1 记为后续任务，不在 33a 修：预测日期没有按递交日核对已知会变化的英语等级。工签主申请人与随行伴侣持 B1、预测日在 2027-03-26 之后时，main 上同样给出预测日期，到该日因 B2 要求判 `FAIL`（SRC-004 SW 22A.1、44.1）。随行子女在共同日期前成年时的英语与 Life in the UK 也属同一问题。建议统一在预测日按递交日重算英语与 Life in the UK。
 
 <details>
 <summary>第一至六轮的实施记录、黄金案例变化及验收结果</summary>
