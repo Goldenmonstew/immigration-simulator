@@ -107,4 +107,6 @@ export const sourceUrls: Record<string, string> = {
     'https://questions-statements.parliament.uk/written-questions/detail/2026-11-02/40091',
   'SRC-059':
     'https://www.gov.uk/government/publications/immigration-status-and-enforcement-action-caseworker-guidance/cancellation-and-curtailment-of-permission-accessible',
+  'SRC-060':
+    'https://www.gov.uk/government/publications/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024-accessible-version',
 };

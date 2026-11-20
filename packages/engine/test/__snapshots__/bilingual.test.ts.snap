@@ -335,6 +335,10 @@ exports[`CL-FAMILY-CHILD-TEN-YEAR default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -896,6 +900,10 @@ exports[`CL-FAMILY-FIVE-YEAR-ADULT-CHILD-ENGLISH default-locale output is unchan
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -1462,6 +1470,10 @@ exports[`CL-FAMILY-FIVE-YEAR-CHILD-PROJECTED default-locale output is unchanged 
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -1818,6 +1830,10 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.6"
             }
@@ -2090,6 +2106,10 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -2600,6 +2620,10 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.6"
             }
@@ -2869,6 +2893,10 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -3377,6 +3405,10 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.6"
             }
@@ -3646,6 +3678,10 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -4157,6 +4193,10 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.6"
             }
@@ -4426,6 +4466,10 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -4934,6 +4978,10 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -5124,6 +5172,10 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -5485,6 +5537,10 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -5676,6 +5732,10 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -6356,6 +6416,10 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -6697,6 +6761,10 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -6882,6 +6950,10 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -7348,6 +7420,10 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -7565,6 +7641,10 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -8048,6 +8128,10 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -8235,6 +8319,10 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -8915,6 +9003,10 @@ exports[`CL-REFUGEE-FIVE-YEARS default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -9252,6 +9344,10 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -9442,6 +9538,10 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -9933,6 +10033,10 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.6"
             }
@@ -10119,6 +10223,10 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -10618,6 +10726,10 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "UNKNOWN",
@@ -10805,6 +10917,10 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -11315,6 +11431,10 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.6"
             }
@@ -11501,6 +11621,10 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -11983,6 +12107,10 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -12241,6 +12369,10 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -12740,6 +12872,10 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.6"
             }
@@ -12926,6 +13062,10 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -13419,6 +13559,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -13607,6 +13751,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -13974,6 +14122,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -14234,6 +14386,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -14732,6 +14888,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "FAIL",
@@ -14920,6 +15080,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -15498,6 +15662,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -16059,6 +16227,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-D default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -16616,6 +16788,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-E default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -17165,6 +17341,10 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -17688,6 +17868,10 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -18257,6 +18441,10 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -18832,6 +19020,10 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-D default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -19163,6 +19355,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -19243,7 +19439,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "status": "PASS",
           "explanation": "SOC 6135 的 going rate（row C, Table 2aa: £25,000；row D, Table 2aa: £25,000）；当前年薪 £30,000，已达到。",
           "assumptions": [
-            "going rate 按标准工时的全额年薪比较，未按实际工时折算（SW 14.4）。"
+            "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。"
           ]
         },
         {
@@ -19427,6 +19623,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -19444,7 +19644,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
         "连续期合并 SW 21.2 列出的 Skilled Worker、Global Talent、Innovator Founder、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Representative of an Overseas Business 与 Tier 1 本工具无法填写，不计入；SW 21.2(i) 的等待决定期间未建模。",
         "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
         "最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。",
-        "going rate 按标准工时的全额年薪比较，未按实际工时折算（SW 14.4）。",
+        "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
@@ -19926,6 +20126,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -20006,7 +20210,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "SOC 6135 的 going rate（row C, Table 2aa: £25,000；row D, Table 2aa: £25,000）；当前年薪 £20,000，低于要求。",
           "assumptions": [
-            "going rate 按标准工时的全额年薪比较，未按实际工时折算（SW 14.4）。"
+            "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。"
           ]
         },
         {
@@ -20190,6 +20394,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -20207,7 +20415,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
         "连续期合并 SW 21.2 列出的 Skilled Worker、Global Talent、Innovator Founder、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Representative of an Overseas Business 与 Tier 1 本工具无法填写，不计入；SW 21.2(i) 的等待决定期间未建模。",
         "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
         "最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。",
-        "going rate 按标准工时的全额年薪比较，未按实际工时折算（SW 14.4）。",
+        "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。",
         "最早可申请日期按\\"自 2023-04-06 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ]
@@ -20688,6 +20896,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -20769,7 +20981,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "status": "PASS",
           "explanation": "SOC 6135 的 going rate（row C, Table 2aa: £25,000；row D, Table 2aa: £25,000）；当前年薪 £30,000，已达到。",
           "assumptions": [
-            "going rate 按标准工时的全额年薪比较，未按实际工时折算（SW 14.4）。"
+            "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。"
           ]
         },
         {
@@ -20953,6 +21165,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -20971,7 +21187,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
         "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
         "最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。",
         "SOC 6135 属 Health and Care ASHE 职业列表，按 SW A1.1(a)–(m) 假设其担保、雇用或服务安排符合要求。",
-        "going rate 按标准工时的全额年薪比较，未按实际工时折算（SW 14.4）。",
+        "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },

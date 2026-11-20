@@ -429,3 +429,73 @@ test('A6#6 projection retains unmet B2 and missing Life in the UK, and checks ag
     alreadyUnderB2.rules.find((rule) => rule.id === 'CL-ENGLISH')?.status,
   ).toBe('PASS');
 });
+
+test('review33b-1 #1 a recorded renewal keeps the conditional date when B2 and Life in the UK are still to be met', () => {
+  const single = {
+    episodes: [permit({ validFrom: '2023-06-01' })],
+    english: { cefrLevel: 'B1' as const },
+    lifeInTheUk: undefined,
+  };
+  const renewed = {
+    ...single,
+    episodes: [
+      permit({ validFrom: '2023-06-01', validTo: '2026-12-31' }),
+      permit({ validFrom: '2027-01-01' }),
+    ],
+  };
+  for (const facts of [single, renewed]) {
+    const forecast = current(facts);
+    expect(forecast).toMatchObject({
+      outcome: 'LIKELY_NOT_ELIGIBLE',
+      earliestDate: '2028-05-04',
+    });
+    expect(forecast.decidedBy).toContain('CL-SW-RESIDENCE-5Y');
+    expect(forecast.assumptions.join('\n')).toMatch(/B2/);
+    expect(forecast.assumptions.join('\n')).toMatch(/Life in the UK/);
+  }
+});
+
+test('review33b-1 #2 a joint date recovered on the departure day rechecks the dependant’s English on that date', () => {
+  const principal = timeline({
+    episodes: [permit({ validFrom: '2022-06-01' })],
+  });
+  const partner = (cefrLevel: 'B1' | 'B2') => ({
+    episodes: [
+      permit({
+        validFrom: '2022-06-01',
+        role: 'DEPENDANT',
+        dependantOf: 'PARTNER',
+      }),
+    ],
+    english: { cefrLevel },
+    absences: [{ from: SIMULATION_DATE, to: '2026-11-20' }],
+  });
+  expect(current(partner('B2'), SIMULATION_DATE, principal)).toMatchObject({
+    outcome: 'INSUFFICIENT_INFORMATION',
+    earliestDate: '2027-05-04',
+  });
+  // SW 44.1: B2 applies on 2027-05-04, so B1 cannot keep the joint date.
+  expect(
+    current(partner('B1'), SIMULATION_DATE, principal).earliestDate,
+  ).not.toBe('2027-05-04');
+});
+
+test('review33b-1 #3 a day without permission ends the pre-April 2024 salary cohort (SW 4.2(b)(ii))', () => {
+  const episodes = [
+    permit({ validFrom: '2023-08-01', validTo: '2024-06-01', salary: 35000 }),
+    permit({
+      validFrom: '2024-06-03',
+      sponsorshipCertificateDate: '2024-05-15',
+      salary: 35000,
+    }),
+  ];
+  const after = current({ episodes }, '2029-08-01');
+  expect(after.rules.find((r) => r.id === 'CL-SW-SALARY')?.status).toBe('FAIL');
+  expect(after.outcome).not.toBe('LIKELY_ELIGIBLE');
+  const continuous = [{ ...episodes[0], validTo: '2024-06-02' }, episodes[1]];
+  expect(
+    current({ episodes: continuous }, '2029-08-01').rules.find(
+      (r) => r.id === 'CL-SW-SALARY',
+    )?.status,
+  ).toBe('PASS');
+});

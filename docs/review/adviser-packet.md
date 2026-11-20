@@ -91,7 +91,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-06-01.
 
 Decisive rules:
 
-- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2021-06-01: 5 years completed. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2021-06-01: 5 years completed. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **PASS**. The current salary of £52,000 meets the general salary threshold under SW 24.3 (row C: £31,300). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **PASS**. The going rate for SOC 2136 (row C, Table 2: £34,500); the current salary of £52,000 meets it. _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The application date is before 2027-03-26, and Appendix Skilled Worker sets no separate English requirement for settlement (the B2 in SW 22A.1 applies only to later applications). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
@@ -106,7 +106,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -158,7 +158,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-05-31.
 
 Decisive rules:
 
-- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2021-06-01: 5 years completed on 2026-06-01, within the CR 1.1 reference window for 2026-05-31. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2021-06-01: 5 years completed on 2026-06-01, within the CR 1.1 reference window for 2026-05-31. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **PASS**. The current salary of £52,000 meets the general salary threshold under SW 24.3 (row C: £31,300). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **PASS**. The going rate for SOC 2136 (row C, Table 2: £34,500); the current salary of £52,000 meets it. _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The application date is before 2027-03-26, and Appendix Skilled Worker sets no separate English requirement for settlement (the B2 in SW 22A.1 applies only to later applications). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
@@ -174,7 +174,7 @@ Assumptions:
 - Under CR 1.1 the period is assessed as of 2026-06-01 and completes on 2026-06-01. The application date remains 2026-05-31.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -233,7 +233,7 @@ Outcome **LIKELY_NOT_ELIGIBLE**; pathway 5 years; earliest date 2028-06-30.
 
 Decisive rules:
 
-- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **FAIL**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2023-07-28: expected to complete 5 years on 2028-07-28; the earliest projected application date for the residence requirement is 2028-06-30 under CR 1.1. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **FAIL**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2023-07-28: expected to complete 5 years on 2028-07-28; the earliest projected application date for the residence requirement is 2028-06-30 under CR 1.1. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **PASS**. The current salary of £52,000 meets the general salary threshold under SW 24.3 (row C: £31,300). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **PASS**. The going rate for SOC 2136 (row C, Table 2: £34,500); the current salary of £52,000 meets it. _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2028-06-30. English at B2, which meets the B2 required for settlement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
@@ -241,7 +241,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-07-28: expected to complete 10 years on 2033-07-28; the earliest projected application date for the residence requirement is 2033-06-30 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-07-28: expected to complete 10 years on 2033-07-28; the earliest projected application date for the residence requirement is 2033-06-30 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -251,7 +251,7 @@ Assumptions:
 - Absences follow CR 3.1–3.2 and count only whole days abroad between departure and return. The permission start date is used to infer whether the old permission rules apply. CR 3.4 exemptions are outside the model.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 - Absences starting before 2024-04-11 are subject to the CR 3.3 limit of 184 days per trip. Only days before the cut-off and within the selected qualifying period count towards the 548-day total. Trips beginning on or after the cut-off follow CR 3.1; only whole days abroad between departure and return count.
 - The earliest application date is projected on the basis that residence continues from 2023-07-28, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
@@ -314,7 +314,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-KOL` Pass the Life in the UK test — **UNKNOWN**. Not provided whether the Life in the UK test has been passed. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: expected to complete 10 years on 2031-06-01; the earliest projected application date for the residence requirement is 2031-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: expected to complete 10 years on 2031-06-01; the earliest projected application date for the residence requirement is 2031-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -324,7 +324,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -371,7 +371,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2027-03-25.
 
 Decisive rules:
 
-- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2022-03-01: 5 years completed. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2022-03-01: 5 years completed. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **PASS**. The current salary of £52,000 meets the general salary threshold under SW 24.3 (row C: £31,300). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **PASS**. The going rate for SOC 2136 (row C, Table 2: £34,500); the current salary of £52,000 meets it. _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The application date is before 2027-03-26, and Appendix Skilled Worker sets no separate English requirement for settlement (the B2 in SW 22A.1 applies only to later applications). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
@@ -386,7 +386,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -433,7 +433,7 @@ Outcome **LIKELY_NOT_ELIGIBLE**.
 Failing or unknown checks:
 
 - `CL-ENGLISH` Settlement English requirement — **FAIL**. English at B1, below the B2 required for settlement (applications from 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2022-03-01: expected to complete 10 years on 2032-03-01; the earliest projected application date for the residence requirement is 2032-02-02 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2022-03-01: expected to complete 10 years on 2032-03-01; the earliest projected application date for the residence requirement is 2032-02-02 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -442,7 +442,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -488,7 +488,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2029-01-15.
 
 Decisive rules:
 
-- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2024-01-15: 5 years completed. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2024-01-15: 5 years completed. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **PASS**. The current salary of £41,000 meets the general salary threshold under SW 24.3 (row C: £31,300). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **PASS**. The going rate for SOC 2134 (row C, Table 2: £40,000); the current salary of £41,000 meets it. _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B2 required for settlement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
@@ -503,7 +503,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -566,7 +566,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2033-12-18. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2033-12-18. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-01-15: expected to complete 10 years on 2034-01-15; the earliest projected application date for the residence requirement is 2033-12-18 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-01-15: expected to complete 10 years on 2034-01-15; the earliest projected application date for the residence requirement is 2033-12-18 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -579,7 +579,7 @@ Assumptions:
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2024-01-15, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
@@ -641,7 +641,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **UNKNOWN**. Current salary is £25,000. Check the occupation code, most recent sponsorship and transitional eligibility to determine the general salary threshold under SW 24.3 (row C: £31,300; row D: £25,000). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-09-01: expected to complete 10 years on 2031-09-01; the earliest projected application date for the residence requirement is 2031-08-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-09-01: expected to complete 10 years on 2031-09-01; the earliest projected application date for the residence requirement is 2031-08-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -650,7 +650,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -706,7 +706,7 @@ Outcome **LIKELY_NOT_ELIGIBLE**; pathway 5 years; earliest date 2029-08-18.
 
 Decisive rules:
 
-- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **FAIL**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2024-09-15: expected to complete 5 years on 2029-09-15; the earliest projected application date for the residence requirement is 2029-08-18 under CR 1.1. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **FAIL**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2024-09-15: expected to complete 5 years on 2029-09-15; the earliest projected application date for the residence requirement is 2029-08-18 under CR 1.1. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **PASS**. The current salary of £45,000 meets the general salary threshold under SW 24.3 (row A: £41,700; row C: £31,300). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **UNKNOWN**. The going rate for SOC 2134 cannot be confirmed. Check the row under SW 24.3, the occupation and the permission history; Tables 1a / 2aa allow transitional eligibility or the applicable Option D / I or Temporary Shortage List sponsorship exception (SW 6.1). _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2029-08-18. English at B2, which meets the B2 required for settlement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
@@ -714,7 +714,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2019-09-15: expected to complete 10 years on 2029-09-15; the earliest projected application date for the residence requirement is 2029-08-18 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2019-09-15: expected to complete 10 years on 2029-09-15; the earliest projected application date for the residence requirement is 2029-08-18 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -724,7 +724,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - It is unconfirmed whether the first grant in the continuous Skilled Worker period was made under the earlier rules (SW 4.2(b)(ii)).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2024-09-15, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
@@ -788,7 +788,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (LR 13.1(a)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-15: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-15: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Other pathways not taken: `CL-SW-RESIDENCE-5Y`.
 
@@ -799,7 +799,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -909,13 +909,13 @@ Outcome **LIKELY_NOT_ELIGIBLE**; pathway 5 years; earliest date 2026-11-03.
 
 Decisive rules:
 
-- `CL-HKBNO-RESIDENCE-5Y` 5 continuous years on the Hong Kong BN(O) route — **FAIL**. Continuous Hong Kong BN(O) permission since 2021-12-01: expected to complete 5 years on 2026-12-01; the earliest projected application date for the residence requirement is 2026-11-03 under CR 1.1 (HK 62.1(b)). _(SRC-020 HK 57.1; SRC-020 HK 62.1; SRC-020 HK 63.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-HKBNO-RESIDENCE-5Y` 5 continuous years on the Hong Kong BN(O) route — **FAIL**. Continuous Hong Kong BN(O) permission since 2021-12-01: expected to complete 5 years on 2026-12-01; the earliest projected application date for the residence requirement is 2026-11-03 under CR 1.1 (HK 62.1(b)). _(SRC-020 HK 57.1; SRC-020 HK 62.1; SRC-020 HK 63.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2026-11-03. English at B1, which meets the B1 required for settlement (Appendix Hong Kong BN(O) HK 60.1; the B2 introduced by HC 1691 does not cover this Appendix, EM 5.60). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2026-11-03. Passed the Life in the UK test (HK 61.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-12-01: expected to complete 10 years on 2031-12-01; the earliest projected application date for the residence requirement is 2031-11-03 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-12-01: expected to complete 10 years on 2031-12-01; the earliest projected application date for the residence requirement is 2031-11-03 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -970,7 +970,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 10 years; earliest date 2026-10-01.
 
 Decisive rules:
 
-- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **PASS**. 10-year partner route: continuous qualifying permission (SETF 3.1) since 2016-10-01: 10 years completed. _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.6)_
+- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **PASS**. 10-year partner route: continuous qualifying permission (SETF 3.1) since 2016-10-01: 10 years completed. _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.6)_
 - `CL-FAMILY-RELATIONSHIP` Partner is a British citizen or settled — **PASS**. The partner is a British citizen (SETF 7.1(a)). _(SRC-022 SETF 7.1; SRC-022 SETF 7.2; SRC-022 SETF 7.3; SRC-024 R-ILRP.1.1(a); SRC-024 E-ILRP.1.3(1A); SRC-024 E-LTRP.1.2)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (Appendix Settlement Family Life SETF 5.1(a), applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (SETF 6.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
@@ -1038,7 +1038,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-08-01.
 
 Decisive rules:
 
-- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **PASS**. 5-year partner route: continuous partner permission since 2021-08-01: 5 years completed (E-ILRP.1.3). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.6)_
+- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **PASS**. 5-year partner route: continuous partner permission since 2021-08-01: 5 years completed (E-ILRP.1.3). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.6)_
 - `CL-FAMILY-RELATIONSHIP` Partner is a British citizen or settled — **PASS**. The partner is a British citizen (E-LTRP.1.2(a)). _(SRC-022 SETF 7.1; SRC-022 SETF 7.2; SRC-022 SETF 7.3; SRC-024 R-ILRP.1.1(a); SRC-024 E-ILRP.1.3(1A); SRC-024 E-LTRP.1.2)_
 - `CL-FAMILY-FINANCIAL` Financial requirement on the 5-year partner route — **PASS**. Combined earnings of the applicant and partner in the 2025-26 tax year are £21,000, which meets the £18,600 of the transitional requirement (E-LTRP.3.5, E-LTRP.3.7(a); 0 children, capped at £29,000). _(SRC-024 E-ILRP.1.3(1A); SRC-024 E-LTRP.3.1; SRC-024 E-LTRP.3.2; SRC-024 E-LTRP.3.3; SRC-024 E-LTRP.3.5; SRC-024 E-LTRP.3.6; SRC-024 E-LTRP.3.7; SRC-024 E-LTRP.3.8)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (Appendix KoLL 2.2, through E-ILRP.1.6; applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
@@ -1104,7 +1104,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 3 years; earliest date 2026-08-01.
 
 Decisive rules:
 
-- `CL-GT-RESIDENCE` Global Talent: 3 or 5 continuous years — **PASS**. 3-year qualifying period under GT 11.1(b); continuous qualifying permission (GT 11.3) since 2023-08-01: 3 years completed. _(SRC-021 GT 11.1; SRC-021 GT 11.2; SRC-021 GT 11.3; SRC-021 GT 12.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-GT-RESIDENCE` Global Talent: 3 or 5 continuous years — **PASS**. 3-year qualifying period under GT 11.1(b); continuous qualifying permission (GT 11.3) since 2023-08-01: 3 years completed. _(SRC-021 GT 11.1; SRC-021 GT 11.2; SRC-021 GT 11.3; SRC-021 GT 12.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (Appendix Global Talent GT 13.1(a), applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (GT 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
 
@@ -1248,7 +1248,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-06-01.
 
 Decisive rules:
 
-- `CL-SW-PARTNER-5Y` 5 continuous years as a Skilled Worker dependent partner, settling with the principal applicant — **PASS**. Settling with the principal applicant: they can apply from 2026-06-01, based on their respective 5-year qualifying periods (SW 39.1(a), SW 42.1). _(SRC-004 SW 39.1; SRC-004 SW 38.1–38.2; SRC-004 SW 42.1; SRC-004 SW 43.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-SW-PARTNER-5Y` 5 continuous years as a Skilled Worker dependent partner, settling with the principal applicant — **PASS**. Settling with the principal applicant: they can apply from 2026-06-01, based on their respective 5-year qualifying periods (SW 39.1(a), SW 42.1). _(SRC-004 SW 39.1; SRC-004 SW 38.1–38.2; SRC-004 SW 42.1; SRC-004 SW 43.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
 
@@ -1380,7 +1380,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-06-01.
 
 Decisive rules:
 
-- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2021-06-01: 5 years completed. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2021-06-01: 5 years completed. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **PASS**. The current salary of £52,000 meets the general salary threshold under SW 24.3 (row C: £31,300). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **PASS**. The going rate for SOC 2136 (row C, Table 2: £34,500); the current salary of £52,000 meets it. _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Under 18 or aged 65 or over on the date of application: exempt from the English requirement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
@@ -1395,7 +1395,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -1449,7 +1449,7 @@ Outcome **REQUIRES_REGULATED_REVIEW**.
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: expected to complete 10 years on 2031-06-01; the earliest projected application date for the residence requirement is 2031-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: expected to complete 10 years on 2031-06-01; the earliest projected application date for the residence requirement is 2031-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -1458,7 +1458,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -1505,7 +1505,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-06-01.
 
 Decisive rules:
 
-- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2021-06-01: 5 years completed. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2021-06-01: 5 years completed. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **PASS**. The current salary of £52,000 meets the general salary threshold under SW 24.3 (row C: £31,300). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **PASS**. The going rate for SOC 2136 (row C, Table 2: £34,500); the current salary of £52,000 meets it. _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The application date is before 2027-03-26, and Appendix Skilled Worker sets no separate English requirement for settlement (the B2 in SW 22A.1 applies only to later applications). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
@@ -1520,7 +1520,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -1580,7 +1580,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-06-01.
 
 Decisive rules:
 
-- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2021-06-01: 5 years completed. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-SW-RESIDENCE-5Y` 5 continuous years as a Skilled Worker — **PASS**. Continuous permission counting towards Skilled Worker settlement (SW 21.2) since 2021-06-01: 5 years completed. _(SRC-004 SW 21.1; SRC-004 SW 21.2; SRC-004 SW 22.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **PASS**. The current salary of £52,000 meets the general salary threshold under SW 24.3 (row C: £31,300). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **PASS**. The going rate for SOC 2136 (row C, Table 2: £34,500); the current salary of £52,000 meets it. _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The application date is before 2027-03-26, and Appendix Skilled Worker sets no separate English requirement for settlement (the B2 in SW 22A.1 applies only to later applications). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
@@ -1595,7 +1595,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -1662,11 +1662,11 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (LR 13.1(a)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
-- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **UNKNOWN**. Not provided whether the partner permission is on the 5-year or the 10-year route: the 5-year route follows Appendix FM, the 10-year route Appendix Settlement Family Life (SETF 3.1). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.6)_
+- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **UNKNOWN**. Not provided whether the partner permission is on the 5-year or the 10-year route: the 5-year route follows Appendix FM, the 10-year route Appendix Settlement Family Life (SETF 3.1). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.6)_
 
 Assumptions:
 
@@ -1729,11 +1729,11 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (LR 13.1(a)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2015-06-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2015-06-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
-- `CL-PRIVATE-LIFE-RESIDENCE` Private Life: 5 or 10 continuous years — **UNKNOWN**. Not provided what the Private Life permission was granted on: 5 years for permission as a child (PL 3.1) or as a young adult who met the half-life test (PL 4.1) (PL 14.1); 10 years otherwise (PL 14.2(a)). _(SRC-028 PL 14.1; SRC-028 PL 14.2; SRC-028 PL 14.3; SRC-028 PL 14.4; SRC-028 PL 15.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-PRIVATE-LIFE-RESIDENCE` Private Life: 5 or 10 continuous years — **UNKNOWN**. Not provided what the Private Life permission was granted on: 5 years for permission as a child (PL 3.1) or as a young adult who met the half-life test (PL 4.1) (PL 14.1); 10 years otherwise (PL 14.2(a)). _(SRC-028 PL 14.1; SRC-028 PL 14.2; SRC-028 PL 14.3; SRC-028 PL 14.4; SRC-028 PL 15.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 
 Assumptions:
 
@@ -1806,11 +1806,11 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (LR 13.1(a)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-04-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-04-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
-- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **UNKNOWN**. Not provided whether the partner permission is on the 5-year or the 10-year route: the 5-year route follows Appendix FM, the 10-year route Appendix Settlement Family Life (SETF 3.1). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.6)_
+- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **UNKNOWN**. Not provided whether the partner permission is on the 5-year or the 10-year route: the 5-year route follows Appendix FM, the 10-year route Appendix Settlement Family Life (SETF 3.1). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.6)_
 
 Assumptions:
 
@@ -1867,7 +1867,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **UNKNOWN**. SOC 2461: The relevant pay band is in Table 4 / 5. This tool cannot check the applicable going rate (SRC-017 Tables 3–5). _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -1928,8 +1928,8 @@ Outcome **INSUFFICIENT_INFORMATION**.
 
 Failing or unknown checks:
 
-- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **UNKNOWN**. Not provided whether the partner permission is on the 5-year or the 10-year route: the 5-year route follows Appendix FM, the 10-year route Appendix Settlement Family Life (SETF 3.1). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.6)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **UNKNOWN**. Not provided whether the partner permission is on the 5-year or the 10-year route: the 5-year route follows Appendix FM, the 10-year route Appendix Settlement Family Life (SETF 3.1). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.6)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -1997,7 +1997,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-04-06.
 
 Decisive rules:
 
-- `CL-SW-PARTNER-5Y` 5 continuous years as a Skilled Worker dependent partner, settling with the principal applicant — **PASS**. Settling with the principal applicant: they can apply from 2026-04-06, based on their respective 5-year qualifying periods (SW 39.1(a), SW 42.1). _(SRC-004 SW 39.1; SRC-004 SW 38.1–38.2; SRC-004 SW 42.1; SRC-004 SW 43.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-SW-PARTNER-5Y` 5 continuous years as a Skilled Worker dependent partner, settling with the principal applicant — **PASS**. Settling with the principal applicant: they can apply from 2026-04-06, based on their respective 5-year qualifying periods (SW 39.1(a), SW 42.1). _(SRC-004 SW 39.1; SRC-004 SW 38.1–38.2; SRC-004 SW 42.1; SRC-004 SW 43.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
 
@@ -2060,7 +2060,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **UNKNOWN**. SOC 2020 code for the current Skilled Worker job not provided, so the going rate cannot be looked up. _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2132,13 +2132,13 @@ Outcome **LIKELY_NOT_ELIGIBLE**; pathway 5 years; earliest date 2028-03-09.
 
 Decisive rules:
 
-- `CL-SW-PARTNER-5Y` 5 continuous years as a Skilled Worker dependent partner, settling with the principal applicant — **FAIL**. Settling with the principal applicant: they can apply from 2028-03-09, based on their respective 5-year qualifying periods (SW 39.1(a), SW 42.1). Not yet completed by 2026-04-06. _(SRC-004 SW 39.1; SRC-004 SW 38.1–38.2; SRC-004 SW 42.1; SRC-004 SW 43.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-SW-PARTNER-5Y` 5 continuous years as a Skilled Worker dependent partner, settling with the principal applicant — **FAIL**. Settling with the principal applicant: they can apply from 2028-03-09, based on their respective 5-year qualifying periods (SW 39.1(a), SW 42.1). Not yet completed by 2026-04-06. _(SRC-004 SW 39.1; SRC-004 SW 38.1–38.2; SRC-004 SW 42.1; SRC-004 SW 43.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2028-03-09. English at B2, which meets the B2 required for settlement. _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2028-03-09. Passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2352,7 +2352,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2031-03-09. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2031-03-09. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -2475,7 +2475,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2545,7 +2545,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2613,7 +2613,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2672,7 +2672,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **UNKNOWN**. Current salary is £30,000. Check the occupation code, most recent sponsorship and transitional eligibility to determine the general salary threshold under SW 24.3 (row C: £31,300; row D: £25,000). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2681,7 +2681,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -2738,7 +2738,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2033-03-09. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2033-03-09. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -2752,7 +2752,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2023-04-06, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
@@ -2819,7 +2819,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2024-06-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2024-06-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -2833,7 +2833,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).
 - SOC 6135 is on the Health and Care ASHE list. The sponsorship, employment or service arrangements are assumed to meet SW A1.1(a)–(m).
-- The going rate is compared as the full annual salary for standard hours, without pro-rating for actual hours (SW 14.4).
+- The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
 - Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -2887,7 +2887,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-02-01.
 
 Decisive rules:
 
-- `CL-HKBNO-RESIDENCE-5Y` 5 continuous years on the Hong Kong BN(O) route — **PASS**. Continuous Hong Kong BN(O) permission since 2021-02-01: 5 years completed (HK 62.1(b)). _(SRC-020 HK 57.1; SRC-020 HK 62.1; SRC-020 HK 63.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-HKBNO-RESIDENCE-5Y` 5 continuous years on the Hong Kong BN(O) route — **PASS**. Continuous Hong Kong BN(O) permission since 2021-02-01: 5 years completed (HK 62.1(b)). _(SRC-020 HK 57.1; SRC-020 HK 62.1; SRC-020 HK 63.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B1, which meets the B1 required for settlement (Appendix Hong Kong BN(O) HK 60.1; the B2 introduced by HC 1691 does not cover this Appendix, EM 5.60). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (HK 61.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
 
@@ -2944,7 +2944,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 3 years; earliest date 2026-11-04.
 
 Decisive rules:
 
-- `CL-GT-RESIDENCE` Global Talent: 3 or 5 continuous years — **PASS**. 3-year qualifying period under GT 11.1(b); continuous qualifying permission (GT 11.3) since 2023-11-04: 3 years completed. _(SRC-021 GT 11.1; SRC-021 GT 11.2; SRC-021 GT 11.3; SRC-021 GT 12.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-GT-RESIDENCE` Global Talent: 3 or 5 continuous years — **PASS**. 3-year qualifying period under GT 11.1(b); continuous qualifying permission (GT 11.3) since 2023-11-04: 3 years completed. _(SRC-021 GT 11.1; SRC-021 GT 11.2; SRC-021 GT 11.3; SRC-021 GT 12.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The declared nationality USA satisfies the English requirement (EL 4.1). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (GT 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
 
@@ -3004,7 +3004,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-03-01.
 
 Decisive rules:
 
-- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **PASS**. 5-year partner route: continuous partner permission since 2021-03-01: 5 years completed (E-ILRP.1.3). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.6)_
+- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **PASS**. 5-year partner route: continuous partner permission since 2021-03-01: 5 years completed (E-ILRP.1.3). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.6)_
 - `CL-FAMILY-RELATIONSHIP` Partner is a British citizen or settled — **PASS**. The partner is a British citizen (E-LTRP.1.2(a)). _(SRC-022 SETF 7.1; SRC-022 SETF 7.2; SRC-022 SETF 7.3; SRC-024 R-ILRP.1.1(a); SRC-024 E-ILRP.1.3(1A); SRC-024 E-LTRP.1.2)_
 - `CL-FAMILY-FINANCIAL` Financial requirement on the 5-year partner route — **PASS**. Combined earnings of the applicant and partner in the 2024-25 tax year are £22,000, which meets the £18,600 of the transitional requirement (E-LTRP.3.5, E-LTRP.3.7(a); 0 children, capped at £29,000). _(SRC-024 E-ILRP.1.3(1A); SRC-024 E-LTRP.3.1; SRC-024 E-LTRP.3.2; SRC-024 E-LTRP.3.3; SRC-024 E-LTRP.3.5; SRC-024 E-LTRP.3.6; SRC-024 E-LTRP.3.7; SRC-024 E-LTRP.3.8)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B1, which meets the B1 required for settlement (Appendix KoLL 2.2, through E-ILRP.1.6; applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
@@ -3128,7 +3128,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-09-01.
 
 Decisive rules:
 
-- `CL-ANCESTRY-RESIDENCE-5Y` 5 continuous years on the UK Ancestry route — **PASS**. Continuous UK Ancestry permission as the main applicant since 2021-09-01: 5 years completed (UKA 13.1). _(SRC-026 UKA 10.3; SRC-026 UKA 12.1; SRC-026 UKA 13.1; SRC-026 UKA 14.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-ANCESTRY-RESIDENCE-5Y` 5 continuous years on the UK Ancestry route — **PASS**. Continuous UK Ancestry permission as the main applicant since 2021-09-01: 5 years completed (UKA 13.1). _(SRC-026 UKA 10.3; SRC-026 UKA 12.1; SRC-026 UKA 13.1; SRC-026 UKA 14.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The declared nationality AUS satisfies the English requirement (EL 4.1). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (UKA 16.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
 
@@ -3184,7 +3184,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 3 years; earliest date 2026-05-01.
 
 Decisive rules:
 
-- `CL-INNOVATOR-RESIDENCE-3Y` 3 continuous years as an Innovator Founder — **PASS**. Continuous Innovator Founder permission since 2023-05-01: 3 years completed (INNF 18.1). _(SRC-027 INNF 18.1; SRC-027 INNF 19.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-INNOVATOR-RESIDENCE-3Y` 3 continuous years as an Innovator Founder — **PASS**. Continuous Innovator Founder permission since 2023-05-01: 3 years completed (INNF 18.1). _(SRC-027 INNF 18.1; SRC-027 INNF 19.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-INNOVATOR-ENDORSEMENT` Business criteria for the Innovator Founder settlement endorsement — **PASS**. The business has met 2 of the criteria (INNF 17.1(f)(i), INNF 17.1(f)(vi)), at least the 2 required by INNF 17.1(f). _(SRC-027 INNF 15.2(e); SRC-027 INNF 17.1; SRC-027 INNF 17.2; SRC-027 INNF 17.3; SRC-027 INNF 17.4)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (INNF 20.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
 
@@ -3245,7 +3245,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-07-01.
 
 Decisive rules:
 
-- `CL-PRIVATE-LIFE-RESIDENCE` Private Life: 5 or 10 continuous years — **PASS**. 5-year qualifying period under PL 14.1; continuous qualifying permission (PL 14.3) since 2021-07-01: 5 years completed. _(SRC-028 PL 14.1; SRC-028 PL 14.2; SRC-028 PL 14.3; SRC-028 PL 14.4; SRC-028 PL 15.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-PRIVATE-LIFE-RESIDENCE` Private Life: 5 or 10 continuous years — **PASS**. 5-year qualifying period under PL 14.1; continuous qualifying permission (PL 14.3) since 2021-07-01: 5 years completed. _(SRC-028 PL 14.1; SRC-028 PL 14.2; SRC-028 PL 14.3; SRC-028 PL 14.4; SRC-028 PL 15.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B1, which meets the B1 required for settlement (Appendix Private Life PL 16.1(a), applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (PL 17.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
 
@@ -3371,7 +3371,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2026-06-01.
 
 Decisive rules:
 
-- `CL-GT-DEPENDANT` Global Talent dependent partner or child settling with the principal applicant — **PASS**. The principal applicant settled as a Global Talent on 2024-06-01, when this person held their dependent partner permission (GT 27.1(b)); they need 5 continuous years of their own (GT 30.1), so they can apply from 2026-06-01. _(SRC-021 GT 27.1; SRC-021 GT 27.2; SRC-021 GT 27.3; SRC-021 GT 27.4; SRC-021 GT 29A.1; SRC-021 GT 30.1; SRC-021 GT 31.1; SRC-018 CHI 1.1; SRC-018 CHI 1A.1; SRC-018 CHI 2.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3)_
+- `CL-GT-DEPENDANT` Global Talent dependent partner or child settling with the principal applicant — **PASS**. The principal applicant settled as a Global Talent on 2024-06-01, when this person held their dependent partner permission (GT 27.1(b)); they need 5 continuous years of their own (GT 30.1), so they can apply from 2026-06-01. _(SRC-021 GT 27.1; SRC-021 GT 27.2; SRC-021 GT 27.3; SRC-021 GT 27.4; SRC-021 GT 29A.1; SRC-021 GT 30.1; SRC-021 GT 31.1; SRC-018 CHI 1.1; SRC-018 CHI 1A.1; SRC-018 CHI 2.1; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. The declared nationality USA satisfies the English requirement (EL 4.1). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (GT 33.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
 
@@ -3494,7 +3494,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-06: expected to complete 10 years on 2031-11-06; the earliest projected application date for the residence requirement is 2031-10-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-06: expected to complete 10 years on 2031-11-06; the earliest projected application date for the residence requirement is 2031-10-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -3551,7 +3551,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-ENGLISH` Settlement English requirement — **UNKNOWN**. English level not provided; settlement requires CEFR B1 (paragraph 298(vii) of Part 8 of the Immigration Rules, Appendix KoLL 2.2; applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-05: expected to complete 10 years on 2031-11-05; the earliest projected application date for the residence requirement is 2031-10-08 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-05: expected to complete 10 years on 2031-11-05; the earliest projected application date for the residence requirement is 2031-10-08 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -3602,7 +3602,7 @@ Outcome **LIKELY_ELIGIBLE**; pathway 5 years; earliest date 2029-06-01.
 
 Decisive rules:
 
-- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **PASS**. 5-year partner route: continuous partner permission since 2024-06-01: 5 years completed (E-ILRP.1.3). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.6)_
+- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **PASS**. 5-year partner route: continuous partner permission since 2024-06-01: 5 years completed (E-ILRP.1.3). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.6)_
 - `CL-FAMILY-RELATIONSHIP` Partner is a British citizen or settled — **PASS**. The partner is a British citizen (E-LTRP.1.2(a)). _(SRC-022 SETF 7.1; SRC-022 SETF 7.2; SRC-022 SETF 7.3; SRC-024 R-ILRP.1.1(a); SRC-024 E-ILRP.1.3(1A); SRC-024 E-LTRP.1.2)_
 - `CL-FAMILY-FINANCIAL` Financial requirement on the 5-year partner route — **PASS**. Combined earnings of the applicant and partner in the 2028-29 tax year are £20,000, below the £29,000 of the general requirement (E-LTRP.3.1(a)): a shortfall of £9,000; cash savings of £25,000 meet £16,000 plus the shortfall, £25,000 in all (E-LTRP.3.1(b); for settlement, E-ILRP.1.3(1A) disregards “2.5 times”). _(SRC-024 E-ILRP.1.3(1A); SRC-024 E-LTRP.3.1; SRC-024 E-LTRP.3.2; SRC-024 E-LTRP.3.3; SRC-024 E-LTRP.3.5; SRC-024 E-LTRP.3.6; SRC-024 E-LTRP.3.7; SRC-024 E-LTRP.3.8)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B2 required for settlement (Appendix KoLL 2.2, through E-ILRP.1.6; applications from 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
@@ -3679,7 +3679,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2034-05-04. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2034-05-04. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: expected to complete 10 years on 2034-06-01; the earliest projected application date for the residence requirement is 2034-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: expected to complete 10 years on 2034-06-01; the earliest projected application date for the residence requirement is 2034-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -3753,7 +3753,7 @@ Outcome **POTENTIALLY_ELIGIBLE**; pathway 5 years.
 
 Decisive rules:
 
-- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **PASS**. 5-year partner route: continuous partner permission since 2024-06-01: 5 years completed (E-ILRP.1.3). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.6)_
+- `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **PASS**. 5-year partner route: continuous partner permission since 2024-06-01: 5 years completed (E-ILRP.1.3). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.6)_
 - `CL-FAMILY-RELATIONSHIP` Partner is a British citizen or settled — **PASS**. The partner is a British citizen (E-LTRP.1.2(a)). _(SRC-022 SETF 7.1; SRC-022 SETF 7.2; SRC-022 SETF 7.3; SRC-024 R-ILRP.1.1(a); SRC-024 E-ILRP.1.3(1A); SRC-024 E-LTRP.1.2)_
 - `CL-FAMILY-FINANCIAL` Financial requirement on the 5-year partner route — **UNKNOWN**. Combined earnings of the applicant and partner in the 2028-29 tax year are £20,000, below the £29,000 of the general requirement (E-LTRP.3.1(a)): a shortfall of £9,000; the partner receives a benefit listed in E-LTRP.3.3(a), as declared, so the applicant can instead show that the partner can maintain and accommodate themselves, the applicant and any dependants adequately without recourse to public funds (E-LTRP.3.1(c), E-LTRP.3.3(b)). This requirement has no set figure, and how it is calculated is not registered in this tool (PD-075). _(SRC-024 E-ILRP.1.3(1A); SRC-024 E-LTRP.3.1; SRC-024 E-LTRP.3.2; SRC-024 E-LTRP.3.3; SRC-024 E-LTRP.3.5; SRC-024 E-LTRP.3.6; SRC-024 E-LTRP.3.7; SRC-024 E-LTRP.3.8)_
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B2 required for settlement (Appendix KoLL 2.2, through E-ILRP.1.6; applications from 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
@@ -3761,7 +3761,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: expected to complete 10 years on 2034-06-01; the earliest projected application date for the residence requirement is 2034-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: expected to complete 10 years on 2034-06-01; the earliest projected application date for the residence requirement is 2034-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -3834,3 +3834,4 @@ Assumptions:
 - **SRC-027**: Immigration Rules: Appendix Innovator Founder（版本 2026-08-03，HC 259；主申请人 settlement 见 INNF 15.1–INNF 21.6，业务条件见 INNF 17.1–INNF 17.5） — https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-innovator-founder
 - **SRC-028**: Immigration Rules: Appendix Private Life（版本 2026-10-08，HC 584；主申请人 settlement 见 PL 11.1–PL 18.5，合格期分流见 PL 13.1–PL 14.4） — https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-private-life
 - **SRC-029**: Immigration Rules Part 8: family members（版本 2026-08-03，HC 259；child settlement 见 para 298–298A） — https://www.gov.uk/guidance/immigration-rules/immigration-rules-part-8-family-members
+- **SRC-057**: Home Office Continuous residence caseworker guidance，v10.0 — https://www.gov.uk/government/publications/continuous-residence-caseworker-guidance/continuous-residence-guidance-accessible-version

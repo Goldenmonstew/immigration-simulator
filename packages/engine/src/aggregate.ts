@@ -34,7 +34,10 @@ import {
 import { applicationPresence } from './rules/current-law/shared';
 import { familyFiveYearFiling } from './rules/current-law/family';
 import { adultChildResidence } from './rules/current-law/hong-kong-bno';
-import { skilledWorkerFiling } from './rules/current-law/skilled-worker';
+import {
+  pendingOnJointDay,
+  skilledWorkerFiling,
+} from './rules/current-law/skilled-worker';
 import { currentLawApplicationPresence } from './rules/current-law/scope';
 import { esDependantSettlement } from './rules/es-dependant';
 import {
@@ -667,9 +670,14 @@ function assessCurrentLaw(
             years: cl.values.skilledWorkerQualifyingYears.value,
             start: swFiling?.start,
             applicationDate: swFiling?.applicationDate,
-            rules:
-              swFiling?.requirements ??
-              pick('CL-SW-SALARY', 'CL-SW-GOING-RATE', 'CL-ENGLISH', 'CL-KOL'),
+            // Salary checks come from the filing date; English and Life in
+            // the UK are rechecked for the projected date below (A6#6).
+            rules: [
+              ...(swFiling?.requirements?.filter(
+                (r) => r.id === 'CL-SW-SALARY' || r.id === 'CL-SW-GOING-RATE',
+              ) ?? pick('CL-SW-SALARY', 'CL-SW-GOING-RATE')),
+              ...pick('CL-ENGLISH', 'CL-KOL'),
+            ],
             residence: 'CL-SW-RESIDENCE-5Y',
           },
         ]
@@ -832,9 +840,7 @@ function assessCurrentLaw(
             // Keep the joint date while the principal only has evidence
             // to confirm on that day.
             ...((pick('CL-SW-PARTNER-5Y')[0].status === 'PASS' ||
-              swPartnerResidence?.principal?.requirements?.some(
-                (r) => r.status === 'UNKNOWN',
-              )) && {
+              pendingOnJointDay(swPartnerResidence).length > 0) && {
               start: swPartnerResidence?.start,
               applicationDate: swPartnerResidence?.applicationDate,
             }),
@@ -906,6 +912,15 @@ function assessCurrentLaw(
               candidate.residence === 'CL-LR-RESIDENCE-10Y'
                 ? atFiling.map((rule) => languageAt(rule, candidate, date))
                 : atFiling,
+          };
+        } else if (ctx.principal && location.status === 'UNKNOWN') {
+          // The joint date was found with the principal. Recheck the
+          // dependant's own English and Life in the UK on that date.
+          checked = {
+            ...candidate,
+            rules: candidate.rules.map((rule) =>
+              languageAt(rule, candidate, date),
+            ),
           };
         }
         return location.status === 'UNKNOWN' && statusOf(checked) !== 'PASS'

@@ -159,6 +159,13 @@ export const currentLaw2026_11 = {
       sources: [{ srcId: 'SRC-005', locator: 'LR 11.1' }],
     },
 
+    // Hours per week behind the annual going rates (Table 1 introduction;
+    // Table 2 and the additional tables follow the same basis).
+    goingRateWeeklyHours: {
+      value: 37.5,
+      sources: [{ srcId: 'SRC-017', locator: 'Table 1 introduction' }],
+    },
+
     skilledWorkerQualifyingYears: {
       value: 5,
       sources: [{ srcId: 'SRC-004', locator: 'SW 21.1' }],
@@ -214,6 +221,7 @@ export const currentLaw2026_11 = {
       sources: [
         { srcId: 'SRC-004', locator: 'SW 4.2(b)(ii)' },
         { srcId: 'SRC-017', locator: 'Table 2a' },
+        { srcId: 'SRC-060', locator: 'Implementation' },
       ],
     },
     skilledWorkerPre2024ApplicationsBefore: {
