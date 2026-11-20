@@ -111,18 +111,20 @@ export function buildMap(
           .setDepth(3),
       );
     }
-    own(
-      scene.add
-        .rectangle(
-          cell.x * tileSize + 8,
-          cell.y * tileSize + 13,
-          9,
-          2,
-          0xf4d98d,
-          0.8,
-        )
-        .setDepth(2),
-    );
+    if (!interior || obj.name === 'exit') {
+      own(
+        scene.add
+          .rectangle(
+            cell.x * tileSize + 8,
+            cell.y * tileSize + 13,
+            9,
+            2,
+            0xf4d98d,
+            0.8,
+          )
+          .setDepth(2),
+      );
+    }
   }
   let water: Phaser.GameObjects.Graphics | undefined;
   const waterTiles: Cell[] = [];
@@ -258,24 +260,32 @@ export function resizeMapCamera(
   interior: boolean,
 ) {
   const camera = scene.cameras.main;
-  camera.setZoom(
-    interior
-      ? Math.floor(
-          Math.min(
-            3,
-            scene.scale.width / map.widthInPixels,
-            scene.scale.height / map.heightInPixels,
-          ) * 2,
-        ) / 2
-      : scene.scale.width < 600
-        ? 2
-        : 2.5,
-  );
-  camera.roundPixels = true;
+  const { width, height } = scene.scale;
   if (interior) {
-    // A fitted room stays centred even when the viewport exceeds its bounds.
+    // Keep tile edges on whole pixels unless the room needs to shrink to fit.
+    const fit = Math.min(
+      3,
+      width / map.widthInPixels,
+      height / map.heightInPixels,
+    );
+    camera.setZoom(fit < 1 ? fit : Math.floor(fit));
     camera.stopFollow();
     camera.removeBounds();
     camera.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
+    // On odd frames, Phaser's rounded screen origin already aligns the tiles.
+    // Flooring the half-pixel world scroll as well would push the far walls out.
+    camera.roundPixels =
+      fit >= 1 &&
+      Number.isInteger(camera.scrollX) &&
+      Number.isInteger(camera.scrollY);
+    if (fit < 1) {
+      // Phaser rounds the viewport centre at render time. Offset its shift on
+      // odd-sized frames in world units so the far wall stays inside the frame.
+      camera.scrollX += (Math.round(width / 2) - width / 2) / fit;
+      camera.scrollY += (Math.round(height / 2) - height / 2) / fit;
+    }
+  } else {
+    camera.roundPixels = true;
+    camera.setZoom(width < 600 ? 2 : 2.5);
   }
 }

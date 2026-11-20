@@ -13,6 +13,8 @@ export const zhCN = {
   'game.endDayShort': '结束当天',
   'game.tapToReveal': '点按台词，显示整句',
   'game.entry': '玩一局 · Immigration Life',
+  'game.entryDesc':
+    '在像素小镇工作、交友，看看日常选择如何影响你的移民时间线。',
   'game.disclaimer': '虚构角色与生活事件，仅作教学体验，不是移民建议。',
   'game.intro': '在小镇安顿下来。上班、学习、交朋友，把四季过成自己的故事。',
   'game.chooseCharacter': '谁将搬进小镇？',

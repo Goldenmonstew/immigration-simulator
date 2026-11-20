@@ -120,7 +120,8 @@ export function LifeMemories({ state }: { state: GameState }) {
                     aria-hidden="true"
                     style={{
                       backgroundImage: `url("${itemIcon(item.id)}")`,
-                      backgroundSize: '32px 32px',
+                      backgroundSize: 'contain',
+                      backgroundPosition: 'center',
                     }}
                   />
                   <span>{localText(item.name, locale)}</span>
