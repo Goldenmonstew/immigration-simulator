@@ -226,10 +226,10 @@ export class TownScene extends Phaser.Scene {
         this.walkTo(cell);
       }
     });
-    this.scale.on('resize', this.resizeCamera, this);
+    this.scale.on('resize', this.onResize, this);
     this.game.events.on('postrender', this.renderText, this);
     this.events.once('shutdown', () => {
-      this.scale.off('resize', this.resizeCamera, this);
+      this.scale.off('resize', this.onResize, this);
       this.game.events.off('postrender', this.renderText, this);
       for (const object of this.worldObjects)
         if (object instanceof SceneText) object.destroy();
@@ -270,11 +270,7 @@ export class TownScene extends Phaser.Scene {
     this.lifeScenery = undefined;
     this.approachedSurprise = undefined;
     this.focusNpc = undefined;
-    for (const o of this.transients.keys()) {
-      this.tweens.killTweensOf(o);
-      o.destroy();
-    }
-    this.transients.clear();
+    for (const object of this.transients.keys()) this.discardFloat(object);
     for (const o of this.worldObjects) o.destroy();
     this.worldObjects = [];
     this.map?.destroy();
@@ -347,6 +343,18 @@ export class TownScene extends Phaser.Scene {
       if (object instanceof SceneText) object.render(camera);
     for (const object of this.transients.keys())
       if (object instanceof SceneText) object.render(camera);
+  }
+  private onResize(
+    size: Phaser.Structs.Size,
+    _baseSize: Phaser.Structs.Size,
+    _displaySize: Phaser.Structs.Size,
+    previousWidth: number,
+    previousHeight: number,
+  ) {
+    if (size.width === previousWidth && size.height === previousHeight) return;
+    for (const object of this.transients.keys())
+      if (object instanceof SceneText) this.discardFloat(object);
+    this.resizeCamera();
   }
   private resizeCamera() {
     if (!this.map) return;
@@ -521,21 +529,24 @@ export class TownScene extends Phaser.Scene {
       this.windows,
     );
   }
+  private discardFloat(object: SceneText | Phaser.GameObjects.Sprite) {
+    this.tweens.killTweensOf(object);
+    object.destroy();
+    this.transients.delete(object);
+  }
   private float(
     object: SceneText | Phaser.GameObjects.Sprite,
     duration: number,
     rise: number,
   ) {
-    if (this.transients.size >= 12) {
-      const oldest = this.transients.keys().next().value!;
-      this.tweens.killTweensOf(oldest);
-      oldest.destroy();
-      this.transients.delete(oldest);
-    }
+    if (this.transients.size >= 12)
+      this.discardFloat(this.transients.keys().next().value!);
     const reduced = window.matchMedia(
       '(prefers-reduced-motion: reduce)',
     ).matches;
     const travel = reduced ? 0 : rise;
+    if (object instanceof SceneText)
+      object.avoidLabels(this.cameras.main, this.spots, travel);
     const bounds =
       object instanceof SceneText
         ? new Phaser.Geom.Rectangle(
