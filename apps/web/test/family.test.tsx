@@ -181,13 +181,15 @@ test.each([together, later])(
   (fixture) => {
     const draft = familyDraft(fixture);
     const result = runSimulation(draft);
-    for (const id of Object.keys(engine.RULE_SETS) as engine.RuleSetId[]) {
-      expect(result.byRuleSet[id]).toMatchObject({
-        outcome: fixture.expected.outcome,
-        pathwayYears: 5,
-        earliestDate: fixture === together ? '2026-04-06' : '2028-04-06',
-      });
-    }
+    const expected = { outcome: fixture.expected.outcome, pathwayYears: 5 };
+    expect(result.byRuleSet['current-law-2026-11']).toMatchObject({
+      ...expected,
+      earliestDate: fixture === together ? '2026-04-06' : '2028-03-09',
+    });
+    expect(result.byRuleSet['earned-settlement-2026-11']).toMatchObject({
+      ...expected,
+      earliestDate: fixture === together ? '2026-04-06' : '2028-04-06',
+    });
     const modified = applyWhatIf(draft, {
       ...initialWhatIf(draft),
       noAbsences: true,

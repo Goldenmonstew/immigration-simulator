@@ -4,7 +4,7 @@ import {
 } from '@uk-immigration/policy-data';
 import type { Route, RouteGroup } from '@uk-immigration/policy-data';
 import { addYears } from './dates';
-import { continuousRun, episodeOn } from './residence';
+import { continuousRun, episodeOn, timelineAtFiling } from './residence';
 import { runRule, textFor } from './rule';
 import type { Lang } from './rule';
 import { meetsCefr } from './rules/es-requirements';
@@ -13,29 +13,31 @@ import {
   familyChildPathway,
   onFiveYearFamilyChild,
   familyFiveYearStart,
-  familyTenYearStart,
+  familyTenYearResidence,
   globalTalentDependantPathway,
   globalTalentQualifying,
   hongKongBnoDependant,
   hongKongBnoDependantPathway,
-  hongKongBnoStart,
-  innovatorFounderStart,
-  longResidenceStart,
+  hongKongBnoResidence,
+  innovatorFounderResidence,
+  longResidence,
   privateLifeQualifying,
   protectionStart,
   onFamilyPartner,
   onHongKongBno,
-  onInnovatorFounder,
   onProtection,
   onSkilledWorker,
   onSkilledWorkerChild,
-  onUkAncestry,
   onSkilledWorkerPartner,
-  skilledWorkerChildStart,
-  skilledWorkerPartnerStart,
-  skilledWorkerStart,
-  ukAncestryStart,
+  skilledWorkerChildFiling,
+  skilledWorkerPartnerResidence,
+  ukAncestryResidence,
 } from './rules/current-law';
+import { applicationPresence } from './rules/current-law/shared';
+import { familyFiveYearFiling } from './rules/current-law/family';
+import { adultChildResidence } from './rules/current-law/hong-kong-bno';
+import { skilledWorkerFiling } from './rules/current-law/skilled-worker';
+import { currentLawApplicationPresence } from './rules/current-law/scope';
 import { esDependantSettlement } from './rules/es-dependant';
 import {
   illegalEntryExtraYears,
@@ -64,6 +66,8 @@ import type {
 interface Candidate {
   years: number;
   start?: IsoDate;
+  /** When set, the residence calculation has already resolved CR 1.1. */
+  applicationDate?: IsoDate;
   rules: RuleOutcome[];
   /**
    * The display-only residence rule that gives `start` (contracts §12.4,
@@ -86,7 +90,10 @@ function statusOf(c: Candidate): RuleOutcome['status'] {
   return 'PASS';
 }
 
-const dueOf = (c: Candidate) => c.start && addYears(c.start, c.years);
+const dueOf = (c: Candidate) =>
+  'applicationDate' in c
+    ? c.applicationDate
+    : c.start && addYears(c.start, c.years);
 
 /** The rule ids `c` rests on; toAssessment puts them in `rules` order. */
 const basisOf = (c: Candidate): RuleId[] => [
@@ -123,7 +130,7 @@ function decide(candidates: Candidate[], simulationDate: IsoDate): Decision {
   }
 
   const maybe = candidates
-    .filter((c) => statusOf(c) === 'UNKNOWN' && (met(c) || !c.start))
+    .filter((c) => statusOf(c) === 'UNKNOWN' && (met(c) || !dueOf(c)))
     .sort(byYears);
   if (maybe.length > 0) {
     const unknown = maybe.flatMap((c) =>
@@ -140,7 +147,7 @@ function decide(candidates: Candidate[], simulationDate: IsoDate): Decision {
   }
 
   const next = candidates
-    .filter((c) => statusOf(c) !== 'FAIL' && c.start)
+    .filter((c) => statusOf(c) !== 'FAIL' && dueOf(c))
     .sort((a, b) => {
       const [da, db] = [dueOf(a)!, dueOf(b)!];
       return da === db ? a.years - b.years : da < db ? -1 : 1;
@@ -523,26 +530,42 @@ function assessCurrentLaw(
   const scope = runRule(scopeRule, ctx);
   if (scope.status !== 'PASS') {
     return toAssessment(
-      { outcome: 'INSUFFICIENT_INFORMATION' },
+      {
+        outcome:
+          scope.status === 'FAIL'
+            ? 'LIKELY_NOT_ELIGIBLE'
+            : 'INSUFFICIENT_INFORMATION',
+      },
       [scope],
       [clBaseAssumption(L)],
       L,
     );
   }
+  const location = currentLawApplicationPresence(ctx);
   const sw = onSkilledWorker(ctx.timeline, ctx.simulationDate);
   const hk = onHongKongBno(ctx.timeline, ctx.simulationDate);
   const gt = globalTalentQualifying(ctx);
   const family = onFamilyPartner(ctx.timeline, ctx.simulationDate);
-  const familyTen = familyTenYearStart(ctx);
+  const familyTen = familyTenYearResidence(ctx);
   const familyFive = familyFiveYearStart(ctx);
+  const familyFiling = familyFive ? familyFiveYearFiling(ctx) : undefined;
   const protection = onProtection(ctx.timeline, ctx.simulationDate);
-  const ancestry = onUkAncestry(ctx.timeline, ctx.simulationDate);
-  const innovator = onInnovatorFounder(ctx.timeline, ctx.simulationDate);
+  const ancestry = ukAncestryResidence(ctx);
+  const innovator = innovatorFounderResidence(ctx);
+  const swFiling = skilledWorkerFiling(ctx);
+  const lrResidence = longResidence(ctx);
+  const swPartnerResidence = skilledWorkerPartnerResidence(ctx);
+  const swChildDate = skilledWorkerChildFiling(ctx)?.applicationDate;
+  const presence = applicationPresence(ctx.timeline, ctx.simulationDate, L);
   const privateLife = privateLifeQualifying(ctx);
   // Dependants (contracts §15).
-  const hkOwn = hongKongBnoStart(ctx);
   const hkKind = hongKongBnoDependant(ctx.timeline, ctx.simulationDate);
   const hkDependant = hongKongBnoDependantPathway(ctx);
+  const afterMajority =
+    hkKind === 'CHILD' && hkDependant?.result.status !== 'PASS'
+      ? adultChildResidence(ctx)
+      : undefined;
+  const hkOwn = afterMajority ?? hongKongBnoResidence(ctx);
   const gtDependant = globalTalentDependantPathway(ctx);
   const familyChild = familyChildPathway(ctx);
   const fiveYearChild = onFiveYearFamilyChild(ctx);
@@ -586,13 +609,26 @@ function assessCurrentLaw(
                                   ? privateLife !== undefined
                                   : true;
   const rules = [
-    scope,
+    { ...scope, ...location },
     ...others
       .filter((rule) => runs(rule.meta.id))
       .map((rule) => runRule(rule, ctx)),
   ];
   const pick = (...ids: string[]) =>
     ids.map((id) => rules.find((r) => r.id === id)!);
+  const rulesAtFiling = (ids: RuleId[], date: IsoDate) => {
+    const filing = {
+      ...ctx,
+      simulationDate: date,
+      timeline: timelineAtFiling(ctx.timeline, date),
+    };
+    return ids.map((id) =>
+      runRule(
+        ruleList.find((r) => r.meta.id === id)!,
+        filing,
+      ),
+    );
+  };
   // CL-ENGLISH applies the current route's level (none for Skilled Worker
   // before 2027-03-26, B1 for Hong Kong BN(O)); the Long Residence candidate
   // is checked against its own level (LR 13.1).
@@ -603,42 +639,49 @@ function assessCurrentLaw(
     ? lrB2.cefrLevel
     : cl.values.longResidenceSettlementEnglishBefore.value;
   const declared = ctx.timeline.english;
-  const lrStatus: RuleOutcome['status'] =
-    ageExempt(ctx.timeline, ctx.simulationDate) ||
-    (declared && 'exempt' in declared)
+  const statusAtLevel = (
+    required: string,
+    date: IsoDate,
+  ): RuleOutcome['status'] =>
+    ageExempt(ctx.timeline, date) || (declared && 'exempt' in declared)
       ? 'PASS'
       : !declared
         ? 'UNKNOWN'
-        : meetsCefr(declared.cefrLevel, lrRequired)
+        : meetsCefr(declared.cefrLevel, required)
           ? 'PASS'
           : 'FAIL';
+  const lrStatus = statusAtLevel(lrRequired, ctx.simulationDate);
   const lrEnglishDiffers = lrStatus !== english.status;
   const lrEnglish: RuleOutcome = lrEnglishDiffers
     ? { ...english, status: lrStatus }
     : english;
+  const adultChecks = afterMajority?.applicationDate
+    ? rulesAtFiling(['CL-ENGLISH', 'CL-KOL'], afterMajority.applicationDate)
+    : undefined;
   const candidates: Candidate[] = [
     ...(sw
       ? [
           {
             years: cl.values.skilledWorkerQualifyingYears.value,
-            start: skilledWorkerStart(ctx),
-            rules: pick(
-              'CL-SW-SALARY',
-              'CL-SW-GOING-RATE',
-              'CL-ENGLISH',
-              'CL-KOL',
-            ),
+            start: swFiling?.start,
+            applicationDate: swFiling?.applicationDate,
+            rules:
+              swFiling?.requirements ??
+              pick('CL-SW-SALARY', 'CL-SW-GOING-RATE', 'CL-ENGLISH', 'CL-KOL'),
             residence: 'CL-SW-RESIDENCE-5Y',
           },
         ]
       : []),
     // A main applicant, partner or adult child on their own 5 years (HK 62.1).
-    ...(hk || hkKind === 'OWN'
+    ...(hk || hkKind === 'OWN' || afterMajority?.applicationDate
       ? [
           {
             years: cl.values.hongKongBnoQualifyingYears.value,
             start: hkOwn?.start,
-            rules: pick('CL-ENGLISH', 'CL-KOL'),
+            applicationDate: adultChecks?.some((r) => r.status !== 'PASS')
+              ? undefined
+              : hkOwn?.applicationDate,
+            rules: adultChecks ?? pick('CL-ENGLISH', 'CL-KOL'),
             residence: 'CL-HKBNO-RESIDENCE-5Y',
           },
         ]
@@ -655,6 +698,9 @@ function assessCurrentLaw(
             {
               years: pathway.years,
               start: pathway.start,
+              ...(pathway.applicationDate && {
+                applicationDate: pathway.applicationDate,
+              }),
               rules: pick(id, 'CL-ENGLISH', 'CL-KOL'),
               // An adult dependant relative also needs their own 5 years.
               ...(hkKind === 'RELATIVE' &&
@@ -675,7 +721,8 @@ function assessCurrentLaw(
             years:
               gt.period?.years ??
               cl.values.globalTalentQualifyingYearsShort.value,
-            start: gt.period && gt.start,
+            start: gt.residence?.start,
+            applicationDate: gt.residence?.applicationDate,
             rules: gt.period
               ? pick('CL-ENGLISH', 'CL-KOL')
               : pick('CL-GT-RESIDENCE', 'CL-ENGLISH', 'CL-KOL'),
@@ -689,7 +736,8 @@ function assessCurrentLaw(
       ? [
           {
             years: cl.values.familyPartnerQualifyingYearsFive.value,
-            start: familyFive,
+            start: familyFiling?.start,
+            applicationDate: familyFiling?.applicationDate,
             rules: pick(
               'CL-FAMILY-RELATIONSHIP',
               'CL-FAMILY-FINANCIAL',
@@ -705,6 +753,7 @@ function assessCurrentLaw(
           {
             years: cl.values.familyPartnerQualifyingYearsTen.value,
             start: familyTen.start,
+            applicationDate: familyTen.applicationDate,
             rules: pick('CL-FAMILY-RELATIONSHIP', 'CL-ENGLISH', 'CL-KOL'),
             residence: 'CL-FAMILY-RESIDENCE',
           },
@@ -733,8 +782,14 @@ function assessCurrentLaw(
       ? [
           {
             years: cl.values.ukAncestryQualifyingYears.value,
-            start: ukAncestryStart(ctx),
-            rules: pick('CL-ENGLISH', 'CL-KOL'),
+            start: ancestry.start,
+            applicationDate: ancestry.applicationDate,
+            rules: [
+              ...pick('CL-ENGLISH', 'CL-KOL'),
+              ...(presence?.status === 'UNKNOWN'
+                ? pick('CL-ANCESTRY-RESIDENCE-5Y')
+                : []),
+            ],
             residence: 'CL-ANCESTRY-RESIDENCE-5Y',
           },
         ]
@@ -744,7 +799,8 @@ function assessCurrentLaw(
       ? [
           {
             years: cl.values.innovatorFounderQualifyingYears.value,
-            start: innovatorFounderStart(ctx),
+            start: innovator.start,
+            applicationDate: innovator.applicationDate,
             rules: pick('CL-INNOVATOR-ENDORSEMENT', 'CL-KOL'),
             residence: 'CL-INNOVATOR-RESIDENCE-3Y',
           },
@@ -758,7 +814,8 @@ function assessCurrentLaw(
             years:
               privateLife.period?.years ??
               cl.values.privateLifeQualifyingYearsTen.value,
-            start: privateLife.period && privateLife.start,
+            start: privateLife.residence?.start,
+            applicationDate: privateLife.residence?.applicationDate,
             rules: privateLife.period
               ? pick('CL-ENGLISH', 'CL-KOL')
               : pick('CL-PRIVATE-LIFE-RESIDENCE', 'CL-ENGLISH', 'CL-KOL'),
@@ -770,7 +827,8 @@ function assessCurrentLaw(
       ? [
           {
             years: cl.values.skilledWorkerQualifyingYears.value,
-            start: skilledWorkerPartnerStart(ctx),
+            start: swPartnerResidence?.start,
+            applicationDate: swPartnerResidence?.applicationDate,
             rules: pick('CL-SW-PARTNER-5Y', 'CL-ENGLISH', 'CL-KOL'),
           },
         ]
@@ -779,19 +837,63 @@ function assessCurrentLaw(
       ? [
           {
             years: cl.values.skilledWorkerQualifyingYears.value,
-            start: skilledWorkerChildStart(ctx),
+            start:
+              swChildDate &&
+              addYears(
+                swChildDate,
+                -cl.values.skilledWorkerQualifyingYears.value,
+              ),
+            applicationDate: swChildDate,
             rules: pick('CL-SW-CHILD', 'CL-ENGLISH', 'CL-KOL'),
           },
         ]
       : []),
     {
       years: cl.values.longResidenceQualifyingYears.value,
-      start: longResidenceStart(ctx),
-      rules: [lrEnglish, ...pick('CL-KOL')],
+      start: lrResidence?.start,
+      applicationDate: lrResidence?.applicationDate,
+      rules: [
+        lrEnglish,
+        ...pick('CL-KOL'),
+        ...(presence?.status === 'UNKNOWN' ? pick('CL-LR-RESIDENCE-10Y') : []),
+      ],
       residence: 'CL-LR-RESIDENCE-10Y',
     },
   ];
-  const decision = decide(candidates, ctx.simulationDate);
+  // An issue with today's filing still allows a forecast on a known future day.
+  const filingCandidates = location
+    ? candidates.flatMap((candidate) => {
+        const date = dueOf(candidate);
+        if (!date || date <= ctx.simulationDate) return [];
+        let checked = candidate;
+        if (!ctx.principal && candidate.residence !== 'CL-SW-RESIDENCE-5Y') {
+          // Residence has already checked presence on the filing date. Verify the
+          // other rules on its effective grant, preserving today's displayed results.
+          const ids = candidate.rules
+            .map((r) => r.id)
+            .filter((id) => id !== candidate.residence);
+          const atFiling = rulesAtFiling(ids, date);
+          if (candidate.residence === 'CL-LR-RESIDENCE-10Y') {
+            const english = atFiling.find((r) => r.id === 'CL-ENGLISH')!;
+            english.status = statusAtLevel(
+              date >= lrB2.applicationsFrom
+                ? lrB2.cefrLevel
+                : cl.values.longResidenceSettlementEnglishBefore.value,
+              date,
+            );
+          }
+          checked = { ...candidate, rules: atFiling };
+        }
+        return location.status === 'UNKNOWN' && statusOf(checked) !== 'PASS'
+          ? []
+          : [checked];
+      })
+    : candidates;
+  const decision = decide(filingCandidates, ctx.simulationDate);
+  // Today's location can be unknown even when a later filing is supported.
+  // Keep that date and its route for simultaneous dependant applications.
+  if (location?.status === 'UNKNOWN')
+    decision.outcome = 'INSUFFICIENT_INFORMATION';
   const shown =
     (partner || child) &&
     decision.pathwayYears === cl.values.skilledWorkerQualifyingYears.value
@@ -805,7 +907,36 @@ function assessCurrentLaw(
           ),
         )
       : rules;
-  const assumptions = [clBaseAssumption(L)];
+  const assumptions = [
+    clBaseAssumption(L),
+    L(
+      `适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 ${cl.values.continuousResidenceReferenceDays.value} 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。`,
+      `For routes under Appendix Continuous Residence, you can apply up to ${cl.values.continuousResidenceReferenceDays.value} days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.`,
+    ),
+  ];
+  if (
+    decision.projectedFrom &&
+    decision.decidedBy?.includes('CL-SW-RESIDENCE-5Y')
+  ) {
+    for (const rule of swFiling?.requirements ?? []) {
+      if (rule.status === 'UNKNOWN')
+        assumptions.push(
+          L(
+            `预计于 ${decision.earliestDate} 递交工签定居申请，届时仍需确认「${rule.title}」。`,
+            `The projected Skilled Worker filing date of ${decision.earliestDate} depends on confirming “${rule.title}”.`,
+          ),
+        );
+    }
+  }
+  for (const rule of adultChecks ?? []) {
+    if (rule.status !== 'PASS')
+      assumptions.push(
+        L(
+          `按成年后的候选日 ${afterMajority!.applicationDate} 核对：${rule.explanation}`,
+          `On the prospective adult filing date of ${afterMajority!.applicationDate}: ${rule.explanation}`,
+        ),
+      );
+  }
   if (lrEnglishDiffers) {
     const paragraph = `LR 13.1(${lrFromB2 ? 'b' : 'a'})`;
     assumptions.push(
@@ -845,7 +976,28 @@ function assessCurrentLaw(
       ),
     );
   }
-  return toAssessment(decision, shown, assumptions, L);
+  const displayed = location
+    ? shown.map((rule) => {
+        const affected =
+          rule.id !== 'CL-LR-RESIDENCE-10Y' &&
+          (candidates.some((c) => c.residence === rule.id) ||
+            [
+              'CL-SW-PARTNER-5Y',
+              'CL-SW-CHILD',
+              'CL-HKBNO-DEPENDANT',
+              'CL-GT-DEPENDANT',
+              'CL-FAMILY-CHILD',
+            ].includes(rule.id));
+        if (!affected) return rule;
+        return {
+          ...rule,
+          ...location,
+          sources: [...rule.sources, ...location.sources],
+          pendingDetails: undefined,
+        };
+      })
+    : shown;
+  return toAssessment(decision, displayed, assumptions, L);
 }
 
 /** Assesses `rules` the way rule sets of this `kind` are aggregated (contracts §13.2). */

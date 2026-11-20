@@ -165,7 +165,7 @@ describe('refugee status or humanitarian protection (SRC-023)', () => {
     expect(currentLaw(revoked, '2026-03-01')).toMatchObject({
       outcome: 'LIKELY_NOT_ELIGIBLE',
       pathwayYears: 10,
-      earliestDate: '2031-03-01',
+      earliestDate: '2031-02-01',
     });
   });
 
@@ -250,14 +250,14 @@ describe('UK Ancestry (SRC-026)', () => {
     });
   });
 
-  test('a day short: projects the date, with the B2 note after 2027-03-26', () => {
+  test('a day short: applies under CR 1.1, with the B2 note after 2027-03-26', () => {
     expect(
       run(clAncestryResidence5Y, ancestry('2021-09-02'), '2026-09-01').status,
-    ).toBe('FAIL');
+    ).toBe('PASS');
     expect(currentLaw(ancestry('2021-09-02'), '2026-09-01')).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 5,
-      earliestDate: '2026-09-02',
+      earliestDate: '2026-09-01',
     });
     expect(
       currentLaw(ancestry('2023-01-01'), '2026-11-04').assumptions.join(),
@@ -345,15 +345,15 @@ describe('Innovator Founder (SRC-027)', () => {
     );
   });
 
-  test('a day short: projects 3 years on, with no B2 note', () => {
+  test('a day short: applies under CR 1.1, with no B2 note', () => {
     expect(
       run(clInnovatorResidence3Y, founder('2024-05-02'), '2027-05-01').status,
-    ).toBe('FAIL');
+    ).toBe('PASS');
     const result = currentLaw(founder('2024-05-02'), '2027-05-01');
     expect(result).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 3,
-      earliestDate: '2027-05-02',
+      earliestDate: '2027-05-01',
     });
     expect(result.assumptions.join()).not.toContain('B2');
   });
@@ -442,17 +442,17 @@ describe('Private Life (SRC-028)', () => {
     }
   });
 
-  test('a day short: projects the date 5 years on', () => {
+  test('a day short: the five-year date is a CR 1.1 reference', () => {
     expect(
       currentLaw(privateLife('2021-07-02', 'YOUNG_ADULT'), '2026-07-01'),
     ).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 5,
-      earliestDate: '2026-07-02',
+      earliestDate: '2026-07-01',
     });
   });
 
-  test('adult: 10 years (PL 14.2(a)), a day short projects the date', () => {
+  test('adult: 10 years (PL 14.2(a)), a day short uses CR 1.1', () => {
     expect(
       currentLaw(privateLife('2016-07-01', 'ADULT'), '2026-07-01'),
     ).toMatchObject({ outcome: 'LIKELY_ELIGIBLE', pathwayYears: 10 });
@@ -461,14 +461,14 @@ describe('Private Life (SRC-028)', () => {
       privateLife('2016-07-02', 'ADULT'),
       '2026-07-01',
     );
-    expect(short.status).toBe('FAIL');
+    expect(short.status).toBe('PASS');
     expect(short.explanation).toContain('PL 14.2(a)');
     expect(
       currentLaw(privateLife('2016-07-02', 'ADULT'), '2026-07-01'),
     ).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 10,
-      earliestDate: '2026-07-02',
+      earliestDate: '2026-07-01',
     });
   });
 

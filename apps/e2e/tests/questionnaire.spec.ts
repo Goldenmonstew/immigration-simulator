@@ -12,7 +12,7 @@ interface Scenario {
   date: string;
   absence?: [string, string];
   outcome: 'outcome.LIKELY_ELIGIBLE' | 'outcome.LIKELY_NOT_ELIGIBLE';
-  earliest: string;
+  earliest: Record<'policy.CURRENT_LAW' | 'policy.ANNOUNCED', string>;
 }
 
 async function runQuestionnaire(page: Page, t: Dict, s: Scenario) {
@@ -87,7 +87,7 @@ async function runQuestionnaire(page: Page, t: Dict, s: Scenario) {
       region
         .locator('dt', { hasText: t['result.earliest'] })
         .locator('xpath=following-sibling::dd[1]'),
-    ).toHaveText(s.earliest);
+    ).toHaveText(s.earliest[column]);
   }
 }
 
@@ -98,7 +98,10 @@ test('questionnaire by clicks: 5-year Skilled Worker on the day (G-SW-5Y-ON-DAY)
   await runQuestionnaire(page, zhCN, {
     date: '2026-06-01',
     outcome: 'outcome.LIKELY_ELIGIBLE',
-    earliest: '2026-06-01',
+    earliest: {
+      'policy.CURRENT_LAW': '2026-06-01',
+      'policy.ANNOUNCED': '2026-06-01',
+    },
   });
 });
 
@@ -111,6 +114,9 @@ test('questionnaire by clicks in English: 200 days abroad (G-SW-ABSENCE-200-DAYS
     date: '2026-06-01',
     absence: ['2023-01-10', '2023-07-28'],
     outcome: 'outcome.LIKELY_NOT_ELIGIBLE',
-    earliest: '2028-07-29',
+    earliest: {
+      'policy.CURRENT_LAW': '2028-07-01',
+      'policy.ANNOUNCED': '2028-07-29',
+    },
   });
 });

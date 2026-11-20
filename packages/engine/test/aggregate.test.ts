@@ -197,7 +197,7 @@ describe('current law', () => {
     expect(a).toMatchObject({
       outcome: 'LIKELY_NOT_ELIGIBLE',
       pathwayYears: 5,
-      earliestDate: '2030-02-01',
+      earliestDate: '2030-01-04',
     });
     expect(a.assumptions.join('')).toContain('届时定居须达到英语 B2');
   });

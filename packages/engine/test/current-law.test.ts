@@ -44,7 +44,7 @@ describe('CL-SCOPE', () => {
 });
 
 describe('CL-SW-RESIDENCE-5Y', () => {
-  test('5 years to the day passes, a day short fails with the due date', () => {
+  test('5 years to the day passes, and a day short uses CR 1.1', () => {
     expect(
       run(clSwResidence5Y, { episodes: [episode({ validFrom: '2021-11-04' })] })
         .status,
@@ -52,7 +52,7 @@ describe('CL-SW-RESIDENCE-5Y', () => {
     const short = run(clSwResidence5Y, {
       episodes: [episode({ validFrom: '2021-11-05' })],
     });
-    expect(short.status).toBe('FAIL');
+    expect(short.status).toBe('PASS');
     expect(short.explanation).toContain('2026-11-05');
   });
 
@@ -88,7 +88,7 @@ describe('CL-SW-RESIDENCE-5Y', () => {
         timeline: timeline({ episodes }),
         simulationDate: SIMULATION_DATE,
       }).byRuleSet['current-law-2026-11'],
-    ).toMatchObject({ pathwayYears: 5, earliestDate: '2027-03-01' });
+    ).toMatchObject({ pathwayYears: 5, earliestDate: '2027-02-01' });
     expect(run(clSwResidence5Y, { episodes }, '2027-03-01').status).toBe(
       'PASS',
     );
@@ -547,29 +547,42 @@ describe('Skilled Worker dependent partner (SW 38–SW 46)', () => {
     expect(a.rules.some((r) => r.id === 'CL-SW-SALARY')).toBe(false);
   });
 
-  test('5 years as a dependent partner to the day qualifies; a day short projects the date', () => {
+  test('5 years as a dependent partner qualifies on the day and under CR 1.1', () => {
     expect(cl({ episodes: partnerFrom('2021-11-04') }).outcome).toBe(
       'LIKELY_ELIGIBLE',
     );
     const short = cl({ episodes: partnerFrom('2021-11-05') });
     expect(short).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 5,
-      earliestDate: '2026-11-05',
+      earliestDate: SIMULATION_DATE,
     });
-    expect(statusOf(short, 'CL-SW-PARTNER-5Y')).toBe('FAIL');
+    expect(statusOf(short, 'CL-SW-PARTNER-5Y')).toBe('PASS');
   });
 
   test('not before the principal completes the Skilled Worker period (SW 39.1(a))', () => {
-    const recent = [
-      episode({ validFrom: '2024-02-01', validTo: '2029-12-31' }),
-    ];
-    expect(
-      cl({ episodes: partnerFrom('2024-02-01') }, { episodes: recent }),
-    ).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
-      earliestDate: '2029-02-01',
+    const recent = episode({
+      validFrom: '2024-02-01',
+      validTo: '2029-12-31',
+      socCode: '2136',
     });
+    const partner = { episodes: partnerFrom('2024-02-01') };
+    expect(cl(partner, { episodes: [recent] })).toMatchObject({
+      outcome: 'LIKELY_NOT_ELIGIBLE',
+      earliestDate: '2029-01-04',
+    });
+    // Without an occupation code the going rate is unknown: the partner
+    // follows the principal's conditional date.
+    const unknownSoc = { episodes: [{ ...recent, socCode: undefined }] };
+    const p = cl(unknownSoc, null);
+    const projected = cl(partner, unknownSoc);
+    expect(projected).toMatchObject({
+      outcome: p.outcome,
+      earliestDate: p.earliestDate,
+    });
+    expect(
+      projected.rules.find((r) => r.id === 'CL-SW-PARTNER-5Y')?.explanation,
+    ).toContain(p.earliestDate);
   });
 
   test('a principal who cannot settle as a Skilled Worker fails the partner', () => {
@@ -671,17 +684,17 @@ describe('Skilled Worker dependent child (SW 39.1, SW 41A.1)', () => {
     ).toBe('LIKELY_NOT_ELIGIBLE');
   });
 
-  test('settles when the principal completes 5 years: to the day, and a day short with the date', () => {
+  test('settles with the principal on the day and within the principal’s CR 1.1 window', () => {
     expect(cl(child(), principalFrom('2021-11-04')).outcome).toBe(
       'LIKELY_ELIGIBLE',
     );
     const short = cl(child(), principalFrom('2021-11-05'));
     expect(short).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 5,
-      earliestDate: '2026-11-05',
+      earliestDate: SIMULATION_DATE,
     });
-    expect(rule(short).status).toBe('FAIL');
+    expect(rule(short).status).toBe('PASS');
   });
 
   test('a principal who cannot settle fails the child; a missing principal leaves it insufficient', () => {
@@ -768,8 +781,8 @@ describe('principal already settled (SW 39.1(b))', () => {
     expect(
       cl({ episodes: dependantFrom('2021-11-05', 'PARTNER') }, settled()),
     ).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
-      earliestDate: '2026-11-05',
+      outcome: 'LIKELY_ELIGIBLE',
+      earliestDate: SIMULATION_DATE,
     });
   });
 

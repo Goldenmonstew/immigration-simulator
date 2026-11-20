@@ -19,17 +19,17 @@ export {
 } from './current-law/shared';
 export { clScope } from './current-law/scope';
 export {
-  skilledWorkerStart,
+  skilledWorkerResidence,
   clSwResidence5Y,
   clSwSalary,
   clSwGoingRate,
-  skilledWorkerPartnerStart,
+  skilledWorkerPartnerResidence,
   clSwPartner5Y,
-  skilledWorkerChildStart,
+  skilledWorkerChildFiling,
   clSwChild,
 } from './current-law/skilled-worker';
 export {
-  hongKongBnoStart,
+  hongKongBnoResidence,
   clHkbnoResidence5Y,
   hongKongBnoDependantPathway,
   clHkbnoDependant,
@@ -41,7 +41,7 @@ export {
   clGtDependant,
 } from './current-law/global-talent';
 export {
-  familyTenYearStart,
+  familyTenYearResidence,
   familyFiveYearStart,
   clFamilyResidence,
   clFamilyRelationship,
@@ -56,9 +56,12 @@ export {
   clProtectionResidence5Y,
   clProtectionStatus,
 } from './current-law/protection';
-export { ukAncestryStart, clAncestryResidence5Y } from './current-law/ancestry';
 export {
-  innovatorFounderStart,
+  ukAncestryResidence,
+  clAncestryResidence5Y,
+} from './current-law/ancestry';
+export {
+  innovatorFounderResidence,
   clInnovatorResidence3Y,
   clInnovatorEndorsement,
 } from './current-law/innovator';
@@ -67,7 +70,4 @@ export {
   clPrivateLifeResidence,
 } from './current-law/private-life';
 export { ageExempt, clEnglish, clKol } from './current-law/english';
-export {
-  longResidenceStart,
-  clLrResidence10Y,
-} from './current-law/long-residence';
+export { longResidence, clLrResidence10Y } from './current-law/long-residence';

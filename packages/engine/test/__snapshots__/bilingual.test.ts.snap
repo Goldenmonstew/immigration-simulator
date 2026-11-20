@@ -148,7 +148,7 @@ exports[`CL-FAMILY-CHILD-TEN-YEAR default-locale output is unchanged 1`] = `
             }
           ],
           "status": "PASS",
-          "explanation": "申请日未满 18 岁（SETF 13.1）；随主申请人定居：主申请人 2026-03-01 满 10 年，届时可一同申请（SETF 12.1(a)）；子女本人没有居留年限要求。",
+          "explanation": "申请日未满 18 岁（SETF 13.1）；随主申请人定居：主申请人可于 2026-03-01 申请，届时可一同申请（SETF 12.1(a)）；子女本人没有居留年限要求。",
           "assumptions": [
             "另一位父母须同时获批定居、已定居或为英国公民，除非主申请人是唯一在世的父母或负唯一抚养责任等（SETF 12.2）；16 岁以上不独立生活（SETF 13.2）、照护安排（SETF 14.1）按满足处理；在英国出生的子女（SETF 10.3）与 SETF 11.3–11.6 的 10 年例外未建模。",
             "主申请人尚未定居时，只判断与主申请人同时获批；若其已定居，须在主申请人信息里填写定居日期与路线。"
@@ -316,7 +316,7 @@ exports[`CL-FAMILY-CHILD-TEN-YEAR default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -324,17 +324,18 @@ exports[`CL-FAMILY-CHILD-TEN-YEAR default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2019-03-01 起连续合法居留，截至 2026-03-01 满 7 年；2029-03-01 满 10 年。",
+          "explanation": "自 2019-03-01 起连续合法居留，预计 2029-03-01 满 10 年，按 CR 1.1 最早于 2029-02-01 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "另一位父母须同时获批定居、已定居或为英国公民，除非主申请人是唯一在世的父母或负唯一抚养责任等（SETF 12.2）；16 岁以上不独立生活（SETF 13.2）、照护安排（SETF 14.1）按满足处理；在英国出生的子女（SETF 10.3）与 SETF 11.3–11.6 的 10 年例外未建模。",
         "主申请人尚未定居时，只判断与主申请人同时获批；若其已定居，须在主申请人信息里填写定居日期与路线。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -862,7 +863,7 @@ exports[`CL-FAMILY-FIVE-YEAR-ADULT-CHILD-ENGLISH default-locale output is unchan
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -870,19 +871,20 @@ exports[`CL-FAMILY-FIVE-YEAR-ADULT-CHILD-ENGLISH default-locale output is unchan
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-11-05 起连续合法居留，截至 2026-11-05 满 5 年；2031-11-05 满 10 年。",
+          "explanation": "自 2021-11-05 起连续合法居留，预计 2031-11-05 满 10 年，按 CR 1.1 最早于 2031-10-08 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "298(i)：主申请人尚未定居，只有 (d)（与主申请人同时获批定居）适用；假设另一位父母未持、也不在获批英国限期许可，例如是主申请人的英国公民或已定居伴侣；(e) 近亲情形未建模。",
         "298(ii)(b)：当前的 Appendix FM 子女许可视为以定居为目的获批。仅因英语或 Life in the UK 不满足 298(vii) 时，可按 298A 获限期许可，但仍不符合定居。",
         "未独立生活、未婚、未另组家庭（298(iii)），由父母提供足够的住宿与生活费、不依赖 public funds（298(iv)–(v)），按满足处理。",
         "主申请人尚未定居时，只判断与主申请人同时获批；若其已定居，须在主申请人信息里填写定居日期与路线。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -1409,7 +1411,7 @@ exports[`CL-FAMILY-FIVE-YEAR-CHILD-PROJECTED default-locale output is unchanged 
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -1417,19 +1419,20 @@ exports[`CL-FAMILY-FIVE-YEAR-CHILD-PROJECTED default-locale output is unchanged 
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-11-06 起连续合法居留，截至 2026-11-05 满 4 年；2031-11-06 满 10 年。",
+          "explanation": "自 2021-11-06 起连续合法居留，预计 2031-11-06 满 10 年，按 CR 1.1 最早于 2031-10-09 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "298(i)：主申请人尚未定居，只有 (d)（与主申请人同时获批定居）适用；假设另一位父母未持、也不在获批英国限期许可，例如是主申请人的英国公民或已定居伴侣；(e) 近亲情形未建模。",
         "按申请日年龄判断：若到预计日期已满 18 岁，届时须按 298(vii) 满足英语与 Life in the UK。",
         "未独立生活、未婚、未另组家庭（298(iii)），由父母提供足够的住宿与生活费、不依赖 public funds（298(iv)–(v)），按满足处理。",
         "主申请人尚未定居时，只判断与主申请人同时获批；若其已定居，须在主申请人信息里填写定居日期与路线。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。",
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。",
         "最早可申请日期按\\"自 2021-11-06 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ]
     },
@@ -1759,8 +1762,12 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
               "locator": "E-ILRP.1.4"
             },
             {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
+            },
+            {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -1787,6 +1794,10 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             },
             {
               "srcId": "SRC-024",
+              "locator": "R-ILRP.1.1(a)"
+            },
+            {
+              "srcId": "SRC-024",
               "locator": "E-ILRP.1.3(1A)"
             },
             {
@@ -1797,6 +1808,7 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
           "status": "PASS",
           "explanation": "伴侣为 British citizen（E-LTRP.1.2(a)）。",
           "assumptions": [
+            "假设申请日你的伴侣也在英国（Appendix FM R-ILRP.1.1(a)）。",
             "按关系真实且持续、双方打算永久共同生活（E-LTRP.1.7–E-LTRP.1.10）处理，本工具未核对。"
           ]
         },
@@ -1826,6 +1838,10 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             },
             {
               "srcId": "SRC-024",
+              "locator": "E-LTRP.3.6"
+            },
+            {
+              "srcId": "SRC-024",
               "locator": "E-LTRP.3.7"
             },
             {
@@ -1839,7 +1855,7 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             "PD-075"
           ],
           "assumptions": [
-            "是否适用过渡门槛按连续伴侣许可的起点是否早于 2024-04-11 判断（E-LTRP.3.5 看的是首次申请日；获批在此后而申请在此前的，也适用过渡门槛）；子女按\\"关系\\"里身份为其他的子女计。",
+            "假设历次申请均与同一伴侣有关，以最早一段已申报的五年伴侣许可生效日近似首次成功申请的递交日。若在 2024-04-11 前递交并于当日或之后获批，仍可适用过渡门槛（E-LTRP.3.5–3.6）。子女按“关系”里身份为其他的子女计。",
             "储蓄按申报的合计现金储蓄计；Appendix FM-SE 的持有期与证据规则、E-LTRP.3.2 的收入与储蓄来源种类未核对；伴侣领取的福利按申报；住宿要求（E-LTRP.3.4、E-LTRP.3.9）与 EX.1 未建模。"
           ]
         },
@@ -2005,7 +2021,7 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -2013,19 +2029,21 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2024-06-01 起连续合法居留，截至 2029-06-01 满 5 年；2034-06-01 满 10 年。",
+          "explanation": "自 2024-06-01 起连续合法居留，预计 2034-06-01 满 10 年，按 CR 1.1 最早于 2034-05-04 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "E-ILRP.1.3 只计 5 年路线的伴侣许可（D-ECP.1.1 / D-LTRP.1.1），不计 fiancé(e) 期间；各段按同属 5 年路线、同一伴侣（E-ILRP.1.4）计算。",
+        "假设申请日你的伴侣也在英国（Appendix FM R-ILRP.1.1(a)）。",
         "按关系真实且持续、双方打算永久共同生活（E-LTRP.1.7–E-LTRP.1.10）处理，本工具未核对。",
-        "是否适用过渡门槛按连续伴侣许可的起点是否早于 2024-04-11 判断（E-LTRP.3.5 看的是首次申请日；获批在此后而申请在此前的，也适用过渡门槛）；子女按\\"关系\\"里身份为其他的子女计。",
+        "假设历次申请均与同一伴侣有关，以最早一段已申报的五年伴侣许可生效日近似首次成功申请的递交日。若在 2024-04-11 前递交并于当日或之后获批，仍可适用过渡门槛（E-LTRP.3.5–3.6）。子女按“关系”里身份为其他的子女计。",
         "储蓄按申报的合计现金储蓄计；Appendix FM-SE 的持有期与证据规则、E-LTRP.3.2 的收入与储蓄来源种类未核对；伴侣领取的福利按申报；住宿要求（E-LTRP.3.4、E-LTRP.3.9）与 EX.1 未建模。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -2506,8 +2524,12 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
               "locator": "E-ILRP.1.4"
             },
             {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
+            },
+            {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -2534,6 +2556,10 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-024",
+              "locator": "R-ILRP.1.1(a)"
+            },
+            {
+              "srcId": "SRC-024",
               "locator": "E-ILRP.1.3(1A)"
             },
             {
@@ -2544,6 +2570,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
           "status": "PASS",
           "explanation": "伴侣为 British citizen（E-LTRP.1.2(a)）。",
           "assumptions": [
+            "假设申请日你的伴侣也在英国（Appendix FM R-ILRP.1.1(a)）。",
             "按关系真实且持续、双方打算永久共同生活（E-LTRP.1.7–E-LTRP.1.10）处理，本工具未核对。"
           ]
         },
@@ -2573,6 +2600,10 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-024",
+              "locator": "E-LTRP.3.6"
+            },
+            {
+              "srcId": "SRC-024",
               "locator": "E-LTRP.3.7"
             },
             {
@@ -2583,7 +2614,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
           "status": "PASS",
           "explanation": "2028-29 纳税年度本人与伴侣收入合计 £20,000，低于一般门槛（E-LTRP.3.1(a)）的 £29,000，缺口 £9,000；现金储蓄 £25,000，达到 £16,000 加缺口共 £25,000（E-LTRP.3.1(b)；定居申请按 E-ILRP.1.3(1A) 不乘 2.5）。",
           "assumptions": [
-            "是否适用过渡门槛按连续伴侣许可的起点是否早于 2024-04-11 判断（E-LTRP.3.5 看的是首次申请日；获批在此后而申请在此前的，也适用过渡门槛）；子女按\\"关系\\"里身份为其他的子女计。",
+            "假设历次申请均与同一伴侣有关，以最早一段已申报的五年伴侣许可生效日近似首次成功申请的递交日。若在 2024-04-11 前递交并于当日或之后获批，仍可适用过渡门槛（E-LTRP.3.5–3.6）。子女按“关系”里身份为其他的子女计。",
             "储蓄按申报的合计现金储蓄计；Appendix FM-SE 的持有期与证据规则、E-LTRP.3.2 的收入与储蓄来源种类未核对；伴侣领取的福利按申报；住宿要求（E-LTRP.3.4、E-LTRP.3.9）与 EX.1 未建模。"
           ]
         },
@@ -2749,7 +2780,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -2757,19 +2788,21 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2024-06-01 起连续合法居留，截至 2029-06-01 满 5 年；2034-06-01 满 10 年。",
+          "explanation": "自 2024-06-01 起连续合法居留，预计 2034-06-01 满 10 年，按 CR 1.1 最早于 2034-05-04 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "E-ILRP.1.3 只计 5 年路线的伴侣许可（D-ECP.1.1 / D-LTRP.1.1），不计 fiancé(e) 期间；各段按同属 5 年路线、同一伴侣（E-ILRP.1.4）计算。",
+        "假设申请日你的伴侣也在英国（Appendix FM R-ILRP.1.1(a)）。",
         "按关系真实且持续、双方打算永久共同生活（E-LTRP.1.7–E-LTRP.1.10）处理，本工具未核对。",
-        "是否适用过渡门槛按连续伴侣许可的起点是否早于 2024-04-11 判断（E-LTRP.3.5 看的是首次申请日；获批在此后而申请在此前的，也适用过渡门槛）；子女按\\"关系\\"里身份为其他的子女计。",
+        "假设历次申请均与同一伴侣有关，以最早一段已申报的五年伴侣许可生效日近似首次成功申请的递交日。若在 2024-04-11 前递交并于当日或之后获批，仍可适用过渡门槛（E-LTRP.3.5–3.6）。子女按“关系”里身份为其他的子女计。",
         "储蓄按申报的合计现金储蓄计；Appendix FM-SE 的持有期与证据规则、E-LTRP.3.2 的收入与储蓄来源种类未核对；伴侣领取的福利按申报；住宿要求（E-LTRP.3.4、E-LTRP.3.9）与 EX.1 未建模。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -3144,7 +3177,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
     "current-law-2026-11": {
       "outcome": "LIKELY_NOT_ELIGIBLE",
       "pathwayYears": 10,
-      "earliestDate": "2034-06-01",
+      "earliestDate": "2034-05-04",
       "decidedBy": [
         "CL-ENGLISH",
         "CL-KOL",
@@ -3248,8 +3281,12 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
               "locator": "E-ILRP.1.4"
             },
             {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
+            },
+            {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -3276,6 +3313,10 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             },
             {
               "srcId": "SRC-024",
+              "locator": "R-ILRP.1.1(a)"
+            },
+            {
+              "srcId": "SRC-024",
               "locator": "E-ILRP.1.3(1A)"
             },
             {
@@ -3286,6 +3327,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
           "status": "PASS",
           "explanation": "伴侣为 British citizen（E-LTRP.1.2(a)）。",
           "assumptions": [
+            "假设申请日你的伴侣也在英国（Appendix FM R-ILRP.1.1(a)）。",
             "按关系真实且持续、双方打算永久共同生活（E-LTRP.1.7–E-LTRP.1.10）处理，本工具未核对。"
           ]
         },
@@ -3315,6 +3357,10 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             },
             {
               "srcId": "SRC-024",
+              "locator": "E-LTRP.3.6"
+            },
+            {
+              "srcId": "SRC-024",
               "locator": "E-LTRP.3.7"
             },
             {
@@ -3325,7 +3371,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
           "status": "FAIL",
           "explanation": "2028-29 纳税年度本人与伴侣收入合计 £20,000，低于一般门槛（E-LTRP.3.1(a)）的 £29,000，缺口 £9,000；现金储蓄 £24,000，不足 £16,000 加缺口共 £25,000，还差 £1,000（E-LTRP.3.1(b)；E-ILRP.1.3(1A)）。若伴侣领取 E-LTRP.3.3(a) 所列福利，可改按 E-LTRP.3.3 判断。",
           "assumptions": [
-            "是否适用过渡门槛按连续伴侣许可的起点是否早于 2024-04-11 判断（E-LTRP.3.5 看的是首次申请日；获批在此后而申请在此前的，也适用过渡门槛）；子女按\\"关系\\"里身份为其他的子女计。",
+            "假设历次申请均与同一伴侣有关，以最早一段已申报的五年伴侣许可生效日近似首次成功申请的递交日。若在 2024-04-11 前递交并于当日或之后获批，仍可适用过渡门槛（E-LTRP.3.5–3.6）。子女按“关系”里身份为其他的子女计。",
             "储蓄按申报的合计现金储蓄计；Appendix FM-SE 的持有期与证据规则、E-LTRP.3.2 的收入与储蓄来源种类未核对；伴侣领取的福利按申报；住宿要求（E-LTRP.3.4、E-LTRP.3.9）与 EX.1 未建模。"
           ]
         },
@@ -3491,7 +3537,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -3499,19 +3545,21 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2024-06-01 起连续合法居留，截至 2029-06-01 满 5 年；2034-06-01 满 10 年。",
+          "explanation": "自 2024-06-01 起连续合法居留，预计 2034-06-01 满 10 年，按 CR 1.1 最早于 2034-05-04 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "E-ILRP.1.3 只计 5 年路线的伴侣许可（D-ECP.1.1 / D-LTRP.1.1），不计 fiancé(e) 期间；各段按同属 5 年路线、同一伴侣（E-ILRP.1.4）计算。",
+        "假设申请日你的伴侣也在英国（Appendix FM R-ILRP.1.1(a)）。",
         "按关系真实且持续、双方打算永久共同生活（E-LTRP.1.7–E-LTRP.1.10）处理，本工具未核对。",
-        "是否适用过渡门槛按连续伴侣许可的起点是否早于 2024-04-11 判断（E-LTRP.3.5 看的是首次申请日；获批在此后而申请在此前的，也适用过渡门槛）；子女按\\"关系\\"里身份为其他的子女计。",
+        "假设历次申请均与同一伴侣有关，以最早一段已申报的五年伴侣许可生效日近似首次成功申请的递交日。若在 2024-04-11 前递交并于当日或之后获批，仍可适用过渡门槛（E-LTRP.3.5–3.6）。子女按“关系”里身份为其他的子女计。",
         "储蓄按申报的合计现金储蓄计；Appendix FM-SE 的持有期与证据规则、E-LTRP.3.2 的收入与储蓄来源种类未核对；伴侣领取的福利按申报；住宿要求（E-LTRP.3.4、E-LTRP.3.9）与 EX.1 未建模。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。",
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。",
         "最早可申请日期按\\"自 2024-06-01 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ]
     },
@@ -3993,8 +4041,12 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
               "locator": "E-ILRP.1.4"
             },
             {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
+            },
+            {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -4021,6 +4073,10 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-024",
+              "locator": "R-ILRP.1.1(a)"
+            },
+            {
+              "srcId": "SRC-024",
               "locator": "E-ILRP.1.3(1A)"
             },
             {
@@ -4031,6 +4087,7 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
           "status": "PASS",
           "explanation": "伴侣为 British citizen（E-LTRP.1.2(a)）。",
           "assumptions": [
+            "假设申请日你的伴侣也在英国（Appendix FM R-ILRP.1.1(a)）。",
             "按关系真实且持续、双方打算永久共同生活（E-LTRP.1.7–E-LTRP.1.10）处理，本工具未核对。"
           ]
         },
@@ -4060,6 +4117,10 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-024",
+              "locator": "E-LTRP.3.6"
+            },
+            {
+              "srcId": "SRC-024",
               "locator": "E-LTRP.3.7"
             },
             {
@@ -4070,7 +4131,7 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
           "status": "PASS",
           "explanation": "2024-25 纳税年度本人与伴侣收入合计 £22,000，达到过渡门槛（E-LTRP.3.5、E-LTRP.3.7(a)，0 名子女，最高 £29,000）的 £18,600。",
           "assumptions": [
-            "是否适用过渡门槛按连续伴侣许可的起点是否早于 2024-04-11 判断（E-LTRP.3.5 看的是首次申请日；获批在此后而申请在此前的，也适用过渡门槛）；子女按\\"关系\\"里身份为其他的子女计。",
+            "假设历次申请均与同一伴侣有关，以最早一段已申报的五年伴侣许可生效日近似首次成功申请的递交日。若在 2024-04-11 前递交并于当日或之后获批，仍可适用过渡门槛（E-LTRP.3.5–3.6）。子女按“关系”里身份为其他的子女计。",
             "储蓄按申报的合计现金储蓄计；Appendix FM-SE 的持有期与证据规则、E-LTRP.3.2 的收入与储蓄来源种类未核对；伴侣领取的福利按申报；住宿要求（E-LTRP.3.4、E-LTRP.3.9）与 EX.1 未建模。"
           ]
         },
@@ -4236,7 +4297,7 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -4244,19 +4305,21 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-03-01 起连续合法居留，截至 2026-03-01 满 5 年；2031-03-01 满 10 年。",
+          "explanation": "自 2021-03-01 起连续合法居留，预计 2031-03-01 满 10 年，按 CR 1.1 最早于 2031-02-01 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "E-ILRP.1.3 只计 5 年路线的伴侣许可（D-ECP.1.1 / D-LTRP.1.1），不计 fiancé(e) 期间；各段按同属 5 年路线、同一伴侣（E-ILRP.1.4）计算。",
+        "假设申请日你的伴侣也在英国（Appendix FM R-ILRP.1.1(a)）。",
         "按关系真实且持续、双方打算永久共同生活（E-LTRP.1.7–E-LTRP.1.10）处理，本工具未核对。",
-        "是否适用过渡门槛按连续伴侣许可的起点是否早于 2024-04-11 判断（E-LTRP.3.5 看的是首次申请日；获批在此后而申请在此前的，也适用过渡门槛）；子女按\\"关系\\"里身份为其他的子女计。",
+        "假设历次申请均与同一伴侣有关，以最早一段已申报的五年伴侣许可生效日近似首次成功申请的递交日。若在 2024-04-11 前递交并于当日或之后获批，仍可适用过渡门槛（E-LTRP.3.5–3.6）。子女按“关系”里身份为其他的子女计。",
         "储蓄按申报的合计现金储蓄计；Appendix FM-SE 的持有期与证据规则、E-LTRP.3.2 的收入与储蓄来源种类未核对；伴侣领取的福利按申报；住宿要求（E-LTRP.3.4、E-LTRP.3.9）与 EX.1 未建模。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -4742,7 +4805,7 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -4913,7 +4976,7 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -4921,16 +4984,17 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-06-01 起连续合法居留，截至 2026-06-01 满 5 年；2031-06-01 满 10 年。",
+          "explanation": "自 2021-06-01 起连续合法居留，预计 2031-06-01 满 10 年，按 CR 1.1 最早于 2031-05-04 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "只计连续的 Global Talent dependant 许可，假设整段都是同一主申请人的 dependent partner；Appendix Relationship with Partner（GT 27.4）未核对。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -5272,7 +5336,7 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -5444,7 +5508,7 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -5452,17 +5516,18 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2023-11-04 起连续合法居留，截至 2026-11-04 满 3 年；2033-11-04 满 10 年。",
+          "explanation": "自 2023-11-04 起连续合法居留，预计 2033-11-04 满 10 年，按 CR 1.1 最早于 2033-10-07 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 GT 11.3 列出的 Global Talent、Innovator Founder、Skilled Worker、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Tier 1 与 Representative of an Overseas Business 本工具无法填写，不计入。",
         "按背书未被撤回（GT 10.1）、上一段许可期间在背书或奖项领域有收入（GT 10.2）处理，本工具未核对。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -5936,7 +6001,7 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
             }
           ],
           "status": "PASS",
-          "explanation": "未满 18 岁（HK 57.1）；随主申请人定居：主申请人 2026-02-01 满 5 年，届时可一同申请（HK 57.3(a)）；子女本人没有居留年限要求（HK 62.1(b)）。",
+          "explanation": "未满 18 岁（HK 57.1）；随主申请人定居：主申请人可于 2026-02-01 申请，届时可一同申请（HK 57.3(a)）；子女本人没有居留年限要求（HK 62.1(b)）。",
           "assumptions": [
             "另一位父母须同时获批定居、已定居或为英国公民，除非主申请人是唯一在世的父母或负唯一抚养责任等（HK 57.4）；照护安排（HK 58.1、CHI 2.1）按满足处理。按申请日年龄判断：若到预计日期时已满 18 岁，届时须本人满 5 年（HK 62.1(b)）。",
             "主申请人尚未定居时，只判断与主申请人同时获批；若其已定居，须在主申请人信息里填写定居日期与路线。"
@@ -6104,7 +6169,7 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -6112,17 +6177,18 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-02-01 起连续合法居留，截至 2026-02-01 满 5 年；2031-02-01 满 10 年。",
+          "explanation": "自 2021-02-01 起连续合法居留，预计 2031-02-01 满 10 年，按 CR 1.1 最早于 2031-01-04 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "另一位父母须同时获批定居、已定居或为英国公民，除非主申请人是唯一在世的父母或负唯一抚养责任等（HK 57.4）；照护安排（HK 58.1、CHI 2.1）按满足处理。按申请日年龄判断：若到预计日期时已满 18 岁，届时须本人满 5 年（HK 62.1(b)）。",
         "主申请人尚未定居时，只判断与主申请人同时获批；若其已定居，须在主申请人信息里填写定居日期与路线。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -6434,6 +6500,10 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-020",
+              "locator": "HK 57.1"
+            },
+            {
+              "srcId": "SRC-020",
               "locator": "HK 62.1"
             },
             {
@@ -6442,7 +6512,7 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -6611,7 +6681,7 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -6619,15 +6689,16 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-02-01 起连续合法居留，截至 2026-02-01 满 5 年；2031-02-01 满 10 年。",
+          "explanation": "自 2021-02-01 起连续合法居留，预计 2031-02-01 满 10 年，按 CR 1.1 最早于 2031-01-04 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -7083,7 +7154,7 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -7283,7 +7354,7 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -7291,16 +7362,17 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2023-05-01 起连续合法居留，截至 2026-05-01 满 3 年；2033-05-01 满 10 年。",
+          "explanation": "自 2023-05-01 起连续合法居留，预计 2033-05-01 满 10 年，按 CR 1.1 最早于 2033-04-03 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "按 endorsing body 会确认 INNF 17.1(a)–(e)（对照原业务计划有显著成果、在 Companies House 登记且你是 director 或 member、仍在经营、未来至少 12 个月可持续、你在日常管理中起关键作用）处理；背书信须在申请前 3 个月内签发且未撤回（INNF 15.2(e)）。团队成员不能共用同一项（INNF 17.3），岗位须存在满 12 个月、每周至少 30 小时等（INNF 17.4），均未核实。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -7766,7 +7838,7 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -7937,7 +8009,7 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -7945,16 +8017,17 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-07-01 起连续合法居留，截至 2026-07-01 满 5 年；2031-07-01 满 10 年。",
+          "explanation": "自 2021-07-01 起连续合法居留，预计 2031-07-01 满 10 年，按 CR 1.1 最早于 2031-06-03 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 PL 14.3 列出的 Appendix FM 伴侣、父母及其子女许可与 Private Life 许可；PL 14.3(e) 基于 Article 8 的 Leave Outside the Rules 无法与其他 Leave Outside the Rules 区分，不计入。PL 13（英国出生、连续居住 7 年的儿童可直接定居）、PL 14.1A / PL 14.2(b) / PL 14.2A（2022-06-20 前 Appendix FM 或 Leave Outside the Rules 许可的过渡安排）与 PL 12.3–12.5（suitability 事由要求走 10 年）未建模。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -8598,7 +8671,7 @@ exports[`CL-REFUGEE-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -8606,18 +8679,19 @@ exports[`CL-REFUGEE-FIVE-YEARS default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-03-01 起连续合法居留，截至 2026-03-01 满 5 年；2031-03-01 满 10 年。",
+          "explanation": "自 2021-03-01 起连续合法居留，预计 2031-03-01 满 10 年，按 CR 1.1 最早于 2031-02-01 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "STP 1.3 按申请庇护的日期列明许可类别：2022-06-28 前申请的为 refugee 或 humanitarian protection 许可，此后申请的为 refugee permission to stay；本工具不区分 refugee 与 humanitarian protection，按你持有所列许可处理。2022-06-28 及以后申请庇护而获 humanitarian protection 的，STP 1.3(b) 未列明（PD-073）。",
         "审理定居申请时会做 safe return review（STP 4.2），核查个人情况或原籍国状况是否已变化到可撤销或不续期保护身份，结果无法预判。",
         "不满足定居要求、但仍有权享有 refugee status 或 humanitarian protection 时，会再获至少 30 个月的保护许可（STP 5.2）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -8932,7 +9006,7 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -9103,7 +9177,7 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -9111,16 +9185,17 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-09-01 起连续合法居留，截至 2026-09-01 满 5 年；2031-09-01 满 10 年。",
+          "explanation": "自 2021-09-01 起连续合法居留，预计 2031-09-01 满 10 年，按 CR 1.1 最早于 2031-09-01 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "按你在申请日仍是 Commonwealth citizen（UKA 10.3），且仍满足 UKA 4.1–6.1（祖父母之一生于 UK 或 Islands、能自给自足且不依赖 public funds、能工作并打算在英国工作，UKA 12.1）处理。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -9585,8 +9660,12 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "E-ILRP.1.4"
             },
             {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
+            },
+            {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "UNKNOWN",
@@ -9754,7 +9833,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -9764,13 +9843,14 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "status": "PASS",
           "explanation": "自 2016-09-01 起连续合法居留，已满 10 年。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -10252,7 +10332,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "UNKNOWN",
@@ -10423,7 +10503,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -10433,14 +10513,15 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
           "status": "PASS",
           "explanation": "自 2015-06-01 起连续合法居留，已满 10 年。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 PL 14.3 列出的 Appendix FM 伴侣、父母及其子女许可与 Private Life 许可；PL 14.3(e) 基于 Article 8 的 Leave Outside the Rules 无法与其他 Leave Outside the Rules 区分，不计入。PL 13（英国出生、连续居住 7 年的儿童可直接定居）、PL 14.1A / PL 14.2(b) / PL 14.2A（2022-06-20 前 Appendix FM 或 Leave Outside the Rules 许可的过渡安排）与 PL 12.3–12.5（suitability 事由要求走 10 年）未建模。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -10925,8 +11006,12 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
               "locator": "E-ILRP.1.4"
             },
             {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
+            },
+            {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "UNKNOWN",
@@ -11094,7 +11179,7 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -11104,13 +11189,14 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
           "status": "PASS",
           "explanation": "自 2016-04-06 起连续合法居留，已满 10 年。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -11575,7 +11661,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -11588,6 +11674,10 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "id": "CL-SW-SALARY",
           "title": "Skilled Worker 定居薪资（general salary）",
           "sources": [
+            {
+              "srcId": "SRC-004",
+              "locator": "SW 24.2"
+            },
             {
               "srcId": "SRC-004",
               "locator": "SW 24.3"
@@ -11810,7 +11900,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -11818,20 +11908,21 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-04-06 起连续合法居留，截至 2026-11-04 满 5 年；2031-04-06 满 10 年。",
+          "explanation": "自 2021-04-06 起连续合法居留，预计 2031-04-06 满 10 年，按 CR 1.1 最早于 2031-03-09 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 SW 21.2 列出的 Skilled Worker、Global Talent、Innovator Founder、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Representative of an Overseas Business 与 Tier 1 本工具无法填写，不计入；SW 21.2(i) 的等待决定期间未建模。",
         "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
         "未申报是否在 Immigration Salary List 上，按不在清单处理。",
         "\\"2024-04-04 前按当时规则获批\\"按连续 Skilled Worker 许可的起始日判断（SW 4.2(b)(ii)）。",
         "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -12304,8 +12395,12 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "E-ILRP.1.4"
             },
             {
+              "srcId": "SRC-024",
+              "locator": "E-ILRP.1.5A"
+            },
+            {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "UNKNOWN",
@@ -12473,7 +12568,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -12481,15 +12576,16 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-04-06 起连续合法居留，截至 2026-11-04 满 5 年；2031-04-06 满 10 年。",
+          "explanation": "自 2021-04-06 起连续合法居留，预计 2031-04-06 满 10 年，按 CR 1.1 最早于 2031-03-09 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -12961,11 +13057,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
-          "explanation": "与主申请人一同定居：dependent partner 许可与主申请人的 Skilled Worker 期都满 5 年后，2026-04-06 起可申请（SW 39.1(a)、SW 42.1）。",
+          "explanation": "与主申请人一同定居：按本人与主申请人各自的 5 年合格期，可从 2026-04-06 起一同申请（SW 39.1(a)、SW 42.1）。",
           "assumptions": [
             "只计连续的 Skilled Worker dependant 许可，假设整段都是同一主申请人的 dependent partner；Appendix Relationship with Partner（SW 39.3）未核对。",
             "主申请人尚未定居时，只判断与主申请人同时获批（SW 39.1(a)）；若其已定居，须在主申请人信息里填写定居日期与路线（SW 39.1(b)）。"
@@ -13133,7 +13229,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -13141,17 +13237,18 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-04-06 起连续合法居留，截至 2026-04-06 满 5 年；2031-04-06 满 10 年。",
+          "explanation": "自 2021-04-06 起连续合法居留，预计 2031-04-06 满 10 年，按 CR 1.1 最早于 2031-03-09 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "只计连续的 Skilled Worker dependant 许可，假设整段都是同一主申请人的 dependent partner；Appendix Relationship with Partner（SW 39.3）未核对。",
         "主申请人尚未定居时，只判断与主申请人同时获批（SW 39.1(a)）；若其已定居，须在主申请人信息里填写定居日期与路线（SW 39.1(b)）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -13499,7 +13596,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -13512,6 +13609,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "id": "CL-SW-SALARY",
           "title": "Skilled Worker 定居薪资（general salary）",
           "sources": [
+            {
+              "srcId": "SRC-004",
+              "locator": "SW 24.2"
+            },
             {
               "srcId": "SRC-004",
               "locator": "SW 24.3"
@@ -13734,7 +13835,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -13742,20 +13843,21 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-04-06 起连续合法居留，截至 2026-04-06 满 5 年；2031-04-06 满 10 年。",
+          "explanation": "自 2021-04-06 起连续合法居留，预计 2031-04-06 满 10 年，按 CR 1.1 最早于 2031-03-09 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 SW 21.2 列出的 Skilled Worker、Global Talent、Innovator Founder、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Representative of an Overseas Business 与 Tier 1 本工具无法填写，不计入；SW 21.2(i) 的等待决定期间未建模。",
         "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
         "未申报是否在 Immigration Salary List 上，按不在清单处理。",
         "\\"2024-04-04 前按当时规则获批\\"按连续 Skilled Worker 许可的起始日判断（SW 4.2(b)(ii)）。",
         "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -14131,7 +14233,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
     "current-law-2026-11": {
       "outcome": "LIKELY_NOT_ELIGIBLE",
       "pathwayYears": 5,
-      "earliestDate": "2028-04-06",
+      "earliestDate": "2028-03-09",
       "decidedBy": [
         "CL-SW-PARTNER-5Y",
         "CL-ENGLISH",
@@ -14228,11 +14330,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "FAIL",
-          "explanation": "与主申请人一同定居：dependent partner 许可与主申请人的 Skilled Worker 期都满 5 年后，2028-04-06 起可申请（SW 39.1(a)、SW 42.1）。截至 2026-04-06 尚未满期。",
+          "explanation": "与主申请人一同定居：按本人与主申请人各自的 5 年合格期，可从 2028-03-09 起一同申请（SW 39.1(a)、SW 42.1）。截至 2026-04-06 尚未满期。",
           "assumptions": [
             "只计连续的 Skilled Worker dependant 许可，假设整段都是同一主申请人的 dependent partner；Appendix Relationship with Partner（SW 39.3）未核对。",
             "主申请人尚未定居时，只判断与主申请人同时获批（SW 39.1(a)）；若其已定居，须在主申请人信息里填写定居日期与路线（SW 39.1(b)）。"
@@ -14400,7 +14502,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -14408,18 +14510,19 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2023-04-06 起连续合法居留，截至 2026-04-06 满 3 年；2033-04-06 满 10 年。",
+          "explanation": "自 2023-04-06 起连续合法居留，预计 2033-04-06 满 10 年，按 CR 1.1 最早于 2033-03-09 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "预计日期在 2027-03-26 之后，届时定居须达到英语 B2（SW 22A.1、LR 13.1(b)）。",
         "只计连续的 Skilled Worker dependant 许可，假设整段都是同一主申请人的 dependent partner；Appendix Relationship with Partner（SW 39.3）未核对。",
         "主申请人尚未定居时，只判断与主申请人同时获批（SW 39.1(a)）；若其已定居，须在主申请人信息里填写定居日期与路线（SW 39.1(b)）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。",
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。",
         "最早可申请日期按\\"自 2023-04-06 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ]
     },
@@ -14790,7 +14893,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             }
           ],
           "status": "PASS",
-          "explanation": "申请日未满 18 岁（CHI 1.1）；随主申请人定居：主申请人的 Skilled Worker 期 2026-04-06 满 5 年，届时可一同申请（SW 39.1(a)、SW 41A.1）；子女本人没有居留年限要求。",
+          "explanation": "申请日未满 18 岁（CHI 1.1）；随主申请人定居：可在 2026-04-06 与主申请人一同申请（SW 39.1(a)、SW 41A.1）；子女本人没有居留年限要求。",
           "assumptions": [
             "假设子女未 leading an independent life（CHI 1A.1）。",
             "假设子女有符合英国法律的照护与住宿安排（CHI 2.1）。",
@@ -14960,7 +15063,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -14968,19 +15071,20 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-04-06 起连续合法居留，截至 2026-04-06 满 5 年；2031-04-06 满 10 年。",
+          "explanation": "自 2021-04-06 起连续合法居留，预计 2031-04-06 满 10 年，按 CR 1.1 最早于 2031-03-09 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "假设子女未 leading an independent life（CHI 1A.1）。",
         "假设子女有符合英国法律的照护与住宿安排（CHI 2.1）。",
         "只看申请日当天的 Skilled Worker dependent child 许可，假设是同一主申请人的子女；另一位家长须同时获批定居、已定居或为英国公民，除非主申请人负唯一抚养责任等（CHI 4.3，经 SW 39.4），本工具未核对。",
         "主申请人尚未定居时，只判断与主申请人同时获批（SW 39.1(a)）；若其已定居，须在主申请人信息里填写定居日期与路线（SW 39.1(b)）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -15335,7 +15439,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             }
           ],
           "status": "PASS",
-          "explanation": "申请日已满 18 岁，但当前持有的是 dependent child 许可（CHI 1.2(a)）；随主申请人定居：主申请人的 Skilled Worker 期 2026-04-06 满 5 年，届时可一同申请（SW 39.1(a)、SW 41A.1）；子女本人没有居留年限要求。",
+          "explanation": "申请日已满 18 岁，但当前持有的是 dependent child 许可（CHI 1.2(a)）；随主申请人定居：可在 2026-04-06 与主申请人一同申请（SW 39.1(a)、SW 41A.1）；子女本人没有居留年限要求。",
           "assumptions": [
             "假设子女未 leading an independent life（CHI 1A.1）。",
             "只看申请日当天的 Skilled Worker dependent child 许可，假设是同一主申请人的子女；另一位家长须同时获批定居、已定居或为英国公民，除非主申请人负唯一抚养责任等（CHI 4.3，经 SW 39.4），本工具未核对。",
@@ -15504,7 +15608,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -15512,18 +15616,19 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-04-06 起连续合法居留，截至 2026-04-06 满 5 年；2031-04-06 满 10 年。",
+          "explanation": "自 2021-04-06 起连续合法居留，预计 2031-04-06 满 10 年，按 CR 1.1 最早于 2031-03-09 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "假设子女未 leading an independent life（CHI 1A.1）。",
         "只看申请日当天的 Skilled Worker dependent child 许可，假设是同一主申请人的子女；另一位家长须同时获批定居、已定居或为英国公民，除非主申请人负唯一抚养责任等（CHI 4.3，经 SW 39.4），本工具未核对。",
         "主申请人尚未定居时，只判断与主申请人同时获批（SW 39.1(a)）；若其已定居，须在主申请人信息里填写定居日期与路线（SW 39.1(b)）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -15766,7 +15871,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-E default-locale output is unchanged 1`] = `
     "current-law-2026-11": {
       "outcome": "LIKELY_NOT_ELIGIBLE",
       "pathwayYears": 10,
-      "earliestDate": "2031-04-06",
+      "earliestDate": "2031-03-09",
       "decidedBy": [
         "CL-ENGLISH",
         "CL-KOL",
@@ -16044,7 +16149,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-E default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -16052,19 +16157,20 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-E default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2021-04-06 起连续合法居留，截至 2026-04-06 满 5 年；2031-04-06 满 10 年。",
+          "explanation": "自 2021-04-06 起连续合法居留，预计 2031-04-06 满 10 年，按 CR 1.1 最早于 2031-03-09 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "预计日期在 2027-03-26 之后，届时定居须达到英语 B2（SW 22A.1、LR 13.1(b)）。",
         "假设子女未 leading an independent life（CHI 1A.1）。",
         "只看申请日当天的 Skilled Worker dependent child 许可，假设是同一主申请人的子女；另一位家长须同时获批定居、已定居或为英国公民，除非主申请人负唯一抚养责任等（CHI 4.3，经 SW 39.4），本工具未核对。",
         "主申请人尚未定居时，只判断与主申请人同时获批（SW 39.1(a)）；若其已定居，须在主申请人信息里填写定居日期与路线（SW 39.1(b)）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。",
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。",
         "最早可申请日期按\\"自 2021-04-06 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ]
     },
@@ -16577,7 +16683,7 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -16585,18 +16691,19 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2027-06-01 起连续合法居留，截至 2032-06-01 满 5 年；2037-06-01 满 10 年。",
+          "explanation": "自 2027-06-01 起连续合法居留，预计 2037-06-01 满 10 年，按 CR 1.1 最早于 2037-05-04 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "STP 1.3 按申请庇护的日期列明许可类别：2022-06-28 前申请的为 refugee 或 humanitarian protection 许可，此后申请的为 refugee permission to stay；本工具不区分 refugee 与 humanitarian protection，按你持有所列许可处理。2022-06-28 及以后申请庇护而获 humanitarian protection 的，STP 1.3(b) 未列明（PD-073）。",
         "审理定居申请时会做 safe return review（STP 4.2），核查个人情况或原籍国状况是否已变化到可撤销或不续期保护身份，结果无法预判。",
         "不满足定居要求、但仍有权享有 refugee status 或 humanitarian protection 时，会再获至少 30 个月的保护许可（STP 5.2）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -17085,7 +17192,7 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -17093,18 +17200,19 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2027-03-01 起连续合法居留，截至 2030-01-01 满 2 年；2037-03-01 满 10 年。",
+          "explanation": "自 2027-03-01 起连续合法居留，预计 2037-03-01 满 10 年，按 CR 1.1 最早于 2037-02-01 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "STP 1.3 按申请庇护的日期列明许可类别：2022-06-28 前申请的为 refugee 或 humanitarian protection 许可，此后申请的为 refugee permission to stay；本工具不区分 refugee 与 humanitarian protection，按你持有所列许可处理。2022-06-28 及以后申请庇护而获 humanitarian protection 的，STP 1.3(b) 未列明（PD-073）。",
         "审理定居申请时会做 safe return review（STP 4.2），核查个人情况或原籍国状况是否已变化到可撤销或不续期保护身份，结果无法预判。",
         "不满足定居要求、但仍有权享有 refugee status 或 humanitarian protection 时，会再获至少 30 个月的保护许可（STP 5.2）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。",
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。",
         "最早可申请日期按\\"自 2027-03-01 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ]
     },
@@ -17637,7 +17745,7 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -17645,18 +17753,19 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2027-03-01 起连续合法居留，截至 2030-01-01 满 2 年；2037-03-01 满 10 年。",
+          "explanation": "自 2027-03-01 起连续合法居留，预计 2037-03-01 满 10 年，按 CR 1.1 最早于 2037-02-01 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "STP 1.3 按申请庇护的日期列明许可类别：2022-06-28 前申请的为 refugee 或 humanitarian protection 许可，此后申请的为 refugee permission to stay；本工具不区分 refugee 与 humanitarian protection，按你持有所列许可处理。2022-06-28 及以后申请庇护而获 humanitarian protection 的，STP 1.3(b) 未列明（PD-073）。",
         "审理定居申请时会做 safe return review（STP 4.2），核查个人情况或原籍国状况是否已变化到可撤销或不续期保护身份，结果无法预判。",
         "不满足定居要求、但仍有权享有 refugee status 或 humanitarian protection 时，会再获至少 30 个月的保护许可（STP 5.2）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。",
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。",
         "最早可申请日期按\\"自 2027-03-01 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ]
     },
@@ -18193,7 +18302,7 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -18201,18 +18310,19 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2027-03-01 起连续合法居留，截至 2030-01-01 满 2 年；2037-03-01 满 10 年。",
+          "explanation": "自 2027-03-01 起连续合法居留，预计 2037-03-01 满 10 年，按 CR 1.1 最早于 2037-02-01 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "STP 1.3 按申请庇护的日期列明许可类别：2022-06-28 前申请的为 refugee 或 humanitarian protection 许可，此后申请的为 refugee permission to stay；本工具不区分 refugee 与 humanitarian protection，按你持有所列许可处理。2022-06-28 及以后申请庇护而获 humanitarian protection 的，STP 1.3(b) 未列明（PD-073）。",
         "审理定居申请时会做 safe return review（STP 4.2），核查个人情况或原籍国状况是否已变化到可撤销或不续期保护身份，结果无法预判。",
         "不满足定居要求、但仍有权享有 refugee status 或 humanitarian protection 时，会再获至少 30 个月的保护许可（STP 5.2）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。",
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。",
         "最早可申请日期按\\"自 2027-03-01 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ]
     },
@@ -18534,7 +18644,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -18547,6 +18657,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "id": "CL-SW-SALARY",
           "title": "Skilled Worker 定居薪资（general salary）",
           "sources": [
+            {
+              "srcId": "SRC-004",
+              "locator": "SW 24.2"
+            },
             {
               "srcId": "SRC-004",
               "locator": "SW 24.3"
@@ -18769,7 +18883,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -18777,20 +18891,21 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2023-04-06 起连续合法居留，截至 2028-04-06 满 5 年；2033-04-06 满 10 年。",
+          "explanation": "自 2023-04-06 起连续合法居留，预计 2033-04-06 满 10 年，按 CR 1.1 最早于 2033-03-09 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 SW 21.2 列出的 Skilled Worker、Global Talent、Innovator Founder、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Representative of an Overseas Business 与 Tier 1 本工具无法填写，不计入；SW 21.2(i) 的等待决定期间未建模。",
         "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
         "未申报是否在 Immigration Salary List 上；SOC 6135 在清单职业表中，按职业代码推导为在清单上。清单对岗位 / 地区的限制（criteria）未核对，可在问卷里申报覆盖。清单条目的移除日期为 2028-07-22，已按申请日比较。",
         "\\"2024-04-04 前按当时规则获批\\"按连续 Skilled Worker 许可的起始日判断（SW 4.2(b)(ii)）。",
         "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {
@@ -19173,7 +19288,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
     "current-law-2026-11": {
       "outcome": "LIKELY_NOT_ELIGIBLE",
       "pathwayYears": 10,
-      "earliestDate": "2033-04-06",
+      "earliestDate": "2033-03-09",
       "decidedBy": [
         "CL-ENGLISH",
         "CL-KOL",
@@ -19270,7 +19385,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -19283,6 +19398,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "id": "CL-SW-SALARY",
           "title": "Skilled Worker 定居薪资（general salary）",
           "sources": [
+            {
+              "srcId": "SRC-004",
+              "locator": "SW 24.2"
+            },
             {
               "srcId": "SRC-004",
               "locator": "SW 24.3"
@@ -19505,7 +19624,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -19513,20 +19632,21 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "自 2023-04-06 起连续合法居留，截至 2028-04-06 满 5 年；2033-04-06 满 10 年。",
+          "explanation": "自 2023-04-06 起连续合法居留，预计 2033-04-06 满 10 年，按 CR 1.1 最早于 2033-03-09 满足申请的居留年限条件。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 SW 21.2 列出的 Skilled Worker、Global Talent、Innovator Founder、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Representative of an Overseas Business 与 Tier 1 本工具无法填写，不计入；SW 21.2(i) 的等待决定期间未建模。",
         "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
         "未申报是否在 Immigration Salary List 上；SOC 6135 在清单职业表中，按职业代码推导为在清单上。清单对岗位 / 地区的限制（criteria）未核对，可在问卷里申报覆盖。清单条目的移除日期为 2028-07-22，已按申请日比较。",
         "\\"2024-04-04 前按当时规则获批\\"按连续 Skilled Worker 许可的起始日判断（SW 4.2(b)(ii)）。",
         "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。",
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。",
         "最早可申请日期按\\"自 2023-04-06 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ]
     },
@@ -20005,7 +20125,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             }
           ],
           "status": "PASS",
@@ -20018,6 +20138,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "id": "CL-SW-SALARY",
           "title": "Skilled Worker 定居薪资（general salary）",
           "sources": [
+            {
+              "srcId": "SRC-004",
+              "locator": "SW 24.2"
+            },
             {
               "srcId": "SRC-004",
               "locator": "SW 24.3"
@@ -20240,7 +20364,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-008",
-              "locator": "CR 3.1"
+              "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
               "srcId": "SRC-008",
@@ -20250,18 +20374,19 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "status": "PASS",
           "explanation": "自 2024-06-06 起连续合法居留，已满 10 年。",
           "assumptions": [
-            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+            "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
           ]
         }
       ],
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
+        "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 SW 21.2 列出的 Skilled Worker、Global Talent、Innovator Founder、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Representative of an Overseas Business 与 Tier 1 本工具无法填写，不计入；SW 21.2(i) 的等待决定期间未建模。",
         "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
         "未申报是否在 Immigration Salary List 上；SOC 6135 的清单条目移除日期为 2028-07-22，早于申请日，按不在清单处理。",
         "SOC 6135 在 SW A1.1 的 Health and Care ASHE salary job 职业列表内，假设雇主属 SW A1.1(a)–(f) 列出的类型。",
         "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。",
-        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；LR 11.2 不计入的期间（immigration bail 等）与 LR 11.3 的 12 个月要求未建模。"
+        "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
     "earned-settlement-2026-11": {

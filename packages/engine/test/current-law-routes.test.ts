@@ -67,14 +67,14 @@ describe('Hong Kong BN(O) (SRC-020)', () => {
     });
   });
 
-  test('a day short: projects the date 5 years on', () => {
+  test('a day short: the completion date is a CR 1.1 reference', () => {
     const short = run(clHkbnoResidence5Y, bno('2021-02-02'), '2026-02-01');
-    expect(short.status).toBe('FAIL');
+    expect(short.status).toBe('PASS');
     expect(short.explanation).toContain('2026-02-02');
     expect(currentLaw(bno('2021-02-02'), '2026-02-01')).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 5,
-      earliestDate: '2026-02-02',
+      earliestDate: '2026-02-01',
     });
   });
 
@@ -136,7 +136,7 @@ describe('Hong Kong BN(O) (SRC-020)', () => {
     expect(b1).toMatchObject({
       outcome: 'LIKELY_NOT_ELIGIBLE',
       pathwayYears: 5,
-      earliestDate: '2029-01-01',
+      earliestDate: '2028-12-04',
     });
     expect(b1.assumptions.join()).toContain('LR 13.1(b)');
     expect(
@@ -174,19 +174,19 @@ describe('Global Talent (SRC-021)', () => {
     );
   });
 
-  test('exceptional talent: 3 years to the day is likely eligible; a day short projects the date', () => {
+  test('exceptional talent: 3 years to the day is likely eligible; a day short uses CR 1.1', () => {
     expect(currentLaw(gt('2023-11-04'), '2026-11-04')).toMatchObject({
       outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 3,
       earliestDate: '2026-11-04',
     });
     const short = run(clGtResidence, gt('2023-11-05'), '2026-11-04');
-    expect(short.status).toBe('FAIL');
+    expect(short.status).toBe('PASS');
     expect(short.explanation).toContain('GT 11.1(b)');
     expect(currentLaw(gt('2023-11-05'), '2026-11-04')).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 3,
-      earliestDate: '2026-11-05',
+      earliestDate: '2026-11-04',
     });
   });
 
@@ -216,7 +216,7 @@ describe('Global Talent (SRC-021)', () => {
     expect(promise).toMatchObject({
       outcome: 'LIKELY_NOT_ELIGIBLE',
       pathwayYears: 5,
-      earliestDate: '2028-11-04',
+      earliestDate: '2028-10-07',
     });
     // Projected past 2027-03-26: B2 then (GT 13.1(b)).
     expect(promise.assumptions.join()).toContain('GT 13.1(b)');
@@ -288,19 +288,19 @@ describe('family partner, 10-year route (SRC-022)', () => {
     english: { cefrLevel: 'B1' },
   });
 
-  test('10 years to the day is likely eligible; a day short projects the date', () => {
+  test('10 years to the day is likely eligible; a day short uses CR 1.1', () => {
     expect(currentLaw(partner('2016-11-04'), '2026-11-04')).toMatchObject({
       outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 10,
       earliestDate: '2026-11-04',
     });
     const short = run(clFamilyResidence, partner('2016-11-05'), '2026-11-04');
-    expect(short.status).toBe('FAIL');
+    expect(short.status).toBe('PASS');
     expect(short.explanation).toContain('2026-11-05');
     expect(currentLaw(partner('2016-11-05'), '2026-11-04')).toMatchObject({
-      outcome: 'LIKELY_NOT_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 10,
-      earliestDate: '2026-11-05',
+      earliestDate: '2026-11-04',
     });
   });
 

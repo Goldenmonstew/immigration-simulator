@@ -2,15 +2,18 @@ import {
   currentLaw2026_11 as cl,
   routeNames,
 } from '@uk-immigration/policy-data';
-import { addYears, fullYears, fullYearsEn } from '../../dates';
-import {
-  continuousRun,
-  episodeOn,
-  restartAfterAbsences,
-} from '../../residence';
+import { episodeOn, currentResidence } from '../../residence';
 import { defineRule, nameIn, textFor } from '../../rule';
-import type { ImmigrationEpisode, IsoDate, RuleContext } from '../../types';
-import { CR_3_1, RULE_SET, absenceAssumption, onPrivateLife } from './shared';
+import type { ImmigrationEpisode, RuleContext } from '../../types';
+import {
+  crResidenceSources,
+  residenceAssumptions,
+  residenceCompleted,
+  residencePending,
+  RULE_SET,
+  absenceAssumption,
+  onPrivateLife,
+} from './shared';
 import { countsForFamilyTenYear } from './family';
 
 /** PL 14.1 / PL 14.2(a): the qualifying period and the paragraph that sets it. */
@@ -44,28 +47,23 @@ function privateLifePeriod(
 export function privateLifeQualifying({
   timeline,
   simulationDate,
-}: RuleContext):
-  | {
-      start: IsoDate;
-      before?: ImmigrationEpisode;
-      period?: { years: number; basis: string };
-    }
-  | undefined {
+}: RuleContext) {
   if (!onPrivateLife(timeline, simulationDate)) return undefined;
-  const { episodes, stoppedAt } = continuousRun(
-    timeline,
-    simulationDate,
-    countsForFamilyTenYear,
-  );
+  const period = privateLifePeriod(episodeOn(timeline, simulationDate)!);
   return {
-    start: restartAfterAbsences(
-      episodes[0].validFrom,
-      simulationDate,
-      timeline.absences,
-      CR_3_1,
-    ),
-    before: stoppedAt,
-    period: privateLifePeriod(episodeOn(timeline, simulationDate)!),
+    period,
+    residence:
+      period &&
+      currentResidence(
+        timeline,
+        simulationDate,
+        countsForFamilyTenYear,
+        period.years,
+        {
+          appliesOn: (e) =>
+            e.route === 'FAMILY_AND_PRIVATE_LIFE' && e.role === 'MAIN',
+        },
+      ),
   };
 }
 
@@ -81,7 +79,7 @@ export const clPrivateLifeResidence = defineRule(
       { srcId: 'SRC-028', locator: 'PL 14.3' },
       { srcId: 'SRC-028', locator: 'PL 14.4' },
       { srcId: 'SRC-028', locator: 'PL 15.1' },
-      { srcId: 'SRC-008', locator: 'CR 3.1' },
+      ...crResidenceSources,
     ],
     pendingDetails: ['PD-069'],
   },
@@ -97,7 +95,8 @@ export const clPrivateLifeResidence = defineRule(
         ),
       };
     }
-    const { start, before, period } = q;
+    const { residence, period } = q;
+    const before = residence?.before;
     const assumptions = [
       L(
         '连续期合并 PL 14.3 列出的 Appendix FM 伴侣、父母及其子女许可与 Private Life 许可；PL 14.3(e) 基于 Article 8 的 Leave Outside the Rules 无法与其他 Leave Outside the Rules 区分，不计入。PL 13（英国出生、连续居住 7 年的儿童可直接定居）、PL 14.1A / PL 14.2(b) / PL 14.2A（2022-06-20 前 Appendix FM 或 Leave Outside the Rules 许可的过渡安排）与 PL 12.3–12.5（suitability 事由要求走 10 年）未建模。',
@@ -124,21 +123,24 @@ export const clPrivateLifeResidence = defineRule(
       };
     }
     const { years, basis } = period;
-    const due = addYears(start, years);
-    return due <= ctx.simulationDate
+    const { start } = residence!;
+    assumptions.push(
+      ...residenceAssumptions(ctx.timeline, ctx.simulationDate, residence, L),
+    );
+    return residence!.applicationDate === ctx.simulationDate
       ? {
           status: 'PASS',
           explanation: L(
-            `按 ${basis} 合格期 ${years} 年；自 ${start} 起连续持可计入的许可（PL 14.3），已满 ${years} 年。`,
-            `${years}-year qualifying period under ${basis}; continuous qualifying permission (PL 14.3) since ${start}: ${years} years completed.`,
+            `按 ${basis} 合格期 ${years} 年；自 ${start} 起连续持可计入的许可（PL 14.3），${residenceCompleted(residence!, ctx.simulationDate, years, L)}。`,
+            `${years}-year qualifying period under ${basis}; continuous qualifying permission (PL 14.3) since ${start}: ${residenceCompleted(residence!, ctx.simulationDate, years, L)}.`,
           ),
           assumptions,
         }
       : {
           status: 'FAIL',
           explanation: L(
-            `按 ${basis} 合格期 ${years} 年；自 ${start} 起连续持可计入的许可（PL 14.3），截至 ${ctx.simulationDate} 满 ${fullYears(start, ctx.simulationDate)} 年；${due} 满 ${years} 年。`,
-            `${years}-year qualifying period under ${basis}; continuous qualifying permission (PL 14.3) since ${start}: ${fullYearsEn(start, ctx.simulationDate)} by ${ctx.simulationDate}; ${years} years are completed on ${due}.`,
+            `按 ${basis} 合格期 ${years} 年；自 ${start} 起连续持可计入的许可（PL 14.3），${residencePending(residence!, years, L)}。`,
+            `${years}-year qualifying period under ${basis}; continuous qualifying permission (PL 14.3) since ${start}: ${residencePending(residence!, years, L)}.`,
           ),
           assumptions,
         };

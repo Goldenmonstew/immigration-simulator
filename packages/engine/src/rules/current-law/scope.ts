@@ -2,14 +2,18 @@ import { routeNames } from '@uk-immigration/policy-data';
 import { episodeOn } from '../../residence';
 import { defineRule, nameIn, textFor } from '../../rule';
 import type { Route } from '@uk-immigration/policy-data';
+import type { RuleContext, RuleResult } from '../../types';
 import {
   MAIN_ONLY_ROUTES,
   RULE_SET,
+  applicationPresence,
   globalTalentDependant,
   hongKongBnoDependant,
   isSkilledWorkerDependant,
   onFamilyChild,
   onFamilyPartner,
+  onFamilyPartnerFiveYear,
+  onFamilyPartnerTenYear,
   onGlobalTalent,
   onHongKongBno,
   onInnovatorFounder,
@@ -22,6 +26,44 @@ import {
 } from './shared';
 import { onFiveYearFamilyChild } from './family';
 import { longResidenceMet } from './long-residence';
+
+/** The route is still assessed when its applicant cannot file on this day. */
+export function currentLawApplicationPresence(
+  ctx: RuleContext,
+): RuleResult | undefined {
+  const { timeline, simulationDate } = ctx;
+  const presence = applicationPresence(timeline, simulationDate, textFor(ctx));
+  if (!presence) return undefined;
+  const current = episodeOn(timeline, simulationDate);
+  if (!current) return undefined;
+  const source =
+    current.route === 'SKILLED_WORKER'
+      ? {
+          srcId: 'SRC-004',
+          locator: current.role === 'MAIN' ? 'SW 19.2(d)' : 'SW 37.2(d)',
+        }
+      : onFamilyPartnerFiveYear(timeline, simulationDate)
+        ? { srcId: 'SRC-024', locator: 'R-ILRP.1.1(a), E-ILRP.1.2' }
+        : current.route === 'HONG_KONG_BNO'
+          ? { srcId: 'SRC-020', locator: 'HK 55.2(e)' }
+          : current.route === 'GLOBAL_TALENT'
+            ? {
+                srcId: 'SRC-021',
+                locator: current.role === 'MAIN' ? 'GT 8.2(d)' : 'GT 25.2(d)',
+              }
+            : onInnovatorFounder(timeline, simulationDate)
+              ? { srcId: 'SRC-027', locator: 'INNF 15.2(d)' }
+              : onPrivateLife(timeline, simulationDate)
+                ? { srcId: 'SRC-028', locator: 'PL 11.2(d)' }
+                : onFamilyPartnerTenYear(timeline, simulationDate)
+                  ? { srcId: 'SRC-022', locator: 'SETF 1.2(d)' }
+                  : ctx.principal &&
+                      onFamilyChild(timeline, simulationDate) &&
+                      !onFiveYearFamilyChild(ctx)
+                    ? { srcId: 'SRC-022', locator: 'SETF 10.2(d)' }
+                    : undefined;
+  return source && { ...presence, sources: [source] };
+}
 
 export const clScope = defineRule(
   {
@@ -53,6 +95,7 @@ export const clScope = defineRule(
     const { timeline, simulationDate } = ctx;
     const L = textFor(ctx);
     const rn = (r: Route) => nameIn(L, routeNames[r]);
+    const current = episodeOn(timeline, simulationDate);
     if (onHongKongBno(timeline, simulationDate)) {
       return {
         status: 'PASS',
@@ -194,12 +237,11 @@ export const clScope = defineRule(
       return {
         status: 'PASS',
         explanation: L(
-          '已满 10 年连续合法居留，按 Appendix Long Residence 评估。',
-          '10 years of continuous lawful residence completed; assessed under Appendix Long Residence.',
+          '按 CR 1.1 核对已满足 Long Residence 的连续合法居留年限，按 Appendix Long Residence 评估。',
+          'Meets the continuous lawful residence period under CR 1.1 and is assessed under Appendix Long Residence.',
         ),
       };
     }
-    const current = episodeOn(timeline, simulationDate);
     if (
       current?.route === 'FAMILY_PARTNER_OR_PARENT' &&
       current.role === 'MAIN'

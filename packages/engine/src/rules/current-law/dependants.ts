@@ -1,6 +1,14 @@
 import { textFor } from '../../rule';
+import { nextPermissionFiling } from '../../residence';
+import type { CurrentResidence } from '../../residence';
 import type { Lang } from '../../rule';
-import type { IsoDate, RuleContext, RuleResult } from '../../types';
+import type {
+  IsoDate,
+  PersonTimeline,
+  RuleContext,
+  RuleResult,
+} from '../../types';
+import type { Route } from '@uk-immigration/policy-data';
 import { RULE_SET } from './shared';
 
 // Dependants of Hong Kong BN(O), Global Talent and Appendix FM partners
@@ -10,6 +18,7 @@ import { RULE_SET } from './shared';
 export interface DependantPathway {
   years: number;
   start?: IsoDate;
+  applicationDate?: IsoDate;
   result: Omit<RuleResult, 'sources'>;
 }
 
@@ -72,4 +81,45 @@ export function principalNotReady(
       };
 }
 
-export const later = (a: IsoDate, b: IsoDate) => (a > b ? a : b);
+/** CR 3.2 windows can change with the filing date. Recheck both on one day. */
+export function jointApplication<
+  T extends { applicationDate?: IsoDate },
+  P extends CurrentResidence,
+>(
+  date: IsoDate,
+  ownFrom: (date: IsoDate) => T | undefined,
+  principalFrom: (date: IsoDate) => P | undefined,
+) {
+  for (;;) {
+    const own = ownFrom(date);
+    if (!own?.applicationDate) return undefined;
+    const principal = principalFrom(own.applicationDate);
+    if (!principal?.applicationDate) return undefined;
+    if (principal.applicationDate === own.applicationDate)
+      return { ...own, principal };
+    date = principal.applicationDate;
+  }
+}
+
+/** HK 62.1(b), SW 41A–43, GT 29A–31, SETF 12–14: no qualifying period of the child's own. */
+export function childFiling(
+  timeline: PersonTimeline,
+  from: IsoDate,
+  route: Route,
+) {
+  return nextPermissionFiling(
+    timeline,
+    from,
+    (e) =>
+      e.route === route && e.role === 'DEPENDANT' && e.dependantOf === 'PARENT',
+  );
+}
+
+export const noJointApplication = (L: Lang, assumptions: string[]) => ({
+  status: 'FAIL' as const,
+  explanation: L(
+    '按已申报的许可和行程，无法给出双方都满足条件的同一天申请日。',
+    'The recorded permissions and travel do not support a date when both applicants can apply together.',
+  ),
+  assumptions,
+});

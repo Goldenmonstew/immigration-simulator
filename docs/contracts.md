@@ -106,13 +106,17 @@ What-if、前向推算的结构化假设，都等用到时再加字段，不提�
   - 10 年：强制 + `ES-BREACH` + `ES-PUBLIC-FUNDS` + `ES-EARNINGS-10Y`
   - 20 年：强制 + `ES-EARNINGS-10Y`（用过 public funds 或有 breach 时只剩这条）
   - 当前为 Family and Private Life 时只有 10 / 20 年（p23）。居留起点都是 `ES-RESIDENCE` 的合格期起点。
-- 现行法律：`CL-SCOPE` 不通过时只输出这一条、结论 `INSUFFICIENT_INFORMATION`。否则候选为 Skilled Worker 5 年（`CL-SW-SALARY`、`CL-SW-GOING-RATE`（2.5）、`CL-ENGLISH`、`CL-KOL`，起点为连续 Skilled Worker 段）与 Long Residence 10 年（`CL-ENGLISH`、`CL-KOL`，起点为连续合法居留段；英语按 LR 13.1 的等级单独核对，与当前路线的等级不同时只改该候选里的状态，`rules[]` 仍只显示按当前路线的一条，差异写进 `assumptions`（4.5））；居留规则 `CL-SW-RESIDENCE-5Y` / `CL-LR-RESIDENCE-10Y` 只用于展示，年限由起点计算。
+- 现行法律：建模范围无法确定时，只输出 `CL-SCOPE` 的 `UNKNOWN`，结论为 `INSUFFICIENT_INFORMATION`。在建模范围内，适用境内申请的路线会显示申请日的位置判断，明确在境外为 `FAIL`，位置无法确定为 `UNKNOWN`。仍显示相关路线规则。若只是出境当天递交时的位置不明，当天结论为 `INSUFFICIENT_INFORMATION`。已知返英日且候选的其他要求都通过时，保留可确认的未来日期和对应路线，供随行申请在同一天核对双方。候选如 Skilled Worker 5 年（`CL-SW-SALARY`、`CL-SW-GOING-RATE`（2.5）、`CL-ENGLISH`、`CL-KOL`，起点为连续 Skilled Worker 段）与 Long Residence 10 年（`CL-ENGLISH`、`CL-KOL`，起点为连续合法居留段；英语按 LR 13.1 的等级单独核对，与当前路线的等级不同时只改该候选里的状态，`rules[]` 仍只显示按当前路线的一条，差异写进 `assumptions`（4.5））。候选与居留规则共用可申请日的计算。Long Residence 的 `CL-LR-RESIDENCE-10Y` 也显示 LR 9.3 的申请日位置判断。
 
-判定（两个规则集同一套）：
+候选日期以实际申请日为比较基准。引用 Appendix Continuous Residence 的现行路径按 SRC-008 CR 1.1(a)–(b) 从申请日及其后最多 28 天内的可计入日期回溯。预测日期使用已录入的许可、到期与转签。出境当天恢复未来候选时，在该候选日核对主申请人的条件。Skilled Worker 按实际递交日生效的许可核对 general salary 和 going rate，随行人推后共同日期时再次核对（SRC-004 SW 24.2–24.3、39.1(a)）。普通预测可给出居留日期并列出仍待确认的条件，例如 Life in the UK（SW 23.1）。共同递交日上主申请人有条件 `FAIL` 时顺延到下一段许可；只缺资料（`UNKNOWN`）时保留该日，随行人的预测与主申请人一致，当日结论为 `UNKNOWN`，并写明待确认的条件。出境当天位置不明时恢复的日期，仍须各项条件通过。重叠期间逐段采用当日最近生效的许可，回溯合格期与判定当日许可使用同一口径。候选申请日晚于最后一段已录入许可时，推算以合格许可连续续接为前提。BN(O) 在最后一段已录入许可到期前递交时，若参考日超过到期日，结果可按 Immigration Act 1971 section 3C 有条件计算，并披露申请有效、人在英国且至参考日仍待决定、未撤回的假设。共同日期依赖主申请人的 section 3C 时，随行结果也明确指出主申请人和相应参考日。问卷没有决定日。
 
-1. 有候选全部 `PASS` 且起点 + 年限 ≤ 申请日 → `LIKELY_ELIGIBLE`，`pathwayYears` 取最短，`earliestDate` = 申请日。
-2. 否则，有候选居留已满（或起点未知）且只有 `UNKNOWN`、没有 `FAIL` → 这些 `UNKNOWN` 都带 `pendingDetails` 时 `POTENTIALLY_ELIGIBLE`，`pathwayYears` 取该候选；否则 `INSUFFICIENT_INFORMATION`，不给 `pathwayYears`。两种都不给 `earliestDate`。
-3. 否则 `LIKELY_NOT_ELIGIBLE`；若还有未 `FAIL` 的候选，取起点 + 年限最早的一条给出 `pathwayYears` 与 `earliestDate`，并加假设"持续居留、收入等状况不变"。强制要求 `FAIL` 时所有候选都失败，不给年限与日期。
+缺席限额在可计合格期内核对，CR 3.2 的旧许可窗口按实际申请日周年分隔。Long Residence 按每趟行程的出发日确定适用规则，单次上限与出入境时的许可按原行程核对，累计天数对重叠日期取并集（CR 3.3、4.1(d)(iii)）。有境内申请要求的路线按候选申请日核对位置，已申报的返英日可在抵达后递交。随行申请在同一天分别核对双方，取双方都符合的最早日期。免本人居留年限的子女按候选日核对位置、子女许可及随行条件。其历史缺席天数不设上限（SRC-020 HK 62.1(b)、63.1，SRC-004 SW 41A.1–43.1，SRC-021 GT 29A.1–31.1，SRC-022 SETF 12.1–14.1）。BN(O) 子女在共同递交日前已成年时，从成年日起按本人的五年连续居留、英语和 Life in the UK 条件计算候选日（SRC-020 HK 57.1、60.1–63.1）。Appendix FM 五年伴侣按 E-ILRP.1.3 满期，候选日须满足 R-ILRP.1.1(a)、E-ILRP.1.2 的境内与许可要求。若返英日落在许可空档，继续核对已录入的后续伴侣许可。没有可确认例外时，一个无许可日也会中断连续期。预测和当日判断均从后续许可重新计算满期日（SRC-024 E-ILRP.1.2–1.3、1.5A；已建模的合法停留宽限期见 SRC-008 CR 4.1(d)(v)、4.3）。Appendix Settlement Protection 按该路线的条文计算。Earned Settlement 用连续起点加路径年限。
+
+判定（两个规则集共用）：
+
+1. 有候选全部 `PASS` 且该候选的可申请日 ≤ 实际申请日 → `LIKELY_ELIGIBLE`，`pathwayYears` 取最短，`earliestDate` = 申请日。
+2. 否则，有候选在实际申请日满足相应的居留时点（或时点未知）且只有 `UNKNOWN`、没有 `FAIL` → 这些 `UNKNOWN` 都带 `pendingDetails` 时 `POTENTIALLY_ELIGIBLE`，`pathwayYears` 取该候选；否则 `INSUFFICIENT_INFORMATION`，不给 `pathwayYears`。两种都不给 `earliestDate`。上文出境当天的位置不明另行处理，可保留后续已知的境内候选。
+3. 否则 `LIKELY_NOT_ELIGIBLE`；若还有未 `FAIL` 的候选，取可申请日最早的一条给出 `pathwayYears` 与 `earliestDate`，并加假设"持续居留、收入等状况不变"。强制要求 `FAIL` 时所有候选都失败，不给年限与日期。
 
 短路（`SimulationResult.shortCircuit`）：`CRIMINALITY`（任何犯罪记录）与 `IMMIGRATION_BREACH`（成年后非法入境）让两栏都是 `REQUIRES_REGULATED_REVIEW`；`PROTECTION` 与 `OUTSIDE_FRAMEWORK`（当前路线）只让 Earned Settlement 一栏是 `REQUIRES_REGULATED_REVIEW`，现行法律照常评估。短路时规则照常运行、出现在 `rules` 里，但该栏不给 `pathwayYears` / `earliestDate`。保护类路线的短路自 Phase 3.4 起按 §11.5。
 
@@ -435,7 +439,7 @@ HK BN(O) 的英语只有一个等级（HK 60.1 没有按申请日分段），所
 | `CL-SCOPE`（改） | — | 当前 `FAMILY_PARTNER_OR_PARENT` + `MAIN` 且 `familyPermission` 不是 `PARENT` → `PASS`（缺省也进入，由下一条给 `UNKNOWN`）；`PARENT` → `UNKNOWN`（见上）；该路线的 `DEPENDANT` → `UNKNOWN`，同 12.3。 |
 | `CL-FAMILY-RESIDENCE`（新） | 当前 `FAMILY_PARTNER_OR_PARENT` + `MAIN` | `PARTNER_FIVE_YEAR`：起点 = 申请日所在的连续 `FAMILY_PARTNER_OR_PARENT` + `MAIN` 段起点，满 5 年（E-ILRP.1.3）；fiancé(e) 时间不计（E-ILRP.1.3(2)，本工具无此取值）、同一伴侣（E-ILRP.1.4）按满足假设。`PARTNER_TEN_YEAR`：起点 = 由 `FAMILY_PARTNER_OR_PARENT`（任意 `role`，SETF 3.1(a)(d)）与 `FAMILY_AND_PRIVATE_LIFE`（SETF 3.1(c)）组成的连续段起点，满 10 年；SETF 3.1(e) 的 Article 8 Leave Outside the Rules 无法区分，不计；SETF 3.2（合并其他可定居路线）不建模，紧接之前有其他路线时加假设（与 HK 62.1(b) 同一个新 PD）。两者都经 `restartAfterAbsences`（CR 3.1；SETF 4.1）。满期 `PASS`，未满 `FAIL` 写到期日；`familyPermission` 缺省 → `UNKNOWN`（不带 PD）。片段内各段按与当前片段同一类许可假设。 |
 | `CL-FAMILY-RELATIONSHIP`（新） | 同上 | `relationships` 里有 `PARTNER` 且 `otherPartyStatus` 为 `BRITISH_CITIZEN` 或 `SETTLED` → `PASS`（E-LTRP.1.2(a)(b)；SETF 7.1(a)(b)）；为 `OTHER` → `UNKNOWN`（不带 PD；10 年路线另有 SETF 7.1(c)"同时申请定居"，5 年路线 E-LTRP.1.2(c)–(f) 在定居阶段不能用）；没有 `PARTNER` → `UNKNOWN`（不带 PD）。关系真实且持续（Appendix Relationship with Partner、SETF 7.3 的 1 年）按满足假设。 |
-| `CL-FAMILY-FINANCIAL`（新） | 当前为 `PARTNER_FIVE_YEAR` | 门槛：连续段起点 < 2024-04-11 → 过渡门槛 £18,600 + 首个子女 £3,800 + 其后每个 £2,400，最高 £29,000（E-LTRP.3.5–3.8）；否则 £29,000（E-LTRP.3.1(a)）。收入 = 申请日前最近一个完整 tax year（`taxYearsBefore(simulationDate, 1)`）的 `earnings` + `partnerEarnings`（E-LTRP.3.2(a)(b)）。≥ 门槛 → `PASS`；< 门槛 → `FAIL`；该年 `earnings` 与 `partnerEarnings` 都缺 → `UNKNOWN`（不带 PD）。储蓄（E-LTRP.3.1(b)）、E-LTRP.3.3（伴侣领特定福利）、Appendix FM-SE 证据规则不建模，写进假设；"首次申请"按获批日近似（获批在 2024-04-11 后而申请在此前的情形写进假设）。10 年路线不运行（SETF 没有财务要求）。 |
+| `CL-FAMILY-FINANCIAL`（新） | 当前为 `PARTNER_FIVE_YEAR` | 门槛：按同一伴侣首次成功申请的递交日判断，早于 2024-04-11 → 过渡门槛 £18,600 + 首个子女 £3,800 + 其后每个 £2,400，最高 £29,000（E-LTRP.3.5–3.8）；否则 £29,000（E-LTRP.3.1(a)）。收入 = 申请日前最近一个完整 tax year（`taxYearsBefore(simulationDate, 1)`）的 `earnings` + `partnerEarnings`（E-LTRP.3.2(a)(b)）。≥ 门槛 → `PASS`；< 门槛 → `FAIL`；该年 `earnings` 与 `partnerEarnings` 都缺 → `UNKNOWN`（不带 PD）。储蓄（E-LTRP.3.1(b)）、E-LTRP.3.3（伴侣领特定福利）、Appendix FM-SE 证据规则不建模，写进假设；问卷以最早一段已申报的五年伴侣许可生效日近似首次成功申请的递交日，假设为同一伴侣。许可空档可以重置居留起点，财务过渡资格仍按原申请历史判断。10 年路线不运行（SETF 没有财务要求）。 |
 | `CL-ENGLISH`（改） | — | 当前家庭伴侣 → 申请日 < 2027-03-26 为 B1，此后 B2（SETF 5.1；5 年路线 KoLL 2.2）。 |
 | `CL-KOL`（改） | — | 判断不变；来源补 SETF 6.1（Appendix KOL UK）与 KoLL 2.3（5 年路线）。 |
 

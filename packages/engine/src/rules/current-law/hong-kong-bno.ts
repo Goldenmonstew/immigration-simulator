@@ -2,26 +2,28 @@ import {
   currentLaw2026_11 as cl,
   routeNames,
 } from '@uk-immigration/policy-data';
-import { addYears, fullYears, fullYearsEn } from '../../dates';
-import {
-  continuousRun,
-  episodeOn,
-  restartAfterAbsences,
-  settledBy,
-} from '../../residence';
+import { addDays, addYears } from '../../dates';
+import { episodeOn, currentResidence, settledBy } from '../../residence';
+import type { CurrentResidence } from '../../residence';
 import { defineRule, nameIn, textFor } from '../../rule';
-import type { ImmigrationEpisode, IsoDate, RuleContext } from '../../types';
+import type { IsoDate, RuleContext } from '../../types';
 import {
-  CR_3_1,
+  crResidenceSources,
+  residenceAssumptions,
+  residenceCompleted,
+  residencePending,
   RULE_SET,
   absenceAssumption,
   hongKongBnoDependant,
+  minorOn,
   onHongKongBno,
 } from './shared';
-import { principalSettlesBy } from './skilled-worker';
+import { principalApplicationDate } from './skilled-worker';
 import {
   DependantPathway,
-  later,
+  childFiling,
+  jointApplication,
+  noJointApplication,
   needsPrincipal,
   notYetSettledAssumption,
   principalNotReady,
@@ -33,32 +35,47 @@ import {
  * Only BN(O) time is counted (PD-069); `before` is the adjoining earlier
  * permission on another route, if any.
  */
-export function hongKongBnoStart({
-  timeline,
-  simulationDate,
-}: RuleContext): { start: IsoDate; before?: ImmigrationEpisode } | undefined {
+export function hongKongBnoResidence(
+  { timeline, simulationDate }: RuleContext,
+  notBefore?: IsoDate,
+): CurrentResidence | undefined {
   // Dependants other than a child under 18 also need the 5 years (HK 62.1(b)).
   const kind = hongKongBnoDependant(timeline, simulationDate);
   if (
     !onHongKongBno(timeline, simulationDate) &&
-    (kind === undefined || kind === 'CHILD')
+    (kind === undefined ||
+      (kind === 'CHILD' && (!notBefore || minorOn(timeline, notBefore))))
   ) {
     return undefined;
   }
-  const { episodes, stoppedAt } = continuousRun(
+  const current = episodeOn(timeline, simulationDate)!;
+  return currentResidence(
     timeline,
     simulationDate,
     (e) => e.route === 'HONG_KONG_BNO',
+    cl.values.hongKongBnoQualifyingYears.value,
+    {
+      appliesOn: (e) =>
+        e.route === 'HONG_KONG_BNO' &&
+        e.role === current.role &&
+        e.dependantOf === current.dependantOf,
+      notBefore,
+      allowSection3C: true,
+    },
   );
-  return {
-    start: restartAfterAbsences(
-      episodes[0].validFrom,
-      simulationDate,
-      timeline.absences,
-      CR_3_1,
-    ),
-    before: stoppedAt,
-  };
+}
+
+/** HK 57.1, 62.1(b), 63.1: from adulthood the child can qualify independently. */
+export function adultChildResidence(ctx: RuleContext) {
+  const birthday = addYears(
+    ctx.timeline.dateOfBirth,
+    cl.values.settlementMinorAge.value,
+  );
+  // fullYears can reach the new age on 1 March for a leap-day birth.
+  return hongKongBnoResidence(
+    ctx,
+    minorOn(ctx.timeline, birthday) ? addDays(birthday, 1) : birthday,
+  );
 }
 
 export const clHkbnoResidence5Y = defineRule(
@@ -68,16 +85,19 @@ export const clHkbnoResidence5Y = defineRule(
     title: 'Hong Kong BN(O) 连续 5 年',
     titleEn: `${cl.values.hongKongBnoQualifyingYears.value} continuous years on the Hong Kong BN(O) route`,
     sources: [
+      { srcId: 'SRC-020', locator: 'HK 57.1' },
       { srcId: 'SRC-020', locator: 'HK 62.1' },
       { srcId: 'SRC-020', locator: 'HK 63.1' },
-      { srcId: 'SRC-008', locator: 'CR 3.1' },
+      ...crResidenceSources,
     ],
     pendingDetails: ['PD-069'],
   },
   (ctx) => {
     const L = textFor(ctx);
     const years = cl.values.hongKongBnoQualifyingYears.value;
-    const run = hongKongBnoStart(ctx);
+    const child =
+      hongKongBnoDependant(ctx.timeline, ctx.simulationDate) === 'CHILD';
+    const run = child ? adultChildResidence(ctx) : hongKongBnoResidence(ctx);
     if (!run) {
       return {
         status: 'FAIL',
@@ -89,6 +109,14 @@ export const clHkbnoResidence5Y = defineRule(
     }
     const { start, before } = run;
     const assumptions = [
+      ...(child
+        ? [
+            L(
+              '预计递交时已成年，按本人的连续居留、英语和 Life in the UK 条件评估（HK 57.1、60.1–63.1）。',
+              'At the projected filing date the applicant is an adult. Their own residence, English and Life in the UK requirements apply (HK 57.1, 60.1–63.1).',
+            ),
+          ]
+        : []),
       ...(before
         ? [
             L(
@@ -99,21 +127,23 @@ export const clHkbnoResidence5Y = defineRule(
         : []),
       ...(ctx.timeline.absences.length > 0 ? [absenceAssumption(L)] : []),
     ];
-    const due = addYears(start, years);
-    return due <= ctx.simulationDate
+    assumptions.push(
+      ...residenceAssumptions(ctx.timeline, ctx.simulationDate, run, L),
+    );
+    return run.applicationDate === ctx.simulationDate
       ? {
           status: 'PASS',
           explanation: L(
-            `自 ${start} 起连续持 Hong Kong BN(O) 许可，已满 ${years} 年（HK 62.1(b)）。`,
-            `Continuous Hong Kong BN(O) permission since ${start}: ${years} years completed (HK 62.1(b)).`,
+            `自 ${start} 起连续持 Hong Kong BN(O) 许可，${residenceCompleted(run, ctx.simulationDate, years, L)}（HK 62.1(b)）。`,
+            `Continuous Hong Kong BN(O) permission since ${start}: ${residenceCompleted(run, ctx.simulationDate, years, L)} (HK 62.1(b)).`,
           ),
           assumptions,
         }
       : {
           status: 'FAIL',
           explanation: L(
-            `自 ${start} 起连续持 Hong Kong BN(O) 许可，截至 ${ctx.simulationDate} 满 ${fullYears(start, ctx.simulationDate)} 年；${due} 满 ${years} 年（HK 62.1(b)）。`,
-            `Continuous Hong Kong BN(O) permission since ${start}: ${fullYearsEn(start, ctx.simulationDate)} by ${ctx.simulationDate}; ${years} years are completed on ${due} (HK 62.1(b)).`,
+            `自 ${start} 起连续持 Hong Kong BN(O) 许可，${residencePending(run, years, L)}（HK 62.1(b)）。`,
+            `Continuous Hong Kong BN(O) permission since ${start}: ${residencePending(run, years, L)} (HK 62.1(b)).`,
           ),
           assumptions,
         };
@@ -143,7 +173,6 @@ export function hongKongBnoDependantPathway(
     ...(settled ? [] : [notYetSettledAssumption(L)]),
   ];
   if (!principal) return { years, result: needsPrincipal(L, assumptions) };
-  const own = kind === 'RELATIVE' ? hongKongBnoStart(ctx)!.start : undefined;
   if (settled) {
     if (kind === 'CHILD') {
       return {
@@ -159,15 +188,27 @@ export function hongKongBnoDependantPathway(
         },
       };
     }
+    const own = hongKongBnoResidence(ctx);
+    if (settled.route === 'HONG_KONG_BNO' && !own?.applicationDate) {
+      return {
+        years,
+        result: {
+          status: 'FAIL',
+          explanation: residencePending(own!, years, L),
+          assumptions,
+        },
+      };
+    }
     return settled.route === 'HONG_KONG_BNO'
       ? {
           years,
-          start: own,
+          start: own?.start,
+          applicationDate: own?.applicationDate,
           result: {
             status: 'PASS',
             explanation: L(
-              `主申请人已于 ${settled.date} 以 Hong Kong BN(O) 路线定居（HK 59.1(b)）；本人的 BN(O) 许可须满 ${years} 年（HK 62.1(b)），${addYears(own!, years)} 起可申请。`,
-              `The principal applicant settled on the Hong Kong BN(O) route on ${settled.date} (HK 59.1(b)); this person’s own BN(O) permission must reach ${years} years (HK 62.1(b)), so they can apply from ${addYears(own!, years)}.`,
+              `主申请人已于 ${settled.date} 以 Hong Kong BN(O) 路线定居（HK 59.1(b)）；本人的 BN(O) 许可须满 ${years} 年（HK 62.1(b)），${own!.applicationDate} 起可申请。`,
+              `The principal applicant settled on the Hong Kong BN(O) route on ${settled.date} (HK 59.1(b)); this person’s own BN(O) permission must reach ${years} years (HK 62.1(b)), so they can apply from ${own!.applicationDate}.`,
             ),
             assumptions,
           },
@@ -189,41 +230,67 @@ export function hongKongBnoDependantPathway(
   const onRoute =
     current?.route === 'HONG_KONG_BNO' &&
     (current.role === 'MAIN' || current.dependantOf === 'PARTNER');
-  const principalStart =
-    onRoute && principalSettlesBy(ctx, 'CL-HKBNO-RESIDENCE-5Y')
-      ? hongKongBnoStart({ timeline: principal.timeline, simulationDate })
-          ?.start
-      : undefined;
-  if (!principalStart) {
+  const due = onRoute
+    ? principalApplicationDate(ctx, 'CL-HKBNO-RESIDENCE-5Y')
+    : undefined;
+  if (!due) {
     return {
       years,
       result: principalNotReady(ctx, onRoute, 'Hong Kong BN(O)', assumptions),
     };
   }
-  const due = addYears(principalStart, years);
+  const joint = jointApplication(
+    due,
+    (notBefore) =>
+      kind === 'RELATIVE'
+        ? hongKongBnoResidence(ctx, notBefore)
+        : childFiling(timeline, notBefore, 'HONG_KONG_BNO'),
+    (notBefore) =>
+      hongKongBnoResidence(
+        { timeline: principal.timeline, simulationDate },
+        notBefore,
+      ),
+  );
+  if (
+    !joint?.applicationDate ||
+    (kind === 'CHILD' && !minorOn(timeline, joint.applicationDate))
+  ) {
+    return { years, result: noJointApplication(L, assumptions) };
+  }
+  const { applicationDate } = joint;
+  if (joint.principal.reliesOnSection3C) {
+    const reference = joint.principal.referenceDate;
+    assumptions.push(
+      L(
+        `共同递交日以主申请人在其许可有效期内递交有效定居申请为前提。假设主申请人留在英国，其申请在 ${reference} 仍待决定且未撤回，原许可按 Immigration Act 1971 section 3C 延续至该参考日。`,
+        `The joint filing date assumes the principal applicant makes a valid settlement application while their permission is valid and stays in the UK. Their application must still be pending and not withdrawn on ${reference} for Immigration Act 1971 section 3C to extend their permission to that reference date.`,
+      ),
+    );
+  }
   if (kind === 'CHILD') {
     return {
       years,
-      start: principalStart,
+      start: addYears(applicationDate, -years),
+      applicationDate,
       result: {
         status: 'PASS',
         explanation: L(
-          `未满 ${cl.values.settlementMinorAge.value} 岁（HK 57.1）；随主申请人定居：主申请人 ${due} 满 ${years} 年，届时可一同申请（HK 57.3(a)）；子女本人没有居留年限要求（HK 62.1(b)）。`,
-          `Under ${cl.values.settlementMinorAge.value} (HK 57.1); settling with the principal applicant, who reaches ${years} years on ${due}, when they can apply together (HK 57.3(a)); the child has no residence requirement of their own (HK 62.1(b)).`,
+          `未满 ${cl.values.settlementMinorAge.value} 岁（HK 57.1）；随主申请人定居：主申请人可于 ${applicationDate} 申请，届时可一同申请（HK 57.3(a)）；子女本人没有居留年限要求（HK 62.1(b)）。`,
+          `Under ${cl.values.settlementMinorAge.value} (HK 57.1); settling with the principal applicant, who can apply on ${applicationDate}, when they can apply together (HK 57.3(a)); the child has no residence requirement of their own (HK 62.1(b)).`,
         ),
         assumptions,
       },
     };
   }
-  const start = later(own!, principalStart);
   return {
     years,
-    start,
+    start: joint.start,
+    applicationDate,
     result: {
       status: 'PASS',
       explanation: L(
-        `随主申请人同时获批定居（HK 59.1(a)）：主申请人 ${due} 满 ${years} 年，本人的 BN(O) 许可也须满 ${years} 年（HK 62.1(b)），${addYears(start, years)} 起可申请。`,
-        `Settling at the same time as the principal applicant (HK 59.1(a)): the principal applicant reaches ${years} years on ${due}, and this person’s own BN(O) permission must also reach ${years} years (HK 62.1(b)), so they can apply from ${addYears(start, years)}.`,
+        `随主申请人同时获批定居（HK 59.1(a)）：主申请人与本人最早可于 ${applicationDate} 一同申请，本人的 BN(O) 许可也须满 ${years} 年（HK 62.1(b)）。`,
+        `Settling at the same time as the principal applicant (HK 59.1(a)): the earliest joint application date is ${applicationDate}, when this person also meets the ${years}-year BN(O) residence requirement (HK 62.1(b)).`,
       ),
       assumptions,
     },

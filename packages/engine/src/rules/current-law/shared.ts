@@ -1,9 +1,15 @@
 import { currentLaw2026_11 as cl } from '@uk-immigration/policy-data';
-import { fullYears } from '../../dates';
-import { episodeOn } from '../../residence';
+import { addDays, fullYears } from '../../dates';
+import { applicationLocationIssue, episodeOn } from '../../residence';
+import type { CurrentResidence } from '../../residence';
 import type { Lang } from '../../rule';
 import type { Route } from '@uk-immigration/policy-data';
-import type { ImmigrationEpisode, IsoDate, PersonTimeline } from '../../types';
+import type {
+  ImmigrationEpisode,
+  IsoDate,
+  PersonTimeline,
+  RuleResult,
+} from '../../types';
 
 export const RULE_SET = 'current-law-2026-11';
 
@@ -161,13 +167,124 @@ export function onSkilledWorkerChild(
   );
 }
 
-export const CR_3_1 = {
-  maxDays: cl.values.continuousResidenceMaxAbsenceDays.value,
-  windowMonths: cl.values.continuousResidenceWindowMonths.value,
-};
+export const crResidenceSources = [
+  { srcId: 'SRC-008', locator: 'CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3' },
+];
+
+/** Explain when the declared travel prevents confirming an in-country filing. */
+export function applicationPresence(
+  timeline: PersonTimeline,
+  date: IsoDate,
+  L: Lang,
+): Omit<RuleResult, 'sources'> | undefined {
+  const issue = applicationLocationIssue(timeline, date);
+  if (issue === 'FAIL') {
+    return {
+      status: 'FAIL',
+      explanation: L(
+        `已申报的行程显示申请日 ${date} 在英国境外。此路线要求申请时人在英国。`,
+        `The travel record places the applicant outside the UK on ${date}. This route requires the applicant to be in the UK when applying.`,
+      ),
+    };
+  }
+  if (issue === 'UNKNOWN') {
+    return {
+      status: 'UNKNOWN',
+      explanation: L(
+        `申报的行程无法确定 ${date} 递交申请时是否在英国。`,
+        `The travel record does not establish whether the applicant was in the UK when applying on ${date}.`,
+      ),
+    };
+  }
+  return undefined;
+}
 
 export const absenceAssumption = (L: Lang) =>
   L(
-    `缺席按 Appendix Continuous Residence CR 3.1 计算，出境与入境当日都计入缺席；CR 3.4 的可豁免缺席理由未建模。`,
-    'Absences are counted under Appendix Continuous Residence CR 3.1, with the days of departure and return both counted as absence; the permitted reasons for absence in CR 3.4 are not modelled.',
+    '缺席按 CR 3.1–3.2 计算，以许可起始日推定适用的旧许可规则；出境与入境当日都计入缺席，CR 3.4 的豁免理由未建模。',
+    'Absences follow CR 3.1–3.2, using the permission start date to infer whether the old permission rules apply. Departure and return days count as absence. CR 3.4 exemptions are outside the model.',
   );
+
+export function residenceAssumptions(
+  timeline: PersonTimeline,
+  applied: IsoDate,
+  residence: CurrentResidence | undefined,
+  L: Lang,
+): string[] {
+  if (!residence) return [];
+  const { start, completion, referenceDate, deductedDays } = residence;
+  const ordered = [...timeline.episodes].sort((a, b) =>
+    a.validFrom.localeCompare(b.validFrom),
+  );
+  let coveredTo = ordered[0]?.validTo;
+  const hasGap = ordered.slice(1).some((episode) => {
+    const gap = episode.validFrom > addDays(coveredTo, 1);
+    if (episode.validTo > coveredTo) coveredTo = episode.validTo;
+    return gap;
+  });
+  return [
+    ...(referenceDate !== applied && residence.applicationDate === applied
+      ? [
+          L(
+            `按 CR 1.1 从 ${referenceDate} 回溯检查，合格期于 ${completion} 满期。申请日仍为 ${applied}。`,
+            `Under CR 1.1 the period is assessed as of ${referenceDate} and completes on ${completion}. The application date remains ${applied}.`,
+          ),
+        ]
+      : []),
+    ...(residence.reliesOnSection3C
+      ? [
+          L(
+            `此日期以在许可到期前有效递交定居申请为前提。假设你留在英国，申请在 ${referenceDate} 仍待决定且未撤回，原许可按 Immigration Act 1971 section 3C 延续至该参考日。`,
+            `This date assumes you make a valid settlement application before your permission expires, stay in the UK, and the application is still pending and has not been withdrawn on ${referenceDate}, so Immigration Act 1971 section 3C extends your permission to that reference date.`,
+          ),
+        ]
+      : []),
+    ...(deductedDays
+      ? [
+          L(
+            `自 ${start} 起的连续期按 CR 4.2 扣除 ${deductedDays} 天无许可空档。`,
+            `The continuous period from ${start} excludes ${deductedDays} days without permission under CR 4.2.`,
+          ),
+        ]
+      : []),
+    ...(hasGap
+      ? [
+          L(
+            '许可记录的空档按无许可处理。CR 4.1(d)(i)、(ii)、(iv) 所需的递交和审批资料未收集，不能据此保留连续性。符合 CR 4.3 的 2020 年宽限期按已申报行程判断。',
+            'Gaps in the permission record are treated as time without permission. The dates and decisions needed to confirm CR 4.1(d)(i), (ii) and (iv) are unavailable. Declared travel is used to assess the 2020 grace period under CR 4.3.',
+          ),
+        ]
+      : []),
+  ];
+}
+
+export function residenceCompleted(
+  residence: CurrentResidence,
+  applied: IsoDate,
+  years: number,
+  L: Lang,
+): string {
+  return residence.completion > applied
+    ? L(
+        `于 ${residence.completion} 满 ${years} 年，落在 ${applied} 申请的 CR 1.1 参考期内`,
+        `${years} years completed on ${residence.completion}, within the CR 1.1 reference window for ${applied}`,
+      )
+    : L(`已满 ${years} 年`, `${years} years completed`);
+}
+
+export function residencePending(
+  residence: CurrentResidence,
+  years: number,
+  L: Lang,
+): string {
+  if (!residence.applicationDate) {
+    return L(
+      '按已申报的许可和行程，无法给出满足居留要求的申请日',
+      'the recorded permissions and travel do not support an application date for the residence requirement',
+    );
+  }
+  return L(
+    `预计 ${residence.completion} 满 ${years} 年，按 CR 1.1 最早于 ${residence.applicationDate} 满足申请的居留年限条件`,
+    `expected to complete ${years} years on ${residence.completion}; the earliest projected application date for the residence requirement is ${residence.applicationDate} under CR 1.1`,
+  );
+}
