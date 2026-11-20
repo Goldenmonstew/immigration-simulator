@@ -263,16 +263,23 @@ export function resizeMapCamera(
   const { width, height } = scene.scale;
   camera.roundPixels = true;
   if (interior) {
-    // Phaser snaps WebGL tile edges to pixels only at integer camera zooms.
+    // Keep tile edges on whole pixels unless the room needs to shrink to fit.
     const fit = Math.min(
       3,
       width / map.widthInPixels,
       height / map.heightInPixels,
     );
-    camera.setZoom(Math.max(1, Math.floor(fit)));
+    camera.setZoom(fit < 1 ? fit : Math.floor(fit));
     camera.stopFollow();
     camera.removeBounds();
     camera.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
+    if (fit < 1) {
+      // Phaser rounds the viewport centre at render time. Offset its shift on
+      // odd-sized frames in world units so the far wall stays inside the frame.
+      camera.roundPixels = false;
+      camera.scrollX += (Math.round(width / 2) - width / 2) / fit;
+      camera.scrollY += (Math.round(height / 2) - height / 2) / fit;
+    }
   } else {
     camera.setZoom(width < 600 ? 2 : 2.5);
   }

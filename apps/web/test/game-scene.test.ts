@@ -28,6 +28,9 @@ import { readFileSync } from 'node:fs';
 const TransformMatrix = createRequire(import.meta.url)(
   'phaser/src/gameobjects/components/TransformMatrix.js',
 ) as typeof Phaser.GameObjects.Components.TransformMatrix;
+const EventEmitter = createRequire(import.meta.url)(
+  'phaser/src/events/EventEmitter.js',
+) as typeof Phaser.Events.EventEmitter;
 
 function textLayer() {
   const children: HTMLSpanElement[] = [];
@@ -499,10 +502,15 @@ function loadScene(
     },
     stopFollow() {},
     removeBounds() {},
-    centerOn() {},
+    centerOn(x: number, y: number) {
+      this.scrollX = x - scene.scale.width / 2;
+      this.scrollY = y - scene.scale.height / 2;
+    },
   };
   Object.assign(scene, {
-    ready: true,
+    anims: { exists: () => true },
+    events: new EventEmitter(),
+    game: { events: new EventEmitter() },
     textures: {
       exists: (key: string) => textures.has(key),
       get: (key: string) => textures.get(key),
@@ -546,14 +554,28 @@ function loadScene(
       rectangle: (x: number, y: number) => new Drawing(x, y),
     },
     cameras: { main: camera },
-    input: { activePointer: { x: 0, y: 0 }, manager: { isOver: false } },
-    scale: { width: 864, height: 624 },
+    input: {
+      activePointer: { x: 0, y: 0 },
+      manager: { isOver: false },
+      keyboard: { addKeys: () => ({}) },
+      on: vi.fn(),
+    },
+    scale: Object.assign(new EventEmitter(), { width: 864, height: 624 }),
     tweens: { killTweensOf: vi.fn() },
   });
-  Reflect.get(scene, 'loadWorld').call(scene);
+  scene.create();
+  const resize = (width: number, height: number) => {
+    const previousWidth = scene.scale.width;
+    const previousHeight = scene.scale.height;
+    const size = { width, height };
+    Object.assign(scene.scale, size);
+    Object.assign(overlay, { clientWidth: width, clientHeight: height });
+    scene.scale.emit('resize', size, size, size, previousWidth, previousHeight);
+  };
   return {
     scene,
     view,
+    resize,
     layers,
     tilesets,
     textures,
@@ -839,6 +861,39 @@ test('feedback text, hearts and expressions use the DOM layer and overlapping fl
   expect(floats.get(bubble)!.started).toBe(true);
   tweens[1].onComplete();
   expect(floats.size).toBe(0);
+});
+
+test('resizing the scene clears playing and queued feedback and lets new feedback play', () => {
+  vi.stubGlobal('window', { matchMedia: () => ({ matches: false }) });
+  const { scene, view, overlay, camera, resize } = loadScene(true);
+  resize(854, 416);
+  expect(camera.zoom).toBe(2);
+  const labels = Array.from(overlay.children);
+  const addTween = vi.fn<(tween: { targets: SceneText }) => void>();
+  Object.assign(scene.tweens, { add: addTween });
+  const showFeedback = (token: number) =>
+    scene.sync({
+      ...view,
+      feedback: {
+        token,
+        outcome: { kind: 'activity', statDeltas: { mood: 1 } },
+      },
+    });
+  showFeedback(1);
+  showFeedback(2);
+  expect(overlay.children).toHaveLength(labels.length + 2);
+  expect(addTween).toHaveBeenCalledTimes(1);
+  const playing = addTween.mock.calls[0][0].targets;
+
+  resize(854, 416);
+  expect(overlay.children).toHaveLength(labels.length + 2);
+  resize(355, 256);
+  expect(camera.zoom).toBe(1);
+  expect(Array.from(overlay.children)).toEqual(labels);
+  expect(scene.tweens.killTweensOf).toHaveBeenCalledWith(playing);
+  showFeedback(3);
+  expect(addTween).toHaveBeenCalledTimes(2);
+  expect(overlay.children).toHaveLength(labels.length + 1);
 });
 
 test.each([
@@ -1287,17 +1342,40 @@ test.each(['label', 'homeLabel'] as const)(
 );
 
 test.each([
+  [280, 202, 202 / 208],
+  [279, 202, 279 / 288],
+  [280, 201, 201 / 208],
+])(
+  'undersized %s × %s frame centres the whole room at zoom %s',
+  (width, height, expectedZoom) => {
+    const { camera, resize } = loadScene(true);
+    resize(width, height);
+    expect(camera.zoom).toBe(expectedZoom);
+    expect(Reflect.get(camera, 'roundPixels')).toBe(false);
+    // Project the room centre using Phaser's rounded screen-space origin.
+    for (const [extent, room, scroll] of [
+      [width, homeMap.width * 16, camera.scrollX],
+      [height, homeMap.height * 16, camera.scrollY],
+    ]) {
+      const centre =
+        Math.round(extent / 2) + (room / 2 - scroll - extent / 2) * camera.zoom;
+      expect(centre).toBeCloseTo(extent / 2);
+      expect(room * camera.zoom).toBeLessThanOrEqual(extent);
+    }
+  },
+);
+
+test.each([
   [355, 256, 1],
   [575, 416, 1],
   [854, 415, 1],
   [854, 416, 2],
   [1000, 700, 3],
 ])(
-  'indoor camera at %s × %s fits at integer zoom %s with pixel rounding',
+  'indoor camera at %s × %s fits the entire room at zoom %s',
   (width, height, expectedZoom) => {
-    const { scene, camera } = loadScene(true);
-    Object.assign(scene.scale, { width, height });
-    Reflect.get(scene, 'resizeCamera').call(scene);
+    const { camera, resize } = loadScene(true);
+    resize(width, height);
     expect(camera.zoom).toBe(expectedZoom);
     expect(camera.zoom * homeMap.width * 16).toBeLessThanOrEqual(width);
     expect(camera.zoom * homeMap.height * 16).toBeLessThanOrEqual(height);
