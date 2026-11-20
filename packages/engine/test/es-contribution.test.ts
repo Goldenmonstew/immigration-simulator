@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { evaluate } from '../src/evaluate';
 import {
   esBritishConnection,
   esEarnings10Y,
@@ -8,7 +9,7 @@ import {
   esPublicService,
 } from '../src/rules/es-contribution';
 import type { ImmigrationEpisode, IncomeYear } from '../src/types';
-import { asDependant, run } from './helpers';
+import { asDependant, run, SIMULATION_DATE, timeline } from './helpers';
 
 // SIMULATION_DATE 2026-11-04 is in 2026-27, so windows end with 2025-26.
 const LAST_SEVEN = [
@@ -20,6 +21,7 @@ const LAST_SEVEN = [
   '2024-25',
   '2025-26',
 ];
+const ES = 'earned-settlement-2026-11';
 
 /** Income for the last tax years, newest last; earlier years get `before`. */
 function income(recent: (number | undefined)[], before?: number): IncomeYear[] {
@@ -42,7 +44,7 @@ describe('ES-EARNINGS-5Y', () => {
 
   test('3 of 5 years pass, 2 of 5 fail', () => {
     expect(
-      run(esEarnings5Y, { incomeYears: income([60000, 0, 60000, 0, 60000], 0) })
+      run(esEarnings5Y, { incomeYears: income([0, 60000, 60000, 0, 60000], 0) })
         .status,
     ).toBe('PASS');
     expect(
@@ -58,12 +60,39 @@ describe('ES-EARNINGS-5Y', () => {
     expect(result.status).toBe('UNKNOWN');
     expect(result.pendingDetails).toBeUndefined();
   });
+
+  test('A5#3: a decisive tax year straddling the five-year window is unknown', () => {
+    const input = {
+      incomeYears: income([50271, 0, 50271, 0, 50271], 0),
+    };
+    expect(run(esEarnings5Y, input)).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-006'],
+    });
+    expect(run(esEarnings5Y, input, '2026-04-06').status).toBe('PASS');
+    expect(
+      run(esEarnings5Y, {
+        incomeYears: [
+          ...income([0, 0, 50271, 0, 50271], 0),
+          { taxYear: '2026-27', earnings: 50271 },
+        ],
+      }),
+    ).toMatchObject({ status: 'UNKNOWN', pendingDetails: ['PD-006'] });
+    expect(
+      run(esEarnings5Y, {
+        incomeYears: [
+          ...income([undefined, 0, 50271, 0, 50271], 0),
+          { taxYear: '2026-27', earnings: 50271 },
+        ],
+      }).status,
+    ).toBe('UNKNOWN');
+  });
 });
 
 describe('ES-EARNINGS-3Y', () => {
   test('3 of the last 4 years at £125,141 pass; 2 fail', () => {
     expect(
-      run(esEarnings3Y, { incomeYears: income([125141, 0, 125141, 125141], 0) })
+      run(esEarnings3Y, { incomeYears: income([0, 125141, 125141, 125141], 0) })
         .status,
     ).toBe('PASS');
     expect(
@@ -77,7 +106,7 @@ describe('ES-EARNINGS-10Y', () => {
   test('5 of 7 years pass, 4 of 7 fail', () => {
     expect(
       run(esEarnings10Y, {
-        incomeYears: income([20000, 20000, 0, 0, 20000, 20000, 20000]),
+        incomeYears: income([0, 20000, 20000, 0, 20000, 20000, 20000]),
       }).status,
     ).toBe('PASS');
     expect(
@@ -87,18 +116,33 @@ describe('ES-EARNINGS-10Y', () => {
     ).toBe('FAIL');
   });
 
-  test('household income: £25,142 combined meets, £25,141 does not', () => {
+  test('A5#2: amounts alone do not establish eligibility to combine earnings', () => {
     const at = (partnerEarnings: number) =>
+      LAST_SEVEN.map((taxYear, index) => ({
+        taxYear,
+        earnings: 9000,
+        ...(index >= 2 && { partnerEarnings }),
+      }));
+    const incomeYears = at(16142);
+    expect(run(esEarnings10Y, { incomeYears })).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-010'],
+    });
+    expect(run(esEarnings10Y, { incomeYears: at(16141) }).status).toBe('FAIL');
+    const work = timeline({
+      episodes: [{ ...timeline().episodes[1], validFrom: '2016-11-04' }],
+      incomeYears,
+    });
+    expect(
+      evaluate({ timeline: work, simulationDate: SIMULATION_DATE }).byRuleSet[
+        ES
+      ],
+    ).toMatchObject({ outcome: 'POTENTIALLY_ELIGIBLE', pathwayYears: 10 });
+    expect(
       run(esEarnings10Y, {
-        incomeYears: LAST_SEVEN.map((taxYear) => ({
-          taxYear,
-          earnings: 9000,
-          partnerEarnings,
-        })),
-      });
-    expect(at(16142).status).toBe('PASS');
-    expect(at(16142).assumptions?.join('')).toContain('PD-010');
-    expect(at(16141).status).toBe('FAIL');
+        incomeYears: incomeYears.map((year) => ({ ...year, earnings: 20000 })),
+      }).status,
+    ).toBe('PASS');
   });
 
   test('age 65 and the health exemption pass without income', () => {
@@ -113,13 +157,14 @@ describe('ES-EARNINGS-10Y', () => {
         .status,
     ).toBe('PASS');
   });
-  test('an adult child dependant needs no income (p30)', () => {
+  test('A5#11: an adult child dependant needs no income (p29)', () => {
     const child = run(esEarnings10Y, {
       dateOfBirth: '2004-06-01',
       episodes: asDependant('PARENT'),
       incomeYears: [],
     });
     expect(child.status).toBe('PASS');
+    expect(child.sources).toEqual([{ srcId: 'SRC-001', locator: 'p29' }]);
     expect(child.assumptions?.join('')).toContain('PD-059');
   });
 
@@ -159,6 +204,39 @@ describe('ES-BRITISH-CONNECTION', () => {
         relationships: [{ type: 'PARTNER', otherPartyStatus: 'SETTLED' }],
       }).status,
     ).toBe('FAIL');
+  });
+
+  test('A5#7: a British father does not qualify a settled partner’s Appendix FM applicant', () => {
+    const input = timeline({
+      episodes: [
+        {
+          ...family[0],
+          familyPermission: 'PARTNER_FIVE_YEAR',
+          validFrom: '2016-11-04',
+        },
+      ],
+      incomeYears: income(LAST_SEVEN.map(() => 20000)),
+      relationships: [
+        { type: 'PARTNER', otherPartyStatus: 'SETTLED' },
+        { type: 'PARENT', otherPartyStatus: 'BRITISH_CITIZEN' },
+      ],
+    });
+    expect(run(esBritishConnection, input).status).toBe('FAIL');
+    expect(
+      evaluate({ timeline: input, simulationDate: SIMULATION_DATE }).byRuleSet[
+        ES
+      ],
+    ).toMatchObject({ outcome: 'LIKELY_ELIGIBLE', pathwayYears: 10 });
+    expect(
+      run(esBritishConnection, {
+        ...input,
+        episodes: [{ ...input.episodes[0], familyPermission: 'PARENT' }],
+        relationships: [
+          ...input.relationships,
+          { type: 'CHILD', otherPartyStatus: 'BRITISH_CITIZEN' },
+        ],
+      }).status,
+    ).toBe('PASS');
   });
 
   test('UK Ancestry passes; a British partner on a work route does not count', () => {
@@ -220,6 +298,66 @@ describe('ES-PUBLIC-FUNDS', () => {
     expect(unlisted.status).toBe('UNKNOWN');
     expect(unlisted.pendingDetails).toEqual(['PD-013']);
   });
+
+  test('A5#4: a clean history with less than five years on a qualifying route is unknown', () => {
+    const episodes = [{ ...timeline().episodes[1], validFrom: '2023-01-01' }];
+    const input = timeline({
+      episodes,
+      incomeYears: income([125141, 125141, 125141], 0),
+    });
+    expect(run(esPublicFunds, input)).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-047'],
+    });
+    expect(
+      evaluate({ timeline: input, simulationDate: SIMULATION_DATE }).byRuleSet[
+        ES
+      ],
+    ).toMatchObject({ outcome: 'POTENTIALLY_ELIGIBLE', pathwayYears: 3 });
+    expect(
+      run(esPublicFunds, {
+        episodes: [
+          {
+            ...episodes[0],
+            validFrom: '2021-11-04',
+            validTo: '2022-12-31',
+            route: 'STUDENT',
+          },
+          ...episodes,
+        ],
+      }).status,
+    ).toBe('UNKNOWN');
+    expect(
+      run(esPublicFunds, {
+        episodes: [
+          { ...episodes[0], validFrom: '2021-11-04', validTo: '2022-12-31' },
+          ...episodes,
+        ],
+      }).status,
+    ).toBe('PASS');
+  });
+
+  test('A5#5: a declared health condition makes a public funds exemption unresolved', () => {
+    const benefits = [benefit('PERSONAL_INDEPENDENCE_PAYMENT', '2024-01-01')];
+    expect(run(esPublicFunds, { benefits }).status).toBe('FAIL');
+    expect(
+      run(esPublicFunds, { benefits, earningsExemptHealth: true }),
+    ).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-013'],
+    });
+  });
+
+  test('A5#6: the reported clearance date agrees with the leap-day lookback', () => {
+    const input = {
+      episodes: [{ ...timeline().episodes[0], validTo: '2030-12-31' }],
+      benefits: [benefit('UNIVERSAL_CREDIT', '2023-02-28', '2023-02-28')],
+    };
+    const dayBefore = run(esPublicFunds, input, '2028-02-29');
+    expect(dayBefore.status).toBe('FAIL');
+    expect(dayBefore.explanation).toContain('2028-03-01');
+    expect(run(esPublicFunds, input, '2028-03-01').status).toBe('PASS');
+  });
 });
 
 describe('ES-PUBLIC-SERVICE', () => {
@@ -265,5 +403,19 @@ describe('ES-PUBLIC-SERVICE', () => {
 
   test('a job outside Annex C fails', () => {
     expect(run(esPublicService).status).toBe('FAIL');
+  });
+
+  test('A5#8: moving out of Annex C after completing five years is unknown', () => {
+    const result = run(esPublicService, {
+      episodes: [
+        job('2231', '2020-11-01', '2023-10-31'),
+        job('2231', '2023-11-01', '2025-11-01'),
+        job('2136', '2025-11-02', '2028-01-31'),
+      ],
+    });
+    expect(result).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-012'],
+    });
   });
 });

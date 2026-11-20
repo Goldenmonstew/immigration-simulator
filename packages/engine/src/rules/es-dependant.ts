@@ -1,7 +1,7 @@
 import { earnedSettlement2026_11 as es } from '@uk-immigration/policy-data';
 import type { RouteGroup } from '@uk-immigration/policy-data';
 import { addYears, fullYears } from '../dates';
-import { episodeOn, settledBy } from '../residence';
+import { episodeOn, restartAfterAbsences, settledBy } from '../residence';
 import { defineRule, textFor } from '../rule';
 import type { Lang } from '../rule';
 import type { IsoDate, RuleContext, SettlementAssessment } from '../types';
@@ -69,7 +69,19 @@ export function esDependantSettlement(
   })?.start;
   if (!principalStart) return undefined;
   const years = assessment.pathwayYears;
-  const own = esQualifyingResidence(ctx)?.start;
+  const residence = esQualifyingResidence(ctx);
+  // SRC-001 p31, Individual B: the period must be held as a partner dependant.
+  let partnerFrom: IsoDate | undefined;
+  for (const permission of residence?.run.episodes ?? []) {
+    partnerFrom =
+      permission.role === 'DEPENDANT' && permission.dependantOf === 'PARTNER'
+        ? (partnerFrom ?? permission.validFrom)
+        : undefined;
+  }
+  const own =
+    episode.dependantOf === 'PARTNER' && partnerFrom
+      ? restartAfterAbsences(partnerFrom, simulationDate, timeline.absences)
+      : residence?.start;
   const joinedLater = own !== undefined && own > principalStart;
   return {
     years,
@@ -193,19 +205,19 @@ export const esDependantPathway = defineRule(
       );
       if (joinedLater) {
         explanation = L(
-          `主申请人走 ${years} 年路径，${familyEligible} 满期；伴侣自 ${start} 起才有计入定居的居留，须同样满 ${years} 年，${addYears(start, years)} 起可申请。`,
-          `The principal applicant is on the ${years}-year pathway, completed on ${familyEligible}; the partner’s counting residence only starts on ${start}, so they also need ${years} years and can apply from ${addYears(start, years)}.`,
+          `主申请人走 ${years} 年路径，${familyEligible} 满期。伴侣的连续 partner dependant 合格期自 ${start} 起算，${addYears(start, years)} 满同样年限。`,
+          `The principal applicant is on the ${years}-year pathway, completed on ${familyEligible}. The partner’s continuous qualifying period as a partner dependant starts on ${start} and reaches the same length on ${addYears(start, years)}.`,
         );
         assumptions.push(
           L(
-            `后到伴侣的合格期取主申请人所在路径的年限（${years} 年）（PD-057）。`,
-            `A partner who joined later needs the length of the principal applicant’s pathway (${years} years) (PD-057).`,
+            `后到伴侣的合格期取主申请人所在路径的年限（${years} 年），申报的连续 partner dependant 许可按同一主申请人处理（PD-057）。`,
+            `A partner who joined later needs the length of the principal applicant’s pathway (${years} years). Their consecutive partner-dependant permissions are treated as linked to the same principal (PD-057).`,
           ),
         );
       } else {
         explanation = L(
-          `与主申请人同时开始居留，可在主申请人的 ${years} 年路径满期时（${familyEligible}）一同定居，须各自满足相关要求。`,
-          `Residence started together with the principal applicant, so they can settle together when the principal applicant’s ${years}-year pathway is completed (${familyEligible}), each meeting the relevant requirements.`,
+          `主申请人的 ${years} 年路径于 ${familyEligible} 满期，届时伴侣的合格期也已达到同样年限。双方各自满足相关要求即可一同定居。`,
+          `When the principal applicant’s ${years}-year pathway is completed on ${familyEligible}, the partner will also have completed the same qualifying period. They can settle together if they each meet the relevant requirements.`,
         );
       }
     } else {
@@ -251,19 +263,34 @@ export const esDependantPathway = defineRule(
         );
       }
     }
-    if (
-      isAdultOn(timeline, simulationDate) &&
-      [esPublicFunds, esBreach].some((r) => r.evaluate(ctx).status === 'FAIL')
-    ) {
-      return {
-        status: 'UNKNOWN',
-        explanation: L(
-          `${explanation}但本人用过 public funds 或成年后有 qualifying breach；原文未说明这是否让 dependant 本人另走 20 年路径。`,
-          `${explanation} However, they have used public funds or have a qualifying breach as an adult; the response does not say whether this puts the dependant on a 20-year pathway of their own.`,
-        ),
-        pendingDetails: ['PD-062', ...pendingDetails],
-        assumptions,
-      };
+    if (isAdultOn(timeline, simulationDate)) {
+      const funds = esPublicFunds.evaluate(ctx);
+      const fundsPending = (funds.pendingDetails ?? []).filter(
+        (id) => id === 'PD-013' || id === 'PD-014',
+      );
+      if (funds.status === 'FAIL' || esBreach.evaluate(ctx).status === 'FAIL') {
+        const fallback = es.values.pathwayYears20.value;
+        return {
+          status: 'UNKNOWN',
+          explanation: L(
+            `${explanation}本人用过 public funds 或成年后有 qualifying breach。原文未说明这是否让 dependant 本人另走 ${fallback} 年路径。`,
+            `${explanation} They have used public funds or have a qualifying breach as an adult. The response does not say whether this puts the dependant on a ${fallback}-year pathway of their own.`,
+          ),
+          pendingDetails: [
+            ...new Set(['PD-062', ...fundsPending, ...pendingDetails]),
+          ],
+          assumptions,
+        };
+      }
+      if (fundsPending.length > 0) {
+        return {
+          status: 'UNKNOWN',
+          explanation: `${explanation} ${funds.explanation}`,
+          sources: [...esDependantPathway.meta.sources, ...funds.sources],
+          pendingDetails: [...new Set([...fundsPending, ...pendingDetails])],
+          assumptions,
+        };
+      }
     }
     if (pendingDetails.length > 0) {
       return {

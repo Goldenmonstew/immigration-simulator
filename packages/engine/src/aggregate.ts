@@ -270,7 +270,7 @@ function protectionCandidates(
     ...pick(...protectionMandatory(route)),
     ...pick('ES-PROTECTION-PATHWAY'),
   ];
-  const extra = illegalEntryExtraYears(ctx.timeline);
+  const extra = illegalEntryExtraYears(ctx);
   const base = protectionBaseYears(route) + extra;
   const fallback = es.values.pathwayYears20.value + extra;
   const candidates: Candidate[] =
@@ -292,7 +292,11 @@ function protectionCandidates(
                 ),
               ],
             },
-            { years: fallback, rules: mandatory },
+            ...(pick('ES-BREACH', 'ES-PUBLIC-FUNDS').some(
+              (rule) => rule.status === 'FAIL',
+            )
+              ? [{ years: fallback, rules: mandatory }]
+              : []),
           ]
         : [{ years: base, rules: mandatory }];
   const start = esQualifyingResidence(ctx)?.start;

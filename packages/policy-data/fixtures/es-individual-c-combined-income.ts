@@ -17,6 +17,8 @@ const TAX_YEARS = [
 // complete if all other mandatory requirements are met. The source gives no
 // dates; the timeline below completes 10 years and meets the other
 // requirements. Partner is settled (not British), so no British connection.
+// The amounts and partner status do not establish eligibility to combine
+// earnings (PD-010).
 export const esIndividualC: Fixture = {
   id: 'ES-OFFICIAL-INDIVIDUAL-C',
   title: 'Individual C: combined household income',
@@ -75,7 +77,7 @@ export const esIndividualC: Fixture = {
   },
   expected: {
     ruleSetId: 'earned-settlement-2026-11',
-    outcome: 'LIKELY_ELIGIBLE',
+    outcome: 'POTENTIALLY_ELIGIBLE',
     pathwayYears: 10,
   },
 };
