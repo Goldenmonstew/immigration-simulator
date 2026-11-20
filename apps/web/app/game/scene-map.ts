@@ -261,7 +261,6 @@ export function resizeMapCamera(
 ) {
   const camera = scene.cameras.main;
   const { width, height } = scene.scale;
-  camera.roundPixels = true;
   if (interior) {
     // Keep tile edges on whole pixels unless the room needs to shrink to fit.
     const fit = Math.min(
@@ -273,14 +272,20 @@ export function resizeMapCamera(
     camera.stopFollow();
     camera.removeBounds();
     camera.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
+    // On odd frames, Phaser's rounded screen origin already aligns the tiles.
+    // Flooring the half-pixel world scroll as well would push the far walls out.
+    camera.roundPixels =
+      fit >= 1 &&
+      Number.isInteger(camera.scrollX) &&
+      Number.isInteger(camera.scrollY);
     if (fit < 1) {
       // Phaser rounds the viewport centre at render time. Offset its shift on
       // odd-sized frames in world units so the far wall stays inside the frame.
-      camera.roundPixels = false;
       camera.scrollX += (Math.round(width / 2) - width / 2) / fit;
       camera.scrollY += (Math.round(height / 2) - height / 2) / fit;
     }
   } else {
+    camera.roundPixels = true;
     camera.setZoom(width < 600 ? 2 : 2.5);
   }
 }

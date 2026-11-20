@@ -1366,6 +1366,9 @@ test.each([
 );
 
 test.each([
+  [289, 209, 1],
+  [577, 417, 2],
+  [865, 625, 3],
   [355, 256, 1],
   [575, 416, 1],
   [854, 415, 1],
@@ -1374,12 +1377,34 @@ test.each([
 ])(
   'indoor camera at %s × %s fits the entire room at zoom %s',
   (width, height, expectedZoom) => {
-    const { camera, resize } = loadScene(true);
+    // Load the real camera without running Phaser's browser feature detection.
+    vi.stubGlobal('importScripts', () => {});
+    const Camera = createRequire(import.meta.url)(
+      'phaser/src/cameras/2d/Camera.js',
+    ) as typeof Phaser.Cameras.Scene2D.Camera;
+    const { scene, resize } = loadScene(true);
+    const camera = new Camera(0, 0, width, height);
+    scene.cameras.main = camera;
     resize(width, height);
+    camera.preRender();
     expect(camera.zoom).toBe(expectedZoom);
-    expect(camera.zoom * homeMap.width * 16).toBeLessThanOrEqual(width);
-    expect(camera.zoom * homeMap.height * 16).toBeLessThanOrEqual(height);
-    expect(Reflect.get(camera, 'roundPixels')).toBe(true);
+    const roomWidth = homeMap.width * homeMap.tilewidth;
+    const roomHeight = homeMap.height * homeMap.tileheight;
+    const matrix: Phaser.GameObjects.Components.TransformMatrix = Reflect.get(
+      camera,
+      'matrix',
+    );
+    const [left, top, , , right, bottom] = matrix
+      .translate(-camera.scrollX, -camera.scrollY)
+      .setQuad(0, 0, roomWidth, roomHeight, camera.renderRoundPixels);
+    const marginX = Math.round((width - roomWidth * expectedZoom) / 2);
+    const marginY = Math.round((height - roomHeight * expectedZoom) / 2);
+    expect([left, top, right, bottom]).toEqual([
+      marginX,
+      marginY,
+      marginX + roomWidth * expectedZoom,
+      marginY + roomHeight * expectedZoom,
+    ]);
   },
 );
 
