@@ -18,6 +18,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.endDayShort': 'End day',
   'game.tapToReveal': 'Tap the dialogue to reveal the full line',
   'game.entry': 'Play a round · Immigration Life',
+  'game.entryDesc':
+    'Work, meet neighbours and see how everyday choices shape your immigration timeline in a pixel-art town.',
   'game.disclaimer':
     'Fictional characters and events for learning. This is not immigration advice.',
   'game.intro':
@@ -69,6 +71,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.actionsLeft': '{count} action points',
   'game.visaShort': '{count}m',
   'game.visa': 'Visa: {count} months left',
+  'game.renewedThisSeason': 'You renewed this season.',
+  'game.renewedThrough':
+    'You renewed this season. The expiry date on that renewal was {date}.',
   'game.visaUrgent': 'Visa expiry approaching',
   'game.money': 'Savings',
   'game.mood': 'Mood',
@@ -109,9 +114,18 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.quarterSummary': 'This quarter in review',
   'game.quarterChanges':
     'Stat changes across the quarter (actions, events and settlement)',
+  'game.wellbeingAtSettlement':
+    'What made the biggest difference at the season’s end',
+  'game.settlementSource.seasonWear': 'The season’s wear and tear',
+  'game.settlementSource.overtimeWear': 'Extra wear from overtime',
+  'game.settlementSource.brighterHome': 'A brighter home',
+  'game.settlementSource.walkingClub': 'Walking club',
+  'game.settlementSource.furnishings': 'Home furnishings',
+  'game.cropsCleared':
+    'The season changed, and crops left in the ground were cleared from {count} of your plots.',
   'game.eventReview': 'What happened this quarter',
   'game.noEvents': 'A quiet quarter has its charms.',
-  'game.progressChanges': 'Before → after the fourth-quarter settlement',
+  'game.progressChanges': 'Before → after the start of your new game year',
   'game.nextQuarter': 'Welcome the next season',
   'game.seeEnding': 'Read your story',
   'game.achievements': 'Keepsakes along the way',
@@ -226,13 +240,15 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Complete the principal applicant’s timeline to continue.',
   'principal.required': 'Complete the principal applicant’s timeline first.',
   'principal.prefix': 'Principal applicant: ',
+  'screening.settledWorkerPartner':
+    'The principal applicant’s screening requires regulated review. Current Skilled Worker partner settlement is assessed on the partner’s own circumstances (SW 38.1 and 39.1(b)).',
   'principal.settled': 'Has the principal applicant already settled?',
   'principal.settledDate': 'Date settlement was granted',
   'principal.settledRoute': 'Visa route held when settlement was granted',
   'episodes.immigrationSalaryList':
-    'Is the sponsored job on the Immigration Salary List?',
+    'Was the job on the Immigration Salary List for this grant?',
   'episodes.immigrationSalaryListHint':
-    'If unsure, the job is treated as not being on the list.',
+    'If unsure, leave this blank. The relevant CoS date, job and UK nation determine list eligibility.',
   'episodes.dependantOf': 'Dependant relationship',
   'episodes.partnerDependant': 'Partner dependant (principal is your partner)',
   'episodes.childDependant': 'Child dependant (principal is your parent)',
@@ -635,6 +651,11 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.watered': 'Watered today',
   'game.harvest': 'Harvest',
   'game.growth': 'Growth {count} / {days}',
+  'game.cropMaturity': 'Days to maturity with watering · {days}',
+  'game.cropMature': 'Ready to harvest.',
+  'game.cropTimeLeft': 'Days left this season after today · {days}',
+  'game.cropSeasonWarning':
+    'Any crops left in the ground will be cleared when the season changes.',
   'game.noSeeds': 'No seeds for this season. Visit the corner shop.',
   'game.rentFirst': 'Rent a plot at the allotment shed first.',
   'game.fish': 'Fish',

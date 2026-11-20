@@ -96,7 +96,7 @@ export function StatusBar({
     </span>
   );
   const icons: Record<StatKey, ReactNode> = {
-    money: '£',
+    money: <GameIcon name="money" />,
     mood: <GameIcon name="mood" />,
     health: <GameIcon name="health" />,
     english: <GameIcon name="english" />,
@@ -122,18 +122,25 @@ export function StatusBar({
             className={styles.mobileOnly}
             title={`${localText(name, locale)} · ${dayDate(state.day.date, locale)}`}
           >
-            {localText(name, locale)} · Y{state.year}{' '}
-            {t(`game.season${state.quarter}`)} D{state.day.index + 1}
+            {localText(name, locale)}
+            <span className={styles.mobileDate}>
+              Y{state.year} {t(`game.season${state.quarter}`)} D
+              {state.day.index + 1}
+            </span>
           </span>
         </div>
-        <strong className={styles.clock}>{clockTime(state.day.minute)}</strong>
-        <span
-          role="img"
-          title={t(`game.${state.day.weather}`)}
-          aria-label={t(`game.${state.day.weather}`)}
-        >
-          <GameIcon name={state.day.weather} />
-        </span>
+        <div className={styles.hudTime}>
+          <strong className={styles.clock}>
+            {clockTime(state.day.minute)}
+          </strong>
+          <span
+            role="img"
+            title={t(`game.${state.day.weather}`)}
+            aria-label={t(`game.${state.day.weather}`)}
+          >
+            <GameIcon name={state.day.weather} />
+          </span>
+        </div>
         <span className={styles.desktopOnly}>
           {t('game.day').replace('{day}', String(state.day.index + 1))}
         </span>
@@ -147,14 +154,14 @@ export function StatusBar({
             <div className={styles.stat} data-stat={key} key={key}>
               <div>
                 <span className={styles.statLabel}>
-                  <span aria-hidden="true">{icons[key]} </span>
+                  <span aria-hidden="true">
+                    {key === 'money' ? '£' : icons[key]}{' '}
+                  </span>
                   {t(`game.${key}`)}
                 </span>
-                {key !== 'money' && (
-                  <span className={styles.statIcon} aria-hidden="true">
-                    {icons[key]}
-                  </span>
-                )}
+                <span className={styles.statIcon} aria-hidden="true">
+                  {icons[key]}
+                </span>
                 <strong>
                   {key === 'money' ? money(state.stats[key]) : state.stats[key]}
                 </strong>

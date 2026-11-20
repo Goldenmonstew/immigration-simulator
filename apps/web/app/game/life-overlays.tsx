@@ -17,6 +17,7 @@ import {
   npcs,
   npcAt,
   plant,
+  cropDaysToMaturity,
   readMail,
   recipes,
   resolve,
@@ -708,6 +709,17 @@ export function PlotMenu({ state, plot, onChange }: Change & { plot: number }) {
       i.grows?.seasons.includes(state.quarter) &&
       (state.inventory[i.id] ?? 0) > 0,
   );
+  const growingTime = (
+    <p>
+      {t('game.cropTimeLeft').replace('{days}', String(2 - state.day.index))}{' '}
+      {t('game.cropSeasonWarning')}
+    </p>
+  );
+  const maturity = (growthNeeded: number) =>
+    t('game.cropMaturity').replace(
+      '{days}',
+      String(cropDaysToMaturity(growthNeeded)),
+    );
   return p.seed ? (
     <>
       {action.message}
@@ -717,6 +729,12 @@ export function PlotMenu({ state, plot, onChange }: Change & { plot: number }) {
           .replace('{count}', String(p.growth))
           .replace('{days}', String(seed!.grows!.days))}
       </p>
+      <p>
+        {p.growth >= seed!.grows!.days
+          ? t('game.cropMature')
+          : maturity(seed!.grows!.days - p.growth)}
+      </p>
+      {growingTime}
       <div className={styles.buttons}>
         <button
           className={styles.secondary}
@@ -738,6 +756,7 @@ export function PlotMenu({ state, plot, onChange }: Change & { plot: number }) {
     <>
       {action.message}
       <p>{t('game.plant')}</p>
+      {growingTime}
       {!seeds.length && <p>{t('game.noSeeds')}</p>}
       <div className={styles.choices}>
         {seeds.map((i) => (
@@ -746,7 +765,10 @@ export function PlotMenu({ state, plot, onChange }: Change & { plot: number }) {
             className={styles.choice}
             onClick={() => action.run(() => plant(state, plot, i.id))}
           >
-            {localText(i.name, locale)} × {state.inventory[i.id]}
+            <strong>
+              {localText(i.name, locale)} × {state.inventory[i.id]}
+            </strong>
+            <small>{maturity(i.grows!.days)}</small>
           </button>
         ))}
       </div>

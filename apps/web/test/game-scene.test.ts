@@ -1,7 +1,7 @@
 import './load-game-characters';
 import { afterEach, expect, test, vi } from 'vitest';
 import { createRequire } from 'node:module';
-import type * as Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import {
   doActivity,
   newGame,
@@ -28,6 +28,9 @@ import { readFileSync } from 'node:fs';
 const TransformMatrix = createRequire(import.meta.url)(
   'phaser/src/gameobjects/components/TransformMatrix.js',
 ) as typeof Phaser.GameObjects.Components.TransformMatrix;
+const EventEmitter = createRequire(import.meta.url)(
+  'phaser/src/events/EventEmitter.js',
+) as typeof Phaser.Events.EventEmitter;
 
 function textLayer() {
   const children: HTMLSpanElement[] = [];
@@ -499,10 +502,15 @@ function loadScene(
     },
     stopFollow() {},
     removeBounds() {},
-    centerOn() {},
+    centerOn(x: number, y: number) {
+      this.scrollX = x - scene.scale.width / 2;
+      this.scrollY = y - scene.scale.height / 2;
+    },
   };
   Object.assign(scene, {
-    ready: true,
+    anims: { exists: () => true },
+    events: new EventEmitter(),
+    game: { events: new EventEmitter() },
     textures: {
       exists: (key: string) => textures.has(key),
       get: (key: string) => textures.get(key),
@@ -546,14 +554,28 @@ function loadScene(
       rectangle: (x: number, y: number) => new Drawing(x, y),
     },
     cameras: { main: camera },
-    input: { activePointer: { x: 0, y: 0 }, manager: { isOver: false } },
-    scale: { width: 864, height: 624 },
+    input: {
+      activePointer: { x: 0, y: 0 },
+      manager: { isOver: false },
+      keyboard: { addKeys: () => ({}) },
+      on: vi.fn(),
+    },
+    scale: Object.assign(new EventEmitter(), { width: 864, height: 624 }),
     tweens: { killTweensOf: vi.fn() },
   });
-  Reflect.get(scene, 'loadWorld').call(scene);
+  scene.create();
+  const resize = (width: number, height: number) => {
+    const previousWidth = scene.scale.width;
+    const previousHeight = scene.scale.height;
+    const size = { width, height };
+    Object.assign(scene.scale, size);
+    Object.assign(overlay, { clientWidth: width, clientHeight: height });
+    scene.scale.emit('resize', size, size, size, previousWidth, previousHeight);
+  };
   return {
     scene,
     view,
+    resize,
     layers,
     tilesets,
     textures,
@@ -840,6 +862,71 @@ test('feedback text, hearts and expressions use the DOM layer and overlapping fl
   tweens[1].onComplete();
   expect(floats.size).toBe(0);
 });
+
+test('resizing the scene clears playing and queued feedback and lets new feedback play', () => {
+  vi.stubGlobal('window', { matchMedia: () => ({ matches: false }) });
+  const { scene, view, overlay, camera, resize } = loadScene(true);
+  resize(854, 416);
+  expect(camera.zoom).toBe(2);
+  const labels = Array.from(overlay.children);
+  const addTween = vi.fn<(tween: { targets: SceneText }) => void>();
+  Object.assign(scene.tweens, { add: addTween });
+  const showFeedback = (token: number) =>
+    scene.sync({
+      ...view,
+      feedback: {
+        token,
+        outcome: { kind: 'activity', statDeltas: { mood: 1 } },
+      },
+    });
+  showFeedback(1);
+  showFeedback(2);
+  expect(overlay.children).toHaveLength(labels.length + 2);
+  expect(addTween).toHaveBeenCalledTimes(1);
+  const playing = addTween.mock.calls[0][0].targets;
+
+  resize(854, 416);
+  expect(overlay.children).toHaveLength(labels.length + 2);
+  resize(355, 256);
+  expect(camera.zoom).toBe(1);
+  expect(Array.from(overlay.children)).toEqual(labels);
+  expect(scene.tweens.killTweensOf).toHaveBeenCalledWith(playing);
+  showFeedback(3);
+  expect(addTween).toHaveBeenCalledTimes(2);
+  expect(overlay.children).toHaveLength(labels.length + 1);
+});
+
+test.each([
+  { labelY: 62, expectedY: 44.4 },
+  { labelY: 42, expectedY: 82.8 },
+])(
+  'feedback clears the home label for the whole tween at a fractional zoom (label y=$labelY)',
+  ({ labelY, expectedY }) => {
+    const layer = textLayer();
+    const camera = {
+      zoom: 1.25,
+      getWorldPoint: (x: number, y: number) => ({ x: x / 1.25, y: y / 1.25 }),
+    };
+    const label = new SceneText(layer, 72, labelY, '床', 'homeLabel');
+    const feedback = new SceneText(layer, 72, 70, '+1 心情', 'feedback');
+    Object.assign(label.element, { offsetWidth: 28, offsetHeight: 16 });
+    Object.assign(feedback.element, { offsetWidth: 64, offsetHeight: 15 });
+    feedback.avoidLabels(
+      camera,
+      [
+        {
+          x: 4,
+          y: 4,
+          interaction: { kind: 'home', id: 'bed' },
+          bounds: new Phaser.Geom.Rectangle(64, 64, 16, 16),
+          label,
+        },
+      ],
+      24,
+    );
+    expect(feedback.y).toBeCloseTo(expectedY);
+  },
+);
 
 const furniture = [
   'furnished-reading-chair',
@@ -1255,19 +1342,69 @@ test.each(['label', 'homeLabel'] as const)(
 );
 
 test.each([
-  [355, 256],
-  [854, 360],
-  [355, 310],
+  [280, 202, 202 / 208],
+  [279, 202, 279 / 288],
+  [280, 201, 201 / 208],
 ])(
-  'indoor camera at %s × %s uses fitting half-step zoom with pixel rounding',
-  (width, height) => {
-    const { scene, camera } = loadScene(true);
-    Object.assign(scene.scale, { width, height });
-    Reflect.get(scene, 'resizeCamera').call(scene);
-    expect(Number.isInteger(camera.zoom * 2)).toBe(true);
-    expect(camera.zoom * homeMap.width * 16).toBeLessThanOrEqual(width);
-    expect(camera.zoom * homeMap.height * 16).toBeLessThanOrEqual(height);
-    expect(Reflect.get(camera, 'roundPixels')).toBe(true);
+  'undersized %s × %s frame centres the whole room at zoom %s',
+  (width, height, expectedZoom) => {
+    const { camera, resize } = loadScene(true);
+    resize(width, height);
+    expect(camera.zoom).toBe(expectedZoom);
+    expect(Reflect.get(camera, 'roundPixels')).toBe(false);
+    // Project the room centre using Phaser's rounded screen-space origin.
+    for (const [extent, room, scroll] of [
+      [width, homeMap.width * 16, camera.scrollX],
+      [height, homeMap.height * 16, camera.scrollY],
+    ]) {
+      const centre =
+        Math.round(extent / 2) + (room / 2 - scroll - extent / 2) * camera.zoom;
+      expect(centre).toBeCloseTo(extent / 2);
+      expect(room * camera.zoom).toBeLessThanOrEqual(extent);
+    }
+  },
+);
+
+test.each([
+  [289, 209, 1],
+  [577, 417, 2],
+  [865, 625, 3],
+  [355, 256, 1],
+  [575, 416, 1],
+  [854, 415, 1],
+  [854, 416, 2],
+  [1000, 700, 3],
+])(
+  'indoor camera at %s × %s fits the entire room at zoom %s',
+  (width, height, expectedZoom) => {
+    // Load the real camera without running Phaser's browser feature detection.
+    vi.stubGlobal('importScripts', () => {});
+    const Camera = createRequire(import.meta.url)(
+      'phaser/src/cameras/2d/Camera.js',
+    ) as typeof Phaser.Cameras.Scene2D.Camera;
+    const { scene, resize } = loadScene(true);
+    const camera = new Camera(0, 0, width, height);
+    scene.cameras.main = camera;
+    resize(width, height);
+    camera.preRender();
+    expect(camera.zoom).toBe(expectedZoom);
+    const roomWidth = homeMap.width * homeMap.tilewidth;
+    const roomHeight = homeMap.height * homeMap.tileheight;
+    const matrix: Phaser.GameObjects.Components.TransformMatrix = Reflect.get(
+      camera,
+      'matrix',
+    );
+    const [left, top, , , right, bottom] = matrix
+      .translate(-camera.scrollX, -camera.scrollY)
+      .setQuad(0, 0, roomWidth, roomHeight, camera.renderRoundPixels);
+    const marginX = Math.round((width - roomWidth * expectedZoom) / 2);
+    const marginY = Math.round((height - roomHeight * expectedZoom) / 2);
+    expect([left, top, right, bottom]).toEqual([
+      marginX,
+      marginY,
+      marginX + roomWidth * expectedZoom,
+      marginY + roomHeight * expectedZoom,
+    ]);
   },
 );
 

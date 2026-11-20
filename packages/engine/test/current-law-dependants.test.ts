@@ -541,7 +541,12 @@ describe('children of Appendix FM partners (SRC-022, SRC-024)', () => {
         '2026-06-01',
       );
       expect(later.earliestDate).toBe('2027-06-01');
-      expect(later.assumptions.join('')).toContain('KoLL 2.2、LR 13.1(b)');
+      expect(
+        later.rules.find((rule) => rule.id === 'CL-ENGLISH'),
+      ).toMatchObject({
+        status: 'PASS',
+        explanation: expect.stringContaining('按预计申请日 2027-06-01 判断'),
+      });
     });
 
     test('a settled principal: the child can apply now (298(i))', () => {

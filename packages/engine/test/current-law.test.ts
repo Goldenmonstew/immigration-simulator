@@ -124,12 +124,12 @@ describe('CL-SW-RESIDENCE-5Y', () => {
     ).toBe('FAIL');
   });
 
-  test('181 days abroad in 12 months restarts the period', () => {
+  test('A1#17 181 whole days abroad in 12 months restarts the period', () => {
     const result = run(clSwResidence5Y, {
-      absences: [{ from: '2023-01-01', to: '2023-06-30' }],
+      absences: [{ from: '2023-01-01', to: '2023-07-02' }],
     });
     expect(result.status).toBe('FAIL');
-    expect(result.explanation).toContain('2028-07-01');
+    expect(result.explanation).toContain('2028-07-02');
   });
 
   test('a dependant does not count', () => {
@@ -153,6 +153,7 @@ describe('CL-SW-SALARY', () => {
         episodes: [
           episode({
             validFrom: '2025-03-01',
+            sponsorshipCertificateDate: '2025-02-01',
             validTo: '2030-12-31',
             socCode: '2136',
             salary,
@@ -167,7 +168,6 @@ describe('CL-SW-SALARY', () => {
     const pass = at(41700);
     expect(pass.status).toBe('PASS');
     expect(pass.explanation).toContain('row A');
-    expect(pass.assumptions?.join('')).toContain('Immigration Salary List');
     expect(at(41699).status).toBe('FAIL');
   });
 
@@ -187,15 +187,14 @@ describe('CL-SW-SALARY', () => {
       );
     expect(pre('2024-04-03').status).toBe('PASS');
     expect(pre('2024-04-03').explanation).toContain('row C');
-    expect(pre('2024-04-04').status).toBe('FAIL');
+    expect(pre('2024-04-04').status).toBe('UNKNOWN');
     // SW 4.2(b)(ii) stops applying from 2030-04-04.
     expect(pre('2024-04-03', '2030-04-04').status).toBe('FAIL');
     // 6135 is also on the Immigration Salary List; declared off it here.
     const careOffList = { socCode: '6135', immigrationSalaryList: false };
     const care = at(31300, careOffList);
     expect(care.status).toBe('PASS');
-    expect(care.explanation).toContain('Health and Care ASHE');
-    expect(care.assumptions?.join('')).toContain('SW A1.1(a)–(f)');
+    expect(care.assumptions?.join('')).toContain('SW A1.1(a)–(m)');
     expect(at(31299, careOffList).status).toBe('FAIL');
   });
 
@@ -218,52 +217,25 @@ describe('CL-SW-SALARY', () => {
       expect(r.assumptions?.join('')).not.toContain('推导');
     });
 
-    test('not declared, listed occupation: row B, or row D with SW 4.2(b)', () => {
+    test('A1#2 a dated UK-wide listing and an explicit restricted listing select rows B and D', () => {
       const b = at(33400, { socCode: '2112' }, '2026-11-04');
       expect(b.status).toBe('PASS');
       expect(b.explanation).toContain('row B');
-      expect(b.assumptions?.join('')).toContain('按职业代码推导');
-      expect(b.assumptions?.join('')).toContain(
-        '清单条目的移除日期为 2026-12-31，已按申请日比较',
-      );
+      expect(b.assumptions?.join('')).toContain('最近一次许可的 CoS 签发日');
       expect(at(33399, { socCode: '2112' }, '2026-11-04').status).toBe('FAIL');
-      // 6135 is also a Health and Care ASHE salary job (SW 4.2(b)(i)).
-      const d = at(25000, { socCode: '6135' }, '2028-04-01');
+      const d = at(
+        25000,
+        { socCode: '6135', immigrationSalaryList: true },
+        '2028-04-01',
+      );
       expect(d.status).toBe('PASS');
       expect(d.explanation).toContain('row D');
-      expect(d.explanation).toContain('上，且 SOC 6135 属');
-    });
-
-    test('an entry removed before the date of application no longer counts', () => {
-      // 6135 (removal date 2028-07-22): still on the list on that day.
-      expect(
-        at(25000, { socCode: '6135' }, '2028-07-22').explanation,
-      ).toContain('row D');
-      const after = at(25000, { socCode: '6135' }, '2028-07-23');
-      expect(after.status).toBe('FAIL');
-      expect(after.explanation).toContain('row C');
-      expect(after.assumptions?.join('')).toContain(
-        'SOC 6135 的清单条目移除日期为 2028-07-22，早于申请日，按不在清单处理',
-      );
-      // 2112 (removal date 2026-12-31) on 2027-01-01: row A.
-      const a = at(33400, { socCode: '2112' }, '2027-01-01');
-      expect(a.status).toBe('FAIL');
-      expect(a.explanation).toContain('row A');
-      // A declaration still decides.
-      expect(
-        at(
-          33400,
-          { socCode: '2112', immigrationSalaryList: true },
-          '2027-01-01',
-        ).status,
-      ).toBe('PASS');
     });
 
     test('not declared, occupation not listed: row A', () => {
       const r = at(41699, { socCode: '2136' });
       expect(r.status).toBe('FAIL');
       expect(r.explanation).toContain('row A');
-      expect(r.assumptions?.join('')).toContain('按不在清单处理');
     });
   });
 
@@ -286,6 +258,7 @@ describe('CL-SW-GOING-RATE', () => {
         episodes: [
           episode({
             validFrom,
+            sponsorshipCertificateDate: validFrom,
             validTo: '2030-12-31',
             socCode: '2136',
             salary: 55000,
@@ -301,7 +274,7 @@ describe('CL-SW-GOING-RATE', () => {
     expect(pass.status).toBe('PASS');
     expect(pass.explanation).toContain('Table 1');
     expect(pass.explanation).toContain('£41,200');
-    expect(pass.assumptions?.join('')).toContain('37.5');
+    expect(pass.assumptions?.join('')).toContain('SW 14.4');
     const fail = at({ socCode: '1111' });
     expect(fail.status).toBe('FAIL');
     expect(fail.explanation).toContain('£88,100');
@@ -311,6 +284,7 @@ describe('CL-SW-GOING-RATE', () => {
           episodes: [
             episode({
               validFrom: '2025-03-01',
+              sponsorshipCertificateDate: '2025-02-01',
               validTo: '2030-12-31',
               socCode,
               salary: 55000,
@@ -341,7 +315,7 @@ describe('CL-SW-GOING-RATE', () => {
     });
     expect(c.status).toBe('PASS');
     expect(c.explanation).toContain('row C');
-    expect(c.explanation).toContain('Table 2，');
+    expect(c.explanation).toContain('Table 2:');
     const t2a = run(clSwGoingRate, {
       episodes: [episode({ socCode: '3214', salary: 31299 })],
     });
@@ -350,13 +324,13 @@ describe('CL-SW-GOING-RATE', () => {
     expect(t2a.assumptions?.join('')).toContain('同一 sponsor');
   });
 
-  test('Table 1a only before 2025-07-22; a later start is unknown', () => {
+  test('Table 1a accepts an earlier grant; a later grant without an identified exception is unknown', () => {
     const before = at({ socCode: '1150', salary: 45000 }, '2025-07-21');
     expect(before.status).toBe('PASS');
     expect(before.explanation).toContain('Table 1a');
     const after = at({ socCode: '1150', salary: 45000 }, '2025-07-22');
     expect(after.status).toBe('UNKNOWN');
-    expect(after.explanation).toContain('2025-07-22');
+    expect(after.explanation).toContain('Temporary Shortage List');
   });
 
   test('row D Table 3 occupation is unknown without a pending detail', () => {
@@ -462,17 +436,17 @@ describe('CL-LR-RESIDENCE-10Y', () => {
 
   test('legacy absences: a single 184-day absence before 2024-04-11 is fine, 185 breaks', () => {
     const lr = { episodes: [student('2014-09-01', '2027-01-31')] };
-    // 2020-01-01 to 2020-07-02 is 184 days; 181 days in 12 months would break CR 3.1.
+    // 2020-01-01 to 2020-07-04 is 184 whole days abroad.
     expect(
       run(clLrResidence10Y, {
         ...lr,
-        absences: [{ from: '2020-01-01', to: '2020-07-02' }],
+        absences: [{ from: '2020-01-01', to: '2020-07-04' }],
       }).status,
     ).toBe('PASS');
     expect(
       run(clLrResidence10Y, {
         ...lr,
-        absences: [{ from: '2020-01-01', to: '2020-07-03' }],
+        absences: [{ from: '2020-01-01', to: '2020-07-05' }],
       }).status,
     ).toBe('FAIL');
   });
@@ -482,7 +456,7 @@ describe('CL-LR-RESIDENCE-10Y', () => {
     expect(
       run(clLrResidence10Y, {
         ...lr,
-        absences: [{ from: '2025-01-01', to: '2025-06-30' }],
+        absences: [{ from: '2025-01-01', to: '2025-07-02' }],
       }).status,
     ).toBe('FAIL');
   });
@@ -561,15 +535,28 @@ describe('Skilled Worker dependent partner (SW 38–SW 46)', () => {
   });
 
   test('not before the principal completes the Skilled Worker period (SW 39.1(a))', () => {
-    const recent = [
-      episode({ validFrom: '2024-02-01', validTo: '2029-12-31' }),
-    ];
-    expect(
-      cl({ episodes: partnerFrom('2024-02-01') }, { episodes: recent }),
-    ).toMatchObject({
+    const recent = episode({
+      validFrom: '2024-02-01',
+      validTo: '2029-12-31',
+      socCode: '2136',
+    });
+    const partner = { episodes: partnerFrom('2024-02-01') };
+    expect(cl(partner, { episodes: [recent] })).toMatchObject({
       outcome: 'LIKELY_NOT_ELIGIBLE',
       earliestDate: '2029-01-04',
     });
+    // Without an occupation code the going rate is unknown: the partner
+    // follows the principal's conditional date.
+    const unknownSoc = { episodes: [{ ...recent, socCode: undefined }] };
+    const p = cl(unknownSoc, null);
+    const projected = cl(partner, unknownSoc);
+    expect(projected).toMatchObject({
+      outcome: p.outcome,
+      earliestDate: p.earliestDate,
+    });
+    expect(
+      projected.rules.find((r) => r.id === 'CL-SW-PARTNER-5Y')?.explanation,
+    ).toContain(p.earliestDate);
   });
 
   test('a principal who cannot settle as a Skilled Worker fails the partner', () => {

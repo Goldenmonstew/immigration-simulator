@@ -80,3 +80,45 @@ pnpm typecheck
 5. 撤回 UK Ancestry 的入口扩展（A3#2 属于任务 33c，不在 33a 范围）：`ancestry.ts` 恢复到 origin/main 的入口条件，只保留 CR 1.1 计算本身的调用改动。
 
 重新生成快照，报告更新黄金案例变化清单。
+
+## 第 4 轮（Fable 追加）
+
+1. **全仓 gate 失败**（合入最新 main 后）：`packages/game/test/characters.test.ts` 的 "BN(O) keeps B1 on the five-year route while reform exclusion retains criminal checks" 在第 70 行报 `rule(trip, 'CL-HKBNO-RESIDENCE-5Y')` 为 undefined——游戏里出境 6 个月、回到英国的当天，BN(O) 五年居留规则不再出现。疑似返英当天被判为"申请人在境外"，`CL-SCOPE` FAIL 后路线规则被跳过。返英当天人已在英国，不应判为境外；路线居留规则在申请人位置有问题时也应照常给出（FAIL/UNKNOWN），而不是消失。修好后跑 `pnpm --filter @uk-immigration/game test` 全量。
+2. **第 2 轮审核的 4 条**（全文 `/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/review33a-2.md`）：
+   - 去重不能把两趟行程合成一趟：保留每趟行程用于单次上限与出入境时的许可核对，只对累计天数取并集。
+   - 主申请人在模拟日境外时，随行申请仍要在未来同一递交日核对双方（不要因模拟日 `CL-SCOPE` FAIL 就跳过同日搜索）。
+   - `G-HKBNO-ONE-MONTH-SHORT`：许可到期前 28 天内有效递交、参考日依赖 s3C 延续的情形，按"有条件"结果处理（披露假设），不要把预计申请日推到许可到期之后；已知转签与实际空档的检查保留。
+   - 五年 Appendix FM 伴侣的未来候选日也按 R-ILRP.1.1(a) 核对申请人位置。
+3. 两轮审核给出的**每个实测反例**都写成回归测试（测试名注明"review33a-1 #n"或"review33a-2 #n"）；改完后逐个重算这些反例，确认推荐日期在该日重算时确实通过。
+4. 改完跑 brief 的全部验收命令外加 `pnpm --filter @uk-immigration/game test`，重新生成快照，报告更新。
+
+## 第 5 轮（Fable 追加；本轮起由 gpt-6.2-astra 实现，标准档）
+
+审核第 3 轮意见全文：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/review33a-3.md`。5 条都处理，每条用审核给的实测反例写回归测试（测试名注明 "review33a-3 #n"），并在推荐日期当天重算确认：
+
+1. 免本人居留年限的随行子女，同日搜索不要套用连续居留缺席上限；只核对候选日的位置、适用许可与随行条件。
+2. 模拟日是主申请人出境当天时，当天位置可保留 `UNKNOWN`，但汇总层不要丢掉同日搜索的入口，已知返英日要继续用于寻找共同递交日。
+3. 随行结果选中的共同日期依赖主申请人的 s.3C 延续时，把这一前提一并写进随行人的双语结果。
+4. 许可记录有重叠时，按引擎"重叠时取最近生效许可"的同一口径回溯连续期，不要跳过中间已录入的 Student 等转签。
+5. 五年 Appendix FM 伴侣首个返英日落在许可空档时，继续按已录入的新许可核对满期与位置，不要过早停止搜索。
+
+跑全部验收命令外加 `pnpm --filter @uk-immigration/game test`，重新生成快照，报告更新。
+
+## 第 6 轮（Fable 追加；gpt-6.2-astra，标准档）——本任务最后一轮
+
+审核第 4 轮全文：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/review33a-4.md`。3 条都修，每条用审核反例写回归测试（"review33a-4 #n"）并在推荐日与前一日重算：
+
+1. 出境日恢复共同递交日时，按候选日核对已录入的新许可条件（薪资、going rate 等），不要沿用模拟日的规则状态。
+2. BN(O) 子女在预计日前满 18 岁：退出未成年随行分支后，继续核对成年子女本人按 BN(O) 五年路线的资格（SRC-020 HK 57.1、62.1(b)、63.1），不要直接退到 Long Residence。这是第 5 轮引入的回退。
+3. 五年 Appendix FM 伴侣的未来搜索与当日重算都按现行法的空档口径（CR 4.1–4.3，33a 第 1 轮已实现的那套），不要套用改革栏 PD-053 的一天容差。
+
+本轮之后，审核若再提出只在罕见输入组合下才出现的问题，Fable 会记为后续任务，不再在本任务里改。跑全部验收命令外加 game 测试，重新生成快照，报告更新。
+
+## 第 7 轮（Fable 追加；gpt-6.2-astra，标准档）——只修第 6 轮引入的两处回退
+
+审核全文：`/private/tmp/claude-501/-Users-wanruncong-Projects-web-UK/93b55f23-36e5-4089-9342-14ec7d1f53f1/scratchpad/t30/review33a-5.md`。
+
+1. **常见情形回退**：工签申请人已录入后续续签、只缺 Life in the UK 资料时，第 5 轮给有条件日期 `2027-12-04`，第 6 轮变成 `INSUFFICIENT_INFORMATION` 且没有日期。恢复为：普通预测里已知的居留日期和"待确认的条件"照常给出；只有在核对"可确认的共同递交日"时才要求各项都 PASS。
+2. **财务过渡门槛**：五年 Appendix FM 伴侣有一天空档、居留重新起算时，`familyIncomeThreshold()` 不应改用重算后的居留起点；E-LTRP.3.5–3.6 的过渡资格取决于先前成功申请与同一伴侣，按原来的首次成功申请判断（审核反例：2024-04-11 前首次申请、£22,000、2026-04-01 一天空档，应保持 £18,600 门槛）。
+
+两条用审核反例写回归测试（"review33a-5 #n"）。不要处理审核"风险"里的两条（BN(O) 子女成年时换许可角色、出入境跨税年），Fable 已记为后续任务。跑全部验收命令外加 game 测试，确认 56 个黄金案例相对第 6 轮无变化（或说明变化原因）。

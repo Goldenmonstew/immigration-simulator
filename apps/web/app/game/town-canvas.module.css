@@ -10,6 +10,7 @@
 }
 
 .canvas.interior {
+  height: max(208px, min(416px, calc(100dvh - 400px)));
   background: #2a1f18;
 }
 
@@ -92,6 +93,7 @@
 }
 
 .feedback {
+  z-index: 2;
   color: #fff9ce;
   background: rgb(38 62 57 / 94%);
   font-size: 14px;

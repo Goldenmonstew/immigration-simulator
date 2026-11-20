@@ -157,16 +157,31 @@ export const MAIN_ONLY_ROUTES: Route[] = [
 export const isSkilledWorkerDependant = (e: ImmigrationEpisode) =>
   e.route === 'SKILLED_WORKER' && e.role === 'DEPENDANT';
 
+export const isSkilledWorkerPartner = (e: ImmigrationEpisode) =>
+  isSkilledWorkerDependant(e) && e.dependantOf === 'PARTNER';
+
+/** SW 39.1(b)(i): the current partner already held partner permission when P settled. */
+export function hasSettledSkilledWorkerPartner(
+  timeline: PersonTimeline,
+  principal: PersonTimeline,
+  date: IsoDate,
+): boolean {
+  const settled = principal.settled;
+  return (
+    settled?.route === 'SKILLED_WORKER' &&
+    settled.date !== '' &&
+    settled.date <= date &&
+    onSkilledWorkerPartner(timeline, date) &&
+    onSkilledWorkerPartner(timeline, settled.date)
+  );
+}
+
 export function onSkilledWorkerPartner(
   timeline: PersonTimeline,
   date: IsoDate,
 ): boolean {
   const current = episodeOn(timeline, date);
-  return (
-    current !== undefined &&
-    isSkilledWorkerDependant(current) &&
-    current.dependantOf === 'PARTNER'
-  );
+  return current !== undefined && isSkilledWorkerPartner(current);
 }
 
 export function onSkilledWorkerChild(
@@ -185,7 +200,7 @@ export const crResidenceSources = [
   { srcId: 'SRC-008', locator: 'CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3' },
 ];
 
-/** Dates on a travel day establish neither presence nor absence at filing time. */
+/** Explain when the declared travel prevents confirming an in-country filing. */
 export function applicationPresence(
   timeline: PersonTimeline,
   date: IsoDate,
@@ -215,8 +230,8 @@ export function applicationPresence(
 
 export const absenceAssumption = (L: Lang) =>
   L(
-    '缺席按 CR 3.1–3.2 计算，以许可起始日推定适用的旧许可规则；出境与入境当日都计入缺席，CR 3.4 的豁免理由未建模。',
-    'Absences follow CR 3.1–3.2, using the permission start date to infer whether the old permission rules apply. Departure and return days count as absence. CR 3.4 exemptions are outside the model.',
+    '缺席按 CR 3.1–3.2 计算，只计出境与返英之间在境外度过的整天；旧许可规则按许可起始日推定，CR 3.4 的豁免理由未建模。',
+    'Absences follow CR 3.1–3.2 and count only whole days abroad between departure and return. The permission start date is used to infer whether the old permission rules apply. CR 3.4 exemptions are outside the model.',
   );
 
 export function residenceAssumptions(
@@ -242,6 +257,14 @@ export function residenceAssumptions(
           L(
             `按 CR 1.1 从 ${referenceDate} 回溯检查，合格期于 ${completion} 满期。申请日仍为 ${applied}。`,
             `Under CR 1.1 the period is assessed as of ${referenceDate} and completes on ${completion}. The application date remains ${applied}.`,
+          ),
+        ]
+      : []),
+    ...(residence.reliesOnSection3C
+      ? [
+          L(
+            `此日期以在许可到期前有效递交定居申请为前提。假设你留在英国，申请在 ${referenceDate} 仍待决定且未撤回，原许可按 Immigration Act 1971 section 3C 延续至该参考日。`,
+            `This date assumes you make a valid settlement application before your permission expires, stay in the UK, and the application is still pending and has not been withdrawn on ${referenceDate}, so Immigration Act 1971 section 3C extends your permission to that reference date.`,
           ),
         ]
       : []),

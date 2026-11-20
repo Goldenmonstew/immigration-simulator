@@ -40,7 +40,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     };
   }, []);
   return (
-    <div className={isGame ? game.theme : undefined}>
+    <div className={isGame ? game.theme : styles.shell}>
       <title>{t('site.name')}</title>
       <a className={styles.skip} href="#main">
         {t('site.skip')}

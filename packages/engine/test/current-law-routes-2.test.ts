@@ -314,12 +314,12 @@ describe('UK Ancestry (SRC-026)', () => {
     const absent = run(
       clAncestryResidence5Y,
       ancestry('2021-09-01', {
-        absences: [{ from: '2022-01-01', to: '2022-06-30' }],
+        absences: [{ from: '2022-01-01', to: '2022-07-02' }],
       }),
       '2026-09-01',
     );
     expect(absent.status).toBe('FAIL');
-    expect(absent.explanation).toContain('2027-07-01');
+    expect(absent.explanation).toContain('2027-07-02');
   });
 
   test('A3#2: after switching route, assess residence at the last UK Ancestry expiry', () => {
@@ -493,7 +493,7 @@ describe('Innovator Founder (SRC-027)', () => {
     const result = run(
       clInnovatorResidence3Y,
       founder('2023-05-01', undefined, {
-        absences: [{ from: '2024-01-01', to: '2024-06-30' }],
+        absences: [{ from: '2024-01-01', to: '2024-07-01' }],
       }),
       '2026-05-01',
     );
