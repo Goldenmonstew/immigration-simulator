@@ -35,7 +35,7 @@ import {
   ukAncestryResidence,
 } from './rules/current-law';
 import { applicationPresence } from './rules/current-law/shared';
-import { familyFiveYearApplicationDate } from './rules/current-law/family';
+import { familyFiveYearFiling } from './rules/current-law/family';
 import { currentLawApplicationPresence } from './rules/current-law/scope';
 import { esDependantSettlement } from './rules/es-dependant';
 import {
@@ -547,6 +547,7 @@ function assessCurrentLaw(
   const family = onFamilyPartner(ctx.timeline, ctx.simulationDate);
   const familyTen = familyTenYearResidence(ctx);
   const familyFive = familyFiveYearStart(ctx);
+  const familyFiling = familyFive ? familyFiveYearFiling(ctx) : undefined;
   const protection = onProtection(ctx.timeline, ctx.simulationDate);
   const ancestry = ukAncestryResidence(ctx);
   const innovator = innovatorFounderResidence(ctx);
@@ -713,8 +714,8 @@ function assessCurrentLaw(
       ? [
           {
             years: cl.values.familyPartnerQualifyingYearsFive.value,
-            start: familyFive,
-            applicationDate: familyFiveYearApplicationDate(ctx, familyFive),
+            start: familyFiling?.start,
+            applicationDate: familyFiling?.applicationDate,
             rules: pick(
               'CL-FAMILY-RELATIONSHIP',
               'CL-FAMILY-FINANCIAL',
@@ -838,15 +839,20 @@ function assessCurrentLaw(
     },
   ];
   // An issue with today's filing still allows a forecast on a known future day.
-  const decision: Decision =
-    location?.status === 'UNKNOWN'
-      ? { outcome: 'INSUFFICIENT_INFORMATION' }
-      : decide(
-          location
-            ? candidates.filter((c) => (dueOf(c) ?? '') > ctx.simulationDate)
-            : candidates,
-          ctx.simulationDate,
-        );
+  const decision = decide(
+    location
+      ? candidates.filter(
+          (c) =>
+            (dueOf(c) ?? '') > ctx.simulationDate &&
+            (location.status !== 'UNKNOWN' || statusOf(c) === 'PASS'),
+        )
+      : candidates,
+    ctx.simulationDate,
+  );
+  // Today's location can be unknown even when a later filing is supported.
+  // Keep that date and its route for simultaneous dependant applications.
+  if (location?.status === 'UNKNOWN')
+    decision.outcome = 'INSUFFICIENT_INFORMATION';
   const shown =
     (partner || child) &&
     decision.pathwayYears === cl.values.skilledWorkerQualifyingYears.value

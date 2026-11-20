@@ -106,16 +106,16 @@ What-if、前向推算的结构化假设，都等用到时再加字段，不提�
   - 10 年：强制 + `ES-BREACH` + `ES-PUBLIC-FUNDS` + `ES-EARNINGS-10Y`
   - 20 年：强制 + `ES-EARNINGS-10Y`（用过 public funds 或有 breach 时只剩这条）
   - 当前为 Family and Private Life 时只有 10 / 20 年（p23）。居留起点都是 `ES-RESIDENCE` 的合格期起点。
-- 现行法律：建模范围无法确定时，只输出 `CL-SCOPE` 的 `UNKNOWN`，结论为 `INSUFFICIENT_INFORMATION`。在建模范围内，适用境内申请的路线会显示申请日的位置判断，明确在境外为 `FAIL`，位置无法确定为 `UNKNOWN`。仍显示相关路线规则，行程明确在境外时继续计算未来的可申请日。候选如 Skilled Worker 5 年（`CL-SW-SALARY`、`CL-SW-GOING-RATE`（2.5）、`CL-ENGLISH`、`CL-KOL`，起点为连续 Skilled Worker 段）与 Long Residence 10 年（`CL-ENGLISH`、`CL-KOL`，起点为连续合法居留段；英语按 LR 13.1 的等级单独核对，与当前路线的等级不同时只改该候选里的状态，`rules[]` 仍只显示按当前路线的一条，差异写进 `assumptions`（4.5））。候选与居留规则共用可申请日的计算。Long Residence 的 `CL-LR-RESIDENCE-10Y` 也显示 LR 9.3 的申请日位置判断。
+- 现行法律：建模范围无法确定时，只输出 `CL-SCOPE` 的 `UNKNOWN`，结论为 `INSUFFICIENT_INFORMATION`。在建模范围内，适用境内申请的路线会显示申请日的位置判断，明确在境外为 `FAIL`，位置无法确定为 `UNKNOWN`。仍显示相关路线规则。若只是出境当天递交时的位置不明，当天结论为 `INSUFFICIENT_INFORMATION`。已知返英日且候选的其他要求都通过时，保留可确认的未来日期和对应路线，供随行申请在同一天核对双方。候选如 Skilled Worker 5 年（`CL-SW-SALARY`、`CL-SW-GOING-RATE`（2.5）、`CL-ENGLISH`、`CL-KOL`，起点为连续 Skilled Worker 段）与 Long Residence 10 年（`CL-ENGLISH`、`CL-KOL`，起点为连续合法居留段；英语按 LR 13.1 的等级单独核对，与当前路线的等级不同时只改该候选里的状态，`rules[]` 仍只显示按当前路线的一条，差异写进 `assumptions`（4.5））。候选与居留规则共用可申请日的计算。Long Residence 的 `CL-LR-RESIDENCE-10Y` 也显示 LR 9.3 的申请日位置判断。
 
-候选日期以实际申请日为比较基准。引用 Appendix Continuous Residence 的现行路径按 SRC-008 CR 1.1(a)–(b) 从申请日及其后最多 28 天内的可计入日期回溯。预测日期使用已录入的许可、到期与转签。候选申请日晚于最后一段已录入许可时，推算以合格许可连续续接为前提。BN(O) 在最后一段已录入许可到期前递交时，若参考日超过到期日，结果可按 Immigration Act 1971 section 3C 有条件计算，并披露申请有效、人在英国且至参考日仍待决定的假设。问卷没有决定日。
+候选日期以实际申请日为比较基准。引用 Appendix Continuous Residence 的现行路径按 SRC-008 CR 1.1(a)–(b) 从申请日及其后最多 28 天内的可计入日期回溯。预测日期使用已录入的许可、到期与转签。重叠期间逐段采用当日最近生效的许可，回溯合格期与判定当日许可使用同一口径。候选申请日晚于最后一段已录入许可时，推算以合格许可连续续接为前提。BN(O) 在最后一段已录入许可到期前递交时，若参考日超过到期日，结果可按 Immigration Act 1971 section 3C 有条件计算，并披露申请有效、人在英国且至参考日仍待决定、未撤回的假设。共同日期依赖主申请人的 section 3C 时，随行结果也明确指出主申请人和相应参考日。问卷没有决定日。
 
-缺席限额在可计合格期内核对，CR 3.2 的旧许可窗口按实际申请日周年分隔。Long Residence 按每趟行程的出发日确定适用规则，单次上限与出入境时的许可按原行程核对，累计天数对重叠日期取并集（CR 3.3、4.1(d)(iii)）。有境内申请要求的路线按候选申请日核对位置，已申报的返英日可在抵达后递交。随行申请在同一天分别核对双方，取双方都符合的最早日期。Appendix FM 五年伴侣按 E-ILRP.1.3 满期，候选申请日也须符合 R-ILRP.1.1(a) 的境内要求。Appendix Settlement Protection 按该路线的条文计算。Earned Settlement 用连续起点加路径年限。
+缺席限额在可计合格期内核对，CR 3.2 的旧许可窗口按实际申请日周年分隔。Long Residence 按每趟行程的出发日确定适用规则，单次上限与出入境时的许可按原行程核对，累计天数对重叠日期取并集（CR 3.3、4.1(d)(iii)）。有境内申请要求的路线按候选申请日核对位置，已申报的返英日可在抵达后递交。随行申请在同一天分别核对双方，取双方都符合的最早日期。免本人居留年限的子女按候选日核对位置、子女许可及随行条件。其历史缺席天数不设上限（SRC-020 HK 62.1(b)、63.1，SRC-004 SW 41A.1–43.1，SRC-021 GT 29A.1–31.1，SRC-022 SETF 12.1–14.1）。Appendix FM 五年伴侣按 E-ILRP.1.3 满期，候选日须满足 R-ILRP.1.1(a)、E-ILRP.1.2 的境内与许可要求。若返英日落在许可空档，继续核对已录入的后续伴侣许可，从相应连续期重新计算满期日。Appendix Settlement Protection 按该路线的条文计算。Earned Settlement 用连续起点加路径年限。
 
 判定（两个规则集共用）：
 
 1. 有候选全部 `PASS` 且该候选的可申请日 ≤ 实际申请日 → `LIKELY_ELIGIBLE`，`pathwayYears` 取最短，`earliestDate` = 申请日。
-2. 否则，有候选在实际申请日满足相应的居留时点（或时点未知）且只有 `UNKNOWN`、没有 `FAIL` → 这些 `UNKNOWN` 都带 `pendingDetails` 时 `POTENTIALLY_ELIGIBLE`，`pathwayYears` 取该候选；否则 `INSUFFICIENT_INFORMATION`，不给 `pathwayYears`。两种都不给 `earliestDate`。
+2. 否则，有候选在实际申请日满足相应的居留时点（或时点未知）且只有 `UNKNOWN`、没有 `FAIL` → 这些 `UNKNOWN` 都带 `pendingDetails` 时 `POTENTIALLY_ELIGIBLE`，`pathwayYears` 取该候选；否则 `INSUFFICIENT_INFORMATION`，不给 `pathwayYears`。两种都不给 `earliestDate`。上文出境当天的位置不明另行处理，可保留后续已知的境内候选。
 3. 否则 `LIKELY_NOT_ELIGIBLE`；若还有未 `FAIL` 的候选，取可申请日最早的一条给出 `pathwayYears` 与 `earliestDate`，并加假设"持续居留、收入等状况不变"。强制要求 `FAIL` 时所有候选都失败，不给年限与日期。
 
 短路（`SimulationResult.shortCircuit`）：`CRIMINALITY`（任何犯罪记录）与 `IMMIGRATION_BREACH`（成年后非法入境）让两栏都是 `REQUIRES_REGULATED_REVIEW`；`PROTECTION` 与 `OUTSIDE_FRAMEWORK`（当前路线）只让 Earned Settlement 一栏是 `REQUIRES_REGULATED_REVIEW`，现行法律照常评估。短路时规则照常运行、出现在 `rules` 里，但该栏不给 `pathwayYears` / `earliestDate`。保护类路线的短路自 Phase 3.4 起按 §11.5。

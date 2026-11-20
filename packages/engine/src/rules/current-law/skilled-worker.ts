@@ -16,7 +16,11 @@ import type { CurrentResidence } from '../../residence';
 import { defineRule, textFor } from '../../rule';
 import type { Lang } from '../../rule';
 import { gbp } from '../es-contribution';
-import { jointApplication, noJointApplication } from './dependants';
+import {
+  childFiling,
+  jointApplication,
+  noJointApplication,
+} from './dependants';
 import type { GoingRate, Route } from '@uk-immigration/policy-data';
 import type {
   ImmigrationEpisode,
@@ -660,14 +664,11 @@ export function skilledWorkerPartnerResidence(
     );
   return settled
     ? ownFrom()
-    : jointApplication(
-        principalDate!,
-        ownFrom,
-        (notBefore) =>
-          skilledWorkerResidence(
-            { timeline: ctx.principal!.timeline, simulationDate },
-            notBefore,
-          )?.applicationDate,
+    : jointApplication(principalDate!, ownFrom, (notBefore) =>
+        skilledWorkerResidence(
+          { timeline: ctx.principal!.timeline, simulationDate },
+          notBefore,
+        ),
       );
 }
 
@@ -770,19 +771,12 @@ export function skilledWorkerChildDate(ctx: RuleContext): IsoDate | undefined {
   const { timeline, simulationDate } = ctx;
   return jointApplication(
     due,
-    (notBefore) =>
-      currentResidence(
-        timeline,
-        simulationDate,
-        (e) => isSkilledWorkerDependant(e) && e.dependantOf === 'PARENT',
-        0,
-        { notBefore },
-      ),
+    (notBefore) => childFiling(timeline, notBefore, 'SKILLED_WORKER'),
     (notBefore) =>
       skilledWorkerResidence(
         { timeline: ctx.principal!.timeline, simulationDate },
         notBefore,
-      )?.applicationDate,
+      ),
   )?.applicationDate;
 }
 

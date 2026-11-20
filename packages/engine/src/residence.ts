@@ -81,6 +81,51 @@ export interface Run {
 type Counts = (episode: ImmigrationEpisode) => boolean;
 type AllowsGap = (from: IsoDate, to: IsoDate) => boolean;
 
+function permissionChanges(timeline: PersonTimeline): IsoDate[] {
+  return [
+    ...new Set(
+      timeline.episodes.flatMap((e) => [e.validFrom, addDays(e.validTo, 1)]),
+    ),
+  ].sort();
+}
+
+/** Between consecutive grant boundaries episodeOn selects the same permission. */
+function effectivePeriods(timeline: PersonTimeline) {
+  const changes = permissionChanges(timeline);
+  return changes.flatMap((from, i) => {
+    const permission = episodeOn(timeline, from);
+    return permission
+      ? [{ from, to: addDays(changes[i + 1], -1), permission }]
+      : [];
+  });
+}
+
+/** First in-country filing on a matching grant, with any route-specific maturity date. */
+export function nextPermissionFiling(
+  timeline: PersonTimeline,
+  notBefore: IsoDate,
+  appliesOn: Counts,
+  periodFrom?: (date: IsoDate) => { start: IsoDate; completion: IsoDate },
+) {
+  const periods = effectivePeriods(timeline);
+  for (const period of periods) {
+    // Only the last recorded permission may be projected as renewed.
+    const last = period === periods.at(-1);
+    if ((!last && period.to < notBefore) || !appliesOn(period.permission))
+      continue;
+    const qualifying = periodFrom?.(period.from);
+    const earliest = later(
+      notBefore,
+      later(period.from, qualifying?.completion ?? period.from),
+    );
+    if (!last && earliest > period.to) continue;
+    const applicationDate = nextKnownApplicationDate(timeline, earliest);
+    if (applicationDate && (last || applicationDate <= period.to)) {
+      return { start: qualifying?.start ?? period.from, applicationDate };
+    }
+  }
+}
+
 /** The consecutive episodes satisfying `counts` that end with the one on `date`. */
 export function continuousRun(
   timeline: PersonTimeline,
@@ -88,26 +133,30 @@ export function continuousRun(
   counts: Counts,
   allowsGap: AllowsGap = (from, to) => daysBetween(from, to) < MAX_GAP_DAYS,
 ): Run {
-  const current = episodeOn(timeline, date);
-  if (!current || !counts(current)) return { episodes: [] };
-  const episodes = [current];
-  for (;;) {
-    const from = episodes[0].validFrom;
-    const previous = timeline.episodes
-      .filter((e) => e.validFrom < from && !episodes.includes(e))
-      .sort((a, b) => (a.validTo < b.validTo ? 1 : -1))[0];
-    if (!previous) return { episodes };
-    const firstUncovered = addDays(previous.validTo, 1);
-    const lastUncovered = addDays(from, -1);
-    if (
-      firstUncovered <= lastUncovered &&
-      !allowsGap(firstUncovered, lastUncovered)
-    ) {
-      return { episodes };
+  return runThrough(effectivePeriods(timeline), date, counts, allowsGap);
+}
+
+function runThrough(
+  periods: ReturnType<typeof effectivePeriods>,
+  date: IsoDate,
+  counts: Counts,
+  allowsGap: AllowsGap,
+): Run {
+  const episodes: ImmigrationEpisode[] = [];
+  const index = periods.findIndex((p) => p.from <= date && date <= p.to);
+  for (let i = index; i >= 0; i--) {
+    const { from, to, permission } = periods[i];
+    if (i < index) {
+      const gapFrom = addDays(to, 1);
+      const gapTo = addDays(periods[i + 1].from, -1);
+      if (gapFrom <= gapTo && !allowsGap(gapFrom, gapTo)) break;
     }
-    if (!counts(previous)) return { episodes, stoppedAt: previous };
-    episodes.unshift(previous);
+    if (!counts(permission)) {
+      return i === index ? { episodes } : { episodes, stoppedAt: permission };
+    }
+    episodes.unshift({ ...permission, validFrom: from, validTo: to });
   }
+  return { episodes };
 }
 
 interface AbsenceLimit {
@@ -220,11 +269,7 @@ function partitionByPermission(timeline: PersonTimeline, absences: Absence[]) {
   const cutoff = cl.values.continuousResidenceLegacyPermissionBefore.value;
   const fixed: Absence[] = [];
   const rolling: Absence[] = [];
-  const changes = [
-    ...new Set(
-      timeline.episodes.flatMap((e) => [e.validFrom, addDays(e.validTo, 1)]),
-    ),
-  ].sort();
+  const changes = permissionChanges(timeline);
   for (const absence of absences) {
     const boundaries = [
       absence.from,
@@ -348,9 +393,10 @@ export function currentResidence(
     : partitionByPermission(timeline, absences);
   const treatment = (from: IsoDate, to: IsoDate, reference: IsoDate) =>
     gapTreatment(timeline, trips, { from, to }, longResidence, reference);
+  const periods = effectivePeriods(timeline);
   const runAt = (date: IsoDate) =>
-    continuousRun(
-      timeline,
+    runThrough(
+      periods,
       date,
       counts,
       (from, to) => treatment(from, to, date) !== 'BREAK',
@@ -434,11 +480,9 @@ export function currentResidence(
   const fixedWindowsMatter =
     absenceDays(fixed, earliestStart, fixed.at(-1)?.to ?? application) >
     calendarLimit.maxDays;
-  const permissionChanges = timeline.episodes
-    .flatMap((e) => [e.validFrom, addDays(e.validTo, 1)])
-    .sort();
+  const changes = permissionChanges(timeline);
   const referenceChanges = [
-    ...permissionChanges,
+    ...changes,
     ...absences.flatMap((a) => [a.from, a.to]),
   ].sort();
   let firstPossibleReference = firstReference;
@@ -453,7 +497,7 @@ export function currentResidence(
     const permission =
       applied <= lastRecorded ? episodeOn(timeline, applied) : lastPermission;
     if (!permission || !appliesOn(permission)) {
-      const change = permissionChanges.find((day) => day > applied);
+      const change = changes.find((day) => day > applied);
       if (!change) break;
       applied = change;
       continue;

@@ -2,7 +2,7 @@
 
 ## 1. 做了什么
 
-前两轮可按现行法与 Earned Settlement 分组。第三、四轮各对应一次审核修正。
+前两轮按现行法与 Earned Settlement 分组。第三至第五轮分别对应三次审核修正。
 
 - **`Fix: 按现行规则计算连续居留与申请日`**。包含引擎的 `residence.ts`、`aggregate.ts` 和 `rules/current-law/` 调用处、现行法参数、契约、对应测试、快照与顾问包，以及端到端期望和试玩表。
   - **A1#7、A2#3、A3#1、A6#1**。按 SRC-008 CR 1.1(a)–(b) 从申请日及其后最多 28 天内有可计许可的参考日回溯。满期日、参考日和申请日分别计算。五年 Appendix FM 伴侣和 Appendix Settlement Protection 适用各自条文。现行法结果的双语假设说明适用路线可以提前最多 28 天递交。
@@ -26,6 +26,18 @@
   4. **`review33a-2 #3`**。BN(O) 在已录入的最后一段许可到期前有效递交时，CR 1.1(b) 参考日可以有条件依赖 Immigration Act 1971 section 3C。双语说明要求申请人留在英国、有效申请到参考日仍待决定且未撤回。已知转签、许可空档和参考日前出行均有反例。黄金案例在 2026-11-03 和许可最后有效日 2026-11-30 重算均通过居留规则，并带有该假设。[BN(O) 定居指引](https://www.gov.uk/british-national-overseas-bno-visa/settle-in-the-uk#eligibility) · [Home Office 连续居留指引](https://www.gov.uk/government/publications/continuous-residence-caseworker-guidance/continuous-residence-guidance-accessible-version#time-spent-on-3c-or-3d-leave) · [Home Office section 3C 指引](https://www.gov.uk/government/publications/3c-and-3d-leave/3c-and-3d-leave-accessible#section-3c-leave-extended-when-an-in-time-application-is-made)
   5. **`review33a-2 #4`**。五年 Appendix FM 伴侣在满期后按 SRC-024 R-ILRP.1.1(a)、E-ILRP.1.2 核对候选日的申请人位置。11 月 4 日满期时身处境外，预计到 11 月 10 日返英后递交，并在当日重算通过。担保伴侣位置继续由双语假设说明。
 
+### 第五轮审核修正
+
+建议一个提交 `Fix: 按实际许可和随行条件核对共同递交日`。共用计算在 `residence.ts`、`aggregate.ts` 和 `rules/current-law/dependants.ts`，四条路线的调用在 `skilled-worker.ts`、`global-talent.ts`、`hong-kong-bno.ts`、`family.ts`。日期契约、`residence-dates.test.ts`、本报告与进度记录一并交付。
+
+| 审核条目 | 修正与同日复算 | 依据 |
+|---|---|---|
+| `review33a-3 #1` | BN(O)、Skilled Worker、Global Talent、Settlement Family Life 四条路线的免年限子女按候选日核对在英位置、子女许可和随行条件。四例此前均推荐 Long Residence 的 2036-10-08。现在均在 2026-11-04 返英当天按随行路线通过，前一日仍在境外，次日已转 Student。 | SRC-020 HK 55.2(e)、57.1–57.4、62.1(b)、63.1，SRC-004 SW 37.2(d)、39.1、41A.1–43.1，SRC-021 GT 25.2(d)、27.1、29A.1–31.1，SRC-022 SETF 10.2(d)–(e)、12.1–14.1 |
+| `review33a-3 #2` | 主申请人 2026-11-01 出境，当天位置为 `UNKNOWN`。能从记录确认其 11-10 返英，且其他条件通过时，汇总保留该日期和路线。随行亲属要等 11-15 返英，两人可在 11-15 共同递交，11-14 重算仍未通过。缺返英日或主申请人英语资料时，该反例不给共同日期。 | SRC-020 HK 55.2(e)、59.1(a) |
+| `review33a-3 #3` | BN(O) 成人随行亲属和未成年子女均可在 2026-11-03 有条件地随主申请人递交，11-02 尚早。预测和当日重算的中英文结果都点明主申请人须在许可有效期内有效递交、留在英国，申请到 12-01 参考日仍待决定且未撤回。检验前提取自选中的共同日。 | SRC-020 HK 57.3(a)、59.1(a)、62.1(b)、63.1，SRC-008 CR 1.1(b)。[Home Office section 3C 指引](https://www.gov.uk/government/publications/3c-and-3d-leave/3c-and-3d-leave-accessible#section-3c-leave-extended-when-an-in-time-application-is-made) |
+| `review33a-3 #4` | 重叠许可按每段实际生效的最近一笔回溯。2026-05-16 至 05-29 生效的是 Student，05-30 的新工签重新起算。原资料在 2026-05-04 的工签居留规则为 `FAIL`，最早 2031-05-02 按工签通过，前一日尚早。另测了较短的 Student 许可到期后旧工签恢复生效的情况。 | SRC-004 SW 21.2、22.1，SRC-008 CR 1.1(b) |
+| `review33a-3 #5` | 五年伴侣 2026-11-04 满期时在境外，旧许可 11-08 到期，11-10 返英时无许可。搜索继续核对 11-12 生效的新伴侣许可。预计日从 Long Residence 的 2036-10-15 改为伴侣路线的 2031-11-12。前一日未通过，当日通过，结果也显示新的连续期起点。 | SRC-024 R-ILRP.1.1(a)、E-ILRP.1.2–1.3 |
+
 ### 黄金案例变化
 
 与分支基线 `a13ee94` 比较，56 个黄金案例中有九个的结论或日期变化，均为现行法律栏。改革栏的滚动缺席峰值由 A4#1 回归用例覆盖。
@@ -42,6 +54,8 @@
 | `CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT` | 预计日期 2034-06-01 → 2034-05-04 | Long Residence 候选使用 CR 1.1(b) |
 | `G-HKBNO-ONE-MONTH-SHORT` | 预计日期 2026-12-01 → 2026-11-03，11 月 1 日仍为 `LIKELY_NOT_ELIGIBLE` | 在许可有效期内递交，CR 1.1(b) 的 12 月 1 日参考日有条件依赖 section 3C |
 
+第五轮相对 `6a4d98f` 逐项对比了 56 个黄金案例，两栏的结论、路线和日期均无新增变化。黄金 JSON、双语快照和顾问包重生成后与上一轮一致。
+
 相对第四轮开始时的 `b62e54b`，仅 `G-HKBNO-ONE-MONTH-SHORT` 预计日期发生变化。核对了两条 Playwright 期望和试玩表 A1–A3，均继续适用。
 
 第二轮相对第一轮恢复了 `G-FAMILY-5Y-LOW-INCOME`、`CL-FAMILY-PARTNER-FIVE-YEARS` 和 `CL-FAMILY-FIVE-YEAR-SAVINGS-PASS` 的 `LIKELY_ELIGIBLE`，以及 `CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT` 的 `POTENTIALLY_ELIGIBLE`。`CL-FAMILY-FIVE-YEAR-ADULT-CHILD-ENGLISH` 的子女规则恢复为 `PASS`，案例因本人英语资料不足仍为 `INSUFFICIENT_INFORMATION`。
@@ -51,23 +65,25 @@
 | 命令 | 结果 |
 |---|---|
 | `pnpm --filter @uk-immigration/policy-data test` | 23 项通过 |
-| `pnpm --filter @uk-immigration/engine test -u` | 重跑黄金案例、双语快照及顾问包生成测试。黄金 JSON 和顾问包有变动，双语快照文件无差异。Vitest 5 使用 `test -u` 传入更新参数 |
-| `pnpm --filter @uk-immigration/engine test` | 2,607 项通过，1 项显式启用才运行的文案导出测试跳过，含两轮审核反例的日期测试 |
+| `pnpm --filter @uk-immigration/engine test -u` | 黄金案例、双语快照及顾问包生成测试通过。第五轮三份产物均无差异 |
+| `pnpm --filter @uk-immigration/engine test` | 2,618 项通过，1 项需显式启用的文案导出测试跳过，覆盖三轮审核反例 |
 | `pnpm --filter web test` | 498 项通过 |
 | `pnpm --filter @uk-immigration/game test` | 1,319 项通过，BN(O) 返英场景通过 |
 | `pnpm lint`、`pnpm typecheck` | 通过 |
 | `pnpm --filter @uk-immigration/engine build` | 通过 |
 | `git diff --check` | 通过 |
 
-前两轮已有 Fable 验收记录，包括全仓 gate 和 35 项 Playwright。上表为本轮在合入最新 main 后的检查。
+第五轮先在修改前运行 `pnpm --filter @uk-immigration/engine test test/residence-dates.test.ts -t review33a-3`，9 个参数化用例全部复现审核问题。修正后，日期测试文件 38 项全部通过。五条审核反例均通过 `evaluate()` 用同一份资料在预计日和前一日重算，并核对实际命中的路线。
 
 ## 3. 没做或没验证的
 
-- 本次范围内的复核结论均采纳。A3#2 留给 33c。A1#17 留给任务 39 登记指引，计数仍按含出境及返英日的约定。A3#3、A6#3 的 CR 3.4 豁免属于复核表已披露的简化。
+- 第五轮五项审核意见均采纳。A3#2 留给 33c。A1#17 留给任务 39 登记指引，计数仍按含出境及返英日的约定。A3#3、A6#3 的 CR 3.4 豁免属于复核表已披露的简化。
 - 问卷缺 CR 1.1(c) 的决定日，以及确认 CR 4.1(d)(i)、(ii)、(iv) 所需的历史递交或审批资料。CR 3.2 用许可起始日代理授予日。空行程列表按无已申报缺席处理。问卷只有担保伴侣的身份，无法判断其本人位置，结果披露在英国的假设。未来日期沿用现有的其他条件推算假设，例如届时仍满足英语和薪资条件。
 - section 3C 的有条件计算仅用于本轮核对的 BN(O) 居留。实际递交的有效性、待决状态和到期后的许可续接情况仍需用届时的资料核对。
 - Playwright、浏览器验收、提交和 PR 由 Fable 完成，本次交付留在当前 worktree。
 
 ## 4. 发现与建议
+
+- 复现了审核另列的 Long Residence 风险。2019-06-02 至 06-09 没有许可，两条重叠行程分别记录 07-01 和 06-05 返英。较长行程覆盖空档时，现有计算仍在 2026-11-04 给出 `LIKELY_ELIGIBLE`，尽管较短行程记录了无许可返英。此项在第五轮五条修正之外，建议单独处理有冲突的出入境记录（SRC-008 CR 4.1(d)(iii)、4.2）。
 
 - Long Residence 的当前路线 12 个月要求留在独立条目 A3#4，依据 SRC-005 LR 11.3–11.4。任务 39 登记 section 3C 和连续居留的官方指引时，可一并复核整日计数与跨 `2024-04-11` 的行程示例。

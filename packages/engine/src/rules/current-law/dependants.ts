@@ -1,6 +1,14 @@
 import { textFor } from '../../rule';
+import { nextPermissionFiling } from '../../residence';
+import type { CurrentResidence } from '../../residence';
 import type { Lang } from '../../rule';
-import type { IsoDate, RuleContext, RuleResult } from '../../types';
+import type {
+  IsoDate,
+  PersonTimeline,
+  RuleContext,
+  RuleResult,
+} from '../../types';
+import type { Route } from '@uk-immigration/policy-data';
 import { RULE_SET } from './shared';
 
 // Dependants of Hong Kong BN(O), Global Talent and Appendix FM partners
@@ -77,16 +85,31 @@ export function principalNotReady(
 export function jointApplication<T extends { applicationDate?: IsoDate }>(
   date: IsoDate,
   ownFrom: (date: IsoDate) => T | undefined,
-  principalFrom: (date: IsoDate) => IsoDate | undefined,
-): T | undefined {
+  principalFrom: (date: IsoDate) => CurrentResidence | undefined,
+) {
   for (;;) {
     const own = ownFrom(date);
     if (!own?.applicationDate) return undefined;
     const principal = principalFrom(own.applicationDate);
-    if (!principal) return undefined;
-    if (principal === own.applicationDate) return own;
-    date = principal;
+    if (!principal?.applicationDate) return undefined;
+    if (principal.applicationDate === own.applicationDate)
+      return { ...own, principal };
+    date = principal.applicationDate;
   }
+}
+
+/** HK 62.1(b), SW 41A–43, GT 29A–31, SETF 12–14: no qualifying period of the child's own. */
+export function childFiling(
+  timeline: PersonTimeline,
+  from: IsoDate,
+  route: Route,
+) {
+  return nextPermissionFiling(
+    timeline,
+    from,
+    (e) =>
+      e.route === route && e.role === 'DEPENDANT' && e.dependantOf === 'PARENT',
+  );
 }
 
 export const noJointApplication = (L: Lang, assumptions: string[]) => ({

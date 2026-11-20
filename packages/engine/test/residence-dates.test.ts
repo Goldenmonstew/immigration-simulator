@@ -710,3 +710,196 @@ test('A2#2 and review33a-2 #4 five-year Appendix FM finds the first filing date 
     'This assumes your partner is also in the UK on the date you apply (Appendix FM R-ILRP.1.1(a)).',
   );
 });
+
+test.each([
+  ['HONG_KONG_BNO', 'CL-HKBNO-DEPENDANT', '2021-12-02'],
+  ['SKILLED_WORKER', 'CL-SW-CHILD', '2021-12-02'],
+  ['GLOBAL_TALENT', 'CL-GT-DEPENDANT', '2023-12-02'],
+  ['FAMILY_PARTNER_OR_PARENT', 'CL-FAMILY-CHILD', '2016-12-02'],
+] as const)(
+  'review33a-3 #1 %s child can file on return before switching to Student',
+  (route, rule, from) => {
+    const principal = timeline({
+      episodes: [
+        permit(from, {
+          route,
+          globalTalentEndorsement: 'RESEARCH_BODY',
+          familyPermission: 'PARTNER_TEN_YEAR',
+        }),
+      ],
+      relationships: [...family(from, 'PARTNER_TEN_YEAR').relationships],
+    });
+    const facts = {
+      dateOfBirth: '2015-01-01',
+      episodes: [
+        permit('2024-01-01', {
+          route,
+          role: 'DEPENDANT',
+          dependantOf: 'PARENT',
+          validTo: '2026-11-04',
+        }),
+        permit('2026-11-05', { route: 'STUDENT', validTo: '2040-01-01' }),
+      ],
+      absences: [{ from: '2026-02-01', to: '2026-11-04' }],
+    };
+    const projected = current(facts, '2026-11-01', principal);
+    expect(projected.earliestDate).toBe('2026-11-04');
+    expect(projected.decidedBy).toContain(rule);
+    expect(current(facts, '2026-11-03', principal).outcome).toBe(
+      'LIKELY_NOT_ELIGIBLE',
+    );
+    const filed = current(facts, projected.earliestDate!, principal);
+    expect(filed.outcome).toBe('LIKELY_ELIGIBLE');
+    expect(filed.decidedBy).toContain(rule);
+    expect(
+      current(facts, '2026-11-05', principal).rules.map((r) => r.id),
+    ).not.toContain(rule);
+  },
+);
+
+test('review33a-3 #2 BN(O) departure-day uncertainty preserves a later joint return date', () => {
+  const principal = timeline({
+    episodes: [permit('2021-11-24', { route: 'HONG_KONG_BNO' })],
+    absences: [{ from: '2026-11-01', to: '2026-11-10' }],
+  });
+  const facts = {
+    episodes: [
+      permit('2021-12-02', {
+        route: 'HONG_KONG_BNO',
+        role: 'DEPENDANT',
+        dependantOf: 'RELATIVE',
+      }),
+    ],
+    absences: [{ from: '2026-11-10', to: '2026-11-15' }],
+  };
+  const departing = current(principal, '2026-11-01');
+  expect(departing.rules[0].status).toBe('UNKNOWN');
+  expect(departing).toMatchObject({
+    outcome: 'INSUFFICIENT_INFORMATION',
+    earliestDate: '2026-11-10',
+  });
+  const projected = current(facts, '2026-11-01', principal);
+  expect(projected.earliestDate).toBe('2026-11-15');
+  expect(projected.decidedBy).toContain('CL-HKBNO-DEPENDANT');
+  expect(current(facts, '2026-11-14', principal).outcome).toBe(
+    'LIKELY_NOT_ELIGIBLE',
+  );
+  const filed = current(facts, projected.earliestDate!, principal);
+  expect(filed.outcome).toBe('LIKELY_ELIGIBLE');
+  expect(filed.decidedBy).toContain('CL-HKBNO-DEPENDANT');
+  const noReturn = { ...principal, absences: [{ from: '2026-11-01', to: '' }] };
+  expect(current(facts, '2026-11-01', noReturn).earliestDate).toBeUndefined();
+  expect(
+    current(facts, '2026-11-01', { ...principal, english: undefined })
+      .earliestDate,
+  ).toBeUndefined();
+});
+
+test.each(['RELATIVE', 'PARENT'] as const)(
+  'review33a-3 #3 BN(O) %s discloses the principal’s section 3C condition for the joint filing',
+  (dependantOf) => {
+    const principal = goldenCases.find(
+      (c) => c.id === 'G-HKBNO-ONE-MONTH-SHORT',
+    )!.request.timeline;
+    const facts = timeline({
+      dateOfBirth: dependantOf === 'PARENT' ? '2015-01-01' : '1990-01-01',
+      episodes: [
+        permit('2021-12-01', {
+          route: 'HONG_KONG_BNO',
+          role: 'DEPENDANT',
+          dependantOf,
+          validTo: '2026-11-30',
+        }),
+      ],
+    });
+    const date = current(facts, '2026-11-01', principal).earliestDate;
+    expect(date).toBe('2026-11-03');
+    expect(current(facts, '2026-11-02', principal).outcome).toBe(
+      'LIKELY_NOT_ELIGIBLE',
+    );
+    for (const simulationDate of ['2026-11-01', date!]) {
+      for (const locale of ['zh-CN', 'en'] as const) {
+        const a = evaluate({
+          timeline: facts,
+          principal,
+          simulationDate,
+          locale,
+        }).byRuleSet['current-law-2026-11']!;
+        expect(a.decidedBy).toContain('CL-HKBNO-DEPENDANT');
+        expect(a.outcome).toBe(
+          simulationDate === date ? 'LIKELY_ELIGIBLE' : 'LIKELY_NOT_ELIGIBLE',
+        );
+        const assumption = a.assumptions.find(
+          (line) =>
+            line.includes('section 3C') &&
+            (locale === 'en' ? /principal applicant/i : /主申请人/).test(line),
+        );
+        expect(assumption).toContain('2026-12-01');
+        expect(assumption).toMatch(locale === 'en' ? /pending/ : /待决定/);
+        expect(assumption).toMatch(
+          locale === 'en' ? /not withdrawn/ : /未撤回/,
+        );
+      }
+    }
+    const coveredPrincipal = {
+      ...principal,
+      episodes: [{ ...principal.episodes[0], validTo: '2026-12-01' }],
+    };
+    const covered = current(facts, date!, coveredPrincipal);
+    expect(covered.outcome).toBe('LIKELY_ELIGIBLE');
+    expect(
+      covered.assumptions.some(
+        (line) => line.includes('section 3C') && line.includes('主申请人'),
+      ),
+    ).toBe(false);
+  },
+);
+
+test('review33a-3 #4 overlapping grants keep the intervening Student period in the Skilled Worker calculation', () => {
+  const facts = {
+    episodes: [
+      permit('2021-06-01', { validTo: '2026-07-01' }),
+      permit('2026-05-16', { route: 'STUDENT', validTo: '2026-05-31' }),
+      permit('2026-05-30'),
+    ],
+  };
+  const projected = current(facts, '2026-05-04');
+  expect(projected.outcome).toBe('LIKELY_NOT_ELIGIBLE');
+  expect(
+    projected.rules.find((r) => r.id === 'CL-SW-RESIDENCE-5Y')?.status,
+  ).toBe('FAIL');
+  expect(projected.earliestDate).toBe('2031-05-02');
+  expect(current(facts, '2031-05-01').outcome).toBe('LIKELY_NOT_ELIGIBLE');
+  const filed = current(facts, projected.earliestDate!);
+  expect(filed.outcome).toBe('LIKELY_ELIGIBLE');
+  expect(filed.decidedBy).toContain('CL-SW-RESIDENCE-5Y');
+  // The older grant resumes once a nested grant expires, under episodeOn.
+  const nested = { episodes: [permit('2021-06-01'), facts.episodes[1]] };
+  expect(current(nested, '2026-06-01').earliestDate).toBe('2031-05-04');
+  const resumed = current(nested, '2031-05-04');
+  expect(resumed.outcome).toBe('LIKELY_ELIGIBLE');
+  expect(resumed.decidedBy).toContain('CL-SW-RESIDENCE-5Y');
+});
+
+test('review33a-3 #5 five-year Appendix FM continues past a return in a permission gap', () => {
+  const { episodes, relationships } = family('2021-11-04', 'PARTNER_FIVE_YEAR');
+  const facts = {
+    episodes: [
+      { ...episodes[0], validTo: '2026-11-08' },
+      { ...episodes[0], validFrom: '2026-11-12' },
+    ],
+    relationships: [...relationships],
+    absences: [{ from: '2026-11-01', to: '2026-11-10' }],
+    cashSavings: 100000,
+  };
+  const projected = current(facts, '2026-10-25');
+  expect(projected.earliestDate).toBe('2031-11-12');
+  expect(projected.decidedBy).toContain('CL-FAMILY-RESIDENCE');
+  expect(projected.assumptions).toContainEqual(
+    expect.stringContaining('自 2026-11-12 起持续居留'),
+  );
+  expect(current(facts, '2031-11-11').outcome).toBe('LIKELY_NOT_ELIGIBLE');
+  const filed = current(facts, projected.earliestDate!);
+  expect(filed.outcome).toBe('LIKELY_ELIGIBLE');
+  expect(filed.decidedBy).toContain('CL-FAMILY-RESIDENCE');
+});

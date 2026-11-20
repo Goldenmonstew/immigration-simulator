@@ -15,11 +15,13 @@ import {
   RULE_SET,
   absenceAssumption,
   hongKongBnoDependant,
+  minorOn,
   onHongKongBno,
 } from './shared';
 import { principalApplicationDate } from './skilled-worker';
 import {
   DependantPathway,
+  childFiling,
   jointApplication,
   noJointApplication,
   needsPrincipal,
@@ -146,19 +148,6 @@ export function hongKongBnoDependantPathway(
     ...(settled ? [] : [notYetSettledAssumption(L)]),
   ];
   if (!principal) return { years, result: needsPrincipal(L, assumptions) };
-  const ownFrom = (notBefore?: IsoDate) =>
-    kind === 'RELATIVE'
-      ? hongKongBnoResidence(ctx, notBefore)
-      : currentResidence(
-          timeline,
-          simulationDate,
-          (e) =>
-            e.route === 'HONG_KONG_BNO' &&
-            e.role === 'DEPENDANT' &&
-            e.dependantOf === 'PARENT',
-          0,
-          { notBefore },
-        );
   if (settled) {
     if (kind === 'CHILD') {
       return {
@@ -174,7 +163,7 @@ export function hongKongBnoDependantPathway(
         },
       };
     }
-    const own = ownFrom();
+    const own = hongKongBnoResidence(ctx);
     if (settled.route === 'HONG_KONG_BNO' && !own?.applicationDate) {
       return {
         years,
@@ -227,17 +216,32 @@ export function hongKongBnoDependantPathway(
   }
   const joint = jointApplication(
     due,
-    ownFrom,
+    (notBefore) =>
+      kind === 'RELATIVE'
+        ? hongKongBnoResidence(ctx, notBefore)
+        : childFiling(timeline, notBefore, 'HONG_KONG_BNO'),
     (notBefore) =>
       hongKongBnoResidence(
         { timeline: principal.timeline, simulationDate },
         notBefore,
-      )?.applicationDate,
+      ),
   );
-  if (!joint?.applicationDate) {
+  if (
+    !joint?.applicationDate ||
+    (kind === 'CHILD' && !minorOn(timeline, joint.applicationDate))
+  ) {
     return { years, result: noJointApplication(L, assumptions) };
   }
   const { applicationDate } = joint;
+  if (joint.principal.reliesOnSection3C) {
+    const reference = joint.principal.referenceDate;
+    assumptions.push(
+      L(
+        `共同递交日以主申请人在其许可有效期内递交有效定居申请为前提。假设主申请人留在英国，其申请在 ${reference} 仍待决定且未撤回，原许可按 Immigration Act 1971 section 3C 延续至该参考日。`,
+        `The joint filing date assumes the principal applicant makes a valid settlement application while their permission is valid and stays in the UK. Their application must still be pending and not withdrawn on ${reference} for Immigration Act 1971 section 3C to extend their permission to that reference date.`,
+      ),
+    );
+  }
   if (kind === 'CHILD') {
     return {
       years,
