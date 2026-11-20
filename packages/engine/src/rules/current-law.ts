@@ -25,7 +25,7 @@ export {
   clSwGoingRate,
   skilledWorkerPartnerResidence,
   clSwPartner5Y,
-  skilledWorkerChildDate,
+  skilledWorkerChildFiling,
   clSwChild,
 } from './current-law/skilled-worker';
 export {

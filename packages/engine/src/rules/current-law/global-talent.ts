@@ -19,6 +19,7 @@ import {
 } from './skilled-worker';
 import {
   DependantPathway,
+  childFiling,
   jointApplication,
   noJointApplication,
   needsPrincipal,
@@ -188,21 +189,21 @@ export function globalTalentDependantPathway(
   if (!principal) {
     return { years: partnerYears, result: needsPrincipal(L, assumptions) };
   }
-  const ownFrom = (notBefore?: IsoDate) =>
+  const partnerFrom = (notBefore?: IsoDate) =>
     currentResidence(
       timeline,
       simulationDate,
       (e) => e.route === 'GLOBAL_TALENT' && e.role === 'DEPENDANT',
-      kind === 'PARTNER' ? partnerYears : 0,
+      partnerYears,
       {
         appliesOn: (e) =>
           e.route === 'GLOBAL_TALENT' &&
           e.role === 'DEPENDANT' &&
-          e.dependantOf === kind,
+          e.dependantOf === 'PARTNER',
         notBefore,
       },
     );
-  const own = kind === 'PARTNER' ? ownFrom() : undefined;
+  const own = kind === 'PARTNER' ? partnerFrom() : undefined;
   assumptions.push(...residenceAssumptions(timeline, simulationDate, own, L));
   const who = kind === 'PARTNER' ? 'partner' : 'child';
   if (settled) {
@@ -306,12 +307,15 @@ export function globalTalentDependantPathway(
   }
   const joint = jointApplication(
     due,
-    ownFrom,
+    (notBefore) =>
+      kind === 'PARTNER'
+        ? partnerFrom(notBefore)
+        : childFiling(timeline, notBefore, 'GLOBAL_TALENT'),
     (notBefore) =>
       globalTalentQualifying(
         { timeline: principal.timeline, simulationDate },
         notBefore,
-      )?.residence?.applicationDate,
+      )?.residence,
   );
   if (!joint?.applicationDate) {
     return {

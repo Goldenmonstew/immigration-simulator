@@ -34,6 +34,7 @@ export default function Home() {
             aria-hidden="true"
           />
           <span className={styles.gameEntryTitle}>{t('game.entry')}</span>
+          <span className={styles.gameEntryDesc}>{t('game.entryDesc')}</span>
         </Link>
       </div>
       <div className={styles.narrow}>

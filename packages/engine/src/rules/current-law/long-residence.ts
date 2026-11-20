@@ -21,21 +21,21 @@ import {
 const LR_EXCLUDED: Route[] = ['VISIT', 'SEASONAL_WORKER', 'UKRAINE_SCHEME'];
 
 /** Start of the continuous lawful residence for Long Residence. */
-export function longResidence({
-  timeline,
-  simulationDate,
-}: RuleContext): CurrentResidence | undefined {
+export function longResidence(
+  { timeline, simulationDate }: RuleContext,
+  checkLocation = true,
+): CurrentResidence | undefined {
   return currentResidence(
     timeline,
     simulationDate,
     (e) => !LR_EXCLUDED.includes(e.route),
     cl.values.longResidenceQualifyingYears.value,
-    { longResidence: true },
+    { longResidence: true, checkLocation },
   );
 }
 
 export function longResidenceMet(ctx: RuleContext): boolean {
-  const residence = longResidence(ctx);
+  const residence = longResidence(ctx, false);
   return residence?.applicationDate === ctx.simulationDate;
 }
 

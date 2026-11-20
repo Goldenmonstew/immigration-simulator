@@ -9,6 +9,10 @@ export const characters = [
 
 const saveKey = (id: string) => `uk-immigration-life-v3:${id}`;
 const openDialog = (page: Page) => page.locator('dialog[open]');
+type GameLocale = 'zh-CN' | 'en';
+type SavePatch = (
+  save: Record<string, unknown> & { day: Record<string, unknown> },
+) => void;
 
 /** Close the morning card and any opening event by taking its first choice. */
 export async function dismissCards(page: Page) {
@@ -17,48 +21,64 @@ export async function dismissCards(page: Page) {
     if (!(await dialog.isVisible().catch(() => false))) return;
     // Place menus (they all show opening hours) and talks are not cards.
     const text = await dialog.innerText();
-    if (/营业时间|Opening hours|待会儿见/.test(text)) return;
+    if (/营业时间|Opening hours|待会儿见|See you later/.test(text)) return;
     await dialog
       .getByRole('button', { disabled: false })
-      .filter({ hasNotText: /关闭|显示整句/ })
+      .filter({ hasNotText: /关闭|显示整句|✕ Close|reveal the full line/ })
       .first()
       .click();
     await page.waitForTimeout(300);
   }
 }
 
-export async function startGame(page: Page, name: string = '林遥') {
+export async function startGame(
+  page: Page,
+  name: string = '林遥',
+  locale: GameLocale = 'zh-CN',
+) {
   await page.goto('/game');
   await page.evaluate(() => {
     for (const key of Object.keys(localStorage))
       if (key.startsWith('uk-immigration-life')) localStorage.removeItem(key);
   });
   await page.reload();
-  await page.getByRole('button', { name: new RegExp(`^和${name}`) }).click();
+  if (locale === 'en')
+    await page.getByRole('button', { name: 'English' }).click();
+  const start = locale === 'en' ? 'Start with ' : '和';
+  await page
+    .getByRole('button', { name: new RegExp(`^${start}${name}`) })
+    .click();
   await expect(page.locator('canvas')).toBeVisible();
   await expect(openDialog(page)).toBeVisible();
   await dismissCards(page);
   await expect(openDialog(page)).toHaveCount(0);
 }
 
-/** Rewrite the current save in place, then reopen it through "继续上次". */
+/** Rewrite the current save in place, then continue in the selected language. */
 export async function patchSave(
   page: Page,
   id: string,
-  patch: (
-    save: Record<string, unknown> & { day: Record<string, unknown> },
-  ) => void,
+  patch: SavePatch | SavePatch[],
+  locale: GameLocale = 'zh-CN',
 ) {
+  const patches = Array.isArray(patch) ? patch : [patch];
   await page.evaluate(
     ({ key, source }) => {
       const save = JSON.parse(localStorage.getItem(key)!);
       new Function('save', source)(save);
       localStorage.setItem(key, JSON.stringify(save));
     },
-    { key: saveKey(id), source: `(${patch.toString()})(save);` },
+    {
+      key: saveKey(id),
+      source: patches.map((edit) => `(${edit.toString()})(save);`).join('\n'),
+    },
   );
   await page.goto('/game');
-  await page.getByRole('button', { name: '继续上次' }).click();
+  await page
+    .getByRole('button', {
+      name: locale === 'en' ? 'Continue last game' : '继续上次',
+    })
+    .click();
   await expect(page.locator('canvas')).toBeVisible();
 }
 
@@ -104,12 +124,12 @@ export async function walkTo(
     if (await menu.isVisible()) return dialog;
     // Anything other than an event card (another place menu, a talk) is a bug.
     expect(await dialog.innerText()).not.toMatch(
-      /营业时间|Opening hours|待会儿见/,
+      /营业时间|Opening hours|待会儿见|See you later/,
     );
     // An event card: take its first choice, then let it close.
     await dialog
       .getByRole('button', { disabled: false })
-      .filter({ hasNotText: /关闭|显示整句/ })
+      .filter({ hasNotText: /关闭|显示整句|✕ Close|reveal the full line/ })
       .first()
       .click();
     await page.waitForTimeout(400);

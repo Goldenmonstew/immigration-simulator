@@ -107,7 +107,7 @@ export const items: Item[] = [
   ...[
     ['baked-potato', '烤土豆', 'Baked potato'],
     ['salad', '田园沙拉', 'Garden salad'],
-    ['fish-and-potatoes', '鱼配土豆', 'Fish and potatoes'],
+    ['fish-and-potatoes', '河鲈配土豆', 'Perch and potatoes'],
     ['strawberry-jam', '草莓酱', 'Strawberry jam'],
     ['turnip-soup', '芜菁汤', 'Turnip soup'],
     ['corn-soup', '玉米浓汤', 'Sweetcorn soup'],
@@ -163,7 +163,7 @@ export const recipes: Recipe[] = [
   },
   {
     id: 'fish-and-potatoes',
-    label: { zhCN: '鱼配土豆', en: 'Cook fish and potatoes' },
+    label: { zhCN: '河鲈配土豆', en: 'Cook perch and potatoes' },
     needs: { perch: 1, potato: 1 },
     makes: 'fish-and-potatoes',
     minutes: b.recipeMinutes,
