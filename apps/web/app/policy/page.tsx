@@ -178,7 +178,7 @@ export default function PolicyPage() {
           {[...policyChangelog]
             .sort((a, b) => b.date.localeCompare(a.date))
             .map((change) => (
-              <li key={change.date} data-policy-change={change.date}>
+              <li key={`${change.date} ${change.titleEn}`} data-policy-change={change.date}>
                 <time dateTime={change.date}>{change.date}</time>
                 <h3>{locale === 'en' ? change.titleEn : change.title}</h3>
                 <p>{locale === 'en' ? change.summaryEn : change.summary}</p>
