@@ -174,7 +174,7 @@ export default function PolicyPage() {
       </section>
       <section className={site.section} aria-labelledby="changelog-heading">
         <h2 id="changelog-heading">{t('policyPage.changelog')}</h2>
-        <ol className={styles.entries}>
+        <ol className={`${styles.entries} ${styles.changelog}`}>
           {[...policyChangelog]
             .sort((a, b) => b.date.localeCompare(a.date))
             .map((change) => (
@@ -189,11 +189,10 @@ export default function PolicyPage() {
       </section>
       <section className={site.section} aria-labelledby="sources-heading">
         <h2 id="sources-heading">{t('policyPage.sources')}</h2>
-        <ul className={styles.entries}>
+        <ul className={`${styles.entries} ${styles.sourceList}`}>
           {Object.entries(sourceUrls).map(([id, url]) => (
             <li key={id} data-source={id}>
               <strong>{id}</strong>
-              <br />
               <a href={url} target="_blank" rel="noreferrer">
                 {url}
               </a>

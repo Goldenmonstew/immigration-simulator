@@ -55,7 +55,7 @@ export class SceneText {
     return this;
   }
 
-  render(camera: Camera) {
+  private position(camera: Camera) {
     let { x, y } = textPosition(camera, this.x, this.y);
     let visible = this.visible;
     if (this.kind === 'label' || this.kind === 'homeLabel') {
@@ -78,6 +78,55 @@ export class SceneText {
       );
       y = clampedTop + (this.kind === 'homeLabel' ? height : 0);
     }
+    return { x, y, visible };
+  }
+
+  avoidLabels(camera: Camera, spots: readonly Spot[], rise: number) {
+    if (this.kind !== 'feedback') return;
+    const gap = 6;
+    const { x, y } = this.position(camera);
+    const width = this.element.offsetWidth;
+    const sweptHeight = this.element.offsetHeight + rise * camera.zoom;
+    const labels = spots.flatMap(({ label }) => {
+      if (!label) return [];
+      const position = label.position(camera);
+      if (
+        !position.visible ||
+        Math.abs(position.x - x) >= (label.element.offsetWidth + width) / 2
+      )
+        return [];
+      const height = label.element.offsetHeight;
+      const top = position.y - (label.kind === 'homeLabel' ? height : 0);
+      return [{ top, bottom: top + height }];
+    });
+    const clearsLabels = (bottom: number) =>
+      labels.every(
+        (label) =>
+          bottom <= label.top - gap ||
+          bottom >= label.bottom + gap + sweptHeight,
+      );
+    if (clearsLabels(y)) return;
+
+    // Prefer raising the float, but leave room for the whole tween on screen.
+    const above = labels
+      .map(({ top }) => top - gap)
+      .filter((bottom) => bottom < y && bottom - sweptHeight >= gap)
+      .sort((a, b) => b - a)
+      .find(clearsLabels);
+    const bottom =
+      above ??
+      labels
+        .map(({ bottom }) => bottom + gap + sweptHeight)
+        .filter(
+          (bottom) => bottom > y && bottom <= this.layer.clientHeight - gap,
+        )
+        .sort((a, b) => a - b)
+        .find(clearsLabels);
+    if (bottom !== undefined) this.y += (bottom - y) / camera.zoom;
+  }
+
+  render(camera: Camera) {
+    const { x, y, visible } = this.position(camera);
     this.element.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, ${this.kind === 'label' ? '0' : '-100%'})`;
     this.element.style.opacity = String(this.alpha);
     this.element.style.visibility = visible ? 'visible' : 'hidden';

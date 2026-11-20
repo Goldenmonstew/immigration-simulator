@@ -536,6 +536,8 @@ export class TownScene extends Phaser.Scene {
       '(prefers-reduced-motion: reduce)',
     ).matches;
     const travel = reduced ? 0 : rise;
+    if (object instanceof SceneText)
+      object.avoidLabels(this.cameras.main, this.spots, travel);
     const bounds =
       object instanceof SceneText
         ? new Phaser.Geom.Rectangle(

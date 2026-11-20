@@ -111,18 +111,20 @@ export function buildMap(
           .setDepth(3),
       );
     }
-    own(
-      scene.add
-        .rectangle(
-          cell.x * tileSize + 8,
-          cell.y * tileSize + 13,
-          9,
-          2,
-          0xf4d98d,
-          0.8,
-        )
-        .setDepth(2),
-    );
+    if (!interior || obj.name === 'exit') {
+      own(
+        scene.add
+          .rectangle(
+            cell.x * tileSize + 8,
+            cell.y * tileSize + 13,
+            9,
+            2,
+            0xf4d98d,
+            0.8,
+          )
+          .setDepth(2),
+      );
+    }
   }
   let water: Phaser.GameObjects.Graphics | undefined;
   const waterTiles: Cell[] = [];
@@ -258,24 +260,20 @@ export function resizeMapCamera(
   interior: boolean,
 ) {
   const camera = scene.cameras.main;
-  camera.setZoom(
-    interior
-      ? Math.floor(
-          Math.min(
-            3,
-            scene.scale.width / map.widthInPixels,
-            scene.scale.height / map.heightInPixels,
-          ) * 2,
-        ) / 2
-      : scene.scale.width < 600
-        ? 2
-        : 2.5,
-  );
+  const { width, height } = scene.scale;
   camera.roundPixels = true;
   if (interior) {
-    // A fitted room stays centred even when the viewport exceeds its bounds.
+    // Phaser snaps WebGL tile edges to pixels only at integer camera zooms.
+    const fit = Math.min(
+      3,
+      width / map.widthInPixels,
+      height / map.heightInPixels,
+    );
+    camera.setZoom(Math.max(1, Math.floor(fit)));
     camera.stopFollow();
     camera.removeBounds();
     camera.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
+  } else {
+    camera.setZoom(width < 600 ? 2 : 2.5);
   }
 }

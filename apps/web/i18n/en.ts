@@ -18,6 +18,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.endDayShort': 'End day',
   'game.tapToReveal': 'Tap the dialogue to reveal the full line',
   'game.entry': 'Play a round · Immigration Life',
+  'game.entryDesc':
+    'Work, meet neighbours and see how everyday choices shape your immigration timeline in a pixel-art town.',
   'game.disclaimer':
     'Fictional characters and events for learning. This is not immigration advice.',
   'game.intro':

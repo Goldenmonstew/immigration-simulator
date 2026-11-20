@@ -163,8 +163,9 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 480px);
   }
 }
-.townBanner {
-  width: min(480px, 100%);
+.theme .townBanner {
+  box-sizing: content-box;
+  width: min(476px, calc(100% - 4px));
   aspect-ratio: 3 / 1;
   border: 2px solid var(--wood);
   border-radius: 8px;
@@ -311,7 +312,7 @@
   font-size: 15px;
   flex-shrink: 0;
 }
-.hudContext > span {
+.hudContext > span.desktopOnly {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -320,6 +321,9 @@
   display: flex;
   gap: 6px;
   margin-left: auto;
+}
+.hudTime {
+  display: contents;
 }
 .theme .music {
   min-width: 44px;
@@ -473,8 +477,10 @@
   background: var(--lining);
 }
 .theme .destinations .closedPlace {
+  padding-inline: 10px 26px;
   background: var(--lining);
   border-color: var(--line);
+  border-style: dashed;
   color: var(--muted);
 }
 .theme .destinations button[aria-current='location'] {
@@ -485,8 +491,8 @@
 }
 .closedMarker {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 6px;
+  right: 6px;
   color: var(--muted);
   line-height: 1;
 }
@@ -1329,15 +1335,30 @@
     padding: 4px 8px 8px;
   }
   .hudTop {
-    gap: 6px;
+    gap: 4px;
   }
   .hudContext {
     display: block;
-    overflow: hidden;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
-  .hudContext .mobileOnly {
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .hudContext .mobileDate {
+    display: block;
+    font-size: 12px;
+  }
+  .hudTime {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    line-height: 1;
+  }
+  .hudTime > span {
+    display: flex;
+  }
+  .clock {
+    font-size: 16px;
   }
   .hudActions {
     gap: 4px;
@@ -1360,8 +1381,9 @@
   }
   .statIcon .icon,
   .hudBottom .icon {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
+    stroke-width: 2.2;
   }
   .hudBottom {
     gap: 4px;

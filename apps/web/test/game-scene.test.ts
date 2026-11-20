@@ -1,7 +1,7 @@
 import './load-game-characters';
 import { afterEach, expect, test, vi } from 'vitest';
 import { createRequire } from 'node:module';
-import type * as Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import {
   doActivity,
   newGame,
@@ -841,6 +841,38 @@ test('feedback text, hearts and expressions use the DOM layer and overlapping fl
   expect(floats.size).toBe(0);
 });
 
+test.each([
+  { labelY: 62, expectedY: 44.4 },
+  { labelY: 42, expectedY: 82.8 },
+])(
+  'feedback clears the home label for the whole tween at a fractional zoom (label y=$labelY)',
+  ({ labelY, expectedY }) => {
+    const layer = textLayer();
+    const camera = {
+      zoom: 1.25,
+      getWorldPoint: (x: number, y: number) => ({ x: x / 1.25, y: y / 1.25 }),
+    };
+    const label = new SceneText(layer, 72, labelY, '床', 'homeLabel');
+    const feedback = new SceneText(layer, 72, 70, '+1 心情', 'feedback');
+    Object.assign(label.element, { offsetWidth: 28, offsetHeight: 16 });
+    Object.assign(feedback.element, { offsetWidth: 64, offsetHeight: 15 });
+    feedback.avoidLabels(
+      camera,
+      [
+        {
+          x: 4,
+          y: 4,
+          interaction: { kind: 'home', id: 'bed' },
+          bounds: new Phaser.Geom.Rectangle(64, 64, 16, 16),
+          label,
+        },
+      ],
+      24,
+    );
+    expect(feedback.y).toBeCloseTo(expectedY);
+  },
+);
+
 const furniture = [
   'furnished-reading-chair',
   'furnished-warm-curtains',
@@ -1255,16 +1287,18 @@ test.each(['label', 'homeLabel'] as const)(
 );
 
 test.each([
-  [355, 256],
-  [854, 360],
-  [355, 310],
+  [355, 256, 1],
+  [575, 416, 1],
+  [854, 415, 1],
+  [854, 416, 2],
+  [1000, 700, 3],
 ])(
-  'indoor camera at %s × %s uses fitting half-step zoom with pixel rounding',
-  (width, height) => {
+  'indoor camera at %s × %s fits at integer zoom %s with pixel rounding',
+  (width, height, expectedZoom) => {
     const { scene, camera } = loadScene(true);
     Object.assign(scene.scale, { width, height });
     Reflect.get(scene, 'resizeCamera').call(scene);
-    expect(Number.isInteger(camera.zoom * 2)).toBe(true);
+    expect(camera.zoom).toBe(expectedZoom);
     expect(camera.zoom * homeMap.width * 16).toBeLessThanOrEqual(width);
     expect(camera.zoom * homeMap.height * 16).toBeLessThanOrEqual(height);
     expect(Reflect.get(camera, 'roundPixels')).toBe(true);
