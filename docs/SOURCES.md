@@ -70,6 +70,11 @@
 | SRC-050 | GUIDANCE | Home Office Skilled Worker caseworker guidance，v20.0 | https://www.gov.uk/government/publications/skilled-worker-visa-caseworker-guidance/skilled-worker-caseworker-guidance-accessible | 2026-08-03 | 2026-11-19 | `policy-sources/2026-08-03-skilled-worker-caseworker-guidance.html`（sha256 `c663d22e881510bb4c107e66227395ef7e670430ec7f3d4bcbf4a00966e30f03`） | archived |
 | SRC-051 | LAW | Immigration Rules Appendix Student，HC 584 | https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-student | 2026-10-08（页头手册 Updated 2026-10-29） | 2026-11-19 | `policy-sources/2026-10-08-immigration-rules-appendix-student.html`（sha256 `5e05c64b16e288e988bfd970a1eb68d6b80a18d36f454aab5b245e471906b598`） | archived |
 | SRC-052 | GUIDANCE | Home Office Student and Child Student caseworker guidance，v15.0 | https://www.gov.uk/government/publications/student-route-caseworker-guidance/student-and-child-student | 员工版 2026-10-09；网页更新 2026-10-16 | 2026-11-19 | `policy-sources/2026-10-16-student-and-child-student-caseworker-guidance.html`（sha256 `87f800b0fd8ad5abfd5222094978ea73d3674bc1156686bbc56fcf7230d35aa1`） | archived |
+| SRC-053 | LAW | Immigration Rules Appendix FM-SE: family members specified evidence，HC 1691 | https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-fm-se-family-members-specified-evidence | 2026-03-26（页头手册 Updated 2026-10-29） | 2026-11-19 | `policy-sources/2026-03-26-immigration-rules-appendix-fm-se.html`（sha256 `363d511587597e56df6cc78ad46b987e70bd350a3d0d670f10448413b484cc5d`） | archived |
+| SRC-054 | GUIDANCE | Family Migration: Appendix FM and Adult Dependent Relative – adequate maintenance and accommodation，v13.0 | https://assets.publishing.service.gov.uk/media/6911ee0de9348ac8fb54f484/Appendix%2BFM%2Band%2BAdult%2BDependent%2BRelative%2BAdequate%2Bmaintenance%2Band%2Baccommodation.pdf | 2025-11-11 | 2026-11-19 | `policy-sources/2025-11-11-appendix-fm-adequate-maintenance-and-accommodation.pdf`（sha256 `624d2aaa8678c84045a31df6fed30d568cac8a2d3d01efa51ce427ad75a88226`） | archived |
+| SRC-055 | LAW | Immigration Act 1971 s.3C: Continuation of leave pending variation decision（现行修订文本） | https://www.legislation.gov.uk/ukpga/1971/77/section/3C | 现行合订文本，按抓取日命名 | 2026-11-19 | `policy-sources/2026-11-19-immigration-act-1971-section-3c.html`（sha256 `e57a1c15ca7f584d247ce76212e2151a8ac6ce44b533358e610916bbaa84ed46`） | archived |
+| SRC-056 | GUIDANCE | Workers and Temporary Workers: guidance for sponsors Part 2 – Sponsor a worker，v10/26 | https://www.gov.uk/government/publications/workers-and-temporary-workers-guidance-for-sponsors-part-2-sponsor-a-worker/workers-and-temporary-workers-guidance-for-sponsors-part-2-sponsor-a-worker-accessible--2 | 2026-10-08 | 2026-11-19 | `policy-sources/2026-10-08-sponsor-a-worker-part-2.html`（sha256 `871a45962e40c4954a9a650afdd8f6c775f56fc37eaaa8f54528d08f777ede04`） | archived |
+| SRC-057 | GUIDANCE | Home Office Continuous residence caseworker guidance，v10.0 | https://www.gov.uk/government/publications/continuous-residence-caseworker-guidance/continuous-residence-guidance-accessible-version | 2026-10-08 | 2026-11-19 | `policy-sources/2026-10-08-continuous-residence-caseworker-guidance.html`（sha256 `fe80d4c8c759eb21c4c1ebef69b312483414723f1f0dacc2ab9470daa5f465dc`） | archived |
 | SRC-058 | PARLIAMENT | Written question 40091：HPI 扩容的大学排名筛选 | https://questions-statements.parliament.uk/written-questions/detail/2026-11-02/40091 | 提问 2026-11-02；回答 2026-11-04 | 2026-11-19 | `policy-sources/2026-11-04-written-question-40091.json`（sha256 `04df2bb18720e55d2f8f62d380750d7a6333a05dbbe8d496d1390b357d2ed8f2`） | archived |
 | SRC-059 | GUIDANCE | Home Office Cancellation and curtailment of permission，v12.0 | https://www.gov.uk/government/publications/immigration-status-and-enforcement-action-caseworker-guidance/cancellation-and-curtailment-of-permission-accessible | 员工版 2026-09-11；网页更新 2026-09-14 | 2026-11-19 | `policy-sources/2026-09-14-cancellation-and-curtailment-of-permission.html`（sha256 `1957b79a1d9a074d98c7722f9db134a8349bd5c3ec1284dafda6dc5eee11c96a`） | archived |
 
@@ -524,6 +529,29 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `Publication`（`#publication`）给出 v15.0 的员工版发布日期 2026-10-09，[发布集合](https://www.gov.uk/government/publications/student-route-caseworker-guidance)与 HTML 元数据给出网页更新时间 2026-10-16。`Work conditions`（`#work-conditions`）明确课程完成后仍有效的 Student 许可时间按非学期处理。`Student and Child Student: Prohibited work`（`#student-and-child-student-prohibited-work`）回指 ST 26.6、26.8。
 - `Student: period to grant`（`#student-period-to-grant`）回指 ST 25.3，另列境内延长许可在课程已经结束后才获批时的起算和短课例外。
 
+## SRC-053 Appendix FM-SE
+
+- [单页 Content API](https://www.gov.uk/api/content/guidance/immigration-rules/immigration-rules-appendix-fm-se-family-members-specified-evidence)的 `public_updated_at` 为 `2026-03-26T09:03:14+00:00`，最新 `details.change_history` 为 HC 1691，快照元数据同值。2026-10-29 是 Immigration Rules 手册页头日期。
+- 常用定位为 ¶12(a)–(n) 与段末 (i)–(ii)（指定福利与当前领取证明），¶12A(a)–(f)（收入、储蓄、住宿和 Council Tax 证据），¶11–11A 与 ¶12B（储蓄可计范围及按周折算），¶18–20（各类收入口径）。适用入口为 SRC-024 E-LTRP.3.3 与 E-ILRP.1.3(1A)，计算方法见 SRC-054。
+
+## SRC-054 Adequate maintenance and accommodation caseworker guidance
+
+- [Home Office 发布集合](https://www.gov.uk/government/publications/chapter-8-appendix-fm-family-members)的 2025-11-11 更新指向 v13.0 原件。PDF 共 33 页，物理页序与印刷页码一致。
+- 常用定位为 p6–8（定义与适用群体），p9–10（`A − B ≥ C`、决定日费率、按周折算和舍入），p12–15（现金储蓄及可计收入），p17–19（福利、收入、储蓄和住房成本凭证），p23–26（住房权属／使用、拥挤和公共卫生）。p14 算例的 `C` 表格合计与正文比较行不同，实际基准按 p9 用决定日费率。
+
+## SRC-055 Immigration Act 1971 s.3C
+
+- 快照是 [legislation.gov.uk 现行修订条文](https://www.legislation.gov.uk/ukpga/1971/77/section/3C)的原始 HTML。s.3C(1)(a)–(c) 规定触发条件，s.3C(2)(a) 规定待决／未撤回期间，s.3C(2)(b)–(d) 另列符合条件的上诉或 administrative review 窗口及待决期间。s.3C(3) 规定离境失效，s.3C(3A) 规定可取消的事由，s.3C(4)–(5) 区分另提申请与变更原申请。
+
+## SRC-056 Workers and Temporary Workers: Part 2 – Sponsor a worker
+
+- `#version-number-and-publication` 标明 v10/26，2026-10-08 发布。CoS 定位：S2.1–S2.7 `#What_is_a`、S2.8–S2.11 `#Types_of_CoS`、S3.8 `#Information_you_must`（工作起止日、薪资、工时和 occupation code）。
+- 薪资及 going rate 定位：S3.29–S3.32 `#Standard_occupational_classificatio`（SOC code 与去 SRC-017 查表）；S4.1–S4.5 `#Minimum_pay_rates`（路线薪资要求及合规）；S4.14–S4.16 `#Salary_information_you`、`#period-the-salary-must-cover`（工资申报）；S4.29–S4.31 `#Salary_otherwise_reduced`、`#salary-reductions-exceptions`（降薪、going rate 与报告）。具体 Skilled Worker 条件和费率引用 SRC-004、SRC-017。
+
+## SRC-057 Continuous residence caseworker guidance
+
+- `#publication` 标明 v10.0，2026-10-08 向 Home Office 工作人员发布。`#count-whole-days` 只计整天。`#calculating-the-length-of-absences` → `#the-12-month-period` 末段说明 Long Residence 跨过渡日行程何时开始适用滚动窗口。
+- `#calculating-absences-which-started-before-11-april-2024-for-appendix-long-residence` 与其 Example 2 分别定位单次和累计旧限额、跨日行程在旧限额的计数范围，法源为 SRC-008 CR 3.1、CR 3.3(a)–(b)，并受 CR 3.4 所列例外约束。`#time-spent-on-3c-or-3d-leave` 说明此类法定延续在 continuous residence 中按相关路线的许可时间计算。
 ## SRC-058 书面问题 40091
 
 - 快照取自[议会官方单条 API](https://questions-statements-api.parliament.uk/api/writtenquestions/questions/2026-11-02/40091?expandMember=true)。
