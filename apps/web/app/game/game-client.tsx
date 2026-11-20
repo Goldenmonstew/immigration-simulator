@@ -123,7 +123,8 @@ export default function GameClient() {
     { npc: string; menu?: Extract<Overlay, { kind: 'place' }> } | undefined
   >(undefined);
   const [outcomeText, setOutcomeText] = useState<Text>();
-  const [eventResult, setEventResult] = useState<Text>();
+  const [immediateResult, setImmediateResult] = useState<Text>();
+  const [festivalResult, setFestivalResult] = useState<Text>();
   const [feedback, setFeedback] = useState<SceneFeedback>();
   const [returned, setReturned] = useState<GameState['trip']>();
   const diary = useRef<DayMemory[]>([]);
@@ -203,6 +204,11 @@ export default function GameClient() {
   }, [state?.quarter, state?.day.festival, state?.ending, !!state]);
   const current = state && withGameLocale(state, locale),
     event = current && currentEvent(current);
+  const eventResult = immediateResult ?? (event ? undefined : festivalResult);
+  const closeEventResult = () => {
+    if (immediateResult) setImmediateResult(undefined);
+    else setFestivalResult(undefined);
+  };
   const paused = !!(
     !sceneReady ||
     hidden ||
@@ -225,7 +231,7 @@ export default function GameClient() {
     if (next === before) return;
     diary.current = recordMemories(diary.current, before, next, source);
     if (source === 'resolve' && routine !== 'fast')
-      setEventResult(resolvedOutcomeText(before, next));
+      setImmediateResult(resolvedOutcomeText(before, next));
     const changedHearts = Object.fromEntries(
       Object.keys(next.friendship)
         .filter((id) => hearts(before, id) !== hearts(next, id))
@@ -365,7 +371,8 @@ export default function GameClient() {
     openOverlay();
     conversation.current = undefined;
     setFeedback(undefined);
-    setEventResult(undefined);
+    setImmediateResult(undefined);
+    setFestivalResult(undefined);
     setReturned(undefined);
     setSummary(undefined);
     setRoutine(undefined);
@@ -718,13 +725,10 @@ export default function GameClient() {
               <Modal
                 key="event-result"
                 title={t('game.eventResult')}
-                onClose={() => setEventResult(undefined)}
+                onClose={closeEventResult}
               >
                 <OutcomeText text={eventResult} />
-                <button
-                  className={styles.button}
-                  onClick={() => setEventResult(undefined)}
-                >
+                <button className={styles.button} onClick={closeEventResult}>
                   {t('game.continuePlaying')}
                 </button>
               </Modal>
@@ -839,6 +843,22 @@ export default function GameClient() {
                     location={overlay.id}
                     onChange={(next) => {
                       apply(next);
+                      if (next.pendingEvent) {
+                        const action = next.log
+                          .slice(current.log.length)
+                          .find((entry) => entry.kind === 'action');
+                        if (
+                          action?.id === 'exam' &&
+                          next.pendingEvent !== 'system-exam-failed'
+                        )
+                          setImmediateResult(next.outcome?.text);
+                        if (
+                          current.day.festival === 'lunar-new-year' &&
+                          (action?.id === 'festival' ||
+                            action?.id === 'lunar-dumplings')
+                        )
+                          setFestivalResult(next.outcome?.text);
+                      }
                       // Board notices and show results come back as text of
                       // their own; keep the menu open so they can be read.
                       const ownText =

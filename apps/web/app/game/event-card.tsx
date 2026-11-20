@@ -7,7 +7,7 @@ import {
   type GameEvent,
   type GameState,
 } from '@uk-immigration/game';
-import { visaMonths } from './session';
+import { visaStatus } from './session';
 import styles from './game.module.css';
 import { localText } from './game-ui';
 import { EffectHints } from './location-menu';
@@ -39,7 +39,10 @@ export function VisaReminder({
     <section>
       <h3>{t('game.visaReminderTitle')}</h3>
       <p>
-        {t('game.visaReminder').replace('{count}', String(visaMonths(state)))}
+        {t('game.visaReminder').replace(
+          '{count}',
+          String(visaStatus(state).months),
+        )}
       </p>
       <button className={styles.secondary} onClick={onVisit}>
         {t('game.visaVisit')}
