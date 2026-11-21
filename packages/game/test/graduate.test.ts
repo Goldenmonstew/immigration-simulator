@@ -276,13 +276,36 @@ describe('13.2 Graduate character and engine integration', () => {
     expect(graduateNextStep(applied)?.zhCN).toContain('下一季的工作日');
     expect(graduateNextStep(applied)?.en).toContain("next quarter's workday");
     expect(graduateNextStep(start)?.zhCN).not.toContain('下一季');
-    // review40-2: the CoS arrives from today's job search, so a salary talk
-    // waits for next quarter while the visa centre check is still open.
-    const low = offer(true);
-    expect(low.flags).toContain('graduate-cos-ready');
-    expect(low.day.done).toContain('graduate-job-search');
-    expect(graduateNextStep(low)?.zhCN).toContain('今天仍可在签证中心核对');
-    expect(graduateNextStep(low)?.en).toContain("next quarter's workday");
+    // review40-2 and review40-3: applying a quarter late and keeping the low
+    // offer fails both options on the CoS day. The check is open today, the
+    // salary talk waits for next quarter's workday.
+    let late = job(start, 'later');
+    expect(late.flags).not.toContain('graduate-applied');
+    late = completeQuarter(late);
+    for (let stage = 0; stage < 5; stage++) {
+      late = job(late, stage === 3 ? 'keep' : undefined);
+      if (stage < 4) late = completeQuarter(late);
+    }
+    late = clear(late);
+    expect(late.flags).toContain('graduate-cos-ready');
+    expect(late.day.done).toContain('graduate-job-search');
+    const verdict = graduateApplication(late);
+    expect(verdict.optionA.status).toBe('FAIL');
+    expect(verdict.optionE.status).toBe('FAIL');
+    const hint = graduateNextStep(late)!;
+    expect(hint.zhCN).toContain('今天仍可在签证中心核对');
+    expect(hint.zhCN).toContain('下一季的工作日');
+    expect(hint.en).toContain('check the switch at the visa centre today');
+    expect(hint.en).toContain("next quarter's workday");
+    const ids = (state: GameState, place: 'visa' | 'work') =>
+      activities(state, place).map((action) => action.id);
+    expect(ids(atVisa(late), 'visa')).toContain('graduate-check-offer');
+    const atWork = (state: GameState) =>
+      drain(enter({ ...state, day: { ...state.day, minute: 540 } }, 'work'));
+    expect(ids(atWork(late), 'work')).not.toContain('graduate-job-search');
+    const nextQuarter = clear(completeQuarter(late));
+    expect(nextQuarter.ending).toBeUndefined();
+    expect(ids(atWork(nextQuarter), 'work')).toContain('graduate-job-search');
     // review40-2: the switch note states the section 3C trigger and the
     // Student switch conditions in both languages.
     const note = graduate.graduateRoute!.salaryCheckNote;
