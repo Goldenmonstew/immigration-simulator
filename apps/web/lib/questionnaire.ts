@@ -149,23 +149,22 @@ export function draftReducer(state: Draft, action: Action): Draft {
       const restored = { ...action.draft, principalStep: undefined };
       // Drafts saved before the country list (task 49) may hold a code it
       // does not accept: reopen that person's basic details to correct it.
-      if (!validNationality(restored.timeline.nationality))
-        return { ...restored, completed: false, step: 0 };
-      // Until the principal applicant's details are done again, the final
-      // step sends the user back to them.
-      if (
+      // An unfinished principal sends the final step back to them.
+      const own = !validNationality(restored.timeline.nationality);
+      const principal =
         needsPrincipal(restored) &&
         restored.principalCompleted &&
-        !validNationality(restored.principal?.nationality ?? '')
-      )
-        return {
-          ...restored,
-          completed: false,
-          principalCompleted: false,
-          step: 9,
-          ...(restored.principal && { principalStep: 0 }),
-        };
-      return { ...restored, step: stepSequence(restored).at(-1)! };
+        !validNationality(restored.principal?.nationality ?? '');
+      if (!own && !principal)
+        return { ...restored, step: stepSequence(restored).at(-1)! };
+      return {
+        ...restored,
+        completed: false,
+        ...(principal && { principalCompleted: false }),
+        ...(own
+          ? { step: 0 }
+          : { step: 9, ...(restored.principal && { principalStep: 0 }) }),
+      };
     }
     case 'step':
       return {

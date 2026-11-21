@@ -93,6 +93,18 @@ test('review49-2 #2: a completed draft with a code off the list reopens that per
   });
   expect(missing).toMatchObject({ step: 9, principalCompleted: false });
   expect(missing.principalStep).toBeUndefined();
+  // review49-4: with both codes off the list the applicant comes first, and
+  // the principal is still marked unfinished.
+  const both = draftReducer(createDraft(), {
+    type: 'restore',
+    draft: { ...saved, timeline: { ...saved.timeline, nationality: 'DDR' } },
+  });
+  expect(both).toMatchObject({
+    step: 0,
+    completed: false,
+    principalCompleted: false,
+  });
+  expect(both.principalStep).toBeUndefined();
   expect(zhCN['error.nationality']).toContain('名单');
   expect(en['error.nationality']).toContain('from the list');
 });
