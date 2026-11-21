@@ -454,7 +454,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'benefits.publicFunds': 'Public funds',
   'benefits.notPublicFunds': 'Not public funds',
   'site.language': 'Language',
-  'au.entryTitle': 'Australia (pilot)',
+  'pilot.entryTitle': 'Other countries (pilots)',
   'au.entryDesc':
     'Use your visa and travel record to work out the dates for subclass 191, 186 TRT, the partner permanent stage, the Resident Return visa and citizenship residence.',
   'au.entryLink': 'Open the Australia pilot',
@@ -539,6 +539,51 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.sub.100': '100 Partner (permanent, outside Australia)',
   'au.sub.155': '155 Resident Return visa (permanent)',
   'au.sub.other-permanent': 'Other permanent visa',
+  'nz.entryLink': 'Open the New Zealand pilot',
+  'nz.entryDesc':
+    'Use your resident visa and travel record to work out when your travel conditions end and the dates for the permanent resident visa and citizenship presence.',
+  'nz.title':
+    'New Zealand: dates for the permanent resident visa and citizenship (pilot)',
+  'nz.intro':
+    'From your New Zealand resident visa and trips, this works out three steps that depend on time alone: when your resident visa travel conditions end, the days needed for a permanent resident visa, and the presence requirement for citizenship. Whether you can get a resident visa (Skilled Migrant points, employers, investment and so on) is out of scope.',
+  'nz.scope':
+    'The pilot checks only the time requirements written in the immigration instructions and the Citizenship Act. It does not check character, English, conditions on your resident visa or other requirements; each result lists them. Your entries are processed in your browser and are not saved or uploaded.',
+  'nz.basics': 'About you',
+  'nz.simulationDate': 'Simulation date',
+  'nz.simulationDateHint':
+    'Results are worked out for this date. It starts as today.',
+  'nz.dateOfBirth': 'Date of birth',
+  'nz.firstArrival': 'Date you first arrived in New Zealand (on any visa)',
+  'nz.visas': 'Resident visa',
+  'nz.residentGranted': 'Date your resident visa was granted',
+  'nz.residentGrantedHint':
+    'If it was granted outside New Zealand, you are in New Zealand as a resident only from your next arrival.',
+  'nz.category': 'Residence category',
+  'nz.category.general':
+    'General (Skilled Migrant, partner, work to residence and others)',
+  'nz.category.parent': 'Parent',
+  'nz.category.religious-worker': 'Religious Worker',
+  'nz.category.aip-growth': 'Active Investor Plus: Growth',
+  'nz.category.aip-balanced': 'Active Investor Plus: Balanced',
+  'nz.prvGranted':
+    'Date your permanent resident visa was granted (leave blank if you do not have one)',
+  'nz.trips': 'Trips abroad',
+  'nz.tripsHint':
+    'Add a row for each time you left New Zealand after becoming a resident. If your resident visa was granted while you were abroad, include that trip too. You can include planned trips.',
+  'nz.trip': 'Trip {n}',
+  'nz.departed': 'Date you left New Zealand',
+  'nz.returned': 'Date you came back to New Zealand',
+  'nz.addTrip': 'Add a trip',
+  'nz.remove': 'Remove',
+  'nz.submit': 'Work out dates',
+  'nz.errorSummary': 'Fix the items marked in red first.',
+  'nz.error.date': 'Enter a valid date.',
+  'nz.error.order': 'This date cannot be before the start date.',
+  'nz.error.beforeBirth':
+    'Your first arrival cannot be before your date of birth.',
+  'nz.error.beforeArrival': 'A trip cannot start before your first arrival.',
+  'nz.error.prvOrder':
+    'The permanent resident visa cannot be granted before the resident visa.',
   'home.disclaimerEnglish':
     'Based on the information you entered, these rules may be relevant. This simulator provides general policy information and hypothetical scenario modelling. It does not determine your legal immigration status, is not immigration or legal advice, and does not guarantee the outcome of an application.',
   'form.title': 'Enter your timeline',
