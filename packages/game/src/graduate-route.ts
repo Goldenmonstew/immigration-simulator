@@ -154,13 +154,32 @@ export function graduateNextStep(
   // Job search (and a salary talk) runs once a day; each quarter has one
   // workday, so after today's turn it waits for the next quarter.
   if (!state.day.done.includes('graduate-job-search')) return next;
-  return has('graduate-cos-ready')
-    ? {
-        zhCN: `${next.zhCN}今天仍可在签证中心核对；如需回公司重谈薪资，要等下一季的工作日。`,
-        en: `${next.en} You can still check the switch at the visa centre today; a salary talk at work has to wait for next quarter's workday.`,
-      }
-    : {
-        zhCN: `${next.zhCN}今天已经跑过一次求职，下一季的工作日再去公司。`,
-        en: `${next.en} Today's job search is done; go to work again on next quarter's workday.`,
-      };
+  // Quarters start on the same day of the month, so the next one is that
+  // day plus the quarter's months. Permission ending first leaves no time.
+  const [year, month, day] = state.date.split('-').map(Number);
+  const nextQuarter = new Date(
+    Date.UTC(year, month - 1 + b.monthsPerQuarter, day),
+  )
+    .toISOString()
+    .slice(0, 10);
+  const lastQuarter = current.validTo < nextQuarter;
+  return lastQuarter
+    ? has('graduate-cos-ready')
+      ? {
+          zhCN: `${next.zhCN}许可在下一季前到期，来不及再回公司重谈；今天到签证中心核对，符合就转签。`,
+          en: `${next.en} Your permission ends before next quarter, so there is no time to reopen the salary talk; check at the visa centre today and switch if it qualifies.`,
+        }
+      : {
+          zhCN: `${next.zhCN}许可在下一季前到期，求职来不及推进到拿到 CoS。`,
+          en: `${next.en} Your permission ends before next quarter, so the job search cannot reach a CoS in time.`,
+        }
+    : has('graduate-cos-ready')
+      ? {
+          zhCN: `${next.zhCN}今天仍可在签证中心核对；如需回公司重谈薪资，要等下一季的工作日。`,
+          en: `${next.en} You can still check the switch at the visa centre today; a salary talk at work has to wait for next quarter's workday.`,
+        }
+      : {
+          zhCN: `${next.zhCN}今天已经跑过一次求职，下一季的工作日再去公司。`,
+          en: `${next.en} Today's job search is done; go to work again on next quarter's workday.`,
+        };
 }

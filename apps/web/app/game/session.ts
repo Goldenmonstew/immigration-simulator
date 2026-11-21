@@ -203,9 +203,10 @@ export function visaExpiresThisSeason(state: GameState): boolean {
   const nextSeason = new Date(Date.UTC(year, month + 2, 1));
   const lastDay = new Date(Date.UTC(year, month + 3, 0)).getUTCDate();
   nextSeason.setUTCDate(Math.min(day, lastDay));
+  // validTo already runs through adjoining renewals, so a renewal that also
+  // ends this season still warns (review40-1 risk).
   return (
     !isOver(state) &&
-    !visa.renewed &&
     (!visa.validTo || visa.validTo < nextSeason.toISOString().slice(0, 10))
   );
 }

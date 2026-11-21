@@ -306,6 +306,25 @@ describe('13.2 Graduate character and engine integration', () => {
     const nextQuarter = clear(completeQuarter(late));
     expect(nextQuarter.ending).toBeUndefined();
     expect(ids(atWork(nextQuarter), 'work')).toContain('graduate-job-search');
+    // task 56 / review40-3 risk: when the permission ends before next
+    // quarter, the hint says there is no later workday to wait for.
+    const ending = (state: GameState): GameState => ({
+      ...state,
+      timeline: {
+        ...state.timeline,
+        episodes: state.timeline.episodes.map((e) =>
+          e.route === 'GRADUATE'
+            ? { ...e, validTo: `${state.date.slice(0, 8)}28` }
+            : e,
+        ),
+      },
+    });
+    const lastApplied = graduateNextStep(ending(applied))!;
+    expect(lastApplied.zhCN).toContain('求职来不及推进到拿到 CoS');
+    expect(lastApplied.en).toContain('cannot reach a CoS in time');
+    const lastCos = graduateNextStep(ending(late))!;
+    expect(lastCos.zhCN).toContain('来不及再回公司重谈');
+    expect(lastCos.en).toContain('no time to reopen the salary talk');
     // review40-2: the switch note states the section 3C trigger and the
     // Student switch conditions in both languages.
     const note = graduate.graduateRoute!.salaryCheckNote;

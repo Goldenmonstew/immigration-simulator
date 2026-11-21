@@ -83,8 +83,8 @@ const daily: [string, string][] = [
     'I’ll listen to the demo. Leave the error sound on.',
   ],
   [
-    '面试练完了？轮到我练怎么拒绝加活。',
-    'Interview practice done? My turn to practise refusing extra work.',
+    '讲解练完了？轮到我练怎么拒绝加活。',
+    'Done practising your talk? My turn to practise refusing extra work.',
   ],
   [
     '耳机线又缠住勺子，音乐配餐失败。',
@@ -394,8 +394,8 @@ const scenes: [string, Text, Text, Text, Text][] = [
     'voice',
     t('录音里的停顿', 'A pause in the recording'),
     t(
-      '你练面试时，梅芙在旁边调收音机。录音一放，你先听见自己的吸气，急着伸手去关。\n她没碰你的电脑。「这口气也归你，留不留自己定。」她把耳机放到中间，等你说听哪一段。\n你担心说话不够像一个已经毕业的人。梅芙讲起自己第一次接维修电话，把机器型号听成了街名。\n你们笑完，她说那通电话后来还是回了。她不想替你练成另一个人的声音，只想知道哪句没听懂。\n你重新播放，留住开头的停顿。收音机的旋钮转到安静处，她把自己没听明白的那句重复给你。',
-      'As you practise for interviews, Maeve tunes the radio. On playback you hear yourself breathe in and reach to stop it.\nShe leaves your computer alone. “That breath is yours. Keep it or not.” She puts the headphones between you, waiting for your choice of passage.\nYou worry about sounding like a graduate. Maeve recalls mistaking a radio model for a street on her first repair call.\nAfter laughing, she says she did return that call. She wants to hear which sentence was unclear, not train you into someone else’s voice.\nYou play it again, keeping the opening pause. She turns the radio down and repeats the sentence she missed.',
+      '你录音练习讲解时，梅芙在旁边调收音机。录音一放，你先听见自己的吸气，急着伸手去关。\n她没碰你的电脑。「这口气也归你，留不留自己定。」她把耳机放到中间，等你说听哪一段。\n你担心说话不够像一个已经毕业的人。梅芙讲起自己第一次接维修电话，把机器型号听成了街名。\n你们笑完，她说那通电话后来还是回了。她不想替你练成另一个人的声音，只想知道哪句没听懂。\n你重新播放，留住开头的停顿。收音机的旋钮转到安静处，她把自己没听明白的那句重复给你。',
+      'As you record yourself practising a talk, Maeve tunes the radio. On playback you hear yourself breathe in and reach to stop it.\nShe leaves your computer alone. “That breath is yours. Keep it or not.” She puts the headphones between you, waiting for your choice of passage.\nYou worry about sounding like a graduate. Maeve recalls mistaking a radio model for a street on her first repair call.\nAfter laughing, she says she did return that call. She wants to hear which sentence was unclear, not train you into someone else’s voice.\nYou play it again, keeping the opening pause. She turns the radio down and repeats the sentence she missed.',
     ),
     t('留着停顿，重新讲一遍', 'Keep the pause and try again'),
     t('请她重复没听懂的那句', 'Ask her to repeat the unclear sentence'),

@@ -148,6 +148,8 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Your current permission has {count} month{count:s} left, and no further permission is recorded from the date it expires. Visit the visa centre to see available actions and fees.',
   'game.fastVisaWarning':
     'Your current permission expires on {date} and no further permission follows it. Fast-forwarding runs past that date to the end of the quarter, so visit the visa centre first.',
+  'game.fastVisaWarningNone':
+    'No current permission is recorded. Fast-forwarding runs to the end of the quarter, so visit the visa centre first.',
   'game.missingRules': 'Still needed: {rules}',
   'game.visaVisit': 'Visit the visa centre',
   'game.musicOn': 'Music: on',

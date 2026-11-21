@@ -815,10 +815,12 @@ export default function GameClient() {
                 {confirmation === 'fast' && visaExpiresThisSeason(current) && (
                   <>
                     <p role="status" className={styles.urgent}>
-                      {t('game.fastVisaWarning').replace(
-                        '{date}',
-                        visaStatus(current).validTo ?? '',
-                      )}
+                      {visaStatus(current).validTo
+                        ? t('game.fastVisaWarning').replace(
+                            '{date}',
+                            visaStatus(current).validTo!,
+                          )
+                        : t('game.fastVisaWarningNone')}
                     </p>
                     <button
                       className={styles.secondary}

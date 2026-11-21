@@ -45,6 +45,7 @@ import {
   visibleResidents,
   homeSpot,
   endingMemories,
+  visaExpiresThisSeason,
 } from '../app/game/session';
 import {
   recordMemories,
@@ -2963,4 +2964,23 @@ test('task 56 / 43 walk: the kitchen says where ingredients come from, and fishi
   expect(
     renderView(() => Fishing({ state: pond, onChange: vi.fn() })).html,
   ).toContain(t('game.fishEasyHint'));
+});
+
+test('task 56 / review40-1 risk: fast-forward warns when the adjoining renewal also ends this season, and without permission', async () => {
+  const state = at(600, 'home', 'en');
+  state.date = '2024-04-15';
+  const base = state.timeline.episodes[0];
+  state.timeline.episodes = [
+    { ...base, validFrom: '2024-01-01', validTo: '2024-05-14' },
+    { ...base, validFrom: '2024-05-15', validTo: '2024-06-30' },
+  ];
+  expect(visaExpiresThisSeason(state)).toBe(true);
+  state.timeline.episodes[1].validTo = '2027-06-30';
+  expect(visaExpiresThisSeason(state)).toBe(false);
+  // A restored save with no current permission names no empty date.
+  state.timeline.episodes = [];
+  const h = await client(state, 'en');
+  h.render().click(t('game.fastForward', 'en'));
+  expect(h.render().html).toContain(t('game.fastVisaWarningNone', 'en'));
+  h.dispose();
 });
