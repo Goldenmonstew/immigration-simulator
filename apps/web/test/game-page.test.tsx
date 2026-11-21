@@ -1205,6 +1205,7 @@ for (const locale of ['zh-CN', 'en'] as const) {
         },
       ]) {
         const later = await client({ ...call.state, outcome }, locale);
+        expect(call.state.day.resumeMinute).toBeDefined();
         const laterCall = later.render().props(EventCard);
         renderView(() => EventCard(laterCall), locale).click(
           locale === 'en' ? 'Arrange a weekly call' : '约定每周通话',
@@ -1214,6 +1215,17 @@ for (const locale of ['zh-CN', 'en'] as const) {
         );
         later.dispose();
       }
+      // review56-3: a call the clock rings after the activity has finished
+      // (nothing to resume) does not bring the result back.
+      const dayAfter = { ...call.state.day };
+      delete dayAfter.resumeMinute;
+      const finished = await client({ ...call.state, day: dayAfter }, locale);
+      const finishedCall = finished.render().props(EventCard);
+      renderView(() => EventCard(finishedCall), locale).click(
+        locale === 'en' ? 'Arrange a weekly call' : '约定每周通话',
+      );
+      expect(finished.render().html).not.toContain(feedback);
+      finished.dispose();
     },
   );
 }
