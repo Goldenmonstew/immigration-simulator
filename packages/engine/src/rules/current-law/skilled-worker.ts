@@ -155,10 +155,20 @@ const SALARY_THRESHOLDS = {
 const inTable = (rows: { socCode: string }[], soc: string | undefined) =>
   soc !== undefined && rows.some((r) => r.socCode === soc);
 
-function wasSponsoredOnIsl(episode: ImmigrationEpisode): boolean | undefined {
+function wasSponsoredOnIsl(
+  episode: ImmigrationEpisode,
+  previous?: ImmigrationEpisode,
+): boolean | undefined {
   if (episode.immigrationSalaryList !== undefined) {
     return episode.immigrationSalaryList;
   }
+  // Options D and I are only awarded for a job on the Immigration Salary
+  // List (SW 4.2), so a confirmed one settles it (review33b-1).
+  if (
+    episode.skilledWorkerSponsorshipException === 'OPTION_D' ||
+    episode.skilledWorkerSponsorshipException === 'OPTION_I'
+  )
+    return true;
   const entries = immigrationSalaryListOccupations.entries.filter(
     (entry) => entry.socCode === episode.socCode,
   );
@@ -169,7 +179,14 @@ function wasSponsoredOnIsl(episode: ImmigrationEpisode): boolean | undefined {
       !episode.sponsorshipCertificateDate ||
       episode.sponsorshipCertificateDate < entry.removalDate,
   );
-  if (eligible.length === 0) return false;
+  // SW 11.2: a job removed by the CoS date still counts when the previous
+  // Skilled Worker grant was for it on the list and this one continues the
+  // same job for the same sponsor, which the questionnaire does not record.
+  if (eligible.length === 0)
+    return previous?.socCode === episode.socCode &&
+      wasSponsoredOnIsl(previous) === true
+      ? undefined
+      : false;
   if (
     eligible.some(
       (entry) =>
@@ -202,12 +219,13 @@ function settlementSalaryRows({
   const L = textFor({ locale });
   // SW 4.2(b)(ii): held continuously since the old-rules grant. Unlike the
   // residence run, no day without permission is tolerated.
-  const first = continuousRun(
+  const run = continuousRun(
     timeline,
     simulationDate,
     isSkilledWorker,
     () => false,
-  ).episodes[0];
+  ).episodes;
+  const first = run[0];
   const pre2024 = underPre2024Rules(first);
   const transitional =
     simulationDate < cl.values.skilledWorkerPre2024ApplicationsBefore.value &&
@@ -215,7 +233,13 @@ function settlementSalaryRows({
   const soc = current.socCode;
   const table3 = inTable(nationalPayScaleOccupations.rows, soc);
   const ashe = inTable(healthAndCareAsheOccupations.occupations, soc);
-  const isl = wasSponsoredOnIsl(current);
+  const previous = run.filter((e) => e.validFrom < current.validFrom).at(-1);
+  const isl = wasSponsoredOnIsl(current, previous);
+  const sameJobAfterRemoval =
+    isl === undefined &&
+    previous !== undefined &&
+    previous.socCode === current.socCode &&
+    wasSponsoredOnIsl(previous) === true;
   const lowerRows = ashe || transitional;
   const assumptions = [
     L(
@@ -225,15 +249,20 @@ function settlementSalaryRows({
   ];
   if (!table3 && isl !== false && current.immigrationSalaryList === undefined) {
     assumptions.push(
-      isl
+      sameJobAfterRemoval
         ? L(
-            '按最近一次许可的 CoS 签发日（未填时以早于移除日的许可起始日佐证）和 SRC-019 上适用全英国及该 SOC 全部岗位的条目判断 ISL。',
-            'ISL is assessed for the latest grant from its CoS issue date (or a permission start before removal) and the SRC-019 entry covering all jobs in that SOC across the UK.',
+            `SOC ${soc} 在最近一次许可的 CoS 签发前已移出 ISL；上一段许可按 ISL 担保。若这次是同一 sponsor 的同一岗位续签，仍可按 ISL 计（SW 11.2），问卷没有 sponsor 信息，请确认。`,
+            `SOC ${soc} was removed from the ISL before the CoS for the latest grant, and the previous grant was sponsored on the ISL. If this grant continues the same job for the same sponsor it still counts as ISL (SW 11.2); the questionnaire does not record the sponsor, so please confirm.`,
           )
-        : L(
-            '最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。',
-            'ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).',
-          ),
+        : isl
+          ? L(
+              '按最近一次许可的 CoS 签发日（未填时以早于移除日的许可起始日佐证）和 SRC-019 上适用全英国及该 SOC 全部岗位的条目判断 ISL。',
+              'ISL is assessed for the latest grant from its CoS issue date (or a permission start before removal) and the SRC-019 entry covering all jobs in that SOC across the UK.',
+            )
+          : L(
+              '最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。',
+              'ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).',
+            ),
     );
   }
   if (!table3 && ashe && transitional !== true) {

@@ -533,3 +533,56 @@ test('review33b-2 a joint forecast keeps the date while the principal’s B2 is 
     'LIKELY_ELIGIBLE',
   );
 });
+
+test('review33b-1 / task 53: a confirmed Option D or I is an ISL job (SW 4.2), and a removal before the CoS leaves the same-job exception open (SW 11.2)', () => {
+  // Scotland-only entry: without the option the ISL stays unconfirmed.
+  const scotland = permit({
+    validFrom: '2026-01-01',
+    sponsorshipCertificateDate: '2025-12-15',
+    socCode: '5235',
+    salary: 35000,
+  });
+  const facts = (episode: ImmigrationEpisode) => ({
+    episodes: [
+      permit({
+        route: 'GLOBAL_TALENT',
+        validFrom: '2021-01-01',
+        validTo: '2025-12-31',
+      }),
+      episode,
+    ],
+  });
+  const unconfirmed = run(clSwSalary, facts(scotland));
+  const optionD = run(
+    clSwSalary,
+    facts({ ...scotland, skilledWorkerSponsorshipException: 'OPTION_D' }),
+  );
+  expect(optionD.status).not.toBe(unconfirmed.status);
+  expect(optionD.assumptions?.join()).not.toContain('ISL status');
+  // SOC 2112 left the list on 2026-12-31; the previous grant was on it.
+  const before = permit({
+    validFrom: '2024-06-01',
+    validTo: '2027-01-14',
+    sponsorshipCertificateDate: '2024-05-01',
+    socCode: '2112',
+    salary: 41000,
+  });
+  const after = permit({
+    validFrom: '2027-01-15',
+    validTo: '2030-01-14',
+    sponsorshipCertificateDate: '2027-01-10',
+    socCode: '2112',
+    salary: 41000,
+  });
+  const renewal = run(clSwSalary, { episodes: [before, after] }, '2027-06-01');
+  expect(renewal.status).toBe('UNKNOWN');
+  expect(renewal.assumptions?.join()).toContain('SW 11.2');
+  // A different job after the removal is not on the list.
+  expect(
+    run(
+      clSwSalary,
+      { episodes: [before, { ...after, socCode: '2113' }] },
+      '2027-06-01',
+    ).assumptions?.join(),
+  ).not.toContain('SW 11.2');
+});
