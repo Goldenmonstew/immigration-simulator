@@ -20,8 +20,9 @@ export interface SkilledWorkerApplication {
   /** An in-country grant starts on the decision date (SRC-050 §23.1). */
   decisionDate?: IsoDate;
   cos?: {
-    start: IsoDate;
-    end: IsoDate;
+    start?: IsoDate;
+    end?: IsoDate;
+    /** Salary counted under SW 14.1–14.3 (guaranteed basic pay). */
     salary?: number;
     weeklyHours?: number;
     socCode?: string;
@@ -72,18 +73,22 @@ export function skilledWorkerApplication(
     (r) => r.table === '1' && r.socCode === cos?.socCode,
   );
   // SRC-017 Table 1 introduction: rates are pro-rated for other hours.
-  const goingRate =
-    row?.goingRate !== undefined && cos?.weeklyHours !== undefined
-      ? (row.goingRate * cos.weeklyHours) / v.goingRateWeeklyHours.value
+  const proRated = (rate?: number) =>
+    rate !== undefined && cos?.weeklyHours !== undefined
+      ? (rate * cos.weeklyHours) / v.goingRateWeeklyHours.value
       : undefined;
 
+  // Option E uses the 70% column, floored at an hourly minimum (Table 1
+  // introduction), not 70% of the going rate column.
   const pay = (
     threshold: number,
-    percent: number,
+    published: number | undefined,
+    column: { zh: string; en: string },
     option: string,
   ): ApplicationCheck => {
     const sources = [{ srcId: 'SRC-004', locator: `SW 4.2 Option ${option}` }];
-    if (cos?.salary === undefined || goingRate === undefined)
+    const rate = proRated(published);
+    if (cos?.salary === undefined || rate === undefined)
       return {
         status: 'UNKNOWN',
         explanation: L(
@@ -92,20 +97,26 @@ export function skilledWorkerApplication(
         ),
         sources,
       };
-    const rate = (goingRate * percent) / 100;
     const meets = cos.salary >= threshold && cos.salary >= rate;
     return {
       status: meets ? 'PASS' : 'FAIL',
       explanation: L(
-        `年薪 ${gbp(cos.salary)}${meets ? '达到' : '未达到'} ${gbp(threshold)} 与 going rate ${percent === 100 ? '' : `的 ${percent}%`}（按每周 ${cos.weeklyHours} 小时折算为 ${gbp(Math.ceil(rate))}）。`,
-        `A salary of ${gbp(cos.salary)} ${meets ? 'meets' : 'does not meet'} both ${gbp(threshold)} and ${percent === 100 ? 'the going rate' : `${percent}% of the going rate`} (${gbp(Math.ceil(rate))} for ${cos.weeklyHours} hours a week). `,
+        `年薪 ${gbp(cos.salary)}${meets ? '达到' : '未达到'} ${gbp(threshold)} 与 ${column.zh}（按每周 ${cos.weeklyHours} 小时折算为 ${gbp(Math.ceil(rate))}）。`,
+        `A salary of ${gbp(cos.salary)} ${meets ? 'meets' : 'does not meet'} both ${gbp(threshold)} and ${column.en} (${gbp(Math.ceil(rate))} for ${cos.weeklyHours} hours a week). `,
       ),
       sources,
     };
   };
 
   const optionA = combine(
-    [pay(v.skilledWorkerGeneralSalaryThreshold.value, 100, 'A')],
+    [
+      pay(
+        v.skilledWorkerGeneralSalaryThreshold.value,
+        row?.goingRate,
+        { zh: 'going rate', en: 'the going rate' },
+        'A',
+      ),
+    ],
     [
       { srcId: 'SRC-004', locator: 'SW 4.2 Option A' },
       { srcId: 'SRC-017', locator: 'Table 1' },
@@ -151,7 +162,9 @@ export function skilledWorkerApplication(
   // SW 12.3: Skilled Worker, Graduate and Tier 2 permission (recorded here as
   // Skilled Worker) may not exceed 4 years in total, gaps excluded.
   const grantedUntil =
-    cos && addDays(cos.end, v.skilledWorkerGrantDaysAfterCos.value);
+    cos?.start && cos.end
+      ? addDays(cos.end, v.skilledWorkerGrantDaysAfterCos.value)
+      : undefined;
   const maxYears = v.skilledWorkerNewEntrantMaxCombinedYears.value;
   let combined: ApplicationCheck;
   if (!decisionDate || !grantedUntil) {
@@ -187,9 +200,16 @@ export function skilledWorkerApplication(
         : undefined;
     const total = days();
     const withSection3C = section3C ? days(section3C) : total;
+    // With gaps, a leap day can fall in or out of the counted days: within a
+    // day of the limit the result depends on PD-081's day-by-day reckoning.
+    const gaps = held.some((p, i) => {
+      const next = held[i + 1]?.from ?? decisionDate;
+      return addDays(p.to < decisionDate ? p.to : decisionDate, 1) < next;
+    });
+    const nearLimit = gaps && Math.abs(total - limit) <= 1;
     const years = L(`${maxYears} 年`, `${maxYears} years`);
     combined =
-      total <= limit && withSection3C <= limit
+      !nearLimit && total <= limit && withSection3C <= limit
         ? {
             status: 'PASS',
             explanation: L(
@@ -198,7 +218,7 @@ export function skilledWorkerApplication(
             ),
             sources: [],
           }
-        : total > limit
+        : !nearLimit && total > limit
           ? {
               status: 'FAIL',
               explanation: L(
@@ -209,10 +229,15 @@ export function skilledWorkerApplication(
             }
           : {
               status: 'UNKNOWN',
-              explanation: L(
-                `不计 section 3C 延续期时合计 ${total} 天，计入则超过 ${years}。延续期在 SW 12.3 下如何计算待明确（PD-081）。`,
-                `The total is ${total} days without the section 3C extension and more than ${years} with it. How the extension counts under SW 12.3 is not settled (PD-081). `,
-              ),
+              explanation: nearLimit
+                ? L(
+                    `许可之间有空档，合计 ${total} 天与 ${years} 上限只差一天以内。不连续期间逐日如何计算待明确（PD-081）。`,
+                    `With gaps between permissions, the total of ${total} days is within a day of the ${years} limit. How non-continuous periods are counted day by day is not settled (PD-081). `,
+                  )
+                : L(
+                    `不计 section 3C 延续期时合计 ${total} 天，计入则超过 ${years}。延续期在 SW 12.3 下如何计算待明确（PD-081）。`,
+                    `The total is ${total} days without the section 3C extension and more than ${years} with it. How the extension counts under SW 12.3 is not settled (PD-081). `,
+                  ),
               sources: [],
               pendingDetails: ['PD-081'],
             };
@@ -222,7 +247,11 @@ export function skilledWorkerApplication(
     [
       pay(
         v.skilledWorkerNewEntrantSalaryThreshold.value,
-        v.skilledWorkerNewEntrantGoingRatePercent.value,
+        row?.newEntrantRate,
+        {
+          zh: `Table 1 的 Option E 列（going rate 的 ${v.skilledWorkerNewEntrantGoingRatePercent.value}%，含每小时最低额）`,
+          en: `the Table 1 option E column (${v.skilledWorkerNewEntrantGoingRatePercent.value}% of the going rate, with the hourly minimum)`,
+        },
         'E',
       ),
       graduate,

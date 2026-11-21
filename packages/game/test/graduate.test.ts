@@ -106,21 +106,24 @@ describe('13.2 Graduate character and engine integration', () => {
   test('task 35: the low offer meets Option E only within the SW 12.3 total; negotiating meets Option A', () => {
     let state = offer(true);
     // One year of Graduate plus the 36-month grant is exactly 4 years on the
-    // first day of the quarter: Option E is met (SW 12.3 bars more than 4).
+    // quarter's start date, which the game uses for applications and grants.
     expect(state.date).toBe('2027-09-15');
     const onTime = graduateApplication(state);
     expect(onTime.optionA.status).toBe('FAIL');
     expect(onTime.optionE.status).toBe('PASS');
-    expect(
-      activities(atVisa(state), 'visa').map((action) => action.id),
-    ).toContain('graduate-switch');
-    // A day later the total is over 4 years and the low offer is not enough.
-    state = { ...state, date: '2027-09-16' };
-    const late = graduateApplication(state);
+    const switched = doActivity(atVisa(state), 'graduate-switch');
+    expect(switched.timeline.episodes.at(-1)).toMatchObject({
+      route: 'SKILLED_WORKER',
+      validFrom: '2027-09-15',
+      salary: graduateSalaries.low,
+    });
+    // A quarter later, without negotiating, the total is over 4 years.
+    const later = clear(completeQuarter(state));
+    const late = graduateApplication(later);
     expect(late.status).toBe('FAIL');
     expect(late.optionE.explanation).toContain('SW 12.3');
     expect(
-      activities(atVisa(state), 'visa').map((action) => action.id),
+      activities(atVisa(later), 'visa').map((action) => action.id),
     ).not.toContain('graduate-switch');
     const checked = doActivity(atVisa(state), 'graduate-check-offer');
     expect(checked.timeline).toEqual(state.timeline);

@@ -127,8 +127,8 @@ export const locationActions: Activity[] = [
     id: 'graduate-check-offer',
     place: 'visa',
     label: {
-      zhCN: '核对合同薪资（标准薪资情景）',
-      en: 'Check the offer (standard-pay scenario)',
+      zhCN: '核对转签条件（标准档与新入职者档）',
+      en: 'Check the switch (standard and new-entrant options)',
     },
     minutes: 0,
     effects: [{ type: 'none' }],

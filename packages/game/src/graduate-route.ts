@@ -71,8 +71,13 @@ export function graduateApplication(state: GameState) {
 }
 
 export function graduateSalaryPreview(state: GameState): string {
-  const { optionA, optionE } = graduateApplication(state);
+  const { optionA, optionE, grantedUntil } = graduateApplication(state);
   const chinese = state.locale === 'zh-CN';
+  // The game records permission on the quarter's start date, so the
+  // application, the decision and the CoS all run from it.
+  const premise = chinese
+    ? `本情景按本季起始日 ${state.date} 递交并当日获批；HR 按递交日开具 ${b.extensionMonths} 个月的 CoS，许可到 CoS 结束后 ${policy.skilledWorkerGrantDaysAfterCos.value} 天（${grantedUntil}）。`
+    : `This scenario applies and is decided on the quarter's start date, ${state.date}. HR issues a ${b.extensionMonths}-month CoS from that date, and permission runs to ${policy.skilledWorkerGrantDaysAfterCos.value} days after it ends (${grantedUntil}).`;
   const verdict = (status: string) =>
     chinese
       ? status === 'PASS'
@@ -86,6 +91,7 @@ export function graduateSalaryPreview(state: GameState): string {
           ? 'not met'
           : 'to be confirmed';
   return [
+    premise,
     chinese
       ? `标准档（SRC-004 SW 4.2 Option A；SRC-017 Table 1）：${verdict(optionA.status)}。${optionA.explanation}`
       : `Standard option (SRC-004 SW 4.2 Option A; SRC-017 Table 1): ${verdict(optionA.status)}. ${optionA.explanation}`,

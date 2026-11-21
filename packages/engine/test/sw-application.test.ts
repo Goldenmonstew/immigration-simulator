@@ -66,20 +66,36 @@ describe('SW 4.2 Option E new entrant (task 35)', () => {
     ).toBe('PASS');
   });
 
-  test('pay: £33,400 and 70% of the pro-rated going rate', () => {
-    // 70% of £41,200 is £28,840, below £33,400.
+  test('pay: £33,400 and the Table 1 option E column, pro-rated by hours', () => {
+    // SOC 2136's option E column is £33,400 (the hourly minimum).
     expect(apply({ salary: 33400 }).optionE.status).toBe('PASS');
     expect(apply({ salary: 33399 }).optionE.status).toBe('FAIL');
-    // 45 hours: 70% of £49,440 is £34,608.
-    expect(apply({ salary: 34608, weeklyHours: 45 }).optionE.status).toBe(
+    // 45 hours: £33,400 × 45 / 37.5 = £40,080.
+    expect(apply({ salary: 40080, weeklyHours: 45 }).optionE.status).toBe(
       'PASS',
     );
-    expect(apply({ salary: 34607, weeklyHours: 45 }).optionE.status).toBe(
+    expect(apply({ salary: 40079, weeklyHours: 45 }).optionE.status).toBe(
       'FAIL',
     );
     // Option A needs £41,700 and the full going rate.
     expect(apply({ salary: 41700 }).optionA.status).toBe('PASS');
     expect(apply({ salary: 41699 }).optionA.status).toBe('FAIL');
+    // SOC 2137's going rate of £45,600 is above £41,700.
+    const it = (salary: number) =>
+      skilledWorkerApplication({
+        timeline: timeline({ episodes: [graduate] }),
+        applicationDate: '2027-09-01',
+        decisionDate: '2027-09-01',
+        cos: {
+          start: '2027-09-01',
+          end: '2029-08-16',
+          salary,
+          weeklyHours: 37.5,
+          socCode: '2137',
+        },
+      }).optionA.status;
+    expect(it(45600)).toBe('PASS');
+    expect(it(45599)).toBe('FAIL');
   });
 
   test('SW 12.3 combined permission of 4 years, gaps excluded', () => {
@@ -121,6 +137,20 @@ describe('SW 4.2 Option E new entrant (task 35)', () => {
     });
   });
 
+  test('with a gap, a total within a day of 4 years is UNKNOWN (PD-081)', () => {
+    // 730 Graduate days, a gap, then 731 days of new permission: 1,461.
+    const expired = permit('GRADUATE', '2024-09-01', '2026-08-31');
+    const result = apply({
+      episodes: [expired],
+      date: '2027-09-01',
+      cosEnd: '2029-08-18',
+    });
+    expect(result.optionE).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-081'],
+    });
+  });
+
   test('missing input', () => {
     const noDecision = skilledWorkerApplication({
       timeline: timeline({ episodes: [graduate] }),
@@ -134,6 +164,24 @@ describe('SW 4.2 Option E new entrant (task 35)', () => {
       },
     });
     expect(noDecision.optionE.status).toBe('UNKNOWN');
+    for (const cos of [
+      { end: '2029-08-16', salary: 33400, weeklyHours: 37.5, socCode: '2136' },
+      {
+        start: '2027-09-01',
+        salary: 33400,
+        weeklyHours: 37.5,
+        socCode: '2136',
+      },
+    ]) {
+      const partial = skilledWorkerApplication({
+        timeline: timeline({ episodes: [graduate] }),
+        applicationDate: '2027-09-01',
+        decisionDate: '2027-09-01',
+        cos,
+      });
+      expect(partial.optionE.status).toBe('UNKNOWN');
+      expect(partial.grantedUntil).toBeUndefined();
+    }
     const noCos = skilledWorkerApplication({
       timeline: timeline({ episodes: [graduate] }),
       applicationDate: '2027-09-01',

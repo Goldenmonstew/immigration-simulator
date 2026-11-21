@@ -1005,5 +1005,4 @@ PD-075 登记到 `docs/pending-details.md` 新的第十节"现行法律栏家庭
 - 输入：申请前的许可时间线、申请日、预计决定日、CoS（起止日期、年薪、每周工时、SOC）。缺决定日或 CoS 时相应检查为 `UNKNOWN`。
 - 输出：`optionA`、`optionE` 各自的 `status` 与说明，`status` 在任一档 `PASS` 时为 `PASS`，`grantedUntil` 为 CoS 结束后 14 天（SW 18.1）。
 - Option A：年薪不低于 SW 4.2 Option A 的门槛，且不低于 SRC-017 Table 1 的 going rate（按每周工时相对 37.5 小时折算）。
-- Option E：年薪不低于新入职者门槛与 going rate 的 70%；SW 12.2(f) 最近一次非访客许可为 Graduate，已到期的须距申请日不足 2 年；SW 12.3 获批后 Graduate 与 Skilled Worker 许可的实际有效期间合计不超过 4 年（空档不计，决定日仍有效的许可在决定日截断）。section 3C 延续期计入与否会改变结论时为 `UNKNOWN`（PD-081）。
-
+- Option E：年薪不低于新入职者门槛与 SRC-017 Table 1 公布的 Option E 列（going rate 的 70%，含每小时最低额，按工时折算）；SW 12.2(f) 最近一次非访客许可为 Graduate，已到期的须距申请日不足 2 年；SW 12.3 获批后 Graduate 与 Skilled Worker 许可的实际有效期间合计不超过 4 年（空档不计，决定日仍有效的许可在决定日截断）。section 3C 延续期计入与否、或有空档时合计与上限只差一天以内，为 `UNKNOWN`（PD-081）。CoS 缺起止日期时合计为 `UNKNOWN`。
