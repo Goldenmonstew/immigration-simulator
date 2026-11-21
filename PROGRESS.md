@@ -318,3 +318,4 @@
 | 281 | 任务 63：只有不确定的读法才能满足长期居留时输出 UNKNOWN（不再是无法满足）；10 个日历月天数区间的计算移到共用的 `monthSpan`。 | packages/engine/src/{spain,pilot}.ts、packages/engine/test/spain.test.ts |
 | 287 | 任务 63 审核修正（review63-1）：长期居留与入籍要求递交当天仍持有效许可；入籍按行程日期判断有无出境；只有学习停留时的摘要措辞；待确认状态通用文案改为中性；删去未用的出生日期；切换路线清除隐藏字段错误；PD-098、PD-099 与来源备注修正。 | packages/engine/src/spain.ts、packages/engine/test/spain.test.ts、apps/web/app/spain/、apps/web/lib/spain.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/spain.test.tsx、apps/e2e/tests/spain.spec.ts、docs/ |
 | 291 | 任务 63 第二轮审核修正（review63-2）：长期居留恢复到期后 3 个月内可递交（art. 184.2）；提示长期居留许可无期限、TIE 到期不影响；入籍待确认时摘要改称候选日；PD-097、PD-099 补条款。 | packages/engine/src/spain.ts、packages/engine/test/spain.test.ts、apps/web/i18n/{zh-CN,en}.ts、docs/ |
+| 293 | 任务 63 第三轮审核修正（review63-3）：长期居留许可到期后 3 个月内递交都算按时（art. 184.2，参数 longTermLateMonths），补边界用例。 | packages/engine/src/spain.ts、packages/engine/test/spain.test.ts、packages/policy-data/src/parameters/spain-2026-11.ts、docs/tasks/reports/63-spain.md |
