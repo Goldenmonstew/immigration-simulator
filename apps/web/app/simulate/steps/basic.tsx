@@ -4,6 +4,12 @@ import type { Route } from '@uk-immigration/engine';
 import { routeLabel, routeNames } from '../../../i18n/routes';
 import type { FormKit } from '../form-kit';
 import { Field } from '../field';
+import {
+  countries,
+  countryName,
+  nationalityFromInput,
+} from '../../../lib/country-names';
+import site from '../../site.module.css';
 
 export function BasicStep({ form }: { form: FormKit }) {
   const {
@@ -32,35 +38,26 @@ export function BasicStep({ form }: { form: FormKit }) {
           {...fieldProps('nationality', true)}
           value={timeline.nationality}
           list="nationalities"
-          maxLength={3}
-          autoCapitalize="characters"
+          autoComplete="off"
           spellCheck={false}
           onChange={(event) =>
-            update({
-              nationality: event.target.value.toUpperCase().trim(),
-            })
+            update({ nationality: nationalityFromInput(event.target.value) })
           }
         />
         <datalist id="nationalities">
-          {(
-            [
-              'CHN',
-              'HKG',
-              'IND',
-              'PAK',
-              'NGA',
-              'USA',
-              'GBR',
-              'CAN',
-              'AUS',
-              'SGP',
-            ] as const
-          ).map((code) => (
+          {countries().map(({ code, zh, en }) => (
             <option key={code} value={code}>
-              {t(`country.${code}`)}
+              {zh} · {en}
             </option>
           ))}
         </datalist>
+        {countryName(timeline.nationality) && (
+          <p className={site.muted}>
+            {t('basic.nationalitySelected')
+              .replace('{name}', countryName(timeline.nationality)!)
+              .replace('{code}', timeline.nationality)}
+          </p>
+        )}
       </Field>
       {editingPrincipal && (
         <>
