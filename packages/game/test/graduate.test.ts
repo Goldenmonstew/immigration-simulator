@@ -270,6 +270,12 @@ describe('13.2 Graduate character and engine integration', () => {
       ).toContain(step[1]);
     const switched = doActivity(atVisa(ready), 'graduate-switch');
     expect(graduateNextStep(switched)).toBeUndefined();
+    // review40-1 #3: after today's job search, wait for next quarter's workday.
+    const applied = job(start);
+    expect(applied.day.done).toContain('graduate-job-search');
+    expect(graduateNextStep(applied)?.zhCN).toContain('下一季的工作日');
+    expect(graduateNextStep(applied)?.en).toContain("next quarter's workday");
+    expect(graduateNextStep(start)?.zhCN).not.toContain('下一季');
   });
 
   test('playtest #8: the offer check gives the verdicts before the premise', () => {

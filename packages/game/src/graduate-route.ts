@@ -122,7 +122,7 @@ export function graduateNextStep(
   )
     return undefined;
   const has = (flag: string) => state.flags.includes(flag);
-  return has('graduate-cos-ready')
+  const next = has('graduate-cos-ready')
     ? {
         zhCN: '求职进度：已拿到 CoS。下一步：在签证中心核对转签条件，符合就转 Skilled Worker；不符合可回公司与 HR 重谈薪资。',
         en: 'Job search: CoS received. Next: check the switch at the visa centre and switch to Skilled Worker if it is met; if not, reopen the salary talk with HR at work.',
@@ -148,7 +148,15 @@ export function graduateNextStep(
                 en: 'Job search: application sent. Next: on a workday, go to work for the interview.',
               }
             : {
-                zhCN: '求职进度：还没投递。下一步：工作日到公司投简历；Graduate 许可不能续签，到期前要转到 Skilled Worker。',
-                en: 'Job search: nothing sent yet. Next: on a workday, apply for jobs at work; Graduate permission cannot be extended, so switch to Skilled Worker before it expires.',
+                zhCN: '求职进度：还没投递。下一步：工作日到公司投简历；Graduate 许可不能续签，到期前要递交转 Skilled Worker 的有效申请。',
+                en: 'Job search: nothing sent yet. Next: on a workday, apply for jobs at work; Graduate permission cannot be extended, so make a valid application to switch to Skilled Worker before it expires.',
               };
+  // Job search runs once a day and each quarter has one workday.
+  return !has('graduate-cos-ready') &&
+    state.day.done.includes('graduate-job-search')
+    ? {
+        zhCN: `${next.zhCN}今天已经跑过一次求职，下一季的工作日再去公司。`,
+        en: `${next.en} Today's job search is done; go to work again on next quarter's workday.`,
+      }
+    : next;
 }
