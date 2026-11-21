@@ -131,7 +131,7 @@
       "current-law-2026-11": {
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 5,
-        "earliestDate": "2028-07-01",
+        "earliestDate": "2028-06-30",
         "decidedBy": [
           "CL-SW-RESIDENCE-5Y",
           "CL-SW-SALARY",
@@ -445,20 +445,11 @@
     "title": "Care worker (SOC 6135) on Skilled Worker since 2021-09-01 at £25,000",
     "columns": {
       "current-law-2026-11": {
-        "outcome": "LIKELY_ELIGIBLE",
-        "pathwayYears": 5,
-        "earliestDate": "2026-09-01",
-        "decidedBy": [
-          "CL-SW-RESIDENCE-5Y",
-          "CL-SW-SALARY",
-          "CL-SW-GOING-RATE",
-          "CL-ENGLISH",
-          "CL-KOL"
-        ],
+        "outcome": "INSUFFICIENT_INFORMATION",
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
-          "CL-SW-SALARY": "PASS",
+          "CL-SW-SALARY": "UNKNOWN",
           "CL-SW-GOING-RATE": "PASS",
           "CL-ENGLISH": "PASS",
           "CL-KOL": "PASS",
@@ -509,18 +500,20 @@
     "columns": {
       "current-law-2026-11": {
         "outcome": "LIKELY_NOT_ELIGIBLE",
-        "pathwayYears": 10,
+        "pathwayYears": 5,
         "earliestDate": "2029-08-18",
         "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
           "CL-ENGLISH",
-          "CL-KOL",
-          "CL-LR-RESIDENCE-10Y"
+          "CL-KOL"
         ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "FAIL",
           "CL-SW-SALARY": "PASS",
-          "CL-SW-GOING-RATE": "FAIL",
+          "CL-SW-GOING-RATE": "UNKNOWN",
           "CL-ENGLISH": "PASS",
           "CL-KOL": "PASS",
           "CL-LR-RESIDENCE-10Y": "FAIL"
@@ -665,7 +658,7 @@
       "current-law-2026-11": {
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 5,
-        "earliestDate": "2026-12-01",
+        "earliestDate": "2026-11-03",
         "decidedBy": [
           "CL-HKBNO-RESIDENCE-5Y",
           "CL-ENGLISH",
@@ -2054,20 +2047,11 @@
     "title": "Individual A: existing care worker meeting the requirements",
     "columns": {
       "current-law-2026-11": {
-        "outcome": "LIKELY_ELIGIBLE",
-        "pathwayYears": 5,
-        "earliestDate": "2028-04-06",
-        "decidedBy": [
-          "CL-SW-RESIDENCE-5Y",
-          "CL-SW-SALARY",
-          "CL-SW-GOING-RATE",
-          "CL-ENGLISH",
-          "CL-KOL"
-        ],
+        "outcome": "INSUFFICIENT_INFORMATION",
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
-          "CL-SW-SALARY": "PASS",
+          "CL-SW-SALARY": "UNKNOWN",
           "CL-SW-GOING-RATE": "PASS",
           "CL-ENGLISH": "PASS",
           "CL-KOL": "PASS",
@@ -2189,7 +2173,7 @@
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
-          "CL-SW-SALARY": "FAIL",
+          "CL-SW-SALARY": "UNKNOWN",
           "CL-SW-GOING-RATE": "PASS",
           "CL-ENGLISH": "PASS",
           "CL-KOL": "PASS",
@@ -2470,18 +2454,11 @@
     "title": "Innovator Founder: 3 years completed on the day, two criteria met",
     "columns": {
       "current-law-2026-11": {
-        "outcome": "LIKELY_ELIGIBLE",
-        "pathwayYears": 3,
-        "earliestDate": "2026-05-01",
-        "decidedBy": [
-          "CL-INNOVATOR-RESIDENCE-3Y",
-          "CL-INNOVATOR-ENDORSEMENT",
-          "CL-KOL"
-        ],
+        "outcome": "INSUFFICIENT_INFORMATION",
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-INNOVATOR-RESIDENCE-3Y": "PASS",
-          "CL-INNOVATOR-ENDORSEMENT": "PASS",
+          "CL-INNOVATOR-ENDORSEMENT": "UNKNOWN",
           "CL-ENGLISH": "UNKNOWN",
           "CL-KOL": "PASS",
           "CL-LR-RESIDENCE-10Y": "FAIL"

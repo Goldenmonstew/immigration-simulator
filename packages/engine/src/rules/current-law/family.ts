@@ -2,11 +2,19 @@ import {
   currentLaw2026_11 as cl,
   routeNames,
 } from '@uk-immigration/policy-data';
-import { addYears, fullYears, fullYearsEn, taxYearsBefore } from '../../dates';
+import {
+  addDays,
+  addYears,
+  fullYears,
+  fullYearsEn,
+  taxYearsBefore,
+} from '../../dates';
 import {
   continuousRun,
+  countedGracePeriod,
   episodeOn,
   currentResidence,
+  nextPermissionFiling,
   settledBy,
 } from '../../residence';
 import type { CurrentResidence } from '../../residence';
@@ -37,6 +45,7 @@ import {
 import { principalApplicationDate } from './skilled-worker';
 import {
   DependantPathway,
+  childFiling,
   jointApplication,
   noJointApplication,
   needsPrincipal,
@@ -50,6 +59,31 @@ import {
 export const countsForFamilyTenYear = (e: ImmigrationEpisode) =>
   e.route === 'FAMILY_PARTNER_OR_PARENT' ||
   e.route === 'FAMILY_AND_PRIVATE_LIFE';
+
+/** CR 3.6: exclude historic days only after a qualifying further grant. */
+function familyTenYearCountedTrips(timeline: PersonTimeline, date: IsoDate) {
+  const cutoff = cl.values.familyLifeHistoricAbsencesBefore.value;
+  return timeline.absences.flatMap((trip) => {
+    const laterGrant =
+      trip.from &&
+      trip.to &&
+      trip.from < cutoff &&
+      timeline.episodes.some(
+        (e) =>
+          e.route === 'FAMILY_PARTNER_OR_PARENT' &&
+          e.role === 'MAIN' &&
+          e.familyPermission !== undefined &&
+          trip.from < e.validFrom &&
+          trip.to <= e.validFrom &&
+          e.validFrom <= date,
+      );
+    return !laterGrant
+      ? [trip]
+      : trip.to <= cutoff
+        ? []
+        : [{ ...trip, from: addDays(cutoff, -1) }];
+  });
+}
 
 /**
  * Start of the continuous SETF 3.1 period ending on the simulation date, while
@@ -72,6 +106,7 @@ export function familyTenYearResidence(
         e.role === 'MAIN' &&
         e.familyPermission === 'PARTNER_TEN_YEAR',
       notBefore,
+      countedTrips: familyTenYearCountedTrips(timeline, simulationDate),
     },
   );
 }
@@ -91,7 +126,31 @@ export function familyFiveYearStart({
     timeline,
     simulationDate,
     (e) => e.route === 'FAMILY_PARTNER_OR_PARENT' && e.role === 'MAIN',
+    // E-ILRP.1.5A: no blanket tolerance for an uncovered day between grants.
+    (from, to) => countedGracePeriod(timeline, from, to),
   ).episodes[0].validFrom;
+}
+
+const isFiveYearPartnerGrant = (e: ImmigrationEpisode) =>
+  e.route === 'FAMILY_PARTNER_OR_PARENT' &&
+  e.role === 'MAIN' &&
+  e.familyPermission === 'PARTNER_FIVE_YEAR';
+
+/** Appendix FM R-ILRP.1.1(a), E-ILRP.1.2 and E-ILRP.1.3. */
+export function familyFiveYearFiling({
+  timeline,
+  simulationDate,
+}: RuleContext) {
+  const years = cl.values.familyPartnerQualifyingYearsFive.value;
+  return nextPermissionFiling(
+    timeline,
+    simulationDate,
+    isFiveYearPartnerGrant,
+    (from) => {
+      const start = familyFiveYearStart({ timeline, simulationDate: from })!;
+      return { start, completion: addYears(start, years) };
+    },
+  );
 }
 
 export const clFamilyResidence = defineRule(
@@ -106,7 +165,9 @@ export const clFamilyResidence = defineRule(
       { srcId: 'SRC-022', locator: 'SETF 4.1' },
       { srcId: 'SRC-024', locator: 'E-ILRP.1.3' },
       { srcId: 'SRC-024', locator: 'E-ILRP.1.4' },
+      { srcId: 'SRC-024', locator: 'E-ILRP.1.5A' },
       ...crResidenceSources,
+      { srcId: 'SRC-008', locator: 'CR 3.6' },
     ],
     pendingDetails: ['PD-069', 'PD-070'],
   },
@@ -191,7 +252,15 @@ export const clFamilyResidence = defineRule(
               ),
             ]
           : []),
-      ...(timeline.absences.length > 0 ? [absenceAssumption(L)] : []),
+      ...(timeline.absences.length > 0
+        ? [
+            absenceAssumption(L),
+            L(
+              '若行程后有明确的 Appendix FM 伴侣或父母许可，按 CR 3.6 排除分界日前的缺席整天。现有许可类型无法确认旧 paragraph 276ADE / 276BE(2) 的获批依据。',
+              'Whole days abroad before the cut-off are disregarded under CR 3.6 where the recorded trip was followed by an identified Appendix FM partner or parent grant. The recorded permission types do not identify grants under former paragraphs 276ADE or 276BE(2).',
+            ),
+          ]
+        : []),
     ];
     assumptions.push(...residenceAssumptions(timeline, simulationDate, run, L));
     return run.applicationDate === simulationDate
@@ -321,9 +390,14 @@ export function familyIncomeThreshold(ctx: RuleContext): {
   transitional: boolean;
   children: number;
 } {
-  const start = familyFiveYearStart(ctx)!;
   const v = cl.values;
-  const transitional = start < v.familyPartnerTransitionalBefore.value;
+  // E-LTRP.3.5–3.6 looks at the earlier successful application with the
+  // same partner, including grants before a break in qualifying residence.
+  const transitional = ctx.timeline.episodes.some(
+    (e) =>
+      isFiveYearPartnerGrant(e) &&
+      e.validFrom < v.familyPartnerTransitionalBefore.value,
+  );
   // E-LTRP.3.7: a "child" is not a British citizen or settled.
   const children = ctx.timeline.relationships.filter(
     (r) => r.type === 'CHILD' && r.otherPartyStatus === 'OTHER',
@@ -352,6 +426,7 @@ export const clFamilyFinancial = defineRule(
       { srcId: 'SRC-024', locator: 'E-LTRP.3.2' },
       { srcId: 'SRC-024', locator: 'E-LTRP.3.3' },
       { srcId: 'SRC-024', locator: 'E-LTRP.3.5' },
+      { srcId: 'SRC-024', locator: 'E-LTRP.3.6' },
       { srcId: 'SRC-024', locator: 'E-LTRP.3.7' },
       { srcId: 'SRC-024', locator: 'E-LTRP.3.8' },
     ],
@@ -386,8 +461,8 @@ export const clFamilyFinancial = defineRule(
     const benefitBasis = transitional ? 'E-LTRP.3.7(c)' : 'E-LTRP.3.1(c)';
     const assumptions = [
       L(
-        `是否适用过渡门槛按连续伴侣许可的起点是否早于 ${before} 判断（E-LTRP.3.5 看的是首次申请日；获批在此后而申请在此前的，也适用过渡门槛）；子女按"关系"里身份为其他的子女计。`,
-        `Whether the transitional requirement applies is judged by whether the continuous partner permission started before ${before} (E-LTRP.3.5 looks at the date of the first application, so an application made before that date and granted after it also qualifies); children are those listed under relationships with another status.`,
+        `假设历次申请均与同一伴侣有关，以最早一段已申报的五年伴侣许可生效日近似首次成功申请的递交日。若在 ${before} 前递交并于当日或之后获批，仍可适用过渡门槛（E-LTRP.3.5–3.6）。子女按“关系”里身份为其他的子女计。`,
+        `We assume the applications were with the same partner and use the start of the earliest recorded five-year partner grant to approximate the date of the first successful application. An application submitted before ${before} and granted on or after that date can still qualify for the transitional requirement (E-LTRP.3.5–3.6). We count children listed under relationships with another status.`,
       ),
       L(
         '储蓄按申报的合计现金储蓄计；Appendix FM-SE 的持有期与证据规则、E-LTRP.3.2 的收入与储蓄来源种类未核对；伴侣领取的福利按申报；住宿要求（E-LTRP.3.4、E-LTRP.3.9）与 EX.1 未建模。',
@@ -738,22 +813,12 @@ export function familyChildPathway(
   }
   const joint = jointApplication(
     due,
-    (notBefore) =>
-      currentResidence(
-        timeline,
-        simulationDate,
-        (e) =>
-          e.route === 'FAMILY_PARTNER_OR_PARENT' &&
-          e.role === 'DEPENDANT' &&
-          e.dependantOf === 'PARENT',
-        0,
-        { notBefore },
-      ),
+    (notBefore) => childFiling(timeline, notBefore, 'FAMILY_PARTNER_OR_PARENT'),
     (notBefore) =>
       familyTenYearResidence(
         { timeline: principal.timeline, simulationDate },
         notBefore,
-      )?.applicationDate,
+      ),
   );
   if (!joint?.applicationDate) {
     return { years, result: noJointApplication(L, assumptions) };

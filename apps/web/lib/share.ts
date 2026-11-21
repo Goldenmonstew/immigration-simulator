@@ -64,6 +64,8 @@ function validTimeline(value: unknown): boolean {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const timeline = value as Record<string, unknown>;
   const settled = timeline.settled as Record<string, unknown> | undefined;
+  const exception = timeline.englishFifteenYearException as
+    Record<string, unknown> | undefined;
   return !(
     typeof timeline.dateOfBirth !== 'string' ||
     typeof timeline.nationality !== 'string' ||
@@ -91,6 +93,13 @@ function validTimeline(value: unknown): boolean {
           )) &&
         (episode.immigrationSalaryList === undefined ||
           typeof episode.immigrationSalaryList === 'boolean') &&
+        (episode.sponsorshipCertificateDate === undefined ||
+          (typeof episode.sponsorshipCertificateDate === 'string' &&
+            /^\d{4}-\d{2}-\d{2}$/.test(episode.sponsorshipCertificateDate))) &&
+        (episode.skilledWorkerSponsorshipException === undefined ||
+          ['OPTION_D', 'OPTION_I', 'TEMPORARY_SHORTAGE_LIST'].includes(
+            episode.skilledWorkerSponsorshipException as string,
+          )) &&
         (episode.resettlementScheme === undefined ||
           Object.keys(resettlementSchemeNames).includes(
             episode.resettlementScheme as string,
@@ -113,6 +122,10 @@ function validTimeline(value: unknown): boolean {
         (episode.familyPermission === undefined ||
           ['PARTNER_FIVE_YEAR', 'PARTNER_TEN_YEAR', 'PARENT'].includes(
             episode.familyPermission as string,
+          )) &&
+        (episode.innovatorSettlementEndorser === undefined ||
+          ['NON_LEGACY', 'LEGACY_SAME', 'LEGACY_DIFFERENT'].includes(
+            episode.innovatorSettlementEndorser as string,
           )) &&
         (episode.innovatorSettlementCriteria === undefined ||
           (Array.isArray(episode.innovatorSettlementCriteria) &&
@@ -148,6 +161,11 @@ function validTimeline(value: unknown): boolean {
         timeline.cashSavings < 0)) ||
     (timeline.partnerSpecifiedBenefit !== undefined &&
       typeof timeline.partnerSpecifiedBenefit !== 'boolean') ||
+    (exception !== undefined &&
+      (!exception ||
+        typeof exception.applicationDate !== 'string' ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(exception.applicationDate) ||
+        !['B1', 'B2'].includes(exception.teacherAssessedAgainst as string))) ||
     !['english', 'lifeInTheUk', 'settled'].every(
       (key) =>
         timeline[key] === undefined ||

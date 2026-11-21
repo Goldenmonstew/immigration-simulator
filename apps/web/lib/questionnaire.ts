@@ -1,4 +1,7 @@
-import { evaluate } from '@uk-immigration/engine';
+import {
+  evaluate,
+  hasSettledSkilledWorkerPartner,
+} from '@uk-immigration/engine';
 import type {
   IncomeYear,
   ImmigrationEpisode,
@@ -224,6 +227,7 @@ export function draftReducer(state: Draft, action: Action): Draft {
                 globalTalentCriteria: undefined,
                 familyPermission: undefined,
                 innovatorSettlementCriteria: undefined,
+                innovatorSettlementEndorser: undefined,
                 privateLifeRoute: undefined,
               }),
             };
@@ -279,6 +283,17 @@ export function visibleIncomeYears(draft: Draft): IncomeYear[] {
   );
 }
 
+export function assessesSettledWorkerPartner(draft: Draft): boolean {
+  return (
+    !!draft.principal &&
+    hasSettledSkilledWorkerPartner(
+      draft.timeline,
+      draft.principal,
+      draft.simulationDate,
+    )
+  );
+}
+
 export function runSimulation(
   draft: Draft,
   locale: Locale = 'zh-CN',
@@ -291,7 +306,9 @@ export function runSimulation(
     draft.principal &&
     shortCircuitKeys.find((key) => draft.principalScreening?.[key] === 'yes');
   const risk = applicantRisk || principalRisk;
-  if (risk) {
+  const principalOnly =
+    !applicantRisk && !!principalRisk && assessesSettledWorkerPartner(draft);
+  if (risk && !principalOnly) {
     // The screening does not collect details needed for CriminalEvent entries.
     return {
       policyAsOf,
@@ -304,7 +321,9 @@ export function runSimulation(
   }
   const result = evaluate({
     locale,
-    ruleSetIds: displayedRuleSets.map((ruleSet) => ruleSet.id),
+    ruleSetIds: displayedRuleSets
+      .filter((ruleSet) => !principalOnly || ruleSet.kind === 'LAW')
+      .map((ruleSet) => ruleSet.id),
     simulationDate: draft.simulationDate,
     timeline: {
       ...draft.timeline,
@@ -326,6 +345,21 @@ export function runSimulation(
       },
     }),
   });
+  if (principalOnly) {
+    for (const { id, kind } of displayedRuleSets) {
+      if (kind === 'ANNOUNCED') {
+        result.byRuleSet[id] = {
+          outcome: 'REQUIRES_REGULATED_REVIEW',
+          rules: [],
+          assumptions: [],
+        };
+      }
+    }
+    result.shortCircuit = {
+      reason: 'CRIMINALITY',
+      message: t('screening.settledWorkerPartner', locale),
+    };
+  }
   return { ...result, policyAsOf };
 }
 

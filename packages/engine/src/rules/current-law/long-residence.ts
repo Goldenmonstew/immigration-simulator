@@ -21,21 +21,21 @@ import {
 const LR_EXCLUDED: Route[] = ['VISIT', 'SEASONAL_WORKER', 'UKRAINE_SCHEME'];
 
 /** Start of the continuous lawful residence for Long Residence. */
-export function longResidence({
-  timeline,
-  simulationDate,
-}: RuleContext): CurrentResidence | undefined {
+export function longResidence(
+  { timeline, simulationDate }: RuleContext,
+  checkLocation = true,
+): CurrentResidence | undefined {
   return currentResidence(
     timeline,
     simulationDate,
     (e) => !LR_EXCLUDED.includes(e.route),
     cl.values.longResidenceQualifyingYears.value,
-    { longResidence: true },
+    { longResidence: true, checkLocation },
   );
 }
 
 export function longResidenceMet(ctx: RuleContext): boolean {
-  const residence = longResidence(ctx);
+  const residence = longResidence(ctx, false);
   return residence?.applicationDate === ctx.simulationDate;
 }
 
@@ -72,8 +72,8 @@ export const clLrResidence10Y = defineRule(
       ...(ctx.timeline.absences.length > 0
         ? [
             L(
-              `${cl.values.longResidenceLegacyAbsenceBefore.value} 前开始的缺席整趟按 CR 3.3 的 ${cl.values.longResidenceLegacyMaxSingleAbsenceDays.value} 天单次上限；只有分界前且落在所选合格期内的天数计入 ${cl.values.longResidenceLegacyMaxTotalAbsenceDays.value} 天累计上限。自分界日起开始的行程按 CR 3.1；出境与入境当日都计入缺席。`,
-              `Absences starting before ${cl.values.longResidenceLegacyAbsenceBefore.value} are subject to the CR 3.3 limit of ${cl.values.longResidenceLegacyMaxSingleAbsenceDays.value} days per trip. Only days before the cut-off and within the selected qualifying period count towards the ${cl.values.longResidenceLegacyMaxTotalAbsenceDays.value}-day total. Trips beginning on or after the cut-off follow CR 3.1; the days of departure and return both count as absence.`,
+              `${cl.values.longResidenceLegacyAbsenceBefore.value} 前开始的缺席整趟按 CR 3.3 的 ${cl.values.longResidenceLegacyMaxSingleAbsenceDays.value} 天单次上限；只有分界前且落在所选合格期内的天数计入 ${cl.values.longResidenceLegacyMaxTotalAbsenceDays.value} 天累计上限。自分界日起开始的行程按 CR 3.1；只计出境与返英之间的整天。`,
+              `Absences starting before ${cl.values.longResidenceLegacyAbsenceBefore.value} are subject to the CR 3.3 limit of ${cl.values.longResidenceLegacyMaxSingleAbsenceDays.value} days per trip. Only days before the cut-off and within the selected qualifying period count towards the ${cl.values.longResidenceLegacyMaxTotalAbsenceDays.value}-day total. Trips beginning on or after the cut-off follow CR 3.1; only whole days abroad between departure and return count.`,
             ),
           ]
         : []),

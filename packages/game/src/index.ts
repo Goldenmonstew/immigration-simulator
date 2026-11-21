@@ -10,6 +10,7 @@ export {
   gift,
   buy,
   plant,
+  cropDaysToMaturity,
   water,
   harvest,
   fish,

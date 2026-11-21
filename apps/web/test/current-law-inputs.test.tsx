@@ -49,6 +49,7 @@ const episodes: engine.ImmigrationEpisode[] = [
     validFrom: '2023-11-04',
     validTo: '2035-11-04',
     innovatorSettlementCriteria: ['INVESTMENT', 'JOBS'],
+    innovatorSettlementEndorser: 'NON_LEGACY',
   },
   {
     route: 'FAMILY_AND_PRIVATE_LIFE',
@@ -639,6 +640,7 @@ test.each([false, true])(
         expect(after[0].globalTalentCriteria).toBeUndefined();
         expect(after[0].familyPermission).toBeUndefined();
         expect(after[0].innovatorSettlementCriteria).toBeUndefined();
+        expect(after[0].innovatorSettlementEndorser).toBeUndefined();
         expect(after[0].privateLifeRoute).toBeUndefined();
         expect(after[1]).toEqual(before[1]);
         expect(principal ? changed.timeline : changed.principal).toEqual(
@@ -660,6 +662,7 @@ test.each([false, true])(
           expect(sent.globalTalentCriteria).toBeUndefined();
           expect(sent.familyPermission).toBeUndefined();
           expect(sent.innovatorSettlementCriteria).toBeUndefined();
+          expect(sent.innovatorSettlementEndorser).toBeUndefined();
           expect(sent.privateLifeRoute).toBeUndefined();
         } finally {
           evaluate.mockRestore();
@@ -727,6 +730,20 @@ test.each(['zh-CN', 'en'] as const)(
           expect(html).toContain(t('episodes.relativeDependant', locale));
         const innovator =
           episode.route === 'INNOVATOR_FOUNDER' && episode.role === 'MAIN';
+        expect(html.includes('id="episode-0-settlement-endorser"')).toBe(
+          innovator,
+        );
+        if (innovator) {
+          expect(html).toContain(
+            t('episodes.innovatorSettlementEndorser', locale),
+          );
+          expect(html).toContain(
+            t('episodes.innovatorSettlementEndorserHint', locale),
+          );
+          expect(html).toContain(
+            t('episodes.innovatorEndorser.LEGACY_DIFFERENT', locale),
+          );
+        }
         expect(html.includes('id="episode-0-innovator-unknown"')).toBe(
           innovator,
         );
@@ -836,7 +853,7 @@ test('unspecified Private Life permission remains insufficient information', () 
 });
 
 test.each(['zh-CN', 'en'] as const)(
-  'revocation input follows the current protection main applicant in %s',
+  'A3#14: revocation input follows the current or last protection grant in %s',
   (locale) => {
     for (const route of [
       'CORE_PROTECTION',
@@ -846,13 +863,21 @@ test.each(['zh-CN', 'en'] as const)(
       'UK_ANCESTRY',
     ] as const) {
       for (const role of ['MAIN', 'DEPENDANT'] as const) {
-        for (const current of [true, false]) {
+        for (const grant of ['CURRENT', 'EXPIRED', 'REPLACED'] as const) {
           const draft = currentLawDraft({
             ...episodes[5],
             route,
             role,
-            validTo: current ? '2035-11-04' : '2025-11-04',
+            validTo: grant === 'CURRENT' ? '2035-11-04' : '2025-11-04',
           });
+          if (grant === 'REPLACED') {
+            draft.timeline.episodes.push({
+              route: 'GRADUATE',
+              role: 'MAIN',
+              validFrom: '2025-11-05',
+              validTo: '2027-11-05',
+            });
+          }
           draft.step = 5;
           const create = vi
             .spyOn(questionnaire, 'createDraft')
@@ -867,7 +892,9 @@ test.each(['zh-CN', 'en'] as const)(
               </LocaleContext>,
             );
             expect(html.includes('id="protection-status-revoked"')).toBe(
-              current && role === 'MAIN' && route !== 'UK_ANCESTRY',
+              grant !== 'REPLACED' &&
+                role === 'MAIN' &&
+                route !== 'UK_ANCESTRY',
             );
             if (locale === 'en') expect(html).not.toMatch(/[\u3400-\u9fff]/);
           } finally {

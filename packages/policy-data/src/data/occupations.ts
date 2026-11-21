@@ -83,7 +83,7 @@ export const careWorkerOccupations: {
 };
 
 // "Health and Care ASHE salary job" (SW A1.1): a job in one of these codes
-// with one of the employers listed in SW A1.1(a)–(f), which is not modelled.
+// with sponsorship, employment or service arrangements under SW A1.1(a)–(m).
 export const healthAndCareAsheOccupations: {
   sources: SourceRef[];
   occupations: Occupation[];
@@ -124,4 +124,16 @@ export const healthEducationTransitionalExamples: {
     { socCode: '6131', title: 'Nursing auxiliaries and assistants' },
     { socCode: '6112', title: 'Teaching assistants' },
   ],
+};
+
+// SRC-017 Table 3, going-rate column: rates are stated in the table rather
+// than linked to Table 4 or 5. SOC 2212 uses the rates for SOC 2211.
+export const table3DirectPayOccupations: Partial<
+  Record<string, 'ALL_JOBS' | 'SOME_JOBS'>
+> = {
+  '2211': 'ALL_JOBS',
+  '2212': 'ALL_JOBS',
+  '2226': 'SOME_JOBS',
+  '2253': 'ALL_JOBS',
+  '2312': 'ALL_JOBS',
 };

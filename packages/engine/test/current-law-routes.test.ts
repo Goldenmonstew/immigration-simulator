@@ -97,12 +97,12 @@ describe('Hong Kong BN(O) (SRC-020)', () => {
       clHkbnoResidence5Y,
       {
         ...bno('2021-02-01'),
-        absences: [{ from: '2022-01-01', to: '2022-06-30' }],
+        absences: [{ from: '2022-01-01', to: '2022-07-02' }],
       },
       '2026-02-01',
     );
     expect(result.status).toBe('FAIL');
-    expect(result.explanation).toContain('2027-07-01');
+    expect(result.explanation).toContain('2027-07-02');
   });
 
   test('English is B1 before and after 2027-03-26 (HK 60.1)', () => {
@@ -220,6 +220,38 @@ describe('Global Talent (SRC-021)', () => {
     });
     // Projected past 2027-03-26: B2 then (GT 13.1(b)).
     expect(promise.assumptions.join()).toContain('GT 13.1(b)');
+  });
+
+  test('A3#8: a Global Talent renewal can use the prize on the initial grant (GT 11.1(c))', () => {
+    const renewal = on('GLOBAL_TALENT', '2026-01-01');
+    const initial = on('GLOBAL_TALENT', '2023-01-01', {
+      validTo: '2025-12-31',
+      globalTalentEndorsement: 'PRIZE',
+    });
+    const example = { episodes: [renewal, initial] };
+    const result = currentLaw(example, '2026-01-01');
+    expect(result).toMatchObject({
+      outcome: 'LIKELY_ELIGIBLE',
+      pathwayYears: 3,
+    });
+    expect(run(clGtResidence, example, '2026-01-01').explanation).toContain(
+      'GT 11.1(c)',
+    );
+
+    const prizeOnlyOnRenewal = {
+      episodes: [
+        { ...renewal, globalTalentEndorsement: 'PRIZE' as const },
+        {
+          ...initial,
+          globalTalentEndorsement: 'TECH_NATION' as const,
+          globalTalentCriteria: 'EXCEPTIONAL_PROMISE' as const,
+        },
+      ],
+    };
+    expect(currentLaw(prizeOnlyOnRenewal, '2026-01-01')).toMatchObject({
+      outcome: 'LIKELY_NOT_ELIGIBLE',
+      pathwayYears: 5,
+    });
   });
 
   test('missing endorsement or criteria is unknown: insufficient information, no pathway', () => {

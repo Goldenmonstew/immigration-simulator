@@ -4,8 +4,9 @@
 // business has invested at least £50,000 and created the equivalent of 10
 // full-time jobs for settled workers (INNF 17.1(f)(i), (vi)), and the Life in
 // the UK test is passed (INNF 20.1). No English level given: the main
-// applicant's settlement has no English requirement. No absences,
-// criminality, breaches or debt.
+// applicant's settlement has no English requirement. The settlement
+// endorser is unspecified (INNF 17.5). No absences, criminality, breaches
+// or debt.
 import type { Fixture } from '../../engine/src/types';
 
 export const clInnovatorFounderThreeYears: Fixture = {
@@ -44,8 +45,6 @@ export const clInnovatorFounderThreeYears: Fixture = {
   },
   expected: {
     ruleSetId: 'current-law-2026-11',
-    outcome: 'LIKELY_ELIGIBLE',
-    pathwayYears: 3,
-    earliestDate: '2026-05-01',
+    outcome: 'INSUFFICIENT_INFORMATION',
   },
 };

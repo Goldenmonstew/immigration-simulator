@@ -366,6 +366,31 @@ test('sharing preserves all extension two values, including empty criteria and o
   }
 });
 
+test.each([
+  undefined,
+  'NON_LEGACY',
+  'LEGACY_SAME',
+  'LEGACY_DIFFERENT',
+] as const)(
+  'A3#13: sharing preserves the settlement endorser %s on both timelines',
+  (innovatorSettlementEndorser) => {
+    const draft = createDraft();
+    draft.timeline.episodes = [
+      {
+        route: 'INNOVATOR_FOUNDER',
+        role: 'MAIN',
+        validFrom: '2023-11-04',
+        validTo: '2026-11-04',
+        innovatorSettlementEndorser,
+      },
+    ];
+    draft.principal = structuredClone(draft.timeline);
+    expect(decodeDraft(encodeDraft(draft))).toEqual(
+      JSON.parse(JSON.stringify(draft)),
+    );
+  },
+);
+
 test('sharing rejects malformed extension two fields on either timeline', () => {
   const draft = createDraft();
   const invalid = ['', 'UNKNOWN', 1, true, null, {}];
@@ -379,6 +404,9 @@ test('sharing rejects malformed extension two fields on either timeline', () => 
       [1],
     ].map((innovatorSettlementCriteria) => ({
       episodes: [{ innovatorSettlementCriteria }],
+    })),
+    ...[...invalid, [], ['NON_LEGACY']].map((innovatorSettlementEndorser) => ({
+      episodes: [{ innovatorSettlementEndorser }],
     })),
     ...[...invalid, [], ['CHILD']].map((privateLifeRoute) => ({
       episodes: [{ privateLifeRoute }],

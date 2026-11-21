@@ -2,6 +2,7 @@ import { routeNames } from '@uk-immigration/policy-data';
 import { episodeOn } from '../../residence';
 import { defineRule, nameIn, textFor } from '../../rule';
 import type { Route } from '@uk-immigration/policy-data';
+import type { RuleContext, RuleResult } from '../../types';
 import {
   MAIN_ONLY_ROUTES,
   RULE_SET,
@@ -23,8 +24,51 @@ import {
   onSkilledWorkerPartner,
   onUkAncestry,
 } from './shared';
+import { ukAncestryResidence } from './ancestry';
 import { onFiveYearFamilyChild } from './family';
 import { longResidenceMet } from './long-residence';
+
+/** The route is still assessed when its applicant cannot file on this day. */
+export function currentLawApplicationPresence(
+  ctx: RuleContext,
+): RuleResult | undefined {
+  const { timeline, simulationDate } = ctx;
+  const presence = applicationPresence(timeline, simulationDate, textFor(ctx));
+  if (!presence) return undefined;
+  const current = episodeOn(timeline, simulationDate);
+  if (!current) return undefined;
+  const source =
+    current.route === 'SKILLED_WORKER'
+      ? {
+          srcId: 'SRC-004',
+          locator: current.role === 'MAIN' ? 'SW 19.2(d)' : 'SW 37.2(d)',
+        }
+      : onFamilyPartnerFiveYear(timeline, simulationDate)
+        ? { srcId: 'SRC-024', locator: 'R-ILRP.1.1(a), E-ILRP.1.2' }
+        : current.route === 'HONG_KONG_BNO'
+          ? { srcId: 'SRC-020', locator: 'HK 55.2(e)' }
+          : current.route === 'GLOBAL_TALENT'
+            ? {
+                srcId: 'SRC-021',
+                locator: current.role === 'MAIN' ? 'GT 8.2(d)' : 'GT 25.2(d)',
+              }
+            : onInnovatorFounder(timeline, simulationDate)
+              ? { srcId: 'SRC-027', locator: 'INNF 15.2(d)' }
+              : onPrivateLife(timeline, simulationDate)
+                ? { srcId: 'SRC-028', locator: 'PL 11.2(d)' }
+                : onFamilyPartnerTenYear(timeline, simulationDate)
+                  ? { srcId: 'SRC-022', locator: 'SETF 1.2(d)' }
+                  : ctx.principal &&
+                      onFamilyChild(timeline, simulationDate) &&
+                      !onFiveYearFamilyChild(ctx)
+                    ? { srcId: 'SRC-022', locator: 'SETF 10.2(d)' }
+                    : // CR 1.1(d): settlement on previous UK Ancestry permission.
+                      !onUkAncestry(timeline, simulationDate) &&
+                        ukAncestryResidence(ctx)
+                      ? { srcId: 'SRC-026', locator: 'UKA 10.2(d)' }
+                      : undefined;
+  return source && { ...presence, sources: [source] };
+}
 
 export const clScope = defineRule(
   {
@@ -57,46 +101,6 @@ export const clScope = defineRule(
     const L = textFor(ctx);
     const rn = (r: Route) => nameIn(L, routeNames[r]);
     const current = episodeOn(timeline, simulationDate);
-    const presence = applicationPresence(timeline, simulationDate, L);
-    if (presence && current?.route === 'SKILLED_WORKER') {
-      return {
-        ...presence,
-        sources: [
-          {
-            srcId: 'SRC-004',
-            locator: current.role === 'MAIN' ? 'SW 19.2(d)' : 'SW 37.2(d)',
-          },
-        ],
-      };
-    }
-    if (presence && onFamilyPartnerFiveYear(timeline, simulationDate)) {
-      return {
-        ...presence,
-        sources: [{ srcId: 'SRC-024', locator: 'R-ILRP.1.1(a), E-ILRP.1.2' }],
-      };
-    }
-    if (presence && current) {
-      const source =
-        current.route === 'HONG_KONG_BNO'
-          ? { srcId: 'SRC-020', locator: 'HK 55.2(e)' }
-          : current.route === 'GLOBAL_TALENT'
-            ? {
-                srcId: 'SRC-021',
-                locator: current.role === 'MAIN' ? 'GT 8.2(d)' : 'GT 25.2(d)',
-              }
-            : onInnovatorFounder(timeline, simulationDate)
-              ? { srcId: 'SRC-027', locator: 'INNF 15.2(d)' }
-              : onPrivateLife(timeline, simulationDate)
-                ? { srcId: 'SRC-028', locator: 'PL 11.2(d)' }
-                : onFamilyPartnerTenYear(timeline, simulationDate)
-                  ? { srcId: 'SRC-022', locator: 'SETF 1.2(d)' }
-                  : ctx.principal &&
-                      onFamilyChild(timeline, simulationDate) &&
-                      !onFiveYearFamilyChild(ctx)
-                    ? { srcId: 'SRC-022', locator: 'SETF 10.2(d)' }
-                    : undefined;
-      if (source) return { ...presence, sources: [source] };
-    }
     if (onHongKongBno(timeline, simulationDate)) {
       return {
         status: 'PASS',
@@ -118,10 +122,15 @@ export const clScope = defineRule(
     if (onProtection(timeline, simulationDate)) {
       return {
         status: 'PASS',
-        explanation: L(
-          '当前以主申请人身份持 refugee status 或 humanitarian protection 的许可，按 Appendix Settlement Protection 与 Appendix Long Residence 评估。',
-          'Currently holds permission with refugee status or humanitarian protection as the main applicant; assessed under Appendix Settlement Protection and Appendix Long Residence.',
-        ),
+        explanation: current
+          ? L(
+              '当前以主申请人身份持 refugee status 或 humanitarian protection 的许可，按 Appendix Settlement Protection 与 Appendix Long Residence 评估。',
+              'Currently holds permission with refugee status or humanitarian protection as the main applicant; assessed under Appendix Settlement Protection and Appendix Long Residence.',
+            )
+          : L(
+              '最后获批的是主申请人保护许可，按 STP 1.3 纳入 Appendix Settlement Protection 评估。',
+              'The last grant was protection permission as a main applicant and is assessed under Appendix Settlement Protection (STP 1.3).',
+            ),
       };
     }
     if (onUkAncestry(timeline, simulationDate)) {
@@ -130,6 +139,15 @@ export const clScope = defineRule(
         explanation: L(
           '当前持 UK Ancestry 主申请人许可，按 Appendix UK Ancestry 与 Appendix Long Residence 评估。',
           'Currently holds UK Ancestry permission as the main applicant; assessed under Appendix UK Ancestry and Appendix Long Residence.',
+        ),
+      };
+    }
+    if (ukAncestryResidence(ctx)) {
+      return {
+        status: 'PASS',
+        explanation: L(
+          '曾持有可计入定居的 UK Ancestry 主申请人许可，按 Appendix UK Ancestry 与 Appendix Long Residence 评估（CR 1.1(d)）。',
+          'Previous UK Ancestry main applicant permission qualifies for assessment under Appendix UK Ancestry and Appendix Long Residence (CR 1.1(d)).',
         ),
       };
     }
@@ -235,11 +253,6 @@ export const clScope = defineRule(
       };
     }
     if (longResidenceMet(ctx)) {
-      if (presence)
-        return {
-          ...presence,
-          sources: [{ srcId: 'SRC-005', locator: 'LR 9.3' }],
-        };
       return {
         status: 'PASS',
         explanation: L(

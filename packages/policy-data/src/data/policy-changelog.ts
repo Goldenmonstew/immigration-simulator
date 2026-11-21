@@ -87,4 +87,30 @@ export const policyChangelog: PolicyChange[] = [
       { srcId: 'SRC-003', locator: 'cols 1423–1424' },
     ],
   },
+  {
+    date: '2026-11-04',
+    title:
+      'Finance Bill 2026–27 刊印，拟将 CoS 费和 Immigration Skills Charge 的所得税豁免写入法律',
+    summary:
+      '第 15 条拟豁免雇主自 2026-10-28 起支付上述费用所产生的所得税。法案仍在审议，临时税务效力来自下议院预算决议 15。',
+    titleEn:
+      'Finance Bill 2026–27 published with a proposed income tax exemption for CoS fees and the Immigration Skills Charge',
+    summaryEn:
+      'Clause 15 would exempt employer payments of these charges from income tax for payments made on or after 28 October 2026. The Bill is still before Parliament, and Commons Budget Resolution 15 provides the provisional tax effect.',
+    sources: [
+      { srcId: 'SRC-049', locator: 'clause 15(1)–(2), p21' },
+      { srcId: 'SRC-047', locator: 'Budget Resolution 15(1)–(2)' },
+    ],
+  },
+  {
+    date: '2026-11-04',
+    title: 'Home Office 说明拟扩大 HPI 大学名单的筛选方法',
+    summary:
+      '院校须在相关年份的 THE、QS 和 ARWU 榜单中至少两个进入前 150。正式扩容名单、新申请 cap 和生效日仍待公布。',
+    titleEn:
+      'Home Office clarifies university criteria for the planned HPI expansion',
+    summaryEn:
+      'Universities must rank in the top 150 in at least two of the THE, QS and ARWU rankings for the relevant years. The expanded list, new application cap and effective date are still pending.',
+    sources: [{ srcId: 'SRC-058', locator: '40091, Answer ¶1–2' }],
+  },
 ];

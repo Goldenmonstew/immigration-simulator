@@ -4,6 +4,7 @@ import { Field } from './field';
 import { useRouter } from 'next/navigation';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { onProtection } from '@uk-immigration/engine';
 import type {
   ImmigrationBreach,
   ImmigrationEpisode,
@@ -13,6 +14,7 @@ import { useTranslation } from '../../i18n/locale';
 import { punct } from '../../i18n/punctuation';
 import {
   activePersonDraft,
+  assessesSettledWorkerPartner,
   createDraft,
   currentEpisode,
   hasFamilyPartnerFiveYear,
@@ -41,14 +43,7 @@ export function useFormKit() {
   const { timeline } = active;
   const familyPartnerFiveYear = hasFamilyPartnerFiveYear(timeline);
   const current = currentEpisode(active);
-  const protectionMain =
-    current?.role === 'MAIN' &&
-    [
-      'CORE_PROTECTION',
-      'PROTECTION_WORK_AND_STUDY',
-      'SAFE_AND_LEGAL',
-      'LEGACY_SAFE_AND_LEGAL',
-    ].includes(current.route);
+  const protectionMain = onProtection(timeline, active.simulationDate);
   const editingPrincipal = draft.principalStep !== undefined;
   const sequence = stepSequence(draft);
   const position = sequence.indexOf(active.step);
@@ -104,14 +99,21 @@ export function useFormKit() {
     router.push('/result');
   };
   const screen = (key: ScreeningKey, answer: 'yes' | 'no') => {
-    if (answer === 'yes' && key === 'criminality') {
+    if (
+      answer === 'yes' &&
+      key === 'criminality' &&
+      !independentPartnerScreening
+    ) {
       finish(draftReducer(draft, { type: 'screening', key, answer }));
     } else dispatch({ type: 'screening', key, answer });
   };
+  const independentPartnerScreening =
+    editingPrincipal && assessesSettledWorkerPartner(draft);
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (
       active.step === 1 &&
+      !independentPartnerScreening &&
       shortCircuitKeys.some((key) => active.screening[key] === 'yes')
     ) {
       finish(draft);

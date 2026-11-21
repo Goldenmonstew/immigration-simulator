@@ -11,6 +11,7 @@ import {
 } from './rules/es-residence';
 import { textFor } from './rule';
 import { RULES } from './rules';
+import { hasSettledSkilledWorkerPartner } from './rules/current-law/shared';
 import type {
   RuleContext,
   RuleSet,
@@ -140,15 +141,30 @@ export function evaluate(
       }),
   };
   // The dependant's own short circuit first, then the principal's.
+  const ownRisk = shortCircuitOf(ctx);
   const fromPrincipal = ctx.principal?.result.shortCircuit;
+  const assessPartnerIndependently =
+    (fromPrincipal?.reason === 'CRIMINALITY' ||
+      fromPrincipal?.reason === 'IMMIGRATION_BREACH') &&
+    ctx.principal &&
+    hasSettledSkilledWorkerPartner(
+      timeline,
+      ctx.principal.timeline,
+      simulationDate,
+    );
   const shortCircuit =
-    shortCircuitOf(ctx) ??
+    ownRisk ??
     (fromPrincipal && {
       ...fromPrincipal,
-      message: textFor(ctx)(
-        `主申请人：${fromPrincipal.message}`,
-        `Principal applicant: ${fromPrincipal.message}`,
-      ),
+      message: assessPartnerIndependently
+        ? textFor(ctx)(
+            '主申请人的筛查需要专业复核。现行 Skilled Worker 伴侣定居按伴侣本人评估（SW 38.1、39.1(b)）。',
+            'The principal applicant’s screening requires regulated review. Current Skilled Worker partner settlement is assessed on the partner’s own circumstances (SW 38.1 and 39.1(b)).',
+          )
+        : textFor(ctx)(
+            `主申请人：${fromPrincipal.message}`,
+            `Principal applicant: ${fromPrincipal.message}`,
+          ),
     });
   const byRuleSet: SimulationResult['byRuleSet'] = {};
   for (const id of ids) {
@@ -158,8 +174,9 @@ export function evaluate(
     const stopped =
       shortCircuit &&
       (kind === 'ANNOUNCED' ||
-        shortCircuit.reason === 'CRIMINALITY' ||
-        shortCircuit.reason === 'IMMIGRATION_BREACH');
+        ((!assessPartnerIndependently || ownRisk) &&
+          (shortCircuit.reason === 'CRIMINALITY' ||
+            shortCircuit.reason === 'IMMIGRATION_BREACH')));
     const assessment = assess(kind, registry.rules[id], ctx);
     if (stopped) {
       delete assessment.pathwayYears;

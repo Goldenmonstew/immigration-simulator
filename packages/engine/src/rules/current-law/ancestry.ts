@@ -1,8 +1,8 @@
 import { currentLaw2026_11 as cl } from '@uk-immigration/policy-data';
-import { currentResidence } from '../../residence';
+import { currentResidence, episodeOn } from '../../residence';
 import type { CurrentResidence } from '../../residence';
 import { defineRule, textFor } from '../../rule';
-import type { RuleContext } from '../../types';
+import type { ImmigrationEpisode, RuleContext } from '../../types';
 import {
   crResidenceSources,
   residenceAssumptions,
@@ -11,23 +11,41 @@ import {
   RULE_SET,
   absenceAssumption,
   applicationPresence,
-  onUkAncestry,
+  lastPermissionBefore,
 } from './shared';
 
+const isAncestry = (e: ImmigrationEpisode) =>
+  e.route === 'UK_ANCESTRY' && e.role === 'MAIN';
+
 /**
- * Start of the continuous UK Ancestry main applicant permission (UKA 13.1)
- * ending on the simulation date, while on that route (UKA 14.1, CR 3.1).
+ * UKA 13.1–14.1: assess only main applicant permission. After a route
+ * switch, CR 1.1(d) also permits using the last UK Ancestry expiry.
  */
 export function ukAncestryResidence({
   timeline,
   simulationDate,
 }: RuleContext): CurrentResidence | undefined {
-  if (!onUkAncestry(timeline, simulationDate)) return undefined;
+  const current = episodeOn(timeline, simulationDate);
+  if (!current) return undefined;
+  const onAncestry = isAncestry(current);
+  const lastAncestry = onAncestry
+    ? undefined
+    : lastPermissionBefore(
+        timeline.episodes.filter(isAncestry),
+        simulationDate,
+      );
+  if (
+    !onAncestry &&
+    (!lastAncestry || lastAncestry.validTo >= simulationDate)
+  ) {
+    return undefined;
+  }
   return currentResidence(
     timeline,
     simulationDate,
-    (e) => e.route === 'UK_ANCESTRY' && e.role === 'MAIN',
+    isAncestry,
     cl.values.ukAncestryQualifyingYears.value,
+    { ancestryExpiry: lastAncestry?.validTo },
   );
 }
 
@@ -42,6 +60,7 @@ export const clAncestryResidence5Y = defineRule(
       { srcId: 'SRC-026', locator: 'UKA 12.1' },
       { srcId: 'SRC-026', locator: 'UKA 13.1' },
       { srcId: 'SRC-026', locator: 'UKA 14.1' },
+      { srcId: 'SRC-008', locator: 'CR 1.1(d)' },
       ...crResidenceSources,
     ],
     pendingDetails: [],
@@ -61,8 +80,8 @@ export const clAncestryResidence5Y = defineRule(
       return {
         status: 'FAIL',
         explanation: L(
-          '当前不是 UK Ancestry 主申请人许可。',
-          'Current permission is not as a UK Ancestry main applicant.',
+          '未找到当前 UK Ancestry 主申请人许可或在最近一次该许可到期前完成的合格期（UKA 13.1，CR 1.1(d)）。',
+          'No current UK Ancestry main applicant permission or qualifying period completed by the last expiry of that permission was found (UKA 13.1, CR 1.1(d)).',
         ),
       };
     }
@@ -76,7 +95,17 @@ export const clAncestryResidence5Y = defineRule(
     assumptions.push(
       ...residenceAssumptions(ctx.timeline, ctx.simulationDate, residence, L),
     );
-    const { start } = residence;
+    const { start, referenceDate } = residence;
+    if (referenceDate < ctx.simulationDate) {
+      return {
+        status: 'PASS',
+        explanation: L(
+          `已转其他路线。按 CR 1.1(d) 从最近一次 UK Ancestry 主申请人许可到期日 ${referenceDate} 倒算，自 ${start} 起的合格期已满 ${years} 年（UKA 13.1–14.1）。`,
+          `After switching routes, the last UK Ancestry main applicant permission expired on ${referenceDate}. Counting back from that date under CR 1.1(d), the qualifying period from ${start} reached ${years} years (UKA 13.1–14.1).`,
+        ),
+        assumptions,
+      };
+    }
     return residence.applicationDate === ctx.simulationDate
       ? {
           status: 'PASS',

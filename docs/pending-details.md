@@ -181,7 +181,7 @@ dependant 随主申请人定居（SRC-001 Ch.5）时，原文未规定、引擎�
 - Global Talent 的 GT 10.1（背书未被撤回）与 GT 10.2（上一段许可期间在背书或奖项领域有收入）：按满足处理，写进 `CL-GT-RESIDENCE` 的假设。
 - GT 11.3(f)(h) 的 Tier 1 与 Representative of an Overseas Business：`Route` 中没有，不计入，写进假设。
 - 家庭伴侣 10 年路线的 SETF 3.1(e)（基于 Article 8 的 Leave Outside the Rules）：无法与其他 Leave Outside the Rules 区分，不计入；SETF 7.2–7.3（关系真实持续、以当前关系持许可满 1 年）按满足处理。
-- 家庭伴侣 5 年路线的财务要求按申请日前最近一个完整纳税年度的本人加伴侣收入判断；收入不足时可用储蓄补足（E-LTRP.3.1(b) / 3.7(b)，任务 6.4 起建模，见 `docs/contracts.md` §17），伴侣领取 E-LTRP.3.3(a) 所列福利时见 PD-075；Appendix FM-SE 证据规则、E-LTRP.3.2 的来源种类与住宿要求（E-LTRP.3.4）未建模；过渡门槛按连续伴侣许可的起点近似"首次申请日"；同一伴侣（E-ILRP.1.4、E-LTRP.3.6）与关系真实持续（E-LTRP.1.7–1.10）按满足处理。
+- 家庭伴侣 5 年路线的财务要求按申请日前最近一个完整纳税年度的本人加伴侣收入判断；收入不足时可用储蓄补足（E-LTRP.3.1(b) / 3.7(b)，任务 6.4 起建模，见 `docs/contracts.md` §17），伴侣领取 E-LTRP.3.3(a) 所列福利时见 PD-075；Appendix FM-SE 证据规则、E-LTRP.3.2 的来源种类与住宿要求（E-LTRP.3.4）未建模；过渡门槛以最早一段已申报的五年伴侣许可生效日近似首次成功申请的递交日（SRC-024 E-LTRP.3.5–3.6）；同一伴侣（E-ILRP.1.4、E-LTRP.3.6）与关系真实持续（E-LTRP.1.7–1.10）按满足处理。
 - HC 1691 不覆盖 Appendix Hong Kong BN(O)：已由 SRC-007 EM 5.60 确认（列出升 B2 的 Appendix 中没有它），HK 60.1 一律 B1，不是待定事项。
 
 ## 八、现行法律栏扩展二（任务 5.2 新增）
@@ -212,11 +212,11 @@ dependant 随主申请人定居（SRC-001 Ch.5）时，原文未规定、引擎�
 
 ## 十、现行法律栏家庭财务（任务 6.4 新增）
 
-以下条目的出处是现行 Immigration Rules 的 Appendix FM（SRC-024），段号为 Rules 段落号；"原文未提及"指该 Appendix 未作规定。
+以下条目以现行 Immigration Rules Appendix FM（SRC-024）及 Appendix FM-SE（SRC-053）为准，计算程序见 Home Office 指引（SRC-054）。
 
 | ID | 事项 | 原文怎么说 | 出处 | 对引擎的影响 | 预计何时明确 |
 |---|---|---|---|---|---|
-| PD-075 | 伴侣领取特定福利时 adequate maintenance 的口径 | 伴侣领取 E-LTRP.3.3(a) 所列福利之一时，申请人可不按收入或储蓄门槛，改为证明伴侣能在不依赖 public funds 的情况下充分供养与安置其本人、申请人与 dependants（E-LTRP.3.3(b)）。Appendix FM 没有给出数字或算法；算法在 Appendix FM-SE 与内政部指引中，本仓库未登记。 | SRC-024 E-LTRP.3.1(c)、E-LTRP.3.3、E-LTRP.3.7(c) | 5 年伴侣路线：收入与储蓄都不满足财务门槛、且 `partnerSpecifiedBenefit` 为真时，`CL-FAMILY-FINANCIAL` 输出 `UNKNOWN`（PD-075）；其他要求都满足时结论为 `POTENTIALLY_ELIGIBLE`（`docs/contracts.md` §17.3）。 | 原文未提及（登记 Appendix FM-SE 与相关指引后可建模） |
+| PD-075 | 伴侣领取特定福利时 adequate maintenance 的口径 | 伴侣当前领取指定福利时可走供养与安置证明分支。以当期可计每周净收入加合规储蓄的每周等值，扣除每周住房成本及 Council Tax，与决定日同等英国家庭的 Income Support 比较，等于基准也满足供养金额测试。 | SRC-024 E-LTRP.3.1(c)、3.3、3.4、3.7(c)、3.9、E-ILRP.1.3(1A)；SRC-053 ¶11–12B、¶18–20；SRC-054 p6–10、p12–19、p23–26 | **口径已明确，待实现（任务 39）**。`CL-FAMILY-FINANCIAL` 目前仍输出 `UNKNOWN`（PD-075）；建模需补足家庭资料、决定日费率、当前净收入、住房成本、合规储蓄及证据状态，另核住宿条件。详见 [任务 39 研究记录](research/2026-11-19-sources-batch-2.md#1-appendix-fm-的-adequate-maintenance)。 | 2026-11-19 已确认计算方法，待后续规则任务 |
 
 ## 十一、预算提案与既有规则歧义（任务 12.2 新增）
 
@@ -226,11 +226,17 @@ dependant 随主申请人定居（SRC-001 Ch.5）时，原文未规定、引擎�
 |---|---|---|---|---|---|
 | PD-076 | 新 work visa 薪资门槛、折扣与过渡 | 预算拟调整 occupation-specific 与一般门槛、年度更新、统一 new entrant 折扣并移除 PhD 折扣；议会答复重述方向和春季窗口，但没有列出新金额、完整资格或过渡边界。 | SRC-032 §7.9，Implementing Migration Advisory Committee (MAC) recommendations on visa salary requirements；SRC-033，40064 Answer ¶2–6、¶10（Budget ¶6.94） | 新一般门槛、各 SOC going rate、折扣数值、在途适用与是否涉及 settlement 表均为 `UNKNOWN`；保留 SRC-004 SW 24.3／SRC-017 的现行数据，不把 MAC 建议或旧工资数据计算结果当新法。 | 计划 2027 年春季；确切日期与细节原文未提及（SRC-033 Answer ¶2、¶10） |
 | PD-077 | Graduate 大学例外的认定与申请边界 | 预算拟让高合规且就业结果良好的大学毕业生获得两年 Graduate 许可；未定义新条件、认定大学名单或适用申请日。 | SRC-032 §5.6 #access-to-talent、§7.9 Extending the graduate visa from 18 months to two years for eligible universities；SRC-034 GR 4.1、GR 8.1 | 预算例外资格及适用日为 `UNKNOWN`，不覆盖已入法的 GR 8.1：非博士在 2027-01-01 前申请两年、自该日起申请 18 个月，博士三年（SRC-034 GR 8.1）。现引擎未实现 Graduate 发签时长判断。 | 新例外确切实施日原文未提及 |
-| PD-078 | HPI 扩容后的名单、cap 与实施边界 | 预算拟扩至全球 top 150 institutions 并按比例增加 cap；未给新名单、具体新 cap 或精确实施日。 | SRC-032 §5.6 #access-to-talent、§7.9 Expanding the High Potential Individual visa；SRC-035 HPI 1.6A、5.1–5.3；SRC-036 正文首段与大学表 | 新方案细节为 `UNKNOWN`；现行 8,000 年度 cap（SRC-035 HPI 1.6A）与按授予日匹配年度名单的要求照旧，不能把 SRC-036 的年度维护当作扩容完成。现引擎不判断 HPI 入境／发签资格。 | 新方案确切实施日原文未提及 |
+| PD-078 | HPI 扩容后的名单、cap 与实施边界 | 预算拟扩大名单并按比例增加 cap。Home Office 书面答复明确，院校须在相关年份 THE、QS、ARWU 三个榜单中至少两个进入前 150。 | SRC-032 §5.6 #access-to-talent、§7.9 Expanding the High Potential Individual visa；SRC-058，40091 Answer ¶1 后的榜单及 ¶2；SRC-035 HPI 1.6A、5.1–5.3；SRC-036 正文首段与大学表 | 扩容名单、新申请 cap 和生效日为 `UNKNOWN`。现行 8,000 年度申请 cap（SRC-035 HPI 1.6A）和按学位授予日匹配年度名单（HPI 5.2）继续适用。现引擎不判断 HPI 入境／发签资格。 | 筛选方法已明确（SRC-058，2026-11-04）。正式扩容名单、新申请 cap 和生效日仍待公布。 |
 | PD-079 | 最长六个月 curtailment 的适用与分档 | 预算和议会答复拟让 highest skilled workers 获最长六个月找新工作的 curtailment 期间，时长取决于此前高薪岗位的工作年限；未给完整 eligible cohort、起算、分档或过渡。 | SRC-032 §7.9 Extending visa curtailment to six months；SRC-033，40064 Answer ¶9–10（Budget ¶6.95） | 资格、具体时长与边界为 `UNKNOWN`；不等同所有 Skilled Worker 自动享有六个月，不与 SRC-001 的 care worker 专门安排合并，现引擎不新增该判断。 | 计划 2027 年；确切日期与细节原文未提及（SRC-033 Answer ¶9–10） |
-| PD-080 | SW 24.3 row E 在 SW 14.5(c) 截止后的表格引用 | SW 14.5(c)(iii) 要求申请早于 2026-12-01；SW 24.3 row E 又直接引用 SW 14.5(c) 的表，SW 24.4(a) 引用 SW 14.1–14.5，未明确截止后 row E 能否继续用该表。 | SRC-004 SW 14.5(c)(iii)、SW 24.3 row E、SW 24.4(a)；既有审查见 docs/tasks/reports/11.4-going-rate-transition.md | row E 本就未建模，`CL-SW-SALARY`／`CL-SW-GOING-RATE` 保留范围假设，不改变现行输出；如以后纳入该群体，截止后该表是否可用应为 `UNKNOWN`，不能把此歧义扩成所有工签 going rate 的变化。 | 原文未提及；待官方澄清或后续修法 |
+| PD-080 | SW 24.3 row E 在 SW 14.5(c) 截止后的表格引用 | SW 24.3 row E 引用 SW 14.5(c) 的表，SW 24.4(a) 将 SW 14.1–14.5 用于定居薪资。Home Office 指引明确将 2026-12-01 前的申请日限制用于 settlement，并要求满足 SW 14.5(c) 的全部条件才能用该过渡安排。 | SRC-004 SW 14.5(c)(iii)、SW 24.3 row E、SW 24.4(a)；SRC-050 §13.5 `#transitional-arrangement-for-phd-level-roles`、§22.4 `#sponsorship-and-salary` 表后首段 | row E 未建模。将来建模时，2026-12-01 起递交的定居申请不得套用 SW 14.5(c) 过渡表，并须单独核查 row E 的其余 going rate 分支。 | 已关闭（过渡表适用截止日，SRC-050 §13.5、§22.4，2026-11-19 核对） |
 
-## 十二、护工过渡的居留合并（任务 33d）
+## 十二、Skilled Worker 新入职者期限（任务 32 新增）
+
+| ID | 事项 | 原文怎么说 | 出处 | 对引擎的影响 | 预计何时明确 |
+|---|---|---|---|---|---|
+| PD-081 | 境内提前换签时 SW 12.3 的逐日核算 | SW 12.3 看获批后的合计许可。Skilled Worker 指引把已持 Graduate 时间列入，并以境内决定日作为新许可起日。取消许可指引明确新许可获批后原许可已被替代。合读可推导原 Graduate 许可的未用时间不再累计，具体日期计入哪一段及 section 3C 延续期间在该上限下怎么计仍待核。 | SRC-004 SW 12.3、18.1–18.1A；SRC-050 §16.1 `#year-time-limit`、§23.1 `#dates-granted`；SRC-059 `#premature-end-of-employment-or-study-cancellation-process` 首个列表项 | 后续以有证据的许可有效区间、拟决定日及 CoS 起止日期核算。缺乏决定日、CoS 或关键边界足以改变判定时，保持 `UNKNOWN`。 | 许可替代已有依据（SRC-059）。逐日边界与 section 3C 的计法待 Home Office 明确或公布算例。 |
+
+## 十三、护工过渡的居留合并（任务 33d）
 
 | ID | 事项 | 原文怎么说 | 出处 | 对引擎的影响 | 预计何时明确 |
 |---|---|---|---|---|---|
