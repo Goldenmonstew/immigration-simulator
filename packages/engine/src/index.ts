@@ -31,6 +31,16 @@ export {
   AU_TEMPORARY_SUBCLASSES,
   evaluateAustralia,
 } from './australia';
+export { ES_NATIONALITY_ROUTES, evaluateSpain } from './spain';
+export type {
+  EsNationalityRoute,
+  EsPathway,
+  EsPathwayId,
+  EsPermit,
+  EsRequest,
+  EsResult,
+  EsTrip,
+} from './spain';
 export { US_CONDITIONAL, evaluateUnitedStates } from './united-states';
 export type {
   UsConditional,
