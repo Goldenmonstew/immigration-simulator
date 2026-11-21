@@ -302,3 +302,4 @@
 | 263 | 任务 57–59 第九轮审核修正（review57-9）：永居接续核对实际替代关系（被临时签证替代不算接续，离境当天被替代记空档）；返澳当天生效的永居也按境外获发判断空档。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、docs/tasks/reports/57-59-australia.md |
 | 264 | 任务 57–59 第十轮审核修正（review57-10）：只有旧签证在新签证生效当天仍有效才算直接接替；报告补同日两次换签与手填到期日的限制。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、docs/tasks/reports/57-59-australia.md |
 | 265 | 第 18 阶段准备：各国试点共用的结果类型、日计数工具（`pilot.ts`）与结果组件（`/pilot/pilot-result.tsx`，文案键改为 `pilot.*`、去掉"澳洲"字样）；澳洲行为不变。 | packages/engine/src/{pilot,australia,index}.ts、apps/web/app/pilot/、apps/web/app/australia/australia-content.tsx、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/australia.test.tsx |
+| 266 | 第 18 阶段计划（其余五国试点）；任务 60：登记新西兰官方来源 SRC-070～073（入籍法 s8、移民法 s73–74 节选，移民局操作手册 RV2.5、RV2.10、RV1.15、R5.66，govt.nz 入籍在境说明）与 PD-086～088。 | docs/tasks/phase-18-plan.md、docs/SOURCES.md、docs/pending-details.md、apps/web/lib/sources.ts、policy-sources/ |
