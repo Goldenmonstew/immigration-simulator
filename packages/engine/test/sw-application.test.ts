@@ -149,6 +149,11 @@ describe('SW 4.2 Option E new entrant (task 35)', () => {
       status: 'UNKNOWN',
       pendingDetails: ['PD-081'],
     });
+    // One day under the limit stays within it even with a leap day moved.
+    expect(
+      apply({ episodes: [expired], date: '2027-09-01', cosEnd: '2029-08-17' })
+        .optionE.status,
+    ).toBe('PASS');
   });
 
   test('missing input', () => {

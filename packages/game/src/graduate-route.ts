@@ -71,13 +71,18 @@ export function graduateApplication(state: GameState) {
 }
 
 export function graduateSalaryPreview(state: GameState): string {
-  const { optionA, optionE, grantedUntil } = graduateApplication(state);
+  const { optionA, optionE } = graduateApplication(state);
   const chinese = state.locale === 'zh-CN';
+  const grantedUntil = graduateEpisode(state).validTo;
+  const graceDays = policy.skilledWorkerGrantDaysAfterCos.value;
+  const cosEnd = new Date(`${grantedUntil}T00:00:00Z`);
+  cosEnd.setUTCDate(cosEnd.getUTCDate() - graceDays);
+  const cosEndDate = cosEnd.toISOString().slice(0, 10);
   // The game records permission on the quarter's start date, so the
-  // application, the decision and the CoS all run from it.
+  // application, the decision and the proposed grant all run from it.
   const premise = chinese
-    ? `本情景按本季起始日 ${state.date} 递交并当日获批；HR 按递交日开具 ${b.extensionMonths} 个月的 CoS，许可到 CoS 结束后 ${policy.skilledWorkerGrantDaysAfterCos.value} 天（${grantedUntil}）。`
-    : `This scenario applies and is decided on the quarter's start date, ${state.date}. HR issues a ${b.extensionMonths}-month CoS from that date, and permission runs to ${policy.skilledWorkerGrantDaysAfterCos.value} days after it ends (${grantedUntil}).`;
+    ? `本情景按本季起始日 ${state.date} 递交，若获批，新许可自当日起，拟授予 ${b.extensionMonths} 个月（至 ${grantedUntil}）。许可到 CoS 结束后 ${graceDays} 天（SW 18.1），所以 HR 开具的 CoS 止于 ${cosEndDate}；若下一季再递交，HR 按新季度更新 CoS。`
+    : `This scenario applies on the quarter's start date, ${state.date}. If granted, the new permission starts that day for ${b.extensionMonths} months (until ${grantedUntil}). Permission runs to ${graceDays} days after the CoS ends (SW 18.1), so HR's CoS ends on ${cosEndDate}; if the application waits for a later quarter, HR updates the CoS for it.`;
   const verdict = (status: string) =>
     chinese
       ? status === 'PASS'

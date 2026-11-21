@@ -206,7 +206,9 @@ export function skilledWorkerApplication(
       const next = held[i + 1]?.from ?? decisionDate;
       return addDays(p.to < decisionDate ? p.to : decisionDate, 1) < next;
     });
-    const nearLimit = gaps && Math.abs(total - limit) <= 1;
+    // A leap day moves the total by at most one day either way, so only
+    // totals at the limit or one day over can flip.
+    const nearLimit = gaps && (total === limit || total === limit + 1);
     const years = L(`${maxYears} 年`, `${maxYears} years`);
     combined =
       !nearLimit && total <= limit && withSection3C <= limit

@@ -115,8 +115,17 @@ describe('13.2 Graduate character and engine integration', () => {
     expect(switched.timeline.episodes.at(-1)).toMatchObject({
       route: 'SKILLED_WORKER',
       validFrom: '2027-09-15',
+      validTo: '2030-09-14',
       salary: graduateSalaries.low,
     });
+    // The preview states the grant and the CoS end it is derived from.
+    const preview = doActivity(atVisa(state), 'graduate-check-offer').outcome!
+      .text!;
+    for (const copy of [preview.zhCN, preview.en]) {
+      expect(copy).toContain('2030-09-14');
+      expect(copy).toContain('2030-08-31');
+    }
+    expect(onTime.grantedUntil).toBe('2030-09-14');
     // A quarter later, without negotiating, the total is over 4 years.
     const later = clear(completeQuarter(state));
     const late = graduateApplication(later);
