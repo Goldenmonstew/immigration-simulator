@@ -70,6 +70,20 @@ test('validation marks missing and out-of-order dates', () => {
 
 test('the request leaves out a blank PRV date', () => {
   expect(nzRequest(filled, 'en')).not.toHaveProperty('permanentResidentVisa');
+  expect(nzRequest(filled, 'en')).not.toHaveProperty('travelConditionsEnd');
+  expect(
+    nzRequest(
+      {
+        ...filled,
+        travelConditionsEnd: '2023-02-28',
+        conditionsOutstanding: true,
+      },
+      'en',
+    ),
+  ).toMatchObject({
+    travelConditionsEnd: '2023-02-28',
+    conditionsOutstanding: true,
+  });
   expect(
     nzRequest({ ...filled, prvGranted: '2023-04-01' }, 'en')
       .permanentResidentVisa,

@@ -389,4 +389,64 @@ describe('citizenship by grant (s8)', () => {
     expect(p.checks[1].met).toBe(false);
     expect(p.checks[1].text).toContain('2026-11-02');
   });
+
+  test('days after the resident visa expired do not count', () => {
+    // Expired 2026-05-02 after leaving on 2026-05-01: the last 365 days
+    // before 2026-11-28 hold 155 days as a resident.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-28',
+        firstArrival: '2020-01-01',
+        residentVisa: { granted: '2022-03-01', category: 'general' },
+        trips: [{ departed: '2026-05-01', returned: '2026-05-15' }],
+      },
+      'NZ-PRV',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks.at(-1)?.text).toContain('155');
+  });
+
+  test('the travel conditions date on the visa wins', () => {
+    // An older Parent visa with 5-year travel conditions.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-21',
+        firstArrival: '2013-01-01',
+        residentVisa: { granted: '2014-01-15', category: 'parent' },
+        travelConditionsEnd: '2019-01-14',
+        trips: [{ departed: '2022-07-01', returned: '2022-07-15' }],
+      },
+      'NZ-TRAVEL',
+    );
+    expect(p.status).toBe('NOT_MET');
+    expect(p.summary).toContain('2019-01-14');
+  });
+
+  test('outstanding conditions on a general visa make both unknown', () => {
+    const req = {
+      simulationDate: '2024-09-01',
+      firstArrival: '2018-01-01',
+      residentVisa: { granted: '2019-12-13', category: 'general' as const },
+      conditionsOutstanding: true,
+    };
+    expect(pathway(req, 'NZ-CITIZENSHIP').status).toBe('UNKNOWN');
+    expect(pathway(req, 'NZ-PRV').status).toBe('UNKNOWN');
+  });
+
+  test('Religious Worker: the presence date and the 5-year date apart', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-07-19',
+        firstArrival: '2020-01-01',
+        residentVisa: {
+          granted: '2021-11-21',
+          category: 'religious-worker',
+        },
+      },
+      'NZ-CITIZENSHIP',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('2026-07-19');
+    expect(p.summary).toContain('2026-11-21');
+  });
 });

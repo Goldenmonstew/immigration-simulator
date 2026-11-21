@@ -18,6 +18,8 @@ export interface NzForm {
   residentGranted: string;
   category: NzResidentCategory;
   prvGranted: string;
+  travelConditionsEnd: string;
+  conditionsOutstanding: boolean;
   trips: NzTripRow[];
 }
 
@@ -33,6 +35,8 @@ export function emptyNzForm(today: string): NzForm {
     residentGranted: '',
     category: 'general',
     prvGranted: '',
+    travelConditionsEnd: '',
+    conditionsOutstanding: false,
     trips: [],
   };
 }
@@ -49,6 +53,7 @@ export function validateNzForm(form: NzForm): NzErrors {
   date('nz-first-arrival', form.firstArrival);
   date('nz-resident-granted', form.residentGranted);
   date('nz-prv-granted', form.prvGranted, true);
+  date('nz-travel-conditions-end', form.travelConditionsEnd, true);
   if (
     validDate(form.firstArrival) &&
     validDate(form.dateOfBirth) &&
@@ -75,6 +80,10 @@ export function nzRequest(form: NzForm, locale: Locale): NzRequest {
     firstArrival: form.firstArrival,
     residentVisa: { granted: form.residentGranted, category: form.category },
     ...(form.prvGranted ? { permanentResidentVisa: form.prvGranted } : {}),
+    ...(form.travelConditionsEnd
+      ? { travelConditionsEnd: form.travelConditionsEnd }
+      : {}),
+    ...(form.conditionsOutstanding ? { conditionsOutstanding: true } : {}),
     trips: form.trips,
     locale,
   };

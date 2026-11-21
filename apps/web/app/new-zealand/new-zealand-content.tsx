@@ -29,6 +29,7 @@ const FIELD_LABELS: Record<string, TranslationKey> = {
   'nz-first-arrival': 'nz.firstArrival',
   'nz-resident-granted': 'nz.residentGranted',
   'nz-prv-granted': 'nz.prvGranted',
+  'nz-travel-conditions-end': 'nz.travelConditionsEnd',
   departed: 'nz.departed',
   returned: 'nz.returned',
 };
@@ -167,6 +168,25 @@ export default function NewZealandContent() {
               ))}
             </select>
           </Field>
+          {date(
+            'nz-travel-conditions-end',
+            t('nz.travelConditionsEnd'),
+            draft.travelConditionsEnd,
+            (travelConditionsEnd) => set({ travelConditionsEnd }),
+            t('nz.travelConditionsEndHint'),
+          )}
+          <div className={form.checkboxes}>
+            <label>
+              <input
+                type="checkbox"
+                checked={draft.conditionsOutstanding}
+                onChange={(e) =>
+                  set({ conditionsOutstanding: e.target.checked })
+                }
+              />
+              {t('nz.conditionsOutstanding')}
+            </label>
+          </div>
           {date(
             'nz-prv-granted',
             t('nz.prvGranted'),

@@ -565,6 +565,12 @@ export const en: Record<keyof typeof zhCN, string> = {
   'nz.category.religious-worker': 'Religious Worker',
   'nz.category.aip-growth': 'Active Investor Plus: Growth',
   'nz.category.aip-balanced': 'Active Investor Plus: Balanced',
+  'nz.travelConditionsEnd':
+    'Travel conditions expiry date on your visa (optional)',
+  'nz.travelConditionsEndHint':
+    'The Expiry date travel on your eVisa. If blank, it is worked out under the current rule; older visas may differ, so entering it is better.',
+  'nz.conditionsOutstanding':
+    'My resident visa has s49 conditions (such as employment, investment or sponsorship) not yet met or removed',
   'nz.prvGranted':
     'Date your permanent resident visa was granted (leave blank if you do not have one)',
   'nz.trips': 'Trips abroad',

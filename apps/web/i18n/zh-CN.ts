@@ -370,6 +370,11 @@ export const zhCN = {
   'nz.category.religious-worker': '宗教工作者（Religious Worker）',
   'nz.category.aip-growth': 'Active Investor Plus：Growth',
   'nz.category.aip-balanced': 'Active Investor Plus：Balanced',
+  'nz.travelConditionsEnd': '签证上的旅行条件到期日（可留空）',
+  'nz.travelConditionsEndHint':
+    '即 eVisa 上的 Expiry date travel。留空则按现行规则推算；早年获批的签证规则可能不同，建议填写。',
+  'nz.conditionsOutstanding':
+    '我的居民签证有 s49 条件（如受雇、投资、担保要求），尚未满足或取消',
   'nz.prvGranted': '永久居民签证（PRV）获批日期（还没有可留空）',
   'nz.trips': '出境记录',
   'nz.tripsHint':
