@@ -358,7 +358,6 @@ export const zhCN = {
   'gr.basics': '基本信息',
   'gr.simulationDate': '模拟日期',
   'gr.simulationDateHint': '按这一天判断（按递交日），默认今天。',
-  'gr.dateOfBirth': '出生日期',
   'gr.permits': '居留许可',
   'gr.permitsHint':
     '每张许可填一行，按时续期的接着填下一张；仍有效的到期日可留空（黄金签证请填卡上的到期日，才能算续期时间）。',
@@ -379,10 +378,11 @@ export const zhCN = {
   'gr.addTrip': '添加出境记录',
   'gr.nationality': '入籍路线',
   'gr.route': '适用的入籍年限',
-  'gr.route.general': '一般（中国公民适用）',
+  'gr.route.general':
+    '7 年：递交时持清单内的身份（如长期居留 Μ1、10 年许可、黄金签证等投资者许可）',
   'gr.route.three-year':
-    '欧盟公民、与希腊人结婚并有子女、在希腊出生的希腊籍子女的父母、无国籍人',
-  'gr.route.twelve-year': '申请时持其他非临时居留许可',
+    '3 年：欧盟公民、与希腊人结婚并有子女、对在希腊出生的希腊籍子女有亲权者、无国籍人',
+  'gr.route.twelve-year': '12 年：递交时持其他非临时居留许可（如普通工作许可）',
   'gr.remove': '删除',
   'gr.submit': '计算',
   'gr.errorSummary': '请先修正标红的项目。',

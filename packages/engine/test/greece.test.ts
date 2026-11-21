@@ -5,7 +5,6 @@ import type { GrPathwayId, GrRequest } from '../src';
 // An ordinary residence permit from 2020-03-15, renewed on time.
 const base: GrRequest = {
   simulationDate: '2024-01-01',
-  dateOfBirth: '1990-05-01',
   permits: [{ kind: 'regular', from: '2020-03-15' }],
   trips: [],
   route: 'general',
@@ -63,8 +62,35 @@ describe('long-term residence Μ1 (art. 144)', () => {
       },
       'GR-LONG-TERM',
     );
+    // 561 study days count as 280.5: 1,547 ordinary days make up the
+    // 1,827 days of the five years before 2024-06-09.
     expect(p.earliestDate).toBe('2025-03-15');
-    expect(p.summary).toContain('2023-09-01');
+    expect(p.summary).toContain('2024-06-09');
+  });
+
+  test('a national visa (Ζ) stay does not count', () => {
+    const p = pathway(
+      {
+        permits: [
+          { kind: 'temporary', from: '2019-01-01', to: '2019-12-31' },
+          { kind: 'regular', from: '2020-01-01' },
+        ],
+      },
+      'GR-LONG-TERM',
+    );
+    expect(p.earliestDate).toBe('2025-01-01');
+    expect(p.summary).not.toContain('2024-01-01');
+  });
+
+  test('a permit must be held on the application day', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-21',
+        permits: [{ kind: 'regular', from: '2021-11-21', to: '2026-11-20' }],
+      },
+      'GR-LONG-TERM',
+    );
+    expect(p.status).toBe('NOT_MET');
   });
 });
 
@@ -102,13 +128,32 @@ describe('golden visa renewal (art. 100, art. 11)', () => {
       { ...investor, simulationDate: '2027-07-01' },
       'GR-GOLDEN-VISA',
     );
-    expect(late.status).toBe('NOT_MET');
+    // Late applications with a fine are still accepted.
+    expect(late.status).toBe('MET');
     expect(late.summary).toContain('100');
+    expect(late.checks[0].met).toBe(false);
+    expect(late.checks[1].met).toBe(true);
     const tooLate = pathway(
       { ...investor, simulationDate: '2027-09-01' },
       'GR-GOLDEN-VISA',
     );
+    expect(tooLate.status).toBe('NOT_MET');
     expect(tooLate.summary).toContain('2027-08-31');
+  });
+
+  test('the card in force is used, not a later one', () => {
+    const p = pathway(
+      {
+        simulationDate: '2027-04-15',
+        permits: [
+          { kind: 'investor', from: '2022-06-01', to: '2027-05-31' },
+          { kind: 'investor', from: '2027-06-01', to: '2032-05-31' },
+        ],
+      },
+      'GR-GOLDEN-VISA',
+    );
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('2027-05-31');
   });
 
   test('no expiry entered: unknown', () => {
@@ -139,6 +184,31 @@ describe('naturalisation (art. 5)', () => {
     );
     expect(p.earliestDate).toBe('2025-01-01');
     expect(p.pendingDetails).toContain('PD-105');
+  });
+
+  test('study permits count towards the years of legal residence', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-21',
+        permits: [
+          { kind: 'study', from: '2019-11-21', to: '2022-11-20' },
+          { kind: 'regular', from: '2022-11-21' },
+        ],
+      },
+      'GR-NATIONALITY',
+    );
+    expect(p.status).toBe('MET');
+  });
+
+  test('a study permit alone cannot be used to apply', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-21',
+        permits: [{ kind: 'study', from: '2015-01-01' }],
+      },
+      'GR-NATIONALITY',
+    );
+    expect(p.status).toBe('NOT_MET');
   });
 
   test('absences make continuity uncertain (PD-106)', () => {

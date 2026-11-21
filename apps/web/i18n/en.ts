@@ -552,7 +552,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'gr.simulationDate': 'Simulation date',
   'gr.simulationDateHint':
     'Results are worked out for this date (the application date). It starts as today.',
-  'gr.dateOfBirth': 'Date of birth',
   'gr.permits': 'Residence permits',
   'gr.permitsHint':
     'Add a row for each permit, then the next one if renewed on time; leave the end blank if it is still valid (for a golden visa, enter the expiry on the card to get the renewal dates).',
@@ -574,10 +573,12 @@ export const en: Record<keyof typeof zhCN, string> = {
   'gr.addTrip': 'Add a trip',
   'gr.nationality': 'Naturalisation route',
   'gr.route': 'Years of residence that apply to you',
-  'gr.route.general': 'General (applies to Chinese citizens)',
+  'gr.route.general':
+    '7 years: holding a listed status when applying (such as long-term residence Μ1, a 10-year permit, or an investor permit such as the golden visa)',
   'gr.route.three-year':
-    'EU citizen, spouse of a Greek with children, parent of a Greek child born in Greece, or stateless',
-  'gr.route.twelve-year': 'Holding another non-temporary permit when applying',
+    '3 years: EU citizen, spouse of a Greek with children, with parental responsibility for a Greek child born in Greece, or stateless',
+  'gr.route.twelve-year':
+    '12 years: holding another non-temporary permit when applying (such as an ordinary work permit)',
   'gr.remove': 'Remove',
   'gr.submit': 'Work out dates',
   'gr.errorSummary': 'Fix the items marked in red first.',

@@ -31,7 +31,6 @@ import site from '../site.module.css';
 
 const FIELD_LABELS: Record<string, TranslationKey> = {
   'gr-simulation-date': 'gr.simulationDate',
-  'gr-date-of-birth': 'gr.dateOfBirth',
   from: 'gr.from',
   to: 'gr.to',
   departed: 'gr.departed',
@@ -81,7 +80,7 @@ export default function GreeceContent() {
   const date = (
     id: string,
     key: TranslationKey,
-    field: 'simulationDate' | 'dateOfBirth',
+    field: 'simulationDate',
     hint?: string,
   ) => (
     <PilotDate
@@ -114,7 +113,6 @@ export default function GreeceContent() {
             'simulationDate',
             t('gr.simulationDateHint'),
           )}
-          {date('gr-date-of-birth', 'gr.dateOfBirth', 'dateOfBirth')}
 
           <h2>{t('gr.permits')}</h2>
           <p className={form.hint}>{t('gr.permitsHint')}</p>

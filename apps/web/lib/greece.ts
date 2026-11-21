@@ -20,7 +20,6 @@ export interface GrTripRow {
 
 export interface GrForm {
   simulationDate: string;
-  dateOfBirth: string;
   permits: GrPermitRow[];
   trips: GrTripRow[];
   route: GrNationalityRoute;
@@ -38,7 +37,6 @@ export const emptyGrTrip = (): GrTripRow => ({ departed: '', returned: '' });
 export function emptyGrForm(today: string): GrForm {
   return {
     simulationDate: today,
-    dateOfBirth: '',
     permits: [emptyGrPermit()],
     trips: [],
     route: 'general',
@@ -53,7 +51,6 @@ export function validateGrForm(form: GrForm): GrErrors {
     if (!validDate(value)) errors[id] = 'gr.error.date';
   };
   date('gr-simulation-date', form.simulationDate);
-  date('gr-date-of-birth', form.dateOfBirth);
   form.permits.forEach((permit, i) => {
     date(`gr-permit-${i}-from`, permit.from);
     date(`gr-permit-${i}-to`, permit.to, true);
@@ -72,7 +69,6 @@ export function validateGrForm(form: GrForm): GrErrors {
 export function grRequest(form: GrForm, locale: Locale): GrRequest {
   return {
     simulationDate: form.simulationDate,
-    dateOfBirth: form.dateOfBirth,
     permits: form.permits.map((p) => ({
       kind: p.kind,
       from: p.from,

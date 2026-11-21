@@ -19,8 +19,7 @@ const render = (node: React.ReactNode, locale: 'zh-CN' | 'en') =>
 
 const filled: GrForm = {
   ...emptyGrForm('2026-11-21'),
-  dateOfBirth: '1990-05-01',
-  permits: [{ kind: 'investor', from: '2022-06-01', to: '2027-05-31' }],
+  permits: [{ kind: 'investor', from: '2020-06-01', to: '2027-05-31' }],
 };
 
 test.each(['zh-CN', 'en'] as const)('the form renders in %s', (locale) => {
@@ -49,7 +48,6 @@ test('validation marks missing and out-of-order dates', () => {
       trips: [{ departed: '2024-02-10', returned: '' }],
     }),
   ).toEqual({
-    'gr-date-of-birth': 'gr.error.date',
     'gr-permit-0-to': 'gr.error.order',
     'gr-trip-0-returned': 'gr.error.date',
   });

@@ -43,7 +43,6 @@ export interface GrTrip {
 
 export interface GrRequest {
   simulationDate: IsoDate;
-  dateOfBirth: IsoDate;
   permits: GrPermit[];
   trips: GrTrip[];
   route: GrNationalityRoute;
@@ -83,6 +82,26 @@ export function evaluateGreece(req: GrRequest): GrResult {
     any: held([...GR_PERMIT_KINDS]),
     away: days.sums((i) => away[i]),
   };
+  // Long-term residence counts ordinary and golden visa days in full and
+  // study days at half (άρθ. 144 παρ. 2); national visa stays (Ζ) are
+  // temporary residence and do not count (άρθ. 4 κθ, 67, 143 παρ. 2 ε).
+  const halfUnits = days.sums((i) => byKind.regular[i] || byKind.investor[i]);
+  const studyOnly = days.sums(
+    (i) => byKind.study[i] && !byKind.regular[i] && !byKind.investor[i],
+  );
+  // Start of the unbroken run of counted permits ending on each day.
+  const runStart: number[] = [];
+  for (let i = 0; i < days.count; i++) {
+    const counted = byKind.regular[i] || byKind.investor[i] || byKind.study[i];
+    runStart.push(
+      !counted ? -1 : i > 0 && runStart[i - 1] >= 0 ? runStart[i - 1] : i,
+    );
+  }
+  /** On `d`, a permit that can be held when applying. */
+  const holding = (d: IsoDate, kinds: GrPermitKind[]) => {
+    const i = days.index(d);
+    return i >= 0 && i < days.count && kinds.some((k) => byKind[k][i]);
+  };
   const covered = (s: number[], from: IsoDate, to: IsoDate) =>
     days.total(s, from, to) === daysBetween(from, to) + 1;
   const tripsIn = (from: IsoDate, to: IsoDate) =>
@@ -113,9 +132,22 @@ export function evaluateGreece(req: GrRequest): GrResult {
     const facts = (d: IsoDate) => {
       const from = addYears(d, -years);
       const to = addDays(d, -1);
+      // Study counts half: the unbroken run before applying, in half days,
+      // against the five years in half days.
+      const k = days.index(to);
+      const start = k >= 0 && k < days.count ? runStart[k] : -1;
+      const credit =
+        start < 0
+          ? 0
+          : 2 * days.total(halfUnits, days.date(start), to) +
+            days.total(studyOnly, days.date(start), to);
       return {
-        regular: covered(sums.regular, from, to),
-        any: covered(sums.any, from, to),
+        // Ordinary permits throughout, and one held on the application day
+        // (a study permit holder cannot apply, άρθ. 143 παρ. 2 α).
+        regular: covered(sums.regular, from, to) && holding(d, ['regular']),
+        any:
+          credit >= 2 * (daysBetween(from, to) + 1) &&
+          holding(d, ['regular', 'investor']),
         long: tripsIn(from, to).filter(
           (t) =>
             t.returned > addMonths(t.departed, v.singleAbsenceMonths.value),
@@ -125,7 +157,8 @@ export function evaluateGreece(req: GrRequest): GrResult {
     };
     const verdict = (d: IsoDate): Verdict => {
       const f = facts(d);
-      if (f.long.length || f.absent > totalMax || !f.any) return 'no';
+      if (f.long.length || f.absent > totalMax || !(f.any || f.regular))
+        return 'no';
       return f.regular && f.absent <= totalMin ? 'yes' : 'maybe';
     };
     const earliest = firstDate((d) => verdict(d) === 'yes');
@@ -157,8 +190,8 @@ export function evaluateGreece(req: GrRequest): GrResult {
               )) +
         (possible && (!earliest || possible < earliest)
           ? L(
-              `若把黄金签证、学习或国家签证期间计入，或出境合计按 10 个月的较宽口径，最早 ${possible}，原文未写明（PD-101～103）。`,
-              ` Counting golden visa, study or national visa periods, or reading the 10 months of absence generously, it could be ${possible}; the rules do not say (PD-101 to PD-103).`,
+              `若把黄金签证期间计入、学习期间按一半折算，或出境合计按 10 个月的较宽口径，最早 ${possible}，原文未写明（PD-101～103）。`,
+              ` Counting golden visa time, study at half, or reading the 10 months of absence generously, it could be ${possible}; the rules do not say (PD-101 to PD-103).`,
             )
           : ''),
       checks: [
@@ -211,8 +244,8 @@ export function evaluateGreece(req: GrRequest): GrResult {
           'The 5 years are counted back from the application date, not including it; departure and return days count as days in Greece; a single absence is measured in calendar months from the day you left, and total absence has no day count in the rules (PD-102).',
         ),
         L(
-          '只有普通居留许可算满足；黄金签证期间能否计入法条未排除也未确认（PD-101），学习期间按一半计但没有换算方法（PD-103），国家签证可能属于不计的临时居留（PD-101）。许可之间有空档即中断（PD-107）。',
-          'Only ordinary permits count as met; whether golden visa time counts is neither excluded nor confirmed (PD-101), study counts half with no method given (PD-103), and national visa stays may be excluded temporary residence (PD-101). Any gap between permits breaks continuity (PD-107).',
+          '只有普通居留许可算满足，递交当天也须持普通许可（持学习许可者不能申请，άρθ. 143 παρ. 2 α）；黄金签证期间能否计入法条未排除也未确认（PD-101），学习期间按一半折算后另列（PD-103）；国家签证（Ζ）属临时居留，不计（άρθ. 4 κθ、67）。许可之间有空档即中断（PD-107）。',
+          'Only ordinary permits count as met, and you must hold one on the application day (a study permit holder cannot apply, άρθ. 143 παρ. 2 α); whether golden visa time counts is neither excluded nor confirmed (PD-101), and study counted at half is shown separately (PD-103); national visa stays (Ζ) are temporary residence and do not count (άρθ. 4 κθ, 67). Any gap between permits breaks continuity (PD-107).',
         ),
         projection,
       ],
@@ -223,9 +256,15 @@ export function evaluateGreece(req: GrRequest): GrResult {
   // ---------- Golden visa Β.5 renewal (art. 100, art. 11) ----------
   {
     const title = L('黄金签证（Β.5）续期', 'Golden visa (Β.5) renewal');
-    const current = req.permits
+    // The golden visa in force on the simulation date, else the latest one
+    // before it, else the first one to come.
+    const investor = req.permits
       .filter((p) => p.kind === 'investor')
-      .sort((a, b) => (a.from < b.from ? 1 : -1))[0];
+      .sort((a, b) => (a.from < b.from ? -1 : 1));
+    const current =
+      investor.find((p) => p.from <= sim && (!p.to || sim <= p.to)) ??
+      investor.filter((p) => p.from <= sim).at(-1) ??
+      investor[0];
     if (!current) {
       pathways.push({
         id: 'GR-GOLDEN-VISA',
@@ -256,8 +295,10 @@ export function evaluateGreece(req: GrRequest): GrResult {
       const expiry = current.to;
       const opens = addMonths(expiry, -v.renewalWindowMonths.value);
       const lateUntil = addMonths(expiry, v.lateRenewalMonths.value);
+      // Late applications with a fine are still accepted until lateUntil.
+      const late = sim > expiry && sim <= lateUntil;
       const status: PilotStatus =
-        sim < opens ? 'FUTURE' : sim <= expiry ? 'MET' : 'NOT_MET';
+        sim < opens ? 'FUTURE' : sim <= lateUntil ? 'MET' : 'NOT_MET';
       pathways.push({
         id: 'GR-GOLDEN-VISA',
         title,
@@ -265,8 +306,8 @@ export function evaluateGreece(req: GrRequest): GrResult {
         earliestDate:
           status === 'FUTURE' ? opens : status === 'MET' ? sim : undefined,
         summary:
-          (status === 'NOT_MET'
-            ? sim <= lateUntil
+          (late || status === 'NOT_MET'
+            ? late
               ? L(
                   `许可已于 ${expiry} 到期；${lateUntil} 前仍可逾期递交续期，每逾期一个月罚款 ${v.lateFinePerMonthEur.value} 欧元。`,
                   `The permit expired on ${expiry}; you can still apply late until ${lateUntil}, with a fine of ${v.lateFinePerMonthEur.value} euros for each month late.`,
@@ -289,12 +330,24 @@ export function evaluateGreece(req: GrRequest): GrResult {
               `在续期期间内（${opens} 至 ${expiry}）`,
               `Within the renewal period (${opens} to ${expiry})`,
             ),
-            met: status === 'MET',
+            met: status === 'MET' && !late,
             sources: [
               ...v.renewalWindowMonths.sources,
               ...v.goldenVisaYears.sources,
             ],
           },
+          ...(late
+            ? [
+                {
+                  text: L(
+                    `在逾期递交期限内（到 ${lateUntil}，每月罚款 ${v.lateFinePerMonthEur.value} 欧元）`,
+                    `Within the late application period (to ${lateUntil}, fined ${v.lateFinePerMonthEur.value} euros a month)`,
+                  ),
+                  met: true,
+                  sources: v.lateRenewalMonths.sources,
+                },
+              ]
+            : []),
         ],
         notChecked: [
           L(
@@ -316,38 +369,45 @@ export function evaluateGreece(req: GrRequest): GrResult {
   // ---------- Naturalisation (Citizenship Code art. 5) ----------
   {
     const years = v.nationalityYears.value[req.route];
-    const verdict = (d: IsoDate): Verdict => {
-      const from = addYears(d, -years);
-      const to = addDays(d, -1);
-      if (covered(sums.regularInvestor, from, to)) return 'yes';
-      return covered(sums.any, from, to) ? 'maybe' : 'no';
-    };
-    const earliest = firstDate((d) => verdict(d) === 'yes');
-    const possible = firstDate((d) => verdict(d) !== 'no');
+    // Any legal residence counts for the years (άρθ. 5 παρ. 1 δ); when
+    // applying, a temporary status cannot be used (SRC-089), so an ordinary
+    // permit or golden visa must be held that day.
+    const ok = (d: IsoDate) =>
+      covered(sums.any, addYears(d, -years), addDays(d, -1)) &&
+      holding(d, ['regular', 'investor']);
+    const earliest = firstDate(ok);
     const window = earliest && {
       from: addYears(earliest, -years),
       to: addDays(earliest, -1),
     };
-    const absences = window ? tripsIn(window.from, window.to) : [];
+    const absences = window
+      ? req.trips.filter(
+          (t) => t.departed <= window.to && t.returned >= window.from,
+        )
+      : [];
     const absent = window ? days.total(sums.away, window.from, window.to) : 0;
     const unsure = !!earliest && absences.length > 0;
     pathways.push({
       id: 'GR-NATIONALITY',
       title: L('入籍（πολιτογράφηση）', 'Naturalisation (πολιτογράφηση)'),
-      status:
-        unsure || (!earliest && possible) ? 'UNKNOWN' : statusOf(earliest),
+      status: unsure ? 'UNKNOWN' : statusOf(earliest),
       earliestDate: unsure ? undefined : earliest,
       summary:
         (earliest === sim
           ? L(
-              `模拟日已有 ${years} 年连续的合法居留。`,
-              `You have ${years} years of continuous legal residence on the simulation date.`,
+              `模拟日已有 ${years} 年不间断的居留许可。`,
+              `You have held residence permits for ${years} years without a gap on the simulation date.`,
             )
           : earliest
-            ? L(
-                `合法居留满 ${years} 年的最早递交日是 ${earliest}。`,
-                `The earliest application date with ${years} years of legal residence is ${earliest}.`,
-              )
+            ? unsure
+              ? L(
+                  `仅按许可年限计算的候选递交日是 ${earliest}。`,
+                  `Counting permit years alone, the candidate application date is ${earliest}.`,
+                )
+              : L(
+                  `合法居留满 ${years} 年的最早递交日是 ${earliest}。`,
+                  `The earliest application date with ${years} years of legal residence is ${earliest}.`,
+                )
             : L(
                 `按现有记录，10 年内达不到 ${years} 年的合法居留。`,
                 `With your record you will not reach ${years} years of legal residence within 10 years.`,
@@ -357,25 +417,14 @@ export function evaluateGreece(req: GrRequest): GrResult {
               `这 ${years} 年里有 ${absences.length} 次出境、合计 ${absent} 天；法律没有规定"连续"允许多少缺席，由审批个案判断（PD-106）。`,
               ` In those ${years} years you have ${absences.length} trips abroad, ${absent} days in all; the law sets no limit on absences for "continuous" residence, so it is decided case by case (PD-106).`,
             )
-          : '') +
-        (possible && (!earliest || possible < earliest)
-          ? L(
-              `若学习或国家签证期间也算合法居留，最早 ${possible}，原文未写明（PD-103）。`,
-              ` If study or national visa periods also count as legal residence, it could be ${possible}; the rules do not say (PD-103).`,
-            )
           : ''),
       checks: [
         {
           text: L(
-            `递交前 ${years} 年一直持有居留许可（普通许可或黄金签证）`,
-            `A residence permit throughout the ${years} years before applying (ordinary or golden visa)`,
+            `递交前 ${years} 年一直合法居留（任何居留许可），递交当天持普通许可或黄金签证`,
+            `Legal residence on any permit throughout the ${years} years before applying, and an ordinary permit or golden visa on the application day`,
           ),
-          met:
-            verdict(sim) === 'yes'
-              ? true
-              : verdict(sim) === 'maybe'
-                ? undefined
-                : false,
+          met: ok(sim),
           sources: [
             ...v.nationalityYears.sources,
             {
@@ -391,14 +440,14 @@ export function evaluateGreece(req: GrRequest): GrResult {
           'Being an adult and holding a residence status on the legal list when applying (άρθ. 5 παρ. 1 α, ε); the Greek language and history certificate (Π.Ε.Γ.Π.), economic and social integration, and public order (άρθ. 5Α, 5Β)',
         ),
         L(
-          '3 年类别（欧盟公民、与希腊人结婚并有子女、在希腊出生的希腊籍子女的父母、无国籍人）与 12 年类别的资格本身',
-          'Eligibility for the 3-year categories (EU citizens, spouses of Greeks with children, parents of Greek children born in Greece, stateless people) and the 12-year route',
+          '3 年类别（欧盟公民、与希腊人结婚并有子女、对在希腊出生的希腊籍子女有亲权者、无国籍人）与 12 年类别的资格本身',
+          'Eligibility for the 3-year categories (EU citizens, spouses of Greeks with children, people with parental responsibility for a Greek child born in Greece, stateless people) and the 12-year route',
         ),
       ],
       assumptions: [
         L(
-          '年限从递交日往回数，不含递交当天。黄金签证期间按内政部指引计为认可的居留身份，法条只点名旧法许可（PD-105）；许可之间有空档即中断（PD-107）。',
-          'Years are counted back from the application date, not including it. Golden visa time counts as a recognised status under Ministry of Interior guidance, though the law names only permits under the old law (PD-105); any gap between permits breaks continuity (PD-107).',
+          '年限从递交日往回数，不含递交当天；期间内任何居留许可（含学习、国家签证）都算合法居留（άρθ. 5 παρ. 1 δ），递交当天须持普通许可或黄金签证。黄金签证按内政部指引计为认可的居留身份，法条只点名旧法许可（PD-105）；许可之间有空档即中断（PD-107）。',
+          'Years are counted back from the application date, not including it; any residence permit in that time (study and national visa included) is legal residence (άρθ. 5 παρ. 1 δ), and you need an ordinary permit or golden visa on the application day. Golden visa time counts as a recognised status under Ministry of Interior guidance, though the law names only permits under the old law (PD-105); any gap between permits breaks continuity (PD-107).',
         ),
         projection,
       ],
@@ -406,7 +455,6 @@ export function evaluateGreece(req: GrRequest): GrResult {
         ...(hasInvestor ? ['PD-105'] : []),
         'PD-107',
         ...(unsure ? ['PD-106'] : []),
-        ...(possible && (!earliest || possible < earliest) ? ['PD-103'] : []),
       ],
     });
   }
