@@ -151,6 +151,76 @@ describe('Earned Settlement pathway', () => {
     });
   });
 
+  test('review33e-1 #3 the Article 8 based 10-year partner route has no 5-year pathway (p23 note 9)', () => {
+    const family = (
+      familyPermission: 'PARTNER_TEN_YEAR' | 'PARTNER_FIVE_YEAR',
+    ) =>
+      es({
+        episodes: [
+          sw('2021-06-01', {
+            route: 'FAMILY_PARTNER_OR_PARENT',
+            familyPermission,
+            socCode: undefined,
+          }),
+        ],
+        relationships: [
+          { type: 'PARTNER', otherPartyStatus: 'BRITISH_CITIZEN' },
+        ],
+      });
+    const ten = family('PARTNER_TEN_YEAR');
+    expect(ten.pathwayYears).not.toBe(5);
+    expect(
+      ten.rules.find((r) => r.id === 'ES-BRITISH-CONNECTION')?.status,
+    ).toBe('FAIL');
+    expect(
+      family('PARTNER_FIVE_YEAR').rules.find(
+        (r) => r.id === 'ES-BRITISH-CONNECTION',
+      )?.status,
+    ).toBe('PASS');
+  });
+
+  test('review33e-2 questionnaire income one year short keeps the 5-year pathway open; a 10-year partner with earnings settles at 10', () => {
+    const fiveYears = es({
+      episodes: [sw('2021-06-01')],
+      incomeYears: timeline().incomeYears.map((year, i, all) => ({
+        ...year,
+        earnings: i >= all.length - 2 ? 50271 : 30000,
+      })),
+    });
+    expect(fiveYears).toMatchObject({
+      outcome: 'POTENTIALLY_ELIGIBLE',
+      pathwayYears: 5,
+    });
+    const tenYear = es({
+      episodes: [
+        sw('2016-06-01', {
+          route: 'FAMILY_PARTNER_OR_PARENT',
+          familyPermission: 'PARTNER_TEN_YEAR',
+          socCode: undefined,
+        }),
+      ],
+      relationships: [{ type: 'PARTNER', otherPartyStatus: 'BRITISH_CITIZEN' }],
+    });
+    expect(tenYear).toMatchObject({
+      outcome: 'LIKELY_ELIGIBLE',
+      pathwayYears: 10,
+    });
+  });
+
+  test('review33e-1 risk: the reassessment date skips a clamped leap day', () => {
+    const a = es({
+      episodes: [sw('2021-06-01')],
+      benefits: [
+        {
+          benefitType: 'UNIVERSAL_CREDIT',
+          from: '2022-06-01',
+          to: '2023-02-28',
+        },
+      ],
+    });
+    expect(a.publicFundsReassessmentDate).toBe('2028-03-01');
+  });
+
   test('A6#10 Highest Talent Group is independent of the earnings paths', () => {
     const episode = sw('2023-11-04', { route: 'GLOBAL_TALENT' });
     const a = es({ episodes: [episode] });

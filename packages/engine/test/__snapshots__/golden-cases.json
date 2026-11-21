@@ -367,7 +367,7 @@
           "ES-RESIDENCE": "FAIL",
           "ES-EARNINGS-3Y": "FAIL",
           "ES-EARNINGS-5Y": "FAIL",
-          "ES-EARNINGS-10Y": "UNKNOWN",
+          "ES-EARNINGS-10Y": "UNKNOWN PD-006",
           "ES-BRITISH-CONNECTION": "FAIL",
           "ES-PUBLIC-FUNDS": "PASS",
           "ES-BREACH": "PASS",
@@ -718,22 +718,8 @@
         }
       },
       "earned-settlement-2026-11": {
-        "outcome": "LIKELY_ELIGIBLE",
+        "outcome": "INSUFFICIENT_INFORMATION",
         "routeGroup": "CORE_PERMISSION",
-        "pathwayYears": 5,
-        "earliestDate": "2026-10-01",
-        "decidedBy": [
-          "ES-CRIMINALITY",
-          "ES-DEBT",
-          "ES-ENGLISH-B2",
-          "ES-KOL",
-          "ES-ROUTE-GROUP",
-          "ES-RESIDENCE",
-          "ES-BRITISH-CONNECTION",
-          "ES-PUBLIC-FUNDS",
-          "ES-BREACH",
-          "ES-ASYLUM-SUPPORT"
-        ],
         "rules": {
           "ES-CRIMINALITY": "PASS",
           "ES-DEBT": "PASS",
@@ -744,7 +730,7 @@
           "ES-EARNINGS-3Y": "UNKNOWN",
           "ES-EARNINGS-5Y": "UNKNOWN",
           "ES-EARNINGS-10Y": "UNKNOWN",
-          "ES-BRITISH-CONNECTION": "PASS",
+          "ES-BRITISH-CONNECTION": "FAIL",
           "ES-PUBLIC-FUNDS": "PASS",
           "ES-BREACH": "PASS",
           "ES-ASYLUM-SUPPORT": "PASS",
@@ -1278,10 +1264,9 @@
         }
       },
       "earned-settlement-2026-11": {
-        "outcome": "LIKELY_ELIGIBLE",
+        "outcome": "POTENTIALLY_ELIGIBLE",
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 10,
-        "earliestDate": "2026-11-04",
         "decidedBy": [
           "ES-CRIMINALITY",
           "ES-DEBT",
@@ -1303,7 +1288,7 @@
           "ES-RESIDENCE": "PASS",
           "ES-EARNINGS-3Y": "FAIL",
           "ES-EARNINGS-5Y": "FAIL",
-          "ES-EARNINGS-10Y": "PASS",
+          "ES-EARNINGS-10Y": "UNKNOWN PD-010",
           "ES-BRITISH-CONNECTION": "FAIL",
           "ES-PUBLIC-FUNDS": "PASS",
           "ES-BREACH": "PASS",
