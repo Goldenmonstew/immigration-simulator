@@ -15,6 +15,7 @@ import {
   RULE_SET,
   absenceAssumption,
   hongKongBnoDependant,
+  lastPermissionBefore,
   minorOn,
   onHongKongBno,
 } from './shared';
@@ -188,42 +189,50 @@ export function hongKongBnoDependantPathway(
         },
       };
     }
-    const own = hongKongBnoResidence(ctx);
-    if (settled.route === 'HONG_KONG_BNO' && !own?.applicationDate) {
+    const last = lastPermissionBefore(
+      principal.timeline.episodes,
+      settled.date,
+    );
+    if (
+      last?.route !== 'HONG_KONG_BNO' ||
+      (last.role !== 'MAIN' && last.dependantOf !== 'PARTNER')
+    ) {
       return {
         years,
         result: {
-          status: 'FAIL',
-          explanation: residencePending(own!, years, L),
+          status: 'UNKNOWN',
+          explanation: L(
+            '现有资料未能确认主申请人定居前最后获批的是 BN(O) Status Holder、BN(O) Adult Child 或其伴侣许可（HK 59.1(b)）。若主申请人是英国公民，可独立满足 HK 59.1(c)；问卷无法确认其公民身份。',
+            'The information provided does not confirm that the principal applicant’s last grant before settlement was as a BN(O) Status Holder, BN(O) Adult Child or their partner (HK 59.1(b)). British citizenship independently meets HK 59.1(c); the questionnaire does not establish whether the principal is a British citizen.',
+          ),
           assumptions,
         },
       };
     }
-    return settled.route === 'HONG_KONG_BNO'
-      ? {
-          years,
-          start: own?.start,
-          applicationDate: own?.applicationDate,
-          result: {
-            status: 'PASS',
-            explanation: L(
-              `主申请人已于 ${settled.date} 以 Hong Kong BN(O) 路线定居（HK 59.1(b)）；本人的 BN(O) 许可须满 ${years} 年（HK 62.1(b)），${own!.applicationDate} 起可申请。`,
-              `The principal applicant settled on the Hong Kong BN(O) route on ${settled.date} (HK 59.1(b)); this person’s own BN(O) permission must reach ${years} years (HK 62.1(b)), so they can apply from ${own!.applicationDate}.`,
-            ),
-            assumptions,
-          },
-        }
-      : {
-          years,
-          result: {
-            status: 'UNKNOWN',
-            explanation: L(
-              `主申请人 ${settled.date} 定居时持有的不是 Hong Kong BN(O) 许可；只有其已成为英国公民时才满足 HK 59.1(c)，本工具无法区分已定居与英国公民。`,
-              `The principal applicant did not hold Hong Kong BN(O) permission when they settled on ${settled.date}; HK 59.1(c) is met only if they have become a British citizen, which this tool cannot tell apart from being settled.`,
-            ),
-            assumptions,
-          },
-        };
+    const own = hongKongBnoResidence(ctx)!;
+    if (!own.applicationDate) {
+      return {
+        years,
+        result: {
+          status: 'FAIL',
+          explanation: residencePending(own, years, L),
+          assumptions,
+        },
+      };
+    }
+    return {
+      years,
+      start: own.start,
+      applicationDate: own.applicationDate,
+      result: {
+        status: 'PASS',
+        explanation: L(
+          `主申请人于 ${settled.date} 定居，定居前最后一次许可为 BN(O) Status Holder、BN(O) Adult Child 或其伴侣许可（HK 59.1(b)）。本人的 BN(O) 许可须满 ${years} 年（HK 62.1(b)），${own.applicationDate} 起可申请。`,
+          `The principal applicant settled on ${settled.date} and their last grant before settlement was as a BN(O) Status Holder, BN(O) Adult Child or their partner (HK 59.1(b)). This person’s own BN(O) permission must reach ${years} years (HK 62.1(b)), so they can apply from ${own.applicationDate}.`,
+        ),
+        assumptions,
+      },
+    };
   }
   // P must be the BN(O) main applicant or their partner (HK 57.3, HK 59.1(a)).
   const current = episodeOn(principal.timeline, simulationDate);

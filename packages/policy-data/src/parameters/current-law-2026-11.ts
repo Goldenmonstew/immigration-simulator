@@ -435,6 +435,10 @@ export const currentLaw2026_11 = {
       value: 10,
       sources: [{ srcId: 'SRC-028', locator: 'PL 14.2(a)' }],
     },
+    privateLifeOtherRouteMinimumPermissionYears: {
+      value: 1,
+      sources: [{ srcId: 'SRC-028', locator: 'PL 14.4(b)' }],
+    },
     privateLifeSettlementEnglishBefore: {
       value: 'B1',
       sources: [{ srcId: 'SRC-028', locator: 'PL 16.1(a)' }],

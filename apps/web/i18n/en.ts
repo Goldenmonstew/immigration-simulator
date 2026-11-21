@@ -497,6 +497,14 @@ export const en: Record<keyof typeof zhCN, string> = {
   'episodes.innovatorCriteriaHint':
     'Select every criterion met. Leaving all unchecked means “None of the above”.',
   'episodes.innovatorCriteriaNone': 'None of the above',
+  'episodes.innovatorSettlementEndorser':
+    'Who issued your Innovator Founder settlement endorsement?',
+  'episodes.innovatorSettlementEndorserHint':
+    'If it is a Legacy Endorsing Body, compare it with the body that supported your last grant of permission (INNF 17.5).',
+  'episodes.innovatorEndorser.NON_LEGACY': 'A non-legacy Endorsing Body',
+  'episodes.innovatorEndorser.LEGACY_SAME': 'The same Legacy Endorsing Body',
+  'episodes.innovatorEndorser.LEGACY_DIFFERENT':
+    'A different Legacy Endorsing Body',
   'episodes.innovatorCriteria.INVESTMENT':
     'At least £50,000 invested in the business and actively spent furthering it (INNF 17.1(f)(i))',
   'episodes.innovatorCriteria.CUSTOMERS':

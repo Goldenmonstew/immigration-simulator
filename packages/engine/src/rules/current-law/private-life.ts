@@ -77,7 +77,7 @@ export const clPrivateLifeResidence = defineRule(
       { srcId: 'SRC-028', locator: 'PL 14.1' },
       { srcId: 'SRC-028', locator: 'PL 14.2' },
       { srcId: 'SRC-028', locator: 'PL 14.3' },
-      { srcId: 'SRC-028', locator: 'PL 14.4' },
+      { srcId: 'SRC-028', locator: 'PL 14.4(a)–(b)' },
       { srcId: 'SRC-028', locator: 'PL 15.1' },
       ...crResidenceSources,
     ],
@@ -97,6 +97,7 @@ export const clPrivateLifeResidence = defineRule(
     }
     const { residence, period } = q;
     const before = residence?.before;
+    const minimum = cl.values.privateLifeOtherRouteMinimumPermissionYears.value;
     const assumptions = [
       L(
         '连续期合并 PL 14.3 列出的 Appendix FM 伴侣、父母及其子女许可与 Private Life 许可；PL 14.3(e) 基于 Article 8 的 Leave Outside the Rules 无法与其他 Leave Outside the Rules 区分，不计入。PL 13（英国出生、连续居住 7 年的儿童可直接定居）、PL 14.1A / PL 14.2(b) / PL 14.2A（2022-06-20 前 Appendix FM 或 Leave Outside the Rules 许可的过渡安排）与 PL 12.3–12.5（suitability 事由要求走 10 年）未建模。',
@@ -105,8 +106,8 @@ export const clPrivateLifeResidence = defineRule(
       ...(before
         ? [
             L(
-              `PL 14.4 也计入其他可定居路线的许可（须未非法入境、且已持 Private Life 许可满 1 年）；本工具只计 PL 14.3 所列许可，紧接其前的${nameIn(L, routeNames[before.route])}许可未计入，若该路线可定居，实际日期可能更早（PD-069）。`,
-              `PL 14.4 also counts permission on other routes that lead to settlement (if the applicant did not enter illegally and has held Private Life permission for at least a year); this tool counts only the permissions in PL 14.3, so the ${nameIn(L, routeNames[before.route])} permission just before them is not counted, and the actual date may be earlier if that route can lead to settlement (PD-069).`,
+              `PL 14.4 也计入其他可定居路线的许可。申请人须未非法入境，但持有作为儿童或 young adult 获批的 Private Life 许可者除外（PL 14.4(a)）。截至实际申请日，须持有 PL 14.4(b) 所列的 Private Life 或旧规则许可满 ${minimum} 年。本工具按 PL 14.3 计时。紧接其前的${nameIn(L, routeNames[before.route])}许可若能计入，实际日期可能更早（PD-069）。`,
+              `PL 14.4 also counts permission on other routes that lead to settlement. The applicant must not have entered the UK illegally unless they have Private Life permission as a child or young adult (PL 14.4(a)). They must have held Private Life permission or predecessor permission listed in PL 14.4(b) for at least ${minimum} year by the actual date of application. This tool counts the permissions in PL 14.3. The date may be earlier if the preceding ${nameIn(L, routeNames[before.route])} permission qualifies (PD-069).`,
             ),
           ]
         : []),

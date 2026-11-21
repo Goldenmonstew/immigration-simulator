@@ -24,6 +24,7 @@ import {
   onSkilledWorkerPartner,
   onUkAncestry,
 } from './shared';
+import { ukAncestryResidence } from './ancestry';
 import { onFiveYearFamilyChild } from './family';
 import { longResidenceMet } from './long-residence';
 
@@ -34,6 +35,13 @@ export function currentLawApplicationPresence(
   const { timeline, simulationDate } = ctx;
   const presence = applicationPresence(timeline, simulationDate, textFor(ctx));
   if (!presence) return undefined;
+  // STP 1.3 admits the last protection grant even after it has expired.
+  if (onProtection(timeline, simulationDate)) {
+    return {
+      ...presence,
+      sources: [{ srcId: 'SRC-023', locator: 'STP 1.2(c)' }],
+    };
+  }
   const current = episodeOn(timeline, simulationDate);
   if (!current) return undefined;
   const source =
@@ -61,7 +69,11 @@ export function currentLawApplicationPresence(
                       onFamilyChild(timeline, simulationDate) &&
                       !onFiveYearFamilyChild(ctx)
                     ? { srcId: 'SRC-022', locator: 'SETF 10.2(d)' }
-                    : undefined;
+                    : // CR 1.1(d): settlement on previous UK Ancestry permission.
+                      !onUkAncestry(timeline, simulationDate) &&
+                        ukAncestryResidence(ctx)
+                      ? { srcId: 'SRC-026', locator: 'UKA 10.2(d)' }
+                      : undefined;
   return source && { ...presence, sources: [source] };
 }
 
@@ -117,10 +129,15 @@ export const clScope = defineRule(
     if (onProtection(timeline, simulationDate)) {
       return {
         status: 'PASS',
-        explanation: L(
-          '当前以主申请人身份持 refugee status 或 humanitarian protection 的许可，按 Appendix Settlement Protection 与 Appendix Long Residence 评估。',
-          'Currently holds permission with refugee status or humanitarian protection as the main applicant; assessed under Appendix Settlement Protection and Appendix Long Residence.',
-        ),
+        explanation: current
+          ? L(
+              '当前以主申请人身份持 refugee status 或 humanitarian protection 的许可，按 Appendix Settlement Protection 与 Appendix Long Residence 评估。',
+              'Currently holds permission with refugee status or humanitarian protection as the main applicant; assessed under Appendix Settlement Protection and Appendix Long Residence.',
+            )
+          : L(
+              '最后获批的是主申请人保护许可，按 STP 1.3 纳入 Appendix Settlement Protection 评估。',
+              'The last grant was protection permission as a main applicant and is assessed under Appendix Settlement Protection (STP 1.3).',
+            ),
       };
     }
     if (onUkAncestry(timeline, simulationDate)) {
@@ -129,6 +146,15 @@ export const clScope = defineRule(
         explanation: L(
           '当前持 UK Ancestry 主申请人许可，按 Appendix UK Ancestry 与 Appendix Long Residence 评估。',
           'Currently holds UK Ancestry permission as the main applicant; assessed under Appendix UK Ancestry and Appendix Long Residence.',
+        ),
+      };
+    }
+    if (ukAncestryResidence(ctx)) {
+      return {
+        status: 'PASS',
+        explanation: L(
+          '曾持有可计入定居的 UK Ancestry 主申请人许可，按 Appendix UK Ancestry 与 Appendix Long Residence 评估（CR 1.1(d)）。',
+          'Previous UK Ancestry main applicant permission qualifies for assessment under Appendix UK Ancestry and Appendix Long Residence (CR 1.1(d)).',
         ),
       };
     }

@@ -4,6 +4,7 @@ import { Field } from './field';
 import { useRouter } from 'next/navigation';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { onProtection } from '@uk-immigration/engine';
 import type {
   ImmigrationBreach,
   ImmigrationEpisode,
@@ -42,14 +43,7 @@ export function useFormKit() {
   const { timeline } = active;
   const familyPartnerFiveYear = hasFamilyPartnerFiveYear(timeline);
   const current = currentEpisode(active);
-  const protectionMain =
-    current?.role === 'MAIN' &&
-    [
-      'CORE_PROTECTION',
-      'PROTECTION_WORK_AND_STUDY',
-      'SAFE_AND_LEGAL',
-      'LEGACY_SAFE_AND_LEGAL',
-    ].includes(current.route);
+  const protectionMain = onProtection(timeline, active.simulationDate);
   const editingPrincipal = draft.principalStep !== undefined;
   const sequence = stepSequence(draft);
   const position = sequence.indexOf(active.step);

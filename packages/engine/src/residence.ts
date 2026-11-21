@@ -109,7 +109,7 @@ export function timelineAtFiling(
 }
 
 /** Between consecutive grant boundaries episodeOn selects the same permission. */
-function effectivePeriods(timeline: PersonTimeline) {
+export function effectivePeriods(timeline: PersonTimeline) {
   const changes = permissionChanges(timeline);
   return changes.flatMap((from, i) => {
     const permission = episodeOn(timeline, from);
@@ -401,6 +401,7 @@ export function currentResidence(
     longResidence = false,
     appliesOn = counts,
     notBefore = application,
+    ancestryExpiry,
     countedTrips = timeline.absences,
     checkLocation = true,
     allowSection3C = false,
@@ -408,6 +409,7 @@ export function currentResidence(
     longResidence?: boolean;
     appliesOn?: Counts;
     notBefore?: IsoDate;
+    ancestryExpiry?: IsoDate;
     countedTrips?: Absence[];
     checkLocation?: boolean;
     allowSection3C?: boolean;
@@ -506,6 +508,19 @@ export function currentResidence(
       deductedDays,
     };
   };
+  // CR 1.1(d) uses an historical reference for a current application.
+  if (ancestryExpiry) {
+    const run = runAt(ancestryExpiry);
+    if (!run.episodes.length) return undefined;
+    // The residence is fixed at the expiry; the filing can wait for a
+    // declared return to the UK (UKA 10.2(d)).
+    const applied = checkLocation
+      ? nextKnownApplicationDate(timeline, application)
+      : application;
+    if (!applied) return undefined;
+    const result = asOf(run, ancestryExpiry, applied);
+    return result.completion <= ancestryExpiry ? result : undefined;
+  }
   const run = runAt(application);
   if (!run.episodes.length) return undefined;
   const advance = cl.values.continuousResidenceReferenceDays.value;

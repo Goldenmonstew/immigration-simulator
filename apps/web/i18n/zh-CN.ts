@@ -446,6 +446,13 @@ export const zhCN = {
   'episodes.innovatorCriteriaHint':
     '勾选已满足的条件；全不勾选表示“以上都没有”。',
   'episodes.innovatorCriteriaNone': '以上都没有',
+  'episodes.innovatorSettlementEndorser':
+    '哪个机构出具了你的 Innovator Founder 定居背书信？',
+  'episodes.innovatorSettlementEndorserHint':
+    '如果是 Legacy Endorsing Body，请与支持你上次获批许可的机构比较（INNF 17.5）。',
+  'episodes.innovatorEndorser.NON_LEGACY': '一般 Endorsing Body',
+  'episodes.innovatorEndorser.LEGACY_SAME': '同一家 Legacy Endorsing Body',
+  'episodes.innovatorEndorser.LEGACY_DIFFERENT': '另一家 Legacy Endorsing Body',
   'episodes.innovatorCriteria.INVESTMENT':
     '至少 £50,000 投入业务并已用于推进业务（INNF 17.1(f)(i)）',
   'episodes.innovatorCriteria.CUSTOMERS':

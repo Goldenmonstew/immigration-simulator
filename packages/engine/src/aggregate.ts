@@ -4,7 +4,12 @@ import {
 } from '@uk-immigration/policy-data';
 import type { Route, RouteGroup } from '@uk-immigration/policy-data';
 import { addYears } from './dates';
-import { continuousRun, episodeOn, timelineAtFiling } from './residence';
+import {
+  continuousRun,
+  episodeOn,
+  nextKnownApplicationDate,
+  timelineAtFiling,
+} from './residence';
 import { runRule, textFor } from './rule';
 import type { Lang } from './rule';
 import { settlementEnglish, settlementKol } from './rules/current-law/english';
@@ -651,6 +656,22 @@ function assessCurrentLaw(
   const adultChecks = afterMajority?.applicationDate
     ? rulesAtFiling(['CL-ENGLISH', 'CL-KOL'], afterMajority.applicationDate)
     : undefined;
+  // Under CR 1.1(d), residence and English use different dates (UKA 15.1–16.1).
+  const historicAncestry =
+    ancestry !== undefined && ancestry.referenceDate < ctx.simulationDate;
+  const ancestryLanguage = historicAncestry
+    ? [
+        {
+          ...english,
+          ...settlementEnglish(ctx, ctx.simulationDate, 'UK_ANCESTRY'),
+        },
+        { ...kol, ...settlementKol(ctx, ctx.simulationDate, 'UK_ANCESTRY') },
+      ]
+    : [english, kol];
+  const protectionStartDate = protection ? protectionStart(ctx) : undefined;
+  const protectionDue =
+    protectionStartDate &&
+    addYears(protectionStartDate, cl.values.protectionQualifyingYears.value);
   const candidates: Candidate[] = [
     ...(sw
       ? [
@@ -770,7 +791,17 @@ function assessCurrentLaw(
       ? [
           {
             years: cl.values.protectionQualifyingYears.value,
-            start: protectionStart(ctx),
+            start: protectionStartDate,
+            // STP 1.2(c): the filing day must be in the UK, so a declared
+            // trip can move the projected date to the return.
+            ...(protectionDue && {
+              applicationDate: nextKnownApplicationDate(
+                ctx.timeline,
+                protectionDue > ctx.simulationDate
+                  ? protectionDue
+                  : ctx.simulationDate,
+              ),
+            }),
             rules: pick('CL-PROTECTION-STATUS'),
             residence: 'CL-PROTECTION-RESIDENCE-5Y',
           },
@@ -783,7 +814,7 @@ function assessCurrentLaw(
             start: ancestry.start,
             applicationDate: ancestry.applicationDate,
             rules: [
-              ...pick('CL-ENGLISH', 'CL-KOL'),
+              ...ancestryLanguage,
               ...(presence?.status === 'UNKNOWN'
                 ? pick('CL-ANCESTRY-RESIDENCE-5Y')
                 : []),
@@ -870,7 +901,9 @@ function assessCurrentLaw(
     const override =
       candidate.residence === 'CL-LR-RESIDENCE-10Y'
         ? 'LONG_RESIDENCE'
-        : undefined;
+        : candidate.residence === 'CL-ANCESTRY-RESIDENCE-5Y' && historicAncestry
+          ? 'UK_ANCESTRY'
+          : undefined;
     if (rule.id === 'CL-ENGLISH') {
       return { ...rule, ...settlementEnglish(ctx, date, override) };
     }
@@ -895,7 +928,8 @@ function assessCurrentLaw(
           checked = {
             ...candidate,
             rules:
-              candidate.residence === 'CL-LR-RESIDENCE-10Y'
+              candidate.residence === 'CL-LR-RESIDENCE-10Y' ||
+              candidate.residence === 'CL-ANCESTRY-RESIDENCE-5Y'
                 ? atFiling.map((rule) => languageAt(rule, candidate, date))
                 : atFiling,
           };
@@ -966,6 +1000,27 @@ function assessCurrentLaw(
       ),
     );
   }
+  // A completed historic UK Ancestry period held back by its own English or
+  // Life in the UK requirement (UKA 15.1–16.1).
+  if (
+    historicAncestry &&
+    ancestry?.applicationDate &&
+    !decision.decidedBy?.includes('CL-ANCESTRY-RESIDENCE-5Y')
+  ) {
+    // Checked on the filing date, which can follow a return to the UK.
+    const filingDate = ancestry.applicationDate;
+    const atFiling = [
+      { ...english, ...settlementEnglish(ctx, filingDate, 'UK_ANCESTRY') },
+      { ...kol, ...settlementKol(ctx, filingDate, 'UK_ANCESTRY') },
+    ];
+    for (const rule of atFiling.filter((r) => r.status !== 'PASS'))
+      assumptions.push(
+        L(
+          `按此前的 UK Ancestry 许可定居时：${rule.explanation}`,
+          `For settlement on the previous UK Ancestry permission: ${rule.explanation}`,
+        ),
+      );
+  }
   let selectedRules = shown;
   const projected = decision.projectedCandidate;
   const date = decision.earliestDate;
@@ -993,6 +1048,10 @@ function assessCurrentLaw(
         ),
       };
     });
+  } else if (decision.decidedBy?.includes('CL-ANCESTRY-RESIDENCE-5Y')) {
+    selectedRules = shown.map(
+      (rule) => ancestryLanguage.find((r) => r.id === rule.id) ?? rule,
+    );
   } else if (decision.decidedBy?.includes('CL-LR-RESIDENCE-10Y')) {
     selectedRules = shown.map(
       (rule) => lrLanguage.find((r) => r.id === rule.id) ?? rule,

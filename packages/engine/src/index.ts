@@ -19,4 +19,5 @@ export { hasSettledSkilledWorkerPartner } from './rules/current-law/shared';
 export {
   familyFiveYearStart,
   familyIncomeThreshold,
+  onProtection,
 } from './rules/current-law';

@@ -123,6 +123,10 @@ function validTimeline(value: unknown): boolean {
           ['PARTNER_FIVE_YEAR', 'PARTNER_TEN_YEAR', 'PARENT'].includes(
             episode.familyPermission as string,
           )) &&
+        (episode.innovatorSettlementEndorser === undefined ||
+          ['NON_LEGACY', 'LEGACY_SAME', 'LEGACY_DIFFERENT'].includes(
+            episode.innovatorSettlementEndorser as string,
+          )) &&
         (episode.innovatorSettlementCriteria === undefined ||
           (Array.isArray(episode.innovatorSettlementCriteria) &&
             episode.innovatorSettlementCriteria.every((criterion) =>

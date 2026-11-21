@@ -118,21 +118,41 @@ test('A6#1 the Skilled Worker golden boundary and the reference date use separat
   ).toBe('FAIL');
 });
 
-test('review33a-1 #5 a former UK Ancestry grant does not open a new route', () => {
+test('33a review #5 / A3#2 UK Ancestry respects recorded expiry before and after a switch', () => {
   const episodes = [
     permit('2019-06-01', { route: 'UK_ANCESTRY', validTo: '2024-06-01' }),
     permit('2024-06-02', { route: 'STUDENT' }),
   ];
-  const a = current({ episodes, nationality: 'USA' }, '2026-11-04');
-  expect(a.outcome).toBe('INSUFFICIENT_INFORMATION');
-  expect(a.rules.map((r) => r.id)).not.toContain('CL-ANCESTRY-RESIDENCE-5Y');
+  expect(current({ episodes }, '2024-05-04')).toMatchObject({
+    outcome: 'LIKELY_ELIGIBLE',
+    earliestDate: '2024-05-04',
+  });
+  const after = current({ episodes }, '2026-11-04');
+  expect(after).toMatchObject({
+    outcome: 'LIKELY_ELIGIBLE',
+    earliestDate: '2026-11-04',
+  });
+  expect(after.decidedBy).toContain('CL-ANCESTRY-RESIDENCE-5Y');
 
+  const short = [{ ...episodes[0], validFrom: '2019-06-02' }, episodes[1]];
   expect(
-    current(
-      { episodes: [permit('2019-06-01', { route: 'UK_ANCESTRY' })] },
-      '2024-05-04',
-    ),
-  ).toMatchObject({ outcome: 'LIKELY_ELIGIBLE', earliestDate: '2024-05-04' });
+    current({ episodes: short }, '2024-05-04').rules.find(
+      (r) => r.id === 'CL-ANCESTRY-RESIDENCE-5Y',
+    )?.status,
+  ).toBe('FAIL');
+  expect(
+    current({ episodes: short }, '2026-11-04').rules.map((r) => r.id),
+  ).not.toContain('CL-ANCESTRY-RESIDENCE-5Y');
+
+  const abroad = current(
+    { episodes, absences: [{ from: '2026-11-01', to: '2026-11-10' }] },
+    '2026-11-04',
+  );
+  expect(abroad.outcome).toBe('LIKELY_NOT_ELIGIBLE');
+  expect(abroad.rules[0].sources).toContainEqual({
+    srcId: 'SRC-026',
+    locator: 'UKA 10.2(d)',
+  });
 });
 
 test('review33a-1 #1 projected CR 1.1 references respect recorded expiry and switches', () => {
@@ -276,6 +296,7 @@ test.each<{ episode: ImmigrationEpisode; source: string }>([
     episode: permit('2023-11-24', {
       route: 'INNOVATOR_FOUNDER',
       innovatorSettlementCriteria: ['INVESTMENT', 'REVENUE'],
+      innovatorSettlementEndorser: 'NON_LEGACY',
     }),
     source: 'INNF 15.2(d)',
   },
@@ -1183,5 +1204,63 @@ test('review33a-5 #2 a recorded Skilled Worker renewal keeps the residence forec
   expect(joint.decidedBy).toContain('CL-SW-CHILD');
   expect(current(child, joint.earliestDate!, confirmed).outcome).toBe(
     'LIKELY_ELIGIBLE',
+  );
+});
+
+test('review33c-1 #1–#3 a previous UK Ancestry grant: early switch, a known return and its own English', () => {
+  // #1 A switch before the recorded expiry ends the UK Ancestry grant.
+  const early = {
+    episodes: [
+      permit('2021-09-01', { route: 'UK_ANCESTRY', validTo: '2026-12-01' }),
+      permit('2026-10-01', { route: 'STUDENT' }),
+    ],
+  };
+  const switched = current(early, '2026-11-04');
+  expect(switched.outcome).toBe('LIKELY_ELIGIBLE');
+  expect(switched.decidedBy).toContain('CL-ANCESTRY-RESIDENCE-5Y');
+
+  // #2 Abroad on the day with a declared return: file on the return date.
+  const episodes = [
+    permit('2019-06-01', { route: 'UK_ANCESTRY', validTo: '2024-06-01' }),
+    permit('2024-06-02', { route: 'STUDENT' }),
+  ];
+  const away = current(
+    { episodes, absences: [{ from: '2026-11-01', to: '2026-11-10' }] },
+    '2026-11-04',
+  );
+  expect(away.earliestDate).toBe('2026-11-10');
+  expect(away.decidedBy).toContain('CL-ANCESTRY-RESIDENCE-5Y');
+
+  // #3 Held back by UKA 15.1 English while on Skilled Worker.
+  const noEnglish = current(
+    {
+      episodes: [episodes[0], permit('2024-06-02')],
+      english: undefined,
+    },
+    '2026-11-04',
+  );
+  expect(noEnglish.decidedBy ?? []).not.toContain('CL-ANCESTRY-RESIDENCE-5Y');
+  expect(noEnglish.assumptions).toContainEqual(
+    expect.stringContaining('按此前的 UK Ancestry 许可定居时'),
+  );
+});
+
+test('review33c-2 a return on the B2 date names the UK Ancestry English requirement on that day (UKA 15.1(b))', () => {
+  const episodes = [
+    permit('2019-06-01', { route: 'UK_ANCESTRY', validTo: '2024-06-01' }),
+    permit('2024-06-02', { route: 'STUDENT' }),
+  ];
+  const facts = (returnDay: string) => ({
+    episodes,
+    english: { cefrLevel: 'B1' as const },
+    absences: [{ from: '2027-03-20', to: returnDay }],
+  });
+  expect(current(facts('2027-03-25'), '2027-03-22').decidedBy).toContain(
+    'CL-ANCESTRY-RESIDENCE-5Y',
+  );
+  const late = current(facts('2027-03-26'), '2027-03-22');
+  expect(late.decidedBy ?? []).not.toContain('CL-ANCESTRY-RESIDENCE-5Y');
+  expect(late.assumptions).toContainEqual(
+    expect.stringMatching(/按此前的 UK Ancestry 许可定居时：.*B2/),
   );
 });
