@@ -155,7 +155,7 @@ export function evaluateCanada(req: CaRequest): CaResult {
                 )) +
           L(
             '不满足不等于自动失去身份：境外作出的不合规决定成为最终决定、或遣返令生效，才会失去永久居民身份（s46(1)(b)–(c)）。',
-            ' Not meeting it does not end your status by itself: you lose permanent resident status only when a decision made outside Canada becomes final or a removal order takes effect (s46(1)(b)–(c)).',
+            ' Not meeting it does not end your status by itself: you lose permanent resident status only when a decision made outside Canada that you breached the residency obligation becomes final, or a removal order takes effect (s46(1)(b)–(c)).',
           ),
         checks: within
           ? [
@@ -191,7 +191,7 @@ export function evaluateCanada(req: CaRequest): CaResult {
           ),
           L(
             '人道理由的裁量（s28(2)(c)），以及违反居住义务的报告作成、或境外不合规决定作出之后的日子不计，后来认定合规的除外（IRPR s62）',
-            'Humanitarian and compassionate relief (s28(2)(c)), and days after a report on the residency obligation is made or a decision outside Canada finds you non-compliant, which do not count unless you are later found compliant (IRPR s62)',
+            'Humanitarian and compassionate relief (s28(2)(c)), and days after an IRPA s44(1) report on the residency obligation is made or a decision outside Canada finds you non-compliant, which do not count unless you are later found compliant (IRPR s62)',
           ),
         ],
         assumptions: [
@@ -295,8 +295,8 @@ export function evaluateCanada(req: CaRequest): CaResult {
           'Days abroad with a spouse or parent in the Canadian Armed Forces or public service, which count as in Canada (s5(1.01)–(1.03))',
         ),
         L(
-          '未成年人由父母代为申请（s5(2)）不按这里的 1,095 天计算',
-          'Minors applying through a parent (s5(2)) are not assessed on the 1,095 days here',
+          '父母已是加拿大公民、或与父母同时申请的未成年人可走 s5(2)，不按这里的 1,095 天计算',
+          'Minors with a Canadian citizen parent, or applying at the same time as a parent, can use s5(2), which is not assessed on the 1,095 days here',
         ),
       ],
       assumptions: [
