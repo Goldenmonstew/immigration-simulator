@@ -13,6 +13,7 @@ import { useTranslation } from '../../i18n/locale';
 import { punct } from '../../i18n/punctuation';
 import {
   activePersonDraft,
+  assessesSettledWorkerPartner,
   createDraft,
   currentEpisode,
   hasFamilyPartnerFiveYear,
@@ -104,14 +105,21 @@ export function useFormKit() {
     router.push('/result');
   };
   const screen = (key: ScreeningKey, answer: 'yes' | 'no') => {
-    if (answer === 'yes' && key === 'criminality') {
+    if (
+      answer === 'yes' &&
+      key === 'criminality' &&
+      !independentPartnerScreening
+    ) {
       finish(draftReducer(draft, { type: 'screening', key, answer }));
     } else dispatch({ type: 'screening', key, answer });
   };
+  const independentPartnerScreening =
+    editingPrincipal && assessesSettledWorkerPartner(draft);
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (
       active.step === 1 &&
+      !independentPartnerScreening &&
       shortCircuitKeys.some((key) => active.screening[key] === 'yes')
     ) {
       finish(draft);

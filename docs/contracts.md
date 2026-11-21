@@ -108,7 +108,7 @@ What-if、前向推算的结构化假设，都等用到时再加字段，不提�
   - 当前为 Family and Private Life 时只有 10 / 20 年（p23）。居留起点都是 `ES-RESIDENCE` 的合格期起点。
 - 现行法律：建模范围无法确定时，只输出 `CL-SCOPE` 的 `UNKNOWN`，结论为 `INSUFFICIENT_INFORMATION`。在建模范围内，适用境内申请的路线会显示申请日的位置判断，明确在境外为 `FAIL`，位置无法确定为 `UNKNOWN`。仍显示相关路线规则。若只是出境当天递交时的位置不明，当天结论为 `INSUFFICIENT_INFORMATION`。已知返英日且候选的其他要求都通过时，保留可确认的未来日期和对应路线，供随行申请在同一天核对双方。候选如 Skilled Worker 5 年（`CL-SW-SALARY`、`CL-SW-GOING-RATE`（2.5）、`CL-ENGLISH`、`CL-KOL`，起点为连续 Skilled Worker 段）与 Long Residence 10 年（`CL-ENGLISH`、`CL-KOL`，起点为连续合法居留段；英语按 LR 13.1 的等级单独核对，与当前路线的等级不同时只改该候选里的状态，`rules[]` 仍只显示按当前路线的一条，差异写进 `assumptions`（4.5））。候选与居留规则共用可申请日的计算。Long Residence 的 `CL-LR-RESIDENCE-10Y` 也显示 LR 9.3 的申请日位置判断。
 
-候选日期以实际申请日为比较基准。引用 Appendix Continuous Residence 的现行路径按 SRC-008 CR 1.1(a)–(b) 从申请日及其后最多 28 天内的可计入日期回溯。预测日期使用已录入的许可、到期与转签。出境当天恢复未来候选时，在该候选日核对主申请人的条件。Skilled Worker 按实际递交日生效的许可核对 general salary 和 going rate，随行人推后共同日期时再次核对（SRC-004 SW 24.2–24.3、39.1(a)）。普通预测可给出居留日期并列出仍待确认的条件，例如 Life in the UK（SW 23.1）。共同递交日上主申请人有条件 `FAIL` 时顺延到下一段许可；只缺资料（`UNKNOWN`）时保留该日，随行人的预测与主申请人一致，当日结论为 `UNKNOWN`，并写明待确认的条件。出境当天位置不明时恢复的日期，仍须各项条件通过。重叠期间逐段采用当日最近生效的许可，回溯合格期与判定当日许可使用同一口径。候选申请日晚于最后一段已录入许可时，推算以合格许可连续续接为前提。BN(O) 在最后一段已录入许可到期前递交时，若参考日超过到期日，结果可按 Immigration Act 1971 section 3C 有条件计算，并披露申请有效、人在英国且至参考日仍待决定、未撤回的假设。共同日期依赖主申请人的 section 3C 时，随行结果也明确指出主申请人和相应参考日。问卷没有决定日。
+候选日期以实际申请日为比较基准。引用 Appendix Continuous Residence 的现行路径按 SRC-008 CR 1.1(a)–(b) 从申请日及其后最多 28 天内的可计入日期回溯。预测日期使用已录入的许可、到期与转签。出境当天恢复未来候选时，在该候选日核对主申请人的条件。Skilled Worker 按实际递交日生效的许可核对 general salary 和 going rate，随行人推后共同日期时再次核对（SRC-004 SW 24.2–24.3、39.1(a)）。普通预测可给出居留日期并列出届时仍待满足或确认的条件，例如 B2 英语或 Life in the UK（SW 22A.1、23.1）。已录入许可在候选日的 general salary 或 going rate 为 `FAIL` 时顺延到下一段许可；英语与 Life in the UK 在候选日未达标或缺资料时保留该日，作为届时待满足的条件。共同递交日同理：随行人的预测日期与主申请人一致，说明写明主申请人当日待满足或确认的条件；到该日仍未满足时，当日结论不是可申请。出境当天位置不明时恢复的日期，仍须双方各项条件通过。重叠期间逐段采用当日最近生效的许可，回溯合格期与判定当日许可使用同一口径。候选申请日晚于最后一段已录入许可时，推算以合格许可连续续接为前提。BN(O) 在最后一段已录入许可到期前递交时，若参考日超过到期日，结果可按 Immigration Act 1971 section 3C 有条件计算，并披露申请有效、人在英国且至参考日仍待决定、未撤回的假设。共同日期依赖主申请人的 section 3C 时，随行结果也明确指出主申请人和相应参考日。问卷没有决定日。
 
 缺席限额在可计合格期内核对，CR 3.2 的旧许可窗口按实际申请日周年分隔。Long Residence 按每趟行程的出发日确定适用规则，单次上限与出入境时的许可按原行程核对，累计天数对重叠日期取并集（CR 3.3、4.1(d)(iii)）。有境内申请要求的路线按候选申请日核对位置，已申报的返英日可在抵达后递交。随行申请在同一天分别核对双方，取双方都符合的最早日期。免本人居留年限的子女按候选日核对位置、子女许可及随行条件。其历史缺席天数不设上限（SRC-020 HK 62.1(b)、63.1，SRC-004 SW 41A.1–43.1，SRC-021 GT 29A.1–31.1，SRC-022 SETF 12.1–14.1）。BN(O) 子女在共同递交日前已成年时，从成年日起按本人的五年连续居留、英语和 Life in the UK 条件计算候选日（SRC-020 HK 57.1、60.1–63.1）。Appendix FM 五年伴侣按 E-ILRP.1.3 满期，候选日须满足 R-ILRP.1.1(a)、E-ILRP.1.2 的境内与许可要求。若返英日落在许可空档，继续核对已录入的后续伴侣许可。没有可确认例外时，一个无许可日也会中断连续期。预测和当日判断均从后续许可重新计算满期日（SRC-024 E-ILRP.1.2–1.3、1.5A；已建模的合法停留宽限期见 SRC-008 CR 4.1(d)(v)、4.3）。Appendix Settlement Protection 按该路线的条文计算。Earned Settlement 用连续起点加路径年限。
 
@@ -163,7 +163,7 @@ Earned Settlement 栏的 dependant 候选路径（只有一条）：
 
 现行法律栏：Skilled Worker 主申请人的 dependent partner（当前 episode `SKILLED_WORKER` + `DEPENDANT` + `dependantOf = 'PARTNER'`，且有 `principal`）进入 `CL-SCOPE`。候选路径 = `CL-SW-PARTNER-5Y` + `CL-ENGLISH` + `CL-KOL`，5 年，起点 = max(伴侣连续 dependant 许可的起点, 主申请人连续 Skilled Worker 期的起点)，即不早于主申请人满 5 年（SW 39.1(a)、SW 42.1、SW 43.1）；没有薪资要求；英语 2027-03-26 前 B1、此后 B2（SW 44.1），KOL 按 SW 45.1。主申请人该栏没有 Skilled Worker 5 年路径（`pathwayYears` 不是 5）时：其结论为 `LIKELY_NOT_ELIGIBLE` → `FAIL`，否则 `UNKNOWN`。Long Residence 候选照常。dependent child 与主申请人已定居（SW 39.1(b)）见 §9（Phase 2.5）。
 
-短路：先看 dependant 本人的时间线（本人有犯罪记录照常短路，优先）；本人没有短路而主申请人有时，把主申请人的 `shortCircuit` 复制到 dependant 的 `SimulationResult`，`reason` 不变，`message` 前加"主申请人："。栏目影响沿用 §7：`CRIMINALITY` / `IMMIGRATION_BREACH` 两栏都是 `REQUIRES_REGULATED_REVIEW`，`PROTECTION` / `OUTSIDE_FRAMEWORK` 只影响 Earned Settlement 栏。
+短路：先看 dependant 本人的时间线（本人有犯罪记录照常短路，优先）；本人没有短路而主申请人有时，把主申请人的 `shortCircuit` 复制到 dependant 的 `SimulationResult`，`reason` 不变，`message` 前加"主申请人："。`CRIMINALITY` / `IMMIGRATION_BREACH` 通常使两栏进入 `REQUIRES_REGULATED_REVIEW`。如主申请人确认已按 Skilled Worker 定居，且伴侣在该日持有其伴侣许可，现行栏按伴侣本人评估 suitability（SRC-004 SW 38.1–38.2、39.1(b)），主申请人的筛查仍影响 Earned Settlement 栏。`PROTECTION` / `OUTSIDE_FRAMEWORK` 影响 Earned Settlement 栏。
 
 ## 9. 现行法律补全与剩余过渡安排（Phase 2.5）
 
@@ -171,9 +171,9 @@ Earned Settlement 栏的 dependant 候选路径（只有一条）：
 
 字段：
 
-- `ImmigrationEpisode.immigrationSalaryList?: boolean`：只对 `SKILLED_WORKER` + `MAIN` 有意义，担保岗位在 Appendix Immigration Salary List 上（SW 24.3 rows B、D 看"最近一次许可"，即申请日当天那段）。缺省 = 否，不输出 `UNKNOWN`，规则在 `assumptions` 里写"未申报 Immigration Salary List，按不在清单处理"。（3.1 起缺省时按 `socCode` 从 SRC-019 推导；4.5 起只计 `removalDate` 不早于申请日的条目，同一 SOC 多条时任一条仍有效即算在清单上。）
+- `ImmigrationEpisode.immigrationSalaryList?: boolean`：用于 Skilled Worker 主申请人的每段许可。SW 24.3 rows B / D 看最近一次许可获批时的担保岗位。未申报时，SRC-019 只用于确认适用全英国及该 SOC 全部岗位的条目。CoS 须在移除日之前签发，许可起始日早于移除日也可作为佐证。限岗位、限地区或日期不足时保留不确定性。
 - `PersonTimeline.settled?: { date: IsoDate; route: Route }`：填在**主申请人**的时间线上，表示主申请人已经定居（或已入籍），`date` 为获批日，`route` 为获批时所持许可的路线（SW 39.1(b)）。申请人本人时间线上的 `settled` 不被规则读取。缺省 = 未定居。
-- 不新增 `newEntrant`：SW 24.3 row C / D 引用的 SW 4.2(b) 不是"新入行"定义，而是 options F–J 的适用条件——(i) Health and Care ASHE salary job（SW A1.1），或 (ii) 2024-04-04 前按旧规则获批 Skilled Worker、此后连续持有、申请日早于 2030-04-04。两者都能从现有字段推出（`socCode` + `episodes`），见下。"新入行"只出现在 options E / J（入境 / 续签积分），SW 24.3 不用。
+- 不新增 `newEntrant`：SW 24.3 row C / D 引用的 SW 4.2(b) 不是"新入行"定义，而是 options F–J 的适用条件——(i) Health and Care ASHE salary job（SW A1.1），或 (ii) 2024-04-04 前按旧规则获批 Skilled Worker、此后连续持有、申请日早于 2030-04-04。ASHE 的担保事实使用下述明示假设；旧规获批以首段许可的 CoS 或规则时间分界核对。"新入行"只出现在 options E / J（入境 / 续签积分），SW 24.3 不用。
 
 参数（`currentLaw2026_11.values`）：
 
@@ -200,14 +200,15 @@ Earned Settlement 栏的 dependant 候选路径（只有一条）：
 | 行 | 条件（当前 Skilled Worker 段） | general salary | going rate 查表顺序 |
 |---|---|---|---|
 | E | Tier 2 (General) STEM 遗留，不建模（假设说明） | — | — |
-| D | `socCode` 在 `nationalPayScaleOccupations`（Table 3），或 `immigrationSalaryList` 且满足 4.2(b) | 25,000 | Table 3 职业 → `UNKNOWN`（Table 4 / 5 未提取，新 PD）；其余 `2` → `2aa` → `2a` |
-| C | 满足 4.2(b)：`socCode` 在 `healthAndCareAsheOccupations`（雇主条件 SW A1.1(a)–(f) 按满足假设），或连续 Skilled Worker 段起点 < 2024-04-04 且申请日 < 2030-04-04 | 31,300 | `2` → `2aa` → `2a` |
+| D | `socCode` 在 `nationalPayScaleOccupations`（Table 3），或 `immigrationSalaryList` 且满足 4.2(b) | 25,000 | Table 3 职业 → `UNKNOWN`（区分表内金额和 Table 4 / 5 薪级）；其余 `2` → `2aa` → `2a` |
+| C | 满足 4.2(b)：`socCode` 在 `healthAndCareAsheOccupations`（担保、雇用或服务安排按符合 SW A1.1(a)–(m) 假设），或首段连续 Skilled Worker 许可按旧规获批且申请日 < 2030-04-04 | 31,300 | `2` → `2aa` → `2a` |
 | B | `immigrationSalaryList` | 33,400 | `1` → `1a` |
 | A | 其余 | 41,700 | `1` → `1a` |
 
-- `CL-SW-SALARY` 只比 general salary，解释写明用的是哪一行；`CL-SW-GOING-RATE` 按同一行查 going rate，两条都 `PASS` 才满足 SW 24.3。两条都加进 Skilled Worker 5 年候选路径。
-- 查表用 `goingRates.rows` 里 `table` 与 `socCode` 都匹配的一行。附加表的适用条件从时间线判断，不另设 PD：`1a` / `2aa` 要求连续 Skilled Worker 段起点 < 2025-07-22（SW 6.1(d)），`2a` 要求起点 < 2024-04-04（SW 6.1(f)；"同一 sponsor"不核对，假设说明）。SOC 只在附加表里、但起点不满足其日期 → `UNKNOWN`（输入与可担保职业矛盾）。`socCode` 缺省或不在相应任何表 → `UNKNOWN`。
-- going rate 按每周 37.5 小时、不按实际工时折算（SW 14.4，假设说明）；薪资按用户填的 `salary`，SW 14.1–14.3 的口径不核对。
+- `CL-SW-SALARY` 和 `CL-SW-GOING-RATE` 检查同一组可适用薪资行。缺证据而各行结论不一致时返回 `UNKNOWN`。所有可能的行都达到各自门槛时，薪资可以通过。
+- `ImmigrationEpisode.sponsorshipCertificateDate` 可记录该许可实际使用的 CoS 签发日。HC 590 Implementation 规定，使用分界前签发的 CoS 仍按旧规决定。分界前已开始的首段许可可确认旧规，分界后开始且没有该 CoS 日期时保留不确定性。
+- `ImmigrationEpisode.skilledWorkerSponsorshipException` 可记录已确认的 `OPTION_D`、`OPTION_I` 或 `TEMPORARY_SHORTAGE_LIST` 担保依据。Table 1a / 2aa 接受相应的例外，或 SW 6.1(d)–(e) 的连续许可条件。填报的有效 ISL 担保可以佐证对应附加表的使用。Table 2a 仍按 SW 6.1(f) 明示同一 sponsor 假设。
+- going rate 按标准工时的全额年薪比较（SW 14.4）；薪资用填报的 `salary`。Table 3 已直接列出金额的职业仍须确定岗位、地区及薪级。
 
 `CL-SW-RESIDENCE-5Y` 合并（SW 21.2）：连续期可由以下 `MAIN` 许可任意组合构成：`SKILLED_WORKER`、`GLOBAL_TALENT`、`INNOVATOR_FOUNDER`、`MINISTER_OF_RELIGION`、`INTERNATIONAL_SPORTSPERSON`、`SCALE_UP`。`Route` 里没有 Representative of an Overseas Business 与 Tier 1，不计（假设说明）；SW 21.2(i) 不建模。当前段仍须是 `SKILLED_WORKER`（`CL-SCOPE` 不变）。Skilled Worker 5 年候选的起点即这个合并起点；伴侣路径的"主申请人起点"随之改用合并起点。4.2(b)(ii) 与附加表的日期条件仍只看纯 Skilled Worker 段。
 
@@ -972,3 +973,12 @@ PD-075 登记到 `docs/pending-details.md` 新的第十节"现行法律栏家庭
 - 收入未填，但储蓄覆盖整个门槛；
 - 福利替代，且 PD 只出现在福利这一条；
 - 收入已达门槛时，福利与储蓄不影响 `PASS`。
+
+
+## 18. 任务 33b 的现行法条件
+
+- Skilled Worker 伴侣的合格期只计同一主申请人的 dependent partner 许可（SRC-004 SW 42.1、43.1）。假设已填报的伴侣片段都属于同一人。明确的 child 许可中断伴侣合格期，历史身份未填且可能改变计期时返回 `UNKNOWN`。
+- 现行法缺席只计出境与返英之间的整天，重叠日期只计一次。Long Residence 按实际出境日区分 CR 3.3 过渡。SETF 伴侣若在行程后有已填报的 Appendix FM 伴侣或父母许可，按 CR 3.6 排除分界日前的缺席整天。现有许可类型无法确认旧 paragraph 276ADE / 276BE(2) 的获批依据。（SRC-008 CR 3.1、3.3、3.6）
+- SRC-014 EL 4.1 与 SRC-025 KoLL 2.2(a)(i)、4.8–4.10 的国籍分支使用 `nationality`，假设申请人能提交规则接受的国籍证明。英国海外领土公民使用护照国籍代码 `GBD`。Long Residence 单独按其适用等级和证据核对英语。
+- `PersonTimeline.englishFifteenYearException` 可记录为指定申请日核对过的在英居留、A2 资格和教师证据。EL 1.1(d)／KOL 1.1(d) 按合格在英许可期限，KoLL 3.2、4.14 另核对适用的许可类别与国籍。缺证据时保留 `UNKNOWN`。问卷沿用现有步骤，分享校验接受可选证据字段。
+- 现行法投影的 `earliestDate` 表示条件性居留日期。入选候选适用的英语与 Life in the UK 规则按该日期、该路线和同日适用的豁免重算。仍待满足或确认的规则同时写入 `assumptions`，由结果页面使用。

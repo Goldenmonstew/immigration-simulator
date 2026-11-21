@@ -200,11 +200,11 @@ test.each(['SKILLED_WORKER', 'GLOBAL_TALENT'] as const)(
     };
     expect(current(principal, '2026-01-01').earliestDate).toBe('2026-08-01');
     const projected = current(facts, '2026-01-01', principal);
-    expect(projected.earliestDate).toBe('2026-11-19');
+    expect(projected.earliestDate).toBe('2026-11-16');
     expect(current(facts, '2026-08-01', principal).outcome).toBe(
       'LIKELY_NOT_ELIGIBLE',
     );
-    expect(current(facts, '2026-11-18', principal).outcome).toBe(
+    expect(current(facts, '2026-11-15', principal).outcome).toBe(
       'LIKELY_NOT_ELIGIBLE',
     );
     expect(current(facts, projected.earliestDate!, principal).outcome).toBe(
@@ -214,8 +214,10 @@ test.each(['SKILLED_WORKER', 'GLOBAL_TALENT'] as const)(
       ...principal,
       absences: [{ from: '2025-12-31', to: '2026-01-02' }],
     };
+    // A1#17 (33b): travel days are not absences, so the principal's short
+    // trip no longer moves the joint date.
     const fromAbroad = current(facts, '2026-01-01', principalAbroad);
-    expect(fromAbroad.earliestDate).toBe('2026-11-19');
+    expect(fromAbroad.earliestDate).toBe('2026-11-16');
     expect(
       current(facts, fromAbroad.earliestDate!, principalAbroad).outcome,
     ).toBe('LIKELY_ELIGIBLE');
@@ -344,7 +346,8 @@ test('A3#6 and review33a-1 #4 Long Residence keeps a new departure on the cutoff
     timeline: timeline(facts),
     simulationDate: '2026-11-04',
   });
-  expect(projected?.applicationDate).toBe('2034-09-13');
+  // Restarts on the return day 2024-10-10 (A1#17: travel days are not absences).
+  expect(projected?.applicationDate).toBe('2034-09-12');
   expect(current(facts, projected!.applicationDate!).outcome).toBe(
     'LIKELY_ELIGIBLE',
   );
@@ -402,14 +405,18 @@ test('review33a-2 #1 Long Residence applies the single-absence limit to each of 
     outcome: 'LIKELY_ELIGIBLE',
     earliestDate: '2026-11-04',
   });
-  const total548 = [
+  // Whole days only (A1#17): 99 + 99 + 175 + 175 = 548, then one more day.
+  const total = (lastTripDays: number) => [
     ...trips,
-    { from: '2017-01-01', to: addDays('2017-01-01', 173) },
-    { from: '2021-01-01', to: addDays('2021-01-01', 172) },
+    { from: '2017-01-01', to: addDays('2017-01-01', 176) },
+    { from: '2021-01-01', to: addDays('2021-01-01', lastTripDays + 1) },
   ];
-  expect(current({ episodes, absences: total548 }, '2026-11-04').outcome).toBe(
-    'LIKELY_ELIGIBLE',
-  );
+  expect(
+    current({ episodes, absences: total(175) }, '2026-11-04').outcome,
+  ).toBe('LIKELY_ELIGIBLE');
+  expect(
+    current({ episodes, absences: total(176) }, '2026-11-04').outcome,
+  ).not.toBe('LIKELY_ELIGIBLE');
   expect(
     current({ episodes, absences: [{ from, to }] }, '2026-11-04').outcome,
   ).not.toBe('LIKELY_ELIGIBLE');
@@ -568,19 +575,19 @@ test('A3#6 the crossing trip counts only its pre-cutoff days towards 548, and ke
   const episodes = [permit('2016-11-04', { route: 'STUDENT' })];
   const historic = ['2017-01-01', '2019-01-01', '2021-01-01'].map((from) => ({
     from,
-    to: addDays(from, 179),
+    to: addDays(from, 181),
   }));
-  const cross = { from: '2024-04-03', to: '2024-04-24' };
+  const cross = { from: '2024-04-02', to: '2024-04-24' };
   expect(
     run(clLrResidence10Y, { episodes, absences: [...historic, cross] }).status,
   ).toBe('PASS');
   expect(
     run(clLrResidence10Y, {
       episodes,
-      absences: [...historic, { ...cross, from: '2024-04-02' }],
+      absences: [...historic, { ...cross, from: '2024-04-01' }],
     }).status,
   ).toBe('FAIL');
-  const crossing = { from: '2024-04-10', to: addDays('2024-04-10', 183) };
+  const crossing = { from: '2024-04-10', to: addDays('2024-04-10', 185) };
   expect(run(clLrResidence10Y, { episodes, absences: [crossing] }).status).toBe(
     'PASS',
   );

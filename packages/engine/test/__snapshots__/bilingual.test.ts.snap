@@ -168,7 +168,11 @@ exports[`CL-FAMILY-CHILD-TEN-YEAR default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -224,7 +228,11 @@ exports[`CL-FAMILY-CHILD-TEN-YEAR default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -295,6 +303,14 @@ exports[`CL-FAMILY-CHILD-TEN-YEAR default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -317,6 +333,10 @@ exports[`CL-FAMILY-CHILD-TEN-YEAR default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -715,7 +735,11 @@ exports[`CL-FAMILY-FIVE-YEAR-ADULT-CHILD-ENGLISH default-locale output is unchan
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -771,7 +795,11 @@ exports[`CL-FAMILY-FIVE-YEAR-ADULT-CHILD-ENGLISH default-locale output is unchan
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "UNKNOWN",
@@ -842,6 +870,14 @@ exports[`CL-FAMILY-FIVE-YEAR-ADULT-CHILD-ENGLISH default-locale output is unchan
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -864,6 +900,10 @@ exports[`CL-FAMILY-FIVE-YEAR-ADULT-CHILD-ENGLISH default-locale output is unchan
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -1263,7 +1303,11 @@ exports[`CL-FAMILY-FIVE-YEAR-CHILD-PROJECTED default-locale output is unchanged 
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -1319,11 +1363,15 @@ exports[`CL-FAMILY-FIVE-YEAR-CHILD-PROJECTED default-locale output is unchanged 
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
-          "explanation": "申请日未满 18 岁或已满 65 岁，豁免英语要求。"
+          "explanation": "按预计申请日 2026-11-06 判断：申请日未满 18 岁或已满 65 岁，豁免英语要求。"
         },
         {
           "id": "CL-KOL",
@@ -1390,12 +1438,20 @@ exports[`CL-FAMILY-FIVE-YEAR-CHILD-PROJECTED default-locale output is unchanged 
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
           ],
           "status": "PASS",
-          "explanation": "申请日未满 18 岁或已满 65 岁，豁免 Life in the UK 考试。"
+          "explanation": "按预计申请日 2026-11-06 判断：申请日未满 18 岁或已满 65 岁，豁免 Life in the UK 考试。"
         },
         {
           "id": "CL-LR-RESIDENCE-10Y",
@@ -1412,6 +1468,10 @@ exports[`CL-FAMILY-FIVE-YEAR-CHILD-PROJECTED default-locale output is unchanged 
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -1768,6 +1828,14 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
+              "srcId": "SRC-008",
+              "locator": "CR 3.6"
             }
           ],
           "status": "PASS",
@@ -1873,7 +1941,11 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -1929,7 +2001,11 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -2000,6 +2076,14 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -2022,6 +2106,10 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -2530,6 +2618,14 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
+              "srcId": "SRC-008",
+              "locator": "CR 3.6"
             }
           ],
           "status": "PASS",
@@ -2632,7 +2728,11 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -2688,7 +2788,11 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -2759,6 +2863,14 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -2781,6 +2893,10 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -3287,6 +3403,14 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
+              "srcId": "SRC-008",
+              "locator": "CR 3.6"
             }
           ],
           "status": "PASS",
@@ -3389,7 +3513,11 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -3445,11 +3573,15 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
-          "explanation": "英语 B2，达到定居要求的 B2（Appendix KoLL 2.2，经 E-ILRP.1.6；2027-03-26 起的申请）。"
+          "explanation": "按预计申请日 2034-05-04 判断：英语 B2，达到定居要求的 B2 (LR 13.1(b))。"
         },
         {
           "id": "CL-KOL",
@@ -3516,12 +3648,20 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
           ],
           "status": "PASS",
-          "explanation": "已通过 Life in the UK 考试（Appendix KoLL 2.3，经 E-ILRP.1.6）。"
+          "explanation": "按预计申请日 2034-05-04 判断：已通过 Life in the UK 考试 (LR 14.1)。"
         },
         {
           "id": "CL-LR-RESIDENCE-10Y",
@@ -3538,6 +3678,10 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -4047,6 +4191,14 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
+              "srcId": "SRC-008",
+              "locator": "CR 3.6"
             }
           ],
           "status": "PASS",
@@ -4149,7 +4301,11 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -4205,7 +4361,11 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -4276,6 +4436,14 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -4298,6 +4466,10 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -4806,6 +4978,10 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -4828,7 +5004,11 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -4884,11 +5064,18 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
-          "explanation": "英语 B1，达到定居要求的 B1（Appendix Global Talent GT 32.1(a)，2027-03-26 前的申请）。"
+          "explanation": "申报的国籍 USA 可满足英语要求（EL 4.1）。",
+          "assumptions": [
+            "假设可提交有效的护照、旅行证件或规则接受的其他国籍证明。"
+          ]
         },
         {
           "id": "CL-KOL",
@@ -4955,6 +5142,14 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -4979,6 +5174,10 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -4994,6 +5193,7 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
         "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "只计连续的 Global Talent dependant 许可，假设整段都是同一主申请人的 dependent partner；Appendix Relationship with Partner（GT 27.4）未核对。",
+        "假设可提交有效的护照、旅行证件或规则接受的其他国籍证明。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
@@ -5337,6 +5537,10 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -5360,7 +5564,11 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -5416,11 +5624,18 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
-          "explanation": "英语 B1，达到定居要求的 B1（Appendix Global Talent GT 13.1(a)，2027-03-26 前的申请）。"
+          "explanation": "申报的国籍 USA 可满足英语要求（EL 4.1）。",
+          "assumptions": [
+            "假设可提交有效的护照、旅行证件或规则接受的其他国籍证明。"
+          ]
         },
         {
           "id": "CL-KOL",
@@ -5487,6 +5702,14 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -5511,6 +5734,10 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -5527,6 +5754,7 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
         "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 GT 11.3 列出的 Global Talent、Innovator Founder、Skilled Worker、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Tier 1 与 Representative of an Overseas Business 本工具无法填写，不计入。",
         "按背书未被撤回（GT 10.1）、上一段许可期间在背书或奖项领域有收入（GT 10.2）处理，本工具未核对。",
+        "假设可提交有效的护照、旅行证件或规则接受的其他国籍证明。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
@@ -6021,7 +6249,11 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -6077,7 +6309,11 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -6148,6 +6384,14 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -6170,6 +6414,10 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -6513,6 +6761,10 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -6533,7 +6785,11 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -6589,7 +6845,11 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -6660,6 +6920,14 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -6682,6 +6950,10 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -7155,6 +7427,10 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -7206,7 +7482,11 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -7262,7 +7542,11 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "UNKNOWN",
@@ -7333,6 +7617,14 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -7355,6 +7647,10 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -7839,6 +8135,10 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -7861,7 +8161,11 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -7917,7 +8221,11 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -7988,6 +8296,14 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -8010,6 +8326,10 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -8523,7 +8843,11 @@ exports[`CL-REFUGEE-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -8579,7 +8903,11 @@ exports[`CL-REFUGEE-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "UNKNOWN",
@@ -8650,6 +8978,14 @@ exports[`CL-REFUGEE-FIVE-YEARS default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -8672,6 +9008,10 @@ exports[`CL-REFUGEE-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -9007,6 +9347,10 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -9029,7 +9373,11 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -9085,11 +9433,18 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
-          "explanation": "英语 B1，达到定居要求的 B1（Appendix UK Ancestry UKA 15.1(a)，2027-03-26 前的申请）。"
+          "explanation": "申报的国籍 AUS 可满足英语要求（EL 4.1）。",
+          "assumptions": [
+            "假设可提交有效的护照、旅行证件或规则接受的其他国籍证明。"
+          ]
         },
         {
           "id": "CL-KOL",
@@ -9156,6 +9511,14 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -9180,6 +9543,10 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -9195,6 +9562,7 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
         "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "按你在申请日仍是 Commonwealth citizen（UKA 10.3），且仍满足 UKA 4.1–6.1（祖父母之一生于 UK 或 Islands、能自给自足且不依赖 public funds、能工作并打算在英国工作，UKA 12.1）处理。",
+        "假设可提交有效的护照、旅行证件或规则接受的其他国籍证明。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
@@ -9666,6 +10034,14 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
+              "srcId": "SRC-008",
+              "locator": "CR 3.6"
             }
           ],
           "status": "UNKNOWN",
@@ -9685,7 +10061,11 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -9741,11 +10121,15 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
-          "explanation": "英语 B2，达到定居要求的 B1。"
+          "explanation": "英语 B2，达到定居要求的 B1 (LR 13.1(a))。"
         },
         {
           "id": "CL-KOL",
@@ -9812,12 +10196,20 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
           ],
           "status": "PASS",
-          "explanation": "已通过 Life in the UK 考试。"
+          "explanation": "已通过 Life in the UK 考试 (LR 14.1)。"
         },
         {
           "id": "CL-LR-RESIDENCE-10Y",
@@ -9834,6 +10226,10 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -10333,6 +10729,10 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "UNKNOWN",
@@ -10355,7 +10755,11 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -10411,11 +10815,15 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
-          "explanation": "英语 B2，达到定居要求的 B1（Appendix Private Life PL 16.1(a)，2027-03-26 前的申请）。"
+          "explanation": "英语 B2，达到定居要求的 B1 (LR 13.1(a))。"
         },
         {
           "id": "CL-KOL",
@@ -10482,12 +10890,20 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
           ],
           "status": "PASS",
-          "explanation": "已通过 Life in the UK 考试（PL 17.1）。"
+          "explanation": "已通过 Life in the UK 考试 (LR 14.1)。"
         },
         {
           "id": "CL-LR-RESIDENCE-10Y",
@@ -10504,6 +10920,10 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -11012,6 +11432,14 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
+              "srcId": "SRC-008",
+              "locator": "CR 3.6"
             }
           ],
           "status": "UNKNOWN",
@@ -11031,7 +11459,11 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -11087,11 +11519,15 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
-          "explanation": "英语 B2，达到定居要求的 B1。"
+          "explanation": "英语 B2，达到定居要求的 B1 (LR 13.1(a))。"
         },
         {
           "id": "CL-KOL",
@@ -11158,12 +11594,20 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
           ],
           "status": "PASS",
-          "explanation": "已通过 Life in the UK 考试。"
+          "explanation": "已通过 Life in the UK 考试 (LR 14.1)。"
         },
         {
           "id": "CL-LR-RESIDENCE-10Y",
@@ -11180,6 +11624,10 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -11662,6 +12110,10 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -11688,6 +12140,10 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-004",
+              "locator": "SW 11.1–11.3"
+            },
+            {
+              "srcId": "SRC-004",
               "locator": "SW A1.1"
             },
             {
@@ -11700,11 +12156,9 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             }
           ],
           "status": "PASS",
-          "explanation": "按 SW 24.3 row D（SOC 2461 是 Appendix Skilled Occupations Table 3 的医疗 / 教育职业），general salary 门槛 £25,000；当前年薪 £42,000，已达到。",
+          "explanation": "当前年薪 £42,000，达到 SW 24.3 的一般薪资门槛（row D: £25,000）。",
           "assumptions": [
-            "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
-            "未申报是否在 Immigration Salary List 上，按不在清单处理。",
-            "\\"2024-04-04 前按当时规则获批\\"按连续 Skilled Worker 许可的起始日判断（SW 4.2(b)(ii)）。"
+            "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。"
           ]
         },
         {
@@ -11717,7 +12171,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-004",
-              "locator": "SW 6.1"
+              "locator": "SW 6.1–6.1A, SW 11.1–11.3"
             },
             {
               "srcId": "SRC-004",
@@ -11728,15 +12182,16 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns"
             },
             {
+              "srcId": "SRC-017",
+              "locator": "Table 3, going rate column"
+            },
+            {
               "srcId": "SRC-019",
               "locator": "Unnumbered introductory paragraph; occupation table; SOC 2020 rows"
             }
           ],
           "status": "UNKNOWN",
-          "explanation": "SOC 2461 是 Table 3 医疗 / 教育职业，going rate 按国家薪级（Appendix Skilled Occupations Table 3–5）确定；Table 4 / 5 的薪级本工具未提取，无法核对。",
-          "assumptions": [
-            "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。"
-          ]
+          "explanation": "SOC 2461：薪级须查 Table 4 / 5，本工具无法核对适用的 going rate（SRC-017 Tables 3–5）。"
         },
         {
           "id": "CL-ENGLISH",
@@ -11752,7 +12207,11 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -11808,7 +12267,11 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -11879,6 +12342,14 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -11903,6 +12374,10 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -11919,9 +12394,6 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
         "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 SW 21.2 列出的 Skilled Worker、Global Talent、Innovator Founder、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Representative of an Overseas Business 与 Tier 1 本工具无法填写，不计入；SW 21.2(i) 的等待决定期间未建模。",
         "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
-        "未申报是否在 Immigration Salary List 上，按不在清单处理。",
-        "\\"2024-04-04 前按当时规则获批\\"按连续 Skilled Worker 许可的起始日判断（SW 4.2(b)(ii)）。",
-        "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
@@ -12401,6 +12873,14 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
+              "srcId": "SRC-008",
+              "locator": "CR 3.6"
             }
           ],
           "status": "UNKNOWN",
@@ -12420,7 +12900,11 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -12476,7 +12960,11 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -12547,6 +13035,14 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -12569,6 +13065,10 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -13049,6 +13549,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-004",
+              "locator": "SW 38.1–38.2"
+            },
+            {
+              "srcId": "SRC-004",
               "locator": "SW 42.1"
             },
             {
@@ -13058,12 +13562,16 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
           "explanation": "与主申请人一同定居：按本人与主申请人各自的 5 年合格期，可从 2026-04-06 起一同申请（SW 39.1(a)、SW 42.1）。",
           "assumptions": [
-            "只计连续的 Skilled Worker dependant 许可，假设整段都是同一主申请人的 dependent partner；Appendix Relationship with Partner（SW 39.3）未核对。",
+            "只计连续的 Skilled Worker dependent partner 许可，假设填报的伴侣许可都属于同一主申请人；Appendix Relationship with Partner（SW 39.3）未核对。",
             "主申请人尚未定居时，只判断与主申请人同时获批（SW 39.1(a)）；若其已定居，须在主申请人信息里填写定居日期与路线（SW 39.1(b)）。"
           ]
         },
@@ -13081,7 +13589,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -13137,7 +13649,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -13208,6 +13724,14 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -13232,6 +13756,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -13246,7 +13774,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
         "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
-        "只计连续的 Skilled Worker dependant 许可，假设整段都是同一主申请人的 dependent partner；Appendix Relationship with Partner（SW 39.3）未核对。",
+        "只计连续的 Skilled Worker dependent partner 许可，假设填报的伴侣许可都属于同一主申请人；Appendix Relationship with Partner（SW 39.3）未核对。",
         "主申请人尚未定居时，只判断与主申请人同时获批（SW 39.1(a)）；若其已定居，须在主申请人信息里填写定居日期与路线（SW 39.1(b)）。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
@@ -13597,6 +14125,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -13623,6 +14155,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-004",
+              "locator": "SW 11.1–11.3"
+            },
+            {
+              "srcId": "SRC-004",
               "locator": "SW A1.1"
             },
             {
@@ -13635,11 +14171,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             }
           ],
           "status": "PASS",
-          "explanation": "按 SW 24.3 row C（自 2021-04-06 起连续持 Skilled Worker 许可，早于 2024-04-04，且申请日早于 2030-04-04（SW 4.2(b)(ii)）），general salary 门槛 £31,300；当前年薪 £60,000，已达到。",
+          "explanation": "当前年薪 £60,000，达到 SW 24.3 的一般薪资门槛（row C: £31,300；row D: £25,000）。",
           "assumptions": [
             "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
-            "未申报是否在 Immigration Salary List 上，按不在清单处理。",
-            "\\"2024-04-04 前按当时规则获批\\"按连续 Skilled Worker 许可的起始日判断（SW 4.2(b)(ii)）。"
+            "最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。",
+            "连续 Skilled Worker 许可的首段按过渡日前的规则获批，且申请日在过渡期限内（SW 4.2(b)(ii)）。"
           ]
         },
         {
@@ -13652,7 +14188,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-004",
-              "locator": "SW 6.1"
+              "locator": "SW 6.1–6.1A, SW 11.1–11.3"
             },
             {
               "srcId": "SRC-004",
@@ -13663,15 +14199,16 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns"
             },
             {
+              "srcId": "SRC-017",
+              "locator": "Table 3, going rate column"
+            },
+            {
               "srcId": "SRC-019",
               "locator": "Unnumbered introductory paragraph; occupation table; SOC 2020 rows"
             }
           ],
           "status": "UNKNOWN",
-          "explanation": "未填写当前 Skilled Worker 工作的 SOC 2020 职业代码，无法查 going rate。",
-          "assumptions": [
-            "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。"
-          ]
+          "explanation": "未填写当前 Skilled Worker 工作的 SOC 2020 职业代码，无法查 going rate。"
         },
         {
           "id": "CL-ENGLISH",
@@ -13687,7 +14224,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -13743,7 +14284,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -13814,6 +14359,14 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -13838,6 +14391,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -13854,9 +14411,8 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
         "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 SW 21.2 列出的 Skilled Worker、Global Talent、Innovator Founder、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Representative of an Overseas Business 与 Tier 1 本工具无法填写，不计入；SW 21.2(i) 的等待决定期间未建模。",
         "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
-        "未申报是否在 Immigration Salary List 上，按不在清单处理。",
-        "\\"2024-04-04 前按当时规则获批\\"按连续 Skilled Worker 许可的起始日判断（SW 4.2(b)(ii)）。",
-        "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。",
+        "最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。",
+        "连续 Skilled Worker 许可的首段按过渡日前的规则获批，且申请日在过渡期限内（SW 4.2(b)(ii)）。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
@@ -14322,6 +14878,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
             },
             {
               "srcId": "SRC-004",
+              "locator": "SW 38.1–38.2"
+            },
+            {
+              "srcId": "SRC-004",
               "locator": "SW 42.1"
             },
             {
@@ -14331,12 +14891,16 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "FAIL",
           "explanation": "与主申请人一同定居：按本人与主申请人各自的 5 年合格期，可从 2028-03-09 起一同申请（SW 39.1(a)、SW 42.1）。截至 2026-04-06 尚未满期。",
           "assumptions": [
-            "只计连续的 Skilled Worker dependant 许可，假设整段都是同一主申请人的 dependent partner；Appendix Relationship with Partner（SW 39.3）未核对。",
+            "只计连续的 Skilled Worker dependent partner 许可，假设填报的伴侣许可都属于同一主申请人；Appendix Relationship with Partner（SW 39.3）未核对。",
             "主申请人尚未定居时，只判断与主申请人同时获批（SW 39.1(a)）；若其已定居，须在主申请人信息里填写定居日期与路线（SW 39.1(b)）。"
           ]
         },
@@ -14354,7 +14918,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -14410,11 +14978,15 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
-          "explanation": "英语 B2，达到定居要求的 B1。"
+          "explanation": "按预计申请日 2028-03-09 判断：英语 B2，达到定居要求的 B2。"
         },
         {
           "id": "CL-KOL",
@@ -14481,12 +15053,20 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
           ],
           "status": "PASS",
-          "explanation": "已通过 Life in the UK 考试。"
+          "explanation": "按预计申请日 2028-03-09 判断：已通过 Life in the UK 考试。"
         },
         {
           "id": "CL-LR-RESIDENCE-10Y",
@@ -14505,6 +15085,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -14519,8 +15103,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
         "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
-        "预计日期在 2027-03-26 之后，届时定居须达到英语 B2（SW 22A.1、LR 13.1(b)）。",
-        "只计连续的 Skilled Worker dependant 许可，假设整段都是同一主申请人的 dependent partner；Appendix Relationship with Partner（SW 39.3）未核对。",
+        "只计连续的 Skilled Worker dependent partner 许可，假设填报的伴侣许可都属于同一主申请人；Appendix Relationship with Partner（SW 39.3）未核对。",
         "主申请人尚未定居时，只判断与主申请人同时获批（SW 39.1(a)）；若其已定居，须在主申请人信息里填写定居日期与路线（SW 39.1(b)）。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。",
         "最早可申请日期按\\"自 2023-04-06 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
@@ -14915,7 +15498,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -14971,7 +15558,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -15042,6 +15633,14 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -15064,6 +15663,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -15460,7 +16063,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -15516,7 +16123,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -15587,6 +16198,14 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-D default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -15609,6 +16228,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -16001,7 +16624,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-E default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -16057,11 +16684,15 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-E default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
-          "explanation": "英语 B2，达到定居要求的 B1。"
+          "explanation": "按预计申请日 2031-03-09 判断：英语 B2，达到定居要求的 B2 (LR 13.1(b))。"
         },
         {
           "id": "CL-KOL",
@@ -16128,12 +16759,20 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-E default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
           ],
           "status": "PASS",
-          "explanation": "已通过 Life in the UK 考试。"
+          "explanation": "按预计申请日 2031-03-09 判断：已通过 Life in the UK 考试 (LR 14.1)。"
         },
         {
           "id": "CL-LR-RESIDENCE-10Y",
@@ -16152,6 +16791,10 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-E default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -16166,7 +16809,6 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-E default-locale output is unchanged 1`] = `
       "assumptions": [
         "现行规则只建模 Skilled Worker 主申请人及其 dependent partner / child（Appendix Skilled Worker、Appendix Children）、Hong Kong BN(O) 主申请人及其 dependant（Appendix Hong Kong British National (Overseas)）、Global Talent 主申请人及其 dependent partner / child（Appendix Global Talent）、Appendix FM 伴侣（10 年路线按 Appendix Settlement Family Life，5 年路线按 Appendix FM）及其子女（10 年路线按 Appendix Settlement Family Life，5 年路线按 Immigration Rules Part 8 第 298 段）、持 refugee status 或 humanitarian protection 的主申请人（Appendix Settlement Protection）、UK Ancestry 主申请人（Appendix UK Ancestry）、Innovator Founder 主申请人（Appendix Innovator Founder）、Private Life 主申请人（Appendix Private Life）与 Long Residence（Appendix Long Residence）；Part Suitability、STP 2.1 的 suitability、担保方仍获批准（SW 24.1–24.2）等其他要求未建模。",
         "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
-        "预计日期在 2027-03-26 之后，届时定居须达到英语 B2（SW 22A.1、LR 13.1(b)）。",
         "假设子女未 leading an independent life（CHI 1A.1）。",
         "只看申请日当天的 Skilled Worker dependent child 许可，假设是同一主申请人的子女；另一位家长须同时获批定居、已定居或为英国公民，除非主申请人负唯一抚养责任等（CHI 4.3，经 SW 39.4），本工具未核对。",
         "主申请人尚未定居时，只判断与主申请人同时获批（SW 39.1(a)）；若其已定居，须在主申请人信息里填写定居日期与路线（SW 39.1(b)）。",
@@ -16535,7 +17177,11 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -16591,7 +17237,11 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "FAIL",
@@ -16662,6 +17312,14 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -16684,6 +17342,10 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -17044,7 +17706,11 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -17100,7 +17766,11 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -17171,6 +17841,14 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -17193,6 +17871,10 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -17597,7 +18279,11 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -17653,7 +18339,11 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -17724,6 +18414,14 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -17746,6 +18444,10 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -18154,7 +18856,11 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -18210,7 +18916,11 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -18281,6 +18991,14 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-D default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -18303,6 +19021,10 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             },
             {
               "srcId": "SRC-008",
@@ -18543,16 +19265,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
   "policyAsOf": "2026-11-04",
   "byRuleSet": {
     "current-law-2026-11": {
-      "outcome": "LIKELY_ELIGIBLE",
-      "pathwayYears": 5,
-      "earliestDate": "2028-04-06",
-      "decidedBy": [
-        "CL-SW-RESIDENCE-5Y",
-        "CL-SW-SALARY",
-        "CL-SW-GOING-RATE",
-        "CL-ENGLISH",
-        "CL-KOL"
-      ],
+      "outcome": "INSUFFICIENT_INFORMATION",
       "rules": [
         {
           "id": "CL-SCOPE",
@@ -18645,6 +19358,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -18671,6 +19388,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-004",
+              "locator": "SW 11.1–11.3"
+            },
+            {
+              "srcId": "SRC-004",
               "locator": "SW A1.1"
             },
             {
@@ -18682,12 +19403,11 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "Unnumbered introductory paragraph; occupation table; SOC 2020 rows"
             }
           ],
-          "status": "PASS",
-          "explanation": "按 SW 24.3 row D（岗位在 Immigration Salary List 上，且自 2023-04-06 起连续持 Skilled Worker 许可，早于 2024-04-04，且申请日早于 2030-04-04（SW 4.2(b)(ii)）），general salary 门槛 £25,000；当前年薪 £30,000，已达到。",
+          "status": "UNKNOWN",
+          "explanation": "当前年薪 £30,000。核对职业代码、最近一次担保及旧规资格后，才能确定 SW 24.3 的一般薪资门槛（row C: £31,300；row D: £25,000）。",
           "assumptions": [
             "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
-            "未申报是否在 Immigration Salary List 上；SOC 6135 在清单职业表中，按职业代码推导为在清单上。清单对岗位 / 地区的限制（criteria）未核对，可在问卷里申报覆盖。清单条目的移除日期为 2028-07-22，已按申请日比较。",
-            "\\"2024-04-04 前按当时规则获批\\"按连续 Skilled Worker 许可的起始日判断（SW 4.2(b)(ii)）。"
+            "最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。"
           ]
         },
         {
@@ -18700,7 +19420,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-004",
-              "locator": "SW 6.1"
+              "locator": "SW 6.1–6.1A, SW 11.1–11.3"
             },
             {
               "srcId": "SRC-004",
@@ -18711,14 +19431,18 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns"
             },
             {
+              "srcId": "SRC-017",
+              "locator": "Table 3, going rate column"
+            },
+            {
               "srcId": "SRC-019",
               "locator": "Unnumbered introductory paragraph; occupation table; SOC 2020 rows"
             }
           ],
           "status": "PASS",
-          "explanation": "按 SW 24.3 row D 查 Appendix Skilled Occupations Table 2aa，SOC 6135（Care workers and home carers）的 going rate 为 £25,000；当前年薪 £30,000，已达到。",
+          "explanation": "SOC 6135 的 going rate（row C, Table 2aa: £25,000；row D, Table 2aa: £25,000）；当前年薪 £30,000，已达到。",
           "assumptions": [
-            "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。"
+            "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。"
           ]
         },
         {
@@ -18735,7 +19459,11 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -18791,7 +19519,11 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
@@ -18862,6 +19594,14 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
@@ -18886,6 +19626,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -18902,9 +19646,8 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
         "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 SW 21.2 列出的 Skilled Worker、Global Talent、Innovator Founder、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Representative of an Overseas Business 与 Tier 1 本工具无法填写，不计入；SW 21.2(i) 的等待决定期间未建模。",
         "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
-        "未申报是否在 Immigration Salary List 上；SOC 6135 在清单职业表中，按职业代码推导为在清单上。清单对岗位 / 地区的限制（criteria）未核对，可在问卷里申报覆盖。清单条目的移除日期为 2028-07-22，已按申请日比较。",
-        "\\"2024-04-04 前按当时规则获批\\"按连续 Skilled Worker 许可的起始日判断（SW 4.2(b)(ii)）。",
-        "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。",
+        "最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。",
+        "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },
@@ -19386,6 +20129,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -19412,6 +20159,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-004",
+              "locator": "SW 11.1–11.3"
+            },
+            {
+              "srcId": "SRC-004",
               "locator": "SW A1.1"
             },
             {
@@ -19424,11 +20175,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "按 SW 24.3 row D（岗位在 Immigration Salary List 上，且自 2023-04-06 起连续持 Skilled Worker 许可，早于 2024-04-04，且申请日早于 2030-04-04（SW 4.2(b)(ii)）），general salary 门槛 £25,000；当前年薪 £20,000，低于此门槛。",
+          "explanation": "当前年薪 £20,000，低于 SW 24.3 的一般薪资门槛（row C: £31,300；row D: £25,000）。",
           "assumptions": [
             "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
-            "未申报是否在 Immigration Salary List 上；SOC 6135 在清单职业表中，按职业代码推导为在清单上。清单对岗位 / 地区的限制（criteria）未核对，可在问卷里申报覆盖。清单条目的移除日期为 2028-07-22，已按申请日比较。",
-            "\\"2024-04-04 前按当时规则获批\\"按连续 Skilled Worker 许可的起始日判断（SW 4.2(b)(ii)）。"
+            "最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。"
           ]
         },
         {
@@ -19441,7 +20191,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-004",
-              "locator": "SW 6.1"
+              "locator": "SW 6.1–6.1A, SW 11.1–11.3"
             },
             {
               "srcId": "SRC-004",
@@ -19452,14 +20202,18 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns"
             },
             {
+              "srcId": "SRC-017",
+              "locator": "Table 3, going rate column"
+            },
+            {
               "srcId": "SRC-019",
               "locator": "Unnumbered introductory paragraph; occupation table; SOC 2020 rows"
             }
           ],
           "status": "FAIL",
-          "explanation": "按 SW 24.3 row D 查 Appendix Skilled Occupations Table 2aa，SOC 6135（Care workers and home carers）的 going rate 为 £25,000；当前年薪 £20,000，低于 going rate。",
+          "explanation": "SOC 6135 的 going rate（row C, Table 2aa: £25,000；row D, Table 2aa: £25,000）；当前年薪 £20,000，低于要求。",
           "assumptions": [
-            "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。"
+            "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。"
           ]
         },
         {
@@ -19476,7 +20230,11 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -19532,11 +20290,15 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
-          "explanation": "英语 B2，达到定居要求的 B2。"
+          "explanation": "按预计申请日 2033-03-09 判断：英语 B2，达到定居要求的 B2 (LR 13.1(b))。"
         },
         {
           "id": "CL-KOL",
@@ -19603,12 +20365,20 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
           ],
           "status": "PASS",
-          "explanation": "已通过 Life in the UK 考试。"
+          "explanation": "按预计申请日 2033-03-09 判断：已通过 Life in the UK 考试 (LR 14.1)。"
         },
         {
           "id": "CL-LR-RESIDENCE-10Y",
@@ -19627,6 +20397,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -19643,9 +20417,8 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
         "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 SW 21.2 列出的 Skilled Worker、Global Talent、Innovator Founder、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Representative of an Overseas Business 与 Tier 1 本工具无法填写，不计入；SW 21.2(i) 的等待决定期间未建模。",
         "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
-        "未申报是否在 Immigration Salary List 上；SOC 6135 在清单职业表中，按职业代码推导为在清单上。清单对岗位 / 地区的限制（criteria）未核对，可在问卷里申报覆盖。清单条目的移除日期为 2028-07-22，已按申请日比较。",
-        "\\"2024-04-04 前按当时规则获批\\"按连续 Skilled Worker 许可的起始日判断（SW 4.2(b)(ii)）。",
-        "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。",
+        "最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。",
+        "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。",
         "最早可申请日期按\\"自 2023-04-06 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ]
@@ -20126,6 +20899,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
+            },
+            {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
             }
           ],
           "status": "PASS",
@@ -20152,6 +20929,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-004",
+              "locator": "SW 11.1–11.3"
+            },
+            {
+              "srcId": "SRC-004",
               "locator": "SW A1.1"
             },
             {
@@ -20163,12 +20944,12 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "Unnumbered introductory paragraph; occupation table; SOC 2020 rows"
             }
           ],
-          "status": "FAIL",
-          "explanation": "按 SW 24.3 row C（SOC 6135 属 Health and Care ASHE salary job（SW A1.1）），general salary 门槛 £31,300；当前年薪 £30,000，低于此门槛。",
+          "status": "UNKNOWN",
+          "explanation": "当前年薪 £30,000。核对职业代码、最近一次担保及旧规资格后，才能确定 SW 24.3 的一般薪资门槛（row C: £31,300；row D: £25,000）。",
           "assumptions": [
             "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
-            "未申报是否在 Immigration Salary List 上；SOC 6135 的清单条目移除日期为 2028-07-22，早于申请日，按不在清单处理。",
-            "SOC 6135 在 SW A1.1 的 Health and Care ASHE salary job 职业列表内，假设雇主属 SW A1.1(a)–(f) 列出的类型。"
+            "最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。",
+            "SOC 6135 属 Health and Care ASHE 职业列表，按 SW A1.1(a)–(m) 假设其担保、雇用或服务安排符合要求。"
           ]
         },
         {
@@ -20181,7 +20962,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-004",
-              "locator": "SW 6.1"
+              "locator": "SW 6.1–6.1A, SW 11.1–11.3"
             },
             {
               "srcId": "SRC-004",
@@ -20192,14 +20973,18 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns"
             },
             {
+              "srcId": "SRC-017",
+              "locator": "Table 3, going rate column"
+            },
+            {
               "srcId": "SRC-019",
               "locator": "Unnumbered introductory paragraph; occupation table; SOC 2020 rows"
             }
           ],
           "status": "PASS",
-          "explanation": "按 SW 24.3 row C 查 Appendix Skilled Occupations Table 2aa，SOC 6135（Care workers and home carers）的 going rate 为 £25,000；当前年薪 £30,000，已达到。",
+          "explanation": "SOC 6135 的 going rate（row C, Table 2aa: £25,000；row D, Table 2aa: £25,000）；当前年薪 £30,000，已达到。",
           "assumptions": [
-            "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。"
+            "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。"
           ]
         },
         {
@@ -20216,7 +21001,11 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-007",
-              "locator": "p24"
+              "locator": "p24, APP SW5"
+            },
+            {
+              "srcId": "SRC-007",
+              "locator": "pp24–25, APP SW8"
             },
             {
               "srcId": "SRC-005",
@@ -20272,11 +21061,15 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-014",
-              "locator": "EL 1.1"
+              "locator": "EL 1.1, EL 4.1"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.8–4.10, 4.14"
             }
           ],
           "status": "PASS",
-          "explanation": "英语 B2，达到定居要求的 B2。"
+          "explanation": "英语 B2，达到定居要求的 B2 (LR 13.1(b))。"
         },
         {
           "id": "CL-KOL",
@@ -20343,12 +21136,20 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "KOL 1.1"
             },
             {
+              "srcId": "SRC-014",
+              "locator": "EL 1.1(d)"
+            },
+            {
+              "srcId": "SRC-025",
+              "locator": "KoLL 3.2, 4.14"
+            },
+            {
               "srcId": "SRC-015",
               "locator": "KOL 2.1"
             }
           ],
           "status": "PASS",
-          "explanation": "已通过 Life in the UK 考试。"
+          "explanation": "已通过 Life in the UK 考试 (LR 14.1)。"
         },
         {
           "id": "CL-LR-RESIDENCE-10Y",
@@ -20367,6 +21168,10 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
             {
+              "srcId": "SRC-057",
+              "locator": "Count whole days"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 3.3"
             }
@@ -20383,9 +21188,9 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
         "适用 Appendix Continuous Residence 的路线可在合格居留期满前最多 28 天递交（CR 1.1(b)）。估算使用已申报的许可。申请日超出最后一段已录入许可时，假设合格许可连续续接，亦假设递交时满足其余条件。问卷没有决定日供计算。",
         "连续期合并 SW 21.2 列出的 Skilled Worker、Global Talent、Innovator Founder、T2 Minister of Religion、International Sportsperson、Scale-up 主申请人许可；Representative of an Overseas Business 与 Tier 1 本工具无法填写，不计入；SW 21.2(i) 的等待决定期间未建模。",
         "SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。",
-        "未申报是否在 Immigration Salary List 上；SOC 6135 的清单条目移除日期为 2028-07-22，早于申请日，按不在清单处理。",
-        "SOC 6135 在 SW A1.1 的 Health and Care ASHE salary job 职业列表内，假设雇主属 SW A1.1(a)–(f) 列出的类型。",
-        "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。",
+        "最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。",
+        "SOC 6135 属 Health and Care ASHE 职业列表，按 SW A1.1(a)–(m) 假设其担保、雇用或服务安排符合要求。",
+        "going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。",
         "连续合法居留计入学生、毕业生等临时路线，不计访问、季节性工作者、乌克兰计划（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。"
       ]
     },

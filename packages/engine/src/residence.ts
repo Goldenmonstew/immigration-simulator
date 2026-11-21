@@ -214,6 +214,17 @@ function unionAbsences(absences: Absence[]): Absence[] {
   return merged;
 }
 
+/** CR 3.1: travel days are excluded before clipping or splitting a trip. */
+function wholeDayTrips(trips: Absence[]): Absence[] {
+  return trips
+    .filter(({ from, to }) => from && to && daysBetween(from, to) > 1)
+    .map(({ from, to }) => ({ from: addDays(from, 1), to: addDays(to, -1) }));
+}
+
+function wholeDayAbsences(trips: Absence[]): Absence[] {
+  return unionAbsences(wholeDayTrips(trips));
+}
+
 function absenceDays(absences: Absence[], from: IsoDate, to: IsoDate): number {
   return absences.reduce(
     (days, a) => days + overlapDays(a.from, a.to, from, to),
@@ -390,12 +401,14 @@ export function currentResidence(
     longResidence = false,
     appliesOn = counts,
     notBefore = application,
+    countedTrips = timeline.absences,
     checkLocation = true,
     allowSection3C = false,
   }: {
     longResidence?: boolean;
     appliesOn?: Counts;
     notBefore?: IsoDate;
+    countedTrips?: Absence[];
     checkLocation?: boolean;
     allowSection3C?: boolean;
   } = {},
@@ -403,18 +416,23 @@ export function currentResidence(
   const trips = timeline.absences
     .filter((a) => a.from && a.to && a.from <= a.to)
     .sort((a, b) => a.from.localeCompare(b.from));
-  const absences = unionAbsences(trips);
+  const absences = wholeDayAbsences(countedTrips);
   const limits: AbsenceLimit = longResidence
     ? longResidenceLimit
     : calendarLimit;
   const legacy = limits.legacy;
-  // Keep each CR 3.3 departure for the single-trip cap. Only totals use unions.
-  const olderTrips = legacy ? trips.filter((a) => a.from < legacy.before) : [];
+  // CR 3.3: classify each departure before excluding travel days. Keep each
+  // departure for the single-trip cap; only totals merge overlapping days.
+  const olderTrips = legacy
+    ? wholeDayTrips(countedTrips.filter((a) => a.from < legacy.before))
+    : [];
   const older = unionAbsences(olderTrips);
   const { fixed, rolling } = legacy
     ? {
         fixed: [],
-        rolling: unionAbsences(trips.filter((a) => a.from >= legacy.before)),
+        rolling: wholeDayAbsences(
+          countedTrips.filter((a) => a.from >= legacy.before),
+        ),
       }
     : partitionByPermission(timeline, absences);
   const treatment = (from: IsoDate, to: IsoDate, reference: IsoDate) =>
@@ -461,7 +479,7 @@ export function currentResidence(
       }
       // A trip that breaks continuity on its own cannot provide the start
       // of the new period while the applicant is still on that same trip.
-      for (const trip of trips) {
+      for (const trip of wholeDayTrips(countedTrips)) {
         if (
           trip.from <= start &&
           start <= trip.to &&
@@ -510,6 +528,8 @@ export function currentResidence(
   const referenceChanges = [
     ...changes,
     ...absences.flatMap((a) => [a.from, a.to]),
+    // CR 4.1(d)(iii) can apply only once the applicant has returned.
+    ...trips.map((a) => a.to),
   ].sort();
   let firstPossibleReference = firstReference;
   let applied = later(notBefore, addDays(firstReference, -advance));

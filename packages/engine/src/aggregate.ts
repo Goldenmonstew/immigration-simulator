@@ -7,11 +7,9 @@ import { addYears } from './dates';
 import { continuousRun, episodeOn, timelineAtFiling } from './residence';
 import { runRule, textFor } from './rule';
 import type { Lang } from './rule';
-import { meetsCefr } from './rules/es-requirements';
+import { settlementEnglish, settlementKol } from './rules/current-law/english';
 import {
-  ageExempt,
   familyChildPathway,
-  onFiveYearFamilyChild,
   familyFiveYearStart,
   familyTenYearResidence,
   globalTalentDependantPathway,
@@ -36,7 +34,10 @@ import {
 import { applicationPresence } from './rules/current-law/shared';
 import { familyFiveYearFiling } from './rules/current-law/family';
 import { adultChildResidence } from './rules/current-law/hong-kong-bno';
-import { skilledWorkerFiling } from './rules/current-law/skilled-worker';
+import {
+  pendingOnJointDay,
+  skilledWorkerFiling,
+} from './rules/current-law/skilled-worker';
 import { currentLawApplicationPresence } from './rules/current-law/scope';
 import { esDependantSettlement } from './rules/es-dependant';
 import {
@@ -82,6 +83,7 @@ type Decision = Pick<
 > & {
   /** Start of the residence the earliest date was projected from. */
   projectedFrom?: IsoDate;
+  projectedCandidate?: Candidate;
 };
 
 function statusOf(c: Candidate): RuleOutcome['status'] {
@@ -110,7 +112,11 @@ const basisOf = (c: Candidate): RuleId[] => [
  *   that have not failed, assuming circumstances stay the same.
  * Whenever a pathway is given, `decidedBy` names its candidate (§16.1).
  */
-function decide(candidates: Candidate[], simulationDate: IsoDate): Decision {
+function decide(
+  candidates: Candidate[],
+  simulationDate: IsoDate,
+  canProject = (candidate: Candidate) => statusOf(candidate) !== 'FAIL',
+): Decision {
   const met = (c: Candidate) => {
     const due = dueOf(c);
     return due !== undefined && due <= simulationDate;
@@ -147,7 +153,7 @@ function decide(candidates: Candidate[], simulationDate: IsoDate): Decision {
   }
 
   const next = candidates
-    .filter((c) => statusOf(c) !== 'FAIL' && dueOf(c))
+    .filter((c) => dueOf(c) && canProject(c))
     .sort((a, b) => {
       const [da, db] = [dueOf(a)!, dueOf(b)!];
       return da === db ? a.years - b.years : da < db ? -1 : 1;
@@ -159,6 +165,7 @@ function decide(candidates: Candidate[], simulationDate: IsoDate): Decision {
         earliestDate: dueOf(next),
         decidedBy: basisOf(next),
         projectedFrom: next.start,
+        projectedCandidate: next,
       }
     : { outcome: 'LIKELY_NOT_ELIGIBLE' };
 }
@@ -175,13 +182,15 @@ function projection(projectedFrom: IsoDate | undefined, L: Lang): string[] {
 }
 
 function toAssessment(
-  { projectedFrom, decidedBy, ...decision }: Decision,
+  { projectedFrom, decidedBy, outcome, pathwayYears, earliestDate }: Decision,
   rules: RuleOutcome[],
   assumptions: string[],
   L: Lang,
 ): SettlementAssessment {
   return {
-    ...decision,
+    outcome,
+    ...(pathwayYears !== undefined && { pathwayYears }),
+    ...(earliestDate !== undefined && { earliestDate }),
     ...(decidedBy && {
       decidedBy: rules.map((r) => r.id).filter((id) => decidedBy.includes(id)),
     }),
@@ -568,7 +577,6 @@ function assessCurrentLaw(
   const hkOwn = afterMajority ?? hongKongBnoResidence(ctx);
   const gtDependant = globalTalentDependantPathway(ctx);
   const familyChild = familyChildPathway(ctx);
-  const fiveYearChild = onFiveYearFamilyChild(ctx);
   // In scope as a partner or child only with the principal (CL-SCOPE).
   const partner =
     ctx.principal !== undefined &&
@@ -632,29 +640,14 @@ function assessCurrentLaw(
   // CL-ENGLISH applies the current route's level (none for Skilled Worker
   // before 2027-03-26, B1 for Hong Kong BN(O)); the Long Residence candidate
   // is checked against its own level (LR 13.1).
-  const [english] = pick('CL-ENGLISH');
-  const lrB2 = cl.values.longResidenceSettlementEnglish.value;
-  const lrFromB2 = ctx.simulationDate >= lrB2.applicationsFrom;
-  const lrRequired = lrFromB2
-    ? lrB2.cefrLevel
-    : cl.values.longResidenceSettlementEnglishBefore.value;
-  const declared = ctx.timeline.english;
-  const statusAtLevel = (
-    required: string,
-    date: IsoDate,
-  ): RuleOutcome['status'] =>
-    ageExempt(ctx.timeline, date) || (declared && 'exempt' in declared)
-      ? 'PASS'
-      : !declared
-        ? 'UNKNOWN'
-        : meetsCefr(declared.cefrLevel, required)
-          ? 'PASS'
-          : 'FAIL';
-  const lrStatus = statusAtLevel(lrRequired, ctx.simulationDate);
-  const lrEnglishDiffers = lrStatus !== english.status;
-  const lrEnglish: RuleOutcome = lrEnglishDiffers
-    ? { ...english, status: lrStatus }
-    : english;
+  const [english, kol] = pick('CL-ENGLISH', 'CL-KOL');
+  const lrLanguage = [
+    {
+      ...english,
+      ...settlementEnglish(ctx, ctx.simulationDate, 'LONG_RESIDENCE'),
+    },
+    { ...kol, ...settlementKol(ctx, ctx.simulationDate, 'LONG_RESIDENCE') },
+  ];
   const adultChecks = afterMajority?.applicationDate
     ? rulesAtFiling(['CL-ENGLISH', 'CL-KOL'], afterMajority.applicationDate)
     : undefined;
@@ -665,9 +658,14 @@ function assessCurrentLaw(
             years: cl.values.skilledWorkerQualifyingYears.value,
             start: swFiling?.start,
             applicationDate: swFiling?.applicationDate,
-            rules:
-              swFiling?.requirements ??
-              pick('CL-SW-SALARY', 'CL-SW-GOING-RATE', 'CL-ENGLISH', 'CL-KOL'),
+            // Salary checks come from the filing date; English and Life in
+            // the UK are rechecked for the projected date below (A6#6).
+            rules: [
+              ...(swFiling?.requirements?.filter(
+                (r) => r.id === 'CL-SW-SALARY' || r.id === 'CL-SW-GOING-RATE',
+              ) ?? pick('CL-SW-SALARY', 'CL-SW-GOING-RATE')),
+              ...pick('CL-ENGLISH', 'CL-KOL'),
+            ],
             residence: 'CL-SW-RESIDENCE-5Y',
           },
         ]
@@ -827,8 +825,13 @@ function assessCurrentLaw(
       ? [
           {
             years: cl.values.skilledWorkerQualifyingYears.value,
-            start: swPartnerResidence?.start,
-            applicationDate: swPartnerResidence?.applicationDate,
+            // Keep the joint date while the principal only has evidence
+            // to confirm on that day.
+            ...((pick('CL-SW-PARTNER-5Y')[0].status === 'PASS' ||
+              pendingOnJointDay(swPartnerResidence).length > 0) && {
+              start: swPartnerResidence?.start,
+              applicationDate: swPartnerResidence?.applicationDate,
+            }),
             rules: pick('CL-SW-PARTNER-5Y', 'CL-ENGLISH', 'CL-KOL'),
           },
         ]
@@ -853,13 +856,29 @@ function assessCurrentLaw(
       start: lrResidence?.start,
       applicationDate: lrResidence?.applicationDate,
       rules: [
-        lrEnglish,
-        ...pick('CL-KOL'),
+        ...lrLanguage,
         ...(presence?.status === 'UNKNOWN' ? pick('CL-LR-RESIDENCE-10Y') : []),
       ],
       residence: 'CL-LR-RESIDENCE-10Y',
     },
   ];
+  const languageAt = (
+    rule: RuleOutcome,
+    candidate: Candidate,
+    date: IsoDate,
+  ) => {
+    const override =
+      candidate.residence === 'CL-LR-RESIDENCE-10Y'
+        ? 'LONG_RESIDENCE'
+        : undefined;
+    if (rule.id === 'CL-ENGLISH') {
+      return { ...rule, ...settlementEnglish(ctx, date, override) };
+    }
+    if (rule.id === 'CL-KOL') {
+      return { ...rule, ...settlementKol(ctx, date, override) };
+    }
+    return rule;
+  };
   // An issue with today's filing still allows a forecast on a known future day.
   const filingCandidates = location
     ? candidates.flatMap((candidate) => {
@@ -873,23 +892,39 @@ function assessCurrentLaw(
             .map((r) => r.id)
             .filter((id) => id !== candidate.residence);
           const atFiling = rulesAtFiling(ids, date);
-          if (candidate.residence === 'CL-LR-RESIDENCE-10Y') {
-            const english = atFiling.find((r) => r.id === 'CL-ENGLISH')!;
-            english.status = statusAtLevel(
-              date >= lrB2.applicationsFrom
-                ? lrB2.cefrLevel
-                : cl.values.longResidenceSettlementEnglishBefore.value,
-              date,
-            );
-          }
-          checked = { ...candidate, rules: atFiling };
+          checked = {
+            ...candidate,
+            rules:
+              candidate.residence === 'CL-LR-RESIDENCE-10Y'
+                ? atFiling.map((rule) => languageAt(rule, candidate, date))
+                : atFiling,
+          };
+        } else if (ctx.principal && location.status === 'UNKNOWN') {
+          // The joint date was found with the principal. Recheck the
+          // dependant's own English and Life in the UK on that date.
+          checked = {
+            ...candidate,
+            rules: candidate.rules.map((rule) =>
+              languageAt(rule, candidate, date),
+            ),
+          };
         }
         return location.status === 'UNKNOWN' && statusOf(checked) !== 'PASS'
           ? []
           : [checked];
       })
     : candidates;
-  const decision = decide(filingCandidates, ctx.simulationDate);
+  const decision = decide(filingCandidates, ctx.simulationDate, (candidate) => {
+    const date = dueOf(candidate)!;
+    return (
+      date > ctx.simulationDate &&
+      candidate.rules.every(
+        (rule) =>
+          rule.status !== 'FAIL' ||
+          languageAt(rule, candidate, date).status !== 'FAIL',
+      )
+    );
+  });
   // Today's location can be unknown even when a later filing is supported.
   // Keep that date and its route for simultaneous dependant applications.
   if (location?.status === 'UNKNOWN')
@@ -914,20 +949,6 @@ function assessCurrentLaw(
       `For routes under Appendix Continuous Residence, you can apply up to ${cl.values.continuousResidenceReferenceDays.value} days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.`,
     ),
   ];
-  if (
-    decision.projectedFrom &&
-    decision.decidedBy?.includes('CL-SW-RESIDENCE-5Y')
-  ) {
-    for (const rule of swFiling?.requirements ?? []) {
-      if (rule.status === 'UNKNOWN')
-        assumptions.push(
-          L(
-            `预计于 ${decision.earliestDate} 递交工签定居申请，届时仍需确认「${rule.title}」。`,
-            `The projected Skilled Worker filing date of ${decision.earliestDate} depends on confirming “${rule.title}”.`,
-          ),
-        );
-    }
-  }
   for (const rule of adultChecks ?? []) {
     if (rule.status !== 'PASS')
       assumptions.push(
@@ -937,47 +958,48 @@ function assessCurrentLaw(
         ),
       );
   }
-  if (lrEnglishDiffers) {
-    const paragraph = `LR 13.1(${lrFromB2 ? 'b' : 'a'})`;
-    assumptions.push(
-      declared
-        ? L(
-            `Long Residence 10 年路径须英语 ${lrRequired}（${paragraph}），当前英语水平不满足；"定居英语要求"一条按当前路线的等级核对。`,
-            `The 10-year Long Residence pathway requires English at ${lrRequired} (${paragraph}), which the current English level does not meet; the settlement English requirement shown applies the current route’s level.`,
-          )
-        : L(
-            `Long Residence 10 年路径须英语 ${lrRequired}（${paragraph}），未填写英语水平；"定居英语要求"一条按当前路线的等级核对。`,
-            `The 10-year Long Residence pathway requires English at ${lrRequired} (${paragraph}), and no English level has been provided; the settlement English requirement shown applies the current route’s level.`,
-          ),
-    );
-  }
-  // Projected past the B2 date while assessed under the earlier requirement.
-  const b2 = cl.values.skilledWorkerSettlementEnglish.value;
-  // Hong Kong BN(O) stays at B1 (HK 60.1); protection (PD-072) and an
-  // Innovator Founder (INNF 15–21) have no English requirement.
-  const noB2Pathway =
-    ((hk || hkKind !== undefined) &&
-      decision.pathwayYears === cl.values.hongKongBnoQualifyingYears.value) ||
-    (protection &&
-      decision.pathwayYears === cl.values.protectionQualifyingYears.value) ||
-    (innovator &&
-      decision.pathwayYears ===
-        cl.values.innovatorFounderQualifyingYears.value);
-  if (
-    !noB2Pathway &&
-    decision.earliestDate &&
-    ctx.simulationDate < b2.applicationsFrom &&
-    decision.earliestDate >= b2.applicationsFrom
-  ) {
+  if (lrLanguage[0].status !== english.status) {
     assumptions.push(
       L(
-        `预计日期在 ${b2.applicationsFrom} 之后，届时定居须达到英语 ${b2.cefrLevel}（${gt ? 'GT 13.1(b)' : gtDependant ? 'GT 32.1(b)' : fiveYearChild ? 'KoLL 2.2' : familyChild ? 'SETF 15.1(b)' : ancestry ? 'UKA 15.1(b)' : privateLife ? 'PL 16.1(b)' : familyTen ? 'SETF 5.1(b)' : familyFive ? 'KoLL 2.2' : 'SW 22A.1'}、LR 13.1(b)）。`,
-        `The projected date is on or after ${b2.applicationsFrom}, when settlement requires English at ${b2.cefrLevel} (${gt ? 'GT 13.1(b)' : gtDependant ? 'GT 32.1(b)' : fiveYearChild ? 'KoLL 2.2' : familyChild ? 'SETF 15.1(b)' : ancestry ? 'UKA 15.1(b)' : privateLife ? 'PL 16.1(b)' : familyTen ? 'SETF 5.1(b)' : familyFive ? 'KoLL 2.2' : 'SW 22A.1'}, LR 13.1(b)).`,
+        `Long Residence 10 年路径按 LR 13.1 单独判断：${lrLanguage[0].explanation}`,
+        `The 10-year Long Residence pathway is checked separately under LR 13.1. ${lrLanguage[0].explanation}`,
       ),
     );
   }
+  let selectedRules = shown;
+  const projected = decision.projectedCandidate;
+  const date = decision.earliestDate;
+  if (projected && date) {
+    const projectedRules = projected.rules.map((rule) =>
+      languageAt(rule, projected, date),
+    );
+    for (const rule of projectedRules.filter((r) => r.status !== 'PASS')) {
+      assumptions.push(
+        L(
+          `预计申请日 ${date} 仍待满足或确认：${rule.explanation}`,
+          `Still to be met or confirmed for the projected application on ${date}. ${rule.explanation}`,
+        ),
+      );
+    }
+    selectedRules = shown.map((rule) => {
+      if (rule.id !== 'CL-ENGLISH' && rule.id !== 'CL-KOL') return rule;
+      const projectedRule = projectedRules.find((r) => r.id === rule.id);
+      if (!projectedRule) return rule;
+      return {
+        ...projectedRule,
+        explanation: L(
+          `按预计申请日 ${date} 判断：${projectedRule.explanation}`,
+          `Assessed for the projected application on ${date}. ${projectedRule.explanation}`,
+        ),
+      };
+    });
+  } else if (decision.decidedBy?.includes('CL-LR-RESIDENCE-10Y')) {
+    selectedRules = shown.map(
+      (rule) => lrLanguage.find((r) => r.id === rule.id) ?? rule,
+    );
+  }
   const displayed = location
-    ? shown.map((rule) => {
+    ? selectedRules.map((rule) => {
         const affected =
           rule.id !== 'CL-LR-RESIDENCE-10Y' &&
           (candidates.some((c) => c.residence === rule.id) ||
@@ -996,7 +1018,7 @@ function assessCurrentLaw(
           pendingDetails: undefined,
         };
       })
-    : shown;
+    : selectedRules;
   return toAssessment(decision, displayed, assumptions, L);
 }
 

@@ -4,6 +4,7 @@ import {
   healthAndCareAsheOccupations,
   immigrationSalaryListOccupations,
   nationalPayScaleOccupations,
+  table3DirectPayOccupations,
 } from '@uk-immigration/policy-data';
 import { fullYears } from '../../dates';
 import {
@@ -43,6 +44,7 @@ import {
   absenceAssumption,
   isSkilledWorker,
   isSkilledWorkerDependant,
+  isSkilledWorkerPartner,
   onSkilledWorker,
   onSkilledWorkerChild,
   onSkilledWorkerPartner,
@@ -140,175 +142,139 @@ export const clSwResidence5Y = defineRule(
   },
 );
 
-/** The relevant row of the table in SW 24.3 (row E is not modelled). */
-interface SalaryRow {
-  row: 'A' | 'B' | 'C' | 'D';
-  /** General salary, GBP per year. */
-  threshold: number;
-  /** Why this row applies, for explanations. */
-  reason: string;
-  /** Lower rows might apply but `socCode` is missing. */
-  socMissing: boolean;
-  /** Start of the continuous Skilled Worker (not SW 21.2) permission. */
-  skilledWorkerFrom: IsoDate;
-  assumptions: string[];
-}
+/** SW 24.3 row E (Tier 2 STEM) is outside the model. */
+type SalaryRow = 'A' | 'B' | 'C' | 'D';
+
+const SALARY_THRESHOLDS = {
+  A: cl.values.skilledWorkerGeneralSalaryThreshold,
+  B: cl.values.skilledWorkerSettlementSalaryRowB,
+  C: cl.values.skilledWorkerSettlementSalaryRowC,
+  D: cl.values.skilledWorkerSettlementSalaryRowD,
+};
 
 const inTable = (rows: { socCode: string }[], soc: string | undefined) =>
   soc !== undefined && rows.some((r) => r.socCode === soc);
 
-/** Undefined unless on Skilled Worker on the simulation date. */
-function settlementSalaryRow({
+function wasSponsoredOnIsl(episode: ImmigrationEpisode): boolean | undefined {
+  if (episode.immigrationSalaryList !== undefined) {
+    return episode.immigrationSalaryList;
+  }
+  const entries = immigrationSalaryListOccupations.entries.filter(
+    (entry) => entry.socCode === episode.socCode,
+  );
+  if (!episode.socCode) return undefined;
+  const eligible = entries.filter(
+    (entry) =>
+      !entry.removalDate ||
+      !episode.sponsorshipCertificateDate ||
+      episode.sponsorshipCertificateDate < entry.removalDate,
+  );
+  if (eligible.length === 0) return false;
+  if (
+    eligible.some(
+      (entry) =>
+        entry.criteria === 'all jobs' &&
+        entry.nations === 'England, Scotland, Wales and Northern Ireland' &&
+        (!entry.removalDate ||
+          (episode.sponsorshipCertificateDate ?? episode.validFrom) <
+            entry.removalDate),
+    )
+  )
+    return true;
+  return undefined;
+}
+
+/** HC 590 implementation retained the old rules where the CoS predated the change. */
+function underPre2024Rules(first: ImmigrationEpisode): boolean | undefined {
+  const cutoff = cl.values.skilledWorkerPre2024RulesBefore.value;
+  if (first.sponsorshipCertificateDate)
+    return first.sponsorshipCertificateDate < cutoff;
+  return first.validFrom < cutoff ? true : undefined;
+}
+
+function settlementSalaryRows({
   timeline,
   simulationDate,
   locale,
-}: RuleContext): SalaryRow | undefined {
-  const L = textFor({ locale });
+}: RuleContext) {
   const current = episodeOn(timeline, simulationDate);
   if (!current || !isSkilledWorker(current)) return undefined;
-  const v = cl.values;
-  const soc = current.socCode;
-  const skilledWorkerFrom = continuousRun(
+  const L = textFor({ locale });
+  // SW 4.2(b)(ii): held continuously since the old-rules grant. Unlike the
+  // residence run, no day without permission is tolerated.
+  const first = continuousRun(
     timeline,
     simulationDate,
     isSkilledWorker,
-  ).episodes[0].validFrom;
+    () => false,
+  ).episodes[0];
+  const pre2024 = underPre2024Rules(first);
+  const transitional =
+    simulationDate < cl.values.skilledWorkerPre2024ApplicationsBefore.value &&
+    pre2024;
+  const soc = current.socCode;
   const table3 = inTable(nationalPayScaleOccupations.rows, soc);
   const ashe = inTable(healthAndCareAsheOccupations.occupations, soc);
-  // SW 4.2(b)(ii)
-  const pre2024 =
-    skilledWorkerFrom < v.skilledWorkerPre2024RulesBefore.value &&
-    simulationDate < v.skilledWorkerPre2024ApplicationsBefore.value;
-  // Declared answer first; otherwise derived from the SOC code (SRC-019),
-  // counting only entries not removed before the date of application.
-  const islEntries = immigrationSalaryListOccupations.entries.filter(
-    (e) => e.socCode === soc,
-  );
-  const islInForce = islEntries.filter(
-    (e) => e.removalDate === undefined || e.removalDate >= simulationDate,
-  );
-  const islUndeclared = current.immigrationSalaryList === undefined;
-  const islDerived = islUndeclared && islInForce.length > 0;
-  const isl = current.immigrationSalaryList ?? islDerived;
-  const removalDates = (entries: typeof islEntries) =>
-    [...new Set(entries.flatMap((e) => e.removalDate ?? []))].join(
-      L('、', ', '),
-    );
-  const inForceDates = removalDates(islInForce);
-  const islRemovalNote = inForceDates
-    ? L(
-        `清单条目的移除日期为 ${inForceDates}，已按申请日比较。`,
-        ` The list entry’s removal date is ${inForceDates}, compared with the date of application.`,
-      )
-    : '';
-  const pre2024Reason = L(
-    `自 ${skilledWorkerFrom} 起连续持 Skilled Worker 许可，早于 ${v.skilledWorkerPre2024RulesBefore.value}，且申请日早于 ${v.skilledWorkerPre2024ApplicationsBefore.value}（SW 4.2(b)(ii)）`,
-    `continuous Skilled Worker permission since ${skilledWorkerFrom}, before ${v.skilledWorkerPre2024RulesBefore.value}, with the application before ${v.skilledWorkerPre2024ApplicationsBefore.value} (SW 4.2(b)(ii))`,
-  );
-  const asheReason = L(
-    `SOC ${soc} 属 Health and Care ASHE salary job（SW A1.1）`,
-    `SOC ${soc} is a Health and Care ASHE salary job (SW A1.1)`,
-  );
-  const b42Reason = pre2024 ? pre2024Reason : asheReason;
+  const isl = wasSponsoredOnIsl(current);
+  const lowerRows = ashe || transitional;
   const assumptions = [
     L(
       'SW 24.3 row E（5 年期含 Tier 2 (General) 下的 STEM 类 SOC 2010 职业）未建模。',
       'SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.',
     ),
-    ...(islDerived
-      ? [
-          L(
-            `未申报是否在 Immigration Salary List 上；SOC ${soc} 在清单职业表中，按职业代码推导为在清单上。清单对岗位 / 地区的限制（criteria）未核对，可在问卷里申报覆盖。${islRemovalNote}`,
-            `Not declared whether the job is on the Immigration Salary List; SOC ${soc} is in the list’s occupation table, so the job is derived to be on the list from its occupation code. The list’s job / region restrictions (criteria) are not checked; a declaration in the questionnaire overrides this.${islRemovalNote}`,
-          ),
-        ]
-      : islUndeclared && islEntries.length > 0
-        ? [
-            L(
-              `未申报是否在 Immigration Salary List 上；SOC ${soc} 的清单条目移除日期为 ${removalDates(islEntries)}，早于申请日，按不在清单处理。`,
-              `Not declared whether the job is on the Immigration Salary List; the list entry for SOC ${soc} has a removal date of ${removalDates(islEntries)}, before the date of application, so the job is treated as not on the list.`,
-            ),
-          ]
-        : islUndeclared
-          ? [
-              L(
-                '未申报是否在 Immigration Salary List 上，按不在清单处理。',
-                'Not declared whether the job is on the Immigration Salary List; treated as not on the list.',
-              ),
-            ]
-          : []),
-    ...(ashe && !pre2024
-      ? [
-          L(
-            `SOC ${soc} 在 SW A1.1 的 Health and Care ASHE salary job 职业列表内，假设雇主属 SW A1.1(a)–(f) 列出的类型。`,
-            `SOC ${soc} is on the Health and Care ASHE salary job list in SW A1.1; the employer is assumed to be of a type listed in SW A1.1(a)–(f).`,
-          ),
-        ]
-      : []),
-    ...(pre2024
-      ? [
-          L(
-            `"${v.skilledWorkerPre2024RulesBefore.value} 前按当时规则获批"按连续 Skilled Worker 许可的起始日判断（SW 4.2(b)(ii)）。`,
-            `“Granted under the rules in place before ${v.skilledWorkerPre2024RulesBefore.value}” is judged by the start of the continuous Skilled Worker permission (SW 4.2(b)(ii)).`,
-          ),
-        ]
-      : []),
   ];
-  const base = {
-    socMissing: soc === undefined,
-    skilledWorkerFrom,
-    assumptions,
-  };
-  if (table3) {
-    return {
-      ...base,
-      socMissing: false,
-      row: 'D',
-      threshold: v.skilledWorkerSettlementSalaryRowD.value,
-      reason: L(
-        `SOC ${soc} 是 Appendix Skilled Occupations Table 3 的医疗 / 教育职业`,
-        `SOC ${soc} is a health / education occupation in Appendix Skilled Occupations Table 3`,
+  if (!table3 && isl !== false && current.immigrationSalaryList === undefined) {
+    assumptions.push(
+      isl
+        ? L(
+            '按最近一次许可的 CoS 签发日（未填时以早于移除日的许可起始日佐证）和 SRC-019 上适用全英国及该 SOC 全部岗位的条目判断 ISL。',
+            'ISL is assessed for the latest grant from its CoS issue date (or a permission start before removal) and the SRC-019 entry covering all jobs in that SOC across the UK.',
+          )
+        : L(
+            '最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。',
+            'ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).',
+          ),
+    );
+  }
+  if (!table3 && ashe && transitional !== true) {
+    assumptions.push(
+      L(
+        `SOC ${soc} 属 Health and Care ASHE 职业列表，按 SW A1.1(a)–(m) 假设其担保、雇用或服务安排符合要求。`,
+        `SOC ${soc} is on the Health and Care ASHE list. The sponsorship, employment or service arrangements are assumed to meet SW A1.1(a)–(m).`,
       ),
-    };
+    );
   }
-  if (isl && (pre2024 || ashe)) {
-    return {
-      ...base,
-      socMissing: false,
-      row: 'D',
-      threshold: v.skilledWorkerSettlementSalaryRowD.value,
-      reason: L(
-        // A space where Chinese meets Latin text (the ASHE reason starts with "SOC").
-        `岗位在 Immigration Salary List 上，且${/^[A-Za-z]/.test(b42Reason) ? ' ' : ''}${b42Reason}`,
-        `the job is on the Immigration Salary List, and ${b42Reason}`,
-      ),
-    };
+  if (!table3 && !ashe && transitional !== false) {
+    assumptions.push(
+      transitional
+        ? L(
+            '连续 Skilled Worker 许可的首段按过渡日前的规则获批，且申请日在过渡期限内（SW 4.2(b)(ii)）。',
+            'The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).',
+          )
+        : L(
+            '连续 Skilled Worker 许可的首段是否按旧规则获批待确认（SW 4.2(b)(ii)）。',
+            'It is unconfirmed whether the first grant in the continuous Skilled Worker period was made under the earlier rules (SW 4.2(b)(ii)).',
+          ),
+    );
   }
-  if (pre2024 || ashe) {
-    return {
-      ...base,
-      row: 'C',
-      threshold: v.skilledWorkerSettlementSalaryRowC.value,
-      reason: b42Reason,
-    };
+  const rows: SalaryRow[] = table3 ? ['D'] : [];
+  if (!table3) {
+    if (lowerRows !== true) {
+      if (isl !== true) rows.push('A');
+      if (isl !== false) rows.push('B');
+    }
+    if (lowerRows !== false) {
+      if (isl !== true) rows.push('C');
+      if (isl !== false) rows.push('D');
+    }
   }
-  if (isl) {
-    return {
-      ...base,
-      row: 'B',
-      threshold: v.skilledWorkerSettlementSalaryRowB.value,
-      reason: L(
-        '岗位在 Immigration Salary List 上',
-        'the job is on the Immigration Salary List',
-      ),
-    };
-  }
-  return {
-    ...base,
-    row: 'A',
-    threshold: v.skilledWorkerGeneralSalaryThreshold.value,
-    reason: L('不适用 rows B–E', 'rows B–E do not apply'),
-  };
+  return { current, first, pre2024, table3, isl, rows, assumptions };
+}
+
+function salaryStatus(statuses: RuleResult['status'][]): RuleResult['status'] {
+  return statuses.every((status) => status === statuses[0])
+    ? statuses[0]
+    : 'UNKNOWN';
 }
 
 export const clSwSalary = defineRule(
@@ -321,6 +287,7 @@ export const clSwSalary = defineRule(
       { srcId: 'SRC-004', locator: 'SW 24.2' },
       { srcId: 'SRC-004', locator: 'SW 24.3' },
       { srcId: 'SRC-004', locator: 'SW 4.2(b)' },
+      { srcId: 'SRC-004', locator: 'SW 11.1–11.3' },
       { srcId: 'SRC-004', locator: 'SW A1.1' },
       { srcId: 'SRC-017', locator: 'Table 3' },
       immigrationSalaryListOccupations.source,
@@ -329,8 +296,8 @@ export const clSwSalary = defineRule(
   },
   (ctx) => {
     const L = textFor(ctx);
-    const row = settlementSalaryRow(ctx);
-    if (!row) {
+    const facts = settlementSalaryRows(ctx);
+    if (!facts) {
       return {
         status: 'FAIL',
         explanation: L(
@@ -339,8 +306,11 @@ export const clSwSalary = defineRule(
         ),
       };
     }
-    const salary = episodeOn(ctx.timeline, ctx.simulationDate)!.salary;
-    const { assumptions } = row;
+    const {
+      current: { salary, socCode },
+      rows,
+      assumptions,
+    } = facts;
     if (salary === undefined) {
       return {
         status: 'UNKNOWN',
@@ -351,57 +321,60 @@ export const clSwSalary = defineRule(
         assumptions,
       };
     }
-    const which = L(
-      `按 SW 24.3 row ${row.row}（${row.reason}），general salary 门槛 ${gbp(row.threshold)}`,
-      `Under SW 24.3 row ${row.row} (${row.reason}), the general salary threshold is ${gbp(row.threshold)}`,
+    const thresholds = rows
+      .map((row) => `row ${row}: ${gbp(SALARY_THRESHOLDS[row].value)}`)
+      .join(L('；', '; '));
+    const status = salaryStatus(
+      rows.map((row) =>
+        salary >= SALARY_THRESHOLDS[row].value ? 'PASS' : 'FAIL',
+      ),
     );
-    if (salary >= row.threshold) {
+    if (status === 'UNKNOWN' || (!socCode && status === 'FAIL')) {
       return {
-        status: 'PASS',
+        status: 'UNKNOWN',
         explanation: L(
-          `${which}；当前年薪 ${gbp(salary)}，已达到。`,
-          `${which}; the current salary of ${gbp(salary)} meets it.`,
+          `当前年薪 ${gbp(salary)}。核对职业代码、最近一次担保及旧规资格后，才能确定 SW 24.3 的一般薪资门槛（${thresholds}）。`,
+          `Current salary is ${gbp(salary)}. Check the occupation code, most recent sponsorship and transitional eligibility to determine the general salary threshold under SW 24.3 (${thresholds}).`,
         ),
         assumptions,
       };
     }
-    return row.socMissing
-      ? {
-          status: 'UNKNOWN',
-          explanation: L(
-            `${which}；当前年薪 ${gbp(salary)} 低于此门槛。未填写 SOC 职业代码，若属 Table 3 医疗 / 教育职业或 Health and Care ASHE salary job，适用更低的 row C / D。`,
-            `${which}; the current salary of ${gbp(salary)} is below it. SOC code not provided: if the job is a Table 3 health / education occupation or a Health and Care ASHE salary job, the lower rows C / D apply.`,
-          ),
-          assumptions,
-        }
-      : {
-          status: 'FAIL',
-          explanation: L(
-            `${which}；当前年薪 ${gbp(salary)}，低于此门槛。`,
-            `${which}; the current salary of ${gbp(salary)} is below it.`,
-          ),
-          assumptions,
-        };
+    return {
+      status,
+      explanation: L(
+        `当前年薪 ${gbp(salary)}，${status === 'PASS' ? '达到' : '低于'} SW 24.3 的一般薪资门槛（${thresholds}）。`,
+        `The current salary of ${gbp(salary)} ${status === 'PASS' ? 'meets' : 'is below'} the general salary threshold under SW 24.3 (${thresholds}).`,
+      ),
+      assumptions,
+    };
   },
 );
 
 // Going-rate tables for each SW 24.3 row, in lookup order (row D's Table 3
 // occupations use the national pay scales in Tables 3–5, not extracted).
-const GOING_RATE_TABLES: Record<SalaryRow['row'], GoingRate['table'][]> = {
+const GOING_RATE_TABLES: Record<SalaryRow, GoingRate['table'][]> = {
   A: ['1', '1a'],
   B: ['1', '1a'],
   C: ['2', '2aa', '2a'],
   D: ['2', '2aa', '2a'],
 };
 
-/** Additional tables only cover those first granted before a date (SW 6.1). */
-function grantedBefore(table: GoingRate['table']): IsoDate | undefined {
-  if (table === '1a' || table === '2aa') {
-    return cl.values.skilledWorkerPre2025RulesBefore.value;
-  }
-  return table === '2a'
-    ? cl.values.skilledWorkerPre2024RulesBefore.value
-    : undefined;
+/** SW 6.1 and SRC-017 Tables 1a, 2aa and 2a. */
+function rateIsAvailable(
+  rate: GoingRate,
+  facts: NonNullable<ReturnType<typeof settlementSalaryRows>>,
+) {
+  const { first, current, isl, pre2024 } = facts;
+  if (rate.table === '2a') return pre2024 === true;
+  if (rate.table !== '1a' && rate.table !== '2aa') return true;
+  const exception = current.skilledWorkerSponsorshipException;
+  return (
+    first.validFrom < cl.values.skilledWorkerPre2025RulesBefore.value ||
+    (rate.table === '2aa' && pre2024 === true) ||
+    isl === true ||
+    exception === 'TEMPORARY_SHORTAGE_LIST' ||
+    exception === (rate.table === '1a' ? 'OPTION_D' : 'OPTION_I')
+  );
 }
 
 export const clSwGoingRate = defineRule(
@@ -412,17 +385,18 @@ export const clSwGoingRate = defineRule(
     titleEn: 'Skilled Worker settlement salary (going rate)',
     sources: [
       { srcId: 'SRC-004', locator: 'SW 24.3' },
-      { srcId: 'SRC-004', locator: 'SW 6.1' },
+      { srcId: 'SRC-004', locator: 'SW 6.1–6.1A, SW 11.1–11.3' },
       { srcId: 'SRC-004', locator: 'SW 14.4' },
       goingRates.source,
+      { srcId: 'SRC-017', locator: 'Table 3, going rate column' },
       immigrationSalaryListOccupations.source,
     ],
     pendingDetails: [],
   },
   (ctx) => {
     const L = textFor(ctx);
-    const row = settlementSalaryRow(ctx);
-    if (!row) {
+    const facts = settlementSalaryRows(ctx);
+    if (!facts) {
       return {
         status: 'FAIL',
         explanation: L(
@@ -431,13 +405,11 @@ export const clSwGoingRate = defineRule(
         ),
       };
     }
-    const { socCode, salary } = episodeOn(ctx.timeline, ctx.simulationDate)!;
-    const assumptions = [
-      L(
-        'going rate 按每周 37.5 小时的全额年薪比较，未按实际工时折算（SW 14.4）。',
-        'The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4).',
-      ),
-    ];
+    const {
+      current: { socCode, salary },
+      rows,
+      table3,
+    } = facts;
     if (socCode === undefined) {
       return {
         status: 'UNKNOWN',
@@ -445,17 +417,31 @@ export const clSwGoingRate = defineRule(
           '未填写当前 Skilled Worker 工作的 SOC 2020 职业代码，无法查 going rate。',
           'SOC 2020 code for the current Skilled Worker job not provided, so the going rate cannot be looked up.',
         ),
-        assumptions,
       };
     }
-    if (row.row === 'D' && inTable(nationalPayScaleOccupations.rows, socCode)) {
+    if (table3) {
+      const directlyListed = table3DirectPayOccupations[socCode];
+      const payBasis =
+        directlyListed === 'SOME_JOBS'
+          ? L(
+              '部分岗位由 Table 3 直接列金额，其余须查 Table 4',
+              'Table 3 lists amounts for some jobs; the others use Table 4',
+            )
+          : directlyListed === 'ALL_JOBS'
+            ? L(
+                'Table 3 按岗位、地区和薪级列出金额',
+                'Table 3 lists amounts by job, nation and grade',
+              )
+            : L(
+                '薪级须查 Table 4 / 5',
+                'The relevant pay band is in Table 4 / 5',
+              );
       return {
         status: 'UNKNOWN',
         explanation: L(
-          `SOC ${socCode} 是 Table 3 医疗 / 教育职业，going rate 按国家薪级（Appendix Skilled Occupations Table 3–5）确定；Table 4 / 5 的薪级本工具未提取，无法核对。`,
-          `SOC ${socCode} is a Table 3 health / education occupation, whose going rate is set by national pay scales (Appendix Skilled Occupations Tables 3–5); this tool has not extracted the pay scales in Tables 4 / 5, so it cannot check them.`,
+          `SOC ${socCode}：${payBasis}，本工具无法核对适用的 going rate（SRC-017 Tables 3–5）。`,
+          `SOC ${socCode}: ${payBasis}. This tool cannot check the applicable going rate (SRC-017 Tables 3–5).`,
         ),
-        assumptions,
       };
     }
     if (salary === undefined) {
@@ -465,35 +451,24 @@ export const clSwGoingRate = defineRule(
           '未填写当前 Skilled Worker 工作的年薪。',
           'Salary for the current Skilled Worker job not provided.',
         ),
-        assumptions,
       };
     }
-    const tables = GOING_RATE_TABLES[row.row];
-    const found = tables.flatMap((table) =>
-      goingRates.rows.filter((r) => r.table === table && r.socCode === socCode),
+    const assumptions = [
+      L(
+        `going rate 按每周 ${cl.values.goingRateWeeklyHours.value} 小时的全额年薪比较，未按实际工时折算（SW 14.4；SRC-017 Table 1 引言）。`,
+        `The going rate is compared as the full annual salary for a ${cl.values.goingRateWeeklyHours.value}-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).`,
+      ),
+    ];
+    const rates = rows.map((row) =>
+      GOING_RATE_TABLES[row]
+        .map((table) =>
+          goingRates.rows.find(
+            (r) => r.table === table && r.socCode === socCode,
+          ),
+        )
+        .find((rate) => rate && rateIsAvailable(rate, facts)),
     );
-    const rate = found.find((r) => {
-      const before = grantedBefore(r.table);
-      return before === undefined || row.skilledWorkerFrom < before;
-    });
-    const tableNames = tables.map((t) => `Table ${t}`).join(' / ');
-    if (!rate) {
-      return {
-        status: 'UNKNOWN',
-        explanation:
-          found.length > 0
-            ? L(
-                `SOC ${socCode} 只在 Table ${found[0].table}，该表只适用于 ${grantedBefore(found[0].table)} 前获批并连续持有 Skilled Worker 许可者；与所填的起始日 ${row.skilledWorkerFrom} 不符，请核对职业代码与许可记录。`,
-                `SOC ${socCode} is only in Table ${found[0].table}, which applies only to people granted Skilled Worker permission before ${grantedBefore(found[0].table)} who have held it continuously since; this does not match the start date entered, ${row.skilledWorkerFrom}. Please check the occupation code and permission history.`,
-              )
-            : L(
-                `SOC ${socCode} 不在 SW 24.3 row ${row.row} 适用的 ${tableNames} 中，无法确定 going rate。`,
-                `SOC ${socCode} is not in ${tableNames}, which apply to SW 24.3 row ${row.row}, so the going rate cannot be determined.`,
-              ),
-        assumptions,
-      };
-    }
-    if (rate.table === '2a') {
+    if (rates.some((rate) => rate?.table === '2a')) {
       assumptions.push(
         L(
           'Table 2a 还要求为同一 sponsor 工作（SW 6.1(f)），本工具未核对。',
@@ -501,27 +476,32 @@ export const clSwGoingRate = defineRule(
         ),
       );
     }
-    const which = L(
-      `按 SW 24.3 row ${row.row} 查 Appendix Skilled Occupations Table ${rate.table}，SOC ${socCode}（${rate.title}）的 going rate 为 ${gbp(rate.goingRate)}`,
-      `Under SW 24.3 row ${row.row}, Appendix Skilled Occupations Table ${rate.table} gives a going rate of ${gbp(rate.goingRate)} for SOC ${socCode} (${rate.title})`,
+    const status = salaryStatus(
+      rates.map((rate) =>
+        !rate ? 'UNKNOWN' : salary >= rate.goingRate ? 'PASS' : 'FAIL',
+      ),
     );
-    return salary >= rate.goingRate
-      ? {
-          status: 'PASS',
-          explanation: L(
-            `${which}；当前年薪 ${gbp(salary)}，已达到。`,
-            `${which}; the current salary of ${gbp(salary)} meets it.`,
-          ),
-          assumptions,
-        }
-      : {
-          status: 'FAIL',
-          explanation: L(
-            `${which}；当前年薪 ${gbp(salary)}，低于 going rate。`,
-            `${which}; the current salary of ${gbp(salary)} is below the going rate.`,
-          ),
-          assumptions,
-        };
+    const thresholds = rates
+      .flatMap((rate, index) =>
+        rate
+          ? [`row ${rows[index]}, Table ${rate.table}: ${gbp(rate.goingRate)}`]
+          : [],
+      )
+      .join(L('；', '; '));
+    return {
+      status,
+      explanation:
+        status === 'UNKNOWN'
+          ? L(
+              `无法确定 SOC ${socCode} 适用的 going rate。请核对 SW 24.3 的薪资行、职业代码与许可记录；Table 1a / 2aa 可按旧规资格或适用的 Option D / I、Temporary Shortage List 担保例外（SW 6.1）。`,
+              `The going rate for SOC ${socCode} cannot be confirmed. Check the row under SW 24.3, the occupation and the permission history; Tables 1a / 2aa allow transitional eligibility or the applicable Option D / I or Temporary Shortage List sponsorship exception (SW 6.1).`,
+            )
+          : L(
+              `SOC ${socCode} 的 going rate（${thresholds}）；当前年薪 ${gbp(salary)}，${status === 'PASS' ? '已达到' : '低于要求'}。`,
+              `The going rate for SOC ${socCode} (${thresholds}); the current salary of ${gbp(salary)} ${status === 'PASS' ? 'meets it' : 'is below it'}.`,
+            ),
+      assumptions,
+    };
   },
 );
 
@@ -558,10 +538,15 @@ export function skilledWorkerFiling(
   });
   const location = applicationLocationIssue(ctx.timeline, ctx.simulationDate);
   if (!jointFrom && !newGrant && !location) return residence;
-  // A date recovered from an uncertain departure needs confirmation. Other
-  // forecasts, joint ones included, can carry outstanding evidence, which
+  // A date recovered from an uncertain departure needs every requirement.
+  // Otherwise only a recorded grant's salary failing blocks the date: English
+  // and Life in the UK can still be met by then (A6#6), and missing evidence
   // keeps a dependant's result UNKNOWN (pendingOnJointDay).
-  const requirePass = location === 'UNKNOWN';
+  const blocks = (r: RuleOutcome) =>
+    location === 'UNKNOWN'
+      ? r.status !== 'PASS'
+      : r.status === 'FAIL' &&
+        (r.id === 'CL-SW-SALARY' || r.id === 'CL-SW-GOING-RATE');
   while (residence?.applicationDate) {
     const date = residence.applicationDate;
     const filing = {
@@ -572,24 +557,18 @@ export function skilledWorkerFiling(
     const requirements = [clSwSalary, clSwGoingRate, clEnglish, clKol].map(
       (rule) => runRule(rule, filing),
     );
-    if (
-      requirements.every(
-        (r) => r.status === 'PASS' || (!requirePass && r.status === 'UNKNOWN'),
-      )
-    )
-      return { ...residence, requirements };
+    if (!requirements.some(blocks)) return { ...residence, requirements };
     const change = changes.find((d) => d > date);
     if (!change) break;
     residence = skilledWorkerResidence(ctx, change);
   }
 }
 
-/** P's requirements still to be confirmed on the joint filing day. */
-const pendingOnJointDay = (joint?: {
+/** P's requirements still to be met or confirmed on the joint filing day. */
+export const pendingOnJointDay = (joint?: {
   applicationDate?: IsoDate;
   principal?: { requirements?: RuleOutcome[] };
-}) =>
-  joint?.principal?.requirements?.filter((r) => r.status === 'UNKNOWN') ?? [];
+}) => joint?.principal?.requirements?.filter((r) => r.status !== 'PASS') ?? [];
 
 const pendingJoint = (
   L: Lang,
@@ -602,8 +581,8 @@ const pendingJoint = (
   return {
     status: 'UNKNOWN',
     explanation: L(
-      `可在 ${date} 与主申请人一同申请，前提是主申请人当日的${titles}得到确认（SW 39.1(a)）。`,
-      `They could apply together with the principal applicant on ${date} if the principal applicant’s ${titlesEn} can be confirmed for that day (SW 39.1(a)).`,
+      `可在 ${date} 与主申请人一同申请，前提是主申请人当日的${titles}得到满足或确认（SW 39.1(a)）。`,
+      `They could apply together with the principal applicant on ${date} if the principal applicant’s ${titlesEn} can be met or confirmed for that day (SW 39.1(a)).`,
     ),
     assumptions,
   };
@@ -616,7 +595,8 @@ const pendingJoint = (
  */
 function settledPrincipal(
   ctx: RuleContext,
-): { met: boolean; date: IsoDate; explanation: string } | undefined {
+):
+  { met: boolean | undefined; date: IsoDate; explanation: string } | undefined {
   const settled =
     ctx.principal && settledBy(ctx.principal.timeline, ctx.simulationDate);
   if (!settled) return undefined;
@@ -634,6 +614,20 @@ function settledPrincipal(
     };
   }
   const then = episodeOn(ctx.timeline, settled.date);
+  if (
+    then &&
+    isSkilledWorkerDependant(then) &&
+    then.dependantOf === undefined
+  ) {
+    return {
+      met: undefined,
+      date: settled.date,
+      explanation: L(
+        '主申请人定居时，本人的 Skilled Worker dependant 许可未注明家属身份（SW 39.1(b)）。',
+        'The relationship on the Skilled Worker dependant permission held when the principal settled is unavailable (SW 39.1(b)).',
+      ),
+    };
+  }
   return then &&
     isSkilledWorkerDependant(then) &&
     then.dependantOf === now.dependantOf
@@ -714,6 +708,7 @@ function withoutPrincipalPathway(
  */
 export function skilledWorkerPartnerResidence(
   ctx: RuleContext,
+  counts = isSkilledWorkerPartner,
 ):
   | (CurrentResidence & { principal?: { requirements?: RuleOutcome[] } })
   | undefined {
@@ -730,13 +725,9 @@ export function skilledWorkerPartnerResidence(
     currentResidence(
       timeline,
       simulationDate,
-      isSkilledWorkerDependant,
+      counts,
       cl.values.skilledWorkerQualifyingYears.value,
-      {
-        notBefore,
-        appliesOn: (e) =>
-          isSkilledWorkerDependant(e) && e.dependantOf === 'PARTNER',
-      },
+      { notBefore, appliesOn: isSkilledWorkerPartner },
     );
   return settled
     ? ownFrom()
@@ -760,6 +751,7 @@ export const clSwPartner5Y = defineRule(
     titleEn: `${cl.values.skilledWorkerQualifyingYears.value} continuous years as a Skilled Worker dependent partner, settling with the principal applicant`,
     sources: [
       { srcId: 'SRC-004', locator: 'SW 39.1' },
+      { srcId: 'SRC-004', locator: 'SW 38.1–38.2' },
       { srcId: 'SRC-004', locator: 'SW 42.1' },
       { srcId: 'SRC-004', locator: 'SW 43.1' },
       ...crResidenceSources,
@@ -791,13 +783,36 @@ export const clSwPartner5Y = defineRule(
     const settled = settledPrincipal(ctx);
     const assumptions = [
       L(
-        `只计连续的 Skilled Worker dependant 许可，假设整段都是同一主申请人的 dependent partner；Appendix Relationship with Partner（SW 39.3）未核对。`,
-        'Only continuous Skilled Worker dependant permission is counted, assuming all of it was as the same principal applicant’s dependent partner; Appendix Relationship with Partner (SW 39.3) is not checked.',
+        `只计连续的 Skilled Worker dependent partner 许可，假设填报的伴侣许可都属于同一主申请人；Appendix Relationship with Partner（SW 39.3）未核对。`,
+        'Only continuous Skilled Worker dependent partner permission is counted, assuming the declared partner permissions were with the same principal applicant; Appendix Relationship with Partner (SW 39.3) is not checked.',
       ),
       ...(settled ? [] : [settledPrincipalAssumption(L)]),
       ...(timeline.absences.length > 0 ? [absenceAssumption(L)] : []),
     ];
     const residence = skilledWorkerPartnerResidence(ctx);
+    const applicationDate = residence?.applicationDate;
+    if (!applicationDate || applicationDate > simulationDate) {
+      const possible = skilledWorkerPartnerResidence(
+        ctx,
+        (e) =>
+          isSkilledWorkerDependant(e) &&
+          (e.dependantOf === undefined || e.dependantOf === 'PARTNER'),
+      );
+      if (
+        possible?.applicationDate &&
+        (!applicationDate || possible.applicationDate < applicationDate) &&
+        (!residence || possible.start < residence.start)
+      ) {
+        return {
+          status: 'UNKNOWN',
+          explanation: L(
+            '较早的 Skilled Worker dependant 许可未注明家属身份，须确认是否为同一主申请人的伴侣许可（SW 42.1）。',
+            'Earlier Skilled Worker dependant permissions do not specify the relationship. Check whether they were as the same principal applicant’s partner (SW 42.1).',
+          ),
+          assumptions,
+        };
+      }
+    }
     assumptions.push(
       ...residenceAssumptions(timeline, simulationDate, residence, L),
     );
@@ -818,7 +833,11 @@ export const clSwPartner5Y = defineRule(
             ),
             assumptions,
           }
-        : { status: 'FAIL', explanation: settled.explanation, assumptions };
+        : {
+            status: settled.met === false ? 'FAIL' : 'UNKNOWN',
+            explanation: settled.explanation,
+            assumptions,
+          };
     }
     if (!residence) {
       return principalApplicationDate(ctx, 'CL-SW-RESIDENCE-5Y')

@@ -240,13 +240,15 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Complete the principal applicant’s timeline to continue.',
   'principal.required': 'Complete the principal applicant’s timeline first.',
   'principal.prefix': 'Principal applicant: ',
+  'screening.settledWorkerPartner':
+    'The principal applicant’s screening requires regulated review. Current Skilled Worker partner settlement is assessed on the partner’s own circumstances (SW 38.1 and 39.1(b)).',
   'principal.settled': 'Has the principal applicant already settled?',
   'principal.settledDate': 'Date settlement was granted',
   'principal.settledRoute': 'Visa route held when settlement was granted',
   'episodes.immigrationSalaryList':
-    'Is the sponsored job on the Immigration Salary List?',
+    'Was the job on the Immigration Salary List for this grant?',
   'episodes.immigrationSalaryListHint':
-    'If unsure, the job is treated as not being on the list.',
+    'If unsure, leave this blank. The relevant CoS date, job and UK nation determine list eligibility.',
   'episodes.dependantOf': 'Dependant relationship',
   'episodes.partnerDependant': 'Partner dependant (principal is your partner)',
   'episodes.childDependant': 'Child dependant (principal is your parent)',

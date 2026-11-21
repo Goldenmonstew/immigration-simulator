@@ -27,7 +27,10 @@ export {
   nationalPayScaleOccupations,
 } from './data/skilled-occupations';
 export type { GoingRate } from './data/skilled-occupations';
-export { healthAndCareAsheOccupations } from './data/occupations';
+export {
+  healthAndCareAsheOccupations,
+  table3DirectPayOccupations,
+} from './data/occupations';
 export { healthEducationTransitionalExamples } from './data/occupations';
 export { immigrationSalaryListOccupations } from './data/immigration-salary-list';
 export type { ImmigrationSalaryListEntry } from './data/immigration-salary-list';
@@ -40,3 +43,4 @@ export {
   sustainedActivityNames,
 } from './data/display-names';
 export type { DisplayName } from './data/display-names';
+export { settlementEnglishNationalities } from './data/settlement-english-nationalities';

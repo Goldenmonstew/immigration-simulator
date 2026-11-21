@@ -97,12 +97,12 @@ describe('Hong Kong BN(O) (SRC-020)', () => {
       clHkbnoResidence5Y,
       {
         ...bno('2021-02-01'),
-        absences: [{ from: '2022-01-01', to: '2022-06-30' }],
+        absences: [{ from: '2022-01-01', to: '2022-07-02' }],
       },
       '2026-02-01',
     );
     expect(result.status).toBe('FAIL');
-    expect(result.explanation).toContain('2027-07-01');
+    expect(result.explanation).toContain('2027-07-02');
   });
 
   test('English is B1 before and after 2027-03-26 (HK 60.1)', () => {

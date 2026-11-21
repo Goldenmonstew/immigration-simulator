@@ -330,3 +330,22 @@ test('a partner with a settled Skilled Worker principal reaches SW 39.1(b) throu
   expect(partner.status).toBe('PASS');
   expect(partner.explanation).toContain('SW 39.1(b)');
 });
+
+test('A6#5 principal screening leaves the settled Skilled Worker partner’s current-law assessment available', () => {
+  const draft = familyDraft();
+  draft.principal!.settled = { date: '2025-06-01', route: 'SKILLED_WORKER' };
+  const restored = decodeDraft(
+    encodeDraft({
+      ...draft,
+      principalScreening: { ...draft.principalScreening, criminality: 'yes' },
+    }),
+  )!;
+  expect(runSimulation(restored).byRuleSet).toMatchObject({
+    'current-law-2026-11': { outcome: 'LIKELY_ELIGIBLE' },
+    'earned-settlement-2026-11': { outcome: 'REQUIRES_REGULATED_REVIEW' },
+  });
+  expect(restored.principal?.criminalRecord).toEqual([]);
+  expect(runPrincipalSimulation(restored)?.byRuleSet).toEqual({});
+  restored.screening.criminality = 'yes';
+  expect(runSimulation(restored).byRuleSet).toEqual({});
+});

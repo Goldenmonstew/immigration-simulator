@@ -115,7 +115,7 @@ test('questionnaire by clicks in English: 200 days abroad (G-SW-ABSENCE-200-DAYS
     absence: ['2023-01-10', '2023-07-28'],
     outcome: 'outcome.LIKELY_NOT_ELIGIBLE',
     earliest: {
-      'policy.CURRENT_LAW': '2028-07-01',
+      'policy.CURRENT_LAW': '2028-06-30',
       'policy.ANNOUNCED': '2028-07-29',
     },
   });
