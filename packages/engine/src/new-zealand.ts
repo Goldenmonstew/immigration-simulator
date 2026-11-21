@@ -352,8 +352,8 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
             ? [
                 {
                   text: L(
-                    `宗教工作者成为居民满 ${v.religiousWorkerYears.value} 年（${religiousFrom}）`,
-                    `${v.religiousWorkerYears.value} years as a resident on a Religious Worker visa (on ${religiousFrom})`,
+                    `宗教工作者成为居民满 ${v.religiousWorkerYears.value} 年（${religiousFrom}），并已满足、申请取消 s49 条件`,
+                    `${v.religiousWorkerYears.value} years as a resident on a Religious Worker visa (on ${religiousFrom}), with the s49 conditions met and removed`,
                   ),
                   met: sim >= religiousFrom,
                   sources: v.religiousWorkerYears.sources,
@@ -430,13 +430,15 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
         return { total: years.reduce((x, y) => x + y, 0), years };
       };
       // Religious Worker conditions run 5 years from the first day as a
-      // resident and must be removed first (s8(3); SRC-073).
+      // resident and must be removed first (s8(3); SRC-073). A permanent
+      // resident visa has no conditions.
+      const prvBy = (d: IsoDate) => !!prv && prv <= d;
       const ok = (s: number[]) => (d: IsoDate) => {
         const c = counts(d, s);
         return (
           d >= adult &&
           d >= firstDay &&
-          (!religiousFrom || d >= religiousFrom) &&
+          (!religiousFrom || d >= religiousFrom || prvBy(d)) &&
           c.total >= total &&
           c.years.every((x) => x >= perYear)
         );
@@ -444,13 +446,18 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
       const earliest = firstDate(ok(sums.resident));
       const strict = firstDate(ok(sums.strict));
       const stuck = blocked(earliest);
-      const parent = category === 'parent';
+      // Parent and Active Investor Plus visas carry s49(1) conditions that
+      // must be met or cancelled first (s8(3)), unless a permanent resident
+      // visa has replaced them.
+      const conditional =
+        (category === 'parent' || INVESTOR.has(category)) &&
+        !(earliest && prvBy(earliest));
       const c = counts(sim, sums.resident);
       pathways.push({
         id: 'NZ-CITIZENSHIP',
         title,
-        status: stuck || parent ? 'UNKNOWN' : statusOf(earliest),
-        earliestDate: stuck || parent ? undefined : earliest,
+        status: stuck || conditional ? 'UNKNOWN' : statusOf(earliest),
+        earliestDate: stuck || conditional ? undefined : earliest,
         summary:
           (stuck
             ? expired
@@ -468,17 +475,17 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
                     '按现有记录，10 年内达不到入籍的在境天数要求。',
                     'With your record you will not meet the presence requirement within 10 years.',
                   )) +
-          (parent && !stuck
+          (conditional && !stuck
             ? L(
-                '父母类居民签证的 s49(1) 条件须已满足或取消才能入籍（s8(3)），本试点不判断。',
-                ' The s49(1) conditions on a Parent resident visa must be met or cancelled before citizenship (s8(3)), which this pilot does not check.',
+                '父母类、Active Investor Plus 居民签证的 s49(1) 条件须已满足或取消才能入籍（s8(3)），本试点不判断；已获永久居民签证的则没有这些条件。',
+                ' The s49(1) conditions on a Parent or Active Investor Plus resident visa must be met or cancelled before citizenship (s8(3)), which this pilot does not check; a permanent resident visa has no such conditions.',
               )
             : '') +
           (stuck || strict === earliest
             ? ''
             : L(
-                `若出入境当天都不算在境，${strict ? `最早为 ${strict}` : '10 年内达不到'}（PD-086）。`,
-                ` If arrival and departure days do not count, ${strict ? `the earliest date is ${strict}` : 'it is not met within 10 years'} (PD-086).`,
+                `若出入境当天都不算在境，${strict && !blocked(strict) ? `最早为 ${strict}` : strict ? `要到居民签证失效之后，结果待确认` : '10 年内达不到'}（PD-086）。`,
+                ` If arrival and departure days do not count, ${strict && !blocked(strict) ? `the earliest date is ${strict}` : strict ? 'it falls after your resident visa expires and cannot be worked out' : 'it is not met within 10 years'} (PD-086).`,
               )),
         checks: [
           {
@@ -491,10 +498,14 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
           },
           {
             text: L(
-              `持居民签证或永久居民签证并已入境（${firstDay}）`,
-              `Hold a resident or permanent resident visa and have entered on it (${firstDay})`,
+              lapse && !prvBy(sim) && sim >= lapse
+                ? `持居民签证或永久居民签证并已入境（居民签证已于 ${lapse} 失效）`
+                : `持居民签证或永久居民签证并已入境（${firstDay}）`,
+              lapse && !prvBy(sim) && sim >= lapse
+                ? `Hold a resident or permanent resident visa and have entered on it (the resident visa expired on ${lapse})`
+                : `Hold a resident or permanent resident visa and have entered on it (${firstDay})`,
             ),
-            met: sim >= firstDay,
+            met: sim >= firstDay && (!lapse || sim < lapse || prvBy(sim)),
             sources: [
               { srcId: 'SRC-070', locator: 's8(2)(a)' },
               { srcId: 'SRC-071', locator: 's74(1)(b)' },
@@ -507,7 +518,11 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
                     `宗教工作者的 s49(1) 条件期满（${religiousFrom}），并已申请取消`,
                     `Religious Worker s49(1) conditions ended (${religiousFrom}) and removed`,
                   ),
-                  met: sim >= religiousFrom ? undefined : false,
+                  met: prvBy(sim)
+                    ? true
+                    : sim >= religiousFrom
+                      ? undefined
+                      : false,
                   sources: [
                     ...v.religiousWorkerYears.sources,
                     { srcId: 'SRC-070', locator: 's8(3)' },

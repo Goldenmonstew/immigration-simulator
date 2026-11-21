@@ -346,4 +346,62 @@ describe('citizenship by grant (s8)', () => {
     expect(p.summary).toContain('2026-10-28');
     expect(p.pendingDetails).toEqual(['PD-086']);
   });
+
+  test('a Parent visa replaced by a PRV has no conditions left', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-21',
+        firstArrival: '2015-06-01',
+        residentVisa: { granted: '2016-01-01', category: 'parent' },
+        permanentResidentVisa: '2026-06-01',
+      },
+      'NZ-CITIZENSHIP',
+    );
+    expect(p.status).toBe('MET');
+  });
+
+  test('Active Investor Plus conditions make citizenship unknown', () => {
+    const p = pathway(
+      {
+        simulationDate: '2029-12-21',
+        firstArrival: '2025-01-01',
+        residentVisa: { granted: '2025-05-01', category: 'aip-balanced' },
+      },
+      'NZ-CITIZENSHIP',
+    );
+    expect(p.status).toBe('UNKNOWN');
+  });
+
+  test('an expired resident visa fails the visa check', () => {
+    // Leaving on 2026-11-01, after the travel conditions: expired 11-02.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-21',
+        firstArrival: '2019-01-01',
+        residentVisa: { granted: '2020-01-01', category: 'general' },
+        trips: [{ departed: '2026-11-01', returned: '2027-01-01' }],
+      },
+      'NZ-CITIZENSHIP',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[1].met).toBe(false);
+    expect(p.checks[1].text).toContain('2026-11-02');
+  });
+
+  test('the strict date is not given past the expiry', () => {
+    // The main date 2026-10-27 is before the visa expires on 2026-10-28,
+    // the strict date would fall on it.
+    const p = pathway(
+      {
+        simulationDate: '2026-10-26',
+        firstArrival: '2022-03-01',
+        residentVisa: { granted: '2022-02-01', category: 'general' },
+        trips: [{ departed: '2026-10-27', returned: '2026-11-15' }],
+      },
+      'NZ-CITIZENSHIP',
+    );
+    expect(p.earliestDate).toBe('2026-10-27');
+    expect(p.summary).not.toContain('2026-10-28');
+    expect(p.summary).toContain('PD-086');
+  });
 });
