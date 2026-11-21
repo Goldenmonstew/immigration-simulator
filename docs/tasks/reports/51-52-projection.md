@@ -26,8 +26,8 @@
 | 命令 | 结果 |
 |---|---|
 | 新增 5 条回归（`aggregate.test.ts`） | 三条修正类测试在改动前失败、改动后通过 |
-| `pnpm lint && pnpm typecheck && pnpm test && pnpm build` | 见 PR 说明 |
-| `pnpm --filter e2e e2e` | 见 PR 说明 |
+| `pnpm lint && pnpm typecheck && pnpm test && pnpm build` | 通过：engine 2,700、game 1,334、web 546 |
+| `pnpm --filter e2e e2e` | 38 项通过 |
 | 黄金案例与双语快照 | 无变化 |
 
 ## 3. 没做或没验证的
