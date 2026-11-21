@@ -533,6 +533,18 @@ test('A3#5 Long Residence breaks at an ordinary gap and deducts a 27-day eligibl
       absences: [{ from: '2018-02-20', to: '2019-03-31' }],
     }).status,
   ).toBe('FAIL');
+  // task 54 / review33a-4: an overlapping record of a return inside the gap
+  // means a day in the UK without permission, so CR 4.1(d)(iii) cannot keep
+  // the run going (SRC-008 CR 4.1(d)(iii), 4.2).
+  expect(
+    run(clLrResidence10Y, {
+      ...overseas,
+      absences: [
+        ...overseas.absences,
+        { from: '2018-02-25', to: '2018-03-10' },
+      ],
+    }).status,
+  ).toBe('FAIL');
 });
 
 test('A6#2 CR 4.3 counts the August grace period only with prior permission and UK presence', () => {
