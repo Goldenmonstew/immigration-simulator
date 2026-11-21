@@ -46,7 +46,7 @@ test.each(['zh-CN', 'en'] as const)(
         });
       };
       function Probe() {
-        const result = mockResults['1'];
+        const result = mockResults('zh-CN')['1'];
         const view =
           prefix === undefined
             ? ResultView({ result })

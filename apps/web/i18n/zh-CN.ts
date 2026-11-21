@@ -95,12 +95,12 @@ export const zhCN = {
   'game.noChanges': '属性没有变化。',
   'game.event': '小镇来信',
   'game.quarterSummary': '这一季的小结',
-  'game.quarterChanges': '本季属性变化（含行动、事件与结算）',
+  'game.quarterChanges': '本季属性变化（含行动、事件与季末更新）',
   'game.wellbeingAtSettlement': '换季结算的主要影响',
   'game.settlementSource.seasonWear': '一季下来积攒的疲惫',
   'game.settlementSource.overtimeWear': '加班带来的额外疲惫',
   'game.settlementSource.brighterHome': '明亮住处',
-  'game.settlementSource.walkingClub': '散步小队',
+  'game.settlementSource.walkingClub': '徒步私教班',
   'game.settlementSource.furnishings': '添置的家具',
   'game.cropsCleared': '换季了，你有 {count} 块菜地还没收，地里的作物已清掉。',
   'game.eventReview': '这一季发生了什么',
@@ -111,7 +111,7 @@ export const zhCN = {
   'game.achievements': '一路的纪念',
   'game.noAchievements': '这段旅程本身也是一份纪念。',
   'game.currentLaw': '现行法律',
-  'game.reform': '改革后',
+  'game.reform': '已公布改革',
   'game.councilDetails': '去市政厅看详情',
   'game.progressHint': '进度表示时间积累；是否符合条件，请看结论与规则。',
   'game.loading': '正在加载小镇…',
@@ -123,7 +123,7 @@ export const zhCN = {
   'game.travelRecall': '从今天出发，旅程会跳过本季余下的日子。',
   'game.visaReminderTitle': '新一季，看看签证日期',
   'game.visaReminder':
-    '当前许可剩余 {count} 个月，还没有相接的续签记录。可到签证中心查看当前可用的行动和费用。',
+    '当前许可剩余 {count} 个月，到期日之后还没有记录新的许可。可到签证中心查看当前可用的行动和费用。',
   'game.fastVisaWarning':
     '当前许可 {date} 到期，还没有相接的新许可。快进会直接过完这一季、跨过到期日，先去签证中心看看吧。',
   'game.missingRules': '还差：{rules}',
@@ -143,7 +143,7 @@ export const zhCN = {
   'site.version': '版本 {version}',
   'error.title': '这一页出了点问题',
   'error.body':
-    '页面遇到了一个意外错误。你的问卷草稿和游戏存档都保存在本机浏览器里，没有丢失。可以先重试；如果问题反复出现，欢迎把下面的错误信息报告给我们。',
+    '页面遇到了一个意外错误。已保存在本机浏览器里的问卷草稿和游戏进度应仍可使用；未保存的改动在重新加载后可能丢失。可以先重试；如果问题反复出现，欢迎把下面的错误信息报告给我们。',
   'error.retry': '重试',
   'error.home': '回到首页',
   'error.report': '在 GitHub 报告这个问题',
@@ -205,7 +205,8 @@ export const zhCN = {
   'step.principal': '主申请人',
   'principal.banner': '正在填写：主申请人',
   'principal.sharedDate': '共用模拟日期：',
-  'principal.hint': 'dependant 随主申请人定居，需要主申请人的时间线。',
+  'principal.hint':
+    '要评估你作为 dependant 的定居，请填写主申请人的时间线，以及其已获定居的情况（如有）。',
   'principal.start': '填写主申请人的时间线',
   'principal.edit': '修改主申请人的时间线',
   'principal.return': '返回申请人问卷',
@@ -281,9 +282,9 @@ export const zhCN = {
   'result.navigation': '跳到评估栏',
   'result.jumpTo': '跳到{column}',
   'gap.title': '还差什么',
-  'gap.met': '已满足全部已建模要求',
+  'gap.met': '这条路径已满足全部已建模要求',
   'gap.earliest':
-    '按当前情况最早 {date}（假设许可届时连续续接、其余条件仍满足）',
+    '按当前情况推算，最早可申请日期为 {date}（假设许可届时连续续接、其余条件仍满足）',
   'gap.wait':
     '，距模拟日还有约 {years} 年 {months} 个月（不足一个月按一个月计）',
   'gap.completion':
@@ -312,7 +313,7 @@ export const zhCN = {
   'result.pathway': '路径所需年限',
   'result.routeGroup': '路线分组',
   'result.years': '年',
-  'result.earliest': '最早可能日期',
+  'result.earliest': '最早可申请日期（推算）',
   'result.completion': '条件满期日',
   'result.reassessment': '可重评较短路径',
   'result.basis': '结论依据：{years} 年路径（{route}）',
@@ -383,13 +384,13 @@ export const zhCN = {
   'whatif.unchanged': '与当前情景相同',
   'outcome.LIKELY_ELIGIBLE': '可能符合条件',
   'outcome.LIKELY_ELIGIBLE.description':
-    '该规则集下已评估的规则全部满足；这不保证申请结果。',
+    '至少有一条路径满足已建模的全部要求；这不保证申请结果。',
   'outcome.LIKELY_NOT_ELIGIBLE': '可能不符合条件',
   'outcome.LIKELY_NOT_ELIGIBLE.description':
-    '存在未满足的规则，补充缺失信息也无法改变这一判断。',
+    '模拟日期下没有找到你能满足的路径；请查看下方的条件与缺失信息。',
   'outcome.POTENTIALLY_ELIGIBLE': '有可能符合，待政策细节明确',
   'outcome.POTENTIALLY_ELIGIBLE.description':
-    '没有未满足的规则，但部分判断取决于政府尚未确定的细节。',
+    '至少有一条路径没有未满足的要求，但取决于政府尚未确定的细节。',
   'outcome.INSUFFICIENT_INFORMATION': '信息不足，暂无法判断',
   'outcome.INSUFFICIENT_INFORMATION.description':
     '现有输入不足以作出判断，请查看规则明细中的信息缺口。',
@@ -490,14 +491,14 @@ export const zhCN = {
   'episodes.innovatorCriteria.JOBS':
     '为 settled workers 创造至少 10 个全职等效岗位（INNF 17.1(f)(vi)）',
   'episodes.innovatorCriteria.JOBS_WITH_SALARY':
-    '为 settled workers 创造至少 5 个全职等效岗位，平均年薪至少 £25,000（INNF 17.1(f)(vii)）',
+    '为 settled workers 创造至少 5 个全职等效岗位，每个岗位平均年薪（税前、不含津贴）至少 £25,000（INNF 17.1(f)(vii)）',
   'episodes.privateLifeRoute': 'Appendix Private Life 许可依据',
   'episodes.privateLifeRoute.CHILD':
-    '作为儿童获批（未满 18 岁、连续居住 7 年；PL 3.1 / 10.1）',
+    '作为儿童获批（未满 18 岁、在英国连续居住至少 7 年；PL 3.1 / 10.1）',
   'episodes.privateLifeRoute.YOUNG_ADULT':
-    '18–24 岁、未满 18 岁入境且半生在英国（PL 4.1）',
+    '18–24 岁、未满 18 岁入境，且一生中至少一半时间连续居住在英国（PL 4.1）',
   'episodes.privateLifeRoute.ADULT':
-    '其他（连续居住超过 20 年或融入有重大障碍；PL 5.1）',
+    '其他（申请时已满 18 岁：在英国连续居住超过 20 年，或若被要求离开英国，在须前往生活的国家融入有非常重大的障碍；PL 5.1）',
   'benefits.protectionStatusRevoked':
     '我的保护身份已被撤销或我已放弃（STP 4.1）',
   'benefits.asylumSupportRepayment': '是否需要偿还 asylum support 费用？',
@@ -615,7 +616,7 @@ export const zhCN = {
   'game.hours': '营业时间',
   'game.closed': '现在关门了',
   'game.closedLabel': '关门',
-  'game.noVisaActions': '眼下没有要办的手续，到可以续签时这里会出现「续签」。',
+  'game.noVisaActions': '眼下这里没有可办的移民手续。',
   'game.tooLate': '来不及在 {time} 关门前做完。',
   'game.openAllDay': '全天开放',
   'game.minutes': '{count} 分钟',

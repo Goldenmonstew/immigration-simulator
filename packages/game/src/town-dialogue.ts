@@ -629,7 +629,7 @@ const copy: Record<string, [string, string][]> = {
     ],
     [
       '嘉宁，你自己的路线呢？别又拿全家的糊弄我。',
-      "Your own route, Ka Ning? don't hand me the whole family's again.",
+      "Your own route, Ka Ning? Don’t hand me the whole family's again.",
     ],
     [
       '嘉宁，咨询我要自己讲，喂，你陪着就行。',
@@ -677,7 +677,7 @@ const copy: Record<string, [string, string][]> = {
     ],
     [
       '那段旧事你听过，我直接接着骂，听着啊。',
-      'You know the old story. Picking up my rant where I left it. listen.',
+      'You know the old story. Picking up my rant where I left it. Listen.',
     ],
     [
       '那次拒签后停笔的事，你听过，我接着讲。',
@@ -1521,7 +1521,7 @@ const everydayCopy: Record<string, [string, string][]> = {
     ],
     [
       '毛线贴手是真软，先让我摸会儿再问织什么！我买的时候脑子一热，图样还没挑。',
-      "This yarn's so soft. let me feel it before asking what I'm making! Impulse purchase. Haven't picked a pattern.",
+      "This yarn's so soft. Let me feel it before asking what I'm making! Impulse purchase. Haven't picked a pattern.",
     ],
     [
       '找律师那阵问了好多遍费用，烦，怕漏项也怕问多。最后人家说：先让我把这句讲完。',

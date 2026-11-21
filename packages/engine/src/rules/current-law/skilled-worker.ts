@@ -87,8 +87,8 @@ export const clSwResidence5Y = defineRule(
   {
     id: 'CL-SW-RESIDENCE-5Y',
     ruleSetId: RULE_SET,
-    title: 'Skilled Worker 连续 5 年',
-    titleEn: `${cl.values.skilledWorkerQualifyingYears.value} continuous years as a Skilled Worker`,
+    title: 'Skilled Worker 定居的 5 年连续合格居留',
+    titleEn: `${cl.values.skilledWorkerQualifyingYears.value} years of continuous qualifying residence for Skilled Worker settlement`,
     sources: [
       { srcId: 'SRC-004', locator: 'SW 21.1' },
       { srcId: 'SRC-004', locator: 'SW 21.2' },
@@ -652,7 +652,7 @@ function settledPrincipal(
 const settledPrincipalAssumption = (L: Lang) =>
   L(
     '主申请人尚未定居时，只判断与主申请人同时获批（SW 39.1(a)）；若其已定居，须在主申请人信息里填写定居日期与路线（SW 39.1(b)）。',
-    'While the principal applicant has not settled, only being granted at the same time as them is assessed (SW 39.1(a)); if they have already settled, enter their settlement date and route in the principal applicant’s details (SW 39.1(b)).',
+    'If the principal applicant has yet to settle, the simulator assesses whether you could be granted settlement at the same time as them (SW 39.1(a)); if they have already settled, enter their settlement date and route in the principal applicant’s details (SW 39.1(b)).',
   );
 
 /** Why a dependant cannot settle with P under SW 39.1(a). */
@@ -828,8 +828,8 @@ export const clSwPartner5Y = defineRule(
         ? {
             status: 'PASS',
             explanation: L(
-              `${settled.explanation}；本人的 dependent partner 合格期为 ${years} 年，可从 ${residence!.applicationDate} 起申请（SW 42.1）。`,
-              `${settled.explanation}; they can apply from ${residence!.applicationDate} based on their own ${years}-year qualifying period (SW 42.1).`,
+              `${settled.explanation}；伴侣本人的 dependent partner 合格期为 ${years} 年，可从 ${residence!.applicationDate} 起申请（SW 42.1）。`,
+              `${settled.explanation}; the dependant partner can apply from ${residence!.applicationDate} based on their own ${years}-year qualifying period (SW 42.1).`,
             ),
             assumptions,
           }
@@ -963,8 +963,8 @@ export const clSwChild = defineRule(
         ? {
             status: 'PASS',
             explanation: L(
-              `${age}；${settled.explanation}，可申请定居。`,
-              `${age}; ${settled.explanation}, so they can apply for settlement.`,
+              `${age}；${settled.explanation}，子女可申请定居。`,
+              `${age}; ${settled.explanation}, so the child can apply for settlement.`,
             ),
             assumptions,
           }

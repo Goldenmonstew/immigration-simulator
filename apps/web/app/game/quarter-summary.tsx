@@ -1,5 +1,6 @@
 'use client';
 
+import { withCount } from '../../i18n';
 import { useTranslation } from '../../i18n/locale';
 import { displayedRuleSets } from '../../lib/policy';
 import {
@@ -144,7 +145,7 @@ export function QuarterSummary({
           visa.months <= 6 && !visa.renewed ? styles.urgent : undefined
         }
       >
-        {t('game.visa').replace('{count}', String(visa.months))}
+        {withCount(t('game.visa'), 'count', visa.months)}
       </p>
       {renewals.map((entry, index) => (
         <p key={index}>

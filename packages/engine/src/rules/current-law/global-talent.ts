@@ -259,8 +259,8 @@ export function globalTalentDependantPathway(
         result: {
           status: 'PASS',
           explanation: L(
-            `主申请人已于 ${settled.date} 以 Global Talent 定居，当时本人持其 dependent partner 许可（GT 27.1(b)）；本人须连续满 ${partnerYears} 年（GT 30.1），${own!.applicationDate} 起可申请。`,
-            `The principal applicant settled as a Global Talent on ${settled.date}, when this person held their dependent partner permission (GT 27.1(b)); they need ${partnerYears} continuous years of their own (GT 30.1), so they can apply from ${own!.applicationDate}.`,
+            `主申请人已于 ${settled.date} 以 Global Talent 定居，当时本人持其 dependent partner 许可（GT 27.1(b)）；伴侣本人须连续满 ${partnerYears} 年（GT 30.1），${own!.applicationDate} 起可申请。`,
+            `The principal applicant settled as a Global Talent on ${settled.date}, when this person held their dependent partner permission (GT 27.1(b)); the dependant partner needs ${partnerYears} continuous years of their own (GT 30.1), so they can apply from ${own!.applicationDate}.`,
           ),
           assumptions,
         },
@@ -272,8 +272,8 @@ export function globalTalentDependantPathway(
       result: {
         status: 'PASS',
         explanation: L(
-          `主申请人已于 ${settled.date} 以 Global Talent 定居，当时本人持其 dependent child 许可（GT 27.1(b)(i)），可申请定居；子女本人没有居留年限要求。`,
-          `The principal applicant settled as a Global Talent on ${settled.date}, when this person held their dependent child permission (GT 27.1(b)(i)), so they can apply for settlement; the child has no residence requirement of their own.`,
+          `主申请人已于 ${settled.date} 以 Global Talent 定居，当时子女持其 dependent child 许可（GT 27.1(b)(i)），子女可申请定居，本人没有居留年限要求。`,
+          `The principal applicant settled as a Global Talent on ${settled.date}, when this person held their dependent child permission (GT 27.1(b)(i)), so the child can apply for settlement and has no residence requirement of their own.`,
         ),
         assumptions,
       },

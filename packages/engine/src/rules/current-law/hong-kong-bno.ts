@@ -182,8 +182,8 @@ export function hongKongBnoDependantPathway(
         result: {
           status: 'PASS',
           explanation: L(
-            `未满 ${cl.values.settlementMinorAge.value} 岁（HK 57.1）；主申请人已于 ${settled.date} 定居（或已成为英国公民），可申请定居（HK 57.3(b)）；子女本人没有居留年限要求（HK 62.1(b)）。`,
-            `Under ${cl.values.settlementMinorAge.value} (HK 57.1); the principal applicant settled (or became a British citizen) on ${settled.date}, so they can apply for settlement (HK 57.3(b)); the child has no residence requirement of their own (HK 62.1(b)).`,
+            `未满 ${cl.values.settlementMinorAge.value} 岁（HK 57.1）；主申请人已于 ${settled.date} 定居（或已成为英国公民），子女可申请定居（HK 57.3(b)），本人没有居留年限要求（HK 62.1(b)）。`,
+            `Under ${cl.values.settlementMinorAge.value} (HK 57.1); the principal applicant settled (or became a British citizen) on ${settled.date}, so the child can apply for settlement (HK 57.3(b)) and has no residence requirement of their own (HK 62.1(b)).`,
           ),
           assumptions,
         },
@@ -227,8 +227,8 @@ export function hongKongBnoDependantPathway(
       result: {
         status: 'PASS',
         explanation: L(
-          `主申请人于 ${settled.date} 定居，定居前最后一次许可为 BN(O) Status Holder、BN(O) Adult Child 或其伴侣许可（HK 59.1(b)）。本人的 BN(O) 许可须满 ${years} 年（HK 62.1(b)），${own.applicationDate} 起可申请。`,
-          `The principal applicant settled on ${settled.date} and their last grant before settlement was as a BN(O) Status Holder, BN(O) Adult Child or their partner (HK 59.1(b)). This person’s own BN(O) permission must reach ${years} years (HK 62.1(b)), so they can apply from ${own.applicationDate}.`,
+          `主申请人于 ${settled.date} 定居，定居前最后一次许可为 BN(O) Status Holder、BN(O) Adult Child 或其伴侣许可（HK 59.1(b)）。成年受养亲属本人的 BN(O) 许可须满 ${years} 年（HK 62.1(b)），${own.applicationDate} 起可申请。`,
+          `The principal applicant settled on ${settled.date} and their last grant before settlement was as a BN(O) Status Holder, BN(O) Adult Child or their partner (HK 59.1(b)). The adult dependant relative’s own BN(O) permission must reach ${years} years (HK 62.1(b)), so they can apply from ${own.applicationDate}.`,
         ),
         assumptions,
       },

@@ -297,7 +297,7 @@ const townScenes: [
     '站厅里的空座',
     'A seat in the station',
     '你只是路过站厅，有人抱着折叠琴架找地方坐。你指向门外长椅，对方先问琴架能不能靠在旁边。',
-    'You are just passing through the station when someone carrying a folding music stand asks for a seat. You points outside; they ask where the stand can rest.',
+    'You are just passing through the station when someone carrying a folding music stand asks for a seat. You point to the bench outside; they ask whether the stand can rest beside it.',
     '陪对方看看长椅旁的空地',
     'Check the space beside the bench',
     '走到门口指给对方看',

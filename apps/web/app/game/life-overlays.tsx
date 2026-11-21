@@ -1,7 +1,7 @@
 'use client';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../../i18n/locale';
-import type { TranslationKey } from '../../i18n';
+import { withCount, type TranslationKey } from '../../i18n';
 import {
   buy,
   cook,
@@ -121,9 +121,7 @@ export function MorningCard({
         {t(`game.${state.day.weather}`)} · 07:00 ·{' '}
         {t('game.day').replace('{day}', String(state.day.index + 1))}
       </p>
-      <p>
-        {t('game.mailCount').replace('{count}', String(mailbox(state).length))}
-      </p>
+      <p>{withCount(t('game.mailCount'), 'count', mailbox(state).length)}</p>
       <p>
         {festival ? localText(festival.name, locale) : t('game.noFestival')}
       </p>
@@ -513,12 +511,11 @@ export function LifeCollection({ state }: { state: GameState }) {
         </section>
       ))}
       <p className={styles.collectionHarvests}>
-        {t('game.collectionHarvests')
-          .replace('{count}', String(harvests.length))
-          .replace(
-            '{kinds}',
-            String(new Set(harvests.map((r) => r.itemId)).size),
-          )}
+        {withCount(
+          withCount(t('game.collectionHarvests'), 'count', harvests.length),
+          'kinds',
+          new Set(harvests.map((r) => r.itemId)).size,
+        )}
       </p>
     </section>
   );
@@ -779,9 +776,7 @@ export function Mailbox({ state, onChange }: Change) {
   const { t } = useTranslation();
   return (
     <>
-      <p>
-        {t('game.mailCount').replace('{count}', String(mailbox(state).length))}
-      </p>
+      <p>{withCount(t('game.mailCount'), 'count', mailbox(state).length)}</p>
       {mailbox(state).length ? (
         <button
           className={styles.button}

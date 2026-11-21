@@ -7,7 +7,7 @@ import Home from '../app/page';
 import { PrincipalAssessment, ResultView } from '../components/result-view';
 import { SiteShell } from '../components/site-shell';
 import { WhatIfView } from '../components/whatif-lab';
-import { t } from '../i18n';
+import { t, withCount } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
 import { routeNames, routeGroupNames, routeLabel } from '../i18n/routes';
 import {
@@ -206,4 +206,26 @@ test('engine short circuit messages are also English', () => {
   const result = runSimulation(draft, 'en');
   expect(result.shortCircuit?.reason).toBe('OUTSIDE_FRAMEWORK');
   expectEnglish(result);
+});
+
+test('task 34 / A8 #18: English counts switch between singular and plural', () => {
+  expect(withCount(t('game.mailCount', 'en'), 'count', 1)).toBe(
+    '1 letter in your mailbox',
+  );
+  expect(withCount(t('game.mailCount', 'en'), 'count', 2)).toBe(
+    '2 letters in your mailbox',
+  );
+  expect(withCount(t('game.visa', 'en'), 'count', 1)).toBe(
+    'Permission: 1 month left',
+  );
+  expect(
+    withCount(withCount(t('gap.wait', 'en'), 'years', 1), 'months', 0),
+  ).toBe(
+    ', approximately 1 year and 0 months after the simulation date (rounded up to the next month).',
+  );
+  expect(withCount(t('whatif.tripDays', 'en'), 'days', 1)).toMatch(
+    /^1 whole day away\./,
+  );
+  // Chinese has no plural ending to fill.
+  expect(withCount(t('game.mailCount'), 'count', 1)).toBe('信箱里有 1 封信');
 });

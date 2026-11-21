@@ -2975,11 +2975,11 @@ const recentCopy: Record<string, [string, string][]> = {
     ],
     [
       '加薪了！庆功别买我这块干蛋糕，换家店！',
-      'Pay rise! celebrate somewhere else. Not with this dry cake!',
+      'Pay rise! Celebrate somewhere else. Not with this dry cake!',
     ],
     [
       '换工作啦？旧工位那张画记得拿，别白送他们。',
-      "New job? take that drawing off your old desk. Don't leave them a freebie.",
+      "New job? Take that drawing off your old desk. Don't leave them a freebie.",
     ],
     [
       '英语过了！喂，替我跟咖啡师说蛋糕太干，练口语！',
@@ -2991,7 +2991,7 @@ const recentCopy: Record<string, [string, string][]> = {
     ],
     [
       '回来了？先讲路上有什么怪招牌，我要画！',
-      'Back? tell me the odd shop signs first. I want to draw them!',
+      'Back? Tell me the odd shop signs first. I want to draw them!',
     ],
     [
       '钱紧就点一杯，喂，我纸还够，空杯也能画。',
@@ -3003,7 +3003,7 @@ const recentCopy: Record<string, [string, string][]> = {
     ],
     [
       '敢给你看未完稿了，咖啡别往边上搁啊。',
-      'Showing you unfinished work now. coffee away from the edge!',
+      'Showing you unfinished work now. Coffee away from the edge!',
     ],
   ],
   gareth: [
@@ -3530,13 +3530,13 @@ const heartReplies: Record<string, [Text, Text]> = {
     },
     {
       zhCN: '上次只聊颜色真痛快，灰就是灰，省掉解释！',
-      en: 'Just colours last time. What a relief! grey is grey. Explanation saved!',
+      en: 'Just colours last time. What a relief! Grey is grey. Explanation saved!',
     },
   ],
   'heart-lina-4': [
     {
       zhCN: '最初来这儿干什么，我还记得。地图箭头还在呢！',
-      en: "I remember why I came here. arrow's still on the map!",
+      en: 'I remember why I came here. The arrow’s still on the map!',
     },
     {
       zhCN: '你听过我为什么难收行李，喂，光画稿就塞满两箱！',
@@ -3566,7 +3566,7 @@ const heartReplies: Record<string, [Text, Text]> = {
   'heart-lina-10': [
     {
       zhCN: '你画的桌子我认得！下幅画咖啡渍也行，省布景。',
-      en: 'Know your table now! coffee stain next is fine. Saves arranging a subject.',
+      en: 'Know your table now! Coffee stain next is fine. Saves arranging a subject.',
     },
     {
       zhCN: '今天画普通东西！标题写「梨」，拜托，够用了吧。',

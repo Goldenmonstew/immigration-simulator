@@ -319,7 +319,7 @@ const events: GameEvent[] = [
         id: 'second',
         label: {
           zhCN: '最后是父母来英国小住',
-          en: 'In the end the parents stayed in the UK',
+          en: 'In the end, your parents came to the UK for a short visit',
         },
         effects: [
           {
@@ -2231,7 +2231,7 @@ export const skilledWorker: Character = {
     title: { zhCN: '门边的纸箱', en: 'Boxes by the door' },
     text: {
       zhCN: '你在镇上的公寓和周沅刚合租，门边还堆着没拆的纸箱。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本先放进包里。\n窗外通向菜地和池塘，街角有咖啡馆。今天先从哪儿走起？',
-      en: 'You have just started sharing a town flat with Yuan. Unopened boxes still stand by the door.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. The textbook goes in the bag.\nOutside lie the allotment and pond, with a café on the corner. Where to start today?',
+      en: 'You have just started sharing a town flat with Yuan. Unopened boxes still stand by the door.\nKeeping permission valid is part of life here: renew at the visa centre, and check what you still need to qualify for settlement at the town hall.\nEnglish and Life in the UK tests are at the language school. The textbook goes in the bag.\nOutside lie the allotment and pond, with a café on the corner. Where to start today?',
     },
     weight: 1,
     once: true,
@@ -2249,7 +2249,7 @@ export const skilledWorker: Character = {
   },
   settlement: {
     zhCN: '你把递交后的回执放在桌上，边角压着那串早已磨亮的钥匙。\n周沅把茶杯推过来，顺手将桌边翘起的纸角压平，没再问还缺什么。\n文件夹合上时，里面的车票轻轻滑了一下。你伸手接住，放回原处。\n你把杯子移出文件夹留下的方印，坐下来，听厨房里的水壶慢慢安静。',
-    en: 'You put the submission receipt on the table, its corner beneath your well-worn keys.\nYuan slides a cup of tea across and flattens a curling paper edge, without asking what is still missing.\nA train ticket slips as the folder closes. You catch it and put it back.\nYou move your cup out of the square left by the folder and sit, listening as the kitchen kettle falls quiet.',
+    en: 'You put the receipt on the table, its corner resting on your well-worn keys.\nYuan slides a cup of tea across and flattens a curling paper edge, without asking what is still missing.\nA train ticket slips as the folder closes. You catch it and put it back.\nYou move your cup out of the square left by the folder and sit, listening as the kitchen kettle falls quiet.',
   },
   startDate: '2025-01-15',
   timeline: {

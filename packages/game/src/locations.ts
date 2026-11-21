@@ -243,7 +243,7 @@ export const locationActions: Activity[] = [
     place: 'bench',
     label: {
       zhCN: `报名本季徒步私教班（£${b.clubFee}；本季心情、健康加成）`,
-      en: `Join this quarter’s guided hiking coaching (£${b.clubFee}; mood and health this quarter)`,
+      en: `Join this quarter’s hiking coaching (£${b.clubFee}; mood and health this quarter)`,
     },
     minutes: b.minutes.bench,
     effects: [{ type: 'money', delta: -b.clubFee }],
@@ -485,7 +485,7 @@ export const locationActions: Activity[] = [
     place: 'station',
     label: {
       zhCN: `出国 ${months} 个月`,
-      en: `Travel abroad for ${months} month(s)`,
+      en: `Travel abroad for ${months} month${months === 1 ? '' : 's'}`,
     },
     minutes: 0,
     effects: [

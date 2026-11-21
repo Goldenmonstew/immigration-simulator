@@ -51,7 +51,7 @@ import {
   groupedMemories,
   type DayMemory,
 } from '../app/game/diary';
-import { t } from '../i18n';
+import { t, withCount } from '../i18n';
 import townMap from '../public/game/town.json';
 import homeMap from '../public/game/home.json';
 import { decodeDraft, encodeDraft } from '../lib/share';
@@ -145,7 +145,7 @@ test.each(['zh-CN', 'en'] as const)(
       locale,
     );
     expect(morning.html).toContain(
-      t('game.mailCount', locale).replace('{count}', '1'),
+      withCount(t('game.mailCount', locale), 'count', 1),
     );
     morning.click(t('game.beginDay', locale));
     expect(onContinue).toHaveBeenCalledOnce();
