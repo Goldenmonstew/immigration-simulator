@@ -14,10 +14,13 @@ export function GapSummary({
   assessment,
   simulationDate,
   canWhatIf = false,
+  dependant = false,
 }: {
   assessment: SettlementAssessment;
   simulationDate?: string;
   canWhatIf?: boolean;
+  /** A dependant's reassessment date comes from the principal's record. */
+  dependant?: boolean;
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
@@ -44,8 +47,25 @@ export function GapSummary({
         <p>{t('gap.met')}</p>
       ) : (
         <>
-          {!date && !rules.length && <p>{t('result.noRules')}</p>}
+          {!date && !rules.length && !assessment.pathwayCompletionDate && (
+            <p>{t('result.noRules')}</p>
+          )}
           <ul id={id} className={styles.gapList}>
+            {assessment.pathwayCompletionDate && (
+              <li>
+                {t('gap.completion').replace(
+                  '{date}',
+                  assessment.pathwayCompletionDate,
+                )}
+              </li>
+            )}
+            {assessment.publicFundsReassessmentDate && (
+              <li>
+                {t(
+                  dependant ? 'gap.reassessPrincipal' : 'gap.reassess',
+                ).replace('{date}', assessment.publicFundsReassessmentDate)}
+              </li>
+            )}
             {date && (
               <li>
                 {t('gap.earliest').replace('{date}', date)}

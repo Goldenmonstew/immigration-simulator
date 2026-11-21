@@ -994,6 +994,7 @@ PD-075 登记到 `docs/pending-details.md` 新的第十节"现行法律栏家庭
 
 - `ES-RESIDENCE` 保留历史 LOTR（PD-022）、分类未定的 Appendix FM 许可转 Private Life（PD-025）、以及 Protection Work and Study 回切 Core Protection（PD-064）的 `UNKNOWN`。最新已确认的起点仍可作条件推算。已知的普通五年伴侣许可转 Private Life 按跨组重算。合并后的居留也按同一缺席口径检查。
 - `SettlementAssessment.pathwayCompletionDate`（可选）记录所选改革路径在既定条件下的未来满期日。居留口径未定，或已停止使用的 public funds 会在所选路径满期前退出回看期并可重评较短路径时，使用该字段。对应的 `earliestDate` 留空。`publicFundsReassessmentDate`（可选）表示当前使用记录在无新增领取时退出回看窗口的首日，取最后领取日的回看期周年后一天。仍在领取时无该日期。两个字段仅用于改革栏，结果页的显示由任务 49 处理。
+- `SettlementAssessment.shorterPathwaysNotUsed`（可选，任务 49）按候选顺序（年限从短到长）逐个列出比所选路径更短、状态为 `FAIL` 或 `UNKNOWN` 的候选路径：`years`；标准路径的 3 年与 5 年候选带 `entry`（收入、British connection、公共服务、两项过渡安排），保护路线的候选不带；`status` 为候选状态；`ruleIds` 为该候选中同一状态、且不在 `decidedBy` 内的规则，按 `rules` 顺序。没有更短候选时省略：Core Protection 与随行人只有一条路径；Family and Private Life 与 Article 8 十年伴侣路线没有 3 年、5 年候选，选中 10 年时省略，选中 20 年时仍列出 10 年候选。转专业复核时与其他路径字段一并删除。结果页用它说明较短路径为何未采用。
 - `ES-HIGHEST-TALENT` 对 high talent permission 的主申请人单列 Table 1 的人才资格为 `UNKNOWN`（PD-011）。人才资格待 MAC 审查，当前候选选择及收入路径日期继续使用有明确门槛的规则。
 - 申报犯罪记录继续触发两栏的受监管审核。现有犯罪记录只含日期，犯罪地或海外行为在英国是否构成犯罪未定时，改革明细为 `UNKNOWN`（PD-017）。未清偿债务的布尔申报未提供债务类别或还款计划，明细为 `UNKNOWN`（PD-018）。须偿还的 asylum support 仍用专门规则。成年违规或所计入的 public funds 影响年限时，双语结果声明将实施前事件纳入回看的假设（PD-004）。
 - 缺少 Safe and Legal 安置计划时，只有确实依赖计划的英语要求或考试适用性为 `UNKNOWN`。框架外群体按 PD-027、PD-028、PD-051 给出强化要求适用性，丧偶伴侣仍提示 suitability 与 character。

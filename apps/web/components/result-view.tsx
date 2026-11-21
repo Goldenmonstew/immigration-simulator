@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import type { SimulationResult } from '@uk-immigration/engine';
 import { ROUTE_GROUPS } from '@uk-immigration/policy-data';
+import type { TranslationKey } from '../i18n';
 import { useTranslation } from '../i18n/locale';
 import { punct } from '../i18n/punctuation';
 import { routeGroupNames, routeLabel } from '../i18n/routes';
@@ -12,6 +14,8 @@ import { issueUrl } from '../lib/report';
 import { sourceUrls } from '../lib/sources';
 import { PolicyStatus, RuleSetStatus } from './policy-status';
 import { GapSummary } from './gap-summary';
+import { basisRule, shorterPathwaysNotUsed } from '../lib/gap-summary';
+import type { RuleOutcome } from '@uk-immigration/engine';
 import site from '../app/site.module.css';
 import styles from '../app/result/result.module.css';
 
@@ -40,10 +44,13 @@ export function ResultView({
   result,
   mock = false,
   draft,
+  actions,
 }: {
   result: SimulationResult;
   mock?: boolean;
   draft?: Draft;
+  /** Shortcuts shown near the overview as well as after the columns. */
+  actions?: ReactNode;
 }) {
   const { t } = useTranslation();
   const episode = draft && currentEpisode(draft);
@@ -79,6 +86,7 @@ export function ResultView({
               </button>
             ))}
           </nav>
+          {actions}
           {result.shortCircuit && (
             <p className={`${site.notice} ${site.warning}`}>
               {result.shortCircuit.message}
@@ -97,6 +105,7 @@ export function ResultView({
             result={result}
             simulationDate={draft?.simulationDate}
             canWhatIf={!!draft && !mock && !result.shortCircuit}
+            dependant={episode?.role === 'DEPENDANT'}
           />
           <Advice />
         </>
@@ -113,11 +122,13 @@ export function AssessmentColumns({
   idPrefix = '',
   simulationDate,
   canWhatIf = false,
+  dependant = false,
 }: {
   result: SimulationResult;
   idPrefix?: string;
   simulationDate?: string;
   canWhatIf?: boolean;
+  dependant?: boolean;
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
@@ -169,11 +180,58 @@ export function AssessmentColumns({
                 >
                   <h3>{t(`outcome.${assessment.outcome}`)}</h3>
                   <p>{t(`outcome.${assessment.outcome}.description`)}</p>
+                  {assessment.decidedBy &&
+                    assessment.pathwayYears !== undefined && (
+                      <p className={styles.basis}>
+                        {(basisRule(assessment)
+                          ? t('result.basis').replace(
+                              '{route}',
+                              basisRule(assessment)!.title,
+                            )
+                          : t('result.basisNoRoute')
+                        ).replace('{years}', String(assessment.pathwayYears))}
+                      </p>
+                    )}
+                  {shorterPathwaysNotUsed(assessment).length > 0 && (
+                    <>
+                      <p>{t('result.shorterBlocked')}</p>
+                      <ul className={styles.shorterBlocked}>
+                        {shorterPathwaysNotUsed(assessment).map(
+                          ({ years, entry, status, rules }) => (
+                            <li key={`${years}-${entry}`}>
+                              {t(
+                                status === 'FAIL'
+                                  ? 'result.shorterNotMet'
+                                  : 'result.shorterUnconfirmed',
+                              )
+                                .replace(
+                                  '{pathway}',
+                                  (entry
+                                    ? t('result.shorterPathwayEntry').replace(
+                                        '{entry}',
+                                        t(
+                                          `result.entry.${entry}` as TranslationKey,
+                                        ),
+                                      )
+                                    : t('result.shorterPathway')
+                                  ).replace('{years}', String(years)),
+                                )
+                                .replace(
+                                  '{rules}',
+                                  rules.map((rule) => rule.title).join(p.list),
+                                )}
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </>
+                  )}
                 </div>
                 <GapSummary
                   assessment={assessment}
                   simulationDate={simulationDate}
                   canWhatIf={canWhatIf}
+                  dependant={dependant}
                 />
                 <dl className={styles.facts}>
                   {assessment.routeGroup && (
@@ -195,111 +253,72 @@ export function AssessmentColumns({
                         : `${assessment.pathwayYears} ${t('result.years')}`}
                     </dd>
                   </div>
-                  <div>
-                    <dt>{t('result.earliest')}</dt>
-                    <dd>
-                      {assessment.earliestDate ? (
-                        <time dateTime={assessment.earliestDate}>
-                          {assessment.earliestDate}
+                  {assessment.pathwayCompletionDate &&
+                  !assessment.earliestDate ? (
+                    <div>
+                      <dt>{t('result.completion')}</dt>
+                      <dd>
+                        <time dateTime={assessment.pathwayCompletionDate}>
+                          {assessment.pathwayCompletionDate}
                         </time>
-                      ) : (
-                        t('result.undetermined')
-                      )}
-                    </dd>
-                  </div>
+                      </dd>
+                    </div>
+                  ) : (
+                    <div>
+                      <dt>{t('result.earliest')}</dt>
+                      <dd>
+                        {assessment.earliestDate ? (
+                          <time dateTime={assessment.earliestDate}>
+                            {assessment.earliestDate}
+                          </time>
+                        ) : (
+                          t('result.undetermined')
+                        )}
+                      </dd>
+                    </div>
+                  )}
+                  {assessment.publicFundsReassessmentDate && (
+                    <div>
+                      <dt>{t('result.reassessment')}</dt>
+                      <dd>
+                        <time dateTime={assessment.publicFundsReassessmentDate}>
+                          {assessment.publicFundsReassessmentDate}
+                        </time>
+                      </dd>
+                    </div>
+                  )}
                 </dl>
                 <h3>{t('result.why')}</h3>
                 {!assessment.rules.length ? (
                   <p className={site.muted}>{t('result.noRules')}</p>
-                ) : (
-                  (['FAIL', 'UNKNOWN', 'PASS'] as const).map((status) => {
-                    const rules = assessment.rules.filter(
-                      (rule) => rule.status === status,
-                    );
-                    return (
-                      <details
-                        key={status}
-                        className={styles.group}
-                        open={status !== 'PASS'}
-                      >
-                        <summary>
-                          <h4>
-                            {t(`result.${status}`)}
-                            {p.openParen}
-                            {rules.length}
-                            {p.closeParen}
-                          </h4>
-                        </summary>
-                        {!rules.length ? (
-                          <p className={site.muted}>
-                            {t('result.noGroupRules')}
-                          </p>
-                        ) : (
-                          <ul className={styles.rules}>
-                            {rules.map((rule) => (
-                              <li
-                                className={styles.rule}
-                                key={rule.id}
-                                data-status={status}
-                              >
-                                <strong>{rule.title}</strong>
-                                <p>{rule.explanation}</p>
-                                <details className={styles.sourceDetails}>
-                                  <summary>
-                                    {t('result.sources')}
-                                    {p.openParen}
-                                    {rule.sources.length}
-                                    {p.closeParen}
-                                  </summary>
-                                  <div className={styles.sources}>
-                                    {rule.sources.map((source, index) =>
-                                      sourceUrls[source.srcId] ? (
-                                        <a
-                                          key={index}
-                                          href={sourceUrls[source.srcId]}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                        >
-                                          {source.srcId} {source.locator}
-                                        </a>
-                                      ) : (
-                                        <span key={index}>
-                                          {source.srcId} {source.locator}
-                                        </span>
-                                      ),
-                                    )}
-                                    <a
-                                      href={issueUrl(
-                                        `[${rule.id}] ${rule.title}`,
-                                        [
-                                          `rule set: ${ruleSet.id}`,
-                                          `rule: ${rule.id}`,
-                                          `status: ${status}`,
-                                          '',
-                                          '<!-- What is wrong, and which official source says otherwise? Do not paste share links or personal details. -->',
-                                        ],
-                                      )}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                    >
-                                      {t('result.reportRule')}
-                                    </a>
-                                  </div>
-                                </details>
-                                {!!rule.pendingDetails?.length && (
-                                  <p className={site.badge}>
-                                    {t('result.pendingDetails')}
-                                    {p.colon}
-                                    {rule.pendingDetails.join(p.list)}
-                                  </p>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
+                ) : assessment.decidedBy ? (
+                  <>
+                    <h4 className={styles.pathwayHeading}>
+                      {t('result.thisPathway')}
+                    </h4>
+                    <RuleGroups
+                      rules={assessment.rules.filter((rule) =>
+                        assessment.decidedBy!.includes(rule.id),
+                      )}
+                      ruleSetId={ruleSet.id}
+                    />
+                    {assessment.rules.some(
+                      (rule) => !assessment.decidedBy!.includes(rule.id),
+                    ) && (
+                      <details className={styles.otherPathways}>
+                        <summary>{t('result.otherPathways')}</summary>
+                        <RuleGroups
+                          rules={assessment.rules.filter(
+                            (rule) => !assessment.decidedBy!.includes(rule.id),
+                          )}
+                          ruleSetId={ruleSet.id}
+                          collapsed
+                        />
                       </details>
-                    );
-                  })
+                    )}
+                  </>
+                ) : (
+                  <RuleGroups rules={assessment.rules} ruleSetId={ruleSet.id} />
                 )}
                 {assessment.assumptions.length ? (
                   <details>
@@ -329,6 +348,97 @@ export function AssessmentColumns({
       })}
     </div>
   );
+}
+
+function RuleGroups({
+  rules: all,
+  ruleSetId,
+  collapsed = false,
+}: {
+  rules: RuleOutcome[];
+  ruleSetId: string;
+  collapsed?: boolean;
+}) {
+  const { t, locale } = useTranslation();
+  const p = punct(locale);
+  return (['FAIL', 'UNKNOWN', 'PASS'] as const).map((status) => {
+    const rules = all.filter((rule) => rule.status === status);
+    if (collapsed && !rules.length) return null;
+    return (
+      <details
+        key={status}
+        className={styles.group}
+        open={!collapsed && status !== 'PASS'}
+      >
+        <summary>
+          <h4>
+            {t(`result.${status}`)}
+            {p.openParen}
+            {rules.length}
+            {p.closeParen}
+          </h4>
+        </summary>
+        {!rules.length ? (
+          <p className={site.muted}>{t('result.noGroupRules')}</p>
+        ) : (
+          <ul className={styles.rules}>
+            {rules.map((rule) => (
+              <li className={styles.rule} key={rule.id} data-status={status}>
+                <strong>{rule.title}</strong>
+                <p>{rule.explanation}</p>
+                <details className={styles.sourceDetails}>
+                  <summary>
+                    {t('result.sources')}
+                    {p.openParen}
+                    {rule.sources.length}
+                    {p.closeParen}
+                  </summary>
+                  <div className={styles.sources}>
+                    {rule.sources.map((source, index) =>
+                      sourceUrls[source.srcId] ? (
+                        <a
+                          key={index}
+                          href={sourceUrls[source.srcId]}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {source.srcId} {source.locator}
+                        </a>
+                      ) : (
+                        <span key={index}>
+                          {source.srcId} {source.locator}
+                        </span>
+                      ),
+                    )}
+                    <a
+                      href={issueUrl(`[${rule.id}] ${rule.title}`, [
+                        `rule set: ${ruleSetId}`,
+                        `rule: ${rule.id}`,
+                        `status: ${status}`,
+                        '',
+                        '<!-- What is wrong, and which official source says otherwise? Do not paste share links or personal details. -->',
+                      ])}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {t('result.reportRule')}
+                    </a>
+                  </div>
+                </details>
+                {!!rule.pendingDetails?.length && (
+                  <p className={site.badge}>
+                    {t('result.pendingDetails')}
+                    {p.colon}
+                    {rule.pendingDetails.join(p.list)}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </details>
+    );
+  });
 }
 
 export function PrincipalAssessment({

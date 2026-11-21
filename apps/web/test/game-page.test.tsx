@@ -1368,9 +1368,23 @@ test.each(['zh-CN', 'en'] as const)(
     state.date = '2024-04-15';
     state.timeline.episodes[0].validTo = '2024-07-14';
     state.day.minute = 600;
-    const h = await client(state);
-    h.render().click(t('game.fastForward'));
-    expect(h.render().html).toContain(t('game.fastVisaWarning'));
+    const h = await client(state, locale);
+    h.render().click(t('game.fastForward', locale));
+    // The warning names the expiry date and offers the visa centre.
+    const warning = t('game.fastVisaWarning', locale).replace(
+      '{date}',
+      '2024-07-14',
+    );
+    expect(h.render().html).toContain(warning);
+    // review40-1 #4: the button walks to the visa centre without passing time.
+    h.render().click(t('game.visaVisit', locale));
+    const after = h.render();
+    expect(after.html).not.toContain(warning);
+    expect(after.props(TownCanvas).destination?.location).toBe('visa');
+    expect(after.props(TownCanvas).state).toMatchObject({
+      date: '2024-04-15',
+      day: { minute: 600 },
+    });
     h.dispose();
     vi.restoreAllMocks();
     state.timeline.episodes.push({
@@ -1385,9 +1399,14 @@ test.each(['zh-CN', 'en'] as const)(
     );
     expect(view.html).not.toContain(t('game.visaReminderTitle', locale));
     state.day.minute = 600;
-    const renewed = await client(state);
-    renewed.render().click(t('game.fastForward'));
-    expect(renewed.render().html).not.toContain(t('game.fastVisaWarning'));
+    const renewed = await client(state, locale);
+    renewed.render().click(t('game.fastForward', locale));
+    const confirm = renewed.render().html;
+    expect(confirm).toContain(t('game.confirm', locale));
+    expect(confirm).not.toContain(
+      t('game.fastVisaWarning', locale).split('{date}')[1],
+    );
+    expect(confirm).not.toContain(t('game.visaVisit', locale));
     renewed.dispose();
   },
 );

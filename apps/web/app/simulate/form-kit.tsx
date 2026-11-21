@@ -58,11 +58,19 @@ export function useFormKit() {
 
   useEffect(() => {
     const stored = draftStorage();
-    if (stored.draft)
+    if (stored.draft) {
       dispatch({
         type: 'restore',
         draft: stored.draft,
       });
+      // A completed draft reopened for correction shows why at once.
+      const restored = draftReducer(stored.draft, {
+        type: 'restore',
+        draft: stored.draft,
+      });
+      if (stored.draft.completed && !restored.completed)
+        setErrors(validateStep(activePersonDraft(restored)));
+    }
     setStorageAvailable(stored.available);
     setReady(true);
   }, []);

@@ -75,7 +75,7 @@ test.each([
   },
 );
 
-test('a projected date shows the wait from the simulation date and only failed rules', () => {
+test('task 49 / A6#6: a projected date shows the wait and keeps requirements still to confirm', () => {
   const html = render(
     assessment({
       outcome: 'LIKELY_NOT_ELIGIBLE',
@@ -86,7 +86,21 @@ test('a projected date shows the wait from the simulation date and only failed r
   expect(html).toContain('按当前情况最早 2028-01-04');
   expect(html).toContain('1 年 2 个月');
   expect(html).toContain('ES-EARNINGS-10Y');
-  expect(html).not.toContain('CL-ENGLISH');
+  expect(html).toContain('CL-ENGLISH（补填信息）');
+});
+
+test('task 49 / A6#7: a conditional completion is not shown as the earliest date', () => {
+  const html = render(
+    assessment({
+      outcome: 'LIKELY_NOT_ELIGIBLE',
+      pathwayYears: 20,
+      pathwayCompletionDate: '2041-06-01',
+      publicFundsReassessmentDate: '2028-11-01',
+    }),
+  );
+  expect(html).toContain('条件满期日 2041-06-01');
+  expect(html).toContain('2028-11-01 起可按较短路径重新评估');
+  expect(html).not.toContain('按当前情况最早 2041-06-01');
 });
 
 test.each(['POTENTIALLY_ELIGIBLE', 'LIKELY_NOT_ELIGIBLE'] as const)(
@@ -103,11 +117,10 @@ test.each(['POTENTIALLY_ELIGIBLE', 'LIKELY_NOT_ELIGIBLE'] as const)(
         ...rules.slice(1),
       ],
     });
-    expect(gapRules(value).map((item) => item.id)).toEqual(
-      outcome === 'LIKELY_NOT_ELIGIBLE'
-        ? ['CL-SW-RESIDENCE-5Y']
-        : ['CL-SW-RESIDENCE-5Y', 'CL-ENGLISH'],
-    );
+    expect(gapRules(value).map((item) => item.id)).toEqual([
+      'CL-SW-RESIDENCE-5Y',
+      'CL-ENGLISH',
+    ]);
     const html = render(value);
     expect(html).toContain('CL-SW-RESIDENCE-5Y');
     expect(html).toContain('href="/whatif?focus=date"');
@@ -126,7 +139,7 @@ test('without decidedBy all rules remain eligible for the summary', () => {
         earliestDate: '2028-01-04',
       }),
     ),
-  ).toEqual([rules[0]]);
+  ).toEqual(rules.slice(0, 3));
 });
 
 test.each(['zh-CN', 'en'] as const)(
@@ -295,3 +308,180 @@ test('a real Skilled Worker assessment with missing English offers the English c
     else expect(html).not.toMatch(/[\u3400-\u9fff：、（）]/);
   }
 });
+
+test.each(['zh-CN', 'en'] as const)(
+  'task 49 / playtest #2: the result names the pathway it rests on and sets other pathways apart in %s',
+  (locale) => {
+    const draft = {
+      ...createDraft(),
+      ...structuredClone(clHkbnoFiveYears.request),
+      simulationDate: '2026-01-01',
+      completed: true,
+    };
+    const result = runSimulation(draft, locale);
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <ResultView result={result} draft={draft} />
+      </LocaleContext>,
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? 'Based on the 5-year pathway ('
+        : '结论依据：5 年路径（',
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? 'Other pathways (shows why they were not used)'
+        : '其他路径的条件（可看这些路径为何未被采用）',
+    );
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'review49-1 #2: a 20-year conclusion names public funds as what rules out shorter pathways in %s',
+  (locale) => {
+    const draft = {
+      ...createDraft(),
+      simulationDate: '2026-11-04',
+      completed: true,
+    };
+    draft.screening = { criminality: 'no', breach: 'no', debt: 'no' };
+    draft.timeline = {
+      ...draft.timeline,
+      dateOfBirth: '1990-01-01',
+      nationality: 'IND',
+      episodes: [
+        {
+          route: 'SKILLED_WORKER',
+          role: 'MAIN',
+          validFrom: '2021-06-01',
+          validTo: '2027-05-31',
+          socCode: '2136',
+          salary: 52000,
+        },
+      ],
+      incomeYears: draft.timeline.incomeYears.map((year) => ({
+        ...year,
+        earnings: 52000,
+      })),
+      benefits: [
+        {
+          benefitType: 'UNIVERSAL_CREDIT',
+          from: '2023-01-01',
+          to: '2023-10-31',
+        },
+      ],
+      english: { cefrLevel: 'B2' },
+      lifeInTheUk: { passed: true },
+    };
+    const result = runSimulation(draft, locale);
+    const reform = result.byRuleSet['earned-settlement-2026-11']!;
+    expect(reform.pathwayCompletionDate).toBe('2041-06-01');
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <ResultView result={result} draft={draft} />
+      </LocaleContext>,
+    );
+    const title = (id: string) => reform.rules.find((r) => r.id === id)!.title;
+    expect(html).toContain(t('result.shorterBlocked', locale));
+    // review49-2 #1: each shorter pathway lists its own failed requirements.
+    expect(html).toContain(
+      locale === 'en'
+        ? `<li>5-year pathway (earnings) – not met: ${title('ES-PUBLIC-FUNDS')}</li>`
+        : `<li>5 年路径（收入）——未满足：${title('ES-PUBLIC-FUNDS')}</li>`,
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? `<li>5-year pathway (British connection) – not met: ${title('ES-BRITISH-CONNECTION')}`
+        : `<li>5 年路径（British connection）——未满足：${title('ES-BRITISH-CONNECTION')}`,
+    );
+    expect(html).toMatch(
+      new RegExp(
+        `<li>10[^<]*${title('ES-PUBLIC-FUNDS').replace(/[()]/g, '.')}</li>`,
+      ),
+    );
+    expect(html).toContain('2041-06-01');
+    expect(html).toContain('2028-11-01');
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'review49-2 #1: a 10-year conclusion names its earnings rule and the requirements that rule out shorter pathways in %s',
+  (locale) => {
+    const draft = {
+      ...createDraft(),
+      simulationDate: '2026-11-04',
+      completed: true,
+    };
+    draft.screening = { criminality: 'no', breach: 'no', debt: 'no' };
+    draft.timeline = {
+      ...draft.timeline,
+      dateOfBirth: '1990-01-01',
+      nationality: 'IND',
+      episodes: [
+        {
+          route: 'SKILLED_WORKER',
+          role: 'MAIN',
+          validFrom: '2021-06-01',
+          validTo: '2027-05-31',
+          socCode: '2136',
+          salary: 30000,
+        },
+      ],
+      incomeYears: draft.timeline.incomeYears.map((year) => ({
+        ...year,
+        earnings: 30000,
+      })),
+      english: { cefrLevel: 'B2' },
+      lifeInTheUk: { passed: true },
+    };
+    const result = runSimulation(draft, locale);
+    const reform = result.byRuleSet['earned-settlement-2026-11']!;
+    expect(reform.pathwayYears).toBe(10);
+    const title = (id: string) => reform.rules.find((r) => r.id === id)!.title;
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <ResultView result={result} draft={draft} />
+      </LocaleContext>,
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? `Based on the 10-year pathway (${title('ES-EARNINGS-10Y')})`
+        : `结论依据：10 年路径（${title('ES-EARNINGS-10Y')}）`,
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? `<li>3-year pathway (earnings) – not met: ${title('ES-EARNINGS-3Y')}</li>`
+        : `<li>3 年路径（收入）——未满足：${title('ES-EARNINGS-3Y')}</li>`,
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? `<li>5-year pathway (earnings) – not met: ${title('ES-EARNINGS-5Y')}</li>`
+        : `<li>5 年路径（收入）——未满足：${title('ES-EARNINGS-5Y')}</li>`,
+    );
+
+    // review49-3: a 5-year candidate left open by PD-006 is still to be
+    // confirmed, not failed.
+    draft.timeline = {
+      ...draft.timeline,
+      episodes: [{ ...draft.timeline.episodes[0], validFrom: '2016-01-01' }],
+      incomeYears: draft.timeline.incomeYears.map((year) => ({
+        ...year,
+        earnings: ['2021-22', '2022-23'].includes(year.taxYear) ? 60000 : 20000,
+      })),
+    };
+    const open = runSimulation(draft, locale);
+    expect(open.byRuleSet['earned-settlement-2026-11']!.pathwayYears).toBe(10);
+    expect(
+      renderToStaticMarkup(
+        <LocaleContext value={{ locale, setLocale: () => {} }}>
+          <ResultView result={open} draft={draft} />
+        </LocaleContext>,
+      ),
+    ).toContain(
+      locale === 'en'
+        ? `<li>5-year pathway (earnings) – still to be confirmed: ${title('ES-EARNINGS-5Y')}</li>`
+        : `<li>5 年路径（收入）——待确认：${title('ES-EARNINGS-5Y')}</li>`,
+    );
+  },
+);
