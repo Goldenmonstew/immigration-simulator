@@ -909,7 +909,8 @@ function assessCurrentLaw(
           checked = {
             ...candidate,
             rules:
-              candidate.residence === 'CL-LR-RESIDENCE-10Y'
+              candidate.residence === 'CL-LR-RESIDENCE-10Y' ||
+              candidate.residence === 'CL-ANCESTRY-RESIDENCE-5Y'
                 ? atFiling.map((rule) => languageAt(rule, candidate, date))
                 : atFiling,
           };
@@ -979,6 +980,21 @@ function assessCurrentLaw(
         `The 10-year Long Residence pathway is checked separately under LR 13.1. ${lrLanguage[0].explanation}`,
       ),
     );
+  }
+  // A completed historic UK Ancestry period held back by its own English or
+  // Life in the UK requirement (UKA 15.1–16.1).
+  if (
+    historicAncestry &&
+    ancestry?.applicationDate &&
+    !decision.decidedBy?.includes('CL-ANCESTRY-RESIDENCE-5Y')
+  ) {
+    for (const rule of ancestryLanguage.filter((r) => r.status !== 'PASS'))
+      assumptions.push(
+        L(
+          `按此前的 UK Ancestry 许可定居时：${rule.explanation}`,
+          `For settlement on the previous UK Ancestry permission: ${rule.explanation}`,
+        ),
+      );
   }
   let selectedRules = shown;
   const projected = decision.projectedCandidate;

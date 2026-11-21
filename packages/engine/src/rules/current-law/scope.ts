@@ -35,6 +35,13 @@ export function currentLawApplicationPresence(
   const { timeline, simulationDate } = ctx;
   const presence = applicationPresence(timeline, simulationDate, textFor(ctx));
   if (!presence) return undefined;
+  // STP 1.3 admits the last protection grant even after it has expired.
+  if (onProtection(timeline, simulationDate)) {
+    return {
+      ...presence,
+      sources: [{ srcId: 'SRC-023', locator: 'STP 1.2(c)' }],
+    };
+  }
   const current = episodeOn(timeline, simulationDate);
   if (!current) return undefined;
   const source =
