@@ -271,3 +271,4 @@
 | 232 | 任务 34 第二轮审核修正：英文 Private Life 成人选项补 on the date of application；"差一天"成就中文写明是最早可申请日期前一天；计划表 31 注明汇总未入库。 | apps/web/i18n/en.ts、packages/game/src/achievements.ts、docs/tasks/phase-15-plan.md、docs/tasks/reports/34-english-copy.md |
 | 233 | 任务 51、52（Fable 实现）：出境当天满 65 岁时 Skilled Worker 递交日按当天核对英语与 Life in the UK；BN(O) 子女换本人许可仍保留本人 5 年日期（HK 62.1(a)）；跨税年出入境时沿用最后已询问年度的收入；补伴侣 B1、子女成年前的回归测试。 | packages/engine/src/aggregate.ts、packages/engine/src/rules/current-law/hong-kong-bno.ts、packages/engine/test/aggregate.test.ts |
 | 234 | 第 16 阶段计划与任务 51、52 报告。 | docs/tasks/phase-16-plan.md、docs/tasks/reports/51-52-projection.md |
+| 235 | 任务 51、52 审核（review51-1 通过）：报告如实记录收入沿用可能进入"仍待满足"说明，以及预测期间改为 adult dependant relative 的边界。 | docs/tasks/reports/51-52-projection.md |
