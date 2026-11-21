@@ -539,6 +539,50 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.sub.100': '100 Partner (permanent, outside Australia)',
   'au.sub.155': '155 Resident Return visa (permanent)',
   'au.sub.other-permanent': 'Other permanent visa',
+  'gr.entryLink': 'Open the Greece pilot',
+  'gr.entryDesc':
+    'Use your residence permits (golden visa included) and travel record to work out the dates for long-term residence, golden visa renewal and naturalisation.',
+  'gr.title':
+    'Greece: dates for long-term residence, golden visa renewal and naturalisation (pilot)',
+  'gr.intro':
+    'From your Greek residence permits (golden visa included) and trips, this works out three steps that depend on time alone: long-term residence (Μ1), the golden visa (Β.5) renewal period, and the years of residence for naturalisation. Investment thresholds and the naturalisation exam are out of scope.',
+  'gr.scope':
+    'The pilot checks only the time requirements in the Migration Code and the Citizenship Code. It does not check income, insurance, integration, language exams or other requirements; each result lists them, and open questions such as whether golden visa time counts towards long-term residence are flagged. Your entries are processed in your browser and are not saved or uploaded.',
+  'gr.basics': 'About you',
+  'gr.simulationDate': 'Simulation date',
+  'gr.simulationDateHint':
+    'Results are worked out for this date (the application date). It starts as today.',
+  'gr.dateOfBirth': 'Date of birth',
+  'gr.permits': 'Residence permits',
+  'gr.permitsHint':
+    'Add a row for each permit, then the next one if renewed on time; leave the end blank if it is still valid (for a golden visa, enter the expiry on the card to get the renewal dates).',
+  'gr.permit': 'Permit {n}',
+  'gr.from': 'Valid from',
+  'gr.to': 'Valid until (leave blank if still valid)',
+  'gr.kind': 'Permit type',
+  'gr.kind.regular': 'Ordinary residence permit (work, family and others)',
+  'gr.kind.investor': 'Golden visa (real estate investor permit Β.5)',
+  'gr.kind.study': 'Study or vocational training',
+  'gr.kind.temporary': 'National visa (such as digital nomad)',
+  'gr.addPermit': 'Add a permit',
+  'gr.trips': 'Trips abroad',
+  'gr.tripsHint':
+    'Add a row for each time you left Greece. You can include planned trips.',
+  'gr.trip': 'Trip {n}',
+  'gr.departed': 'Date you left Greece',
+  'gr.returned': 'Date you came back to Greece',
+  'gr.addTrip': 'Add a trip',
+  'gr.nationality': 'Naturalisation route',
+  'gr.route': 'Years of residence that apply to you',
+  'gr.route.general': 'General (applies to Chinese citizens)',
+  'gr.route.three-year':
+    'EU citizen, spouse of a Greek with children, parent of a Greek child born in Greece, or stateless',
+  'gr.route.twelve-year': 'Holding another non-temporary permit when applying',
+  'gr.remove': 'Remove',
+  'gr.submit': 'Work out dates',
+  'gr.errorSummary': 'Fix the items marked in red first.',
+  'gr.error.date': 'Enter a valid date.',
+  'gr.error.order': 'This date cannot be before the start date.',
   'es.entryLink': 'Open the Spain pilot',
   'es.entryDesc':
     'Use your residence permits and travel record to work out the dates for national long-term residence and citizenship by residence.',
