@@ -108,7 +108,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -180,7 +180,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -247,7 +247,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-07-28: expected to complete 10 years on 2033-07-28; the earliest projected application date for the residence requirement is 2033-06-30 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-07-28: expected to complete 10 years on 2033-07-28; the earliest projected application date for the residence requirement is 2033-06-30 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -258,7 +258,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 - Absences starting before 2024-04-11 are subject to the CR 3.3 limit of 184 days per trip. Only days before the cut-off and within the selected qualifying period count towards the 548-day total. Trips beginning on or after the cut-off follow CR 3.1; only whole days abroad between departure and return count.
 - The earliest application date is projected on the basis that residence continues from 2023-07-28, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
@@ -321,7 +321,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-KOL` Pass the Life in the UK test — **UNKNOWN**. You haven’t indicated whether you passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: expected to complete 10 years on 2031-06-01; the earliest projected application date for the residence requirement is 2031-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: expected to complete 10 years on 2031-06-01; the earliest projected application date for the residence requirement is 2031-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -332,7 +332,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -395,7 +395,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -442,7 +442,7 @@ Outcome **LIKELY_NOT_ELIGIBLE**.
 Failing or unknown checks:
 
 - `CL-ENGLISH` Settlement English requirement — **FAIL**. English at B1, below the B2 required for settlement (applications from 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2022-03-01: expected to complete 10 years on 2032-03-01; the earliest projected application date for the residence requirement is 2032-02-02 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2022-03-01: expected to complete 10 years on 2032-03-01; the earliest projected application date for the residence requirement is 2032-02-02 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -452,7 +452,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -514,7 +514,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -577,7 +577,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2033-12-18. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2033-12-18. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-01-15: expected to complete 10 years on 2034-01-15; the earliest projected application date for the residence requirement is 2033-12-18 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-01-15: expected to complete 10 years on 2034-01-15; the earliest projected application date for the residence requirement is 2033-12-18 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -591,7 +591,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2024-01-15, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -653,7 +653,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **UNKNOWN**. Current salary is £25,000. Check the occupation code, most recent sponsorship and transitional eligibility to determine the general salary threshold under SW 24.3 (row C: £31,300; row D: £25,000). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-09-01: expected to complete 10 years on 2031-09-01; the earliest projected application date for the residence requirement is 2031-08-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-09-01: expected to complete 10 years on 2031-09-01; the earliest projected application date for the residence requirement is 2031-08-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -663,7 +663,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -730,7 +730,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2019-09-15: expected to complete 10 years on 2029-09-15; the earliest projected application date for the residence requirement is 2029-08-18 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2019-09-15: expected to complete 10 years on 2029-09-15; the earliest projected application date for the residence requirement is 2029-08-18 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -741,7 +741,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - It is unconfirmed whether the first grant in the continuous Skilled Worker period was made under the earlier rules (SW 4.2(b)(ii)).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2024-09-15, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -805,7 +805,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (LR 13.1(a)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-15: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-15: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Other pathways not taken: `CL-SW-RESIDENCE-5Y`.
 
@@ -817,7 +817,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -933,14 +933,14 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-12-01: expected to complete 10 years on 2031-12-01; the earliest projected application date for the residence requirement is 2031-11-03 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-12-01: expected to complete 10 years on 2031-12-01; the earliest projected application date for the residence requirement is 2031-11-03 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
 - The current rules are modelled only for Skilled Worker main applicants and their dependent partners / children (Appendix Skilled Worker, Appendix Children), Hong Kong BN(O) main applicants and their dependants (Appendix Hong Kong British National (Overseas)), Global Talent main applicants and their dependent partners / children (Appendix Global Talent), Appendix FM partners (the 10-year route under Appendix Settlement Family Life, the 5-year route under Appendix FM) and their children (Appendix Settlement Family Life on the 10-year route, paragraph 298 of Part 8 of the Immigration Rules on the 5-year route), main applicants with refugee status or humanitarian protection (Appendix Settlement Protection), UK Ancestry main applicants (Appendix UK Ancestry), Innovator Founder main applicants (Appendix Innovator Founder), Private Life main applicants (Appendix Private Life) and Long Residence (Appendix Long Residence); other requirements, such as Part Suitability, suitability under STP 2.1 and the sponsor still being approved (SW 24.1–24.2), are not modelled.
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - This date assumes you make a valid settlement application before your permission expires, stay in the UK, and the application is still pending and has not been withdrawn on 2026-12-01, so Immigration Act 1971 section 3C extends your permission to that reference date.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2021-12-01, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -999,7 +999,7 @@ Assumptions:
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - The continuous period combines the Family Partner or Parent and Family and Private Life permissions listed in SETF 3.1; each period is taken to be on the 10-year route like the current permission.
 - The relationship is taken as genuine and subsisting (SETF 7.2, Appendix Relationship with Partner), with permission based on it held for at least one year (SETF 7.3); this tool does not check these.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1062,7 +1062,7 @@ Assumptions:
 - The relationship is taken as genuine and subsisting, with both intending to live together permanently (E-LTRP.1.7–E-LTRP.1.10); this tool does not check these.
 - We assume the applications were with the same partner and use the start of the earliest recorded five-year partner grant to approximate the date of the first successful application. An application submitted before 2024-04-11 and granted on or after that date can still qualify for the transitional requirement (E-LTRP.3.5–3.6). We count children listed under relationships with another status.
 - Savings are the combined cash savings as declared; the holding period and evidence rules in Appendix FM-SE and the kinds of income and savings sources in E-LTRP.3.2 are not checked; any benefit the partner receives is taken as declared; the accommodation requirement (E-LTRP.3.4, E-LTRP.3.9) and EX.1 are not modelled.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1123,7 +1123,7 @@ Assumptions:
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - The continuous period combines main applicant permission on the routes listed in GT 11.3: Global Talent, Innovator Founder, Skilled Worker, T2 Minister of Religion, International Sportsperson and Scale-up. Tier 1 and Representative of an Overseas Business cannot be entered in this tool and are not counted.
 - The endorsement is taken as not withdrawn (GT 10.1) and the applicant as having earned money in the field of their endorsement or prize during their last permission (GT 10.2); this tool does not check these.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1198,7 +1198,7 @@ Assumptions:
 - STP 1.3 lists the permission by the date of the asylum application: refugee or humanitarian protection permission for applications before 2022-06-28, and refugee permission to stay for later ones. This tool does not tell refugee status and humanitarian protection apart, and assumes you hold a listed permission. Humanitarian protection following an asylum application made on or after 2022-06-28 is not listed in STP 1.3(b) (PD-073).
 - A safe return review is carried out when the settlement application is considered (STP 4.2), checking whether personal circumstances or country conditions have changed so that protection could be revoked or not renewed; its outcome cannot be predicted.
 - If the settlement requirements are not met but the person is still entitled to refugee status or humanitarian protection, a further period of at least 30 months of protection permission is granted (STP 5.2).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1268,7 +1268,7 @@ Assumptions:
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - Only continuous Skilled Worker dependent partner permission is counted, assuming the declared partner permissions were with the same principal applicant; Appendix Relationship with Partner (SW 39.3) is not checked.
 - If the principal applicant has yet to settle, the simulator assesses whether you could be granted settlement at the same time as them (SW 39.1(a)); if they have already settled, enter their settlement date and route in the principal applicant’s details (SW 39.1(b)).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1341,7 +1341,7 @@ Assumptions:
 - The child is assumed to have care and accommodation arrangements that comply with UK law (CHI 2.1).
 - Only the Skilled Worker dependent child permission on the date of application is checked, assuming the child is the same principal applicant’s; the other parent must be granted settlement at the same time, already be settled or be a British citizen, unless the principal applicant has sole responsibility or similar (CHI 4.3, via SW 39.4); this tool does not check this.
 - If the principal applicant has yet to settle, the simulator assesses whether you could be granted settlement at the same time as them (SW 39.1(a)); if they have already settled, enter their settlement date and route in the principal applicant’s details (SW 39.1(b)).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1404,7 +1404,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1461,7 +1461,7 @@ Outcome **REQUIRES_REGULATED_REVIEW**.
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: expected to complete 10 years on 2031-06-01; the earliest projected application date for the residence requirement is 2031-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: expected to complete 10 years on 2031-06-01; the earliest projected application date for the residence requirement is 2031-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -1471,7 +1471,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1534,7 +1534,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1611,7 +1611,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1680,7 +1680,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (LR 13.1(a)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -1690,7 +1690,7 @@ Assumptions:
 
 - The current rules are modelled only for Skilled Worker main applicants and their dependent partners / children (Appendix Skilled Worker, Appendix Children), Hong Kong BN(O) main applicants and their dependants (Appendix Hong Kong British National (Overseas)), Global Talent main applicants and their dependent partners / children (Appendix Global Talent), Appendix FM partners (the 10-year route under Appendix Settlement Family Life, the 5-year route under Appendix FM) and their children (Appendix Settlement Family Life on the 10-year route, paragraph 298 of Part 8 of the Immigration Rules on the 5-year route), main applicants with refugee status or humanitarian protection (Appendix Settlement Protection), UK Ancestry main applicants (Appendix UK Ancestry), Innovator Founder main applicants (Appendix Innovator Founder), Private Life main applicants (Appendix Private Life) and Long Residence (Appendix Long Residence); other requirements, such as Part Suitability, suitability under STP 2.1 and the sponsor still being approved (SW 24.1–24.2), are not modelled.
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1753,7 +1753,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (LR 13.1(a)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2015-06-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2015-06-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -1764,7 +1764,7 @@ Assumptions:
 - The current rules are modelled only for Skilled Worker main applicants and their dependent partners / children (Appendix Skilled Worker, Appendix Children), Hong Kong BN(O) main applicants and their dependants (Appendix Hong Kong British National (Overseas)), Global Talent main applicants and their dependent partners / children (Appendix Global Talent), Appendix FM partners (the 10-year route under Appendix Settlement Family Life, the 5-year route under Appendix FM) and their children (Appendix Settlement Family Life on the 10-year route, paragraph 298 of Part 8 of the Immigration Rules on the 5-year route), main applicants with refugee status or humanitarian protection (Appendix Settlement Protection), UK Ancestry main applicants (Appendix UK Ancestry), Innovator Founder main applicants (Appendix Innovator Founder), Private Life main applicants (Appendix Private Life) and Long Residence (Appendix Long Residence); other requirements, such as Part Suitability, suitability under STP 2.1 and the sponsor still being approved (SW 24.1–24.2), are not modelled.
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - The continuous period combines the permissions listed in PL 14.3: Appendix FM partner, parent and child permission, and Private Life permission. Leave Outside the Rules on Article 8 grounds (PL 14.3(e)) cannot be told apart from other such leave and is not counted. PL 13 (immediate settlement for a child born in the UK after 7 years of continuous residence), PL 14.1A / PL 14.2(b) / PL 14.2A (transitional cases with Appendix FM or Leave Outside the Rules permission before 2022-06-20) and PL 12.3–12.5 (suitability grounds that require 10 years) are not modelled.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1832,7 +1832,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (LR 13.1(a)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-04-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-04-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -1842,7 +1842,7 @@ Assumptions:
 
 - The current rules are modelled only for Skilled Worker main applicants and their dependent partners / children (Appendix Skilled Worker, Appendix Children), Hong Kong BN(O) main applicants and their dependants (Appendix Hong Kong British National (Overseas)), Global Talent main applicants and their dependent partners / children (Appendix Global Talent), Appendix FM partners (the 10-year route under Appendix Settlement Family Life, the 5-year route under Appendix FM) and their children (Appendix Settlement Family Life on the 10-year route, paragraph 298 of Part 8 of the Immigration Rules on the 5-year route), main applicants with refugee status or humanitarian protection (Appendix Settlement Protection), UK Ancestry main applicants (Appendix UK Ancestry), Innovator Founder main applicants (Appendix Innovator Founder), Private Life main applicants (Appendix Private Life) and Long Residence (Appendix Long Residence); other requirements, such as Part Suitability, suitability under STP 2.1 and the sponsor still being approved (SW 24.1–24.2), are not modelled.
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1893,7 +1893,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **UNKNOWN**. SOC 2461: The relevant pay band is in Table 4 / 5. This tool cannot check the applicable going rate (SRC-017 Tables 3–5). _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -1901,7 +1901,7 @@ Assumptions:
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - The continuous period combines main applicant permission on the routes listed in SW 21.2: Skilled Worker, Global Talent, Innovator Founder, T2 Minister of Religion, International Sportsperson and Scale-up. Representative of an Overseas Business and Tier 1 cannot be entered in this tool and are not counted; time awaiting a decision under SW 21.2(i) is not modelled.
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -1959,13 +1959,13 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **UNKNOWN**. Not provided whether the partner permission is on the 5-year or the 10-year route: the 5-year route follows Appendix FM, the 10-year route Appendix Settlement Family Life (SETF 3.1). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.6)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
 - The current rules are modelled only for Skilled Worker main applicants and their dependent partners / children (Appendix Skilled Worker, Appendix Children), Hong Kong BN(O) main applicants and their dependants (Appendix Hong Kong British National (Overseas)), Global Talent main applicants and their dependent partners / children (Appendix Global Talent), Appendix FM partners (the 10-year route under Appendix Settlement Family Life, the 5-year route under Appendix FM) and their children (Appendix Settlement Family Life on the 10-year route, paragraph 298 of Part 8 of the Immigration Rules on the 5-year route), main applicants with refugee status or humanitarian protection (Appendix Settlement Protection), UK Ancestry main applicants (Appendix UK Ancestry), Innovator Founder main applicants (Appendix Innovator Founder), Private Life main applicants (Appendix Private Life) and Long Residence (Appendix Long Residence); other requirements, such as Part Suitability, suitability under STP 2.1 and the sponsor still being approved (SW 24.1–24.2), are not modelled.
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -2040,7 +2040,7 @@ Assumptions:
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - Only continuous Skilled Worker dependent partner permission is counted, assuming the declared partner permissions were with the same principal applicant; Appendix Relationship with Partner (SW 39.3) is not checked.
 - If the principal applicant has yet to settle, the simulator assesses whether you could be granted settlement at the same time as them (SW 39.1(a)); if they have already settled, enter their settlement date and route in the principal applicant’s details (SW 39.1(b)).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -2091,7 +2091,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **UNKNOWN**. SOC 2020 code for the current Skilled Worker job not provided, so the going rate cannot be looked up. _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2101,7 +2101,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).
 - The first grant in the continuous Skilled Worker period was made under the earlier rules and the application is within the transition deadline (SW 4.2(b)(ii)).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -2175,7 +2175,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2183,7 +2183,7 @@ Assumptions:
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - Only continuous Skilled Worker dependent partner permission is counted, assuming the declared partner permissions were with the same principal applicant; Appendix Relationship with Partner (SW 39.3) is not checked.
 - If the principal applicant has yet to settle, the simulator assesses whether you could be granted settlement at the same time as them (SW 39.1(a)); if they have already settled, enter their settlement date and route in the principal applicant’s details (SW 39.1(b)).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2023-04-06, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -2258,7 +2258,7 @@ Assumptions:
 - The child is assumed to have care and accommodation arrangements that comply with UK law (CHI 2.1).
 - Only the Skilled Worker dependent child permission on the date of application is checked, assuming the child is the same principal applicant’s; the other parent must be granted settlement at the same time, already be settled or be a British citizen, unless the principal applicant has sole responsibility or similar (CHI 4.3, via SW 39.4); this tool does not check this.
 - If the principal applicant has yet to settle, the simulator assesses whether you could be granted settlement at the same time as them (SW 39.1(a)); if they have already settled, enter their settlement date and route in the principal applicant’s details (SW 39.1(b)).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -2328,7 +2328,7 @@ Assumptions:
 - The child is assumed not to be leading an independent life (CHI 1A.1).
 - Only the Skilled Worker dependent child permission on the date of application is checked, assuming the child is the same principal applicant’s; the other parent must be granted settlement at the same time, already be settled or be a British citizen, unless the principal applicant has sole responsibility or similar (CHI 4.3, via SW 39.4); this tool does not check this.
 - If the principal applicant has yet to settle, the simulator assesses whether you could be granted settlement at the same time as them (SW 39.1(a)); if they have already settled, enter their settlement date and route in the principal applicant’s details (SW 39.1(b)).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -2389,7 +2389,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2031-03-09. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2031-03-09. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -2402,7 +2402,7 @@ Assumptions:
 - The child is assumed not to be leading an independent life (CHI 1A.1).
 - Only the Skilled Worker dependent child permission on the date of application is checked, assuming the child is the same principal applicant’s; the other parent must be granted settlement at the same time, already be settled or be a British citizen, unless the principal applicant has sole responsibility or similar (CHI 4.3, via SW 39.4); this tool does not check this.
 - If the principal applicant has yet to settle, the simulator assesses whether you could be granted settlement at the same time as them (SW 39.1(a)); if they have already settled, enter their settlement date and route in the principal applicant’s details (SW 39.1(b)).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2021-04-06, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -2459,7 +2459,7 @@ Assumptions:
 - STP 1.3 lists the permission by the date of the asylum application: refugee or humanitarian protection permission for applications before 2022-06-28, and refugee permission to stay for later ones. This tool does not tell refugee status and humanitarian protection apart, and assumes you hold a listed permission. Humanitarian protection following an asylum application made on or after 2022-06-28 is not listed in STP 1.3(b) (PD-073).
 - A safe return review is carried out when the settlement application is considered (STP 4.2), checking whether personal circumstances or country conditions have changed so that protection could be revoked or not renewed; its outcome cannot be predicted.
 - If the settlement requirements are not met but the person is still entitled to refugee status or humanitarian protection, a further period of at least 30 months of protection permission is granted (STP 5.2).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -2512,7 +2512,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2521,7 +2521,7 @@ Assumptions:
 - STP 1.3 lists the permission by the date of the asylum application: refugee or humanitarian protection permission for applications before 2022-06-28, and refugee permission to stay for later ones. This tool does not tell refugee status and humanitarian protection apart, and assumes you hold a listed permission. Humanitarian protection following an asylum application made on or after 2022-06-28 is not listed in STP 1.3(b) (PD-073).
 - A safe return review is carried out when the settlement application is considered (STP 4.2), checking whether personal circumstances or country conditions have changed so that protection could be revoked or not renewed; its outcome cannot be predicted.
 - If the settlement requirements are not met but the person is still entitled to refugee status or humanitarian protection, a further period of at least 30 months of protection permission is granted (STP 5.2).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2027-03-01, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -2582,7 +2582,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2591,7 +2591,7 @@ Assumptions:
 - STP 1.3 lists the permission by the date of the asylum application: refugee or humanitarian protection permission for applications before 2022-06-28, and refugee permission to stay for later ones. This tool does not tell refugee status and humanitarian protection apart, and assumes you hold a listed permission. Humanitarian protection following an asylum application made on or after 2022-06-28 is not listed in STP 1.3(b) (PD-073).
 - A safe return review is carried out when the settlement application is considered (STP 4.2), checking whether personal circumstances or country conditions have changed so that protection could be revoked or not renewed; its outcome cannot be predicted.
 - If the settlement requirements are not met but the person is still entitled to refugee status or humanitarian protection, a further period of at least 30 months of protection permission is granted (STP 5.2).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2027-03-01, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -2650,7 +2650,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2659,7 +2659,7 @@ Assumptions:
 - STP 1.3 lists the permission by the date of the asylum application: refugee or humanitarian protection permission for applications before 2022-06-28, and refugee permission to stay for later ones. This tool does not tell refugee status and humanitarian protection apart, and assumes you hold a listed permission. Humanitarian protection following an asylum application made on or after 2022-06-28 is not listed in STP 1.3(b) (PD-073).
 - A safe return review is carried out when the settlement application is considered (STP 4.2), checking whether personal circumstances or country conditions have changed so that protection could be revoked or not renewed; its outcome cannot be predicted.
 - If the settlement requirements are not met but the person is still entitled to refugee status or humanitarian protection, a further period of at least 30 months of protection permission is granted (STP 5.2).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2027-03-01, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -2709,7 +2709,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **UNKNOWN**. Current salary is £30,000. Check the occupation code, most recent sponsorship and transitional eligibility to determine the general salary threshold under SW 24.3 (row C: £31,300; row D: £25,000). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2719,7 +2719,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -2779,7 +2779,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2033-03-09. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2033-03-09. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -2794,7 +2794,7 @@ Assumptions:
 - SW 24.3 row E (a 5-year period including STEM occupations under SOC 2010 on Tier 2 (General)) is not modelled.
 - ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2023-04-06, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -2861,7 +2861,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2024-06-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2024-06-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -2876,7 +2876,7 @@ Assumptions:
 - ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).
 - SOC 6135 is on the Health and Care ASHE list. The sponsorship, employment or service arrangements are assumed to meet SW A1.1(a)–(m).
 - The going rate is compared as the full annual salary for a 37.5-hour week, not pro-rated for actual hours (SW 14.4; SRC-017 Table 1 introduction).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -2944,7 +2944,7 @@ Assumptions:
 
 - The current rules are modelled only for Skilled Worker main applicants and their dependent partners / children (Appendix Skilled Worker, Appendix Children), Hong Kong BN(O) main applicants and their dependants (Appendix Hong Kong British National (Overseas)), Global Talent main applicants and their dependent partners / children (Appendix Global Talent), Appendix FM partners (the 10-year route under Appendix Settlement Family Life, the 5-year route under Appendix FM) and their children (Appendix Settlement Family Life on the 10-year route, paragraph 298 of Part 8 of the Immigration Rules on the 5-year route), main applicants with refugee status or humanitarian protection (Appendix Settlement Protection), UK Ancestry main applicants (Appendix UK Ancestry), Innovator Founder main applicants (Appendix Innovator Founder), Private Life main applicants (Appendix Private Life) and Long Residence (Appendix Long Residence); other requirements, such as Part Suitability, suitability under STP 2.1 and the sponsor still being approved (SW 24.1–24.2), are not modelled.
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -3004,7 +3004,7 @@ Assumptions:
 - The continuous period combines main applicant permission on the routes listed in GT 11.3: Global Talent, Innovator Founder, Skilled Worker, T2 Minister of Religion, International Sportsperson and Scale-up. Tier 1 and Representative of an Overseas Business cannot be entered in this tool and are not counted.
 - The endorsement is taken as not withdrawn (GT 10.1) and the applicant as having earned money in the field of their endorsement or prize during their last permission (GT 10.2); this tool does not check these.
 - Assumes a valid passport, travel document or other proof of nationality accepted under the rules can be provided.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -3069,7 +3069,7 @@ Assumptions:
 - The relationship is taken as genuine and subsisting, with both intending to live together permanently (E-LTRP.1.7–E-LTRP.1.10); this tool does not check these.
 - We assume the applications were with the same partner and use the start of the earliest recorded five-year partner grant to approximate the date of the first successful application. An application submitted before 2024-04-11 and granted on or after that date can still qualify for the transitional requirement (E-LTRP.3.5–3.6). We count children listed under relationships with another status.
 - Savings are the combined cash savings as declared; the holding period and evidence rules in Appendix FM-SE and the kinds of income and savings sources in E-LTRP.3.2 are not checked; any benefit the partner receives is taken as declared; the accommodation requirement (E-LTRP.3.4, E-LTRP.3.9) and EX.1 are not modelled.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -3130,7 +3130,7 @@ Assumptions:
 - STP 1.3 lists the permission by the date of the asylum application: refugee or humanitarian protection permission for applications before 2022-06-28, and refugee permission to stay for later ones. This tool does not tell refugee status and humanitarian protection apart, and assumes you hold a listed permission. Humanitarian protection following an asylum application made on or after 2022-06-28 is not listed in STP 1.3(b) (PD-073).
 - A safe return review is carried out when the settlement application is considered (STP 4.2), checking whether personal circumstances or country conditions have changed so that protection could be revoked or not renewed; its outcome cannot be predicted.
 - If the settlement requirements are not met but the person is still entitled to refugee status or humanitarian protection, a further period of at least 30 months of protection permission is granted (STP 5.2).
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -3188,7 +3188,7 @@ Assumptions:
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - Assumes you are still a Commonwealth citizen on the date of application (UKA 10.3) and still meet UKA 4.1–6.1 (a grandparent born in the UK or Islands, adequate maintenance and accommodation without recourse to public funds, and able and intending to work in the UK, UKA 12.1).
 - Assumes a valid passport, travel document or other proof of nationality accepted under the rules can be provided.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -3234,13 +3234,13 @@ Failing or unknown checks:
 
 - `CL-INNOVATOR-ENDORSEMENT` Innovator Founder settlement endorsement — **UNKNOWN**. The business meets the minimum number of criteria. Confirm whether a Legacy Endorsing Body issued the settlement letter and, if so, whether it supported the last grant of permission (INNF 17.5). _(SRC-027 INNF 15.2(e); SRC-027 INNF 17.1; SRC-027 INNF 17.2; SRC-027 INNF 17.3; SRC-027 INNF 17.4; SRC-027 INNF 17.5)_
 - `CL-ENGLISH` Settlement English requirement — **UNKNOWN**. English level not provided; settlement requires CEFR B1 (Appendix Innovator Founder sets no English requirement for a main applicant’s settlement, INNF 15.1–21.6; this level applies only to the 10-year Long Residence pathway). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-05-01: expected to complete 10 years on 2033-05-01; the earliest projected application date for the residence requirement is 2033-04-03 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-05-01: expected to complete 10 years on 2033-05-01; the earliest projected application date for the residence requirement is 2033-04-03 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
 - The current rules are modelled only for Skilled Worker main applicants and their dependent partners / children (Appendix Skilled Worker, Appendix Children), Hong Kong BN(O) main applicants and their dependants (Appendix Hong Kong British National (Overseas)), Global Talent main applicants and their dependent partners / children (Appendix Global Talent), Appendix FM partners (the 10-year route under Appendix Settlement Family Life, the 5-year route under Appendix FM) and their children (Appendix Settlement Family Life on the 10-year route, paragraph 298 of Part 8 of the Immigration Rules on the 5-year route), main applicants with refugee status or humanitarian protection (Appendix Settlement Protection), UK Ancestry main applicants (Appendix UK Ancestry), Innovator Founder main applicants (Appendix Innovator Founder), Private Life main applicants (Appendix Private Life) and Long Residence (Appendix Long Residence); other requirements, such as Part Suitability, suitability under STP 2.1 and the sponsor still being approved (SW 24.1–24.2), are not modelled.
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -3298,7 +3298,7 @@ Assumptions:
 - The current rules are modelled only for Skilled Worker main applicants and their dependent partners / children (Appendix Skilled Worker, Appendix Children), Hong Kong BN(O) main applicants and their dependants (Appendix Hong Kong British National (Overseas)), Global Talent main applicants and their dependent partners / children (Appendix Global Talent), Appendix FM partners (the 10-year route under Appendix Settlement Family Life, the 5-year route under Appendix FM) and their children (Appendix Settlement Family Life on the 10-year route, paragraph 298 of Part 8 of the Immigration Rules on the 5-year route), main applicants with refugee status or humanitarian protection (Appendix Settlement Protection), UK Ancestry main applicants (Appendix UK Ancestry), Innovator Founder main applicants (Appendix Innovator Founder), Private Life main applicants (Appendix Private Life) and Long Residence (Appendix Long Residence); other requirements, such as Part Suitability, suitability under STP 2.1 and the sponsor still being approved (SW 24.1–24.2), are not modelled.
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - The continuous period combines the permissions listed in PL 14.3: Appendix FM partner, parent and child permission, and Private Life permission. Leave Outside the Rules on Article 8 grounds (PL 14.3(e)) cannot be told apart from other such leave and is not counted. PL 13 (immediate settlement for a child born in the UK after 7 years of continuous residence), PL 14.1A / PL 14.2(b) / PL 14.2A (transitional cases with Appendix FM or Leave Outside the Rules permission before 2022-06-20) and PL 12.3–12.5 (suitability grounds that require 10 years) are not modelled.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -3365,7 +3365,7 @@ Assumptions:
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - The other parent must be granted settlement at the same time, already be settled or be a British citizen, unless the principal applicant is the sole surviving parent, has sole responsibility or similar (HK 57.4); the care arrangements (HK 58.1, CHI 2.1) are assumed to be met. Age is taken on the date of application: if the child is 18 or over by the projected date, they will need 5 years of their own then (HK 62.1(b)).
 - If the principal applicant has yet to settle, the simulator assesses whether you could be granted settlement at the same time as them; if they have already settled, enter their settlement date and route in the principal applicant’s details.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -3425,7 +3425,7 @@ Assumptions:
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - Only continuous Global Talent dependant permission is counted, assuming all of it was as the same principal applicant’s dependent partner; Appendix Relationship with Partner (GT 27.4) is not checked.
 - Assumes a valid passport, travel document or other proof of nationality accepted under the rules can be provided.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -3485,7 +3485,7 @@ Assumptions:
 - For routes under Appendix Continuous Residence, you can apply up to 28 days before completing the qualifying period (CR 1.1(b)). The estimate uses recorded permission and assumes it continues without a gap if the projected filing falls after the last recorded permission expires. It also assumes you meet the other requirements when you apply. The questionnaire has no decision date to use in the calculation.
 - The other parent must be granted settlement at the same time, already be settled or be a British citizen, unless the principal applicant is the sole surviving parent, has sole responsibility or similar (SETF 12.2); not leading an independent life at 16 or over (SETF 13.2) and the care arrangements (SETF 14.1) are assumed to be met; children born in the UK (SETF 10.3) and the 10-year exceptions in SETF 11.3–11.6 are not modelled.
 - If the principal applicant has yet to settle, the simulator assesses whether you could be granted settlement at the same time as them; if they have already settled, enter their settlement date and route in the principal applicant’s details.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -3536,7 +3536,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-06: expected to complete 10 years on 2031-11-06; the earliest projected application date for the residence requirement is 2031-10-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-06: expected to complete 10 years on 2031-11-06; the earliest projected application date for the residence requirement is 2031-10-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -3546,7 +3546,7 @@ Assumptions:
 - Age is taken on the date of application: if the child is 18 or over by the projected date, the English and Life in the UK requirements in para 298(vii) apply then.
 - Not leading an independent life, being unmarried and not having formed an independent family unit (para 298(iii)), and adequate accommodation and maintenance from the parent without recourse to public funds (para 298(iv)–(v)), are assumed to be met.
 - If the principal applicant has yet to settle, the simulator assesses whether you could be granted settlement at the same time as them; if they have already settled, enter their settlement date and route in the principal applicant’s details.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2021-11-06, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -3593,7 +3593,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-ENGLISH` Settlement English requirement — **UNKNOWN**. English level not provided; settlement requires CEFR B1 (paragraph 298(vii) of Part 8 of the Immigration Rules, Appendix KoLL 2.2; applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-05: expected to complete 10 years on 2031-11-05; the earliest projected application date for the residence requirement is 2031-10-08 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-05: expected to complete 10 years on 2031-11-05; the earliest projected application date for the residence requirement is 2031-10-08 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -3603,7 +3603,7 @@ Assumptions:
 - Para 298(ii)(b): the current Appendix FM child permission is taken as granted with a view to settlement. If only the English or Life in the UK requirement in para 298(vii) is not met, limited leave may be granted under para 298A, but settlement is not.
 - Not leading an independent life, being unmarried and not having formed an independent family unit (para 298(iii)), and adequate accommodation and maintenance from the parent without recourse to public funds (para 298(iv)–(v)), are assumed to be met.
 - If the principal applicant has yet to settle, the simulator assesses whether you could be granted settlement at the same time as them; if they have already settled, enter their settlement date and route in the principal applicant’s details.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -3661,7 +3661,7 @@ Assumptions:
 - The relationship is taken as genuine and subsisting, with both intending to live together permanently (E-LTRP.1.7–E-LTRP.1.10); this tool does not check these.
 - We assume the applications were with the same partner and use the start of the earliest recorded five-year partner grant to approximate the date of the first successful application. An application submitted before 2024-04-11 and granted on or after that date can still qualify for the transitional requirement (E-LTRP.3.5–3.6). We count children listed under relationships with another status.
 - Savings are the combined cash savings as declared; the holding period and evidence rules in Appendix FM-SE and the kinds of income and savings sources in E-LTRP.3.2 are not checked; any benefit the partner receives is taken as declared; the accommodation requirement (E-LTRP.3.4, E-LTRP.3.9) and EX.1 are not modelled.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
@@ -3721,7 +3721,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2034-05-04. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2034-05-04. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: expected to complete 10 years on 2034-06-01; the earliest projected application date for the residence requirement is 2034-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: expected to complete 10 years on 2034-06-01; the earliest projected application date for the residence requirement is 2034-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -3736,7 +3736,7 @@ Assumptions:
 - The relationship is taken as genuine and subsisting, with both intending to live together permanently (E-LTRP.1.7–E-LTRP.1.10); this tool does not check these.
 - We assume the applications were with the same partner and use the start of the earliest recorded five-year partner grant to approximate the date of the first successful application. An application submitted before 2024-04-11 and granted on or after that date can still qualify for the transitional requirement (E-LTRP.3.5–3.6). We count children listed under relationships with another status.
 - Savings are the combined cash savings as declared; the holding period and evidence rules in Appendix FM-SE and the kinds of income and savings sources in E-LTRP.3.2 are not checked; any benefit the partner receives is taken as declared; the accommodation requirement (E-LTRP.3.4, E-LTRP.3.9) and EX.1 are not modelled.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 - The earliest application date is projected on the basis that residence continues from 2024-06-01, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
@@ -3803,7 +3803,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: expected to complete 10 years on 2034-06-01; the earliest projected application date for the residence requirement is 2034-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: expected to complete 10 years on 2034-06-01; the earliest projected application date for the residence requirement is 2034-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -3814,7 +3814,7 @@ Assumptions:
 - The relationship is taken as genuine and subsisting, with both intending to live together permanently (E-LTRP.1.7–E-LTRP.1.10); this tool does not check these.
 - We assume the applications were with the same partner and use the start of the earliest recorded five-year partner grant to approximate the date of the first successful application. An application submitted before 2024-04-11 and granted on or after that date can still qualify for the transitional requirement (E-LTRP.3.5–3.6). We count children listed under relationships with another status.
 - Savings are the combined cash savings as declared; the holding period and evidence rules in Appendix FM-SE and the kinds of income and savings sources in E-LTRP.3.2 are not checked; any benefit the partner receives is taken as declared; the accommodation requirement (E-LTRP.3.4, E-LTRP.3.9) and EX.1 are not modelled.
-- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.
+- Continuous lawful residence includes temporary routes such as Student and Graduate, but not Visit, Seasonal Worker, Ukraine Scheme (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 

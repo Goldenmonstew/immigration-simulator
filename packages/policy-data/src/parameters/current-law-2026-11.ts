@@ -158,6 +158,16 @@ export const currentLaw2026_11 = {
       value: 10,
       sources: [{ srcId: 'SRC-005', locator: 'LR 11.1' }],
     },
+    // Months on the current route by the application date, unless the
+    // current permission was granted before the second date (LR 11.4).
+    longResidenceCurrentRouteMonths: {
+      value: 12,
+      sources: [{ srcId: 'SRC-005', locator: 'LR 11.3' }],
+    },
+    longResidenceCurrentRouteGrantedFrom: {
+      value: '2024-04-11',
+      sources: [{ srcId: 'SRC-005', locator: 'LR 11.4' }],
+    },
 
     // Hours per week behind the annual going rates (Table 1 introduction;
     // Table 2 and the additional tables follow the same basis).

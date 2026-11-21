@@ -7,6 +7,7 @@ import type {
   SettlementAssessment,
 } from '../src/types';
 import { SIMULATION_DATE, timeline } from './helpers';
+import { addDays as addDaysIso } from '../src/dates';
 
 function es(overrides: Partial<PersonTimeline>) {
   return evaluate({
@@ -454,6 +455,64 @@ describe('Earned Settlement: pre April 2024 Skilled Worker cohort (p44)', () => 
 });
 
 describe('current law', () => {
+  test('task 54 / LR 11.3–11.4: Long Residence waits for 12 months on a current route granted from 2024-04-11', () => {
+    const person = (switchedOn: string) =>
+      timeline({
+        episodes: [
+          {
+            route: 'STUDENT',
+            role: 'MAIN',
+            validFrom: '2015-09-01',
+            validTo: '2023-12-31',
+          },
+          {
+            route: 'GRADUATE',
+            role: 'MAIN',
+            validFrom: '2024-01-01',
+            validTo: addDaysIso(switchedOn, -1),
+          },
+          sw(switchedOn),
+        ],
+      });
+    const lr = (a: SettlementAssessment) =>
+      a.rules.find((r) => r.id === 'CL-LR-RESIDENCE-10Y')!;
+    // Ten years done, but Skilled Worker only since 2026-06-01.
+    const recent = cl({ ...person('2026-06-01') });
+    expect(lr(recent).status).toBe('FAIL');
+    expect(recent).toMatchObject({
+      pathwayYears: 10,
+      earliestDate: '2027-06-01',
+    });
+    expect(recent.assumptions.join()).toContain('LR 11.3');
+    // review54-1: a Graduate (outside the other modelled routes) with ten
+    // years done still gets the Long Residence forecast.
+    const graduate = cl({
+      episodes: [
+        {
+          route: 'STUDENT',
+          role: 'MAIN',
+          validFrom: '2015-10-01',
+          validTo: '2026-05-31',
+        },
+        {
+          route: 'GRADUATE',
+          role: 'MAIN',
+          validFrom: '2026-06-01',
+          validTo: '2028-05-31',
+        },
+      ],
+    });
+    expect(graduate).toMatchObject({
+      pathwayYears: 10,
+      earliestDate: '2027-06-01',
+    });
+    expect(graduate.decidedBy).toContain('CL-LR-RESIDENCE-10Y');
+    // A current permission granted before 2024-04-11 is not affected.
+    const earlier = cl({ ...person('2024-03-01') });
+    expect(lr(earlier).status).toBe('PASS');
+    expect(earlier.assumptions.join()).not.toContain('LR 11.3');
+  });
+
   test('review33a-7 #1 dependants: English and Life in the UK are assessed for the projected joint date', () => {
     const run = (person: PersonTimeline) =>
       evaluate({
