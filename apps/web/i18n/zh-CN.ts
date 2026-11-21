@@ -498,7 +498,7 @@ export const zhCN = {
   'episodes.privateLifeRoute.YOUNG_ADULT':
     '18–24 岁、未满 18 岁入境，且一生中至少一半时间连续居住在英国（PL 4.1）',
   'episodes.privateLifeRoute.ADULT':
-    '其他（连续居住超过 20 年，或若离开英国、在须前往生活的国家融入有非常重大的障碍；PL 5.1）',
+    '其他（申请时已满 18 岁：在英国连续居住超过 20 年，或若被要求离开英国，在须前往生活的国家融入有非常重大的障碍；PL 5.1）',
   'benefits.protectionStatusRevoked':
     '我的保护身份已被撤销或我已放弃（STP 4.1）',
   'benefits.asylumSupportRepayment': '是否需要偿还 asylum support 费用？',

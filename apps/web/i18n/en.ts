@@ -401,7 +401,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'whatif.tripFrom': 'Departure date',
   'whatif.tripTo': 'Return date',
   'whatif.tripDays':
-    '{days} whole days away. Current law counts whole days only, not the departure and return days; the reform column counts both days as a modelling assumption (PD-054).',
+    '{days} whole day{days:s} away. Current law counts whole days only, not the departure and return days; the reform column counts both days as a modelling assumption (PD-054).',
   'whatif.tripIncomplete':
     'Enter both the departure and return dates for this trip to count.',
   'whatif.tripInvalid':
@@ -554,7 +554,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'episodes.privateLifeRoute.YOUNG_ADULT':
     'Aged 18–24, arrived before 18 and has lived continuously in the UK for at least half their life (PL 4.1)',
   'episodes.privateLifeRoute.ADULT':
-    'Other (more than 20 years of continuous residence, or very significant obstacles to integration in the country they would have to live in if they left the UK; PL 5.1)',
+    'Other (aged 18 or over: more than 20 years of continuous residence in the UK, or very significant obstacles to integration into the country they would have to live in if required to leave the UK; PL 5.1)',
   'benefits.protectionStatusRevoked':
     'My protection status has been revoked or I have renounced it (STP 4.1)',
   'benefits.asylumSupportRepayment':

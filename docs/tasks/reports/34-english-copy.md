@@ -47,6 +47,13 @@
 - `policy-sources/2026-10-08-immigration-rules-appendix-private-life.html` PL 3.1、4.1、5.1
 - `policy-sources/2026-11-12-cp1707-government-response-accessible.html` 第 1 章犯罪记录
 
+**审核 `review34-1` 的修正**：
+1. Private Life 成人选项补"申请时已满 18 岁""在英国""若被要求离开英国"（PL 5.1）。
+2. Skilled Worker、Global Talent 伴侣与 BN(O) 成年受养亲属的结果写明申请人；中文子女结果补"子女可申请定居"。
+3. 诺拉转签成功句补回 and。
+4. What-if 整天数随数量变单复数；成就说明改为"最早日期前一天"。
+5. 补固定英文期望的单复数测试。
+
 ## 2. 怎么验证的
 
 | 命令 | 结果 |

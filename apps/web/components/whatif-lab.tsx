@@ -10,6 +10,7 @@ import {
   type CefrLevel,
   earnedSettlement2026_11,
 } from '@uk-immigration/policy-data';
+import { withCount } from '../i18n';
 import { useTranslation } from '../i18n/locale';
 import { punct } from '../i18n/punctuation';
 import { displayedRuleSets } from '../lib/policy';
@@ -464,9 +465,10 @@ function WhatIfLab({
                   ? t('whatif.tripIncomplete')
                   : !validTrip(whatIf.trip)
                     ? t('whatif.tripInvalid')
-                    : t('whatif.tripDays').replace(
-                        '{days}',
-                        String(tripDays(whatIf.trip)),
+                    : withCount(
+                        t('whatif.tripDays'),
+                        'days',
+                        tripDays(whatIf.trip),
                       )}
               </p>
             </div>

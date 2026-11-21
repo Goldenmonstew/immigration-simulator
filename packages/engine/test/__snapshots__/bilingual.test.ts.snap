@@ -5075,7 +5075,7 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
             }
           ],
           "status": "PASS",
-          "explanation": "主申请人已于 2024-06-01 以 Global Talent 定居，当时本人持其 dependent partner 许可（GT 27.1(b)）；本人须连续满 5 年（GT 30.1），2026-06-01 起可申请。",
+          "explanation": "主申请人已于 2024-06-01 以 Global Talent 定居，当时本人持其 dependent partner 许可（GT 27.1(b)）；伴侣本人须连续满 5 年（GT 30.1），2026-06-01 起可申请。",
           "assumptions": [
             "只计连续的 Global Talent dependant 许可，假设整段都是同一主申请人的 dependent partner；Appendix Relationship with Partner（GT 27.4）未核对。"
           ]

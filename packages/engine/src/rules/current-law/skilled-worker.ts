@@ -828,8 +828,8 @@ export const clSwPartner5Y = defineRule(
         ? {
             status: 'PASS',
             explanation: L(
-              `${settled.explanation}；本人的 dependent partner 合格期为 ${years} 年，可从 ${residence!.applicationDate} 起申请（SW 42.1）。`,
-              `${settled.explanation}; they can apply from ${residence!.applicationDate} based on their own ${years}-year qualifying period (SW 42.1).`,
+              `${settled.explanation}；伴侣本人的 dependent partner 合格期为 ${years} 年，可从 ${residence!.applicationDate} 起申请（SW 42.1）。`,
+              `${settled.explanation}; the dependant partner can apply from ${residence!.applicationDate} based on their own ${years}-year qualifying period (SW 42.1).`,
             ),
             assumptions,
           }
@@ -963,7 +963,7 @@ export const clSwChild = defineRule(
         ? {
             status: 'PASS',
             explanation: L(
-              `${age}；${settled.explanation}，可申请定居。`,
+              `${age}；${settled.explanation}，子女可申请定居。`,
               `${age}; ${settled.explanation}, so the child can apply for settlement.`,
             ),
             assumptions,

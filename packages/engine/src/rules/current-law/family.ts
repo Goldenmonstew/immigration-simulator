@@ -667,7 +667,7 @@ function fiveYearChildPathway(
       result: {
         status: 'PASS',
         explanation: L(
-          `${age}；主申请人已于 ${settled.date} 定居（298(i)），可申请定居；子女本人没有合格期。`,
+          `${age}；主申请人已于 ${settled.date} 定居（298(i)），子女可申请定居，本人没有合格期。`,
           `${age}; the principal applicant settled on ${settled.date} (para 298(i)), so the child can apply for settlement and has no qualifying period of their own.`,
         ),
         assumptions,
@@ -792,7 +792,7 @@ export function familyChildPathway(
       result: {
         status: 'PASS',
         explanation: L(
-          `${age}；主申请人已于 ${settled.date} 以 10 年路线伴侣身份定居（SETF 12.1(b)），可申请定居；子女本人没有居留年限要求。`,
+          `${age}；主申请人已于 ${settled.date} 以 10 年路线伴侣身份定居（SETF 12.1(b)），子女可申请定居，本人没有居留年限要求。`,
           `${age}; the principal applicant settled as a partner on the 10-year route on ${settled.date} (SETF 12.1(b)), so the child can apply for settlement and has no residence requirement of their own.`,
         ),
         assumptions,

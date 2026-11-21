@@ -978,7 +978,7 @@ export const graduate: Character = {
     ),
     switched: {
       zhCN: '你拿到本情景中的 Skilled Worker 许可，把合同和 CoS 参考号收进文件夹；下一次出门，包里多了一份新的有效许可。',
-      en: 'You receive Skilled Worker permission in this scenario file the contract and save your CoS reference number. Next time you go out, the bag holds your new permission.',
+      en: 'You receive Skilled Worker permission in this scenario and file the contract and save your CoS reference number. Next time you go out, the bag holds your new permission.',
     },
     overstayed: t(
       '许可到期前没有接上新的有效许可，这段小镇生活在这里结束。\n下一局请留意剩余月数：Graduate 期间去公司求职、核对担保与 CoS，再到签证中心转换。',
