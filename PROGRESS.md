@@ -274,3 +274,4 @@
 | 239 | 任务 56 第二轮审核修正：诺拉的工作日按求职能否在关门前做完判断；活动结果记下行动 id，春节读档只补弹对应活动。 | packages/game/src/{graduate-route,game,types}.ts、apps/web/app/game/game-client.tsx、packages/game/test/graduate.test.ts、apps/web/test/game-page.test.tsx、docs/tasks/reports/56-game-polish.md |
 | 242 | 任务 56 第三轮审核修正：春节读档只在来电确实打断活动时补弹结果；旧存档不补弹并在报告说明。 | apps/web/app/game/game-client.tsx、apps/web/test/game-page.test.tsx、docs/tasks/reports/56-game-polish.md |
 | 247 | 任务 56 第四轮审核修正：来电打断的行动结果存入 `interruptedOutcome`（接完来电清除），春节读档据此补弹；game 测试覆盖活动中、结束时、活动后三种来电。 | packages/game/src/{game,types}.ts、packages/game/test/interrupted.test.ts、apps/web/app/game/game-client.tsx、apps/web/test/game-page.test.tsx、docs/tasks/reports/56-game-polish.md |
+| 249 | 任务 56 第五轮审核修正：`interruptedOutcome` 只记录本次行动期间同一天响起的电话，用推进时钟前的行动结果；补信件、考试失败、跨季晨间事件反例。 | packages/game/src/game.ts、packages/game/test/interrupted.test.ts、docs/tasks/reports/56-game-polish.md |

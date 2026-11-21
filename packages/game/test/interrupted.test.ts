@@ -12,8 +12,8 @@ import type { GameState } from '../src';
 import './helpers';
 
 // Seed 176: the parents' call rings at 18:44 on the first Lunar New Year day.
-function newYearAt(minute: number): GameState {
-  let state = newGame('skilled-worker', 176);
+function newYearAt(minute: number, seed = 176): GameState {
+  let state = newGame('skilled-worker', seed);
   while (state.pendingEvent || state.day.index < 2)
     state = state.pendingEvent
       ? resolve(state, currentEvent(state)!.choices[0].id)
@@ -42,4 +42,21 @@ test('task 56 / review56-4: a call during or at the end of an action holds its r
   expect(
     resolve(during, currentEvent(during)!.choices[0].id).interruptedOutcome,
   ).toBeUndefined();
+});
+
+test('review56-5: letters, exam results and the next morning are not interrupting calls', () => {
+  // Seeds 2 and 20: the stalls at 22:30 run into midnight, where a letter or
+  // the next quarter's morning event follows instead of a call.
+  for (const seed of [2, 20]) {
+    const late = doActivity(newYearAt(22 * 60 + 30, seed), 'festival');
+    expect(late.interruptedOutcome).toBeUndefined();
+  }
+  // A failed exam queues its own event.
+  const college = enter(newYearAt(10 * 60), 'college');
+  const failed = doActivity(
+    { ...college, stats: { ...college.stats, english: 68 } },
+    'exam',
+  );
+  expect(failed.pendingEvent).toBe('system-exam-failed');
+  expect(failed.interruptedOutcome).toBeUndefined();
 });

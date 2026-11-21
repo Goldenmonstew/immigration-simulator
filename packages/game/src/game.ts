@@ -1260,14 +1260,19 @@ export function doActivity(state: GameState, actionId: string): GameState {
     };
     return continueTrip(next);
   }
+  const text = next.outcome?.text;
   const after = advanceClock(next, action.minutes);
-  // An event that arrives during (or at the end of) this action holds back
-  // its result until the event is resolved (50 / review56-4).
-  if (!state.pendingEvent && after.pendingEvent && after.outcome?.text)
-    after.interruptedOutcome = {
-      actionId: action.id,
-      text: after.outcome.text,
-    };
+  // A phone call that rings during (or at the end of) this action, on the
+  // same day, holds back its result until the call is resolved (50 /
+  // review56-4, review56-5). Letters, exam results and the next morning do not.
+  const call =
+    !state.pendingEvent &&
+    after.pendingEvent !== undefined &&
+    after.day.date === state.day.date &&
+    state.day.deliveries.some(
+      (d) => d.channel === 'phone' && d.eventId === after.pendingEvent,
+    );
+  if (call && text) after.interruptedOutcome = { actionId: action.id, text };
   return after;
 }
 export function currentEvent(state: GameState): GameEvent | undefined {
