@@ -49,17 +49,16 @@ export function hongKongBnoResidence(
   ) {
     return undefined;
   }
-  const current = episodeOn(timeline, simulationDate)!;
   return currentResidence(
     timeline,
     simulationDate,
     (e) => e.route === 'HONG_KONG_BNO',
     cl.values.hongKongBnoQualifyingYears.value,
     {
-      appliesOn: (e) =>
-        e.route === 'HONG_KONG_BNO' &&
-        e.role === current.role &&
-        e.dependantOf === current.dependantOf,
+      // HK 62.1(a): the most recent grant on the Hong Kong BN(O) route, in
+      // any capacity, so a child who takes their own BN(O) permission before
+      // filing keeps the date (review33a-5).
+      appliesOn: (e) => e.route === 'HONG_KONG_BNO',
       notBefore,
       allowSection3C: true,
     },

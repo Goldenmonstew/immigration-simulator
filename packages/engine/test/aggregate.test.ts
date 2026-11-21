@@ -454,6 +454,134 @@ describe('Earned Settlement: pre April 2024 Skilled Worker cohort (p44)', () => 
 });
 
 describe('current law', () => {
+  test('review33a-7 #1 dependants: English and Life in the UK are assessed for the projected joint date', () => {
+    const run = (person: PersonTimeline) =>
+      evaluate({
+        timeline: person,
+        principal: timeline({ episodes: [sw('2023-06-01')] }),
+        simulationDate: SIMULATION_DATE,
+        locale: 'en',
+      }).byRuleSet['current-law-2026-11']!;
+    const stillToMeet = (a: SettlementAssessment) =>
+      a.assumptions.filter((x) => x.startsWith('Still to be met'));
+    // B1 is enough today; the joint date falls after 2027-03-26, so the
+    // dependent partner's B2 (SW 44.1) is listed as still to be met.
+    const partner = run(
+      timeline({
+        episodes: [
+          sw('2023-06-01', { role: 'DEPENDANT', dependantOf: 'PARTNER' }),
+        ],
+        english: { cefrLevel: 'B1' },
+      }),
+    );
+    expect(partner.earliestDate).toBe('2028-05-04');
+    expect(partner.rules.find((r) => r.id === 'CL-ENGLISH')).toMatchObject({
+      status: 'FAIL',
+      explanation: expect.stringContaining('B2'),
+    });
+    expect(stillToMeet(partner)).toHaveLength(1);
+    // A child who is an adult by the joint date still has both to show.
+    const child = run(
+      timeline({
+        dateOfBirth: '2010-01-01',
+        english: undefined,
+        lifeInTheUk: undefined,
+        episodes: [
+          sw('2023-06-01', { role: 'DEPENDANT', dependantOf: 'PARENT' }),
+        ],
+      }),
+    );
+    expect(child.earliestDate).toBe('2028-05-04');
+    expect(stillToMeet(child)).toHaveLength(2);
+  });
+
+  test('review33a-5 a BN(O) child who takes their own BN(O) permission before the adult filing keeps that date (HK 62.1(a))', () => {
+    const bno = (
+      validFrom: string,
+      validTo: string,
+      extra: Partial<ImmigrationEpisode> = {},
+    ): ImmigrationEpisode => ({
+      route: 'HONG_KONG_BNO',
+      role: 'MAIN',
+      validFrom,
+      validTo,
+      ...extra,
+    });
+    // 18 on 2026-12-01; own BN(O) permission from 2026-11-20.
+    const child = timeline({
+      dateOfBirth: '2008-12-01',
+      english: { cefrLevel: 'B1' },
+      episodes: [
+        bno('2021-06-10', '2026-11-19', {
+          role: 'DEPENDANT',
+          dependantOf: 'PARENT',
+        }),
+        bno('2026-11-20', '2031-11-09'),
+      ],
+    });
+    const a = evaluate({
+      timeline: child,
+      principal: timeline({ episodes: [bno('2023-01-01', '2031-11-09')] }),
+      simulationDate: '2026-11-01',
+    }).byRuleSet['current-law-2026-11']!;
+    expect(a).toMatchObject({ pathwayYears: 5, earliestDate: '2026-12-01' });
+    expect(a.decidedBy).toContain('CL-HKBNO-RESIDENCE-5Y');
+  });
+
+  test('review33a-5 a trip across 6 April does not drop the five-year partner date for an unasked tax year', () => {
+    const partner = timeline({
+      episodes: [
+        {
+          route: 'FAMILY_PARTNER_OR_PARENT',
+          role: 'MAIN',
+          validFrom: '2021-05-08',
+          validTo: '2027-12-31',
+          familyPermission: 'PARTNER_FIVE_YEAR',
+        },
+      ],
+      relationships: [{ type: 'PARTNER', otherPartyStatus: 'BRITISH_CITIZEN' }],
+      absences: [{ from: '2026-04-04', to: '2026-04-10' }],
+      // The questionnaire on 2026-04-04 asks up to the 2024-25 tax year.
+      incomeYears: timeline()
+        .incomeYears.filter((y) => y.taxYear !== '2025-26')
+        .map((y) => ({ ...y, earnings: 40000 })),
+    });
+    for (const simulationDate of ['2026-04-03', '2026-04-04']) {
+      const a = evaluate({ timeline: partner, simulationDate }).byRuleSet[
+        'current-law-2026-11'
+      ]!;
+      expect(a).toMatchObject({ pathwayYears: 5, earliestDate: '2026-05-08' });
+    }
+  });
+
+  test('review33b-2 on a departure day, turning 65 before the filing after the trip keeps the Skilled Worker date', () => {
+    const person = (dateOfBirth: string) =>
+      timeline({
+        dateOfBirth,
+        english: { cefrLevel: 'A2' },
+        lifeInTheUk: undefined,
+        episodes: [sw('2022-01-10')],
+        absences: [{ from: SIMULATION_DATE, to: '2026-12-20' }],
+      });
+    // 65 on 2026-12-01: exempt from both on the filing date after return.
+    const older = evaluate({
+      timeline: person('1961-12-01'),
+      simulationDate: SIMULATION_DATE,
+    }).byRuleSet['current-law-2026-11']!;
+    expect(older).toMatchObject({
+      outcome: 'INSUFFICIENT_INFORMATION',
+      pathwayYears: 5,
+      earliestDate: '2026-12-20',
+    });
+    expect(older.decidedBy).toContain('CL-SW-RESIDENCE-5Y');
+    // Younger, Life in the UK still unknown on that date: no forecast.
+    const younger = evaluate({
+      timeline: person('1975-01-01'),
+      simulationDate: SIMULATION_DATE,
+    }).byRuleSet['current-law-2026-11']!;
+    expect(younger.earliestDate).toBeUndefined();
+  });
+
   test('Skilled Worker for 7 years on £60,000 qualifies after 5 years', () => {
     expect(cl({})).toMatchObject({
       outcome: 'LIKELY_ELIGIBLE',
