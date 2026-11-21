@@ -208,22 +208,28 @@ export function evaluateAustralia(req: AuRequest): AuResult {
       .find((o) => BRIDGING.has(x.subclass) || !BRIDGING.has(o.subclass));
     const replaced =
       next && (departsOn(next.from) ? next.from : addDays(next.from, -1));
-    const to = replaced && (!x.to || replaced < x.to) ? replaced : x.to;
+    const isReplaced = !!replaced && (!x.to || replaced <= x.to);
+    const to = isReplaced ? replaced : x.to;
     // s82(5)–(6): a 5-year travel facility ends the visa if you are outside
-    // Australia when it runs out, or when you leave after it.
+    // Australia when it runs out without a new visa having started, or when
+    // you leave after it.
     if (FIVE_YEAR_FACILITY.has(x.subclass)) {
       const after = afterYears(x.from, v.travelFacilityYears.value);
       const last = addDays(after, -1);
-      // Not replaced by the end of its last day, and outside Australia then.
-      if (!inAustraliaAtEnd(last) && (!to || last < to))
-        return { ...x, to: last, ceased: last };
+      if (
+        !inAustraliaAtEnd(last) &&
+        (!next || next.from > last) &&
+        (!x.to || x.to >= last)
+      )
+        return { ...x, to: last, replaced: false, left: undefined };
       const left = req.trips
         .map((trip) => trip.departed)
         .filter((d) => d >= after)
         .sort()[0];
-      if (left && (!to || left <= to)) return { ...x, to: left, ceased: left };
+      if (left && (!to || left <= to))
+        return { ...x, to: left, replaced: false, left };
     }
-    return { ...x, to, ceased: undefined };
+    return { ...x, to, replaced: isReplaced, left: undefined };
   });
   // Each kind of visa held on a day, and held from before the day (so also
   // while still in Australia when leaving that day).
@@ -236,14 +242,25 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     days.mark(on, x.from, x.to);
     if (!x.to || x.to > x.from) days.mark(before, addDays(x.from, 1), x.to);
   };
-  // The day a permanent visa ended on leaving (s82(5)–(6)): not a permanent
-  // resident for the rest of that day.
-  const ceased = flags();
+  // Days with a moment when you were outside Australia without a permanent
+  // visa: the day one ended on leaving (s82(6)), and the first day of one
+  // granted abroad that did not directly replace another permanent visa.
+  const gap = flags();
   let lastSubstantive: AuSubclass | undefined;
-  for (const x of visas) {
+  visas.forEach((x, n) => {
     mark(visa, x);
     mark(PERMANENT.has(x.subclass) ? permanent : temporary, x);
-    if (x.ceased) days.mark(ceased, x.ceased, x.ceased);
+    if (x.left) days.mark(gap, x.left, x.left);
+    const previous = visas
+      .slice(0, n)
+      .filter((p) => PERMANENT.has(p.subclass))
+      .at(-1);
+    if (
+      PERMANENT.has(x.subclass) &&
+      (departsOn(x.from) || !inAustraliaAtEnd(x.from)) &&
+      !(previous?.replaced && previous.to && previous.to >= addDays(x.from, -1))
+    )
+      days.mark(gap, x.from, x.from);
     // 186.226(1)(d): a bridging visa for a 457, 482, 186 or 187 application
     // counts when the last substantive visa was a 457 or 482.
     if (
@@ -254,7 +271,7 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     )
       mark(trtVisa, x);
     if (!BRIDGING.has(x.subclass)) lastSubstantive = x.subclass;
-  }
+  });
   /** Held while in Australia on day `i` (on a departure day, before leaving). */
   const beforeLeaving = ({ on, before }: ReturnType<typeof held>, i: number) =>
     departing[i] ? before[i] : on[i];
@@ -265,8 +282,8 @@ export function evaluateAustralia(req: AuRequest): AuResult {
   for (let i = 0; i < days.count; i++) {
     if (present(i)) {
       leftAsResident = beforeLeaving(permanent, i);
-      resident[i] = leftAsResident && !ceased[i];
-    } else resident[i] = permanent.on[i] && leftAsResident;
+      resident[i] = leftAsResident && !gap[i];
+    } else resident[i] = permanent.on[i] && leftAsResident && !gap[i];
   }
   const sums = {
     // 155.212(2)(b): days also on a temporary or bridging visa do not count.
@@ -912,8 +929,8 @@ export function evaluateAustralia(req: AuRequest): AuResult {
             'Departure and arrival days both count as days in Australia (SRC-068 p6 text). The example on the same page counts the departure day as away; where that changes the date, the summary also gives the date counted that way (PD-084).',
           ),
           L(
-            '离境时已持永久签证的，在境外换发的新永久签证仍连续算永久居民；离境时没有永久签证的，在境外获发的永久签证要等持签入境后才算（s5(1)）。出境当天生效的签证视为离境后才生效。',
-            'If you held a permanent visa when you left, a new permanent visa granted abroad keeps you a permanent resident; if you did not, a permanent visa granted abroad counts only once you enter Australia on it (s5(1)). A visa starting on a departure day is taken to start after you left.',
+            '离境时已持永久签证、且新旧永久签证之间没有空档的，在境外换发的新永久签证仍连续算永久居民；旧签证先终止、新签证后获发的，空档当天不算。离境时没有永久签证的，在境外获发的永久签证要等持签入境后才算（s5(1)）。出境当天生效的签证视为离境后才生效。',
+            'If you held a permanent visa when you left and the new one granted abroad follows it with no gap, you stay a permanent resident; where the old visa ended before the new one was granted, the day of the gap does not count. If you held none when you left, a permanent visa granted abroad counts only once you enter Australia on it (s5(1)). A visa starting on a departure day is taken to start after you left.',
           ),
           L(
             '155 和其他永久签证的旅行便利期不推算：若在其期满后离境，永居可能已终止（s82(5)–(6)），请以签证通知或 VEVO 为准。',

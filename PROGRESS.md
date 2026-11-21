@@ -298,3 +298,4 @@
 | 259 | 任务 57–59 第五轮审核修正（review57-5）：出境当天在澳期间按前一天签证状态计（入籍、RRV 并持 bridging）；旅行便利期满后离境终止当天不算永久居民；TRT 未确认受雇时 45 岁摘要只说持签时长；问卷提示写明 bridging visa 不终止实质签证。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、apps/web/i18n/、docs/tasks/reports/57-59-australia.md |
 | 260 | 任务 57–59 第六轮审核修正（review57-6）：出境当天生效的签证视为离境后生效、被替代的旧签证离境前仍有效；在澳期间只算当天之前已生效的签证；入籍与 RRV 补充旅行便利与离境当天递交的假设。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、docs/tasks/reports/57-59-australia.md |
 | 261 | 任务 57–59 第七轮审核修正（review57-7）：出境当天的无签证在澳与 TRT 在澳受雇也只算当天之前已生效的签证；旅行便利最后一天由新永居接替不记中断（s82(5) 仅在期满前未被替代时适用）；入籍说明补离境时已持永居的情形。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、docs/tasks/reports/57-59-australia.md |
+| 262 | 任务 57–59 第八轮审核修正（review57-8）：s82(5) 以下一份签证的实际生效日判断是否在期满前接替；在境外开始生效、且非直接接替前一份永居的永久签证，生效当天记为空档；入籍说明补"无空档"条件。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、docs/tasks/reports/57-59-australia.md |

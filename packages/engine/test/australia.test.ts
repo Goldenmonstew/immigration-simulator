@@ -764,7 +764,8 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
       },
       'AU-CITIZENSHIP',
     );
-    expect(p.earliestDate).toBe('2026-03-02');
+    // No permanent visa from leaving on 03-01 until the 155 during 03-02.
+    expect(p.earliestDate).toBe('2026-03-03');
   });
 
   test('a permanent visa that ended before leaving does not carry over', () => {
@@ -831,6 +832,32 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
       'AU-CITIZENSHIP',
     );
     expect(p.status).toBe('MET');
+  });
+
+  test('a facility running out abroad before a new visa starts', () => {
+    const request = {
+      simulationDate: '2025-03-10',
+      firstArrival: '2020-03-02',
+      trips: [{ departed: '2025-03-01', returned: '2025-03-10' }],
+    };
+    // The 189's facility ends on 2025-03-01 while abroad (s82(5)).
+    for (const [from, earliest, end] of [
+      ['2025-03-02', '2026-03-03', undefined],
+      ['2025-03-02', '2026-03-03', '2025-03-01'],
+      ['2025-03-05', '2026-03-06', undefined],
+    ] as const)
+      expect(
+        pathway(
+          {
+            ...request,
+            visas: [
+              { subclass: '189', from: '2020-03-02', to: end },
+              { subclass: '155', from },
+            ],
+          },
+          'AU-CITIZENSHIP',
+        ).earliestDate,
+      ).toBe(earliest);
   });
 
   test('two permanent visas granted abroad on the departure day', () => {
