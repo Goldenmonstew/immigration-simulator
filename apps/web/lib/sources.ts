@@ -109,4 +109,18 @@ export const sourceUrls: Record<string, string> = {
     'https://www.gov.uk/government/publications/immigration-status-and-enforcement-action-caseworker-guidance/cancellation-and-curtailment-of-permission-accessible',
   'SRC-060':
     'https://www.gov.uk/government/publications/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024-accessible-version',
+  'SRC-061': 'https://www.legislation.gov.au/C2007A00020/latest/text',
+  'SRC-062': 'https://www.legislation.gov.au/F1996B03551/latest/text',
+  'SRC-063':
+    'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-regional-191/regional-provisional',
+  'SRC-064':
+    'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/employer-nomination-scheme-186/temporary-residence-transition-stream',
+  'SRC-065':
+    'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/partner-onshore/permanent-801',
+  'SRC-066':
+    'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/resident-return-visa-155-157',
+  'SRC-067':
+    'https://immi.homeaffairs.gov.au/citizenship/become-a-citizen/permanent-resident',
+  'SRC-068':
+    'https://www.homeaffairs.gov.au/foi/files/2025/fa-250801434-document-released.PDF',
 };

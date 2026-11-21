@@ -287,3 +287,4 @@
 | 248 | 第 16 阶段计划补进度：55 已在 33c 实现。 | docs/tasks/phase-16-plan.md |
 | 249 | 任务 56 第五轮审核修正：`interruptedOutcome` 只记录本次行动期间同一天响起的电话，用推进时钟前的行动结果；补信件、考试失败、跨季晨间事件反例。 | packages/game/src/game.ts、packages/game/test/interrupted.test.ts、docs/tasks/reports/56-game-polish.md |
 | 250 | 任务 54 审核修正：Long Residence 范围判断只看 10 年，LR 11.3 只推迟递交日；规则补 LR 11.3、11.4 来源；补 Graduate 用例。 | packages/engine/src/rules/current-law/long-residence.ts、packages/engine/test/aggregate.test.ts、packages/engine/test/__snapshots__/bilingual.test.ts.snap、docs/review/adviser-packet.md、docs/tasks/reports/54-records.md |
+| 251 | 第 17 阶段（澳洲试点）计划；任务 57：登记澳洲官方来源 SRC-061～068（入籍法、移民条例两卷、移民局 5 个页面、入籍居住 SOP）与 PD-084、PD-085。 | docs/tasks/phase-17-plan.md、docs/SOURCES.md、docs/pending-details.md、apps/web/lib/sources.ts、policy-sources/ |
