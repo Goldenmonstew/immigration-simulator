@@ -159,8 +159,8 @@ describe('Earned Settlement pathway', () => {
     expect(ownClaim.rules.find((r) => r.id === 'ES-PUBLIC-FUNDS')?.status).toBe(
       'FAIL',
     );
-    expect(ownClaim.shorterPathwayBlockedBy).toBeUndefined();
-    expect(before.shorterPathwayBlockedBy).toBeUndefined();
+    expect(ownClaim.shorterPathwaysNotUsed).toBeUndefined();
+    expect(before.shorterPathwaysNotUsed).toBeUndefined();
   });
 
   test('review33e-1 #3 the Article 8 based 10-year partner route has no 5-year pathway (p23 note 9)', () => {
@@ -278,67 +278,96 @@ describe('Earned Settlement pathway', () => {
     });
   });
 
-  test('review49-2 shorterPathwayBlockedBy lists only failed requirements of shorter candidates', () => {
+  test('review49-2 and review49-3 shorterPathwaysNotUsed gives each shorter candidate its own reasons', () => {
     const earning = (earnings: number) =>
       timeline().incomeYears.map((year) => ({ ...year, earnings }));
+    const fail = (years: number, ruleIds: string[], entry?: string) => ({
+      years,
+      ...(entry && { entry }),
+      status: 'FAIL',
+      ruleIds,
+    });
     expect(es({}).pathwayYears).toBe(5);
-    expect(es({}).shorterPathwayBlockedBy).toEqual([
-      { years: 3, ruleIds: ['ES-EARNINGS-3Y'] },
+    expect(es({}).shorterPathwaysNotUsed).toEqual([
+      fail(3, ['ES-EARNINGS-3Y'], 'ES-EARNINGS-3Y'),
     ]);
     const tenYears = es({ incomeYears: earning(30000) });
     expect(tenYears.pathwayYears).toBe(10);
-    const [three, five, ...rest] = tenYears.shorterPathwayBlockedBy!;
-    expect(rest).toEqual([]);
-    expect(three).toEqual({ years: 3, ruleIds: ['ES-EARNINGS-3Y'] });
-    expect(five.years).toBe(5);
-    expect(five.ruleIds).toEqual(
-      expect.arrayContaining(['ES-EARNINGS-5Y', 'ES-BRITISH-CONNECTION']),
-    );
-    expect(five.ruleIds).not.toContain('ES-EARNINGS-10Y');
-    const funds = es({
-      benefits: [
-        {
-          benefitType: 'UNIVERSAL_CREDIT',
-          from: '2024-01-01',
-          to: '2024-03-31',
-        },
-      ],
-    });
-    expect(funds.pathwayYears).toBe(20);
-    expect(funds.shorterPathwayBlockedBy?.map((p) => p.years)).toEqual([
-      3, 5, 10,
-    ]);
-    expect(
-      funds.shorterPathwayBlockedBy?.every((p) =>
-        p.ruleIds.includes('ES-PUBLIC-FUNDS'),
+    expect(tenYears.shorterPathwaysNotUsed).toEqual([
+      fail(3, ['ES-EARNINGS-3Y'], 'ES-EARNINGS-3Y'),
+      fail(5, ['ES-EARNINGS-5Y'], 'ES-EARNINGS-5Y'),
+      fail(5, ['ES-BRITISH-CONNECTION'], 'ES-BRITISH-CONNECTION'),
+      fail(5, ['ES-PUBLIC-SERVICE'], 'ES-PUBLIC-SERVICE'),
+      fail(5, ['ES-TRANSITIONAL-CARE-WORKER'], 'ES-TRANSITIONAL-CARE-WORKER'),
+      fail(
+        5,
+        ['ES-TRANSITIONAL-HEALTH-EDUCATION'],
+        'ES-TRANSITIONAL-HEALTH-EDUCATION',
       ),
-    ).toBe(true);
-    // Family and Private Life has no shorter candidate to rule out (p23).
-    const familyLife = es({
-      episodes: [
-        {
-          ...sw('2019-11-01'),
-          route: 'FAMILY_AND_PRIVATE_LIFE',
-          socCode: undefined,
-        },
-      ],
-      incomeYears: earning(30000),
+    ]);
+    const claim = [
+      {
+        benefitType: 'UNIVERSAL_CREDIT' as const,
+        from: '2024-01-01',
+        to: '2024-03-31',
+      },
+    ];
+    const funds = es({ benefits: claim });
+    expect(funds.pathwayYears).toBe(20);
+    const reasons = funds.shorterPathwaysNotUsed!;
+    // The 5-year earnings pathway is ruled out by public funds alone.
+    expect(reasons.find((r) => r.entry === 'ES-EARNINGS-5Y')).toEqual(
+      fail(5, ['ES-PUBLIC-FUNDS'], 'ES-EARNINGS-5Y'),
+    );
+    expect(reasons.at(-1)).toEqual(fail(10, ['ES-PUBLIC-FUNDS']));
+    expect(reasons.every((r) => r.ruleIds.includes('ES-PUBLIC-FUNDS'))).toBe(
+      true,
+    );
+    // Family and Private Life has no 3 or 5-year candidate (p23); on the
+    // 20-year pathway its 10-year candidate is still explained.
+    const familyLife = (benefits: typeof claim) =>
+      es({
+        episodes: [
+          {
+            ...sw('2016-11-01'),
+            route: 'FAMILY_AND_PRIVATE_LIFE',
+            socCode: undefined,
+          },
+        ],
+        incomeYears: earning(30000),
+        benefits,
+      });
+    expect(familyLife([]).pathwayYears).toBe(10);
+    expect(familyLife([]).shorterPathwaysNotUsed).toBeUndefined();
+    expect(familyLife(claim).pathwayYears).toBe(20);
+    expect(familyLife(claim).shorterPathwaysNotUsed).toEqual([
+      fail(10, ['ES-PUBLIC-FUNDS']),
+    ]);
+    // review49-3: a 5-year candidate left open by PD-006 is shown as still to
+    // be confirmed, not as failed.
+    const open = es({
+      episodes: [sw('2016-01-01')],
+      incomeYears: timeline().incomeYears.map((year) => ({
+        ...year,
+        earnings: ['2021-22', '2022-23'].includes(year.taxYear) ? 60000 : 20000,
+      })),
     });
-    expect(familyLife.pathwayYears).toBe(10);
-    expect(familyLife.shorterPathwayBlockedBy).toBeUndefined();
+    expect(open.pathwayYears).toBe(10);
+    expect(
+      open.shorterPathwaysNotUsed?.find((r) => r.entry === 'ES-EARNINGS-5Y'),
+    ).toEqual({
+      years: 5,
+      entry: 'ES-EARNINGS-5Y',
+      status: 'UNKNOWN',
+      ruleIds: ['ES-EARNINGS-5Y'],
+    });
     // A regulated review decides no pathway (evaluate.ts).
     const review = es({
       criminalRecord: [{ date: '2020-01-01' }],
-      benefits: [
-        {
-          benefitType: 'UNIVERSAL_CREDIT',
-          from: '2024-01-01',
-          to: '2024-03-31',
-        },
-      ],
+      benefits: claim,
     });
     expect(review.outcome).toBe('REQUIRES_REGULATED_REVIEW');
-    expect(review.shorterPathwayBlockedBy).toBeUndefined();
+    expect(review.shorterPathwaysNotUsed).toBeUndefined();
   });
 
   test('missing input gives INSUFFICIENT_INFORMATION without a pathway', () => {

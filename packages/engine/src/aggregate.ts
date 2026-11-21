@@ -88,6 +88,8 @@ interface Candidate {
    * §16.1): part of `decidedBy`, not of the candidate's status.
    */
   residence?: RuleId;
+  /** Earned Settlement 3 and 5-year pathways: the requirement naming it. */
+  entry?: RuleId;
 }
 
 type Decision = Pick<
@@ -508,10 +510,12 @@ function assessEarnedSettlement(
       ? [
           {
             years: v.pathwayYears3.value,
+            entry: 'ES-EARNINGS-3Y',
             rules: [...standard, ...pick('ES-EARNINGS-3Y')],
           },
           ...fiveYearRoutes.map((id) => ({
             years: v.pathwayYears5.value,
+            entry: id,
             rules: [...standard, ...pick(id)],
           })),
         ]
@@ -599,25 +603,28 @@ function finishEarnedSettlement(
       ? completion
       : undefined;
   const { earliestDate, projectedFrom, ...rest } = decision;
-  const shorterPathwayBlockedBy = [...new Set(candidates.map((c) => c.years))]
-    .filter((years) => years < (decision.pathwayYears ?? -Infinity))
-    .sort((a, b) => a - b)
-    .map((years) => {
-      const failed = new Set(
-        candidates
-          .filter((c) => c.years === years)
-          .flatMap((c) => c.rules)
-          .filter(
-            (r) => r.status === 'FAIL' && !decision.decidedBy?.includes(r.id),
-          )
-          .map((r) => r.id),
-      );
-      return {
-        years,
-        ruleIds: rules.map((r) => r.id).filter((id) => failed.has(id)),
-      };
-    })
-    .filter((pathway) => pathway.ruleIds.length > 0);
+  // Why each shorter candidate was not used (task 49): its failed, or else
+  // still unknown, requirements that the selected pathway does not share.
+  const shorterPathwaysNotUsed = candidates
+    .filter((c) => c.years < (decision.pathwayYears ?? -Infinity))
+    .flatMap((c) => {
+      const status = statusOf(c);
+      const ids = c.rules
+        .filter(
+          (r) => r.status === status && !decision.decidedBy?.includes(r.id),
+        )
+        .map((r) => r.id);
+      return status === 'PASS' || ids.length === 0
+        ? []
+        : [
+            {
+              years: c.years,
+              ...(c.entry && { entry: c.entry }),
+              status,
+              ruleIds: rules.map((r) => r.id).filter((id) => ids.includes(id)),
+            },
+          ];
+    });
   if (conditionalCompletion) {
     assumptions.push(
       L(
@@ -658,7 +665,7 @@ function finishEarnedSettlement(
       pathwayCompletionDate: conditionalCompletion,
     }),
     ...(reassessment && { publicFundsReassessmentDate: reassessment }),
-    ...(shorterPathwayBlockedBy.length > 0 && { shorterPathwayBlockedBy }),
+    ...(shorterPathwaysNotUsed.length > 0 && { shorterPathwaysNotUsed }),
     ...(rules.find((r) => r.id === 'ES-ROUTE-GROUP')?.status === 'PASS' && {
       routeGroup,
     }),

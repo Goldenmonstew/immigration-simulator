@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { SimulationResult } from '@uk-immigration/engine';
 import { ROUTE_GROUPS } from '@uk-immigration/policy-data';
+import type { TranslationKey } from '../i18n';
 import { useTranslation } from '../i18n/locale';
 import { punct } from '../i18n/punctuation';
 import { routeGroupNames, routeLabel } from '../i18n/routes';
@@ -13,7 +14,7 @@ import { issueUrl } from '../lib/report';
 import { sourceUrls } from '../lib/sources';
 import { PolicyStatus, RuleSetStatus } from './policy-status';
 import { GapSummary } from './gap-summary';
-import { basisRule, shorterPathwayBlocks } from '../lib/gap-summary';
+import { basisRule, shorterPathwaysNotUsed } from '../lib/gap-summary';
 import type { RuleOutcome } from '@uk-immigration/engine';
 import site from '../app/site.module.css';
 import styles from '../app/result/result.module.css';
@@ -191,15 +192,30 @@ export function AssessmentColumns({
                         ).replace('{years}', String(assessment.pathwayYears))}
                       </p>
                     )}
-                  {shorterPathwayBlocks(assessment).length > 0 && (
+                  {shorterPathwaysNotUsed(assessment).length > 0 && (
                     <>
                       <p>{t('result.shorterBlocked')}</p>
                       <ul className={styles.shorterBlocked}>
-                        {shorterPathwayBlocks(assessment).map(
-                          ({ years, rules }) => (
-                            <li key={years}>
-                              {t('result.shorterBlockedPathway')
-                                .replace('{years}', String(years))
+                        {shorterPathwaysNotUsed(assessment).map(
+                          ({ years, entry, status, rules }) => (
+                            <li key={`${years}-${entry}`}>
+                              {t(
+                                status === 'FAIL'
+                                  ? 'result.shorterNotMet'
+                                  : 'result.shorterUnconfirmed',
+                              )
+                                .replace(
+                                  '{pathway}',
+                                  (entry
+                                    ? t('result.shorterPathwayEntry').replace(
+                                        '{entry}',
+                                        t(
+                                          `result.entry.${entry}` as TranslationKey,
+                                        ),
+                                      )
+                                    : t('result.shorterPathway')
+                                  ).replace('{years}', String(years)),
+                                )
                                 .replace(
                                   '{rules}',
                                   rules.map((rule) => rule.title).join(p.list),

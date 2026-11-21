@@ -151,12 +151,20 @@ export function draftReducer(state: Draft, action: Action): Draft {
       // does not accept: reopen that person's basic details to correct it.
       if (!validNationality(restored.timeline.nationality))
         return { ...restored, completed: false, step: 0 };
+      // Until the principal applicant's details are done again, the final
+      // step sends the user back to them.
       if (
         needsPrincipal(restored) &&
         restored.principalCompleted &&
-        !validNationality(restored.principal!.nationality)
+        !validNationality(restored.principal?.nationality ?? '')
       )
-        return { ...restored, completed: false, step: 9, principalStep: 0 };
+        return {
+          ...restored,
+          completed: false,
+          principalCompleted: false,
+          step: 9,
+          ...(restored.principal && { principalStep: 0 }),
+        };
       return { ...restored, step: stepSequence(restored).at(-1)! };
     }
     case 'step':

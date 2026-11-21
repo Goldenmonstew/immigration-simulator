@@ -34,11 +34,11 @@ export function basisRule(assessment: SettlementAssessment) {
   );
 }
 
-/** Per shorter pathway, the failed requirements that ruled it out (engine). */
-export function shorterPathwayBlocks(assessment: SettlementAssessment) {
-  return (assessment.shorterPathwayBlockedBy ?? []).map(
-    ({ years, ruleIds }) => ({
-      years,
+/** Each shorter candidate pathway and why it was not used (engine). */
+export function shorterPathwaysNotUsed(assessment: SettlementAssessment) {
+  return (assessment.shorterPathwaysNotUsed ?? []).map(
+    ({ ruleIds, ...pathway }) => ({
+      ...pathway,
       rules: assessment.rules.filter((rule) => ruleIds.includes(rule.id)),
     }),
   );

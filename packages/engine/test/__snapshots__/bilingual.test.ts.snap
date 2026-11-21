@@ -2517,6 +2517,16 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
         "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
+      "shorterPathwaysNotUsed": [
+        {
+          "years": 3,
+          "entry": "ES-EARNINGS-3Y",
+          "status": "UNKNOWN",
+          "ruleIds": [
+            "ES-EARNINGS-3Y"
+          ]
+        }
+      ],
       "routeGroup": "CORE_PERMISSION"
     }
   }
@@ -3316,6 +3326,16 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
         "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
+      "shorterPathwaysNotUsed": [
+        {
+          "years": 3,
+          "entry": "ES-EARNINGS-3Y",
+          "status": "UNKNOWN",
+          "ruleIds": [
+            "ES-EARNINGS-3Y"
+          ]
+        }
+      ],
       "routeGroup": "CORE_PERMISSION"
     }
   }
@@ -4113,6 +4133,16 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
         "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
+      ],
+      "shorterPathwaysNotUsed": [
+        {
+          "years": 3,
+          "entry": "ES-EARNINGS-3Y",
+          "status": "UNKNOWN",
+          "ruleIds": [
+            "ES-EARNINGS-3Y"
+          ]
+        }
       ],
       "routeGroup": "CORE_PERMISSION"
     }
@@ -10777,21 +10807,53 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
         "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
-      "shorterPathwayBlockedBy": [
+      "shorterPathwaysNotUsed": [
         {
           "years": 3,
+          "entry": "ES-EARNINGS-3Y",
+          "status": "FAIL",
           "ruleIds": [
             "ES-EARNINGS-3Y"
           ]
         },
         {
           "years": 5,
+          "entry": "ES-EARNINGS-5Y",
+          "status": "FAIL",
           "ruleIds": [
-            "ES-EARNINGS-5Y",
-            "ES-BRITISH-CONNECTION",
-            "ES-TRANSITIONAL-CARE-WORKER",
-            "ES-TRANSITIONAL-HEALTH-EDUCATION",
+            "ES-EARNINGS-5Y"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-BRITISH-CONNECTION",
+          "status": "FAIL",
+          "ruleIds": [
+            "ES-BRITISH-CONNECTION"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-PUBLIC-SERVICE",
+          "status": "FAIL",
+          "ruleIds": [
             "ES-PUBLIC-SERVICE"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-TRANSITIONAL-CARE-WORKER",
+          "status": "FAIL",
+          "ruleIds": [
+            "ES-TRANSITIONAL-CARE-WORKER"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-TRANSITIONAL-HEALTH-EDUCATION",
+          "status": "FAIL",
+          "ruleIds": [
+            "ES-TRANSITIONAL-HEALTH-EDUCATION"
           ]
         }
       ],
@@ -11505,9 +11567,10 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
       ],
       "pathwayCompletionDate": "2035-06-01",
       "publicFundsReassessmentDate": "2028-10-01",
-      "shorterPathwayBlockedBy": [
+      "shorterPathwaysNotUsed": [
         {
           "years": 10,
+          "status": "FAIL",
           "ruleIds": [
             "ES-PUBLIC-FUNDS"
           ]
@@ -12222,21 +12285,53 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
         "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
-      "shorterPathwayBlockedBy": [
+      "shorterPathwaysNotUsed": [
         {
           "years": 3,
+          "entry": "ES-EARNINGS-3Y",
+          "status": "FAIL",
           "ruleIds": [
             "ES-EARNINGS-3Y"
           ]
         },
         {
           "years": 5,
+          "entry": "ES-EARNINGS-5Y",
+          "status": "FAIL",
           "ruleIds": [
-            "ES-EARNINGS-5Y",
-            "ES-BRITISH-CONNECTION",
-            "ES-TRANSITIONAL-CARE-WORKER",
-            "ES-TRANSITIONAL-HEALTH-EDUCATION",
+            "ES-EARNINGS-5Y"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-BRITISH-CONNECTION",
+          "status": "FAIL",
+          "ruleIds": [
+            "ES-BRITISH-CONNECTION"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-PUBLIC-SERVICE",
+          "status": "FAIL",
+          "ruleIds": [
             "ES-PUBLIC-SERVICE"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-TRANSITIONAL-CARE-WORKER",
+          "status": "FAIL",
+          "ruleIds": [
+            "ES-TRANSITIONAL-CARE-WORKER"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-TRANSITIONAL-HEALTH-EDUCATION",
+          "status": "FAIL",
+          "ruleIds": [
+            "ES-TRANSITIONAL-HEALTH-EDUCATION"
           ]
         }
       ],
@@ -13018,9 +13113,11 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
         "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
-      "shorterPathwayBlockedBy": [
+      "shorterPathwaysNotUsed": [
         {
           "years": 3,
+          "entry": "ES-EARNINGS-3Y",
+          "status": "FAIL",
           "ruleIds": [
             "ES-EARNINGS-3Y"
           ]
@@ -13732,9 +13829,11 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
         "未申报家庭许可类别，按已录入的伴侣或子女关系推定许可依据。"
       ],
-      "shorterPathwayBlockedBy": [
+      "shorterPathwaysNotUsed": [
         {
           "years": 3,
+          "entry": "ES-EARNINGS-3Y",
+          "status": "FAIL",
           "ruleIds": [
             "ES-EARNINGS-3Y"
           ]
@@ -15100,9 +15199,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
         "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
-      "shorterPathwayBlockedBy": [
+      "shorterPathwaysNotUsed": [
         {
           "years": 3,
+          "entry": "ES-EARNINGS-3Y",
+          "status": "FAIL",
           "ruleIds": [
             "ES-EARNINGS-3Y"
           ]
@@ -20401,9 +20502,11 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
         "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。",
         "过渡安排另要求满足担保与雇佣要求（p42），本工具未核实。"
       ],
-      "shorterPathwayBlockedBy": [
+      "shorterPathwaysNotUsed": [
         {
           "years": 3,
+          "entry": "ES-EARNINGS-3Y",
+          "status": "FAIL",
           "ruleIds": [
             "ES-EARNINGS-3Y"
           ]
@@ -21190,21 +21293,53 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
         "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。",
         "最早可申请日期按\\"自 2023-04-06 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ],
-      "shorterPathwayBlockedBy": [
+      "shorterPathwaysNotUsed": [
         {
           "years": 3,
+          "entry": "ES-EARNINGS-3Y",
+          "status": "FAIL",
           "ruleIds": [
             "ES-EARNINGS-3Y"
           ]
         },
         {
           "years": 5,
+          "entry": "ES-EARNINGS-5Y",
+          "status": "FAIL",
           "ruleIds": [
-            "ES-EARNINGS-5Y",
-            "ES-BRITISH-CONNECTION",
-            "ES-TRANSITIONAL-CARE-WORKER",
-            "ES-TRANSITIONAL-HEALTH-EDUCATION",
+            "ES-EARNINGS-5Y"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-BRITISH-CONNECTION",
+          "status": "FAIL",
+          "ruleIds": [
+            "ES-BRITISH-CONNECTION"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-PUBLIC-SERVICE",
+          "status": "FAIL",
+          "ruleIds": [
             "ES-PUBLIC-SERVICE"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-TRANSITIONAL-CARE-WORKER",
+          "status": "FAIL",
+          "ruleIds": [
+            "ES-TRANSITIONAL-CARE-WORKER"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-TRANSITIONAL-HEALTH-EDUCATION",
+          "status": "FAIL",
+          "ruleIds": [
+            "ES-TRANSITIONAL-HEALTH-EDUCATION"
           ]
         }
       ],
@@ -22010,20 +22145,53 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
         "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。"
       ],
-      "shorterPathwayBlockedBy": [
+      "shorterPathwaysNotUsed": [
         {
           "years": 3,
+          "entry": "ES-EARNINGS-3Y",
+          "status": "FAIL",
           "ruleIds": [
             "ES-EARNINGS-3Y"
           ]
         },
         {
           "years": 5,
+          "entry": "ES-EARNINGS-5Y",
+          "status": "FAIL",
           "ruleIds": [
-            "ES-EARNINGS-5Y",
-            "ES-BRITISH-CONNECTION",
-            "ES-TRANSITIONAL-HEALTH-EDUCATION",
+            "ES-EARNINGS-5Y"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-BRITISH-CONNECTION",
+          "status": "FAIL",
+          "ruleIds": [
+            "ES-BRITISH-CONNECTION"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-PUBLIC-SERVICE",
+          "status": "FAIL",
+          "ruleIds": [
             "ES-PUBLIC-SERVICE"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-TRANSITIONAL-CARE-WORKER",
+          "status": "UNKNOWN",
+          "ruleIds": [
+            "ES-TRANSITIONAL-CARE-WORKER"
+          ]
+        },
+        {
+          "years": 5,
+          "entry": "ES-TRANSITIONAL-HEALTH-EDUCATION",
+          "status": "FAIL",
+          "ruleIds": [
+            "ES-TRANSITIONAL-HEALTH-EDUCATION"
           ]
         }
       ],

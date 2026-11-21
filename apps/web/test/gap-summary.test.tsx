@@ -387,8 +387,13 @@ test.each(['zh-CN', 'en'] as const)(
     // review49-2 #1: each shorter pathway lists its own failed requirements.
     expect(html).toContain(
       locale === 'en'
-        ? `<li>5-year pathway – ${title('ES-BRITISH-CONNECTION')}`
-        : `<li>5 年路径——${title('ES-BRITISH-CONNECTION')}`,
+        ? `<li>5-year pathway (earnings) – not met: ${title('ES-PUBLIC-FUNDS')}</li>`
+        : `<li>5 年路径（收入）——未满足：${title('ES-PUBLIC-FUNDS')}</li>`,
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? `<li>5-year pathway (British connection) – not met: ${title('ES-BRITISH-CONNECTION')}`
+        : `<li>5 年路径（British connection）——未满足：${title('ES-BRITISH-CONNECTION')}`,
     );
     expect(html).toMatch(
       new RegExp(
@@ -446,9 +451,37 @@ test.each(['zh-CN', 'en'] as const)(
     );
     expect(html).toContain(
       locale === 'en'
-        ? `<li>3-year pathway – ${title('ES-EARNINGS-3Y')}</li>`
-        : `<li>3 年路径——${title('ES-EARNINGS-3Y')}</li>`,
+        ? `<li>3-year pathway (earnings) – not met: ${title('ES-EARNINGS-3Y')}</li>`
+        : `<li>3 年路径（收入）——未满足：${title('ES-EARNINGS-3Y')}</li>`,
     );
-    expect(html).toContain(title('ES-EARNINGS-5Y'));
+    expect(html).toContain(
+      locale === 'en'
+        ? `<li>5-year pathway (earnings) – not met: ${title('ES-EARNINGS-5Y')}</li>`
+        : `<li>5 年路径（收入）——未满足：${title('ES-EARNINGS-5Y')}</li>`,
+    );
+
+    // review49-3: a 5-year candidate left open by PD-006 is still to be
+    // confirmed, not failed.
+    draft.timeline = {
+      ...draft.timeline,
+      episodes: [{ ...draft.timeline.episodes[0], validFrom: '2016-01-01' }],
+      incomeYears: draft.timeline.incomeYears.map((year) => ({
+        ...year,
+        earnings: ['2021-22', '2022-23'].includes(year.taxYear) ? 60000 : 20000,
+      })),
+    };
+    const open = runSimulation(draft, locale);
+    expect(open.byRuleSet['earned-settlement-2026-11']!.pathwayYears).toBe(10);
+    expect(
+      renderToStaticMarkup(
+        <LocaleContext value={{ locale, setLocale: () => {} }}>
+          <ResultView result={open} draft={draft} />
+        </LocaleContext>,
+      ),
+    ).toContain(
+      locale === 'en'
+        ? `<li>5-year pathway (earnings) – still to be confirmed: ${title('ES-EARNINGS-5Y')}</li>`
+        : `<li>5 年路径（收入）——待确认：${title('ES-EARNINGS-5Y')}</li>`,
+    );
   },
 );

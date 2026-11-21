@@ -80,6 +80,19 @@ test('review49-2 #2: a completed draft with a code off the list reopens that per
   expect(validateStep(activePersonDraft(principal)).nationality).toBe(
     'error.nationality',
   );
+  // review49-3 #1: returning without finishing the principal's steps keeps
+  // the principal unfinished, so the final step sends the user back.
+  expect(principal.principalCompleted).toBe(false);
+  expect(
+    draftReducer(principal, { type: 'principal-return' }).principalCompleted,
+  ).toBe(false);
+  // A shared draft may mark the principal done without any details.
+  const missing = draftReducer(createDraft(), {
+    type: 'restore',
+    draft: { ...saved, principal: undefined },
+  });
+  expect(missing).toMatchObject({ step: 9, principalCompleted: false });
+  expect(missing.principalStep).toBeUndefined();
   expect(zhCN['error.nationality']).toContain('名单');
   expect(en['error.nationality']).toContain('from the list');
 });
