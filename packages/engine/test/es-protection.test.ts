@@ -691,9 +691,11 @@ describe('ES-PUBLIC-FUNDS for refugees', () => {
     expect(result.explanation).toContain('只能走 20 年路径');
     expect(result.assumptions?.join()).toContain('PD-031');
     expect(result.assumptions?.join()).toContain('PD-066');
+    // No recorded claim at all: the lookback is met (review33e-1 #1).
     expect(
-      run(esPublicFunds, refugee({ episodes: coreThenWork }), '2030-01-01'),
-    ).toMatchObject({ status: 'UNKNOWN', pendingDetails: ['PD-047'] });
+      run(esPublicFunds, refugee({ episodes: coreThenWork }), '2030-01-01')
+        .status,
+    ).toBe('PASS');
   });
 
   test('a UK Resettlement Scheme refugee on Universal Credit still settles after 5 years', () => {

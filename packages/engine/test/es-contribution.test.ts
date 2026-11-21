@@ -299,23 +299,29 @@ describe('ES-PUBLIC-FUNDS', () => {
     expect(unlisted.pendingDetails).toEqual(['PD-013']);
   });
 
-  test('A5#4: a clean history with less than five years on a qualifying route is unknown', () => {
+  test('A5#4 and review33e-1 #1: PD-047 applies after a claim; a clean history passes', () => {
     const episodes = [{ ...timeline().episodes[1], validFrom: '2023-01-01' }];
     const input = timeline({
       episodes,
       incomeYears: income([125141, 125141, 125141], 0),
     });
-    expect(run(esPublicFunds, input)).toMatchObject({
-      status: 'UNKNOWN',
-      pendingDetails: ['PD-047'],
-    });
+    // p18 only looks for use in the lookback.
+    expect(run(esPublicFunds, input).status).toBe('PASS');
     expect(
       evaluate({ timeline: input, simulationDate: SIMULATION_DATE }).byRuleSet[
         ES
       ],
-    ).toMatchObject({ outcome: 'POTENTIALLY_ELIGIBLE', pathwayYears: 3 });
+    ).toMatchObject({ outcome: 'LIKELY_ELIGIBLE', pathwayYears: 3 });
+    // Individual D (p19): a past claim, then less than five years on a
+    // qualifying route.
+    const benefits = [benefit('UNIVERSAL_CREDIT', '2020-01-01', '2021-06-30')];
+    expect(run(esPublicFunds, { ...input, benefits })).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-047'],
+    });
     expect(
       run(esPublicFunds, {
+        benefits,
         episodes: [
           {
             ...episodes[0],
@@ -329,6 +335,7 @@ describe('ES-PUBLIC-FUNDS', () => {
     ).toBe('UNKNOWN');
     expect(
       run(esPublicFunds, {
+        benefits,
         episodes: [
           { ...episodes[0], validFrom: '2021-11-04', validTo: '2022-12-31' },
           ...episodes,
@@ -418,4 +425,15 @@ describe('ES-PUBLIC-SERVICE', () => {
       pendingDetails: ['PD-012'],
     });
   });
+});
+
+test('review33e-1 #2 one year short says the current part year is not counted (PD-006)', () => {
+  const result = run(esEarnings5Y, {
+    incomeYears: income([0, 0, 0, 50271, 50271]),
+  });
+  expect(result.status).toBe('FAIL');
+  expect(result.explanation).toContain('PD-006');
+  expect(
+    run(esEarnings5Y, { incomeYears: income([0, 0, 0, 0, 50271]) }).explanation,
+  ).not.toContain('PD-006');
 });

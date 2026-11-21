@@ -4,7 +4,7 @@ import {
   publicFundsBenefits,
 } from '@uk-immigration/policy-data';
 import type { Route, RouteGroup } from '@uk-immigration/policy-data';
-import { addDays, addYears } from './dates';
+import { addYears } from './dates';
 import {
   continuousRun,
   episodeOn,
@@ -49,6 +49,7 @@ import {
   skilledWorkerFiling,
 } from './rules/current-law/skilled-worker';
 import { currentLawApplicationPresence } from './rules/current-law/scope';
+import { publicFundsClearDate } from './rules/es-contribution';
 import { esDependantSettlement } from './rules/es-dependant';
 import {
   illegalEntryExtraYears,
@@ -493,8 +494,15 @@ function assessEarnedSettlement(
     'ES-TRANSITIONAL-HEALTH-EDUCATION',
   ];
   const { start, possibleStart } = esQualifyingResidence(ctx) ?? {};
-  // Family and Private Life only qualifies for the 10 and 20-year pathways (p23).
-  const shortPathways = !groups.includes('FAMILY_AND_PRIVATE_LIFE');
+  // Family and Private Life only qualifies for the 10 and 20-year pathways
+  // (p23); so does the Article 8 based 10-year Appendix FM partner route
+  // (p23 note 9 excludes Article 8 cases from core permission).
+  const shortPathways =
+    !groups.includes('FAMILY_AND_PRIVATE_LIFE') &&
+    !(
+      current?.route === 'FAMILY_PARTNER_OR_PARENT' &&
+      current.familyPermission === 'PARTNER_TEN_YEAR'
+    );
   const candidates: Candidate[] = [
     ...(shortPathways
       ? [
@@ -654,7 +662,7 @@ function publicFundsReassessment({ timeline, simulationDate }: RuleContext) {
     .map((b) => b.to!)
     .sort()
     .at(-1);
-  return lastUse && addDays(addYears(lastUse, years), 1);
+  return lastUse && publicFundsClearDate(lastUse, years);
 }
 
 const clBaseAssumption = (L: Lang) =>

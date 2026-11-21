@@ -39,6 +39,14 @@ export function gbp(amount: number): string {
   return `£${amount.toLocaleString('en-GB')}`;
 }
 
+/** First day the lookback no longer reaches `lastUse` (SRC-001 p18). */
+export function publicFundsClearDate(lastUse: IsoDate, years: number): IsoDate {
+  let clears = addDays(addYears(lastUse, years), 1);
+  // The backward calculation can clamp a leap day to 28 February.
+  while (addYears(clears, -years) <= lastUse) clears = addDays(clears, 1);
+  return clears;
+}
+
 const earningsAssumption = (L: Lang) =>
   L(
     '收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。',
@@ -110,6 +118,13 @@ function bestYears(
         ? 'UNKNOWN'
         : 'FAIL';
   const L = textFor({ locale });
+  // The questionnaire records completed tax years only: say when the current
+  // part year could still supply the missing qualifying year (PD-006).
+  const currentUnrecorded =
+    status === 'FAIL' &&
+    !aligned &&
+    currentResult === 'MISSING' &&
+    recorded === required - 1;
   const explanation =
     L(
       `${years[0]} 至 ${years[years.length - 1]} 这 ${window} 个 tax year 中，有 ${met} 年收入达到 ${gbp(threshold)}`,
@@ -139,6 +154,12 @@ function bestYears(
       ? L(
           `若可合计伴侣收入，部分年份可达 ${gbp(householdThreshold)}。合计须符合 eligible couple 条件，关系真实且持续，并且只有一方依赖另一方的收入（PD-010）。`,
           ` Combined earnings could reach ${gbp(householdThreshold)} in some years. Combining earnings requires an eligible couple in a genuine and subsisting relationship, with only one partner relying on the other’s earnings (PD-010).`,
+        )
+      : '') +
+    (currentUnrecorded
+      ? L(
+          `只计已结束的 tax year。当期 ${currentTaxYear} 尚未结束，未计入；若按申请日前的滚动年度计算，当期收入可能补足一年，结论会改变（PD-006）。`,
+          ` Only completed tax years are counted. The current ${currentTaxYear} tax year is not over and is not counted; if the years run back from the application date, current earnings could supply the missing year and change the result (PD-006).`,
         )
       : '');
   return {
@@ -314,6 +335,22 @@ export const esBritishConnection = defineRule(
           '持 UK Ancestry 签证，属 recognised British connection，可走 5 年路径。',
           'Holds a UK Ancestry visa, a recognised British connection: the 5-year pathway is available.',
         ),
+      };
+    }
+    if (
+      current?.route === 'FAMILY_PARTNER_OR_PARENT' &&
+      current.familyPermission === 'PARTNER_TEN_YEAR'
+    ) {
+      return {
+        status: 'FAIL',
+        explanation: L(
+          'Appendix FM 十年伴侣路线依据 Article 8 ECHR，不属 core permission（p23 注 9），只能走 10 年或 20 年路径，不走这条 5 年路径（p50）。',
+          'The 10-year Appendix FM partner route rests on Article 8 ECHR and is not core permission (p23 note 9), so only the 10 or 20-year pathways apply, not this 5-year pathway (p50).',
+        ),
+        sources: [
+          { srcId: 'SRC-001', locator: 'p23 fn 9' },
+          { srcId: 'SRC-001', locator: 'p50, Annex A' },
+        ],
       };
     }
     if (current?.route === 'FAMILY_PARTNER_OR_PARENT') {
@@ -500,9 +537,7 @@ export const esPublicFunds = defineRule(
         .map((b) => b.to ?? simulationDate)
         .sort()
         .at(-1)!;
-      let clears = addDays(addYears(lastUse, years), 1);
-      // The backward calculation can clamp a leap day to 28 February.
-      while (startOfWindow(clears) <= lastUse) clears = addDays(clears, 1);
+      const clears = publicFundsClearDate(lastUse, years);
       const fallback = es.values.pathwayYears20.value;
       return {
         status: 'FAIL',
@@ -576,9 +611,13 @@ export const esPublicFunds = defineRule(
         ),
       () => false,
     );
+    // Individual D (p19) concerns someone who has claimed: with no recorded
+    // use at all, the p18 lookback is simply met.
+    const everUsed = timeline.benefits.some((b) => isPublicFund(b.benefitType));
     if (
-      !qualifyingRun.episodes.length ||
-      qualifyingRun.episodes[0].validFrom > from
+      everUsed &&
+      (!qualifyingRun.episodes.length ||
+        qualifyingRun.episodes[0].validFrom > from)
     ) {
       return {
         status: 'UNKNOWN',

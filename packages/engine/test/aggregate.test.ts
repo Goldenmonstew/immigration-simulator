@@ -151,6 +151,48 @@ describe('Earned Settlement pathway', () => {
     });
   });
 
+  test('review33e-1 #3 the Article 8 based 10-year partner route has no 5-year pathway (p23 note 9)', () => {
+    const family = (
+      familyPermission: 'PARTNER_TEN_YEAR' | 'PARTNER_FIVE_YEAR',
+    ) =>
+      es({
+        episodes: [
+          sw('2021-06-01', {
+            route: 'FAMILY_PARTNER_OR_PARENT',
+            familyPermission,
+            socCode: undefined,
+          }),
+        ],
+        relationships: [
+          { type: 'PARTNER', otherPartyStatus: 'BRITISH_CITIZEN' },
+        ],
+      });
+    const ten = family('PARTNER_TEN_YEAR');
+    expect(ten.pathwayYears).not.toBe(5);
+    expect(
+      ten.rules.find((r) => r.id === 'ES-BRITISH-CONNECTION')?.status,
+    ).toBe('FAIL');
+    expect(
+      family('PARTNER_FIVE_YEAR').rules.find(
+        (r) => r.id === 'ES-BRITISH-CONNECTION',
+      )?.status,
+    ).toBe('PASS');
+  });
+
+  test('review33e-1 risk: the reassessment date skips a clamped leap day', () => {
+    const a = es({
+      episodes: [sw('2021-06-01')],
+      benefits: [
+        {
+          benefitType: 'UNIVERSAL_CREDIT',
+          from: '2022-06-01',
+          to: '2023-02-28',
+        },
+      ],
+    });
+    expect(a.publicFundsReassessmentDate).toBe('2028-03-01');
+  });
+
   test('A6#10 Highest Talent Group is independent of the earnings paths', () => {
     const episode = sw('2023-11-04', { route: 'GLOBAL_TALENT' });
     const a = es({ episodes: [episode] });
@@ -172,15 +214,11 @@ describe('Earned Settlement pathway', () => {
         earnings: 130000,
       })),
     });
-    // 33e: the public funds lookback predates this permission (PD-047).
     expect(higher).toMatchObject({
-      outcome: 'POTENTIALLY_ELIGIBLE',
+      outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 3,
     });
     expect(higher.decidedBy).toContain('ES-EARNINGS-3Y');
-    expect(
-      higher.rules.find((r) => r.id === 'ES-PUBLIC-FUNDS')?.pendingDetails,
-    ).toEqual(['PD-047']);
   });
 
   test('Family and Private Life cannot use the 5-year pathway', () => {

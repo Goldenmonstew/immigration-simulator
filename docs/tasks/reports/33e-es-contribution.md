@@ -7,6 +7,14 @@
 - `pending-details.md`：33e 的 PD-083 改为第十四节（第十二、十三节为任务 32 与 33d）。
 - 33d 的 A6#10 回归按 33e 的 PD-047 更新：持许可不足 5 年时福利回看未被合格许可覆盖，三年收入路径为 `POTENTIALLY_ELIGIBLE`。
 
+**审核 `review33e-1` 的修正（Fable）**：
+1. PD-047 只用于案例 D 的情形：曾领过 public funds、此后合格许可未连续覆盖五年回看期时为 `UNKNOWN`；从未申报 public funds 的按 p18 通过（SRC-001 p18–p19、p46）。33d 的 A6#10 回归恢复为三年 `LIKELY_ELIGIBLE`。
+2. 问卷只收已结束的 tax year。差一年达标且申请日不在税年首日时，收入规则保持 `FAIL`，说明当期税年未计入、按滚动年度可能改变结论（PD-006）。未把缺失的当期收入当作可能达标，以免把明显不足的人都判为待定。
+3. Appendix FM 十年伴侣路线依据 Article 8，不属 core permission（SRC-001 p23 注 9），不再给 3／5 年路径，British connection 判 `FAIL`（p50）。黄金案例 `G-FAMILY-10Y-PARTNER` 的改革栏因此从五年 `LIKELY_ELIGIBLE` 改为 `INSUFFICIENT_INFORMATION`：十年路径须最低收入，案例未申报收入。
+4. 汇总的 `publicFundsReassessmentDate` 与规则共用清出日算法，闰日不再早一天。
+
+四条回归在修正前均失败、修正后通过。PD-083 的结构化表达留作后续。
+
 合并后黄金案例的现行法栏与 33d 一致；改革栏 16 栏与 33d 不同，其中结论变化只有 `ES-OFFICIAL-INDIVIDUAL-C`（`LIKELY_ELIGIBLE` → `POTENTIALLY_ELIGIBLE`，PD-010），与 33e 自身一致，其余为规则明细。引擎 2,685 项通过、1 项跳过；web 533；game 1,331；lint、typecheck 通过。
 
 
