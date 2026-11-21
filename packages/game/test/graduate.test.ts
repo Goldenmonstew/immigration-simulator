@@ -14,7 +14,7 @@ import {
 import type { GameState } from '../src';
 import {
   graduateApplicationDate,
-  graduateSalaryChecks,
+  graduateApplication,
   graduateSalaries,
 } from '../src/graduate-route';
 import { graduate, graduateRecruitment } from '../src/characters/graduate';
@@ -103,12 +103,22 @@ describe('13.2 Graduate character and engine integration', () => {
       ),
     ).toHaveLength(5);
   });
-  test('a low offer fails engine checks; correcting contract and CoS enables the switch', () => {
+  test('task 35: the low offer meets Option E only within the SW 12.3 total; negotiating meets Option A', () => {
     let state = offer(true);
+    // One year of Graduate plus the 36-month grant is exactly 4 years on the
+    // first day of the quarter: Option E is met (SW 12.3 bars more than 4).
+    expect(state.date).toBe('2027-09-15');
+    const onTime = graduateApplication(state);
+    expect(onTime.optionA.status).toBe('FAIL');
+    expect(onTime.optionE.status).toBe('PASS');
     expect(
-      graduateSalaryChecks(state).find((rule) => rule.id === 'CL-SW-SALARY')
-        ?.status,
-    ).toBe('FAIL');
+      activities(atVisa(state), 'visa').map((action) => action.id),
+    ).toContain('graduate-switch');
+    // A day later the total is over 4 years and the low offer is not enough.
+    state = { ...state, date: '2027-09-16' };
+    const late = graduateApplication(state);
+    expect(late.status).toBe('FAIL');
+    expect(late.optionE.explanation).toContain('SW 12.3');
     expect(
       activities(atVisa(state), 'visa').map((action) => action.id),
     ).not.toContain('graduate-switch');
@@ -123,25 +133,24 @@ describe('13.2 Graduate character and engine integration', () => {
     const years = values.skilledWorkerNewEntrantMaxCombinedYears.value;
     const { zhCN, en } = checked.outcome!.text!;
     for (const value of [
-      `年薪须同时不低于 ${salary}`,
+      salary,
       percent,
       `${years} 年`,
       'SW 12.2(f)',
+      'SW 12.3',
     ])
       expect(zhCN).toContain(value);
     for (const value of [
-      `${salary} a year`,
+      salary,
       percent,
       `${years} years`,
       'SW 12.2(f)',
+      'SW 12.3',
     ])
       expect(en).toContain(value);
     state = job(completeQuarter(state));
     expect(state.flags).toContain('graduate-negotiated');
-    expect(graduateSalaryChecks(state).map((rule) => rule.status)).toEqual([
-      'PASS',
-      'PASS',
-    ]);
+    expect(graduateApplication(state).optionA.status).toBe('PASS');
     expect(
       activities(atVisa(clear(state)), 'visa').map((action) => action.id),
     ).toContain('graduate-switch');

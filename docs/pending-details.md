@@ -234,7 +234,7 @@ dependant 随主申请人定居（SRC-001 Ch.5）时，原文未规定、引擎�
 
 | ID | 事项 | 原文怎么说 | 出处 | 对引擎的影响 | 预计何时明确 |
 |---|---|---|---|---|---|
-| PD-081 | 境内提前换签时 SW 12.3 的逐日核算 | SW 12.3 看获批后的合计许可。Skilled Worker 指引把已持 Graduate 时间列入，并以境内决定日作为新许可起日。取消许可指引明确新许可获批后原许可已被替代。合读可推导原 Graduate 许可的未用时间不再累计，具体日期计入哪一段及 section 3C 延续期间在该上限下怎么计仍待核。 | SRC-004 SW 12.3、18.1–18.1A；SRC-050 §16.1 `#year-time-limit`、§23.1 `#dates-granted`；SRC-059 `#premature-end-of-employment-or-study-cancellation-process` 首个列表项 | 后续以有证据的许可有效区间、拟决定日及 CoS 起止日期核算。缺乏决定日、CoS 或关键边界足以改变判定时，保持 `UNKNOWN`。 | 许可替代已有依据（SRC-059）。逐日边界与 section 3C 的计法待 Home Office 明确或公布算例。 |
+| PD-081 | 境内提前换签时 SW 12.3 的逐日核算 | SW 12.3 看获批后的合计许可。Skilled Worker 指引把已持 Graduate 时间列入，并以境内决定日作为新许可起日。取消许可指引明确新许可获批后原许可已被替代。合读可推导原 Graduate 许可的未用时间不再累计，具体日期计入哪一段及 section 3C 延续期间在该上限下怎么计仍待核。 | SRC-004 SW 12.3、18.1–18.1A；SRC-050 §16.1 `#year-time-limit`、§23.1 `#dates-granted`；SRC-059 `#premature-end-of-employment-or-study-cancellation-process` 首个列表项 | 后续以有证据的许可有效区间、拟决定日及 CoS 起止日期核算。缺乏决定日、CoS 或关键边界足以改变判定时，保持 `UNKNOWN`。任务 35 的申请检查按此实现：section 3C 延续期计入与否会改变结论时为 `UNKNOWN`。 | 许可替代已有依据（SRC-059）。逐日边界与 section 3C 的计法待 Home Office 明确或公布算例。 |
 
 ## 十三、护工过渡的居留合并（任务 33d）
 

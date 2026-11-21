@@ -10,7 +10,7 @@ import { achievements, lifeAchievements } from './achievements';
 import { characterOf } from './characters';
 import {
   graduateEpisode,
-  graduateSalaryChecks,
+  graduateApplication,
   graduateSalaryPreview,
 } from './graduate-route';
 import { commonEvents, systemEvents } from './events/common';
@@ -880,7 +880,7 @@ export function activities(state: GameState, place: PlaceId): Activity[] {
         return (
           a.id === 'graduate-check-offer' ||
           (state.stats.money >= extensionCost &&
-            graduateSalaryChecks(state).every((rule) => rule.status === 'PASS'))
+            graduateApplication(state).status === 'PASS')
         );
       }
       if (a.id === 'rent-plot' && state.plots.length) return false;
