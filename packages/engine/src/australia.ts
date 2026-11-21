@@ -208,7 +208,8 @@ export function evaluateAustralia(req: AuRequest): AuResult {
       .find((o) => BRIDGING.has(x.subclass) || !BRIDGING.has(o.subclass));
     const replaced =
       next && (departsOn(next.from) ? next.from : addDays(next.from, -1));
-    const isReplaced = !!replaced && (!x.to || replaced <= x.to);
+    // Replaced only if still in effect when the next visa starts.
+    const isReplaced = !!next && (!x.to || next.from <= x.to);
     const to = isReplaced ? replaced : x.to;
     // s82(5)–(6): a 5-year travel facility ends the visa if you are outside
     // Australia when it runs out without a new visa having started, or when

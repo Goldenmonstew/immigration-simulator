@@ -893,6 +893,24 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
     expect(p.earliestDate).toBe('2026-03-03');
   });
 
+  test('an RRV that expired abroad before the next one was granted', () => {
+    const p = pathway(
+      {
+        simulationDate: '2025-03-10',
+        firstArrival: '2015-04-01',
+        visas: [
+          { subclass: '189', from: '2015-04-01' },
+          { subclass: '155', from: '2020-03-02', to: '2025-03-01' },
+          { subclass: '155', from: '2025-03-02' },
+        ],
+        trips: [{ departed: '2025-02-28', returned: '2025-03-10' }],
+      },
+      'AU-CITIZENSHIP',
+    );
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2026-03-03');
+  });
+
   test('two permanent visas granted abroad on the departure day', () => {
     const p = pathway(
       {
