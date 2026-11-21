@@ -69,7 +69,11 @@ export function EpisodesStep({ form }: { form: FormKit }) {
               episode.validTo,
               (validTo) => updateEpisode(index, { validTo }),
             )}
-            <Field id={`${prefix}-role`} label={t('episodes.role')}>
+            <Field
+              id={`${prefix}-role`}
+              label={t('episodes.role')}
+              hint={t('episodes.roleHint')}
+            >
               <select
                 id={`${prefix}-role`}
                 value={episode.role}

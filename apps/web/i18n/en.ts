@@ -248,7 +248,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'episodes.immigrationSalaryList':
     'Was the job on the Immigration Salary List for this grant?',
   'episodes.immigrationSalaryListHint':
-    'If unsure, leave this blank. The relevant CoS date, job and UK nation determine list eligibility.',
+    'The Immigration Salary List is a government list of shortage occupations; jobs on it can use a lower salary threshold. Whether a job is on it depends on the CoS issue date, the sponsored job and the work location at the time; check your SOC code in Appendix Immigration Salary List on GOV.UK. Leave it blank if unsure: the related salary conditions are then shown as to be confirmed.',
   'episodes.dependantOf': 'Dependant relationship',
   'episodes.partnerDependant': 'Partner dependant (principal is your partner)',
   'episodes.childDependant': 'Child dependant (principal is your parent)',
@@ -549,6 +549,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'episodes.route': 'Visa route',
   'episodes.from': 'Valid from',
   'episodes.to': 'Valid to',
+  'episodes.roleHint':
+    'Choose main applicant if the permission is your own, for example a Skilled Worker, or a partner of a British citizen or settled person holding a family visa. Choose dependant for a partner or child granted with a main applicant such as a Skilled Worker or Global Talent holder.',
   'episodes.role': 'Applicant role',
   'episodes.MAIN': 'Main applicant',
   'episodes.DEPENDANT': 'Dependant',
@@ -565,6 +567,9 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Enter earnings for the 7 completed UK tax years before the simulation date. Leave unknown amounts blank. Enter 0 for no earnings. All amounts are in GBP.',
   'income.taxYearHint':
     'The UK tax year runs from 6 April to 5 April the following year. Changing the simulation date in the final step updates these years.',
+  'income.simulationDate':
+    'Tax years are listed for the simulation date {date}; change it in the last step.',
+  'income.copyAbove': 'Same as {year}',
   'income.earnings': 'Personal annual earnings',
   'income.partner': 'Partner annual earnings (optional)',
   'income.partnerHint':
@@ -575,7 +580,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'benefits.partnerSpecifiedBenefit':
     "My partner receives a benefit listed in E-LTRP.3.3(a) (such as Carer's Allowance, Personal Independence Payment, Disability Living Allowance or Attendance Allowance)",
   'benefits.hint':
-    'Enter benefits or statutory payments you have received. The rules engine determines whether they count as public funds and their effect. Leave the end date blank if payments are ongoing.',
+    'Enter any benefits or statutory payments received. Public funds are most income-related government benefits, such as Universal Credit, Housing Benefit and Child Benefit. Statutory payments are paid by employers under the law, such as Statutory Maternity Pay and Statutory Sick Pay, and are not public funds. The rules engine decides whether each counts as public funds and what follows; leave the end date blank if it is still being received.',
   'benefits.item': 'Payment record',
   'benefits.add': 'Add a payment record',
   'benefits.empty': 'No payment records added.',

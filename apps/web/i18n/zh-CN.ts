@@ -222,7 +222,7 @@ export const zhCN = {
   'episodes.immigrationSalaryList':
     '此次获批许可的担保岗位是否在 Immigration Salary List 上',
   'episodes.immigrationSalaryListHint':
-    '不确定可留空。清单资格取决于当时的 CoS 签发日、担保岗位和工作地区。',
+    'Immigration Salary List 是政府公布的一份短缺职业名单，名单内的岗位可用较低的薪资门槛。是否在名单内取决于当时的 CoS 签发日、担保岗位和工作地区，可在 GOV.UK 的 Appendix Immigration Salary List 按 SOC 代码查。不确定可留空，结果会把相关薪资条件标为待确认。',
   'episodes.dependantOf': '作为谁的 dependant',
   'episodes.partnerDependant': '伴侣的 dependant（本人为伴侣）',
   'episodes.childDependant': '父母的 dependant（本人为子女）',
@@ -491,6 +491,8 @@ export const zhCN = {
   'episodes.from': '有效期开始',
   'episodes.to': '有效期结束',
   'episodes.role': '申请人身份',
+  'episodes.roleHint':
+    '自己持签证的选“主申请人”，例如工签本人，或以英国公民、定居者伴侣身份持家庭签证的人。随工签、全球人才等主申请人一起获批的伴侣或子女，选“随行家属”。',
   'episodes.MAIN': '主申请人',
   'episodes.DEPENDANT': '随行家属（Dependant）',
   'episodes.soc': 'SOC 2020 岗位代码（可选）',
@@ -506,6 +508,9 @@ export const zhCN = {
     '列出模拟日期之前已结束的 7 个英国 tax year。留空表示未知，0 表示没有收入；金额单位为 GBP。',
   'income.taxYearHint':
     '英国 tax year 从 4 月 6 日至次年 4 月 5 日。最后一步修改模拟日期后，年份会同步更新。',
+  'income.simulationDate':
+    '按模拟日期 {date} 列出年份；模拟日期在最后一步修改。',
+  'income.copyAbove': '与 {year} 相同',
   'income.earnings': '个人年收入',
   'income.partner': '伴侣年收入（可选）',
   'income.partnerHint': '伴侣收入留空表示不依赖伴侣收入。',
@@ -515,7 +520,7 @@ export const zhCN = {
   'benefits.partnerSpecifiedBenefit':
     "我的伴侣领取 E-LTRP.3.3(a) 列明的福利（如 Carer's Allowance、Personal Independence Payment、Disability Living Allowance、Attendance Allowance 等）",
   'benefits.hint':
-    '填写领取过的福利或法定支付。是否属于 public funds 及其影响由规则引擎判断；结束日期留空表示仍在领取。',
+    '填写领取过的福利或法定支付。public funds 指多数按收入核发的政府福利，例如 Universal Credit（统一福利金）、Housing Benefit（住房补贴）、Child Benefit（儿童福利金）。法定支付由雇主按法律发放，例如 Statutory Maternity Pay（法定产假工资）、Statutory Sick Pay（法定病假工资），不算 public funds。是否属于 public funds 及其影响由规则引擎判断；结束日期留空表示仍在领取。',
   'benefits.item': '领取记录',
   'benefits.add': '添加领取记录',
   'benefits.empty': '尚无领取记录。',

@@ -251,3 +251,4 @@
 | 213 | 任务 49 结果页：总览下方也放 What-if 与"修改输入"入口，手机上不必滑到页底（试玩 #11）。 | apps/web/components/result-view.tsx、apps/web/app/result/result-content.tsx、apps/web/app/site.module.css |
 | 214 | 任务 49 What-if：可再加一次临时离境，显示在外整天数（出入境当天不计，SRC-057），与当前结果对比（试玩 #1）。 | apps/web/lib/whatif.ts、apps/web/components/whatif-lab.tsx、apps/web/app/whatif/whatif.module.css、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/whatif.test.ts |
 | 215 | 任务 49 问卷：国籍可按中英文国名搜索或填三位代码，选中后显示国名与代码（试玩 #3）。国家列表取自 Unicode CLDR 46 的 alpha-3／alpha-2 对照，国名用浏览器的 Intl.DisplayNames。 | apps/web/app/simulate/steps/basic.tsx、apps/web/lib/{countries,country-names}.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/country-names.test.ts |
+| 216 | 任务 49 问卷说明：Immigration Salary List 的用途与查法（#12）、主申请人与随行家属的例子（#13）、收入步骤显示模拟日期并可"与上一年相同"（#14）、public funds 与法定支付的日常解释和中文释义（#15）。 | apps/web/app/simulate/steps/{income,episodes}.tsx、apps/web/app/simulate/form.module.css、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/questionnaire.test.ts |

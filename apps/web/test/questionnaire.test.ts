@@ -11,6 +11,8 @@ import {
   visibleIncomeYears,
 } from '../lib/questionnaire';
 import { draftStorage } from '../lib/storage';
+import { en } from '../i18n/en';
+import { zhCN } from '../i18n/zh-CN';
 
 test.each(['MAIN', 'DEPENDANT'] as const)(
   'restoring completed %s inputs opens the last applicant step and can go back',
@@ -334,3 +336,15 @@ test.each([true, false, undefined])(
     }
   },
 );
+
+test('task 49: questionnaire hints explain the ISL, the applicant role, public funds and the income years', () => {
+  for (const dict of [zhCN, en]) {
+    expect(dict['episodes.immigrationSalaryListHint']).toContain(
+      'Appendix Immigration Salary List',
+    );
+    expect(dict['episodes.roleHint']).toBeTruthy();
+    expect(dict['benefits.hint']).toContain('Statutory Maternity Pay');
+    expect(dict['income.simulationDate']).toContain('{date}');
+    expect(dict['income.copyAbove']).toContain('{year}');
+  }
+});
