@@ -35,6 +35,7 @@ export {
 } from './game';
 export { characters, characterOf, loadCharacter } from './characters';
 export { places } from './locations';
+export { graduateNextStep } from './graduate-route';
 export { npcs } from './npcs';
 export { items, recipes } from './items';
 export { festivals } from './festivals';

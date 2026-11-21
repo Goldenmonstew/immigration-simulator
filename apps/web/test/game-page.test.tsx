@@ -1370,7 +1370,11 @@ test.each(['zh-CN', 'en'] as const)(
     state.day.minute = 600;
     const h = await client(state);
     h.render().click(t('game.fastForward'));
-    expect(h.render().html).toContain(t('game.fastVisaWarning'));
+    // The warning names the expiry date and offers the visa centre.
+    expect(h.render().html).toContain(
+      t('game.fastVisaWarning').replace('{date}', '2024-07-14'),
+    );
+    expect(h.render().html).toContain(t('game.visaVisit'));
     h.dispose();
     vi.restoreAllMocks();
     state.timeline.episodes.push({

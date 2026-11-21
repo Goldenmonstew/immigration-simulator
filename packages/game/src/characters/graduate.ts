@@ -893,6 +893,23 @@ const scenes: Scene[] = [
     'Sit down for some water',
   ],
 ];
+// Job-hunting scenes: none after Nora has switched (playtest P2).
+const jobHunting = new Set([
+  'cv-font',
+  'cover-letter',
+  'rejection',
+  'portfolio',
+  'career-fair',
+  'practice',
+  'bus-interview',
+  'microphone',
+  'job-alert',
+  'reference',
+  'shoes',
+  'calendar',
+  'rain-cv',
+  'sunday-radio',
+]);
 const ordinary = scenes.map(
   ([id, zhTitle, enTitle, zh, en, a, ae, c, ce], index): GameEvent => ({
     id: `graduate-life-${id}`,
@@ -902,6 +919,7 @@ const ordinary = scenes.map(
     once: true,
     channel: index % 3 === 0 ? 'letter' : 'morning',
     ...(id === 'deposit-photo' ? { requires: ['graduate-hall-returned'] } : {}),
+    ...(jobHunting.has(id) ? { forbids: ['graduate-switched'] } : {}),
     ...(index >= 40 && index <= 51
       ? { when: [{ route: 'SKILLED_WORKER' as const }] }
       : {}),
@@ -955,8 +973,8 @@ export const graduate: Character = {
   graduateRoute: {
     recruitment: graduateRecruitment,
     salaryCheckNote: t(
-      `核对按 CoS 上的年薪、每周 ${weeklyHours} 小时的全职合同，以及到 CoS 结束后 ${graceDays} 天为止的拟授予许可（SW 18.1）。新入职者档另看 SW 12.2(f)（最近一次许可是 Graduate）与 SW 12.3（获批后 Skilled Worker、Graduate、Tier 2 许可合计不超过 ${newEntrantYears} 年）。担保与其他审批条件由本情景假定已核实。`,
-      `The check uses the CoS salary, a full-time ${weeklyHours}-hour week and the proposed permission until ${graceDays} days after the CoS ends (SW 18.1). The new-entrant option also needs SW 12.2(f) (the most recent permission was as a Graduate) and SW 12.3 (no more than ${newEntrantYears} years of Skilled Worker, Graduate and Tier 2 permission in total once granted). It assumes sponsorship and the other application requirements have been verified.`,
+      `核对按 CoS 上的年薪、每周 ${weeklyHours} 小时的全职合同，以及到 CoS 结束后 ${graceDays} 天为止的拟授予许可（SW 18.1）。新入职者档另看 SW 12.2(f)（最近一次许可是 Graduate）与 SW 12.3（获批后 Skilled Worker、Graduate、Tier 2 许可合计不超过 ${newEntrantYears} 年）。担保与其他审批条件由本情景假定已核实。\n先递交、后获批：在 Graduate 许可到期前于境内递交，等待决定期间原许可按 Immigration Act 1971 section 3C 延续（须申请有效、未撤回）；获批当日起改持新的 Skilled Worker 许可。\n毕业前也有另一条路：持 Student 许可的人，若已完成课程（或满足 SW 1.5A 的其他条件），可以直接在境内转 Skilled Worker；新入职者档的资格看 SW 12.2(e)。诺拉已持 Graduate 许可，本情景按 SW 12.2(f) 核对。`,
+      `The check uses the CoS salary, a full-time ${weeklyHours}-hour week and the proposed permission until ${graceDays} days after the CoS ends (SW 18.1). The new-entrant option also needs SW 12.2(f) (the most recent permission was as a Graduate) and SW 12.3 (no more than ${newEntrantYears} years of Skilled Worker, Graduate and Tier 2 permission in total once granted). It assumes sponsorship and the other application requirements have been verified.\nApplication first, decision later: an in-country application made before the Graduate permission expires keeps that permission going under section 3C of the Immigration Act 1971 while the decision is pending (the application must be valid and not withdrawn); the new Skilled Worker permission starts on the day it is granted.\nThere is another way before graduating: someone with Student permission who has completed the course (or meets the other conditions in SW 1.5A) can switch to Skilled Worker in the UK; for the new-entrant option, SW 12.2(e) applies. Nora already has Graduate permission, so this scenario checks SW 12.2(f).`,
     ),
     switched: {
       zhCN: '你拿到本情景中的 Skilled Worker 许可，把合同和 CoS 收进文件夹；下一次出门，包里多了一份新的有效许可。',

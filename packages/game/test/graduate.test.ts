@@ -15,7 +15,9 @@ import type { GameState } from '../src';
 import {
   graduateApplicationDate,
   graduateApplication,
+  graduateNextStep,
   graduateSalaries,
+  graduateSalaryPreview,
 } from '../src/graduate-route';
 import { graduate, graduateRecruitment } from '../src/characters/graduate';
 import { graduateHeartEvents } from '../src/characters/graduate-flatmate';
@@ -251,6 +253,46 @@ describe('13.2 Graduate character and engine integration', () => {
     expect(left.timeline.immigrationBreaches).toHaveLength(0);
     expect(fastForward(left)).toEqual(left);
   });
+  test('playtest #7: the job search shows its progress and next step until the switch', () => {
+    const start = newGame('graduate', 17);
+    expect(graduateNextStep(start)?.zhCN).toContain('还没投递');
+    const ready = offer();
+    expect(ready.flags).toContain('graduate-cos-ready');
+    expect(graduateNextStep(ready)?.en).toContain('CoS received');
+    for (const step of [
+      ['graduate-applied', '已投递'],
+      ['graduate-interviewed', '面试已完成'],
+      ['graduate-sponsor-confirmed', '雇主同意担保'],
+      ['graduate-offer-reviewed', 'Certificate of Sponsorship'],
+    ] as const)
+      expect(
+        graduateNextStep({ ...start, flags: [...start.flags, step[0]] })?.zhCN,
+      ).toContain(step[1]);
+    const switched = doActivity(atVisa(ready), 'graduate-switch');
+    expect(graduateNextStep(switched)).toBeUndefined();
+  });
+
+  test('playtest #8: the offer check gives the verdicts before the premise', () => {
+    const preview = graduateSalaryPreview({ ...offer(), locale: 'zh-CN' });
+    expect(preview.startsWith('标准档')).toBe(true);
+    expect(preview.split('\n')[1]).toMatch(/^新入职者档/);
+  });
+
+  test('playtest #9 and P2: after the switch, job-hunting cards stop and an overstay ends without the Graduate advice', () => {
+    const switched = doActivity(atVisa(offer()), 'graduate-switch');
+    const hunting = graduate.events.filter((event) =>
+      event.forbids?.includes('graduate-switched'),
+    );
+    expect(hunting.map((event) => event.id)).toContain(
+      'graduate-life-cover-letter',
+    );
+    let state = switched;
+    while (!state.ending && state.year < 9)
+      state = completeQuarter(clear(state));
+    expect(state.ending).toBe('overstayed');
+    expect(state.log.at(-1)?.text.zhCN).not.toContain('Graduate');
+  });
+
   test('Graduate counts for Long Residence but does not advance the Skilled Worker clock', () => {
     const state = doActivity(atVisa(offer()), 'graduate-switch');
     const values = currentLaw2026_11.values;
