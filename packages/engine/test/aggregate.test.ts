@@ -123,6 +123,34 @@ describe('Earned Settlement pathway', () => {
     expect(after.publicFundsReassessmentDate).toBeUndefined();
   });
 
+  test('review33d-1 #1 a partner follows the principal’s conditional completion and reassessment', () => {
+    const principal = timeline({
+      episodes: [sw('2021-06-01')],
+      benefits: [
+        {
+          benefitType: 'UNIVERSAL_CREDIT',
+          from: '2023-01-01',
+          to: '2023-10-31',
+        },
+      ],
+    });
+    const partner = timeline({
+      episodes: [
+        sw('2021-06-01', { role: 'DEPENDANT', dependantOf: 'PARTNER' }),
+      ],
+    });
+    const assess = (simulationDate: string) =>
+      evaluate({ timeline: partner, principal, simulationDate }).byRuleSet[
+        'earned-settlement-2026-11'
+      ]!;
+    const before = assess('2026-11-04');
+    expect(before.earliestDate).toBeUndefined();
+    expect(before).toMatchObject({
+      pathwayCompletionDate: '2041-06-01',
+      publicFundsReassessmentDate: '2028-11-01',
+    });
+  });
+
   test('A6#10 Highest Talent Group is independent of the earnings paths', () => {
     const episode = sw('2023-11-04', { route: 'GLOBAL_TALENT' });
     const a = es({ episodes: [episode] });

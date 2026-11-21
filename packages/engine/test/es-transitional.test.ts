@@ -43,6 +43,28 @@ describe('ES-TRANSITIONAL-CARE-WORKER', () => {
     }
   });
 
+  test('review33d-1 #2 known salary or a CoS after the cut-off settles a post-cut-off grant', () => {
+    expect(
+      run(esTransitionalCareWorker, {
+        episodes: [care('2025-06-01', { salary: 24999 })],
+      }).status,
+    ).toBe('FAIL');
+    expect(
+      run(esTransitionalCareWorker, {
+        episodes: [
+          care('2025-06-01', { sponsorshipCertificateDate: '2025-05-20' }),
+        ],
+      }).status,
+    ).toBe('FAIL');
+    expect(
+      run(esTransitionalCareWorker, {
+        episodes: [
+          care('2025-06-01', { sponsorshipCertificateDate: '2025-05-01' }),
+        ],
+      }),
+    ).toMatchObject({ status: 'UNKNOWN', pendingDetails: ['PD-036'] });
+  });
+
   test('salary: £24,999 fails, missing is unknown', () => {
     expect(
       run(esTransitionalCareWorker, {

@@ -9,6 +9,12 @@
 
 合并后 56 个黄金案例的现行法栏与 33c 完全一致。改革栏 24 栏与 33c 不同，均与 33d 自身的结论、日期、路径年限、`pathwayCompletionDate`、`publicFundsReassessmentDate` 一致。引擎 2,669 项通过、1 项跳过；web 533；game 1,331；lint、typecheck 通过。
 
+**审核 `review33d-1` 的修正（Fable）**：
+1. 主申请人的改革路径日期只是条件满期日（`pathwayCompletionDate`）时，随行人同样不给 `earliestDate`，改给条件满期日，并沿用主申请人的 `publicFundsReassessmentDate`（SRC-001 p18、p29–p31）。
+2. 护工许可起于截止点当日或之后时，先看已知事实：已填薪资低于门槛判 `FAIL`；首段护工许可的 CoS 签发于截止点当日或之后、且此前无护工许可时判 `FAIL`（CoS 须先于申请签发，SRC-004 SW 1.2(d)）。确实跨截止点无法判断的仍为 `UNKNOWN`（PD-036）。
+
+两条回归在修正前均失败、修正后通过；黄金案例无变化。风险项（闰日使重评日早一天；PD-082 的合并居留）与结果页读取两个新日期字段（任务 49）留作后续。
+
 
 ## 1. 做了什么
 

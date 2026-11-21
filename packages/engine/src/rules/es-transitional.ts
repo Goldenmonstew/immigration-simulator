@@ -69,8 +69,9 @@ export const esTransitionalCareWorker = defineRule(
       };
     }
     const cutoff = es.values.whitePaperPublished.value;
-    const entered = continuousRun(timeline, simulationDate, isCareWorker)
-      .episodes[0].validFrom;
+    const first = continuousRun(timeline, simulationDate, isCareWorker)
+      .episodes[0];
+    const entered = first.validFrom;
     const assumptions = [
       L(
         `截止点取 Immigration White Paper 的发布日 ${cutoff}（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 ${CARE_CODES} 认定（PD-036）。`,
@@ -78,9 +79,40 @@ export const esTransitionalCareWorker = defineRule(
       ),
     ];
     if (entered >= cutoff) {
-      return timeline.episodes.some(
+      // Known facts settle the case before the unsettled cut-off question.
+      if (current.salary !== undefined && current.salary < threshold) {
+        return {
+          status: 'FAIL',
+          explanation: L(
+            `薪资 ${gbp(current.salary)} 低于 care worker 过渡安排要求的 ${gbp(threshold)}。`,
+            `Salary of ${gbp(current.salary)} is below the ${gbp(threshold)} required for the care worker transitional arrangement.`,
+          ),
+          assumptions,
+        };
+      }
+      const priorCareWork = timeline.episodes.some(
         (e) => isCareWorker(e) && e.validFrom < cutoff,
-      )
+      );
+      // SW 1.2(d): the CoS is issued before the application.
+      if (
+        !priorCareWork &&
+        first.sponsorshipCertificateDate &&
+        first.sponsorshipCertificateDate >= cutoff
+      ) {
+        return {
+          status: 'FAIL',
+          explanation: L(
+            `care worker 许可的 CoS 于 ${first.sponsorshipCertificateDate} 签发，申请不可能早于截止点 ${cutoff}（SRC-004 SW 1.2(d)），不属过渡群体。`,
+            `The CoS for the care worker permission was issued on ${first.sponsorshipCertificateDate}, so the application cannot predate the ${cutoff} cut-off (SRC-004 SW 1.2(d)); the transitional group does not apply.`,
+          ),
+          sources: [
+            { srcId: 'SRC-001', locator: 'p42' },
+            { srcId: 'SRC-004', locator: 'SW 1.2(d)' },
+          ],
+          assumptions,
+        };
+      }
+      return priorCareWork
         ? {
             status: 'UNKNOWN',
             explanation: L(
