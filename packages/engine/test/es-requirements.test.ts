@@ -14,21 +14,35 @@ describe('ES-CRIMINALITY', () => {
     expect(run(esCriminality).status).toBe('PASS');
   });
 
-  test('an adult record fails', () => {
+  test('A4#6a an adult overseas conviction with unknown UK equivalent stays unknown', () => {
+    const r = evaluate({
+      timeline: timeline({ criminalRecord: [{ date: '2020-03-01' }] }),
+      simulationDate: SIMULATION_DATE,
+    });
+    const assessment = r.byRuleSet['earned-settlement-2026-11']!;
+    expect(assessment.outcome).toBe('REQUIRES_REGULATED_REVIEW');
     expect(
-      run(esCriminality, { criminalRecord: [{ date: '2020-03-01' }] }).status,
-    ).toBe('FAIL');
+      assessment.rules.find((rule) => rule.id === 'ES-CRIMINALITY'),
+    ).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-017'],
+    });
+    expect(r.byRuleSet['current-law-2026-11']?.outcome).toBe(
+      'REQUIRES_REGULATED_REVIEW',
+    );
   });
 
-  test('a record from the day before the 18th birthday is unknown, from the birthday fails', () => {
+  test('offences on the 18th birthday are treated as adult, with jurisdiction still unknown', () => {
     const minor = run(esCriminality, {
       criminalRecord: [{ date: '2008-01-14' }],
     });
     expect(minor.status).toBe('UNKNOWN');
     expect(minor.pendingDetails).toEqual(['PD-017']);
-    expect(
-      run(esCriminality, { criminalRecord: [{ date: '2008-01-15' }] }).status,
-    ).toBe('FAIL');
+    const adult = run(esCriminality, {
+      criminalRecord: [{ date: '2008-01-15' }],
+    });
+    expect(adult.status).toBe('UNKNOWN');
+    expect(adult.explanation).toContain('司法辖区');
   });
 });
 
@@ -37,10 +51,19 @@ describe('ES-DEBT', () => {
     expect(run(esDebt).status).toBe('PASS');
   });
 
-  test('outstanding debt fails', () => {
-    expect(run(esDebt, { governmentDebt: { outstanding: true } }).status).toBe(
-      'FAIL',
-    );
+  test('A4#6b a reported NHS debt on an agreed plan cannot be resolved by the boolean input', () => {
+    const r = evaluate({
+      timeline: timeline({ governmentDebt: { outstanding: true } }),
+      simulationDate: SIMULATION_DATE,
+    });
+    const assessment = r.byRuleSet['earned-settlement-2026-11']!;
+    expect(assessment.outcome).toBe('POTENTIALLY_ELIGIBLE');
+    expect(
+      assessment.rules.find((rule) => rule.id === 'ES-DEBT'),
+    ).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-018'],
+    });
   });
 
   test('not answered is unknown from missing input', () => {
@@ -59,7 +82,7 @@ describe('ES-DEBT', () => {
     expect(child('2008-11-05').sources).toEqual([
       { srcId: 'SRC-001', locator: 'p29' },
     ]);
-    expect(child('2008-11-04').status).toBe('FAIL');
+    expect(child('2008-11-04').status).toBe('UNKNOWN');
   });
 
   test('a partner dependant under 18 is not exempt', () => {
@@ -69,7 +92,7 @@ describe('ES-DEBT', () => {
         episodes: asDependant('PARTNER'),
         governmentDebt: { outstanding: true },
       }).status,
-    ).toBe('FAIL');
+    ).toBe('UNKNOWN');
   });
 });
 
@@ -136,6 +159,30 @@ describe('ES-BREACH', () => {
         immigrationBreaches: [{ type: 'OVERSTAYING', date: '2018-05-01' }],
       }).status,
     ).toBe('FAIL');
+  });
+
+  test('A4#6c and A6#8 a pre-reform breach moves the model to 20 years under PD-004', () => {
+    const applicant = timeline({
+      episodes: [{ ...timeline().episodes[1], validFrom: '2016-11-04' }],
+    });
+    const assess = (t = applicant) =>
+      evaluate({
+        timeline: t,
+        simulationDate: SIMULATION_DATE,
+        locale: 'en',
+      }).byRuleSet['earned-settlement-2026-11']!;
+    expect(assess().outcome).toBe('LIKELY_ELIGIBLE');
+    const withBreach = assess({
+      ...applicant,
+      immigrationBreaches: [{ type: 'OVERSTAYING', date: '2018-05-01' }],
+    });
+    expect(withBreach).toMatchObject({
+      outcome: 'LIKELY_NOT_ELIGIBLE',
+      pathwayYears: 20,
+    });
+    expect(withBreach.assumptions.join(' ')).toMatch(
+      /before implementation.*PD-004/,
+    );
   });
 
   test('a breach the day before turning 18 is ignored, on the birthday it counts', () => {

@@ -16,7 +16,7 @@ export type Locale = 'zh-CN' | 'en';
 
 export interface PersonTimeline {
   dateOfBirth: IsoDate;
-  /** ISO 3166-1 alpha-3, e.g. 'IND'. */
+  /** Passport nationality code, normally ISO 3166-1 alpha-3, e.g. 'IND'. */
   nationality: string;
   episodes: ImmigrationEpisode[];
   absences: Absence[];
@@ -25,6 +25,16 @@ export interface PersonTimeline {
   relationships: Relationship[];
   /** Missing = not provided. */
   english?: EnglishEvidence;
+  /**
+   * Checked evidence for the fifteen-year exception on this application date
+   * (EL 1.1(d) or KoLL 3.2/4.14), including residence in the UK, the A2
+   * qualification and teacher confirmation against the stated level.
+   * Missing = not verified.
+   */
+  englishFifteenYearException?: {
+    applicationDate: IsoDate;
+    teacherAssessedAgainst: 'B1' | 'B2';
+  };
   /** Life in the UK test. Missing = not provided. */
   lifeInTheUk?: { passed: true } | { exempt: true };
   /**
@@ -91,9 +101,15 @@ export interface ImmigrationEpisode {
   dependantOf?: 'PARTNER' | 'PARENT' | 'RELATIVE';
   /**
    * SKILLED_WORKER MAIN only: the sponsored job is on Appendix Immigration
-   * Salary List (SW 24.3 rows B, D). Missing = no.
+   * Salary List under the rules for this grant (SW 24.3 rows B, D).
+   * Missing = not declared.
    */
   immigrationSalaryList?: boolean;
+  /** CoS issue date for this grant, if known (SRC-019; SW 4.2(b)(ii)). */
+  sponsorshipCertificateDate?: IsoDate;
+  /** Confirmed skill-level exception for the sponsored job (SW 6.1, 11). */
+  skilledWorkerSponsorshipException?:
+    'OPTION_D' | 'OPTION_I' | 'TEMPORARY_SHORTAGE_LIST';
   /**
    * SAFE_AND_LEGAL only: the designated route the person was admitted on
    * (SRC-001 p37, p47). UK_RESETTLEMENT_SCHEME arrivals before 2027-04-06 are
@@ -147,6 +163,13 @@ export interface ImmigrationEpisode {
     | 'JOBS_WITH_SALARY'
   )[];
   /**
+   * INNOVATOR_FOUNDER MAIN only: who issued the settlement endorsement
+   * (INNF 17.5). A legacy body must also have supported the last grant.
+   * Missing = not provided.
+   */
+  innovatorSettlementEndorser?:
+    'NON_LEGACY' | 'LEGACY_SAME' | 'LEGACY_DIFFERENT';
+  /**
    * FAMILY_AND_PRIVATE_LIFE MAIN only: the basis of the Appendix Private Life
    * permission, which sets the settlement qualifying period. CHILD = granted
    * as a child (PL 3.1; or first granted under 18, PL 10.1); YOUNG_ADULT =
@@ -186,6 +209,7 @@ export interface Relationship {
 export type EnglishEvidence = { cefrLevel: CefrLevel } | { exempt: true };
 
 export interface CriminalEvent {
+  /** Date of the offence. The current input does not identify the jurisdiction. */
   date: IsoDate;
 }
 
@@ -206,6 +230,7 @@ export interface ImmigrationBreach {
 }
 
 export interface GovernmentDebt {
+  /** A declaration of outstanding debt, without the category or repayment status. */
   outstanding: boolean;
 }
 
@@ -318,6 +343,10 @@ export interface SettlementAssessment {
   routeGroup?: RouteGroup;
   pathwayYears?: number;
   earliestDate?: IsoDate;
+  /** Earned Settlement only: future completion of the selected conditional pathway. */
+  pathwayCompletionDate?: IsoDate;
+  /** Earned Settlement only: first day out of the current public funds lookback, if no further use. */
+  publicFundsReassessmentDate?: IsoDate;
   /**
    * The rules of the candidate pathway the outcome rests on, in `rules`
    * order (contracts §16.1). Present exactly when `pathwayYears` is.

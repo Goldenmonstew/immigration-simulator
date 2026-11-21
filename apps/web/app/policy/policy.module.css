@@ -78,6 +78,19 @@
 .entries p {
   margin: 8px 0;
 }
+.changelog p {
+  max-width: 720px;
+}
+.sourceList > li {
+  display: grid;
+  gap: 4px 16px;
+  padding: 14px 0;
+}
+@media (min-width: 601px) {
+  .sourceList > li {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+}
 @media (max-width: 600px) {
   .parameters code {
     font-size: 0.875rem;

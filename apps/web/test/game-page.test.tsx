@@ -1140,6 +1140,102 @@ test('controller resolves a phone interruption without replaying or dropping the
   h.dispose();
 });
 
+for (const locale of ['zh-CN', 'en'] as const) {
+  test.each([
+    {
+      action: 'festival',
+      label: locale === 'en' ? 'Join the festival' : '逛节日摊位',
+      feedback: locale === 'en' ? 'You browse the stalls' : '你沿摊位走了一圈',
+    },
+    {
+      action: 'lunar-dumplings',
+      label: locale === 'en' ? 'Fold dumplings together' : '一起包饺子',
+      feedback:
+        locale === 'en' ? 'You fold your first dumpling' : '你捏好第一个饺子',
+    },
+  ])(
+    `$action shows its result after the New Year phone call in ${locale}`,
+    async ({ label, feedback }) => {
+      let start = core.newGame('skilled-worker', 176, locale);
+      while (start.pendingEvent || start.day.index < 2) {
+        start = start.pendingEvent
+          ? core.resolve(start, core.currentEvent(start)!.choices[0].id)
+          : core.sleep(start);
+      }
+      expect(start.day.festival).toBe('lunar-new-year');
+      start = core.tick(start, 18 * 60 + 14 - start.day.minute);
+      const h = await client(start, locale);
+      h.render().props(TownCanvas).onInteract({ kind: 'place', id: 'green' });
+      const menu = h.render().props(LocationMenu);
+      renderView(() => LocationMenu(menu), locale).click(label);
+      const call = h.render().props(EventCard);
+      expect(call.state.pendingEvent).toBe('sw-parents-call');
+      expect(call.state.day.minute).toBe(18 * 60 + 44);
+      renderView(() => EventCard(call), locale).click(
+        locale === 'en' ? 'Arrange a weekly call' : '约定每周通话',
+      );
+      const result = h.render();
+      expect(result.html).toContain(feedback);
+      result.click(t('game.continuePlaying', locale));
+      expect(h.render().html).not.toContain(feedback);
+      expect(h.render().props(TownCanvas).paused).toBe(false);
+      h.dispose();
+    },
+  );
+}
+
+test.each([
+  { locale: 'zh-CN', score: 68, interrupted: false },
+  { locale: 'en', score: 68, interrupted: false },
+  { locale: 'zh-CN', score: 73, interrupted: false },
+  { locale: 'en', score: 73, interrupted: true },
+] as const)(
+  'language school shows exam preparation and immediate result in $locale at $score (interrupted: $interrupted)',
+  async ({ locale, score, interrupted }) => {
+    const start = at(600, 'college', locale);
+    start.stats.english = score;
+    start.day.deliveries = interrupted
+      ? [{ eventId: 'phone', channel: 'phone', minute: 660 }]
+      : [];
+    const h = await client(start, locale);
+    h.render().props(TownCanvas).onInteract({ kind: 'place', id: 'college' });
+    const before = h.render();
+    expect(before.html).toContain('aria-describedby="action-note-exam"');
+    expect(before.html).toContain(
+      locale === 'en'
+        ? `B2. Readiness ${score} / 70`
+        : `目标 B2。备考进度 ${score} / 70`,
+    );
+    const menu = before.props(LocationMenu);
+    menu.onChange(core.doActivity(menu.state, 'exam'));
+    const after = h.render();
+    if (score < 70) {
+      expect(after.props(EventCard).state.pendingEvent).toBe(
+        'system-exam-failed',
+      );
+      expect(after.html).toContain(
+        locale === 'en'
+          ? 'pass the B2 English test this time'
+          : '英语考试没通过，分数还没到 B2。',
+      );
+    } else {
+      expect(after.html).toContain(
+        locale === 'en'
+          ? 'You passed the English test at B2.'
+          : '英语考试通过了，成绩是 B2。',
+      );
+      expect(after.props(TownCanvas).state.timeline.english).toEqual({
+        cefrLevel: 'B2',
+      });
+      if (interrupted) {
+        after.click(t('game.continuePlaying', locale));
+        expect(h.render().props(EventCard).state.pendingEvent).toBe('phone');
+      }
+    }
+    h.dispose();
+  },
+);
+
 test('season opening stats survive reload and include daily life changes in the summary', () => {
   const start = at(600);
   const opening = { ...start.stats };

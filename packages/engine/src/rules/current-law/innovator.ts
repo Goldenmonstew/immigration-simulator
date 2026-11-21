@@ -101,25 +101,33 @@ export const clInnovatorEndorsement = defineRule(
   {
     id: 'CL-INNOVATOR-ENDORSEMENT',
     ruleSetId: RULE_SET,
-    title: 'Innovator Founder 定居背书的业务条件',
-    titleEn:
-      'Business criteria for the Innovator Founder settlement endorsement',
+    title: 'Innovator Founder 定居背书',
+    titleEn: 'Innovator Founder settlement endorsement',
     sources: [
       { srcId: 'SRC-027', locator: 'INNF 15.2(e)' },
       { srcId: 'SRC-027', locator: 'INNF 17.1' },
       { srcId: 'SRC-027', locator: 'INNF 17.2' },
       { srcId: 'SRC-027', locator: 'INNF 17.3' },
       { srcId: 'SRC-027', locator: 'INNF 17.4' },
+      { srcId: 'SRC-027', locator: 'INNF 17.5' },
     ],
     pendingDetails: [],
   },
   (ctx) => {
     const L = textFor(ctx);
     const required = cl.values.innovatorFounderSettlementCriteriaMinimum.value;
-    const declared = episodeOn(
-      ctx.timeline,
-      ctx.simulationDate,
-    )?.innovatorSettlementCriteria;
+    const episode = episodeOn(ctx.timeline, ctx.simulationDate);
+    const declared = episode?.innovatorSettlementCriteria;
+    const endorser = episode?.innovatorSettlementEndorser;
+    if (endorser === 'LEGACY_DIFFERENT') {
+      return {
+        status: 'FAIL',
+        explanation: L(
+          '定居背书信由另一家 Legacy Endorsing Body 出具。INNF 17.5 要求它与支持上次获批许可的机构相同。',
+          'A different Legacy Endorsing Body issued the settlement letter. INNF 17.5 requires the body that supported the last grant of permission.',
+        ),
+      };
+    }
     if (!declared) {
       return {
         status: 'UNKNOWN',
@@ -143,11 +151,30 @@ export const clInnovatorEndorsement = defineRule(
         ),
       };
     }
+    if (endorser === undefined) {
+      return {
+        status: 'UNKNOWN',
+        explanation: L(
+          '已达到业务项目数要求。请确认定居背书信是否由 Legacy Endorsing Body 出具，以及如是，是否由支持上次获批许可的同一机构出具（INNF 17.5）。',
+          'The business meets the minimum number of criteria. Confirm whether a Legacy Endorsing Body issued the settlement letter and, if so, whether it supported the last grant of permission (INNF 17.5).',
+        ),
+      };
+    }
+    const endorserCheck =
+      endorser === 'LEGACY_SAME'
+        ? L(
+            '定居背书信由支持上次获批许可的同一 Legacy Endorsing Body 出具（INNF 17.5）。',
+            'The same Legacy Endorsing Body supported the last grant and issued the settlement letter (INNF 17.5).',
+          )
+        : L(
+            '定居背书信由一般 Endorsing Body 出具。INNF 17.5 的同一机构条件适用于 Legacy Endorsing Body。',
+            'A non-legacy Endorsing Body issued the settlement letter. The same-body condition in INNF 17.5 applies to Legacy Endorsing Bodies.',
+          );
     return {
       status: 'PASS',
       explanation: L(
-        `业务已满足 ${met.length} 项（${list}），达到 INNF 17.1(f) 的至少 ${required} 项。`,
-        `The business has met ${met.length} of the criteria (${list}), at least the ${required} required by INNF 17.1(f).`,
+        `业务已满足 ${met.length} 项（${list}），达到 INNF 17.1(f) 的至少 ${required} 项。${endorserCheck}`,
+        `The business has met ${met.length} of the criteria (${list}), at least the ${required} required by INNF 17.1(f). ${endorserCheck}`,
       ),
       assumptions: [
         L(

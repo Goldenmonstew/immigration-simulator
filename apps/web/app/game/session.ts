@@ -163,9 +163,6 @@ export function endingMemories(state: GameState) {
     photo: state.flags.includes('community-lunch-photo-received'),
   };
 }
-export const visaMonths = (state: GameState) =>
-  Math.floor(visaMonthsLeft(state));
-
 export function visaStatus(state: GameState) {
   const active = state.timeline.episodes
     .filter(

@@ -66,7 +66,7 @@ describe('Earned Settlement pathway', () => {
     );
   });
 
-  test('public funds leave only the 20-year pathway', () => {
+  test('A6#7 and A6#8 stopped public funds give a conditional completion and a reassessment date', () => {
     const a = es({
       benefits: [
         {
@@ -79,8 +79,76 @@ describe('Earned Settlement pathway', () => {
     expect(a).toMatchObject({
       outcome: 'LIKELY_NOT_ELIGIBLE',
       pathwayYears: 20,
-      earliestDate: '2039-11-01',
+      pathwayCompletionDate: '2039-11-01',
+      publicFundsReassessmentDate: '2029-04-01',
     });
+    expect(a.earliestDate).toBeUndefined();
+    expect(a.assumptions.join('')).toMatch(/实施前领取.*PD-004/);
+  });
+
+  test('A6#7 G-UNIVERSAL-CREDIT can meet five years as soon as the lookback clears', () => {
+    const applicant = timeline({
+      episodes: [sw('2021-06-01')],
+      incomeYears: [
+        ...timeline().incomeYears,
+        { taxYear: '2026-27', earnings: 52000 },
+        { taxYear: '2027-28', earnings: 52000 },
+      ],
+      benefits: [
+        {
+          benefitType: 'UNIVERSAL_CREDIT',
+          from: '2023-01-01',
+          to: '2023-10-31',
+        },
+      ],
+    });
+    const assess = (simulationDate: string) =>
+      evaluate({
+        timeline: applicant,
+        simulationDate,
+      }).byRuleSet['earned-settlement-2026-11']!;
+    const before = assess('2028-10-31');
+    expect(before).toMatchObject({
+      pathwayYears: 20,
+      pathwayCompletionDate: '2041-06-01',
+      publicFundsReassessmentDate: '2028-11-01',
+    });
+    expect(before.earliestDate).toBeUndefined();
+    const after = assess('2028-11-01');
+    expect(after).toMatchObject({
+      outcome: 'LIKELY_ELIGIBLE',
+      pathwayYears: 5,
+      earliestDate: '2028-11-01',
+    });
+    expect(after.publicFundsReassessmentDate).toBeUndefined();
+  });
+
+  test('A6#10 Highest Talent Group is independent of the earnings paths', () => {
+    const episode = sw('2023-11-04', { route: 'GLOBAL_TALENT' });
+    const a = es({ episodes: [episode] });
+    expect(a).toMatchObject({
+      outcome: 'LIKELY_NOT_ELIGIBLE',
+      pathwayYears: 5,
+      earliestDate: '2028-11-04',
+    });
+    expect(a.rules.find((r) => r.id === 'ES-HIGHEST-TALENT')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-011'],
+    });
+    expect(a.rules.find((r) => r.id === 'ES-EARNINGS-3Y')?.status).toBe('FAIL');
+    expect(a.decidedBy).toContain('ES-EARNINGS-5Y');
+    const higher = es({
+      episodes: [episode],
+      incomeYears: timeline().incomeYears.map((year) => ({
+        ...year,
+        earnings: 130000,
+      })),
+    });
+    expect(higher).toMatchObject({
+      outcome: 'LIKELY_ELIGIBLE',
+      pathwayYears: 3,
+    });
+    expect(higher.decidedBy).toContain('ES-EARNINGS-3Y');
   });
 
   test('Family and Private Life cannot use the 5-year pathway', () => {
@@ -192,14 +260,17 @@ describe('current law', () => {
     });
   });
 
-  test('2 years of Skilled Worker projects 5 years and flags B2', () => {
+  test('A6#6 2 years of Skilled Worker projects 5 years and assesses B2 at filing', () => {
     const a = cl({ episodes: [sw('2025-02-01')] });
     expect(a).toMatchObject({
       outcome: 'LIKELY_NOT_ELIGIBLE',
       pathwayYears: 5,
       earliestDate: '2030-01-04',
     });
-    expect(a.assumptions.join('')).toContain('届时定居须达到英语 B2');
+    expect(a.rules.find((rule) => rule.id === 'CL-ENGLISH')).toMatchObject({
+      status: 'PASS',
+      explanation: expect.stringContaining('按预计申请日 2030-01-04 判断'),
+    });
   });
 
   test('£38,000 qualifies under SW 24.3 row C before 2024-04-04; from then it fails row A, and is insufficient without a SOC code', () => {
@@ -207,8 +278,17 @@ describe('current law', () => {
       cl({ episodes: [sw('2019-11-01', { salary: 38000 })] }).outcome,
     ).toBe('LIKELY_ELIGIBLE');
     expect(
-      cl({ episodes: [sw('2024-04-04', { salary: 38000 })] }, '2029-04-04')
-        .outcome,
+      cl(
+        {
+          episodes: [
+            sw('2024-04-04', {
+              salary: 38000,
+              sponsorshipCertificateDate: '2024-04-04',
+            }),
+          ],
+        },
+        '2029-04-04',
+      ).outcome,
     ).toBe('LIKELY_NOT_ELIGIBLE');
     expect(
       cl(
@@ -272,11 +352,11 @@ describe('current law', () => {
       missing.rules.filter((r) => r.id === 'CL-ENGLISH').map((r) => r.status),
     ).toEqual(['PASS']);
     expect(missing.assumptions.join('')).toContain(
-      'Long Residence 10 年路径须英语 B1（LR 13.1(a)），未填写英语水平',
+      'Long Residence 10 年路径按 LR 13.1 单独判断：未填写英语水平',
     );
     const a2 = cl({ episodes, english: { cefrLevel: 'A2' } });
     expect(a2.outcome).toBe('LIKELY_NOT_ELIGIBLE');
-    expect(a2.assumptions.join('')).toContain('当前英语水平不满足');
+    expect(a2.assumptions.join('')).toContain('低于定居要求的 B1');
     expect(cl({ episodes, english: { cefrLevel: 'B1' } })).toMatchObject({
       outcome: 'LIKELY_ELIGIBLE',
       pathwayYears: 10,

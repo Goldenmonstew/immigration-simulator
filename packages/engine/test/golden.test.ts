@@ -29,6 +29,8 @@ function summary(result: SimulationResult) {
           routeGroup: a!.routeGroup,
           pathwayYears: a!.pathwayYears,
           earliestDate: a!.earliestDate,
+          pathwayCompletionDate: a!.pathwayCompletionDate,
+          publicFundsReassessmentDate: a!.publicFundsReassessmentDate,
           decidedBy: a!.decidedBy,
           // Status, plus the pending-detail ids an UNKNOWN rests on.
           rules: Object.fromEntries(

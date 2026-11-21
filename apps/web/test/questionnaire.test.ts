@@ -159,7 +159,7 @@ test.each(shortCircuitKeys)(
 );
 
 test.each(['yes', 'no'] as const)(
-  'government debt = %s reaches the real engine after a complete Skilled Worker questionnaire',
+  'A4#6b government debt = %s reaches the engine with the existing questionnaire fields',
   (debt) => {
     const draft = draftReducer(createDraft(), {
       type: 'date',
@@ -201,18 +201,17 @@ test.each(['yes', 'no'] as const)(
     expect(earned).toMatchObject({
       outcome: 'LIKELY_NOT_ELIGIBLE',
       routeGroup: 'CORE_PERMISSION',
+      pathwayYears: 5,
+      earliestDate: '2030-01-01',
     });
-    expect(earned?.rules.find((rule) => rule.id === 'ES-DEBT')?.status).toBe(
-      debt === 'yes' ? 'FAIL' : 'PASS',
-    );
+    const debtRule = earned?.rules.find((rule) => rule.id === 'ES-DEBT');
     if (debt === 'yes') {
-      expect(earned?.pathwayYears).toBeUndefined();
-      expect(earned?.earliestDate).toBeUndefined();
-    } else {
-      expect(earned).toMatchObject({
-        pathwayYears: 5,
-        earliestDate: '2030-01-01',
+      expect(debtRule).toMatchObject({
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-018'],
       });
+    } else {
+      expect(debtRule?.status).toBe('PASS');
     }
   },
 );

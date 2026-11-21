@@ -3,21 +3,23 @@ import { addYears, fullYears, fullYearsEn } from '../../dates';
 import { continuousRun } from '../../residence';
 import { defineRule, textFor } from '../../rule';
 import type { IsoDate, RuleContext } from '../../types';
-import { RULE_SET, isProtection, onProtection } from './shared';
+import { RULE_SET, isProtection, protectionPermission } from './shared';
 
 /**
- * Start of the continuous period with refugee status or humanitarian
- * protection (STP 3.1) ending on the simulation date, while a protection main
- * applicant. Appendix Settlement Protection does not refer to Appendix
- * Continuous Residence, so absences do not restart it (PD-071).
+ * Use the continuous protection permission history to find the start of
+ * protection status (STP 3.1). An expired last grant can qualify (STP 1.3).
+ * Absences do not restart the period in this model (PD-071).
  */
 export function protectionStart({
   timeline,
   simulationDate,
 }: RuleContext): IsoDate | undefined {
-  if (!onProtection(timeline, simulationDate)) return undefined;
-  return continuousRun(timeline, simulationDate, isProtection).episodes[0]
-    .validFrom;
+  const permission = protectionPermission(timeline, simulationDate);
+  if (!permission) return undefined;
+  const reference =
+    permission.validTo < simulationDate ? permission.validTo : simulationDate;
+  return continuousRun(timeline, reference, isProtection).episodes[0]
+    ?.validFrom;
 }
 
 export const clProtectionResidence5Y = defineRule(
@@ -40,8 +42,8 @@ export const clProtectionResidence5Y = defineRule(
       return {
         status: 'FAIL',
         explanation: L(
-          '当前不是以主申请人身份持 refugee status 或 humanitarian protection 的许可。',
-          'Current permission is not as a main applicant with refugee status or humanitarian protection.',
+          '当前或最后获批的许可不是 STP 1.3 所列的主申请人保护许可。',
+          'The current or last granted permission is not a main applicant’s protection permission listed in STP 1.3.',
         ),
       };
     }
@@ -59,6 +61,15 @@ export const clProtectionResidence5Y = defineRule(
           ]
         : []),
     ];
+    const permission = protectionPermission(ctx.timeline, ctx.simulationDate);
+    if (permission && permission.validTo < ctx.simulationDate) {
+      assumptions.push(
+        L(
+          `最后获批的保护许可于 ${permission.validTo} 到期，仍按 STP 1.3 核对；许可到期后的保护身份按 STP 4.1 另行判断。`,
+          `The last protection permission expired on ${permission.validTo} and is assessed under STP 1.3. Protection status after expiry is assessed separately under STP 4.1.`,
+        ),
+      );
+    }
     const due = addYears(start, years);
     return due <= ctx.simulationDate
       ? {

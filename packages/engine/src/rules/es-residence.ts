@@ -88,6 +88,46 @@ export function esProtectionRouteOn(
   return route && groupsOf(route).includes('PROTECTION') ? route : undefined;
 }
 
+/** Applicability of strengthened requirements under SRC-001 p25–p26, p33–p34. */
+export function outsideFrameworkRequirementDetails(route: Route | undefined) {
+  switch (route) {
+    case 'BEREAVED_PARTNER':
+      return 'PD-051';
+    case 'UNACCOMPANIED_ASYLUM_SEEKING_CHILD':
+    case 'CHILD_IN_LOCAL_AUTHORITY_CARE':
+    case 'GREW_UP_IN_UK':
+    case 'DOMESTIC_ABUSE_VICTIM':
+      return 'PD-027';
+    case 'AFGHAN_SCHEMES':
+    case 'WINDRUSH':
+      return 'PD-028';
+    default:
+      return undefined;
+  }
+}
+
+export function outsideFrameworkRequirementsText(
+  route: Route | undefined,
+  L: Lang,
+) {
+  const detail = outsideFrameworkRequirementDetails(route);
+  if (detail === 'PD-051') {
+    return L(
+      '丧偶伴侣仍须满足适用的 suitability 与 character 要求。强化犯罪记录要求的适用细节与英语标准待定（PD-027、PD-051）。',
+      'Bereaved partners still need to meet the applicable suitability and character requirements. How the strengthened criminality requirements apply and which English standard is required remain unsettled (PD-027, PD-051).',
+    );
+  }
+  return detail
+    ? L(
+        `强化犯罪记录与英语要求如何适用于该群体仍待公布（${detail}）。`,
+        `How the strengthened criminality and English requirements apply to this group remains unsettled (${detail}).`,
+      )
+    : L(
+        '强化的犯罪记录与 B2 英语要求仍适用，除非有现有豁免或保障。',
+        'The strengthened criminality and B2 English requirements still apply, unless an existing exemption or protection applies.',
+      );
+}
+
 export const esRouteGroup = defineRule(
   {
     id: 'ES-ROUTE-GROUP',
@@ -100,7 +140,14 @@ export const esRouteGroup = defineRule(
       { srcId: 'SRC-001', locator: 'p25' },
       { srcId: 'SRC-001', locator: 'p26' },
     ],
-    pendingDetails: ['PD-022', 'PD-023', 'PD-045'],
+    pendingDetails: [
+      'PD-022',
+      'PD-023',
+      'PD-027',
+      'PD-028',
+      'PD-045',
+      'PD-051',
+    ],
   },
   ({ timeline, simulationDate, locale }) => {
     const L = textFor({ locale });
@@ -134,12 +181,21 @@ export const esRouteGroup = defineRule(
       };
     }
     if (groups.includes('OUTSIDE_FRAMEWORK')) {
+      const detail = outsideFrameworkRequirementDetails(route);
       return {
         status: 'UNKNOWN',
-        explanation: L(
-          `当前路线"${rn}"不在 Earned Settlement 框架内，继续按该群体现有的定居安排；但强化的犯罪记录与 B2 英语要求仍适用，除非有现有豁免或保障。`,
-          `The current route, ${rn}, is outside the Earned Settlement framework and keeps the existing settlement arrangements for that group. The strengthened criminality and B2 English requirements still apply, unless an existing exemption or protection applies.`,
-        ),
+        explanation:
+          L(
+            `当前路线"${rn}"不在 Earned Settlement 框架内，继续按该群体现有的定居安排。`,
+            `The current route, ${rn}, is outside the Earned Settlement framework and keeps the existing settlement arrangements for that group. `,
+          ) + outsideFrameworkRequirementsText(route, L),
+        ...(detail === 'PD-051' && {
+          sources: [
+            { srcId: 'SRC-001', locator: 'p26' },
+            { srcId: 'SRC-001', locator: 'p34, Bereaved partners' },
+          ],
+        }),
+        ...(detail && { pendingDetails: [detail] }),
       };
     }
     if (groups.includes('PROTECTION')) {
@@ -242,7 +298,15 @@ interface QualifyingResidence {
   /** Start of the qualifying period after any restart. */
   start: IsoDate;
   run: Run;
+  /** Earlier start if the adjoining permission can be combined under pending policy. */
+  possibleStart?: IsoDate;
 }
+
+const isUnclassifiedFamilyPermission = (
+  e: PersonTimeline['episodes'][number],
+) =>
+  e.route === 'FAMILY_PARTNER_OR_PARENT' &&
+  e.familyPermission !== 'PARTNER_FIVE_YEAR';
 
 /** The qualifying residence on `date`, or undefined if the current route does not count. */
 export function esQualifyingResidence({
@@ -252,15 +316,40 @@ export function esQualifyingResidence({
   const route = esRouteOn(timeline, simulationDate);
   const kind = route && kindOf(route);
   if (!kind) return undefined;
-  const run = continuousRun(timeline, simulationDate, (e) =>
-    kind === 'PROTECTION' ? e.route === route : kindOf(e.route) === kind,
-  );
+  const counts = (e: PersonTimeline['episodes'][number]) =>
+    kind === 'PROTECTION' ? e.route === route : kindOf(e.route) === kind;
+  const run = continuousRun(timeline, simulationDate, counts);
   const start = restartAfterAbsences(
     run.episodes[0].validFrom,
     simulationDate,
     timeline.absences,
   );
-  return { start, run };
+  const previous = run.stoppedAt;
+  if (!previous) return { start, run };
+  const canCombine =
+    previous.route === 'LEAVE_OUTSIDE_THE_RULES'
+      ? (e: PersonTimeline['episodes'][number]) =>
+          e.route === 'LEAVE_OUTSIDE_THE_RULES'
+      : route === 'FAMILY_AND_PRIVATE_LIFE' &&
+          isUnclassifiedFamilyPermission(previous)
+        ? isUnclassifiedFamilyPermission
+        : route === 'CORE_PROTECTION' &&
+            previous.route === 'PROTECTION_WORK_AND_STUDY'
+          ? (e: PersonTimeline['episodes'][number]) =>
+              e.route === 'PROTECTION_WORK_AND_STUDY'
+          : undefined;
+  if (!canCombine) return { start, run };
+  const combined = continuousRun(
+    timeline,
+    simulationDate,
+    (e) => counts(e) || canCombine(e),
+  );
+  const possibleStart = restartAfterAbsences(
+    combined.episodes[0].validFrom,
+    simulationDate,
+    timeline.absences,
+  );
+  return { start, run, ...(possibleStart < start && { possibleStart }) };
 }
 
 /** Why the run starts where it does: [explanation, is it an assumption]. */
@@ -282,6 +371,12 @@ function whyRunStarts(
       : undefined;
   }
   const { route } = stoppedAt;
+  if (
+    route === 'LEAVE_OUTSIDE_THE_RULES' ||
+    (first.route === 'FAMILY_AND_PRIVATE_LIFE' &&
+      isUnclassifiedFamilyPermission(stoppedAt))
+  )
+    return undefined;
   const rn = nameIn(L, routeNames[route]);
   if (kindOf(route) === 'PROTECTION' && kindOf(first.route) === 'PROTECTION') {
     return [
@@ -301,11 +396,11 @@ function whyRunStarts(
       false,
     ];
   }
-  if (route === 'LEAVE_OUTSIDE_THE_RULES' || groupsOf(route).length === 0) {
+  if (groupsOf(route).length === 0) {
     return [
       L(
-        `此前在"${rn}"路线的时间是否计入未定，按不计入处理（PD-022 / PD-023）；若将来计入，日期可能提前。`,
-        `Whether the earlier time on ${rn} counts is not settled; it is treated as not counting (PD-022 / PD-023). If it later counts, the date may come earlier.`,
+        `此前在"${rn}"路线的时间是否计入未定，按不计入处理（PD-023）；若将来计入，日期可能提前。`,
+        `Whether the earlier time on ${rn} counts is not settled; it is treated as not counting (PD-023). If it later counts, the date may come earlier.`,
       ),
       true,
     ];
@@ -389,19 +484,62 @@ export const esResidence = defineRule(
             ],
           };
     }
-    const { start, run } = residence;
+    const { start, run, possibleStart } = residence;
+    const previous = run.stoppedAt;
+    const conditionalStart = L(
+      `按自 ${start} 起算作条件推算。`,
+      `The conditional projection counts residence from ${start}.`,
+    );
     if (
       current === 'CORE_PROTECTION' &&
-      run.stoppedAt?.route === 'PROTECTION_WORK_AND_STUDY'
+      previous?.route === 'PROTECTION_WORK_AND_STUDY'
     ) {
       return {
         status: 'UNKNOWN',
-        explanation: L(
-          `自 ${run.episodes[0].validFrom} 起从 Protection Work and Study 回到 Core Protection。原文只说 Core Protection 的时间不计入 Protection Work and Study，没有说回到 Core Protection 后此前的时间如何计入。`,
-          `Back on Core Protection from Protection Work and Study since ${run.episodes[0].validFrom}. The response only says that time on Core Protection does not count towards Protection Work and Study; it does not say how earlier time counts after moving back to Core Protection.`,
-        ),
+        explanation:
+          L(
+            `自 ${run.episodes[0].validFrom} 起从 Protection Work and Study 回到 Core Protection。原文只说 Core Protection 的时间不计入 Protection Work and Study，没有说回到 Core Protection 后此前的时间如何计入。`,
+            `Back on Core Protection from Protection Work and Study since ${run.episodes[0].validFrom}. The response only says that time on Core Protection does not count towards Protection Work and Study; it does not say how earlier time counts after moving back to Core Protection.`,
+          ) +
+          L('', ' ') +
+          conditionalStart,
         sources: [{ srcId: 'SRC-001', locator: 'p38' }],
         pendingDetails: ['PD-064'],
+      };
+    }
+    // A later absence restart makes earlier, adjoining permission immaterial.
+    if (possibleStart && previous?.route === 'LEAVE_OUTSIDE_THE_RULES') {
+      return {
+        status: 'UNKNOWN',
+        explanation:
+          L(
+            '紧接此前的 Leave Outside the Rules 是否计入合格期仍待公布。条件推算暂不计入该段许可。',
+            'Whether the adjoining Leave Outside the Rules counts towards settlement is still to be set out. The conditional projection excludes that permission. ',
+          ) + conditionalStart,
+        sources: [{ srcId: 'SRC-001', locator: 'p24 note 12' }],
+        pendingDetails: ['PD-022'],
+      };
+    }
+    if (
+      possibleStart &&
+      current === 'FAMILY_AND_PRIVATE_LIFE' &&
+      previous &&
+      isUnclassifiedFamilyPermission(previous)
+    ) {
+      return {
+        status: 'UNKNOWN',
+        explanation:
+          L(
+            '此前 Appendix FM 许可是否归入可与 Private Life 合并的人权路线仍待确认。',
+            'Whether the previous Appendix FM permission falls in the human-rights group and can be combined with Private Life remains unsettled. ',
+          ) + conditionalStart,
+        sources: [
+          {
+            srcId: 'SRC-001',
+            locator: 'p23 note 9; p25, Combining time on different routes',
+          },
+        ],
+        pendingDetails: ['PD-025'],
       };
     }
     const notes: string[] = [];

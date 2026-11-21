@@ -18,6 +18,7 @@ export const iconPaths = {
   muted: 'M3 9h4l5-4v14l-5-4H3z M16 9l6 6 M22 9l-6 6',
   fast: 'M3 5l8 7-8 7z M13 5l8 7-8 7z',
   moon: 'M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11z',
+  money: 'M3 5h16v4 M3 5v14h18V9H3 M16 14h2',
   mood: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z M8 9h.01 M16 9h.01 M8 14q4 5 8 0',
   health: 'M12 21S2 15 2 8a5 5 0 0 1 10-1A5 5 0 0 1 22 8c0 7-10 13-10 13z',
   english: 'M3 3h7q2 0 2 2 0-2 2-2h7v16h-7q-2 0-2 2-0-2-2-2H3z M12 5v16',

@@ -30,6 +30,10 @@ export function graduateEpisode(state: GameState): ImmigrationEpisode {
     validFrom: state.date,
     validTo: end.toISOString().slice(0, 10),
     socCode: graduateOccupation.socCode,
+    // The CoS is issued for this offer; SOC 2136 is not on the Immigration
+    // Salary List (SRC-019).
+    sponsorshipCertificateDate: state.date,
+    immigrationSalaryList: false,
     salary: state.flags.includes('graduate-negotiated')
       ? graduateSalaries.agreed
       : graduateSalaries.low,

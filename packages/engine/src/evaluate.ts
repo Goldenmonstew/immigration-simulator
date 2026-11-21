@@ -7,9 +7,11 @@ import {
   esCurrentGroup,
   esRouteOn,
   legacyUkrsArrival,
+  outsideFrameworkRequirementsText,
 } from './rules/es-residence';
 import { textFor } from './rule';
 import { RULES } from './rules';
+import { hasSettledSkilledWorkerPartner } from './rules/current-law/shared';
 import type {
   RuleContext,
   RuleSet,
@@ -49,8 +51,8 @@ function shortCircuitOf(ctx: RuleContext): ShortCircuit | undefined {
     return {
       reason: 'CRIMINALITY',
       message: L(
-        '申报了犯罪记录。Earned Settlement 下成年人的任何犯罪记录都会导致拒绝定居，现行规则下也取决于 Part Suitability 的具体情形；本工具不作结论，请咨询受监管的移民顾问。',
-        'A criminal record has been declared. Under Earned Settlement any criminal record as an adult leads to refusal of settlement; under the current rules the outcome depends on the circumstances under Part Suitability. This tool does not reach a conclusion: please seek advice from a regulated immigration adviser.',
+        '申报了犯罪记录。Earned Settlement 公布的一般标准是：英国境内的成年犯罪记录会导致拒绝；海外定罪须核对有关行为在英国是否也构成犯罪，法律体系有差异时保留酌情处理。未成年时的犯罪也按个案酌情处理（SRC-001 p12、PD-017）。现行规则按 Part Suitability 的具体情形判断，请咨询受监管的移民顾问。',
+        'A criminal record has been declared. Under the announced general Earned Settlement standard, an adult criminal record in the UK leads to refusal. Overseas convictions depend on whether the conduct is also an offence in the UK, with discretion for differences between legal systems. Offences committed as a minor can also be considered on a discretionary basis (SRC-001 p12, PD-017). Under the current rules, the outcome depends on the circumstances under Part Suitability. Please seek advice from a regulated immigration adviser.',
       ),
     };
   }
@@ -96,8 +98,12 @@ function shortCircuitOf(ctx: RuleContext): ShortCircuit | undefined {
             'The current route is a Legacy Safe and Legal Route (arrival through the UK Resettlement Scheme before 2027-04-06), outside the Earned Settlement framework, and keeps the existing settlement arrangements for that group (SRC-001 p25–p26). The strengthened criminality requirements still apply. The English level is inconsistent: groups outside the framework generally need B2 (p25–p26), while Chapter 7 says UK Resettlement Scheme refugees only need A2 (p37, p39); see PD-045.',
           )
         : L(
-            '当前路线不在 Earned Settlement 框架内，继续按该群体现有的定居安排（SRC-001 p25–p26）；但强化的犯罪记录与 B2 英语要求仍适用，除非有现有豁免或保障。',
-            'The current route is outside the Earned Settlement framework and keeps the existing settlement arrangements for that group (SRC-001 p25–p26). The strengthened criminality and B2 English requirements still apply, unless an existing exemption or protection applies.',
+            '当前路线不在 Earned Settlement 框架内，继续按该群体现有的定居安排（SRC-001 p25–p26）。',
+            'The current route is outside the Earned Settlement framework and keeps the existing settlement arrangements for that group (SRC-001 p25–p26). ',
+          ) +
+          outsideFrameworkRequirementsText(
+            esRouteOn(timeline, simulationDate),
+            L,
           ),
     };
   }
@@ -135,15 +141,30 @@ export function evaluate(
       }),
   };
   // The dependant's own short circuit first, then the principal's.
+  const ownRisk = shortCircuitOf(ctx);
   const fromPrincipal = ctx.principal?.result.shortCircuit;
+  const assessPartnerIndependently =
+    (fromPrincipal?.reason === 'CRIMINALITY' ||
+      fromPrincipal?.reason === 'IMMIGRATION_BREACH') &&
+    ctx.principal &&
+    hasSettledSkilledWorkerPartner(
+      timeline,
+      ctx.principal.timeline,
+      simulationDate,
+    );
   const shortCircuit =
-    shortCircuitOf(ctx) ??
+    ownRisk ??
     (fromPrincipal && {
       ...fromPrincipal,
-      message: textFor(ctx)(
-        `主申请人：${fromPrincipal.message}`,
-        `Principal applicant: ${fromPrincipal.message}`,
-      ),
+      message: assessPartnerIndependently
+        ? textFor(ctx)(
+            '主申请人的筛查需要专业复核。现行 Skilled Worker 伴侣定居按伴侣本人评估（SW 38.1、39.1(b)）。',
+            'The principal applicant’s screening requires regulated review. Current Skilled Worker partner settlement is assessed on the partner’s own circumstances (SW 38.1 and 39.1(b)).',
+          )
+        : textFor(ctx)(
+            `主申请人：${fromPrincipal.message}`,
+            `Principal applicant: ${fromPrincipal.message}`,
+          ),
     });
   const byRuleSet: SimulationResult['byRuleSet'] = {};
   for (const id of ids) {
@@ -153,12 +174,15 @@ export function evaluate(
     const stopped =
       shortCircuit &&
       (kind === 'ANNOUNCED' ||
-        shortCircuit.reason === 'CRIMINALITY' ||
-        shortCircuit.reason === 'IMMIGRATION_BREACH');
+        ((!assessPartnerIndependently || ownRisk) &&
+          (shortCircuit.reason === 'CRIMINALITY' ||
+            shortCircuit.reason === 'IMMIGRATION_BREACH')));
     const assessment = assess(kind, registry.rules[id], ctx);
     if (stopped) {
       delete assessment.pathwayYears;
       delete assessment.earliestDate;
+      delete assessment.pathwayCompletionDate;
+      delete assessment.publicFundsReassessmentDate;
       delete assessment.decidedBy;
       assessment.outcome = 'REQUIRES_REGULATED_REVIEW';
     }

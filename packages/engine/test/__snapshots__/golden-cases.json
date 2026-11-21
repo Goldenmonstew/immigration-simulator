@@ -56,7 +56,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -118,7 +119,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -129,7 +131,7 @@
       "current-law-2026-11": {
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 5,
-        "earliestDate": "2028-07-01",
+        "earliestDate": "2028-06-30",
         "decidedBy": [
           "CL-SW-RESIDENCE-5Y",
           "CL-SW-SALARY",
@@ -180,7 +182,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -219,7 +222,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -267,7 +271,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -306,7 +311,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -368,7 +374,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -428,7 +435,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -437,20 +445,11 @@
     "title": "Care worker (SOC 6135) on Skilled Worker since 2021-09-01 at £25,000",
     "columns": {
       "current-law-2026-11": {
-        "outcome": "LIKELY_ELIGIBLE",
-        "pathwayYears": 5,
-        "earliestDate": "2026-09-01",
-        "decidedBy": [
-          "CL-SW-RESIDENCE-5Y",
-          "CL-SW-SALARY",
-          "CL-SW-GOING-RATE",
-          "CL-ENGLISH",
-          "CL-KOL"
-        ],
+        "outcome": "INSUFFICIENT_INFORMATION",
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
-          "CL-SW-SALARY": "PASS",
+          "CL-SW-SALARY": "UNKNOWN",
           "CL-SW-GOING-RATE": "PASS",
           "CL-ENGLISH": "PASS",
           "CL-KOL": "PASS",
@@ -490,7 +489,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "PASS",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -500,18 +500,20 @@
     "columns": {
       "current-law-2026-11": {
         "outcome": "LIKELY_NOT_ELIGIBLE",
-        "pathwayYears": 10,
+        "pathwayYears": 5,
         "earliestDate": "2029-08-18",
         "decidedBy": [
+          "CL-SW-RESIDENCE-5Y",
+          "CL-SW-SALARY",
+          "CL-SW-GOING-RATE",
           "CL-ENGLISH",
-          "CL-KOL",
-          "CL-LR-RESIDENCE-10Y"
+          "CL-KOL"
         ],
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "FAIL",
           "CL-SW-SALARY": "PASS",
-          "CL-SW-GOING-RATE": "FAIL",
+          "CL-SW-GOING-RATE": "UNKNOWN",
           "CL-ENGLISH": "PASS",
           "CL-KOL": "PASS",
           "CL-LR-RESIDENCE-10Y": "FAIL"
@@ -550,7 +552,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -610,7 +613,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -654,7 +658,7 @@
       "current-law-2026-11": {
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "pathwayYears": 5,
-        "earliestDate": "2026-12-01",
+        "earliestDate": "2026-11-03",
         "decidedBy": [
           "CL-HKBNO-RESIDENCE-5Y",
           "CL-ENGLISH",
@@ -866,7 +870,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -1082,7 +1087,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -1107,7 +1113,7 @@
         "outcome": "REQUIRES_REGULATED_REVIEW",
         "routeGroup": "CORE_PERMISSION",
         "rules": {
-          "ES-CRIMINALITY": "FAIL",
+          "ES-CRIMINALITY": "UNKNOWN PD-017",
           "ES-DEBT": "PASS",
           "ES-ENGLISH-B2": "PASS",
           "ES-KOL": "PASS",
@@ -1122,7 +1128,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -1182,7 +1189,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -1215,7 +1223,8 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 20,
-        "earliestDate": "2041-06-01",
+        "pathwayCompletionDate": "2041-06-01",
+        "publicFundsReassessmentDate": "2028-11-01",
         "decidedBy": [
           "ES-CRIMINALITY",
           "ES-DEBT",
@@ -1242,7 +1251,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -1328,7 +1338,8 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "routeGroup": "FAMILY_AND_PRIVATE_LIFE",
         "pathwayYears": 20,
-        "earliestDate": "2035-06-01",
+        "pathwayCompletionDate": "2035-06-01",
+        "publicFundsReassessmentDate": "2028-10-01",
         "decidedBy": [
           "ES-CRIMINALITY",
           "ES-DEBT",
@@ -1466,7 +1477,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "PASS"
+          "ES-PUBLIC-SERVICE": "PASS",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -1620,9 +1632,10 @@
           "ES-PUBLIC-FUNDS": "PASS",
           "ES-BREACH": "PASS",
           "ES-ASYLUM-SUPPORT": "PASS",
-          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
-          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-TRANSITIONAL-CARE-WORKER": "UNKNOWN",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "UNKNOWN",
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -2033,20 +2046,11 @@
     "title": "Individual A: existing care worker meeting the requirements",
     "columns": {
       "current-law-2026-11": {
-        "outcome": "LIKELY_ELIGIBLE",
-        "pathwayYears": 5,
-        "earliestDate": "2028-04-06",
-        "decidedBy": [
-          "CL-SW-RESIDENCE-5Y",
-          "CL-SW-SALARY",
-          "CL-SW-GOING-RATE",
-          "CL-ENGLISH",
-          "CL-KOL"
-        ],
+        "outcome": "INSUFFICIENT_INFORMATION",
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
-          "CL-SW-SALARY": "PASS",
+          "CL-SW-SALARY": "UNKNOWN",
           "CL-SW-GOING-RATE": "PASS",
           "CL-ENGLISH": "PASS",
           "CL-KOL": "PASS",
@@ -2086,7 +2090,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "PASS",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -2146,7 +2151,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -2166,7 +2172,7 @@
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-SW-RESIDENCE-5Y": "PASS",
-          "CL-SW-SALARY": "FAIL",
+          "CL-SW-SALARY": "UNKNOWN",
           "CL-SW-GOING-RATE": "PASS",
           "CL-ENGLISH": "PASS",
           "CL-KOL": "PASS",
@@ -2204,9 +2210,10 @@
           "ES-PUBLIC-FUNDS": "PASS",
           "ES-BREACH": "PASS",
           "ES-ASYLUM-SUPPORT": "PASS",
-          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-CARE-WORKER": "UNKNOWN PD-036",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -2294,7 +2301,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -2445,18 +2453,11 @@
     "title": "Innovator Founder: 3 years completed on the day, two criteria met",
     "columns": {
       "current-law-2026-11": {
-        "outcome": "LIKELY_ELIGIBLE",
-        "pathwayYears": 3,
-        "earliestDate": "2026-05-01",
-        "decidedBy": [
-          "CL-INNOVATOR-RESIDENCE-3Y",
-          "CL-INNOVATOR-ENDORSEMENT",
-          "CL-KOL"
-        ],
+        "outcome": "INSUFFICIENT_INFORMATION",
         "rules": {
           "CL-SCOPE": "PASS",
           "CL-INNOVATOR-RESIDENCE-3Y": "PASS",
-          "CL-INNOVATOR-ENDORSEMENT": "PASS",
+          "CL-INNOVATOR-ENDORSEMENT": "UNKNOWN",
           "CL-ENGLISH": "UNKNOWN",
           "CL-KOL": "PASS",
           "CL-LR-RESIDENCE-10Y": "FAIL"
@@ -2481,7 +2482,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }

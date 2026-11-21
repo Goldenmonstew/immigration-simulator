@@ -156,6 +156,45 @@ describe('refugee status or humanitarian protection (SRC-023)', () => {
     ).not.toContain('PD-071');
   });
 
+  test('A3#14: the last protection permission can have expired (STP 1.3, 3.1, 4.1)', () => {
+    const expired = refugee('2021-03-01', {
+      episodes: [
+        on('CORE_PROTECTION', '2021-03-01', { validTo: '2026-03-01' }),
+      ],
+    });
+    const date = '2026-03-02';
+    const result = currentLaw(expired, date);
+    expect(result).toMatchObject({
+      outcome: 'LIKELY_ELIGIBLE',
+      pathwayYears: 5,
+      earliestDate: date,
+    });
+    expect(
+      result.rules.find((r) => r.id === 'CL-PROTECTION-RESIDENCE-5Y'),
+    ).toMatchObject({
+      status: 'PASS',
+      explanation: expect.stringContaining('2021-03-01'),
+    });
+    const revoked = currentLaw(
+      { ...expired, protectionStatusRevoked: true },
+      date,
+    );
+    expect(revoked.outcome).not.toBe('LIKELY_ELIGIBLE');
+    expect(
+      revoked.rules.find((r) => r.id === 'CL-PROTECTION-STATUS')?.status,
+    ).toBe('FAIL');
+    const later = {
+      ...expired,
+      episodes: [
+        ...expired.episodes!,
+        on('GRADUATE', '2026-03-02', { validTo: '2027-03-02' }),
+      ],
+    };
+    expect(ids(currentLaw(later, '2027-03-03').rules)).not.toContain(
+      'CL-PROTECTION-RESIDENCE-5Y',
+    );
+  });
+
   test('revoked or renounced status fails STP 4.1; Long Residence still counts', () => {
     const revoked = refugee('2021-03-01', { protectionStatusRevoked: true });
     expect(run(clProtectionStatus, revoked).status).toBe('FAIL');
@@ -275,12 +314,49 @@ describe('UK Ancestry (SRC-026)', () => {
     const absent = run(
       clAncestryResidence5Y,
       ancestry('2021-09-01', {
-        absences: [{ from: '2022-01-01', to: '2022-06-30' }],
+        absences: [{ from: '2022-01-01', to: '2022-07-02' }],
       }),
       '2026-09-01',
     );
     expect(absent.status).toBe('FAIL');
-    expect(absent.explanation).toContain('2027-07-01');
+    expect(absent.explanation).toContain('2027-07-02');
+  });
+
+  test('A3#2: after switching route, assess residence at the last UK Ancestry expiry', () => {
+    const switched = ancestry('2021-09-01', {
+      episodes: [
+        on('SKILLED_WORKER', '2026-09-02'),
+        on('UK_ANCESTRY', '2021-09-01', { validTo: '2026-09-01' }),
+      ],
+    });
+    const result = currentLaw(switched, '2026-11-04');
+    expect(result).toMatchObject({
+      outcome: 'LIKELY_ELIGIBLE',
+      pathwayYears: 5,
+      earliestDate: '2026-11-04',
+    });
+    expect(result.decidedBy).toContain('CL-ANCESTRY-RESIDENCE-5Y');
+    const residence = result.rules.find(
+      (r) => r.id === 'CL-ANCESTRY-RESIDENCE-5Y',
+    );
+    expect(residence?.status).toBe('PASS');
+    expect(residence?.explanation).toContain('CR 1.1(d)');
+    expect(residence?.explanation).toContain('2026-09-01');
+    expect(residence?.assumptions?.join()).toContain('UKA 10.3');
+    expect(currentLaw(switched, '2027-03-26').outcome).not.toBe(
+      'LIKELY_ELIGIBLE',
+    );
+
+    const short = {
+      ...switched,
+      episodes: [
+        switched.episodes![0],
+        on('UK_ANCESTRY', '2021-09-02', { validTo: '2026-09-01' }),
+      ],
+    };
+    expect(ids(currentLaw(short, '2026-11-04').rules)).not.toContain(
+      'CL-ANCESTRY-RESIDENCE-5Y',
+    );
   });
 
   test('English B1 before 2027-03-26, B2 from then (UKA 15.1); KOL UKA 16.1', () => {
@@ -308,6 +384,7 @@ describe('Innovator Founder (SRC-027)', () => {
     episodes: [
       on('INNOVATOR_FOUNDER', validFrom, {
         innovatorSettlementCriteria: criteria,
+        innovatorSettlementEndorser: 'NON_LEGACY',
       }),
     ],
     english: undefined,
@@ -386,11 +463,37 @@ describe('Innovator Founder (SRC-027)', () => {
     });
   });
 
+  test.each([
+    ['LEGACY_DIFFERENT', 'FAIL', 'LIKELY_NOT_ELIGIBLE'],
+    ['LEGACY_SAME', 'PASS', 'LIKELY_ELIGIBLE'],
+    [undefined, 'UNKNOWN', 'INSUFFICIENT_INFORMATION'],
+  ] as const)(
+    'A3#13: INNF 17.5 with endorsement evidence %s',
+    (endorser, status, outcome) => {
+      const sample = founder('2023-05-01', undefined, {
+        episodes: [
+          on('INNOVATOR_FOUNDER', '2023-05-01', {
+            innovatorSettlementCriteria: ['INVESTMENT', 'JOBS'],
+            innovatorSettlementEndorser: endorser,
+          }),
+        ],
+      });
+      const result = currentLaw(sample, '2026-05-01');
+      expect(result.outcome).toBe(outcome);
+      expect(
+        result.rules.find((r) => r.id === 'CL-INNOVATOR-ENDORSEMENT'),
+      ).toMatchObject({
+        status,
+        explanation: expect.stringContaining('INNF 17.5'),
+      });
+    },
+  );
+
   test('absences restart the period (INNF 19.1, CR 3.1)', () => {
     const result = run(
       clInnovatorResidence3Y,
       founder('2023-05-01', undefined, {
-        absences: [{ from: '2024-01-01', to: '2024-06-30' }],
+        absences: [{ from: '2024-01-01', to: '2024-07-01' }],
       }),
       '2026-05-01',
     );
@@ -510,6 +613,37 @@ describe('Private Life (SRC-028)', () => {
     expect(result.assumptions?.join()).toContain('PD-069');
   });
 
+  test('A3#7: both languages describe the PL 14.4(a) exception and application-date test', () => {
+    const date = '2026-01-01';
+    const sample = timeline(
+      privateLife('2025-01-01', 'YOUNG_ADULT', {
+        episodes: [
+          on('SKILLED_WORKER', '2021-01-01', { validTo: '2024-12-31' }),
+          on('FAMILY_AND_PRIVATE_LIFE', '2025-01-01', {
+            privateLifeRoute: 'YOUNG_ADULT',
+          }),
+        ],
+      }),
+    );
+    for (const [locale, exception, filing] of [
+      ['zh-CN', '作为儿童或 young adult', '实际申请日'],
+      ['en', 'as a child or young adult', 'actual date of application'],
+    ] as const) {
+      const result = evaluate({
+        timeline: sample,
+        simulationDate: date,
+        locale,
+      }).byRuleSet['current-law-2026-11']!;
+      const residence = result.rules.find(
+        (r) => r.id === 'CL-PRIVATE-LIFE-RESIDENCE',
+      );
+      expect(residence?.status).toBe('FAIL');
+      expect(residence?.assumptions?.join()).toContain(exception);
+      expect(residence?.assumptions?.join()).toContain(filing);
+      expect(residence?.assumptions?.join()).toContain('PD-069');
+    }
+  });
+
   test('English B1 / B2 by 2027-03-26 (PL 16.1); under 18 exempt; KOL PL 17.1', () => {
     const tl = privateLife('2021-07-01', 'CHILD');
     expect(run(clEnglish, tl, '2027-03-25').explanation).toContain(
@@ -528,4 +662,34 @@ describe('Private Life (SRC-028)', () => {
       ).assumptions.join(),
     ).toContain('PL 16.1(b)');
   });
+});
+
+test('review33c-1 #4 an expired protection grant still needs the applicant in the UK on the date of application (STP 1.2(c))', () => {
+  const expired = {
+    episodes: [on('CORE_PROTECTION', '2021-03-01', { validTo: '2026-03-01' })],
+  };
+  const date = '2026-03-02';
+  expect(currentLaw(expired, date).outcome).toBe('LIKELY_ELIGIBLE');
+  const abroad = currentLaw(
+    { ...expired, absences: [{ from: '2026-02-20', to: '2026-03-10' }] },
+    date,
+  );
+  expect(abroad.outcome).not.toBe('LIKELY_ELIGIBLE');
+  expect(abroad.rules[0].sources).toContainEqual({
+    srcId: 'SRC-023',
+    locator: 'STP 1.2(c)',
+  });
+});
+
+test('review33c-2 a protection forecast moves to the declared return when abroad on the due date (STP 1.2(c))', () => {
+  const facts = {
+    episodes: [on('CORE_PROTECTION', '2021-03-04')],
+    absences: [{ from: '2026-02-20', to: '2026-03-09' }],
+  };
+  const forecast = currentLaw(facts, '2026-02-01');
+  expect(forecast.earliestDate).toBe('2026-03-09');
+  expect(currentLaw(facts, '2026-03-04').outcome).not.toBe('LIKELY_ELIGIBLE');
+  expect(currentLaw(facts, forecast.earliestDate!).outcome).toBe(
+    'LIKELY_ELIGIBLE',
+  );
 });
