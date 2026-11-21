@@ -2,11 +2,12 @@ import {
   currentLaw2026_11 as cl,
   routeNames,
 } from '@uk-immigration/policy-data';
-import { currentResidence } from '../../residence';
+import { addMonths } from '../../dates';
+import { continuousRun, currentResidence, episodeOn } from '../../residence';
 import type { CurrentResidence } from '../../residence';
 import { defineRule, nameIn, textFor } from '../../rule';
 import type { Route } from '@uk-immigration/policy-data';
-import type { RuleContext } from '../../types';
+import type { IsoDate, RuleContext } from '../../types';
 import {
   applicationPresence,
   crResidenceSources,
@@ -20,17 +21,50 @@ import {
 // (English language) is not a separate route here.
 const LR_EXCLUDED: Route[] = ['VISIT', 'SEASONAL_WORKER', 'UKRAINE_SCHEME'];
 
-/** Start of the continuous lawful residence for Long Residence. */
-export function longResidence(
-  { timeline, simulationDate }: RuleContext,
-  checkLocation = true,
-): CurrentResidence | undefined {
-  return currentResidence(
+/**
+ * LR 11.3–11.4: from 12 months on the current route, unless the current
+ * permission was granted (approximated by its start) before 2024-04-11.
+ */
+export function currentRouteFrom({
+  timeline,
+  simulationDate,
+}: RuleContext): { route: Route; since: IsoDate; from: IsoDate } | undefined {
+  const current = episodeOn(timeline, simulationDate);
+  if (
+    !current ||
+    current.validFrom < cl.values.longResidenceCurrentRouteGrantedFrom.value
+  )
+    return undefined;
+  const since = continuousRun(
     timeline,
     simulationDate,
+    (e) => e.route === current.route,
+  ).episodes[0].validFrom;
+  return {
+    route: current.route,
+    since,
+    from: addMonths(since, cl.values.longResidenceCurrentRouteMonths.value),
+  };
+}
+
+/** Start of the continuous lawful residence for Long Residence. */
+export function longResidence(
+  ctx: RuleContext,
+  checkLocation = true,
+): CurrentResidence | undefined {
+  // notBefore defaults to the simulation date; only a later date replaces it.
+  const routeFrom = currentRouteFrom(ctx)?.from;
+  return currentResidence(
+    ctx.timeline,
+    ctx.simulationDate,
     (e) => !LR_EXCLUDED.includes(e.route),
     cl.values.longResidenceQualifyingYears.value,
-    { longResidence: true, checkLocation },
+    {
+      longResidence: true,
+      checkLocation,
+      ...(routeFrom &&
+        routeFrom > ctx.simulationDate && { notBefore: routeFrom }),
+    },
   );
 }
 
@@ -63,12 +97,21 @@ export const clLrResidence10Y = defineRule(
       };
     const years = cl.values.longResidenceQualifyingYears.value;
     const residence = longResidence(ctx);
+    const currentRoute = currentRouteFrom(ctx);
     const rn = (r: Route) => nameIn(L, routeNames[r]);
     const assumptions = [
       L(
-        `连续合法居留计入${rn('STUDENT')}、${rn('GRADUATE')}等临时路线，不计${LR_EXCLUDED.map(rn).join('、')}（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等及 LR 11.3 的 12 个月要求未建模。`,
-        `Continuous lawful residence includes temporary routes such as ${rn('STUDENT')} and ${rn('GRADUATE')}, but not ${LR_EXCLUDED.map(rn).join(', ')} (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) and the 12-month requirement in LR 11.3 are outside the model.`,
+        `连续合法居留计入${rn('STUDENT')}、${rn('GRADUATE')}等临时路线，不计${LR_EXCLUDED.map(rn).join('、')}（LR 11.1(a)）；符合 CR 4.2 的已识别空档予以扣除。LR 11.2(a) 的 immigration bail 等未建模。`,
+        `Continuous lawful residence includes temporary routes such as ${rn('STUDENT')} and ${rn('GRADUATE')}, but not ${LR_EXCLUDED.map(rn).join(', ')} (LR 11.1(a)); identified gaps under CR 4.2 are deducted. Immigration bail and similar periods under LR 11.2(a) are outside the model.`,
       ),
+      ...(currentRoute && currentRoute.from > ctx.simulationDate
+        ? [
+            L(
+              `当前许可自 ${cl.values.longResidenceCurrentRouteGrantedFrom.value} 起获批（以许可起始日近似获批日），须在当前路线（${rn(currentRoute.route)}，自 ${currentRoute.since} 起）满 ${cl.values.longResidenceCurrentRouteMonths.value} 个月，即 ${currentRoute.from} 起才可申请（LR 11.3–11.4）。`,
+              `The current permission was granted on or after ${cl.values.longResidenceCurrentRouteGrantedFrom.value} (its start is used as the grant date), so ${cl.values.longResidenceCurrentRouteMonths.value} months on the current route (${rn(currentRoute.route)}, since ${currentRoute.since}) are needed: applications from ${currentRoute.from} (LR 11.3–11.4).`,
+            ),
+          ]
+        : []),
       ...(ctx.timeline.absences.length > 0
         ? [
             L(
