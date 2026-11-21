@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { Route } from '@uk-immigration/engine';
 import { routeLabel, routeNames } from '../../../i18n/routes';
 import type { FormKit } from '../form-kit';
@@ -12,6 +13,7 @@ import {
 import site from '../../site.module.css';
 
 export function BasicStep({ form }: { form: FormKit }) {
+  const [query, setQuery] = useState(form.timeline.nationality);
   const {
     t,
     locale,
@@ -36,13 +38,19 @@ export function BasicStep({ form }: { form: FormKit }) {
       >
         <input
           {...fieldProps('nationality', true)}
-          value={timeline.nationality}
+          value={query}
           list="nationalities"
           autoComplete="off"
           spellCheck={false}
-          onChange={(event) =>
-            update({ nationality: nationalityFromInput(event.target.value) })
-          }
+          onChange={(event) => {
+            // Keep the typed text; store a code once it matches the list.
+            setQuery(event.target.value);
+            update({
+              nationality:
+                nationalityFromInput(event.target.value) ??
+                event.target.value.trim(),
+            });
+          }}
         />
         <datalist id="nationalities">
           {countries().map(({ code, zh, en }) => (

@@ -13,7 +13,7 @@ import { issueUrl } from '../lib/report';
 import { sourceUrls } from '../lib/sources';
 import { PolicyStatus, RuleSetStatus } from './policy-status';
 import { GapSummary } from './gap-summary';
-import { basisRule } from '../lib/gap-summary';
+import { basisRule, shorterPathwayBlocks } from '../lib/gap-summary';
 import type { RuleOutcome } from '@uk-immigration/engine';
 import site from '../app/site.module.css';
 import styles from '../app/result/result.module.css';
@@ -104,6 +104,7 @@ export function ResultView({
             result={result}
             simulationDate={draft?.simulationDate}
             canWhatIf={!!draft && !mock && !result.shortCircuit}
+            dependant={episode?.role === 'DEPENDANT'}
           />
           <Advice />
         </>
@@ -120,11 +121,13 @@ export function AssessmentColumns({
   idPrefix = '',
   simulationDate,
   canWhatIf = false,
+  dependant = false,
 }: {
   result: SimulationResult;
   idPrefix?: string;
   simulationDate?: string;
   canWhatIf?: boolean;
+  dependant?: boolean;
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
@@ -188,11 +191,22 @@ export function AssessmentColumns({
                         ).replace('{years}', String(assessment.pathwayYears))}
                       </p>
                     )}
+                  {shorterPathwayBlocks(assessment).length > 0 && (
+                    <p>
+                      {t('result.shorterBlocked').replace(
+                        '{rules}',
+                        shorterPathwayBlocks(assessment)
+                          .map((rule) => rule.title)
+                          .join(p.list),
+                      )}
+                    </p>
+                  )}
                 </div>
                 <GapSummary
                   assessment={assessment}
                   simulationDate={simulationDate}
                   canWhatIf={canWhatIf}
+                  dependant={dependant}
                 />
                 <dl className={styles.facts}>
                   {assessment.routeGroup && (

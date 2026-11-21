@@ -78,6 +78,15 @@ export interface WhatIf {
   trip?: { from: string; to: string };
 }
 
+/** Both dates filled in, departure first: only then does the trip count. */
+export function validTrip(trip: { from: string; to: string }): boolean {
+  return (
+    /^\d{4}-\d{2}-\d{2}$/.test(trip.from) &&
+    /^\d{4}-\d{2}-\d{2}$/.test(trip.to) &&
+    trip.from <= trip.to
+  );
+}
+
 /** Whole days away: travel days do not count (SRC-057, A1#17). */
 export function tripDays(trip: { from: string; to: string }): number {
   const days =
@@ -163,9 +172,7 @@ export function applyWhatIf(draft: Draft, whatIf: WhatIf): Draft {
       benefits: whatIf.noPublicFunds ? [] : dated.timeline.benefits,
       absences: [
         ...(whatIf.noAbsences ? [] : dated.timeline.absences),
-        ...(whatIf.trip && whatIf.trip.from <= whatIf.trip.to
-          ? [whatIf.trip]
-          : []),
+        ...(whatIf.trip && validTrip(whatIf.trip) ? [whatIf.trip] : []),
       ],
     },
   };

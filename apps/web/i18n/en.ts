@@ -248,7 +248,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'episodes.immigrationSalaryList':
     'Was the job on the Immigration Salary List for this grant?',
   'episodes.immigrationSalaryListHint':
-    'The Immigration Salary List is a government list of shortage occupations; jobs on it can use a lower salary threshold. Whether a job is on it depends on the CoS issue date, the sponsored job and the work location at the time; check your SOC code in Appendix Immigration Salary List on GOV.UK. Leave it blank if unsure: the related salary conditions are then shown as to be confirmed.',
+    'The Immigration Salary List is a government list of occupations; jobs on it can use a lower salary threshold. Check your SOC code against the version in force when this CoS was issued, including any regional or job conditions in the entry. Leave it blank if unsure: the simulator infers what it can from the SOC code and the list entry and marks the rest as to be confirmed.',
+  'episodes.immigrationSalaryListLink':
+    'See Appendix Immigration Salary List (GOV.UK)',
   'episodes.dependantOf': 'Dependant relationship',
   'episodes.partnerDependant': 'Partner dependant (principal is your partner)',
   'episodes.childDependant': 'Child dependant (principal is your parent)',
@@ -305,11 +307,14 @@ export const en: Record<keyof typeof zhCN, string> = {
   'result.jumpTo': 'Jump to {column}',
   'gap.title': 'What is missing',
   'gap.met': 'All modelled requirements are met.',
-  'gap.earliest': 'Based on the current situation, the earliest date is {date}',
+  'gap.earliest':
+    'Based on the current situation, the earliest date is {date} (assuming permission continues without a gap and the other requirements are still met then)',
   'gap.completion':
     'The selected pathway completes conditionally on {date}, provided the other requirements are still met then; this is not the earliest application date',
   'gap.reassess':
     'If no further counted public funds are received, shorter pathways can be reassessed from {date}',
+  'gap.reassessPrincipal':
+    'This date comes from the principal applicant’s record: if the principal applicant receives no further counted public funds, shorter pathways can be reassessed from {date}',
   'gap.wait':
     ', approximately {years} years and {months} months after the simulation date (rounded up to the next month).',
   'gap.pending': 'Pending government clarification',
@@ -339,8 +344,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'result.basis': 'Based on the {years}-year pathway ({route})',
   'result.basisNoRoute': 'Based on the {years}-year pathway',
   'result.thisPathway': 'Conditions on this pathway',
-  'result.otherPathways':
-    'Other pathways (they do not change the conclusion above)',
+  'result.otherPathways': 'Other pathways (shows why they were not used)',
+  'result.shorterBlocked':
+    'Shorter pathways are not available because these requirements are not met: {rules}.',
   'result.undetermined': 'Not yet determined',
   'result.why': 'Why',
   'result.FAIL': 'Not met',
@@ -383,7 +389,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'whatif.tripFrom': 'Departure date',
   'whatif.tripTo': 'Return date',
   'whatif.tripDays':
-    '{days} whole days away (the departure and return days do not count).',
+    '{days} whole days away. Current law counts whole days only, not the departure and return days; the reform column counts both days as a modelling assumption (PD-054).',
+  'whatif.tripIncomplete':
+    'Enter both the departure and return dates for this trip to count.',
   'whatif.tripInvalid':
     'The return date is before the departure date, so this trip is not counted.',
   'whatif.reset': 'Reset',
@@ -550,7 +558,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'episodes.from': 'Valid from',
   'episodes.to': 'Valid to',
   'episodes.roleHint':
-    'Choose main applicant if the permission is your own, for example a Skilled Worker, or a partner of a British citizen or settled person holding a family visa. Choose dependant for a partner or child granted with a main applicant such as a Skilled Worker or Global Talent holder.',
+    'Choose dependant if this permission was granted as someone else’s dependant, for example the partner or child of a Skilled Worker or Global Talent holder, whether or not you were granted at the same time. Otherwise choose main applicant, for example a Skilled Worker, or a partner of a British citizen or settled person holding a family visa.',
   'episodes.role': 'Applicant role',
   'episodes.MAIN': 'Main applicant',
   'episodes.DEPENDANT': 'Dependant',
@@ -580,7 +588,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'benefits.partnerSpecifiedBenefit':
     "My partner receives a benefit listed in E-LTRP.3.3(a) (such as Carer's Allowance, Personal Independence Payment, Disability Living Allowance or Attendance Allowance)",
   'benefits.hint':
-    'Enter any benefits or statutory payments received. Public funds are most income-related government benefits, such as Universal Credit, Housing Benefit and Child Benefit. Statutory payments are paid by employers under the law, such as Statutory Maternity Pay and Statutory Sick Pay, and are not public funds. The rules engine decides whether each counts as public funds and what follows; leave the end date blank if it is still being received.',
+    'Enter any benefits or statutory payments received. Public funds are the benefits and services listed in the Immigration Rules, such as Universal Credit, Housing Benefit, Child Benefit and Personal Independence Payment. Statutory payments are paid by employers under the law, such as Statutory Maternity Pay and Statutory Sick Pay, and are not public funds. The reform column uses this definition as a modelling assumption; the final scope and exemptions are still to be set (PD-013). Leave the end date blank if it is still being received.',
   'benefits.item': 'Payment record',
   'benefits.add': 'Add a payment record',
   'benefits.empty': 'No payment records added.',

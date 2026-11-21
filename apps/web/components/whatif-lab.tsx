@@ -26,6 +26,7 @@ import {
   focusControls,
   focusForRule,
   tripDays,
+  validTrip,
   type WhatIf,
   type WhatIfTarget,
 } from '../lib/whatif';
@@ -423,9 +424,8 @@ function WhatIfLab({
               checked={!!whatIf.trip}
               onChange={(event) =>
                 update({
-                  trip: event.target.checked
-                    ? { from: whatIf.simulationDate, to: whatIf.simulationDate }
-                    : undefined,
+                  // Start empty: the trip counts only once both dates are set.
+                  trip: event.target.checked ? { from: '', to: '' } : undefined,
                 })
               }
             />
@@ -460,12 +460,14 @@ function WhatIfLab({
                 />
               </div>
               <p className={site.muted} role="status">
-                {whatIf.trip.from > whatIf.trip.to
-                  ? t('whatif.tripInvalid')
-                  : t('whatif.tripDays').replace(
-                      '{days}',
-                      String(tripDays(whatIf.trip)),
-                    )}
+                {!whatIf.trip.from || !whatIf.trip.to
+                  ? t('whatif.tripIncomplete')
+                  : !validTrip(whatIf.trip)
+                    ? t('whatif.tripInvalid')
+                    : t('whatif.tripDays').replace(
+                        '{days}',
+                        String(tripDays(whatIf.trip)),
+                      )}
               </p>
             </div>
           )}

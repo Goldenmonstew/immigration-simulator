@@ -240,6 +240,14 @@ test('playtest #1: one more trip is added to the absences and counts whole days 
     applyWhatIf(draft, { ...controls, noAbsences: true, trip }).timeline
       .absences,
   ).toEqual([trip]);
+  // An unfinished trip changes nothing.
+  expect(
+    applyWhatIf(draft, { ...controls, trip: { from: '', to: '' } }),
+  ).toEqual(draft);
+  expect(
+    applyWhatIf(draft, { ...controls, trip: { from: '2024-01-01', to: '' } })
+      .timeline.absences,
+  ).toEqual(draft.timeline.absences);
   // A reversed range is ignored.
   expect(
     applyWhatIf(draft, {

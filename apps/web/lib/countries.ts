@@ -1,6 +1,6 @@
 // Generated from Unicode CLDR 46.0.0 supplemental/codeMappings.json:
 // ISO 3166-1 alpha-3 country codes and their alpha-2 region codes, without
-// private-use or grouping codes. Names come from Intl.DisplayNames.
+// private-use, grouping or deprecated codes. Names come from Intl.DisplayNames.
 export const COUNTRY_ALPHA2: Record<string, string> = {
   ABW: 'AW',
   AFG: 'AF',
@@ -9,7 +9,6 @@ export const COUNTRY_ALPHA2: Record<string, string> = {
   ALA: 'AX',
   ALB: 'AL',
   AND: 'AD',
-  ANT: 'AN',
   ARE: 'AE',
   ARG: 'AR',
   ARM: 'AM',
@@ -39,7 +38,6 @@ export const COUNTRY_ALPHA2: Record<string, string> = {
   BRB: 'BB',
   BRN: 'BN',
   BTN: 'BT',
-  BUR: 'BU',
   BVT: 'BV',
   BWA: 'BW',
   CAF: 'CF',
@@ -63,7 +61,6 @@ export const COUNTRY_ALPHA2: Record<string, string> = {
   CYM: 'KY',
   CYP: 'CY',
   CZE: 'CZ',
-  DDR: 'DD',
   DEU: 'DE',
   DJI: 'DJ',
   DMA: 'DM',
@@ -83,7 +80,6 @@ export const COUNTRY_ALPHA2: Record<string, string> = {
   FRA: 'FR',
   FRO: 'FO',
   FSM: 'FM',
-  FXX: 'FX',
   GAB: 'GA',
   GBR: 'GB',
   GEO: 'GE',
@@ -198,7 +194,6 @@ export const COUNTRY_ALPHA2: Record<string, string> = {
   RUS: 'RU',
   RWA: 'RW',
   SAU: 'SA',
-  SCG: 'CS',
   SDN: 'SD',
   SEN: 'SN',
   SGP: 'SG',
@@ -214,7 +209,6 @@ export const COUNTRY_ALPHA2: Record<string, string> = {
   SRB: 'RS',
   SSD: 'SS',
   STP: 'ST',
-  SUN: 'SU',
   SUR: 'SR',
   SVK: 'SK',
   SVN: 'SI',
@@ -231,7 +225,6 @@ export const COUNTRY_ALPHA2: Record<string, string> = {
   TKL: 'TK',
   TKM: 'TM',
   TLS: 'TL',
-  TMP: 'TP',
   TON: 'TO',
   TTO: 'TT',
   TUN: 'TN',
@@ -254,12 +247,45 @@ export const COUNTRY_ALPHA2: Record<string, string> = {
   VUT: 'VU',
   WLF: 'WF',
   WSM: 'WS',
-  XKK: 'XK',
   YEM: 'YE',
-  YMD: 'YD',
-  YUG: 'YU',
   ZAF: 'ZA',
-  ZAR: 'ZR',
   ZMB: 'ZM',
   ZWE: 'ZW',
 };
+
+// Further nationality values accepted on passports (Home Office design
+// system, "Enter passport details", citing ICAO Doc 9303 Part 3 Section 5);
+// organisation codes are left out. English names as listed there.
+export const PASSPORT_NATIONALITIES: {
+  code: string;
+  zh: string;
+  en: string;
+}[] = [
+  {
+    code: 'GBD',
+    zh: '英国海外领土公民',
+    en: 'British Overseas Territories Citizen',
+  },
+  { code: 'GBN', zh: '英国国民（海外）', en: 'British National (Overseas)' },
+  { code: 'GBO', zh: '英国海外公民', en: 'British Overseas Citizen' },
+  { code: 'GBP', zh: '英国受保护人', en: 'British Protected Person' },
+  { code: 'GBS', zh: '英国臣民', en: 'British Subject' },
+  { code: 'RKS', zh: '科索沃共和国', en: 'Republic of Kosovo' },
+  {
+    code: 'UNK',
+    zh: '持联合国科索沃临时行政当局签发旅行证件的科索沃居民',
+    en: 'Resident of Kosovo to whom a travel document has been issued by the United Nations Interim Administration Mission in Kosovo',
+  },
+  { code: 'XXA', zh: '无国籍人', en: 'Stateless person' },
+  {
+    code: 'XXB',
+    zh: '1951 年《难民公约》第 1 条所定义的难民',
+    en: 'Refugee as defined in Article 1 of the 1951 Convention Relating to the Status of Refugees',
+  },
+  {
+    code: 'XXC',
+    zh: 'XXB 以外的难民',
+    en: 'Refugee, other than as defined in XXB',
+  },
+  { code: 'XXX', zh: '国籍未注明', en: 'Person of unspecified nationality' },
+];

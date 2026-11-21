@@ -10,12 +10,35 @@ export function gapRules(assessment: SettlementAssessment) {
   );
 }
 
-/** The rule naming the route the conclusion rests on, if any. */
+/**
+ * The rule naming the pathway the conclusion rests on: the Earned Settlement
+ * entry (earnings, British connection, public service, transitional
+ * arrangement…) or, under current law, the route's residence rule.
+ */
 export function basisRule(assessment: SettlementAssessment) {
-  return assessment.rules.find(
+  const decided = assessment.rules.filter((rule) =>
+    assessment.decidedBy?.includes(rule.id),
+  );
+  return (
+    decided.find((rule) =>
+      /^ES-(EARNINGS-(3Y|5Y)|BRITISH-CONNECTION|PUBLIC-SERVICE|TRANSITIONAL-|HIGHEST-TALENT|PROTECTION-PATHWAY|DEPENDANT)/.test(
+        rule.id,
+      ),
+    ) ??
+    decided.find((rule) =>
+      /^CL-.*(RESIDENCE|PARTNER-5Y|-CHILD|DEPENDANT)/.test(rule.id),
+    ) ??
+    decided.find((rule) => rule.id === 'ES-RESIDENCE')
+  );
+}
+
+/** Requirements of shorter Earned Settlement pathways that rule them out. */
+export function shorterPathwayBlocks(assessment: SettlementAssessment) {
+  return assessment.rules.filter(
     (rule) =>
-      assessment.decidedBy?.includes(rule.id) &&
-      /RESIDENCE|PATHWAY|DEPENDANT|-CHILD|PARTNER-5Y/.test(rule.id),
+      rule.status === 'FAIL' &&
+      !assessment.decidedBy?.includes(rule.id) &&
+      (rule.id === 'ES-PUBLIC-FUNDS' || rule.id === 'ES-BREACH'),
   );
 }
 

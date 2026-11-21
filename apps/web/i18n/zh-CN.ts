@@ -222,7 +222,9 @@ export const zhCN = {
   'episodes.immigrationSalaryList':
     '此次获批许可的担保岗位是否在 Immigration Salary List 上',
   'episodes.immigrationSalaryListHint':
-    'Immigration Salary List 是政府公布的一份短缺职业名单，名单内的岗位可用较低的薪资门槛。是否在名单内取决于当时的 CoS 签发日、担保岗位和工作地区，可在 GOV.UK 的 Appendix Immigration Salary List 按 SOC 代码查。不确定可留空，结果会把相关薪资条件标为待确认。',
+    'Immigration Salary List 是政府公布的一份职业名单，名单内的岗位可用较低的薪资门槛。请按这次 CoS 签发时有效的名单版本核对 SOC 代码，以及条目对地区、岗位的附加条件。不确定可留空：模拟器会按 SOC 代码和名单条目推断，推断不了的标为待确认。',
+  'episodes.immigrationSalaryListLink':
+    '查看 Appendix Immigration Salary List（GOV.UK）',
   'episodes.dependantOf': '作为谁的 dependant',
   'episodes.partnerDependant': '伴侣的 dependant（本人为伴侣）',
   'episodes.childDependant': '父母的 dependant（本人为子女）',
@@ -280,13 +282,16 @@ export const zhCN = {
   'result.jumpTo': '跳到{column}',
   'gap.title': '还差什么',
   'gap.met': '已满足全部已建模要求',
-  'gap.earliest': '按当前情况最早 {date}',
+  'gap.earliest':
+    '按当前情况最早 {date}（假设许可届时连续续接、其余条件仍满足）',
   'gap.wait':
     '，距模拟日还有约 {years} 年 {months} 个月（不足一个月按一个月计）',
   'gap.completion':
     '所选路径的条件满期日 {date}：前提是届时其余要求仍满足，这不是最早申请日',
   'gap.reassess':
     '如不再领取所计入的 public funds，自 {date} 起可按较短路径重新评估',
+  'gap.reassessPrincipal':
+    '这个日期来自主申请人的领取记录：主申请人如不再领取所计入的 public funds，自 {date} 起可按较短路径重新评估',
   'gap.pending': '待政府明确',
   'gap.input': '补填信息',
   'gap.more': '更多',
@@ -313,7 +318,8 @@ export const zhCN = {
   'result.basis': '结论依据：{years} 年路径（{route}）',
   'result.basisNoRoute': '结论依据：{years} 年路径',
   'result.thisPathway': '这条路径的条件',
-  'result.otherPathways': '其他路径的条件（不影响上面的结论）',
+  'result.otherPathways': '其他路径的条件（可看这些路径为何未被采用）',
+  'result.shorterBlocked': '较短的路径因以下条件未满足而不可用：{rules}。',
   'result.undetermined': '尚无法确定',
   'result.why': '为什么',
   'result.FAIL': '未满足',
@@ -352,7 +358,9 @@ export const zhCN = {
   'whatif.trip': '再加一次临时离境',
   'whatif.tripFrom': '出境日',
   'whatif.tripTo': '返英日',
-  'whatif.tripDays': '在外 {days} 个整天（出境与返英当天不计）。',
+  'whatif.tripDays':
+    '在外 {days} 个整天（现行法按整天计，出境与返英当天不计；改革栏按 PD-054 的模拟假设计入这两天）。',
+  'whatif.tripIncomplete': '填好出境日和返英日后才计入这次离境。',
   'whatif.tripInvalid': '返英日早于出境日，这次离境不计入。',
   'whatif.reset': '重置',
   'whatif.back': '返回结果',
@@ -492,7 +500,7 @@ export const zhCN = {
   'episodes.to': '有效期结束',
   'episodes.role': '申请人身份',
   'episodes.roleHint':
-    '自己持签证的选“主申请人”，例如工签本人，或以英国公民、定居者伴侣身份持家庭签证的人。随工签、全球人才等主申请人一起获批的伴侣或子女，选“随行家属”。',
+    '看这段许可是不是以另一人的 dependant（随行家属）身份获批的：是就选“随行家属”，例如工签、全球人才持有人的伴侣或子女，不论是否与对方同时获批；不是就选“主申请人”，例如工签本人，或以英国公民、定居者伴侣身份持家庭签证的人。',
   'episodes.MAIN': '主申请人',
   'episodes.DEPENDANT': '随行家属（Dependant）',
   'episodes.soc': 'SOC 2020 岗位代码（可选）',
@@ -520,7 +528,7 @@ export const zhCN = {
   'benefits.partnerSpecifiedBenefit':
     "我的伴侣领取 E-LTRP.3.3(a) 列明的福利（如 Carer's Allowance、Personal Independence Payment、Disability Living Allowance、Attendance Allowance 等）",
   'benefits.hint':
-    '填写领取过的福利或法定支付。public funds 指多数按收入核发的政府福利，例如 Universal Credit（统一福利金）、Housing Benefit（住房补贴）、Child Benefit（儿童福利金）。法定支付由雇主按法律发放，例如 Statutory Maternity Pay（法定产假工资）、Statutory Sick Pay（法定病假工资），不算 public funds。是否属于 public funds 及其影响由规则引擎判断；结束日期留空表示仍在领取。',
+    '填写领取过的福利或法定支付。public funds 是移民规则列明的一组福利和服务，例如 Universal Credit（统一福利金）、Housing Benefit（住房补贴）、Child Benefit（儿童福利金）、Personal Independence Payment（个人独立生活补贴）。法定支付由雇主按法律发放，例如 Statutory Maternity Pay（法定产假工资）、Statutory Sick Pay（法定病假工资），不算 public funds。改革栏沿用这一范围是模拟假设，最终计入范围和豁免待政府明确（PD-013）。结束日期留空表示仍在领取。',
   'benefits.item': '领取记录',
   'benefits.add': '添加领取记录',
   'benefits.empty': '尚无领取记录。',

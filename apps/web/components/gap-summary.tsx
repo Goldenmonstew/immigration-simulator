@@ -14,10 +14,13 @@ export function GapSummary({
   assessment,
   simulationDate,
   canWhatIf = false,
+  dependant = false,
 }: {
   assessment: SettlementAssessment;
   simulationDate?: string;
   canWhatIf?: boolean;
+  /** A dependant's reassessment date comes from the principal's record. */
+  dependant?: boolean;
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
@@ -58,10 +61,9 @@ export function GapSummary({
             )}
             {assessment.publicFundsReassessmentDate && (
               <li>
-                {t('gap.reassess').replace(
-                  '{date}',
-                  assessment.publicFundsReassessmentDate,
-                )}
+                {t(
+                  dependant ? 'gap.reassessPrincipal' : 'gap.reassess',
+                ).replace('{date}', assessment.publicFundsReassessmentDate)}
               </li>
             )}
             {date && (

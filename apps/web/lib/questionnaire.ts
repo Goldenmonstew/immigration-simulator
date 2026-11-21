@@ -11,6 +11,7 @@ import type {
 } from '@uk-immigration/engine';
 import { t, type TranslationKey } from '../i18n';
 import { displayedRuleSets, policyAsOf } from './policy';
+import { countries } from './country-names';
 
 export const steps = [
   'basic',
@@ -422,7 +423,7 @@ export function validateStep(draft: Draft): Errors {
         timeline.dateOfBirth > draft.simulationDate
       )
         errors.dob = 'error.dob';
-      if (!/^[A-Z]{3}$/.test(timeline.nationality))
+      if (!countries().some((c) => c.code === timeline.nationality))
         errors.nationality = 'error.nationality';
       if (draft.principalStep !== undefined && timeline.settled)
         date('principal-settled-date', timeline.settled.date);

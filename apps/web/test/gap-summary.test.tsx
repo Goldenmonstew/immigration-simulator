@@ -331,8 +331,64 @@ test.each(['zh-CN', 'en'] as const)(
     );
     expect(html).toContain(
       locale === 'en'
-        ? 'Other pathways (they do not change the conclusion above)'
-        : '其他路径的条件（不影响上面的结论）',
+        ? 'Other pathways (shows why they were not used)'
+        : '其他路径的条件（可看这些路径为何未被采用）',
     );
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'review49-1 #2: a 20-year conclusion names public funds as what rules out shorter pathways in %s',
+  (locale) => {
+    const draft = {
+      ...createDraft(),
+      simulationDate: '2026-11-04',
+      completed: true,
+    };
+    draft.screening = { criminality: 'no', breach: 'no', debt: 'no' };
+    draft.timeline = {
+      ...draft.timeline,
+      dateOfBirth: '1990-01-01',
+      nationality: 'IND',
+      episodes: [
+        {
+          route: 'SKILLED_WORKER',
+          role: 'MAIN',
+          validFrom: '2021-06-01',
+          validTo: '2027-05-31',
+          socCode: '2136',
+          salary: 52000,
+        },
+      ],
+      incomeYears: draft.timeline.incomeYears.map((year) => ({
+        ...year,
+        earnings: 52000,
+      })),
+      benefits: [
+        {
+          benefitType: 'UNIVERSAL_CREDIT',
+          from: '2023-01-01',
+          to: '2023-10-31',
+        },
+      ],
+      english: { cefrLevel: 'B2' },
+      lifeInTheUk: { passed: true },
+    };
+    const result = runSimulation(draft, locale);
+    const reform = result.byRuleSet['earned-settlement-2026-11']!;
+    expect(reform.pathwayCompletionDate).toBe('2041-06-01');
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <ResultView result={result} draft={draft} />
+      </LocaleContext>,
+    );
+    const funds = reform.rules.find((r) => r.id === 'ES-PUBLIC-FUNDS')!;
+    expect(html).toContain(
+      locale === 'en'
+        ? `Shorter pathways are not available because these requirements are not met: ${funds.title}`
+        : `较短的路径因以下条件未满足而不可用：${funds.title}`,
+    );
+    expect(html).toContain('2041-06-01');
+    expect(html).toContain('2028-11-01');
   },
 );

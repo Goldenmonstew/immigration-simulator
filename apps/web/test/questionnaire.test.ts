@@ -339,9 +339,10 @@ test.each([true, false, undefined])(
 
 test('task 49: questionnaire hints explain the ISL, the applicant role, public funds and the income years', () => {
   for (const dict of [zhCN, en]) {
-    expect(dict['episodes.immigrationSalaryListHint']).toContain(
+    expect(dict['episodes.immigrationSalaryListLink']).toContain(
       'Appendix Immigration Salary List',
     );
+    expect(dict['episodes.immigrationSalaryListHint']).toContain('SOC');
     expect(dict['episodes.roleHint']).toBeTruthy();
     expect(dict['benefits.hint']).toContain('Statutory Maternity Pay');
     expect(dict['income.simulationDate']).toContain('{date}');

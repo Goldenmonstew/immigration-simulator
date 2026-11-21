@@ -10,6 +10,7 @@ import site from '../../site.module.css';
 import styles from '../form.module.css';
 import type { FormKit } from '../form-kit';
 import { Field } from '../field';
+import { sourceUrls } from '../../../lib/sources';
 
 export function EpisodesStep({ form }: { form: FormKit }) {
   const {
@@ -464,6 +465,14 @@ export function EpisodesStep({ form }: { form: FormKit }) {
                       <option value="yes">{t('form.yes')}</option>
                       <option value="no">{t('form.no')}</option>
                     </select>
+                    <a
+                      className={styles.hint}
+                      href={sourceUrls['SRC-019']}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {t('episodes.immigrationSalaryListLink')}
+                    </a>
                   </Field>
                 )}
               </>
