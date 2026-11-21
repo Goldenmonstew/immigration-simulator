@@ -276,6 +276,20 @@ describe('13.2 Graduate character and engine integration', () => {
     expect(graduateNextStep(applied)?.zhCN).toContain('下一季的工作日');
     expect(graduateNextStep(applied)?.en).toContain("next quarter's workday");
     expect(graduateNextStep(start)?.zhCN).not.toContain('下一季');
+    // review40-2: the CoS arrives from today's job search, so a salary talk
+    // waits for next quarter while the visa centre check is still open.
+    const low = offer(true);
+    expect(low.flags).toContain('graduate-cos-ready');
+    expect(low.day.done).toContain('graduate-job-search');
+    expect(graduateNextStep(low)?.zhCN).toContain('今天仍可在签证中心核对');
+    expect(graduateNextStep(low)?.en).toContain("next quarter's workday");
+    // review40-2: the switch note states the section 3C trigger and the
+    // Student switch conditions in both languages.
+    const note = graduate.graduateRoute!.salaryCheckNote;
+    expect(note.zhCN).toContain('s.3C(1)(c)、(2)(a)');
+    expect(note.en).toContain('s.3C(1)(c) and (2)(a)');
+    expect(note.zhCN).toContain('SW 1.5A 的条件 A、B、C 之一');
+    expect(note.en).toContain('one of Conditions A, B or C in SW 1.5A');
   });
 
   test('playtest #8: the offer check gives the verdicts before the premise', () => {

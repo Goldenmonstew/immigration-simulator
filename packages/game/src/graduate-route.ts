@@ -151,12 +151,16 @@ export function graduateNextStep(
                 zhCN: '求职进度：还没投递。下一步：工作日到公司投简历；Graduate 许可不能续签，到期前要递交转 Skilled Worker 的有效申请。',
                 en: 'Job search: nothing sent yet. Next: on a workday, apply for jobs at work; Graduate permission cannot be extended, so make a valid application to switch to Skilled Worker before it expires.',
               };
-  // Job search runs once a day and each quarter has one workday.
-  return !has('graduate-cos-ready') &&
-    state.day.done.includes('graduate-job-search')
+  // Job search (and a salary talk) runs once a day; each quarter has one
+  // workday, so after today's turn it waits for the next quarter.
+  if (!state.day.done.includes('graduate-job-search')) return next;
+  return has('graduate-cos-ready')
     ? {
+        zhCN: `${next.zhCN}今天仍可在签证中心核对；如需回公司重谈薪资，要等下一季的工作日。`,
+        en: `${next.en} You can still check the switch at the visa centre today; a salary talk at work has to wait for next quarter's workday.`,
+      }
+    : {
         zhCN: `${next.zhCN}今天已经跑过一次求职，下一季的工作日再去公司。`,
         en: `${next.en} Today's job search is done; go to work again on next quarter's workday.`,
-      }
-    : next;
+      };
 }
