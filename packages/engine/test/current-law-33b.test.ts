@@ -656,6 +656,23 @@ test('review33b-1 / task 53: a confirmed Option D or I is an ISL job (SW 4.2), a
     'UNKNOWN',
   );
   expect(afterRemoval.assumptions.join()).toContain('Please add the CoS date');
+  // review53-5: the removal day itself, Option I, and the Chinese hint.
+  const removalDayI = run(
+    clSwSalary,
+    {
+      episodes: [
+        permit({
+          validFrom: '2026-12-31',
+          socCode: '5235',
+          salary: 35000,
+          skilledWorkerSponsorshipException: 'OPTION_I',
+        }),
+      ],
+    },
+    '2027-06-01',
+  );
+  expect(removalDayI.status).toBe('UNKNOWN');
+  expect(removalDayI.assumptions?.join()).toContain('请填写 CoS 签发日');
   expect(
     run(
       clSwSalary,
