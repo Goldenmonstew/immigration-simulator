@@ -224,6 +224,20 @@ describe('subclass 186 TRT (186.221, 186.226, 186.227)', () => {
     ).toBe('2028-03-01');
   });
 
+  test('late arrival is reported as too little work, not trips', () => {
+    const p = pathway(
+      {
+        firstArrival: '2025-06-01',
+        visas: [{ subclass: '482', from: '2024-11-21', to: '2027-01-31' }],
+        sponsoredFullTime: true,
+      },
+      'AU-186-TRT',
+    );
+    expect(p.status).toBe('NOT_MET');
+    expect(p.summary).toContain('入境后');
+    expect(p.summary).not.toContain('出境');
+  });
+
   test('not confirming full-time sponsored work leaves it unknown', () => {
     const p = pathway(
       { visas: [{ subclass: '482', from: '2025-06-01' }] },
@@ -409,6 +423,61 @@ describe('Resident Return visa (155.212(2))', () => {
     expect(p.status).toBe('NOT_MET');
   });
 
+  test('leaving after the travel facility ends the visa, even for a day', () => {
+    expect(
+      pathway(
+        {
+          simulationDate: '2025-03-02',
+          firstArrival: '2019-01-01',
+          visas: [{ subclass: '189', from: '2019-01-01' }],
+          trips: [{ departed: '2025-03-01', returned: '2025-03-01' }],
+        },
+        'AU-RRV',
+      ).status,
+    ).toBe('NOT_APPLICABLE');
+  });
+
+  test('not entering before the travel facility runs out ends the visa', () => {
+    expect(
+      pathway(
+        {
+          firstArrival: '2024-06-01',
+          visas: [{ subclass: '189', from: '2019-01-01' }],
+        },
+        'AU-RRV',
+      ).status,
+    ).toBe('NOT_APPLICABLE');
+  });
+
+  test('a trip before the 5-year window still ends the visa', () => {
+    expect(
+      pathway(
+        {
+          simulationDate: '2023-07-01',
+          firstArrival: '2010-01-01',
+          visas: [{ subclass: '189', from: '2010-01-01' }],
+          trips: [{ departed: '2018-06-01', returned: '2018-06-15' }],
+        },
+        'AU-RRV',
+      ).status,
+    ).toBe('NOT_APPLICABLE');
+  });
+
+  test('days also on a bridging visa do not count (155.212(2)(b))', () => {
+    const p = pathway(
+      {
+        firstArrival: '2024-11-21',
+        visas: [
+          { subclass: '189', from: '2024-11-21' },
+          { subclass: 'bridging', from: '2026-11-11', to: '2026-11-20' },
+        ],
+      },
+      'AU-RRV',
+    );
+    expect(p.checks[0].text).toContain('720');
+    expect(p.status).toBe('FUTURE');
+  });
+
   test('no permanent visa', () => {
     expect(
       pathway({ visas: [{ subclass: '482', from: '2024-01-01' }] }, 'AU-RRV')
@@ -585,6 +654,33 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
       'AU-CITIZENSHIP',
     );
     expect(p.earliestDate).toBe('2026-07-02');
+  });
+
+  test('replacing a permanent visa on the departure day keeps residence', () => {
+    const request = {
+      simulationDate: '2025-07-02',
+      firstArrival: '2020-01-01',
+      visas: [
+        { subclass: '189' as const, from: '2020-01-01' },
+        { subclass: '155' as const, from: '2025-07-01' },
+      ],
+      trips: [{ departed: '2025-07-01', returned: '2025-07-15' }],
+    };
+    expect(pathway(request, 'AU-CITIZENSHIP').status).toBe('MET');
+  });
+
+  test('visas starting the same day follow the order entered', () => {
+    expect(
+      pathway(
+        {
+          visas: [
+            { subclass: '491', from: '2023-03-01' },
+            { subclass: '482', from: '2023-03-01' },
+          ],
+        },
+        'AU-191',
+      ).status,
+    ).toBe('NOT_APPLICABLE');
   });
 
   test('not yet arrived', () => {

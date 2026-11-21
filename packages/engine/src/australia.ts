@@ -187,37 +187,45 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     !!req.firstArrival && days.date(i) >= req.firstArrival;
   const present = (i: number) => arrived(i) && !away[i];
 
+  /** In Australia at the end of `d`, from the full trip history. */
+  const inAustraliaAtEnd = (d: IsoDate) =>
+    !!req.firstArrival &&
+    d >= req.firstArrival &&
+    !req.trips.some((trip) => trip.departed <= d && d < trip.returned);
+
   // Migration Act s82(2)–(3): a later substantive visa ends a substantive
-  // visa, and any later visa ends a bridging visa. s82(5)–(6): a permanent
-  // visa with a 5-year travel facility ends the first time you are away
-  // after the facility.
+  // visa, and any later visa ends a bridging visa (visas starting the same
+  // day are taken in the order entered).
   const sorted = [...req.visas].sort((a, b) => (a.from < b.from ? -1 : 1));
   const visas = sorted.map((x, n) => {
     const next = sorted
       .slice(n + 1)
-      .find(
-        (o) =>
-          o.from > x.from &&
-          (BRIDGING.has(x.subclass) || !BRIDGING.has(o.subclass)),
-      );
+      .find((o) => BRIDGING.has(x.subclass) || !BRIDGING.has(o.subclass));
     let to =
       next && (!x.to || next.from <= x.to) ? addDays(next.from, -1) : x.to;
+    // s82(5)–(6): a 5-year travel facility ends the visa if you are outside
+    // Australia when it runs out, or when you leave after it.
     if (FIVE_YEAR_FACILITY.has(x.subclass)) {
-      const from = Math.max(
-        0,
-        days.index(afterYears(x.from, v.travelFacilityYears.value)),
-      );
-      for (let i = from; i < days.count && (!to || days.date(i) <= to); i++)
-        if (away[i]) {
-          to = days.date(i - 1);
-          break;
-        }
+      const after = afterYears(x.from, v.travelFacilityYears.value);
+      const last = addDays(after, -1);
+      const left = req.trips
+        .map((trip) => trip.departed)
+        .filter((d) => d >= after)
+        .sort()[0];
+      const ends = !inAustraliaAtEnd(last) ? last : left;
+      if (ends && (!to || ends < to)) to = ends;
     }
-    return { ...x, to };
+    const continued =
+      !!next &&
+      PERMANENT.has(x.subclass) &&
+      PERMANENT.has(next.subclass) &&
+      to === addDays(next.from, -1);
+    return { ...x, to, continued };
   });
   const permanent = flags();
   // Held since before the day, so also before leaving that day.
   const permanentSince = flags();
+  const temporary = flags();
   const visa = flags();
   const trtVisa = flags();
   let lastSubstantive: AuSubclass | undefined;
@@ -226,7 +234,12 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     if (PERMANENT.has(x.subclass)) {
       days.mark(permanent, x.from, x.to);
       days.mark(permanentSince, addDays(x.from, 1), x.to);
-    }
+      // A permanent visa replaced by another carries into its first day.
+      if (x.continued && x.to) {
+        const next = addDays(x.to, 1);
+        days.mark(permanentSince, next, next);
+      }
+    } else days.mark(temporary, x.from, x.to);
     // 186.226(1)(d): a bridging visa for a 457, 482, 186 or 187 application
     // counts when the last substantive visa was a 457 or 482.
     if (
@@ -251,7 +264,8 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     else resident[i] = permanent[i] && leftAsResident;
   }
   const sums = {
-    rrv: days.sums((i) => permanentAllDay(i) && present(i)),
+    // 155.212(2)(b): days also on a temporary or bridging visa do not count.
+    rrv: days.sums((i) => permanentAllDay(i) && !temporary[i] && present(i)),
     unlawful: days.sums((i) => present(i) && !visa[i]),
     notResident: days.sums((i) => !resident[i]),
     away: days.sums((i) => away[i]),
@@ -447,13 +461,13 @@ export function evaluateAustralia(req: AuRequest): AuResult {
           )
         : !reached
           ? L(
-              `持签条件在 ${visaReached} 满足，但按录入的出境记录，3 年内在澳全职受雇达不到 2 年。`,
-              `The visa requirements are met on ${visaReached}, but with the trips entered you will not have 2 years of full-time work in Australia within 3 years.`,
+              `持签条件在 ${visaReached} 满足，但入境后在澳全职受雇，3 年内达不到 2 年。`,
+              `The visa requirements are met on ${visaReached}, but you will not have 2 years of full-time work in Australia after arriving within 3 years.`,
             )
           : !earliest
             ? L(
-                `满足持签条件的日期 ${reached} 已满 45 岁（${birthday45}）；只有文书列明的豁免类别可以申请。`,
-                `You meet the visa requirements on ${reached}, after turning 45 on ${birthday45}; only exempt classes in a legislative instrument can apply.`,
+                `时间条件到 ${reached} 才满足，届时已满 45 岁（${birthday45}）；只有文书列明的豁免类别可以申请。`,
+                `The time requirements are only met on ${reached}, after you turn 45 on ${birthday45}; only exempt classes in a legislative instrument can apply.`,
               )
             : !work
               ? L(
@@ -484,7 +498,10 @@ export function evaluateAustralia(req: AuRequest): AuResult {
               `${held.days} days on a 457/482 (or related bridging) visa in the past 3 years (2 continuous years, or ${longest} days in separate periods)`,
             ),
             met: held.met,
-            sources: v.trtHeldYears.sources,
+            sources: [
+              ...v.trtHeldYears.sources,
+              { srcId: 'SRC-069', locator: 's82(2)–(3)' },
+            ],
           },
           {
             text: work
@@ -702,14 +719,17 @@ export function evaluateAustralia(req: AuRequest): AuResult {
               `${inAustralia(sim)} days in Australia as a permanent visa holder in the past 5 years (730 needed)`,
             ),
             met: inAustralia(sim) >= v.rrvPresenceDays.value,
-            sources: v.rrvPresenceDays.sources,
+            sources: [
+              ...v.rrvPresenceDays.sources,
+              { srcId: 'SRC-069', locator: 's82(2)–(6)' },
+            ],
           },
         ],
         notChecked,
         assumptions: [
           L(
-            '入境日与出境日都计为在澳（SRC-066）。录入的临时签证在永久签证生效时已终止（s82(2)），不会与永久签证并持（155.212(2)(b)）。',
-            'Arrival and departure days both count as days in Australia (SRC-066). A temporary visa you entered ends when a permanent visa comes into effect (s82(2)), so it is never held alongside one (155.212(2)(b)).',
+            '入境日与出境日都计为在澳（SRC-066）。同时持有 bridging visa 等临时签证的日子不计（155.212(2)(b)）；较早的临时实质签证在永久签证生效时已终止（s82(2)）。',
+            'Arrival and departure days both count as days in Australia (SRC-066). Days when you also held a bridging or other temporary visa do not count (155.212(2)(b)); an earlier temporary substantive visa ends when a permanent visa comes into effect (s82(2)).',
           ),
           projection,
         ],
@@ -855,6 +875,7 @@ export function evaluateAustralia(req: AuRequest): AuResult {
               ...v.citizenshipPermanentMonths.sources,
               { srcId: 'SRC-061', locator: 's5(1)' },
               { srcId: 'SRC-061', locator: 's21(2)(b)(i)' },
+              { srcId: 'SRC-069', locator: 's82(2)–(6)' },
             ],
           },
           {
