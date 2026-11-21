@@ -7,6 +7,7 @@ This is an educational simulator, not advice. We would like a regulated adviser 
 How to read a result:
 - **Outcome** is the simulator’s overall view for that rule set. Outcomes used in this packet: INSUFFICIENT_INFORMATION, LIKELY_ELIGIBLE, LIKELY_NOT_ELIGIBLE, POTENTIALLY_ELIGIBLE, REQUIRES_REGULATED_REVIEW.
 - **Pathway** is the qualifying period the simulator thinks applies. **Earliest date** is the application date itself when the person already qualifies; otherwise it is the first later date the simulator projects for that pathway, assuming nothing else changes.
+- **Conditional completion** is when the selected reform pathway would reach its residence period under the stated assumptions. **Public funds reassessment from** is the first day the recorded use falls outside the lookback, assuming no further counted use.
 - **Decisive rules** are the checks the outcome rests on. Every failing or unknown check is then listed in full, except when the person is likely eligible: the failures left are other pathways not taken, listed by id only. Each check cites the source register id (SRC-xxx) and paragraph.
 - The Earned Settlement column models policy announced on 2 November 2026 (CP 1707). It is **not law yet**; please only flag it where it misreads the published policy.
 
@@ -36,9 +37,9 @@ How to read a result:
 | [G-SW-AGED-66-NO-ENGLISH](#g-sw-aged-66-no-english) | Skilled Worker aged 66 on the application date, no English test or Life in the UK test | LIKELY_ELIGIBLE, 5y, 2026-06-01 | LIKELY_ELIGIBLE, 5y, 2026-06-01 |
 | [G-CRIMINAL-RECORD](#g-criminal-record) | Same Skilled Worker with a criminal conviction in 2024 | REQUIRES_REGULATED_REVIEW | REQUIRES_REGULATED_REVIEW |
 | [G-OVERSTAY-BREACH](#g-overstay-breach) | Same Skilled Worker who overstayed for a period in 2020 before the current permission | LIKELY_ELIGIBLE, 5y, 2026-06-01 | LIKELY_NOT_ELIGIBLE, 20y, 2041-06-01 |
-| [G-UNIVERSAL-CREDIT](#g-universal-credit) | Same Skilled Worker who received Universal Credit for 8 months in 2023 | LIKELY_ELIGIBLE, 5y, 2026-06-01 | LIKELY_NOT_ELIGIBLE, 20y, 2041-06-01 |
+| [G-UNIVERSAL-CREDIT](#g-universal-credit) | Same Skilled Worker who received Universal Credit for 8 months in 2023 | LIKELY_ELIGIBLE, 5y, 2026-06-01 | LIKELY_NOT_ELIGIBLE, 20y, conditional completion 2041-06-01, public funds reassessment from 2028-11-01 |
 | [ES-OFFICIAL-INDIVIDUAL-C](#es-official-individual-c) | Individual C: combined household income | LIKELY_ELIGIBLE, 10y, 2026-11-04 | LIKELY_ELIGIBLE, 10y, 2026-11-04 |
-| [ES-OFFICIAL-INDIVIDUAL-D](#es-official-individual-d) | Individual D: accessed public funds | LIKELY_ELIGIBLE, 10y, 2026-11-04 | LIKELY_NOT_ELIGIBLE, 20y, 2035-06-01 |
+| [ES-OFFICIAL-INDIVIDUAL-D](#es-official-individual-d) | Individual D: accessed public funds | LIKELY_ELIGIBLE, 10y, 2026-11-04 | LIKELY_NOT_ELIGIBLE, 20y, conditional completion 2035-06-01, public funds reassessment from 2028-10-01 |
 | [ES-OFFICIAL-P16-MATERNITY-BEST-YEARS](#es-official-p16-maternity-best-years) | Maternity leave: five qualifying earnings years out of seven | LIKELY_ELIGIBLE, 10y, 2026-04-06 | LIKELY_ELIGIBLE, 10y, 2026-04-06 |
 | [ES-OFFICIAL-P19-INDIVIDUAL-A](#es-official-p19-individual-a) | Individual A: social worker on the public-service pathway | INSUFFICIENT_INFORMATION | LIKELY_ELIGIBLE, 5y, 2026-11-04 |
 | [ES-OFFICIAL-P19-INDIVIDUAL-B](#es-official-p19-individual-b) | Individual B: spouse of a British citizen | INSUFFICIENT_INFORMATION | LIKELY_ELIGIBLE, 5y, 2026-11-04 |
@@ -126,6 +127,10 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
+Failing or unknown checks:
+
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
+
 Other pathways not taken: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
@@ -201,6 +206,7 @@ Failing or unknown checks:
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -280,6 +286,7 @@ Failing or unknown checks:
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -340,6 +347,7 @@ Failing or unknown checks:
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -401,6 +409,7 @@ Failing or unknown checks:
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -457,6 +466,7 @@ Failing or unknown checks:
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -531,6 +541,7 @@ Failing or unknown checks:
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -608,6 +619,7 @@ Failing or unknown checks:
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -670,6 +682,10 @@ Decisive rules:
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **PASS**. Entered the care worker route on 2021-09-01, before the cut-off of 2025-05-12, with a salary of £25,000 that reaches £25,000: the 5-year qualifying period is retained. The strengthened minimum requirements, such as criminality and B2 English, still apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 
+Failing or unknown checks:
+
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
+
 Other pathways not taken: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
@@ -680,7 +696,7 @@ Assumptions:
 - “No government debt” is based on what the user declared; the response does not say whether debt other than asylum support debt that is being repaid under a repayment plan meets the requirement (PD-018).
 - Earnings are gross earnings per UK tax year; the window is the complete tax years before the tax year of the application date, and every year is compared with the current thresholds (PD-005 / PD-006 / PD-007).
 - Minimum earnings are calculated as “5 of the 7 years before applying”, as in p16 and Table 1; p15 also says “at least 3 years” (PD-041).
-- The cut-off is taken as the Immigration White Paper publication date, 2025-05-12 (PD-035); “entered or switched into the route” is judged by the start of the current continuous care worker permission, and the occupation by SOC 2020 6135 / 6136 (PD-036).
+- The cut-off is the Immigration White Paper publication date, 2025-05-12 (PD-035). For continuous care worker permission that started before the cut-off, the start date is used as a proxy for route entry, with occupation identified by SOC 2020 6135 / 6136 (PD-036).
 - The transitional arrangements also require the sponsorship and employment requirements to be met (p42); this tool does not check them.
 
 > **Reviewer:** ☐ Agree ☐ Disagree — expected outcome: ________ — deciding paragraph: ________
@@ -753,6 +769,7 @@ Failing or unknown checks:
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -827,6 +844,7 @@ Failing or unknown checks:
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -1143,6 +1161,7 @@ Failing or unknown checks:
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -1415,6 +1434,10 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
+Failing or unknown checks:
+
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
+
 Other pathways not taken: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
@@ -1441,7 +1464,7 @@ Application date: 2026-06-01.
 - criminalRecord: date 2024-02-01.
 - governmentDebt: outstanding false.
 
-**Short circuit — CRIMINALITY:** A criminal record has been declared. Under Earned Settlement any criminal record as an adult leads to refusal of settlement; under the current rules the outcome depends on the circumstances under Part Suitability. This tool does not reach a conclusion: please seek advice from a regulated immigration adviser.
+**Short circuit — CRIMINALITY:** A criminal record has been declared. Under the announced general Earned Settlement standard, an adult criminal record in the UK leads to refusal. Overseas convictions depend on whether the conduct is also an offence in the UK, with discretion for differences between legal systems. Offences committed as a minor can also be considered on a discretionary basis (SRC-001 p12, PD-017). Under the current rules, the outcome depends on the circumstances under Part Suitability. Please seek advice from a regulated immigration adviser.
 
 ### Current Immigration Rules
 
@@ -1467,12 +1490,13 @@ Outcome **REQUIRES_REGULATED_REVIEW**; route group CORE_PERMISSION.
 
 Failing or unknown checks:
 
-- `ES-CRIMINALITY` No criminal record — **FAIL**. 1 criminal record(s) declared, including at least one as an adult. Under Earned Settlement any criminal record of an adult applicant in the UK (including sentences, fines, community sentences and some out-of-court disposals) leads to refusal of settlement; overseas convictions may also lead to refusal. This needs a regulated adviser’s assessment. _(SRC-001 p12)_
+- `ES-CRIMINALITY` No criminal record — **UNKNOWN**. An adult criminal record was declared. The jurisdiction and whether the conduct behind any overseas conviction is an offence in the UK are unknown and need a regulated adviser’s assessment. _(SRC-001 p12)_
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -1542,10 +1566,11 @@ Failing or unknown checks:
 
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2022-23 to 2025-26; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
-- `ES-BREACH` No qualifying immigration breach as an adult — **FAIL**. Qualifying immigration breach as an adult (Overstaying): the 20-year pathway applies however high the earnings. _(SRC-001 p13)_
+- `ES-BREACH` No qualifying immigration breach as an adult — **FAIL**. Qualifying immigration breach as an adult (Overstaying). Assuming pre-implementation breaches count, the 20-year pathway applies however high the earnings. _(SRC-001 p13)_
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -1554,6 +1579,7 @@ Assumptions:
 - “No government debt” is based on what the user declared; the response does not say whether debt other than asylum support debt that is being repaid under a repayment plan meets the requirement (PD-018).
 - Earnings are gross earnings per UK tax year; the window is the complete tax years before the tax year of the application date, and every year is compared with the current thresholds (PD-005 / PD-006 / PD-007).
 - Minimum earnings are calculated as “5 of the 7 years before applying”, as in p16 and Table 1; p15 also says “at least 3 years” (PD-041).
+- The scenario applies the rules as at the decision date and assumes breaches before implementation are counted under the new rules. Retroactive treatment remains unsettled (SRC-001 p41, SRC-037 answer paragraph 2, PD-004).
 - The 20 years count continuous residence on a qualifying route; breaches do not expire (PD-016).
 - The earliest application date is projected on the basis that residence continues from 2021-06-01, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
@@ -1600,7 +1626,9 @@ Assumptions:
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
-Outcome **LIKELY_NOT_ELIGIBLE**; pathway 20 years; earliest date 2041-06-01; route group CORE_PERMISSION.
+Outcome **LIKELY_NOT_ELIGIBLE**; pathway 20 years; route group CORE_PERMISSION.
+Conditional completion: 2041-06-01.
+Public funds reassessment from 2028-11-01, if no further counted use.
 
 Decisive rules:
 
@@ -1621,18 +1649,21 @@ Failing or unknown checks:
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
 - Earned Settlement has been announced but is not yet in force; it is assessed as if it applied on the date of application. The rules are based on the government response (SRC-001), not on Immigration Rules in force (PD-001). The first rule changes are expected to be laid from December 2026 and take effect in January 2027, with further changes in 2027–2028 (SRC-002 col 593; SRC-003 cols 1423–1424); the actual dates will be set by the Statements of Changes (PD-003).
 - Continuous Skilled Worker permission since 2021-06-01, before 2024-04-04, so in the “pre-April 2024 cohort”: permission can be extended under the existing salary requirements until 2035 (p44; exact dates not set, PD-040). This tool calculates the settlement pathway under the standard pathways.
+- The scenario applies the rules as at the decision date and assumes public funds received before implementation count in the lookback. Retroactive treatment remains unsettled (SRC-001 p41, SRC-037 answer paragraph 2, PD-004).
+- On the assumption that residence continues from 2021-06-01 and the remaining requirements are met then, the selected 20-year pathway completes on 2041-06-01.
+- If no further counted public funds are received, shorter pathways can be reassessed from 2028-11-01.
 - “No government debt” is based on what the user declared; the response does not say whether debt other than asylum support debt that is being repaid under a repayment plan meets the requirement (PD-018).
 - Earnings are gross earnings per UK tax year; the window is the complete tax years before the tax year of the application date, and every year is compared with the current thresholds (PD-005 / PD-006 / PD-007).
 - Minimum earnings are calculated as “5 of the 7 years before applying”, as in p16 and Table 1; p15 also says “at least 3 years” (PD-041).
 - Specified public funds are judged by the current public funds definition (SRC-006) for now; the government will set the scope, and protections or exemptions for vulnerable groups, separately (PD-013).
 - Only benefits received by the applicant are counted; the response does not say whether benefits received by a partner or child affect the applicant (PD-014).
 - The lookback is “the 5 years immediately before applying”, as in the main text, and that time need not all be on a qualifying route (PD-047).
-- The earliest application date is projected on the basis that residence continues from 2021-06-01, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 > **Reviewer:** ☐ Agree ☐ Disagree — expected outcome: ________ — deciding paragraph: ________
 
@@ -1744,7 +1775,9 @@ Assumptions:
 
 ### Earned Settlement (announced in CP 1707, not yet in force)
 
-Outcome **LIKELY_NOT_ELIGIBLE**; pathway 20 years; earliest date 2035-06-01; route group FAMILY_AND_PRIVATE_LIFE.
+Outcome **LIKELY_NOT_ELIGIBLE**; pathway 20 years; route group FAMILY_AND_PRIVATE_LIFE.
+Conditional completion: 2035-06-01.
+Public funds reassessment from 2028-10-01, if no further counted use.
 
 Decisive rules:
 
@@ -1770,13 +1803,15 @@ Failing or unknown checks:
 Assumptions:
 
 - Earned Settlement has been announced but is not yet in force; it is assessed as if it applied on the date of application. The rules are based on the government response (SRC-001), not on Immigration Rules in force (PD-001). The first rule changes are expected to be laid from December 2026 and take effect in January 2027, with further changes in 2027–2028 (SRC-002 col 593; SRC-003 cols 1423–1424); the actual dates will be set by the Statements of Changes (PD-003).
+- The scenario applies the rules as at the decision date and assumes public funds received before implementation count in the lookback. Retroactive treatment remains unsettled (SRC-001 p41, SRC-037 answer paragraph 2, PD-004).
+- On the assumption that residence continues from 2015-06-01 and the remaining requirements are met then, the selected 20-year pathway completes on 2035-06-01.
+- If no further counted public funds are received, shorter pathways can be reassessed from 2028-10-01.
 - “No government debt” is based on what the user declared; the response does not say whether debt other than asylum support debt that is being repaid under a repayment plan meets the requirement (PD-018).
 - Earnings are gross earnings per UK tax year; the window is the complete tax years before the tax year of the application date, and every year is compared with the current thresholds (PD-005 / PD-006 / PD-007).
 - Minimum earnings are calculated as “5 of the 7 years before applying”, as in p16 and Table 1; p15 also says “at least 3 years” (PD-041).
 - Specified public funds are judged by the current public funds definition (SRC-006) for now; the government will set the scope, and protections or exemptions for vulnerable groups, separately (PD-013).
 - Only benefits received by the applicant are counted; the response does not say whether benefits received by a partner or child affect the applicant (PD-014).
 - The lookback is “the 5 years immediately before applying”, as in the main text, and that time need not all be on a qualifying route (PD-047).
-- The earliest application date is projected on the basis that residence continues from 2015-06-01, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 > **Reviewer:** ☐ Agree ☐ Disagree — expected outcome: ________ — deciding paragraph: ________
 
@@ -1893,6 +1928,10 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **PASS**. In an Annex C public service occupation (Social workers) continuously since 2021-04-06: 5 years completed. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+
+Failing or unknown checks:
+
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Other pathways not taken: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`.
 
@@ -2089,7 +2128,13 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways not taken: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Failing or unknown checks:
+
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **UNKNOWN**. Provide the SOC 2020 code of the current sponsored job to assess the care worker transitional arrangement. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **UNKNOWN**. Provide the SOC 2020 code of the current sponsored job to assess the health or education transitional arrangement. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
+
+Other pathways not taken: `ES-EARNINGS-3Y`, `ES-BRITISH-CONNECTION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -2701,6 +2746,10 @@ Decisive rules:
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **PASS**. Entered the care worker route on 2023-04-06, before the cut-off of 2025-05-12, with a salary of £30,000 that reaches £25,000: the 5-year qualifying period is retained. The strengthened minimum requirements, such as criminality and B2 English, still apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 
+Failing or unknown checks:
+
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
+
 Other pathways not taken: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
@@ -2711,7 +2760,7 @@ Assumptions:
 - “No government debt” is based on what the user declared; the response does not say whether debt other than asylum support debt that is being repaid under a repayment plan meets the requirement (PD-018).
 - Earnings are gross earnings per UK tax year; the window is the complete tax years before the tax year of the application date, and every year is compared with the current thresholds (PD-005 / PD-006 / PD-007).
 - Minimum earnings are calculated as “5 of the 7 years before applying”, as in p16 and Table 1; p15 also says “at least 3 years” (PD-041).
-- The cut-off is taken as the Immigration White Paper publication date, 2025-05-12 (PD-035); “entered or switched into the route” is judged by the start of the current continuous care worker permission, and the occupation by SOC 2020 6135 / 6136 (PD-036).
+- The cut-off is the Immigration White Paper publication date, 2025-05-12 (PD-035). For continuous care worker permission that started before the cut-off, the start date is used as a proxy for route entry, with occupation identified by SOC 2020 6135 / 6136 (PD-036).
 - The transitional arrangements also require the sponsorship and employment requirements to be met (p42); this tool does not check them.
 
 > **Reviewer:** ☐ Agree ☐ Disagree — expected outcome: ________ — deciding paragraph: ________
@@ -2778,9 +2827,10 @@ Failing or unknown checks:
 - `ES-EARNINGS-3Y` 3-year pathway earnings: £125,141 in 3 of 4 years — **FAIL**. Earnings reached £125,141 in 0 of the 4 tax years 2024-25 to 2027-28; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-EARNINGS-5Y` 5-year pathway earnings: £50,271 in 3 of 5 years — **FAIL**. Earnings reached £50,271 in 0 of the 5 tax years 2023-24 to 2027-28; 3 needed. _(SRC-001 p15; SRC-001 p16; SRC-001 p46)_
 - `ES-BRITISH-CONNECTION` British connection (5-year pathway) — **FAIL**. Not on a British citizen family route or UK Ancestry, so this 5-year pathway does not apply. _(SRC-001 p18)_
-- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. Salary of £20,000 is below the £25,000 the transitional arrangements require, so settlement on this basis is not possible after 5 years; a further 5-year Health and Care visa can be applied for once, before applying for settlement. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. Salary of £20,000 is below the £25,000 required, so settlement on this basis is unavailable after 5 years. A further 5-year Health and Care visa can be applied for once, only for genuine work in the sector, before applying again for settlement (p43; p45 Individual B). _(SRC-001 p42–p43, Care workers; p45, Individual B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -2789,7 +2839,7 @@ Assumptions:
 - “No government debt” is based on what the user declared; the response does not say whether debt other than asylum support debt that is being repaid under a repayment plan meets the requirement (PD-018).
 - Earnings are gross earnings per UK tax year; the window is the complete tax years before the tax year of the application date, and every year is compared with the current thresholds (PD-005 / PD-006 / PD-007).
 - Minimum earnings are calculated as “5 of the 7 years before applying”, as in p16 and Table 1; p15 also says “at least 3 years” (PD-041).
-- The cut-off is taken as the Immigration White Paper publication date, 2025-05-12 (PD-035); “entered or switched into the route” is judged by the start of the current continuous care worker permission, and the occupation by SOC 2020 6135 / 6136 (PD-036).
+- The cut-off is the Immigration White Paper publication date, 2025-05-12 (PD-035). For continuous care worker permission that started before the cut-off, the start date is used as a proxy for route entry, with occupation identified by SOC 2020 6135 / 6136 (PD-036).
 - The earliest application date is projected on the basis that residence continues from 2023-04-06, earnings and other circumstances stay the same, and the other requirements are still met then; it is not a guarantee about the future.
 
 > **Reviewer:** ☐ Agree ☐ Disagree — expected outcome: ________ — deciding paragraph: ________
@@ -2853,7 +2903,12 @@ Decisive rules:
 - `ES-BREACH` No qualifying immigration breach as an adult — **PASS**. No qualifying immigration breach as an adult. _(SRC-001 p13)_
 - `ES-ASYLUM-SUPPORT` Asylum support repaid or repayment plan kept up — **PASS**. Repayment of asylum support not declared; treated as no asylum support received (anyone who received asylum support and must repay it needs to have repaid it in full, or be keeping up with an agreed repayment plan, before settlement; p8 note 1). _(SRC-001 p8; SRC-001 p39; SRC-001 p47)_
 
-Other pathways not taken: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-CARE-WORKER`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
+Failing or unknown checks:
+
+- `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **UNKNOWN**. Care worker permission starts on 2025-06-06, on or after the 2025-05-12 cut-off. That date alone cannot rule out an application before the cut-off. Which date governs across the cut-off (application, grant or arrival) remains unsettled. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
+
+Other pathways not taken: `ES-EARNINGS-3Y`, `ES-EARNINGS-5Y`, `ES-BRITISH-CONNECTION`, `ES-TRANSITIONAL-HEALTH-EDUCATION`, `ES-PUBLIC-SERVICE`.
 
 Assumptions:
 
@@ -2862,7 +2917,7 @@ Assumptions:
 - The earlier time on Graduate does not count towards settlement; this tool assumes that time on a non-counting route also breaks continuous residence, rather than only being deducted from the qualifying period (PD-053).
 - Earnings are gross earnings per UK tax year; the window is the complete tax years before the tax year of the application date, and every year is compared with the current thresholds (PD-005 / PD-006 / PD-007).
 - Minimum earnings are calculated as “5 of the 7 years before applying”, as in p16 and Table 1; p15 also says “at least 3 years” (PD-041).
-- The cut-off is taken as the Immigration White Paper publication date, 2025-05-12 (PD-035); “entered or switched into the route” is judged by the start of the current continuous care worker permission, and the occupation by SOC 2020 6135 / 6136 (PD-036).
+- The cut-off is the Immigration White Paper publication date, 2025-05-12 (PD-035). For continuous care worker permission that started before the cut-off, the start date is used as a proxy for route entry, with occupation identified by SOC 2020 6135 / 6136 (PD-036).
 
 > **Reviewer:** ☐ Agree ☐ Disagree — expected outcome: ________ — deciding paragraph: ________
 
@@ -2972,6 +3027,7 @@ Failing or unknown checks:
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -3208,6 +3264,7 @@ Failing or unknown checks:
 - `ES-TRANSITIONAL-CARE-WORKER` Care worker transitional arrangements (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa as a care worker (SOC 2020 6135 / 6136), so the care worker transitional arrangements do not apply. _(SRC-001 p42; SRC-001 p43; SRC-012 cover; SRC-001 p42; SRC-004 SW 6.1B)_
 - `ES-TRANSITIONAL-HEALTH-EDUCATION` Transitional arrangement for health / education jobs on national pay scales below RQF 6 (retain 5 years) — **FAIL**. The current permission is not a Skilled Worker visa in a health / education occupation on a national pay scale below RQF 6 (Appendix Skilled Occupations Table 3a), so this transitional arrangement does not apply. _(SRC-001 p44; SRC-001 p42; SRC-001 p46; SRC-012 cover; SRC-017 Table 3a)_
 - `ES-PUBLIC-SERVICE` 5 years in public service occupations (5-year pathway) — **FAIL**. The current job is not in the Annex C public service occupations list, so this 5-year pathway does not apply. _(SRC-001 p16; SRC-001 p46 fn 17; SRC-001 p58; SRC-001 p59; SRC-004 SW 16.1)_
+- `ES-HIGHEST-TALENT` Highest Talent Group eligibility — **UNKNOWN**. Table 1 lists the Highest Talent Group as a separate route to the three-year pathway. Eligibility is subject to review pending the MAC report, and holding a high talent permission alone does not establish eligibility. _(SRC-001 p23 note 10; p46 Table 1 note 16)_
 
 Assumptions:
 
@@ -3827,4 +3884,5 @@ Assumptions:
 - **SRC-027**: Immigration Rules: Appendix Innovator Founder（版本 2026-08-03，HC 259；主申请人 settlement 见 INNF 15.1–INNF 21.6，业务条件见 INNF 17.1–INNF 17.5） — https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-innovator-founder
 - **SRC-028**: Immigration Rules: Appendix Private Life（版本 2026-10-08，HC 584；主申请人 settlement 见 PL 11.1–PL 18.5，合格期分流见 PL 13.1–PL 14.4） — https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-private-life
 - **SRC-029**: Immigration Rules Part 8: family members（版本 2026-08-03，HC 259；child settlement 见 para 298–298A） — https://www.gov.uk/guidance/immigration-rules/immigration-rules-part-8-family-members
+- **SRC-037**: Written question 39721：现有在英者、过渡与影响评估 — https://questions-statements.parliament.uk/written-questions/detail/2026-11-02/39721
 - **SRC-057**: Home Office Continuous residence caseworker guidance，v10.0 — https://www.gov.uk/government/publications/continuous-residence-caseworker-guidance/continuous-residence-guidance-accessible-version

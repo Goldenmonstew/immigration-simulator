@@ -172,7 +172,7 @@
 | 1b | 属 BN(O)、Afghan、Legacy Safe and Legal、Windrush、Armed Forces | 现行安排（5 年 / 立即 / 确认身份 / 4 年） | 强化要求：p25；Afghan、Windrush 叠加 `UNKNOWN`；Legacy URS 英语 `UNKNOWN` | p25；p26 |
 | 1b | 属丧偶伴侣、UASC、LA care 儿童、在英长大青年、家暴受害者 | 现行安排（立即 / 5 年 / bespoke） | 强化要求"在适当情况下" → `UNKNOWN`（PD-027） | p26；p33–p35 |
 | 2a | care worker，截止点前进入 / 转入，满足 £25,000 + 担保 + 雇佣 + 强化最低要求 | 5 年 | 截止日来源（PD-035） | p42 |
-| 2a | 同上但不满足条件 | 不能 5 年定居；可再获 5 年 H&C 签证 | 之后年限按假设（PD-046） | p43 |
+| 2a | 同上但不满足条件 | 不能凭满 5 年定居；仅限该行业真实工作，可申请一次额外的 5 年 Health and Care 签证 | 之后定居年限待确认（PD-046） | p43；p45 案例 B |
 | 2b | RQF6 以下国家薪级医疗 / 教育，截止点前来英，满足签证要求 | 5 年 | 强化要求为假设；职业清单（PD-038） | p44 |
 | 2c | 2024-04 前 Skilled Worker | 可按旧条件续签至 2035 | 定居年限走标准路径 | p44 |
 | 3 | 以上均不命中 | 标准路径 3 / 5 / 10 / 20 年 | 见 `pending-details.md` 各条 | p16；p18；p46 |

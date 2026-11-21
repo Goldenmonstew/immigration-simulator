@@ -56,7 +56,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -118,7 +119,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -180,7 +182,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -219,7 +222,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -267,7 +271,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -306,7 +311,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -368,7 +374,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -428,7 +435,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -481,7 +489,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "PASS",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -543,7 +552,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -603,7 +613,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -859,7 +870,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -1075,7 +1087,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -1100,7 +1113,7 @@
         "outcome": "REQUIRES_REGULATED_REVIEW",
         "routeGroup": "CORE_PERMISSION",
         "rules": {
-          "ES-CRIMINALITY": "FAIL",
+          "ES-CRIMINALITY": "UNKNOWN PD-017",
           "ES-DEBT": "PASS",
           "ES-ENGLISH-B2": "PASS",
           "ES-KOL": "PASS",
@@ -1115,7 +1128,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -1175,7 +1189,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -1208,7 +1223,8 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "routeGroup": "CORE_PERMISSION",
         "pathwayYears": 20,
-        "earliestDate": "2041-06-01",
+        "pathwayCompletionDate": "2041-06-01",
+        "publicFundsReassessmentDate": "2028-11-01",
         "decidedBy": [
           "ES-CRIMINALITY",
           "ES-DEBT",
@@ -1235,7 +1251,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -1322,7 +1339,8 @@
         "outcome": "LIKELY_NOT_ELIGIBLE",
         "routeGroup": "FAMILY_AND_PRIVATE_LIFE",
         "pathwayYears": 20,
-        "earliestDate": "2035-06-01",
+        "pathwayCompletionDate": "2035-06-01",
+        "publicFundsReassessmentDate": "2028-10-01",
         "decidedBy": [
           "ES-CRIMINALITY",
           "ES-DEBT",
@@ -1460,7 +1478,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "PASS"
+          "ES-PUBLIC-SERVICE": "PASS",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -1614,9 +1633,10 @@
           "ES-PUBLIC-FUNDS": "PASS",
           "ES-BREACH": "PASS",
           "ES-ASYLUM-SUPPORT": "PASS",
-          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
-          "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-TRANSITIONAL-CARE-WORKER": "UNKNOWN",
+          "ES-TRANSITIONAL-HEALTH-EDUCATION": "UNKNOWN",
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -2071,7 +2091,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "PASS",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -2131,7 +2152,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -2189,9 +2211,10 @@
           "ES-PUBLIC-FUNDS": "PASS",
           "ES-BREACH": "PASS",
           "ES-ASYLUM-SUPPORT": "PASS",
-          "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
+          "ES-TRANSITIONAL-CARE-WORKER": "UNKNOWN PD-036",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -2279,7 +2302,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }
@@ -2459,7 +2483,8 @@
           "ES-ASYLUM-SUPPORT": "PASS",
           "ES-TRANSITIONAL-CARE-WORKER": "FAIL",
           "ES-TRANSITIONAL-HEALTH-EDUCATION": "FAIL",
-          "ES-PUBLIC-SERVICE": "FAIL"
+          "ES-PUBLIC-SERVICE": "FAIL",
+          "ES-HIGHEST-TALENT": "UNKNOWN PD-011"
         }
       }
     }

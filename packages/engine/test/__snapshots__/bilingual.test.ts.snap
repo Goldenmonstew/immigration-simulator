@@ -6095,6 +6095,21 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
           ],
           "status": "FAIL",
           "explanation": "当前工作不在 Annex C 公共服务职业表中，不走这条 5 年路径。"
+        },
+        {
+          "id": "ES-HIGHEST-TALENT",
+          "title": "Highest Talent Group 资格",
+          "sources": [
+            {
+              "srcId": "SRC-001",
+              "locator": "p23 note 10; p46 Table 1 note 16"
+            }
+          ],
+          "status": "UNKNOWN",
+          "explanation": "Table 1 将 Highest Talent Group 列为三年路径的独立入口。资格标准仍待 MAC 报告审查，持 high talent permission 本身不足以确认资格。",
+          "pendingDetails": [
+            "PD-011"
+          ]
         }
       ],
       "assumptions": [
@@ -6512,7 +6527,7 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
             }
           ],
           "status": "UNKNOWN",
-          "explanation": "当前路线\\"香港英国国民（海外）\\"不在 Earned Settlement 框架内，继续按该群体现有的定居安排；但强化的犯罪记录与 B2 英语要求仍适用，除非有现有豁免或保障。"
+          "explanation": "当前路线\\"香港英国国民（海外）\\"不在 Earned Settlement 框架内，继续按该群体现有的定居安排。强化的犯罪记录与 B2 英语要求仍适用，除非有现有豁免或保障。"
         },
         {
           "id": "ES-RESIDENCE",
@@ -6651,7 +6666,7 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
   },
   "shortCircuit": {
     "reason": "OUTSIDE_FRAMEWORK",
-    "message": "当前路线不在 Earned Settlement 框架内，继续按该群体现有的定居安排（SRC-001 p25–p26）；但强化的犯罪记录与 B2 英语要求仍适用，除非有现有豁免或保障。"
+    "message": "当前路线不在 Earned Settlement 框架内，继续按该群体现有的定居安排（SRC-001 p25–p26）。强化的犯罪记录与 B2 英语要求仍适用，除非有现有豁免或保障。"
   }
 }"
 `;
@@ -7053,7 +7068,7 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             }
           ],
           "status": "UNKNOWN",
-          "explanation": "当前路线\\"香港英国国民（海外）\\"不在 Earned Settlement 框架内，继续按该群体现有的定居安排；但强化的犯罪记录与 B2 英语要求仍适用，除非有现有豁免或保障。"
+          "explanation": "当前路线\\"香港英国国民（海外）\\"不在 Earned Settlement 框架内，继续按该群体现有的定居安排。强化的犯罪记录与 B2 英语要求仍适用，除非有现有豁免或保障。"
         },
         {
           "id": "ES-RESIDENCE",
@@ -7321,7 +7336,7 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
   },
   "shortCircuit": {
     "reason": "OUTSIDE_FRAMEWORK",
-    "message": "当前路线不在 Earned Settlement 框架内，继续按该群体现有的定居安排（SRC-001 p25–p26）；但强化的犯罪记录与 B2 英语要求仍适用，除非有现有豁免或保障。"
+    "message": "当前路线不在 Earned Settlement 框架内，继续按该群体现有的定居安排（SRC-001 p25–p26）。强化的犯罪记录与 B2 英语要求仍适用，除非有现有豁免或保障。"
   }
 }"
 `;
@@ -8001,6 +8016,21 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
           ],
           "status": "FAIL",
           "explanation": "当前工作不在 Annex C 公共服务职业表中，不走这条 5 年路径。"
+        },
+        {
+          "id": "ES-HIGHEST-TALENT",
+          "title": "Highest Talent Group 资格",
+          "sources": [
+            {
+              "srcId": "SRC-001",
+              "locator": "p23 note 10; p46 Table 1 note 16"
+            }
+          ],
+          "status": "UNKNOWN",
+          "explanation": "Table 1 将 Highest Talent Group 列为三年路径的独立入口。资格标准仍待 MAC 报告审查，持 high talent permission 本身不足以确认资格。",
+          "pendingDetails": [
+            "PD-011"
+          ]
         }
       ],
       "assumptions": [
@@ -10944,7 +10974,6 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
     "earned-settlement-2026-11": {
       "outcome": "LIKELY_NOT_ELIGIBLE",
       "pathwayYears": 20,
-      "earliestDate": "2035-06-01",
       "decidedBy": [
         "ES-CRIMINALITY",
         "ES-DEBT",
@@ -11298,14 +11327,18 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
       ],
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
+        "按决定日规则整体回看，假设实施前领取的 public funds 也纳入回看期；是否追溯仍待确认（SRC-001 p41、SRC-037 答复第 2 段、PD-004）。",
+        "按自 2015-06-01 起持续居留及其余要求届时满足的假设，所选 20 年路径于 2035-06-01 满期。",
+        "若不再领取所计入的 public funds，自 2028-10-01 起可按较短路径重新评估。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
         "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
         "specified public funds 先按现行 public funds 定义（SRC-006）判断；政府将另定纳入范围与弱势群体的保障或豁免（PD-013）。",
         "只计申请人本人领取的福利；伴侣或子女领取是否影响申请人，原文未说明（PD-014）。",
-        "回看期按正文\\"申请前紧接的 5 年\\"计算，不要求这段时间都在 qualifying route 上（PD-047）。",
-        "最早可申请日期按\\"自 2015-06-01 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
+        "回看期按正文\\"申请前紧接的 5 年\\"计算，不要求这段时间都在 qualifying route 上（PD-047）。"
       ],
+      "pathwayCompletionDate": "2035-06-01",
+      "publicFundsReassessmentDate": "2028-10-01",
       "routeGroup": "FAMILY_AND_PRIVATE_LIFE"
     }
   }
@@ -12745,6 +12778,21 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           ],
           "status": "PASS",
           "explanation": "自 2021-04-06 起连续从事 Annex C 公共服务职业（Social workers），已满 5 年。"
+        },
+        {
+          "id": "ES-HIGHEST-TALENT",
+          "title": "Highest Talent Group 资格",
+          "sources": [
+            {
+              "srcId": "SRC-001",
+              "locator": "p23 note 10; p46 Table 1 note 16"
+            }
+          ],
+          "status": "UNKNOWN",
+          "explanation": "Table 1 将 Highest Talent Group 列为三年路径的独立入口。资格标准仍待 MAC 报告审查，持 high talent permission 本身不足以确认资格。",
+          "pendingDetails": [
+            "PD-011"
+          ]
         }
       ],
       "assumptions": [
@@ -14706,8 +14754,8 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "SW 6.1B"
             }
           ],
-          "status": "FAIL",
-          "explanation": "当前不是 care worker（SOC 2020 6135 / 6136）的 Skilled Worker 签证，不适用 care worker 过渡安排。"
+          "status": "UNKNOWN",
+          "explanation": "请补充当前担保岗位的 SOC 2020 代码，以判断能否适用 care worker 过渡安排。"
         },
         {
           "id": "ES-TRANSITIONAL-HEALTH-EDUCATION",
@@ -14734,8 +14782,8 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "Table 3a"
             }
           ],
-          "status": "FAIL",
-          "explanation": "当前不是 RQF6 以下、国家薪级的医疗 / 教育职业（Appendix Skilled Occupations Table 3a）的 Skilled Worker 签证，不适用该过渡安排。"
+          "status": "UNKNOWN",
+          "explanation": "请补充当前担保岗位的 SOC 2020 代码，以判断能否适用医疗或教育岗位过渡安排。"
         },
         {
           "id": "ES-PUBLIC-SERVICE",
@@ -14764,6 +14812,21 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           ],
           "status": "FAIL",
           "explanation": "当前工作不在 Annex C 公共服务职业表中，不走这条 5 年路径。"
+        },
+        {
+          "id": "ES-HIGHEST-TALENT",
+          "title": "Highest Talent Group 资格",
+          "sources": [
+            {
+              "srcId": "SRC-001",
+              "locator": "p23 note 10; p46 Table 1 note 16"
+            }
+          ],
+          "status": "UNKNOWN",
+          "explanation": "Table 1 将 Highest Talent Group 列为三年路径的独立入口。资格标准仍待 MAC 报告审查，持 high talent permission 本身不足以确认资格。",
+          "pendingDetails": [
+            "PD-011"
+          ]
         }
       ],
       "assumptions": [
@@ -19944,7 +20007,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "status": "PASS",
           "explanation": "自 2023-04-06 起在截止点 2025-05-12 前进入 care worker 路线，薪资 £30,000 达到 £25,000，保留 5 年合格期；仍须满足犯罪记录、B2 英语等强化最低要求。",
           "assumptions": [
-            "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；\\"进入或转入该路线\\"按这段连续 care worker 许可的起始日判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。",
+            "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。",
             "过渡安排另要求满足担保与雇佣要求（p42），本工具未核实。"
           ]
         },
@@ -20003,6 +20066,21 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           ],
           "status": "FAIL",
           "explanation": "当前工作不在 Annex C 公共服务职业表中，不走这条 5 年路径。"
+        },
+        {
+          "id": "ES-HIGHEST-TALENT",
+          "title": "Highest Talent Group 资格",
+          "sources": [
+            {
+              "srcId": "SRC-001",
+              "locator": "p23 note 10; p46 Table 1 note 16"
+            }
+          ],
+          "status": "UNKNOWN",
+          "explanation": "Table 1 将 Highest Talent Group 列为三年路径的独立入口。资格标准仍待 MAC 报告审查，持 high talent permission 本身不足以确认资格。",
+          "pendingDetails": [
+            "PD-011"
+          ]
         }
       ],
       "assumptions": [
@@ -20012,7 +20090,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
         "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
-        "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；\\"进入或转入该路线\\"按这段连续 care worker 许可的起始日判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。",
+        "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。",
         "过渡安排另要求满足担保与雇佣要求（p42），本工具未核实。"
       ],
       "routeGroup": "CORE_PERMISSION"
@@ -20694,29 +20772,13 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p42"
-            },
-            {
-              "srcId": "SRC-001",
-              "locator": "p43"
-            },
-            {
-              "srcId": "SRC-012",
-              "locator": "cover"
-            },
-            {
-              "srcId": "SRC-001",
-              "locator": "p42"
-            },
-            {
-              "srcId": "SRC-004",
-              "locator": "SW 6.1B"
+              "locator": "p42–p43, Care workers; p45, Individual B"
             }
           ],
           "status": "FAIL",
-          "explanation": "薪资 £20,000 低于过渡安排要求的 £25,000，满 5 年时不能凭此定居；可再申请一次 5 年 Health and Care 签证，之后再申请定居。",
+          "explanation": "薪资 £20,000 低于过渡安排要求的 £25,000，满 5 年时不能凭此定居。仅限从事该行业真实工作，才可再申请一次 5 年 Health and Care 签证，之后可再申请定居（p43；p45 案例 B）。",
           "assumptions": [
-            "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；\\"进入或转入该路线\\"按这段连续 care worker 许可的起始日判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。"
+            "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。"
           ]
         },
         {
@@ -20774,6 +20836,21 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           ],
           "status": "FAIL",
           "explanation": "当前工作不在 Annex C 公共服务职业表中，不走这条 5 年路径。"
+        },
+        {
+          "id": "ES-HIGHEST-TALENT",
+          "title": "Highest Talent Group 资格",
+          "sources": [
+            {
+              "srcId": "SRC-001",
+              "locator": "p23 note 10; p46 Table 1 note 16"
+            }
+          ],
+          "status": "UNKNOWN",
+          "explanation": "Table 1 将 Highest Talent Group 列为三年路径的独立入口。资格标准仍待 MAC 报告审查，持 high talent permission 本身不足以确认资格。",
+          "pendingDetails": [
+            "PD-011"
+          ]
         }
       ],
       "assumptions": [
@@ -20782,7 +20859,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
         "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
-        "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；\\"进入或转入该路线\\"按这段连续 care worker 许可的起始日判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。",
+        "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。",
         "最早可申请日期按\\"自 2023-04-06 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ],
       "routeGroup": "CORE_PERMISSION"
@@ -21486,10 +21563,13 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "SW 6.1B"
             }
           ],
-          "status": "FAIL",
-          "explanation": "自 2025-06-06 起进入 care worker 路线，不早于 White Paper 发布日 2025-05-12，不适用过渡安排，走标准 Earned Settlement 路径。",
+          "status": "UNKNOWN",
+          "explanation": "care worker 许可从 2025-06-06 起，位于截止点 2025-05-12 当日或之后。仅凭许可日期无法排除在截止前申请；跨截止点时以申请、获批还是入境日为准仍待公布。",
+          "pendingDetails": [
+            "PD-036"
+          ],
           "assumptions": [
-            "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；\\"进入或转入该路线\\"按这段连续 care worker 许可的起始日判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。"
+            "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。"
           ]
         },
         {
@@ -21547,6 +21627,21 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           ],
           "status": "FAIL",
           "explanation": "当前工作不在 Annex C 公共服务职业表中，不走这条 5 年路径。"
+        },
+        {
+          "id": "ES-HIGHEST-TALENT",
+          "title": "Highest Talent Group 资格",
+          "sources": [
+            {
+              "srcId": "SRC-001",
+              "locator": "p23 note 10; p46 Table 1 note 16"
+            }
+          ],
+          "status": "UNKNOWN",
+          "explanation": "Table 1 将 Highest Talent Group 列为三年路径的独立入口。资格标准仍待 MAC 报告审查，持 high talent permission 本身不足以确认资格。",
+          "pendingDetails": [
+            "PD-011"
+          ]
         }
       ],
       "assumptions": [
@@ -21555,7 +21650,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
         "此前在\\"毕业生\\"路线的时间不计入定居；本工具假设不计入路线的时间同时打断连续居留，而不只是从合格期中扣除（PD-053）。",
         "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
-        "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；\\"进入或转入该路线\\"按这段连续 care worker 许可的起始日判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。"
+        "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。"
       ],
       "routeGroup": "CORE_PERMISSION"
     }

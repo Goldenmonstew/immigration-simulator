@@ -209,6 +209,7 @@ export interface Relationship {
 export type EnglishEvidence = { cefrLevel: CefrLevel } | { exempt: true };
 
 export interface CriminalEvent {
+  /** Date of the offence. The current input does not identify the jurisdiction. */
   date: IsoDate;
 }
 
@@ -229,6 +230,7 @@ export interface ImmigrationBreach {
 }
 
 export interface GovernmentDebt {
+  /** A declaration of outstanding debt, without the category or repayment status. */
   outstanding: boolean;
 }
 
@@ -341,6 +343,10 @@ export interface SettlementAssessment {
   routeGroup?: RouteGroup;
   pathwayYears?: number;
   earliestDate?: IsoDate;
+  /** Earned Settlement only: future completion of the selected conditional pathway. */
+  pathwayCompletionDate?: IsoDate;
+  /** Earned Settlement only: first day out of the current public funds lookback, if no further use. */
+  publicFundsReassessmentDate?: IsoDate;
   /**
    * The rules of the candidate pathway the outcome rests on, in `rules`
    * order (contracts §16.1). Present exactly when `pathwayYears` is.

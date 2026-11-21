@@ -40,6 +40,9 @@ interface DependantSettlement {
   routeGroup?: RouteGroup;
   /** Set when the principal is only potentially eligible. */
   pendingDetails: string[];
+  /** The principal's date is only a conditional completion (A6#7). */
+  conditional: boolean;
+  publicFundsReassessmentDate?: IsoDate;
 }
 
 /**
@@ -82,6 +85,10 @@ export function esDependantSettlement(
       assessment.outcome === 'POTENTIALLY_ELIGIBLE'
         ? pendingOf(assessment)
         : [],
+    conditional: assessment.pathwayCompletionDate !== undefined,
+    ...(assessment.publicFundsReassessmentDate && {
+      publicFundsReassessmentDate: assessment.publicFundsReassessmentDate,
+    }),
   };
 }
 

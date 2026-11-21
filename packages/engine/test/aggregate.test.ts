@@ -66,7 +66,7 @@ describe('Earned Settlement pathway', () => {
     );
   });
 
-  test('public funds leave only the 20-year pathway', () => {
+  test('A6#7 and A6#8 stopped public funds give a conditional completion and a reassessment date', () => {
     const a = es({
       benefits: [
         {
@@ -79,8 +79,104 @@ describe('Earned Settlement pathway', () => {
     expect(a).toMatchObject({
       outcome: 'LIKELY_NOT_ELIGIBLE',
       pathwayYears: 20,
-      earliestDate: '2039-11-01',
+      pathwayCompletionDate: '2039-11-01',
+      publicFundsReassessmentDate: '2029-04-01',
     });
+    expect(a.earliestDate).toBeUndefined();
+    expect(a.assumptions.join('')).toMatch(/实施前领取.*PD-004/);
+  });
+
+  test('A6#7 G-UNIVERSAL-CREDIT can meet five years as soon as the lookback clears', () => {
+    const applicant = timeline({
+      episodes: [sw('2021-06-01')],
+      incomeYears: [
+        ...timeline().incomeYears,
+        { taxYear: '2026-27', earnings: 52000 },
+        { taxYear: '2027-28', earnings: 52000 },
+      ],
+      benefits: [
+        {
+          benefitType: 'UNIVERSAL_CREDIT',
+          from: '2023-01-01',
+          to: '2023-10-31',
+        },
+      ],
+    });
+    const assess = (simulationDate: string) =>
+      evaluate({
+        timeline: applicant,
+        simulationDate,
+      }).byRuleSet['earned-settlement-2026-11']!;
+    const before = assess('2028-10-31');
+    expect(before).toMatchObject({
+      pathwayYears: 20,
+      pathwayCompletionDate: '2041-06-01',
+      publicFundsReassessmentDate: '2028-11-01',
+    });
+    expect(before.earliestDate).toBeUndefined();
+    const after = assess('2028-11-01');
+    expect(after).toMatchObject({
+      outcome: 'LIKELY_ELIGIBLE',
+      pathwayYears: 5,
+      earliestDate: '2028-11-01',
+    });
+    expect(after.publicFundsReassessmentDate).toBeUndefined();
+  });
+
+  test('review33d-1 #1 a partner follows the principal’s conditional completion and reassessment', () => {
+    const principal = timeline({
+      episodes: [sw('2021-06-01')],
+      benefits: [
+        {
+          benefitType: 'UNIVERSAL_CREDIT',
+          from: '2023-01-01',
+          to: '2023-10-31',
+        },
+      ],
+    });
+    const partner = timeline({
+      episodes: [
+        sw('2021-06-01', { role: 'DEPENDANT', dependantOf: 'PARTNER' }),
+      ],
+    });
+    const assess = (simulationDate: string) =>
+      evaluate({ timeline: partner, principal, simulationDate }).byRuleSet[
+        'earned-settlement-2026-11'
+      ]!;
+    const before = assess('2026-11-04');
+    expect(before.earliestDate).toBeUndefined();
+    expect(before).toMatchObject({
+      pathwayCompletionDate: '2041-06-01',
+      publicFundsReassessmentDate: '2028-11-01',
+    });
+  });
+
+  test('A6#10 Highest Talent Group is independent of the earnings paths', () => {
+    const episode = sw('2023-11-04', { route: 'GLOBAL_TALENT' });
+    const a = es({ episodes: [episode] });
+    expect(a).toMatchObject({
+      outcome: 'LIKELY_NOT_ELIGIBLE',
+      pathwayYears: 5,
+      earliestDate: '2028-11-04',
+    });
+    expect(a.rules.find((r) => r.id === 'ES-HIGHEST-TALENT')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-011'],
+    });
+    expect(a.rules.find((r) => r.id === 'ES-EARNINGS-3Y')?.status).toBe('FAIL');
+    expect(a.decidedBy).toContain('ES-EARNINGS-5Y');
+    const higher = es({
+      episodes: [episode],
+      incomeYears: timeline().incomeYears.map((year) => ({
+        ...year,
+        earnings: 130000,
+      })),
+    });
+    expect(higher).toMatchObject({
+      outcome: 'LIKELY_ELIGIBLE',
+      pathwayYears: 3,
+    });
+    expect(higher.decidedBy).toContain('ES-EARNINGS-3Y');
   });
 
   test('Family and Private Life cannot use the 5-year pathway', () => {

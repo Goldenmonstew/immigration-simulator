@@ -29,13 +29,40 @@ describe('ES-TRANSITIONAL-CARE-WORKER', () => {
     ).toBe('PASS');
   });
 
-  test('cut-off: 2025-05-11 applies, 2025-05-12 does not', () => {
+  test('A4#8a grant on or after the cut-off could follow a 2025-05-11 application', () => {
     expect(
       run(esTransitionalCareWorker, { episodes: [care('2025-05-11')] }).status,
     ).toBe('PASS');
+    for (const grant of ['2025-05-12', '2025-05-14']) {
+      expect(
+        run(esTransitionalCareWorker, { episodes: [care(grant)] }),
+      ).toMatchObject({
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-036'],
+      });
+    }
+  });
+
+  test('review33d-1 #2 known salary or a CoS after the cut-off settles a post-cut-off grant', () => {
     expect(
-      run(esTransitionalCareWorker, { episodes: [care('2025-05-12')] }).status,
+      run(esTransitionalCareWorker, {
+        episodes: [care('2025-06-01', { salary: 24999 })],
+      }).status,
     ).toBe('FAIL');
+    expect(
+      run(esTransitionalCareWorker, {
+        episodes: [
+          care('2025-06-01', { sponsorshipCertificateDate: '2025-05-20' }),
+        ],
+      }).status,
+    ).toBe('FAIL');
+    expect(
+      run(esTransitionalCareWorker, {
+        episodes: [
+          care('2025-06-01', { sponsorshipCertificateDate: '2025-05-01' }),
+        ],
+      }),
+    ).toMatchObject({ status: 'UNKNOWN', pendingDetails: ['PD-036'] });
   });
 
   test('salary: £24,999 fails, missing is unknown', () => {
@@ -49,6 +76,59 @@ describe('ES-TRANSITIONAL-CARE-WORKER', () => {
         episodes: [care('2023-02-01', { salary: undefined })],
       }).status,
     ).toBe('UNKNOWN');
+  });
+
+  test('A4#9 the further visa at £24,999 requires genuine sector work', () => {
+    const applicant = timeline({
+      episodes: [care('2023-02-01', { salary: 24999, validTo: '2028-03-01' })],
+    });
+    for (const [locale, condition] of [
+      ['zh-CN', '仅限从事该行业真实工作'],
+      ['en', 'only for genuine work in the sector'],
+    ] as const) {
+      const r = evaluate({
+        timeline: applicant,
+        simulationDate: '2028-02-01',
+        locale,
+      });
+      const rules = r.byRuleSet['earned-settlement-2026-11']!.rules;
+      expect(
+        rules.find((rule) => rule.id === 'ES-TRANSITIONAL-CARE-WORKER'),
+      ).toMatchObject({
+        status: 'FAIL',
+        explanation: expect.stringContaining(condition),
+      });
+    }
+  });
+
+  test('A4#8b missing SOC leaves both possible arrangements unknown, with a request for SOC', () => {
+    const r = evaluate({
+      timeline: timeline({
+        episodes: [
+          care('2023-03-01', { socCode: undefined, validTo: '2028-12-31' }),
+        ],
+        incomeYears: timeline().incomeYears.map((year) => ({
+          ...year,
+          earnings: 25000,
+        })),
+      }),
+      simulationDate: '2028-03-01',
+    }).byRuleSet['earned-settlement-2026-11']!;
+    expect(r.outcome).toBe('INSUFFICIENT_INFORMATION');
+    for (const id of [
+      'ES-TRANSITIONAL-CARE-WORKER',
+      'ES-TRANSITIONAL-HEALTH-EDUCATION',
+    ]) {
+      expect(r.rules.find((rule) => rule.id === id)).toMatchObject({
+        status: 'UNKNOWN',
+        explanation: expect.stringContaining('SOC'),
+      });
+    }
+    expect(
+      run(esTransitionalCareWorker, {
+        episodes: [care('2023-03-01', { socCode: undefined, salary: 24999 })],
+      }).status,
+    ).toBe('FAIL');
   });
 
   test('care worker before the cut-off who returned after it is unknown (PD-036)', () => {
@@ -121,7 +201,7 @@ describe('ES-TRANSITIONAL-HEALTH-EDUCATION', () => {
     // RQF 6+ Table 3 nurse and a care worker are not this arrangement.
     expect(at([job('2024-03-01', '2231')]).status).toBe('FAIL');
     expect(at([job('2024-03-01', '6135')]).status).toBe('FAIL');
-    expect(at([job('2024-03-01', '6131', { socCode: undefined })]).status).toBe(
+    expect(at([job('2025-05-12', '6131', { socCode: undefined })]).status).toBe(
       'FAIL',
     );
   });

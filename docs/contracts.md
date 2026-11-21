@@ -982,3 +982,12 @@ PD-075 登记到 `docs/pending-details.md` 新的第十节"现行法律栏家庭
 - SRC-014 EL 4.1 与 SRC-025 KoLL 2.2(a)(i)、4.8–4.10 的国籍分支使用 `nationality`，假设申请人能提交规则接受的国籍证明。英国海外领土公民使用护照国籍代码 `GBD`。Long Residence 单独按其适用等级和证据核对英语。
 - `PersonTimeline.englishFifteenYearException` 可记录为指定申请日核对过的在英居留、A2 资格和教师证据。EL 1.1(d)／KOL 1.1(d) 按合格在英许可期限，KoLL 3.2、4.14 另核对适用的许可类别与国籍。缺证据时保留 `UNKNOWN`。问卷沿用现有步骤，分享校验接受可选证据字段。
 - 现行法投影的 `earliestDate` 表示条件性居留日期。入选候选适用的英语与 Life in the UK 规则按该日期、该路线和同日适用的豁免重算。仍待满足或确认的规则同时写入 `assumptions`，由结果页面使用。
+
+## 19. 改革栏居留与基本要求（任务 33d）
+
+- `ES-RESIDENCE` 保留历史 LOTR（PD-022）、分类未定的 Appendix FM 许可转 Private Life（PD-025）、以及 Protection Work and Study 回切 Core Protection（PD-064）的 `UNKNOWN`。最新已确认的起点仍可作条件推算。已知的普通五年伴侣许可转 Private Life 按跨组重算。合并后的居留也按同一缺席口径检查。
+- `SettlementAssessment.pathwayCompletionDate`（可选）记录所选改革路径在既定条件下的未来满期日。居留口径未定，或已停止使用的 public funds 会在所选路径满期前退出回看期并可重评较短路径时，使用该字段。对应的 `earliestDate` 留空。`publicFundsReassessmentDate`（可选）表示当前使用记录在无新增领取时退出回看窗口的首日，取最后领取日的回看期周年后一天。仍在领取时无该日期。两个字段仅用于改革栏，结果页的显示由任务 49 处理。
+- `ES-HIGHEST-TALENT` 对 high talent permission 的主申请人单列 Table 1 的人才资格为 `UNKNOWN`（PD-011）。人才资格待 MAC 审查，当前候选选择及收入路径日期继续使用有明确门槛的规则。
+- 申报犯罪记录继续触发两栏的受监管审核。现有犯罪记录只含日期，犯罪地或海外行为在英国是否构成犯罪未定时，改革明细为 `UNKNOWN`（PD-017）。未清偿债务的布尔申报未提供债务类别或还款计划，明细为 `UNKNOWN`（PD-018）。须偿还的 asylum support 仍用专门规则。成年违规或所计入的 public funds 影响年限时，双语结果声明将实施前事件纳入回看的假设（PD-004）。
+- 缺少 Safe and Legal 安置计划时，只有确实依赖计划的英语要求或考试适用性为 `UNKNOWN`。框架外群体按 PD-027、PD-028、PD-051 给出强化要求适用性，丧偶伴侣仍提示 suitability 与 character。
+- 工签主申请人缺 SOC 且其他已知条件允许过渡时，对应规则为 `UNKNOWN`，提示补 SOC。护工许可起始日在截止当日或之后，现有输入无法排除截止日前提交的申请，按 PD-036 保留 `UNKNOWN`。二次 Health and Care 签证提示保留真实行业工作条件。问卷输入和分享格式沿用现有字段。
