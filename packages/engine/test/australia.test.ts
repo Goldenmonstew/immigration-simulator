@@ -186,6 +186,25 @@ describe('subclass 186 TRT (186.221, 186.226, 186.227)', () => {
     ).toBe('2027-03-01');
   });
 
+  test('work starts on return when a 482 is granted after leaving', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-01-01',
+        dateOfBirth: '1990-01-01',
+        firstArrival: '2019-01-01',
+        visas: [
+          { subclass: 'other-temporary', from: '2019-01-01', to: '2023-12-31' },
+          { subclass: '482', from: '2024-01-01' },
+        ],
+        trips: [{ departed: '2024-01-01', returned: '2024-01-02' }],
+        sponsoredFullTime: true,
+      },
+      'AU-186-TRT',
+    );
+    expect(p.checks[1].text).toContain('730');
+    expect(p.earliestDate).toBe('2026-01-02');
+  });
+
   test('work that falls short is reported as such', () => {
     const p = pathway(
       {
@@ -678,7 +697,7 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
         simulationDate: '2026-07-01',
         firstArrival: '2020-01-01',
         visas: [
-          { subclass: 'other-temporary', from: '2020-01-01', to: '2025-06-30' },
+          { subclass: 'other-temporary', from: '2020-01-01', to: '2025-07-01' },
           { subclass: '100', from: '2025-07-01' },
         ],
         trips: [{ departed: '2025-07-01', returned: '2025-09-01' }],
@@ -694,7 +713,7 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
         simulationDate: '2026-07-01',
         firstArrival: '2020-01-01',
         visas: [
-          { subclass: 'other-temporary', from: '2020-01-01', to: '2025-06-30' },
+          { subclass: 'other-temporary', from: '2020-01-01', to: '2025-07-01' },
           { subclass: '100', from: '2025-07-01' },
         ],
         trips: [{ departed: '2025-07-01', returned: '2025-07-02' }],
@@ -754,8 +773,8 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
         simulationDate: '2025-03-10',
         firstArrival: '2019-01-01',
         visas: [
-          { subclass: '189', from: '2021-01-01', to: '2025-02-28' },
-          { subclass: 'bridging', from: '2025-03-01', to: '2025-03-01' },
+          { subclass: '189', from: '2021-01-01', to: '2025-02-27' },
+          { subclass: 'bridging', from: '2025-02-28', to: '2025-03-01' },
           { subclass: '100', from: '2025-03-02' },
         ],
         trips: [{ departed: '2025-03-01', returned: '2025-03-10' }],
@@ -781,13 +800,46 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
     expect(p.earliestDate).toBe('2026-03-02');
   });
 
+  test('time without a visa before leaving on the departure day', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-07-02',
+        firstArrival: '2020-01-01',
+        visas: [
+          { subclass: 'other-temporary', from: '2020-01-01', to: '2025-06-30' },
+          { subclass: '100', from: '2025-07-01' },
+        ],
+        trips: [{ departed: '2025-07-01', returned: '2025-07-02' }],
+      },
+      'AU-CITIZENSHIP',
+    );
+    expect(p.checks[3].text).toContain('1');
+    expect(p.earliestDate).toBe('2029-07-02');
+  });
+
+  test('replacing a permanent visa on the last day of its facility', () => {
+    const p = pathway(
+      {
+        simulationDate: '2025-03-10',
+        firstArrival: '2020-03-02',
+        visas: [
+          { subclass: '189', from: '2020-03-02' },
+          { subclass: '155', from: '2025-03-01' },
+        ],
+        trips: [{ departed: '2025-03-01', returned: '2025-03-10' }],
+      },
+      'AU-CITIZENSHIP',
+    );
+    expect(p.status).toBe('MET');
+  });
+
   test('two permanent visas granted abroad on the departure day', () => {
     const p = pathway(
       {
         simulationDate: '2026-07-01',
         firstArrival: '2020-01-01',
         visas: [
-          { subclass: 'other-temporary', from: '2020-01-01', to: '2025-06-30' },
+          { subclass: 'other-temporary', from: '2020-01-01', to: '2025-07-01' },
           { subclass: '100', from: '2025-07-01' },
           { subclass: '155', from: '2025-07-01' },
         ],

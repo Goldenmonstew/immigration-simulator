@@ -214,36 +214,35 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     if (FIVE_YEAR_FACILITY.has(x.subclass)) {
       const after = afterYears(x.from, v.travelFacilityYears.value);
       const last = addDays(after, -1);
+      // Not replaced by the end of its last day, and outside Australia then.
+      if (!inAustraliaAtEnd(last) && (!to || last < to))
+        return { ...x, to: last, ceased: last };
       const left = req.trips
         .map((trip) => trip.departed)
         .filter((d) => d >= after)
         .sort()[0];
-      const ends = !inAustraliaAtEnd(last) ? last : left;
-      if (ends && (!to || ends <= to)) return { ...x, to: ends, ceased: ends };
+      if (left && (!to || left <= to)) return { ...x, to: left, ceased: left };
     }
     return { ...x, to, ceased: undefined };
   });
-  const permanent = flags();
-  const temporary = flags();
-  // Held from before the day, so also while still in Australia when leaving.
-  const permanentBefore = flags();
-  const temporaryBefore = flags();
+  // Each kind of visa held on a day, and held from before the day (so also
+  // while still in Australia when leaving that day).
+  const held = () => ({ on: flags(), before: flags() });
+  const permanent = held();
+  const temporary = held();
+  const visa = held();
+  const trtVisa = held();
+  const mark = ({ on, before }: ReturnType<typeof held>, x: AuVisa) => {
+    days.mark(on, x.from, x.to);
+    if (!x.to || x.to > x.from) days.mark(before, addDays(x.from, 1), x.to);
+  };
   // The day a permanent visa ended on leaving (s82(5)–(6)): not a permanent
   // resident for the rest of that day.
   const ceased = flags();
-  const visa = flags();
-  const trtVisa = flags();
   let lastSubstantive: AuSubclass | undefined;
   for (const x of visas) {
-    days.mark(visa, x.from, x.to);
-    const isPermanent = PERMANENT.has(x.subclass);
-    days.mark(isPermanent ? permanent : temporary, x.from, x.to);
-    if (!x.to || x.to > x.from)
-      days.mark(
-        isPermanent ? permanentBefore : temporaryBefore,
-        addDays(x.from, 1),
-        x.to,
-      );
+    mark(visa, x);
+    mark(PERMANENT.has(x.subclass) ? permanent : temporary, x);
     if (x.ceased) days.mark(ceased, x.ceased, x.ceased);
     // 186.226(1)(d): a bridging visa for a 457, 482, 186 or 187 application
     // counts when the last substantive visa was a 457 or 482.
@@ -253,31 +252,31 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         lastSubstantive &&
         TRT_VISAS.has(lastSubstantive))
     )
-      days.mark(trtVisa, x.from, x.to);
+      mark(trtVisa, x);
     if (!BRIDGING.has(x.subclass)) lastSubstantive = x.subclass;
   }
   /** Held while in Australia on day `i` (on a departure day, before leaving). */
-  const beforeLeaving = (held: boolean[], before: boolean[], i: number) =>
-    departing[i] ? before[i] : held[i];
+  const beforeLeaving = ({ on, before }: ReturnType<typeof held>, i: number) =>
+    departing[i] ? before[i] : on[i];
   // Citizenship Act s5(1)(a)–(b): outside Australia, a permanent visa makes
   // you a permanent resident only if you held one when you last left.
   const resident = flags();
-  let leftAsResident = arrived(0) && permanent[0];
+  let leftAsResident = arrived(0) && permanent.on[0];
   for (let i = 0; i < days.count; i++) {
     if (present(i)) {
-      leftAsResident = beforeLeaving(permanent, permanentBefore, i);
+      leftAsResident = beforeLeaving(permanent, i);
       resident[i] = leftAsResident && !ceased[i];
-    } else resident[i] = permanent[i] && leftAsResident;
+    } else resident[i] = permanent.on[i] && leftAsResident;
   }
   const sums = {
     // 155.212(2)(b): days also on a temporary or bridging visa do not count.
     rrv: days.sums(
       (i) =>
-        beforeLeaving(permanent, permanentBefore, i) &&
-        !beforeLeaving(temporary, temporaryBefore, i) &&
+        beforeLeaving(permanent, i) &&
+        !beforeLeaving(temporary, i) &&
         present(i),
     ),
-    unlawful: days.sums((i) => present(i) && !visa[i]),
+    unlawful: days.sums((i) => present(i) && !beforeLeaving(visa, i)),
     notResident: days.sums((i) => !resident[i]),
     away: days.sums((i) => away[i]),
     awayFromDeparture: days.sums((i) => awayFromDeparture[i]),
@@ -418,8 +417,8 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     ];
     const birthday45 = afterYears(req.dateOfBirth, v.trtMaxAge.value);
     const longest = longestYears(v.trtHeldYears.value);
-    const trtRuns = runs((i) => trtVisa[i]);
-    const workRuns = runs((i) => trtVisa[i] && present(i));
+    const trtRuns = runs((i) => trtVisa.on[i]);
+    const workRuns = runs((i) => beforeLeaving(trtVisa, i) && present(i));
     // PD-085: one continuous period of 2 calendar years in the window meets
     // it; separate periods need the most days 2 years can have.
     const total = (d: IsoDate, list: [IsoDate, IsoDate][]) => {
@@ -437,11 +436,14 @@ export function evaluateAustralia(req: AuRequest): AuResult {
       }
       return { days: count, met: whole || count >= longest };
     };
-    const holds = (d: IsoDate) => trtVisa[days.index(d)];
+    const holds = (d: IsoDate) => trtVisa.on[days.index(d)];
     const ready = (d: IsoDate, work: boolean) =>
       holds(d) && total(d, trtRuns).met && (!work || total(d, workRuns).met);
     const work = !!req.sponsoredFullTime;
-    if (!trtVisa.slice(days.index(sim)).some(Boolean) || permanentNow.length) {
+    if (
+      !trtVisa.on.slice(days.index(sim)).some(Boolean) ||
+      permanentNow.length
+    ) {
       pathways.push({
         id: 'AU-186-TRT',
         title,
@@ -690,7 +692,8 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         );
       const earliest = firstDate(
         (d) =>
-          permanent[days.index(d)] && inAustralia(d) >= v.rrvPresenceDays.value,
+          permanent.on[days.index(d)] &&
+          inAustralia(d) >= v.rrvPresenceDays.value,
       );
       const latest = permanentNow[permanentNow.length - 1];
       const facility = !FIVE_YEAR_FACILITY.has(latest.subclass)
@@ -909,8 +912,8 @@ export function evaluateAustralia(req: AuRequest): AuResult {
             'Departure and arrival days both count as days in Australia (SRC-068 p6 text). The example on the same page counts the departure day as away; where that changes the date, the summary also gives the date counted that way (PD-084).',
           ),
           L(
-            '在境外获发的永久签证，要等持该签证入境后才算永久居民（s5(1)）。出境当天生效的签证视为离境后才生效。',
-            'A permanent visa granted while you are outside Australia makes you a permanent resident only once you enter Australia on it (s5(1)). A visa starting on a departure day is taken to start after you left.',
+            '离境时已持永久签证的，在境外换发的新永久签证仍连续算永久居民；离境时没有永久签证的，在境外获发的永久签证要等持签入境后才算（s5(1)）。出境当天生效的签证视为离境后才生效。',
+            'If you held a permanent visa when you left, a new permanent visa granted abroad keeps you a permanent resident; if you did not, a permanent visa granted abroad counts only once you enter Australia on it (s5(1)). A visa starting on a departure day is taken to start after you left.',
           ),
           L(
             '155 和其他永久签证的旅行便利期不推算：若在其期满后离境，永居可能已终止（s82(5)–(6)），请以签证通知或 VEVO 为准。',
