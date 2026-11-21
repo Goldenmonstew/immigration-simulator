@@ -79,7 +79,8 @@ export type AuStatus =
 /** One requirement checked on the simulation date. */
 export interface AuCheck {
   text: string;
-  met: boolean;
+  /** Absent = cannot tell from the answers. */
+  met?: boolean;
   sources: SourceRef[];
 }
 
@@ -110,6 +111,21 @@ const TRT_VISAS = new Set<AuSubclass>(['457', '482']);
 const BRIDGING = new Set<AuSubclass>(['bridging-trt', 'bridging']);
 /** Most days `n` calendar years can span (leap days included). */
 const longestYears = (n: number) => n * 365 + Math.ceil(n / 4);
+/**
+ * First day after `n` years that start on `d`: a period starting on 29
+ * February runs to the end of February, not to the 28th.
+ */
+const afterYears = (d: IsoDate, n: number) =>
+  addDays(addYears(addDays(d, -1), n), 1);
+// Permanent visas whose travel facility is 5 years from grant (x.511).
+const FIVE_YEAR_FACILITY = new Set<AuSubclass>([
+  '189',
+  '190',
+  '191',
+  '186',
+  '801',
+  '100',
+]);
 
 /** Daily flags from `start` with prefix sums, for window counts. */
 class Days {
@@ -179,20 +195,27 @@ export function evaluateAustralia(req: AuRequest): AuResult {
   // p6 text). The SOP p6 example counts the departure day as away (PD-084).
   const away = flags();
   const awayFromDeparture = flags();
+  const departing = flags();
   for (const trip of req.trips) {
     days.mark(awayFromDeparture, trip.departed, addDays(trip.returned, -1));
     days.mark(away, addDays(trip.departed, 1), addDays(trip.returned, -1));
+    days.mark(departing, trip.departed, trip.departed);
   }
   const arrived = (i: number) =>
     !!req.firstArrival && days.date(i) >= req.firstArrival;
   const present = (i: number) => arrived(i) && !away[i];
   // Citizenship Act s5(1)(a)–(b): outside Australia, a permanent visa makes
-  // you a permanent resident only if you held one when you last left.
+  // you a permanent resident only if you held one when you last left. A
+  // permanent visa starting on the departure day may have come after leaving,
+  // so it counts only if one was also held the day before.
   const resident = flags();
   let leftAsResident = arrived(0) && permanent[0];
   for (let i = 0; i < days.count; i++) {
-    if (present(i)) leftAsResident = resident[i] = permanent[i];
-    else resident[i] = permanent[i] && leftAsResident;
+    if (present(i)) {
+      resident[i] = permanent[i];
+      leftAsResident =
+        permanent[i] && (!departing[i] || (i > 0 && permanent[i - 1]));
+    } else resident[i] = permanent[i] && leftAsResident;
   }
   const sums = {
     // 155.212(2)(b): days also on a temporary or bridging visa do not count.
@@ -282,7 +305,7 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         assumptions: [],
       });
     } else {
-      const due = addYears(current.from, v.regionalProvisionalYears.value);
+      const due = afterYears(current.from, v.regionalProvisionalYears.value);
       const reachable = !current.to || current.to >= due;
       const earliest = reachable ? (due > sim ? due : sim) : undefined;
       pathways.push({
@@ -336,10 +359,10 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         'Health, character and other public interest criteria',
       ),
     ];
-    const birthday45 = addYears(req.dateOfBirth, v.trtMaxAge.value);
+    const birthday45 = afterYears(req.dateOfBirth, v.trtMaxAge.value);
     const longest = longestYears(v.trtHeldYears.value);
     const trtRuns = runs((i) => trtVisa[i]);
-    const workRuns = runs((i) => trtVisa[i] && arrived(i));
+    const workRuns = runs((i) => trtVisa[i] && present(i));
     // PD-085: one continuous period of 2 calendar years in the window meets
     // it; separate periods need the most days 2 years can have.
     const total = (d: IsoDate, list: [IsoDate, IsoDate][]) => {
@@ -352,7 +375,7 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         const last = b < to ? b : to;
         if (first > last) continue;
         count += daysBetween(first, last) + 1;
-        if (addYears(first, v.trtHeldYears.value) <= addDays(last, 1))
+        if (afterYears(first, v.trtHeldYears.value) <= addDays(last, 1))
           whole = true;
       }
       return { days: count, met: whole || count >= longest };
@@ -428,14 +451,14 @@ export function evaluateAustralia(req: AuRequest): AuResult {
           {
             text: work
               ? L(
-                  `前 3 年在澳全职受雇于担保雇主 ${worked.days} 天（按你的回答，同上计法）`,
-                  `${worked.days} days of full-time sponsored work in Australia in the past 3 years (your answer, counted the same way)`,
+                  `前 3 年在澳全职受雇于担保雇主 ${worked.days} 天（按你的回答，出境期间不计，同上计法）`,
+                  `${worked.days} days of full-time sponsored work in Australia in the past 3 years (your answer, without time outside Australia, counted the same way)`,
                 )
               : L(
                   '全职受雇于担保雇主满 2 年：你没有确认，本页未计算',
                   '2 years of full-time sponsored work: not confirmed, so not counted here',
                 ),
-            met: work && worked.met,
+            met: work ? worked.met : undefined,
             sources: [
               { srcId: 'SRC-062', locator: '186.227(1)' },
               v.trtHeldYears.sources[2],
@@ -463,8 +486,12 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         notChecked,
         assumptions: [
           L(
-            '"合计 2 年"：窗口内连续一段满 2 个日历年即可；分成多段时按 2 年最多的天数计，可能比按 730 天计晚一天（PD-085）。',
-            '"A total of 2 years": one continuous period of 2 calendar years in the window is enough; separate periods are counted against the most days 2 years can have, which can be one day later than counting 730 days (PD-085).',
+            '"合计 2 年"：窗口内连续一段满 2 个日历年即可；分成多段时按 2 年最多的天数（731 天）计，门槛最多比按 730 天多一天，若那天已不持合格签证，日期会更晚（PD-085）。',
+            '"A total of 2 years": one continuous period of 2 calendar years in the window is enough; separate periods are counted against the most days 2 years can have (731), at most one day more than 730, though the date moves further if you no longer hold a qualifying visa that day (PD-085).',
+          ),
+          L(
+            '全职受雇只计入境后在澳的日子；出境期间（包括可能计入的境外带薪假）一律不计。',
+            'Full-time work counts only days in Australia after you arrived; time outside Australia, including paid leave that might count, is left out.',
           ),
           L(
             '"相关 bridging visa" 指因申请 457、482、186 或 187 而获发、且上一份实质签证是 457／482 的 bridging visa（186.226(1)(d)）。',
@@ -504,7 +531,7 @@ export function evaluateAustralia(req: AuRequest): AuResult {
       const permanentVisa = p.stream === 'onshore' ? '801' : '100';
       const due = p.longTermRelationship
         ? p.lodged
-        : addYears(p.lodged, v.partnerWaitYears.value);
+        : afterYears(p.lodged, v.partnerWaitYears.value);
       const earliest = due > sim ? due : sim;
       pathways.push({
         id: 'AU-PARTNER',
@@ -543,8 +570,8 @@ export function evaluateAustralia(req: AuRequest): AuResult {
           ...(p.stream === 'offshore'
             ? [
                 L(
-                  '担保伴侣持永久人道签证、且获签前已告知这段关系时，也不受 2 年限制（100.221(6)）',
-                  'The 2-year wait also does not apply if your sponsoring partner holds a permanent humanitarian visa and told the department about the relationship before it was granted (100.221(6))',
+                  '担保伴侣持有或曾持有永久人道签证，且获签前你们已是配偶或事实伴侣、并已告知移民局时，也不受 2 年限制（100.221(6)）',
+                  'The 2-year wait also does not apply if your sponsoring partner holds or held a permanent humanitarian visa and, before it was granted, you were already spouses or de facto partners and the department was told (100.221(6))',
                 ),
               ]
             : []),
@@ -596,19 +623,19 @@ export function evaluateAustralia(req: AuRequest): AuResult {
           addDays(d, -1),
         );
       const earliest = firstDate(
-        (d) => inAustralia(d) >= v.rrvPresenceDays.value,
+        (d) =>
+          permanent[days.index(d)] && inAustralia(d) >= v.rrvPresenceDays.value,
       );
       const latest = permanentNow[permanentNow.length - 1];
-      const facility =
-        latest.subclass === '155'
-          ? L(
-              '当前 RRV 的旅行便利期取决于获批时符合的条件（155.511），以签证通知或 VEVO 为准；',
-              'The travel facility on your current RRV depends on the criteria it was granted under (155.511); check your grant notice or VEVO.',
-            )
-          : L(
-              `当前永久签证的旅行便利自 ${latest.from} 起 5 年，约到 ${addYears(latest.from, v.travelFacilityYears.value)}（以签证通知或 VEVO 为准）；`,
-              `The travel facility on your current permanent visa runs 5 years from ${latest.from}, to about ${addYears(latest.from, v.travelFacilityYears.value)} (check your grant notice or VEVO).`,
-            );
+      const facility = !FIVE_YEAR_FACILITY.has(latest.subclass)
+        ? L(
+            '当前永久签证的旅行便利期以签证通知或 VEVO 为准（RRV 取决于获批时符合的条件，155.511）；',
+            'Check the travel facility on your current permanent visa in your grant notice or VEVO (for an RRV it depends on the criteria it was granted under, 155.511).',
+          )
+        : L(
+            `当前永久签证的旅行便利自 ${latest.from} 起 5 年，约到 ${addYears(latest.from, v.travelFacilityYears.value)}（以签证通知或 VEVO 为准）；`,
+            `The travel facility on your current permanent visa runs 5 years from ${latest.from}, to about ${addYears(latest.from, v.travelFacilityYears.value)} (check your grant notice or VEVO).`,
+          );
       pathways.push({
         id: 'AU-RRV',
         title,
@@ -686,10 +713,10 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         assumptions: [],
       });
     } else {
-      const adult = addYears(req.dateOfBirth, v.citizenshipMinAge.value);
+      const adult = afterYears(req.dateOfBirth, v.citizenshipMinAge.value);
       const fourYears =
         req.firstArrival &&
-        addYears(req.firstArrival, v.citizenshipResidenceYears.value);
+        afterYears(req.firstArrival, v.citizenshipResidenceYears.value);
       const facts = (d: IsoDate, absences: number[]) => {
         const start = addYears(d, -v.citizenshipResidenceYears.value);
         const recent = addMonths(d, -v.citizenshipPermanentMonths.value);

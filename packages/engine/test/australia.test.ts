@@ -150,6 +150,42 @@ describe('subclass 186 TRT (186.221, 186.226, 186.227)', () => {
     expect(p.earliestDate).toBe('2028-03-01');
   });
 
+  test('work outside Australia does not count', () => {
+    const p = pathway(
+      {
+        firstArrival: '2025-11-21',
+        visas: [{ subclass: '482', from: '2025-11-21' }],
+        trips: [{ departed: '2027-01-01', returned: '2027-04-01' }],
+        sponsoredFullTime: true,
+      },
+      'AU-186-TRT',
+    );
+    // 407 days to 2027-01-01, then 324 from 2027-04-01: 731 on 2028-02-19.
+    expect(p.earliestDate).toBe('2028-02-19');
+  });
+
+  test('a period from 29 February runs to the end of February', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-01-01',
+        firstArrival: '2024-02-29',
+        visas: [{ subclass: '482', from: '2024-02-29' }],
+        sponsoredFullTime: true,
+      },
+      'AU-186-TRT',
+    );
+    expect(p.earliestDate).toBe('2026-03-01');
+    expect(
+      pathway(
+        {
+          simulationDate: '2026-01-01',
+          visas: [{ subclass: '491', from: '2024-02-29', to: '2029-02-27' }],
+        },
+        'AU-191',
+      ).earliestDate,
+    ).toBe('2027-03-01');
+  });
+
   test('not confirming full-time sponsored work leaves it unknown', () => {
     const p = pathway(
       { visas: [{ subclass: '482', from: '2025-06-01' }] },
@@ -158,6 +194,7 @@ describe('subclass 186 TRT (186.221, 186.226, 186.227)', () => {
     expect(p.status).toBe('UNKNOWN');
     expect(p.earliestDate).toBeUndefined();
     expect(p.summary).toContain('2027-06-01');
+    expect(p.checks[1].met).toBeUndefined();
   });
 
   test('turning 45 first', () => {
@@ -277,6 +314,29 @@ describe('Resident Return visa (155.212(2))', () => {
     );
     expect(p.summary).toContain('155.511');
     expect(p.summary).not.toContain('2031');
+  });
+
+  test('other permanent visas do not get a 5-year estimate', () => {
+    const p = pathway(
+      {
+        firstArrival: '2015-06-01',
+        visas: [{ subclass: 'other-permanent', from: '2026-02-01' }],
+      },
+      'AU-RRV',
+    );
+    expect(p.summary).not.toContain('2031');
+  });
+
+  test('the permanent visa must still be held on the application date', () => {
+    const p = pathway(
+      {
+        firstArrival: '2024-11-25',
+        visas: [{ subclass: '189', from: '2024-11-25', to: '2026-11-23' }],
+      },
+      'AU-RRV',
+    );
+    expect(p.checks[0].text).toContain('726');
+    expect(p.status).toBe('NOT_MET');
   });
 
   test('no permanent visa', () => {
@@ -412,6 +472,22 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
           { subclass: '100', from: '2025-07-01' },
         ],
         trips: [{ departed: '2025-05-01', returned: '2025-09-01' }],
+      },
+      'AU-CITIZENSHIP',
+    );
+    expect(p.earliestDate).toBe('2026-09-01');
+  });
+
+  test('a permanent visa from the departure day may come after leaving', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-07-01',
+        firstArrival: '2020-01-01',
+        visas: [
+          { subclass: 'other-temporary', from: '2020-01-01', to: '2025-06-30' },
+          { subclass: '100', from: '2025-07-01' },
+        ],
+        trips: [{ departed: '2025-07-01', returned: '2025-09-01' }],
       },
       'AU-CITIZENSHIP',
     );

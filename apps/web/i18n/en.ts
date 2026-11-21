@@ -504,8 +504,8 @@ export const en: Record<keyof typeof zhCN, string> = {
     'The first arrival cannot be before your date of birth.',
   'au.error.beforeArrival':
     'A trip cannot start before your first arrival; enter your first arrival if you have trips.',
-  'au.error.openEnded':
-    'Enter an end date for this temporary visa, since a later visa follows it.',
+  'au.error.overlap':
+    'A temporary visa cannot overlap another visa: a new visa ends the old one, so end it the day before the new visa starts.',
   'au.resultTitle': 'Results',
   'au.policyAsOf': 'Based on Australian official sources checked on {date}.',
   'au.status.MET': 'Time requirements met on the simulation date',
@@ -516,6 +516,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.checks': 'Checks on the simulation date',
   'au.met': 'Met',
   'au.notMet': 'Not met',
+  'au.unknownCheck': 'Not known',
   'au.notChecked': 'Not checked',
   'au.assumptions': 'Assumptions',
   'au.pending': 'Pending details',

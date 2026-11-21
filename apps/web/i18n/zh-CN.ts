@@ -314,7 +314,8 @@ export const zhCN = {
   'au.error.beforeBirth': '首次入境日不能早于出生日期。',
   'au.error.beforeArrival':
     '出境日不能早于首次入境日；有出境记录时须填首次入境日。',
-  'au.error.openEnded': '后面还有签证时，这份临时签证须填到期日。',
+  'au.error.overlap':
+    '临时签证不能与其他签证的期间重叠：新签证生效时旧签证即终止，请把到期日填到新签证生效的前一天。',
   'au.resultTitle': '计算结果',
   'au.policyAsOf': '依据核对至 {date} 的澳洲官方来源。',
   'au.status.MET': '模拟日已满足时间条件',
@@ -325,6 +326,7 @@ export const zhCN = {
   'au.checks': '模拟日的检查',
   'au.met': '满足',
   'au.notMet': '未满足',
+  'au.unknownCheck': '待确认',
   'au.notChecked': '未检查的条件',
   'au.assumptions': '假设',
   'au.pending': '待定细节',

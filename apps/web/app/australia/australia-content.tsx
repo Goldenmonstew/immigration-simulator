@@ -67,7 +67,8 @@ export default function AustraliaContent() {
     event.preventDefault();
     const found = validateAuForm(draft);
     setErrors(found);
-    setSubmitted(Object.keys(found).length ? undefined : draft);
+    // A new object each time, so the result heading is focused again.
+    setSubmitted(Object.keys(found).length ? undefined : { ...draft });
   };
   const fieldLabel = (id: string) => {
     const [, kind, n, field] = id.match(/^au-(visa|trip)-(\d+)-(\w+)$/) ?? [];
@@ -190,9 +191,11 @@ export default function AustraliaContent() {
                 <button
                   type="button"
                   className={form.remove}
-                  onClick={() =>
-                    set({ visas: draft.visas.filter((_, n) => n !== i) })
-                  }
+                  onClick={() => {
+                    // Row errors are keyed by index, so they go stale.
+                    setErrors({});
+                    set({ visas: draft.visas.filter((_, n) => n !== i) });
+                  }}
                 >
                   {t('au.remove')}
                 </button>
@@ -236,9 +239,10 @@ export default function AustraliaContent() {
                 <button
                   type="button"
                   className={form.remove}
-                  onClick={() =>
-                    set({ trips: draft.trips.filter((_, n) => n !== i) })
-                  }
+                  onClick={() => {
+                    setErrors({});
+                    set({ trips: draft.trips.filter((_, n) => n !== i) });
+                  }}
                 >
                   {t('au.remove')}
                 </button>
@@ -375,10 +379,16 @@ export function AustraliaResult({
               <h4>{t('au.checks')}</h4>
               <ul className={styles.checks}>
                 {pathway.checks.map((c, i) => (
-                  <li key={i} data-met={c.met}>
-                    <span aria-hidden="true">{c.met ? '✓' : '✗'} </span>
+                  <li key={i} data-met={c.met ?? 'unknown'}>
+                    <span aria-hidden="true">
+                      {c.met === undefined ? '?' : c.met ? '✓' : '✗'}{' '}
+                    </span>
                     <span className={styles.label}>
-                      {c.met ? t('au.met') : t('au.notMet')}
+                      {c.met === undefined
+                        ? t('au.unknownCheck')
+                        : c.met
+                          ? t('au.met')
+                          : t('au.notMet')}
                       {p.colon}
                     </span>
                     {c.text}{' '}

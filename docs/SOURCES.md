@@ -578,15 +578,15 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-061 Australian Citizenship Act 2007
 
 - 快照取 legislation.gov.au 该版本的 EPUB 正文页，版本 Compilation No. 37（Compilation date 2026-06-04，含 Act No. 75, 2025）。澳洲条文用 section 号定位，如 `s22(1)(a)`。
-- `s5(1)`：permanent resident 指在澳并持永久签证的人；在境外时，须此前在澳且上次离境前已持永久签证。因此在境外获发的永久签证，要持该签证入境后才算永久居民。
+- `s5(1)`：permanent resident 指在澳并持永久签证的人；在境外时，须此前在澳且上次离境前已持永久签证（离境后在境外另获的永久签证，如 RRV，不改变这一点）。因此在境外获发的第一份永久签证，要持该签证入境后才算永久居民；只有日期时，引擎把出境当天生效的永久签证视为离境后才获发。
 - `s21(2)`：一般资格，(a) 申请时满 18 岁，(b) 申请时和决定时都是 permanent resident，(c) 申请时满足一般居住要求（s22）。
-- `s22(1)`：申请日前 4 年在澳（a）、其间不曾是 unlawful non-citizen（b）、申请日前 12 个月以永久居民身份在澳（c）。`s22(1A)`：4 年内出境合计不超过 12 个月视为在澳。`s22(1B)`：最后 12 个月出境合计不超过 90 天且出境期间一直是永久居民，视为以永久居民身份在澳。`s22(2)` 起为豁免与部长裁量，试点不建模。
+- `s22(1)`：申请日前 4 年在澳（a）、其间不曾是 unlawful non-citizen（b）、申请日前 12 个月以永久居民身份在澳（c）。`s22(1A)`：4 年内出境合计不超过 12 个月视为在澳。`s22(1B)`：最后 12 个月出境合计不超过 90 天且出境期间一直是永久居民，视为以永久居民身份在澳。`s22(1C)` 规定 4 年内曾被监禁或依法院命令收治的不满足 (1)(a)。`s22(2)` 起为豁免与部长裁量，试点不建模。
 
 ## SRC-062 Migration Regulations 1994
 
 - 快照取 legislation.gov.au 该版本 EPUB 的第 1、2 个正文文件，版本 Compilation No. 291（Compilation date 2026-11-03，含 F2026L01466）。条款号直接定位，如 `155.212(2)`、`Sch 1 item 1139(3)(c)`。
-- Volume 1：`reg 1.03` 定义 regional provisional visa（491、494）与 long-term partner relationship（有共同子女满 2 年，否则满 3 年）。`Sch 1 item 1139(3)(c)`：191 的 Regional Provisional 主申请人须持有 regional provisional visa 且已持有满 3 年。
-- Volume 2：`155.212(2)` RRV 5 年内以永久签证持有人或公民身份在澳合计不少于 2 年，`155.511(b)` 符合者获 5 年旅行便利。`186.221` 申请时未满 45 岁（文书列明的类别除外）；`186.226(1)` 申请前 3 年内持 457／482（含其后的 bridging visa）合计至少 2 年；`186.227(1)` 同期为 approved work sponsor 全职工作合计至少 2 年（不含无薪假）。`191.111` relevant income year 的定义，`191.222` 须交 3 个 relevant income year 的税务评估通知。`801.221(2)(d)`、`100.221(2)(c)`：伴侣签递交满 2 年；`801.221(6A)`、`100.221(5)`：递交时已是 long-term partner relationship 的不受 2 年限制。`100.511`、`186.511`、`189.511`、`190.511`、`191.511`、`801.511`：永久签证的旅行便利为批准日起 5 年。
+- Volume 1：`reg 1.03` 定义 regional provisional visa（491、494）与 long-term partner relationship（两人以配偶或事实伴侣身份持续满 3 年；有双方共同的受抚养子女、且不是继子女时满 2 年）。`Sch 1 item 1139(3)(c)`：191 的 Regional Provisional 主申请人须持有 regional provisional visa 且已持有满 3 年。
+- Volume 2：`155.212(2)` RRV 5 年内以永久签证持有人或公民身份在澳合计不少于 2 年，`155.511(b)` 符合者获 5 年旅行便利。`186.221` 申请时未满 45 岁（文书列明的类别除外）；`186.226(1)` 申请前 3 年内持 457／482（含其后的 bridging visa）合计至少 2 年；`186.227(1)` 同期为 approved work sponsor 全职工作合计至少 2 年（不含无薪假）。`191.111` relevant income year 的定义，`191.222` 须交 3 个 relevant income year 的税务评估通知。`801.221(2)(d)`、`100.221(2)(c)`：伴侣签递交满 2 年；`801.221(6A)`、`100.221(5)`：递交时已是 long-term partner relationship 的不受 2 年限制。`100.221(6)`：担保人持有或曾持有永久人道签证、获签前双方已是配偶或事实伴侣并已告知移民局的，也不受限制。`100.511`、`186.511`、`189.511`、`190.511`、`191.511`、`801.511`：永久签证的旅行便利为批准日起 5 年。
 
 ## SRC-063 191 Regional Provisional Visas stream
 

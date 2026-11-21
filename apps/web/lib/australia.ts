@@ -74,13 +74,18 @@ export function validateAuForm(form: AuForm): AuErrors {
     date(`au-visa-${i}-to`, visa.to, true);
     if (validDate(visa.to) && visa.to < visa.from)
       errors[`au-visa-${i}-to`] = 'au.error.order';
-    // A temporary visa without an end date would run alongside later visas.
+    // A new visa ends a temporary one (Migration Act s82), so a temporary
+    // visa cannot overlap any other; permanent visas such as an RRV can.
     if (
-      !visa.to &&
       !permanent.has(visa.subclass) &&
-      form.visas.some((other) => other.from > visa.from)
+      form.visas.some(
+        (other, n) =>
+          n !== i &&
+          other.from <= (visa.to || '9999-12-31') &&
+          visa.from <= (other.to || '9999-12-31'),
+      )
     )
-      errors[`au-visa-${i}-to`] = 'au.error.openEnded';
+      errors[`au-visa-${i}-to`] = 'au.error.overlap';
   });
   form.trips.forEach((trip, i) => {
     date(`au-trip-${i}-departed`, trip.departed);
