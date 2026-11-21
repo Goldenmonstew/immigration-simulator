@@ -539,6 +539,47 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.sub.100': '100 Partner (permanent, outside Australia)',
   'au.sub.155': '155 Resident Return visa (permanent)',
   'au.sub.other-permanent': 'Other permanent visa',
+  'us.entryLink': 'Open the United States pilot',
+  'us.entryDesc':
+    'Use your green card date and travel record to work out the dates for naturalization, naturalization as the spouse of a citizen, removing conditions and time abroad.',
+  'us.title':
+    'United States: dates for naturalization and your green card (pilot)',
+  'us.intro':
+    'From your green card date and trips, this works out the steps that depend on time alone: general naturalization, naturalization as the spouse of a U.S. citizen, the filing period for removing conditions, and how long you can be away and still return on your green card. How you get a green card (family, employment and investment categories, priority dates) is out of scope.',
+  'us.scope':
+    'The pilot checks only the time requirements in the law and the USCIS Policy Manual. It does not check the English and civics tests, good moral character, abandonment of residence or other requirements; each result lists them. Your entries are processed in your browser and are not saved or uploaded.',
+  'us.basics': 'About you',
+  'us.simulationDate': 'Simulation date',
+  'us.simulationDateHint':
+    'Results are worked out for this date (for naturalization, the filing date). It starts as today.',
+  'us.dateOfBirth': 'Date of birth',
+  'us.greenCard': 'Green card',
+  'us.permanentResident':
+    'Date you became a permanent resident (Resident Since on the card)',
+  'us.permanentResidentHint':
+    'For a conditional green card, enter the date you got conditional status.',
+  'us.conditional': 'Green card type',
+  'us.conditional.none': 'Regular green card',
+  'us.conditional.marriage': 'Conditional, based on marriage (file I-751)',
+  'us.conditional.investor': 'Conditional, based on investment (file I-829)',
+  'us.stateResidenceFrom':
+    'Date you started living in your current state or USCIS district (optional)',
+  'us.married': 'I am married to and living with a U.S. citizen',
+  'us.marriedOn': 'Date of marriage',
+  'us.spouseCitizenSince':
+    'Date your spouse became a U.S. citizen (leave blank if a citizen by birth)',
+  'us.trips': 'Trips abroad',
+  'us.tripsHint':
+    'Add a row for each time you left the United States after getting your green card. You can include planned trips.',
+  'us.trip': 'Trip {n}',
+  'us.departed': 'Date you left the United States',
+  'us.returned': 'Date you came back to the United States',
+  'us.addTrip': 'Add a trip',
+  'us.remove': 'Remove',
+  'us.submit': 'Work out dates',
+  'us.errorSummary': 'Fix the items marked in red first.',
+  'us.error.date': 'Enter a valid date.',
+  'us.error.order': 'This date cannot be before the start date.',
   'ca.entryLink': 'Open the Canada pilot',
   'ca.entryDesc':
     'Use the date you became a permanent resident and your travel record to work out the residency obligation and the physical presence for citizenship.',

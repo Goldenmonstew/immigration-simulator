@@ -12,6 +12,7 @@ const PAGES = [
   '/australia',
   '/new-zealand',
   '/canada',
+  '/united-states',
 ];
 
 self.addEventListener('install', (event) => {
