@@ -539,6 +539,43 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.sub.100': '100 Partner (permanent, outside Australia)',
   'au.sub.155': '155 Resident Return visa (permanent)',
   'au.sub.other-permanent': 'Other permanent visa',
+  'ca.entryLink': 'Open the Canada pilot',
+  'ca.entryDesc':
+    'Use the date you became a permanent resident and your travel record to work out the residency obligation and the physical presence for citizenship.',
+  'ca.title':
+    'Canada: dates for keeping permanent residence and for citizenship (pilot)',
+  'ca.intro':
+    'From the date you became a Canadian permanent resident, your status before that and your trips, this works out two steps that depend on time alone: the residency obligation for keeping permanent resident status, and the physical presence for citizenship. How you get permanent residence (Express Entry points, provincial nomination, sponsorship and so on) is out of scope.',
+  'ca.scope':
+    'The pilot checks only the day counts written in the law. It does not check tax filing, language, the citizenship test, prohibitions or other requirements; each result lists them. For an online application, the official calculator in your account takes precedence. Your entries are processed in your browser and are not saved or uploaded.',
+  'ca.basics': 'About you',
+  'ca.simulationDate': 'Simulation date',
+  'ca.simulationDateHint':
+    'Results are worked out for this date (for citizenship, the date you sign). It starts as today.',
+  'ca.dateOfBirth': 'Date of birth',
+  'ca.permanentResident': 'Date you became a permanent resident',
+  'ca.periods': 'Temporary status before permanent residence',
+  'ca.periodsHint':
+    'Add a row for each period you were in Canada lawfully as a visitor, student, worker or protected person. Leave the end blank if it ran until the day before you became a permanent resident. Do not include time without status or waiting on a refugee claim.',
+  'ca.period': 'Status {n}',
+  'ca.from': 'Start date',
+  'ca.to':
+    'End date (leave blank if it ran until you became a permanent resident)',
+  'ca.addPeriod': 'Add a period',
+  'ca.trips': 'Trips abroad',
+  'ca.tripsHint':
+    'Add a row for each time you left Canada. You can include planned trips.',
+  'ca.trip': 'Trip {n}',
+  'ca.departed': 'Date you left Canada',
+  'ca.returned': 'Date you came back to Canada',
+  'ca.addTrip': 'Add a trip',
+  'ca.remove': 'Remove',
+  'ca.submit': 'Work out dates',
+  'ca.errorSummary': 'Fix the items marked in red first.',
+  'ca.error.date': 'Enter a valid date.',
+  'ca.error.order': 'This date cannot be before the start date.',
+  'ca.error.afterPr':
+    'A temporary status must start before you became a permanent resident.',
   'nz.entryLink': 'Open the New Zealand pilot',
   'nz.entryDesc':
     'Use your resident visa and travel record to work out when your travel conditions end and the dates for the permanent resident visa and citizenship presence.',
