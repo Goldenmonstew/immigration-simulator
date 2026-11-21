@@ -31,6 +31,15 @@ export {
   AU_TEMPORARY_SUBCLASSES,
   evaluateAustralia,
 } from './australia';
+export { NZ_RESIDENT_CATEGORIES, evaluateNewZealand } from './new-zealand';
+export type {
+  NzPathway,
+  NzPathwayId,
+  NzRequest,
+  NzResidentCategory,
+  NzResult,
+  NzTrip,
+} from './new-zealand';
 export type {
   PilotCheck,
   PilotPathway,
