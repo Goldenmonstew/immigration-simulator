@@ -675,6 +675,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.noVisaActions': 'No immigration actions are available here right now.',
   'game.tooLate':
     'There is not enough time to finish before closing at {time}.',
+  'game.tooLateSome':
+    'Some things cannot be finished before closing at {time}; only those that still fit today are listed.',
   'game.openAllDay': 'Open all day',
   'game.minutes': '{count} minutes',
   'game.peopleHere': 'People here',

@@ -620,6 +620,8 @@ export const zhCN = {
   'game.closedLabel': '关门',
   'game.noVisaActions': '眼下这里没有可办的移民手续。',
   'game.tooLate': '来不及在 {time} 关门前做完。',
+  'game.tooLateSome':
+    '有些事来不及在 {time} 关门前做完，今天只列出还来得及的。',
   'game.openAllDay': '全天开放',
   'game.minutes': '{count} 分钟',
   'game.peopleHere': '在这里的人',

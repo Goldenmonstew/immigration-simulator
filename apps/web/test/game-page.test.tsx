@@ -1181,6 +1181,15 @@ for (const locale of ['zh-CN', 'en'] as const) {
       expect(h.render().html).not.toContain(feedback);
       expect(h.render().props(TownCanvas).paused).toBe(false);
       h.dispose();
+      // task 56 / 50 review risk: reloading while the call is open still
+      // shows the activity's result after hanging up.
+      const reloaded = await client(call.state, locale);
+      const reloadedCall = reloaded.render().props(EventCard);
+      renderView(() => EventCard(reloadedCall), locale).click(
+        locale === 'en' ? 'Arrange a weekly call' : '约定每周通话',
+      );
+      expect(reloaded.render().html).toContain(feedback);
+      reloaded.dispose();
     },
   );
 }
@@ -2984,3 +2993,36 @@ test('task 56 / review40-1 risk: fast-forward warns when the adjoining renewal a
   expect(h.render().html).toContain(t('game.fastVisaWarningNone', 'en'));
   h.dispose();
 });
+
+test.each(['zh-CN', 'en'] as const)(
+  'task 56 / review34-2 risk: a place says when some actions no longer fit before closing in %s',
+  (locale) => {
+    const state = core.newGame('graduate', 17, locale);
+    delete state.pendingEvent;
+    state.eventQueue = [];
+    state.flags.push(
+      'graduate-applied',
+      'graduate-interviewed',
+      'graduate-sponsor-confirmed',
+      'graduate-offer-reviewed',
+      'graduate-cos-ready',
+    );
+    state.day.place = 'visa';
+    const ids = (minute: number) =>
+      core
+        .activities({ ...state, day: { ...state.day, minute } }, 'visa')
+        .map((a) => a.id);
+    expect(ids(600)).toEqual(
+      expect.arrayContaining(['graduate-check-offer', 'graduate-switch']),
+    );
+    expect(ids(1141)).toEqual(['graduate-check-offer']);
+    state.day.minute = 1141;
+    const html = renderView(
+      () => LocationMenu({ state, location: 'visa', onChange: vi.fn() }),
+      locale,
+    ).html;
+    expect(html).toContain(
+      t('game.tooLateSome', locale).replace('{time}', '20:00'),
+    );
+  },
+);

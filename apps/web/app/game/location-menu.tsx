@@ -180,6 +180,14 @@ export function LocationMenu({
                         : t('game.noActions')}
                   </p>
                 )}
+              {available.length > 0 && tooLate && (
+                <p role="status">
+                  {t('game.tooLateSome').replace(
+                    '{time}',
+                    clockTime(place.hours!.closes),
+                  )}
+                </p>
+              )}
               <div className={styles.choices}>
                 {available.map((action) => (
                   <div key={action.id}>
