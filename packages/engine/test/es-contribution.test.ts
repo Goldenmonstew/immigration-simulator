@@ -47,10 +47,11 @@ describe('ES-EARNINGS-5Y', () => {
       run(esEarnings5Y, { incomeYears: income([0, 60000, 60000, 0, 60000], 0) })
         .status,
     ).toBe('PASS');
-    expect(
-      run(esEarnings5Y, { incomeYears: income([60000, 0, 0, 0, 60000], 0) })
-        .status,
-    ).toBe('FAIL');
+    // On a tax-year start nothing is left in the current year; otherwise the
+    // unrecorded current part year leaves one missing year open (PD-006).
+    const short = { incomeYears: income([60000, 0, 0, 0, 60000], 0) };
+    expect(run(esEarnings5Y, short, '2026-04-06').status).toBe('FAIL');
+    expect(run(esEarnings5Y, short).status).toBe('UNKNOWN');
   });
 
   test('2 met plus 1 missing is unknown from missing input', () => {
@@ -96,8 +97,11 @@ describe('ES-EARNINGS-3Y', () => {
         .status,
     ).toBe('PASS');
     expect(
-      run(esEarnings3Y, { incomeYears: income([125141, 0, 0, 125141], 125141) })
-        .status,
+      run(
+        esEarnings3Y,
+        { incomeYears: income([125141, 0, 0, 125141], 125141) },
+        '2026-04-06',
+      ).status,
     ).toBe('FAIL');
   });
 });
@@ -110,9 +114,11 @@ describe('ES-EARNINGS-10Y', () => {
       }).status,
     ).toBe('PASS');
     expect(
-      run(esEarnings10Y, {
-        incomeYears: income([20000, 0, 0, 0, 20000, 20000, 20000]),
-      }).status,
+      run(
+        esEarnings10Y,
+        { incomeYears: income([20000, 0, 0, 0, 20000, 20000, 20000]) },
+        '2026-04-06',
+      ).status,
     ).toBe('FAIL');
   });
 
@@ -427,13 +433,29 @@ describe('ES-PUBLIC-SERVICE', () => {
   });
 });
 
-test('review33e-1 #2 one year short says the current part year is not counted (PD-006)', () => {
+test('review33e-1 #2 and review33e-2: one year short is left open for the unrecorded current tax year (PD-006)', () => {
   const result = run(esEarnings5Y, {
     incomeYears: income([0, 0, 0, 50271, 50271]),
   });
-  expect(result.status).toBe('FAIL');
-  expect(result.explanation).toContain('PD-006');
+  expect(result).toMatchObject({
+    status: 'UNKNOWN',
+    pendingDetails: ['PD-006'],
+  });
+  // Two or more years short still fails.
   expect(
-    run(esEarnings5Y, { incomeYears: income([0, 0, 0, 0, 50271]) }).explanation,
-  ).not.toContain('PD-006');
+    run(esEarnings5Y, { incomeYears: income([0, 0, 0, 0, 50271]) }).status,
+  ).toBe('FAIL');
+  // A benefit that starts after the application date is not a past claim.
+  expect(
+    run(esPublicFunds, {
+      episodes: [{ ...timeline().episodes[1], validFrom: '2023-01-01' }],
+      benefits: [
+        {
+          benefitType: 'UNIVERSAL_CREDIT',
+          from: '2027-01-01',
+          to: '2027-06-30',
+        },
+      ],
+    }).status,
+  ).toBe('PASS');
 });

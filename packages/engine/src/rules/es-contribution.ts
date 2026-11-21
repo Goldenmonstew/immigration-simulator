@@ -107,8 +107,15 @@ function bestYears(
     met < required &&
     canMeet &&
     (unconfirmed > 0 || (currentCouldCount && currentResult === 'PD-010'));
+  // The questionnaire records completed tax years only: the current part
+  // year could still supply the one missing qualifying year (PD-006).
+  const currentUnrecorded =
+    !aligned &&
+    currentResult === 'MISSING' &&
+    met < required &&
+    recorded === required - 1;
   const pendingDetails = [
-    ...(boundaryMatters ? ['PD-006'] : []),
+    ...(boundaryMatters || currentUnrecorded ? ['PD-006'] : []),
     ...(householdMatters ? ['PD-010'] : []),
   ];
   const status =
@@ -118,13 +125,6 @@ function bestYears(
         ? 'UNKNOWN'
         : 'FAIL';
   const L = textFor({ locale });
-  // The questionnaire records completed tax years only: say when the current
-  // part year could still supply the missing qualifying year (PD-006).
-  const currentUnrecorded =
-    status === 'FAIL' &&
-    !aligned &&
-    currentResult === 'MISSING' &&
-    recorded === required - 1;
   const explanation =
     L(
       `${years[0]} 至 ${years[years.length - 1]} 这 ${window} 个 tax year 中，有 ${met} 年收入达到 ${gbp(threshold)}`,
@@ -158,8 +158,8 @@ function bestYears(
       : '') +
     (currentUnrecorded
       ? L(
-          `只计已结束的 tax year。当期 ${currentTaxYear} 尚未结束，未计入；若按申请日前的滚动年度计算，当期收入可能补足一年，结论会改变（PD-006）。`,
-          ` Only completed tax years are counted. The current ${currentTaxYear} tax year is not over and is not counted; if the years run back from the application date, current earnings could supply the missing year and change the result (PD-006).`,
+          `当期 ${currentTaxYear} 税年尚未结束，问卷只收已结束税年的收入。若按申请日前的滚动年度计算，当期收入可能补足缺少的一年，暂定为待定（PD-006）。`,
+          ` The current ${currentTaxYear} tax year is not over, and the questionnaire records completed tax years only. If the years run back from the application date, current earnings could supply the one missing year, so this is left open (PD-006).`,
         )
       : '');
   return {
@@ -613,7 +613,9 @@ export const esPublicFunds = defineRule(
     );
     // Individual D (p19) concerns someone who has claimed: with no recorded
     // use at all, the p18 lookback is simply met.
-    const everUsed = timeline.benefits.some((b) => isPublicFund(b.benefitType));
+    const everUsed = timeline.benefits.some(
+      (b) => b.from <= simulationDate && isPublicFund(b.benefitType),
+    );
     if (
       everUsed &&
       (!qualifyingRun.episodes.length ||

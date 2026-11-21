@@ -179,6 +179,34 @@ describe('Earned Settlement pathway', () => {
     ).toBe('PASS');
   });
 
+  test('review33e-2 questionnaire income one year short keeps the 5-year pathway open; a 10-year partner with earnings settles at 10', () => {
+    const fiveYears = es({
+      episodes: [sw('2021-06-01')],
+      incomeYears: timeline().incomeYears.map((year, i, all) => ({
+        ...year,
+        earnings: i >= all.length - 2 ? 50271 : 30000,
+      })),
+    });
+    expect(fiveYears).toMatchObject({
+      outcome: 'POTENTIALLY_ELIGIBLE',
+      pathwayYears: 5,
+    });
+    const tenYear = es({
+      episodes: [
+        sw('2016-06-01', {
+          route: 'FAMILY_PARTNER_OR_PARENT',
+          familyPermission: 'PARTNER_TEN_YEAR',
+          socCode: undefined,
+        }),
+      ],
+      relationships: [{ type: 'PARTNER', otherPartyStatus: 'BRITISH_CITIZEN' }],
+    });
+    expect(tenYear).toMatchObject({
+      outcome: 'LIKELY_ELIGIBLE',
+      pathwayYears: 10,
+    });
+  });
+
   test('review33e-1 risk: the reassessment date skips a clamped leap day', () => {
     const a = es({
       episodes: [sw('2021-06-01')],

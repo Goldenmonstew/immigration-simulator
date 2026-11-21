@@ -13,7 +13,7 @@
 3. Appendix FM 十年伴侣路线依据 Article 8，不属 core permission（SRC-001 p23 注 9），不再给 3／5 年路径，British connection 判 `FAIL`（p50）。黄金案例 `G-FAMILY-10Y-PARTNER` 的改革栏因此从五年 `LIKELY_ELIGIBLE` 改为 `INSUFFICIENT_INFORMATION`：十年路径须最低收入，案例未申报收入。
 4. 汇总的 `publicFundsReassessmentDate` 与规则共用清出日算法，闰日不再早一天。
 
-四条回归在修正前均失败、修正后通过。PD-083 的结构化表达留作后续。
+四条回归在修正前均失败、修正后通过。复核 `review33e-2`：差且只差一个达标年、申请日不在税年首日、当期收入问卷未收时，收入规则改为 `UNKNOWN`（PD-006），五年路径保留为可能符合；差两年及以上仍为 `FAIL`。曾领福利只看申请日前的记录。PD-083 的结构化表达、十年转五年伴侣时 Article 8 居留的分组（p25）留作后续。
 
 合并后黄金案例的现行法栏与 33d 一致；改革栏 16 栏与 33d 不同，其中结论变化只有 `ES-OFFICIAL-INDIVIDUAL-C`（`LIKELY_ELIGIBLE` → `POTENTIALLY_ELIGIBLE`，PD-010），与 33e 自身一致，其余为规则明细。引擎 2,685 项通过、1 项跳过；web 533；game 1,331；lint、typecheck 通过。
 
