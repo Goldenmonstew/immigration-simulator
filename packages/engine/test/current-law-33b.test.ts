@@ -558,7 +558,9 @@ test('review33b-1 / task 53: a confirmed Option D or I is an ISL job (SW 4.2), a
     facts({ ...scotland, skilledWorkerSponsorshipException: 'OPTION_D' }),
   );
   expect(optionD.status).not.toBe(unconfirmed.status);
-  expect(optionD.assumptions?.join()).not.toContain('ISL status');
+  expect(unconfirmed.assumptions?.join()).toContain('ISL 资格待确认');
+  expect(optionD.assumptions?.join()).not.toContain('ISL 资格待确认');
+  expect(optionD.assumptions?.join()).toContain('Option D／I');
   // SOC 2112 left the list on 2026-12-31; the previous grant was on it.
   const before = permit({
     validFrom: '2024-06-01',
@@ -577,6 +579,40 @@ test('review33b-1 / task 53: a confirmed Option D or I is an ISL job (SW 4.2), a
   const renewal = run(clSwSalary, { episodes: [before, after] }, '2027-06-01');
   expect(renewal.status).toBe('UNKNOWN');
   expect(renewal.assumptions?.join()).toContain('SW 11.2');
+  // review53-1: an undeclared previous grant keeps the exception open; one
+  // confirmed off the list does not.
+  const scotlandBefore = permit({
+    validFrom: '2024-06-01',
+    validTo: '2027-01-14',
+    sponsorshipCertificateDate: '2024-05-01',
+    socCode: '5235',
+    salary: 35000,
+  });
+  const scotlandAfter = {
+    ...scotlandBefore,
+    validFrom: '2027-01-15',
+    validTo: '2030-01-14',
+    sponsorshipCertificateDate: '2026-12-31',
+  };
+  const open = run(
+    clSwSalary,
+    { episodes: [scotlandBefore, scotlandAfter] },
+    '2027-06-01',
+  );
+  expect(open.status).toBe('UNKNOWN');
+  expect(open.assumptions?.join()).toContain('SW 11.2');
+  expect(
+    run(
+      clSwSalary,
+      {
+        episodes: [
+          { ...scotlandBefore, immigrationSalaryList: false },
+          scotlandAfter,
+        ],
+      },
+      '2027-06-01',
+    ).assumptions?.join(),
+  ).not.toContain('SW 11.2');
   // A different job after the removal is not on the list.
   expect(
     run(

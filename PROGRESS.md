@@ -273,3 +273,4 @@
 | 234 | 第 16 阶段计划与任务 51、52 报告。 | docs/tasks/phase-16-plan.md、docs/tasks/reports/51-52-projection.md |
 | 235 | 任务 51、52 审核（review51-1 通过）：报告如实记录收入沿用可能进入"仍待满足"说明，以及预测期间改为 adult dependant relative 的边界。 | docs/tasks/reports/51-52-projection.md |
 | 237 | 任务 53（Fable 实现）：已确认 Option D／I 按 ISL 计（SW 4.2）；移除后同岗续签留待确认（SW 11.2）；后续 Appendix FM 许可在模拟日后生效时预测按该日适用 CR 3.6。 | packages/engine/src/rules/current-law/{skilled-worker,family}.ts、packages/engine/test/current-law-33b.test.ts、docs/tasks/reports/53-isl-cr36.md |
+| 240 | 任务 53 审核修正：上一段 ISL 未确认时也保留 SW 11.2 待确认；Option D／I 说明写实际依据；移除说明只在确实移除时出现；多段后续 FM 许可取最早日期。 | packages/engine/src/rules/current-law/{skilled-worker,family}.ts、packages/engine/test/current-law-33b.test.ts、docs/tasks/reports/53-isl-cr36.md |

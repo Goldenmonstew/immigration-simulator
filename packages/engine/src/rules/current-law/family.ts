@@ -120,18 +120,20 @@ export function familyTenYearResidence(
     .filter((e) => isFamilyGrant(e) && e.validFrom > simulationDate)
     .map((e) => e.validFrom)
     .sort();
-  for (const grant of later) {
-    const projected = residence(
-      grant,
-      notBefore && notBefore > grant ? notBefore : grant,
-    );
-    if (
-      projected?.applicationDate &&
-      (!now?.applicationDate || projected.applicationDate < now.applicationDate)
+  // Each later grant can exclude a different set of trips; take the earliest.
+  return later
+    .map((grant) =>
+      residence(grant, notBefore && notBefore > grant ? notBefore : grant),
     )
-      return projected;
-  }
-  return now;
+    .reduce(
+      (best, projected) =>
+        projected?.applicationDate &&
+        (!best?.applicationDate ||
+          projected.applicationDate < best.applicationDate)
+          ? projected
+          : best,
+      now,
+    );
 }
 
 /**
