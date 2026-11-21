@@ -376,13 +376,12 @@ export default function GameClient() {
     setImmediateResult(undefined);
     // A save made while a call interrupts a New Year activity keeps that
     // activity's result to show after the call (50 review risk).
-    const lastAction = next?.log.filter((e) => e.kind === 'action').at(-1);
     setFestivalResult(
       next?.pendingEvent &&
         next.day.festival === 'lunar-new-year' &&
-        next.outcome?.kind === 'activity' &&
-        (lastAction?.id === 'festival' || lastAction?.id === 'lunar-dumplings')
-        ? next.outcome?.text
+        (next.outcome?.actionId === 'festival' ||
+          next.outcome?.actionId === 'lunar-dumplings')
+        ? next.outcome.text
         : undefined,
     );
     setReturned(undefined);

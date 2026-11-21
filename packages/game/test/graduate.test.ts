@@ -342,6 +342,13 @@ describe('13.2 Graduate character and engine integration', () => {
       day: { ...late.day, kind: 'workday', done: [] },
     });
     expect(graduateNextStep(fresh)!.zhCN).toContain('可回公司与 HR 重谈');
+    // review56-2: the 60-minute job search still fits at 19:00 but not at
+    // 19:01, when work closes at 20:00.
+    const at = (minute: number) =>
+      graduateNextStep(ending({ ...fresh, day: { ...fresh.day, minute } }))!;
+    expect(at(1140).zhCN).toContain('可回公司与 HR 重谈');
+    expect(at(1141).zhCN).toContain('来不及再回公司重谈');
+    expect(at(1141).en).toContain('no time to reopen the salary talk');
     // review40-2: the switch note states the section 3C trigger and the
     // Student switch conditions in both languages.
     const note = graduate.graduateRoute!.salaryCheckNote;

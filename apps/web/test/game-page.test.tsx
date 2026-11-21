@@ -1192,22 +1192,28 @@ for (const locale of ['zh-CN', 'en'] as const) {
       reloaded.dispose();
       // review56-1 risk: if something else (eating) produced the last
       // outcome, no stale activity result is shown after the call.
-      const ate = await client(
+      for (const outcome of [
         {
-          ...call.state,
-          outcome: {
-            kind: 'eat',
-            text: { zhCN: '百家宴饺子', en: 'Potluck dumplings' },
-          },
+          kind: 'eat' as const,
+          text: { zhCN: '百家宴饺子', en: 'Potluck dumplings' },
         },
-        locale,
-      );
-      const ateCall = ate.render().props(EventCard);
-      renderView(() => EventCard(ateCall), locale).click(
-        locale === 'en' ? 'Arrange a weekly call' : '约定每周通话',
-      );
-      expect(ate.render().html).not.toContain(t('game.eventResult', locale));
-      ate.dispose();
+        // review56-2: watering after the activity is also an activity.
+        {
+          kind: 'activity' as const,
+          actionId: 'water',
+          text: { zhCN: '浇了水', en: 'Watered' },
+        },
+      ]) {
+        const later = await client({ ...call.state, outcome }, locale);
+        const laterCall = later.render().props(EventCard);
+        renderView(() => EventCard(laterCall), locale).click(
+          locale === 'en' ? 'Arrange a weekly call' : '约定每周通话',
+        );
+        expect(later.render().html).not.toContain(
+          t('game.eventResult', locale),
+        );
+        later.dispose();
+      }
     },
   );
 }

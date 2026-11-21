@@ -1057,6 +1057,7 @@ export function doActivity(state: GameState, actionId: string): GameState {
   next.log.push(...endingLog);
   next.outcome = {
     kind: action.id.startsWith('travel-') ? 'travel' : 'activity',
+    actionId: action.id,
     text: action.label,
     statDeltas: deltas(state, next),
   };

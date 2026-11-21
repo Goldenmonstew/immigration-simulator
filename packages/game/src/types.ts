@@ -394,6 +394,8 @@ export type Outcome = {
     | 'sleep'
     | 'travel';
   npc?: NpcId;
+  /** The location action that produced this outcome, if any. */
+  actionId?: string;
   text?: Text;
   items?: Record<ItemId, number>;
   statDeltas?: Partial<Record<StatKey, number>>;

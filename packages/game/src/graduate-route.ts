@@ -2,6 +2,7 @@ import { skilledWorkerApplication } from '@uk-immigration/engine';
 import type { ImmigrationEpisode } from '@uk-immigration/engine';
 import { currentLaw2026_11, goingRates } from '@uk-immigration/policy-data';
 import { balance as b } from './balance';
+import { locationActions, places } from './locations';
 import type { GameState } from './types';
 
 const policy = currentLaw2026_11.values;
@@ -177,9 +178,12 @@ export function graduateNextStep(
   });
   // Job search and salary talks happen at work, once, on the quarter's one
   // workday (its first day). Quarters start on the same day of the month.
+  const search = locationActions.find((a) => a.id === 'graduate-job-search')!;
   const workdayLeft =
     state.day.kind === 'workday' &&
-    !state.day.done.includes('graduate-job-search');
+    !state.day.done.includes('graduate-job-search') &&
+    state.day.minute + search.minutes <=
+      places.find((p) => p.id === 'work')!.hours!.closes;
   const [year, month, day] = state.date.split('-').map(Number);
   const nextQuarter = new Date(
     Date.UTC(year, month - 1 + b.monthsPerQuarter, day),
