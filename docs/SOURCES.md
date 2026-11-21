@@ -91,6 +91,11 @@
 | SRC-071 | LAW | Immigration Act 2009（新西兰，Version as at 2026-07-10；s73 永久居民签证、s74 居民签证与旅行条件） | https://www.legislation.govt.nz/act/public/2009/51/en/latest/ | 2026-07-10 | 2026-11-21 | `policy-sources/2026-07-10-nz-immigration-act-2009-ss73-74.html`（sha256 `850fa60bc0927ba64dcdf43f7cf9541a193b5760e7bc9f9eba2ba6fbffaec649`） | archived |
 | SRC-072 | LAW | Immigration New Zealand Operational Manual（Immigration Instructions）：RV2.5 永久居民签证（2024-06-23 生效）、RV2.10 有投资条件的居民签证转永居（2022-09-19）、RV1.15 证据（2012-11-26）、R5.66 居民签证的旅行条件（2026-08-12） | https://www.immigration.govt.nz/opsmanual/30505.htm ；https://www.immigration.govt.nz/opsmanual/46181.htm ；https://www.immigration.govt.nz/opsmanual/45649.htm ；https://www.immigration.govt.nz/opsmanual/44894.htm | 见标题 | 2026-11-21 | `policy-sources/2024-06-23-nz-immigration-instructions-rv2-5.html`（sha256 `ae9c55ff6541067f080a52716d7dad82d4658d8b450f510ca04d9e523dc15bed`）；`policy-sources/2022-09-19-nz-immigration-instructions-rv2-10.html`（sha256 `72afede60ccfa7ec2fd75848103442ec444f955878cebf6c3d0487427b483afb`）；`policy-sources/2012-11-26-nz-immigration-instructions-rv1-15.html`（sha256 `c622973856d8b9998ed1b98df1c66a5d8e7c781ec5061292607580f7ea67faa5`）；`policy-sources/2026-08-12-nz-immigration-instructions-r5-66.html`（sha256 `654a93b52da6eba0121832b884735104c17b889b75cb2fd3636d5cffcb096d1d`） | archived |
 | SRC-073 | GUIDANCE | New Zealand Government（govt.nz，Department of Internal Affairs 入籍说明）：Presence in NZ requirements | https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/requirements-for-nz-citizenship/presence-requirements/ | —（动态页面） | 2026-11-21 | `policy-sources/2026-11-21-nz-citizenship-presence-requirements.html`（sha256 `92d4b3ef1b812709db0fff649e84d9d236d316757a080b37c6eb74afc475947c`） | archived |
+| SRC-074 | LAW | Citizenship Act（加拿大，R.S.C. 1985, c. C-29；current to 2026-10-29，last amended 2025-12-15）：s5 入籍条件与实际居住计算、s21 不计入的期间 | https://laws-lois.justice.gc.ca/eng/acts/c-29/section-5.html ；https://laws-lois.justice.gc.ca/eng/acts/c-29/section-21.html | 2026-10-29 | 2026-11-21 | `policy-sources/2026-10-29-ca-citizenship-act-s5.html`（sha256 `d9ea9293336985dcbd87c593d2c6d51e755410fde96dd2e0e76eb694319b5414`）；`policy-sources/2026-10-29-ca-citizenship-act-s21.html`（sha256 `bb415894daae5d87e593d1216105607395966265b6cacda799eac7c14e09c7d0`） | archived |
+| SRC-075 | LAW | Immigration and Refugee Protection Act（加拿大，S.C. 2001, c. 27；current to 2026-10-29，last amended 2026-03-26）：s28 永久居民的居住义务 | https://laws-lois.justice.gc.ca/eng/acts/i-2.5/section-28.html | 2026-10-29 | 2026-11-21 | `policy-sources/2026-10-29-ca-irpa-s28.html`（sha256 `f54ac86d952f67f55b8f5e2bb42c44def60c7c61aef663304704c0b34a798072`） | archived |
+| SRC-076 | GUIDANCE | IRCC：Apply for Canadian citizenship: adults and minor children — eligibility（Date modified 2026-04-21） | https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/become-canadian-citizen/eligibility.html | 2026-04-21 | 2026-11-21 | `policy-sources/2026-11-21-ca-ircc-citizenship-eligibility.html`（sha256 `531efa815cc1e6934f9c974bac024687f995009803fbc7776b2a7b54f1103dd6`） | archived |
+| SRC-077 | GUIDANCE | IRCC 入籍实际居住的计算：Program delivery instructions "How residence/physical presence is calculated"（Date modified 2021-01-04）；Physical Presence Calculator FAQ（2026-07-17） | https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/canadian-citizenship/grant/residence/calculate-physical-presence.html ；https://eservices.cic.gc.ca/rescalc/redir.do?redir=faq | 见标题 | 2026-11-21 | `policy-sources/2026-11-21-ca-ircc-pdi-citizenship-how-physical-presence-calculated.html`（sha256 `c38e37954d4a3f9c6520b41fe4d453baa46ca4cc2aa8c2402922cc185cbe8f05`）；`policy-sources/2026-11-21-ca-ircc-physical-presence-calculator-faq.html`（sha256 `1cfcc5a1d27281e75cfd29521f82b979ab734c90309c420ea920d17da1d1d9f8`） | archived |
+| SRC-078 | GUIDANCE | IRCC 永久居民居住义务：Program delivery instructions "Permanent resident status determination"（Date modified 2023-09-01）与 "Terms and definitions related to permanent residence"（2026-08-12） | https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/permanent-residence/card/permanent-resident-determination.html ；https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/permanent-residence/terms-definitions-related-permanent-residence.html | 见标题 | 2026-11-21 | `policy-sources/2026-11-21-ca-ircc-pdi-pr-status-determination.html`（sha256 `e5e8fc1961f8ae2f73d877b64f8a9eb640a56cb555777b46fee48450eba38d69`）；`policy-sources/2026-11-21-ca-ircc-pdi-pr-terms-definitions.html`（sha256 `1c9d19a684d64dcc0e51a66dd938878610057046a22cc5b33bdb74788161955e`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -648,3 +653,27 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-073 入籍在境要求（govt.nz）
 
 - `What are the presence requirements?` 第 2 条：5 年从申请当天往回数；每个 12 个月不少于 240 天、5 年合计 1,350 天；任一 12 个月出境超过 4 个月、或 5 年内出境合计超过 15 个月，就可能不满足。第 1 条（"至少过去 5 年以新西兰居民身份生活"）是对 s8(2) 的概括，引擎按法条的天数计算。页面附有官方 Presence calculator（https://dia.services.govt.nz/presence-calculator/ ），它调取移民局出入境记录计算，计法未公开。
+
+## SRC-074 Citizenship Act（加拿大）
+
+- 快照取 laws-lois.justice.gc.ca 的 section 页面（Act current to 2026-10-29，last amended 2025-12-15）。2025-12-15 的修订（S.C. 2025, c. 5）改的是 citizenship by descent（s3 等），s5 只改了 (5)(a) 的措辞，s5(1)(c)、(1.001)、s21 不变。
+- `s5(1)(c)(i)`：申请日前 5 年内实际在加拿大至少 1,095 天；`s5(1)(c)` 还要求是永久居民、无未履行的永居条件；`(iii)` 5 年内 3 个税年按要求报税。`s5(1)(b)` 的年龄要求已于 2017 年废止。`s5(1)(d)`–`(e)`：申请日 18 岁以上、未满 55 岁的须有语言能力与公民知识。`s5(1.001)`：(a) 成为永久居民前以临时居民或受保护人身份在加拿大的每一天计半天，最多 365 天；(b) 成为永久居民后每天计 1 天。`s5(1.01)`–`(1.03)`：随军人、公务员在境外视同在加拿大。`s21`：缓刑、假释、服刑期间不计。
+
+## SRC-075 Immigration and Refugee Protection Act（加拿大）
+
+- 快照取 laws-lois.justice.gc.ca 的 section 页面（Act current to 2026-10-29）。s28 自 2005 年以来未改。
+- `s28(1)`：每个 five-year period 都须满足居住义务。`s28(2)(a)`：该 5 年内至少 730 天 (i) 实际在加拿大，或 (ii)–(iv) 在境外陪同公民配偶或父母、受雇于加拿大企业或公共部门、陪同这样的永久居民。`s28(2)(b)`：(i) 成为永久居民不满 5 年的，看成为永久居民后的首个 5 年能否满足；(ii) 满 5 年的，看审查前的 5 年是否已满足。`s28(2)(c)`：人道理由的裁量。
+
+## SRC-076 入籍资格（IRCC）
+
+- `Have enough physical presence`：资格期是签署申请日前 5 年，其中须至少 730 天为永久居民；坐牢、假释、缓刑、等待难民申请决定的时间不计；受保护人自申请获批起算。语言与考试按签署日年龄 18 至 54 岁判断。canada.ca 对 Node 的请求返回 HTTP/2 流错误，每周核对会报 fetch failed，需人工核对。
+
+## SRC-077 入籍实际居住的计算（IRCC）
+
+- PDI `Calculating physical presence for applications received on or after October 11, 2017`：离开与返回加拿大的日子不算缺席；2 月 29 日按普通日计；示例保留 0.5 天（365.5）。同页 `Returning applications`：须在签署前一天满足，签署当天不计。旧规则（2015-06-11 前）只算出入境中的一天，现行不适用。
+- 计算器 FAQ：A2 资格期示例（2018-04-01 申请，期间为 2013-04-01 至 2018-03-31）；A3 出入境当天不算缺席（7 月 1 日至 15 日缺席 13 天，当天往返或次日返回 0 天）。eservices.cic.gc.ca 对 Node 的请求报证书错误，每周核对需人工处理。
+
+## SRC-078 永久居民居住义务（IRCC）
+
+- `Permanent resident status determination`：审查日取申请正式收件日；满 5 年的只看收件日之前的 5 年；不满 5 年的从成为永久居民之日起算；当天往返不算缺席；示例注明离开与返回当天计入在加拿大。
+- `Terms and definitions related to permanent residence` → `Day of physical presence`：在加拿大的任何部分日都算一整天。
