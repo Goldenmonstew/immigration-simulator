@@ -92,7 +92,7 @@ export function stepSequence(draft: Draft): number[] {
   return [0, 1, 2, ...(needsPrincipal(draft) ? [9] : []), 3, 4, 5, 6, 7, 8];
 }
 
-function today(): string {
+export function today(): string {
   const date = new Date();
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
