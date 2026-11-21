@@ -253,3 +253,4 @@
 | 214 | 任务 49 What-if：可再加一次临时离境，显示在外整天数（出入境当天不计，SRC-057），与当前结果对比（试玩 #1）。 | apps/web/lib/whatif.ts、apps/web/components/whatif-lab.tsx、apps/web/app/whatif/whatif.module.css、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/whatif.test.ts |
 | 215 | 任务 49 问卷：国籍可按中英文国名搜索或填三位代码，选中后显示国名与代码（试玩 #3）。国家列表取自 Unicode CLDR 46 的 alpha-3／alpha-2 对照，国名用浏览器的 Intl.DisplayNames。 | apps/web/app/simulate/steps/basic.tsx、apps/web/lib/{countries,country-names}.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/country-names.test.ts |
 | 216 | 任务 49 问卷说明：Immigration Salary List 的用途与查法（#12）、主申请人与随行家属的例子（#13）、收入步骤显示模拟日期并可"与上一年相同"（#14）、public funds 与法定支付的日常解释和中文释义（#15）。 | apps/web/app/simulate/steps/{income,episodes}.tsx、apps/web/app/simulate/form.module.css、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/questionnaire.test.ts |
+| 217 | 任务 49 试玩包：人物卡 A1 写明两段 Skilled Worker 签证的起止日（2024 年续签分界），与黄金案例 G-SW-5Y-ON-DAY 一致（试玩 #18）。 | docs/playtest/kit.md |
