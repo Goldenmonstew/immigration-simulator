@@ -166,7 +166,7 @@ export const achievements: Achievement[] = [
     id: 'one-day-away',
     name: { zhCN: '差一天', en: 'One day away' },
     description: {
-      zhCN: '评估日期离任一栏最早日期只差一天。',
+      zhCN: '评估日期正好在任一栏最早可申请日期的前一天。',
       en: 'Reach the day before the earliest application date shown in either assessment.',
     },
     check: (s) =>

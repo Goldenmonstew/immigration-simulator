@@ -554,7 +554,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'episodes.privateLifeRoute.YOUNG_ADULT':
     'Aged 18–24, arrived before 18 and has lived continuously in the UK for at least half their life (PL 4.1)',
   'episodes.privateLifeRoute.ADULT':
-    'Other (aged 18 or over: more than 20 years of continuous residence in the UK, or very significant obstacles to integration into the country they would have to live in if required to leave the UK; PL 5.1)',
+    'Other (aged 18 or over on the date of application: more than 20 years of continuous residence in the UK, or very significant obstacles to integration into the country they would have to live in if required to leave the UK; PL 5.1)',
   'benefits.protectionStatusRevoked':
     'My protection status has been revoked or I have renounced it (STP 4.1)',
   'benefits.asylumSupportRepayment':
