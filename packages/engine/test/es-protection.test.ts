@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { earnedSettlement2026_11 } from '@uk-immigration/policy-data';
 import { evaluate } from '../src/evaluate';
 import { taxYearsFrom } from '../src/dates';
 import { esPublicFunds } from '../src/rules/es-contribution';
@@ -132,6 +133,26 @@ describe('ES-PROTECTION-PATHWAY', () => {
     );
     expect(result.explanation).not.toContain('非法入境');
   });
+
+  test.each([true, false])(
+    'A5#9: future illegal entry is ignored (Article 31: %s)',
+    (article31) => {
+      const { column } = es(
+        {
+          episodes: [core],
+          immigrationBreaches: illegalEntry({ date: '2048-01-01', article31 }),
+        },
+        '2047-03-01',
+      );
+      expect(column).toMatchObject({
+        outcome: 'LIKELY_ELIGIBLE',
+        pathwayYears: 20,
+      });
+      const rule = column.rules.find((r) => r.id === 'ES-PROTECTION-PATHWAY');
+      expect(rule?.status).toBe('PASS');
+      expect(rule?.explanation).not.toContain('2048-01-01');
+    },
+  );
 
   test('Article 31 makes the extra years unknown and gives the other reading', () => {
     const result = run(
@@ -448,6 +469,38 @@ describe('ES-PROTECTION-CONTRIBUTION', () => {
     expect(missing.pendingDetails).toBeUndefined();
   });
 
+  test('A5#11: the protection contribution explanation uses the policy parameters in both languages', () => {
+    const { earningsThresholdMinimum, protectionWorkQualifyingYears } =
+      earnedSettlement2026_11.values;
+    const simulationDate = '2032-01-01';
+    const timeline = refugee({
+      episodes: [
+        coreThenWork[0],
+        { ...coreThenWork[1], sustainedActivity: 'EDUCATION' },
+      ],
+    });
+    const originalThreshold = earningsThresholdMinimum.value;
+    const originalYears = protectionWorkQualifyingYears.value;
+    try {
+      earningsThresholdMinimum.value = 13579;
+      protectionWorkQualifyingYears.value = 4;
+      for (const locale of ['zh-CN', 'en'] as const) {
+        const rule = esProtectionContribution.evaluate({
+          timeline,
+          simulationDate,
+          locale,
+        });
+        expect(rule.explanation).toContain('£13,579');
+        expect(rule.explanation).toContain(
+          locale === 'en' ? '4 qualifying years' : '4 年',
+        );
+      }
+    } finally {
+      earningsThresholdMinimum.value = originalThreshold;
+      protectionWorkQualifyingYears.value = originalYears;
+    }
+  });
+
   test('p40 Individual B settles 11 years after the grant', () => {
     const b = {
       incomeYears: earning(2027, 2037),
@@ -481,6 +534,32 @@ describe('ES-PROTECTION-CONTRIBUTION', () => {
     expect(column.earliestDate).toBeUndefined();
     expect(column.pathwayCompletionDate).toBe('2048-03-01');
     expect(column.publicFundsReassessmentDate).toBe('2034-07-01');
+  });
+
+  test('A5#10: contribution failure alone does not create a 20-year fallback', () => {
+    const input = {
+      episodes: coreThenWork,
+      incomeYears: earning(2028, 2047, 5000),
+    };
+    const date = '2048-03-01';
+    const { column } = es(input, date);
+    expect(column.outcome).toBe('LIKELY_NOT_ELIGIBLE');
+    expect(column.pathwayYears).toBeUndefined();
+    expect(column.earliestDate).toBeUndefined();
+    const rule = column.rules.find(
+      (r) => r.id === 'ES-PROTECTION-CONTRIBUTION',
+    );
+    expect(rule?.status).toBe('FAIL');
+    expect(rule?.explanation).toContain('PD-083');
+    expect(
+      es(
+        {
+          ...input,
+          immigrationBreaches: [{ type: 'OVERSTAYING', date: '2039-01-01' }],
+        },
+        date,
+      ).column,
+    ).toMatchObject({ outcome: 'LIKELY_ELIGIBLE', pathwayYears: 20 });
   });
 });
 
@@ -612,6 +691,7 @@ describe('ES-PUBLIC-FUNDS for refugees', () => {
     expect(result.explanation).toContain('只能走 20 年路径');
     expect(result.assumptions?.join()).toContain('PD-031');
     expect(result.assumptions?.join()).toContain('PD-066');
+    // No recorded claim at all: the lookback is met (review33e-1 #1).
     expect(
       run(esPublicFunds, refugee({ episodes: coreThenWork }), '2030-01-01')
         .status,

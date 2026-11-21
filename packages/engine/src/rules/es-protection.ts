@@ -4,7 +4,7 @@ import { addYears, taxYearsFrom } from '../dates';
 import { episodeOn } from '../residence';
 import { defineRule, textFor } from '../rule';
 import type { Lang } from '../rule';
-import type { PersonTimeline } from '../types';
+import type { RuleContext } from '../types';
 import { gbp } from './es-contribution';
 import { isAdultOn } from './es-requirements';
 import { esProtectionRouteOn, esQualifyingResidence } from './es-residence';
@@ -26,9 +26,12 @@ export function protectionBaseYears(route: Route): number {
       : v.protectionPathwayYearsCore.value;
 }
 
-const adultIllegalEntries = (timeline: PersonTimeline) =>
+const adultIllegalEntries = ({ timeline, simulationDate }: RuleContext) =>
   timeline.immigrationBreaches.filter(
-    (b) => b.type === 'ILLEGAL_ENTRY' && isAdultOn(timeline, b.date),
+    (b) =>
+      b.type === 'ILLEGAL_ENTRY' &&
+      b.date <= simulationDate &&
+      isAdultOn(timeline, b.date),
   );
 
 /**
@@ -36,16 +39,15 @@ const adultIllegalEntries = (timeline: PersonTimeline) =>
  * such entry claimed to be protected by Article 31 (p39, PD-032).
  */
 function illegalEntryOf(
-  timeline: PersonTimeline,
+  entries: ReturnType<typeof adultIllegalEntries>,
 ): 'NONE' | 'ADDED' | 'ARTICLE_31' {
-  const entries = adultIllegalEntries(timeline);
   if (entries.length === 0) return 'NONE';
   return entries.every((b) => b.article31 === true) ? 'ARTICLE_31' : 'ADDED';
 }
 
 /** Years added to every protection pathway for illegal entry. */
-export function illegalEntryExtraYears(timeline: PersonTimeline): number {
-  return illegalEntryOf(timeline) === 'ADDED'
+export function illegalEntryExtraYears(ctx: RuleContext): number {
+  return illegalEntryOf(adultIllegalEntries(ctx)) === 'ADDED'
     ? v.illegalEntryAdditionalYears.value
     : 0;
 }
@@ -144,9 +146,10 @@ export const esProtectionPathway = defineRule(
         ),
       );
     }
-    const entries = adultIllegalEntries(timeline).map((b) => b.date);
+    const breaches = adultIllegalEntries(ctx);
+    const entries = breaches.map((b) => b.date);
     const extra = v.illegalEntryAdditionalYears.value;
-    const illegal = illegalEntryOf(timeline);
+    const illegal = illegalEntryOf(breaches);
     if (illegal === 'ARTICLE_31') {
       const start = esQualifyingResidence(ctx)?.start;
       return {
@@ -255,7 +258,7 @@ export const esProtectionContribution = defineRule(
     title: 'Protection Work and Study 的持续贡献',
     titleEn: 'Sustained contribution on Protection Work and Study',
     sources: src('p38', 'p47'),
-    pendingDetails: ['PD-030'],
+    pendingDetails: ['PD-030', 'PD-083'],
   },
   (ctx) => {
     const { timeline, simulationDate } = ctx;
@@ -280,18 +283,18 @@ export const esProtectionContribution = defineRule(
         ),
       };
     }
+    const threshold = v.earningsThresholdMinimum.value;
+    const required = v.protectionWorkQualifyingYears.value;
     if (activity !== 'WORK') {
       return {
         status: 'UNKNOWN',
         explanation: L(
-          '原文只给出工作者的 contribution 标准（3 年年收入达 £12,571），没有给出教育或培训者如何证明持续贡献。',
-          'The response only sets the contribution standard for those working (earning £12,571 a year for three years); it does not say how those in education or training show sustained contribution.',
+          `原文只给出工作者的 contribution 标准（${required} 年年收入达 ${gbp(threshold)}）。教育或培训如何证明持续贡献尚待明确。`,
+          `The response sets a contribution standard for those working (earnings of at least ${gbp(threshold)} in ${required} qualifying years). How to show sustained contribution through education or training is still open.`,
         ),
         pendingDetails: ['PD-030'],
       };
     }
-    const threshold = v.earningsThresholdMinimum.value;
-    const required = v.protectionWorkQualifyingYears.value;
     const start = esQualifyingResidence(ctx)!.start;
     const years = taxYearsFrom(start, simulationDate);
     const earnings = (taxYear: string) =>
@@ -304,8 +307,8 @@ export const esProtectionContribution = defineRule(
     );
     const assumptions = [
       L(
-        `原文未定义 3 个 qualifying years 的观察窗口；本工具按"Protection Work and Study 合格期内任意 ${required} 个 tax year"计算（PD-030）。`,
-        `The response does not define the window for the three qualifying years; this tool counts any ${required} tax years in the qualifying period on Protection Work and Study (PD-030).`,
+        `原文未定义 ${required} 个 qualifying years 的观察窗口，本工具按 Protection Work and Study 合格期内任意 ${required} 个 tax year 计算（PD-030）。`,
+        `The response leaves the window for the ${required} qualifying years open. The estimate counts any ${required} tax years in the qualifying period on Protection Work and Study (PD-030).`,
       ),
     ];
     const summary = L(
@@ -321,7 +324,7 @@ export const esProtectionContribution = defineRule(
     }
     const due = addYears(
       start,
-      protectionBaseYears(route) + illegalEntryExtraYears(timeline),
+      protectionBaseYears(route) + illegalEntryExtraYears(ctx),
     );
     if (due > simulationDate) {
       return {
@@ -352,7 +355,17 @@ export const esProtectionContribution = defineRule(
     }
     return {
       status: 'FAIL',
-      explanation: summary + window,
+      explanation:
+        summary +
+        window +
+        L(
+          `若只有贡献要求未满足，政策尚未说明是否可以使用 ${v.pathwayYears20.value} 年兜底，或该合格期从何时起算（PD-083）。`,
+          ` Where the contribution requirement is the only unmet condition, the policy leaves open whether the ${v.pathwayYears20.value}-year fallback is available and when that period would start (PD-083).`,
+        ),
+      sources: [
+        ...src('p38', 'p47'),
+        { srcId: 'SRC-038', locator: 'Answer ¶2' },
+      ],
       assumptions,
     };
   },

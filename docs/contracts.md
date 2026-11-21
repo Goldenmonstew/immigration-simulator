@@ -108,6 +108,12 @@ What-if、前向推算的结构化假设，都等用到时再加字段，不提�
   - 当前为 Family and Private Life 时只有 10 / 20 年（p23）。居留起点都是 `ES-RESIDENCE` 的合格期起点。
 - 现行法律：建模范围无法确定时，只输出 `CL-SCOPE` 的 `UNKNOWN`，结论为 `INSUFFICIENT_INFORMATION`。在建模范围内，适用境内申请的路线会显示申请日的位置判断，明确在境外为 `FAIL`，位置无法确定为 `UNKNOWN`。仍显示相关路线规则。若只是出境当天递交时的位置不明，当天结论为 `INSUFFICIENT_INFORMATION`。已知返英日且候选的其他要求都通过时，保留可确认的未来日期和对应路线，供随行申请在同一天核对双方。候选如 Skilled Worker 5 年（`CL-SW-SALARY`、`CL-SW-GOING-RATE`（2.5）、`CL-ENGLISH`、`CL-KOL`，起点为连续 Skilled Worker 段）与 Long Residence 10 年（`CL-ENGLISH`、`CL-KOL`，起点为连续合法居留段；英语按 LR 13.1 的等级单独核对，与当前路线的等级不同时只改该候选里的状态，`rules[]` 仍只显示按当前路线的一条，差异写进 `assumptions`（4.5））。候选与居留规则共用可申请日的计算。Long Residence 的 `CL-LR-RESIDENCE-10Y` 也显示 LR 9.3 的申请日位置判断。
 
+贡献规则（任务 33e）：
+
+- Best years 以已结束的英国 tax year 计算。申请日不在税年首日时，最早一个税年或已申报的当期税年收入若可能改变是否达标，则保留 `UNKNOWN`（SRC-001 p16；PD-006）。合计收入决定最低收入时，只有金额、无合并资格资料则为 `UNKNOWN`（p17；PD-010），已录入主申请人的伴侣 dependant 依 PD-056。
+- British connection 按许可所依据的关系判断（SRC-001 p18、Annex A p50；SRC-024 E-LTRP.1.2(a)–(b)、E-LTRPT.2.2(c)）。`familyPermission` 为伴侣时查伴侣，为父母时查子女。旧输入缺许可类别时用不冲突的相关家庭记录推定，并声明假设。已经连续完成 Annex C 公共服务年限再转出时，能否沿用该路径为 `UNKNOWN`（p16、p46 注 17；PD-012）。
+- 福利回看从申请日倒推，涵盖首日。已知福利原可通过、但合格许可未连续覆盖整个窗口时为 `UNKNOWN`（SRC-001 p18、p19 Individual D；PD-047）。身心状况已申报且本人领过 public funds 时保留弱势豁免的不确定性（PD-013）。已知的结束日按同一倒推口径计算首个清出日。
+
 候选日期以实际申请日为比较基准。引用 Appendix Continuous Residence 的现行路径按 SRC-008 CR 1.1(a)–(b) 从申请日及其后最多 28 天内的可计入日期回溯。预测日期使用已录入的许可、到期与转签。出境当天恢复未来候选时，在该候选日核对主申请人的条件。Skilled Worker 按实际递交日生效的许可核对 general salary 和 going rate，随行人推后共同日期时再次核对（SRC-004 SW 24.2–24.3、39.1(a)）。普通预测可给出居留日期并列出届时仍待满足或确认的条件，例如 B2 英语或 Life in the UK（SW 22A.1、23.1）。已录入许可在候选日的 general salary 或 going rate 为 `FAIL` 时顺延到下一段许可；英语与 Life in the UK 在候选日未达标或缺资料时保留该日，作为届时待满足的条件。共同递交日同理：随行人的预测日期与主申请人一致，说明写明主申请人当日待满足或确认的条件；到该日仍未满足时，当日结论不是可申请。出境当天位置不明时恢复的日期，仍须双方各项条件通过。重叠期间逐段采用当日最近生效的许可，回溯合格期与判定当日许可使用同一口径。候选申请日晚于最后一段已录入许可时，推算以合格许可连续续接为前提。BN(O) 在最后一段已录入许可到期前递交时，若参考日超过到期日，结果可按 Immigration Act 1971 section 3C 有条件计算，并披露申请有效、人在英国且至参考日仍待决定、未撤回的假设。共同日期依赖主申请人的 section 3C 时，随行结果也明确指出主申请人和相应参考日。问卷没有决定日。
 
 缺席限额在可计合格期内核对，CR 3.2 的旧许可窗口按实际申请日周年分隔。Long Residence 按每趟行程的出发日确定适用规则，单次上限与出入境时的许可按原行程核对，累计天数对重叠日期取并集（CR 3.3、4.1(d)(iii)）。有境内申请要求的路线按候选申请日核对位置，已申报的返英日可在抵达后递交。随行申请在同一天分别核对双方，取双方都符合的最早日期。免本人居留年限的子女按候选日核对位置、子女许可及随行条件。其历史缺席天数不设上限（SRC-020 HK 62.1(b)、63.1，SRC-004 SW 41A.1–43.1，SRC-021 GT 29A.1–31.1，SRC-022 SETF 12.1–14.1）。BN(O) 子女在共同递交日前已成年时，从成年日起按本人的五年连续居留、英语和 Life in the UK 条件计算候选日（SRC-020 HK 57.1、60.1–63.1）。Appendix FM 五年伴侣按 E-ILRP.1.3 满期，候选日须满足 R-ILRP.1.1(a)、E-ILRP.1.2 的境内与许可要求。若返英日落在许可空档，继续核对已录入的后续伴侣许可。没有可确认例外时，一个无许可日也会中断连续期。预测和当日判断均从后续许可重新计算满期日（SRC-024 E-ILRP.1.2–1.3、1.5A；已建模的合法停留宽限期见 SRC-008 CR 4.1(d)(v)、4.3）。Appendix Settlement Protection 按该路线的条文计算。Earned Settlement 用连续起点加路径年限。
@@ -145,9 +151,9 @@ SimulationRequest {
 
 Earned Settlement 栏的 dependant 候选路径（只有一条）：
 
-- 规则 = 强制要求（`ES-CRIMINALITY`、`ES-DEBT`、`ES-ENGLISH-B2`、`ES-KOL`、`ES-ROUTE-GROUP`、`ES-RESIDENCE`）+ `ES-EARNINGS-10Y`（最低收入）+ `ES-DEPENDANT-PATHWAY`。按身份的豁免写在各规则里（见下表），豁免时规则 `PASS` 并引 p29 / p30。dependant 的 `rules` 另外只列 `ES-PUBLIC-FUNDS` 与 `ES-BREACH`（成年 dependant 本人 `FAIL` → `ES-DEPENDANT-PATHWAY` 为 `UNKNOWN`，PD-062）；3 / 5 年收入、British connection、公共服务与过渡安排规则不对 dependant 运行。
+- 规则 = 强制要求（`ES-CRIMINALITY`、`ES-DEBT`、`ES-ENGLISH-B2`、`ES-KOL`、`ES-ROUTE-GROUP`、`ES-RESIDENCE`）+ `ES-EARNINGS-10Y`（最低收入）+ `ES-DEPENDANT-PATHWAY`。按身份的豁免写在各规则里（见下表），豁免时规则 `PASS` 并引 p29 / p30。dependant 的 `rules` 另外只列 `ES-PUBLIC-FUNDS` 与 `ES-BREACH`（成年 dependant 本人 `FAIL` 时按 PD-062 保留待定。本人潜在弱势豁免或只有已录入的主申请人使用福利时，随行路径也保留 PD-013 或 PD-014）；3 / 5 年收入、British connection、公共服务与过渡安排规则不对 dependant 运行。
 - 年限 = 主申请人该栏的 `pathwayYears`；`routeGroup` = 主申请人的。
-- `earliestDate` = max(主申请人的定居时点, dependant 自己的 dependant 居留起点 + 年限)。同时到达 → 与主申请人同日；后到的伴侣 → 晚到多久就晚多久（p29、p31 Individual B）。
+- `earliestDate` = max(主申请人的定居时点, dependant 自己的 dependant 居留起点 + 年限)。同时到达 → 与主申请人同日。伴侣自己的起点取当前连续 partner dependant 合格许可段，排除此前的主申请人许可及其他 dependant 身份，居留缺席仍按现有规则检查（p29、p31 Individual B；PD-057）。子女随主申请人的时点。
 - 主申请人该栏：`LIKELY_ELIGIBLE` 或带日期的 `LIKELY_NOT_ELIGIBLE` → 按上面取年限与时点；`POTENTIALLY_ELIGIBLE` → 同样取年限，`ES-DEPENDANT-PATHWAY` 为 `UNKNOWN` 并带上主申请人的 `pendingDetails`（dependant 也是 `POTENTIALLY_ELIGIBLE`）；强制要求不满足、没有日期的 `LIKELY_NOT_ELIGIBLE` → `FAIL`；`INSUFFICIENT_INFORMATION`、`REQUIRES_REGULATED_REVIEW` → `UNKNOWN`（不带 PD）。
 - 居留不够时（主申请人尚未满期，或伴侣后到）由 `ES-DEPENDANT-PATHWAY` 显示为 `FAIL` 并写明可申请日期（主申请人用 `ES-RESIDENCE`）。
 - 规则通过 `RuleContext.principal`（`{ timeline, result }`，`evaluate` 先算好）读取主申请人的时间线与结果；只在当前 episode 为 `DEPENDANT` 且请求带 `principal` 时设置。
@@ -156,7 +162,7 @@ Earned Settlement 栏的 dependant 候选路径（只有一条）：
 |---|---|---|---|
 | 伴侣 | criminality、debt、B2、KOL | 最低收入（个人或家庭口径，假设，见 PD） | p29、p46 |
 | 子女，18 岁以下 | 只有 criminality（与 suitability） | 豁免 | p29 |
-| 子女，18–24 岁 | criminality、debt、B2、KOL | 豁免 | p29–p30 |
+| 子女，18–24 岁 | criminality、debt、B2、KOL | 豁免（p29） | p29–p30 |
 | 子女，家庭首次符合资格日（主申请人合格期起点 + 其年限）已满 25 岁 | 不能作为 dependant 定居，`ES-DEPENDANT-PATHWAY` 为 `FAIL`，须独立符合资格或转入自己的路线 | — | p30、p31 Individual E；PD-060 |
 
 年龄分支：是否满 18 岁按申请日（`simulationDate`）；25 岁按家庭首次符合资格日（PD-060）。
@@ -291,7 +297,7 @@ SimulationRequest.locale ──► RuleContext.locale ──► 规则 check：e
 
 | 规则 | 适用 | 判断 |
 |---|---|---|
-| `ES-PROTECTION-PATHWAY`（新） | 三条保护类路线 | 给出基础年限：Safe and Legal 5、PWS 10、Core Protection 20。成年后 `ILLEGAL_ENTRY`（`article31 !== true`）→ 年限 +10，解释点名 Table 2 对应行（p48）。全部成年后非法入境都 `article31: true` → `UNKNOWN`（PD-032），解释同时给出不适用 Article 31 时的年限与日期。Safe and Legal：`resettlementScheme` 缺省 → `UNKNOWN`；`OTHER_DESIGNATED` → `PASS` + 假设"指定路线清单未公布，按你的申报处理；若为 Community Sponsorship、Mandate Resettlement Scheme 或其前身则属 Legacy Safe and Legal Routes（框架外）"（PD-033）。PWS / Core Protection：`PASS` + 假设"两条路线尚未推出，按所填片段日期计算；推出前已有时间是否及如何计入未定"（PD-029、PD-034、PD-043）。 |
+| `ES-PROTECTION-PATHWAY`（新） | 三条保护类路线 | 给出基础年限：Safe and Legal 5、PWS 10、Core Protection 20。截至申请日已发生的成年后 `ILLEGAL_ENTRY`（`article31 !== true`）→ 年限 +10，解释点名 Table 2 对应行（p48）。全部成年后非法入境都 `article31: true` → `UNKNOWN`（PD-032），解释同时给出不适用 Article 31 时的年限与日期。Safe and Legal：`resettlementScheme` 缺省 → `UNKNOWN`；`OTHER_DESIGNATED` → `PASS` + 假设"指定路线清单未公布，按你的申报处理；若为 Community Sponsorship、Mandate Resettlement Scheme 或其前身则属 Legacy Safe and Legal Routes（框架外）"（PD-033）。PWS / Core Protection：`PASS` + 假设"两条路线尚未推出，按所填片段日期计算；推出前已有时间是否及如何计入未定"（PD-029、PD-034、PD-043）。 |
 | `ES-PROTECTION-CONTRIBUTION`（新） | 仅 PWS | `sustainedActivity = 'WORK'`：数 PWS 合格期（`ES-RESIDENCE` 的起点）内**完整的** tax year——起点在合格期起点当天或之后、且在申请日所在 tax year 之前结束；起点所在的那个 tax year 不算（除非合格期恰从 4 月 6 日开始），因为年收入无法拆出转入前的部分。年收入 ≥ £12,571 的年数 ≥ 3 → `PASS`；不足但合格期尚未满 10 年（+10）→ `UNKNOWN`（PD-030，解释写"已有 n 年达标，需 3 年"）；已满仍不足 → `FAIL`。观察窗口原文未定义，按"合格期内任意 3 年"建模并在假设里声明（PD-030）。`EDUCATION` / `TRAINING` → `UNKNOWN`（PD-030）；缺省 → `UNKNOWN`（不带 PD）。 |
 | `ES-ASYLUM-SUPPORT`（新） | PWS、Core Protection；4.5 起也用于非保护类路线 | `NOT_REQUIRED` / `REPAID` / `ON_PLAN` → `PASS`；`OUTSTANDING` → `FAIL`（任何路线）；缺省 → PWS / Core Protection 为 `UNKNOWN`（不带 PD），其他路线 `PASS`，解释"未申报，按未领取 asylum support 处理"（p8 注 1）。Safe and Legal 不运行（Table 2 未列，PD-068）。 |
 | `ES-ENGLISH-B2`（改） | — | `resettlementScheme = 'UK_RESETTLEMENT_SCHEME'` 的 Safe and Legal → A2（`ukrsEnglishLevel`）；其他一律 B2。推导出的 Legacy UKRS → `UNKNOWN`（PD-045）。解释写明适用等级。规则 ID 不变，标题改为等级中性（"定居英语要求（B2；UKRS 难民 A2）"）。 |
@@ -303,7 +309,7 @@ SimulationRequest.locale ──► RuleContext.locale ──► 规则 check：e
 
 ### 11.4 候选路径（§7 的补充）
 
-M = 强制要求；P = `ES-PROTECTION-PATHWAY`；+10 = 成年后非法入境且未声称 Article 31。起点都是 `ES-RESIDENCE` 的合格期起点。
+M = 强制要求；P = `ES-PROTECTION-PATHWAY`；+10 = 成年后非法入境且未声称 Article 31。起点都是 `ES-RESIDENCE` 的合格期起点。只检查截至申请日已发生的非法入境。
 
 | 当前路线 | 候选 | 年限 |
 |---|---|---|
@@ -314,7 +320,8 @@ M = 强制要求；P = `ES-PROTECTION-PATHWAY`；+10 = 成年后非法入境且�
 | `CORE_PROTECTION` | M + P + `ES-ASYLUM-SUPPORT` | 20（+10） |
 
 - Article 31 声称时 P 为 `UNKNOWN`，候选年限按基础年限（不加 10）：未满期 → `LIKELY_NOT_ELIGIBLE` 投影到基础年限的日期；满期 → `POTENTIALLY_ELIGIBLE`。加 10 年的读法写在 P 的解释里。
-- 判定（§7 的 1–3 条）不变；`routeGroup` 输出 `PROTECTION`。
+- PWS 只有在 `ES-BREACH` 或 `ES-PUBLIC-FUNDS` 确认为 `FAIL` 时才加入较长候选。若仅贡献不达标，资格和起点尚待澄清（PD-083，SRC-001 p38、p47 Table 2；SRC-038 Answer ¶2），在贡献规则解释中显示。
+- 判定按 §7 的 1–3 条，`routeGroup` 输出 `PROTECTION`。
 
 ### 11.5 短路（替换 §7 中关于 `PROTECTION` 与非法入境的部分）
 

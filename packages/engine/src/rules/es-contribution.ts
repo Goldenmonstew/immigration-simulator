@@ -8,17 +8,27 @@ import type {
   BestYears,
   SourceRef,
 } from '@uk-immigration/policy-data';
-import { addDays, addYears, taxYearsBefore } from '../dates';
+import { addDays, addYears, taxYearOf, taxYearsBefore } from '../dates';
 import { continuousRun, episodeOn } from '../residence';
 import { defineRule, textFor } from '../rule';
 import type { Lang } from '../rule';
-import type { ImmigrationEpisode, RuleContext } from '../types';
+import type {
+  BenefitEpisode,
+  ImmigrationEpisode,
+  IsoDate,
+  RuleContext,
+} from '../types';
 import {
   ageExemptOn,
   childDependantAssumption,
   childDependantOn,
 } from './es-requirements';
-import { esProtectionRouteOn, esQualifyingResidence } from './es-residence';
+import {
+  esProtectionRouteOn,
+  esQualifyingResidence,
+  esRouteOn,
+  groupsOf,
+} from './es-residence';
 
 // Contribution: earnings, British connection, public funds and public service
 // (SRC-001 Chapter 2, p14–p19; Table 1 p46).
@@ -29,41 +39,91 @@ export function gbp(amount: number): string {
   return `£${amount.toLocaleString('en-GB')}`;
 }
 
+/** First day the lookback no longer reaches `lastUse` (SRC-001 p18). */
+export function publicFundsClearDate(lastUse: IsoDate, years: number): IsoDate {
+  let clears = addDays(addYears(lastUse, years), 1);
+  // The backward calculation can clamp a leap day to 28 February.
+  while (addYears(clears, -years) <= lastUse) clears = addDays(clears, 1);
+  return clears;
+}
+
 const earningsAssumption = (L: Lang) =>
   L(
-    '收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。',
-    'Earnings are gross earnings per UK tax year; the window is the complete tax years before the tax year of the application date, and every year is compared with the current thresholds (PD-005 / PD-006 / PD-007).',
+    '收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。',
+    'Gross earnings are recorded by UK tax year and compared with the current thresholds. The estimate uses completed tax years before applying and leaves the result open if earnings at the lookback boundary can change it (PD-005 / PD-006 / PD-007).',
   );
 
-/** The "best years" test (p16): meet the threshold in `required` of the last `window` tax years. */
+/** Best years (SRC-001 p16–p17): compare completed tax years and check the window edges. */
 function bestYears(
-  { timeline, simulationDate, locale }: RuleContext,
+  { timeline, simulationDate, locale, principal }: RuleContext,
   threshold: number,
   { required, window }: BestYears,
   household: boolean,
 ) {
   const years = taxYearsBefore(simulationDate, window);
-  let met = 0;
-  let missing = 0;
-  let withPartner = 0;
-  for (const taxYear of years) {
+  const current = episodeOn(timeline, simulationDate);
+  // PD-056 models a partner dependant assessed with their recorded principal.
+  const modelledCouple =
+    principal &&
+    current?.role === 'DEPENDANT' &&
+    current.dependantOf === 'PARTNER';
+  const householdThreshold = es.values.householdEarningsThreshold.value;
+  const yearStatus = (taxYear: string) => {
     const income = timeline.incomeYears.find((i) => i.taxYear === taxYear);
     const own = income?.earnings;
-    if (own !== undefined && own >= threshold) {
-      met++;
-    } else if (
+    if (own !== undefined && own >= threshold) return 'OWN';
+    if (
       household &&
-      (own ?? 0) + (income?.partnerEarnings ?? 0) >=
-        es.values.householdEarningsThreshold.value
+      (own ?? 0) + (income?.partnerEarnings ?? 0) >= householdThreshold
     ) {
-      met++;
-      withPartner++;
-    } else if (own === undefined) {
-      missing++;
+      return modelledCouple ? 'HOUSEHOLD' : 'PD-010';
     }
-  }
+    return own === undefined ? 'MISSING' : 'BELOW';
+  };
+  const results = years.map(yearStatus);
+  const passes = (result: ReturnType<typeof yearStatus>) =>
+    result === 'OWN' || result === 'HOUSEHOLD';
+  const met = results.filter(passes).length;
+  const withPartner = results.filter((result) => result === 'HOUSEHOLD').length;
+  const unconfirmed = results.filter((result) => result === 'PD-010').length;
+  const missing = results.filter((result) => result === 'MISSING').length;
+  const currentTaxYear = taxYearOf(simulationDate);
+  const aligned = taxYearOf(addDays(simulationDate, -1)) !== currentTaxYear;
+  const currentResult = yearStatus(currentTaxYear);
+  const currentCouldCount =
+    !aligned && (passes(currentResult) || currentResult === 'PD-010');
+  const recorded = met + unconfirmed;
+  const possible = recorded + missing;
+  const oldestCouldCount =
+    !aligned && (passes(results[0]) || results[0] === 'PD-010');
+  const boundaryMatters =
+    (oldestCouldCount &&
+      ((met === required && passes(results[0])) || recorded === required)) ||
+    (recorded === required - 1 && currentCouldCount);
+  const canMeet = possible + Number(currentCouldCount) >= required;
+  const inputMissing =
+    canMeet && recorded + Number(currentCouldCount) < required;
+  const householdMatters =
+    met < required &&
+    canMeet &&
+    (unconfirmed > 0 || (currentCouldCount && currentResult === 'PD-010'));
+  // The questionnaire records completed tax years only: the current part
+  // year could still supply the one missing qualifying year (PD-006).
+  const currentUnrecorded =
+    !aligned &&
+    currentResult === 'MISSING' &&
+    met < required &&
+    recorded === required - 1;
+  const pendingDetails = [
+    ...(boundaryMatters || currentUnrecorded ? ['PD-006'] : []),
+    ...(householdMatters ? ['PD-010'] : []),
+  ];
   const status =
-    met >= required ? 'PASS' : met + missing >= required ? 'UNKNOWN' : 'FAIL';
+    met >= required && !boundaryMatters
+      ? 'PASS'
+      : inputMissing || pendingDetails.length
+        ? 'UNKNOWN'
+        : 'FAIL';
   const L = textFor({ locale });
   const explanation =
     L(
@@ -72,8 +132,8 @@ function bestYears(
     ) +
     (household && withPartner > 0
       ? L(
-          `（其中 ${withPartner} 年靠与伴侣合计达到 ${gbp(es.values.householdEarningsThreshold.value)}）`,
-          ` (${withPartner} of them through combined household earnings of ${gbp(es.values.householdEarningsThreshold.value)})`,
+          `（其中 ${withPartner} 年靠与伴侣合计达到 ${gbp(householdThreshold)}）`,
+          ` (${withPartner} of them through combined household earnings of ${gbp(householdThreshold)})`,
         )
       : '') +
     L(`，需要 ${required} 年`, `; ${required} needed`) +
@@ -83,8 +143,31 @@ function bestYears(
           `; earnings not provided for ${missing} year(s)`,
         )
       : '') +
-    L('。', '.');
-  return { status, explanation, withPartner } as const;
+    L('。', '.') +
+    (boundaryMatters
+      ? L(
+          '回看期跨越 tax year 边界。边界税年的收入归属可改变达标年数，年度汇总无法确定归属（PD-006）。',
+          ' The lookback crosses tax-year boundaries. Earnings at the edges can change the number of qualifying years, and annual totals cannot establish when they were earned (PD-006).',
+        )
+      : '') +
+    (householdMatters
+      ? L(
+          `若可合计伴侣收入，部分年份可达 ${gbp(householdThreshold)}。合计须符合 eligible couple 条件，关系真实且持续，并且只有一方依赖另一方的收入（PD-010）。`,
+          ` Combined earnings could reach ${gbp(householdThreshold)} in some years. Combining earnings requires an eligible couple in a genuine and subsisting relationship, with only one partner relying on the other’s earnings (PD-010).`,
+        )
+      : '') +
+    (currentUnrecorded
+      ? L(
+          `当期 ${currentTaxYear} 税年尚未结束，问卷只收已结束税年的收入。若按申请日前的滚动年度计算，当期收入可能补足缺少的一年，暂定为待定（PD-006）。`,
+          ` The current ${currentTaxYear} tax year is not over, and the questionnaire records completed tax years only. If the years run back from the application date, current earnings could supply the one missing year, so this is left open (PD-006).`,
+        )
+      : '');
+  return {
+    status,
+    explanation,
+    withPartner,
+    ...(!inputMissing && pendingDetails.length > 0 && { pendingDetails }),
+  } as const;
 }
 
 function earningsRule(
@@ -99,10 +182,16 @@ function earningsRule(
   return defineRule(
     { id, ruleSetId: RULE_SET, title, titleEn, sources, pendingDetails },
     (ctx) => {
-      const { status, explanation } = bestYears(ctx, threshold, years, false);
+      const { status, explanation, pendingDetails } = bestYears(
+        ctx,
+        threshold,
+        years,
+        false,
+      );
       return {
         status,
         explanation,
+        ...(pendingDetails && { pendingDetails }),
         assumptions: [earningsAssumption(textFor(ctx))],
       };
     },
@@ -111,7 +200,7 @@ function earningsRule(
 
 const EARNINGS_SOURCES: SourceRef[] = [
   { srcId: 'SRC-001', locator: 'p15' },
-  { srcId: 'SRC-001', locator: 'p16' },
+  { srcId: 'SRC-001', locator: 'p16, How earnings will be assessed' },
   { srcId: 'SRC-001', locator: 'p46' },
 ];
 
@@ -144,7 +233,7 @@ export const esEarnings10Y = defineRule(
     sources: [
       ...EARNINGS_SOURCES,
       { srcId: 'SRC-001', locator: 'p17' },
-      { srcId: 'SRC-001', locator: 'p30' },
+      { srcId: 'SRC-001', locator: 'p29' },
     ],
     pendingDetails: [
       'PD-005',
@@ -179,7 +268,7 @@ export const esEarnings10Y = defineRule(
           '保留 child-dependant 身份的成年子女随家庭定居，不需满足个人收入要求。',
           'An adult child retaining child-dependant status settles with the family and does not need to meet the individual earnings requirement.',
         ),
-        sources: [{ srcId: 'SRC-001', locator: 'p30' }],
+        sources: [{ srcId: 'SRC-001', locator: 'p29' }],
         assumptions: [childDependantAssumption(L)],
       };
     }
@@ -198,7 +287,7 @@ export const esEarnings10Y = defineRule(
         ],
       };
     }
-    const { status, explanation, withPartner } = bestYears(
+    const { withPartner, ...result } = bestYears(
       ctx,
       es.values.earningsThresholdMinimum.value,
       es.values.bestYears10Year.value,
@@ -214,12 +303,12 @@ export const esEarnings10Y = defineRule(
     if (withPartner > 0) {
       assumptions.push(
         L(
-          '家庭合计收入假设申请人与伴侣是 eligible couple（genuine and subsisting 关系），且伴侣没有反过来依赖申请人的收入（p17；PD-010）。',
-          'Combined household earnings assume the applicant and partner are an eligible couple (a genuine and subsisting relationship) and the partner does not in turn rely on the applicant’s earnings (p17; PD-010).',
+          '已录入主申请人的伴侣 dependant 按本人申报的同一税年合计收入评估。假设关系真实且持续，主申请人无须依赖伴侣收入（p17；PD-010、PD-056）。',
+          'For a partner dependant assessed with their principal, combined earnings are taken as declared for the same tax year. This assumes a genuine and subsisting relationship and that the principal does not need to rely on the dependant’s earnings (p17; PD-010, PD-056).',
         ),
       );
     }
-    return { status, explanation, assumptions };
+    return { ...result, assumptions };
   },
 );
 
@@ -229,13 +318,17 @@ export const esBritishConnection = defineRule(
     ruleSetId: RULE_SET,
     title: 'British connection（5 年路径）',
     titleEn: `British connection (${es.values.pathwayYears5.value}-year pathway)`,
-    sources: [{ srcId: 'SRC-001', locator: 'p18' }],
+    sources: [
+      { srcId: 'SRC-001', locator: 'p18, British Connection' },
+      { srcId: 'SRC-001', locator: 'p50, Annex A' },
+      { srcId: 'SRC-024', locator: 'E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)' },
+    ],
     pendingDetails: [],
   },
   ({ timeline, simulationDate, locale }) => {
     const L = textFor({ locale });
-    const route = episodeOn(timeline, simulationDate)?.route;
-    if (route === 'UK_ANCESTRY') {
+    const current = episodeOn(timeline, simulationDate);
+    if (current?.route === 'UK_ANCESTRY') {
       return {
         status: 'PASS',
         explanation: L(
@@ -245,18 +338,64 @@ export const esBritishConnection = defineRule(
       };
     }
     if (
-      route === 'FAMILY_PARTNER_OR_PARENT' &&
-      timeline.relationships.some(
-        (r) => r.otherPartyStatus === 'BRITISH_CITIZEN',
-      )
+      current?.route === 'FAMILY_PARTNER_OR_PARENT' &&
+      current.familyPermission === 'PARTNER_TEN_YEAR'
     ) {
       return {
-        status: 'PASS',
+        status: 'FAIL',
         explanation: L(
-          '以 British citizen 的伴侣、父母或子女身份持家庭签证，属 recognised British connection，可走 5 年路径。',
-          'Holds a family visa as the partner, parent or child of a British citizen, a recognised British connection: the 5-year pathway is available.',
+          'Appendix FM 十年伴侣路线依据 Article 8 ECHR，不属 core permission（p23 注 9），只能走 10 年或 20 年路径，不走这条 5 年路径（p50）。',
+          'The 10-year Appendix FM partner route rests on Article 8 ECHR and is not core permission (p23 note 9), so only the 10 or 20-year pathways apply, not this 5-year pathway (p50).',
         ),
+        sources: [
+          { srcId: 'SRC-001', locator: 'p23 fn 9' },
+          { srcId: 'SRC-001', locator: 'p50, Annex A' },
+        ],
       };
+    }
+    if (current?.route === 'FAMILY_PARTNER_OR_PARENT') {
+      const sponsors = timeline.relationships.filter(({ type }) => {
+        if (current.role === 'DEPENDANT')
+          return current.dependantOf === 'PARENT' && type === 'PARENT';
+        if (current.familyPermission === 'PARENT') return type === 'CHILD';
+        if (current.familyPermission) return type === 'PARTNER';
+        // Older timelines may predate familyPermission.
+        return type === 'PARTNER' || type === 'CHILD';
+      });
+      const british = sponsors.some(
+        (r) => r.otherPartyStatus === 'BRITISH_CITIZEN',
+      );
+      if (
+        sponsors.length === 0 ||
+        (british &&
+          sponsors.some((r) => r.otherPartyStatus !== 'BRITISH_CITIZEN'))
+      ) {
+        return {
+          status: 'UNKNOWN',
+          explanation: L(
+            '已填资料无法确认当前家庭许可所依据的家庭成员是否为 British citizen。',
+            'The information provided does not establish whether the family member on whom the current family permission is based is a British citizen.',
+          ),
+        };
+      }
+      if (british) {
+        return {
+          status: 'PASS',
+          explanation: L(
+            '家庭许可所依据的家庭成员为 British citizen，属 recognised British connection，可走 5 年路径。',
+            'The family member on whom the family permission is based is a British citizen, a recognised British connection for the five-year pathway.',
+          ),
+          ...(!current.familyPermission &&
+            current.role === 'MAIN' && {
+              assumptions: [
+                L(
+                  '未申报家庭许可类别，按已录入的伴侣或子女关系推定许可依据。',
+                  'The family permission category was not provided, so its basis is inferred from the recorded partner or child relationship.',
+                ),
+              ],
+            }),
+        };
+      }
     }
     return {
       status: 'FAIL',
@@ -280,14 +419,20 @@ function namesOf(types: string[], L: Lang): string {
     .join(L('、', ', '));
 }
 
+const isIn = (list: Benefit[]) => (t: string) =>
+  list.some((b) => b.benefitType === t);
+const isPublicFund = isIn(publicFundsBenefits.publicFunds);
+const isIgnoredBenefit = isIn(publicFundsBenefits.notPublicFunds);
+
 export const esPublicFunds = defineRule(
   {
     id: 'ES-PUBLIC-FUNDS',
     ruleSetId: RULE_SET,
-    title: '申请前 5 年未使用 public funds',
+    title: `申请前 ${es.values.publicFundsLookbackYears.value} 年未使用 public funds`,
     titleEn: `No public funds in the ${es.values.publicFundsLookbackYears.value} years before applying`,
     sources: [
-      { srcId: 'SRC-001', locator: 'p18' },
+      { srcId: 'SRC-001', locator: 'p18, Public Funds' },
+      { srcId: 'SRC-001', locator: 'p19, Individual D' },
       { srcId: 'SRC-006', locator: '#benefits-open-to-new-claims' },
       {
         srcId: 'SRC-006',
@@ -296,7 +441,7 @@ export const esPublicFunds = defineRule(
     ],
     pendingDetails: ['PD-013', 'PD-014', 'PD-031', 'PD-047', 'PD-066'],
   },
-  ({ timeline, simulationDate, locale }) => {
+  ({ timeline, simulationDate, locale, principal }) => {
     const L = textFor({ locale });
     const years = es.values.publicFundsLookbackYears.value;
     const protection = esProtectionRouteOn(timeline, simulationDate);
@@ -317,8 +462,8 @@ export const esPublicFunds = defineRule(
       return {
         status: 'PASS',
         explanation: L(
-          `Core Protection 的 ${es.values.protectionPathwayYearsCore.value} 年路径不要求申请前 ${years} 年未使用 public funds；这一要求只用于短于 20 年的路径（p39）。`,
-          `The ${es.values.protectionPathwayYearsCore.value}-year Core Protection pathway does not require no use of public funds in the ${years} years before applying; that requirement only applies to pathways shorter than 20 years (p39).`,
+          `Core Protection 的 ${es.values.protectionPathwayYearsCore.value} 年路径豁免申请前 ${years} 年未使用 public funds 的要求（p39）。`,
+          `The ${es.values.protectionPathwayYearsCore.value}-year Core Protection pathway is exempt from the requirement to have avoided public funds for the ${years} years before applying (p39).`,
         ),
         sources: [
           { srcId: 'SRC-001', locator: 'p39' },
@@ -327,23 +472,16 @@ export const esPublicFunds = defineRule(
       };
     }
     const pws = protection === 'PROTECTION_WORK_AND_STUDY';
-    const from = addYears(simulationDate, -years);
-    const inWindow = timeline.benefits.filter(
-      (b) => b.from <= simulationDate && (b.to ?? simulationDate) >= from,
-    );
-    const isIn = (list: Benefit[]) => (t: string) =>
-      list.some((b) => b.benefitType === t);
-    const used = inWindow.filter((b) =>
-      isIn(publicFundsBenefits.publicFunds)(b.benefitType),
-    );
+    const startOfWindow = (date: IsoDate) => addYears(date, -years);
+    const from = startOfWindow(simulationDate);
+    const overlapsWindow = (b: BenefitEpisode) =>
+      b.from <= simulationDate && (b.to ?? simulationDate) >= from;
+    const inWindow = timeline.benefits.filter(overlapsWindow);
+    const used = inWindow.filter((b) => isPublicFund(b.benefitType));
     const unlisted = inWindow.filter(
-      (b) =>
-        !isIn(publicFundsBenefits.publicFunds)(b.benefitType) &&
-        !isIn(publicFundsBenefits.notPublicFunds)(b.benefitType),
+      (b) => !isPublicFund(b.benefitType) && !isIgnoredBenefit(b.benefitType),
     );
-    const ignored = inWindow.filter((b) =>
-      isIn(publicFundsBenefits.notPublicFunds)(b.benefitType),
-    );
+    const ignored = inWindow.filter((b) => isIgnoredBenefit(b.benefitType));
     const assumptions =
       inWindow.length > 0
         ? [
@@ -358,14 +496,6 @@ export const esPublicFunds = defineRule(
             L(
               'specified public funds 先按现行 public funds 定义（SRC-006）判断；政府将另定纳入范围与弱势群体的保障或豁免（PD-013）。',
               'Specified public funds are judged by the current public funds definition (SRC-006) for now; the government will set the scope, and protections or exemptions for vulnerable groups, separately (PD-013).',
-            ),
-            L(
-              '只计申请人本人领取的福利；伴侣或子女领取是否影响申请人，原文未说明（PD-014）。',
-              'Only benefits received by the applicant are counted; the response does not say whether benefits received by a partner or child affect the applicant (PD-014).',
-            ),
-            L(
-              `回看期按正文"申请前紧接的 ${years} 年"计算，不要求这段时间都在 qualifying route 上（PD-047）。`,
-              `The lookback is “the ${years} years immediately before applying”, as in the main text, and that time need not all be on a qualifying route (PD-047).`,
             ),
           ]
         : [];
@@ -383,29 +513,44 @@ export const esPublicFunds = defineRule(
           )
         : '';
     if (used.length > 0) {
+      const names = namesOf(
+        used.map((b) => b.benefitType),
+        L,
+      );
+      if (timeline.earningsExemptHealth) {
+        return {
+          status: 'UNKNOWN',
+          explanation: L(
+            `回看期内领过 ${names}。已申报影响最低收入的身心状况，是否适用 public funds 的弱势群体豁免尚待公布（PD-013）。`,
+            `Received ${names} in the lookback period. A health condition affecting minimum earnings has been declared, and the public funds exemption criteria for vulnerable groups are still to be published (PD-013).`,
+          ),
+          sources: [
+            { srcId: 'SRC-001', locator: 'p18, Public Funds' },
+            { srcId: 'SRC-041', locator: 'p4, questions 8–9' },
+          ],
+          pendingDetails: pws ? ['PD-013', 'PD-031'] : ['PD-013'],
+          assumptions,
+        };
+      }
       const ongoing = used.some((b) => !b.to);
       const lastUse = used
         .map((b) => b.to ?? simulationDate)
         .sort()
         .at(-1)!;
+      const clears = publicFundsClearDate(lastUse, years);
+      const fallback = es.values.pathwayYears20.value;
       return {
         status: 'FAIL',
         explanation:
           L(
-            `${from} 以来领取过 ${namesOf(
-              used.map((b) => b.benefitType),
-              L,
-            )}，属 public funds。${pws ? `Protection Work and Study 的 ${es.values.protectionPathwayYearsWorkAndStudy.value} 年路径要求申请前 ${years} 年未使用 public funds，否则只能走 20 年路径（p39）。` : `3 / 5 / 10 年路径要求申请前 ${years} 年未使用 specified public funds，否则须在 qualifying route 上满 20 年。`}`,
-            `Public funds received since ${from}: ${namesOf(
-              used.map((b) => b.benefitType),
-              L,
-            )}. ${pws ? `The ${es.values.protectionPathwayYearsWorkAndStudy.value}-year Protection Work and Study pathway requires no use of public funds in the ${years} years before applying; otherwise only the 20-year pathway is available (p39).` : `The 3 / 5 / 10-year pathways require no use of specified public funds in the ${years} years before applying; otherwise 20 years on a qualifying route are needed.`}`,
+            `${from} 以来领取过 ${names}，属 public funds。${pws ? `Protection Work and Study 的 ${es.values.protectionPathwayYearsWorkAndStudy.value} 年路径要求申请前 ${years} 年未使用 public funds，否则只能走 ${fallback} 年路径（p39）。` : `短于 ${fallback} 年的路径要求申请前 ${years} 年未使用 specified public funds。`}`,
+            `Public funds received since ${from}: ${names}. ${pws ? `The ${es.values.protectionPathwayYearsWorkAndStudy.value}-year Protection Work and Study pathway requires no use of public funds in the ${years} years before applying; otherwise only the ${fallback}-year pathway is available (p39).` : `Pathways shorter than ${fallback} years require no use of specified public funds in the ${years} years before applying.`}`,
           ) +
           (ongoing
             ? ''
             : L(
-                `若此后不再使用，自 ${addDays(addYears(lastUse, years), 1)} 起回看期内不再有 public funds，可按较短路径重新评估。`,
-                ` If they are not used again, the lookback contains no public funds from ${addDays(addYears(lastUse, years), 1)}, and the shorter pathways can be reassessed.`,
+                `若此后不再使用，自 ${clears} 起回看期内不再有 public funds，可按较短路径重新评估。`,
+                ` If they are not used again, the lookback contains no public funds from ${clears}, and the shorter pathways can be reassessed.`,
               )) +
           ignoredNote,
         ...(pws && {
@@ -444,6 +589,49 @@ export const esPublicFunds = defineRule(
         assumptions,
       };
     }
+    const principalUsed = principal?.timeline.benefits.some(
+      (b) => overlapsWindow(b) && isPublicFund(b.benefitType),
+    );
+    if (principalUsed) {
+      return {
+        status: 'UNKNOWN',
+        explanation: L(
+          '本人未领取 public funds，但已录入的主申请人在回看期内领过。原文未说明家庭成员领取是否影响本人的定居（PD-014）。',
+          'The recorded principal received public funds in the lookback period. The response does not say whether benefits received by a family member affect this applicant’s settlement (PD-014).',
+        ),
+        pendingDetails: ['PD-014'],
+      };
+    }
+    const qualifyingRun = continuousRun(
+      timeline,
+      simulationDate,
+      (e) =>
+        groupsOf(esRouteOn(timeline, e.validFrom) ?? e.route).some(
+          (group) => group !== 'NOT_COUNTING' && group !== 'OUTSIDE_FRAMEWORK',
+        ),
+      () => false,
+    );
+    // Individual D (p19) concerns someone who has claimed: with no recorded
+    // use at all, the p18 lookback is simply met.
+    const everUsed = timeline.benefits.some(
+      (b) => b.from <= simulationDate && isPublicFund(b.benefitType),
+    );
+    if (
+      everUsed &&
+      (!qualifyingRun.episodes.length ||
+        qualifyingRun.episodes[0].validFrom > from)
+    ) {
+      return {
+        status: 'UNKNOWN',
+        explanation:
+          L(
+            `申报记录没有覆盖自 ${from} 起的整个回看期。正文按申请日前 ${years} 年检查福利，案例 D 则要求连续在 qualifying route 上，具体口径尚待明确（PD-047）。`,
+            `The recorded qualifying permissions do not cover the entire lookback from ${from}. The main text checks the ${years} years before applying, while Individual D calls for continuous time on a qualifying route. The precise requirement is still open (PD-047).`,
+          ) + ignoredNote,
+        pendingDetails: ['PD-047'],
+        assumptions,
+      };
+    }
     return {
       status: 'PASS',
       explanation: L(
@@ -475,7 +663,32 @@ export const esPublicService = defineRule(
     const { timeline, simulationDate } = ctx;
     const L = textFor(ctx);
     const current = episodeOn(timeline, simulationDate);
+    const years = es.values.pathwayYears5.value;
     if (!current || !inAnnexC(current)) {
+      const completedService =
+        current &&
+        timeline.episodes.some((episode) => {
+          if (!inAnnexC(episode) || episode.validFrom >= current.validFrom)
+            return false;
+          const beforeSwitch = addDays(current.validFrom, -1);
+          const end =
+            episode.validTo < beforeSwitch ? episode.validTo : beforeSwitch;
+          const since = continuousRun(timeline, end, inAnnexC).episodes[0]
+            ?.validFrom;
+          return (
+            since !== undefined && addYears(since, years) <= addDays(end, 1)
+          );
+        });
+      if (completedService) {
+        return {
+          status: 'UNKNOWN',
+          explanation: L(
+            `曾连续从事 Annex C 公共服务职业满 ${years} 年，现已转出。原文未说明离开合格岗位后能否使用这条路径（PD-012）。`,
+            `Completed ${years} continuous years in Annex C public service before leaving. The response does not say whether this pathway is available after leaving an eligible job (PD-012).`,
+          ),
+          pendingDetails: ['PD-012'],
+        };
+      }
       return {
         status: 'FAIL',
         explanation: L(
@@ -489,7 +702,6 @@ export const esPublicService = defineRule(
     )?.title;
     const since = continuousRun(timeline, simulationDate, inAnnexC).episodes[0]
       .validFrom;
-    const years = es.values.pathwayYears5.value;
     if (addYears(since, years) <= simulationDate) {
       return {
         status: 'PASS',

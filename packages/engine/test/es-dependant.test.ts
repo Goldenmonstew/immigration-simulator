@@ -83,6 +83,50 @@ describe('ES-DEPENDANT-PATHWAY: partner', () => {
     );
   });
 
+  test('A5#1: the partner’s earlier work permission does not count as dependant residence', () => {
+    const a = es({
+      episodes: [
+        {
+          ...timeline().episodes[0],
+          validFrom: '2021-11-01',
+          validTo: '2023-10-31',
+        },
+        ...partnerFrom('2023-11-01'),
+      ],
+    });
+    expect(a).toMatchObject({
+      outcome: 'LIKELY_NOT_ELIGIBLE',
+      pathwayYears: 5,
+      earliestDate: '2028-11-01',
+    });
+    expect(pathwayOf(a).explanation).toContain('2023-11-01');
+  });
+
+  test('A5#1: the partner’s application date cannot precede the principal’s date', () => {
+    expect(
+      es(PARTNER, {
+        episodes: [{ ...timeline().episodes[1], validFrom: '2022-01-01' }],
+      }),
+    ).toMatchObject({
+      outcome: 'LIKELY_NOT_ELIGIBLE',
+      pathwayYears: 5,
+      earliestDate: '2027-01-01',
+    });
+  });
+
+  test('A5#2: a partner dependant assessed with their principal can still use PD-056', () => {
+    const incomeYears = timeline().incomeYears.map((year) => ({
+      ...year,
+      earnings: 9000,
+      partnerEarnings: 16142,
+    }));
+    const a = es({ ...PARTNER, incomeYears });
+    expect(a.outcome).toBe('LIKELY_ELIGIBLE');
+    expect(a.rules.find((r) => r.id === 'ES-EARNINGS-10Y')?.status).toBe(
+      'PASS',
+    );
+  });
+
   test('a principal not yet eligible projects the family date', () => {
     const recent: ImmigrationEpisode[] = [
       {
@@ -126,6 +170,18 @@ describe('ES-DEPENDANT-PATHWAY: partner', () => {
       outcome: 'POTENTIALLY_ELIGIBLE',
       pathwayYears: 5,
     });
+  });
+
+  test('A5#5: public funds received only by the principal leave the partner’s position unknown', () => {
+    const a = es(PARTNER, {
+      benefits: [{ benefitType: 'UNIVERSAL_CREDIT', from: '2024-01-01' }],
+    });
+    expect(a.rules.find((r) => r.id === 'ES-PUBLIC-FUNDS')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-014'],
+    });
+    expect(pathwayOf(a).pendingDetails).toContain('PD-014');
+    expect(a.outcome).toBe('LIKELY_NOT_ELIGIBLE');
   });
 });
 
