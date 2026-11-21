@@ -263,3 +263,4 @@
 | 224 | 任务 40／50 诺拉第二轮审核修正：拿到 CoS 当天提示可先核对、重谈薪资等下一季工作日；补低报价分支与 3C、SW 1.5A 说明的双语测试。 | packages/game/src/graduate-route.ts、packages/game/test/graduate.test.ts、docs/tasks/reports/40-50-nora.md |
 | 225 | 任务 49 第四轮审核修正：本人与主申请人国籍都需修正时，也撤销主申请人的完成标记；契约 §19 写明 `entry` 只用于标准路径候选。 | apps/web/lib/questionnaire.ts、apps/web/test/questionnaire.test.ts、docs/contracts.md、docs/tasks/reports/49-web-usability.md |
 | 226 | 任务 40／50 诺拉第三轮审核：按审核复现的路径（暂缓投递、保留低报价、两档均不通过）补测试，核对当天可核对、不能重谈、下一季可重谈。 | packages/game/test/graduate.test.ts、docs/tasks/reports/40-50-nora.md |
+| 227 | 任务 43 实机走查（Fable）：林遥新开一局走"出门→聊天→钓鱼→做饭→回家"，补钓鱼与做饭成功卡的桌面／手机、中英文截图；记录杂物图标、鳊鱼图偏左、新开局无食材等发现。 | docs/tasks/reports/43-manual-walk.md、docs/tasks/reports/43/*.jpg |
