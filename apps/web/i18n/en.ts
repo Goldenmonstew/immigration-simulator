@@ -57,7 +57,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.collectionWeather.snow': 'snowy',
   'game.collectionUnknown': 'Not yet recorded',
   'game.collectionHarvests':
-    'Harvest records: {count} harvests across {kinds} crops.',
+    'Harvest records: {count} harvest{count:s} across {kinds} crop{kinds:s}.',
   'game.lunchScene': 'Neighbourhood lunch · 12:00–16:00',
   'game.lunchTables': 'The tables and chairs you borrowed',
   'game.lunchFood': 'The food you brought is on the table',
@@ -70,7 +70,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.yearQuarter': 'Year {year} · Quarter {quarter}',
   'game.actionsLeft': '{count} action points',
   'game.visaShort': '{count}m',
-  'game.visa': 'Visa: {count} months left',
+  'game.visa': 'Permission: {count} month{count:s} left',
   'game.renewedThisSeason': 'You renewed this season.',
   'game.renewedThrough':
     'You renewed this season. The expiry date on that renewal was {date}.',
@@ -113,13 +113,13 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.event': 'News around town',
   'game.quarterSummary': 'This quarter in review',
   'game.quarterChanges':
-    'Stat changes across the quarter (actions, events and settlement)',
+    'Stat changes from actions, events and the end-of-quarter update',
   'game.wellbeingAtSettlement':
     'What made the biggest difference at the season’s end',
   'game.settlementSource.seasonWear': 'The season’s wear and tear',
   'game.settlementSource.overtimeWear': 'Extra wear from overtime',
   'game.settlementSource.brighterHome': 'A brighter home',
-  'game.settlementSource.walkingClub': 'Walking club',
+  'game.settlementSource.walkingClub': 'Hiking coaching',
   'game.settlementSource.furnishings': 'Home furnishings',
   'game.cropsCleared':
     'The season changed, and crops left in the ground were cleared from {count} of your plots.',
@@ -131,7 +131,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.achievements': 'Keepsakes along the way',
   'game.noAchievements': 'The journey is a keepsake of its own.',
   'game.currentLaw': 'Current law',
-  'game.reform': 'After reform',
+  'game.reform': 'Announced reforms',
   'game.councilDetails': 'Visit the town hall for details',
   'game.progressHint':
     'Progress tracks time accumulated. Read the outcome and rules to understand eligibility.',
@@ -143,9 +143,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.fee': 'Fee',
   'game.travelRecall':
     'Depart today; travel skips the remaining days of this season.',
-  'game.visaReminderTitle': 'A new quarter: check your visa dates',
+  'game.visaReminderTitle': 'A new quarter: check your permission dates',
   'game.visaReminder':
-    'Your current permission has {count} months left, with no adjoining renewal recorded. Visit the visa centre to see available actions and fees.',
+    'Your current permission has {count} month{count:s} left, and no further permission is recorded from the date it expires. Visit the visa centre to see available actions and fees.',
   'game.fastVisaWarning':
     'Your current permission expires on {date} and no further permission follows it. Fast-forwarding runs past that date to the end of the quarter, so visit the visa centre first.',
   'game.missingRules': 'Still needed: {rules}',
@@ -165,7 +165,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'site.version': 'Version {version}',
   'error.title': 'Something went wrong on this page',
   'error.body':
-    'The page hit an unexpected error. Your questionnaire draft and game saves are kept in this browser and have not been lost. Try again first; if it keeps happening, please report the error below.',
+    'The page hit an unexpected error. Drafts and game progress saved in this browser should still be available; unsaved changes may be lost on reload. Try again first; if it keeps happening, please report the error below.',
   'error.retry': 'Try again',
   'error.home': 'Back to the home page',
   'error.report': 'Report this on GitHub',
@@ -183,7 +183,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'about.currentLaw':
     'The current law column uses the current version of the Immigration Rules registered in this project to assess potentially relevant settlement conditions on the simulation date.',
   'about.currentLawScope':
-    'The current law column models main applicants on Skilled Worker, Hong Kong BN(O), Global Talent, Appendix FM partner routes (5-year and 10-year), refugee routes (Appendix Settlement Protection), UK Ancestry, Innovator Founder and Private Life; and Long Residence. Dependant coverage includes Skilled Worker, Hong Kong BN(O) (partners, children and adult dependant relatives), Global Talent (partners and children), children of Appendix FM partners on the 10-year route, and children of Appendix FM partners on the 5-year route (paragraph 298 of Part 8 of the Immigration Rules). The separate settlement requirements of other routes and their dependants still show insufficient information. This does not mean that those routes have no settlement pathway.',
+    'The current law column models main applicants on Skilled Worker, Hong Kong BN(O), Global Talent, Appendix FM partner routes (5-year and 10-year), refugee routes (Appendix Settlement Protection), UK Ancestry, Innovator Founder and Private Life. It also assesses Long Residence. Dependant coverage includes Skilled Worker, Hong Kong BN(O) (partners, children and adult dependant relatives), Global Talent (partners and children), children of Appendix FM partners on the 10-year route, and children of Appendix FM partners on the 5-year route (paragraph 298 of Part 8 of the Immigration Rules). The separate settlement requirements of other routes and their dependants still show insufficient information. This does not mean that those routes have no settlement pathway.',
   'about.reforms':
     'The announced reforms column uses Earned Settlement policy and is labelled “Announced, not in force”. It assumes that the rule set applies on the simulation date. This does not mean the reforms have taken effect or will necessarily take this form.',
   'about.reformScope':
@@ -229,7 +229,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'principal.banner': 'Entering details for: principal applicant',
   'principal.sharedDate': 'Shared simulation date:',
   'principal.hint':
-    'A dependant settles with the principal applicant, so their timeline is needed.',
+    'To assess your settlement as a dependant, enter the principal applicant’s timeline and any details of settlement already granted.',
   'principal.start': 'Enter the principal applicant’s timeline',
   'principal.edit': 'Edit the principal applicant’s timeline',
   'principal.return': 'Return to the applicant questionnaire',
@@ -244,7 +244,8 @@ export const en: Record<keyof typeof zhCN, string> = {
     'The principal applicant’s screening requires regulated review. Current Skilled Worker partner settlement is assessed on the partner’s own circumstances (SW 38.1 and 39.1(b)).',
   'principal.settled': 'Has the principal applicant already settled?',
   'principal.settledDate': 'Date settlement was granted',
-  'principal.settledRoute': 'Visa route held when settlement was granted',
+  'principal.settledRoute':
+    'Immigration route held when settlement was granted',
   'episodes.immigrationSalaryList':
     'Was the job on the Immigration Salary List for this grant?',
   'episodes.immigrationSalaryListHint':
@@ -283,7 +284,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Use your timeline to explore potentially relevant pathways, key conditions and unresolved details.',
   'home.scopeTitle': 'Modelled scope',
   'home.scope':
-    'Compare current settlement pathways with the announced Earned Settlement reforms. The current law column models main applicants on Skilled Worker, Hong Kong BN(O), Global Talent, Appendix FM partner routes (5-year and 10-year), refugee routes (Appendix Settlement Protection), UK Ancestry, Innovator Founder and Private Life; and Long Residence. Dependant coverage includes Skilled Worker, Hong Kong BN(O) (partners, children and adult dependant relatives), Global Talent (partners and children), children of Appendix FM partners on the 10-year route, and children of Appendix FM partners on the 5-year route (paragraph 298 of Part 8 of the Immigration Rules). The separate settlement requirements of other routes and their dependants still show insufficient information.',
+    'Compare current settlement pathways with the announced Earned Settlement reforms. The current law column models main applicants on Skilled Worker, Hong Kong BN(O), Global Talent, Appendix FM partner routes (5-year and 10-year), refugee routes (Appendix Settlement Protection), UK Ancestry, Innovator Founder and Private Life. It also assesses Long Residence. Dependant coverage includes Skilled Worker, Hong Kong BN(O) (partners, children and adult dependant relatives), Global Talent (partners and children), children of Appendix FM partners on the 10-year route, and children of Appendix FM partners on the 5-year route (paragraph 298 of Part 8 of the Immigration Rules). The separate settlement requirements of other routes and their dependants still show insufficient information.',
   'home.start': 'Start simulation',
   'home.before': 'Before you start',
   'home.prepare':
@@ -306,9 +307,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'result.navigation': 'Jump to an assessment',
   'result.jumpTo': 'Jump to {column}',
   'gap.title': 'What is missing',
-  'gap.met': 'All modelled requirements are met.',
+  'gap.met': 'You meet the modelled requirements for this pathway.',
   'gap.earliest':
-    'Based on the current situation, the earliest date is {date} (assuming permission continues without a gap and the other requirements are still met then)',
+    'Based on the current situation, the earliest projected application date is {date} (assuming permission continues without a gap and the other requirements are still met then)',
   'gap.completion':
     'The selected pathway completes conditionally on {date}, provided the other requirements are still met then; this is not the earliest application date',
   'gap.reassess':
@@ -316,7 +317,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'gap.reassessPrincipal':
     'This date comes from the principal applicant’s record: if the principal applicant receives no further counted public funds, shorter pathways can be reassessed from {date}',
   'gap.wait':
-    ', approximately {years} years and {months} months after the simulation date (rounded up to the next month).',
+    ', approximately {years} year{years:s} and {months} month{months:s} after the simulation date (rounded up to the next month).',
   'gap.pending': 'Pending government clarification',
   'gap.input': 'Provide missing information',
   'gap.more': 'More',
@@ -338,15 +339,14 @@ export const en: Record<keyof typeof zhCN, string> = {
   'result.pathway': 'Pathway duration',
   'result.routeGroup': 'Route group',
   'result.years': 'years',
-  'result.earliest': 'Earliest possible date',
+  'result.earliest': 'Earliest projected application date',
   'result.completion': 'Conditional completion date',
   'result.reassessment': 'Shorter pathways reassessed from',
   'result.basis': 'Based on the {years}-year pathway ({route})',
   'result.basisNoRoute': 'Based on the {years}-year pathway',
   'result.thisPathway': 'Conditions on this pathway',
   'result.otherPathways': 'Other pathways (shows why they were not used)',
-  'result.shorterBlocked':
-    'Why shorter pathways were not used:',
+  'result.shorterBlocked': 'Why shorter pathways were not used:',
   'result.shorterPathway': '{years}-year pathway',
   'result.shorterPathwayEntry': '{years}-year pathway ({entry})',
   'result.shorterNotMet': '{pathway} – not met: {rules}',
@@ -355,8 +355,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'result.entry.ES-EARNINGS-5Y': 'earnings',
   'result.entry.ES-BRITISH-CONNECTION': 'British connection',
   'result.entry.ES-PUBLIC-SERVICE': 'public service occupation',
-  'result.entry.ES-TRANSITIONAL-CARE-WORKER': 'care worker transitional arrangement',
-  'result.entry.ES-TRANSITIONAL-HEALTH-EDUCATION': 'health and education transitional arrangement',
+  'result.entry.ES-TRANSITIONAL-CARE-WORKER':
+    'care worker transitional arrangement',
+  'result.entry.ES-TRANSITIONAL-HEALTH-EDUCATION':
+    'health and education transitional arrangement',
   'result.undetermined': 'Not yet determined',
   'result.why': 'Why',
   'result.FAIL': 'Not met',
@@ -428,14 +430,14 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Enter a whole savings amount of 0 or more, or leave blank if not provided.',
   'outcome.LIKELY_ELIGIBLE': 'Likely eligible',
   'outcome.LIKELY_ELIGIBLE.description':
-    'All assessed rules in this rule set are met. This does not guarantee an application outcome.',
+    'You meet the modelled requirements for at least one pathway in this assessment. This does not guarantee an application outcome.',
   'outcome.LIKELY_NOT_ELIGIBLE': 'Likely not eligible',
   'outcome.LIKELY_NOT_ELIGIBLE.description':
-    'A rule is not met and providing missing information would not change this assessment.',
+    'The simulator has not identified a pathway you meet on this date. Review the requirements and any missing information below.',
   'outcome.POTENTIALLY_ELIGIBLE':
     'Potentially eligible, pending policy details',
   'outcome.POTENTIALLY_ELIGIBLE.description':
-    'No rules fail, but some depend on details the government has not yet determined.',
+    'At least one pathway has no unmet requirements and depends on unresolved policy details.',
   'outcome.INSUFFICIENT_INFORMATION': 'Insufficient information',
   'outcome.INSUFFICIENT_INFORMATION.description':
     'The inputs are insufficient for an assessment. Review the information gaps in the rule details.',
@@ -469,7 +471,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'form.choose': 'Select an option',
   'step.basic': 'About you',
   'step.screening': 'Check if you need professional advice',
-  'step.episodes': 'Visa history',
+  'step.episodes': 'Immigration permission history',
   'step.absences': 'Time outside the UK',
   'step.income': 'Earnings by tax year',
   'step.benefits': 'Benefits and statutory payments',
@@ -545,14 +547,14 @@ export const en: Record<keyof typeof zhCN, string> = {
   'episodes.innovatorCriteria.JOBS':
     'At least 10 full-time equivalent jobs created for settled workers (INNF 17.1(f)(vi))',
   'episodes.innovatorCriteria.JOBS_WITH_SALARY':
-    'At least 5 full-time equivalent jobs created for settled workers, with an average annual salary of at least £25,000 (INNF 17.1(f)(vii))',
+    'At least 5 full-time-equivalent jobs created for settled workers, each paying an average of at least £25,000 a year in gross salary, excluding allowances (INNF 17.1(f)(vii))',
   'episodes.privateLifeRoute': 'Basis of Appendix Private Life permission',
   'episodes.privateLifeRoute.CHILD':
-    'Granted as a child (under 18, with 7 years of continuous residence; PL 3.1 / 10.1)',
+    'Granted as a child (under 18, with at least 7 years of continuous residence in the UK; PL 3.1 / 10.1)',
   'episodes.privateLifeRoute.YOUNG_ADULT':
-    'Aged 18–24, entered before 18 and spent at least half of life in the UK (PL 4.1)',
+    'Aged 18–24, arrived before 18 and has lived continuously in the UK for at least half their life (PL 4.1)',
   'episodes.privateLifeRoute.ADULT':
-    'Other (over 20 years of continuous residence or very significant obstacles to integration; PL 5.1)',
+    'Other (more than 20 years of continuous residence, or very significant obstacles to integration in the country they would have to live in if they left the UK; PL 5.1)',
   'benefits.protectionStatusRevoked':
     'My protection status has been revoked or I have renounced it (STP 4.1)',
   'benefits.asylumSupportRepayment':
@@ -560,8 +562,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'result.protectionNotice':
     'Protection route conclusions reflect only the published policy framework. Article 31 safeguards, whether time before the routes launch will count, and repayment and public funds details have not yet been published. Read these conclusions alongside the pending details.',
   'episodes.hint':
-    'Enter the validity dates for each visa granted to you. Leave the list empty if you have no visa history.',
-  'episodes.item': 'Visa period',
+    'Enter the start and end dates of each grant of immigration permission. Leave the list empty if you have none.',
+  'episodes.item': 'Permission period',
   'episodes.add': 'Add a visa period',
   'episodes.empty': 'No visa periods added.',
   'episodes.route': 'Visa route',
@@ -632,7 +634,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.day': 'Day {day} of 3',
   'game.morning': 'Good morning',
   'game.beginDay': 'Get up and start the day',
-  'game.mailCount': '{count} letter(s) in your mailbox',
+  'game.mailCount': '{count} letter{count:s} in your mailbox',
   'game.noFestival': 'An ordinary day, with little things to look forward to.',
   'game.sunny': 'Sunny',
   'game.cloudy': 'Cloudy',
@@ -668,8 +670,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.hours': 'Opening hours',
   'game.closed': 'Closed now',
   'game.closedLabel': 'Closed',
-  'game.noVisaActions':
-    'There is no paperwork to do just now. The renewal option will appear here when it is time to extend.',
+  'game.noVisaActions': 'No immigration actions are available here right now.',
   'game.tooLate':
     'There is not enough time to finish before closing at {time}.',
   'game.openAllDay': 'Open all day',

@@ -8,3 +8,10 @@ export function t(
 ): string {
   return locale === 'en' ? en[key] : zhCN[key];
 }
+
+/** Fills `{key}` with `n` and `{key:s}` with the English plural ending. */
+export function withCount(text: string, key: string, n: number): string {
+  return text
+    .replaceAll(`{${key}}`, String(n))
+    .replaceAll(`{${key}:s}`, n === 1 ? '' : 's');
+}

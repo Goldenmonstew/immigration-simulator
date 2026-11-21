@@ -170,7 +170,9 @@ test('the game runs in English', async ({ page }) => {
   await expect(
     page.getByRole('button', { name: /^Home/ }).first(),
   ).toBeVisible();
-  await expect(page.getByText(/Visa: \d+ months left/).first()).toBeVisible();
+  await expect(
+    page.getByText(/Permission: \d+ months? left/).first(),
+  ).toBeVisible();
 });
 
 test('renewing and leaving the UK works in English', async ({ page }) => {
@@ -183,12 +185,14 @@ test('renewing and leaving the UK works in English', async ({ page }) => {
   );
   await dismissCards(page);
 
-  const visaMonths = page.getByText(/Visa: \d+ months left/).first();
-  await expect(visaMonths).toHaveText(/Visa: [1-9] months left/);
+  const visaMonths = page.getByText(/Permission: \d+ months? left/).first();
+  await expect(visaMonths).toHaveText(/Permission: [1-9] months? left/);
   const visa = await walkTo(page, 'Visa centre');
   await visa.getByRole('button', { name: /^Extend permission/ }).click();
   await dismissCards(page);
-  await expect(visaMonths).toHaveText(/Visa: (1[3-9]|[2-9]\d) months left/);
+  await expect(visaMonths).toHaveText(
+    /Permission: (1[3-9]|[2-9]\d) months left/,
+  );
 
   const station = await walkTo(page, 'Station');
   await station.getByRole('button', { name: /^Leave the UK/ }).click();

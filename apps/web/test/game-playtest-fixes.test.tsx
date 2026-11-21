@@ -13,7 +13,7 @@ import type { Locale } from '@uk-immigration/engine';
 import { renderView } from './game-client-harness';
 import { QuarterSummary, StatusBar } from '../app/game/game-view';
 import { PlotMenu } from '../app/game/life-overlays';
-import { t } from '../i18n';
+import { t, withCount } from '../i18n';
 
 const locales = ['zh-CN', 'en'] as const;
 
@@ -67,7 +67,7 @@ test.each([
     expect(visaMonthsLeft(withoutRenewal)).toBe(5);
     expect(visaMonthsLeft(after)).toBe(5); // The current episode still has five months.
     for (const [index, locale] of locales.entries()) {
-      const visa = t('game.visa', locale).replace('{count}', String(months));
+      const visa = withCount(t('game.visa', locale), 'count', months);
       const text = t('game.renewedThrough', locale).replace(
         '{date}',
         expiry[index],
@@ -94,7 +94,7 @@ test('changing sponsor after renewal keeps the expiry granted at renewal in the 
   expect(hired.timeline.episodes.at(-1)?.validTo).toBe('2029-04-14');
   const after = settle(hired);
   for (const locale of locales) {
-    const remaining = t('game.visa', locale).replace('{count}', '32');
+    const remaining = withCount(t('game.visa', locale), 'count', 32);
     const expiry = locale === 'en' ? '14 Jan 2030' : '2030年1月14日';
     const html = summary(hired, after, locale);
     expect(

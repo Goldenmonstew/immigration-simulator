@@ -1,5 +1,6 @@
 'use client';
 
+import { withCount } from '../../i18n';
 import { useTranslation } from '../../i18n/locale';
 import {
   currentEvent,
@@ -39,10 +40,7 @@ export function VisaReminder({
     <section>
       <h3>{t('game.visaReminderTitle')}</h3>
       <p>
-        {t('game.visaReminder').replace(
-          '{count}',
-          String(visaStatus(state).months),
-        )}
+        {withCount(t('game.visaReminder'), 'count', visaStatus(state).months)}
       </p>
       <button className={styles.secondary} onClick={onVisit}>
         {t('game.visaVisit')}

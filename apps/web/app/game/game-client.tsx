@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { RuleSetId } from '@uk-immigration/engine';
+import { withCount } from '../../i18n';
 import { useTranslation } from '../../i18n/locale';
 import {
   activities,
@@ -664,9 +665,10 @@ export default function GameClient() {
                   {!!mailbox(current).length && (
                     <span
                       className={styles.mailBadge}
-                      aria-label={t('game.mailCount').replace(
-                        '{count}',
-                        String(mailbox(current).length),
+                      aria-label={withCount(
+                        t('game.mailCount'),
+                        'count',
+                        mailbox(current).length,
                       )}
                     >
                       <GameIcon name="mail" /> {mailbox(current).length}
@@ -700,8 +702,8 @@ export default function GameClient() {
                 >
                   {t('game.bag')}
                   <span className={styles.desktopOnly}>
-                    {' '}
-                    / {t('game.friends')}
+                    {'\u00a0/ '}
+                    {t('game.friends')}
                   </span>
                 </button>
                 <button
