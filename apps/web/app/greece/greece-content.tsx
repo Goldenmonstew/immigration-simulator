@@ -31,6 +31,7 @@ import site from '../site.module.css';
 
 const FIELD_LABELS: Record<string, TranslationKey> = {
   'gr-simulation-date': 'gr.simulationDate',
+  'gr-route': 'gr.route',
   from: 'gr.from',
   to: 'gr.to',
   departed: 'gr.departed',
@@ -200,14 +201,19 @@ export default function GreeceContent() {
           />
 
           <h2>{t('gr.nationality')}</h2>
-          <Field id="gr-route" label={t('gr.route')}>
+          <Field id="gr-route" label={t('gr.route')} error={errors['gr-route']}>
             <select
               id="gr-route"
               value={draft.route}
               onChange={(e) =>
                 set({ route: e.target.value as GrNationalityRoute })
               }
+              aria-invalid={errors['gr-route'] ? true : undefined}
+              aria-describedby={
+                errors['gr-route'] ? 'gr-route-error' : undefined
+              }
             >
+              <option value="">{t('gr.route.choose')}</option>
               {GR_NATIONALITY_ROUTES.map((r) => (
                 <option key={r} value={r}>
                   {t(`gr.route.${r}` as TranslationKey)}

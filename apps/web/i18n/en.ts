@@ -573,10 +573,11 @@ export const en: Record<keyof typeof zhCN, string> = {
   'gr.addTrip': 'Add a trip',
   'gr.nationality': 'Naturalisation route',
   'gr.route': 'Years of residence that apply to you',
+  'gr.route.choose': 'Choose one',
   'gr.route.general':
     '7 years: holding a listed status when applying (such as long-term residence Μ1, a 10-year permit, or an investor permit such as the golden visa)',
   'gr.route.three-year':
-    '3 years: EU citizen, spouse of a Greek with children, with parental responsibility for a Greek child born in Greece, or stateless',
+    '3 years: EU citizen, spouse of a Greek with children, with parental responsibility for a Greek child born in Greece, or stateless (also holding a listed status when applying)',
   'gr.route.twelve-year':
     '12 years: holding another non-temporary permit when applying (such as an ordinary work permit)',
   'gr.remove': 'Remove',
@@ -584,6 +585,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'gr.errorSummary': 'Fix the items marked in red first.',
   'gr.error.date': 'Enter a valid date.',
   'gr.error.order': 'This date cannot be before the start date.',
+  'gr.error.route': 'Choose the years of residence that apply to you.',
   'es.entryLink': 'Open the Spain pilot',
   'es.entryDesc':
     'Use your residence permits and travel record to work out the dates for national long-term residence and citizenship by residence.',

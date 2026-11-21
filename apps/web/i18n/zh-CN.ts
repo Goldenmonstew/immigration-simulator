@@ -378,16 +378,18 @@ export const zhCN = {
   'gr.addTrip': '添加出境记录',
   'gr.nationality': '入籍路线',
   'gr.route': '适用的入籍年限',
+  'gr.route.choose': '请选择',
   'gr.route.general':
     '7 年：递交时持清单内的身份（如长期居留 Μ1、10 年许可、黄金签证等投资者许可）',
   'gr.route.three-year':
-    '3 年：欧盟公民、与希腊人结婚并有子女、对在希腊出生的希腊籍子女有亲权者、无国籍人',
+    '3 年：欧盟公民、与希腊人结婚并有子女、对在希腊出生的希腊籍子女有亲权者、无国籍人（递交时同样须持清单内的身份）',
   'gr.route.twelve-year': '12 年：递交时持其他非临时居留许可（如普通工作许可）',
   'gr.remove': '删除',
   'gr.submit': '计算',
   'gr.errorSummary': '请先修正标红的项目。',
   'gr.error.date': '请填写有效日期。',
   'gr.error.order': '这个日期不能早于开始的日期。',
+  'gr.error.route': '请选择适用的入籍年限。',
   'es.entryLink': '打开西班牙试点',
   'es.entryDesc':
     '按居留许可与出入境记录，计算国内长期居留与按居住入籍的时间节点。',

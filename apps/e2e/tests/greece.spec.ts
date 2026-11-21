@@ -22,6 +22,11 @@ test('the Greece pilot works out golden visa renewal dates', async ({
   await permit.getByLabel('许可类型').selectOption('investor');
   await permit.getByLabel('生效日期').fill('2020-06-01');
   await permit.getByLabel('到期日期').fill('2027-05-31');
+  // The naturalisation route has no default: the user must pick it.
+  await expect(
+    summary.getByRole('link', { name: /适用的入籍年限/ }),
+  ).toBeVisible();
+  await page.getByLabel('适用的入籍年限').selectOption('general');
   await page.getByRole('button', { name: '计算' }).click();
 
   await expect(page.getByRole('heading', { name: '计算结果' })).toBeFocused();

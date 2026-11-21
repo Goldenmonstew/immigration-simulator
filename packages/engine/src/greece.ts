@@ -77,26 +77,44 @@ export function evaluateGreece(req: GrRequest): GrResult {
   const held = (kinds: GrPermitKind[]) =>
     days.sums((i) => kinds.some((k) => byKind[k][i]));
   const sums = {
-    regular: held(['regular']),
-    regularInvestor: held(['regular', 'investor']),
-    any: held([...GR_PERMIT_KINDS]),
+    // Study time gives no further rights (Migration Code άρθ. 123 παρ. 6).
+    lawful: held(['regular', 'investor', 'temporary']),
     away: days.sums((i) => away[i]),
   };
-  // Long-term residence counts ordinary and golden visa days in full and
-  // study days at half (άρθ. 144 παρ. 2); national visa stays (Ζ) are
-  // temporary residence and do not count (άρθ. 4 κθ, 67, 143 παρ. 2 ε).
-  const halfUnits = days.sums((i) => byKind.regular[i] || byKind.investor[i]);
-  const studyOnly = days.sums(
-    (i) => byKind.study[i] && !byKind.regular[i] && !byKind.investor[i],
-  );
-  // Start of the unbroken run of counted permits ending on each day.
-  const runStart: number[] = [];
-  for (let i = 0; i < days.count; i++) {
-    const counted = byKind.regular[i] || byKind.investor[i] || byKind.study[i];
-    runStart.push(
-      !counted ? -1 : i > 0 && runStart[i - 1] >= 0 ? runStart[i - 1] : i,
-    );
-  }
+  // Long-term residence counts `full` permits in full and study at half
+  // (άρθ. 144 παρ. 2); national visa stays (Ζ) are temporary residence and
+  // do not count (άρθ. 4 κθ, 67, 143 παρ. 2 ε). Returns, for a last day
+  // `to`, the start of the shortest unbroken stretch ending there that is
+  // worth `need` half days.
+  const halfCredit = (full: GrPermitKind[]) => {
+    const isFull = (i: number) => full.some((k) => byKind[k][i]);
+    const fullSums = days.sums(isFull);
+    const studySums = days.sums((i) => byKind.study[i] && !isFull(i));
+    const run: number[] = [];
+    for (let i = 0; i < days.count; i++)
+      run.push(
+        !isFull(i) && !byKind.study[i]
+          ? -1
+          : i > 0 && run[i - 1] >= 0
+            ? run[i - 1]
+            : i,
+      );
+    const credit = (a: number, k: number) =>
+      2 * (fullSums[k + 1] - fullSums[a]) + studySums[k + 1] - studySums[a];
+    return (to: IsoDate, need: number): IsoDate | undefined => {
+      const k = days.index(to);
+      if (k < 0 || k >= days.count || run[k] < 0 || credit(run[k], k) < need)
+        return undefined;
+      let lo = run[k];
+      let hi = k;
+      while (lo < hi) {
+        const mid = (lo + hi + 1) >> 1;
+        if (credit(mid, k) >= need) lo = mid;
+        else hi = mid - 1;
+      }
+      return days.date(lo);
+    };
+  };
   /** On `d`, a permit that can be held when applying. */
   const holding = (d: IsoDate, kinds: GrPermitKind[]) => {
     const i = days.index(d);
@@ -129,37 +147,47 @@ export function evaluateGreece(req: GrRequest): GrResult {
   {
     const years = v.longTermYears.value;
     const [totalMin, totalMax] = monthSpan(v.totalAbsenceMonths.value);
+    const sureFrom = halfCredit(['regular']);
+    // Golden visa time is neither excluded nor confirmed (PD-101).
+    const maybeFrom = halfCredit(['regular', 'investor']);
+    const absences = (start: IsoDate, to: IsoDate) => ({
+      start,
+      long: tripsIn(start, to).filter(
+        (t) => t.returned > addMonths(t.departed, v.singleAbsenceMonths.value),
+      ),
+      absent: days.total(sums.away, start, to),
+    });
     const facts = (d: IsoDate) => {
       const from = addYears(d, -years);
       const to = addDays(d, -1);
-      // Study counts half: the unbroken run before applying, in half days,
-      // against the five years in half days.
-      const k = days.index(to);
-      const start = k >= 0 && k < days.count ? runStart[k] : -1;
-      const credit =
-        start < 0
-          ? 0
-          : 2 * days.total(halfUnits, days.date(start), to) +
-            days.total(studyOnly, days.date(start), to);
+      const need = 2 * (daysBetween(from, to) + 1);
+      // A permit held on the application day (a study permit holder cannot
+      // apply, άρθ. 143 παρ. 2 α). With study at half the counted stretch is
+      // longer than five years; absences are checked over all of it.
+      const sure = holding(d, ['regular']) ? sureFrom(to, need) : undefined;
+      const maybe = holding(d, ['regular', 'investor'])
+        ? maybeFrom(to, need)
+        : undefined;
       return {
-        // Ordinary permits throughout, and one held on the application day
-        // (a study permit holder cannot apply, άρθ. 143 παρ. 2 α).
-        regular: covered(sums.regular, from, to) && holding(d, ['regular']),
-        any:
-          credit >= 2 * (daysBetween(from, to) + 1) &&
-          holding(d, ['regular', 'investor']),
-        long: tripsIn(from, to).filter(
-          (t) =>
-            t.returned > addMonths(t.departed, v.singleAbsenceMonths.value),
-        ),
-        absent: days.total(sums.away, from, to),
+        sure: sure ? absences(sure, to) : undefined,
+        maybe: maybe ? absences(maybe, to) : undefined,
+        shown: absences(sure ?? maybe ?? from, to),
       };
     };
+    const judge = (a?: ReturnType<typeof absences>): Verdict =>
+      !a || a.long.length || a.absent > totalMax
+        ? 'no'
+        : a.absent <= totalMin
+          ? 'yes'
+          : 'maybe';
     const verdict = (d: IsoDate): Verdict => {
       const f = facts(d);
-      if (f.long.length || f.absent > totalMax || !(f.any || f.regular))
-        return 'no';
-      return f.regular && f.absent <= totalMin ? 'yes' : 'maybe';
+      const sure = judge(f.sure);
+      return sure === 'yes'
+        ? 'yes'
+        : sure === 'maybe' || judge(f.maybe) !== 'no'
+          ? 'maybe'
+          : 'no';
     };
     const earliest = firstDate((d) => verdict(d) === 'yes');
     const possible = firstDate((d) => verdict(d) !== 'no');
@@ -190,39 +218,43 @@ export function evaluateGreece(req: GrRequest): GrResult {
               )) +
         (possible && (!earliest || possible < earliest)
           ? L(
-              `若把黄金签证期间计入、学习期间按一半折算，或出境合计按 10 个月的较宽口径，最早 ${possible}，原文未写明（PD-101～103）。`,
-              ` Counting golden visa time, study at half, or reading the 10 months of absence generously, it could be ${possible}; the rules do not say (PD-101 to PD-103).`,
+              `若把黄金签证期间计入，或出境合计按 10 个月的较宽口径，最早 ${possible}，原文未写明（PD-101、PD-102）。`,
+              ` Counting golden visa time, or reading the 10 months of absence generously, it could be ${possible}; the rules do not say (PD-101, PD-102).`,
             )
           : ''),
       checks: [
         {
           text: L(
-            `前 ${years} 年一直持有普通居留许可（黄金签证、学习、国家签证期间待确认）`,
-            `An ordinary residence permit throughout the past ${years} years (golden visa, study and national visa periods uncertain)`,
+            `折算后满 ${years} 年不间断合法居留（普通许可全额、学习或职业培训折半，黄金签证期间待确认），递交当天持普通许可`,
+            `${years} years of unbroken legal residence (ordinary permits in full, study or vocational training at half, golden visa time uncertain), with an ordinary permit on the application day`,
           ),
-          met: f.regular ? true : f.any ? undefined : false,
+          met: f.sure ? true : f.maybe ? undefined : false,
           sources: [
             ...v.longTermYears.sources,
+            {
+              srcId: 'SRC-087',
+              locator: 'ν. 5307/2026 άρθ. 179 (άρθ. 144 παρ. 2, p93)',
+            },
             { srcId: 'SRC-086', locator: 'άρθ. 143 παρ. 2 (p91)' },
           ],
         },
         {
           text: L(
-            `前 ${years} 年每次出境都短于 ${v.singleAbsenceMonths.value} 个月`,
-            `Every absence in the past ${years} years shorter than ${v.singleAbsenceMonths.value} months`,
+            `自 ${f.shown.start} 起每次出境都短于 ${v.singleAbsenceMonths.value} 个月`,
+            `Every absence since ${f.shown.start} shorter than ${v.singleAbsenceMonths.value} months`,
           ),
-          met: f.long.length === 0,
+          met: f.shown.long.length === 0,
           sources: v.singleAbsenceMonths.sources,
         },
         {
           text: L(
-            `前 ${years} 年出境合计 ${f.absent} 天（不超过 ${v.totalAbsenceMonths.value} 个月，即 ${totalMin}–${totalMax} 天以内）`,
-            `${f.absent} days abroad in the past ${years} years (${v.totalAbsenceMonths.value} months at most, ${totalMin}–${totalMax} days)`,
+            `自 ${f.shown.start} 起出境合计 ${f.shown.absent} 天（不超过 ${v.totalAbsenceMonths.value} 个月，即 ${totalMin}–${totalMax} 天以内）`,
+            `${f.shown.absent} days abroad since ${f.shown.start} (${v.totalAbsenceMonths.value} months at most, ${totalMin}–${totalMax} days)`,
           ),
           met:
-            f.absent <= totalMin
+            f.shown.absent <= totalMin
               ? true
-              : f.absent > totalMax
+              : f.shown.absent > totalMax
                 ? false
                 : undefined,
           sources: v.totalAbsenceMonths.sources,
@@ -240,12 +272,12 @@ export function evaluateGreece(req: GrRequest): GrResult {
       ],
       assumptions: [
         L(
-          '5 年从递交日往回数，不含递交当天；出入境当天按在希腊计；单次出境按离境日起的日历月判断，合计出境没有换算成天数的规定（PD-102）。',
-          'The 5 years are counted back from the application date, not including it; departure and return days count as days in Greece; a single absence is measured in calendar months from the day you left, and total absence has no day count in the rules (PD-102).',
+          '5 年从递交日往回数，不含递交当天；出入境当天按在希腊计；单次出境按离境日起的日历月判断，合计出境没有换算成天数的规定（PD-102）。学习折半时计入的期间超过 5 年，出境上限按整段期间检查。',
+          'The 5 years are counted back from the application date, not including it; departure and return days count as days in Greece; a single absence is measured in calendar months from the day you left, and total absence has no day count in the rules (PD-102). With study at half the counted period is longer than 5 years, and the absence limits are checked over all of it.',
         ),
         L(
-          '只有普通居留许可算满足，递交当天也须持普通许可（持学习许可者不能申请，άρθ. 143 παρ. 2 α）；黄金签证期间能否计入法条未排除也未确认（PD-101），学习期间按一半折算后另列（PD-103）；国家签证（Ζ）属临时居留，不计（άρθ. 4 κθ、67）。许可之间有空档即中断（PD-107）。',
-          'Only ordinary permits count as met, and you must hold one on the application day (a study permit holder cannot apply, άρθ. 143 παρ. 2 α); whether golden visa time counts is neither excluded nor confirmed (PD-101), and study counted at half is shown separately (PD-103); national visa stays (Ζ) are temporary residence and do not count (άρθ. 4 κθ, 67). Any gap between permits breaks continuity (PD-107).',
+          '普通许可全额计，学习或职业培训期间按一半计（άρθ. 144 παρ. 2，按半天精确折算，PD-103）；递交当天须持普通许可（持学习许可者不能申请，άρθ. 143 παρ. 2 α）。黄金签证期间能否计入法条未排除也未确认，计入后的日期另列（PD-101）；国家签证（Ζ）属临时居留，不计（άρθ. 4 κθ、67）。许可之间有空档即中断（PD-107）。',
+          'Ordinary permits count in full and study or vocational training at half (άρθ. 144 παρ. 2, worked out in half days, PD-103); you must hold an ordinary permit on the application day (a study permit holder cannot apply, άρθ. 143 παρ. 2 α). Whether golden visa time counts is neither excluded nor confirmed, so the date counting it is shown separately (PD-101); national visa stays (Ζ) are temporary residence and do not count (άρθ. 4 κθ, 67). Any gap between permits breaks continuity (PD-107).',
         ),
         projection,
       ],
@@ -256,13 +288,13 @@ export function evaluateGreece(req: GrRequest): GrResult {
   // ---------- Golden visa Β.5 renewal (art. 100, art. 11) ----------
   {
     const title = L('黄金签证（Β.5）续期', 'Golden visa (Β.5) renewal');
-    // The golden visa in force on the simulation date, else the latest one
-    // before it, else the first one to come.
+    // The latest golden visa in force on the simulation date, else the
+    // latest one before it, else the first one to come.
     const investor = req.permits
       .filter((p) => p.kind === 'investor')
       .sort((a, b) => (a.from < b.from ? -1 : 1));
     const current =
-      investor.find((p) => p.from <= sim && (!p.to || sim <= p.to)) ??
+      investor.filter((p) => p.from <= sim && (!p.to || sim <= p.to)).at(-1) ??
       investor.filter((p) => p.from <= sim).at(-1) ??
       investor[0];
     if (!current) {
@@ -369,11 +401,11 @@ export function evaluateGreece(req: GrRequest): GrResult {
   // ---------- Naturalisation (Citizenship Code art. 5) ----------
   {
     const years = v.nationalityYears.value[req.route];
-    // Any legal residence counts for the years (άρθ. 5 παρ. 1 δ); when
-    // applying, a temporary status cannot be used (SRC-089), so an ordinary
-    // permit or golden visa must be held that day.
+    // Legal residence on any permit but study counts for the years
+    // (άρθ. 5 παρ. 1 δ, παρ. 3); when applying, a temporary status cannot be
+    // used (SRC-089), so an ordinary permit or golden visa must be held.
     const ok = (d: IsoDate) =>
-      covered(sums.any, addYears(d, -years), addDays(d, -1)) &&
+      covered(sums.lawful, addYears(d, -years), addDays(d, -1)) &&
       holding(d, ['regular', 'investor']);
     const earliest = firstDate(ok);
     const window = earliest && {
@@ -421,12 +453,13 @@ export function evaluateGreece(req: GrRequest): GrResult {
       checks: [
         {
           text: L(
-            `递交前 ${years} 年一直合法居留（任何居留许可），递交当天持普通许可或黄金签证`,
-            `Legal residence on any permit throughout the ${years} years before applying, and an ordinary permit or golden visa on the application day`,
+            `递交前 ${years} 年一直合法居留（学习以外的居留许可），递交当天持普通许可或黄金签证`,
+            `Legal residence on a permit other than study throughout the ${years} years before applying, and an ordinary permit or golden visa on the application day`,
           ),
           met: ok(sim),
           sources: [
             ...v.nationalityYears.sources,
+            { srcId: 'SRC-086', locator: 'άρθ. 123 παρ. 6 (p82)' },
             {
               srcId: 'SRC-089',
               locator: 'Προϋποθέσεις πολιτογράφησης (p1–p2)',
@@ -435,10 +468,15 @@ export function evaluateGreece(req: GrRequest): GrResult {
         },
       ],
       notChecked: [
-        L(
-          '递交时已成年，且持有法定清单内的居留身份（άρθ. 5 παρ. 1 α、ε）；希腊语与历史知识证书（Π.Ε.Γ.Π.）、经济与社会融入、公共秩序（άρθ. 5Α、5Β）',
-          'Being an adult and holding a residence status on the legal list when applying (άρθ. 5 παρ. 1 α, ε); the Greek language and history certificate (Π.Ε.Γ.Π.), economic and social integration, and public order (άρθ. 5Α, 5Β)',
-        ),
+        req.route === 'twelve-year'
+          ? L(
+              '递交时已成年（άρθ. 5 παρ. 1 α）；希腊语与历史知识证书（Π.Ε.Γ.Π.）、经济与社会融入、公共秩序（άρθ. 5Α、5Β）',
+              'Being an adult when applying (άρθ. 5 παρ. 1 α); the Greek language and history certificate (Π.Ε.Γ.Π.), economic and social integration, and public order (άρθ. 5Α, 5Β)',
+            )
+          : L(
+              '递交时已成年，且持有法定清单内的居留身份（άρθ. 5 παρ. 1 α、ε）；希腊语与历史知识证书（Π.Ε.Γ.Π.）、经济与社会融入、公共秩序（άρθ. 5Α、5Β）',
+              'Being an adult and holding a residence status on the legal list when applying (άρθ. 5 παρ. 1 α, ε); the Greek language and history certificate (Π.Ε.Γ.Π.), economic and social integration, and public order (άρθ. 5Α, 5Β)',
+            ),
         L(
           '3 年类别（欧盟公民、与希腊人结婚并有子女、对在希腊出生的希腊籍子女有亲权者、无国籍人）与 12 年类别的资格本身',
           'Eligibility for the 3-year categories (EU citizens, spouses of Greeks with children, people with parental responsibility for a Greek child born in Greece, stateless people) and the 12-year route',
@@ -446,12 +484,13 @@ export function evaluateGreece(req: GrRequest): GrResult {
       ],
       assumptions: [
         L(
-          '年限从递交日往回数，不含递交当天；期间内任何居留许可（含学习、国家签证）都算合法居留（άρθ. 5 παρ. 1 δ），递交当天须持普通许可或黄金签证。黄金签证按内政部指引计为认可的居留身份，法条只点名旧法许可（PD-105）；许可之间有空档即中断（PD-107）。',
-          'Years are counted back from the application date, not including it; any residence permit in that time (study and national visa included) is legal residence (άρθ. 5 παρ. 1 δ), and you need an ordinary permit or golden visa on the application day. Golden visa time counts as a recognised status under Ministry of Interior guidance, though the law names only permits under the old law (PD-105); any gap between permits breaks continuity (PD-107).',
+          '年限从递交日往回数，不含递交当天；期间内学习以外的居留许可（含国家签证）都算合法居留（άρθ. 5 παρ. 1 δ），学生居留不计入取得其他权利（移民法典 άρθ. 123 παρ. 6），职业培训也按不计处理（PD-103）；递交当天须持普通许可或黄金签证。黄金签证按内政部指引计为认可的居留身份，法条只点名旧法许可（PD-105）；许可之间有空档即中断（PD-107）。',
+          'Years are counted back from the application date, not including it; any residence permit in that time other than study (national visas included) is legal residence (άρθ. 5 παρ. 1 δ), since time as a student does not count towards further rights (Migration Code άρθ. 123 παρ. 6) and vocational training is treated the same (PD-103); you need an ordinary permit or golden visa on the application day. Golden visa time counts as a recognised status under Ministry of Interior guidance, though the law names only permits under the old law (PD-105); any gap between permits breaks continuity (PD-107).',
         ),
         projection,
       ],
       pendingDetails: [
+        ...(req.permits.some((p) => p.kind === 'study') ? ['PD-103'] : []),
         ...(hasInvestor ? ['PD-105'] : []),
         'PD-107',
         ...(unsure ? ['PD-106'] : []),

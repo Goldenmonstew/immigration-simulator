@@ -51,7 +51,7 @@ describe('long-term residence Μ1 (art. 144)', () => {
     expect(p.checks[0].met).toBeUndefined();
   });
 
-  test('study periods only make an earlier date possible', () => {
+  test('study counts at half (άρθ. 144 παρ. 2)', () => {
     const p = pathway(
       {
         simulationDate: '2023-01-01',
@@ -64,8 +64,41 @@ describe('long-term residence Μ1 (art. 144)', () => {
     );
     // 561 study days count as 280.5: 1,547 ordinary days make up the
     // 1,827 days of the five years before 2024-06-09.
-    expect(p.earliestDate).toBe('2025-03-15');
-    expect(p.summary).toContain('2024-06-09');
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2024-06-09');
+  });
+
+  test('met once study at half makes up the five years', () => {
+    const p = pathway(
+      {
+        simulationDate: '2028-03-01',
+        permits: [
+          { kind: 'study', from: '2021-11-21', to: '2023-11-20' },
+          { kind: 'regular', from: '2023-11-21' },
+        ],
+      },
+      'GR-LONG-TERM',
+    );
+    expect(p.status).toBe('MET');
+    expect(p.checks[0].met).toBe(true);
+  });
+
+  test('absences are checked over the whole counted stretch', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-21',
+        permits: [
+          { kind: 'study', from: '2019-11-21', to: '2023-11-20' },
+          { kind: 'regular', from: '2023-11-21' },
+        ],
+        trips: [{ departed: '2020-03-15', returned: '2021-01-15' }],
+      },
+      'GR-LONG-TERM',
+    );
+    // Without the 10-month absence in 2020 this would be met today.
+    expect(p.status).not.toBe('MET');
+    expect(p.earliestDate).not.toBe('2026-11-21');
+    expect(p.summary).not.toContain('2026-11-21');
   });
 
   test('a national visa (Ζ) stay does not count', () => {
@@ -141,6 +174,21 @@ describe('golden visa renewal (art. 100, art. 11)', () => {
     expect(tooLate.summary).toContain('2027-08-31');
   });
 
+  test('a newer card in force wins over an old one without an expiry', () => {
+    const p = pathway(
+      {
+        simulationDate: '2032-04-15',
+        permits: [
+          { kind: 'investor', from: '2022-06-01' },
+          { kind: 'investor', from: '2027-06-01', to: '2032-05-31' },
+        ],
+      },
+      'GR-GOLDEN-VISA',
+    );
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('2032-05-31');
+  });
+
   test('the card in force is used, not a later one', () => {
     const p = pathway(
       {
@@ -186,7 +234,7 @@ describe('naturalisation (art. 5)', () => {
     expect(p.pendingDetails).toContain('PD-105');
   });
 
-  test('study permits count towards the years of legal residence', () => {
+  test('study time does not count (Migration Code άρθ. 123 παρ. 6)', () => {
     const p = pathway(
       {
         simulationDate: '2026-11-21',
@@ -197,7 +245,18 @@ describe('naturalisation (art. 5)', () => {
       },
       'GR-NATIONALITY',
     );
-    expect(p.status).toBe('MET');
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2029-11-21');
+    expect(p.pendingDetails).toContain('PD-103');
+  });
+
+  test('the 12-year route does not ask for a listed status', () => {
+    const p = pathway(
+      { simulationDate: '2026-11-21', route: 'twelve-year' },
+      'GR-NATIONALITY',
+    );
+    expect(p.earliestDate).toBe('2032-03-15');
+    expect(p.notChecked[0]).not.toContain('清单');
   });
 
   test('a study permit alone cannot be used to apply', () => {
