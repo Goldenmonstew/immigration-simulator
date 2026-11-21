@@ -616,6 +616,35 @@ test('review33b-1 / task 53: a confirmed Option D or I is an ISL job (SW 4.2), a
   );
   expect(optionAfterRemoval.status).toBe('UNKNOWN');
   expect(optionAfterRemoval.assumptions?.join()).toContain('SW 24.3');
+  // review53-3: Option I alike, and in English.
+  const optionI = current(
+    {
+      episodes: [
+        scotlandBefore,
+        { ...scotlandAfter, skilledWorkerSponsorshipException: 'OPTION_I' },
+      ],
+    },
+    '2027-06-01',
+  );
+  expect(optionI.rules.find((r) => r.id === 'CL-SW-SALARY')?.status).toBe(
+    'UNKNOWN',
+  );
+  expect(optionI.assumptions.join()).toContain(
+    'treats the list condition for Option D or I as met',
+  );
+  // Without a CoS date the removal cannot be ruled out either.
+  const noDate = run(clSwSalary, {
+    episodes: [
+      permit({
+        validFrom: '2026-01-01',
+        socCode: '5235',
+        salary: 35000,
+        skilledWorkerSponsorshipException: 'OPTION_D',
+      }),
+    ],
+  });
+  expect(noDate.status).toBe('UNKNOWN');
+  expect(noDate.assumptions?.join()).toContain('请填写 CoS 签发日');
   expect(
     run(
       clSwSalary,

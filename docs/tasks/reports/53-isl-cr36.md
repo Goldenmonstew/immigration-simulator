@@ -8,7 +8,7 @@
 | 439d031 | 十年伴侣路线的 CR 3.6，见下方列表 |
 
 c7a6f04（ISL 判断）：
-- **Option D／I**：SW 4.2 只给"担保岗位在 Immigration Salary List 上"的申请人授予 Option D、I（SRC-004 存档原文），已确认其一时按 ISL 计，不再要求另行确认。
+- **Option D／I**：SW 4.2 的 Option D、I 是给"担保岗位在 Immigration Salary List 上"的积分项（SRC-004 存档原文）。已确认其一、且 CoS 签发时岗位仍在清单上时按 ISL 计；移除后经 SW 11.2 获批、或未填 CoS 日期而清单条目有移除日时，SW 24.3 的薪资行留为待确认（见下方审核修正）。
 - **SW 11.2 同岗续签**：岗位在最近一次 CoS 签发当日或之前已移出 ISL，但上一段 Skilled Worker 许可按 ISL 担保且 SOC 相同时，结果不再直接排除 ISL。SW 11.2 允许同一 sponsor 的同一岗位续签仍按 ISL 计，问卷没有 sponsor 信息，所以留为待确认，并写明原因。
 
 439d031（十年伴侣路线的 CR 3.6）：已录入的后续 Appendix FM 许可在模拟日之后才生效时，按该许可生效日排除 CR 3.6 的历史缺席，再算在该日或之后递交的日期，取更早者。
@@ -21,6 +21,7 @@ c7a6f04（ISL 判断）：
 3. SW 11.2 说明只在该 SOC 确实于本次 CoS 签发当日或之前全部移出时出现，并写明 SW 24.3 是否按 ISL 薪资行计也待确认。
 4. 多段后续 Appendix FM 许可时取各自最早的日期。
 5. 第二轮（`review53-2`）：移除后再确认的 Option D／I 来自 SW 11.2，SW 24.3 薪资行留为待确认；说明改为"签发当日或之前"，并写明上一段可按当时的 ISL 或旧 Shortage Occupation List 担保。
+6. 第三轮（`review53-3`）：已确认 Option D／I 但未填 CoS 日期、清单条目有移除日时也留为待确认，并提示填写 CoS 日期；SW 11.2 的说明改为"视为满足 Option D／I 的清单条件"。
 
 ## 2. 怎么验证的
 

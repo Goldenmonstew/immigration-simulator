@@ -275,3 +275,4 @@
 | 237 | 任务 53（Fable 实现）：已确认 Option D／I 按 ISL 计（SW 4.2）；移除后同岗续签留待确认（SW 11.2）；后续 Appendix FM 许可在模拟日后生效时预测按该日适用 CR 3.6。 | packages/engine/src/rules/current-law/{skilled-worker,family}.ts、packages/engine/test/current-law-33b.test.ts、docs/tasks/reports/53-isl-cr36.md |
 | 240 | 任务 53 审核修正：上一段 ISL 未确认时也保留 SW 11.2 待确认；Option D／I 说明写实际依据；移除说明只在确实移除时出现；多段后续 FM 许可取最早日期。 | packages/engine/src/rules/current-law/{skilled-worker,family}.ts、packages/engine/test/current-law-33b.test.ts、docs/tasks/reports/53-isl-cr36.md |
 | 241 | 任务 53 第二轮审核修正：移除后确认的 Option D／I 留 SW 24.3 薪资行待确认；说明改为签发当日或之前并提旧 Shortage Occupation List。 | packages/engine/src/rules/current-law/skilled-worker.ts、packages/engine/test/current-law-33b.test.ts、docs/tasks/reports/53-isl-cr36.md |
+| 243 | 任务 53 第三轮审核修正：已确认 Option D／I 但缺 CoS 日期且清单有移除日时留薪资行待确认并提示补日期；SW 11.2 说明改为视为满足清单条件。 | packages/engine/src/rules/current-law/skilled-worker.ts、packages/engine/test/current-law-33b.test.ts、docs/tasks/reports/53-isl-cr36.md |
