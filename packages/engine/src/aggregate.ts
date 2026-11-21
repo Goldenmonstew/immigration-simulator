@@ -5,7 +5,12 @@ import {
 } from '@uk-immigration/policy-data';
 import type { Route, RouteGroup } from '@uk-immigration/policy-data';
 import { addDays, addYears } from './dates';
-import { continuousRun, episodeOn, timelineAtFiling } from './residence';
+import {
+  continuousRun,
+  episodeOn,
+  nextKnownApplicationDate,
+  timelineAtFiling,
+} from './residence';
 import { runRule, textFor } from './rule';
 import type { Lang } from './rule';
 import { settlementEnglish, settlementKol } from './rules/current-law/english';
@@ -755,6 +760,10 @@ function assessCurrentLaw(
         { ...kol, ...settlementKol(ctx, ctx.simulationDate, 'UK_ANCESTRY') },
       ]
     : [english, kol];
+  const protectionStartDate = protection ? protectionStart(ctx) : undefined;
+  const protectionDue =
+    protectionStartDate &&
+    addYears(protectionStartDate, cl.values.protectionQualifyingYears.value);
   const candidates: Candidate[] = [
     ...(sw
       ? [
@@ -874,7 +883,17 @@ function assessCurrentLaw(
       ? [
           {
             years: cl.values.protectionQualifyingYears.value,
-            start: protectionStart(ctx),
+            start: protectionStartDate,
+            // STP 1.2(c): the filing day must be in the UK, so a declared
+            // trip can move the projected date to the return.
+            ...(protectionDue && {
+              applicationDate: nextKnownApplicationDate(
+                ctx.timeline,
+                protectionDue > ctx.simulationDate
+                  ? protectionDue
+                  : ctx.simulationDate,
+              ),
+            }),
             rules: pick('CL-PROTECTION-STATUS'),
             residence: 'CL-PROTECTION-RESIDENCE-5Y',
           },
@@ -1080,7 +1099,13 @@ function assessCurrentLaw(
     ancestry?.applicationDate &&
     !decision.decidedBy?.includes('CL-ANCESTRY-RESIDENCE-5Y')
   ) {
-    for (const rule of ancestryLanguage.filter((r) => r.status !== 'PASS'))
+    // Checked on the filing date, which can follow a return to the UK.
+    const filingDate = ancestry.applicationDate;
+    const atFiling = [
+      { ...english, ...settlementEnglish(ctx, filingDate, 'UK_ANCESTRY') },
+      { ...kol, ...settlementKol(ctx, filingDate, 'UK_ANCESTRY') },
+    ];
+    for (const rule of atFiling.filter((r) => r.status !== 'PASS'))
       assumptions.push(
         L(
           `按此前的 UK Ancestry 许可定居时：${rule.explanation}`,
