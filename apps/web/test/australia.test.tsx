@@ -46,7 +46,7 @@ test('home links to the Australia pilot', () => {
   expect(render(<Home />, 'zh-CN')).toContain('href="/australia"');
 });
 
-test('validation marks missing and out-of-order dates', () => {
+test('validation marks missing, out-of-order and conflicting dates', () => {
   const errors = validateAuForm({
     ...emptyAuForm('2026-11-21'),
     visas: [{ subclass: '482', from: '2025-01-01', to: '2024-12-31' }],
@@ -54,19 +54,44 @@ test('validation marks missing and out-of-order dates', () => {
   });
   expect(errors).toEqual({
     'au-date-of-birth': 'au.error.date',
-    'au-first-arrival': 'au.error.date',
     'au-visa-0-to': 'au.error.order',
+    'au-trip-0-departed': 'au.error.beforeArrival',
     'au-trip-0-returned': 'au.error.date',
   });
   expect(validateAuForm(filled)).toEqual({});
-  expect(validateAuForm({ ...filled, visas: [] })['au-add-visa']).toBe(
-    'au.error.visas',
-  );
+  expect(
+    validateAuForm({ ...filled, dateOfBirth: '2021-03-01' })[
+      'au-first-arrival'
+    ],
+  ).toBe('au.error.beforeBirth');
+  expect(
+    validateAuForm({
+      ...filled,
+      visas: [
+        { subclass: '482', from: '2021-02-01', to: '' },
+        { subclass: '186', from: '2023-09-01', to: '' },
+      ],
+    })['au-visa-0-to'],
+  ).toBe('au.error.openEnded');
+  // An offshore partner applicant who has not arrived can still submit.
+  expect(
+    validateAuForm({
+      ...emptyAuForm('2026-11-21'),
+      dateOfBirth: '1990-05-01',
+      visas: [],
+      partner: true,
+      partnerLodged: '2025-03-10',
+      partnerStream: 'offshore',
+    }),
+  ).toEqual({});
 });
 
 test('the request leaves out blank end dates and an unticked partner', () => {
   const request = auRequest(filled, 'en');
   expect(request.visas[1]).toEqual({ subclass: '186', from: '2023-09-01' });
+  expect(auRequest({ ...filled, firstArrival: '' }, 'en')).not.toHaveProperty(
+    'firstArrival',
+  );
   expect(request.partnerApplication).toBeUndefined();
   expect(
     auRequest({ ...filled, partner: true, partnerLodged: '2025-03-10' }, 'en')

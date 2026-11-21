@@ -109,8 +109,10 @@ export const sourceUrls: Record<string, string> = {
     'https://www.gov.uk/government/publications/immigration-status-and-enforcement-action-caseworker-guidance/cancellation-and-curtailment-of-permission-accessible',
   'SRC-060':
     'https://www.gov.uk/government/publications/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024-accessible-version',
-  'SRC-061': 'https://www.legislation.gov.au/C2007A00020/latest/text',
-  'SRC-062': 'https://www.legislation.gov.au/F1996B03551/latest/text',
+  'SRC-061':
+    'https://www.legislation.gov.au/C2007A00020/2026-06-04/2026-06-04/text',
+  'SRC-062':
+    'https://www.legislation.gov.au/F1996B03551/2026-11-03/2026-11-03/text',
   'SRC-063':
     'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-regional-191/regional-provisional',
   'SRC-064':

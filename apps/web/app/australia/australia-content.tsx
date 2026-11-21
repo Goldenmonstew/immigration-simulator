@@ -27,9 +27,20 @@ import site from '../site.module.css';
 import styles from './australia.module.css';
 
 const TRT = new Set<AuSubclass>(['457', '482']);
+const FIELD_LABELS: Record<string, TranslationKey> = {
+  'au-simulation-date': 'au.simulationDate',
+  'au-date-of-birth': 'au.dateOfBirth',
+  'au-first-arrival': 'au.firstArrival',
+  'au-partner-lodged': 'au.partnerLodged',
+  from: 'au.from',
+  to: 'au.to',
+  departed: 'au.departed',
+  returned: 'au.returned',
+};
 
 export default function AustraliaContent() {
   const { t, locale } = useTranslation();
+  const p = punct(locale);
   // Today is set after hydration so the static page does not carry the build date.
   const [draft, setDraft] = useState<AuForm>(() => emptyAuForm(''));
   const [errors, setErrors] = useState<AuErrors>({});
@@ -47,16 +58,25 @@ export default function AustraliaContent() {
   useEffect(() => {
     if (submitted) resultHeading.current?.focus();
   }, [submitted]);
+  useEffect(() => {
+    if (Object.keys(errors).length) errorSummary.current?.focus();
+  }, [errors]);
 
   const set = (patch: Partial<AuForm>) => setDraft((d) => ({ ...d, ...patch }));
   const submit = (event: FormEvent) => {
     event.preventDefault();
     const found = validateAuForm(draft);
     setErrors(found);
-    if (Object.keys(found).length) {
-      setSubmitted(undefined);
-      errorSummary.current?.focus();
-    } else setSubmitted(structuredClone(draft));
+    setSubmitted(Object.keys(found).length ? undefined : draft);
+  };
+  const fieldLabel = (id: string) => {
+    const [, kind, n, field] = id.match(/^au-(visa|trip)-(\d+)-(\w+)$/) ?? [];
+    if (!kind) return t(FIELD_LABELS[id]);
+    const entry = t(kind === 'visa' ? 'au.visa' : 'au.trip').replace(
+      '{n}',
+      String(Number(n) + 1),
+    );
+    return `${entry} · ${t(FIELD_LABELS[field])}`;
   };
 
   const date = (
@@ -97,6 +117,17 @@ export default function AustraliaContent() {
               className={form.errorSummary}
             >
               <p>{t('au.errorSummary')}</p>
+              <ul>
+                {Object.entries(errors).map(([id, key]) => (
+                  <li key={id}>
+                    <a href={`#${id}`}>
+                      {fieldLabel(id)}
+                      {p.colon}
+                      {key && t(key)}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
           <h2>{t('au.basics')}</h2>
@@ -169,9 +200,6 @@ export default function AustraliaContent() {
             );
           })}
           <div className={form.field}>
-            {errors['au-add-visa'] && (
-              <p className={form.error}>{t(errors['au-add-visa'])}</p>
-            )}
             <button
               type="button"
               className={site.secondary}

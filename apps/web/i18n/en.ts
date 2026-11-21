@@ -469,7 +469,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.simulationDateHint':
     'Results are worked out for this date. It starts as today.',
   'au.dateOfBirth': 'Date of birth',
-  'au.firstArrival': 'Date you first arrived in Australia',
+  'au.firstArrival':
+    'Date you first arrived in Australia (leave blank if you have not arrived yet)',
   'au.visas': 'Your visas',
   'au.visasHint':
     'Enter each visa in date order, including bridging visas. The start date is the day it came into effect. Leave the end date blank for a visa still in effect or a permanent visa.',
@@ -487,19 +488,24 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.returned': 'Date you came back',
   'au.addTrip': 'Add a trip',
   'au.sponsored':
-    'While on a 457 or 482 visa, I always worked full time for my sponsor in the visa occupation (no unpaid leave)',
+    'While on a 457/482 or related bridging visa, after arriving I always worked full time in Australia for my sponsor in the visa occupation (paid leave is fine, unpaid leave is not)',
   'au.partner': 'I applied for a partner visa (820/801 or 309/100)',
   'au.partnerLodged': 'Date you applied for the partner visa',
   'au.partnerStream': 'Where you applied',
   'au.onshore': 'In Australia (820/801)',
   'au.offshore': 'Outside Australia (309/100)',
   'au.longTerm':
-    'We were already in a long-term partner relationship when I applied (2 years with a child of both of us, otherwise 3 years)',
+    'We were already in a long-term partner relationship when I applied: 3 years as spouses or de facto partners, or 2 years with a dependent child of us both (not a step-child)',
   'au.submit': 'Calculate',
   'au.errorSummary': 'Fix the items marked in red first.',
   'au.error.date': 'Enter a valid date.',
   'au.error.order': 'This date cannot be before the start date.',
-  'au.error.visas': 'Enter at least one visa.',
+  'au.error.beforeBirth':
+    'The first arrival cannot be before your date of birth.',
+  'au.error.beforeArrival':
+    'A trip cannot start before your first arrival; enter your first arrival if you have trips.',
+  'au.error.openEnded':
+    'Enter an end date for this temporary visa, since a later visa follows it.',
   'au.resultTitle': 'Results',
   'au.policyAsOf': 'Based on Australian official sources checked on {date}.',
   'au.status.MET': 'Time requirements met on the simulation date',
@@ -521,7 +527,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.sub.457': '457 Temporary Work (Skilled)',
   'au.sub.820': '820 Partner (temporary, in Australia)',
   'au.sub.309': '309 Partner (temporary, outside Australia)',
-  'au.sub.bridging': 'Bridging visa',
+  'au.sub.bridging-trt':
+    'Bridging visa (for a 457, 482, 186 or 187 application)',
+  'au.sub.bridging': 'Bridging visa (for another application)',
   'au.sub.other-temporary':
     'Other temporary visa (student, graduate, visitor and so on)',
   'au.sub.189': '189 Skilled Independent (permanent)',
