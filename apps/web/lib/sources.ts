@@ -142,4 +142,10 @@ export const sourceUrls: Record<string, string> = {
     'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/canadian-citizenship/grant/residence/calculate-physical-presence.html',
   'SRC-078':
     'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/permanent-residence/card/permanent-resident-determination.html',
+  'SRC-079': 'https://uscode.house.gov/us/usc/t8/s1427/',
+  'SRC-080':
+    'https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=316',
+  'SRC-081': 'https://www.uscis.gov/policy-manual/volume-12-part-d-chapter-3',
+  'SRC-082':
+    'https://www.uscis.gov/forms/when-to-file-your-petition-to-remove-conditions',
 };
