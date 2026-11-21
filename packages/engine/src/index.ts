@@ -31,6 +31,15 @@ export {
   AU_TEMPORARY_SUBCLASSES,
   evaluateAustralia,
 } from './australia';
+export { US_CONDITIONAL, evaluateUnitedStates } from './united-states';
+export type {
+  UsConditional,
+  UsPathway,
+  UsPathwayId,
+  UsRequest,
+  UsResult,
+  UsTrip,
+} from './united-states';
 export { evaluateCanada } from './canada';
 export type {
   CaPathway,
