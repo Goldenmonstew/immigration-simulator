@@ -1,5 +1,15 @@
 # 任务 33d｜Earned Settlement 居留、基本要求与过渡修正
 
+## Fable：合入 33a 最终版、33b、33c
+
+2026-11-20 起开发由 Fable 实现，Codex（gpt-6.2-sol）只读审核。33d 基于 33a 第 3 轮，依次合入 33c（含 33a 最终版、33b）：
+- `contracts.md`：33b 的 §18 在前，33d 的改革栏居留与基本要求改为 §19。
+- `pending-details.md`：采用 main 的 PD-080 与任务 32 的第十二节（PD-081），33d 的护工过渡合并（PD-082）改为第十三节。
+- `aggregate.ts`：只有 import 冲突，合并后去掉不再使用的 `meetsCefr`。
+
+合并后 56 个黄金案例的现行法栏与 33c 完全一致。改革栏 24 栏与 33c 不同，均与 33d 自身的结论、日期、路径年限、`pathwayCompletionDate`、`publicFundsReassessmentDate` 一致。引擎 2,669 项通过、1 项跳过；web 533；game 1,331；lint、typecheck 通过。
+
+
 ## 1. 做了什么
 
 建议 Fable 提交 `Fix: 修正改革居留、基本要求与过渡判断`。提交包含 `packages/engine/src/{aggregate,evaluate,types}.ts`、`packages/engine/src/rules/es-{residence,requirements,transitional}.ts`、引擎测试和快照、`apps/web/test/questionnaire.test.ts`，以及顾问包、契约、过渡摘要、待定事项和本报告。
