@@ -138,20 +138,25 @@ describe('SW 4.2 Option E new entrant (task 35)', () => {
   });
 
   test('with a gap, a total within a day of 4 years is UNKNOWN (PD-081)', () => {
-    // 730 Graduate days, a gap, then 731 days of new permission: 1,461.
+    // 730 Graduate days, a gap, then 731 days of new permission: 1,461, the
+    // limit itself; one day more is also open.
     const expired = permit('GRADUATE', '2024-09-01', '2026-08-31');
     const result = apply({
       episodes: [expired],
       date: '2027-09-01',
-      cosEnd: '2029-08-18',
+      cosEnd: '2029-08-17',
     });
     expect(result.optionE).toMatchObject({
       status: 'UNKNOWN',
       pendingDetails: ['PD-081'],
     });
+    expect(
+      apply({ episodes: [expired], date: '2027-09-01', cosEnd: '2029-08-18' })
+        .optionE.status,
+    ).toBe('UNKNOWN');
     // One day under the limit stays within it even with a leap day moved.
     expect(
-      apply({ episodes: [expired], date: '2027-09-01', cosEnd: '2029-08-17' })
+      apply({ episodes: [expired], date: '2027-09-01', cosEnd: '2029-08-16' })
         .optionE.status,
     ).toBe('PASS');
   });
