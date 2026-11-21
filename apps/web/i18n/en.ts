@@ -564,7 +564,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ca.addPeriod': 'Add a period',
   'ca.trips': 'Trips abroad',
   'ca.tripsHint':
-    'Add a row for each time you left Canada. You can include planned trips.',
+    'Add a row for each time you left Canada. You can include planned trips; if you are abroad now, enter the date you expect to return, and the results follow it.',
   'ca.trip': 'Trip {n}',
   'ca.departed': 'Date you left Canada',
   'ca.returned': 'Date you came back to Canada',

@@ -23,7 +23,31 @@ describe('residency obligation (IRPA s28)', () => {
     const p = pathway({}, 'CA-RESIDENCY');
     expect(p.status).toBe('MET');
     expect(p.summary).toContain('2027-02-28');
-    expect(p.pendingDetails).toEqual([]);
+    expect(p.pendingDetails).toBeUndefined();
+  });
+
+  test('before becoming a permanent resident: not applicable', () => {
+    const p = pathway(
+      { simulationDate: '2024-01-01', permanentResident: '2024-06-01' },
+      'CA-RESIDENCY',
+    );
+    expect(p.status).toBe('NOT_APPLICABLE');
+  });
+
+  test('on the day you become a permanent resident', () => {
+    const p = pathway({ simulationDate: '2022-03-01' }, 'CA-RESIDENCY');
+    expect(p.status).toBe('MET');
+  });
+
+  test('not reached within 10 years', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-01-01',
+        trips: [{ departed: '2022-06-01', returned: '2035-01-01' }],
+      },
+      'CA-RESIDENCY',
+    );
+    expect(p.status).toBe('NOT_MET');
   });
 
   test('a long absence: 730 days in the 5 years before 2028-05-31', () => {
@@ -37,6 +61,8 @@ describe('residency obligation (IRPA s28)', () => {
     expect(p.earliestDate).toBe('2028-05-31');
     expect(p.checks[0].met).toBe(false);
     expect(p.checks[0].text).toContain('305');
+    // The date comes from the 5 years before it (PD-089).
+    expect(p.pendingDetails).toEqual(['PD-089']);
   });
 
   test('after 5 years the 5 years before the examination date count', () => {
@@ -126,6 +152,19 @@ describe('citizenship (s5(1)(c)(i), s5(1.001))', () => {
       'CA-CITIZENSHIP',
     );
     expect(p.earliestDate).toBe('2027-06-02');
+  });
+
+  test('not reached within 10 years', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-01-01',
+        permanentResident: '2024-06-01',
+        temporaryPeriods: [],
+        trips: [{ departed: '2024-07-01', returned: '2035-01-01' }],
+      },
+      'CA-CITIZENSHIP',
+    );
+    expect(p.status).toBe('NOT_MET');
   });
 
   test('the application date is a pending detail', () => {

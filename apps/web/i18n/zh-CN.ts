@@ -368,7 +368,8 @@ export const zhCN = {
   'ca.to': '结束日期（到成为永久居民前一天可留空）',
   'ca.addPeriod': '添加临时身份',
   'ca.trips': '出境记录',
-  'ca.tripsHint': '每次离开加拿大填一行，计划中的出行也可以填。',
+  'ca.tripsHint':
+    '每次离开加拿大填一行，计划中的出行也可以填；仍在境外的，回程填预计日期，结果会随之变化。',
   'ca.trip': '出境 {n}',
   'ca.departed': '离开加拿大的日期',
   'ca.returned': '回到加拿大的日期',
