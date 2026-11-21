@@ -601,6 +601,21 @@ test('review33b-1 / task 53: a confirmed Option D or I is an ISL job (SW 4.2), a
   );
   expect(open.status).toBe('UNKNOWN');
   expect(open.assumptions?.join()).toContain('SW 11.2');
+  expect(open.assumptions?.join()).toContain('签发当日或之前');
+  // review53-2: a confirmed Option D after the removal comes from SW 11.2,
+  // so the SW 24.3 salary row stays to be confirmed.
+  const optionAfterRemoval = run(
+    clSwSalary,
+    {
+      episodes: [
+        scotlandBefore,
+        { ...scotlandAfter, skilledWorkerSponsorshipException: 'OPTION_D' },
+      ],
+    },
+    '2027-06-01',
+  );
+  expect(optionAfterRemoval.status).toBe('UNKNOWN');
+  expect(optionAfterRemoval.assumptions?.join()).toContain('SW 24.3');
   expect(
     run(
       clSwSalary,

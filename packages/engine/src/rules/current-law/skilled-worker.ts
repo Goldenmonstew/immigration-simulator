@@ -178,13 +178,15 @@ function wasSponsoredOnIsl(
   if (episode.immigrationSalaryList !== undefined) {
     return episode.immigrationSalaryList;
   }
-  // Options D and I are only awarded for a job on the Immigration Salary
-  // List (SW 4.2), so a confirmed one settles it (review33b-1).
+  // Options D and I are the points for a job on the Immigration Salary List
+  // (SW 4.2), so a confirmed one settles it (review33b-1), unless they come
+  // from the SW 11.2 continuation after removal, where the SW 24.3 salary row
+  // is unclear (review53-2).
   if (
     episode.skilledWorkerSponsorshipException === 'OPTION_D' ||
     episode.skilledWorkerSponsorshipException === 'OPTION_I'
   )
-    return true;
+    return removedByCos(episode) ? undefined : true;
   const entries = immigrationSalaryListOccupations.entries.filter(
     (entry) => entry.socCode === episode.socCode,
   );
@@ -272,13 +274,13 @@ function settlementSalaryRows({
     assumptions.push(
       sameJobAfterRemoval
         ? L(
-            `SOC ${soc} 在最近一次许可的 CoS 签发日前已移出 ISL，上一段许可是同一 SOC。若上一段按 ISL 担保、这次是同一 sponsor 的同一岗位续签，SW 11.2 仍给 ISL 积分；问卷没有 sponsor 信息，这一点和 SW 24.3 是否按 ISL 薪资行计都待确认。`,
-            `SOC ${soc} was removed from the ISL before the CoS date for the latest grant, and the previous grant was for the same SOC. If that grant was sponsored on the ISL and this one continues the same job for the same sponsor, SW 11.2 still awards the ISL points; the questionnaire does not record the sponsor, so that, and whether SW 24.3 then uses the ISL salary rows, are to be confirmed.`,
+            `SOC ${soc} 在最近一次许可的 CoS 签发当日或之前已移出 ISL，上一段许可是同一 SOC。若上一段按当时的 ISL（或旧 Shortage Occupation List）担保、这次是同一 sponsor 的同一岗位续签，SW 11.2 仍给 Option D／I 积分；问卷没有 sponsor 信息，这一点和 SW 24.3 是否按 ISL 薪资行计都待确认。`,
+            `SOC ${soc} was removed from the ISL on or before the CoS date for the latest grant, and the previous grant was for the same SOC. If that grant was sponsored on the ISL (or the earlier Shortage Occupation List) and this one continues the same job for the same sponsor, SW 11.2 still awards the Option D or I points; the questionnaire does not record the sponsor, so that, and whether SW 24.3 then uses the ISL salary rows, are to be confirmed.`,
           )
         : isl && confirmedOption
           ? L(
-              '最近一次许可已确认按 Option D／I 获批，这两项只给 ISL 岗位（SW 4.2），按 ISL 计。',
-              'The latest grant is confirmed under Option D or I, which are only awarded for a job on the ISL (SW 4.2), so it counts as ISL.',
+              '最近一次许可已确认按 Option D／I 获批，这两项是 ISL 岗位的积分项（SW 4.2），且岗位在 CoS 签发时仍在清单上，按 ISL 计。',
+              'The latest grant is confirmed under Option D or I, the points for a job on the ISL (SW 4.2), and the job was still listed on the CoS date, so it counts as ISL.',
             )
           : isl
             ? L(
