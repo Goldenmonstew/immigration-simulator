@@ -374,16 +374,16 @@ export default function GameClient() {
     conversation.current = undefined;
     setFeedback(undefined);
     setImmediateResult(undefined);
-    // A save made while a call interrupts a New Year activity (the activity
-    // resumes after it) keeps that activity's result to show after the call
-    // (50 review risk). Saves from before outcome.actionId show none.
+    // A save made while a call interrupts a New Year activity keeps that
+    // activity's result to show after the call (50 review risk). Saves from
+    // before interruptedOutcome show none.
+    const interrupted = next?.pendingEvent && next.interruptedOutcome;
     setFestivalResult(
-      next?.pendingEvent &&
-        next.day.resumeMinute !== undefined &&
+      interrupted &&
         next.day.festival === 'lunar-new-year' &&
-        (next.outcome?.actionId === 'festival' ||
-          next.outcome?.actionId === 'lunar-dumplings')
-        ? next.outcome.text
+        (interrupted.actionId === 'festival' ||
+          interrupted.actionId === 'lunar-dumplings')
+        ? interrupted.text
         : undefined,
     );
     setReturned(undefined);

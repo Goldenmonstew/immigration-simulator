@@ -205,6 +205,11 @@ export interface GameState {
   flags: string[];
   firedEvents: string[];
   pendingEvent?: string;
+  /**
+   * The result of the action a pending event interrupted, to show once the
+   * event is resolved; kept in the save so a reload still shows it.
+   */
+  interruptedOutcome?: { actionId: string; text: Text };
   /** Remaining scheduled events; rechecked when promoted to pendingEvent. */
   eventQueue: string[];
   /** Serializable mulberry32 cursor, so restoring JSON preserves the stream. */

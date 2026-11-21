@@ -1260,7 +1260,15 @@ export function doActivity(state: GameState, actionId: string): GameState {
     };
     return continueTrip(next);
   }
-  return advanceClock(next, action.minutes);
+  const after = advanceClock(next, action.minutes);
+  // An event that arrives during (or at the end of) this action holds back
+  // its result until the event is resolved (50 / review56-4).
+  if (!state.pendingEvent && after.pendingEvent && after.outcome?.text)
+    after.interruptedOutcome = {
+      actionId: action.id,
+      text: after.outcome.text,
+    };
+  return after;
 }
 export function currentEvent(state: GameState): GameEvent | undefined {
   const event = isOver(state)
@@ -1283,6 +1291,7 @@ export function resolve(state: GameState, choiceId: string): GameState {
     throw new Error(`Choice is not available: ${choiceId}`);
   const next = structuredClone(state);
   delete next.pendingEvent;
+  delete next.interruptedOutcome;
   const previousSalary = episodeAt(state)?.salary;
   const changed = applyEffects(next, choice.effects);
   setFlags(next, choice.sets);

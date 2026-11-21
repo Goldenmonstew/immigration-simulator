@@ -1192,40 +1192,16 @@ for (const locale of ['zh-CN', 'en'] as const) {
       reloaded.dispose();
       // review56-1 risk: if something else (eating) produced the last
       // outcome, no stale activity result is shown after the call.
-      for (const outcome of [
-        {
-          kind: 'eat' as const,
-          text: { zhCN: '百家宴饺子', en: 'Potluck dumplings' },
-        },
-        // review56-2: watering after the activity is also an activity.
-        {
-          kind: 'activity' as const,
-          actionId: 'water',
-          text: { zhCN: '浇了水', en: 'Watered' },
-        },
-      ]) {
-        const later = await client({ ...call.state, outcome }, locale);
-        expect(call.state.day.resumeMinute).toBeDefined();
-        const laterCall = later.render().props(EventCard);
-        renderView(() => EventCard(laterCall), locale).click(
-          locale === 'en' ? 'Arrange a weekly call' : '约定每周通话',
-        );
-        expect(later.render().html).not.toContain(
-          t('game.eventResult', locale),
-        );
-        later.dispose();
-      }
-      // review56-3: a call the clock rings after the activity has finished
-      // (nothing to resume) does not bring the result back.
-      const dayAfter = { ...call.state.day };
-      delete dayAfter.resumeMinute;
-      const finished = await client({ ...call.state, day: dayAfter }, locale);
-      const finishedCall = finished.render().props(EventCard);
-      renderView(() => EventCard(finishedCall), locale).click(
+      // review56-4: an older save without interruptedOutcome shows none.
+      const oldSave = structuredClone(call.state);
+      delete oldSave.interruptedOutcome;
+      const old = await client(oldSave, locale);
+      const oldCall = old.render().props(EventCard);
+      renderView(() => EventCard(oldCall), locale).click(
         locale === 'en' ? 'Arrange a weekly call' : '约定每周通话',
       );
-      expect(finished.render().html).not.toContain(feedback);
-      finished.dispose();
+      expect(old.render().html).not.toContain(feedback);
+      old.dispose();
     },
   );
 }
