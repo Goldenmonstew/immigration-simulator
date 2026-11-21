@@ -76,6 +76,26 @@ function Comparison({
             before.earliestDate ?? t('result.undetermined'),
             after.earliestDate ?? t('result.undetermined'),
           ],
+          // A6#7: a conditional completion is not an earliest date.
+          ...(before.pathwayCompletionDate || after.pathwayCompletionDate
+            ? [
+                [
+                  t('result.completion'),
+                  before.pathwayCompletionDate ?? '—',
+                  after.pathwayCompletionDate ?? '—',
+                ],
+              ]
+            : []),
+          ...(before.publicFundsReassessmentDate ||
+          after.publicFundsReassessmentDate
+            ? [
+                [
+                  t('result.reassessment'),
+                  before.publicFundsReassessmentDate ?? '—',
+                  after.publicFundsReassessmentDate ?? '—',
+                ],
+              ]
+            : []),
         ].map(([label, previous, next]) => (
           <div key={label}>
             <dt>{label}</dt>
