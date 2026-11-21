@@ -35,8 +35,13 @@ export interface NzRequest {
   permanentResidentVisa?: IsoDate;
   /** Last day of the travel conditions as printed on the visa, if known. */
   travelConditionsEnd?: IsoDate;
-  /** The resident visa has s49(1) conditions not yet met and removed. */
-  conditionsOutstanding?: boolean;
+  /**
+   * s49(1) conditions on the resident visa: met but not yet removed, or not
+   * yet met. Absent = none, or already removed.
+   */
+  conditions?: 'met' | 'outstanding';
+  /** Included as a partner or child in someone else's resident visa. */
+  nonPrincipal?: boolean;
   trips: NzTrip[];
   locale?: Locale;
 }
@@ -274,6 +279,24 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
         notChecked: [],
         assumptions: [],
       });
+    } else if (req.nonPrincipal) {
+      pathways.push({
+        id: 'NZ-PRV',
+        title,
+        status: 'UNKNOWN',
+        summary: L(
+          '你是居民签证的随同申请人（伴侣或子女）：只要主申请人已持永久居民签证，你即可获批，时间以主申请人为准（RV1.20），本试点不按你自己的记录推算。',
+          'You were included in someone else’s resident visa as a partner or child: you can be granted a permanent resident visa once the principal applicant holds one, so the timing follows theirs (RV1.20); this pilot does not work it out from your own record.',
+        ),
+        checks: [],
+        notChecked: [
+          L(
+            '主申请人何时取得永久居民签证；需单独评估随同申请人的情形（RV1.20.1–RV1.20.20）',
+            'When the principal applicant gets a permanent resident visa, and cases where a non-principal applicant is assessed on their own (RV1.20.1–RV1.20.20)',
+          ),
+        ],
+        assumptions: [],
+      });
     } else if (INVESTOR.has(category)) {
       pathways.push({
         id: 'NZ-PRV',
@@ -308,10 +331,12 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
       const stuck = blocked(earliest);
       // Parent and Religious Worker visas carry s49(1) conditions that must
       // be met and removed first (RV2.5(d); SRC-073).
+      // Conditions must be met and removed before a permanent resident visa
+      // (RV2.5(d)).
       const conditional =
         category === 'parent' ||
         category === 'religious-worker' ||
-        !!req.conditionsOutstanding;
+        !!req.conditions;
       const [a, b] = portions(sim);
       pathways.push({
         id: 'NZ-PRV',
@@ -480,11 +505,13 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
       // Parent, Religious Worker and Active Investor Plus visas, and any visa
       // with outstanding conditions, need s49(1) conditions met or cancelled
       // first (s8(3)), unless a permanent resident visa has replaced them.
+      // Met conditions are enough for citizenship (s8(3)).
       const conditional =
-        (category === 'parent' ||
-          category === 'religious-worker' ||
-          INVESTOR.has(category) ||
-          !!req.conditionsOutstanding) &&
+        (req.conditions === 'outstanding' ||
+          (req.conditions !== 'met' &&
+            (category === 'parent' ||
+              category === 'religious-worker' ||
+              INVESTOR.has(category)))) &&
         !(earliest && prvBy(earliest));
       // The presence date alone, for the summary of an unknown result.
       const presence = conditional

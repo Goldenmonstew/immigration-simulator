@@ -569,8 +569,13 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Travel conditions expiry date on your visa (optional)',
   'nz.travelConditionsEndHint':
     'The Expiry date travel on your eVisa. If blank, it is worked out under the current rule; older visas may differ, so entering it is better.',
-  'nz.conditionsOutstanding':
-    'My resident visa has s49 conditions (such as employment, investment or sponsorship) not yet met or removed',
+  'nz.conditions':
+    's49 conditions on your resident visa (such as employment, investment or sponsorship)',
+  'nz.conditions.none': 'None, or already removed',
+  'nz.conditions.met': 'Met, not yet removed',
+  'nz.conditions.outstanding': 'Not yet met',
+  'nz.nonPrincipal':
+    'I was included as a partner or child (not the principal applicant)',
   'nz.prvGranted':
     'Date your permanent resident visa was granted (leave blank if you do not have one)',
   'nz.trips': 'Trips abroad',

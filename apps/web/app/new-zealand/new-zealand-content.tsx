@@ -175,16 +175,29 @@ export default function NewZealandContent() {
             (travelConditionsEnd) => set({ travelConditionsEnd }),
             t('nz.travelConditionsEndHint'),
           )}
+          <Field id="nz-conditions" label={t('nz.conditions')}>
+            <select
+              id="nz-conditions"
+              value={draft.conditions}
+              onChange={(e) =>
+                set({ conditions: e.target.value as NzForm['conditions'] })
+              }
+            >
+              {(['', 'met', 'outstanding'] as const).map((c) => (
+                <option key={c} value={c}>
+                  {t(`nz.conditions.${c || 'none'}` as TranslationKey)}
+                </option>
+              ))}
+            </select>
+          </Field>
           <div className={form.checkboxes}>
             <label>
               <input
                 type="checkbox"
-                checked={draft.conditionsOutstanding}
-                onChange={(e) =>
-                  set({ conditionsOutstanding: e.target.checked })
-                }
+                checked={draft.nonPrincipal}
+                onChange={(e) => set({ nonPrincipal: e.target.checked })}
               />
-              {t('nz.conditionsOutstanding')}
+              {t('nz.nonPrincipal')}
             </label>
           </div>
           {date(

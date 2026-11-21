@@ -427,7 +427,7 @@ describe('citizenship by grant (s8)', () => {
       simulationDate: '2024-09-01',
       firstArrival: '2018-01-01',
       residentVisa: { granted: '2019-12-13', category: 'general' as const },
-      conditionsOutstanding: true,
+      conditions: 'outstanding' as const,
     };
     expect(pathway(req, 'NZ-CITIZENSHIP').status).toBe('UNKNOWN');
     expect(pathway(req, 'NZ-PRV').status).toBe('UNKNOWN');
@@ -448,5 +448,22 @@ describe('citizenship by grant (s8)', () => {
     expect(p.status).toBe('UNKNOWN');
     expect(p.summary).toContain('2026-07-19');
     expect(p.summary).toContain('2026-11-21');
+  });
+
+  test('conditions met but not removed: PRV unknown, citizenship by dates', () => {
+    const req = {
+      simulationDate: '2024-01-01',
+      firstArrival: '2020-01-01',
+      residentVisa: { granted: '2022-03-01', category: 'general' as const },
+      conditions: 'met' as const,
+    };
+    expect(pathway(req, 'NZ-PRV').status).toBe('UNKNOWN');
+    expect(pathway(req, 'NZ-CITIZENSHIP').status).toBe('FUTURE');
+  });
+
+  test('a partner on the resident visa follows the principal (RV1.20)', () => {
+    const p = pathway({ nonPrincipal: true }, 'NZ-PRV');
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('RV1.20');
   });
 });

@@ -19,7 +19,8 @@ export interface NzForm {
   category: NzResidentCategory;
   prvGranted: string;
   travelConditionsEnd: string;
-  conditionsOutstanding: boolean;
+  conditions: '' | 'met' | 'outstanding';
+  nonPrincipal: boolean;
   trips: NzTripRow[];
 }
 
@@ -36,7 +37,8 @@ export function emptyNzForm(today: string): NzForm {
     category: 'general',
     prvGranted: '',
     travelConditionsEnd: '',
-    conditionsOutstanding: false,
+    conditions: '',
+    nonPrincipal: false,
     trips: [],
   };
 }
@@ -83,7 +85,8 @@ export function nzRequest(form: NzForm, locale: Locale): NzRequest {
     ...(form.travelConditionsEnd
       ? { travelConditionsEnd: form.travelConditionsEnd }
       : {}),
-    ...(form.conditionsOutstanding ? { conditionsOutstanding: true } : {}),
+    ...(form.conditions ? { conditions: form.conditions } : {}),
+    ...(form.nonPrincipal ? { nonPrincipal: true } : {}),
     trips: form.trips,
     locale,
   };

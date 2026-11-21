@@ -76,13 +76,13 @@ test('the request leaves out a blank PRV date', () => {
       {
         ...filled,
         travelConditionsEnd: '2023-02-28',
-        conditionsOutstanding: true,
+        conditions: 'outstanding',
       },
       'en',
     ),
   ).toMatchObject({
     travelConditionsEnd: '2023-02-28',
-    conditionsOutstanding: true,
+    conditions: 'outstanding',
   });
   expect(
     nzRequest({ ...filled, prvGranted: '2023-04-01' }, 'en')

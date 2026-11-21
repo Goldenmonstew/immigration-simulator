@@ -373,8 +373,11 @@ export const zhCN = {
   'nz.travelConditionsEnd': '签证上的旅行条件到期日（可留空）',
   'nz.travelConditionsEndHint':
     '即 eVisa 上的 Expiry date travel。留空则按现行规则推算；早年获批的签证规则可能不同，建议填写。',
-  'nz.conditionsOutstanding':
-    '我的居民签证有 s49 条件（如受雇、投资、担保要求），尚未满足或取消',
+  'nz.conditions': '居民签证的 s49 条件（如受雇、投资、担保要求）',
+  'nz.conditions.none': '没有，或已办理取消',
+  'nz.conditions.met': '已满足，尚未办理取消',
+  'nz.conditions.outstanding': '尚未满足',
+  'nz.nonPrincipal': '我是随同获批的伴侣或子女（不是主申请人）',
   'nz.prvGranted': '永久居民签证（PRV）获批日期（还没有可留空）',
   'nz.trips': '出境记录',
   'nz.tripsHint':
