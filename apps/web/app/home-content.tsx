@@ -40,6 +40,13 @@ export default function Home() {
       <div className={styles.narrow}>
         <SavedScenarios />
         <section className={styles.section}>
+          <h2>{t('au.entryTitle')}</h2>
+          <p>
+            {t('au.entryDesc')}{' '}
+            <Link href="/australia">{t('au.entryLink')}</Link>
+          </p>
+        </section>
+        <section className={styles.section}>
           <h2>{t('home.before')}</h2>
           <p>{t('home.prepare')}</p>
           <p className={styles.notice}>{t('home.privacy')}</p>

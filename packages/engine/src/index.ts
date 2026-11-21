@@ -26,3 +26,19 @@ export {
   familyIncomeThreshold,
   onProtection,
 } from './rules/current-law';
+export {
+  AU_PERMANENT_SUBCLASSES,
+  AU_TEMPORARY_SUBCLASSES,
+  evaluateAustralia,
+} from './australia';
+export type {
+  AuCheck,
+  AuPathway,
+  AuPathwayId,
+  AuRequest,
+  AuResult,
+  AuStatus,
+  AuSubclass,
+  AuTrip,
+  AuVisa,
+} from './australia';

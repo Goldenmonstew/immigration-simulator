@@ -9,7 +9,14 @@ async function seriousViolations(page: Page) {
     .map((v) => `${v.id}: ${v.nodes.length} × ${v.nodes[0]?.target.join(' ')}`);
 }
 
-for (const path of ['/', '/simulate', '/policy', '/about', '/game']) {
+for (const path of [
+  '/',
+  '/simulate',
+  '/policy',
+  '/about',
+  '/game',
+  '/australia',
+]) {
   test(`no serious accessibility violations on ${path}`, async ({ page }) => {
     await page.goto(path);
     await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
