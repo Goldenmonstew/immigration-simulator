@@ -1630,17 +1630,17 @@ export function narrative(state: GameState): Text[] {
   if (harvests)
     pursuits.push({
       zhCN: `菜地收成 ${harvests} 次`,
-      en: `${harvests} harvests from the allotment`,
+      en: `${harvests} harvest${harvests === 1 ? '' : 's'} from the allotment`,
     });
   if (casts)
     pursuits.push({
       zhCN: `池塘抛竿 ${casts} 次`,
-      en: `${casts} casts at the pond`,
+      en: `${casts} cast${casts === 1 ? '' : 's'} at the pond`,
     });
   if (catches)
     pursuits.push({
       zhCN: `钓到鱼 ${catches} 次`,
-      en: `${catches} successful fish catches`,
+      en: `${catches} successful fish catch${catches === 1 ? '' : 'es'}`,
     });
   if (pursuits.length)
     sentences.push({
@@ -1711,7 +1711,7 @@ export function narrative(state: GameState): Text[] {
   const quarters = state.log.filter((e) => e.kind === 'quarter').length;
   sentences.push({
     zhCN: `日记写过 ${quarters} 个季度，雨伞换了位置，生活没有停。`,
-    en: `The diary spans ${quarters} quarters; umbrellas moved, and life kept going.`,
+    en: `The diary spans ${quarters} quarter${quarters === 1 ? '' : 's'}; umbrellas moved, and life kept going.`,
   });
   sentences.push({
     zhCN: `账本最后留下 £${Math.round(state.stats.money).toLocaleString('en-GB')}，还有没写进账本的牵挂。`,

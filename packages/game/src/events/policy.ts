@@ -106,7 +106,7 @@ export const policyStories: {
           id: 'read',
           label: {
             zhCN: '记下标题，回家找原文',
-            en: 'Note the title to read at home',
+            en: 'Note the title and look up the full response at home',
           },
           effects: [{ type: 'none' }],
         },

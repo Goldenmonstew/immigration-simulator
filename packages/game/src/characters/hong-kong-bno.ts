@@ -1035,7 +1035,7 @@ const events: GameEvent[] = [
     title: { zhCN: '喜帖里的金粉', en: 'Glitter in a wedding invitation' },
     text: {
       zhCN: '从香港婚礼回来，你收好喜帖，金粉又洒进了早餐麦片旁。',
-      en: 'Back from the Hong Kong wedding, you file the invitation and scatters glitter beside the breakfast cereal.',
+      en: 'Back from the Hong Kong wedding, you file the invitation, and glitter spills beside the breakfast cereal again.',
     },
     weight: 2,
     once: true,
@@ -1759,7 +1759,7 @@ const events: GameEvent[] = [
     },
     text: {
       zhCN: '学校连发三封邮件，你先读了最短的那封，结果是广告。',
-      en: 'Three school emails arrive; you read the shortest first and finds an advert.',
+      en: 'Three school emails arrive; you read the shortest first and find an advert.',
     },
     weight: 2,
     once: true,
@@ -2607,7 +2607,7 @@ const events: GameEvent[] = [
     title: { zhCN: '便签上的五年', en: 'Five years on a sticky note' },
     text: {
       zhCN: '你在日历旁贴了一张便签，孩子问为什么不用更大的纸。',
-      en: 'You sticks a note beside the calendar; the child asks why the paper is not bigger.',
+      en: 'You stick a note beside the calendar; the child asks why the paper is not bigger.',
     },
     weight: 2,
     once: true,
@@ -2645,7 +2645,7 @@ export const hongKongBno: Character = {
     title: { zhCN: '餐桌旁的书包', en: 'The school bag by the table' },
     text: {
       zhCN: '你和文舒、乐言住在镇上的租屋，餐桌旁靠着孩子的书包。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本放在书包旁。\n镇上能种菜、钓鱼，也能去酒吧坐坐。厨房窗外已经有人经过。',
-      en: 'You share a rented home in town with Man Shu and Lok Yin. The child’s school bag rests by the table.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. A textbook lies beside the school bag.\nThere are vegetables to grow, fish to catch and a pub to sit in. Someone is already passing the kitchen window.',
+      en: 'You share a rented home in town with Man Shu and Lok Yin. The child’s school bag rests by the table.\nKeeping permission valid is part of life here: renew at the visa centre, and check what you still need to qualify for settlement at the town hall.\nEnglish and Life in the UK tests are at the language school. A textbook lies beside the school bag.\nThere are vegetables to grow, fish to catch and a pub to sit in. Someone is already passing the kitchen window.',
     },
     weight: 1,
     once: true,

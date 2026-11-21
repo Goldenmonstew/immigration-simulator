@@ -167,7 +167,7 @@ export const achievements: Achievement[] = [
     name: { zhCN: '差一天', en: 'One day away' },
     description: {
       zhCN: '评估日期离任一栏最早日期只差一天。',
-      en: 'Reach one day before an engine earliest date.',
+      en: 'Get to within one day of the earliest application date shown in either assessment.',
     },
     check: (s) =>
       Object.values(s.result.byRuleSet).some(
