@@ -687,7 +687,7 @@ test('review33c-2 a protection forecast moves to the declared return when abroad
     absences: [{ from: '2026-02-20', to: '2026-03-09' }],
   };
   const forecast = currentLaw(facts, '2026-02-01');
-  expect(forecast.earliestDate).not.toBe('2026-03-04');
+  expect(forecast.earliestDate).toBe('2026-03-09');
   expect(currentLaw(facts, '2026-03-04').outcome).not.toBe('LIKELY_ELIGIBLE');
   expect(currentLaw(facts, forecast.earliestDate!).outcome).toBe(
     'LIKELY_ELIGIBLE',
