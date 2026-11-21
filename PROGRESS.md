@@ -301,3 +301,4 @@
 | 262 | 任务 57–59 第八轮审核修正（review57-8）：s82(5) 以下一份签证的实际生效日判断是否在期满前接替；在境外开始生效、且非直接接替前一份永居的永久签证，生效当天记为空档；入籍说明补"无空档"条件。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、docs/tasks/reports/57-59-australia.md |
 | 263 | 任务 57–59 第九轮审核修正（review57-9）：永居接续核对实际替代关系（被临时签证替代不算接续，离境当天被替代记空档）；返澳当天生效的永居也按境外获发判断空档。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、docs/tasks/reports/57-59-australia.md |
 | 264 | 任务 57–59 第十轮审核修正（review57-10）：只有旧签证在新签证生效当天仍有效才算直接接替；报告补同日两次换签与手填到期日的限制。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、docs/tasks/reports/57-59-australia.md |
+| 265 | 第 18 阶段准备：各国试点共用的结果类型、日计数工具（`pilot.ts`）与结果组件（`/pilot/pilot-result.tsx`，文案键改为 `pilot.*`、去掉"澳洲"字样）；澳洲行为不变。 | packages/engine/src/{pilot,australia,index}.ts、apps/web/app/pilot/、apps/web/app/australia/australia-content.tsx、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/australia.test.tsx |

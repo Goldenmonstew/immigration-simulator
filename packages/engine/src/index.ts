@@ -32,6 +32,12 @@ export {
   evaluateAustralia,
 } from './australia';
 export type {
+  PilotCheck,
+  PilotPathway,
+  PilotResult,
+  PilotStatus,
+} from './pilot';
+export type {
   AuCheck,
   AuPathway,
   AuPathwayId,
