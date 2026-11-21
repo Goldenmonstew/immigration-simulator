@@ -74,6 +74,17 @@ export interface WhatIf {
   lifeInTheUk: PersonTimeline['lifeInTheUk'];
   noPublicFunds: boolean;
   noAbsences: boolean;
+  /** One extra trip abroad to try out (playtest #1). */
+  trip?: { from: string; to: string };
+}
+
+/** Whole days away: travel days do not count (SRC-057, A1#17). */
+export function tripDays(trip: { from: string; to: string }): number {
+  const days =
+    (Date.parse(`${trip.to}T00:00:00Z`) -
+      Date.parse(`${trip.from}T00:00:00Z`)) /
+    86_400_000;
+  return Math.max(0, Math.round(days) - 1);
 }
 
 export function initialWhatIf(draft: Draft, target?: WhatIfTarget): WhatIf {
@@ -150,7 +161,12 @@ export function applyWhatIf(draft: Draft, whatIf: WhatIf): Draft {
       english: whatIf.english,
       lifeInTheUk: whatIf.lifeInTheUk,
       benefits: whatIf.noPublicFunds ? [] : dated.timeline.benefits,
-      absences: whatIf.noAbsences ? [] : dated.timeline.absences,
+      absences: [
+        ...(whatIf.noAbsences ? [] : dated.timeline.absences),
+        ...(whatIf.trip && whatIf.trip.from <= whatIf.trip.to
+          ? [whatIf.trip]
+          : []),
+      ],
     },
   };
 }

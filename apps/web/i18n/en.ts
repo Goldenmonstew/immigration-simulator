@@ -379,6 +379,13 @@ export const en: Record<keyof typeof zhCN, string> = {
   'whatif.incomeSlider': 'Adjust annual earnings with the slider',
   'whatif.noPublicFunds': 'Assume no public funds received before applying',
   'whatif.noAbsences': 'Assume no absences',
+  'whatif.trip': 'Add one more trip abroad',
+  'whatif.tripFrom': 'Departure date',
+  'whatif.tripTo': 'Return date',
+  'whatif.tripDays':
+    '{days} whole days away (the departure and return days do not count).',
+  'whatif.tripInvalid':
+    'The return date is before the departure date, so this trip is not counted.',
   'whatif.reset': 'Reset',
   'whatif.back': 'Back to results',
   'whatif.before': 'Before',

@@ -25,6 +25,7 @@ import {
   initialWhatIf,
   focusControls,
   focusForRule,
+  tripDays,
   type WhatIf,
   type WhatIfTarget,
 } from '../lib/whatif';
@@ -396,6 +397,58 @@ function WhatIfLab({
             />
             {t('whatif.noAbsences')}
           </label>
+          <label className={styles.checkbox}>
+            <input
+              type="checkbox"
+              checked={!!whatIf.trip}
+              onChange={(event) =>
+                update({
+                  trip: event.target.checked
+                    ? { from: whatIf.simulationDate, to: whatIf.simulationDate }
+                    : undefined,
+                })
+              }
+            />
+            {t('whatif.trip')}
+          </label>
+          {whatIf.trip && (
+            <div className={styles.tripFields}>
+              <div className={styles.field}>
+                <label htmlFor="whatif-trip-from">{t('whatif.tripFrom')}</label>
+                <input
+                  id="whatif-trip-from"
+                  type="date"
+                  value={whatIf.trip.from}
+                  onChange={(event) =>
+                    update({
+                      trip: { ...whatIf.trip!, from: event.target.value },
+                    })
+                  }
+                />
+              </div>
+              <div className={styles.field}>
+                <label htmlFor="whatif-trip-to">{t('whatif.tripTo')}</label>
+                <input
+                  id="whatif-trip-to"
+                  type="date"
+                  value={whatIf.trip.to}
+                  onChange={(event) =>
+                    update({
+                      trip: { ...whatIf.trip!, to: event.target.value },
+                    })
+                  }
+                />
+              </div>
+              <p className={site.muted} role="status">
+                {whatIf.trip.from > whatIf.trip.to
+                  ? t('whatif.tripInvalid')
+                  : t('whatif.tripDays').replace(
+                      '{days}',
+                      String(tripDays(whatIf.trip)),
+                    )}
+              </p>
+            </div>
+          )}
           <div className={site.actions}>
             <button
               type="button"

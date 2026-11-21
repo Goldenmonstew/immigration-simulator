@@ -6,7 +6,12 @@ import {
   draftReducer,
   visibleIncomeYears,
 } from '../lib/questionnaire';
-import { applyWhatIf, diffAssessment, initialWhatIf } from '../lib/whatif';
+import {
+  applyWhatIf,
+  diffAssessment,
+  initialWhatIf,
+  tripDays,
+} from '../lib/whatif';
 
 function baseline() {
   const draft = draftReducer(createDraft(), {
@@ -218,4 +223,28 @@ test('changes to summary, explanations, assumptions or removed rules count as a 
     { rules: [] },
   ])
     expect(diffAssessment(before, { ...before, ...patch }).changed).toBe(true);
+});
+
+test('playtest #1: one more trip is added to the absences and counts whole days only', () => {
+  const draft = baseline();
+  const controls = initialWhatIf(draft);
+  const trip = { from: '2024-01-01', to: '2024-07-20' };
+  expect(tripDays(trip)).toBe(200);
+  const withTrip = applyWhatIf(draft, { ...controls, trip });
+  expect(withTrip.timeline.absences).toEqual([
+    ...draft.timeline.absences,
+    trip,
+  ]);
+  // Together with "no absences" only the new trip remains.
+  expect(
+    applyWhatIf(draft, { ...controls, noAbsences: true, trip }).timeline
+      .absences,
+  ).toEqual([trip]);
+  // A reversed range is ignored.
+  expect(
+    applyWhatIf(draft, {
+      ...controls,
+      trip: { from: '2024-07-20', to: '2024-01-01' },
+    }).timeline.absences,
+  ).toEqual(draft.timeline.absences);
 });
