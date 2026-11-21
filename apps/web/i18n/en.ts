@@ -553,7 +553,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Results are worked out for this date (the application date). It starts as today.',
   'es.permits': 'Residence permits',
   'es.permitsHint':
-    'Add a row for each permit (the validity on your TIE), then the next one if renewed on time; leave the end blank if it is still valid. Tick study stays.',
+    'Add a row for each permit, then the next one if renewed on time; leave the end blank if it is still valid. A national long-term residence permit has no end date and an expired TIE card does not end it, so leave its end blank. Tick study stays.',
   'es.permit': 'Permit {n}',
   'es.from': 'Valid from',
   'es.to': 'Valid until (leave blank if still valid)',

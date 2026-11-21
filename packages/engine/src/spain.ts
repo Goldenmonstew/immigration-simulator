@@ -106,10 +106,11 @@ export function evaluateSpain(req: EsRequest): EsResult {
       const from = addYears(d, -years);
       const to = addDays(d, -1);
       const trips = tripsIn(from, to);
-      // A permit must also be valid on the application day (art. 184.2).
+      // Covered up to the day before applying: an application within 3 months
+      // of the permit expiring extends it (art. 184.2).
       return {
-        legal: covered(sums.residence, from, d),
-        withStudy: covered(sums.withStudy, from, d),
+        legal: covered(sums.residence, from, to),
+        withStudy: covered(sums.withStudy, from, to),
         long: trips.filter(
           (t) =>
             t.returned > addMonths(t.departed, v.singleAbsenceMonths.value),
@@ -147,8 +148,8 @@ export function evaluateSpain(req: EsRequest): EsResult {
               )
             : possible
               ? L(
-                  '按条文明确的读法，10 年内达不到长期居留的时间条件。',
-                  'On a clear reading of the rules, you will not meet the time requirements for long-term residence within 10 years.',
+                  '仅按已录入的居留许可计算，10 年内达不到长期居留的时间条件。',
+                  'Counting only the residence permits you entered, you will not meet the time requirements for long-term residence within 10 years.',
                 )
               : L(
                   '按现有记录，10 年内达不到长期居留的时间条件。',
@@ -163,8 +164,8 @@ export function evaluateSpain(req: EsRequest): EsResult {
       checks: [
         {
           text: L(
-            `前 ${years} 年及递交当天一直持有居留许可（不含学习停留）`,
-            `A residence permit throughout the past ${years} years and on the application day (study stays not included)`,
+            `前 ${years} 年一直持有居留许可（不含学习停留；许可到期后 3 个月内递交的，原许可延长至决定作出）`,
+            `A residence permit throughout the past ${years} years (study stays not included; applying within 3 months of expiry extends the permit until the decision)`,
           ),
           met: f.legal ? true : f.withStudy ? undefined : false,
           sources: v.longTermYears.sources,
@@ -254,10 +255,15 @@ export function evaluateSpain(req: EsRequest): EsResult {
               `You have held residence permits for ${years} years without a gap on the simulation date.`,
             )
           : earliest
-            ? L(
-                `合法居留满 ${years} 年的最早递交日是 ${earliest}。`,
-                `The earliest application date with ${years} years of legal residence is ${earliest}.`,
-              )
+            ? unsure
+              ? L(
+                  `仅按许可年限计算的候选递交日是 ${earliest}。`,
+                  `Counting permit years alone, the candidate application date is ${earliest}.`,
+                )
+              : L(
+                  `合法居留满 ${years} 年的最早递交日是 ${earliest}。`,
+                  `The earliest application date with ${years} years of legal residence is ${earliest}.`,
+                )
             : L(
                 `按现有记录，10 年内达不到 ${years} 年的合法居留。`,
                 `With your record you will not reach ${years} years of legal residence within 10 years.`,
