@@ -325,6 +325,38 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
   });
 });
 
+test('a permanent visa holder does not need the permanent residence pathways', () => {
+  const result = evaluateAustralia({
+    ...base,
+    visas: [
+      { subclass: '482', from: '2021-02-01', to: '2023-08-31' },
+      { subclass: '186', from: '2023-09-01' },
+    ],
+    partnerApplication: {
+      lodged: '2023-01-01',
+      stream: 'onshore',
+      longTermRelationship: false,
+    },
+  });
+  for (const id of ['AU-191', 'AU-186-TRT', 'AU-PARTNER'])
+    expect(result.pathways.find((p) => p.id === id)?.status).toBe(
+      'NOT_APPLICABLE',
+    );
+});
+
+test('a 482 that ended before the simulation date does not apply', () => {
+  const p = pathway(
+    {
+      visas: [
+        { subclass: '482', from: '2021-02-01', to: '2023-08-31' },
+        { subclass: 'other-temporary', from: '2023-09-01' },
+      ],
+    },
+    'AU-186-TRT',
+  );
+  expect(p.status).toBe('NOT_APPLICABLE');
+});
+
 test('English text', () => {
   const result = evaluateAustralia({
     ...base,

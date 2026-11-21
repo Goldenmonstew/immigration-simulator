@@ -210,6 +210,14 @@ export function evaluateAustralia(req: AuRequest): AuResult {
   const statusOf = (earliest?: IsoDate): AuStatus =>
     !earliest ? 'NOT_MET' : earliest === sim ? 'MET' : 'FUTURE';
 
+  const permanentNow = visas
+    .filter((x) => PERMANENT.has(x.subclass) && x.from <= sim)
+    .filter((x) => !x.to || x.to >= sim);
+  const alreadyPermanent = L(
+    '模拟日已持永久签证，不需要这条转永居路径。',
+    'You already hold a permanent visa on the simulation date, so this pathway is not needed.',
+  );
+
   // ---------- Subclass 191 ----------
   {
     const title = L(
@@ -236,15 +244,17 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         'Health, character and other public interest criteria',
       ),
     ];
-    if (!current) {
+    if (!current || permanentNow.length) {
       pathways.push({
         id: 'AU-191',
         title,
         status: 'NOT_APPLICABLE',
-        summary: L(
-          '模拟日没有持有 491 或 494 签证。',
-          'You do not hold a subclass 491 or 494 visa on the simulation date.',
-        ),
+        summary: permanentNow.length
+          ? alreadyPermanent
+          : L(
+              '模拟日没有持有 491 或 494 签证。',
+              'You do not hold a subclass 491 or 494 visa on the simulation date.',
+            ),
         checks: [],
         notChecked,
         assumptions: [],
@@ -319,15 +329,18 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         'A bridging visa after a 457/482 is treated as granted because you applied for a 457, 482, 186 or 187 visa (186.226(1)(d)).',
       ),
     ];
-    if (!visas.some((x) => TRT_VISAS.has(x.subclass))) {
+    const trtAhead = days.total(sums.trt, sim, days.date(days.count - 1)) > 0;
+    if (!trtAhead || permanentNow.length) {
       pathways.push({
         id: 'AU-186-TRT',
         title,
         status: 'NOT_APPLICABLE',
-        summary: L(
-          '记录中没有 457 或 482 签证。',
-          'Your record has no subclass 457 or 482 visa.',
-        ),
+        summary: permanentNow.length
+          ? alreadyPermanent
+          : L(
+              '模拟日及之后没有 457、482 签证或其后的 bridging visa。',
+              'You have no subclass 457 or 482 visa, or a bridging visa after one, on or after the simulation date.',
+            ),
         checks: [],
         notChecked,
         assumptions: [],
@@ -349,10 +362,15 @@ export function evaluateAustralia(req: AuRequest): AuResult {
               `You reach 2 years on a 457/482 visa on ${earliestHeld}, after turning 45 on ${birthday45}; only exempt classes in a legislative instrument can apply.`,
             )
           : req.sponsoredFullTime
-            ? L(
-                `3 年内持 457／482 合计满 2 年的最早日期是 ${earliest}；须在 ${birthday45} 满 45 岁之前递交。`,
-                `The earliest date with a total of 2 years on a 457/482 visa within 3 years is ${earliest}; apply before you turn 45 on ${birthday45}.`,
-              )
+            ? earliest === sim
+              ? L(
+                  `前 3 年内持 457／482 已合计满 2 年；须在 ${birthday45} 满 45 岁之前递交。`,
+                  `You have held a 457/482 visa for a total of 2 years in the past 3 years; apply before you turn 45 on ${birthday45}.`,
+                )
+              : L(
+                  `3 年内持 457／482 合计满 2 年的最早日期是 ${earliest}；须在 ${birthday45} 满 45 岁之前递交。`,
+                  `The earliest date with a total of 2 years on a 457/482 visa within 3 years is ${earliest}; apply before you turn 45 on ${birthday45}.`,
+                )
             : L(
                 `持 457／482 的时间在 ${earliest} 达到 2 年，但你没有确认一直全职为担保雇主工作；须另算全职受雇时间（186.227）。`,
                 `Your 457/482 time reaches 2 years on ${earliest}, but you have not confirmed full-time work for your sponsor throughout; count your full-time sponsored work separately (186.227).`,
@@ -403,15 +421,17 @@ export function evaluateAustralia(req: AuRequest): AuResult {
       'Partner visa permanent stage (subclass 801 or 100)',
     );
     const p = req.partnerApplication;
-    if (!p) {
+    if (!p || permanentNow.length) {
       pathways.push({
         id: 'AU-PARTNER',
         title,
         status: 'NOT_APPLICABLE',
-        summary: L(
-          '没有录入伴侣签申请。',
-          'You have not entered a partner visa application.',
-        ),
+        summary: permanentNow.length
+          ? alreadyPermanent
+          : L(
+              '没有录入伴侣签申请。',
+              'You have not entered a partner visa application.',
+            ),
         checks: [],
         notChecked: [],
         assumptions: [],
@@ -468,9 +488,6 @@ export function evaluateAustralia(req: AuRequest): AuResult {
   }
 
   // ---------- Resident Return visa ----------
-  const permanentNow = visas
-    .filter((x) => PERMANENT.has(x.subclass) && x.from <= sim)
-    .filter((x) => !x.to || x.to >= sim);
   {
     const title = L(
       '回头签 RRV（155，5 年旅行便利）',
@@ -513,13 +530,17 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         earliestDate: earliest,
         summary: L(
           `当前永久签证的旅行便利自 ${latest.from} 起 5 年，约到 ${facilityEnds}（以签证通知或 VEVO 为准）；此后出境，须持 RRV 才能以永久居民身份返澳。` +
-            (earliest
-              ? `5 年内在澳满 730 天的最早递交日是 ${earliest}。`
-              : '按现有记录达不到 5 年内在澳 730 天。'),
+            (earliest === sim
+              ? '前 5 年内已以永久签证持有人身份在澳满 730 天。'
+              : earliest
+                ? `5 年内在澳满 730 天的最早递交日是 ${earliest}。`
+                : '按现有记录达不到 5 年内在澳 730 天。'),
           `The travel facility on your current permanent visa runs 5 years from ${latest.from}, to about ${facilityEnds} (check your grant notice or VEVO); after that you need an RRV to come back as a permanent resident.` +
-            (earliest
-              ? ` The earliest application date with 730 days in Australia in 5 years is ${earliest}.`
-              : ' With your record you will not reach 730 days in Australia in 5 years.'),
+            (earliest === sim
+              ? ' You already have 730 days in Australia as a permanent visa holder in the past 5 years.'
+              : earliest
+                ? ` The earliest application date with 730 days in Australia in 5 years is ${earliest}.`
+                : ' With your record you will not reach 730 days in Australia in 5 years.'),
         ),
         checks: [
           {
@@ -606,15 +627,21 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         title,
         status: statusOf(earliest),
         earliestDate: earliest,
-        summary: earliest
-          ? L(
-              `满足一般居住要求的最早递交日是 ${earliest}。`,
-              `The earliest application date that meets the general residence requirement is ${earliest}.`,
-            )
-          : L(
-              '按现有记录，10 年内达不到一般居住要求。',
-              'With your record you will not meet the general residence requirement within 10 years.',
-            ),
+        summary:
+          earliest === sim
+            ? L(
+                '模拟日已满足一般居住要求。',
+                'You meet the general residence requirement on the simulation date.',
+              )
+            : earliest
+              ? L(
+                  `满足一般居住要求的最早递交日是 ${earliest}。`,
+                  `The earliest application date that meets the general residence requirement is ${earliest}.`,
+                )
+              : L(
+                  '按现有记录，10 年内达不到一般居住要求。',
+                  'With your record you will not meet the general residence requirement within 10 years.',
+                ),
         checks: [
           {
             text: L(
