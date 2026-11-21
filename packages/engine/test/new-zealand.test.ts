@@ -201,17 +201,20 @@ describe('permanent resident visa (RV2.5, RV2.5.1)', () => {
     expect(p.summary).toContain('RV2.10');
   });
 
-  test('Religious Worker: 5 years from the first day as a resident', () => {
+  test('Religious Worker: 5 years, then s49 conditions unknown', () => {
     const req = {
       residentVisa: {
         granted: '2022-03-01',
         category: 'religious-worker' as const,
       },
     };
-    const p = pathway(req, 'NZ-PRV');
-    expect(p.status).toBe('FUTURE');
-    expect(p.earliestDate).toBe('2027-03-01');
-    expect(pathway(req, 'NZ-CITIZENSHIP').earliestDate).toBe('2027-03-01');
+    const prv = pathway(req, 'NZ-PRV');
+    expect(prv.status).toBe('UNKNOWN');
+    expect(prv.summary).toContain('2027-03-01');
+    expect(prv.checks.find((c) => c.text.includes('s49'))?.met).toBeUndefined();
+    const citizenship = pathway(req, 'NZ-CITIZENSHIP');
+    expect(citizenship.status).toBe('UNKNOWN');
+    expect(citizenship.summary).toContain('2027-03-01');
     expect(pathway(req, 'NZ-TRAVEL').summary).toContain('2027-02-28');
   });
 
@@ -266,7 +269,7 @@ describe('citizenship by grant (s8)', () => {
     expect(p.checks.every((c) => c.met)).toBe(true);
   });
 
-  test('travel days counted in, with the strict date given (PD-086)', () => {
+  test('travel days count as days in New Zealand (DIA calculator)', () => {
     // Away 2020-01-02 to 2020-05-06 (126 days): the year 2019-06-01 to
     // 2020-05-31 has 240 days. Not counting travel days it has 238, and
     // only on 2023-01-03 does that year split the trip enough.
@@ -280,9 +283,9 @@ describe('citizenship by grant (s8)', () => {
       },
       'NZ-CITIZENSHIP',
     );
+    // Not counting travel days the year would hold 238 days.
     expect(p.status).toBe('MET');
-    expect(p.summary).toContain('2023-01-03');
-    expect(p.pendingDetails).toEqual(['PD-086']);
+    expect(p.pendingDetails).toBeUndefined();
   });
 
   test('must be 16', () => {
@@ -331,9 +334,9 @@ describe('citizenship by grant (s8)', () => {
     ).toBe('UNKNOWN');
   });
 
-  test('the strict count also leaves out the first arrival (PD-086)', () => {
-    // Granted abroad, first in New Zealand on 2022-03-01: not counting that
-    // day, the oldest year reaches 240 days one day later.
+  test('the first arrival as a resident counts as a day in New Zealand', () => {
+    // Granted abroad, first in New Zealand on 2022-03-01; that day counts
+    // (DIA presence calculator, SRC-073).
     const p = pathway(
       {
         simulationDate: '2024-05-19',
@@ -343,7 +346,47 @@ describe('citizenship by grant (s8)', () => {
       'NZ-CITIZENSHIP',
     );
     expect(p.earliestDate).toBe('2026-10-27');
-    expect(p.summary).toContain('2026-10-28');
-    expect(p.pendingDetails).toEqual(['PD-086']);
+    expect(p.pendingDetails).toBeUndefined();
+  });
+
+  test('a Parent visa replaced by a PRV has no conditions left', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-21',
+        firstArrival: '2015-06-01',
+        residentVisa: { granted: '2016-01-01', category: 'parent' },
+        permanentResidentVisa: '2026-06-01',
+      },
+      'NZ-CITIZENSHIP',
+    );
+    expect(p.status).toBe('MET');
+  });
+
+  test('Active Investor Plus conditions make citizenship unknown', () => {
+    const p = pathway(
+      {
+        simulationDate: '2029-12-21',
+        firstArrival: '2025-01-01',
+        residentVisa: { granted: '2025-05-01', category: 'aip-balanced' },
+      },
+      'NZ-CITIZENSHIP',
+    );
+    expect(p.status).toBe('UNKNOWN');
+  });
+
+  test('an expired resident visa fails the visa check', () => {
+    // Leaving on 2026-11-01, after the travel conditions: expired 11-02.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-21',
+        firstArrival: '2019-01-01',
+        residentVisa: { granted: '2020-01-01', category: 'general' },
+        trips: [{ departed: '2026-11-01', returned: '2027-01-01' }],
+      },
+      'NZ-CITIZENSHIP',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[1].met).toBe(false);
+    expect(p.checks[1].text).toContain('2026-11-02');
   });
 });
