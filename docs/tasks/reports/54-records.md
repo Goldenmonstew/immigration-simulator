@@ -19,8 +19,8 @@
 | 命令 | 结果 |
 |---|---|
 | 回归测试 | 三处修改都有用例，冲突行程用例在改动前失败 |
-| `pnpm lint && pnpm typecheck && pnpm test && pnpm build` | 见 PR 说明 |
-| `pnpm --filter e2e e2e` | 见 PR 说明 |
+| `pnpm lint && pnpm typecheck && pnpm test && pnpm build` | 通过：engine 2,701、game 1,334、web 546 |
+| `pnpm --filter e2e e2e` | 38 项通过 |
 | 黄金案例 | 结论与日期无变化 |
 | 双语快照、顾问审阅包 | 只有 Long Residence 说明那一句变化 |
 

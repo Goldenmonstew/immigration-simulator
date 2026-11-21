@@ -273,3 +273,4 @@
 | 234 | 第 16 阶段计划与任务 51、52 报告。 | docs/tasks/phase-16-plan.md、docs/tasks/reports/51-52-projection.md |
 | 235 | 任务 51、52 审核（review51-1 通过）：报告如实记录收入沿用可能进入"仍待满足"说明，以及预测期间改为 adult dependant relative 的边界。 | docs/tasks/reports/51-52-projection.md |
 | 244 | 任务 54（Fable 实现）：后续许可取代先前许可（SRC-059）；Long Residence 当前路线满 12 个月（LR 11.3–11.4）；空档内另有出入境记录时不按 CR 4.1(d)(iii) 续算。 | packages/engine/src/{evaluate,residence}.ts、packages/engine/src/rules/current-law/long-residence.ts、packages/policy-data/src/parameters/current-law-2026-11.ts、packages/engine/test/{aggregate,residence-dates}.test.ts、packages/engine/test/__snapshots__/bilingual.test.ts.snap、docs/review/adviser-packet.md、docs/tasks/reports/54-records.md |
+| 248 | 第 16 阶段计划补进度：55 已在 33c 实现。 | docs/tasks/phase-16-plan.md |
