@@ -171,12 +171,19 @@ function removedByCos(episode: ImmigrationEpisode): boolean {
   );
 }
 
-/** No CoS date while the SOC's entries carry a removal date. */
+/**
+ * No CoS date, and the grant started on or after a removal date for the SOC,
+ * so a CoS on or after the removal cannot be ruled out (a grant starting
+ * earlier had its CoS before the removal).
+ */
 function removalUnknown(episode: ImmigrationEpisode): boolean {
   return (
     episode.sponsorshipCertificateDate === undefined &&
     immigrationSalaryListOccupations.entries.some(
-      (entry) => entry.socCode === episode.socCode && entry.removalDate,
+      (entry) =>
+        entry.socCode === episode.socCode &&
+        entry.removalDate !== undefined &&
+        episode.validFrom >= entry.removalDate,
     )
   );
 }

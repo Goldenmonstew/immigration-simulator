@@ -632,19 +632,30 @@ test('review33b-1 / task 53: a confirmed Option D or I is an ISL job (SW 4.2), a
   expect(optionI.assumptions.join()).toContain(
     'treats the list condition for Option D or I as met',
   );
-  // Without a CoS date the removal cannot be ruled out either.
-  const noDate = run(clSwSalary, {
-    episodes: [
-      permit({
-        validFrom: '2026-01-01',
-        socCode: '5235',
-        salary: 35000,
-        skilledWorkerSponsorshipException: 'OPTION_D',
-      }),
-    ],
-  });
-  expect(noDate.status).toBe('UNKNOWN');
-  expect(noDate.assumptions?.join()).toContain('请填写 CoS 签发日');
+  // review53-4: without a CoS date, a grant starting before the removal
+  // still counts as ISL; one starting on or after it stays to be confirmed.
+  const noDate = (validFrom: string) =>
+    current(
+      {
+        episodes: [
+          permit({
+            validFrom,
+            socCode: '5235',
+            salary: 35000,
+            skilledWorkerSponsorshipException: 'OPTION_D',
+          }),
+        ],
+      },
+      '2027-06-01',
+    );
+  expect(
+    noDate('2026-01-01').rules.find((r) => r.id === 'CL-SW-SALARY')?.status,
+  ).toBe('PASS');
+  const afterRemoval = noDate('2027-01-15');
+  expect(afterRemoval.rules.find((r) => r.id === 'CL-SW-SALARY')?.status).toBe(
+    'UNKNOWN',
+  );
+  expect(afterRemoval.assumptions.join()).toContain('Please add the CoS date');
   expect(
     run(
       clSwSalary,
