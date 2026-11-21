@@ -1,4 +1,4 @@
-import { evaluate } from '@uk-immigration/engine';
+import { skilledWorkerApplication } from '@uk-immigration/engine';
 import type { ImmigrationEpisode } from '@uk-immigration/engine';
 import { currentLaw2026_11, goingRates } from '@uk-immigration/policy-data';
 import { balance as b } from './balance';
@@ -7,8 +7,8 @@ import type { GameState } from './types';
 const policy = currentLaw2026_11.values;
 // SRC-034 GR 8.1: this fictional MSc graduate applied before 2027-01-01.
 export const graduateApplicationDate = '2026-09-01';
-// SRC-004 SW 4.2 Option A and SW 8.1. SRC-017 Table 1, SOC 2136.
-// This scenario uses the full standard rate, with no new-entrant discount.
+// SRC-004 SW 4.2 Option A and SW 8.1. SRC-017 Table 1, SOC 2136. The offer
+// is also checked against the new-entrant Option E (SW 12.1–12.3, task 35).
 export const generalSalary = policy.skilledWorkerGeneralSalaryThreshold.value;
 const graduateOccupation = goingRates.rows.find(
   (row) => row.table === '1' && row.socCode === '2136',
@@ -39,49 +39,71 @@ export function graduateEpisode(state: GameState): ImmigrationEpisode {
       : graduateSalaries.low,
   };
 }
-/** Preview the engine's standard salary checks; never infer a grant from settlement eligibility. */
-export function graduateSalaryChecks(state: GameState) {
-  const timeline = structuredClone(state.timeline);
-  const yesterday = new Date(`${state.date}T00:00:00Z`);
-  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-  timeline.episodes = timeline.episodes.filter(
-    (episode) => episode.validFrom < state.date,
+/** The engine's Skilled Worker application check (SW 4.2 Options A and E). */
+export function graduateApplication(state: GameState) {
+  const episode = graduateEpisode(state);
+  // SW 18.1: permission runs to 14 days after the CoS end date, so this
+  // scenario's CoS ends that many days before the grant.
+  const cosEnd = new Date(`${episode.validTo}T00:00:00Z`);
+  cosEnd.setUTCDate(
+    cosEnd.getUTCDate() - policy.skilledWorkerGrantDaysAfterCos.value,
   );
-  for (const episode of timeline.episodes)
-    if (episode.validTo >= state.date)
-      episode.validTo = yesterday.toISOString().slice(0, 10);
-  timeline.episodes.push(graduateEpisode(state));
-  return evaluate({
-    simulationDate: state.date,
-    timeline,
+  return skilledWorkerApplication({
+    timeline: {
+      ...state.timeline,
+      episodes: state.timeline.episodes.filter(
+        (e) => e.validFrom <= state.date,
+      ),
+    },
+    applicationDate: state.date,
+    // The scenario decides the in-country switch on the day it is made.
+    decisionDate: state.date,
+    cos: {
+      start: state.date,
+      end: cosEnd.toISOString().slice(0, 10),
+      salary: episode.salary,
+      // Fictional full-time contract at the going rate's standard week.
+      weeklyHours: policy.goingRateWeeklyHours.value,
+      socCode: episode.socCode,
+    },
     locale: state.locale,
-  }).byRuleSet['current-law-2026-11']!.rules.filter((rule) =>
-    ['CL-SW-SALARY', 'CL-SW-GOING-RATE'].includes(rule.id),
-  );
+  });
 }
 
 export function graduateSalaryPreview(state: GameState): string {
-  // Use the same checks as the switch action, but cite the permission rules.
-  const checks = graduateSalaryChecks(state);
-  const salaryCheck = checks.find((rule) => rule.id === 'CL-SW-SALARY')!;
-  const goingRateCheck = checks.find((rule) => rule.id === 'CL-SW-GOING-RATE')!;
-  const formatSalary = (value: number) => `£${value.toLocaleString('en-GB')}`;
-  const salary = formatSalary(graduateEpisode(state).salary!);
-  const general = formatSalary(generalSalary);
-  const occupational = formatSalary(occupationalSalary);
-  const occupation = `SOC ${graduateOccupation.socCode} (${graduateOccupation.title})`;
+  const { optionA, optionE } = graduateApplication(state);
   const chinese = state.locale === 'zh-CN';
-  const status = (passed: boolean) =>
-    chinese ? (passed ? '达到' : '低于') : passed ? 'meets' : 'is below';
-  const generalStatus = status(salaryCheck.status === 'PASS');
-  const occupationalStatus = status(goingRateCheck.status === 'PASS');
+  const grantedUntil = graduateEpisode(state).validTo;
+  const graceDays = policy.skilledWorkerGrantDaysAfterCos.value;
+  const cosEnd = new Date(`${grantedUntil}T00:00:00Z`);
+  cosEnd.setUTCDate(cosEnd.getUTCDate() - graceDays);
+  const cosEndDate = cosEnd.toISOString().slice(0, 10);
+  // The game records permission on the quarter's start date, so the
+  // application, the decision and the proposed grant all run from it.
+  const premise = chinese
+    ? `本情景按本季起始日 ${state.date} 递交，若获批，新许可自当日起，拟授予 ${b.extensionMonths} 个月（至 ${grantedUntil}）。许可到 CoS 结束后 ${graceDays} 天（SW 18.1），所以 HR 开具的 CoS 止于 ${cosEndDate}；若下一季再递交，HR 按新季度更新 CoS。`
+    : `This scenario applies on the quarter's start date, ${state.date}. If granted, the new permission starts that day for ${b.extensionMonths} months (until ${grantedUntil}). Permission runs to ${graceDays} days after the CoS ends (SW 18.1), so HR's CoS ends on ${cosEndDate}; if the application waits for a later quarter, HR updates the CoS for it.`;
+  const verdict = (status: string) =>
+    chinese
+      ? status === 'PASS'
+        ? '符合'
+        : status === 'FAIL'
+          ? '不符合'
+          : '待确认'
+      : status === 'PASS'
+        ? 'met'
+        : status === 'FAIL'
+          ? 'not met'
+          : 'to be confirmed';
   return [
+    premise,
     chinese
-      ? `报价年薪 ${salary} ${generalStatus}通用年薪门槛 ${general}（SRC-004 SW 4.2 Option A）。`
-      : `The annual offer of ${salary} ${generalStatus} the general salary threshold of ${general} (SRC-004, SW 4.2 Option A).`,
+      ? `标准档（SRC-004 SW 4.2 Option A；SRC-017 Table 1）：${verdict(optionA.status)}。${optionA.explanation}`
+      : `Standard option (SRC-004 SW 4.2 Option A; SRC-017 Table 1): ${verdict(optionA.status)}. ${optionA.explanation}`,
     chinese
-      ? `这份报价${occupationalStatus} ${occupation} 的 going rate ${occupational}（SRC-017 Table 1 及表前工时说明）。`
-      : `The offer ${occupationalStatus} the going rate of ${occupational} for ${occupation} (SRC-017, Table 1 and its note on working hours).`,
-    ...(goingRateCheck.assumptions ?? []),
-  ].join('\n');
+      ? `新入职者档（SRC-004 SW 4.2 Option E、SW 12.1–12.3）：${verdict(optionE.status)}。${optionE.explanation}`
+      : `New-entrant option (SRC-004 SW 4.2 Option E, SW 12.1–12.3): ${verdict(optionE.status)}. ${optionE.explanation}`,
+  ]
+    .map((line) => line.trim())
+    .join('\n');
 }

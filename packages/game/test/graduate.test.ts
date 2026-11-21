@@ -14,7 +14,7 @@ import {
 import type { GameState } from '../src';
 import {
   graduateApplicationDate,
-  graduateSalaryChecks,
+  graduateApplication,
   graduateSalaries,
 } from '../src/graduate-route';
 import { graduate, graduateRecruitment } from '../src/characters/graduate';
@@ -103,14 +103,36 @@ describe('13.2 Graduate character and engine integration', () => {
       ),
     ).toHaveLength(5);
   });
-  test('a low offer fails engine checks; correcting contract and CoS enables the switch', () => {
+  test('task 35: the low offer meets Option E only within the SW 12.3 total; negotiating meets Option A', () => {
     let state = offer(true);
+    // One year of Graduate plus the 36-month grant is exactly 4 years on the
+    // quarter's start date, which the game uses for applications and grants.
+    expect(state.date).toBe('2027-09-15');
+    const onTime = graduateApplication(state);
+    expect(onTime.optionA.status).toBe('FAIL');
+    expect(onTime.optionE.status).toBe('PASS');
+    const switched = doActivity(atVisa(state), 'graduate-switch');
+    expect(switched.timeline.episodes.at(-1)).toMatchObject({
+      route: 'SKILLED_WORKER',
+      validFrom: '2027-09-15',
+      validTo: '2030-09-14',
+      salary: graduateSalaries.low,
+    });
+    // The preview states the grant and the CoS end it is derived from.
+    const preview = doActivity(atVisa(state), 'graduate-check-offer').outcome!
+      .text!;
+    for (const copy of [preview.zhCN, preview.en]) {
+      expect(copy).toContain('2030-09-14');
+      expect(copy).toContain('2030-08-31');
+    }
+    expect(onTime.grantedUntil).toBe('2030-09-14');
+    // A quarter later, without negotiating, the total is over 4 years.
+    const later = clear(completeQuarter(state));
+    const late = graduateApplication(later);
+    expect(late.status).toBe('FAIL');
+    expect(late.optionE.explanation).toContain('SW 12.3');
     expect(
-      graduateSalaryChecks(state).find((rule) => rule.id === 'CL-SW-SALARY')
-        ?.status,
-    ).toBe('FAIL');
-    expect(
-      activities(atVisa(state), 'visa').map((action) => action.id),
+      activities(atVisa(later), 'visa').map((action) => action.id),
     ).not.toContain('graduate-switch');
     const checked = doActivity(atVisa(state), 'graduate-check-offer');
     expect(checked.timeline).toEqual(state.timeline);
@@ -123,25 +145,24 @@ describe('13.2 Graduate character and engine integration', () => {
     const years = values.skilledWorkerNewEntrantMaxCombinedYears.value;
     const { zhCN, en } = checked.outcome!.text!;
     for (const value of [
-      `年薪须同时不低于 ${salary}`,
+      salary,
       percent,
       `${years} 年`,
       'SW 12.2(f)',
+      'SW 12.3',
     ])
       expect(zhCN).toContain(value);
     for (const value of [
-      `${salary} a year`,
+      salary,
       percent,
       `${years} years`,
       'SW 12.2(f)',
+      'SW 12.3',
     ])
       expect(en).toContain(value);
     state = job(completeQuarter(state));
     expect(state.flags).toContain('graduate-negotiated');
-    expect(graduateSalaryChecks(state).map((rule) => rule.status)).toEqual([
-      'PASS',
-      'PASS',
-    ]);
+    expect(graduateApplication(state).optionA.status).toBe('PASS');
     expect(
       activities(atVisa(clear(state)), 'visa').map((action) => action.id),
     ).toContain('graduate-switch');

@@ -50,6 +50,7 @@ test.each([
     socCode: '2136',
     title: 'IT quality and testing professionals',
     goingRate: 41200,
+    newEntrantRate: 33400,
   },
   {
     table: '2',
@@ -62,6 +63,7 @@ test.each([
     socCode: '3111',
     title: 'Laboratory technicians',
     goingRate: 33400,
+    newEntrantRate: 33400,
   },
 ] satisfies GoingRate[])(
   'Table $table SOC $socCode matches the snapshot name and full annual rate',
@@ -78,6 +80,11 @@ test.each([
     expect(cells[rateColumn].split('<br>')[0]).toBe(
       `£${expected.goingRate.toLocaleString('en-GB')}`,
     );
+    // Tables 1 / 1a: the last rate column is SW option E.
+    if (expected.newEntrantRate !== undefined)
+      expect(cells[5].split('<br>')[0]).toBe(
+        `£${expected.newEntrantRate.toLocaleString('en-GB')}`,
+      );
     expect(
       goingRates.rows.find(
         (row) =>

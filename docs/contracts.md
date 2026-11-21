@@ -998,3 +998,11 @@ PD-075 登记到 `docs/pending-details.md` 新的第十节"现行法律栏家庭
 - 申报犯罪记录继续触发两栏的受监管审核。现有犯罪记录只含日期，犯罪地或海外行为在英国是否构成犯罪未定时，改革明细为 `UNKNOWN`（PD-017）。未清偿债务的布尔申报未提供债务类别或还款计划，明细为 `UNKNOWN`（PD-018）。须偿还的 asylum support 仍用专门规则。成年违规或所计入的 public funds 影响年限时，双语结果声明将实施前事件纳入回看的假设（PD-004）。
 - 缺少 Safe and Legal 安置计划时，只有确实依赖计划的英语要求或考试适用性为 `UNKNOWN`。框架外群体按 PD-027、PD-028、PD-051 给出强化要求适用性，丧偶伴侣仍提示 suitability 与 character。
 - 工签主申请人缺 SOC 且其他已知条件允许过渡时，对应规则为 `UNKNOWN`，提示补 SOC。护工许可起始日在截止当日或之后，现有输入无法排除截止日前提交的申请，按 PD-036 保留 `UNKNOWN`。二次 Health and Care 签证提示保留真实行业工作条件。问卷输入和分享格式沿用现有字段。
+
+## 20. Skilled Worker 申请的新入职者档（任务 35）
+
+- `skilledWorkerApplication(input)` 只供游戏的 Graduate 转签使用，网站问卷不调用，也不进入任何规则集的定居结论。
+- 输入：申请前的许可时间线、申请日、预计决定日、CoS（起止日期、年薪、每周工时、SOC）。缺决定日或 CoS 时相应检查为 `UNKNOWN`。
+- 输出：`optionA`、`optionE` 各自的 `status` 与说明，`status` 在任一档 `PASS` 时为 `PASS`，`grantedUntil` 为 CoS 结束后 14 天（SW 18.1）。
+- Option A：年薪不低于 SW 4.2 Option A 的门槛，且不低于 SRC-017 Table 1 的 going rate（按每周工时相对 37.5 小时折算）。
+- Option E：年薪不低于新入职者门槛与 SRC-017 Table 1 公布的 Option E 列（going rate 的 70%，含每小时最低额，按工时折算）；SW 12.2(f) 最近一次非访客许可为 Graduate，已到期的须距申请日不足 2 年；SW 12.3 获批后 Graduate 与 Skilled Worker 许可的实际有效期间合计不超过 4 年（空档不计，决定日仍有效的许可在决定日截断）。section 3C 延续期计入与否、或有空档时合计与上限只差一天以内，为 `UNKNOWN`（PD-081）。CoS 缺起止日期时合计为 `UNKNOWN`。

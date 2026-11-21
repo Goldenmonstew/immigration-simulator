@@ -16,6 +16,11 @@ export { evaluate, RULE_SETS } from './evaluate';
 export { RULES } from './rules';
 export { withRuleSet } from './rule';
 export { hasSettledSkilledWorkerPartner } from './rules/current-law/shared';
+export { skilledWorkerApplication } from './rules/current-law/sw-application';
+export type {
+  SkilledWorkerApplication,
+  SkilledWorkerApplicationResult,
+} from './rules/current-law/sw-application';
 export {
   familyFiveYearStart,
   familyIncomeThreshold,

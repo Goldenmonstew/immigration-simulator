@@ -15,6 +15,8 @@ const newEntrantSalary =
   values.skilledWorkerNewEntrantSalaryThreshold.value.toLocaleString('en-GB');
 const newEntrantPercent = values.skilledWorkerNewEntrantGoingRatePercent.value;
 const newEntrantYears = values.skilledWorkerNewEntrantMaxCombinedYears.value;
+const weeklyHours = values.goingRateWeeklyHours.value;
+const graceDays = values.skilledWorkerGrantDaysAfterCos.value;
 // Fictional decision/start date. GR 8.1 measures the grant from this decision.
 const decisionDate = '2026-09-15';
 const expiry = new Date(`${decisionDate}T00:00:00Z`);
@@ -138,8 +140,8 @@ export const graduateRecruitment: GameEvent[] = [
         effects: [{ type: 'stat', key: 'mood', delta: -2 }],
         sets: ['graduate-negotiated', 'graduate-offer-reviewed'],
         note: t(
-          `本情景按标准薪资核对：general salary £${generalSalary}，岗位 going rate £${occupationalSalary}；不采用新入职者档。`,
-          `This scenario checks standard pay: general salary £${generalSalary}, occupational going rate £${occupationalSalary}; not the new-entrant option.`,
+          `标准档要求 general salary £${generalSalary} 与岗位 going rate £${occupationalSalary}；新入职者档另要求年薪不低于 £${newEntrantSalary} 和 going rate 的 ${newEntrantPercent}%，并受 SW 12.3 的合计 ${newEntrantYears} 年限制。`,
+          `The standard option needs a general salary of £${generalSalary} and the occupational going rate of £${occupationalSalary}. The new-entrant option needs at least £${newEntrantSalary} and ${newEntrantPercent}% of the going rate, within the SW 12.3 limit of ${newEntrantYears} years in total.`,
         ),
       },
       {
@@ -953,8 +955,8 @@ export const graduate: Character = {
   graduateRoute: {
     recruitment: graduateRecruitment,
     salaryCheckNote: t(
-      `这里只核对标准薪资档。符合条件的新入职者另有较低档：年薪须同时不低于 £${newEntrantSalary} 和岗位 going rate 的 ${newEntrantPercent}%。像诺拉这样在 Graduate 许可仍有效时申请的人，符合 SW 12.2(f) 这一项新入职者条件。但按该档授予的许可，与已有的 Skilled Worker、Graduate、Tier 2 许可合计不得超过 ${newEntrantYears} 年，不连续的期间也计入（SW 12.3）。本情景不计算这一合计，所以结果只说明报价是否达到标准档，诺拉能否按新入职者档申请仍未核定。担保、CoS 与其他审批条件由本情景假定已核实。`,
-      `This checks the standard pay option only. Eligible new entrants have a lower option: a salary of at least £${newEntrantSalary} a year and at least ${newEntrantPercent}% of the occupation's going rate. Someone like Nora, applying while their Graduate permission is still valid, meets the SW 12.2(f) new-entrant condition. But permission granted under this option, added to any earlier Skilled Worker, Graduate and Tier 2 permission, must not exceed ${newEntrantYears} years in total, even if the periods are not continuous (SW 12.3). This scenario does not calculate that total, so the result only shows whether the offer meets the standard option; whether Nora could use the new-entrant option is not decided. It assumes sponsorship, CoS and other application requirements have been verified.`,
+      `核对按 CoS 上的年薪、每周 ${weeklyHours} 小时的全职合同，以及到 CoS 结束后 ${graceDays} 天为止的拟授予许可（SW 18.1）。新入职者档另看 SW 12.2(f)（最近一次许可是 Graduate）与 SW 12.3（获批后 Skilled Worker、Graduate、Tier 2 许可合计不超过 ${newEntrantYears} 年）。担保与其他审批条件由本情景假定已核实。`,
+      `The check uses the CoS salary, a full-time ${weeklyHours}-hour week and the proposed permission until ${graceDays} days after the CoS ends (SW 18.1). The new-entrant option also needs SW 12.2(f) (the most recent permission was as a Graduate) and SW 12.3 (no more than ${newEntrantYears} years of Skilled Worker, Graduate and Tier 2 permission in total once granted). It assumes sponsorship and the other application requirements have been verified.`,
     ),
     switched: {
       zhCN: '你拿到本情景中的 Skilled Worker 许可，把合同和 CoS 收进文件夹；下一次出门，包里多了一份新的有效许可。',
