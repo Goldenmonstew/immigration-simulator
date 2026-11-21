@@ -571,6 +571,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'The Expiry date travel on your eVisa. If blank, it is worked out under the current rule; older visas may differ, so entering it is better.',
   'nz.conditions':
     's49 conditions on your resident visa (such as employment, investment or sponsorship)',
+  'nz.conditions.unsure': 'Not sure (go by the visa category)',
   'nz.conditions.none': 'None, or already removed',
   'nz.conditions.met': 'Met, not yet removed',
   'nz.conditions.outstanding': 'Not yet met',

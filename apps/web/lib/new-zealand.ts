@@ -19,7 +19,8 @@ export interface NzForm {
   category: NzResidentCategory;
   prvGranted: string;
   travelConditionsEnd: string;
-  conditions: '' | 'met' | 'outstanding';
+  /** Empty = not sure, so the engine goes by the visa category. */
+  conditions: '' | 'none' | 'met' | 'outstanding';
   nonPrincipal: boolean;
   trips: NzTripRow[];
 }

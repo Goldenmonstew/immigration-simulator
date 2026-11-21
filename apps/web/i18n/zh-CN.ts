@@ -374,6 +374,7 @@ export const zhCN = {
   'nz.travelConditionsEndHint':
     '即 eVisa 上的 Expiry date travel。留空则按现行规则推算；早年获批的签证规则可能不同，建议填写。',
   'nz.conditions': '居民签证的 s49 条件（如受雇、投资、担保要求）',
+  'nz.conditions.unsure': '不确定（按签证类别判断）',
   'nz.conditions.none': '没有，或已办理取消',
   'nz.conditions.met': '已满足，尚未办理取消',
   'nz.conditions.outstanding': '尚未满足',

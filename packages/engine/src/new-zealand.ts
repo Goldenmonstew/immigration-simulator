@@ -36,10 +36,11 @@ export interface NzRequest {
   /** Last day of the travel conditions as printed on the visa, if known. */
   travelConditionsEnd?: IsoDate;
   /**
-   * s49(1) conditions on the resident visa: met but not yet removed, or not
-   * yet met. Absent = none, or already removed.
+   * s49(1) conditions on the resident visa: none or already removed, met but
+   * not yet removed, or not yet met. Absent = not stated, so they follow the
+   * visa category.
    */
-  conditions?: 'met' | 'outstanding';
+  conditions?: 'none' | 'met' | 'outstanding';
   /** Included as a partner or child in someone else's resident visa. */
   nonPrincipal?: boolean;
   trips: NzTrip[];
@@ -134,7 +135,7 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
   // Religious Worker visas: a permanent resident visa 5 years after the first
   // day as a resident (SRC-073), once the s49(1) conditions are met.
   const religiousFrom =
-    category === 'religious-worker'
+    category === 'religious-worker' && req.conditions !== 'none'
       ? afterYears(firstDay, v.religiousWorkerYears.value)
       : undefined;
 
@@ -285,8 +286,8 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
         title,
         status: 'UNKNOWN',
         summary: L(
-          '你是居民签证的随同申请人（伴侣或子女）：只要主申请人已持永久居民签证，你即可获批，时间以主申请人为准（RV1.20），本试点不按你自己的记录推算。',
-          'You were included in someone else’s resident visa as a partner or child: you can be granted a permanent resident visa once the principal applicant holds one, so the timing follows theirs (RV1.20); this pilot does not work it out from your own record.',
+          '你是居民签证的随同申请人（伴侣或子女）：按 RV1.20，主申请人持永久居民签证后你通常也可获批，时间以主申请人为准；例外包括你从未以居民身份到过新西兰、不符合品格要求或须单独评估。本试点不按你自己的记录推算。',
+          'You were included in someone else’s resident visa as a partner or child: under RV1.20 you can usually be granted a permanent resident visa once the principal applicant holds one, so the timing follows theirs. Exceptions include never having been in New Zealand as a resident, not meeting character requirements, or being assessed on your own. This pilot does not work it out from your own record.',
         ),
         checks: [],
         notChecked: [
@@ -333,10 +334,9 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
       // be met and removed first (RV2.5(d); SRC-073).
       // Conditions must be met and removed before a permanent resident visa
       // (RV2.5(d)).
-      const conditional =
-        category === 'parent' ||
-        category === 'religious-worker' ||
-        !!req.conditions;
+      const conditional = req.conditions
+        ? req.conditions !== 'none'
+        : category === 'parent' || category === 'religious-worker';
       const [a, b] = portions(sim);
       pathways.push({
         id: 'NZ-PRV',
@@ -371,7 +371,11 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
                 ' Your resident visa carries s49(1) conditions (5 or 10 years for Parent visas, 5 years of sponsored religious work for Religious Worker visas, otherwise as on your visa); they must be met and removed before a permanent resident visa can be granted (RV2.5(d)), which this pilot does not check.',
               )
             : '') +
-          (!stuck && tax && (!earliest || tax < earliest) && !blocked(tax)
+          (!stuck &&
+          !conditional &&
+          tax &&
+          (!earliest || tax < earliest) &&
+          !blocked(tax)
             ? L(
                 `如果税务局确认你申请前 24 个月都是新西兰税务居民，走税务居民路线（每段 ${v.prvTaxPortionDays.value} 天）最早 ${tax}（RV2.5.5）。`,
                 ` If Inland Revenue confirms you were a New Zealand tax resident for the 24 months before applying, the tax residence route (${v.prvTaxPortionDays.value} days in each part) is open from ${tax} (RV2.5.5).`,
@@ -507,12 +511,11 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
       // first (s8(3)), unless a permanent resident visa has replaced them.
       // Met conditions are enough for citizenship (s8(3)).
       const conditional =
-        (req.conditions === 'outstanding' ||
-          (req.conditions !== 'met' &&
-            (category === 'parent' ||
-              category === 'religious-worker' ||
-              INVESTOR.has(category)))) &&
-        !(earliest && prvBy(earliest));
+        (req.conditions
+          ? req.conditions === 'outstanding'
+          : category === 'parent' ||
+            category === 'religious-worker' ||
+            INVESTOR.has(category)) && !(earliest && prvBy(earliest));
       // The presence date alone, for the summary of an unknown result.
       const presence = conditional
         ? firstDate((d) => {
@@ -592,14 +595,15 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
             ? [
                 {
                   text: L(
-                    `宗教工作者的 s49(1) 条件期满（${religiousFrom}），并已申请取消`,
-                    `Religious Worker s49(1) conditions ended (${religiousFrom}) and removed`,
+                    `宗教工作者的 s49(1) 条件期满（${religiousFrom}），并已满足或取消`,
+                    `Religious Worker s49(1) conditions ended (${religiousFrom}) and met or cancelled`,
                   ),
-                  met: prvBy(sim)
-                    ? true
-                    : sim >= religiousFrom
-                      ? undefined
-                      : false,
+                  met:
+                    prvBy(sim) || req.conditions === 'met'
+                      ? true
+                      : sim >= religiousFrom
+                        ? undefined
+                        : false,
                   sources: [
                     ...v.religiousWorkerYears.sources,
                     { srcId: 'SRC-070', locator: 's8(3)' },

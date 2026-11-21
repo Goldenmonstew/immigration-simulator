@@ -88,6 +88,11 @@ test('the request leaves out a blank PRV date', () => {
     nzRequest({ ...filled, prvGranted: '2023-04-01' }, 'en')
       .permanentResidentVisa,
   ).toBe('2023-04-01');
+  // "None, or already removed" is passed on, not left to the visa category.
+  expect(nzRequest({ ...filled, conditions: 'none' }, 'en').conditions).toBe(
+    'none',
+  );
+  expect(nzRequest(filled, 'en')).not.toHaveProperty('conditions');
 });
 
 test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {

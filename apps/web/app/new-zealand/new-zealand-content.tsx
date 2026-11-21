@@ -183,9 +183,9 @@ export default function NewZealandContent() {
                 set({ conditions: e.target.value as NzForm['conditions'] })
               }
             >
-              {(['', 'met', 'outstanding'] as const).map((c) => (
+              {(['', 'none', 'met', 'outstanding'] as const).map((c) => (
                 <option key={c} value={c}>
-                  {t(`nz.conditions.${c || 'none'}` as TranslationKey)}
+                  {t(`nz.conditions.${c || 'unsure'}` as TranslationKey)}
                 </option>
               ))}
             </select>

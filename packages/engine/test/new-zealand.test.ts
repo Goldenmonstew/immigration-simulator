@@ -218,6 +218,25 @@ describe('permanent resident visa (RV2.5, RV2.5.1)', () => {
     expect(pathway(req, 'NZ-TRAVEL').summary).toContain('2027-02-28');
   });
 
+  test('Religious Worker with conditions removed: both met', () => {
+    const req = {
+      simulationDate: '2026-11-21',
+      dateOfBirth: '1980-01-01',
+      firstArrival: '2020-01-01',
+      residentVisa: {
+        granted: '2021-11-01',
+        category: 'religious-worker' as const,
+      },
+      conditions: 'none' as const,
+    };
+    const prv = pathway(req, 'NZ-PRV');
+    expect(prv.status).toBe('MET');
+    expect(prv.summary).not.toContain('s49');
+    const citizenship = pathway(req, 'NZ-CITIZENSHIP');
+    expect(citizenship.status).toBe('MET');
+    expect(citizenship.summary).not.toContain('s49');
+  });
+
   test('Parent: s49(1) conditions make both unknown', () => {
     const req = {
       residentVisa: { granted: '2022-03-01', category: 'parent' as const },
