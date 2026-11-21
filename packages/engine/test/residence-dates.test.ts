@@ -1244,3 +1244,23 @@ test('review33c-1 #1–#3 a previous UK Ancestry grant: early switch, a known re
     expect.stringContaining('按此前的 UK Ancestry 许可定居时'),
   );
 });
+
+test('review33c-2 a return on the B2 date names the UK Ancestry English requirement on that day (UKA 15.1(b))', () => {
+  const episodes = [
+    permit('2019-06-01', { route: 'UK_ANCESTRY', validTo: '2024-06-01' }),
+    permit('2024-06-02', { route: 'STUDENT' }),
+  ];
+  const facts = (returnDay: string) => ({
+    episodes,
+    english: { cefrLevel: 'B1' as const },
+    absences: [{ from: '2027-03-20', to: returnDay }],
+  });
+  expect(current(facts('2027-03-25'), '2027-03-22').decidedBy).toContain(
+    'CL-ANCESTRY-RESIDENCE-5Y',
+  );
+  const late = current(facts('2027-03-26'), '2027-03-22');
+  expect(late.decidedBy ?? []).not.toContain('CL-ANCESTRY-RESIDENCE-5Y');
+  expect(late.assumptions).toContainEqual(
+    expect.stringMatching(/按此前的 UK Ancestry 许可定居时：.*B2/),
+  );
+});
