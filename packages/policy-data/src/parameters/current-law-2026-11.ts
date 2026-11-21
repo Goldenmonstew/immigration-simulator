@@ -182,8 +182,8 @@ export const currentLaw2026_11 = {
     },
     // New entrant permission (SW 4.2 Option E): salary of at least this amount
     // and this percentage of the going rate. SW 12.3 caps the combined Skilled
-    // Worker, Graduate and Tier 2 permission. Only explained in the game, not
-    // evaluated.
+    // Worker, Graduate and Tier 2 permission. Evaluated for the game's
+    // Graduate switch only (task 35), not for settlement.
     skilledWorkerNewEntrantSalaryThreshold: {
       value: 33400,
       sources: [{ srcId: 'SRC-004', locator: 'SW 4.2 Option E' }],
@@ -195,6 +195,17 @@ export const currentLaw2026_11 = {
     skilledWorkerNewEntrantMaxCombinedYears: {
       value: 4,
       sources: [{ srcId: 'SRC-004', locator: 'SW 12.3' }],
+    },
+    // SW 12.2(f): an expired Graduate permission must have expired less than
+    // this many years before the date of application.
+    skilledWorkerNewEntrantGraduateExpiryYears: {
+      value: 2,
+      sources: [{ srcId: 'SRC-004', locator: 'SW 12.2(f)' }],
+    },
+    // SW 18.1: permission runs until this many days after the CoS end date.
+    skilledWorkerGrantDaysAfterCos: {
+      value: 14,
+      sources: [{ srcId: 'SRC-004', locator: 'SW 18.1' }],
     },
     // GBP per year, settlement general salary for the other SW 24.3 rows:
     // B (Immigration Salary List), C (meets SW 4.2(b)), D (Immigration Salary

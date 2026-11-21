@@ -33,6 +33,11 @@ function parseTable(table) {
   const rateColumn = headers.findIndex((header) =>
     header.startsWith('Going rate ('),
   );
+  // Tables 1 / 1a also publish the SW option E amounts, floored at the hourly
+  // minimum in the Table 1 introduction.
+  const optionEColumn = headers.findIndex((header) =>
+    header.endsWith('(SW – option E)'),
+  );
   if (socColumn < 0 || rateColumn < 0) {
     throw new Error(`Missing SOC 2020 or going rate column in Table ${table}`);
   }
@@ -55,6 +60,9 @@ function parseTable(table) {
         socCode: codeAndTitle[1],
         title: codeAndTitle[2],
         annualRate: text(cells[rateColumn]),
+        ...(optionEColumn >= 0 && {
+          optionERate: text(cells[optionEColumn]),
+        }),
       };
     });
   return { header: headers[rateColumn], rows };
@@ -68,10 +76,16 @@ const goingRateRows = rateTables.flatMap((table) =>
       throw new Error(
         `Missing annual going rate in Table ${table}: ${row.socCode}`,
       );
+    const optionE = row.optionERate?.match(/^£([\d,]+)(?:\s|$)/);
+    if (row.optionERate !== undefined && !optionE)
+      throw new Error(`Missing option E rate in Table ${table}: ${row.socCode}`);
     return {
       socCode: row.socCode,
       title: row.title,
       goingRate: Number(amount[1].replaceAll(',', '')),
+      ...(optionE && {
+        newEntrantRate: Number(optionE[1].replaceAll(',', '')),
+      }),
       table,
     };
   }),
@@ -114,7 +128,9 @@ const output = `import type { SourceRef } from '../types';
 ${headerNotes}
 // These columns give the full annual GBP rate for a 37.5-hour working week
 // (Table 1 / 2 notes, inherited by the additional tables). Extract the first
-// amount, not the parenthesised hourly rate or the 70% / 80% / 90% columns.
+// amount, not the parenthesised hourly rate or the 80% / 90% columns. Tables
+// 1 / 1a also give the 70% column for SW option E, which the Table 1
+// introduction floors at £17.13 an hour.
 // Titles exclude subsequent eligibility notes; consult the source for restrictions.
 // Table 3's "Going rate (annual)" contains national pay scales or Table 4 / 5
 // references; retain codes and titles only, including separate regional rows.
@@ -127,6 +143,8 @@ export interface GoingRate {
   title: string;
   /** Annual going rate in GBP at the table's stated working-hours basis. */
   goingRate: number;
+  /** Tables 1 / 1a: the published SW option E amount (70%, hourly floor). */
+  newEntrantRate?: number;
   table: '1' | '1a' | '2' | '2aa' | '2a' | '2b';
 }
 
