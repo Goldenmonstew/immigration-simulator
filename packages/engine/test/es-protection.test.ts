@@ -534,6 +534,9 @@ describe('ES-PROTECTION-CONTRIBUTION', () => {
     expect(column.earliestDate).toBeUndefined();
     expect(column.pathwayCompletionDate).toBe('2048-03-01');
     expect(column.publicFundsReassessmentDate).toBe('2034-07-01');
+    expect(column.shorterPathwaysNotUsed).toEqual([
+      { years: 10, status: 'FAIL', ruleIds: ['ES-PUBLIC-FUNDS'] },
+    ]);
   });
 
   test('A5#10: contribution failure alone does not create a 20-year fallback', () => {

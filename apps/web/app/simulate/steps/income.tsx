@@ -22,6 +22,9 @@ export function IncomeStep({ form }: { form: FormKit }) {
     <>
       <p>{t('income.hint')}</p>
       <p className={styles.hint}>{t('income.taxYearHint')}</p>
+      <p className={styles.hint}>
+        {t('income.simulationDate').replace('{date}', active.simulationDate)}
+      </p>
       <p className={styles.hint}>{t('income.partnerHint')}</p>
       {familyPartnerFiveYear && (
         <Field
@@ -59,9 +62,30 @@ export function IncomeStep({ form }: { form: FormKit }) {
           />
         </Field>
       )}
-      {visibleIncomeYears(active).map((row) => (
+      {visibleIncomeYears(active).map((row, index, rows) => (
         <fieldset className={styles.incomeRow} key={row.taxYear}>
           <legend>{row.taxYear}</legend>
+          {index > 0 && (
+            <button
+              type="button"
+              className={styles.copyRow}
+              onClick={() =>
+                update({
+                  incomeYears: timeline.incomeYears.map((year) =>
+                    year.taxYear === row.taxYear
+                      ? {
+                          ...year,
+                          earnings: rows[index - 1].earnings,
+                          partnerEarnings: rows[index - 1].partnerEarnings,
+                        }
+                      : year,
+                  ),
+                })
+              }
+            >
+              {t('income.copyAbove').replace('{year}', rows[index - 1].taxYear)}
+            </button>
+          )}
           <div className={styles.incomeFields}>
             {(['earnings', 'partnerEarnings'] as const).map((key) => {
               const suffix = key === 'earnings' ? 'earnings' : 'partner';

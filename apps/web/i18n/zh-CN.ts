@@ -222,7 +222,9 @@ export const zhCN = {
   'episodes.immigrationSalaryList':
     '此次获批许可的担保岗位是否在 Immigration Salary List 上',
   'episodes.immigrationSalaryListHint':
-    '不确定可留空。清单资格取决于当时的 CoS 签发日、担保岗位和工作地区。',
+    'Immigration Salary List 是政府公布的一份职业名单，名单内的岗位可用较低的薪资门槛。请按这次 CoS 签发时有效的名单版本核对 SOC 代码，以及条目对地区、岗位的附加条件。不确定可留空：模拟器会按 SOC 代码和名单条目推断，推断不了的标为待确认。',
+  'episodes.immigrationSalaryListLink':
+    '查看 Appendix Immigration Salary List（GOV.UK）',
   'episodes.dependantOf': '作为谁的 dependant',
   'episodes.partnerDependant': '伴侣的 dependant（本人为伴侣）',
   'episodes.childDependant': '父母的 dependant（本人为子女）',
@@ -263,9 +265,9 @@ export const zhCN = {
     '无需账号，不上传证件。输入仅在此浏览器计算，草稿自动保存在本机；共享设备上的其他使用者可能看到草稿。',
   'home.disclaimerTitle': '使用说明与免责说明',
   'home.disclaimer':
-    '根据你填写的信息，这些规则可能与你有关。本模拟器提供一般政策信息与假设情景模拟，不判定你的法律移民身份，也不保证申请结果。',
+    '根据你填写的信息，这些规则可能与你有关。本模拟器提供一般政策信息与假设情景模拟，不判定你的法律移民身份，不构成移民或法律意见，也不保证申请结果。',
   'home.disclaimerEnglish':
-    'Based on the information you entered, these rules may be relevant. This simulator provides general policy information and hypothetical scenario modelling. It does not determine your legal immigration status or guarantee the outcome of an application.',
+    'Based on the information you entered, these rules may be relevant. This simulator provides general policy information and hypothetical scenario modelling. It does not determine your legal immigration status, is not immigration or legal advice, and does not guarantee the outcome of an application.',
   'policy.asOf': '政策核对截至',
   'policy.LAW': '现行法律',
   'policy.ANNOUNCED': '已公布改革',
@@ -280,9 +282,16 @@ export const zhCN = {
   'result.jumpTo': '跳到{column}',
   'gap.title': '还差什么',
   'gap.met': '已满足全部已建模要求',
-  'gap.earliest': '按当前情况最早 {date}',
+  'gap.earliest':
+    '按当前情况最早 {date}（假设许可届时连续续接、其余条件仍满足）',
   'gap.wait':
     '，距模拟日还有约 {years} 年 {months} 个月（不足一个月按一个月计）',
+  'gap.completion':
+    '所选路径的条件满期日 {date}：前提是届时其余要求仍满足，这不是最早申请日',
+  'gap.reassess':
+    '如不再领取所计入的 public funds，自 {date} 起可按较短路径重新评估',
+  'gap.reassessPrincipal':
+    '这个日期来自主申请人的领取记录：主申请人如不再领取所计入的 public funds，自 {date} 起可按较短路径重新评估',
   'gap.pending': '待政府明确',
   'gap.input': '补填信息',
   'gap.more': '更多',
@@ -304,6 +313,23 @@ export const zhCN = {
   'result.routeGroup': '路线分组',
   'result.years': '年',
   'result.earliest': '最早可能日期',
+  'result.completion': '条件满期日',
+  'result.reassessment': '可重评较短路径',
+  'result.basis': '结论依据：{years} 年路径（{route}）',
+  'result.basisNoRoute': '结论依据：{years} 年路径',
+  'result.thisPathway': '这条路径的条件',
+  'result.otherPathways': '其他路径的条件（可看这些路径为何未被采用）',
+  'result.shorterBlocked': '较短的路径未采用的原因：',
+  'result.shorterPathway': '{years} 年路径',
+  'result.shorterPathwayEntry': '{years} 年路径（{entry}）',
+  'result.shorterNotMet': '{pathway}——未满足：{rules}',
+  'result.shorterUnconfirmed': '{pathway}——待确认：{rules}',
+  'result.entry.ES-EARNINGS-3Y': '收入',
+  'result.entry.ES-EARNINGS-5Y': '收入',
+  'result.entry.ES-BRITISH-CONNECTION': 'British connection',
+  'result.entry.ES-PUBLIC-SERVICE': '公共服务职业',
+  'result.entry.ES-TRANSITIONAL-CARE-WORKER': 'care worker 过渡安排',
+  'result.entry.ES-TRANSITIONAL-HEALTH-EDUCATION': '医疗／教育岗位过渡安排',
   'result.undetermined': '尚无法确定',
   'result.why': '为什么',
   'result.FAIL': '未满足',
@@ -339,6 +365,13 @@ export const zhCN = {
   'whatif.incomeSlider': '拖动调整统一年收入',
   'whatif.noPublicFunds': '假设申请前未领取 public funds',
   'whatif.noAbsences': '假设无缺席',
+  'whatif.trip': '再加一次临时离境',
+  'whatif.tripFrom': '出境日',
+  'whatif.tripTo': '返英日',
+  'whatif.tripDays':
+    '在外 {days} 个整天（现行法按整天计，出境与返英当天不计；改革栏按 PD-054 的模拟假设计入这两天）。',
+  'whatif.tripIncomplete': '填好出境日和返英日后才计入这次离境。',
+  'whatif.tripInvalid': '返英日早于出境日，这次离境不计入。',
   'whatif.reset': '重置',
   'whatif.back': '返回结果',
   'whatif.before': '之前',
@@ -391,20 +424,11 @@ export const zhCN = {
   'step.relationships': '家庭关系',
   'step.english': '英语与 Life in the UK',
   'step.date': '模拟日期',
-  'country.CHN': '中国 · China',
-  'country.HKG': '中国香港 · Hong Kong',
-  'country.IND': '印度 · India',
-  'country.PAK': '巴基斯坦 · Pakistan',
-  'country.NGA': '尼日利亚 · Nigeria',
-  'country.USA': '美国 · United States',
-  'country.GBR': '英国 · United Kingdom',
-  'country.CAN': '加拿大 · Canada',
-  'country.AUS': '澳大利亚 · Australia',
-  'country.SGP': '新加坡 · Singapore',
   'basic.dob': '出生日期',
   'basic.nationality': '国籍',
   'basic.nationalityHint':
-    '输入三位英文字母国家代码（ISO 3166-1 alpha-3），例如 CHN。',
+    '输入国名（中文或英文）或三位英文字母代码（ISO 3166-1 alpha-3），例如 中国、China 或 CHN。',
+  'basic.nationalitySelected': '已选：{name}（{code}）',
   'screening.hint':
     '只有犯罪记录回答为“是”会停止问卷并显示受监管建议提示。移民违规请填写记录，由规则引擎结合路线评估；政府债务也交由引擎评估。',
   'screening.criminality': '是否有英国或海外犯罪记录？',
@@ -485,6 +509,8 @@ export const zhCN = {
   'episodes.from': '有效期开始',
   'episodes.to': '有效期结束',
   'episodes.role': '申请人身份',
+  'episodes.roleHint':
+    '看这段许可是不是以另一人的 dependant（随行家属）身份获批的：是就选“随行家属”，例如工签、全球人才持有人的伴侣或子女，不论是否与对方同时获批；不是就选“主申请人”，例如工签本人，或以英国公民、定居者伴侣身份持家庭签证的人。',
   'episodes.MAIN': '主申请人',
   'episodes.DEPENDANT': '随行家属（Dependant）',
   'episodes.soc': 'SOC 2020 岗位代码（可选）',
@@ -500,6 +526,9 @@ export const zhCN = {
     '列出模拟日期之前已结束的 7 个英国 tax year。留空表示未知，0 表示没有收入；金额单位为 GBP。',
   'income.taxYearHint':
     '英国 tax year 从 4 月 6 日至次年 4 月 5 日。最后一步修改模拟日期后，年份会同步更新。',
+  'income.simulationDate':
+    '按模拟日期 {date} 列出年份；模拟日期在最后一步修改。',
+  'income.copyAbove': '与 {year} 相同',
   'income.earnings': '个人年收入',
   'income.partner': '伴侣年收入（可选）',
   'income.partnerHint': '伴侣收入留空表示不依赖伴侣收入。',
@@ -509,7 +538,7 @@ export const zhCN = {
   'benefits.partnerSpecifiedBenefit':
     "我的伴侣领取 E-LTRP.3.3(a) 列明的福利（如 Carer's Allowance、Personal Independence Payment、Disability Living Allowance、Attendance Allowance 等）",
   'benefits.hint':
-    '填写领取过的福利或法定支付。是否属于 public funds 及其影响由规则引擎判断；结束日期留空表示仍在领取。',
+    '填写领取过的福利或法定支付。public funds 是移民规则列明的一组福利和服务，例如 Universal Credit（统一福利金）、Housing Benefit（住房补贴）、Child Benefit（儿童福利金）、Personal Independence Payment（个人独立生活补贴）。法定支付由雇主按法律发放，例如 Statutory Maternity Pay（法定产假工资）、Statutory Sick Pay（法定病假工资），不算 public funds。改革栏沿用这一范围是模拟假设，最终计入范围和豁免待政府明确（PD-013）。结束日期留空表示仍在领取。',
   'benefits.item': '领取记录',
   'benefits.add': '添加领取记录',
   'benefits.empty': '尚无领取记录。',
@@ -544,7 +573,7 @@ export const zhCN = {
   'error.required': '请填写此项。',
   'error.date': '请填写有效日期。',
   'error.dob': '出生日期不能晚于今天或模拟日期。',
-  'error.nationality': '请输入三位英文字母国家代码。',
+  'error.nationality': '请从名单中选择国家或地区，或输入名单内的三位字母代码。',
   'error.range': '结束日期不能早于开始日期。',
   'error.number': '请输入不小于 0 的有效金额。',
   'error.savings': '请输入不小于 0 的整数储蓄金额，或留空表示未填写。',

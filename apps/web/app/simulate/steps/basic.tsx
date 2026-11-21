@@ -1,11 +1,19 @@
 'use client';
 
+import { useState } from 'react';
 import type { Route } from '@uk-immigration/engine';
 import { routeLabel, routeNames } from '../../../i18n/routes';
 import type { FormKit } from '../form-kit';
 import { Field } from '../field';
+import {
+  countries,
+  countryName,
+  nationalityFromInput,
+} from '../../../lib/country-names';
+import site from '../../site.module.css';
 
 export function BasicStep({ form }: { form: FormKit }) {
+  const [query, setQuery] = useState(form.timeline.nationality);
   const {
     t,
     locale,
@@ -30,37 +38,34 @@ export function BasicStep({ form }: { form: FormKit }) {
       >
         <input
           {...fieldProps('nationality', true)}
-          value={timeline.nationality}
+          value={query}
           list="nationalities"
-          maxLength={3}
-          autoCapitalize="characters"
+          autoComplete="off"
           spellCheck={false}
-          onChange={(event) =>
+          onChange={(event) => {
+            // Keep the typed text; store a code once it matches the list.
+            setQuery(event.target.value);
             update({
-              nationality: event.target.value.toUpperCase().trim(),
-            })
-          }
+              nationality:
+                nationalityFromInput(event.target.value) ??
+                event.target.value.trim(),
+            });
+          }}
         />
         <datalist id="nationalities">
-          {(
-            [
-              'CHN',
-              'HKG',
-              'IND',
-              'PAK',
-              'NGA',
-              'USA',
-              'GBR',
-              'CAN',
-              'AUS',
-              'SGP',
-            ] as const
-          ).map((code) => (
+          {countries().map(({ code, zh, en }) => (
             <option key={code} value={code}>
-              {t(`country.${code}`)}
+              {zh} · {en}
             </option>
           ))}
         </datalist>
+        {countryName(timeline.nationality) && (
+          <p className={site.muted}>
+            {t('basic.nationalitySelected')
+              .replace('{name}', countryName(timeline.nationality)!)
+              .replace('{code}', timeline.nationality)}
+          </p>
+        )}
       </Field>
       {editingPrincipal && (
         <>

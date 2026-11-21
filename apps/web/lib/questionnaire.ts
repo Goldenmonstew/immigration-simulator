@@ -11,6 +11,7 @@ import type {
 } from '@uk-immigration/engine';
 import { t, type TranslationKey } from '../i18n';
 import { displayedRuleSets, policyAsOf } from './policy';
+import { countries } from './country-names';
 
 export const steps = [
   'basic',
@@ -146,7 +147,24 @@ export function draftReducer(state: Draft, action: Action): Draft {
     case 'restore': {
       if (!action.draft.completed) return action.draft;
       const restored = { ...action.draft, principalStep: undefined };
-      return { ...restored, step: stepSequence(restored).at(-1)! };
+      // Drafts saved before the country list (task 49) may hold a code it
+      // does not accept: reopen that person's basic details to correct it.
+      // An unfinished principal sends the final step back to them.
+      const own = !validNationality(restored.timeline.nationality);
+      const principal =
+        needsPrincipal(restored) &&
+        restored.principalCompleted &&
+        !validNationality(restored.principal?.nationality ?? '');
+      if (!own && !principal)
+        return { ...restored, step: stepSequence(restored).at(-1)! };
+      return {
+        ...restored,
+        completed: false,
+        ...(principal && { principalCompleted: false }),
+        ...(own
+          ? { step: 0 }
+          : { step: 9, ...(restored.principal && { principalStep: 0 }) }),
+      };
     }
     case 'step':
       return {
@@ -385,7 +403,10 @@ export function runPrincipalSimulation(
 
 export type Errors = Record<string, TranslationKey>;
 
-function validDate(value: string): boolean {
+const validNationality = (code: string) =>
+  countries().some((c) => c.code === code);
+
+export function validDate(value: string): boolean {
   return (
     /^\d{4}-\d{2}-\d{2}$/.test(value) &&
     Number.isFinite(Date.parse(value)) &&
@@ -422,7 +443,7 @@ export function validateStep(draft: Draft): Errors {
         timeline.dateOfBirth > draft.simulationDate
       )
         errors.dob = 'error.dob';
-      if (!/^[A-Z]{3}$/.test(timeline.nationality))
+      if (!validNationality(timeline.nationality))
         errors.nationality = 'error.nationality';
       if (draft.principalStep !== undefined && timeline.settled)
         date('principal-settled-date', timeline.settled.date);

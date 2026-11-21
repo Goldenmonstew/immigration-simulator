@@ -25,6 +25,8 @@ import {
   initialWhatIf,
   focusControls,
   focusForRule,
+  tripDays,
+  validTrip,
   type WhatIf,
   type WhatIfTarget,
 } from '../lib/whatif';
@@ -75,6 +77,26 @@ function Comparison({
             before.earliestDate ?? t('result.undetermined'),
             after.earliestDate ?? t('result.undetermined'),
           ],
+          // A6#7: a conditional completion is not an earliest date.
+          ...(before.pathwayCompletionDate || after.pathwayCompletionDate
+            ? [
+                [
+                  t('result.completion'),
+                  before.pathwayCompletionDate ?? '—',
+                  after.pathwayCompletionDate ?? '—',
+                ],
+              ]
+            : []),
+          ...(before.publicFundsReassessmentDate ||
+          after.publicFundsReassessmentDate
+            ? [
+                [
+                  t('result.reassessment'),
+                  before.publicFundsReassessmentDate ?? '—',
+                  after.publicFundsReassessmentDate ?? '—',
+                ],
+              ]
+            : []),
         ].map(([label, previous, next]) => (
           <div key={label}>
             <dt>{label}</dt>
@@ -396,6 +418,59 @@ function WhatIfLab({
             />
             {t('whatif.noAbsences')}
           </label>
+          <label className={styles.checkbox}>
+            <input
+              type="checkbox"
+              checked={!!whatIf.trip}
+              onChange={(event) =>
+                update({
+                  // Start empty: the trip counts only once both dates are set.
+                  trip: event.target.checked ? { from: '', to: '' } : undefined,
+                })
+              }
+            />
+            {t('whatif.trip')}
+          </label>
+          {whatIf.trip && (
+            <div className={styles.tripFields}>
+              <div className={styles.field}>
+                <label htmlFor="whatif-trip-from">{t('whatif.tripFrom')}</label>
+                <input
+                  id="whatif-trip-from"
+                  type="date"
+                  value={whatIf.trip.from}
+                  onChange={(event) =>
+                    update({
+                      trip: { ...whatIf.trip!, from: event.target.value },
+                    })
+                  }
+                />
+              </div>
+              <div className={styles.field}>
+                <label htmlFor="whatif-trip-to">{t('whatif.tripTo')}</label>
+                <input
+                  id="whatif-trip-to"
+                  type="date"
+                  value={whatIf.trip.to}
+                  onChange={(event) =>
+                    update({
+                      trip: { ...whatIf.trip!, to: event.target.value },
+                    })
+                  }
+                />
+              </div>
+              <p className={site.muted} role="status">
+                {!whatIf.trip.from || !whatIf.trip.to
+                  ? t('whatif.tripIncomplete')
+                  : !validTrip(whatIf.trip)
+                    ? t('whatif.tripInvalid')
+                    : t('whatif.tripDays').replace(
+                        '{days}',
+                        String(tripDays(whatIf.trip)),
+                      )}
+              </p>
+            </div>
+          )}
           <div className={site.actions}>
             <button
               type="button"

@@ -213,6 +213,9 @@
   gap: 20px;
   margin-top: 32px;
 }
+.topActions {
+  margin: 16px 0 24px;
+}
 .body .gameEntry {
   display: block;
   margin: 24px 0;
