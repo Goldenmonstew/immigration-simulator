@@ -50,16 +50,17 @@ describe('travel conditions (R5.66)', () => {
       { trips: [{ departed: '2024-02-20', returned: '2024-03-05' }] },
       'NZ-TRAVEL',
     );
+    // Outside New Zealand when they end on 2024-02-29: expired from 03-01.
     expect(p.status).toBe('NOT_MET');
-    expect(p.summary).toContain('2024-03-05');
+    expect(p.summary).toContain('2024-03-01');
     expect(p.pendingDetails).toEqual(['PD-087', 'PD-088']);
   });
 
-  test('a PRV granted abroad before the return is fine', () => {
+  test('a PRV granted abroad before the travel conditions end', () => {
     const p = pathway(
       {
-        simulationDate: '2024-03-01',
-        permanentResidentVisa: '2024-03-04',
+        simulationDate: '2024-02-21',
+        permanentResidentVisa: '2024-02-25',
         trips: [{ departed: '2024-02-20', returned: '2024-03-05' }],
       },
       'NZ-TRAVEL',
@@ -86,6 +87,20 @@ describe('travel conditions (R5.66)', () => {
     expect(p.summary).toContain('2025-05-31');
   });
 
+  test('a planned first entry is in the future', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-21',
+        firstArrival: '2027-01-15',
+        residentVisa: { granted: '2026-11-01', category: 'general' },
+      },
+      'NZ-TRAVEL',
+    );
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2027-01-15');
+    expect(p.checks[0].met).toBeUndefined();
+  });
+
   test('offshore grant: first entry too late lapses everything', () => {
     const req = {
       simulationDate: '2026-01-01',
@@ -106,10 +121,28 @@ describe('permanent resident visa (RV2.5, RV2.5.1)', () => {
     expect(p.checks.map((c) => c.met)).toEqual([true, true, true, true]);
   });
 
-  test('the day before 24 months is in the future', () => {
-    const p = pathway({ simulationDate: '2024-02-29' }, 'NZ-PRV');
+  test('24 months are 730 days (Visa Pak 588)', () => {
+    // 2022-03-01 plus 730 days is 2024-02-29, a day before the calendar date.
+    const p = pathway({ simulationDate: '2024-02-28' }, 'NZ-PRV');
     expect(p.status).toBe('FUTURE');
-    expect(p.earliestDate).toBe('2024-03-01');
+    expect(p.earliestDate).toBe('2024-02-29');
+  });
+
+  test('12-month portions are 365 days across a leap year', () => {
+    // Visa Pak 588: for 2024-05-19 the last portion is 2023-05-20 to
+    // 2024-05-18, which holds 183 days after a return on 2023-11-18.
+    const p = pathway(
+      {
+        simulationDate: '2024-05-19',
+        firstArrival: '2020-01-10',
+        residentVisa: { granted: '2022-05-19', category: 'general' },
+        trips: [{ departed: '2023-05-19', returned: '2023-11-18' }],
+      },
+      'NZ-PRV',
+    );
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2024-05-20');
+    expect(p.checks.at(-1)?.text).toContain('183');
   });
 
   test('granted during a trip: counted from the return', () => {
@@ -122,8 +155,9 @@ describe('permanent resident visa (RV2.5, RV2.5.1)', () => {
       },
       'NZ-PRV',
     );
+    // 2023-02-10 plus 730 days.
     expect(p.status).toBe('FUTURE');
-    expect(p.earliestDate).toBe('2025-02-10');
+    expect(p.earliestDate).toBe('2025-02-09');
   });
 
   test('granted on a departure day counts as in New Zealand', () => {
@@ -164,7 +198,29 @@ describe('permanent resident visa (RV2.5, RV2.5.1)', () => {
       'NZ-PRV',
     );
     expect(p.status).toBe('UNKNOWN');
-    expect(p.summary).toContain('2024-03-01');
+    expect(p.summary).toContain('RV2.10');
+  });
+
+  test('Religious Worker: 5 years from the first day as a resident', () => {
+    const req = {
+      residentVisa: {
+        granted: '2022-03-01',
+        category: 'religious-worker' as const,
+      },
+    };
+    const p = pathway(req, 'NZ-PRV');
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2027-03-01');
+    expect(pathway(req, 'NZ-CITIZENSHIP').earliestDate).toBe('2027-03-01');
+    expect(pathway(req, 'NZ-TRAVEL').summary).toContain('2027-02-28');
+  });
+
+  test('Parent: s49(1) conditions make both unknown', () => {
+    const req = {
+      residentVisa: { granted: '2022-03-01', category: 'parent' as const },
+    };
+    expect(pathway(req, 'NZ-PRV').status).toBe('UNKNOWN');
+    expect(pathway(req, 'NZ-CITIZENSHIP').status).toBe('UNKNOWN');
   });
 
   test('a PRV already held: not applicable', () => {
@@ -172,12 +228,13 @@ describe('permanent resident visa (RV2.5, RV2.5.1)', () => {
     expect(p.status).toBe('NOT_APPLICABLE');
   });
 
-  test('applying abroad before a late return still works', () => {
-    const p = pathway(
-      { trips: [{ departed: '2024-02-20', returned: '2024-03-05' }] },
-      'NZ-PRV',
-    );
-    expect(p.status).toBe('MET');
+  test('applying abroad before the visa expires still works', () => {
+    const trips = [{ departed: '2024-02-20', returned: '2024-03-05' }];
+    expect(
+      pathway({ simulationDate: '2024-02-29', trips }, 'NZ-PRV').status,
+    ).toBe('MET');
+    // From 2024-03-01 the resident visa has expired (RV1.5).
+    expect(pathway({ trips }, 'NZ-PRV').status).toBe('UNKNOWN');
   });
 
   test('not reached before a late return: unknown (PD-088)', () => {
@@ -259,5 +316,34 @@ describe('citizenship by grant (s8)', () => {
     );
     expect(p.status).toBe('UNKNOWN');
     expect(p.pendingDetails).toEqual(['PD-088']);
+  });
+
+  test('leaving after the travel conditions ends the visa the next day', () => {
+    const trips = [{ departed: '2025-06-01', returned: '2025-07-01' }];
+    const travel = pathway(
+      { simulationDate: '2025-01-01', trips },
+      'NZ-TRAVEL',
+    );
+    expect(travel.status).toBe('NOT_MET');
+    expect(travel.summary).toContain('2025-06-02');
+    expect(
+      pathway({ simulationDate: '2025-01-01', trips }, 'NZ-CITIZENSHIP').status,
+    ).toBe('UNKNOWN');
+  });
+
+  test('the strict count also leaves out the first arrival (PD-086)', () => {
+    // Granted abroad, first in New Zealand on 2022-03-01: not counting that
+    // day, the oldest year reaches 240 days one day later.
+    const p = pathway(
+      {
+        simulationDate: '2024-05-19',
+        firstArrival: '2022-03-01',
+        residentVisa: { granted: '2022-02-01', category: 'general' },
+      },
+      'NZ-CITIZENSHIP',
+    );
+    expect(p.earliestDate).toBe('2026-10-27');
+    expect(p.summary).toContain('2026-10-28');
+    expect(p.pendingDetails).toEqual(['PD-086']);
   });
 });
