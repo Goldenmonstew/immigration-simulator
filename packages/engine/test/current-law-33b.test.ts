@@ -586,3 +586,32 @@ test('review33b-1 / task 53: a confirmed Option D or I is an ISL job (SW 4.2), a
     ).assumptions?.join(),
   ).not.toContain('SW 11.2');
 });
+
+test('review33b-1 / task 53: a recorded Appendix FM grant after the simulation date applies CR 3.6 from that date', () => {
+  const fm = (validFrom: string, validTo: string): ImmigrationEpisode => ({
+    route: 'FAMILY_PARTNER_OR_PARENT',
+    role: 'MAIN',
+    validFrom,
+    validTo,
+    familyPermission: 'PARTNER_TEN_YEAR',
+  });
+  const facts = {
+    episodes: [fm('2016-08-01', '2026-11-09'), fm('2026-11-10', '2029-05-09')],
+    relationships: [
+      {
+        type: 'PARTNER' as const,
+        otherPartyStatus: 'BRITISH_CITIZEN' as const,
+      },
+    ],
+    // More than 180 days abroad before 2022-06-20 (CR 3.6).
+    absences: [{ from: '2018-01-01', to: '2018-08-31' }],
+  };
+  expect(current(facts, '2026-11-04')).toMatchObject({
+    pathwayYears: 10,
+    earliestDate: '2026-11-10',
+  });
+  expect(current(facts, '2026-11-10')).toMatchObject({
+    outcome: 'LIKELY_ELIGIBLE',
+    earliestDate: '2026-11-10',
+  });
+});
