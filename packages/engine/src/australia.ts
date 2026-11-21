@@ -193,6 +193,11 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     d >= req.firstArrival &&
     !req.trips.some((trip) => trip.departed <= d && d < trip.returned);
 
+  // With dates only, a visa starting on a departure day may have come after
+  // leaving: it is taken to start once you have left, and the visa it
+  // replaces is held while you are still in Australia that day.
+  const departsOn = (d: IsoDate) =>
+    req.trips.some((trip) => trip.departed === d);
   // Migration Act s82(2)–(3): a later substantive visa ends a substantive
   // visa, and any later visa ends a bridging visa (visas starting the same
   // day are taken in the order entered).
@@ -201,8 +206,9 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     const next = sorted
       .slice(n + 1)
       .find((o) => BRIDGING.has(x.subclass) || !BRIDGING.has(o.subclass));
-    const to =
-      next && (!x.to || next.from <= x.to) ? addDays(next.from, -1) : x.to;
+    const replaced =
+      next && (departsOn(next.from) ? next.from : addDays(next.from, -1));
+    const to = replaced && (!x.to || replaced < x.to) ? replaced : x.to;
     // s82(5)–(6): a 5-year travel facility ends the visa if you are outside
     // Australia when it runs out, or when you leave after it.
     if (FIVE_YEAR_FACILITY.has(x.subclass)) {
@@ -218,19 +224,27 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     return { ...x, to, ceased: undefined };
   });
   const permanent = flags();
+  const temporary = flags();
+  // Held from before the day, so also while still in Australia when leaving.
+  const permanentBefore = flags();
+  const temporaryBefore = flags();
   // The day a permanent visa ended on leaving (s82(5)–(6)): not a permanent
   // resident for the rest of that day.
   const ceased = flags();
-  const temporary = flags();
   const visa = flags();
   const trtVisa = flags();
   let lastSubstantive: AuSubclass | undefined;
   for (const x of visas) {
     days.mark(visa, x.from, x.to);
-    if (PERMANENT.has(x.subclass)) {
-      days.mark(permanent, x.from, x.to);
-      if (x.ceased) days.mark(ceased, x.ceased, x.ceased);
-    } else days.mark(temporary, x.from, x.to);
+    const isPermanent = PERMANENT.has(x.subclass);
+    days.mark(isPermanent ? permanent : temporary, x.from, x.to);
+    if (!x.to || x.to > x.from)
+      days.mark(
+        isPermanent ? permanentBefore : temporaryBefore,
+        addDays(x.from, 1),
+        x.to,
+      );
+    if (x.ceased) days.mark(ceased, x.ceased, x.ceased);
     // 186.226(1)(d): a bridging visa for a 457, 482, 186 or 187 application
     // counts when the last substantive visa was a 457 or 482.
     if (
@@ -242,17 +256,16 @@ export function evaluateAustralia(req: AuRequest): AuResult {
       days.mark(trtVisa, x.from, x.to);
     if (!BRIDGING.has(x.subclass)) lastSubstantive = x.subclass;
   }
-  // With dates only, a visa starting on a departure day may have come after
-  // leaving: while in Australia that day, the visas of the day before apply.
-  const beforeLeaving = (held: boolean[], i: number) =>
-    departing[i] && i > 0 ? held[i - 1] : held[i];
+  /** Held while in Australia on day `i` (on a departure day, before leaving). */
+  const beforeLeaving = (held: boolean[], before: boolean[], i: number) =>
+    departing[i] ? before[i] : held[i];
   // Citizenship Act s5(1)(a)–(b): outside Australia, a permanent visa makes
   // you a permanent resident only if you held one when you last left.
   const resident = flags();
   let leftAsResident = arrived(0) && permanent[0];
   for (let i = 0; i < days.count; i++) {
     if (present(i)) {
-      leftAsResident = beforeLeaving(permanent, i);
+      leftAsResident = beforeLeaving(permanent, permanentBefore, i);
       resident[i] = leftAsResident && !ceased[i];
     } else resident[i] = permanent[i] && leftAsResident;
   }
@@ -260,8 +273,8 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     // 155.212(2)(b): days also on a temporary or bridging visa do not count.
     rrv: days.sums(
       (i) =>
-        beforeLeaving(permanent, i) &&
-        !beforeLeaving(temporary, i) &&
+        beforeLeaving(permanent, permanentBefore, i) &&
+        !beforeLeaving(temporary, temporaryBefore, i) &&
         present(i),
     ),
     unlawful: days.sums((i) => present(i) && !visa[i]),
@@ -729,6 +742,10 @@ export function evaluateAustralia(req: AuRequest): AuResult {
             '入境日与出境日都计为在澳（SRC-066）。同时持有 bridging visa 等临时签证的日子不计（155.212(2)(b)）；较早的临时实质签证在永久签证生效时已终止（s82(2)）。',
             'Arrival and departure days both count as days in Australia (SRC-066). Days when you also held a bridging or other temporary visa do not count (155.212(2)(b)); an earlier temporary substantive visa ends when a permanent visa comes into effect (s82(2)).',
           ),
+          L(
+            '出境当天生效的签证视为离境后才生效；在旅行便利期满后离境的当天递交，按离境前递交计。',
+            'A visa starting on a departure day is taken to start after you left; applying on the day you leave after the travel facility ends is taken to be before leaving.',
+          ),
           projection,
         ],
       });
@@ -892,8 +909,12 @@ export function evaluateAustralia(req: AuRequest): AuResult {
             'Departure and arrival days both count as days in Australia (SRC-068 p6 text). The example on the same page counts the departure day as away; where that changes the date, the summary also gives the date counted that way (PD-084).',
           ),
           L(
-            '在境外获发的永久签证，要等持该签证入境后才算永久居民（s5(1)）。',
-            'A permanent visa granted while you are outside Australia makes you a permanent resident only once you enter Australia on it (s5(1)).',
+            '在境外获发的永久签证，要等持该签证入境后才算永久居民（s5(1)）。出境当天生效的签证视为离境后才生效。',
+            'A permanent visa granted while you are outside Australia makes you a permanent resident only once you enter Australia on it (s5(1)). A visa starting on a departure day is taken to start after you left.',
+          ),
+          L(
+            '155 和其他永久签证的旅行便利期不推算：若在其期满后离境，永居可能已终止（s82(5)–(6)），请以签证通知或 VEVO 为准。',
+            'The travel facility of a 155 or other permanent visa is not worked out: leaving after it ends may have ended your permanent visa (s82(5)–(6)), so check your grant notice or VEVO.',
           ),
           projection,
         ],

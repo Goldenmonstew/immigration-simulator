@@ -509,6 +509,23 @@ describe('Resident Return visa (155.212(2))', () => {
     expect(p.earliestDate).toBe('2025-07-03');
   });
 
+  test('a departure on the first day of the window', () => {
+    const p = pathway(
+      {
+        simulationDate: '2025-07-02',
+        firstArrival: '2019-01-01',
+        visas: [
+          { subclass: '309', from: '2019-01-01' },
+          { subclass: '100', from: '2020-07-02' },
+        ],
+        trips: [{ departed: '2020-07-02', returned: '2023-07-04' }],
+      },
+      'AU-RRV',
+    );
+    expect(p.checks[0].text).toContain('729');
+    expect(p.earliestDate).toBe('2025-07-03');
+  });
+
   test('no permanent visa', () => {
     expect(
       pathway({ visas: [{ subclass: '482', from: '2024-01-01' }] }, 'AU-RRV')
@@ -691,13 +708,28 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
     const request = {
       simulationDate: '2025-07-02',
       firstArrival: '2020-01-01',
+      // The 189's travel facility runs to 2026-01-01.
       visas: [
-        { subclass: '189' as const, from: '2020-01-01' },
+        { subclass: '189' as const, from: '2021-01-01' },
         { subclass: '155' as const, from: '2025-07-01' },
       ],
       trips: [{ departed: '2025-07-01', returned: '2025-07-15' }],
     };
     expect(pathway(request, 'AU-CITIZENSHIP').status).toBe('MET');
+    // After the facility, a 155 from the departure day comes after leaving,
+    // so the 189 ends on leaving (s82(6)) and residence breaks that day.
+    expect(
+      pathway(
+        {
+          ...request,
+          visas: [
+            { subclass: '189', from: '2020-01-01' },
+            { subclass: '155', from: '2025-07-01' },
+          ],
+        },
+        'AU-CITIZENSHIP',
+      ).earliestDate,
+    ).toBe('2026-07-02');
   });
 
   test('a permanent visa that ends on leaving breaks residence that day', () => {
@@ -708,6 +740,39 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
         visas: [
           { subclass: '189', from: '2019-01-01' },
           { subclass: '155', from: '2025-03-02' },
+        ],
+        trips: [{ departed: '2025-03-01', returned: '2025-03-10' }],
+      },
+      'AU-CITIZENSHIP',
+    );
+    expect(p.earliestDate).toBe('2026-03-02');
+  });
+
+  test('a permanent visa that ended before leaving does not carry over', () => {
+    const p = pathway(
+      {
+        simulationDate: '2025-03-10',
+        firstArrival: '2019-01-01',
+        visas: [
+          { subclass: '189', from: '2021-01-01', to: '2025-02-28' },
+          { subclass: 'bridging', from: '2025-03-01', to: '2025-03-01' },
+          { subclass: '100', from: '2025-03-02' },
+        ],
+        trips: [{ departed: '2025-03-01', returned: '2025-03-10' }],
+      },
+      'AU-CITIZENSHIP',
+    );
+    expect(p.earliestDate).toBe('2026-03-10');
+  });
+
+  test('a new permanent visa on the day one ends on leaving', () => {
+    const p = pathway(
+      {
+        simulationDate: '2025-03-10',
+        firstArrival: '2019-01-01',
+        visas: [
+          { subclass: '189', from: '2019-01-01' },
+          { subclass: '155', from: '2025-03-01' },
         ],
         trips: [{ departed: '2025-03-01', returned: '2025-03-10' }],
       },
