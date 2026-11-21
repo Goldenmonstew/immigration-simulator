@@ -42,6 +42,40 @@ export type UsResult = PilotResult<UsPathwayId>;
 const v = us.values;
 /** 0 = Sunday … 6 = Saturday. */
 const weekday = (d: IsoDate) => new Date(`${d}T00:00:00Z`).getUTCDay();
+// Legal public holidays, 5 U.S.C. 6103(a): fixed dates, and the nth (or
+// last, -1) weekday of a month.
+const FIXED_HOLIDAYS = ['01-01', '06-19', '07-04', '11-11', '12-25'];
+const FLOATING_HOLIDAYS: [month: number, day: number, nth: number][] = [
+  [1, 1, 3],
+  [2, 1, 3],
+  [5, 1, -1],
+  [9, 1, 1],
+  [10, 1, 2],
+  [11, 4, 4],
+];
+/** A federal holiday, observed on the Friday or Monday when it falls on a weekend (5 U.S.C. 6103(b)). */
+function federalHoliday(d: IsoDate): boolean {
+  const [, m, day] = d.split('-').map(Number);
+  const wd = weekday(d);
+  if (
+    FLOATING_HOLIDAYS.some(
+      ([month, w, nth]) =>
+        month === m &&
+        w === wd &&
+        (nth > 0
+          ? Math.ceil(day / 7) === nth
+          : addDays(d, 7).slice(5, 7) !== d.slice(5, 7)),
+    )
+  )
+    return true;
+  return [addDays(d, 1), d, addDays(d, -1)].some((h, k) => {
+    if (!FIXED_HOLIDAYS.includes(h.slice(5))) return false;
+    const hw = weekday(h);
+    // k = 0: the holiday is tomorrow (Saturday, observed today, a Friday);
+    // k = 2: it was yesterday (Sunday, observed today, a Monday).
+    return k === 1 ? hw !== 0 && hw !== 6 : k === 0 ? hw === 6 : hw === 0;
+  });
+}
 
 export function evaluateUnitedStates(req: UsRequest): UsResult {
   const L = textFor(req);
@@ -161,7 +195,7 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
               `按现有记录，10 年内达不到${what[0]}的时间条件。`,
               `With your record you will not meet the time requirements for ${what[1]} within 10 years.`,
             )) +
-    (n.rebuttable
+    (n.rebuttable && stateFrom
       ? L(
           `如能证明离境超过 180 天但不满 1 年期间没有放弃居住（推定可反驳），最早 ${n.rebuttable}。`,
           ` If you can show you did not abandon your residence during an absence of more than 180 days but under a year (the presumption can be rebutted), the earliest date is ${n.rebuttable}.`,
@@ -383,10 +417,14 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       const opens = addDays(anniversary, -v.conditionsWindowDays.value);
       const closes = addDays(anniversary, -1);
       const form = req.conditional === 'marriage' ? 'I-751' : 'I-829';
-      // Paper filings due on a Saturday or Sunday are on time the next
-      // business day (PM 1 B.6(E)); federal holidays are not modelled.
+      // Paper filings due on a Saturday, Sunday or federal holiday are on
+      // time the next business day (PM 1 B.6(E); 5 U.S.C. 6103).
       let paperUntil = closes;
-      while (weekday(paperUntil) === 0 || weekday(paperUntil) === 6)
+      while (
+        weekday(paperUntil) === 0 ||
+        weekday(paperUntil) === 6 ||
+        federalHoliday(paperUntil)
+      )
         paperUntil = addDays(paperUntil, 1);
       const status: PilotStatus =
         sim < opens
@@ -405,8 +443,8 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
         summary:
           status === 'UNKNOWN'
             ? L(
-                `${form} 的递交期最后一天 ${closes} 是周末：纸质递交在 ${paperUntil} 前送达仍算按时（若遇联邦假日再顺延），网上递交不顺延（PD-094）。`,
-                `The last day of the ${form} filing period, ${closes}, is a weekend: a paper filing received by ${paperUntil} is still on time (later if that is a federal holiday), but online filing is not extended (PD-094).`,
+                `${form} 的递交期最后一天 ${closes} 是周末或联邦假日：纸质递交在 ${paperUntil} 前送达仍算按时，网上递交不顺延（PD-094）。`,
+                `The last day of the ${form} filing period, ${closes}, is a weekend or federal holiday: a paper filing received by ${paperUntil} is still on time, but online filing is not extended (PD-094).`,
               )
             : status === 'NOT_MET'
               ? L(
@@ -427,7 +465,16 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
             sources: [
               ...v.conditionalYears.sources,
               ...v.conditionsWindowDays.sources,
-              { srcId: 'SRC-081', locator: 'Vol 1 Part B Ch 6(E)' },
+              {
+                srcId: 'SRC-081',
+                locator: 'Vol 1 Part B Ch 6(E)',
+                url: 'https://www.uscis.gov/policy-manual/volume-1-part-b-chapter-6',
+              },
+              {
+                srcId: 'SRC-079',
+                locator: '5 U.S.C. 6103',
+                url: 'https://uscode.house.gov/us/usc/t5/s6103/',
+              },
             ],
           },
         ],
@@ -439,8 +486,8 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
         ],
         assumptions: [
           L(
-            '递交期最后一天按两周年前一天计，两周年当天能否递交原文未写；最后一天是周末的，纸质递交按 USCIS 一般规则顺延到下一个工作日（联邦假日不推算，网上递交不顺延）；取得永居日为 2 月 29 日的，两周年取 3 月 1 日（PD-094）。',
-            'The last day is taken as the day before the second anniversary; whether the anniversary itself counts is not stated. If the last day is a weekend, a paper filing is extended to the next business day under the general USCIS rule (federal holidays are not worked out, and online filing is not extended); a 29 February start has its anniversary on 1 March (PD-094).',
+            '递交期最后一天按两周年前一天计，两周年当天能否递交原文未写；最后一天是周末或联邦假日（5 U.S.C. 6103）的，纸质递交按 USCIS 一般规则顺延到下一个工作日，网上递交不顺延；取得永居日为 2 月 29 日的，两周年取 3 月 1 日（PD-094）。',
+            'The last day is taken as the day before the second anniversary; whether the anniversary itself counts is not stated. If the last day is a weekend or federal holiday (5 U.S.C. 6103), a paper filing is extended to the next business day under the general USCIS rule, but online filing is not; a 29 February start has its anniversary on 1 March (PD-094).',
           ),
         ],
         pendingDetails: ['PD-094'],
@@ -466,8 +513,8 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       summary:
         (yearLong.length
           ? L(
-              `${yearLong.map((t) => `${t.departed} 至 ${t.returned}`).join('、')} 离境满 1 年：仅凭绿卡不能回美，须有有效的回美证（签发起 2 年内）或申请返美居民签证 SB-1，是否放弃永居要个案判断。`,
-              `Away a year or more (${yearLong.map((t) => `${t.departed} to ${t.returned}`).join(', ')}): a green card alone cannot be used to return; you need a valid reentry permit (2 years from issue) or a returning resident (SB-1) visa, and whether you abandoned residence is decided case by case.`,
+              `${yearLong.map((t) => `${t.departed} 至 ${t.returned}`).join('、')} 离境满 1 年：除连续行程中途跨过周年的情形（8 CFR 211.3）外，仅凭绿卡不能回美，须有有效的回美证（签发起 2 年内）或申请返美居民签证 SB-1，是否放弃永居要个案判断。`,
+              `Away a year or more (${yearLong.map((t) => `${t.departed} to ${t.returned}`).join(', ')}): unless a continuous journey that set out before the anniversary only arrives after it (8 CFR 211.3), a green card alone cannot be used to return; you need a valid reentry permit (2 years from issue) or a returning resident (SB-1) visa, and whether you abandoned residence is decided case by case.`,
             )
           : L(
               '录入的每次离境都不满 1 年：持有效、未过期的绿卡可凭卡回美（条件绿卡过期后，凭取消条件申请的收据可延期使用）。',
@@ -494,8 +541,8 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       ],
       notChecked: [
         L(
-          '绿卡是否仍有效；是否持有回美证、能否获得 SB-1，以及是否已放弃永居（看离境目的、意图与在美联系）；周年前出发、周年当天抵达的连续行程另有规定（8 CFR 211.3）',
-          'Whether your green card is still valid; whether you hold a reentry permit, can get an SB-1 visa, or have abandoned residence (which depends on your purpose, intent and ties); a continuous journey that set out before the anniversary and arrives on it is treated separately (8 CFR 211.3)',
+          '绿卡是否仍有效；是否持有回美证、能否获得 SB-1，以及是否已放弃永居（看离境目的、意图与在美联系）；周年前出发、连续行程在周年当天或之后抵达的另有规定（8 CFR 211.3）',
+          'Whether your green card is still valid; whether you hold a reentry permit, can get an SB-1 visa, or have abandoned residence (which depends on your purpose, intent and ties); a continuous journey that set out before the anniversary and arrives on or after it is treated separately (8 CFR 211.3)',
         ),
       ],
       assumptions: [

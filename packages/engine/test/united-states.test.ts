@@ -172,6 +172,36 @@ describe('removing conditions, INA 216', () => {
     ).toBe('NOT_MET');
   });
 
+  test('a federal holiday last day: Juneteenth', () => {
+    // Anniversary Saturday 2026-06-20; last day Friday 2026-06-19 is
+    // Juneteenth, so paper filing runs to Monday 2026-06-22.
+    const req = {
+      conditional: 'marriage' as const,
+      permanentResident: '2024-06-20',
+    };
+    expect(
+      pathway({ ...req, simulationDate: '2026-06-22' }, 'US-CONDITIONS').status,
+    ).toBe('UNKNOWN');
+    expect(
+      pathway({ ...req, simulationDate: '2026-06-23' }, 'US-CONDITIONS').status,
+    ).toBe('NOT_MET');
+  });
+
+  test('a Saturday holiday is observed on the Friday', () => {
+    // Anniversary 2027-12-25 (Saturday): last day Friday 12-24 is the
+    // observed Christmas; paper filing runs to Monday 12-27.
+    const p = pathway(
+      {
+        conditional: 'marriage',
+        permanentResident: '2025-12-25',
+        simulationDate: '2027-12-27',
+      },
+      'US-CONDITIONS',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('2027-12-27');
+  });
+
   test('after the anniversary', () => {
     const p = pathway(
       // Last day Sunday 2027-02-28: paper filing until Monday 03-01.
