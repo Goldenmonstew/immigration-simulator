@@ -901,12 +901,18 @@ test('review33a-3 #4 overlapping grants keep the intervening Student period in t
   const filed = current(facts, projected.earliestDate!);
   expect(filed.outcome).toBe('LIKELY_ELIGIBLE');
   expect(filed.decidedBy).toContain('CL-SW-RESIDENCE-5Y');
-  // The older grant resumes once a nested grant expires, under episodeOn.
+  // review33a-4 / SRC-059: the Student grant replaced the older Skilled
+  // Worker permission, which does not resume when the Student grant ends.
   const nested = { episodes: [permit('2021-06-01'), facts.episodes[1]] };
-  expect(current(nested, '2026-06-01').earliestDate).toBe('2031-05-04');
-  const resumed = current(nested, '2031-05-04');
-  expect(resumed.outcome).toBe('LIKELY_ELIGIBLE');
-  expect(resumed.decidedBy).toContain('CL-SW-RESIDENCE-5Y');
+  const after = current(nested, '2026-06-01');
+  expect(after.outcome).toBe('INSUFFICIENT_INFORMATION');
+  expect(after.earliestDate).toBeUndefined();
+  // While the Student grant lasts, the Skilled Worker run is broken too.
+  expect(
+    current(nested, '2026-05-20').rules.find(
+      (r) => r.id === 'CL-SW-RESIDENCE-5Y',
+    )?.status,
+  ).not.toBe('PASS');
 });
 
 test('review33a-3 #5 five-year Appendix FM continues past a return in a permission gap', () => {
