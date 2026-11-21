@@ -152,4 +152,12 @@ export const sourceUrls: Record<string, string> = {
   'SRC-084': 'https://www.boe.es/buscar/act.php?id=BOE-A-1889-4763',
   'SRC-085':
     'https://administracion.gob.es/pag_Home/Tu-espacio-europeo/derechos-obligaciones/ciudadanos/residencia/obtencion-nacionalidad',
+  'SRC-086':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2023/20230100081.pdf',
+  'SRC-087':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100090.pdf',
+  'SRC-088':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2010/20100100049.pdf',
+  'SRC-089':
+    'https://www.ypes.gr/wp-content/uploads/2026/02/Proypotheseis20260130.pdf',
 };
