@@ -348,6 +348,12 @@ export interface SettlementAssessment {
   /** Earned Settlement only: first day out of the current public funds lookback, if no further use. */
   publicFundsReassessmentDate?: IsoDate;
   /**
+   * Earned Settlement only: per pathway shorter than the selected one, the
+   * failed requirements of its candidates outside `decidedBy`, in `rules`
+   * order (why it was not used). Shortest first.
+   */
+  shorterPathwayBlockedBy?: { years: number; ruleIds: RuleId[] }[];
+  /**
    * The rules of the candidate pathway the outcome rests on, in `rules`
    * order (contracts §16.1). Present exactly when `pathwayYears` is.
    */

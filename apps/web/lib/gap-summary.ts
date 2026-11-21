@@ -13,7 +13,8 @@ export function gapRules(assessment: SettlementAssessment) {
 /**
  * The rule naming the pathway the conclusion rests on: the Earned Settlement
  * entry (earnings, British connection, public service, transitional
- * arrangement…) or, under current law, the route's residence rule.
+ * arrangement…), the minimum earnings of the longer pathways or, under
+ * current law, the route's residence rule.
  */
 export function basisRule(assessment: SettlementAssessment) {
   const decided = assessment.rules.filter((rule) =>
@@ -25,6 +26,7 @@ export function basisRule(assessment: SettlementAssessment) {
         rule.id,
       ),
     ) ??
+    decided.find((rule) => rule.id === 'ES-EARNINGS-10Y') ??
     decided.find((rule) =>
       /^CL-.*(RESIDENCE|PARTNER-5Y|-CHILD|DEPENDANT)/.test(rule.id),
     ) ??
@@ -32,13 +34,13 @@ export function basisRule(assessment: SettlementAssessment) {
   );
 }
 
-/** Requirements of shorter Earned Settlement pathways that rule them out. */
+/** Per shorter pathway, the failed requirements that ruled it out (engine). */
 export function shorterPathwayBlocks(assessment: SettlementAssessment) {
-  return assessment.rules.filter(
-    (rule) =>
-      rule.status === 'FAIL' &&
-      !assessment.decidedBy?.includes(rule.id) &&
-      (rule.id === 'ES-PUBLIC-FUNDS' || rule.id === 'ES-BREACH'),
+  return (assessment.shorterPathwayBlockedBy ?? []).map(
+    ({ years, ruleIds }) => ({
+      years,
+      rules: assessment.rules.filter((rule) => ruleIds.includes(rule.id)),
+    }),
   );
 }
 

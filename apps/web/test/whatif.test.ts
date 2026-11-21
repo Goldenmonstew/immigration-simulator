@@ -240,6 +240,13 @@ test('playtest #1: one more trip is added to the absences and counts whole days 
     applyWhatIf(draft, { ...controls, noAbsences: true, trip }).timeline
       .absences,
   ).toEqual([trip]);
+  // review49-2: a date that does not exist counts as unfinished.
+  expect(
+    applyWhatIf(draft, {
+      ...controls,
+      trip: { from: '2023-13-99', to: '2024-02-30' },
+    }),
+  ).toEqual(draft);
   // An unfinished trip changes nothing.
   expect(
     applyWhatIf(draft, { ...controls, trip: { from: '', to: '' } }),

@@ -599,6 +599,25 @@ function finishEarnedSettlement(
       ? completion
       : undefined;
   const { earliestDate, projectedFrom, ...rest } = decision;
+  const shorterPathwayBlockedBy = [...new Set(candidates.map((c) => c.years))]
+    .filter((years) => years < (decision.pathwayYears ?? -Infinity))
+    .sort((a, b) => a - b)
+    .map((years) => {
+      const failed = new Set(
+        candidates
+          .filter((c) => c.years === years)
+          .flatMap((c) => c.rules)
+          .filter(
+            (r) => r.status === 'FAIL' && !decision.decidedBy?.includes(r.id),
+          )
+          .map((r) => r.id),
+      );
+      return {
+        years,
+        ruleIds: rules.map((r) => r.id).filter((id) => failed.has(id)),
+      };
+    })
+    .filter((pathway) => pathway.ruleIds.length > 0);
   if (conditionalCompletion) {
     assumptions.push(
       L(
@@ -639,6 +658,7 @@ function finishEarnedSettlement(
       pathwayCompletionDate: conditionalCompletion,
     }),
     ...(reassessment && { publicFundsReassessmentDate: reassessment }),
+    ...(shorterPathwayBlockedBy.length > 0 && { shorterPathwayBlockedBy }),
     ...(rules.find((r) => r.id === 'ES-ROUTE-GROUP')?.status === 'PASS' && {
       routeGroup,
     }),

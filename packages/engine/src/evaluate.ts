@@ -183,6 +183,7 @@ export function evaluate(
       delete assessment.earliestDate;
       delete assessment.pathwayCompletionDate;
       delete assessment.publicFundsReassessmentDate;
+      delete assessment.shorterPathwayBlockedBy;
       delete assessment.decidedBy;
       assessment.outcome = 'REQUIRES_REGULATED_REVIEW';
     }

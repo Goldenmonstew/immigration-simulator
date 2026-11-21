@@ -346,7 +346,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'result.thisPathway': 'Conditions on this pathway',
   'result.otherPathways': 'Other pathways (shows why they were not used)',
   'result.shorterBlocked':
-    'Shorter pathways are not available because these requirements are not met: {rules}.',
+    'Shorter pathways were not used because these requirements are not met:',
+  'result.shorterBlockedPathway': '{years}-year pathway – {rules}',
   'result.undetermined': 'Not yet determined',
   'result.why': 'Why',
   'result.FAIL': 'Not met',
@@ -615,7 +616,8 @@ export const en: Record<keyof typeof zhCN, string> = {
     'The default is today. You can choose another date. Changing it updates the income years. Check them before viewing your results.',
   'date.reviewIncome': 'Go back to check earnings',
   'error.required': 'Complete this field.',
-  'error.nationality': 'Enter a three-letter country code.',
+  'error.nationality':
+    'Choose a country or territory from the list, or enter its three-letter code from the list.',
   'error.range': 'The end date must not be before the start date.',
   'error.soc': 'Enter a four-digit SOC 2020 occupation code, or leave blank.',
   'game.day': 'Day {day} of 3',

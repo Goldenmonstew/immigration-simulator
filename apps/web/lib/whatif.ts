@@ -9,7 +9,12 @@ import {
   type CefrLevel,
   earnedSettlement2026_11,
 } from '@uk-immigration/policy-data';
-import { type Draft, draftReducer, visibleIncomeYears } from './questionnaire';
+import {
+  type Draft,
+  draftReducer,
+  validDate,
+  visibleIncomeYears,
+} from './questionnaire';
 
 export const focusControls = {
   english: 'whatif-english',
@@ -80,11 +85,7 @@ export interface WhatIf {
 
 /** Both dates filled in, departure first: only then does the trip count. */
 export function validTrip(trip: { from: string; to: string }): boolean {
-  return (
-    /^\d{4}-\d{2}-\d{2}$/.test(trip.from) &&
-    /^\d{4}-\d{2}-\d{2}$/.test(trip.to) &&
-    trip.from <= trip.to
-  );
+  return validDate(trip.from) && validDate(trip.to) && trip.from <= trip.to;
 }
 
 /** Whole days away: travel days do not count (SRC-057, A1#17). */

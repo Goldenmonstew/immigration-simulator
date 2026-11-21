@@ -192,14 +192,23 @@ export function AssessmentColumns({
                       </p>
                     )}
                   {shorterPathwayBlocks(assessment).length > 0 && (
-                    <p>
-                      {t('result.shorterBlocked').replace(
-                        '{rules}',
-                        shorterPathwayBlocks(assessment)
-                          .map((rule) => rule.title)
-                          .join(p.list),
-                      )}
-                    </p>
+                    <>
+                      <p>{t('result.shorterBlocked')}</p>
+                      <ul className={styles.shorterBlocked}>
+                        {shorterPathwayBlocks(assessment).map(
+                          ({ years, rules }) => (
+                            <li key={years}>
+                              {t('result.shorterBlockedPathway')
+                                .replace('{years}', String(years))
+                                .replace(
+                                  '{rules}',
+                                  rules.map((rule) => rule.title).join(p.list),
+                                )}
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </>
                   )}
                 </div>
                 <GapSummary

@@ -382,13 +382,73 @@ test.each(['zh-CN', 'en'] as const)(
         <ResultView result={result} draft={draft} />
       </LocaleContext>,
     );
-    const funds = reform.rules.find((r) => r.id === 'ES-PUBLIC-FUNDS')!;
+    const title = (id: string) => reform.rules.find((r) => r.id === id)!.title;
+    expect(html).toContain(t('result.shorterBlocked', locale));
+    // review49-2 #1: each shorter pathway lists its own failed requirements.
     expect(html).toContain(
       locale === 'en'
-        ? `Shorter pathways are not available because these requirements are not met: ${funds.title}`
-        : `较短的路径因以下条件未满足而不可用：${funds.title}`,
+        ? `<li>5-year pathway – ${title('ES-BRITISH-CONNECTION')}`
+        : `<li>5 年路径——${title('ES-BRITISH-CONNECTION')}`,
+    );
+    expect(html).toMatch(
+      new RegExp(
+        `<li>10[^<]*${title('ES-PUBLIC-FUNDS').replace(/[()]/g, '.')}</li>`,
+      ),
     );
     expect(html).toContain('2041-06-01');
     expect(html).toContain('2028-11-01');
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'review49-2 #1: a 10-year conclusion names its earnings rule and the requirements that rule out shorter pathways in %s',
+  (locale) => {
+    const draft = {
+      ...createDraft(),
+      simulationDate: '2026-11-04',
+      completed: true,
+    };
+    draft.screening = { criminality: 'no', breach: 'no', debt: 'no' };
+    draft.timeline = {
+      ...draft.timeline,
+      dateOfBirth: '1990-01-01',
+      nationality: 'IND',
+      episodes: [
+        {
+          route: 'SKILLED_WORKER',
+          role: 'MAIN',
+          validFrom: '2021-06-01',
+          validTo: '2027-05-31',
+          socCode: '2136',
+          salary: 30000,
+        },
+      ],
+      incomeYears: draft.timeline.incomeYears.map((year) => ({
+        ...year,
+        earnings: 30000,
+      })),
+      english: { cefrLevel: 'B2' },
+      lifeInTheUk: { passed: true },
+    };
+    const result = runSimulation(draft, locale);
+    const reform = result.byRuleSet['earned-settlement-2026-11']!;
+    expect(reform.pathwayYears).toBe(10);
+    const title = (id: string) => reform.rules.find((r) => r.id === id)!.title;
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <ResultView result={result} draft={draft} />
+      </LocaleContext>,
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? `Based on the 10-year pathway (${title('ES-EARNINGS-10Y')})`
+        : `结论依据：10 年路径（${title('ES-EARNINGS-10Y')}）`,
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? `<li>3-year pathway – ${title('ES-EARNINGS-3Y')}</li>`
+        : `<li>3 年路径——${title('ES-EARNINGS-3Y')}</li>`,
+    );
+    expect(html).toContain(title('ES-EARNINGS-5Y'));
   },
 );

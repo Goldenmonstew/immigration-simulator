@@ -1,6 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import * as engine from '@uk-immigration/engine';
 import {
+  activePersonDraft,
   createDraft,
   draftReducer,
   runSimulation,
@@ -29,6 +30,7 @@ test.each(['MAIN', 'DEPENDANT'] as const)(
         validTo: '2099-01-01',
       },
     ];
+    saved.timeline.nationality = 'CHN';
     saved.principal = createDraft().timeline;
     const restored = draftReducer(createDraft(), {
       type: 'restore',
@@ -45,6 +47,42 @@ test.each(['MAIN', 'DEPENDANT'] as const)(
     expect(saved.step).toBe(1);
   },
 );
+
+test('review49-2 #2: a completed draft with a code off the list reopens that person’s basic details', () => {
+  const saved = { ...createDraft(), completed: true, step: 8 };
+  saved.timeline.dateOfBirth = '1990-01-01';
+  saved.timeline.nationality = 'DDR';
+  const own = draftReducer(createDraft(), { type: 'restore', draft: saved });
+  expect(own).toMatchObject({ step: 0, completed: false });
+  expect(validateStep(own).nationality).toBe('error.nationality');
+
+  saved.timeline.nationality = 'DEU';
+  saved.timeline.episodes = [
+    {
+      route: 'SKILLED_WORKER',
+      role: 'DEPENDANT',
+      dependantOf: 'PARTNER',
+      validFrom: '2020-01-01',
+      validTo: '2099-01-01',
+    },
+  ];
+  saved.principal = { ...createDraft().timeline, nationality: 'DDR' };
+  saved.principalCompleted = true;
+  const principal = draftReducer(createDraft(), {
+    type: 'restore',
+    draft: saved,
+  });
+  expect(principal).toMatchObject({
+    step: 9,
+    principalStep: 0,
+    completed: false,
+  });
+  expect(validateStep(activePersonDraft(principal)).nationality).toBe(
+    'error.nationality',
+  );
+  expect(zhCN['error.nationality']).toContain('名单');
+  expect(en['error.nationality']).toContain('from the list');
+});
 
 test('an unfinished draft resumes its applicant or principal step', () => {
   const draft = { ...createDraft(), step: 9, principalStep: 4 };
