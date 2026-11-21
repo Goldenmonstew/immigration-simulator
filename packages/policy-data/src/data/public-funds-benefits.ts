@@ -57,7 +57,7 @@ export const publicFundsBenefits: {
     ),
     closed(
       'INCOME_BASED_JOBSEEKERS_ALLOWANCE',
-      'Income Based Job Seekers Allowance',
+      'Income-based Jobseeker’s Allowance',
     ),
     closed('INCOME_SUPPORT', 'Income Support'),
     closed('CHILD_TAX_CREDIT', 'Child Tax Credit'),
@@ -91,7 +91,7 @@ export const publicFundsBenefits: {
       'SCOTTISH_WELFARE_FUND_PAYMENT',
       'Payment from a Welfare Fund (Welfare Funds (Scotland) Act 2015)',
     ),
-    scotland('CARERS_SUPPORT_PAYMENT', 'Carer’s Support Payment'),
+    scotland('CARERS_SUPPORT_PAYMENT', 'Carer Support Payment'),
     scotland(
       'PENSION_AGE_DISABILITY_PAYMENT',
       'Pension Age Disability Payment',

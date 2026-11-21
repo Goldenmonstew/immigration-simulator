@@ -140,7 +140,7 @@ function bestYears(
     (missing > 0
       ? L(
           `；${missing} 年未填写收入`,
-          `; earnings not provided for ${missing} year(s)`,
+          `; earnings not provided for ${missing} year${missing === 1 ? '' : 's'}`,
         )
       : '') +
     L('。', '.') +
@@ -345,7 +345,7 @@ export const esBritishConnection = defineRule(
         status: 'FAIL',
         explanation: L(
           'Appendix FM 十年伴侣路线依据 Article 8 ECHR，不属 core permission（p23 注 9），只能走 10 年或 20 年路径，不走这条 5 年路径（p50）。',
-          'The 10-year Appendix FM partner route rests on Article 8 ECHR and is not core permission (p23 note 9), so only the 10 or 20-year pathways apply, not this 5-year pathway (p50).',
+          'The 10-year Appendix FM partner route rests on Article 8 ECHR and is not core permission (p23 note 9), so only the 10-year or 20-year pathways apply, not this 5-year pathway (p50).',
         ),
         sources: [
           { srcId: 'SRC-001', locator: 'p23 fn 9' },

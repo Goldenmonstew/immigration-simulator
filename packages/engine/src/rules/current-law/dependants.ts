@@ -34,7 +34,7 @@ export const needsPrincipal = (L: Lang, assumptions: string[]) => ({
 export const notYetSettledAssumption = (L: Lang) =>
   L(
     '主申请人尚未定居时，只判断与主申请人同时获批；若其已定居，须在主申请人信息里填写定居日期与路线。',
-    'While the principal applicant has not settled, only being granted at the same time as them is assessed; if they have already settled, enter their settlement date and route in the principal applicant’s details.',
+    'If the principal applicant has yet to settle, the simulator assesses whether you could be granted settlement at the same time as them; if they have already settled, enter their settlement date and route in the principal applicant’s details.',
   );
 
 /** Why a dependant cannot settle with P now, as in withoutPrincipalPathway. */

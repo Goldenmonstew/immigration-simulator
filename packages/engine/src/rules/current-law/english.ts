@@ -448,7 +448,7 @@ export function settlementKol(
       status: 'UNKNOWN',
       explanation: L(
         `未填写是否已通过 Life in the UK 考试${basis}。`,
-        `Not provided whether the Life in the UK test has been passed${basis}.`,
+        `You haven’t indicated whether you passed the Life in the UK test${basis}.`,
       ),
     };
   }

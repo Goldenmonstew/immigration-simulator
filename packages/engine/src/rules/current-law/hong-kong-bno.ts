@@ -183,7 +183,7 @@ export function hongKongBnoDependantPathway(
           status: 'PASS',
           explanation: L(
             `未满 ${cl.values.settlementMinorAge.value} 岁（HK 57.1）；主申请人已于 ${settled.date} 定居（或已成为英国公民），可申请定居（HK 57.3(b)）；子女本人没有居留年限要求（HK 62.1(b)）。`,
-            `Under ${cl.values.settlementMinorAge.value} (HK 57.1); the principal applicant settled (or became a British citizen) on ${settled.date}, so they can apply for settlement (HK 57.3(b)); the child has no residence requirement of their own (HK 62.1(b)).`,
+            `Under ${cl.values.settlementMinorAge.value} (HK 57.1); the principal applicant settled (or became a British citizen) on ${settled.date}, so the child can apply for settlement (HK 57.3(b)) and has no residence requirement of their own (HK 62.1(b)).`,
           ),
           assumptions,
         },

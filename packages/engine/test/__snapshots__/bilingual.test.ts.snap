@@ -12422,7 +12422,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
         },
         {
           "id": "CL-SW-RESIDENCE-5Y",
-          "title": "Skilled Worker 连续 5 年",
+          "title": "Skilled Worker 定居的 5 年连续合格居留",
           "sources": [
             {
               "srcId": "SRC-004",
@@ -14504,7 +14504,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
         },
         {
           "id": "CL-SW-RESIDENCE-5Y",
-          "title": "Skilled Worker 连续 5 年",
+          "title": "Skilled Worker 定居的 5 年连续合格居留",
           "sources": [
             {
               "srcId": "SRC-004",
@@ -19798,7 +19798,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
         },
         {
           "id": "CL-SW-RESIDENCE-5Y",
-          "title": "Skilled Worker 连续 5 年",
+          "title": "Skilled Worker 定居的 5 年连续合格居留",
           "sources": [
             {
               "srcId": "SRC-004",
@@ -20606,7 +20606,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
         },
         {
           "id": "CL-SW-RESIDENCE-5Y",
-          "title": "Skilled Worker 连续 5 年",
+          "title": "Skilled Worker 定居的 5 年连续合格居留",
           "sources": [
             {
               "srcId": "SRC-004",
@@ -21437,7 +21437,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
         },
         {
           "id": "CL-SW-RESIDENCE-5Y",
-          "title": "Skilled Worker 连续 5 年",
+          "title": "Skilled Worker 定居的 5 年连续合格居留",
           "sources": [
             {
               "srcId": "SRC-004",
