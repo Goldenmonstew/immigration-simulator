@@ -1,4 +1,3 @@
-import { AU_PERMANENT_SUBCLASSES } from '@uk-immigration/engine';
 import type { AuRequest, AuSubclass, Locale } from '@uk-immigration/engine';
 import type { TranslationKey } from '../i18n';
 import { validDate } from './questionnaire';
@@ -28,8 +27,6 @@ export interface AuForm {
 }
 
 export type AuErrors = Partial<Record<string, TranslationKey>>;
-
-const permanent = new Set<AuSubclass>(AU_PERMANENT_SUBCLASSES);
 
 export const emptyVisa = (): AuVisaRow => ({
   subclass: '482',
@@ -74,18 +71,6 @@ export function validateAuForm(form: AuForm): AuErrors {
     date(`au-visa-${i}-to`, visa.to, true);
     if (validDate(visa.to) && visa.to < visa.from)
       errors[`au-visa-${i}-to`] = 'au.error.order';
-    // A new visa ends a temporary one (Migration Act s82), so a temporary
-    // visa cannot overlap any other; permanent visas such as an RRV can.
-    if (
-      !permanent.has(visa.subclass) &&
-      form.visas.some(
-        (other, n) =>
-          n !== i &&
-          other.from <= (visa.to || '9999-12-31') &&
-          visa.from <= (other.to || '9999-12-31'),
-      )
-    )
-      errors[`au-visa-${i}-to`] = 'au.error.overlap';
   });
   form.trips.forEach((trip, i) => {
     date(`au-trip-${i}-departed`, trip.departed);

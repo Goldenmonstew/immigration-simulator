@@ -473,7 +473,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Date you first arrived in Australia (leave blank if you have not arrived yet)',
   'au.visas': 'Your visas',
   'au.visasHint':
-    'Enter each visa in date order, including bridging visas. The start date is the day it came into effect. Leave the end date blank for a visa still in effect or a permanent visa.',
+    'Enter each visa in date order, including bridging visas; leave out electronic travel authorities (ETAs). The start date is the day it came into effect. A new visa ends the old one (Migration Act s82), so you can leave an old visa’s end date blank, as well as for a visa still in effect.',
   'au.visa': 'Visa {n}',
   'au.subclass': 'Visa subclass',
   'au.from': 'Start date',
@@ -504,8 +504,6 @@ export const en: Record<keyof typeof zhCN, string> = {
     'The first arrival cannot be before your date of birth.',
   'au.error.beforeArrival':
     'A trip cannot start before your first arrival; enter your first arrival if you have trips.',
-  'au.error.overlap':
-    'A temporary visa cannot overlap another visa: a new visa ends the old one, so end it the day before the new visa starts.',
   'au.resultTitle': 'Results',
   'au.policyAsOf': 'Based on Australian official sources checked on {date}.',
   'au.status.MET': 'Time requirements met on the simulation date',

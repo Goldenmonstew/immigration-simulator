@@ -186,6 +186,44 @@ describe('subclass 186 TRT (186.221, 186.226, 186.227)', () => {
     ).toBe('2027-03-01');
   });
 
+  test('work that falls short is reported as such', () => {
+    const p = pathway(
+      {
+        firstArrival: '2024-11-21',
+        visas: [{ subclass: '482', from: '2024-11-21', to: '2027-01-31' }],
+        trips: [{ departed: '2025-05-01', returned: '2025-08-01' }],
+        sponsoredFullTime: true,
+      },
+      'AU-186-TRT',
+    );
+    // 162 + 548 = 710 days of work by 2027-01-31, short of 731.
+    expect(p.status).toBe('NOT_MET');
+    expect(p.summary).toContain('2026-11-21');
+  });
+
+  test('anniversaries of other dates stay on the same day', () => {
+    expect(
+      pathway(
+        {
+          simulationDate: '2028-02-29',
+          visas: [{ subclass: '491', from: '2025-03-01', to: '2030-02-28' }],
+        },
+        'AU-191',
+      ).earliestDate,
+    ).toBe('2028-03-01');
+    expect(
+      pathway(
+        {
+          simulationDate: '2028-02-29',
+          dateOfBirth: '2010-03-01',
+          firstArrival: '2019-01-01',
+          visas: [{ subclass: '189', from: '2019-01-01' }],
+        },
+        'AU-CITIZENSHIP',
+      ).earliestDate,
+    ).toBe('2028-03-01');
+  });
+
   test('not confirming full-time sponsored work leaves it unknown', () => {
     const p = pathway(
       { visas: [{ subclass: '482', from: '2025-06-01' }] },
@@ -260,7 +298,11 @@ describe('Resident Return visa (155.212(2))', () => {
     const p = pathway(
       {
         firstArrival: '2019-06-01',
-        visas: [{ subclass: '189', from: '2020-01-01' }],
+        // The 189 ends on 2025-01-01 while away (s82(5)); an RRV brings them back.
+        visas: [
+          { subclass: '189', from: '2020-01-01' },
+          { subclass: '155', from: '2025-06-01' },
+        ],
         trips: [{ departed: '2022-01-01', returned: '2026-06-01' }],
       },
       'AU-RRV',
@@ -277,7 +319,7 @@ describe('Resident Return visa (155.212(2))', () => {
       {
         simulationDate: '2026-01-01',
         firstArrival: '2021-01-01',
-        visas: [{ subclass: '189', from: '2021-01-01' }],
+        visas: [{ subclass: '189', from: '2020-12-01' }],
         trips: [{ departed: '2021-01-01', returned: '2024-01-02' }],
       },
       'AU-RRV',
@@ -286,7 +328,7 @@ describe('Resident Return visa (155.212(2))', () => {
     expect(away.checks[0].text).toContain(`${1 + 730}`);
   });
 
-  test('days also on a temporary visa do not count (155.212(2)(b))', () => {
+  test('a permanent visa ends an earlier temporary visa (s82(2))', () => {
     const p = pathway(
       {
         firstArrival: '2019-06-01',
@@ -297,8 +339,36 @@ describe('Resident Return visa (155.212(2))', () => {
       },
       'AU-RRV',
     );
-    // 1,826 days from 2021-11-21 to 2026-11-20, less 41 to 2021-12-31.
-    expect(p.checks[0].text).toContain('1785');
+    // The temporary visa ends on 2019-12-31, so all 1,826 days count.
+    expect(p.checks[0].text).toContain('1826');
+  });
+
+  test('an RRV replaces the earlier permanent visa (s82(2))', () => {
+    const p = pathway(
+      {
+        firstArrival: '2015-06-01',
+        visas: [
+          { subclass: '189', from: '2015-06-01' },
+          { subclass: '155', from: '2025-12-01', to: '2026-11-23' },
+        ],
+        trips: [{ departed: '2022-01-01', returned: '2026-01-01' }],
+      },
+      'AU-RRV',
+    );
+    expect(p.checks[0].text).toContain('366');
+    expect(p.status).toBe('NOT_MET');
+  });
+
+  test('a permanent visa ends on leaving after its travel facility (s82(6))', () => {
+    const p = pathway(
+      {
+        firstArrival: '2019-01-01',
+        visas: [{ subclass: '189', from: '2019-01-01' }],
+        trips: [{ departed: '2025-03-01', returned: '2026-12-01' }],
+      },
+      'AU-RRV',
+    );
+    expect(p.status).toBe('NOT_APPLICABLE');
   });
 
   test('an RRV travel facility is not assumed to be 5 years', () => {
@@ -383,7 +453,11 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
     const p = pathway(
       {
         firstArrival: '2019-01-01',
-        visas: [{ subclass: '189', from: '2019-01-01' }],
+        // An RRV before travelling keeps the permanent visa (s82(6)).
+        visas: [
+          { subclass: '189', from: '2019-01-01' },
+          { subclass: '155', from: '2025-01-01' },
+        ],
         trips: [{ departed: '2026-07-01', returned: '2026-10-15' }],
       },
       'AU-CITIZENSHIP',
@@ -448,7 +522,10 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
     const p = pathway(
       {
         firstArrival: '2019-01-01',
-        visas: [{ subclass: '189', from: '2019-01-01' }],
+        visas: [
+          { subclass: '189', from: '2019-01-01' },
+          { subclass: '155', from: '2025-01-01' },
+        ],
         trips: [
           { departed: '2026-01-15', returned: '2026-02-14' },
           { departed: '2026-04-01', returned: '2026-06-01' },
@@ -492,6 +569,22 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
       'AU-CITIZENSHIP',
     );
     expect(p.earliestDate).toBe('2026-09-01');
+  });
+
+  test('an overnight trip on the day an offshore grant starts', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-07-01',
+        firstArrival: '2020-01-01',
+        visas: [
+          { subclass: 'other-temporary', from: '2020-01-01', to: '2025-06-30' },
+          { subclass: '100', from: '2025-07-01' },
+        ],
+        trips: [{ departed: '2025-07-01', returned: '2025-07-02' }],
+      },
+      'AU-CITIZENSHIP',
+    );
+    expect(p.earliestDate).toBe('2026-07-02');
   });
 
   test('not yet arrived', () => {

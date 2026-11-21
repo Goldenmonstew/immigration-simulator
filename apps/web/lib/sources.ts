@@ -125,4 +125,6 @@ export const sourceUrls: Record<string, string> = {
     'https://immi.homeaffairs.gov.au/citizenship/become-a-citizen/permanent-resident',
   'SRC-068':
     'https://www.homeaffairs.gov.au/foi/files/2025/fa-250801434-document-released.PDF',
+  'SRC-069':
+    'https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text',
 };

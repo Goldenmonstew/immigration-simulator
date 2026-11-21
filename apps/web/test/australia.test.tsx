@@ -64,6 +64,7 @@ test('validation marks missing, out-of-order and conflicting dates', () => {
       'au-first-arrival'
     ],
   ).toBe('au.error.beforeBirth');
+  // Overlapping visas are accepted: the engine ends the earlier one (s82).
   expect(
     validateAuForm({
       ...filled,
@@ -71,25 +72,6 @@ test('validation marks missing, out-of-order and conflicting dates', () => {
         { subclass: '482', from: '2021-02-01', to: '' },
         { subclass: '186', from: '2023-09-01', to: '' },
       ],
-    })['au-visa-0-to'],
-  ).toBe('au.error.overlap');
-  expect(
-    validateAuForm({
-      ...filled,
-      visas: [
-        { subclass: '482', from: '2021-02-01', to: '2027-06-01' },
-        { subclass: '309', from: '2025-06-01', to: '' },
-      ],
-    }),
-  ).toMatchObject({
-    'au-visa-0-to': 'au.error.overlap',
-    'au-visa-1-to': 'au.error.overlap',
-  });
-  // Permanent visas such as a later RRV may overlap.
-  expect(
-    validateAuForm({
-      ...filled,
-      visas: [...filled.visas, { subclass: '155', from: '2026-01-01', to: '' }],
     }),
   ).toEqual({});
   // An offshore partner applicant who has not arrived can still submit.

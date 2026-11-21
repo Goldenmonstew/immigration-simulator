@@ -285,7 +285,7 @@ export const zhCN = {
   'au.firstArrival': '首次入境澳洲的日期（还没入境可留空）',
   'au.visas': '签证记录',
   'au.visasHint':
-    '按时间顺序填写每一份签证，包括 bridging visa。生效日填签证开始有效的那天；仍在有效期内或永久签证，到期日留空。',
+    '按时间顺序填写每一份签证，包括 bridging visa；不用填 ETA 等电子旅行许可。生效日填签证开始有效的那天。新签证生效时旧签证即终止（Migration Act s82），旧签证的到期日可以留空；仍有效的签证到期日也留空。',
   'au.visa': '签证 {n}',
   'au.subclass': '签证类别',
   'au.from': '生效日',
@@ -314,8 +314,6 @@ export const zhCN = {
   'au.error.beforeBirth': '首次入境日不能早于出生日期。',
   'au.error.beforeArrival':
     '出境日不能早于首次入境日；有出境记录时须填首次入境日。',
-  'au.error.overlap':
-    '临时签证不能与其他签证的期间重叠：新签证生效时旧签证即终止，请把到期日填到新签证生效的前一天。',
   'au.resultTitle': '计算结果',
   'au.policyAsOf': '依据核对至 {date} 的澳洲官方来源。',
   'au.status.MET': '模拟日已满足时间条件',

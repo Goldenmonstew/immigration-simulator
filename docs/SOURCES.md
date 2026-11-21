@@ -86,6 +86,7 @@
 | SRC-066 | GUIDANCE | Department of Home Affairs：Resident Return visa（subclasses 155 和 157） | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/resident-return-visa-155-157 | —（动态页面） | 2026-11-21 | `policy-sources/2026-11-21-au-resident-return-visa-155-157.html`（sha256 `af071d452dd84af5dbcbd3672dd41f8745da6021476e0c4af5ba024b35e7bfb3`） | archived |
 | SRC-067 | GUIDANCE | Department of Home Affairs：Become an Australian citizen（by conferral）——永久居民 | https://immi.homeaffairs.gov.au/citizenship/become-a-citizen/permanent-resident | —（动态页面） | 2026-11-21 | `policy-sources/2026-11-21-au-citizenship-permanent-resident.html`（sha256 `312c97ec6555e1007a3557412cf96fde445f1e57915cfb7e73418e3e4cbb049d`） | archived |
 | SRC-068 | GUIDANCE | Department of Home Affairs Standard Operating Procedure：General residence requirement and permanent resident status（依 FOI 申请 FA 25/08/01434 公开，部分删节，23 页） | https://www.homeaffairs.gov.au/foi/files/2025/fa-250801434-document-released.PDF | PDF 2025-09-15 | 2026-11-21 | `policy-sources/2025-09-15-au-sop-general-residence-requirement-foi.pdf`（sha256 `4fce927e1b93f2b296f899ffd096b9ec44659b083906d60112f67ad6d22be8b0`） | archived |
+| SRC-069 | LAW | Migration Act 1958（Compilation No. 172，2026-10-08）Volume 1：签证何时终止（s82） | https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text/original/epub/OEBPS/document_1/document_1.html （登记版本：https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text ；现行版入口：https://www.legislation.gov.au/C1958A00062/latest/text ） | 2026-10-08 | 2026-11-21 | `policy-sources/2026-10-08-au-migration-act-1958-compilation-172-vol1.html`（sha256 `52a074ece7fdf107db0802e2079a71870d33f75aeabb91b2ecb842537330d29b`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -613,4 +614,10 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2025-09-15-au-sop-general-residence-requirement-foi.pdf` → <https://www.homeaffairs.gov.au/foi/files/2025/fa-250801434-document-released.PDF>
 - 内部操作程序经 FOI 公开，部分内容按 s. 47E(d) 删节，版本记录页未公开。`p<N>` 指 PDF 页序。
 - `p5 §3.3`：出境须以此前曾在澳为前提，首次入境未满 4 年不能满足居住要求。`p6` 情景（Mr Barnaby）以 365 天作为"12 个月"的出境上限，两次出境分别记 296 天和 67 天，即入境日减出境日。同页正文称入境日与出境日都计为在澳，按此两次出境应为 295 天和 66 天，两者相差每次一天。引擎按正文计，并另列按示例算出的日期，见 PD-084。
+
+## SRC-069 Migration Act 1958
+
+- 快照取 legislation.gov.au 该版本 EPUB 的第 1 个正文文件，版本 Compilation No. 172（Compilation date 2026-10-08）。
+- `s82(2)`：另一份实质签证生效时，原实质签证终止。`s82(3)`：任何其他签证生效时，bridging visa 终止。引擎据此让每份签证在下一份（实质签证，或对 bridging visa 而言任何签证）生效前一天结束，问卷不要求旧签证填到期日。
+- `s82(5)`–`(6)`：带有效期旅行便利的签证，期满时不在澳，或期满后离境，即终止。引擎对旅行便利为 5 年的永久签证（100.511、186.511、189.511、190.511、191.511、801.511），在期满后第一次不在澳时让该签证终止。
 
