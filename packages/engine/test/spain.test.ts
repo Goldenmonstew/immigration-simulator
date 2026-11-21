@@ -89,6 +89,15 @@ describe('residencia de larga duración nacional (art. 183)', () => {
     expect(p.earliestDate).toBe('2027-04-01');
   });
 
+  test('study stays alone are uncertain, not unmet (PD-098)', () => {
+    const p = pathway(
+      { permits: [{ from: '2018-09-01', study: true }] },
+      'ES-LONG-TERM',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('2024-01-01');
+  });
+
   test('met on the simulation date', () => {
     const p = pathway({ simulationDate: '2026-11-21' }, 'ES-LONG-TERM');
     expect(p.status).toBe('MET');

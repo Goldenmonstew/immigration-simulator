@@ -1,6 +1,6 @@
 import { spain2026_11 as es } from '@uk-immigration/policy-data';
 import { addDays, addMonths, addYears, daysBetween } from './dates';
-import { Days, HORIZON_YEARS } from './pilot';
+import { Days, HORIZON_YEARS, monthSpan } from './pilot';
 import type { PilotPathway, PilotResult, PilotStatus } from './pilot';
 import { textFor } from './rule';
 import type { IsoDate, Locale } from './types';
@@ -48,18 +48,6 @@ export type EsPathway = PilotPathway<EsPathwayId>;
 export type EsResult = PilotResult<EsPathwayId>;
 
 const v = es.values;
-
-/**
- * Fewest and most days `n` consecutive calendar months can span, over two
- * years that include a leap year.
- */
-function monthSpan(n: number): [number, number] {
-  const spans = Array.from({ length: 24 }, (_, m) => {
-    const start = addMonths('2023-01-01', m);
-    return daysBetween(start, addMonths(start, n));
-  });
-  return [Math.min(...spans), Math.max(...spans)];
-}
 
 type Verdict = 'yes' | 'maybe' | 'no';
 
@@ -140,7 +128,8 @@ export function evaluateSpain(req: EsRequest): EsResult {
         '长期居留（residencia de larga duración nacional）',
         'Long-term residence (residencia de larga duración nacional)',
       ),
-      status: statusOf(earliest),
+      // Only uncertain readings reach a date: unknown, not unmet.
+      status: !earliest && possible ? 'UNKNOWN' : statusOf(earliest),
       earliestDate: earliest,
       summary:
         (earliest === sim
