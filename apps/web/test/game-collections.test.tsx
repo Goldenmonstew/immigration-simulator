@@ -17,7 +17,7 @@ import { Inventory, LifeCollection } from '../app/game/life-overlays';
 import { Ending, LifeMemories } from '../app/game/game-view';
 import { endingMemories } from '../app/game/session';
 import { LocaleContext } from '../i18n/locale';
-import { t } from '../i18n';
+import { t, withCount } from '../i18n';
 
 vi.mock('react', { spy: true });
 afterEach(() => vi.restoreAllMocks());
@@ -54,9 +54,11 @@ test.each(['zh-CN', 'en'] as const)(
     expect(html).not.toContain('fish.png');
     expect(html).not.toContain('meal.png');
     expect(html).toContain(
-      t('game.collectionHarvests', locale)
-        .replace('{count}', '0')
-        .replace('{kinds}', '0'),
+      withCount(
+        withCount(t('game.collectionHarvests', locale), 'count', 0),
+        'kinds',
+        0,
+      ),
     );
     expect(render(<LifeMemories state={state} />, locale)).toBe('');
     expect(state).toEqual(before);

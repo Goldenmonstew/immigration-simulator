@@ -666,7 +666,7 @@ const events: GameEvent[] = [
         ],
         note: t(
           'SRC-025 KoLL 2.2(c)(ii)：本情节记录通过的 B2 英语证明。',
-          'SRC-025 KoLL 2.2(c)(ii): this scenario records passed B2 English evidence.',
+          'SRC-025 KoLL 2.2(c)(ii): this scenario records evidence that you passed a B2 English test.',
         ),
       },
       {
@@ -678,7 +678,7 @@ const events: GameEvent[] = [
         ],
         note: t(
           'SRC-025 KoLL 2.2(c)(ii)：本情节记录通过的 B2 英语证明。',
-          'SRC-025 KoLL 2.2(c)(ii): this scenario records passed B2 English evidence.',
+          'SRC-025 KoLL 2.2(c)(ii): this scenario records evidence that you passed a B2 English test.',
         ),
       },
     ],
@@ -1079,7 +1079,7 @@ const events: GameEvent[] = [
     title: t('冲动的一刻', 'A moment of impulse'),
     text: t(
       '争执后又一次碰面，你听见自己攥紧钥匙的声音。',
-      'They meet again after the argument. You hear the keys tightening in your hand.',
+      'You run into each other again after the argument. You hear your keys clink as you grip them tighter.',
     ),
     weight: 4,
     once: true,
@@ -1258,7 +1258,7 @@ const events: GameEvent[] = [
     title: t('房租信上的新数字', 'A new number in the rent letter'),
     text: t(
       '房东的邮件比平时客气，你看到最后一行才明白原因。',
-      'The landlord’s email is unusually polite. You reache the final line and understands why.',
+      'The landlord’s email is unusually polite. You reach the final line and understand why.',
     ),
     weight: 3,
     once: true,
@@ -1587,7 +1587,7 @@ const events: GameEvent[] = [
     title: t('周末班表', 'The weekend rota'),
     text: t(
       '班表上终于排到同一天休息，天气预报却说有雨。',
-      'The rota finally gives them the same day off, but the forecast promises rain.',
+      'The rota finally gives you and Jamie the same day off, but the forecast promises rain.',
     ),
     weight: 2,
     once: true,
@@ -2182,7 +2182,7 @@ const events: GameEvent[] = [
     title: t('慢半拍的笑声', 'Laughter a beat late'),
     text: t(
       '同事讲完笑话，你走到咖啡机旁才懂，结果对着空杯子笑出声。',
-      'You get a colleague’s joke only at the coffee machine and ends up laughing into an empty cup.',
+      'You get a colleague’s joke only at the coffee machine and end up laughing into an empty cup.',
     ),
     weight: 2,
     once: true,
@@ -2382,7 +2382,7 @@ const events: GameEvent[] = [
     title: t('帐篷说明书', 'The tent instructions'),
     text: t(
       '营地就在英国海边，两个人研究帐篷说明书时，海鸥先看懂了零食袋。',
-      'At a British seaside campsite, they study the tent instructions while a gull works out the snack bag.',
+      'At a British seaside campsite, you and Jamie study the tent instructions while a gull works out the snack bag.',
     ),
     weight: 2,
     once: true,
@@ -2566,7 +2566,7 @@ const events: GameEvent[] = [
     title: t('家里的一通电话', 'A call from home'),
     text: t(
       '家里来电话，你披着毯子坐到窗边。',
-      'A call comes from home. You wrap a blanket around yourself and sits by the window.',
+      'A call comes from home. You wrap a blanket around yourself and sit by the window.',
     ),
     weight: 2,
     once: true,
@@ -2628,7 +2628,7 @@ export const familyPartner: Character = {
     title: { zhCN: '厨房里的早晨', en: 'A morning in the kitchen' },
     text: {
       zhCN: '你和杰米住在镇上的租屋，厨房的锅盖还没找到合适的位置。\n许可要保持有效，续签去签证中心；市政厅能看定居还差什么。\n英语和 Life in the UK 考试都在语言学校，课本挨着食谱。\n街角能买菜喝咖啡，池塘边有长椅，社区菜地也能租下一块。',
-      en: 'You share a rented home in town with Jamie. The saucepan lid still has no proper place in the kitchen.\nKeeping permission valid is part of life here: renew at the visa centre, and check what settlement still needs at the town hall.\nEnglish and Life in the UK tests are at the language school. The textbook sits beside the recipes.\nThere is shopping and coffee on the corner, a bench by the pond, and an allotment plot to rent.',
+      en: 'You share a rented home in town with Jamie. The saucepan lid still has no proper place in the kitchen.\nKeeping permission valid is part of life here: renew at the visa centre, and check what you still need to qualify for settlement at the town hall.\nEnglish and Life in the UK tests are at the language school. The textbook sits beside the recipes.\nThere is shopping and coffee on the corner, a bench by the pond, and an allotment plot to rent.',
     },
     weight: 1,
     once: true,

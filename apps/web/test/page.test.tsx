@@ -125,7 +125,7 @@ test.each([
 
 test('previews render rules, assumptions, dates, source links and group order', () => {
   const positive = renderToStaticMarkup(
-    <ResultView result={mockResults['1']} mock />,
+    <ResultView result={mockResults('zh-CN')['1']} mock />,
   );
   expect(positive).toContain(t('result.mock'));
   expect(positive).toContain('SRC-001 p16');
@@ -148,7 +148,7 @@ test('previews render rules, assumptions, dates, source links and group order', 
   expect(sources.length).toBeGreaterThan(0);
   for (const source of sources) expect(source[1]).not.toContain('open');
   const negative = renderToStaticMarkup(
-    <ResultView result={mockResults['2']} mock />,
+    <ResultView result={mockResults('zh-CN')['2']} mock />,
   );
   expect(negative.indexOf('data-status="FAIL"')).toBeLessThan(
     negative.indexOf('data-status="UNKNOWN"'),

@@ -254,7 +254,7 @@ export const esRouteGroup = defineRule(
         (groups.includes('FAMILY_AND_PRIVATE_LIFE')
           ? L(
               `${nameIn(L, routeGroupNames.FAMILY_AND_PRIVATE_LIFE)}路线只能走 10 年或 20 年路径。`,
-              ' Family and Private Life routes can only use the 10 or 20-year pathways.',
+              ' Family and Private Life routes can only use the 10-year or 20-year pathways.',
             )
           : ''),
     };
@@ -460,8 +460,8 @@ export const esResidence = defineRule(
         return {
           status: 'FAIL',
           explanation: L(
-            `当前路线"${rn}"不计入定居，计入的居留为 0。`,
-            `The current route, ${rn}, does not count towards settlement, so the counting residence is 0.`,
+            `当前路线"${rn}"不计入定居，这段时间都不计入。`,
+            `The current route, ${rn}, does not count towards settlement, so no time on it counts.`,
           ),
         };
       }
@@ -560,8 +560,8 @@ export const esResidence = defineRule(
     if (timeline.absences.length > 0) {
       assumptions.push(
         L(
-          `Earned Settlement 的缺席口径未公布，假设沿用现行 Appendix Continuous Residence CR 3.1（任意 ${cl.values.continuousResidenceWindowMonths.value} 个月不超过 ${cl.values.continuousResidenceMaxAbsenceDays.value} 天，出境与入境当日都计入缺席）（PD-054）。`,
-          `How absences count under Earned Settlement has not been published; assumed to follow the current Appendix Continuous Residence CR 3.1 (no more than ${cl.values.continuousResidenceMaxAbsenceDays.value} days in any ${cl.values.continuousResidenceWindowMonths.value}-month period, with the days of departure and return both counted as absence) (PD-054).`,
+          `Earned Settlement 的缺席口径未公布。本模拟沿用现行 Appendix Continuous Residence CR 3.1 的上限（任意 ${cl.values.continuousResidenceWindowMonths.value} 个月不超过 ${cl.values.continuousResidenceMaxAbsenceDays.value} 天），并作为模拟假设把出境与入境当日都计入缺席；Home Office 对现行规则的指引只计在英国境外的整天（SRC-057）（PD-054）。`,
+          `How absences count under Earned Settlement has not been published. The simulator applies the current Appendix Continuous Residence CR 3.1 limit (no more than ${cl.values.continuousResidenceMaxAbsenceDays.value} days in any ${cl.values.continuousResidenceWindowMonths.value}-month period) and, as a modelling assumption, counts both travel dates as absence. Home Office guidance on the current rules counts only whole days spent outside the UK (SRC-057) (PD-054).`,
         ),
       );
     }

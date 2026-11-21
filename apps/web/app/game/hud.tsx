@@ -2,6 +2,7 @@
 
 import { type ReactNode } from 'react';
 import type { RuleSetId } from '@uk-immigration/engine';
+import { withCount } from '../../i18n';
 import { useTranslation } from '../../i18n/locale';
 import { displayedRuleSets } from '../../lib/policy';
 import {
@@ -85,14 +86,11 @@ export function StatusBar({
   const visa = (compact = false) => (
     <span
       className={urgent ? `${styles.urgent} ${styles.visaFlash}` : styles.visa}
-      aria-label={t('game.visa').replace('{count}', String(months))}
+      aria-label={withCount(t('game.visa'), 'count', months)}
       title={urgent ? t('game.visaUrgent') : undefined}
     >
       {compact && <GameIcon name="visa" />}
-      {t(compact ? 'game.visaShort' : 'game.visa').replace(
-        '{count}',
-        String(months),
-      )}
+      {withCount(t(compact ? 'game.visaShort' : 'game.visa'), 'count', months)}
     </span>
   );
   const icons: Record<StatKey, ReactNode> = {

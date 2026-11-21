@@ -54,7 +54,7 @@ export default function ResultPage() {
           // A malformed external scenario must not replace the saved draft.
         }
       } else if (preview === '1' || preview === '2') {
-        setResult(mockResults[preview]);
+        setResult(mockResults(locale)[preview]);
         setMock(true);
       } else {
         const { draft } = draftStorage();

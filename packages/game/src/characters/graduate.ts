@@ -163,8 +163,8 @@ export const graduateRecruitment: GameEvent[] = [
     id: 'graduate-cos',
     title: t('HR 的附件', 'HR’s attachment'),
     text: t(
-      'HR 发来 CoS，岗位和合同也核过了。你把参考号抄进文件夹。',
-      'HR sends the CoS after checking the role and contract. You copy its reference into your folder.',
+      'HR 核过岗位和合同后为你分配 CoS，并发来参考号。你把参考号存进文件夹。',
+      'HR assigns your Certificate of Sponsorship after checking the role and contract, and sends you the reference number. You save it in your folder.',
     ),
     weight: 1,
     channel: 'place:work',
@@ -945,8 +945,8 @@ export const graduateOpening: GameEvent = {
   id: 'opening-graduate',
   title: t('学位袍外的日子', 'Life beyond the gown'),
   text: t(
-    '你刚读完硕士，从宿舍搬来，与梅芙合租，窗外能看见菜地。\nGraduate 许可已拿到。去公司求职，向 HR 问担保与 CoS。\n到期前去签证中心转 Skilled Worker；Graduate 不能续签。\n市政厅看定居，语言学校考英语及 Life in the UK。',
-    'You have finished an MSc in software engineering and moved from halls to share with Maeve, who repairs radios.\nYour Graduate permission has arrived. At Work, apply, interview and ask HR about sponsorship and the CoS.\nBefore expiry, take the papers and fee to the visa centre to switch to Skilled Worker. This Graduate grant cannot be renewed.\nCheck settlement at the town hall. English and Life in the UK tests are at the language school.',
+    '你刚读完硕士，从宿舍搬来，与梅芙合租，窗外能看见菜地。\nGraduate 许可已拿到。去公司求职，向 HR 问担保与担保证书（CoS）。\n到期前去签证中心转 Skilled Worker；Graduate 不能续签。\n市政厅看定居，语言学校考英语及 Life in the UK。',
+    'You have finished an MSc in software engineering and moved from halls to share with Maeve, who repairs radios.\nYour Graduate permission has arrived. At Work, apply, interview and ask HR about sponsorship and a Certificate of Sponsorship (CoS).\nBefore expiry, take the papers and fee to the visa centre to switch to Skilled Worker. This Graduate grant cannot be renewed.\nCheck settlement at the town hall. English and Life in the UK tests are at the language school.',
   ),
   weight: 1,
   once: true,
@@ -977,8 +977,8 @@ export const graduate: Character = {
       `The check uses the CoS salary, a full-time ${weeklyHours}-hour week and the proposed permission until ${graceDays} days after the CoS ends (SW 18.1). The new-entrant option also needs SW 12.2(f) (the most recent permission was as a Graduate) and SW 12.3 (no more than ${newEntrantYears} years of Skilled Worker, Graduate and Tier 2 permission in total once granted). It assumes sponsorship and the other application requirements have been verified.\nApplication first, decision later: a valid in-country application to switch must be made before the Graduate permission expires. If that permission then expires while the application is neither decided nor withdrawn, section 3C of the Immigration Act 1971 extends it (s.3C(1)(c) and (2)(a)); the new Skilled Worker permission starts on the day it is granted.\nSomeone with Student permission can also apply to switch to Skilled Worker in the UK. On the date of application they must meet one of Conditions A, B or C in SW 1.5A, such as having completed the course their CAS was assigned for (or a course covered by ST 27.3). For the new-entrant option, SW 12.2(e) is one way to qualify through Student permission; it has its own course and progress conditions, and SW 12.3 still caps the total years. Nora already has Graduate permission, so this scenario checks SW 12.2(f).`,
     ),
     switched: {
-      zhCN: '你拿到本情景中的 Skilled Worker 许可，把合同和 CoS 收进文件夹；下一次出门，包里多了一份新的有效许可。',
-      en: 'You receive Skilled Worker permission in this scenario and file the contract and CoS. Next time you go out, the bag holds your new permission.',
+      zhCN: '你拿到本情景中的 Skilled Worker 许可，把合同和 CoS 参考号收进文件夹；下一次出门，包里多了一份新的有效许可。',
+      en: 'You receive Skilled Worker permission in this scenario and file the contract and save your CoS reference number. Next time you go out, the bag holds your new permission.',
     },
     overstayed: t(
       '许可到期前没有接上新的有效许可，这段小镇生活在这里结束。\n下一局请留意剩余月数：Graduate 期间去公司求职、核对担保与 CoS，再到签证中心转换。',

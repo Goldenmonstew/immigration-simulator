@@ -83,7 +83,7 @@ test('task 49 / A6#6: a projected date shows the wait and keeps requirements sti
       pathwayYears: 5,
     }),
   );
-  expect(html).toContain('按当前情况最早 2028-01-04');
+  expect(html).toContain('最早可申请日期为 2028-01-04');
   expect(html).toContain('1 年 2 个月');
   expect(html).toContain('ES-EARNINGS-10Y');
   expect(html).toContain('CL-ENGLISH（补填信息）');
@@ -100,7 +100,7 @@ test('task 49 / A6#7: a conditional completion is not shown as the earliest date
   );
   expect(html).toContain('条件满期日 2041-06-01');
   expect(html).toContain('2028-11-01 起可按较短路径重新评估');
-  expect(html).not.toContain('按当前情况最早 2041-06-01');
+  expect(html).not.toContain('最早可申请日期为 2041-06-01');
 });
 
 test.each(['POTENTIALLY_ELIGIBLE', 'LIKELY_NOT_ELIGIBLE'] as const)(

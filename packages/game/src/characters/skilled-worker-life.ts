@@ -241,7 +241,7 @@ policyStories.push(
       title: { zhCN: '文件夹里的最后一页', en: 'The last page in the folder' },
       text: {
         zhCN: `信里提醒你，按旧薪资档申请须在${deadlineInChinese}前递交。你把信夹在最上面，市政厅能看定居还差什么。`,
-        en: `A letter reminds you to apply before ${deadlineInEnglish} to use the old salary rates. You put it on top of the folder. The town hall shows what settlement still needs.`,
+        en: `A letter reminds you to apply before ${deadlineInEnglish} to use the old salary rates. You put it on top of the folder. The town hall shows what you still need to qualify for settlement.`,
       },
       weight: 0,
       once: true,

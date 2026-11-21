@@ -170,13 +170,13 @@ export function LocationMenu({
                 Children.toArray(children).length === 0 &&
                 !(location === 'visa' && graduateNextStep(state)) && (
                   <p role="status">
-                    {location === 'visa'
-                      ? t('game.noVisaActions')
-                      : tooLate
-                        ? t('game.tooLate').replace(
-                            '{time}',
-                            clockTime(place.hours!.closes),
-                          )
+                    {tooLate
+                      ? t('game.tooLate').replace(
+                          '{time}',
+                          clockTime(place.hours!.closes),
+                        )
+                      : location === 'visa'
+                        ? t('game.noVisaActions')
                         : t('game.noActions')}
                   </p>
                 )}

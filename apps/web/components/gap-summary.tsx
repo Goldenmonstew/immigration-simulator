@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useId, useState } from 'react';
 import type { SettlementAssessment } from '@uk-immigration/engine';
+import { withCount } from '../i18n';
 import { useTranslation } from '../i18n/locale';
 import { punct } from '../i18n/punctuation';
 import { firstSentence, gapRules, remainingTime } from '../lib/gap-summary';
@@ -70,9 +71,11 @@ export function GapSummary({
               <li>
                 {t('gap.earliest').replace('{date}', date)}
                 {wait &&
-                  t('gap.wait')
-                    .replace('{years}', String(wait.years))
-                    .replace('{months}', String(wait.months))}
+                  withCount(
+                    withCount(t('gap.wait'), 'years', wait.years),
+                    'months',
+                    wait.months,
+                  )}
               </li>
             )}
             {rules.map((rule, index) => {
