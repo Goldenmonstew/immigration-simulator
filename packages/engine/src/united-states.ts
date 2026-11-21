@@ -417,20 +417,34 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       const opens = addDays(anniversary, -v.conditionsWindowDays.value);
       const closes = addDays(anniversary, -1);
       const form = req.conditional === 'marriage' ? 'I-751' : 'I-829';
-      // Paper filings due on a Saturday, Sunday or federal holiday are on
-      // time the next business day (PM 1 B.6(E); 5 U.S.C. 6103).
-      let paperUntil = closes;
-      while (
-        weekday(paperUntil) === 0 ||
-        weekday(paperUntil) === 6 ||
-        federalHoliday(paperUntil)
-      )
-        paperUntil = addDays(paperUntil, 1);
+      // USCIS takes paper filings only on business days; one due on a
+      // Saturday, Sunday or federal holiday is on time the next business day
+      // (PM 1 B.6(E); 5 U.S.C. 6103).
+      const businessDay = (d: IsoDate) =>
+        weekday(d) !== 0 && weekday(d) !== 6 && !federalHoliday(d);
+      const nextBusinessDay = (d: IsoDate) => {
+        while (!businessDay(d)) d = addDays(d, 1);
+        return d;
+      };
+      const paperUntil = nextBusinessDay(closes);
+      // The I-751 can also be filed online, any day; the I-829 only on paper
+      // (SRC-082).
+      const paperOnly = form === 'I-829';
+      const first = paperOnly ? nextBusinessDay(opens) : opens;
+      const last = paperOnly ? paperUntil : closes;
+      const earliest =
+        sim > last
+          ? undefined
+          : sim <= first
+            ? first
+            : paperOnly
+              ? nextBusinessDay(sim)
+              : sim;
       const status: PilotStatus =
-        sim < opens
-          ? 'FUTURE'
-          : sim <= closes
-            ? 'MET'
+        earliest === sim
+          ? 'MET'
+          : earliest && earliest <= last
+            ? 'FUTURE'
             : sim <= paperUntil
               ? 'UNKNOWN'
               : 'NOT_MET';
@@ -439,27 +453,33 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
         title,
         status,
         earliestDate:
-          status === 'NOT_MET' ? undefined : sim < opens ? opens : sim,
+          status === 'MET' || status === 'FUTURE' ? earliest : undefined,
         summary:
-          status === 'UNKNOWN'
+          (status === 'UNKNOWN'
             ? L(
                 `${form} 的递交期最后一天 ${closes} 是周末或联邦假日：纸质递交在 ${paperUntil} 前送达仍算按时，网上递交不顺延（PD-094）。`,
                 `The last day of the ${form} filing period, ${closes}, is a weekend or federal holiday: a paper filing received by ${paperUntil} is still on time, but online filing is not extended (PD-094).`,
               )
             : status === 'NOT_MET'
               ? L(
-                  `${form} 须在 ${opens} 至 ${closes} 之间递交；此后递交须说明正当理由，未递交的条件身份在 ${anniversary} 终止。`,
-                  `The ${form} had to be filed from ${opens} to ${closes}; filing later needs good cause, and without it conditional status ends on ${anniversary}.`,
+                  `${form} 须在 ${first} 至 ${last} 之间递交；此后递交须说明正当理由，未递交的条件身份在 ${anniversary} 终止。`,
+                  `The ${form} had to be filed from ${first} to ${last}; filing later needs good cause, and without it conditional status ends on ${anniversary}.`,
                 )
               : L(
                   `${form} 的递交期是 ${opens} 至 ${closes}（绿卡两周年 ${anniversary} 前 90 天）。`,
                   `The ${form} filing period is ${opens} to ${closes} (the 90 days before the second anniversary, ${anniversary}).`,
-                ),
+                )) +
+          (paperOnly && status !== 'NOT_MET'
+            ? L(
+                ` I-829 只能邮寄纸质件，USCIS 只在工作日收件：最早 ${first} 送达，最晚 ${paperUntil}。`,
+                ` The I-829 can only be filed on paper, and USCIS receives paper filings on business days only: from ${first} to ${paperUntil}.`,
+              )
+            : ''),
         checks: [
           {
             text: L(
-              `在递交期内（${opens} 至 ${closes}）`,
-              `Within the filing period (${opens} to ${closes})`,
+              `在递交期内（${first} 至 ${last}）`,
+              `Within the filing period (${first} to ${last})`,
             ),
             met: status === 'MET',
             sources: [
@@ -475,6 +495,16 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
                 locator: '5 U.S.C. 6103',
                 url: 'https://uscode.house.gov/us/usc/t5/s6103/',
               },
+              ...(paperOnly
+                ? [
+                    {
+                      srcId: 'SRC-082',
+                      locator:
+                        'I-829 page: Where to File; Forms Available to File Online',
+                      url: 'https://www.uscis.gov/i-829',
+                    },
+                  ]
+                : []),
             ],
           },
         ],
@@ -489,6 +519,14 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
             '递交期最后一天按两周年前一天计，两周年当天能否递交原文未写；最后一天是周末或联邦假日（5 U.S.C. 6103）的，纸质递交按 USCIS 一般规则顺延到下一个工作日，网上递交不顺延；取得永居日为 2 月 29 日的，两周年取 3 月 1 日（PD-094）。',
             'The last day is taken as the day before the second anniversary; whether the anniversary itself counts is not stated. If the last day is a weekend or federal holiday (5 U.S.C. 6103), a paper filing is extended to the next business day under the general USCIS rule, but online filing is not; a 29 February start has its anniversary on 1 March (PD-094).',
           ),
+          ...(paperOnly
+            ? [
+                L(
+                  '投资人的配偶和子女随投资人一并递交 I-829 的，按投资人取得条件身份的日期计算，请填投资人的日期；单独递交的期限本试点不判断（8 CFR 216.6(a)(1)）。',
+                  'A spouse or child included in the investor’s I-829 follows the date the investor became a conditional resident, so enter the investor’s date; this pilot does not work out the period for separate petitions (8 CFR 216.6(a)(1)).',
+                ),
+              ]
+            : []),
         ],
         pendingDetails: ['PD-094'],
       });
@@ -513,8 +551,8 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       summary:
         (yearLong.length
           ? L(
-              `${yearLong.map((t) => `${t.departed} 至 ${t.returned}`).join('、')} 离境满 1 年：除连续行程中途跨过周年的情形（8 CFR 211.3）外，仅凭绿卡不能回美，须有有效的回美证（签发起 2 年内）或申请返美居民签证 SB-1，是否放弃永居要个案判断。`,
-              `Away a year or more (${yearLong.map((t) => `${t.departed} to ${t.returned}`).join(', ')}): unless a continuous journey that set out before the anniversary only arrives after it (8 CFR 211.3), a green card alone cannot be used to return; you need a valid reentry permit (2 years from issue) or a returning resident (SB-1) visa, and whether you abandoned residence is decided case by case.`,
+              `${yearLong.map((t) => `${t.departed} 至 ${t.returned}`).join('、')} 离境满 1 年：除周年前出发、连续行程在周年当天或之后抵达的情形（8 CFR 211.3）外，仅凭绿卡不能回美，须有有效的回美证（签发起 2 年内）或申请返美居民签证 SB-1，是否放弃永居要个案判断。`,
+              `Away a year or more (${yearLong.map((t) => `${t.departed} to ${t.returned}`).join(', ')}): unless a continuous journey that set out before the anniversary arrives on or after it (8 CFR 211.3), a green card alone cannot be used to return; you need a valid reentry permit (2 years from issue) or a returning resident (SB-1) visa, and whether you abandoned residence is decided case by case.`,
             )
           : L(
               '录入的每次离境都不满 1 年：持有效、未过期的绿卡可凭卡回美（条件绿卡过期后，凭取消条件申请的收据可延期使用）。',

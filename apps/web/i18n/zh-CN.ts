@@ -361,7 +361,8 @@ export const zhCN = {
   'us.dateOfBirth': '出生日期',
   'us.greenCard': '绿卡',
   'us.permanentResident': '取得永久居民身份的日期（绿卡上的 Resident Since）',
-  'us.permanentResidentHint': '条件绿卡也填取得条件身份的那天。',
+  'us.permanentResidentHint':
+    '条件绿卡也填取得条件身份的那天；投资条件绿卡的配偶、子女随投资人一并递交 I-829 的，填投资人的日期。',
   'us.conditional': '绿卡类型',
   'us.conditional.none': '一般绿卡',
   'us.conditional.marriage': '婚姻条件绿卡（须递交 I-751）',

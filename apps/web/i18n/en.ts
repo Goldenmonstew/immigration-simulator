@@ -557,7 +557,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.permanentResident':
     'Date you became a permanent resident (Resident Since on the card)',
   'us.permanentResidentHint':
-    'For a conditional green card, enter the date you got conditional status.',
+    'For a conditional green card, enter the date you got conditional status; a spouse or child included in the investor’s I-829 enters the investor’s date.',
   'us.conditional': 'Green card type',
   'us.conditional.none': 'Regular green card',
   'us.conditional.marriage': 'Conditional, based on marriage (file I-751)',

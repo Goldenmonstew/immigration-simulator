@@ -202,6 +202,42 @@ describe('removing conditions, INA 216', () => {
     expect(p.summary).toContain('2027-12-27');
   });
 
+  test('I-829 on paper: business days only', () => {
+    const req = { conditional: 'investor' as const };
+    // Window opens Saturday 2026-08-22: the first business day is Monday.
+    const opens = pathway(
+      {
+        ...req,
+        permanentResident: '2024-11-20',
+        simulationDate: '2026-08-21',
+      },
+      'US-CONDITIONS',
+    );
+    expect(opens.status).toBe('FUTURE');
+    expect(opens.earliestDate).toBe('2026-08-24');
+    // Last day Saturday 2026-11-21: on time by Monday 2026-11-23.
+    const monday = pathway(
+      {
+        ...req,
+        permanentResident: '2024-11-22',
+        simulationDate: '2026-11-23',
+      },
+      'US-CONDITIONS',
+    );
+    expect(monday.status).toBe('MET');
+    expect(monday.assumptions.join(' ')).toContain('216.6');
+    const sunday = pathway(
+      {
+        ...req,
+        permanentResident: '2024-11-22',
+        simulationDate: '2026-11-22',
+      },
+      'US-CONDITIONS',
+    );
+    expect(sunday.status).toBe('FUTURE');
+    expect(sunday.earliestDate).toBe('2026-11-23');
+  });
+
   test('after the anniversary', () => {
     const p = pathway(
       // Last day Sunday 2027-02-28: paper filing until Monday 03-01.
