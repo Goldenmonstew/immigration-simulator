@@ -306,6 +306,49 @@ describe('13.2 Graduate character and engine integration', () => {
     const nextQuarter = clear(completeQuarter(late));
     expect(nextQuarter.ending).toBeUndefined();
     expect(ids(atWork(nextQuarter), 'work')).toContain('graduate-job-search');
+    // task 56 / review40-3 risk: when the permission ends before next
+    // quarter, the hint says there is no later workday to wait for.
+    const ending = (state: GameState): GameState => ({
+      ...state,
+      timeline: {
+        ...state.timeline,
+        episodes: state.timeline.episodes.map((e) =>
+          e.route === 'GRADUATE'
+            ? { ...e, validTo: `${state.date.slice(0, 8)}28` }
+            : e,
+        ),
+      },
+    });
+    const lastApplied = graduateNextStep(ending(applied))!;
+    expect(lastApplied.zhCN).toContain('求职来不及推进到拿到 CoS');
+    expect(lastApplied.en).toContain('cannot reach a CoS in time');
+    const lastCos = graduateNextStep(ending(late))!;
+    expect(lastCos.zhCN).toContain('来不及再回公司重谈');
+    expect(lastCos.en).toContain('no time to reopen the salary talk');
+    // review56-1: no contradictory step, and the same on the weekend after
+    // the workday (when today's job search is no longer recorded).
+    expect(lastCos.zhCN).not.toContain('可回公司与 HR 重谈');
+    expect(lastApplied.zhCN).not.toContain('工作日到公司');
+    const weekend = ending({
+      ...late,
+      day: { ...late.day, kind: 'weekend', done: [] },
+    });
+    expect(graduateNextStep(weekend)!.en).toContain(
+      'no time to reopen the salary talk',
+    );
+    // With the workday still unused, the usual next step stands.
+    const fresh = ending({
+      ...late,
+      day: { ...late.day, kind: 'workday', done: [] },
+    });
+    expect(graduateNextStep(fresh)!.zhCN).toContain('可回公司与 HR 重谈');
+    // review56-2: the 60-minute job search still fits at 19:00 but not at
+    // 19:01, when work closes at 20:00.
+    const at = (minute: number) =>
+      graduateNextStep(ending({ ...fresh, day: { ...fresh.day, minute } }))!;
+    expect(at(1140).zhCN).toContain('可回公司与 HR 重谈');
+    expect(at(1141).zhCN).toContain('来不及再回公司重谈');
+    expect(at(1141).en).toContain('no time to reopen the salary talk');
     // review40-2: the switch note states the section 3C trigger and the
     // Student switch conditions in both languages.
     const note = graduate.graduateRoute!.salaryCheckNote;

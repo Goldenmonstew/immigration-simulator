@@ -1253,6 +1253,10 @@
 .outcomeToast {
   font-size: 14px;
 }
+/* .body p resets the top margin; keep the result apart from the buttons. */
+.outcomeToast[role='status'] {
+  margin-top: 18px;
+}
 .travel {
   min-height: 280px;
   padding: 32px 20px;

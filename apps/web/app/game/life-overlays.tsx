@@ -614,19 +614,19 @@ export function Kitchen({ state, onChange }: Change) {
       </div>
     );
   }
+  const hasIngredients = (r: (typeof recipes)[number]) =>
+    Object.entries(r.needs).every(([id, n]) => (state.inventory[id] ?? 0) >= n);
   return (
     <div className={styles.choices}>
       {action.message}
+      {!recipes.some(hasIngredients) && (
+        <p role="status">{t('game.kitchenNoIngredients')}</p>
+      )}
       {recipes.map((r) => (
         <button
           key={r.id}
           className={styles.choice}
-          disabled={
-            state.day.minute + r.minutes > 1440 ||
-            Object.entries(r.needs).some(
-              ([id, n]) => (state.inventory[id] ?? 0) < n,
-            )
-          }
+          disabled={state.day.minute + r.minutes > 1440 || !hasIngredients(r)}
           onClick={() => {
             settled.current = false;
             setDone(false);
@@ -792,11 +792,19 @@ export function Mailbox({ state, onChange }: Change) {
 }
 type FishingPhase =
   'idle' | 'casting' | 'waiting' | 'bite' | 'reeling' | 'win' | 'miss';
+const easyKey = 'uk-immigration-life-fishing-easy';
 export function Fishing({ state, onChange }: Change) {
   const { t } = useTranslation();
   const action = useLifeAction(onChange);
   const [phase, setPhase] = useState<FishingPhase>('idle');
-  const [easy, setEasy] = useState(false);
+  // A per-browser preference, like the sound setting (43 walk).
+  const [easy, setEasy] = useState(() => {
+    try {
+      return localStorage.getItem(easyKey) === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [caught, setCaught] = useState<{ id: string; first: boolean }>();
   const stage = useRef<FishingPhase>('idle');
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -890,7 +898,14 @@ export function Fishing({ state, onChange }: Change) {
         className={styles.secondary}
         aria-pressed={easy}
         disabled={busy}
-        onClick={() => setEasy(!easy)}
+        onClick={() => {
+          setEasy(!easy);
+          try {
+            localStorage.setItem(easyKey, String(!easy));
+          } catch {
+            /* Storage may be unavailable. */
+          }
+        }}
       >
         {easy && <GameIcon name="check" />}
         {t('game.fishEasy')}

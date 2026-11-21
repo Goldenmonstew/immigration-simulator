@@ -147,7 +147,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.visaReminder':
     'Your current permission has {count} month{count:s} left, and no further permission is recorded from the date it expires. Visit the visa centre to see available actions and fees.',
   'game.fastVisaWarning':
-    'Your current permission expires on {date} and no further permission follows it. Fast-forwarding runs past that date to the end of the quarter, so visit the visa centre first.',
+    'Your permission runs continuously until {date}, with no further permission after that. Fast-forwarding runs past that date to the end of the quarter, so visit the visa centre first.',
+  'game.fastVisaWarningNone':
+    'No current permission is recorded. Fast-forwarding runs to the end of the quarter, so visit the visa centre first.',
   'game.missingRules': 'Still needed: {rules}',
   'game.visaVisit': 'Visit the visa centre',
   'game.musicOn': 'Music: on',
@@ -673,6 +675,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.noVisaActions': 'No immigration actions are available here right now.',
   'game.tooLate':
     'There is not enough time to finish before closing at {time}.',
+  'game.tooLateSome':
+    'Some things cannot be finished before closing at {time}; only those that still fit today are listed.',
   'game.openAllDay': 'Open all day',
   'game.minutes': '{count} minutes',
   'game.peopleHere': 'People here',
@@ -714,6 +718,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.kitchenSkip': 'Skip the steps and finish cooking',
   'game.kitchenRecipes': 'Back to recipes',
   'game.kitchenComment': 'A little homemade goodness, just right.',
+  'game.kitchenNoIngredients':
+    'You do not have the ingredients for any dish yet: vegetables come from allotment harvests, and perch from the pond.',
   'game.prepare-dumplings': 'Fold the dumplings and simmer',
   'game.prepare-summer-corn': 'Turn the corn on the grill',
   'game.prepare-turnip-soup': 'Stir the simmering soup',

@@ -374,7 +374,18 @@ export default function GameClient() {
     conversation.current = undefined;
     setFeedback(undefined);
     setImmediateResult(undefined);
-    setFestivalResult(undefined);
+    // A save made while a call interrupts a New Year activity keeps that
+    // activity's result to show after the call (50 review risk). Saves from
+    // before interruptedOutcome show none.
+    const interrupted = next?.pendingEvent && next.interruptedOutcome;
+    setFestivalResult(
+      interrupted &&
+        next.day.festival === 'lunar-new-year' &&
+        (interrupted.actionId === 'festival' ||
+          interrupted.actionId === 'lunar-dumplings')
+        ? interrupted.text
+        : undefined,
+    );
     setReturned(undefined);
     setSummary(undefined);
     setRoutine(undefined);
@@ -815,10 +826,12 @@ export default function GameClient() {
                 {confirmation === 'fast' && visaExpiresThisSeason(current) && (
                   <>
                     <p role="status" className={styles.urgent}>
-                      {t('game.fastVisaWarning').replace(
-                        '{date}',
-                        visaStatus(current).validTo ?? '',
-                      )}
+                      {visaStatus(current).validTo
+                        ? t('game.fastVisaWarning').replace(
+                            '{date}',
+                            visaStatus(current).validTo!,
+                          )
+                        : t('game.fastVisaWarningNone')}
                     </p>
                     <button
                       className={styles.secondary}
@@ -878,11 +891,9 @@ export default function GameClient() {
                       }
                       // Board notices and show results come back as text of
                       // their own; keep the menu open so they can be read.
-                      const ownText =
-                        next.outcome?.kind === 'activity' &&
-                        !activities(current, overlay.id).some(
-                          (a) => a.label.zhCN === next.outcome?.text?.zhCN,
-                        );
+                      const ownText = !activities(current, overlay.id).some(
+                        (a) => a.label.zhCN === next.outcome?.text?.zhCN,
+                      );
                       if (!next.pendingEvent && !ownText) setOverlay(undefined);
                     }}
                     onTalk={(id) => {

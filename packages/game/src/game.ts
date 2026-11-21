@@ -1057,6 +1057,7 @@ export function doActivity(state: GameState, actionId: string): GameState {
   next.log.push(...endingLog);
   next.outcome = {
     kind: action.id.startsWith('travel-') ? 'travel' : 'activity',
+    actionId: action.id,
     text: action.label,
     statDeltas: deltas(state, next),
   };
@@ -1259,7 +1260,20 @@ export function doActivity(state: GameState, actionId: string): GameState {
     };
     return continueTrip(next);
   }
-  return advanceClock(next, action.minutes);
+  const text = next.outcome?.text;
+  const after = advanceClock(next, action.minutes);
+  // A phone call that rings during (or at the end of) this action, on the
+  // same day, holds back its result until the call is resolved (50 /
+  // review56-4, review56-5). Letters, exam results and the next morning do not.
+  const call =
+    !state.pendingEvent &&
+    after.pendingEvent !== undefined &&
+    after.day.date === state.day.date &&
+    state.day.deliveries.some(
+      (d) => d.channel === 'phone' && d.eventId === after.pendingEvent,
+    );
+  if (call && text) after.interruptedOutcome = { actionId: action.id, text };
+  return after;
 }
 export function currentEvent(state: GameState): GameEvent | undefined {
   const event = isOver(state)
@@ -1282,6 +1296,7 @@ export function resolve(state: GameState, choiceId: string): GameState {
     throw new Error(`Choice is not available: ${choiceId}`);
   const next = structuredClone(state);
   delete next.pendingEvent;
+  delete next.interruptedOutcome;
   const previousSalary = episodeAt(state)?.salary;
   const changed = applyEffects(next, choice.effects);
   setFlags(next, choice.sets);

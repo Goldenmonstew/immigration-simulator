@@ -45,6 +45,7 @@ import {
   visibleResidents,
   homeSpot,
   endingMemories,
+  visaExpiresThisSeason,
 } from '../app/game/session';
 import {
   recordMemories,
@@ -1180,6 +1181,27 @@ for (const locale of ['zh-CN', 'en'] as const) {
       expect(h.render().html).not.toContain(feedback);
       expect(h.render().props(TownCanvas).paused).toBe(false);
       h.dispose();
+      // task 56 / 50 review risk: reloading while the call is open still
+      // shows the activity's result after hanging up.
+      const reloaded = await client(call.state, locale);
+      const reloadedCall = reloaded.render().props(EventCard);
+      renderView(() => EventCard(reloadedCall), locale).click(
+        locale === 'en' ? 'Arrange a weekly call' : '约定每周通话',
+      );
+      expect(reloaded.render().html).toContain(feedback);
+      reloaded.dispose();
+      // review56-1 risk: if something else (eating) produced the last
+      // outcome, no stale activity result is shown after the call.
+      // review56-4: an older save without interruptedOutcome shows none.
+      const oldSave = structuredClone(call.state);
+      delete oldSave.interruptedOutcome;
+      const old = await client(oldSave, locale);
+      const oldCall = old.render().props(EventCard);
+      renderView(() => EventCard(oldCall), locale).click(
+        locale === 'en' ? 'Arrange a weekly call' : '约定每周通话',
+      );
+      expect(old.render().html).not.toContain(feedback);
+      old.dispose();
     },
   );
 }
@@ -2027,7 +2049,8 @@ test('tea, biscuits, flowers, cake, all fish and cooked meals use distinct real 
       new URL(`../public${itemIcon(id)}`, import.meta.url),
     );
     if (itemIcon(id).endsWith('.svg')) {
-      expect(png.toString()).toContain('viewBox="0 0 32 24"');
+      // A 32×24 canvas; the x origin may shift to centre the art.
+      expect(png.toString()).toMatch(/viewBox="-?\d+ 0 32 24"/);
       expect(png.toString()).toContain('shape-rendering="crispEdges"');
       expect(png.toString()).not.toMatch(/<image|<script|href=/);
     } else
@@ -2940,5 +2963,81 @@ test.each(['early', 'timeout', 'unmount'] as const)(
     if (caseName !== 'unmount')
       expect(h.render().html).toContain(t('game.fishMiss'));
     h.dispose();
+  },
+);
+
+test('task 56 / 43 walk: the kitchen says where ingredients come from, and fishing remembers easy mode', () => {
+  const state = at(600, 'home');
+  state.inventory = {};
+  const kitchen = () => renderView(() => Kitchen({ state, onChange: vi.fn() }));
+  expect(kitchen().html).toContain(t('game.kitchenNoIngredients'));
+  // review56-1: one ingredient short of every recipe still says so.
+  state.inventory = { perch: 1, turnip: 1 };
+  expect(kitchen().html).toContain(t('game.kitchenNoIngredients'));
+  state.inventory.potato = 1;
+  expect(kitchen().html).not.toContain(t('game.kitchenNoIngredients'));
+
+  const pond = at(600, 'pond');
+  const first = harness(() => Fishing({ state: pond, onChange: vi.fn() }));
+  expect(first.render().html).toContain(t('game.fishHint'));
+  first.render().click(t('game.fishEasy'));
+  expect(first.render().html).toContain(t('game.fishEasyHint'));
+  expect(storage.get('uk-immigration-life-fishing-easy')).toBe('true');
+  first.dispose();
+  // Reopened: still in easy mode.
+  expect(
+    renderView(() => Fishing({ state: pond, onChange: vi.fn() })).html,
+  ).toContain(t('game.fishEasyHint'));
+});
+
+test('task 56 / review40-1 risk: fast-forward warns when the adjoining renewal also ends this season, and without permission', async () => {
+  const state = at(600, 'home', 'en');
+  state.date = '2024-04-15';
+  const base = state.timeline.episodes[0];
+  state.timeline.episodes = [
+    { ...base, validFrom: '2024-01-01', validTo: '2024-05-14' },
+    { ...base, validFrom: '2024-05-15', validTo: '2024-06-30' },
+  ];
+  expect(visaExpiresThisSeason(state)).toBe(true);
+  state.timeline.episodes[1].validTo = '2027-06-30';
+  expect(visaExpiresThisSeason(state)).toBe(false);
+  // A restored save with no current permission names no empty date.
+  state.timeline.episodes = [];
+  const h = await client(state, 'en');
+  h.render().click(t('game.fastForward', 'en'));
+  expect(h.render().html).toContain(t('game.fastVisaWarningNone', 'en'));
+  h.dispose();
+});
+
+test.each(['zh-CN', 'en'] as const)(
+  'task 56 / review34-2 risk: a place says when some actions no longer fit before closing in %s',
+  (locale) => {
+    const state = core.newGame('graduate', 17, locale);
+    delete state.pendingEvent;
+    state.eventQueue = [];
+    state.flags.push(
+      'graduate-applied',
+      'graduate-interviewed',
+      'graduate-sponsor-confirmed',
+      'graduate-offer-reviewed',
+      'graduate-cos-ready',
+    );
+    state.day.place = 'visa';
+    const ids = (minute: number) =>
+      core
+        .activities({ ...state, day: { ...state.day, minute } }, 'visa')
+        .map((a) => a.id);
+    expect(ids(600)).toEqual(
+      expect.arrayContaining(['graduate-check-offer', 'graduate-switch']),
+    );
+    expect(ids(1141)).toEqual(['graduate-check-offer']);
+    state.day.minute = 1141;
+    const html = renderView(
+      () => LocationMenu({ state, location: 'visa', onChange: vi.fn() }),
+      locale,
+    ).html;
+    expect(html).toContain(
+      t('game.tooLateSome', locale).replace('{time}', '20:00'),
+    );
   },
 );
