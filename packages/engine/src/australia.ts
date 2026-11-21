@@ -201,7 +201,7 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     const next = sorted
       .slice(n + 1)
       .find((o) => BRIDGING.has(x.subclass) || !BRIDGING.has(o.subclass));
-    let to =
+    const to =
       next && (!x.to || next.from <= x.to) ? addDays(next.from, -1) : x.to;
     // s82(5)–(6): a 5-year travel facility ends the visa if you are outside
     // Australia when it runs out, or when you leave after it.
@@ -213,18 +213,14 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         .filter((d) => d >= after)
         .sort()[0];
       const ends = !inAustraliaAtEnd(last) ? last : left;
-      if (ends && (!to || ends < to)) to = ends;
+      if (ends && (!to || ends <= to)) return { ...x, to: ends, ceased: ends };
     }
-    const continued =
-      !!next &&
-      PERMANENT.has(x.subclass) &&
-      PERMANENT.has(next.subclass) &&
-      to === addDays(next.from, -1);
-    return { ...x, to, continued };
+    return { ...x, to, ceased: undefined };
   });
   const permanent = flags();
-  // Held since before the day, so also before leaving that day.
-  const permanentSince = flags();
+  // The day a permanent visa ended on leaving (s82(5)–(6)): not a permanent
+  // resident for the rest of that day.
+  const ceased = flags();
   const temporary = flags();
   const visa = flags();
   const trtVisa = flags();
@@ -233,12 +229,7 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     days.mark(visa, x.from, x.to);
     if (PERMANENT.has(x.subclass)) {
       days.mark(permanent, x.from, x.to);
-      days.mark(permanentSince, addDays(x.from, 1), x.to);
-      // A permanent visa replaced by another carries into its first day.
-      if (x.continued && x.to) {
-        const next = addDays(x.to, 1);
-        days.mark(permanentSince, next, next);
-      }
+      if (x.ceased) days.mark(ceased, x.ceased, x.ceased);
     } else days.mark(temporary, x.from, x.to);
     // 186.226(1)(d): a bridging visa for a 457, 482, 186 or 187 application
     // counts when the last substantive visa was a 457 or 482.
@@ -251,21 +242,28 @@ export function evaluateAustralia(req: AuRequest): AuResult {
       days.mark(trtVisa, x.from, x.to);
     if (!BRIDGING.has(x.subclass)) lastSubstantive = x.subclass;
   }
-  // With dates only, a permanent visa starting on a departure day may have
-  // come after leaving, so that day does not count as held.
-  const permanentAllDay = (i: number) =>
-    departing[i] ? permanentSince[i] : permanent[i];
+  // With dates only, a visa starting on a departure day may have come after
+  // leaving: while in Australia that day, the visas of the day before apply.
+  const beforeLeaving = (held: boolean[], i: number) =>
+    departing[i] && i > 0 ? held[i - 1] : held[i];
   // Citizenship Act s5(1)(a)–(b): outside Australia, a permanent visa makes
   // you a permanent resident only if you held one when you last left.
   const resident = flags();
   let leftAsResident = arrived(0) && permanent[0];
   for (let i = 0; i < days.count; i++) {
-    if (present(i)) leftAsResident = resident[i] = permanentAllDay(i);
-    else resident[i] = permanent[i] && leftAsResident;
+    if (present(i)) {
+      leftAsResident = beforeLeaving(permanent, i);
+      resident[i] = leftAsResident && !ceased[i];
+    } else resident[i] = permanent[i] && leftAsResident;
   }
   const sums = {
     // 155.212(2)(b): days also on a temporary or bridging visa do not count.
-    rrv: days.sums((i) => permanentAllDay(i) && !temporary[i] && present(i)),
+    rrv: days.sums(
+      (i) =>
+        beforeLeaving(permanent, i) &&
+        !beforeLeaving(temporary, i) &&
+        present(i),
+    ),
     unlawful: days.sums((i) => present(i) && !visa[i]),
     notResident: days.sums((i) => !resident[i]),
     away: days.sums((i) => away[i]),
@@ -466,8 +464,8 @@ export function evaluateAustralia(req: AuRequest): AuResult {
             )
           : !earliest
             ? L(
-                `时间条件到 ${reached} 才满足，届时已满 45 岁（${birthday45}）；只有文书列明的豁免类别可以申请。`,
-                `The time requirements are only met on ${reached}, after you turn 45 on ${birthday45}; only exempt classes in a legislative instrument can apply.`,
+                `${work ? '时间条件' : '持签时长'}到 ${reached} 才满足，届时已满 45 岁（${birthday45}）；只有文书列明的豁免类别可以申请。`,
+                `The ${work ? 'time' : 'visa'} requirements are only met on ${reached}, after you turn 45 on ${birthday45}; only exempt classes in a legislative instrument can apply.`,
               )
             : !work
               ? L(

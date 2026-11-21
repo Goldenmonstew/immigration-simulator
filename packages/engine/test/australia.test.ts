@@ -238,6 +238,19 @@ describe('subclass 186 TRT (186.221, 186.226, 186.227)', () => {
     expect(p.summary).not.toContain('出境');
   });
 
+  test('without confirmed work, the age message speaks of visa time only', () => {
+    const p = pathway(
+      {
+        dateOfBirth: '1982-01-01',
+        firstArrival: undefined,
+        visas: [{ subclass: '482', from: '2025-06-01' }],
+      },
+      'AU-186-TRT',
+    );
+    expect(p.status).toBe('NOT_MET');
+    expect(p.summary).toContain('持签时长到 2027-06-01');
+  });
+
   test('not confirming full-time sponsored work leaves it unknown', () => {
     const p = pathway(
       { visas: [{ subclass: '482', from: '2025-06-01' }] },
@@ -478,6 +491,24 @@ describe('Resident Return visa (155.212(2))', () => {
     expect(p.status).toBe('FUTURE');
   });
 
+  test('a bridging visa held while leaving still counts against the RRV', () => {
+    const p = pathway(
+      {
+        simulationDate: '2025-07-02',
+        firstArrival: '2023-07-02',
+        visas: [
+          { subclass: '189', from: '2023-07-02' },
+          { subclass: 'bridging', from: '2025-06-30' },
+          { subclass: '155', from: '2025-07-01' },
+        ],
+        trips: [{ departed: '2025-07-01', returned: '2025-07-02' }],
+      },
+      'AU-RRV',
+    );
+    expect(p.checks[0].text).toContain('729');
+    expect(p.earliestDate).toBe('2025-07-03');
+  });
+
   test('no permanent visa', () => {
     expect(
       pathway({ visas: [{ subclass: '482', from: '2024-01-01' }] }, 'AU-RRV')
@@ -667,6 +698,39 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
       trips: [{ departed: '2025-07-01', returned: '2025-07-15' }],
     };
     expect(pathway(request, 'AU-CITIZENSHIP').status).toBe('MET');
+  });
+
+  test('a permanent visa that ends on leaving breaks residence that day', () => {
+    const p = pathway(
+      {
+        simulationDate: '2025-03-10',
+        firstArrival: '2019-01-01',
+        visas: [
+          { subclass: '189', from: '2019-01-01' },
+          { subclass: '155', from: '2025-03-02' },
+        ],
+        trips: [{ departed: '2025-03-01', returned: '2025-03-10' }],
+      },
+      'AU-CITIZENSHIP',
+    );
+    expect(p.earliestDate).toBe('2026-03-02');
+  });
+
+  test('two permanent visas granted abroad on the departure day', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-07-01',
+        firstArrival: '2020-01-01',
+        visas: [
+          { subclass: 'other-temporary', from: '2020-01-01', to: '2025-06-30' },
+          { subclass: '100', from: '2025-07-01' },
+          { subclass: '155', from: '2025-07-01' },
+        ],
+        trips: [{ departed: '2025-07-01', returned: '2025-07-02' }],
+      },
+      'AU-CITIZENSHIP',
+    );
+    expect(p.earliestDate).toBe('2026-07-02');
   });
 
   test('visas starting the same day follow the order entered', () => {

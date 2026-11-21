@@ -473,7 +473,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Date you first arrived in Australia (leave blank if you have not arrived yet)',
   'au.visas': 'Your visas',
   'au.visasHint':
-    'Enter each visa in date order, including bridging visas; leave out ETAs, special purpose visas and maritime crew visas. The start date is the day it came into effect. A new visa ends the old one (Migration Act s82), so you can leave the end date blank for an old visa or one still in effect; for visas starting on the same day, the later row replaces the earlier one.',
+    'Enter each visa in date order, including bridging visas; leave out ETAs, special purpose visas and maritime crew visas. The start date is the day it came into effect. A new substantive visa ends the visas before it; a new bridging visa ends only an earlier bridging visa, not a substantive one (Migration Act s82). You can leave the end date blank for a visa that was ended this way or is still in effect; visas starting on the same day are taken in the order entered.',
   'au.visa': 'Visa {n}',
   'au.subclass': 'Visa subclass',
   'au.from': 'Start date',

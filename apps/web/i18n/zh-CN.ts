@@ -285,7 +285,7 @@ export const zhCN = {
   'au.firstArrival': '首次入境澳洲的日期（还没入境可留空）',
   'au.visas': '签证记录',
   'au.visasHint':
-    '按时间顺序填写每一份签证，包括 bridging visa；不用填 ETA、特殊目的签证或船员签证。生效日填签证开始有效的那天。新签证生效时旧签证即终止（Migration Act s82），旧签证和仍有效的签证到期日都可以留空；同一天生效的签证，按填写顺序后者取代前者。',
+    '按时间顺序填写每一份签证，包括 bridging visa；不用填 ETA、特殊目的签证或船员签证。生效日填签证开始有效的那天。新的实质签证生效时，之前的签证即终止；新的 bridging visa 只终止之前的 bridging visa，不终止实质签证（Migration Act s82）。被终止的旧签证和仍有效的签证，到期日都可以留空；同一天生效的签证按填写顺序处理。',
   'au.visa': '签证 {n}',
   'au.subclass': '签证类别',
   'au.from': '生效日',
