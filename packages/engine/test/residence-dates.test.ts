@@ -1206,3 +1206,41 @@ test('review33a-5 #2 a recorded Skilled Worker renewal keeps the residence forec
     'LIKELY_ELIGIBLE',
   );
 });
+
+test('review33c-1 #1–#3 a previous UK Ancestry grant: early switch, a known return and its own English', () => {
+  // #1 A switch before the recorded expiry ends the UK Ancestry grant.
+  const early = {
+    episodes: [
+      permit('2021-09-01', { route: 'UK_ANCESTRY', validTo: '2026-12-01' }),
+      permit('2026-10-01', { route: 'STUDENT' }),
+    ],
+  };
+  const switched = current(early, '2026-11-04');
+  expect(switched.outcome).toBe('LIKELY_ELIGIBLE');
+  expect(switched.decidedBy).toContain('CL-ANCESTRY-RESIDENCE-5Y');
+
+  // #2 Abroad on the day with a declared return: file on the return date.
+  const episodes = [
+    permit('2019-06-01', { route: 'UK_ANCESTRY', validTo: '2024-06-01' }),
+    permit('2024-06-02', { route: 'STUDENT' }),
+  ];
+  const away = current(
+    { episodes, absences: [{ from: '2026-11-01', to: '2026-11-10' }] },
+    '2026-11-04',
+  );
+  expect(away.earliestDate).toBe('2026-11-10');
+  expect(away.decidedBy).toContain('CL-ANCESTRY-RESIDENCE-5Y');
+
+  // #3 Held back by UKA 15.1 English while on Skilled Worker.
+  const noEnglish = current(
+    {
+      episodes: [episodes[0], permit('2024-06-02')],
+      english: undefined,
+    },
+    '2026-11-04',
+  );
+  expect(noEnglish.decidedBy ?? []).not.toContain('CL-ANCESTRY-RESIDENCE-5Y');
+  expect(noEnglish.assumptions).toContainEqual(
+    expect.stringContaining('按此前的 UK Ancestry 许可定居时'),
+  );
+});

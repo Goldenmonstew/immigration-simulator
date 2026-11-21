@@ -109,7 +109,7 @@ export function timelineAtFiling(
 }
 
 /** Between consecutive grant boundaries episodeOn selects the same permission. */
-function effectivePeriods(timeline: PersonTimeline) {
+export function effectivePeriods(timeline: PersonTimeline) {
   const changes = permissionChanges(timeline);
   return changes.flatMap((from, i) => {
     const permission = episodeOn(timeline, from);
@@ -512,7 +512,13 @@ export function currentResidence(
   if (ancestryExpiry) {
     const run = runAt(ancestryExpiry);
     if (!run.episodes.length) return undefined;
-    const result = asOf(run, ancestryExpiry, application);
+    // The residence is fixed at the expiry; the filing can wait for a
+    // declared return to the UK (UKA 10.2(d)).
+    const applied = checkLocation
+      ? nextKnownApplicationDate(timeline, application)
+      : application;
+    if (!applied) return undefined;
+    const result = asOf(run, ancestryExpiry, applied);
     return result.completion <= ancestryExpiry ? result : undefined;
   }
   const run = runAt(application);

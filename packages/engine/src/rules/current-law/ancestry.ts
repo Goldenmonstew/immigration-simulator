@@ -1,5 +1,5 @@
 import { currentLaw2026_11 as cl } from '@uk-immigration/policy-data';
-import { currentResidence, episodeOn } from '../../residence';
+import { currentResidence, effectivePeriods, episodeOn } from '../../residence';
 import type { CurrentResidence } from '../../residence';
 import { defineRule, textFor } from '../../rule';
 import type { ImmigrationEpisode, RuleContext } from '../../types';
@@ -11,7 +11,6 @@ import {
   RULE_SET,
   absenceAssumption,
   applicationPresence,
-  lastPermissionBefore,
 } from './shared';
 
 const isAncestry = (e: ImmigrationEpisode) =>
@@ -28,16 +27,14 @@ export function ukAncestryResidence({
   const current = episodeOn(timeline, simulationDate);
   if (!current) return undefined;
   const onAncestry = isAncestry(current);
-  const lastAncestry = onAncestry
+  // A switch before the recorded expiry replaces the UK Ancestry grant, so
+  // CR 1.1(d) uses the last day it was the effective permission.
+  const lastAncestryEnd = onAncestry
     ? undefined
-    : lastPermissionBefore(
-        timeline.episodes.filter(isAncestry),
-        simulationDate,
-      );
-  if (
-    !onAncestry &&
-    (!lastAncestry || lastAncestry.validTo >= simulationDate)
-  ) {
+    : effectivePeriods(timeline)
+        .filter((p) => isAncestry(p.permission) && p.from < simulationDate)
+        .at(-1)?.to;
+  if (!onAncestry && (!lastAncestryEnd || lastAncestryEnd >= simulationDate)) {
     return undefined;
   }
   return currentResidence(
@@ -45,7 +42,7 @@ export function ukAncestryResidence({
     simulationDate,
     isAncestry,
     cl.values.ukAncestryQualifyingYears.value,
-    { ancestryExpiry: lastAncestry?.validTo },
+    { ancestryExpiry: lastAncestryEnd },
   );
 }
 

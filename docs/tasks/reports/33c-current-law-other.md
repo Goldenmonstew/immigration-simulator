@@ -10,6 +10,14 @@
 
 合并后 56 个黄金案例相对 33b 只有 `CL-INNOVATOR-FOUNDER-THREE-YEARS` 不同，与 33c 自身的结果一致（背书机构未申报，INNF 17.5）。
 
+**审核 `review33c-1` 的修正（Fable）**：
+1. UK Ancestry 在录入到期日前转签时，CR 1.1(d) 按 UK Ancestry 实际有效的最后一天倒算（新许可替代旧许可，见 SRC-059），不再漏掉已完成的合格期（SRC-008 CR 1.1(d)，SRC-026 UKA 13.1–14.1）。
+2. 历史 UK Ancestry 已满期、当天在境外但已申报返英日时，按返英日递交，并在该日按 UKA 15.1–16.1 重算英语与 Life in the UK（UKA 10.2(d)）。
+3. 历史 UK Ancestry 因本路线的英语或 Life in the UK 未通过而未入选时，结果写明缺项。
+4. 已到期的最后一次保护许可仍可评估（STP 1.3），但申请日须在英国（SRC-023 STP 1.2(c)），位置判断并入统一的 `currentLawApplicationPresence`。
+
+两条新回归在修正前均失败、修正后通过；黄金案例无变化。风险项（HK 59.1(b) 时间线与定居申报冲突；保护路线境外时不推算返英日）留作后续。
+
 
 ## 1. 做了什么
 

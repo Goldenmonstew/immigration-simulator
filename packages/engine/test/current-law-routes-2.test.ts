@@ -663,3 +663,20 @@ describe('Private Life (SRC-028)', () => {
     ).toContain('PL 16.1(b)');
   });
 });
+
+test('review33c-1 #4 an expired protection grant still needs the applicant in the UK on the date of application (STP 1.2(c))', () => {
+  const expired = {
+    episodes: [on('CORE_PROTECTION', '2021-03-01', { validTo: '2026-03-01' })],
+  };
+  const date = '2026-03-02';
+  expect(currentLaw(expired, date).outcome).toBe('LIKELY_ELIGIBLE');
+  const abroad = currentLaw(
+    { ...expired, absences: [{ from: '2026-02-20', to: '2026-03-10' }] },
+    date,
+  );
+  expect(abroad.outcome).not.toBe('LIKELY_ELIGIBLE');
+  expect(abroad.rules[0].sources).toContainEqual({
+    srcId: 'SRC-023',
+    locator: 'STP 1.2(c)',
+  });
+});
