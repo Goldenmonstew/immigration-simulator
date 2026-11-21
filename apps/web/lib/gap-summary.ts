@@ -1,12 +1,46 @@
 import type { SettlementAssessment } from '@uk-immigration/engine';
 
+// A future date does not mean only waiting: requirements still to be
+// confirmed on the pathway stay listed (task 31 A6#6).
 export function gapRules(assessment: SettlementAssessment) {
-  const onlyFailures =
-    assessment.outcome === 'LIKELY_NOT_ELIGIBLE' && !!assessment.earliestDate;
   return assessment.rules.filter(
     (rule) =>
       (!assessment.decidedBy || assessment.decidedBy.includes(rule.id)) &&
-      (rule.status === 'FAIL' || (!onlyFailures && rule.status === 'UNKNOWN')),
+      (rule.status === 'FAIL' || rule.status === 'UNKNOWN'),
+  );
+}
+
+/**
+ * The rule naming the pathway the conclusion rests on: the Earned Settlement
+ * entry (earnings, British connection, public service, transitional
+ * arrangement…), the minimum earnings of the longer pathways or, under
+ * current law, the route's residence rule.
+ */
+export function basisRule(assessment: SettlementAssessment) {
+  const decided = assessment.rules.filter((rule) =>
+    assessment.decidedBy?.includes(rule.id),
+  );
+  return (
+    decided.find((rule) =>
+      /^ES-(EARNINGS-(3Y|5Y)|BRITISH-CONNECTION|PUBLIC-SERVICE|TRANSITIONAL-|HIGHEST-TALENT|PROTECTION-PATHWAY|DEPENDANT)/.test(
+        rule.id,
+      ),
+    ) ??
+    decided.find((rule) => rule.id === 'ES-EARNINGS-10Y') ??
+    decided.find((rule) =>
+      /^CL-.*(RESIDENCE|PARTNER-5Y|-CHILD|DEPENDANT)/.test(rule.id),
+    ) ??
+    decided.find((rule) => rule.id === 'ES-RESIDENCE')
+  );
+}
+
+/** Each shorter candidate pathway and why it was not used (engine). */
+export function shorterPathwaysNotUsed(assessment: SettlementAssessment) {
+  return (assessment.shorterPathwaysNotUsed ?? []).map(
+    ({ ruleIds, ...pathway }) => ({
+      ...pathway,
+      rules: assessment.rules.filter((rule) => ruleIds.includes(rule.id)),
+    }),
   );
 }
 

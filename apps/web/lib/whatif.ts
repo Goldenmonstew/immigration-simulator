@@ -9,7 +9,12 @@ import {
   type CefrLevel,
   earnedSettlement2026_11,
 } from '@uk-immigration/policy-data';
-import { type Draft, draftReducer, visibleIncomeYears } from './questionnaire';
+import {
+  type Draft,
+  draftReducer,
+  validDate,
+  visibleIncomeYears,
+} from './questionnaire';
 
 export const focusControls = {
   english: 'whatif-english',
@@ -74,6 +79,22 @@ export interface WhatIf {
   lifeInTheUk: PersonTimeline['lifeInTheUk'];
   noPublicFunds: boolean;
   noAbsences: boolean;
+  /** One extra trip abroad to try out (playtest #1). */
+  trip?: { from: string; to: string };
+}
+
+/** Both dates filled in, departure first: only then does the trip count. */
+export function validTrip(trip: { from: string; to: string }): boolean {
+  return validDate(trip.from) && validDate(trip.to) && trip.from <= trip.to;
+}
+
+/** Whole days away: travel days do not count (SRC-057, A1#17). */
+export function tripDays(trip: { from: string; to: string }): number {
+  const days =
+    (Date.parse(`${trip.to}T00:00:00Z`) -
+      Date.parse(`${trip.from}T00:00:00Z`)) /
+    86_400_000;
+  return Math.max(0, Math.round(days) - 1);
 }
 
 export function initialWhatIf(draft: Draft, target?: WhatIfTarget): WhatIf {
@@ -150,7 +171,10 @@ export function applyWhatIf(draft: Draft, whatIf: WhatIf): Draft {
       english: whatIf.english,
       lifeInTheUk: whatIf.lifeInTheUk,
       benefits: whatIf.noPublicFunds ? [] : dated.timeline.benefits,
-      absences: whatIf.noAbsences ? [] : dated.timeline.absences,
+      absences: [
+        ...(whatIf.noAbsences ? [] : dated.timeline.absences),
+        ...(whatIf.trip && validTrip(whatIf.trip) ? [whatIf.trip] : []),
+      ],
     },
   };
 }

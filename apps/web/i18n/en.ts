@@ -248,7 +248,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'episodes.immigrationSalaryList':
     'Was the job on the Immigration Salary List for this grant?',
   'episodes.immigrationSalaryListHint':
-    'If unsure, leave this blank. The relevant CoS date, job and UK nation determine list eligibility.',
+    'The Immigration Salary List is a government list of occupations; jobs on it can use a lower salary threshold. Check your SOC code against the version in force when this CoS was issued, including any regional or job conditions in the entry. Leave it blank if unsure: the simulator infers what it can from the SOC code and the list entry and marks the rest as to be confirmed.',
+  'episodes.immigrationSalaryListLink':
+    'See Appendix Immigration Salary List (GOV.UK)',
   'episodes.dependantOf': 'Dependant relationship',
   'episodes.partnerDependant': 'Partner dependant (principal is your partner)',
   'episodes.childDependant': 'Child dependant (principal is your parent)',
@@ -290,7 +292,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'No account or document uploads. Inputs are processed in your browser and drafts are saved on this device. Other people using a shared device may see your draft.',
   'home.disclaimerTitle': 'About this simulator',
   'home.disclaimer':
-    'Based on the information you entered, these rules may be relevant. This simulator provides general policy information and hypothetical scenario modelling. It does not determine your legal immigration status or guarantee the outcome of an application.',
+    'Based on the information you entered, these rules may be relevant. This simulator provides general policy information and hypothetical scenario modelling. It does not determine your legal immigration status, is not immigration or legal advice, and does not guarantee the outcome of an application.',
   'policy.asOf': 'Policy checked as of',
   'policy.LAW': 'Current law',
   'policy.ANNOUNCED': 'Announced reforms',
@@ -305,7 +307,14 @@ export const en: Record<keyof typeof zhCN, string> = {
   'result.jumpTo': 'Jump to {column}',
   'gap.title': 'What is missing',
   'gap.met': 'All modelled requirements are met.',
-  'gap.earliest': 'Based on the current situation, the earliest date is {date}',
+  'gap.earliest':
+    'Based on the current situation, the earliest date is {date} (assuming permission continues without a gap and the other requirements are still met then)',
+  'gap.completion':
+    'The selected pathway completes conditionally on {date}, provided the other requirements are still met then; this is not the earliest application date',
+  'gap.reassess':
+    'If no further counted public funds are received, shorter pathways can be reassessed from {date}',
+  'gap.reassessPrincipal':
+    'This date comes from the principal applicant’s record: if the principal applicant receives no further counted public funds, shorter pathways can be reassessed from {date}',
   'gap.wait':
     ', approximately {years} years and {months} months after the simulation date (rounded up to the next month).',
   'gap.pending': 'Pending government clarification',
@@ -330,6 +339,24 @@ export const en: Record<keyof typeof zhCN, string> = {
   'result.routeGroup': 'Route group',
   'result.years': 'years',
   'result.earliest': 'Earliest possible date',
+  'result.completion': 'Conditional completion date',
+  'result.reassessment': 'Shorter pathways reassessed from',
+  'result.basis': 'Based on the {years}-year pathway ({route})',
+  'result.basisNoRoute': 'Based on the {years}-year pathway',
+  'result.thisPathway': 'Conditions on this pathway',
+  'result.otherPathways': 'Other pathways (shows why they were not used)',
+  'result.shorterBlocked':
+    'Why shorter pathways were not used:',
+  'result.shorterPathway': '{years}-year pathway',
+  'result.shorterPathwayEntry': '{years}-year pathway ({entry})',
+  'result.shorterNotMet': '{pathway} – not met: {rules}',
+  'result.shorterUnconfirmed': '{pathway} – still to be confirmed: {rules}',
+  'result.entry.ES-EARNINGS-3Y': 'earnings',
+  'result.entry.ES-EARNINGS-5Y': 'earnings',
+  'result.entry.ES-BRITISH-CONNECTION': 'British connection',
+  'result.entry.ES-PUBLIC-SERVICE': 'public service occupation',
+  'result.entry.ES-TRANSITIONAL-CARE-WORKER': 'care worker transitional arrangement',
+  'result.entry.ES-TRANSITIONAL-HEALTH-EDUCATION': 'health and education transitional arrangement',
   'result.undetermined': 'Not yet determined',
   'result.why': 'Why',
   'result.FAIL': 'Not met',
@@ -368,6 +395,15 @@ export const en: Record<keyof typeof zhCN, string> = {
   'whatif.incomeSlider': 'Adjust annual earnings with the slider',
   'whatif.noPublicFunds': 'Assume no public funds received before applying',
   'whatif.noAbsences': 'Assume no absences',
+  'whatif.trip': 'Add one more trip abroad',
+  'whatif.tripFrom': 'Departure date',
+  'whatif.tripTo': 'Return date',
+  'whatif.tripDays':
+    '{days} whole days away. Current law counts whole days only, not the departure and return days; the reform column counts both days as a modelling assumption (PD-054).',
+  'whatif.tripIncomplete':
+    'Enter both the departure and return dates for this trip to count.',
+  'whatif.tripInvalid':
+    'The return date is before the departure date, so this trip is not counted.',
   'whatif.reset': 'Reset',
   'whatif.back': 'Back to results',
   'whatif.before': 'Before',
@@ -415,7 +451,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'benefits.notPublicFunds': 'Not public funds',
   'site.language': 'Language',
   'home.disclaimerEnglish':
-    'Based on the information you entered, these rules may be relevant. This simulator provides general policy information and hypothetical scenario modelling. It does not determine your legal immigration status or guarantee the outcome of an application.',
+    'Based on the information you entered, these rules may be relevant. This simulator provides general policy information and hypothetical scenario modelling. It does not determine your legal immigration status, is not immigration or legal advice, and does not guarantee the outcome of an application.',
   'form.title': 'Enter your timeline',
   'form.step': 'Step',
   'form.of': 'of',
@@ -440,20 +476,11 @@ export const en: Record<keyof typeof zhCN, string> = {
   'step.relationships': 'Family relationships',
   'step.english': 'English and Life in the UK',
   'step.date': 'Simulation date',
-  'country.CHN': 'China',
-  'country.HKG': 'Hong Kong',
-  'country.IND': 'India',
-  'country.PAK': 'Pakistan',
-  'country.NGA': 'Nigeria',
-  'country.USA': 'United States',
-  'country.GBR': 'United Kingdom',
-  'country.CAN': 'Canada',
-  'country.AUS': 'Australia',
-  'country.SGP': 'Singapore',
   'basic.dob': 'Date of birth',
   'basic.nationality': 'Nationality',
   'basic.nationalityHint':
-    'Enter a three-letter country code (ISO 3166-1 alpha-3), for example CHN.',
+    'Type a country name in English or Chinese, or its three-letter code (ISO 3166-1 alpha-3), for example China or CHN.',
+  'basic.nationalitySelected': 'Selected: {name} ({code})',
   'screening.criminality':
     'Do you have a criminal record in the UK or overseas?',
   'screening.breach': 'Have you breached immigration rules?',
@@ -540,6 +567,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'episodes.route': 'Visa route',
   'episodes.from': 'Valid from',
   'episodes.to': 'Valid to',
+  'episodes.roleHint':
+    'Choose dependant if this permission was granted as someone else’s dependant, for example the partner or child of a Skilled Worker or Global Talent holder, whether or not you were granted at the same time. Otherwise choose main applicant, for example a Skilled Worker, or a partner of a British citizen or settled person holding a family visa.',
   'episodes.role': 'Applicant role',
   'episodes.MAIN': 'Main applicant',
   'episodes.DEPENDANT': 'Dependant',
@@ -556,6 +585,9 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Enter earnings for the 7 completed UK tax years before the simulation date. Leave unknown amounts blank. Enter 0 for no earnings. All amounts are in GBP.',
   'income.taxYearHint':
     'The UK tax year runs from 6 April to 5 April the following year. Changing the simulation date in the final step updates these years.',
+  'income.simulationDate':
+    'Tax years are listed for the simulation date {date}; change it in the last step.',
+  'income.copyAbove': 'Same as {year}',
   'income.earnings': 'Personal annual earnings',
   'income.partner': 'Partner annual earnings (optional)',
   'income.partnerHint':
@@ -566,7 +598,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'benefits.partnerSpecifiedBenefit':
     "My partner receives a benefit listed in E-LTRP.3.3(a) (such as Carer's Allowance, Personal Independence Payment, Disability Living Allowance or Attendance Allowance)",
   'benefits.hint':
-    'Enter benefits or statutory payments you have received. The rules engine determines whether they count as public funds and their effect. Leave the end date blank if payments are ongoing.',
+    'Enter any benefits or statutory payments received. Public funds are the benefits and services listed in the Immigration Rules, such as Universal Credit, Housing Benefit, Child Benefit and Personal Independence Payment. Statutory payments are paid by employers under the law, such as Statutory Maternity Pay and Statutory Sick Pay, and are not public funds. The reform column uses this definition as a modelling assumption; the final scope and exemptions are still to be set (PD-013). Leave the end date blank if it is still being received.',
   'benefits.item': 'Payment record',
   'benefits.add': 'Add a payment record',
   'benefits.empty': 'No payment records added.',
@@ -593,7 +625,8 @@ export const en: Record<keyof typeof zhCN, string> = {
     'The default is today. You can choose another date. Changing it updates the income years. Check them before viewing your results.',
   'date.reviewIncome': 'Go back to check earnings',
   'error.required': 'Complete this field.',
-  'error.nationality': 'Enter a three-letter country code.',
+  'error.nationality':
+    'Choose a country or territory from the list, or enter its three-letter code from the list.',
   'error.range': 'The end date must not be before the start date.',
   'error.soc': 'Enter a four-digit SOC 2020 occupation code, or leave blank.',
   'game.day': 'Day {day} of 3',

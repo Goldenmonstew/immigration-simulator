@@ -10,6 +10,7 @@ import site from '../../site.module.css';
 import styles from '../form.module.css';
 import type { FormKit } from '../form-kit';
 import { Field } from '../field';
+import { sourceUrls } from '../../../lib/sources';
 
 export function EpisodesStep({ form }: { form: FormKit }) {
   const {
@@ -69,7 +70,11 @@ export function EpisodesStep({ form }: { form: FormKit }) {
               episode.validTo,
               (validTo) => updateEpisode(index, { validTo }),
             )}
-            <Field id={`${prefix}-role`} label={t('episodes.role')}>
+            <Field
+              id={`${prefix}-role`}
+              label={t('episodes.role')}
+              hint={t('episodes.roleHint')}
+            >
               <select
                 id={`${prefix}-role`}
                 value={episode.role}
@@ -460,6 +465,14 @@ export function EpisodesStep({ form }: { form: FormKit }) {
                       <option value="yes">{t('form.yes')}</option>
                       <option value="no">{t('form.no')}</option>
                     </select>
+                    <a
+                      className={styles.hint}
+                      href={sourceUrls['SRC-019']}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {t('episodes.immigrationSalaryListLink')}
+                    </a>
                   </Field>
                 )}
               </>
