@@ -109,6 +109,17 @@ describe('residencia de larga duración nacional (art. 183)', () => {
     expect(at('2027-02-21')).toBe('NOT_MET');
   });
 
+  test('the gap after expiry does not make up missing years', () => {
+    // Under five years when the permit expired on 2026-11-20.
+    const at = (simulationDate: string) =>
+      pathway(
+        { simulationDate, permits: [{ from: '2021-12-15', to: '2026-11-20' }] },
+        'ES-LONG-TERM',
+      ).status;
+    expect(at('2026-11-20')).toBe('NOT_MET');
+    expect(at('2026-12-15')).toBe('NOT_MET');
+  });
+
   test('met on the simulation date', () => {
     const p = pathway({ simulationDate: '2026-11-21' }, 'ES-LONG-TERM');
     expect(p.status).toBe('MET');

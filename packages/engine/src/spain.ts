@@ -88,8 +88,9 @@ export function evaluateSpain(req: EsRequest): EsResult {
   };
   /**
    * Covered from `from` to the day before `d`, or until a permit that expired
-   * at most 3 months before `d` with nothing after it: applying for
-   * long-term residence then extends it (art. 184.2).
+   * at most 3 months before `d` with nothing after it, when the five years
+   * were already complete on its last day: applying for long-term residence
+   * then extends it (art. 184.2).
    */
   const extended = (s: number[], gap: number[], from: IsoDate, d: IsoDate) => {
     const to = addDays(d, -1);
@@ -99,7 +100,8 @@ export function evaluateSpain(req: EsRequest): EsResult {
     const end = days.date(gap[a] - 1);
     return (
       days.total(s, addDays(end, 1), to) === 0 &&
-      d <= addMonths(end, v.longTermLateMonths.value)
+      d <= addMonths(end, v.longTermLateMonths.value) &&
+      covered(s, addYears(addDays(end, 1), -v.longTermYears.value), end)
     );
   };
   /** Trips under way on any day of [from, to], travel days included. */
