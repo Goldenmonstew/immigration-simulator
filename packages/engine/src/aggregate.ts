@@ -4,7 +4,7 @@ import {
   publicFundsBenefits,
 } from '@uk-immigration/policy-data';
 import type { Route, RouteGroup } from '@uk-immigration/policy-data';
-import { addYears } from './dates';
+import { addYears, taxYearsBefore } from './dates';
 import {
   continuousRun,
   episodeOn,
@@ -63,6 +63,7 @@ import {
 } from './rules/es-residence';
 import type {
   IsoDate,
+  PersonTimeline,
   Rule,
   RuleContext,
   RuleId,
@@ -792,11 +793,27 @@ function assessCurrentLaw(
   ];
   const pick = (...ids: string[]) =>
     ids.map((id) => rules.find((r) => r.id === id)!);
+  // A filing in a later tax year needs earnings for a year that had not
+  // ended on the simulation date. Like the permission, the last year asked
+  // for is carried forward (circumstances unchanged; review33a-5).
+  const earningsAtFiling = (timeline: PersonTimeline, date: IsoDate) => {
+    const [asked] = taxYearsBefore(ctx.simulationDate, 1);
+    const [needed] = taxYearsBefore(date, 1);
+    const last = timeline.incomeYears.find((i) => i.taxYear === asked);
+    return needed === asked ||
+      !last ||
+      timeline.incomeYears.some((i) => i.taxYear === needed)
+      ? timeline
+      : {
+          ...timeline,
+          incomeYears: [...timeline.incomeYears, { ...last, taxYear: needed }],
+        };
+  };
   const rulesAtFiling = (ids: RuleId[], date: IsoDate) => {
     const filing = {
       ...ctx,
       simulationDate: date,
-      timeline: timelineAtFiling(ctx.timeline, date),
+      timeline: earningsAtFiling(timelineAtFiling(ctx.timeline, date), date),
     };
     return ids.map((id) =>
       runRule(
@@ -1096,9 +1113,10 @@ function assessCurrentLaw(
                 ? atFiling.map((rule) => languageAt(rule, candidate, date))
                 : atFiling,
           };
-        } else if (ctx.principal && location.status === 'UNKNOWN') {
-          // The joint date was found with the principal. Recheck the
-          // dependant's own English and Life in the UK on that date.
+        } else if (location.status === 'UNKNOWN') {
+          // A dependant's joint date, or a Skilled Worker filing after the
+          // trip that starts today: recheck English and Life in the UK on
+          // that date, which can bring an age exemption (review33b-2).
           checked = {
             ...candidate,
             rules: candidate.rules.map((rule) =>
