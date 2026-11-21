@@ -465,7 +465,9 @@ function finish(state: GameState, ending: EndingId) {
       zhCN: '行李箱合上，小镇留在了车窗后面。你选择离开英国，这局生活到这里收好。',
       en: 'The suitcase closes, and the town slips behind the train window. You chose to leave the UK, ending this game.',
     },
-    overstayed: character.graduateRoute?.overstayed ?? {
+    // After switching, the Graduate advice no longer fits (playtest P2).
+    overstayed: (!state.flags.includes('graduate-switched') &&
+      character.graduateRoute?.overstayed) || {
       zhCN: '许可到期前没有续签上，这段小镇生活在这里结束。\n下一局可以留意顶栏的剩余月数，去签证中心办续签。',
       en: 'Your permission expired before you renewed it, ending this game.\nNext time, watch the months remaining in the top bar and visit the visa centre to renew.',
     },

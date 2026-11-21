@@ -125,7 +125,7 @@ export const zhCN = {
   'game.visaReminder':
     '当前许可剩余 {count} 个月，还没有相接的续签记录。可到签证中心查看当前可用的行动和费用。',
   'game.fastVisaWarning':
-    '当前许可会在本季结束前到期，还没有相接的续签。快进会直接过完这一季，先去签证中心看看吧。',
+    '当前许可 {date} 到期，还没有相接的新许可。快进会直接过完这一季、跨过到期日，先去签证中心看看吧。',
   'game.missingRules': '还差：{rules}',
   'game.visaVisit': '去签证中心',
   'game.musicOn': '音乐：开',

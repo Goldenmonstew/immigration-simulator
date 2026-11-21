@@ -15,7 +15,9 @@ import type { GameState } from '../src';
 import {
   graduateApplicationDate,
   graduateApplication,
+  graduateNextStep,
   graduateSalaries,
+  graduateSalaryPreview,
 } from '../src/graduate-route';
 import { graduate, graduateRecruitment } from '../src/characters/graduate';
 import { graduateHeartEvents } from '../src/characters/graduate-flatmate';
@@ -251,6 +253,89 @@ describe('13.2 Graduate character and engine integration', () => {
     expect(left.timeline.immigrationBreaches).toHaveLength(0);
     expect(fastForward(left)).toEqual(left);
   });
+  test('playtest #7: the job search shows its progress and next step until the switch', () => {
+    const start = newGame('graduate', 17);
+    expect(graduateNextStep(start)?.zhCN).toContain('还没投递');
+    const ready = offer();
+    expect(ready.flags).toContain('graduate-cos-ready');
+    expect(graduateNextStep(ready)?.en).toContain('CoS received');
+    for (const step of [
+      ['graduate-applied', '已投递'],
+      ['graduate-interviewed', '面试已完成'],
+      ['graduate-sponsor-confirmed', '雇主同意担保'],
+      ['graduate-offer-reviewed', 'Certificate of Sponsorship'],
+    ] as const)
+      expect(
+        graduateNextStep({ ...start, flags: [...start.flags, step[0]] })?.zhCN,
+      ).toContain(step[1]);
+    const switched = doActivity(atVisa(ready), 'graduate-switch');
+    expect(graduateNextStep(switched)).toBeUndefined();
+    // review40-1 #3: after today's job search, wait for next quarter's workday.
+    const applied = job(start);
+    expect(applied.day.done).toContain('graduate-job-search');
+    expect(graduateNextStep(applied)?.zhCN).toContain('下一季的工作日');
+    expect(graduateNextStep(applied)?.en).toContain("next quarter's workday");
+    expect(graduateNextStep(start)?.zhCN).not.toContain('下一季');
+    // review40-2 and review40-3: applying a quarter late and keeping the low
+    // offer fails both options on the CoS day. The check is open today, the
+    // salary talk waits for next quarter's workday.
+    let late = job(start, 'later');
+    expect(late.flags).not.toContain('graduate-applied');
+    late = completeQuarter(late);
+    for (let stage = 0; stage < 5; stage++) {
+      late = job(late, stage === 3 ? 'keep' : undefined);
+      if (stage < 4) late = completeQuarter(late);
+    }
+    late = clear(late);
+    expect(late.flags).toContain('graduate-cos-ready');
+    expect(late.day.done).toContain('graduate-job-search');
+    const verdict = graduateApplication(late);
+    expect(verdict.optionA.status).toBe('FAIL');
+    expect(verdict.optionE.status).toBe('FAIL');
+    const hint = graduateNextStep(late)!;
+    expect(hint.zhCN).toContain('今天仍可在签证中心核对');
+    expect(hint.zhCN).toContain('下一季的工作日');
+    expect(hint.en).toContain('check the switch at the visa centre today');
+    expect(hint.en).toContain("next quarter's workday");
+    const ids = (state: GameState, place: 'visa' | 'work') =>
+      activities(state, place).map((action) => action.id);
+    expect(ids(atVisa(late), 'visa')).toContain('graduate-check-offer');
+    const atWork = (state: GameState) =>
+      drain(enter({ ...state, day: { ...state.day, minute: 540 } }, 'work'));
+    expect(ids(atWork(late), 'work')).not.toContain('graduate-job-search');
+    const nextQuarter = clear(completeQuarter(late));
+    expect(nextQuarter.ending).toBeUndefined();
+    expect(ids(atWork(nextQuarter), 'work')).toContain('graduate-job-search');
+    // review40-2: the switch note states the section 3C trigger and the
+    // Student switch conditions in both languages.
+    const note = graduate.graduateRoute!.salaryCheckNote;
+    expect(note.zhCN).toContain('s.3C(1)(c)、(2)(a)');
+    expect(note.en).toContain('s.3C(1)(c) and (2)(a)');
+    expect(note.zhCN).toContain('SW 1.5A 的条件 A、B、C 之一');
+    expect(note.en).toContain('one of Conditions A, B or C in SW 1.5A');
+  });
+
+  test('playtest #8: the offer check gives the verdicts before the premise', () => {
+    const preview = graduateSalaryPreview({ ...offer(), locale: 'zh-CN' });
+    expect(preview.startsWith('标准档')).toBe(true);
+    expect(preview.split('\n')[1]).toMatch(/^新入职者档/);
+  });
+
+  test('playtest #9 and P2: after the switch, job-hunting cards stop and an overstay ends without the Graduate advice', () => {
+    const switched = doActivity(atVisa(offer()), 'graduate-switch');
+    const hunting = graduate.events.filter((event) =>
+      event.forbids?.includes('graduate-switched'),
+    );
+    expect(hunting.map((event) => event.id)).toContain(
+      'graduate-life-cover-letter',
+    );
+    let state = switched;
+    while (!state.ending && state.year < 9)
+      state = completeQuarter(clear(state));
+    expect(state.ending).toBe('overstayed');
+    expect(state.log.at(-1)?.text.zhCN).not.toContain('Graduate');
+  });
+
   test('Graduate counts for Long Residence but does not advance the Skilled Worker clock', () => {
     const state = doActivity(atVisa(offer()), 'graduate-switch');
     const values = currentLaw2026_11.values;

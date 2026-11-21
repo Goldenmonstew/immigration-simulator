@@ -147,7 +147,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.visaReminder':
     'Your current permission has {count} months left, with no adjoining renewal recorded. Visit the visa centre to see available actions and fees.',
   'game.fastVisaWarning':
-    'Your current permission expires before this season ends, with no adjoining renewal. Fast-forward goes through the rest of the season. Visit the visa centre first.',
+    'Your current permission expires on {date} and no further permission follows it. Fast-forwarding runs past that date to the end of the quarter, so visit the visa centre first.',
   'game.missingRules': 'Still needed: {rules}',
   'game.visaVisit': 'Visit the visa centre',
   'game.musicOn': 'Music: on',

@@ -17,6 +17,7 @@ import {
   type Activity,
   type GameState,
   type PlaceId,
+  graduateNextStep,
 } from '@uk-immigration/game';
 import { isPlaceOpen } from './session';
 import styles from './game.module.css';
@@ -150,6 +151,12 @@ export function LocationMenu({
           ) : (
             <>
               {location === 'station' && <p>{t('game.travelRecall')}</p>}
+              {(location === 'work' || location === 'visa') &&
+                graduateNextStep(state) && (
+                  <p role="status">
+                    {localText(graduateNextStep(state)!, locale)}
+                  </p>
+                )}
               {location === 'green' &&
                 festivals
                   .filter((f) => f.id === state.day.festival)
@@ -159,18 +166,20 @@ export function LocationMenu({
                       <p>{localText(f.text, locale)}</p>
                     </section>
                   ))}
-              {!available.length && Children.toArray(children).length === 0 && (
-                <p role="status">
-                  {location === 'visa'
-                    ? t('game.noVisaActions')
-                    : tooLate
-                      ? t('game.tooLate').replace(
-                          '{time}',
-                          clockTime(place.hours!.closes),
-                        )
-                      : t('game.noActions')}
-                </p>
-              )}
+              {!available.length &&
+                Children.toArray(children).length === 0 &&
+                !(location === 'visa' && graduateNextStep(state)) && (
+                  <p role="status">
+                    {location === 'visa'
+                      ? t('game.noVisaActions')
+                      : tooLate
+                        ? t('game.tooLate').replace(
+                            '{time}',
+                            clockTime(place.hours!.closes),
+                          )
+                        : t('game.noActions')}
+                  </p>
+                )}
               <div className={styles.choices}>
                 {available.map((action) => (
                   <div key={action.id}>

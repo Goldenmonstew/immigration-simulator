@@ -140,6 +140,8 @@ describe('v3 content contract', () => {
       'debt-crisis',
       'lina-can-stay',
       'lina-will-leave',
+      // Set by the graduate-switch activity (game.ts).
+      'graduate-switched',
       ...heartEvents.flatMap((event) =>
         event.choices.flatMap((choice) => choice.sets ?? []),
       ),

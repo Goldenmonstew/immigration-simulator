@@ -60,6 +60,7 @@ import {
   type GameSave,
   withGameLocale,
   visaExpiresThisSeason,
+  visaStatus,
   isPlaceOpen,
 } from './session';
 import {
@@ -810,9 +811,23 @@ export default function GameClient() {
                   )}
                 </p>
                 {confirmation === 'fast' && visaExpiresThisSeason(current) && (
-                  <p role="status" className={styles.urgent}>
-                    {t('game.fastVisaWarning')}
-                  </p>
+                  <>
+                    <p role="status" className={styles.urgent}>
+                      {t('game.fastVisaWarning').replace(
+                        '{date}',
+                        visaStatus(current).validTo ?? '',
+                      )}
+                    </p>
+                    <button
+                      className={styles.secondary}
+                      onClick={() => {
+                        setConfirmation(undefined);
+                        walkTo('visa');
+                      }}
+                    >
+                      {t('game.visaVisit')}
+                    </button>
+                  </>
                 )}
                 <div className={styles.buttons}>
                   <button className={styles.button} onClick={beginRoutine}>

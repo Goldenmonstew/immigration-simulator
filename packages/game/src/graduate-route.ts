@@ -96,14 +96,71 @@ export function graduateSalaryPreview(state: GameState): string {
           ? 'not met'
           : 'to be confirmed';
   return [
-    premise,
     chinese
       ? `标准档（SRC-004 SW 4.2 Option A；SRC-017 Table 1）：${verdict(optionA.status)}。${optionA.explanation}`
       : `Standard option (SRC-004 SW 4.2 Option A; SRC-017 Table 1): ${verdict(optionA.status)}. ${optionA.explanation}`,
     chinese
       ? `新入职者档（SRC-004 SW 4.2 Option E、SW 12.1–12.3）：${verdict(optionE.status)}。${optionE.explanation}`
       : `New-entrant option (SRC-004 SW 4.2 Option E, SW 12.1–12.3): ${verdict(optionE.status)}. ${optionE.explanation}`,
+    premise,
   ]
     .map((line) => line.trim())
     .join('\n');
+}
+
+/** Where Nora's job search stands and what to do next (playtest #7). */
+export function graduateNextStep(
+  state: GameState,
+): { zhCN: string; en: string } | undefined {
+  const current = state.timeline.episodes.find(
+    (e) => e.validFrom <= state.date && e.validTo >= state.date,
+  );
+  if (
+    state.characterId !== 'graduate' ||
+    current?.route !== 'GRADUATE' ||
+    state.flags.includes('graduate-switched')
+  )
+    return undefined;
+  const has = (flag: string) => state.flags.includes(flag);
+  const next = has('graduate-cos-ready')
+    ? {
+        zhCN: '求职进度：已拿到 CoS。下一步：在签证中心核对转签条件，符合就转 Skilled Worker；不符合可回公司与 HR 重谈薪资。',
+        en: 'Job search: CoS received. Next: check the switch at the visa centre and switch to Skilled Worker if it is met; if not, reopen the salary talk with HR at work.',
+      }
+    : has('graduate-offer-reviewed')
+      ? {
+          zhCN: '求职进度：合同已核对。下一步：工作日到公司，等 HR 发来 Certificate of Sponsorship（CoS）的参考号。',
+          en: 'Job search: contract checked. Next: on a workday, go to work and wait for HR to send your Certificate of Sponsorship (CoS) reference number.',
+        }
+      : has('graduate-sponsor-confirmed')
+        ? {
+            zhCN: '求职进度：雇主同意担保。下一步：工作日到公司核对合同上的年薪。',
+            en: 'Job search: the employer will sponsor you. Next: on a workday, check the salary in the contract at work.',
+          }
+        : has('graduate-interviewed')
+          ? {
+              zhCN: '求职进度：面试已完成。下一步：工作日到公司问 HR 是否担保。',
+              en: 'Job search: interview done. Next: on a workday, ask HR at work about sponsorship.',
+            }
+          : has('graduate-applied')
+            ? {
+                zhCN: '求职进度：已投递。下一步：工作日到公司参加面试。',
+                en: 'Job search: application sent. Next: on a workday, go to work for the interview.',
+              }
+            : {
+                zhCN: '求职进度：还没投递。下一步：工作日到公司投简历；Graduate 许可不能续签，到期前要递交转 Skilled Worker 的有效申请。',
+                en: 'Job search: nothing sent yet. Next: on a workday, apply for jobs at work; Graduate permission cannot be extended, so make a valid application to switch to Skilled Worker before it expires.',
+              };
+  // Job search (and a salary talk) runs once a day; each quarter has one
+  // workday, so after today's turn it waits for the next quarter.
+  if (!state.day.done.includes('graduate-job-search')) return next;
+  return has('graduate-cos-ready')
+    ? {
+        zhCN: `${next.zhCN}今天仍可在签证中心核对；如需回公司重谈薪资，要等下一季的工作日。`,
+        en: `${next.en} You can still check the switch at the visa centre today; a salary talk at work has to wait for next quarter's workday.`,
+      }
+    : {
+        zhCN: `${next.zhCN}今天已经跑过一次求职，下一季的工作日再去公司。`,
+        en: `${next.en} Today's job search is done; go to work again on next quarter's workday.`,
+      };
 }
