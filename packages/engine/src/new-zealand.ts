@@ -1,5 +1,5 @@
 import { newZealand2026_11 as nz } from '@uk-immigration/policy-data';
-import { addDays, addMonths, addYears } from './dates';
+import { addDays, addYears } from './dates';
 import { Days, HORIZON_YEARS, afterYears } from './pilot';
 import type { PilotPathway, PilotResult, PilotStatus } from './pilot';
 import { textFor } from './rule';
@@ -43,11 +43,13 @@ export type NzResult = PilotResult<NzPathwayId>;
 
 const v = nz.values;
 const INVESTOR = new Set<NzResidentCategory>(['aip-growth', 'aip-balanced']);
+const n = (x: number) => x.toLocaleString('en');
 
 export function evaluateNewZealand(req: NzRequest): NzResult {
   const L = textFor(req);
   const sim = req.simulationDate;
   const granted = req.residentVisa.granted;
+  const category = req.residentVisa.category;
   const prv = req.permanentResidentVisa;
   const days = new Days(
     addDays(addYears(sim, -v.citizenshipWindowYears.value), -1),
@@ -56,9 +58,11 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
   const flags = () => new Array<boolean>(days.count).fill(false);
 
   // Arrival and departure days count as days in New Zealand (RV1.15.5);
-  // `strictAway` counts neither as in New Zealand (PD-086).
+  // `strictAway` counts neither as in New Zealand, the first arrival
+  // included (PD-086).
   const away = flags();
   const strictAway = flags();
+  days.mark(strictAway, req.firstArrival, req.firstArrival);
   for (const trip of req.trips) {
     days.mark(away, addDays(trip.departed, 1), addDays(trip.returned, -1));
     days.mark(strictAway, trip.departed, trip.returned);
@@ -80,13 +84,18 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
     -1,
   );
   const firstEntryOk = !offshoreGrant || firstDay <= firstEntryBy;
-  const travelYears = v.travelYears.value[req.residentVisa.category];
+  const travelYears = v.travelYears.value[category];
   const travelEnd = addDays(afterYears(firstDay, travelYears), -1);
-  // PD-088: a return after the travel conditions without a permanent
-  // resident visa by then.
-  const lateReturn = req.trips
-    .map((trip) => trip.returned)
-    .filter((d) => d > travelEnd && !(prv && prv <= d))
+
+  // RV1.5: the resident visa expires if you are outside New Zealand when the
+  // travel conditions end, or leave after they ended; it expires the next
+  // day (Visa Pak 588). A permanent resident visa by then keeps you a
+  // resident. `lapse` is the first day without the resident visa.
+  const lapse = req.trips
+    .filter((trip) => trip.returned > firstDay && trip.returned > travelEnd)
+    .map((trip) => (trip.departed > travelEnd ? trip.departed : travelEnd))
+    .filter((at) => !(prv && prv <= at))
+    .map((at) => addDays(at, 1))
     .sort()[0];
 
   const resident = (i: number, absent: boolean[]) =>
@@ -105,9 +114,16 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
   };
   const statusOf = (earliest?: IsoDate): PilotStatus =>
     !earliest ? 'NOT_MET' : earliest === sim ? 'MET' : 'FUTURE';
-  // PD-088: no date reached before a late return.
+  // PD-088: what happens once the resident visa has expired is not worked
+  // out, so a date on or after that is unknown.
   const blocked = (earliest?: IsoDate) =>
-    !!lateReturn && (!earliest || earliest >= lateReturn);
+    !!lapse && (!earliest || earliest >= lapse);
+  // Religious Worker visas: a permanent resident visa 5 years after the first
+  // day as a resident (SRC-073), once the s49(1) conditions are met.
+  const religiousFrom =
+    category === 'religious-worker'
+      ? afterYears(firstDay, v.religiousWorkerYears.value)
+      : undefined;
 
   const projection = L(
     '最早日期假设模拟日之后一直在新西兰（已录入的未来出境除外）。',
@@ -121,9 +137,9 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
     `居民签证在境外获批（${granted}），但首次入境（${firstDay}）晚于期限 ${firstEntryBy}；按 R5.66.1，须重新申请居民签证。`,
     `Your resident visa was granted outside New Zealand (${granted}) but your first arrival (${firstDay}) is after the deadline of ${firstEntryBy}; under R5.66.1 you would need to apply for a resident visa again.`,
   );
-  const late = L(
-    `录入的 ${lateReturn} 返回晚于旅行条件（到 ${travelEnd}），那时还没有永久居民签证：须先变更旅行条件（RV3）或拿到永久居民签证；那次返回之后的结果待确认（PD-088）。`,
-    `You return on ${lateReturn}, after your travel conditions end (${travelEnd}), without a permanent resident visa by then: you would first need a variation of travel conditions (RV3) or a permanent resident visa, so results after that return cannot be worked out (PD-088).`,
+  const expired = L(
+    `按录入的行程，旅行条件（到 ${travelEnd}）结束时你在境外或之后才出境，居民签证于 ${lapse} 失效（RV1.5）：须在那之前拿到永久居民签证或变更旅行条件（RV3），失效后只能另行申请；失效之后的结果待确认（PD-088）。`,
+    `With the trips you entered, you are outside New Zealand when your travel conditions end (${travelEnd}) or leave after that, so your resident visa expires on ${lapse} (RV1.5): you need a permanent resident visa or a variation of travel conditions (RV3) before then, and after it expires only a new application is possible. Results after that cannot be worked out (PD-088).`,
   );
   const pathways: NzPathway[] = [];
   const hasPrv = !!prv && prv <= sim;
@@ -131,6 +147,7 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
   // ---------- Travel conditions ----------
   {
     const title = L('居民签证的旅行条件', 'Resident visa travel conditions');
+    const pending = firstEntryOk && firstDay > sim;
     const checks: NzPathway['checks'] = [];
     if (offshoreGrant)
       checks.push({
@@ -138,20 +155,23 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
           `境外获批后在 ${firstEntryBy} 前首次入境（${firstDay}）`,
           `First arrival by ${firstEntryBy} after an offshore grant (${firstDay})`,
         ),
-        met: firstEntryOk,
+        // A planned first arrival has not happened yet.
+        met: pending ? undefined : firstEntryOk,
         sources: v.firstEntryYears.sources,
       });
     checks.push({
       text: L(
-        `录入的返回日都在旅行条件内（到 ${travelEnd}），或返回前已有永久居民签证`,
-        `Every return you entered is within the travel conditions (to ${travelEnd}) or after a permanent resident visa`,
+        `旅行条件到期时人在新西兰，之后也没有出境（到 ${travelEnd}），或此前已有永久居民签证`,
+        `In New Zealand when the travel conditions end (${travelEnd}) and no trips after that, or a permanent resident visa before then`,
       ),
-      met: !lateReturn,
+      met: !lapse,
       sources: [
         ...v.travelYears.sources,
+        { srcId: 'SRC-072', locator: 'RV1.5' },
         { srcId: 'SRC-071', locator: 's74(2)' },
       ],
     });
+    const ok = firstEntryOk && !lapse;
     pathways.push(
       hasPrv
         ? {
@@ -169,15 +189,15 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
         : {
             id: 'NZ-TRAVEL',
             title,
-            status: firstEntryOk && !lateReturn ? 'MET' : 'NOT_MET',
-            earliestDate: firstEntryOk && !lateReturn ? sim : undefined,
+            status: !ok ? 'NOT_MET' : pending ? 'FUTURE' : 'MET',
+            earliestDate: !ok ? undefined : pending ? firstDay : sim,
             summary: !firstEntryOk
               ? lapsed
-              : lateReturn
-                ? late
+              : lapse
+                ? expired
                 : L(
-                    `多次入境的旅行条件约到 ${travelEnd}。留在新西兰不受影响；此后出境再回来，须先拿到永久居民签证或变更旅行条件（RV3）。`,
-                    `Your multiple-entry travel conditions run to about ${travelEnd}. Staying in New Zealand is not affected; to leave and come back after that you need a permanent resident visa or a variation of travel conditions (RV3).`,
+                    `多次入境的旅行条件约到 ${travelEnd}。留在新西兰不受影响；那天人在境外或之后出境，居民签证就会失效（RV1.5），所以之后出行前须先拿到永久居民签证或变更旅行条件（RV3）。`,
+                    `Your multiple-entry travel conditions run to about ${travelEnd}. Staying in New Zealand is not affected, but being outside New Zealand on that day or leaving after it ends your resident visa (RV1.5), so get a permanent resident visa or a variation of travel conditions (RV3) before travelling after then.`,
                   ),
             checks,
             notChecked: [
@@ -193,7 +213,7 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
                 `Travel conditions run ${travelYears} years from your first day as a resident for your category, ending the day before the anniversary; the first-entry deadline is counted the same way. Your visa shows the exact dates, and they take precedence (PD-087).`,
               ),
             ],
-            pendingDetails: ['PD-087', ...(lateReturn ? ['PD-088'] : [])],
+            pendingDetails: ['PD-087', ...(lapse ? ['PD-088'] : [])],
           },
     );
   }
@@ -204,18 +224,21 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
       '永久居民签证（在境天数）',
       'Permanent resident visa (days in New Zealand)',
     );
-    const heldFrom = addMonths(granted, v.prvHeldMonths.value);
-    const firstDayFrom = addMonths(firstDay, v.prvFirstDayMonths.value);
-    const portions = (d: IsoDate) => {
-      const mid = addMonths(d, -12);
-      const start = addMonths(d, -24);
-      return [
-        days.total(sums.resident, start, addDays(mid, -1)),
-        days.total(sums.resident, mid, addDays(d, -1)),
-      ];
-    };
+    // Visa Pak 588: 12 months are 365 days and 24 months 730, counted back
+    // from the application date, not including it.
+    const year = v.prvPeriodDays.value;
+    const heldFrom = addDays(granted, v.prvHeldDays.value);
+    const firstDayFrom = addDays(firstDay, v.prvFirstDayDays.value);
+    const portions = (d: IsoDate) => [
+      days.total(sums.resident, addDays(d, -2 * year), addDays(d, -year - 1)),
+      days.total(sums.resident, addDays(d, -year), addDays(d, -1)),
+    ];
     const ok = (need: number) => (d: IsoDate) =>
-      d >= heldFrom && d >= firstDayFrom && portions(d).every((n) => n >= need);
+      d >= heldFrom &&
+      d >= firstDayFrom &&
+      (!religiousFrom || d >= religiousFrom) &&
+      portions(d).every((x) => x >= need);
+    const need = v.prvPortionDays.value;
     const notChecked = [
       L(
         '品格，以及满足 s49(1)、s50 附加条件（RV2.5(d)–(e)）',
@@ -239,14 +262,14 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
         notChecked: [],
         assumptions: [],
       });
-    } else if (INVESTOR.has(req.residentVisa.category)) {
+    } else if (INVESTOR.has(category)) {
       pathways.push({
         id: 'NZ-PRV',
         title,
         status: 'UNKNOWN',
         summary: L(
-          `Active Investor Plus 居民签证转永居按 RV2.10，看投资条件是否已满足，本试点不判断；持居民签证满 24 个月的日期是 ${heldFrom}。`,
-          `An Active Investor Plus resident visa moves to permanent residence under RV2.10, which depends on meeting the investment conditions; this pilot does not check them. You will have held the resident visa for 24 months on ${heldFrom}.`,
+          'Active Investor Plus 居民签证转永居按 RV2.10，看投资条件是否已满足，本试点不判断。',
+          'An Active Investor Plus resident visa moves to permanent residence under RV2.10, which depends on meeting the investment conditions; this pilot does not check them.',
         ),
         checks: [],
         notChecked: [
@@ -268,21 +291,23 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
         assumptions: [],
       });
     } else {
-      const earliest = firstDate(ok(v.prvPortionDays.value));
+      const earliest = firstDate(ok(need));
       const tax = firstDate(ok(v.prvTaxPortionDays.value));
       const stuck = blocked(earliest);
+      // Parent visas carry s49(1) conditions of their own length (SRC-073).
+      const parent = category === 'parent';
       const [a, b] = portions(sim);
       pathways.push({
         id: 'NZ-PRV',
         title,
-        status: stuck ? 'UNKNOWN' : statusOf(earliest),
-        earliestDate: stuck ? undefined : earliest,
+        status: stuck || parent ? 'UNKNOWN' : statusOf(earliest),
+        earliestDate: stuck || parent ? undefined : earliest,
         summary:
           (stuck
-            ? late
+            ? expired
             : earliest === sim
               ? L(
-                  '模拟日已满足永久居民签证的时间条件（RV2.5.1）。',
+                  `模拟日已满足永久居民签证的时间条件（RV2.5.1）。`,
                   'You meet the time requirements for a permanent resident visa on the simulation date (RV2.5.1).',
                 )
               : earliest
@@ -294,46 +319,61 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
                     '按现有记录，10 年内达不到在境天数要求。',
                     'With your record you will not meet the days requirement within 10 years.',
                   )) +
-          (tax && (!earliest || tax < earliest) && !blocked(tax)
+          (parent && !stuck
             ? L(
-                `如果税务局确认你申请前 24 个月都是新西兰税务居民，走税务居民路线（每段 41 天）最早 ${tax}（RV2.5.5）。`,
-                ` If Inland Revenue confirms you were a New Zealand tax resident for the 24 months before applying, the tax residence route (41 days in each part) is open from ${tax} (RV2.5.5).`,
+                '父母类居民签证另有 s49(1) 条件（可能为 5 年或 10 年），须先满足并申请取消，才能获批永久居民签证（RV2.5(d)），本试点不判断。',
+                ' A Parent resident visa also has s49(1) conditions (which may run 5 or 10 years); they must be met and removed before a permanent resident visa can be granted (RV2.5(d)), which this pilot does not check.',
+              )
+            : '') +
+          (!stuck && tax && (!earliest || tax < earliest) && !blocked(tax)
+            ? L(
+                `如果税务局确认你申请前 24 个月都是新西兰税务居民，走税务居民路线（每段 ${v.prvTaxPortionDays.value} 天）最早 ${tax}（RV2.5.5）。`,
+                ` If Inland Revenue confirms you were a New Zealand tax resident for the 24 months before applying, the tax residence route (${v.prvTaxPortionDays.value} days in each part) is open from ${tax} (RV2.5.5).`,
               )
             : ''),
         checks: [
           {
             text: L(
-              `持居民签证满 24 个月（${heldFrom}）`,
-              `Held your resident visa for 24 months (on ${heldFrom})`,
+              `持居民签证满 ${v.prvHeldDays.value} 天（${heldFrom}）`,
+              `Held your resident visa for ${v.prvHeldDays.value} days (on ${heldFrom})`,
             ),
             met: sim >= heldFrom,
-            sources: v.prvHeldMonths.sources,
+            sources: v.prvHeldDays.sources,
           },
           {
             text: L(
-              `首次以居民身份在新西兰满 24 个月（${firstDayFrom}）`,
-              `24 months since your first day in New Zealand as a resident (on ${firstDayFrom})`,
+              `首次以居民身份在新西兰满 ${v.prvFirstDayDays.value} 天（${firstDayFrom}）`,
+              `${v.prvFirstDayDays.value} days since your first day in New Zealand as a resident (on ${firstDayFrom})`,
             ),
             met: sim >= firstDayFrom,
-            sources: [
-              ...v.prvFirstDayMonths.sources,
-              { srcId: 'SRC-072', locator: 'R5.66.5(b)' },
-            ],
+            sources: v.prvFirstDayDays.sources,
           },
+          ...(religiousFrom
+            ? [
+                {
+                  text: L(
+                    `宗教工作者成为居民满 ${v.religiousWorkerYears.value} 年（${religiousFrom}）`,
+                    `${v.religiousWorkerYears.value} years as a resident on a Religious Worker visa (on ${religiousFrom})`,
+                  ),
+                  met: sim >= religiousFrom,
+                  sources: v.religiousWorkerYears.sources,
+                },
+              ]
+            : []),
           {
             text: L(
-              `申请前第 13–24 个月以居民身份在境 ${a} 天（至少 184 天）`,
-              `${a} days in New Zealand as a resident in months 13–24 before applying (184 at least)`,
+              `申请前第 ${year + 1}–${2 * year} 天以居民身份在境 ${a} 天（至少 ${need} 天）`,
+              `${a} days in New Zealand as a resident from ${2 * year} to ${year + 1} days before applying (${need} at least)`,
             ),
-            met: a >= v.prvPortionDays.value,
+            met: a >= need,
             sources: v.prvPortionDays.sources,
           },
           {
             text: L(
-              `申请前 12 个月以居民身份在境 ${b} 天（至少 184 天）`,
-              `${b} days in New Zealand as a resident in the 12 months before applying (184 at least)`,
+              `申请前 ${year} 天内以居民身份在境 ${b} 天（至少 ${need} 天）`,
+              `${b} days in New Zealand as a resident in the ${year} days before applying (${need} at least)`,
             ),
-            met: b >= v.prvPortionDays.value,
+            met: b >= need,
             sources: v.prvPortionDays.sources,
           },
         ],
@@ -341,8 +381,8 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
         assumptions: [
           firstDayNote,
           L(
-            '入境日与出境日都计为在境（RV1.15.5）。只算首次以居民身份在新西兰之日起的日子。',
-            'Arrival and departure days both count as days in New Zealand (RV1.15.5). Only days from your first day as a resident count.',
+            `入境日与出境日都计为在境（RV1.15.5）。12 个月按 ${year} 天、24 个月按 ${2 * year} 天，从递交日往回数、不含递交当天（Visa Pak 588）。只算首次以居民身份在新西兰之日起的日子。`,
+            `Arrival and departure days both count as days in New Zealand (RV1.15.5). 12 months are ${year} days and 24 months ${2 * year}, counted back from the application date, not including it (Visa Pak 588). Only days from your first day as a resident count.`,
           ),
           projection,
         ],
@@ -364,8 +404,8 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
         'Any conditions on your resident visa (such as s49(1) conditions on Parent or Skilled Migrant visas) must be met or cancelled (s8(3))',
       ),
       L(
-        'Crown service 视同在境、特殊情况下 20 个月内 450 天（s8(5)、s8(7)），以及澳大利亚公民、萨摩亚公民等特殊情形',
-        'Crown service counted as presence, the 450 days in 20 months for exceptional circumstances (s8(5), s8(7)), and special cases such as Australian or Samoan citizens',
+        'Crown service 视同在境、特殊情况下 20 个月内 450 天（s8(5)、s8(7)），16 岁以下随父母申请（s9），以及澳大利亚公民、萨摩亚公民等特殊情形',
+        'Crown service counted as presence, the 450 days in 20 months for exceptional circumstances (s8(5), s8(7)), children under 16 applying with a parent (s9), and special cases such as Australian or Samoan citizens',
       ),
     ];
     if (!firstEntryOk) {
@@ -381,33 +421,39 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
     } else {
       const adult = afterYears(req.dateOfBirth, v.citizenshipMinAge.value);
       const window = v.citizenshipWindowYears.value;
+      const total = v.citizenshipTotalDays.value;
+      const perYear = v.citizenshipYearDays.value;
       const counts = (d: IsoDate, s: number[]) => {
         const years = Array.from({ length: window }, (_, k) =>
           days.total(s, addYears(d, -(k + 1)), addDays(addYears(d, -k), -1)),
         );
         return { total: years.reduce((x, y) => x + y, 0), years };
       };
+      // Religious Worker conditions run 5 years from the first day as a
+      // resident and must be removed first (s8(3); SRC-073).
       const ok = (s: number[]) => (d: IsoDate) => {
         const c = counts(d, s);
         return (
           d >= adult &&
           d >= firstDay &&
-          c.total >= v.citizenshipTotalDays.value &&
-          c.years.every((n) => n >= v.citizenshipYearDays.value)
+          (!religiousFrom || d >= religiousFrom) &&
+          c.total >= total &&
+          c.years.every((x) => x >= perYear)
         );
       };
       const earliest = firstDate(ok(sums.resident));
       const strict = firstDate(ok(sums.strict));
       const stuck = blocked(earliest);
+      const parent = category === 'parent';
       const c = counts(sim, sums.resident);
       pathways.push({
         id: 'NZ-CITIZENSHIP',
         title,
-        status: stuck ? 'UNKNOWN' : statusOf(earliest),
-        earliestDate: stuck ? undefined : earliest,
+        status: stuck || parent ? 'UNKNOWN' : statusOf(earliest),
+        earliestDate: stuck || parent ? undefined : earliest,
         summary:
           (stuck
-            ? late
+            ? expired
             : earliest === sim
               ? L(
                   '模拟日已满足入籍的在境天数要求。',
@@ -422,6 +468,12 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
                     '按现有记录，10 年内达不到入籍的在境天数要求。',
                     'With your record you will not meet the presence requirement within 10 years.',
                   )) +
+          (parent && !stuck
+            ? L(
+                '父母类居民签证的 s49(1) 条件须已满足或取消才能入籍（s8(3)），本试点不判断。',
+                ' The s49(1) conditions on a Parent resident visa must be met or cancelled before citizenship (s8(3)), which this pilot does not check.',
+              )
+            : '') +
           (stuck || strict === earliest
             ? ''
             : L(
@@ -431,8 +483,8 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
         checks: [
           {
             text: L(
-              `年满 16 岁（${adult}）`,
-              `Aged 16 or over (from ${adult})`,
+              `年满 ${v.citizenshipMinAge.value} 岁（${adult}）`,
+              `Aged ${v.citizenshipMinAge.value} or over (from ${adult})`,
             ),
             met: sim >= adult,
             sources: v.citizenshipMinAge.sources,
@@ -448,20 +500,35 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
               { srcId: 'SRC-071', locator: 's74(1)(b)' },
             ],
           },
+          ...(religiousFrom
+            ? [
+                {
+                  text: L(
+                    `宗教工作者的 s49(1) 条件期满（${religiousFrom}），并已申请取消`,
+                    `Religious Worker s49(1) conditions ended (${religiousFrom}) and removed`,
+                  ),
+                  met: sim >= religiousFrom ? undefined : false,
+                  sources: [
+                    ...v.religiousWorkerYears.sources,
+                    { srcId: 'SRC-070', locator: 's8(3)' },
+                  ],
+                },
+              ]
+            : []),
           {
             text: L(
-              `前 5 年以居民身份在境合计 ${c.total} 天（至少 1,350 天）`,
-              `${c.total} days in New Zealand as a resident in the past 5 years (1,350 at least)`,
+              `前 ${window} 年以居民身份在境合计 ${c.total} 天（至少 ${n(total)} 天）`,
+              `${c.total} days in New Zealand as a resident in the past ${window} years (${n(total)} at least)`,
             ),
-            met: c.total >= v.citizenshipTotalDays.value,
+            met: c.total >= total,
             sources: v.citizenshipTotalDays.sources,
           },
           {
             text: L(
-              `每一年至少 240 天（由近到远：${c.years.join('、')} 天）`,
-              `At least 240 days in each year (latest first: ${c.years.join(', ')} days)`,
+              `每一年至少 ${perYear} 天（由近到远：${c.years.join('、')} 天）`,
+              `At least ${perYear} days in each year (latest first: ${c.years.join(', ')} days)`,
             ),
-            met: c.years.every((n) => n >= v.citizenshipYearDays.value),
+            met: c.years.every((x) => x >= perYear),
             sources: v.citizenshipYearDays.sources,
           },
         ],
