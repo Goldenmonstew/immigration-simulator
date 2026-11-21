@@ -19,7 +19,6 @@ const render = (node: React.ReactNode, locale: 'zh-CN' | 'en') =>
 
 const filled: EsForm = {
   ...emptyEsForm('2026-11-21'),
-  dateOfBirth: '1990-05-01',
   permits: [{ from: '2020-03-15', to: '', study: false }],
 };
 
@@ -49,7 +48,6 @@ test('validation marks missing and out-of-order dates', () => {
       permits: [{ from: '2022-01-01', to: '2021-01-01', study: false }],
     }),
   ).toEqual({
-    'es-date-of-birth': 'es.error.date',
     'es-married-on': 'es.error.date',
     'es-permit-0-to': 'es.error.order',
   });

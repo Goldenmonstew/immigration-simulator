@@ -509,7 +509,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'pilot.status.MET': 'Time requirements met on the simulation date',
   'pilot.status.FUTURE': 'Time requirements met from {date}',
   'pilot.status.NOT_MET': 'Not met with your record',
-  'pilot.status.UNKNOWN': 'More information needed',
+  'pilot.status.UNKNOWN': 'Cannot be confirmed yet (see the notes below)',
   'pilot.status.NOT_APPLICABLE': 'Does not apply',
   'pilot.checks': 'Checks on the simulation date',
   'pilot.met': 'Met',
@@ -551,7 +551,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'es.simulationDate': 'Simulation date',
   'es.simulationDateHint':
     'Results are worked out for this date (the application date). It starts as today.',
-  'es.dateOfBirth': 'Date of birth',
   'es.permits': 'Residence permits',
   'es.permitsHint':
     'Add a row for each permit (the validity on your TIE), then the next one if renewed on time; leave the end blank if it is still valid. Tick study stays.',

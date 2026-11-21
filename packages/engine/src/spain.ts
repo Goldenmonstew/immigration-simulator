@@ -34,7 +34,6 @@ export interface EsTrip {
 
 export interface EsRequest {
   simulationDate: IsoDate;
-  dateOfBirth: IsoDate;
   permits: EsPermit[];
   trips: EsTrip[];
   route: EsNationalityRoute;
@@ -76,6 +75,9 @@ export function evaluateSpain(req: EsRequest): EsResult {
   const covered = (s: number[], from: IsoDate, to: IsoDate) =>
     days.total(s, from, to) === daysBetween(from, to) + 1;
   /** Trips with full days abroad inside [from, to]. */
+  /** Trips under way on any day of [from, to], travel days included. */
+  const tripsTouching = (from: IsoDate, to: IsoDate) =>
+    req.trips.filter((t) => t.departed <= to && t.returned >= from);
   const tripsIn = (from: IsoDate, to: IsoDate) =>
     req.trips.filter(
       (t) => addDays(t.departed, 1) <= to && addDays(t.returned, -1) >= from,
@@ -104,9 +106,10 @@ export function evaluateSpain(req: EsRequest): EsResult {
       const from = addYears(d, -years);
       const to = addDays(d, -1);
       const trips = tripsIn(from, to);
+      // A permit must also be valid on the application day (art. 184.2).
       return {
-        legal: covered(sums.residence, from, to),
-        withStudy: covered(sums.withStudy, from, to),
+        legal: covered(sums.residence, from, d),
+        withStudy: covered(sums.withStudy, from, d),
         long: trips.filter(
           (t) =>
             t.returned > addMonths(t.departed, v.singleAbsenceMonths.value),
@@ -142,10 +145,15 @@ export function evaluateSpain(req: EsRequest): EsResult {
                 `满足长期居留时间条件的最早递交日是 ${earliest}。`,
                 `The earliest application date that meets the time requirements for long-term residence is ${earliest}.`,
               )
-            : L(
-                '按现有记录，10 年内达不到长期居留的时间条件。',
-                'With your record you will not meet the time requirements for long-term residence within 10 years.',
-              )) +
+            : possible
+              ? L(
+                  '按条文明确的读法，10 年内达不到长期居留的时间条件。',
+                  'On a clear reading of the rules, you will not meet the time requirements for long-term residence within 10 years.',
+                )
+              : L(
+                  '按现有记录，10 年内达不到长期居留的时间条件。',
+                  'With your record you will not meet the time requirements for long-term residence within 10 years.',
+                )) +
         (possible && (!earliest || possible < earliest)
           ? L(
               `若把学习停留计入、或出境合计按 10 个月的较宽口径，最早 ${possible}，原文未写明（PD-097、PD-098）。`,
@@ -155,10 +163,10 @@ export function evaluateSpain(req: EsRequest): EsResult {
       checks: [
         {
           text: L(
-            `前 ${years} 年一直持有居留许可（不含学习停留）`,
-            `A residence permit throughout the past ${years} years (study stays not included)`,
+            `前 ${years} 年及递交当天一直持有居留许可（不含学习停留）`,
+            `A residence permit throughout the past ${years} years and on the application day (study stays not included)`,
           ),
-          met: f.legal,
+          met: f.legal ? true : f.withStudy ? undefined : false,
           sources: v.longTermYears.sources,
         },
         {
@@ -219,15 +227,16 @@ export function evaluateSpain(req: EsRequest): EsResult {
       req.route === 'marriage' && req.marriedToSpaniard
         ? addYears(req.marriedToSpaniard, v.marriageYears.value)
         : undefined;
+    // Legal residence through the application day itself (art. 22.3).
     const ok = (d: IsoDate) =>
-      covered(sums.residence, addYears(d, -years), addDays(d, -1)) &&
+      covered(sums.residence, addYears(d, -years), d) &&
       (req.route !== 'marriage' || (!!married && d >= married));
     const earliest = firstDate(ok);
     const window = earliest && {
       from: addYears(earliest, -years),
       to: addDays(earliest, -1),
     };
-    const absences = window ? tripsIn(window.from, window.to) : [];
+    const absences = window ? tripsTouching(window.from, window.to) : [];
     const absent = window ? days.total(sums.away, window.from, window.to) : 0;
     const unsure = !!earliest && absences.length > 0;
     pathways.push({
@@ -241,8 +250,8 @@ export function evaluateSpain(req: EsRequest): EsResult {
       summary:
         (earliest === sim
           ? L(
-              `模拟日已有 ${years} 年连续的合法居留。`,
-              `You have ${years} years of continuous legal residence on the simulation date.`,
+              `模拟日已有 ${years} 年不间断的居留许可。`,
+              `You have held residence permits for ${years} years without a gap on the simulation date.`,
             )
           : earliest
             ? L(
@@ -262,10 +271,10 @@ export function evaluateSpain(req: EsRequest): EsResult {
       checks: [
         {
           text: L(
-            `递交前 ${years} 年一直持有居留许可（不含学习停留）`,
-            `A residence permit throughout the ${years} years before applying (study stays not included)`,
+            `递交前 ${years} 年及递交当天一直持有居留许可（不含学习停留）`,
+            `A residence permit throughout the ${years} years before applying and on the application day (study stays not included)`,
           ),
-          met: covered(sums.residence, addYears(sim, -years), addDays(sim, -1)),
+          met: covered(sums.residence, addYears(sim, -years), sim),
           sources: [
             ...v.nationalityYears.sources,
             { srcId: 'SRC-084', locator: 'art. 22.3 (p21)' },

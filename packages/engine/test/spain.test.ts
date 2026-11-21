@@ -5,7 +5,6 @@ import type { EsPathwayId, EsRequest } from '../src';
 // A residence permit from 2020-03-15, renewed on time.
 const base: EsRequest = {
   simulationDate: '2024-01-01',
-  dateOfBirth: '1990-05-01',
   permits: [{ from: '2020-03-15' }],
   trips: [],
   route: 'general',
@@ -127,6 +126,30 @@ describe('nacionalidad por residencia (art. 22)', () => {
       'ES-NATIONALITY',
     );
     expect(p.earliestDate).toBe('2026-06-01');
+  });
+
+  test('the permit must still be valid on the application day', () => {
+    // Valid 2016-11-21 to 2026-11-20 only: 10 years end the day before.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-15',
+        permits: [{ from: '2016-11-21', to: '2026-11-20' }],
+      },
+      'ES-NATIONALITY',
+    );
+    expect(p.status).toBe('NOT_MET');
+  });
+
+  test('a trip leaving the day before applying is an absence', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-21',
+        route: 'ibero',
+        trips: [{ departed: '2026-11-20', returned: '2026-12-04' }],
+      },
+      'ES-NATIONALITY',
+    );
+    expect(p.status).toBe('UNKNOWN');
   });
 
   test('absences make continuity uncertain (PD-100)', () => {

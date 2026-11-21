@@ -27,7 +27,6 @@ import site from '../site.module.css';
 
 const FIELD_LABELS: Record<string, TranslationKey> = {
   'es-simulation-date': 'es.simulationDate',
-  'es-date-of-birth': 'es.dateOfBirth',
   'es-married-on': 'es.marriedOn',
   from: 'es.from',
   to: 'es.to',
@@ -78,7 +77,7 @@ export default function SpainContent() {
   const date = (
     id: string,
     key: TranslationKey,
-    field: 'simulationDate' | 'dateOfBirth' | 'marriedOn',
+    field: 'simulationDate' | 'marriedOn',
     hint?: string,
   ) => (
     <PilotDate
@@ -111,7 +110,6 @@ export default function SpainContent() {
             'simulationDate',
             t('es.simulationDateHint'),
           )}
-          {date('es-date-of-birth', 'es.dateOfBirth', 'dateOfBirth')}
 
           <h2>{t('es.permits')}</h2>
           <p className={form.hint}>{t('es.permitsHint')}</p>
@@ -198,9 +196,11 @@ export default function SpainContent() {
             <select
               id="es-route"
               value={draft.route}
-              onChange={(e) =>
-                set({ route: e.target.value as EsNationalityRoute })
-              }
+              onChange={(e) => {
+                // A hidden marriage date must not keep its error.
+                setErrors({});
+                set({ route: e.target.value as EsNationalityRoute });
+              }}
             >
               {ES_NATIONALITY_ROUTES.map((r) => (
                 <option key={r} value={r}>

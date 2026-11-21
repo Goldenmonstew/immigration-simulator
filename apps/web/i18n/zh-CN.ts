@@ -319,7 +319,7 @@ export const zhCN = {
   'pilot.status.MET': '模拟日已满足时间条件',
   'pilot.status.FUTURE': '最早 {date} 满足时间条件',
   'pilot.status.NOT_MET': '按现有记录无法满足',
-  'pilot.status.UNKNOWN': '需要你补充信息',
+  'pilot.status.UNKNOWN': '待确认（见下方说明）',
   'pilot.status.NOT_APPLICABLE': '不适用',
   'pilot.checks': '模拟日的检查',
   'pilot.met': '满足',
@@ -358,7 +358,6 @@ export const zhCN = {
   'es.basics': '基本信息',
   'es.simulationDate': '模拟日期',
   'es.simulationDateHint': '按这一天判断（按递交日），默认今天。',
-  'es.dateOfBirth': '出生日期',
   'es.permits': '居留许可',
   'es.permitsHint':
     '每张许可（TIE 上的有效期）填一行，按时续期的接着填下一张；仍有效的结束日期可留空。学习停留请勾选。',
