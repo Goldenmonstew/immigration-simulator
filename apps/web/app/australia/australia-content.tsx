@@ -10,7 +10,6 @@ import {
 import type { AuSubclass } from '@uk-immigration/engine';
 import type { TranslationKey } from '../../i18n';
 import { useTranslation } from '../../i18n/locale';
-import { punct } from '../../i18n/punctuation';
 import {
   auRequest,
   emptyAuForm,
@@ -22,6 +21,11 @@ import type { AuErrors, AuForm } from '../../lib/australia';
 import { today } from '../../lib/questionnaire';
 import { Field } from '../simulate/field';
 import form from '../simulate/form.module.css';
+import {
+  PilotDate,
+  PilotDateRows,
+  PilotErrorSummary,
+} from '../pilot/pilot-form';
 import { PilotResult } from '../pilot/pilot-result';
 import site from '../site.module.css';
 
@@ -39,7 +43,6 @@ const FIELD_LABELS: Record<string, TranslationKey> = {
 
 export default function AustraliaContent() {
   const { t, locale } = useTranslation();
-  const p = punct(locale);
   // Today is set after hydration so the static page does not carry the build date.
   const [draft, setDraft] = useState<AuForm>(() => emptyAuForm(''));
   const [errors, setErrors] = useState<AuErrors>({});
@@ -86,20 +89,14 @@ export default function AustraliaContent() {
     onChange: (value: string) => void,
     hint?: string,
   ) => (
-    <Field id={id} label={label} hint={hint} error={errors[id]}>
-      <input
-        id={id}
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-invalid={errors[id] ? true : undefined}
-        aria-describedby={
-          [hint && `${id}-hint`, errors[id] && `${id}-error`]
-            .filter(Boolean)
-            .join(' ') || undefined
-        }
-      />
-    </Field>
+    <PilotDate
+      id={id}
+      label={label}
+      value={value}
+      onChange={onChange}
+      hint={hint}
+      error={errors[id]}
+    />
   );
 
   return (
@@ -109,27 +106,12 @@ export default function AustraliaContent() {
         <p className={site.lead}>{t('au.intro')}</p>
         <p className={site.notice}>{t('au.scope')}</p>
         <form noValidate onSubmit={submit}>
-          {Object.keys(errors).length > 0 && (
-            <div
-              ref={errorSummary}
-              tabIndex={-1}
-              role="alert"
-              className={form.errorSummary}
-            >
-              <p>{t('au.errorSummary')}</p>
-              <ul>
-                {Object.entries(errors).map(([id, key]) => (
-                  <li key={id}>
-                    <a href={`#${id}`}>
-                      {fieldLabel(id)}
-                      {p.colon}
-                      {key && t(key)}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <PilotErrorSummary
+            errors={errors}
+            title={t('au.errorSummary')}
+            label={fieldLabel}
+            summaryRef={errorSummary}
+          />
           <h2>{t('au.basics')}</h2>
           {date(
             'au-simulation-date',
@@ -213,51 +195,21 @@ export default function AustraliaContent() {
 
           <h2>{t('au.trips')}</h2>
           <p className={form.hint}>{t('au.tripsHint')}</p>
-          {draft.trips.map((trip, i) => {
-            const update = (patch: Partial<typeof trip>) =>
-              set({
-                trips: draft.trips.map((x, n) =>
-                  n === i ? { ...x, ...patch } : x,
-                ),
-              });
-            return (
-              <fieldset key={i} className={form.entry}>
-                <legend>{t('au.trip').replace('{n}', String(i + 1))}</legend>
-                {date(
-                  `au-trip-${i}-departed`,
-                  t('au.departed'),
-                  trip.departed,
-                  (departed) => update({ departed }),
-                )}
-                {date(
-                  `au-trip-${i}-returned`,
-                  t('au.returned'),
-                  trip.returned,
-                  (returned) => update({ returned }),
-                )}
-                <button
-                  type="button"
-                  className={form.remove}
-                  onClick={() => {
-                    setErrors({});
-                    set({ trips: draft.trips.filter((_, n) => n !== i) });
-                  }}
-                >
-                  {t('au.remove')}
-                </button>
-              </fieldset>
-            );
-          })}
-          <div className={form.field}>
-            <button
-              type="button"
-              className={site.secondary}
-              onClick={() => set({ trips: [...draft.trips, emptyTrip()] })}
-            >
-              {t('au.addTrip')}
-            </button>
-          </div>
-
+          <PilotDateRows
+            prefix="au-trip"
+            rows={draft.trips}
+            fields={[
+              { key: 'departed', label: t('au.departed') },
+              { key: 'returned', label: t('au.returned') },
+            ]}
+            legend={(n) => t('au.trip').replace('{n}', String(n))}
+            addLabel={t('au.addTrip')}
+            removeLabel={t('au.remove')}
+            empty={emptyTrip}
+            errors={errors}
+            onChange={(trips) => set({ trips })}
+            onRemove={() => setErrors({})}
+          />
           <div className={form.checkboxes}>
             {draft.visas.some((v) => TRT.has(v.subclass)) && (
               <label>

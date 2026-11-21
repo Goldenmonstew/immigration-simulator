@@ -9,7 +9,6 @@ import {
 import type { NzResidentCategory } from '@uk-immigration/engine';
 import type { TranslationKey } from '../../i18n';
 import { useTranslation } from '../../i18n/locale';
-import { punct } from '../../i18n/punctuation';
 import {
   emptyNzForm,
   emptyNzTrip,
@@ -18,6 +17,11 @@ import {
 } from '../../lib/new-zealand';
 import type { NzErrors, NzForm } from '../../lib/new-zealand';
 import { today } from '../../lib/questionnaire';
+import {
+  PilotDate,
+  PilotDateRows,
+  PilotErrorSummary,
+} from '../pilot/pilot-form';
 import { PilotResult } from '../pilot/pilot-result';
 import { Field } from '../simulate/field';
 import form from '../simulate/form.module.css';
@@ -35,7 +39,6 @@ const FIELD_LABELS: Record<string, TranslationKey> = {
 
 export default function NewZealandContent() {
   const { t, locale } = useTranslation();
-  const p = punct(locale);
   // Today is set after hydration so the static page does not carry the build date.
   const [draft, setDraft] = useState<NzForm>(() => emptyNzForm(''));
   const [errors, setErrors] = useState<NzErrors>({});
@@ -71,28 +74,25 @@ export default function NewZealandContent() {
     const entry = t('nz.trip').replace('{n}', String(Number(n) + 1));
     return `${entry} · ${t(FIELD_LABELS[field])}`;
   };
-
   const date = (
     id: string,
-    label: string,
-    value: string,
-    onChange: (value: string) => void,
+    key: TranslationKey,
+    field:
+      | 'simulationDate'
+      | 'dateOfBirth'
+      | 'firstArrival'
+      | 'residentGranted'
+      | 'prvGranted',
     hint?: string,
   ) => (
-    <Field id={id} label={label} hint={hint} error={errors[id]}>
-      <input
-        id={id}
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-invalid={errors[id] ? true : undefined}
-        aria-describedby={
-          [hint && `${id}-hint`, errors[id] && `${id}-error`]
-            .filter(Boolean)
-            .join(' ') || undefined
-        }
-      />
-    </Field>
+    <PilotDate
+      id={id}
+      label={t(key)}
+      value={draft[field]}
+      onChange={(value) => set({ [field]: value } as Partial<NzForm>)}
+      hint={hint}
+      error={errors[id]}
+    />
   );
 
   return (
@@ -102,54 +102,27 @@ export default function NewZealandContent() {
         <p className={site.lead}>{t('nz.intro')}</p>
         <p className={site.notice}>{t('nz.scope')}</p>
         <form noValidate onSubmit={submit}>
-          {Object.keys(errors).length > 0 && (
-            <div
-              ref={errorSummary}
-              tabIndex={-1}
-              role="alert"
-              className={form.errorSummary}
-            >
-              <p>{t('nz.errorSummary')}</p>
-              <ul>
-                {Object.entries(errors).map(([id, key]) => (
-                  <li key={id}>
-                    <a href={`#${id}`}>
-                      {fieldLabel(id)}
-                      {p.colon}
-                      {key && t(key)}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <PilotErrorSummary
+            errors={errors}
+            title={t('nz.errorSummary')}
+            label={fieldLabel}
+            summaryRef={errorSummary}
+          />
           <h2>{t('nz.basics')}</h2>
           {date(
             'nz-simulation-date',
-            t('nz.simulationDate'),
-            draft.simulationDate,
-            (simulationDate) => set({ simulationDate }),
+            'nz.simulationDate',
+            'simulationDate',
             t('nz.simulationDateHint'),
           )}
-          {date(
-            'nz-date-of-birth',
-            t('nz.dateOfBirth'),
-            draft.dateOfBirth,
-            (dateOfBirth) => set({ dateOfBirth }),
-          )}
-          {date(
-            'nz-first-arrival',
-            t('nz.firstArrival'),
-            draft.firstArrival,
-            (firstArrival) => set({ firstArrival }),
-          )}
+          {date('nz-date-of-birth', 'nz.dateOfBirth', 'dateOfBirth')}
+          {date('nz-first-arrival', 'nz.firstArrival', 'firstArrival')}
 
           <h2>{t('nz.visas')}</h2>
           {date(
             'nz-resident-granted',
-            t('nz.residentGranted'),
-            draft.residentGranted,
-            (residentGranted) => set({ residentGranted }),
+            'nz.residentGranted',
+            'residentGranted',
             t('nz.residentGrantedHint'),
           )}
           <Field id="nz-category" label={t('nz.category')}>
@@ -167,60 +140,25 @@ export default function NewZealandContent() {
               ))}
             </select>
           </Field>
-          {date(
-            'nz-prv-granted',
-            t('nz.prvGranted'),
-            draft.prvGranted,
-            (prvGranted) => set({ prvGranted }),
-          )}
+          {date('nz-prv-granted', 'nz.prvGranted', 'prvGranted')}
 
           <h2>{t('nz.trips')}</h2>
           <p className={form.hint}>{t('nz.tripsHint')}</p>
-          {draft.trips.map((trip, i) => {
-            const update = (patch: Partial<typeof trip>) =>
-              set({
-                trips: draft.trips.map((x, n) =>
-                  n === i ? { ...x, ...patch } : x,
-                ),
-              });
-            return (
-              <fieldset key={i} className={form.entry}>
-                <legend>{t('nz.trip').replace('{n}', String(i + 1))}</legend>
-                {date(
-                  `nz-trip-${i}-departed`,
-                  t('nz.departed'),
-                  trip.departed,
-                  (departed) => update({ departed }),
-                )}
-                {date(
-                  `nz-trip-${i}-returned`,
-                  t('nz.returned'),
-                  trip.returned,
-                  (returned) => update({ returned }),
-                )}
-                <button
-                  type="button"
-                  className={form.remove}
-                  onClick={() => {
-                    // Row errors are keyed by index, so they go stale.
-                    setErrors({});
-                    set({ trips: draft.trips.filter((_, n) => n !== i) });
-                  }}
-                >
-                  {t('nz.remove')}
-                </button>
-              </fieldset>
-            );
-          })}
-          <div className={form.field}>
-            <button
-              type="button"
-              className={site.secondary}
-              onClick={() => set({ trips: [...draft.trips, emptyNzTrip()] })}
-            >
-              {t('nz.addTrip')}
-            </button>
-          </div>
+          <PilotDateRows
+            prefix="nz-trip"
+            rows={draft.trips}
+            fields={[
+              { key: 'departed', label: t('nz.departed') },
+              { key: 'returned', label: t('nz.returned') },
+            ]}
+            legend={(n) => t('nz.trip').replace('{n}', String(n))}
+            addLabel={t('nz.addTrip')}
+            removeLabel={t('nz.remove')}
+            empty={emptyNzTrip}
+            errors={errors}
+            onChange={(trips) => set({ trips })}
+            onRemove={() => setErrors({})}
+          />
           <div className={site.actions}>
             <button type="submit" className={site.button}>
               {t('nz.submit')}
