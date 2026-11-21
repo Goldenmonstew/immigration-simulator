@@ -155,10 +155,55 @@ const SALARY_THRESHOLDS = {
 const inTable = (rows: { socCode: string }[], soc: string | undefined) =>
   soc !== undefined && rows.some((r) => r.socCode === soc);
 
-function wasSponsoredOnIsl(episode: ImmigrationEpisode): boolean | undefined {
+/** The SOC was on the list but every entry was removed by the CoS date. */
+function removedByCos(episode: ImmigrationEpisode): boolean {
+  const entries = immigrationSalaryListOccupations.entries.filter(
+    (entry) => entry.socCode === episode.socCode,
+  );
+  return (
+    entries.length > 0 &&
+    episode.sponsorshipCertificateDate !== undefined &&
+    entries.every(
+      (entry) =>
+        entry.removalDate !== undefined &&
+        episode.sponsorshipCertificateDate! >= entry.removalDate,
+    )
+  );
+}
+
+/**
+ * No CoS date, and the grant started on or after a removal date for the SOC,
+ * so a CoS on or after the removal cannot be ruled out (a grant starting
+ * earlier had its CoS before the removal).
+ */
+function removalUnknown(episode: ImmigrationEpisode): boolean {
+  return (
+    episode.sponsorshipCertificateDate === undefined &&
+    immigrationSalaryListOccupations.entries.some(
+      (entry) =>
+        entry.socCode === episode.socCode &&
+        entry.removalDate !== undefined &&
+        episode.validFrom >= entry.removalDate,
+    )
+  );
+}
+
+function wasSponsoredOnIsl(
+  episode: ImmigrationEpisode,
+  previous?: ImmigrationEpisode,
+): boolean | undefined {
   if (episode.immigrationSalaryList !== undefined) {
     return episode.immigrationSalaryList;
   }
+  // Options D and I are the points for a job on the Immigration Salary List
+  // (SW 4.2), so a confirmed one settles it (review33b-1), unless they come
+  // from the SW 11.2 continuation after removal, where the SW 24.3 salary row
+  // is unclear (review53-2).
+  if (
+    episode.skilledWorkerSponsorshipException === 'OPTION_D' ||
+    episode.skilledWorkerSponsorshipException === 'OPTION_I'
+  )
+    return removedByCos(episode) || removalUnknown(episode) ? undefined : true;
   const entries = immigrationSalaryListOccupations.entries.filter(
     (entry) => entry.socCode === episode.socCode,
   );
@@ -169,7 +214,16 @@ function wasSponsoredOnIsl(episode: ImmigrationEpisode): boolean | undefined {
       !episode.sponsorshipCertificateDate ||
       episode.sponsorshipCertificateDate < entry.removalDate,
   );
-  if (eligible.length === 0) return false;
+  // SW 11.2: a job removed by the CoS date still counts when the previous
+  // Skilled Worker grant was for it on the list (or that is unconfirmed) and
+  // this one continues the same job for the same sponsor, which the
+  // questionnaire does not record.
+  if (eligible.length === 0)
+    return removedByCos(episode) &&
+      previous?.socCode === episode.socCode &&
+      wasSponsoredOnIsl(previous) !== false
+      ? undefined
+      : false;
   if (
     eligible.some(
       (entry) =>
@@ -202,12 +256,13 @@ function settlementSalaryRows({
   const L = textFor({ locale });
   // SW 4.2(b)(ii): held continuously since the old-rules grant. Unlike the
   // residence run, no day without permission is tolerated.
-  const first = continuousRun(
+  const run = continuousRun(
     timeline,
     simulationDate,
     isSkilledWorker,
     () => false,
-  ).episodes[0];
+  ).episodes;
+  const first = run[0];
   const pre2024 = underPre2024Rules(first);
   const transitional =
     simulationDate < cl.values.skilledWorkerPre2024ApplicationsBefore.value &&
@@ -215,7 +270,17 @@ function settlementSalaryRows({
   const soc = current.socCode;
   const table3 = inTable(nationalPayScaleOccupations.rows, soc);
   const ashe = inTable(healthAndCareAsheOccupations.occupations, soc);
-  const isl = wasSponsoredOnIsl(current);
+  const previous = run.filter((e) => e.validFrom < current.validFrom).at(-1);
+  const isl = wasSponsoredOnIsl(current, previous);
+  const sameJobAfterRemoval =
+    isl === undefined &&
+    removedByCos(current) &&
+    previous !== undefined &&
+    previous.socCode === current.socCode;
+  const confirmedOption =
+    current.skilledWorkerSponsorshipException === 'OPTION_D' ||
+    current.skilledWorkerSponsorshipException === 'OPTION_I';
+  const optionWithoutCosDate = confirmedOption && removalUnknown(current);
   const lowerRows = ashe || transitional;
   const assumptions = [
     L(
@@ -225,15 +290,30 @@ function settlementSalaryRows({
   ];
   if (!table3 && isl !== false && current.immigrationSalaryList === undefined) {
     assumptions.push(
-      isl
+      sameJobAfterRemoval
         ? L(
-            '按最近一次许可的 CoS 签发日（未填时以早于移除日的许可起始日佐证）和 SRC-019 上适用全英国及该 SOC 全部岗位的条目判断 ISL。',
-            'ISL is assessed for the latest grant from its CoS issue date (or a permission start before removal) and the SRC-019 entry covering all jobs in that SOC across the UK.',
+            `SOC ${soc} 在最近一次许可的 CoS 签发当日或之前已移出 ISL，上一段许可是同一 SOC。若上一段按当时的 ISL（或旧 Shortage Occupation List）担保、这次是同一 sponsor 的同一岗位续签，SW 11.2 视为满足 Option D／I 的清单条件；问卷没有 sponsor 信息，这一点和 SW 24.3 是否按 ISL 薪资行计都待确认。`,
+            `SOC ${soc} was removed from the ISL on or before the CoS date for the latest grant, and the previous grant was for the same SOC. If that grant was sponsored on the ISL (or the earlier Shortage Occupation List) and this one continues the same job for the same sponsor, SW 11.2 treats the list condition for Option D or I as met; the questionnaire does not record the sponsor, so that, and whether SW 24.3 then uses the ISL salary rows, are to be confirmed.`,
           )
-        : L(
-            '最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。',
-            'ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).',
-          ),
+        : optionWithoutCosDate
+          ? L(
+              `最近一次许可已确认按 Option D／I 获批，但未填 CoS 签发日；SOC ${soc} 的清单条目有移除日，无法判断按 SW 11.1 还是 SW 11.2 获批，SW 24.3 是否按 ISL 薪资行计待确认。请填写 CoS 签发日。`,
+              `The latest grant is confirmed under Option D or I, but the CoS date is missing. The list entry for SOC ${soc} has a removal date, so whether the grant relied on SW 11.1 or SW 11.2, and so whether SW 24.3 uses the ISL salary rows, is to be confirmed. Please add the CoS date.`,
+            )
+          : isl && confirmedOption
+            ? L(
+                '最近一次许可已确认按 Option D／I 获批，这两项是 ISL 岗位的积分项（SW 4.2），且岗位在 CoS 签发时仍在清单上，按 ISL 计。',
+                'The latest grant is confirmed under Option D or I, the points for a job on the ISL (SW 4.2), and the job was still listed on the CoS date, so it counts as ISL.',
+              )
+            : isl
+              ? L(
+                  '按最近一次许可的 CoS 签发日（未填时以早于移除日的许可起始日佐证）和 SRC-019 上适用全英国及该 SOC 全部岗位的条目判断 ISL。',
+                  'ISL is assessed for the latest grant from its CoS issue date (or a permission start before removal) and the SRC-019 entry covering all jobs in that SOC across the UK.',
+                )
+              : L(
+                  '最近一次许可的 ISL 资格待确认。请核对 CoS 签发日、岗位和工作地区，或确认最近一次许可的担保记录（SW 24.3 rows B/D，SRC-019）。',
+                  'ISL status for the most recent permission is unconfirmed. Check the CoS issue date, job and UK nation, or confirm the sponsorship record for that grant (SW 24.3 rows B/D, SRC-019).',
+                ),
     );
   }
   if (!table3 && ashe && transitional !== true) {

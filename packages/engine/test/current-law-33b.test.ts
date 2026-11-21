@@ -533,3 +533,193 @@ test('review33b-2 a joint forecast keeps the date while the principal’s B2 is 
     'LIKELY_ELIGIBLE',
   );
 });
+
+test('review33b-1 / task 53: a confirmed Option D or I is an ISL job (SW 4.2), and a removal before the CoS leaves the same-job exception open (SW 11.2)', () => {
+  // Scotland-only entry: without the option the ISL stays unconfirmed.
+  const scotland = permit({
+    validFrom: '2026-01-01',
+    sponsorshipCertificateDate: '2025-12-15',
+    socCode: '5235',
+    salary: 35000,
+  });
+  const facts = (episode: ImmigrationEpisode) => ({
+    episodes: [
+      permit({
+        route: 'GLOBAL_TALENT',
+        validFrom: '2021-01-01',
+        validTo: '2025-12-31',
+      }),
+      episode,
+    ],
+  });
+  const unconfirmed = run(clSwSalary, facts(scotland));
+  const optionD = run(
+    clSwSalary,
+    facts({ ...scotland, skilledWorkerSponsorshipException: 'OPTION_D' }),
+  );
+  expect(optionD.status).not.toBe(unconfirmed.status);
+  expect(unconfirmed.assumptions?.join()).toContain('ISL 资格待确认');
+  expect(optionD.assumptions?.join()).not.toContain('ISL 资格待确认');
+  expect(optionD.assumptions?.join()).toContain('Option D／I');
+  // SOC 2112 left the list on 2026-12-31; the previous grant was on it.
+  const before = permit({
+    validFrom: '2024-06-01',
+    validTo: '2027-01-14',
+    sponsorshipCertificateDate: '2024-05-01',
+    socCode: '2112',
+    salary: 41000,
+  });
+  const after = permit({
+    validFrom: '2027-01-15',
+    validTo: '2030-01-14',
+    sponsorshipCertificateDate: '2027-01-10',
+    socCode: '2112',
+    salary: 41000,
+  });
+  const renewal = run(clSwSalary, { episodes: [before, after] }, '2027-06-01');
+  expect(renewal.status).toBe('UNKNOWN');
+  expect(renewal.assumptions?.join()).toContain('SW 11.2');
+  // review53-1: an undeclared previous grant keeps the exception open; one
+  // confirmed off the list does not.
+  const scotlandBefore = permit({
+    validFrom: '2024-06-01',
+    validTo: '2027-01-14',
+    sponsorshipCertificateDate: '2024-05-01',
+    socCode: '5235',
+    salary: 35000,
+  });
+  const scotlandAfter = {
+    ...scotlandBefore,
+    validFrom: '2027-01-15',
+    validTo: '2030-01-14',
+    sponsorshipCertificateDate: '2026-12-31',
+  };
+  const open = run(
+    clSwSalary,
+    { episodes: [scotlandBefore, scotlandAfter] },
+    '2027-06-01',
+  );
+  expect(open.status).toBe('UNKNOWN');
+  expect(open.assumptions?.join()).toContain('SW 11.2');
+  expect(open.assumptions?.join()).toContain('签发当日或之前');
+  // review53-2: a confirmed Option D after the removal comes from SW 11.2,
+  // so the SW 24.3 salary row stays to be confirmed.
+  const optionAfterRemoval = run(
+    clSwSalary,
+    {
+      episodes: [
+        scotlandBefore,
+        { ...scotlandAfter, skilledWorkerSponsorshipException: 'OPTION_D' },
+      ],
+    },
+    '2027-06-01',
+  );
+  expect(optionAfterRemoval.status).toBe('UNKNOWN');
+  expect(optionAfterRemoval.assumptions?.join()).toContain('SW 24.3');
+  // review53-3: Option I alike, and in English.
+  const optionI = current(
+    {
+      episodes: [
+        scotlandBefore,
+        { ...scotlandAfter, skilledWorkerSponsorshipException: 'OPTION_I' },
+      ],
+    },
+    '2027-06-01',
+  );
+  expect(optionI.rules.find((r) => r.id === 'CL-SW-SALARY')?.status).toBe(
+    'UNKNOWN',
+  );
+  expect(optionI.assumptions.join()).toContain(
+    'treats the list condition for Option D or I as met',
+  );
+  // review53-4: without a CoS date, a grant starting before the removal
+  // still counts as ISL; one starting on or after it stays to be confirmed.
+  const noDate = (validFrom: string) =>
+    current(
+      {
+        episodes: [
+          permit({
+            validFrom,
+            socCode: '5235',
+            salary: 35000,
+            skilledWorkerSponsorshipException: 'OPTION_D',
+          }),
+        ],
+      },
+      '2027-06-01',
+    );
+  expect(
+    noDate('2026-01-01').rules.find((r) => r.id === 'CL-SW-SALARY')?.status,
+  ).toBe('PASS');
+  const afterRemoval = noDate('2027-01-15');
+  expect(afterRemoval.rules.find((r) => r.id === 'CL-SW-SALARY')?.status).toBe(
+    'UNKNOWN',
+  );
+  expect(afterRemoval.assumptions.join()).toContain('Please add the CoS date');
+  // review53-5: the removal day itself, Option I, and the Chinese hint.
+  const removalDayI = run(
+    clSwSalary,
+    {
+      episodes: [
+        permit({
+          validFrom: '2026-12-31',
+          socCode: '5235',
+          salary: 35000,
+          skilledWorkerSponsorshipException: 'OPTION_I',
+        }),
+      ],
+    },
+    '2027-06-01',
+  );
+  expect(removalDayI.status).toBe('UNKNOWN');
+  expect(removalDayI.assumptions?.join()).toContain('请填写 CoS 签发日');
+  expect(
+    run(
+      clSwSalary,
+      {
+        episodes: [
+          { ...scotlandBefore, immigrationSalaryList: false },
+          scotlandAfter,
+        ],
+      },
+      '2027-06-01',
+    ).assumptions?.join(),
+  ).not.toContain('SW 11.2');
+  // A different job after the removal is not on the list.
+  expect(
+    run(
+      clSwSalary,
+      { episodes: [before, { ...after, socCode: '2113' }] },
+      '2027-06-01',
+    ).assumptions?.join(),
+  ).not.toContain('SW 11.2');
+});
+
+test('review33b-1 / task 53: a recorded Appendix FM grant after the simulation date applies CR 3.6 from that date', () => {
+  const fm = (validFrom: string, validTo: string): ImmigrationEpisode => ({
+    route: 'FAMILY_PARTNER_OR_PARENT',
+    role: 'MAIN',
+    validFrom,
+    validTo,
+    familyPermission: 'PARTNER_TEN_YEAR',
+  });
+  const facts = {
+    episodes: [fm('2016-08-01', '2026-11-09'), fm('2026-11-10', '2029-05-09')],
+    relationships: [
+      {
+        type: 'PARTNER' as const,
+        otherPartyStatus: 'BRITISH_CITIZEN' as const,
+      },
+    ],
+    // More than 180 days abroad before 2022-06-20 (CR 3.6).
+    absences: [{ from: '2018-01-01', to: '2018-08-31' }],
+  };
+  expect(current(facts, '2026-11-04')).toMatchObject({
+    pathwayYears: 10,
+    earliestDate: '2026-11-10',
+  });
+  expect(current(facts, '2026-11-10')).toMatchObject({
+    outcome: 'LIKELY_ELIGIBLE',
+    earliestDate: '2026-11-10',
+  });
+});

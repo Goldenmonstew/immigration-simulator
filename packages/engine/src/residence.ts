@@ -364,8 +364,12 @@ function gapTreatment(
   if (countedGracePeriod(timeline, gap.from, gap.to)) return 'COUNT';
   // CR 4.1(d)(iii), CR 4.2 and LR 11.2: the travel itself must also
   // satisfy the absence limits, checked on the selected qualifying period.
+  // Another record leaving or returning inside the gap puts the applicant in
+  // the UK without permission, which breaks the run (review33a-4).
+  const inGap = (day: IsoDate) => gap.from <= day && day <= gap.to;
   if (
     longResidence &&
+    !trips.some((a) => inGap(a.from) || inGap(a.to)) &&
     trips.some(
       (a) =>
         a.from < gap.from &&

@@ -1,6 +1,7 @@
 import { PARAMETERS, RULE_SET_IDS } from '@uk-immigration/policy-data';
 import type { RuleSetId } from '@uk-immigration/policy-data';
 import { assess } from './aggregate';
+import { addDays } from './dates';
 import { adultIllegalEntry } from './rules/es-requirements';
 import { episodeOn } from './residence';
 import {
@@ -13,6 +14,7 @@ import { textFor } from './rule';
 import { RULES } from './rules';
 import { hasSettledSkilledWorkerPartner } from './rules/current-law/shared';
 import type {
+  PersonTimeline,
   RuleContext,
   RuleSet,
   RuleSetRegistry,
@@ -111,13 +113,33 @@ function shortCircuitOf(ctx: RuleContext): ShortCircuit | undefined {
 }
 
 /** `registry` defaults to the production rule sets; tests pass their own (contracts §13.3). */
+/**
+ * A further grant replaces the earlier permission (SRC-059): an earlier grant
+ * ends the day before a later one starts and does not resume after it
+ * (review33a-4).
+ */
+function replaceSuperseded(timeline: PersonTimeline): PersonTimeline {
+  const episodes = timeline.episodes.map((e) => {
+    const next = timeline.episodes
+      .map((later) => later.validFrom)
+      .filter((from) => from > e.validFrom && from <= e.validTo)
+      .sort()[0];
+    return next ? { ...e, validTo: addDays(next, -1) } : e;
+  });
+  return episodes.every((e, i) => e === timeline.episodes[i])
+    ? timeline
+    : { ...timeline, episodes };
+}
+
 export function evaluate(
   request: SimulationRequest,
   registry: RuleSetRegistry = { ruleSets: RULE_SETS, rules: RULES },
 ): SimulationResult {
   const ids =
     request.ruleSetIds ?? (Object.keys(registry.ruleSets) as RuleSetId[]);
-  const { timeline, simulationDate, principal, locale } = request;
+  const { simulationDate, locale } = request;
+  const timeline = replaceSuperseded(request.timeline);
+  const principal = request.principal && replaceSuperseded(request.principal);
   const ctx: RuleContext = {
     timeline,
     simulationDate,
