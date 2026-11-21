@@ -74,7 +74,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.renewedThisSeason': 'You renewed this season.',
   'game.renewedThrough':
     'You renewed this season. The expiry date on that renewal was {date}.',
-  'game.visaUrgent': 'Visa expiry approaching',
+  'game.visaUrgent': 'Permission expiry approaching',
   'game.money': 'Savings',
   'game.mood': 'Mood',
   'game.health': 'Health',
@@ -288,7 +288,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'home.start': 'Start simulation',
   'home.before': 'Before you start',
   'home.prepare':
-    'Have your visa dates, absences and earnings by tax year ready. Leave uncertain information blank.',
+    'Have your permission dates, absences and earnings by tax year ready. Leave uncertain information blank.',
   'home.privacy':
     'No account or document uploads. Inputs are processed in your browser and drafts are saved on this device. Other people using a shared device may see your draft.',
   'home.disclaimerTitle': 'About this simulator',
@@ -564,9 +564,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'episodes.hint':
     'Enter the start and end dates of each grant of immigration permission. Leave the list empty if you have none.',
   'episodes.item': 'Permission period',
-  'episodes.add': 'Add a visa period',
-  'episodes.empty': 'No visa periods added.',
-  'episodes.route': 'Visa route',
+  'episodes.add': 'Add a permission period',
+  'episodes.empty': 'No permission periods added.',
+  'episodes.route': 'Immigration route',
   'episodes.from': 'Valid from',
   'episodes.to': 'Valid to',
   'episodes.roleHint':
