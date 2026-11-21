@@ -221,15 +221,20 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         (!next || next.from > last) &&
         (!x.to || x.to >= last)
       )
-        return { ...x, to: last, replaced: false, left: undefined };
+        return { ...x, to: last, replacedBy: undefined, left: undefined };
       const left = req.trips
         .map((trip) => trip.departed)
         .filter((d) => d >= after)
         .sort()[0];
       if (left && (!to || left <= to))
-        return { ...x, to: left, replaced: false, left };
+        return { ...x, to: left, replacedBy: undefined, left };
     }
-    return { ...x, to, replaced: isReplaced, left: undefined };
+    return {
+      ...x,
+      to,
+      replacedBy: isReplaced ? next : undefined,
+      left: undefined,
+    };
   });
   // Each kind of visa held on a day, and held from before the day (so also
   // while still in Australia when leaving that day).
@@ -244,21 +249,35 @@ export function evaluateAustralia(req: AuRequest): AuResult {
   };
   // Days with a moment when you were outside Australia without a permanent
   // visa: the day one ended on leaving (s82(6)), and the first day of one
-  // granted abroad that did not directly replace another permanent visa.
+  // that started while you were abroad (after leaving, while away or before
+  // returning) without directly replacing your previous permanent visa.
   const gap = flags();
   let lastSubstantive: AuSubclass | undefined;
   visas.forEach((x, n) => {
     mark(visa, x);
     mark(PERMANENT.has(x.subclass) ? permanent : temporary, x);
     if (x.left) days.mark(gap, x.left, x.left);
+    // A permanent visa replaced after leaving by a temporary one.
+    if (
+      PERMANENT.has(x.subclass) &&
+      x.replacedBy &&
+      !PERMANENT.has(x.replacedBy.subclass) &&
+      x.to === x.replacedBy.from
+    )
+      days.mark(gap, x.to, x.to);
     const previous = visas
       .slice(0, n)
       .filter((p) => PERMANENT.has(p.subclass))
       .at(-1);
+    const abroad =
+      !inAustraliaAtEnd(x.from) ||
+      req.trips.some((trip) => trip.returned === x.from);
     if (
       PERMANENT.has(x.subclass) &&
-      (departsOn(x.from) || !inAustraliaAtEnd(x.from)) &&
-      !(previous?.replaced && previous.to && previous.to >= addDays(x.from, -1))
+      !!req.firstArrival &&
+      x.from > req.firstArrival &&
+      abroad &&
+      previous?.replacedBy !== sorted[n]
     )
       days.mark(gap, x.from, x.from);
     // 186.226(1)(d): a bridging visa for a 457, 482, 186 or 187 application

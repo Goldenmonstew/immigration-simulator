@@ -860,6 +860,39 @@ describe('citizenship, general residence requirement (s21(2), s22)', () => {
       ).toBe(earliest);
   });
 
+  test('a temporary visa in between breaks permanent residence', () => {
+    const p = pathway(
+      {
+        simulationDate: '2025-03-10',
+        firstArrival: '2020-04-01',
+        visas: [
+          { subclass: '189', from: '2020-04-01' },
+          { subclass: '482', from: '2025-03-01' },
+          { subclass: '155', from: '2025-03-02' },
+        ],
+        trips: [{ departed: '2025-03-01', returned: '2025-03-10' }],
+      },
+      'AU-CITIZENSHIP',
+    );
+    expect(p.earliestDate).toBe('2026-03-03');
+  });
+
+  test('a permanent visa granted abroad on the return day', () => {
+    const p = pathway(
+      {
+        simulationDate: '2025-03-02',
+        firstArrival: '2019-01-01',
+        visas: [
+          { subclass: '189', from: '2019-01-01' },
+          { subclass: '155', from: '2025-03-02' },
+        ],
+        trips: [{ departed: '2025-03-01', returned: '2025-03-02' }],
+      },
+      'AU-CITIZENSHIP',
+    );
+    expect(p.earliestDate).toBe('2026-03-03');
+  });
+
   test('two permanent visas granted abroad on the departure day', () => {
     const p = pathway(
       {
