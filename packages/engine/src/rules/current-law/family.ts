@@ -60,6 +60,11 @@ export const countsForFamilyTenYear = (e: ImmigrationEpisode) =>
   e.route === 'FAMILY_PARTNER_OR_PARENT' ||
   e.route === 'FAMILY_AND_PRIVATE_LIFE';
 
+const isFamilyGrant = (e: ImmigrationEpisode) =>
+  e.route === 'FAMILY_PARTNER_OR_PARENT' &&
+  e.role === 'MAIN' &&
+  e.familyPermission !== undefined;
+
 /** CR 3.6: exclude historic days only after a qualifying further grant. */
 function familyTenYearCountedTrips(timeline: PersonTimeline, date: IsoDate) {
   const cutoff = cl.values.familyLifeHistoricAbsencesBefore.value;
@@ -70,9 +75,7 @@ function familyTenYearCountedTrips(timeline: PersonTimeline, date: IsoDate) {
       trip.from < cutoff &&
       timeline.episodes.some(
         (e) =>
-          e.route === 'FAMILY_PARTNER_OR_PARENT' &&
-          e.role === 'MAIN' &&
-          e.familyPermission !== undefined &&
+          isFamilyGrant(e) &&
           trip.from < e.validFrom &&
           trip.to <= e.validFrom &&
           e.validFrom <= date,
@@ -95,20 +98,42 @@ export function familyTenYearResidence(
   notBefore?: IsoDate,
 ): CurrentResidence | undefined {
   if (!onFamilyPartnerTenYear(timeline, simulationDate)) return undefined;
-  return currentResidence(
-    timeline,
-    simulationDate,
-    countsForFamilyTenYear,
-    cl.values.familyPartnerQualifyingYearsTen.value,
-    {
-      appliesOn: (e) =>
-        e.route === 'FAMILY_PARTNER_OR_PARENT' &&
-        e.role === 'MAIN' &&
-        e.familyPermission === 'PARTNER_TEN_YEAR',
-      notBefore,
-      countedTrips: familyTenYearCountedTrips(timeline, simulationDate),
-    },
-  );
+  const residence = (excludedBy: IsoDate, from?: IsoDate) =>
+    currentResidence(
+      timeline,
+      simulationDate,
+      countsForFamilyTenYear,
+      cl.values.familyPartnerQualifyingYearsTen.value,
+      {
+        appliesOn: (e) =>
+          e.route === 'FAMILY_PARTNER_OR_PARENT' &&
+          e.role === 'MAIN' &&
+          e.familyPermission === 'PARTNER_TEN_YEAR',
+        notBefore: from,
+        countedTrips: familyTenYearCountedTrips(timeline, excludedBy),
+      },
+    );
+  const now = residence(simulationDate, notBefore);
+  // CR 3.6 applies from a recorded later grant on: filing on or after it,
+  // the historic days are disregarded (review33b-1).
+  const later = timeline.episodes
+    .filter((e) => isFamilyGrant(e) && e.validFrom > simulationDate)
+    .map((e) => e.validFrom)
+    .sort();
+  // Each later grant can exclude a different set of trips; take the earliest.
+  return later
+    .map((grant) =>
+      residence(grant, notBefore && notBefore > grant ? notBefore : grant),
+    )
+    .reduce(
+      (best, projected) =>
+        projected?.applicationDate &&
+        (!best?.applicationDate ||
+          projected.applicationDate < best.applicationDate)
+          ? projected
+          : best,
+      now,
+    );
 }
 
 /**
