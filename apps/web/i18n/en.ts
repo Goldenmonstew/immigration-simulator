@@ -290,7 +290,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'No account or document uploads. Inputs are processed in your browser and drafts are saved on this device. Other people using a shared device may see your draft.',
   'home.disclaimerTitle': 'About this simulator',
   'home.disclaimer':
-    'Based on the information you entered, these rules may be relevant. This simulator provides general policy information and hypothetical scenario modelling. It does not determine your legal immigration status or guarantee the outcome of an application.',
+    'Based on the information you entered, these rules may be relevant. This simulator provides general policy information and hypothetical scenario modelling. It does not determine your legal immigration status, is not immigration or legal advice, and does not guarantee the outcome of an application.',
   'policy.asOf': 'Policy checked as of',
   'policy.LAW': 'Current law',
   'policy.ANNOUNCED': 'Announced reforms',
@@ -306,6 +306,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'gap.title': 'What is missing',
   'gap.met': 'All modelled requirements are met.',
   'gap.earliest': 'Based on the current situation, the earliest date is {date}',
+  'gap.completion':
+    'The selected pathway completes conditionally on {date}, provided the other requirements are still met then; this is not the earliest application date',
+  'gap.reassess':
+    'If no further counted public funds are received, shorter pathways can be reassessed from {date}',
   'gap.wait':
     ', approximately {years} years and {months} months after the simulation date (rounded up to the next month).',
   'gap.pending': 'Pending government clarification',
@@ -330,6 +334,13 @@ export const en: Record<keyof typeof zhCN, string> = {
   'result.routeGroup': 'Route group',
   'result.years': 'years',
   'result.earliest': 'Earliest possible date',
+  'result.completion': 'Conditional completion date',
+  'result.reassessment': 'Shorter pathways reassessed from',
+  'result.basis': 'Based on the {years}-year pathway ({route})',
+  'result.basisNoRoute': 'Based on the {years}-year pathway',
+  'result.thisPathway': 'Conditions on this pathway',
+  'result.otherPathways':
+    'Other pathways (they do not change the conclusion above)',
   'result.undetermined': 'Not yet determined',
   'result.why': 'Why',
   'result.FAIL': 'Not met',
@@ -415,7 +426,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'benefits.notPublicFunds': 'Not public funds',
   'site.language': 'Language',
   'home.disclaimerEnglish':
-    'Based on the information you entered, these rules may be relevant. This simulator provides general policy information and hypothetical scenario modelling. It does not determine your legal immigration status or guarantee the outcome of an application.',
+    'Based on the information you entered, these rules may be relevant. This simulator provides general policy information and hypothetical scenario modelling. It does not determine your legal immigration status, is not immigration or legal advice, and does not guarantee the outcome of an application.',
   'form.title': 'Enter your timeline',
   'form.step': 'Step',
   'form.of': 'of',

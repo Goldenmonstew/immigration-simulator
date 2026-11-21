@@ -1,12 +1,21 @@
 import type { SettlementAssessment } from '@uk-immigration/engine';
 
+// A future date does not mean only waiting: requirements still to be
+// confirmed on the pathway stay listed (task 31 A6#6).
 export function gapRules(assessment: SettlementAssessment) {
-  const onlyFailures =
-    assessment.outcome === 'LIKELY_NOT_ELIGIBLE' && !!assessment.earliestDate;
   return assessment.rules.filter(
     (rule) =>
       (!assessment.decidedBy || assessment.decidedBy.includes(rule.id)) &&
-      (rule.status === 'FAIL' || (!onlyFailures && rule.status === 'UNKNOWN')),
+      (rule.status === 'FAIL' || rule.status === 'UNKNOWN'),
+  );
+}
+
+/** The rule naming the route the conclusion rests on, if any. */
+export function basisRule(assessment: SettlementAssessment) {
+  return assessment.rules.find(
+    (rule) =>
+      assessment.decidedBy?.includes(rule.id) &&
+      /RESIDENCE|PATHWAY|DEPENDANT|-CHILD|PARTNER-5Y/.test(rule.id),
   );
 }
 

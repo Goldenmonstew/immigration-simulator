@@ -75,7 +75,7 @@ test.each([
   },
 );
 
-test('a projected date shows the wait from the simulation date and only failed rules', () => {
+test('task 49 / A6#6: a projected date shows the wait and keeps requirements still to confirm', () => {
   const html = render(
     assessment({
       outcome: 'LIKELY_NOT_ELIGIBLE',
@@ -86,7 +86,21 @@ test('a projected date shows the wait from the simulation date and only failed r
   expect(html).toContain('按当前情况最早 2028-01-04');
   expect(html).toContain('1 年 2 个月');
   expect(html).toContain('ES-EARNINGS-10Y');
-  expect(html).not.toContain('CL-ENGLISH');
+  expect(html).toContain('CL-ENGLISH（补填信息）');
+});
+
+test('task 49 / A6#7: a conditional completion is not shown as the earliest date', () => {
+  const html = render(
+    assessment({
+      outcome: 'LIKELY_NOT_ELIGIBLE',
+      pathwayYears: 20,
+      pathwayCompletionDate: '2041-06-01',
+      publicFundsReassessmentDate: '2028-11-01',
+    }),
+  );
+  expect(html).toContain('条件满期日 2041-06-01');
+  expect(html).toContain('2028-11-01 起可按较短路径重新评估');
+  expect(html).not.toContain('按当前情况最早 2041-06-01');
 });
 
 test.each(['POTENTIALLY_ELIGIBLE', 'LIKELY_NOT_ELIGIBLE'] as const)(
@@ -103,11 +117,10 @@ test.each(['POTENTIALLY_ELIGIBLE', 'LIKELY_NOT_ELIGIBLE'] as const)(
         ...rules.slice(1),
       ],
     });
-    expect(gapRules(value).map((item) => item.id)).toEqual(
-      outcome === 'LIKELY_NOT_ELIGIBLE'
-        ? ['CL-SW-RESIDENCE-5Y']
-        : ['CL-SW-RESIDENCE-5Y', 'CL-ENGLISH'],
-    );
+    expect(gapRules(value).map((item) => item.id)).toEqual([
+      'CL-SW-RESIDENCE-5Y',
+      'CL-ENGLISH',
+    ]);
     const html = render(value);
     expect(html).toContain('CL-SW-RESIDENCE-5Y');
     expect(html).toContain('href="/whatif?focus=date"');
@@ -126,7 +139,7 @@ test('without decidedBy all rules remain eligible for the summary', () => {
         earliestDate: '2028-01-04',
       }),
     ),
-  ).toEqual([rules[0]]);
+  ).toEqual(rules.slice(0, 3));
 });
 
 test.each(['zh-CN', 'en'] as const)(
@@ -295,3 +308,31 @@ test('a real Skilled Worker assessment with missing English offers the English c
     else expect(html).not.toMatch(/[\u3400-\u9fff：、（）]/);
   }
 });
+
+test.each(['zh-CN', 'en'] as const)(
+  'task 49 / playtest #2: the result names the pathway it rests on and sets other pathways apart in %s',
+  (locale) => {
+    const draft = {
+      ...createDraft(),
+      ...structuredClone(clHkbnoFiveYears.request),
+      simulationDate: '2026-01-01',
+      completed: true,
+    };
+    const result = runSimulation(draft, locale);
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <ResultView result={result} draft={draft} />
+      </LocaleContext>,
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? 'Based on the 5-year pathway ('
+        : '结论依据：5 年路径（',
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? 'Other pathways (they do not change the conclusion above)'
+        : '其他路径的条件（不影响上面的结论）',
+    );
+  },
+);

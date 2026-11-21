@@ -44,8 +44,26 @@ export function GapSummary({
         <p>{t('gap.met')}</p>
       ) : (
         <>
-          {!date && !rules.length && <p>{t('result.noRules')}</p>}
+          {!date && !rules.length && !assessment.pathwayCompletionDate && (
+            <p>{t('result.noRules')}</p>
+          )}
           <ul id={id} className={styles.gapList}>
+            {assessment.pathwayCompletionDate && (
+              <li>
+                {t('gap.completion').replace(
+                  '{date}',
+                  assessment.pathwayCompletionDate,
+                )}
+              </li>
+            )}
+            {assessment.publicFundsReassessmentDate && (
+              <li>
+                {t('gap.reassess').replace(
+                  '{date}',
+                  assessment.publicFundsReassessmentDate,
+                )}
+              </li>
+            )}
             {date && (
               <li>
                 {t('gap.earliest').replace('{date}', date)}

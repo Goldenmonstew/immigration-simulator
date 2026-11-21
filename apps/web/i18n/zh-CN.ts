@@ -263,9 +263,9 @@ export const zhCN = {
     '无需账号，不上传证件。输入仅在此浏览器计算，草稿自动保存在本机；共享设备上的其他使用者可能看到草稿。',
   'home.disclaimerTitle': '使用说明与免责说明',
   'home.disclaimer':
-    '根据你填写的信息，这些规则可能与你有关。本模拟器提供一般政策信息与假设情景模拟，不判定你的法律移民身份，也不保证申请结果。',
+    '根据你填写的信息，这些规则可能与你有关。本模拟器提供一般政策信息与假设情景模拟，不判定你的法律移民身份，不构成移民或法律意见，也不保证申请结果。',
   'home.disclaimerEnglish':
-    'Based on the information you entered, these rules may be relevant. This simulator provides general policy information and hypothetical scenario modelling. It does not determine your legal immigration status or guarantee the outcome of an application.',
+    'Based on the information you entered, these rules may be relevant. This simulator provides general policy information and hypothetical scenario modelling. It does not determine your legal immigration status, is not immigration or legal advice, and does not guarantee the outcome of an application.',
   'policy.asOf': '政策核对截至',
   'policy.LAW': '现行法律',
   'policy.ANNOUNCED': '已公布改革',
@@ -283,6 +283,10 @@ export const zhCN = {
   'gap.earliest': '按当前情况最早 {date}',
   'gap.wait':
     '，距模拟日还有约 {years} 年 {months} 个月（不足一个月按一个月计）',
+  'gap.completion':
+    '所选路径的条件满期日 {date}：前提是届时其余要求仍满足，这不是最早申请日',
+  'gap.reassess':
+    '如不再领取所计入的 public funds，自 {date} 起可按较短路径重新评估',
   'gap.pending': '待政府明确',
   'gap.input': '补填信息',
   'gap.more': '更多',
@@ -304,6 +308,12 @@ export const zhCN = {
   'result.routeGroup': '路线分组',
   'result.years': '年',
   'result.earliest': '最早可能日期',
+  'result.completion': '条件满期日',
+  'result.reassessment': '可重评较短路径',
+  'result.basis': '结论依据：{years} 年路径（{route}）',
+  'result.basisNoRoute': '结论依据：{years} 年路径',
+  'result.thisPathway': '这条路径的条件',
+  'result.otherPathways': '其他路径的条件（不影响上面的结论）',
   'result.undetermined': '尚无法确定',
   'result.why': '为什么',
   'result.FAIL': '未满足',
