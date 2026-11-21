@@ -1,5 +1,15 @@
 # 任务 33e｜改革的贡献、家属与受保护人群
 
+## Fable：合入 33a–33d
+
+2026-11-20 起开发由 Fable 实现，Codex（gpt-6.2-sol）只读审核。33e 基于 33a 第 3 轮前的 main，依次合入 33d（含 33a–33c）：
+- `contracts.md`：33e 的贡献规则段落保留，其后采用 main 的候选日期与缺席段落。
+- `pending-details.md`：33e 的 PD-083 改为第十四节（第十二、十三节为任务 32 与 33d）。
+- 33d 的 A6#10 回归按 33e 的 PD-047 更新：持许可不足 5 年时福利回看未被合格许可覆盖，三年收入路径为 `POTENTIALLY_ELIGIBLE`。
+
+合并后黄金案例的现行法栏与 33d 一致；改革栏 16 栏与 33d 不同，其中结论变化只有 `ES-OFFICIAL-INDIVIDUAL-C`（`LIKELY_ELIGIBLE` → `POTENTIALLY_ELIGIBLE`，PD-010），与 33e 自身一致，其余为规则明细。引擎 2,685 项通过、1 项跳过；web 533；game 1,331；lint、typecheck 通过。
+
+
 ## 1. 做了什么
 
 已在 `codex/33e-es-contribution` 实现 A5#1–#11。逐条复核了政策快照，采纳了 10 条成立及 1 条部分成立的复核结论。

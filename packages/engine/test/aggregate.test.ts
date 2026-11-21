@@ -172,11 +172,15 @@ describe('Earned Settlement pathway', () => {
         earnings: 130000,
       })),
     });
+    // 33e: the public funds lookback predates this permission (PD-047).
     expect(higher).toMatchObject({
-      outcome: 'LIKELY_ELIGIBLE',
+      outcome: 'POTENTIALLY_ELIGIBLE',
       pathwayYears: 3,
     });
     expect(higher.decidedBy).toContain('ES-EARNINGS-3Y');
+    expect(
+      higher.rules.find((r) => r.id === 'ES-PUBLIC-FUNDS')?.pendingDetails,
+    ).toEqual(['PD-047']);
   });
 
   test('Family and Private Life cannot use the 5-year pathway', () => {

@@ -472,7 +472,7 @@ exports[`CL-FAMILY-CHILD-TEN-YEAR default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -484,7 +484,7 @@ exports[`CL-FAMILY-CHILD-TEN-YEAR default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
@@ -496,7 +496,11 @@ exports[`CL-FAMILY-CHILD-TEN-YEAR default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -1041,7 +1045,7 @@ exports[`CL-FAMILY-FIVE-YEAR-ADULT-CHILD-ENGLISH default-locale output is unchan
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
@@ -1056,7 +1060,11 @@ exports[`CL-FAMILY-FIVE-YEAR-ADULT-CHILD-ENGLISH default-locale output is unchan
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -1610,7 +1618,7 @@ exports[`CL-FAMILY-FIVE-YEAR-CHILD-PROJECTED default-locale output is unchanged 
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -1622,7 +1630,7 @@ exports[`CL-FAMILY-FIVE-YEAR-CHILD-PROJECTED default-locale output is unchanged 
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
@@ -1634,7 +1642,11 @@ exports[`CL-FAMILY-FIVE-YEAR-CHILD-PROJECTED default-locale output is unchanged 
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -1645,8 +1657,11 @@ exports[`CL-FAMILY-FIVE-YEAR-CHILD-PROJECTED default-locale output is unchanged 
               "locator": "#contributory-benefits-and-statutory-payments"
             }
           ],
-          "status": "PASS",
-          "explanation": "申请前 5 年内未领取 public funds。",
+          "status": "UNKNOWN",
+          "explanation": "申报记录没有覆盖自 2021-11-05 起的整个回看期。正文按申请日前 5 年检查福利，案例 D 则要求连续在 qualifying route 上，具体口径尚待明确（PD-047）。",
+          "pendingDetails": [
+            "PD-047"
+          ],
           "assumptions": []
         },
         {
@@ -2269,7 +2284,7 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -2279,7 +2294,7 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
           "status": "UNKNOWN",
           "explanation": "2025-26 至 2028-29 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年；3 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -2292,7 +2307,7 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -2302,7 +2317,7 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
           "status": "UNKNOWN",
           "explanation": "2024-25 至 2028-29 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年；4 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -2315,7 +2330,7 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -2327,13 +2342,13 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "UNKNOWN",
           "explanation": "2022-23 至 2028-29 这 7 个 tax year 中，有 1 年收入达到 £12,571，需要 5 年；6 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -2343,11 +2358,19 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "PASS",
-          "explanation": "以 British citizen 的伴侣、父母或子女身份持家庭签证，属 recognised British connection，可走 5 年路径。"
+          "explanation": "家庭许可所依据的家庭成员为 British citizen，属 recognised British connection，可走 5 年路径。"
         },
         {
           "id": "ES-PUBLIC-FUNDS",
@@ -2355,7 +2378,11 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -2490,7 +2517,7 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
       "routeGroup": "CORE_PERMISSION"
@@ -3056,7 +3083,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -3066,7 +3093,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
           "status": "UNKNOWN",
           "explanation": "2025-26 至 2028-29 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年；3 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -3079,7 +3106,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -3089,7 +3116,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
           "status": "UNKNOWN",
           "explanation": "2024-25 至 2028-29 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年；4 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -3102,7 +3129,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -3114,13 +3141,13 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "UNKNOWN",
           "explanation": "2022-23 至 2028-29 这 7 个 tax year 中，有 1 年收入达到 £12,571，需要 5 年；6 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -3130,11 +3157,19 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "PASS",
-          "explanation": "以 British citizen 的伴侣、父母或子女身份持家庭签证，属 recognised British connection，可走 5 年路径。"
+          "explanation": "家庭许可所依据的家庭成员为 British citizen，属 recognised British connection，可走 5 年路径。"
         },
         {
           "id": "ES-PUBLIC-FUNDS",
@@ -3142,7 +3177,11 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -3277,7 +3316,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
       "routeGroup": "CORE_PERMISSION"
@@ -3842,7 +3881,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -3852,7 +3891,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
           "status": "UNKNOWN",
           "explanation": "2025-26 至 2028-29 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年；3 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -3865,7 +3904,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -3875,7 +3914,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
           "status": "UNKNOWN",
           "explanation": "2024-25 至 2028-29 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年；4 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -3888,7 +3927,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -3900,13 +3939,13 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "UNKNOWN",
           "explanation": "2022-23 至 2028-29 这 7 个 tax year 中，有 1 年收入达到 £12,571，需要 5 年；6 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -3916,11 +3955,19 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "PASS",
-          "explanation": "以 British citizen 的伴侣、父母或子女身份持家庭签证，属 recognised British connection，可走 5 年路径。"
+          "explanation": "家庭许可所依据的家庭成员为 British citizen，属 recognised British connection，可走 5 年路径。"
         },
         {
           "id": "ES-PUBLIC-FUNDS",
@@ -3928,7 +3975,11 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -4063,7 +4114,7 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
       "routeGroup": "CORE_PERMISSION"
@@ -4615,7 +4666,7 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -4625,7 +4676,7 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
           "status": "UNKNOWN",
           "explanation": "2021-22 至 2024-25 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年；3 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -4638,7 +4689,7 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -4648,7 +4699,7 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
           "status": "UNKNOWN",
           "explanation": "2020-21 至 2024-25 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年；4 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -4661,7 +4712,7 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -4673,13 +4724,13 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "UNKNOWN",
           "explanation": "2018-19 至 2024-25 这 7 个 tax year 中，有 1 年收入达到 £12,571，需要 5 年；6 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -4689,11 +4740,19 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "PASS",
-          "explanation": "以 British citizen 的伴侣、父母或子女身份持家庭签证，属 recognised British connection，可走 5 年路径。"
+          "explanation": "家庭许可所依据的家庭成员为 British citizen，属 recognised British connection，可走 5 年路径。"
         },
         {
           "id": "ES-PUBLIC-FUNDS",
@@ -4701,7 +4760,11 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -4836,7 +4899,7 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
       "routeGroup": "CORE_PERMISSION"
@@ -5318,7 +5381,7 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -5330,13 +5393,13 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "UNKNOWN",
           "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 0 年收入达到 £12,571，需要 5 年；7 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -5346,7 +5409,11 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -5420,7 +5487,7 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ]
     }
@@ -5879,7 +5946,7 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -5889,7 +5956,7 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2022-23 至 2025-26 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年；1 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -5902,7 +5969,7 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -5912,7 +5979,7 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
           "status": "PASS",
           "explanation": "2021-22 至 2025-26 这 5 个 tax year 中，有 3 年收入达到 £50,271，需要 3 年；2 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -5925,7 +5992,7 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -5937,13 +6004,13 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "UNKNOWN",
           "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 3 年收入达到 £12,571，需要 5 年；4 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -5953,7 +6020,15 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "FAIL",
@@ -5965,7 +6040,11 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -5976,8 +6055,11 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
               "locator": "#contributory-benefits-and-statutory-payments"
             }
           ],
-          "status": "PASS",
-          "explanation": "申请前 5 年内未领取 public funds。",
+          "status": "UNKNOWN",
+          "explanation": "申报记录没有覆盖自 2021-11-04 起的整个回看期。正文按申请日前 5 年检查福利，案例 D 则要求连续在 qualifying route 上，具体口径尚待明确（PD-047）。",
+          "pendingDetails": [
+            "PD-047"
+          ],
           "assumptions": []
         },
         {
@@ -6115,7 +6197,7 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
       "routeGroup": "CORE_PERMISSION"
@@ -6567,7 +6649,7 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -6579,7 +6661,7 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
@@ -6591,7 +6673,11 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -6602,8 +6688,11 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
               "locator": "#contributory-benefits-and-statutory-payments"
             }
           ],
-          "status": "PASS",
-          "explanation": "申请前 5 年内未领取 public funds。",
+          "status": "UNKNOWN",
+          "explanation": "申报记录没有覆盖自 2021-02-01 起的整个回看期。正文按申请日前 5 年检查福利，案例 D 则要求连续在 qualifying route 上，具体口径尚待明确（PD-047）。",
+          "pendingDetails": [
+            "PD-047"
+          ],
           "assumptions": []
         },
         {
@@ -7108,7 +7197,7 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -7118,7 +7207,7 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
           "status": "UNKNOWN",
           "explanation": "2021-22 至 2024-25 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年；4 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -7131,7 +7220,7 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -7141,7 +7230,7 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
           "status": "UNKNOWN",
           "explanation": "2020-21 至 2024-25 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年；5 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -7154,7 +7243,7 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -7166,13 +7255,13 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "UNKNOWN",
           "explanation": "2018-19 至 2024-25 这 7 个 tax year 中，有 0 年收入达到 £12,571，需要 5 年；7 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -7182,7 +7271,15 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "FAIL",
@@ -7194,7 +7291,11 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -7205,8 +7306,11 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
               "locator": "#contributory-benefits-and-statutory-payments"
             }
           ],
-          "status": "PASS",
-          "explanation": "申请前 5 年内未领取 public funds。",
+          "status": "UNKNOWN",
+          "explanation": "申报记录没有覆盖自 2021-02-01 起的整个回看期。正文按申请日前 5 年检查福利，案例 D 则要求连续在 qualifying route 上，具体口径尚待明确（PD-047）。",
+          "pendingDetails": [
+            "PD-047"
+          ],
           "assumptions": []
         },
         {
@@ -7329,7 +7433,7 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ]
     }
@@ -7800,7 +7904,7 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -7810,7 +7914,7 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
           "status": "UNKNOWN",
           "explanation": "2022-23 至 2025-26 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年；4 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -7823,7 +7927,7 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -7833,7 +7937,7 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
           "status": "UNKNOWN",
           "explanation": "2021-22 至 2025-26 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年；5 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -7846,7 +7950,7 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -7858,13 +7962,13 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "UNKNOWN",
           "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 0 年收入达到 £12,571，需要 5 年；7 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -7874,7 +7978,15 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "FAIL",
@@ -7886,7 +7998,11 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -7897,8 +8013,11 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
               "locator": "#contributory-benefits-and-statutory-payments"
             }
           ],
-          "status": "PASS",
-          "explanation": "申请前 5 年内未领取 public funds。",
+          "status": "UNKNOWN",
+          "explanation": "申报记录没有覆盖自 2021-05-01 起的整个回看期。正文按申请日前 5 年检查福利，案例 D 则要求连续在 qualifying route 上，具体口径尚待明确（PD-047）。",
+          "pendingDetails": [
+            "PD-047"
+          ],
           "assumptions": []
         },
         {
@@ -8036,7 +8155,7 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
       "routeGroup": "CORE_PERMISSION"
@@ -8494,7 +8613,7 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -8504,7 +8623,7 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
           "status": "UNKNOWN",
           "explanation": "2022-23 至 2025-26 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年；4 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -8517,7 +8636,7 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -8527,7 +8646,7 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
           "status": "UNKNOWN",
           "explanation": "2021-22 至 2025-26 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年；5 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -8540,7 +8659,7 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -8552,13 +8671,13 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "UNKNOWN",
           "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 0 年收入达到 £12,571，需要 5 年；7 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -8568,7 +8687,15 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "FAIL",
@@ -8580,7 +8707,11 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -8715,7 +8846,7 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
       "routeGroup": "FAMILY_AND_PRIVATE_LIFE"
@@ -9190,7 +9321,7 @@ exports[`CL-REFUGEE-FIVE-YEARS default-locale output is unchanged 1`] = `
             }
           ],
           "status": "PASS",
-          "explanation": "Core Protection 的 20 年路径不要求申请前 5 年未使用 public funds；这一要求只用于短于 20 年的路径（p39）。"
+          "explanation": "Core Protection 的 20 年路径豁免申请前 5 年未使用 public funds 的要求（p39）。"
         },
         {
           "id": "ES-BREACH",
@@ -9714,7 +9845,7 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -9724,7 +9855,7 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
           "status": "UNKNOWN",
           "explanation": "2022-23 至 2025-26 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年；4 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -9737,7 +9868,7 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -9747,7 +9878,7 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
           "status": "UNKNOWN",
           "explanation": "2021-22 至 2025-26 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年；5 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -9760,7 +9891,7 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -9772,13 +9903,13 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "UNKNOWN",
           "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 0 年收入达到 £12,571，需要 5 年；7 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -9788,7 +9919,15 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "PASS",
@@ -9800,7 +9939,11 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -9935,7 +10078,7 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
       "routeGroup": "CORE_PERMISSION"
@@ -10277,9 +10420,8 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
       ]
     },
     "earned-settlement-2026-11": {
-      "outcome": "LIKELY_ELIGIBLE",
+      "outcome": "POTENTIALLY_ELIGIBLE",
       "pathwayYears": 10,
-      "earliestDate": "2026-11-04",
       "decidedBy": [
         "ES-CRIMINALITY",
         "ES-DEBT",
@@ -10411,7 +10553,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -10421,7 +10563,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2022-23 至 2025-26 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -10434,7 +10576,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -10444,7 +10586,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2021-22 至 2025-26 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -10457,7 +10599,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -10469,15 +10611,17 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
-          "status": "PASS",
-          "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 7 年收入达到 £12,571（其中 7 年靠与伴侣合计达到 £25,142），需要 5 年。",
+          "status": "UNKNOWN",
+          "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 0 年收入达到 £12,571，需要 5 年。若可合计伴侣收入，部分年份可达 £25,142。合计须符合 eligible couple 条件，关系真实且持续，并且只有一方依赖另一方的收入（PD-010）。",
+          "pendingDetails": [
+            "PD-010"
+          ],
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
-            "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
-            "家庭合计收入假设申请人与伴侣是 eligible couple（genuine and subsisting 关系），且伴侣没有反过来依赖申请人的收入（p17；PD-010）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
+            "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
         {
@@ -10486,7 +10630,15 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "FAIL",
@@ -10498,7 +10650,11 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -10633,9 +10789,8 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
-        "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
-        "家庭合计收入假设申请人与伴侣是 eligible couple（genuine and subsisting 关系），且伴侣没有反过来依赖申请人的收入（p17；PD-010）。"
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
+        "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
       "routeGroup": "CORE_PERMISSION"
     }
@@ -11103,7 +11258,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -11113,7 +11268,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2022-23 至 2025-26 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -11126,7 +11281,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -11136,7 +11291,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2021-22 至 2025-26 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -11149,7 +11304,7 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -11161,13 +11316,13 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
           "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 7 年收入达到 £12,571，需要 5 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -11177,7 +11332,15 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "FAIL",
@@ -11189,7 +11352,11 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -11201,11 +11368,9 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             }
           ],
           "status": "FAIL",
-          "explanation": "2021-11-04 以来领取过 Universal Credit，属 public funds。3 / 5 / 10 年路径要求申请前 5 年未使用 specified public funds，否则须在 qualifying route 上满 20 年。若此后不再使用，自 2028-10-01 起回看期内不再有 public funds，可按较短路径重新评估。",
+          "explanation": "2021-11-04 以来领取过 Universal Credit，属 public funds。短于 20 年的路径要求申请前 5 年未使用 specified public funds。若此后不再使用，自 2028-10-01 起回看期内不再有 public funds，可按较短路径重新评估。",
           "assumptions": [
-            "specified public funds 先按现行 public funds 定义（SRC-006）判断；政府将另定纳入范围与弱势群体的保障或豁免（PD-013）。",
-            "只计申请人本人领取的福利；伴侣或子女领取是否影响申请人，原文未说明（PD-014）。",
-            "回看期按正文\\"申请前紧接的 5 年\\"计算，不要求这段时间都在 qualifying route 上（PD-047）。"
+            "specified public funds 先按现行 public funds 定义（SRC-006）判断；政府将另定纳入范围与弱势群体的保障或豁免（PD-013）。"
           ]
         },
         {
@@ -11331,11 +11496,9 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
         "按自 2015-06-01 起持续居留及其余要求届时满足的假设，所选 20 年路径于 2035-06-01 满期。",
         "若不再领取所计入的 public funds，自 2028-10-01 起可按较短路径重新评估。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
-        "specified public funds 先按现行 public funds 定义（SRC-006）判断；政府将另定纳入范围与弱势群体的保障或豁免（PD-013）。",
-        "只计申请人本人领取的福利；伴侣或子女领取是否影响申请人，原文未说明（PD-014）。",
-        "回看期按正文\\"申请前紧接的 5 年\\"计算，不要求这段时间都在 qualifying route 上（PD-047）。"
+        "specified public funds 先按现行 public funds 定义（SRC-006）判断；政府将另定纳入范围与弱势群体的保障或豁免（PD-013）。"
       ],
       "pathwayCompletionDate": "2035-06-01",
       "publicFundsReassessmentDate": "2028-10-01",
@@ -11812,7 +11975,7 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -11822,7 +11985,7 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
           "status": "FAIL",
           "explanation": "2022-23 至 2025-26 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -11835,7 +11998,7 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -11845,7 +12008,7 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
           "status": "FAIL",
           "explanation": "2021-22 至 2025-26 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -11858,7 +12021,7 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -11870,13 +12033,13 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
           "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 5 年收入达到 £12,571，需要 5 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -11886,7 +12049,15 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "FAIL",
@@ -11898,7 +12069,11 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -12033,7 +12208,7 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
       "routeGroup": "CORE_PERMISSION"
@@ -12562,7 +12737,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -12572,7 +12747,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2022-23 至 2025-26 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -12585,7 +12760,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -12595,7 +12770,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2021-22 至 2025-26 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -12608,7 +12783,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -12620,13 +12795,13 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
           "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 5 年收入达到 £12,571，需要 5 年；2 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -12636,7 +12811,15 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "FAIL",
@@ -12648,7 +12831,11 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -12799,7 +12986,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "自 2021-04-06 起连续持 Skilled Worker 许可，早于 2024-04-04，属\\"2024 年 4 月前群体\\"：可按现有薪资条件续签至 2035 年（p44，具体日期未定，PD-040）；本工具按标准路径计算定居年限。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
       "routeGroup": "CORE_PERMISSION"
@@ -13268,7 +13455,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -13278,7 +13465,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2022-23 至 2025-26 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -13291,7 +13478,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -13301,7 +13488,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2021-22 至 2025-26 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -13314,7 +13501,7 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -13326,13 +13513,13 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
           "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 5 年收入达到 £12,571，需要 5 年；2 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -13342,11 +13529,22 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "PASS",
-          "explanation": "以 British citizen 的伴侣、父母或子女身份持家庭签证，属 recognised British connection，可走 5 年路径。"
+          "explanation": "家庭许可所依据的家庭成员为 British citizen，属 recognised British connection，可走 5 年路径。",
+          "assumptions": [
+            "未申报家庭许可类别，按已录入的伴侣或子女关系推定许可依据。"
+          ]
         },
         {
           "id": "ES-PUBLIC-FUNDS",
@@ -13354,7 +13552,11 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -13489,8 +13691,9 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
-        "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
+        "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
+        "未申报家庭许可类别，按已录入的伴侣或子女关系推定许可依据。"
       ],
       "routeGroup": "CORE_PERMISSION"
     }
@@ -13958,7 +14161,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -13970,13 +14173,13 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
           "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 5 年收入达到 £12,571，需要 5 年；2 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -13986,7 +14189,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -14051,7 +14258,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             }
           ],
           "status": "PASS",
-          "explanation": "与主申请人同时开始居留，可在主申请人的 5 年路径满期时（2026-04-06）一同定居，须各自满足相关要求。",
+          "explanation": "主申请人的 5 年路径于 2026-04-06 满期，届时伴侣的合格期也已达到同样年限。双方各自满足相关要求即可一同定居。",
           "assumptions": [
             "dependant 的路径年限与日期按主申请人在同一申请日的 Earned Settlement 评估结果推出；主申请人自己的规则明细见其本人的结果。",
             "伴侣的收入要求按最低收入（个人 £12,571 或家庭合计 £25,142）判断，不按主申请人的加速门槛（PD-056）。"
@@ -14061,7 +14268,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
         "dependant 的路径年限与日期按主申请人在同一申请日的 Earned Settlement 评估结果推出；主申请人自己的规则明细见其本人的结果。",
         "伴侣的收入要求按最低收入（个人 £12,571 或家庭合计 £25,142）判断，不按主申请人的加速门槛（PD-056）。"
@@ -14596,7 +14803,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -14606,7 +14813,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2022-23 至 2025-26 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -14619,7 +14826,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -14629,7 +14836,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "status": "PASS",
           "explanation": "2021-22 至 2025-26 这 5 个 tax year 中，有 5 年收入达到 £50,271，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -14642,7 +14849,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -14654,13 +14861,13 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
           "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 5 年收入达到 £12,571，需要 5 年；2 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -14670,7 +14877,15 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "FAIL",
@@ -14682,7 +14897,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -14833,7 +15052,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "自 2021-04-06 起连续持 Skilled Worker 许可，早于 2024-04-04，属\\"2024 年 4 月前群体\\"：可按现有薪资条件续签至 2035 年（p44，具体日期未定，PD-040）；本工具按标准路径计算定居年限。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
       ],
       "routeGroup": "CORE_PERMISSION"
@@ -15303,7 +15522,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -15315,13 +15534,13 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "UNKNOWN",
           "explanation": "2019-20 至 2025-26 这 7 个 tax year 中，有 3 年收入达到 £12,571，需要 5 年；4 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -15331,7 +15550,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -15342,8 +15565,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
               "locator": "#contributory-benefits-and-statutory-payments"
             }
           ],
-          "status": "PASS",
-          "explanation": "申请前 5 年内未领取 public funds。",
+          "status": "UNKNOWN",
+          "explanation": "申报记录没有覆盖自 2021-04-06 起的整个回看期。正文按申请日前 5 年检查福利，案例 D 则要求连续在 qualifying route 上，具体口径尚待明确（PD-047）。",
+          "pendingDetails": [
+            "PD-047"
+          ],
           "assumptions": []
         },
         {
@@ -15396,22 +15622,22 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
             }
           ],
           "status": "FAIL",
-          "explanation": "主申请人走 5 年路径，2026-04-06 满期；伴侣自 2023-04-06 起才有计入定居的居留，须同样满 5 年，2028-04-06 起可申请。截至 2026-04-06 尚未满期。",
+          "explanation": "主申请人走 5 年路径，2026-04-06 满期。伴侣的连续 partner dependant 合格期自 2023-04-06 起算，2028-04-06 满同样年限。截至 2026-04-06 尚未满期。",
           "assumptions": [
             "dependant 的路径年限与日期按主申请人在同一申请日的 Earned Settlement 评估结果推出；主申请人自己的规则明细见其本人的结果。",
             "伴侣的收入要求按最低收入（个人 £12,571 或家庭合计 £25,142）判断，不按主申请人的加速门槛（PD-056）。",
-            "后到伴侣的合格期取主申请人所在路径的年限（5 年）（PD-057）。"
+            "后到伴侣的合格期取主申请人所在路径的年限（5 年），申报的连续 partner dependant 许可按同一主申请人处理（PD-057）。"
           ]
         }
       ],
       "assumptions": [
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
         "dependant 的路径年限与日期按主申请人在同一申请日的 Earned Settlement 评估结果推出；主申请人自己的规则明细见其本人的结果。",
         "伴侣的收入要求按最低收入（个人 £12,571 或家庭合计 £25,142）判断，不按主申请人的加速门槛（PD-056）。",
-        "后到伴侣的合格期取主申请人所在路径的年限（5 年）（PD-057）。",
+        "后到伴侣的合格期取主申请人所在路径的年限（5 年），申报的连续 partner dependant 许可按同一主申请人处理（PD-057）。",
         "最早可申请日期按\\"自 2023-04-06 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ],
       "routeGroup": "CORE_PERMISSION"
@@ -15877,7 +16103,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -15889,7 +16115,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
@@ -15901,7 +16127,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -16444,7 +16674,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-D default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
@@ -16459,7 +16689,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-D default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -16993,7 +17227,7 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-E default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
@@ -17008,7 +17242,11 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-E default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -18086,7 +18324,11 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -18097,8 +18339,11 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "#contributory-benefits-and-statutory-payments"
             }
           ],
-          "status": "PASS",
-          "explanation": "申请前 5 年内未领取 public funds。",
+          "status": "UNKNOWN",
+          "explanation": "申报记录没有覆盖自 2025-01-01 起的整个回看期。正文按申请日前 5 年检查福利，案例 D 则要求连续在 qualifying route 上，具体口径尚待明确（PD-047）。",
+          "pendingDetails": [
+            "PD-047"
+          ],
           "assumptions": []
         },
         {
@@ -18155,7 +18400,7 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             "PD-030"
           ],
           "assumptions": [
-            "原文未定义 3 个 qualifying years 的观察窗口；本工具按\\"Protection Work and Study 合格期内任意 3 个 tax year\\"计算（PD-030）。"
+            "原文未定义 3 个 qualifying years 的观察窗口，本工具按 Protection Work and Study 合格期内任意 3 个 tax year 计算（PD-030）。"
           ]
         },
         {
@@ -18187,7 +18432,7 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-B default-locale output is unchanged 1`] = `
         "难民定居路径的多项细则（路线推出时间、已有时间如何计入、public funds 与偿还安排、Article 31）将在实施前公布；本结果仅帮助理解已公布的政策，具体情况请咨询受监管的移民顾问。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
         "Core Protection 与 Protection Work and Study 尚未推出，启用日期未定（PD-034）；本工具按所填许可片段的日期计算。推出前已有的难民身份时间是否及如何计入，原文说法不一、细则待公布（PD-029、PD-043）。",
-        "原文未定义 3 个 qualifying years 的观察窗口；本工具按\\"Protection Work and Study 合格期内任意 3 个 tax year\\"计算（PD-030）。",
+        "原文未定义 3 个 qualifying years 的观察窗口，本工具按 Protection Work and Study 合格期内任意 3 个 tax year 计算（PD-030）。",
         "难民偿还义务与保障措施的细则将在实施前公布（PD-031）；偿还情况按你的申报判断。",
         "最早可申请日期按\\"自 2028-03-01 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ],
@@ -18659,7 +18904,11 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -18670,8 +18919,11 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "#contributory-benefits-and-statutory-payments"
             }
           ],
-          "status": "PASS",
-          "explanation": "申请前 5 年内未领取 public funds。",
+          "status": "UNKNOWN",
+          "explanation": "申报记录没有覆盖自 2025-01-01 起的整个回看期。正文按申请日前 5 年检查福利，案例 D 则要求连续在 qualifying route 上，具体口径尚待明确（PD-047）。",
+          "pendingDetails": [
+            "PD-047"
+          ],
           "assumptions": []
         },
         {
@@ -18732,7 +18984,7 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             "PD-030"
           ],
           "assumptions": [
-            "原文未定义 3 个 qualifying years 的观察窗口；本工具按\\"Protection Work and Study 合格期内任意 3 个 tax year\\"计算（PD-030）。"
+            "原文未定义 3 个 qualifying years 的观察窗口，本工具按 Protection Work and Study 合格期内任意 3 个 tax year 计算（PD-030）。"
           ]
         },
         {
@@ -18764,7 +19016,7 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-C default-locale output is unchanged 1`] = `
         "难民定居路径的多项细则（路线推出时间、已有时间如何计入、public funds 与偿还安排、Article 31）将在实施前公布；本结果仅帮助理解已公布的政策，具体情况请咨询受监管的移民顾问。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
         "Core Protection 与 Protection Work and Study 尚未推出，启用日期未定（PD-034）；本工具按所填许可片段的日期计算。推出前已有的难民身份时间是否及如何计入，原文说法不一、细则待公布（PD-029、PD-043）。",
-        "原文未定义 3 个 qualifying years 的观察窗口；本工具按\\"Protection Work and Study 合格期内任意 3 个 tax year\\"计算（PD-030）。",
+        "原文未定义 3 个 qualifying years 的观察窗口，本工具按 Protection Work and Study 合格期内任意 3 个 tax year 计算（PD-030）。",
         "难民偿还义务与保障措施的细则将在实施前公布（PD-031）；偿还情况按你的申报判断。",
         "最早可申请日期按\\"自 2028-03-01 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
       ],
@@ -19241,7 +19493,7 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             }
           ],
           "status": "PASS",
-          "explanation": "Core Protection 的 20 年路径不要求申请前 5 年未使用 public funds；这一要求只用于短于 20 年的路径（p39）。"
+          "explanation": "Core Protection 的 20 年路径豁免申请前 5 年未使用 public funds 的要求（p39）。"
         },
         {
           "id": "ES-BREACH",
@@ -19846,7 +20098,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -19856,7 +20108,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2024-25 至 2027-28 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -19869,7 +20121,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -19879,7 +20131,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2023-24 至 2027-28 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -19892,7 +20144,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -19904,13 +20156,13 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
           "explanation": "2021-22 至 2027-28 这 7 个 tax year 中，有 5 年收入达到 £12,571，需要 5 年；2 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -19920,7 +20172,15 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "FAIL",
@@ -19932,7 +20192,11 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -20088,7 +20352,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
         "原文未规定同时符合过渡安排与标准路径时如何取舍；本结果取满足条件的最短路径，申请人可能可以选择更有利的安排，需咨询受监管顾问。",
         "自 2023-04-06 起连续持 Skilled Worker 许可，早于 2024-04-04，属\\"2024 年 4 月前群体\\"：可按现有薪资条件续签至 2035 年（p44，具体日期未定，PD-040）；本工具按标准路径计算定居年限。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
         "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。",
         "过渡安排另要求满足担保与雇佣要求（p42），本工具未核实。"
@@ -20633,7 +20897,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -20643,7 +20907,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2024-25 至 2027-28 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -20656,7 +20920,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -20666,7 +20930,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2023-24 至 2027-28 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -20679,7 +20943,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -20691,13 +20955,13 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
           "explanation": "2021-22 至 2027-28 这 7 个 tax year 中，有 5 年收入达到 £12,571，需要 5 年；2 年未填写收入。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -20707,7 +20971,15 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "FAIL",
@@ -20719,7 +20991,11 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -20857,7 +21133,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "自 2023-04-06 起连续持 Skilled Worker 许可，早于 2024-04-04，属\\"2024 年 4 月前群体\\"：可按现有薪资条件续签至 2035 年（p44，具体日期未定，PD-040）；本工具按标准路径计算定居年限。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
         "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。",
         "最早可申请日期按\\"自 2023-04-06 起持续居留、收入等状况不变、其余要求届时仍满足\\"推算，不是对未来的保证。"
@@ -21405,7 +21681,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -21415,7 +21691,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2031-32 至 2034-35 这 4 个 tax year 中，有 0 年收入达到 £125,141，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -21428,7 +21704,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -21438,7 +21714,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "status": "FAIL",
           "explanation": "2030-31 至 2034-35 这 5 个 tax year 中，有 0 年收入达到 £50,271，需要 3 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。"
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。"
           ]
         },
         {
@@ -21451,7 +21727,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p16"
+              "locator": "p16, How earnings will be assessed"
             },
             {
               "srcId": "SRC-001",
@@ -21463,13 +21739,13 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             },
             {
               "srcId": "SRC-001",
-              "locator": "p30"
+              "locator": "p29"
             }
           ],
           "status": "PASS",
           "explanation": "2028-29 至 2034-35 这 7 个 tax year 中，有 7 年收入达到 £12,571，需要 5 年。",
           "assumptions": [
-            "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+            "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
             "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。"
           ]
         },
@@ -21479,7 +21755,15 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, British Connection"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p50, Annex A"
+            },
+            {
+              "srcId": "SRC-024",
+              "locator": "E-LTRP.1.2(a)–(b), E-LTRPT.2.2(c)"
             }
           ],
           "status": "FAIL",
@@ -21491,7 +21775,11 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
           "sources": [
             {
               "srcId": "SRC-001",
-              "locator": "p18"
+              "locator": "p18, Public Funds"
+            },
+            {
+              "srcId": "SRC-001",
+              "locator": "p19, Individual D"
             },
             {
               "srcId": "SRC-006",
@@ -21648,7 +21936,7 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
         "Earned Settlement 已公布、尚未生效，按\\"假设在申请日适用\\"评估；规则依据为政府回应文件（SRC-001），不是已生效的 Immigration Rules（PD-001）。首批规则修改预计 2026 年 12 月起提交、2027 年 1 月生效，2027–2028 年继续修改（SRC-002 col 593；SRC-003 cols 1423–1424），具体生效日以届时的 Statement of Changes 为准（PD-003）。",
         "\\"无政府债务\\"按用户申报判断；正在按还款计划偿还的非 asylum support 债务是否满足要求，原文未说明（PD-018）。",
         "此前在\\"毕业生\\"路线的时间不计入定居；本工具假设不计入路线的时间同时打断连续居留，而不只是从合格期中扣除（PD-053）。",
-        "收入按英国 tax year 的税前收入计算，窗口为申请日所在 tax year 之前的完整 tax year；各年份统一按现行门槛比较（PD-005 / PD-006 / PD-007）。",
+        "收入按英国 tax year 的税前收入汇总，各年统一按现行门槛比较。以申请日前的完整 tax year 为基准，若回看边界上的收入归属能改变结论，则保留待定（PD-005 / PD-006 / PD-007）。",
         "最低收入按 p16 与 Table 1 的\\"申请前 7 年中 5 年\\"计算；p15 另有\\"至少 3 年\\"的说法（PD-041）。",
         "截止点取 Immigration White Paper 的发布日 2025-05-12（PD-035）；截止前开始的连续 care worker 许可用起始日近似判断，职业按 SOC 2020 6135 / 6136 认定（PD-036）。"
       ],
