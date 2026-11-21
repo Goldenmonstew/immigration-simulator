@@ -57,6 +57,8 @@ export function validateUsForm(form: UsForm): UsErrors {
     date(`us-trip-${i}-returned`, trip.returned);
     if (validDate(trip.returned) && trip.returned < trip.departed)
       errors[`us-trip-${i}-returned`] = 'us.error.order';
+    if (validDate(trip.departed) && trip.departed < form.permanentResident)
+      errors[`us-trip-${i}-departed`] = 'us.error.beforeGreenCard';
   });
   return errors;
 }

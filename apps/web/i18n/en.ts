@@ -580,6 +580,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.errorSummary': 'Fix the items marked in red first.',
   'us.error.date': 'Enter a valid date.',
   'us.error.order': 'This date cannot be before the start date.',
+  'us.error.beforeGreenCard': 'Enter only trips after you got your green card.',
   'ca.entryLink': 'Open the Canada pilot',
   'ca.entryDesc':
     'Use the date you became a permanent resident and your travel record to work out the residency obligation and the physical presence for citizenship.',

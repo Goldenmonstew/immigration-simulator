@@ -21,6 +21,7 @@ const filled: UsForm = {
   ...emptyUsForm('2026-11-21'),
   dateOfBirth: '1990-05-01',
   permanentResident: '2021-03-01',
+  stateResidenceFrom: '2020-01-01',
   trips: [{ departed: '2024-01-10', returned: '2024-02-10' }],
 };
 
@@ -48,12 +49,16 @@ test('validation marks missing and out-of-order dates', () => {
       ...emptyUsForm('2026-11-21'),
       permanentResident: '2022-03-01',
       married: true,
-      trips: [{ departed: '2024-02-10', returned: '2024-01-10' }],
+      trips: [
+        { departed: '2024-02-10', returned: '2024-01-10' },
+        { departed: '2021-02-10', returned: '2021-03-10' },
+      ],
     }),
   ).toEqual({
     'us-date-of-birth': 'us.error.date',
     'us-married-on': 'us.error.date',
     'us-trip-0-returned': 'us.error.order',
+    'us-trip-1-departed': 'us.error.beforeGreenCard',
   });
   expect(validateUsForm(filled)).toEqual({});
 });
@@ -61,7 +66,9 @@ test('validation marks missing and out-of-order dates', () => {
 test('the request leaves out an unticked marriage and blank dates', () => {
   const request = usRequest(filled, 'en');
   expect(request).not.toHaveProperty('marriage');
-  expect(request).not.toHaveProperty('stateResidenceFrom');
+  expect(
+    usRequest({ ...filled, stateResidenceFrom: '' }, 'en'),
+  ).not.toHaveProperty('stateResidenceFrom');
   expect(
     usRequest({ ...filled, married: true, marriedOn: '2022-01-01' }, 'en')
       .marriage,

@@ -150,7 +150,11 @@ export default function UnitedStatesContent() {
               <input
                 type="checkbox"
                 checked={draft.married}
-                onChange={(e) => set({ married: e.target.checked })}
+                onChange={(e) => {
+                  // Hidden marriage fields must not keep their errors.
+                  setErrors({});
+                  set({ married: e.target.checked });
+                }}
               />
               {t('us.married')}
             </label>

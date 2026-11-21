@@ -8,6 +8,7 @@ const base: UsRequest = {
   dateOfBirth: '1990-05-01',
   permanentResident: '2022-03-01',
   conditional: 'none',
+  stateResidenceFrom: '2020-01-01',
   trips: [],
 };
 
@@ -33,6 +34,7 @@ describe('naturalization, INA 316(a)', () => {
       {
         simulationDate: '2014-01-01',
         permanentResident: '2005-01-01',
+        stateResidenceFrom: '2005-01-01',
         trips: [{ departed: '2010-01-01', returned: '2011-01-02' }],
       },
       'US-NATURALIZATION',
@@ -62,6 +64,15 @@ describe('naturalization, INA 316(a)', () => {
       'US-NATURALIZATION',
     );
     expect(p.earliestDate).toBe('2027-01-15');
+  });
+
+  test('without the state residence date the result is unknown', () => {
+    const p = pathway(
+      { stateResidenceFrom: undefined, simulationDate: '2027-06-01' },
+      'US-NATURALIZATION',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('2027-06-01');
   });
 
   test('aged 18', () => {
@@ -144,9 +155,27 @@ describe('removing conditions, INA 216', () => {
     expect(p.status).toBe('MET');
   });
 
+  test('a weekend last day: paper filing on the next business day', () => {
+    // Anniversary 2026-11-22 (Sunday): last day Saturday 2026-11-21.
+    const req = {
+      conditional: 'marriage' as const,
+      permanentResident: '2024-11-22',
+    };
+    const monday = pathway(
+      { ...req, simulationDate: '2026-11-23' },
+      'US-CONDITIONS',
+    );
+    expect(monday.status).toBe('UNKNOWN');
+    expect(monday.summary).toContain('2026-11-23');
+    expect(
+      pathway({ ...req, simulationDate: '2026-11-24' }, 'US-CONDITIONS').status,
+    ).toBe('NOT_MET');
+  });
+
   test('after the anniversary', () => {
     const p = pathway(
-      { ...conditional, simulationDate: '2027-03-01', conditional: 'investor' },
+      // Last day Sunday 2027-02-28: paper filing until Monday 03-01.
+      { ...conditional, simulationDate: '2027-03-02', conditional: 'investor' },
       'US-CONDITIONS',
     );
     expect(p.status).toBe('NOT_MET');

@@ -381,6 +381,7 @@ export const zhCN = {
   'us.errorSummary': '请先修正标红的项目。',
   'us.error.date': '请填写有效日期。',
   'us.error.order': '这个日期不能早于开始的日期。',
+  'us.error.beforeGreenCard': '只填取得绿卡之后的出境。',
   'ca.entryLink': '打开加拿大试点',
   'ca.entryDesc':
     '按成为永久居民的日期与出入境记录，计算维持永居的居住义务与入籍实际居住的时间节点。',

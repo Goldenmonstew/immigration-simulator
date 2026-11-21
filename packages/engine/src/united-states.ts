@@ -40,13 +40,15 @@ export type UsPathway = PilotPathway<UsPathwayId>;
 export type UsResult = PilotResult<UsPathwayId>;
 
 const v = us.values;
+/** 0 = Sunday … 6 = Saturday. */
+const weekday = (d: IsoDate) => new Date(`${d}T00:00:00Z`).getUTCDay();
 
 export function evaluateUnitedStates(req: UsRequest): UsResult {
   const L = textFor(req);
   const sim = req.simulationDate;
   const lpr = req.permanentResident;
   const days = new Days(
-    addDays(addYears(sim, -v.naturalizationYears.value), -1),
+    addYears(sim, -v.naturalizationYears.value),
     addYears(sim, HORIZON_YEARS),
   );
   // Departure and return days are days in the United States (PM 12 D.4;
@@ -140,20 +142,25 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
     n: { earliest?: IsoDate; rebuttable?: IsoDate },
     what: [string, string],
   ) =>
-    (n.earliest === sim
+    (!stateFrom && n.earliest
       ? L(
-          `模拟日递交${what[0]}已满足时间条件。`,
-          `Filing ${what[1]} on the simulation date meets the time requirements.`,
+          `如果已在所在州或 USCIS 辖区住满 3 个月，${what[0]}最早可递交日是 ${n.earliest}；请填写起住日以确认。`,
+          `If you have lived in your state or USCIS district for 3 months, the earliest date to file ${what[1]} is ${n.earliest}; enter the start date to confirm it.`,
         )
-      : n.earliest
+      : n.earliest === sim
         ? L(
-            `${what[0]}最早可递交日是 ${n.earliest}。`,
-            `The earliest date to file ${what[1]} is ${n.earliest}.`,
+            `模拟日递交${what[0]}已满足时间条件。`,
+            `Filing ${what[1]} on the simulation date meets the time requirements.`,
           )
-        : L(
-            `按现有记录，10 年内达不到${what[0]}的时间条件。`,
-            `With your record you will not meet the time requirements for ${what[1]} within 10 years.`,
-          )) +
+        : n.earliest
+          ? L(
+              `${what[0]}最早可递交日是 ${n.earliest}。`,
+              `The earliest date to file ${what[1]} is ${n.earliest}.`,
+            )
+          : L(
+              `按现有记录，10 年内达不到${what[0]}的时间条件。`,
+              `With your record you will not meet the time requirements for ${what[1]} within 10 years.`,
+            )) +
     (n.rebuttable
       ? L(
           `如能证明离境超过 180 天但不满 1 年期间没有放弃居住（推定可反驳），最早 ${n.rebuttable}。`,
@@ -226,18 +233,18 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
     ),
     ...conditionalNote,
   ];
-  const assumptions = [
+  const naturalizationAssumptions = [
     travelDays,
     L(
       `时间窗口从递交日往回数，不含递交当天；离境天数按窗口内的部分计（PM 12 D.3 示例）。只算取得永居之后在美国的日子：提前递交时窗口里永居之前的日子不计（PD-092）。`,
       `Windows are counted back from the filing date, not including it, and only the part of an absence inside the window counts (PM 12 D.3 examples). Only days after you became a permanent resident count: when filing early, days before that in the window are left out (PD-092).`,
     ),
     L(
-      '"超过 6 个月""不满 1 年"按天数计（超过 180 天、不满 365 天，PM 12 D.3）；PM 另有按月计的写法，按天数得出的日期不早于按月计（PD-093）。3 个月州居住按日历月计，提前递交时也要求递交前住满（PD-096）。',
-      '"More than 6 months" and "less than 1 year" are counted in days (more than 180, under 365; PM 12 D.3); the PM also counts in months, and counting in days never gives an earlier date (PD-093). The 3 months in your state are calendar months, and are required before filing even when filing early (PD-096).',
+      '"超过 6 个月""不满 1 年"按天数计（超过 180 天、不满 365 天，PM 12 D.3）；PM 另有按月计的写法，在已核对的 PM 示例中按天数得出的日期不早于按月计，有时晚一天（PD-093）。3 个月州居住按日历月计，提前递交时也要求递交前住满（PD-096）。',
+      '"More than 6 months" and "less than 1 year" are counted in days (more than 180, under 365; PM 12 D.3); the PM also counts in months, and in the PM examples checked, counting in days never gives an earlier date and is sometimes a day later (PD-093). The 3 months in your state are calendar months, and are required before filing even when filing early (PD-096).',
     ),
-    projection,
   ];
+  const assumptions = [...naturalizationAssumptions, projection];
 
   const pathways: UsPathway[] = [];
 
@@ -251,8 +258,9 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
     pathways.push({
       id: 'US-NATURALIZATION',
       title: L('入籍（一般，5 年）', 'Naturalization (general, 5 years)'),
-      status: statusOf(n.earliest),
-      earliestDate: n.earliest,
+      // Without the state residence date the result rests on it (PD-096).
+      status: !stateFrom && n.earliest ? 'UNKNOWN' : statusOf(n.earliest),
+      earliestDate: stateFrom ? n.earliest : undefined,
       summary: summaryOf(n, ['入籍申请（N-400）', 'your N-400']),
       checks: residenceChecks(
         n,
@@ -304,8 +312,9 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       pathways.push({
         id: 'US-SPOUSE',
         title,
-        status: statusOf(n.earliest),
-        earliestDate: n.earliest,
+        // Without the state residence date the result rests on it (PD-096).
+        status: !stateFrom && n.earliest ? 'UNKNOWN' : statusOf(n.earliest),
+        earliestDate: stateFrom ? n.earliest : undefined,
         summary: summaryOf(n, ['配偶类入籍申请', 'as the spouse of a citizen']),
         checks: [
           ...residenceChecks(n, years, v.spousePresenceDays.value, {
@@ -341,7 +350,7 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
           ...naturalizationNotChecked,
         ],
         assumptions: [
-          ...assumptions.slice(0, -1),
+          ...naturalizationAssumptions,
           L(
             '结婚与配偶公民身份的 3 年不能提前 90 天（PM 12 G.3(E)）；没填配偶入籍日期的按出生即为公民计。',
             'The 3 years of marriage and of your spouse’s citizenship cannot be met 90 days early (PM 12 G.3(E)); with no date for your spouse’s citizenship, they are taken to be a citizen by birth.',
@@ -374,8 +383,19 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       const opens = addDays(anniversary, -v.conditionsWindowDays.value);
       const closes = addDays(anniversary, -1);
       const form = req.conditional === 'marriage' ? 'I-751' : 'I-829';
+      // Paper filings due on a Saturday or Sunday are on time the next
+      // business day (PM 1 B.6(E)); federal holidays are not modelled.
+      let paperUntil = closes;
+      while (weekday(paperUntil) === 0 || weekday(paperUntil) === 6)
+        paperUntil = addDays(paperUntil, 1);
       const status: PilotStatus =
-        sim < opens ? 'FUTURE' : sim <= closes ? 'MET' : 'NOT_MET';
+        sim < opens
+          ? 'FUTURE'
+          : sim <= closes
+            ? 'MET'
+            : sim <= paperUntil
+              ? 'UNKNOWN'
+              : 'NOT_MET';
       pathways.push({
         id: 'US-CONDITIONS',
         title,
@@ -383,15 +403,20 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
         earliestDate:
           status === 'NOT_MET' ? undefined : sim < opens ? opens : sim,
         summary:
-          status === 'NOT_MET'
+          status === 'UNKNOWN'
             ? L(
-                `${form} 须在 ${opens} 至 ${closes} 之间递交；此后递交须说明正当理由，未递交的条件身份在 ${anniversary} 终止。`,
-                `The ${form} had to be filed from ${opens} to ${closes}; filing later needs good cause, and without it conditional status ends on ${anniversary}.`,
+                `${form} 的递交期最后一天 ${closes} 是周末：纸质递交在 ${paperUntil} 前送达仍算按时（若遇联邦假日再顺延），网上递交不顺延（PD-094）。`,
+                `The last day of the ${form} filing period, ${closes}, is a weekend: a paper filing received by ${paperUntil} is still on time (later if that is a federal holiday), but online filing is not extended (PD-094).`,
               )
-            : L(
-                `${form} 的递交期是 ${opens} 至 ${closes}（绿卡两周年 ${anniversary} 前 90 天）。`,
-                `The ${form} filing period is ${opens} to ${closes} (the 90 days before the second anniversary, ${anniversary}).`,
-              ),
+            : status === 'NOT_MET'
+              ? L(
+                  `${form} 须在 ${opens} 至 ${closes} 之间递交；此后递交须说明正当理由，未递交的条件身份在 ${anniversary} 终止。`,
+                  `The ${form} had to be filed from ${opens} to ${closes}; filing later needs good cause, and without it conditional status ends on ${anniversary}.`,
+                )
+              : L(
+                  `${form} 的递交期是 ${opens} 至 ${closes}（绿卡两周年 ${anniversary} 前 90 天）。`,
+                  `The ${form} filing period is ${opens} to ${closes} (the 90 days before the second anniversary, ${anniversary}).`,
+                ),
         checks: [
           {
             text: L(
@@ -402,6 +427,7 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
             sources: [
               ...v.conditionalYears.sources,
               ...v.conditionsWindowDays.sources,
+              { srcId: 'SRC-081', locator: 'Vol 1 Part B Ch 6(E)' },
             ],
           },
         ],
@@ -413,8 +439,8 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
         ],
         assumptions: [
           L(
-            '递交期最后一天按两周年前一天计；两周年当天能否递交、遇周末是否顺延原文未写；取得永居日为 2 月 29 日的，两周年取 3 月 1 日（PD-094）。',
-            'The last day is taken as the day before the second anniversary; whether the anniversary itself or a weekend extension applies is not stated; a 29 February start has its anniversary on 1 March (PD-094).',
+            '递交期最后一天按两周年前一天计，两周年当天能否递交原文未写；最后一天是周末的，纸质递交按 USCIS 一般规则顺延到下一个工作日（联邦假日不推算，网上递交不顺延）；取得永居日为 2 月 29 日的，两周年取 3 月 1 日（PD-094）。',
+            'The last day is taken as the day before the second anniversary; whether the anniversary itself counts is not stated. If the last day is a weekend, a paper filing is extended to the next business day under the general USCIS rule (federal holidays are not worked out, and online filing is not extended); a 29 February start has its anniversary on 1 March (PD-094).',
           ),
         ],
         pendingDetails: ['PD-094'],
@@ -444,8 +470,8 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
               `Away a year or more (${yearLong.map((t) => `${t.departed} to ${t.returned}`).join(', ')}): a green card alone cannot be used to return; you need a valid reentry permit (2 years from issue) or a returning resident (SB-1) visa, and whether you abandoned residence is decided case by case.`,
             )
           : L(
-              '录入的每次离境都不满 1 年，可凭绿卡回美。',
-              'Every trip you entered is under a year, so your green card can be used to return.',
+              '录入的每次离境都不满 1 年：持有效、未过期的绿卡可凭卡回美（条件绿卡过期后，凭取消条件申请的收据可延期使用）。',
+              'Every trip you entered is under a year: a valid, unexpired green card can be used to return (after a conditional card expires, the receipt for the petition to remove conditions extends it).',
             )) +
         (long.length
           ? L(
@@ -456,8 +482,8 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       checks: [
         {
           text: L(
-            '每次离境不满 1 年（可凭绿卡回美）',
-            'Every trip under a year (green card valid for return)',
+            '每次离境不满 1 年（持有效、未过期的绿卡可凭卡回美）',
+            'Every trip under a year (a valid, unexpired green card can be used to return)',
           ),
           met: !yearLong.length,
           sources: [
@@ -468,8 +494,8 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       ],
       notChecked: [
         L(
-          '是否持有回美证、能否获得 SB-1，以及是否已放弃永居（看离境目的、意图与在美联系）',
-          'Whether you hold a reentry permit, can get an SB-1 visa, or have abandoned residence (which depends on your purpose, intent and ties)',
+          '绿卡是否仍有效；是否持有回美证、能否获得 SB-1，以及是否已放弃永居（看离境目的、意图与在美联系）；周年前出发、周年当天抵达的连续行程另有规定（8 CFR 211.3）',
+          'Whether your green card is still valid; whether you hold a reentry permit, can get an SB-1 visa, or have abandoned residence (which depends on your purpose, intent and ties); a continuous journey that set out before the anniversary and arrives on it is treated separately (8 CFR 211.3)',
         ),
       ],
       assumptions: [
