@@ -97,7 +97,25 @@ export default function ResultPage() {
             </p>
           )}
           {draft && <ShareLink draft={draft} />}
-          <ResultView result={result} mock={mock} draft={draft} />
+          <ResultView
+            result={result}
+            mock={mock}
+            draft={draft}
+            actions={
+              <div
+                className={`${styles.actions} ${styles.topActions} ${styles.noPrint}`}
+              >
+                {!result.shortCircuit && (
+                  <Link className={styles.secondary} href="/whatif">
+                    {t('whatif.title')}
+                  </Link>
+                )}
+                <Link className={styles.secondary} href="/simulate">
+                  {t('result.edit')}
+                </Link>
+              </div>
+            }
+          />
           {principalResult && (
             <PrincipalAssessment
               result={principalResult}

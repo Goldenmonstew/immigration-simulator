@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import type { SimulationResult } from '@uk-immigration/engine';
 import { ROUTE_GROUPS } from '@uk-immigration/policy-data';
 import { useTranslation } from '../i18n/locale';
@@ -42,10 +43,13 @@ export function ResultView({
   result,
   mock = false,
   draft,
+  actions,
 }: {
   result: SimulationResult;
   mock?: boolean;
   draft?: Draft;
+  /** Shortcuts shown near the overview as well as after the columns. */
+  actions?: ReactNode;
 }) {
   const { t } = useTranslation();
   const episode = draft && currentEpisode(draft);
@@ -81,6 +85,7 @@ export function ResultView({
               </button>
             ))}
           </nav>
+          {actions}
           {result.shortCircuit && (
             <p className={`${site.notice} ${site.warning}`}>
               {result.shortCircuit.message}
