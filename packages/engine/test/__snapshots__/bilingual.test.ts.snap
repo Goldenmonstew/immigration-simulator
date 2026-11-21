@@ -331,6 +331,14 @@ exports[`CL-FAMILY-CHILD-TEN-YEAR default-locale output is unchanged 1`] = `
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -900,6 +908,14 @@ exports[`CL-FAMILY-FIVE-YEAR-ADULT-CHILD-ENGLISH default-locale output is unchan
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -1472,6 +1488,14 @@ exports[`CL-FAMILY-FIVE-YEAR-CHILD-PROJECTED default-locale output is unchanged 
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -2114,6 +2138,14 @@ exports[`CL-FAMILY-FIVE-YEAR-PARTNER-BENEFIT default-locale output is unchanged 
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -2925,6 +2957,14 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-PASS default-locale output is unchanged 1`]
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -3730,6 +3770,14 @@ exports[`CL-FAMILY-FIVE-YEAR-SAVINGS-SHORT default-locale output is unchanged 1`
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -4542,6 +4590,14 @@ exports[`CL-FAMILY-PARTNER-FIVE-YEARS default-locale output is unchanged 1`] = `
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -5260,6 +5316,14 @@ exports[`CL-GLOBAL-TALENT-PARTNER-FIVE-YEARS default-locale output is unchanged 
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -5822,6 +5886,14 @@ exports[`CL-GLOBAL-TALENT-THREE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -6533,6 +6605,14 @@ exports[`CL-HKBNO-CHILD-WITH-PARENT default-locale output is unchanged 1`] = `
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -7071,6 +7151,14 @@ exports[`CL-HKBNO-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -7774,6 +7862,14 @@ exports[`CL-INNOVATOR-FOUNDER-THREE-YEARS default-locale output is unchanged 1`]
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -8481,6 +8577,14 @@ exports[`CL-PRIVATE-LIFE-YOUNG-ADULT-FIVE-YEARS default-locale output is unchang
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -9175,6 +9279,14 @@ exports[`CL-REFUGEE-FIVE-YEARS default-locale output is unchanged 1`] = `
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -9710,6 +9822,14 @@ exports[`CL-UK-ANCESTRY-FIVE-YEARS default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -10407,6 +10527,14 @@ exports[`ES-OFFICIAL-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -11165,6 +11293,14 @@ exports[`ES-OFFICIAL-INDIVIDUAL-D default-locale output is unchanged 1`] = `
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -11887,6 +12023,14 @@ exports[`ES-OFFICIAL-P16-MATERNITY-BEST-YEARS default-locale output is unchanged
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -12699,6 +12843,14 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -13429,6 +13581,14 @@ exports[`ES-OFFICIAL-P19-INDIVIDUAL-B default-locale output is unchanged 1`] = `
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -14144,6 +14304,14 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -14781,6 +14949,14 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -15514,6 +15690,14 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-B-PARTNER default-locale output is unchanged
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -16098,6 +16282,14 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-C default-locale output is unchanged 1`] = `
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -16667,6 +16859,14 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-D default-locale output is unchanged 1`] = `
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -17232,6 +17432,14 @@ exports[`ES-OFFICIAL-P31-INDIVIDUAL-E default-locale output is unchanged 1`] = `
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -17789,6 +17997,14 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-A default-locale output is unchanged 1`] = `
               "locator": "LR 11.2"
             },
             {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
+            },
+            {
               "srcId": "SRC-008",
               "locator": "CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3"
             },
@@ -18316,6 +18532,14 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -18893,6 +19117,14 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -19474,6 +19706,14 @@ exports[`ES-OFFICIAL-P40-INDIVIDUAL-D default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -20077,6 +20317,14 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-A default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -20885,6 +21133,14 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-B default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",
@@ -21717,6 +21973,14 @@ exports[`ES-OFFICIAL-P45-INDIVIDUAL-C default-locale output is unchanged 1`] = `
             {
               "srcId": "SRC-005",
               "locator": "LR 11.2"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.3"
+            },
+            {
+              "srcId": "SRC-005",
+              "locator": "LR 11.4"
             },
             {
               "srcId": "SRC-008",

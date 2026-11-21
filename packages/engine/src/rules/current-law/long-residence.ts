@@ -51,9 +51,10 @@ export function currentRouteFrom({
 export function longResidence(
   ctx: RuleContext,
   checkLocation = true,
+  currentRoute = true,
 ): CurrentResidence | undefined {
   // notBefore defaults to the simulation date; only a later date replaces it.
-  const routeFrom = currentRouteFrom(ctx)?.from;
+  const routeFrom = currentRoute ? currentRouteFrom(ctx)?.from : undefined;
   return currentResidence(
     ctx.timeline,
     ctx.simulationDate,
@@ -68,8 +69,12 @@ export function longResidence(
   );
 }
 
+/**
+ * The ten years are complete (scope check). LR 11.3 only moves the filing
+ * date, so it is left to the residence rule and the projection (review54-1).
+ */
 export function longResidenceMet(ctx: RuleContext): boolean {
-  const residence = longResidence(ctx, false);
+  const residence = longResidence(ctx, false, false);
   return residence?.applicationDate === ctx.simulationDate;
 }
 
@@ -82,6 +87,8 @@ export const clLrResidence10Y = defineRule(
     sources: [
       { srcId: 'SRC-005', locator: 'LR 11.1' },
       { srcId: 'SRC-005', locator: 'LR 11.2' },
+      { srcId: 'SRC-005', locator: 'LR 11.3' },
+      { srcId: 'SRC-005', locator: 'LR 11.4' },
       ...crResidenceSources,
       { srcId: 'SRC-008', locator: 'CR 3.3' },
     ],

@@ -484,6 +484,29 @@ describe('current law', () => {
       earliestDate: '2027-06-01',
     });
     expect(recent.assumptions.join()).toContain('LR 11.3');
+    // review54-1: a Graduate (outside the other modelled routes) with ten
+    // years done still gets the Long Residence forecast.
+    const graduate = cl({
+      episodes: [
+        {
+          route: 'STUDENT',
+          role: 'MAIN',
+          validFrom: '2015-10-01',
+          validTo: '2026-05-31',
+        },
+        {
+          route: 'GRADUATE',
+          role: 'MAIN',
+          validFrom: '2026-06-01',
+          validTo: '2028-05-31',
+        },
+      ],
+    });
+    expect(graduate).toMatchObject({
+      pathwayYears: 10,
+      earliestDate: '2027-06-01',
+    });
+    expect(graduate.decidedBy).toContain('CL-LR-RESIDENCE-10Y');
     // A current permission granted before 2024-04-11 is not affected.
     const earlier = cl({ ...person('2024-03-01') });
     expect(lr(earlier).status).toBe('PASS');

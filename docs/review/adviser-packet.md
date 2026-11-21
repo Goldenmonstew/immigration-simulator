@@ -247,7 +247,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-07-28: expected to complete 10 years on 2033-07-28; the earliest projected application date for the residence requirement is 2033-06-30 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-07-28: expected to complete 10 years on 2033-07-28; the earliest projected application date for the residence requirement is 2033-06-30 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -321,7 +321,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-KOL` Pass the Life in the UK test — **UNKNOWN**. You haven’t indicated whether you passed the Life in the UK test. _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: expected to complete 10 years on 2031-06-01; the earliest projected application date for the residence requirement is 2031-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: expected to complete 10 years on 2031-06-01; the earliest projected application date for the residence requirement is 2031-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -442,7 +442,7 @@ Outcome **LIKELY_NOT_ELIGIBLE**.
 Failing or unknown checks:
 
 - `CL-ENGLISH` Settlement English requirement — **FAIL**. English at B1, below the B2 required for settlement (applications from 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2022-03-01: expected to complete 10 years on 2032-03-01; the earliest projected application date for the residence requirement is 2032-02-02 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2022-03-01: expected to complete 10 years on 2032-03-01; the earliest projected application date for the residence requirement is 2032-02-02 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -577,7 +577,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2033-12-18. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2033-12-18. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-01-15: expected to complete 10 years on 2034-01-15; the earliest projected application date for the residence requirement is 2033-12-18 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-01-15: expected to complete 10 years on 2034-01-15; the earliest projected application date for the residence requirement is 2033-12-18 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -653,7 +653,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **UNKNOWN**. Current salary is £25,000. Check the occupation code, most recent sponsorship and transitional eligibility to determine the general salary threshold under SW 24.3 (row C: £31,300; row D: £25,000). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-09-01: expected to complete 10 years on 2031-09-01; the earliest projected application date for the residence requirement is 2031-08-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-09-01: expected to complete 10 years on 2031-09-01; the earliest projected application date for the residence requirement is 2031-08-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -730,7 +730,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2019-09-15: expected to complete 10 years on 2029-09-15; the earliest projected application date for the residence requirement is 2029-08-18 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2019-09-15: expected to complete 10 years on 2029-09-15; the earliest projected application date for the residence requirement is 2029-08-18 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -805,7 +805,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (LR 13.1(a)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-15: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-15: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Other pathways not taken: `CL-SW-RESIDENCE-5Y`.
 
@@ -933,7 +933,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-12-01: expected to complete 10 years on 2031-12-01; the earliest projected application date for the residence requirement is 2031-11-03 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-12-01: expected to complete 10 years on 2031-12-01; the earliest projected application date for the residence requirement is 2031-11-03 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -1461,7 +1461,7 @@ Outcome **REQUIRES_REGULATED_REVIEW**.
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: expected to complete 10 years on 2031-06-01; the earliest projected application date for the residence requirement is 2031-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-06-01: expected to complete 10 years on 2031-06-01; the earliest projected application date for the residence requirement is 2031-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -1680,7 +1680,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (LR 13.1(a)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-09-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -1753,7 +1753,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (LR 13.1(a)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2015-06-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2015-06-01: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -1832,7 +1832,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B1 required for settlement (LR 13.1(a)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-04-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2016-04-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -1893,7 +1893,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **UNKNOWN**. SOC 2461: The relevant pay band is in Table 4 / 5. This tool cannot check the applicable going rate (SRC-017 Tables 3–5). _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -1959,7 +1959,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-FAMILY-RESIDENCE` Continuous residence on the family partner route — **UNKNOWN**. Not provided whether the partner permission is on the 5-year or the 10-year route: the 5-year route follows Appendix FM, the 10-year route Appendix Settlement Family Life (SETF 3.1). _(SRC-022 SETF 3.1; SRC-022 SETF 3.2; SRC-022 SETF 4.1; SRC-024 E-ILRP.1.3; SRC-024 E-ILRP.1.4; SRC-024 E-ILRP.1.5A; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.6)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2091,7 +2091,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-SW-GOING-RATE` Skilled Worker settlement salary (going rate) — **UNKNOWN**. SOC 2020 code for the current Skilled Worker job not provided, so the going rate cannot be looked up. _(SRC-004 SW 24.3; SRC-004 SW 6.1–6.1A, SW 11.1–11.3; SRC-004 SW 14.4; SRC-017 Tables 1, 1a, 2, 2aa, 2a, 2b; SOC 2020 rows; Going rate columns; SRC-017 Table 3, going rate column; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2175,7 +2175,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2389,7 +2389,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2031-03-09. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2031-03-09. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-04-06: expected to complete 10 years on 2031-04-06; the earliest projected application date for the residence requirement is 2031-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -2512,7 +2512,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2582,7 +2582,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2650,7 +2650,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2027-03-01: expected to complete 10 years on 2037-03-01; the earliest projected application date for the residence requirement is 2037-02-01 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2709,7 +2709,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-SW-SALARY` Skilled Worker settlement salary (general salary) — **UNKNOWN**. Current salary is £30,000. Check the occupation code, most recent sponsorship and transitional eligibility to determine the general salary threshold under SW 24.3 (row C: £31,300; row D: £25,000). _(SRC-004 SW 24.2; SRC-004 SW 24.3; SRC-004 SW 4.2(b); SRC-004 SW 11.1–11.3; SRC-004 SW A1.1; SRC-017 Table 3; SRC-019 Unnumbered introductory paragraph; occupation table; SOC 2020 rows)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -2779,7 +2779,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2033-03-09. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2033-03-09. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-04-06: expected to complete 10 years on 2033-04-06; the earliest projected application date for the residence requirement is 2033-03-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -2861,7 +2861,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2024-06-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **PASS**. Continuous lawful residence since 2024-06-06: 10 years completed. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -3234,7 +3234,7 @@ Failing or unknown checks:
 
 - `CL-INNOVATOR-ENDORSEMENT` Innovator Founder settlement endorsement — **UNKNOWN**. The business meets the minimum number of criteria. Confirm whether a Legacy Endorsing Body issued the settlement letter and, if so, whether it supported the last grant of permission (INNF 17.5). _(SRC-027 INNF 15.2(e); SRC-027 INNF 17.1; SRC-027 INNF 17.2; SRC-027 INNF 17.3; SRC-027 INNF 17.4; SRC-027 INNF 17.5)_
 - `CL-ENGLISH` Settlement English requirement — **UNKNOWN**. English level not provided; settlement requires CEFR B1 (Appendix Innovator Founder sets no English requirement for a main applicant’s settlement, INNF 15.1–21.6; this level applies only to the 10-year Long Residence pathway). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-05-01: expected to complete 10 years on 2033-05-01; the earliest projected application date for the residence requirement is 2033-04-03 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2023-05-01: expected to complete 10 years on 2033-05-01; the earliest projected application date for the residence requirement is 2033-04-03 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -3536,7 +3536,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-06: expected to complete 10 years on 2031-11-06; the earliest projected application date for the residence requirement is 2031-10-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-06: expected to complete 10 years on 2031-11-06; the earliest projected application date for the residence requirement is 2031-10-09 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -3593,7 +3593,7 @@ Outcome **INSUFFICIENT_INFORMATION**.
 Failing or unknown checks:
 
 - `CL-ENGLISH` Settlement English requirement — **UNKNOWN**. English level not provided; settlement requires CEFR B1 (paragraph 298(vii) of Part 8 of the Immigration Rules, Appendix KoLL 2.2; applications before 2027-03-26). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-05: expected to complete 10 years on 2031-11-05; the earliest projected application date for the residence requirement is 2031-10-08 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2021-11-05: expected to complete 10 years on 2031-11-05; the earliest projected application date for the residence requirement is 2031-10-08 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
@@ -3721,7 +3721,7 @@ Decisive rules:
 
 - `CL-ENGLISH` Settlement English requirement — **PASS**. Assessed for the projected application on 2034-05-04. English at B2, which meets the B2 required for settlement (LR 13.1(b)). _(SRC-004 SW 22A.1; SRC-004 SW 44.1; SRC-007 p24, APP SW5; SRC-007 pp24–25, APP SW8; SRC-005 LR 13.1; SRC-020 HK 60.1; SRC-021 GT 13.1; SRC-021 GT 32.1; SRC-022 SETF 5.1; SRC-022 SETF 15.1; SRC-024 E-ILRP.1.6; SRC-025 KoLL 2.2; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 15.1; SRC-028 PL 16.1; SRC-007 EM 5.60; SRC-014 EL 1.1, EL 4.1; SRC-025 KoLL 3.2, 4.8–4.10, 4.14)_
 - `CL-KOL` Pass the Life in the UK test — **PASS**. Assessed for the projected application on 2034-05-04. Passed the Life in the UK test (LR 14.1). _(SRC-004 SW 23.1; SRC-004 SW 45.1; SRC-005 LR 14.1; SRC-020 HK 61.1; SRC-021 GT 14.1; SRC-021 GT 33.1; SRC-022 SETF 6.1; SRC-022 SETF 16.1; SRC-025 KoLL 2.3; SRC-025 KoLL 3.1; SRC-029 para 298(vii); SRC-026 UKA 16.1; SRC-027 INNF 20.1; SRC-028 PL 17.1; SRC-015 KOL 1.1; SRC-014 EL 1.1(d); SRC-025 KoLL 3.2, 4.14; SRC-015 KOL 2.1)_
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: expected to complete 10 years on 2034-06-01; the earliest projected application date for the residence requirement is 2034-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: expected to complete 10 years on 2034-06-01; the earliest projected application date for the residence requirement is 2034-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Failing or unknown checks:
 
@@ -3803,7 +3803,7 @@ Decisive rules:
 
 Failing or unknown checks:
 
-- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: expected to complete 10 years on 2034-06-01; the earliest projected application date for the residence requirement is 2034-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
+- `CL-LR-RESIDENCE-10Y` Long Residence: 10 years of continuous lawful residence — **FAIL**. Continuous lawful residence since 2024-06-01: expected to complete 10 years on 2034-06-01; the earliest projected application date for the residence requirement is 2034-05-04 under CR 1.1. _(SRC-005 LR 11.1; SRC-005 LR 11.2; SRC-005 LR 11.3; SRC-005 LR 11.4; SRC-008 CR 1.1, CR 3.1–3.2, CR 4.1(d)–4.3; SRC-057 Count whole days; SRC-008 CR 3.3)_
 
 Assumptions:
 
