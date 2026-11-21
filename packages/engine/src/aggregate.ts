@@ -397,8 +397,40 @@ function assessDependant(
   );
   const routeGroupPassed =
     rules.find((r) => r.id === 'ES-ROUTE-GROUP')?.status === 'PASS';
+  // The dependant's pathway follows the principal's (SRC-001 p18, p29–p31):
+  // a conditional principal date makes the dependant's date conditional too.
+  const conditional =
+    settlement.conditional && decision.earliestDate
+      ? decision.earliestDate
+      : undefined;
+  const { earliestDate, projectedFrom, ...rest } = decision;
+  if (conditional) {
+    assumptions.push(
+      L(
+        `主申请人的路径日期只是条件满期日，随行申请的 ${decision.pathwayYears} 年路径同样按条件于 ${conditional} 满期。`,
+        `The principal applicant's pathway date is only a conditional completion, so the dependant's ${decision.pathwayYears}-year pathway also completes conditionally on ${conditional}.`,
+      ),
+    );
+  }
+  if (settlement.publicFundsReassessmentDate) {
+    assumptions.push(
+      L(
+        `主申请人若不再领取所计入的 public funds，自 ${settlement.publicFundsReassessmentDate} 起可按较短路径重新评估，随行申请随之重评。`,
+        `If the principal applicant receives no further counted public funds, shorter pathways can be reassessed from ${settlement.publicFundsReassessmentDate}, and the dependant with them.`,
+      ),
+    );
+  }
   return {
-    ...toAssessment(decision, shown, assumptions, L),
+    ...toAssessment(
+      conditional ? rest : { ...rest, earliestDate, projectedFrom },
+      shown,
+      assumptions,
+      L,
+    ),
+    ...(conditional && { pathwayCompletionDate: conditional }),
+    ...(settlement.publicFundsReassessmentDate && {
+      publicFundsReassessmentDate: settlement.publicFundsReassessmentDate,
+    }),
     ...(routeGroupPassed &&
       settlement.routeGroup && { routeGroup: settlement.routeGroup }),
   };
