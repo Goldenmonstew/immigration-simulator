@@ -714,6 +714,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'game.kitchenSkip': 'Skip the steps and finish cooking',
   'game.kitchenRecipes': 'Back to recipes',
   'game.kitchenComment': 'A little homemade goodness, just right.',
+  'game.kitchenNoIngredients':
+    'You have no ingredients yet: crops from the allotment and fish from the pond can go in the pot.',
   'game.prepare-dumplings': 'Fold the dumplings and simmer',
   'game.prepare-summer-corn': 'Turn the corn on the grill',
   'game.prepare-turnip-soup': 'Stir the simmering soup',

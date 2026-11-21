@@ -658,6 +658,8 @@ export const zhCN = {
   'game.kitchenSkip': '跳过操作，直接做好',
   'game.kitchenRecipes': '返回配方',
   'game.kitchenComment': '亲手做的一份，刚刚好。',
+  'game.kitchenNoIngredients':
+    '现在还没有食材：菜地的收成和池塘钓到的鱼都能下锅。',
   'game.prepare-dumplings': '捏好饺子，下锅煮熟',
   'game.prepare-summer-corn': '翻面，烤出香气',
   'game.prepare-turnip-soup': '慢慢搅拌汤锅',

@@ -1,4 +1,5 @@
 import './load-game-characters';
+import { existsSync } from 'node:fs';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, expect, test, vi } from 'vitest';
@@ -15,7 +16,7 @@ import {
 import type { Locale } from '@uk-immigration/engine';
 import { Inventory, LifeCollection } from '../app/game/life-overlays';
 import { Ending, LifeMemories } from '../app/game/game-view';
-import { endingMemories } from '../app/game/session';
+import { endingMemories, itemIcon } from '../app/game/session';
 import { LocaleContext } from '../i18n/locale';
 import { t, withCount } from '../i18n';
 
@@ -249,4 +250,12 @@ test('the collection opens directly and is also reachable from the bag tab', () 
   expect(selectCollection).toBeDefined();
   selectCollection!();
   expect(render(<Probe />)).toContain('0 / 6');
+});
+
+test('task 56 / 43 walk: junk catches have their own icons, not the indoor picture frames', () => {
+  for (const id of ['old-boot', 'shopping-trolley']) {
+    const icon = itemIcon(id);
+    expect(icon).toBe(`/game/assets/meadow-town/junk/${id}.svg`);
+    expect(existsSync(`public${icon}`)).toBe(true);
+  }
 });

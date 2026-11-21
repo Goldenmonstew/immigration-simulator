@@ -2,6 +2,11 @@
 
 首批取用日期：2026-11-06；后续新增日期见各节。以下图像与音频全部采用 **CC0 1.0 Universal**；许可原文保留于 `LICENSE.txt`。下载、裁切、拼接及调色脚本不入仓库。
 
+## 任务 56 游戏打磨（2026-11-21）
+
+- 作者：本项目 / Fable（Claude Opus 5.5）。新增 `meadow-town/junk/{old-boot,shopping-trolley}.svg` 两张原创 32×24 像素图，按 `fish/` 的整数矩形画法手写，按 **CC0 1.0 Universal** 发布，许可全文为 `meadow-town/LICENSE.txt`。没有新增第三方素材。
+- `meadow-town/fish/*.svg`：只改 `viewBox` 的横向起点，让鱼身在 32×24 画布里水平居中（43 走查发现偏左），像素不变。
+
 ## 13.5 第四轮视觉收尾（2026-11-16）
 
 - 作者：本项目 / Codex gpt-6-astra。沿用本仓库原创素材，按 **CC0 1.0 Universal** 发布；完整许可见 `meadow-town/LICENSE.txt`。没有新增第三方素材。下列记录覆盖这些同名文件在早期批次的状态。

@@ -98,6 +98,7 @@ export const itemIcon = (id: string) => {
     return `/game/assets/items/${id}.png`;
   const item = items.find((item) => item.id === id);
   if (item?.kind === 'fish') return `/game/assets/meadow-town/fish/${id}.svg`;
+  if (item?.kind === 'junk') return `/game/assets/meadow-town/junk/${id}.svg`;
   if (recipes.some((recipe) => recipe.makes === id))
     return `/game/assets/meadow-town/dishes/${id}.svg`;
   if (item?.kind === 'food') return '/game/assets/items/meal.png';

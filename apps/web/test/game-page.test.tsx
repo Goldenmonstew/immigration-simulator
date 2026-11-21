@@ -2027,7 +2027,8 @@ test('tea, biscuits, flowers, cake, all fish and cooked meals use distinct real 
       new URL(`../public${itemIcon(id)}`, import.meta.url),
     );
     if (itemIcon(id).endsWith('.svg')) {
-      expect(png.toString()).toContain('viewBox="0 0 32 24"');
+      // A 32×24 canvas; the x origin may shift to centre the art.
+      expect(png.toString()).toMatch(/viewBox="-?\d+ 0 32 24"/);
       expect(png.toString()).toContain('shape-rendering="crispEdges"');
       expect(png.toString()).not.toMatch(/<image|<script|href=/);
     } else
@@ -2942,3 +2943,24 @@ test.each(['early', 'timeout', 'unmount'] as const)(
     h.dispose();
   },
 );
+
+test('task 56 / 43 walk: the kitchen says where ingredients come from, and fishing remembers easy mode', () => {
+  const state = at(600, 'home');
+  state.inventory = {};
+  const kitchen = () => renderView(() => Kitchen({ state, onChange: vi.fn() }));
+  expect(kitchen().html).toContain(t('game.kitchenNoIngredients'));
+  state.inventory.potato = 1;
+  expect(kitchen().html).not.toContain(t('game.kitchenNoIngredients'));
+
+  const pond = at(600, 'pond');
+  const first = harness(() => Fishing({ state: pond, onChange: vi.fn() }));
+  expect(first.render().html).toContain(t('game.fishHint'));
+  first.render().click(t('game.fishEasy'));
+  expect(first.render().html).toContain(t('game.fishEasyHint'));
+  expect(storage.get('uk-immigration-life-fishing-easy')).toBe('true');
+  first.dispose();
+  // Reopened: still in easy mode.
+  expect(
+    renderView(() => Fishing({ state: pond, onChange: vi.fn() })).html,
+  ).toContain(t('game.fishEasyHint'));
+});
