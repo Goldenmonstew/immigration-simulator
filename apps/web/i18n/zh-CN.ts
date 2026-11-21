@@ -125,7 +125,7 @@ export const zhCN = {
   'game.visaReminder':
     '当前许可剩余 {count} 个月，到期日之后还没有记录新的许可。可到签证中心查看当前可用的行动和费用。',
   'game.fastVisaWarning':
-    '当前许可 {date} 到期，还没有相接的新许可。快进会直接过完这一季、跨过到期日，先去签证中心看看吧。',
+    '现有许可连续覆盖到 {date}，之后还没有新的许可。快进会直接过完这一季、跨过这一天，先去签证中心看看吧。',
   'game.fastVisaWarningNone':
     '当前没有记录有效的许可。快进会直接过完这一季，先去签证中心看看吧。',
   'game.missingRules': '还差：{rules}',
@@ -663,7 +663,7 @@ export const zhCN = {
   'game.kitchenRecipes': '返回配方',
   'game.kitchenComment': '亲手做的一份，刚刚好。',
   'game.kitchenNoIngredients':
-    '现在还没有食材：菜地的收成和池塘钓到的鱼都能下锅。',
+    '现在凑不齐任何一道菜的食材：蔬菜来自菜地收成，河鲈要去池塘钓。',
   'game.prepare-dumplings': '捏好饺子，下锅煮熟',
   'game.prepare-summer-corn': '翻面，烤出香气',
   'game.prepare-turnip-soup': '慢慢搅拌汤锅',

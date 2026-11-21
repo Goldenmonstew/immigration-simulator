@@ -1190,6 +1190,24 @@ for (const locale of ['zh-CN', 'en'] as const) {
       );
       expect(reloaded.render().html).toContain(feedback);
       reloaded.dispose();
+      // review56-1 risk: if something else (eating) produced the last
+      // outcome, no stale activity result is shown after the call.
+      const ate = await client(
+        {
+          ...call.state,
+          outcome: {
+            kind: 'eat',
+            text: { zhCN: '百家宴饺子', en: 'Potluck dumplings' },
+          },
+        },
+        locale,
+      );
+      const ateCall = ate.render().props(EventCard);
+      renderView(() => EventCard(ateCall), locale).click(
+        locale === 'en' ? 'Arrange a weekly call' : '约定每周通话',
+      );
+      expect(ate.render().html).not.toContain(t('game.eventResult', locale));
+      ate.dispose();
     },
   );
 }
@@ -2958,6 +2976,9 @@ test('task 56 / 43 walk: the kitchen says where ingredients come from, and fishi
   const state = at(600, 'home');
   state.inventory = {};
   const kitchen = () => renderView(() => Kitchen({ state, onChange: vi.fn() }));
+  expect(kitchen().html).toContain(t('game.kitchenNoIngredients'));
+  // review56-1: one ingredient short of every recipe still says so.
+  state.inventory = { perch: 1, turnip: 1 };
   expect(kitchen().html).toContain(t('game.kitchenNoIngredients'));
   state.inventory.potato = 1;
   expect(kitchen().html).not.toContain(t('game.kitchenNoIngredients'));

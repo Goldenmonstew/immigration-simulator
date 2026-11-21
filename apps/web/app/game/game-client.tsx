@@ -380,6 +380,7 @@ export default function GameClient() {
     setFestivalResult(
       next?.pendingEvent &&
         next.day.festival === 'lunar-new-year' &&
+        next.outcome?.kind === 'activity' &&
         (lastAction?.id === 'festival' || lastAction?.id === 'lunar-dumplings')
         ? next.outcome?.text
         : undefined,
@@ -889,11 +890,9 @@ export default function GameClient() {
                       }
                       // Board notices and show results come back as text of
                       // their own; keep the menu open so they can be read.
-                      const ownText =
-                        next.outcome?.kind === 'activity' &&
-                        !activities(current, overlay.id).some(
-                          (a) => a.label.zhCN === next.outcome?.text?.zhCN,
-                        );
+                      const ownText = !activities(current, overlay.id).some(
+                        (a) => a.label.zhCN === next.outcome?.text?.zhCN,
+                      );
                       if (!next.pendingEvent && !ownText) setOverlay(undefined);
                     }}
                     onTalk={(id) => {

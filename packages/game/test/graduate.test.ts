@@ -325,6 +325,23 @@ describe('13.2 Graduate character and engine integration', () => {
     const lastCos = graduateNextStep(ending(late))!;
     expect(lastCos.zhCN).toContain('来不及再回公司重谈');
     expect(lastCos.en).toContain('no time to reopen the salary talk');
+    // review56-1: no contradictory step, and the same on the weekend after
+    // the workday (when today's job search is no longer recorded).
+    expect(lastCos.zhCN).not.toContain('可回公司与 HR 重谈');
+    expect(lastApplied.zhCN).not.toContain('工作日到公司');
+    const weekend = ending({
+      ...late,
+      day: { ...late.day, kind: 'weekend', done: [] },
+    });
+    expect(graduateNextStep(weekend)!.en).toContain(
+      'no time to reopen the salary talk',
+    );
+    // With the workday still unused, the usual next step stands.
+    const fresh = ending({
+      ...late,
+      day: { ...late.day, kind: 'workday', done: [] },
+    });
+    expect(graduateNextStep(fresh)!.zhCN).toContain('可回公司与 HR 重谈');
     // review40-2: the switch note states the section 3C trigger and the
     // Student switch conditions in both languages.
     const note = graduate.graduateRoute!.salaryCheckNote;
