@@ -19,7 +19,6 @@ export interface EsTripRow {
 
 export interface EsForm {
   simulationDate: string;
-  dateOfBirth: string;
   permits: EsPermitRow[];
   trips: EsTripRow[];
   route: EsNationalityRoute;
@@ -38,7 +37,6 @@ export const emptyEsTrip = (): EsTripRow => ({ departed: '', returned: '' });
 export function emptyEsForm(today: string): EsForm {
   return {
     simulationDate: today,
-    dateOfBirth: '',
     permits: [emptyEsPermit()],
     trips: [],
     route: 'general',
@@ -54,7 +52,6 @@ export function validateEsForm(form: EsForm): EsErrors {
     if (!validDate(value)) errors[id] = 'es.error.date';
   };
   date('es-simulation-date', form.simulationDate);
-  date('es-date-of-birth', form.dateOfBirth);
   if (form.route === 'marriage') date('es-married-on', form.marriedOn);
   form.permits.forEach((permit, i) => {
     date(`es-permit-${i}-from`, permit.from);
@@ -74,7 +71,6 @@ export function validateEsForm(form: EsForm): EsErrors {
 export function esRequest(form: EsForm, locale: Locale): EsRequest {
   return {
     simulationDate: form.simulationDate,
-    dateOfBirth: form.dateOfBirth,
     permits: form.permits.map((p) => ({
       from: p.from,
       ...(p.to ? { to: p.to } : {}),

@@ -14,11 +14,10 @@ test('the Spain pilot works out long-term residence and citizenship', async ({
     .getByRole('alert')
     .filter({ hasText: '请先修正标红的项目' });
   await expect(summary).toBeFocused();
-  await summary.getByRole('link', { name: /出生日期/ }).click();
-  await expect(page.getByLabel('出生日期')).toBeFocused();
+  await summary.getByRole('link', { name: /生效日期/ }).click();
+  await expect(page.locator('#es-permit-0-from')).toBeFocused();
 
   await page.getByLabel('模拟日期').fill('2024-01-01');
-  await page.getByLabel('出生日期').fill('1990-05-01');
   await page
     .getByRole('group', { name: '许可 1' })
     .getByLabel('生效日期')
