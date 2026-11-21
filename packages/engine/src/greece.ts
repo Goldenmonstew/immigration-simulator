@@ -288,15 +288,12 @@ export function evaluateGreece(req: GrRequest): GrResult {
   // ---------- Golden visa Β.5 renewal (art. 100, art. 11) ----------
   {
     const title = L('黄金签证（Β.5）续期', 'Golden visa (Β.5) renewal');
-    // The latest golden visa in force on the simulation date, else the
-    // latest one before it, else the first one to come.
+    // Each renewal replaces the card before it: the latest card started by
+    // the simulation date, else the first one to come.
     const investor = req.permits
       .filter((p) => p.kind === 'investor')
       .sort((a, b) => (a.from < b.from ? -1 : 1));
-    const current =
-      investor.filter((p) => p.from <= sim && (!p.to || sim <= p.to)).at(-1) ??
-      investor.filter((p) => p.from <= sim).at(-1) ??
-      investor[0];
+    const current = investor.filter((p) => p.from <= sim).at(-1) ?? investor[0];
     if (!current) {
       pathways.push({
         id: 'GR-GOLDEN-VISA',

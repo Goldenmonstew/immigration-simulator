@@ -175,18 +175,27 @@ describe('golden visa renewal (art. 100, art. 11)', () => {
   });
 
   test('a newer card in force wins over an old one without an expiry', () => {
+    const permits: GrRequest['permits'] = [
+      { kind: 'investor', from: '2022-06-01' },
+      { kind: 'investor', from: '2027-06-01', to: '2032-05-31' },
+    ];
     const p = pathway(
-      {
-        simulationDate: '2032-04-15',
-        permits: [
-          { kind: 'investor', from: '2022-06-01' },
-          { kind: 'investor', from: '2027-06-01', to: '2032-05-31' },
-        ],
-      },
+      { simulationDate: '2032-04-15', permits },
       'GR-GOLDEN-VISA',
     );
     expect(p.status).toBe('MET');
     expect(p.summary).toContain('2032-05-31');
+    // After the new card expires: late with a fine, then too late.
+    const late = pathway(
+      { permits, simulationDate: '2032-06-15' },
+      'GR-GOLDEN-VISA',
+    );
+    expect(late.status).toBe('MET');
+    expect(late.summary).toContain('2032-08-31');
+    expect(
+      pathway({ permits, simulationDate: '2032-09-01' }, 'GR-GOLDEN-VISA')
+        .status,
+    ).toBe('NOT_MET');
   });
 
   test('the card in force is used, not a later one', () => {
