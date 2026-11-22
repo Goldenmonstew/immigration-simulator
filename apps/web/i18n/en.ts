@@ -592,6 +592,74 @@ export const en: Record<keyof typeof zhCN, string> = {
   'gr.error.date': 'Enter a valid date.',
   'gr.error.order': 'This date cannot be before the start date.',
   'gr.error.route': 'Choose the years of residence that apply to you.',
+  'ie.entryLink': 'Open the Ireland pilot',
+  'ie.entryDesc':
+    'Use your immigration permissions (stamps) and travel record to work out the dates for naturalisation, naturalisation as a spouse, and Stamp 4 or Stamp 5.',
+  'ie.title': 'Ireland: dates for naturalisation, spouses and Stamp 4 (pilot)',
+  'ie.intro':
+    'From your Irish immigration permissions (stamps) and trips, this works out the steps that depend on time alone: naturalisation (one year of continuous residence before applying plus four years in the eight before that, with the 70-day absence rule), naturalisation as the spouse or civil partner of an Irish citizen, and the Stamp 4 upgrade and Stamp 5 under Immigration Service Delivery (ISD) policy.',
+  'ie.scope':
+    'The pilot checks only the time requirements in the law and ISD guidance. It does not check character, intention to reside, the ceremony, fees or proofs; each result lists them. Stamp 4 and Stamp 5 are ISD policy, not statute. The draft bill published in 2026 (General Scheme) would lengthen the periods for naturalisation but is not law yet, so results only mention it. Your entries are processed in your browser and are not saved or uploaded.',
+  'ie.basics': 'About you',
+  'ie.simulationDate': 'Simulation date',
+  'ie.simulationDateHint':
+    'Results are worked out for this date (the application date). It starts as today.',
+  'ie.permits': 'Immigration permissions',
+  'ie.permitsHint':
+    'Going by your IRP cards or passport stamps, add a row for each permission, then the next one if renewed on time; leave the end blank if it is still valid. Include student permissions and time waiting for a protection decision too: they do not count.',
+  'ie.permit': 'Permission {n}',
+  'ie.from': 'Valid from',
+  'ie.to': 'Valid until (leave blank if still valid)',
+  'ie.kind': 'Permission type',
+  'ie.kind.stamp1':
+    'Stamp 1 or 1H (employment permit, researcher’s Hosting Agreement, business and so on; not intra-company transfer)',
+  'ie.kind.stamp1-ict': 'Stamp 1 (intra-company transfer permit)',
+  'ie.kind.stamp1g':
+    'Stamp 1G (graduate programme, or spouse or partner of a Critical Skills permit holder or researcher)',
+  'ie.kind.stamp0':
+    'Stamp 0 (independent means, visiting academic, elderly dependent relative and so on)',
+  'ie.kind.stamp3':
+    'Stamp 3 (family members who cannot work, volunteers, ministers of religion and so on)',
+  'ie.kind.stamp4': 'Stamp 4',
+  'ie.kind.stamp5': 'Stamp 5 (without condition as to time)',
+  'ie.kind.student': 'Student Stamp 2 or 2A (does not count)',
+  'ie.kind.protection-applicant':
+    'Waiting for an international protection (asylum) decision (does not count)',
+  'ie.kind.other':
+    'Other (Stamp 1A, 4D, 4S, 4 EUFam, temporary protection, 1G as the partner of an intra-company transferee and so on; uncertain)',
+  'ie.addPermit': 'Add a permission',
+  'ie.trips': 'Trips abroad',
+  'ie.tripsHint':
+    'Add a row for each time you left Ireland (Northern Ireland included). You can include planned trips. The days you leave and come back are not absences.',
+  'ie.trip': 'Trip {n}',
+  'ie.departed': 'Date you left Ireland',
+  'ie.returned': 'Date you came back to Ireland',
+  'ie.addTrip': 'Add a trip',
+  'ie.spouse': 'Spouse or civil partner',
+  'ie.marriedOn':
+    'Date you married or registered a civil partnership with an Irish citizen (leave blank if not)',
+  'ie.marriedOnHint':
+    'With a date, naturalisation as a spouse (s15A) is worked out too; you must live together, which this pilot does not check.',
+  'ie.stamp4': 'Stamp 4 and Stamp 5',
+  'ie.stamp4Route': 'Permission to work out',
+  'ie.stamp4Route.choose': 'Choose one',
+  'ie.stamp4Route.none': 'None',
+  'ie.stamp4Route.csep':
+    'Stamp 4 upgrade, 21 months: Critical Skills permit, researcher’s Hosting Agreement, Multi-Site GEP for hospital doctors',
+  'ie.stamp4Route.gep':
+    'Stamp 4 upgrade, 57 months: General Employment Permit, intra-company transfer',
+  'ie.stamp4Route.spouse-1g':
+    'Stamp 4 for spouses and partners on Stamp 1G, after 5 years',
+  'ie.stamp4Route.wcatt': 'Stamp 5: 96 months of legal residence',
+  'ie.employmentStart': 'Date you started work in Ireland on that permit',
+  'ie.employmentStartHint':
+    'As in Revenue’s Employment Detail Summary; if you moved to Stamp 1 from another permission, the date the employment permit became valid.',
+  'ie.remove': 'Remove',
+  'ie.submit': 'Work out dates',
+  'ie.errorSummary': 'Fix the items marked in red first.',
+  'ie.error.date': 'Enter a valid date.',
+  'ie.error.order': 'This date cannot be before the start date.',
+  'ie.error.route': 'Choose the permission to work out (or "None").',
   'es.entryLink': 'Open the Spain pilot',
   'es.entryDesc':
     'Use your residence permits and travel record to work out the dates for national long-term residence and citizenship by residence.',
