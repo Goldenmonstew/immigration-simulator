@@ -218,6 +218,38 @@ describe('permanent resident visa (RV2.5, RV2.5.1)', () => {
     expect(pathway(req, 'NZ-TRAVEL').summary).toContain('2027-02-28');
   });
 
+  test('Religious Worker with conditions removed: both met', () => {
+    const req = {
+      simulationDate: '2026-11-21',
+      dateOfBirth: '1980-01-01',
+      firstArrival: '2020-01-01',
+      residentVisa: {
+        granted: '2021-11-01',
+        category: 'religious-worker' as const,
+      },
+      conditions: 'none' as const,
+    };
+    const prv = pathway(req, 'NZ-PRV');
+    expect(prv.status).toBe('MET');
+    expect(prv.summary).not.toContain('s49');
+    const citizenship = pathway(req, 'NZ-CITIZENSHIP');
+    expect(citizenship.status).toBe('MET');
+    expect(citizenship.summary).not.toContain('s49');
+    // Before the 5 years, removed conditions do not bring the dates forward.
+    const early = { ...req, simulationDate: '2026-07-19' };
+    expect(pathway(early, 'NZ-PRV').earliestDate).toBe('2026-11-01');
+    expect(pathway(early, 'NZ-CITIZENSHIP').earliestDate).toBe('2026-11-01');
+    // Conditions not yet met: the citizenship check is unmet, not unknown.
+    const outstanding = pathway(
+      { ...req, conditions: 'outstanding' },
+      'NZ-CITIZENSHIP',
+    );
+    expect(outstanding.status).toBe('UNKNOWN');
+    expect(outstanding.checks.find((c) => c.text.includes('s49'))?.met).toBe(
+      false,
+    );
+  });
+
   test('Parent: s49(1) conditions make both unknown', () => {
     const req = {
       residentVisa: { granted: '2022-03-01', category: 'parent' as const },
@@ -388,5 +420,82 @@ describe('citizenship by grant (s8)', () => {
     expect(p.status).toBe('UNKNOWN');
     expect(p.checks[1].met).toBe(false);
     expect(p.checks[1].text).toContain('2026-11-02');
+  });
+
+  test('days after the resident visa expired do not count', () => {
+    // Expired 2026-05-02 after leaving on 2026-05-01: the last 365 days
+    // before 2026-11-28 hold 155 days as a resident.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-28',
+        firstArrival: '2020-01-01',
+        residentVisa: { granted: '2022-03-01', category: 'general' },
+        trips: [{ departed: '2026-05-01', returned: '2026-05-15' }],
+      },
+      'NZ-PRV',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks.at(-1)?.text).toContain('155');
+  });
+
+  test('the travel conditions date on the visa wins', () => {
+    // An older Parent visa with 5-year travel conditions.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-21',
+        firstArrival: '2013-01-01',
+        residentVisa: { granted: '2014-01-15', category: 'parent' },
+        travelConditionsEnd: '2019-01-14',
+        trips: [{ departed: '2022-07-01', returned: '2022-07-15' }],
+      },
+      'NZ-TRAVEL',
+    );
+    expect(p.status).toBe('NOT_MET');
+    expect(p.summary).toContain('2019-01-14');
+  });
+
+  test('outstanding conditions on a general visa make both unknown', () => {
+    const req = {
+      simulationDate: '2024-09-01',
+      firstArrival: '2018-01-01',
+      residentVisa: { granted: '2019-12-13', category: 'general' as const },
+      conditions: 'outstanding' as const,
+    };
+    expect(pathway(req, 'NZ-CITIZENSHIP').status).toBe('UNKNOWN');
+    expect(pathway(req, 'NZ-PRV').status).toBe('UNKNOWN');
+  });
+
+  test('Religious Worker: the presence date and the 5-year date apart', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-07-19',
+        firstArrival: '2020-01-01',
+        residentVisa: {
+          granted: '2021-11-21',
+          category: 'religious-worker',
+        },
+      },
+      'NZ-CITIZENSHIP',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('2026-07-19');
+    expect(p.summary).toContain('2026-11-21');
+  });
+
+  test('conditions met but not removed: PRV unknown, citizenship by dates', () => {
+    const req = {
+      simulationDate: '2024-01-01',
+      firstArrival: '2020-01-01',
+      residentVisa: { granted: '2022-03-01', category: 'general' as const },
+      conditions: 'met' as const,
+    };
+    expect(pathway(req, 'NZ-PRV').status).toBe('UNKNOWN');
+    expect(pathway(req, 'NZ-CITIZENSHIP').status).toBe('FUTURE');
+  });
+
+  test('a partner on the resident visa follows the principal (RV1.20)', () => {
+    const p = pathway({ nonPrincipal: true }, 'NZ-PRV');
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('RV1.20');
   });
 });

@@ -70,10 +70,29 @@ test('validation marks missing and out-of-order dates', () => {
 
 test('the request leaves out a blank PRV date', () => {
   expect(nzRequest(filled, 'en')).not.toHaveProperty('permanentResidentVisa');
+  expect(nzRequest(filled, 'en')).not.toHaveProperty('travelConditionsEnd');
+  expect(
+    nzRequest(
+      {
+        ...filled,
+        travelConditionsEnd: '2023-02-28',
+        conditions: 'outstanding',
+      },
+      'en',
+    ),
+  ).toMatchObject({
+    travelConditionsEnd: '2023-02-28',
+    conditions: 'outstanding',
+  });
   expect(
     nzRequest({ ...filled, prvGranted: '2023-04-01' }, 'en')
       .permanentResidentVisa,
   ).toBe('2023-04-01');
+  // "None, or already removed" is passed on, not left to the visa category.
+  expect(nzRequest({ ...filled, conditions: 'none' }, 'en').conditions).toBe(
+    'none',
+  );
+  expect(nzRequest(filled, 'en')).not.toHaveProperty('conditions');
 });
 
 test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
