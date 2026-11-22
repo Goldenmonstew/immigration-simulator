@@ -1,4 +1,5 @@
 import type { GameEvent, Npc, Text } from '@uk-immigration/game';
+import { asset } from '../../lib/asset';
 
 export const portraitIds = [
   'skilled-worker',
@@ -21,7 +22,7 @@ export const portraitIds = [
 ];
 export const expressions = ['neutral', 'happy', 'worried'] as const;
 type Expression = (typeof expressions)[number];
-const artRoot = '/game/assets/meadow-town';
+const artRoot = asset('/game/assets/meadow-town');
 export const townBanner = `${artRoot}/town-banner.png`;
 
 export function portraitPath(id: string, expression = 'neutral') {

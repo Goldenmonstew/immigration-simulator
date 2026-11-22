@@ -78,3 +78,11 @@ Cloudflare Pages 的 [Serving Pages：Route matching](https://developers.cloudfl
 5. 等待 Custom domains 中域名状态与 HTTPS 证书就绪，打开 `https://<自定义域名>`，检查首页、`/simulate`、`/result` 和页面刷新。
 
 官方步骤：[Custom domains](https://developers.cloudflare.com/pages/configuration/custom-domains/#add-a-custom-domain)。
+
+## 附：GitHub Pages 镜像
+
+2026-11-23 起，`.github/workflows/github-pages.yml` 在 main 的 CI 通过后另建一份副本到 GitHub Pages：<https://goldenmonstew.github.io/uk-immigration-simulator/>。用于 pages.dev 或自定义域名打不开的网络，地址里不含个人姓名。
+
+- 仓库 Settings → Pages 的 Source 为 **GitHub Actions**（已用 `gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow` 开启）。
+- 项目站点挂在 `/<仓库名>` 子路径下：构建时设 `BASE_PATH=/<仓库名>`，Next 的 `basePath` 处理页面链接与脚本，游戏素材等普通资源路径用 `apps/web/lib/asset.ts` 的 `asset()` 加前缀，`sw.js` 从注册范围取前缀，`manifest.webmanifest` 用相对路径。
+- 不设 `BASE_PATH` 时与原来完全相同，Cloudflare 部署不受影响。

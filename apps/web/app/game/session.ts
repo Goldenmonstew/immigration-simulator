@@ -14,6 +14,7 @@ import {
 } from '@uk-immigration/game';
 import { createDraft, type Draft } from '../../lib/questionnaire';
 import type { DayMemory } from './diary';
+import { asset } from '../../lib/asset';
 
 export function visibleResidents(state: GameState, interior: boolean) {
   return townsfolk(state)
@@ -78,7 +79,9 @@ const residentIds = [
   'maeve',
 ];
 export const spritePath = (id: string) =>
-  `/game/assets/urban/${residentIds.includes(id) ? id : 'skilled-worker'}.png`;
+  asset(
+    `/game/assets/urban/${residentIds.includes(id) ? id : 'skilled-worker'}.png`,
+  );
 export const cropIds = [
   'potato',
   'strawberry',
@@ -91,18 +94,20 @@ export const cropIds = [
 ];
 export const itemIcon = (id: string) => {
   if (id === 'community-lunch-photo')
-    return '/game/assets/items/community-lunch-photo.svg';
+    return asset('/game/assets/items/community-lunch-photo.svg');
   const crop = id.replace(/^seed-/, '');
-  if (cropIds.includes(crop)) return `/game/assets/crops/${crop}.png`;
+  if (cropIds.includes(crop)) return asset(`/game/assets/crops/${crop}.png`);
   if (['tea', 'biscuits', 'flowers', 'cake'].includes(id))
-    return `/game/assets/items/${id}.png`;
+    return asset(`/game/assets/items/${id}.png`);
   const item = items.find((item) => item.id === id);
-  if (item?.kind === 'fish') return `/game/assets/meadow-town/fish/${id}.svg`;
-  if (item?.kind === 'junk') return `/game/assets/meadow-town/junk/${id}.svg`;
+  if (item?.kind === 'fish')
+    return asset(`/game/assets/meadow-town/fish/${id}.svg`);
+  if (item?.kind === 'junk')
+    return asset(`/game/assets/meadow-town/junk/${id}.svg`);
   if (recipes.some((recipe) => recipe.makes === id))
-    return `/game/assets/meadow-town/dishes/${id}.svg`;
-  if (item?.kind === 'food') return '/game/assets/items/meal.png';
-  return '/game/assets/indoor/item.png';
+    return asset(`/game/assets/meadow-town/dishes/${id}.svg`);
+  if (item?.kind === 'food') return asset('/game/assets/items/meal.png');
+  return asset('/game/assets/indoor/item.png');
 };
 
 export function endingMemories(state: GameState) {

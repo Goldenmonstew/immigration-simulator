@@ -16,6 +16,7 @@ import { gameDraft, endingMemories, itemIcon } from './session';
 import { portraitPath } from './art';
 import styles from './game.module.css';
 import { localText } from './game-ui';
+import { asset } from '../../lib/asset';
 
 export function LifeMemories({ state }: { state: GameState }) {
   const { t, locale } = useTranslation();
@@ -64,7 +65,7 @@ export function LifeMemories({ state }: { state: GameState }) {
                     className={styles.itemIcon}
                     aria-hidden="true"
                     style={{
-                      backgroundImage: `url("/game/assets/indoor/${item.atlas}")`,
+                      backgroundImage: `url("${asset(`/game/assets/indoor/${item.atlas}`)}")`,
                       backgroundSize: `${item.frames * 32}px 32px`,
                       backgroundPosition: `${-item.frame * 32}px 0`,
                     }}

@@ -1,4 +1,5 @@
 import type { GameState } from '@uk-immigration/game';
+import { asset } from '../../lib/asset';
 
 type Point = { x: number; y: number };
 export const animalRoutes = {
@@ -22,7 +23,7 @@ export const animalRoutes = {
 export type Animal = keyof typeof animalRoutes;
 export const animalIds = Object.keys(animalRoutes) as Animal[];
 export const animalPath = (id: Animal) =>
-  `/game/assets/meadow-town/animals/${id}.svg`;
+  asset(`/game/assets/meadow-town/animals/${id}.svg`);
 export function visibleAnimals(state: GameState, interior: boolean): Animal[] {
   if (interior) return [];
   const { minute, weather } = state.day;

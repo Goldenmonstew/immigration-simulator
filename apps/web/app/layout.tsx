@@ -6,12 +6,13 @@ import { SiteShell } from '../components/site-shell';
 import { ServiceWorker } from '../components/service-worker';
 import { ErrorReporter } from '../components/error-reporter';
 import styles from './site.module.css';
+import { asset } from '../lib/asset';
 
 export const metadata: Metadata = {
   description: t('home.intro'),
   referrer: 'no-referrer',
-  manifest: '/manifest.webmanifest',
-  icons: { icon: '/icon.svg', apple: '/icon-192.png' },
+  manifest: asset('/manifest.webmanifest'),
+  icons: { icon: asset('/icon.svg'), apple: asset('/icon-192.png') },
   appleWebApp: { capable: true },
   other: { 'apple-mobile-web-app-capable': 'yes' },
 };

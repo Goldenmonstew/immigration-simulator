@@ -2,6 +2,9 @@
 
 const CACHE_PREFIX = 'uk-immigration-pwa-';
 const CACHE_NAME = `${CACHE_PREFIX}2026-11-04-v2`;
+// The site may live under a base path (GitHub Pages): take it from the scope.
+const BASE = new URL(self.registration.scope).pathname.replace(/\/$/, '');
+const at = (path) => `${BASE}${path}`;
 const PAGES = [
   '/',
   '/simulate',
@@ -21,21 +24,23 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
-      await cache.addAll([
-        ...PAGES,
-        '/manifest.webmanifest',
-        '/icon-192.png',
-        '/icon-512.png',
-      ]);
+      await cache.addAll(
+        [
+          ...PAGES,
+          '/manifest.webmanifest',
+          '/icon-192.png',
+          '/icon-512.png',
+        ].map(at),
+      );
       // Initial page assets load before the worker controls the tab.
       // Inlined CSS lists several paths in one data-href; skip those.
       const assets = new Set();
       for (const page of PAGES) {
-        const html = await (await cache.match(page)).text();
+        const html = await (await cache.match(at(page))).text();
         for (const match of html.matchAll(
-          /(?:src|href)="(\/_next\/static\/[^"\s]+)"/g,
+          /(?:src|href)="([^"\s]*\/_next\/static\/[^"\s]+)"/g,
         ))
-          assets.add(match[1]);
+          if (match[1].startsWith(`${BASE}/_next/`)) assets.add(match[1]);
       }
       await cache.addAll([...assets]);
     })(),

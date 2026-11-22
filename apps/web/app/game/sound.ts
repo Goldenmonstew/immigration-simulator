@@ -1,4 +1,5 @@
 import type { GameState } from '@uk-immigration/game';
+import { asset } from '../../lib/asset';
 
 // Audio is created only after a real pointer/key gesture in the game client.
 let unlocked = false;
@@ -19,7 +20,9 @@ export function playSound(kind: keyof typeof files, npc = '') {
   if (!unlocked || muted || hidden) return;
   let audio = sounds.get(kind);
   if (!audio) {
-    audio = new Audio(`/game/assets/ninja-adventure/sounds/${files[kind]}.ogg`);
+    audio = new Audio(
+      asset(`/game/assets/ninja-adventure/sounds/${files[kind]}.ogg`),
+    );
     audio.volume = kind === 'step' ? 0.12 : 0.23;
     sounds.set(kind, audio);
   }
@@ -85,7 +88,9 @@ export function readMuted() {
   }
 }
 export function setSoundSeason(quarter: number, festival: boolean) {
-  desired = `/game/assets/ninja-adventure/musics/theme-${festival ? 5 : [9, 2, 3, 4][quarter - 1]}.ogg`;
+  desired = asset(
+    `/game/assets/ninja-adventure/musics/theme-${festival ? 5 : [9, 2, 3, 4][quarter - 1]}.ogg`,
+  );
   syncMusic();
   syncAmbience();
 }
@@ -155,7 +160,7 @@ function syncAmbience() {
     if (!buffers.has(kind)) {
       buffers.set(
         kind,
-        fetch(`/game/assets/ambience/${kind}.ogg`)
+        fetch(asset(`/game/assets/ambience/${kind}.ogg`))
           .then((response) => {
             if (!response.ok) throw new Error('Audio unavailable');
             return response.arrayBuffer();
