@@ -557,13 +557,17 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.permanentResident':
     'Date you became a permanent resident (Resident Since on the card)',
   'us.permanentResidentHint':
-    'For a conditional green card, enter the date you got conditional status; a spouse or child included in the investor’s I-829 enters the investor’s date.',
+    'For a conditional green card, enter the date you yourself got conditional status.',
   'us.conditional': 'Green card type',
   'us.conditional.none': 'Regular green card',
   'us.conditional.marriage': 'Conditional, based on marriage (file I-751)',
   'us.conditional.investor': 'Conditional, based on investment (file I-829)',
   'us.stateResidenceFrom':
     'Date you started living in your current state or USCIS district (optional)',
+  'us.joint':
+    'I file to remove conditions together with a parent or the investor (as a spouse or child)',
+  'us.principalSince':
+    'Date the principal applicant got their conditional green card',
   'us.married': 'I am married to and living with a U.S. citizen',
   'us.marriedOn': 'Date of marriage',
   'us.spouseCitizenSince':
@@ -581,6 +585,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.error.date': 'Enter a valid date.',
   'us.error.order': 'This date cannot be before the start date.',
   'us.error.beforeGreenCard': 'Enter only trips after you got your green card.',
+  'us.error.principalOrder':
+    'The principal applicant’s date cannot be after the date you got your green card.',
   'ca.entryLink': 'Open the Canada pilot',
   'ca.entryDesc':
     'Use the date you became a permanent resident and your travel record to work out the residency obligation and the physical presence for citizenship.',

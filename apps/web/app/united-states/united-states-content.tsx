@@ -28,6 +28,7 @@ const FIELD_LABELS: Record<string, TranslationKey> = {
   'us-simulation-date': 'us.simulationDate',
   'us-date-of-birth': 'us.dateOfBirth',
   'us-permanent-resident': 'us.permanentResident',
+  'us-principal-since': 'us.principalSince',
   'us-state-residence-from': 'us.stateResidenceFrom',
   'us-married-on': 'us.marriedOn',
   'us-spouse-citizen-since': 'us.spouseCitizenSince',
@@ -39,6 +40,7 @@ type DateField =
   | 'simulationDate'
   | 'dateOfBirth'
   | 'permanentResident'
+  | 'principalSince'
   | 'stateResidenceFrom'
   | 'marriedOn'
   | 'spouseCitizenSince';
@@ -129,9 +131,11 @@ export default function UnitedStatesContent() {
             <select
               id="us-conditional"
               value={draft.conditional}
-              onChange={(e) =>
-                set({ conditional: e.target.value as UsConditional })
-              }
+              onChange={(e) => {
+                // Hidden principal-applicant fields must not keep their errors.
+                setErrors({});
+                set({ conditional: e.target.value as UsConditional });
+              }}
             >
               {US_CONDITIONAL.map((c) => (
                 <option key={c} value={c}>
@@ -140,6 +144,29 @@ export default function UnitedStatesContent() {
               ))}
             </select>
           </Field>
+          {draft.conditional !== 'none' && (
+            <div className={form.followUp}>
+              <div className={form.checkboxes}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={draft.joint}
+                    onChange={(e) => {
+                      setErrors({});
+                      set({ joint: e.target.checked });
+                    }}
+                  />
+                  {t('us.joint')}
+                </label>
+              </div>
+              {draft.joint &&
+                date(
+                  'us-principal-since',
+                  'us.principalSince',
+                  'principalSince',
+                )}
+            </div>
+          )}
           {date(
             'us-state-residence-from',
             'us.stateResidenceFrom',

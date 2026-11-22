@@ -238,6 +238,34 @@ describe('removing conditions, INA 216', () => {
     expect(sunday.earliestDate).toBe('2026-11-23');
   });
 
+  test('filing with the principal applicant follows their date', () => {
+    // EB-5 spouse: own green card 2025-02-01, investor's 2024-10-15.
+    const own = {
+      conditional: 'investor' as const,
+      permanentResident: '2025-02-01',
+      stateResidenceFrom: '2025-02-01',
+      simulationDate: '2026-11-20',
+    };
+    const joint = { ...own, principalConditional: '2024-10-15' };
+    expect(pathway(own, 'US-CONDITIONS').status).toBe('MET');
+    expect(pathway(joint, 'US-CONDITIONS').status).toBe('NOT_MET');
+    // Naturalization still counts from the applicant's own green card.
+    expect(pathway(joint, 'US-NATURALIZATION').earliestDate).toBe(
+      pathway(own, 'US-NATURALIZATION').earliestDate,
+    );
+    // A child included in a parent's joint I-751.
+    const child = pathway(
+      {
+        conditional: 'marriage',
+        permanentResident: '2024-12-01',
+        principalConditional: '2024-10-15',
+        simulationDate: '2026-11-20',
+      },
+      'US-CONDITIONS',
+    );
+    expect(child.status).toBe('NOT_MET');
+  });
+
   test('after the anniversary', () => {
     const p = pathway(
       // Last day Sunday 2027-02-28: paper filing until Monday 03-01.

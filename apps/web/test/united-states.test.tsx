@@ -75,6 +75,29 @@ test('the request leaves out an unticked marriage and blank dates', () => {
   ).toEqual({ married: '2022-01-01' });
 });
 
+test('filing with a principal applicant needs their date', () => {
+  const joint = { ...filled, conditional: 'investor' as const, joint: true };
+  expect(validateUsForm(joint)).toEqual({
+    'us-principal-since': 'us.error.date',
+  });
+  expect(
+    validateUsForm({ ...joint, principalSince: '2099-01-01' })[
+      'us-principal-since'
+    ],
+  ).toBe('us.error.principalOrder');
+  expect(
+    usRequest({ ...joint, principalSince: '2018-01-01' }, 'en')
+      .principalConditional,
+  ).toBe('2018-01-01');
+  // Ignored once the green card is not conditional.
+  expect(
+    usRequest(
+      { ...joint, conditional: 'none', principalSince: '2018-01-01' },
+      'en',
+    ),
+  ).not.toHaveProperty('principalConditional');
+});
+
 test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
   const result = evaluateUnitedStates(usRequest(filled, locale));
   const html = render(<PilotResult result={result} />, locale);

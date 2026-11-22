@@ -12,6 +12,9 @@ export interface UsForm {
   dateOfBirth: string;
   permanentResident: string;
   conditional: UsConditional;
+  /** Filing together with a parent or the investor. */
+  joint: boolean;
+  principalSince: string;
   stateResidenceFrom: string;
   married: boolean;
   marriedOn: string;
@@ -29,6 +32,8 @@ export function emptyUsForm(today: string): UsForm {
     dateOfBirth: '',
     permanentResident: '',
     conditional: 'none',
+    joint: false,
+    principalSince: '',
     stateResidenceFrom: '',
     married: false,
     marriedOn: '',
@@ -48,6 +53,14 @@ export function validateUsForm(form: UsForm): UsErrors {
   date('us-date-of-birth', form.dateOfBirth);
   date('us-permanent-resident', form.permanentResident);
   date('us-state-residence-from', form.stateResidenceFrom, true);
+  if (form.conditional !== 'none' && form.joint) {
+    date('us-principal-since', form.principalSince);
+    if (
+      validDate(form.principalSince) &&
+      form.principalSince > form.permanentResident
+    )
+      errors['us-principal-since'] = 'us.error.principalOrder';
+  }
   if (form.married) {
     date('us-married-on', form.marriedOn);
     date('us-spouse-citizen-since', form.spouseCitizenSince, true);
@@ -69,6 +82,9 @@ export function usRequest(form: UsForm, locale: Locale): UsRequest {
     dateOfBirth: form.dateOfBirth,
     permanentResident: form.permanentResident,
     conditional: form.conditional,
+    ...(form.conditional !== 'none' && form.joint
+      ? { principalConditional: form.principalSince }
+      : {}),
     ...(form.stateResidenceFrom
       ? { stateResidenceFrom: form.stateResidenceFrom }
       : {}),
