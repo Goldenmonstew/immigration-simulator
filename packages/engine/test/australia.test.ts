@@ -121,6 +121,22 @@ describe('Hong Kong streams (Sch 1 items 1137(4L), 1139(3)(ca))', () => {
       ).status;
     expect(at()).toBe('NOT_MET');
     expect(at('2027-11-30')).toBe('NOT_MET');
+    // A later bridging visa and 186 do not stretch it past 5 years.
+    expect(
+      pathway(
+        {
+          simulationDate: '2026-11-22',
+          firstArrival: '2021-07-01',
+          visas: [
+            { subclass: '482', from: '2022-12-01' },
+            { subclass: 'bridging-trt', from: '2027-12-01' },
+            { subclass: '186', from: '2028-07-01' },
+          ],
+          hongKong: { regionalSince: '2025-06-01' },
+        },
+        'AU-191-HK',
+      ).status,
+    ).toBe('NOT_MET');
   });
 
   test('residence counts from the first arrival', () => {
