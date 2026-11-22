@@ -485,7 +485,13 @@ export function evaluateAustralia(req: AuRequest): AuResult {
       const noRegion = !!s.regional && !since;
       const earliest = noRegion
         ? undefined
-        : firstDate((d) => holding(d) && resident(d) && regionalOk(d));
+        : firstDate(
+            (d) =>
+              d >= v.hongKongStreamsFrom.value &&
+              holding(d) &&
+              resident(d) &&
+              regionalOk(d),
+          );
       const unsure = !!earliest && tripsIn(earliest).length > 0;
       const trips = earliest ? tripsIn(earliest) : [];
       pathways.push({

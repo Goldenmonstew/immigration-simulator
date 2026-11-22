@@ -29,7 +29,8 @@ describe('naturalization, INA 316(a)', () => {
 
   test('a year away: the Policy Manual example', () => {
     // PM 12 D.3(C)(2): away 2010-01-01 to 2011-01-02 (365 days). Filing on
-    // 2015-01-03 must rebut the presumption; 2015-07-06 needs none.
+    // 2015-01-03 must rebut the presumption; from 2015-07-02 (4 years and 6
+    // months after the return, PM 12 D.3(C)(3) table) it needs none.
     const p = pathway(
       {
         simulationDate: '2014-01-01',
@@ -40,11 +41,24 @@ describe('naturalization, INA 316(a)', () => {
       'US-NATURALIZATION',
     );
     expect(p.status).toBe('FUTURE');
-    expect(p.earliestDate).toBe('2015-07-06');
+    expect(p.earliestDate).toBe('2015-07-02');
     expect(p.summary).toContain('2015-01-03');
   });
 
-  test('180 days away is fine, 181 is presumed to break', () => {
+  test('the Policy Manual 8-month example: back 2018-08-01, apply 2023-02-01', () => {
+    const p = pathway(
+      {
+        simulationDate: '2022-06-01',
+        permanentResident: '2012-01-01',
+        stateResidenceFrom: '2012-01-01',
+        trips: [{ departed: '2017-12-01', returned: '2018-08-01' }],
+      },
+      'US-NATURALIZATION',
+    );
+    expect(p.earliestDate).toBe('2023-02-01');
+  });
+
+  test('6 months away is fine, longer is presumed to break', () => {
     const at = (returned: string) =>
       pathway(
         {
@@ -53,7 +67,7 @@ describe('naturalization, INA 316(a)', () => {
         },
         'US-NATURALIZATION',
       );
-    // 2025-01-01 to 2025-07-01 is 180 full days abroad.
+    // 2025-01-01 to 2025-07-01 is exactly 6 months.
     expect(at('2025-07-01').status).toBe('MET');
     expect(at('2025-07-02').status).toBe('FUTURE');
   });

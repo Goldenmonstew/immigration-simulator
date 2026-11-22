@@ -139,6 +139,19 @@ describe('Hong Kong streams (Sch 1 items 1137(4L), 1139(3)(ca))', () => {
     ).toBe('NOT_MET');
   });
 
+  test('applications open on 2022-03-05', () => {
+    const p = pathway(
+      hk(true, {
+        simulationDate: '2022-01-01',
+        firstArrival: '2015-01-01',
+        visas: [{ subclass: '482', from: '2019-01-01', to: '2023-12-31' }],
+        hongKong: { regionalSince: '2015-01-01' },
+      }),
+      'AU-191-HK',
+    );
+    expect(p.earliestDate).toBe('2022-03-05');
+  });
+
   test('residence counts from the first arrival', () => {
     // Arrived 2022-06-01: 3 years in Australia only from 2025-06-01.
     const p = pathway(

@@ -25,6 +25,14 @@ export const australia2026_11 = {
     },
     // The Hong Kong streams' 457, 482 and 485 visas allow a stay of this many
     // years from when they came into effect (granted from 9 July 2020).
+    // Applications in the Hong Kong streams may be made from this date.
+    hongKongStreamsFrom: {
+      value: '2022-03-05',
+      sources: [
+        { srcId: 'SRC-062', locator: 'Sch 1 item 1137(4L)(b)' },
+        { srcId: 'SRC-062', locator: 'Sch 1 item 1139(3)(bb)(i)' },
+      ],
+    },
     hongKongVisaYears: {
       value: 5,
       sources: [
@@ -140,4 +148,7 @@ export const australia2026_11 = {
       sources: [{ srcId: 'SRC-061', locator: 's22(1B)(b)' }],
     },
   },
-} satisfies { asOf: string; values: Record<string, Parameter<number>> };
+} satisfies {
+  asOf: string;
+  values: Record<string, Parameter<number | string>>;
+};
