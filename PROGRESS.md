@@ -355,3 +355,4 @@
 | 316 | 任务 65 合入 main，报告补记最终验证（门禁、e2e 47 项、四轮 Codex 审核通过）。 | docs/tasks/reports/65-australia-hong-kong.md |
 | 317 | 任务 66：网站另部署到 GitHub Pages（不含姓名的地址）；basePath 与 asset() 前缀、sw.js 与 manifest 支持子路径；Pages 发布工作流；仓库开启 Pages；部署说明与报告。 | apps/web/next.config.ts、apps/web/lib/asset.ts、apps/web/app/game/、apps/web/app/layout.tsx、apps/web/components/service-worker.tsx、apps/web/public/{sw.js,manifest.webmanifest}、.github/workflows/github-pages.yml、docs/ |
 | 318 | 任务 66 审核修正（review66-1）：分享链接带子路径；首页链接指向带尾斜杠的地址；Pages 工作流补 contents: read 并在发布前检查子路径。 | apps/web/components/{share-link,site-shell}.tsx、apps/web/app/error.tsx、apps/web/app/simulate/page.tsx、.github/workflows/github-pages.yml、docs/ |
+| 350 | 任务 70：登记日本官方来源 SRC-110～118（入管法、国籍法、民法与年龄计算法，2026-02-24 与 2026-10-01 两版永住许可指南及适用说明、公众意见答复，再入国许可与继续在留说明，国籍Q&A 与帰化リーフレット，2026-04 帰化审查运用变更的记者会见、答弁书与国会发言）与 PD-130～139。 | docs/SOURCES.md、docs/pending-details.md、apps/web/lib/sources.ts、policy-sources/（18 份快照） |

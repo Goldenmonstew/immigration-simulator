@@ -160,4 +160,16 @@ export const sourceUrls: Record<string, string> = {
     'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2010/20100100049.pdf',
   'SRC-089':
     'https://www.ypes.gr/wp-content/uploads/2026/02/Proypotheseis20260130.pdf',
+  'SRC-110': 'https://laws.e-gov.go.jp/law/326CO0000000319',
+  'SRC-111': 'https://laws.e-gov.go.jp/law/325AC0000000147',
+  'SRC-112': 'https://laws.e-gov.go.jp/law/129AC0000000089',
+  'SRC-113':
+    'https://www.moj.go.jp/isa/applications/resources/nyukan_nyukan50.html',
+  'SRC-114': 'https://www.moj.go.jp/isa/10_00279.html',
+  'SRC-115':
+    'https://public-comment.e-gov.go.jp/pcm/1040?CLASSNAME=PCM1040&id=315000140&Mode=1',
+  'SRC-116':
+    'https://www.moj.go.jp/isa/immigration/procedures/sainyukoku_00002.html',
+  'SRC-117': 'https://www.moj.go.jp/MINJI/minji78.html',
+  'SRC-118': 'https://www.moj.go.jp/hisho/kouhou/hisho08_00706.html',
 };

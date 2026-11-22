@@ -107,6 +107,15 @@
 | SRC-087 | LAW | 希腊移民法典的修订：ν. 5100/2024（ΦΕΚ Α' 49/05.04.2024，άρθ. 64 重述 άρθ. 100）、ν. 5275/2026（ΦΕΚ Α' 17/06.02.2026，άρθ. 12 改 άρθ. 11 续期期限）、ν. 5307/2026（ΦΕΚ Α' 90/11.06.2026，άρθ. 179 重述 άρθ. 144） | https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2024/20240100049.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100017.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100090.pdf | 见标题 | 2026-11-21 | `policy-sources/2024-04-05-gr-fek-a49-2024-n5100.pdf`（sha256 `0cc59defe70fdc725028ec4520e68182dff84bd343ff3a07ecf8cf1ebf861d75`）；`policy-sources/2026-02-06-gr-fek-a17-2026-n5275.pdf`（sha256 `eff39df99fb9d8e66c335852b0f0e3906c988ddbef0e8e84c5d6e38d6997f3c5`）；`policy-sources/2026-06-11-gr-fek-a90-2026-n5307.pdf`（sha256 `27b3c693ae0db6cd43fcb308a06ba390c52e20adf4e64f957477ed3945b06f9a`） | archived |
 | SRC-088 | LAW | Κώδικας Ελληνικής Ιθαγένειας（希腊国籍法典）άρθ. 5 的现行文本来源：ν. 3838/2010（ΦΕΚ Α' 49/24.03.2010，άρθ. 2 替换 άρθ. 5）、ν. 4531/2018（ΦΕΚ Α' 62/05.04.2018，άρθ. 31 παρ. 3 加入 12 年路径）、ν. 4674/2020（ΦΕΚ Α' 53/11.03.2020，άρθ. 94 重写 3 年类别） | https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2010/20100100049.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2018/20180100062.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2020/20200100053.pdf | 见标题 | 2026-11-21 | `policy-sources/2010-03-24-gr-fek-a49-2010-n3838.pdf`（sha256 `8c9c6f08c55ba50bc059695f1926d244f347134a82c78f4eed8bb58bea38a3fc`）；`policy-sources/2018-04-05-gr-fek-a62-2018-n4531.pdf`（sha256 `cdc3384ecce232839580139e3615e2afd9ff59767faf6a81a2e4f64f62e747d0`）；`policy-sources/2020-03-11-gr-fek-a53-2020-n4674.pdf`（sha256 `d1da943f93121e8308e6d1994b4915fbc689f66a954d36c5c45344145adfff33`） | archived |
 | SRC-089 | GUIDANCE | 希腊内政部（ΥΠΕΣ）：国籍法典编纂版（截至 2025-09-17，卷首注明仅供参考、以 ΦΕΚ 为准）；《归化的形式与实质条件》（最后更新 2026-01-30） | https://www.ypes.gr/wp-content/uploads/2025/09/20250917-KEI-NOMOS.pdf ；https://www.ypes.gr/wp-content/uploads/2026/02/Proypotheseis20260130.pdf | 见标题 | 2026-11-21 | `policy-sources/2025-09-17-gr-ypes-kei-codified.pdf`（sha256 `a3545245db1a0da28df1947df945be3b6111dd3c74715fe7679e2e6a52b9fa23`）；`policy-sources/2026-01-30-gr-ypes-naturalisation-requirements.pdf`（sha256 `631f06cbd885f72599ae2886d878b50464c3c09126fbcf66d73f3ed655c8b9a0`） | archived |
+| SRC-110 | LAW | 出入国管理及び難民認定法（昭和26年政令第319号，入管法），e-Gov 法令 API 现行版（2026-10-01 施行，revision 326CO0000000319_20261001_508AC0000000032）：第22条 永住許可、第26条 再入国許可、第26条の2 みなし再入国許可 | https://laws.e-gov.go.jp/api/2/law_data/326CO0000000319_20261001_508AC0000000032?response_format=xml&law_full_text_format=xml （法令页面：https://laws.e-gov.go.jp/law/326CO0000000319 ） | 2026-10-01 | 2026-11-22 | `policy-sources/2026-10-01-jp-egov-nyukanho-current.xml`（sha256 `2991b8708d37e94ea579352dcc61c30619bc272a3b2790916cfb942331379d98`） | archived |
+| SRC-111 | LAW | 国籍法（昭和25年法律第147号），e-Gov 法令 API 现行版（2025-06-01 施行，无未施行修订）：第5条 一般帰化、第7条 日本国民の配偶者、第10条 効力 | https://laws.e-gov.go.jp/api/2/law_data/325AC0000000147_20250601_504AC0000000068?response_format=xml&law_full_text_format=xml （法令页面：https://laws.e-gov.go.jp/law/325AC0000000147 ） | 2025-06-01 | 2026-11-22 | `policy-sources/2025-06-01-jp-egov-kokusekiho-current.xml`（sha256 `8352a646463941948557fbaf3078826c532733546d35d014070f136bcd67e9ee`） | archived |
+| SRC-112 | LAW | 日本的期间与年龄计算：民法（明治29年法律第89号）现行版第138–143条 期間の計算；年齢計算ニ関スル法律（明治35年法律第50号） | https://laws.e-gov.go.jp/api/2/law_data/129AC0000000089_20260624_508AC0000000045?response_format=xml&law_full_text_format=xml ；https://laws.e-gov.go.jp/api/2/law_data/135AC1000000050_19021222_000000000000000?response_format=xml&law_full_text_format=xml （法令页面：https://laws.e-gov.go.jp/law/129AC0000000089 ；https://laws.e-gov.go.jp/law/135AC1000000050 ） | 民法 2026-06-24；年齢計算 1902-12-22 | 2026-11-22 | `policy-sources/2026-06-24-jp-egov-minpo-current.xml`（sha256 `3592e3eee095f23d9e7ea8b9c2cb6fc29bb3c8fad6f9e785a92d170cc8f2c9ce`）；`policy-sources/1902-12-22-jp-egov-nenrei-keisan-ho.xml`（sha256 `60b074357e0090bdb586affe1287dffafe94f0bf2c5ab07bd20992c07cae79b6`） | archived |
+| SRC-113 | GUIDANCE | 出入国在留管理庁「永住許可に関するガイドライン（令和８年２月２４日改訂）」：2027-03-31 前递交的永住申请适用 | https://www.moj.go.jp/isa/applications/resources/nyukan_nyukan50.html | 2026-02-24 | 2026-11-22 | `policy-sources/2026-02-24-jp-isa-pr-guideline-r8-02-24.html`（sha256 `dc651b474cd821ff7698540c89ede0fcf2e0cc8d340535e6becae081a873f198`） | archived |
+| SRC-114 | GUIDANCE | 出入国在留管理庁「永住許可に関するガイドライン（令和８年１０月１日改定）」HTML 与 PDF（13 页），2027-04-01 起递交的申请适用；「永住許可（入管法第22条）」页的【お知らせ】ガイドラインの適用について（令和８年１０月１日掲載） | https://www.moj.go.jp/isa/10_00279.html ；https://www.moj.go.jp/isa/content/001471577.pdf ；https://www.moj.go.jp/isa/applications/procedures/eizyuu_00001.html | 2026-10-01 | 2026-11-22 | `policy-sources/2026-10-01-jp-isa-pr-guideline-r8-10-01.html`（sha256 `46b260c118336e4c87430923455d86e0af1d42d0437816bfebafbe8afa41f3bf`）；`policy-sources/2026-10-01-jp-isa-pr-guideline-r8-10-01.pdf`（sha256 `709e0683c827dfd973f368765e81e2d4018699761b9e831effc53e5de84411c1`）；`policy-sources/2026-10-01-jp-isa-pr-guideline-application-notice.html`（sha256 `d03f3c6b433e020258abea81ed69cc2d9d6babe3e306831fb34fcb6bb79917f9`） | archived |
+| SRC-115 | GUIDANCE | e-Gov パブリック・コメント「永住許可に関するガイドライン案改定に係る意見募集の結果」（案件番号 315000140）別紙：意見の概要と出入国在留管理庁の考え方（PDF 8 页） | https://public-comment.e-gov.go.jp/pcm/download?seqNo=0000321729 （案件页面：https://public-comment.e-gov.go.jp/pcm/1040?CLASSNAME=PCM1040&id=315000140&Mode=1 ） | 2026-10-01 | 2026-11-22 | `policy-sources/2026-10-01-jp-egov-pcm-pr-guideline-annex.pdf`（sha256 `63b0cba5f38bf04f9979fb3bee382d004b55243c529c4bff3de2c1b41537edf5`） | archived |
+| SRC-116 | GUIDANCE | 出入国在留管理庁：「再入国許可（入管法第26条）」与「みなし再入国許可（入管法第26条の2）」说明页；「『永住許可に関するガイドライン』における『継続在留要件』の取扱いについて」（令和2年8月5日，令和4年10月7日更新）；法務省入国管理局「永住者の在留資格について」（平成30年9月，7 页） | https://www.moj.go.jp/isa/immigration/procedures/sainyukoku_00002.html ；https://www.moj.go.jp/isa/immigration/procedures/minashisainyukoku_00001.html ；https://www.moj.go.jp/isa/content/930006016.pdf ；https://www.moj.go.jp/isa/content/930003741.pdf | 说明页无日期；继续在留 2022-10-07；永住者 2018-09 | 2026-11-22 | `policy-sources/2026-11-22-jp-isa-reentry.html`（sha256 `b7df131165226b0ed09d3c13e5695269705df909907a421e85d323a0ce3d016b`）；`policy-sources/2026-11-22-jp-isa-minashi-reentry.html`（sha256 `4662997bea8003b5a79ef9dc5be0f80a9243efd2deb9b5ef0ce9541d56dc96f9`）；`policy-sources/2022-10-07-jp-isa-pr-continuity-covid-notice.pdf`（sha256 `90af7dd784b23a3c4e6be04f0d6280fc5871e6f200670c370881198ad1a7dd84`）；`policy-sources/2018-09-14-jp-moj-pr-status-overview.pdf`（sha256 `3c014419995f91f47e407c43d8f6bb9e8b6e1602f95e5133545aed2026f148b3`） | archived |
+| SRC-117 | GUIDANCE | 法務省民事局「国籍Q&A」（Q9 帰化の条件）；法務省リーフレット「帰化による日本国籍の取得」（2 页，无日期） | https://www.moj.go.jp/MINJI/minji78.html ；https://www.moj.go.jp/content/001459013.pdf | Q&A 页无日期；リーフレット无日期 | 2026-11-22 | `policy-sources/2026-11-22-jp-moj-nationality-qa.html`（sha256 `fb224a19a5cfec24f22efe59adc22efbf33d5eaf4662f544b7cff15d86b43af0`）；`policy-sources/2026-11-22-jp-moj-kika-leaflet.pdf`（sha256 `2ba4e6e1236c908db8ee58d234b44d720717335549a1b4b36d25d313fb76fb78`） | archived |
+| SRC-118 | POLICY | 帰化审查运用的变更（2026-04-01 起原则 10 年在留）：法務大臣閣議後記者会見の概要（令和8年3月27日）；参議院 答弁書（内閣参質二二一第九一号，2026-07-28）；参議院法務委員会第4号（2026-04-14）政府参考人发言 No.120（国会会議録検索システム API） | https://www.moj.go.jp/hisho/kouhou/hisho08_00706.html ；https://www.sangiin.go.jp/japanese/joho1/kousei/syuisyo/221/touh/t221091.htm ；https://kokkai.ndl.go.jp/api/speech?issueID=122115206X00420260414&speechNumber=120&recordPacking=json | 2026-03-27；2026-07-28；2026-04-14 | 2026-11-22 | `policy-sources/2026-03-27-jp-moj-minister-press-kika.html`（sha256 `75c35583e267513f6f4a163374645767b5db3705ed0688316724c04b96bbb21f`）；`policy-sources/2026-07-28-jp-sangiin-answer-221-91-kika.htm`（sha256 `1e594bd61ee39aee6a92daa3f288c9c4cbf56807ef797676f1ca79c079331318`）；`policy-sources/2026-04-14-jp-ndl-sangiin-homu-speech120.json`（sha256 `1770a0a52210ccb542e84e210c6c4f705928ffcc73c2c422cf8e1c923f9f054c`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -758,3 +767,68 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-089 希腊内政部说明
 
 - 编纂版（p8–p10）与上列 ΦΕΚ 一致，用于核对现行 άρθ. 5 全文。《归化的形式与实质条件》（p1–p2）：可接受的身份含"投资活动许可、房产所有人许可或投资者永久居留许可"；临时居留身份不能用于申请归化。ypes.gr 对脚本请求返回 403，每周核对需人工处理。清单（άρθ. 5 παρ. 1 ε αθ）只点名旧法（ν. 4251/2014）下的投资者许可，新法 Β.5 是否同样认可没有部长决定，见 PD-105。
+
+## SRC-110 出入国管理及び難民認定法（入管法）
+
+- 快照为 e-Gov 法令 API v2 返回的 XML，按条、項、号定位；内容与法令页面相同。
+- `第22条第2項`：永住许可须素行善良、有独立生计且其永住合于日本国利益；法律本身没有年数，年数都来自指南（SRC-113、SRC-114）。日本人、永住者、特別永住者的配偶者或子免除第1、2号。`第22条第4項`：许可自交付在留卡时生效。
+- `第26条第3項`：再入国许可的有效期自生效日起不超过 5 年；`第26条第5項`：在外延长每次不超过 1 年，且自生效日起不超过 6 年。
+- `第26条の2第2項`：みなし再入国许可的有效期为出国日起 1 年，在留期限早于此的到在留期限为止；`第3項`：不能延长。特別永住者为 2 年（入管特例法第23条第2項，未存档，试点不涵盖）。
+- 令和6年法律第60号（2027-04-01 施行）改写第22条第2項措辞并新增永住取消事由，令和8年法律第32号只改第26条第1項的引用条号；都不涉及时间规则（调研时对比 e-Gov 未施行版本，未存档）。
+
+## SRC-111 国籍法
+
+- 快照为 e-Gov 法令 API v2 返回的 XML。
+- `第5条第1項第1号`：引き続き五年以上日本に住所を有すること；`第2号`：十八歳以上で本国法によつて行為能力を有すること。
+- `第7条`（日本国民の配偶者，免除第5条第1項第1、2号）：前段为连续 3 年以上在日本有住所或居所、且现在日本有住所；后段为婚姻之日起满 3 年、且连续 1 年以上在日本有住所。
+- `第10条第2項`：帰化自官报告示之日生效。e-Gov 修订历史显示国籍法没有未施行修订。
+
+## SRC-112 民法与年龄计算
+
+- 民法 `第140条`：以日、周、月、年定期间的，初日不算入（午前零时起算的除外）；`第143条`：按历计算，在最后一年与起算日对应之日的前一日满了，没有对应日的以该月末日满了；`第138条`：法令另有规定的从其规定。入管法与永住指南没有自己的计日规则。
+- 年齢計算ニ関スル法律：年龄自出生日起算，准用民法第143条，即 18 岁生日当天起满 18 岁。
+- 入管厅、法务局审查"引き続き N 年"时取周年当日还是次日没有公开（PD-130）。
+
+## SRC-113 永住許可に関するガイドライン（2026-02-24 改订）
+
+- 页面没有锚点，按指南条目号定位。
+- `1(3)ア`：原则连续在留 10 年以上，其中以就労資格（不含技能実習、特定技能1号）或居住資格连续在留 5 年以上。
+- `2(1)`：日本人、永住者、特別永住者的配偶者，实体婚姻生活 3 年以上且连续在留 1 年以上；其实子等连续在留 1 年以上。`2(2)`：定住者 5 年。`2(3)`：难民或补完的保护对象者认定后 5 年。`2(6)`：高度人才 70 点维持 3 年；`2(7)`：80 点维持 1 年；`2(8)`：特別高度人材 1 年。`注1`：2027-03-31 前在留期间"3年"视同最长。
+- 该版没有出境天数的标准（PD-132）。
+
+## SRC-114 永住許可に関するガイドライン（2026-10-01 改定）及适用说明
+
+- HTML 锚点：`#midashi02` 第2、`#midashi03` 第3、`#midashi06` 第6；PDF 的 `p<N>` 指物理页。
+- `第2の5(6)`（PDF p7）：原则连续在留 10 年以上，其中以就労資格或居住資格连续 5 年以上；申请时起过去 10 年内，无合理理由单次出国半年以上不在、或通算 2 年 6 个月以上不在的，原则上消极评价。`注2`：就労資格不含技能実習、育成就労、特定技能1号、企業内転勤与部分特定活動。
+- `第3の1`（PDF p9）：配偶者实体婚姻生活 5 年以上且连续在留 3 年以上；实子等连续在留 3 年以上。`第3の2`、`第3の3`：定住者 5 年、难民认定后 5 年。`第3の6`、`第3の7`、`第3の8`：高度人才 70 点 3 年、80 点 1 年、特別高度人材 1 年。
+- `第6`（PDF p13）：本次改定适用于令和9年（2027 年）4 月 1 日以后的申请。
+- 适用说明（【お知らせ】）：2026-03-31 前申请的适用 2026-02-24 版；2026-04-01 至 2027-03-31 申请的仍适用 2026-02-24 版（收入部分另按新版第2の4(2)、第2の5(7)）；2027-04-01 起申请的适用新版。
+- `policy-sources/2026-10-01-jp-isa-pr-guideline-r8-10-01.pdf` → <https://www.moj.go.jp/isa/content/001471577.pdf>
+
+## SRC-115 永住指南公众意见答复
+
+- 别纸 PDF 8 页，`p<N>` 指物理页。`第48号`（p5）：缺席标准限于"没有合理理由的情形"，具体内容按个案判断，没有列举。`第63号`（p7）：配偶者特例延长为婚姻 5 年、在留 3 年。
+- `policy-sources/2026-10-01-jp-egov-pcm-pr-guideline-annex.pdf` → <https://public-comment.e-gov.go.jp/pcm/download?seqNo=0000321729>
+
+## SRC-116 再入国許可与连续在留
+
+- 再入国許可页：未取得再入国许可（含みなし）出国的，原有在留資格与在留期间消灭；持再入国许可返回的，视为原在留資格与在留期间继续；普通再入国许可在现有在留期间内最长 5 年（特別永住者 6 年）。
+- みなし再入国許可页：有效期为出国日起 1 年，在留期限早于此的到在留期限为止；特別永住者 2 年；在留资格取消手续中等五类人不适用。
+- 继续在留通知（1 页）：因新冠未能在再入国许可或みなし再入国许可有效期内再入国、"一度在留が途切れた"的，有效期满日在 2020-01-01 至 2023-04-30 之间并在 2023-04-30 前申请的签证有效期内入境的，视为继续在留。官方据此把许可失效视为在留中断。
+- 「永住者の在留資格について」p5「永住許可が失われる場合」：持再入国许可出国、未在许可期限内返回；持みなし再入国许可出国、出国后 1 年内未返回。2018 年资料，与现行第26条、第26条の2 一致。
+- `policy-sources/2022-10-07-jp-isa-pr-continuity-covid-notice.pdf` → <https://www.moj.go.jp/isa/content/930006016.pdf>
+- `policy-sources/2018-09-14-jp-moj-pr-status-overview.pdf` → <https://www.moj.go.jp/isa/content/930003741.pdf>
+
+## SRC-117 国籍Q&A 与帰化リーフレット
+
+- Q&A 锚点 `#a09`（Q9 帰化の条件）：住所条件为申请时为止连续 5 年以上，住所须合法、持正当在留资格；能力条件 18 岁；末段要求"10年以上在留していることなど、日本社会に融和していること"。同段先说明第6–8条对日本人配偶者等放宽条件，但没有说 10 年是否同样适用（PD-137）。
+- リーフレット p2 同样写"１０年以上在留していることなど"。
+- `policy-sources/2026-11-22-jp-moj-kika-leaflet.pdf` → <https://www.moj.go.jp/content/001459013.pdf>
+
+## SRC-118 帰化审查运用的变更
+
+- 法务大臣记者会见（2026-03-27）：自本年 4 月 1 日起，帰化审查的"日本社会に融和していること"要件原则上要求在留 10 年以上，以满足国籍法 5 年住所条件为前提。
+- 参議院答弁書（2026-07-28）"一及び二について"：维持国籍法第5条第1項第1号的 5 年条件，运用上原则要求在留 10 年以上；"三について"：判断基准与调查事项不予公开。
+- 参議院法務委員会（2026-04-14）政府参考人（法務省民事局長）发言 No.120：本年 4 月 1 日起帰化审查一般运用的变更点。
+- 三份文件都只说"帰化の審査において"，没有区分第5条与第6–8条的简易帰化（PD-137）。
+- `policy-sources/2026-04-14-jp-ndl-sangiin-homu-speech120.json` → <https://kokkai.ndl.go.jp/api/speech?issueID=122115206X00420260414&speechNumber=120&recordPacking=json>
