@@ -107,6 +107,16 @@
 | SRC-087 | LAW | 希腊移民法典的修订：ν. 5100/2024（ΦΕΚ Α' 49/05.04.2024，άρθ. 64 重述 άρθ. 100）、ν. 5275/2026（ΦΕΚ Α' 17/06.02.2026，άρθ. 12 改 άρθ. 11 续期期限）、ν. 5307/2026（ΦΕΚ Α' 90/11.06.2026，άρθ. 179 重述 άρθ. 144） | https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2024/20240100049.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100017.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100090.pdf | 见标题 | 2026-11-21 | `policy-sources/2024-04-05-gr-fek-a49-2024-n5100.pdf`（sha256 `0cc59defe70fdc725028ec4520e68182dff84bd343ff3a07ecf8cf1ebf861d75`）；`policy-sources/2026-02-06-gr-fek-a17-2026-n5275.pdf`（sha256 `eff39df99fb9d8e66c335852b0f0e3906c988ddbef0e8e84c5d6e38d6997f3c5`）；`policy-sources/2026-06-11-gr-fek-a90-2026-n5307.pdf`（sha256 `27b3c693ae0db6cd43fcb308a06ba390c52e20adf4e64f957477ed3945b06f9a`） | archived |
 | SRC-088 | LAW | Κώδικας Ελληνικής Ιθαγένειας（希腊国籍法典）άρθ. 5 的现行文本来源：ν. 3838/2010（ΦΕΚ Α' 49/24.03.2010，άρθ. 2 替换 άρθ. 5）、ν. 4531/2018（ΦΕΚ Α' 62/05.04.2018，άρθ. 31 παρ. 3 加入 12 年路径）、ν. 4674/2020（ΦΕΚ Α' 53/11.03.2020，άρθ. 94 重写 3 年类别） | https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2010/20100100049.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2018/20180100062.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2020/20200100053.pdf | 见标题 | 2026-11-21 | `policy-sources/2010-03-24-gr-fek-a49-2010-n3838.pdf`（sha256 `8c9c6f08c55ba50bc059695f1926d244f347134a82c78f4eed8bb58bea38a3fc`）；`policy-sources/2018-04-05-gr-fek-a62-2018-n4531.pdf`（sha256 `cdc3384ecce232839580139e3615e2afd9ff59767faf6a81a2e4f64f62e747d0`）；`policy-sources/2020-03-11-gr-fek-a53-2020-n4674.pdf`（sha256 `d1da943f93121e8308e6d1994b4915fbc689f66a954d36c5c45344145adfff33`） | archived |
 | SRC-089 | GUIDANCE | 希腊内政部（ΥΠΕΣ）：国籍法典编纂版（截至 2025-09-17，卷首注明仅供参考、以 ΦΕΚ 为准）；《归化的形式与实质条件》（最后更新 2026-01-30） | https://www.ypes.gr/wp-content/uploads/2025/09/20250917-KEI-NOMOS.pdf ；https://www.ypes.gr/wp-content/uploads/2026/02/Proypotheseis20260130.pdf | 见标题 | 2026-11-21 | `policy-sources/2025-09-17-gr-ypes-kei-codified.pdf`（sha256 `a3545245db1a0da28df1947df945be3b6111dd3c74715fe7679e2e6a52b9fa23`）；`policy-sources/2026-01-30-gr-ypes-naturalisation-requirements.pdf`（sha256 `631f06cbd885f72599ae2886d878b50464c3c09126fbcf66d73f3ed655c8b9a0`） | archived |
+| SRC-100 | LAW | Aufenthaltsgesetz（AufenthG，德国居留法），gesetze-im-internet 现行汇编（BMJ 与 juris 发布，非约束性文本；Stand：zuletzt geändert durch Art. 5 G v. 22.10.2026, BGBl. 2026 I Nr. 318）：§ 9 定居许可、§§ 9a、9b 欧盟长期居留、§ 18c 技术工人与欧盟蓝卡定居、§ 26 Abs. 3 难民定居、§ 28 Abs. 2 德国人家属定居、§ 51 居留失效 | https://www.gesetze-im-internet.de/aufenthg_2004/BJNR195010004.html | 2026-10-22（最近修改法签署日） | 2026-11-22 | `policy-sources/2026-11-22-de-aufenthg-full.html`（sha256 `6f09b146a5c55050af4751504572e4397c5a041efc2435c8302242036533d92a`） | archived |
+| SRC-101 | LAW | Staatsangehörigkeitsgesetz（StAG，德国国籍法），gesetze-im-internet 现行汇编（Stand：Zuletzt geändert durch Art. 3 G v. 21.7.2026, BGBl. 2026 I Nr. 221）：§ 9 德国人配偶入籍、§ 10 一般入籍（Abs. 3 已删除）、§ 12b 居住中断、§ 40a 过渡规定 | https://www.gesetze-im-internet.de/stag/BJNR005830913.html | 2026-07-21（最近修改法签署日） | 2026-11-22 | `policy-sources/2026-11-22-de-stag-full.html`（sha256 `5539ac4ccb8cac6ac615d677c492c5d98a0e4edd6d0c98e27d40ce184bf31156`） | archived |
+| SRC-102 | LAW | 德国期间计算：BGB § 187 Fristbeginn、§ 188 Fristende、§ 191 Berechnung von Zeiträumen；VwVfG § 31 Fristen und Termine（gesetze-im-internet 单条页面） | https://www.gesetze-im-internet.de/bgb/__187.html ；https://www.gesetze-im-internet.de/bgb/__188.html ；https://www.gesetze-im-internet.de/bgb/__191.html ；https://www.gesetze-im-internet.de/vwvfg/__31.html | —（单条页面无版本日） | 2026-11-22 | `policy-sources/2026-11-22-de-bgb-187.html`（sha256 `8a1f3c70ceb349b44b3f995bf7d3ffc26d7a2b512ea77c384eb87c44cd961369`）；`policy-sources/2026-11-22-de-bgb-188.html`（sha256 `b80b9e0feb801a7e7b984b5294e37bba247080a1122b7af59d4dab21ebbd807e`）；`policy-sources/2026-11-22-de-bgb-191.html`（sha256 `30e5ed07deb62753f108e27c6a5bfecc90f01c3bc28704b833c9c15a38fb0538`）；`policy-sources/2026-11-22-de-vwvfg-31.html`（sha256 `80c85b5876c22e6aa1a19ecfa943a00a281f05336e148fe95a4201ff4e278345`） | archived |
+| SRC-103 | LAW | Asylgesetz § 55 Aufenthaltsgestattung（gesetze-im-internet 单条页面，GEAS 改造后的现行文本）：Abs. 3 庇护程序期间只在获承认或获国际保护后计入 | https://www.gesetze-im-internet.de/asylvfg_1992/__55.html | —（单条页面无版本日） | 2026-11-22 | `policy-sources/2026-11-22-de-asylg-55.html`（sha256 `88da857fd21bb069fbf953d6b2d48c828a43ab8e89589ac5e15641dd3d0286fc`） | archived |
+| SRC-104 | LAW | 取消 3 年快速入籍（Gesetz zur Änderung des Staatsangehörigkeitsgesetzes sowie weiterer Vorschriften，BGBl. 2025 I Nr. 256，2025-10-27 签署、2025-10-29 公布）的材料：联邦议院公报 BT-Drs. 21/537 政府草案（含理由）；BMI 立法程序页；联邦政府 Bulletin Nr. 89-5（内政部长 2025-10-08 讲话）。BGBl. 原文未能存档 | https://dserver.bundestag.de/btd/21/005/2100537.pdf ；https://www.bmi.bund.de/SharedDocs/gesetzgebungsverfahren/DE/VII5/gesetz-6-aenderung-des-staatsangehoerigkeitsrechts.html ；https://www.bundesregierung.de/resource/blob/975954/2388128/f26afadd67ac33455496c4e532b4afcc/89-5-bmi-aenderung-staatsangehoerigeitsrecht-bt-data.pdf?download=1 ；https://www.recht.bund.de/bgbl/1/2025/256/VO.html （未存档） | 2025-06-23；2025-10-08；公布 2025-10-29 | 2026-11-22 | `policy-sources/2025-06-23-de-bt-drs-21-537-stag-entwurf.pdf`（sha256 `98fa18c46c5ef381e7178af5f54ab8350b4302315edbbdb0d864fe6d8808af54`）；`policy-sources/2026-11-22-de-bmi-gesetzgebung-stag-2025.html`（sha256 `45022a73049f34c6f906dd0cfe0a3909dda6db58de0e6fc2e64a02eae99364dd`）；`policy-sources/2025-10-08-de-breg-bulletin-89-5-stag.pdf`（sha256 `69e1db0aad2a36560df46040295f11ca8dcea0ca3242a7af276e6c3cd4e73ba4`） | archived（BGBl. 原文未存档，见备注） |
+| SRC-105 | LAW | 国籍法现代化法（StARModG，BGBl. 2024 I Nr. 104，2024-06-27 施行）的政府草案 BT-Drs. 20/9044（含 § 12b 修改理由）。BGBl. 原文未能存档 | https://dserver.bundestag.de/btd/20/090/2009044.pdf ；https://www.recht.bund.de/bgbl/1/2024/104/VO.html （未存档） | 2023-11-01 | 2026-11-22 | `policy-sources/2023-11-01-de-bt-drs-20-9044-starmodg-entwurf.pdf`（sha256 `db7fdf4bd2a95fe83473a9668b508f72232c0dc838c3401fec8b5c5b4315a30d`） | archived（BGBl. 原文未存档，见备注） |
+| SRC-106 | GUIDANCE | BMI《Anwendungshinweise zum Staatsangehörigkeitsgesetz》（AH-StAG 2025，Stand 1. Mai 2025，146 页；早于 § 10 Abs. 3 删除） | https://www.bmi.bund.de/SharedDocs/downloads/DE/veroeffentlichungen/themen/verfassung/staatsangehoerigkeit/2505_anwendungshinweise-staatsangehoerigkeit.pdf?__blob=publicationFile&v=6 | 2025-05-01 | 2026-11-22 | `policy-sources/2025-05-01-de-bmi-anwendungshinweise-stag.pdf`（sha256 `95dc87965f3c604f1e00c18bb3d531fef4d293e366ca1096a486a6f227a4ecd6`） | archived |
+| SRC-107 | GUIDANCE | BMI《Anwendungshinweise zum Fachkräfteeinwanderungsgesetz》更新版（按 2024-06-01 起的法律状态，277 页） | https://www.bmi.bund.de/SharedDocs/downloads/DE/veroeffentlichungen/themen/migration/anwendungshinweise-fachkraefteeinwanderungsgesetz.pdf?__blob=publicationFile&v=5 | 2024-05-28（PDF 生成日） | 2026-11-22 | `policy-sources/2024-05-28-de-bmi-anwendungshinweise-feg.pdf`（sha256 `c5ae086f09bab3d3972f53cc3fc70ad1c30f868dfbeb6dd6a86e96e90b7d49df`） | archived |
+| SRC-108 | GUIDANCE | Allgemeine Verwaltungsvorschrift zum Aufenthaltsgesetz（AVwV-AufenthG，2009-10-26，GMBl 2009 Nr. 42–61，390 页；条文编号按 2009 年版，部分过时） | https://www.verwaltungsvorschriften-im-internet.de/pdf/BMI-MI3-20091026-SF-A001.pdf | 2009-10-26 | 2026-11-22 | `policy-sources/2009-10-26-de-avwv-aufenthg.pdf`（sha256 `c6e02d7c930e6a2492370f2a1a367bb6fddfb9104eec6af426fd9baf730b2777`） | archived |
+| SRC-109 | GUIDANCE | BAMF 页面：In Deutschland niederlassen；Einbürgerung；Die Blaue Karte EU（页面标注 18.11.2023） | https://www.bamf.de/DE/Themen/MigrationAufenthalt/ZuwandererDrittstaaten/Migrathek/Niederlassen/niederlassen-node.html ；https://www.bamf.de/DE/Themen/Integration/ZugewanderteTeilnehmende/Einbuergerung/einbuergerung-node.html ；https://www.bamf.de/DE/Themen/MigrationAufenthalt/ZuwandererDrittstaaten/Migrathek/BlaueKarteEU/blauekarteeu-node.html | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-de-bamf-niederlassen.html`（sha256 `0dc72a37a100de4377dc15cfbdf19f4377be67b9734c6806d8b5372c708f187c`）；`policy-sources/2026-11-22-de-bamf-einbuergerung.html`（sha256 `d00ce9603e516dd06cf981979829aedb65273a1c2f8bf0356b445cc568edb2b9`）；`policy-sources/2026-11-22-de-bamf-blaue-karte.html`（sha256 `f635302a87360ca10bed7ac6ee72a67df142d54a470bffe41efa7b8d33cafe83`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -758,3 +768,65 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-089 希腊内政部说明
 
 - 编纂版（p8–p10）与上列 ΦΕΚ 一致，用于核对现行 άρθ. 5 全文。《归化的形式与实质条件》（p1–p2）：可接受的身份含"投资活动许可、房产所有人许可或投资者永久居留许可"；临时居留身份不能用于申请归化。ypes.gr 对脚本请求返回 403，每周核对需人工处理。清单（άρθ. 5 παρ. 1 ε αθ）只点名旧法（ν. 4251/2014）下的投资者许可，新法 Β.5 是否同样认可没有部长决定，见 PD-105。
+
+## SRC-100 Aufenthaltsgesetz（AufenthG）
+
+- gesetze-im-internet 是联邦司法部与 juris 发布的现行汇编，页面自注非官方约束文本；有效力的是联邦法律公报（BGBl.）。最近两部修改法（BGBl. 2026 I Nr. 318 联邦警察法现代化、2026 I Nr. 221 防止滥用认领父子关系）按元数据不涉及本试点的时间规则，修改法正文未逐条读；recht.bund.de 对脚本请求返回 403，未存档：<https://www.recht.bund.de/bgbl/1/2026/318/VO.html>、<https://www.recht.bund.de/bgbl/1/2026/221/VO.html>、<https://www.recht.bund.de/bgbl/1/2026/111/VO.html>（GEAS 改造，改了 § 9b、§ 25、§ 26）。
+- 定位按条、款、句、项（如 `§ 9 Abs. 2 Satz 1 Nr. 1`），并链接到单条页面 `https://www.gesetze-im-internet.de/aufenthg_2004/__<条>.html`。
+- `§ 9 Abs. 2 Satz 1`：Nr. 1 持 Aufenthaltserlaubnis 满 5 年，Nr. 3 养老保险缴费至少 60 个月。`§ 9 Abs. 4`：Nr. 1 出境时持定居许可而失效的，此前持许可的时间最多计 4 年；Nr. 2 未导致失效的每次境外停留最多计 6 个月；Nr. 3 学习或职业培训期间折半。`§ 4 Abs. 1 Satz 3`：适用于 Aufenthaltserlaubnis 的规定也适用于欧盟蓝卡。`§ 6 Abs. 3 Satz 3`：国家签证期间计入。`§ 85`：合法性中断不超过 1 年的可不计（裁量）。
+- `§ 18c Abs. 1`：持 §§ 18a、18b、18d、18g 许可满 3 年，缴费 36 个月（Satz 1 Nr. 1、3）；在德完成职业培训或学业的为 2 年、24 个月（Satz 2）。`§ 18c Abs. 2`：按 § 18g 就业满 27 个月并在同一期间缴费（Satz 1）；有 B1 德语的为 21 个月（Satz 3）。§ 18c 没有引用 § 9 Abs. 4（见 PD-122）。
+- `§ 26 Abs. 3`：持 § 25 Abs. 1 或 Abs. 2 Satz 1 许可满 5 年，此前庇护程序的时间计入（Satz 1 Nr. 1）；§ 9 Abs. 4 准用（Satz 2）；有 C1 德语的为 3 年（Satz 3 Nr. 1、3）。`§ 28 Abs. 2 Satz 1`：持家属许可满 3 年，家庭共同生活在德持续。
+- `§ 9a Abs. 2 Satz 1 Nr. 1`：持居留许可在德居住满 5 年；`Abs. 3 Nr. 4`：持 § 16a、§ 16b 许可者不能申请。`§ 9b Abs. 1`：Satz 1 Nr. 1 Buchst. b 单次不超过 6 个连续月、合计不超过 10 个月的境外期间计入；Nr. 4 学习折半；Nr. 5 获国际保护的，从申请保护到获发许可的期间计入；Satz 3 其他未导致失效的出境不中断但不计入；Satz 4 其余情形出境中断。
+- `§ 51 Abs. 1`：Nr. 6 出于非临时原因出境即失效；Nr. 7 6 个月内（或外国人管理局定的更长期限）未返回即失效；多次入境或超过 90 天的签证不按 Nr. 6、7 失效。`Abs. 2` 合法居留满 15 年的定居许可持有人、与德国人共同生活的配偶的例外；`Abs. 9 Satz 1` 欧盟长期居留：Nr. 3 离开欧盟连续 12 个月（之前持欧盟蓝卡的 24 个月），Nr. 4 离开德国 6 年；`Abs. 10 Satz 1` 欧盟蓝卡及其家属 12 个月。
+
+## SRC-101 Staatsangehörigkeitsgesetz（StAG）
+
+- gesetze-im-internet 现行汇编，定位与链接方式同 SRC-100（单条页面 `https://www.gesetze-im-internet.de/stag/__<条>.html`）。
+- `§ 10 Abs. 1 Satz 1`：合法惯常居住满 5 年；Nr. 2 入籍时须持无期限居留权、欧盟蓝卡或不属所列临时目的（§§ 16a、16b 等）的许可。`§ 10 Abs. 3`：(weggefallen)，即 3 年快速入籍已删除（见 SRC-104）。`§ 40a`：过渡规定只涉及 § 10 Abs. 1 Satz 1 Nr. 3（生计），与居住年限无关。
+- `§ 9 Abs. 1 Satz 1`：德国人的配偶或登记伴侣，居住满 3 年、婚姻或伴侣关系满 2 年；Satz 2 婚姻满 3 年时可因公共利益缩短居住年限（裁量）。
+- `§ 12b Abs. 1`：Satz 1 不超过 6 个月的出境不中断；Satz 2 在外国人管理局定的期限内返回的不中断；Satz 3 服兵役；Satz 5 境外合计超过所需年限的一半时惯常居住"通常"终止。`Abs. 2`：中断前的居住最多可折算 3 年（裁量）。`Abs. 3`：迟交续期申请造成的合法性中断不计。
+
+## SRC-102 期间计算（BGB、VwVfG）
+
+- `VwVfG § 31 Abs. 1`：行政程序的期限准用 BGB §§ 187–193。`BGB § 187 Abs. 1`：以事件为起点的，事件当天不计；`Abs. 2`：以某日开始为起点的，当天计入。`§ 188 Abs. 2`：按月、年计的期限在对应日届满；`Abs. 3`：最后一个月没有对应日的，在该月最后一天届满。`§ 191`：不必连续计算的期间，每月按 30 天、每年按 365 天。
+- 居留年限算不算 VwVfG 意义上的"期限"、起点当天计不计，官方文本没有说（PD-120、PD-121）。
+
+## SRC-103 Asylgesetz § 55
+
+- `Abs. 3`：取决于居留时长的权利，庇护程序中的居留只在获承认为庇护权人或获国际保护后才计入。§ 26 Abs. 3 Satz 1 Nr. 1 明文"abweichend von § 55 Absatz 3"计入此前的庇护程序。
+
+## SRC-104 取消 3 年快速入籍
+
+- BGBl. 2025 I Nr. 256 原文（<https://www.recht.bund.de/bgbl/1/2025/256/VO.html>）对脚本请求返回 403，未能存档；调研时在浏览器中读了第 1 条（"§ 10 Absatz 3 wird gestrichen."）和第 6 条第 1 款（公布次日生效），公布日 2025-10-29，即 2025-10-30 生效。该法没有关于已递交申请的过渡条款（PD-129）。
+- `policy-sources/2025-06-23-de-bt-drs-21-537-stag-entwurf.pdf` → <https://dserver.bundestag.de/btd/21/005/2100537.pdf>
+- `policy-sources/2025-10-08-de-breg-bulletin-89-5-stag.pdf` → <https://www.bundesregierung.de/resource/blob/975954/2388128/f26afadd67ac33455496c4e532b4afcc/89-5-bmi-aenderung-staatsangehoerigeitsrecht-bt-data.pdf?download=1>
+- BT-Drs. 21/537（PDF 12 页，`p<N>` 为物理页序）：p5 第 1 条只删除 § 10 Abs. 3；p6 立法理由回顾 StARModG 2024-06-27 施行前的规定；草案第 2 条（p5）与理由（p10）写"公布次日生效"。
+- BMI 立法程序页：取消后一般须满 5 年；进度栏"Gesetz ist verkündet 29.10.2025"。bmi.bund.de 的 HTML 页面有 cookie 检查跳转，每周核对可能报 fetch failed 或 changed，需人工核对。
+- Bulletin Nr. 89-5（PDF 3 页）p1：3 年路径"无替代地"取消。
+
+## SRC-105 国籍法现代化法（StARModG）
+
+- BGBl. 2024 I Nr. 104 原文（<https://www.recht.bund.de/bgbl/1/2024/104/VO.html>，更正见 BGBl. 2025 I Nr. 98）对脚本请求返回 403，未能存档；施行日 2024-06-27 取自 SRC-106 封面与 SRC-104 BT-Drs. 21/537 p6。
+- `policy-sources/2023-11-01-de-bt-drs-20-9044-starmodg-entwurf.pdf` → <https://dserver.bundestag.de/btd/20/090/2009044.pdf>
+- BT-Drs. 20/9044（PDF 80 页）p40（Zu Nummer 10）：§ 12b Abs. 1 Satz 5 过半规则的理由——从使境外合计超过一半的那次中断之后重新起算；§ 12b Abs. 2 中断前居住的折算由 5 年降为 3 年，过半情形同样适用。§ 12b 的修改内容与现行汇编（SRC-101）一致，未与 BGBl. 正式文本逐字比对。
+
+## SRC-106 BMI Anwendungshinweise zum StAG（AH-StAG 2025）
+
+- `policy-sources/2025-05-01-de-bmi-anwendungshinweise-stag.pdf` → <https://www.bmi.bund.de/SharedDocs/downloads/DE/veroeffentlichungen/themen/verfassung/staatsangehoerigkeit/2505_anwendungshinweise-staatsangehoerigkeit.pdf?__blob=publicationFile&v=6>
+- PDF 146 页，`p<N>` 为物理页序；定位用小节号加边码（Rdn.）。封面（p1）：StARModG 于 2024-06-27 施行。发布早于 § 10 Abs. 3 删除，涉及 3 年路径的段落已过时。
+- `Nr. 10.1.0 Rdn. 1`（p44）：入籍前 5 年原则上不间断，入籍时也须有合法惯常居住。`Nr. 4 Rdn. 6–7`（p11–p12）：可计入的合法居留身份；Duldung 不计。`Nr. 9.1 Rdn. 4–6`（p42）：分居时年限相应延长；中断后旧居住最多折算所需年限的三分之二（即 2 年）；入籍时婚姻须满 2 年。`Nr. 12b.1.1 Rdn. 18`（p97）：各次不超过 6 个月的出境不相加。`Nr. 12b.1.5 Rdn. 23`（p98）：过半规则回溯累加，超过后从最近一次重新建立惯常居住起算。`Nr. 12b.2.1 Rdn. 24`（p98）：中断前居住的折算属裁量，最多 3 年。`Nr. 12b.3.1`（p99）：迟交续期须最终获发许可才可忽略中断。
+
+## SRC-107 BMI Anwendungshinweise zum Fachkräfteeinwanderungsgesetz
+
+- `policy-sources/2024-05-28-de-bmi-anwendungshinweise-feg.pdf` → <https://www.bmi.bund.de/SharedDocs/downloads/DE/veroeffentlichungen/themen/migration/anwendungshinweise-fachkraefteeinwanderungsgesetz.pdf?__blob=publicationFile&v=5>
+- PDF 277 页，`p<N>` 为物理页序；法律状态为 2024-06-01 起。`Nr. 18c.2.1.1`（p117）：欧盟蓝卡就业 27 个月（B1 为 21 个月），旧法蓝卡与此前的国家签证期间计入。`Nr. 18c.2.1.3`：缴费看效果，允许补缴。
+
+## SRC-108 AVwV zum Aufenthaltsgesetz（2009）
+
+- `policy-sources/2009-10-26-de-avwv-aufenthg.pdf` → <https://www.verwaltungsvorschriften-im-internet.de/pdf/BMI-MI3-20091026-SF-A001.pdf>
+- PDF 390 页，`p<N>` 为物理页序。2009 年的行政规则，条文编号按当时版本（如"§ 6 Absatz 4 Satz 3"即现行 § 6 Abs. 3 Satz 3），只作解释口径参考。
+- `Nr. 9.2.1.1`（p66）：国家签证期间计入 5 年。`Nr. 9.4.2`（p69–p70）：境外期间只在持许可时可折算，最多 6 个月。`Nr. 9a.2.1.1.1`（p71）：欧盟长期居留的条件以申请时为准。`Nr. 28.2`（p165）：3 年从首次获发与德国人团聚的许可起算。`Nr. 51.1.6.6`（p236）：Nr. 7 的失效在期满时发生，不在出境当天；`Nr. 51.1.6.7`：延长期限不得超过许可有效期。`Nr. 85.3`（p339–p340）：中断期间本身不计入。
+
+## SRC-109 BAMF 页面
+
+- 《In Deutschland niederlassen》：定居许可一般须不间断持居留许可 5 年；难民含此前庇护程序 5 年。《Einbürgerung》：一般须在德惯常居住 5 年。《Die Blaue Karte EU》（标注 18.11.2023）：27 个月，B1 为 21 个月。
