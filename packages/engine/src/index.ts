@@ -46,6 +46,21 @@ export type {
   GrResult,
   GrTrip,
 } from './greece';
+export {
+  IE_PERMISSION_KINDS,
+  IE_STAMP4_ROUTES,
+  evaluateIreland,
+} from './ireland';
+export type {
+  IePathway,
+  IePathwayId,
+  IePermission,
+  IePermissionKind,
+  IeRequest,
+  IeResult,
+  IeStamp4Route,
+  IeTrip,
+} from './ireland';
 export { ES_NATIONALITY_ROUTES, evaluateSpain } from './spain';
 export type {
   EsNationalityRoute,
