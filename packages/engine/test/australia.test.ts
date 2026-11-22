@@ -55,6 +55,87 @@ describe('subclass 191 (Sch 1 item 1139(3)(c))', () => {
   });
 });
 
+describe('Hong Kong streams (Sch 1 items 1137(4L), 1139(3)(ca))', () => {
+  // First arrival 2020-02-01; a 482 from 2021-03-01 with no end date.
+  const hk = (regionalOnly: boolean, extra: Partial<AuRequest> = {}) => ({
+    simulationDate: '2025-01-01',
+    visas: [{ subclass: '482' as const, from: '2021-03-01' }],
+    hongKong: { regionalOnly },
+    ...extra,
+  });
+
+  test('not shown unless the Hong Kong questions are answered', () => {
+    const result = evaluateAustralia({
+      ...base,
+      ...hk(true),
+      hongKong: undefined,
+    });
+    expect(result.pathways.map((p) => p.id)).not.toContain('AU-189-HK');
+  });
+
+  test('189: 4 years on the visa and in Australia', () => {
+    const p = pathway(hk(false), 'AU-189-HK');
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2025-03-01');
+  });
+
+  test('191: 3 years, only in regional areas', () => {
+    const p = pathway(hk(true), 'AU-191-HK');
+    expect(p.status).toBe('MET');
+    expect(p.checks.every((c) => c.met)).toBe(true);
+    expect(p.pendingDetails).toBeUndefined();
+    const city = pathway(hk(false), 'AU-191-HK');
+    expect(city.status).toBe('NOT_MET');
+    expect(city.summary).toContain('189');
+  });
+
+  test('residence counts from the first arrival', () => {
+    // Arrived 2022-06-01: 3 years in Australia only from 2025-06-01.
+    const p = pathway(
+      hk(true, {
+        firstArrival: '2022-06-01',
+        visas: [{ subclass: '485', from: '2022-06-01' }],
+      }),
+      'AU-191-HK',
+    );
+    expect(p.earliestDate).toBe('2025-06-01');
+  });
+
+  test('trips make usual residence uncertain (PD-108)', () => {
+    const p = pathway(
+      hk(true, { trips: [{ departed: '2023-07-01', returned: '2023-07-20' }] }),
+      'AU-191-HK',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('2025-01-01');
+    expect(p.pendingDetails).toContain('PD-108');
+  });
+
+  test('the visa ends before the years are reached', () => {
+    const p = pathway(
+      hk(false, {
+        visas: [{ subclass: '482', from: '2021-03-01', to: '2024-12-31' }],
+        simulationDate: '2024-06-01',
+      }),
+      'AU-189-HK',
+    );
+    expect(p.status).toBe('NOT_MET');
+  });
+
+  test('a permanent visa makes it not applicable', () => {
+    const p = pathway(
+      hk(true, {
+        visas: [
+          { subclass: '482', from: '2021-03-01', to: '2024-04-30' },
+          { subclass: '191', from: '2024-05-01' },
+        ],
+      }),
+      'AU-191-HK',
+    );
+    expect(p.status).toBe('NOT_APPLICABLE');
+  });
+});
+
 describe('subclass 186 TRT (186.221, 186.226, 186.227)', () => {
   test('one continuous 482 reaches 2 calendar years', () => {
     const p = pathway(

@@ -229,7 +229,29 @@ export default function AustraliaContent() {
               />
               {t('au.partner')}
             </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={draft.hongKong}
+                onChange={(e) => set({ hongKong: e.target.checked })}
+              />
+              {t('au.hongKong')}
+            </label>
           </div>
+          {draft.hongKong && (
+            <div className={form.followUp}>
+              <div className={form.checkboxes}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={draft.regionalOnly}
+                    onChange={(e) => set({ regionalOnly: e.target.checked })}
+                  />
+                  {t('au.regionalOnly')}
+                </label>
+              </div>
+            </div>
+          )}
           {draft.partner && (
             <div className={form.followUp}>
               {date(

@@ -461,7 +461,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.title':
     'Australia: permanent residence, return visa and citizenship dates (pilot)',
   'au.intro':
-    'From your Australian visas and trips, this works out the steps that depend on time alone: subclass 191, the 186 Temporary Residence Transition stream, the partner visa permanent stage, the Resident Return visa and the citizenship residence requirement. Points-tested visas (such as 189, 190 and 491) are out of scope.',
+    'From your Australian visas and trips, this works out the steps that depend on time alone: subclass 191, the Hong Kong streams of 189 and 191, the 186 Temporary Residence Transition stream, the partner visa permanent stage, the Resident Return visa and the citizenship residence requirement. Points-tested visas (such as the points-tested 189, 190 and 491) are out of scope.',
   'au.scope':
     'The pilot checks only the time requirements written in the regulations. It does not check English, health, character, employer nomination, regional residence or other requirements; each result lists them. Your entries are processed in your browser and are not saved or uploaded.',
   'au.basics': 'About you',
@@ -490,6 +490,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.sponsored':
     'While on a 457/482 or related bridging visa, after arriving I always worked full time in Australia for my sponsor in the visa occupation (paid leave is fine, unpaid leave is not)',
   'au.partner': 'I applied for a partner visa (820/801 or 309/100)',
+  'au.hongKong':
+    'I hold a Hong Kong or BN(O) passport and my 457, 482 or 485 visa was granted to me as the primary applicant (for the Hong Kong streams of 189 and 191)',
+  'au.regionalOnly':
+    'In the 3 years before applying I lived, worked and studied only in designated regional areas',
   'au.partnerLodged': 'Date you applied for the partner visa',
   'au.partnerStream': 'Where you applied',
   'au.onshore': 'In Australia (820/801)',
@@ -529,8 +533,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.sub.bridging-trt':
     'Bridging visa (for a 457, 482, 186 or 187 application)',
   'au.sub.bridging': 'Bridging visa (for another application)',
-  'au.sub.other-temporary':
-    'Other temporary visa (student, graduate, visitor and so on)',
+  'au.sub.485': '485 Temporary Graduate',
+  'au.sub.other-temporary': 'Other temporary visa (student, visitor and so on)',
   'au.sub.189': '189 Skilled Independent (permanent)',
   'au.sub.190': '190 Skilled Nominated (permanent)',
   'au.sub.191': '191 Permanent Residence (Skilled Regional)',

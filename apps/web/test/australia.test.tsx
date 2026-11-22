@@ -102,6 +102,11 @@ test('the request leaves out blank end dates and an unticked partner', () => {
     stream: 'onshore',
     longTermRelationship: false,
   });
+  // The Hong Kong streams only when the passport question is ticked.
+  expect(request).not.toHaveProperty('hongKong');
+  expect(
+    auRequest({ ...filled, hongKong: true, regionalOnly: true }, 'en').hongKong,
+  ).toEqual({ regionalOnly: true });
 });
 
 test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {

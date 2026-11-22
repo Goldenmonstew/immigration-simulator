@@ -24,6 +24,8 @@ export interface AuForm {
   partnerLodged: string;
   partnerStream: 'onshore' | 'offshore';
   longTermRelationship: boolean;
+  hongKong: boolean;
+  regionalOnly: boolean;
 }
 
 export type AuErrors = Partial<Record<string, TranslationKey>>;
@@ -47,6 +49,8 @@ export function emptyAuForm(today: string): AuForm {
     partnerLodged: '',
     partnerStream: 'onshore',
     longTermRelationship: false,
+    hongKong: false,
+    regionalOnly: false,
   };
 }
 
@@ -108,6 +112,7 @@ export function auRequest(form: AuForm, locale: Locale): AuRequest {
           },
         }
       : {}),
+    ...(form.hongKong ? { hongKong: { regionalOnly: form.regionalOnly } } : {}),
     locale,
   };
 }

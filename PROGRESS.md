@@ -320,3 +320,4 @@
 | 301 | 任务 60 第七轮审核修正（review60-7）：已取消 s49 条件时仍保留宗教工作者 5 年门槛；"尚未满足"时入籍检查项显示未满足；条件问题写明按模拟日；SOURCES 中 RV1.20 说明补齐例外。 | packages/engine/src/new-zealand.ts、packages/engine/test/new-zealand.test.ts、apps/web/i18n/{zh-CN,en}.ts、docs/ |
 | 304 | 任务 60 报告补记最终验证（门禁、CI、八轮 Codex 审核通过）。 | docs/tasks/reports/60-new-zealand.md |
 | 306 | 任务 61 合入新西兰最终修正与 main，报告补记最终验证（门禁、e2e 18 项、两轮 Codex 审核通过）。 | docs/tasks/reports/61-canada.md、apps/web/app/new-zealand/new-zealand-content.tsx |
+| 310 | 任务 65：澳大利亚试点补 189、191 香港类别（持签满 4／3 年、连续通常居住、191 只在指定地区）；参数、485 签证、表单勾选项、PD-108、SRC-062 定位、阶段计划与报告。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、packages/policy-data/src/parameters/australia-2026-11.ts、apps/web/app/australia/australia-content.tsx、apps/web/lib/australia.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/australia.test.tsx、docs/ |

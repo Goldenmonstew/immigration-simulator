@@ -14,6 +14,23 @@ export const australia2026_11 = {
         { srcId: 'SRC-063', locator: 'Eligibility → Have an eligible visa' },
       ],
     },
+    // Hong Kong streams: years holding the current 457, 482 or 485 visa, and
+    // years usually resident in Australia immediately before applying.
+    hongKongIndependentYears: {
+      value: 4,
+      sources: [
+        { srcId: 'SRC-062', locator: 'Sch 1 item 1137(4L)(e)(iii)' },
+        { srcId: 'SRC-062', locator: '189.242' },
+      ],
+    },
+    hongKongRegionalYears: {
+      value: 3,
+      sources: [
+        { srcId: 'SRC-062', locator: 'Sch 1 item 1139(3)(ca)(iii)' },
+        { srcId: 'SRC-062', locator: '191.231(2)' },
+        { srcId: 'SRC-062', locator: '191.232' },
+      ],
+    },
     // Subclass 186 Temporary Residence Transition stream: in the window
     // before applying, 457/482 visas and full-time sponsored work for a
     // total of the held years.
