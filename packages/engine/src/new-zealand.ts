@@ -133,9 +133,10 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
   const blocked = (earliest?: IsoDate) =>
     !!lapse && (!earliest || earliest >= lapse);
   // Religious Worker visas: a permanent resident visa 5 years after the first
-  // day as a resident (SRC-073), once the s49(1) conditions are met.
+  // day as a resident (SRC-073), once the s49(1) conditions are met. Removed
+  // conditions still mean those 5 years were reached first.
   const religiousFrom =
-    category === 'religious-worker' && req.conditions !== 'none'
+    category === 'religious-worker'
       ? afterYears(firstDay, v.religiousWorkerYears.value)
       : undefined;
 
@@ -413,7 +414,12 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
                     '宗教工作者的 s49 条件已满足并申请取消',
                     'Religious Worker s49 conditions met and removed',
                   ),
-                  met: undefined,
+                  met:
+                    req.conditions === 'none'
+                      ? sim >= religiousFrom
+                      : req.conditions
+                        ? false
+                        : undefined,
                   sources: [
                     ...v.religiousWorkerYears.sources,
                     { srcId: 'SRC-072', locator: 'RV2.5(d)' },
@@ -598,12 +604,13 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
                     `宗教工作者的 s49(1) 条件期满（${religiousFrom}），并已满足或取消`,
                     `Religious Worker s49(1) conditions ended (${religiousFrom}) and met or cancelled`,
                   ),
-                  met:
-                    prvBy(sim) || req.conditions === 'met'
-                      ? true
-                      : sim >= religiousFrom
-                        ? undefined
-                        : false,
+                  met: prvBy(sim)
+                    ? true
+                    : req.conditions === 'outstanding' || sim < religiousFrom
+                      ? false
+                      : req.conditions
+                        ? true
+                        : undefined,
                   sources: [
                     ...v.religiousWorkerYears.sources,
                     { srcId: 'SRC-070', locator: 's8(3)' },

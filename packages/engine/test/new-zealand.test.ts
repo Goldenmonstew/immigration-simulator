@@ -235,6 +235,19 @@ describe('permanent resident visa (RV2.5, RV2.5.1)', () => {
     const citizenship = pathway(req, 'NZ-CITIZENSHIP');
     expect(citizenship.status).toBe('MET');
     expect(citizenship.summary).not.toContain('s49');
+    // Before the 5 years, removed conditions do not bring the dates forward.
+    const early = { ...req, simulationDate: '2026-07-19' };
+    expect(pathway(early, 'NZ-PRV').earliestDate).toBe('2026-11-01');
+    expect(pathway(early, 'NZ-CITIZENSHIP').earliestDate).toBe('2026-11-01');
+    // Conditions not yet met: the citizenship check is unmet, not unknown.
+    const outstanding = pathway(
+      { ...req, conditions: 'outstanding' },
+      'NZ-CITIZENSHIP',
+    );
+    expect(outstanding.status).toBe('UNKNOWN');
+    expect(outstanding.checks.find((c) => c.text.includes('s49'))?.met).toBe(
+      false,
+    );
   });
 
   test('Parent: s49(1) conditions make both unknown', () => {
