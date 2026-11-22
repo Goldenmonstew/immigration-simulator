@@ -196,6 +196,10 @@ describe('golden visa renewal (art. 100, art. 11)', () => {
       pathway({ permits, simulationDate: '2032-09-01' }, 'GR-GOLDEN-VISA')
         .status,
     ).toBe('NOT_MET');
+    // The other routes also stop counting the old card once replaced.
+    const after = { permits, simulationDate: '2032-09-01' };
+    expect(pathway(after, 'GR-NATIONALITY').status).toBe('NOT_MET');
+    expect(pathway(after, 'GR-LONG-TERM').status).toBe('NOT_MET');
   });
 
   test('the card in force is used, not a later one', () => {

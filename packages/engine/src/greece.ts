@@ -68,8 +68,19 @@ export function evaluateGreece(req: GrRequest): GrResult {
   const byKind = Object.fromEntries(
     GR_PERMIT_KINDS.map((k) => [k, flags()]),
   ) as Record<GrPermitKind, boolean[]>;
-  for (const permit of req.permits)
-    days.mark(byKind[permit.kind], permit.from, permit.to);
+  // A permit without an end date is renewed on time, until a later permit of
+  // the same kind (its renewal) replaces it.
+  for (const permit of req.permits) {
+    const next = req.permits
+      .filter((p) => p.kind === permit.kind && p.from > permit.from)
+      .map((p) => p.from)
+      .sort()[0];
+    days.mark(
+      byKind[permit.kind],
+      permit.from,
+      permit.to ?? (next && addDays(next, -1)),
+    );
+  }
   // Departure and return days are taken as days in Greece (PD-102).
   const away = flags();
   for (const trip of req.trips)
