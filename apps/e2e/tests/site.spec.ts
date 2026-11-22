@@ -60,6 +60,7 @@ test('the service worker keeps the site pages available offline', async ({
     '/policy',
     '/australia',
     '/new-zealand',
+    '/canada',
   ]) {
     expect((await page.goto(path))?.ok()).toBe(true);
   }

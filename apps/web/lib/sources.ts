@@ -134,4 +134,12 @@ export const sourceUrls: Record<string, string> = {
   'SRC-072': 'https://www.immigration.govt.nz/opsmanual/30505.htm',
   'SRC-073':
     'https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/requirements-for-nz-citizenship/presence-requirements/',
+  'SRC-074': 'https://laws-lois.justice.gc.ca/eng/acts/c-29/section-5.html',
+  'SRC-075': 'https://laws-lois.justice.gc.ca/eng/acts/i-2.5/section-28.html',
+  'SRC-076':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/become-canadian-citizen/eligibility.html',
+  'SRC-077':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/canadian-citizenship/grant/residence/calculate-physical-presence.html',
+  'SRC-078':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/permanent-residence/card/permanent-resident-determination.html',
 };

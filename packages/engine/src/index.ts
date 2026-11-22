@@ -31,6 +31,15 @@ export {
   AU_TEMPORARY_SUBCLASSES,
   evaluateAustralia,
 } from './australia';
+export { evaluateCanada } from './canada';
+export type {
+  CaPathway,
+  CaPathwayId,
+  CaPeriod,
+  CaRequest,
+  CaResult,
+  CaTrip,
+} from './canada';
 export { NZ_RESIDENT_CATEGORIES, evaluateNewZealand } from './new-zealand';
 export type {
   NzPathway,

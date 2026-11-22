@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+
+
+<!--[if IE 7]><html lang="en" class="no-js ie7"><![endif]-->
+<!--[if IE 8]><html lang="en" class="no-js ie8"><![endif]-->
+<!--[if gt IE 8]><!-->
+<html lang="en" class="no-js">
+<!--<![endif]-->
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+<head>
+<meta charset="utf-8" />
+
+
+
+
+
+
+
+
+
+<title>Physical Presence Calculator</title>
+
+<meta name="description" lang="en" content="Residence Calculator" />
+<meta name="description" lang="fr" content="Calculatrice de la p&eacute;riode de r&eacute;sidence" />
+<meta name="dcterms.creator" lang="en" content="Government of Canada, Citizenship and Immigration Canada, IMTB Branch" />
+<meta name="dcterms.creator" lang="fr" content="Gouvernement du Canada, Citoyennet&eacute; et Immigration Canada, Section DGSGL" />
+<meta name="dcterms.title" lang="en" content="Residence Calculator" />
+<meta name="dcterms.title" lang="fr" content="Calculatrice de la p&eacute;riode de r&eacute;sidence" />
+<meta name="dcterms.issued" title="W3CDTF" content="2013-05-13" />
+<meta name="dcterms.modified" title="W3CDTF" content="2014-10-20" />
+<meta name="dcterms.subject" title="scheme" lang="en" content="Citizenship;Residency;Residence Calculator"  />
+<meta name="dcterms.subject" title="scheme" lang="fr" content="Citoyennet&eacute;;R&eacute;sidence;Calculatrice de la p&eacute;riode de r&eacute;sidence" />
+<meta name="dcterms.language" title="ISO639-2" content="eng" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<!--[if lte IE 8]>
+<link rel="shortcut icon" href='/rescalc/resource/dist/theme-gcwu-fegc/images/favicon.ico;jsessionid=055092881CC2B0732D81419E0309F39F' />
+<script src='/rescalc/resource/dist/js/jquery-ie.min.js;jsessionid=055092881CC2B0732D81419E0309F39F'></script>
+<script src='/rescalc/resource/dist/js/polyfills/html5shiv-min.js;jsessionid=055092881CC2B0732D81419E0309F39F'></script>
+<link rel="stylesheet" href='/rescalc/resource/dist/grids/css/util-ie-min.css;jsessionid=055092881CC2B0732D81419E0309F39F' />
+<link rel="stylesheet" href='/rescalc/resource/dist/js/css/pe-ap-ie-min.css;jsessionid=055092881CC2B0732D81419E0309F39F' />
+<link rel="stylesheet" href='/rescalc/resource/dist/theme-gcwu-fegc/css/theme-ie-min.css;jsessionid=055092881CC2B0732D81419E0309F39F' />
+<noscript><link rel="stylesheet" href='/rescalc/resource/dist/theme-gcwu-fegc/css/theme-ns-ie-min.css;jsessionid=055092881CC2B0732D81419E0309F39F' /></noscript>
+<![endif]-->
+<!--[if gt IE 8]><!-->
+<link rel="icon" type="image/x-icon" href='/rescalc/resource/dist/theme-gcwu-fegc/images/favicon.ico;jsessionid=055092881CC2B0732D81419E0309F39F' />
+<script src='/rescalc/resource/dist/js/jquery.min.js;jsessionid=055092881CC2B0732D81419E0309F39F' ></script>
+<link rel="stylesheet" href='/rescalc/resource/dist/grids/css/util-min.css;jsessionid=055092881CC2B0732D81419E0309F39F' />
+<link rel="stylesheet" href='/rescalc/resource/dist/js/css/pe-ap-min.css;jsessionid=055092881CC2B0732D81419E0309F39F' />
+<link rel="stylesheet" href='/rescalc/resource/dist/theme-gcwu-fegc/css/theme-min.css;jsessionid=055092881CC2B0732D81419E0309F39F' />
+<noscript><link rel="stylesheet" href='/rescalc/resource/dist/theme-gcwu-fegc/css/theme-ns-min.css;jsessionid=055092881CC2B0732D81419E0309F39F' ></noscript>
+<!--<![endif]-->
+
+<!-- CustomCSSStart -->
+<link href='/rescalc/resource/css/rescalc.css;jsessionid=055092881CC2B0732D81419E0309F39F' media="screen, print" rel="stylesheet" type="text/css" />
+<!-- CustomCSSEnd -->
+</head>
+
+<!-- if errors were generated, anchor to errors -->
+
+
+	
+<body onload=''>
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+	
+
+
+<div id="wb-body">
+<nav role="navigation" aria-label="Skip links">
+<div id="wb-skip">
+	<ul id="wb-tphp">
+		<li id="wb-skip1"><a href="#wb-cont">Skip to main content</a></li>
+		<li id="wb-skip2"><a href="#wb-nav">Skip to footer</a></li>
+	</ul>
+</div>
+</nav>
+
+<div id="wb-head"><div id="wb-head-in"><header>
+
+<nav aria-label="Quick link navigation"><div id="gcwu-gcnb"><h2>Government of Canada navigation bar</h2><div id="gcwu-gcnb-in"><div id="gcwu-gcnb-fip">
+<div id="gcwu-sig"><div id="gcwu-sig-in"><object data='/rescalc/resource/dist/theme-gcwu-fegc/images/sig-eng.svg;jsessionid=055092881CC2B0732D81419E0309F39F' role="img" tabindex="-1" aria-label="Government of Canada" type="image/svg+xml"><img src='/rescalc/resource/dist/theme-gcwu-fegc/images/sig-eng.png;jsessionid=055092881CC2B0732D81419E0309F39F' alt="Government of Canada" /></object></div></div>
+<ul>
+<li id="gcwu-gcnb1"><a rel="external" href="http://www.canada.ca/en/index.html">Canada.ca</a></li>
+<li id="gcwu-gcnb2"><a rel="external" href="http://www.canada.ca/en/services/index.html">Services</a></li>
+<li id="gcwu-gcnb3"><a rel="external" href="http://www.canada.ca/en/gov/dept/index.html">Departments</a></li>
+<li id="gcwu-gcnb-lang"><a href='/rescalc/redir.do;jsessionid=055092881CC2B0732D81419E0309F39F?lang=fr' lang="fr">Fran&ccedil;ais</a></li>
+</ul>
+</div></div></div></nav>
+
+<div id="gcwu-bnr" aria-label="banner"><div id="gcwu-bnr-in">
+<div id="gcwu-wmms"><div id="gcwu-wmms-in"><object data='/rescalc/resource/dist/theme-gcwu-fegc/images/wmms.svg;jsessionid=055092881CC2B0732D81419E0309F39F' role="img" tabindex="-1" aria-label="Symbol of the Government of Canada" type="image/svg+xml"><img src='/rescalc/resource/dist/theme-gcwu-fegc/images/wmms.png;jsessionid=055092881CC2B0732D81419E0309F39F' alt="Symbol of the Government of Canada" /></object></div></div>
+<div id="gcwu-title"><p id="gcwu-title-in"><a href="http://www.cic.gc.ca/english/index-can.asp">Citizenship and Immigration Canada</a></p></div>
+
+
+</div></div>
+
+<nav aria-label="Main navigation">
+<div id="gcwu-psnb"><h2><span>Site </span>menu</h2><div id="gcwu-psnb-in"><div class="wet-boew-menubar mb-mega"><div>
+<ul class="mb-menu" data-ajax-replace="resource/cic-mega-menu-eng.txt">
+</ul>
+</div></div></div></div>
+
+<div id="gcwu-bc"><h2>Breadcrumb trail</h2><div id="gcwu-bc-in">
+<ol>
+<li><a href="http://www.cic.gc.ca/english/index-can.asp">Home</a></li>
+<li><a href="http://www.cic.gc.ca/english/e-services/index.asp">My Application</a></li>
+<li><a href='/rescalc/resCalcStartNew.do;jsessionid=055092881CC2B0732D81419E0309F39F'>Physical Presence Calculator</a></li>
+</ol>
+</div></div>
+</nav>
+
+</header></div></div>
+
+<div id="wb-core"><div id="wb-core-in" class="equalize">
+<div id="wb-main" role="main"><div id="wb-main-in">
+
+<h1 id="wb-cont">Physical Presence Calculator</h1>
+
+
+<div class="align-right margin-right-medium print-none margin-bottom-large">
+	
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
+	<a class="header" href='/ols/manageAccount.do?app=rescalc&page=redir&lang=en'>Manage Account</a> |
+	
+	<a href='/rescalc/redir.do;jsessionid=055092881CC2B0732D81419E0309F39F?redir=faq'><abbr title="Frequently Asked Questions">FAQ</abbr></a> |
+	<a href='/rescalc/redir.do;jsessionid=055092881CC2B0732D81419E0309F39F?redir=sec'>Security</a>
+  
+	
+	
+	| <a class="header" href='/rescalc/startBasicCalc.do;jsessionid=055092881CC2B0732D81419E0309F39F'>New calculation</a> 
+	| <a class="header" href='/rescalc/resCalcStartNew.do;jsessionid=055092881CC2B0732D81419E0309F39F?Retrieve=Retrieve'>Retrieve Saved Calculation</a>
+</div>
+
+
+
+<span class="gol-sessiontimeout" data-gol='{"inactivity": 1620000.0, "reactionTime": 180000.0, "logouturl": "resCalcStartNew.do", "refreshCallbackUrl": "keepAlive.jsp" }'></span>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section>
+<div class="align-center"><h2>Frequently Asked Questions</h2></div>
+
+<div class="span-8 module-table-contents">
+	<h3>Table of Contents</h3>
+	<section class="column-2">
+		<ol type="A">
+			<li><a href="#SecA">Rules of calculation</a>
+			<ul>
+				<li><a href="#Q1">Q1. How long do I have to live in Canada before I am eligible for Canadian citizenship?</a></li>
+				<li><a href="#Q2">Q2. How is the physical presence requirement for citizenship calculated?</a></li>
+				<li><a href="#Q3">Q3. When I try to calculate my absences, I get different numbers than the physical presence calculator. How does the physical presence calculator determine the number of days for each absence?</a></li>
+				<li><a href="#Q4">Q4. How do I declare time spent in Canada prior to becoming a permanent resident (PR)?</a></li>
+				<li><a href="#Q5">Q5. Do I need to declare time spent in Canada as a temporary resident or protected person?</a></li>
+				<li><a href="#Q6">Q6. Can I declare time spent in Canada without the authorized status of temporary resident or permanent resident?</a></li>
+			</ul>
+			</li>
+
+			<li><a href="#SecB">What absences to declare</a>
+			<ul>
+				<li><a href="#Q7">Q7. Do I have to declare day trips to the United States?</a></li>
+				<li><a href="#Q8">Q8. I travel often to the United States and don't remember the exact dates. What do I do?</a></li>
+				<li><a href="#Q9">Q9. I travel often because of my work (truck driver, employee for an airline company, etc.). Do I have to declare those absences?</a></li>
+				<li><a href="#Q10">Q10. Do I need to declare absences prior to becoming a permanent resident (PR)?</a></li>
+			</ul>
+			</li>
+
+			<li><a href="#SecC">Time spent serving a sentence for an offence</a>
+			<ul>
+				<li><a href="#Q11">Q11. I have heard that some time spent imprisoned, on parole or on probation can still be counted as physical presence. Is this true?</a></li>
+				<li><a href="#Q12">Q12. When I try to calculate the number of days spent serving a sentence, I get different numbers than the physical presence calculator. How does the physical presence calculator determine the number of days for each sentence?</a></li>
+				<li><a href="#Q13">Q13. My probation order does not state the exact dates I am under probation. Instead it states a period of time (e.g. 6 months, 1 year, etc.). What do I enter?</a></li>
+				<li><a href="#Q14">Q14. Do I need to declare time spent serving a sentence prior to becoming a permanent resident (PR)?</a></li>
+			</ul>
+			</li>
+
+			<li><a href="#SecD">What happens next</a>
+			<ul>
+				<li><a href="#Q15">Q15. What do I do if I want to apply now?</a></li>
+				<li><a href="#Q16">Q16. What do I do if I want to apply later?</a></li>
+				<li><a href="#Q17">Q17. I did not apply when I first did my calculation and my situation has not changed (no new absences or time spent serving a sentence). Why should I redo the calculation before applying? </a></li>
+				<li><a href="#Q18">Q18. I have used the physical presence calculator to determine if I am eligible to apply for citizenship. I am completing the application form and the form asks the same questions. Do I have to answer all the questions on the application form?</a></li>
+				<li><a href="#Q19">Q19. Why is it important that the application date used in the calculation and the date of signature on the application form and the calculation printout be the same?</a></li>
+				<li><a href="#Q20">Q20. Why does the physical presence requirement look at five (5) years but the foreign police certificate looks at four (4) years?</a></li>
+			</ul>
+			</li>
+
+			<li><a href="#SecE">Error messages</a>
+			<ul>
+				<li><a href="#Q21">Q21. When I try to list my absences from Canada or time spent serving a sentence, I get an error message. What am I doing wrong?</a></li>
+			</ul>
+			</li>
+
+			<li><a href="#SecF">Technical and security questions</a>
+			<ul>
+				<li><a href="#Q22">Q22. Why doesn't the 'Print' button work when I try to print the final result?</a></li>
+				<li><a href="#Q23">Q23. Why do I need to clear my browser cache?</a></li>
+				<li><a href="#Q24">Q24. What does it mean when my session times out?</a></li>
+				<li><a href="#Q25">Q25. What does encryption mean?</a></li>
+				<li><a href="#Q26">Q26. What is Hypertext Transfer Protocol over Secure Socket Layer (HTTPS)?</a></li>
+				<li><a href="#Q27">Q27. How do I logout?</a></li>
+			</ul>
+			</li>
+		</ol>
+	</section>
+</div>
+<div class="clear"></div>
+
+<section>
+<h3 id="SecA">A. RULES OF CALCULATION</h3>
+
+<p id="Q1"><strong>Q1: How long do I have to live in Canada before I am eligible for Canadian citizenship?</strong></p>
+<p><strong>A1:</strong> You must be <strong>physically present</strong> in Canada for 1,095 days within the five (5) years immediately before applying for citizenship.</p>
+<br />
+
+<p id="Q2"><strong>Q2: How is the physical presence requirement for citizenship calculated?</strong></p>
+<p><strong>A2:</strong> Only the five (5) years preceding the date of your application is considered your eligibility period. Within that five-year period:</p>
+<ul>
+	<li>Every day you spent in Canada as a permanent resident counts as a full day.</li>
+	<li>Every day you spent in Canada as a temporary resident or protected person before you become a permanent resident counts as a half day up to a maximum of 365 days. Therefore, in order to get the maximum 365 day credit you need to be physically present in Canada as a temporary resident for 730 days during your eligibility period.</li>
+	<li>Time spent serving a sentence in Canada does not count towards the physical presence requirement (i.e. you cannot count time spent serving a term of imprisonment, probation and/or on parole as physical presence). See <a href="#Q11">Question 11</a> for exceptions to this rule.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<p>You entered Canada for the first time as an authorized temporary resident (TR) on April 1, 2012.  You were then lawfully admitted to Canada as a permanent resident (PR) on January 1, 2016, and signed the citizenship application on April 1, 2018.</p>
+<p>The five-year period begins on <strong>April 1, 2013</strong>; no period before that date is applicable to the calculation of physical presence, only the five years immediately before applying can be used.</p>
+<p>In this case, <strong>your eligibility period is <u>April 1<sup>st</sup>, 2013 to March 31<sup>st</sup>, 2018</u></strong>.  During your eligibility period you accumulated the maximum 365 days of physical presence as an authorized temporary resident before becoming a permanent resident, even though you travelled outside of Canada for 44 days before becoming a permanent resident.  You have also accumulated 821 days of physical presence after lawful admission as a permanent resident. However, you spent 57 full days outside of Canada, which reduces your physical presence as a permanent resident to 764 days within the five-year period, before the date of application.</p>
+<ul>
+<li>Start of eligibility period = April 1, 2013</li>
+<li>Became a PR on = April 1, 2016</li>
+<li>Absences before becoming a PR = March 1- 31, 2014 (29 days) + December 15-31, 2014 (15 days)</li>
+<li>PR Absence = February 1, 2017 to March 31, 2017 (57 days)</li>
+<li>Date of application = April 1, 2018</li>
+<li>Calculation:  Physical presence = 365 TR days + 764 PR days = 1129 days of physical presence. You are eligible to apply for Canadian citizenship</li>
+</ul>
+<p><strong>Breakdown:</strong></p>
+<h4><strong>Time as a Temporary Resident or Protected Person in Canada within the eligibility period</strong></h4>  
+<p>01APR2013 to 31MAR2014 = 365 calendar days</p>
+<p>01APR2014 to 31MAR2015 = 365 calendar days</p>
+<p>01APR2015 to 31MAR2016 = 366 calendar days</p>
+<p>365 + 365 + 366 = 1096 calendar days</p>
+<p>1096 days - 44 days absent = 1052 total calendar days physically present as an authorized temporary resident in Canada before becoming a permanent resident</p>
+<p>1052 days x 0.5 day allowable credit = 526 total calculated physical presence in Canada before becoming a permanent resident</p>
+<h4><strong>Maximum allowable credit for time physically in Canada before becoming a permanent resident = 365</strong></h4>
+<h4>Time as a Permanent Resident in Canada within the eligibility period</h4>
+<p>01JAN2016 to 31MAR2016 = 91 calendar days</p>
+<p>01APR2016 to 31MAR2017 = 365 calendar days</p>
+<p>01APR2017 to 31MAR2018 = 365 calendar days</p>
+<p>91 + 365 + 365 = 821 calendar days</p>
+<p>821 days – 57 days absent = 764 total days physically present in Canada as a permanent resident</p>
+<p><strong>Physical Presence</strong> = 365 + 764 = 1129 days physical presence. You are eligible to apply for Canadian citizenship</p>
+<p>We encourage applicants to apply with more than the minimum requirement of 1095 days of physical presence, to account for any miscalculations of absences, or any other aspect that could lower the physical presence total below 1095 days</p>
+<br />
+
+<p id="Q3"><strong>Q3: When I try to calculate my absences, I get different numbers than the physical presence calculator. How does the physical presence calculator determine the number of days for each absence?</strong></p>
+<p><strong>A3:</strong> The calculator uses the following rules to determine the number of days absent for each absence declared:</p>
+<ul>
+<li>When calculating an absence, the day you leave Canada and the day you return is NOT considered an absence. Both are counted as days of physical presence because you were physically in Canada for a part of the day of departure or arrival.  For example, an absence between July 1, 2013 and July 15, 2013 equals 13 days of absence.  As another example, if you leave Canada on July 1, 2013 and return on July 2, 2013, this equals 0 days of absence. You must still declare this as an absence. Think of it as counting only the full days outside of Canada.</li>
+<li>An absence on February 29 (leap day) is counted as an absence or is credited as a presence.</li>
+<li>The total number of days absent includes all absences from Canada within the five-year period immediately preceding the date of your application.</li>
+</ul>
+<br />
+
+<p id="Q4"><strong>Q4: How do I declare time spent in Canada prior to becoming a permanent resident?</strong></p>
+<p><strong>A4:</strong> If you were not a permanent resident for your entire eligibility period, the five (5) years preceding the date of your application, the physical presence calculator will automatically ask you if you were physically present in Canada as a temporary resident or protected person before becoming a permanent resident. If you answer yes to this question, you will then be required to list all periods of time you had authorized temporary resident status or protected person status in Canada. Every day you spent in Canada as a temporary resident or protected person before you become a permanent resident counts as a half day up to a maximum of 365 days. Therefore, in order to get the maximum 365 day credit you need to be physically present in Canada as a temporary resident for at least 730 days during your eligibility period.</p>
+<br />
+
+<p id="Q5"><strong>Q5: Why should I declare time spent in Canada as a temporary resident?</strong></p>
+<p><strong>A5:</strong> You should declare all time spent in Canada during your eligibility period, the five (5) years preceding the date of your application, including any time spent in Canada as a temporary resident or protected person.  This will allow you to count the maximum number of days that you were physically present in Canada in your application.</p>
+<br />
+
+<p id="Q6"><strong>Q6: Can I use time spent in Canada without the authorized status of temporary resident, protected person or permanent resident towards my physical presence calculation?</strong></p>
+<p><strong>A6:</strong> No, you cannot use anytime spent in Canada without the authorized status of temporary resident, protected person or permanent resident towards your physical presence calculation.</p>
+<p>Temporary resident status includes lawful authorization to enter or remain in Canada as a:</p>
+<ul>
+<li>visitor,</li>
+<li>student,</li>
+<li>worker or,</li>
+<li>temporary resident permit holder</li>
+</ul>
+<p>A protected person is someone who:</p>
+<ul>
+<li>was found to be in need of protection or a convention refugee by the Immigration and Refugee Board or,</li>
+<li>a person who received a positive decision on a Pre-Removal Risk Assessment from IRCC.</li>
+</ul>
+<p><strong>Note:  If you made a refugee claim, or were included on a family members refugee claim, you will not be credited time in Canada from the date of the refugee claim until you received a positive decision confirming that you are a protected person as described above.</strong></p>
+<p>A permanent resident is someone who:</p>
+<ul>
+<li>has been given <a target="_blank" rel="external" href="http://laws-lois.justice.gc.ca/eng/acts/I-2.5/page-1.html#h-2">permanent resident</a> status by immigrating to Canada, but is not a Canadian citizen</li>
+</ul>
+<br />
+
+<section>
+<h3 id="SecB">B. WHAT ABSENCES TO DECLARE</h3>
+
+<p id="Q7"><strong>Q7: Do I have to declare day trips to the United States?</strong></p>
+<p><strong>A7:</strong> Yes. List all absences, even if you come back <strong>the same day</strong>.</p>
+<br />
+
+<p id="Q8"><strong>Q8: I travel often to the United States and don't remember the exact dates. What do I do?</strong></p>
+<p><strong>A8:</strong> To use the physical presence calculator, you must enter exact dates. Check your passport and other records like:  banking records, travel itineraries and receipts to help you determine your dates of travel.</p>
+<br />
+
+<p id="Q9"><strong>Q9: I travel often because of my work (truck driver, employee for an airline company, etc.). Do I have to declare those absences?</strong></p>
+<p><strong>A9:</strong> Yes. All absences from Canada, regardless of the reason, must be declared.</p>
+<br />
+
+<p id="Q10"><strong>Q10: Do I need to declare absences prior to becoming a permanent resident?</strong></p>
+<p><strong>A10:</strong> Yes, all absences from Canada during your eligibility period, the five (5) years preceding the date of your application, must be declared.  Therefore your absences during your time as a temporary resident or protected person within the eligibility period must be declared as well.</p>
+</section>
+<br />
+
+<section>
+<h3 id="SecC">C. TIME SPENT SERVING A SENTENCE FOR AN OFFENCE</h3>
+
+<p id="Q11"><strong>Q11: I have heard that some time spent imprisoned, on parole or on probation can still be counted as physical presence. Is this true?</strong></p>
+<p><strong>A11:</strong> In general, time spent serving a sentence for an offence in Canada cannot count towards physical presence for the purposes of becoming a Canadian citizen (i.e. you cannot count time spent serving a term of imprisonment, on probation, and/or parole as physical presence). There are, however, the following exceptions:</p>
+<ul>
+<li>Only the five (5) years preceding the date of your application are considered for calculating physical presence eligibility. Time spent serving a sentence outside of that five-year period does not have to be declared.</li>
+<li>Time on probation as a result of a <strong>conditional discharge</strong> may count towards physical presence if the probation was completed successfully (i.e. you were not charged with a breach of probation or a failure to comply during that probation). This time does not have to be declared for the purposes of the physical presence calculator.</li>
+<li>Time spent imprisoned or on probation does not have to be declared if:
+	<ul>
+	<li>you were convicted under the <i>Youth Criminal Justice Act</i>, received a youth sentence, and successfully completed that sentence; or</li>
+	<li>you were convicted under the previous <i>Young Offenders Act</i> and successfully completed that sentence.</li>
+	</ul>
+</li>
+</ul>
+<br />
+
+<p id="Q12"><strong>Q12. When I try to calculate the number of days spent serving a sentence, I get different numbers than the physical presence calculator. How does the physical presence calculator determine the number of days for each sentence?</strong></p>
+<p><strong>A12.</strong> The calculator uses the following rules to determine the number of days spent for each sentence:</p>
+<ul>
+	<li>When calculating a sentence, all days are included. For example, a sentence between July 1, 2013, and July 15, 2013, equals 15 days. </li>
+	<li>Time spent serving a sentence on February 29 (leap day) is counted as part of the sentence.</li>
+	<li>The total number of days spent serving a sentence includes all sentences served within the five-year period immediately preceding the date of your application.</li>
+</ul>
+<br />
+
+<p id="Q13"><strong>Q13. My probation order does not state the exact dates I am under probation. Instead it states a period of time (e.g. 6 months, 1 year, etc.). What do I enter?</strong></p>
+<p><strong>A13.</strong> When entering time spent serving a sentence, the start date is generally the date of the probation order unless otherwise specified. To calculate the end date, use the following example as a guide:</p>
+<p>For example, if the probation order starts on June 15, 2013, a 3 three-month probation will end September 14, 2013, a six-month probation will end December 14, 2013, and a one-year probation will end June 14, 2014.</p>
+</section>
+<br />
+
+<p id="Q14"><strong>Q14. Do I need to declare time spent serving a sentence prior to becoming a permanent resident?</strong></p>
+<p><strong>A14.</strong> Yes, all time spent serving a sentence during your eligibility period, the five (5) years preceding the date of your application, must be declared.</p>
+</section>
+<br />
+
+<section>
+<h3 id="SecD">D. WHAT HAPPENS NEXT?</h3>
+
+<p id="Q15"><strong>Q15: What do I do if I meet the 1095 days of physical presence and want to apply now?</strong></p>
+<p><strong>A15:</strong> Print and sign the calculation and attach a copy to your <a rel="external" target="_blank" href="https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/become-canadian-citizen/apply.html#toc0"> Application for Canadian Citizenship</a>. Make sure that the following <strong>dates are all the same</strong>:</p>
+<ul>
+<li>Date of application used in this calculation;</li>
+<li>Date of signature on this physical presence calculator print out;</li>
+<li>Date of signature on the form for Application for Canadian Citizenship</li>
+</ul>
+<p>The date you sign cannot be in the future, and it cannot be more than 90 days before IRCC receives it.</p>
+<p>Please note that if you apply with less than 1,095 days of physical presence as a permanent resident in the five (5) years immediately before you apply, your application will be returned to you.</p>
+<p>If you miscalculated your time spent serving a sentence or absences and submitted your application without having the required physical presence, and it is later determined while your application is in process (e.g., after examination of your court documents) that you have fewer than the required number of days of physical presence, your application will be refused. Your citizenship processing fee will not be refunded.</p>
+<br />
+
+<p id="Q16"><strong>Q16: What do I do if I want to apply later?</strong></p>
+<p><strong>A16:</strong> If you want to save this calculation, you will need to register with an e-mail address. Don't forget to review all dates including the application date when you retrieve a saved calculation.</p>
+<p>If you do not meet the requirements, the calculator will give you a date when you should be eligible to apply, assuming nothing changes and you remain in Canada. When you are eligible to apply, you should redo the calculation and make sure your eligibility period matches the date you sign your application before sending in your application.</p>
+<br />
+
+<p id="Q17"><strong>Q17: I did not apply when I first did my calculation and my situation has not changed (no new absences or time spent serving a sentence). Why should I redo the calculation before applying?</strong></p>
+<p><strong>A17:</strong> If you decide to apply at a later date, you must redo the calculation so that the date of application in your physical presence calculation matches the day you sign the application form.  It will also confirm that you are eligible before applying. The law might have changed and the requirements could be different, or you might have made a mistake the first time you used the calculator, or you could have forgotten an absence.</p>
+<br />
+
+<p id="Q18"><strong>Q18: I have used the physical presence calculator to determine if I am eligible to apply for citizenship. I am completing the application form and the form refers to a How to Calculate Physical Presence Form (CIT 0407). Do I have to complete the form?</strong></p>
+<p><strong>A18:</strong> The How to Calculate Phyiscal Present Form (CIT 0407) is the manual calculation form.  <strong>You only need to submit one physical presence calculation</strong>.  The online physical presence calculator is the preferred and more accurate method to calculate your physical presence in Canada. Print and sign the results of the physical presence calculator, and attach a copy to your <a rel="external" target="_blank" href="https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/become-canadian-citizen/apply.html#toc0">Application for Canadian Citizenship</a>. If you attach a copy, you do not need to fill out the How to Calculate Physical Presence Form (CIT 0407).  Make sure that the following <strong>dates are all the same</strong>:</p>
+<ul>
+<li>Date of application used in this calculation;</li>
+<li>Date of signature on this physical presence calculator print out;</li>
+<li>Date of signature on the form for Application for Canadian Citizenship</li>
+</ul>
+<p>The date you sign cannot be in the future, and it cannot be more than 90 days before IRCC receives it.</p>
+<br />
+
+<p id="Q19"><strong>Q19: Why is it important that the application date used in the calculation and the date of signature on the application form and the calculation printout be the same?</strong></p>
+<p><strong>A19:</strong> This is important so that there is no confusion on your application date because your eligibility for citizenship is based on that date. If there is confusion, there will be delays in processing your application while we try to clarify the situation, especially if one of the dates makes you ineligible for citizenship. If the confusion cannot be resolved, the information appearing in your application form will be taken as the correct information and used to determine eligibility.</p>
+<br />
+
+<p id="Q20"><strong>Q20: Why does the physical presence requirement look at five (5) years but the foreign police certificate looks at four (4) years?</strong></p>
+<p><strong>A20:</strong> This is because these are two different requirements under the law.  The physical presence requirement is 1,095 days in the five (5) years immediately before the date of your citizenship application.  You cannot become a Canadian citizen if you have been convicted of an offence outside Canada (that is equivalent to an indictable offence in Canada) during the four (4) years immediately before your application date. </p>
+<section>
+<h3 id="SecE">E. ERROR MESSAGES</h3>
+
+<p id="Q21"><strong>Q21: When I try to list my absences from Canada or time spent serving a sentence, I get an error message. What am I doing wrong?</strong></p>
+<p><strong>A21:</strong> The following mistakes when listing absences or time spent serving a sentence will generate error messages:</p>
+<ul>
+	<li>Missing information: from, to, destination or reason for absence, type of sentence served; or</li>
+	<li>Absences that overlap.</li>
+</ul>
+<p>Please remember:</p>
+<ul>
+	<li>The following months have 31 days: January, March, May, July, August, October and December;</li>
+	<li>The following months have 30 days: April, June, September and November; and</li>
+	<li>February normally has 28 calendar days. February 29 counts in leap years.</li>
+</ul>
+</section>
+<br />
+
+<section>
+<h3 id="SecF">F. TECHNICAL AND SECURITY QUESTIONS</h3>
+
+<p id="Q22"><strong>Q22: Why doesn't the 'Print' button work when I try to print the final result?</strong></p>
+<p><strong>A22:</strong> If the 'Print' button doesn't work, you either don't have access to a printer or you don't have a printer set up with your browser. If you do not have access to a printer, select 'File -&gt; Save as' and save the html file. You can open the html file from there to view your final result. If you have access to a printer and still wish to print, select 'File -&gt; Print' and follow the browser's instructions.</p>
+<br />
+ 
+<p id="Q23"><strong>Q23: Why do I need to clear my browser cache?</strong></p>
+<p><strong>A23:</strong> When you visit a Web site, information, such as the location of the page, or the <abbr title="Uniform Resource Locator">URL</abbr>, is retained in your browser's memory. In order to protect the privacy of your information, you should empty your browser's memory by clearing your cache. This will ensure that your information remains private.</p>
+<br />
+
+<p id="Q24"><strong>Q24: What does it mean when my session times out?</strong></p>
+<p><strong>A24:</strong> The On-line services keeps track of periods of inactivity. If you leave your computer for a long period of time while using this service, you may be asked to log in again. This is a security feature to verify your identity and to protect your information.</p>
+<br />
+ 
+<p id="Q25"><strong>Q25: What does encryption mean?</strong></p>
+<p><strong>A25:</strong> Encryption is a way of covering important information with a code before it is sent over the Internet so that other machines and people cannot read it. Your encrypted application information will be uncovered or decoded on our protected server once it reaches us.</p>
+<p>This on-line service uses encryption to make sure that no illegal person or group will see your personal information. Information from your computer is encrypted before being sent. This changes your information into a format that can be safely sent to us over the Internet. Once the information is encrypted, it cannot be read until it reaches its destination and is decoded, using an encryption key.</p>
+<br />
+
+<p id="Q26"><strong>Q26: What is Hypertext Transfer Protocol over Secure Socket Layer (HTTPS)?</strong></p>
+<p><strong>A26:</strong> <abbr title="Hypertext Transfer Protocol over Secure Socket Layer">HTTPS</abbr> is a Web protocol built into browsers. It encrypts and decrypts user page requests. It also encrypts and decrypts information that is returned by Web servers.</p>
+<br />
+
+<p id="Q27"><strong>Q27: How do I logout?</strong></p>
+<p><strong>A27:</strong> When using this on-line service, you will see a link to logout on the top of the page that you must select to end your session. After selecting the logout link, you will see a screen that tells you about other steps to take to make sure that your information stays private.</p>
+</section>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+<dl id="gcwu-date-mod">
+<dt>Date modified:</dt><dd><span><time>2026-07-17</time></span></dd>
+</dl>
+<div class="clear"></div>
+<!-- MainContentEnd -->
+</div></div>
+</div></div>
+
+<div id="wb-foot"><div id="wb-foot-in"><footer><h2 id="wb-nav">Footer</h2>
+<!-- FooterStart -->
+<nav aria-label="Footer navigation"><div id="gcwu-sft"><h3>Site footer</h3><div id="gcwu-sft-in">
+<div id="gcwu-tctr">
+<ul>
+<li class="gcwu-tc"><a rel="external" href="http://www.cic.gc.ca/english/notices.asp">Terms and conditions</a></li>
+<li class="gcwu-tr"><a rel="external" href="http://www.cic.gc.ca/english/transparency.asp">Transparency</a></li>
+</ul>
+</div>
+<div class="clear"></div>
+<section><div class="span-2"><h4 class="gcwu-col-head"><a href="http://www.cic.gc.ca/english/department/index.asp">About us</a></h4>
+</div></section>
+<section><div class="span-2"><h4 class="gcwu-col-head"><a href="http://www.cic.gc.ca/english/department/media/index.asp">News</a></h4>
+</div></section>
+<section><div class="span-2"><h4 class="gcwu-col-head"><a href="http://www.cic.gc.ca/english/contacts/index.asp">Contact us</a></h4>
+</div></section>
+<section><div class="span-2"><h4 class="gcwu-col-head"><a href="http://www.cic.gc.ca/english/department/media/social.asp">Stay connected</a></h4>
+</div></section>
+</div></div></nav>
+			
+<nav aria-label="External navigation"><div id="gcwu-gcft"><h3>Government of Canada footer</h3><div id="gcwu-gcft-in"><div id="gcwu-gcft-fip">
+<ul>
+<li><a rel="external" href="http://healthycanadians.gc.ca"><span>Health</span></a></li>
+<li><a rel="external" href="http://travel.gc.ca"><span>Travel</span></a></li>
+<li><a rel="external" href="http://www.servicecanada.gc.ca/eng/home.shtml"><span>Service Canada</span></a></li>
+<li><a rel="external" href="http://www.jobbank.gc.ca"><span>Jobs</span></a></li>
+<li><a rel="external" href="http://actionplan.gc.ca"><span>Economy</span></a></li>
+<li id="gcwu-gcft-ca"><div><a rel="external" href="http://www.canada.ca/en/index.html">Canada.ca</a></div></li>
+</ul>
+</div></div></div></nav>
+<!-- FooterEnd -->
+</footer>
+</div></div></div>
+
+
+		
+<!-- ScriptsStart -->
+<script src='/rescalc/resource/dist/js/settings.js;jsessionid=055092881CC2B0732D81419E0309F39F'></script>
+<!--[if lte IE 8]>
+<script src='/rescalc/resource/dist/theme-gcwu-fegc/js/theme-ie-min.js;jsessionid=055092881CC2B0732D81419E0309F39F'></script>
+<script src='/rescalc/resource/dist/js/pe-ap-ie-min.js;jsessionid=055092881CC2B0732D81419E0309F39F'></script>
+<script src='/rescalc/resource/dist/js/jquerymobile/jquery.mobile-ie.min.js;jsessionid=055092881CC2B0732D81419E0309F39F'></script>
+<![endif]-->
+<!--[if gt IE 8]><!-->
+<script src='/rescalc/resource/dist/theme-gcwu-fegc/js/theme-min.js;jsessionid=055092881CC2B0732D81419E0309F39F'></script>
+<script src='/rescalc/resource/dist/js/pe-ap-min.js;jsessionid=055092881CC2B0732D81419E0309F39F'></script>
+<script src='/rescalc/resource/dist/js/jquerymobile/jquery.mobile.min.js;jsessionid=055092881CC2B0732D81419E0309F39F'></script>
+<!--<![endif]-->
+<!-- ScriptsEnd -->
+
+<!-- CustomScriptsStart -->
+<script src='/rescalc/scripts/sessiontimeout.js;jsessionid=055092881CC2B0732D81419E0309F39F'></script>
+<script>
+function scrollErrorToForm(){
+	top.location.href="#formError";
+}
+function newStaticWindow(newContent){
+	winContent = window.open(newContent, 'myWin','toolbar=yes,status,resizable,scrollbars,width=500,height=550,top=0,left=0');
+	winContent.focus();
+}
+</script>
+<!-- CustomScriptsEnd -->	
+</body>
+</html>

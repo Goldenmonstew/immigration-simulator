@@ -17,6 +17,7 @@ for (const path of [
   '/game',
   '/australia',
   '/new-zealand',
+  '/canada',
 ]) {
   test(`no serious accessibility violations on ${path}`, async ({ page }) => {
     await page.goto(path);
