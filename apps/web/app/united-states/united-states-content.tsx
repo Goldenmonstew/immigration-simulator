@@ -168,14 +168,16 @@ export default function UnitedStatesContent() {
                       : 'us-role-hint'
                   }
                 >
-                  {(['', 'principal', 'derivative'] as const).map((r) => (
-                    <option key={r} value={r}>
-                      {t(`us.role.${r || 'choose'}` as TranslationKey)}
-                    </option>
-                  ))}
+                  {(['', 'principal', 'joint', 'separate'] as const).map(
+                    (r) => (
+                      <option key={r} value={r}>
+                        {t(`us.role.${r || 'choose'}` as TranslationKey)}
+                      </option>
+                    ),
+                  )}
                 </select>
               </Field>
-              {draft.role === 'derivative' &&
+              {draft.role === 'joint' &&
                 date(
                   'us-principal-since',
                   'us.principalSince',

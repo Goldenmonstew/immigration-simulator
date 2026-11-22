@@ -291,6 +291,29 @@ describe('removing conditions, INA 216', () => {
     expect(childAt('2025-01-13').status).toBe('FUTURE');
     expect(childAt('2025-01-13').earliestDate).toBe('2026-07-17');
     expect(childAt('2025-01-14').status).toBe('MET');
+    // Left out of the parent's I-751: a separate petition, any time.
+    const leftOut = pathway(
+      {
+        conditional: 'marriage',
+        permanentResident: '2025-01-13',
+        separatePetition: true,
+        simulationDate: '2026-12-18',
+      },
+      'US-CONDITIONS',
+    );
+    expect(leftOut.status).toBe('MET');
+    // A separate I-829 has no stated period: unknown.
+    expect(
+      pathway(
+        {
+          conditional: 'investor',
+          permanentResident: '2025-05-01',
+          separatePetition: true,
+          simulationDate: '2027-02-10',
+        },
+        'US-CONDITIONS',
+      ).status,
+    ).toBe('UNKNOWN');
   });
 
   test('after the anniversary', () => {

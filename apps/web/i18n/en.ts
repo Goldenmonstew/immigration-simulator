@@ -568,8 +568,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.role.choose': 'Choose one',
   'us.role.principal': 'Yourself, through marriage or investment',
   'us.roleHint':
-    'A spouse or child who got the card with a parent or the investor picks the second option, even if filing separately.',
-  'us.role.derivative': 'With a parent or the investor',
+    'A spouse or child who got the card with a parent or the investor chooses by whether they file together with that person.',
+  'us.role.joint': 'With a parent or the investor, filing together',
+  'us.role.separate': 'With a parent or the investor, filing separately',
   'us.principalSince':
     'Date the principal applicant got their conditional green card',
   'us.married': 'I am married to and living with a U.S. citizen',

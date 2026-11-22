@@ -83,7 +83,7 @@ test('filing with a principal applicant needs their date', () => {
   const joint = {
     ...filled,
     conditional: 'investor' as const,
-    role: 'derivative' as const,
+    role: 'joint' as const,
   };
   expect(validateUsForm(joint)).toEqual({
     'us-principal-since': 'us.error.date',
@@ -97,6 +97,11 @@ test('filing with a principal applicant needs their date', () => {
     usRequest({ ...joint, principalSince: '2018-01-01' }, 'en')
       .principalConditional,
   ).toBe('2018-01-01');
+  // Filing separately needs no date and is passed on as such.
+  const separate = { ...joint, role: 'separate' as const };
+  expect(validateUsForm(separate)).toEqual({});
+  expect(usRequest(separate, 'en')).toMatchObject({ separatePetition: true });
+  expect(usRequest(separate, 'en')).not.toHaveProperty('principalConditional');
   // Ignored once the green card is not conditional.
   expect(
     usRequest(

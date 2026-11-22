@@ -32,6 +32,11 @@ export interface UsRequest {
    * follows it (8 CFR 216.4(a)(2), 216.6(a)(1)(ii)).
    */
   principalConditional?: IsoDate;
+  /**
+   * A spouse or child who got status with a parent or the investor but
+   * files their own petition rather than being included in theirs.
+   */
+  separatePetition?: boolean;
   /** First day living in the current state or USCIS district. */
   stateResidenceFrom?: IsoDate;
   /** Married to a U.S. citizen and living together. */
@@ -418,25 +423,48 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
         notChecked: [],
         assumptions: [],
       });
+    } else if (req.conditional === 'investor' && req.separatePetition) {
+      pathways.push({
+        id: 'US-CONDITIONS',
+        title,
+        status: 'UNKNOWN',
+        summary: L(
+          '你单独递交 I-829（未纳入投资人的申请）：现行条文没有写单独递交的家属何时递交，本试点不判断；请按投资人的递交期准备，并以 USCIS 说明为准（8 CFR 216.6(a)(1)(ii)）。',
+          'You file your own I-829 rather than being included in the investor’s: the current rule does not say when a family member filing separately must file, so this pilot does not work it out; plan around the investor’s filing period and check USCIS guidance (8 CFR 216.6(a)(1)(ii)).',
+        ),
+        checks: [],
+        notChecked: [],
+        assumptions: [],
+      });
     } else if (
       req.conditional === 'marriage' &&
-      req.principalConditional &&
-      lpr > addDays(req.principalConditional, v.childConcurrentDays.value)
+      (req.separatePetition ||
+        (req.principalConditional &&
+          lpr > addDays(req.principalConditional, v.childConcurrentDays.value)))
     ) {
-      // A child with status more than 90 days after the parent cannot be in
-      // the parent's joint I-751 and may file alone at any time (8 CFR
+      // A child not in the parent's joint I-751 (left out, or with status
+      // more than 90 days after the parent) may file alone at any time (8 CFR
       // 216.4(a)(2); USCIS fact sheet, SRC-082).
-      const late = daysBetween(req.principalConditional, lpr);
       const status: PilotStatus = sim >= lpr ? 'MET' : 'FUTURE';
       pathways.push({
         id: 'US-CONDITIONS',
         title,
         status,
         earliestDate: status === 'MET' ? sim : lpr,
-        summary: L(
-          `你比父母晚 ${late} 天取得条件身份，超过 ${v.childConcurrentDays.value} 天，不能纳入父母的 I-751，须单独递交；单独递交的子女不必等到两周年前 90 天，可随时递交，前提是没有最终递解令。`,
-          `You got conditional status ${late} days after your parent, more than ${v.childConcurrentDays.value} days, so you cannot be included in your parent’s I-751 and file your own; a child filing alone can file at any time, without waiting for the 90 days before the second anniversary, as long as there is no final order of removal.`,
-        ),
+        summary:
+          (req.separatePetition
+            ? L(
+                '你单独递交 I-751（未纳入父母的申请）。',
+                'You file your own I-751 rather than being included in your parent’s.',
+              )
+            : L(
+                `你比父母晚 ${daysBetween(req.principalConditional ?? lpr, lpr)} 天取得条件身份，超过 ${v.childConcurrentDays.value} 天，不能纳入父母的 I-751，须单独递交。`,
+                `You got conditional status ${daysBetween(req.principalConditional ?? lpr, lpr)} days after your parent, more than ${v.childConcurrentDays.value} days, so you cannot be included in your parent’s I-751 and file your own.`,
+              )) +
+          L(
+            '单独递交的子女不必等到两周年前 90 天，可随时递交，前提是没有最终递解令。',
+            ' A child filing alone can file at any time, without waiting for the 90 days before the second anniversary, as long as there is no final order of removal.',
+          ),
         checks: [
           {
             text: L(

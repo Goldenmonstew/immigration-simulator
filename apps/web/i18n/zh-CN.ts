@@ -371,8 +371,9 @@ export const zhCN = {
   'us.role.choose': '请选择',
   'us.role.principal': '本人凭婚姻或投资取得',
   'us.roleHint':
-    '配偶或子女随父母、投资人一起取得的，选第二项；单独递交取消条件申请的也选第二项。',
-  'us.role.derivative': '随父母或投资人取得',
+    '配偶或子女随父母、投资人取得的，按是否与对方一并递交取消条件申请选择。',
+  'us.role.joint': '随父母或投资人取得，一并递交',
+  'us.role.separate': '随父母或投资人取得，单独递交',
   'us.principalSince': '主申请人取得条件绿卡的日期',
   'us.married': '我与美国公民结婚并同住',
   'us.marriedOn': '结婚日期',
