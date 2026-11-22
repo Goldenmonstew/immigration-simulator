@@ -7,6 +7,8 @@ export interface SourceRef {
   srcId: string;
   /** Physical PDF page ("p16"), paragraph ("SW 4.2") or anchor. */
   locator: string;
+  /** A page within the source, when the locator is not on its main URL. */
+  url?: string;
 }
 
 /**

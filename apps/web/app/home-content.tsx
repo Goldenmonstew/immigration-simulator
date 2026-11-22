@@ -59,6 +59,21 @@ export default function Home() {
               {p.colon}
               {t('ca.entryDesc')}
             </li>
+            <li>
+              <Link href="/united-states">{t('us.entryLink')}</Link>
+              {p.colon}
+              {t('us.entryDesc')}
+            </li>
+            <li>
+              <Link href="/spain">{t('es.entryLink')}</Link>
+              {p.colon}
+              {t('es.entryDesc')}
+            </li>
+            <li>
+              <Link href="/greece">{t('gr.entryLink')}</Link>
+              {p.colon}
+              {t('gr.entryDesc')}
+            </li>
           </ul>
         </section>
         <section className={styles.section}>

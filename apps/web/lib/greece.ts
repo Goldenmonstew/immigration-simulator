@@ -1,0 +1,84 @@
+import type {
+  GrNationalityRoute,
+  GrPermitKind,
+  GrRequest,
+  Locale,
+} from '@uk-immigration/engine';
+import type { TranslationKey } from '../i18n';
+import { validDate } from './questionnaire';
+
+export interface GrPermitRow {
+  kind: GrPermitKind;
+  from: string;
+  to: string;
+}
+
+export interface GrTripRow {
+  departed: string;
+  returned: string;
+}
+
+export interface GrForm {
+  simulationDate: string;
+  permits: GrPermitRow[];
+  trips: GrTripRow[];
+  /** Empty until the user picks the route that applies to them. */
+  route: GrNationalityRoute | '';
+}
+
+export type GrErrors = Partial<Record<string, TranslationKey>>;
+
+export const emptyGrPermit = (): GrPermitRow => ({
+  kind: 'regular',
+  from: '',
+  to: '',
+});
+export const emptyGrTrip = (): GrTripRow => ({ departed: '', returned: '' });
+
+export function emptyGrForm(today: string): GrForm {
+  return {
+    simulationDate: today,
+    permits: [emptyGrPermit()],
+    trips: [],
+    route: '',
+  };
+}
+
+/** Field ids with an error message key; empty when the form can be evaluated. */
+export function validateGrForm(form: GrForm): GrErrors {
+  const errors: GrErrors = {};
+  const date = (id: string, value: string, optional = false) => {
+    if (optional && !value) return;
+    if (!validDate(value)) errors[id] = 'gr.error.date';
+  };
+  date('gr-simulation-date', form.simulationDate);
+  if (!form.route) errors['gr-route'] = 'gr.error.route';
+  form.permits.forEach((permit, i) => {
+    date(`gr-permit-${i}-from`, permit.from);
+    date(`gr-permit-${i}-to`, permit.to, true);
+    if (validDate(permit.to) && permit.to < permit.from)
+      errors[`gr-permit-${i}-to`] = 'gr.error.order';
+  });
+  form.trips.forEach((trip, i) => {
+    date(`gr-trip-${i}-departed`, trip.departed);
+    date(`gr-trip-${i}-returned`, trip.returned);
+    if (validDate(trip.returned) && trip.returned < trip.departed)
+      errors[`gr-trip-${i}-returned`] = 'gr.error.order';
+  });
+  return errors;
+}
+
+export function grRequest(form: GrForm, locale: Locale): GrRequest {
+  return {
+    simulationDate: form.simulationDate,
+    permits: form.permits.map((p) => ({
+      kind: p.kind,
+      from: p.from,
+      ...(p.to ? { to: p.to } : {}),
+    })),
+    trips: form.trips,
+    // Validation makes sure a route was picked.
+    route: form.route as GrNationalityRoute,
+    locale,
+  };
+}

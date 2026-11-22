@@ -71,7 +71,7 @@ export function PilotResult({
                     {c.text}{' '}
                     <span className={styles.sources}>
                       {c.sources.map((s, n) => (
-                        <a key={n} href={sourceUrls[s.srcId]}>
+                        <a key={n} href={s.url ?? sourceUrls[s.srcId]}>
                           {s.srcId} {s.locator}
                         </a>
                       ))}

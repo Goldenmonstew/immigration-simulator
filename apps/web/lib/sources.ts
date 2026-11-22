@@ -142,4 +142,22 @@ export const sourceUrls: Record<string, string> = {
     'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/canadian-citizenship/grant/residence/calculate-physical-presence.html',
   'SRC-078':
     'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/permanent-residence/card/permanent-resident-determination.html',
+  'SRC-079': 'https://uscode.house.gov/us/usc/t8/s1427/',
+  'SRC-080':
+    'https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=316',
+  'SRC-081': 'https://www.uscis.gov/policy-manual/volume-12-part-d-chapter-3',
+  'SRC-082':
+    'https://www.uscis.gov/forms/when-to-file-your-petition-to-remove-conditions',
+  'SRC-083': 'https://www.boe.es/buscar/act.php?id=BOE-A-2024-24099',
+  'SRC-084': 'https://www.boe.es/buscar/act.php?id=BOE-A-1889-4763',
+  'SRC-085':
+    'https://administracion.gob.es/pag_Home/Tu-espacio-europeo/derechos-obligaciones/ciudadanos/residencia/obtencion-nacionalidad',
+  'SRC-086':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2023/20230100081.pdf',
+  'SRC-087':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100090.pdf',
+  'SRC-088':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2010/20100100049.pdf',
+  'SRC-089':
+    'https://www.ypes.gr/wp-content/uploads/2026/02/Proypotheseis20260130.pdf',
 };

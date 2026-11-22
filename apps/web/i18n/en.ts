@@ -515,7 +515,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'pilot.status.MET': 'Time requirements met on the simulation date',
   'pilot.status.FUTURE': 'Time requirements met from {date}',
   'pilot.status.NOT_MET': 'Not met with your record',
-  'pilot.status.UNKNOWN': 'More information needed',
+  'pilot.status.UNKNOWN': 'Cannot be confirmed yet (see the notes below)',
   'pilot.status.NOT_APPLICABLE': 'Does not apply',
   'pilot.checks': 'Checks on the simulation date',
   'pilot.met': 'Met',
@@ -545,6 +545,148 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.sub.100': '100 Partner (permanent, outside Australia)',
   'au.sub.155': '155 Resident Return visa (permanent)',
   'au.sub.other-permanent': 'Other permanent visa',
+  'gr.entryLink': 'Open the Greece pilot',
+  'gr.entryDesc':
+    'Use your residence permits (golden visa included) and travel record to work out the dates for long-term residence, golden visa renewal and naturalisation.',
+  'gr.title':
+    'Greece: dates for long-term residence, golden visa renewal and naturalisation (pilot)',
+  'gr.intro':
+    'From your Greek residence permits (golden visa included) and trips, this works out three steps that depend on time alone: long-term residence (Μ1), the golden visa (Β.5) renewal period, and the years of residence for naturalisation. Investment thresholds and the naturalisation exam are out of scope.',
+  'gr.scope':
+    'The pilot checks only the time requirements in the Migration Code and the Citizenship Code. It does not check income, insurance, integration, language exams or other requirements; each result lists them, and open questions such as whether golden visa time counts towards long-term residence are flagged. Your entries are processed in your browser and are not saved or uploaded.',
+  'gr.basics': 'About you',
+  'gr.simulationDate': 'Simulation date',
+  'gr.simulationDateHint':
+    'Results are worked out for this date (the application date). It starts as today.',
+  'gr.permits': 'Residence permits',
+  'gr.permitsHint':
+    'Add a row for each permit, then the next one if renewed on time; leave the end blank if it is still valid (for a golden visa, enter the expiry on the card to get the renewal dates).',
+  'gr.permit': 'Permit {n}',
+  'gr.from': 'Valid from',
+  'gr.to': 'Valid until (leave blank if still valid)',
+  'gr.kind': 'Permit type',
+  'gr.kind.regular': 'Ordinary residence permit (work, family and others)',
+  'gr.kind.investor': 'Golden visa (real estate investor permit Β.5)',
+  'gr.kind.study': 'Study or vocational training',
+  'gr.kind.temporary': 'National visa (such as digital nomad)',
+  'gr.addPermit': 'Add a permit',
+  'gr.trips': 'Trips abroad',
+  'gr.tripsHint':
+    'Add a row for each time you left Greece. You can include planned trips.',
+  'gr.trip': 'Trip {n}',
+  'gr.departed': 'Date you left Greece',
+  'gr.returned': 'Date you came back to Greece',
+  'gr.addTrip': 'Add a trip',
+  'gr.nationality': 'Naturalisation route',
+  'gr.route': 'Years of residence that apply to you',
+  'gr.route.choose': 'Choose one',
+  'gr.route.general':
+    '7 years: holding a listed status when applying (such as long-term residence Μ1, a 10-year permit, or an investor permit such as the golden visa)',
+  'gr.route.three-year':
+    '3 years: EU citizen, spouse of a Greek with children, with parental responsibility for a Greek child born in Greece, or stateless (also holding a listed status when applying)',
+  'gr.route.twelve-year':
+    '12 years: holding another non-temporary permit when applying (such as an ordinary work permit)',
+  'gr.remove': 'Remove',
+  'gr.submit': 'Work out dates',
+  'gr.errorSummary': 'Fix the items marked in red first.',
+  'gr.error.date': 'Enter a valid date.',
+  'gr.error.order': 'This date cannot be before the start date.',
+  'gr.error.route': 'Choose the years of residence that apply to you.',
+  'es.entryLink': 'Open the Spain pilot',
+  'es.entryDesc':
+    'Use your residence permits and travel record to work out the dates for national long-term residence and citizenship by residence.',
+  'es.title': 'Spain: dates for long-term residence and citizenship (pilot)',
+  'es.intro':
+    'From your Spanish residence permits and trips, this works out two steps that depend on time alone: national long-term residence (residencia de larga duración nacional) and citizenship by residence (nacionalidad por residencia). Eligibility for work, investment or arraigo permits is out of scope.',
+  'es.scope':
+    'The pilot checks only the time requirements in the regulations and the Civil Code. It does not check the language and constitution tests, conduct, giving up your nationality or other requirements; each result lists them, and counting the rules leave open is flagged. Your entries are processed in your browser and are not saved or uploaded.',
+  'es.basics': 'About you',
+  'es.simulationDate': 'Simulation date',
+  'es.simulationDateHint':
+    'Results are worked out for this date (the application date). It starts as today.',
+  'es.permits': 'Residence permits',
+  'es.permitsHint':
+    'Add a row for each permit, then the next one if renewed on time; leave the end blank if it is still valid. A national long-term residence permit has no end date and an expired TIE card does not end it, so leave its end blank. Tick study stays.',
+  'es.permit': 'Permit {n}',
+  'es.from': 'Valid from',
+  'es.to': 'Valid until (leave blank if still valid)',
+  'es.study': 'This is a study stay (estancia por estudios)',
+  'es.addPermit': 'Add a permit',
+  'es.trips': 'Trips abroad',
+  'es.tripsHint':
+    'Add a row for each time you left Spain. You can include planned trips.',
+  'es.trip': 'Trip {n}',
+  'es.departed': 'Date you left Spain',
+  'es.returned': 'Date you came back to Spain',
+  'es.addTrip': 'Add a trip',
+  'es.nationality': 'Citizenship route',
+  'es.route': 'Years of residence that apply to you',
+  'es.route.general': 'General (applies to Chinese citizens)',
+  'es.route.refugee': 'Granted refugee status',
+  'es.route.ibero':
+    'National by origin of an Ibero-American country, Andorra, the Philippines, Equatorial Guinea or Portugal, or Sephardic',
+  'es.route.marriage': 'Married to a Spanish citizen and not separated',
+  'es.route.one-year': 'Another one-year case (such as born in Spain)',
+  'es.marriedOn': 'Date you married a Spanish citizen',
+  'es.remove': 'Remove',
+  'es.submit': 'Work out dates',
+  'es.errorSummary': 'Fix the items marked in red first.',
+  'es.error.date': 'Enter a valid date.',
+  'es.error.order': 'This date cannot be before the start date.',
+  'us.entryLink': 'Open the United States pilot',
+  'us.entryDesc':
+    'Use your green card date and travel record to work out the dates for naturalization, naturalization as the spouse of a citizen, removing conditions and time abroad.',
+  'us.title':
+    'United States: dates for naturalization and your green card (pilot)',
+  'us.intro':
+    'From your green card date and trips, this works out the steps that depend on time alone: general naturalization, naturalization as the spouse of a U.S. citizen, the filing period for removing conditions, and how long you can be away and still return on your green card. How you get a green card (family, employment and investment categories, priority dates) is out of scope.',
+  'us.scope':
+    'The pilot checks only the time requirements in the law and the USCIS Policy Manual. It does not check the English and civics tests, good moral character, abandonment of residence or other requirements; each result lists them. Your entries are processed in your browser and are not saved or uploaded.',
+  'us.basics': 'About you',
+  'us.simulationDate': 'Simulation date',
+  'us.simulationDateHint':
+    'Results are worked out for this date (for naturalization, the filing date). It starts as today.',
+  'us.dateOfBirth': 'Date of birth',
+  'us.greenCard': 'Green card',
+  'us.permanentResident':
+    'Date you became a permanent resident (Resident Since on the card)',
+  'us.permanentResidentHint':
+    'For a conditional green card, enter the date you yourself got conditional status.',
+  'us.conditional': 'Green card type',
+  'us.conditional.none': 'Regular green card',
+  'us.conditional.marriage': 'Conditional, based on marriage (file I-751)',
+  'us.conditional.investor': 'Conditional, based on investment (file I-829)',
+  'us.stateResidenceFrom':
+    'Date you started living in your current state or USCIS district (optional)',
+  'us.role': 'You got your conditional green card',
+  'us.role.choose': 'Choose one',
+  'us.role.principal': 'Yourself, through marriage or investment',
+  'us.roleHint':
+    'A spouse or child who got the card with a parent or the investor chooses by whether they file together with that person.',
+  'us.role.joint': 'With a parent or the investor, filing together',
+  'us.role.separate': 'With a parent or the investor, filing separately',
+  'us.principalSince':
+    'Date the principal applicant got their conditional green card',
+  'us.married': 'I am married to and living with a U.S. citizen',
+  'us.marriedOn': 'Date of marriage',
+  'us.spouseCitizenSince':
+    'Date your spouse became a U.S. citizen (leave blank if a citizen by birth)',
+  'us.trips': 'Trips abroad',
+  'us.tripsHint':
+    'Add a row for each time you left the United States after getting your green card. You can include planned trips.',
+  'us.trip': 'Trip {n}',
+  'us.departed': 'Date you left the United States',
+  'us.returned': 'Date you came back to the United States',
+  'us.addTrip': 'Add a trip',
+  'us.remove': 'Remove',
+  'us.submit': 'Work out dates',
+  'us.errorSummary': 'Fix the items marked in red first.',
+  'us.error.date': 'Enter a valid date.',
+  'us.error.order': 'This date cannot be before the start date.',
+  'us.error.beforeGreenCard': 'Enter only trips after you got your green card.',
+  'us.error.role': 'Choose how you got your conditional green card.',
+  'us.error.principalOrder':
+    'The principal applicant’s date cannot be after the date you got your green card.',
   'ca.entryLink': 'Open the Canada pilot',
   'ca.entryDesc':
     'Use the date you became a permanent resident and your travel record to work out the residency obligation and the physical presence for citizenship.',

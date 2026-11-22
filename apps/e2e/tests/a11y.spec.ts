@@ -18,6 +18,9 @@ for (const path of [
   '/australia',
   '/new-zealand',
   '/canada',
+  '/united-states',
+  '/spain',
+  '/greece',
 ]) {
   test(`no serious accessibility violations on ${path}`, async ({ page }) => {
     await page.goto(path);

@@ -31,6 +31,40 @@ export {
   AU_TEMPORARY_SUBCLASSES,
   evaluateAustralia,
 } from './australia';
+export {
+  GR_NATIONALITY_ROUTES,
+  GR_PERMIT_KINDS,
+  evaluateGreece,
+} from './greece';
+export type {
+  GrNationalityRoute,
+  GrPathway,
+  GrPathwayId,
+  GrPermit,
+  GrPermitKind,
+  GrRequest,
+  GrResult,
+  GrTrip,
+} from './greece';
+export { ES_NATIONALITY_ROUTES, evaluateSpain } from './spain';
+export type {
+  EsNationalityRoute,
+  EsPathway,
+  EsPathwayId,
+  EsPermit,
+  EsRequest,
+  EsResult,
+  EsTrip,
+} from './spain';
+export { US_CONDITIONAL, evaluateUnitedStates } from './united-states';
+export type {
+  UsConditional,
+  UsPathway,
+  UsPathwayId,
+  UsRequest,
+  UsResult,
+  UsTrip,
+} from './united-states';
 export { evaluateCanada } from './canada';
 export type {
   CaPathway,
