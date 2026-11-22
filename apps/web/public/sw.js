@@ -14,6 +14,7 @@ const PAGES = [
   '/canada',
   '/united-states',
   '/spain',
+  '/greece',
 ];
 
 self.addEventListener('install', (event) => {

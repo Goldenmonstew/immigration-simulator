@@ -103,6 +103,10 @@
 | SRC-083 | LAW | Real Decreto 1155/2024（Reglamento de la Ley Orgánica 4/2000，外国人法实施条例），BOE 合并文本 PDF（Última modificación 2026-09-22，187 页；含 RD 316/2026 的修订）：art. 183–184 国内长期居留、art. 176 长期居留-欧盟、art. 48 停留计日、art. 201 长期居留的丧失 | https://www.boe.es/buscar/pdf/2024/BOE-A-2024-24099-consolidado.pdf （合并文本入口：https://www.boe.es/buscar/act.php?id=BOE-A-2024-24099 ） | 2026-09-22 | 2026-11-21 | `policy-sources/2026-09-22-es-rd1155-2024-reglamento-extranjeria.pdf`（sha256 `5e253284d7a0dcd891453c2a791416c703da692a432941d5834815fb08478d0c`） | archived |
 | SRC-084 | LAW | Código Civil（西班牙民法典），BOE 合并文本 PDF（最后更新 2025-01-03，282 页）：art. 5.1 期间计算、art. 21–23 按居住入籍 | https://www.boe.es/buscar/pdf/1889/BOE-A-1889-4763-consolidado.pdf （合并文本入口：https://www.boe.es/buscar/act.php?id=BOE-A-1889-4763 ） | 2025-01-03 | 2026-11-21 | `policy-sources/2025-01-03-es-codigo-civil.pdf`（sha256 `98720d8eca8470bd9a92e3c254baa83ce25c8310ec5031c688a96b34bb645f1a`） | archived |
 | SRC-085 | GUIDANCE | 西班牙官方说明：administracion.gob.es "Adquisición de la nacionalidad"（Última actualización 2026-04-13）；Ministerio de Inclusión Hoja informativa 49 国内长期居留（mayo de 2025） | https://administracion.gob.es/pag_Home/Tu-espacio-europeo/derechos-obligaciones/ciudadanos/residencia/obtencion-nacionalidad ；https://inclusion.gob.es/web/migraciones/w/49.-autorizacion-de-residencia-de-larga-duracion-nacional | 见标题 | 2026-11-21 | `policy-sources/2026-11-21-es-administracion-gob-adquisicion-nacionalidad.html`（sha256 `fc348525268a788963423c762b103cb95b2db2275c82ab2c2b7b4d42986ec84b`）；`policy-sources/2026-11-21-es-hoja49-larga-duracion-nacional.html`（sha256 `060cd5ec7b4f2b17d4b9782d4204146d64fae6973a2a525e8d4b93226b5bb32c`） | archived |
+| SRC-086 | LAW | ν. 5038/2023 Κώδικας Μετανάστευσης（希腊移民法典），ΦΕΚ Α' 81/01.04.2023 原文（2024-03-31 起施行）：άρθ. 11 续期、95 投资类许可、100 不动产投资者许可（Β.5）、143–148 长期居留 | https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2023/20230100081.pdf | 2023-04-01 | 2026-11-21 | `policy-sources/2023-04-01-gr-fek-a81-2023-n5038.pdf`（sha256 `826446ab38961ce1a697c9795609e51298ccfc6989db097af061eefc7037e0d3`） | archived |
+| SRC-087 | LAW | 希腊移民法典的修订：ν. 5100/2024（ΦΕΚ Α' 49/05.04.2024，άρθ. 64 重述 άρθ. 100）、ν. 5275/2026（ΦΕΚ Α' 17/06.02.2026，άρθ. 12 改 άρθ. 11 续期期限）、ν. 5307/2026（ΦΕΚ Α' 90/11.06.2026，άρθ. 179 重述 άρθ. 144） | https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2024/20240100049.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100017.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100090.pdf | 见标题 | 2026-11-21 | `policy-sources/2024-04-05-gr-fek-a49-2024-n5100.pdf`（sha256 `0cc59defe70fdc725028ec4520e68182dff84bd343ff3a07ecf8cf1ebf861d75`）；`policy-sources/2026-02-06-gr-fek-a17-2026-n5275.pdf`（sha256 `eff39df99fb9d8e66c335852b0f0e3906c988ddbef0e8e84c5d6e38d6997f3c5`）；`policy-sources/2026-06-11-gr-fek-a90-2026-n5307.pdf`（sha256 `27b3c693ae0db6cd43fcb308a06ba390c52e20adf4e64f957477ed3945b06f9a`） | archived |
+| SRC-088 | LAW | Κώδικας Ελληνικής Ιθαγένειας（希腊国籍法典）άρθ. 5 的现行文本来源：ν. 3838/2010（ΦΕΚ Α' 49/24.03.2010，άρθ. 2 替换 άρθ. 5）、ν. 4531/2018（ΦΕΚ Α' 62/05.04.2018，άρθ. 31 παρ. 3 加入 12 年路径）、ν. 4674/2020（ΦΕΚ Α' 53/11.03.2020，άρθ. 94 重写 3 年类别） | https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2010/20100100049.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2018/20180100062.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2020/20200100053.pdf | 见标题 | 2026-11-21 | `policy-sources/2010-03-24-gr-fek-a49-2010-n3838.pdf`（sha256 `8c9c6f08c55ba50bc059695f1926d244f347134a82c78f4eed8bb58bea38a3fc`）；`policy-sources/2018-04-05-gr-fek-a62-2018-n4531.pdf`（sha256 `cdc3384ecce232839580139e3615e2afd9ff59767faf6a81a2e4f64f62e747d0`）；`policy-sources/2020-03-11-gr-fek-a53-2020-n4674.pdf`（sha256 `d1da943f93121e8308e6d1994b4915fbc689f66a954d36c5c45344145adfff33`） | archived |
+| SRC-089 | GUIDANCE | 希腊内政部（ΥΠΕΣ）：国籍法典编纂版（截至 2025-09-17，卷首注明仅供参考、以 ΦΕΚ 为准）；《归化的形式与实质条件》（最后更新 2026-01-30） | https://www.ypes.gr/wp-content/uploads/2025/09/20250917-KEI-NOMOS.pdf ；https://www.ypes.gr/wp-content/uploads/2026/02/Proypotheseis20260130.pdf | 见标题 | 2026-11-21 | `policy-sources/2025-09-17-gr-ypes-kei-codified.pdf`（sha256 `a3545245db1a0da28df1947df945be3b6111dd3c74715fe7679e2e6a52b9fa23`）；`policy-sources/2026-01-30-gr-ypes-naturalisation-requirements.pdf`（sha256 `631f06cbd885f72599ae2886d878b50464c3c09126fbcf66d73f3ed655c8b9a0`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -732,3 +736,23 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 - administracion.gob.es：只有外国人法规定的居留许可才算入籍所需的合法居留（"Los únicos títulos válidos…"）；原路径 301 跳转，快照为跳转后的页面。
 - Hoja informativa 49：国内长期居留须 5 年连续合法居留，出境单次不超过 6 个月、合计不超过 10 个月，因工作合计不超过 18 个月；页面自注仅供参考。
+
+## SRC-086 希腊移民法典 ν. 5038/2023
+
+- 快照为国家印刷局官方存储的 ΦΕΚ 原文（search.et.gr 检索结果直接链接；www.et.gr 跳转到证书不符的地址，无法直接下载）。`p<N>` 指 PDF 物理页序，印刷页码 = 4102 + 物理页。移民法典没有官方现行汇编，现行条文由原文加 SRC-087 的修订拼出。
+- `άρθ. 143 παρ. 2`（p91）：长期居留一章不适用于持学习许可、临时或其他形式保护、庇护申请未决、"临时居留身份"、外交领事身份者；法典没有定义"临时居留身份"，只在 άρθ. 4、67 把凭国家签证的居留（Ζ）称为临时居留。`άρθ. 95 παρ. 1`（p64）：投资类许可首次 5 年、可按同样年限续期，离境不妨碍续期。`άρθ. 148`（p93）：离开欧盟连续 12 个月及以上、或离开希腊超过 6 年，失去长期居民身份。
+
+## SRC-087 希腊移民法典的修订
+
+- `ν. 5100/2024 άρθ. 64`（άρθ. 100 παρ. 1 在 p48、παρ. 4 在 p49）重述 `άρθ. 100`：Β.5 许可 5 年、可续期；续期年限相同，须仍持有房产，离境不妨碍续期；投资门槛不在试点范围。
+- `ν. 5275/2026 άρθ. 12`（p18，印刷页 450）改 `άρθ. 11 παρ. 1`：续期在到期前 2 个月内递交；逾期最迟到期后 3 个月，每逾期一个月罚款 100 欧元。同法 άρθ. 52（p51–p52）规定部分积压续期从递交到新许可生效的期间计入 Μ1。同法 άρθ. 29 改 άρθ. 95 παρ. 2（家属许可与主申请人同日到期，子女满 21 岁另发许可），άρθ. 37 新增 άρθ. 160 παρ. 1 η（连续 12 年合法居留可证明融入）。
+- `ν. 5307/2026 άρθ. 179`（p93，印刷页 4217）重述 `άρθ. 144`：παρ. 1 申请前紧邻的 5 年合法且不间断居留；παρ. 2 άρθ. 143 παρ. 2 ε、στ 所列期间不计，学习或职业培训期间只按一半计；παρ. 3 单次短于 6 个连续月、5 年内合计不超过 10 个月的缺席计入 5 年。
+- 国家印刷局存储可直接下载，每周核对可自动比对。
+
+## SRC-088 希腊国籍法典 άρθ. 5
+
+- `ν. 3838/2010 άρθ. 2`（p2）：άρθ. 5 παρ. 1 α 递交时已成年；δ 申请前连续 7 年合法居留；ε 申请时须持清单内的居留身份。`ν. 4674/2020 άρθ. 94`（p51）：3 年类别为欧盟成员国公民、与希腊人结婚并有子女者、对在希腊出生的希腊籍子女有亲权者、无国籍人。`ν. 4531/2018 άρθ. 31 παρ. 3`（p119）：持其他非临时居留许可的，连续 12 年合法居留。法典没有规定"连续"允许多少缺席。
+
+## SRC-089 希腊内政部说明
+
+- 编纂版（p8–p10）与上列 ΦΕΚ 一致，用于核对现行 άρθ. 5 全文。《归化的形式与实质条件》（p1–p2）：可接受的身份含"投资活动许可、房产所有人许可或投资者永久居留许可"；临时居留身份不能用于申请归化。ypes.gr 对脚本请求返回 403，每周核对需人工处理。清单（άρθ. 5 παρ. 1 ε αθ）只点名旧法（ν. 4251/2014）下的投资者许可，新法 Β.5 是否同样认可没有部长决定，见 PD-105。
