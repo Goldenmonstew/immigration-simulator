@@ -633,6 +633,72 @@ export const en: Record<keyof typeof zhCN, string> = {
   'es.errorSummary': 'Fix the items marked in red first.',
   'es.error.date': 'Enter a valid date.',
   'es.error.order': 'This date cannot be before the start date.',
+  'jp.entryLink': 'Open the Japan pilot',
+  'jp.entryDesc':
+    'Use the start of your stay, your status and travel record to work out the dates for permanent residence and naturalisation, and how a lapsed re-entry permit breaks your stay.',
+  'jp.title': 'Japan: dates for permanent residence and naturalisation (pilot)',
+  'jp.intro':
+    'From when your stay in Japan began, your status and your trips, this works out two steps that depend on time alone: permanent residence (永住許可) and naturalisation (帰化). A trip past your re-entry permit ends your status and starts the stay again, and that is counted too.',
+  'jp.scope':
+    'The pilot checks only the time requirements in the Immigration Control Act, the Nationality Act and the Immigration Services Agency guidelines. It does not check conduct, income, taxes and pensions, highly skilled points, Japanese language or integration; each result lists them. The permanent residence guideline changes from 2027-04-01 (longer periods for spouses and others, and a new test for absences), so dates are worked out by application date; open questions are flagged. Your entries are processed in your browser and are not saved or uploaded.',
+  'jp.basics': 'About you',
+  'jp.simulationDate': 'Simulation date',
+  'jp.simulationDateHint':
+    'Results are worked out for this date (the application date). It starts as today.',
+  'jp.stayStart': 'Start of your unbroken stay in Japan',
+  'jp.stayStartHint':
+    'Enter the landing date your unbroken stay began; add every trip since under "Trips abroad" below, and a trip past your re-entry permit starts the stay again from your return.',
+  'jp.pr': 'Permanent residence',
+  'jp.prRoute': 'Permanent residence route that applies to you',
+  'jp.prRoute.choose': 'Choose one',
+  'jp.prRoute.general':
+    'General: 10 years of unbroken stay, 5 of them on a work or residence status',
+  'jp.prRoute.spouse':
+    'Spouse of a Japanese national, permanent resident or special permanent resident',
+  'jp.prRoute.child':
+    'Child of a Japanese national, permanent resident or special permanent resident',
+  'jp.prRoute.teijusha': 'Long-term resident (定住者)',
+  'jp.prRoute.refugee': 'Recognised refugee or complementary protection',
+  'jp.prRoute.hsp70': 'Highly skilled professional, 70 points or more',
+  'jp.prRoute.hsp80':
+    'Highly skilled professional, 80 points or more, or special highly skilled (J-Skip)',
+  'jp.statusStart.general':
+    'First day on a work or residence status, held without a break since',
+  'jp.statusStart.teijusha': 'Date you became a long-term resident (定住者)',
+  'jp.statusStart.refugee':
+    'Date you were recognised as a refugee or for complementary protection',
+  'jp.statusStart.hsp70': 'First day with 70 points, kept since',
+  'jp.statusStart.hsp80':
+    'First day with 80 points (or as special highly skilled), kept since',
+  'jp.statusStartHint.general':
+    'Technical Intern Training and Specified Skilled Worker (i) do not count; for applications from 2027-04-01, Employment for Skill Development, Intra-company Transferee and some Designated Activities do not count either.',
+  'jp.marriedOn': 'Date of marriage',
+  'jp.marriedOnHint':
+    'The permanent residence guideline counts married life, the Nationality Act the wedding day; the pilot uses this date for both.',
+  'jp.naturalisation': 'Naturalisation (帰化)',
+  'jp.natRoute': 'Naturalisation route that applies to you',
+  'jp.natRoute.choose': 'Choose one',
+  'jp.natRoute.general': 'General (Nationality Act art. 5)',
+  'jp.natRoute.spouse':
+    'Spouse of a Japanese national (Nationality Act art. 7)',
+  'jp.dateOfBirth': 'Date of birth',
+  'jp.trips': 'Trips abroad',
+  'jp.tripsHint':
+    'Add a row for each time you left Japan. You can include planned trips. A trip without a re-entry permit ticked uses the deemed re-entry permit (back within 1 year).',
+  'jp.trip': 'Trip {n}',
+  'jp.departed': 'Date you left Japan',
+  'jp.returned': 'Date you came back to Japan',
+  'jp.reentryPermit':
+    'Left on a re-entry permit (not the deemed permit) and came back while it was valid',
+  'jp.addTrip': 'Add a trip',
+  'jp.remove': 'Remove',
+  'jp.submit': 'Work out dates',
+  'jp.errorSummary': 'Fix the items marked in red first.',
+  'jp.error.date': 'Enter a valid date.',
+  'jp.error.order': 'This date cannot be before the start date.',
+  'jp.error.prRoute':
+    'Choose the permanent residence route that applies to you.',
+  'jp.error.natRoute': 'Choose the naturalisation route that applies to you.',
   'us.entryLink': 'Open the United States pilot',
   'us.entryDesc':
     'Use your green card date and travel record to work out the dates for naturalization, naturalization as the spouse of a citizen, removing conditions and time abroad.',
