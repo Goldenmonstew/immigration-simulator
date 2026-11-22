@@ -6,6 +6,7 @@ import type { Draft } from '../lib/questionnaire';
 import { encodeDraft } from '../lib/share';
 import site from '../app/site.module.css';
 import styles from './share-link.module.css';
+import { asset } from '../lib/asset';
 
 export function ShareLink({ draft }: { draft: Draft }) {
   const { t } = useTranslation();
@@ -13,7 +14,7 @@ export function ShareLink({ draft }: { draft: Draft }) {
   const [copied, setCopied] = useState<string>();
   const [manual, setManual] = useState<{ encoded: string; url: string }>();
   const copy = async () => {
-    const url = `${window.location.origin}/result#s=${encoded}`;
+    const url = `${window.location.origin}${asset('/result')}#s=${encoded}`;
     setCopied(undefined);
     setManual(undefined);
     try {

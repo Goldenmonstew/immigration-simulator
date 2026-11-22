@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { steps } from '../../lib/questionnaire';
 import site from '../site.module.css';
 import styles from './form.module.css';
@@ -15,6 +14,7 @@ import { RelationshipsStep } from './steps/relationships';
 import { EnglishStep } from './steps/english';
 import { DateStep } from './steps/date';
 import { PrincipalStep } from './steps/principal';
+import { asset } from '../../lib/asset';
 
 export default function SimulatePage() {
   const form = useFormKit();
@@ -137,7 +137,7 @@ export default function SimulatePage() {
                     {t('form.back')}
                   </button>
                 ) : (
-                  <Link href="/">{t('site.home')}</Link>
+                  <a href={asset('/')}>{t('site.home')}</a>
                 )}
               </div>
             </form>

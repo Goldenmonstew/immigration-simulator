@@ -10,10 +10,12 @@
   - `sw.js` 从 `self.registration.scope` 取前缀，预缓存页面与静态资源按前缀；`manifest.webmanifest` 改为相对路径；
   - 新增 `.github/workflows/github-pages.yml`：main 的 CI 通过后以 `BASE_PATH=/<仓库名>` 构建并发布到 GitHub Pages；
   - 仓库已开启 Pages（Source：GitHub Actions），地址 <https://goldenmonstew.github.io/uk-immigration-simulator/>；`docs/deploy.md` 补说明。
+- 审核修正（review66-1）：分享链接按 `asset('/result')` 生成，不再跳出子路径；站头、错误页、问卷页的"首页"改为指向带尾斜杠的 `asset('/')`（Next 渲染的 basePath 不带尾斜杠，离线时落在 Service Worker 范围之外）；发布工作流补 `contents: read`，并在发布前检查构建产物带子路径，重跑旧提交的 CI 时不会发布根路径页面。
 
 ## 2. 怎么验证的
 
 - 不设 `BASE_PATH`（Cloudflare 用的根路径）：`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过（GATE EXIT 0；engine 2,892 项、policy-data 23 项、game 1,336 项、web 596 项），`npx playwright test --project=desktop` 全部 47 项通过（含离线与游戏）。
+- 审核修正后重跑上述门禁与 e2e（47 项）均通过；子路径构建的首页、问卷页首页链接为 `/uk-immigration-simulator/`，产物通过发布前的子路径检查。
 - 设 `BASE_PATH=/uk-immigration-simulator` 构建，放在本地静态服务器的同名子路径下用浏览器检查：首页链接、希腊页跳转正常；Service Worker 范围为子路径，12 个页面、manifest、图标与 50 个 `_next` 资源进入缓存；进入游戏后地图 JSON、图块、精灵与头像均 200，无 404。
 
 ## 3. 没做或没验证的

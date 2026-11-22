@@ -8,6 +8,7 @@ import { useTranslation } from '../i18n/locale';
 import { buildVersion } from '../lib/report';
 import styles from '../app/site.module.css';
 import game from '../app/game/game.module.css';
+import { asset } from '../lib/asset';
 
 export function SiteShell({ children }: { children: ReactNode }) {
   const { t, locale, setLocale } = useTranslation();
@@ -47,7 +48,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
       </a>
       <header className={isGame ? game.siteHeader : styles.header}>
         <div className={isGame ? game.siteHeaderInner : styles.headerInner}>
-          <Link href="/">
+          {/* The base path with its slash stays in the service worker scope. */}
+          <a href={asset('/')}>
             {isGame ? (
               t('game.returnSimulator')
             ) : (
@@ -58,7 +60,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
                 </span>
               </>
             )}
-          </Link>
+          </a>
           {!isGame && (
             <nav
               className={styles.navigation}

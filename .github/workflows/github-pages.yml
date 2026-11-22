@@ -16,6 +16,7 @@ jobs:
     if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
@@ -35,6 +36,10 @@ jobs:
         env:
           BUILD_SHA: ${{ github.event.workflow_run.head_sha }}
           BASE_PATH: /${{ github.event.repository.name }}
+      # A re-run of CI for a commit from before the base path support would
+      # publish root-path pages; refuse to publish those.
+      - name: Check the base path
+        run: grep -q '/${{ github.event.repository.name }}/_next/' apps/web/out/index.html
       - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/web/out
