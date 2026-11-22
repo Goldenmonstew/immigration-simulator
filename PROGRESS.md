@@ -345,6 +345,11 @@
 | 301 | 任务 60 第七轮审核修正（review60-7）：已取消 s49 条件时仍保留宗教工作者 5 年门槛；"尚未满足"时入籍检查项显示未满足；条件问题写明按模拟日；SOURCES 中 RV1.20 说明补齐例外。 | packages/engine/src/new-zealand.ts、packages/engine/test/new-zealand.test.ts、apps/web/i18n/{zh-CN,en}.ts、docs/ |
 | 304 | 任务 60 报告补记最终验证（门禁、CI、八轮 Codex 审核通过）。 | docs/tasks/reports/60-new-zealand.md |
 | 306 | 任务 61 合入新西兰最终修正与 main，报告补记最终验证（门禁、e2e 18 项、两轮 Codex 审核通过）。 | docs/tasks/reports/61-canada.md、apps/web/app/new-zealand/new-zealand-content.tsx |
+| 310 | 任务 65：澳大利亚试点补 189、191 香港类别（持签满 4／3 年、连续通常居住、191 只在指定地区）；参数、485 签证、表单勾选项、PD-108、SRC-062 定位、阶段计划与报告。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、packages/policy-data/src/parameters/australia-2026-11.ts、apps/web/app/australia/australia-content.tsx、apps/web/lib/australia.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/australia.test.tsx、docs/ |
+| 311 | 任务 65 审核修正（review65-1）：护照勾选项写明当前签证须为主申请人获批、准许停留 5 年；191 香港地区类别改填指定地区起始日，窗口随递交日移动；文案与范围说明；补用例。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、apps/web/app/australia/australia-content.tsx、apps/web/lib/australia.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/australia.test.tsx、docs/ |
+| 314 | 任务 65 第二轮审核修正（review65-2）：香港类别签证到期日留空时按生效后 5 年计，递交时须仍持有；补用例。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、packages/policy-data/src/parameters/australia-2026-11.ts、docs/ |
+| 315 | 任务 65 第三轮审核修正（review65-3）：香港类别签证到期日取填写日期与生效后 5 年中较早者，后续签证不再延长；补用例。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、docs/ |
 | 309 | 任务 62 合入 main（新西兰、加拿大），报告补记最终验证（门禁、e2e 20 项、八轮 Codex 审核通过）。 | docs/tasks/reports/62-united-states.md |
 | 312 | 任务 63 合入 main（新西兰、加拿大、美国），长期居留检查项写明到期时已满 5 年（review63-5 建议），报告补记最终验证（门禁、e2e 22 项、五轮 Codex 审核通过）。 | packages/engine/src/spain.ts、docs/tasks/reports/63-spain.md |
 | 313 | 任务 64 合入西班牙分支（含 main），SRC-087、SRC-088 按具体法律给出直达链接。 | packages/policy-data/src/parameters/greece-2026-11.ts、packages/engine/src/greece.ts、docs/tasks/reports/64-greece.md |
+| 316 | 任务 65 合入 main，报告补记最终验证（门禁、e2e 47 项、四轮 Codex 审核通过）。 | docs/tasks/reports/65-australia-hong-kong.md |

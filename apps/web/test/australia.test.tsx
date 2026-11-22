@@ -102,6 +102,18 @@ test('the request leaves out blank end dates and an unticked partner', () => {
     stream: 'onshore',
     longTermRelationship: false,
   });
+  // The Hong Kong streams only when the passport question is ticked.
+  expect(request).not.toHaveProperty('hongKong');
+  expect(auRequest({ ...filled, hongKong: true }, 'en').hongKong).toEqual({});
+  expect(
+    auRequest({ ...filled, hongKong: true, regionalSince: '2024-06-01' }, 'en')
+      .hongKong,
+  ).toEqual({ regionalSince: '2024-06-01' });
+  expect(
+    validateAuForm({ ...filled, hongKong: true, regionalSince: '2024-13-01' })[
+      'au-regional-since'
+    ],
+  ).toBe('au.error.date');
 });
 
 test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
@@ -114,3 +126,26 @@ test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
   expect(html).toContain(`href="${sourceUrls['SRC-061']}"`);
   expect(html).toContain('PD-084');
 });
+
+test.each(['zh-CN', 'en'] as const)(
+  'Hong Kong stream results render in %s',
+  (locale) => {
+    const result = evaluateAustralia(
+      auRequest(
+        {
+          ...emptyAuForm('2026-11-22'),
+          dateOfBirth: '1990-05-01',
+          firstArrival: '2021-07-01',
+          visas: [{ subclass: '485', from: '2022-12-01', to: '2027-11-30' }],
+          hongKong: true,
+          regionalSince: '2024-06-01',
+        },
+        locale,
+      ),
+    );
+    const html = render(<PilotResult result={result} />, locale);
+    expect(html).toContain('data-pathway="AU-189-HK"');
+    expect(html).toContain('data-pathway="AU-191-HK" data-status="FUTURE"');
+    expect(html).toContain('2027-06-01');
+  },
+);
