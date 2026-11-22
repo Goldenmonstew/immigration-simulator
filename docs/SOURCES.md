@@ -107,6 +107,7 @@
 | SRC-087 | LAW | 希腊移民法典的修订：ν. 5100/2024（ΦΕΚ Α' 49/05.04.2024，άρθ. 64 重述 άρθ. 100）、ν. 5275/2026（ΦΕΚ Α' 17/06.02.2026，άρθ. 12 改 άρθ. 11 续期期限）、ν. 5307/2026（ΦΕΚ Α' 90/11.06.2026，άρθ. 179 重述 άρθ. 144） | https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2024/20240100049.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100017.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100090.pdf | 见标题 | 2026-11-21 | `policy-sources/2024-04-05-gr-fek-a49-2024-n5100.pdf`（sha256 `0cc59defe70fdc725028ec4520e68182dff84bd343ff3a07ecf8cf1ebf861d75`）；`policy-sources/2026-02-06-gr-fek-a17-2026-n5275.pdf`（sha256 `eff39df99fb9d8e66c335852b0f0e3906c988ddbef0e8e84c5d6e38d6997f3c5`）；`policy-sources/2026-06-11-gr-fek-a90-2026-n5307.pdf`（sha256 `27b3c693ae0db6cd43fcb308a06ba390c52e20adf4e64f957477ed3945b06f9a`） | archived |
 | SRC-088 | LAW | Κώδικας Ελληνικής Ιθαγένειας（希腊国籍法典）άρθ. 5 的现行文本来源：ν. 3838/2010（ΦΕΚ Α' 49/24.03.2010，άρθ. 2 替换 άρθ. 5）、ν. 4531/2018（ΦΕΚ Α' 62/05.04.2018，άρθ. 31 παρ. 3 加入 12 年路径）、ν. 4674/2020（ΦΕΚ Α' 53/11.03.2020，άρθ. 94 重写 3 年类别） | https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2010/20100100049.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2018/20180100062.pdf ；https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2020/20200100053.pdf | 见标题 | 2026-11-21 | `policy-sources/2010-03-24-gr-fek-a49-2010-n3838.pdf`（sha256 `8c9c6f08c55ba50bc059695f1926d244f347134a82c78f4eed8bb58bea38a3fc`）；`policy-sources/2018-04-05-gr-fek-a62-2018-n4531.pdf`（sha256 `cdc3384ecce232839580139e3615e2afd9ff59767faf6a81a2e4f64f62e747d0`）；`policy-sources/2020-03-11-gr-fek-a53-2020-n4674.pdf`（sha256 `d1da943f93121e8308e6d1994b4915fbc689f66a954d36c5c45344145adfff33`） | archived |
 | SRC-089 | GUIDANCE | 希腊内政部（ΥΠΕΣ）：国籍法典编纂版（截至 2025-09-17，卷首注明仅供参考、以 ΦΕΚ 为准）；《归化的形式与实质条件》（最后更新 2026-01-30） | https://www.ypes.gr/wp-content/uploads/2025/09/20250917-KEI-NOMOS.pdf ；https://www.ypes.gr/wp-content/uploads/2026/02/Proypotheseis20260130.pdf | 见标题 | 2026-11-21 | `policy-sources/2025-09-17-gr-ypes-kei-codified.pdf`（sha256 `a3545245db1a0da28df1947df945be3b6111dd3c74715fe7679e2e6a52b9fa23`）；`policy-sources/2026-01-30-gr-ypes-naturalisation-requirements.pdf`（sha256 `631f06cbd885f72599ae2886d878b50464c3c09126fbcf66d73f3ed655c8b9a0`） | archived |
+| SRC-090 | LAW | Ley 39/2015（Procedimiento Administrativo Común，行政程序法），BOE 合并文本 PDF（Última actualización 2024-11-06，73 页）：art. 30 期间计算 | https://www.boe.es/buscar/pdf/2015/BOE-A-2015-10565-consolidado.pdf | 2024-11-06 | 2026-11-22 | `policy-sources/2024-11-06-es-boe-ley39-2015.pdf`（sha256 `f92d4402b820d2af2dcf115832706210e984a5946218bae4a66650a52271417c`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -758,3 +759,9 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-089 希腊内政部说明
 
 - 编纂版（p8–p10）与上列 ΦΕΚ 一致，用于核对现行 άρθ. 5 全文。《归化的形式与实质条件》（p1–p2）：可接受的身份含"投资活动许可、房产所有人许可或投资者永久居留许可"；临时居留身份不能用于申请归化。ypes.gr 对脚本请求返回 403，每周核对需人工处理。清单（άρθ. 5 παρ. 1 ε αθ）只点名旧法（ν. 4251/2014）下的投资者许可，新法 Β.5 是否同样认可没有部长决定，见 PD-105。
+
+## SRC-090 西班牙行政程序法 Ley 39/2015
+
+- `policy-sources/2024-11-06-es-boe-ley39-2015.pdf` → <https://www.boe.es/buscar/pdf/2015/BOE-A-2015-10565-consolidado.pdf>
+- art. 30（p29–p30）：期间按日计时为工作日，周六、周日与法定节假日不计（30.2）；按月计的期间到起算日在届满月的同一日结束（30.4）；最后一天不是工作日的，顺延到下一个工作日（30.5）。节假日由国家与各自治区每年公布（30.7）。
+
