@@ -52,9 +52,10 @@
 
 ## 2. 怎么验证的
 
-- `pnpm lint && pnpm typecheck && pnpm test && pnpm build`：通过（GATE EXIT 0）。engine 2,790 项通过、1 项跳过（其中新西兰 23 项，最早日期都按条文手算后写进断言），policy-data 23 项，game 1,336 项，web 565 项。
-- `npx playwright test new-zealand.spec.ts australia.spec.ts a11y.spec.ts site.spec.ts --project=desktop`：16 项通过，覆盖新西兰问卷的错误摘要聚焦与跳转、填写到结果、结果页无障碍、切换英文，以及 `/new-zealand` 的无障碍与断网可打开。
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build`（第七轮修正后）：通过（GATE EXIT 0）。engine 2,806 项通过、1 项跳过（其中新西兰 39 项，最早日期都按条文手算后写进断言），policy-data 23 项，game 1,336 项，web 565 项。
+- CI（`check`、`e2e`）在 `0171343` 上通过；本地 `npx playwright test new-zealand.spec.ts australia.spec.ts a11y.spec.ts site.spec.ts --project=desktop` 曾 16 项通过，覆盖错误摘要聚焦与跳转、填写到结果、无障碍、切换英文、`/new-zealand` 断网可打开。
 - 在浏览器预览中填写问卷，确认结果卡片、检查项与来源链接显示正常。
+- Codex（gpt-6.2-sol）只读审核共八轮，第八轮（review60-8）结论"通过"；各轮问题与处理见第 1 节。
 
 ## 3. 没做或没验证的
 
