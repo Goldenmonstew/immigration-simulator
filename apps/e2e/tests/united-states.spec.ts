@@ -20,8 +20,9 @@ test('the United States pilot works out naturalization dates', async ({
   await page.getByLabel('模拟日期').fill('2026-11-21');
   await page.getByLabel('出生日期').fill('1990-05-01');
   await page.getByLabel('取得永久居民身份的日期').fill('2022-03-01');
+  await page.getByLabel('开始住在现在所在州').fill('2020-01-01');
   await page.getByLabel('我与美国公民结婚并同住').check();
-  await page.getByLabel('结婚日期').fill('2023-06-01');
+  await page.getByLabel('结婚日期').fill('2024-06-01');
   await page.getByRole('button', { name: '计算' }).click();
 
   await expect(page.getByRole('heading', { name: '计算结果' })).toBeFocused();
@@ -29,9 +30,9 @@ test('the United States pilot works out naturalization dates', async ({
   const general = page.locator('[data-pathway="US-NATURALIZATION"]');
   await expect(general).toHaveAttribute('data-status', 'FUTURE');
   await expect(general).toContainText('最早 2026-12-01 满足时间条件');
-  // 3 years of marriage from 2023-06-01 cannot be filed early.
+  // 3 years of marriage from 2024-06-01 cannot be filed early.
   await expect(page.locator('[data-pathway="US-SPOUSE"]')).toContainText(
-    '最早 2026-06-01',
+    '最早 2027-06-01',
   );
   const { violations } = await new AxeBuilder({ page }).analyze();
   expect(

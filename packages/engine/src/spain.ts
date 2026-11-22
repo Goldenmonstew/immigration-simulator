@@ -75,6 +75,35 @@ export function evaluateSpain(req: EsRequest): EsResult {
   const covered = (s: number[], from: IsoDate, to: IsoDate) =>
     days.total(s, from, to) === daysBetween(from, to) + 1;
   /** Trips with full days abroad inside [from, to]. */
+  /** For each day, the first day from it on without a counted permit. */
+  const nextGap = (flag: (i: number) => boolean) => {
+    const next = new Array<number>(days.count + 1).fill(days.count);
+    for (let i = days.count - 1; i >= 0; i--)
+      next[i] = flag(i) ? next[i + 1] : i;
+    return next;
+  };
+  const gaps = {
+    residence: nextGap((i) => residence[i]),
+    withStudy: nextGap((i) => residence[i] || study[i]),
+  };
+  /**
+   * Covered from `from` to the day before `d`, or until a permit that expired
+   * at most 3 months before `d` with nothing after it, when the five years
+   * were already complete on its last day: applying for long-term residence
+   * then extends it (art. 184.2).
+   */
+  const extended = (s: number[], gap: number[], from: IsoDate, d: IsoDate) => {
+    const to = addDays(d, -1);
+    const a = days.index(from);
+    if (a < 0 || gap[a] > days.index(to)) return covered(s, from, to);
+    if (gap[a] === a) return false;
+    const end = days.date(gap[a] - 1);
+    return (
+      days.total(s, addDays(end, 1), to) === 0 &&
+      d <= addMonths(end, v.longTermLateMonths.value) &&
+      covered(s, addYears(addDays(end, 1), -v.longTermYears.value), end)
+    );
+  };
   /** Trips under way on any day of [from, to], travel days included. */
   const tripsTouching = (from: IsoDate, to: IsoDate) =>
     req.trips.filter((t) => t.departed <= to && t.returned >= from);
@@ -106,11 +135,9 @@ export function evaluateSpain(req: EsRequest): EsResult {
       const from = addYears(d, -years);
       const to = addDays(d, -1);
       const trips = tripsIn(from, to);
-      // Covered up to the day before applying: an application within 3 months
-      // of the permit expiring extends it (art. 184.2).
       return {
-        legal: covered(sums.residence, from, to),
-        withStudy: covered(sums.withStudy, from, to),
+        legal: extended(sums.residence, gaps.residence, from, d),
+        withStudy: extended(sums.withStudy, gaps.withStudy, from, d),
         long: trips.filter(
           (t) =>
             t.returned > addMonths(t.departed, v.singleAbsenceMonths.value),
@@ -164,8 +191,8 @@ export function evaluateSpain(req: EsRequest): EsResult {
       checks: [
         {
           text: L(
-            `前 ${years} 年一直持有居留许可（不含学习停留；许可到期后 3 个月内递交的，原许可延长至决定作出）`,
-            `A residence permit throughout the past ${years} years (study stays not included; applying within 3 months of expiry extends the permit until the decision)`,
+            `前 ${years} 年一直持有居留许可（不含学习停留；到期时已满 ${years} 年、到期后 ${v.longTermLateMonths.value} 个月内递交的，原许可延长至决定作出，art. 184.2）`,
+            `A residence permit throughout the past ${years} years (study stays not included; with ${years} years complete when it expired, applying within ${v.longTermLateMonths.value} months of expiry extends the permit until the decision, art. 184.2)`,
           ),
           met: f.legal ? true : f.withStudy ? undefined : false,
           sources: v.longTermYears.sources,

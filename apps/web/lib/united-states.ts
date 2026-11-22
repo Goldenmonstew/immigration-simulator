@@ -12,6 +12,12 @@ export interface UsForm {
   dateOfBirth: string;
   permanentResident: string;
   conditional: UsConditional;
+  /**
+   * Conditional green cards: the person who married or invested, or a
+   * spouse or child who got status with them. Empty until chosen.
+   */
+  role: '' | 'principal' | 'joint' | 'separate';
+  principalSince: string;
   stateResidenceFrom: string;
   married: boolean;
   marriedOn: string;
@@ -29,6 +35,8 @@ export function emptyUsForm(today: string): UsForm {
     dateOfBirth: '',
     permanentResident: '',
     conditional: 'none',
+    role: '',
+    principalSince: '',
     stateResidenceFrom: '',
     married: false,
     marriedOn: '',
@@ -48,6 +56,16 @@ export function validateUsForm(form: UsForm): UsErrors {
   date('us-date-of-birth', form.dateOfBirth);
   date('us-permanent-resident', form.permanentResident);
   date('us-state-residence-from', form.stateResidenceFrom, true);
+  if (form.conditional !== 'none' && !form.role)
+    errors['us-role'] = 'us.error.role';
+  if (form.conditional !== 'none' && form.role === 'joint') {
+    date('us-principal-since', form.principalSince);
+    if (
+      validDate(form.principalSince) &&
+      form.principalSince > form.permanentResident
+    )
+      errors['us-principal-since'] = 'us.error.principalOrder';
+  }
   if (form.married) {
     date('us-married-on', form.marriedOn);
     date('us-spouse-citizen-since', form.spouseCitizenSince, true);
@@ -57,6 +75,8 @@ export function validateUsForm(form: UsForm): UsErrors {
     date(`us-trip-${i}-returned`, trip.returned);
     if (validDate(trip.returned) && trip.returned < trip.departed)
       errors[`us-trip-${i}-returned`] = 'us.error.order';
+    if (validDate(trip.departed) && trip.departed < form.permanentResident)
+      errors[`us-trip-${i}-departed`] = 'us.error.beforeGreenCard';
   });
   return errors;
 }
@@ -67,6 +87,12 @@ export function usRequest(form: UsForm, locale: Locale): UsRequest {
     dateOfBirth: form.dateOfBirth,
     permanentResident: form.permanentResident,
     conditional: form.conditional,
+    ...(form.conditional !== 'none' && form.role === 'joint'
+      ? { principalConditional: form.principalSince }
+      : {}),
+    ...(form.conditional !== 'none' && form.role === 'separate'
+      ? { separatePetition: true }
+      : {}),
     ...(form.stateResidenceFrom
       ? { stateResidenceFrom: form.stateResidenceFrom }
       : {}),

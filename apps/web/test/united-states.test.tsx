@@ -21,6 +21,7 @@ const filled: UsForm = {
   ...emptyUsForm('2026-11-21'),
   dateOfBirth: '1990-05-01',
   permanentResident: '2021-03-01',
+  stateResidenceFrom: '2020-01-01',
   trips: [{ departed: '2024-01-10', returned: '2024-02-10' }],
 };
 
@@ -48,12 +49,16 @@ test('validation marks missing and out-of-order dates', () => {
       ...emptyUsForm('2026-11-21'),
       permanentResident: '2022-03-01',
       married: true,
-      trips: [{ departed: '2024-02-10', returned: '2024-01-10' }],
+      trips: [
+        { departed: '2024-02-10', returned: '2024-01-10' },
+        { departed: '2021-02-10', returned: '2021-03-10' },
+      ],
     }),
   ).toEqual({
     'us-date-of-birth': 'us.error.date',
     'us-married-on': 'us.error.date',
     'us-trip-0-returned': 'us.error.order',
+    'us-trip-1-departed': 'us.error.beforeGreenCard',
   });
   expect(validateUsForm(filled)).toEqual({});
 });
@@ -61,11 +66,49 @@ test('validation marks missing and out-of-order dates', () => {
 test('the request leaves out an unticked marriage and blank dates', () => {
   const request = usRequest(filled, 'en');
   expect(request).not.toHaveProperty('marriage');
-  expect(request).not.toHaveProperty('stateResidenceFrom');
+  expect(
+    usRequest({ ...filled, stateResidenceFrom: '' }, 'en'),
+  ).not.toHaveProperty('stateResidenceFrom');
   expect(
     usRequest({ ...filled, married: true, marriedOn: '2022-01-01' }, 'en')
       .marriage,
   ).toEqual({ married: '2022-01-01' });
+});
+
+test('filing with a principal applicant needs their date', () => {
+  // A conditional green card asks how it was obtained.
+  expect(validateUsForm({ ...filled, conditional: 'marriage' })).toEqual({
+    'us-role': 'us.error.role',
+  });
+  const joint = {
+    ...filled,
+    conditional: 'investor' as const,
+    role: 'joint' as const,
+  };
+  expect(validateUsForm(joint)).toEqual({
+    'us-principal-since': 'us.error.date',
+  });
+  expect(
+    validateUsForm({ ...joint, principalSince: '2099-01-01' })[
+      'us-principal-since'
+    ],
+  ).toBe('us.error.principalOrder');
+  expect(
+    usRequest({ ...joint, principalSince: '2018-01-01' }, 'en')
+      .principalConditional,
+  ).toBe('2018-01-01');
+  // Filing separately needs no date and is passed on as such.
+  const separate = { ...joint, role: 'separate' as const };
+  expect(validateUsForm(separate)).toEqual({});
+  expect(usRequest(separate, 'en')).toMatchObject({ separatePetition: true });
+  expect(usRequest(separate, 'en')).not.toHaveProperty('principalConditional');
+  // Ignored once the green card is not conditional.
+  expect(
+    usRequest(
+      { ...joint, conditional: 'none', principalSince: '2018-01-01' },
+      'en',
+    ),
+  ).not.toHaveProperty('principalConditional');
 });
 
 test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {

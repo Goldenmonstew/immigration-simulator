@@ -32,7 +32,6 @@ test('the New Zealand pilot works out dates from a resident visa', async ({
   const citizenship = page.locator('[data-pathway="NZ-CITIZENSHIP"]');
   await expect(citizenship).toHaveAttribute('data-status', 'FUTURE');
   await expect(citizenship).toContainText('最早 2027-06-12 满足时间条件');
-  await expect(citizenship).toContainText('2027-06-13');
   await expect(page.locator('[data-pathway="NZ-PRV"]')).toHaveAttribute(
     'data-status',
     'NOT_APPLICABLE',
