@@ -1,6 +1,6 @@
 # 任务 61 报告：加拿大试点
 
-本分支基于任务 60（新西兰，PR #46）。
+本分支基于任务 60（新西兰，PR #46，已合并）。
 
 ## 1. 做了什么（按 commit）
 
@@ -25,7 +25,9 @@
 
 ## 2. 怎么验证的
 
-（合并前补齐）
+- 合入新西兰最终修正与 main 后，`pnpm lint && pnpm typecheck && pnpm test && pnpm build`：通过（GATE EXIT 0）。engine 2,821 项通过、1 项跳过（其中加拿大 15 项，最早日期都按条文手算后写进断言），policy-data 23 项，game 1,336 项，web 572 项。
+- `E2E_PORT=4361 npx playwright test canada.spec.ts new-zealand.spec.ts australia.spec.ts a11y.spec.ts site.spec.ts --project=desktop`：18 项通过，覆盖加拿大问卷的错误摘要、填写到结果、切换英文，共用表单组件改写后的新西兰与澳洲页，以及 `/canada` 的无障碍与断网可打开。
+- Codex（gpt-6.2-sol）只读审核两轮，第二轮（review61-2）结论"通过"；第二轮建议的措辞已在 `Docs: 加拿大试点第二轮审核建议的措辞修正` 中处理。
 
 ## 3. 没做或没验证的
 

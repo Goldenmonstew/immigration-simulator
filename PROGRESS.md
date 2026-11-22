@@ -319,3 +319,4 @@
 | 297 | 任务 60 第六轮审核修正（review60-6）：s49 条件"没有，或已办理取消"作为明确值传给引擎，新增默认"不确定（按签证类别判断）"；宗教工作者入籍检查项按 s8(3)；条件待取消时不给税务路线日期；随同申请人摘要写明 RV1.20 例外。 | packages/engine/src/new-zealand.ts、packages/engine/test/new-zealand.test.ts、apps/web/app/new-zealand/、apps/web/lib/new-zealand.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/new-zealand.test.tsx、docs/tasks/reports/60-new-zealand.md |
 | 301 | 任务 60 第七轮审核修正（review60-7）：已取消 s49 条件时仍保留宗教工作者 5 年门槛；"尚未满足"时入籍检查项显示未满足；条件问题写明按模拟日；SOURCES 中 RV1.20 说明补齐例外。 | packages/engine/src/new-zealand.ts、packages/engine/test/new-zealand.test.ts、apps/web/i18n/{zh-CN,en}.ts、docs/ |
 | 304 | 任务 60 报告补记最终验证（门禁、CI、八轮 Codex 审核通过）。 | docs/tasks/reports/60-new-zealand.md |
+| 306 | 任务 61 合入新西兰最终修正与 main，报告补记最终验证（门禁、e2e 18 项、两轮 Codex 审核通过）。 | docs/tasks/reports/61-canada.md、apps/web/app/new-zealand/new-zealand-content.tsx |
