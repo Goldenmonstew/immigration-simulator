@@ -71,7 +71,11 @@ export const germany2026_11 = {
       sources: [
         aufenthG('§ 18c Abs. 2 Satz 1', '18c'),
         { srcId: 'SRC-107', locator: 'Nr. 18c.2.1.1 (p117)' },
-        { srcId: 'SRC-109', locator: 'Die Blaue Karte EU' },
+        {
+          srcId: 'SRC-109',
+          locator: 'Die Blaue Karte EU',
+          url: 'https://www.bamf.de/DE/Themen/MigrationAufenthalt/ZuwandererDrittstaaten/Migrathek/BlaueKarteEU/blauekarteeu-node.html',
+        },
       ],
     },
     blueCardB1Months: {
@@ -152,7 +156,11 @@ export const germany2026_11 = {
         stAG('§ 10 Abs. 1 Satz 1', '10'),
         stAG('§ 9 Abs. 1 Satz 1', '9'),
         { srcId: 'SRC-106', locator: 'Nr. 10.1.0 Rdn. 1 (p44)' },
-        { srcId: 'SRC-109', locator: 'Einbürgerung' },
+        {
+          srcId: 'SRC-109',
+          locator: 'Einbürgerung',
+          url: 'https://www.bamf.de/DE/Themen/Integration/ZugewanderteTeilnehmende/Einbuergerung/einbuergerung-node.html',
+        },
       ],
     },
     // Married to (or partnered with) a German for this many years.

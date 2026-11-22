@@ -160,4 +160,19 @@ export const sourceUrls: Record<string, string> = {
     'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2010/20100100049.pdf',
   'SRC-089':
     'https://www.ypes.gr/wp-content/uploads/2026/02/Proypotheseis20260130.pdf',
+  'SRC-100':
+    'https://www.gesetze-im-internet.de/aufenthg_2004/BJNR195010004.html',
+  'SRC-101': 'https://www.gesetze-im-internet.de/stag/BJNR005830913.html',
+  'SRC-102': 'https://www.gesetze-im-internet.de/bgb/__187.html',
+  'SRC-103': 'https://www.gesetze-im-internet.de/asylvfg_1992/__55.html',
+  'SRC-104': 'https://dserver.bundestag.de/btd/21/005/2100537.pdf',
+  'SRC-105': 'https://dserver.bundestag.de/btd/20/090/2009044.pdf',
+  'SRC-106':
+    'https://www.bmi.bund.de/SharedDocs/downloads/DE/veroeffentlichungen/themen/verfassung/staatsangehoerigkeit/2505_anwendungshinweise-staatsangehoerigkeit.pdf?__blob=publicationFile&v=6',
+  'SRC-107':
+    'https://www.bmi.bund.de/SharedDocs/downloads/DE/veroeffentlichungen/themen/migration/anwendungshinweise-fachkraefteeinwanderungsgesetz.pdf?__blob=publicationFile&v=5',
+  'SRC-108':
+    'https://www.verwaltungsvorschriften-im-internet.de/pdf/BMI-MI3-20091026-SF-A001.pdf',
+  'SRC-109':
+    'https://www.bamf.de/DE/Themen/MigrationAufenthalt/ZuwandererDrittstaaten/Migrathek/Niederlassen/niederlassen-node.html',
 };
