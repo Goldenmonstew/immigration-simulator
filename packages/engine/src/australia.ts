@@ -80,8 +80,11 @@ export interface AuRequest {
    * primary applicant (Sch 1 items 1137(4L)(e), (4M), 1139(3)(ca), (3A)).
    */
   hongKong?: {
-    /** Lived, worked and studied only in designated regional areas in the 3 years before applying (191.231(2)). */
-    regionalOnly: boolean;
+    /**
+     * From this day on, not living, working or studying outside designated
+     * regional areas (191.231(2)); absent = not so.
+     */
+    regionalSince?: IsoDate;
   };
   locale?: Locale;
 }
@@ -399,7 +402,7 @@ export function evaluateAustralia(req: AuRequest): AuResult {
           'Subclass 189 permanent residence (Hong Kong stream)',
         ),
         years: v.hongKongIndependentYears,
-        regional: undefined,
+        regional: undefined as { since?: IsoDate } | undefined,
         residenceSource: { srcId: 'SRC-062', locator: '189.242' },
         conditionsSource: '189.241',
       },
@@ -410,7 +413,7 @@ export function evaluateAustralia(req: AuRequest): AuResult {
           'Subclass 191 permanent residence (Hong Kong (Regional) stream)',
         ),
         years: v.hongKongRegionalYears,
-        regional: req.hongKong.regionalOnly,
+        regional: { since: req.hongKong.regionalSince },
         residenceSource: { srcId: 'SRC-062', locator: '191.232' },
         conditionsSource: '191.231(1)',
       },
@@ -429,8 +432,8 @@ export function evaluateAustralia(req: AuRequest): AuResult {
       ];
       const assumptions = [
         L(
-          '你已确认持香港特区或 BN(O) 护照，且 457／482／485 签证是作为主申请人获批的（2020-07-09 起获批的须为可停留 5 年的签证）；本试点不核对。',
-          'You have confirmed that you hold a Hong Kong or BN(O) passport and that your 457, 482 or 485 visa was granted to you as the primary applicant (one granted from 9 July 2020 must allow a 5-year stay); this pilot does not check it.',
+          '你已确认持香港特区或 BN(O) 护照，且当前这份 457／482／485 签证是作为主申请人获批、自生效起准许停留 5 年的签证（2020-07-09 起获批的；更早获批的须不准许在 2025-07-08 之后停留，Sch 1 item 1137(4M)(c)、1139(3A)(c)）；本试点不核对。',
+          'You have confirmed that you hold a Hong Kong or BN(O) passport and that your current 457, 482 or 485 visa was granted to you as the primary applicant and allows a 5-year stay from when it came into effect (granted from 9 July 2020; one granted earlier must not allow a stay after 8 July 2025, Sch 1 items 1137(4M)(c), 1139(3A)(c)); this pilot does not check it.',
         ),
         L(
           `"连续通常居住"法规没有定义：从首次入境起算，年限内有出境记录的输出 UNKNOWN，摘要给出不计出境时的日期（PD-108）。`,
@@ -466,10 +469,14 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         req.trips.filter(
           (t) => t.departed <= addDays(d, -1) && t.returned >= addYears(d, -n),
         );
-      const earliest =
-        s.regional === false
-          ? undefined
-          : firstDate((d) => holding(d) && resident(d));
+      // 191: no time outside designated regional areas in the years before.
+      const since = s.regional?.since;
+      const regionalOk = (d: IsoDate) =>
+        !s.regional || (!!since && since <= addYears(d, -n));
+      const noRegion = !!s.regional && !since;
+      const earliest = noRegion
+        ? undefined
+        : firstDate((d) => holding(d) && resident(d) && regionalOk(d));
       const unsure = !!earliest && tripsIn(earliest).length > 0;
       const trips = earliest ? tripsIn(earliest) : [];
       pathways.push({
@@ -477,42 +484,41 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         title: s.title,
         status: unsure ? 'UNKNOWN' : statusOf(earliest),
         earliestDate: unsure ? undefined : earliest,
-        summary:
-          s.regional === false
-            ? L(
-                `191 香港地区类别要求递交前 ${n} 年只在指定地区居住、工作和学习（191.231(2)）；不符合的可看 189 香港类别。`,
-                `The Hong Kong (Regional) stream needs you to have lived, worked and studied only in designated regional areas in the ${n} years before applying (191.231(2)); otherwise see the subclass 189 Hong Kong stream.`,
-              )
-            : earliest
-              ? (unsure
-                  ? L(
-                      `不计出境时，持签证与居住满 ${n} 年的候选递交日是 ${earliest}。`,
-                      `Ignoring trips, the candidate application date with ${n} years of holding the visa and living in Australia is ${earliest}.`,
-                    )
-                  : earliest === sim
-                    ? L(
-                        `模拟日已满足香港类别的时间条件。`,
-                        'You meet the time requirements for the Hong Kong stream on the simulation date.',
-                      )
-                    : L(
-                        `满足香港类别时间条件的最早递交日是 ${earliest}，届时须仍持有当前 ${current.subclass} 签证。`,
-                        `The earliest application date that meets the time requirements for the Hong Kong stream is ${earliest}; you must still hold your current subclass ${current.subclass} visa then.`,
-                      )) +
-                (unsure
-                  ? L(
-                      `这 ${n} 年里有 ${trips.length} 次出境，法规没有说多少出境仍算"连续通常居住"（PD-108）。`,
-                      ` You have ${trips.length} trips abroad in those years; the rules do not say how much time away still counts as usually resident (PD-108).`,
-                    )
-                  : '')
-              : current.to && current.to < heldDue
+        summary: noRegion
+          ? L(
+              `191 香港地区类别要求递交前 ${n} 年没有在非指定地区居住、工作或学习（191.231(2)）；没有填写从哪天起只在指定地区，按不符合处理。不符合的可看 189 香港类别。`,
+              `The Hong Kong (Regional) stream needs you not to have lived, worked or studied outside designated regional areas in the ${n} years before applying (191.231(2)); with no date from which you have been only in those areas, it is taken as not met. Otherwise see the subclass 189 Hong Kong stream.`,
+            )
+          : earliest
+            ? (unsure
                 ? L(
-                    `当前 ${current.subclass} 签证在 ${current.to} 到期，早于持满 ${n} 年的 ${heldDue}。`,
-                    `Your current subclass ${current.subclass} visa ends on ${current.to}, before you would have held it for ${n} years on ${heldDue}.`,
+                    `不计出境时，持签证与居住满 ${n} 年的候选递交日是 ${earliest}。`,
+                    `Ignoring trips, the candidate application date with ${n} years of holding the visa and living in Australia is ${earliest}.`,
                   )
-                : L(
-                    `按现有记录，10 年内达不到 ${n} 年的持签与居住要求。`,
-                    `With your record you will not meet the ${n}-year visa and residence requirements within 10 years.`,
-                  ),
+                : earliest === sim
+                  ? L(
+                      `模拟日已满足香港类别的时间条件。`,
+                      'You meet the time requirements for the Hong Kong stream on the simulation date.',
+                    )
+                  : L(
+                      `满足香港类别时间条件的最早递交日是 ${earliest}，届时须仍持有当前 ${current.subclass} 签证${s.regional ? '，并一直只在指定地区' : ''}。`,
+                      `The earliest application date that meets the time requirements for the Hong Kong stream is ${earliest}; you must still hold your current subclass ${current.subclass} visa then${s.regional ? ' and stay only in designated regional areas' : ''}.`,
+                    )) +
+              (unsure
+                ? L(
+                    `这 ${n} 年里有 ${trips.length} 次出境，法规没有说多少出境仍算"连续通常居住"（PD-108）。`,
+                    ` You have ${trips.length} trips abroad in those years; the rules do not say how much time away still counts as usually resident (PD-108).`,
+                  )
+                : '')
+            : current.to && current.to < heldDue
+              ? L(
+                  `当前 ${current.subclass} 签证在 ${current.to} 到期，早于持满 ${n} 年的 ${heldDue}。`,
+                  `Your current subclass ${current.subclass} visa ends on ${current.to}, before you would have held it for ${n} years on ${heldDue}.`,
+                )
+              : L(
+                  `按现有记录，10 年内达不到 ${n} 年的持签与居住要求。`,
+                  `With your record you will not meet the ${n}-year visa and residence requirements within 10 years.`,
+                ),
         checks: [
           {
             text: L(
@@ -534,15 +540,15 @@ export function evaluateAustralia(req: AuRequest): AuResult {
                 : true,
             sources: [s.residenceSource],
           },
-          ...(s.regional === undefined
+          ...(!s.regional
             ? []
             : [
                 {
                   text: L(
-                    `递交前 ${n} 年只在指定地区居住、工作和学习`,
-                    `Lived, worked and studied only in designated regional areas in the ${n} years before applying`,
+                    `递交前 ${n} 年没有在非指定地区居住、工作或学习${since ? `（自 ${since} 起只在指定地区）` : ''}`,
+                    `Not living, working or studying outside designated regional areas in the ${n} years before applying${since ? ` (only in those areas since ${since})` : ''}`,
                   ),
-                  met: s.regional,
+                  met: regionalOk(sim),
                   sources: [{ srcId: 'SRC-062', locator: '191.231(2)' }],
                 },
               ]),

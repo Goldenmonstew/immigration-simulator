@@ -57,10 +57,10 @@ describe('subclass 191 (Sch 1 item 1139(3)(c))', () => {
 
 describe('Hong Kong streams (Sch 1 items 1137(4L), 1139(3)(ca))', () => {
   // First arrival 2020-02-01; a 482 from 2021-03-01 with no end date.
-  const hk = (regionalOnly: boolean, extra: Partial<AuRequest> = {}) => ({
+  const hk = (regional: boolean, extra: Partial<AuRequest> = {}) => ({
     simulationDate: '2025-01-01',
     visas: [{ subclass: '482' as const, from: '2021-03-01' }],
-    hongKong: { regionalOnly },
+    hongKong: regional ? { regionalSince: '2020-02-01' } : {},
     ...extra,
   });
 
@@ -87,6 +87,21 @@ describe('Hong Kong streams (Sch 1 items 1137(4L), 1139(3)(ca))', () => {
     const city = pathway(hk(false), 'AU-191-HK');
     expect(city.status).toBe('NOT_MET');
     expect(city.summary).toContain('189');
+  });
+
+  test('191: the regional years move with the application date', () => {
+    // Moved from Sydney to a regional area on 2024-06-01.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        firstArrival: '2021-07-01',
+        visas: [{ subclass: '482', from: '2022-12-01', to: '2027-11-30' }],
+        hongKong: { regionalSince: '2024-06-01' },
+      },
+      'AU-191-HK',
+    );
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2027-06-01');
   });
 
   test('residence counts from the first arrival', () => {

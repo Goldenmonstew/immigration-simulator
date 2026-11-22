@@ -25,7 +25,7 @@ export interface AuForm {
   partnerStream: 'onshore' | 'offshore';
   longTermRelationship: boolean;
   hongKong: boolean;
-  regionalOnly: boolean;
+  regionalSince: string;
 }
 
 export type AuErrors = Partial<Record<string, TranslationKey>>;
@@ -50,7 +50,7 @@ export function emptyAuForm(today: string): AuForm {
     partnerStream: 'onshore',
     longTermRelationship: false,
     hongKong: false,
-    regionalOnly: false,
+    regionalSince: '',
   };
 }
 
@@ -88,6 +88,7 @@ export function validateAuForm(form: AuForm): AuErrors {
       errors[`au-trip-${i}-departed`] = 'au.error.beforeArrival';
   });
   if (form.partner) date('au-partner-lodged', form.partnerLodged);
+  if (form.hongKong) date('au-regional-since', form.regionalSince, true);
   return errors;
 }
 
@@ -112,7 +113,13 @@ export function auRequest(form: AuForm, locale: Locale): AuRequest {
           },
         }
       : {}),
-    ...(form.hongKong ? { hongKong: { regionalOnly: form.regionalOnly } } : {}),
+    ...(form.hongKong
+      ? {
+          hongKong: form.regionalSince
+            ? { regionalSince: form.regionalSince }
+            : {},
+        }
+      : {}),
     locale,
   };
 }

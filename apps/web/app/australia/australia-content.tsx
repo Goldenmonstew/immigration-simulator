@@ -35,6 +35,7 @@ const FIELD_LABELS: Record<string, TranslationKey> = {
   'au-date-of-birth': 'au.dateOfBirth',
   'au-first-arrival': 'au.firstArrival',
   'au-partner-lodged': 'au.partnerLodged',
+  'au-regional-since': 'au.regionalSince',
   from: 'au.from',
   to: 'au.to',
   departed: 'au.departed',
@@ -240,16 +241,13 @@ export default function AustraliaContent() {
           </div>
           {draft.hongKong && (
             <div className={form.followUp}>
-              <div className={form.checkboxes}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={draft.regionalOnly}
-                    onChange={(e) => set({ regionalOnly: e.target.checked })}
-                  />
-                  {t('au.regionalOnly')}
-                </label>
-              </div>
+              {date(
+                'au-regional-since',
+                t('au.regionalSince'),
+                draft.regionalSince,
+                (regionalSince) => set({ regionalSince }),
+                t('au.regionalSinceHint'),
+              )}
             </div>
           )}
           {draft.partner && (

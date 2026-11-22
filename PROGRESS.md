@@ -321,3 +321,4 @@
 | 304 | 任务 60 报告补记最终验证（门禁、CI、八轮 Codex 审核通过）。 | docs/tasks/reports/60-new-zealand.md |
 | 306 | 任务 61 合入新西兰最终修正与 main，报告补记最终验证（门禁、e2e 18 项、两轮 Codex 审核通过）。 | docs/tasks/reports/61-canada.md、apps/web/app/new-zealand/new-zealand-content.tsx |
 | 310 | 任务 65：澳大利亚试点补 189、191 香港类别（持签满 4／3 年、连续通常居住、191 只在指定地区）；参数、485 签证、表单勾选项、PD-108、SRC-062 定位、阶段计划与报告。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、packages/policy-data/src/parameters/australia-2026-11.ts、apps/web/app/australia/australia-content.tsx、apps/web/lib/australia.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/australia.test.tsx、docs/ |
+| 311 | 任务 65 审核修正（review65-1）：护照勾选项写明当前签证须为主申请人获批、准许停留 5 年；191 香港地区类别改填指定地区起始日，窗口随递交日移动；文案与范围说明；补用例。 | packages/engine/src/australia.ts、packages/engine/test/australia.test.ts、apps/web/app/australia/australia-content.tsx、apps/web/lib/australia.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/australia.test.tsx、docs/ |
