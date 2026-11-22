@@ -1,6 +1,6 @@
 # 任务 62 报告：美国试点
 
-本分支基于任务 61（加拿大）。
+本分支基于任务 61（加拿大，PR #47，已合并）。
 
 ## 1. 做了什么（按 commit）
 
@@ -40,7 +40,10 @@
 
 ## 2. 怎么验证的
 
-（合并前补齐）
+- 合入 main（新西兰、加拿大）后，`pnpm lint && pnpm typecheck && pnpm test && pnpm build`：通过（GATE EXIT 0）。engine 2,843 项通过、1 项跳过（其中美国 22 项，最早日期都按条文手算后写进断言），policy-data 23 项，game 1,336 项，web 580 项。
+- `E2E_PORT=4362 npx playwright test united-states.spec.ts canada.spec.ts new-zealand.spec.ts australia.spec.ts a11y.spec.ts site.spec.ts --project=desktop`：20 项通过，覆盖美国问卷的错误摘要、配偶路径填写到结果、切换英文，以及 `/united-states` 的无障碍与断网可打开。
+- 在浏览器预览（手机宽度）中检查条件绿卡的取得方式选项、提示与主申请人日期字段的显示与报错。
+- Codex（gpt-6.2-sol）只读审核八轮，第八轮（review62-8）结论"通过"；各轮问题与处理见第 1 节。
 
 ## 3. 没做或没验证的
 
