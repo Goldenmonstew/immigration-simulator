@@ -46,6 +46,23 @@ export type {
   GrResult,
   GrTrip,
 } from './greece';
+export {
+  DE_NATURALISATION_ROUTES,
+  DE_PERMIT_KINDS,
+  DE_SETTLEMENT_ROUTES,
+  evaluateGermany,
+} from './germany';
+export type {
+  DeNaturalisationRoute,
+  DePathway,
+  DePathwayId,
+  DePermit,
+  DePermitKind,
+  DeRequest,
+  DeResult,
+  DeSettlementRoute,
+  DeTrip,
+} from './germany';
 export { ES_NATIONALITY_ROUTES, evaluateSpain } from './spain';
 export type {
   EsNationalityRoute,

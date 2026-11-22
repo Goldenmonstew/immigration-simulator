@@ -1,0 +1,1030 @@
+import { germany2026_11 as de } from '@uk-immigration/policy-data';
+import type { SourceRef } from '@uk-immigration/policy-data';
+import { addDays, addMonths, addYears, daysBetween } from './dates';
+import { Days, HORIZON_YEARS, afterYears, monthSpan } from './pilot';
+import type {
+  PilotCheck,
+  PilotPathway,
+  PilotResult,
+  PilotStatus,
+} from './pilot';
+import { textFor } from './rule';
+import type { IsoDate, Locale } from './types';
+
+// Germany pilot (phase 19, task 69): Niederlassungserlaubnis (AufenthG § 9,
+// § 18c, § 26 Abs. 3, § 28 Abs. 2), Daueraufenthalt-EU (§§ 9a, 9b), losing
+// a title on long trips (§ 51) and Einbürgerung (StAG §§ 9, 10, 12b).
+// Income, language, housing and the other conditions are not checked.
+
+/**
+ * study: study or vocational training (§§ 16a, 16b); skilled: skilled
+ * worker or researcher (§§ 18a, 18b, 18d); blue-card: Blaue Karte EU
+ * (§ 18g); german-family: family of a German (§ 28); other: any other
+ * residence permit; protection: asylum or refugee status (§ 25 Abs. 1,
+ * Abs. 2 Satz 1); asylum: Aufenthaltsgestattung while the asylum claim is
+ * decided; settlement: Niederlassungserlaubnis; eu-long-term:
+ * Daueraufenthalt-EU. A national visa is entered as the permit it was for.
+ */
+export const DE_PERMIT_KINDS = [
+  'study',
+  'skilled',
+  'blue-card',
+  'german-family',
+  'other',
+  'protection',
+  'asylum',
+  'settlement',
+  'eu-long-term',
+] as const;
+export type DePermitKind = (typeof DE_PERMIT_KINDS)[number];
+
+export const DE_SETTLEMENT_ROUTES = [
+  'general',
+  'skilled',
+  'blue-card',
+  'german-family',
+  'refugee',
+] as const;
+export type DeSettlementRoute = (typeof DE_SETTLEMENT_ROUTES)[number];
+
+export const DE_NATURALISATION_ROUTES = ['general', 'spouse'] as const;
+export type DeNaturalisationRoute = (typeof DE_NATURALISATION_ROUTES)[number];
+
+export interface DePermit {
+  kind: DePermitKind;
+  from: IsoDate;
+  /** Last day of validity; absent = runs until the next permit starts. */
+  to?: IsoDate;
+}
+
+/** Left Germany on `departed`, came back on `returned`. */
+export interface DeTrip {
+  departed: IsoDate;
+  returned: IsoDate;
+}
+
+export interface DeRequest {
+  simulationDate: IsoDate;
+  permits: DePermit[];
+  trips: DeTrip[];
+  settlementRoute: DeSettlementRoute;
+  /** Months of pension contributions by the simulation date; absent = not entered. */
+  contributionMonths?: number;
+  /** Vocational training or a degree completed in Germany (§ 18c Abs. 1 Satz 2). */
+  trainedInGermany?: boolean;
+  /** German at B1 (§ 18c Abs. 2 Satz 3). */
+  germanB1?: boolean;
+  /** German at C1 (§ 26 Abs. 3 Satz 3). */
+  germanC1?: boolean;
+  naturalisationRoute: DeNaturalisationRoute;
+  /** Married to, or in a registered partnership with, a German since (route `spouse`). */
+  marriedOn?: IsoDate;
+  locale?: Locale;
+}
+
+export type DePathwayId =
+  'DE-SETTLEMENT' | 'DE-EU-LONG-TERM' | 'DE-NATURALISATION' | 'DE-TRAVEL';
+export type DePathway = PilotPathway<DePathwayId>;
+export type DeResult = PilotResult<DePathwayId>;
+
+const v = de.values;
+type Verdict = 'yes' | 'maybe' | 'no';
+
+const aufenthG = (locator: string, section: string): SourceRef => ({
+  srcId: 'SRC-100',
+  locator,
+  url: `https://www.gesetze-im-internet.de/aufenthg_2004/__${section}.html`,
+});
+const stAG = (locator: string, section: string): SourceRef => ({
+  srcId: 'SRC-101',
+  locator,
+  url: `https://www.gesetze-im-internet.de/stag/__${section}.html`,
+});
+
+// Titles other than study and the asylum procedure.
+const TITLES: DePermitKind[] = [
+  'skilled',
+  'blue-card',
+  'german-family',
+  'other',
+  'protection',
+  'settlement',
+  'eu-long-term',
+];
+
+const KIND_NAMES: Record<DePermitKind, [string, string]> = {
+  study: ['学习或职业培训许可', 'a study or training permit'],
+  skilled: ['技术工人许可', 'a skilled worker permit'],
+  'blue-card': ['欧盟蓝卡', 'an EU Blue Card'],
+  'german-family': ['德国人家属许可', 'a permit as family of a German'],
+  other: ['居留许可', 'a residence permit'],
+  protection: ['庇护或难民许可', 'an asylum or refugee permit'],
+  asylum: ['庇护程序中的居留', 'leave to remain while claiming asylum'],
+  settlement: ['定居许可', 'a settlement permit'],
+  'eu-long-term': ['欧盟长期居留', 'EU long-term residence'],
+};
+
+const ROUTE_NAMES: Record<DeSettlementRoute, [string, string]> = {
+  general: ['一般路径（§ 9）', 'the general route (§ 9)'],
+  skilled: [
+    '技术工人路径（§ 18c Abs. 1）',
+    'the skilled worker route (§ 18c Abs. 1)',
+  ],
+  'blue-card': [
+    '欧盟蓝卡路径（§ 18c Abs. 2）',
+    'the EU Blue Card route (§ 18c Abs. 2)',
+  ],
+  'german-family': [
+    '德国人家属路径（§ 28 Abs. 2）',
+    'the route for family of a German (§ 28 Abs. 2)',
+  ],
+  refugee: [
+    '庇护权人与难民路径（§ 26 Abs. 3）',
+    'the asylum and refugee route (§ 26 Abs. 3)',
+  ],
+};
+
+/** How a settlement route counts time. */
+interface SettlementRule {
+  /** Count in full, at half; hold one of `hold` on the day. */
+  full: DePermitKind[];
+  half: DePermitKind[];
+  hold: DePermitKind[];
+  years?: number;
+  months?: number;
+  contributions?: number;
+  what: [string, string];
+  sources: SourceRef[];
+}
+
+function settlementRule(req: DeRequest): SettlementRule {
+  switch (req.settlementRoute) {
+    case 'general':
+      return {
+        full: TITLES,
+        half: ['study'],
+        hold: [...TITLES, 'study'],
+        years: v.generalYears.value,
+        contributions: v.generalContributionMonths.value,
+        what: [
+          `持居留许可满 ${v.generalYears.value} 年（学习或职业培训期间折半，每次出境最多计 ${v.abroadCreditMonths.value} 个月）`,
+          `${v.generalYears.value} years holding residence permits (study or vocational training at half, at most ${v.abroadCreditMonths.value} months counted for each trip abroad)`,
+        ],
+        sources: [
+          ...v.generalYears.sources,
+          ...v.abroadCreditMonths.sources,
+          ...v.priorSettlementCreditYears.sources,
+        ],
+      };
+    case 'skilled': {
+      const years = req.trainedInGermany
+        ? v.skilledTrainedYears
+        : v.skilledYears;
+      return {
+        full: ['skilled', 'blue-card'],
+        half: [],
+        hold: ['skilled', 'blue-card'],
+        years: years.value,
+        contributions: req.trainedInGermany
+          ? v.skilledTrainedContributionMonths.value
+          : v.skilledContributionMonths.value,
+        what: [
+          `持技术工人许可或欧盟蓝卡满 ${years.value} 年`,
+          `${years.value} years holding a skilled worker permit or EU Blue Card`,
+        ],
+        sources: years.sources,
+      };
+    }
+    case 'blue-card': {
+      const months = req.germanB1 ? v.blueCardB1Months : v.blueCardMonths;
+      return {
+        full: ['blue-card'],
+        half: [],
+        hold: ['blue-card'],
+        months: months.value,
+        contributions: months.value,
+        what: [
+          `持欧盟蓝卡就业满 ${months.value} 个月`,
+          `${months.value} months employed on an EU Blue Card`,
+        ],
+        sources: months.sources,
+      };
+    }
+    case 'german-family':
+      return {
+        full: ['german-family'],
+        half: [],
+        hold: ['german-family'],
+        years: v.germanFamilyYears.value,
+        what: [
+          `持德国人家属许可满 ${v.germanFamilyYears.value} 年`,
+          `${v.germanFamilyYears.value} years holding a permit as family of a German`,
+        ],
+        sources: v.germanFamilyYears.sources,
+      };
+    case 'refugee': {
+      const years = req.germanC1 ? v.refugeeC1Years : v.refugeeYears;
+      return {
+        full: ['protection', 'asylum'],
+        half: ['study'],
+        hold: ['protection'],
+        years: years.value,
+        what: [
+          `持庇护或难民许可满 ${years.value} 年（此前的庇护程序计入，学习期间折半，每次出境最多计 ${v.abroadCreditMonths.value} 个月）`,
+          `${years.value} years holding an asylum or refugee permit (the asylum procedure before it counts, study at half, at most ${v.abroadCreditMonths.value} months counted for each trip abroad)`,
+        ],
+        sources: [...years.sources, ...v.abroadCreditMonths.sources],
+      };
+    }
+  }
+}
+
+export function evaluateGermany(req: DeRequest): DeResult {
+  const L = textFor(req);
+  const N = ([zh, en]: [string, string]) => L(zh, en);
+  const sim = req.simulationDate;
+  const first = [
+    sim,
+    ...req.permits.map((p) => p.from),
+    ...req.trips.map((t) => t.departed),
+  ].sort()[0];
+  const days = new Days(addDays(first, -1), addYears(sim, HORIZON_YEARS));
+
+  // The title held each day: a later permit replaces an earlier one, and a
+  // permit without an end date runs until the next one starts.
+  const kinds = new Array<DePermitKind | undefined>(days.count).fill(undefined);
+  const sorted = [...req.permits].sort((a, b) =>
+    a.from < b.from ? -1 : a.from > b.from ? 1 : 0,
+  );
+  sorted.forEach((p, n) => {
+    const next = sorted.slice(n + 1).find((q) => q.from > p.from);
+    const to = p.to ?? (next && addDays(next.from, -1));
+    const a = Math.max(0, days.index(p.from));
+    const b = Math.min(days.count - 1, to ? days.index(to) : days.count - 1);
+    for (let i = a; i <= b; i++) kinds[i] = p.kind;
+  });
+  const kindAt = (i: number) =>
+    i >= 0 && i < days.count ? kinds[i] : undefined;
+  // Days abroad run from the day after leaving to the day before coming
+  // back: travel days count as days in Germany (PD-120).
+  const tripOn = new Array<number>(days.count).fill(-1);
+  req.trips.forEach((t, n) => {
+    const a = Math.max(0, days.index(addDays(t.departed, 1)));
+    const b = Math.min(days.count - 1, days.index(addDays(t.returned, -1)));
+    for (let i = a; i <= b; i++) tripOn[i] = n;
+  });
+  const recognised = req.permits.some((p) => p.kind === 'protection');
+
+  // § 51: the title held when leaving and the last day to come back. It
+  // lapses when that day passes (AVwV 51.1.6.6), not on leaving.
+  const exits = req.trips.map((trip) => {
+    const kind = kindAt(days.index(trip.departed));
+    if (!kind || kind === 'asylum') return undefined;
+    if (kind === 'eu-long-term') {
+      const afterBlueCard = req.permits.some(
+        (p) => p.kind === 'blue-card' && p.from < trip.departed,
+      );
+      const euBy = addMonths(
+        trip.departed,
+        afterBlueCard ? v.euLapseBlueCardMonths.value : v.euLapseMonths.value,
+      );
+      const by = addYears(trip.departed, v.euLapseYears.value);
+      return {
+        trip,
+        kind,
+        by,
+        euBy,
+        lapses: trip.returned > by,
+        unsure: trip.returned > euBy && trip.returned <= by,
+      };
+    }
+    const by = addMonths(
+      trip.departed,
+      kind === 'blue-card' ? v.blueCardLapseMonths.value : v.lapseMonths.value,
+    );
+    return { trip, kind, by, lapses: trip.returned > by, unsure: false };
+  });
+
+  /**
+   * Half days counted each day towards a holding period (`weight`: 2 in
+   * full, 1 at half, 0 breaks it) and the first day of the unbroken stretch
+   * each day belongs to (-1 = broken). A trip that ended the title breaks
+   * the stretch; days abroad on other trips count while `abroad` allows.
+   */
+  const count = (
+    weight: (k: DePermitKind) => number,
+    abroad: (n: number, i: number) => boolean,
+  ) => {
+    const run = new Array<number>(days.count).fill(-1);
+    const sums = [0];
+    for (let i = 0; i < days.count; i++) {
+      const k = kinds[i];
+      const n = tripOn[i];
+      const w = k ? weight(k) : 0;
+      const broken = w === 0 || (n >= 0 && !!exits[n]?.lapses);
+      if (!broken) run[i] = i > 0 && run[i - 1] >= 0 ? run[i - 1] : i;
+      sums.push(sums[i] + (broken || (n >= 0 && !abroad(n, i)) ? 0 : w));
+    }
+    return { run, sums };
+  };
+  type Count = ReturnType<typeof count>;
+  /** The latest start of a stretch ending the day before `k` worth `need`. */
+  const stretch = (c: Count, k: number, need: number) => {
+    const r = c.run[k - 1];
+    if (r < 0 || c.sums[k] - c.sums[r] < need) return undefined;
+    let lo = r;
+    let hi = k - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (c.sums[k] - c.sums[mid] >= need) lo = mid;
+      else hi = mid - 1;
+    }
+    return lo;
+  };
+  // § 9 Abs. 4 Nr. 2: each trip that did not end the title counts for at
+  // most 6 months.
+  const creditUntil = req.trips.map((t) =>
+    addMonths(t.departed, v.abroadCreditMonths.value),
+  );
+  const firstDate = (ok: (d: IsoDate) => boolean): IsoDate | undefined => {
+    for (let i = days.index(sim); i < days.count; i++) {
+      const d = days.date(i);
+      if (ok(d)) return d;
+    }
+    return undefined;
+  };
+  const statusOf = (earliest?: IsoDate): PilotStatus =>
+    !earliest ? 'NOT_MET' : earliest === sim ? 'MET' : 'FUTURE';
+  const held = kindAt(days.index(sim));
+  const projection = L(
+    '最早日期假设模拟日之后一直在德国（已录入的未来出境除外），没有到期日的许可一直延续到下一张许可生效。',
+    'Projected dates assume you stay in Germany after the simulation date (apart from trips you entered) and that a permit without an end date lasts until the next one starts.',
+  );
+  const counting = L(
+    '年限按日历计：从许可生效日起算，到对应的周年日（或月份对应日）满足；若生效当天不计入，晚 1 天（BGB § 187，PD-120）。出入境当天按在德国计。',
+    'Periods are calendar periods: counted from the day a permit starts and met on the anniversary (or the same day of the month); if the first day does not count, it is one day later (BGB § 187, PD-120). The days you leave and come back count as days in Germany.',
+  );
+  const gaps = L(
+    '录入的许可之间有空档即中断（§ 85 允许不计 1 年以内的中断，属裁量，PD-124）；按时申请续期的，请把等待新许可的期间也录入。',
+    'Any gap between the permits you entered breaks continuity (§ 85 lets gaps of up to a year be disregarded at discretion, PD-124); if you applied to renew on time, enter the wait for the new permit as well.',
+  );
+  const lapse = L(
+    '导致许可失效的出境（§ 51 Abs. 1 Nr. 7，见"出境与居留失效"）使计时归零，回德后从返回日重新起算。',
+    'A trip that ended your title (§ 51 Abs. 1 Nr. 7, see “Trips abroad and loss of residence”) resets the count, which starts again on the day you came back.',
+  );
+  const pathways: DePathway[] = [];
+
+  // ---------- Niederlassungserlaubnis ----------
+  {
+    const rule = settlementRule(req);
+    const routeName = N(ROUTE_NAMES[req.settlementRoute]);
+    const c = count(
+      (k) => (rule.full.includes(k) ? 2 : rule.half.includes(k) ? 1 : 0),
+      (n, i) => days.date(i) <= creditUntil[n],
+    );
+    // § 9 Abs. 4 Nr. 1: when a settlement permit lapsed abroad, the time
+    // held before counts for up to 4 years (365 days each, BGB § 191) once
+    // you hold a permit again.
+    const bonus = new Map<number, number>();
+    if (req.settlementRoute === 'general')
+      for (const e of exits) {
+        if (!e?.lapses || e.kind !== 'settlement') continue;
+        const dep = days.index(e.trip.departed);
+        let i = days.index(e.trip.returned);
+        while (i < days.count && c.run[i] !== i) i++;
+        bonus.set(
+          i,
+          Math.min(
+            2 * v.priorSettlementCreditYears.value * v.daysPerYear.value,
+            c.sums[dep + 1] - c.sums[c.run[dep]],
+          ),
+        );
+      }
+    const period = (d: IsoDate) =>
+      rule.months
+        ? addMonths(d, -rule.months)
+        : addYears(d, -(rule.years ?? 0));
+    const timeOk = (d: IsoDate) => {
+      const k = days.index(d);
+      const kd = kinds[k];
+      if (k < 1 || !kd || !rule.hold.includes(kd) || c.run[k] < 0) return false;
+      const r = c.run[k - 1];
+      if (r < 0) return false;
+      const have = c.sums[k] - c.sums[r] + (bonus.get(r) ?? 0);
+      return have >= 2 * daysBetween(period(d), d);
+    };
+    const need = rule.contributions;
+    const paid = req.contributionMonths;
+    // Contributions are assumed to continue every month after the
+    // simulation date.
+    const paidBy =
+      need === undefined || paid === undefined
+        ? undefined
+        : paid >= need
+          ? sim
+          : addMonths(sim, need - paid);
+    const missing = need !== undefined && paid === undefined;
+    const timeEarliest = firstDate(timeOk);
+    const earliest = missing
+      ? undefined
+      : firstDate((d) => timeOk(d) && (!paidBy || d >= paidBy));
+    const length = rule.months
+      ? L(`${rule.months} 个月`, `${rule.months} months`)
+      : L(`${rule.years} 年`, `${rule.years} years`);
+    const already =
+      held === 'settlement' || held === 'eu-long-term' ? held : undefined;
+    const title = L(
+      '定居许可（Niederlassungserlaubnis）',
+      'Settlement permit (Niederlassungserlaubnis)',
+    );
+    const notChecked: Record<DeSettlementRoute, string> = {
+      general: L(
+        '生计、德语 B1、法律与社会知识（入籍课程）、住房、公共安全、就业许可（§ 9 Abs. 2 Satz 1 Nr. 2、4–9）；育儿或居家护理的中断折算缴费月、夫妻一方满足缴费（Nr. 3、§ 9 Abs. 3）',
+        'Livelihood, German at B1, knowledge of the legal and social order, housing, public safety and permission to work (§ 9 Abs. 2 Satz 1 Nr. 2, 4–9); counting breaks for childcare or home care towards contributions, and one spouse meeting them for both (Nr. 3, § 9 Abs. 3)',
+      ),
+      skilled: L(
+        '有符合 §§ 18a、18b、18d、18g 的工作岗位，德语 B1，生计、住房、公共安全等（§ 18c Abs. 1 Satz 1 Nr. 2、4、5）；是否在德完成职业培训或学业按你的勾选',
+        'A job that fits §§ 18a, 18b, 18d or 18g, German at B1, livelihood, housing, public safety and so on (§ 18c Abs. 1 Satz 1 Nr. 2, 4, 5); whether you completed training or a degree in Germany is taken from your answer',
+      ),
+      'blue-card': L(
+        '就业是否属于 § 18g 的蓝卡岗位、同一期间是否都缴费，基本德语（A1；勾选 B1 时按较短期限），生计、住房、公共安全等（§ 18c Abs. 2）',
+        'Whether the job was Blue Card employment under § 18g with contributions for the whole period, basic German (A1; the shorter period with B1 as you answered), livelihood, housing, public safety and so on (§ 18c Abs. 2)',
+      ),
+      'german-family': L(
+        '与德国人的家庭共同生活在德国持续、没有驱逐利益、德语 B1（§ 28 Abs. 2 Satz 1）',
+        'That family life with the German continues in Germany, no interest in expulsion, and German at B1 (§ 28 Abs. 2 Satz 1)',
+      ),
+      refugee: L(
+        'BAMF 未通知撤销保护、生计大部分有保障、德语 A2（3 年路径须 C1 并且生计基本有保障，C1 按你的勾选）以及 § 9 Abs. 2 Satz 1 Nr. 4–6、8、9（§ 26 Abs. 3）；辅助保护与其他人道类居留（§ 26 Abs. 4，裁量）不在本路径',
+        'BAMF not reporting grounds to withdraw protection, livelihood mostly secured, German at A2 (C1 and livelihood largely secured for the 3-year route; C1 is taken from your answer), and § 9 Abs. 2 Satz 1 Nr. 4–6, 8, 9 (§ 26 Abs. 3); subsidiary protection and other humanitarian permits (§ 26 Abs. 4, at discretion) are not this route',
+      ),
+    };
+    const checks: PilotCheck[] = [
+      {
+        text: L(
+          `${rule.what[0]}，当天仍持有`,
+          `${rule.what[1]}, still held on the day`,
+        ),
+        met: timeOk(sim),
+        sources: rule.sources,
+      },
+    ];
+    if (need !== undefined)
+      checks.push({
+        text:
+          paid === undefined
+            ? L(
+                `养老保险缴费满 ${need} 个月（未填写缴费月数）`,
+                `${need} months of pension contributions (not entered)`,
+              )
+            : L(
+                `养老保险缴费满 ${need} 个月（已缴 ${paid} 个月）`,
+                `${need} months of pension contributions (${paid} paid)`,
+              ),
+        met: paid === undefined ? undefined : paid >= need,
+        sources:
+          req.settlementRoute === 'general'
+            ? v.generalContributionMonths.sources
+            : req.settlementRoute === 'skilled'
+              ? req.trainedInGermany
+                ? v.skilledTrainedContributionMonths.sources
+                : v.skilledContributionMonths.sources
+              : rule.sources,
+      });
+    const assumptions = [
+      counting,
+      req.settlementRoute === 'general' || req.settlementRoute === 'refugee'
+        ? L(
+            `学习或职业培训期间按一半计（§ 9 Abs. 4 Nr. 3，按半天精确折算，PD-121）；未导致许可失效的每次出境最多计 ${v.abroadCreditMonths.value} 个月（§ 9 Abs. 4 Nr. 2）。`,
+            `Study or vocational training counts at half (§ 9 Abs. 4 Nr. 3, worked out in half days, PD-121); each trip abroad that did not end your permit counts for at most ${v.abroadCreditMonths.value} months (§ 9 Abs. 4 Nr. 2).`,
+          )
+        : L(
+            `该路径的条文没有引用 § 9 Abs. 4：学习期间不计，每次出境按 § 9 Abs. 4 Nr. 2 类推最多计 ${v.abroadCreditMonths.value} 个月（PD-122）。`,
+            `This route does not refer to § 9 Abs. 4: study does not count, and each trip abroad counts for at most ${v.abroadCreditMonths.value} months by analogy with § 9 Abs. 4 Nr. 2 (PD-122).`,
+          ),
+      lapse,
+      gaps,
+      L(
+        '入境用的国家签证按其目的录入为同类许可，期间计入（§ 6 Abs. 3 Satz 3）。',
+        'A national visa entered as the permit it was issued for counts (§ 6 Abs. 3 Satz 3).',
+      ),
+    ];
+    if (req.settlementRoute === 'general')
+      assumptions.push(
+        L(
+          `出境时持定居许可而失效的，此前持许可的时间最多计 ${v.priorSettlementCreditYears.value} 年（§ 9 Abs. 4 Nr. 1，每年按 ${v.daysPerYear.value} 天，PD-121）。`,
+          `If a settlement permit you held lapsed abroad, the time before counts for up to ${v.priorSettlementCreditYears.value} years (§ 9 Abs. 4 Nr. 1, ${v.daysPerYear.value} days a year, PD-121).`,
+        ),
+      );
+    if (req.settlementRoute === 'blue-card')
+      assumptions.push(
+        L(
+          `就业月数按最近一段不间断持有欧盟蓝卡（含此前为蓝卡发的国家签证）的日历月计；失业或换雇主的空档、30 天一月的读法都未明（PD-123）。${req.germanB1 ? '按你勾选的 B1 德语用较短期限。' : ''}`,
+          `Months of employment are calendar months of the latest unbroken stretch on an EU Blue Card (including the national visa issued for it); gaps between jobs and a 30-day month are not settled (PD-123).${req.germanB1 ? ' The shorter period follows your answer that you have German at B1.' : ''}`,
+        ),
+      );
+    if (req.settlementRoute === 'refugee')
+      assumptions.push(
+        L(
+          '庇护程序期间从你录入的"庇护程序中"开始日计；按欧盟程序条例，提出、登记、正式递交哪一天算申请未核实（PD-126）。',
+          'The asylum procedure counts from the start date you entered for it; which of making, registering or lodging the claim counts under the EU procedures regulation is not settled (PD-126).',
+        ),
+      );
+    if (need !== undefined)
+      assumptions.push(
+        L(
+          '缴费月数按你填写的截至模拟日的数字，之后假设每月都缴费。',
+          'Contribution months are the number you entered for the simulation date; after it every month is assumed to be paid.',
+        ),
+      );
+    assumptions.push(projection);
+    pathways.push({
+      id: 'DE-SETTLEMENT',
+      title,
+      status: already
+        ? 'NOT_APPLICABLE'
+        : missing
+          ? 'UNKNOWN'
+          : statusOf(earliest),
+      earliestDate: already || missing ? undefined : earliest,
+      summary: already
+        ? L(
+            `模拟日你已持有${N(KIND_NAMES[already])}，不需要再算定居许可。`,
+            `On the simulation date you already hold ${N(KIND_NAMES[already])}, so there is no settlement permit to work out.`,
+          )
+        : missing
+          ? timeEarliest
+            ? L(
+                `按${routeName}，持有时间最早 ${timeEarliest} 满足（${length}）；请填写已缴的养老保险月数（需 ${need} 个月），才能确认缴费条件。`,
+                `On ${routeName}, the time held is met from ${timeEarliest} (${length}); enter your months of pension contributions (${need} needed) to confirm the contribution condition.`,
+              )
+            : L(
+                `按${routeName}和现有记录，10 年内持有时间达不到 ${length}；缴费月数也未填写。`,
+                `On ${routeName}, with your record the time held will not reach ${length} within 10 years; contribution months were not entered either.`,
+              )
+          : earliest === sim
+            ? L(
+                `按${routeName}，模拟日已满足定居许可的时间条件。`,
+                `On ${routeName}, you meet the time requirements for a settlement permit on the simulation date.`,
+              )
+            : earliest
+              ? L(
+                  `按${routeName}，满足定居许可时间条件的最早日期是 ${earliest}${paidBy && paidBy === earliest && paidBy !== timeEarliest ? '（由缴费月数决定）' : ''}。`,
+                  `On ${routeName}, the earliest date that meets the time requirements for a settlement permit is ${earliest}${paidBy && paidBy === earliest && paidBy !== timeEarliest ? ' (set by the contribution months)' : ''}.`,
+                )
+              : L(
+                  `按${routeName}和现有记录，10 年内达不到定居许可的时间条件。`,
+                  `On ${routeName}, with your record you will not meet the time requirements for a settlement permit within 10 years.`,
+                ),
+      checks: already ? [] : checks,
+      notChecked: already
+        ? []
+        : [
+            notChecked[req.settlementRoute],
+            L(
+              '其他路径：§ 18c 定居者的配偶（§ 9 Abs. 3a）、自雇（§ 21 Abs. 4）、子女（§ 35）、公务员（§ 19c Abs. 4）、高素质人才（§ 18c Abs. 3）',
+              'Other routes: spouses of § 18c settlement permit holders (§ 9 Abs. 3a), the self-employed (§ 21 Abs. 4), children (§ 35), civil servants (§ 19c Abs. 4) and highly qualified people (§ 18c Abs. 3)',
+            ),
+          ],
+      assumptions: already ? [] : assumptions,
+      pendingDetails: already
+        ? undefined
+        : [
+            'PD-120',
+            ...(req.settlementRoute === 'general' ||
+            req.settlementRoute === 'refugee'
+              ? ['PD-121']
+              : ['PD-122']),
+            ...(req.settlementRoute === 'blue-card' ? ['PD-123'] : []),
+            'PD-124',
+            ...(req.settlementRoute === 'refugee' ? ['PD-126'] : []),
+          ],
+    });
+  }
+
+  // ---------- Daueraufenthalt-EU (§§ 9a, 9b) ----------
+  {
+    const years = v.euLongTermYears.value;
+    const [totalMin, totalMax] = monthSpan(v.euTotalAbsenceMonths.value);
+    // Study counts at half (§ 9b Abs. 1 Nr. 4); the asylum procedure counts
+    // once protection was granted (Nr. 5).
+    const weight = (k: DePermitKind) =>
+      k === 'study' ? 1 : k === 'asylum' ? (recognised ? 2 : 0) : 2;
+    const short = req.trips.map(
+      (t) => t.returned <= addMonths(t.departed, v.euSingleAbsenceMonths.value),
+    );
+    // Short trips count; other trips that did not end the title pause the
+    // count (§ 9b Abs. 1 Satz 3).
+    const withTrips = count(weight, (n) => short[n]);
+    const paused = count(weight, () => false);
+    const shortAway = days.sums((i) => tripOn[i] >= 0 && short[tripOn[i]]);
+    const facts = (d: IsoDate) => {
+      const k = days.index(d);
+      const kd = kinds[k];
+      // You cannot apply on a study permit (§ 9a Abs. 3 Nr. 4).
+      if (k < 1 || !kd || !TITLES.includes(kd) || withTrips.run[k] < 0)
+        return undefined;
+      const need = 2 * daysBetween(addYears(d, -years), d);
+      const start = stretch(withTrips, k, need);
+      return {
+        start,
+        absent: start === undefined ? 0 : shortAway[k] - shortAway[start],
+        paused: stretch(paused, k, need) !== undefined,
+      };
+    };
+    const verdict = (d: IsoDate): Verdict => {
+      const f = facts(d);
+      if (!f) return 'no';
+      if (f.paused || (f.start !== undefined && f.absent <= totalMin))
+        return 'yes';
+      return f.start !== undefined && f.absent <= totalMax ? 'maybe' : 'no';
+    };
+    const already = held === 'eu-long-term';
+    const earliest = firstDate((d) => verdict(d) === 'yes');
+    const possible = firstDate((d) => verdict(d) !== 'no');
+    const now = verdict(sim);
+    pathways.push({
+      id: 'DE-EU-LONG-TERM',
+      title: L(
+        '欧盟长期居留（Daueraufenthalt-EU）',
+        'EU long-term residence (Daueraufenthalt-EU)',
+      ),
+      status: already
+        ? 'NOT_APPLICABLE'
+        : !earliest && possible
+          ? 'UNKNOWN'
+          : statusOf(earliest),
+      earliestDate: already ? undefined : earliest,
+      summary: already
+        ? L(
+            '模拟日你已持有欧盟长期居留。',
+            'You already hold EU long-term residence on the simulation date.',
+          )
+        : (earliest === sim
+            ? L(
+                '模拟日递交已满足欧盟长期居留的时间条件。',
+                'Applying on the simulation date meets the time requirements for EU long-term residence.',
+              )
+            : earliest
+              ? L(
+                  `满足欧盟长期居留时间条件的最早递交日是 ${earliest}。`,
+                  `The earliest application date that meets the time requirements for EU long-term residence is ${earliest}.`,
+                )
+              : L(
+                  '按现有记录，10 年内达不到欧盟长期居留的时间条件。',
+                  'With your record you will not meet the time requirements for EU long-term residence within 10 years.',
+                )) +
+          (possible && (!earliest || possible < earliest)
+            ? L(
+                `若出境合计按 ${v.euTotalAbsenceMonths.value} 个月的较宽口径全部计入，最早 ${possible}；超过上限时怎样扣除，条文未写明（PD-125）。`,
+                ` Counting all of your absences under a generous reading of the ${v.euTotalAbsenceMonths.value} months, it could be ${possible}; how time over the limit is taken off is not stated (PD-125).`,
+              )
+            : ''),
+      checks: already
+        ? []
+        : [
+            {
+              text: L(
+                `折算后在德持居留许可满 ${years} 年（学习期间折半；单次不超过 ${v.euSingleAbsenceMonths.value} 个月、合计不超过 ${v.euTotalAbsenceMonths.value} 个月的出境计入），递交当天持学习与庇护程序以外的许可`,
+                `${years} years in Germany with a residence title (study at half; absences of up to ${v.euSingleAbsenceMonths.value} months each and ${v.euTotalAbsenceMonths.value} months in all count), holding a title other than study or the asylum procedure on the application day`,
+              ),
+              met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
+              sources: [
+                ...v.euLongTermYears.sources,
+                ...v.euSingleAbsenceMonths.sources,
+                aufenthG(
+                  '§ 9b Abs. 1 Satz 1 Nr. 4, Nr. 5, Satz 3, Satz 4',
+                  '9b',
+                ),
+                aufenthG('§ 9a Abs. 3 Nr. 4', '9a'),
+              ],
+            },
+          ],
+      notChecked: already
+        ? []
+        : [
+            L(
+              '生计、德语 B1、法律与社会知识、住房、公共安全（§ 9a Abs. 2 Satz 1 Nr. 2–6）；临时目的的居留不能申请且期间不计（§ 9a Abs. 3 Nr. 5、§ 9b Abs. 1 Satz 2）',
+              'Livelihood, German at B1, knowledge of the legal and social order, housing and public safety (§ 9a Abs. 2 Satz 1 Nr. 2–6); stays for a temporary purpose cannot apply and do not count (§ 9a Abs. 3 Nr. 5, § 9b Abs. 1 Satz 2)',
+            ),
+            L(
+              '因工作外派的出境（§ 9b Abs. 1 Satz 1 Nr. 1 a）、旧定居许可最多 4 年的折算（Nr. 2）、欧盟自由流动期间（Nr. 3），以及欧盟蓝卡持有人在其他成员国的期间与较宽的出境限度（§ 9b Abs. 2）',
+              'Absences on a posting abroad for work (§ 9b Abs. 1 Satz 1 Nr. 1 a), up to 4 years of an earlier settlement permit (Nr. 2), time with EU free movement rights (Nr. 3), and Blue Card holders’ time in other member states with their wider absence limits (§ 9b Abs. 2)',
+            ),
+          ],
+      assumptions: already
+        ? []
+        : [
+            L(
+              '以递交日判断（AVwV 9a.2.1.1.1），从递交日往回数，不含递交当天。',
+              'Judged on the application date (AVwV 9a.2.1.1.1), counting back from it and not including it.',
+            ),
+            counting,
+            L(
+              `学习或职业培训期间按一半计（§ 9b Abs. 1 Nr. 4，按半天精确折算，PD-121）；获庇护或难民身份的，从你录入的"庇护程序中"开始日全部计入（Nr. 5，PD-126）。`,
+              `Study or vocational training counts at half (§ 9b Abs. 1 Nr. 4, worked out in half days, PD-121); with asylum or refugee status, the asylum procedure counts in full from the start date you entered (Nr. 5, PD-126).`,
+            ),
+            L(
+              `单次出境按离境日起 ${v.euSingleAbsenceMonths.value} 个日历月判断；计入期间内这类出境合计不超过 ${totalMin} 天算全部计入，否则按不计入（计时暂停、不中断）处理，${totalMin}–${totalMax} 天之间的较宽读法另列（PD-125）。更长但未导致失效的出境计时暂停（§ 9b Abs. 1 Satz 3）。`,
+              `A single absence is measured as ${v.euSingleAbsenceMonths.value} calendar months from the day you left. If these absences total no more than ${totalMin} days in the counted period they all count; otherwise they are treated as not counted (the count pauses but is not broken), with the generous reading for ${totalMin}–${totalMax} days shown separately (PD-125). Longer absences that did not end your title pause the count (§ 9b Abs. 1 Satz 3).`,
+            ),
+            lapse,
+            gaps,
+            projection,
+          ],
+      pendingDetails: already
+        ? undefined
+        : ['PD-120', 'PD-121', 'PD-124', 'PD-125', 'PD-126'],
+    });
+  }
+
+  // ---------- Einbürgerung (StAG §§ 9, 10, 12b) ----------
+  {
+    const route = req.naturalisationRoute;
+    const years = v.naturalisationYears.value[route];
+    // § 12b Abs. 1 Satz 5: more than half the years abroad (365-day years,
+    // BGB § 191) within the years before ends habitual residence; it starts
+    // again after the trip that went over (PD-127).
+    const half = (years * v.daysPerYear.value) / 2;
+    const away = days.sums((i) => tripOn[i] >= 0);
+    const longTrip = req.trips.map(
+      (t) =>
+        t.returned > addMonths(t.departed, v.naturalisationAbsenceMonths.value),
+    );
+    // Lawful habitual residence: any title, the asylum procedure once
+    // protection was granted (AsylG § 55 Abs. 3).
+    const run = new Array<number>(days.count).fill(-1);
+    const before = new Map<number, number>();
+    let start = -1;
+    let last = 0;
+    let cut = -1;
+    for (let i = 0; i < days.count; i++) {
+      const k = kinds[i];
+      const n = tripOn[i];
+      const lawful = !!k && (k !== 'asylum' || recognised);
+      if (!lawful || (n >= 0 && (longTrip[n] || n === cut))) {
+        if (start >= 0) last = i - start;
+        start = -1;
+        continue;
+      }
+      if (start < 0) {
+        start = i;
+        before.set(i, last);
+      }
+      const from = Math.max(
+        start,
+        days.index(addYears(days.date(i), -years)) + 1,
+      );
+      if (n >= 0 && away[i + 1] - away[from] > half) {
+        cut = n;
+        last = i - start;
+        start = -1;
+        continue;
+      }
+      run[i] = start;
+    }
+    // § 12b Abs. 2: residence before an interruption may be counted, up to
+    // 3 years (2 for spouses), at discretion (PD-128).
+    const cap = v.priorResidenceCreditYears.value[route] * v.daysPerYear.value;
+    const residence = (d: IsoDate): Verdict => {
+      const k = days.index(d);
+      const kd = kinds[k];
+      // When naturalised you must hold a title other than study or the
+      // asylum procedure (§ 10 Abs. 1 Satz 1 Nr. 2).
+      if (k < 1 || !kd || !TITLES.includes(kd) || run[k] < 0) return 'no';
+      const r = run[k - 1];
+      if (r < 0) return 'no';
+      const need = daysBetween(addYears(d, -years), d);
+      if (k - r >= need) return 'yes';
+      return k - r + Math.min(cap, before.get(r) ?? 0) >= need ? 'maybe' : 'no';
+    };
+    const marriedFrom =
+      route === 'spouse' && req.marriedOn
+        ? afterYears(req.marriedOn, v.spouseMarriageYears.value)
+        : undefined;
+    const married = (d: IsoDate) =>
+      route !== 'spouse' || (!!marriedFrom && d >= marriedFrom);
+    const earliest = firstDate((d) => married(d) && residence(d) === 'yes');
+    const possible = firstDate((d) => married(d) && residence(d) !== 'no');
+    const now = residence(sim);
+    const turbo = v.turboAbolishedFrom.value;
+    const fiveFrom = v.fiveYearsFrom.value;
+    const asylum = req.permits.some((p) => p.kind === 'asylum');
+    pathways.push({
+      id: 'DE-NATURALISATION',
+      title: L('入籍（Einbürgerung）', 'Naturalisation (Einbürgerung)'),
+      status: !earliest && possible ? 'UNKNOWN' : statusOf(earliest),
+      earliestDate: earliest,
+      summary:
+        (earliest === sim
+          ? L(
+              `模拟日已有 ${years} 年合法惯常居住。`,
+              `You have ${years} years of lawful habitual residence on the simulation date.`,
+            )
+          : earliest
+            ? L(
+                `满足入籍时间条件的最早日期是 ${earliest}。`,
+                `The earliest date that meets the time requirements for naturalisation is ${earliest}.`,
+              )
+            : L(
+                `按现有记录，10 年内达不到入籍的时间条件。`,
+                `With your record you will not meet the time requirements for naturalisation within 10 years.`,
+              )) +
+        (possible && (!earliest || possible < earliest)
+          ? L(
+              `若主管机关酌情把中断前的居住最多 ${v.priorResidenceCreditYears.value[route]} 年计入，最早 ${possible}（§ 12b Abs. 2，裁量，PD-128）。`,
+              ` If the authority uses its discretion to count up to ${v.priorResidenceCreditYears.value[route]} years of residence before the interruption, it could be ${possible} (§ 12b Abs. 2, PD-128).`,
+            )
+          : '') +
+        (route === 'general'
+          ? L(
+              `3 年快速入籍（§ 10 Abs. 3）自 ${turbo} 起取消，一般须满 ${years} 年。`,
+              ` The 3-year fast track (§ 10 Abs. 3) was abolished from ${turbo}; the general requirement is ${years} years.`,
+            )
+          : ''),
+      checks: [
+        {
+          text: L(
+            `入籍前 ${years} 年合法惯常居住不中断（单次出境不超过 ${v.naturalisationAbsenceMonths.value} 个月不中断），入籍时持学习与庇护程序以外的许可`,
+            `${years} years of lawful habitual residence without interruption before naturalisation (absences of up to ${v.naturalisationAbsenceMonths.value} months do not interrupt it), holding a title other than study or the asylum procedure when naturalised`,
+          ),
+          met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
+          sources: [
+            ...v.naturalisationYears.sources,
+            ...v.naturalisationAbsenceMonths.sources,
+            stAG('§ 12b Abs. 1 Satz 5', '12b'),
+            { srcId: 'SRC-106', locator: 'Nr. 12b.1.5 Rdn. 23 (p98)' },
+            { srcId: 'SRC-105', locator: 'BT-Drs. 20/9044 (p40)' },
+            ...(asylum
+              ? [
+                  {
+                    srcId: 'SRC-103',
+                    locator: 'AsylG § 55 Abs. 3',
+                    url: 'https://www.gesetze-im-internet.de/asylvfg_1992/__55.html',
+                  },
+                ]
+              : []),
+          ],
+        },
+        ...(route === 'spouse'
+          ? [
+              {
+                text: marriedFrom
+                  ? L(
+                      `与德国人结婚（或登记伴侣关系）满 ${v.spouseMarriageYears.value} 年（${marriedFrom} 起）`,
+                      `Married to, or in a registered partnership with, a German for ${v.spouseMarriageYears.value} years (from ${marriedFrom})`,
+                    )
+                  : L(
+                      `与德国人结婚（或登记伴侣关系）满 ${v.spouseMarriageYears.value} 年（未填结婚日期）`,
+                      `Married to, or in a registered partnership with, a German for ${v.spouseMarriageYears.value} years (no date entered)`,
+                    ),
+                met: marriedFrom ? sim >= marriedFrom : undefined,
+                sources: v.spouseMarriageYears.sources,
+              },
+            ]
+          : []),
+      ],
+      notChecked: [
+        L(
+          '身份与国籍已查明、宪法与历史责任声明、生计、无犯罪记录、德语 B1、入籍考试（§ 10 Abs. 1 Satz 1 Nr. 1、1a、3、5–7）；入籍时所持许可不能是 § 10 Abs. 1 Satz 1 Nr. 2 所列的临时目的（"其他居留许可"可能属于）',
+          'Identity and nationality established, the declarations on the constitution and historical responsibility, livelihood, no criminal convictions, German at B1 and the naturalisation test (§ 10 Abs. 1 Satz 1 Nr. 1, 1a, 3, 5–7); the title held when naturalised must not be for a temporary purpose listed in § 10 Abs. 1 Satz 1 Nr. 2 (an “other residence permit” may be)',
+        ),
+        L(
+          '外国人管理局准许的更长出境期限、因服兵役超期（§ 12b Abs. 1 Satz 2、3），以及因迟交续期申请造成的合法性中断可不计（§ 12b Abs. 3）',
+          'A longer absence allowed by the immigration authority or overstayed for military service (§ 12b Abs. 1 Satz 2, 3), and gaps in lawful status from a late renewal application being disregarded (§ 12b Abs. 3)',
+        ),
+        ...(route === 'spouse'
+          ? [
+              L(
+                '3 年内长期分居的年限相应延长（AH-StAG Nr. 9.1 Rdn. 4）；婚姻满 3 年时可因公共利益缩短居住年限（§ 9 Abs. 1 Satz 2，裁量）；配偶去世或离婚后 1 年内的情形（§ 9 Abs. 2）',
+                'A longer period after living apart for a long time (AH-StAG Nr. 9.1 Rdn. 4); a shorter residence period in the public interest once married for 3 years (§ 9 Abs. 1 Satz 2, at discretion); the year after the German spouse dies or the marriage ends (§ 9 Abs. 2)',
+              ),
+            ]
+          : []),
+      ],
+      assumptions: [
+        L(
+          `以入籍日判断（AH-StAG Nr. 10.1.0 Rdn. 1），从该日往回数，不含当天；${years} 年按日历计（PD-120）。现行 ${route === 'general' ? '5 年' : '3 年'}规定按 StARModG 自 ${fiveFrom} 起施行；3 年快速入籍（§ 10 Abs. 3）自 ${turbo} 起取消（BGBl. 2025 I Nr. 256，没有过渡条款，PD-129）。`,
+          `Judged on the naturalisation date (AH-StAG Nr. 10.1.0 Rdn. 1), counting back from it and not including it; the ${years} years are calendar years (PD-120). The current ${years}-year rule applies under the StARModG from ${fiveFrom}; the 3-year fast track (§ 10 Abs. 3) was abolished from ${turbo} (BGBl. 2025 I Nr. 256, with no transitional provision, PD-129).`,
+        ),
+        L(
+          `所有居留许可（含学习）都算合法居留，庇护程序期间在获得庇护或难民身份后计入（AsylG § 55 Abs. 3）。单次不超过 ${v.naturalisationAbsenceMonths.value} 个月的出境不中断（§ 12b Abs. 1 Satz 1）；更长的出境中断，回德后从返回日重新起算；所需年限内出境合计超过其一半（每年按 ${v.daysPerYear.value} 天）也中断，从越过一半的那次出境返回后重新起算（§ 12b Abs. 1 Satz 5，PD-127）。`,
+          `Every residence permit (study included) is lawful residence; the asylum procedure counts once asylum or refugee status was granted (AsylG § 55 Abs. 3). Absences of up to ${v.naturalisationAbsenceMonths.value} months do not interrupt residence (§ 12b Abs. 1 Satz 1); a longer absence interrupts it and the count starts again on the day you came back; so do absences totalling more than half the years required (${v.daysPerYear.value}-day years) within those years, starting again after the trip that went over half (§ 12b Abs. 1 Satz 5, PD-127).`,
+        ),
+        gaps,
+        ...(sim < turbo
+          ? [
+              L(
+                `模拟日早于 ${turbo}：当时还有 3 年路径（须特别融入成绩与 C1 德语），${sim < fiveFrom ? `${fiveFrom} 前的年限也不同，` : ''}本试点只按现行法计算；${turbo} 前已递交、尚未决定的 3 年申请如何处理，法律没有规定（PD-129）。`,
+                `The simulation date is before ${turbo}: a 3-year route then existed (with special integration achievements and German at C1)${sim < fiveFrom ? `, and the years required were different before ${fiveFrom}` : ''}; this pilot uses current law only, and the law does not say what happens to 3-year applications made before ${turbo} and still undecided (PD-129).`,
+              ),
+            ]
+          : []),
+        projection,
+      ],
+      pendingDetails: [
+        'PD-120',
+        'PD-124',
+        'PD-127',
+        ...(possible && (!earliest || possible < earliest) ? ['PD-128'] : []),
+        'PD-129',
+      ],
+    });
+  }
+
+  // ---------- Trips abroad and loss of a title (§ 51) ----------
+  {
+    const title = L(
+      '出境与居留失效（§ 51）',
+      'Trips abroad and loss of residence (§ 51)',
+    );
+    const relevant = exits.filter((e) => e !== undefined);
+    const lapsed = relevant.filter((e) => e.lapses);
+    const unsure = relevant.filter((e) => e.unsure);
+    const notChecked = [
+      L(
+        '出于非临时原因出境（如迁居国外）的，许可在出境时即失效（§ 51 Abs. 1 Nr. 6），取决于本人意图，无法计算',
+        'Leaving for a reason that is not temporary (such as moving abroad) ends the title when you leave (§ 51 Abs. 1 Nr. 6); this depends on your intentions and cannot be worked out',
+      ),
+      L(
+        '外国人管理局准许的更长返回期限（Nr. 7，持定居许可的通常会准许，Abs. 4）；合法居留满 15 年的定居许可持有人、与德国人共同生活的配偶（Abs. 2）、服兵役（Abs. 3）、持德国难民旅行证件（Abs. 7）的例外；蓝卡持有人家属的 12 个月（Abs. 10）；多次入境或超过 90 天的签证不按 Nr. 7 失效',
+        'A longer deadline set by the immigration authority (Nr. 7; usually given to settlement permit holders, Abs. 4); the exceptions for settlement permit holders with 15 years of lawful residence, spouses living with a German (Abs. 2), military service (Abs. 3) and holders of a German refugee travel document (Abs. 7); 12 months for Blue Card holders’ family (Abs. 10); multiple-entry visas and visas for more than 90 days do not lapse under Nr. 7',
+      ),
+    ];
+    if (relevant.length === 0) {
+      pathways.push({
+        id: 'DE-TRAVEL',
+        title,
+        status: 'NOT_APPLICABLE',
+        summary: L(
+          '没有持居留许可期间的出境记录。',
+          'You entered no trips abroad while holding a residence title.',
+        ),
+        checks: [],
+        notChecked,
+        assumptions: [],
+      });
+    } else {
+      const trip = (e: (typeof relevant)[number]) =>
+        L(
+          `${e.trip.departed} 至 ${e.trip.returned}`,
+          `${e.trip.departed} to ${e.trip.returned}`,
+        );
+      pathways.push({
+        id: 'DE-TRAVEL',
+        title,
+        status: lapsed.length ? 'NOT_MET' : unsure.length ? 'UNKNOWN' : 'MET',
+        earliestDate: lapsed.length || unsure.length ? undefined : sim,
+        summary: lapsed.length
+          ? L(
+              `${lapsed.map(trip).join('、')} 的出境没有在期限内返回，所持许可在期限届满后失效（§ 51）：此前的时间不再计入定居许可与欧盟长期居留，回德须重新取得许可。`,
+              `For the trip${lapsed.length > 1 ? 's' : ''} ${lapsed.map(trip).join(', ')} you did not come back in time, so the title lapsed when the deadline passed (§ 51): earlier time no longer counts for a settlement permit or EU long-term residence, and you need a new title to come back.`,
+            )
+          : unsure.length
+            ? L(
+                `${unsure.map(trip).join('、')} 持欧盟长期居留离开德国较久：若这段时间都在欧盟以外，许可已失效（§ 51 Abs. 9 Satz 1 Nr. 3）；在其他欧盟国家的不失效，试点无法判断。`,
+                `On EU long-term residence you were away ${unsure.map(trip).join(', ')}: if all of that time was outside the EU the title has lapsed (§ 51 Abs. 9 Satz 1 Nr. 3); time in other EU countries does not count against it, which this pilot cannot tell.`,
+              )
+            : L(
+                '录入的出境都在期限内返回，许可不因长期出境（§ 51 Abs. 1 Nr. 7）失效。',
+                'You came back in time from every trip you entered, so no title lapsed for a long absence (§ 51 Abs. 1 Nr. 7).',
+              ),
+        checks: relevant.map((e) =>
+          e.kind === 'eu-long-term'
+            ? {
+                text: L(
+                  `${trip(e)}（持欧盟长期居留）：${e.by} 前返回德国；若在欧盟以外，须 ${e.euBy} 前返回`,
+                  `${trip(e)} (on EU long-term residence): back in Germany by ${e.by}, or by ${e.euBy} if outside the EU`,
+                ),
+                met: e.lapses ? false : e.unsure ? undefined : true,
+                sources: [
+                  ...v.euLapseMonths.sources,
+                  ...v.euLapseYears.sources,
+                ],
+              }
+            : {
+                text: L(
+                  `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回`,
+                  `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}`,
+                ),
+                met: !e.lapses,
+                sources:
+                  e.kind === 'blue-card'
+                    ? v.blueCardLapseMonths.sources
+                    : v.lapseMonths.sources,
+              },
+        ),
+        notChecked,
+        assumptions: [
+          L(
+            `期限从离境日起按日历月计，对应日当天返回仍算按时（BGB §§ 187、188，PD-120）；一般 ${v.lapseMonths.value} 个月，欧盟蓝卡 ${v.blueCardLapseMonths.value} 个月；欧盟长期居留离开欧盟 ${v.euLapseMonths.value} 个月（之前持过蓝卡的 ${v.euLapseBlueCardMonths.value} 个月）或离开德国 ${v.euLapseYears.value} 年。未来的出境按你填写的返回日判断。`,
+            `Deadlines run in calendar months from the day you left, and coming back on the same day of the month is still in time (BGB §§ 187, 188, PD-120): usually ${v.lapseMonths.value} months, ${v.blueCardLapseMonths.value} on an EU Blue Card; EU long-term residence lapses after ${v.euLapseMonths.value} months outside the EU (${v.euLapseBlueCardMonths.value} after a Blue Card) or ${v.euLapseYears.value} years outside Germany. Future trips are judged by the return date you entered.`,
+          ),
+        ],
+        pendingDetails: ['PD-120'],
+      });
+    }
+  }
+
+  return { policyAsOf: de.asOf, pathways };
+}

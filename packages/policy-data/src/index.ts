@@ -21,6 +21,7 @@ export { canada2026_11 } from './parameters/canada-2026-11';
 export { unitedStates2026_11 } from './parameters/united-states-2026-11';
 export { spain2026_11 } from './parameters/spain-2026-11';
 export { greece2026_11 } from './parameters/greece-2026-11';
+export { germany2026_11 } from './parameters/germany-2026-11';
 export { publicFundsBenefits } from './data/public-funds-benefits';
 export type { Benefit } from './data/public-funds-benefits';
 export { annexCOccupations, careWorkerOccupations } from './data/occupations';
