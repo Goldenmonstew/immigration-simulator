@@ -33,6 +33,22 @@ export const australia2026_11 = {
         { srcId: 'SRC-062', locator: 'Sch 1 item 1139(3)(bb)(i)' },
       ],
     },
+    // Visas granted from this date must allow the 5-year stay; earlier ones
+    // must not allow a stay after hongKongOldVisaUntil.
+    hongKongNewVisaFrom: {
+      value: '2020-07-09',
+      sources: [
+        { srcId: 'SRC-062', locator: 'Sch 1 item 1137(4M)(c)' },
+        { srcId: 'SRC-062', locator: 'Sch 1 item 1139(3A)(c)' },
+      ],
+    },
+    hongKongOldVisaUntil: {
+      value: '2025-07-08',
+      sources: [
+        { srcId: 'SRC-062', locator: 'Sch 1 item 1137(4M)(c)(i)' },
+        { srcId: 'SRC-062', locator: 'Sch 1 item 1139(3A)(c)(i)' },
+      ],
+    },
     hongKongVisaYears: {
       value: 5,
       sources: [

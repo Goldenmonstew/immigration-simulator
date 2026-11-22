@@ -152,6 +152,21 @@ describe('Hong Kong streams (Sch 1 items 1137(4L), 1139(3)(ca))', () => {
     expect(p.earliestDate).toBe('2022-03-05');
   });
 
+  test('an old 457 runs to 8 July 2025, not 5 years', () => {
+    const at = (simulationDate: string) =>
+      pathway(
+        hk(true, {
+          simulationDate,
+          firstArrival: '2017-03-01',
+          visas: [{ subclass: '457', from: '2017-03-01', to: '2025-07-08' }],
+          hongKong: { regionalSince: '2017-03-01' },
+        }),
+        'AU-191-HK',
+      );
+    expect(at('2022-01-01').earliestDate).toBe('2022-03-05');
+    expect(at('2022-03-05').status).toBe('MET');
+  });
+
   test('residence counts from the first arrival', () => {
     // Arrived 2022-06-01: 3 years in Australia only from 2025-06-01.
     const p = pathway(

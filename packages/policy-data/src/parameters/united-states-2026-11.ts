@@ -74,8 +74,17 @@ export const unitedStates2026_11 = {
     },
     // An absence of more than this many days is presumed to break
     // continuous residence; one of this many days or more breaks it.
-    // An absence of more than this many months is presumed to break
-    // continuity; the Policy Manual's worked examples count calendar months.
+    // An absence of more than this many days is presumed to break continuity
+    // (the Policy Manual states 180 days)...
+    presumptionDays: {
+      value: 180,
+      sources: [
+        { srcId: 'SRC-079', locator: '8 U.S.C. 1427(b)' },
+        { srcId: 'SRC-080', locator: '8 CFR 316.5(c)(1)(i)' },
+        { srcId: 'SRC-081', locator: 'Vol 12 Part D Ch 3(C)(1)' },
+      ],
+    },
+    // ...while its worked examples count calendar months (PD-093).
     presumptionMonths: {
       value: 6,
       sources: [

@@ -29,8 +29,8 @@ describe('naturalization, INA 316(a)', () => {
 
   test('a year away: the Policy Manual example', () => {
     // PM 12 D.3(C)(2): away 2010-01-01 to 2011-01-02 (365 days). Filing on
-    // 2015-01-03 must rebut the presumption; from 2015-07-02 (4 years and 6
-    // months after the return, PM 12 D.3(C)(3) table) it needs none.
+    // 2015-01-03 must rebut the presumption; 2015-07-06 needs none by 180
+    // days, 2015-07-02 by months (the D.3(C)(3) table).
     const p = pathway(
       {
         simulationDate: '2014-01-01',
@@ -41,8 +41,9 @@ describe('naturalization, INA 316(a)', () => {
       'US-NATURALIZATION',
     );
     expect(p.status).toBe('FUTURE');
-    expect(p.earliestDate).toBe('2015-07-02');
+    expect(p.earliestDate).toBe('2015-07-06');
     expect(p.summary).toContain('2015-01-03');
+    expect(p.summary).toContain('2015-07-02');
   });
 
   test('the Policy Manual 8-month example: back 2018-08-01, apply 2023-02-01', () => {
@@ -55,7 +56,20 @@ describe('naturalization, INA 316(a)', () => {
       },
       'US-NATURALIZATION',
     );
-    expect(p.earliestDate).toBe('2023-02-01');
+    // By months 2023-02-01 (the example); by 180 days 2023-02-02.
+    expect(p.earliestDate).toBe('2023-02-02');
+    expect(p.summary).toContain('2023-02-01');
+  });
+
+  test('6 calendar months but 183 days away still needs a rebuttal', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-01-15',
+        trips: [{ departed: '2025-07-01', returned: '2026-01-01' }],
+      },
+      'US-NATURALIZATION',
+    );
+    expect(p.status).toBe('FUTURE');
   });
 
   test('6 months away is fine, longer is presumed to break', () => {
