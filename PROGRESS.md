@@ -339,3 +339,4 @@
 | 304 | 任务 60 报告补记最终验证（门禁、CI、八轮 Codex 审核通过）。 | docs/tasks/reports/60-new-zealand.md |
 | 306 | 任务 61 合入新西兰最终修正与 main，报告补记最终验证（门禁、e2e 18 项、两轮 Codex 审核通过）。 | docs/tasks/reports/61-canada.md、apps/web/app/new-zealand/new-zealand-content.tsx |
 | 309 | 任务 62 合入 main（新西兰、加拿大），报告补记最终验证（门禁、e2e 20 项、八轮 Codex 审核通过）。 | docs/tasks/reports/62-united-states.md |
+| 312 | 任务 63 合入 main（新西兰、加拿大、美国），长期居留检查项写明到期时已满 5 年（review63-5 建议），报告补记最终验证（门禁、e2e 22 项、五轮 Codex 审核通过）。 | packages/engine/src/spain.ts、docs/tasks/reports/63-spain.md |

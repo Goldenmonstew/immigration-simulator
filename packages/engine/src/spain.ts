@@ -191,8 +191,8 @@ export function evaluateSpain(req: EsRequest): EsResult {
       checks: [
         {
           text: L(
-            `前 ${years} 年一直持有居留许可（不含学习停留；许可到期后 3 个月内递交的，原许可延长至决定作出）`,
-            `A residence permit throughout the past ${years} years (study stays not included; applying within 3 months of expiry extends the permit until the decision)`,
+            `前 ${years} 年一直持有居留许可（不含学习停留；到期时已满 ${years} 年、到期后 ${v.longTermLateMonths.value} 个月内递交的，原许可延长至决定作出，art. 184.2）`,
+            `A residence permit throughout the past ${years} years (study stays not included; with ${years} years complete when it expired, applying within ${v.longTermLateMonths.value} months of expiry extends the permit until the decision, art. 184.2)`,
           ),
           met: f.legal ? true : f.withStudy ? undefined : false,
           sources: v.longTermYears.sources,
