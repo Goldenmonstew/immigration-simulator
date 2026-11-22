@@ -618,7 +618,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ca.addPeriod': 'Add a period',
   'ca.trips': 'Trips abroad',
   'ca.tripsHint':
-    'Add a row for each time you left Canada. You can include planned trips.',
+    'Add a row for each time you left Canada. You can include planned trips; if you are abroad now, enter the date you expect to return, and the results follow it.',
   'ca.trip': 'Trip {n}',
   'ca.departed': 'Date you left Canada',
   'ca.returned': 'Date you came back to Canada',
@@ -656,6 +656,18 @@ export const en: Record<keyof typeof zhCN, string> = {
   'nz.category.religious-worker': 'Religious Worker',
   'nz.category.aip-growth': 'Active Investor Plus: Growth',
   'nz.category.aip-balanced': 'Active Investor Plus: Balanced',
+  'nz.travelConditionsEnd':
+    'Travel conditions expiry date on your visa (optional)',
+  'nz.travelConditionsEndHint':
+    'The Expiry date travel on your eVisa. If blank, it is worked out under the current rule; older visas may differ, so entering it is better.',
+  'nz.conditions':
+    's49 conditions on your resident visa on the simulation date (such as employment, investment or sponsorship)',
+  'nz.conditions.unsure': 'Not sure (go by the visa category)',
+  'nz.conditions.none': 'None, or already removed',
+  'nz.conditions.met': 'Met, not yet removed',
+  'nz.conditions.outstanding': 'Not yet met',
+  'nz.nonPrincipal':
+    'I was included as a partner or child (not the principal applicant)',
   'nz.prvGranted':
     'Date your permanent resident visa was granted (leave blank if you do not have one)',
   'nz.trips': 'Trips abroad',

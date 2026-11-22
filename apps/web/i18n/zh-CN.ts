@@ -413,7 +413,8 @@ export const zhCN = {
   'ca.to': '结束日期（到成为永久居民前一天可留空）',
   'ca.addPeriod': '添加临时身份',
   'ca.trips': '出境记录',
-  'ca.tripsHint': '每次离开加拿大填一行，计划中的出行也可以填。',
+  'ca.tripsHint':
+    '每次离开加拿大填一行，计划中的出行也可以填；仍在境外的，回程填预计日期，结果会随之变化。',
   'ca.trip': '出境 {n}',
   'ca.departed': '离开加拿大的日期',
   'ca.returned': '回到加拿大的日期',
@@ -447,6 +448,15 @@ export const zhCN = {
   'nz.category.religious-worker': '宗教工作者（Religious Worker）',
   'nz.category.aip-growth': 'Active Investor Plus：Growth',
   'nz.category.aip-balanced': 'Active Investor Plus：Balanced',
+  'nz.travelConditionsEnd': '签证上的旅行条件到期日（可留空）',
+  'nz.travelConditionsEndHint':
+    '即 eVisa 上的 Expiry date travel。留空则按现行规则推算；早年获批的签证规则可能不同，建议填写。',
+  'nz.conditions': '模拟日时居民签证的 s49 条件（如受雇、投资、担保要求）',
+  'nz.conditions.unsure': '不确定（按签证类别判断）',
+  'nz.conditions.none': '没有，或已办理取消',
+  'nz.conditions.met': '已满足，尚未办理取消',
+  'nz.conditions.outstanding': '尚未满足',
+  'nz.nonPrincipal': '我是随同获批的伴侣或子女（不是主申请人）',
   'nz.prvGranted': '永久居民签证（PRV）获批日期（还没有可留空）',
   'nz.trips': '出境记录',
   'nz.tripsHint':

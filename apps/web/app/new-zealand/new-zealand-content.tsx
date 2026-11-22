@@ -33,6 +33,7 @@ const FIELD_LABELS: Record<string, TranslationKey> = {
   'nz-first-arrival': 'nz.firstArrival',
   'nz-resident-granted': 'nz.residentGranted',
   'nz-prv-granted': 'nz.prvGranted',
+  'nz-travel-conditions-end': 'nz.travelConditionsEnd',
   departed: 'nz.departed',
   returned: 'nz.returned',
 };
@@ -82,6 +83,7 @@ export default function NewZealandContent() {
       | 'dateOfBirth'
       | 'firstArrival'
       | 'residentGranted'
+      | 'travelConditionsEnd'
       | 'prvGranted',
     hint?: string,
   ) => (
@@ -140,6 +142,37 @@ export default function NewZealandContent() {
               ))}
             </select>
           </Field>
+          {date(
+            'nz-travel-conditions-end',
+            'nz.travelConditionsEnd',
+            'travelConditionsEnd',
+            t('nz.travelConditionsEndHint'),
+          )}
+          <Field id="nz-conditions" label={t('nz.conditions')}>
+            <select
+              id="nz-conditions"
+              value={draft.conditions}
+              onChange={(e) =>
+                set({ conditions: e.target.value as NzForm['conditions'] })
+              }
+            >
+              {(['', 'none', 'met', 'outstanding'] as const).map((c) => (
+                <option key={c} value={c}>
+                  {t(`nz.conditions.${c || 'unsure'}` as TranslationKey)}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <div className={form.checkboxes}>
+            <label>
+              <input
+                type="checkbox"
+                checked={draft.nonPrincipal}
+                onChange={(e) => set({ nonPrincipal: e.target.checked })}
+              />
+              {t('nz.nonPrincipal')}
+            </label>
+          </div>
           {date('nz-prv-granted', 'nz.prvGranted', 'prvGranted')}
 
           <h2>{t('nz.trips')}</h2>
