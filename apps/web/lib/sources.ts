@@ -160,6 +160,8 @@ export const sourceUrls: Record<string, string> = {
     'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2010/20100100049.pdf',
   'SRC-089':
     'https://www.ypes.gr/wp-content/uploads/2026/02/Proypotheseis20260130.pdf',
+  'SRC-090':
+    'https://www.boe.es/buscar/pdf/2015/BOE-A-2015-10565-consolidado.pdf',
   'SRC-091': 'https://revisedacts.lawreform.ie/eli/1956/act/26/revised/en/html',
   'SRC-092':
     'https://www.irishstatutebook.ie/eli/2023/act/18/section/8/enacted/en/html',

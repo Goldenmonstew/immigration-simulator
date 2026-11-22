@@ -100,9 +100,19 @@ export function evaluateSpain(req: EsRequest): EsResult {
     const end = days.date(gap[a] - 1);
     return (
       days.total(s, addDays(end, 1), to) === 0 &&
-      d <= addMonths(end, v.longTermLateMonths.value) &&
+      d <= workingDay(addMonths(end, v.longTermLateMonths.value)) &&
       covered(s, addYears(addDays(end, 1), -v.longTermYears.value), end)
     );
+  };
+  /**
+   * A period ending on a Saturday or Sunday ends on the next working day
+   * (Ley 39/2015 art. 30.2, 30.5); public holidays are not modelled (PD-099).
+   */
+  const workingDay = (d: IsoDate) => {
+    let x = d;
+    while ([0, 6].includes(new Date(`${x}T00:00:00Z`).getUTCDay()))
+      x = addDays(x, 1);
+    return x;
   };
   /** Trips under way on any day of [from, to], travel days included. */
   const tripsTouching = (from: IsoDate, to: IsoDate) =>
