@@ -352,3 +352,4 @@
 | 309 | 任务 62 合入 main（新西兰、加拿大），报告补记最终验证（门禁、e2e 20 项、八轮 Codex 审核通过）。 | docs/tasks/reports/62-united-states.md |
 | 312 | 任务 63 合入 main（新西兰、加拿大、美国），长期居留检查项写明到期时已满 5 年（review63-5 建议），报告补记最终验证（门禁、e2e 22 项、五轮 Codex 审核通过）。 | packages/engine/src/spain.ts、docs/tasks/reports/63-spain.md |
 | 313 | 任务 64 合入西班牙分支（含 main），SRC-087、SRC-088 按具体法律给出直达链接。 | packages/policy-data/src/parameters/greece-2026-11.ts、packages/engine/src/greece.ts、docs/tasks/reports/64-greece.md |
+| 316 | 任务 65 合入 main，报告补记最终验证（门禁、e2e 47 项、四轮 Codex 审核通过）。 | docs/tasks/reports/65-australia-hong-kong.md |
