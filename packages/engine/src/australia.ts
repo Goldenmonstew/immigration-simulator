@@ -436,6 +436,10 @@ export function evaluateAustralia(req: AuRequest): AuResult {
           'You have confirmed that you hold a Hong Kong or BN(O) passport and that your current 457, 482 or 485 visa was granted to you as the primary applicant and allows a 5-year stay from when it came into effect (granted from 9 July 2020; one granted earlier must not allow a stay after 8 July 2025, Sch 1 items 1137(4M)(c), 1139(3A)(c)); this pilot does not check it.',
         ),
         L(
+          `签证到期日留空时，按生效后 ${v.hongKongVisaYears.value} 年计（Sch 1 item 1137(4M)(c)(ii)、1139(3A)(c)(ii)）；递交时须仍持有这份签证。`,
+          `With no end date entered, your visa is taken to run ${v.hongKongVisaYears.value} years from when it came into effect (Sch 1 items 1137(4M)(c)(ii), 1139(3A)(c)(ii)); you must still hold it when applying.`,
+        ),
+        L(
           `"连续通常居住"法规没有定义：从首次入境起算，年限内有出境记录的输出 UNKNOWN，摘要给出不计出境时的日期（PD-108）。`,
           `"Usually resident for a continuous period" is not defined: it is counted from your first arrival, and any trip in those years makes the result unknown, with the date ignoring trips in the summary (PD-108).`,
         ),
@@ -458,10 +462,13 @@ export function evaluateAustralia(req: AuRequest): AuResult {
         });
         continue;
       }
-      // Held the current visa for the years, and still hold it then.
+      // Held the current visa for the years, and still hold it then. With
+      // no end date entered, the confirmed 5-year stay ends it.
       const heldDue = afterYears(current.from, n);
-      const holding = (d: IsoDate) =>
-        d >= heldDue && (!current.to || current.to >= d);
+      const end =
+        current.to ??
+        addDays(afterYears(current.from, v.hongKongVisaYears.value), -1);
+      const holding = (d: IsoDate) => d >= heldDue && end >= d;
       // Usually resident in Australia throughout the years before applying.
       const resident = (d: IsoDate) =>
         !!req.firstArrival && req.firstArrival <= addYears(d, -n);
@@ -510,10 +517,10 @@ export function evaluateAustralia(req: AuRequest): AuResult {
                     ` You have ${trips.length} trips abroad in those years; the rules do not say how much time away still counts as usually resident (PD-108).`,
                   )
                 : '')
-            : current.to && current.to < heldDue
+            : end < heldDue
               ? L(
-                  `当前 ${current.subclass} 签证在 ${current.to} 到期，早于持满 ${n} 年的 ${heldDue}。`,
-                  `Your current subclass ${current.subclass} visa ends on ${current.to}, before you would have held it for ${n} years on ${heldDue}.`,
+                  `当前 ${current.subclass} 签证在 ${end} 到期，早于持满 ${n} 年的 ${heldDue}。`,
+                  `Your current subclass ${current.subclass} visa ends on ${end}, before you would have held it for ${n} years on ${heldDue}.`,
                 )
               : L(
                   `按现有记录，10 年内达不到 ${n} 年的持签与居住要求。`,

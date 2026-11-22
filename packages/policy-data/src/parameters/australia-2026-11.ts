@@ -23,6 +23,15 @@ export const australia2026_11 = {
         { srcId: 'SRC-062', locator: '189.242' },
       ],
     },
+    // The Hong Kong streams' 457, 482 and 485 visas allow a stay of this many
+    // years from when they came into effect (granted from 9 July 2020).
+    hongKongVisaYears: {
+      value: 5,
+      sources: [
+        { srcId: 'SRC-062', locator: 'Sch 1 item 1137(4M)(c)(ii)' },
+        { srcId: 'SRC-062', locator: 'Sch 1 item 1139(3A)(c)(ii)' },
+      ],
+    },
     hongKongRegionalYears: {
       value: 3,
       sources: [

@@ -104,6 +104,25 @@ describe('Hong Kong streams (Sch 1 items 1137(4L), 1139(3)(ca))', () => {
     expect(p.earliestDate).toBe('2027-06-01');
   });
 
+  test('a visa with no end date runs 5 years', () => {
+    // Moved on 2025-06-01: 3 regional years only from 2028-06-01, after the
+    // 5-year 482 from 2022-12-01 ends on 2027-11-30.
+    const at = (to?: string) =>
+      pathway(
+        {
+          simulationDate: '2026-11-22',
+          firstArrival: '2021-07-01',
+          visas: [
+            { subclass: '482', from: '2022-12-01', ...(to ? { to } : {}) },
+          ],
+          hongKong: { regionalSince: '2025-06-01' },
+        },
+        'AU-191-HK',
+      ).status;
+    expect(at()).toBe('NOT_MET');
+    expect(at('2027-11-30')).toBe('NOT_MET');
+  });
+
   test('residence counts from the first arrival', () => {
     // Arrived 2022-06-01: 3 years in Australia only from 2025-06-01.
     const p = pathway(
