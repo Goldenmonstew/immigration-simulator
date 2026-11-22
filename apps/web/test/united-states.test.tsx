@@ -76,7 +76,15 @@ test('the request leaves out an unticked marriage and blank dates', () => {
 });
 
 test('filing with a principal applicant needs their date', () => {
-  const joint = { ...filled, conditional: 'investor' as const, joint: true };
+  // A conditional green card asks how it was obtained.
+  expect(validateUsForm({ ...filled, conditional: 'marriage' })).toEqual({
+    'us-role': 'us.error.role',
+  });
+  const joint = {
+    ...filled,
+    conditional: 'investor' as const,
+    role: 'derivative' as const,
+  };
   expect(validateUsForm(joint)).toEqual({
     'us-principal-since': 'us.error.date',
   });

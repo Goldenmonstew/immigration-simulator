@@ -28,6 +28,7 @@ const FIELD_LABELS: Record<string, TranslationKey> = {
   'us-simulation-date': 'us.simulationDate',
   'us-date-of-birth': 'us.dateOfBirth',
   'us-permanent-resident': 'us.permanentResident',
+  'us-role': 'us.role',
   'us-principal-since': 'us.principalSince',
   'us-state-residence-from': 'us.stateResidenceFrom',
   'us-married-on': 'us.marriedOn',
@@ -146,20 +147,35 @@ export default function UnitedStatesContent() {
           </Field>
           {draft.conditional !== 'none' && (
             <div className={form.followUp}>
-              <div className={form.checkboxes}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={draft.joint}
-                    onChange={(e) => {
-                      setErrors({});
-                      set({ joint: e.target.checked });
-                    }}
-                  />
-                  {t('us.joint')}
-                </label>
-              </div>
-              {draft.joint &&
+              <Field
+                id="us-role"
+                label={t('us.role')}
+                hint={t('us.roleHint')}
+                error={errors['us-role']}
+              >
+                <select
+                  id="us-role"
+                  value={draft.role}
+                  onChange={(e) => {
+                    // A hidden principal date must not keep its error.
+                    setErrors({});
+                    set({ role: e.target.value as UsForm['role'] });
+                  }}
+                  aria-invalid={errors['us-role'] ? true : undefined}
+                  aria-describedby={
+                    errors['us-role']
+                      ? 'us-role-hint us-role-error'
+                      : 'us-role-hint'
+                  }
+                >
+                  {(['', 'principal', 'derivative'] as const).map((r) => (
+                    <option key={r} value={r}>
+                      {t(`us.role.${r || 'choose'}` as TranslationKey)}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              {draft.role === 'derivative' &&
                 date(
                   'us-principal-since',
                   'us.principalSince',

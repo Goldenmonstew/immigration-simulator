@@ -576,15 +576,20 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
             '递交期最后一天按两周年前一天计，两周年当天能否递交原文未写；最后一天是周末或联邦假日（5 U.S.C. 6103）的，纸质递交按 USCIS 一般规则顺延到下一个工作日，网上递交不顺延；取得永居日为 2 月 29 日的，两周年取 3 月 1 日（PD-094）。',
             'The last day is taken as the day before the second anniversary; whether the anniversary itself counts is not stated. If the last day is a weekend or federal holiday (5 U.S.C. 6103), a paper filing is extended to the next business day under the general USCIS rule, but online filing is not; a 29 February start has its anniversary on 1 March (PD-094).',
           ),
-          req.principalConditional
+          !req.principalConditional
             ? L(
-                `随主申请人一并递交，递交期按主申请人取得条件身份的日期 ${req.principalConditional} 计算（8 CFR 216.4(a)(2)、216.6(a)(1)(ii)）；子女须在父母取得身份当天或之后 ${v.childConcurrentDays.value} 天内取得，才能纳入同一份 I-751。`,
-                `Filing together with the principal applicant, so the period follows the date they became a conditional resident, ${req.principalConditional} (8 CFR 216.4(a)(2), 216.6(a)(1)(ii)); a child can be included in the parent’s I-751 only if they got status on the same day or within ${v.childConcurrentDays.value} days after.`,
+                '按你本人取得条件身份的日期计算；随父母或投资人取得条件身份的配偶、子女，请在问卷中选择并填写父母或投资人的日期（8 CFR 216.4(a)(2)、216.6(a)(1)(ii)）。',
+                'Worked out from the date you became a conditional resident; a spouse or child who got status with a parent or the investor should say so in the form and enter that person’s date (8 CFR 216.4(a)(2), 216.6(a)(1)(ii)).',
               )
-            : L(
-                '按你本人取得条件身份的日期计算；随父母或投资人一并递交的配偶、子女，请勾选并填写主申请人的日期（8 CFR 216.4(a)(2)、216.6(a)(1)(ii)）。',
-                'Worked out from the date you became a conditional resident; if you file together with a parent or the investor, tick the box and enter their date (8 CFR 216.4(a)(2), 216.6(a)(1)(ii)).',
-              ),
+            : paperOnly
+              ? L(
+                  `随投资人一并递交时，递交期按投资人取得条件身份的日期 ${req.principalConditional} 计算；单独递交的期限本试点不判断（8 CFR 216.6(a)(1)(ii)）。`,
+                  `Filing together with the investor, the period follows the date the investor became a conditional resident, ${req.principalConditional}; this pilot does not work out the period for a separate petition (8 CFR 216.6(a)(1)(ii)).`,
+                )
+              : L(
+                  `你在父母取得条件身份当天或之后 ${v.childConcurrentDays.value} 天内取得，纳入父母的 I-751 一并递交，递交期按父母的日期 ${req.principalConditional} 计算（8 CFR 216.4(a)(2)）。`,
+                  `You got status on the same day as your parent or within ${v.childConcurrentDays.value} days after, so you are included in your parent’s I-751 and the period follows their date, ${req.principalConditional} (8 CFR 216.4(a)(2)).`,
+                ),
         ],
         pendingDetails: ['PD-094'],
       });

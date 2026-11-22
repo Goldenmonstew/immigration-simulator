@@ -276,6 +276,21 @@ describe('removing conditions, INA 216', () => {
     );
     expect(separate.status).toBe('MET');
     expect(separate.summary).toContain('109');
+    // Day 90 is still in the parent's petition; day 91 files alone.
+    const childAt = (permanentResident: string) =>
+      pathway(
+        {
+          conditional: 'marriage',
+          permanentResident,
+          principalConditional: '2024-10-15',
+          simulationDate: '2026-07-01',
+        },
+        'US-CONDITIONS',
+      );
+    // The parent's window opens 90 days before 2026-10-15.
+    expect(childAt('2025-01-13').status).toBe('FUTURE');
+    expect(childAt('2025-01-13').earliestDate).toBe('2026-07-17');
+    expect(childAt('2025-01-14').status).toBe('MET');
   });
 
   test('after the anniversary', () => {

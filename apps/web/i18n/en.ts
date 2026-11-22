@@ -564,8 +564,12 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.conditional.investor': 'Conditional, based on investment (file I-829)',
   'us.stateResidenceFrom':
     'Date you started living in your current state or USCIS district (optional)',
-  'us.joint':
-    'I got my conditional green card as the spouse or child of a parent or investor',
+  'us.role': 'You got your conditional green card',
+  'us.role.choose': 'Choose one',
+  'us.role.principal': 'Yourself, through marriage or investment',
+  'us.roleHint':
+    'A spouse or child who got the card with a parent or the investor picks the second option, even if filing separately.',
+  'us.role.derivative': 'With a parent or the investor',
   'us.principalSince':
     'Date the principal applicant got their conditional green card',
   'us.married': 'I am married to and living with a U.S. citizen',
@@ -585,6 +589,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.error.date': 'Enter a valid date.',
   'us.error.order': 'This date cannot be before the start date.',
   'us.error.beforeGreenCard': 'Enter only trips after you got your green card.',
+  'us.error.role': 'Choose how you got your conditional green card.',
   'us.error.principalOrder':
     'The principal applicant’s date cannot be after the date you got your green card.',
   'ca.entryLink': 'Open the Canada pilot',

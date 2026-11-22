@@ -12,8 +12,11 @@ export interface UsForm {
   dateOfBirth: string;
   permanentResident: string;
   conditional: UsConditional;
-  /** Filing together with a parent or the investor. */
-  joint: boolean;
+  /**
+   * Conditional green cards: the person who married or invested, or a
+   * spouse or child who got status with them. Empty until chosen.
+   */
+  role: '' | 'principal' | 'derivative';
   principalSince: string;
   stateResidenceFrom: string;
   married: boolean;
@@ -32,7 +35,7 @@ export function emptyUsForm(today: string): UsForm {
     dateOfBirth: '',
     permanentResident: '',
     conditional: 'none',
-    joint: false,
+    role: '',
     principalSince: '',
     stateResidenceFrom: '',
     married: false,
@@ -53,7 +56,9 @@ export function validateUsForm(form: UsForm): UsErrors {
   date('us-date-of-birth', form.dateOfBirth);
   date('us-permanent-resident', form.permanentResident);
   date('us-state-residence-from', form.stateResidenceFrom, true);
-  if (form.conditional !== 'none' && form.joint) {
+  if (form.conditional !== 'none' && !form.role)
+    errors['us-role'] = 'us.error.role';
+  if (form.conditional !== 'none' && form.role === 'derivative') {
     date('us-principal-since', form.principalSince);
     if (
       validDate(form.principalSince) &&
@@ -82,7 +87,7 @@ export function usRequest(form: UsForm, locale: Locale): UsRequest {
     dateOfBirth: form.dateOfBirth,
     permanentResident: form.permanentResident,
     conditional: form.conditional,
-    ...(form.conditional !== 'none' && form.joint
+    ...(form.conditional !== 'none' && form.role === 'derivative'
       ? { principalConditional: form.principalSince }
       : {}),
     ...(form.stateResidenceFrom

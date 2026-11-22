@@ -367,7 +367,12 @@ export const zhCN = {
   'us.conditional.marriage': '婚姻条件绿卡（须递交 I-751）',
   'us.conditional.investor': '投资条件绿卡（须递交 I-829）',
   'us.stateResidenceFrom': '开始住在现在所在州或 USCIS 辖区的日期（可留空）',
-  'us.joint': '我是随父母或投资人取得条件绿卡的配偶或子女',
+  'us.role': '你的条件绿卡是',
+  'us.role.choose': '请选择',
+  'us.role.principal': '本人凭婚姻或投资取得',
+  'us.roleHint':
+    '配偶或子女随父母、投资人一起取得的，选第二项；单独递交取消条件申请的也选第二项。',
+  'us.role.derivative': '随父母或投资人取得',
   'us.principalSince': '主申请人取得条件绿卡的日期',
   'us.married': '我与美国公民结婚并同住',
   'us.marriedOn': '结婚日期',
@@ -384,6 +389,7 @@ export const zhCN = {
   'us.error.date': '请填写有效日期。',
   'us.error.order': '这个日期不能早于开始的日期。',
   'us.error.beforeGreenCard': '只填取得绿卡之后的出境。',
+  'us.error.role': '请选择你的条件绿卡是怎样取得的。',
   'us.error.principalOrder': '主申请人的日期不能晚于你取得绿卡的日期。',
   'ca.entryLink': '打开加拿大试点',
   'ca.entryDesc':
