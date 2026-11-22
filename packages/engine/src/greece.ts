@@ -245,6 +245,7 @@ export function evaluateGreece(req: GrRequest): GrResult {
             {
               srcId: 'SRC-087',
               locator: 'ν. 5307/2026 άρθ. 179 (άρθ. 144 παρ. 2, p93)',
+              url: 'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100090.pdf',
             },
             { srcId: 'SRC-086', locator: 'άρθ. 143 παρ. 2 (p91)' },
           ],

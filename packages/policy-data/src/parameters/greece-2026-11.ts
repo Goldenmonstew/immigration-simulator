@@ -13,6 +13,7 @@ export const greece2026_11 = {
         {
           srcId: 'SRC-087',
           locator: 'ν. 5307/2026 άρθ. 179 (άρθ. 144 παρ. 1, p93)',
+          url: 'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100090.pdf',
         },
       ],
     },
@@ -23,6 +24,7 @@ export const greece2026_11 = {
         {
           srcId: 'SRC-087',
           locator: 'ν. 5307/2026 άρθ. 179 (άρθ. 144 παρ. 3, p93)',
+          url: 'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100090.pdf',
         },
       ],
     },
@@ -33,6 +35,7 @@ export const greece2026_11 = {
         {
           srcId: 'SRC-087',
           locator: 'ν. 5307/2026 άρθ. 179 (άρθ. 144 παρ. 3, p93)',
+          url: 'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100090.pdf',
         },
       ],
     },
@@ -44,6 +47,7 @@ export const greece2026_11 = {
         {
           srcId: 'SRC-087',
           locator: 'ν. 5100/2024 άρθ. 64 (άρθ. 100 παρ. 1 p48, παρ. 4 p49)',
+          url: 'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2024/20240100049.pdf',
         },
       ],
     },
@@ -54,6 +58,7 @@ export const greece2026_11 = {
         {
           srcId: 'SRC-087',
           locator: 'ν. 5275/2026 άρθ. 12 (άρθ. 11 παρ. 1, p18)',
+          url: 'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100017.pdf',
         },
       ],
     },
@@ -64,6 +69,7 @@ export const greece2026_11 = {
         {
           srcId: 'SRC-087',
           locator: 'ν. 5275/2026 άρθ. 12 (άρθ. 11 παρ. 1, p18)',
+          url: 'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100017.pdf',
         },
       ],
     },
@@ -73,6 +79,7 @@ export const greece2026_11 = {
         {
           srcId: 'SRC-087',
           locator: 'ν. 5275/2026 άρθ. 12 (άρθ. 11 παρ. 1, p18)',
+          url: 'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2026/20260100017.pdf',
         },
       ],
     },
@@ -83,11 +90,17 @@ export const greece2026_11 = {
         {
           srcId: 'SRC-088',
           locator: 'ν. 3838/2010 άρθ. 2 (άρθ. 5 παρ. 1 δ, p2)',
+          url: 'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2010/20100100049.pdf',
         },
-        { srcId: 'SRC-088', locator: 'ν. 4674/2020 άρθ. 94 (p51)' },
+        {
+          srcId: 'SRC-088',
+          locator: 'ν. 4674/2020 άρθ. 94 (p51)',
+          url: 'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2020/20200100053.pdf',
+        },
         {
           srcId: 'SRC-088',
           locator: 'ν. 4531/2018 άρθ. 31 παρ. 3 (άρθ. 5 παρ. 3, p119)',
+          url: 'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2018/20180100062.pdf',
         },
       ],
     },
