@@ -1,11 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { useTranslation } from '../i18n/locale';
 import { issueUrl, reportError } from '../lib/report';
 import styles from './site.module.css';
+import { asset } from '../lib/asset';
 
 export default function ErrorPage({
   error,
@@ -42,9 +42,9 @@ export default function ErrorPage({
           <button type="button" className={styles.button} onClick={retry}>
             {t('error.retry')}
           </button>
-          <Link className={styles.secondary} href="/">
+          <a className={styles.secondary} href={asset('/')}>
             {t('error.home')}
-          </Link>
+          </a>
         </p>
         <p>
           <a href={report} target="_blank" rel="noreferrer">

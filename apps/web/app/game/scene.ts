@@ -53,6 +53,7 @@ import {
   type Furnishing,
   type Spot,
 } from './scene-map';
+import { asset } from '../../lib/asset';
 
 export type Interaction =
   | { kind: 'place'; id: PlaceId }
@@ -145,43 +146,58 @@ export class TownScene extends Phaser.Scene {
     this.feedbackToken = view.feedback?.token;
   }
   preload() {
-    this.load.tilemapTiledJSON('town', '/game/town.json');
-    this.load.tilemapTiledJSON('home', '/game/home.json');
-    this.load.image('town-tiles', '/game/assets/modern-city/tiles.png');
-    this.load.image('home-tiles', '/game/assets/indoor/tiles.png');
-    this.load.image('home-details', '/game/assets/indoor/home-details.svg');
+    this.load.tilemapTiledJSON('town', asset('/game/town.json'));
+    this.load.tilemapTiledJSON('home', asset('/game/home.json'));
+    this.load.image('town-tiles', asset('/game/assets/modern-city/tiles.png'));
+    this.load.image('home-tiles', asset('/game/assets/indoor/tiles.png'));
+    this.load.image(
+      'home-details',
+      asset('/game/assets/indoor/home-details.svg'),
+    );
     for (const id of shopSignIds) this.load.image(`sign-${id}`, signPath(id));
     for (const id of animalIds)
       this.load.spritesheet(`animal-${id}`, animalPath(id), {
         frameWidth: 16,
         frameHeight: 16,
       });
-    this.load.image('item-fallback', '/game/assets/indoor/item.png');
-    this.load.spritesheet('lunch-furniture', '/game/assets/indoor/tiles.png', {
-      frameWidth: 16,
-      frameHeight: 16,
-    });
-    this.load.image('lunch-meal', '/game/assets/items/meal.png');
-    this.load.image('lunch-biscuits', '/game/assets/items/biscuits.png');
+    this.load.image('item-fallback', asset('/game/assets/indoor/item.png'));
+    this.load.spritesheet(
+      'lunch-furniture',
+      asset('/game/assets/indoor/tiles.png'),
+      {
+        frameWidth: 16,
+        frameHeight: 16,
+      },
+    );
+    this.load.image('lunch-meal', asset('/game/assets/items/meal.png'));
+    this.load.image('lunch-biscuits', asset('/game/assets/items/biscuits.png'));
     for (const id of [this.view.state.characterId, ...npcs.map((n) => n.id)])
       this.load.spritesheet(id, spritePath(id), {
         frameWidth: 16,
         frameHeight: 16,
       });
     for (const crop of cropIds)
-      this.load.spritesheet(`crop-${crop}`, `/game/assets/crops/${crop}.png`, {
-        frameWidth: 16,
-        frameHeight: 16,
-      });
+      this.load.spritesheet(
+        `crop-${crop}`,
+        asset(`/game/assets/crops/${crop}.png`),
+        {
+          frameWidth: 16,
+          frameHeight: 16,
+        },
+      );
     this.load.spritesheet(
       'heart',
-      '/game/assets/ninja-adventure/hud/heart.png',
+      asset('/game/assets/ninja-adventure/hud/heart.png'),
       { frameWidth: 16, frameHeight: 16 },
     );
-    this.load.spritesheet('spark', '/game/assets/ninja-adventure/fx/1.png', {
-      frameWidth: 32,
-      frameHeight: 32,
-    });
+    this.load.spritesheet(
+      'spark',
+      asset('/game/assets/ninja-adventure/fx/1.png'),
+      {
+        frameWidth: 32,
+        frameHeight: 32,
+      },
+    );
   }
   create() {
     for (const id of [this.view.state.characterId, ...npcs.map((n) => n.id)])

@@ -353,3 +353,5 @@
 | 312 | 任务 63 合入 main（新西兰、加拿大、美国），长期居留检查项写明到期时已满 5 年（review63-5 建议），报告补记最终验证（门禁、e2e 22 项、五轮 Codex 审核通过）。 | packages/engine/src/spain.ts、docs/tasks/reports/63-spain.md |
 | 313 | 任务 64 合入西班牙分支（含 main），SRC-087、SRC-088 按具体法律给出直达链接。 | packages/policy-data/src/parameters/greece-2026-11.ts、packages/engine/src/greece.ts、docs/tasks/reports/64-greece.md |
 | 316 | 任务 65 合入 main，报告补记最终验证（门禁、e2e 47 项、四轮 Codex 审核通过）。 | docs/tasks/reports/65-australia-hong-kong.md |
+| 317 | 任务 66：网站另部署到 GitHub Pages（不含姓名的地址）；basePath 与 asset() 前缀、sw.js 与 manifest 支持子路径；Pages 发布工作流；仓库开启 Pages；部署说明与报告。 | apps/web/next.config.ts、apps/web/lib/asset.ts、apps/web/app/game/、apps/web/app/layout.tsx、apps/web/components/service-worker.tsx、apps/web/public/{sw.js,manifest.webmanifest}、.github/workflows/github-pages.yml、docs/ |
+| 318 | 任务 66 审核修正（review66-1）：分享链接带子路径；首页链接指向带尾斜杠的地址；Pages 工作流补 contents: read 并在发布前检查子路径。 | apps/web/components/{share-link,site-shell}.tsx、apps/web/app/error.tsx、apps/web/app/simulate/page.tsx、.github/workflows/github-pages.yml、docs/ |
