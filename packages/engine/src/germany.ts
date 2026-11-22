@@ -369,8 +369,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
     'Any gap between the permits you entered breaks continuity (§ 85 lets gaps of up to a year be disregarded at discretion, PD-124); if you applied to renew on time, enter the wait for the new permit as well.',
   );
   const lapse = L(
-    '导致许可失效的出境（§ 51 Abs. 1 Nr. 7，见"出境与居留失效"）使计时归零，回德后从返回日重新起算。',
-    'A trip that ended your title (§ 51 Abs. 1 Nr. 7, see “Trips abroad and loss of residence”) resets the count, which starts again on the day you came back.',
+    '导致许可失效的出境（§ 51，见"出境与居留失效"）使计时归零，回德后从返回日重新起算。',
+    'A trip that ended your title (§ 51, see “Trips abroad and loss of residence”) resets the count, which starts again on the day you came back.',
   );
   const pathways: DePathway[] = [];
 
@@ -541,10 +541,13 @@ export function evaluateGermany(req: DeRequest): DeResult {
     pathways.push({
       id: 'DE-SETTLEMENT',
       title,
+      // Without contribution months only the time held is known.
       status: already
         ? 'NOT_APPLICABLE'
         : missing
-          ? 'UNKNOWN'
+          ? timeEarliest
+            ? 'UNKNOWN'
+            : 'NOT_MET'
           : statusOf(earliest),
       earliestDate: already || missing ? undefined : earliest,
       summary: already
@@ -896,16 +899,16 @@ export function evaluateGermany(req: DeRequest): DeResult {
         ...(route === 'spouse'
           ? [
               L(
-                '3 年内长期分居的年限相应延长（AH-StAG Nr. 9.1 Rdn. 4）；婚姻满 3 年时可因公共利益缩短居住年限（§ 9 Abs. 1 Satz 2，裁量）；配偶去世或离婚后 1 年内的情形（§ 9 Abs. 2）',
-                'A longer period after living apart for a long time (AH-StAG Nr. 9.1 Rdn. 4); a shorter residence period in the public interest once married for 3 years (§ 9 Abs. 1 Satz 2, at discretion); the year after the German spouse dies or the marriage ends (§ 9 Abs. 2)',
+                '3 年内长期分居的年限相应延长（AH-StAG Nr. 9.1 Rdn. 4），中断前的居住只有当时已婚并共同生活的才可折算（Rdn. 5）；婚姻满 3 年时可因公共利益缩短居住年限（§ 9 Abs. 1 Satz 2，裁量）；配偶去世或离婚后 1 年内的情形（§ 9 Abs. 2）',
+                'A longer period after living apart for a long time (AH-StAG Nr. 9.1 Rdn. 4), and earlier residence counting only if you were married and living together then (Rdn. 5); a shorter residence period in the public interest once married for 3 years (§ 9 Abs. 1 Satz 2, at discretion); the year after the German spouse dies or the marriage ends (§ 9 Abs. 2)',
               ),
             ]
           : []),
       ],
       assumptions: [
         L(
-          `以入籍日判断（AH-StAG Nr. 10.1.0 Rdn. 1），从该日往回数，不含当天；${years} 年按日历计（PD-120）。现行 ${route === 'general' ? '5 年' : '3 年'}规定按 StARModG 自 ${fiveFrom} 起施行；3 年快速入籍（§ 10 Abs. 3）自 ${turbo} 起取消（BGBl. 2025 I Nr. 256，没有过渡条款，PD-129）。`,
-          `Judged on the naturalisation date (AH-StAG Nr. 10.1.0 Rdn. 1), counting back from it and not including it; the ${years} years are calendar years (PD-120). The current ${years}-year rule applies under the StARModG from ${fiveFrom}; the 3-year fast track (§ 10 Abs. 3) was abolished from ${turbo} (BGBl. 2025 I Nr. 256, with no transitional provision, PD-129).`,
+          `以入籍日判断（AH-StAG Nr. 10.1.0 Rdn. 1），从该日往回数，不含当天；${years} 年按日历计（PD-120）。${route === 'general' ? `一般 ${years} 年自 StARModG 施行日 ${fiveFrom} 起适用；` : ''}3 年快速入籍（§ 10 Abs. 3）自 ${turbo} 起取消（BGBl. 2025 I Nr. 256，没有过渡条款，PD-129）。`,
+          `Judged on the naturalisation date (AH-StAG Nr. 10.1.0 Rdn. 1), counting back from it and not including it; the ${years} years are calendar years (PD-120). ${route === 'general' ? `The general ${years} years apply from ${fiveFrom}, when the StARModG came into force; the` : 'The'} 3-year fast track (§ 10 Abs. 3) was abolished from ${turbo} (BGBl. 2025 I Nr. 256, with no transitional provision, PD-129).`,
         ),
         L(
           `所有居留许可（含学习）都算合法居留，庇护程序期间在获得庇护或难民身份后计入（AsylG § 55 Abs. 3）。单次不超过 ${v.naturalisationAbsenceMonths.value} 个月的出境不中断（§ 12b Abs. 1 Satz 1）；更长的出境中断，回德后从返回日重新起算；所需年限内出境合计超过其一半（每年按 ${v.daysPerYear.value} 天）也中断，从越过一半的那次出境返回后重新起算（§ 12b Abs. 1 Satz 5，PD-127）。`,

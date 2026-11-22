@@ -71,6 +71,17 @@ describe('Niederlassungserlaubnis, general route (§ 9)', () => {
     expect(p.checks[1].met).toBeUndefined();
   });
 
+  test('no months entered and the time never met: not met', () => {
+    const p = pathway(
+      {
+        contributionMonths: undefined,
+        permits: [{ kind: 'skilled', from: '2022-03-15', to: '2026-11-21' }],
+      },
+      'DE-SETTLEMENT',
+    );
+    expect(p.status).toBe('NOT_MET');
+  });
+
   test('missing contribution months are projected one a month', () => {
     const p = pathway(
       {
