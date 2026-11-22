@@ -264,6 +264,18 @@ describe('removing conditions, INA 216', () => {
       'US-CONDITIONS',
     );
     expect(child.status).toBe('NOT_MET');
+    // 109 days after the parent: a separate I-751, any time.
+    const separate = pathway(
+      {
+        conditional: 'marriage',
+        permanentResident: '2025-02-01',
+        principalConditional: '2024-10-15',
+        simulationDate: '2026-09-15',
+      },
+      'US-CONDITIONS',
+    );
+    expect(separate.status).toBe('MET');
+    expect(separate.summary).toContain('109');
   });
 
   test('after the anniversary', () => {

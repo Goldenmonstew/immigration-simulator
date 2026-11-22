@@ -367,7 +367,7 @@ export const zhCN = {
   'us.conditional.marriage': '婚姻条件绿卡（须递交 I-751）',
   'us.conditional.investor': '投资条件绿卡（须递交 I-829）',
   'us.stateResidenceFrom': '开始住在现在所在州或 USCIS 辖区的日期（可留空）',
-  'us.joint': '我随父母或投资人一并递交取消条件申请（配偶或子女）',
+  'us.joint': '我是随父母或投资人取得条件绿卡的配偶或子女',
   'us.principalSince': '主申请人取得条件绿卡的日期',
   'us.married': '我与美国公民结婚并同住',
   'us.marriedOn': '结婚日期',

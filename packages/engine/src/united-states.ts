@@ -418,6 +418,50 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
         notChecked: [],
         assumptions: [],
       });
+    } else if (
+      req.conditional === 'marriage' &&
+      req.principalConditional &&
+      lpr > addDays(req.principalConditional, v.childConcurrentDays.value)
+    ) {
+      // A child with status more than 90 days after the parent cannot be in
+      // the parent's joint I-751 and may file alone at any time (8 CFR
+      // 216.4(a)(2); USCIS fact sheet, SRC-082).
+      const late = daysBetween(req.principalConditional, lpr);
+      const status: PilotStatus = sim >= lpr ? 'MET' : 'FUTURE';
+      pathways.push({
+        id: 'US-CONDITIONS',
+        title,
+        status,
+        earliestDate: status === 'MET' ? sim : lpr,
+        summary: L(
+          `你比父母晚 ${late} 天取得条件身份，超过 ${v.childConcurrentDays.value} 天，不能纳入父母的 I-751，须单独递交；单独递交的子女不必等到两周年前 90 天，可随时递交，前提是没有最终递解令。`,
+          `You got conditional status ${late} days after your parent, more than ${v.childConcurrentDays.value} days, so you cannot be included in your parent’s I-751 and file your own; a child filing alone can file at any time, without waiting for the 90 days before the second anniversary, as long as there is no final order of removal.`,
+        ),
+        checks: [
+          {
+            text: L(
+              '单独递交的子女可随时递交 I-751',
+              'A child filing alone can file the I-751 at any time',
+            ),
+            met: status === 'MET',
+            sources: [
+              ...v.childConcurrentDays.sources,
+              {
+                srcId: 'SRC-082',
+                locator: 'CPR Joint Filing fact sheet (2024-09-12), p2',
+                url: 'https://www.uscis.gov/sites/default/files/document/fact-sheets/OP%26S_Family-BasedCPR_JointFiling.pdf',
+              },
+            ],
+          },
+        ],
+        notChecked: [
+          L(
+            '是否有最终递解令；婚姻真实；父母一方去世、离婚等其他情形',
+            'Whether there is a final order of removal; whether the marriage is genuine; other situations such as a parent’s death or divorce',
+          ),
+        ],
+        assumptions: [],
+      });
     } else {
       const anniversary = afterYears(
         req.principalConditional ?? lpr,
@@ -534,8 +578,8 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
           ),
           req.principalConditional
             ? L(
-                `随主申请人一并递交，递交期按主申请人取得条件身份的日期 ${req.principalConditional} 计算（8 CFR 216.4(a)(2)、216.6(a)(1)(ii)）；子女须在父母取得身份当天或之后 90 天内取得，才能纳入同一份 I-751。`,
-                `Filing together with the principal applicant, so the period follows the date they became a conditional resident, ${req.principalConditional} (8 CFR 216.4(a)(2), 216.6(a)(1)(ii)); a child can be included in the parent’s I-751 only if they got status on the same day or within 90 days after.`,
+                `随主申请人一并递交，递交期按主申请人取得条件身份的日期 ${req.principalConditional} 计算（8 CFR 216.4(a)(2)、216.6(a)(1)(ii)）；子女须在父母取得身份当天或之后 ${v.childConcurrentDays.value} 天内取得，才能纳入同一份 I-751。`,
+                `Filing together with the principal applicant, so the period follows the date they became a conditional resident, ${req.principalConditional} (8 CFR 216.4(a)(2), 216.6(a)(1)(ii)); a child can be included in the parent’s I-751 only if they got status on the same day or within ${v.childConcurrentDays.value} days after.`,
               )
             : L(
                 '按你本人取得条件身份的日期计算；随父母或投资人一并递交的配偶、子女，请勾选并填写主申请人的日期（8 CFR 216.4(a)(2)、216.6(a)(1)(ii)）。',

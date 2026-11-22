@@ -565,7 +565,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.stateResidenceFrom':
     'Date you started living in your current state or USCIS district (optional)',
   'us.joint':
-    'I file to remove conditions together with a parent or the investor (as a spouse or child)',
+    'I got my conditional green card as the spouse or child of a parent or investor',
   'us.principalSince':
     'Date the principal applicant got their conditional green card',
   'us.married': 'I am married to and living with a U.S. citizen',

@@ -117,6 +117,18 @@ export const unitedStates2026_11 = {
         },
       ],
     },
+    // A child is in the parent's joint I-751 only with status from the same
+    // day or within this many days after the parent.
+    childConcurrentDays: {
+      value: 90,
+      sources: [
+        {
+          srcId: 'SRC-080',
+          locator: '8 CFR 216.4(a)(2)',
+          url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=216',
+        },
+      ],
+    },
     conditionsWindowDays: {
       value: 90,
       sources: [
