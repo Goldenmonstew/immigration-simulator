@@ -28,6 +28,8 @@ const FIELD_LABELS: Record<string, TranslationKey> = {
   'us-simulation-date': 'us.simulationDate',
   'us-date-of-birth': 'us.dateOfBirth',
   'us-permanent-resident': 'us.permanentResident',
+  'us-role': 'us.role',
+  'us-principal-since': 'us.principalSince',
   'us-state-residence-from': 'us.stateResidenceFrom',
   'us-married-on': 'us.marriedOn',
   'us-spouse-citizen-since': 'us.spouseCitizenSince',
@@ -39,6 +41,7 @@ type DateField =
   | 'simulationDate'
   | 'dateOfBirth'
   | 'permanentResident'
+  | 'principalSince'
   | 'stateResidenceFrom'
   | 'marriedOn'
   | 'spouseCitizenSince';
@@ -129,9 +132,11 @@ export default function UnitedStatesContent() {
             <select
               id="us-conditional"
               value={draft.conditional}
-              onChange={(e) =>
-                set({ conditional: e.target.value as UsConditional })
-              }
+              onChange={(e) => {
+                // Hidden principal-applicant fields must not keep their errors.
+                setErrors({});
+                set({ conditional: e.target.value as UsConditional });
+              }}
             >
               {US_CONDITIONAL.map((c) => (
                 <option key={c} value={c}>
@@ -140,6 +145,46 @@ export default function UnitedStatesContent() {
               ))}
             </select>
           </Field>
+          {draft.conditional !== 'none' && (
+            <div className={form.followUp}>
+              <Field
+                id="us-role"
+                label={t('us.role')}
+                hint={t('us.roleHint')}
+                error={errors['us-role']}
+              >
+                <select
+                  id="us-role"
+                  value={draft.role}
+                  onChange={(e) => {
+                    // A hidden principal date must not keep its error.
+                    setErrors({});
+                    set({ role: e.target.value as UsForm['role'] });
+                  }}
+                  aria-invalid={errors['us-role'] ? true : undefined}
+                  aria-describedby={
+                    errors['us-role']
+                      ? 'us-role-hint us-role-error'
+                      : 'us-role-hint'
+                  }
+                >
+                  {(['', 'principal', 'joint', 'separate'] as const).map(
+                    (r) => (
+                      <option key={r} value={r}>
+                        {t(`us.role.${r || 'choose'}` as TranslationKey)}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </Field>
+              {draft.role === 'joint' &&
+                date(
+                  'us-principal-since',
+                  'us.principalSince',
+                  'principalSince',
+                )}
+            </div>
+          )}
           {date(
             'us-state-residence-from',
             'us.stateResidenceFrom',
@@ -150,7 +195,11 @@ export default function UnitedStatesContent() {
               <input
                 type="checkbox"
                 checked={draft.married}
-                onChange={(e) => set({ married: e.target.checked })}
+                onChange={(e) => {
+                  // Hidden marriage fields must not keep their errors.
+                  setErrors({});
+                  set({ married: e.target.checked });
+                }}
               />
               {t('us.married')}
             </label>

@@ -103,89 +103,108 @@ export function evaluateCanada(req: CaRequest): CaResult {
     const earliest = firstDate(ok);
     const within = sim < fiveYears;
     const sofar = days.total(sums.resident, pr, addDays(sim, -1));
-    pathways.push({
-      id: 'CA-RESIDENCY',
-      title: L(
-        '维持永久居民身份的居住义务',
-        'Permanent resident residency obligation',
-      ),
-      status: statusOf(earliest),
-      earliestDate: earliest,
-      summary:
-        (earliest === sim
-          ? within
-            ? L(
-                `按录入的行程，成为永久居民后的首个 5 年（到 ${firstEnd}）可在加拿大 ${first} 天，满足 730 天。`,
-                `With the trips you entered, you can spend ${first} days in Canada in your first 5 years as a permanent resident (to ${firstEnd}), meeting the 730 days.`,
-              )
-            : L(
-                '模拟日前 5 年在加拿大满 730 天。',
-                'You spent at least 730 days in Canada in the 5 years before the simulation date.',
-              )
-          : earliest
-            ? L(
-                `按录入的行程，最早 ${earliest} 起前 5 年在加拿大满 730 天。`,
-                `With the trips you entered, the 5 years before ${earliest} are the first to include 730 days in Canada.`,
-              )
-            : L(
-                '按现有记录，10 年内达不到 730 天。',
-                'With your record you will not reach 730 days within 10 years.',
-              )) +
-        L(
-          '不满足不等于自动失去身份：须经正式决定才会失去永久居民身份（s46(1)(b)）。',
-          ' Not meeting it does not end your status by itself: you lose permanent resident status only after a final decision (s46(1)(b)).',
+    const title = L(
+      '维持永久居民身份的居住义务',
+      'Permanent resident residency obligation',
+    );
+    // The 5 years before the examination are used for the simulation date or
+    // the projected date (PD-089).
+    const rollingUsed = !within || (!!earliest && earliest >= fiveYears);
+    const pending = [
+      ...(rollingUsed ? ['PD-089'] : []),
+      ...(leap(sim) || leap(earliest) ? ['PD-091'] : []),
+    ];
+    if (sim < pr) {
+      pathways.push({
+        id: 'CA-RESIDENCY',
+        title,
+        status: 'NOT_APPLICABLE',
+        summary: L(
+          `模拟日还不是永久居民（${pr} 起）；居住义务从成为永久居民之日起算。`,
+          `You are not yet a permanent resident on the simulation date (from ${pr}); the residency obligation starts then.`,
         ),
-      checks: within
-        ? [
-            {
-              text: L(
-                `截至模拟日已在加拿大 ${sofar} 天；首个 5 年（${pr} 至 ${firstEnd}）按录入的行程共 ${first} 天（至少 730 天）`,
-                `${sofar} days in Canada so far; ${first} days in your first 5 years (${pr} to ${firstEnd}) with the trips you entered (730 at least)`,
-              ),
-              met: first >= need,
-              sources: [
-                ...v.prObligationDays.sources,
-                { srcId: 'SRC-075', locator: 's28(2)(b)(i)' },
-              ],
-            },
-          ]
-        : [
-            {
-              text: L(
-                `模拟日前 5 年在加拿大 ${rolling(sim)} 天（至少 730 天）`,
-                `${rolling(sim)} days in Canada in the 5 years before the simulation date (730 at least)`,
-              ),
-              met: rolling(sim) >= need,
-              sources: [
-                ...v.prObligationDays.sources,
-                { srcId: 'SRC-075', locator: 's28(2)(b)(ii)' },
-              ],
-            },
-          ],
-      notChecked: [
-        L(
-          '在境外陪同加拿大公民配偶或父母、为加拿大企业或公共部门全职派驻境外，以及陪同这样的永久居民的日子（s28(2)(a)(ii)–(iv)）',
-          'Days outside Canada accompanying a Canadian citizen spouse or parent, employed full time abroad by a Canadian business or public service, or accompanying such a permanent resident (s28(2)(a)(ii)–(iv))',
-        ),
-        L(
-          '人道理由的裁量（s28(2)(c)），以及收到违反居住义务的报告或决定之后的日子不计（IRPR s62）',
-          'Humanitarian and compassionate relief (s28(2)(c)), and days after a report or decision on the residency obligation, which do not count (IRPR s62)',
-        ),
-      ],
-      assumptions: [
-        travelDays,
-        L(
-          '成为永久居民满 5 年后，按审查日（模拟日）前 5 年计，不含审查当天；审查当天是否计入原文未写（PD-089）。',
-          'After 5 years as a permanent resident, the 5 years before the examination date (the simulation date) are counted, not including that day; whether it counts is not stated (PD-089).',
-        ),
-        leapNote,
-        projection,
-      ],
-      pendingDetails: [
-        ...(within ? [] : ['PD-089']),
-        ...(leap(earliest) ? ['PD-091'] : []),
-      ],
-    });
+        checks: [],
+        notChecked: [],
+        assumptions: [],
+      });
+    } else
+      pathways.push({
+        id: 'CA-RESIDENCY',
+        title,
+        status: statusOf(earliest),
+        earliestDate: earliest,
+        summary:
+          (earliest === sim
+            ? within
+              ? L(
+                  `按录入的行程，成为永久居民后的首个 5 年（到 ${firstEnd}）可在加拿大 ${first} 天，满足 730 天。`,
+                  `With the trips you entered, you can spend ${first} days in Canada in your first 5 years as a permanent resident (to ${firstEnd}), meeting the 730 days.`,
+                )
+              : L(
+                  '模拟日前 5 年在加拿大满 730 天。',
+                  'You spent at least 730 days in Canada in the 5 years before the simulation date.',
+                )
+            : earliest
+              ? L(
+                  `按录入的行程，最早 ${earliest} 起前 5 年在加拿大满 730 天。`,
+                  `With the trips you entered, the 5 years before ${earliest} are the first to include 730 days in Canada.`,
+                )
+              : L(
+                  '按现有记录，10 年内达不到 730 天。',
+                  'With your record you will not reach 730 days within 10 years.',
+                )) +
+          L(
+            '不满足不等于自动失去身份：境外作出的不合规决定成为最终决定、或遣返令生效，才会失去永久居民身份（s46(1)(b)–(c)）。',
+            ' Not meeting it does not end your status by itself: you lose permanent resident status only when a decision made outside Canada that you breached the residency obligation becomes final, or a removal order takes effect (s46(1)(b)–(c)).',
+          ),
+        checks: within
+          ? [
+              {
+                text: L(
+                  `截至模拟日已在加拿大 ${sofar} 天；首个 5 年（${pr} 至 ${firstEnd}）按录入的行程共 ${first} 天（至少 730 天）`,
+                  `${sofar} days in Canada so far; ${first} days in your first 5 years (${pr} to ${firstEnd}) with the trips you entered (730 at least)`,
+                ),
+                met: first >= need,
+                sources: [
+                  ...v.prObligationDays.sources,
+                  { srcId: 'SRC-075', locator: 's28(2)(b)(i)' },
+                ],
+              },
+            ]
+          : [
+              {
+                text: L(
+                  `模拟日前 5 年在加拿大 ${rolling(sim)} 天（至少 730 天）`,
+                  `${rolling(sim)} days in Canada in the 5 years before the simulation date (730 at least)`,
+                ),
+                met: rolling(sim) >= need,
+                sources: [
+                  ...v.prObligationDays.sources,
+                  { srcId: 'SRC-075', locator: 's28(2)(b)(ii)' },
+                ],
+              },
+            ],
+        notChecked: [
+          L(
+            '在境外陪同加拿大公民配偶或父母、为加拿大企业或公共部门全职派驻境外，以及陪同这样的永久居民的日子（s28(2)(a)(ii)–(iv)）',
+            'Days outside Canada accompanying a Canadian citizen spouse or parent, employed full time abroad by a Canadian business or public service, or accompanying such a permanent resident (s28(2)(a)(ii)–(iv))',
+          ),
+          L(
+            '人道理由的裁量（s28(2)(c)），以及违反居住义务的报告作成、或境外不合规决定作出之后的日子不计，后来认定合规的除外（IRPR s62）',
+            'Humanitarian and compassionate relief (s28(2)(c)), and days after an IRPA s44(1) report on the residency obligation is made or a decision outside Canada finds you non-compliant, which do not count unless you are later found compliant (IRPR s62)',
+          ),
+        ],
+        assumptions: [
+          travelDays,
+          L(
+            '成为永久居民满 5 年后，按审查日（模拟日）前 5 年计，不含审查当天；审查当天是否计入原文未写（PD-089）。',
+            'After 5 years as a permanent resident, the 5 years before the examination date (the simulation date) are counted, not including that day; whether it counts is not stated (PD-089).',
+          ),
+          leapNote,
+          projection,
+        ],
+        pendingDetails: pending.length ? pending : undefined,
+      });
   }
 
   // ---------- Citizenship (s5(1)(c)(i), s5(1.001)) ----------
@@ -211,7 +230,10 @@ export function evaluateCanada(req: CaRequest): CaResult {
       age >= v.languageMinAge.value && age < v.languageMaxAge.value;
     pathways.push({
       id: 'CA-CITIZENSHIP',
-      title: L('入籍（实际居住）', 'Citizenship (physical presence)'),
+      title: L(
+        '入籍（实际居住，s5(1)）',
+        'Citizenship (physical presence, s5(1))',
+      ),
       status: statusOf(earliest),
       earliestDate: earliest,
       summary:
@@ -272,6 +294,10 @@ export function evaluateCanada(req: CaRequest): CaResult {
           '随公务员、军人配偶在境外视同在加拿大的日子（s5(1.01)–(1.03)）',
           'Days abroad with a spouse or parent in the Canadian Armed Forces or public service, which count as in Canada (s5(1.01)–(1.03))',
         ),
+        L(
+          '父母已是加拿大公民、或与父母同时申请的未成年人可走 s5(2)，不按这里的 1,095 天计算',
+          'Minors with a Canadian citizen parent, or applying at the same time as a parent, can use s5(2), which is not assessed on the 1,095 days here',
+        ),
       ],
       assumptions: [
         travelDays,
@@ -286,7 +312,10 @@ export function evaluateCanada(req: CaRequest): CaResult {
         leapNote,
         projection,
       ],
-      pendingDetails: ['PD-090', ...(leap(earliest) ? ['PD-091'] : [])],
+      pendingDetails: [
+        'PD-090',
+        ...(leap(sim) || leap(earliest) ? ['PD-091'] : []),
+      ],
     });
   }
 

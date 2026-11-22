@@ -8,6 +8,7 @@ const base: UsRequest = {
   dateOfBirth: '1990-05-01',
   permanentResident: '2022-03-01',
   conditional: 'none',
+  stateResidenceFrom: '2020-01-01',
   trips: [],
 };
 
@@ -33,6 +34,7 @@ describe('naturalization, INA 316(a)', () => {
       {
         simulationDate: '2014-01-01',
         permanentResident: '2005-01-01',
+        stateResidenceFrom: '2005-01-01',
         trips: [{ departed: '2010-01-01', returned: '2011-01-02' }],
       },
       'US-NATURALIZATION',
@@ -62,6 +64,15 @@ describe('naturalization, INA 316(a)', () => {
       'US-NATURALIZATION',
     );
     expect(p.earliestDate).toBe('2027-01-15');
+  });
+
+  test('without the state residence date the result is unknown', () => {
+    const p = pathway(
+      { stateResidenceFrom: undefined, simulationDate: '2027-06-01' },
+      'US-NATURALIZATION',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('2027-06-01');
   });
 
   test('aged 18', () => {
@@ -144,9 +155,171 @@ describe('removing conditions, INA 216', () => {
     expect(p.status).toBe('MET');
   });
 
+  test('a weekend last day: paper filing on the next business day', () => {
+    // Anniversary 2026-11-22 (Sunday): last day Saturday 2026-11-21.
+    const req = {
+      conditional: 'marriage' as const,
+      permanentResident: '2024-11-22',
+    };
+    const monday = pathway(
+      { ...req, simulationDate: '2026-11-23' },
+      'US-CONDITIONS',
+    );
+    expect(monday.status).toBe('UNKNOWN');
+    expect(monday.summary).toContain('2026-11-23');
+    expect(
+      pathway({ ...req, simulationDate: '2026-11-24' }, 'US-CONDITIONS').status,
+    ).toBe('NOT_MET');
+  });
+
+  test('a federal holiday last day: Juneteenth', () => {
+    // Anniversary Saturday 2026-06-20; last day Friday 2026-06-19 is
+    // Juneteenth, so paper filing runs to Monday 2026-06-22.
+    const req = {
+      conditional: 'marriage' as const,
+      permanentResident: '2024-06-20',
+    };
+    expect(
+      pathway({ ...req, simulationDate: '2026-06-22' }, 'US-CONDITIONS').status,
+    ).toBe('UNKNOWN');
+    expect(
+      pathway({ ...req, simulationDate: '2026-06-23' }, 'US-CONDITIONS').status,
+    ).toBe('NOT_MET');
+  });
+
+  test('a Saturday holiday is observed on the Friday', () => {
+    // Anniversary 2027-12-25 (Saturday): last day Friday 12-24 is the
+    // observed Christmas; paper filing runs to Monday 12-27.
+    const p = pathway(
+      {
+        conditional: 'marriage',
+        permanentResident: '2025-12-25',
+        simulationDate: '2027-12-27',
+      },
+      'US-CONDITIONS',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('2027-12-27');
+  });
+
+  test('I-829 on paper: business days only', () => {
+    const req = { conditional: 'investor' as const };
+    // Window opens Saturday 2026-08-22: the first business day is Monday.
+    const opens = pathway(
+      {
+        ...req,
+        permanentResident: '2024-11-20',
+        simulationDate: '2026-08-21',
+      },
+      'US-CONDITIONS',
+    );
+    expect(opens.status).toBe('FUTURE');
+    expect(opens.earliestDate).toBe('2026-08-24');
+    // Last day Saturday 2026-11-21: on time by Monday 2026-11-23.
+    const monday = pathway(
+      {
+        ...req,
+        permanentResident: '2024-11-22',
+        simulationDate: '2026-11-23',
+      },
+      'US-CONDITIONS',
+    );
+    expect(monday.status).toBe('MET');
+    expect(monday.assumptions.join(' ')).toContain('216.6');
+    const sunday = pathway(
+      {
+        ...req,
+        permanentResident: '2024-11-22',
+        simulationDate: '2026-11-22',
+      },
+      'US-CONDITIONS',
+    );
+    expect(sunday.status).toBe('FUTURE');
+    expect(sunday.earliestDate).toBe('2026-11-23');
+  });
+
+  test('filing with the principal applicant follows their date', () => {
+    // EB-5 spouse: own green card 2025-02-01, investor's 2024-10-15.
+    const own = {
+      conditional: 'investor' as const,
+      permanentResident: '2025-02-01',
+      stateResidenceFrom: '2025-02-01',
+      simulationDate: '2026-11-20',
+    };
+    const joint = { ...own, principalConditional: '2024-10-15' };
+    expect(pathway(own, 'US-CONDITIONS').status).toBe('MET');
+    expect(pathway(joint, 'US-CONDITIONS').status).toBe('NOT_MET');
+    // Naturalization still counts from the applicant's own green card.
+    expect(pathway(joint, 'US-NATURALIZATION').earliestDate).toBe(
+      pathway(own, 'US-NATURALIZATION').earliestDate,
+    );
+    // A child included in a parent's joint I-751.
+    const child = pathway(
+      {
+        conditional: 'marriage',
+        permanentResident: '2024-12-01',
+        principalConditional: '2024-10-15',
+        simulationDate: '2026-11-20',
+      },
+      'US-CONDITIONS',
+    );
+    expect(child.status).toBe('NOT_MET');
+    // 109 days after the parent: a separate I-751, any time.
+    const separate = pathway(
+      {
+        conditional: 'marriage',
+        permanentResident: '2025-02-01',
+        principalConditional: '2024-10-15',
+        simulationDate: '2026-09-15',
+      },
+      'US-CONDITIONS',
+    );
+    expect(separate.status).toBe('MET');
+    expect(separate.summary).toContain('109');
+    // Day 90 is still in the parent's petition; day 91 files alone.
+    const childAt = (permanentResident: string) =>
+      pathway(
+        {
+          conditional: 'marriage',
+          permanentResident,
+          principalConditional: '2024-10-15',
+          simulationDate: '2026-07-01',
+        },
+        'US-CONDITIONS',
+      );
+    // The parent's window opens 90 days before 2026-10-15.
+    expect(childAt('2025-01-13').status).toBe('FUTURE');
+    expect(childAt('2025-01-13').earliestDate).toBe('2026-07-17');
+    expect(childAt('2025-01-14').status).toBe('MET');
+    // Left out of the parent's I-751: a separate petition, any time.
+    const leftOut = pathway(
+      {
+        conditional: 'marriage',
+        permanentResident: '2025-01-13',
+        separatePetition: true,
+        simulationDate: '2026-12-18',
+      },
+      'US-CONDITIONS',
+    );
+    expect(leftOut.status).toBe('MET');
+    // A separate I-829 has no stated period: unknown.
+    expect(
+      pathway(
+        {
+          conditional: 'investor',
+          permanentResident: '2025-05-01',
+          separatePetition: true,
+          simulationDate: '2027-02-10',
+        },
+        'US-CONDITIONS',
+      ).status,
+    ).toBe('UNKNOWN');
+  });
+
   test('after the anniversary', () => {
     const p = pathway(
-      { ...conditional, simulationDate: '2027-03-01', conditional: 'investor' },
+      // Last day Sunday 2027-02-28: paper filing until Monday 03-01.
+      { ...conditional, simulationDate: '2027-03-02', conditional: 'investor' },
       'US-CONDITIONS',
     );
     expect(p.status).toBe('NOT_MET');

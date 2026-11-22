@@ -5,18 +5,33 @@ import type { Parameter } from '../types';
 export const newZealand2026_11 = {
   asOf: '2026-11-21',
   values: {
-    // Permanent resident visa: months holding the resident visa, and months
-    // since the first day in New Zealand as a resident, at application.
-    prvHeldMonths: {
-      value: 24,
-      sources: [{ srcId: 'SRC-072', locator: 'RV2.5(a)(i)' }],
+    // Permanent resident visa: days holding the resident visa, and days since
+    // the first day in New Zealand as a resident, at application (24 months
+    // counted as 730 days by Visa Pak 588).
+    prvHeldDays: {
+      value: 730,
+      sources: [
+        { srcId: 'SRC-072', locator: 'RV2.5(a)(i)' },
+        { srcId: 'SRC-073', locator: 'Visa Pak 588 p1' },
+      ],
     },
-    prvFirstDayMonths: {
-      value: 24,
-      sources: [{ srcId: 'SRC-072', locator: 'RV2.5(b)' }],
+    prvFirstDayDays: {
+      value: 730,
+      sources: [
+        { srcId: 'SRC-072', locator: 'RV2.5(b)' },
+        { srcId: 'SRC-072', locator: 'R5.66.5(b)' },
+        { srcId: 'SRC-073', locator: 'Visa Pak 588 p1' },
+      ],
     },
-    // Days in New Zealand as a resident in each of the two 12-month portions
-    // of the 24 months before applying.
+    // Each of the two 12-month portions before applying, in days.
+    prvPeriodDays: {
+      value: 365,
+      sources: [
+        { srcId: 'SRC-072', locator: 'RV2.5.1' },
+        { srcId: 'SRC-073', locator: 'Visa Pak 588 p1–p2' },
+      ],
+    },
+    // Days in New Zealand as a resident in each of those portions.
     prvPortionDays: {
       value: 184,
       sources: [{ srcId: 'SRC-072', locator: 'RV2.5.1' }],
@@ -42,6 +57,18 @@ export const newZealand2026_11 = {
         'aip-balanced': 6,
       },
       sources: [{ srcId: 'SRC-072', locator: 'R5.66.5(a)' }],
+    },
+    // Religious Worker resident visas: a permanent resident visa after this
+    // many years from the first day as a resident.
+    religiousWorkerYears: {
+      value: 5,
+      sources: [
+        {
+          srcId: 'SRC-073',
+          locator:
+            'Religious Worker Resident Visa → Getting a Permanent Resident Visa',
+        },
+      ],
     },
     citizenshipMinAge: {
       value: 16,

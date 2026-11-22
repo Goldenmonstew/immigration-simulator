@@ -598,13 +598,22 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.permanentResident':
     'Date you became a permanent resident (Resident Since on the card)',
   'us.permanentResidentHint':
-    'For a conditional green card, enter the date you got conditional status.',
+    'For a conditional green card, enter the date you yourself got conditional status.',
   'us.conditional': 'Green card type',
   'us.conditional.none': 'Regular green card',
   'us.conditional.marriage': 'Conditional, based on marriage (file I-751)',
   'us.conditional.investor': 'Conditional, based on investment (file I-829)',
   'us.stateResidenceFrom':
     'Date you started living in your current state or USCIS district (optional)',
+  'us.role': 'You got your conditional green card',
+  'us.role.choose': 'Choose one',
+  'us.role.principal': 'Yourself, through marriage or investment',
+  'us.roleHint':
+    'A spouse or child who got the card with a parent or the investor chooses by whether they file together with that person.',
+  'us.role.joint': 'With a parent or the investor, filing together',
+  'us.role.separate': 'With a parent or the investor, filing separately',
+  'us.principalSince':
+    'Date the principal applicant got their conditional green card',
   'us.married': 'I am married to and living with a U.S. citizen',
   'us.marriedOn': 'Date of marriage',
   'us.spouseCitizenSince':
@@ -621,6 +630,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.errorSummary': 'Fix the items marked in red first.',
   'us.error.date': 'Enter a valid date.',
   'us.error.order': 'This date cannot be before the start date.',
+  'us.error.beforeGreenCard': 'Enter only trips after you got your green card.',
+  'us.error.role': 'Choose how you got your conditional green card.',
+  'us.error.principalOrder':
+    'The principal applicant’s date cannot be after the date you got your green card.',
   'ca.entryLink': 'Open the Canada pilot',
   'ca.entryDesc':
     'Use the date you became a permanent resident and your travel record to work out the residency obligation and the physical presence for citizenship.',
@@ -646,7 +659,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ca.addPeriod': 'Add a period',
   'ca.trips': 'Trips abroad',
   'ca.tripsHint':
-    'Add a row for each time you left Canada. You can include planned trips.',
+    'Add a row for each time you left Canada. You can include planned trips; if you are abroad now, enter the date you expect to return, and the results follow it.',
   'ca.trip': 'Trip {n}',
   'ca.departed': 'Date you left Canada',
   'ca.returned': 'Date you came back to Canada',
@@ -684,6 +697,18 @@ export const en: Record<keyof typeof zhCN, string> = {
   'nz.category.religious-worker': 'Religious Worker',
   'nz.category.aip-growth': 'Active Investor Plus: Growth',
   'nz.category.aip-balanced': 'Active Investor Plus: Balanced',
+  'nz.travelConditionsEnd':
+    'Travel conditions expiry date on your visa (optional)',
+  'nz.travelConditionsEndHint':
+    'The Expiry date travel on your eVisa. If blank, it is worked out under the current rule; older visas may differ, so entering it is better.',
+  'nz.conditions':
+    's49 conditions on your resident visa on the simulation date (such as employment, investment or sponsorship)',
+  'nz.conditions.unsure': 'Not sure (go by the visa category)',
+  'nz.conditions.none': 'None, or already removed',
+  'nz.conditions.met': 'Met, not yet removed',
+  'nz.conditions.outstanding': 'Not yet met',
+  'nz.nonPrincipal':
+    'I was included as a partner or child (not the principal applicant)',
   'nz.prvGranted':
     'Date your permanent resident visa was granted (leave blank if you do not have one)',
   'nz.trips': 'Trips abroad',
