@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://www.irishimmigration.ie/wp-content/calculator/INIS-layout.css?OpenCssResource" />
+<link rel="stylesheet" href="https://www.irishimmigration.ie/wp-content/calculator/INIS-layout.css?OpenCssResource" />
+<link rel="stylesheet" href="https://www.irishimmigration.ie/wp-content/calculator/INIS-additions.css?OpenCssResource" />
+<link rel="stylesheet" href="https://www.irishimmigration.ie/wp-content/calculator/INIS-content.css?OpenCssResource" />
+<link rel="stylesheet" href="https://www.irishimmigration.ie/wp-content/calculator/INIS-delrStyle.css?OpenCssResource" />
+<link rel="stylesheet" href="https://www.irishimmigration.ie/wp-content/calculator/INIS-print.css?OpenCssResource" />
+<link rel="stylesheet" href="https://www.irishimmigration.ie/wp-content/calculator/jquery-ui-1.7.2.custom.css?OpenCssResource" />
+<link rel="stylesheet" href="https://www.irishimmigration.ie/wp-content/calculator/datePicker.css?OpenCssResource" />
+<script type="text/javascript" src="https://www.irishimmigration.ie/wp-content/calculator/jquery-1.3.2.min.js?OpenFileResource"></script>
+<script type="text/javascript" src="https://www.irishimmigration.ie/wp-content/calculator/date.js?OpenFileResource"></script><!--[if IE]>
+<script type="text/javascript" src="https://www.irishimmigration.ie/wp-content/calculator/jquery.bgiframe.min.js?OpenFileResource"></script><![endif]--><!-- jquery.datePicker.js -->
+<script type="text/javascript" src="https://www.irishimmigration.ie/wp-content/calculator/jquery.datePicker.js?OpenFileResource"></script>
+<script type="text/javascript" src="https://www.irishimmigration.ie/wp-content/calculator/jquery-ui-1.7.2.custom.min1.js?OpenFileResource"></script>
+<script type="text/javascript" src="https://www.irishimmigration.ie/wp-content/calculator/global-new.js?OpenFileResource"></script>
+<script type="text/javascript">
+function fitTable() { 
+var swidth = document.body.clientWidth -150;
+var midcol=document.getElementById("middleTDalign");
+if (midcol!=undefined || midcol!=null){
+midcol.style.width = swidth + "px" } 
+$(function()
+{
+	$('.date-pick').datePicker(
+		{
+			startDate: '01/01/1970'
+		}
+	);
+	$('#ApplicationDate').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				if (document.residencycheck3yr.group1[0].checked) {
+				$('#Stamp1_DateFrom').dpSetStartDate(d.addYears(-9).asString());
+				}
+				else if (document.residencycheck3yr.group1[1].checked) {
+				$('#Stamp1_DateFrom').dpSetStartDate(d.addYears(-5).asString());
+				}
+				$('#Stamp1_DateFrom').dpSetEndDate(d.addYears(20).asString());
+			}
+		}
+	);
+	
+	$('#Stamp1_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp2_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp1_DateTo').dpSetStartDate(d.addDays(1).asString());
+				
+			}
+		}
+	);
+	$('#Stamp1_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp1_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp2_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp3_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp2_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp2_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp2_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp3_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp4_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp3_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp3_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp3_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp4_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp5_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp4_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp4_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp4_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp5_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp6_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp5_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp5_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp5_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp6_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp7_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp6_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp6_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp6_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp7_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp8_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp7_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp7_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp7_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp8_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp9_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp8_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp8_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp8_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp9_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp10_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp9_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp9_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp9_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp10_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp11_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp10_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp10_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp10_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp11_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp12_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp11_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp11_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp11_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp12_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp13_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp12_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp12_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp12_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp13_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp14_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp13_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp13_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp13_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp14_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp14_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp14_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp14_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+});
+}
+</script>
+<style>aside {visibility: hidden;}</style>
+</head>
+<body onload="fitTable()" onresize="fitTable()">
+<div id="overallWrapper">
+
+<div class="Clear"></div>
+<div id="TDwrapper">
+<div id="leftTDalign" class="column">
+
+</div><!--end div leftTDalign-->
+
+
+
+</div><!--end div RightTDalign-->
+<div id="middleTDalign" class="column">
+
+<div id="content" class="column">
+<!--h1 class="mainleft">Naturalisation Residency Calculator</h1-->
+	 <div class="print-hide" dir="ltr">
+
+</div>
+
+<script type="text/javascript">
+function fitTable() { 
+var swidth = document.body.clientWidth -150;
+var midcol=document.getElementById("middleTDalign");
+if (midcol!=undefined || midcol!=null){
+midcol.style.width = swidth + "px" } 
+$(function()
+{
+	$('.date-pick').datePicker(
+		{
+			startDate: '01/01/1970'
+		}
+	);
+	$('#ApplicationDate').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				if (document.residencycheck3yr.group1[0].checked) {
+				$('#Stamp1_DateFrom').dpSetStartDate(d.addYears(-9).asString());
+				}
+				else if (document.residencycheck3yr.group1[1].checked) {
+				$('#Stamp1_DateFrom').dpSetStartDate(d.addYears(-5).asString());
+				}
+				$('#Stamp1_DateFrom').dpSetEndDate(d.addYears(20).asString());
+			}
+		}
+	);
+	
+	$('#Stamp1_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp2_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp1_DateTo').dpSetStartDate(d.addDays(1).asString());
+				
+			}
+		}
+	);
+	$('#Stamp1_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp1_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp2_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp3_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp2_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp2_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp2_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp3_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp4_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp3_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp3_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp3_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp4_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp5_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp4_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp4_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp4_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp5_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp6_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp5_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp5_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp5_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp6_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp7_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp6_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp6_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp6_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp7_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp8_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp7_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp7_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp7_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp8_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp9_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp8_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp8_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp8_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp9_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp10_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp9_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp9_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp9_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp10_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp11_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp10_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp10_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp10_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp11_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp12_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp11_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp11_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp11_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp12_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp13_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp12_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp12_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp12_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp13_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp14_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp13_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp13_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp13_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+	$('#Stamp14_DateFrom').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp15_DateFrom').dpSetStartDate(d.asString());
+				$('#Stamp14_DateTo').dpSetStartDate(d.addDays(1).asString());
+			}
+		}
+	);
+	$('#Stamp14_DateTo').bind(
+		'dpClosed',
+		function(e, selectedDates)
+		{
+			var d = selectedDates[0];
+			if (d) {
+				d = new Date(d);
+				$('#Stamp14_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+			}
+		}
+	);
+				$('#Stamp15_DateFrom').bind(
+                                'dpClosed',
+                                function(e, selectedDates)
+                                {
+                                                var d = selectedDates[0];
+                                                if (d) {
+                                                                d = new Date(d);
+                                                                $('#Stamp16_DateFrom').dpSetStartDate(d.asString());
+                                                                $('#Stamp15_DateTo').dpSetStartDate(d.addDays(1).asString());
+                                                }
+                                }
+                );
+				$('#Stamp15_DateTo').bind(
+                                'dpClosed',
+                                function(e, selectedDates)
+                                {
+                                                var d = selectedDates[0];
+                                                if (d) {
+                                                                d = new Date(d);
+                                                                $('#Stamp15_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+                                                }
+                                }
+                );
+				$('#Stamp16_DateFrom').bind(
+                                'dpClosed',
+                                function(e, selectedDates)
+                                {
+                                                var d = selectedDates[0];
+                                                if (d) {
+                                                                d = new Date(d);
+                                                                $('#Stamp17_DateFrom').dpSetStartDate(d.asString());
+                                                                $('#Stamp16_DateTo').dpSetStartDate(d.addDays(1).asString());
+                                                }
+                                }
+                );
+				$('#Stamp16_DateTo').bind(
+                                'dpClosed',
+                                function(e, selectedDates)
+                                {
+                                                var d = selectedDates[0];
+                                                if (d) {
+                                                                d = new Date(d);
+                                                                $('#Stamp16_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+                                                }
+                                }
+                );
+				$('#Stamp17_DateFrom').bind(
+                                'dpClosed',
+                                function(e, selectedDates)
+                                {
+                                                var d = selectedDates[0];
+                                                if (d) {
+                                                                d = new Date(d);
+                                                                $('#Stamp18_DateFrom').dpSetStartDate(d.asString());
+                                                                $('#Stamp17_DateTo').dpSetStartDate(d.addDays(1).asString());
+                                                }
+                                }
+                );
+				$('#Stamp17_DateTo').bind(
+                                'dpClosed',
+                                function(e, selectedDates)
+                                {
+                                                var d = selectedDates[0];
+                                                if (d) {
+                                                                d = new Date(d);
+                                                                $('#Stamp17_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+                                                }
+                                }
+                );
+				$('#Stamp18_DateFrom').bind(
+                                'dpClosed',
+                                function(e, selectedDates)
+                                {
+                                                var d = selectedDates[0];
+                                                if (d) {
+                                                                d = new Date(d);
+                                                                $('#Stamp19_DateFrom').dpSetStartDate(d.asString());
+                                                                $('#Stamp18_DateTo').dpSetStartDate(d.addDays(1).asString());
+                                                }
+                                }
+                );
+				$('#Stamp18_DateTo').bind(
+                                'dpClosed',
+                                function(e, selectedDates)
+                                {
+                                                var d = selectedDates[0];
+                                                if (d) {
+                                                                d = new Date(d);
+                                                                $('#Stamp18_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+                                                }
+                                }
+                );
+				$('#Stamp19_DateFrom').bind(
+                                'dpClosed',
+                                function(e, selectedDates)
+                                {
+                                                var d = selectedDates[0];
+                                                if (d) {
+                                                                d = new Date(d);
+                                                                $('#Stamp20_DateFrom').dpSetStartDate(d.asString());
+                                                                $('#Stamp19_DateTo').dpSetStartDate(d.addDays(1).asString());
+                                                }
+                                }
+                );
+				$('#Stamp19_DateTo').bind(
+                                'dpClosed',
+                                function(e, selectedDates)
+                                {
+                                                var d = selectedDates[0];
+                                                if (d) {
+                                                                d = new Date(d);
+                                                                $('#Stamp19_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+                                                }
+                                }
+                );
+				$('#Stamp20_DateFrom').bind(
+                                'dpClosed',
+                                function(e, selectedDates)
+                                {
+                                                var d = selectedDates[0];
+                                                if (d) {
+                                                                d = new Date(d);
+                                                                $('#Stamp20_DateTo').dpSetStartDate(d.addDays(1).asString());
+                                                }
+                                }
+                );
+				$('#Stamp20_DateTo').bind(
+                                'dpClosed',
+                                function(e, selectedDates)
+                                {
+                                                var d = selectedDates[0];
+                                                if (d) {
+                                                                d = new Date(d);
+                                                                $('#Stamp20_DateFrom').dpSetEndDate(d.addDays(-1).asString());
+                                                }
+                                }
+                );
+});
+}
+</script>
+<link href="https://www.irishimmigration.ie/wp-content/calculator/visa-tool-css.css" media="screen" rel="stylesheet" />
+<link href="https://www.irishimmigration.ie/wp-content/calculator/residence-calc-css.css" media="screen" rel="stylesheet" />
+<link href="hhttps://www.irishimmigration.ie/wp-content/calculator/residence-print-css.css" media="print" rel="stylesheet" />
+<p class="print-hide" dir="ltr"><strong style="font-size: 125%!important;">Non-EU, non-EEA & non-Swiss nationals</strong></p>
+<p class="print-hide" dir="ltr">Use this calculator to check if you have enough reckonable residence in Ireland to apply for <a href="https://www.irishimmigration.ie/citizenship/become-an-irish-citizen-by-naturalisation/" target="_blank">Irish citizenship by naturalisation</a>.</p>
+<p class="print-hide" dir="ltr"><strong style="font-size: 125%!important;">UK, EU, EEA & Swiss nationals</strong></p>
+<p class="print-hide" dir="ltr">Do not use this calculator. Instead, you must <a href="https://www.irishimmigration.ie/how-to-become-a-citizen/become-an-irish-citizen-by-naturalisation/proofs-of-identity-and-residence/" target="_blank">submit various documents</a> that prove the length of your residence in Ireland. <a href="https://www.irishimmigration.ie/eu-eea-country-or-switzerland/" target="_blank">See a list of countries in the EU and EEA</a>.</p>
+<div class="roadmap1" dir="ltr">
+<div class="roadmap-inner2 roadmap-inner-policy" dir="ltr">
+<form dir="ltr" id="residencycheck3yr" name="residencycheck3yr">
+<h4><span class="print-hide">Enter your name  <span class="normal grey">(optional for printing results)</span></span><span class="print-title">Applicant's name</span></h4>
+<input class="new-form" id="ApplicantName" name="ApplicantName" aria-label="ApplicantName" size="25" />
+<div class="divider" dir="ltr"> </div>
+<h4 class="lineheight"><span class="print-hide">Application date  <span class="normal grey">(mandatory)</span></span><br />
+<span class="print-title">Application date</span> <span class="print-hide"><span class="normal grey">Note: this must be before your current permission stamp expires</span></span></h4>
+<input class="date-pick new-form-date" id="ApplicationDate" name="ApplicationDate" aria-label="ApplicationDate" onchange="setStampsInvalidBefore()" readonly="readonly" size="35" />
+<div class="divider" dir="ltr"> </div>
+<h4 class="print-pad"><span class="print-hide">Check if you have enough reckonable residence based on:</span><span class="print-title">Your selection</span></h4>
+<table border="0" class="time-marriage" dir="ltr">
+	<tbody>
+		<tr>
+			<td class="marriage-td"><input checked="checked" id="firstx" name="group1" onclick="appTypeChanged()" type="radio" value="5Yr" /></td>
+			<td class="marriage-tdd"><label class="firstxx" for="firstx"><strong>Residence</strong> in the State<span class="grey"> (Your target is <strong>1825 or 1826 </strong>days over 9 years)</span></label></td>
+		</tr>
+		<tr>
+			<td class="marriage-td"><input id="secondx" name="group1" onclick="appTypeChanged()" type="radio" value="3Yr" /></td>
+			<td class="marriage-tdd"><label class="secondxx" for="secondx"><strong>Marriage/civil partnership </strong>with an Irish citizen <span class="grey">(Your target is <strong>1095 or 1096</strong> days over 5 years)</span></label></td>
+		</tr>
+	</tbody>
+</table>
+<div class="divider print-hide" dir="ltr"> </div>
+<div class="table-div" dir="ltr">
+<p><span class="print-hide">» Your earliest allowable '<strong>start date</strong>' for calculating reckonable residence is</span><span class="print-title">Reckonable residence start date</span> [ <input disabled="disabled" id="DateStampsInvalidBefore" name="DateStampsInvalidBefore" aria-label="DateStampsInvalidBefore" readonly="readonly" size="14" /> ]</p>
+<p class="print-hide">» Beginning with your 'start date', enter your <strong>oldest</strong> stamp below (including any partial period).<br />
+   Then enter all other eligible stamp periods from oldest to newest.</p>
+<p class="print-hide">» If 2 stamps cover the same period, use the stamp with the <strong>longest</strong> duration or <strong>latest</strong> expiry date.<br />
+   Some stamps cannot be used as they are <a href="https://www.irishimmigration.ie/registering-your-immigration-permission/information-on-registering/immigration-permission-stamps/" target="_blank">non-reckonable</a> for residency.</p>
+<p class="print-hide">» Stamp 1G can be input as Stamp 1 on the residency calculator to enable you calculate your residency.</p>
+<p class="print-hide"> </p>
+<div class="top-div" dir="ltr" style="margin-top: -19px !important; background-color: #ffd16f">
+<p><strong style="font-size: 125%!important;">Date format when using this Calculator</strong></p>
+<p dir="ltr">Please note that you can type the date into the boxes below as well as using the date picker. Please use the dd/mm/yyyy date format when using this calculator.</p>
+</div>
+<div class="divider print-hide" dir="ltr"> </div>
+<table border="0" class="table-stamp" width="950px">
+	<thead>
+		<tr>
+			<th scope="col"> </th>
+			<th scope="col">Start</th>
+			<th scope="col">End</th>
+			<th>Stamp type</th>
+			<th scope="col">Period in days</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Oldest stamp</td>
+			<td><input class="date-pick" id="Stamp1_DateFrom" name="Stamp1_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp1_DateTo" name="Stamp1_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType1" name="StampType1" onchange="setNumDays()" aria-label="StampType1"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays1"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>2nd stamp</td>
+			<td><input class="date-pick" id="Stamp2_DateFrom" name="Stamp2_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp2_DateTo" name="Stamp2_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType2" name="StampType2" onchange="setNumDays()" aria-label="StampType2"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays2"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>3rd stamp</td>
+			<td><input class="date-pick" id="Stamp3_DateFrom" name="Stamp3_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp3_DateTo" name="Stamp3_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType3" name="StampType3" onchange="setNumDays()" aria-label="StampType3"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays3"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>4th stamp</td>
+			<td><input class="date-pick" id="Stamp4_DateFrom" name="Stamp4_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp4_DateTo" name="Stamp4_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType4" name="StampType4" onchange="setNumDays()" aria-label="StampType4"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays4"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>5th stamp</td>
+			<td><input class="date-pick" id="Stamp5_DateFrom" name="Stamp5_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp5_DateTo" name="Stamp5_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType5" name="StampType5" onchange="setNumDays()" aria-label="StampType5"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays5"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>6th stamp</td>
+			<td><input class="date-pick" id="Stamp6_DateFrom" name="Stamp6_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp6_DateTo" name="Stamp6_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType6" name="StampType6" onchange="setNumDays()" aria-label="StampType6"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays6"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>7th stamp</td>
+			<td><input class="date-pick" id="Stamp7_DateFrom" name="Stamp7_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp7_DateTo" name="Stamp7_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType7" name="StampType7" onchange="setNumDays()" aria-label="StampType7"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays7"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>8th stamp</td>
+			<td><input class="date-pick" id="Stamp8_DateFrom" name="Stamp8_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp8_DateTo" name="Stamp8_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType8" name="StampType8" onchange="setNumDays()" aria-label="StampType8"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays8"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>9th stamp</td>
+			<td><input class="date-pick" id="Stamp9_DateFrom" name="Stamp9_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp9_DateTo" name="Stamp9_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType9" name="StampType9" onchange="setNumDays()" aria-label="StampType9"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays9"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>10th stamp</td>
+			<td><input class="date-pick" id="Stamp10_DateFrom" name="Stamp10_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp10_DateTo" name="Stamp10_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType10" name="StampType10" onchange="setNumDays()" aria-label="StampType10"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays10"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>11th stamp</td>
+			<td><input class="date-pick" id="Stamp11_DateFrom" name="Stamp11_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp11_DateTo" name="Stamp11_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType11" name="StampType11" onchange="setNumDays()" aria-label="StampType11"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays11"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>12th stamp</td>
+			<td><input class="date-pick" id="Stamp12_DateFrom" name="Stamp12_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp12_DateTo" name="Stamp12_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType12" name="StampType12" onchange="setNumDays()" aria-label="StampType12"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays12"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>13th stamp</td>
+			<td><input class="date-pick" id="Stamp13_DateFrom" name="Stamp13_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp13_DateTo" name="Stamp13_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType13" name="StampType13" onchange="setNumDays()" aria-label="StampType13"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays13"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>14th stamp</td>
+			<td><input class="date-pick" id="Stamp14_DateFrom" name="Stamp14_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp14_DateTo" name="Stamp14_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType14" name="StampType14" onchange="setNumDays()" aria-label="StampType14"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays14"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>15th stamp</td>
+			<td><input class="date-pick" id="Stamp15_DateFrom" name="Stamp15_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp15_DateTo" name="Stamp15_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType15" name="StampType15" onchange="setNumDays()" aria-label="StampType15"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays15"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>16th stamp</td>
+			<td><input class="date-pick" id="Stamp16_DateFrom" name="Stamp16_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp16_DateTo" name="Stamp16_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType16" name="StampType16" onchange="setNumDays()" aria-label="StampType16"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays16"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>17th stamp</td>
+			<td><input class="date-pick" id="Stamp17_DateFrom" name="Stamp17_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp17_DateTo" name="Stamp17_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType17" name="StampType17" onchange="setNumDays()" aria-label="StampType17"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays17"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>18th stamp</td>
+			<td><input class="date-pick" id="Stamp18_DateFrom" name="Stamp18_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp18_DateTo" name="Stamp18_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType18" name="StampType18" onchange="setNumDays()" aria-label="StampType18"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays18"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>19th stamp</td>
+			<td><input class="date-pick" id="Stamp19_DateFrom" name="Stamp19_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp19_DateTo" name="Stamp19_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType19" name="StampType19" onchange="setNumDays()" aria-label="StampType19"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays19"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td>20th stamp</td>
+			<td><input class="date-pick" id="Stamp20_DateFrom" name="Stamp20_DateFrom" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><input class="date-pick" id="Stamp20_DateTo" name="Stamp20_DateTo" onchange="setNumDays()" placeholder="dd/mm/yyyy" size="12" /></td>
+			<td><select id="StampType20" name="StampType20" onchange="setNumDays()" aria-label="StampType20"><option selected="selected" value="Select">Select...</option><option value="1">1</option><option value="1A">1A</option><option value="2">2</option><option value="2A">2A</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><!--option value="A">A</option><option value="C">C</option><option value="D">D</option--></select></td>
+			<td>
+			<div class="results" id="numDays20"> </div>
+			</td>
+		</tr>
+		<tr>
+			<td class="results">Reckonable<br />
+			residence</td>
+			<td> </td>
+			<td>
+			<div class="results" id="TotalDaysLabel"> </div>
+			</td>
+			<td> </td>
+			<td>
+			<div class="results" id="TotalDaysResult"> </div>
+			</td>
+		</tr>
+	</tbody>
+</table>
+<label for="ApplicationDate"><input alt="Submit the form" class="button buttons" onclick="getCalculationResults()" type="button" value="Calculate" /></label> <label for="ApplicationDate"><input class="buttons-grey" onclick="window.print()" type="button" value="Print" /></label> <label for="ApplicationDate"><input class="buttons-grey-out" onclick="clearNumDays()" type="reset" value="Reset" /></label>
+<div id="ResultPart1">
+<p> </p>
+</div>
+<div id="ResultPart2">
+<p> </p>
+</div>
+<div id="ResultText">
+<p> </p>
+</div>
+</div>
+</form>
+<div class="print-hide">
+<p dir="ltr"> </p>
+<p dir="ltr"><strong style="font-size: 125%!important;">Disclaimer</strong></p>
+<p dir="ltr">The residency checking application has been made available as a general guide to assist applicants in checking if the statutory conditions relating to residency are satisfied and is provided without any express or implied warranty as to its accuracy or completeness.</p>
+<p>Use of the application is at the user's risk.</p>
+<p>The Department of Justice and Equality expressly disclaims all and any liability and responsibility to any person in respect of the consequences of anything done or omitted to be done by such person in reliance on the output of this residency checker guide.</p>
+<h4 dir="ltr">The output of this guide does not constitute a decision on your residency</h4>
+<p dir="ltr">An official assessment of your reckonable residency is made when your application is lodged. Please note that if you do not satisfy the residency requirements, subject to the provisions of Sections 15A and 16 of the <a href="https://www.irishimmigration.ie/how-to-become-a-citizen/citizenship-law-policy-and-guidance/">Irish Nationality and Citizenship Act, 1956</a>, as amended, your application may be deemed ineligible and a new application will have to be submitted if and when you satisfy the conditions.</p>
+</div>
+</div>
+</div>
+<div class="divider print-hide" dir="ltr"> </div>
+<div class="print-hide" dir="ltr">
+<div class="cta" dir="ltr" id="contact">
+<p dir="ltr"><strong style="font-size: 125%!important;">Contact</strong></p>
+<p>If you have questions, <a href="https://www.irishimmigration.ie/how-to-become-a-citizen/contact-citizenship/">contact us</a>.</p>
+<!--p class="slider-email" dir="ltr">Tell us about any issues on this page</p-->
+<div class="panel-email" dir="ltr">
+<p dir="ltr">If you find a problem with this page, <a href="/cdn-cgi/l/email-protection#f7949e839e8d9299849f9e879e999198b79d8284839e9492d99e92">email <span class="__cf_email__" data-cfemail="a5c6ccd1ccdfc0cbd6cdccd5cccbc3cae5cfd0d6d1ccc6c08bccc0">[email&#160;protected]</span></a></p>
+</div>
+</div>
+</div>
+
+</div><!--end div content-->
+</div><!--end div middleTDalign-->
+</div><!--end div TDwrapper-->
+
+</div><!--end div OverallWrapper-->	 
+
+<!--Weglot 6.4.3--><aside data-wg-notranslate="" class="country-selector weglot-dropdown close_outside_click closed weglot-default wg-" tabindex="0" aria-expanded="false" aria-label="Language selected: English"><input id="wg6b0354212042b5.843726501795380257174" class="weglot_choice" type="checkbox" name="menu"/><label data-l="en" tabindex="-1" for="wg6b0354212042b5.843726501795380257174" class="wgcurrent wg-li weglot-lang weglot-language weglot-flags flag-0 wg-en" data-code-language="wg-en" data-name-language="English"><span class="wglanguage-name">English</span></label><ul role="none"><li data-l="br" class="wg-li weglot-lang weglot-language weglot-flags flag-0 wg-a0" data-code-language="a0" role="option"><a title="Language switcher : Brazilian Portuguese" class="weglot-language-br" role="option" data-wg-notranslate="" href="https://irishimmigration.ie/br/residency-calculator">Português (Brasil)</a></li><li data-l="uk" class="wg-li weglot-lang weglot-language weglot-flags flag-0 wg-uk" data-code-language="uk" role="option"><a title="Language switcher : Ukrainian" class="weglot-language-uk" role="option" data-wg-notranslate="" href="https://irishimmigration.ie/uk/residency-calculator">Українська</a></li><li data-l="fr" class="wg-li weglot-lang weglot-language weglot-flags flag-0 wg-fr" data-code-language="fr" role="option"><a title="Language switcher : French" class="weglot-language-fr" role="option" data-wg-notranslate="" href="https://irishimmigration.ie/fr/residency-calculator">Français</a></li><li data-l="pl" class="wg-li weglot-lang weglot-language weglot-flags flag-0 wg-pl" data-code-language="pl" role="option"><a title="Language switcher : Polish" class="weglot-language-pl" role="option" data-wg-notranslate="" href="https://irishimmigration.ie/pl/residency-calculator">Polski</a></li><li data-l="de" class="wg-li weglot-lang weglot-language weglot-flags flag-0 wg-de" data-code-language="de" role="option"><a title="Language switcher : German" class="weglot-language-de" role="option" data-wg-notranslate="" href="https://irishimmigration.ie/de/residency-calculator">Deutsch</a></li><li data-l="zh" class="wg-li weglot-lang weglot-language weglot-flags flag-0 wg-zh" data-code-language="zh" role="option"><a title="Language switcher : Simplified Chinese" class="weglot-language-zh" role="option" data-wg-notranslate="" href="https://irishimmigration.ie/zh/residency-calculator">中文 (简体)</a></li><li data-l="ru" class="wg-li weglot-lang weglot-language weglot-flags flag-0 wg-ru" data-code-language="ru" role="option"><a title="Language switcher : Russian" class="weglot-language-ru" role="option" data-wg-notranslate="" href="https://irishimmigration.ie/ru/residency-calculator">Русский</a></li><li data-l="es" class="wg-li weglot-lang weglot-language weglot-flags flag-0 wg-es" data-code-language="es" role="option"><a title="Language switcher : Spanish" class="weglot-language-es" role="option" data-wg-notranslate="" href="https://irishimmigration.ie/es/residency-calculator">Español</a></li><li data-l="ga" class="wg-li weglot-lang weglot-language weglot-flags flag-0 wg-ga" data-code-language="ga" role="option"><a title="Language switcher : Irish" class="weglot-language-ga" role="option" data-wg-notranslate="" href="https://irishimmigration.ie/ga/residency-calculator">Gaeilge</a></li><li data-l="ar" class="wg-li weglot-lang weglot-language weglot-flags flag-0 wg-ar" data-code-language="ar" role="option"><a title="Language switcher : Arabic" class="weglot-language-ar" role="option" data-wg-notranslate="" href="https://irishimmigration.ie/ar/residency-calculator">العربية‏</a></li><li data-l="tr" class="wg-li weglot-lang weglot-language weglot-flags flag-0 wg-tr" data-code-language="tr" role="option"><a title="Language switcher : Turkish" class="weglot-language-tr" role="option" data-wg-notranslate="" href="https://irishimmigration.ie/tr/residency-calculator">Türkçe</a></li><li data-l="hi" class="wg-li weglot-lang weglot-language weglot-flags flag-0 wg-hi" data-code-language="hi" role="option"><a title="Language switcher : Hindi" class="weglot-language-hi" role="option" data-wg-notranslate="" href="https://irishimmigration.ie/hi/residency-calculator">हिंदी</a></li><li data-l="ur" class="wg-li weglot-lang weglot-language weglot-flags flag-0 wg-ur" data-code-language="ur" role="option"><a title="Language switcher : Urdu" class="weglot-language-ur" role="option" data-wg-notranslate="" href="https://irishimmigration.ie/ur/residency-calculator">اردو</a></li></ul></aside> <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+</html>
+
+
+

@@ -160,4 +160,18 @@ export const sourceUrls: Record<string, string> = {
     'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2010/20100100049.pdf',
   'SRC-089':
     'https://www.ypes.gr/wp-content/uploads/2026/02/Proypotheseis20260130.pdf',
+  'SRC-091': 'https://revisedacts.lawreform.ie/eli/1956/act/26/revised/en/html',
+  'SRC-092':
+    'https://www.irishstatutebook.ie/eli/2023/act/18/section/8/enacted/en/html',
+  'SRC-093':
+    'https://www.irishstatutebook.ie/eli/2026/act/9/section/295/enacted/en/html',
+  'SRC-094': 'https://www.irishstatutebook.ie/eli/2005/act/23/enacted/en/pdf',
+  'SRC-095':
+    'https://www.irishimmigration.ie/how-to-become-an-irish-citizen-guide/',
+  'SRC-096':
+    'https://www.irishimmigration.ie/registering-your-immigration-permission/information-on-registering/immigration-permission-stamps/',
+  'SRC-097':
+    'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/without-condition-as-to-time/',
+  'SRC-098':
+    'https://assets.gov.ie/static/documents/cadca21c/General_Scheme_of_the_Irish_Nationality_and_Citizenship_Amendment_Bill_2026.pdf',
 };
