@@ -1,5 +1,5 @@
 import type { SourceRef } from '@uk-immigration/policy-data';
-import { addDays, addYears, daysBetween } from './dates';
+import { addDays, addMonths, addYears, daysBetween } from './dates';
 import type { IsoDate } from './types';
 
 // Shared shapes and day counting for the country pilots (phase 17 on):
@@ -80,4 +80,16 @@ export class Days {
     const b = Math.min(this.count - 1, to ? this.index(to) : this.count - 1);
     for (let i = a; i <= b; i++) flags[i] = true;
   }
+}
+
+/**
+ * Fewest and most days `n` consecutive calendar months can span, over two
+ * years that include a leap year.
+ */
+export function monthSpan(n: number): [number, number] {
+  const spans = Array.from({ length: 24 }, (_, m) => {
+    const start = addMonths('2023-01-01', m);
+    return daysBetween(start, addMonths(start, n));
+  });
+  return [Math.min(...spans), Math.max(...spans)];
 }

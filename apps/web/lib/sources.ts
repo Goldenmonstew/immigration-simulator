@@ -148,4 +148,8 @@ export const sourceUrls: Record<string, string> = {
   'SRC-081': 'https://www.uscis.gov/policy-manual/volume-12-part-d-chapter-3',
   'SRC-082':
     'https://www.uscis.gov/forms/when-to-file-your-petition-to-remove-conditions',
+  'SRC-083': 'https://www.boe.es/buscar/act.php?id=BOE-A-2024-24099',
+  'SRC-084': 'https://www.boe.es/buscar/act.php?id=BOE-A-1889-4763',
+  'SRC-085':
+    'https://administracion.gob.es/pag_Home/Tu-espacio-europeo/derechos-obligaciones/ciudadanos/residencia/obtencion-nacionalidad',
 };
