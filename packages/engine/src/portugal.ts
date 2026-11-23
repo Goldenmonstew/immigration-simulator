@@ -652,10 +652,15 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       '永久居留（autorização de residência permanente）',
       'Permanent residence (autorização de residência permanente)',
     );
-    const permanent = req.permits.find(
-      (p) =>
-        (p.kind === 'permanent' || p.kind === 'ari-permanent') && p.from <= sim,
-    );
+    // Neither has a time limit: the latest started by the simulation date.
+    const permanent = req.permits
+      .filter(
+        (p) =>
+          (p.kind === 'permanent' || p.kind === 'ari-permanent') &&
+          p.from <= sim,
+      )
+      .sort((a, b) => (a.from < b.from ? -1 : 1))
+      .at(-1);
     if (eu) {
       pathways.push(notForEu('PT-PERMANENT', title));
     } else if (permanent?.kind === 'ari-permanent') {
@@ -1233,21 +1238,22 @@ export function evaluatePortugal(req: PtRequest): PtResult {
     const ariPermanent = req.permits.find(
       (p) => p.kind === 'ari-permanent' && p.from <= sim,
     );
+    const notRenewed = (from: IsoDate, zh = '', en = '') => ({
+      id: 'PT-GOLDEN-VISA' as const,
+      title,
+      status: 'NOT_APPLICABLE' as const,
+      summary: L(
+        `记录中 ${from} 起是投资类永久居留${zh}，临时黄金签证不再续期。`,
+        `Your record has permanent residence for investment from ${from}${en}, so the temporary golden visa is no longer renewed.`,
+      ),
+      checks: [],
+      notChecked: [],
+      assumptions: [],
+    });
     if (eu) {
       pathways.push(notForEu('PT-GOLDEN-VISA', title));
     } else if (ariPermanent) {
-      pathways.push({
-        id: 'PT-GOLDEN-VISA',
-        title,
-        status: 'NOT_APPLICABLE',
-        summary: L(
-          `记录中已有 ${ariPermanent.from} 起的投资类永久居留，临时黄金签证不再续期。`,
-          `Your record has permanent residence for investment from ${ariPermanent.from}, so the temporary golden visa is no longer renewed.`,
-        ),
-        checks: [],
-        notChecked: [],
-        assumptions: [],
-      });
+      pathways.push(notRenewed(ariPermanent.from));
     } else if (!current || !current.to) {
       pathways.push({
         id: 'PT-GOLDEN-VISA',
@@ -1336,6 +1342,16 @@ export function evaluatePortugal(req: PtRequest): PtResult {
           : stays.date === sim
             ? 'MET'
             : 'FUTURE';
+      // A switch recorded before renewal is possible makes it unnecessary.
+      const switchOn = req.permits
+        .filter((p) => p.kind === 'ari-permanent')
+        .map((p) => p.from)
+        .sort()[0];
+      const switchFirst =
+        status === 'FUTURE' &&
+        !!switchOn &&
+        !!stays.date &&
+        switchOn <= stays.date;
       const kept = afterYears(granted, v.goldenVisaInvestmentYears.value);
       const shortText = (p: {
         from: IsoDate;
@@ -1358,81 +1374,93 @@ export function evaluatePortugal(req: PtRequest): PtResult {
           `${p.from} 至 ${p.to} 截至模拟日在葡萄牙 ${p.stayed} 天，还差 ${p.need - p.stayed} 天，按之后一直在葡萄牙推算 ${p.date} 达到`,
           `${p.stayed} days in Portugal from ${p.from} up to the simulation date, ${p.need - p.stayed} short of ${p.need} for the period to ${p.to}; staying on, you reach it on ${p.date}`,
         );
-      pathways.push({
-        id: 'PT-GOLDEN-VISA',
-        title,
-        status,
-        earliestDate:
-          status === 'FUTURE' ? stays.date : status === 'MET' ? sim : undefined,
-        summary:
-          (sim > deadline
-            ? L(
-                `许可到期日是 ${expiry}，须在到期前 ${v.renewalDeadlineDays.value} 天（${deadline}）前申请续期，这一期限已过；逾期递交的后果不在试点范围。`,
-                `The permit expires on ${expiry} and renewal had to be applied for by ${deadline}, ${v.renewalDeadlineDays.value} days before; that has passed, and what happens to a late application is out of scope.`,
-              )
-            : L(
-                `续期申请在 ${opens} 至 ${deadline} 之间递交（到期日 ${expiry}），续期后每次 ${v.goldenVisaRenewalYears.value} 年。`,
-                `Apply to renew from ${opens} to ${deadline} (the permit expires on ${expiry}); each renewal lasts ${v.goldenVisaRenewalYears.value} years.`,
-              )) +
-          (stays.short
-            ? L(
-                `最低停留不足：${shortText(stays.short)}，续期可能被拒。`,
-                ` Minimum stay not met: ${shortText(stays.short)}, so renewal may be refused.`,
-              )
-            : stays.pending
-              ? L(
-                  `最低停留尚未满足：${pendingText(stays.pending)}${late ? `，晚于续期期限 ${deadline}，续期可能被拒` : ''}。`,
-                  ` Minimum stay not yet met: ${pendingText(stays.pending)}${late ? `, after the renewal deadline of ${deadline}, so renewal may be refused` : ''}.`,
-                )
-              : '') +
-          L(
-            `投资须自 ${granted} 起维持 ${v.goldenVisaInvestmentYears.value} 年（到 ${kept}），本试点不检查投资。`,
-            ` The investment must be kept for ${v.goldenVisaInvestmentYears.value} years from ${granted} (to ${kept}); this pilot does not check it.`,
-          ),
-        checks: [
-          {
-            text: L(
-              `在续期期间内（${opens} 至 ${deadline}）`,
-              `Within the renewal period (${opens} to ${deadline})`,
-            ),
-            met: sim >= opens && sim <= deadline,
-            sources: [
-              ...v.renewalDeadlineDays.sources,
-              ...v.renewalWindowDays.sources,
-              ...v.goldenVisaRenewalYears.sources,
-            ],
-          },
-          {
-            text: L(
-              `最低停留：第 1 年在葡萄牙至少 ${v.goldenVisaFirstPeriodDays.value} 天，此后每 ${v.goldenVisaLaterPeriodYears.value} 年至少 ${v.goldenVisaLaterPeriodDays.value} 天（连续或分段，截至模拟日）`,
-              `Minimum stays: at least ${v.goldenVisaFirstPeriodDays.value} days in Portugal in the first year, then ${v.goldenVisaLaterPeriodDays.value} days in each ${v.goldenVisaLaterPeriodYears.value}-year period (in one go or not, up to the simulation date)`,
-            ),
-            met: !stays.short && !stays.pending,
-            sources: [
-              ...v.goldenVisaFirstPeriodDays.sources,
-              ...v.goldenVisaLaterPeriodDays.sources,
-            ],
-          },
-        ],
-        notChecked: [
-          L(
-            '投资金额与是否仍维持（art. 3 n.º 1 d、art. 90-A n.º 2），续期的其他条件（art. 78 n.º 2），家属许可；2023 年 10 月起停收的房产类旧案（Lei 56/2023 art. 42）',
-            'The investment amount and whether it is kept (art. 3 n.º 1 d, art. 90-A n.º 2), other renewal conditions (art. 78 n.º 2) and family members; real estate golden visas no longer accepted since October 2023 (Lei 56/2023 art. 42)',
-          ),
-        ],
-        assumptions: [
-          L(
-            '授予日按第一张黄金签证卡的生效日；第 1 年和之后每 2 年一期从授予日起按日历计（AIMA 常见问题第 24 问同样按 2 年期），截至模拟日只算实际停留，未满的期间按之后一直在葡萄牙推算达到的日期，须在续期期限前达到；出入境当天按在葡萄牙计。条例的期间划分沿用首张 1 年的旧制，与现行首张 2 年的卡怎么对应没写（PD-148）。',
-            'The grant date is taken as the start of your first golden visa card; the first year and each later 2-year period run from it by the calendar (AIMA’s FAQ n.º 24 also uses 2-year periods). Only days up to the simulation date count as spent, and a period not yet met gets the date it would be met if you stay on, which must come by the renewal deadline; departure and return days count as days in Portugal. The regulation’s periods follow the old one-year first card, and how they fit today’s two-year first card is not stated (PD-148).',
-          ),
-          L(
-            `到期前 ${v.renewalDeadlineDays.value} 天是法律期限（art. 78 n.º 1）；最早到期前 ${v.renewalWindowDays.value} 天来自条例的编纂版，公报原文未存档（PD-149）。`,
-            `${v.renewalDeadlineDays.value} days before expiry is the legal deadline (art. 78 n.º 1); the earliest date, ${v.renewalWindowDays.value} days before, comes from a consolidated text of the regulation, as the official gazette text is not archived (PD-149).`,
-          ),
-          projection,
-        ],
-        pendingDetails: ['PD-148', 'PD-149'],
-      });
+      pathways.push(
+        switchFirst
+          ? notRenewed(
+              switchOn,
+              `，早于可以续期的 ${stays.date}`,
+              `, before renewal becomes possible on ${stays.date}`,
+            )
+          : {
+              id: 'PT-GOLDEN-VISA',
+              title,
+              status,
+              earliestDate:
+                status === 'FUTURE'
+                  ? stays.date
+                  : status === 'MET'
+                    ? sim
+                    : undefined,
+              summary:
+                (sim > deadline
+                  ? L(
+                      `许可到期日是 ${expiry}，须在到期前 ${v.renewalDeadlineDays.value} 天（${deadline}）前申请续期，这一期限已过；逾期递交的后果不在试点范围。`,
+                      `The permit expires on ${expiry} and renewal had to be applied for by ${deadline}, ${v.renewalDeadlineDays.value} days before; that has passed, and what happens to a late application is out of scope.`,
+                    )
+                  : L(
+                      `续期申请在 ${opens} 至 ${deadline} 之间递交（到期日 ${expiry}），续期后每次 ${v.goldenVisaRenewalYears.value} 年。`,
+                      `Apply to renew from ${opens} to ${deadline} (the permit expires on ${expiry}); each renewal lasts ${v.goldenVisaRenewalYears.value} years.`,
+                    )) +
+                (stays.short
+                  ? L(
+                      `最低停留不足：${shortText(stays.short)}，续期可能被拒。`,
+                      ` Minimum stay not met: ${shortText(stays.short)}, so renewal may be refused.`,
+                    )
+                  : stays.pending
+                    ? L(
+                        `最低停留尚未满足：${pendingText(stays.pending)}${late ? `，晚于续期期限 ${deadline}，续期可能被拒` : ''}。`,
+                        ` Minimum stay not yet met: ${pendingText(stays.pending)}${late ? `, after the renewal deadline of ${deadline}, so renewal may be refused` : ''}.`,
+                      )
+                    : '') +
+                L(
+                  `投资须自 ${granted} 起维持 ${v.goldenVisaInvestmentYears.value} 年（到 ${kept}），本试点不检查投资。`,
+                  ` The investment must be kept for ${v.goldenVisaInvestmentYears.value} years from ${granted} (to ${kept}); this pilot does not check it.`,
+                ),
+              checks: [
+                {
+                  text: L(
+                    `在续期期间内（${opens} 至 ${deadline}）`,
+                    `Within the renewal period (${opens} to ${deadline})`,
+                  ),
+                  met: sim >= opens && sim <= deadline,
+                  sources: [
+                    ...v.renewalDeadlineDays.sources,
+                    ...v.renewalWindowDays.sources,
+                    ...v.goldenVisaRenewalYears.sources,
+                  ],
+                },
+                {
+                  text: L(
+                    `最低停留：第 1 年在葡萄牙至少 ${v.goldenVisaFirstPeriodDays.value} 天，此后每 ${v.goldenVisaLaterPeriodYears.value} 年至少 ${v.goldenVisaLaterPeriodDays.value} 天（连续或分段，截至模拟日）`,
+                    `Minimum stays: at least ${v.goldenVisaFirstPeriodDays.value} days in Portugal in the first year, then ${v.goldenVisaLaterPeriodDays.value} days in each ${v.goldenVisaLaterPeriodYears.value}-year period (in one go or not, up to the simulation date)`,
+                  ),
+                  met: !stays.short && !stays.pending,
+                  sources: [
+                    ...v.goldenVisaFirstPeriodDays.sources,
+                    ...v.goldenVisaLaterPeriodDays.sources,
+                  ],
+                },
+              ],
+              notChecked: [
+                L(
+                  '投资金额与是否仍维持（art. 3 n.º 1 d、art. 90-A n.º 2），续期的其他条件（art. 78 n.º 2），家属许可；2023 年 10 月起停收的房产类旧案（Lei 56/2023 art. 42）',
+                  'The investment amount and whether it is kept (art. 3 n.º 1 d, art. 90-A n.º 2), other renewal conditions (art. 78 n.º 2) and family members; real estate golden visas no longer accepted since October 2023 (Lei 56/2023 art. 42)',
+                ),
+              ],
+              assumptions: [
+                L(
+                  '授予日按第一张黄金签证卡的生效日；第 1 年和之后每 2 年一期从授予日起按日历计（AIMA 常见问题第 24 问同样按 2 年期），截至模拟日只算实际停留，未满的期间按之后一直在葡萄牙推算达到的日期，须在续期期限前达到；出入境当天按在葡萄牙计。条例的期间划分沿用首张 1 年的旧制，与现行首张 2 年的卡怎么对应没写（PD-148）。',
+                  'The grant date is taken as the start of your first golden visa card; the first year and each later 2-year period run from it by the calendar (AIMA’s FAQ n.º 24 also uses 2-year periods). Only days up to the simulation date count as spent, and a period not yet met gets the date it would be met if you stay on, which must come by the renewal deadline; departure and return days count as days in Portugal. The regulation’s periods follow the old one-year first card, and how they fit today’s two-year first card is not stated (PD-148).',
+                ),
+                L(
+                  `到期前 ${v.renewalDeadlineDays.value} 天是法律期限（art. 78 n.º 1）；最早到期前 ${v.renewalWindowDays.value} 天来自条例的编纂版，公报原文未存档（PD-149）。`,
+                  `${v.renewalDeadlineDays.value} days before expiry is the legal deadline (art. 78 n.º 1); the earliest date, ${v.renewalWindowDays.value} days before, comes from a consolidated text of the regulation, as the official gazette text is not archived (PD-149).`,
+                ),
+                projection,
+              ],
+              pendingDetails: ['PD-148', 'PD-149'],
+            },
+      );
     }
   }
 

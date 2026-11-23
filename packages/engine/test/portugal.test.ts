@@ -556,6 +556,50 @@ describe('permanent residence (Lei 23/2007 art. 80)', () => {
       ).toBe('NOT_APPLICABLE');
   });
 
+  test('a switch recorded before renewal opens makes renewal unnecessary', () => {
+    // review75-4: renewal would open on 2026-07-02; the switch is 06-15.
+    const p = pathway(
+      {
+        simulationDate: '2026-06-01',
+        permits: [
+          { kind: 'golden-visa', from: '2020-10-01', to: '2022-09-30' },
+          { kind: 'golden-visa', from: '2022-10-01', to: '2024-09-30' },
+          { kind: 'golden-visa', from: '2024-10-01', to: '2026-09-30' },
+          { kind: 'ari-permanent', from: '2026-06-15' },
+        ],
+      },
+      'PT-GOLDEN-VISA',
+    );
+    expect(p.status).toBe('NOT_APPLICABLE');
+    expect(p.summary).toContain('2026-06-15');
+    expect(p.summary).toContain('2026-07-02');
+  });
+
+  test('the latest permanent residence decides, not the row order', () => {
+    // review75-4: ordinary from 2021-01-01, for investment from 2026-01-01.
+    const ordinary = {
+      kind: 'permanent' as const,
+      from: '2021-01-01',
+      to: '2025-12-31',
+    };
+    const investment = { kind: 'ari-permanent' as const, from: '2026-01-01' };
+    for (const permits of [
+      [ordinary, investment],
+      [investment, ordinary],
+    ]) {
+      const p = pathway(
+        {
+          simulationDate: '2026-11-22',
+          permits,
+          trips: [{ departed: '2022-01-01', returned: '2024-02-01' }],
+        },
+        'PT-PERMANENT',
+      );
+      expect(p.summary).toContain('2026-01-01');
+      expect(p.checks[0].met).toBe(true);
+    }
+  });
+
   test('a golden visa forecast names the unconfirmed limit (PD-146)', () => {
     // review75-1: 6 months away on 2027-07-10 during the ARI card.
     const p = pathway(
