@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { evaluateCanadaFull } from '../src';
 import type { AtlanticAnswers } from '../src/canada-full/atlantic';
 import type { WorkPeriod } from '../src/canada-full/express';
+import { federal, filed, person } from './canada-federal-fixture';
 
 const when = '2026-11-23';
 const job: WorkPeriod = {
@@ -65,6 +66,31 @@ function rule(n: number, change: Partial<AtlanticAnswers> = {}) {
     .checks.find((c) => c.id === 'CA-R' + n)!;
 }
 describe('Atlantic Immigration Program', () => {
+  test('R55 checks the endorsement on the receipt recorded only in the federal application', () => {
+    const result = evaluateCanadaFull({
+      simulationDate: when,
+      atlantic: {
+        ...base,
+        endorsement: { ...base.endorsement!, expires: '2026-07-01' },
+        workHistory: [{ ...job, from: '2024-01-01', to: '2025-12-31' }],
+      },
+      federal: {
+        ...federal,
+        principal: {
+          ...person,
+          exam: {
+            instructionOn: '2026-06-15',
+            examOn: '2026-06-22',
+            panelExamComplete: true,
+          },
+        },
+        applications: { 'CA-AIP': { ...filed, filedOn: '2026-06-10' } },
+      },
+    }).columns[0].pathways.find((p) => p.id === 'CA-AIP')!;
+    expect(result.checks.find((c) => c.id === 'CA-R24')?.status).toBe('MET');
+    expect(result.checks.find((c) => c.id === 'CA-R55')?.status).toBe('MET');
+    expect(result.status).toBe('MET');
+  });
   test('R55 valid endorsement in same province, including expiration date', () => {
     expect(rule(55).status).toBe('MET');
     expect(rule(55, { jobProvince: 'NB' }).status).toBe('NOT_MET');

@@ -288,6 +288,28 @@ describe('Canadian citizenship grants', () => {
       earliestDate: '2026-12-31',
     });
   });
+  test('language and knowledge cease to apply by the projected signing date', () => {
+    const applicant = {
+      dateOfBirth: '1971-12-10',
+      permanentResident: '2024-01-01',
+    };
+    const answers: ResidenceAnswers = {
+      grantDate: undefined,
+      language: { evidence: 'rejected' },
+      test: { outcome: 'not-taken' },
+    };
+    const projected = cit(answers, applicant);
+    expect(check(projected, '10').status).toBe('NOT_MET');
+    expect(check(projected, '11').status).toBe('UNKNOWN');
+    expect(projected).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-12-31',
+    });
+    const atSigning = cit({ ...answers, signingDate: '2026-12-31' }, applicant);
+    for (const id of ['10', '11'])
+      expect(check(atSigning, id).status).toBe('MET');
+    expect(atSigning.status).toBe('MET');
+  });
   test('ordinary physical baseline 1,094.5 then 1,095; disputed credit and exclusions', () => {
     const over = {
       simulationDate: '2026-11-30',

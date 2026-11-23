@@ -1,5 +1,6 @@
 import { canadaFull2026_11 as ca } from '@uk-immigration/policy-data';
 import { addDays, addYears, fullYears } from '../dates';
+import { federalFilingDate } from './federal';
 import { all, any, ref, type Context, type Item } from './shared';
 
 const p = ca.values;
@@ -622,7 +623,7 @@ function fswScore(
 
 export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
   const a = req.express ?? {},
-    when = a.applicationDate ?? req.simulationDate;
+    when = federalFilingDate(req, id) ?? req.simulationDate;
   const { round, invitation, profileDate } = a;
   const observedThrough =
     req.simulationDate < ca.asOf ? req.simulationDate : ca.asOf;
@@ -684,7 +685,7 @@ export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
       [
         ee,
         ref('SRC-261', 'IRPA §§10.1–10.3, 11.2'),
-        ref('SRC-277', 'ee-apply, If you are invited to apply'),
+        ref('SRC-277', 'ee-apply, 1. Fill out the application form'),
       ],
       ['PD-246'],
     ),

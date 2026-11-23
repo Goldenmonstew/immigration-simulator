@@ -219,3 +219,34 @@
 
 - R36 仍按递交日计算 FSW 年龄分。审核用例在获邀时达到 67 分，获邀后过生日，递交时为 66 分。IRCC 公共政策允许官员对符合条件的个案豁免年龄扣分，现有判定未纳入该决定。选拔分与年龄分依据 SRC-267a 的 “Selection factors” 和 SRC-261b，IRPR ss.76、81。[IRCC 获邀后年龄变化公共政策及适用条件](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)
 - 魁省 PSTQ Stream 1/2 本地学历学时仍待按现行汇编法规逐条核实，继续由 PD-257 跟踪（SRC-273b、SRC-278e/g）。
+
+## 第三轮审核修正（review85-3）
+
+### 1. 做了什么
+
+建议提交 `Fix: 统一加拿大联邦收件日并修正入籍跨龄预测（review85-3）`，对应 PROGRESS 第 565 条。
+
+- FSW 和 enhanced PNP 的 R29 按本次申请的实际收件日核对 ITA 期限。沿用联邦规则的取值顺序，优先使用本路径的 `federal.applications[id].filedOn`，其次使用 `express.applicationDate`，enhanced PNP 也接受 `pnp.federalFiled`。PNP 的 R45、R46 用同一天核对提名有效期与递交情况，只有实际填了日期才能确认已收件。依据 SRC-277b 第 1 节和 SRC-271 的 Express Entry process。[IRCC 递交说明](https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/apply-permanent-residence.html#form)
+- AIP 的 R55 优先使用本路径的联邦收件日，其次使用 `atlantic.applicationDate`。背书须在递交日有效，之后若被撤销，仍不满足。依据 SRC-261b，IRPR s.87.3(2)(a)。[IRPR 第 87.3 条](https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/section-87.3.html)
+- 一并修正审核列出的入籍反向跨龄风险。普通入籍一旦算出住满日，就以该日为预计签署日复核实质条件。模拟日仍显示当日的逐项结论，所有实质条件在预计签署日满足时才给出 `FUTURE` 和日期。语言和考试的适用年龄依据 SRC-074、SRC-260a，Citizenship Act s.5(1)(d)–(e)。[Citizenship Act 第 5 条](https://laws-lois.justice.gc.ca/eng/acts/c-29/section-5.html)
+
+### 2. 怎么验证的
+
+五个新增回归用例在改动前均失败。改动后，`pnpm --filter @uk-immigration/engine test test/canada` 通过 8 个文件、121 项测试，含原时间引擎及前两轮回归。以下用例的模拟日均为 2026-11-23。
+
+| 复现 | 单项与路径断言 |
+|---|---|
+| FSW 于 04-29 获邀、06-10 递交，只填本路径 `filedOn`。 | R24、R29、FSW 路径均为 `MET`。 |
+| Enhanced PNP 于 06-22 获邀、07-10 递交。分别只填 `pnp.federalFiled` 或只填本路径 `filedOn`。 | 两种输入的 R24、R29、R46 和 PNP 路径均为 `MET`。 |
+| AIP 于 06-10 递交，只填本路径 `filedOn`，背书于 07-01 到期且未撤销。 | R24、R55、AIP 路径均为 `MET`。 |
+| 1971-12-10 出生，2024-01-01 获 PR，无出境，语言证明被拒、尚未考试。 | 模拟日 R10 为 `NOT_MET`、R11 为 `UNKNOWN`，路径为 `FUTURE / 2026-12-31`。明确填写该日签署时，R10、R11 和路径均为 `MET`。 |
+
+`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 首次运行退出码为 0。全仓 5,346 项测试通过，1 项既有测试跳过，构建生成 27 个静态页面。
+
+### 3. 没做或没验证的
+
+按要求保留未提交改动。旧 `evaluateCanada` 源码与测试无改动。未运行浏览器 e2e 或部署。
+
+### 4. 发现与建议
+
+FSW 的 R36 仍按递交日年龄计分。审核个案获邀时 67 分，因生日至递交时降为 66 分，现有规则会返回 `NOT_MET`。IRCC 公共政策的 Conditions 小节允许官员对符合条件的个案给予豁免，个案能否获准须核对决定。本轮仅记录该风险。选拔分和年龄分见 SRC-267a 的 Selection factors 及 SRC-261b，IRPR ss.76(1)(a)、81。[IRCC 获邀后年龄变化公共政策](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)

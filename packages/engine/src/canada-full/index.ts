@@ -129,7 +129,7 @@ export function evaluateCanadaFull(req: CaFullRequest): CaFullResult {
       ].includes(id);
       let summary: string | undefined;
       let signingBlockers: Item[] = [];
-      if (id === 'CA-CITIZENSHIP' && status === 'FUTURE' && earliestDate) {
+      if (id === 'CA-CITIZENSHIP' && earliestDate) {
         const atSigning = residenceChecks(
           {
             ...ctx,
@@ -143,7 +143,9 @@ export function evaluateCanadaFull(req: CaFullRequest): CaFullResult {
         signingBlockers = atSigning.filter(
           (c) => !c.advisory && c.status !== 'MET',
         );
-        if (signingBlockers.length) {
+        if (signingBlockers.length === 0) {
+          status = 'FUTURE';
+        } else {
           status = signingBlockers.some((c) => c.status === 'NOT_MET')
             ? 'NOT_MET'
             : 'UNKNOWN';

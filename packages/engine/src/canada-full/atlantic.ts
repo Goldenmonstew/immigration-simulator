@@ -13,6 +13,7 @@ import {
   type Teer,
   type WorkPeriod,
 } from './express';
+import { federalFilingDate } from './federal';
 import { all, any, ref, type Context, type Item } from './shared';
 
 type Province = 'NS' | 'NB' | 'PE' | 'NL' | 'other';
@@ -117,7 +118,7 @@ function offerLevel(
 
 export function atlanticChecks({ req, L, check }: Context): Item[] {
   const a = req.atlantic ?? {},
-    when = a.applicationDate ?? req.simulationDate;
+    when = federalFilingDate(req, 'CA-AIP') ?? req.simulationDate;
   const o = a.offer,
     teer = o?.teer,
     e = a.endorsement;
@@ -228,7 +229,7 @@ export function atlanticChecks({ req, L, check }: Context): Item[] {
         'The destination, job and endorsing province must match. Confirm the plan reached the designated employer and the endorsement was valid at filing and remains unrevoked.',
       ),
       [
-        irpr,
+        ref('SRC-261', 'IRPR §87.3(2)(a)–(b)'),
         ref(
           'SRC-270',
           'aip-program, aip-settlement / Get a settlement plan and provincial endorsement',

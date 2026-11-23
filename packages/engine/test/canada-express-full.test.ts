@@ -140,6 +140,61 @@ describe('Express Entry application, ranking and evidence', () => {
     );
     expect(rule('R29', {}, 'CA-EE-CEC').status).toBe('NOT_MET');
   });
+  test.each([
+    ['CA-EE-FSW', 'federal', '2026-04-29', '2026-05-08', '2026-06-10'],
+    ['CA-PNP', 'pnp', '2026-06-22', '2026-06-30', '2026-07-10'],
+    ['CA-PNP', 'federal', '2026-06-22', '2026-06-30', '2026-07-10'],
+  ] as const)(
+    'R29 uses the %s receipt recorded only in %s',
+    (id, source, invitedOn, examOn, filedOn) => {
+      const dateOfBirth = '1992-01-01';
+      const result = evaluateCanadaFull({
+        simulationDate,
+        dateOfBirth,
+        express: {
+          ...complete,
+          applicationDate: undefined,
+          invitation: { date: invitedOn, program: id },
+          round: { ...complete.round!, date: invitedOn },
+          workHistory: [{ ...job, from: '2023-01-01', to: '2025-12-31' }],
+        },
+        pnp:
+          id === 'CA-PNP'
+            ? {
+                mode: 'enhanced',
+                nomination: 'valid',
+                nominationExpires: '2026-08-01',
+                intendsNominatingProvince: true,
+                investment: 'none',
+                qualifiesUnderlyingEeProgram: true,
+                electronicNominationMatchedAndAccepted: true,
+                federalFiled: source === 'pnp' ? filedOn : undefined,
+              }
+            : undefined,
+        federal: {
+          ...federal,
+          principal: {
+            ...person,
+            dateOfBirth,
+            exam: { examOn, panelExamComplete: true },
+          },
+          applications: {
+            [id]: {
+              ...filed,
+              filedOn: source === 'federal' ? filedOn : undefined,
+            },
+          },
+        },
+      }).columns[0].pathways.find((p) => p.id === id)!;
+      expect(result.checks.find((c) => c.id === 'CA-R24')?.status).toBe('MET');
+      expect(result.checks.find((c) => c.id === 'CA-R29')?.status).toBe('MET');
+      if (id === 'CA-PNP')
+        expect(result.checks.find((c) => c.id === 'CA-R46')?.status).toBe(
+          'MET',
+        );
+      expect(result.status).toBe('MET');
+    },
+  );
   test('R30 contemporaneous official score, published cutoff and timestamp', () => {
     const round = complete.round!;
     expect(rule('R30').status).toBe('MET');

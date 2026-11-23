@@ -1,6 +1,13 @@
 import { canadaFull2026_11 as ca } from '@uk-immigration/policy-data';
 import { addYears, fullYears } from '../dates';
-import { all, any, ref, type Context, type Item } from './shared';
+import {
+  all,
+  any,
+  ref,
+  type CaFullRequest,
+  type Context,
+  type Item,
+} from './shared';
 import { biometrics, medicalExam, policeDocuments } from './federal-documents';
 import type { CaFullPathwayId } from './index';
 import type {
@@ -248,6 +255,27 @@ function federalFee(
   );
 }
 
+export function federalFilingDate(req: CaFullRequest, id: InitialPrRoute) {
+  const receipt = req.federal?.applications?.[id]?.filedOn;
+  if (receipt !== undefined) return receipt;
+  switch (id) {
+    case 'CA-EE-FSW':
+    case 'CA-EE-CEC':
+    case 'CA-EE-FST':
+      return req.express?.applicationDate;
+    case 'CA-PNP':
+      return req.pnp?.mode === 'enhanced'
+        ? (req.express?.applicationDate ?? req.pnp.federalFiled)
+        : req.pnp?.federalFiled;
+    case 'CA-AIP':
+      return req.atlantic?.applicationDate;
+    case 'CA-FAMILY':
+      return req.family?.filingDate;
+    case 'CA-QC-PSTQ':
+      return req.quebec?.federalReceived;
+  }
+}
+
 export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
   const { req, L, check } = ctx;
   const a = { ...req.federal, ...req.federal?.applications?.[id] };
@@ -264,19 +292,7 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
         : id === 'CA-PNP' && !req.pnp?.mode
           ? 'unknown'
           : 'checklist';
-  const routeFiled = ee
-    ? (req.express?.applicationDate ??
-      (id === 'CA-PNP' ? req.pnp?.federalFiled : undefined))
-    : family
-      ? req.family?.filingDate
-      : id === 'CA-PNP'
-        ? req.pnp?.federalFiled
-        : id === 'CA-AIP'
-          ? req.atlantic?.applicationDate
-          : id === 'CA-QC-PSTQ'
-            ? req.quebec?.federalReceived
-            : undefined;
-  const filed = a.filedOn ?? routeFiled;
+  const filed = federalFilingDate(req, id);
   const date = filed ?? req.simulationDate;
   const principalDob = (p: FederalPerson) =>
     p.dateOfBirth ?? (p === a.principal ? req.dateOfBirth : undefined);

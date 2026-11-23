@@ -1,6 +1,7 @@
 import { canadaFull2026_11 as ca } from '@uk-immigration/policy-data';
 import { addDays, addYears } from '../dates';
 import type { IsoDate } from '../types';
+import { federalFilingDate } from './federal';
 import { all, any, ref, type Context, type Item } from './shared';
 
 const on = ca.values.ontarioWorkforce.value;
@@ -186,7 +187,8 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
   const a = p.ontario ?? {};
   const sim = req.simulationDate;
   const provincialDate = a.filed ?? sim;
-  const fedDate = p.federalFiled ?? sim;
+  const filed = federalFilingDate(req, 'CA-PNP');
+  const fedDate = filed ?? sim;
   const nomination =
     p.nomination === 'pending' ||
     p.nomination === undefined ||
@@ -233,7 +235,7 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
       all(
         nomination,
         p.nominationExpires ? fedDate <= p.nominationExpires : undefined,
-        p.federalFiled && p.federalFiled <= sim ? true : undefined,
+        filed && filed <= sim ? true : undefined,
         p.mode === 'base'
           ? p.viaPrPortal
           : p.mode === 'enhanced'
