@@ -390,6 +390,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
   test('21 months from starting work on a CSEP', () => {
     const req: Partial<IeRequest> = {
       simulationDate: '2026-01-01',
+      permissions: [{ kind: 'stamp1-csep', from: '2021-03-01' }],
       stamp4Route: 'csep',
       employmentStart: '2025-03-15',
     };
@@ -405,6 +406,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
   test('57 months on a General Employment Permit', () => {
     const req: Partial<IeRequest> = {
       simulationDate: '2026-10-09',
+      permissions: [{ kind: 'stamp1-gep', from: '2021-03-01' }],
       stamp4Route: 'gep',
       employmentStart: '2022-01-10',
     };
@@ -416,6 +418,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
 
   test('starting on the 31st: the end of February or 1 March (PD-116)', () => {
     const req: Partial<IeRequest> = {
+      permissions: [{ kind: 'stamp1-csep', from: '2021-03-01' }],
       stamp4Route: 'csep',
       employmentStart: '2024-05-31',
     };
@@ -521,6 +524,65 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     expect(p.earliestDate).toBe('2029-06-01');
   });
 
+  test('Stamp 1G: family reunification Stamp 3 before 2024 counts (task 72)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2026-11-22',
+      permissions: [
+        { kind: 'stamp3-family', from: '2020-01-01', to: '2024-05-14' },
+        { kind: 'stamp1g-spouse', from: '2024-05-15' },
+      ],
+      stamp4Route: 'spouse-1g',
+    };
+    // 5 years on a family reunification permission from 2020-01-01.
+    expect(pathway(req, 'IE-STAMP4').status).toBe('MET');
+    // Stamp 3 for another reason: 1G from 2024-05-15 only.
+    const other = pathway(
+      {
+        ...req,
+        permissions: [
+          { kind: 'stamp3', from: '2020-01-01', to: '2024-05-14' },
+          { kind: 'stamp1g-spouse', from: '2024-05-15' },
+        ],
+      },
+      'IE-STAMP4',
+    );
+    expect(other.status).toBe('FUTURE');
+    expect(other.earliestDate).toBe('2029-05-15');
+  });
+
+  test('Stamp 4 routes: living in Northern Ireland on an unexpired card does not count (task 72)', () => {
+    // Spouse 1G to 2027-05-31, but living in Northern Ireland from 2026-03-01.
+    const spouse = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permissions: [
+          { kind: 'stamp1g-spouse', from: '2021-06-01', to: '2027-05-31' },
+          { kind: 'ni-residence', from: '2026-03-01' },
+        ],
+        stamp4Route: 'spouse-1g',
+      },
+      'IE-STAMP4',
+    );
+    expect(spouse.status).toBe('NOT_MET');
+    expect(spouse.checks[0].met).toBe(false);
+    // 21 months on a CSEP were complete on 2025-10-01, but on the
+    // simulation date the applicant lives in Northern Ireland.
+    const csep = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permissions: [
+          { kind: 'stamp1-csep', from: '2024-01-01', to: '2027-12-31' },
+          { kind: 'ni-residence', from: '2025-11-01' },
+        ],
+        stamp4Route: 'csep',
+        employmentStart: '2024-01-01',
+      },
+      'IE-STAMP4',
+    );
+    expect(csep.status).toBe('NOT_MET');
+    expect(csep.checks[0].met).toBe(false);
+  });
+
   test('Stamp 1G: graduate programme time does not count (review68-1)', () => {
     const p = pathway(
       {
@@ -538,12 +600,66 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     expect(p.checks[0].met).toBe(false);
   });
 
+  test('Stamp 4: a business Stamp 1 after a GEP does not count towards 57 months (review72-1)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2026-08-01',
+      permissions: [
+        { kind: 'stamp1-gep', from: '2022-01-01', to: '2025-12-31' },
+        { kind: 'stamp1', from: '2026-01-01' },
+      ],
+      stamp4Route: 'gep',
+      employmentStart: '2022-01-01',
+    };
+    // 48 months on the GEP, then a business permission.
+    expect(pathway(req, 'IE-STAMP4').status).toBe('NOT_MET');
+    const later = pathway(
+      { ...req, simulationDate: '2026-11-23' },
+      'IE-STAMP4',
+    );
+    expect(later.status).toBe('NOT_MET');
+    expect(later.checks[0].met).toBe(false);
+  });
+
+  test('Stamp 4: GEP time does not count towards 21 months, before or after CSEP (task 72)', () => {
+    // CSEP for 2025, then an ordinary GEP: 12 months in the 21-month group.
+    const later = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permissions: [
+          { kind: 'stamp1-csep', from: '2025-01-01', to: '2025-12-31' },
+          { kind: 'stamp1-gep', from: '2026-01-01' },
+        ],
+        stamp4Route: 'csep',
+        employmentStart: '2025-01-01',
+      },
+      'IE-STAMP4',
+    );
+    expect(later.status).toBe('NOT_MET');
+    expect(later.checks[0].met).toBe(false);
+    // A GEP first, then a CSEP from 2025-07-01: the GEP is not "another
+    // permission before Stamp 1", so 21 months run from 2025-07-01.
+    const earlier = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permissions: [
+          { kind: 'stamp1-gep', from: '2024-01-01', to: '2025-06-30' },
+          { kind: 'stamp1-csep', from: '2025-07-01' },
+        ],
+        stamp4Route: 'csep',
+        employmentStart: '2024-01-01',
+      },
+      'IE-STAMP4',
+    );
+    expect(earlier.status).toBe('FUTURE');
+    expect(earlier.earliestDate).toBe('2027-04-01');
+  });
+
   test('Stamp 4: a gap in the permit after starting work does not count (review68-1)', () => {
     const req: Partial<IeRequest> = {
       simulationDate: '2026-11-22',
       permissions: [
-        { kind: 'stamp1', from: '2024-12-01', to: '2025-11-30' },
-        { kind: 'stamp1', from: '2026-05-01' },
+        { kind: 'stamp1-csep', from: '2024-12-01', to: '2025-11-30' },
+        { kind: 'stamp1-csep', from: '2026-05-01' },
       ],
       stamp4Route: 'csep',
       employmentStart: '2024-12-01',
@@ -588,7 +704,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
       simulationDate: '2026-11-22',
       permissions: [
         { kind: 'stamp1g-graduate', from: '2024-05-01', to: '2025-03-31' },
-        { kind: 'stamp1', from: '2025-04-01', to: '2027-01-31' },
+        { kind: 'stamp1-csep', from: '2025-04-01', to: '2027-01-31' },
       ],
       stamp4Route: 'csep',
       employmentStart: '2025-02-01',
@@ -632,10 +748,45 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     expect(pathway(req, 'IE-STAMP4').summary).toContain('须在爱尔兰境内');
   });
 
+  test('Stamp 5: no filing date when the permission lapses before the return (task 72)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        permissions: [{ kind: 'stamp4', from: '2018-12-01', to: '2026-12-05' }],
+        trips: [{ departed: '2026-11-29', returned: '2026-12-10' }],
+        stamp4Route: 'wcatt',
+      },
+      'IE-STAMP4',
+    );
+    // 96 months on 2026-12-01; the card ends on 2026-12-05, abroad.
+    expect(p.earliestDate).toBe('2026-12-01');
+    expect(p.summary).toContain('本试点不给出递交日期');
+    expect(p.summary).not.toContain('回到爱尔兰后递交');
+  });
+
+  test('Stamp 5: the return day passes the same check as applying that day (review72-1)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2026-11-23',
+      permissions: [
+        { kind: 'stamp4', from: '2018-12-01', to: '2026-12-09' },
+        { kind: 'student', from: '2026-12-10' },
+      ],
+      trips: [{ departed: '2026-11-29', returned: '2026-12-10' }],
+      stamp4Route: 'wcatt',
+    };
+    // Back on 2026-12-10 on a student permission, which does not count.
+    const p = pathway(req, 'IE-STAMP4');
+    expect(p.earliestDate).toBe('2026-12-01');
+    expect(p.summary).toContain('本试点不给出递交日期');
+    expect(
+      pathway({ ...req, simulationDate: '2026-12-10' }, 'IE-STAMP4').status,
+    ).toBe('NOT_MET');
+  });
+
   test('GEP before the 2024-04-03 notice: the earlier rule is not modelled (review68-5)', () => {
     const req: Partial<IeRequest> = {
       simulationDate: '2024-02-01',
-      permissions: [{ kind: 'stamp1', from: '2019-03-01' }],
+      permissions: [{ kind: 'stamp1-gep', from: '2019-03-01' }],
       stamp4Route: 'gep',
       employmentStart: '2019-03-01',
     };
@@ -647,6 +798,102 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     expect(
       pathway({ ...req, simulationDate: '2024-04-03' }, 'IE-STAMP4').status,
     ).toBe('MET');
+  });
+
+  test('ICT before the upgrade page listed it: the earlier rule is not modelled (task 72)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2025-01-01',
+      permissions: [{ kind: 'stamp1-ict', from: '2019-03-01' }],
+      stamp4Route: 'gep',
+      employmentStart: '2019-03-01',
+    };
+    // 57 months end on 2023-11-30; the page listing ICT is only evidenced
+    // from its last change on 2026-02-25 (review72-1).
+    const p = pathway(req, 'IE-STAMP4');
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('按 57 个月规则满足的最早日期是 2026-02-25');
+    expect(p.summary).toContain('公司内调');
+    expect(
+      pathway({ ...req, simulationDate: '2025-07-22' }, 'IE-STAMP4').status,
+    ).toBe('UNKNOWN');
+    expect(
+      pathway({ ...req, simulationDate: '2026-02-25' }, 'IE-STAMP4').status,
+    ).toBe('MET');
+  });
+
+  test('ICT time within the 57 months needs the ICT date even when the last permit is a GEP (review72-2)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2024-09-01',
+      permissions: [
+        { kind: 'stamp1-ict', from: '2020-01-01', to: '2024-09-30' },
+        { kind: 'stamp1-gep', from: '2024-10-01' },
+      ],
+      stamp4Route: 'gep',
+      employmentStart: '2020-01-01',
+    };
+    // 57 months on 2024-10-01, mostly ICT: certain only from 2026-02-25.
+    const p = pathway(req, 'IE-STAMP4');
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2026-02-25');
+    expect(p.summary).toContain('2024-10-01');
+    expect(
+      pathway({ ...req, simulationDate: '2024-10-01' }, 'IE-STAMP4').status,
+    ).toBe('UNKNOWN');
+  });
+
+  test('A short stay in Northern Ireland does not end an open Irish permit (review72-2)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        permissions: [
+          { kind: 'stamp1-csep', from: '2024-01-01' },
+          { kind: 'ni-residence', from: '2026-06-01', to: '2026-08-31' },
+        ],
+        stamp4Route: 'csep',
+        employmentStart: '2024-01-01',
+      },
+      'IE-STAMP4',
+    );
+    // 21 months on 2025-10-01; back in Ireland on the CSEP after August.
+    expect(p.status).toBe('MET');
+  });
+
+  test('Stamp 5: a gap abroad before the same permit resumes gives a conditional filing date (review72-2)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2026-11-23',
+      permissions: [
+        { kind: 'stamp4', from: '2018-12-01', to: '2026-12-05' },
+        { kind: 'stamp4', from: '2026-12-10' },
+      ],
+      trips: [{ departed: '2026-11-29', returned: '2026-12-10' }],
+      stamp4Route: 'wcatt',
+    };
+    const p = pathway(req, 'IE-STAMP4');
+    expect(p.earliestDate).toBe('2026-12-01');
+    expect(p.summary).toContain('若可累加，最早 2026-12-10 回到爱尔兰后递交');
+    // The same reading as applying on the return day.
+    const back = pathway({ ...req, simulationDate: '2026-12-10' }, 'IE-STAMP4');
+    expect(back.status).toBe('UNKNOWN');
+    expect(back.summary).toContain('2026-12-10');
+  });
+
+  test('Stamp 5: an "other" permission from the return day is the pending item, not a gap (review72-3)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        permissions: [
+          { kind: 'stamp4', from: '2018-12-01', to: '2026-12-09' },
+          { kind: 'other', from: '2026-12-10' },
+        ],
+        trips: [{ departed: '2026-11-29', returned: '2026-12-10' }],
+        stamp4Route: 'wcatt',
+      },
+      'IE-STAMP4',
+    );
+    expect(p.earliestDate).toBe('2026-12-01');
+    expect(p.summary).toContain('"其他"类许可');
+    expect(p.summary).toContain('若计入，最早 2026-12-10 回到爱尔兰后递交');
+    expect(p.summary).not.toContain('空档前后能否累加');
   });
 
   test('Stamp 5 after 96 months', () => {

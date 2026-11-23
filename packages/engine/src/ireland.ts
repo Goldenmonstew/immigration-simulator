@@ -12,17 +12,23 @@ import type { IsoDate, Locale } from './types';
 // 2026 draft bill's longer periods are out of scope.
 
 /**
- * stamp1: Stamp 1 or 1H on an employment permit (not ICT), a Hosting
- * Agreement or a business; stamp1g-graduate: Third Level Graduate Programme;
+ * stamp1-csep: Stamp 1 or 1H on a Critical Skills Employment Permit, a
+ * researcher's Hosting Agreement or a Multi-Site GEP as a hospital doctor
+ * (the 21-month group); stamp1-gep: Stamp 1 on a General Employment Permit
+ * (the 57-month group with ICT); stamp1: other Stamp 1, such as a business
+ * or a working holiday; stamp1g-graduate: Third Level Graduate Programme;
  * stamp1g-spouse: spouse or partner of an employment permit holder (CSEP,
  * GEP, Multi-Site GEP doctor) or researcher; stamp1g-ict: spouse or partner
- * of an ICT permit holder; stamp4d: Stamp 4D or
+ * of an ICT permit holder; stamp3-family: Stamp 3 granted under family
+ * reunification as such a spouse or partner, before moving to 1G; stamp4d: Stamp 4D or
  * 4S; student: Stamp 2 or 2A; protection-applicant: waiting for an
  * international protection decision; ni-residence: lawful residence in
  * Northern Ireland (s15A only); other: temporary protection and the rest.
  */
 export const IE_PERMISSION_KINDS = [
   'stamp1',
+  'stamp1-csep',
+  'stamp1-gep',
   'stamp1-ict',
   'stamp1g-graduate',
   'stamp1g-spouse',
@@ -30,6 +36,7 @@ export const IE_PERMISSION_KINDS = [
   'stamp1a',
   'stamp0',
   'stamp3',
+  'stamp3-family',
   'stamp4',
   'stamp4d',
   'stamp4-eufam',
@@ -94,11 +101,14 @@ type Verdict = 'yes' | 'maybe' | 'no';
 const RECKONABLE: IePermissionKind[] = [
   'stamp0',
   'stamp1',
+  'stamp1-csep',
+  'stamp1-gep',
   'stamp1-ict',
   'stamp1g-graduate',
   'stamp1g-spouse',
   'stamp1g-ict',
   'stamp3',
+  'stamp3-family',
   'stamp4',
   'stamp4d',
   'stamp4-eufam',
@@ -110,9 +120,12 @@ const UNCERTAIN: IePermissionKind[] = ['stamp1a', 'other'];
 // uncertain, the list being indicative (PD-114).
 const WCATT: IePermissionKind[] = [
   'stamp1',
+  'stamp1-csep',
+  'stamp1-gep',
   'stamp1g-graduate',
   'stamp1g-spouse',
   'stamp3',
+  'stamp3-family',
   'stamp4',
   'stamp4d',
   'stamp5',
@@ -135,11 +148,16 @@ export function evaluateIreland(req: IeRequest): IeResult {
     IE_PERMISSION_KINDS.map((k) => [k, flags()]),
   ) as Record<IePermissionKind, boolean[]>;
   // One permission at a time: one without an end date is renewed on time
-  // until the next permission starts.
+  // until the next permission starts. A stay in Northern Ireland only
+  // overrides the days it overlaps; it does not end an Irish permission.
   for (const p of req.permissions) {
     const next = req.permissions
+      .filter(
+        (q) =>
+          q.from > p.from &&
+          (p.kind === 'ni-residence' || q.kind !== 'ni-residence'),
+      )
       .map((q) => q.from)
-      .filter((from) => from > p.from)
       .sort()[0];
     days.mark(byKind[p.kind], p.from, p.to ?? (next && addDays(next, -1)));
   }
@@ -530,16 +548,22 @@ export function evaluateIreland(req: IeRequest): IeResult {
           assumptions: [],
         });
       } else {
-        // The permit for this route: Stamp 1 or 1H, and ICT for the
-        // 57-month group.
-        const permit = holds(
-          route === 'csep' ? ['stamp1'] : ['stamp1', 'stamp1-ict'],
-        );
+        // The permits for this route; the two groups are not
+        // interchangeable (SRC-096), so the other group's Stamp 1 never
+        // counts, not even before the move to this route's permit.
+        const kinds: IePermissionKind[] =
+          route === 'csep' ? ['stamp1-csep'] : ['stamp1-gep', 'stamp1-ict'];
+        const otherGroup: IePermissionKind[] =
+          route === 'csep' ? ['stamp1-gep', 'stamp1-ict'] : ['stamp1-csep'];
+        const permit = holds(kinds);
         // Work started under another permission counts until the move to
         // Stamp 1, from the employment permit's validity (SRC-096).
         const lawful = holds(
           IE_PERMISSION_KINDS.filter(
-            (k) => k !== 'ni-residence' && k !== 'protection-applicant',
+            (k) =>
+              k !== 'ni-residence' &&
+              k !== 'protection-applicant' &&
+              !otherGroup.includes(k),
           ),
         );
         const from0 = Math.max(0, days.index(start));
@@ -560,18 +584,32 @@ export function evaluateIreland(req: IeRequest): IeResult {
               ? start
               : days.date(s);
         };
-        // Before the 57-month rule took effect the earlier rule applied,
-        // which this pilot does not model (PD-116).
-        const ruleFrom = route === 'gep' ? v.gepRuleFrom.value : undefined;
+        // The 57-month rule's earliest sourced date: GEP from ISD's 2024
+        // notice, ICT from the last change of the archived page listing it,
+        // when ICT time is within the months needed. The earlier rule is not
+        // modelled (PD-116).
+        const ictSums = days.sums((i) => byKind['stamp1-ict'][i]);
+        const usesIct = (d: IsoDate) =>
+          days.total(ictSums, addMonths(d, -months), d) > 0;
+        const ruleFor = (d: IsoDate) =>
+          route !== 'gep'
+            ? undefined
+            : usesIct(d)
+              ? v.ictRuleFrom.value
+              : v.gepRuleFrom.value;
         const verdict = (d: IsoDate): Verdict => {
           const from = countFrom(d);
-          // Renewing as Stamp 4: the permit is held on the application day.
-          if (!from || !permit(days.index(d))) return 'no';
+          // Renewing as Stamp 4: residing in the State on the permit on the
+          // application day (SRC-096), not living in Northern Ireland.
+          const i = days.index(d);
+          if (!from || !permit(i) || ni[i]) return 'no';
           // From the 29th–31st into a shorter month: that month's last day
           // or the 1st of the next (PD-116).
           const end = addMonths(from, months);
-          if (d >= (end.slice(8) === from.slice(8) ? end : addDays(end, 1)))
-            return ruleFrom && d < ruleFrom ? 'maybe' : 'yes';
+          if (d >= (end.slice(8) === from.slice(8) ? end : addDays(end, 1))) {
+            const rule = ruleFor(d);
+            return rule && d < rule ? 'maybe' : 'yes';
+          }
           // A month-end start, or the time on both sides of a gap added up.
           return d >= end ||
             (d > start && days.total(heldSums, start, addDays(d, -1)) >= span)
@@ -580,6 +618,9 @@ export function evaluateIreland(req: IeRequest): IeResult {
         };
         const earliest = firstDate((d) => verdict(d) === 'yes');
         const possible = firstDate((d) => verdict(d) !== 'no');
+        const ruleFrom = possible && ruleFor(possible);
+        const ruleBound = !!ruleFrom && !!possible && possible < ruleFrom;
+        const ictRule = !!possible && usesIct(possible);
         const missing =
           sim > start
             ? daysBetween(start, sim) -
@@ -597,23 +638,28 @@ export function evaluateIreland(req: IeRequest): IeResult {
                   `You have completed ${months} months on the simulation date; when you can apply to renew as Stamp 4 follows ISD’s renewal arrangements.`,
                 )
               : earliest
-                ? L(
-                    `满 ${months} 个月的最早日期是 ${earliest}。`,
-                    `The earliest date you complete ${months} months is ${earliest}.`,
-                  )
+                ? ruleBound
+                  ? L(
+                      `按 ${months} 个月规则满足的最早日期是 ${earliest}。`,
+                      `The earliest date under the ${months}-month rule is ${earliest}.`,
+                    )
+                  : L(
+                      `满 ${months} 个月的最早日期是 ${earliest}。`,
+                      `The earliest date you complete ${months} months is ${earliest}.`,
+                    )
                 : L(
                     `按现有记录，10 年内达不到凭该许可受雇满 ${months} 个月。`,
                     `With your record you will not complete ${months} months on that permit within 10 years.`,
                   )) +
             (possible && possible !== earliest
               ? L(
-                  ruleFrom && possible < ruleFrom
-                    ? `${months} 个月规则自 ISD ${ruleFrom} 的通告起适用，此前的规则本试点没有收录：${possible} 起按当时的规则是否已满足待确认（PD-116）。`
+                  ruleBound
+                    ? `已存档的来源中，${months} 个月规则对${ictRule ? '公司内调（ICT）' : 'General Employment Permit'}最早见于 ${ruleFrom}（${ictRule ? 'ISD 升级页现行文本的修改日' : 'ISD 通告'}），此前的规则本试点没有收录：${possible} 起按当时的规则是否已满足待确认（PD-116）。`
                     : countFrom(possible) === start
                       ? `若从月末起算按当月最后一天届满，最早 ${possible}（PD-116）。`
                       : `若许可空档前后的受雇时间可以累加，最早 ${possible}（PD-116）。`,
-                  ruleFrom && possible < ruleFrom
-                    ? ` The ${months}-month rule applies from ISD’s notice of ${ruleFrom}; this pilot does not have the earlier rule, so whether you qualified under it from ${possible} is uncertain (PD-116).`
+                  ruleBound
+                    ? ` In the archived sources the ${months}-month rule first covers ${ictRule ? 'intra-company transfers' : 'General Employment Permits'} on ${ruleFrom} (${ictRule ? 'the date ISD’s upgrade page was last changed to its current text' : 'ISD’s notice'}); this pilot does not have the earlier rule, so whether you qualified under it from ${possible} is uncertain (PD-116).`
                     : countFrom(possible) === start
                       ? ` If months from a month-end start end on the last day of the month, it could be ${possible} (PD-116).`
                       : ` If the time on both sides of a gap in the permit can be added up, it could be ${possible} (PD-116).`,
@@ -631,12 +677,12 @@ export function evaluateIreland(req: IeRequest): IeResult {
               text:
                 route === 'csep'
                   ? L(
-                      `凭 Critical Skills Employment Permit、研究员 Hosting Agreement 或 NCHD 医生的多地点 General Employment Permit（Stamp 1 或 1H），自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；庇护申请期间与北爱尔兰居住不算），递交当天持该许可`,
-                      `${months} months from starting work on ${start} on a Critical Skills Employment Permit, a researcher’s Hosting Agreement or a Multi-Site General Employment Permit as a non-consultant hospital doctor (Stamp 1 or 1H), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not time awaiting a protection decision or living in Northern Ireland) and on the application day`,
+                      `凭 Critical Skills Employment Permit、研究员 Hosting Agreement 或 NCHD 医生的多地点 General Employment Permit（Stamp 1 或 1H），自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；GEP、ICT 的 Stamp 1、庇护申请期间与北爱尔兰居住不算），递交当天在爱尔兰居住并持该许可`,
+                      `${months} months from starting work on ${start} on a Critical Skills Employment Permit, a researcher’s Hosting Agreement or a Multi-Site General Employment Permit as a non-consultant hospital doctor (Stamp 1 or 1H), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not Stamp 1 on a GEP or ICT, time awaiting a protection decision or living in Northern Ireland), and residing in Ireland on it on the application day`,
                     )
                   : L(
-                      `凭 General Employment Permit 或公司内调（ICT）的 Stamp 1，自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；庇护申请期间与北爱尔兰居住不算），递交当天持该许可`,
-                      `${months} months from starting work on ${start} on a General Employment Permit or an Intra-Company Transfer (Stamp 1), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not time awaiting a protection decision or living in Northern Ireland) and on the application day`,
+                      `凭 General Employment Permit 或公司内调（ICT）的 Stamp 1，自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；CSEP 一类的 Stamp 1、庇护申请期间与北爱尔兰居住不算），递交当天在爱尔兰居住并持该许可`,
+                      `${months} months from starting work on ${start} on a General Employment Permit or an Intra-Company Transfer (Stamp 1), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not Stamp 1 in the Critical Skills group, time awaiting a protection decision or living in Northern Ireland), and residing in Ireland on it on the application day`,
                     ),
               met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
               sources: [
@@ -660,8 +706,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
               `"${months} months" are calendar months with the first day of work counted (Interpretation Act 2005 s18(h) and Schedule "month"); the start date is the one in Revenue’s Employment Detail Summary, and if you moved to Stamp 1 from another permission it runs from the validity of that employment permit (ISD).`,
             ),
             L(
-              '只计持该许可（Stamp 1 或 1H，57 个月一类含 ICT）的日子，转 Stamp 1 之前凭其他许可工作的日子也计入（ISD 按雇佣许可的有效期起算），递交当天须持该许可；开始工作后许可有空档的，确定日期从空档后重新起算，空档前后能否累加没有写明，累加后的日期另列（PD-116）。21 个月与 57 个月两类不可互换：GEP、ICT 的受雇时间不计入 21 个月（ISD）；换雇主或两类混合时怎样计没有写明。',
-              'Only days holding that permit (Stamp 1 or 1H, with ICT in the 57-month group) count, plus days worked on another permission before moving to Stamp 1 (ISD counts from the employment permit’s validity), and you hold the permit on the application day. After a gap in the permit since starting work, the definite date counts again from the end of the gap; whether time on both sides can be added up is not stated, so that date is shown separately (PD-116). The 21-month and 57-month groups are not interchangeable: time on a GEP or ICT does not count towards 21 months (ISD); a change of employer or a mixed history is not covered.',
+              '只计持该许可（Stamp 1 或 1H，57 个月一类含 ICT）的日子，转 Stamp 1 之前凭其他许可工作的日子也计入（ISD 按雇佣许可的有效期起算），递交当天须持该许可；开始工作后许可有空档的，确定日期从空档后重新起算，空档前后能否累加没有写明，累加后的日期另列（PD-116）。21 个月与 57 个月两类不可互换（ISD）：21 个月只计 CSEP 一类的 Stamp 1，57 个月只计 GEP、ICT 的 Stamp 1，另一类的时间在两条路线上都不计；同一类内换雇主怎样计没有写明。',
+              'Only days holding that permit (Stamp 1 or 1H, with ICT in the 57-month group) count, plus days worked on another permission before moving to Stamp 1 (ISD counts from the employment permit’s validity), and you hold the permit on the application day. After a gap in the permit since starting work, the definite date counts again from the end of the gap; whether time on both sides can be added up is not stated, so that date is shown separately (PD-116). The 21-month and 57-month groups are not interchangeable (ISD): 21 months count only Stamp 1 in the Critical Skills group and 57 months only Stamp 1 on a GEP or ICT, so the other group’s time counts on neither route; a change of employer within a group is not covered.',
             ),
             projection,
           ],
@@ -670,7 +716,12 @@ export function evaluateIreland(req: IeRequest): IeResult {
       }
     } else if (route === 'spouse-1g') {
       const years = v.spouse1gYears.value;
-      const held = holds(['stamp1g-spouse', 'stamp1g-ict']);
+      // 5 years in Ireland on a family reunification permission (FAQ 30):
+      // Stamp 1G as a spouse or partner, and the Stamp 3 these spouses held
+      // under family reunification before moving to 1G; not while living in
+      // Northern Ireland.
+      const family = holds(['stamp1g-spouse', 'stamp1g-ict', 'stamp3-family']);
+      const held = (i: number) => !ni[i] && family(i);
       const heldSums = days.sums(held);
       const verdict = (d: IsoDate): Verdict => {
         const from = addYears(d, -years);
@@ -688,37 +739,37 @@ export function evaluateIreland(req: IeRequest): IeResult {
       pathways.push({
         id: 'IE-STAMP4',
         title: L(
-          'Stamp 1G 配偶或伴侣转 Stamp 4',
-          'Stamp 4 for spouses and partners on Stamp 1G',
+          '家庭团聚的配偶或伴侣（Stamp 3／1G）转 Stamp 4',
+          'Stamp 4 for spouses and partners on family reunification (Stamp 3 or 1G)',
         ),
         ...outcome(earliest, possible),
         summary:
           (earliest === sim
             ? L(
-                `模拟日已作为配偶或伴侣连续持 Stamp 1G 满 ${years} 年；ISD 要求满期后在下一次网上续期时申请 Stamp 4。`,
-                `You have held Stamp 1G as a spouse or partner for ${years} years on the simulation date; ISD has you apply for Stamp 4 at your next online renewal after that.`,
+                `模拟日已作为配偶或伴侣在家庭团聚许可下连续满 ${years} 年；ISD 要求满期后在下一次网上续期时申请 Stamp 4。`,
+                `You have been on a family reunification permission as a spouse or partner for ${years} years on the simulation date; ISD has you apply for Stamp 4 at your next online renewal after that.`,
               )
             : earliest
               ? L(
-                  `作为配偶或伴侣连续持 Stamp 1G 满 ${years} 年的最早日期是 ${earliest}；ISD 要求满期后在下一次网上续期时申请 Stamp 4。`,
-                  `The earliest date you will have held Stamp 1G as a spouse or partner for ${years} years is ${earliest}; ISD has you apply for Stamp 4 at your next online renewal after that.`,
+                  `作为配偶或伴侣在家庭团聚许可下连续满 ${years} 年的最早日期是 ${earliest}；ISD 要求满期后在下一次网上续期时申请 Stamp 4。`,
+                  `The earliest date you will have been on a family reunification permission as a spouse or partner for ${years} years is ${earliest}; ISD has you apply for Stamp 4 at your next online renewal after that.`,
                 )
               : L(
-                  `按现有记录，10 年内达不到作为配偶或伴侣连续持 Stamp 1G ${years} 年。`,
-                  `With your record you will not hold Stamp 1G as a spouse or partner for ${years} years in a row within 10 years.`,
+                  `按现有记录，10 年内达不到作为配偶或伴侣在家庭团聚许可下连续 ${years} 年。`,
+                  `With your record you will not be on a family reunification permission as a spouse or partner for ${years} years in a row within 10 years.`,
                 )) +
           (possible && possible !== earliest
             ? L(
-                `若空档前后的 Stamp 1G 时间可以累加，最早 ${possible}（PD-118）。`,
-                ` If Stamp 1G time on both sides of a gap can be added up, it could be ${possible} (PD-118).`,
+                `若空档前后的时间可以累加，最早 ${possible}（PD-118）。`,
+                ` If time on both sides of a gap can be added up, it could be ${possible} (PD-118).`,
               )
             : '') +
           L(policy, ` ${policy}`),
         checks: [
           {
             text: L(
-              `${addYears(sim, -years)} 起每天都作为雇佣许可持有人（CSEP、GEP、ICT 等）或研究员的配偶、伴侣持 Stamp 1G，递交当天仍持有（毕业生计划的 1G 不计）`,
-              `Stamp 1G as the spouse or partner of an employment permit holder (CSEP, GEP, ICT and so on) or researcher on every day since ${addYears(sim, -years)} and on the application day (graduate programme 1G does not count)`,
+              `${addYears(sim, -years)} 起每天都作为雇佣许可持有人（CSEP、GEP、ICT 等）或研究员的配偶、伴侣持家庭团聚许可（Stamp 1G，或家庭团聚下所持的 Stamp 3）并住在爱尔兰，递交当天仍持有（毕业生计划的 1G 与住在北爱尔兰的日子不计）`,
+              `A family reunification permission (Stamp 1G, or Stamp 3 held under family reunification) as the spouse or partner of an employment permit holder (CSEP, GEP, ICT and so on) or researcher and living in Ireland on every day since ${addYears(sim, -years)} and on the application day (graduate programme 1G and days living in Northern Ireland do not count)`,
             ),
             met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
             sources: v.spouse1gYears.sources,
@@ -732,8 +783,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
         ],
         assumptions: [
           L(
-            '"5 年"只计配偶、伴侣类的 Stamp 1G（ISD 把它与毕业生计划的 1G 分为两类；2024-05-15 起 GEP、ICT 持有人的配偶、伴侣也给 1G，同样满 5 年可转 Stamp 4），按连续持有计；此前以 Stamp 3 居住的时间不计（ISD 家庭团聚 FAQ 第 30 问写的是在家庭团聚许可下满 5 年，可能包括这段时间，本试点从严，日期可能偏晚），许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。',
-            '"5 years" counts only Stamp 1G as a spouse or partner (ISD lists it apart from graduate programme 1G; since 2024-05-15 spouses and partners of GEP and ICT holders also get 1G with the same 5-year point), held without a break; earlier time on Stamp 3 does not count (ISD’s family reunification FAQ 30 speaks of 5 years on a family reunification permission, which may include it; this pilot is stricter, so its date may be later), and after a gap between permissions, whether time on both sides can be added up is not stated, so that date is shown separately (PD-118).',
+            '"5 年"按 ISD 家庭团聚 FAQ 第 30 问计"在家庭团聚许可下满 5 年"：配偶、伴侣类的 Stamp 1G（与毕业生计划的 1G 分开），以及这些配偶、伴侣在改发 1G 之前于家庭团聚下所持的 Stamp 3（2024-05-15 通告写明其家庭团聚许可原为 Stamp 3，旧卡可用到下次续期）；其他原因的 Stamp 3 不计；FAQ 写的是在爱尔兰满 5 年，住在北爱尔兰的日子不计。按连续持有计，许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。',
+            '"5 years" follows ISD’s family reunification FAQ 30, "5 years or more … on a family reunification permission": Stamp 1G as a spouse or partner (apart from graduate programme 1G), and the Stamp 3 these spouses and partners held under family reunification before moving to 1G (the 2024-05-15 notice says their family reunification permission was Stamp 3, with the old card kept until the next renewal); Stamp 3 for other reasons does not count; the FAQ speaks of 5 years in Ireland, so days living in Northern Ireland do not count. It is taken as held without a break; after a gap, whether time on both sides can be added up is not stated, so that date is shown separately (PD-118).',
           ),
           projection,
         ],
@@ -767,6 +818,13 @@ export function evaluateIreland(req: IeRequest): IeResult {
       let back = earliest ? days.index(earliest) : 0;
       while (earliest && back < days.count && away[back]) back++;
       const filing = earliest && days.date(back);
+      // Nor from people without a residence permission (same page): the
+      // return day must pass the same check as applying that day.
+      const onReturn = filing && filing !== earliest ? verdict(filing) : 'yes';
+      // Pending on the return day: an "other" permission with no gap, or a
+      // real gap between permissions.
+      const otherOnly =
+        !!filing && covered(wideSums, addMonths(filing, -months), filing);
       pathways.push({
         id: 'IE-STAMP4',
         title: L(
@@ -795,17 +853,32 @@ export function evaluateIreland(req: IeRequest): IeResult {
                 ` Counting "other" permissions, or adding up residence on both sides of a gap, it could be ${possible} (PD-114, PD-118).`,
               )
             : '') +
-          (filing && filing !== earliest
+          (onReturn === 'maybe' && otherOnly
             ? L(
-                `按已录入的出行，你那天在境外；ISD 不受理在境外递交的申请，最早 ${filing} 回到爱尔兰后递交。`,
-                ` By your recorded trips you are abroad that day; ISD does not accept applications from outside the State, so the earliest filing date is ${filing}, when you are back.`,
+                `按已录入的出行，你那天在境外；${filing} 回到爱尔兰时持的是"其他"类许可，它能否计入 Stamp 5 待确认：若计入，最早 ${filing} 回到爱尔兰后递交（PD-114）。`,
+                ` By your recorded trips you are abroad that day, and when you are back on ${filing} you hold an "other" permission, which may or may not count for Stamp 5: if it does, the earliest filing date is ${filing} (PD-114).`,
               )
-            : filing
+            : onReturn === 'maybe'
               ? L(
-                  '须在爱尔兰境内、持有效居留许可时递交。',
-                  ' You must be in Ireland and hold a residence permission when you apply.',
+                  `按已录入的出行，你那天在境外；${filing} 回到爱尔兰时许可之间有空档，空档前后能否累加没写：若可累加，最早 ${filing} 回到爱尔兰后递交（PD-118）。`,
+                  ` By your recorded trips you are abroad that day, and when you are back on ${filing} there is a gap between your permissions; whether time on both sides can be added up is not stated, but if it can, the earliest filing date is ${filing} (PD-118).`,
                 )
-              : '') +
+              : onReturn === 'no'
+                ? L(
+                    `按已录入的出行，你那天在境外；${filing} 回到爱尔兰时，按录入的许可已不再连续持有可计入 Stamp 5 的有效许可。ISD 不受理在境外或没有居留许可时递交的申请，本试点不给出递交日期。`,
+                    ` By your recorded trips you are abroad that day, and when you are back on ${filing} the permissions you entered no longer give an unbroken permission that counts for Stamp 5; ISD does not accept applications from outside the State or without a residence permission, so this pilot gives no filing date.`,
+                  )
+                : filing && filing !== earliest
+                  ? L(
+                      `按已录入的出行，你那天在境外；ISD 不受理在境外递交的申请，最早 ${filing} 回到爱尔兰后递交。`,
+                      ` By your recorded trips you are abroad that day; ISD does not accept applications from outside the State, so the earliest filing date is ${filing}, when you are back.`,
+                    )
+                  : filing
+                    ? L(
+                        '须在爱尔兰境内、持有效居留许可时递交。',
+                        ' You must be in Ireland and hold a residence permission when you apply.',
+                      )
+                    : '') +
           L(policy, ` ${policy}`),
         checks: [
           {
@@ -836,8 +909,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
             `The ${months} months are taken as held without a break, and days living in Northern Ireland are not legal residence in the State; after a gap, whether residence on both sides can be added up is not stated, so that date is shown separately (PD-118). Whether "other" permissions count is uncertain (PD-114).`,
           ),
           L(
-            'ISD 不受理在境外或没有有效居留许可时递交的申请（申请表 p1）：满期那天按已录入的出行在境外的，最早递交日顺延到回到爱尔兰当天。',
-            'ISD does not accept applications from people outside the State or without a residence permission (application form p1): if your recorded trips have you abroad on the date the months are complete, the earliest filing date moves to the day you are back.',
+            'ISD 不受理在境外或没有有效居留许可时递交的申请（申请表 p1）：满期那天按已录入的出行在境外的，最早递交日顺延到回到爱尔兰当天，那天还须持有效许可。',
+            'ISD does not accept applications from people outside the State or without a residence permission (application form p1): if your recorded trips have you abroad on the date the months are complete, the earliest filing date moves to the day you are back, when you also need a valid permission.',
           ),
           L(
             `"每年在境外不超过 ${v.wcattAbsenceMonths.value} 个月"是获批后 Stamp 5 的居住条件，不用于判断能否申请；申请前的出境是否减少 ${months} 个月没有写，本试点不扣除（PD-117）。`,

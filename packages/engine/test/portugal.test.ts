@@ -238,6 +238,25 @@ describe('naturalisation, current law (Lei 37/81 art. 6, 15)', () => {
     expect(p.status).toBe('NOT_MET');
   });
 
+  test('card just expired and abroad on the filing day: both named', () => {
+    // Task 75: the summary names the grace (PD-145) and the trip (PD-144).
+    const p = pathway(
+      {
+        route: 'cplp',
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'temporary', from: '2018-11-01', to: '2026-10-31' }],
+        trips: [{ departed: '2026-11-21', returned: '2026-12-01' }],
+      },
+      'PT-NATURALISATION',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('PD-145');
+    expect(p.summary).toContain('1 次出境');
+    expect(p.pendingDetails).toEqual(
+      expect.arrayContaining(['PD-144', 'PD-145']),
+    );
+  });
+
   test('within 6 months of a card expiring: unknown (PD-145)', () => {
     // review71-1: the right of residence lasts to 2027-04-30.
     const p = pathway(
@@ -284,6 +303,40 @@ describe('naturalisation, application pending on 2026-05-19 (LO 1/2026 art. 7)',
         'PT-NATURALISATION',
       ).status,
     ).toBe('MET');
+  });
+
+  test('met on the record but with a trip: worded as the record alone', () => {
+    // Task 75: the summary matches the unknown status.
+    const p = pathway(
+      {
+        ...pending,
+        residenceApplied: '2021-03-01',
+        trips: [{ departed: '2023-05-01', returned: '2023-05-15' }],
+      },
+      'PT-NATURALISATION',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('仅按居留记录计算，递交时已满 5 年');
+    expect(p.pendingDetails).toContain('PD-144');
+  });
+
+  test('resting on the grace after the card: its trips are named too', () => {
+    // review75-1: card to 2026-04-30, away 2026-05-02 to 05-07, applied on
+    // 2026-05-12.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'temporary', from: '2020-05-01', to: '2026-04-30' }],
+        pendingApplication: '2026-05-12',
+        trips: [{ departed: '2026-05-01', returned: '2026-05-08' }],
+      },
+      'PT-NATURALISATION',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('1 次出境');
+    expect(p.pendingDetails).toEqual(
+      expect.arrayContaining(['PD-144', 'PD-145']),
+    );
   });
 
   test('one day short: a new application falls under the current law', () => {
@@ -425,7 +478,7 @@ describe('permanent residence (Lei 23/2007 art. 80)', () => {
     const p = pathway(
       {
         permits: [{ kind: 'temporary', from: '2020-03-15', to: '2022-03-14' }],
-        simulationDate: '2021-01-01',
+        simulationDate: '2021-06-01',
         trips: [
           { departed: '2020-05-01', returned: '2020-09-15' },
           { departed: '2021-01-10', returned: '2021-05-20' },
@@ -435,6 +488,133 @@ describe('permanent residence (Lei 23/2007 art. 80)', () => {
     );
     // 136 + 129 = 265 days abroad: more than 8 months can have.
     expect(p.checks[1].met).toBe(false);
+  });
+
+  test('planned trips are a forecast, not a breach on the simulation date', () => {
+    // Task 75: away from 2027-01-11, 6 months on 2027-07-10.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        trips: [{ departed: '2027-01-10', returned: '2027-07-20' }],
+      },
+      'PT-PERMANENT',
+    );
+    expect(p.status).toBe('MET');
+    expect(p.checks[1].met).toBe(true);
+    expect(p.summary).toContain('2027-07-10');
+    // Holding permanent residence: 24 months away on 2029-01-01.
+    const held = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'permanent', from: '2022-01-01' }],
+        trips: [{ departed: '2027-01-01', returned: '2029-02-01' }],
+      },
+      'PT-PERMANENT',
+    );
+    expect(held.status).toBe('NOT_APPLICABLE');
+    expect(held.checks[0].met).toBe(true);
+    expect(held.summary).toContain('2029-01-01');
+  });
+
+  test('permanent residence for investment is not cancelled for absences', () => {
+    // review75-2: DR 84/2007 art. 65-K; Lei 56/2023 art. 42 n.º 4.
+    const req: Partial<PtRequest> = {
+      permits: [
+        { kind: 'golden-visa', from: '2020-10-01', to: '2022-09-30' },
+        { kind: 'golden-visa', from: '2022-10-01', to: '2024-09-30' },
+        { kind: 'golden-visa', from: '2024-10-01', to: '2026-09-30' },
+        { kind: 'ari-permanent', from: '2026-10-01' },
+      ],
+      trips: [{ departed: '2027-01-10', returned: '2029-01-20' }],
+    };
+    for (const simulationDate of ['2026-11-22', '2029-01-11']) {
+      const p = pathway({ ...req, simulationDate }, 'PT-PERMANENT');
+      expect(p.status).toBe('NOT_APPLICABLE');
+      expect(p.checks[0].met).toBe(true);
+      expect(p.summary).not.toContain('2029-01-10');
+    }
+  });
+
+  test('from the switch to permanent residence for investment, no renewal', () => {
+    // review75-3: the same record before and after 2026-10-01.
+    const permits: PtRequest['permits'] = [
+      { kind: 'golden-visa', from: '2020-10-01', to: '2022-09-30' },
+      { kind: 'golden-visa', from: '2022-10-01', to: '2024-09-30' },
+      { kind: 'golden-visa', from: '2024-10-01', to: '2026-09-30' },
+      { kind: 'ari-permanent', from: '2026-10-01' },
+    ];
+    // Renewal opens 90 days before 2026-09-30.
+    const before = pathway(
+      { simulationDate: '2026-07-01', permits },
+      'PT-GOLDEN-VISA',
+    );
+    expect(before.status).toBe('FUTURE');
+    expect(before.earliestDate).toBe('2026-07-02');
+    for (const simulationDate of ['2026-10-01', '2026-11-22'])
+      expect(
+        pathway({ simulationDate, permits }, 'PT-GOLDEN-VISA').status,
+      ).toBe('NOT_APPLICABLE');
+  });
+
+  test('a switch recorded before renewal opens makes renewal unnecessary', () => {
+    // review75-4: renewal would open on 2026-07-02; the switch is 06-15.
+    const p = pathway(
+      {
+        simulationDate: '2026-06-01',
+        permits: [
+          { kind: 'golden-visa', from: '2020-10-01', to: '2022-09-30' },
+          { kind: 'golden-visa', from: '2022-10-01', to: '2024-09-30' },
+          { kind: 'golden-visa', from: '2024-10-01', to: '2026-09-30' },
+          { kind: 'ari-permanent', from: '2026-06-15' },
+        ],
+      },
+      'PT-GOLDEN-VISA',
+    );
+    expect(p.status).toBe('NOT_APPLICABLE');
+    expect(p.summary).toContain('2026-06-15');
+    expect(p.summary).toContain('2026-07-02');
+  });
+
+  test('the latest permanent residence decides, not the row order', () => {
+    // review75-4: ordinary from 2021-01-01, for investment from 2026-01-01.
+    const ordinary = {
+      kind: 'permanent' as const,
+      from: '2021-01-01',
+      to: '2025-12-31',
+    };
+    const investment = { kind: 'ari-permanent' as const, from: '2026-01-01' };
+    for (const permits of [
+      [ordinary, investment],
+      [investment, ordinary],
+    ]) {
+      const p = pathway(
+        {
+          simulationDate: '2026-11-22',
+          permits,
+          trips: [{ departed: '2022-01-01', returned: '2024-02-01' }],
+        },
+        'PT-PERMANENT',
+      );
+      expect(p.summary).toContain('2026-01-01');
+      expect(p.checks[0].met).toBe(true);
+    }
+  });
+
+  test('a golden visa forecast names the unconfirmed limit (PD-146)', () => {
+    // review75-1: 6 months away on 2027-07-10 during the ARI card.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [
+          { kind: 'golden-visa', from: '2025-08-10', to: '2027-08-10' },
+        ],
+        trips: [{ departed: '2027-01-10', returned: '2027-07-20' }],
+      },
+      'PT-PERMANENT',
+    );
+    expect(p.checks[1].met).toBe(true);
+    expect(p.summary).toContain('2027-07-10');
+    expect(p.summary).toContain('对黄金签证是否适用不明');
   });
 
   test('for the golden visa the absence rule is uncertain (PD-146)', () => {
@@ -729,6 +909,58 @@ describe('EU long-term residence (Lei 23/2007 art. 125–126)', () => {
     expect(p.summary).toContain('2027-05-01');
   });
 
+  test('each planned trip gets its own loss forecast', () => {
+    // review75-1: a past year away must not hide the next one.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'eu-long-term', from: '2019-01-01' }],
+        trips: [
+          { departed: '2021-01-01', returned: '2022-02-01' },
+          { departed: '2027-01-01', returned: '2033-02-01' },
+        ],
+      },
+      'PT-EU-LONG-TERM',
+    );
+    expect(p.checks[0].met).toBeUndefined();
+    expect(p.summary).toContain('2028-01-01');
+    expect(p.summary).toContain('2033-01-01');
+    expect(p.summary).toContain('art. 129 n.º 9');
+    expect(p.summary).toContain('art. 131 n.º 6');
+  });
+
+  test('a planned trip is followed past the calculation horizon', () => {
+    // review75-3: 6 years on 2037-01-01, after 2036-11-22.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'eu-long-term', from: '2019-01-01' }],
+        trips: [{ departed: '2031-01-01', returned: '2037-02-01' }],
+      },
+      'PT-EU-LONG-TERM',
+    );
+    expect(p.summary).toContain('2032-01-01');
+    expect(p.summary).toContain('2037-01-01');
+  });
+
+  test('every planned trip that reaches 12 months is listed', () => {
+    // review75-2: 12 months on 2028-01-01 and 2030-01-01, 6 years on
+    // 2035-01-01.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'eu-long-term', from: '2019-01-01' }],
+        trips: [
+          { departed: '2027-01-01', returned: '2028-02-01' },
+          { departed: '2029-01-01', returned: '2035-02-01' },
+        ],
+      },
+      'PT-EU-LONG-TERM',
+    );
+    expect(p.summary).toContain('2028-01-01、2030-01-01');
+    expect(p.summary).toContain('2035-01-01');
+  });
+
   test('a newer study permit ends the grace of the work permit before', () => {
     // review71-3: on 2026-11-22 only the study permit is held.
     const p = pathway(
@@ -758,6 +990,10 @@ describe('EU long-term residence (Lei 23/2007 art. 125–126)', () => {
     expect(p.status).toBe('NOT_APPLICABLE');
     expect(p.checks[0].met).toBe(true);
     expect(p.summary).toContain('2033-01-01');
+    // Task 75: 12 months away on 2028-01-01 comes first, and may lose it
+    // outside the EU; the exceptions are named.
+    expect(p.summary).toContain('2028-01-01');
+    expect(p.summary).toContain('art. 131 n.º 2–3');
     // The same 6 years already behind you: lost.
     const lost = pathway(
       {
@@ -898,8 +1134,9 @@ describe('golden visa (ARI) renewal and minimum stays', () => {
     expect(back('2026-10-21').status).toBe('NOT_MET'); // on 2026-11-01
   });
 
-  test('14 days a year on AIMA’s page, per 2 years in the regulation', () => {
-    // 12 days in the year from 2023-01-10, but plenty in the 2 years.
+  test('14 days per 2-year period, not per year (art. 65-C)', () => {
+    // review75-1: 12 days in the year from 2023-01-10, but plenty in the 2
+    // years from it; AIMA's FAQ n.º 24 also counts 2-year periods.
     const p = pathway(
       {
         simulationDate: '2025-11-01',
@@ -911,10 +1148,57 @@ describe('golden visa (ARI) renewal and minimum stays', () => {
       },
       'PT-GOLDEN-VISA',
     );
-    expect(p.status).toBe('UNKNOWN');
-    expect(p.checks[1].met).toBeUndefined();
-    expect(p.summary).toContain('2023-01-10 至 2024-01-09 在葡萄牙 12 天');
-    expect(p.pendingDetails).toContain('PD-148');
+    expect(p.status).toBe('MET');
+    expect(p.checks[1].met).toBe(true);
+    // review75-1: 8 days in the year from 2024-09-01, renewing in 2026.
+    const renewal = pathway(
+      {
+        simulationDate: '2026-07-01',
+        permits: [
+          { kind: 'golden-visa', from: '2022-09-01', to: '2024-08-31' },
+          { kind: 'golden-visa', from: '2024-09-01', to: '2026-09-01' },
+        ],
+        trips: [{ departed: '2024-09-08', returned: '2025-09-01' }],
+      },
+      'PT-GOLDEN-VISA',
+    );
+    expect(renewal.status).toBe('MET');
+  });
+
+  test('a period starting on the expiry day belongs to the next card', () => {
+    // Task 75: a card valid to the second anniversary of the grant
+    // (2026-01-10) is renewed by 2025-12-11; the year from 2026-01-10 is
+    // not part of it.
+    const p = pathway(
+      {
+        simulationDate: '2025-11-01',
+        permits: [
+          { kind: 'golden-visa', from: '2024-01-10', to: '2026-01-10' },
+        ],
+      },
+      'PT-GOLDEN-VISA',
+    );
+    expect(p.status).toBe('MET');
+    expect(p.checks[1].met).toBe(true);
+    expect(p.summary).toContain('2025-10-12');
+    expect(p.summary).toContain('2025-12-11');
+  });
+
+  test('a period starting after the renewal deadline is not required', () => {
+    // review75-2: renewed late, the card to 2029-01-12 is renewed by
+    // 2028-12-13; the period from 2029-01-10 belongs to the next card.
+    const p = pathway(
+      {
+        simulationDate: '2028-11-01',
+        permits: [
+          { kind: 'golden-visa', from: '2024-01-10', to: '2026-01-10' },
+          { kind: 'golden-visa', from: '2027-01-12', to: '2029-01-12' },
+        ],
+      },
+      'PT-GOLDEN-VISA',
+    );
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('2028-12-13');
   });
 
   test('the renewed card in force is used', () => {
