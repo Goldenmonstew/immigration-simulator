@@ -839,14 +839,15 @@ describe('review70-7', () => {
   });
 
   test('a year with no holiday list says so, not the equinox', () => {
-    // 30 days from 2021-01-05 is 2021-02-04; 2021 is not covered.
+    // 30 days from 2018-01-05 is Sunday 2018-02-04, then Monday 02-05;
+    // 2018 is not covered.
     const p = pr({
-      simulationDate: '2021-03-05',
-      stayStart: '2021-01-05',
-      pr: { route: 'child-birth', bornOn: '2021-01-05' },
+      simulationDate: '2018-03-05',
+      stayStart: '2018-01-05',
+      pr: { route: 'child-birth', bornOn: '2018-01-05' },
     });
     expect(p.status).toBe('UNKNOWN');
-    expect(p.summary).toContain('没有收录 2021 年');
+    expect(p.summary).toContain('没有收录 2018 年');
     expect(p.summary).not.toContain('春分日');
   });
 
@@ -913,6 +914,24 @@ describe('review70-11', () => {
     expect(p.earliestDate).toBe('2022-04-01');
     expect(p.checks[1].text).toContain('年满 20 岁');
     expect(p.checks[1].met).toBe(false);
+  });
+});
+
+describe('task 74: 2019–2021 almanacs', () => {
+  test('the 2021 Olympic holidays are known, not predicted', () => {
+    // 30 days from 2021-07-08 is Saturday 08-07; 08-08 (山の日, moved) and
+    // 08-09 (its substitute) are closed, so 08-10.
+    const born = (simulationDate: string) =>
+      pr({
+        simulationDate,
+        stayStart: '2021-07-08',
+        pr: { route: 'child-birth', bornOn: '2021-07-08' },
+      });
+    expect(born('2021-08-10').status).toBe('MET');
+    expect(born('2021-08-11').status).toBe('NOT_MET');
+    const p = born('2021-08-09');
+    expect(p.summary).toContain('最早可在 2021-08-10 递交');
+    expect(p.summary).not.toContain('预测');
   });
 });
 

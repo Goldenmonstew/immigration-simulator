@@ -411,3 +411,4 @@
 | 384 | 任务 69 第十一轮审核修正（review69-11）：学习许可在返回前自身到期的出境按 § 51 Abs. 1 Nr. 1 判为失效（学生流动只豁免 Nr. 6、7）；失效与否不明的出境（学生流动、欧盟长期居留），定居许可与欧盟长期居留的确定日期按已失效计、未失效的日期另列，也解决了欧盟长期居留失效不明不影响后续计时的风险；回归用例 3 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、docs/tasks/reports/69-germany.md |
 | 385 | 任务 70 报告补记最终门禁、手机宽度预览与第十二轮审核结论（通过）及其风险。 | docs/tasks/reports/70-japan.md |
 | 386 | 任务 69 报告补记最终门禁、手机宽度预览与第十二轮审核结论（通过）及其风险。 | docs/tasks/reports/69-germany.md |
+| 410 | 任务 74：国民の祝日补收国立天文台暦要項 2019–2021 年（页面已按特别法改订，含 2019 年即位相关休日与 2020、2021 年奥运会改动的祝日及 2021-08-09 振替休日），窗口提示不再把这些已知休日说成预测；SRC-112、PD-130 同步，补回归用例。 | packages/policy-data/src/parameters/japan-2026-11.ts、packages/engine/test/japan.test.ts、docs/SOURCES.md、docs/pending-details.md、policy-sources/（3 份快照） |
