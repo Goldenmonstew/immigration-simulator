@@ -473,3 +473,4 @@
 | 472 | 任务 80 审核修正（review80-1）：英国 What-if 调整日期触发筛查中止时，两栏恢复“此规则集暂无评估结果。”提示。补日期及通用路径增删对比回归；对比页与已保存方案按国家重置组件状态。 | apps/web/components/{whatif-lab,saved-scenarios}.tsx、apps/web/test/country-views.test.tsx、docs/tasks/reports/80-country-module.md |
 | 710 | 任务 90：登记德国完整版 SRC-410–439、补入 SRC-104、105 原刊；59 份官方快照中复用 6 份，新增 53 份。登记 PD-340–359 并补齐网址。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 711 | 任务 90：登记德国规则集 de.current-law-2026-11；归集路径期限、年度生计与工资、年龄分档、考试和费用参数及逐项定位。 | packages/policy-data/src/{index,types,parameters/index,parameters/germany-2026-11}.ts |
+| 712 | 任务 90：新增 evaluateGermanyFull，覆盖 R00–R18（难民两档），复用原时间引擎，测试中英文条件、来源、豁免、日期边界和整体状态。 | packages/engine/src/{index,germany-full,germany-full-common,germany-full-shared,germany-fees,germany-settlement,germany-citizenship,germany-mobility}.ts、packages/engine/test/germany-{full,settlement,citizenship,mobility}.test.ts、docs/tasks/reports/90-de-rules.md |
