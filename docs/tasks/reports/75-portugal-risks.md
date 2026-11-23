@@ -51,6 +51,7 @@
 
 ## 2. 怎么验证的
 
+- Fable 门禁（`1d7e86e`）：`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0，engine 3,173 项（另 1 项跳过）、game 1,336 项、web 638 项通过；e2e 桌面 55 项全部通过。手机宽度（375 px）预览 `/portugal`：证件类型含新增的投资类永久居留，选它提交后永久居留与黄金签证续期两张卡显示不适用并写明依据，页面显示正常。Codex 审核四轮，第四轮结论"通过"，其建议已在 `1d7e86e` 处理。
 - review75-4 处理后：engine 74 项通过（葡萄牙 73 项）；policy-data 23 项、web 26 项通过；三处 `tsc --noEmit`、改动文件的 eslint 与 prettier 检查通过。
 - review75-3 修正后：engine 72 项通过（葡萄牙 71 项）；policy-data 23 项、web 26 项通过；三处 `tsc --noEmit`、改动文件的 eslint 与 prettier 检查通过。
 - review75-2 修正后：engine 70 项通过（葡萄牙 69 项）；policy-data 23 项、web 26 项通过；三处 `tsc --noEmit`、改动文件的 eslint 与 prettier 检查通过。
