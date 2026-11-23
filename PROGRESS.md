@@ -485,3 +485,4 @@
 | 481 | 任务 81：网页按国家选择游戏入口与美术根目录，评估、立绘、居民清单和问卷草稿由英国包提供；继续读取原有英国 v3 存档。 | apps/web/app/{game-page.tsx,uk/game/}、apps/web/components/result-view.tsx、apps/web/lib/game-country.ts、apps/web/test/game-country.test.ts、docs/tasks/reports/81-game-packs.md |
 | 482 | 任务 81 审核修正（review81-1）：午夜事件使用内容包住处，内建钓鱼与种植支持自定义地点；补最小包回归并注明 `travel-` 保留前缀。 | packages/game/src/{content-pack,game,model}.ts、packages/game/src/packs/uk/index.ts、packages/game/test/content-pack.test.ts、apps/web/app/uk/game/life-overlays.tsx、docs/tasks/reports/81-game-packs.md、PROGRESS.md |
 | 483 | 任务 81 第二轮审核修正（review81-2）：首次做菜回忆记录内容包住处，节日按周顺延到周末之后并限定在本季度内。新增最小包存档往返和节日顺序回归。 | packages/game/src/game.ts、packages/game/test/content-pack.test.ts、docs/tasks/reports/81-game-packs.md、PROGRESS.md |
+| 490 | 任务 82：网站改名 immigration-simulator——Cloudflare 新项目与部署变量、仓库改名与 GitHub Pages 新路径；旧 Cloudflare 项目与新建的旧名仓库只做跳转并自行注销旧 service worker；部署文档补记。 | docs/deploy.md |
