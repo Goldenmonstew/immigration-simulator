@@ -45,6 +45,13 @@ const practice = [
   },
 ];
 const article7 = [{ srcId: 'SRC-111', locator: '第7条' }];
+const officeHolidays = [
+  {
+    srcId: 'SRC-112',
+    locator: '行政機関の休日に関する法律 第1条・第2条',
+    url: 'https://laws.e-gov.go.jp/law/363AC0000000091',
+  },
+];
 
 export const japan2026_11 = {
   asOf: '2026-11-22',
@@ -85,6 +92,94 @@ export const japan2026_11 = {
           srcId: 'SRC-119',
           locator: '申請期間',
           url: 'https://www.moj.go.jp/isa/applications/procedures/16-4.html#midashi04',
+        },
+      ],
+    },
+    // A statutory filing deadline on a day the offices are closed moves to
+    // the next open day: Saturdays, Sundays, national holidays, and these
+    // days at the turn of the year (行政機関の休日に関する法律 第1条・第2条).
+    yearEndClosureFrom: { value: '12-29', sources: officeHolidays },
+    yearEndClosureTo: { value: '01-03', sources: officeHolidays },
+    // National holidays and substitute holidays as listed by the National
+    // Astronomical Observatory (the equinoxes are not fixed by law); years
+    // not listed are not known.
+    nationalHolidays: {
+      value: [
+        '2025-01-01',
+        '2025-01-13',
+        '2025-02-11',
+        '2025-02-23',
+        '2025-02-24',
+        '2025-03-20',
+        '2025-04-29',
+        '2025-05-03',
+        '2025-05-04',
+        '2025-05-05',
+        '2025-05-06',
+        '2025-07-21',
+        '2025-08-11',
+        '2025-09-15',
+        '2025-09-23',
+        '2025-10-13',
+        '2025-11-03',
+        '2025-11-23',
+        '2025-11-24',
+        '2026-01-01',
+        '2026-01-12',
+        '2026-02-11',
+        '2026-02-23',
+        '2026-03-20',
+        '2026-04-29',
+        '2026-05-03',
+        '2026-05-04',
+        '2026-05-05',
+        '2026-05-06',
+        '2026-07-20',
+        '2026-08-11',
+        '2026-09-21',
+        '2026-09-22',
+        '2026-09-23',
+        '2026-10-12',
+        '2026-11-03',
+        '2026-11-23',
+        '2027-01-01',
+        '2027-01-11',
+        '2027-02-11',
+        '2027-02-23',
+        '2027-03-21',
+        '2027-03-22',
+        '2027-04-29',
+        '2027-05-03',
+        '2027-05-04',
+        '2027-05-05',
+        '2027-07-19',
+        '2027-08-11',
+        '2027-09-20',
+        '2027-09-23',
+        '2027-10-11',
+        '2027-11-03',
+        '2027-11-23',
+      ],
+      sources: [
+        {
+          srcId: 'SRC-112',
+          locator: '国民の祝日に関する法律 第2条・第3条',
+          url: 'https://laws.e-gov.go.jp/law/323AC1000000178',
+        },
+        {
+          srcId: 'SRC-112',
+          locator: '暦要項 2025 国民の祝日',
+          url: 'https://eco.mtk.nao.ac.jp/koyomi/yoko/2025/rekiyou251.html',
+        },
+        {
+          srcId: 'SRC-112',
+          locator: '暦要項 2026 国民の祝日',
+          url: 'https://eco.mtk.nao.ac.jp/koyomi/yoko/2026/rekiyou261.html',
+        },
+        {
+          srcId: 'SRC-112',
+          locator: '暦要項 2027 国民の祝日',
+          url: 'https://eco.mtk.nao.ac.jp/koyomi/yoko/2027/rekiyou271.html',
         },
       ],
     },
@@ -199,5 +294,8 @@ export const japan2026_11 = {
   },
 } satisfies {
   asOf: string;
-  values: Record<string, Parameter<number | string | Record<string, number>>>;
+  values: Record<
+    string,
+    Parameter<number | string | string[] | Record<string, number>>
+  >;
 };

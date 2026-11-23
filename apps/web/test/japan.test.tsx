@@ -278,6 +278,19 @@ test('a child born in Japan applies within 30 days of birth', () => {
   );
   // The official page with the filing period.
   expect(html).toContain('16-4.html#midashi04');
+  // Born 2026-11-30: 30 days end in the year-end closure, so 2027-01-04.
+  const yearEnd = evaluateJapan(
+    jpRequest(
+      {
+        ...born('2027-01-04'),
+        stayStart: '2026-11-30',
+        bornOn: '2026-11-30',
+      },
+      'zh-CN',
+    ),
+  ).pathways[0];
+  expect(yearEnd.status).toBe('MET');
+  expect(yearEnd.summary).toContain('2027-01-04');
 });
 
 test('leaving with a renewal pending (FAQ Q61)', () => {

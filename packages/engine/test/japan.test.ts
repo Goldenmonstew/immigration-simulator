@@ -706,6 +706,51 @@ describe('review70-5', () => {
   });
 });
 
+describe('review70-6', () => {
+  const born = (bornOn: string, simulationDate: string) =>
+    pr({
+      simulationDate,
+      stayStart: bornOn,
+      pr: { route: 'child-birth', bornOn },
+    });
+
+  test('a deadline in the year-end closure moves to 2027-01-04', () => {
+    // 30 days from 2026-11-30 is 2026-12-30; offices are closed 12-29 to
+    // 01-03, and 2027-01-02 and 01-03 are a weekend anyway.
+    const p = born('2026-11-30', '2027-01-04');
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('2026-12-30');
+    expect(p.summary).toContain('2027-01-04');
+    expect(born('2026-11-30', '2027-01-05').status).toBe('NOT_MET');
+  });
+
+  test('a deadline on a Saturday moves to the Monday', () => {
+    // 2026-12-05 is a Saturday.
+    expect(born('2026-11-05', '2026-12-07').status).toBe('MET');
+    expect(born('2026-11-05', '2026-12-08').status).toBe('NOT_MET');
+  });
+
+  test('a deadline on a national holiday moves to the next day', () => {
+    // 2027-01-11 is 成人の日.
+    expect(born('2026-12-12', '2027-01-12').status).toBe('MET');
+    expect(born('2026-12-12', '2027-01-13').status).toBe('NOT_MET');
+  });
+
+  test('holidays not listed for the year leave a late date uncertain', () => {
+    // 2028-01-19 is a Wednesday; 2028 holidays are not listed yet.
+    expect(born('2027-12-20', '2028-01-19').status).toBe('MET');
+    const p = born('2027-12-20', '2028-01-20');
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[0].met).toBeUndefined();
+  });
+
+  test('after the window: change of status, or contact the bureau', () => {
+    const p = born('2026-11-10', '2026-12-11');
+    expect(p.summary).toContain('实子等（在留资格变更）');
+    expect(p.summary).toContain('地方出入国在留管理局');
+  });
+});
+
 test('English text', () => {
   const result = evaluateJapan({ ...base, locale: 'en' });
   expect(result.pathways[0].title).toBe('Permanent residence (永住許可)');

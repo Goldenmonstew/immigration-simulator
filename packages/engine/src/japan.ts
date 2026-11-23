@@ -280,10 +280,46 @@ export function evaluateJapan(req: JpRequest): JpResult {
     // Born in Japan: apply to acquire the status within the days after
     // birth (art. 22-2(2), (4)); the guideline's years are for a change.
     const born = req.pr.bornOn;
-    const deadline = addDays(born, v.birthAcquisitionDays.value);
     const days = v.birthAcquisitionDays.value;
+    const raw = addDays(born, days);
+    const holidays = new Set(v.nationalHolidays.value);
+    /**
+     * Offices closed on `d`: yes / no, or maybe for a weekday in a year
+     * whose national holidays are not listed.
+     */
+    const closed = (d: IsoDate): Verdict => {
+      const md = d.slice(5);
+      if (
+        [0, 6].includes(new Date(`${d}T00:00:00Z`).getUTCDay()) ||
+        md >= v.yearEndClosureFrom.value ||
+        md <= v.yearEndClosureTo.value ||
+        holidays.has(d)
+      )
+        return 'yes';
+      return v.nationalHolidays.value.some((h) => h.startsWith(d.slice(0, 4)))
+        ? 'no'
+        : 'maybe';
+    };
+    // A deadline on a closed day moves to the next day (休日法 第2条).
+    let deadline = raw;
+    while (closed(deadline) === 'yes') deadline = addDays(deadline, 1);
+    const exact = closed(deadline) === 'no';
     const status: PilotStatus =
-      sim > deadline ? 'NOT_MET' : sim < born ? 'FUTURE' : 'MET';
+      sim < born
+        ? 'FUTURE'
+        : sim <= deadline
+          ? 'MET'
+          : exact
+            ? 'NOT_MET'
+            : 'UNKNOWN';
+    const when = L(
+      `出生之日起 ${days} 日为 ${raw}${deadline === raw ? '' : `，遇行政机关休日顺延至 ${deadline}`}${exact ? '' : `；${deadline.slice(0, 4)} 年的国民の祝日未收录，期限可能再顺延（PD-130）`}`,
+      `${days} days from birth is ${raw}${deadline === raw ? '' : `, moved to ${deadline} past days the offices are closed`}${exact ? '' : `; national holidays for ${deadline.slice(0, 4)} are not listed, so it may move later still (PD-130)`}`,
+    );
+    const late = L(
+      '已持有其他在留资格的，可改选"实子等（在留资格变更）"按在留年限计算；还没有在留资格的，请尽快联系地方出入国在留管理局。',
+      ' If the child already holds another status, choose the child route for a change of status, which counts years of stay; if the child has no status yet, contact the regional immigration services bureau promptly.',
+    );
     pathways.push({
       id: 'JP-PR',
       title: L('永住许可（永住許可）', 'Permanent residence (永住許可)'),
@@ -293,21 +329,30 @@ export function evaluateJapan(req: JpRequest): JpResult {
       summary:
         status === 'NOT_MET'
           ? L(
-              `出生后取得在留资格的申请须在出生之日起 ${days} 日内（到 ${deadline}）递交，期限已过；现在请改选"实子等（在留资格变更）"按在留年限计算。`,
-              `An application to acquire status after birth must be made within ${days} days of birth (by ${deadline}); that has passed, so choose the child route for a change of status, which counts years of stay.`,
-            )
-          : L(
-              `在日本出生的，可在出生之日起 ${days} 日内（到 ${deadline}）申请取得永住者资格，不必等在留年限${status === 'MET' ? '；模拟日在期限内' : `；出生后（${born} 起）才能递交`}。`,
-              `Born in Japan, you can apply to acquire permanent resident status within ${days} days of birth (by ${deadline}) without waiting for years of stay${status === 'MET' ? '; the simulation date is within that period' : `; you can apply from the birth (${born})`}.`,
-            ),
+              `出生后取得在留资格的申请期限（${when}）已过。`,
+              `The time to apply to acquire status after birth (${when}) has passed.`,
+            ) + late
+          : status === 'UNKNOWN'
+            ? L(
+                `出生后取得在留资格的申请期限至少到 ${deadline}（${when}），模拟日是否仍在期限内待确认。`,
+                `The time to apply to acquire status after birth runs at least to ${deadline} (${when}); whether the simulation date is still within it is uncertain.`,
+              ) + late
+            : L(
+                `在日本出生的，可在申请期限内申请取得永住者资格，不必等在留年限（${when}）${status === 'MET' ? '；模拟日在期限内' : `；出生后（${born} 起）才能递交`}。`,
+                `Born in Japan, you can apply to acquire permanent resident status within the time allowed, without waiting for years of stay (${when})${status === 'MET' ? '; the simulation date is within it' : `; you can apply from the birth (${born})`}.`,
+              ),
       checks: [
         {
           text: L(
-            `在出生之日起 ${days} 日内（${born} 至 ${deadline}）递交取得在留资格的申请`,
-            `Apply to acquire status within ${days} days of birth (${born} to ${deadline})`,
+            `在申请期限内（${born} 至 ${deadline}${exact ? '' : ' 或更晚'}）递交取得在留资格的申请`,
+            `Apply to acquire status within the time allowed (${born} to ${deadline}${exact ? '' : ' or later'})`,
           ),
-          met: status === 'MET',
-          sources: v.birthAcquisitionDays.sources,
+          met: status === 'UNKNOWN' ? undefined : status === 'MET',
+          sources: [
+            ...v.birthAcquisitionDays.sources,
+            ...v.yearEndClosureFrom.sources,
+            ...v.nationalHolidays.sources,
+          ],
         },
       ],
       notChecked: [
@@ -318,8 +363,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
       ],
       assumptions: [
         L(
-          `${days} 日从出生次日起算（民法初日不算入），到出生后第 ${days} 天为止（PD-130）。`,
-          `The ${days} days run from the day after birth (the Civil Code leaves out the first day), up to the ${days}th day after birth (PD-130).`,
+          `${days} 日从出生次日起算（民法初日不算入），到出生后第 ${days} 天为止；落在行政机关休日（周六、周日、国民の祝日与 ${v.yearEndClosureFrom.value} 至 ${v.yearEndClosureTo.value}）的顺延到其后第一个开放日。国民の祝日按国立天文台暦要項收录 ${v.nationalHolidays.value[0].slice(0, 4)}–${v.nationalHolidays.value.at(-1)!.slice(0, 4)} 年，其他年份落在工作日的期限之后待确认（PD-130）。`,
+          `The ${days} days run from the day after birth (the Civil Code leaves out the first day), up to the ${days}th day after birth; a deadline on a day the offices are closed (Saturdays, Sundays, national holidays and ${v.yearEndClosureFrom.value} to ${v.yearEndClosureTo.value}) moves to the next open day. National holidays are listed from the National Astronomical Observatory almanac for ${v.nationalHolidays.value[0].slice(0, 4)}–${v.nationalHolidays.value.at(-1)!.slice(0, 4)}; after a weekday deadline in another year the result is uncertain (PD-130).`,
         ),
       ],
       pendingDetails: ['PD-130'],
