@@ -32,6 +32,8 @@ test.each(['zh-CN', 'en'] as const)('the form renders in %s', (locale) => {
     'ie.permits',
     'ie.kind',
     'ie.kind.student',
+    'ie.kind.stamp1g-spouse',
+    'ie.kind.ni-residence',
     'ie.trips',
     'ie.marriedOn',
     'ie.stamp4Route',

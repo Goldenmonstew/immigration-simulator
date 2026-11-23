@@ -406,10 +406,11 @@ export const zhCN = {
     '试点只检查法条与 ISD 指南写明的时间条件；品格、意愿、入籍仪式、费用与证明材料不检查，结果里逐项列出。Stamp 4 与 Stamp 5 是 ISD 的行政政策，不是法条。2026 年公布的修法草案（General Scheme）会延长入籍年限，但尚未成为法律，结果只作提示、不进入计算。所填内容只在你的浏览器里计算，不保存、不上传。',
   'ie.basics': '基本信息',
   'ie.simulationDate': '模拟日期',
-  'ie.simulationDateHint': '按这一天判断（按递交日），默认今天。',
+  'ie.simulationDateHint':
+    '按这一天判断（按递交日），默认今天。规则按 2026-11 核对的现行版本，模拟过去的日期也照此计算（例如 GEP 的 57 个月自 2024-04-03 起才适用）。',
   'ie.permits': '居留许可',
   'ie.permitsHint':
-    '按 IRP 卡或护照印章，每段许可填一行，按时续期的接着填下一段；仍有效的到期日可留空。学生许可、等待国际保护决定的期间也请填上，它们不计入。',
+    '按 IRP 卡或护照印章，每段许可填一行，按时续期的接着填下一段；仍有效的到期日可留空。学生许可、等待国际保护决定的期间也请填上，它们不计入。与爱尔兰公民结婚的，在北爱尔兰合法居住的期间也可以填，只计入配偶入籍。',
   'ie.permit': '许可 {n}',
   'ie.from': '生效日期',
   'ie.to': '到期日期（仍有效可留空）',
@@ -417,16 +418,22 @@ export const zhCN = {
   'ie.kind.stamp1':
     'Stamp 1 或 1H（雇佣许可、研究员 Hosting Agreement、经营等，公司内调除外）',
   'ie.kind.stamp1-ict': 'Stamp 1（公司内调 ICT 许可）',
-  'ie.kind.stamp1g':
-    'Stamp 1G（毕业生计划，或 Critical Skills 许可持有人、研究员的配偶或伴侣）',
+  'ie.kind.stamp1g-graduate':
+    'Stamp 1G（毕业生计划 Third Level Graduate Programme）',
+  'ie.kind.stamp1g-spouse':
+    'Stamp 1G（Critical Skills 许可持有人或 Hosting Agreement 研究员的配偶、伴侣）',
+  'ie.kind.stamp1g-ict': 'Stamp 1G（公司内调 ICT 人员的配偶或家属）',
+  'ie.kind.stamp1a': 'Stamp 1A（见习会计）',
   'ie.kind.stamp0': 'Stamp 0（经济独立者、访问学者、年长受抚养亲属等）',
   'ie.kind.stamp3': 'Stamp 3（不能工作的家属、志愿者、宗教人员等）',
   'ie.kind.stamp4': 'Stamp 4',
+  'ie.kind.stamp4d': 'Stamp 4D 或 4S',
+  'ie.kind.stamp4-eufam': 'Stamp 4 EUFam（欧盟公民家属）',
   'ie.kind.stamp5': 'Stamp 5（without condition as to time）',
   'ie.kind.student': '学生 Stamp 2 或 2A（不计入）',
   'ie.kind.protection-applicant': '等待国际保护（庇护）决定（不计入）',
-  'ie.kind.other':
-    '其他（Stamp 1A、4D、4S、4 EUFam、临时保护、公司内调人员配偶的 1G 等，待确认）',
+  'ie.kind.ni-residence': '在北爱尔兰合法居住（只计入配偶入籍）',
+  'ie.kind.other': '其他（临时保护等，待确认）',
   'ie.addPermit': '添加许可',
   'ie.trips': '出境记录',
   'ie.tripsHint':
@@ -450,7 +457,7 @@ export const zhCN = {
   'ie.stamp4Route.wcatt': 'Stamp 5：合法居留满 96 个月',
   'ie.employmentStart': '在爱尔兰凭该许可开始工作的日期',
   'ie.employmentStartHint':
-    '以 Revenue 的 Employment Detail Summary 为准；先持其他许可、后转 Stamp 1 的，填该雇佣许可的生效日。',
+    '以 Revenue 的 Employment Detail Summary 为准；先持其他许可、后转 Stamp 1 的，填该雇佣许可的生效日。之后的 Stamp 1／1H 许可请在上面逐段填好，没有许可的日子不计。',
   'ie.remove': '删除',
   'ie.submit': '计算',
   'ie.errorSummary': '请先修正标红的项目。',

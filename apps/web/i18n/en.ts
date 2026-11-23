@@ -603,10 +603,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.basics': 'About you',
   'ie.simulationDate': 'Simulation date',
   'ie.simulationDateHint':
-    'Results are worked out for this date (the application date). It starts as today.',
+    'Results are worked out for this date (the application date). It starts as today. The rules are the current ones checked in 2026-11, also for past dates (for example, the 57 months for a GEP only apply from 2024-04-03).',
   'ie.permits': 'Immigration permissions',
   'ie.permitsHint':
-    'Going by your IRP cards or passport stamps, add a row for each permission, then the next one if renewed on time; leave the end blank if it is still valid. Include student permissions and time waiting for a protection decision too: they do not count.',
+    'Going by your IRP cards or passport stamps, add a row for each permission, then the next one if renewed on time; leave the end blank if it is still valid. Include student permissions and time waiting for a protection decision too: they do not count. If you are married to an Irish citizen, you can also add periods of lawful residence in Northern Ireland, which count for naturalisation as a spouse only.',
   'ie.permit': 'Permission {n}',
   'ie.from': 'Valid from',
   'ie.to': 'Valid until (leave blank if still valid)',
@@ -614,19 +614,26 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.kind.stamp1':
     'Stamp 1 or 1H (employment permit, researcher’s Hosting Agreement, business and so on; not intra-company transfer)',
   'ie.kind.stamp1-ict': 'Stamp 1 (intra-company transfer permit)',
-  'ie.kind.stamp1g':
-    'Stamp 1G (graduate programme, or spouse or partner of a Critical Skills permit holder or researcher)',
+  'ie.kind.stamp1g-graduate': 'Stamp 1G (Third Level Graduate Programme)',
+  'ie.kind.stamp1g-spouse':
+    'Stamp 1G (spouse or partner of a Critical Skills permit holder or a researcher on a Hosting Agreement)',
+  'ie.kind.stamp1g-ict':
+    'Stamp 1G (spouse or dependant of an intra-company transferee)',
+  'ie.kind.stamp1a': 'Stamp 1A (trainee accountant)',
   'ie.kind.stamp0':
     'Stamp 0 (independent means, visiting academic, elderly dependent relative and so on)',
   'ie.kind.stamp3':
     'Stamp 3 (family members who cannot work, volunteers, ministers of religion and so on)',
   'ie.kind.stamp4': 'Stamp 4',
+  'ie.kind.stamp4d': 'Stamp 4D or 4S',
+  'ie.kind.stamp4-eufam': 'Stamp 4 EUFam (family member of an EU citizen)',
   'ie.kind.stamp5': 'Stamp 5 (without condition as to time)',
   'ie.kind.student': 'Student Stamp 2 or 2A (does not count)',
   'ie.kind.protection-applicant':
     'Waiting for an international protection (asylum) decision (does not count)',
-  'ie.kind.other':
-    'Other (Stamp 1A, 4D, 4S, 4 EUFam, temporary protection, 1G as the partner of an intra-company transferee and so on; uncertain)',
+  'ie.kind.ni-residence':
+    'Lawful residence in Northern Ireland (counts for naturalisation as a spouse only)',
+  'ie.kind.other': 'Other (temporary protection and so on; uncertain)',
   'ie.addPermit': 'Add a permission',
   'ie.trips': 'Trips abroad',
   'ie.tripsHint':
@@ -653,7 +660,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.stamp4Route.wcatt': 'Stamp 5: 96 months of legal residence',
   'ie.employmentStart': 'Date you started work in Ireland on that permit',
   'ie.employmentStartHint':
-    'As in Revenue’s Employment Detail Summary; if you moved to Stamp 1 from another permission, the date the employment permit became valid.',
+    'As in Revenue’s Employment Detail Summary; if you moved to Stamp 1 from another permission, the date the employment permit became valid. Enter each later Stamp 1 or 1H permission above: days without one do not count.',
   'ie.remove': 'Remove',
   'ie.submit': 'Work out dates',
   'ie.errorSummary': 'Fix the items marked in red first.',

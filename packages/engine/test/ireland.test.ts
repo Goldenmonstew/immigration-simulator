@@ -124,7 +124,7 @@ describe('naturalisation (s15(1)(c), s15C, s16A)', () => {
     expect(p.checks[1].met).toBe(true);
   });
 
-  test('71 days needs exceptional circumstances: wait or rely on discretion', () => {
+  test('71 days needs exceptional circumstances: unknown now, sure later', () => {
     const p = pathway(
       {
         ...settled,
@@ -133,9 +133,11 @@ describe('naturalisation (s15(1)(c), s15C, s16A)', () => {
       'IE-NATURALISATION',
     );
     expect(p.checks[1].met).toBeUndefined();
+    // The simulation date depends on discretion (review68-1): not FUTURE.
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.earliestDate).toBeUndefined();
     // 70 days once 2026-01-02 leaves the year: from 2027-01-03.
-    expect(p.status).toBe('FUTURE');
-    expect(p.earliestDate).toBe('2027-01-03');
+    expect(p.summary).toContain('2027-01-03');
     expect(p.summary).toContain('2026-11-22');
     expect(p.summary).toContain('71');
   });
@@ -150,6 +152,7 @@ describe('naturalisation (s15(1)(c), s15C, s16A)', () => {
       'IE-NATURALISATION',
     );
     expect(p.checks[1].met).toBeUndefined();
+    expect(p.status).toBe('UNKNOWN');
     expect(p.summary).toContain('2026-11-22');
   });
 
@@ -209,7 +212,7 @@ describe('spouse or civil partner (s15A)', () => {
     const p = pathway(
       {
         simulationDate: '2025-01-01',
-        permissions: [{ kind: 'stamp1g', from: '2023-09-01' }],
+        permissions: [{ kind: 'stamp1g-spouse', from: '2023-09-01' }],
         marriedOn: '2020-01-01',
       },
       'IE-SPOUSE',
@@ -264,6 +267,39 @@ describe('spouse or civil partner (s15A)', () => {
     expect(p.checks[2].met).toBe(false);
     expect(p.earliestDate).toBe('2027-02-02');
   });
+});
+
+test('lawful residence in Northern Ireland counts for s15A only (review68-1)', () => {
+  const req: Partial<IeRequest> = {
+    simulationDate: '2026-11-22',
+    permissions: [
+      { kind: 'ni-residence', from: '2019-01-01', to: '2024-12-31' },
+      { kind: 'stamp4', from: '2025-01-01' },
+    ],
+    marriedOn: '2020-01-01',
+  };
+  const spouse = pathway(req, 'IE-SPOUSE');
+  expect(spouse.status).toBe('MET');
+  // The State only: 1462 days from 2025-01-01 end on 2029-01-01.
+  const general = pathway(req, 'IE-NATURALISATION');
+  expect(general.status).toBe('FUTURE');
+  expect(general.earliestDate).toBe('2030-01-02');
+});
+
+test('permissions ISD does not list for naturalisation stay uncertain (PD-114)', () => {
+  for (const kind of [
+    'stamp4d',
+    'stamp1g-ict',
+    'stamp1a',
+    'stamp4-eufam',
+  ] as const) {
+    const p = pathway(
+      { permissions: [{ kind, from: '2018-01-01' }] },
+      'IE-NATURALISATION',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.pendingDetails).toContain('PD-114');
+  }
 });
 
 describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
@@ -326,7 +362,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     const p = pathway(
       {
         simulationDate: '2025-01-01',
-        permissions: [{ kind: 'stamp1g', from: '2021-06-01' }],
+        permissions: [{ kind: 'stamp1g-spouse', from: '2021-06-01' }],
         stamp4Route: 'spouse-1g',
       },
       'IE-STAMP4',
@@ -337,7 +373,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
       pathway(
         {
           simulationDate: '2025-01-01',
-          permissions: [{ kind: 'stamp1g', from: '2019-01-01' }],
+          permissions: [{ kind: 'stamp1g-spouse', from: '2019-01-01' }],
           stamp4Route: 'spouse-1g',
         },
         'IE-STAMP4',
@@ -350,19 +386,22 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
       {
         simulationDate: '2025-01-01',
         permissions: [
-          { kind: 'stamp1g', from: '2020-01-01', to: '2022-12-31' },
-          { kind: 'stamp1g', from: '2023-01-15' },
+          { kind: 'stamp1g-spouse', from: '2020-01-01', to: '2022-12-31' },
+          { kind: 'stamp1g-spouse', from: '2023-01-15' },
         ],
         stamp4Route: 'spouse-1g',
       },
       'IE-STAMP4',
     );
+    expect(gap.status).toBe('FUTURE');
     expect(gap.earliestDate).toBe('2028-01-15');
+    // Added up: 1096 days to 2022-12-31, then 731 more to 2025-01-14 (PD-118).
+    expect(gap.summary).toContain('2025-01-15');
     const replaced = pathway(
       {
         simulationDate: '2025-01-01',
         permissions: [
-          { kind: 'stamp1g', from: '2020-01-01' },
+          { kind: 'stamp1g-spouse', from: '2020-01-01' },
           { kind: 'stamp4', from: '2022-01-01' },
         ],
         stamp4Route: 'spouse-1g',
@@ -370,6 +409,66 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
       'IE-STAMP4',
     );
     expect(replaced.status).toBe('NOT_MET');
+  });
+
+  test('Stamp 1G: graduate programme time does not count (review68-1)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permissions: [
+          { kind: 'stamp1g-graduate', from: '2020-11-01', to: '2022-10-31' },
+          { kind: 'stamp1g-spouse', from: '2022-11-01' },
+        ],
+        stamp4Route: 'spouse-1g',
+      },
+      'IE-STAMP4',
+    );
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2027-11-01');
+    expect(p.checks[0].met).toBe(false);
+  });
+
+  test('Stamp 4: a gap in the permit after starting work does not count (review68-1)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2026-11-22',
+      permissions: [
+        { kind: 'stamp1', from: '2024-12-01', to: '2025-11-30' },
+        { kind: 'stamp1', from: '2026-05-01' },
+      ],
+      stamp4Route: 'csep',
+      employmentStart: '2024-12-01',
+    };
+    const p = pathway(req, 'IE-STAMP4');
+    expect(p.checks[0].met).toBe(false);
+    // Counting again after the gap: 2026-05-01 + 21 months.
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2028-02-01');
+    // Added up (PD-116): 365 days, then 274 more to 2027-01-29 make the
+    // 639 days from 2024-12-01 to 2026-08-31.
+    expect(p.summary).toContain('2027-01-30');
+    // 2025-12-01 to 2026-04-30.
+    expect(p.summary).toContain('151');
+    // ICT Stamp 1 is not a 21-month permit.
+    expect(
+      pathway(
+        {
+          ...req,
+          permissions: [{ kind: 'stamp1-ict', from: '2024-12-01' }],
+        },
+        'IE-STAMP4',
+      ).status,
+    ).toBe('NOT_MET');
+    // It is in the 57-month group: 2024-12-01 + 57 months.
+    expect(
+      pathway(
+        {
+          ...req,
+          stamp4Route: 'gep',
+          permissions: [{ kind: 'stamp1-ict', from: '2024-12-01' }],
+        },
+        'IE-STAMP4',
+      ).earliestDate,
+    ).toBe('2029-09-01');
   });
 
   test('Stamp 5 after 96 months', () => {
@@ -411,48 +510,78 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
       'IE-STAMP4',
     );
     expect(other.status).toBe('UNKNOWN');
-    const student = pathway(
+    for (const kind of ['student', 'stamp1a', 'stamp4-eufam'] as const)
+      expect(
+        pathway(
+          {
+            simulationDate: '2025-01-01',
+            permissions: [{ kind, from: '2015-01-01' }],
+            stamp4Route: 'wcatt',
+          },
+          'IE-STAMP4',
+        ).status,
+      ).toBe('NOT_MET');
+  });
+
+  test('Stamp 5 follows the listed kinds: 4D counts, ICT family 1G does not (review68-1)', () => {
+    const p = pathway(
       {
-        simulationDate: '2025-01-01',
-        permissions: [{ kind: 'student', from: '2015-01-01' }],
+        simulationDate: '2026-11-22',
+        permissions: [
+          { kind: 'stamp1', from: '2018-10-01', to: '2021-10-31' },
+          { kind: 'stamp4d', from: '2021-11-01' },
+        ],
         stamp4Route: 'wcatt',
       },
       'IE-STAMP4',
     );
-    expect(student.status).toBe('NOT_MET');
-  });
-
-  test('Stamp 5: 4 months a year, calendar or any 12 months (PD-117)', () => {
-    // 2022-10-02 to 2023-02-28: 91 days in 2022, 59 in 2023, 150 in a row.
-    const p = pathway(
+    expect(p.status).toBe('MET');
+    const ictFamily = pathway(
       {
-        simulationDate: '2025-01-01',
-        permissions: [{ kind: 'stamp4', from: '2010-01-01' }],
-        trips: [{ departed: '2022-10-01', returned: '2023-03-01' }],
+        simulationDate: '2026-11-22',
+        permissions: [
+          { kind: 'stamp1g-ict', from: '2024-06-01', to: '2025-05-31' },
+          { kind: 'stamp4', from: '2025-06-01' },
+        ],
         stamp4Route: 'wcatt',
       },
       'IE-STAMP4',
     );
-    expect(p.checks[1].met).toBeUndefined();
-    // 120 days in a row once the window starts on 2022-11-01.
-    expect(p.earliestDate).toBe('2030-11-01');
-    expect(p.summary).toContain('2025-01-01');
+    expect(ictFamily.status).toBe('FUTURE');
+    expect(ictFamily.earliestDate).toBe('2033-06-01');
+    expect(ictFamily.summary).not.toContain('2032-06-01');
   });
 
-  test('Stamp 5: over 4 months in one calendar year is not met', () => {
-    // 2022-03-02 to 2022-07-14: 135 days in 2022.
+  test('Stamp 5: absences are a condition after grant, not of applying (review68-1)', () => {
     const p = pathway(
       {
-        simulationDate: '2025-01-01',
-        permissions: [{ kind: 'stamp4', from: '2010-01-01' }],
+        simulationDate: '2026-11-22',
+        permissions: [{ kind: 'stamp4', from: '2014-01-01' }],
         trips: [{ departed: '2022-03-01', returned: '2022-07-15' }],
         stamp4Route: 'wcatt',
       },
       'IE-STAMP4',
     );
-    expect(p.checks[1].met).toBe(false);
-    // 120 days from 2022-03-17, 123 (the calendar reading) from 2022-03-14.
-    expect(p.earliestDate).toBe('2030-03-17');
-    expect(p.summary).toContain('2030-03-14');
+    expect(p.status).toBe('MET');
+    expect(p.checks).toHaveLength(1);
+    expect(p.pendingDetails).toContain('PD-117');
+  });
+
+  test('Stamp 5: a gap gives the added-up date as unknown (PD-118)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permissions: [
+          { kind: 'stamp4', from: '2017-01-01', to: '2024-05-31' },
+          { kind: 'stamp4', from: '2024-07-01' },
+        ],
+        stamp4Route: 'wcatt',
+      },
+      'IE-STAMP4',
+    );
+    // Over 96 months held in all, but not since 2024-07-01.
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[0].met).toBeUndefined();
+    expect(p.summary).toContain('2032-07-01');
   });
 });

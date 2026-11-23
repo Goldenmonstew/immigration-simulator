@@ -1,6 +1,6 @@
 import { ireland2026_11 as ie } from '@uk-immigration/policy-data';
 import { addDays, addMonths, addYears, daysBetween } from './dates';
-import { Days, HORIZON_YEARS, afterYears, monthSpan } from './pilot';
+import { Days, HORIZON_YEARS, afterYears } from './pilot';
 import type { PilotPathway, PilotResult, PilotStatus } from './pilot';
 import { textFor } from './rule';
 import type { IsoDate, Locale } from './types';
@@ -13,21 +13,29 @@ import type { IsoDate, Locale } from './types';
 
 /**
  * stamp1: Stamp 1 or 1H on an employment permit (not ICT), a Hosting
- * Agreement or a business; stamp1g: graduate programme, or spouse or partner
- * of a CSEP holder or researcher; student: Stamp 2 or 2A;
- * protection-applicant: waiting for an international protection decision;
- * other: Stamp 1A, 4D, 4 EUFam, temporary protection and the rest.
+ * Agreement or a business; stamp1g-graduate: Third Level Graduate Programme;
+ * stamp1g-spouse: spouse or partner of a CSEP holder or researcher;
+ * stamp1g-ict: spouse or dependant of an ICT employee; stamp4d: Stamp 4D or
+ * 4S; student: Stamp 2 or 2A; protection-applicant: waiting for an
+ * international protection decision; ni-residence: lawful residence in
+ * Northern Ireland (s15A only); other: temporary protection and the rest.
  */
 export const IE_PERMISSION_KINDS = [
   'stamp1',
   'stamp1-ict',
-  'stamp1g',
+  'stamp1g-graduate',
+  'stamp1g-spouse',
+  'stamp1g-ict',
+  'stamp1a',
   'stamp0',
   'stamp3',
   'stamp4',
+  'stamp4d',
+  'stamp4-eufam',
   'stamp5',
   'student',
   'protection-applicant',
+  'ni-residence',
   'other',
 ] as const;
 export type IePermissionKind = (typeof IE_PERMISSION_KINDS)[number];
@@ -77,39 +85,51 @@ export type IeResult = PilotResult<IePathwayId>;
 const v = ie.values;
 type Verdict = 'yes' | 'maybe' | 'no';
 
-// Reckonable for naturalisation (ISD guide); study and protection applicants
-// are excluded by s16A(1)(b)–(d); `other` is uncertain (PD-114).
+// Listed as reckonable for naturalisation by ISD (SRC-095, SRC-096); study
+// and protection applicants are excluded by s16A(1)(b)–(d); lawful
+// permissions ISD does not list are uncertain (PD-114).
 const RECKONABLE: IePermissionKind[] = [
   'stamp0',
   'stamp1',
   'stamp1-ict',
-  'stamp1g',
+  'stamp1g-graduate',
+  'stamp1g-spouse',
   'stamp3',
   'stamp4',
   'stamp5',
 ];
-// Counted towards Stamp 5 (SRC-097): not ICT Stamp 1, Stamp 0 or study.
+const UNLISTED: IePermissionKind[] = [
+  'stamp1g-ict',
+  'stamp1a',
+  'stamp4d',
+  'stamp4-eufam',
+  'other',
+];
+// Counted towards Stamp 5 by SRC-097's list; Stamp 0, 1A, 4 EUFam, ICT
+// Stamp 1 and ICT family 1G are listed as not counting; `other` is
+// uncertain, the list being indicative (PD-114).
 const WCATT: IePermissionKind[] = [
   'stamp1',
-  'stamp1g',
+  'stamp1g-graduate',
+  'stamp1g-spouse',
   'stamp3',
   'stamp4',
+  'stamp4d',
   'stamp5',
 ];
 
 export function evaluateIreland(req: IeRequest): IeResult {
   const L = textFor(req);
   const sim = req.simulationDate;
-  const days = new Days(
-    addDays(
-      addYears(
-        sim,
-        -(v.continuousYears.value + v.priorWindowYears.value.general),
-      ),
-      -1,
+  const first = [
+    addYears(
+      sim,
+      -(v.continuousYears.value + v.priorWindowYears.value.general),
     ),
-    addYears(sim, HORIZON_YEARS),
-  );
+    ...req.permissions.map((p) => p.from),
+  ].sort()[0];
+  // From the earliest permission, so that time before a gap can be added up.
+  const days = new Days(addDays(first, -1), addYears(sim, HORIZON_YEARS));
   const flags = () => new Array<boolean>(days.count).fill(false);
   const byKind = Object.fromEntries(
     IE_PERMISSION_KINDS.map((k) => [k, flags()]),
@@ -129,16 +149,9 @@ export function evaluateIreland(req: IeRequest): IeResult {
     days.mark(away, addDays(t.departed, 1), addDays(t.returned, -1));
   const holds = (kinds: IePermissionKind[]) => (i: number) =>
     kinds.some((k) => byKind[k][i]);
-  const reckonable = holds(RECKONABLE);
   const sums = {
-    sure: days.sums(reckonable),
-    maybe: days.sums(holds([...RECKONABLE, 'other'])),
-    sureHome: days.sums((i) => reckonable(i) && !away[i]),
     away: days.sums((i) => away[i]),
     leap: days.sums((i) => days.date(i).endsWith('-02-29')),
-    stamp1g: days.sums(holds(['stamp1g'])),
-    wcattSure: days.sums(holds(WCATT)),
-    wcattMaybe: days.sums(holds([...WCATT, 'other'])),
   };
   const covered = (s: number[], from: IsoDate, to: IsoDate) =>
     days.total(s, from, to) === daysBetween(from, to) + 1;
@@ -149,19 +162,42 @@ export function evaluateIreland(req: IeRequest): IeResult {
     }
     return undefined;
   };
-  const statusOf = (earliest?: IsoDate, possible?: IsoDate): PilotStatus =>
-    earliest
-      ? earliest === sim
+  /**
+   * The status and its date from the first date met on a sure reading and
+   * the first on a wider one: unknown when the simulation date itself, or
+   * only a later date, depends on the wider reading.
+   */
+  const outcome = (earliest?: IsoDate, possible?: IsoDate) => {
+    const status: PilotStatus =
+      earliest === sim
         ? 'MET'
-        : 'FUTURE'
-      : possible
-        ? 'UNKNOWN'
-        : 'NOT_MET';
+        : possible === sim || (!earliest && possible)
+          ? 'UNKNOWN'
+          : earliest
+            ? 'FUTURE'
+            : 'NOT_MET';
+    return {
+      status,
+      earliestDate:
+        status === 'MET' || status === 'FUTURE' ? earliest : undefined,
+    };
+  };
+  /**
+   * For each day held on `flag`, the first day of the unbroken stretch it is
+   * in; -1 when not held.
+   */
+  const stretchStart = (flag: (i: number) => boolean) => {
+    const start: number[] = [];
+    for (let i = 0; i < days.count; i++)
+      start.push(!flag(i) ? -1 : i > 0 && start[i - 1] >= 0 ? start[i - 1] : i);
+    return start;
+  };
   const projection = L(
     '最早日期假设模拟日之后一直在爱尔兰（已录入的未来出境除外），没有到期日的许可都按时续期。',
     'Projected dates assume you stay in Ireland after the simulation date (apart from trips you entered) and that permissions without an end date are renewed on time.',
   );
-  const hasOther = req.permissions.some((p) => p.kind === 'other');
+  const has = (kinds: IePermissionKind[]) =>
+    req.permissions.some((p) => kinds.includes(p.kind));
   const pathways: IePathway[] = [];
   const draft = v.draftBill.value;
 
@@ -171,6 +207,13 @@ export function evaluateIreland(req: IeRequest): IeResult {
     notBefore?: IsoDate,
   ) => {
     const route = id === 'IE-SPOUSE' ? 'spouse' : 'general';
+    // Lawful residence in Northern Ireland counts for s15A only.
+    const extra: IePermissionKind[] =
+      route === 'spouse' ? ['ni-residence'] : [];
+    const reckonable = holds([...RECKONABLE, ...extra]);
+    const sure = days.sums(reckonable);
+    const maybe = days.sums(holds([...RECKONABLE, ...UNLISTED, ...extra]));
+    const sureHome = days.sums((i) => reckonable(i) && !away[i]);
     const windowYears = v.priorWindowYears.value[route];
     const priorDays = v.priorResidenceDays.value[route];
     const year = v.continuousYears.value;
@@ -185,12 +228,12 @@ export function evaluateIreland(req: IeRequest): IeResult {
         priorFrom,
         priorTo,
         // The whole year and the application day on a reckonable permission.
-        sure: covered(sums.sure, from, d),
-        maybe: covered(sums.maybe, from, d),
+        sure: covered(sure, from, d),
+        maybe: covered(maybe, from, d),
         away: days.total(sums.away, from, addDays(d, -1)),
         // Strict: days abroad left out; wide: uncertain permissions in.
-        strict: days.total(sums.sureHome, priorFrom, priorTo),
-        wide: days.total(sums.maybe, priorFrom, priorTo),
+        strict: days.total(sureHome, priorFrom, priorTo),
+        wide: days.total(maybe, priorFrom, priorTo),
         need: priorDays + days.total(sums.leap, priorFrom, priorTo),
       };
     };
@@ -242,8 +285,7 @@ export function evaluateIreland(req: IeRequest): IeResult {
           `You meet the residence requirements for naturalisation on the simulation date (${year} year’s continuous residence, and ${priorDays} days in the ${windowYears} years before it).`,
         );
     return {
-      status: statusOf(earliest, possible),
-      earliestDate: earliest,
+      ...outcome(earliest, possible),
       summary:
         (earliest === sim
           ? now
@@ -279,8 +321,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
       checks: [
         {
           text: L(
-            `递交前 ${year} 年（${f.from} 至 ${f.to}）每天都持计入入籍的许可，递交当天也持有（学生 Stamp 2／2A、等待国际保护决定的期间与许可之间的空档不计）`,
-            `A reckonable permission on every day of the year before applying (${f.from} to ${f.to}) and on the application day (student Stamp 2 or 2A, time waiting for a protection decision and gaps between permissions do not count)`,
+            `递交前 ${year} 年（${f.from} 至 ${f.to}）每天都持计入入籍的许可${spouse ? '或在北爱尔兰合法居住' : ''}，递交当天也是（学生 Stamp 2／2A、等待国际保护决定的期间与许可之间的空档不计）`,
+            `A reckonable permission${spouse ? ' or lawful residence in Northern Ireland' : ''} on every day of the year before applying (${f.from} to ${f.to}) and on the application day (student Stamp 2 or 2A, time waiting for a protection decision and gaps between permissions do not count)`,
           ),
           met: f.sure ? true : f.maybe ? undefined : false,
           sources: [
@@ -331,8 +373,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
         ...(spouse
           ? [
               L(
-                '配偶路径按"爱尔兰岛"（含北爱尔兰）计算，本试点只按你录入的爱尔兰许可与出境记录计算：在北爱尔兰居住的时间不计入、去北爱尔兰按出境计（较严，PD-115）。',
-                'The spouse route counts residence in the island of Ireland (Northern Ireland included); this pilot only uses the Irish permissions and trips you entered, so time living in Northern Ireland is not counted and trips there count as absences (stricter, PD-115).',
+                '配偶路径按"爱尔兰岛"（含北爱尔兰）计算：录入为"在北爱尔兰合法居住"的期间计入（只用于配偶路径）；出境记录按离开爱尔兰（国家）填写，去北爱尔兰的行程仍按缺席计（较严，PD-115）。',
+                'The spouse route counts residence in the island of Ireland (Northern Ireland included): periods entered as "lawful residence in Northern Ireland" count (for this route only); trips are entered as leaving the State, so trips to Northern Ireland still count as absences (stricter, PD-115).',
               ),
             ]
           : []),
@@ -343,7 +385,7 @@ export function evaluateIreland(req: IeRequest): IeResult {
         'PD-111',
         'PD-112',
         'PD-113',
-        ...(hasOther ? ['PD-114'] : []),
+        ...(has(UNLISTED) ? ['PD-114'] : []),
         ...(spouse ? ['PD-115'] : []),
         'PD-119',
       ],
@@ -461,40 +503,79 @@ export function evaluateIreland(req: IeRequest): IeResult {
           assumptions: [],
         });
       } else {
-        // From the 29th–31st into a shorter month: the last day of that
-        // month or the 1st of the next (PD-116).
-        const possible = addMonths(start, months);
-        const sure =
-          possible.slice(8) === start.slice(8)
-            ? possible
-            : addDays(possible, 1);
-        const status: PilotStatus =
-          sim >= sure ? 'MET' : sim >= possible ? 'UNKNOWN' : 'FUTURE';
+        // The permit for this route: Stamp 1 or 1H, and ICT for the
+        // 57-month group.
+        const held = holds(
+          route === 'csep' ? ['stamp1'] : ['stamp1', 'stamp1-ict'],
+        );
+        const heldSums = days.sums(held);
+        const stretch = stretchStart(held);
+        // Calendar days in the months from the start of work.
+        const span = daysBetween(start, addMonths(start, months));
+        /** Counted from the start of work, or from the end of a later gap in the permit. */
+        const countFrom = (d: IsoDate) => {
+          const s = stretch[days.index(d)];
+          return s < 0
+            ? undefined
+            : start > days.date(s)
+              ? start
+              : days.date(s);
+        };
+        const verdict = (d: IsoDate): Verdict => {
+          const from = countFrom(d);
+          if (!from) return 'no';
+          // From the 29th–31st into a shorter month: that month's last day
+          // or the 1st of the next (PD-116).
+          const end = addMonths(from, months);
+          if (d >= (end.slice(8) === from.slice(8) ? end : addDays(end, 1)))
+            return 'yes';
+          // A month-end start, or the time on both sides of a gap added up.
+          return d >= end ||
+            (d > start && days.total(heldSums, start, addDays(d, -1)) >= span)
+            ? 'maybe'
+            : 'no';
+        };
+        const earliest = firstDate((d) => verdict(d) === 'yes');
+        const possible = firstDate((d) => verdict(d) !== 'no');
+        const missing =
+          sim > start
+            ? daysBetween(start, sim) -
+              days.total(heldSums, start, addDays(sim, -1))
+            : 0;
+        const now = verdict(sim);
         pathways.push({
           id: 'IE-STAMP4',
           title,
-          status,
-          earliestDate:
-            status === 'MET' ? sim : status === 'FUTURE' ? sure : undefined,
+          ...outcome(earliest, possible),
           summary:
-            (status === 'MET'
+            (earliest === sim
               ? L(
                   `模拟日已满 ${months} 个月，可以申请把许可续为 Stamp 4。`,
                   `You have completed ${months} months on the simulation date and can renew your permission as Stamp 4.`,
                 )
-              : status === 'FUTURE'
+              : earliest
                 ? L(
-                    `满 ${months} 个月、可申请 Stamp 4 的最早日期是 ${sure}。`,
-                    `The earliest date you complete ${months} months and can apply for Stamp 4 is ${sure}.`,
+                    `满 ${months} 个月、可申请 Stamp 4 的最早日期是 ${earliest}。`,
+                    `The earliest date you complete ${months} months and can apply for Stamp 4 is ${earliest}.`,
                   )
                 : L(
-                    `从月末起算的 ${months} 个月在 ${possible} 还是 ${sure} 届满，ISD 没有说明。`,
-                    `ISD does not say whether ${months} months from a month-end start end on ${possible} or ${sure}.`,
+                    `按现有记录，10 年内达不到凭该许可受雇满 ${months} 个月。`,
+                    `With your record you will not complete ${months} months on that permit within 10 years.`,
                   )) +
-            (status === 'FUTURE' && possible < sure
+            (possible && possible !== earliest
               ? L(
-                  `从月末起算，也可能是 ${possible}（PD-116）。`,
-                  ` Counting from a month-end start, it may be ${possible} (PD-116).`,
+                  countFrom(possible) === start
+                    ? `若从月末起算按当月最后一天届满，最早 ${possible}（PD-116）。`
+                    : `若许可空档前后的受雇时间可以累加，最早 ${possible}（PD-116）。`,
+                  countFrom(possible) === start
+                    ? ` If months from a month-end start end on the last day of the month, it could be ${possible} (PD-116).`
+                    : ` If the time on both sides of a gap in the permit can be added up, it could be ${possible} (PD-116).`,
+                )
+              : '') +
+            (missing > 0
+              ? L(
+                  `自 ${start} 起有 ${missing} 天没有该许可，这些天不计入。`,
+                  ` Since ${start} there are ${missing} days without that permit, which do not count.`,
                 )
               : '') +
             L(policy, ` ${policy}`),
@@ -503,19 +584,14 @@ export function evaluateIreland(req: IeRequest): IeResult {
               text:
                 route === 'csep'
                   ? L(
-                      `凭 Critical Skills Employment Permit、研究员 Hosting Agreement 或 NCHD 医生的多地点 General Employment Permit，自 ${start} 开始受雇满 ${months} 个月（${sure}）`,
-                      `${months} months from starting work on ${start} on a Critical Skills Employment Permit, a researcher’s Hosting Agreement or a Multi-Site General Employment Permit as a non-consultant hospital doctor (${sure})`,
+                      `凭 Critical Skills Employment Permit、研究员 Hosting Agreement 或 NCHD 医生的多地点 General Employment Permit（Stamp 1 或 1H），自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可，递交当天仍持有`,
+                      `${months} months from starting work on ${start} on a Critical Skills Employment Permit, a researcher’s Hosting Agreement or a Multi-Site General Employment Permit as a non-consultant hospital doctor (Stamp 1 or 1H), holding it every day since and on the application day`,
                     )
                   : L(
-                      `凭 General Employment Permit 或公司内调（ICT）自 ${start} 开始受雇满 ${months} 个月（${sure}）`,
-                      `${months} months from starting work on ${start} on a General Employment Permit or an Intra-Company Transfer (${sure})`,
+                      `凭 General Employment Permit 或公司内调（ICT）的 Stamp 1，自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可，递交当天仍持有`,
+                      `${months} months from starting work on ${start} on a General Employment Permit or an Intra-Company Transfer (Stamp 1), holding it every day since and on the application day`,
                     ),
-              met:
-                status === 'MET'
-                  ? true
-                  : status === 'UNKNOWN'
-                    ? undefined
-                    : false,
+              met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
               sources: [
                 ...v.stamp4Months.sources,
                 {
@@ -527,8 +603,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
           ],
           notChecked: [
             L(
-              '仍凭该许可受雇、持有效的 Stamp 1 或 1H，以及续期所需文件',
-              'Still being employed on that permit with a valid Stamp 1 or 1H, and the documents for renewal',
+              '仍凭该许可受雇，以及续期所需文件',
+              'Still being employed on that permit, and the documents for renewal',
             ),
           ],
           assumptions: [
@@ -537,60 +613,80 @@ export function evaluateIreland(req: IeRequest): IeResult {
               `"${months} months" are calendar months with the first day of work counted (Interpretation Act 2005 s18(h) and Schedule "month"); the start date is the one in Revenue’s Employment Detail Summary, and if you moved to Stamp 1 from another permission it runs from the validity of that employment permit (ISD).`,
             ),
             L(
-              '21 个月与 57 个月两类不可互换：GEP、ICT 的受雇时间不计入 21 个月（ISD）。换雇主、中断或两类混合时怎样起算没有写明（PD-116）。',
-              'The 21-month and 57-month groups are not interchangeable: time on a GEP or ICT does not count towards 21 months (ISD). How a change of employer, a break or a mixed history is counted is not stated (PD-116).',
+              '只计持该许可（Stamp 1 或 1H，57 个月一类含 ICT）的日子；开始工作后许可有空档的，确定日期从空档后重新起算，空档前后能否累加没有写明，累加后的日期另列（PD-116）。21 个月与 57 个月两类不可互换：GEP、ICT 的受雇时间不计入 21 个月（ISD）；换雇主或两类混合时怎样计没有写明。',
+              'Only days holding that permit (Stamp 1 or 1H, with ICT in the 57-month group) count. After a gap in the permit since starting work, the definite date counts again from the end of the gap; whether time on both sides can be added up is not stated, so that date is shown separately (PD-116). The 21-month and 57-month groups are not interchangeable: time on a GEP or ICT does not count towards 21 months (ISD); a change of employer or a mixed history is not covered.',
             ),
+            projection,
           ],
           pendingDetails: ['PD-116'],
         });
       }
     } else if (route === 'spouse-1g') {
       const years = v.spouse1gYears.value;
-      const ok = (d: IsoDate) => covered(sums.stamp1g, addYears(d, -years), d);
-      const earliest = firstDate(ok);
+      const held = holds(['stamp1g-spouse']);
+      const heldSums = days.sums(held);
+      const verdict = (d: IsoDate): Verdict => {
+        const from = addYears(d, -years);
+        if (covered(heldSums, from, d)) return 'yes';
+        // Time on both sides of a gap added up (PD-118).
+        return held(days.index(d)) &&
+          days.total(heldSums, days.date(0), addDays(d, -1)) >=
+            daysBetween(from, d)
+          ? 'maybe'
+          : 'no';
+      };
+      const earliest = firstDate((d) => verdict(d) === 'yes');
+      const possible = firstDate((d) => verdict(d) !== 'no');
+      const now = verdict(sim);
       pathways.push({
         id: 'IE-STAMP4',
         title: L(
           'Stamp 1G 配偶或伴侣转 Stamp 4',
           'Stamp 4 for spouses and partners on Stamp 1G',
         ),
-        status: statusOf(earliest),
-        earliestDate: earliest,
+        ...outcome(earliest, possible),
         summary:
           (earliest === sim
             ? L(
-                `模拟日已连续持 Stamp 1G 满 ${years} 年，可以申请 Stamp 4。`,
-                `You have held Stamp 1G for ${years} years on the simulation date and can apply for Stamp 4.`,
+                `模拟日已作为配偶或伴侣连续持 Stamp 1G 满 ${years} 年，可以申请 Stamp 4。`,
+                `You have held Stamp 1G as a spouse or partner for ${years} years on the simulation date and can apply for Stamp 4.`,
               )
             : earliest
               ? L(
-                  `连续持 Stamp 1G 满 ${years} 年、可申请 Stamp 4 的最早日期是 ${earliest}。`,
-                  `The earliest date you will have held Stamp 1G for ${years} years and can apply for Stamp 4 is ${earliest}.`,
+                  `作为配偶或伴侣连续持 Stamp 1G 满 ${years} 年、可申请 Stamp 4 的最早日期是 ${earliest}。`,
+                  `The earliest date you will have held Stamp 1G as a spouse or partner for ${years} years and can apply for Stamp 4 is ${earliest}.`,
                 )
               : L(
-                  `按现有记录，10 年内达不到连续持 Stamp 1G ${years} 年。`,
-                  `With your record you will not hold Stamp 1G for ${years} years in a row within 10 years.`,
-                )) + L(policy, ` ${policy}`),
+                  `按现有记录，10 年内达不到作为配偶或伴侣连续持 Stamp 1G ${years} 年。`,
+                  `With your record you will not hold Stamp 1G as a spouse or partner for ${years} years in a row within 10 years.`,
+                )) +
+          (possible && possible !== earliest
+            ? L(
+                `若空档前后的 Stamp 1G 时间可以累加，最早 ${possible}（PD-118）。`,
+                ` If Stamp 1G time on both sides of a gap can be added up, it could be ${possible} (PD-118).`,
+              )
+            : '') +
+          L(policy, ` ${policy}`),
         checks: [
           {
             text: L(
-              `${addYears(sim, -years)} 起每天都持 Stamp 1G，递交当天仍持有`,
-              `Stamp 1G on every day since ${addYears(sim, -years)}, still held on the application day`,
+              `${addYears(sim, -years)} 起每天都作为 Critical Skills 许可持有人或研究员的配偶、伴侣持 Stamp 1G，递交当天仍持有（毕业生计划的 1G 不计）`,
+              `Stamp 1G as the spouse or partner of a Critical Skills permit holder or researcher on every day since ${addYears(sim, -years)} and on the application day (graduate programme 1G does not count)`,
             ),
-            met: ok(sim),
+            met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
             sources: v.spouse1gYears.sources,
           },
         ],
         notChecked: [
           L(
-            '持 Stamp 1G 的依据：须是 Critical Skills Employment Permit 持有人或 Hosting Agreement 研究员的配偶或事实伴侣',
-            'The basis of your Stamp 1G: you must be the spouse or de facto partner of a Critical Skills Employment Permit holder or a researcher on a Hosting Agreement',
+            '配偶或伴侣现在仍持 Critical Skills Employment Permit 或 Hosting Agreement',
+            'Your spouse or partner still holding a Critical Skills Employment Permit or Hosting Agreement',
           ),
         ],
         assumptions: [
           L(
-            '"5 年"按连续持有计，许可之间有空档即重新起算；ISD 原文只写"after 5 years on a Stamp 1G"（PD-118）。',
-            '"5 years" is taken as held without a break, so a gap between permissions starts the count again; ISD only says "after 5 years on a Stamp 1G" (PD-118).',
+            '"5 年"只计配偶、伴侣类的 Stamp 1G（ISD 把它与毕业生计划的 1G 分为两类），按连续持有计；许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。',
+            '"5 years" counts only Stamp 1G as a spouse or partner (ISD lists it apart from graduate programme 1G), held without a break; after a gap between permissions, whether time on both sides can be added up is not stated, so that date is shown separately (PD-118).',
           ),
           projection,
         ],
@@ -598,102 +694,61 @@ export function evaluateIreland(req: IeRequest): IeResult {
       });
     } else {
       const months = v.wcattMonths.value;
-      const [fewest, most] = monthSpan(v.wcattAbsenceMonths.value);
-      // Days abroad in the 12 months from each day.
-      const yearAway = Array.from({ length: days.count }, (_, i) => {
-        const a = days.date(i);
-        return days.total(sums.away, a, addDays(addYears(a, 1), -1));
-      });
-      /** Most days abroad in a calendar year, and in any 12 months, in [from, to]. */
-      const absences = (from: IsoDate, to: IsoDate) => {
-        let calendar = 0;
-        for (
-          let y = Number(from.slice(0, 4));
-          y <= Number(to.slice(0, 4));
-          y++
-        ) {
-          const a = `${y}-01-01` > from ? `${y}-01-01` : from;
-          const b = `${y}-12-31` < to ? `${y}-12-31` : to;
-          calendar = Math.max(calendar, days.total(sums.away, a, b));
-        }
-        let rolling = 0;
-        const last = days.index(addYears(addDays(to, 1), -1));
-        for (let i = days.index(from); i <= last; i++)
-          rolling = Math.max(rolling, yearAway[i]);
-        return { calendar, rolling };
-      };
+      const sure = days.sums(holds(WCATT));
+      const wide = holds([...WCATT, 'other']);
+      const wideSums = days.sums(wide);
       const verdict = (d: IsoDate): Verdict => {
         const from = addMonths(d, -months);
-        const to = addDays(d, -1);
-        if (!covered(sums.wcattMaybe, from, d)) return 'no';
-        const sure = covered(sums.wcattSure, from, d);
-        // Few days abroad in all: no year can exceed the limit.
-        if (days.total(sums.away, from, to) <= fewest)
-          return sure ? 'yes' : 'maybe';
-        const a = absences(from, to);
-        if (a.calendar > most) return 'no';
-        return sure && a.rolling <= fewest ? 'yes' : 'maybe';
+        if (covered(sure, from, d)) return 'yes';
+        // Uncertain permissions in, or time on both sides of a gap added up
+        // (PD-114, PD-118).
+        return wide(days.index(d)) &&
+          days.total(wideSums, days.date(0), addDays(d, -1)) >=
+            daysBetween(from, d)
+          ? 'maybe'
+          : 'no';
       };
       const earliest = firstDate((d) => verdict(d) === 'yes');
       const possible = firstDate((d) => verdict(d) !== 'no');
       const from = addMonths(sim, -months);
-      const a = absences(from, addDays(sim, -1));
-      const unsure = possible && (!earliest || possible < earliest);
+      const now = verdict(sim);
       pathways.push({
         id: 'IE-STAMP4',
         title: L(
           'Stamp 5（without condition as to time）',
           'Stamp 5 (without condition as to time)',
         ),
-        status: statusOf(earliest, possible),
-        earliestDate: earliest,
+        ...outcome(earliest, possible),
         summary:
           (earliest === sim
             ? L(
-                `模拟日已有 ${months} 个月的合法居留，可以申请 Stamp 5。`,
-                `You have ${months} months of legal residence on the simulation date and can apply for Stamp 5.`,
+                `模拟日已有连续 ${months} 个月的合法居留，可以申请 Stamp 5。`,
+                `You have ${months} months of legal residence without a break on the simulation date and can apply for Stamp 5.`,
               )
             : earliest
               ? L(
-                  `满 ${months} 个月合法居留、可申请 Stamp 5 的最早日期是 ${earliest}。`,
-                  `The earliest date with ${months} months of legal residence to apply for Stamp 5 is ${earliest}.`,
+                  `连续 ${months} 个月合法居留、可申请 Stamp 5 的最早日期是 ${earliest}。`,
+                  `The earliest date with ${months} months of legal residence without a break to apply for Stamp 5 is ${earliest}.`,
                 )
               : L(
-                  `按现有记录，10 年内达不到可确定的 ${months} 个月合法居留。`,
-                  `With your record you will not have ${months} months of legal residence that can be confirmed within 10 years.`,
+                  `按现有记录，10 年内达不到连续 ${months} 个月的合法居留。`,
+                  `With your record you will not have ${months} months of legal residence without a break within 10 years.`,
                 )) +
-          (unsure
+          (possible && possible !== earliest
             ? L(
-                `若待确认的许可计入、或"每年不超过 ${v.wcattAbsenceMonths.value} 个月"按日历年读，最早 ${possible}（PD-114、PD-117）。`,
-                ` Counting uncertain permissions, or reading "${v.wcattAbsenceMonths.value} months in a year" as a calendar year, it could be ${possible} (PD-114, PD-117).`,
+                `若"其他"类许可计入、或空档前后的居留可以累加，最早 ${possible}（PD-114、PD-118）。`,
+                ` Counting "other" permissions, or adding up residence on both sides of a gap, it could be ${possible} (PD-114, PD-118).`,
               )
             : '') +
           L(policy, ` ${policy}`),
         checks: [
           {
             text: L(
-              `递交前 ${months} 个月（${from} 起）每天都持可计入 Stamp 5 的许可（Stamp 1、1H、1G、3、4；ICT 的 Stamp 1、Stamp 0、学生许可不计），递交当天仍持有`,
-              `A permission that counts for Stamp 5 on every day of the ${months} months before applying (from ${from}) and on the application day (Stamp 1, 1H, 1G, 3 or 4; not ICT Stamp 1, Stamp 0 or student permissions)`,
+              `递交前 ${months} 个月（${from} 起）每天都持可计入 Stamp 5 的许可，递交当天仍持有（计入 Stamp 1、1H、1G、3、4、4D、4S；不计 Stamp 0、1A、4 EUFam、ICT 的 Stamp 1、ICT 家属的 1G 与学生许可）`,
+              `A permission that counts for Stamp 5 on every day of the ${months} months before applying (from ${from}) and on the application day (Stamp 1, 1H, 1G, 3, 4, 4D and 4S count; Stamp 0, 1A, 4 EUFam, ICT Stamp 1, ICT family 1G and student permissions do not)`,
             ),
-            met: covered(sums.wcattSure, from, sim)
-              ? true
-              : covered(sums.wcattMaybe, from, sim)
-                ? undefined
-                : false,
+            met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
             sources: v.wcattMonths.sources,
-          },
-          {
-            text: L(
-              `每年不在境内不超过 ${v.wcattAbsenceMonths.value} 个月（${fewest}–${most} 天）：按日历年最多 ${a.calendar} 天，按任意连续 12 个月最多 ${a.rolling} 天`,
-              `No more than ${v.wcattAbsenceMonths.value} months (${fewest}–${most} days) absent in a year: at most ${a.calendar} days in a calendar year, ${a.rolling} in any 12 months`,
-            ),
-            met:
-              a.rolling <= fewest
-                ? true
-                : a.calendar > most
-                  ? false
-                  : undefined,
-            sources: v.wcattAbsenceMonths.sources,
           },
         ],
         notChecked: [
@@ -704,16 +759,20 @@ export function evaluateIreland(req: IeRequest): IeResult {
         ],
         assumptions: [
           L(
-            `${months} 个月按连续持有计，许可之间有空档即重新起算（PD-118）；Stamp 4D、4S 请选"其他"，按待确认处理（PD-114）。`,
-            `The ${months} months are taken as held without a break, so a gap starts the count again (PD-118); choose "other" for Stamp 4D or 4S, which are treated as uncertain (PD-114).`,
+            `${months} 个月按连续持有计；许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。"其他"类许可是否计入待确认（PD-114）。`,
+            `The ${months} months are taken as held without a break; after a gap, whether residence on both sides can be added up is not stated, so that date is shown separately (PD-118). Whether "other" permissions count is uncertain (PD-114).`,
           ),
           L(
-            `"每年不超过 ${v.wcattAbsenceMonths.value} 个月"指日历年还是任意 12 个月、几天算 ${v.wcattAbsenceMonths.value} 个月都没写：任意 12 个月都不超过 ${fewest} 天才算满足，日历年超过 ${most} 天算不满足，其间待确认（PD-117）。出入境当天不算缺席。`,
-            `Whether "${v.wcattAbsenceMonths.value} months in a year" means a calendar year or any 12 months, and how many days make ${v.wcattAbsenceMonths.value} months, is not stated: no more than ${fewest} days in any 12 months is met, over ${most} in a calendar year is not, and in between it is uncertain (PD-117). Departure and return days are not absences.`,
+            `"每年在境外不超过 ${v.wcattAbsenceMonths.value} 个月"是获批后 Stamp 5 的居住条件，不用于判断能否申请；申请前的出境是否减少 ${months} 个月没有写，本试点不扣除（PD-117）。`,
+            `"No more than ${v.wcattAbsenceMonths.value} months abroad in a year" is a condition of Stamp 5 once granted, not of applying for it; whether trips before applying reduce the ${months} months is not stated, and this pilot does not deduct them (PD-117).`,
           ),
           projection,
         ],
-        pendingDetails: [...(hasOther ? ['PD-114'] : []), 'PD-117', 'PD-118'],
+        pendingDetails: [
+          ...(has(['other']) ? ['PD-114'] : []),
+          'PD-117',
+          'PD-118',
+        ],
       });
     }
   }
