@@ -54,10 +54,10 @@ export interface IrelandFamily {
     approval?: boolean;
     abusePermissionEvidence?: boolean;
   };
-  /** Facts for a new family application or an ordinary renewal of existing permission. */
+  /** Facts for a new family application, first registration or renewal. */
   application?: {
     date?: IsoDate;
-    /** 'renewal' keeps the existing permission. Use nextRenewalOn for an upgrade. */
+    /** 'first' registers an approved entry. 'renewal' keeps the existing permission. */
     registrationStage?: 'first' | 'renewal';
     /** Whether the permission letter imposes a specific insurance condition on renewal. */
     renewalInsuranceRequired?: boolean;
@@ -68,6 +68,7 @@ export interface IrelandFamily {
       | 'spouse-in-state'
       | 'de-facto-in-state'
       | 'de-facto-overseas';
+    /** Confirm the approved entry, or the applicant's eligible lawful status for an in-State conversion. */
     entryOrConversionValid?: boolean;
     sponsorResponsible?: boolean;
     grossTaxYears?: number[];
@@ -79,7 +80,7 @@ export interface IrelandFamily {
     noSocialWelfare?: boolean;
     differentPartnerGrantOn?: IsoDate;
     priorSponsorshipHistoryComplete?: boolean;
-    /** Documents on the applicable first application or renewal checklist. */
+    /** Documents on the checklist for the selected application or registration stage. */
     familyEvidenceComplete?: boolean;
     addressEvidence?: boolean;
     applicantCharacter?: IrelandCharacter;
@@ -134,6 +135,63 @@ export interface IrelandFamily {
   };
 }
 
+export function isFirstFamilyRegistration(data: IrelandFamily | undefined) {
+  const app = data?.application;
+  return (app?.channel === 'spouse-registration' && app.registrationStage !== 'renewal') ||
+    (app?.registrationStage === 'first' &&
+      (app.channel === 'ordinary' || app.channel === 'de-facto-overseas'));
+}
+
+function firstRegistrationInsurance(insurance: NonNullable<IrelandFamily['application']>['insurance']) {
+  if (!insurance) return undefined;
+  const months = p.evidence.value.firstRegistrationInsuranceMonths;
+  const coverage = Math.min(insurance.permissionMonths ?? months, months);
+  return all(
+    insurance.hospitalAndMedical,
+    insurance.coversRequiredPeople,
+    insurance.coverageMonths === undefined
+      ? undefined
+      : insurance.coverageMonths >= coverage,
+  );
+}
+
+function firstFamilyRegistration(
+  a: IrelandAssessment,
+  data: IrelandFamily,
+  inState: boolean | undefined,
+) {
+  const app = data.application;
+  const spouseChannel = app?.channel === 'spouse-registration';
+  const spouseRelationship = data.relationship === undefined
+    ? undefined
+    : data.relationship === 'spouse' || data.relationship === 'civil-partner';
+  const irishSpouse =
+    spouseChannel || (data.sponsorIrish === true && spouseRelationship === true);
+  const jointAddress = irishSpouse || data.relationship === 'de-facto';
+  const months = p.evidence.value.firstRegistrationInsuranceMonths;
+  a.add(
+    irishSpouse ? 'B21' : 'FAMILY-FIRST-REGISTRATION',
+    all(
+      inState,
+      app?.entryOrConversionValid,
+      app?.familyEvidenceComplete,
+      spouseChannel ? all(data.sponsorIrish, spouseRelationship) : true,
+      jointAddress ? all(data.livingTogether, app?.addressEvidence) : true,
+      irishSpouse ? firstRegistrationInsurance(app?.insurance) : true,
+    ),
+    irishSpouse
+      ? a.L(
+          `在爱尔兰首次登记，核对双方护照、关系及共同住址证明、适用的准许信，以及覆盖医疗和住院的保险。保险通常涵盖 ${months} 个月，较短停留须全程覆盖。`,
+          `For first registration in Ireland, check both passports, proof of relationship and joint address, any applicable permission letter, and insurance covering medical and hospital care for ${months} months or the entire shorter stay.`,
+        )
+      : a.L(
+          '凭获准的家庭入境许可在爱尔兰首次登记。按获准 Stamp 的清单核对护照、准许信及适用的担保人、关系和住址文件。',
+          'Register in Ireland after approved family entry. Use the granted Stamp’s checklist for passports, the permission letter and any applicable sponsor, relationship and address documents.',
+        ),
+    ['PD-330'],
+  );
+}
+
 function familyRenewal(
   a: IrelandAssessment,
   data: IrelandFamily,
@@ -172,6 +230,7 @@ function familyApplication(
   a: IrelandAssessment,
   data: IrelandFamily,
   dob?: IsoDate,
+  inState?: boolean,
 ) {
   const { add, L, day } = a;
   const app = data.application ?? {};
@@ -202,17 +261,23 @@ function familyApplication(
         : wait && revised
           ? date >= wait
           : undefined;
+  const inStateDeFacto = channel === 'de-facto-in-state';
   add(
     'B14',
     all(
-      any(
-        data.sponsorLawfulAndResident,
-        all(data.sponsorIrish, data.intendsToLiveTogetherInState),
-      ),
+      inStateDeFacto
+        ? all(inState, data.sponsorLawfulAndResident)
+        : any(
+            data.sponsorLawfulAndResident,
+            all(data.sponsorIrish, data.intendsToLiveTogetherInState),
+          ),
       waiting,
       app.entryOrConversionValid,
     ),
-    L(
+    inStateDeFacto ? L(
+      '境内 de facto 转换要求申请人与担保人已在爱尔兰合法居住，并核对申请人的现有许可是否允许转换。',
+      'The in-State de facto route requires both partners to be lawfully resident in Ireland and the applicant to hold an eligible permission.',
+    ) : L(
       `核对 A／B／C 类担保人与入境或转换资格。爱尔兰公民可拟回国定居。C 类新案通常等 ${n.categoryCWaitMonths} 个月，特定国际保护家庭等 ${n.protectionWaitYears} 年。`,
       `Check category A, B or C sponsorship and entry or conversion. Irish citizens may intend to move back to Ireland. New category C cases usually wait ${n.categoryCWaitMonths} months, or ${n.protectionWaitYears} years for specified protection families.`,
     ),
@@ -488,23 +553,7 @@ function familyApplication(
     false,
   );
   const insurance = app.insurance;
-  if (channel === 'spouse-registration' || channel === 'spouse-in-state') {
-    const coverage =
-      insurance?.permissionMonths === undefined
-        ? e.firstRegistrationInsuranceMonths
-        : Math.min(
-            insurance.permissionMonths,
-            e.firstRegistrationInsuranceMonths,
-          );
-    const ins = insurance
-      ? all(
-          insurance.hospitalAndMedical,
-          insurance.coversRequiredPeople,
-          insurance.coverageMonths === undefined
-            ? undefined
-            : insurance.coverageMonths >= coverage,
-        )
-      : undefined;
+  if (channel === 'spouse-in-state') {
     add(
       'B21',
       all(
@@ -512,10 +561,8 @@ function familyApplication(
         partner && rel !== 'de-facto',
         livingTogether,
         app.addressEvidence,
-        ins,
-        channel === 'spouse-in-state'
-          ? character(app.applicantCharacter)
-          : true,
+        firstRegistrationInsurance(insurance),
+        character(app.applicantCharacter),
       ),
       L(
         `核对爱尔兰公民合法配偶／民事伴侣、同址及首次登记保险（通常 ${e.firstRegistrationInsuranceMonths} 个月，较短许可按全段）。专门境内案参见 PD-330。`,
@@ -581,7 +628,7 @@ function familyApplication(
     if (channel === 'de-facto-in-state') {
       add(
         'B22',
-        all(base, livingTogether),
+        all(base, livingTogether, inState, data.sponsorLawfulAndResident, app.entryOrConversionValid),
         L(
           `需合法境内渠道、私保及近 ${e.clearanceLookbackYears} 年相关外国的警察证明，签发距递交不超过 ${e.clearanceValidityMonths} 个月。获准通常为 ${n.deFactoGrantYears} 年 Stamp 4。`,
           `Use an eligible in-State channel with private insurance and police certificates for relevant foreign countries in the past ${e.clearanceLookbackYears} years, issued within ${e.clearanceValidityMonths} months. The usual grant is a ${n.deFactoGrantYears}-year Stamp 4.`,
@@ -623,9 +670,14 @@ export function independentFamily(
   data: IrelandFamily,
   dob?: IsoDate,
   inState?: boolean,
+  renewalOpens?: IsoDate,
 ) {
   if (data.application?.registrationStage === 'renewal') {
     familyRenewal(a, data, inState);
+    return;
+  }
+  if (isFirstFamilyRegistration(data)) {
+    firstFamilyRegistration(a, data, inState);
     return;
   }
   const { add, L, day } = a;
@@ -667,7 +719,9 @@ export function independentFamily(
     ['PD-329'],
   );
   const years = pRel.independentResidenceYears;
-  const renewal = data.nextRenewalOn;
+  const renewal = data.nextRenewalOn && renewalOpens && data.nextRenewalOn < renewalOpens
+    ? renewalOpens
+    : data.nextRenewalOn;
   const reviewOn = renewal && renewal > day ? renewal : day;
   const periods = data.dependentPeriods?.filter(({ from }) => from <= day);
   const sufficient = periods
@@ -760,7 +814,7 @@ export function independentFamily(
       ['PD-329'],
     );
   }
-  if (data.application) familyApplication(a, data, dob);
+  if (data.application) familyApplication(a, data, dob, inState);
 }
 
 export function directFamily(
@@ -798,5 +852,6 @@ export function directFamily(
             data.application.channel === 'spouse-registration' ||
             data.application.channel === 'spouse-in-state',
   );
-  familyApplication(a, { ...data, sponsorCategory: 'A' }, dob);
+  if (isFirstFamilyRegistration(data)) firstFamilyRegistration(a, data, inState);
+  else familyApplication(a, { ...data, sponsorCategory: 'A' }, dob, inState);
 }

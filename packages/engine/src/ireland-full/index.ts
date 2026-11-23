@@ -4,9 +4,13 @@ import { evaluateIreland } from '../ireland';
 import type { IeRequest, IeStamp4Route } from '../ireland';
 import { textFor } from '../rule';
 import type { IsoDate } from '../types';
-import { assessment, registration } from './common';
+import { all, assessment, registration, renewalWindow } from './common';
 import type { IrelandRegistration } from './common';
-import { directFamily, independentFamily } from './family';
+import {
+  directFamily,
+  independentFamily,
+  isFirstFamilyRegistration,
+} from './family';
 import type { IrelandFamily } from './family';
 import { longTermResidence } from './ltr';
 import type { IrelandLtr } from './ltr';
@@ -123,12 +127,44 @@ export function evaluateIrelandFull(
   const pathways = options.map((id) => {
     const a = assessment(day, locale);
     const directFamilyPath = id === 'IE-STAMP4-IRISH-FAMILY';
-    const familyRenewal = renewal &&
-      (directFamilyPath || id === 'IE-STAMP4-INDEPENDENT-FAMILY');
+    const familyPath = directFamilyPath || id === 'IE-STAMP4-INDEPENDENT-FAMILY';
+    const familyRenewal = familyPath && renewal;
+    const familyFirst = familyPath && isFirstFamilyRegistration(family);
+    const workPath = id === 'IE-STAMP4-21' || id === 'IE-STAMP4-57';
+    const workRegistration = workPath ? request.registration?.stage : undefined;
+    const ltrPath = id === 'IE-LTR-PRINCIPAL' || id === 'IE-LTR-FAMILY';
+    const euPath = id === 'IE-EU-PERMANENT';
+    const waPath = id === 'IE-WA-PERMANENT';
+    const treatyDocument = euPath ? request.eu?.document : waPath ? request.wa?.document : undefined;
+    const irpRenewal = request.registration?.stage === 'renewal';
+    const treatyRenewal = (euPath || waPath) && irpRenewal;
     let applicable: boolean | undefined = true;
+    const isRenewal =
+      familyRenewal ||
+      (id === 'IE-STAMP4-INDEPENDENT-FAMILY' && !familyFirst &&
+        !family?.change && family?.nextRenewalOn !== undefined) ||
+      (workPath && workRegistration !== 'first') ||
+      (id === 'IE-STAMP5' && (irpRenewal || request.stamp5?.renewWithPassport === true)) ||
+      (ltrPath && (irpRenewal || request.ltr?.maintenance?.renewal === true)) ||
+      treatyRenewal;
+    const opens = isRenewal
+      ? renewalWindow(
+          a,
+          treatyRenewal ? inState ?? treatyDocument?.inState : inState,
+          request.registration?.irpExpiresOn ?? treatyDocument?.currentCardExpiresOn,
+          request.permissions,
+        )
+      : undefined;
     switch (id) {
       case 'IE-STAMP4-21':
       case 'IE-STAMP4-57': {
+        if (workRegistration) {
+          a.add('IRP-CHECKLIST', all(
+            workRegistration === 'first' ? inState : true,
+            request.registration?.checklistComplete,
+          ));
+          break;
+        }
         const group = id === 'IE-STAMP4-21' ? 'csep' : 'gep';
         workUpgrade(a, group, timeline(group).pathways[2], request.work ?? {});
         break;
@@ -140,6 +176,7 @@ export function evaluateIrelandFull(
           family ?? {},
           dob,
           inState,
+          opens,
         );
         break;
       case 'IE-STAMP5':
@@ -181,10 +218,10 @@ export function evaluateIrelandFull(
     }
     if (id.startsWith('IE-STAMP') || id.startsWith('IE-LTR')) {
       const irishSpouseExemption =
-        (directFamilyPath || familyRenewal) &&
+        (directFamilyPath || familyRenewal || familyFirst) &&
         family?.sponsorIrish === true &&
         (family.relationship === 'spouse' || family.relationship === 'civil-partner') &&
-        (familyRenewal
+        (familyRenewal || familyFirst
           ? family.application?.familyEvidenceComplete === true
           : family.relationshipValidAndGenuine === true);
       registration(
@@ -193,12 +230,17 @@ export function evaluateIrelandFull(
         dob,
         birthplace === 'state',
         irishSpouseExemption,
-        !directFamilyPath,
+        !directFamilyPath || familyRenewal,
+        familyFirst,
       );
     }
     const title = familyRenewal
       ? L('现有家庭许可续期', 'Renewal of existing family permission')
-      : L(titles[id][0], titles[id][1]);
+      : familyFirst || workRegistration === 'first'
+        ? L('首次登记', 'First registration')
+        : workRegistration === 'renewal'
+          ? L('现有许可续期', 'Renewal of existing permission')
+          : L(titles[id][0], titles[id][1]);
     return a.finish(id, title, applicable);
   });
   return {

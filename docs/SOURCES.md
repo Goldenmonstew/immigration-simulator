@@ -1082,14 +1082,15 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
   - `2026-11-23-ie-citizen-affidavit.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/citizenship/residency-affidavit-proof-form-citizenship-0092026.pdf)。
 - **SRC-382** Eligibility；What is e-Vetting?。
 - **SRC-383** Act ss4–5、9、19；S.I. 421/2025 regs. 1–5。
-- **SRC-384** Stamp 1G (1)、Stamp 3 (3)、Stamp 4 (1)–(4)、(7)–(8)、(12)、Stamp 5 的登记与续期清单；在线续期 When should I submit a Renewal Application?（须在爱尔兰递交）。
+- **SRC-095** Guide 的 Reckonable Residence for Refugees or people with international protection、70 Days Absence Rule 及 Document requirements for minors。难民专项区分递交前一年与此前累计期，并说明部长可按个案豁免。
+- **SRC-384** Stamp 1、Stamp 1G (1)、Stamp 3 (3)、Stamp 4 (1)–(4)、(7)–(8)、(12)、Stamp 5、Stamp 4 EUFam 与 WA 的登记及续期清单。在线续期 When should I submit a Renewal Application? 载明在共和国境内递交、IRP 到期前 12 周开放。Introduction 包含线上更换 Stamp 类别。
 - **SRC-385** Policy Document Archive；main changes。
 - **SRC-386** Financial Thresholds for Spouses, Civil Partners and De Facto Partners；Table 1。
 - **SRC-387** June 2026 §§2–10、12–17 和 Appendices C–E，其中 §6.2 为居住或拟居住在爱尔兰的爱尔兰公民担保人；November 2025 §§7、10、16；2016 §§16–17。
   - `2026-11-23-ie-family-2016.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2021/04/Policy-document-on-Non-EEA-family-reunification.pdf)。
   - `2026-11-23-ie-family-2025.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/11/FINAL-PDF-Revised-Family-Reunification-Policy.pdf)。
   - `2026-11-23-ie-family-2026.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/06/Family-Reunification-Policy-12-June-2026.pdf)。
-- **SRC-388** Am I eligible?；Police clearance；Medical insurance；Who can sponsor me?。
+- **SRC-388** 境内 de facto 的 Am I eligible? 要求双方已合法居住。境外 de facto 的 Who can sponsor me?、Police clearance、Medical insurance 与 What happens when I arrive in Ireland? 覆盖担保、申请与入境后的登记。爱尔兰公民配偶的 Recently entered the State on a D (Join Family) Visa or were given a Join family stamp by border control 指向首次登记清单。
 - **SRC-389** Irish citizens；What is a qualifying family member?；Permanent Residence Card/Certificate。
 - **SRC-390** regs. 2–6、9–20，其中 reg. 12(1)(b) 为非欧盟家属与 EU 公民合规居留，reg. 12(4) 为保留权利后的居留；Schedules 1、5–8。
 - **SRC-391** EUTR2 证书、EUTR3 永久卡、EUTR5 权利保留；EUTR3 pp2–3。
@@ -1122,4 +1123,4 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - **SRC-406** Visa Fees；Visa fee exemptions。
 - **SRC-407** Employment Permits Act 2024；S.I. 444/2024 legislative history。
 - **SRC-408** ss203、286、295。
-- **SRC-409** Eligibility；Join non-EEA Family Member §9。
+- **SRC-409** Eligibility；Join non-EEA Family Member §9 及 Type of immigration permission。

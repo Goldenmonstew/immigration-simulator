@@ -244,3 +244,33 @@ PROGRESS 684 对应建议提交 `Fix: 修正爱尔兰家庭续期、担保资格
 ### 4. 发现与建议
 
 任务 99 接线时，按当前许可问续期材料，按日收集 EU／WA 家属合规居留依据。WA 失权后应单独采集 `wa.postLossScopeConfirmed`。在展示升级路径时将 `FAMILY-LEGACY-TIME` 标为旧计时参考。
+
+## 第三轮审核修正（review89-3）
+
+### 1. 做了什么
+
+PROGRESS 685 对应建议提交 `Fix: 修正爱尔兰续期窗口、入籍居住与首次登记（review89-3）`。
+
+| 路径或阶段 | 修正与回归 |
+|---|---|
+| 家庭、Stamp 1／1G／4 普通续期和就业 Stamp 4 升级 | `IRP-RENEWAL-WINDOW` 按当前 IRP 到期前 12 周开放，须在爱尔兰共和国递交。到期日为 `2027-08-01` 时，材料齐备的审核用例在 `2027-05-08` 为 `FUTURE`，最早是 `2027-05-09`，开放当天为 `MET`。升级另外核对达到就业或依亲资格的日期。到期日无法确认或旧卡已过期时按 PD-321 给 `UNKNOWN`。SRC-384 在线续期 Introduction、When should I submit a Renewal Application? 和 SRC-096 Online Renewal。 |
+| Stamp 5、LTR 主申及家属、EU／WA 卡 | Stamp 5 换护照续办、LTR 续期及明确选择的 EU／WA IRP 续期共用线上窗口。首次申领、EUTR2／EUTR3 的永久居留申请及实体权利依各自流程。LTR 需要另行审批的日期见 PD-335，条约卡的个案所需文件见 PD-338。SRC-384 对应的 Renewals 清单、SRC-398 How do I renew my Long Term Residency permission?、SRC-390 regs. 12–15 与 SRC-392 S.I. 728/2020 regs. 10–12。 |
+| 入籍 | 普通及配偶使用原连续居住计时，配偶保留外派计入及逐项豁免。境内出生未成年人继续独立核最后一年及此前累计期。Form 9、Irish associations 及境外公共服务在 A04 检查最后一年或适用的正式豁免（PD-325）。难民 A20 独立检查认定后的最后一年和此前累计期。审核用例超过一般缺席范围，缺少连续居住豁免时为 `NOT_MET`，最早日期为空。正式豁免覆盖最后一年且此前累计满足时为 `MET`，最早为模拟日。豁免待决时为 `UNKNOWN`（PD-323）。SRC-091 ss15–16A、SRC-095 难民专项与 SRC-381 保护身份政策。 |
+| 家庭及受雇人员首次登记 | 已持 Join Family D 签或相应边境准许的爱尔兰公民配偶，B21 按双方护照、关系、共同住址、保险及适用的批准信核对。材料齐全即得到 `MET` 与模拟日。其他获准家庭入境的伴侣和家属按对应 Stamp 首次清单核对，包括持 D 签或预审批准的境外 de facto。受雇者获准入境后可以选对应 Stamp 首次登记清单。SRC-384 Stamp 1、Stamp 1G (1)、Stamp 3 (3)、Stamp 4 (3)、(7)–(8)、(12)，SRC-388 入境后的登记，SRC-409 Type of immigration permission。 |
+| 境内 de facto | B14、B22 均核对双方已在爱尔兰合法居住和申请人的境内渠道。拟返爱担保人资格继续适用于境外团聚。审核的境外双方输入返回 `NOT_MET`，最早日期为空。SRC-388 境内 Am I eligible? 和境外 Who can sponsor me?，SRC-387 §6.2。 |
+
+### 2. 怎么验证的
+
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0。engine 3,293 项通过，文案导出 1 项按默认配置跳过；policy-data 23 项、game 1,336 项、web 659 项、error-report 2 项通过。Next.js 生成 27 个静态页面。
+- 回归覆盖续期开放前一天和当天、窗口与升级资格的先后、获准入境后的首次登记、境内 de facto 担保人身份、最后一年居住不足及正式豁免范围。回归断言路径状态和最早日期。
+- `git diff --check` 通过。旧 `evaluateIreland` 六条计时路径的对照通过，并检查了现有计时实现、测试和爱尔兰页面入口的 Git 差异。
+
+### 3. 没做或没验证的
+
+本轮交付工作树改动，提交交由 Fable。爱尔兰页面仍通过旧时间入口评估。浏览器 E2E、页面接线与部署待后续任务。
+
+### 4. 发现与建议
+
+- 未成年家属可能在预计的独立 Stamp 4 升级日前成年。模拟到续期日后可能从 `FUTURE` 变为 `UNKNOWN`，沿用 PD-329 和现有边界回归。
+- 英国政策页遍历共用来源表，仍会列出本任务的 28 个爱尔兰来源。页面任务接线时核对国家来源范围。
+- 页面问卷可采集当前 IRP 卡面到期日、申请人是否已获准入境和正在办理的阶段。难民居住按实际区间、出入境记录、认定日和正式决定所载的豁免项目采集。

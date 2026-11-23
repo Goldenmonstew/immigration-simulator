@@ -5,9 +5,9 @@ import {
 import { addDays, addYears, daysBetween } from '../dates';
 import { evaluateIreland } from '../ireland';
 import type { IeRequest, IeTrip } from '../ireland';
-import { Days, afterYears } from '../pilot';
+import { Days } from '../pilot';
 import type { IsoDate } from '../types';
-import { ageAtLeast, all, mergePeriods } from './common';
+import { ageAtLeast, all, covers, mergePeriods } from './common';
 import type {
   IrelandAssessment,
   IrelandCharacter,
@@ -130,7 +130,11 @@ export interface IrelandCitizenship {
       witnessedPassportAffidavit?: boolean;
     };
     certificationFeeExemptionConfirmed?: boolean;
+    /** Confirm an official decision waiving the residence requirements. */
     waiverGranted?: boolean;
+    waiverPending?: boolean;
+    /** Omit for a decision waiving both residence requirements. */
+    waivedResidenceConditions?: ('continuous' | 'prior')[];
   };
   publicService?: {
     qualifyingIrishPublicAppointment?: boolean;
@@ -175,11 +179,14 @@ function identityScore(c: IrelandCitizenship, day: IsoDate) {
   );
 }
 
-function absenceDays(trips: IeTrip[], from: IsoDate, to: IsoDate) {
-  const periods = trips.map((trip) => ({
+function tripPeriods(trips: IeTrip[]) {
+  return trips.map((trip) => ({
     from: addDays(trip.departed, 1),
     to: addDays(trip.returned, -1),
   }));
+}
+
+function periodDays(periods: IrelandResidencePeriod[], from: IsoDate, to: IsoDate) {
   return mergePeriods(periods, to).reduce(
     (sum, range) =>
       sum +
@@ -188,6 +195,59 @@ function absenceDays(trips: IeTrip[], from: IsoDate, to: IsoDate) {
         daysBetween(range.from > from ? range.from : from, range.to) + 1,
       ),
     0,
+  );
+}
+
+function absenceDays(trips: IeTrip[], from: IsoDate, to: IsoDate) {
+  return periodDays(tripPeriods(trips), from, to);
+}
+
+function confirmedResidenceDays(periods: IrelandResidencePeriod[], trips: IeTrip[], through: IsoDate) {
+  return mergePeriods(periods, through).reduce(
+    (sum, { from, to }) => sum + daysBetween(from, addDays(to, 1)) - absenceDays(trips, from, to),
+    0,
+  );
+}
+
+function finalYearResidence(
+  day: IsoDate,
+  residence: IrelandCitizenship['residence'],
+  trips: IeTrip[],
+  continuousYears: number,
+) {
+  if (!residence) return undefined;
+  const from = addYears(day, -continuousYears);
+  const through = addDays(day, -1);
+  const tripsAsPeriods = tripPeriods(trips);
+  const confirmed = residence.filter(({ basis }) => basis === 'reckonable');
+  const possible = residence.filter(({ basis }) => basis !== 'excluded');
+  const away = periodDays(tripsAsPeriods, from, through);
+  const { absenceDays: ordinary, exceptionalDays } = pilot.values;
+  if (away > ordinary.value + exceptionalDays.value ||
+    !covers([...possible, ...tripsAsPeriods], from, through))
+    return false;
+  if (away > ordinary.value || !covers(confirmed, from, through))
+    return undefined;
+  return true;
+}
+
+function discretionaryResidence(
+  a: IrelandAssessment,
+  residence: IrelandCitizenship['residence'],
+  trips: IeTrip[],
+  waived: boolean | undefined,
+) {
+  const continuous = finalYearResidence(
+    a.day, residence, trips, pilot.values.continuousYears.value,
+  );
+  a.add(
+    'A04',
+    waived === true ? true : continuous === false && waived === undefined ? undefined : continuous,
+    a.L(
+      '核对递交前一年的连续合法居住，或适用的正式部长豁免。酌情路径的居住口径须按个案确认（PD-325）。',
+      'Check continuous lawful residence in the year before filing, or a formal ministerial waiver. Confirm how residence is assessed for discretionary cases (PD-325).',
+    ),
+    ['PD-325'],
   );
 }
 
@@ -803,18 +863,11 @@ export function naturalisation(
         'Check the parent’s naturalisation certificate date, Form 9, parental authority and the child’s residence evidence.',
       ),
     );
-    add(
-      'A04',
-      m?.parentRouteWaiverGranted,
-      L(
-        '本路径无统一法定年限；居住条件豁免由部长判断（PD-325）。',
-        'There is no fixed residence period for this route. The Minister decides any residence waiver (PD-325).',
-      ),
-      ['PD-325'],
-    );
+    discretionaryResidence(a, c.residence, req.trips, m?.parentRouteWaiverGranted);
   }
   if (associated) {
     const data = c.association;
+    discretionaryResidence(a, c.residence, req.trips, data?.waiverGranted);
     add(
       'A18',
       all(data?.qualifyingRelationship, data?.relativeEligibleAtRelevantDate),
@@ -867,59 +920,62 @@ export function naturalisation(
     const data = c.protection;
     const years = day < n.changedOn ? n.previousYears : n.currentYears;
     const grant = data?.grantOn;
-    const from = addYears(day, -years);
-    const sinceGrant =
-      grant && c.residence
-        ? mergePeriods(
-            c.residence
-              .filter(
-                (item) =>
-                  item.basis === 'reckonable' && (!item.to || item.to >= grant),
-              )
-              .map((item) => ({
-                ...item,
-                from: item.from < grant ? grant : item.from,
-              })),
-            addDays(day, -1),
-          )
-        : undefined;
-    const duration = sinceGrant?.reduce(
-      (sum, period) => sum + daysBetween(period.from, addDays(period.to, 1)),
-      0,
+    const finalYearStarts = addYears(day, -n.continuousYears);
+    const priorYears = years - n.continuousYears;
+    const earliestPriorStart = addYears(finalYearStarts, -priorYears);
+    const residence = grant ? c.residence?.map((period) => ({
+      ...period,
+      from: period.from < grant ? grant : period.from,
+    })) : undefined;
+    const continuous = all(
+      location === undefined ? undefined : location === 'state',
+      grant && grant > finalYearStarts
+        ? false
+        : finalYearResidence(day, residence, req.trips, n.continuousYears),
+    );
+    let prior: boolean | undefined;
+    if (grant && grant > earliestPriorStart) {
+      prior = false;
+    } else if (residence) {
+      const through = addDays(finalYearStarts, -1);
+      const needed = daysBetween(earliestPriorStart, finalYearStarts);
+      const confirmed = residence.filter(({ basis }) => basis === 'reckonable');
+      const possible = residence.filter(({ basis }) => basis !== 'excluded');
+      prior = confirmedResidenceDays(confirmed, req.trips, through) >= needed
+        ? true
+        : confirmedResidenceDays(possible, req.trips, through) < needed
+          ? false
+          : undefined;
+    }
+    const waived = (condition: 'continuous' | 'prior') =>
+      data?.waiverGranted === true && (data.waivedResidenceConditions?.includes(condition) ?? true);
+    const residenceCondition = (condition: 'continuous' | 'prior', meets: boolean | undefined) =>
+      waived(condition) || meets === true ? true : data?.waiverPending ? undefined : meets;
+    const residenceMet = all(
+      residenceCondition('continuous', continuous),
+      residenceCondition('prior', prior),
     );
     const met =
-      data?.waiverGranted === true
-        ? true
-        : refugee
-          ? all(
-              data?.validRecognition,
-              grant === undefined
-                ? undefined
-                : afterYears(grant, years) > day
-                  ? false
-                  : duration === undefined
-                    ? undefined
-                    : duration >= daysBetween(from, day)
-                      ? true
-                      : c.residence?.some((item) => item.basis === 'uncertain')
-                        ? undefined
-                        : false,
-            )
-          : protectedKind === 'none' || protectedKind === 'pending'
-            ? false
+      refugee
+        ? all(data?.validRecognition, grant ? grant <= day : undefined, residenceMet)
+        : protectedKind === 'none' || protectedKind === 'pending'
+          ? false
+          : protectedKind === 'stateless' && waived('continuous') && waived('prior')
+            ? data?.validRecognition
             : undefined;
     add(
       'A20',
       met,
       L(
-        `难民按递交日适用 ${years} 年政策，自认定日核对可计居住。无国籍、附属保护及减免映射须确认（PD-323）。`,
-        `The refugee policy on the filing date requires ${years} years of reckonable residence from recognition. Statelessness, subsidiary protection and exemption mapping may need confirmation (PD-323).`,
+        `难民通常须有递交前连续 ${n.continuousYears} 年居住，并在此前累计 ${priorYears} 年。认定日之后的可计居住才计入；按正式决定核对各项豁免（PD-323）。`,
+        `Refugees ordinarily need ${n.continuousYears} continuous year of residence before filing and ${priorYears} years in total before that. Count reckonable residence from recognition and check any formal waiver by condition (PD-323).`,
       ),
       ['PD-323'],
     );
   }
   if (publicService) {
     const data = c.publicService;
+    discretionaryResidence(a, c.residence, req.trips, data?.waiverGranted);
     add(
       'A21',
       all(

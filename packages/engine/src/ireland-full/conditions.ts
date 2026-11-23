@@ -35,7 +35,7 @@ const conditions = {
     '递交时居住与合法身份',
     'Residence and lawful status at filing',
     [
-      ['SRC-091', 'ss15(1)(c), 15A(1)(e)–(f), 15B(1)(c), 15C, 16A'],
+      ['SRC-091', 'ss15(1)(c), 15A(1)(e)–(f), 15B(1)(c), 15C, 16(1), 16A'],
       ['SRC-093', 's295'],
       ['SRC-095', 'Time That Does Not Count'],
     ],
@@ -164,7 +164,7 @@ const conditions = {
         'SRC-381',
         'Changes to citizenship for people granted International Protection',
       ],
-      ['SRC-095', 'Applicants granted refugee status'],
+      ['SRC-095', 'Reckonable Residence for Refugees or people with international protection; 70 Days Absence Rule'],
     ],
   ],
   A21: [
@@ -185,6 +185,16 @@ const conditions = {
     '登记费及法定豁免',
     'Registration fee and statutory exemptions',
     [['SRC-383', 'Immigration Act s19 and S.I. 421/2025 regs. 1, 3–5']],
+  ],
+  'IRP-RENEWAL-WINDOW': [
+    'IRP 线上续期开放日',
+    'IRP online renewal opening date',
+    [['SRC-384', 'Online renewal: When should I submit a Renewal Application?']],
+  ],
+  'IRP-CHECKLIST': [
+    '适用 Stamp 的登记清单',
+    'Registration checklist for the applicable Stamp',
+    [['SRC-384', 'Stamp 1, Stamp 1G and Stamp 4: First Time Registrations and Renewals']],
   ],
   B03: [
     '在境内实际受雇与合格许可',
@@ -367,9 +377,18 @@ const conditions = {
     '爱尔兰公民配偶／民事伴侣境内登记',
     'Irish spouse or civil partner registration in Ireland',
     [
-      ['SRC-388', 'Irish spouse and civil partner scheme: Am I eligible?'],
+      ['SRC-388', 'Irish spouse and civil partner scheme: Am I eligible?; Recently entered the State on a D (Join Family) Visa'],
       ['SRC-384', 'Stamp 4 (3), First Time Registrations and Renewals'],
       ['SRC-384', 'Online renewal: When should I submit a Renewal Application?'],
+    ],
+  ],
+  'FAMILY-FIRST-REGISTRATION': [
+    '家庭入境后的首次登记',
+    'First registration after family entry',
+    [
+      ['SRC-384', 'Stamp 1G (1), Stamp 3 (3), Stamp 4 (3), (7)–(8), (12): First Time Registrations'],
+      ['SRC-388', 'Overseas de facto: What happens when I arrive in Ireland?'],
+      ['SRC-409', 'Join non-EEA family member: Type of immigration permission'],
     ],
   ],
   'FAMILY-RENEWAL': [

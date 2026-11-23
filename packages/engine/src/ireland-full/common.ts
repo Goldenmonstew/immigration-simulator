@@ -1,7 +1,7 @@
 import { irelandFull2026_11 as full } from '@uk-immigration/policy-data';
 import type { CountryCheck, CountryPathway } from '../country-result';
 import { addDays, addMonths, daysBetween } from '../dates';
-import type { IePathway } from '../ireland';
+import type { IePathway, IePermission } from '../ireland';
 import { afterYears, monthSpan } from '../pilot';
 import { textFor } from '../rule';
 import type { IsoDate, Locale } from '../types';
@@ -16,6 +16,11 @@ export interface IrelandResidencePeriod {
 
 export interface IrelandRegistration {
   basis?: 'required' | 'exempt' | 'minister-directed';
+  /** Evaluate the checklist for an existing grant instead of applying for a work Stamp 4 upgrade. */
+  stage?: 'first' | 'renewal';
+  checklistComplete?: boolean;
+  /** Expiry printed on the current IRP, distinct from the registration or appointment date. */
+  irpExpiresOn?: IsoDate;
   validPermission?: boolean;
   renewalPending?: boolean;
   addressCurrent?: boolean;
@@ -187,6 +192,40 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
 
 export type IrelandAssessment = ReturnType<typeof assessment>;
 
+export function renewalWindow(
+  a: IrelandAssessment,
+  inState: boolean | undefined,
+  expiry: IsoDate | undefined,
+  permissions: IePermission[],
+) {
+  const active = permissions.filter(
+    ({ kind, from, to }) =>
+      kind !== 'ni-residence' && from <= a.day && (!to || a.day <= to),
+  );
+  const expires = expiry ?? (active.length === 1 ? active[0].to : undefined);
+  const weeks = full.registration.value.earlyRenewalWeeks;
+  const opens = expires && addDays(expires, -weeks * 7);
+  const inWindow = opens && expires && expires >= a.day ? opens <= a.day : undefined;
+  const waiting = inState === true && inWindow === false;
+  if (waiting && opens) a.availableFrom(opens);
+  a.add(
+    'IRP-RENEWAL-WINDOW',
+    all(inState, inWindow),
+    opens
+      ? a.L(
+          `须在爱尔兰共和国线上递交。续期从 IRP 到期前 ${weeks} 周开放，即 ${opens}。旧卡已过期时须核对现行许可（PD-321）。`,
+          `Apply online from the Republic of Ireland. Renewal opens ${weeks} weeks before IRP expiry, on ${opens}. If the card has expired, confirm current permission (PD-321).`,
+        )
+      : a.L(
+          '须在爱尔兰共和国线上递交，并确认当前 IRP 到期日（PD-321）。',
+          'Apply online from the Republic of Ireland and confirm the expiry date of the current IRP (PD-321).',
+        ),
+    ['PD-321'],
+    !waiting,
+  );
+  return opens;
+}
+
 export function character(facts?: IrelandCharacter) {
   if (facts?.disclosed === false || facts?.officialFinding === false)
     return false;
@@ -204,6 +243,7 @@ export function registration(
   bornInState?: boolean,
   exemption?: boolean,
   requirePermission = true,
+  checkedByChecklist = false,
 ) {
   const p = full.registration.value;
   const age = ageAtLeast(dob, a.day, p.usualMinAge);
@@ -219,7 +259,7 @@ export function registration(
     input?.validPermission === false && input.renewalPending
       ? undefined
       : input?.validPermission;
-  a.add(
+  if (!checkedByChecklist) a.add(
     'B01',
     all(
       requirePermission ? permission : true,

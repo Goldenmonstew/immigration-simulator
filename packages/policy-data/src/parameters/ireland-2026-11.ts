@@ -280,9 +280,9 @@ export const irelandFull2026_11 = {
       sources: [{ srcId: 'SRC-380', locator: 'S.I. 569/2011 regs. 1(2), 13' }],
     },
     refugee: {
-      value: { changedOn: '2025-12-08', previousYears: 3, currentYears: 5 },
+      value: { changedOn: '2025-12-08', previousYears: 3, currentYears: 5, continuousYears: 1 },
       sources: [
-        { srcId: 'SRC-095', locator: 'Applicants granted refugee status' },
+        { srcId: 'SRC-095', locator: 'Reckonable Residence for Refugees or people with international protection' },
         {
           srcId: 'SRC-381',
           locator:
@@ -336,7 +336,7 @@ export const irelandFull2026_11 = {
         srcId: 'SRC-383',
         locator: 'Immigration Act ss9, 19; S.I. 421/2025 regs. 1, 3–5',
       },
-      { srcId: 'SRC-384', locator: 'Registration FAQ: when can I renew?' },
+      { srcId: 'SRC-384', locator: 'Online renewal: When should I submit a Renewal Application?' },
     ],
   },
   work: {
