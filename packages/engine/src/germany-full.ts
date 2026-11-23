@@ -28,6 +28,8 @@ import {
   mobilityChecks,
   retainedTitle,
   type DeMobilityAnswers,
+  type DocumentReviews,
+  type TitleReview,
 } from './germany-mobility';
 import { commonChecks, type DeCommonAnswers } from './germany-full-common';
 import { feeChecks, type DeFeeAnswers } from './germany-fees';
@@ -69,12 +71,13 @@ const routes = {
 export type DeFullRoute = keyof typeof routes;
 export const DE_FULL_ROUTES = Object.keys(routes) as DeFullRoute[];
 
+type FullPermit = DePermit & Omit<TitleReview, 'kind'>;
+
 export interface DeFullRequest extends Partial<
   Omit<DeRequest, 'settlementRoute' | 'naturalisationRoute'>
 > {
   simulationDate: IsoDate;
-  /** Paragraph 4 or a qualifying § 104(5) resettlement decision for this specific permit. */
-  permits?: (DePermit & { protectedResettlement?: boolean })[];
+  permits?: FullPermit[];
   birthDate?: IsoDate;
   /** By default assess every route. Empty histories are explicit answers. */
   routes?: readonly DeFullRoute[];
@@ -197,6 +200,7 @@ function timeCheck(
   req: DeFullRequest,
   read: ReturnType<typeof pilotReader>,
   checks: CountryCheck[],
+  unresolvedDocument: boolean,
 ) {
   // The pilot can project pension accrual. Use the applicable credits or waiver
   // before taking that date, otherwise a satisfied pension test delays residence.
@@ -273,6 +277,12 @@ function timeCheck(
   }
   if (old?.status === 'NOT_APPLICABLE' && route !== 'R00' && !changed)
     first = false;
+  const needsDocument =
+    unresolvedDocument && (route === 'R00' || retention?.status === 'UNKNOWN');
+  if (needsDocument) {
+    first = undefined;
+    changed = true;
+  }
   const [id, law, pd] = timing[route];
   const natural = route === 'R07' || route === 'R08';
   const refs = old?.checks.flatMap((c) => c.sources) ?? [];
@@ -282,8 +292,12 @@ function timeCheck(
   if (route === 'R05' || route === 'R05-fast')
     refs.push(src(100, '§ 26 Abs. 3 Satz 6; § 104 Abs. 5'));
   const L = textFor(req);
-  const description =
-    conflict && override === 'pilot'
+  const description = needsDocument
+    ? L(
+        '当前许可对应的文书及其存续事实仍需核实。',
+        'The current permit must be linked to a document with confirmed retention facts.',
+      )
+    : conflict && override === 'pilot'
       ? L(
           '原计时按出境期限扣除了许可期间。当前文书仍有效，还须确认这次出境在本路径可计入的天数。',
           'The baseline period excluded time after an absence deadline. The title was retained, but credit for that absence under this route needs confirmation.',
@@ -309,7 +323,7 @@ function timeCheck(
     pd,
   );
   rule.explanation =
-    route === 'R00' && old
+    route === 'R00' && old && !needsDocument
       ? [old.summary, ...old.checks.map((c) => c.text)].join(' ')
       : description;
   if (route === 'R08' && !changed && old?.checks[1])
@@ -319,7 +333,7 @@ function timeCheck(
       ...new Set([
         ...(rule.pendingDetails ?? []),
         ...(old?.pendingDetails ?? []),
-        ...(conflict ? ['PD-353'] : []),
+        ...(conflict || needsDocument ? ['PD-353'] : []),
       ]),
     ];
   return { rule, old, changed };
@@ -328,6 +342,7 @@ function timeCheck(
 function currentTitleCheck(
   req: DeFullRequest,
   route: DeFullRoute,
+  reviews: DocumentReviews,
 ): CountryCheck | undefined {
   if (['R00', 'R13', 'R18'].includes(route)) return;
   // Free-movement and Swiss rights may satisfy nationality law independently of a German title.
@@ -348,7 +363,7 @@ function currentTitleCheck(
     'The title relied on for this route remains effective',
     route === 'R03' && req.mobility?.titles === undefined
       ? req.mobility?.blueCard?.cardHeldAtDecision
-      : retainedTitle(req, kind),
+      : retainedTitle(req, kind, reviews),
     [src(100, '§§ 51 Abs. 1–4, 7, 9–10, 81 Abs. 4')],
     'PD-124 PD-353',
   );
@@ -364,36 +379,186 @@ const procedure = new Set([
   ...citizenshipAdvisoryIds,
 ]);
 
-// Title reviews describe present documents. A past or future permit of the
-// same kind keeps its own dates (StAG § 10 Abs. 1 Satz 1 Nr. 2).
-function withCurrentTitleExpiry(req: DeFullRequest): DeFullRequest {
-  const { permits, mobility } = req;
-  if (!permits || !mobility?.titles) return req;
-  const current = currentPermit(req);
-  if (!current || DE_UNLIMITED_KINDS.includes(current.kind)) return req;
-  const matching = mobility.titles.filter((t) => t.kind === current.kind);
-  if (matching.length !== 1) return req;
-  const [title] = matching;
-  const [expiry] = [current.to, title.validTo].filter((date) => !!date).sort();
-  if (!expiry) return req;
+// SRC-100 §§ 51, 81(4). Retention evidence belongs to one physical document.
+// Earlier and subsequent permits keep their own periods, even for the same kind.
+function mergeDocumentFacts(permit: FullPermit, title: TitleReview) {
+  const {
+    to,
+    renewing,
+    validTo: permitValidity,
+    continuingUnder81: permitContinuation,
+    trips: permitTrips,
+    ...permitFields
+  } = permit;
+  const {
+    validTo,
+    continuingUnder81,
+    trips: titleTrips,
+    ...titleFields
+  } = title;
+  const [expiry] = [to, permitValidity, validTo]
+    .filter((d): d is IsoDate => !!d)
+    .sort();
+  const validity =
+    expiry ?? (permitValidity === null || validTo === null ? null : undefined);
+  let conflict = false;
+  function agree<T>(a: T | undefined, b: T | undefined) {
+    if (a === undefined) return b;
+    if (b === undefined || a === b) return a;
+    conflict = true;
+    return undefined;
+  }
+  function mergeFields<T extends object>(a: T, b: T): T {
+    const fields = { ...a };
+    for (const key in b) {
+      const fact = agree(a[key], b[key]);
+      if (fact === undefined) delete fields[key];
+      else fields[key] = fact;
+    }
+    return fields;
+  }
+  function mergePeriods<T>(
+    a: T[] | undefined,
+    b: T[] | undefined,
+    start: (period: T) => IsoDate,
+    merge: (a: T, b: T) => T,
+  ) {
+    if (!a || !b) return a ?? b;
+    const byStart = new Map(a.map((t) => [start(t), t]));
+    for (const t of b) {
+      const key = start(t);
+      const previous = byStart.get(key);
+      byStart.set(key, previous === undefined ? t : merge(previous, t));
+    }
+    return [...byStart.values()].sort((l, r) =>
+      start(l).localeCompare(start(r)),
+    );
+  }
+  const trips = mergePeriods(
+    permitTrips,
+    titleTrips,
+    (t) => t.departed,
+    (left, right) => {
+      const { outsideArea: a, ...first } = left;
+      const { outsideArea: b, ...second } = right;
+      return {
+        ...mergeFields(first, second),
+        outsideArea: mergePeriods(a, b, (t) => t.from, mergeFields),
+      };
+    },
+  );
+  const continuation = agree(
+    agree(renewing, permitContinuation),
+    continuingUnder81,
+  );
+  const fields = {
+    ...mergeFields<Partial<TitleReview>>(permitFields, titleFields),
+    trips,
+  };
   return {
-    ...req,
-    permits: permits.map((p) =>
-      p === current
-        ? { ...p, to: expiry, renewing: p.renewing ?? title.continuingUnder81 }
-        : p,
-    ),
-    mobility: {
-      ...mobility,
-      titles: mobility.titles.map((t) =>
-        t === title ? { ...t, validTo: expiry } : t,
+    title: {
+      ...fields,
+      kind: permit.kind,
+      validTo: validity,
+      continuingUnder81: continuation,
+    },
+    permit: {
+      ...fields,
+      kind: permit.kind,
+      from: permit.from,
+      to: expiry,
+      validTo: validity,
+      continuingUnder81: continuation,
+      renewing: continuation,
+    },
+    conflict,
+  };
+}
+
+function matchDocuments(req: DeFullRequest): {
+  req: DeFullRequest;
+  reviews: DocumentReviews;
+} {
+  const permits = req.permits;
+  const current = currentPermit(req);
+  if (!permits) return { req, reviews: {} };
+  const detailed: TitleReview[] | undefined =
+    req.mobility?.titles ??
+    (current &&
+    (current.noOtherLossEvent !== undefined || current.trips !== undefined)
+      ? [{ kind: current.kind, from: current.from }]
+      : undefined);
+  const titles = detailed ?? [];
+  const issued = permits.filter((p) => p.from <= req.simulationDate);
+  const matches = titles.map((title) => {
+    const sameKind = issued.filter((p) => p.kind === title.kind);
+    if (title.from) return sameKind.filter((p) => p.from === title.from);
+    const unclaimed = sameKind.filter(
+      (p) => !titles.some((t) => t.kind === p.kind && t.from === p.from),
+    );
+    if (unclaimed.length <= 1) return unclaimed;
+    // The timeline supersedes an open-ended older row. An explicit term or
+    // continuation can still identify it as an independently held document.
+    const present = unclaimed.filter((p) => {
+      if (p.from === current?.from) return true;
+      const { permit, conflict } = mergeDocumentFacts(p, { kind: p.kind });
+      return (
+        conflict ||
+        (permit.noOtherLossEvent !== false &&
+          (DE_UNLIMITED_KINDS.includes(permit.kind) ||
+            permit.renewing ||
+            permit.validTo === null ||
+            (!!permit.to && permit.to >= req.simulationDate)))
+      );
+    });
+    return present.length ? present : unclaimed;
+  });
+  const timeline = new Map<FullPermit, FullPermit>();
+  const unresolved = new Set<TitleReview>();
+  // A dated review of another card of the same kind cannot prove retention
+  // of the timeline's current permit.
+  let currentReview: TitleReview | undefined =
+    current && titles.some((t) => t.kind === current.kind)
+      ? { kind: current.kind }
+      : undefined;
+  const reviewed = titles.map((title, i) => {
+    const candidates = matches[i];
+    if (!candidates.length) return title;
+    const [permit] = candidates;
+    if (
+      candidates.length !== 1 ||
+      matches.some((rows, j) => i !== j && rows.includes(permit))
+    ) {
+      unresolved.add(title);
+      return title;
+    }
+    const merged = mergeDocumentFacts(permit, title);
+    timeline.set(permit, merged.permit);
+    if (merged.conflict) unresolved.add(merged.title);
+    if (permit === current) currentReview = merged.title;
+    return merged.title;
+  });
+  return {
+    req: {
+      ...req,
+      permits: permits.map(
+        (p) =>
+          timeline.get(p) ??
+          (p.validTo !== undefined || p.continuingUnder81 !== undefined
+            ? mergeDocumentFacts(p, { kind: p.kind }).permit
+            : p),
       ),
+      ...(detailed && { mobility: { ...req.mobility, titles: reviewed } }),
+    },
+    reviews: {
+      current: currentReview,
+      unresolved: unresolved.size ? unresolved : undefined,
     },
   };
 }
 
 export function evaluateGermanyFull(input: DeFullRequest): CountryResult {
-  const req = withCurrentTitleExpiry(input);
+  const { req, reviews } = matchDocuments(input);
   const L = textFor(req);
   const read = pilotReader(req);
   const pathways = [...new Set(req.routes ?? DE_FULL_ROUTES)].map(
@@ -406,13 +571,19 @@ export function evaluateGermanyFull(input: DeFullRequest): CountryResult {
           : commonChecks(route, req);
       checks.push(
         ...settlementChecks(route, req),
-        ...mobilityChecks(route, req),
+        ...mobilityChecks(route, req, reviews),
       );
-      const title = currentTitleCheck(req, route);
+      const title = currentTitleCheck(req, route, reviews);
       if (title) checks.push(title);
       const time =
         route in pilotSettlement
-          ? timeCheck(route as PilotRoute, req, read, checks)
+          ? timeCheck(
+              route as PilotRoute,
+              req,
+              read,
+              checks,
+              !!reviews.unresolved,
+            )
           : undefined;
       if (time) checks.unshift(time.rule);
       // § 51 treats concurrent titles separately. When detailed records exist, an old
@@ -420,7 +591,7 @@ export function evaluateGermanyFull(input: DeFullRequest): CountryResult {
       const detailedTravel =
         route === 'R00' && req.mobility?.titles !== undefined;
       const eligible = detailedTravel
-        ? retainedTitle(req)
+        ? retainedTitle(req, undefined, reviews)
         : all(
             ...checks
               .filter((c) => !procedure.has(c.id))

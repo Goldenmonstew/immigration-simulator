@@ -145,7 +145,20 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
       pensionForSameMonths: true,
     };
     const b = { ...a, firstMonth: '2025-02', lastMonth: '2025-10' };
-    const fields = { ...active, employment: [a, b] };
+    expect(
+      blue('C19-months', {
+        ...active,
+        employment: [a, b],
+        creditBeforeInterruption: true,
+      }),
+    ).toBe('UNKNOWN');
+    const fields = {
+      ...active,
+      employment: [
+        { ...a, startedOn: '2024-01-01', endedOn: '2024-12-31' },
+        { ...b, startedOn: '2025-02-01', endedOn: '2025-10-31' },
+      ],
+    };
     expect(blue('C19-months', fields)).toBe('UNKNOWN');
     expect(
       blue('C19-months', { ...fields, creditBeforeInterruption: false }),
@@ -168,9 +181,14 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
       firstMonth: '2025-12',
       lastMonth: '2026-10',
     };
+    const first = {
+      ...employment,
+      startedOn: '2025-01-01',
+      endedOn: '2025-10-31',
+    };
     for (const periods of [
-      [employment, gap, resumed],
-      [employment, resumed],
+      [first, gap, resumed],
+      [first, resumed],
     ]) {
       const cases = [
         [undefined, 'UNKNOWN', 'UNKNOWN', undefined],
@@ -212,11 +230,13 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
       ...employment,
       firstMonth: '2024-12',
       lastMonth: '2025-04',
+      endedOn: '2025-04-30',
       countableAnnualGross: 46000,
     };
     const raised = {
       ...employment,
       firstMonth: '2025-05',
+      startedOn: '2025-05-01',
       lastMonth: '2026-10',
     };
     for (const historicalPayAccepted of [undefined, true]) {
@@ -306,9 +326,15 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
           ...employment,
           firstMonth: '2024-12',
           lastMonth: '2025-04',
+          endedOn: '2025-04-30',
           countableAnnualGross: 46000,
         },
-        { ...employment, firstMonth: '2025-05', lastMonth: '2026-08' },
+        {
+          ...employment,
+          firstMonth: '2025-05',
+          startedOn: '2025-05-01',
+          lastMonth: '2026-08',
+        },
       ],
       before: '2026-09-10',
       eve: '2026-09-23',
@@ -389,6 +415,201 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
     },
   );
 
+  test('actual dates on adjacent payroll months preserve the interruption', () => {
+    const first = {
+      ...employment,
+      firstMonth: '2025-02',
+      lastMonth: '2025-12',
+      startedOn: '2025-02-01',
+      endedOn: '2025-12-15',
+    };
+    const second = {
+      ...employment,
+      firstMonth: '2026-01',
+      lastMonth: '2026-10',
+      startedOn: '2026-01-15',
+    };
+    for (const [creditBeforeInterruption, routeStatus, due] of [
+      [false, 'FUTURE', '2027-10-15'],
+      [true, 'FUTURE', '2026-11-23'],
+      [undefined, 'NOT_MET', undefined],
+    ] as const) {
+      const path = fullBlue(
+        {
+          employmentStartedOn: first.startedOn,
+          latestRelevantChangeOn: second.startedOn,
+          changeReported: true,
+          creditBeforeInterruption,
+          employment: [first, second],
+        },
+        '2026-11-01',
+      );
+      expect(path.checks.find((c) => c.id === 'DE-C19-months')?.status).toBe(
+        'NOT_MET',
+      );
+      expect(path.status).toBe(routeStatus);
+      expect(path.earliestDate).toBe(due);
+    }
+    for (const [date, checkStatus, routeStatus] of [
+      ['2026-11-22', 'NOT_MET', 'FUTURE'],
+      ['2026-11-23', 'MET', 'MET'],
+    ] as const) {
+      const path = fullBlue(
+        { creditBeforeInterruption: true, employment: [first, second] },
+        date,
+      );
+      expect(path.checks.find((c) => c.id === 'DE-C19-months')?.status).toBe(
+        checkStatus,
+      );
+      expect(path.status).toBe(routeStatus);
+      expect(path.earliestDate).toBe('2026-11-23');
+    }
+  });
+
+  test('middle jobs, overlaps and same-month restarts use their own dates', () => {
+    const first = {
+      ...employment,
+      firstMonth: '2024-08',
+      lastMonth: '2025-04',
+      startedOn: '2024-08-01',
+      endedOn: '2025-04-09',
+    };
+    const middle = {
+      ...employment,
+      firstMonth: '2025-04',
+      lastMonth: '2025-06',
+      startedOn: '2025-04-13',
+      endedOn: '2025-06-16',
+    };
+    const last = {
+      ...employment,
+      firstMonth: '2025-06',
+      lastMonth: '2026-10',
+      startedOn: '2025-06-13',
+    };
+    const path = fullBlue({
+      employment: [last, middle, first, middle],
+      creditBeforeInterruption: false,
+    });
+    expect(path.checks.find((c) => c.id === 'DE-C19-months')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(path.status).toBe('FUTURE');
+    expect(path.earliestDate).toBe('2027-01-13');
+
+    const possibleGap = fullBlue({
+      employment: [{ ...first, endedOn: undefined }, middle, last],
+      creditBeforeInterruption: false,
+    });
+    expect(
+      possibleGap.checks.find((c) => c.id === 'DE-C19-months')?.status,
+    ).toBe('UNKNOWN');
+    expect(possibleGap.status).toBe('UNKNOWN');
+    expect(possibleGap.earliestDate).toBeUndefined();
+  });
+
+  test('the last payroll month can belong to both a departing and a new worker record', () => {
+    const path = fullBlue(
+      {
+        creditBeforeInterruption: false,
+        employment: [
+          {
+            ...employment,
+            firstMonth: '2025-01',
+            lastMonth: '2026-10',
+            startedOn: '2025-01-01',
+          },
+          {
+            ...employment,
+            firstMonth: '2026-10',
+            lastMonth: '2026-10',
+            startedOn: '2026-10-20',
+          },
+        ],
+      },
+      '2026-11-01',
+    );
+    expect(path.checks.find((c) => c.id === 'DE-C19-months')?.status).toBe(
+      'UNKNOWN',
+    );
+    expect(path.status).toBe('UNKNOWN');
+    expect(path.earliestDate).toBeUndefined();
+  });
+
+  test('a documented interruption prevents a new salary from curing the previous job’s shortfall', () => {
+    const path = fullBlue({
+      creditBeforeInterruption: true,
+      employment: [
+        {
+          ...employment,
+          firstMonth: '2024-12',
+          lastMonth: '2025-04',
+          startedOn: '2024-12-01',
+          endedOn: '2025-04-12',
+          countableAnnualGross: 46000,
+        },
+        {
+          ...employment,
+          firstMonth: '2025-05',
+          lastMonth: '2026-10',
+          startedOn: '2025-05-12',
+        },
+      ],
+    });
+    expect(path.checks.find((c) => c.id === 'DE-C19-months')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(path.status).toBe('FUTURE');
+    expect(path.earliestDate).toBe('2027-01-01');
+  });
+
+  test('an unconfirmed short break can change which calendar rule applies', () => {
+    const path = fullBlue(
+      {
+        creditBeforeInterruption: true,
+        employment: [
+          {
+            ...employment,
+            firstMonth: '2025-02',
+            startedOn: '2025-02-24',
+            lastMonth: '2025-08',
+          },
+          {
+            ...employment,
+            firstMonth: '2025-08',
+            startedOn: '2025-08-04',
+            lastMonth: '2026-10',
+          },
+        ],
+      },
+      '2026-11-20',
+    );
+    expect(path.checks.find((c) => c.id === 'DE-C19-months')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: expect.arrayContaining(['PD-350']),
+    });
+    expect(path.status).toBe('UNKNOWN');
+    expect(path.earliestDate).toBeUndefined();
+  });
+
+  test('an explicit final day limits both accrued work and its projection', () => {
+    const period = {
+      ...employment,
+      firstMonth: '2025-02',
+      lastMonth: '2026-11',
+      startedOn: '2025-02-24',
+      endedOn: '2026-11-12',
+    };
+    for (const simulationDate of ['2026-11-01', '2026-11-24']) {
+      const path = fullBlue({ employment: [period] }, simulationDate);
+      expect(path.checks.find((c) => c.id === 'DE-C19-months')?.status).toBe(
+        'NOT_MET',
+      );
+      expect(path.status).toBe('NOT_MET');
+      expect(path.earliestDate).toBeUndefined();
+    }
+  });
+
   test('a month without the qualifying start day gives bounds, not a precise anniversary', () => {
     const previous = {
       ...employment,
@@ -462,7 +683,12 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
       latestRelevantChangeOn: '2025-08-01',
       changeReported: true,
       employment: [
-        { ...employment, firstMonth: '2025-02', lastMonth: '2025-07' },
+        {
+          ...employment,
+          firstMonth: '2025-02',
+          lastMonth: '2025-07',
+          endedOn: '2025-07-31',
+        },
         { ...employment, firstMonth: '2025-08', lastMonth: '2026-10' },
       ],
     };
@@ -574,6 +800,8 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
     const history = {
       firstMonth: '2024-01',
       lastMonth: '2025-12',
+      startedOn: '2024-01-01',
+      endedOn: '2025-12-31',
       countableAnnualGross: 45300,
       payBand: 'standard' as const,
       qualifyingWork: true,
@@ -583,6 +811,8 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
       ...history,
       firstMonth: '2024-12',
       lastMonth: '2025-09',
+      startedOn: '2024-12-01',
+      endedOn: '2025-09-30',
       countableAnnualGross: 48300,
     };
     const r = request({
@@ -633,7 +863,14 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
     expect(
       blue('C19-months', {
         ...active,
-        employment: [{ ...past, historicalPayAccepted: true }],
+        employment: [
+          {
+            ...past,
+            startedOn: '2023-01-01',
+            endedOn: '2024-09-30',
+            historicalPayAccepted: true,
+          },
+        ],
       }),
     ).toBe('MET');
     expect(

@@ -215,3 +215,60 @@ R07 核定的五年届满日为 2027-10-01 时，同一张蓝卡无论在哪一�
 ### 4. 发现与建议
 
 逐证资料若有多份同类文书，目前缺少字段区分它们分别对应哪条许可记录，页面应保留逐证对应关系。R05 普通档退休生计豁免的医保范围继续沿用 PD-351。
+
+## 第四轮审核修正（review90-4）
+
+### 1. 做了什么
+
+PROGRESS 716。建议提交 `Fix: 按实际工作日期计算德国蓝卡就业月数并统一文书事实（review90-4）`。
+
+**R03 就业计月。** 每条 `employment[]` 记录可填实际入职日 `startedOn` 与最后工作日 `endedOn`。`firstMonth`、`lastMonth` 仍表示工资和同期缴费记录覆盖的月份。分别求有证据支持的最短与最长工作区间，按日合并重叠或首尾相接的区间。前一份工作最后一天与下一份工作第一天之间的空档，即使两个月都有缴费，也不计入。新岗位的涨薪不能补足已中断的旧岗位工资。旧数据中的首次就业日或最近换岗日仅在能对应到唯一一段时补充起点。
+
+连续工作的期限按日历月对应日计算。机关已确认可以合计中断前工龄时，累计实际可计工作日，按仓库已有的 BGB § 191 参数换算非连续月份。能否合计仍待认定，或缺少日级证据时，仅在上下限得出相同结论时确定是否达标。无法确定具体日期时保留空值。依据为 SRC-100 § 18c Abs. 2 Sätze 1、3，SRC-107 Nr. 18c.2.1.1–3（印刷页 117–118），SRC-102 BGB §§ 187、188、191；日期与跨空档认定已补记 PD-350。[AufenthG § 18c](https://www.gesetze-im-internet.de/aufenthg_2004/__18c.html)、[BGB § 191](https://www.gesetze-im-internet.de/bgb/__191.html)
+
+`employmentMonths` 的生产调用入口共两个，都从公开的 `evaluateGermanyFull` 到达。
+
+| 入口 | 调用链与结果 |
+|---|---|
+| 条件 | `mobilityChecks('R03') → blueCardChecks → employmentMonths`。用已确认、最多可计的月数评估 `DE-C19-months`。 |
+| 时间线与预测 | `timeCheck('R03') → pilotReader 返回的读取函数 → blueCardTimeInputs → employmentMonths`。用同一结果提供 `blueCardEmploymentMonths` 和可确定的 `employmentDue`；时间线继续检查预测日的持证及出境条件。 |
+
+两处都优先使用逐段记录；未提供 `employment[]` 时读取用户已核定的总数 `blueCardEmploymentMonths`。两次 `employmentBound` 分别计算上下限。`employmentAnniversary` 在 `completedMonths` 核对已满整月、在 `employmentBound` 推算连续工作的届满日，另供 `blueCardChecks` 计算首次就业的换岗审查窗口。旧公开入口 `evaluateGermany → evaluateGermanyTimeline` 仍直接读原计时输入。
+
+**同一份文书的字段清单。** 完整版入口用 `matchDocuments` 确定对应关系，`mergeDocumentFacts` 把同一份文书的事实写回时间线和逐证评估。优先匹配 `kind` 与签发生效日 `from`；缺少起日时，只在能排除其他候选时认定。已确认同时有效或正在续期的同类证件可能构成多个候选。依据为 SRC-100 § 51 Abs. 1、2–4、7、9–10、§ 81 Abs. 4，SRC-101 § 10 Abs. 1 Satz 1 Nr. 2；歧义已补记 PD-353。[AufenthG § 51](https://www.gesetze-im-internet.de/aufenthg_2004/__51.html)、[AufenthG § 81](https://www.gesetze-im-internet.de/aufenthg_2004/__81.html)、[StAG § 10](https://www.gesetze-im-internet.de/stag/__10.html)
+
+| 事实 | 字段及合并方式 |
+|---|---|
+| 身份、期限及续期 | `kind`、`from`；`to` / `validTo` 取已知较早的具体日期。`validTo: null` 可在两侧表示有效期已确认覆盖模拟日。`renewing` / `continuingUnder81` 归为同一个续期事实。 |
+| 独立失效与保护 | `noOtherLossEvent`、`protectedResettlement`。 |
+| 文书所涉出境与返德 | `trips[]` 按 `departed` 对应，同段合并 `returned`、`nonTemporary`、`approvedReturnBy`、`exception`、`militaryDischargedOn`、`coercionEndedOn`、`qualifiesUnder37`；段内 `outsideArea[]` 按 `from` 对应并合并 `to`。 |
+| 永久居留等例外 | `lawfulYears`、`spouseHasQualifyingLongResidence`、`ageOnDeparture`、`germanSpouseLivingTogether`、`livelihoodSecured`、`noListedExpulsionInterest`、`priorBlueCardOrQualifyingFamilyTitle`。 |
+| 签证事实 | `multipleEntryVisa`、`visaDurationDays`。 |
+
+### 2. 怎么验证的
+
+在基线 `ac73b3e` 上，R03 的跨月空档复现返回了 `MET`；单侧续期复现返回了 `UNKNOWN`。同类文书对应不清时也能得到肯定结论。修正后的公开入口回归逐项断言了条件、路径及 `earliestDate`。
+
+| 公开入口输入 | 条件 | 路径 | earliestDate |
+|---|---|---|---|
+| R03，B1，2025-02-01 至 2025-12-15 就业，2026-01-15 再就业。2026-11-01 模拟，机关确认不计前段 | C19-months `NOT_MET`，复工后已满 9 个月 | `FUTURE` | 2027-10-15 |
+| 同一输入，机关确认可计前段 | C19-months `NOT_MET`。两段分别 318 天、290 天，合计 608 天 | `FUTURE` | 2026-11-23；前一日仍未达标，当日为 `MET` |
+| 同一输入，机关对前段的认定未知 | C19-months `NOT_MET`，两种算法在模拟日均不足 | `NOT_MET` | 无 |
+| 三段就业中，前段最后工作日缺失，可能与后段相接，也可能有空档，两种结论跨越门槛 | C19-months `UNKNOWN` | `UNKNOWN` | 无 |
+| R00、R07，五年已满，蓝卡于 2026-10-31 到期；只在 `permits[].renewing` 确认续期，或只在 `mobility.titles[].continuingUnder81` 确认续期 | C63-blue-card / C63-current 均为 `MET` | 均为 `MET` | 均为 2026-11-23 |
+| 同一张卡确认发生其他失效事由，续期、失效事实互换填报位置 | 两个持证条件均为 `NOT_MET` | 均为 `NOT_MET` | 无 |
+| 一条时间线对应两条无起日的同类逐证记录；反向为两条可能有效的同类时间线对应一份无起日逐证记录 | 两个持证条件均为 `UNKNOWN`，含 PD-353 | 均为 `UNKNOWN` | 无，亦无预测摘要 |
+
+表中的 R03 预测沿用持续合格就业并缴费、届满时持有蓝卡的假设。回归还覆盖了同月离职和复工、重复及相互重叠的中间工作段、已知最后工作日在届满前、同月两份工作却缺前段结束日、同类并存旧证的出境记录分填两侧，以及用生效日排除同类文书歧义。涉及整段就业的旧测试夹具补齐了其断言所需的日期，并保留缺日期时的待核用例。
+
+定向运行 `pnpm --filter @uk-immigration/engine exec vitest run test/germany-mobility.test.ts test/germany-citizenship.test.ts test/germany-full.test.ts test/germany.test.ts`，四个文件共 232 项通过，含原德国计时入口测试。
+
+`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 首次运行退出码为 0。全仓 5,388 项通过（error-report 2、policy-data 23、engine 3,373、game 1,336、web 654），1 项文案导出测试按既有条件跳过。构建生成 27 个静态页面，已核实 `apps/web/out/germany.html` 非空。`git diff --check` 通过，旧计时实现与原测试相对 `ac73b3e` 无差异。
+
+### 3. 没做或没验证的
+
+按要求保留未提交工作树。德国页面继续调用 `evaluateGermany`。本轮未改前端，未运行浏览器 e2e。
+
+### 4. 发现与建议
+
+审核中 R05 退休生计豁免是否涵盖医保的问题仍登记在 PD-351，等待官方口径。

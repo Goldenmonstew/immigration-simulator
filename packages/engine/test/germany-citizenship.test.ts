@@ -507,6 +507,242 @@ describe('StAG specific pathways', () => {
     },
   );
 
+  test.each(['permits', 'titles'] as const)(
+    'documented § 81 continuation only in %s retains the expired card',
+    (side) => {
+      const from = '2021-11-23';
+      const expiry = '2026-10-31';
+      const facts = { noOtherLossEvent: true, trips: [] };
+      for (const route of ['R00', 'R07'] as const) {
+        for (const loss of [false, true]) {
+          const retention = { ...facts, noOtherLossEvent: !loss };
+          const path = citizenshipRoute(
+            from,
+            {},
+            {
+              routes: [route],
+              permits: [
+                {
+                  kind: 'blue-card',
+                  from,
+                  to: expiry,
+                  ...(side === 'permits' && { renewing: true }),
+                  ...(side === 'titles' && retention),
+                },
+              ],
+              mobility: {
+                titles: [
+                  {
+                    kind: 'blue-card',
+                    validTo: expiry,
+                    ...(side === 'titles' && { continuingUnder81: true }),
+                    ...(side === 'permits' && retention),
+                  },
+                ],
+              },
+            },
+          );
+          const status = loss ? 'NOT_MET' : 'MET';
+          const id = route === 'R00' ? 'DE-C63-blue-card' : 'DE-C63-current';
+          expect(path.checks.find((c) => c.id === id)?.status).toBe(status);
+          expect(path.status).toBe(status);
+          expect(path.earliestDate).toBe(
+            loss ? undefined : base.simulationDate,
+          );
+        }
+      }
+    },
+  );
+
+  test.each(['permits', 'titles'] as const)(
+    'confirmation that the card covers today can be entered in %s without a printed expiry',
+    (side) => {
+      const from = '2021-11-23';
+      const path = citizenshipRoute(
+        from,
+        {},
+        {
+          permits: [
+            {
+              kind: 'blue-card',
+              from,
+              validTo: side === 'permits' ? null : undefined,
+            },
+          ],
+          mobility: {
+            titles: [
+              {
+                kind: 'blue-card',
+                validTo: side === 'titles' ? null : undefined,
+                noOtherLossEvent: true,
+                trips: [],
+              },
+            ],
+          },
+        },
+      );
+      expect(path.checks.find((c) => c.id === 'DE-C63-current')?.status).toBe(
+        'MET',
+      );
+      expect(path.status).toBe('MET');
+      expect(path.earliestDate).toBe(base.simulationDate);
+    },
+  );
+
+  test('an unidentified current card cannot supply a projected date for two same-kind reviews', () => {
+    const from = '2022-08-01';
+    const title = {
+      kind: 'blue-card' as const,
+      noOtherLossEvent: true,
+      trips: [],
+    };
+    for (const route of ['R00', 'R07'] as const) {
+      const path = citizenshipRoute(
+        from,
+        { countedResidenceSince: from },
+        {
+          routes: [route],
+          mobility: {
+            titles: [
+              { ...title, validTo: '2027-07-31' },
+              { ...title, validTo: '2028-01-01' },
+            ],
+          },
+        },
+      );
+      const id = route === 'R00' ? 'DE-C63-blue-card' : 'DE-C63-current';
+      expect(path.checks.find((c) => c.id === id)).toMatchObject({
+        status: 'UNKNOWN',
+        pendingDetails: expect.arrayContaining(['PD-353']),
+      });
+      expect(path.status).toBe('UNKNOWN');
+      expect(path.earliestDate).toBeUndefined();
+      expect(path.summary).toBeUndefined();
+    }
+    // The start identifies which expiry limits the timeline for naturalisation.
+    for (const [validTo, status] of [
+      ['2027-07-31', 'NOT_MET'],
+      ['2027-08-01', 'FUTURE'],
+    ] as const) {
+      const linked = citizenshipRoute(
+        from,
+        { countedResidenceSince: from },
+        {
+          mobility: {
+            titles: [
+              { ...title, from: '2020-01-01', validTo: '2028-01-01' },
+              { ...title, from, validTo },
+            ],
+          },
+        },
+      );
+      expect(linked.checks.find((c) => c.id === 'DE-C63-current')?.status).toBe(
+        'MET',
+      );
+      expect(linked.status).toBe(status);
+      expect(linked.earliestDate).toBe(
+        status === 'FUTURE' ? '2027-08-01' : undefined,
+      );
+    }
+  });
+
+  test.each([
+    ['2027-01-01', false, true],
+    ['2026-10-31', true, true],
+    ['2026-10-31', false, false],
+    [undefined, false, false],
+  ] as const)(
+    'an undated review with two issued permits (older expiry %s, renewal %s)',
+    (to, renewing, ambiguous) => {
+      const from = '2022-08-01';
+      for (const route of ['R00', 'R07'] as const) {
+        const path = citizenshipRoute(
+          from,
+          { countedResidenceSince: from },
+          {
+            routes: [route],
+            permits: [
+              { kind: 'blue-card', from, to, renewing },
+              { kind: 'blue-card', from: '2024-08-01', to: '2027-08-01' },
+              { kind: 'blue-card', from: '2028-01-01' },
+            ],
+            mobility: {
+              titles: [
+                { kind: 'blue-card', noOtherLossEvent: true, trips: [] },
+              ],
+            },
+          },
+        );
+        const id = route === 'R00' ? 'DE-C63-blue-card' : 'DE-C63-current';
+        expect(path.checks.find((c) => c.id === id)?.status).toBe(
+          ambiguous ? 'UNKNOWN' : 'MET',
+        );
+        if (ambiguous) {
+          expect(path.status).toBe('UNKNOWN');
+          expect(path.earliestDate).toBeUndefined();
+          expect(path.summary).toBeUndefined();
+        } else {
+          expect(path.status).toBe(route === 'R00' ? 'MET' : 'FUTURE');
+          expect(path.earliestDate).toBe(
+            route === 'R00' ? base.simulationDate : '2027-08-01',
+          );
+        }
+      }
+    },
+  );
+
+  test('concurrent documents each use their own timeline facts, including the earlier one', () => {
+    const earlier = '2020-03-01';
+    const current = '2021-11-23';
+    for (const retained of [true, false]) {
+      const path = citizenshipRoute(
+        earlier,
+        {},
+        {
+          routes: ['R00'],
+          permits: [
+            {
+              kind: 'blue-card',
+              from: earlier,
+              to: '2026-10-31',
+              renewing: true,
+              noOtherLossEvent: retained,
+              trips: [{ departed: '2026-06-01', nonTemporary: false }],
+            },
+            { kind: 'blue-card', from: current, noOtherLossEvent: false },
+          ],
+          mobility: {
+            titles: [
+              { kind: 'blue-card', from: current, trips: [] },
+              {
+                kind: 'blue-card',
+                from: earlier,
+                trips: [
+                  {
+                    departed: '2026-06-01',
+                    returned: '2026-06-03',
+                    exception: 'none',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      );
+      const status = retained ? 'MET' : 'NOT_MET';
+      expect(path.checks.find((c) => c.id === 'DE-C63-blue-card')?.status).toBe(
+        'NOT_MET',
+      );
+      expect(
+        path.checks.find((c) => c.id === 'DE-C63-blue-card-2')?.status,
+      ).toBe(status);
+      expect(path.status).toBe(status);
+      expect(path.earliestDate).toBe(
+        retained ? base.simulationDate : undefined,
+      );
+    }
+  });
+
   test('a confirmed residence start preserves the § 9 projection for a continuing German marriage', () => {
     const start = '2024-08-01';
     for (const countedResidenceSince of [undefined, start]) {
