@@ -65,6 +65,7 @@ test('the service worker keeps the site pages available offline', async ({
     '/spain',
     '/greece',
     '/portugal',
+    '/japan',
     '/germany',
     '/ireland',
   ]) {

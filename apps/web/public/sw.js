@@ -20,6 +20,7 @@ const PAGES = [
   '/greece',
   '/ireland',
   '/portugal',
+  '/japan',
   '/germany',
 ];
 

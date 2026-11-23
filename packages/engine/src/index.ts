@@ -122,6 +122,23 @@ export type {
   CaResult,
   CaTrip,
 } from './canada';
+export {
+  JP_NATURALISATION_ROUTES,
+  JP_PR_ROUTES,
+  evaluateJapan,
+  jpStayLimit,
+} from './japan';
+export type {
+  JpNaturalisationRequest,
+  JpNaturalisationRoute,
+  JpPathway,
+  JpPathwayId,
+  JpPrRequest,
+  JpPrRoute,
+  JpRequest,
+  JpResult,
+  JpTrip,
+} from './japan';
 export { NZ_RESIDENT_CATEGORIES, evaluateNewZealand } from './new-zealand';
 export type {
   NzPathway,

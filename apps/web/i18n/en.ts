@@ -853,6 +853,115 @@ export const en: Record<keyof typeof zhCN, string> = {
   'es.errorSummary': 'Fix the items marked in red first.',
   'es.error.date': 'Enter a valid date.',
   'es.error.order': 'This date cannot be before the start date.',
+  'jp.entryLink': 'Open the Japan pilot',
+  'jp.entryDesc':
+    'Use the start of your stay, your status and travel record to work out the dates for permanent residence and naturalisation, and how a lapsed re-entry permit breaks your stay.',
+  'jp.title': 'Japan: dates for permanent residence and naturalisation (pilot)',
+  'jp.intro':
+    'From when your stay in Japan began, your status and your trips, this works out two steps that depend on time alone: permanent residence (永住許可) and naturalisation (帰化). A trip past your re-entry permit ends your status and starts the stay again, and that is counted too.',
+  'jp.scope':
+    'The pilot checks only the time requirements in the Immigration Control Act, the Nationality Act and the Immigration Services Agency guidelines. It does not check conduct, income, taxes and pensions, highly skilled points, Japanese language or integration; each result lists them. The permanent residence guideline changes from 2027-04-01 (longer periods for spouses and others, and a new test for absences), so dates are worked out by application date; open questions are flagged. Your entries are processed in your browser and are not saved or uploaded.',
+  'jp.basics': 'About you',
+  'jp.simulationDate': 'Simulation date',
+  'jp.simulationDateHint':
+    'Results are worked out for this date (the application date). It starts as today.',
+  'jp.stayStart': 'Start of your unbroken stay in Japan',
+  'jp.stayStartHint':
+    'Enter the landing date your unbroken stay began; add every trip since under "Trips abroad" below, and a trip past your re-entry permit starts the stay again from your return.',
+  'jp.pr': 'Permanent residence',
+  'jp.prRoute': 'Permanent residence route that applies to you',
+  'jp.prRoute.choose': 'Choose one',
+  'jp.prRoute.general':
+    'General: 10 years of unbroken stay, 5 of them on a work or residence status',
+  'jp.prRoute.spouse':
+    'Spouse of a Japanese national, permanent resident or special permanent resident',
+  'jp.prRoute.child':
+    'Child of a Japanese national, permanent resident or special permanent resident (change of status)',
+  'jp.prRoute.child-birth':
+    'Child of a permanent resident or similar born in Japan, applying for permanent resident status within 30 days of birth',
+  'jp.bornOn': 'Date of birth in Japan',
+  'jp.bornOnHint':
+    'A child born in Japan, without landing, can apply to acquire status within 30 days of birth (Immigration Control Act art. 22-2; a deadline on a weekend, holiday or at the turn of the year moves to the next working day); after that, if the child already holds another status choose the child route for a change of status, and if the child has no status yet contact the regional immigration services bureau promptly.',
+  'jp.prRoute.teijusha': 'Long-term resident (定住者)',
+  'jp.prRoute.refugee': 'Recognised refugee or complementary protection',
+  'jp.prRoute.hsp70': 'Highly skilled professional, 70 points or more',
+  'jp.prRoute.hsp80':
+    'Highly skilled professional, 80 points or more, or special highly skilled (J-Skip)',
+  'jp.statusStart.general':
+    'First day on a work or residence status, held without a break since',
+  'jp.statusStart.teijusha': 'Date you became a long-term resident (定住者)',
+  'jp.statusStart.refugee':
+    'Date you were recognised as a refugee or for complementary protection',
+  'jp.statusStart.hsp70': 'First day with 70 points, kept since',
+  'jp.statusStart.hsp80':
+    'First day with 80 points (or as special highly skilled), kept since',
+  'jp.statusStartHint.general':
+    'Technical Intern Training and Specified Skilled Worker (i) do not count; for applications from 2027-04-01, Employment for Skill Development, Intra-company Transferee and some Designated Activities do not count either.',
+  'jp.newStatus':
+    'Under the new guideline from 2027-04-01, first day on a work or residence status',
+  'jp.newStatusHint':
+    'The new guideline no longer counts Intra-company Transferee, Employment for Skill Development, Specified Skilled Worker (i) or some Designated Activities as work statuses. Applications from 2027-04-01 count the 5 years from here.',
+  'jp.statusNone':
+    'I do not yet hold a work or residence status the old guideline counts (such as only Technical Intern Training or Specified Skilled Worker (i))',
+  'jp.newStatus.choose': 'Choose one',
+  'jp.newStatus.same': 'The same as above',
+  'jp.newStatus.own': 'A later date (I held a status it does not count)',
+  'jp.newStatus.none':
+    'My current status does not count (such as Intra-company Transferee)',
+  'jp.newStatusStart':
+    'First day on a status the new guideline counts, held since',
+  'jp.renewalPending':
+    'Before leaving I had applied to renew (or change) my status within the period of stay, and the decision was still pending',
+  'jp.marriedLifeFrom': 'Date your married life began',
+  'jp.marriedLifeFromHint':
+    'The permanent residence guideline counts married life in substance and does not say whether it runs from registration or from when you began living together; if they differ, the later one gives the more cautious result.',
+  'jp.excludedHint':
+    'If part of your stay was on an exceptional, temporary Designated Activities status (such as continued job hunting, a job offer awaiting start, or a pending refugee claim), enter each period: for applications from 2027-04-01 it does not count towards the 10 years (guideline 第5). Leave this empty if none.',
+  'jp.excludedPeriod': 'Excluded period {n}',
+  'jp.excludedFrom': 'From',
+  'jp.excludedTo': 'To',
+  'jp.addExcluded': 'Add a period that does not count towards the 10 years',
+  'jp.marriedOn': 'Date the marriage was registered (婚姻の日)',
+  'jp.marriedOnHint':
+    'Nationality Act art. 7 counts from the day of marriage: enter the date the marriage took effect (was registered).',
+  'jp.naturalisation': 'Naturalisation (帰化)',
+  'jp.natRoute': 'Naturalisation route that applies to you',
+  'jp.natRoute.choose': 'Choose one',
+  'jp.natRoute.general': 'General (Nationality Act art. 5)',
+  'jp.natRoute.spouse':
+    'Spouse of a Japanese national (Nationality Act art. 7)',
+  'jp.dateOfBirth': 'Date of birth',
+  'jp.homeMajorityLow': "My home country's age of majority is 18 or lower",
+  'jp.homeMajorityAge': "Age of majority under your home country's law (years)",
+  'jp.homeMajorityAgeHint':
+    'Nationality Act art. 5 asks for age 18 and adulthood under your home country’s law; if adulthood there is above 18 (such as 19), enter that age, otherwise tick the box above.',
+  'jp.trips': 'Trips abroad',
+  'jp.tripsHint':
+    'Add a row for each time you left Japan. You can include planned trips. A trip without a re-entry permit ticked uses the deemed re-entry permit (back within 1 year); if you enter the period of stay you held when leaving, you must also be back by then.',
+  'jp.trip': 'Trip {n}',
+  'jp.departed': 'Date you left Japan',
+  'jp.returned': 'Date you came back to Japan',
+  'jp.reentryPermit':
+    'Left on a re-entry permit (not the deemed permit) and came back while it was valid',
+  'jp.stayExpiry': 'Period of stay when you left (optional)',
+  'jp.stayExpiryHint':
+    'The expiry date on your residence card when you left; leave blank if you are a permanent resident or it did not end before you came back. If a renewal was pending when you left, also tick the box below (you then have until 2 months after expiry).',
+  'jp.addTrip': 'Add a trip',
+  'jp.remove': 'Remove',
+  'jp.submit': 'Work out dates',
+  'jp.errorSummary': 'Fix the items marked in red first.',
+  'jp.error.date': 'Enter a valid date.',
+  'jp.error.order': 'This date cannot be before the start date.',
+  'jp.error.prRoute':
+    'Choose the permanent residence route that applies to you.',
+  'jp.error.natRoute': 'Choose the naturalisation route that applies to you.',
+  'jp.error.specialPeriod':
+    'Even with a renewal pending you can leave only within 2 months after your period of stay ended; check the dates.',
+  'jp.error.newStatus': 'Choose how the new guideline counts your status.',
+  'jp.error.homeMajority':
+    "Tick that your home country's age of majority is 18 or lower, or enter the age.",
+  'jp.error.age': 'Enter a whole number of years from 1 to 99.',
+  'jp.error.overlap': 'This trip overlaps an earlier one.',
   'us.entryLink': 'Open the United States pilot',
   'us.entryDesc':
     'Use your green card date and travel record to work out the dates for naturalization, naturalization as the spouse of a citizen, removing conditions and time abroad.',
