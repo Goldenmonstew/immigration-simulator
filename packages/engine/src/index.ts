@@ -172,3 +172,12 @@ export type {
   AuTrip,
   AuVisa,
 } from './australia';
+export { evaluateNewZealandFull, type NzFullRequest } from './new-zealand-full';
+export type {
+  NzCommonAnswers,
+  NzPersonAnswers,
+  NzEnglishEvidence,
+} from './new-zealand-checks';
+export type { NzResidentAnswers } from './new-zealand-resident';
+export type { NzSkilledAnswers } from './new-zealand-skilled';
+export type { NzFamilyAnswers } from './new-zealand-family';
