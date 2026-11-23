@@ -335,6 +335,8 @@ interface Exit {
    * EU student mobility, which spares only Nr. 6 and 7 (§ 51 Abs. 1 Nr. 1).
    */
   studyEnd?: IsoDate;
+  /** Left at a time when an earlier trip may already have ended the title. */
+  after?: Exit;
   /** EU long-term residence: the last day if the time was outside the EU. */
   euBy?: IsoDate;
   lapses: boolean;
@@ -409,6 +411,9 @@ export function evaluateGermany(req: DeRequest): DeResult {
   const order = req.trips
     .map((_, n) => n)
     .sort((a, b) => (req.trips[a].departed < req.trips[b].departed ? -1 : 1));
+  // Undetermined lapses so far: whether the title still exists after `from`
+  // depends on that trip, until a later permit starts.
+  const undetermined: { exit: Exit; from: IsoDate; until?: IsoDate }[] = [];
   for (const n of order) {
     const trip = req.trips[n];
     const kind = kindAt(days.index(trip.departed));
@@ -470,6 +475,22 @@ export function evaluateGermany(req: DeRequest): DeResult {
         lapses: trip.returned > by && !mobility,
         unsure: (pendingRenewal && trip.returned <= by) || mobility,
       };
+    }
+    const prior = undetermined.find(
+      (u) => trip.departed > u.from && (!u.until || trip.departed <= u.until),
+    );
+    if (prior && !exit.lapses) {
+      exit.after = prior.exit;
+      exit.unsure = true;
+    }
+    const from = exit.unsure && (exit.mobility ? exit.by : exit.euBy);
+    if (from) {
+      const next = sorted.find((p) => p.from > trip.departed);
+      undetermined.push({
+        exit,
+        from,
+        until: next && addDays(next.from, -1),
+      });
     }
     exits[n] = exit;
     if (exit.lapses) {
@@ -1527,6 +1548,7 @@ export function evaluateGermany(req: DeRequest): DeResult {
     const euUnsure = unsure.filter((e) => e.euBy);
     const renewalUnsure = unsure.filter((e) => e.pendingRenewal);
     const mobilityUnsure = unsure.filter((e) => e.mobility);
+    const afterUnsure = unsure.filter((e) => e.after);
     // Back by the simulation date while the renewal was still pending.
     const backPending = (e: Exit) =>
       e.trip.returned <= sim && !!pending[days.index(e.trip.returned)];
@@ -1570,24 +1592,30 @@ export function evaluateGermany(req: DeRequest): DeResult {
               `For the trip${lapsed.length > 1 ? 's' : ''} ${lapsed.map(trip).join(', ')} the return is after the deadline, so the title lapses once the deadline has passed (§ 51): earlier time no longer counts for a settlement permit or EU long-term residence, and you need a new title to come back.`,
             )
           : unsure.length
-            ? (euUnsure.length
-                ? L(
+            ? [
+                euUnsure.length &&
+                  L(
                     `${euUnsure.map(trip).join('、')} 持欧盟长期居留离开德国较久：若这段时间都在欧盟以外，许可会在期限届满后失效（§ 51 Abs. 9 Satz 1 Nr. 3）；在其他欧盟国家的不失效，试点无法判断。`,
                     `On EU long-term residence you are away ${euUnsure.map(trip).join(', ')}: if all of that time is outside the EU the title lapses once the deadline has passed (§ 51 Abs. 9 Satz 1 Nr. 3); time in other EU countries does not count against it, which this pilot cannot tell.`,
-                  )
-                : '') +
-              (renewalUnsure.length
-                ? L(
+                  ),
+                renewalUnsure.length &&
+                  L(
                     `${renewalUnsure.map(trip).join('、')} 的返回日在原许可到期之后，续期还在等待决定：原许可只延续到决定作出（§ 81 Abs. 4）。续期获批或申请仍在等待的话，按检查项里的期限判断（一般 ${v.lapseMonths.value} 个月，欧盟蓝卡 ${v.blueCardLapseMonths.value} 个月）；否则许可在到期后已失效（§ 51 Abs. 1 Nr. 1），试点无法判断。`,
-                    `${euUnsure.length ? ' ' : ''}For ${renewalUnsure.map(trip).join(', ')} you come back after the old permit ran out while the renewal is pending: the permit only continues until the decision (§ 81 Abs. 4). If the renewal is granted or still pending, the limit in the check below applies (usually ${v.lapseMonths.value} months, ${v.blueCardLapseMonths.value} on an EU Blue Card); otherwise the permit lapsed when it ran out (§ 51 Abs. 1 Nr. 1), which this pilot cannot tell.`,
-                  )
-                : '') +
-              (mobilityUnsure.length
-                ? L(
+                    `For ${renewalUnsure.map(trip).join(', ')} you come back after the old permit ran out while the renewal is pending: the permit only continues until the decision (§ 81 Abs. 4). If the renewal is granted or still pending, the limit in the check below applies (usually ${v.lapseMonths.value} months, ${v.blueCardLapseMonths.value} on an EU Blue Card); otherwise the permit lapsed when it ran out (§ 51 Abs. 1 Nr. 1), which this pilot cannot tell.`,
+                  ),
+                mobilityUnsure.length &&
+                  L(
                     `${mobilityUnsure.map(trip).join('、')} 持学习或研究许可在外超过期限：若这段时间是按欧盟学生或研究人员流动（指令 2016/801）在其他成员国学习或研究，许可不失效（§ 51 Abs. 1a Satz 2）；否则许可在期限后失效，试点无法判断。`,
-                    `${euUnsure.length || renewalUnsure.length ? ' ' : ''}On a study or research permit you are away past the limit for ${mobilityUnsure.map(trip).join(', ')}: it does not lapse if you were studying or doing research in another member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2); otherwise it lapsed after the limit, which this pilot cannot tell.`,
-                  )
-                : '')
+                    `On a study or research permit you are away past the limit for ${mobilityUnsure.map(trip).join(', ')}: it does not lapse if you were studying or doing research in another member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2); otherwise it lapsed after the limit, which this pilot cannot tell.`,
+                  ),
+                afterUnsure.length &&
+                  L(
+                    `${afterUnsure.map(trip).join('、')} 出境时是否仍持有许可，取决于之前那次出境是否已使许可失效，试点无法判断。`,
+                    `Whether you still held the title when you left for ${afterUnsure.map(trip).join(', ')} depends on whether an earlier trip had ended it, which this pilot cannot tell.`,
+                  ),
+              ]
+                .filter(Boolean)
+                .join(L('', ' '))
             : L(
                 '录入的出境都在期限内返回，许可不因长期出境（§ 51 Abs. 1 Nr. 7）失效。',
                 'You come back in time from every trip you entered, so no title lapses for a long absence (§ 51 Abs. 1 Nr. 7).',
@@ -1606,35 +1634,40 @@ export function evaluateGermany(req: DeRequest): DeResult {
                 ],
               }
             : {
-                text: e.pendingRenewal
+                text: e.after
                   ? L(
-                      `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}，到期后续期待决定）：续期获批或申请仍在等待的话，最晚 ${e.by} 返回`,
-                      `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left, renewal pending after it ran out): if the renewal is granted or still pending, back by ${e.by}`,
+                      `${trip(e)}（出境时是否仍持有${N(KIND_NAMES[e.kind])}，取决于之前 ${trip(e.after)} 的出境）：仍持有的话，最晚 ${e.by} 返回`,
+                      `${trip(e)} (whether you still held ${N(KIND_NAMES[e.kind])} when you left depends on the earlier trip ${trip(e.after)}): if you did, back by ${e.by}`,
                     )
-                  : e.expires
+                  : e.pendingRenewal
                     ? L(
-                        `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：许可 ${e.by} 到期、没有录入续期，最晚当天返回`,
-                        `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): the permit expires on ${e.by} with no renewal entered, so back by that day`,
+                        `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}，到期后续期待决定）：续期获批或申请仍在等待的话，最晚 ${e.by} 返回`,
+                        `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left, renewal pending after it ran out): if the renewal is granted or still pending, back by ${e.by}`,
                       )
-                    : e.studyEnd
+                    : e.expires
                       ? L(
-                          `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回；即使按欧盟学生或研究人员流动在其他成员国学习或研究，也须在许可 ${e.studyEnd} 到期前返回（§ 51 Abs. 1 Nr. 1、Abs. 1a Satz 2）`,
-                          `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}; even under EU student or researcher mobility in another member state, back before the permit ran out on ${e.studyEnd} (§ 51 Abs. 1 Nr. 1, Abs. 1a Satz 2)`,
+                          `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：许可 ${e.by} 到期、没有录入续期，最晚当天返回`,
+                          `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): the permit expires on ${e.by} with no renewal entered, so back by that day`,
                         )
-                      : e.mobility
+                      : e.studyEnd
                         ? L(
-                            `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回，按欧盟学生或研究人员流动在其他成员国学习或研究的除外（§ 51 Abs. 1a Satz 2）`,
-                            `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}, unless you were studying or doing research in another member state under EU student or researcher mobility (§ 51 Abs. 1a Satz 2)`,
+                            `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回；即使按欧盟学生或研究人员流动在其他成员国学习或研究，也须在许可 ${e.studyEnd} 到期前返回（§ 51 Abs. 1 Nr. 1、Abs. 1a Satz 2）`,
+                            `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}; even under EU student or researcher mobility in another member state, back before the permit ran out on ${e.studyEnd} (§ 51 Abs. 1 Nr. 1, Abs. 1a Satz 2)`,
                           )
-                        : backPending(e)
+                        : e.mobility
                           ? L(
-                              `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}，返回时续期仍待决定）：§ 51 的返回期限为 ${e.by}；原许可在续期决定前延续（§ 81 Abs. 4），返回时仍在等待`,
-                              `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left, renewal still pending when you came back): the § 51 limit is ${e.by}; the permit continued until the decision (§ 81 Abs. 4), which was still pending when you came back`,
+                              `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回，按欧盟学生或研究人员流动在其他成员国学习或研究的除外（§ 51 Abs. 1a Satz 2）`,
+                              `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}, unless you were studying or doing research in another member state under EU student or researcher mobility (§ 51 Abs. 1a Satz 2)`,
                             )
-                          : L(
-                              `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回`,
-                              `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}`,
-                            ),
+                          : backPending(e)
+                            ? L(
+                                `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}，返回时续期仍待决定）：§ 51 的返回期限为 ${e.by}；原许可在续期决定前延续（§ 81 Abs. 4），返回时仍在等待`,
+                                `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left, renewal still pending when you came back): the § 51 limit is ${e.by}; the permit continued until the decision (§ 81 Abs. 4), which was still pending when you came back`,
+                              )
+                            : L(
+                                `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回`,
+                                `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}`,
+                              ),
                 met: e.lapses ? false : e.unsure ? undefined : true,
                 sources: [
                   ...(e.kind === 'blue-card'

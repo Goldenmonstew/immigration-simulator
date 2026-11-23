@@ -1318,6 +1318,42 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     expect(p.checks[0].text).toContain('2026-04-30');
   });
 
+  test('a short trip after an undetermined exchange (task 73)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-08-01',
+        permits: [{ kind: 'study', from: '2024-10-01', to: '2026-09-30' }],
+        trips: [
+          { departed: '2025-09-15', returned: '2026-05-15' },
+          { departed: '2026-07-01', returned: '2026-07-20' },
+        ],
+      },
+      'DE-TRAVEL',
+    );
+    // Whether the permit still existed on 2026-07-01 depends on the first
+    // trip.
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[1].met).toBeUndefined();
+    expect(p.checks[1].text).toContain('2025-09-15 至 2026-05-15');
+    // With a new permit in between, the second trip is on that permit.
+    expect(
+      pathway(
+        {
+          simulationDate: '2026-08-01',
+          permits: [
+            { kind: 'study', from: '2024-10-01', to: '2026-09-30' },
+            { kind: 'skilled', from: '2026-06-01' },
+          ],
+          trips: [
+            { departed: '2025-09-15', returned: '2026-05-15' },
+            { departed: '2026-07-01', returned: '2026-07-20' },
+          ],
+        },
+        'DE-TRAVEL',
+      ).checks[1].met,
+    ).toBe(true);
+  });
+
   test('a new permit after an undetermined exchange (review69-11)', () => {
     const req = {
       simulationDate: '2026-11-23',
