@@ -262,7 +262,7 @@ export const zhCN = {
   'site.chineseShort': '中',
   'site.shortName': '移民模拟',
   'uk.name': '英国',
-  'site.name': '英国移民路径模拟',
+  'site.name': '移民路径模拟',
   'site.skip': '跳到主要内容',
   'site.home': '首页',
   'site.language': '语言',

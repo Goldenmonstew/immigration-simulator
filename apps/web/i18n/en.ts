@@ -285,9 +285,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'policyPage.bestYears': '{required} of {window} years',
   'policyPage.applicationsFrom': 'for applications from',
   'site.chineseShort': 'ZH',
-  'site.shortName': 'UK paths',
+  'site.shortName': 'Path Sim',
   'uk.name': 'United Kingdom',
-  'site.name': 'UK Immigration Path Simulator',
+  'site.name': 'Immigration Path Simulator',
   'site.skip': 'Skip to main content',
   'site.home': 'Home',
   'site.footer':

@@ -1,6 +1,6 @@
 {
-  "name": "英国移民路径模拟",
-  "short_name": "My Path",
+  "name": "移民路径模拟",
+  "short_name": "移民模拟",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

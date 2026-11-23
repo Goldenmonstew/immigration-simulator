@@ -468,3 +468,4 @@
 | 450 | 任务 78：英国七页迁到 /uk，根路径复用英国首页。更新导航、问卷、结果分享、方案与游戏链接，离线清单保留根路径并覆盖七个英国页面，缓存升到 v4。 | apps/web/{app/uk/,app/page.tsx,app/error.tsx,app/offline-pages.json/route.ts,components/,lib/{site-countries,mock-results}.ts,public/sw.js,test/}、apps/e2e/tests/{a11y,game,life,mobile,questionnaire,site}.spec.ts、apps/e2e/tests/helpers.ts |
 | 451 | 任务 78：六个旧网址导出带 noindex 与后备链接的跳转页，保留查询串和分享片段；添加 Cloudflare 301 规则与旧结果、问卷、游戏入口回归用例。 | apps/web/app/[legacyPage]/page.tsx、apps/web/public/_redirects、apps/e2e/tests/legacy-urls.spec.ts、docs/tasks/reports/78-uk-move.md |
 | 460 | 任务 79：去掉十国与首页双语文案中的"试点 / pilot"字样（标题、范围说明与入口链接），保留"只检查时间条件"的事实说明。 | apps/web/i18n/{zh-CN,en}.ts、apps/web/i18n/countries/*.ts |
+| 461 | 任务 79：站名、手机短名与 Web App Manifest 更新为"移民路径模拟 / Immigration Path Simulator"（短名"移民模拟 / Path Sim"）。 | apps/web/i18n/{zh-CN,en}.ts、apps/web/public/manifest.webmanifest |
