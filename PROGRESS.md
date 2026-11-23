@@ -470,3 +470,4 @@
 | 460 | 任务 79：去掉十国与首页双语文案中的"试点 / pilot"字样（标题、范围说明与入口链接），保留"只检查时间条件"的事实说明。 | apps/web/i18n/{zh-CN,en}.ts、apps/web/i18n/countries/*.ts |
 | 461 | 任务 79：站名、手机短名与 Web App Manifest 更新为"移民路径模拟 / Immigration Path Simulator"（短名"移民模拟 / Path Sim"）。 | apps/web/i18n/{zh-CN,en}.ts、apps/web/public/manifest.webmanifest |
 | 462 | 任务 79：全站外壳顶栏导航增加"所有国家 / All countries"返回根路径 `/` 的入口，非游戏页左上站名链接回 `/`，游戏页按当前国家返回模拟器主页。 | apps/web/components/site-shell.tsx、apps/web/app/site.module.css、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/game-theme.test.tsx |
+| 463 | 任务 79：根路径 `/` 改为 11 国选择的集合入口（标题区、国家卡片网格、开始前与免责声明；仅在 `hasGame` 为真时渲染人生模拟入口），英国独立首页 `/uk` 移除冗余十国列表。 | apps/web/lib/site-countries.ts、apps/web/app/{page,hub-content,layout,site.module.css}、apps/web/app/uk/home-content.tsx、apps/web/i18n/{zh-CN,en}.ts |

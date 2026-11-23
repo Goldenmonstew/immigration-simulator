@@ -264,6 +264,73 @@ export const zhCN = {
   'site.shortName': '移民模拟',
   'uk.name': '英国',
   'site.name': '移民路径模拟',
+  'hub.title': '选择国家，了解可能适用的移民路径',
+  'hub.intro':
+    '从你的签证、居留与出入境时间线出发，按各国官方规则推算永居、定居与入籍的全部法定条件、最早日期与未定细节，或在像素小镇里体验一段异国生活。',
+  'hub.badge.rules': '全部法定条件核对',
+  'hub.badge.whatif': '“如果……会怎样”情景对比',
+  'hub.badge.sources': '官方来源逐条可查',
+  'hub.badge.game': '像素小镇人生模拟',
+  'hub.badge.local': '纯浏览器本地计算',
+  'hub.countriesTitle': '目的地国家',
+  'hub.calculate': '开始计算',
+  'hub.playGame': '人生模拟',
+  'hub.calculateAria': '{country}：开始计算',
+  'hub.playGameAria': '{country}：人生模拟',
+  'hub.beforeTitle': '开始前',
+  'hub.prepare':
+    '准备你的签证或居留许可起止日期、出入境记录，以及与所选国家相关的收入、语言、社保或考试信息。不确定的项目可以留空，先查看已满足的条件与待确认细节。',
+  'hub.privacy':
+    '无需账号，不上传证件或个人信息。所有问卷输入、保存的情景与游戏进度仅在此浏览器的本机存储中计算与保存；使用共享设备时，同机的其他使用者可能看到本机记录。',
+  'hub.disclaimerTitle': '使用说明与免责说明',
+  'hub.disclaimer':
+    '本网站提供一般政策信息、法定条件梳理与假设情景模拟，不判定你的法律移民身份，不构成移民或法律意见，也不保证任何申请结果。递交真实申请前，请核对各国移民部门的最新官方规定，或咨询具备相应资格的专业人士。',
+  'hub.disclaimerEnglish':
+    'This site provides general policy information, statutory requirement checks and hypothetical scenario modelling. It does not determine your legal immigration status, is not immigration or legal advice, and does not guarantee the outcome of any application.',
+  'hub.uk.code': 'UK',
+  'hub.uk.paths': '定居 ILR · 现行法律与改革对比',
+  'hub.uk.desc':
+    '评估 Skilled Worker、BN(O)、Global Talent、家庭、保护与 10 年长居等路线的定居条件，并排对比现行 Immigration Rules 与已公布改革。',
+  'hub.au.code': 'AU',
+  'hub.au.paths': '转永居 PR · 回头签 RRV · 入籍',
+  'hub.au.desc':
+    '评估 191、香港类别（189／191）、186 雇主担保转永居、伴侣签永久阶段（801／100）、回头签 RRV 与入籍的居住及法定条件。',
+  'hub.nz.code': 'NZ',
+  'hub.nz.paths': '永久居民 PRV · 旅行条件 · 入籍',
+  'hub.nz.desc':
+    '评估居民签证旅行条件到期日、转永久居民签证（PRV）的条件，以及入籍新西兰的在境天数与各项法定要求。',
+  'hub.ca.code': 'CA',
+  'hub.ca.paths': '永居居住义务 · 入籍',
+  'hub.ca.desc':
+    '按成为永久居民的日期、此前临时身份与出入境记录，评估维持永久居民身份的居住义务，以及入籍的实际居住与法定条件。',
+  'hub.us.code': 'US',
+  'hub.us.paths': '入籍 · 条件绿卡转正 · 离境时长',
+  'hub.us.desc':
+    '评估一般入籍与美国公民配偶入籍、条件绿卡取消条件（I-751／I-829）递交窗口，以及离境时长对维持绿卡的影响。',
+  'hub.es.code': 'ES',
+  'hub.es.paths': '国内长期居留 · 按居住入籍',
+  'hub.es.desc':
+    '按居留许可、学习停留与出入境记录，评估国内长期居留与按居住入籍（10 年、难民 5 年、拉美等 2 年、配偶 1 年）的条件。',
+  'hub.gr.code': 'GR',
+  'hub.gr.paths': '长期居留 · 黄金签证续期 · 入籍',
+  'hub.gr.desc':
+    '按居留许可（含黄金签证）与出入境记录，评估长期居留（Μ1）、黄金签证（Β.5）续期期间，以及 7 年、3 年或 12 年路线入籍条件。',
+  'hub.ie.code': 'IE',
+  'hub.ie.paths': 'Stamp 4 / 5 · 入籍 · 配偶入籍',
+  'hub.ie.desc':
+    '按各段 Stamp 居留许可与出入境记录，评估 Stamp 4 升级、Stamp 5（满 96 个月），以及一般入籍与爱尔兰公民配偶入籍条件。',
+  'hub.pt.code': 'PT',
+  'hub.pt.paths': '入籍 · 永久居留 · 欧盟长居 · 黄金签证',
+  'hub.pt.desc':
+    '按居留证件（含黄金签证）与出入境记录，评估 2026 年新国籍法下的入籍、永久居留、欧盟长期居民与黄金签证最低停留和续期。',
+  'hub.jp.code': 'JP',
+  'hub.jp.paths': '永住许可 · 帰化（入籍）',
+  'hub.jp.desc':
+    '按在留开始日、在留资格（含高度人才与配偶路线）和出入境记录，评估永住许可（含 2027-04 改版指南）、帰化条件与再入国许可效力。',
+  'hub.de.code': 'DE',
+  'hub.de.paths': '定居许可 · 欧盟长期居留 · 入籍',
+  'hub.de.desc':
+    '按居留许可、欧盟蓝卡、养老保险缴费与出入境记录，评估定居许可、欧盟长期居留与入籍条件，以及长期出境何时使许可失效。',
   'site.skip': '跳到主要内容',
   'site.home': '首页',
   'site.language': '语言',

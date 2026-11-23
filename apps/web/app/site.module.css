@@ -261,6 +261,132 @@
     margin: 0;
   }
 }
+.hubHero {
+  max-width: 720px;
+  margin-bottom: 36px;
+  border-bottom: 1px solid #b1b4b6;
+  padding-bottom: 28px;
+}
+.hubHero h1 {
+  margin-bottom: 16px;
+}
+.hubHero .lead {
+  margin-bottom: 20px;
+}
+.hubHero .badges {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.countrySection {
+  margin-top: 32px;
+}
+.countryGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+}
+@media (min-width: 601px) {
+  .countryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+@media (min-width: 960px) {
+  .countryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+.countryCard {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #b1b4b6;
+  border-top: 4px solid #1d70b8;
+  background: #fff;
+  padding: 24px;
+  min-width: 0;
+}
+.countryCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.countryCode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 32px;
+  padding: 0 8px;
+  background: #e5eef5;
+  color: #16324f;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.countryCardHeader h3 {
+  font-size: 1.35rem;
+  line-height: 1.3;
+  margin: 0;
+}
+.countryPaths {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+.countryPaths li {
+  padding: 2px 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  background: #e5eef5;
+  color: #16324f;
+}
+.countryDesc {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 0 20px;
+  flex: 1;
+}
+.countryActions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: auto;
+}
+.countryActions .button,
+.countryActions .gameButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  min-height: 48px;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+.body .gameButton {
+  border: 1px solid #745139;
+  border-bottom: 2px solid #5c432d;
+  background: #f5e9d0;
+  color: #493829;
+  text-decoration: none;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.body .gameButton:hover {
+  background: #ebd8b5;
+  color: #2b2118;
+}
 .notice {
   border-left: 5px solid #1d70b8;
   padding: 16px 20px;
@@ -394,6 +520,46 @@
   }
   .policy {
     margin-bottom: 28px;
+  }
+  .hubHero {
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+  }
+  .countryGrid {
+    gap: 16px;
+  }
+  .countryCard {
+    padding: 20px;
+  }
+  .countryCardHeader h3 {
+    font-size: 20px;
+  }
+  .countryCode {
+    min-width: 38px;
+    height: 30px;
+    font-size: 15px;
+  }
+  .countryPaths li {
+    font-size: 14px;
+  }
+  .countryDesc {
+    font-size: 16px;
+    line-height: 1.55;
+    margin-bottom: 16px;
+  }
+  .countryActions {
+    gap: 10px;
+  }
+  .countryActions .button,
+  .countryActions .gameButton {
+    font-size: 17px;
+    padding: 10px 8px;
+  }
+}
+
+@media screen and (max-width: 340px) {
+  .countryActions {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

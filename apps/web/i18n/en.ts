@@ -289,6 +289,74 @@ export const en: Record<keyof typeof zhCN, string> = {
   'site.shortName': 'Path Sim',
   'uk.name': 'United Kingdom',
   'site.name': 'Immigration Path Simulator',
+  'hub.title': 'Choose a country to explore immigration pathways',
+  'hub.intro':
+    'Assess permanent residence, settlement and citizenship requirements from your visa and travel timeline under official rules, or play through a life in town to see how everyday choices shape your dates.',
+  'hub.badge.rules': 'Full statutory checks',
+  'hub.badge.whatif': 'What-if scenario comparison',
+  'hub.badge.sources': 'Traceable official sources',
+  'hub.badge.game': 'Pixel-town life simulation',
+  'hub.badge.local': 'Processed locally in browser',
+  'hub.countriesTitle': 'Destination countries',
+  'hub.calculate': 'Start calculator',
+  'hub.playGame': 'Life game',
+  'hub.calculateAria': '{country}: Start calculator',
+  'hub.playGameAria': '{country}: Life game',
+  'hub.beforeTitle': 'Before you start',
+  'hub.prepare':
+    'Have your visa or residence permit dates and travel record ready, along with any income, language, contribution or test details relevant to the country. Leave uncertain items blank to see what is already met and what remains to be confirmed.',
+  'hub.privacy':
+    'No account or document uploads. All questionnaire inputs, saved scenarios and game progress are processed and stored only in this browser on your device. Other people using a shared device may see records saved on it.',
+  'hub.disclaimerTitle': 'About this simulator',
+  'hub.disclaimer':
+    'This site provides general policy information, statutory requirement checks and hypothetical scenario modelling. It does not determine your legal immigration status, is not immigration or legal advice, and does not guarantee the outcome of any application. Check the immigration authority’s official guidance or consult a qualified professional before applying.',
+  'hub.disclaimerEnglish':
+    'This site provides general policy information, statutory requirement checks and hypothetical scenario modelling. It does not determine your legal immigration status, is not immigration or legal advice, and does not guarantee the outcome of any application.',
+  'hub.uk.code': 'UK',
+  'hub.uk.paths': 'Settlement (ILR) · Current law vs reforms',
+  'hub.uk.desc':
+    'Assess settlement across Skilled Worker, BN(O), Global Talent, family, protection and Long Residence routes, comparing current Immigration Rules with announced reforms.',
+  'hub.au.code': 'AU',
+  'hub.au.paths': 'Permanent residence · RRV · Citizenship',
+  'hub.au.desc':
+    'Assess subclass 191, Hong Kong streams (189/191), 186 TRT, partner permanent stage (801/100), Resident Return visa and citizenship requirements.',
+  'hub.nz.code': 'NZ',
+  'hub.nz.paths': 'Permanent Resident Visa · Travel conditions · Citizenship',
+  'hub.nz.desc':
+    'Assess resident visa travel conditions, Permanent Resident Visa (PRV) eligibility and New Zealand citizenship presence and statutory requirements.',
+  'hub.ca.code': 'CA',
+  'hub.ca.paths': 'PR residency obligation · Citizenship',
+  'hub.ca.desc':
+    'Assess the residency obligation for keeping permanent resident status and physical presence and statutory requirements for Canadian citizenship.',
+  'hub.us.code': 'US',
+  'hub.us.paths': 'Naturalization · Removing conditions · Trips abroad',
+  'hub.us.desc':
+    'Assess general and spouse naturalization, filing windows for removing conditions (I-751/I-829), and how time abroad affects your green card.',
+  'hub.es.code': 'ES',
+  'hub.es.paths': 'Long-term residence · Citizenship by residence',
+  'hub.es.desc':
+    'Assess national long-term residence and citizenship by residence across the 10-, 5-, 2- and 1-year tracks from your permits and travel record.',
+  'hub.gr.code': 'GR',
+  'hub.gr.paths': 'Long-term residence · Golden visa · Naturalisation',
+  'hub.gr.desc':
+    'Assess long-term residence (Μ1), golden visa (Β.5) renewal dates, and naturalisation across the 7-, 3- and 12-year residence tracks.',
+  'hub.ie.code': 'IE',
+  'hub.ie.paths': 'Stamp 4 / 5 · Naturalisation · Spouse route',
+  'hub.ie.desc':
+    'Assess Stamp 4 upgrades, Stamp 5 (96 months), general naturalisation and naturalisation as the spouse or civil partner of an Irish citizen.',
+  'hub.pt.code': 'PT',
+  'hub.pt.paths':
+    'Naturalisation · Permanent residence · EU long-term · Golden visa',
+  'hub.pt.desc':
+    'Assess naturalisation under the 2026 nationality law, permanent residence, EU long-term resident status and golden visa (ARI) minimum stays and renewal.',
+  'hub.jp.code': 'JP',
+  'hub.jp.paths': 'Permanent residence · Naturalisation',
+  'hub.jp.desc':
+    'Assess permanent residence (including Highly Skilled Professional routes and the April 2027 guideline revision), naturalisation and re-entry permit rules.',
+  'hub.de.code': 'DE',
+  'hub.de.paths': 'Settlement permit · EU long-term · Naturalisation',
+  'hub.de.desc':
+    'Assess settlement permits (including skilled worker and EU Blue Card tracks), EU long-term residence, naturalisation and permit expiry after long trips.',
   'site.skip': 'Skip to main content',
   'site.home': 'Home',
   'site.footer':
