@@ -219,4 +219,50 @@ export const sourceUrls: Record<string, string> = {
     'https://www.verwaltungsvorschriften-im-internet.de/pdf/BMI-MI3-20091026-SF-A001.pdf',
   'SRC-109':
     'https://www.bamf.de/DE/Themen/MigrationAufenthalt/ZuwandererDrittstaaten/Migrathek/Niederlassen/niederlassen-node.html',
+  'SRC-350':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2007/20070100135.pdf',
+  'SRC-351':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2014/20140100024.pdf',
+  'SRC-352':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2014/20140202962.pdf',
+  'SRC-353':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2021/20210201652.pdf',
+  'SRC-354':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2021/20210203967.pdf',
+  'SRC-355':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2021/20210205125.pdf',
+  'SRC-356':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2024/20240201807.pdf',
+  'SRC-357':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2024/20240201974.pdf',
+  'SRC-358':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2024/20240202626.pdf',
+  'SRC-359':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2024/20240205223.pdf',
+  'SRC-360':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2025/20250201093.pdf',
+  'SRC-361':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2025/20250201476.pdf',
+  'SRC-362':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2025/20250100152.pdf',
+  'SRC-363':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2026/20260201759.pdf',
+  'SRC-364':
+    'https://home-affairs.ec.europa.eu/policies/migration-and-asylum/eu-immigration-portal/eu-blue-card/eu-blue-card-greece_en',
+  'SRC-365':
+    'https://mitos.gov.gr/index.php/%CE%94%CE%94:%CE%94%CE%B9%CE%BF%CF%81%CE%B3%CE%AC%CE%BD%CF%89%CF%83%CE%B7_%CE%B5%CE%BE%CE%B5%CF%84%CE%AC%CF%83%CE%B5%CF%89%CE%BD_%CE%B5%CE%BB%CE%BB%CE%B7%CE%BD%CE%BF%CE%BC%CE%AC%CE%B8%CE%B5%CE%B9%CE%B1%CF%82_%CE%B3%CE%B9%CE%B1_%CF%80%CE%BF%CE%BB%CE%AF%CF%84%CE%B5%CF%82_%CF%84%CF%81%CE%AF%CF%84%CF%89%CE%BD_%CF%87%CF%89%CF%81%CF%8E%CE%BD,_%CF%80%CF%81%CE%BF%CE%BA%CE%B5%CE%B9%CE%BC%CE%AD%CE%BD%CE%BF%CF%85_%CE%BD%CE%B1_%CF%85%CF%80%CE%B1%CF%87%CE%B8%CE%BF%CF%8D%CE%BD_%CF%83%CF%84%CE%BF_%CE%BA%CE%B1%CE%B8%CE%B5%CF%83%CF%84%CF%8E%CF%82_%CF%84%CE%BF%CF%85_%CE%B5%CF%80%CE%AF_%CE%BC%CE%B1%CE%BA%CF%81%CF%8C%CE%BD_%CE%B4%CE%B9%CE%B1%CE%BC%CE%AD%CE%BD%CE%BF%CE%BD%CF%84%CE%BF%CF%82',
+  'SRC-366':
+    'https://mitos.gov.gr/index.php/%CE%94%CE%94:%CE%86%CE%B4%CE%B5%CE%B9%CE%B1_%CE%B4%CE%B9%CE%B1%CE%BC%CE%BF%CE%BD%CE%AE%CF%82_%CF%85%CF%88%CE%B7%CE%BB%CE%AE%CF%82_%CE%B5%CE%B9%CE%B4%CE%AF%CE%BA%CE%B5%CF%85%CF%83%CE%B7%CF%82_(%C2%AB%CE%95.1%C2%BB)_%CE%BA%CE%B1%CF%84%CF%8C%CF%80%CE%B9%CE%BD_%CE%AD%CE%B3%CE%BA%CF%81%CE%B9%CF%83%CE%B7%CF%82_%CE%B1%CE%B9%CF%84%CE%AE%CE%BC%CE%B1%CF%84%CE%BF%CF%82_%CF%84%CE%BF%CF%85_%CE%B5%CF%81%CE%B3%CE%BF%CE%B4%CF%8C%CF%84%CE%B7_%E2%80%93_%CE%91%CF%81%CF%87%CE%B9%CE%BA%CE%AE_%CF%87%CE%BF%CF%81%CE%AE%CE%B3%CE%B7%CF%83%CE%B7',
+  'SRC-367':
+    'https://mitos.gov.gr/index.php/%CE%94%CE%94:%CE%86%CE%B4%CE%B5%CE%B9%CE%B1_%CE%B4%CE%B9%CE%B1%CE%BC%CE%BF%CE%BD%CE%AE%CF%82_%CE%BA%CE%B1%CF%84%CF%8C%CF%80%CE%B9%CE%BD_%CE%AD%CE%B3%CE%BA%CF%81%CE%B9%CF%83%CE%B7%CF%82_%CE%BC%CE%B5%CF%84%CE%AC%CE%BA%CE%BB%CE%B7%CF%83%CE%B7%CF%82_%CE%B3%CE%B9%CE%B1_%CE%B5%CE%BE%CE%B1%CF%81%CF%84%CE%B7%CE%BC%CE%AD%CE%BD%CE%B7_%CE%B5%CF%81%CE%B3%CE%B1%CF%83%CE%AF%CE%B1_%E2%80%93_%CE%91%CF%81%CF%87%CE%B9%CE%BA%CE%AE_%CF%87%CE%BF%CF%81%CE%AE%CE%B3%CE%B7%CF%83%CE%B7_(%C2%AB%CE%95.4%C2%BB)',
+  'SRC-368':
+    'https://mitos.gov.gr/index.php/ΔΔ:Μόνιμη_άδεια_διαμονής_επενδυτή_(αλλαγή_χρήσης)_–_Αρχική_χορήγηση',
+  'SRC-369':
+    'https://mitos.gov.gr/index.php/%CE%94%CE%94:%CE%95%CE%BE%CE%B5%CF%84%CE%AC%CF%83%CE%B5%CE%B9%CF%82_%CE%B1%CF%80%CF%8C%CE%BA%CF%84%CE%B7%CF%83%CE%B7%CF%82_%CE%A0%CE%B9%CF%83%CF%84%CE%BF%CF%80%CE%BF%CE%B9%CE%B7%CF%84%CE%B9%CE%BA%CE%BF%CF%8D_%CE%95%CF%80%CE%AC%CF%81%CE%BA%CE%B5%CE%B9%CE%B1%CF%82_%CE%93%CE%BD%CF%8E%CF%83%CE%B5%CF%89%CE%BD_%CE%B3%CE%B9%CE%B1_%CE%A0%CE%BF%CE%BB%CE%B9%CF%84%CE%BF%CE%B3%CF%81%CE%AC%CF%86%CE%B7%CF%83%CE%B7',
+  'SRC-370':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2024/20240100207.pdf',
+  'SRC-371':
+    'https://migration.gov.gr/wp-content/uploads/2024/10/9%CE%95%CE%B3%CE%BA%CF%8D%CE%BA%CE%BB%CE%B9%CE%BF%CF%82-Golden-24.9.2024-FINAL.pdf',
+  'SRC-372':
+    'https://www.ypes.gr/wp-content/uploads/2026/09/eggr52779-20260924.pdf',
 };
