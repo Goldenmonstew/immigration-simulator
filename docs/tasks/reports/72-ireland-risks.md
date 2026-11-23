@@ -39,6 +39,13 @@
   - 表单提示：北爱尔兰合法居住期无论选哪条路线都可填写；家庭团聚的 Stamp 3 改称"在家庭团聚下所持、改发 1G 之前"，不再写"2024 年之前"（2024 年通告允许旧卡用到下次续期）。
   - Stamp 5：回国当天的递交判断改用与当天递交相同的检查（持可计入 Stamp 5 的许可、在境内），回国当天改持学生许可的不再预测可递交；补回归用例。
 
+- 审核风险处理（review72-2，Codex 结论"通过"，按用户要求处理其记录的三项风险）：
+  - ICT 转 GEP 的历史组合：满 57 个月所需的最后 57 个月里含 ICT 时间的，按 ICT 可确定适用的日期（2026-02-25）判断，不再只看递交当天的许可类型；复现输入（ICT 至 2024-09-30、GEP 自 2024-10-01）由 FUTURE 2024-10-01 改为 FUTURE 2026-02-25，2024-10-01 另列待确认（PD-116）。
+  - 北爱尔兰短住：北爱尔兰居住期只覆盖重叠的日子，不再当作"下一张许可"结束没填到期日的爱尔兰许可；复现输入（CSEP 自 2024-01-01 不填到期日，2026-06-01 至 08-31 住北爱尔兰）改为 MET（PD-115）。
+  - Stamp 5 境外空档后续持同类许可：回国当天的判断与当天递交一致，累加读法下可满足的，摘要给出回国日作为有条件的递交日（PD-118），与模拟日取回国日时的 `UNKNOWN` 一致。
+  - PD-118 中"5 年只计 1G 时间"改为家庭团聚 Stamp 3 与配偶伴侣类 1G 一起计。
+  - 引擎用例 54 项（新增 3 项）。
+
 ## 2. 怎么验证的
 
 - engine `pnpm exec vitest run test/ireland.test.ts test/index.test.ts test/rules.test.ts`：92 项通过，其中爱尔兰 49 项（新增 7 项，每项改动至少一条回归用例；最早日期均按条文手算）。
@@ -46,6 +53,7 @@
 - web `pnpm exec vitest run test/ireland.test.tsx test/policy-page.test.tsx test/page.test.tsx`：28 项通过，其中爱尔兰 11 项。
 - `pnpm exec tsc --noEmit -p .`：packages/engine、packages/policy-data、apps/web、apps/e2e 均通过。
 - `pnpm exec eslint` 与 `pnpm exec prettier --check`（改动文件）：通过。
+- review72-2 风险处理后：engine `test/ireland.test.ts` 54 项通过；web `test/ireland.test.tsx` 12 项通过；policy-data 全部通过；engine、policy-data、web 的 `tsc --noEmit` 与改动文件的 eslint、prettier 通过。
 - review72-1 修正后：engine `test/ireland.test.ts` 51 项通过；web `test/ireland.test.tsx` 12 项通过；policy-data 全部通过；engine、policy-data、web 的 `tsc --noEmit` 与改动文件的 eslint、prettier 通过。
 
 ## 3. 没做或没验证的

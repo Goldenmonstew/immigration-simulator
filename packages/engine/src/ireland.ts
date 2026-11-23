@@ -148,11 +148,16 @@ export function evaluateIreland(req: IeRequest): IeResult {
     IE_PERMISSION_KINDS.map((k) => [k, flags()]),
   ) as Record<IePermissionKind, boolean[]>;
   // One permission at a time: one without an end date is renewed on time
-  // until the next permission starts.
+  // until the next permission starts. A stay in Northern Ireland only
+  // overrides the days it overlaps; it does not end an Irish permission.
   for (const p of req.permissions) {
     const next = req.permissions
+      .filter(
+        (q) =>
+          q.from > p.from &&
+          (p.kind === 'ni-residence' || q.kind !== 'ni-residence'),
+      )
       .map((q) => q.from)
-      .filter((from) => from > p.from)
       .sort()[0];
     days.mark(byKind[p.kind], p.from, p.to ?? (next && addDays(next, -1)));
   }
@@ -580,13 +585,16 @@ export function evaluateIreland(req: IeRequest): IeResult {
               : days.date(s);
         };
         // The 57-month rule's earliest sourced date: GEP from ISD's 2024
-        // notice, ICT from the last change of the archived page listing it.
-        // The earlier rule is not modelled (PD-116).
-        const ict = byKind['stamp1-ict'];
-        const ruleFor = (i: number) =>
+        // notice, ICT from the last change of the archived page listing it,
+        // when ICT time is within the months needed. The earlier rule is not
+        // modelled (PD-116).
+        const ictSums = days.sums((i) => byKind['stamp1-ict'][i]);
+        const usesIct = (d: IsoDate) =>
+          days.total(ictSums, addMonths(d, -months), d) > 0;
+        const ruleFor = (d: IsoDate) =>
           route !== 'gep'
             ? undefined
-            : ict[i]
+            : usesIct(d)
               ? v.ictRuleFrom.value
               : v.gepRuleFrom.value;
         const verdict = (d: IsoDate): Verdict => {
@@ -599,7 +607,7 @@ export function evaluateIreland(req: IeRequest): IeResult {
           // or the 1st of the next (PD-116).
           const end = addMonths(from, months);
           if (d >= (end.slice(8) === from.slice(8) ? end : addDays(end, 1))) {
-            const rule = ruleFor(i);
+            const rule = ruleFor(d);
             return rule && d < rule ? 'maybe' : 'yes';
           }
           // A month-end start, or the time on both sides of a gap added up.
@@ -610,9 +618,9 @@ export function evaluateIreland(req: IeRequest): IeResult {
         };
         const earliest = firstDate((d) => verdict(d) === 'yes');
         const possible = firstDate((d) => verdict(d) !== 'no');
-        const ruleFrom = possible && ruleFor(days.index(possible));
+        const ruleFrom = possible && ruleFor(possible);
         const ruleBound = !!ruleFrom && !!possible && possible < ruleFrom;
-        const ictRule = !!possible && ict[days.index(possible)];
+        const ictRule = !!possible && usesIct(possible);
         const missing =
           sim > start
             ? daysBetween(start, sim) -
@@ -812,8 +820,7 @@ export function evaluateIreland(req: IeRequest): IeResult {
       const filing = earliest && days.date(back);
       // Nor from people without a residence permission (same page): the
       // return day must pass the same check as applying that day.
-      const lapsed =
-        !!filing && filing !== earliest && verdict(filing) !== 'yes';
+      const onReturn = filing && filing !== earliest ? verdict(filing) : 'yes';
       pathways.push({
         id: 'IE-STAMP4',
         title: L(
@@ -842,22 +849,27 @@ export function evaluateIreland(req: IeRequest): IeResult {
                 ` Counting "other" permissions, or adding up residence on both sides of a gap, it could be ${possible} (PD-114, PD-118).`,
               )
             : '') +
-          (lapsed
+          (onReturn === 'maybe'
             ? L(
-                `按已录入的出行，你那天在境外；${filing} 回到爱尔兰时，按录入的许可已不再连续持有可计入 Stamp 5 的有效许可。ISD 不受理在境外或没有居留许可时递交的申请，本试点不给出递交日期。`,
-                ` By your recorded trips you are abroad that day, and when you are back on ${filing} the permissions you entered no longer give an unbroken permission that counts for Stamp 5; ISD does not accept applications from outside the State or without a residence permission, so this pilot gives no filing date.`,
+                `按已录入的出行，你那天在境外；${filing} 回到爱尔兰时许可之间有空档，空档前后能否累加没写：若可累加，最早 ${filing} 回到爱尔兰后递交（PD-118）。`,
+                ` By your recorded trips you are abroad that day, and when you are back on ${filing} there is a gap between your permissions; whether time on both sides can be added up is not stated, but if it can, the earliest filing date is ${filing} (PD-118).`,
               )
-            : filing && filing !== earliest
+            : onReturn === 'no'
               ? L(
-                  `按已录入的出行，你那天在境外；ISD 不受理在境外递交的申请，最早 ${filing} 回到爱尔兰后递交。`,
-                  ` By your recorded trips you are abroad that day; ISD does not accept applications from outside the State, so the earliest filing date is ${filing}, when you are back.`,
+                  `按已录入的出行，你那天在境外；${filing} 回到爱尔兰时，按录入的许可已不再连续持有可计入 Stamp 5 的有效许可。ISD 不受理在境外或没有居留许可时递交的申请，本试点不给出递交日期。`,
+                  ` By your recorded trips you are abroad that day, and when you are back on ${filing} the permissions you entered no longer give an unbroken permission that counts for Stamp 5; ISD does not accept applications from outside the State or without a residence permission, so this pilot gives no filing date.`,
                 )
-              : filing
+              : filing && filing !== earliest
                 ? L(
-                    '须在爱尔兰境内、持有效居留许可时递交。',
-                    ' You must be in Ireland and hold a residence permission when you apply.',
+                    `按已录入的出行，你那天在境外；ISD 不受理在境外递交的申请，最早 ${filing} 回到爱尔兰后递交。`,
+                    ` By your recorded trips you are abroad that day; ISD does not accept applications from outside the State, so the earliest filing date is ${filing}, when you are back.`,
                   )
-                : '') +
+                : filing
+                  ? L(
+                      '须在爱尔兰境内、持有效居留许可时递交。',
+                      ' You must be in Ireland and hold a residence permission when you apply.',
+                    )
+                  : '') +
           L(policy, ` ${policy}`),
         checks: [
           {

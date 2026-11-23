@@ -821,6 +821,62 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     ).toBe('MET');
   });
 
+  test('ICT time within the 57 months needs the ICT date even when the last permit is a GEP (review72-2)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2024-09-01',
+      permissions: [
+        { kind: 'stamp1-ict', from: '2020-01-01', to: '2024-09-30' },
+        { kind: 'stamp1-gep', from: '2024-10-01' },
+      ],
+      stamp4Route: 'gep',
+      employmentStart: '2020-01-01',
+    };
+    // 57 months on 2024-10-01, mostly ICT: certain only from 2026-02-25.
+    const p = pathway(req, 'IE-STAMP4');
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2026-02-25');
+    expect(p.summary).toContain('2024-10-01');
+    expect(
+      pathway({ ...req, simulationDate: '2024-10-01' }, 'IE-STAMP4').status,
+    ).toBe('UNKNOWN');
+  });
+
+  test('A short stay in Northern Ireland does not end an open Irish permit (review72-2)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        permissions: [
+          { kind: 'stamp1-csep', from: '2024-01-01' },
+          { kind: 'ni-residence', from: '2026-06-01', to: '2026-08-31' },
+        ],
+        stamp4Route: 'csep',
+        employmentStart: '2024-01-01',
+      },
+      'IE-STAMP4',
+    );
+    // 21 months on 2025-10-01; back in Ireland on the CSEP after August.
+    expect(p.status).toBe('MET');
+  });
+
+  test('Stamp 5: a gap abroad before the same permit resumes gives a conditional filing date (review72-2)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2026-11-23',
+      permissions: [
+        { kind: 'stamp4', from: '2018-12-01', to: '2026-12-05' },
+        { kind: 'stamp4', from: '2026-12-10' },
+      ],
+      trips: [{ departed: '2026-11-29', returned: '2026-12-10' }],
+      stamp4Route: 'wcatt',
+    };
+    const p = pathway(req, 'IE-STAMP4');
+    expect(p.earliestDate).toBe('2026-12-01');
+    expect(p.summary).toContain('若可累加，最早 2026-12-10 回到爱尔兰后递交');
+    // The same reading as applying on the return day.
+    const back = pathway({ ...req, simulationDate: '2026-12-10' }, 'IE-STAMP4');
+    expect(back.status).toBe('UNKNOWN');
+    expect(back.summary).toContain('2026-12-10');
+  });
+
   test('Stamp 5 after 96 months', () => {
     const req: Partial<IeRequest> = {
       simulationDate: '2025-01-01',
