@@ -616,9 +616,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.kind.stamp1-ict': 'Stamp 1 (intra-company transfer permit)',
   'ie.kind.stamp1g-graduate': 'Stamp 1G (Third Level Graduate Programme)',
   'ie.kind.stamp1g-spouse':
-    'Stamp 1G (spouse or partner of a Critical Skills permit holder or a researcher on a Hosting Agreement)',
+    'Stamp 1G (spouse or partner of an employment permit holder, such as a Critical Skills, General Employment Permit or hospital doctor permit, or of a researcher on a Hosting Agreement)',
   'ie.kind.stamp1g-ict':
-    'Stamp 1G (spouse or dependant of an intra-company transferee)',
+    'Stamp 1G (spouse or partner of an intra-company transfer permit holder)',
   'ie.kind.stamp1a': 'Stamp 1A (trainee accountant)',
   'ie.kind.stamp0':
     'Stamp 0 (independent means, visiting academic, elderly dependent relative and so on)',
@@ -637,7 +637,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.addPermit': 'Add a permission',
   'ie.trips': 'Trips abroad',
   'ie.tripsHint':
-    'Add a row for each time you left Ireland (Northern Ireland included, except periods already entered as lawful residence in Northern Ireland). You can include planned trips. The days you leave and come back are not absences.',
+    'Add a row for each time you left Ireland (short visits from Ireland to Northern Ireland included) and for each trip off the island while living in Northern Ireland; you can include planned trips. Enter periods of lawful residence in Northern Ireland as a permission above, not as a trip. The days you leave and come back are not absences.',
   'ie.trip': 'Trip {n}',
   'ie.departed': 'Date you left Ireland',
   'ie.returned': 'Date you came back to Ireland',

@@ -79,6 +79,47 @@ test('the request leaves out blank optional dates', () => {
   expect(ieRequest(filled, 'en').employmentStart).toBe('2025-03-15');
 });
 
+// Married to an Irish citizen, living in Northern Ireland from 2021.
+const inNorthernIreland: IeForm = {
+  ...emptyIeForm('2026-11-22'),
+  permissions: [
+    { kind: 'stamp4', from: '2020-01-01', to: '2021-06-30' },
+    { kind: 'ni-residence', from: '2021-07-01', to: '2024-12-31' },
+    { kind: 'stamp4', from: '2025-01-01', to: '' },
+  ],
+  marriedOn: '2020-01-01',
+  stamp4Route: 'none',
+};
+const spouseStatus = (form: IeForm) => {
+  expect(validateIeForm(form)).toEqual({});
+  return evaluateIreland(ieRequest(form, 'zh-CN')).pathways.find(
+    (p) => p.id === 'IE-SPOUSE',
+  )?.status;
+};
+
+test('a move to Northern Ireland entered as a trip stays in the island', () => {
+  expect(
+    spouseStatus({
+      ...inNorthernIreland,
+      trips: [{ departed: '2021-07-01', returned: '2025-01-01' }],
+    }),
+  ).toBe('MET');
+});
+
+test('trips off the island from Northern Ireland are absences', () => {
+  // 72 days away in the year before 2026-11-22: the Minister decides.
+  expect(
+    spouseStatus({
+      ...inNorthernIreland,
+      permissions: [{ kind: 'ni-residence', from: '2021-01-01', to: '' }],
+      trips: [
+        { departed: '2025-12-10', returned: '2026-01-16' },
+        { departed: '2026-07-04', returned: '2026-08-10' },
+      ],
+    }),
+  ).toBe('UNKNOWN');
+});
+
 test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
   const result = evaluateIreland(ieRequest(filled, locale));
   const html = render(<PilotResult result={result} />, locale);

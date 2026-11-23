@@ -94,7 +94,8 @@ export const ireland2026_11 = {
         },
       ],
     },
-    // Spouses or partners of CSEP holders and researchers on Stamp 1G.
+    // Spouses or partners of employment permit holders (CSEP, GEP, ICT) and
+    // researchers on Stamp 1G.
     spouse1gYears: {
       value: 5,
       sources: [
@@ -102,6 +103,12 @@ export const ireland2026_11 = {
           srcId: 'SRC-096',
           locator: 'Immigration permission/stamps: Stamp 1G',
           url: ISD_STAMPS,
+        },
+        {
+          srcId: 'SRC-096',
+          locator:
+            'Notice 2024-05-15: GEP and ICT spouses and partners on Stamp 1G',
+          url: 'https://www.irishimmigration.ie/attention-eligible-spouses-and-partners-of-general-employment-permit-and-intra-corporate-transferee-irish-employment-permit-holders/',
         },
       ],
     },

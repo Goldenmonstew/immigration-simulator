@@ -304,13 +304,8 @@ test('a Northern Ireland residence recorded as a trip is still in the island (re
   expect(p.checks.map((c) => c.met)).toEqual([true, true, true, true]);
 });
 
-test('permissions ISD does not list for naturalisation stay uncertain (PD-114)', () => {
-  for (const kind of [
-    'stamp4d',
-    'stamp1g-ict',
-    'stamp1a',
-    'stamp4-eufam',
-  ] as const) {
+test('Stamp 1A and other permissions stay uncertain (PD-114)', () => {
+  for (const kind of ['stamp1a', 'other'] as const) {
     const p = pathway(
       { permissions: [{ kind, from: '2018-01-01' }] },
       'IE-NATURALISATION',
@@ -318,6 +313,49 @@ test('permissions ISD does not list for naturalisation stay uncertain (PD-114)',
     expect(p.status).toBe('UNKNOWN');
     expect(p.pendingDetails).toContain('PD-114');
   }
+});
+
+test('valid permissions s16A(1) leaves in count: Stamp 4 EUFam (review68-3)', () => {
+  const p = pathway(
+    {
+      simulationDate: '2026-11-22',
+      permissions: [{ kind: 'stamp4-eufam', from: '2020-01-01' }],
+    },
+    'IE-NATURALISATION',
+  );
+  expect(p.status).toBe('MET');
+  expect(p.pendingDetails).not.toContain('PD-114');
+  for (const kind of ['stamp4d', 'stamp1g-ict'] as const)
+    expect(
+      pathway(
+        {
+          simulationDate: '2026-11-22',
+          permissions: [{ kind, from: '2020-01-01' }],
+        },
+        'IE-NATURALISATION',
+      ).status,
+    ).toBe('MET');
+});
+
+test('trips off the island while living in Northern Ireland are absences (review68-3)', () => {
+  // 2025-12-11 to 2026-01-15 and 2026-07-05 to 2026-08-09: 36 + 36 days.
+  const p = pathway(
+    {
+      simulationDate: '2026-11-22',
+      permissions: [{ kind: 'ni-residence', from: '2021-01-01' }],
+      trips: [
+        { departed: '2025-12-10', returned: '2026-01-16' },
+        { departed: '2026-07-04', returned: '2026-08-10' },
+      ],
+      marriedOn: '2020-01-01',
+    },
+    'IE-SPOUSE',
+  );
+  expect(p.status).toBe('UNKNOWN');
+  expect(p.checks[2].met).toBeUndefined();
+  expect(p.checks[2].text).toContain('72');
+  // 70 days once the year starts on 2025-12-13.
+  expect(p.summary).toContain('2026-12-13');
 });
 
 describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
@@ -427,6 +465,19 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
       'IE-STAMP4',
     );
     expect(replaced.status).toBe('NOT_MET');
+  });
+
+  test('Stamp 1G as the partner of an ICT permit holder counts (review68-3)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permissions: [{ kind: 'stamp1g-ict', from: '2024-06-01' }],
+        stamp4Route: 'spouse-1g',
+      },
+      'IE-STAMP4',
+    );
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2029-06-01');
   });
 
   test('Stamp 1G: graduate programme time does not count (review68-1)', () => {

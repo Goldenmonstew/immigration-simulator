@@ -38,12 +38,20 @@
   - 配偶入籍：落在"在北爱尔兰合法居住"期间内的出境记录不算离开爱尔兰岛；表单出境提示改为这些期间不必再填。复现输入（期间同时记为 2021-07-01 至 2025-01-01 的出境）改为 MET（PD-115）。
   - 风险：满期摘要改为"已满 21 个月"，何时能递交以 ISD 续期安排为准，不再写"可以申请"。混合雇佣履历（CSEP 后转 GEP，两段都选 Stamp 1）仍按所选路线计算，见第 3 节。
   - 引擎用例 37 项（新增 2 项回归）。
+- 第三轮审核修正（review68-3，Codex 结论"需要修改"，3 个问题与 2 条建议）：
+  - 配偶入籍的岛外出行：只有覆盖整段"在北爱尔兰合法居住"的出境记录视为岛内搬迁（第二轮的回归仍为 MET）；住在北爱尔兰期间离开爱尔兰岛的出行照常算缺席（s15C(2)–(3)）。复现输入（2021 年起住北爱尔兰，两次岛外出行共 72 天）改回 `UNKNOWN`，70 天以内的确定日期为 2026-12-13。出境提示改为：住在北爱尔兰期间离开爱尔兰岛的出行也要填，北爱尔兰居住期在许可里填（PD-115）。
+  - Stamp 1G 配偶转 Stamp 4：存档并核对 ISD 2024-05-15 通告（GEP、ICT 持有人的配偶伴侣改发 Stamp 1G，满 5 年可转 Stamp 4），并入 SRC-096；配偶伴侣类 1G 改为涵盖 CSEP、GEP、NCHD 医生与研究员，ICT 持有人配偶伴侣的 1G 也计入这条路线（Stamp 5 仍按 SRC-097 不计）。复现输入改为 FUTURE 2029-06-01；此前以 Stamp 3 居住的时间不计（PD-118）。
+  - 入籍对 Stamp 4 EUFam：ISD 入籍指南没有点名 EUFam，但其"Time That Does Not Count"只列学生 Stamp 2／2A、无有效许可、等待保护决定，与 s16A(1) 的排除一致；据此在境内持有效许可的居住都计入，Stamp 4 EUFam、4D、ICT 持有人配偶的 1G 改为计入，只有 Stamp 1A（兼有培训，可能落入 s16A(1)(b)）与"其他"仍待确认（PD-114）。复现输入改为 MET。
+  - 建议：网页测试补"岛内搬迁记为出境"与"从北爱尔兰离岛出行"两条从表单到结果的回归；Stamp 4 时间检查项写明转 Stamp 1 之前哪些许可的日子计入（学生许可、毕业生 1G 等，不含庇护申请期间与北爱尔兰居住）。
+  - 混合雇佣履历（CSEP 后转普通 GEP）仍按所选路线计算，按协调要求只记为风险，见第 3 节。
+  - 引擎用例 40 项（新增 3 项、改写 1 项），网页用例 9 项（新增 2 项）。
 
 ## 2. 怎么验证的
 
 - `pnpm exec tsc --noEmit -p .`：packages/engine、packages/policy-data、apps/web、apps/e2e 均通过。
 - `pnpm exec vitest run test/ireland.test.ts test/index.test.ts test/rules.test.ts`（engine）：73 项通过，其中爱尔兰 30 项。
 - review68-1 修正后：engine `test/ireland.test.ts` 35 项通过（审核中的每组反例都写成回归用例）；web `test/ireland.test.tsx` 7 项通过；policy-data 全部通过；engine、policy-data、web、e2e 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过。离线提交的 e2e 断言未运行（按 brief 不跑 Playwright）。
+- review68-3 修正后：engine `test/ireland.test.ts` 40 项通过；web `test/ireland.test.tsx` 9 项通过；policy-data 全部通过；engine、policy-data、web 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过；新存档通告的 sha256 已写入 SRC-096，按 `check-sources.mjs` 的规则离线核对它对到正确网址。
 - review68-2 修正后：engine `test/ireland.test.ts` 37 项通过；web `test/ireland.test.tsx` 7 项通过；engine、policy-data、web 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过。
 - `pnpm exec vitest run`（policy-data，含来源登记一致性）：23 项通过。
 - `pnpm exec vitest run test/ireland.test.tsx test/policy-page.test.tsx test/page.test.tsx`（web，含 `sourceUrls` 与登记表一致）：24 项通过，其中爱尔兰 7 项。
@@ -56,7 +64,7 @@
 - 按 brief 未跑 `pnpm build`、全量 `pnpm test` 与 Playwright；`/ireland` 页没有在浏览器里截图检查，e2e 与视觉检查留给 Fable 的门禁。
 - Long Term Residency（60 个月）没有做：与 57 个月 Stamp 4 升级重叠；要区分雇佣许可类 Stamp 1／4 与投资、创业类 Stamp 4 等；有空档时不完整月份怎么累加、获批后 90 天缺席条件是否约束申请前的 60 个月都没写。
 - 难民与无国籍人（s16 部长裁量、2025-12-08 起的 5 年政策）、在境内出生的未成年人（s15B）、s15A(4) 随公共服务外派的境外居住都不计算；配偶路径去北爱尔兰的行程仍按缺席计（PD-115）。
-- Stamp 4 雇佣路线不区分同一类型下的不同雇佣许可（例如都选 Stamp 1 的 GEP 与 CSEP），按所选路线把 Stamp 1／1H 都当作该许可；开始工作后才登记 Stamp 1 的，登记前的日子按空档处理（较严）。
+- Stamp 4 雇佣路线不区分同一类型下的不同雇佣许可（例如都选 Stamp 1 的 GEP 与 CSEP），按所选路线把 Stamp 1／1H 都当作该许可，因此 CSEP 后转普通 GEP 的混合履历在 21 个月路线上仍可能判满足（审核记为风险）。从开始工作日到转为 Stamp 1 之前，凭其他有效许可（学生许可、毕业生 1G 等，不含庇护申请期间与北爱尔兰居住）的日子计入；这段时间里没有任何许可的日子按空档处理（较严）。
 - 品格、成年、意愿、宣誓与仪式、证明材料、费用不检查；Stamp 4 升级不检查是否仍在受雇，不处理 GEP 与 CSEP 混合历史、换雇主或中断（PD-116）；IRP 到期前 12 周可先递交的做法没有写进结果。
 - 修法草案只作提示；它成为法律后需重新调研 s15、15A、15C、16A 与过渡条款。
 - 每周来源核对：ISD（WordPress）、LRC 与 irishstatutebook 的 HTML 页面带动态内容，可能报 changed；gov.ie 对连续请求返回人机验证，可能报 fetch failed。

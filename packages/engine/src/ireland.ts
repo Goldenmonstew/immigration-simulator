@@ -14,8 +14,9 @@ import type { IsoDate, Locale } from './types';
 /**
  * stamp1: Stamp 1 or 1H on an employment permit (not ICT), a Hosting
  * Agreement or a business; stamp1g-graduate: Third Level Graduate Programme;
- * stamp1g-spouse: spouse or partner of a CSEP holder or researcher;
- * stamp1g-ict: spouse or dependant of an ICT employee; stamp4d: Stamp 4D or
+ * stamp1g-spouse: spouse or partner of an employment permit holder (CSEP,
+ * GEP, Multi-Site GEP doctor) or researcher; stamp1g-ict: spouse or partner
+ * of an ICT permit holder; stamp4d: Stamp 4D or
  * 4S; student: Stamp 2 or 2A; protection-applicant: waiting for an
  * international protection decision; ni-residence: lawful residence in
  * Northern Ireland (s15A only); other: temporary protection and the rest.
@@ -85,26 +86,25 @@ export type IeResult = PilotResult<IePathwayId>;
 const v = ie.values;
 type Verdict = 'yes' | 'maybe' | 'no';
 
-// Listed as reckonable for naturalisation by ISD (SRC-095, SRC-096); study
-// and protection applicants are excluded by s16A(1)(b)–(d); lawful
-// permissions ISD does not list are uncertain (PD-114).
+// Reckonable for naturalisation: residence in the State on a valid
+// permission (s15(1)(c)) that s16A(1) and ISD's "Time That Does Not Count"
+// (Stamp 2 and 2A, no permission, awaiting a protection decision) leave in.
+// Stamp 1A mixes training with work, so the study exclusion (s16A(1)(b))
+// may reach it; `other` is unknown (PD-114).
 const RECKONABLE: IePermissionKind[] = [
   'stamp0',
   'stamp1',
   'stamp1-ict',
   'stamp1g-graduate',
   'stamp1g-spouse',
+  'stamp1g-ict',
   'stamp3',
   'stamp4',
-  'stamp5',
-];
-const UNLISTED: IePermissionKind[] = [
-  'stamp1g-ict',
-  'stamp1a',
   'stamp4d',
   'stamp4-eufam',
-  'other',
+  'stamp5',
 ];
+const UNCERTAIN: IePermissionKind[] = ['stamp1a', 'other'];
 // Counted towards Stamp 5 by SRC-097's list; Stamp 0, 1A, 4 EUFam, ICT
 // Stamp 1 and ICT family 1G are listed as not counting; `other` is
 // uncertain, the list being indicative (PD-114).
@@ -147,6 +147,27 @@ export function evaluateIreland(req: IeRequest): IeResult {
   const away = flags();
   for (const t of req.trips)
     days.mark(away, addDays(t.departed, 1), addDays(t.returned, -1));
+  // Away from the island of Ireland (s15A): a trip spanning a whole period
+  // of residence in Northern Ireland records a move within the island, so
+  // its days there are not absences; any other trip, including one from
+  // Northern Ireland, leaves the island (s15C(2)–(3)).
+  const ni = byKind['ni-residence'];
+  const niPeriods: [number, number][] = [];
+  for (let i = 0; i < days.count; i++)
+    if (ni[i] && (i === 0 || !ni[i - 1])) niPeriods.push([i, i]);
+    else if (ni[i]) niPeriods[niPeriods.length - 1][1] = i;
+  const offIsland = flags();
+  for (const t of req.trips) {
+    const move = niPeriods.some(
+      ([a, b]) => days.index(t.departed) <= a && days.index(t.returned) > b,
+    );
+    for (
+      let i = Math.max(0, days.index(t.departed) + 1);
+      i <= Math.min(days.count - 1, days.index(t.returned) - 1);
+      i++
+    )
+      if (!(move && ni[i])) offIsland[i] = true;
+  }
   const holds = (kinds: IePermissionKind[]) => (i: number) =>
     kinds.some((k) => byKind[k][i]);
   const sums = {
@@ -211,13 +232,10 @@ export function evaluateIreland(req: IeRequest): IeResult {
       route === 'spouse' ? ['ni-residence'] : [];
     const reckonable = holds([...RECKONABLE, ...extra]);
     const sure = days.sums(reckonable);
-    const maybe = days.sums(holds([...RECKONABLE, ...UNLISTED, ...extra]));
-    // In Northern Ireland on a recorded residence: not away from the island
-    // (s15A), even if entered as a trip too.
-    const absent = (i: number) =>
-      away[i] && !(route === 'spouse' && byKind['ni-residence'][i]);
-    const absentSums = days.sums(absent);
-    const sureHome = days.sums((i) => reckonable(i) && !absent(i));
+    const maybe = days.sums(holds([...RECKONABLE, ...UNCERTAIN, ...extra]));
+    const absent = route === 'spouse' ? offIsland : away;
+    const absentSums = days.sums((i) => absent[i]);
+    const sureHome = days.sums((i) => reckonable(i) && !absent[i]);
     const windowYears = v.priorWindowYears.value[route];
     const priorDays = v.priorResidenceDays.value[route];
     const year = v.continuousYears.value;
@@ -335,7 +353,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
             { srcId: 'SRC-093', locator: 's295(b) (s16A(1)(d))' },
             {
               srcId: 'SRC-095',
-              locator: 'Guide: Permissions that do not count',
+              locator:
+                'Guide: Time That Does Not Count; Permissions that do not count',
             },
           ],
         },
@@ -371,14 +390,14 @@ export function evaluateIreland(req: IeRequest): IeResult {
           'The year is counted back from the application date to the same date a year earlier, not including the application day (ISD example: applying on 2025-11-11, check 2024-11-11 to 2025-11-10); you need a valid permission on the application day. The law does not define which day is the "date of the application" (PD-110). The official calculator also counts the application day; this pilot does not.',
         ),
         L(
-          '出入境当天不算缺席（s15C(5)："day" 不含不足一日；ISD 指南）。许可到期后到续期前的空档不计入，连续一年因此中断（ISD 指南）。此前几年里的出境是否减少"累计居住"法条和指南都没写：严格读法扣除，较宽读法不扣（PD-112）；闰日按期间内的 2 月 29 日各加 1 天，较宽读法不加（PD-113）。',
-          'Departure and return days are not absences (s15C(5): a "day" does not include part of a day; ISD guide). A gap after a permission expires and before it is renewed does not count and breaks the continuous year (ISD guide). Whether trips abroad reduce the "total residence" in the earlier years is not stated: the strict reading deducts them, the wide one does not (PD-112); the strict reading adds a day for each 29 February in the period, the wide one does not (PD-113).',
+          '出入境当天不算缺席（s15C(5)："day" 不含不足一日；ISD 指南）。许可到期后到续期前的空档不计入，连续一年因此中断（ISD 指南）。凡在境内持有效许可、不属 s16A(1) 与 ISD"Time That Does Not Count"所列情形（学生 Stamp 2／2A、无许可、等待保护决定）的居住都计入，包括 Stamp 4 EUFam、4D 与 ICT 许可持有人配偶的 1G；Stamp 1A 兼有培训，可能落入学习类排除，与"其他"一样待确认（PD-114）。此前几年里的出境是否减少"累计居住"法条和指南都没写：严格读法扣除，较宽读法不扣（PD-112）；闰日按期间内的 2 月 29 日各加 1 天，较宽读法不加（PD-113）。',
+          'Departure and return days are not absences (s15C(5): a "day" does not include part of a day; ISD guide). A gap after a permission expires and before it is renewed does not count and breaks the continuous year (ISD guide). Residence in the State on any valid permission that s16A(1) and ISD’s "Time That Does Not Count" (student Stamp 2 or 2A, no permission, awaiting a protection decision) leave in counts, Stamp 4 EUFam, 4D and 1G for partners of ICT permit holders included; Stamp 1A combines training with work and may fall under the study exclusion, so like "other" it is uncertain (PD-114). Whether trips abroad reduce the "total residence" in the earlier years is not stated: the strict reading deducts them, the wide one does not (PD-112); the strict reading adds a day for each 29 February in the period, the wide one does not (PD-113).',
         ),
         ...(spouse
           ? [
               L(
-                '配偶路径按"爱尔兰岛"（含北爱尔兰）计算：录入为"在北爱尔兰合法居住"的期间计入（只用于配偶路径），这些期间里的出境记录不算缺席；其他去北爱尔兰的行程仍按缺席计（较严，PD-115）。',
-                'The spouse route counts residence in the island of Ireland (Northern Ireland included): periods entered as "lawful residence in Northern Ireland" count (for this route only), and trips within them are not absences; other trips to Northern Ireland still count as absences (stricter, PD-115).',
+                '配偶路径按"爱尔兰岛"（含北爱尔兰）计算：录入为"在北爱尔兰合法居住"的期间计入（只用于配偶路径）。出境记录覆盖整段北爱尔兰居住的，视为岛内搬迁，这段时间不算缺席；住在北爱尔兰期间离开爱尔兰岛的出行照常算缺席（s15C(2)–(3)）；只是去北爱尔兰的短途行程也按缺席计（较严，PD-115）。',
+                'The spouse route counts residence in the island of Ireland (Northern Ireland included): periods entered as "lawful residence in Northern Ireland" count (for this route only). A trip spanning a whole period of residence in Northern Ireland is taken as a move within the island, so that time is not an absence; trips off the island while living in Northern Ireland are absences as usual (s15C(2)–(3)); short visits to Northern Ireland also count as absences (stricter, PD-115).',
               ),
             ]
           : []),
@@ -389,7 +408,7 @@ export function evaluateIreland(req: IeRequest): IeResult {
         'PD-111',
         'PD-112',
         'PD-113',
-        ...(has(UNLISTED) ? ['PD-114'] : []),
+        ...(has(UNCERTAIN) ? ['PD-114'] : []),
         ...(spouse ? ['PD-115'] : []),
         'PD-119',
       ],
@@ -601,12 +620,12 @@ export function evaluateIreland(req: IeRequest): IeResult {
               text:
                 route === 'csep'
                   ? L(
-                      `凭 Critical Skills Employment Permit、研究员 Hosting Agreement 或 NCHD 医生的多地点 General Employment Permit（Stamp 1 或 1H），自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可，递交当天仍持有`,
-                      `${months} months from starting work on ${start} on a Critical Skills Employment Permit, a researcher’s Hosting Agreement or a Multi-Site General Employment Permit as a non-consultant hospital doctor (Stamp 1 or 1H), holding it every day since and on the application day`,
+                      `凭 Critical Skills Employment Permit、研究员 Hosting Agreement 或 NCHD 医生的多地点 General Employment Permit（Stamp 1 或 1H），自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；庇护申请期间与北爱尔兰居住不算），递交当天持该许可`,
+                      `${months} months from starting work on ${start} on a Critical Skills Employment Permit, a researcher’s Hosting Agreement or a Multi-Site General Employment Permit as a non-consultant hospital doctor (Stamp 1 or 1H), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not time awaiting a protection decision or living in Northern Ireland) and on the application day`,
                     )
                   : L(
-                      `凭 General Employment Permit 或公司内调（ICT）的 Stamp 1，自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可，递交当天仍持有`,
-                      `${months} months from starting work on ${start} on a General Employment Permit or an Intra-Company Transfer (Stamp 1), holding it every day since and on the application day`,
+                      `凭 General Employment Permit 或公司内调（ICT）的 Stamp 1，自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；庇护申请期间与北爱尔兰居住不算），递交当天持该许可`,
+                      `${months} months from starting work on ${start} on a General Employment Permit or an Intra-Company Transfer (Stamp 1), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not time awaiting a protection decision or living in Northern Ireland) and on the application day`,
                     ),
               met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
               sources: [
@@ -640,7 +659,7 @@ export function evaluateIreland(req: IeRequest): IeResult {
       }
     } else if (route === 'spouse-1g') {
       const years = v.spouse1gYears.value;
-      const held = holds(['stamp1g-spouse']);
+      const held = holds(['stamp1g-spouse', 'stamp1g-ict']);
       const heldSums = days.sums(held);
       const verdict = (d: IsoDate): Verdict => {
         const from = addYears(d, -years);
@@ -687,8 +706,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
         checks: [
           {
             text: L(
-              `${addYears(sim, -years)} 起每天都作为 Critical Skills 许可持有人或研究员的配偶、伴侣持 Stamp 1G，递交当天仍持有（毕业生计划的 1G 不计）`,
-              `Stamp 1G as the spouse or partner of a Critical Skills permit holder or researcher on every day since ${addYears(sim, -years)} and on the application day (graduate programme 1G does not count)`,
+              `${addYears(sim, -years)} 起每天都作为雇佣许可持有人（CSEP、GEP、ICT 等）或研究员的配偶、伴侣持 Stamp 1G，递交当天仍持有（毕业生计划的 1G 不计）`,
+              `Stamp 1G as the spouse or partner of an employment permit holder (CSEP, GEP, ICT and so on) or researcher on every day since ${addYears(sim, -years)} and on the application day (graduate programme 1G does not count)`,
             ),
             met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
             sources: v.spouse1gYears.sources,
@@ -696,14 +715,14 @@ export function evaluateIreland(req: IeRequest): IeResult {
         ],
         notChecked: [
           L(
-            '配偶或伴侣现在仍持 Critical Skills Employment Permit 或 Hosting Agreement',
-            'Your spouse or partner still holding a Critical Skills Employment Permit or Hosting Agreement',
+            '配偶或伴侣仍持雇佣许可或 Hosting Agreement，以及按家庭团聚政策获批',
+            'Your spouse or partner still holding an employment permit or Hosting Agreement, and your grant under the family reunification policy',
           ),
         ],
         assumptions: [
           L(
-            '"5 年"只计配偶、伴侣类的 Stamp 1G（ISD 把它与毕业生计划的 1G 分为两类），按连续持有计；许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。',
-            '"5 years" counts only Stamp 1G as a spouse or partner (ISD lists it apart from graduate programme 1G), held without a break; after a gap between permissions, whether time on both sides can be added up is not stated, so that date is shown separately (PD-118).',
+            '"5 年"只计配偶、伴侣类的 Stamp 1G（ISD 把它与毕业生计划的 1G 分为两类；2024-05-15 起 GEP、ICT 持有人的配偶、伴侣也给 1G，同样满 5 年可转 Stamp 4），按连续持有计；此前以 Stamp 3 居住的时间不计，许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。',
+            '"5 years" counts only Stamp 1G as a spouse or partner (ISD lists it apart from graduate programme 1G; since 2024-05-15 spouses and partners of GEP and ICT holders also get 1G with the same 5-year point), held without a break; earlier time on Stamp 3 does not count, and after a gap between permissions, whether time on both sides can be added up is not stated, so that date is shown separately (PD-118).',
           ),
           projection,
         ],

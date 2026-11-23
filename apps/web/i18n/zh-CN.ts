@@ -421,8 +421,8 @@ export const zhCN = {
   'ie.kind.stamp1g-graduate':
     'Stamp 1G（毕业生计划 Third Level Graduate Programme）',
   'ie.kind.stamp1g-spouse':
-    'Stamp 1G（Critical Skills 许可持有人或 Hosting Agreement 研究员的配偶、伴侣）',
-  'ie.kind.stamp1g-ict': 'Stamp 1G（公司内调 ICT 人员的配偶或家属）',
+    'Stamp 1G（Critical Skills、General Employment Permit 或 NCHD 医生等雇佣许可持有人，或 Hosting Agreement 研究员的配偶、伴侣）',
+  'ie.kind.stamp1g-ict': 'Stamp 1G（公司内调 ICT 许可持有人的配偶、伴侣）',
   'ie.kind.stamp1a': 'Stamp 1A（见习会计）',
   'ie.kind.stamp0': 'Stamp 0（经济独立者、访问学者、年长受抚养亲属等）',
   'ie.kind.stamp3': 'Stamp 3（不能工作的家属、志愿者、宗教人员等）',
@@ -437,7 +437,7 @@ export const zhCN = {
   'ie.addPermit': '添加许可',
   'ie.trips': '出境记录',
   'ie.tripsHint':
-    '每次离开爱尔兰填一行（去北爱尔兰也算；已在许可里填为"在北爱尔兰合法居住"的期间不必再填），计划中的出行也可以填。出境当天和回来当天不算缺席。',
+    '每次离开爱尔兰填一行（从爱尔兰去北爱尔兰的短途行程也算），住在北爱尔兰期间离开爱尔兰岛的出行也要填；计划中的出行也可以填。在北爱尔兰合法居住的期间请在许可里填写，不必再记成出境。出境当天和回来当天不算缺席。',
   'ie.trip': '出境 {n}',
   'ie.departed': '离开爱尔兰的日期',
   'ie.returned': '回到爱尔兰的日期',
