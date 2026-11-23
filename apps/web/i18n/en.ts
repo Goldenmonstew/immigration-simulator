@@ -695,7 +695,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.to': 'Valid until (leave blank if still valid)',
   'ie.kind': 'Permission type',
   'ie.kind.stamp1':
-    'Stamp 1 or 1H (employment permit, researcher’s Hosting Agreement, business and so on; not intra-company transfer)',
+    'Stamp 1 (General Employment Permit or another employment permit, or a business; not intra-company transfer or the Critical Skills group)',
+  'ie.kind.stamp1-csep':
+    'Stamp 1 or 1H (Critical Skills Employment Permit, researcher’s Hosting Agreement, Multi-Site GEP for hospital doctors)',
   'ie.kind.stamp1-ict': 'Stamp 1 (intra-company transfer permit)',
   'ie.kind.stamp1g-graduate': 'Stamp 1G (Third Level Graduate Programme)',
   'ie.kind.stamp1g-spouse':

@@ -492,7 +492,9 @@ export const zhCN = {
   'ie.to': '到期日期（仍有效可留空）',
   'ie.kind': '许可类型',
   'ie.kind.stamp1':
-    'Stamp 1 或 1H（雇佣许可、研究员 Hosting Agreement、经营等，公司内调除外）',
+    'Stamp 1（General Employment Permit 等其他雇佣许可或经营；公司内调与 Critical Skills 一类除外）',
+  'ie.kind.stamp1-csep':
+    'Stamp 1 或 1H（Critical Skills Employment Permit、研究员 Hosting Agreement、NCHD 医生的多地点 GEP）',
   'ie.kind.stamp1-ict': 'Stamp 1（公司内调 ICT 许可）',
   'ie.kind.stamp1g-graduate':
     'Stamp 1G（毕业生计划 Third Level Graduate Programme）',

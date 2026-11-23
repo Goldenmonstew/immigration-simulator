@@ -12,8 +12,10 @@ import type { IsoDate, Locale } from './types';
 // 2026 draft bill's longer periods are out of scope.
 
 /**
- * stamp1: Stamp 1 or 1H on an employment permit (not ICT), a Hosting
- * Agreement or a business; stamp1g-graduate: Third Level Graduate Programme;
+ * stamp1-csep: Stamp 1 or 1H on a Critical Skills Employment Permit, a
+ * researcher's Hosting Agreement or a Multi-Site GEP as a hospital doctor
+ * (the 21-month group); stamp1: Stamp 1 on another employment permit (such
+ * as a General Employment Permit, not ICT) or a business; stamp1g-graduate: Third Level Graduate Programme;
  * stamp1g-spouse: spouse or partner of an employment permit holder (CSEP,
  * GEP, Multi-Site GEP doctor) or researcher; stamp1g-ict: spouse or partner
  * of an ICT permit holder; stamp4d: Stamp 4D or
@@ -23,6 +25,7 @@ import type { IsoDate, Locale } from './types';
  */
 export const IE_PERMISSION_KINDS = [
   'stamp1',
+  'stamp1-csep',
   'stamp1-ict',
   'stamp1g-graduate',
   'stamp1g-spouse',
@@ -94,6 +97,7 @@ type Verdict = 'yes' | 'maybe' | 'no';
 const RECKONABLE: IePermissionKind[] = [
   'stamp0',
   'stamp1',
+  'stamp1-csep',
   'stamp1-ict',
   'stamp1g-graduate',
   'stamp1g-spouse',
@@ -110,6 +114,7 @@ const UNCERTAIN: IePermissionKind[] = ['stamp1a', 'other'];
 // uncertain, the list being indicative (PD-114).
 const WCATT: IePermissionKind[] = [
   'stamp1',
+  'stamp1-csep',
   'stamp1g-graduate',
   'stamp1g-spouse',
   'stamp3',
@@ -530,16 +535,22 @@ export function evaluateIreland(req: IeRequest): IeResult {
           assumptions: [],
         });
       } else {
-        // The permit for this route: Stamp 1 or 1H, and ICT for the
-        // 57-month group.
-        const permit = holds(
-          route === 'csep' ? ['stamp1'] : ['stamp1', 'stamp1-ict'],
-        );
+        // The permits for this route; the two groups are not
+        // interchangeable (SRC-096), so the other group's Stamp 1 never
+        // counts, not even before the move to this route's permit.
+        const kinds: IePermissionKind[] =
+          route === 'csep' ? ['stamp1-csep'] : ['stamp1', 'stamp1-ict'];
+        const otherGroup: IePermissionKind[] =
+          route === 'csep' ? ['stamp1', 'stamp1-ict'] : ['stamp1-csep'];
+        const permit = holds(kinds);
         // Work started under another permission counts until the move to
         // Stamp 1, from the employment permit's validity (SRC-096).
         const lawful = holds(
           IE_PERMISSION_KINDS.filter(
-            (k) => k !== 'ni-residence' && k !== 'protection-applicant',
+            (k) =>
+              k !== 'ni-residence' &&
+              k !== 'protection-applicant' &&
+              !otherGroup.includes(k),
           ),
         );
         const from0 = Math.max(0, days.index(start));
@@ -631,12 +642,12 @@ export function evaluateIreland(req: IeRequest): IeResult {
               text:
                 route === 'csep'
                   ? L(
-                      `凭 Critical Skills Employment Permit、研究员 Hosting Agreement 或 NCHD 医生的多地点 General Employment Permit（Stamp 1 或 1H），自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；庇护申请期间与北爱尔兰居住不算），递交当天持该许可`,
-                      `${months} months from starting work on ${start} on a Critical Skills Employment Permit, a researcher’s Hosting Agreement or a Multi-Site General Employment Permit as a non-consultant hospital doctor (Stamp 1 or 1H), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not time awaiting a protection decision or living in Northern Ireland) and on the application day`,
+                      `凭 Critical Skills Employment Permit、研究员 Hosting Agreement 或 NCHD 医生的多地点 General Employment Permit（Stamp 1 或 1H），自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；GEP、ICT 的 Stamp 1、庇护申请期间与北爱尔兰居住不算），递交当天持该许可`,
+                      `${months} months from starting work on ${start} on a Critical Skills Employment Permit, a researcher’s Hosting Agreement or a Multi-Site General Employment Permit as a non-consultant hospital doctor (Stamp 1 or 1H), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not Stamp 1 on a GEP or ICT, time awaiting a protection decision or living in Northern Ireland) and on the application day`,
                     )
                   : L(
-                      `凭 General Employment Permit 或公司内调（ICT）的 Stamp 1，自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；庇护申请期间与北爱尔兰居住不算），递交当天持该许可`,
-                      `${months} months from starting work on ${start} on a General Employment Permit or an Intra-Company Transfer (Stamp 1), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not time awaiting a protection decision or living in Northern Ireland) and on the application day`,
+                      `凭 General Employment Permit 或公司内调（ICT）的 Stamp 1，自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；CSEP 一类的 Stamp 1、庇护申请期间与北爱尔兰居住不算），递交当天持该许可`,
+                      `${months} months from starting work on ${start} on a General Employment Permit or an Intra-Company Transfer (Stamp 1), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not Stamp 1 in the Critical Skills group, time awaiting a protection decision or living in Northern Ireland) and on the application day`,
                     ),
               met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
               sources: [
@@ -660,8 +671,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
               `"${months} months" are calendar months with the first day of work counted (Interpretation Act 2005 s18(h) and Schedule "month"); the start date is the one in Revenue’s Employment Detail Summary, and if you moved to Stamp 1 from another permission it runs from the validity of that employment permit (ISD).`,
             ),
             L(
-              '只计持该许可（Stamp 1 或 1H，57 个月一类含 ICT）的日子，转 Stamp 1 之前凭其他许可工作的日子也计入（ISD 按雇佣许可的有效期起算），递交当天须持该许可；开始工作后许可有空档的，确定日期从空档后重新起算，空档前后能否累加没有写明，累加后的日期另列（PD-116）。21 个月与 57 个月两类不可互换：GEP、ICT 的受雇时间不计入 21 个月（ISD）；换雇主或两类混合时怎样计没有写明。',
-              'Only days holding that permit (Stamp 1 or 1H, with ICT in the 57-month group) count, plus days worked on another permission before moving to Stamp 1 (ISD counts from the employment permit’s validity), and you hold the permit on the application day. After a gap in the permit since starting work, the definite date counts again from the end of the gap; whether time on both sides can be added up is not stated, so that date is shown separately (PD-116). The 21-month and 57-month groups are not interchangeable: time on a GEP or ICT does not count towards 21 months (ISD); a change of employer or a mixed history is not covered.',
+              '只计持该许可（Stamp 1 或 1H，57 个月一类含 ICT）的日子，转 Stamp 1 之前凭其他许可工作的日子也计入（ISD 按雇佣许可的有效期起算），递交当天须持该许可；开始工作后许可有空档的，确定日期从空档后重新起算，空档前后能否累加没有写明，累加后的日期另列（PD-116）。21 个月与 57 个月两类不可互换（ISD）：21 个月只计 CSEP 一类的 Stamp 1，57 个月只计 GEP、ICT 的 Stamp 1，另一类的时间在两条路线上都不计；同一类内换雇主怎样计没有写明。',
+              'Only days holding that permit (Stamp 1 or 1H, with ICT in the 57-month group) count, plus days worked on another permission before moving to Stamp 1 (ISD counts from the employment permit’s validity), and you hold the permit on the application day. After a gap in the permit since starting work, the definite date counts again from the end of the gap; whether time on both sides can be added up is not stated, so that date is shown separately (PD-116). The 21-month and 57-month groups are not interchangeable (ISD): 21 months count only Stamp 1 in the Critical Skills group and 57 months only Stamp 1 on a GEP or ICT, so the other group’s time counts on neither route; a change of employer within a group is not covered.',
             ),
             projection,
           ],

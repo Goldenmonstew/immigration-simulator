@@ -19,7 +19,7 @@ const render = (node: React.ReactNode, locale: 'zh-CN' | 'en') =>
 
 const filled: IeForm = {
   ...emptyIeForm('2026-11-22'),
-  permissions: [{ kind: 'stamp1', from: '2021-03-01', to: '' }],
+  permissions: [{ kind: 'stamp1-csep', from: '2021-03-01', to: '' }],
   stamp4Route: 'csep',
   employmentStart: '2025-03-15',
 };
@@ -32,6 +32,7 @@ test.each(['zh-CN', 'en'] as const)('the form renders in %s', (locale) => {
     'ie.permits',
     'ie.kind',
     'ie.kind.student',
+    'ie.kind.stamp1-csep',
     'ie.kind.stamp1g-spouse',
     'ie.kind.ni-residence',
     'ie.trips',
@@ -73,7 +74,9 @@ test('validation marks missing, out-of-order and required dates', () => {
 
 test('the request leaves out blank optional dates', () => {
   const req = ieRequest({ ...filled, stamp4Route: 'none' }, 'en');
-  expect(req.permissions).toEqual([{ kind: 'stamp1', from: '2021-03-01' }]);
+  expect(req.permissions).toEqual([
+    { kind: 'stamp1-csep', from: '2021-03-01' },
+  ]);
   expect(req).not.toHaveProperty('marriedOn');
   expect(req).not.toHaveProperty('employmentStart');
   expect(ieRequest(filled, 'en').employmentStart).toBe('2025-03-15');

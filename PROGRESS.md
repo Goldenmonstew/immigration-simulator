@@ -411,3 +411,4 @@
 | 384 | 任务 69 第十一轮审核修正（review69-11）：学习许可在返回前自身到期的出境按 § 51 Abs. 1 Nr. 1 判为失效（学生流动只豁免 Nr. 6、7）；失效与否不明的出境（学生流动、欧盟长期居留），定居许可与欧盟长期居留的确定日期按已失效计、未失效的日期另列，也解决了欧盟长期居留失效不明不影响后续计时的风险；回归用例 3 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、docs/tasks/reports/69-germany.md |
 | 385 | 任务 70 报告补记最终门禁、手机宽度预览与第十二轮审核结论（通过）及其风险。 | docs/tasks/reports/70-japan.md |
 | 386 | 任务 69 报告补记最终门禁、手机宽度预览与第十二轮审核结论（通过）及其风险。 | docs/tasks/reports/69-germany.md |
+| 390 | 任务 72：爱尔兰 Stamp 4 升级区分 CSEP 一类与其他雇佣许可的 Stamp 1（新增许可类型），21 个月只计 CSEP 一类、57 个月只计 GEP 与 ICT，另一类在两条路线上都不计；CSEP 后转 GEP、GEP 后转 CSEP 的回归用例；PD-116 更新。 | packages/engine/src/ireland.ts、packages/engine/test/ireland.test.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/ireland.test.tsx、apps/e2e/tests/ireland.spec.ts、docs/pending-details.md |

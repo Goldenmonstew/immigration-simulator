@@ -390,6 +390,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
   test('21 months from starting work on a CSEP', () => {
     const req: Partial<IeRequest> = {
       simulationDate: '2026-01-01',
+      permissions: [{ kind: 'stamp1-csep', from: '2021-03-01' }],
       stamp4Route: 'csep',
       employmentStart: '2025-03-15',
     };
@@ -416,6 +417,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
 
   test('starting on the 31st: the end of February or 1 March (PD-116)', () => {
     const req: Partial<IeRequest> = {
+      permissions: [{ kind: 'stamp1-csep', from: '2021-03-01' }],
       stamp4Route: 'csep',
       employmentStart: '2024-05-31',
     };
@@ -538,12 +540,46 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     expect(p.checks[0].met).toBe(false);
   });
 
+  test('Stamp 4: GEP time does not count towards 21 months, before or after CSEP (task 72)', () => {
+    // CSEP for 2025, then an ordinary GEP: 12 months in the 21-month group.
+    const later = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permissions: [
+          { kind: 'stamp1-csep', from: '2025-01-01', to: '2025-12-31' },
+          { kind: 'stamp1', from: '2026-01-01' },
+        ],
+        stamp4Route: 'csep',
+        employmentStart: '2025-01-01',
+      },
+      'IE-STAMP4',
+    );
+    expect(later.status).toBe('NOT_MET');
+    expect(later.checks[0].met).toBe(false);
+    // A GEP first, then a CSEP from 2025-07-01: the GEP is not "another
+    // permission before Stamp 1", so 21 months run from 2025-07-01.
+    const earlier = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permissions: [
+          { kind: 'stamp1', from: '2024-01-01', to: '2025-06-30' },
+          { kind: 'stamp1-csep', from: '2025-07-01' },
+        ],
+        stamp4Route: 'csep',
+        employmentStart: '2024-01-01',
+      },
+      'IE-STAMP4',
+    );
+    expect(earlier.status).toBe('FUTURE');
+    expect(earlier.earliestDate).toBe('2027-04-01');
+  });
+
   test('Stamp 4: a gap in the permit after starting work does not count (review68-1)', () => {
     const req: Partial<IeRequest> = {
       simulationDate: '2026-11-22',
       permissions: [
-        { kind: 'stamp1', from: '2024-12-01', to: '2025-11-30' },
-        { kind: 'stamp1', from: '2026-05-01' },
+        { kind: 'stamp1-csep', from: '2024-12-01', to: '2025-11-30' },
+        { kind: 'stamp1-csep', from: '2026-05-01' },
       ],
       stamp4Route: 'csep',
       employmentStart: '2024-12-01',
@@ -588,7 +624,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
       simulationDate: '2026-11-22',
       permissions: [
         { kind: 'stamp1g-graduate', from: '2024-05-01', to: '2025-03-31' },
-        { kind: 'stamp1', from: '2025-04-01', to: '2027-01-31' },
+        { kind: 'stamp1-csep', from: '2025-04-01', to: '2027-01-31' },
       ],
       stamp4Route: 'csep',
       employmentStart: '2025-02-01',
