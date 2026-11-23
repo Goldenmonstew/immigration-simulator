@@ -3,7 +3,7 @@ import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, expect, test, vi } from 'vitest';
 import { newGame } from '@uk-immigration/game';
-import TownCanvas, { type TownCanvasProps } from '../app/game/town-canvas';
+import TownCanvas, { type TownCanvasProps } from '../app/uk/game/town-canvas';
 
 vi.mock('react', { spy: true });
 vi.mock('phaser', () => ({ Scene: class {} }));

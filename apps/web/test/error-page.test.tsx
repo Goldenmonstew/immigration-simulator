@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, expect, test, vi } from 'vitest';
 import ErrorPage from '../app/error';
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/game' }));
+vi.mock('next/navigation', () => ({ usePathname: () => '/uk/game' }));
 afterEach(() => vi.unstubAllGlobals());
 
 function retryButton(error: Error, reset: () => void) {

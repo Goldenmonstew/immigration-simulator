@@ -5,15 +5,17 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from '../i18n/locale';
+import { countryPath } from '../lib/site-countries';
 import { buildVersion } from '../lib/report';
 import styles from '../app/site.module.css';
-import game from '../app/game/game.module.css';
+import game from '../app/uk/game/game.module.css';
 import { asset } from '../lib/asset';
 
 export function SiteShell({ children }: { children: ReactNode }) {
   const { t, locale, setLocale } = useTranslation();
   const pathname = usePathname();
-  const isGame = pathname === '/game' || pathname === '/game/';
+  const gamePath = countryPath('uk', 'game');
+  const isGame = pathname === gamePath || pathname === `${gamePath}/`;
   useEffect(() => {
     let details: [HTMLDetailsElement, boolean][] | undefined;
     const beforePrint = () => {
@@ -48,8 +50,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       </a>
       <header className={isGame ? game.siteHeader : styles.header}>
         <div className={isGame ? game.siteHeaderInner : styles.headerInner}>
-          {/* The base path with its slash stays in the service worker scope. */}
-          <a href={asset('/')}>
+          <a href={asset(countryPath('uk'))}>
             {isGame ? (
               t('game.returnSimulator')
             ) : (
@@ -66,8 +67,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
               className={styles.navigation}
               aria-label={t('site.navigation')}
             >
-              <Link href="/policy">{t('site.policy')}</Link>
-              <Link href="/about">{t('site.about')}</Link>
+              <Link href={countryPath('uk', 'policy')}>{t('site.policy')}</Link>
+              <Link href={countryPath('uk', 'about')}>{t('site.about')}</Link>
             </nav>
           )}
           <div
@@ -104,8 +105,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <footer className={`${styles.footer} ${isGame ? game.siteFooter : ''}`}>
         <p>{t('site.footer')}</p>
         <p className={styles.footerLinks}>
-          <Link href="/policy">{t('site.policy')}</Link>
-          <Link href="/about">{t('site.about')}</Link>
+          <Link href={countryPath('uk', 'policy')}>{t('site.policy')}</Link>
+          <Link href={countryPath('uk', 'about')}>{t('site.about')}</Link>
           <a
             href="https://github.com/Goldenmonstew/uk-immigration-simulator/issues/new?template=feedback.md"
             target="_blank"

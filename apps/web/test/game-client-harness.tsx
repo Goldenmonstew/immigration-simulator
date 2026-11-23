@@ -3,16 +3,16 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, vi } from 'vitest';
 import type { Locale } from '@uk-immigration/engine';
 import { LocaleContext } from '../i18n/locale';
-import GameClient from '../app/game/game-client';
+import GameClient from '../app/uk/game/game-client';
 
 vi.mock('react', { spy: true });
-vi.mock('../app/game/town-canvas', () => ({ default: () => null }));
+vi.mock('../app/uk/game/town-canvas', () => ({ default: () => null }));
 // game-client loads the canvas through next/dynamic; hand back the mock above.
 vi.mock('next/dynamic', async () => {
-  const canvas = await import('../app/game/town-canvas');
+  const canvas = await import('../app/uk/game/town-canvas');
   return { default: () => canvas.default };
 });
-vi.mock('../app/game/sound', () => ({
+vi.mock('../app/uk/game/sound', () => ({
   playSound: vi.fn(),
   hideSound: vi.fn(),
   readMuted: () => true,

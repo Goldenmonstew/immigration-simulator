@@ -1,7 +1,7 @@
 import type { TranslationKey } from '../i18n';
 
 export const siteCountries = [
-  { id: 'uk', slug: '', nameKey: 'uk.name' },
+  { id: 'uk', slug: 'uk', nameKey: 'uk.name' },
   { id: 'au', slug: 'australia', nameKey: 'au.name' },
   { id: 'nz', slug: 'new-zealand', nameKey: 'nz.name' },
   { id: 'ca', slug: 'canada', nameKey: 'ca.name' },
@@ -25,7 +25,7 @@ export const nonUkCountries = siteCountries.filter(
 type SiteCountry = (typeof siteCountries)[number];
 
 export function countryPath(
-  id: SiteCountry['id'] | Exclude<SiteCountry['slug'], ''>,
+  id: SiteCountry['id'] | SiteCountry['slug'],
   sub = '',
 ) {
   const { slug } = siteCountries.find(

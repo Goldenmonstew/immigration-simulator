@@ -10,7 +10,7 @@ async function tapPlaceInDrawer(button: Locator) {
 }
 
 test('the character picker fits a phone', async ({ page }) => {
-  await page.goto('/game');
+  await page.goto('/uk/game');
   await noHorizontalScroll(page);
   await expect(page).toHaveScreenshot('mobile-game-start.png');
 });

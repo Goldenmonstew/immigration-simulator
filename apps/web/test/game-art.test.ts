@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { inflateSync } from 'node:zlib';
 import { expect, test } from 'vitest';
 import { characters, currentEvent, newGame, npcs } from '@uk-immigration/game';
-import { spritePath } from '../app/game/session';
+import { spritePath } from '../app/uk/game/session';
 import {
   dialogueExpression,
   expressions,
@@ -13,7 +13,7 @@ import {
   shopSignIds,
   signPath,
   townBanner,
-} from '../app/game/art';
+} from '../app/uk/game/art';
 
 const readImage = (path: string) =>
   readFileSync(new URL(`../public${path}`, import.meta.url));

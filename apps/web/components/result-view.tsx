@@ -6,6 +6,7 @@ import type { SimulationResult } from '@uk-immigration/engine';
 import { ROUTE_GROUPS } from '@uk-immigration/policy-data';
 import type { TranslationKey } from '../i18n';
 import { useTranslation } from '../i18n/locale';
+import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
 import { routeGroupNames, routeLabel } from '../i18n/routes';
 import { displayedRuleSets } from '../lib/policy';
@@ -17,7 +18,7 @@ import { GapSummary } from './gap-summary';
 import { basisRule, shorterPathwaysNotUsed } from '../lib/gap-summary';
 import type { RuleOutcome } from '@uk-immigration/engine';
 import site from '../app/site.module.css';
-import styles from '../app/result/result.module.css';
+import styles from '../app/uk/result/result.module.css';
 
 function jumpToAssessment(id: string) {
   const heading = document.getElementById(id);
@@ -111,7 +112,8 @@ export function ResultView({
         </>
       )}
       <p className={`${site.muted} ${site.noPrint}`}>
-        {t('home.disclaimer')} <Link href="/about">{t('about.link')}</Link>
+        {t('home.disclaimer')}{' '}
+        <Link href={countryPath('uk', 'about')}>{t('about.link')}</Link>
       </p>
     </>
   );

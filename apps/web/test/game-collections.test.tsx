@@ -14,9 +14,9 @@ import {
   type GameState,
 } from '@uk-immigration/game';
 import type { Locale } from '@uk-immigration/engine';
-import { Inventory, LifeCollection } from '../app/game/life-overlays';
-import { Ending, LifeMemories } from '../app/game/game-view';
-import { endingMemories, itemIcon } from '../app/game/session';
+import { Inventory, LifeCollection } from '../app/uk/game/life-overlays';
+import { Ending, LifeMemories } from '../app/uk/game/game-view';
+import { endingMemories, itemIcon } from '../app/uk/game/session';
 import { LocaleContext } from '../i18n/locale';
 import { t, withCount } from '../i18n';
 

@@ -8,7 +8,7 @@ import {
   policyChangelog,
   ROUTE_GROUP_SOURCES,
 } from '@uk-immigration/policy-data';
-import PolicyPage from '../app/policy/page';
+import PolicyPage from '../app/uk/policy/page';
 import { SiteShell } from '../components/site-shell';
 import { LocaleContext } from '../i18n/locale';
 import { sourceUrls } from '../lib/sources';
@@ -86,7 +86,7 @@ test.each(['zh-CN', 'en'] as const)(
 test('policy page translates all metadata and UI in English, with readable parameter shapes', () => {
   const html = render('en');
   expect(html).not.toMatch(/[\u3400-\u9fff]/);
-  expect(html).toContain('href="/policy"');
+  expect(html).toContain('href="/uk/policy"');
   for (const { meta } of Object.values(RULES).flat()) {
     expect(meta.titleEn, meta.id).toMatch(/\S/);
     expect(html).toContain(renderToStaticMarkup(<h4>{meta.titleEn}</h4>));

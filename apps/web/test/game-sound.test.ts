@@ -25,7 +25,7 @@ test('sound waits for a gesture, changes seasonal tracks, and persists mute', as
     getItem: (key: string) => saved.get(key) ?? null,
     setItem: (key: string, value: string) => saved.set(key, value),
   });
-  const sound = await import('../app/game/sound');
+  const sound = await import('../app/uk/game/sound');
   expect(sound.readMuted()).toBe(true);
   sound.setMuted(false);
   sound.setSoundSeason(1, false);
@@ -73,7 +73,7 @@ test.each([
 ] as const)(
   'ambience for %s at %i indoors=%s pond=%s',
   async (weather, minute, interior, nearPond, expected) => {
-    const { selectAmbience } = await import('../app/game/sound');
+    const { selectAmbience } = await import('../app/uk/game/sound');
     expect(selectAmbience({ weather, minute, interior, nearPond })).toEqual(
       expected,
     );
@@ -159,7 +159,7 @@ const settleAudio = async () => {
 
 test('ambient loops wait for gesture and mute, deduplicate, fade on location change, suspend and stop', async () => {
   const { context, nodes, gains, construct, fetch } = audioContext();
-  const sound = await import('../app/game/sound');
+  const sound = await import('../app/uk/game/sound');
   const outside = {
     weather: 'sunny' as const,
     minute: 600,
@@ -222,7 +222,7 @@ test.each(['hidden', 'muted', 'stopped', 'moved'] as const)(
           resolve = done;
         }),
     );
-    const sound = await import('../app/game/sound');
+    const sound = await import('../app/uk/game/sound');
     sound.setMuted(false);
     sound.setSoundEnvironment({
       weather: 'rain',
@@ -257,7 +257,7 @@ test.each(['hidden', 'muted', 'stopped', 'moved'] as const)(
 test('failed ambient downloads remain silent and can retry on the next gesture', async () => {
   const { fetch, nodes } = audioContext();
   fetch.mockRejectedValueOnce(new Error('offline'));
-  const sound = await import('../app/game/sound');
+  const sound = await import('../app/uk/game/sound');
   sound.setMuted(false);
   sound.setSoundEnvironment({
     weather: 'rain',

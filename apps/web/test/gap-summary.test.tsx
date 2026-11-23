@@ -55,7 +55,7 @@ test('likely eligible only shows the all-modelled-requirements sentence, even wi
   const html = render(assessment({ outcome: 'LIKELY_ELIGIBLE' }));
   expect(html).toContain(t('gap.met'));
   expect(html).not.toContain('ES-EARNINGS');
-  expect(html).not.toContain('/whatif');
+  expect(html).not.toContain('/uk/whatif');
 });
 
 test.each([
@@ -123,7 +123,7 @@ test.each(['POTENTIALLY_ELIGIBLE', 'LIKELY_NOT_ELIGIBLE'] as const)(
     ]);
     const html = render(value);
     expect(html).toContain('CL-SW-RESIDENCE-5Y');
-    expect(html).toContain('href="/whatif?focus=date"');
+    expect(html).toContain('href="/uk/whatif?focus=date"');
     expect(html).not.toContain('CL-LR-RESIDENCE-10Y');
     expect(html).not.toContain('ES-PUBLIC-FUNDS');
     expect(html).not.toContain('CL-KOL');
@@ -235,14 +235,14 @@ test('links contain only mapped control keys and unmapped rules have no action',
     assessment({ rules: [...rules, rule('ES-DEBT', 'FAIL')] }),
   );
   expect(html.match(/href="[^"]+"/g)).toEqual([
-    'href="/whatif?focus=income"',
-    'href="/whatif?focus=english"',
-    'href="/whatif?focus=publicFunds"',
+    'href="/uk/whatif?focus=income"',
+    'href="/uk/whatif?focus=english"',
+    'href="/uk/whatif?focus=publicFunds"',
   ]);
   const readOnly = renderToStaticMarkup(
     <GapSummary assessment={assessment()} />,
   );
-  expect(readOnly).not.toContain('/whatif');
+  expect(readOnly).not.toContain('/uk/whatif');
 });
 
 test.each([
@@ -303,7 +303,7 @@ test('a real Skilled Worker assessment with missing English offers the English c
     ]!;
     expect(assessment.outcome).toBe('INSUFFICIENT_INFORMATION');
     const html = render(assessment, locale);
-    expect(html).toContain('href="/whatif?focus=english"');
+    expect(html).toContain('href="/uk/whatif?focus=english"');
     if (locale === 'zh-CN') expect(html).toContain('定居英语要求（补填信息）');
     else expect(html).not.toMatch(/[\u3400-\u9fff：、（）]/);
   }

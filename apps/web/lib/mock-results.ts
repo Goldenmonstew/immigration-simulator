@@ -2,7 +2,7 @@ import type { Locale, SimulationResult } from '@uk-immigration/engine';
 import { earnedSettlement2026_11 as es } from '@uk-immigration/policy-data';
 import { policyAsOf } from './policy';
 
-/** Handwritten development previews (`/result?mock=1` or `2`). */
+/** Handwritten development previews (`/uk/result?mock=1` or `2`). */
 export function mockResults(
   locale: Locale,
 ): Record<'1' | '2', SimulationResult> {

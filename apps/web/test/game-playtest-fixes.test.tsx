@@ -11,8 +11,8 @@ import {
 } from '@uk-immigration/game';
 import type { Locale } from '@uk-immigration/engine';
 import { renderView } from './game-client-harness';
-import { QuarterSummary, StatusBar } from '../app/game/game-view';
-import { PlotMenu } from '../app/game/life-overlays';
+import { QuarterSummary, StatusBar } from '../app/uk/game/game-view';
+import { PlotMenu } from '../app/uk/game/life-overlays';
 import { t, withCount } from '../i18n';
 
 const locales = ['zh-CN', 'en'] as const;

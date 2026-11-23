@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
-import AboutPage, { metadata } from '../app/about/page';
+import AboutPage, { metadata } from '../app/uk/about/page';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
-import Home from '../app/page';
-import PolicyPage from '../app/policy/page';
+import Home from '../app/uk/page';
+import PolicyPage from '../app/uk/policy/page';
 import { ResultView } from '../components/result-view';
 import { SiteShell } from '../components/site-shell';
 import { t } from '../i18n';
@@ -44,9 +44,9 @@ test.each(['zh-CN', 'en'] as const)(
       expect(html).toContain(`<code>${ruleSet.id}</code>`);
       expect(html).toContain(t(`policy.${ruleSet.status}`, locale));
     }
-    expect(html).toContain('href="/about"');
-    expect(html).toContain('href="/policy"');
-    expect(html).toContain('href="/policy#rules-heading"');
+    expect(html).toContain('href="/uk/about"');
+    expect(html).toContain('href="/uk/policy"');
+    expect(html).toContain('href="/uk/policy#rules-heading"');
     expect(renderToStaticMarkup(<PolicyPage />)).toContain(
       'id="rules-heading"',
     );
@@ -62,8 +62,10 @@ test.each(['zh-CN', 'en'] as const)(
     expect(footer).toContain(
       `<a href="${feedbackUrl}" target="_blank" rel="noreferrer">${t('site.feedback', locale)}</a>`,
     );
-    expect(footer).toContain(`href="/policy">${t('site.policy', locale)}</a>`);
-    expect(footer).toContain(`href="/about">${t('site.about', locale)}</a>`);
+    expect(footer).toContain(
+      `href="/uk/policy">${t('site.policy', locale)}</a>`,
+    );
+    expect(footer).toContain(`href="/uk/about">${t('site.about', locale)}</a>`);
     if (locale === 'en') expect(html).not.toMatch(/[\u3400-\u9fff：、（）]/);
   },
 );
@@ -117,7 +119,9 @@ test.each(['zh-CN', 'en'] as const)(
         </LocaleContext>,
       );
       expect(html).toContain(t('home.disclaimer', locale));
-      expect(html).toContain(`<a href="/about">${t('about.link', locale)}</a>`);
+      expect(html).toContain(
+        `<a href="/uk/about">${t('about.link', locale)}</a>`,
+      );
       // Home stays free of GitHub links; result pages may link a rule to a
       // pre-filled issue, which carries the rule id but never the user's inputs.
       const links = [
@@ -137,7 +141,7 @@ test('the service worker precaches about and uses the new cache version', async 
     new URL('../public/sw.js', import.meta.url),
     'utf8',
   );
-  expect(await offlinePages().json()).toContain('/about');
+  expect(await offlinePages().json()).toContain('/uk/about');
   expect(source).toContain("fetch(at('/offline-pages.json')");
-  expect(source).toContain('2026-11-04-v3');
+  expect(source).toContain('2026-11-04-v4');
 });

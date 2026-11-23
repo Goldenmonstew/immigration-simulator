@@ -36,7 +36,7 @@ export async function startGame(
   name: string = '林遥',
   locale: GameLocale = 'zh-CN',
 ) {
-  await page.goto('/game');
+  await page.goto('/uk/game');
   await page.evaluate(() => {
     for (const key of Object.keys(localStorage))
       if (key.startsWith('uk-immigration-life')) localStorage.removeItem(key);
@@ -73,7 +73,7 @@ export async function patchSave(
       source: patches.map((edit) => `(${edit.toString()})(save);`).join('\n'),
     },
   );
-  await page.goto('/game');
+  await page.goto('/uk/game');
   await page
     .getByRole('button', {
       name: locale === 'en' ? 'Continue last game' : '继续上次',

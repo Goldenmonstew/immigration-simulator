@@ -33,13 +33,13 @@ test('no serious accessibility violations in the running game', async ({
 test('no serious accessibility violations on the result page', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/uk');
   await page.evaluate(
     (value) =>
       localStorage.setItem('uk-immigration-draft-v1', JSON.stringify(value)),
     completedDraft,
   );
-  await page.goto('/result');
+  await page.goto('/uk/result');
   await expect(
     page.getByRole('heading', { name: '你的路径模拟' }),
   ).toBeVisible();

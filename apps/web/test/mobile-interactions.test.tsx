@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, expect, test, vi } from 'vitest';
-import SimulatePage from '../app/simulate/page';
+import SimulatePage from '../app/uk/simulate/page';
 import { AssessmentColumns, ResultView } from '../components/result-view';
 import { SiteShell } from '../components/site-shell';
 import { LocaleContext } from '../i18n/locale';
@@ -12,7 +12,7 @@ import * as questionnaire from '../lib/questionnaire';
 vi.mock('react', { spy: true });
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
-  usePathname: () => '/',
+  usePathname: () => '/uk',
 }));
 
 afterEach(() => {
