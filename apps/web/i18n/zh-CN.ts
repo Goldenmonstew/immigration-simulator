@@ -503,7 +503,9 @@ export const zhCN = {
   'ie.kind.stamp1g-ict': 'Stamp 1G（公司内调 ICT 许可持有人的配偶、伴侣）',
   'ie.kind.stamp1a': 'Stamp 1A（见习会计）',
   'ie.kind.stamp0': 'Stamp 0（经济独立者、访问学者、年长受抚养亲属等）',
-  'ie.kind.stamp3': 'Stamp 3（不能工作的家属、志愿者、宗教人员等）',
+  'ie.kind.stamp3': 'Stamp 3（志愿者、宗教人员等其他情形）',
+  'ie.kind.stamp3-family':
+    'Stamp 3（经家庭团聚获批的雇佣许可持有人或研究员的配偶、伴侣，2024 年改发 1G 之前）',
   'ie.kind.stamp4': 'Stamp 4',
   'ie.kind.stamp4d': 'Stamp 4D 或 4S',
   'ie.kind.stamp4-eufam': 'Stamp 4 EUFam（欧盟公民家属）',
@@ -531,7 +533,8 @@ export const zhCN = {
     'Stamp 4 升级，21 个月：Critical Skills 许可、研究员 Hosting Agreement、NCHD 医生的多地点 GEP',
   'ie.stamp4Route.gep':
     'Stamp 4 升级，57 个月：General Employment Permit、公司内调 ICT',
-  'ie.stamp4Route.spouse-1g': 'Stamp 4：持 Stamp 1G 的配偶或伴侣，满 5 年',
+  'ie.stamp4Route.spouse-1g':
+    'Stamp 4：家庭团聚的配偶或伴侣（Stamp 3／1G），满 5 年',
   'ie.stamp4Route.wcatt': 'Stamp 5：合法居留满 96 个月',
   'ie.employmentStart': '在爱尔兰凭该许可开始工作的日期',
   'ie.employmentStartHint':

@@ -523,6 +523,32 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     expect(p.earliestDate).toBe('2029-06-01');
   });
 
+  test('Stamp 1G: family reunification Stamp 3 before 2024 counts (task 72)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2026-11-22',
+      permissions: [
+        { kind: 'stamp3-family', from: '2020-01-01', to: '2024-05-14' },
+        { kind: 'stamp1g-spouse', from: '2024-05-15' },
+      ],
+      stamp4Route: 'spouse-1g',
+    };
+    // 5 years on a family reunification permission from 2020-01-01.
+    expect(pathway(req, 'IE-STAMP4').status).toBe('MET');
+    // Stamp 3 for another reason: 1G from 2024-05-15 only.
+    const other = pathway(
+      {
+        ...req,
+        permissions: [
+          { kind: 'stamp3', from: '2020-01-01', to: '2024-05-14' },
+          { kind: 'stamp1g-spouse', from: '2024-05-15' },
+        ],
+      },
+      'IE-STAMP4',
+    );
+    expect(other.status).toBe('FUTURE');
+    expect(other.earliestDate).toBe('2029-05-15');
+  });
+
   test('Stamp 1G: graduate programme time does not count (review68-1)', () => {
     const p = pathway(
       {

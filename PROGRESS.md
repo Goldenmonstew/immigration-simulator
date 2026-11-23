@@ -412,3 +412,4 @@
 | 385 | 任务 70 报告补记最终门禁、手机宽度预览与第十二轮审核结论（通过）及其风险。 | docs/tasks/reports/70-japan.md |
 | 386 | 任务 69 报告补记最终门禁、手机宽度预览与第十二轮审核结论（通过）及其风险。 | docs/tasks/reports/69-germany.md |
 | 390 | 任务 72：爱尔兰 Stamp 4 升级区分 CSEP 一类与其他雇佣许可的 Stamp 1（新增许可类型），21 个月只计 CSEP 一类、57 个月只计 GEP 与 ICT，另一类在两条路线上都不计；CSEP 后转 GEP、GEP 后转 CSEP 的回归用例；PD-116 更新。 | packages/engine/src/ireland.ts、packages/engine/test/ireland.test.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/ireland.test.tsx、apps/e2e/tests/ireland.spec.ts、docs/pending-details.md |
+| 391 | 任务 72：爱尔兰家庭团聚配偶转 Stamp 4 的 5 年计入 2024 年前的家庭团聚 Stamp 3（ISD 家庭团聚 FAQ 第 30 问、2024-05-15 通告，SRC-096；新增许可类型），其他原因的 Stamp 3 不计；回归用例；PD-118 与 SRC-096 备注更新。 | packages/engine/src/ireland.ts、packages/engine/test/ireland.test.ts、apps/web/i18n/{zh-CN,en}.ts、docs/pending-details.md、docs/SOURCES.md |

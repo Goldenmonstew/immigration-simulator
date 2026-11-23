@@ -708,7 +708,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.kind.stamp0':
     'Stamp 0 (independent means, visiting academic, elderly dependent relative and so on)',
   'ie.kind.stamp3':
-    'Stamp 3 (family members who cannot work, volunteers, ministers of religion and so on)',
+    'Stamp 3 (volunteers, ministers of religion and other cases)',
+  'ie.kind.stamp3-family':
+    'Stamp 3 (spouse or partner of an employment permit holder or researcher under family reunification, before the 2024 move to 1G)',
   'ie.kind.stamp4': 'Stamp 4',
   'ie.kind.stamp4d': 'Stamp 4D or 4S',
   'ie.kind.stamp4-eufam': 'Stamp 4 EUFam (family member of an EU citizen)',
@@ -741,7 +743,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.stamp4Route.gep':
     'Stamp 4 upgrade, 57 months: General Employment Permit, intra-company transfer',
   'ie.stamp4Route.spouse-1g':
-    'Stamp 4 for spouses and partners on Stamp 1G, after 5 years',
+    'Stamp 4 for spouses and partners on family reunification (Stamp 3 or 1G), after 5 years',
   'ie.stamp4Route.wcatt': 'Stamp 5: 96 months of legal residence',
   'ie.employmentStart': 'Date you started work in Ireland on that permit',
   'ie.employmentStartHint':

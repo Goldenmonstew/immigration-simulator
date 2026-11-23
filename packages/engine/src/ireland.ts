@@ -18,7 +18,8 @@ import type { IsoDate, Locale } from './types';
  * as a General Employment Permit, not ICT) or a business; stamp1g-graduate: Third Level Graduate Programme;
  * stamp1g-spouse: spouse or partner of an employment permit holder (CSEP,
  * GEP, Multi-Site GEP doctor) or researcher; stamp1g-ict: spouse or partner
- * of an ICT permit holder; stamp4d: Stamp 4D or
+ * of an ICT permit holder; stamp3-family: Stamp 3 granted under family
+ * reunification as such a spouse or partner (before 1G, 2024); stamp4d: Stamp 4D or
  * 4S; student: Stamp 2 or 2A; protection-applicant: waiting for an
  * international protection decision; ni-residence: lawful residence in
  * Northern Ireland (s15A only); other: temporary protection and the rest.
@@ -33,6 +34,7 @@ export const IE_PERMISSION_KINDS = [
   'stamp1a',
   'stamp0',
   'stamp3',
+  'stamp3-family',
   'stamp4',
   'stamp4d',
   'stamp4-eufam',
@@ -103,6 +105,7 @@ const RECKONABLE: IePermissionKind[] = [
   'stamp1g-spouse',
   'stamp1g-ict',
   'stamp3',
+  'stamp3-family',
   'stamp4',
   'stamp4d',
   'stamp4-eufam',
@@ -118,6 +121,7 @@ const WCATT: IePermissionKind[] = [
   'stamp1g-graduate',
   'stamp1g-spouse',
   'stamp3',
+  'stamp3-family',
   'stamp4',
   'stamp4d',
   'stamp5',
@@ -681,7 +685,9 @@ export function evaluateIreland(req: IeRequest): IeResult {
       }
     } else if (route === 'spouse-1g') {
       const years = v.spouse1gYears.value;
-      const held = holds(['stamp1g-spouse', 'stamp1g-ict']);
+      // 5 years on a family reunification permission (FAQ 30): Stamp 1G as
+      // a spouse or partner, and the Stamp 3 these spouses held before 2024.
+      const held = holds(['stamp1g-spouse', 'stamp1g-ict', 'stamp3-family']);
       const heldSums = days.sums(held);
       const verdict = (d: IsoDate): Verdict => {
         const from = addYears(d, -years);
@@ -699,37 +705,37 @@ export function evaluateIreland(req: IeRequest): IeResult {
       pathways.push({
         id: 'IE-STAMP4',
         title: L(
-          'Stamp 1G 配偶或伴侣转 Stamp 4',
-          'Stamp 4 for spouses and partners on Stamp 1G',
+          '家庭团聚的配偶或伴侣（Stamp 3／1G）转 Stamp 4',
+          'Stamp 4 for spouses and partners on family reunification (Stamp 3 or 1G)',
         ),
         ...outcome(earliest, possible),
         summary:
           (earliest === sim
             ? L(
-                `模拟日已作为配偶或伴侣连续持 Stamp 1G 满 ${years} 年；ISD 要求满期后在下一次网上续期时申请 Stamp 4。`,
-                `You have held Stamp 1G as a spouse or partner for ${years} years on the simulation date; ISD has you apply for Stamp 4 at your next online renewal after that.`,
+                `模拟日已作为配偶或伴侣在家庭团聚许可下连续满 ${years} 年；ISD 要求满期后在下一次网上续期时申请 Stamp 4。`,
+                `You have been on a family reunification permission as a spouse or partner for ${years} years on the simulation date; ISD has you apply for Stamp 4 at your next online renewal after that.`,
               )
             : earliest
               ? L(
-                  `作为配偶或伴侣连续持 Stamp 1G 满 ${years} 年的最早日期是 ${earliest}；ISD 要求满期后在下一次网上续期时申请 Stamp 4。`,
-                  `The earliest date you will have held Stamp 1G as a spouse or partner for ${years} years is ${earliest}; ISD has you apply for Stamp 4 at your next online renewal after that.`,
+                  `作为配偶或伴侣在家庭团聚许可下连续满 ${years} 年的最早日期是 ${earliest}；ISD 要求满期后在下一次网上续期时申请 Stamp 4。`,
+                  `The earliest date you will have been on a family reunification permission as a spouse or partner for ${years} years is ${earliest}; ISD has you apply for Stamp 4 at your next online renewal after that.`,
                 )
               : L(
-                  `按现有记录，10 年内达不到作为配偶或伴侣连续持 Stamp 1G ${years} 年。`,
-                  `With your record you will not hold Stamp 1G as a spouse or partner for ${years} years in a row within 10 years.`,
+                  `按现有记录，10 年内达不到作为配偶或伴侣在家庭团聚许可下连续 ${years} 年。`,
+                  `With your record you will not be on a family reunification permission as a spouse or partner for ${years} years in a row within 10 years.`,
                 )) +
           (possible && possible !== earliest
             ? L(
-                `若空档前后的 Stamp 1G 时间可以累加，最早 ${possible}（PD-118）。`,
-                ` If Stamp 1G time on both sides of a gap can be added up, it could be ${possible} (PD-118).`,
+                `若空档前后的时间可以累加，最早 ${possible}（PD-118）。`,
+                ` If time on both sides of a gap can be added up, it could be ${possible} (PD-118).`,
               )
             : '') +
           L(policy, ` ${policy}`),
         checks: [
           {
             text: L(
-              `${addYears(sim, -years)} 起每天都作为雇佣许可持有人（CSEP、GEP、ICT 等）或研究员的配偶、伴侣持 Stamp 1G，递交当天仍持有（毕业生计划的 1G 不计）`,
-              `Stamp 1G as the spouse or partner of an employment permit holder (CSEP, GEP, ICT and so on) or researcher on every day since ${addYears(sim, -years)} and on the application day (graduate programme 1G does not count)`,
+              `${addYears(sim, -years)} 起每天都作为雇佣许可持有人（CSEP、GEP、ICT 等）或研究员的配偶、伴侣持家庭团聚许可（Stamp 1G，或 2024 年前的 Stamp 3），递交当天仍持有（毕业生计划的 1G 不计）`,
+              `A family reunification permission (Stamp 1G, or Stamp 3 before 2024) as the spouse or partner of an employment permit holder (CSEP, GEP, ICT and so on) or researcher on every day since ${addYears(sim, -years)} and on the application day (graduate programme 1G does not count)`,
             ),
             met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
             sources: v.spouse1gYears.sources,
@@ -743,8 +749,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
         ],
         assumptions: [
           L(
-            '"5 年"只计配偶、伴侣类的 Stamp 1G（ISD 把它与毕业生计划的 1G 分为两类；2024-05-15 起 GEP、ICT 持有人的配偶、伴侣也给 1G，同样满 5 年可转 Stamp 4），按连续持有计；此前以 Stamp 3 居住的时间不计（ISD 家庭团聚 FAQ 第 30 问写的是在家庭团聚许可下满 5 年，可能包括这段时间，本试点从严，日期可能偏晚），许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。',
-            '"5 years" counts only Stamp 1G as a spouse or partner (ISD lists it apart from graduate programme 1G; since 2024-05-15 spouses and partners of GEP and ICT holders also get 1G with the same 5-year point), held without a break; earlier time on Stamp 3 does not count (ISD’s family reunification FAQ 30 speaks of 5 years on a family reunification permission, which may include it; this pilot is stricter, so its date may be later), and after a gap between permissions, whether time on both sides can be added up is not stated, so that date is shown separately (PD-118).',
+            '"5 年"按 ISD 家庭团聚 FAQ 第 30 问计"在家庭团聚许可下满 5 年"：配偶、伴侣类的 Stamp 1G（与毕业生计划的 1G 分开），以及 2024-05-15 改发 1G 之前这些配偶、伴侣所持的 Stamp 3（通告写明其家庭团聚许可原为 Stamp 3）；其他原因的 Stamp 3 不计。按连续持有计，许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。',
+            '"5 years" follows ISD’s family reunification FAQ 30, "5 years or more … on a family reunification permission": Stamp 1G as a spouse or partner (apart from graduate programme 1G), and the Stamp 3 these spouses and partners held before the move to 1G on 2024-05-15 (the notice says their family reunification permission was Stamp 3); Stamp 3 for other reasons does not count. It is taken as held without a break; after a gap, whether time on both sides can be added up is not stated, so that date is shown separately (PD-118).',
           ),
           projection,
         ],
