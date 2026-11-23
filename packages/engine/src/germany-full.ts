@@ -5,6 +5,7 @@ import type {
   CountryResult,
 } from './country-result';
 import {
+  DE_UNLIMITED_KINDS,
   evaluateGermanyTimeline,
   type DeRequest,
   type DePermit,
@@ -113,6 +114,12 @@ const timing = {
   R15: ['DE-C42-time', '§§ 9 Abs. 2 Satz 1 Nr. 1, 31 Abs. 3', 'PD-120 PD-352'],
 } as const;
 
+function currentPermit(req: DeFullRequest) {
+  return req.permits
+    ?.filter((p) => p.from <= req.simulationDate)
+    .sort((a, b) => b.from.localeCompare(a.from))[0];
+}
+
 // Reuse the same evaluation when several full routes request the same pilot timeline.
 function pilotReader(req: DeFullRequest) {
   const cache = new Map<string, ReturnType<typeof evaluateGermanyTimeline>>();
@@ -138,9 +145,7 @@ function pilotReader(req: DeFullRequest) {
       const resettled =
         settlementRoute === 'refugee' &&
         (protection === 'section23-4' || protection === 'legacy-resettlement');
-      const current = req.permits
-        .filter((permit) => permit.from <= req.simulationDate)
-        .sort((a, b) => b.from.localeCompare(a.from))[0];
+      const current = currentPermit(req);
       const permits =
         settlementRoute === 'refugee'
           ? req.permits.map((permit) =>
@@ -333,10 +338,7 @@ function currentTitleCheck(
     )
   )
     return;
-  const latest = req.permits
-    ?.filter((p) => p.from <= req.simulationDate)
-    .sort((a, b) => b.from.localeCompare(a.from))[0];
-  let kind: DePermitKind | undefined = latest?.kind;
+  let kind: DePermitKind | undefined = currentPermit(req)?.kind;
   if (route === 'R03') kind = 'blue-card';
   if (route === 'R04') kind = 'german-family';
   return check(
@@ -362,7 +364,36 @@ const procedure = new Set([
   ...citizenshipAdvisoryIds,
 ]);
 
-export function evaluateGermanyFull(req: DeFullRequest): CountryResult {
+// Title reviews describe present documents. A past or future permit of the
+// same kind keeps its own dates (StAG § 10 Abs. 1 Satz 1 Nr. 2).
+function withCurrentTitleExpiry(req: DeFullRequest): DeFullRequest {
+  const { permits, mobility } = req;
+  if (!permits || !mobility?.titles) return req;
+  const current = currentPermit(req);
+  if (!current || DE_UNLIMITED_KINDS.includes(current.kind)) return req;
+  const matching = mobility.titles.filter((t) => t.kind === current.kind);
+  if (matching.length !== 1) return req;
+  const [title] = matching;
+  const [expiry] = [current.to, title.validTo].filter((date) => !!date).sort();
+  if (!expiry) return req;
+  return {
+    ...req,
+    permits: permits.map((p) =>
+      p === current
+        ? { ...p, to: expiry, renewing: p.renewing ?? title.continuingUnder81 }
+        : p,
+    ),
+    mobility: {
+      ...mobility,
+      titles: mobility.titles.map((t) =>
+        t === title ? { ...t, validTo: expiry } : t,
+      ),
+    },
+  };
+}
+
+export function evaluateGermanyFull(input: DeFullRequest): CountryResult {
+  const req = withCurrentTitleExpiry(input);
   const L = textFor(req);
   const read = pilotReader(req);
   const pathways = [...new Set(req.routes ?? DE_FULL_ROUTES)].map(

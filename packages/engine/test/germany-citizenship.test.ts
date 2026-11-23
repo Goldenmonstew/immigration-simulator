@@ -436,6 +436,77 @@ describe('StAG specific pathways', () => {
     expect(expiredByAnniversary.earliestDate).toBeUndefined();
   });
 
+  test.each([
+    [undefined, '2027-09-30', 'NOT_MET'],
+    ['2027-09-30', undefined, 'NOT_MET'],
+    ['2027-11-01', '2027-09-30', 'NOT_MET'],
+    ['2027-09-30', '2027-11-01', 'NOT_MET'],
+    [undefined, '2027-10-01', 'FUTURE'],
+    ['2027-10-01', undefined, 'FUTURE'],
+  ] as const)(
+    'the same Blue Card expires at the earlier recorded limit (%s, %s)',
+    (to, validTo, status) => {
+      const from = '2022-08-01';
+      const route = citizenshipRoute(
+        from,
+        { countedResidenceSince: '2022-10-01' },
+        {
+          permits: [{ kind: 'blue-card', from, to }],
+          mobility: {
+            titles: [
+              { kind: 'blue-card', validTo, noOtherLossEvent: true, trips: [] },
+            ],
+          },
+        },
+      );
+      expect(route.checks.find((c) => c.id === 'DE-C63-current')?.status).toBe(
+        'MET',
+      );
+      expect(route.checks.find((c) => c.id === 'DE-C55')?.status).toBe(
+        'NOT_MET',
+      );
+      expect(route.status).toBe(status);
+      expect(route.earliestDate).toBe(
+        status === 'FUTURE' ? '2027-10-01' : undefined,
+      );
+    },
+  );
+
+  test.each([
+    ['2027-09-30', undefined],
+    ['2026-10-31', true],
+  ] as const)(
+    'the current expiry %s respects documented continuation and a later Blue Card',
+    (validTo, continuingUnder81) => {
+      const from = '2022-08-01';
+      const route = citizenshipRoute(
+        from,
+        { countedResidenceSince: '2022-10-01' },
+        {
+          permits: [
+            { kind: 'blue-card', from },
+            { kind: 'blue-card', from: '2027-10-01' },
+          ],
+          mobility: {
+            titles: [
+              {
+                kind: 'blue-card',
+                validTo,
+                continuingUnder81,
+                noOtherLossEvent: true,
+                trips: [],
+              },
+            ],
+          },
+        },
+      );
+      expect(route).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: '2027-10-01',
+      });
+    },
+  );
+
   test('a confirmed residence start preserves the § 9 projection for a continuing German marriage', () => {
     const start = '2024-08-01';
     for (const countedResidenceSince of [undefined, start]) {

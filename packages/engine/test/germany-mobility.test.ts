@@ -46,8 +46,8 @@ const fullBlue = (overrides: Partial<Blue>, simulationDate = day) =>
   evaluateGermanyFull({
     simulationDate,
     routes: ['R03'],
-    firstEntry: '2024-12-01',
-    permits: [{ kind: 'blue-card', from: '2024-12-01' }],
+    firstEntry: '2024-08-01',
+    permits: [{ kind: 'blue-card', from: '2024-08-01' }],
     trips: [],
     common: {
       identityEstablished: true,
@@ -185,6 +185,7 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
       ] of cases) {
         const path = fullBlue({
           employment: periods,
+          latestRelevantChangeOn: '2025-12-23',
           creditBeforeInterruption,
         });
         const check = path.checks.find((c) => c.id === 'DE-C19-months');
@@ -196,6 +197,7 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
       }
     }
     const postGap = fullBlue({
+      latestRelevantChangeOn: '2025-02-23',
       employment: [
         { ...employment, firstMonth: '2024-12', lastMonth: '2024-12' },
         { ...gap, firstMonth: '2025-01', lastMonth: '2025-01' },
@@ -220,6 +222,7 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
     for (const historicalPayAccepted of [undefined, true]) {
       const path = fullBlue({
         employment: [{ ...first, historicalPayAccepted }, raised],
+        employmentStartedOn: '2024-12-01',
         countableAnnualGross: 51000,
       });
       expect(path.checks.find((c) => c.id === 'DE-C19-months')).toMatchObject({
@@ -252,10 +255,8 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
     expect(payCut.checks.find((c) => c.id === 'DE-C19-months')?.status).toBe(
       'NOT_MET',
     );
-    expect(payCut).toMatchObject({
-      status: 'FUTURE',
-      earliestDate: '2027-01-23',
-    });
+    expect(payCut.status).toBe('NOT_MET');
+    expect(payCut.earliestDate).toBeUndefined();
   });
 
   test('an unchanged qualifying job needs no change decision; an applicable unresolved change still does', () => {
@@ -340,6 +341,120 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
       }
     },
   );
+
+  test.each([
+    ['2026-10-24', '2026-09', 20, 'NOT_MET', 'FUTURE'],
+    ['2026-11-01', '2026-10', 20, 'NOT_MET', 'FUTURE'],
+    ['2026-11-23', '2026-10', 20, 'NOT_MET', 'FUTURE'],
+    ['2026-11-24', '2026-10', 21, 'MET', 'MET'],
+  ] as const)(
+    'a job resumed mid-month accrues from its actual start on %s',
+    (date, lastMonth, count, status, routeStatus) => {
+      const previous = {
+        ...employment,
+        firstMonth: '2024-08',
+        lastMonth: '2024-12',
+      };
+      const resumed = { ...employment, firstMonth: '2025-02', lastMonth };
+      const unemployment = {
+        ...employment,
+        firstMonth: '2025-01',
+        lastMonth: '2025-01',
+        qualifyingWork: false,
+      };
+      for (const periods of [
+        [previous, resumed],
+        [previous, unemployment, resumed],
+      ]) {
+        const path = fullBlue(
+          {
+            employmentStartedOn: '2024-08-01',
+            latestRelevantChangeOn: '2025-02-24',
+            changeReported: true,
+            jobChangeDecision: undefined,
+            creditBeforeInterruption: false,
+            employment: periods,
+          },
+          date,
+        );
+        expect(path.checks.find((c) => c.id === 'DE-C19-months')).toMatchObject(
+          {
+            status,
+            explanation: expect.stringContaining(`已确认 ${count} 月`),
+          },
+        );
+        expect(path.status).toBe(routeStatus);
+        expect(path.earliestDate).toBe('2026-11-24');
+      }
+    },
+  );
+
+  test('a month without the qualifying start day gives bounds, not a precise anniversary', () => {
+    const previous = {
+      ...employment,
+      firstMonth: '2024-08',
+      lastMonth: '2024-12',
+    };
+    const resumed = {
+      ...employment,
+      firstMonth: '2025-02',
+      lastMonth: '2026-10',
+    };
+    for (const fields of [
+      { employment: [resumed] },
+      { employment: [previous, resumed], employmentStartedOn: '2024-08-01' },
+      {
+        employment: [
+          {
+            ...employment,
+            firstMonth: '2025-01',
+            lastMonth: '2025-01',
+            pensionForSameMonths: false,
+          },
+          resumed,
+        ],
+        employmentStartedOn: '2025-01-24',
+      },
+    ]) {
+      const path = fullBlue(
+        { ...fields, creditBeforeInterruption: false },
+        '2026-11-01',
+      );
+      expect(path.checks.find((c) => c.id === 'DE-C19-months')).toMatchObject({
+        status: 'UNKNOWN',
+        pendingDetails: expect.arrayContaining(['PD-350']),
+        explanation: expect.stringContaining(
+          '已确认 20 月，计入待核月份后至多 21 月',
+        ),
+      });
+      expect(path.status).toBe('UNKNOWN');
+      expect(path.earliestDate).toBeUndefined();
+      const mature = fullBlue(
+        { ...fields, creditBeforeInterruption: false },
+        '2026-11-28',
+      );
+      expect(mature.checks.find((c) => c.id === 'DE-C19-months')?.status).toBe(
+        'MET',
+      );
+      expect(mature).toMatchObject({
+        status: 'MET',
+        earliestDate: '2026-11-28',
+      });
+    }
+    const before = fullBlue(
+      {
+        employmentStartedOn: '2024-08-01',
+        creditBeforeInterruption: false,
+        employment: [previous, { ...resumed, lastMonth: '2026-09' }],
+      },
+      '2026-10-31',
+    );
+    expect(before.checks.find((c) => c.id === 'DE-C19-months')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(before.status).toBe('NOT_MET');
+    expect(before.earliestDate).toBeUndefined();
+  });
 
   test('a reported change after qualifying work began needs no clearance once the suspension window has closed', () => {
     const change = {

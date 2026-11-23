@@ -332,8 +332,8 @@ function employmentMonths(req: DeFullRequest, decisionPay: Answer) {
   let confirmed = 0,
     possible = 0;
   let previous: string | undefined;
-  const start = b.employmentStartedOn;
-  let accrualStart: IsoDate | undefined;
+  let previousWorkUncertain = false;
+  let accrualStart: { earliest: IsoDate; latest: IsoDate } | undefined;
   let monthsFromStart = 0;
   let nextEmploymentMonth: number | undefined;
   for (const [month, records] of ordered) {
@@ -362,50 +362,65 @@ function employmentMonths(req: DeFullRequest, decisionPay: Answer) {
         return all(r.qualifyingWork, r.pensionForSameMonths, historical);
       }),
     );
-    if (gap || working !== true || credited === false) {
+    if (gap || previousWorkUncertain || credited === false) {
       accrualStart = undefined;
       monthsFromStart = 0;
       nextEmploymentMonth = undefined;
     }
-    if (
-      start &&
-      month >= start.slice(0, 7) &&
-      working === true &&
-      credited !== false
-    ) {
-      accrualStart ??= month === start.slice(0, 7) ? start : month + '-01';
-      monthsFromStart++;
-    }
-    // A pension entry for February does not complete a month of employment
-    // begun on 24 February until 24 March (SRC-107 Nr. 18c.2.1.1–3).
-    const matured =
-      !accrualStart ||
-      employmentAnniversary(accrualStart, monthsFromStart) <=
-        req.simulationDate;
-    if (matured && credited === true) confirmed++;
-    if (matured && credited !== false) possible++;
-    if (credited === true && monthsFromStart) {
-      if (matured) nextEmploymentMonth = monthsFromStart + 1;
-      else nextEmploymentMonth ??= monthsFromStart;
-    } else nextEmploymentMonth = undefined;
     previous = month;
+    previousWorkUncertain = working === undefined;
+    if (credited === false) continue;
+    if (!accrualStart) {
+      const exact = [b.employmentStartedOn, b.latestRelevantChangeOn].find(
+        (date) => date?.slice(0, 7) === month,
+      );
+      const first = month + '-01';
+      accrualStart = {
+        earliest: exact ?? first,
+        latest: exact ?? addDays(addMonths(first, 1), -1),
+      };
+    }
+    monthsFromStart++;
+    // A pension entry alone cannot establish the anniversary day
+    // (SRC-107 Nr. 18c.2.1.1–3, pp117–118; PD-350).
+    const matured =
+      employmentAnniversary(accrualStart.latest, monthsFromStart) <=
+      req.simulationDate;
+    if (matured && credited === true) confirmed++;
+    if (
+      employmentAnniversary(accrualStart.earliest, monthsFromStart) <=
+      req.simulationDate
+    )
+      possible++;
+    if (credited !== true) nextEmploymentMonth = undefined;
+    else if (matured) nextEmploymentMonth = monthsFromStart + 1;
+    else nextEmploymentMonth ??= monthsFromStart;
   }
   const threshold = blueTier(req)
     ? pilot.blueCardB1Months
     : pilot.blueCardMonths;
-  const employmentDue =
-    accrualStart &&
-    previous &&
+  const project =
+    previous !== undefined &&
     previous >= shiftMonth(simulationMonth, -1) &&
+    confirmed < threshold.value;
+  const unknownStartDay = accrualStart?.earliest !== accrualStart?.latest;
+  const employmentDue =
+    project &&
+    accrualStart &&
+    !unknownStartDay &&
     nextEmploymentMonth !== undefined &&
-    confirmed === possible &&
-    confirmed < threshold.value
+    confirmed === possible
       ? employmentAnniversary(
-          accrualStart,
+          accrualStart.earliest,
           nextEmploymentMonth + threshold.value - confirmed - 1,
         )
       : undefined;
-  return { confirmed, possible, employmentDue };
+  return {
+    confirmed,
+    possible,
+    employmentDue,
+    uncertainDue: unknownStartDay && confirmed < threshold.value,
+  };
 }
 
 function blueLanguage(req: DeFullRequest): string | undefined {
@@ -488,7 +503,9 @@ export function blueCardTimeInputs(req: DeFullRequest) {
   return {
     germanB1: blueTier(req),
     blueCardEmploymentMonths:
-      months.confirmed === months.possible ? months.confirmed : undefined,
+      months.confirmed === months.possible && !months.uncertainDue
+        ? months.confirmed
+        : undefined,
     employmentDue: months.employmentDue,
   };
 }

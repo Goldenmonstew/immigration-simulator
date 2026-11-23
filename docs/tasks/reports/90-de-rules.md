@@ -183,3 +183,35 @@ PROGRESS 714。建议提交 `Fix: 修正德国蓝卡就业计月、换岗审查�
 ### 4. 发现与建议
 
 R05 普通档的退休生计豁免是否涵盖医保，仍待核对。审核复现中，达到法定退休年龄且无医保时，C25 为 `MET`，独立的 C04 为 `NOT_MET`，路径受阻。本轮按审核要求记录风险，沿用 PD-351。依据为 SRC-100 § 2 Abs. 3、§ 26 Abs. 3 Satz 2。[AufenthG § 2](https://www.gesetze-im-internet.de/aufenthg_2004/__2.html)、[AufenthG § 26](https://www.gesetze-im-internet.de/aufenthg_2004/__26.html)
+
+## 第三轮审核修正（review90-3）
+
+### 1. 做了什么
+
+PROGRESS 715。建议提交 `Fix: 修正德国蓝卡复工计月并统一文书到期日（review90-3）`。
+
+R03 的 B1 样例在 2024-08-01 首次就业，2025 年 1 月中断，2025-02-24 换岗复工并已通报，机关确认空档前工龄不计。公开入口 `evaluateGermanyFull` 对显式填写失业月份和直接留空两种记录给出相同结果。依据为 SRC-100 § 18c Abs. 2 Sätze 1、3 及 SRC-107 Nr. 18c.2.1.1–3（第 117–118 页）。[AufenthG § 18c](https://www.gesetze-im-internet.de/aufenthg_2004/__18c.html)
+
+| 模拟日 | 复工后已录缴费至 | C19-months | R03 | earliestDate |
+|---|---|---|---|---|
+| 2026-10-24 | 2026-09 | `NOT_MET`，已满 20 个月 | `FUTURE` | 2026-11-24 |
+| 2026-11-01、11-23 | 2026-10 | `NOT_MET`，已满 20 个月 | `FUTURE` | 2026-11-24 |
+| 2026-11-24 | 2026-10 | `MET`，已满 21 个月 | `MET` | 2026-11-24 |
+
+复查同一函数时，一并处理了首次就业缺少入职日、前一段不满足同期缴费条件后重新起算的情形。若仅知新段始于 2025 年 2 月，2026-11-01 可确认 20 个月、至多 21 个月，条件与路径均为 `UNKNOWN`，无最早日期。到 11-28，任何可能的 2 月起始日都已满 21 个月。若所有可能起始日计算出的月数都不足，则条件为 `NOT_MET`，缺少日级依据时不外推具体日期。已补记 PD-350。
+
+R07 核定的五年届满日为 2027-10-01 时，同一张蓝卡无论在哪一处填写 2027-09-30 到期，结果均为 `NOT_MET`，无最早日期。两处日期不同时取较早者。若到期日恰为 2027-10-01，当天仍有效，可以预测该日。这里只对模拟日对应的当前限期许可合并日期，后续签发的许可按各自记录评估。依据为 SRC-101 § 10 Abs. 1 Satz 1 Nr. 2、SRC-100 §§ 51 Abs. 1 Nr. 1、81 Abs. 4。[StAG § 10](https://www.gesetze-im-internet.de/stag/__10.html)
+
+### 2. 怎么验证的
+
+在基线 `797cfdb` 上先跑公开入口回归，复现了 2026-10-24 错报 `FUTURE 2026-11-01`、11-01 提前返回 `MET`、缺少入职日仍报达标，以及 R07 两个字段结果不一致。修正后，`pnpm --filter @uk-immigration/engine exec vitest run test/germany-mobility.test.ts test/germany-citizenship.test.ts test/germany-full.test.ts` 共 111 项通过。回归断言条件状态、路径状态及 `earliestDate`，并覆盖到期当日、已确认的 § 81 延续及后续同类新证。
+
+`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 首次运行退出码为 0。全库共 5,372 项通过（error-report 2、policy-data 23、engine 3,357、game 1,336、web 654），1 项既有文案导出测试按条件跳过。构建生成 27 个静态页面，已确认 `apps/web/out/germany.html` 非空。
+
+### 3. 没做或没验证的
+
+按要求保留未提交工作树。旧入口 `evaluateGermany` 的实现、参数和原测试与 `797cfdb` 无差异。本轮未改页面，未运行浏览器 e2e。
+
+### 4. 发现与建议
+
+逐证资料若有多份同类文书，目前缺少字段区分它们分别对应哪条许可记录，页面应保留逐证对应关系。R05 普通档退休生计豁免的医保范围继续沿用 PD-351。
