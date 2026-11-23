@@ -120,6 +120,31 @@ test('trips off the island from Northern Ireland are absences', () => {
   ).toBe('UNKNOWN');
 });
 
+test('an Irish card overlapping a move to Northern Ireland', () => {
+  const form: IeForm = {
+    ...emptyIeForm('2026-11-22'),
+    permissions: [
+      { kind: 'stamp4', from: '2017-01-01', to: '2024-12-31' },
+      { kind: 'stamp4', from: '2025-01-01', to: '2026-12-31' },
+      { kind: 'ni-residence', from: '2026-06-01', to: '' },
+    ],
+    marriedOn: '2020-01-01',
+    stamp4Route: 'wcatt',
+  };
+  expect(validateIeForm(form)).toEqual({});
+  const status = Object.fromEntries(
+    evaluateIreland(ieRequest(form, 'zh-CN')).pathways.map((p) => [
+      p.id,
+      p.status,
+    ]),
+  );
+  expect(status).toEqual({
+    'IE-NATURALISATION': 'NOT_MET',
+    'IE-SPOUSE': 'MET',
+    'IE-STAMP4': 'NOT_MET',
+  });
+});
+
 test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
   const result = evaluateIreland(ieRequest(filled, locale));
   const html = render(<PilotResult result={result} />, locale);

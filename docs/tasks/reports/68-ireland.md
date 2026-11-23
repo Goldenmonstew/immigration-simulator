@@ -45,12 +45,18 @@
   - 建议：网页测试补"岛内搬迁记为出境"与"从北爱尔兰离岛出行"两条从表单到结果的回归；Stamp 4 时间检查项写明转 Stamp 1 之前哪些许可的日子计入（学生许可、毕业生 1G 等，不含庇护申请期间与北爱尔兰居住）。
   - 混合雇佣履历（CSEP 后转普通 GEP）仍按所选路线计算，按协调要求只记为风险，见第 3 节。
   - 引擎用例 40 项（新增 3 项、改写 1 项），网页用例 9 项（新增 2 项）。
+- 第四轮审核修正（review68-4，Codex 结论"需要修改"，2 个问题）：
+  - 搬到北爱尔兰后尚未到期的爱尔兰许可不再算在国家居住：录入"在北爱尔兰合法居住"的日子优先于重叠的爱尔兰许可，一般入籍与 Stamp 5 不计这些日子，配偶入籍仍按爱尔兰岛计入。复现输入（Stamp 4 卡到 2026-12-31，2026-06-01 起住北爱尔兰）改为一般入籍 NOT_MET、配偶入籍 MET、Stamp 5 NOT_MET；许可提示写明这一点（PD-115）。
+  - Stamp 1G 配偶转 Stamp 4 的摘要不再称 5 年节点为"可申请的最早日期"，改为满 5 年的日期，并写明 ISD 要求满期后在下一次网上续期时申请。存档 ISD 家庭团聚 FAQ（第 30 问）并入 SRC-096，参数来源加上该定位。
+  - 按协调要求只记为风险、不实现：CSEP 后转普通 GEP 的混合履历在 21 个月路线上仍可能判满足；家庭团聚 FAQ 第 30 问按"在家庭团聚许可下满 5 年"计，2024 年前以 Stamp 3 居住的时间可能也算，本试点只计 1G，这类情形的日期可能晚于 ISD 的最早路径（PD-118）。
+  - 引擎用例 42 项（新增 2 项），网页用例 10 项（新增 1 项，从表单到三条路径的结果）。
 
 ## 2. 怎么验证的
 
 - `pnpm exec tsc --noEmit -p .`：packages/engine、packages/policy-data、apps/web、apps/e2e 均通过。
 - `pnpm exec vitest run test/ireland.test.ts test/index.test.ts test/rules.test.ts`（engine）：73 项通过，其中爱尔兰 30 项。
 - review68-1 修正后：engine `test/ireland.test.ts` 35 项通过（审核中的每组反例都写成回归用例）；web `test/ireland.test.tsx` 7 项通过；policy-data 全部通过；engine、policy-data、web、e2e 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过。离线提交的 e2e 断言未运行（按 brief 不跑 Playwright）。
+- review68-4 修正后：engine `test/ireland.test.ts` 42 项通过；web `test/ireland.test.tsx` 10 项通过；policy-data 全部通过；engine、policy-data、web 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过；新存档的家庭团聚 FAQ 已写入 SRC-096 并离线核对网址对应。
 - review68-3 修正后：engine `test/ireland.test.ts` 40 项通过；web `test/ireland.test.tsx` 9 项通过；policy-data 全部通过；engine、policy-data、web 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过；新存档通告的 sha256 已写入 SRC-096，按 `check-sources.mjs` 的规则离线核对它对到正确网址。
 - review68-2 修正后：engine `test/ireland.test.ts` 37 项通过；web `test/ireland.test.tsx` 7 项通过；engine、policy-data、web 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过。
 - `pnpm exec vitest run`（policy-data，含来源登记一致性）：23 项通过。

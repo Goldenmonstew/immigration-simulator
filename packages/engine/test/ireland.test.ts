@@ -304,6 +304,30 @@ test('a Northern Ireland residence recorded as a trip is still in the island (re
   expect(p.checks.map((c) => c.met)).toEqual([true, true, true, true]);
 });
 
+test('after moving to Northern Ireland an unexpired Irish card is not residence in the State (review68-4)', () => {
+  const req: Partial<IeRequest> = {
+    simulationDate: '2026-11-22',
+    permissions: [
+      { kind: 'stamp4', from: '2017-01-01', to: '2018-12-31' },
+      { kind: 'stamp4', from: '2019-01-01', to: '2020-12-31' },
+      { kind: 'stamp4', from: '2021-01-01', to: '2022-12-31' },
+      { kind: 'stamp4', from: '2023-01-01', to: '2024-12-31' },
+      { kind: 'stamp4', from: '2025-01-01', to: '2026-12-31' },
+      { kind: 'ni-residence', from: '2026-06-01' },
+    ],
+    marriedOn: '2020-01-01',
+    stamp4Route: 'wcatt',
+  };
+  const general = pathway(req, 'IE-NATURALISATION');
+  expect(general.status).toBe('NOT_MET');
+  expect(general.checks[0].met).toBe(false);
+  // The island of Ireland: Republic, then Northern Ireland.
+  expect(pathway(req, 'IE-SPOUSE').status).toBe('MET');
+  const stamp5 = pathway(req, 'IE-STAMP4');
+  expect(stamp5.status).toBe('NOT_MET');
+  expect(stamp5.checks[0].met).toBe(false);
+});
+
 test('Stamp 1A and other permissions stay uncertain (PD-114)', () => {
   for (const kind of ['stamp1a', 'other'] as const) {
     const p = pathway(
@@ -465,6 +489,23 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
       'IE-STAMP4',
     );
     expect(replaced.status).toBe('NOT_MET');
+  });
+
+  test('Stamp 1G: the 5-year point, filed at the next renewal (review68-4)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-10-15',
+        permissions: [
+          { kind: 'stamp1g-spouse', from: '2021-11-01', to: '2027-06-30' },
+        ],
+        stamp4Route: 'spouse-1g',
+      },
+      'IE-STAMP4',
+    );
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2026-11-01');
+    expect(p.summary).toContain('下一次网上续期');
+    expect(p.summary).not.toContain('可申请 Stamp 4 的最早日期');
   });
 
   test('Stamp 1G as the partner of an ICT permit holder counts (review68-3)', () => {

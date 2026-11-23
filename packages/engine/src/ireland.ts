@@ -227,12 +227,16 @@ export function evaluateIreland(req: IeRequest): IeResult {
     notBefore?: IsoDate,
   ) => {
     const route = id === 'IE-SPOUSE' ? 'spouse' : 'general';
-    // Lawful residence in Northern Ireland counts for s15A only.
-    const extra: IePermissionKind[] =
-      route === 'spouse' ? ['ni-residence'] : [];
-    const reckonable = holds([...RECKONABLE, ...extra]);
+    // Living in Northern Ireland: residence in the island of Ireland for
+    // s15A only, and no residence in the State even on an unexpired Irish
+    // permission (s15(1)(c)).
+    const inState = (kinds: IePermissionKind[]) => {
+      const held = holds(kinds);
+      return (i: number) => (ni[i] ? route === 'spouse' : held(i));
+    };
+    const reckonable = inState(RECKONABLE);
     const sure = days.sums(reckonable);
-    const maybe = days.sums(holds([...RECKONABLE, ...UNCERTAIN, ...extra]));
+    const maybe = days.sums(inState([...RECKONABLE, ...UNCERTAIN]));
     const absent = route === 'spouse' ? offIsland : away;
     const absentSums = days.sums((i) => absent[i]);
     const sureHome = days.sums((i) => reckonable(i) && !absent[i]);
@@ -390,8 +394,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
           'The year is counted back from the application date to the same date a year earlier, not including the application day (ISD example: applying on 2025-11-11, check 2024-11-11 to 2025-11-10); you need a valid permission on the application day. The law does not define which day is the "date of the application" (PD-110). The official calculator also counts the application day; this pilot does not.',
         ),
         L(
-          '出入境当天不算缺席（s15C(5)："day" 不含不足一日；ISD 指南）。许可到期后到续期前的空档不计入，连续一年因此中断（ISD 指南）。凡在境内持有效许可、不属 s16A(1) 与 ISD"Time That Does Not Count"所列情形（学生 Stamp 2／2A、无许可、等待保护决定）的居住都计入，包括 Stamp 4 EUFam、4D 与 ICT 许可持有人配偶的 1G；Stamp 1A 兼有培训，可能落入学习类排除，与"其他"一样待确认（PD-114）。此前几年里的出境是否减少"累计居住"法条和指南都没写：严格读法扣除，较宽读法不扣（PD-112）；闰日按期间内的 2 月 29 日各加 1 天，较宽读法不加（PD-113）。',
-          'Departure and return days are not absences (s15C(5): a "day" does not include part of a day; ISD guide). A gap after a permission expires and before it is renewed does not count and breaks the continuous year (ISD guide). Residence in the State on any valid permission that s16A(1) and ISD’s "Time That Does Not Count" (student Stamp 2 or 2A, no permission, awaiting a protection decision) leave in counts, Stamp 4 EUFam, 4D and 1G for partners of ICT permit holders included; Stamp 1A combines training with work and may fall under the study exclusion, so like "other" it is uncertain (PD-114). Whether trips abroad reduce the "total residence" in the earlier years is not stated: the strict reading deducts them, the wide one does not (PD-112); the strict reading adds a day for each 29 February in the period, the wide one does not (PD-113).',
+          '出入境当天不算缺席（s15C(5)："day" 不含不足一日；ISD 指南）。许可到期后到续期前的空档不计入，连续一年因此中断（ISD 指南）。凡在境内持有效许可、不属 s16A(1) 与 ISD"Time That Does Not Count"所列情形（学生 Stamp 2／2A、无许可、等待保护决定）的居住都计入，包括 Stamp 4 EUFam、4D 与 ICT 许可持有人配偶的 1G；Stamp 1A 兼有培训，可能落入学习类排除，与"其他"一样待确认（PD-114）。住在北爱尔兰的日子不算在国家居住，即使爱尔兰许可尚未到期。此前几年里的出境是否减少"累计居住"法条和指南都没写：严格读法扣除，较宽读法不扣（PD-112）；闰日按期间内的 2 月 29 日各加 1 天，较宽读法不加（PD-113）。',
+          'Departure and return days are not absences (s15C(5): a "day" does not include part of a day; ISD guide). A gap after a permission expires and before it is renewed does not count and breaks the continuous year (ISD guide). Residence in the State on any valid permission that s16A(1) and ISD’s "Time That Does Not Count" (student Stamp 2 or 2A, no permission, awaiting a protection decision) leave in counts, Stamp 4 EUFam, 4D and 1G for partners of ICT permit holders included; Stamp 1A combines training with work and may fall under the study exclusion, so like "other" it is uncertain (PD-114). Days living in Northern Ireland are not residence in the State, even on an unexpired Irish permission. Whether trips abroad reduce the "total residence" in the earlier years is not stated: the strict reading deducts them, the wide one does not (PD-112); the strict reading adds a day for each 29 February in the period, the wide one does not (PD-113).',
         ),
         ...(spouse
           ? [
@@ -684,13 +688,13 @@ export function evaluateIreland(req: IeRequest): IeResult {
         summary:
           (earliest === sim
             ? L(
-                `模拟日已作为配偶或伴侣连续持 Stamp 1G 满 ${years} 年，可以申请 Stamp 4。`,
-                `You have held Stamp 1G as a spouse or partner for ${years} years on the simulation date and can apply for Stamp 4.`,
+                `模拟日已作为配偶或伴侣连续持 Stamp 1G 满 ${years} 年；ISD 要求满期后在下一次网上续期时申请 Stamp 4。`,
+                `You have held Stamp 1G as a spouse or partner for ${years} years on the simulation date; ISD has you apply for Stamp 4 at your next online renewal after that.`,
               )
             : earliest
               ? L(
-                  `作为配偶或伴侣连续持 Stamp 1G 满 ${years} 年、可申请 Stamp 4 的最早日期是 ${earliest}。`,
-                  `The earliest date you will have held Stamp 1G as a spouse or partner for ${years} years and can apply for Stamp 4 is ${earliest}.`,
+                  `作为配偶或伴侣连续持 Stamp 1G 满 ${years} 年的最早日期是 ${earliest}；ISD 要求满期后在下一次网上续期时申请 Stamp 4。`,
+                  `The earliest date you will have held Stamp 1G as a spouse or partner for ${years} years is ${earliest}; ISD has you apply for Stamp 4 at your next online renewal after that.`,
                 )
               : L(
                   `按现有记录，10 年内达不到作为配偶或伴侣连续持 Stamp 1G ${years} 年。`,
@@ -721,8 +725,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
         ],
         assumptions: [
           L(
-            '"5 年"只计配偶、伴侣类的 Stamp 1G（ISD 把它与毕业生计划的 1G 分为两类；2024-05-15 起 GEP、ICT 持有人的配偶、伴侣也给 1G，同样满 5 年可转 Stamp 4），按连续持有计；此前以 Stamp 3 居住的时间不计，许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。',
-            '"5 years" counts only Stamp 1G as a spouse or partner (ISD lists it apart from graduate programme 1G; since 2024-05-15 spouses and partners of GEP and ICT holders also get 1G with the same 5-year point), held without a break; earlier time on Stamp 3 does not count, and after a gap between permissions, whether time on both sides can be added up is not stated, so that date is shown separately (PD-118).',
+            '"5 年"只计配偶、伴侣类的 Stamp 1G（ISD 把它与毕业生计划的 1G 分为两类；2024-05-15 起 GEP、ICT 持有人的配偶、伴侣也给 1G，同样满 5 年可转 Stamp 4），按连续持有计；此前以 Stamp 3 居住的时间不计（ISD 家庭团聚 FAQ 第 30 问写的是在家庭团聚许可下满 5 年，可能包括这段时间，本试点从严，日期可能偏晚），许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。',
+            '"5 years" counts only Stamp 1G as a spouse or partner (ISD lists it apart from graduate programme 1G; since 2024-05-15 spouses and partners of GEP and ICT holders also get 1G with the same 5-year point), held without a break; earlier time on Stamp 3 does not count (ISD’s family reunification FAQ 30 speaks of 5 years on a family reunification permission, which may include it; this pilot is stricter, so its date may be later), and after a gap between permissions, whether time on both sides can be added up is not stated, so that date is shown separately (PD-118).',
           ),
           projection,
         ],
@@ -730,8 +734,11 @@ export function evaluateIreland(req: IeRequest): IeResult {
       });
     } else {
       const months = v.wcattMonths.value;
-      const sure = days.sums(holds(WCATT));
-      const wide = holds([...WCATT, 'other']);
+      // Legal residence in the State: not while living in Northern Ireland.
+      const counts = holds(WCATT);
+      const uncertain = holds([...WCATT, 'other']);
+      const sure = days.sums((i) => !ni[i] && counts(i));
+      const wide = (i: number) => !ni[i] && uncertain(i);
       const wideSums = days.sums(wide);
       const verdict = (d: IsoDate): Verdict => {
         const from = addMonths(d, -months);
@@ -795,8 +802,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
         ],
         assumptions: [
           L(
-            `${months} 个月按连续持有计；许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。"其他"类许可是否计入待确认（PD-114）。`,
-            `The ${months} months are taken as held without a break; after a gap, whether residence on both sides can be added up is not stated, so that date is shown separately (PD-118). Whether "other" permissions count is uncertain (PD-114).`,
+            `${months} 个月按连续持有计，住在北爱尔兰的日子不算在国家合法居留；许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。"其他"类许可是否计入待确认（PD-114）。`,
+            `The ${months} months are taken as held without a break, and days living in Northern Ireland are not legal residence in the State; after a gap, whether residence on both sides can be added up is not stated, so that date is shown separately (PD-118). Whether "other" permissions count is uncertain (PD-114).`,
           ),
           L(
             `"每年在境外不超过 ${v.wcattAbsenceMonths.value} 个月"是获批后 Stamp 5 的居住条件，不用于判断能否申请；申请前的出境是否减少 ${months} 个月没有写，本试点不扣除（PD-117）。`,

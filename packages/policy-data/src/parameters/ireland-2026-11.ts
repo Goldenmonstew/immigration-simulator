@@ -110,6 +110,12 @@ export const ireland2026_11 = {
             'Notice 2024-05-15: GEP and ICT spouses and partners on Stamp 1G',
           url: 'https://www.irishimmigration.ie/attention-eligible-spouses-and-partners-of-general-employment-permit-and-intra-corporate-transferee-irish-employment-permit-holders/',
         },
+        {
+          srcId: 'SRC-096',
+          locator:
+            'Joining family FAQ 30: When can I get a Stamp 4 permission?',
+          url: 'https://www.irishimmigration.ie/coming-to-join-family-in-ireland/frequently-asked-questions-for-joining-family/',
+        },
       ],
     },
     // Stamp 5 (without condition as to time): months of legal residence...
