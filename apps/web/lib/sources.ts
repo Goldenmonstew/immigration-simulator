@@ -176,6 +176,21 @@ export const sourceUrls: Record<string, string> = {
     'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/without-condition-as-to-time/',
   'SRC-098':
     'https://assets.gov.ie/static/documents/cadca21c/General_Scheme_of_the_Irish_Nationality_and_Citizenship_Amendment_Bill_2026.pdf',
+  'SRC-120':
+    'https://files.diariodarepublica.pt/1s/2026/05/09500/0000200020.pdf',
+  'SRC-121':
+    'https://files.diariodarepublica.pt/1s/2024/03/04600/0000200019.pdf',
+  'SRC-122': 'https://www.tribunalconstitucional.pt/tc/acordaos/20251133.html',
+  'SRC-123':
+    'https://files.diariodarepublica.pt/1s/2022/08/16400/0000200137.pdf',
+  'SRC-124':
+    'https://files.diariodarepublica.pt/1s/2015/09/17101/0000200038.pdf',
+  'SRC-125':
+    'https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=940&tabela=leis',
+  'SRC-126':
+    'https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a',
+  'SRC-127':
+    'https://justica.gov.pt/Noticias/Lei-da-Nacionalidade-novas-regras-entram-em-vigor-a-19-de-maio',
   'SRC-110': 'https://laws.e-gov.go.jp/law/326CO0000000319',
   'SRC-111': 'https://laws.e-gov.go.jp/law/325AC0000000147',
   'SRC-112': 'https://laws.e-gov.go.jp/law/129AC0000000089',

@@ -667,6 +667,68 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.error.date': 'Enter a valid date.',
   'ie.error.order': 'This date cannot be before the start date.',
   'ie.error.route': 'Choose the permission to work out (or "None").',
+  'pt.entryLink': 'Open the Portugal pilot',
+  'pt.entryDesc':
+    'Use your residence permits (golden visa included) and travel record to work out the dates for naturalisation, permanent residence, EU long-term residence and golden visa renewal.',
+  'pt.title':
+    'Portugal: dates for naturalisation, permanent residence and the golden visa (pilot)',
+  'pt.intro':
+    'From your Portuguese residence permits (golden visa included) and trips, this works out four steps that depend on time alone: the years of residence for naturalisation (under the nationality law in force since May 2026), permanent residence, EU long-term resident status, and the golden visa (ARI) minimum stays and renewal period. Investment amounts and language tests are out of scope.',
+  'pt.scope':
+    'The pilot checks only the time requirements in the nationality law and the foreigners law. It does not check language, criminal record, income, accommodation or other requirements; each result lists them, and open questions such as when the new law starts counting or how periods with gaps add up are flagged. Your entries are processed in your browser and are not saved or uploaded.',
+  'pt.basics': 'About you',
+  'pt.simulationDate': 'Simulation date',
+  'pt.simulationDateHint':
+    'Results are worked out for this date (the application date). It starts as today.',
+  'pt.permits': 'Residence permits',
+  'pt.permitsHint':
+    'Add a row for each permit, then the next one if renewed on time; leave the end blank if it is still valid (for a golden visa, enter the expiry on the card to get the renewal dates). You can also add a row for time on a residence visa before your first permit. Permanent residence and EU long-term resident status have no time limit, so an expired card does not end them; the right of residence for 6 months after a temporary card expires is explained in the results.',
+  'pt.permit': 'Permit {n}',
+  'pt.from': 'Valid from',
+  'pt.to': 'Valid until (leave blank if still valid)',
+  'pt.kind': 'Permit type',
+  'pt.kind.temporary': 'Temporary residence permit (work, family and others)',
+  'pt.kind.golden-visa': 'Golden visa (residence permit for investment, ARI)',
+  'pt.kind.study': 'Study, unpaid traineeship or volunteering permit',
+  'pt.kind.visa': 'Residence visa (before your residence permit)',
+  'pt.kind.permanent':
+    'Permanent residence (autorização de residência permanente)',
+  'pt.kind.eu-long-term':
+    'EU long-term resident status (título UE de residência de longa duração)',
+  'pt.addPermit': 'Add a permit',
+  'pt.trips': 'Trips abroad',
+  'pt.tripsHint':
+    'Add a row for each time you left Portugal. You can include planned trips. If you hold a golden visa and live mostly abroad, enter each whole stretch from leaving to coming back.',
+  'pt.trip': 'Trip {n}',
+  'pt.departed': 'Date you left Portugal',
+  'pt.returned': 'Date you came back to Portugal',
+  'pt.addTrip': 'Add a trip',
+  'pt.nationality': 'Naturalisation',
+  'pt.route': 'Your nationality',
+  'pt.route.choose': 'Choose one',
+  'pt.route.cplp': 'National of a Portuguese-speaking country (7 years)',
+  'pt.route.eu': 'Citizen of an EU member state (7 years)',
+  'pt.route.eea':
+    'Citizen of Norway, Iceland, Liechtenstein or Switzerland (10 years)',
+  'pt.route.other': 'National of another country, China included (10 years)',
+  'pt.route.stateless': 'Stateless (4 years)',
+  'pt.pending':
+    'I applied for naturalisation before the new law came into force on 19 May 2026, and it was still pending that day (the earlier law applies)',
+  'pt.appliedOn': 'Date you applied for naturalisation',
+  'pt.residenceApplied':
+    'Date you applied for your first temporary residence permit (optional)',
+  'pt.residenceAppliedHint':
+    'The earlier law counts from the application for temporary residence, once granted; if left blank, it counts from the permit start.',
+  'pt.remove': 'Remove',
+  'pt.submit': 'Work out dates',
+  'pt.errorSummary': 'Fix the items marked in red first.',
+  'pt.error.date': 'Enter a valid date.',
+  'pt.error.order': 'This date cannot be before the start date.',
+  'pt.error.route': 'Choose your nationality group.',
+  'pt.error.pendingDate':
+    'Applications made after the new law came into force (2026-05-19) do not fall under the earlier law; check the date or untick the box.',
+  'pt.error.afterSimulation':
+    'The application date cannot be after the simulation date.',
   'es.entryLink': 'Open the Spain pilot',
   'es.entryDesc':
     'Use your residence permits and travel record to work out the dates for national long-term residence and citizenship by residence.',
