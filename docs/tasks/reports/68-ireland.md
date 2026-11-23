@@ -59,6 +59,7 @@
 
 ## 2. 怎么验证的
 
+- Fable 门禁（`b0b527b`）：`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0，engine 2,941 项（另 1 项跳过）、game 1,336 项、web 607 项通过；e2e 桌面 49 项全部通过。第六轮审核（review68-6）结论"通过"。
 - `pnpm exec tsc --noEmit -p .`：packages/engine、packages/policy-data、apps/web、apps/e2e 均通过。
 - `pnpm exec vitest run test/ireland.test.ts test/index.test.ts test/rules.test.ts`（engine）：73 项通过，其中爱尔兰 30 项。
 - review68-1 修正后：engine `test/ireland.test.ts` 35 项通过（审核中的每组反例都写成回归用例）；web `test/ireland.test.tsx` 7 项通过；policy-data 全部通过；engine、policy-data、web、e2e 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过。离线提交的 e2e 断言未运行（按 brief 不跑 Playwright）。
@@ -74,7 +75,7 @@
 
 ## 3. 没做或没验证的
 
-- 按 brief 未跑 `pnpm build`、全量 `pnpm test` 与 Playwright；`/ireland` 页没有在浏览器里截图检查，e2e 与视觉检查留给 Fable 的门禁。
+- 实现过程中按 brief 只跑定向测试；全量测试、build 与 e2e 由 Fable 门禁补跑（见第 2 节），手机宽度的页面预览在第一轮门禁时检查过，审核修正后的页面没有再截图。
 - Long Term Residency（60 个月）没有做：与 57 个月 Stamp 4 升级重叠；要区分雇佣许可类 Stamp 1／4 与投资、创业类 Stamp 4 等；有空档时不完整月份怎么累加、获批后 90 天缺席条件是否约束申请前的 60 个月都没写。
 - 难民与无国籍人（s16 部长裁量、2025-12-08 起的 5 年政策）、在境内出生的未成年人（s15B）、s15A(4) 随公共服务外派的境外居住都不计算；配偶路径去北爱尔兰的行程仍按缺席计（PD-115）。
 - Stamp 4 雇佣路线不区分同一类型下的不同雇佣许可（例如都选 Stamp 1 的 GEP 与 CSEP），按所选路线把 Stamp 1／1H 都当作该许可，因此 CSEP 后转普通 GEP 的混合履历在 21 个月路线上仍可能判满足（审核记为风险）。从开始工作日到转为 Stamp 1 之前，凭其他有效许可（学生许可、毕业生 1G 等，不含庇护申请期间与北爱尔兰居住）的日子计入；这段时间里没有任何许可的日子按空档处理（较严）。
@@ -94,3 +95,4 @@
 - 出境记录只有一份，配偶路径按"爱尔兰岛"计时，去北爱尔兰的行程本应不算缺席；若要精确，可给出境行加"去北爱尔兰"勾选。
 - ISD 家庭团聚 FAQ 第 30 问（Stamp 1G 配偶满 5 年在下一次网上续期时申请）已在第四轮存档并入 SRC-096；它写的是"在家庭团聚许可下满 5 年"，可能包括 2024 年前的 Stamp 3 时间，试点只计 1G（PD-118）。
 - Stamp 1G 配偶在接近 5 年节点时搬到北爱尔兰：这条路线按持有许可计时，不看居住地，审核记为风险，未处理。
+- 第六轮审核（review68-6）记为风险、未处理：Stamp 5 在出行期间满期、且许可在回国前到期时，摘要仍以回国日为最早递交日，没有复核当天是否持有效许可；纯 ICT 的历史模拟也用 GEP 通告的 2024-04-03 作为 57 个月规则起点，ICT 的生效日没有单独的官方定位；2024-04-03 宜写成"按 57 个月规则最早满足的日期"。
