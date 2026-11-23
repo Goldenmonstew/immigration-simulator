@@ -1044,8 +1044,45 @@ describe('trips abroad and loss of residence (§ 51)', () => {
       expect(p.summary).toContain('§ 81 Abs. 4');
     });
 
-    test('naturalisation: the wait is lawful residence (review69-6)', () => {
-      expect(pathway(req, 'DE-NATURALISATION').status).toBe('MET');
+    test('naturalisation: the wait counts, holding on the day is disputed (review69-6/8)', () => {
+      const p = pathway(req, 'DE-NATURALISATION');
+      // The 5 years are reached with the wait (review69-6), but holding a
+      // permit on the day rests only on the pending renewal (review69-8).
+      expect(p.status).toBe('UNKNOWN');
+      expect(p.checks[0].met).toBeUndefined();
+      expect(p.summary).toContain('最早 2026-11-22');
+      expect(p.summary).toContain('§ 10 Abs. 1 Satz 1 Nr. 2');
+    });
+
+    test('trips back after the old expiry are conditional (review69-8)', () => {
+      const permits = [
+        {
+          kind: 'skilled' as const,
+          from: '2022-03-15',
+          to: '2026-12-31',
+          renewing: true,
+        },
+      ];
+      const p = pathway(
+        {
+          permits,
+          trips: [{ departed: '2026-12-20', returned: '2027-01-10' }],
+        },
+        'DE-TRAVEL',
+      );
+      expect(p.status).toBe('UNKNOWN');
+      expect(p.checks[0].met).toBeUndefined();
+      expect(p.checks[0].text).toContain('2027-06-20');
+      // Back before the old expiry: as before.
+      expect(
+        pathway(
+          {
+            permits,
+            trips: [{ departed: '2026-12-01', returned: '2026-12-15' }],
+          },
+          'DE-TRAVEL',
+        ).status,
+      ).toBe('MET');
     });
 
     test('naturalisation: later waiting time is conditional (review69-7)', () => {

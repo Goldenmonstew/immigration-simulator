@@ -287,6 +287,8 @@ interface Exit {
   by: IsoDate;
   /** `by` is the day the title itself expired (§ 51 Abs. 1 Nr. 1). */
   expires?: boolean;
+  /** Back after the old permit's expiry while a renewal is pending. */
+  pendingRenewal?: boolean;
   /** EU long-term residence: the last day if the time was outside the EU. */
   euBy?: IsoDate;
   lapses: boolean;
@@ -399,13 +401,18 @@ export function evaluateGermany(req: DeRequest): DeResult {
         k < days.count - 1 &&
         days.date(k) < months;
       const by = expires ? days.date(k) : months;
+      // Back after the old expiry with the renewal still pending: the permit
+      // only continues until the decision (§ 81 Abs. 4), so the 6 months are
+      // a conditional limit (PD-124).
+      const pendingRenewal = !!pending[days.index(trip.returned)];
       exit = {
         trip,
         kind,
         by,
         expires,
+        pendingRenewal,
         lapses: trip.returned > by,
-        unsure: false,
+        unsure: pendingRenewal && trip.returned <= by,
       };
     }
     exits[n] = exit;
@@ -1201,7 +1208,7 @@ export function evaluateGermany(req: DeRequest): DeResult {
       return !kd
         ? 'no'
         : TITLES.includes(kd)
-          ? doubt[k] || (pending[k] && k > days.index(sim))
+          ? doubt[k] || pending[k]
             ? 'maybe'
             : 'yes'
           : kd === 'temporary' || kd === 'humanitarian'
@@ -1282,8 +1289,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
                 )) +
         (why === 'pending'
           ? L(
-              `你的许可到期后正在等待续期决定：到模拟日为止的等待时间按合法居留计（§ 81 Abs. 4），之后的时间要看申请仍在等待或续期获批；这样的话，最早 ${possible}（PD-124）。`,
-              ` Your permit ran out while a renewal is being decided: the wait up to the simulation date counts as lawful residence (§ 81 Abs. 4), but later time depends on the application still pending or the renewal being granted; if so, it could be ${possible} (PD-124).`,
+              `你的许可到期后正在等待续期决定：等待时间按合法居留计（§ 81 Abs. 4），但入籍当天只凭续期申请的延续效力，算不算持有 § 10 Abs. 1 Satz 1 Nr. 2 要求的许可有争议；模拟日之后的等待还要看申请仍在等待或续期获批。续期获批的话，最早 ${possible}（PD-124）。`,
+              ` Your permit ran out while a renewal is being decided: the wait counts as lawful residence (§ 81 Abs. 4), but whether the continuing effect of the application alone counts as holding the permit § 10 Abs. 1 Satz 1 Nr. 2 requires on the day is disputed, and waiting time after the simulation date also depends on the application still pending or the renewal being granted. If the renewal is granted, it could be ${possible} (PD-124).`,
             )
           : why === 'doubt'
             ? `${L('', ' ')}${doubtText(unsureAt)}${
@@ -1422,6 +1429,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
     const relevant = exits.filter((e) => e !== undefined);
     const lapsed = relevant.filter((e) => e.lapses);
     const unsure = relevant.filter((e) => e.unsure);
+    const euUnsure = unsure.filter((e) => e.euBy);
+    const renewalUnsure = unsure.filter((e) => e.pendingRenewal);
     const notChecked = [
       L(
         '出于非临时原因出境（如迁居国外）的，许可在出境时即失效（§ 51 Abs. 1 Nr. 6），取决于本人意图，无法计算',
@@ -1462,10 +1471,18 @@ export function evaluateGermany(req: DeRequest): DeResult {
               `For the trip${lapsed.length > 1 ? 's' : ''} ${lapsed.map(trip).join(', ')} the return is after the deadline, so the title lapses once the deadline has passed (§ 51): earlier time no longer counts for a settlement permit or EU long-term residence, and you need a new title to come back.`,
             )
           : unsure.length
-            ? L(
-                `${unsure.map(trip).join('、')} 持欧盟长期居留离开德国较久：若这段时间都在欧盟以外，许可会在期限届满后失效（§ 51 Abs. 9 Satz 1 Nr. 3）；在其他欧盟国家的不失效，试点无法判断。`,
-                `On EU long-term residence you are away ${unsure.map(trip).join(', ')}: if all of that time is outside the EU the title lapses once the deadline has passed (§ 51 Abs. 9 Satz 1 Nr. 3); time in other EU countries does not count against it, which this pilot cannot tell.`,
-              )
+            ? (euUnsure.length
+                ? L(
+                    `${euUnsure.map(trip).join('、')} 持欧盟长期居留离开德国较久：若这段时间都在欧盟以外，许可会在期限届满后失效（§ 51 Abs. 9 Satz 1 Nr. 3）；在其他欧盟国家的不失效，试点无法判断。`,
+                    `On EU long-term residence you are away ${euUnsure.map(trip).join(', ')}: if all of that time is outside the EU the title lapses once the deadline has passed (§ 51 Abs. 9 Satz 1 Nr. 3); time in other EU countries does not count against it, which this pilot cannot tell.`,
+                  )
+                : '') +
+              (renewalUnsure.length
+                ? L(
+                    `${renewalUnsure.map(trip).join('、')} 的返回日在原许可到期之后，续期还在等待决定：原许可只延续到决定作出（§ 81 Abs. 4）。续期获批或申请仍在等待的话，按 ${v.lapseMonths.value} 个月期限判断；否则许可在到期后已失效（§ 51 Abs. 1 Nr. 1），试点无法判断。`,
+                    `${euUnsure.length ? ' ' : ''}For ${renewalUnsure.map(trip).join(', ')} you come back after the old permit ran out while the renewal is pending: the permit only continues until the decision (§ 81 Abs. 4). If the renewal is granted or still pending, the ${v.lapseMonths.value}-month limit applies; otherwise the permit lapsed when it ran out (§ 51 Abs. 1 Nr. 1), which this pilot cannot tell.`,
+                  )
+                : '')
             : L(
                 '录入的出境都在期限内返回，许可不因长期出境（§ 51 Abs. 1 Nr. 7）失效。',
                 'You come back in time from every trip you entered, so no title lapses for a long absence (§ 51 Abs. 1 Nr. 7).',
@@ -1484,20 +1501,28 @@ export function evaluateGermany(req: DeRequest): DeResult {
                 ],
               }
             : {
-                text: e.expires
+                text: e.pendingRenewal
                   ? L(
-                      `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：许可 ${e.by} 到期、没有录入续期，最晚当天返回`,
-                      `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): the permit expires on ${e.by} with no renewal entered, so back by that day`,
+                      `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}，到期后续期待决定）：续期获批或申请仍在等待的话，最晚 ${e.by} 返回`,
+                      `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left, renewal pending after it ran out): if the renewal is granted or still pending, back by ${e.by}`,
                     )
-                  : L(
-                      `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回`,
-                      `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}`,
-                    ),
-                met: !e.lapses,
+                  : e.expires
+                    ? L(
+                        `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：许可 ${e.by} 到期、没有录入续期，最晚当天返回`,
+                        `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): the permit expires on ${e.by} with no renewal entered, so back by that day`,
+                      )
+                    : L(
+                        `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回`,
+                        `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}`,
+                      ),
+                met: e.lapses ? false : e.unsure ? undefined : true,
                 sources: [
                   ...(e.kind === 'blue-card'
                     ? v.blueCardLapseMonths.sources
                     : v.lapseMonths.sources),
+                  ...(e.pendingRenewal
+                    ? [aufenthG('§ 81 Abs. 4 Satz 1', '81')]
+                    : []),
                   ...(e.expires
                     ? [
                         aufenthG('§ 51 Abs. 1 Nr. 1', '51'),
