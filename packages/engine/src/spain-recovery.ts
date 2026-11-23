@@ -10,6 +10,7 @@ import {
   byFilingDeadline,
   check,
   pathway,
+  projectFilingDates,
 } from './spain-full-common';
 import type { Evidence, EsApplicationFee } from './spain-full-common';
 import { insuranceCheck } from './spain-residence';
@@ -59,7 +60,7 @@ export interface EsRecoveryFacts {
   officeHolidays?: IsoDate[];
 }
 
-export function recoveryPath(
+function recoveryApplication(
   req: EsFullRequest,
   kind: 'R-N' | 'R-E',
 ): CountryPathway {
@@ -292,6 +293,36 @@ export function recoveryPath(
       : L('恢复国内长期居留', 'Recovery of national long-term residence'),
     checks,
     info,
+  );
+}
+
+export function recoveryPath(
+  req: EsFullRequest,
+  kind: 'R-E' | 'R-N',
+): CountryPathway {
+  const today = recoveryApplication(req, kind);
+  const f = req.recovery;
+  const dates: (IsoDate | undefined)[] = [];
+  if (
+    kind === 'R-N' &&
+    f?.ground === 'voluntary-return' &&
+    f.returnCommitmentFrom
+  )
+    dates.push(
+      addYears(f.returnCommitmentFrom, v.returnCommitment.value.years),
+    );
+  if (kind === 'R-E') {
+    dates.push(f?.insurance?.validFrom);
+    // The sixth anniversary itself needs an authority finding (PD-295).
+    if (f?.ground === 'outside-spain' && f.outsideSpainSince)
+      dates.push(addYears(f.outsideSpainSince, v.statusLoss.value.spainYears));
+  }
+  return projectFilingDates(
+    today,
+    req.simulationDate,
+    dates,
+    (simulationDate) => recoveryApplication({ ...req, simulationDate }, kind),
+    req.locale,
   );
 }
 

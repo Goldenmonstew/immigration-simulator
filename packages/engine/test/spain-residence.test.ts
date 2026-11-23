@@ -115,6 +115,83 @@ describe('Spanish national long-term residence, arts. 183–184', () => {
     ]);
   });
 
+  test('a child in the primary entry cohort needs enrolment evidence by the residence anniversary', () => {
+    const run = (simulationDate: string, primarySchoolStartsOn?: string) =>
+      evaluateSpainFull({
+        ...base,
+        simulationDate,
+        targets: ['L'],
+        residence: {
+          ...ready,
+          schooling: {
+            children: [
+              {
+                birthDate: '2020-12-10',
+                standardSpanishSchooling: true,
+                enrolledWithProof: false,
+                primarySchoolStartsOn,
+              },
+            ],
+          },
+        },
+      }).columns[0].pathways[0];
+    for (const date of ['2026-08-31', '2026-11-23']) {
+      const path = run(date);
+      expect([
+        path.status,
+        path.pathwayCompletionDate,
+        path.earliestDate,
+      ]).toEqual(['UNKNOWN', '2026-11-23', undefined]);
+      expect(row(path, 'L13').status).toBe(
+        date === '2026-08-31' ? 'MET' : 'UNKNOWN',
+      );
+      expect(path.pendingDetails).toContain('PD-288');
+    }
+    expect(row(run('2026-09-08'), 'L13').status).toBe('UNKNOWN');
+    expect(row(run('2026-09-08', '2026-09-09'), 'L13').status).toBe('MET');
+    expect(row(run('2026-09-09', '2026-09-09'), 'L13').status).toBe('UNKNOWN');
+  });
+
+  test('ordinary absences age out of the cumulative limit before another five full years', () => {
+    const trips = [2022, 2023, 2024, 2025, 2026].map((year) => ({
+      departed: `${year}-06-25`,
+      returned: `${year}-09-01`,
+      reason: 'ordinary' as const,
+      irregularExit: false,
+    }));
+    const run = (simulationDate: string) =>
+      evaluateSpainFull({
+        ...base,
+        simulationDate,
+        targets: ['L'],
+        permits: [{ from: '2017-01-01' }],
+        trips,
+        residence: { ...ready, tripDetails: trips },
+      }).columns[0].pathways[0];
+    const path = run('2026-11-23');
+    expect([
+      row(path, 'L01-SINGLE').status,
+      row(path, 'L01-TOTAL').status,
+    ]).toEqual(['MET', 'NOT_MET']);
+    expect([
+      path.status,
+      path.pathwayCompletionDate,
+      path.earliestDate,
+    ]).toEqual(['FUTURE', '2027-07-28', '2027-07-28']);
+    const boundary = run('2027-07-27');
+    expect([
+      boundary.status,
+      boundary.pathwayCompletionDate,
+      boundary.earliestDate,
+    ]).toEqual(['UNKNOWN', '2027-07-28', undefined]);
+    const filing = run('2027-07-28');
+    expect([
+      filing.status,
+      filing.pathwayCompletionDate,
+      filing.earliestDate,
+    ]).toEqual(['MET', '2027-07-28', '2027-07-28']);
+  });
+
   test('projects five continuous years from the return after an overlong ordinary trip', () => {
     const trip = {
       departed: '2022-01-01',
@@ -260,6 +337,31 @@ describe('Spanish national long-term residence, arts. 183–184', () => {
     ).toBe('NOT_MET');
   });
 
+  test('projects the cumulative work limit using documented work trips', () => {
+    const trips = [2022, 2023, 2024, 2025, 2026].map((year) => ({
+      departed: `${year}-05-01`,
+      returned: `${year}-09-01`,
+      reason: 'work' as const,
+      irregularExit: false,
+    }));
+    const run = (simulationDate: string) =>
+      evaluateSpainFull({
+        ...base,
+        targets: ['L'],
+        simulationDate,
+        permits: [{ from: '2017-01-01' }],
+        trips,
+        residence: { ...ready, tripDetails: trips },
+      }).columns[0].pathways[0];
+    const result = run(base.simulationDate);
+    expect([
+      result.status,
+      result.pathwayCompletionDate,
+      result.earliestDate,
+    ]).toEqual(['FUTURE', '2027-07-05', '2027-07-05']);
+    expect(run('2027-07-05').status).toBe('MET');
+  });
+
   test.each(['force-majeure', 'cooperation'] as const)(
     '%s can preserve continuity only with the requisite decision or evidence',
     (reason) => {
@@ -363,6 +465,34 @@ describe('Spanish national long-term residence, arts. 183–184', () => {
     expect(row(late, 'L05').pendingDetails).toContain('PD-287');
   });
 
+  test.each(['spanish-birth', 'public-care'] as const)(
+    'projects the documented %s basis on reaching majority',
+    (ground) => {
+      const run = (simulationDate: string) =>
+        evaluateSpainFull({
+          ...base,
+          targets: ['L'],
+          simulationDate,
+          permits: [{ from: '2023-11-23' }],
+          residence: {
+            ...ready,
+            residentInSpain: true,
+            birthDate: '2008-12-01',
+            nationalAlternatives: [ground],
+            bornInSpainDocumented: true,
+            spanishPublicGuardianship: { from: '2021-10-01' },
+          },
+        }).columns[0].pathways[0];
+      const result = run(base.simulationDate);
+      expect([
+        result.status,
+        result.pathwayCompletionDate,
+        result.earliestDate,
+      ]).toEqual(['FUTURE', '2028-11-23', '2026-12-01']);
+      expect(run('2026-12-01').status).toBe('MET');
+    },
+  );
+
   test('school enrolment, the one-month cure period and foreign schooling', () => {
     const child = {
       birthDate: '2020-11-23',
@@ -385,7 +515,7 @@ describe('Spanish national long-term residence, arts. 183–184', () => {
         }),
         'L13',
       );
-    expect(p('2020-11-24', '2026-09-20').status).toBe('MET');
+    expect(p('2020-11-24', '2026-09-20').status).toBe('NOT_MET');
     expect(p('2020-11-23', '2026-10-23').status).toBe('UNKNOWN');
     expect(p('2020-11-23', '2026-10-22').status).toBe('UNKNOWN'); // Sunday rolls to Monday 23rd.
     expect(p('2020-11-23', '2026-10-20').status).toBe('NOT_MET');
@@ -433,6 +563,162 @@ describe('Spanish national long-term residence, arts. 183–184', () => {
 });
 
 describe('EU long-term residence under art. 176', () => {
+  const project = (simulationDate: string, facts: EsResidenceFacts) =>
+    evaluateSpainFull({
+      simulationDate,
+      targets: ['E'],
+      residence: {
+        ...ready,
+        resources: { stable: true, sufficiencyDecision: 'accepted' },
+        tripDetails: [],
+        ...facts,
+      },
+    }).columns[0].pathways[0];
+  const studyThenResidence: EsEuPeriod[] = [
+    { territory: 'spain', kind: 'study', from: '2020-11-25', to: '2022-11-22' },
+    { territory: 'spain', kind: 'residence', from: '2022-11-23' },
+  ];
+  test.each<[string, EsResidenceFacts, string]>([
+    ['half-credit study', { periods: studyThenResidence }, '2026-11-24'],
+    [
+      'recent Spanish Blue Card years',
+      {
+        periods: [
+          {
+            territory: 'other-eu',
+            kind: 'blue-card',
+            from: '2020-01-01',
+            to: '2024-11-23',
+          },
+          { territory: 'spain', kind: 'blue-card', from: '2024-11-24' },
+        ],
+        blueMobility: { exercisedLawfully: true, priorPeriodsDocumented: true },
+      },
+      '2026-11-24',
+    ],
+    [
+      'overlong ordinary absence',
+      {
+        periods: [
+          { territory: 'spain', kind: 'residence', from: '2017-01-01' },
+        ],
+        tripDetails: [
+          {
+            departed: '2022-01-01',
+            returned: '2022-08-01',
+            reason: 'ordinary',
+            irregularExit: false,
+          },
+        ],
+      },
+      '2027-08-01',
+    ],
+    [
+      'rolling total of ordinary absences',
+      {
+        periods: [
+          { territory: 'spain', kind: 'residence', from: '2017-01-01' },
+        ],
+        tripDetails: [2022, 2023, 2024, 2025, 2026].map((year) => ({
+          departed: `${year}-06-25`,
+          returned: `${year}-09-01`,
+          reason: 'ordinary',
+          irregularExit: false,
+        })),
+      },
+      '2027-07-28',
+    ],
+  ])('projects %s to its first verified date', (_label, facts, date) => {
+    const p = project('2026-11-23', facts);
+    expect(row(p, 'E-TIME').status).toBe('NOT_MET');
+    expect([p.status, p.pathwayCompletionDate, p.earliestDate]).toEqual([
+      'FUTURE',
+      date,
+      date,
+    ]);
+    expect(project(date, facts).status).toBe('MET');
+  });
+  test('a half-credit candidate cannot outlast the evidence of insurance', () => {
+    const p = project('2026-11-23', {
+      periods: studyThenResidence,
+      insurance: { ...ready.insurance, validTo: '2026-11-23' },
+    });
+    expect([p.status, p.pathwayCompletionDate, p.earliestDate]).toEqual([
+      'NOT_MET',
+      '2026-11-24',
+      undefined,
+    ]);
+  });
+  test('insurance starting after the residence candidate delays filing until coverage begins', () => {
+    const facts = {
+      periods: studyThenResidence,
+      insurance: { ...ready.insurance, validFrom: '2026-11-25' },
+    };
+    const p = project('2026-11-23', facts);
+    expect([p.status, p.pathwayCompletionDate, p.earliestDate]).toEqual([
+      'FUTURE',
+      '2026-11-24',
+      '2026-11-25',
+    ]);
+    expect(project('2026-11-25', facts).status).toBe('MET');
+  });
+  test('a permit gap on the insurance start date requires a new qualifying residence period', () => {
+    const facts: EsResidenceFacts = {
+      periods: [
+        {
+          territory: 'spain',
+          kind: 'residence',
+          from: '2021-11-24',
+          to: '2026-12-01',
+        },
+        { territory: 'spain', kind: 'residence', from: '2027-07-01' },
+      ],
+      officeHolidays: [],
+      insurance: { ...ready.insurance, validFrom: '2027-06-01' },
+    };
+    const p = project('2026-11-23', facts);
+    expect([p.status, p.pathwayCompletionDate, p.earliestDate]).toEqual([
+      'FUTURE',
+      '2026-11-24',
+      '2032-07-01',
+    ]);
+    expect(row(project('2027-06-01', facts), 'E07').status).toBe('NOT_MET');
+    expect(project('2032-07-01', facts).status).toBe('MET');
+    const expired = project('2026-11-23', {
+      ...facts,
+      insurance: { ...facts.insurance, validTo: '2032-06-30' },
+    });
+    expect([expired.status, expired.earliestDate]).toEqual([
+      'NOT_MET',
+      undefined,
+    ]);
+  });
+  test('a deciding half-day rounding question remains open on the filing date', () => {
+    const p = project('2026-11-23', {
+      periods: [
+        { ...studyThenResidence[0], from: '2020-11-24' },
+        studyThenResidence[1],
+      ],
+    });
+    expect([p.status, p.pathwayCompletionDate, p.earliestDate]).toEqual([
+      'UNKNOWN',
+      '2026-11-24',
+      undefined,
+    ]);
+    expect(p.pendingDetails).toContain('PD-285');
+  });
+  test('an unpublished filing-year resource threshold leaves only the residence candidate', () => {
+    const p = project('2026-11-23', {
+      periods: [{ territory: 'spain', kind: 'residence', from: '2022-01-01' }],
+      resources: ready.resources,
+    });
+    expect([p.status, p.pathwayCompletionDate, p.earliestDate]).toEqual([
+      'UNKNOWN',
+      '2027-01-01',
+      undefined,
+    ]);
+    expect(p.pendingDetails).toContain('PD-290');
+  });
   test('ordinary fifth anniversary, gap and special purpose-only permits', () => {
     const p = assess('E');
     expect(p.status).toBe('MET');

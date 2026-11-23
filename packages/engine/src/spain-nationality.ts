@@ -2,10 +2,18 @@ import { spain2026_11, spainFull2026_11 } from '@uk-immigration/policy-data';
 import type { CefrLevel, SourceRef } from '@uk-immigration/policy-data';
 import { addDays, addMonths, addYears, fullYears } from './dates';
 import { evaluateSpain } from './spain';
-import type { EsPathway } from './spain';
+import type { EsPathway, EsTrip } from './spain';
 import type { CountryCheck, CountryPathway } from './country-result';
 import type { EsFullRequest } from './spain-full';
-import { all, any, check, pathway } from './spain-full-common';
+import {
+  all,
+  any,
+  check,
+  ofCompulsorySchoolAge,
+  pathway,
+  projectFilingDates,
+} from './spain-full-common';
+import { afterYears } from './pilot';
 import { textFor } from './rule';
 import { meetsCefr } from './rules/es-requirements';
 import type { IsoDate } from './types';
@@ -141,31 +149,21 @@ const v = spainFull2026_11.values;
 const old = spain2026_11.values;
 const src = (srcId: string, locator: string): SourceRef => ({ srcId, locator });
 
-function optionMissed(n: EsNationalityFacts, date: IsoDate): Finding {
-  if (n.optionBasis === 'never-expires' || n.optionBasis === 'none')
-    return false;
-  let expires: IsoDate | undefined;
+function firstDayAfterOption(n: EsNationalityFacts): IsoDate | undefined {
   if (n.optionBasis === 'ordinary' && n.birthDate)
-    expires = addYears(n.birthDate, v.nationalityOptionExpiryAge.value);
+    return addYears(n.birthDate, v.nationalityOptionExpiryAge.value);
   if (
     (n.optionBasis === 'support-ended' ||
       n.optionBasis === 'late-emancipation') &&
     n.optionEventDate
   )
-    expires = addYears(
-      n.optionEventDate,
-      v.nationalityOptionExtensionYears.value,
+    return addDays(
+      addYears(n.optionEventDate, v.nationalityOptionExtensionYears.value),
+      1,
     );
-  if (n.optionBasis === 'official-expiry') expires = n.optionEventDate;
   // The date printed as the last exercise date remains available; an ordinary option expires at age twenty.
-  return all(
-    n.optionUnexercisedAndDocumented,
-    expires === undefined
-      ? undefined
-      : n.optionBasis === 'ordinary'
-        ? date >= expires
-        : date > expires,
-  );
+  if (n.optionBasis === 'official-expiry' && n.optionEventDate)
+    return addDays(n.optionEventDate, 1);
 }
 
 function inForce(
@@ -175,21 +173,6 @@ function inForce(
 ): Finding {
   if (issue && issue > date) return false;
   return end === undefined ? undefined : date <= end;
-}
-
-function ofCompulsorySchoolAge(
-  n: EsNationalityFacts,
-  date: IsoDate,
-  age?: number,
-): Finding {
-  if (age === undefined || !n.birthDate) return undefined;
-  const [year, month] = date.split('-').map(Number);
-  const entryYear = Number(n.birthDate.split('-')[0]) + v.schoolAgeFrom.value;
-  if (year !== entryYear)
-    return year > entryYear && age < v.schoolAgeUntil.value;
-  if (n.primarySchoolStartsOn) return date >= n.primarySchoolStartsOn;
-  const openingMonth = v.primarySchoolStartMonth.value;
-  return month === openingMonth ? undefined : month > openingMonth;
 }
 
 function examFindings(n: EsNationalityFacts, date: IsoDate, age?: number) {
@@ -272,6 +255,22 @@ function examBudget(
   );
 }
 
+function tripsInResidenceWindow(trips: EsTrip[], date: IsoDate, years: number) {
+  const start = addYears(date, -years);
+  return trips.some((t) => t.departed < date && t.returned >= start);
+}
+
+function residenceBoundaries(req: EsFullRequest, trips: EsTrip[]) {
+  const years = old.nationalityYears.value[req.route];
+  const postings =
+    req.route === 'marriage' ? (req.nationality?.diplomaticPosting ?? []) : [];
+  const permits = req.permits.filter((p) => !p.study);
+  const dates = [...permits, ...postings].map((p) => afterYears(p.from, years));
+  if (req.nationality?.continuityDecision === false)
+    dates.push(...trips.map((t) => afterYears(addDays(t.returned, 1), years)));
+  return dates;
+}
+
 // A documented diplomatic posting is deemed Spanish residence only for art. 22.2.d.
 function residenceRecord(
   req: EsFullRequest,
@@ -279,8 +278,11 @@ function residenceRecord(
   pilot: EsPathway,
 ) {
   const spans = req.route === 'marriage' ? (n.diplomaticPosting ?? []) : [];
-  const continuityAccepted = n.continuityDecision === true;
-  if (!spans.length && !(continuityAccepted && pilot.status === 'UNKNOWN'))
+  const continuityDecided = n.continuityDecision !== undefined;
+  if (
+    req.route !== 'marriage' &&
+    !(continuityDecided && pilot.status === 'UNKNOWN')
+  )
     return { time: pilot, trips: req.trips };
   let trips = req.trips;
   for (const span of spans) {
@@ -298,21 +300,47 @@ function residenceRecord(
       return outside;
     });
   }
-  const time = evaluateSpain({
+  const residenceRequest = {
     ...req,
+    // N01 measures legal residence alone; N06 separately checks the marriage.
+    route: req.route === 'marriage' ? ('one-year' as const) : req.route,
     permits: [...req.permits, ...spans],
     // The authority has already settled continuity. Use the permit anniversary
     // for the candidate date and retain the trip record for the N01 finding.
-    trips: continuityAccepted ? [] : trips,
-  }).pathways.find((p) => p.id === 'ES-NATIONALITY')!;
+    trips: continuityDecided ? [] : trips,
+  };
+  const time = evaluateSpain(residenceRequest).pathways[1];
+  if (n.continuityDecision === false && time.earliestDate) {
+    const years = old.nationalityYears.value[req.route];
+    const first = time.earliestDate;
+    if (tripsInResidenceWindow(trips, first, years)) {
+      // N01 can become true when a rejected absence leaves the rolling window
+      // or a new continuous permit period completes after a gap.
+      const boundaries = residenceBoundaries(req, trips);
+      time.earliestDate = [...new Set(boundaries)]
+        .sort()
+        .find(
+          (d) =>
+            d > first &&
+            !tripsInResidenceWindow(trips, d, years) &&
+            evaluateSpain({ ...residenceRequest, simulationDate: d })
+              .pathways[1].checks[0].met === true,
+        );
+      time.status = time.earliestDate ? 'FUTURE' : 'NOT_MET';
+      time.summary = textFor(req)(
+        '已否决连续性的旅行须完全退出申请前的居留期间，再核实该段的居留许可。',
+        'An absence rejected for continuity must leave the full pre-filing residence window, which must also be covered by permits.',
+      );
+    }
+  }
   return { time, trips };
 }
 
-export function nationalityPath(
+function assessNationality(
   req: EsFullRequest,
   pilot: EsPathway,
   routeConfirmed = true,
-): CountryPathway {
+) {
   const L = textFor(req);
   const n = req.nationality ?? {};
   const date = req.simulationDate;
@@ -323,6 +351,7 @@ export function nationalityPath(
   const { time, trips } = residenceRecord(req, n, pilot);
   const checks: CountryCheck[] = [];
   const info: CountryCheck[] = [];
+  const dates: (IsoDate | undefined)[] = [];
   const rule = (
     id: string,
     zh: string,
@@ -334,9 +363,7 @@ export function nationalityPath(
   const residence =
     req.timeRecordsComplete === false ? undefined : time.checks[0].met;
   const years = old.nationalityYears.value[req.route];
-  const hasAbsences = trips.some(
-    (t) => t.departed < date && t.returned >= addYears(date, -years),
-  );
+  const hasAbsences = tripsInResidenceWindow(trips, date, years);
   const continuity =
     req.timeRecordsComplete === false
       ? undefined
@@ -375,6 +402,7 @@ export function nationalityPath(
         ? undefined
         : n.refugeeStatus === 'recognised-in-spain';
     const issue = n.refugeeEvidenceIssued;
+    dates.push(issue);
     checks.push(
       rule(
         'N02',
@@ -421,7 +449,11 @@ export function nationalityPath(
   if (req.route === 'one-year') {
     switch (n.oneYearGround) {
       case 'birth':
-      case 'missed-option':
+      case 'missed-option': {
+        const missedOn = firstDayAfterOption(n);
+        const missable =
+          n.optionBasis !== 'never-expires' && n.optionBasis !== 'none';
+        if (n.oneYearGround === 'missed-option') dates.push(missedOn);
         checks.push(
           rule(
             'N04',
@@ -429,7 +461,11 @@ export function nationalityPath(
             'Spanish civil birth record or evidence of an unexercised option whose statutory period expired.',
             n.oneYearGround === 'birth'
               ? n.spanishCivilBirthRecord
-              : optionMissed(n, date),
+              : all(
+                  missable,
+                  n.optionUnexercisedAndDocumented,
+                  missedOn ? date >= missedOn : undefined,
+                ),
             [
               src('SRC-084', 'arts. 20, 22.2.a–b'),
               src('SRC-322', 'Orden JUS/1625/2016 anexo §2.a–b'),
@@ -438,8 +474,12 @@ export function nationalityPath(
           ),
         );
         break;
+      }
       case 'guardianship': {
         const from = n.guardianshipFrom;
+        const anniversary =
+          from && addYears(from, v.nationalityGuardianshipYears.value);
+        dates.push(anniversary);
         const to =
           n.guardianshipTo && n.guardianshipTo < date ? n.guardianshipTo : date;
         checks.push(
@@ -453,9 +493,7 @@ export function nationalityPath(
               ' consecutive years.',
             all(
               n.qualifyingGuardianshipDocumented,
-              from === undefined
-                ? undefined
-                : to >= addYears(from, v.nationalityGuardianshipYears.value),
+              anniversary === undefined ? undefined : to >= anniversary,
             ),
             [
               ...v.nationalityGuardianshipYears.sources,
@@ -467,6 +505,7 @@ export function nationalityPath(
         break;
       }
       case 'widowed':
+        dates.push(n.widowSpanishSpouseDied);
         checks.push(
           rule(
             'N07',
@@ -521,6 +560,10 @@ export function nationalityPath(
   }
   if (req.route === 'marriage') {
     const since = n.spouseSpanishFrom;
+    dates.push(
+      req.marriedToSpaniard &&
+        addYears(req.marriedToSpaniard, old.marriageYears.value),
+    );
     const spanish =
       since === undefined
         ? undefined
@@ -553,6 +596,14 @@ export function nationalityPath(
   const adult =
     age === undefined ? undefined : age >= v.nationalityAdultAge.value;
   const independent = any(adult, n.emancipated);
+  if (independent !== true && n.birthDate) {
+    if (
+      n.applicantSignature === 'self' ||
+      n.applicantSignature === 'authorised-agent'
+    )
+      dates.push(afterYears(n.birthDate, v.nationalityAdultAge.value));
+    if (n.applicantSignature === 'assisted') dates.push(assistedBirthday);
+  }
   let signed: Finding;
   if (n.applicantSignature && independent === true)
     signed =
@@ -667,7 +718,7 @@ export function nationalityPath(
       : n.examRelief === 'judicial-exemption-confirmed',
   );
   const centreRequired = any(
-    ofCompulsorySchoolAge(n, date, age),
+    ofCompulsorySchoolAge(n, date),
     all(minorOrJudiciallyExempt, n.registeredWithSchoolOrCareCentre),
   );
   checks.push(
@@ -850,24 +901,49 @@ export function nationalityPath(
         'Documented diplomatic or consular spouse postings count as legal residence for this route.',
       ),
     );
-  const futureResidence =
+  if (
     !needsRoute &&
-    residence === false &&
-    continuity === true &&
-    time.status === 'FUTURE' &&
-    time.earliestDate
-      ? { checkId: 'ES-N01', date: time.earliestDate }
-      : undefined;
-  const result = pathway(
-    pilot.id,
-    pilot.title,
-    checks,
-    info,
-    assumptions,
-    futureResidence,
-  );
+    req.timeRecordsComplete !== false &&
+    ordinaryTime !== true &&
+    continuity !== undefined
+  )
+    dates.push(time.earliestDate);
+  dates.push(n.ccse?.issued, n.feePaidOn);
+  if (n.examRelief === 'pending' && n.dispensaRequestedOn)
+    dates.push(
+      addDays(
+        addMonths(n.dispensaRequestedOn, v.nationalityDispensaMonths.value),
+        1,
+      ),
+    );
+  const result = pathway(pilot.id, pilot.title, checks, info, assumptions);
   if (req.timeRecordsComplete !== false)
     result.pathwayCompletionDate = time.earliestDate;
   if (result.status === 'MET') result.earliestDate = date;
-  return result;
+  // A later marriage or evidence date may fall in a new absence or permit gap.
+  if (req.timeRecordsComplete !== false && dates.some((d) => d && d > date))
+    dates.push(...residenceBoundaries(req, trips));
+  return { result, dates };
+}
+
+export function nationalityPath(
+  req: EsFullRequest,
+  pilot: EsPathway,
+  routeConfirmed = true,
+): CountryPathway {
+  const { result, dates } = assessNationality(req, pilot, routeConfirmed);
+  return projectFilingDates(
+    result,
+    req.simulationDate,
+    dates,
+    (simulationDate) => {
+      const filing = { ...req, simulationDate };
+      return assessNationality(
+        filing,
+        evaluateSpain(filing).pathways[1],
+        routeConfirmed,
+      ).result;
+    },
+    req.locale,
+  );
 }

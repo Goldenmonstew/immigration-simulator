@@ -127,6 +127,98 @@ describe('Spanish nationality by residence', () => {
     expect(timeOnly.status).toBe('UNKNOWN');
     expect(timeOnly.earliestDate).toBeUndefined();
   });
+  test('N keeps residence and marriage anniversaries separate and validates the later filing day', () => {
+    const request = {
+      route: 'marriage' as const,
+      permits: [{ from: '2025-12-01' }],
+      marriedToSpaniard: '2026-01-05',
+    };
+    const facts = {
+      spouseSpanishFrom: '1990-01-01',
+      unseparatedAndCohabitationDocumented: true,
+    };
+    const p = assess(facts, request);
+    expect(p).toMatchObject({
+      status: 'FUTURE',
+      pathwayCompletionDate: '2026-12-01',
+      earliestDate: '2027-01-05',
+    });
+    expect(
+      assess(facts, { ...request, simulationDate: '2027-01-04' }).checks.find(
+        (c) => c.id === 'ES-N06',
+      )?.status,
+    ).toBe('NOT_MET');
+    expect(
+      assess(facts, { ...request, simulationDate: '2027-01-05' }).status,
+    ).toBe('MET');
+    const unresolved = assess(
+      { ...facts, spouseSpanishFrom: '2026-04-01' },
+      request,
+    );
+    expect(unresolved.status).toBe('UNKNOWN');
+    expect(unresolved.earliestDate).toBeUndefined();
+    expect(unresolved.pendingDetails).toContain('PD-281');
+  });
+  test('N waits for a rejected absence to leave the residence window and checks papers at the new anniversary', () => {
+    const request = {
+      route: 'one-year' as const,
+      trips: [{ departed: '2025-11-22', returned: '2025-12-01' }],
+    };
+    const birth: EsNationalityFacts = {
+      oneYearGround: 'birth',
+      spanishCivilBirthRecord: true,
+    };
+    const denied = { ...birth, continuityDecision: false };
+    expect(assess(denied, request)).toMatchObject({
+      status: 'FUTURE',
+      pathwayCompletionDate: '2026-12-02',
+      earliestDate: '2026-12-02',
+    });
+    expect(
+      assess(denied, { ...request, simulationDate: '2026-12-01' }).checks.find(
+        (c) => c.id === 'ES-N01',
+      )?.status,
+    ).toBe('NOT_MET');
+    expect(
+      assess(denied, { ...request, simulationDate: '2026-12-02' }).status,
+    ).toBe('MET');
+    expect(assess(birth, request).status).toBe('UNKNOWN');
+    const expired = assess(
+      { ...denied, ccse: { ...complete.ccse, validThrough: '2026-12-01' } },
+      request,
+    );
+    expect(expired.status).toBe('NOT_MET');
+    expect(expired.pathwayCompletionDate).toBe('2026-12-02');
+    expect(expired.earliestDate).toBeUndefined();
+  });
+  test('N projects documented guardianship and missed-option durations and rechecks supporting evidence', () => {
+    for (const facts of [
+      {
+        oneYearGround: 'guardianship',
+        guardianshipFrom: '2024-12-01',
+        qualifyingGuardianshipDocumented: true,
+      },
+      {
+        oneYearGround: 'missed-option',
+        optionBasis: 'official-expiry',
+        optionEventDate: '2026-11-30',
+        optionUnexercisedAndDocumented: true,
+      },
+    ] satisfies EsNationalityFacts[]) {
+      const request = { route: 'one-year' as const };
+      expect(assess(facts, request)).toMatchObject({
+        status: 'FUTURE',
+        pathwayCompletionDate: base.simulationDate,
+        earliestDate: '2026-12-01',
+      });
+      expect(
+        assess(facts, { ...request, simulationDate: '2026-12-01' }).status,
+      ).toBe('MET');
+      expect(
+        assess({ ...facts, feePaid: false }, request).earliestDate,
+      ).toBeUndefined();
+    }
+  });
   test('N01 handles missing history, qualifying permits, absences and the diplomatic fiction', () => {
     expect(row('N01', {}, { timeRecordsComplete: false }).status).toBe(
       'UNKNOWN',

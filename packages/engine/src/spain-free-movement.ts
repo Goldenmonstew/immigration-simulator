@@ -9,6 +9,7 @@ import {
   byFilingDeadline,
   check,
   pathway,
+  projectFilingDates,
 } from './spain-full-common';
 import type { Evidence } from './spain-full-common';
 import type { EsFullRequest } from './spain-full';
@@ -315,6 +316,7 @@ function ordinaryWindow(
   f: EsFreeMovementFacts,
   end: IsoDate,
   since?: IsoDate,
+  firstPossible = false,
 ) {
   const { years, annualAwayMonths, importantMonths } =
     v.freeMovementResidence.value;
@@ -377,7 +379,7 @@ function ordinaryWindow(
       }
       const w = at(start, completion);
       const qualifies = all(w.ordinaryTime, w.historical);
-      if (qualifies) return w;
+      if (qualifies || (firstPossible && qualifies === undefined)) return w;
       if (qualifies === undefined) possible ??= w;
       // Only the placement of travel within a rolling window can improve
       // continuity between these starts. Missing or failed history cannot.
@@ -396,7 +398,7 @@ function ordinaryWindow(
     : current;
 }
 
-export function freeMovementPath(req: EsFullRequest): CountryPathway {
+function freeMovementAt(req: EsFullRequest) {
   const f = req.freeMovement ?? {},
     d = req.simulationDate,
     L = textFor(req);
@@ -778,7 +780,74 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
     result.earliestDate = d;
     if (acquiredOn) result.pathwayCompletionDate = acquiredOn;
   }
-  return result;
+  return {
+    result,
+    acquiredOn,
+    restartFrom: lost ? lostOnTrip?.returned : undefined,
+  };
+}
+
+export function freeMovementPath(req: EsFullRequest): CountryPathway {
+  const { result, acquiredOn, restartFrom } = freeMovementAt(req);
+  const f = req.freeMovement;
+  if (result.status === 'MET' || !f) return result;
+
+  const day = req.simulationDate;
+  const candidates: IsoDate[] = [];
+  if (f.history?.length && f.residenceFrom && f.noExecutedExpulsion) {
+    // After the last recorded start or return, one whole residence period
+    // is sufficient to test every remaining window of ongoing lawful residence.
+    const lastStart = [
+      day,
+      f.residenceFrom,
+      f.jointResidenceFrom ?? day,
+      restartFrom ?? day,
+      ...f.history.map((p) => p.from),
+      ...(f.trips ?? req.trips).map((t) => t.returned),
+    ]
+      .sort()
+      .at(-1)!;
+    const window = ordinaryWindow(
+      req,
+      f,
+      afterYears(lastStart, v.freeMovementResidence.value.years),
+      restartFrom,
+      true,
+    );
+    if (window.end > day && all(window.ordinaryTime, window.historical))
+      candidates.push(window.end);
+  }
+  // Retirement, incapacity and death have an individual dated event.
+  // No comparable acquisition date is established by a worker-family finding
+  // or the last day of Spanish employment before cross-border work.
+  const event =
+    f.earlyBasis === 'death-at-work'
+      ? f.eventDate
+      : f.earlyBasis === 'retirement' || f.earlyBasis === 'incapacity'
+        ? f.workStopped
+        : undefined;
+  if (
+    event &&
+    event > day &&
+    earlyCheck({ ...req, simulationDate: event }, f).status === 'MET'
+  )
+    candidates.push(event);
+  const retentionEvent =
+    f.retainedEvent && f.eventDate && f.eventDate > day
+      ? f.eventDate
+      : undefined;
+  const acquisition =
+    candidates.sort()[0] ?? (retentionEvent ? acquiredOn : undefined);
+  const timed = acquisition
+    ? { ...result, pathwayCompletionDate: acquisition }
+    : result;
+  return projectFilingDates(
+    timed,
+    day,
+    [...candidates, retentionEvent],
+    (date) => freeMovementAt({ ...req, simulationDate: date }).result,
+    req.locale,
+  );
 }
 
 function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {

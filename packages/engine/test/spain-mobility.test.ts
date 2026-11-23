@@ -101,6 +101,48 @@ function run(
 }
 
 describe('Spanish mobility from another EU Member State (arts. 179–181)', () => {
+  it('projects M work age and F filing order together with documented insurance dates', () => {
+    const job: EsMobilityFacts = {
+      purpose: 'employment',
+      holder: {
+        ...holder,
+        employment: {
+          ...employment,
+          birthDate: '2010-12-01',
+          minorConditionsAndConsent: true,
+        },
+      },
+    };
+    const accompanying: EsMobilityFacts = {
+      family: {
+        ...family,
+        principalFiledOn: '2026-12-01',
+        healthCover: { ...family.healthCover, validFrom: '2026-12-02' },
+      },
+      holder: {
+        ...holder,
+        healthCover: { ...holder.healthCover, coversFamilyMember: false },
+      },
+    };
+    for (const [kind, facts, day] of [
+      ['M', job, '2026-12-01'],
+      ['F', accompanying, '2026-12-02'],
+    ] as const) {
+      expect(run(kind, facts).result).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: day,
+      });
+      expect(run(kind, facts, { simulationDate: day }).result.status).toBe(
+        'MET',
+      );
+    }
+    const actual = run('F', {
+      ...accompanying,
+      family: { ...accompanying.family, filedOn: '2026-11-23' },
+    });
+    expect(actual.result.status).toBe('NOT_MET');
+    expect(actual.result.earliestDate).toBeUndefined();
+  });
   it('keeps application eligibility, post-admission fees and subsequent grants distinct', () => {
     const { result, get } = run('M', {});
     expect(result.status).toBe('MET');
@@ -498,6 +540,14 @@ describe('Spanish mobility from another EU Member State (arts. 179–181)', () =
       humanitarianGroundsApproved: false,
     };
     expect(relation({ ...parent, birthDate: '1961-11-23' })).toBe('UNKNOWN');
+    expect(
+      run('F', {
+        family: {
+          ...family,
+          relationship: { ...parent, birthDate: '1961-11-23' },
+        },
+      }).row('ES-F02')?.pendingDetails,
+    ).toContain('PD-294');
     expect(relation({ ...parent, birthDate: '1961-11-22' })).toBe('MET');
     expect(relation({ ...parent, birthDate: '1961-11-24' })).toBe('NOT_MET');
     expect(

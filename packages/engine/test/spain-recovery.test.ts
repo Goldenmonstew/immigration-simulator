@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EsFullRequest } from '../src/spain-full';
+import { evaluateSpainFull } from '../src/spain-full';
 import { longTermDocuments, recoveryPath } from '../src/spain-recovery';
 import type {
   EsLongTermCardFacts,
@@ -76,6 +77,40 @@ function docs(
 }
 
 describe('Recovery of national and EU long-term residence (RD 1155/2024 arts. 186–189)', () => {
+  it('projects a completed return undertaking or documented cover only if the full application passes on that date', () => {
+    const cases = [
+      [
+        'R-N',
+        {
+          ...national,
+          ground: 'voluntary-return',
+          returnCommitmentFrom: '2023-12-01',
+          visitsDuringCommitment: [],
+        },
+      ],
+      [
+        'R-E',
+        { ...eu, insurance: { ...eu.insurance, validFrom: '2026-12-01' } },
+      ],
+    ] satisfies ['R-N' | 'R-E', EsRecoveryFacts][];
+    for (const [target, facts] of cases) {
+      const assess = (simulationDate: string, passportExpires: string) =>
+        evaluateSpainFull({
+          ...req,
+          targets: [target],
+          simulationDate,
+          recovery: { ...facts, passportExpires },
+        }).columns[0].pathways[0];
+      expect(assess(req.simulationDate, '2028-12-01')).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: '2026-12-01',
+      });
+      expect(assess('2026-12-01', '2028-12-01').status).toBe('MET');
+      expect(
+        assess(req.simulationDate, '2027-11-30').earliestDate,
+      ).toBeUndefined();
+    }
+  });
   it('requires the matching original status and a statutory loss ground; expired TIE alone is renewed', () => {
     for (const type of ['R-N', 'R-E'] as const) {
       expect(run(type).result.status).toBe('MET');

@@ -1,11 +1,73 @@
-import { addDays } from './dates';
-import type { IsoDate } from './types';
+import { addDays, fullYears } from './dates';
+import type { IsoDate, Locale } from './types';
 import { spainFull2026_11 } from '@uk-immigration/policy-data';
 import type { SourceRef } from '@uk-immigration/policy-data';
 import type { CountryCheck, CountryPathway } from './country-result';
 import type { Lang } from './rule';
+import { textFor } from './rule';
 
 export type Evidence = boolean | undefined;
+
+export function ofCompulsorySchoolAge(
+  person: { birthDate?: IsoDate; primarySchoolStartsOn?: IsoDate },
+  date: IsoDate,
+): Evidence {
+  if (!person.birthDate || person.birthDate > date) return undefined;
+  const v = spainFull2026_11.values;
+  const [year, month] = date.split('-').map(Number);
+  const entryYear =
+    Number(person.birthDate.slice(0, 4)) + v.schoolAgeFrom.value;
+  if (year !== entryYear)
+    return (
+      year > entryYear &&
+      fullYears(person.birthDate, date) < v.schoolAgeUntil.value
+    );
+  if (person.primarySchoolStartsOn) return date >= person.primarySchoolStartsOn;
+  return month === v.primarySchoolStartMonth.value
+    ? undefined
+    : month > v.primarySchoolStartMonth.value;
+}
+
+export function firstFutureDate(
+  after: IsoDate,
+  through: IsoDate,
+  met: (date: IsoDate) => boolean,
+): IsoDate | undefined {
+  for (let date = addDays(after, 1); date <= through; date = addDays(date, 1)) {
+    if (met(date)) return date;
+  }
+  return undefined;
+}
+
+/** Keep today's check rows. Only the complete assessment on the candidate day can establish a filing date. */
+function projectFilingDate(
+  today: CountryPathway,
+  date: IsoDate,
+  atFiling: CountryPathway,
+  locale?: Locale,
+): CountryPathway {
+  if (atFiling.status === 'MET')
+    return { ...today, status: 'FUTURE', earliestDate: date };
+  const outstanding = atFiling.checks.filter(
+    (c) => atFiling.decidedBy?.includes(c.id) && c.status !== 'MET',
+  );
+  const ids = outstanding.map((c) => c.id).join(', ');
+  return {
+    ...today,
+    status: atFiling.status,
+    earliestDate: undefined,
+    pendingDetails: [
+      ...new Set([
+        ...(today.pendingDetails ?? []),
+        ...outstanding.flatMap((c) => c.pendingDetails ?? []),
+      ]),
+    ],
+    summary: textFor({ locale })(
+      `按已填事实，在候选日 ${date} 仍需满足或核实 ${ids}。`,
+      `At the candidate filing date of ${date}, the following requirements still need to be met or confirmed: ${ids}.`,
+    ),
+  };
+}
 
 export function all(...facts: Evidence[]): Evidence {
   if (facts.includes(false)) return false;
@@ -53,26 +115,20 @@ export function pathway(
   checks: CountryCheck[],
   info: CountryCheck[] = [],
   assumptions: string[] = [],
-  future?: { checkId: string; date: IsoDate },
 ): CountryPathway {
   const rows = [...checks, ...info];
-  const decisions = checks.map((c) =>
-    c.status === 'NOT_MET' && c.id === future?.checkId ? 'FUTURE' : c.status,
-  );
+  const decisions = checks.map((c) => c.status);
   const status = decisions.includes('NOT_MET')
     ? 'NOT_MET'
     : !decisions.length || decisions.includes('UNKNOWN')
       ? 'UNKNOWN'
-      : decisions.includes('FUTURE')
-        ? 'FUTURE'
-        : 'MET';
+      : 'MET';
   return {
     id,
     title,
     checks: rows,
     assumptions,
     status,
-    ...(status === 'FUTURE' && { earliestDate: future?.date }),
     decidedBy: checks.map((c) => c.id),
     pendingDetails: [...new Set(rows.flatMap((c) => c.pendingDetails ?? []))],
   };
@@ -141,4 +197,22 @@ export function byFilingDeadline(
   }
   // A local holiday can extend, but cannot shorten, this minimum filing window.
   return day <= last ? true : holidays ? false : undefined;
+}
+
+/** Try dated changes to filing conditions in order, preserving unresolved earlier eligibility. */
+export function projectFilingDates(
+  today: CountryPathway,
+  day: IsoDate,
+  dates: (IsoDate | undefined)[],
+  assess: (date: IsoDate) => CountryPathway,
+  locale?: Locale,
+): CountryPathway {
+  if (today.status !== 'NOT_MET') return today;
+  const candidates = dates.filter((d): d is IsoDate => !!d && d > day);
+  let result = today;
+  for (const date of [...new Set(candidates)].sort()) {
+    result = projectFilingDate(today, date, assess(date), locale);
+    if (result.status !== 'NOT_MET') break;
+  }
+  return result;
 }

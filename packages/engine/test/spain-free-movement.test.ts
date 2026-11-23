@@ -47,12 +47,136 @@ function row(
 }
 
 describe('permanent residence under EU free movement', () => {
-  const fullPath = (facts: EsFreeMovementFacts) =>
+  const fullPath = (
+    facts: EsFreeMovementFacts,
+    simulationDate = request.simulationDate,
+  ) =>
     evaluateSpainFull({
       ...request,
+      simulationDate,
       targets: ['U'],
       freeMovement: { ...worker, ...facts },
     }).columns[0].pathways[0];
+
+  test.each<[string, EsFreeMovementFacts, string]>([
+    [
+      'continuous employment',
+      {
+        residenceFrom: '2022-01-01',
+        history: [
+          { from: '2022-01-01', basis: 'employment', documented: true },
+        ],
+      },
+      '2027-01-01',
+    ],
+    [
+      'a fresh period after a disqualifying ordinary absence',
+      {
+        trips: [
+          {
+            departed: '2022-01-01',
+            returned: '2022-08-01',
+            reason: 'ordinary',
+          },
+        ],
+      },
+      '2027-08-01',
+    ],
+    [
+      'joint residence starting after the worker’s arrival',
+      { ...family, jointResidenceFrom: '2021-12-10' },
+      '2026-12-10',
+    ],
+    [
+      'reacquisition after losing an earlier right',
+      {
+        acquiredOn: '2014-01-01',
+        trips: [
+          {
+            departed: '2019-01-01',
+            returned: '2022-02-01',
+            reason: 'ordinary',
+          },
+        ],
+      },
+      '2027-02-01',
+    ],
+    [
+      'a dated early retirement before five years',
+      {
+        earlyBasis: 'retirement',
+        employmentFrom: '2023-01-01',
+        residenceFrom: '2023-01-01',
+        workStopped: '2026-12-01',
+        earlyEmployeeRetirement: true,
+        qualifiedWorker: true,
+      },
+      '2026-12-01',
+    ],
+  ])(
+    'projects %s and verifies eligibility on the completion date',
+    (_, facts, date) => {
+      const result = fullPath(facts);
+      expect([
+        result.status,
+        result.pathwayCompletionDate,
+        result.earliestDate,
+      ]).toEqual(['FUTURE', date, date]);
+      expect(fullPath(facts, date).status).toBe('MET');
+    },
+  );
+
+  test('a descendant aging out before the joint residence anniversary has no filing date', () => {
+    const facts: EsFreeMovementFacts = {
+      ...family,
+      jointResidenceFrom: '2022-01-01',
+      relationship: 'descendant',
+      birthDate: '2005-12-20',
+      studentSponsor: false,
+      dependent: false,
+      incapacitated: false,
+    };
+    const result = fullPath(facts);
+    expect(result.pathwayCompletionDate).toBe('2027-01-01');
+    expect(result.status).toBe('NOT_MET');
+    expect(result.earliestDate).toBeUndefined();
+    expect(fullPath(facts, '2027-01-01').status).toBe('NOT_MET');
+  });
+
+  test('a dated family retention event can follow the ordinary residence anniversary', () => {
+    const facts: EsFreeMovementFacts = {
+      ...family,
+      retainedEvent: 'divorce',
+      residenceFrom: '2022-01-01',
+      eventDate: '2027-02-01',
+      eventReported: true,
+      priorFamilyResidenceFrom: '2023-01-01',
+      custodyOrAccessInSpain: true,
+    };
+    const result = fullPath(facts);
+    expect([
+      result.status,
+      result.pathwayCompletionDate,
+      result.earliestDate,
+    ]).toEqual(['FUTURE', '2027-01-01', '2027-02-01']);
+    expect(fullPath(facts, '2027-02-01').status).toBe('MET');
+  });
+
+  test('a possible earlier acquisition or an incomplete employment period cannot establish an earliest day', () => {
+    const history: NonNullable<EsFreeMovementFacts['history']> = [
+      { from: '2022-01-01', basis: 'employment', documented: true },
+    ];
+    const pending = fullPath({ history, earlyBasis: 'worker-family' });
+    expect(pending.status).toBe('UNKNOWN');
+    expect(pending.pathwayCompletionDate).toBe('2027-01-01');
+    expect(pending.earliestDate).toBeUndefined();
+    const expired = fullPath({
+      history: [{ ...history[0], to: '2026-12-30' }],
+    });
+    expect(expired.status).toBe('NOT_MET');
+    expect(expired.pathwayCompletionDate).toBeUndefined();
+    expect(expired.earliestDate).toBeUndefined();
+  });
 
   test('five completed years establish permanent residence before retirement without a certificate', () => {
     const retired: EsFreeMovementFacts = {

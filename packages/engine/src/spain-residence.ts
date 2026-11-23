@@ -1,8 +1,8 @@
 import { spain2026_11, spainFull2026_11 } from '@uk-immigration/policy-data';
 import type { SourceRef } from '@uk-immigration/policy-data';
 import type { CountryCheck, CountryPathway } from './country-result';
-import { addDays, addMonths, addYears, daysBetween, fullYears } from './dates';
-import { afterYears, monthSpan } from './pilot';
+import { addDays, addMonths, addYears, daysBetween } from './dates';
+import { afterYears, HORIZON_YEARS, monthSpan } from './pilot';
 import { textFor } from './rule';
 import type { EsPathway, EsTrip } from './spain';
 import type { EsFullRequest } from './spain-full';
@@ -12,7 +12,10 @@ import {
   applicationFee,
   byFilingDeadline,
   check,
+  firstFutureDate,
+  ofCompulsorySchoolAge,
   pathway,
+  projectFilingDates,
 } from './spain-full-common';
 import type { EsApplicationFee } from './spain-full-common';
 import type { IsoDate, Locale } from './types';
@@ -275,6 +278,8 @@ export interface EsResidenceFacts {
     children: Array<{
       birthDate?: IsoDate;
       standardSpanishSchooling?: boolean;
+      /** First local teaching day for this child's primary entry cohort. */
+      primarySchoolStartsOn?: IsoDate;
       enrolledWithProof?: boolean;
     }>;
     noticeDate?: IsoDate;
@@ -430,9 +435,12 @@ function nationalGround(req: EsFullRequest, kind: NationalGround): Answer {
   }
 }
 
-function nextWorkingDay(date: IsoDate) {
+function nextWorkingDay(date: IsoDate, holidays?: IsoDate[]) {
   let day = date;
-  while ([0, 6].includes(new Date(day + 'T00:00:00Z').getUTCDay()))
+  while (
+    [0, 6].includes(new Date(day + 'T00:00:00Z').getUTCDay()) ||
+    holidays?.includes(day)
+  )
     day = addDays(day, 1);
   return day;
 }
@@ -445,13 +453,9 @@ function schooling(req: EsFullRequest): Answer {
     ...s.children.map((child) => {
       if (!child.birthDate || child.standardSpanishSchooling !== true)
         return undefined;
-      const age = fullYears(child.birthDate, day);
-      if (
-        age < v.schoolAgeFrom.value ||
-        age >= v.schoolAgeUntil.value ||
-        child.enrolledWithProof
-      )
-        return true;
+      const schoolAge = ofCompulsorySchoolAge(child, day);
+      if (schoolAge === false || child.enrolledWithProof) return true;
+      if (schoolAge === undefined) return undefined;
       const deadline =
         s.cureDeadline ??
         (s.noticeDate &&
@@ -501,6 +505,10 @@ function countAbsent(trips: EsResidenceTrip[], from: IsoDate, until: IsoDate) {
   return days;
 }
 
+const ordinaryAbsenceDays = monthSpan(v.euAbsenceMonths.value.total);
+const workAbsenceDays = monthSpan(v.workAbsenceMonths.value);
+const blueAbsenceDays = monthSpan(v.blueAbsenceMonths.value.total);
+
 function absenceVerdict(
   trips: EsResidenceTrip[],
   from: IsoDate,
@@ -539,13 +547,12 @@ function absenceVerdict(
       )
     )
       return false;
-    const months = blue
-      ? limits.total
+    const [min, max] = blue
+      ? blueAbsenceDays
       : counted.every((t) => t.reason === 'work') ||
           (optimistic && counted.some((t) => !t.reason || t.reason === 'work'))
-        ? v.workAbsenceMonths.value
-        : limits.total;
-    const [min, max] = monthSpan(months);
+        ? workAbsenceDays
+        : ordinaryAbsenceDays;
     return countAbsent(counted, from, until) <= (optimistic ? max : min);
   }
   return assess(false) ? true : assess(true) ? undefined : false;
@@ -750,6 +757,7 @@ export function residencePath(
   req: EsFullRequest,
   pilot: EsPathway,
   kind: 'L' | 'E',
+  project = true,
 ): CountryPathway {
   const f = req.residence ?? {},
     L = textFor(req),
@@ -767,7 +775,7 @@ export function residencePath(
   const recordCertain = req.timeRecordsComplete !== false;
   const recordsRisk = ['PD-097', 'PD-099', 'PD-285'];
   let durationDate: IsoDate | undefined;
-  let future: { checkId: string; date: IsoDate } | undefined;
+  const filingDates: (IsoDate | undefined)[] = [];
   let priorRequired: Answer = true;
   if (isL) {
     const years = pilotValues.longTermYears.value;
@@ -777,59 +785,57 @@ export function residencePath(
     const exc = trips.filter(
       (t) => t.reason === 'force-majeure' || t.reason === 'cooperation',
     );
-    const expiry = lastExpiry(permits, day);
-    const period = recordCertain
-      ? any(
-          covers(permits, from, addDays(day, -1)),
-          expiry && !covers(permits, day, day)
-            ? all(
-                covers(permits, addYears(addDays(expiry, 1), -years), expiry),
-                permitWindow(req, permits, true),
-              )
-            : false,
-        )
-      : undefined;
+    function periodOn(date: IsoDate): Answer {
+      if (!recordCertain) return undefined;
+      if (covers(permits, addYears(date, -years), addDays(date, -1)))
+        return true;
+      const expiry = lastExpiry(permits, date);
+      if (!expiry || covers(permits, date, date)) return false;
+      return all(
+        covers(permits, addYears(addDays(expiry, 1), -years), expiry),
+        permitWindow({ ...req, simulationDate: date }, permits, true),
+      );
+    }
+    const period = periodOn(day);
     const ordinary = recordCertain
       ? all(period, absenceVerdict(trips, from, day, false, false))
       : undefined;
     const extended = recordCertain
       ? all(period, absenceVerdict(trips, from, day, false, true))
       : undefined;
-    if (recordCertain) {
-      durationDate = extended === true ? day : pilot.earliestDate;
+    if (extended === true) durationDate = day;
+    if (project && recordCertain && extended !== true && permits.length) {
+      // A disqualifying trip interrupts residence until return. Shorter trips
+      // can leave the rolling total one day at a time before a new anniversary.
       const lastBreak = trips
         .filter((t) => absenceVerdict([t], from, day, false, true) === false)
         .map((t) => t.returned)
         .sort()
         .at(-1);
-      if (period === false || lastBreak) {
-        // Art. 183.1–2: a fresh qualifying period can start no earlier than the return from a disqualifying trip.
-        const anniversary = permits
-          .map((p) =>
-            afterYears(
-              lastBreak && lastBreak > p.from ? lastBreak : p.from,
-              years,
-            ),
-          )
-          .sort()
-          .find(
-            (d) =>
-              d > day && covers(permits, addYears(d, -years), addDays(d, -1)),
-          );
-        if (
-          anniversary &&
-          absenceVerdict(
-            trips,
-            addYears(anniversary, -years),
-            anniversary,
-            false,
+      const start = permits.map((p) => p.from).sort()[0];
+      const anniversary = afterYears(
+        lastBreak && lastBreak > start ? lastBreak : start,
+        years,
+      );
+      const after = anniversary > day ? addDays(anniversary, -1) : day;
+      const horizon = addYears(day, HORIZON_YEARS);
+      const lastPermitDay = permits
+        .map((p) => p.to ?? horizon)
+        .sort()
+        .at(-1)!;
+      const lastFiling = nextWorkingDay(
+        addMonths(lastPermitDay, pilotValues.longTermLateMonths.value),
+        f.officeHolidays,
+      );
+      const through = lastFiling < horizon ? lastFiling : horizon;
+      durationDate = firstFutureDate(
+        after,
+        through,
+        (date) =>
+          periodOn(date) === true &&
+          absenceVerdict(trips, addYears(date, -years), date, false, true) ===
             true,
-          ) === true
-        ) {
-          durationDate = anniversary;
-          future = { checkId: 'ES-L-BASIS', date: anniversary };
-        }
-      }
+      );
     }
     const ordinarySources = [
       rd('arts. 182, 183.1–2, 184.2 (pp133–135)'),
@@ -879,6 +885,32 @@ export function residencePath(
       noPriorPermit: Answer[] = [];
     for (const ground of new Set(selected)) {
       const value = nationalGround(req, ground);
+      if (
+        project &&
+        f.birthDate &&
+        (ground === 'spanish-birth' || ground === 'public-care')
+      ) {
+        const majority = addYears(f.birthDate, v.residenceMajorityAge.value);
+        const starts =
+          ground === 'spanish-birth'
+            ? [...permits.map((p) => p.from), ...trips.map((t) => t.returned)]
+            : f.spanishPublicGuardianship
+              ? [f.spanishPublicGuardianship.from]
+              : [];
+        const term =
+          ground === 'spanish-birth'
+            ? v.spanishBornResidenceYears.value
+            : v.publicCareYears.value;
+        for (const date of [
+          majority,
+          ...starts.map((start) => afterYears(start, term)),
+        ])
+          if (
+            date > day &&
+            nationalGround({ ...req, simulationDate: date }, ground) === true
+          )
+            filingDates.push(date);
+      }
       const [id, zh, en, locator] = lSources[ground];
       const sources = [rd(locator)];
       if (['public-care', 'spanish-birth'].includes(ground))
@@ -917,26 +949,28 @@ export function residencePath(
     );
     const alternative = any(...noPriorPermit);
     priorRequired = alternative === undefined ? undefined : !alternative;
-    const subjectToSchool = all(future ? true : any(...timed), school);
+    const futureOrdinary = durationDate !== undefined && durationDate > day;
+    const subjectToSchool = all(futureOrdinary ? true : any(...timed), school);
     // When no basis relying on prior residence was proved, do not duplicate the failure here.
     const schoolResult =
       any(...untimed) === true
         ? true
         : school === true
           ? true
-          : !future && any(...timed) === false
+          : !futureOrdinary && any(...timed) === false
             ? undefined
             : any(subjectToSchool, ...untimed);
     requirements.push(
       check(
         L,
         'ES-L13',
-        `依此前居留期申请时，受扶养的义务教育年龄子女（通常 ${v.schoolAgeFrom.value}–${v.schoolAgeUntil.value} 岁）须有入学证明；通知后补件期 ${v.schoolRemedyMonths.value} 个月。`,
-        `For a claim relying on past residence, document enrolment for dependent children of compulsory school age (normally ${v.schoolAgeFrom.value} to ${v.schoolAgeUntil.value}). The notice allows ${v.schoolRemedyMonths.value} month to remedy a deficiency.`,
+        `依此前居留期申请时，受扶养的义务教育年龄子女（通常 ${v.schoolAgeFrom.value}–${v.schoolAgeUntil.value} 岁）须有入学证明。小学按满入学年龄的自然年分届，开学月核当地首个授课日。通知后补件期 ${v.schoolRemedyMonths.value} 个月。`,
+        `For a claim relying on past residence, document enrolment for dependent children of compulsory school age (normally ${v.schoolAgeFrom.value} to ${v.schoolAgeUntil.value}). Primary entry follows the birth-year cohort and the local first teaching day. The notice allows ${v.schoolRemedyMonths.value} month to remedy a deficiency.`,
         schoolResult,
         [
           rd('art. 184.3.c, 184.4 (p135)'),
           ...v.schoolAgeFrom.sources,
+          ...v.primarySchoolStartMonth.sources,
           ref('SRC-090', 'art. 30.4–5'),
         ],
         ['PD-288'],
@@ -945,6 +979,52 @@ export function residencePath(
   } else {
     const ordinary = euTime(req, periods, false);
     const blue = euTime(req, periods, true);
+    const timeMet = any(ordinary.met, blue.met);
+    const insuredFrom = f.insurance?.validFrom;
+    if (timeMet === true) durationDate = day;
+    if (
+      project &&
+      recordCertain &&
+      (timeMet !== true || (insuredFrom && insuredFrom > day))
+    ) {
+      const horizon = addYears(day, HORIZON_YEARS);
+      // Credit can still mature on the day following a permit's last covered day.
+      const last = periods
+        .filter(
+          (p) =>
+            p.territory === 'spain' &&
+            periodWeight(p, false, false, horizon) > 0 &&
+            (!isPartial(p) || f.residentInSpain === true),
+        )
+        .map((p) => (p.to && p.to < horizon ? addDays(p.to, 1) : horizon))
+        .sort()
+        .at(-1);
+      if (last) {
+        const qualifies = (date: IsoDate) => {
+          const filing = { ...req, simulationDate: date };
+          return (
+            euTime(filing, periods, false).met === true ||
+            (f.blueMobility?.exercisedLawfully === true &&
+              f.blueMobility.priorPeriodsDocumented === true &&
+              euTime(filing, periods, true).met === true)
+          );
+        };
+        if (timeMet !== true)
+          durationDate = firstFutureDate(day, last, qualifies);
+        // Coverage may begin during an interruption after the first time candidate.
+        if (
+          insuredFrom &&
+          insuredFrom > day &&
+          (!durationDate || insuredFrom > durationDate)
+        ) {
+          const insuredTo = f.insurance?.validTo;
+          const through = insuredTo && insuredTo < last ? insuredTo : last;
+          filingDates.push(
+            firstFutureDate(addDays(insuredFrom, -1), through, qualifies),
+          );
+        }
+      }
+    }
     const windowNote = (windows?: [IsoDate, IsoDate]) =>
       windows
         ? L(
@@ -1048,7 +1128,7 @@ export function residencePath(
         'ES-E-TIME',
         '达到西班牙常规或欧盟蓝卡累计居留年限',
         'Qualifies by Spanish residence or EU Blue Card accumulation',
-        any(ordinary.met, blue.met),
+        timeMet,
         [rd('art. 176.a')],
         [...recordsRisk, 'PD-289'],
       ),
@@ -1152,17 +1232,30 @@ export function residencePath(
     requirements,
     details,
     isL && recordCertain ? pilot.assumptions : [],
-    future,
   );
   if (durationDate) {
     // A candidate date for the ordinary duration alone cannot establish all legal conditions.
     result.pathwayCompletionDate = durationDate;
-    result.summary =
-      L(
-        '普通居留时间条件的候选日期为 ',
-        'Candidate date for the ordinary residence period alone: ',
-      ) + durationDate;
+    result.summary = isL
+      ? L(
+          `普通居留时间条件的候选日期为 ${durationDate}。`,
+          `Candidate date for the ordinary residence period alone: ${durationDate}.`,
+        )
+      : L(
+          `欧盟长居居留年限的候选日期为 ${durationDate}。`,
+          `Candidate date for the EU long-term residence period: ${durationDate}.`,
+        );
   }
   if (result.status === 'MET') result.earliestDate = day;
-  return result;
+  if (!project) return result;
+  filingDates.push(durationDate);
+  if (!isL) filingDates.push(f.insurance?.validFrom);
+  return projectFilingDates(
+    result,
+    day,
+    filingDates,
+    (simulationDate) =>
+      residencePath({ ...req, simulationDate }, pilot, kind, false),
+    req.locale,
+  );
 }

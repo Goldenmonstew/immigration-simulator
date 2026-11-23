@@ -1,6 +1,7 @@
 import { spainFull2026_11 as policy } from '@uk-immigration/policy-data';
 import type { CountryCheck, CountryPathway } from './country-result';
 import { addMonths, addYears, fullYears } from './dates';
+import { afterYears } from './pilot';
 import { textFor } from './rule';
 import type { EsFullRequest } from './spain-full';
 import {
@@ -10,6 +11,7 @@ import {
   byFilingDeadline,
   check,
   pathway,
+  projectFilingDates,
 } from './spain-full-common';
 import type { EsApplicationFee } from './spain-full-common';
 import {
@@ -324,7 +326,7 @@ function afterGrant(
   ];
 }
 
-export function mobilityPath(
+function mobilityApplication(
   req: EsFullRequest,
   kind: 'M' | 'F',
 ): CountryPathway {
@@ -357,6 +359,11 @@ export function mobilityPath(
   if (kind === 'F') {
     const principalFiled = f.principalFiledOn ?? h.filedOn;
     const submittedInOrder = principalFiled ? principalFiled <= day : undefined;
+    const relative = f.relationship;
+    const ascendantBirthday =
+      relative?.kind === 'ascendant' &&
+      relative.birthDate &&
+      addYears(relative.birthDate, v.reunificationAge.value.ascendant);
     const checks = [
       check(
         L,
@@ -380,6 +387,7 @@ export function mobilityPath(
         'The relationship is eligible for reunification, with the applicable marriage, partnership, custody, dependency, age or humanitarian grounds evidenced.',
         relationshipMet(f.relationship ?? {}, day),
         [rd('art. 180.1 (p132)'), ...v.reunificationAge.sources, familyGuide],
+        day === ascendantBirthday ? ['PD-294'] : [],
       ),
       familyResourcesCheck(
         { ...req, simulationDate: day },
@@ -687,5 +695,49 @@ export function mobilityPath(
     checks,
     info,
     assumptions,
+  );
+}
+
+export function mobilityPath(
+  req: EsFullRequest,
+  kind: 'M' | 'F',
+): CountryPathway {
+  const today = mobilityApplication(req, kind);
+  const m = req.mobility;
+  const app = kind === 'M' ? m?.holder : m?.family;
+  // An actual filing is assessed on its recorded date.
+  if (app?.filedOn || today.status !== 'NOT_MET') return today;
+  const dates: (IsoDate | undefined)[] = [];
+  if (kind === 'F') {
+    const f = m?.family;
+    dates.push(f?.principalFiledOn ?? m?.holder?.filedOn);
+    const relative = f?.relationship;
+    if (relative?.kind === 'ascendant' && relative.birthDate)
+      dates.push(
+        addYears(relative.birthDate, v.reunificationAge.value.ascendant),
+      );
+    if (m?.purpose === 'non-working') {
+      dates.push(f?.healthCover?.validFrom);
+      if (m.holder?.healthCover?.coversFamilyMember)
+        dates.push(m.holder.healthCover.validFrom);
+    }
+  } else if (m?.purpose === 'non-working') {
+    dates.push(m.holder?.healthCover?.validFrom);
+  } else if (m?.purpose === 'employment') {
+    const employee = m.holder?.employment;
+    if (employee?.birthDate) {
+      const years =
+        employee.minorConditionsAndConsent === false
+          ? v.employmentAge.value.unrestricted
+          : v.employmentAge.value.minimum;
+      dates.push(afterYears(employee.birthDate, years));
+    }
+  }
+  return projectFilingDates(
+    today,
+    req.simulationDate,
+    dates,
+    (simulationDate) => mobilityApplication({ ...req, simulationDate }, kind),
+    req.locale,
   );
 }
