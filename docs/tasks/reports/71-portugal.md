@@ -36,12 +36,18 @@
   - 证件类型把"永久居留许可"（art. 76）和"欧盟长期居民身份"（art. 125–131）拆开。两者都不看卡面到期日（art. 76 n.º 1–2、art. 130 n.º 2）。已持欧盟长期居民身份的，欧盟长期居民一项显示"已持有"，并检查离开葡萄牙连续 6 年、离开欧盟连续 12 个月的丧失情形（art. 131 n.º 1 c、e，新参数 `longTermLossYears`、`longTermLossEuMonths`；出境记录分不出是否在欧盟内，满 12 个月的标待确认）。永久居留一项不再把它称为 art. 76 许可，只提示已持有另一种身份。
   - 学习许可到期后 6 个月只保持连续，不再算递交欧盟长期居民申请时持有的许可（art. 125 n.º 2 a），改动只是把宽限期拆成"全部"与"非学习"两组。
   - PD-140、PD-145、PD-148 与 SRC-123 备注同步。可选项 DR 9/2018 公报存档没有做，原因见第 3 节。
+- 第三轮审核修正（review71-3，`Fix: 葡萄牙试点第三轮审核修正（review71-3）`）：
+  - 欧盟长期居民：许可到期后 6 个月作为"申请时持有的许可"，一旦有更新的许可生效（包括学习许可）就停止，由新许可取代；工作许可到期后接学习许可、模拟日只持学习许可的，结果为不满足（art. 125 n.º 2 a），补回归用例。
+  - 已持欧盟长期居民身份的丧失检查（art. 131 n.º 1 c、e）只看模拟日以前的出境；计划中的出境会在以后达到上限的，在摘要里预告日期，不再让模拟日的检查项判不满足；补用例。
+  - 记为风险、不实现：黄金签证卡恰在下一停留期首日到期时，该期也被算进本次续期（偏保守，PD-148）；PD-149 的公报存档维持现状。
+  - PD-145、PD-146 同步。
 
 ## 2. 怎么验证的
 
 - 关键数字逐一对照快照原文（`pdftotext -layout -f N -l N` 与 HTML 抽文本）：LO 1/2026 art. 6 n.º 1 b（p2）、n.º 3（p3）、art. 15 n.º 3（p5）、n.º 1（p14）、第 5、7、8 条（p7）；LO 1/2024 art. 6 n.º 1 b（p8）、art. 15 n.º 3–4（p13）；Lei 18/2022 附件 art. 3 n.º 1 d、v（p27、p29）、74–76（p65）、78 n.º 1（p66）、80 n.º 1 a（p67）、85 n.º 2（p69）、90-A n.º 2（p72）、125–126（p100–p101）、131（p103）；Lei 62/2026 第 4 条只改 art. 78（p7）、85（p8）；DR 15-A/2015 art. 65-B、65-C（p3）；编纂版 DR 84/2007 art. 63 n.º 14、16，Código Civil art. 279；AIMA ARI 页"此后各年 14 天"；TC D.5 原句。复制的 19 份快照 `shasum -a 256 -c` 与 dossier 清单一致。
 - `pnpm exec tsc --noEmit -p .`（packages/engine、packages/policy-data、apps/web）：通过。
 - `pnpm exec eslint`（本次改动的 ts/tsx 文件）：通过；`pnpm exec prettier --write` 已格式化。
+- 第三轮审核修正后：engine 葡萄牙 56 项（另含 index 1 项，共 57 项）通过；web 葡萄牙与来源页面 26 项通过；三处 `tsc --noEmit`、改动文件的 eslint 与 prettier 检查通过。
 - 第二轮审核修正后：engine 葡萄牙 54 项（另含 index 1 项，共 55 项）通过；policy-data 23 项；web 26 项（葡萄牙 9 项）；三处 `tsc --noEmit`、改动文件的 eslint 与 prettier 检查通过。
 - 第一轮审核修正后：engine `vitest run test/portugal.test.ts test/index.test.ts` 51 项通过（葡萄牙 50 项）；policy-data 23 项通过；web `vitest run test/portugal.test.tsx test/policy-page.test.tsx test/page.test.tsx` 26 项通过（葡萄牙 9 项）；三处 `tsc --noEmit`、改动文件 eslint 与 prettier 检查通过。
 - 首轮：engine `vitest run test/portugal.test.ts test/index.test.ts`：39 项通过（葡萄牙 38 项，四条路径的 MET／FUTURE／NOT_MET／UNKNOWN、三种国籍、区间规则、旧法过渡与分界当天、缺席上限、黄金签证最低停留与续期；最早日期按条文手算后写进断言）。
@@ -59,6 +65,7 @@
 
 ## 4. 发现与建议（范围外，不实现）
 
+- 风险（review71-3 记录）：黄金签证卡的到期日恰好是下一停留期的首日时，该期也被算进本次续期的最低停留检查，结果偏保守（PD-148）。
 - justica.gov.pt 的入籍指南页（SRC-127）截至 2026-11-22 仍写"居住满 5 年"，与现行法不符；产品文案不要引用它，新条例公布后可复查该页。
 - AIMA ARI 页面写"首张 ARI 自签发日起 2 年"，可解决 dossier 中首张期限不明的一半问题；最低停留的期间划分仍待官方说明（PD-148）。
 - 新国籍条例公布后，应复核 PD-140（起算锚点）、PD-141（区间）与 PD-144（缺席），可能把部分 `UNKNOWN` 改为确定结论。

@@ -133,21 +133,26 @@ export function evaluatePortugal(req: PtRequest): PtResult {
     PT_PERMIT_KINDS.map((k) => [k, flags()]),
   ) as Record<PtPermitKind, boolean[]>;
   // The right of residence lasts some months after a temporary card expires
-  // (SRC-126); how that time counts is uncertain (PD-145). After a study
-  // permit it keeps continuity but is no permit to apply with.
+  // (SRC-126); how that time counts is uncertain (PD-145). It keeps
+  // continuity, but is a permit to apply with only after a permit other than
+  // study and until a newer permit replaces it.
   const grace = flags();
-  const graceNotStudy = flags();
+  const graceToApply = flags();
   for (const permit of req.permits) {
     days.mark(byKind[permit.kind], permit.from, lastDay(permit));
-    if (permit.to && TEMPORARY.includes(permit.kind))
-      for (const g of permit.kind === 'study'
-        ? [grace]
-        : [grace, graceNotStudy])
-        days.mark(
-          g,
-          addDays(permit.to, 1),
-          addMonths(permit.to, v.residenceRightMonths.value),
-        );
+    if (!permit.to || !TEMPORARY.includes(permit.kind)) continue;
+    const until = addMonths(permit.to, v.residenceRightMonths.value);
+    days.mark(grace, addDays(permit.to, 1), until);
+    const next = req.permits
+      .filter((p) => p.kind !== 'visa' && p.from > permit.from)
+      .map((p) => p.from)
+      .sort()[0];
+    if (permit.kind !== 'study')
+      days.mark(
+        graceToApply,
+        addDays(permit.to, 1),
+        next ? earlier(addDays(next, -1), until) : until,
+      );
   }
   const holds = (kinds: PtPermitKind[]) => (i: number) =>
     kinds.some((k) => byKind[k][i]);
@@ -174,6 +179,16 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       const b = earlier(addDays(t.returned, -1), to);
       return a <= b && b >= addMonths(addDays(a, -1), months);
     });
+  /** The first day some trip from `from` on has kept you abroad `months`. */
+  const awayFor = (from: IsoDate, months: number) =>
+    req.trips
+      .map((t) => {
+        const a = later(addDays(t.departed, 1), from);
+        const d = addMonths(addDays(a, -1), months);
+        return d <= addDays(t.returned, -1) ? d : '';
+      })
+      .filter(Boolean)
+      .sort()[0] as IsoDate | undefined;
   /**
    * First day of the `n` years that must be complete before `d`: the day a
    * period starts is not counted, and it ends with the same date `n` years
@@ -793,25 +808,42 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       // years in a row outside Portugal; trips do not say where you went.
       const lossYears = v.longTermLossYears.value;
       const lossMonths = v.longTermLossEuMonths.value;
+      // Checked with trips up to the simulation date; planned trips that
+      // would reach a limit later are a forecast.
+      const lostAll = awayFor(longTerm.from, lossYears * 12);
+      const lostEu = awayFor(longTerm.from, lossMonths);
       pathways.push({
         id: 'PT-EU-LONG-TERM',
         title,
         status: 'NOT_APPLICABLE',
-        summary: L(
-          `记录中已有 ${longTerm.from} 起的欧盟长期居民身份，身份本身没有期限，卡面到期只需换发（art. 130 n.º 2）。`,
-          `Your record has EU long-term resident status from ${longTerm.from}; the status has no time limit, and an expired card only needs renewing (art. 130 n.º 2).`,
-        ),
+        summary:
+          L(
+            `记录中已有 ${longTerm.from} 起的欧盟长期居民身份，身份本身没有期限，卡面到期只需换发（art. 130 n.º 2）。`,
+            `Your record has EU long-term resident status from ${longTerm.from}; the status has no time limit, and an expired card only needs renewing (art. 130 n.º 2).`,
+          ) +
+          (lostAll && lostAll > sim
+            ? L(
+                `按已录入的计划出境，${lostAll} 离开葡萄牙满 ${lossYears} 年，会失去身份。`,
+                ` With the trips you plan, you will have been away from Portugal ${lossYears} years on ${lostAll} and lose the status.`,
+              )
+            : lostEu && lostEu > sim
+              ? L(
+                  `按已录入的计划出境，${lostEu} 离开葡萄牙满 ${lossMonths} 个月，若这段时间在欧盟以外会失去身份。`,
+                  ` With the trips you plan, you will have been away from Portugal ${lossMonths} months on ${lostEu}, and lose the status if that time is outside the EU.`,
+                )
+              : ''),
         checks: [
           {
             text: L(
               `没有离开葡萄牙连续 ${lossYears} 年，也没有离开欧盟连续 ${lossMonths} 个月（出境记录分不出是否在欧盟内；超过时失去身份，art. 131 n.º 1 c、e）`,
               `No absence from Portugal of ${lossYears} years in a row, nor from the EU of ${lossMonths} months in a row (trips do not say whether you stayed in the EU; beyond that the status is lost, art. 131 n.º 1 c, e)`,
             ),
-            met: longAway(longTerm.from, end, lossYears * 12)
-              ? false
-              : longAway(longTerm.from, end, lossMonths)
-                ? undefined
-                : true,
+            met:
+              lostAll && lostAll <= sim
+                ? false
+                : lostEu && lostEu <= sim
+                  ? undefined
+                  : true,
             sources: [
               ...v.longTermLossEuMonths.sources,
               ...v.longTermLossYears.sources,
@@ -827,8 +859,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
         ],
         assumptions: [
           L(
-            '按离境日起的日历月、年判断，出入境当天按在葡萄牙计（PD-146）。',
-            'Measured in calendar months and years from the day you left; departure and return days count as days in Portugal (PD-146).',
+            '检查只看模拟日以前的出境，计划中的出境只在摘要里预告；按离境日起的日历月、年判断，出入境当天按在葡萄牙计（PD-146）。',
+            'The check looks only at time abroad up to the simulation date, and planned trips are shown as a forecast in the summary; measured in calendar months and years from the day you left, with departure and return days counted as days in Portugal (PD-146).',
           ),
         ],
         pendingDetails: ['PD-146'],
@@ -886,7 +918,7 @@ export function evaluatePortugal(req: PtRequest): PtResult {
         // A study permit holder cannot apply (art. 125 n.º 2 a).
         const sure = full(i) ? sureFrom(to, need) : undefined;
         const maybe =
-          full(i) || graceNotStudy[i] ? maybeFrom(to, need) : undefined;
+          full(i) || graceToApply[i] ? maybeFrom(to, need) : undefined;
         return {
           sure: sure ? absences(sure, to) : undefined,
           maybe: maybe ? absences(maybe, to) : undefined,

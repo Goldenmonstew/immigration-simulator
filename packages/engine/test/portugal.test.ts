@@ -652,6 +652,47 @@ describe('EU long-term residence (Lei 23/2007 art. 125–126)', () => {
     expect(p.status).toBe('NOT_MET');
   });
 
+  test('a newer study permit ends the grace of the work permit before', () => {
+    // review71-3: on 2026-11-22 only the study permit is held.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [
+          { kind: 'temporary', from: '2021-09-01', to: '2023-08-31' },
+          { kind: 'temporary', from: '2023-09-01', to: '2026-08-31' },
+          { kind: 'study', from: '2026-09-01', to: '2028-08-31' },
+        ],
+      },
+      'PT-EU-LONG-TERM',
+    );
+    expect(p.status).toBe('NOT_MET');
+  });
+
+  test('planned trips are a forecast, not a loss on the simulation date', () => {
+    // review71-3: away from 2027-01-02, 6 years on 2033-01-01.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'eu-long-term', from: '2025-01-01' }],
+        trips: [{ departed: '2027-01-01', returned: '2033-01-03' }],
+      },
+      'PT-EU-LONG-TERM',
+    );
+    expect(p.status).toBe('NOT_APPLICABLE');
+    expect(p.checks[0].met).toBe(true);
+    expect(p.summary).toContain('2033-01-01');
+    // The same 6 years already behind you: lost.
+    const lost = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'eu-long-term', from: '2015-01-01' }],
+        trips: [{ departed: '2016-01-01', returned: '2022-01-03' }],
+      },
+      'PT-EU-LONG-TERM',
+    );
+    expect(lost.checks[0].met).toBe(false);
+  });
+
   test('a study permit holder cannot apply', () => {
     const p = pathway(
       {
