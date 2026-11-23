@@ -686,16 +686,17 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.basics': 'About you',
   'ie.simulationDate': 'Simulation date',
   'ie.simulationDateHint':
-    'Results are worked out for this date (the application date). It starts as today. The rules are the current ones checked in 2026-11, also for past dates; in the archived sources the 57-month rule first covers a GEP on 2024-04-03 and an intra-company transfer on 2025-07-22; the earlier rule is not included, so completion before that date shows as uncertain.',
+    'Results are worked out for this date (the application date). It starts as today. The rules are the current ones checked in 2026-11, also for past dates; in the archived sources the 57-month rule first covers a GEP on 2024-04-03 and an intra-company transfer on 2026-02-25 (when the upgrade page was last changed); the earlier rule is not included, so completion before that date shows as uncertain.',
   'ie.permits': 'Immigration permissions',
   'ie.permitsHint':
-    'Going by your IRP cards or passport stamps, add a row for each permission, then the next one if renewed on time; leave the end blank if it is still valid. Include student permissions and time waiting for a protection decision too: they do not count. If you are married to an Irish citizen, you can also add periods of lawful residence in Northern Ireland, which count for naturalisation as a spouse only; after a move to Northern Ireland, an Irish permission that has not expired no longer counts as residence in the State.',
+    'Going by your IRP cards or passport stamps, add a row for each permission, then the next one if renewed on time; leave the end blank if it is still valid. Include student permissions and time waiting for a protection decision too: they do not count. Add periods of lawful residence in Northern Ireland too, whatever route you choose: they count for naturalisation as a spouse only; after a move to Northern Ireland, an Irish permission that has not expired no longer counts as residence in the State.',
   'ie.permit': 'Permission {n}',
   'ie.from': 'Valid from',
   'ie.to': 'Valid until (leave blank if still valid)',
   'ie.kind': 'Permission type',
   'ie.kind.stamp1':
-    'Stamp 1 (General Employment Permit or another employment permit, or a business; not intra-company transfer or the Critical Skills group)',
+    'Stamp 1 (business, working holiday, ISD letter to work without an employment permit and other cases)',
+  'ie.kind.stamp1-gep': 'Stamp 1 (General Employment Permit)',
   'ie.kind.stamp1-csep':
     'Stamp 1 or 1H (Critical Skills Employment Permit, researcher’s Hosting Agreement, Multi-Site GEP for hospital doctors)',
   'ie.kind.stamp1-ict': 'Stamp 1 (intra-company transfer permit)',
@@ -710,7 +711,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.kind.stamp3':
     'Stamp 3 (volunteers, ministers of religion and other cases)',
   'ie.kind.stamp3-family':
-    'Stamp 3 (spouse or partner of an employment permit holder or researcher under family reunification, before the 2024 move to 1G)',
+    'Stamp 3 (spouse or partner of an employment permit holder or researcher, held under family reunification before moving to 1G)',
   'ie.kind.stamp4': 'Stamp 4',
   'ie.kind.stamp4d': 'Stamp 4D or 4S',
   'ie.kind.stamp4-eufam': 'Stamp 4 EUFam (family member of an EU citizen)',

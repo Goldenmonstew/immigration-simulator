@@ -406,6 +406,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
   test('57 months on a General Employment Permit', () => {
     const req: Partial<IeRequest> = {
       simulationDate: '2026-10-09',
+      permissions: [{ kind: 'stamp1-gep', from: '2021-03-01' }],
       stamp4Route: 'gep',
       employmentStart: '2022-01-10',
     };
@@ -599,6 +600,26 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     expect(p.checks[0].met).toBe(false);
   });
 
+  test('Stamp 4: a business Stamp 1 after a GEP does not count towards 57 months (review72-1)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2026-08-01',
+      permissions: [
+        { kind: 'stamp1-gep', from: '2022-01-01', to: '2025-12-31' },
+        { kind: 'stamp1', from: '2026-01-01' },
+      ],
+      stamp4Route: 'gep',
+      employmentStart: '2022-01-01',
+    };
+    // 48 months on the GEP, then a business permission.
+    expect(pathway(req, 'IE-STAMP4').status).toBe('NOT_MET');
+    const later = pathway(
+      { ...req, simulationDate: '2026-11-23' },
+      'IE-STAMP4',
+    );
+    expect(later.status).toBe('NOT_MET');
+    expect(later.checks[0].met).toBe(false);
+  });
+
   test('Stamp 4: GEP time does not count towards 21 months, before or after CSEP (task 72)', () => {
     // CSEP for 2025, then an ordinary GEP: 12 months in the 21-month group.
     const later = pathway(
@@ -606,7 +627,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
         simulationDate: '2026-11-22',
         permissions: [
           { kind: 'stamp1-csep', from: '2025-01-01', to: '2025-12-31' },
-          { kind: 'stamp1', from: '2026-01-01' },
+          { kind: 'stamp1-gep', from: '2026-01-01' },
         ],
         stamp4Route: 'csep',
         employmentStart: '2025-01-01',
@@ -621,7 +642,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
       {
         simulationDate: '2026-11-22',
         permissions: [
-          { kind: 'stamp1', from: '2024-01-01', to: '2025-06-30' },
+          { kind: 'stamp1-gep', from: '2024-01-01', to: '2025-06-30' },
           { kind: 'stamp1-csep', from: '2025-07-01' },
         ],
         stamp4Route: 'csep',
@@ -739,14 +760,33 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     );
     // 96 months on 2026-12-01; the card ends on 2026-12-05, abroad.
     expect(p.earliestDate).toBe('2026-12-01');
-    expect(p.summary).toContain('没有有效居留许可');
+    expect(p.summary).toContain('本试点不给出递交日期');
     expect(p.summary).not.toContain('回到爱尔兰后递交');
+  });
+
+  test('Stamp 5: the return day passes the same check as applying that day (review72-1)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2026-11-23',
+      permissions: [
+        { kind: 'stamp4', from: '2018-12-01', to: '2026-12-09' },
+        { kind: 'student', from: '2026-12-10' },
+      ],
+      trips: [{ departed: '2026-11-29', returned: '2026-12-10' }],
+      stamp4Route: 'wcatt',
+    };
+    // Back on 2026-12-10 on a student permission, which does not count.
+    const p = pathway(req, 'IE-STAMP4');
+    expect(p.earliestDate).toBe('2026-12-01');
+    expect(p.summary).toContain('本试点不给出递交日期');
+    expect(
+      pathway({ ...req, simulationDate: '2026-12-10' }, 'IE-STAMP4').status,
+    ).toBe('NOT_MET');
   });
 
   test('GEP before the 2024-04-03 notice: the earlier rule is not modelled (review68-5)', () => {
     const req: Partial<IeRequest> = {
       simulationDate: '2024-02-01',
-      permissions: [{ kind: 'stamp1', from: '2019-03-01' }],
+      permissions: [{ kind: 'stamp1-gep', from: '2019-03-01' }],
       stamp4Route: 'gep',
       employmentStart: '2019-03-01',
     };
@@ -767,13 +807,17 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
       stamp4Route: 'gep',
       employmentStart: '2019-03-01',
     };
-    // 57 months end on 2023-11-30; ICT is first listed on 2025-07-22.
+    // 57 months end on 2023-11-30; the page listing ICT is only evidenced
+    // from its last change on 2026-02-25 (review72-1).
     const p = pathway(req, 'IE-STAMP4');
     expect(p.status).toBe('UNKNOWN');
-    expect(p.summary).toContain('按 57 个月规则满足的最早日期是 2025-07-22');
+    expect(p.summary).toContain('按 57 个月规则满足的最早日期是 2026-02-25');
     expect(p.summary).toContain('公司内调');
     expect(
       pathway({ ...req, simulationDate: '2025-07-22' }, 'IE-STAMP4').status,
+    ).toBe('UNKNOWN');
+    expect(
+      pathway({ ...req, simulationDate: '2026-02-25' }, 'IE-STAMP4').status,
     ).toBe('MET');
   });
 

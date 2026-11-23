@@ -33,6 +33,12 @@
   - PD-116 与 SRC-096 备注已更新。
 - `Docs: 任务 72 报告`（395）：本报告。
 
+- 审核修正（review72-1，Codex 结论"需要修改"，1 个问题与 3 条小建议）：
+  - 57 个月路线：表单把 GEP 从其他 Stamp 1 中分出（新增类型"Stamp 1（General Employment Permit）"，原"Stamp 1"改为经营、打工度假等其他情形），57 个月只计 GEP 与 ICT（SRC-096 (iv)–(v)）；其他 Stamp 1 在入籍与 Stamp 5 中的计法不变。复现输入（GEP 至 2025-12-31，之后经营类 Stamp 1）在 2026-08-01 与 2026-11-23 都改为 NOT_MET；引擎与网页各补一条回归。
+  - ICT 的日期：页面的 datePublished（2025-07-22）不能证明当时已列 ICT，存档文本只能确认到 dateModified 2026-02-25，`ictRuleFrom` 改为 2026-02-25，此前的 ICT 日期仍为待确认（PD-116）；回归用例同步。
+  - 表单提示：北爱尔兰合法居住期无论选哪条路线都可填写；家庭团聚的 Stamp 3 改称"在家庭团聚下所持、改发 1G 之前"，不再写"2024 年之前"（2024 年通告允许旧卡用到下次续期）。
+  - Stamp 5：回国当天的递交判断改用与当天递交相同的检查（持可计入 Stamp 5 的许可、在境内），回国当天改持学生许可的不再预测可递交；补回归用例。
+
 ## 2. 怎么验证的
 
 - engine `pnpm exec vitest run test/ireland.test.ts test/index.test.ts test/rules.test.ts`：92 项通过，其中爱尔兰 49 项（新增 7 项，每项改动至少一条回归用例；最早日期均按条文手算）。
@@ -40,13 +46,14 @@
 - web `pnpm exec vitest run test/ireland.test.tsx test/policy-page.test.tsx test/page.test.tsx`：28 项通过，其中爱尔兰 11 项。
 - `pnpm exec tsc --noEmit -p .`：packages/engine、packages/policy-data、apps/web、apps/e2e 均通过。
 - `pnpm exec eslint` 与 `pnpm exec prettier --check`（改动文件）：通过。
+- review72-1 修正后：engine `test/ireland.test.ts` 51 项通过；web `test/ireland.test.tsx` 12 项通过；policy-data 全部通过；engine、policy-data、web 的 `tsc --noEmit` 与改动文件的 eslint、prettier 通过。
 
 ## 3. 没做或没验证的
 
 - 按任务要求未跑 build、全量测试与 Playwright。e2e 里 CSEP 的选项已改为新类型，没有实际运行；页面没有截图。
 - 同一类内换雇主、受雇中断的计法仍按原假设处理（PD-116）。
-- 2025-07-22 是页面的发布元数据，不是 ISD 写明的生效日。ICT 在 2024-04-03 至 2025-07-22 之间是否已按 57 个月计算，存档来源里没有说明，所以这段时间输出待确认。若找到 ICT 的正式生效日，可改参数。
-- 原先选"Stamp 1"的 CSEP 持有人需要改选新类型。表单没有自动迁移，这个试点不保存草稿。
+- ICT 的 2026-02-25 是升级页现行文本的修改日，不是 ISD 写明的生效日；ICT 在此之前是否已按 57 个月计算，存档来源里没有说明，所以输出待确认。若找到 ICT 的正式生效日，可改参数。
+- 原先选"Stamp 1"的 CSEP、GEP 持有人需要改选新类型。表单没有自动迁移，这个试点不保存草稿。
 - 回国当天没有许可时，试点只写明须先取得许可，不推算续期后的递交日。
 
 ## 4. 发现与建议（范围外，不实现）
