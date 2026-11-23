@@ -593,8 +593,11 @@ describe('review70-2', () => {
       pr: { route: 'general', statusStart: '2010-01-01' },
       trips: [{ departed: '2027-05-01', returned: '2027-12-01' }],
     });
-    // 8 whole days abroad by 2027-05-10.
-    expect(p.checks[2].met).toBe(true);
+    // Task 74: the checks describe the planned return on 2027-12-01, as the
+    // projected dates do: 213 whole days abroad is half a year or more.
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[2].met).toBe(false);
+    expect(p.summary).toContain('检查项按计划返回日 2027-12-01 计算');
     expect(p.checks.at(-1)?.met).toBe(false);
   });
 });
@@ -914,6 +917,28 @@ describe('review70-11', () => {
     expect(p.earliestDate).toBe('2022-04-01');
     expect(p.checks[1].text).toContain('年满 20 岁');
     expect(p.checks[1].met).toBe(false);
+  });
+});
+
+describe('task 74: on a trip on the simulation date', () => {
+  test('a planned late return is the stay the checks describe', () => {
+    // Away 2027-05-01 to 2028-08-01 without a re-entry permit: the status
+    // ends, and the stay counts again from the return.
+    const p = pr({
+      simulationDate: '2027-06-01',
+      stayStart: '2010-01-01',
+      pr: { route: 'general', statusStart: '2010-01-01' },
+      trips: [{ departed: '2027-05-01', returned: '2028-08-01' }],
+    });
+    expect(p.checks[0].text).toContain('自 2028-08-01 起');
+    expect(p.summary).toContain('检查项按计划返回日 2028-08-01 计算');
+    const n = nat({
+      simulationDate: '2027-06-01',
+      stayStart: '2010-01-01',
+      trips: [{ departed: '2027-05-01', returned: '2028-08-01' }],
+    });
+    expect(n.checks[0].text).toContain('自 2028-08-01 起');
+    expect(n.summary).toContain('检查项按计划返回日 2028-08-01 计算');
   });
 });
 

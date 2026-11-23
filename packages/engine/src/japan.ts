@@ -202,6 +202,16 @@ export function evaluateJapan(req: JpRequest): JpResult {
   /** Abroad all day on `d`: applications are made in person in Japan. */
   const abroad = (d: IsoDate) =>
     req.trips.some((t) => t.departed < d && d < t.returned);
+  // On a trip under way on the simulation date, the checks describe the
+  // planned return, as the projected dates do.
+  const ongoing = req.trips.find((t) => t.departed < sim && sim < t.returned);
+  const at = ongoing ? ongoing.returned : sim;
+  const forecast = ongoing
+    ? L(
+        `模拟日在境外（${ongoing.departed} 至 ${ongoing.returned} 的出境），检查项按计划返回日 ${at} 计算。`,
+        ` You are abroad on the simulation date (the trip from ${ongoing.departed} to ${ongoing.returned}), so the checks are worked out for the planned return on ${at}.`,
+      )
+    : '';
   /**
    * Trips under way on any day of [from, to], travel days included; a lapse
    * is left out, since the stay counted starts on its return.
@@ -741,21 +751,21 @@ export function evaluateJapan(req: JpRequest): JpResult {
             ` ${shown} follows the 2026-02-24 guideline, which covers applications up to ${lastOld}; from ${switchDate} the 2026-10-01 guideline applies${repeated ? '' : newDate ? `, with ${newDate} the earliest date` : ', which you will not meet within 10 years'}.`,
           )
         : '';
-    const a = absences(sim);
+    const a = absences(at);
     const absenceChecks: PilotCheck[] =
-      guideline(sim) === 'old'
+      guideline(at) === 'old'
         ? [
             {
-              text: oldTrips(sim).length
+              text: oldTrips(at).length
                 ? L(
-                    `前 ${stayYears(sim)} 年有 ${oldTrips(sim).length} 次出境；截至 ${lastOld}（含当日）递交适用的指南没有出境天数标准`,
-                    `${count(oldTrips(sim).length, 'trip')} abroad in the past ${count(stayYears(sim), 'year')}; the guideline for applications up to ${lastOld} does not specify a numerical limit on absences`,
+                    `前 ${stayYears(at)} 年有 ${oldTrips(at).length} 次出境；截至 ${lastOld}（含当日）递交适用的指南没有出境天数标准`,
+                    `${count(oldTrips(at).length, 'trip')} abroad in the past ${count(stayYears(at), 'year')}; the guideline for applications up to ${lastOld} does not specify a numerical limit on absences`,
                   )
                 : L(
-                    `前 ${stayYears(sim)} 年没有出境`,
-                    `No trips abroad in the past ${count(stayYears(sim), 'year')}`,
+                    `前 ${stayYears(at)} 年没有出境`,
+                    `No trips abroad in the past ${count(stayYears(at), 'year')}`,
                   ),
-              met: oldTrips(sim).length ? undefined : true,
+              met: oldTrips(at).length ? undefined : true,
               sources: [{ srcId: 'SRC-113', locator: '1(3)ア, 2' }],
             },
           ]
@@ -834,9 +844,10 @@ export function evaluateJapan(req: JpRequest): JpResult {
               ` From ${switchDate} the new guideline does not count your current status (such as Intra-company Transferee) as a work status, so its ${v.prStatusYears.value} years start only once you hold one it counts (PD-134).`,
             )
           : '') +
-        lapseNotes.join(''),
+        lapseNotes.join('') +
+        forecast,
       checks: [
-        ...needs(sim).map((n) => ({
+        ...needs(at).map((n) => ({
           text: n.text,
           met: metOf(n.state),
           sources: n.sources,
@@ -954,7 +965,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
     const practiceDate = firstDate(
       (d) => !abroad(d) && legal(d) && practice(d),
     );
-    const stay = stayFrom(sim);
+    const stay = stayFrom(at);
     const tripNote = (d: IsoDate) => {
       const n = practice(d) ? practiceYears : legalYears(d);
       const found = tripsBefore(d, n);
@@ -1021,7 +1032,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
         : '';
     /** A period reached on the simulation date, unless trips cloud it. */
     const continuous = (ok: boolean, n: number) =>
-      !ok ? false : tripsBefore(sim, n).length ? undefined : true;
+      !ok ? false : tripsBefore(at, n).length ? undefined : true;
     const practiceCheck: PilotCheck = {
       text:
         nat.route === 'general'
@@ -1033,9 +1044,9 @@ export function evaluateJapan(req: JpRequest): JpResult {
               `若 ${practiceFrom} 起的审查运用也适用于配偶者：自 ${stay} 起在留满 ${practiceYears} 年`,
               `If the review practice from ${practiceFrom} also applies to spouses: ${practiceYears} years of stay since ${stay}`,
             ),
-      met: practice(sim)
+      met: practice(at)
         ? continuous(true, practiceYears)
-        : nat.route === 'general' && sim >= practiceFrom
+        : nat.route === 'general' && at >= practiceFrom
           ? false
           : undefined,
       sources: [
@@ -1052,7 +1063,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
                 `${v.naturalisationYears.value} years of continuous domicile in Japan since ${stay}`,
               ),
               met: continuous(
-                sim >= afterYears(stay, v.naturalisationYears.value),
+                at >= afterYears(stay, v.naturalisationYears.value),
                 v.naturalisationYears.value,
               ),
               sources: v.naturalisationYears.sources,
@@ -1060,14 +1071,14 @@ export function evaluateJapan(req: JpRequest): JpResult {
             {
               text: nat.homeMajorityAge
                 ? L(
-                    `年满 ${japanAge(sim)} 岁并达到本国法的成年年龄 ${nat.homeMajorityAge} 岁（${adultOn(sim)} 起）`,
-                    `Aged ${japanAge(sim)} and an adult under your home country's law at ${nat.homeMajorityAge} (from ${adultOn(sim)})`,
+                    `年满 ${japanAge(at)} 岁并达到本国法的成年年龄 ${nat.homeMajorityAge} 岁（${adultOn(at)} 起）`,
+                    `Aged ${japanAge(at)} and an adult under your home country's law at ${nat.homeMajorityAge} (from ${adultOn(at)})`,
                   )
                 : L(
-                    `年满 ${japanAge(sim)} 岁（${adultOn(sim)} 起；你确认本国法的成年年龄不高于此）`,
-                    `Aged ${japanAge(sim)} or over (from ${adultOn(sim)}; you confirmed your home country's age of majority is no higher)`,
+                    `年满 ${japanAge(at)} 岁（${adultOn(at)} 起；你确认本国法的成年年龄不高于此）`,
+                    `Aged ${japanAge(at)} or over (from ${adultOn(at)}; you confirmed your home country's age of majority is no higher)`,
                   ),
-              met: sim >= adultOn(sim),
+              met: at >= adultOn(at),
               sources: v.naturalisationAge.sources,
             },
           ]
@@ -1077,7 +1088,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
                 `国籍法第 7 条：递交时是日本国民的配偶者（${nat.marriedOn} 登记结婚），且自 ${stay} 起在日本连续有住所或居所满 ${v.spouseNaturalisationYears.value} 年，或结婚满 ${v.spouseNaturalisationMarriageYears.value} 年且连续有住所满 ${v.spouseNaturalisationDomicileYears.value} 年`,
                 `Nationality Act art. 7: a spouse of a Japanese national when applying (married on ${nat.marriedOn}), with ${v.spouseNaturalisationYears.value} years of continuous domicile or residence in Japan since ${stay}, or ${v.spouseNaturalisationMarriageYears.value} years married with ${v.spouseNaturalisationDomicileYears.value} year of continuous domicile`,
               ),
-              met: continuous(legal(sim), legalYears(sim)),
+              met: continuous(legal(at), legalYears(at)),
               sources: v.spouseNaturalisationYears.sources,
             },
           ]),
@@ -1096,7 +1107,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
       title: L('帰化（入籍）', 'Naturalisation (帰化)'),
       status,
       earliestDate: status === 'UNKNOWN' ? undefined : earliest,
-      summary: main + lawOnly + lapseNotes.join(''),
+      summary: main + lawOnly + lapseNotes.join('') + forecast,
       checks,
       notChecked: [
         L(

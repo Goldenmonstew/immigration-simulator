@@ -412,3 +412,4 @@
 | 385 | 任务 70 报告补记最终门禁、手机宽度预览与第十二轮审核结论（通过）及其风险。 | docs/tasks/reports/70-japan.md |
 | 386 | 任务 69 报告补记最终门禁、手机宽度预览与第十二轮审核结论（通过）及其风险。 | docs/tasks/reports/69-germany.md |
 | 410 | 任务 74：国民の祝日补收国立天文台暦要項 2019–2021 年（页面已按特别法改订，含 2019 年即位相关休日与 2020、2021 年奥运会改动的祝日及 2021-08-09 振替休日），窗口提示不再把这些已知休日说成预测；SRC-112、PD-130 同步，补回归用例。 | packages/policy-data/src/parameters/japan-2026-11.ts、packages/engine/test/japan.test.ts、docs/SOURCES.md、docs/pending-details.md、policy-sources/（3 份快照） |
+| 411 | 任务 74：模拟日在尚未结束的出境中时，永住与帰化的检查项按计划返回日计算（与最早日期的预测一致），摘要写明；补回归用例。 | packages/engine/src/japan.ts、packages/engine/test/japan.test.ts |
