@@ -217,7 +217,18 @@ export const germany2026_11 = {
         stAG('§ 10 Abs. 3 (weggefallen)', '10'),
       ],
     },
-    // Months and years that need not run in one stretch: a year is 365 days.
+    // Months and years that need not run in one stretch: a month is 30
+    // days, a year 365.
+    daysPerMonth: {
+      value: 30,
+      sources: [
+        {
+          srcId: 'SRC-102',
+          locator: 'BGB § 191',
+          url: 'https://www.gesetze-im-internet.de/bgb/__191.html',
+        },
+      ],
+    },
     daysPerYear: {
       value: 365,
       sources: [

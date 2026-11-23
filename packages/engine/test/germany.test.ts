@@ -205,6 +205,54 @@ describe('Niederlassungserlaubnis, general route (§ 9)', () => {
     expect(unsure.summary).toContain('2026-11-22');
   });
 
+  test('a later permit replaces one with a later printed expiry (review69-2)', () => {
+    const req = {
+      simulationDate: '2026-11-23',
+      permits: [
+        { kind: 'skilled' as const, from: '2020-01-01', to: '2023-12-31' },
+        { kind: 'skilled' as const, from: '2024-01-01', to: '2027-12-31' },
+        { kind: 'study' as const, from: '2025-01-01', to: '2026-06-30' },
+      ],
+    };
+    // Nothing is held after the study permit ends on 2026-06-30.
+    for (const id of [
+      'DE-SETTLEMENT',
+      'DE-EU-LONG-TERM',
+      'DE-NATURALISATION',
+    ] as const)
+      expect(pathway(req, id).status, id).toBe('NOT_MET');
+  });
+
+  test('EU long-term residence that may have lapsed abroad (review69-2)', () => {
+    const req = {
+      simulationDate: '2026-11-23',
+      permits: [{ kind: 'eu-long-term' as const, from: '2024-01-01' }],
+      trips: [{ departed: '2025-01-01', returned: '2026-02-01' }],
+    };
+    // 13 months away: lapsed only if all of it was outside the EU.
+    for (const id of [
+      'DE-TRAVEL',
+      'DE-SETTLEMENT',
+      'DE-EU-LONG-TERM',
+      'DE-NATURALISATION',
+    ] as const)
+      expect(pathway(req, id).status, id).toBe('UNKNOWN');
+    expect(pathway(req, 'DE-EU-LONG-TERM').summary).toContain(
+      '2025-01-01 至 2026-02-01',
+    );
+    // Naturalisation also needs discretionary credit for the year before.
+    expect(pathway(req, 'DE-NATURALISATION').pendingDetails).toContain(
+      'PD-128',
+    );
+    // Back within 12 months it is still held.
+    const back = {
+      ...req,
+      trips: [{ departed: '2025-01-01', returned: '2025-12-01' }],
+    };
+    expect(pathway(back, 'DE-EU-LONG-TERM').status).toBe('NOT_APPLICABLE');
+    expect(pathway(back, 'DE-SETTLEMENT').status).toBe('NOT_APPLICABLE');
+  });
+
   test('time before the first arrival does not count (review69-1)', () => {
     const req = {
       simulationDate: '2026-01-15',
@@ -326,6 +374,25 @@ describe('Niederlassungserlaubnis for Blue Card holders (§ 18c Abs. 2)', () => 
     expect(p.status).toBe('FUTURE');
     expect(p.earliestDate).toBe('2027-01-01');
     expect(p.checks.map((c) => c.met)).toEqual([true, false]);
+  });
+
+  test('months count only from the switch to the Blue Card (review69-2)', () => {
+    const p = pathway(
+      {
+        ...blueCard,
+        simulationDate: '2026-11-23',
+        germanB1: true,
+        permits: [
+          { kind: 'skilled', from: '2026-01-01' },
+          { kind: 'blue-card', from: '2027-06-01' },
+        ],
+        blueCardEmploymentMonths: 0,
+      },
+      'DE-SETTLEMENT',
+    );
+    // 21 months from 2027-06-01, not from the simulation date.
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2029-03-01');
   });
 
   test('employment months not entered: unknown', () => {
@@ -491,20 +558,37 @@ describe('Daueraufenthalt-EU (§§ 9a, 9b)', () => {
     expect(p.earliestDate).toBe('2026-11-12');
   });
 
-  test('short trips totalling up to 10 months count', () => {
+  test('short trips totalling up to 300 days count (BGB § 191)', () => {
+    const permits = [{ kind: 'skilled' as const, from: '2021-03-15' }];
     const p = pathway(
       {
         simulationDate: '2026-01-01',
-        permits: [{ kind: 'skilled', from: '2021-03-15' }],
+        permits,
         trips: [
-          // 179 + 124 = 303 days abroad, the fewest days 10 months can span.
+          // 179 + 121 = 300 days abroad: 10 months of 30 days.
+          { departed: '2022-01-01', returned: '2022-06-30' },
+          { departed: '2023-01-01', returned: '2023-05-03' },
+        ],
+      },
+      'DE-EU-LONG-TERM',
+    );
+    expect(p.earliestDate).toBe('2026-03-15');
+    // 303 days, the fewest 10 calendar months can span, is over 300
+    // (review69-2): only the generous reading counts them all.
+    const over = pathway(
+      {
+        simulationDate: '2026-01-01',
+        permits,
+        trips: [
           { departed: '2022-01-01', returned: '2022-06-30' },
           { departed: '2023-01-01', returned: '2023-05-06' },
         ],
       },
       'DE-EU-LONG-TERM',
     );
-    expect(p.earliestDate).toBe('2026-03-15');
+    expect(over.status).toBe('FUTURE');
+    expect(over.earliestDate).not.toBe('2026-03-15');
+    expect(over.summary).toContain('2026-03-15');
   });
 
   test('a total between the readings of 10 months is unknown (PD-125)', () => {
@@ -538,10 +622,11 @@ describe('Daueraufenthalt-EU (§§ 9a, 9b)', () => {
       },
       'DE-EU-LONG-TERM',
     );
-    // Without the 305 days abroad: 2026-03-15 + 295 days.
+    // Certain once the 5 years start inside the first trip and the absences
+    // left are 300 days or fewer.
     expect(p.status).toBe('UNKNOWN');
     expect(p.earliestDate).toBeUndefined();
-    expect(p.summary).toContain('2027-01-04');
+    expect(p.summary).toContain('2027-01-07');
   });
 
   test('the asylum procedure counts once protection is granted', () => {

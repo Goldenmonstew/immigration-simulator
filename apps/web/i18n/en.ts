@@ -563,7 +563,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'If you came on a national visa, time counts from the day you arrived, not from when the visa started.',
   'de.permits': 'Residence permits',
   'de.permitsHint':
-    'Add a row for each permit, then the next one when it is renewed or replaced; a blank end date runs until the next permit starts. Enter a national entry visa as the type it was issued for; for the asylum procedure choose “Asylum claim pending” from the day you claimed asylum. Choose “Permit for a temporary purpose” for job seeking, au pair and the like.',
+    'Add a row for each permit, then the next one when it is renewed or replaced; a new permit ends the one before it even if that card shows a later expiry, and a blank end date runs until the next permit starts. Enter a national entry visa as the type it was issued for; for the asylum procedure choose “Asylum claim pending” from the day you claimed asylum. Choose “Permit for a temporary purpose” for job seeking, au pair and the like.',
   'de.permit': 'Permit {n}',
   'de.kind': 'Permit type',
   'de.kind.study': 'University study (§ 16b)',
