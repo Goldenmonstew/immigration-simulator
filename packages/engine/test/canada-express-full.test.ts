@@ -147,6 +147,18 @@ describe('Express Entry application, ranking and evidence', () => {
       rule('R31', { primary: { ...language, test: 'other' } }).status,
     ).toBe('NOT_MET');
   });
+  test('R31 uses the result available at profile creation when the filing result is newer', () => {
+    const renewed: ExpressAnswers = {
+      profileDate: '2026-01-01',
+      applicationDate: '2026-11-20',
+      primary: { ...language, resultDate: '2026-10-15' },
+    };
+    const status = (profileLanguage?: ExpressAnswers['profileLanguage']) =>
+      rule('R31', { ...renewed, profileLanguage }, 'CA-EE-CEC').status;
+    expect(status()).toBe('UNKNOWN');
+    expect(status(language)).toBe('MET');
+    expect(status({ ...language, resultDate: '2024-01-01' })).toBe('NOT_MET');
+  });
   test('R32 French all four NCLC 7, unconfirmed occupational category', () => {
     const round = { ...complete.round!, category: 'french' as const };
     const french = { ...language, test: 'TEF Canada' as const };
@@ -404,6 +416,12 @@ describe('Canadian Experience Class and Federal Skilled Trades', () => {
 
 describe('Class-specific education, evidence and invitation versions', () => {
   test('R31 CEC and FST require an ECA only when a foreign credential is claimed', () => {
+    const expired: ExpressAnswers['education'] = {
+      origin: 'foreign',
+      level: 'oneYear',
+      appropriateEca: true,
+      ecaDate: '2021-11-23',
+    };
     for (const route of ['CA-EE-CEC', 'CA-EE-FST'] as const) {
       expect(
         rule(
@@ -419,21 +437,12 @@ describe('Class-specific education, evidence and invitation versions', () => {
           route,
         ).status,
       ).toBe('UNKNOWN');
-      expect(
-        rule(
-          'R31',
-          {
-            usingForeignEducationPoints: true,
-            education: {
-              origin: 'foreign',
-              level: 'oneYear',
-              appropriateEca: true,
-              ecaDate: '2021-11-23',
-            },
-          },
-          route,
-        ).status,
-      ).toBe('NOT_MET');
+      const status = (usingForeignEducationPoints?: boolean) =>
+        rule('R31', { education: expired, usingForeignEducationPoints }, route)
+          .status;
+      expect(status()).toBe('UNKNOWN');
+      expect(status(true)).toBe('NOT_MET');
+      expect(status(false)).toBe('MET');
     }
   });
   test('R36 education bands for two qualifying credentials, masters, regulated entry-to-practice degree and doctorate', () => {

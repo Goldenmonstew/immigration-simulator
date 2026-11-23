@@ -634,7 +634,7 @@ export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
   );
   const languageSource = ref(
     'SRC-268',
-    'ee-language, Minimum language levels and test result validity; ee-eca / Who needs an ECA',
+    'ee-language, Language requirements / How long your results are valid for; ee-eca, Who needs an ECA / How long your ECA is valid for',
   );
   const workSource = ref(
     'SRC-261',
@@ -713,26 +713,31 @@ export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
       ),
       ranking,
       L(
-        '以该轮适用部长指令下的 IRCC 分数、已公布的最低分及同分时点核对。11 月新规的高薪工作与报价取适用较高组合，已接受的提名由 IRCC 计入总分。未来轮次或未确认新版分数须待核。',
-        'Compare IRCC’s score under the instructions for this round with its published cutoff and tie break. The November instructions compare qualifying high-wage work and offer combinations. Use the score incorporating any accepted nomination. Future rounds and unconfirmed scores remain pending.',
+        '以该轮适用部长指令下的 IRCC 分数、已公布的最低分及同分时点核对。11 月新规取加拿大工作经验分（含高薪职业经验分）与合资格高薪工作邀请分中的较高值。已接受的提名由 IRCC 计入总分。未来轮次或未确认新版分数须待核。',
+        'Compare IRCC’s score under the instructions for this round with its published cutoff and tie break. The November instructions use the higher of the Canadian work experience score (including high-wage experience) and the score for a qualifying high-wage job offer. Use the score incorporating any accepted nomination. Future rounds and unconfirmed scores remain pending.',
       ),
       [ee, ref('SRC-269', 'ee-rounds; ee-mi §§15–15.2, 28; ee-high-wage')],
       ['PD-246', 'PD-247'],
     ),
   );
-  const needsEca =
-    a.usingForeignEducationPoints === true ||
-    (fsw &&
-      (a.education?.origin === undefined
-        ? undefined
-        : a.education.origin === 'foreign'));
-  const ecaExempt = needsEca === undefined ? undefined : !needsEca;
+  const profileLanguage =
+    a.profileLanguage ??
+    (a.primary?.resultDate && profileDate && a.primary.resultDate <= profileDate
+      ? a.primary
+      : undefined);
+  const hasEducation =
+    a.profileEducation !== undefined || a.education !== undefined;
+  const ecaExempt =
+    !fsw &&
+    (hasEducation && a.usingForeignEducationPoints === undefined
+      ? undefined
+      : !a.usingForeignEducationPoints);
   result.push(
     check(
       'CA-R31',
       L('语言测试与适用学历评估的效期', 'Test and applicable ECA validity'),
       all(
-        languageValid(a.profileLanguage ?? a.primary, profileDate),
+        languageValid(profileLanguage, profileDate),
         languageValid(a.primary, when),
         any(
           ecaExempt,

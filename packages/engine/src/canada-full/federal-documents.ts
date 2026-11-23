@@ -18,6 +18,10 @@ export interface MedicalExam {
   previousExamOn?: string;
   inCanada?: boolean;
   eligiblePreviousMedicalCode?: boolean;
+  /** IRCC's decision on the instruction deadline or on the completed late exam. */
+  instructionExtension?:
+    { until: string } | 'late-exam-accepted' | 'none' | 'pending';
+  /** Extended validity of an exam result. */
   extendedUntil?: string;
 }
 
@@ -26,15 +30,11 @@ export function medicalExam(
   procedure: PrProcedure,
   filed: string | undefined,
   asOf: string,
-): boolean | undefined {
-  if (!exam) return undefined;
-  if (exam.disposition === 'exempt') return true;
-  if (exam.disposition === 'refused') return false;
-  if (
-    exam.disposition === 'follow-up' ||
-    exam.disposition === 'reuse-requested'
-  )
-    return undefined;
+): { met: boolean | undefined; missedDeadline?: string } {
+  if (!exam) return { met: undefined };
+  if (exam.disposition === 'exempt') return { met: true };
+  if (exam.disposition === 'refused') return { met: false };
+  if (exam.disposition === 'reuse-requested') return { met: undefined };
   if (exam.disposition === 'reuse-granted') {
     // Older pending applications and anomalous dates require the actual decision.
     if (
@@ -47,24 +47,45 @@ export function medicalExam(
       exam.inCanada === false ||
       exam.eligiblePreviousMedicalCode === false
     )
-      return undefined;
-    return true;
+      return { met: undefined };
+    return { met: true };
   }
-  if (exam.examOn && exam.examOn <= asOf && exam.panelExamComplete) {
-    if (filed && procedure === 'express' && exam.examOn > filed) return false;
-    if (exam.extendedUntil && asOf <= exam.extendedUntil) return true;
-    // An expired IME can be extended or IRCC may request a new one.
-    if (asOf >= addMonths(exam.examOn, medical.validMonths)) return undefined;
-    return true;
+  const completedOn =
+    exam.panelExamComplete && exam.examOn && exam.examOn <= asOf
+      ? exam.examOn
+      : undefined;
+  // Expired results can be extended, and outstanding follow-up needs a decision.
+  const valid =
+    completedOn &&
+    exam.disposition !== 'follow-up' &&
+    (asOf < addMonths(completedOn, medical.validMonths) ||
+      (exam.extendedUntil && asOf <= exam.extendedUntil))
+      ? true
+      : undefined;
+
+  if (procedure === 'express') {
+    if (exam.disposition === 'follow-up') return { met: undefined };
+    if (
+      filed &&
+      ((completedOn && completedOn > filed) ||
+        (exam.panelExamComplete === false && filed <= asOf))
+    )
+      return { met: false };
+    return { met: valid };
   }
-  if (exam.panelExamComplete !== false) return undefined;
-  if (procedure === 'express' && filed && filed <= asOf) return false;
-  if (
-    exam.instructionOn &&
-    asOf > addDays(exam.instructionOn, medical.instructionDays)
-  )
-    return false;
-  return undefined;
+  if (procedure === 'unknown' || !exam.instructionOn) return { met: undefined };
+  const observedOn =
+    completedOn ?? (exam.panelExamComplete === false ? asOf : undefined);
+  if (!observedOn || observedOn < exam.instructionOn) return { met: undefined };
+  const deadline = addDays(exam.instructionOn, medical.instructionDays);
+  if (observedOn <= deadline) return { met: valid };
+
+  const extension = exam.instructionExtension;
+  let accepted: boolean | undefined;
+  if (typeof extension === 'object') accepted = observedOn <= extension.until;
+  else if (extension === 'late-exam-accepted' && completedOn) accepted = true;
+  else if (extension === 'none') accepted = false;
+  return { met: all(valid, accepted), missedDeadline: deadline };
 }
 
 export interface PoliceStay {

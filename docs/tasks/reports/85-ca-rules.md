@@ -10,9 +10,9 @@
 
 三组均由 Fable 提交，署名尾行为 `Co-Authored-By: Codex gpt-6.2-astra <noreply@openai.com>`。
 
-`evaluateCanadaFull(req)` 返回兼容 `CountryResult` 的 `CaFullResult`。列 ID 为 `ca.current-law-2026-11`，政策基准日为 2026-11-23。有明确不满足的实质条件时路径为 `NOT_MET`，其余情形有待确认的实质条件时为 `UNKNOWN`，全部满足时为 `MET`。已持 PR 的人会看到初次取得 PR 路径为 `NOT_APPLICABLE`。已是公民或可能按血统取得公民身份时，先提示核验身份（SRC-260，Citizenship Act s.3）。
+`evaluateCanadaFull(req)` 返回兼容 `CountryResult` 的 `CaFullResult`。列 ID 为 `ca.current-law-2026-11`，政策基准日为 2026-11-23。实质条件全部满足时为 `MET`。如只差居住时间且能确认达标日，路径返回 `FUTURE` 与 `earliestDate`。其他实质条件明确不满足时为 `NOT_MET`，有待确认的条件时为 `UNKNOWN`。已持 PR 的人会看到初次取得 PR 路径为 `NOT_APPLICABLE`。已是公民或可能按血统取得公民身份时，先提示核验身份（SRC-260，Citizenship Act s.3）。
 
-`CA-R02`、`CA-R08` 的 `timeBaseline` 保留旧引擎的结论、摘要、日期及窗口假设编号。未达到的时间门槛与可能改变结果的法定例外各有说明。费用、证件分支及其他参考项带 `advisory` 标记。适用的材料、付款及官方步骤仍由对应申请条件评估。R18 说明入籍没有独立的住房、收入、医保或地址登记门槛，作为恒定说明展示。联邦签名和费用回执按路径记录，省级批准、联邦核查、获得 PR 以及入籍授予可分别查看。
+`CA-R02`、`CA-R08` 的 `timeBaseline` 保留旧引擎的结论、摘要、日期及窗口假设编号。未达到的时间门槛与可能改变结果的法定例外各有说明。证件分支及单纯报价等参考项带 `advisory` 标记。R17 根据实付状态参与入籍路径汇总，金额只在说明中展示。R18 说明入籍没有独立的住房、收入、医保或地址登记门槛，作为恒定说明展示。联邦签名和费用回执按路径记录，省级批准、联邦核查、获得 PR 以及入籍授予可分别查看。
 
 ### 路径与条件
 
@@ -161,3 +161,30 @@
 - EE 问 profile、ITA、所属项目、轮次与收件日期、同轮官方 CRS、四项成绩和有效期、ECA、职业代码、职责、工段日期与逐日工时、许可、报酬方式、offer 及资金家庭人数。若待核证据会改变分数或资格，应展示待补项目。
 - 安省问雇主与本人各自的递交日、地点、收入、员工数、岗位、工资与执照；其他省问有效提名及 base/enhanced。AIP 问指定雇主、目的／工作／签发省、安家计划、endorsement 有效期、当地毕业豁免和 offer 条件。
 - Québec PSTQ 问 Arrima 邀请、接受、书面期限、FEER、实际工作与实习、学历、逐项法语、各成员价值观证明、CSQ 和家庭构成。家庭担保另问关系、年龄、以往担保、债务、联邦和省两阶段承诺、适用收入、收件批次和名额。
+
+## 审核修正（review85-1）
+
+### 1. 做了什么
+
+建议提交 `Fix: 修正加拿大资格判定与最早日期汇总`。对应 PROGRESS 第 563 条。
+
+- R56 按 IRPR s.87.3(6)(d)(ii)–(iii)、(7) 与 IRCC 报价表核对。TEER 3 经验配 TEER 1 报价为 `MET`，TEER 1 经验配普通 TEER 3 报价为 `NOT_MET`。PD-252 改引 (7)，保留法规与表格在 TEER 2/3 和医护 NOC 上会改变结果的差异（SRC-261b、270）。
+- R17 把缴费状态计入路径。其余条件满足时，已缴、未缴、未填分别返回 `MET`、`NOT_MET`、`UNKNOWN`。费表未覆盖申请日时，仍可记录已缴清。缴费凭证依据 SRC-260c，Citizenship Regulations (No. 2) ss.2(1)(i)、2(2)(i)、2(3)(e)、4(c)。[IRCC 缴费及回执说明](https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/adult-minor/how.html)
+- R31 分别核对 EE 建档与递交时的语言成绩。新成绩签发晚于建档日、旧成绩未填时返回 `UNKNOWN`。CEC/FST 申请人提供了已过期的外国学历 ECA，但未说明是否用它申报积分时也返回 `UNKNOWN`（SRC-268，语言成绩和 ECA 的有效期小节）。
+- R24 按实际体检日核对收到指示后的 30 天期限。逾期时列出原截止日。延期或接受补做待确认时为 `UNKNOWN`，明确未获准为 `NOT_MET`，获准的期限覆盖完成日或 IRCC 已接受补做时可为 `MET`。`instructionExtension` 记录完成期限延期或接受补做的决定，`extendedUntil` 记录体检结果有效期的延长（SRC-266b，When to get your medical exam，PD-244）。
+- R25 分别核对递交日和模拟日。即使模拟日禁期已满，禁期内递交的申请仍为 `NOT_MET`（SRC-261a，IRPA s.40(2)(a)、(3)）。
+- PR 居住义务和普通入籍只差居住天数时，外层路径返回可确认的 `FUTURE` 和 `earliestDate`。另有未满足或待确认的实质条件时，外层不带预测日期。R05 双语说明均涵盖上诉期未满和上诉待决，R30 双语说明均写明适用的加拿大工作经验分与高薪工作邀请分取较高值（SRC-261a，IRPA s.31(3)(c)；SRC-269，EE 部长指令 ss.15–15.2）。
+
+### 2. 怎么验证的
+
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 最终退出码为 0。全仓 5,338 项测试通过，1 项既有测试按原配置跳过，Next.js 生成 27 个静态页面。英国随机时间线的固定种子 1455489211 曾触发 5 秒超时，单独重跑通过，随后以 `VITEST_MAX_WORKERS=2` 重跑完整验收。测试超时设置保持原值。
+- `pnpm --filter @uk-immigration/engine test test/canada` 通过 8 个文件、113 项测试。新增断言先复现了 AIP、EE、入籍缴费及外层日期的原判定。入籍复现为 2024-01-01 取得 PR、无出境、其他适用条件满足，在 2026-11-23 评估时外层返回 `FUTURE`，最早签署日为 2026-12-31。
+- 非 EE 体检用例在 2026-09-01 收到指示，分别验证 10-01 当日完成、10-16 逾期且延期结果待确认、明确无延期、批准至 10-15 或 10-16，以及 IRCC 已接受补做。虚报禁期用例覆盖起始当天、届满前递交后再评估及届满当天递交。
+
+### 3. 没做或没验证的
+
+改动留在工作区，未提交。现有加拿大页面继续使用原时间引擎；本轮验证完整版引擎对外返回的字段，未运行浏览器 e2e 或部署。
+
+### 4. 发现与建议
+
+任务 95 接入完整版时可直接读路径的 `status` 和 `earliestDate`。境外抵扣可能使日期提前，或排除日、执法截点使基线日期无法成立时，`timeBaseline` 只供查看原计算。魁省法规汇编的逐条核验仍按 PD-257 跟进。

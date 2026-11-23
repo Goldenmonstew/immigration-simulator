@@ -115,15 +115,44 @@ describe('Atlantic Immigration Program', () => {
       }).status,
     ).toBe('MET');
   });
-  test('R56 statutory TEER hierarchy and nursing exception conflicting with web guidance', () => {
-    const offer = { ...base.offer, noc: '33102', teer: 3 as const };
-    const nurse = { ...job, noc: '32101', teer: 2 as const };
-    const check = rule(56, { offer, workHistory: [nurse] });
+  test('R56 compares the offered TEER with the predominant work experience', () => {
+    const teer3 = { noc: '63200', teer: 3 as const };
+    const workHistory = [{ ...job, ...teer3, from: '2025-10-01' }];
+    expect(rule(57, { workHistory }).status).toBe('MET');
+    expect(rule(56, { workHistory }).status).toBe('MET');
+    expect(rule(56, { offer: { ...base.offer, ...teer3 } }).status).toBe(
+      'NOT_MET',
+    );
+    const teer2 = { noc: '22212', teer: 2 as const };
+    expect(
+      rule(56, { offer: { ...base.offer, ...teer2 }, workHistory }).status,
+    ).toBe('MET');
+    const check = rule(56, {
+      offer: { ...base.offer, ...teer3 },
+      workHistory: [{ ...job, ...teer2 }],
+    });
     expect(check.status).toBe('UNKNOWN');
     expect(check.explanation).toContain('regulation accepts');
     expect(check.pendingDetails).toContain('PD-252');
+  });
+  test('R56 distinguishes the nursing codes listed by IRPR and IRCC', () => {
+    const offer = {
+      ...base.offer,
+      noc: '44101',
+      teer: 4 as const,
+      permanent: true,
+    };
+    for (const [noc, teer, wording] of [
+      ['32101', 2, 'regulation accepts'],
+      ['31201', 1, 'regulation rejects'],
+    ] as const) {
+      const check = rule(56, { offer, workHistory: [{ ...job, noc, teer }] });
+      expect(check.status).toBe('UNKNOWN');
+      expect(check.explanation).toContain(wording);
+      expect(check.pendingDetails).toContain('PD-252');
+    }
     expect(
-      rule(56, { offer, workHistory: [{ ...nurse, noc: '31301', teer: 1 }] })
+      rule(56, { offer, workHistory: [{ ...job, noc: '31301', teer: 1 }] })
         .status,
     ).toBe('MET');
   });

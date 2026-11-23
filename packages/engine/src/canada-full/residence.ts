@@ -220,6 +220,23 @@ function attachBaseline(item: Item, base: ReturnType<typeof timeBaseline>) {
   item.assumptions = assumptions;
 }
 
+function attachFutureDate(
+  item: Item,
+  base: ReturnType<typeof timeBaseline>,
+  req: CaFullRequest,
+  residency: boolean,
+  adjustments?: Presence,
+) {
+  const date = base?.earliestDate;
+  if (item.status !== 'NOT_MET' || base?.status !== 'FUTURE' || !date) return;
+  // Extra credited days abroad could bring the first qualifying date forward.
+  if (req.trips?.length && adjustments?.credits?.length !== 0) return;
+  const target = residency ? v.prObligationDays.value : v.citizenshipDays.value;
+  // Exclusions and enforcement can prevent qualification on the baseline date.
+  if (boundsPass(adjustedDays(req, date, residency, adjustments), target))
+    item.earliestDate = date;
+}
+
 function prChecks({ req, L, check }: Context, a: ResidenceAnswers): Item[] {
   const date = req.simulationDate;
   const pr = currentPr(req, a, date);
@@ -298,6 +315,30 @@ function prChecks({ req, L, check }: Context, a: ResidenceAnswers): Item[] {
     true,
   );
   attachBaseline(baseline, base);
+  const obligation = check(
+    'CA-R03',
+    L(
+      '认可的境外日、执法截点及人道裁量',
+      'Credited days abroad, enforcement and humanitarian relief',
+    ),
+    effective,
+    (bounds
+      ? L(
+          `按证据可计 ${bounds.lower} 至 ${bounds.upper} 天。 `,
+          `Evidence supports ${bounds.lower} to ${bounds.upper} days. `,
+        )
+      : '') +
+      L(
+        '核对同住或派驻境外的日期、执法认定后排除的日期，以及人道裁量决定。',
+        'Check accompanying or posting dates, days excluded after an enforcement decision, and the humanitarian decision.',
+      ),
+    [
+      ref('SRC-075', 'IRPA s.28(2)(a)(ii)–(iv), (c)'),
+      ref('SRC-261', 'IRPR ss.61–62'),
+    ],
+    ['PD-240'],
+  );
+  attachFutureDate(obligation, base, req, true, a.prDays);
   return [
     check(
       'CA-R01',
@@ -311,29 +352,7 @@ function prChecks({ req, L, check }: Context, a: ResidenceAnswers): Item[] {
       ['PD-240'],
     ),
     baseline,
-    check(
-      'CA-R03',
-      L(
-        '认可的境外日、执法截点及人道裁量',
-        'Credited days abroad, enforcement and humanitarian relief',
-      ),
-      effective,
-      (bounds
-        ? L(
-            `按证据可计 ${bounds.lower} 至 ${bounds.upper} 天。 `,
-            `Evidence supports ${bounds.lower} to ${bounds.upper} days. `,
-          )
-        : '') +
-        L(
-          '核对同住或派驻境外的日期、执法认定后排除的日期，以及人道裁量决定。',
-          'Check accompanying or posting dates, days excluded after an enforcement decision, and the humanitarian decision.',
-        ),
-      [
-        ref('SRC-075', 'IRPA s.28(2)(a)(ii)–(iv), (c)'),
-        ref('SRC-261', 'IRPR ss.61–62'),
-      ],
-      ['PD-240'],
-    ),
+    obligation,
     check(
       'CA-R04',
       L('PR card 办理', 'PR card application'),
@@ -354,8 +373,8 @@ function prChecks({ req, L, check }: Context, a: ResidenceAnswers): Item[] {
       L('永久居民旅行证件', 'Permanent resident travel document'),
       prtd,
       L(
-        `核对境外地点、卡有效期、居住或人道决定，或前 ${v.prtdAppealPresenceDays.value} 天内在加并有上诉权；备妥证件，费用 CAD ${v.prDocumentFee.value}。`,
-        `Check location abroad, card expiry, residency or humanitarian decision, or presence in the preceding ${v.prtdAppealPresenceDays.value} days with an open appeal. Documents and fee CAD ${v.prDocumentFee.value} are required.`,
+        `核对境外地点、卡有效期及居住或人道决定。如依据上诉申请，须在前 ${v.prtdAppealPresenceDays.value} 天内到过加拿大，并且仍在上诉期限内或上诉待决。备妥证件并缴费 CAD ${v.prDocumentFee.value}。`,
+        `Check location abroad, card expiry and the residency or humanitarian decision. If relying on an appeal, you must have been in Canada in the preceding ${v.prtdAppealPresenceDays.value} days and either still be within the appeal period or have an appeal pending. Provide the documents and pay CAD ${v.prDocumentFee.value}.`,
       ),
       [
         ref('SRC-261', 'IRPA s.31(3); IRPR s.315'),
@@ -569,6 +588,8 @@ function citizenshipChecks(
     ['PD-241', ...(base?.pendingDetails ?? [])],
   );
   attachBaseline(presence, base);
+  if (date >= req.simulationDate)
+    attachFutureDate(presence, base, req, false, a.citizenshipDays);
   return [
     check(
       'CA-R06',
@@ -759,26 +780,28 @@ function citizenshipChecks(
     check(
       'CA-R17',
       L('入籍费用', 'Citizenship fees'),
-      chargeKnown ? a.citizenshipFeesPaid : undefined,
+      a.citizenshipFeesPaid,
       (chargeKnown
         ? L(`应付 CAD ${fee}。`, `Fee due: CAD ${fee}. `)
         : L(
-            '需确认该申请日适用的官方费表及年龄。',
-            'Confirm the fee schedule for the application date and the age at filing.',
+            '需确认该申请日适用的官方费表及年龄（PD-258）。',
+            'Confirm the fee schedule for the application date and the age at filing (PD-258). ',
           )) +
         L(
-          '正常考试及宣誓不另收费。',
-          'There is no separate charge for the normal test or oath.',
+          '申请时须缴清费用并附上凭证。正常考试及宣誓不另收费。',
+          'Pay the full application fee and include the receipt when filing. There is no separate charge for the normal test or oath.',
         ),
       [
         ref('SRC-260', 'Citizenship Regulations ss.31–32 and Schedule'),
+        ref(
+          'SRC-260',
+          'Citizenship Regulations (No. 2) ss.2(1)(i), 2(2)(i), 2(3)(e), 4(c)',
+        ),
         ref(
           'SRC-264',
           'Fee list: Citizenship; right of citizenship fee adjustment',
         ),
       ],
-      !chargeKnown && age !== undefined ? ['PD-258'] : undefined,
-      true,
     ),
     check(
       'CA-R18',

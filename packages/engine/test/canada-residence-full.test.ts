@@ -70,7 +70,10 @@ describe('Canadian residency obligation and document branches', () => {
     const none = pr({}, trip);
     expect(check(none, '02').explanation).toContain('729');
     expect(check(none, '02').status).toBe('NOT_MET');
-    expect(none.status).toBe('NOT_MET');
+    expect(none).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-11-24',
+    });
     const day = { from: '2024-11-23', to: '2024-11-23' };
     const tentative = pr(
       {
@@ -184,7 +187,6 @@ describe('Canadian citizenship grants', () => {
     expect(check(cit({ citizenshipFeesPaid: undefined }), '17').status).toBe(
       'UNKNOWN',
     );
-    expect(cit({ citizenshipFeesPaid: undefined }).status).toBe('MET');
     expect(check(cit(), '18').explanation).toContain('no independent income');
     expect(cit({ test: { outcome: 'not-taken' } }).status).toBe('UNKNOWN');
     expect(
@@ -193,6 +195,65 @@ describe('Canadian citizenship grants', () => {
         noCurrentSentenceOrProbation: false,
       }).status,
     ).toBe('NOT_MET');
+  });
+  test('payment at filing affects eligibility independently of the fee quote', () => {
+    const applicant = { dateOfBirth: '1960-01-01' };
+    const beforeGrant: ResidenceAnswers = {
+      grantDate: undefined,
+      oath: 'waiting',
+    };
+    for (const [citizenshipFeesPaid, status] of [
+      [false, 'NOT_MET'],
+      [undefined, 'UNKNOWN'],
+      [true, 'MET'],
+    ] as const) {
+      const result = cit({ ...beforeGrant, citizenshipFeesPaid }, applicant);
+      expect(check(result, '17').status).toBe(status);
+      expect(result.status).toBe(status);
+    }
+    const unquoted = cit(beforeGrant, {
+      ...applicant,
+      simulationDate: '2026-11-24',
+    });
+    expect(check(unquoted, '17').explanation).toContain(
+      'Confirm the fee schedule',
+    );
+    expect(unquoted.status).toBe('MET');
+  });
+  test('only a projected time requirement gives the whole grant a future date', () => {
+    const applicant = { permanentResident: '2024-01-01' };
+    const beforeGrant: ResidenceAnswers = {
+      grantDate: undefined,
+      oath: 'waiting',
+    };
+    const future = cit(beforeGrant, applicant);
+    expect(check(future, '08').status).toBe('NOT_MET');
+    expect(future).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-12-31',
+    });
+    for (const [citizenshipFeesPaid, status] of [
+      [false, 'NOT_MET'],
+      [undefined, 'UNKNOWN'],
+    ] as const) {
+      const result = cit({ ...beforeGrant, citizenshipFeesPaid }, applicant);
+      expect(result.status).toBe(status);
+      expect(result.earliestDate).toBeUndefined();
+    }
+    const excludedDay = {
+      from: today,
+      to: today,
+      evidence: 'accepted',
+    } as const;
+    const adjusted = cit(
+      {
+        ...beforeGrant,
+        citizenshipDays: { credits: [], exclusions: [excludedDay] },
+      },
+      applicant,
+    );
+    expect(check(adjusted, '08').timeBaseline?.earliestDate).toBe('2026-12-31');
+    expect(adjusted.earliestDate).toBeUndefined();
   });
   test('ordinary physical baseline 1,094.5 then 1,095; disputed credit and exclusions', () => {
     const over = {

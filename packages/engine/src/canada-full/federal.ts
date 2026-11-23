@@ -92,6 +92,19 @@ function cleared(finding?: Finding) {
     : finding === 'clear';
 }
 
+function misrepresentationCleared(
+  a: FederalAnswers,
+  filed: string | undefined,
+  asOf: string,
+) {
+  const start = a.misrepresentationClockStart;
+  if (a.misrepresentation !== 'inadmissible' || !start)
+    return cleared(a.misrepresentation);
+  if (asOf < start) return undefined;
+  const end = addYears(start, criminal.misrepresentationYears);
+  return asOf >= end && (!filed || filed < start || filed >= end);
+}
+
 function criminality(person: FederalPerson) {
   if (person.criminalFinding) return cleared(person.criminalFinding);
   const offence = person.classifiedOffence;
@@ -252,7 +265,8 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
           ? 'unknown'
           : 'checklist';
   const routeFiled = ee
-    ? req.express?.applicationDate
+    ? (req.express?.applicationDate ??
+      (id === 'CA-PNP' ? req.pnp?.federalFiled : undefined))
     : family
       ? req.family?.filingDate
       : id === 'CA-PNP'
@@ -379,17 +393,27 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
       ['PD-244'],
     ),
   );
+  const missedDeadlines = new Set<string>();
+  const examResult = peopleMeet(a, true, (p) => {
+    const result = medicalExam(p.exam, procedure, filed, req.simulationDate);
+    if (result.missedDeadline) missedDeadlines.add(result.missedDeadline);
+    return result.met;
+  });
   checks.push(
     check(
       'CA-R24',
       L('移民体检及复用决定', 'Immigration medical examination and reuse'),
-      peopleMeet(a, true, (p) =>
-        medicalExam(p.exam, procedure, filed, req.simulationDate),
-      ),
+      examResult,
       L(
         `核对各成员的指定医师体检、指示和有效期。EE 通常递交前体检，其他类别收到指示后一般有 ${health.instructionDays} 天。复用旧体检需 IRCC 确认。这些项目没有通用私人医保要求。`,
         `Check panel exams, instructions and validity for each member. Express Entry usually requires an upfront exam. Other applicants normally have ${health.instructionDays} days after instructions. IRCC confirms reuse of an older exam. These routes have no general private insurance requirement.`,
-      ),
+      ) +
+        (missedDeadlines.size
+          ? L(
+              ` 未满足原体检期限（${[...missedDeadlines].join('、')}）。按 IRCC 批准的延长期限或接受补做的决定核对。`,
+              ` The original medical exam deadline was missed (${[...missedDeadlines].join(', ')}). Check the deadline IRCC extended or its decision to accept a late exam.`,
+            )
+          : ''),
       [
         ref('SRC-261', 'IRPA s.16(2)(b); IRPR s.30'),
         ...ca.values.federalMedical.sources,
@@ -397,16 +421,6 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
       ['PD-244', 'PD-245'],
     ),
   );
-  const misrep =
-    a.misrepresentation === 'inadmissible' && a.misrepresentationClockStart
-      ? req.simulationDate < a.misrepresentationClockStart
-        ? undefined
-        : req.simulationDate >=
-          addYears(
-            a.misrepresentationClockStart,
-            criminal.misrepresentationYears,
-          )
-      : cleared(a.misrepresentation);
   const familyScope =
     a.members &&
     all(
@@ -428,15 +442,20 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
       ),
       all(
         a.adequateSupportArrangements,
-        misrep,
+        misrepresentationCleared(a, filed, req.simulationDate),
         cleared(a.protectionAndCompliance),
         familyScope,
       ),
       L(
-        `分别核对非社会救助生计安排、保护身份和合规决定。虚报禁期自境外最终认定或境内遣返令执行日起 ${criminal.misrepresentationYears} 年。未随行家属按关系、监护及正式决定核对。`,
-        `Check support without social assistance, protection and compliance decisions. The ${criminal.misrepresentationYears}-year misrepresentation bar runs from the final overseas finding or enforcement of an inland removal order. Review relationship and custody for non-accompanying family members.`,
+        `分别核对非社会救助生计安排、保护身份和合规决定。虚报禁期自境外最终认定或境内遣返令执行日起 ${criminal.misrepresentationYears} 年。核对模拟日是否仍在禁期内，以及 PR 申请是否在禁期内递交。未随行家属按关系、监护及正式决定核对。`,
+        `Check support without social assistance, protection and compliance decisions. The ${criminal.misrepresentationYears}-year misrepresentation bar runs from the final overseas finding or enforcement of an inland removal order. Check whether the bar applies on the simulation date and whether the PR application was filed during the bar. Review relationship and custody for non-accompanying family members.`,
       ),
-      [ref('SRC-261', 'IRPA ss.39–42; IRPR ss.23, 70(1)(e), 72(1), 125')],
+      [
+        ref(
+          'SRC-261',
+          'IRPA ss.39–42, especially s.40(2)(a), (3); IRPR ss.23, 70(1)(e), 72(1), 125',
+        ),
+      ],
       ['PD-243', 'PD-245'],
     ),
   );

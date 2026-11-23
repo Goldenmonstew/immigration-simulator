@@ -25,6 +25,8 @@ export interface CaFullRequest extends Partial<CaRequest> {
 export interface Item extends CountryCheck {
   /** A document option, reference calculation, fee or later-stage reminder. */
   advisory?: boolean;
+  /** First projected date this substantive time requirement is met. */
+  earliestDate?: CaPathway['earliestDate'];
   /** Original physical-presence calculation, before exceptions or other conditions. */
   timeBaseline?: Pick<
     CaPathway,

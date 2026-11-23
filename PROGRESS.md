@@ -474,3 +474,4 @@
 | 560 | 任务 85：归档加拿大完整版的官方快照，登记 SRC-260–279、PD-240–259 及组内原文链接。 | policy-sources/*-ca-*、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
 | 561 | 任务 85：在加拿大参数文件增加完整版门槛、费表、适用日期与逐项来源，登记 ca.current-law-2026-11；保留旧参数版本。 | packages/policy-data/src/{types,index,parameters/{canada-2026-11,index}}.ts |
 | 562 | 任务 85：新增加拿大十条路径、80 项条件、双语结果与边界及组合测试，记录各条件来源及页面问卷交接。 | packages/engine/src/{index.ts,canada-full/}、packages/engine/test/canada-*-full.test.ts、docs/tasks/reports/85-ca-rules.md |
+| 563 | 任务 85 审核修正（review85-1）：修正 AIP 报价与经验配对、入籍实付、EE 凭证缺失、非 EE 体检期限和禁期内递交；向外层路径传递可确认的最早日期，对齐 R05、R30 双语说明并补回归测试。 | packages/engine/src/canada-full/{atlantic,express,federal-documents,federal,index,residence,shared}.ts、packages/engine/test/canada-{atlantic,express,federal,residence}-full.test.ts、docs/pending-details.md、docs/tasks/reports/85-ca-rules.md |

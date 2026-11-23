@@ -113,10 +113,15 @@ export function evaluateCanadaFull(req: CaFullRequest): CaFullResult {
     (id): CaFullPathway => {
       const checks = assess(ctx, id);
       const substantive = checks.filter((c) => !c.advisory);
+      const earliestDate = substantive.find(
+        (c) => c.earliestDate,
+      )?.earliestDate;
       let status: CaFullPathway['status'] = 'MET';
-      if (substantive.some((c) => c.status === 'NOT_MET')) status = 'NOT_MET';
+      if (substantive.some((c) => c.status === 'NOT_MET' && !c.earliestDate))
+        status = 'NOT_MET';
       else if (substantive.some((c) => c.status === 'UNKNOWN'))
         status = 'UNKNOWN';
+      else if (earliestDate) status = 'FUTURE';
       const initialPr = ![
         'CA-RESIDENCY',
         'CA-CITIZENSHIP',
@@ -158,6 +163,7 @@ export function evaluateCanadaFull(req: CaFullRequest): CaFullResult {
         id,
         title: L(title[0], title[1]),
         status,
+        ...(status === 'FUTURE' ? { earliestDate } : {}),
         ...(summary ? { summary } : {}),
         checks,
         assumptions: [...new Set(checks.flatMap((c) => c.assumptions ?? []))],

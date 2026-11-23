@@ -68,7 +68,7 @@ const p = ca.values,
 const irpr = ref('SRC-261', 'IRPR §87.3(1)–(9)');
 const jobGuide = ref(
   'SRC-270',
-  'aip-job / Get a job offer; aip-work / What counts as related work experience',
+  'aip-job / Job offer TEER table and Exemptions for health care workers',
 );
 function graduateMet(g: AtlanticAnswers['graduate'], when: string) {
   if (g?.claimsExemption === false) return false;
@@ -111,11 +111,7 @@ function offerLevel(
   const tier = (teer: Teer) => (teer === 3 ? 2 : teer);
   const law = nursingLaw || tier(offerTeer) <= tier(occupation.teer);
   const table = nursingGuide || offerTeer <= occupation.teer;
-  // IRCC's work-experience prose reverses its offer table, while the
-  // regulation also groups TEER 2 and 3 and uses a different nursing code.
-  const workProse = nursingGuide || occupation.teer <= offerTeer;
-  if (law !== table || law !== workProse)
-    return law ? 'disputed-yes' : 'disputed-no';
+  if (law !== table) return law ? 'disputed-yes' : 'disputed-no';
   return law ? 'yes' : 'no';
 }
 
@@ -248,7 +244,7 @@ export function atlanticChecks({ req, L, check }: Context): Item[] {
         `须有指定雇主的全年带薪全职报价，核对履职能力、控制权及依 TEER 的任期和经验要求。${disputed ? ' 法规的职业层级判断为' + (statuteAllows ? '符合' : statuteRejects ? '不符合' : '取决于主要职业') + '；官网说明存在冲突，需人工核实。' : ''}`,
         `Confirm the named employer, genuine year-round paid full-time offer, ability to perform, ownership, duration and experience level.${disputed ? ' The regulation ' + (statuteAllows ? 'accepts this pairing' : statuteRejects ? 'rejects this pairing' : 'depends on the predominant occupation') + ', but IRCC guidance conflicts; seek confirmation.' : ''}`,
       ),
-      [irpr, jobGuide],
+      [ref('SRC-261', 'IRPR §87.3(6)(a)–(d), (7)'), jobGuide],
       ['PD-252'],
     ),
     check(

@@ -179,6 +179,16 @@ describe('initial PR federal checks', () => {
     expect(
       exam({ instructionOn: '2026-10-23', panelExamComplete: false }, 'CA-AIP')
         .status,
+    ).toBe('UNKNOWN');
+    expect(
+      exam(
+        {
+          instructionOn: '2026-10-23',
+          panelExamComplete: false,
+          instructionExtension: 'none',
+        },
+        'CA-AIP',
+      ).status,
     ).toBe('NOT_MET');
     expect(
       exam({ disposition: 'reuse-requested', previousExamOn: '2025-11-24' })
@@ -196,6 +206,48 @@ describe('initial PR federal checks', () => {
       exam({ disposition: 'reuse-granted', previousExamOn: '2021-11-22' })
         .status,
     ).toBe('UNKNOWN');
+  });
+  test('R24 checks the completion date against the original AIP instruction deadline and the IRCC decision', () => {
+    const exam = (details: FederalPerson['exam']) =>
+      c(
+        24,
+        applicant({
+          exam: {
+            instructionOn: '2026-09-01',
+            panelExamComplete: true,
+            ...details,
+          },
+        }),
+        'CA-AIP',
+        { atlantic: { applicationDate: '2026-08-10' } },
+      );
+    expect(exam({ examOn: '2026-10-01' }).status).toBe('MET');
+    expect(
+      exam({ examOn: '2026-10-01', instructionOn: undefined }).status,
+    ).toBe('UNKNOWN');
+    const late = { examOn: '2026-10-16' };
+    const unresolved = exam(late);
+    expect(unresolved.status).toBe('UNKNOWN');
+    expect(unresolved.explanation).toContain('未满足原体检期限（2026-10-01）');
+    expect(unresolved.pendingDetails).toContain('PD-244');
+    expect(exam({ ...late, extendedUntil: '2027-10-16' }).status).toBe(
+      'UNKNOWN',
+    );
+    expect(exam({ ...late, instructionExtension: 'pending' }).status).toBe(
+      'UNKNOWN',
+    );
+    expect(exam({ ...late, instructionExtension: 'none' }).status).toBe(
+      'NOT_MET',
+    );
+    expect(
+      exam({ ...late, instructionExtension: { until: '2026-10-16' } }).status,
+    ).toBe('MET');
+    expect(
+      exam({ ...late, instructionExtension: { until: '2026-10-15' } }).status,
+    ).toBe('NOT_MET');
+    expect(
+      exam({ ...late, instructionExtension: 'late-exam-accepted' }).status,
+    ).toBe('MET');
   });
   test('R25 misrepresentation runs from the specified statutory start, and family scope is separate from examination', () => {
     const finding = {
@@ -231,6 +283,37 @@ describe('initial PR federal checks', () => {
         members: [{ ...member, custodyOrAuthorityUnderSection23: undefined }],
       }).pendingDetails,
     ).toContain('PD-245');
+  });
+  test('R25 checks both the filing date and the simulation date against the misrepresentation bar', () => {
+    const status = (filedOn: string, simulationDate = sim) =>
+      c(
+        25,
+        {
+          misrepresentation: 'inadmissible',
+          misrepresentationClockStart: '2021-11-01',
+          applications: { 'CA-EE-FSW': { filedOn } },
+        },
+        'CA-EE-FSW',
+        { simulationDate },
+      ).status;
+    expect(status('2026-10-10')).toBe('NOT_MET');
+    expect(status('2021-11-01')).toBe('NOT_MET');
+    expect(status('2026-11-01')).toBe('MET');
+    expect(status('2021-10-31')).toBe('MET');
+    expect(status('2021-10-31', '2026-10-31')).toBe('NOT_MET');
+    expect(
+      c(
+        25,
+        {
+          misrepresentation: 'inadmissible',
+          misrepresentationClockStart: '2021-11-01',
+        },
+        'CA-PNP',
+        {
+          pnp: { mode: 'enhanced', federalFiled: '2026-10-10' },
+        },
+      ).status,
+    ).toBe('NOT_MET');
   });
   test('R26 police certificates use consecutive adult stays, dates of issue and program instructions', () => {
     const stay = {
@@ -480,12 +563,19 @@ describe('full Canadian assessment contract', () => {
       intendsNominatingProvince: true,
       investment: 'none',
       nominationExpires: '2026-12-31',
-      federalFiled: sim,
+      federalFiled: '2026-10-01',
       viaPrPortal: true,
     };
     const patch = {
       pnp: answers,
-      federal: { ...federal, applications: { 'CA-PNP': filed } },
+      federal: {
+        ...federal,
+        principal: {
+          ...person,
+          exam: { ...person.exam, instructionOn: '2026-10-15' },
+        },
+        applications: { 'CA-PNP': { ...filed, filedOn: answers.federalFiled } },
+      },
     };
     const p = result('CA-PNP', patch);
     expect(
@@ -497,7 +587,10 @@ describe('full Canadian assessment contract', () => {
         ...patch,
         federal: {
           ...patch.federal,
-          ...applicant({ criminalFinding: 'under-review' }),
+          principal: {
+            ...patch.federal.principal,
+            criminalFinding: 'under-review',
+          },
         },
       }).status,
     ).toBe('UNKNOWN');
@@ -507,7 +600,10 @@ describe('full Canadian assessment contract', () => {
         pnp: { ...answers, nomination: 'withdrawn' },
         federal: {
           ...patch.federal,
-          ...applicant({ criminalFinding: 'under-review' }),
+          principal: {
+            ...patch.federal.principal,
+            criminalFinding: 'under-review',
+          },
         },
       }).status,
     ).toBe('NOT_MET');
