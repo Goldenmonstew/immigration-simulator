@@ -357,7 +357,6 @@ export function citizenshipTimeOverride(
   route: string,
   req: DeFullRequest,
   pilotResidence?: boolean,
-  pilotDate?: IsoDate,
 ): Answer | 'pilot' {
   const a = req.citizenship ?? {};
   const sim = req.simulationDate;
@@ -390,8 +389,8 @@ export function citizenshipTimeOverride(
     );
     if (due <= sim) return true;
     if (pendingOldCase || sim < time.turboAbolishedFrom.value) return undefined;
-    // Keep the projection only when both timelines give the same due date.
-    return pilotResidence === false && due === pilotDate ? 'pilot' : false;
+    // The timeline now projects from this confirmed start, including future trips.
+    return pilotResidence === false ? 'pilot' : false;
   }
   if (route !== 'R08') return 'pilot';
   const s = a.spouse;
@@ -416,6 +415,14 @@ export function citizenshipTimeOverride(
   const ordinary = a.countedResidenceSince
     ? yearsSince(a.countedResidenceSince, sim, years)
     : pilotResidence;
+  if (
+    !ended &&
+    (!s?.publicInterestShortening ||
+      s.publicInterestShortening === 'refused') &&
+    ordinary !== undefined &&
+    ordinary === pilotResidence
+  )
+    return 'pilot';
   const marriage =
     end && end <= sim
       ? yearsSince(since, end, time.spouseMarriageYears.value)

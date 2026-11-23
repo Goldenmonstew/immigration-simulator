@@ -153,3 +153,33 @@
 ### 4. 发现与建议
 
 2023-01-01 以前的 BAMF 通知另涉旧保护身份批次，登记在 PD-351。早于已核收费版本（2017-09-01）的保护减免费保留 PD-359。该日期的 § 26 历史版本已从德国法定养老保险机构的法条库在线核对，下载代理无法取得原始 HTML，SRC-438 已标记该历史页待补快照。2026 年修正法及 2017 年收费资料的快照仍可在仓库核对。
+
+## 第二轮审核修正（review90-2）
+
+### 1. 做了什么
+
+PROGRESS 714。建议提交 `Fix: 修正德国蓝卡就业计月、换岗审查与入籍预测日期（review90-2）`。以下结果均取自公开入口 `evaluateGermanyFull`。
+
+| 审核复现 | 条件、路径和最早日期 | 官方依据 |
+|---|---|---|
+| R03 月中入职。B1，2025-02-24 入职，缴费记录至 2026-10 | 在 2026-11-10 及 11-23，C19-months 已满 20 个月，条件为 `NOT_MET`，路径为 `FUTURE 2026-11-24`。11-24 满 21 个月，条件和路径均为 `MET`。 | SRC-100 § 18c Abs. 2，SRC-107 Nr. 18c.2.1.1–3（第 117–118 页） |
+| R03 跨年工资线。2024-12-24 以 €46,000 入职，2025-05 调至 €51,000，缴费记录至 2026-08 | 原就业起点继续有效。在 2026-09-10 及 09-23，C19-months 为 `NOT_MET`，路径为 `FUTURE 2026-09-24`。09-24 条件和路径均为 `MET`。 | SRC-100 § 18c Abs. 2，SRC-107 Nr. 18c.2.1.2–3，年度工资线见 SRC-420、425 |
+| R03 已通报换岗。2025-02-01 开始就业，2025-08-01 无缝换岗 | 2026-11-23，首次就业的 12 个月已满，未收到暂停或拒绝时，C19-months、C21-job 和路径均为 `MET`，最早日期为模拟日。实际暂停且结果未明时 C21-job 为 `UNKNOWN`（PD-346），已拒绝时为 `NOT_MET`，两者均无路径日期。拒绝期从实际通知暂停之日计算。 | SRC-100 §§ 18g Abs. 4、82 Abs. 1 Satz 6，SRC-107 Nr. 18g.4.0、18g.4.2–4（第 150–151 页） |
+| R07 一般入籍。许可自 2022-08-01 有效，惯常居住经核定自 2022-10-01 起算 | 2026-11-23，C55 为 `NOT_MET`，路径为 `FUTURE 2027-10-01`。另验证许可若在新届满日前一天到期且无后续许可，路径为 `NOT_MET`，无最早日期。 | SRC-101 §§ 10 Abs. 1、12b |
+| R08 德国公民配偶入籍。自 2024-08-01 连续合法居住，婚姻和共同生活自 2023-11-01 持续 | 2026-11-23，C56 为 `MET`，C56-time 为 `NOT_MET`。补填相同的核定居住起点前后，路径均为 `FUTURE 2027-08-01`。 | SRC-101 §§ 9 Abs. 1、10 Abs. 1、12b，SRC-106 Nr. 9.1 |
+
+### 2. 怎么验证的
+
+在基线 `44cbf96` 上先运行五组审核复现，五组均失败。修正后运行 `pnpm --filter @uk-immigration/engine exec vitest run test/germany-mobility.test.ts test/germany-citizenship.test.ts test/germany-full.test.ts`，98 项通过。断言覆盖条件状态、路径状态和 `earliestDate`。
+
+用 Node 分别载入 `git show 44cbf96:packages/engine/src/germany.ts` 和工作树实现，将上述五组样例对应的时间输入交给旧入口 `evaluateGermany`。中文和英文共 10 份完整返回值均通过 `assert.deepStrictEqual`。
+
+`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 首次完整运行退出码为 0。全库 5,359 项测试通过（error-report 2、policy-data 23、engine 3,344、game 1,336、web 654），另有 1 项文案导出测试按 `EXPORT_WORDING` 条件跳过。构建生成 27 个静态页面，已核实 `apps/web/out/germany.html` 存在且非空。
+
+### 3. 没做或没验证的
+
+未提交。旧入口 `evaluateGermany` 继续使用原时间参数，只有完整版向共享时间计算传入核定起点或就业届满日。本轮未改页面或运行浏览器 e2e。
+
+### 4. 发现与建议
+
+R05 普通档的退休生计豁免是否涵盖医保，仍待核对。审核复现中，达到法定退休年龄且无医保时，C25 为 `MET`，独立的 C04 为 `NOT_MET`，路径受阻。本轮按审核要求记录风险，沿用 PD-351。依据为 SRC-100 § 2 Abs. 3、§ 26 Abs. 3 Satz 2。[AufenthG § 2](https://www.gesetze-im-internet.de/aufenthg_2004/__2.html)、[AufenthG § 26](https://www.gesetze-im-internet.de/aufenthg_2004/__26.html)

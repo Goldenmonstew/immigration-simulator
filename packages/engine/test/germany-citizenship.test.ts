@@ -48,9 +48,10 @@ function find(
   return c;
 }
 
-function ordinaryRoute(
+function citizenshipRoute(
   from: string,
   citizenship: Partial<DeCitizenshipAnswers>,
+  dates: Partial<DeFullRequest> = {},
 ) {
   return evaluateGermanyFull({
     ...base,
@@ -64,6 +65,7 @@ function ordinaryRoute(
       ],
     },
     citizenship: { ...standard, ...citizenship },
+    ...dates,
   }).columns[0].pathways[0];
 }
 
@@ -398,10 +400,10 @@ describe('StAG common entitlement conditions', () => {
 });
 
 describe('StAG specific pathways', () => {
-  test('the same confirmed § 12b start preserves the five-year projection', () => {
+  test('the five-year projection follows the confirmed § 12b start', () => {
     const start = '2022-08-01';
     for (const countedResidenceSince of [undefined, start]) {
-      const route = ordinaryRoute(start, { countedResidenceSince });
+      const route = citizenshipRoute(start, { countedResidenceSince });
       const check = route.checks.find((c) => c.id === 'DE-C55');
       expect(check?.status).toBe('NOT_MET');
       expect(check?.pendingDetails).toBeUndefined();
@@ -409,11 +411,59 @@ describe('StAG specific pathways', () => {
       expect(route.earliestDate).toBe('2027-08-01');
       expect(route.pendingDetails).not.toContain('PD-128');
     }
-    const laterStart = ordinaryRoute(start, {
-      countedResidenceSince: '2022-09-01',
+    const laterStart = citizenshipRoute(start, {
+      countedResidenceSince: '2022-10-01',
     });
-    expect(laterStart.earliestDate).not.toBe('2027-08-01');
-    expect(laterStart.summary ?? '').not.toContain('2027-08-01');
+    expect(laterStart.checks.find((c) => c.id === 'DE-C55')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(laterStart).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2027-10-01',
+    });
+    expect(laterStart.summary).toContain('2027-10-01');
+    const expiredByAnniversary = citizenshipRoute(
+      start,
+      {
+        countedResidenceSince: '2022-10-01',
+      },
+      { permits: [{ kind: 'blue-card', from: start, to: '2027-09-30' }] },
+    );
+    expect(
+      expiredByAnniversary.checks.find((c) => c.id === 'DE-C55')?.status,
+    ).toBe('NOT_MET');
+    expect(expiredByAnniversary.status).toBe('NOT_MET');
+    expect(expiredByAnniversary.earliestDate).toBeUndefined();
+  });
+
+  test('a confirmed residence start preserves the § 9 projection for a continuing German marriage', () => {
+    const start = '2024-08-01';
+    for (const countedResidenceSince of [undefined, start]) {
+      const route = citizenshipRoute(
+        start,
+        {
+          countedResidenceSince,
+          spouse: {
+            status: 'continuing',
+            recognisedGermanRelationship: true,
+            genuineFamilyLife: true,
+          },
+        },
+        {
+          routes: ['R08'],
+          marriedOn: '2023-11-01',
+          spouseGermanSince: '2023-11-01',
+        },
+      );
+      expect(route.checks.find((c) => c.id === 'DE-C56')?.status).toBe('MET');
+      expect(route.checks.find((c) => c.id === 'DE-C56-time')?.status).toBe(
+        'NOT_MET',
+      );
+      expect(route).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: '2027-08-01',
+      });
+    }
   });
 
   test.each([
@@ -427,7 +477,7 @@ describe('StAG specific pathways', () => {
   ] as const)(
     'a final fine of %i day rates with decision %s gives %s',
     (dayRates, disregardExcess, status) => {
-      const route = ordinaryRoute('2021-11-23', {
+      const route = citizenshipRoute('2021-11-23', {
         criminalRecord: {
           kind: 'fines',
           dayRates: [dayRates],

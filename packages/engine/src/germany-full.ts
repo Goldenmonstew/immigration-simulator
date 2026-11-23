@@ -5,7 +5,7 @@ import type {
   CountryResult,
 } from './country-result';
 import {
-  evaluateGermany,
+  evaluateGermanyTimeline,
   type DeRequest,
   type DePermit,
   type DePathway,
@@ -115,7 +115,7 @@ const timing = {
 
 // Reuse the same evaluation when several full routes request the same pilot timeline.
 function pilotReader(req: DeFullRequest) {
-  const cache = new Map<string, ReturnType<typeof evaluateGermany>>();
+  const cache = new Map<string, ReturnType<typeof evaluateGermanyTimeline>>();
   return (
     route: PilotRoute,
     trained = req.trainedInGermany,
@@ -151,18 +151,28 @@ function pilotReader(req: DeFullRequest) {
                 : permit,
             )
           : req.permits;
-      result = evaluateGermany({
-        ...req,
-        firstEntry: req.firstEntry,
-        permits,
-        trips: req.trips,
-        settlementRoute,
-        naturalisationRoute,
-        trainedInGermany: trained,
-        germanC1: fast,
-        contributionMonths: credited,
-        ...(route === 'R03' ? blueCardTimeInputs(req) : {}),
-      });
+      const blue = route === 'R03' ? blueCardTimeInputs(req) : undefined;
+      result = evaluateGermanyTimeline(
+        {
+          ...req,
+          firstEntry: req.firstEntry,
+          permits,
+          trips: req.trips,
+          settlementRoute,
+          naturalisationRoute,
+          trainedInGermany: trained,
+          germanC1: fast,
+          contributionMonths: credited,
+          ...(blue && {
+            germanB1: blue.germanB1,
+            blueCardEmploymentMonths: blue.blueCardEmploymentMonths,
+          }),
+        },
+        {
+          employmentDue: blue?.employmentDue,
+          countedResidenceSince: req.citizenship?.countedResidenceSince,
+        },
+      );
       cache.set(key, result);
     }
     const id =
@@ -243,7 +253,7 @@ function timeCheck(
     first = undefined;
     changed = true;
   }
-  let override = citizenshipTimeOverride(route, req, first, old?.earliestDate);
+  let override = citizenshipTimeOverride(route, req, first);
   if (override === 'pilot' && route === 'R06' && req.settlement?.euMobility)
     override = any(first, mobilityTime(req));
   if (override !== 'pilot') {

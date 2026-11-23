@@ -390,6 +390,15 @@ export const needed = (
   return any.length ? { all, any } : { all: conds, any: [] };
 };
 export function evaluateGermany(req: DeRequest): DeResult {
+  return evaluateGermanyTimeline(req);
+}
+
+/** Confirmed dates supplied only by the full assessment. The timeline still
+ * checks the title, trips and subsequent breaks on each projected date. */
+export function evaluateGermanyTimeline(
+  req: DeRequest,
+  confirmed: { employmentDue?: IsoDate; countedResidenceSince?: IsoDate } = {},
+): DeResult {
   const L = textFor(req);
   const N = ([zh, en]: [string, string]) => L(zh, en);
   const sim = req.simulationDate;
@@ -825,6 +834,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
       if (need === undefined || entered === undefined) return undefined;
       const r = route === 'blue-card' ? c.run[days.index(d)] : -1;
       const from = r >= 0 && days.date(r) > sim ? days.date(r) : sim;
+      if (route === 'blue-card' && from === sim && confirmed.employmentDue)
+        return confirmed.employmentDue;
       return addMonths(from, Math.max(0, need - entered));
     };
     const missing = need !== undefined && entered === undefined;
@@ -1441,10 +1452,16 @@ export function evaluateGermany(req: DeRequest): DeResult {
       if (TITLES.includes(kd) || kd === 'integration') return held;
       return kd === 'temporary' && held && allow.has('permit');
     };
+    const confirmedDue =
+      confirmed.countedResidenceSince &&
+      afterYears(confirmed.countedResidenceSince, years);
+    const simulationIndex = days.index(sim);
     const residenceOK = (d: IsoDate, allow: Allow): boolean => {
       const R = allow.has('lapse') ? notLapsedRuns : sureRuns;
       const k = days.index(d);
       if (k < 1 || R.run[k] < 0 || !holdsOK(k, allow)) return false;
+      if (confirmedDue && R.run[k] === R.run[simulationIndex])
+        return d >= confirmedDue;
       const r = R.run[k - 1];
       if (r < 0) return false;
       const need = daysBetween(addYears(d, -years), d);

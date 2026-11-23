@@ -42,9 +42,9 @@ const active: Blue = {
   countableAnnualGross: 50700,
 };
 
-const fullBlue = (overrides: Partial<Blue>) =>
+const fullBlue = (overrides: Partial<Blue>, simulationDate = day) =>
   evaluateGermanyFull({
-    simulationDate: day,
+    simulationDate,
     routes: ['R03'],
     firstEntry: '2024-12-01',
     permits: [{ kind: 'blue-card', from: '2024-12-01' }],
@@ -288,6 +288,93 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
     expect(
       fullBlue({ ...changed, latestRelevantChangeOn: '2026-02-01' }).status,
     ).toBe('MET');
+  });
+
+  test.each([
+    {
+      start: '2025-02-24',
+      periods: [{ ...employment, firstMonth: '2025-02', lastMonth: '2026-10' }],
+      before: '2026-11-10',
+      eve: '2026-11-23',
+      due: '2026-11-24',
+    },
+    {
+      start: '2024-12-24',
+      periods: [
+        {
+          ...employment,
+          firstMonth: '2024-12',
+          lastMonth: '2025-04',
+          countableAnnualGross: 46000,
+        },
+        { ...employment, firstMonth: '2025-05', lastMonth: '2026-08' },
+      ],
+      before: '2026-09-10',
+      eve: '2026-09-23',
+      due: '2026-09-24',
+    },
+  ])(
+    'continuous employment starting on $start matures on $due',
+    ({ start, periods, before, eve, due }) => {
+      for (const date of [before, eve, due]) {
+        const path = fullBlue(
+          {
+            employmentStartedOn: start,
+            employment: periods,
+            countableAnnualGross: 51000,
+          },
+          date,
+        );
+        expect(path.checks.find((c) => c.id === 'DE-C19-months')).toMatchObject(
+          {
+            status: date < due ? 'NOT_MET' : 'MET',
+            explanation: expect.stringContaining(
+              date < due ? '已确认 20 月' : '已确认 21 月',
+            ),
+          },
+        );
+        expect(path).toMatchObject({
+          status: date < due ? 'FUTURE' : 'MET',
+          earliestDate: due,
+        });
+      }
+    },
+  );
+
+  test('a reported change after qualifying work began needs no clearance once the suspension window has closed', () => {
+    const change = {
+      employmentStartedOn: '2025-02-01',
+      latestRelevantChangeOn: '2025-08-01',
+      changeReported: true,
+      employment: [
+        { ...employment, firstMonth: '2025-02', lastMonth: '2025-07' },
+        { ...employment, firstMonth: '2025-08', lastMonth: '2026-10' },
+      ],
+    };
+    for (const [jobChangeDecision, status] of [
+      [undefined, 'MET'],
+      ['suspended', 'UNKNOWN'],
+      ['rejected', 'NOT_MET'],
+    ] as const) {
+      const path = fullBlue({ ...change, jobChangeDecision });
+      expect(path.checks.find((c) => c.id === 'DE-C19-months')?.status).toBe(
+        'MET',
+      );
+      expect(path.checks.find((c) => c.id === 'DE-C21-job')?.status).toBe(
+        status,
+      );
+      expect(path.status).toBe(status);
+      expect(path.earliestDate).toBe(status === 'MET' ? day : undefined);
+    }
+    for (const [date, status] of [
+      ['2026-01-31', 'UNKNOWN'],
+      ['2026-02-01', 'MET'],
+    ] as const) {
+      const path = fullBlue({ ...change, jobChangeDecision: undefined }, date);
+      expect(path.checks.find((c) => c.id === 'DE-C21-job')?.status).toBe(
+        status,
+      );
+    }
   });
 
   test('inclusive salary, six-month contract and § 19f exclusions', () => {

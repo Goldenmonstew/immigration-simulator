@@ -204,6 +204,13 @@ function salaryMeets(
 const shiftMonth = (month: string, offset: number) =>
   addMonths(month + '-01', offset).slice(0, 7);
 
+// PD-120: when the anniversary day does not exist, the period is complete
+// on the first of the following month.
+function employmentAnniversary(start: IsoDate, months: number) {
+  const date = addMonths(start, months);
+  return date.slice(8) === start.slice(8) ? date : addDays(date, 1);
+}
+
 // BMI Nr. 18c.2.1.2 (pp117–118): a new annual floor may temporarily
 // exceed an existing wage if a later raise restores it and pay qualifies at issue.
 function annualRaiseCredits(
@@ -325,6 +332,10 @@ function employmentMonths(req: DeFullRequest, decisionPay: Answer) {
   let confirmed = 0,
     possible = 0;
   let previous: string | undefined;
+  const start = b.employmentStartedOn;
+  let accrualStart: IsoDate | undefined;
+  let monthsFromStart = 0;
+  let nextEmploymentMonth: number | undefined;
   for (const [month, records] of ordered) {
     const working = any(...records.map((r) => r.qualifyingWork));
     const gap = previous !== undefined && month !== shiftMonth(previous, 1);
@@ -351,11 +362,50 @@ function employmentMonths(req: DeFullRequest, decisionPay: Answer) {
         return all(r.qualifyingWork, r.pensionForSameMonths, historical);
       }),
     );
-    if (credited === true) confirmed++;
-    if (credited !== false) possible++;
+    if (gap || working !== true || credited === false) {
+      accrualStart = undefined;
+      monthsFromStart = 0;
+      nextEmploymentMonth = undefined;
+    }
+    if (
+      start &&
+      month >= start.slice(0, 7) &&
+      working === true &&
+      credited !== false
+    ) {
+      accrualStart ??= month === start.slice(0, 7) ? start : month + '-01';
+      monthsFromStart++;
+    }
+    // A pension entry for February does not complete a month of employment
+    // begun on 24 February until 24 March (SRC-107 Nr. 18c.2.1.1–3).
+    const matured =
+      !accrualStart ||
+      employmentAnniversary(accrualStart, monthsFromStart) <=
+        req.simulationDate;
+    if (matured && credited === true) confirmed++;
+    if (matured && credited !== false) possible++;
+    if (credited === true && monthsFromStart) {
+      if (matured) nextEmploymentMonth = monthsFromStart + 1;
+      else nextEmploymentMonth ??= monthsFromStart;
+    } else nextEmploymentMonth = undefined;
     previous = month;
   }
-  return { confirmed, possible };
+  const threshold = blueTier(req)
+    ? pilot.blueCardB1Months
+    : pilot.blueCardMonths;
+  const employmentDue =
+    accrualStart &&
+    previous &&
+    previous >= shiftMonth(simulationMonth, -1) &&
+    nextEmploymentMonth !== undefined &&
+    confirmed === possible &&
+    confirmed < threshold.value
+      ? employmentAnniversary(
+          accrualStart,
+          nextEmploymentMonth + threshold.value - confirmed - 1,
+        )
+      : undefined;
+  return { confirmed, possible, employmentDue };
 }
 
 function blueLanguage(req: DeFullRequest): string | undefined {
@@ -439,6 +489,7 @@ export function blueCardTimeInputs(req: DeFullRequest) {
     germanB1: blueTier(req),
     blueCardEmploymentMonths:
       months.confirmed === months.possible ? months.confirmed : undefined,
+    employmentDue: months.employmentDue,
   };
 }
 
@@ -485,13 +536,16 @@ function blueCardChecks(req: DeFullRequest): CountryCheck[] {
     : (b.cardHeldAtDecision ??
       recordedCard ??
       (req.citizenship?.currentTitle === 'blue-card' ? true : undefined));
+  const reportingEnds =
+    b.employmentStartedOn &&
+    employmentAnniversary(b.employmentStartedOn, p.jobChangeMonths);
   const inReportingPeriod =
     b.latestRelevantChangeOn &&
     b.employmentStartedOn &&
     b.latestRelevantChangeOn >= b.employmentStartedOn &&
     b.latestRelevantChangeOn <= req.simulationDate &&
-    b.latestRelevantChangeOn <
-      addMonths(b.employmentStartedOn, p.jobChangeMonths);
+    reportingEnds &&
+    b.latestRelevantChangeOn < reportingEnds;
   const undatedChange = b.latestRelevantChangeOn
     ? b.latestRelevantChangeOn <= req.simulationDate && !b.employmentStartedOn
     : b.changeReported !== undefined;
@@ -501,6 +555,9 @@ function blueCardChecks(req: DeFullRequest): CountryCheck[] {
       : b.jobChangeDecision === 'suspended'
         ? undefined
         : b.jobChangeDecision === 'clear' ||
+            (inReportingPeriod &&
+              b.changeReported === true &&
+              req.simulationDate >= reportingEnds) ||
             (!inReportingPeriod && !undatedChange)
           ? true
           : undefined;
@@ -514,8 +571,8 @@ function blueCardChecks(req: DeFullRequest): CountryCheck[] {
   );
   const changeNote: [string, string] = inReportingPeriod
     ? [
-        `首次就业的前 ${p.jobChangeMonths} 个月内发生变更，通报状态：${b.changeReported === true ? '已报' : b.changeReported === false ? '未报' : '未知'}。须另核岗位及机关决定。`,
-        `The change falls within the first ${p.jobChangeMonths} months. Notification: ${b.changeReported === true ? 'reported' : b.changeReported === false ? 'not reported' : 'unknown'}. Check the job and the authority’s decision separately.`,
+        `首次就业的前 ${p.jobChangeMonths} 个月内发生变更，通报状态：${b.changeReported === true ? '已报' : b.changeReported === false ? '未报' : '未知'}。换岗无需事先许可。机关可在此期间暂停换岗，并自实际通知暂停之日起 ${p.suspensionDays} 天内拒绝。`,
+        `The change falls within the first ${p.jobChangeMonths} months. Notification: ${b.changeReported === true ? 'reported' : b.changeReported === false ? 'not reported' : 'unknown'}. Prior permission is not required. The authority may suspend the change during that period and reject it within ${p.suspensionDays} days of notifying the holder of the suspension.`,
       ]
     : [
         `核实工作、职业许可与当前状态。首 ${p.jobChangeMonths} 个月换岗可被暂停 ${p.suspensionDays} 天。`,
@@ -542,7 +599,7 @@ function blueCardChecks(req: DeFullRequest): CountryCheck[] {
         ...threshold.sources,
         ...pilot.blueCardB1Months.sources,
         src(431, 'Voraussetzungen – Beschäftigung'),
-        src(107, 'Nr. 18c.2.1.2–3, pp117–118'),
+        src(107, 'Nr. 18c.2.1.1–3, pp117–118'),
         ...v.blueCardReducedPay.sources,
       ],
       'PD-123 / PD-350',
@@ -577,6 +634,7 @@ function blueCardChecks(req: DeFullRequest): CountryCheck[] {
       [
         src(100, '§§ 18 Abs. 2, 18g Abs. 1–4, 19f Abs. 1–2, 82 Abs. 1'),
         src(107, 'Nr. 18c.2.1.1–2, pp117–118'),
+        src(107, 'Nr. 18g.4.0, 18g.4.2–4, pp150–151'),
       ],
       'PD-346',
       changeNote,
