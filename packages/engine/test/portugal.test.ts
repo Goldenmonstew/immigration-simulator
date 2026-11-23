@@ -652,6 +652,54 @@ describe('EU long-term residence (Lei 23/2007 art. 125–126)', () => {
     expect(p.status).toBe('NOT_MET');
   });
 
+  test('continuous study counts the same as one card or two', () => {
+    // review71-4: the first card's grace must not count study days in full.
+    // For 2027-01-02 the 1,827 days from 2022-01-01 need 3,654 half days:
+    // 1,097 work days give 2,194, and 1,460 of the 1,461 study days the rest.
+    const work = { kind: 'temporary' as const, from: '2024-01-01' };
+    const one = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [
+          { kind: 'study', from: '2020-01-01', to: '2023-12-31' },
+          work,
+        ],
+      },
+      'PT-EU-LONG-TERM',
+    );
+    const two = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [
+          { kind: 'study', from: '2020-01-01', to: '2021-12-31' },
+          { kind: 'study', from: '2022-01-01', to: '2023-12-31' },
+          work,
+        ],
+      },
+      'PT-EU-LONG-TERM',
+    );
+    expect(one.status).toBe('FUTURE');
+    expect(one.earliestDate).toBe('2027-01-02');
+    expect(two.status).toBe(one.status);
+    expect(two.earliestDate).toBe(one.earliestDate);
+    expect(two.summary).toBe(one.summary);
+  });
+
+  test('a trip under way on the simulation date counts so far', () => {
+    // review71-4: 20 days abroad by 2026-11-22; 6 months on 2027-05-01.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'temporary', from: '2019-01-01' }],
+        trips: [{ departed: '2026-11-01', returned: '2027-07-01' }],
+      },
+      'PT-EU-LONG-TERM',
+    );
+    expect(p.status).toBe('MET');
+    expect(p.checks[1].met).toBe(true);
+    expect(p.summary).toContain('2027-05-01');
+  });
+
   test('a newer study permit ends the grace of the work permit before', () => {
     // review71-3: on 2026-11-22 only the study permit is held.
     const p = pathway(

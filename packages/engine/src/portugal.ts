@@ -156,6 +156,9 @@ export function evaluatePortugal(req: PtRequest): PtResult {
   }
   const holds = (kinds: PtPermitKind[]) => (i: number) =>
     kinds.some((k) => byKind[k][i]);
+  // The grace only fills days without a valid permit: on other days the
+  // permit held decides how the day counts.
+  for (let i = 0; i < days.count; i++) if (holds(TITLES)(i)) grace[i] = false;
   const orGrace = (held: (i: number) => boolean) => (i: number) =>
     held(i) || grace[i];
   // Departure and return days count as days in Portugal (PD-146).
@@ -170,8 +173,6 @@ export function evaluatePortugal(req: PtRequest): PtResult {
     req.trips.filter(
       (t) => addDays(t.departed, 1) <= to && addDays(t.returned, -1) >= from,
     );
-  const tooLong = (t: PtTrip, months: number) =>
-    t.returned > addMonths(t.departed, months);
   /** Some trip keeps you abroad `months` in a row within [from, to]. */
   const longAway = (from: IsoDate, to: IsoDate, months: number) =>
     req.trips.some((t) => {
@@ -903,13 +904,24 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       const sureFrom = halfCredit(full);
       // The months after a temporary card expires are uncertain (PD-145).
       const maybeFrom = halfCredit(orGrace(full));
+      const single = v.longTermSingleAbsenceMonths.value;
+      // Trips count up to the day before applying: one still under way is
+      // judged by its length so far.
       const absences = (start: IsoDate, to: IsoDate) => ({
         start,
-        long: tripsIn(start, to).filter((t) =>
-          tooLong(t, v.longTermSingleAbsenceMonths.value),
+        long: tripsIn(start, to).filter(
+          (t) =>
+            earlier(addDays(t.returned, -1), to) >=
+            addMonths(t.departed, single),
         ),
         absent: days.total(awaySums, start, to),
       });
+      // A trip entered for later that will reach the single absence limit.
+      const breach = req.trips
+        .filter((t) => addMonths(t.departed, single) < t.returned)
+        .map((t) => addMonths(t.departed, single))
+        .filter((d) => d >= sim)
+        .sort()[0];
       const facts = (d: IsoDate) => {
         const from = yearsBefore(d, years);
         const to = addDays(d, -1);
@@ -970,7 +982,13 @@ export function evaluatePortugal(req: PtRequest): PtResult {
             `若出境合计按 ${v.longTermTotalAbsenceMonths.value} 个月的较宽口径，或居留卡到期后 ${v.residenceRightMonths.value} 个月内的期间也算`,
             `Reading the ${v.longTermTotalAbsenceMonths.value} months of absence generously, or counting the ${v.residenceRightMonths.value} months after a card expires`,
             ['PD-145', 'PD-147'],
-          ),
+          ) +
+          (breach
+            ? L(
+                `按已录入的出境，${breach} 离开葡萄牙满 ${single} 个月，之后递交的，这次出境会打断连续居留（art. 126 n.º 4）。`,
+                ` With the trips you entered, you will have been away ${single} months on ${breach}; after that, this absence breaks continuous residence for an application (art. 126 n.º 4).`,
+              )
+            : ''),
         checks: [
           {
             text: L(
