@@ -1217,6 +1217,62 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     expect(p.checks[0].text).toContain('2026-03-15');
   });
 
+  test('a study permit that ran out before the return lapsed (review69-11)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-06-01',
+        permits: [{ kind: 'study', from: '2024-10-01', to: '2026-04-30' }],
+        trips: [{ departed: '2025-09-15', returned: '2026-05-15' }],
+      },
+      'DE-TRAVEL',
+    );
+    // § 51 Abs. 1a spares only Nr. 6 and 7, not the expiry (Nr. 1).
+    expect(p.status).toBe('NOT_MET');
+    expect(p.checks[0].text).toContain('2026-04-30');
+  });
+
+  test('a new permit after an undetermined exchange (review69-11)', () => {
+    const req = {
+      simulationDate: '2026-11-23',
+      contributionMonths: 17,
+      permits: [
+        { kind: 'study' as const, from: '2024-10-01', to: '2026-09-30' },
+        { kind: 'skilled' as const, from: '2026-05-15', to: '2030-05-14' },
+        { kind: 'skilled' as const, from: '2030-05-15', to: '2034-05-14' },
+      ],
+      trips: [{ departed: '2025-09-15', returned: '2026-05-15' }],
+    };
+    expect(pathway(req, 'DE-TRAVEL').status).toBe('UNKNOWN');
+    // Certain: the study permit lapsed, so the count starts again on
+    // 2026-05-15; if it did not, the earlier dates.
+    const settlement = pathway(req, 'DE-SETTLEMENT');
+    expect(settlement.status).toBe('FUTURE');
+    expect(settlement.earliestDate).toBe('2031-05-15');
+    expect(settlement.summary).toContain('2030-08-23');
+    const eu = pathway(req, 'DE-EU-LONG-TERM');
+    expect(eu.status).toBe('FUTURE');
+    expect(eu.earliestDate).toBe('2031-05-15');
+    expect(eu.summary).toContain('2030-11-21');
+  });
+
+  test('the same after EU long-term residence that may have lapsed (review69-11)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        permits: [
+          { kind: 'eu-long-term', from: '2024-01-01' },
+          { kind: 'skilled', from: '2026-03-01' },
+        ],
+        // 13 months away: lapsed only if all of it was outside the EU.
+        trips: [{ departed: '2025-01-01', returned: '2026-02-01' }],
+      },
+      'DE-SETTLEMENT',
+    );
+    // Certain: lapsed, so the count starts again with the new permit.
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2031-03-01');
+  });
+
   test('12 months on a Blue Card (§ 51 Abs. 10)', () => {
     const permits = [{ kind: 'blue-card' as const, from: '2022-01-01' }];
     expect(

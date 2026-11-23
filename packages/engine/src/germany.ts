@@ -294,6 +294,11 @@ interface Exit {
    * member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2).
    */
   mobility?: boolean;
+  /**
+   * A study permit that ran out before you came back: lapsed then even under
+   * EU student mobility, which spares only Nr. 6 and 7 (§ 51 Abs. 1 Nr. 1).
+   */
+  studyEnd?: IsoDate;
   /** EU long-term residence: the last day if the time was outside the EU. */
   euBy?: IsoDate;
   lapses: boolean;
@@ -401,18 +406,24 @@ export function evaluateGermany(req: DeRequest): DeResult {
       // Abs. 1 Nr. 1); the 6 months never reach past it (AVwV 51.1.6.7).
       let k = days.index(trip.departed);
       while (k + 1 < days.count && kinds[k + 1]) k++;
-      const expires =
-        !DE_UNLIMITED_KINDS.includes(kind) &&
-        k < days.count - 1 &&
-        days.date(k) < months;
-      const by = expires ? days.date(k) : months;
+      const end =
+        !DE_UNLIMITED_KINDS.includes(kind) && k < days.count - 1
+          ? days.date(k)
+          : undefined;
+      const expires = !!end && end < months;
+      const by = expires ? end! : months;
       // Coming back after the simulation date and the old expiry with the
       // renewal still pending: the permit only continues until the decision
       // (§ 81 Abs. 4), so the months are a conditional limit (PD-124). A return
       // by the simulation date, still pending then, was on the old permit.
       const pendingRenewal =
         trip.returned > sim && !!pending[days.index(trip.returned)];
-      const mobility = kind === 'study' && !expires && trip.returned > by;
+      const studyEnd =
+        kind === 'study' && !expires && end && end < trip.returned
+          ? end
+          : undefined;
+      const mobility =
+        kind === 'study' && !expires && !studyEnd && trip.returned > by;
       exit = {
         trip,
         kind,
@@ -420,6 +431,7 @@ export function evaluateGermany(req: DeRequest): DeResult {
         expires,
         pendingRenewal,
         mobility,
+        studyEnd,
         lapses: trip.returned > by && !mobility,
         unsure: (pendingRenewal && trip.returned <= by) || mobility,
       };
@@ -467,6 +479,12 @@ export function evaluateGermany(req: DeRequest): DeResult {
       `Your EU long-term residence may have lapsed on the trip ${tripText(e)}: if all of that time was outside the EU it lapsed after ${e.euBy} (§ 51 Abs. 9 Satz 1 Nr. 3); time in other EU countries does not count against it, which this pilot cannot tell (see “Trips abroad and loss of residence”).`,
     );
   };
+  /** A date that holds only if no trip that may have ended a title did. */
+  const lapseText = (d: IsoDate) =>
+    L(
+      `${doubtful.map(tripText).join('、')} 的出境是否使许可失效，试点无法判断（见"出境与居留失效"）；确定的日期按已失效计，未失效的话，最早 ${d}。`,
+      ` Whether the trip ${doubtful.map(tripText).join(', ')} ended your title cannot be told (see “Trips abroad and loss of residence”); certain dates take it as ended, and if it did not, it could be ${d}.`,
+    );
   const doubtCheck = (k: number): PilotCheck => ({
     text: L(
       '模拟日所持的欧盟长期居留仍有效（离开欧盟的期间未超过期限）',
@@ -485,6 +503,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
   const count = (
     weight: (k: DePermitKind) => number,
     abroad: (n: number, i: number) => boolean,
+    /** Take trips that may have ended the title as having ended it. */
+    lapsed = false,
   ) => {
     const run = new Array<number>(days.count).fill(-1);
     const sums = [0];
@@ -492,7 +512,11 @@ export function evaluateGermany(req: DeRequest): DeResult {
       const k = kinds[i];
       const n = tripOn[i];
       const w = k ? weight(k) : 0;
-      const broken = w === 0 || (n >= 0 && !!exits[n]?.lapses);
+      const e = n >= 0 ? exits[n] : undefined;
+      const broken =
+        w === 0 ||
+        !!e?.lapses ||
+        (lapsed && ((!!e && doubtful.includes(e)) || doubt[i]));
       if (!broken) run[i] = i > 0 && run[i - 1] >= 0 ? run[i - 1] : i;
       sums.push(sums[i] + (broken || (n >= 0 && !abroad(n, i)) ? 0 : w));
     }
@@ -566,15 +590,20 @@ export function evaluateGermany(req: DeRequest): DeResult {
     const route = req.settlementRoute;
     const rule = settlementRule(req);
     const routeName = N(ROUTE_NAMES[route]);
-    const c = count(
-      (k) => (rule.full.includes(k) ? 2 : rule.half.includes(k) ? 1 : 0),
-      (n, i) => days.date(i) <= creditUntil[n],
-    );
+    const settleWeight = (k: DePermitKind) =>
+      rule.full.includes(k) ? 2 : rule.half.includes(k) ? 1 : 0;
+    const settleAbroad = (n: number, i: number) =>
+      days.date(i) <= creditUntil[n];
+    // Certain: a trip that may have ended the title did; a later date when
+    // it did not is shown separately.
+    const c = count(settleWeight, settleAbroad, true);
+    const notLapsed = doubtful.length ? count(settleWeight, settleAbroad) : c;
     // § 9 Abs. 4 Nr. 1: when a settlement permit lapsed abroad, the time
     // held before, less that time abroad (AVwV 9.4.1.3), counts for up to
     // 4 years (365 days each, BGB § 191) once you hold a permit again.
-    const bonus = new Map<number, number>();
-    if (route === 'general')
+    const bonusOf = (c: Count) => {
+      const bonus = new Map<number, number>();
+      if (route !== 'general') return bonus;
       for (const e of exits) {
         if (!e?.lapses || e.kind !== 'settlement') continue;
         const dep = days.index(e.trip.departed);
@@ -592,6 +621,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
           ),
         );
       }
+      return bonus;
+    };
     // § 16b Abs. 4 Satz 2: no § 9 while studying. § 16a Abs. 1 Satz 3: none
     // in in-company training either, unless you held a § 18a or § 18b permit
     // before it; school-based training (Abs. 2) and some temporary permits
@@ -617,18 +648,28 @@ export function evaluateGermany(req: DeRequest): DeResult {
         ? 'yes'
         : 'maybe';
     };
-    const time = (d: IsoDate): Verdict => {
-      const k = days.index(d);
-      if (k < 1 || c.run[k] < 0) return 'no';
-      const h = holds(k);
-      // On a Blue Card only holding it is timed; the months come from the
-      // employment you entered.
-      if (route === 'blue-card' || h === 'no') return h;
-      const r = c.run[k - 1];
-      if (r < 0) return 'no';
-      const have = c.sums[k] - c.sums[r] + (bonus.get(r) ?? 0);
-      return have >= 2 * daysBetween(addYears(d, -rule.years), d) ? h : 'no';
+    const timeWith = (c: Count) => {
+      const bonus = bonusOf(c);
+      return (d: IsoDate): Verdict => {
+        const k = days.index(d);
+        if (k < 1 || c.run[k] < 0) return 'no';
+        const h = holds(k);
+        // On a Blue Card only holding it is timed; the months come from the
+        // employment you entered.
+        if (route === 'blue-card' || h === 'no') return h;
+        const r = c.run[k - 1];
+        if (r < 0) return 'no';
+        const have = c.sums[k] - c.sums[r] + (bonus.get(r) ?? 0);
+        return have >= 2 * daysBetween(addYears(d, -rule.years), d) ? h : 'no';
+      };
     };
+    const sureTime = timeWith(c);
+    const ifNotLapsed = notLapsed === c ? sureTime : timeWith(notLapsed);
+    /** Met only if a trip that may have ended the title did not. */
+    const needsNoLapse = (d: IsoDate) =>
+      sureTime(d) === 'no' && ifNotLapsed(d) !== 'no';
+    const time = (d: IsoDate): Verdict =>
+      needsNoLapse(d) ? 'maybe' : sureTime(d);
     const need = rule.months;
     const entered =
       route === 'blue-card'
@@ -658,12 +699,14 @@ export function evaluateGermany(req: DeRequest): DeResult {
       const k = days.index(d);
       return doubt[k]
         ? `${L('', ' ')}${doubtText(k)}${L(`仍有效的话，最早 ${d}。`, ` If it is still valid, it could be ${d}.`)}`
-        : pending[k]
-          ? pendingText(d)
-          : L(
-              `若你当时所持的许可不排除定居许可（如学校职业培训 § 16a Abs. 2；企业内培训、§ 16d、§ 16f、§ 20a 等排除），最早 ${d}（PD-122）。`,
-              ` If the permit you hold then does not rule out a settlement permit (school-based training under § 16a Abs. 2 does not; in-company training, § 16d, § 16f, § 20a and others do), it could be ${d} (PD-122).`,
-            );
+        : needsNoLapse(d)
+          ? lapseText(d)
+          : pending[k]
+            ? pendingText(d)
+            : L(
+                `若你当时所持的许可不排除定居许可（如学校职业培训 § 16a Abs. 2；企业内培训、§ 16d、§ 16f、§ 20a 等排除），最早 ${d}（PD-122）。`,
+                ` If the permit you hold then does not rule out a settlement permit (school-based training under § 16a Abs. 2 does not; in-company training, § 16d, § 16f, § 20a and others do), it could be ${d} (PD-122).`,
+              );
     };
     const status: PilotStatus = missing
       ? timeEarliest
@@ -964,14 +1007,17 @@ export function evaluateGermany(req: DeRequest): DeResult {
     );
     // Short trips count; other trips that did not end the title pause the
     // count (§ 9b Abs. 1 Satz 3).
-    const reading = (humanitarian: number) => ({
-      withTrips: count(weight(humanitarian), (n) => short[n]),
-      paused: count(weight(humanitarian), () => false),
+    const reading = (humanitarian: number, lapsed: boolean) => ({
+      withTrips: count(weight(humanitarian), (n) => short[n], lapsed),
+      paused: count(weight(humanitarian), () => false, lapsed),
     });
-    const strict = reading(0);
-    const generous = req.permits.some((p) => p.kind === 'humanitarian')
-      ? reading(2)
-      : strict;
+    // Certain: no humanitarian time, and a trip that may have ended the title
+    // did.
+    const strict = reading(0, true);
+    const hasHumanitarian = req.permits.some((p) => p.kind === 'humanitarian');
+    const notLapsed = doubtful.length ? reading(0, false) : strict;
+    const generous =
+      hasHumanitarian || doubtful.length ? reading(2, false) : strict;
     const shortAway = days.sums((i) => tripOn[i] >= 0 && short[tripOn[i]]);
     const judge = (r: typeof strict, d: IsoDate): Verdict => {
       const k = days.index(d);
@@ -1071,15 +1117,19 @@ export function evaluateGermany(req: DeRequest): DeResult {
                             ` It also needs all of your absences to count under a generous reading of the ${v.euTotalAbsenceMonths.value} months (PD-125).`,
                           )
                         : '')
-                  : judge(strict, possible) === 'no'
-                    ? L(
-                        `若"其他人道居留许可"的期间（如 § 24 临时保护）也计入 5 年，最早 ${possible}；这类期间能否计入，条文没有写明（§ 9a Abs. 3 Nr. 1 只规定持有时不能申请，PD-122）。`,
-                        ` If time on another humanitarian permit (such as § 24 temporary protection) also counts towards the 5 years, it could be ${possible}; the law does not say whether it does (§ 9a Abs. 3 Nr. 1 only bars applying while holding one, PD-122).`,
-                      )
-                    : L(
-                        `若出境合计按 ${v.euTotalAbsenceMonths.value} 个月的较宽口径全部计入，最早 ${possible}；超过上限时怎样扣除，条文未写明（PD-125）。`,
-                        ` Counting all of your absences under a generous reading of the ${v.euTotalAbsenceMonths.value} months, it could be ${possible}; how time over the limit is taken off is not stated (PD-125).`,
-                      )
+                  : judge(strict, possible) === 'no' &&
+                      notLapsed !== strict &&
+                      judge(notLapsed, possible) !== 'no'
+                    ? lapseText(possible)
+                    : judge(strict, possible) === 'no'
+                      ? L(
+                          `若"其他人道居留许可"的期间（如 § 24 临时保护）也计入 5 年，最早 ${possible}；这类期间能否计入，条文没有写明（§ 9a Abs. 3 Nr. 1 只规定持有时不能申请，PD-122）。`,
+                          ` If time on another humanitarian permit (such as § 24 temporary protection) also counts towards the 5 years, it could be ${possible}; the law does not say whether it does (§ 9a Abs. 3 Nr. 1 only bars applying while holding one, PD-122).`,
+                        )
+                      : L(
+                          `若出境合计按 ${v.euTotalAbsenceMonths.value} 个月的较宽口径全部计入，最早 ${possible}；超过上限时怎样扣除，条文未写明（PD-125）。`,
+                          ` Counting all of your absences under a generous reading of the ${v.euTotalAbsenceMonths.value} months, it could be ${possible}; how time over the limit is taken off is not stated (PD-125).`,
+                        )
                 : ''),
       checks: unsureHeld
         ? [doubtCheck(simIndex)]
@@ -1538,20 +1588,25 @@ export function evaluateGermany(req: DeRequest): DeResult {
                         `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：许可 ${e.by} 到期、没有录入续期，最晚当天返回`,
                         `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): the permit expires on ${e.by} with no renewal entered, so back by that day`,
                       )
-                    : e.mobility
+                    : e.studyEnd
                       ? L(
-                          `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回，按欧盟学生流动在其他成员国学习的除外（§ 51 Abs. 1a Satz 2）`,
-                          `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}, unless you were studying in another member state under EU student mobility (§ 51 Abs. 1a Satz 2)`,
+                          `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回；即使按欧盟学生流动在其他成员国学习，也须在许可 ${e.studyEnd} 到期前返回（§ 51 Abs. 1 Nr. 1、Abs. 1a Satz 2）`,
+                          `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}; even when studying in another member state under EU student mobility, back before the permit ran out on ${e.studyEnd} (§ 51 Abs. 1 Nr. 1, Abs. 1a Satz 2)`,
                         )
-                      : backPending(e)
+                      : e.mobility
                         ? L(
-                            `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}，返回时续期仍待决定）：§ 51 的返回期限为 ${e.by}；原许可在续期决定前延续（§ 81 Abs. 4），返回时仍在等待`,
-                            `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left, renewal still pending when you came back): the § 51 limit is ${e.by}; the permit continued until the decision (§ 81 Abs. 4), which was still pending when you came back`,
+                            `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回，按欧盟学生流动在其他成员国学习的除外（§ 51 Abs. 1a Satz 2）`,
+                            `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}, unless you were studying in another member state under EU student mobility (§ 51 Abs. 1a Satz 2)`,
                           )
-                        : L(
-                            `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回`,
-                            `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}`,
-                          ),
+                        : backPending(e)
+                          ? L(
+                              `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}，返回时续期仍待决定）：§ 51 的返回期限为 ${e.by}；原许可在续期决定前延续（§ 81 Abs. 4），返回时仍在等待`,
+                              `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left, renewal still pending when you came back): the § 51 limit is ${e.by}; the permit continued until the decision (§ 81 Abs. 4), which was still pending when you came back`,
+                            )
+                          : L(
+                              `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回`,
+                              `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}`,
+                            ),
                 met: e.lapses ? false : e.unsure ? undefined : true,
                 sources: [
                   ...(e.kind === 'blue-card'
@@ -1560,8 +1615,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
                   ...(e.pendingRenewal || backPending(e)
                     ? [aufenthG('§ 81 Abs. 4 Satz 1', '81')]
                     : []),
-                  ...(e.mobility
-                    ? [aufenthG('§ 51 Abs. 1a Satz 2', '51')]
+                  ...(e.mobility || e.studyEnd
+                    ? [aufenthG('§ 51 Abs. 1 Nr. 1, Abs. 1a Satz 2', '51')]
                     : []),
                   ...(e.expires
                     ? [
