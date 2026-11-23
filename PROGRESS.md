@@ -455,3 +455,4 @@
 | 431 | 任务 74 报告补记最终门禁、手机宽度预览与审核结论（通过）。 | docs/tasks/reports/74-japan-risks.md |
 | 432 | 任务 75 报告补记最终门禁、手机宽度预览与审核结论（通过）。 | docs/tasks/reports/75-portugal-risks.md |
 | 433 | 任务 73 审核建议处理（review73-4）：多次超期出境时说明列出此前每一次失效未定的出境；条件列表支持"若 C，且 A或B"的混合结构，更复杂的组合列出全部读法；§ 20 与两种机会卡的到期日标签改为"必填"；回归用例新增 5 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、apps/web/lib/germany.ts、apps/web/app/germany/germany-content.tsx、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/germany.test.tsx、docs/tasks/reports/73-germany-risks.md |
+| 434 | 任务 73 报告补记最终门禁、手机宽度预览与审核结论（通过）。 | docs/tasks/reports/73-germany-risks.md |

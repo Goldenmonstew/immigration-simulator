@@ -74,6 +74,7 @@
 
 ## 2. 怎么验证的
 
+- Fable 门禁（合入 main 后的 `f3e6e3b`）：`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0，engine 3,217 项（另 1 项跳过）、game 1,336 项、web 646 项通过；e2e 桌面 55 项全部通过。手机宽度（375 px）预览 `/germany`：许可类型含新增的研究人员、§ 20、两种机会卡与四类人道居留，选找工作用的机会卡时到期日标为必填，提交后结果卡片显示正常。Codex 审核五轮，第五轮结论"通过"；第四轮建议已在 `80d5b31` 处理，第五轮建议（SRC-100 的机会卡措辞）在本提交处理。
 - `packages/engine`：
   - 每个 commit 后都跑 `pnpm exec tsc --noEmit -p .`、`pnpm exec eslint src/germany.ts test/germany.test.ts`、`pnpm exec prettier --write`；
   - `pnpm exec vitest run test/germany.test.ts`：最后 93 项通过，任务开始时为 84 项。审核与本任务的回归用例都按条文手算日期后断言。
@@ -124,3 +125,4 @@
   - pending-details 新节"二十七"（与日本后续的第二十六节错开）在文件末尾；
   - PROGRESS 第 400～407 行在文件末尾；
   - i18n `de.kind.*` 新键在原有德国键中间。
+- 第五轮审核（review73-5）记为风险、未处理（多因素叠加）：两次失效未定的长途出境叠加酌情折算时，入籍可能漏报模拟日的 `UNKNOWN`（条件性日期只检查全部放宽的组合）；条件摘要可能把晚于候选日期的出境列为前提（只影响说明文字）。
