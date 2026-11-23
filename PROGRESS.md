@@ -377,3 +377,4 @@
 | 348 | 任务 69 第五轮审核修正（review69-5）：勾了"到期前已申请续期"、尚未录入下一张许可的等待期间，定居许可、欧盟长期居留与入籍依赖它才满足时输出 UNKNOWN（§ 81 Abs. 4，PD-124）；结果与表单提示改写，依法律或法规延长的许可填法定到期日；回归用例 2 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、apps/web/i18n/{zh-CN,en}.ts、docs/pending-details.md、docs/tasks/reports/69-germany.md |
 | 349 | 合入 main 后离线 e2e 把 /germany 放在 /ireland 之前，保持最后一页是爱尔兰表单（测试按爱尔兰表单断言离线可用）。 | apps/e2e/tests/site.spec.ts |
 | 371 | 合入 main 时首页列表把爱尔兰与 /germany 并进了同一个列表项，拆回两项。 | apps/web/app/home-content.tsx |
+| 373 | 任务 69 第六轮审核修正（review69-6）：入籍把等待续期决定的期间（§ 81 Abs. 4）按合法居留计入，定居许可与欧盟长期居留仍为 UNKNOWN；欧盟长期居留对"其他人道居留许可"期间分确定（不计）与较宽（计入）两种读法，§ 24 转工作许可的例子为 2030-03-04；§ 16a 例外分支遵守等待续期标记，缺缴费月数时摘要写出原因；PD-122、124 与报告同步；回归用例 4 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、apps/web/i18n/{zh-CN,en}.ts、docs/pending-details.md、docs/tasks/reports/69-germany.md |

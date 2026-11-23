@@ -240,6 +240,23 @@ describe('Niederlassungserlaubnis, general route (§ 9)', () => {
     expect(refugee.summary).toContain('§ 26 Abs. 3');
   });
 
+  test('§ 24 temporary protection, then a work permit (review69-6)', () => {
+    const p = pathway(
+      {
+        permits: [
+          { kind: 'humanitarian', from: '2022-04-01', to: '2025-03-03' },
+          { kind: 'skilled', from: '2025-03-04' },
+        ],
+      },
+      'DE-EU-LONG-TERM',
+    );
+    // Certain without the temporary protection; counting it, 2027-04-01.
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2030-03-04');
+    expect(p.summary).toContain('2027-04-01');
+    expect(p.summary).toContain('§ 24');
+  });
+
   test('a § 25b permit (review69-4)', () => {
     const req = {
       firstEntry: '2010-01-01',
@@ -995,7 +1012,7 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     expect(pathway(late, 'DE-TRAVEL').status).toBe('NOT_MET');
   });
 
-  test('waiting for a renewal decision is uncertain (§ 81 Abs. 4, review69-5)', () => {
+  describe('waiting for a renewal decision (§ 81 Abs. 4, review69-5/6)', () => {
     const req = {
       permits: [
         {
@@ -1006,17 +1023,45 @@ describe('trips abroad and loss of residence (§ 51)', () => {
         },
       ],
     };
-    // The 5 years end on 2026-11-15, after the card ran out: they count only
-    // if the renewal is granted.
-    for (const id of [
-      'DE-SETTLEMENT',
-      'DE-EU-LONG-TERM',
-      'DE-NATURALISATION',
-    ] as const) {
-      const p = pathway(req, id);
-      expect(p.status, id).toBe('UNKNOWN');
-      expect(p.summary, id).toContain('§ 81 Abs. 4');
-    }
+    // The 5 years end on 2026-11-15, after the card ran out.
+    test('settlement: only if the renewal is granted', () => {
+      const p = pathway(req, 'DE-SETTLEMENT');
+      expect(p.status).toBe('UNKNOWN');
+      expect(p.summary).toContain('§ 81 Abs. 4');
+      // Without contribution months the summary still names the renewal.
+      expect(
+        pathway({ ...req, contributionMonths: undefined }, 'DE-SETTLEMENT')
+          .summary,
+      ).toContain('§ 81 Abs. 4');
+    });
+
+    test('EU long-term residence: only if the renewal is granted', () => {
+      const p = pathway(req, 'DE-EU-LONG-TERM');
+      expect(p.status).toBe('UNKNOWN');
+      expect(p.summary).toContain('§ 81 Abs. 4');
+    });
+
+    test('naturalisation: the wait is lawful residence (review69-6)', () => {
+      expect(pathway(req, 'DE-NATURALISATION').status).toBe('MET');
+    });
+
+    test('training after a skilled worker permit: also uncertain (review69-6)', () => {
+      const p = pathway(
+        {
+          permits: [
+            { kind: 'skilled', from: '2018-01-01', to: '2022-12-31' },
+            {
+              kind: 'training',
+              from: '2023-01-01',
+              to: '2026-08-31',
+              renewing: true,
+            },
+          ],
+        },
+        'DE-SETTLEMENT',
+      );
+      expect(p.status).toBe('UNKNOWN');
+    });
   });
 
   test('a permit extended by law: enter the legal end date (review69-5)', () => {

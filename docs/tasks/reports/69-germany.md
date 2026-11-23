@@ -93,6 +93,12 @@
      - 结果里"请把等待新许可的期间也录入"的旧提示改为勾选说明。
      - 审核里的例子三条路径都从 `MET` 改为 `UNKNOWN`。
   2. 依法律或法规整体延长的许可（如审核里的乌克兰临时保护）：表单提示改为填延长后的法定到期日，不填卡上的日期。提示保持一般说法，没有点名法规，也没有为法规建模。按法定日期录入的例子，出境卡为 `MET`。
+- 第六轮审核修正（review69-6，`Fix: 德国试点第六轮审核修正（review69-6）`），基于协调者合入 main 后的 4a505e2：
+  1. 入籍把等待续期决定的期间（§ 81 Abs. 4）按合法居留计入，审核里的例子改回 `MET`；定居许可与欧盟长期居留仍是 `UNKNOWN`。BVerwG 1 C 9.15 Rn. 17 与柏林 VAB 10.1.1.2（第 929 页）只作交叉核对，未存档，记在 PD-124。等待续期的回归用例按三条路径分别断言。
+  2. 欧盟长期居留对"其他人道居留许可"的期间分两种读法：确定日期不计这段时间，计入后的日期在摘要另列；只有计入才满足时输出 `UNKNOWN`（PD-122；指令 2003/109 Art. 3(2)(b) 只作交叉核对）。审核里 § 24 临时保护转工作许可的例子改为最早 2030-03-04，摘要另列 2027-04-01。
+  - 另外两处小问题：
+    - § 16a 职业培训的例外分支不再绕过等待续期标记，审核里的例子改为 `UNKNOWN`；
+    - 缴费月数留空时，定居许可摘要会写出"取决于续期获批"等待确认的原因。
 
 ## 2. 怎么验证的
 
@@ -136,6 +142,11 @@
 
 - 第五轮审核修正（review69-5）后：
   - `packages/engine`：tsc、eslint、prettier 通过；`vitest run test/germany.test.ts` 72 项通过，新增 2 项。
+  - `apps/web`：tsc、eslint、prettier 通过；`vitest run test/germany.test.tsx test/policy-page.test.tsx` 通过。
+  - Playwright 未运行。
+
+- 第六轮审核修正（review69-6）后：
+  - `packages/engine`：tsc、eslint、prettier 通过；`vitest run test/germany.test.ts` 76 项通过；等待续期用例拆成 4 项，并新增 § 24 用例。
   - `apps/web`：tsc、eslint、prettier 通过；`vitest run test/germany.test.tsx test/policy-page.test.tsx` 通过。
   - Playwright 未运行。
 
