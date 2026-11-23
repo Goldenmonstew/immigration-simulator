@@ -1,4 +1,5 @@
 'use client';
+import { ukStorageKey } from './country';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../../../i18n/locale';
 import { withCount, type TranslationKey } from '../../../i18n';
@@ -484,14 +485,16 @@ export function LifeCollection({ state }: { state: GameState }) {
                             t(`game.season${record.quarter}`),
                           )}
                       </small>
-                      {memory && (
-                        <small className={styles.collectionDate}>
-                          {t(`game.collectionMemory.${memory.place}`).replace(
-                            '{weather}',
-                            t(`game.collectionWeather.${memory.weather}`),
-                          )}
-                        </small>
-                      )}
+                      {memory &&
+                        (memory.place === 'pond' ||
+                          memory.place === 'home') && (
+                          <small className={styles.collectionDate}>
+                            {t(`game.collectionMemory.${memory.place}`).replace(
+                              '{weather}',
+                              t(`game.collectionWeather.${memory.weather}`),
+                            )}
+                          </small>
+                        )}
                     </>
                   ) : (
                     <>
@@ -792,7 +795,7 @@ export function Mailbox({ state, onChange }: Change) {
 }
 type FishingPhase =
   'idle' | 'casting' | 'waiting' | 'bite' | 'reeling' | 'win' | 'miss';
-const easyKey = 'uk-immigration-life-fishing-easy';
+const easyKey = ukStorageKey('fishing-easy');
 export function Fishing({ state, onChange }: Change) {
   const { t } = useTranslation();
   const action = useLifeAction(onChange);
