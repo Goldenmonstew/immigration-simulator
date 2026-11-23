@@ -66,8 +66,11 @@ export interface JpPeriod {
 export type JpPrRequest =
   | {
       route: 'general';
-      /** First day on a work or residence status, held since. */
-      statusStart: IsoDate;
+      /**
+       * First day on a work or residence status, held since; 'none' = no
+       * such status held yet (such as only Specified Skilled Worker (i)).
+       */
+      statusStart: IsoDate | 'none';
       /**
        * The same under the 2026-10-01 guideline, which no longer counts
        * Intra-company Transferee and others as work statuses; absent = as
@@ -305,15 +308,14 @@ export function evaluateJapan(req: JpRequest): JpResult {
             g === 'new'
               ? addDays(afterYears(stay, years), excludedDays)
               : afterYears(stay, years);
-          // No status the new guideline counts: its 5 years cannot start
-          // (SRC-114 注2).
-          const none = g === 'new' && pr.newStatusStart === 'none';
-          const from = since(
-            d,
-            g === 'new' && pr.newStatusStart && pr.newStatusStart !== 'none'
-              ? pr.newStatusStart
-              : pr.statusStart,
-          );
+          // No status the guideline counts: its 5 years cannot start
+          // (SRC-113 1(3)ア, SRC-114 注2).
+          const start =
+            g === 'new'
+              ? (pr.newStatusStart ?? pr.statusStart)
+              : pr.statusStart;
+          const none = start === 'none';
+          const from = since(d, none ? stay : start);
           const statusYears = v.prStatusYears.value;
           return [
             excluded.length
@@ -345,10 +347,15 @@ export function evaluateJapan(req: JpRequest): JpResult {
               stay: true,
               state: none ? 'no' : reached(d, from, statusYears),
               text: none
-                ? L(
-                    `其中以新版指南认可的就労资格或居住资格连续在留满 ${statusYears} 年：目前持有的资格（如企業内転勤）新版不认可，尚未起算`,
-                    `Of that, ${statusYears} years in a row on a status the new guideline counts as work or residence: your current status (such as Intra-company Transferee) does not count, so they have not started`,
-                  )
+                ? g === 'new'
+                  ? L(
+                      `其中以新版指南认可的就労资格或居住资格连续在留满 ${statusYears} 年：目前持有的资格（如企業内転勤）新版不认可，尚未起算`,
+                      `Of that, ${statusYears} years in a row on a status the new guideline counts as work or residence: your current status (such as Intra-company Transferee) does not count, so they have not started`,
+                    )
+                  : L(
+                      `其中以就労资格或居住资格连续在留满 ${statusYears} 年：目前持有的资格（如技能実習、特定技能1号）不算，尚未起算`,
+                      `Of that, ${statusYears} years in a row on a work or residence status: your current status (such as Technical Intern Training or Specified Skilled Worker (i)) does not count, so they have not started`,
+                    )
                 : g === 'new'
                   ? L(
                       `其中自 ${from} 起以新版指南认可的就労资格或居住资格连续在留满 ${statusYears} 年`,
@@ -601,7 +608,14 @@ export function evaluateJapan(req: JpRequest): JpResult {
                   'With your record you will not meet the time requirements for permanent residence within 10 years.',
                 )) +
         version +
-        (pr.route === 'general' && pr.newStatusStart === 'none'
+        (pr.route === 'general' && pr.statusStart === 'none'
+          ? L(
+              `截至 ${lastOld}（含当日）递交适用的旧版指南不把你目前的资格（如技能実習、特定技能1号）算作就労资格，换成认可的资格后才开始计 ${v.prStatusYears.value} 年（PD-134）。`,
+              ` Up to ${lastOld} the old guideline does not count your current status (such as Technical Intern Training or Specified Skilled Worker (i)) as a work status, so its ${v.prStatusYears.value} years start only once you hold one it counts (PD-134).`,
+            )
+          : '') +
+        (pr.route === 'general' &&
+        (pr.newStatusStart ?? pr.statusStart) === 'none'
           ? L(
               `${switchDate} 起递交适用的新版指南不把你目前的资格（如企業内転勤）算作就労资格，换成认可的资格后才开始计 ${v.prStatusYears.value} 年（PD-134）。`,
               ` From ${switchDate} the new guideline does not count your current status (such as Intra-company Transferee) as a work status, so its ${v.prStatusYears.value} years start only once you hold one it counts (PD-134).`,

@@ -469,7 +469,10 @@ export const zhCN = {
   'jp.newStatus': '按 2027-04-01 起的新版指南，连续持就労或居住资格的开始日',
   'jp.newStatusHint':
     '新版把企業内転勤、育成就労、特定技能1号与部分特定活動排除在就労资格外。2027-04-01 起递交的按这里计 5 年。',
-  'jp.newStatus.same': '与上面的日期相同',
+  'jp.statusNone':
+    '目前还没有持有旧版认可的就労或居住资格（如只持过技能実習、特定技能1号）',
+  'jp.newStatus.choose': '请选择',
+  'jp.newStatus.same': '与上面相同',
   'jp.newStatus.own': '另有日期（之前持过新版不认可的资格）',
   'jp.newStatus.none': '目前持有的资格新版不认可（如企業内転勤）',
   'jp.newStatusStart': '连续持新版认可的资格的开始日',
@@ -513,6 +516,7 @@ export const zhCN = {
   'jp.error.natRoute': '请选择适用的帰化路线。',
   'jp.error.specialPeriod':
     '更新申请中也只能在在留期限届满后 2 个月内离开日本，请核对日期。',
+  'jp.error.newStatus': '请选择新版指南下的起点。',
   'jp.error.overlap': '这次出境与前面的出境日期重叠。',
   'us.entryLink': '打开美国试点',
   'us.entryDesc':

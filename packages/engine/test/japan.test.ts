@@ -648,6 +648,31 @@ describe('review70-3', () => {
   });
 });
 
+describe('review70-4', () => {
+  test('no status the old guideline counts either', () => {
+    // Only Specified Skilled Worker (i) so far, in Japan since 2017-02-01.
+    const req: Partial<JpRequest> = {
+      simulationDate: '2027-03-01',
+      stayStart: '2017-02-01',
+      pr: { route: 'general', statusStart: 'none' },
+    };
+    const p = pr(req);
+    expect(p.status).toBe('NOT_MET');
+    expect(p.checks[1].met).toBe(false);
+    expect(p.summary).toContain('特定技能1号');
+    // A later status the new guideline counts starts its 5 years.
+    const own = pr({
+      ...req,
+      pr: {
+        route: 'general',
+        statusStart: 'none',
+        newStatusStart: '2024-01-01',
+      },
+    });
+    expect(own.earliestDate).toBe('2029-01-01');
+  });
+});
+
 test('English text', () => {
   const result = evaluateJapan({ ...base, locale: 'en' });
   expect(result.pathways[0].title).toBe('Permanent residence (永住許可)');

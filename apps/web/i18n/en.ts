@@ -676,7 +676,10 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Under the new guideline from 2027-04-01, first day on a work or residence status',
   'jp.newStatusHint':
     'The new guideline no longer counts Intra-company Transferee, Employment for Skill Development, Specified Skilled Worker (i) or some Designated Activities as work statuses. Applications from 2027-04-01 count the 5 years from here.',
-  'jp.newStatus.same': 'The same date as above',
+  'jp.statusNone':
+    'I do not yet hold a work or residence status the old guideline counts (such as only Technical Intern Training or Specified Skilled Worker (i))',
+  'jp.newStatus.choose': 'Choose one',
+  'jp.newStatus.same': 'The same as above',
   'jp.newStatus.own': 'A later date (I held a status it does not count)',
   'jp.newStatus.none':
     'My current status does not count (such as Intra-company Transferee)',
@@ -725,6 +728,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'jp.error.natRoute': 'Choose the naturalisation route that applies to you.',
   'jp.error.specialPeriod':
     'Even with a renewal pending you can leave only within 2 months after your period of stay ended; check the dates.',
+  'jp.error.newStatus': 'Choose how the new guideline counts your status.',
   'jp.error.overlap': 'This trip overlaps an earlier one.',
   'us.entryLink': 'Open the United States pilot',
   'us.entryDesc':

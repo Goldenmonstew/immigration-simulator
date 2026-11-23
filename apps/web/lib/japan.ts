@@ -31,11 +31,13 @@ export interface JpForm {
   prRoute: JpPrRoute | '';
   /** The status, recognition or points date the route counts from. */
   statusStart: string;
+  /** General route: no status the old guideline counts held yet. */
+  statusNone: boolean;
   /**
    * General route, under the new guideline: the same start, its own start
    * (`newStatusStart`), or no status it counts held yet.
    */
-  newStatus: 'same' | 'own' | 'none';
+  newStatus: '' | 'same' | 'own' | 'none';
   newStatusStart: string;
   /** General route only. */
   excluded: JpExcludedRow[];
@@ -65,7 +67,9 @@ export function emptyJpForm(today: string): JpForm {
     stayStart: '',
     prRoute: '',
     statusStart: '',
-    newStatus: 'same',
+    statusNone: false,
+    // The user must say how the new guideline sees their status.
+    newStatus: '',
     newStatusStart: '',
     excluded: [],
     marriedLifeFrom: '',
@@ -95,8 +99,13 @@ export function validateJpForm(form: JpForm): JpErrors {
   date('jp-simulation-date', form.simulationDate);
   date('jp-stay-start', form.stayStart);
   if (!form.prRoute) errors['jp-pr-route'] = 'jp.error.prRoute';
-  if (needsStatusStart(form.prRoute)) date('jp-status-start', form.statusStart);
+  if (
+    needsStatusStart(form.prRoute) &&
+    !(form.prRoute === 'general' && form.statusNone)
+  )
+    date('jp-status-start', form.statusStart);
   if (form.prRoute === 'general') {
+    if (!form.newStatus) errors['jp-new-status'] = 'jp.error.newStatus';
     if (form.newStatus === 'own')
       date('jp-new-status-start', form.newStatusStart);
     form.excluded.forEach((row, i) => {
@@ -150,7 +159,7 @@ export function jpRequest(form: JpForm, locale: Locale): JpRequest {
         : form.prRoute === 'general'
           ? {
               route: 'general',
-              statusStart: form.statusStart,
+              statusStart: form.statusNone ? 'none' : form.statusStart,
               ...(form.newStatus === 'own'
                 ? { newStatusStart: form.newStatusStart }
                 : form.newStatus === 'none'

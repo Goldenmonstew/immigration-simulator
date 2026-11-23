@@ -86,6 +86,7 @@ test('validation asks for the routes and the dates they need', () => {
     }),
   ).toEqual({
     'jp-status-start': 'jp.error.date',
+    'jp-new-status': 'jp.error.newStatus',
     'jp-excluded-0-to': 'jp.error.order',
   });
   expect(validateJpForm(filled)).toEqual({});
@@ -212,6 +213,42 @@ test('the new-guideline start: same, own date or not yet held', () => {
   expect(result.pathways[0].status).toBe('NOT_MET');
 });
 
+test('the new-guideline start must be chosen', () => {
+  // Intra-company Transferee since 2021-04-05; the choice left untouched.
+  const ict: JpForm = {
+    ...filled,
+    simulationDate: '2026-11-23',
+    stayStart: '2017-04-05',
+    prRoute: 'general',
+    statusStart: '2017-04-05',
+  };
+  expect(validateJpForm(ict)).toEqual({
+    'jp-new-status': 'jp.error.newStatus',
+  });
+  const chosen = { ...ict, newStatus: 'none' as const };
+  expect(validateJpForm(chosen)).toEqual({});
+  // 10 years on 2027-04-05 fall under the new guideline, never met.
+  expect(evaluateJapan(jpRequest(chosen, 'zh-CN')).pathways[0].status).toBe(
+    'NOT_MET',
+  );
+});
+
+test('no status the old guideline counts yet', () => {
+  // Only Specified Skilled Worker (i): no old-guideline start to enter.
+  const ssw: JpForm = {
+    ...filled,
+    simulationDate: '2026-11-23',
+    stayStart: '2016-01-01',
+    prRoute: 'general',
+    statusNone: true,
+    newStatus: 'same',
+  };
+  expect(validateJpForm(ssw)).toEqual({});
+  const req = jpRequest(ssw, 'zh-CN');
+  expect(req.pr).toEqual({ route: 'general', statusStart: 'none' });
+  expect(evaluateJapan(req).pathways[0].status).toBe('NOT_MET');
+});
+
 test('leaving with a renewal pending (FAQ Q61)', () => {
   // Period of stay to 2027-04-20, renewal applied for on 2027-04-10.
   const form = (departed: string, returned: string, pending: boolean) => ({
@@ -220,6 +257,7 @@ test('leaving with a renewal pending (FAQ Q61)', () => {
     stayStart: '2016-04-01',
     prRoute: 'general' as const,
     statusStart: '2018-04-01',
+    newStatus: 'same' as const,
     trips: [
       {
         ...trip(departed, returned),

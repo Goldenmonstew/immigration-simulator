@@ -43,6 +43,7 @@ const FIELD_LABELS: Record<string, TranslationKey> = {
   'jp-simulation-date': 'jp.simulationDate',
   'jp-stay-start': 'jp.stayStart',
   'jp-pr-route': 'jp.prRoute',
+  'jp-new-status': 'jp.newStatus',
   'jp-new-status-start': 'jp.newStatusStart',
   'jp-married-life-from': 'jp.marriedLifeFrom',
   'jp-married-on': 'jp.marriedOn',
@@ -174,13 +175,30 @@ export default function JapanContent() {
           )}
           {needsStatusStart(draft.prRoute) && (
             <div className={form.followUp}>
-              {date(
-                'jp-status-start',
-                t(statusLabel),
-                'statusStart',
-                draft.prRoute === 'general'
-                  ? t('jp.statusStartHint.general')
-                  : undefined,
+              {!(draft.prRoute === 'general' && draft.statusNone) &&
+                date(
+                  'jp-status-start',
+                  t(statusLabel),
+                  'statusStart',
+                  draft.prRoute === 'general'
+                    ? t('jp.statusStartHint.general')
+                    : undefined,
+                )}
+              {draft.prRoute === 'general' && (
+                <div className={form.checkboxes}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={draft.statusNone}
+                      onChange={(e) => {
+                        // A hidden date must not keep its error.
+                        setErrors({});
+                        set({ statusNone: e.target.checked });
+                      }}
+                    />
+                    {t('jp.statusNone')}
+                  </label>
+                </div>
               )}
             </div>
           )}
@@ -190,6 +208,7 @@ export default function JapanContent() {
                 id="jp-new-status"
                 label={t('jp.newStatus')}
                 hint={t('jp.newStatusHint')}
+                error={errors['jp-new-status']}
               >
                 <select
                   id="jp-new-status"
@@ -199,8 +218,14 @@ export default function JapanContent() {
                     setErrors({});
                     set({ newStatus: e.target.value as JpForm['newStatus'] });
                   }}
-                  aria-describedby="jp-new-status-hint"
+                  aria-invalid={errors['jp-new-status'] ? true : undefined}
+                  aria-describedby={
+                    errors['jp-new-status']
+                      ? 'jp-new-status-hint jp-new-status-error'
+                      : 'jp-new-status-hint'
+                  }
                 >
+                  <option value="">{t('jp.newStatus.choose')}</option>
                   {(['same', 'own', 'none'] as const).map((k) => (
                     <option key={k} value={k}>
                       {t(`jp.newStatus.${k}`)}
