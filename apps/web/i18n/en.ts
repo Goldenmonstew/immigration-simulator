@@ -545,6 +545,89 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.sub.100': '100 Partner (permanent, outside Australia)',
   'au.sub.155': '155 Resident Return visa (permanent)',
   'au.sub.other-permanent': 'Other permanent visa',
+  'de.entryLink': 'Open the Germany pilot',
+  'de.entryDesc':
+    'Use your residence permits and travel record to work out the dates for a settlement permit, EU long-term residence and naturalisation, and when a long trip ends your permit.',
+  'de.title':
+    'Germany: dates for settlement, EU long-term residence and naturalisation (pilot)',
+  'de.intro':
+    'From your German residence permits and trips, this works out the steps that depend on time alone: a settlement permit (Niederlassungserlaubnis), EU long-term residence (Daueraufenthalt-EU), naturalisation (Einbürgerung), and when a long trip ends your permit. Whether a visa or residence permit is granted in the first place is out of scope.',
+  'de.scope':
+    'The pilot checks only the time requirements in the Residence Act and the Nationality Act. It does not check livelihood, German, housing, the naturalisation test or other requirements; each result lists them, and counting the law leaves open is flagged. Your entries are processed in your browser and are not saved or uploaded.',
+  'de.basics': 'About you',
+  'de.simulationDate': 'Simulation date',
+  'de.simulationDateHint':
+    'Results are worked out for this date (the decision date for a settlement permit, the application date for EU long-term residence, the naturalisation date). It starts as today.',
+  'de.firstEntry': 'Date you first arrived in Germany',
+  'de.firstEntryHint':
+    'If you came on a national visa, time counts from the day you arrived, not from when the visa started.',
+  'de.permits': 'Residence permits',
+  'de.permitsHint':
+    'Add a row for each permit, then the next one when it is renewed or replaced; a new permit ends the one before it even if that card shows a later expiry, and a blank end date runs until the next permit starts. If you applied to renew before expiry and the new card came after the old one ran out, tick “Renewal or a new permit applied for before it ran out”; otherwise the gap breaks continuity. Tick it too while the decision is pending: settlement and EU long-term results that rely on the wait are then shown as uncertain, while naturalisation counts it as lawful residence. If a permit was extended by law or regulation, enter the date it is legally valid until, not the date on the card. A settlement permit and EU long-term residence have no end date (the date on the card is only the document’s), so there is none to enter. Enter a national entry visa as the type it was issued for; for the asylum procedure choose “Asylum claim pending” from the day you claimed asylum. Choose “Permit for a temporary purpose” for job seeking, au pair and the like.',
+  'de.permit': 'Permit {n}',
+  'de.kind': 'Permit type',
+  'de.kind.study': 'University study (§ 16b)',
+  'de.kind.training': 'Vocational training or further training (§ 16a)',
+  'de.kind.skilled': 'Skilled worker or researcher (§§ 18a, 18b, 18d)',
+  'de.kind.blue-card': 'EU Blue Card (Blaue Karte EU, § 18g)',
+  'de.kind.german-family': 'Family of a German (§ 28)',
+  'de.kind.other':
+    'Other residence permit for a lasting purpose (such as family of a foreign national or other work)',
+  'de.kind.temporary':
+    'Permit for a temporary purpose (such as § 20 job seeking, au pair, seasonal work, language courses, ICT card)',
+  'de.kind.protection': 'Asylum or refugee status (§ 25 Abs. 1, Abs. 2 Satz 1)',
+  'de.kind.subsidiary': 'Subsidiary protection (§ 25 Abs. 2 Satz 2)',
+  'de.kind.humanitarian':
+    'Other humanitarian residence permit (Section 5, such as § 25 Abs. 3–5, § 25a, § 25b, § 23 Abs. 1)',
+  'de.kind.asylum': 'Asylum claim pending (Aufenthaltsgestattung)',
+  'de.kind.settlement': 'Settlement permit (Niederlassungserlaubnis)',
+  'de.kind.eu-long-term': 'EU long-term residence (Daueraufenthalt-EU)',
+  'de.from': 'Valid from',
+  'de.renewing':
+    'Renewal or a new permit applied for before it ran out (the permit continues until the decision, § 81 Abs. 4), so it runs until the next permit starts',
+  'de.to': 'Valid until (can be left blank)',
+  'de.addPermit': 'Add a permit',
+  'de.trips': 'Trips abroad',
+  'de.tripsHint':
+    'Add a row for each time you left Germany. You can include planned trips.',
+  'de.trip': 'Trip {n}',
+  'de.departed': 'Date you left Germany',
+  'de.returned': 'Date you came back to Germany',
+  'de.addTrip': 'Add a trip',
+  'de.settlement': 'Settlement permit',
+  'de.settlementRoute': 'Settlement route that applies to you',
+  'de.settlementRoute.general': 'General (§ 9)',
+  'de.settlementRoute.skilled': 'Skilled worker (§ 18c Abs. 1)',
+  'de.settlementRoute.blue-card': 'EU Blue Card (§ 18c Abs. 2)',
+  'de.settlementRoute.german-family': 'Family of a German (§ 28 Abs. 2)',
+  'de.settlementRoute.refugee': 'Asylum or refugee status (§ 26 Abs. 3)',
+  'de.trained':
+    'I completed vocational training or a degree in Germany (§ 18c Abs. 1 Satz 2)',
+  'de.b1': 'My German is at B1 (§ 18c Abs. 2 Satz 3)',
+  'de.c1': 'My German is at C1 (§ 26 Abs. 3 Satz 3)',
+  'de.contributions':
+    'Months of statutory pension contributions, or payments to a comparable insurance or pension scheme, by the simulation date (can be left blank)',
+  'de.contributionsHint':
+    'Voluntary contributions count; your pension insurance record (Versicherungsverlauf) shows them. Months paid to a comparable insurance or pension scheme (such as a professional scheme for doctors or lawyers) count too (§ 9 Abs. 2 Satz 1 Nr. 3, § 18c Abs. 1 Satz 1 Nr. 3). Needed for the general and skilled worker routes; if blank, only the time held is worked out.',
+  'de.blueCardMonths':
+    'Months of employment meeting the § 18g criteria with contributions by the simulation date, also under another permit (can be left blank)',
+  'de.blueCardMonthsHint':
+    'Count the months employed at the Blue Card (§ 18g) level, salary threshold included, with contributions for them; such employment before you switched to the Blue Card counts too. Months out of work do not. If blank, only holding the card is checked.',
+  'de.naturalisation': 'Naturalisation',
+  'de.naturalisationRoute': 'Naturalisation route that applies to you',
+  'de.naturalisationRoute.general': 'General (StAG § 10)',
+  'de.naturalisationRoute.spouse':
+    'Spouse or registered partner of a German (StAG § 9)',
+  'de.marriedOn':
+    'Date you married, or registered a partnership with, a German',
+  'de.spouseGermanSince':
+    'Date your spouse became German (leave blank if always German)',
+  'de.remove': 'Remove',
+  'de.submit': 'Work out dates',
+  'de.errorSummary': 'Fix the items marked in red first.',
+  'de.error.date': 'Enter a valid date.',
+  'de.error.order': 'This date cannot be before the start date.',
+  'de.error.months': 'Enter a whole number of months, or leave it blank.',
   'gr.entryLink': 'Open the Greece pilot',
   'gr.entryDesc':
     'Use your residence permits (golden visa included) and travel record to work out the dates for long-term residence, golden visa renewal and naturalisation.',

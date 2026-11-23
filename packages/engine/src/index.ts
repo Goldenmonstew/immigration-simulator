@@ -76,6 +76,24 @@ export type {
   PtResult,
   PtTrip,
 } from './portugal';
+export {
+  DE_NATURALISATION_ROUTES,
+  DE_PERMIT_KINDS,
+  DE_SETTLEMENT_ROUTES,
+  DE_UNLIMITED_KINDS,
+  evaluateGermany,
+} from './germany';
+export type {
+  DeNaturalisationRoute,
+  DePathway,
+  DePathwayId,
+  DePermit,
+  DePermitKind,
+  DeRequest,
+  DeResult,
+  DeSettlementRoute,
+  DeTrip,
+} from './germany';
 export { ES_NATIONALITY_ROUTES, evaluateSpain } from './spain';
 export type {
   EsNationalityRoute,
