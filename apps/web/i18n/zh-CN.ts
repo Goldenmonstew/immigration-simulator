@@ -385,8 +385,12 @@ export const zhCN = {
   'de.kind.job-seeking': '毕业、研究或培训后求职（§ 20）',
   'de.kind.protection': '庇护权人或难民（§ 25 Abs. 1、Abs. 2 Satz 1）',
   'de.kind.subsidiary': '辅助保护（§ 25 Abs. 2 Satz 2）',
+  'de.kind.resettlement': '联邦接收承诺的居留（§ 23 Abs. 2，如联邦接收计划）',
+  'de.kind.integration': '融入类人道居留（§ 23 Abs. 1、§ 25a、§ 25b）',
   'de.kind.humanitarian':
-    '其他人道居留许可（第 5 节，如 § 25 Abs. 3–5、§ 25a、§ 25b、§ 23 Abs. 1）',
+    '其他人道居留（§ 22、§ 23a、§ 25 Abs. 3、Abs. 4 Satz 2、Abs. 5）',
+  'de.kind.temporary-humanitarian':
+    '临时保护或临时停留（§ 24、§ 25 Abs. 4 Satz 1）',
   'de.kind.asylum': '庇护程序中（Aufenthaltsgestattung）',
   'de.kind.settlement': '定居许可（Niederlassungserlaubnis）',
   'de.kind.eu-long-term': '欧盟长期居留（Daueraufenthalt-EU）',

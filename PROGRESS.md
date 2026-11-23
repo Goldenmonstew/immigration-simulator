@@ -413,3 +413,4 @@
 | 386 | 任务 69 报告补记最终门禁、手机宽度预览与第十二轮审核结论（通过）及其风险。 | docs/tasks/reports/69-germany.md |
 | 400 | 任务 73：德国试点把 § 18d 研究人员从"技术工人"中分出：技术工人路径（§ 18c Abs. 1）照常计入，§ 16a Abs. 1 Satz 3 的例外只认 §§ 18a、18b，§ 51 Abs. 1a 的流动豁免同样适用于研究许可；回归用例 2 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、apps/web/i18n/{zh-CN,en}.ts |
 | 401 | 任务 73：德国试点新增"§ 20 求职"许可类型：一般定居路径计入并可持有（§ 20 不排除 § 9），欧盟长期居留按临时目的不计、不能申请（PD-155），入籍当天持有为 NOT_MET（StAG § 10 Abs. 1 Satz 1 Nr. 2）；"临时目的"选项不再列 § 20；回归用例 2 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、apps/web/i18n/{zh-CN,en}.ts、docs/pending-details.md |
+| 402 | 任务 73：德国试点把"其他人道居留许可"按条文拆为 § 23 Abs. 2 接收、融入类（§ 23 Abs. 1、§ 25a、§ 25b）、其他（§ 22、§ 23a、§ 25 Abs. 3–5）与临时保护或临时停留（§ 24、§ 25 Abs. 4 Satz 1）：欧盟长期居留各按条文计入或不计（PD-155，不再用两种读法），入籍当天按 § 10 清单判断；回归用例 2 项、改写 3 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、apps/web/i18n/{zh-CN,en}.ts、docs/{pending-details,SOURCES}.md |

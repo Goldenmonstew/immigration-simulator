@@ -580,8 +580,14 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Looking for work after study, research or training (§ 20)',
   'de.kind.protection': 'Asylum or refugee status (§ 25 Abs. 1, Abs. 2 Satz 1)',
   'de.kind.subsidiary': 'Subsidiary protection (§ 25 Abs. 2 Satz 2)',
+  'de.kind.resettlement':
+    'Admission by federal order (§ 23 Abs. 2, such as a federal admission programme)',
+  'de.kind.integration':
+    'Humanitarian permit by state order or for integration (§ 23 Abs. 1, § 25a, § 25b)',
   'de.kind.humanitarian':
-    'Other humanitarian residence permit (Section 5, such as § 25 Abs. 3–5, § 25a, § 25b, § 23 Abs. 1)',
+    'Other humanitarian permit (§ 22, § 23a, § 25 Abs. 3, Abs. 4 Satz 2, Abs. 5)',
+  'de.kind.temporary-humanitarian':
+    'Temporary protection or a temporary stay (§ 24, § 25 Abs. 4 Satz 1)',
   'de.kind.asylum': 'Asylum claim pending (Aufenthaltsgestattung)',
   'de.kind.settlement': 'Settlement permit (Niederlassungserlaubnis)',
   'de.kind.eu-long-term': 'EU long-term residence (Daueraufenthalt-EU)',

@@ -240,35 +240,61 @@ describe('Niederlassungserlaubnis, general route (§ 9)', () => {
     expect(refugee.summary).toContain('§ 26 Abs. 3');
   });
 
-  test('§ 24 temporary protection, then a work permit (review69-6)', () => {
+  test('§ 24 temporary protection, then a work permit (review69-6, task 73)', () => {
     const p = pathway(
       {
         permits: [
-          { kind: 'humanitarian', from: '2022-04-01', to: '2025-03-03' },
+          {
+            kind: 'temporary-humanitarian',
+            from: '2022-04-01',
+            to: '2025-03-03',
+          },
           { kind: 'skilled', from: '2025-03-04' },
         ],
       },
       'DE-EU-LONG-TERM',
     );
-    // Certain without the temporary protection; counting it, 2027-04-01.
+    // Temporary protection is a temporary purpose: not counted (PD-155).
     expect(p.status).toBe('FUTURE');
     expect(p.earliestDate).toBe('2030-03-04');
-    expect(p.summary).toContain('2027-04-01');
-    expect(p.summary).toContain('§ 24');
+    expect(p.summary).not.toContain('2027-04-01');
   });
 
-  test('a § 25b permit (review69-4)', () => {
+  test('a § 25b permit (review69-4, task 73)', () => {
     const req = {
       firstEntry: '2010-01-01',
-      permits: [{ kind: 'humanitarian' as const, from: '2020-01-01' }],
+      permits: [{ kind: 'integration' as const, from: '2020-01-01' }],
     };
     // § 9a Abs. 3 Nr. 1: no EU long-term residence while holding it.
     expect(pathway(req, 'DE-EU-LONG-TERM').status).toBe('NOT_APPLICABLE');
     expect(pathway(req, 'DE-SETTLEMENT').status).toBe('NOT_APPLICABLE');
-    // § 25b is not on the § 10 list, § 25 Abs. 3–5 is: depends on the section.
-    const naturalisation = pathway(req, 'DE-NATURALISATION');
-    expect(naturalisation.status).toBe('UNKNOWN');
-    expect(naturalisation.summary).toContain('§ 25b');
+    // § 25b is not on the list in StAG § 10 Abs. 1 Satz 1 Nr. 2.
+    expect(pathway(req, 'DE-NATURALISATION').status).toBe('MET');
+  });
+
+  test('the humanitarian permits the statute treats differently (task 73)', () => {
+    // § 23 Abs. 2: kept for EU long-term residence (§ 9a Abs. 3 Nr. 1).
+    const resettled = {
+      permits: [{ kind: 'resettlement' as const, from: '2021-03-15' }],
+    };
+    expect(pathway(resettled, 'DE-EU-LONG-TERM').status).toBe('MET');
+    expect(pathway(resettled, 'DE-SETTLEMENT').status).toBe('NOT_APPLICABLE');
+    expect(pathway(resettled, 'DE-NATURALISATION').status).toBe('MET');
+    // § 25 Abs. 3: its time counts once you hold another permit, but it is
+    // on the § 10 list when naturalised.
+    const humanitarian = {
+      permits: [
+        { kind: 'humanitarian' as const, from: '2020-01-01', to: '2023-12-31' },
+        { kind: 'skilled' as const, from: '2024-01-01' },
+      ],
+    };
+    expect(pathway(humanitarian, 'DE-EU-LONG-TERM').status).toBe('MET');
+    expect(
+      pathway(
+        { permits: [{ kind: 'humanitarian', from: '2020-01-01' }] },
+        'DE-NATURALISATION',
+      ).status,
+    ).toBe('NOT_MET');
   });
 
   test('a later permit replaces one with a later printed expiry (review69-2)', () => {
@@ -1174,12 +1200,16 @@ describe('trips abroad and loss of residence (§ 51)', () => {
       expect(p.summary).toContain('2027-03-15');
     });
 
-    test('EU long-term residence: both conditions named (review69-7)', () => {
+    test('EU long-term residence: renewal pending (review69-7, task 73)', () => {
       const p = pathway(
         {
           simulationDate: '2027-05-01',
           permits: [
-            { kind: 'humanitarian', from: '2022-04-01', to: '2025-03-03' },
+            {
+              kind: 'temporary-humanitarian',
+              from: '2022-04-01',
+              to: '2025-03-03',
+            },
             {
               kind: 'skilled',
               from: '2025-03-04',
@@ -1190,9 +1220,11 @@ describe('trips abroad and loss of residence (§ 51)', () => {
         },
         'DE-EU-LONG-TERM',
       );
+      // § 24 time does not count (PD-155): 5 years from 2025-03-04, and
+      // only if the renewal is granted.
       expect(p.status).toBe('UNKNOWN');
       expect(p.summary).toContain('§ 81 Abs. 4');
-      expect(p.summary).toContain('§ 24');
+      expect(p.summary).toContain('2030-03-04');
     });
 
     test('training after a skilled worker permit: also uncertain (review69-6)', () => {
@@ -1219,7 +1251,11 @@ describe('trips abroad and loss of residence (§ 51)', () => {
       {
         // Temporary protection (§ 24) with the date it was extended to.
         permits: [
-          { kind: 'humanitarian', from: '2024-04-01', to: '2027-03-04' },
+          {
+            kind: 'temporary-humanitarian',
+            from: '2024-04-01',
+            to: '2027-03-04',
+          },
         ],
         trips: [{ departed: '2026-02-27', returned: '2026-03-10' }],
       },
