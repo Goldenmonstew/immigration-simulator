@@ -21,7 +21,9 @@ import type { IsoDate, Locale } from './types';
  * skilled: skilled worker (§§ 18a, 18b); research: researcher (§ 18d); blue-card:
  * Blaue Karte EU (§ 18g); german-family: family of a German (§ 28); other:
  * any other permit for a lasting purpose; temporary: a permit for a
- * temporary purpose (such as § 20 job seeking or au pair); protection:
+ * temporary purpose (such as au pair or the § 20a opportunity card);
+ * job-seeking: looking for work after study, research or training in
+ * Germany (§ 20); protection:
  * asylum or refugee status (§ 25 Abs. 1, Abs. 2 Satz 1); subsidiary:
  * subsidiary protection (§ 25 Abs. 2 Satz 2); humanitarian: another
  * humanitarian permit (Chapter 2 Section 5, such as § 25 Abs. 3–5, § 25a,
@@ -39,6 +41,7 @@ export const DE_PERMIT_KINDS = [
   'german-family',
   'other',
   'temporary',
+  'job-seeking',
   'protection',
   'subsidiary',
   'humanitarian',
@@ -161,6 +164,7 @@ const KIND_NAMES: Record<DePermitKind, [string, string]> = {
   'german-family': ['德国人家属许可', 'a permit as family of a German'],
   other: ['居留许可', 'a residence permit'],
   temporary: ['临时目的的许可', 'a permit for a temporary purpose'],
+  'job-seeking': ['求职许可', 'a job-seeking permit'],
   protection: ['庇护或难民许可', 'an asylum or refugee permit'],
   subsidiary: ['辅助保护许可', 'a subsidiary protection permit'],
   humanitarian: ['人道居留许可', 'a humanitarian residence permit'],
@@ -206,9 +210,10 @@ function settlementRule(req: DeRequest): SettlementRule {
   switch (req.settlementRoute) {
     case 'general':
       return {
-        full: [...TITLES, 'temporary', 'humanitarian'],
+        full: [...TITLES, 'temporary', 'job-seeking', 'humanitarian'],
         half: ['study', 'training'],
-        hold: TITLES.filter((k) => !SECTION_5.includes(k)),
+        // § 20 job seeking does not rule out § 9, unlike § 20a Abs. 6.
+        hold: [...TITLES.filter((k) => !SECTION_5.includes(k)), 'job-seeking'],
         years: v.generalYears.value,
         months: v.generalContributionMonths.value,
         what: [
@@ -996,7 +1001,7 @@ export function evaluateGermany(req: DeRequest): DeResult {
     const weight = (humanitarian: number) => (k: DePermitKind) =>
       k === 'study' || k === 'training'
         ? 1
-        : k === 'temporary'
+        : k === 'temporary' || k === 'job-seeking'
           ? 0
           : k === 'humanitarian'
             ? humanitarian
@@ -1191,8 +1196,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
               ),
               counting,
               L(
-                `学习或职业培训期间按一半计（§ 9b Abs. 1 Nr. 4，按半天精确折算，PD-121）；临时目的的许可（如互惠生、求职）期间不计，持有时也不能申请（§ 9a Abs. 3 Nr. 5、§ 9b Abs. 1 Satz 2，PD-122）；其他人道居留许可（如 § 24 临时保护）持有时不能申请（§ 9a Abs. 3 Nr. 1），其期间能否计入没有写明，确定日期不计、计入后的日期另列（PD-122）；获国际保护（庇护、难民或辅助保护）的，从你录入的"庇护程序中"开始日全部计入（Nr. 5，PD-126）。`,
-                `Study or vocational training counts at half (§ 9b Abs. 1 Nr. 4, worked out in half days, PD-121); time on a permit for a temporary purpose (such as au pair or job seeking) does not count, and you cannot apply while holding one (§ 9a Abs. 3 Nr. 5, § 9b Abs. 1 Satz 2, PD-122); you cannot apply on another humanitarian permit (such as § 24 temporary protection, § 9a Abs. 3 Nr. 1) and whether its time counts is not stated, so the certain date leaves it out and the date counting it is shown separately (PD-122); with international protection (asylum, refugee or subsidiary protection), the asylum procedure counts in full from the start date you entered (Nr. 5, PD-126).`,
+                `学习或职业培训期间按一半计（§ 9b Abs. 1 Nr. 4，按半天精确折算，PD-121）；临时目的的许可（如互惠生）与 § 20 求职许可期间不计，持有时也不能申请（§ 9a Abs. 3 Nr. 5、§ 9b Abs. 1 Satz 2；§ 20 不得超期延长，按临时目的处理，PD-122、PD-155）；其他人道居留许可（如 § 24 临时保护）持有时不能申请（§ 9a Abs. 3 Nr. 1），其期间能否计入没有写明，确定日期不计、计入后的日期另列（PD-122）；获国际保护（庇护、难民或辅助保护）的，从你录入的"庇护程序中"开始日全部计入（Nr. 5，PD-126）。`,
+                `Study or vocational training counts at half (§ 9b Abs. 1 Nr. 4, worked out in half days, PD-121); time on a permit for a temporary purpose (such as au pair) or a § 20 job-seeking permit does not count, and you cannot apply while holding one (§ 9a Abs. 3 Nr. 5, § 9b Abs. 1 Satz 2; § 20 cannot be extended beyond its period, so it is taken as temporary, PD-122, PD-155); you cannot apply on another humanitarian permit (such as § 24 temporary protection, § 9a Abs. 3 Nr. 1) and whether its time counts is not stated, so the certain date leaves it out and the date counting it is shown separately (PD-122); with international protection (asylum, refugee or subsidiary protection), the asylum procedure counts in full from the start date you entered (Nr. 5, PD-126).`,
               ),
               L(
                 `单次出境按离境日起 ${v.euSingleAbsenceMonths.value} 个日历月判断；计入期间内这类出境合计不超过 ${totalMin} 天（BGB § 191 每月按 ${v.daysPerMonth.value} 天）算全部计入，否则按不计入（计时暂停、不中断）处理，${totalMin}–${totalMax} 天之间的较宽读法另列（PD-125）。更长但未导致失效的出境计时暂停（§ 9b Abs. 1 Satz 3）。`,

@@ -381,7 +381,8 @@ export const zhCN = {
   'de.kind.german-family': '与德国人团聚的家属（§ 28）',
   'de.kind.other': '其他长期目的的居留许可（如与外国人团聚、其他工作）',
   'de.kind.temporary':
-    '临时目的的许可（如求职 § 20、互惠生、季节工作、语言课程、ICT 卡）',
+    '临时目的的许可（如互惠生、季节工作、语言课程、§ 20a 机会卡、ICT 卡）',
+  'de.kind.job-seeking': '毕业、研究或培训后求职（§ 20）',
   'de.kind.protection': '庇护权人或难民（§ 25 Abs. 1、Abs. 2 Satz 1）',
   'de.kind.subsidiary': '辅助保护（§ 25 Abs. 2 Satz 2）',
   'de.kind.humanitarian':

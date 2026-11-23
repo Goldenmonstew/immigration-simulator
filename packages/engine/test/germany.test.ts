@@ -811,18 +811,31 @@ describe('Einbürgerung (StAG §§ 9, 10, 12b)', () => {
     expect(old).not.toContain('3 年路径');
   });
 
-  test('a § 20 job seeking permit on the day is not met (review69-1)', () => {
+  test('a § 20 job seeking permit on the day is not met (review69-1, task 73)', () => {
     const p = pathway(
       {
         permits: [
           { kind: 'study', from: '2021-09-01', to: '2026-07-31' },
-          { kind: 'temporary', from: '2026-08-01' },
+          { kind: 'job-seeking', from: '2026-08-01' },
         ],
       },
       'DE-NATURALISATION',
     );
-    expect(p.status).toBe('UNKNOWN');
-    expect(p.summary).toContain('§ 20');
+    // § 20 is on the list in StAG § 10 Abs. 1 Satz 1 Nr. 2.
+    expect(p.status).toBe('NOT_MET');
+  });
+
+  test('§ 20 job seeking: settlement yes, EU long-term no (task 73)', () => {
+    const req = {
+      permits: [
+        { kind: 'skilled' as const, from: '2020-01-01', to: '2024-12-31' },
+        { kind: 'job-seeking' as const, from: '2025-01-01' },
+      ],
+    };
+    // § 20 does not rule out § 9 (unlike § 20a Abs. 6).
+    expect(pathway(req, 'DE-SETTLEMENT').status).toBe('MET');
+    // A temporary purpose for EU long-term residence (§ 9a Abs. 3 Nr. 5).
+    expect(pathway(req, 'DE-EU-LONG-TERM').status).toBe('NOT_MET');
   });
 
   test('met today only with discretionary credit: unknown (review69-1)', () => {

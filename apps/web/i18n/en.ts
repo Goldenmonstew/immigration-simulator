@@ -575,7 +575,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.kind.other':
     'Other residence permit for a lasting purpose (such as family of a foreign national or other work)',
   'de.kind.temporary':
-    'Permit for a temporary purpose (such as § 20 job seeking, au pair, seasonal work, language courses, ICT card)',
+    'Permit for a temporary purpose (such as au pair, seasonal work, language courses, the § 20a opportunity card, ICT card)',
+  'de.kind.job-seeking':
+    'Looking for work after study, research or training (§ 20)',
   'de.kind.protection': 'Asylum or refugee status (§ 25 Abs. 1, Abs. 2 Satz 1)',
   'de.kind.subsidiary': 'Subsidiary protection (§ 25 Abs. 2 Satz 2)',
   'de.kind.humanitarian':
