@@ -1004,6 +1004,77 @@ describe('Einbürgerung (StAG §§ 9, 10, 12b)', () => {
   });
 });
 
+describe('every condition a conditional date rests on (task 73)', () => {
+  test('EU long-term residence: renewal and absences', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-03-15',
+        permits: [
+          {
+            kind: 'skilled',
+            from: '2021-03-15',
+            to: '2026-02-28',
+            renewing: true,
+          },
+        ],
+        // 179 + 123 = 302 days abroad: over 300, within 306.
+        trips: [
+          { departed: '2022-01-01', returned: '2022-06-30' },
+          { departed: '2023-01-01', returned: '2023-05-05' },
+        ],
+      },
+      'DE-EU-LONG-TERM',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('§ 81 Abs. 4');
+    expect(p.summary).toContain('PD-125');
+  });
+
+  test('naturalisation: renewal and discretionary credit', () => {
+    const p = pathway(
+      {
+        permits: [
+          { kind: 'other', from: '2018-01-01', to: '2022-12-31' },
+          {
+            kind: 'other',
+            from: '2024-01-01',
+            to: '2026-10-31',
+            renewing: true,
+          },
+        ],
+      },
+      'DE-NATURALISATION',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('§ 81 Abs. 4');
+    expect(p.summary).toContain('§ 12b Abs. 2');
+    expect(p.pendingDetails).toEqual(
+      expect.arrayContaining(['PD-124', 'PD-128']),
+    );
+  });
+
+  test('settlement: an exchange abroad and a pending renewal', () => {
+    const p = pathway(
+      {
+        permits: [
+          { kind: 'study', from: '2021-10-01', to: '2026-05-14' },
+          {
+            kind: 'skilled',
+            from: '2026-05-15',
+            to: '2027-12-31',
+            renewing: true,
+          },
+        ],
+        trips: [{ departed: '2025-09-15', returned: '2026-05-15' }],
+      },
+      'DE-SETTLEMENT',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('2025-09-15 至 2026-05-15');
+    expect(p.summary).toContain('§ 81 Abs. 4');
+  });
+});
+
 describe('trips abroad and loss of residence (§ 51)', () => {
   test('no trips: not applicable', () => {
     expect(pathway({}, 'DE-TRAVEL').status).toBe('NOT_APPLICABLE');

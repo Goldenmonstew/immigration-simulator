@@ -535,12 +535,44 @@ export function evaluateGermany(req: DeRequest): DeResult {
       `Your EU long-term residence may have lapsed on the trip ${tripText(e)}: if all of that time was outside the EU it lapsed after ${e.euBy} (§ 51 Abs. 9 Satz 1 Nr. 3); time in other EU countries does not count against it, which this pilot cannot tell (see “Trips abroad and loss of residence”).`,
     );
   };
-  /** A date that holds only if no trip that may have ended a title did. */
-  const lapseText = (d: IsoDate) =>
-    L(
-      `${doubtful.map(tripText).join('、')} 的出境是否使许可失效，试点无法判断（见"出境与居留失效"）；确定的日期按已失效计，未失效的话，最早 ${d}。`,
-      ` Whether the trip ${doubtful.map(tripText).join(', ')} ended your title cannot be told (see “Trips abroad and loss of residence”); certain dates take it as ended, and if it did not, it could be ${d}.`,
+  /** What a conditional date may rest on beyond the certain reading. */
+  type Cond = 'lapse' | 'pending' | 'permit' | 'absence' | 'credit';
+  type Allow = ReadonlySet<Cond>;
+  const NONE: Allow = new Set();
+  /**
+   * The readings `meets` needs on `d`: each one it fails without, or if none
+   * is needed on its own, the ones that each suffice.
+   */
+  const needed = (
+    conds: Cond[],
+    meets: (d: IsoDate, allow: Allow) => boolean,
+    d: IsoDate,
+  ) => {
+    const each = conds.filter(
+      (c) => !meets(d, new Set(conds.filter((x) => x !== c))),
     );
+    return each.length
+      ? { conds: each, all: true }
+      : { conds: conds.filter((c) => meets(d, new Set([c]))), all: false };
+  };
+  /** "If A and B, it could be d", with every reading the date rests on. */
+  const conditional = (
+    d: IsoDate,
+    n: { conds: Cond[]; all: boolean },
+    phrase: Record<Cond, [string, string]>,
+  ) =>
+    L(
+      `若${n.conds.map((c) => phrase[c][0]).join(n.all ? '，且' : '，或')}，最早 ${d}。`,
+      ` If ${n.conds.map((c) => phrase[c][1]).join(n.all ? ', and ' : ', or ')}, it could be ${d}.`,
+    );
+  const lapsePhrase: [string, string] = [
+    `出境（${doubtful.map(tripText).join('、')}）没有使许可失效（见"出境与居留失效"）`,
+    `the trip ${doubtful.map(tripText).join(', ')} did not end your title (see “Trips abroad and loss of residence”)`,
+  ];
+  const pendingPhrase: [string, string] = [
+    '尚待决定的续期获批（许可到期后的等待期间才计入，§ 81 Abs. 4，PD-124）',
+    'the renewal being decided is granted (only then does the wait after the permit ran out count, § 81 Abs. 4, PD-124)',
+  ];
   const doubtCheck = (k: number): PilotCheck => ({
     text: L(
       '模拟日所持的欧盟长期居留仍有效（离开欧盟的期间未超过期限）',
@@ -629,12 +661,6 @@ export function evaluateGermany(req: DeRequest): DeResult {
     '录入的许可之间有空档即中断（§ 85 允许不计 1 年以内的中断，属裁量，PD-124）。到期前已申请续期的请勾选"到期前已申请续期"：录入了续期后的新许可，等待期间照常计入；还在等待决定的，定居许可与欧盟长期居留依赖等待期间的结果为待确认，入籍则按合法居留计入（§ 81 Abs. 4，PD-124）。',
     'Any gap between the permits you entered breaks continuity (§ 85 lets gaps of up to a year be disregarded at discretion, PD-124). If you applied to renew before expiry, tick “Renewal or a new permit applied for before it ran out”: once the new permit is entered the wait counts; while the decision is pending, settlement and EU long-term results that rely on the wait are uncertain, while for naturalisation it counts as lawful residence (§ 81 Abs. 4, PD-124).',
   );
-  /** The reason a date relies on a renewal still being decided. */
-  const pendingText = (possible: IsoDate) =>
-    L(
-      `你的许可到期后正在等待续期决定（§ 81 Abs. 4 视为继续有效），这段时间能否计入取决于续期获批；获批的话，最早 ${possible}（PD-124）。`,
-      ` Your permit ran out while a renewal is being decided (it continues meanwhile, § 81 Abs. 4), and whether that time counts depends on the renewal being granted; if it is, it could be ${possible} (PD-124).`,
-    );
   const lapse = L(
     '导致许可失效的出境（§ 51，见"出境与居留失效"）使计时归零；失效后要等录入的下一张许可生效才重新起算。',
     'A trip that ended your title (§ 51, see “Trips abroad and loss of residence”) resets the count, which starts again only when the next permit you entered begins.',
@@ -683,49 +709,48 @@ export function evaluateGermany(req: DeRequest): DeResult {
     // in in-company training either, unless you held a § 18a or § 18b permit
     // before it; school-based training (Abs. 2) and some temporary permits
     // differ, so those are uncertain (PD-122).
-    const holds = (k: number): Verdict => {
+    const holdsOK = (k: number, allow: Allow): boolean => {
       const kd = kinds[k];
-      if (!kd) return 'no';
-      if (rule.hold.includes(kd))
-        return doubt[k] || pending[k] ? 'maybe' : 'yes';
-      if (route !== 'general') return 'no';
-      if (kd === 'temporary') return 'maybe';
-      if (kd !== 'training') return 'no';
+      if (!kd) return false;
+      const held =
+        (!doubt[k] || allow.has('lapse')) &&
+        (!pending[k] || allow.has('pending'));
+      if (rule.hold.includes(kd)) return held;
+      if (route !== 'general') return false;
+      if (kd === 'temporary') return allow.has('permit');
+      if (kd !== 'training') return false;
       const since = req.permits
         .filter((p) => p.kind === 'training' && p.from <= days.date(k))
         .map((p) => p.from)
         .sort()
         .at(-1);
-      return req.permits.some(
+      const prior = req.permits.some(
         (p) => p.kind === 'skilled' && !!since && p.from < since,
-      ) &&
-        !doubt[k] &&
-        !pending[k]
-        ? 'yes'
-        : 'maybe';
+      );
+      return held && (prior || allow.has('permit'));
     };
     const timeWith = (c: Count) => {
       const bonus = bonusOf(c);
-      return (d: IsoDate): Verdict => {
+      return (d: IsoDate, allow: Allow): boolean => {
         const k = days.index(d);
-        if (k < 1 || c.run[k] < 0) return 'no';
-        const h = holds(k);
+        if (k < 1 || c.run[k] < 0 || !holdsOK(k, allow)) return false;
         // On a Blue Card only holding it is timed; the months come from the
         // employment you entered.
-        if (route === 'blue-card' || h === 'no') return h;
+        if (route === 'blue-card') return true;
         const r = c.run[k - 1];
-        if (r < 0) return 'no';
+        if (r < 0) return false;
         const have = c.sums[k] - c.sums[r] + (bonus.get(r) ?? 0);
-        return have >= 2 * daysBetween(addYears(d, -rule.years), d) ? h : 'no';
+        return have >= 2 * daysBetween(addYears(d, -rule.years), d);
       };
     };
     const sureTime = timeWith(c);
-    const ifNotLapsed = notLapsed === c ? sureTime : timeWith(notLapsed);
-    /** Met only if a trip that may have ended the title did not. */
-    const needsNoLapse = (d: IsoDate) =>
-      sureTime(d) === 'no' && ifNotLapsed(d) !== 'no';
+    const lenientTime = notLapsed === c ? sureTime : timeWith(notLapsed);
+    const timeOK = (d: IsoDate, allow: Allow) =>
+      (allow.has('lapse') ? lenientTime : sureTime)(d, allow);
+    const conds: Cond[] = ['lapse', 'pending', 'permit'];
+    const all: Allow = new Set(conds);
     const time = (d: IsoDate): Verdict =>
-      needsNoLapse(d) ? 'maybe' : sureTime(d);
+      timeOK(d, NONE) ? 'yes' : timeOK(d, all) ? 'maybe' : 'no';
     const need = rule.months;
     const entered =
       route === 'blue-card'
@@ -741,29 +766,26 @@ export function evaluateGermany(req: DeRequest): DeResult {
       return addMonths(from, Math.max(0, need - entered));
     };
     const missing = need !== undefined && entered === undefined;
-    const ok = (d: IsoDate, accept: Verdict[]) => {
+    const meets = (d: IsoDate, allow: Allow) => {
       const by = countedBy(d);
-      return accept.includes(time(d)) && (!by || d >= by);
+      return timeOK(d, allow) && (!by || d >= by);
     };
     const timeEarliest = firstDate((d) => time(d) !== 'no');
-    const earliest = missing ? undefined : firstDate((d) => ok(d, ['yes']));
-    const possible = missing
-      ? undefined
-      : firstDate((d) => ok(d, ['yes', 'maybe']));
-    /** Why a settlement date is met only on an uncertain reading. */
-    const reason = (d: IsoDate) => {
-      const k = days.index(d);
-      return doubt[k]
-        ? `${L('', ' ')}${doubtText(k)}${L(`仍有效的话，最早 ${d}。`, ` If it is still valid, it could be ${d}.`)}`
-        : needsNoLapse(d)
-          ? lapseText(d)
-          : pending[k]
-            ? pendingText(d)
-            : L(
-                `若你当时所持的许可不排除定居许可（如学校职业培训 § 16a Abs. 2；企业内培训、§ 16d、§ 16f、§ 20a 等排除），最早 ${d}（PD-122）。`,
-                ` If the permit you hold then does not rule out a settlement permit (school-based training under § 16a Abs. 2 does not; in-company training, § 16d, § 16f, § 20a and others do), it could be ${d} (PD-122).`,
-              );
+    const earliest = missing ? undefined : firstDate((d) => meets(d, NONE));
+    const possible = missing ? undefined : firstDate((d) => meets(d, all));
+    const phrase: Record<Cond, [string, string]> = {
+      lapse: lapsePhrase,
+      pending: pendingPhrase,
+      permit: [
+        '你当时所持的许可不排除定居许可（学校职业培训 § 16a Abs. 2 不排除；企业内培训、§ 16d、§ 16f、§ 20a 等排除，PD-122）',
+        'the permit you hold then does not rule out a settlement permit (school-based training under § 16a Abs. 2 does not; in-company training, § 16d, § 16f, § 20a and others do, PD-122)',
+      ],
+      absence: ['', ''],
+      credit: ['', ''],
     };
+    /** Why a settlement date is met only on an uncertain reading. */
+    const reason = (d: IsoDate, test: (d: IsoDate, allow: Allow) => boolean) =>
+      conditional(d, needed(conds, test, d), phrase);
     const status: PilotStatus = missing
       ? timeEarliest
         ? 'UNKNOWN'
@@ -981,7 +1003,7 @@ export function evaluateGermany(req: DeRequest): DeResult {
               ? L(
                   `按${routeName}，${length}的条件只在下述待确认的情形下满足；请同时填写${counted}。`,
                   `On ${routeName}, ${route === 'blue-card' ? 'holding the Blue Card' : `the ${length} held`} is met only in the uncertain case below; enter ${counted} as well.`,
-                ) + reason(timeEarliest)
+                ) + reason(timeEarliest, timeOK)
               : L(
                   `按${routeName}，${length}的条件最早 ${timeEarliest} 满足；请填写${counted}，才能确认。`,
                   `On ${routeName}, ${route === 'blue-card' ? 'holding the Blue Card' : `the ${length} held`} is met from ${timeEarliest}; enter ${counted} to confirm the date.`,
@@ -1010,7 +1032,7 @@ export function evaluateGermany(req: DeRequest): DeResult {
                       `On ${routeName}, with your record you will not meet the time requirements for a settlement permit within 10 years.`,
                     )) +
             (possible && (!earliest || possible < earliest)
-              ? reason(possible)
+              ? reason(possible, meets)
               : ''),
         checks,
         notChecked: [
@@ -1088,15 +1110,26 @@ export function evaluateGermany(req: DeRequest): DeResult {
         return 'yes';
       return start !== undefined && absent <= totalMax ? 'maybe' : 'no';
     };
-    const verdict = (d: IsoDate): Verdict => {
-      const sure = judge(strict, d);
-      return sure === 'yes'
-        ? pending[days.index(d)]
-          ? 'maybe'
-          : 'yes'
-        : sure === 'maybe' || judge(notLapsed, d) !== 'no'
-          ? 'maybe'
-          : 'no';
+    const conds: Cond[] = ['lapse', 'pending', 'absence'];
+    const all: Allow = new Set(conds);
+    const meets = (d: IsoDate, allow: Allow) => {
+      const got = judge(allow.has('lapse') ? notLapsed : strict, d);
+      return (
+        (got === 'yes' || (got === 'maybe' && allow.has('absence'))) &&
+        (!pending[days.index(d)] || allow.has('pending'))
+      );
+    };
+    const verdict = (d: IsoDate): Verdict =>
+      meets(d, NONE) ? 'yes' : meets(d, all) ? 'maybe' : 'no';
+    const phrase: Record<Cond, [string, string]> = {
+      lapse: lapsePhrase,
+      pending: pendingPhrase,
+      absence: [
+        `出境合计按 ${v.euTotalAbsenceMonths.value} 个日历月的较宽口径（最多 ${totalMax} 天）全部计入（超过上限时怎样扣除，条文未写明，PD-125）`,
+        `all of your absences count under a generous reading of ${v.euTotalAbsenceMonths.value} calendar months (up to ${totalMax} days; how time over the limit is taken off is not stated, PD-125)`,
+      ],
+      permit: ['', ''],
+      credit: ['', ''],
     };
     const already = held === 'eu-long-term';
     const simIndex = days.index(sim);
@@ -1161,25 +1194,7 @@ export function evaluateGermany(req: DeRequest): DeResult {
                         'With your record you will not meet the time requirements for EU long-term residence within 10 years.',
                       )) +
               (possible && (!earliest || possible < earliest)
-                ? pending[days.index(possible)]
-                  ? pendingText(possible) +
-                    (judge(strict, possible) === 'no'
-                      ? L(
-                          `同时还须 ${doubtful.map(tripText).join('、')} 的出境没有使许可失效。`,
-                          ` It also needs the trip ${doubtful.map(tripText).join(', ')} not to have ended your title.`,
-                        )
-                      : judge(strict, possible) === 'maybe'
-                        ? L(
-                            `同时还须出境合计按 ${v.euTotalAbsenceMonths.value} 个月的较宽口径全部计入（PD-125）。`,
-                            ` It also needs all of your absences to count under a generous reading of the ${v.euTotalAbsenceMonths.value} months (PD-125).`,
-                          )
-                        : '')
-                  : judge(strict, possible) === 'no'
-                    ? lapseText(possible)
-                    : L(
-                        `若出境合计按 ${v.euTotalAbsenceMonths.value} 个月的较宽口径全部计入，最早 ${possible}；超过上限时怎样扣除，条文未写明（PD-125）。`,
-                        ` Counting all of your absences under a generous reading of the ${v.euTotalAbsenceMonths.value} months, it could be ${possible}; how time over the limit is taken off is not stated (PD-125).`,
-                      )
+                ? conditional(possible, needed(conds, meets, possible), phrase)
                 : ''),
       checks: unsureHeld
         ? [doubtCheck(simIndex)]
@@ -1320,28 +1335,28 @@ export function evaluateGermany(req: DeRequest): DeResult {
     // and others; § 23, § 25a and § 25b are not on it); whether a temporary
     // permit is listed depends on its section, and holding EU long-term
     // residence may be uncertain after a long trip.
-    const holds = (k: number): Verdict => {
+    const holdsOK = (k: number, allow: Allow): boolean => {
       const kd = kinds[k];
-      return !kd
-        ? 'no'
-        : TITLES.includes(kd) || kd === 'integration'
-          ? doubt[k] || pending[k]
-            ? 'maybe'
-            : 'yes'
-          : kd === 'temporary'
-            ? 'maybe'
-            : 'no';
+      if (!kd) return false;
+      if (TITLES.includes(kd) || kd === 'integration')
+        return (
+          (!doubt[k] || allow.has('lapse')) &&
+          (!pending[k] || allow.has('pending'))
+        );
+      return kd === 'temporary' && allow.has('permit');
     };
-    const residence = (d: IsoDate): Verdict => {
+    const residenceOK = (d: IsoDate, allow: Allow): boolean => {
       const k = days.index(d);
-      if (k < 1 || run[k] < 0) return 'no';
-      const h = holds(k);
+      if (k < 1 || run[k] < 0 || !holdsOK(k, allow)) return false;
       const r = run[k - 1];
-      if (h === 'no' || r < 0) return 'no';
+      if (r < 0) return false;
       const need = daysBetween(addYears(d, -years), d);
-      if (k - r >= need) return h;
-      return k - r + credit(r) >= need ? 'maybe' : 'no';
+      return (
+        k - r >= need || (allow.has('credit') && k - r + credit(r) >= need)
+      );
     };
+    const conds: Cond[] = ['lapse', 'pending', 'permit', 'credit'];
+    const all: Allow = new Set(conds);
     // Married for 2 years to someone German throughout them and on the day
     // (AH-StAG Nr. 9.1 Rdn. 6).
     const marriage =
@@ -1354,30 +1369,39 @@ export function evaluateGermany(req: DeRequest): DeResult {
       marriage && afterYears(marriage, v.spouseMarriageYears.value);
     const married = (d: IsoDate) =>
       route !== 'spouse' || (!!marriedFrom && d >= marriedFrom);
-    const earliest = firstDate((d) => married(d) && residence(d) === 'yes');
-    const possible = firstDate((d) => married(d) && residence(d) !== 'no');
+    const meets = (d: IsoDate, allow: Allow) =>
+      married(d) && residenceOK(d, allow);
+    const earliest = firstDate((d) => meets(d, NONE));
+    const possible = firstDate((d) => meets(d, all));
     const status = statusOf(earliest, possible);
-    const now = residence(sim);
+    const now: Verdict = residenceOK(sim, NONE)
+      ? 'yes'
+      : residenceOK(sim, all)
+        ? 'maybe'
+        : 'no';
     const turbo = v.turboAbolishedFrom.value;
     const fiveFrom = v.fiveYearsFrom.value;
     const asylum = req.permits.some((p) => p.kind === 'asylum');
-    const unsureAt = possible ? days.index(possible) : -1;
     const why =
-      unsureAt < 0 || (earliest && possible! >= earliest)
-        ? undefined
-        : doubt[unsureAt]
-          ? 'doubt'
-          : pending[unsureAt]
-            ? 'pending'
-            : kinds[unsureAt] === 'temporary'
-              ? 'temporary'
-              : 'credit';
-    const onTemporary = why === 'temporary';
-    // The uncertain date may also rest on discretionary credit.
-    const withCredit =
-      why === 'doubt' &&
-      unsureAt - run[unsureAt - 1] <
-        daysBetween(addYears(possible!, -years), possible!);
+      possible && (!earliest || possible < earliest)
+        ? needed(conds, meets, possible)
+        : undefined;
+    const phrase: Record<Cond, [string, string]> = {
+      lapse: lapsePhrase,
+      pending: [
+        '只凭等待中的续期申请也算持有 § 10 Abs. 1 Satz 1 Nr. 2 要求的许可（有争议），且模拟日之后续期获批或申请仍在等待（§ 81 Abs. 4，PD-124）',
+        'holding only a pending renewal application counts as holding the permit § 10 Abs. 1 Satz 1 Nr. 2 requires (which is disputed), and after the simulation date the renewal is granted or still pending (§ 81 Abs. 4, PD-124)',
+      ],
+      permit: [
+        '你当时所持的临时目的许可不在 § 10 Abs. 1 Satz 1 Nr. 2 的清单内（如互惠生按 § 19c 不在，§ 16f 语言课程、§ 19 ICT 卡、§ 20a 机会卡在，PD-122）',
+        'the temporary permit you hold then is not on the list in § 10 Abs. 1 Satz 1 Nr. 2 (au pair under § 19c is not; § 16f language courses, the § 19 ICT card and the § 20a opportunity card are, PD-122)',
+      ],
+      credit: [
+        `主管机关酌情把中断前的居住最多 ${v.priorResidenceCreditYears.value[route]} 年计入${route === 'spouse' ? '（只计婚后的居住）' : ''}（§ 12b Abs. 2，裁量，PD-128）`,
+        `the authority uses its discretion to count up to ${v.priorResidenceCreditYears.value[route]} years of residence before the interruption${route === 'spouse' ? ' (only while married)' : ''} (§ 12b Abs. 2, PD-128)`,
+      ],
+      absence: ['', ''],
+    };
     pathways.push({
       id: 'DE-NATURALISATION',
       title: L('入籍（Einbürgerung）', 'Naturalisation (Einbürgerung)'),
@@ -1403,34 +1427,7 @@ export function evaluateGermany(req: DeRequest): DeResult {
                   `按现有记录，10 年内达不到入籍的时间条件。`,
                   `With your record you will not meet the time requirements for naturalisation within 10 years.`,
                 )) +
-        (why === 'pending'
-          ? L(
-              `你的许可到期后正在等待续期决定：等待时间按合法居留计（§ 81 Abs. 4），但入籍当天只凭续期申请的延续效力，算不算持有 § 10 Abs. 1 Satz 1 Nr. 2 要求的许可有争议；模拟日之后的等待还要看申请仍在等待或续期获批。续期获批的话，最早 ${possible}（PD-124）。`,
-              ` Your permit ran out while a renewal is being decided: the wait counts as lawful residence (§ 81 Abs. 4), but whether the continuing effect of the application alone counts as holding the permit § 10 Abs. 1 Satz 1 Nr. 2 requires on the day is disputed, and waiting time after the simulation date also depends on the application still pending or the renewal being granted. If the renewal is granted, it could be ${possible} (PD-124).`,
-            )
-          : why === 'doubt'
-            ? `${L('', ' ')}${doubtText(unsureAt)}${
-                withCredit
-                  ? L(
-                      `仍有效、且主管机关酌情把中断前的居住最多 ${v.priorResidenceCreditYears.value[route]} 年计入的话，最早 ${possible}（§ 12b Abs. 2，裁量，PD-128）。`,
-                      ` If it is still valid and the authority uses its discretion to count up to ${v.priorResidenceCreditYears.value[route]} years of residence before the interruption, it could be ${possible} (§ 12b Abs. 2, PD-128).`,
-                    )
-                  : L(
-                      `仍有效的话，最早 ${possible}。`,
-                      ` If it is still valid, it could be ${possible}.`,
-                    )
-              }`
-            : why
-              ? onTemporary
-                ? L(
-                    `若你当时所持的临时目的许可不在 § 10 Abs. 1 Satz 1 Nr. 2 的清单内（如互惠生按 § 19c 不在，§ 16f 语言课程、§ 19 ICT 卡、§ 20a 机会卡在），最早 ${possible}（PD-122）。`,
-                    ` If the temporary permit you hold then is not on the list in § 10 Abs. 1 Satz 1 Nr. 2 (au pair under § 19c is not; § 16f language courses, the § 19 ICT card and the § 20a opportunity card are), it could be ${possible} (PD-122).`,
-                  )
-                : L(
-                    `若主管机关酌情把中断前的居住最多 ${v.priorResidenceCreditYears.value[route]} 年计入${route === 'spouse' ? '（只计婚后的居住）' : ''}，最早 ${possible}（§ 12b Abs. 2，裁量，PD-128）。`,
-                    ` If the authority uses its discretion to count up to ${v.priorResidenceCreditYears.value[route]} years of residence before the interruption${route === 'spouse' ? ' (only while married)' : ''}, it could be ${possible} (§ 12b Abs. 2, PD-128).`,
-                  )
-              : '') +
+        (why ? conditional(possible!, why, phrase) : '') +
         (route === 'general'
           ? L(
               `3 年快速入籍（§ 10 Abs. 3）自 ${turbo} 起取消，一般须满 ${years} 年。`,
@@ -1527,10 +1524,10 @@ export function evaluateGermany(req: DeRequest): DeResult {
       ],
       pendingDetails: [
         'PD-120',
-        ...(onTemporary ? ['PD-122'] : []),
+        ...(why?.conds.includes('permit') ? ['PD-122'] : []),
         'PD-124',
         'PD-127',
-        ...(why === 'credit' || withCredit ? ['PD-128'] : []),
+        ...(why?.conds.includes('credit') ? ['PD-128'] : []),
         'PD-129',
       ],
     });
