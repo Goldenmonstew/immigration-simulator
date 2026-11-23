@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { evaluate } from '@uk-immigration/engine';
 import { AssessmentColumns } from '../../../components/result-view';
 import { useTranslation } from '../../../i18n/locale';
 import { countryPath } from '../../../lib/site-countries';
@@ -12,13 +11,15 @@ import {
   characterOf,
   narrative,
   newGame,
+  ukEndingAssessment,
+  ukGameRuleColumns,
   type GameState,
 } from '@uk-immigration/game';
 import { gameDraft, endingMemories, itemIcon } from './session';
 import { portraitPath } from './art';
 import styles from './game.module.css';
 import { localText } from './game-ui';
-import { asset } from '../../../lib/asset';
+import { ukAsset } from './country';
 
 export function LifeMemories({ state }: { state: GameState }) {
   const { t, locale } = useTranslation();
@@ -67,7 +68,7 @@ export function LifeMemories({ state }: { state: GameState }) {
                     className={styles.itemIcon}
                     aria-hidden="true"
                     style={{
-                      backgroundImage: `url("${asset(`/game/assets/indoor/${item.atlas}`)}")`,
+                      backgroundImage: `url("${ukAsset(`/assets/indoor/${item.atlas}`)}")`,
                       backgroundSize: `${item.frames * 32}px 32px`,
                       backgroundPosition: `${-item.frame * 32}px 0`,
                     }}
@@ -152,14 +153,7 @@ export function Ending({
 }) {
   const { t, locale } = useTranslation();
   const application = state.settlementApplication;
-  const result =
-    application && application.cashSavings !== state.timeline.cashSavings
-      ? evaluate({
-          simulationDate: state.date,
-          timeline: { ...state.timeline, cashSavings: application.cashSavings },
-          locale,
-        })
-      : state.result;
+  const result = ukEndingAssessment(state, locale);
   return (
     <section className={styles.ending}>
       <h1>{t('game.ending')}</h1>
@@ -232,6 +226,7 @@ export function Ending({
         <p className={styles.notice}>{result.shortCircuit.message}</p>
       )}
       <AssessmentColumns
+        ruleSets={ukGameRuleColumns}
         result={result}
         simulationDate={state.date}
         idPrefix="ending-"

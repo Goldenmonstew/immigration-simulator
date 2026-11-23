@@ -6,6 +6,7 @@ import type {
   CountryResult,
   CountryPathway,
   CountryCheck,
+  RuleSet,
   SimulationResult,
 } from '@uk-immigration/engine';
 import type { TranslationKey } from '../i18n';
@@ -556,17 +557,25 @@ export function PrincipalAssessment<D extends CountryDraft, K>({
 // The UK game still supplies engine assessments directly.
 export function AssessmentColumns({
   result,
+  ruleSets,
   ...props
 }: {
   result: SimulationResult;
+  ruleSets?: readonly RuleSet[];
   idPrefix?: string;
   simulationDate?: string;
 }) {
   const { locale } = useTranslation();
+  const countryResult = ukResult(result, locale);
+  if (ruleSets) {
+    countryResult.columns = countryResult.columns.filter((column) =>
+      ruleSets.some((ruleSet) => ruleSet.id === column.id),
+    );
+  }
   return (
     <CountryAssessmentColumns
       country={ukModule}
-      result={ukResult(result, locale)}
+      result={countryResult}
       {...props}
     />
   );
