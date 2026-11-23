@@ -26,6 +26,7 @@ export const JP_PR_ROUTES = [
   'general',
   'spouse',
   'child',
+  'child-birth',
   'teijusha',
   'refugee',
   'hsp70',
@@ -93,6 +94,11 @@ export type JpPrRequest =
     }
   /** Spouse of a Japanese national or permanent resident. */
   | { route: 'spouse'; marriedLifeFrom: IsoDate }
+  /**
+   * Born in Japan, acquiring status after birth (art. 22-2) rather than
+   * changing it.
+   */
+  | { route: 'child-birth'; bornOn: IsoDate }
   | { route: 'child' };
 
 export type JpNaturalisationRequest =
@@ -270,7 +276,55 @@ export function evaluateJapan(req: JpRequest): JpResult {
   const pathways: JpPathway[] = [];
 
   // ---------- Permanent residence (art. 22, guidelines) ----------
-  {
+  if (req.pr.route === 'child-birth') {
+    // Born in Japan: apply to acquire the status within the days after
+    // birth (art. 22-2(2), (4)); the guideline's years are for a change.
+    const born = req.pr.bornOn;
+    const deadline = addDays(born, v.birthAcquisitionDays.value);
+    const days = v.birthAcquisitionDays.value;
+    const status: PilotStatus =
+      sim > deadline ? 'NOT_MET' : sim < born ? 'FUTURE' : 'MET';
+    pathways.push({
+      id: 'JP-PR',
+      title: L('永住许可（永住許可）', 'Permanent residence (永住許可)'),
+      status,
+      earliestDate:
+        status === 'MET' ? sim : status === 'FUTURE' ? born : undefined,
+      summary:
+        status === 'NOT_MET'
+          ? L(
+              `出生后取得在留资格的申请须在出生之日起 ${days} 日内（到 ${deadline}）递交，期限已过；现在请改选"实子等（在留资格变更）"按在留年限计算。`,
+              `An application to acquire status after birth must be made within ${days} days of birth (by ${deadline}); that has passed, so choose the child route for a change of status, which counts years of stay.`,
+            )
+          : L(
+              `在日本出生的，可在出生之日起 ${days} 日内（到 ${deadline}）申请取得永住者资格，不必等在留年限${status === 'MET' ? '；模拟日在期限内' : `；出生后（${born} 起）才能递交`}。`,
+              `Born in Japan, you can apply to acquire permanent resident status within ${days} days of birth (by ${deadline}) without waiting for years of stay${status === 'MET' ? '; the simulation date is within that period' : `; you can apply from the birth (${born})`}.`,
+            ),
+      checks: [
+        {
+          text: L(
+            `在出生之日起 ${days} 日内（${born} 至 ${deadline}）递交取得在留资格的申请`,
+            `Apply to acquire status within ${days} days of birth (${born} to ${deadline})`,
+          ),
+          met: status === 'MET',
+          sources: v.birthAcquisitionDays.sources,
+        },
+      ],
+      notChecked: [
+        L(
+          '父母是否为日本人、永住者或特別永住者，以及永住是否合于日本国利益等其他要件（入管法第22条第2項、第22条の2第4項）',
+          'Whether a parent is a Japanese national, permanent resident or special permanent resident, and the other requirements such as permanent residence being in Japan’s interest (art. 22(2), 22-2(4))',
+        ),
+      ],
+      assumptions: [
+        L(
+          `${days} 日从出生次日起算（民法初日不算入），到出生后第 ${days} 天为止（PD-130）。`,
+          `The ${days} days run from the day after birth (the Civil Code leaves out the first day), up to the ${days}th day after birth (PD-130).`,
+        ),
+      ],
+      pendingDetails: ['PD-130'],
+    });
+  } else {
     const pr = req.pr;
     const special = pr.route !== 'general';
     const needs = (d: IsoDate): Need[] => {

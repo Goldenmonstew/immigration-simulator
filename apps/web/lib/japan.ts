@@ -43,6 +43,8 @@ export interface JpForm {
   excluded: JpExcludedRow[];
   /** Spouse route for permanent residence: married life from. */
   marriedLifeFrom: string;
+  /** Born in Japan, acquiring status after birth. */
+  bornOn: string;
   natRoute: JpNaturalisationRoute | '';
   dateOfBirth: string;
   /** Spouse route for naturalisation: the registered marriage. */
@@ -73,6 +75,7 @@ export function emptyJpForm(today: string): JpForm {
     newStatusStart: '',
     excluded: [],
     marriedLifeFrom: '',
+    bornOn: '',
     natRoute: '',
     dateOfBirth: '',
     marriedOn: '',
@@ -82,7 +85,10 @@ export function emptyJpForm(today: string): JpForm {
 
 /** Routes that count from a status, recognition or points date. */
 export const needsStatusStart = (route: JpForm['prRoute']) =>
-  route !== '' && route !== 'spouse' && route !== 'child';
+  route !== '' &&
+  route !== 'spouse' &&
+  route !== 'child' &&
+  route !== 'child-birth';
 
 /** Field ids with an error message key; empty when the form can be evaluated. */
 export function validateJpForm(form: JpForm): JpErrors {
@@ -116,6 +122,7 @@ export function validateJpForm(form: JpForm): JpErrors {
   }
   if (form.prRoute === 'spouse')
     date('jp-married-life-from', form.marriedLifeFrom);
+  if (form.prRoute === 'child-birth') date('jp-born-on', form.bornOn);
   if (!form.natRoute) errors['jp-nat-route'] = 'jp.error.natRoute';
   if (form.natRoute === 'general') date('jp-date-of-birth', form.dateOfBirth);
   if (form.natRoute === 'spouse') date('jp-married-on', form.marriedOn);
@@ -156,21 +163,24 @@ export function jpRequest(form: JpForm, locale: Locale): JpRequest {
       ? { route: 'spouse', marriedLifeFrom: form.marriedLifeFrom }
       : form.prRoute === 'child'
         ? { route: 'child' }
-        : form.prRoute === 'general'
-          ? {
-              route: 'general',
-              statusStart: form.statusNone ? 'none' : form.statusStart,
-              ...(form.newStatus === 'own'
-                ? { newStatusStart: form.newStatusStart }
-                : form.newStatus === 'none'
-                  ? { newStatusStart: 'none' as const }
-                  : {}),
-              ...(form.excluded.length ? { excluded: form.excluded } : {}),
-            }
-          : {
-              route: form.prRoute as 'teijusha' | 'refugee' | 'hsp70' | 'hsp80',
-              statusStart: form.statusStart,
-            };
+        : form.prRoute === 'child-birth'
+          ? { route: 'child-birth', bornOn: form.bornOn }
+          : form.prRoute === 'general'
+            ? {
+                route: 'general',
+                statusStart: form.statusNone ? 'none' : form.statusStart,
+                ...(form.newStatus === 'own'
+                  ? { newStatusStart: form.newStatusStart }
+                  : form.newStatus === 'none'
+                    ? { newStatusStart: 'none' as const }
+                    : {}),
+                ...(form.excluded.length ? { excluded: form.excluded } : {}),
+              }
+            : {
+                route: form.prRoute as
+                  'teijusha' | 'refugee' | 'hsp70' | 'hsp80',
+                statusStart: form.statusStart,
+              };
   return {
     simulationDate: form.simulationDate,
     stayStart: form.stayStart,

@@ -673,6 +673,39 @@ describe('review70-4', () => {
   });
 });
 
+describe('review70-5', () => {
+  // Born in Japan on 2026-11-10 to a permanent resident: 30 days to apply.
+  const born = (simulationDate: string) =>
+    pr({
+      simulationDate,
+      stayStart: '2026-11-10',
+      pr: { route: 'child-birth', bornOn: '2026-11-10' },
+    });
+
+  test('within 30 days of birth', () => {
+    const p = born('2026-11-23');
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('2026-12-10');
+    expect(p.checks[0].sources[0].srcId).toBe('SRC-110');
+  });
+
+  test('the last day is 30 days after the birth', () => {
+    expect(born('2026-12-10').status).toBe('MET');
+  });
+
+  test('after the window, the change-of-status route', () => {
+    const p = born('2026-12-11');
+    expect(p.status).toBe('NOT_MET');
+    expect(p.summary).toContain('实子等（在留资格变更）');
+  });
+
+  test('before the birth', () => {
+    const p = born('2026-11-01');
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2026-11-10');
+  });
+});
+
 test('English text', () => {
   const result = evaluateJapan({ ...base, locale: 'en' });
   expect(result.pathways[0].title).toBe('Permanent residence (永住許可)');

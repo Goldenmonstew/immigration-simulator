@@ -249,6 +249,37 @@ test('no status the old guideline counts yet', () => {
   expect(evaluateJapan(req).pathways[0].status).toBe('NOT_MET');
 });
 
+test('a child born in Japan applies within 30 days of birth', () => {
+  const born = (simulationDate: string): JpForm => ({
+    ...filled,
+    simulationDate,
+    stayStart: '2026-11-10',
+    prRoute: 'child-birth',
+    bornOn: '2026-11-10',
+  });
+  expect(validateJpForm({ ...born('2026-11-23'), bornOn: '' })).toEqual({
+    'jp-born-on': 'jp.error.date',
+  });
+  expect(jpRequest(born('2026-11-23'), 'en').pr).toEqual({
+    route: 'child-birth',
+    bornOn: '2026-11-10',
+  });
+  const status = (simulationDate: string) =>
+    evaluateJapan(jpRequest(born(simulationDate), 'zh-CN')).pathways[0].status;
+  // In the window, on its last day (2026-12-10), and after it.
+  expect(status('2026-11-23')).toBe('MET');
+  expect(status('2026-12-10')).toBe('MET');
+  expect(status('2026-12-11')).toBe('NOT_MET');
+  const html = render(
+    <PilotResult
+      result={evaluateJapan(jpRequest(born('2026-11-23'), 'zh-CN'))}
+    />,
+    'zh-CN',
+  );
+  // The official page with the filing period.
+  expect(html).toContain('16-4.html#midashi04');
+});
+
 test('leaving with a renewal pending (FAQ Q61)', () => {
   // Period of stay to 2027-04-20, renewal applied for on 2027-04-10.
   const form = (departed: string, returned: string, pending: boolean) => ({

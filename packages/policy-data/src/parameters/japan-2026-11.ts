@@ -76,6 +76,18 @@ export const japan2026_11 = {
     spouseMarriageYears: { value: { old: 3, new: 5 }, sources: spouse },
     spouseStayYears: { value: { old: 1, new: 3 }, sources: spouse },
     childStayYears: { value: { old: 1, new: 3 }, sources: spouse },
+    // Born in Japan: apply to acquire status within this many days of birth.
+    birthAcquisitionDays: {
+      value: 30,
+      sources: [
+        { srcId: 'SRC-110', locator: '第22条の2第2項・第4項' },
+        {
+          srcId: 'SRC-119',
+          locator: '申請期間',
+          url: 'https://www.moj.go.jp/isa/applications/procedures/16-4.html#midashi04',
+        },
+      ],
+    },
     teijushaYears: {
       value: 5,
       sources: [

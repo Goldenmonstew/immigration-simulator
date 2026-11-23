@@ -454,7 +454,12 @@ export const zhCN = {
   'jp.prRoute.choose': '请选择',
   'jp.prRoute.general': '一般：连续在留 10 年，其中以就労或居住资格 5 年',
   'jp.prRoute.spouse': '日本人、永住者或特別永住者的配偶者',
-  'jp.prRoute.child': '日本人、永住者或特別永住者的实子等',
+  'jp.prRoute.child': '日本人、永住者或特別永住者的实子等（在留资格变更）',
+  'jp.prRoute.child-birth':
+    '在日本出生的永住者等的子女，出生后 30 日内申请取得永住者资格',
+  'jp.bornOn': '在日本的出生日期',
+  'jp.bornOnHint':
+    '在日本出生、没有经过上陆手续的，可在出生之日起 30 日内申请取得在留资格（入管法第22条の2）；过了期限请改选"实子等（在留资格变更）"。',
   'jp.prRoute.teijusha': '定住者',
   'jp.prRoute.refugee': '难民或补完的保护对象者',
   'jp.prRoute.hsp70': '高度人才 70 点以上',

@@ -36,6 +36,7 @@ type DateField =
   | 'statusStart'
   | 'newStatusStart'
   | 'marriedLifeFrom'
+  | 'bornOn'
   | 'marriedOn'
   | 'dateOfBirth';
 
@@ -46,6 +47,7 @@ const FIELD_LABELS: Record<string, TranslationKey> = {
   'jp-new-status': 'jp.newStatus',
   'jp-new-status-start': 'jp.newStatusStart',
   'jp-married-life-from': 'jp.marriedLifeFrom',
+  'jp-born-on': 'jp.bornOn',
   'jp-married-on': 'jp.marriedOn',
   'jp-nat-route': 'jp.natRoute',
   'jp-date-of-birth': 'jp.dateOfBirth',
@@ -255,6 +257,11 @@ export default function JapanContent() {
                 onChange={(excluded) => set({ excluded })}
                 onRemove={() => setErrors({})}
               />
+            </div>
+          )}
+          {draft.prRoute === 'child-birth' && (
+            <div className={form.followUp}>
+              {date('jp-born-on', t('jp.bornOn'), 'bornOn', t('jp.bornOnHint'))}
             </div>
           )}
           {draft.prRoute === 'spouse' && (
