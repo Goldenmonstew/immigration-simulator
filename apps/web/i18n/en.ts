@@ -563,22 +563,35 @@ export const en: Record<keyof typeof zhCN, string> = {
     'If you came on a national visa, time counts from the day you arrived, not from when the visa started.',
   'de.permits': 'Residence permits',
   'de.permitsHint':
-    'Add a row for each permit, then the next one when it is renewed or replaced; a new permit ends the one before it even if that card shows a later expiry, and a blank end date runs until the next permit starts. If you applied to renew before expiry and the new card came after the old one ran out, tick “Renewal or a new permit applied for before it ran out”; otherwise the gap breaks continuity. Tick it too while the decision is pending: settlement and EU long-term results that rely on the wait are then shown as uncertain, while naturalisation counts it as lawful residence. If a permit was extended by law or regulation, enter the date it is legally valid until, not the date on the card. A settlement permit and EU long-term residence have no end date (the date on the card is only the document’s), so there is none to enter. Enter a national entry visa as the type it was issued for; for the asylum procedure choose “Asylum claim pending” from the day you claimed asylum. Choose “Permit for a temporary purpose” for job seeking, au pair and the like.',
+    'Add a row for each permit, then the next one when it is renewed or replaced; a new permit ends the one before it even if that card shows a later expiry, and a blank end date runs until the next permit starts. If you applied to renew before expiry and the new card came after the old one ran out, tick “Renewal or a new permit applied for before it ran out”; otherwise the gap breaks continuity. Tick it too while the decision is pending: settlement and EU long-term results that rely on the wait are then shown as uncertain, while naturalisation counts it as lawful residence. If a permit was extended by law or regulation, enter the date it is legally valid until, not the date on the card. A settlement permit and EU long-term residence have no end date (the date on the card is only the document’s), so there is none to enter. Enter a national entry visa as the type it was issued for; for the asylum procedure choose “Asylum claim pending” from the day you claimed asylum. For a job-seeking permit after study, research or training (§ 20) choose “Looking for work after study, research or training” and enter its expiry; for a § 20a opportunity card choose “Job-search opportunity card” or “Follow-up opportunity card” by the card type (a job-search card issued again is still the former) and enter its expiry; for au pair and other temporary purposes choose “Permit for a temporary purpose”.',
   'de.permit': 'Permit {n}',
   'de.kind': 'Permit type',
   'de.kind.study': 'University study (§ 16b)',
   'de.kind.training': 'Vocational training or further training (§ 16a)',
-  'de.kind.skilled': 'Skilled worker or researcher (§§ 18a, 18b, 18d)',
+  'de.kind.skilled': 'Skilled worker (§§ 18a, 18b)',
+  'de.kind.research': 'Researcher (§ 18d)',
   'de.kind.blue-card': 'EU Blue Card (Blaue Karte EU, § 18g)',
   'de.kind.german-family': 'Family of a German (§ 28)',
   'de.kind.other':
     'Other residence permit for a lasting purpose (such as family of a foreign national or other work)',
   'de.kind.temporary':
-    'Permit for a temporary purpose (such as § 20 job seeking, au pair, seasonal work, language courses, ICT card)',
+    'Permit for a temporary purpose (such as au pair, seasonal work, language courses, ICT card)',
+  'de.kind.job-seeking':
+    'Looking for work after study, research or training (§ 20)',
+  'de.kind.opportunity-card':
+    'Job-search opportunity card (Such-Chancenkarte, § 20a)',
+  'de.kind.follow-up-card':
+    'Follow-up opportunity card (Folge-Chancenkarte, § 20a)',
   'de.kind.protection': 'Asylum or refugee status (§ 25 Abs. 1, Abs. 2 Satz 1)',
   'de.kind.subsidiary': 'Subsidiary protection (§ 25 Abs. 2 Satz 2)',
+  'de.kind.resettlement':
+    'Admission by federal order (§ 23 Abs. 2, such as a federal admission programme)',
+  'de.kind.integration':
+    'Humanitarian permit by state order or for integration (§ 23 Abs. 1, § 25a, § 25b)',
   'de.kind.humanitarian':
-    'Other humanitarian residence permit (Section 5, such as § 25 Abs. 3–5, § 25a, § 25b, § 23 Abs. 1)',
+    'Other humanitarian permit (§ 22, § 23a, § 25 Abs. 3, Abs. 4 Satz 2, Abs. 5)',
+  'de.kind.temporary-humanitarian':
+    'Temporary protection or a temporary stay (§ 24, § 25 Abs. 4 Satz 1)',
   'de.kind.asylum': 'Asylum claim pending (Aufenthaltsgestattung)',
   'de.kind.settlement': 'Settlement permit (Niederlassungserlaubnis)',
   'de.kind.eu-long-term': 'EU long-term residence (Daueraufenthalt-EU)',
@@ -586,6 +599,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.renewing':
     'Renewal or a new permit applied for before it ran out (the permit continues until the decision, § 81 Abs. 4), so it runs until the next permit starts',
   'de.to': 'Valid until (can be left blank)',
+  'de.toRequired': 'Valid until (required)',
   'de.addPermit': 'Add a permit',
   'de.trips': 'Trips abroad',
   'de.tripsHint':
@@ -628,6 +642,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.error.date': 'Enter a valid date.',
   'de.error.order': 'This date cannot be before the start date.',
   'de.error.months': 'Enter a whole number of months, or leave it blank.',
+  'de.error.jobSeekingEnd':
+    'A § 20 job-seeking permit has a statutory maximum; enter the expiry date on the permit.',
+  'de.error.opportunityCardEnd':
+    'A § 20a opportunity card has a statutory maximum (Abs. 5); enter the expiry date on the card.',
   'gr.entryLink': 'Open the Greece pilot',
   'gr.entryDesc':
     'Use your residence permits (golden visa included) and travel record to work out the dates for long-term residence, golden visa renewal and naturalisation.',

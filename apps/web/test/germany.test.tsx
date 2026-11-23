@@ -1,12 +1,18 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
-import { evaluateGermany } from '@uk-immigration/engine';
+import { DE_PERMIT_KINDS, evaluateGermany } from '@uk-immigration/engine';
 import GermanyPage from '../app/germany/page';
 import { PilotResult } from '../app/pilot/pilot-result';
 import Home from '../app/page';
 import { t } from '../i18n';
+import type { TranslationKey } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
-import { deRequest, emptyDeForm, validateDeForm } from '../lib/germany';
+import {
+  deRequest,
+  emptyDeForm,
+  endDateRequired,
+  validateDeForm,
+} from '../lib/germany';
 import type { DeForm } from '../lib/germany';
 import { sourceUrls } from '../lib/sources';
 
@@ -52,6 +58,87 @@ test('contributions include comparable pension schemes (review69-10)', () => {
   expect(t('de.contributions', 'en')).toContain(
     'comparable insurance or pension scheme',
   );
+});
+
+test.each(['zh-CN', 'en'] as const)(
+  'every permit type has a label in %s (task 73)',
+  (locale) => {
+    const html = render(<GermanyPage />, locale);
+    for (const kind of DE_PERMIT_KINDS)
+      expect(html).toContain(t(`de.kind.${kind}` as TranslationKey, locale));
+  },
+);
+
+test('§ 20 job seeking needs its expiry; the hint tells § 20 from § 20a (review73-1)', () => {
+  expect(
+    validateDeForm({
+      ...filled,
+      permits: [
+        { kind: 'job-seeking', from: '2026-09-01', to: '', renewing: false },
+      ],
+    }),
+  ).toEqual({ 'de-permit-0-to': 'de.error.jobSeekingEnd' });
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const hint = t('de.permitsHint', locale);
+    expect(hint).toMatch(/§ 20[）)]/);
+    expect(hint).toContain('§ 20a');
+    expect(render(<GermanyPage />, locale)).toContain(
+      hint.replaceAll('"', '&quot;'),
+    );
+  }
+});
+
+test('a job-search § 20a opportunity card, from form to result (review73-2, review73-3)', () => {
+  const form: DeForm = {
+    ...emptyDeForm('2026-11-23'),
+    firstEntry: '2021-09-01',
+    permits: [
+      {
+        kind: 'skilled',
+        from: '2021-09-01',
+        to: '2026-08-31',
+        renewing: false,
+      },
+      {
+        kind: 'opportunity-card',
+        from: '2026-09-01',
+        to: '2027-08-31',
+        renewing: false,
+      },
+    ],
+    contributionMonths: '60',
+  };
+  expect(validateDeForm(form)).toEqual({});
+  const status = (id: string) =>
+    evaluateGermany(deRequest(form, 'zh-CN')).pathways.find((p) => p.id === id)
+      ?.status;
+  // § 20a Abs. 6 excludes § 9 on the first card; StAG § 10 lists § 20a.
+  expect(status('DE-SETTLEMENT')).toBe('NOT_MET');
+  expect(status('DE-NATURALISATION')).toBe('NOT_MET');
+  // The hint sends the card to its own options (review73-3).
+  expect(t('de.permitsHint')).toContain(
+    '选"找工作用的机会卡"或"后续机会卡"（再次签发的找工作用机会卡仍选前者），到期日必填',
+  );
+  expect(t('de.permitsHint', 'en')).toContain(
+    'choose “Job-search opportunity card” or “Follow-up opportunity card”',
+  );
+  // Both cards need their expiry (§ 20a Abs. 5, review73-3).
+  for (const kind of ['opportunity-card', 'follow-up-card'] as const)
+    expect(
+      validateDeForm({
+        ...form,
+        permits: [{ kind, from: '2026-09-01', to: '', renewing: false }],
+      }),
+    ).toEqual({ 'de-permit-0-to': 'de.error.opportunityCardEnd' });
+});
+
+test('the expiry label says required where the form requires it (review73-4)', () => {
+  for (const kind of DE_PERMIT_KINDS)
+    expect(!!endDateRequired(kind)).toBe(
+      ['job-seeking', 'opportunity-card', 'follow-up-card'].includes(kind),
+    );
+  expect(t('de.toRequired')).toBe('到期日期（必填）');
+  expect(t('de.toRequired', 'en')).toBe('Valid until (required)');
 });
 
 test('home links to the Germany pilot', () => {

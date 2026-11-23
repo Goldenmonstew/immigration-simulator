@@ -22,6 +22,7 @@ import {
   emptyDeForm,
   emptyDePermit,
   emptyDeTrip,
+  endDateRequired,
   hasEndDate,
   validateDeForm,
 } from '../../lib/germany';
@@ -203,7 +204,11 @@ export default function GermanyContent() {
                   <>
                     <PilotDate
                       id={`de-permit-${i}-to`}
-                      label={t('de.to')}
+                      label={t(
+                        endDateRequired(permit.kind)
+                          ? 'de.toRequired'
+                          : 'de.to',
+                      )}
                       value={permit.to}
                       onChange={(to) => update({ to })}
                       error={errors[`de-permit-${i}-to`]}

@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { evaluateGermany } from '../src';
+import { needed } from '../src/germany';
 import type { DePathwayId, DeRequest } from '../src';
 
 // A skilled worker permit from 2022-03-15, renewed on time, 60 months of
@@ -240,35 +241,174 @@ describe('Niederlassungserlaubnis, general route (§ 9)', () => {
     expect(refugee.summary).toContain('§ 26 Abs. 3');
   });
 
-  test('§ 24 temporary protection, then a work permit (review69-6)', () => {
+  test('§ 24 temporary protection, then a work permit (review69-6, task 73)', () => {
     const p = pathway(
       {
         permits: [
-          { kind: 'humanitarian', from: '2022-04-01', to: '2025-03-03' },
+          {
+            kind: 'temporary-humanitarian',
+            from: '2022-04-01',
+            to: '2025-03-03',
+          },
           { kind: 'skilled', from: '2025-03-04' },
         ],
       },
       'DE-EU-LONG-TERM',
     );
-    // Certain without the temporary protection; counting it, 2027-04-01.
+    // Temporary protection is a temporary purpose: not counted (PD-155);
+    // counting it is the other reading (review73-1).
     expect(p.status).toBe('FUTURE');
     expect(p.earliestDate).toBe('2030-03-04');
     expect(p.summary).toContain('2027-04-01');
-    expect(p.summary).toContain('§ 24');
+    // When only counting it meets the simulation date: unknown, both dates.
+    const later = pathway(
+      {
+        simulationDate: '2027-05-01',
+        permits: [
+          {
+            kind: 'temporary-humanitarian',
+            from: '2022-04-01',
+            to: '2025-03-03',
+          },
+          { kind: 'skilled', from: '2025-03-04' },
+        ],
+      },
+      'DE-EU-LONG-TERM',
+    );
+    expect(later.status).toBe('UNKNOWN');
+    expect(later.summary).toContain('2030-03-04');
+    expect(later.summary).toContain('§ 24');
   });
 
-  test('a § 25b permit (review69-4)', () => {
+  test('§ 20 between study and work keeps the study time (review73-1)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        permits: [
+          { kind: 'study', from: '2019-09-01', to: '2021-08-31' },
+          { kind: 'job-seeking', from: '2021-09-01', to: '2022-02-28' },
+          { kind: 'skilled', from: '2022-03-01' },
+        ],
+      },
+      'DE-EU-LONG-TERM',
+    );
+    // 731 study half days + 2 × 1,728 days of work: more than 2 × 1,826.
+    // The job search counts for nothing but does not break the time.
+    expect(p.status).toBe('MET');
+  });
+
+  test('§ 20a: a job-search opportunity card rules out § 9, a follow-up card does not (review73-2, review73-3)', () => {
+    const req: Partial<DeRequest> = {
+      simulationDate: '2026-11-23',
+      firstEntry: '2021-09-01',
+      permits: [
+        { kind: 'skilled', from: '2021-09-01', to: '2026-08-31' },
+        { kind: 'opportunity-card', from: '2026-09-01', to: '2027-08-31' },
+      ],
+    };
+    // § 20a Abs. 6 (BMI 20a.6.1); StAG § 10 Abs. 1 Satz 1 Nr. 2 lists § 20a;
+    // a temporary purpose for EU long-term residence (PD-155).
+    expect(pathway(req, 'DE-SETTLEMENT').status).toBe('NOT_MET');
+    expect(pathway(req, 'DE-NATURALISATION').status).toBe('NOT_MET');
+    expect(pathway(req, 'DE-EU-LONG-TERM').status).toBe('NOT_MET');
+    // A follow-up card (Abs. 5 Satz 2): § 9 applies and the card time counts
+    // (BMI 20a.6.1–20a.6.2).
+    const followUp = pathway(
+      {
+        ...req,
+        permits: [
+          ...req.permits!,
+          { kind: 'follow-up-card', from: '2027-09-01', to: '2029-08-31' },
+        ],
+      },
+      'DE-SETTLEMENT',
+    );
+    expect(followUp.status).toBe('FUTURE');
+    expect(followUp.earliestDate).toBe('2027-09-01');
+  });
+
+  test('a job-search opportunity card issued again still rules out § 9 (review73-3)', () => {
+    const req: Partial<DeRequest> = {
+      simulationDate: '2026-11-23',
+      firstEntry: '2020-09-01',
+      permits: [
+        { kind: 'skilled', from: '2020-09-01', to: '2026-01-31' },
+        { kind: 'opportunity-card', from: '2026-02-01', to: '2026-07-31' },
+        { kind: 'opportunity-card', from: '2026-08-01', to: '2027-01-31' },
+      ],
+    };
+    // Shorter job-search cards one after another are one (BMI 20a.5.7).
+    expect(pathway(req, 'DE-SETTLEMENT').status).toBe('NOT_MET');
+    // Switching to a follow-up card lifts the exclusion.
+    const switched = pathway(
+      {
+        ...req,
+        permits: [
+          ...req.permits!.slice(0, 2),
+          { kind: 'follow-up-card', from: '2026-08-01', to: '2028-07-31' },
+        ],
+      },
+      'DE-SETTLEMENT',
+    );
+    expect(switched.status).toBe('MET');
+  });
+
+  test('a temporary permit with its renewal pending needs both readings (review73-2)', () => {
+    const req: Partial<DeRequest> = {
+      simulationDate: '2026-11-23',
+      permits: [
+        { kind: 'skilled', from: '2020-01-01', to: '2025-08-31' },
+        {
+          kind: 'temporary',
+          from: '2025-09-01',
+          to: '2026-08-31',
+          renewing: true,
+        },
+      ],
+    };
+    for (const id of ['DE-SETTLEMENT', 'DE-NATURALISATION'] as const) {
+      const p = pathway(req, id);
+      expect(p.status).toBe('UNKNOWN');
+      expect(p.summary).toContain('§ 81 Abs. 4');
+      expect(p.summary).toContain('PD-122');
+    }
+  });
+
+  test('a § 25b permit (review69-4, task 73)', () => {
     const req = {
       firstEntry: '2010-01-01',
-      permits: [{ kind: 'humanitarian' as const, from: '2020-01-01' }],
+      permits: [{ kind: 'integration' as const, from: '2020-01-01' }],
     };
     // § 9a Abs. 3 Nr. 1: no EU long-term residence while holding it.
     expect(pathway(req, 'DE-EU-LONG-TERM').status).toBe('NOT_APPLICABLE');
     expect(pathway(req, 'DE-SETTLEMENT').status).toBe('NOT_APPLICABLE');
-    // § 25b is not on the § 10 list, § 25 Abs. 3–5 is: depends on the section.
-    const naturalisation = pathway(req, 'DE-NATURALISATION');
-    expect(naturalisation.status).toBe('UNKNOWN');
-    expect(naturalisation.summary).toContain('§ 25b');
+    // § 25b is not on the list in StAG § 10 Abs. 1 Satz 1 Nr. 2.
+    expect(pathway(req, 'DE-NATURALISATION').status).toBe('MET');
+  });
+
+  test('the humanitarian permits the statute treats differently (task 73)', () => {
+    // § 23 Abs. 2: kept for EU long-term residence (§ 9a Abs. 3 Nr. 1).
+    const resettled = {
+      permits: [{ kind: 'resettlement' as const, from: '2021-03-15' }],
+    };
+    expect(pathway(resettled, 'DE-EU-LONG-TERM').status).toBe('MET');
+    expect(pathway(resettled, 'DE-SETTLEMENT').status).toBe('NOT_APPLICABLE');
+    expect(pathway(resettled, 'DE-NATURALISATION').status).toBe('MET');
+    // § 25 Abs. 3: its time counts once you hold another permit, but it is
+    // on the § 10 list when naturalised.
+    const humanitarian = {
+      permits: [
+        { kind: 'humanitarian' as const, from: '2020-01-01', to: '2023-12-31' },
+        { kind: 'skilled' as const, from: '2024-01-01' },
+      ],
+    };
+    expect(pathway(humanitarian, 'DE-EU-LONG-TERM').status).toBe('MET');
+    expect(
+      pathway(
+        { permits: [{ kind: 'humanitarian', from: '2020-01-01' }] },
+        'DE-NATURALISATION',
+      ).status,
+    ).toBe('NOT_MET');
   });
 
   test('a later permit replaces one with a later printed expiry (review69-2)', () => {
@@ -317,6 +457,31 @@ describe('Niederlassungserlaubnis, general route (§ 9)', () => {
     };
     expect(pathway(back, 'DE-EU-LONG-TERM').status).toBe('NOT_APPLICABLE');
     expect(pathway(back, 'DE-SETTLEMENT').status).toBe('NOT_APPLICABLE');
+  });
+
+  test('§ 18d research before training is not the § 16a exception (task 73)', () => {
+    const permits = (kind: 'skilled' | 'research') => [
+      { kind, from: '2020-09-01', to: '2024-08-31' },
+      { kind: 'training' as const, from: '2024-09-01' },
+    ];
+    // § 16a Abs. 1 Satz 3 names only §§ 18a, 18b.
+    expect(
+      pathway({ permits: permits('skilled') }, 'DE-SETTLEMENT').status,
+    ).toBe('MET');
+    expect(
+      pathway({ permits: permits('research') }, 'DE-SETTLEMENT').status,
+    ).toBe('UNKNOWN');
+    // A research permit counts on the skilled worker route (§ 18c Abs. 1).
+    expect(
+      pathway(
+        {
+          settlementRoute: 'skilled',
+          contributionMonths: 36,
+          permits: [{ kind: 'research', from: '2022-03-15' }],
+        },
+        'DE-SETTLEMENT',
+      ).status,
+    ).toBe('MET');
   });
 
   test('time before the first arrival does not count (review69-1)', () => {
@@ -786,18 +951,33 @@ describe('Einbürgerung (StAG §§ 9, 10, 12b)', () => {
     expect(old).not.toContain('3 年路径');
   });
 
-  test('a § 20 job seeking permit on the day is not met (review69-1)', () => {
+  test('a § 20 job seeking permit on the day is not met (review69-1, task 73)', () => {
     const p = pathway(
       {
         permits: [
           { kind: 'study', from: '2021-09-01', to: '2026-07-31' },
-          { kind: 'temporary', from: '2026-08-01' },
+          { kind: 'job-seeking', from: '2026-08-01' },
         ],
       },
       'DE-NATURALISATION',
     );
-    expect(p.status).toBe('UNKNOWN');
-    expect(p.summary).toContain('§ 20');
+    // § 20 is on the list in StAG § 10 Abs. 1 Satz 1 Nr. 2.
+    expect(p.status).toBe('NOT_MET');
+  });
+
+  test('§ 20 job seeking: settlement yes, EU long-term no (task 73)', () => {
+    // § 20 Abs. 1 Nr. 2: job search after § 18d research.
+    const req = {
+      simulationDate: '2026-03-01',
+      permits: [
+        { kind: 'research' as const, from: '2020-01-01', to: '2024-12-31' },
+        { kind: 'job-seeking' as const, from: '2025-01-01', to: '2026-06-30' },
+      ],
+    };
+    // § 20 does not rule out § 9 (unlike § 20a Abs. 6).
+    expect(pathway(req, 'DE-SETTLEMENT').status).toBe('MET');
+    // A temporary purpose for EU long-term residence (§ 9a Abs. 3 Nr. 5).
+    expect(pathway(req, 'DE-EU-LONG-TERM').status).toBe('NOT_MET');
   });
 
   test('met today only with discretionary credit: unknown (review69-1)', () => {
@@ -937,6 +1117,77 @@ describe('Einbürgerung (StAG §§ 9, 10, 12b)', () => {
     expect(p.status).toBe('FUTURE');
     expect(p.earliestDate).toBe('2027-10-15');
     expect(p.pendingDetails).not.toContain('PD-128');
+  });
+});
+
+describe('every condition a conditional date rests on (task 73)', () => {
+  test('EU long-term residence: renewal and absences', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-03-15',
+        permits: [
+          {
+            kind: 'skilled',
+            from: '2021-03-15',
+            to: '2026-02-28',
+            renewing: true,
+          },
+        ],
+        // 179 + 123 = 302 days abroad: over 300, within 306.
+        trips: [
+          { departed: '2022-01-01', returned: '2022-06-30' },
+          { departed: '2023-01-01', returned: '2023-05-05' },
+        ],
+      },
+      'DE-EU-LONG-TERM',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('§ 81 Abs. 4');
+    expect(p.summary).toContain('PD-125');
+  });
+
+  test('naturalisation: renewal and discretionary credit', () => {
+    const p = pathway(
+      {
+        permits: [
+          { kind: 'other', from: '2018-01-01', to: '2022-12-31' },
+          {
+            kind: 'other',
+            from: '2024-01-01',
+            to: '2026-10-31',
+            renewing: true,
+          },
+        ],
+      },
+      'DE-NATURALISATION',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('§ 81 Abs. 4');
+    expect(p.summary).toContain('§ 12b Abs. 2');
+    expect(p.pendingDetails).toEqual(
+      expect.arrayContaining(['PD-124', 'PD-128']),
+    );
+  });
+
+  test('settlement: an exchange abroad and a pending renewal', () => {
+    const p = pathway(
+      {
+        permits: [
+          { kind: 'study', from: '2021-10-01', to: '2026-05-14' },
+          {
+            kind: 'skilled',
+            from: '2026-05-15',
+            to: '2027-12-31',
+            renewing: true,
+          },
+        ],
+        trips: [{ departed: '2025-09-15', returned: '2026-05-15' }],
+      },
+      'DE-SETTLEMENT',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('2025-09-15 至 2026-05-15');
+    expect(p.summary).toContain('§ 81 Abs. 4');
   });
 });
 
@@ -1136,12 +1387,16 @@ describe('trips abroad and loss of residence (§ 51)', () => {
       expect(p.summary).toContain('2027-03-15');
     });
 
-    test('EU long-term residence: both conditions named (review69-7)', () => {
+    test('EU long-term residence: renewal pending (review69-7, task 73)', () => {
       const p = pathway(
         {
           simulationDate: '2027-05-01',
           permits: [
-            { kind: 'humanitarian', from: '2022-04-01', to: '2025-03-03' },
+            {
+              kind: 'temporary-humanitarian',
+              from: '2022-04-01',
+              to: '2025-03-03',
+            },
             {
               kind: 'skilled',
               from: '2025-03-04',
@@ -1152,6 +1407,8 @@ describe('trips abroad and loss of residence (§ 51)', () => {
         },
         'DE-EU-LONG-TERM',
       );
+      // Met on the simulation date only if the renewal is granted and the
+      // § 24 time counts: both named.
       expect(p.status).toBe('UNKNOWN');
       expect(p.summary).toContain('§ 81 Abs. 4');
       expect(p.summary).toContain('§ 24');
@@ -1181,7 +1438,11 @@ describe('trips abroad and loss of residence (§ 51)', () => {
       {
         // Temporary protection (§ 24) with the date it was extended to.
         permits: [
-          { kind: 'humanitarian', from: '2024-04-01', to: '2027-03-04' },
+          {
+            kind: 'temporary-humanitarian',
+            from: '2024-04-01',
+            to: '2027-03-04',
+          },
         ],
         trips: [{ departed: '2026-02-27', returned: '2026-03-10' }],
       },
@@ -1217,6 +1478,19 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     expect(p.checks[0].text).toContain('2026-03-15');
   });
 
+  test('a research permit and EU researcher mobility (§ 51 Abs. 1a, task 73)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-06-01',
+        permits: [{ kind: 'research', from: '2024-10-01', to: '2026-09-30' }],
+        trips: [{ departed: '2025-09-15', returned: '2026-05-15' }],
+      },
+      'DE-TRAVEL',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('§ 51 Abs. 1a');
+  });
+
   test('a study permit that ran out before the return lapsed (review69-11)', () => {
     const p = pathway(
       {
@@ -1229,6 +1503,138 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     // § 51 Abs. 1a spares only Nr. 6 and 7, not the expiry (Nr. 1).
     expect(p.status).toBe('NOT_MET');
     expect(p.checks[0].text).toContain('2026-04-30');
+  });
+
+  test('a second trip names the earlier trip as the cause (review73-1)', () => {
+    const req = {
+      permits: [{ kind: 'eu-long-term' as const, from: '2020-01-01' }],
+      trips: [
+        // 13 months away: lapsed only if all of it was outside the EU.
+        { departed: '2023-01-10', returned: '2024-03-01' },
+        { departed: '2024-06-01', returned: '2024-06-20' },
+      ],
+    };
+    const travel = pathway(req, 'DE-TRAVEL');
+    expect(travel.checks[1].met).toBeUndefined();
+    expect(travel.checks[1].text).toContain('2023-01-10 至 2024-03-01');
+    const eu = pathway(req, 'DE-EU-LONG-TERM');
+    expect(eu.summary).toContain('2023-01-10 至 2024-03-01');
+    expect(eu.summary).not.toContain('2024-06-01 至 2024-06-20');
+  });
+
+  test('a second long trip may end EU long-term residence on its own (review73-2)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        permits: [{ kind: 'eu-long-term', from: '2018-01-01' }],
+        trips: [
+          { departed: '2021-06-01', returned: '2022-07-01' },
+          { departed: '2023-06-01', returned: '2024-07-01' },
+        ],
+      },
+      'DE-TRAVEL',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    // Both trips may end it if spent outside the EU, and whether it was
+    // still held for the second depends on the first.
+    expect(p.summary).toContain(
+      '2021-06-01 至 2022-07-01、2023-06-01 至 2024-07-01 持欧盟长期居留离开德国较久',
+    );
+    expect(p.summary).toContain(
+      '2023-06-01 至 2024-07-01 出境时是否仍持有许可',
+    );
+  });
+
+  test('a trip past the opportunity card expiry (review73-3)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        firstEntry: '2026-06-01',
+        permits: [
+          { kind: 'opportunity-card', from: '2026-06-01', to: '2027-05-31' },
+        ],
+        trips: [{ departed: '2027-05-25', returned: '2027-06-15' }],
+      },
+      'DE-TRAVEL',
+    );
+    // § 51 Abs. 1 Nr. 1: the card ends on its expiry while you are away.
+    expect(p.status).toBe('NOT_MET');
+    expect(p.checks[0].text).toContain('2027-05-31');
+  });
+
+  test('the EU summary names both long trips (review73-3)', () => {
+    const req = {
+      simulationDate: '2026-11-23',
+      permits: [{ kind: 'eu-long-term' as const, from: '2018-01-01' }],
+      trips: [
+        { departed: '2021-06-01', returned: '2022-07-01' },
+        { departed: '2023-06-01', returned: '2024-07-01' },
+      ],
+    };
+    for (const id of ['DE-EU-LONG-TERM', 'DE-SETTLEMENT'] as const) {
+      const p = pathway(req, id);
+      expect(p.summary).toContain('2023-06-01 至 2024-07-01');
+      expect(p.summary).toContain(
+        '之前 2021-06-01 至 2022-07-01 的出境也可能已使其失效',
+      );
+    }
+  });
+
+  test('every undetermined earlier trip is named (review73-4)', () => {
+    const req = {
+      simulationDate: '2026-11-23',
+      permits: [{ kind: 'eu-long-term' as const, from: '2018-01-01' }],
+      trips: [
+        { departed: '2021-06-01', returned: '2022-07-01' },
+        { departed: '2023-06-01', returned: '2024-07-01' },
+        { departed: '2025-06-01', returned: '2026-07-01' },
+      ],
+    };
+    const both = '2021-06-01 至 2022-07-01、2023-06-01 至 2024-07-01';
+    for (const id of ['DE-EU-LONG-TERM', 'DE-SETTLEMENT'] as const) {
+      const p = pathway(req, id);
+      expect(p.summary).toContain('2025-06-01 至 2026-07-01');
+      expect(p.summary).toContain(`之前 ${both} 的出境也可能已使其失效`);
+    }
+    expect(pathway(req, 'DE-TRAVEL').checks[2].text).toContain(
+      `取决于之前 ${both} 的出境`,
+    );
+  });
+
+  test('a short trip after an undetermined exchange (task 73)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-08-01',
+        permits: [{ kind: 'study', from: '2024-10-01', to: '2026-09-30' }],
+        trips: [
+          { departed: '2025-09-15', returned: '2026-05-15' },
+          { departed: '2026-07-01', returned: '2026-07-20' },
+        ],
+      },
+      'DE-TRAVEL',
+    );
+    // Whether the permit still existed on 2026-07-01 depends on the first
+    // trip.
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[1].met).toBeUndefined();
+    expect(p.checks[1].text).toContain('2025-09-15 至 2026-05-15');
+    // With a new permit in between, the second trip is on that permit.
+    expect(
+      pathway(
+        {
+          simulationDate: '2026-08-01',
+          permits: [
+            { kind: 'study', from: '2024-10-01', to: '2026-09-30' },
+            { kind: 'skilled', from: '2026-06-01' },
+          ],
+          trips: [
+            { departed: '2025-09-15', returned: '2026-05-15' },
+            { departed: '2026-07-01', returned: '2026-07-20' },
+          ],
+        },
+        'DE-TRAVEL',
+      ).checks[1].met,
+    ).toBe(true);
   });
 
   test('a new permit after an undetermined exchange (review69-11)', () => {
@@ -1253,6 +1659,28 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     expect(eu.status).toBe('FUTURE');
     expect(eu.earliestDate).toBe('2031-05-15');
     expect(eu.summary).toContain('2030-11-21');
+  });
+
+  test('naturalisation after a possible lapse and a gap (task 73)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        permits: [
+          { kind: 'eu-long-term', from: '2024-01-01' },
+          { kind: 'skilled', from: '2026-09-01' },
+        ],
+        // 13 months away, back 2026-02-01; a new permit only from 2026-09-01.
+        trips: [{ departed: '2025-01-01', returned: '2026-02-01' }],
+      },
+      'DE-NATURALISATION',
+    );
+    // Certain: lapsed, so lawful residence starts again with the new permit.
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2031-09-01');
+    // Not lapsed, and with the year before the trip credited: 2030-01-30.
+    expect(p.summary).toContain('2030-01-30');
+    expect(p.summary).toContain('2025-01-01 至 2026-02-01');
+    expect(p.summary).toContain('§ 12b Abs. 2');
   });
 
   test('the same after EU long-term residence that may have lapsed (review69-11)', () => {
@@ -1334,5 +1762,39 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     const p = evaluateGermany({ ...base, locale: 'en' }).pathways[0];
     expect(p.title).toBe('Settlement permit (Niederlassungserlaubnis)');
     expect(p.summary).toContain('2027-03-15');
+  });
+});
+
+describe('conditional readings (review73-4)', () => {
+  const d = '2027-01-01';
+  test('one reading required, plus either of two', () => {
+    expect(
+      needed(
+        ['lapse', 'pending', 'absence'],
+        (_, a) => a.has('pending') && (a.has('lapse') || a.has('absence')),
+        d,
+      ),
+    ).toEqual({ all: ['pending'], any: ['lapse', 'absence'] });
+  });
+  test('all required, or each enough', () => {
+    expect(
+      needed(
+        ['lapse', 'pending'],
+        (_, a) => a.has('lapse') && a.has('pending'),
+        d,
+      ),
+    ).toEqual({ all: ['lapse', 'pending'], any: [] });
+    expect(
+      needed(
+        ['lapse', 'pending'],
+        (_, a) => a.has('lapse') || a.has('pending'),
+        d,
+      ),
+    ).toEqual({ all: [], any: ['lapse', 'pending'] });
+  });
+  test('no single reading enough: every reading listed', () => {
+    expect(
+      needed(['lapse', 'pending', 'absence'], (_, a) => a.size >= 2, d),
+    ).toEqual({ all: ['lapse', 'pending', 'absence'], any: [] });
   });
 });

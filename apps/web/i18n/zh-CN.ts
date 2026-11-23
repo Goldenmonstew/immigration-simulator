@@ -370,21 +370,28 @@ export const zhCN = {
     '持国家签证入境的，从入境那天起算，入境前的签证期间不计。',
   'de.permits': '居留许可',
   'de.permitsHint':
-    '每张许可填一行，续期或换发的接着填下一张；新许可生效后之前的许可即结束（即使卡上的到期日更晚）；到期日留空表示一直延续到下一张生效。到期前已申请续期、新卡晚于旧卡到期才发的，请勾选"到期前已申请续期"，否则中间的空档按中断计；还在等待决定的也勾选：定居许可与欧盟长期居留依赖等待期间的结果会标为待确认，入籍按合法居留计入。许可依法律或法规整体延长的，到期日填延长后的法定日期，不填卡上的日期。定居许可和欧盟长期居留没有期限（卡上的日期只是证件的有效期），不用填到期日。入境用的国家签证按其目的选同一类型；庇护程序期间选"庇护程序中"，从提出庇护申请那天起填。求职、互惠生等临时目的的许可请选"临时目的的许可"。',
+    '每张许可填一行，续期或换发的接着填下一张；新许可生效后之前的许可即结束（即使卡上的到期日更晚）；到期日留空表示一直延续到下一张生效。到期前已申请续期、新卡晚于旧卡到期才发的，请勾选"到期前已申请续期"，否则中间的空档按中断计；还在等待决定的也勾选：定居许可与欧盟长期居留依赖等待期间的结果会标为待确认，入籍按合法居留计入。许可依法律或法规整体延长的，到期日填延长后的法定日期，不填卡上的日期。定居许可和欧盟长期居留没有期限（卡上的日期只是证件的有效期），不用填到期日。入境用的国家签证按其目的选同一类型；庇护程序期间选"庇护程序中"，从提出庇护申请那天起填。毕业、研究或培训后的求职许可（§ 20）选"毕业、研究或培训后求职"，到期日必填；§ 20a 机会卡按卡的种类选"找工作用的机会卡"或"后续机会卡"（再次签发的找工作用机会卡仍选前者），到期日必填；互惠生等临时目的的许可选"临时目的的许可"。',
   'de.permit': '许可 {n}',
   'de.kind': '许可类型',
   'de.kind.study': '大学学习（§ 16b）',
   'de.kind.training': '职业培训或进修（§ 16a）',
-  'de.kind.skilled': '技术工人或研究人员（§§ 18a、18b、18d）',
+  'de.kind.skilled': '技术工人（§§ 18a、18b）',
+  'de.kind.research': '研究人员（§ 18d）',
   'de.kind.blue-card': '欧盟蓝卡（Blaue Karte EU，§ 18g）',
   'de.kind.german-family': '与德国人团聚的家属（§ 28）',
   'de.kind.other': '其他长期目的的居留许可（如与外国人团聚、其他工作）',
-  'de.kind.temporary':
-    '临时目的的许可（如求职 § 20、互惠生、季节工作、语言课程、ICT 卡）',
+  'de.kind.temporary': '临时目的的许可（如互惠生、季节工作、语言课程、ICT 卡）',
+  'de.kind.job-seeking': '毕业、研究或培训后求职（§ 20）',
+  'de.kind.opportunity-card': '找工作用的机会卡（Such-Chancenkarte，§ 20a）',
+  'de.kind.follow-up-card': '后续机会卡（Folge-Chancenkarte，§ 20a）',
   'de.kind.protection': '庇护权人或难民（§ 25 Abs. 1、Abs. 2 Satz 1）',
   'de.kind.subsidiary': '辅助保护（§ 25 Abs. 2 Satz 2）',
+  'de.kind.resettlement': '联邦接收承诺的居留（§ 23 Abs. 2，如联邦接收计划）',
+  'de.kind.integration': '融入类人道居留（§ 23 Abs. 1、§ 25a、§ 25b）',
   'de.kind.humanitarian':
-    '其他人道居留许可（第 5 节，如 § 25 Abs. 3–5、§ 25a、§ 25b、§ 23 Abs. 1）',
+    '其他人道居留（§ 22、§ 23a、§ 25 Abs. 3、Abs. 4 Satz 2、Abs. 5）',
+  'de.kind.temporary-humanitarian':
+    '临时保护或临时停留（§ 24、§ 25 Abs. 4 Satz 1）',
   'de.kind.asylum': '庇护程序中（Aufenthaltsgestattung）',
   'de.kind.settlement': '定居许可（Niederlassungserlaubnis）',
   'de.kind.eu-long-term': '欧盟长期居留（Daueraufenthalt-EU）',
@@ -392,6 +399,7 @@ export const zhCN = {
   'de.renewing':
     '到期前已申请续期或换发新许可（决定前原许可视为继续有效，§ 81 Abs. 4），续到下一张许可生效',
   'de.to': '到期日期（可留空）',
+  'de.toRequired': '到期日期（必填）',
   'de.addPermit': '添加许可',
   'de.trips': '出境记录',
   'de.tripsHint': '每次离开德国填一行，计划中的出行也可以填。',
@@ -429,6 +437,10 @@ export const zhCN = {
   'de.error.date': '请填写有效日期。',
   'de.error.order': '这个日期不能早于开始的日期。',
   'de.error.months': '请填写整数月数，或留空。',
+  'de.error.jobSeekingEnd':
+    '求职许可（§ 20）有法定的最长期限，请填写许可上的到期日。',
+  'de.error.opportunityCardEnd':
+    '机会卡（§ 20a Abs. 5）有法定的最长期限，请填写卡上的到期日。',
   'gr.entryLink': '打开希腊试点',
   'gr.entryDesc':
     '按居留许可（含黄金签证）与出入境记录，计算长期居留、黄金签证续期与入籍的时间节点。',
