@@ -3,8 +3,9 @@ import { addYears, fullYears } from '../dates';
 import {
   all,
   any,
+  completePrApplication,
+  filingDatesForRoute,
   ref,
-  type CaFullRequest,
   type Context,
   type Item,
 } from './shared';
@@ -61,7 +62,7 @@ type InitialPrRoute = Exclude<
   'CA-RESIDENCY' | 'CA-CITIZENSHIP' | 'CA-CIT-MINOR-52'
 >;
 
-interface FederalApplication {
+export interface FederalApplication {
   /** Receipt date of the federal application; absent during preparation. */
   filedOn?: string;
   signed?: boolean;
@@ -255,27 +256,6 @@ function federalFee(
   );
 }
 
-export function federalFilingDate(req: CaFullRequest, id: InitialPrRoute) {
-  const receipt = req.federal?.applications?.[id]?.filedOn;
-  if (receipt !== undefined) return receipt;
-  switch (id) {
-    case 'CA-EE-FSW':
-    case 'CA-EE-CEC':
-    case 'CA-EE-FST':
-      return req.express?.applicationDate;
-    case 'CA-PNP':
-      return req.pnp?.mode === 'enhanced'
-        ? (req.express?.applicationDate ?? req.pnp.federalFiled)
-        : req.pnp?.federalFiled;
-    case 'CA-AIP':
-      return req.atlantic?.applicationDate;
-    case 'CA-FAMILY':
-      return req.family?.filingDate;
-    case 'CA-QC-PSTQ':
-      return req.quebec?.federalReceived;
-  }
-}
-
 export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
   const { req, L, check } = ctx;
   const a = { ...req.federal, ...req.federal?.applications?.[id] };
@@ -292,7 +272,7 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
         : id === 'CA-PNP' && !req.pnp?.mode
           ? 'unknown'
           : 'checklist';
-  const filed = federalFilingDate(req, id);
+  const filed = filingDatesForRoute(req, id).federal;
   const date = filed ?? req.simulationDate;
   const principalDob = (p: FederalPerson) =>
     p.dateOfBirth ?? (p === a.principal ? req.dateOfBirth : undefined);
@@ -304,14 +284,7 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
         '身份、家庭申报与申请材料',
         'Identity, family declarations and application documents',
       ),
-      all(
-        a.signed,
-        a.allFamilyDeclared,
-        a.changesReported,
-        a.validIdentityAndTravelDocuments,
-        a.applicationEvidenceComplete,
-        a.processingFeesPaid,
-      ),
+      all(completePrApplication(a), a.changesReported),
       L(
         '核对签名、身份及旅行证件、适用费用、家属、变更和材料。须提供通信地址与地址史；没有购房、住房面积或地址登记门槛。递交后须另行维持临时身份，获批后完成 PR 确认。',
         'Check signature, identity and travel documents, processing fees, family, updates and supporting evidence. Provide a mailing address and address history. There is no home ownership, floor area or address registration test. Maintain temporary status separately and complete PR confirmation after approval.',

@@ -13,8 +13,14 @@ import {
   type Teer,
   type WorkPeriod,
 } from './express';
-import { federalFilingDate } from './federal';
-import { all, any, ref, type Context, type Item } from './shared';
+import {
+  all,
+  any,
+  filingDatesForRoute,
+  ref,
+  type Context,
+  type Item,
+} from './shared';
 
 type Province = 'NS' | 'NB' | 'PE' | 'NL' | 'other';
 export interface AtlanticAnswers {
@@ -118,7 +124,7 @@ function offerLevel(
 
 export function atlanticChecks({ req, L, check }: Context): Item[] {
   const a = req.atlantic ?? {},
-    when = federalFilingDate(req, 'CA-AIP') ?? req.simulationDate;
+    when = filingDatesForRoute(req, 'CA-AIP').federal ?? req.simulationDate;
   const o = a.offer,
     teer = o?.teer,
     e = a.endorsement;

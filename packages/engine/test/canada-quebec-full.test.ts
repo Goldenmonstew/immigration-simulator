@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { evaluateCanadaFull } from '../src';
 import type { QuebecAnswers } from '../src/canada-full/quebec';
+import { federal, filed, person } from './canada-federal-fixture';
 
 const date = '2026-11-23';
 const base: QuebecAnswers = {
@@ -66,6 +67,44 @@ function check(
   )!;
 }
 describe('Québec PSTQ selection and federal filing', () => {
+  test('R69 checks the CSQ at federal receipt independently of provincial filing', () => {
+    for (const [filedOn, principalCsqExpires, expected] of [
+      ['2026-11-05', '2028-11-02', 'MET'],
+      ['2026-11-05', '2026-11-10', 'MET'],
+      ['2026-11-01', '2026-11-10', 'NOT_MET'],
+      ['2026-11-11', '2026-11-10', 'NOT_MET'],
+      [undefined, '2028-11-02', 'UNKNOWN'],
+    ] as const) {
+      const result = evaluateCanadaFull({
+        simulationDate: date,
+        dateOfBirth: '1990-01-01',
+        quebec: {
+          ...base,
+          federalReceived: undefined,
+          principalCsqIssued: '2026-11-02',
+          principalCsqExpires,
+        },
+        federal: {
+          ...federal,
+          principal: {
+            ...person,
+            exam: {
+              instructionOn: '2026-11-09',
+              examOn: '2026-11-15',
+              panelExamComplete: true,
+            },
+          },
+          applications: { 'CA-QC-PSTQ': { ...filed, filedOn } },
+        },
+      }).columns[0].pathways.find((p) => p.id === 'CA-QC-PSTQ')!;
+      expect(result.checks.find((c) => c.id === 'CA-R24')?.status).toBe('MET');
+      expect(result.checks.find((c) => c.id === 'CA-R69')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    }
+  });
+
   test('complete provincial high-skill evidence meets only the relevant stream', () => {
     const p = route(base);
     for (const id of [60, 61, 62, 63, 64, 65, 69, 70])

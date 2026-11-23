@@ -144,6 +144,7 @@ describe('Express Entry application, ranking and evidence', () => {
     ['CA-EE-FSW', 'federal', '2026-04-29', '2026-05-08', '2026-06-10'],
     ['CA-PNP', 'pnp', '2026-06-22', '2026-06-30', '2026-07-10'],
     ['CA-PNP', 'federal', '2026-06-22', '2026-06-30', '2026-07-10'],
+    ['CA-PNP', 'express', '2026-06-22', '2026-06-30', '2026-07-10'],
   ] as const)(
     'R29 uses the %s receipt recorded only in %s',
     (id, source, invitedOn, examOn, filedOn) => {
@@ -153,7 +154,7 @@ describe('Express Entry application, ranking and evidence', () => {
         dateOfBirth,
         express: {
           ...complete,
-          applicationDate: undefined,
+          applicationDate: source === 'express' ? filedOn : undefined,
           invitation: { date: invitedOn, program: id },
           round: { ...complete.round!, date: invitedOn },
           workHistory: [{ ...job, from: '2023-01-01', to: '2025-12-31' }],
@@ -195,6 +196,54 @@ describe('Express Entry application, ranking and evidence', () => {
       expect(result.status).toBe('MET');
     },
   );
+  test('FSW and enhanced PNP keep their own receipts with an FSW invitation', () => {
+    const fsw = 'CA-EE-FSW';
+    const pnp = 'CA-PNP';
+    for (const federalFiled of ['2026-07-10', undefined]) {
+      const { pathways } = evaluateCanadaFull({
+        simulationDate,
+        dateOfBirth: '1992-01-01',
+        express: {
+          ...complete,
+          invitation: { program: fsw, date: '2026-04-29' },
+          round: { ...complete.round!, date: '2026-04-29' },
+          applicationDate: '2026-05-20',
+          workHistory: [{ ...job, from: '2023-01-01', to: '2025-12-31' }],
+        },
+        pnp: {
+          mode: 'enhanced',
+          nomination: 'valid',
+          nominationIssued: '2026-06-01',
+          nominationExpires: '2026-12-01',
+          intendsNominatingProvince: true,
+          investment: 'none',
+          qualifiesUnderlyingEeProgram: true,
+          electronicNominationMatchedAndAccepted: true,
+          federalFiled,
+        },
+        federal: {
+          ...federal,
+          principal: {
+            ...person,
+            exam: { examOn: '2026-05-08', panelExamComplete: true },
+          },
+          applications: { [fsw]: { ...filed, filedOn: undefined } },
+        },
+      }).columns[0];
+      const skilled = pathways.find((p) => p.id === fsw)!;
+      expect(skilled.checks.find((c) => c.id === 'CA-R29')?.status).toBe('MET');
+      expect(skilled.status).toBe('MET');
+      const nominee = pathways.find((p) => p.id === pnp)!;
+      expect(nominee.checks.find((c) => c.id === 'CA-R45')?.status).toBe('MET');
+      expect(nominee.checks.find((c) => c.id === 'CA-R46')?.status).toBe(
+        federalFiled ? 'MET' : 'UNKNOWN',
+      );
+      expect(nominee.checks.find((c) => c.id === 'CA-R29')?.status).toBe(
+        'NOT_MET',
+      );
+      expect(nominee.status).toBe('NOT_MET');
+    }
+  });
   test('R30 contemporaneous official score, published cutoff and timestamp', () => {
     const round = complete.round!;
     expect(rule('R30').status).toBe('MET');

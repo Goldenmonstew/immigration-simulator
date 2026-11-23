@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { evaluateCanadaFull } from '../src';
 import type { FamilyAnswers } from '../src/canada-full/family';
+import { federal, filed, person } from './canada-federal-fixture';
 
 const base: FamilyAnswers = {
   relationship: 'spouse',
@@ -61,6 +62,82 @@ function inspect(id: string, changes: FamilyAnswers = {}, dob = '1990-11-23') {
   }).columns[0].pathways.find((p) => p.id === 'CA-FAMILY')!;
   return p.checks.find((c) => c.id === `CA-R${id}`)!;
 }
+function filedFamily(
+  family: FamilyAnswers,
+  dateOfBirth = '1990-01-01',
+  application: Partial<typeof filed> = {},
+) {
+  return evaluateCanadaFull({
+    simulationDate: '2026-11-23',
+    dateOfBirth,
+    family: { ...base, filingDate: undefined, ...family },
+    federal: {
+      ...federal,
+      principal: {
+        ...person,
+        dateOfBirth,
+        exam: {
+          instructionOn: '2026-10-23',
+          examOn: '2026-11-05',
+          panelExamComplete: true,
+        },
+      },
+      applications: {
+        'CA-FAMILY': { ...filed, filedOn: '2026-10-20', ...application },
+      },
+    },
+  }).columns[0].pathways.find((p) => p.id === 'CA-FAMILY')!;
+}
+
+test('R73 counts cohabitation up to the family application receipt', () => {
+  const partner = {
+    relationship: 'common-law',
+    cohabitationSince: '2025-11-01',
+    deemedCommonLawAccepted: false,
+  } as const;
+  for (const [filedOn, expected] of [
+    ['2026-10-20', 'NOT_MET'],
+    ['2026-11-01', 'MET'],
+  ] as const) {
+    const result = filedFamily(partner, undefined, { filedOn });
+    expect(result.checks.find((c) => c.id === 'CA-R24')?.status).toBe('MET');
+    expect(result.checks.find((c) => c.id === 'CA-R73')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  }
+});
+
+test('R74 locks child age on confirmed complete receipt, including a later resubmission', () => {
+  const child: FamilyAnswers = {
+    relationship: 'child',
+    child: {
+      ...base.child,
+      parentageConfirmed: true,
+      custodyAndConsentReady: true,
+      unmarriedAndUnpartnered: true,
+      dependentBeforeCutoffAndContinuing: false,
+    },
+  };
+  for (const [
+    applicationEvidenceComplete,
+    completeApplicationReceived,
+    expected,
+  ] of [
+    [true, undefined, 'MET'],
+    [undefined, undefined, 'UNKNOWN'],
+    [true, '2026-11-05', 'NOT_MET'],
+  ] as const) {
+    const result = filedFamily(
+      { ...child, completeApplicationReceived },
+      '2004-11-01',
+      {
+        applicationEvidenceComplete,
+      },
+    );
+    expect(result.checks.find((c) => c.id === 'CA-R74')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  }
+});
+
 test('sponsor at age 18, abroad or previously sponsored; suspension and defaults', () => {
   expect(inspect('71', { sponsorBirthDate: '2008-11-23' }).status).toBe('MET');
   expect(inspect('71', { sponsorBirthDate: '2008-11-24' }).status).toBe(

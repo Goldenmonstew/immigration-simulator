@@ -1,8 +1,14 @@
 import { canadaFull2026_11 as ca } from '@uk-immigration/policy-data';
 import { addDays, addYears } from '../dates';
 import type { IsoDate } from '../types';
-import { federalFilingDate } from './federal';
-import { all, any, ref, type Context, type Item } from './shared';
+import {
+  all,
+  any,
+  filingDatesForRoute,
+  ref,
+  type Context,
+  type Item,
+} from './shared';
 
 const on = ca.values.ontarioWorkforce.value;
 
@@ -186,8 +192,12 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
   const p = req.pnp ?? {};
   const a = p.ontario ?? {};
   const sim = req.simulationDate;
-  const provincialDate = a.filed ?? sim;
-  const filed = federalFilingDate(req, 'CA-PNP');
+  const {
+    federal: filed,
+    provincial,
+    employer,
+  } = filingDatesForRoute(req, 'CA-PNP');
+  const provincialDate = provincial ?? sim;
   const fedDate = filed ?? sim;
   const nomination =
     p.nomination === 'pending' ||
@@ -269,13 +279,13 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
   ];
   const employerWindow = filedInWindow(
     a.invited,
-    a.employerFiled,
+    employer,
     on.employerDays,
     sim,
   );
   const applicantWindow = filedInWindow(
     a.invited,
-    a.filed,
+    provincial,
     on.applicantDays,
     sim,
   );
@@ -296,7 +306,7 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
           all(
             a.employerPortalPosition,
             employerWindow,
-            a.employerFiled && a.filed ? a.employerFiled <= a.filed : undefined,
+            employer && provincial ? employer <= provincial : undefined,
           ),
       ),
       L(

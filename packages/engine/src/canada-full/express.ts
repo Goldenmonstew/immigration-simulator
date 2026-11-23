@@ -1,7 +1,13 @@
 import { canadaFull2026_11 as ca } from '@uk-immigration/policy-data';
 import { addDays, addYears, fullYears } from '../dates';
-import { federalFilingDate } from './federal';
-import { all, any, ref, type Context, type Item } from './shared';
+import {
+  all,
+  any,
+  filingDatesForRoute,
+  ref,
+  type Context,
+  type Item,
+} from './shared';
 
 const p = ca.values;
 const work = p.eeWork.value;
@@ -102,6 +108,7 @@ export interface ExpressAnswers {
   profileDate?: string;
   profileUpdated?: boolean;
   invitation?: { date: string; program: Program; deadline?: string };
+  /** Receipt of the application for invitation.program. */
   applicationDate?: string;
   completeElectronicApplication?: boolean;
   /** IRPA s11.2 at ITA and receipt, including an applicable statutory exception. */
@@ -623,7 +630,7 @@ function fswScore(
 
 export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
   const a = req.express ?? {},
-    when = federalFilingDate(req, id) ?? req.simulationDate;
+    when = filingDatesForRoute(req, id).federal ?? req.simulationDate;
   const { round, invitation, profileDate } = a;
   const observedThrough =
     req.simulationDate < ca.asOf ? req.simulationDate : ca.asOf;

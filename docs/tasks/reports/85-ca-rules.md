@@ -250,3 +250,63 @@
 ### 4. 发现与建议
 
 FSW 的 R36 仍按递交日年龄计分。审核个案获邀时 67 分，因生日至递交时降为 66 分，现有规则会返回 `NOT_MET`。IRCC 公共政策的 Conditions 小节允许官员对符合条件的个案给予豁免，个案能否获准须核对决定。本轮仅记录该风险。选拔分和年龄分见 SRC-267a 的 Selection factors 及 SRC-261b，IRPR ss.76(1)(a)、81。[IRCC 获邀后年龄变化公共政策](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)
+
+## 第四轮审核修正（review85-4）
+
+### 1. 做了什么
+
+建议提交 `Fix: 按路径隔离加拿大申请收件日并修正家庭担保与魁省判定（review85-4）`。对应 PROGRESS 第 566 条。
+
+十条路径的规则统一从 `filingDatesForRoute(req, id)` 读取本路径的申请日期。函数分别返回联邦收件、省级递交、雇主递交、家庭完整收件、首次 PR 卡材料递交或入籍签署日期。只有明确提供的日期才会从函数返回。需要评估准备中申请的规则仍可按模拟日估算，R46 和 R69 确认实际递交则必须有本路径的收件记录。[取值函数](../../../packages/engine/src/canada-full/shared.ts)
+
+初次 PR 的联邦收件日优先取 `federal.applications[id].filedOn`。FSW、CEC、FST 只有在 `express.invitation.program` 匹配时才接受 `express.applicationDate`。PNP 其次取 `pnp.federalFiled`，仅 enhanced 且邀请属于 PNP 时还可取 EE 日期。AIP、魁省和家庭担保的后备字段分别为 `atlantic.applicationDate`、`quebec.federalReceived`、`family.filingDate`。家庭只录了完整收件日时也可据此确认联邦收件。EE 递交与提名依据 SRC-277b “Fill out the application form”、SRC-271c “Express Entry process”。[IRCC 省提名](https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/provincial-nominees/express-entry.html)
+
+家庭担保 R73 按本申请递交日计算同居期限。R74 使用明确的完整申请收件日。只有本路径的签名、家属申报、身份证件、申请材料和手续费均已确认，普通收件日才可用于子女锁龄。魁省 R69 用同一联邦收件日核对 CSQ 签发、到期及实际递交。依据 SRC-274c Guide 5289 的 “Sponsoring your spouse, common-law partner or conjugal partner”、“Definitions of dependent children” 和 Step 5，以及 SRC-273e “Who can apply / Eligibility”。[IRCC 家庭担保指南](https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/guide-5289-sponsor-your-spouse-common-law-partner-conjugal-partner-dependent-child-complete-guide.html) · [IRCC 魁省技术移民资格](https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/quebec-skilled-workers/eligibility.html)
+
+#### 完整版中使用递交日、收件日或签署日的规则清单
+
+下表包括由日期计算出的年龄、经验、学历和适用费表。每行的日期均来自上述函数，规则编号可与本报告开头相同编号的 SRC 登记对照。
+
+| 路径或阶段 | 规则 | 日期用于什么 |
+|---|---|---|
+| 七条初次 PR 路径的联邦审查 | R24、R25、R26 | R24 核体检复用或 EE 邀请、体检与递交的顺序。R25 核递交时的虚报禁期。R26 核警证覆盖期间、签发日和生物识别适用年龄。 |
+| 初次 PR 联邦费用 | R27（经济类）、R28（家庭） | 有付款日时按付款日选费表，缺付款日时用本申请递交日估价。担保子女按递交日年龄确定费用类别。 |
+| FSW、CEC、FST、enhanced PNP | R29、R31 | R29 比对本项目 ITA 和正式递交期限。R31 核递交时语言及适用 ECA 的有效期，另保留建档时点。 |
+| FSW | R33、R35、R36、R38 | 工作窗口、学历认证、六因素计分（含年龄、凭证及经验）和申请时资金表。 |
+| CEC | R40、R41 | 工作窗口及窗口内经验最多的职业，后者决定语言门槛。 |
+| FST | R38、R42 | 申请时资金表、取得独立执业资格后的工作窗口。 |
+| PNP 联邦阶段（base 与 enhanced） | R45、R46 | 提名在联邦递交时有效，R46 还核对截至模拟日是否已收件。 |
+| PNP 安省阶段 | R47、R49、R50、R51、R52、R54 | R47 用 `pnp.ontario.employerFiled` 和 `pnp.ontario.filed` 查两次递交的顺序和期限。其余按申请人省级递交日核近期毕业例外、岗位工资或经验、语言和学历效期、适用费表。 |
+| AIP | R55、R56、R57、R58、R59 | R55 核背书效期，R56、R57 按递交前经历或毕业豁免判断报价匹配和经验，R58 核语言与学历，R59 选资金表。 |
+| 魁省 PSTQ 省级甄选 | R60、R61、R62、R63、R64、R65、R66、R67、R70 | 用 `quebec.filed` 核年龄、Arrima 期限、自足金表、价值观和法语证明、学历取得日、受规管职业认可效期和省费。R68 使用已按期间统计的职业月数。 |
+| 魁省 PSTQ 联邦阶段 | R69 | 用联邦收件日核 CSQ 的有效区间和递交事实，省级甄选可以更早完成。 |
+| 家庭担保联邦阶段 | R71、R72、R73、R76 | 递交时的担保人年龄及既往受担保期限、定罪例外的等待期、伴侣年龄及关系期限、收入表年度。 |
+| 家庭担保子女锁龄 | R74 | 优先取 `family.completeApplicationReceived`。缺该日时，仅完整性已确认的本次联邦收件可锁龄。 |
+| 家庭担保魁省承诺 | R77、R78、R79、R80 | 按 `family.province.submissionDate` 核融入计划的适用年龄、收入表、收件批次和省费。R79 另核联邦通知的签发日。 |
+| PR 居住义务 | R04 | 按 `residence.card.firstCardDetailsDate` 核对首次 PR 卡材料的递交期限。 |
+| 普通入籍 | R06、R07、R08、R09、R10、R11、R14、R15、R17、R19 | 按 `residence.signingDate` 核签署年龄、PR、居住和税年窗口、语言与考试适用年龄、禁项回溯、警证、入籍费及 CAF 证明对应日。预计住满日的签署复核走同一函数。 |
+| 未成年人入籍 s.5(2) | R06、R07、R14、R17 | 按入籍签署日核签署人与未成年身份、PR、禁项回溯及入籍费。两条入籍路径沿用同一拟签署日，分别评估各自条件。此分支豁免居住、税年、语言和考试要求。 |
+
+其余已核规则为 R01–R03、R05、R12–R13、R16、R18、R20–R23、R30、R32、R34、R37、R39、R43–R44、R48、R53、R68、R75。这些规则使用独立事实、已汇总的资料，或其他事件日期，例如 R16 用授予日，R30、R32 用邀请轮次日。逐字段检索确认，完整版对上述原始递交、收件及签署日期的直接读取均位于 `shared.ts` 的取值函数内。
+
+### 2. 怎么验证的
+
+在 `00c2819` 上先运行新增回归，复现了审核的三项问题，也复现了 CEC 误用 FSW 递交日和已确认完整的家庭收件无法锁龄。修正后，`pnpm --filter @uk-immigration/engine test test/canada --reporter=dot` 通过 8 个文件的 127 项测试，含原时间引擎。下表的模拟日均为 2026-11-23。
+
+| 复现 | 单项与路径断言 |
+|---|---|
+| 家庭担保自 2025-11-01 同居，无视同例外，仅填本路径联邦收件日 2026-10-20。 | R24 为 `MET`，R73 与路径均为 `NOT_MET`。将收件日移到同居满一年的 2026-11-01，R73 与路径均为 `MET`。 |
+| 魁省 CSQ 于 2026-11-02 签发，仅填本路径联邦收件日 11-05。 | R24、R69、路径均为 `MET`。CSQ 在收件后、模拟前到期也通过。收件早于签发或迟于到期时，R69 与路径均为 `NOT_MET`。只有省级递交、CSQ 仍有效时，两者均为 `UNKNOWN`。 |
+| FSW 于 04-29 获邀、05-20 递交。Enhanced PNP 于 06-01 获提名，`pnp.federalFiled` 为 07-10。 | FSW 的 R29 和路径均为 `MET`。PNP 的 R45、R46 均为 `MET`，但提供的 ITA 属于 FSW，PNP 的 R29 和路径均为 `NOT_MET`。仅去掉 PNP 收件日，R46 为 `UNKNOWN`。另给 PNP 匹配的邀请、收件及其他证据，路径可为 `MET`。 |
+| 担保子女在普通收件日与补交后确认完整的收件日之间满 22 岁（SRC-274c，Definitions of dependent children）。 | 子女材料完整时 R74 与路径均为 `MET`，完整性缺失时均为 `UNKNOWN`，明确完整收件日在生日后时均为 `NOT_MET`。 |
+| 同一 EE 递交日落在虚报禁期内，分别标为 FSW、CEC、FST、PNP 或无邀请。 | 只有匹配邀请的路径 R25 为 `NOT_MET`。无邀请时，四条路径均按各自截至模拟日的事实评估。 |
+
+`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 首次完整运行退出码为 0。全仓 5,352 项测试通过，1 项既有测试跳过，Next.js 生成 27 个静态页面。
+
+### 3. 没做或没验证的
+
+依本轮要求，改动保留在工作区供 Fable 提交。旧 `evaluateCanada` 的实现和原测试文件与 `00c2819` 相同。未运行浏览器 e2e 或部署。
+
+### 4. 发现与建议
+
+风险 2 仍存在。FSW 的 R36 在获邀时刚好 67 分、递交前仅因生日降到 66 分的个案会返回 `NOT_MET`。选拔门槛及年龄分依据 SRC-267a “Selection factors” 与 SRC-261b，IRPR ss.76(1)(a)(iv)、81。IRCC 公共政策 “Conditions” 明确由获授权官员决定是否豁免，其他适用条件仍须满足。本轮按要求记录该风险，未改 R36。[IRCC 获邀后年龄变化公共政策](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)

@@ -1,7 +1,14 @@
 import { canadaFull2026_11 as ca } from '@uk-immigration/policy-data';
 import { addDays, addYears, fullYears } from '../dates';
 import type { IsoDate } from '../types';
-import { all, any, ref, type Context, type Item } from './shared';
+import {
+  all,
+  any,
+  filingDatesForRoute,
+  ref,
+  type Context,
+  type Item,
+} from './shared';
 
 const q = ca.values.quebecSelection.value;
 const rates = ca.values.quebecSelection2026.value;
@@ -284,13 +291,17 @@ function intermediateExperience(a: QuebecAnswers) {
   return undefined;
 }
 
-function invitation(a: QuebecAnswers, sim: IsoDate) {
+function invitation(
+  a: QuebecAnswers,
+  sim: IsoDate,
+  provincial: IsoDate | undefined,
+) {
   if (!a.invited || a.invited > sim) return undefined;
   const replyDue = addDays(a.invited, q.responseDays);
   if (!a.accepted || a.accepted > sim)
     return sim > replyDue ? false : undefined;
   const normalEnd = addDays(a.accepted, q.filingDays);
-  const submitted = a.filed && a.filed <= sim ? a.filed : undefined;
+  const submitted = provincial && provincial <= sim ? provincial : undefined;
   const timely = (end: IsoDate) =>
     submitted
       ? inWindow(submitted, a.accepted!, end)
@@ -329,7 +340,8 @@ const gazette = (articles: string) =>
 export function quebecChecks({ req, L, check }: Context): Item[] {
   const a = req.quebec ?? {};
   const sim = req.simulationDate;
-  const date = a.filed ?? sim;
+  const filing = filingDatesForRoute(req, 'CA-QC-PSTQ');
+  const date = filing.provincial ?? sim;
   const age = req.dateOfBirth ? fullYears(req.dateOfBirth, date) : undefined;
   const amount = amountForHousehold(a, date);
   const familyCount =
@@ -394,7 +406,7 @@ export function quebecChecks({ req, L, check }: Context): Item[] {
     check(
       'CA-R61',
       L('Arrima 邀请与递交期限', 'Arrima invitation and deadlines'),
-      invitation(a, sim),
+      invitation(a, sim, filing.provincial),
       L(
         `核对 EOI、邀请时主职业、类别和获邀依据。应在 ${q.responseDays} 天内接受，通常于接受后 ${q.filingDays} 天内递交。受规管职业等待认可时，若两种官方起算口径会改变结果，须核邀请信。`,
         `Verify the EOI, invited occupation, stream and selection criteria. Accept within ${q.responseDays} days and normally file within ${q.filingDays} days after acceptance. For pending regulated credentials, check the letter if the two official starting dates change the result.`,
@@ -587,16 +599,15 @@ export function quebecChecks({ req, L, check }: Context): Item[] {
     familyCount !== undefined && a.accompanyingMinorChildren !== undefined
       ? familyCount + a.accompanyingMinorChildren > 0
       : undefined;
+  const federalDate = filing.federal ?? sim;
   const granted =
     a.principalCsq === undefined ||
     a.principalCsq === 'pending' ||
     (a.principalCsqIssued !== undefined && a.principalCsqIssued > sim)
       ? undefined
       : a.principalCsq === 'valid' &&
-        (!a.principalCsqExpires ||
-          (a.federalReceived ?? sim) <= a.principalCsqExpires) &&
-        (!a.principalCsqIssued ||
-          (a.federalReceived ?? sim) >= a.principalCsqIssued);
+        (!a.principalCsqExpires || federalDate <= a.principalCsqExpires) &&
+        (!a.principalCsqIssued || federalDate >= a.principalCsqIssued);
   checks.push(
     check(
       'CA-R69',
@@ -611,7 +622,7 @@ export function quebecChecks({ req, L, check }: Context): Item[] {
           hasFamily === undefined ? undefined : !hasFamily,
           a.accompanyingCsqsValid,
         ),
-        a.federalReceived && a.federalReceived <= sim ? true : undefined,
+        filing.federal && filing.federal <= sim ? true : undefined,
       ),
       L(
         '须有本人及适用随员的有效 CSQ、定居魁省的意图及联邦收件。CSQ 本身不授予 PR 或工作权限。',

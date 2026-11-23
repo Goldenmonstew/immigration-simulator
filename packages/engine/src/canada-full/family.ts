@@ -1,7 +1,14 @@
 import { canadaFull2026_11 as ca } from '@uk-immigration/policy-data';
 import { addMonths, addYears, fullYears } from '../dates';
 import type { IsoDate } from '../types';
-import { all, any, ref, type Context, type Item } from './shared';
+import {
+  all,
+  any,
+  filingDatesForRoute,
+  ref,
+  type Context,
+  type Item,
+} from './shared';
 
 const v = ca.values;
 type Relationship = 'spouse' | 'common-law' | 'conjugal' | 'child';
@@ -120,8 +127,9 @@ export function familyChecks({ req, L, check }: Context): Item[] {
   const f = req.family ?? {};
   const q = f.province;
   const qc = f.quebec;
-  const date = f.filingDate ?? req.simulationDate;
-  const provDate = q?.submissionDate ?? req.simulationDate;
+  const filing = filingDatesForRoute(req, 'CA-FAMILY');
+  const date = filing.federal ?? req.simulationDate;
+  const provDate = filing.provincial ?? req.simulationDate;
   const fundTable = v.familyQuebecIncome.value;
   const currentQuebecTable =
     provDate >= fundTable.fromDate && provDate <= fundTable.toDate;
@@ -204,8 +212,8 @@ export function familyChecks({ req, L, check }: Context): Item[] {
             )
           : undefined;
   const childAge =
-    req.dateOfBirth && f.completeApplicationReceived
-      ? fullYears(req.dateOfBirth, f.completeApplicationReceived)
+    req.dateOfBirth && filing.completeFamilyApplication
+      ? fullYears(req.dateOfBirth, filing.completeFamilyApplication)
       : undefined;
   const child = f.child;
   const childDependency =
@@ -438,7 +446,10 @@ export function familyChecks({ req, L, check }: Context): Item[] {
           ),
       [
         ref('SRC-261', 'IRPR ss.1–2, 4–5, 117, 121, 124–125'),
-        ref('SRC-274', 'Who you can sponsor: spouse and partners'),
+        ref(
+          'SRC-274',
+          'Guide 5289: Sponsoring your spouse, common-law partner or conjugal partner',
+        ),
       ],
       ['PD-255'],
     ),
@@ -462,7 +473,10 @@ export function familyChecks({ req, L, check }: Context): Item[] {
       ),
       [
         ref('SRC-261', 'IRPR ss.2, 25.1, 117(9)–(11), 125'),
-        ref('SRC-274', 'Who you can sponsor: dependent children'),
+        ref(
+          'SRC-274',
+          'Guide 5289: Definitions of dependent children; Step 5, incomplete applications',
+        ),
       ],
       ['PD-245', 'PD-255'],
     ),

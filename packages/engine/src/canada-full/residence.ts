@@ -6,6 +6,7 @@ import type { IsoDate } from '../types';
 import {
   all,
   any,
+  filingDatesForRoute,
   ref,
   type CaFullRequest,
   type Context,
@@ -255,7 +256,7 @@ function prChecks({ req, L, check }: Context, a: ResidenceAnswers): Item[] {
       : v.prDocumentFee.value;
   let cardOk: boolean | undefined;
   if (card?.kind === 'first') {
-    const filed = card.firstCardDetailsDate;
+    const filed = filingDatesForRoute(req, 'CA-RESIDENCY').firstCardDetails;
     const deadline =
       req.permanentResident &&
       addDays(req.permanentResident, v.firstPrCardDays.value);
@@ -415,7 +416,8 @@ function citizenshipChecks(
   id: GrantPath,
 ): Item[] {
   const { req, L, check } = ctx;
-  const date = a.signingDate ?? req.simulationDate;
+  const date =
+    filingDatesForRoute(req, id).citizenshipSigning ?? req.simulationDate;
   const age = req.dateOfBirth && fullYears(req.dateOfBirth, date);
   const minor =
     typeof age === 'number' ? age < v.languageMinAge.value : undefined;

@@ -294,6 +294,33 @@ describe('initial PR federal checks', () => {
       ).status,
     ).toBe('NOT_MET');
   });
+  test('R25 assigns an EE receipt during a misrepresentation bar only to its invited class', () => {
+    const routes = ['CA-EE-FSW', 'CA-EE-CEC', 'CA-EE-FST', 'CA-PNP'] as const;
+    for (const program of [...routes, undefined]) {
+      const { pathways } = evaluateCanadaFull({
+        simulationDate: sim,
+        express: {
+          invitation: program && { program, date: '2026-04-29' },
+          applicationDate: '2026-05-20',
+        },
+        pnp: { mode: 'enhanced' },
+        federal: {
+          ...federal,
+          applications: undefined,
+          misrepresentation: 'inadmissible',
+          misrepresentationClockStart: '2021-11-01',
+        },
+      }).columns[0];
+      for (const id of routes) {
+        const item = pathways
+          .find((p) => p.id === id)!
+          .checks.find((c) => c.id === 'CA-R25');
+        expect(item?.status, `${program} / ${id}`).toBe(
+          id === program ? 'NOT_MET' : 'MET',
+        );
+      }
+    }
+  });
   test('R26 police certificates use consecutive adult stays, dates of issue and program instructions', () => {
     const stay = {
       from: '2026-05-23',
