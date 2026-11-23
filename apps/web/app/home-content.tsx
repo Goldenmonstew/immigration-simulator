@@ -6,6 +6,7 @@ import { SavedScenarios } from '../components/saved-scenarios';
 import { useTranslation } from '../i18n/locale';
 import { punct } from '../i18n/punctuation';
 import { policyAsOf } from '../lib/policy';
+import { countryPath, nonUkCountries } from '../lib/site-countries';
 import { townBanner } from './game/art';
 import styles from './site.module.css';
 
@@ -44,56 +45,13 @@ export default function Home() {
         <section className={styles.section}>
           <h2>{t('pilot.entryTitle')}</h2>
           <ul>
-            <li>
-              <Link href="/australia">{t('au.entryLink')}</Link>
-              {p.colon}
-              {t('au.entryDesc')}
-            </li>
-            <li>
-              <Link href="/new-zealand">{t('nz.entryLink')}</Link>
-              {p.colon}
-              {t('nz.entryDesc')}
-            </li>
-            <li>
-              <Link href="/canada">{t('ca.entryLink')}</Link>
-              {p.colon}
-              {t('ca.entryDesc')}
-            </li>
-            <li>
-              <Link href="/united-states">{t('us.entryLink')}</Link>
-              {p.colon}
-              {t('us.entryDesc')}
-            </li>
-            <li>
-              <Link href="/spain">{t('es.entryLink')}</Link>
-              {p.colon}
-              {t('es.entryDesc')}
-            </li>
-            <li>
-              <Link href="/greece">{t('gr.entryLink')}</Link>
-              {p.colon}
-              {t('gr.entryDesc')}
-            </li>
-            <li>
-              <Link href="/ireland">{t('ie.entryLink')}</Link>
-              {p.colon}
-              {t('ie.entryDesc')}
-            </li>
-            <li>
-              <Link href="/portugal">{t('pt.entryLink')}</Link>
-              {p.colon}
-              {t('pt.entryDesc')}
-            </li>
-            <li>
-              <Link href="/japan">{t('jp.entryLink')}</Link>
-              {p.colon}
-              {t('jp.entryDesc')}
-            </li>
-            <li>
-              <Link href="/germany">{t('de.entryLink')}</Link>
-              {p.colon}
-              {t('de.entryDesc')}
-            </li>
+            {nonUkCountries.map(({ id }) => (
+              <li key={id}>
+                <Link href={countryPath(id)}>{t(`${id}.entryLink`)}</Link>
+                {p.colon}
+                {t(`${id}.entryDesc`)}
+              </li>
+            ))}
           </ul>
         </section>
         <section className={styles.section}>

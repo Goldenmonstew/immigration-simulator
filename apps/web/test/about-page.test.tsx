@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
 import AboutPage, { metadata } from '../app/about/page';
+import { GET as offlinePages } from '../app/offline-pages.json/route';
 import Home from '../app/page';
 import PolicyPage from '../app/policy/page';
 import { ResultView } from '../components/result-view';
@@ -131,12 +132,12 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
-test('the service worker precaches about and uses the new cache version', () => {
+test('the service worker precaches about and uses the new cache version', async () => {
   const source = readFileSync(
     new URL('../public/sw.js', import.meta.url),
     'utf8',
   );
-  expect(source).toMatch(/const PAGES = \[[^\]]*'\/about'/);
-  expect(source).toContain('2026-11-04-v2');
-  expect(source).toContain('...PAGES');
+  expect(await offlinePages().json()).toContain('/about');
+  expect(source).toContain("fetch(at('/offline-pages.json')");
+  expect(source).toContain('2026-11-04-v3');
 });

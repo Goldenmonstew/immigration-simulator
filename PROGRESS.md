@@ -457,3 +457,11 @@
 | 433 | 任务 73 审核建议处理（review73-4）：多次超期出境时说明列出此前每一次失效未定的出境；条件列表支持"若 C，且 A或B"的混合结构，更复杂的组合列出全部读法；§ 20 与两种机会卡的到期日标签改为"必填"；回归用例新增 5 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、apps/web/lib/germany.ts、apps/web/app/germany/germany-content.tsx、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/germany.test.tsx、docs/tasks/reports/73-germany-risks.md |
 | 434 | 任务 73 报告补记最终门禁、手机宽度预览与审核结论（通过）。 | docs/tasks/reports/73-germany-risks.md |
 | 440 | 第 20 阶段计划：去掉"试点"、十国完整版（全部条件、对比、分享、政策页、人生模拟游戏）、集合入口与英国迁到 /uk/、网站改名 immigration-simulator；AGENTS.md 改为 Codex 与 agy 的模型实现、Fable 统筹。 | docs/tasks/phase-20-plan.md、AGENTS.md |
+
+## 2026-11-23
+
+| # | 改动描述 | 涉及文件 |
+|---|---|---|
+| 441 | 任务 77：按国家拆分十国中英文案，保留原字典接口，补齐注册表使用的 11 个国家名称键。 | apps/web/i18n/{zh-CN,en}.ts、apps/web/i18n/countries/*.ts |
+| 442 | 任务 77：建立 11 国注册表与 countryPath，首页十国入口按原顺序从注册表渲染。 | apps/web/lib/site-countries.ts、apps/web/app/home-content.tsx |
+| 443 | 任务 77：静态导出离线页面清单，service worker 按注册作用域读取并升级至 v3；离线与无障碍 e2e 复用注册表，离线流程最后填写爱尔兰表单。 | apps/web/app/offline-pages.json/route.ts、apps/web/public/sw.js、apps/web/test/about-page.test.tsx、apps/e2e/tests/{site,a11y}.spec.ts、docs/tasks/reports/77-registry.md |
