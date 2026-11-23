@@ -46,6 +46,21 @@ export type {
   GrResult,
   GrTrip,
 } from './greece';
+export {
+  PT_NATIONALITY_ROUTES,
+  PT_PERMIT_KINDS,
+  evaluatePortugal,
+} from './portugal';
+export type {
+  PtNationalityRoute,
+  PtPathway,
+  PtPathwayId,
+  PtPermit,
+  PtPermitKind,
+  PtRequest,
+  PtResult,
+  PtTrip,
+} from './portugal';
 export { ES_NATIONALITY_ROUTES, evaluateSpain } from './spain';
 export type {
   EsNationalityRoute,
