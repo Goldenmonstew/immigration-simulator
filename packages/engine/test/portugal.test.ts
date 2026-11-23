@@ -758,6 +758,10 @@ describe('EU long-term residence (Lei 23/2007 art. 125–126)', () => {
     expect(p.status).toBe('NOT_APPLICABLE');
     expect(p.checks[0].met).toBe(true);
     expect(p.summary).toContain('2033-01-01');
+    // Task 75: 12 months away on 2028-01-01 comes first, and may lose it
+    // outside the EU; the exceptions are named.
+    expect(p.summary).toContain('2028-01-01');
+    expect(p.summary).toContain('art. 131 n.º 2–3');
     // The same 6 years already behind you: lost.
     const lost = pathway(
       {

@@ -821,6 +821,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       // would reach a limit later are a forecast.
       const lostAll = awayFor(longTerm.from, lossYears * 12);
       const lostEu = awayFor(longTerm.from, lossMonths);
+      const lostSoonAll = !!lostAll && lostAll > sim;
+      const lostSoonEu = !!lostEu && lostEu > sim;
       pathways.push({
         id: 'PT-EU-LONG-TERM',
         title,
@@ -830,17 +832,34 @@ export function evaluatePortugal(req: PtRequest): PtResult {
             `记录中已有 ${longTerm.from} 起的欧盟长期居民身份，身份本身没有期限，卡面到期只需换发（art. 130 n.º 2）。`,
             `Your record has EU long-term resident status from ${longTerm.from}; the status has no time limit, and an expired card only needs renewing (art. 130 n.º 2).`,
           ) +
-          (lostAll && lostAll > sim
+          (lostSoonEu || lostSoonAll
             ? L(
-                `按已录入的计划出境，${lostAll} 离开葡萄牙满 ${lossYears} 年，会失去身份。`,
-                ` With the trips you plan, you will have been away from Portugal ${lossYears} years on ${lostAll} and lose the status.`,
+                `按已录入的计划出境，${[
+                  lostSoonEu
+                    ? `${lostEu} 离开葡萄牙满 ${lossMonths} 个月，若这段时间在欧盟以外会失去身份（出境记录分不出是否在欧盟内，待确认）`
+                    : '',
+                  lostSoonAll
+                    ? `${lostAll} 离开葡萄牙满 ${lossYears} 年，会失去身份`
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(
+                    '；',
+                  )}。有特殊或例外理由（例如在原籍国从事职业、经营、文化或社会活动）的缺席不失去身份（art. 131 n.º 2–3）。`,
+                ` With the trips you plan, ${[
+                  lostSoonEu
+                    ? `you will have been away from Portugal ${lossMonths} months on ${lostEu}, and lose the status if that time is outside the EU (trips do not say, so this is uncertain)`
+                    : '',
+                  lostSoonAll
+                    ? `you will have been away from Portugal ${lossYears} years on ${lostAll} and lose the status`
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(
+                    '; ',
+                  )}. Absences for specific or exceptional reasons, such as professional, business, cultural or social activity in your country of origin, do not lose the status (art. 131 n.º 2–3).`,
               )
-            : lostEu && lostEu > sim
-              ? L(
-                  `按已录入的计划出境，${lostEu} 离开葡萄牙满 ${lossMonths} 个月，若这段时间在欧盟以外会失去身份。`,
-                  ` With the trips you plan, you will have been away from Portugal ${lossMonths} months on ${lostEu}, and lose the status if that time is outside the EU.`,
-                )
-              : ''),
+            : ''),
         checks: [
           {
             text: L(
