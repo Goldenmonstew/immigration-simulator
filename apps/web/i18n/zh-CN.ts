@@ -483,16 +483,19 @@ export const zhCN = {
   'ie.basics': '基本信息',
   'ie.simulationDate': '模拟日期',
   'ie.simulationDateHint':
-    '按这一天判断（按递交日），默认今天。规则按 2026-11 核对的现行版本，模拟过去的日期也照此计算；GEP 的 57 个月自 2024-04-03 起才适用，此前的规则没有收录，早于该日满期的显示为待确认。',
+    '按这一天判断（按递交日），默认今天。规则按 2026-11 核对的现行版本，模拟过去的日期也照此计算；存档来源中 57 个月规则对 GEP 最早见于 2024-04-03、对公司内调（ICT）最早见于 2026-02-25（升级页现行文本的修改日），此前的规则没有收录，早于该日满期的显示为待确认。',
   'ie.permits': '居留许可',
   'ie.permitsHint':
-    '按 IRP 卡或护照印章，每段许可填一行，按时续期的接着填下一段；仍有效的到期日可留空。学生许可、等待国际保护决定的期间也请填上，它们不计入。与爱尔兰公民结婚的，在北爱尔兰合法居住的期间也可以填，只计入配偶入籍；搬到北爱尔兰后，爱尔兰许可即使尚未到期，那段时间也不算在爱尔兰（国家）居住。',
+    '按 IRP 卡或护照印章，每段许可填一行，按时续期的接着填下一段；仍有效的到期日可留空。旧许可在卡上到期日之前就被新许可取代的（例如 CSEP 卡到 2026-12-31，但 2026-09-01 起改持 GEP），到期日填旧许可实际的最后一天，不填卡上的日期。学生许可、等待国际保护决定的期间也请填上，它们不计入。在北爱尔兰合法居住的期间也请填上（无论选哪条路线）：它只计入配偶入籍；搬到北爱尔兰后，爱尔兰许可即使尚未到期，那段时间也不算在爱尔兰（国家）居住。',
   'ie.permit': '许可 {n}',
   'ie.from': '生效日期',
   'ie.to': '到期日期（仍有效可留空）',
   'ie.kind': '许可类型',
   'ie.kind.stamp1':
-    'Stamp 1 或 1H（雇佣许可、研究员 Hosting Agreement、经营等，公司内调除外）',
+    'Stamp 1（经营、打工度假、ISD 准许免雇佣许可工作等其他情形）',
+  'ie.kind.stamp1-gep': 'Stamp 1（General Employment Permit）',
+  'ie.kind.stamp1-csep':
+    'Stamp 1 或 1H（Critical Skills Employment Permit、研究员 Hosting Agreement、NCHD 医生的多地点 GEP）',
   'ie.kind.stamp1-ict': 'Stamp 1（公司内调 ICT 许可）',
   'ie.kind.stamp1g-graduate':
     'Stamp 1G（毕业生计划 Third Level Graduate Programme）',
@@ -501,7 +504,9 @@ export const zhCN = {
   'ie.kind.stamp1g-ict': 'Stamp 1G（公司内调 ICT 许可持有人的配偶、伴侣）',
   'ie.kind.stamp1a': 'Stamp 1A（见习会计）',
   'ie.kind.stamp0': 'Stamp 0（经济独立者、访问学者、年长受抚养亲属等）',
-  'ie.kind.stamp3': 'Stamp 3（不能工作的家属、志愿者、宗教人员等）',
+  'ie.kind.stamp3': 'Stamp 3（志愿者、宗教人员等其他情形）',
+  'ie.kind.stamp3-family':
+    'Stamp 3（雇佣许可持有人或研究员的配偶、伴侣，在家庭团聚下所持、改发 1G 之前）',
   'ie.kind.stamp4': 'Stamp 4',
   'ie.kind.stamp4d': 'Stamp 4D 或 4S',
   'ie.kind.stamp4-eufam': 'Stamp 4 EUFam（欧盟公民家属）',
@@ -529,7 +534,8 @@ export const zhCN = {
     'Stamp 4 升级，21 个月：Critical Skills 许可、研究员 Hosting Agreement、NCHD 医生的多地点 GEP',
   'ie.stamp4Route.gep':
     'Stamp 4 升级，57 个月：General Employment Permit、公司内调 ICT',
-  'ie.stamp4Route.spouse-1g': 'Stamp 4：持 Stamp 1G 的配偶或伴侣，满 5 年',
+  'ie.stamp4Route.spouse-1g':
+    'Stamp 4：家庭团聚的配偶或伴侣（Stamp 3／1G），满 5 年',
   'ie.stamp4Route.wcatt': 'Stamp 5：合法居留满 96 个月',
   'ie.employmentStart': '在爱尔兰凭该许可开始工作的日期',
   'ie.employmentStartHint':
@@ -683,6 +689,13 @@ export const zhCN = {
   'jp.newStatus.own': '另有日期（之前持过新版不认可的资格）',
   'jp.newStatus.none': '目前持有的资格新版不认可（如企業内転勤）',
   'jp.newStatusStart': '连续持新版认可的资格的开始日',
+  'jp.departure': '孩子的出境方式（出生后取得路线）',
+  'jp.departureHint':
+    '出生后 60 日内不持再入国许可出境的不需要申请取得在留资格（入管厅 Q&A Q28）；持再入国许可或みなし再入国许可出境的须先取得在留资格。',
+  'jp.departure.choose': '请选择',
+  'jp.departure.none': '不持再入国许可出境（回国时重新上陆）',
+  'jp.departure.deemed': '持みなし再入国许可出境',
+  'jp.departure.permit': '持再入国许可出境',
   'jp.renewalPending':
     '出境前已在在留期限内申请更新（或变更）在留资格，出境时尚未出结果',
   'jp.marriedLifeFrom': '开始实际婚姻生活的日期',
@@ -708,7 +721,7 @@ export const zhCN = {
     '国籍法第5条要求年满 18 岁，并且按本国法也已成年；本国法成年年龄高于 18 岁的（如 19 岁），请填写岁数，否则勾选上一项。',
   'jp.trips': '出境记录',
   'jp.tripsHint':
-    '每次离开日本填一行，计划中的出行也可以填。没有勾选再入国许可的，按みなし再入国许可（出国后 1 年内返回）计算；填了出境时的在留期限的，返回也不能晚于它。',
+    '每次离开日本填一行，计划中的出行也可以填。没有勾选再入国许可的，按みなし再入国许可（出国后 1 年内返回）计算；填了出境时的在留期限的，返回也不能晚于它。选"在日本出生"路线的，另须为孩子的出境选择出境方式（不持再入国许可、みなし或再入国许可）。',
   'jp.trip': '出境 {n}',
   'jp.departed': '离开日本的日期',
   'jp.returned': '回到日本的日期',
@@ -730,6 +743,10 @@ export const zhCN = {
   'jp.error.newStatus': '请选择新版指南下的起点。',
   'jp.error.homeMajority': '请勾选本国法成年年龄不超过 18 岁，或填写岁数。',
   'jp.error.age': '请填写 1 至 99 之间的整数岁数。',
+  'jp.error.newBeforeOld':
+    '新版认可的资格比旧版少，这个起点不能早于上面旧版的起点。',
+  'jp.error.newWithoutOld':
+    '上面勾选了还没有旧版认可的资格；新版认可的资格旧版也认可，不能另填日期，请选"与上面相同"或"目前持有的资格新版不认可"。',
   'jp.error.overlap': '这次出境与前面的出境日期重叠。',
   'us.entryLink': '打开美国试点',
   'us.entryDesc':

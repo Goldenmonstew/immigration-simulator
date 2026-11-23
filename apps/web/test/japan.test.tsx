@@ -267,9 +267,12 @@ test('a child born in Japan applies within 30 days of birth', () => {
   });
   const status = (simulationDate: string) =>
     evaluateJapan(jpRequest(born(simulationDate), 'zh-CN')).pathways[0].status;
-  // In the window, on its last day (2026-12-10), and after it.
+  // In the window, on the last day counting the birth day (2026-12-09),
+  // on the last day leaving it out (2026-12-10: the readings differ), and
+  // after it.
   expect(status('2026-11-23')).toBe('MET');
-  expect(status('2026-12-10')).toBe('MET');
+  expect(status('2026-12-09')).toBe('MET');
+  expect(status('2026-12-10')).toBe('UNKNOWN');
   expect(status('2026-12-11')).toBe('NOT_MET');
   const html = render(
     <PilotResult
@@ -307,6 +310,70 @@ test('a child born in Japan applies within 30 days of birth', () => {
   expect(closedDay.summary).toContain('最早可在 2027-01-04 递交');
   // The form hint matches the result: another status, or no status yet.
   expect(t('jp.bornOnHint')).toContain('地方出入国在留管理局');
+});
+
+test('contradictory old and new guideline starts', () => {
+  const general: JpForm = {
+    ...filled,
+    prRoute: 'general',
+    statusStart: '2019-04-01',
+    newStatus: 'own',
+    newStatusStart: '2018-01-01',
+  };
+  // The new guideline counts fewer statuses: its start is never earlier.
+  expect(validateJpForm(general)).toEqual({
+    'jp-new-status-start': 'jp.error.newBeforeOld',
+  });
+  expect(validateJpForm({ ...general, newStatusStart: '2021-04-05' })).toEqual(
+    {},
+  );
+  // No old-guideline status, yet a date under the new one.
+  expect(
+    validateJpForm({
+      ...general,
+      statusNone: true,
+      statusStart: '',
+      newStatusStart: '2021-04-05',
+    }),
+  ).toEqual({ 'jp-new-status-start': 'jp.error.newWithoutOld' });
+});
+
+test('the birth route asks how the child leaves (FAQ Q28)', () => {
+  // Born 2026-11-10, sim 11-16, away 11-27 to 12-01.
+  const form = (departure: JpForm['trips'][number]['departure']): JpForm => ({
+    ...filled,
+    simulationDate: '2026-11-16',
+    stayStart: '2026-11-10',
+    prRoute: 'child-birth',
+    bornOn: '2026-11-10',
+    trips: [{ ...trip('2026-11-27', '2026-12-01'), departure }],
+  });
+  const status = (departure: JpForm['trips'][number]['departure']) =>
+    evaluateJapan(jpRequest(form(departure), 'zh-CN')).pathways[0].status;
+  expect(validateJpForm(form(''))).toEqual({});
+  expect(jpRequest(form('deemed'), 'en').trips[0].departure).toBe('deemed');
+  expect(status('none')).toBe('NOT_APPLICABLE');
+  expect(status('deemed')).toBe('MET');
+  expect(status('permit')).toBe('MET');
+  expect(status('')).toBe('UNKNOWN');
+  // The choice shows only for the birth route.
+  expect(render(<JapanPage />, 'zh-CN')).not.toContain(t('jp.departure'));
+  // review74-3: the departure method sets the re-entry tick, so the
+  // naturalisation re-entry rules see the same permit.
+  const tripOf = (
+    departure: JpForm['trips'][number]['departure'],
+    reentryPermit: boolean,
+  ) =>
+    jpRequest(
+      {
+        ...form(departure),
+        trips: [{ ...form(departure).trips[0], reentryPermit }],
+      },
+      'en',
+    ).trips[0].reentryPermit;
+  expect(tripOf('permit', false)).toBe(true);
+  expect(tripOf('deemed', true)).toBeUndefined();
+  expect(tripOf('none', true)).toBeUndefined();
 });
 
 test('leaving with a renewal pending (FAQ Q61)', () => {

@@ -16,6 +16,8 @@ export interface JpTripRow {
   reentryPermit: boolean;
   /** A renewal applied for before the expiry was pending when leaving. */
   renewalPending: boolean;
+  /** Birth route: how the newborn left (FAQ Q28); empty = not said. */
+  departure: '' | 'none' | 'deemed' | 'permit';
 }
 
 /** A stay that does not count towards the 10 years. */
@@ -64,6 +66,7 @@ export const emptyJpTrip = (): JpTripRow => ({
   stayExpiry: '',
   reentryPermit: false,
   renewalPending: false,
+  departure: '',
 });
 export const emptyJpExcluded = (): JpExcludedRow => ({ from: '', to: '' });
 
@@ -118,8 +121,20 @@ export function validateJpForm(form: JpForm): JpErrors {
     date('jp-status-start', form.statusStart);
   if (form.prRoute === 'general') {
     if (!form.newStatus) errors['jp-new-status'] = 'jp.error.newStatus';
-    if (form.newStatus === 'own')
+    if (form.newStatus === 'own') {
       date('jp-new-status-start', form.newStatusStart);
+      // The new guideline counts fewer statuses than the old one (SRC-114
+      // 注2 p5, 第2の5(6) p7, 第5の2 p12 against SRC-113 1(3)ア), so its
+      // start is never earlier.
+      if (validDate(form.newStatusStart) && form.statusNone)
+        errors['jp-new-status-start'] = 'jp.error.newWithoutOld';
+      else if (
+        validDate(form.newStatusStart) &&
+        validDate(form.statusStart) &&
+        form.newStatusStart < form.statusStart
+      )
+        errors['jp-new-status-start'] = 'jp.error.newBeforeOld';
+    }
     form.excluded.forEach((row, i) => {
       date(`jp-excluded-${i}-from`, row.from);
       date(`jp-excluded-${i}-to`, row.to);
@@ -201,8 +216,17 @@ export function jpRequest(form: JpForm, locale: Locale): JpRequest {
       departed: t.departed,
       returned: t.returned,
       ...(t.stayExpiry ? { stayExpiry: t.stayExpiry } : {}),
-      ...(t.reentryPermit ? { reentryPermit: true } : {}),
+      // On the birth route the departure method says which permit was used,
+      // so every calculation sees the same one.
+      ...((
+        form.prRoute === 'child-birth'
+          ? t.departure === 'permit'
+          : t.reentryPermit
+      )
+        ? { reentryPermit: true }
+        : {}),
       ...(t.renewalPending ? { renewalPending: true } : {}),
+      ...(t.departure ? { departure: t.departure } : {}),
     })),
     pr,
     naturalisation:

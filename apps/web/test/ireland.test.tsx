@@ -19,7 +19,7 @@ const render = (node: React.ReactNode, locale: 'zh-CN' | 'en') =>
 
 const filled: IeForm = {
   ...emptyIeForm('2026-11-22'),
-  permissions: [{ kind: 'stamp1', from: '2021-03-01', to: '' }],
+  permissions: [{ kind: 'stamp1-csep', from: '2021-03-01', to: '' }],
   stamp4Route: 'csep',
   employmentStart: '2025-03-15',
 };
@@ -32,6 +32,8 @@ test.each(['zh-CN', 'en'] as const)('the form renders in %s', (locale) => {
     'ie.permits',
     'ie.kind',
     'ie.kind.student',
+    'ie.kind.stamp1-csep',
+    'ie.kind.stamp1-gep',
     'ie.kind.stamp1g-spouse',
     'ie.kind.ni-residence',
     'ie.trips',
@@ -73,7 +75,9 @@ test('validation marks missing, out-of-order and required dates', () => {
 
 test('the request leaves out blank optional dates', () => {
   const req = ieRequest({ ...filled, stamp4Route: 'none' }, 'en');
-  expect(req.permissions).toEqual([{ kind: 'stamp1', from: '2021-03-01' }]);
+  expect(req.permissions).toEqual([
+    { kind: 'stamp1-csep', from: '2021-03-01' },
+  ]);
   expect(req).not.toHaveProperty('marriedOn');
   expect(req).not.toHaveProperty('employmentStart');
   expect(ieRequest(filled, 'en').employmentStart).toBe('2025-03-15');
@@ -162,6 +166,24 @@ test('Stamp 5 with a planned trip over the 96-month date', () => {
   expect(stamp5?.status).toBe('FUTURE');
   expect(stamp5?.earliestDate).toBe('2026-12-01');
   expect(stamp5?.summary).toContain('the earliest filing date is 2026-12-10');
+});
+
+test('a business Stamp 1 after a GEP does not reach the 57 months', () => {
+  const form: IeForm = {
+    ...emptyIeForm('2026-11-23'),
+    permissions: [
+      { kind: 'stamp1-gep', from: '2022-01-01', to: '2025-12-31' },
+      { kind: 'stamp1', from: '2026-01-01', to: '' },
+    ],
+    stamp4Route: 'gep',
+    employmentStart: '2022-01-01',
+  };
+  expect(validateIeForm(form)).toEqual({});
+  expect(
+    evaluateIreland(ieRequest(form, 'zh-CN')).pathways.find(
+      (p) => p.id === 'IE-STAMP4',
+    )?.status,
+  ).toBe('NOT_MET');
 });
 
 test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
