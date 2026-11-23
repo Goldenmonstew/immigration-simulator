@@ -776,6 +776,36 @@ describe('review70-7', () => {
     expect(p.summary).not.toContain('最早递交日');
   });
 
+  test('the filing day after a closed day is also a day in Japan', () => {
+    // Abroad 2027-04-04 to 04-11 (a Sunday): the counters, then 04-12.
+    const p = pr({
+      stayStart: '2017-04-03',
+      pr: { route: 'general', statusStart: '2019-04-03' },
+      trips: [{ departed: '2027-04-04', returned: '2027-04-11' }],
+    });
+    expect(p.earliestDate).toBe('2027-04-03');
+    expect(p.summary).toContain('最早可在 2027-04-12 递交');
+  });
+
+  test('a filing day on a predicted equinox says so', () => {
+    // 10 years on Sunday 2028-03-19; 03-20 is the predicted 春分日.
+    const p = pr({
+      stayStart: '2018-03-19',
+      pr: { route: 'general', statusStart: '2022-01-01' },
+    });
+    expect(p.earliestDate).toBe('2028-03-19');
+    expect(p.summary).toContain('最早可在 2028-03-20 递交');
+    expect(p.summary).toContain('预测历');
+  });
+
+  test('naturalisation is filed at the Legal Affairs Bureau', () => {
+    // 10 years of stay on Saturday 2027-04-03.
+    const p = nat({ stayStart: '2017-04-03' });
+    expect(p.earliestDate).toBe('2027-04-03');
+    expect(p.summary).toContain('法务局');
+    expect(p.summary).not.toContain('SRC-119');
+  });
+
   test('a listed past year: 文化の日 on a Sunday and its substitute', () => {
     // 2024-11-03 (Sunday) and 11-04 (substitute) are closed: 11-05.
     expect(born('2024-10-04', '2024-11-05').status).toBe('MET');

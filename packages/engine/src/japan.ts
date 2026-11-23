@@ -338,14 +338,49 @@ export function evaluateJapan(req: JpRequest): JpResult {
     const law = byLaw(year);
     return law.sure.has(d) ? 'yes' : law.withEquinox.has(d) ? 'maybe' : 'no';
   };
-  /** When `d` is a closed day, the next day the counters take filings. */
-  const filingNote = (d: IsoDate) => {
-    if (closed(d) !== 'yes') return '';
-    let open = d;
-    while (closed(open) === 'yes') open = addDays(open, 1);
-    return L(
-      `${d} 是行政机关休日，窗口在平日受理，最早可在 ${open} 递交（SRC-112、SRC-119）。`,
-      ` ${d} is a day the offices are closed and the counters take filings on working days, so you can file from ${open} (SRC-112, SRC-119).`,
+  /**
+   * When `d` is (or may be) a closed day, the next open day on which `ok`
+   * (the pathway's own test: in Japan, requirements met) also holds. ISA
+   * counters take filings on working days; naturalisation is filed in
+   * person at the Legal Affairs Bureau.
+   */
+  const filingNote = (
+    d: IsoDate,
+    ok: (x: IsoDate) => boolean,
+    office: 'isa' | 'bureau',
+  ) => {
+    const state = closed(d);
+    if (state === 'no') return '';
+    const end = addDays(sim, horizon);
+    let open = addDays(d, 1);
+    while (open < end && (closed(open) === 'yes' || !ok(open)))
+      open = addDays(open, 1);
+    const where =
+      office === 'isa'
+        ? L(
+            `窗口在平日受理，最早可在 ${open} 递交（SRC-112、SRC-119）`,
+            `the counters take filings on working days, so you can file from ${open} (SRC-112, SRC-119)`,
+          )
+        : L(
+            `之后最早的开放日是 ${open}；帰化须本人到法务局递交，实际日期以法务局的安排为准（SRC-112、SRC-117 Q10）`,
+            `the next open day is ${open}; naturalisation is filed in person at the Legal Affairs Bureau, so the actual date depends on the bureau (SRC-112, SRC-117 Q10)`,
+          );
+    return (
+      (state === 'yes'
+        ? L(
+            `${d} 是行政机关休日，${where}。`,
+            ` ${d} is a day the offices are closed; ${where}.`,
+          )
+        : L(
+            `${d} 按国立天文台的预测是春分日或秋分日（或因此成为休日），若正式公布为休日，${where}。`,
+            ` ${d} is a predicted equinox day (or a holiday because of one); if it is confirmed as a holiday, ${where}.`,
+          )) +
+      (closed(open) === 'maybe'
+        ? L(
+            `${open} 按国立天文台的预测历推算，若正式公布为休日，则顺延到其后的开放日（PD-130）。`,
+            ` ${open} rests on the predicted calendar; if it is confirmed as a holiday, it moves to the next open day (PD-130).`,
+          )
+        : '')
     );
   };
   const pathways: JpPathway[] = [];
@@ -401,7 +436,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
             : L(
                 `在日本出生的，可在申请期限内申请取得永住者资格，不必等在留年限（${when}）${status === 'MET' ? '；模拟日在期限内' : `；出生后（${born} 起）才能递交`}。`,
                 `Born in Japan, you can apply to acquire permanent resident status within the time allowed, without waiting for years of stay (${when})${status === 'MET' ? '; the simulation date is within it' : `; you can apply from the birth (${born})`}.`,
-              ) + filingNote(status === 'MET' ? sim : born),
+              ) + filingNote(status === 'MET' ? sim : born, () => true, 'isa'),
       checks: [
         {
           text: L(
@@ -745,12 +780,12 @@ export function evaluateJapan(req: JpRequest): JpResult {
           ? L(
               '模拟日已满足永住许可的时间条件。',
               'You meet the time requirements for permanent residence on the simulation date.',
-            ) + filingNote(sim)
+            ) + filingNote(sim, (x) => verdict(x) === 'yes', 'isa')
           : status === 'FUTURE'
             ? L(
                 `最早满足永住许可时间条件的日期是 ${earliest}。`,
                 `The earliest date that meets the time requirements for permanent residence is ${earliest}.`,
-              ) + filingNote(earliest!)
+              ) + filingNote(earliest!, (x) => verdict(x) === 'yes', 'isa')
             : status === 'UNKNOWN'
               ? L(
                   `按年限计算的候选日期是 ${possible}，`,
@@ -763,7 +798,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
                       ` The earliest date without this doubt is ${earliest}.`,
                     )
                   : '') +
-                filingNote(possible!)
+                filingNote(possible!, (x) => verdict(x) !== 'no', 'isa')
               : L(
                   '按现有记录，10 年内达不到永住许可的时间条件。',
                   'With your record you will not meet the time requirements for permanent residence within 10 years.',
@@ -928,12 +963,12 @@ export function evaluateJapan(req: JpRequest): JpResult {
         ? L(
             '模拟日已满足帰化的时间条件。',
             'You meet the time requirements for naturalisation on the simulation date.',
-          ) + filingNote(sim)
+          ) + filingNote(sim, (x) => verdict(x) === 'yes', 'bureau')
         : status === 'FUTURE'
           ? L(
               `最早满足帰化时间条件的日期是 ${earliest}。`,
               `The earliest date that meets the time requirements for naturalisation is ${earliest}.`,
-            ) + filingNote(earliest!)
+            ) + filingNote(earliest!, (x) => verdict(x) === 'yes', 'bureau')
           : status === 'UNKNOWN'
             ? L(
                 `按年限计算的候选日期是 ${possible}。`,
@@ -941,7 +976,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
               ) +
               practiceNote(possible!) +
               tripNote(possible!) +
-              filingNote(possible!)
+              filingNote(possible!, (x) => verdict(x) !== 'no', 'bureau')
             : L(
                 '按现有记录，10 年内达不到帰化的时间条件。',
                 'With your record you will not meet the time requirements for naturalisation within 10 years.',
