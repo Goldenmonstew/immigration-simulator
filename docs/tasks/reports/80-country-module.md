@@ -35,3 +35,26 @@
 2. 实现 `run(draft, locale)` 返回 `CountryResult`。为列、路径和条件分配语言切换及对比前后都稳定的 ID。保留原路径摘要、日期、未检查条件、假设和待定细节；条件的 `met` 为 true、false、缺失时分别对应 `MET`、`NOT_MET`、`UNKNOWN`。
 3. 对比模块提供 `focusControls`、`focusForRule(id)`、`initial(draft, target?)`、`apply(draft, knobs)`、`validate(afterDraft, knobs)` 和 `Controls` 组件。政策页提供 `ruleSets`、`displayedRuleSets`、`parameters`、`rules`、`changelog`、`sourceUrls`。将模块传给共用的 `ResultPage`、`WhatIfPageContent`、`PolicyPage`；分享和方案存储随模块选取对应国家。
 4. 本工作树基线为 `838d0c2`。任务 78 后续提交 `8077e70` 修复旧英国分享链接首次离线访问，Fable 合并时请保留该提交。
+
+## 审核修正（review80-1）
+
+### 1. 做了什么
+
+建议一次提交 `Fix: 恢复英国 What-if 筛查中止时的两栏提示并隔离国家状态`。
+
+- `apps/web/components/whatif-lab.tsx` 保留调整前的两个栏标题。调整后的评估带有 `shortCircuit` 且没有返回任何列时，每栏显示“此规则集暂无评估结果。”。正常返回的列与路径继续按 ID 对齐，保留新增或移除的路径。
+- `apps/web/components/whatif-lab.tsx` 和 `apps/web/components/saved-scenarios.tsx` 按国家 ID 重新挂载读取存储的组件。切换国家后，What-if 页从本国草稿初始化控件，已保存方案列表从本国存储生成摘要。
+- `apps/web/test/country-views.test.tsx` 新增英国日期控件回归，并扩展通用模块用例覆盖路径新增、移除及重排。工作记录见 `PROGRESS.md` 第 472 项及本报告。
+
+### 2. 怎么验证的
+
+- `pnpm --filter web test test/country-views.test.tsx` 在修正前复现“可能不符合条件 → —”。修正后 5 项通过。英国用例先验证 2026-11-23 的两栏结论，再通过日期控件预填 2024-11-23，逐栏检查提示并确认结论行消失。
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0。5,240 项测试通过；既有文案导出测试按 `EXPORT_WORDING` 条件跳过 1 项。构建生成 27 个静态页面。
+
+### 3. 没做或没验证的
+
+按要求保留未提交的改动。沙箱阻止本机 Chromium 启动，内置浏览器连接也不可用，本轮未取得浏览器截图。
+
+### 4. 发现与建议
+
+`packages/engine/src/evaluate.ts` 的 `latestAsOf` 从英国 `PARAMETERS` 读取日期，缺少匹配参数时会回退到英国 `RULE_SET_IDS`。其他国家应通过各自的 `run(draft, locale)` 返回本国参数的 `policyAsOf`，不要复用英国的 `evaluate`。

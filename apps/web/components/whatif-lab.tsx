@@ -251,10 +251,11 @@ function WhatIfLab<D extends CountryDraft, K>({
               ({ id, before: previous, after: next }) => {
                 const column = (next ?? previous)!;
                 const ruleSet = column.ruleSet;
-                const paths = pairById(
-                  previous?.pathways ?? [],
-                  next?.pathways ?? [],
-                );
+                // Screening can stop the whole run before any column is assessed.
+                const paths =
+                  after.shortCircuit && !after.columns.length
+                    ? []
+                    : pairById(previous?.pathways ?? [], next?.pathways ?? []);
                 return (
                   <section
                     key={id}
@@ -352,6 +353,14 @@ export function WhatIfView<D extends CountryDraft, K>({
 }
 
 export function WhatIfPageContent<D extends CountryDraft, K>({
+  country,
+}: {
+  country: CountryModule<D, K>;
+}) {
+  return <StoredWhatIfPage key={country.id} country={country} />;
+}
+
+function StoredWhatIfPage<D extends CountryDraft, K>({
   country,
 }: {
   country: CountryModule<D, K>;

@@ -21,15 +21,23 @@ import {
 import site from '../app/site.module.css';
 import styles from './saved-scenarios.module.css';
 
-export function SavedScenarios<D extends CountryDraft, K>({
-  country,
-  draft,
-  onLoad,
-}: {
+interface SavedScenariosProps<D extends CountryDraft, K> {
   country: CountryModule<D, K>;
   draft?: D;
   onLoad?: (draft: D) => void;
-}) {
+}
+
+export function SavedScenarios<D extends CountryDraft, K>(
+  props: SavedScenariosProps<D, K>,
+) {
+  return <CountryScenarios key={props.country.id} {...props} />;
+}
+
+function CountryScenarios<D extends CountryDraft, K>({
+  country,
+  draft,
+  onLoad,
+}: SavedScenariosProps<D, K>) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
   const [scenarios, setScenarios] = useState<SavedScenario<D>[]>([]);

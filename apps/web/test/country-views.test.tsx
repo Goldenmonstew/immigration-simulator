@@ -1,11 +1,14 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
 import type { CountryPathway } from '@uk-immigration/engine';
+import { esP31IndividualAPartnerArrivesTogether as partner } from '../../../packages/policy-data/fixtures/es-p31-individual-a-partner-arrives-together';
 import { ResultView } from '../components/result-view';
 import { PolicyPage } from '../components/policy-page';
 import type { CountryPolicy, PolicyRuleSet } from '../lib/policy';
 import { WhatIfView } from '../components/whatif-lab';
+import { t } from '../i18n';
 import type { CountryModule } from '../lib/country-module';
+import { ukModule } from '../lib/uk-module';
 import {
   parseWhatIfFocus,
   rememberWhatIfTarget,
@@ -65,8 +68,8 @@ const country: CountryModule<typeof draft, { score: number }> = {
         id: 'a',
         title: 'Column A',
         pathways: score
-          ? [path('Beta', true), path('Alpha', false)]
-          : [path('Alpha', true), path('Beta', false)],
+          ? [path('Beta', true), path('Alpha', false), path('Added', true)]
+          : [path('Alpha', true), path('Beta', false), path('Removed', true)],
       },
       { id: 'b', title: 'Column B', pathways: [path('Gamma', true)] },
     ],
@@ -90,11 +93,59 @@ test('a module with its own controls compares multiple paths by id across column
   );
   expect(html).toContain('id="score-control" readOnly="" value="1"');
   expect(html).toContain('href="/canada/result"');
-  for (const heading of ['Alpha', 'Beta', 'Gamma'])
+  for (const heading of ['Alpha', 'Beta', 'Gamma', 'Added', 'Removed'])
     expect(html).toContain(`<h3>${heading}</h3>`);
+  const met = t('country.status.MET');
+  expect(html.split('<h3>Added</h3>')[1]).toContain(
+    `>—</span><span aria-hidden="true">→</span><span>${met}</span>`,
+  );
+  expect(html.split('<h3>Removed</h3>')[1]).toContain(
+    `>${met}</span><span aria-hidden="true">→</span><span>—</span>`,
+  );
   expect(html).toContain('data-status="PASS"><strong>Beta score</strong>');
   expect(html).toContain('data-status="FAIL"><strong>Alpha score</strong>');
   expect(html).not.toContain('whatif-earnings');
+});
+
+test('the UK date control shows a missing assessment in both columns when dependant screening stops the run', () => {
+  const ukDraft = {
+    ...ukModule.createDraft(),
+    ...structuredClone(partner.request),
+    completed: true,
+    principalCompleted: true,
+    simulationDate: '2026-11-23',
+  };
+  ukDraft.screening = { criminality: 'no', breach: 'no', debt: 'no' };
+  ukDraft.principalScreening = { ...ukDraft.screening, criminality: 'yes' };
+  ukDraft.timeline.episodes.at(-1)!.validTo = '2025-11-22';
+  ukDraft.timeline.episodes.push({
+    route: 'SKILLED_WORKER',
+    role: 'MAIN',
+    validFrom: '2025-11-23',
+    validTo: '2028-11-22',
+  });
+  const baseline = renderToStaticMarkup(
+    <WhatIfView country={ukModule} draft={ukDraft} />,
+  );
+  const outcomeRow = `<dt>${t('whatif.outcome')}</dt>`;
+  expect(baseline.split(outcomeRow)).toHaveLength(3);
+
+  const date = '2024-11-23';
+  const adjusted = renderToStaticMarkup(
+    <WhatIfView
+      country={ukModule}
+      draft={ukDraft}
+      target={{ focus: 'date', assessment: { earliestDate: date } }}
+    />,
+  );
+  expect(adjusted).toMatch(new RegExp(`id="whatif-date"[^>]*value="${date}"`));
+  for (const { id } of ukModule.policy.displayedRuleSets) {
+    const column = adjusted
+      .split(`aria-labelledby="${id}-heading"`)[1]
+      .split('</section>')[0];
+    expect(column).toContain(t('result.missingAssessment'));
+    expect(column).not.toContain(outcomeRow);
+  }
 });
 
 test('path columns keep their checks, pending details and country-specific links', () => {
