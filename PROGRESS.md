@@ -417,3 +417,4 @@
 | 413 | 任务 74：出生路线"30 日"是否含出生日——入管厅按初日不算入，东广岛市说明含出生日；两种读法（各自按休日顺延）给出的期限不同时，落在两者之间的日子输出 UNKNOWN（PD-130）；更新边界用例。 | packages/engine/src/japan.ts、packages/engine/test/japan.test.ts、apps/web/test/japan.test.tsx、docs/pending-details.md |
 | 414 | 任务 74：出生路线使用出境记录——递交日须是出生后第一次出境当天或之前、在日本的开放日；已没有这样的日子时，出境到期限之后才回国的为 NOT_MET，期限内回国的为 UNKNOWN（PD-160）；补回归用例。 | packages/engine/src/japan.ts、packages/engine/test/japan.test.ts、docs/pending-details.md |
 | 415 | 任务 74：帰化年龄检查项写明所描述递交日适用的门槛并附 2022-04-01 起的门槛；2022-04-01 前递交时已满 18 岁但未满 20 岁的输出 UNKNOWN（此前递交、之后审结适用哪个年龄没有写明，PD-161）；补回归用例。 | packages/engine/src/japan.ts、packages/engine/test/japan.test.ts、docs/pending-details.md |
+| 416 | 任务 74 报告：日本试点审核遗留的六项风险（2019–2021 祝日、境外模拟日的检查项、新旧起点矛盾、出生路线计日读法与出境、2022-04-01 年龄门槛）的处理与验证。 | docs/tasks/reports/74-japan-risks.md |
