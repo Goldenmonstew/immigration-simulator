@@ -305,6 +305,21 @@ describe('naturalisation, application pending on 2026-05-19 (LO 1/2026 art. 7)',
     ).toBe('MET');
   });
 
+  test('met on the record but with a trip: worded as the record alone', () => {
+    // Task 75: the summary matches the unknown status.
+    const p = pathway(
+      {
+        ...pending,
+        residenceApplied: '2021-03-01',
+        trips: [{ departed: '2023-05-01', returned: '2023-05-15' }],
+      },
+      'PT-NATURALISATION',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('仅按居留记录计算，递交时已满 5 年');
+    expect(p.pendingDetails).toContain('PD-144');
+  });
+
   test('one day short: a new application falls under the current law', () => {
     const p = pathway(
       { ...pending, residenceApplied: '2021-05-01' },

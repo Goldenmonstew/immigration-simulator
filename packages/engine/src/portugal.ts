@@ -555,10 +555,15 @@ export function evaluatePortugal(req: PtRequest): PtResult {
                 `The application was made on ${at} and was pending on ${inForce}, so the earlier text applies: `,
               )) +
           (old.verdict === 'yes'
-            ? L(
-                `递交时已有 ${oldYears} 年合法居留。`,
-                `you had ${oldYears} years of legal residence when you applied.`,
-              )
+            ? law === 'old' && !oldTrips
+              ? L(
+                  `递交时已有 ${oldYears} 年合法居留。`,
+                  `you had ${oldYears} years of legal residence when you applied.`,
+                )
+              : L(
+                  `仅按居留记录计算，递交时已满 ${oldYears} 年合法居留。`,
+                  `counting your residence record alone, you had ${oldYears} years of legal residence when you applied.`,
+                )
             : old.verdict === 'maybe'
               ? L(
                   `递交时的 ${oldYears} 年合法居留待确认（居留签证、居留卡到期后的期间或年天换算，PD-140、PD-141、PD-145）。`,
