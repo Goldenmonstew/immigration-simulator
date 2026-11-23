@@ -568,7 +568,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.kind': 'Permit type',
   'de.kind.study': 'University study (§ 16b)',
   'de.kind.training': 'Vocational training or further training (§ 16a)',
-  'de.kind.skilled': 'Skilled worker or researcher (§§ 18a, 18b, 18d)',
+  'de.kind.skilled': 'Skilled worker (§§ 18a, 18b)',
+  'de.kind.research': 'Researcher (§ 18d)',
   'de.kind.blue-card': 'EU Blue Card (Blaue Karte EU, § 18g)',
   'de.kind.german-family': 'Family of a German (§ 28)',
   'de.kind.other':

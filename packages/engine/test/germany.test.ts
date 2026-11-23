@@ -319,6 +319,31 @@ describe('Niederlassungserlaubnis, general route (§ 9)', () => {
     expect(pathway(back, 'DE-SETTLEMENT').status).toBe('NOT_APPLICABLE');
   });
 
+  test('§ 18d research before training is not the § 16a exception (task 73)', () => {
+    const permits = (kind: 'skilled' | 'research') => [
+      { kind, from: '2020-09-01', to: '2024-08-31' },
+      { kind: 'training' as const, from: '2024-09-01' },
+    ];
+    // § 16a Abs. 1 Satz 3 names only §§ 18a, 18b.
+    expect(
+      pathway({ permits: permits('skilled') }, 'DE-SETTLEMENT').status,
+    ).toBe('MET');
+    expect(
+      pathway({ permits: permits('research') }, 'DE-SETTLEMENT').status,
+    ).toBe('UNKNOWN');
+    // A research permit counts on the skilled worker route (§ 18c Abs. 1).
+    expect(
+      pathway(
+        {
+          settlementRoute: 'skilled',
+          contributionMonths: 36,
+          permits: [{ kind: 'research', from: '2022-03-15' }],
+        },
+        'DE-SETTLEMENT',
+      ).status,
+    ).toBe('MET');
+  });
+
   test('time before the first arrival does not count (review69-1)', () => {
     const req = {
       simulationDate: '2026-01-15',
@@ -1215,6 +1240,19 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     expect(p.checks[0].met).toBeUndefined();
     expect(p.summary).toContain('§ 51 Abs. 1a');
     expect(p.checks[0].text).toContain('2026-03-15');
+  });
+
+  test('a research permit and EU researcher mobility (§ 51 Abs. 1a, task 73)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-06-01',
+        permits: [{ kind: 'research', from: '2024-10-01', to: '2026-09-30' }],
+        trips: [{ departed: '2025-09-15', returned: '2026-05-15' }],
+      },
+      'DE-TRAVEL',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('§ 51 Abs. 1a');
   });
 
   test('a study permit that ran out before the return lapsed (review69-11)', () => {

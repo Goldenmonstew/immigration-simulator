@@ -18,7 +18,7 @@ import type { IsoDate, Locale } from './types';
 
 /**
  * study: university study (§ 16b); training: vocational training (§ 16a);
- * skilled: skilled worker or researcher (§§ 18a, 18b, 18d); blue-card:
+ * skilled: skilled worker (§§ 18a, 18b); research: researcher (§ 18d); blue-card:
  * Blaue Karte EU (§ 18g); german-family: family of a German (§ 28); other:
  * any other permit for a lasting purpose; temporary: a permit for a
  * temporary purpose (such as § 20 job seeking or au pair); protection:
@@ -34,6 +34,7 @@ export const DE_PERMIT_KINDS = [
   'study',
   'training',
   'skilled',
+  'research',
   'blue-card',
   'german-family',
   'other',
@@ -141,6 +142,7 @@ const SECTION_5: DePermitKind[] = ['protection', 'subsidiary', 'humanitarian'];
 // another humanitarian permit or the asylum procedure.
 const TITLES: DePermitKind[] = [
   'skilled',
+  'research',
   'blue-card',
   'german-family',
   'other',
@@ -154,6 +156,7 @@ const KIND_NAMES: Record<DePermitKind, [string, string]> = {
   study: ['学习许可', 'a study permit'],
   training: ['职业培训许可', 'a vocational training permit'],
   skilled: ['技术工人许可', 'a skilled worker permit'],
+  research: ['研究许可', 'a research permit'],
   'blue-card': ['欧盟蓝卡', 'an EU Blue Card'],
   'german-family': ['德国人家属许可', 'a permit as family of a German'],
   other: ['居留许可', 'a residence permit'],
@@ -225,16 +228,16 @@ function settlementRule(req: DeRequest): SettlementRule {
         ? v.skilledTrainedYears
         : v.skilledYears;
       return {
-        full: ['skilled', 'blue-card'],
+        full: ['skilled', 'research', 'blue-card'],
         half: [],
-        hold: ['skilled', 'blue-card'],
+        hold: ['skilled', 'research', 'blue-card'],
         years: years.value,
         months: req.trainedInGermany
           ? v.skilledTrainedContributionMonths.value
           : v.skilledContributionMonths.value,
         what: [
-          `持技术工人许可或欧盟蓝卡满 ${years.value} 年`,
-          `${years.value} years holding a skilled worker permit or EU Blue Card`,
+          `持技术工人、研究许可或欧盟蓝卡满 ${years.value} 年`,
+          `${years.value} years holding a skilled worker or research permit or an EU Blue Card`,
         ],
         sources: years.sources,
       };
@@ -290,8 +293,9 @@ interface Exit {
   /** Back after the old permit's expiry while a renewal is pending. */
   pendingRenewal?: boolean;
   /**
-   * Away too long on a study permit: it does not lapse for study in another
-   * member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2).
+   * Away too long on a study or research permit: it does not lapse for study
+   * or research in another member state under Directive (EU) 2016/801
+   * (§ 51 Abs. 1a Satz 2).
    */
   mobility?: boolean;
   /**
@@ -418,12 +422,11 @@ export function evaluateGermany(req: DeRequest): DeResult {
       // by the simulation date, still pending then, was on the old permit.
       const pendingRenewal =
         trip.returned > sim && !!pending[days.index(trip.returned)];
+      // § 51 Abs. 1a Satz 2: study (§ 16b) and research (§ 18d) permits.
+      const mobile = kind === 'study' || kind === 'research';
       const studyEnd =
-        kind === 'study' && !expires && end && end < trip.returned
-          ? end
-          : undefined;
-      const mobility =
-        kind === 'study' && !expires && !studyEnd && trip.returned > by;
+        mobile && !expires && end && end < trip.returned ? end : undefined;
+      const mobility = mobile && !expires && !studyEnd && trip.returned > by;
       exit = {
         trip,
         kind,
@@ -471,8 +474,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
     const e = doubtful.filter((x) => doubtFrom(x)! < days.date(k)).at(-1)!;
     if (e.mobility)
       return L(
-        `你的学习许可可能已因 ${tripText(e)} 的出境失效：若这段时间是按欧盟学生流动（指令 2016/801）在其他成员国学习，许可不失效（§ 51 Abs. 1a Satz 2），否则在 ${e.by} 之后失效，试点无法判断（见"出境与居留失效"）。`,
-        `Your study permit may have lapsed on the trip ${tripText(e)}: it does not lapse if you were studying in another member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2), otherwise it lapsed after ${e.by}, which this pilot cannot tell (see “Trips abroad and loss of residence”).`,
+        `你的${N(KIND_NAMES[e.kind])}可能已因 ${tripText(e)} 的出境失效：若这段时间是按欧盟学生或研究人员流动（指令 2016/801）在其他成员国学习或研究，许可不失效（§ 51 Abs. 1a Satz 2），否则在 ${e.by} 之后失效，试点无法判断（见"出境与居留失效"）。`,
+        `Your ${N(KIND_NAMES[e.kind]).replace(/^an? /, '')} may have lapsed on the trip ${tripText(e)}: it does not lapse if you were studying or doing research in another member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2), otherwise it lapsed after ${e.by}, which this pilot cannot tell (see “Trips abroad and loss of residence”).`,
       );
     return L(
       `你持有的欧盟长期居留可能已因 ${tripText(e)} 的出境失效：这段时间若都在欧盟以外，许可在 ${e.euBy} 之后失效（§ 51 Abs. 9 Satz 1 Nr. 3），在其他欧盟国家的不失效，试点无法判断（见"出境与居留失效"）。`,
@@ -1556,8 +1559,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
                 : '') +
               (mobilityUnsure.length
                 ? L(
-                    `${mobilityUnsure.map(trip).join('、')} 持学习许可在外超过期限：若这段时间是按欧盟学生流动（指令 2016/801）在其他成员国学习，许可不失效（§ 51 Abs. 1a Satz 2）；否则许可在期限后失效，试点无法判断。`,
-                    `${euUnsure.length || renewalUnsure.length ? ' ' : ''}On a study permit you are away past the limit for ${mobilityUnsure.map(trip).join(', ')}: it does not lapse if you were studying in another member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2); otherwise it lapsed after the limit, which this pilot cannot tell.`,
+                    `${mobilityUnsure.map(trip).join('、')} 持学习或研究许可在外超过期限：若这段时间是按欧盟学生或研究人员流动（指令 2016/801）在其他成员国学习或研究，许可不失效（§ 51 Abs. 1a Satz 2）；否则许可在期限后失效，试点无法判断。`,
+                    `${euUnsure.length || renewalUnsure.length ? ' ' : ''}On a study or research permit you are away past the limit for ${mobilityUnsure.map(trip).join(', ')}: it does not lapse if you were studying or doing research in another member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2); otherwise it lapsed after the limit, which this pilot cannot tell.`,
                   )
                 : '')
             : L(
@@ -1590,13 +1593,13 @@ export function evaluateGermany(req: DeRequest): DeResult {
                       )
                     : e.studyEnd
                       ? L(
-                          `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回；即使按欧盟学生流动在其他成员国学习，也须在许可 ${e.studyEnd} 到期前返回（§ 51 Abs. 1 Nr. 1、Abs. 1a Satz 2）`,
-                          `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}; even when studying in another member state under EU student mobility, back before the permit ran out on ${e.studyEnd} (§ 51 Abs. 1 Nr. 1, Abs. 1a Satz 2)`,
+                          `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回；即使按欧盟学生或研究人员流动在其他成员国学习或研究，也须在许可 ${e.studyEnd} 到期前返回（§ 51 Abs. 1 Nr. 1、Abs. 1a Satz 2）`,
+                          `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}; even under EU student or researcher mobility in another member state, back before the permit ran out on ${e.studyEnd} (§ 51 Abs. 1 Nr. 1, Abs. 1a Satz 2)`,
                         )
                       : e.mobility
                         ? L(
-                            `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回，按欧盟学生流动在其他成员国学习的除外（§ 51 Abs. 1a Satz 2）`,
-                            `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}, unless you were studying in another member state under EU student mobility (§ 51 Abs. 1a Satz 2)`,
+                            `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回，按欧盟学生或研究人员流动在其他成员国学习或研究的除外（§ 51 Abs. 1a Satz 2）`,
+                            `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}, unless you were studying or doing research in another member state under EU student or researcher mobility (§ 51 Abs. 1a Satz 2)`,
                           )
                         : backPending(e)
                           ? L(
