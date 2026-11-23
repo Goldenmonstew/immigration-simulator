@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { commonChecks, auNotes } from '../src/australia-common';
 import type { AuFullPathId, AuFullRequest } from '../src/australia-full';
-import { feeChecks } from '../src/australia-fees';
+import { feeChecks, instalmentChecks } from '../src/australia-fees';
 
 const base: AuFullRequest = {
   simulationDate: '2026-11-23',
@@ -263,6 +263,72 @@ const fees = {
 const cost = (id: AuFullPathId, input: Partial<AuFullRequest>) =>
   feeChecks(id, { ...base, ...input })[0];
 describe('AUD budget at the research date', () => {
+  test('186 distinguishes formal assessment of the primary applicant from a stale functional English test', () => {
+    const main: AuFullRequest = {
+      ...base,
+      english: {
+        passport: 'other',
+        education: 'none',
+        test: {
+          name: 'ielts',
+          date: '2025-05-15',
+          format: 'approved',
+          components: [6, 6, 6, 6],
+        },
+      },
+      fees: { ...fees, additionalAdults: 0, additionalMinors: 0 },
+    };
+    for (const route of ['AU-186-DE', 'AU-186-TRT'] as const) {
+      const check = (r: AuFullRequest) =>
+        instalmentChecks(route, r).find(
+          (c) => c.id === 'AU-186-primary-instalment',
+        )!.status;
+      expect(cost(route, main)).toMatchObject({
+        status: 'UNKNOWN',
+        explanation: expect.stringContaining('First instalment AUD 6,140'),
+      });
+      expect(check(main)).toBe('UNKNOWN');
+      expect(check({ ...main, secondInstalmentPaid: false })).toBe('UNKNOWN');
+      const liable = {
+        ...main,
+        fees: { ...main.fees, chargeablePrimaryApplicant: true },
+        secondInstalmentPaid: false,
+      };
+      expect(cost(route, liable).explanation).toContain(
+        'Family total AUD 15,940',
+      );
+      expect(check(liable)).toBe('NOT_MET');
+      const paid = { ...liable, secondInstalmentPaid: true };
+      expect(check(paid)).toBe('MET');
+      expect(cost(route, paid).explanation).toContain(
+        'Family total AUD 15,940',
+      );
+      expect(
+        cost(route, {
+          ...liable,
+          fees: { ...fees, chargeablePrimaryApplicant: true },
+        }).explanation,
+      ).toContain('Family total AUD 25,435');
+      for (const exemption of [
+        { chargeablePrimaryApplicant: false },
+        { religiousNominationExemption: true },
+      ]) {
+        const exempt = { ...main, fees: { ...main.fees, ...exemption } };
+        expect(cost(route, exempt).explanation).toContain(
+          'Family total AUD 6,140',
+        );
+        expect(check(exempt)).toBe('MET');
+      }
+      const functional = {
+        ...main,
+        english: { ...main.english, passport: 'GB' },
+      };
+      expect(check(functional)).toBe('MET');
+      expect(cost(route, functional).explanation).toContain(
+        'Family total AUD 6,140',
+      );
+    }
+  });
   // Standard family of three, including one adult secondary instalment where applicable.
   test.each([
     ['AU-186-TRT', 15635],

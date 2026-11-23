@@ -122,6 +122,15 @@ const FIVE_YEAR_FACILITY = new Set<AuSubclass>([
 ]);
 
 export function evaluateAustralia(req: AuRequest): AuResult {
+  return evaluateAustraliaTimeline(req).result;
+}
+
+export interface AuCitizenshipResidence {
+  atApplication: boolean;
+  previousYear: boolean;
+}
+
+export function evaluateAustraliaTimeline(req: AuRequest) {
   const L = textFor(req);
   const sim = req.simulationDate;
   const days = new Days(
@@ -256,11 +265,14 @@ export function evaluateAustralia(req: AuRequest): AuResult {
   // you a permanent resident only if you held one when you last left.
   const resident = flags();
   let leftAsResident = arrived(0) && permanent.on[0];
+  const today = days.index(sim);
+  let permanentAtApplication = false;
   for (let i = 0; i < days.count; i++) {
-    if (present(i)) {
-      leftAsResident = beforeLeaving(permanent, i);
-      resident[i] = leftAsResident && !gap[i];
-    } else resident[i] = permanent.on[i] && leftAsResident && !gap[i];
+    const inAustralia = present(i);
+    if (inAustralia) leftAsResident = beforeLeaving(permanent, i);
+    const holdsPR = leftAsResident && (inAustralia || permanent.on[i]);
+    resident[i] = holdsPR && !gap[i];
+    if (i === today) permanentAtApplication = holdsPR;
   }
   const sums = {
     // 155.212(2)(b): days also on a temporary or bridging visa do not count.
@@ -1109,5 +1121,16 @@ export function evaluateAustralia(req: AuRequest): AuResult {
     }
   }
 
-  return { policyAsOf: au.asOf, pathways };
+  return {
+    result: { policyAsOf: au.asOf, pathways },
+    citizenshipResidence: {
+      atApplication: permanentAtApplication,
+      previousYear:
+        days.total(
+          sums.notResident,
+          addMonths(sim, -v.citizenshipPermanentMonths.value),
+          addDays(sim, -1),
+        ) === 0,
+    },
+  };
 }

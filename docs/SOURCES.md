@@ -167,6 +167,8 @@
 | SRC-219 | GUIDANCE | 内政部 Health waiver | https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/health/health-waiver | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-health-waiver.html`（sha256 `5da24d2679f3183ab87327e83a55fe5daf135c8755621d0ef159642489ab32a7`） | archived |
 | SRC-220 | GUIDANCE | 内政部签证品格审查 | https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/character | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-character.html`（sha256 `436634c6fc24670761e86baef17c7d82040d22c9452908f692fe1570cc97772d`） | archived |
 | SRC-221 | GUIDANCE | 内政部签证费率 | https://immi.homeaffairs.gov.au/visas/getting-a-visa/fees-and-charges/current-visa-pricing | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-visa-fees-pricing.html`（sha256 `c2a74843b61c5da7a6f5ecfcc341b45e8d2ab8da5ab5151f3879496706ae8f34`） | archived |
+| SRC-225 | GUIDANCE | 内政部技术移民职业评估 | https://immi.homeaffairs.gov.au/visas/working-in-australia/skills-assessment | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-skills-assessment.html`（sha256 `42c9875accba8edc3898927f8aed6cd5b4fcf20d5bbcfb93ea470aa876b3cb5c`） | archived |
+| SRC-226 | GUIDANCE | 内政部 Competent English 考试和成绩 | https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/english-language/competent-english | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-english-competent.html`（sha256 `89b69eaa9ef88fdc05222fcbe936179595350d833076d856578e479e5a077cb5`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -1174,3 +1176,11 @@ Police certificates 与 Character requirements 小节说明刑事记录、警方
 ## SRC-221 内政部签证费率
 
 Current visa pricing 提供费用入口，法定费率按 SRC-200 Schedule 1 和 reg 2.12C 核对。
+
+## SRC-225 内政部技术移民职业评估
+
+Visas 下的 General Skilled Migration (GSM) visas 小节说明，按 *Thapa* [2021] FCCA 686 的现行办理口径，指定职业的合格职评可在 60 天邀请期内取得。递交时提供职评。条文的获邀时点见 SRC-200 189.222(1)、190.212(1)。
+
+## SRC-226 内政部 Competent English 考试和成绩
+
+表 2 的 TOEFL iBT 行列出 2023-07-26 至 2024-05-04（含首尾）对澳大利亚签证停认，并列出旧版口语最低 21 分。SRC-206 s 10(5)(c) 的对应分数是 18。两者影响结果的区间见 PD-200。

@@ -2,7 +2,7 @@ import {
   auFamilyParameters as f,
   australia2026_11,
 } from '@uk-immigration/policy-data';
-import { type AuRequest } from './australia';
+import type { AuCitizenshipResidence, AuRequest } from './australia';
 import { checker } from './australia-check';
 import type { AuFullPathId, AuFullRequest } from './australia-full';
 import type { CountryCheck } from './country-result';
@@ -657,6 +657,7 @@ const timeTitles = [
 function citizenshipChecks(
   r: AuFullRequest,
   pilot?: PilotPathway,
+  residence?: AuCitizenshipResidence,
 ): CountryCheck[] {
   const c = r.citizenship ?? {};
   const q = checker(r.locale);
@@ -684,25 +685,27 @@ function citizenshipChecks(
     scv.continuousEligible;
   const prAtLodgement =
     c.permanentAtApplication ??
-    (scvEligible || pilot?.checks[4]?.met
+    (scvEligible || residence?.atApplication
       ? true
-      : !scv && r.visas !== undefined && pilot?.status === 'NOT_APPLICABLE'
-        ? false
-        : undefined);
+      : scv && scv.continuousEligible === undefined
+        ? undefined
+        : residence?.atApplication);
   const timeChecks = timeTitles.map(([key, zh, en, locator], index) => {
     const old = pilot?.checks[index + 1];
+    const historicalMet =
+      key === 'permanent' ? residence?.previousYear : old?.met;
     const met =
       residenceOverride ||
-      (old?.met === true
+      (historicalMet === true
         ? true
         : minor === undefined ||
             c.otherResidenceBasis === 'pending' ||
             (scv && scv.continuousEligible === undefined)
           ? undefined
-          : old?.met);
+          : historicalMet);
     const replaced =
       residenceOverride ||
-      (c.otherResidenceBasis === 'pending' && old?.met !== true);
+      (c.otherResidenceBasis === 'pending' && historicalMet !== true);
     const zhText = minor
       ? '未满成年年龄按 s 21(5) 评估，无须满足成年人的一般居住条件。'
       : c.otherResidenceBasis === 'confirmed'
@@ -713,18 +716,28 @@ function citizenshipChecks(
       : c.otherResidenceBasis === 'confirmed'
         ? 'A statutory alternative residence or defence service basis has been confirmed.'
         : 'Provide the residence history or the decision on a statutory alternative.';
+    const previousPR = key === 'permanent' && residence && !replaced;
     const result = q(
       `AU-CIT-time-${key}`,
       met,
       zh,
       en,
-      (!replaced && old?.text) || zhText,
-      (!replaced && old?.text) || enText,
+      previousPR
+        ? `申请日前连续 ${v.citizenshipPermanentMonths.value} 个月须一直具有永居身份。`
+        : (!replaced && old?.text) || zhText,
+      previousPR
+        ? `Continuous permanent residence is required throughout the ${v.citizenshipPermanentMonths.value} months immediately before the application day.`
+        : (!replaced && old?.text) || enText,
       'SRC-061',
       locator,
       c.otherResidenceBasis === 'pending' ? 'PD-219' : undefined,
     );
-    if (old && !replaced) result.sources = old.sources;
+    if (previousPR) {
+      result.sources.push(
+        { srcId: 'SRC-061', locator: 's 5(1)' },
+        { srcId: 'SRC-069', locator: 's 82(2)–(6)' },
+      );
+    } else if (old && !replaced) result.sources = old.sources;
     if (scv)
       result.sources = [
         ...result.sources,
@@ -826,7 +839,7 @@ function citizenshipChecks(
       '两个时点均须符合入籍法的永居定义；合资格新西兰 SCV 持有人可按特别规则满足。',
       'Permanent residence for citizenship purposes is required on both dates. Qualifying New Zealand SCV holders can meet this under the special rules.',
       'SRC-061',
-      'ss 5, 21(2)–(5)',
+      'ss 5(1), 21(2)(b), (3)–(5)',
     ),
     ...timeChecks,
     q(
@@ -1000,6 +1013,7 @@ export function familyChecks(
   id: AuFullPathId,
   r: AuFullRequest,
   pilot?: PilotPathway,
+  citizenshipResidence?: AuCitizenshipResidence,
 ): CountryCheck[] {
   switch (id) {
     case 'AU-PARTNER':
@@ -1007,7 +1021,7 @@ export function familyChecks(
     case 'AU-RRV':
       return rrvChecks(r, pilot);
     case 'AU-CITIZENSHIP':
-      return citizenshipChecks(r, pilot);
+      return citizenshipChecks(r, pilot, citizenshipResidence);
     default:
       return [];
   }

@@ -187,6 +187,100 @@ describe('regional residence and income years', () => {
 });
 
 describe('application and grant', () => {
+  test('190 projects the end of an ongoing 491 lock and rechecks the invitation on that day', () => {
+    const invitation = {
+      issued: '2026-11-15',
+      deadline: '2027-01-13',
+      score: 65,
+    };
+    const request: AuFullRequest = {
+      ...solo,
+      visas: [{ subclass: '491', from: '2023-12-01' }],
+      permissibleOnshoreVisa: true,
+      regionalLockException: 'none',
+      english: { passport: 'GB', test: 'none' },
+      fees: { additionalAdults: 0, additionalMinors: 0 },
+      skills: {
+        invitations: { 'AU-190': invitation },
+        occupationList: 'MLTSSL',
+        occupationInInvitation: { 'AU-190': true },
+        assessment: { kind: 'positive', issued: '2026-10-01' },
+        nomination: 'active',
+        points: {
+          overseasMonths: 96,
+          australianMonths: 0,
+          professionalMonths: 0,
+          education: 'bachelor',
+          specialistStudyYears: 0,
+          australianStudy: { qualifying: false },
+          communityLanguageCredential: false,
+          partner: 'singleOrAustralian',
+        },
+      },
+    };
+    const before = path('AU-190', request);
+    expect(before.checks.find((c) => c.id === 'AU-regional-lock')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(before).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-12-01',
+    });
+    const due = path('AU-190', { ...request, simulationDate: '2026-12-01' });
+    expect(due.checks.find((c) => c.id === 'AU-regional-lock')?.status).toBe(
+      'MET',
+    );
+    expect(due).toMatchObject({ status: 'MET', earliestDate: '2026-12-01' });
+    const expired = path('AU-190', {
+      ...request,
+      publicInterest: { ...request.publicInterest, health: undefined },
+      skills: {
+        ...request.skills,
+        invitations: { 'AU-190': { ...invitation, deadline: '2026-11-30' } },
+      },
+    });
+    expect(expired.checks.find((c) => c.id === 'AU-PIC-HEALTH')?.status).toBe(
+      'UNKNOWN',
+    );
+    expect(
+      expired.checks.find((c) => c.id === 'AU-190-invitation')?.status,
+    ).toBe('MET');
+    expect(expired.status).toBe('NOT_MET');
+    expect(expired.earliestDate).toBeUndefined();
+  });
+  test('155 projects the rolling residence window when there is no alternative return basis', () => {
+    const request: AuFullRequest = {
+      ...solo,
+      firstArrival: '2025-01-01',
+      visas: [{ subclass: '189', from: '2025-01-01' }],
+      rrv: {
+        status: 'current-pr',
+        returnApplicationBar: false,
+        ties: 'none',
+        familyBasis: 'none',
+        compassionateDeparture: 'none',
+      },
+    };
+    const before = path('AU-RRV', request);
+    const beforeResidence = before.checks.find(
+      (c) => c.id === 'AU-RRV-option-residence',
+    );
+    expect(beforeResidence?.explanation).toContain('691');
+    expect(beforeResidence?.status).toBe('NOT_MET');
+    expect(before.checks.find((c) => c.id === 'AU-RRV-basis')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(before).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2027-01-01',
+    });
+    const due = path('AU-RRV', { ...request, simulationDate: '2027-01-01' });
+    expect(
+      due.checks.find((c) => c.id === 'AU-RRV-option-residence')?.status,
+    ).toBe('MET');
+    expect(due.checks.find((c) => c.id === 'AU-RRV-basis')?.status).toBe('MET');
+    expect(due).toMatchObject({ status: 'MET', earliestDate: '2027-01-01' });
+  });
   test.each([
     'AU-186-DE',
     'AU-189-PT',

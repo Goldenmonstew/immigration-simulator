@@ -1,12 +1,19 @@
 import { describe, expect, test } from 'vitest';
-import { evaluateAustralia, type AuRequest } from '../src/australia';
+import {
+  evaluateAustralia,
+  evaluateAustraliaTimeline,
+  type AuRequest,
+} from '../src/australia';
 import {
   citizenshipTimeRequest,
   familyChecks,
   partnerTimeRequest,
   type AuFamilyAnswers,
 } from '../src/australia-family';
-import type { AuFullRequest } from '../src/australia-full';
+import {
+  evaluateAustraliaFull,
+  type AuFullRequest,
+} from '../src/australia-full';
 import type { CountryCheck } from '../src/country-result';
 
 const base: AuRequest = {
@@ -344,7 +351,8 @@ const citizen: Citizen = {
   inAustraliaAtApproval: true,
   willingToPledge: true,
 };
-const oldCit = evaluateAustralia(base).pathways.find(
+const citizenTimeline = evaluateAustraliaTimeline(base);
+const oldCit = citizenTimeline.result.pathways.find(
   (x) => x.id === 'AU-CITIZENSHIP',
 );
 function citizenResult(
@@ -355,17 +363,55 @@ function citizenResult(
     'AU-CITIZENSHIP',
     { ...base, ...overrides, citizenship: { ...citizen, ...c } },
     oldCit,
+    citizenTimeline.citizenshipResidence,
   );
 }
 describe('citizenship by conferral', () => {
+  test('recent permanent grant establishes PR at application before the final residence year is complete', () => {
+    const request: AuFullRequest = {
+      ...base,
+      pathway: 'AU-CITIZENSHIP',
+      firstArrival: '2020-01-01',
+      visas: [
+        { subclass: '482', from: '2020-01-01' },
+        { subclass: '189', from: '2026-01-01' },
+      ],
+      citizenship: citizen,
+    };
+    const result = (simulationDate: string) =>
+      evaluateAustraliaFull({ ...request, simulationDate }).columns[0]
+        .pathways[0];
+    const before = result('2026-11-23');
+    expect(get(before.checks, 'AU-CIT-pr').status).toBe('MET');
+    expect(get(before.checks, 'AU-CIT-time-permanent').status).toBe('NOT_MET');
+    expect(before).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2027-01-01',
+    });
+    const due = result('2027-01-01');
+    expect(get(due.checks, 'AU-CIT-pr').status).toBe('MET');
+    expect(get(due.checks, 'AU-CIT-time-permanent').status).toBe('MET');
+    expect(due).toMatchObject({ status: 'MET', earliestDate: '2027-01-01' });
+    const expired = evaluateAustraliaFull({
+      ...request,
+      simulationDate: '2027-01-01',
+      visas: [{ subclass: '189', from: '2020-01-01', to: '2026-12-31' }],
+    }).columns[0].pathways[0];
+    expect(get(expired.checks, 'AU-CIT-time-permanent').status).toBe('MET');
+    expect(get(expired.checks, 'AU-CIT-pr').status).toBe('NOT_MET');
+    expect(expired.status).toBe('NOT_MET');
+    expect(expired.earliestDate).toBeUndefined();
+  });
   test('the ordinary case passes every statutory check, using the five original residence checks', () => {
     const out = citizenResult();
     expect(out.filter((x) => x.status !== 'MET')).toEqual([]);
-    expect(
-      out
-        .filter((x) => x.id.startsWith('AU-CIT-time-'))
-        .map((x) => x.explanation),
-    ).toEqual(oldCit?.checks.slice(1).map((x) => x.text));
+    const checks = out.filter((x) => x.id.startsWith('AU-CIT-time-'));
+    expect(checks).toHaveLength(5);
+    for (const [i, check] of checks.entries()) {
+      if (check.id === 'AU-CIT-time-permanent') {
+        expect(check.explanation).toContain('before the application day');
+      } else expect(check.explanation).toBe(oldCit?.checks[i + 1].text);
+    }
   });
   test.each<[string, Partial<Citizen>, CountryCheck['status']]>([
     ['branch', { medicalBranch: 'sensory-claimed' }, 'UNKNOWN'],
@@ -508,11 +554,17 @@ describe('citizenship by conferral', () => {
     };
     expect(citizenshipTimeRequest(r, reentries).visas).toEqual(adjusted.visas);
     expect(original.visas).toHaveLength(1);
-    const old = evaluateAustralia(adjusted).pathways.find(
+    const adjustedTimeline = evaluateAustraliaTimeline(adjusted);
+    const old = adjustedTimeline.result.pathways.find(
       (x) => x.id === 'AU-CITIZENSHIP',
     );
     expect(
-      familyChecks('AU-CITIZENSHIP', r, old)
+      familyChecks(
+        'AU-CITIZENSHIP',
+        r,
+        old,
+        adjustedTimeline.citizenshipResidence,
+      )
         .filter((x) => x.id.startsWith('AU-CIT-time-'))
         .every((x) => x.status === 'MET'),
     ).toBe(true);
@@ -523,12 +575,20 @@ describe('citizenship by conferral', () => {
       { ...r, citizenship: { scv: { ...scv, firstGrant: '2022-07-02' } } },
       original,
     );
-    const result = evaluateAustralia(recent).pathways.find(
+    const recentTimeline = evaluateAustraliaTimeline(recent);
+    const result = recentTimeline.result.pathways.find(
       (x) => x.id === 'AU-CITIZENSHIP',
     );
     expect(
-      get(familyChecks('AU-CITIZENSHIP', r, result), 'AU-CIT-time-permanent')
-        .status,
+      get(
+        familyChecks(
+          'AU-CITIZENSHIP',
+          r,
+          result,
+          recentTimeline.citizenshipResidence,
+        ),
+        'AU-CIT-time-permanent',
+      ).status,
     ).toBe('NOT_MET');
   });
 });

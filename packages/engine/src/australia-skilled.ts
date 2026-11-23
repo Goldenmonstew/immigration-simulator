@@ -2,7 +2,7 @@ import { australiaSkilledParameters } from '@uk-immigration/policy-data';
 import { checker } from './australia-check';
 import type { AuFullPathId, AuFullRequest } from './australia-full';
 import type { CountryCheck } from './country-result';
-import { addMonths, addYears, fullYears } from './dates';
+import { addDays, addMonths, addYears, fullYears } from './dates';
 import type { IsoDate } from './types';
 
 const language = australiaSkilledParameters.english.value;
@@ -148,6 +148,18 @@ function passportEnglish(r: AuFullRequest): Finding {
     : language.passports.includes(passport);
 }
 
+type EnglishTest = NonNullable<AuSkilledAnswers['english']>['test'];
+const toeflGuidance = { srcId: 'SRC-226', locator: 'Table 2, TOEFL iBT' };
+function suspendedToefl(test: EnglishTest): boolean {
+  return (
+    typeof test === 'object' &&
+    test.name === 'toefl' &&
+    test.date !== undefined &&
+    test.date >= language.legacyToefl.suspendedFrom &&
+    test.date <= language.legacyToefl.suspendedThrough
+  );
+}
+
 function testedLevel(
   r: AuFullRequest,
   date: IsoDate | undefined,
@@ -158,7 +170,8 @@ function testedLevel(
   if (
     test.date < addYears(date, -language.skilledYears) ||
     test.date >= date ||
-    test.format === 'unapproved'
+    test.format === 'unapproved' ||
+    suspendedToefl(test)
   )
     return 'below';
   if (test.format !== 'approved') return undefined;
@@ -223,6 +236,7 @@ export function functionalEnglish(r: AuFullRequest): Finding {
   else if (test && test !== 'not-yet' && test.date) {
     if (
       test.format === 'unapproved' ||
+      suspendedToefl(test) ||
       test.date < addMonths(lodged, -language.functionalMonths) ||
       test.date > r.simulationDate
     )
@@ -286,6 +300,7 @@ export function functionalEnglishCheck(
           ? '1137(4)'
           : '1139(2)'),
   });
+  if (suspendedToefl(r.english?.test)) result.sources.push(toeflGuidance);
   return result;
 }
 
@@ -295,21 +310,43 @@ function competentCheck(
   date: IsoDate | undefined,
 ) {
   const tested = testedLevel(r, date);
+  const test = r.english?.test;
+  // The instrument and the published guidance disagree only at the competent level.
+  // This cannot affect Schedule 6D English points, which start at proficient.
+  const legacyToefl =
+    typeof test === 'object' &&
+    test.name === 'toefl' &&
+    test.date !== undefined &&
+    test.date < language.newTestsFrom;
+  const speaking = legacyToefl ? test.components?.[3] : undefined;
+  const disputed =
+    tested === 'competent' &&
+    speaking !== undefined &&
+    speaking < language.legacyToefl.guidanceCompetentSpeaking;
   const met = any(
     passportEnglish(r),
-    tested === undefined ? undefined : tested !== 'below',
+    tested === undefined || disputed ? undefined : tested !== 'below',
   );
+  const suspended = suspendedToefl(test);
   const result = checker(r.locale)(
     id + '-english',
     met,
     'Competent English',
     'Competent English',
-    '有资格的国籍及有效护照可满足本项。考试须在适用的递交或获邀日前的有效期内，各单项均达当时标准。未知成绩、日期或考试形式待核查。',
-    'Eligible citizenship with a valid passport qualifies. Otherwise all components must meet the standards for the test date, within the period before lodgement or invitation. Missing evidence needs confirmation.',
+    suspended
+      ? '这次 TOEFL iBT 考试在内政部停认期间举行。符合资格的有效护照仍可证明英语。'
+      : disputed
+        ? '这次旧版 TOEFL iBT 的口语达到文书分数，低于内政部表 2。仅凭该成绩能否获认可待确认。符合资格的有效护照仍可证明英语。'
+        : '有资格的国籍及有效护照可满足本项。考试须在适用的递交或获邀日前的有效期内，各单项均达当时标准。未知成绩、日期或考试形式待核查。',
+    suspended
+      ? 'This TOEFL iBT was taken during the Home Affairs suspension. An eligible passport can still establish competent English.'
+      : disputed
+        ? 'The legacy TOEFL iBT speaking score meets the instrument but falls below Home Affairs Table 2. Acceptance of this test alone needs confirmation. An eligible passport can still establish competent English.'
+        : 'Eligible citizenship with a valid passport qualifies. Otherwise all components must meet the standards for the test date, within the period before lodgement or invitation. Missing evidence needs confirmation.',
     'SRC-206',
     'ss 7–10, Schs 2–3',
-    typeof r.english?.test === 'object' &&
-      r.english.test.format === 'single-skill-retake'
+    disputed ||
+      (typeof test === 'object' && test.format === 'single-skill-retake')
       ? 'PD-200'
       : undefined,
   );
@@ -317,6 +354,7 @@ function competentCheck(
     srcId: 'SRC-200',
     locator: 'vol 1 reg 1.15C; vol 2 cls 186.222, 186.232, 189.223, 190.213',
   });
+  if (legacyToefl) result.sources.push(toeflGuidance);
   return result;
 }
 
@@ -572,7 +610,7 @@ function bandsFor(value: number, bands: number[][]) {
   return points;
 }
 
-function pointsAt(
+function minimumPointsAt(
   r: AuFullRequest,
   age: number | undefined,
   level: EnglishLevel | undefined,
@@ -582,7 +620,6 @@ function pointsAt(
   if (
     !p ||
     age === undefined ||
-    !level ||
     nomination === undefined ||
     p.overseasMonths === undefined ||
     p.australianMonths === undefined ||
@@ -608,7 +645,7 @@ function pointsAt(
   );
   return (
     bandsFor(age, scale.ageBands) +
-    scale.english[level] +
+    scale.english[level ?? 'below'] +
     work +
     (p.professionalMonths >= scale.professionalYearMonths
       ? scale.professional
@@ -623,6 +660,16 @@ function pointsAt(
     scale.partner[p.partner] +
     (nomination ? scale.nomination : 0)
   );
+}
+
+function meetsScore(
+  confirmed: number | undefined,
+  possibleExtra: number,
+  threshold: number | undefined,
+): Finding {
+  if (confirmed === undefined || threshold === undefined) return undefined;
+  if (confirmed >= threshold) return true;
+  return confirmed + possibleExtra < threshold ? false : undefined;
 }
 
 function invitationCheck(
@@ -678,30 +725,37 @@ function pointsChecks(id: SkilledPath, r: AuFullRequest): CountryCheck[] {
       ? undefined
       : skills.nomination === 'active' && written !== undefined
     : false;
-  const score = pointsAt(r, age, level, nomination);
+  const score = minimumPointsAt(r, age, level, nomination);
+  const possibleEnglish = level === undefined ? scale.english.superior : 0;
+  const possibleNomination =
+    state && invitation === 'awaiting' && skills.nomination !== 'withdrawn'
+      ? scale.nomination
+      : 0;
+  const pass = meetsScore(
+    score,
+    possibleEnglish + possibleNomination,
+    scale.pass,
+  );
   const pendingNominationPoints =
-    state &&
-    invitation === 'awaiting' &&
-    skills.nomination !== 'withdrawn' &&
+    pass === undefined &&
     score !== undefined &&
-    score < scale.pass &&
-    score + scale.nomination >= scale.pass;
-  const pass =
-    score === undefined || pendingNominationPoints
-      ? undefined
-      : score >= scale.pass;
-  const reasonZh =
+    score + possibleEnglish < scale.pass;
+  let reasonZh =
     score === undefined
-      ? '需补齐获邀日期或 EOI 状态、年龄、英语和各项加分资料。'
-      : pendingNominationPoints
-        ? `现有 ${score} 分，及格线 ${scale.pass} 分。若取得邀请且提名仍有效，可再计 ${scale.nomination} 分。`
-        : `按 ${date} 的 Schedule 6D 各项合计 ${score} 分，及格线为 ${scale.pass} 分。工作经验取前 ${scale.workYearsWindow} 年，职业年取前 ${scale.professionalWindowMonths} 个月。`;
-  const reasonEn =
+      ? '需核对获邀日期或 EOI 状态、年龄及各项加分资料。'
+      : `按 ${date} 的 Schedule 6D 已确认${possibleEnglish ? '至少' : ''} ${score} 分，及格线为 ${scale.pass} 分。工作经验取前 ${scale.workYearsWindow} 年，职业年取前 ${scale.professionalWindowMonths} 个月。`;
+  let reasonEn =
     score === undefined
-      ? 'Confirm the invitation date or pending EOI, age, test and points evidence.'
-      : pendingNominationPoints
-        ? `The present score is ${score} points against a pass mark of ${scale.pass}. Invitation with an active nomination would add ${scale.nomination} points.`
-        : `Schedule 6D awards ${score} points on ${date}. The statutory pass mark is ${scale.pass}. Employment covers the previous ${scale.workYearsWindow} years and the professional year the preceding ${scale.professionalWindowMonths} months.`;
+      ? 'Confirm the invitation date or pending EOI, age and points evidence.'
+      : `Schedule 6D awards ${possibleEnglish ? 'at least ' : ''}${score} points on ${date}. The statutory pass mark is ${scale.pass}. Employment covers the previous ${scale.workYearsWindow} years and the professional year the preceding ${scale.professionalWindowMonths} months.`;
+  if (score !== undefined && possibleEnglish) {
+    reasonZh += ' 尚未核实的英语考试成绩可能带来额外加分。';
+    reasonEn += ' A qualifying English test could add points.';
+  }
+  if (pendingNominationPoints) {
+    reasonZh += ` 若取得邀请且提名仍有效，可再计 ${scale.nomination} 分。`;
+    reasonEn += ` Invitation with an active nomination would add ${scale.nomination} points.`;
+  }
   const listed =
     skills.occupationList === undefined
       ? undefined
@@ -710,19 +764,45 @@ function pointsChecks(id: SkilledPath, r: AuFullRequest): CountryCheck[] {
   const occupation = written
     ? all(listed, skills.occupationInInvitation?.[id])
     : listed;
-  const lateAssessment =
+  const issued = skills.assessment?.issued;
+  let assessment = assessmentAt(skills.assessment, date, scale.assessmentYears);
+  if (
     written &&
     skills.assessment?.kind === 'positive' &&
-    skills.assessment.issued &&
-    skills.assessment.issued > written.issued;
-  const inInvitationWindow =
-    lateAssessment &&
-    (!written.deadline ||
-      (skills.assessment?.issued &&
-        skills.assessment.issued <= written.deadline));
-  const assessment = inInvitationWindow
-    ? undefined
-    : assessmentAt(skills.assessment, date, scale.assessmentYears);
+    issued &&
+    issued > written.issued
+  ) {
+    const windowEnd = addDays(written.issued, scale.assessmentInvitationDays);
+    assessment = all(
+      issued <= windowEnd && (!written.deadline || issued <= written.deadline),
+      issued > r.simulationDate
+        ? undefined
+        : assessmentAt(
+            skills.assessment,
+            r.simulationDate,
+            scale.assessmentYears,
+          ),
+    );
+  }
+  const assessmentCheck = check(
+    id + '-assessment',
+    assessment,
+    '受邀职业的技能评估',
+    'Skills assessment for the invited occupation',
+    `条文以获邀时为基准。按 Thapa 的办理口径，递交时也可提供在 ${scale.assessmentInvitationDays} 天邀请期内取得的有效正面职评。评估须由指定机构针对受邀职业作出，符合有效期、非 485 用途及适用的注册课程要求。`,
+    `The regulations refer to the time of invitation. Under Thapa, Home Affairs also accepts a suitable assessment obtained in the ${scale.assessmentInvitationDays}-day invitation period and provided at lodgement. Check the assessing authority, occupation, validity, non-485 purpose and any registered-course requirement.`,
+    'SRC-200',
+    state ? 'vol 2 cl 190.212(1)–(2)' : 'vol 2 cl 189.222(1)–(2)',
+    written &&
+      (skills.assessment?.kind === 'awaiting' ||
+        (issued && issued > r.simulationDate))
+      ? 'PD-210'
+      : undefined,
+  );
+  assessmentCheck.sources.push({
+    srcId: 'SRC-225',
+    locator: 'Visas → General Skilled Migration (GSM) visas, Thapa',
+  });
   const checks = [
     invitationCheck(id, r, invitation),
     check(
@@ -749,23 +829,7 @@ function pointsChecks(id: SkilledPath, r: AuFullRequest): CountryCheck[] {
       'SRC-207',
       state ? 'ss 7–9, MLTSSL and STSOL' : 'ss 7–8, MLTSSL',
     ),
-    check(
-      id + '-assessment',
-      assessment,
-      '获邀时职业评估',
-      'Skills assessment at invitation',
-      inInvitationWindow
-        ? '评估在获邀后才出具，需个案核查能否采纳。'
-        : '核对提名职业的有效正面评估，含签发日、较短的到期日、评估类别及适用的注册课程。',
-      inInvitationWindow
-        ? 'The assessment was issued after invitation. Acceptance requires individual review.'
-        : 'Check the suitable assessment for the nominated occupation, its issue and expiry, non-485 purpose and any registered-course requirement.',
-      'SRC-200',
-      state ? 'vol 2 cl 190.212' : 'vol 2 cl 189.222',
-      inInvitationWindow || (written && skills.assessment?.kind === 'awaiting')
-        ? 'PD-210'
-        : undefined,
-    ),
+    assessmentCheck,
     competentCheck(id, r, date),
     check(
       id + '-points',
@@ -780,9 +844,7 @@ function pointsChecks(id: SkilledPath, r: AuFullRequest): CountryCheck[] {
     ),
     check(
       id + '-invited-score',
-      written?.score === undefined || score === undefined
-        ? undefined
-        : score >= written.score,
+      meetsScore(score, possibleEnglish, written?.score),
       '邀请函声明分数',
       'Score stated in the invitation',
       written?.score === undefined

@@ -172,6 +172,11 @@ export const australiaSkilledParameters = {
   english: {
     value: {
       newTestsFrom: '2025-08-07',
+      legacyToefl: {
+        suspendedFrom: '2023-07-26',
+        suspendedThrough: '2024-05-04',
+        guidanceCompetentSpeaking: 21,
+      },
       skilledYears: 3,
       functionalMonths: 12,
       passports: ['CA', 'NZ', 'IE', 'GB', 'US'],
@@ -260,6 +265,10 @@ export const australiaSkilledParameters = {
       { srcId: 'SRC-200', locator: 'vol 1 regs 1.15C, 1.15D, 1.15EA, 5.17' },
       { srcId: 'SRC-205', locator: 'ss 6–8, Sch 1' },
       { srcId: 'SRC-206', locator: 'ss 7–11, Schs 2–3' },
+      {
+        srcId: 'SRC-226',
+        locator: 'Table 2, TOEFL iBT row and date restriction',
+      },
     ],
   },
   employer: {
@@ -299,6 +308,7 @@ export const australiaSkilledParameters = {
       pass: 65,
       maxAge: 45,
       assessmentYears: 3,
+      assessmentInvitationDays: 60,
       ageBands: [
         [18, 25],
         [25, 30],
@@ -346,6 +356,10 @@ export const australiaSkilledParameters = {
           'vol 1 regs 1.15F, 2.26AC, Sch 1 items 1137(4B), 1138(4); vol 2 cls 189.222–224, 190.212–214; vol 3 Sch 6D Parts 1–12',
       },
       { srcId: 'SRC-201', locator: 's 6, pool and pass marks' },
+      {
+        srcId: 'SRC-225',
+        locator: 'Visas → General Skilled Migration (GSM) visas, Thapa',
+      },
     ],
   },
   innovation: {
@@ -536,11 +550,15 @@ export const auCharges = {
     ],
   },
   employer: australianVisaTariff(
-    'Sch 1 item 1114B(2)',
+    'Sch 1 item 1114B(2)(a), (b) rows 1–4',
     [6140, 3070, 1535],
     [5035, 2515, 1260],
     4890,
   ),
+  employerPrimarySecond: {
+    value: 9800,
+    sources: [{ srcId: 'SRC-200', locator: 'Sch 1 item 1114B(2)(b) row 1' }],
+  },
   independent: australianVisaTariff(
     'Sch 1 item 1137(3)–(4), (4J)–(4K)',
     [6135, 3070, 1540],

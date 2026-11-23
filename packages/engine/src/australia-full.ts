@@ -2,8 +2,13 @@ import {
   australiaFull2026_11 as policy,
   auRegionalParameters as regional,
 } from '@uk-immigration/policy-data';
-import { evaluateAustralia, type AuRequest, type AuVisa } from './australia';
-import { additionalEnglishCheck } from './australia-fees';
+import {
+  evaluateAustraliaTimeline,
+  type AuCitizenshipResidence,
+  type AuRequest,
+  type AuVisa,
+} from './australia';
+import { instalmentChecks } from './australia-fees';
 import { checker } from './australia-check';
 import {
   auNotes,
@@ -126,7 +131,7 @@ const isRegional = (visa?: AuVisa): visa is AuVisa =>
   visa?.subclass === '491' || visa?.subclass === '494';
 const isHk = (id: AuFullPathId) => id === 'AU-189-HK' || id === 'AU-191-HK';
 
-function lockCheck(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {
+function lockCheck(id: AuFullPathId, r: AuFullRequest) {
   const locators: Partial<Record<AuFullPathId, string>> = {
     'AU-186-DE': '186.232A',
     'AU-189-PT': '189.224A',
@@ -135,10 +140,10 @@ function lockCheck(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {
     'AU-PARTNER': 'Sch 1 item 1214C(3)(h)',
   };
   const locator = locators[id];
-  if (!locator) return [];
+  if (!locator) return;
   const partner = id === 'AU-PARTNER';
   const stream = r.partnerApplication?.stream ?? r.partner?.stream;
-  if (partner && stream === 'offshore') return [];
+  if (partner && stream === 'offshore') return;
   const date =
     partner && r.partnerApplication
       ? r.partnerApplication.lodged
@@ -146,11 +151,11 @@ function lockCheck(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {
   const visa = r.visas && lastSubstantive(r.visas, date);
   // An expired last substantive visa counts only for the period it was actually held.
   const end = visa?.to && visa.to < date ? addDays(visa.to, 1) : date;
+  const anniversary = isRegional(visa)
+    ? afterYears(visa.from, regional.lockYears.value)
+    : undefined;
   let met =
-    r.visas === undefined
-      ? undefined
-      : !isRegional(visa) ||
-        afterYears(visa.from, regional.lockYears.value) <= end;
+    r.visas === undefined ? undefined : !anniversary || anniversary <= end;
   if (met === false) {
     if (partner && !stream) met = undefined;
     if (!partner && r.regionalLockException !== 'none') {
@@ -158,8 +163,17 @@ function lockCheck(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {
         r.regionalLockException === 'instrument-confirmed' ? true : undefined;
     }
   }
-  return [
-    checker(r.locale)(
+  const canComplete =
+    met === false &&
+    anniversary &&
+    visa &&
+    r.visas &&
+    !(partner && r.partnerApplication) &&
+    (!visa.to || addDays(visa.to, 1) >= anniversary) &&
+    lastSubstantive(r.visas, anniversary) === visa;
+  return {
+    due: canComplete ? anniversary : undefined,
+    check: checker(r.locale)(
       'AU-regional-lock',
       met,
       '前置偏远地区签证锁定期',
@@ -169,7 +183,7 @@ function lockCheck(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {
       'SRC-200',
       locator,
     ),
-  ];
+  };
 }
 
 const applicationItems: Partial<Record<AuFullPathId, string>> = {
@@ -389,8 +403,8 @@ function regionalChecks(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {
       count === undefined || a.disputedAssessment ? undefined : count >= n,
       'ATO 评税通知',
       'ATO notices of assessment',
-      `已结束、曾持偏远地区签证并备齐评税及修订通知的财年：${count ?? '待填'}，需要 ${n} 个。现行没有最低应税收入额。`,
-      `Completed income years with a regional visa and all original/amended assessments: ${count ?? 'unknown'}. Required: ${n}. There is currently no minimum taxable income.`,
+      `只计递交前已结束且曾持合资格偏远地区签证的财年。决定前须提供 ${n} 个合资格财年的 ATO 评税及修订通知，已备齐 ${count ?? '待填'} 个财年。现行没有最低应税收入额。`,
+      `Count only income years that ended before lodgement and during which you held a qualifying regional visa. Before decision, provide original and amended ATO assessments for ${n} qualifying years. Complete years supplied: ${count ?? 'unknown'}. There is currently no minimum taxable income.`,
       'SRC-200',
       '191.111, 191.222',
       a.disputedAssessment ? 'PD-212' : undefined,
@@ -546,6 +560,7 @@ function assess(r: AuFullRequest, project: boolean): CountryResult {
   const ids = r.pathway ? [r.pathway] : AU_FULL_PATHWAYS;
   let pilots: PilotPathway[] = [];
   let citizenshipPilot: PilotPathway | undefined;
+  let citizenshipResidence: AuCitizenshipResidence | undefined;
   if (ids.some((id) => timeFields[id] || familyPath(id))) {
     // The legacy evaluator requires a complete timeline. Its date of birth is
     // irrelevant to the holding and work counts. Consumers below mask missing
@@ -570,16 +585,21 @@ function assess(r: AuFullRequest, project: boolean): CountryResult {
             : (r.regional?.hongKongOnlySince ?? r.hongKong?.regionalSince),
       },
     });
-    pilots = evaluateAustralia(base).pathways;
+    const timeline = evaluateAustraliaTimeline(base);
+    pilots = timeline.result.pathways;
     if (ids.includes('AU-CITIZENSHIP')) {
       const citizenBase =
         separateTrtAge && r.dateOfBirth
           ? { ...base, dateOfBirth: r.dateOfBirth }
           : base;
       const scv = citizenshipTimeRequest(r, citizenBase);
-      citizenshipPilot = (
-        scv === base ? pilots : evaluateAustralia(scv).pathways
-      ).find((p) => p.id === 'AU-CITIZENSHIP');
+      const citizenTimeline =
+        scv === base ? timeline : evaluateAustraliaTimeline(scv);
+      citizenshipPilot = citizenTimeline.result.pathways.find(
+        (p) => p.id === 'AU-CITIZENSHIP',
+      );
+      if (r.firstArrival && r.visas && r.trips)
+        citizenshipResidence = citizenTimeline.citizenshipResidence;
     }
   }
   const pathways = ids.map((id): CountryPathway => {
@@ -596,42 +616,48 @@ function assess(r: AuFullRequest, project: boolean): CountryResult {
           ? pilot
           : undefined
         : pilot;
+    const lock = lockCheck(id, r);
     const checks = [
       ...timeChecks(id, r, pilot),
       ...locationChecks(id, r),
-      ...lockCheck(id, r),
+      ...(lock ? [lock.check] : []),
       ...regionalChecks(id, r),
       ...skilledChecks(id, r),
-      ...familyChecks(id, r, trusted),
-      ...additionalEnglishCheck(id, r),
+      ...familyChecks(id, r, trusted, citizenshipResidence),
+      ...instalmentChecks(id, r),
       ...commonChecks(id, r),
     ];
     const decisive = checks.filter(eligibilityCheck);
     const failed = decisive.filter((c) => c.status === 'NOT_MET');
     const unknown = decisive.some((c) => c.status === 'UNKNOWN');
-    const timeOnly =
-      failed.length > 0 &&
-      failed.every(
-        (c) =>
-          c.id.startsWith(id + '-time-') ||
-          c.id.startsWith('AU-CIT-time-') ||
-          c.id === 'AU-PARTNER-time',
-      );
-    const due = trusted?.earliestDate;
-    const future =
-      timeOnly && due && due > r.simulationDate && trusted.status === 'FUTURE';
+    const pilotDue =
+      trusted?.status === 'FUTURE' ? trusted.earliestDate : undefined;
+    const dates = failed.map((c) => {
+      if (c.id === 'AU-regional-lock') return lock?.due;
+      if (
+        c.id.startsWith(id + '-time-') ||
+        c.id.startsWith('AU-CIT-time-') ||
+        c.id === 'AU-PARTNER-time' ||
+        c.id === 'AU-RRV-basis' ||
+        (c.id === 'AU-CIT-pr' &&
+          r.citizenship?.permanentAtApplication === undefined &&
+          r.citizenship?.permanentAtDecision === true)
+      )
+        return pilotDue;
+    });
+    const due = dates.every((date) => date !== undefined)
+      ? dates.sort().at(-1)
+      : undefined;
     let status: CountryPathway['status'] = failed.length
       ? 'NOT_MET'
       : unknown
         ? 'UNKNOWN'
         : 'MET';
-    if (project && future) {
+    if (project && due && due > r.simulationDate) {
       // A current nomination or test may expire before the projected residence date.
       // Recheck that one date; it is an eligibility date only if all requirements pass.
-      const then = unknown
-        ? 'UNKNOWN'
-        : assess({ ...r, pathway: id, simulationDate: due }, false).columns[0]
-            .pathways[0].status;
+      const then = assess({ ...r, pathway: id, simulationDate: due }, false)
+        .columns[0].pathways[0].status;
       status = then === 'MET' ? 'FUTURE' : then;
     }
     const generalResidence =
@@ -655,20 +681,15 @@ function assess(r: AuFullRequest, project: boolean): CountryResult {
       ]),
     ];
     const assumptions = auNotes(id, r);
-    if (
-      id === 'AU-RRV' &&
-      due &&
-      due > r.simulationDate &&
-      trusted?.status === 'FUTURE'
-    )
+    if (id === 'AU-RRV' && pilotDue)
       assumptions.push(
         L(
-          `155 居住天数途径预计于 ${due} 满期；实质联系、家庭或 157 路径另行判断。`,
-          `The 155 presence requirement is projected for ${due}. Ties, family and 157 grounds are assessed separately.`,
+          `155 居住天数途径预计于 ${pilotDue} 满期；实质联系、家庭或 157 路径另行判断。`,
+          `The 155 presence requirement is projected for ${pilotDue}. Ties, family and 157 grounds are assessed separately.`,
         ),
       );
     if (showPilotNotes && !isHk(id)) assumptions.push(...trusted.assumptions);
-    if (due && due > r.simulationDate && timeOnly)
+    if (due && due > r.simulationDate && id !== 'AU-RRV')
       assumptions.push(
         L(
           `按现有记录，时间条件的预计满期日为 ${due}。其余条件须另行满足。`,

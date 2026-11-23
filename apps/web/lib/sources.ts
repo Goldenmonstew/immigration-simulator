@@ -262,4 +262,8 @@ export const sourceUrls: Record<string, string> = {
     'https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/character',
   'SRC-221':
     'https://immi.homeaffairs.gov.au/visas/getting-a-visa/fees-and-charges/current-visa-pricing',
+  'SRC-225':
+    'https://immi.homeaffairs.gov.au/visas/working-in-australia/skills-assessment',
+  'SRC-226':
+    'https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/english-language/competent-english',
 };

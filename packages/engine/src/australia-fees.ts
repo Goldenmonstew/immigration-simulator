@@ -14,6 +14,8 @@ export interface AuFeeAnswers {
   pacificRegionalPassport?: boolean;
   additionalAdults?: number;
   additionalMinors?: number;
+  /** Home Affairs' determination that the non-exempt adult 186 primary applicant owes the second instalment. */
+  chargeablePrimaryApplicant?: boolean;
   /** Non-exempt additional adults assessed as lacking functional English. */
   chargeableAdditionalAdults?: number;
   /** Payment before grant for every chargeable secondary applicant. */
@@ -194,6 +196,34 @@ const tariffs = {
   'AU-858': charges.innovation,
 };
 
+function primarySecondInstalment(
+  id: keyof typeof tariffs,
+  r: AuFullRequest,
+): number | undefined {
+  const employer = id === 'AU-186-TRT' || id === 'AU-186-DE';
+  if (!employer && id !== 'AU-189-HK' && id !== 'AU-191-HK' && id !== 'AU-858')
+    return 0;
+  const age = r.dateOfBirth
+    ? fullYears(
+        r.dateOfBirth,
+        r.english?.functionalApplicationDate ?? r.simulationDate,
+      )
+    : undefined;
+  if (age !== undefined && age < auPublicCriteria.adult.value) return 0;
+  if (employer) {
+    if (r.fees?.religiousNominationExemption) return 0;
+    if (r.fees?.chargeablePrimaryApplicant !== undefined)
+      return r.fees.chargeablePrimaryApplicant
+        ? charges.employerPrimarySecond.value
+        : 0;
+  }
+  const functional = functionalEnglish(r);
+  if (functional === true) return 0;
+  if (!employer && functional === false && age !== undefined)
+    return tariffs[id].value.second;
+  return undefined;
+}
+
 function currentBudget(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {
   if (id === 'AU-CITIZENSHIP') return [citizenshipBudget(r)];
   if (id === 'AU-RRV') return [returnBudget(r)];
@@ -221,22 +251,7 @@ function currentBudget(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {
         chosen[2] * f.additionalMinors
       : undefined;
 
-  // A competent-English primary applicant cannot incur the second instalment on the skilled streams.
-  const primaryCanOwe =
-    id === 'AU-189-HK' || id === 'AU-191-HK' || id === 'AU-858';
-  const functional = primaryCanOwe ? functionalEnglish(r) : true;
-  const age = r.dateOfBirth
-    ? fullYears(
-        r.dateOfBirth,
-        r.english?.functionalApplicationDate ?? r.simulationDate,
-      )
-    : undefined;
-  const primaryChargeable =
-    functional || (age !== undefined && age < auPublicCriteria.adult.value)
-      ? 0
-      : age !== undefined && functional === false
-        ? 1
-        : undefined;
+  const primarySecond = primarySecondInstalment(id, r);
   const additional =
     f?.additionalAdults === 0 || (employer && f?.religiousNominationExemption)
       ? 0
@@ -244,15 +259,21 @@ function currentBudget(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {
   const second =
     rate.second === 0
       ? 0
-      : primaryChargeable === undefined || additional === undefined
+      : primarySecond === undefined || additional === undefined
         ? undefined
-        : (primaryChargeable + additional) * rate.second;
+        : primarySecond + additional * rate.second;
   const total =
     first !== undefined && second !== undefined ? first + second : undefined;
   const firstText = first === undefined ? undefined : money(first);
   const std = rate.standard.map(money).join(' / ');
   const concession = rate.pacific.map(money).join(' / ');
   const secondText = second === undefined ? undefined : money(second);
+  const secondRatesZh = employer
+    ? `经正式评定须缴费的主申 ${money(charges.employerPrimarySecond.value)}，成年副申每人 ${money(rate.second)}。`
+    : `适用者每人 ${money(rate.second)}。`;
+  const secondRatesEn = employer
+    ? `For applicants assessed as chargeable, ${money(charges.employerPrimarySecond.value)} for the primary applicant and ${money(rate.second)} for each additional adult.`
+    : `${money(rate.second)} per chargeable person.`;
   const extraPartnerZh = partner
     ? '费用在合并申请时缴纳，已合并递交的永久阶段另收 AUD 0。符合条件的现持或曾持 300 签证者适用不同的境内费率。'
     : '';
@@ -264,8 +285,8 @@ function currentBudget(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {
     total === undefined ? undefined : true,
     '申请人家庭签证费预算',
     'Applicant family visa budget',
-    `${total === undefined ? '总额待确认。' : `家庭合计 ${money(total)}。`} 第一期${firstText ? '合计 ' + firstText : '待确认'}。主申／成年副申／未成年副申标准费率 ${std}；太平洋地区护照费率 ${concession}。第二期${secondText ?? '待确认'}，适用者每人 ${money(rate.second)}。${extraPartnerZh}`,
-    `${total === undefined ? 'Total awaits your answers.' : `Family total ${money(total)}.`} First instalment ${firstText ?? 'pending'}. Primary / additional adult / additional minor rates: standard ${std}; Pacific-regional passport ${concession}. Second instalment ${secondText ?? 'pending'}, ${money(rate.second)} per chargeable person.${extraPartnerEn}`,
+    `${total === undefined ? '总额待确认。' : `家庭合计 ${money(total)}。`} 第一期${firstText ? '合计 ' + firstText : '待确认'}。主申／成年副申／未成年副申标准费率 ${std}；太平洋地区护照费率 ${concession}。第二期${secondText ?? '待确认'}。${secondRatesZh}${extraPartnerZh}`,
+    `${total === undefined ? 'Total awaits your answers.' : `Family total ${money(total)}.`} First instalment ${firstText ?? 'pending'}. Primary / additional adult / additional minor rates: standard ${std}; Pacific-regional passport ${concession}. Second instalment ${secondText ?? 'pending'}. ${secondRatesEn}${extraPartnerEn}`,
     'SRC-200',
     tariff.sources[0].locator,
   );
@@ -273,7 +294,7 @@ function currentBudget(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {
 }
 
 /** The second instalment is a grant condition, separate from the household budget. */
-export function additionalEnglishCheck(
+export function instalmentChecks(
   id: AuFullPathId,
   r: AuFullRequest,
 ): CountryCheck[] {
@@ -293,7 +314,7 @@ export function additionalEnglishCheck(
       : f?.chargeableAdditionalAdults === undefined
         ? undefined
         : f.additionalInstalmentsPaid;
-  return [
+  const checks = [
     checker(r.locale)(
       'AU-additional-english',
       met,
@@ -305,6 +326,26 @@ export function additionalEnglishCheck(
       tariff.sources[0].locator,
     ),
   ];
+  if (id === 'AU-186-DE' || id === 'AU-186-TRT') {
+    const amount = primarySecondInstalment(id, r);
+    checks.push(
+      checker(r.locale)(
+        'AU-186-primary-instalment',
+        amount === 0 || r.secondInstalmentPaid === true
+          ? true
+          : amount === undefined
+            ? undefined
+            : r.secondInstalmentPaid,
+        '主申请人批签前第二期费用',
+        'Primary applicant second instalment before grant',
+        '成年主申请人如经内政部正式评定缺少 Functional English，须在批签前缴清适用的第二期费用。符合免费类别或已证明 Functional English 时，此项满足。',
+        'An adult primary applicant assessed by Home Affairs as lacking functional English must pay any applicable second instalment before grant. An exemption or evidence of functional English also satisfies this check.',
+        'SRC-200',
+        'Sch 1 item 1114B(2)(b) rows 1, 3–4',
+      ),
+    );
+  }
+  return checks;
 }
 
 export function feeChecks(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {

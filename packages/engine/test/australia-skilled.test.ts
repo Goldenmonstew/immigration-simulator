@@ -4,7 +4,11 @@ import {
   functionalEnglishCheck,
   skilledChecks,
 } from '../src/australia-skilled';
-import type { AuFullPathId, AuFullRequest } from '../src/australia-full';
+import {
+  evaluateAustraliaFull,
+  type AuFullPathId,
+  type AuFullRequest,
+} from '../src/australia-full';
 
 const base: AuFullRequest = {
   simulationDate: '2026-11-23',
@@ -69,6 +73,41 @@ const innovation: NonNullable<AuFullRequest['innovation']> = {
 const full = { ...base, employer, english, skills, innovation };
 const get = (id: AuFullPathId, suffix: string, r: AuFullRequest) =>
   skilledChecks(id, r).find((c) => c.id === id + '-' + suffix)!;
+
+function pointsPath(
+  pathway: 'AU-189-PT' | 'AU-190',
+  answers: Partial<AuFullRequest>,
+) {
+  return evaluateAustraliaFull({
+    ...full,
+    pathway,
+    visas: [],
+    locationAtApplication: 'offshore',
+    locationAtDecision: 'offshore',
+    fees: { additionalAdults: 0, additionalMinors: 0 },
+    publicInterest: {
+      officialPassport: true,
+      character: 'clear-history',
+      health: 'cleared',
+      policeDocuments: 'supplied',
+      securityAndForeignPolicy: 'cleared',
+      criticalTechnology: 'cleared',
+      commonwealthDebt: 'none',
+      valuesSigned: true,
+      integrity: {
+        identityEstablished: true,
+        accurateDocuments: true,
+        lastIdentityRefusal: null,
+        lastDocumentRefusal: null,
+      },
+      returnBan5001: false,
+      removedOn: null,
+      sponsoredStudy: { applies: false },
+      settlementWithoutUndueDifficulty: true,
+    },
+    ...answers,
+  }).columns[0].pathways[0];
+}
 
 for (const id of [
   'AU-186-TRT',
@@ -260,15 +299,6 @@ test('points at invitation: age, list, legal pass and separate invitation score'
         ...full,
         skills: {
           ...skills,
-          assessment: { kind: 'positive', issued: '2026-11-21' },
-        },
-      }).pendingDetails,
-    ).toEqual(['PD-210']);
-    expect(
-      get(id, 'assessment', {
-        ...full,
-        skills: {
-          ...skills,
           assessment: { kind: 'positive', issued: '2023-11-19' },
         },
       }).status,
@@ -296,6 +326,114 @@ test('points at invitation: age, list, legal pass and separate invitation score'
     }).pendingDetails,
   ).toEqual(['PD-211']);
 });
+
+test('189 confirms each points threshold independently of an unreported English test', () => {
+  const id = 'AU-189-PT';
+  // Age 36 (25), eight overseas years (15), bachelor (15), single (10).
+  const result = (score: number, test?: 'none') =>
+    pointsPath(id, {
+      dateOfBirth: '1990-01-01',
+      english: { passport: 'GB', test },
+      skills: {
+        ...skills,
+        invitations: {
+          [id]: { issued: '2026-11-20', deadline: '2027-01-19', score },
+        },
+        points: { ...skills.points, overseasMonths: 96 },
+      },
+    });
+  for (const test of [undefined, 'none'] as const) {
+    const p = result(65, test);
+    for (const suffix of ['english', 'points', 'invited-score'])
+      expect(p.checks.find((c) => c.id === id + '-' + suffix)?.status).toBe(
+        'MET',
+      );
+    expect(p).toMatchObject({ status: 'MET', earliestDate: '2026-11-23' });
+  }
+  for (const [score, test, status] of [
+    [70, undefined, 'UNKNOWN'],
+    [70, 'none', 'NOT_MET'],
+    [90, undefined, 'NOT_MET'],
+  ] as const) {
+    const p = result(score, test);
+    expect(p.checks.find((c) => c.id === id + '-points')?.status).toBe('MET');
+    expect(p.checks.find((c) => c.id === id + '-invited-score')?.status).toBe(
+      status,
+    );
+    expect(p.status).toBe(status);
+    expect(p.earliestDate).toBeUndefined();
+  }
+});
+
+test.each(['AU-189-PT', 'AU-190'] as const)(
+  '%s accepts an assessment obtained within the invitation window',
+  (id) => {
+    const result = (
+      assessment: NonNullable<AuFullRequest['skills']>['assessment'],
+      simulationDate = '2026-11-23',
+      deadline = '2026-11-30',
+    ) =>
+      pointsPath(id, {
+        simulationDate,
+        skills: {
+          ...skills,
+          invitations: { [id]: { issued: '2026-10-01', deadline, score: 65 } },
+          assessment,
+        },
+      });
+    const assessmentId = id + '-assessment';
+    for (const issued of ['2026-10-15', '2026-10-01']) {
+      const p = result({ kind: 'positive', issued });
+      const check = p.checks.find((c) => c.id === assessmentId)!;
+      expect(check.status).toBe('MET');
+      expect(check.sources.map((s) => s.srcId)).toEqual(['SRC-200', 'SRC-225']);
+      expect(check.pendingDetails).toBeUndefined();
+      expect(p).toMatchObject({ status: 'MET', earliestDate: '2026-11-23' });
+    }
+    const lastDay = result(
+      { kind: 'positive', issued: '2026-11-30' },
+      '2026-11-30',
+    );
+    expect(lastDay.checks.find((c) => c.id === assessmentId)?.status).toBe(
+      'MET',
+    );
+    expect(lastDay).toMatchObject({
+      status: 'MET',
+      earliestDate: '2026-11-30',
+    });
+    for (const waiting of [
+      result({ kind: 'awaiting' }),
+      result({ kind: 'positive', issued: '2026-11-24' }),
+    ]) {
+      expect(waiting.checks.find((c) => c.id === assessmentId)).toMatchObject({
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-210'],
+      });
+      expect(waiting.status).toBe('UNKNOWN');
+      expect(waiting.earliestDate).toBeUndefined();
+    }
+    for (const p of [
+      result({ kind: '485', issued: '2026-10-15' }),
+      result({ kind: 'positive', issued: '2026-10-15', expires: '2026-11-22' }),
+      result(
+        { kind: 'positive', issued: '2026-12-01' },
+        '2026-12-01',
+        '2026-12-03',
+      ),
+      result(
+        { kind: 'positive', issued: '2026-10-15' },
+        '2026-10-15',
+        '2026-10-14',
+      ),
+    ]) {
+      expect(p.checks.find((c) => c.id === assessmentId)?.status).toBe(
+        'NOT_MET',
+      );
+      expect(p.status).toBe('NOT_MET');
+      expect(p.earliestDate).toBeUndefined();
+    }
+  },
+);
 
 test('each Schedule 6D increment, including the combined employment cap', () => {
   const total = (
@@ -419,6 +557,50 @@ test('test scores change on commencement, and each component is required', () =>
       english: { passport: 'GB', test: 'none' },
     }).status,
   ).toBe('MET');
+});
+
+test('legacy TOEFL iBT approval dates and the disputed competent speaking score', () => {
+  const evidence = (
+    date: string,
+    speaking: number,
+    passport = 'other',
+  ): AuFullRequest => ({
+    ...base,
+    simulationDate: '2025-01-01',
+    english: {
+      passport,
+      education: 'none',
+      test: {
+        name: 'toefl',
+        date,
+        format: 'approved',
+        components: [30, 30, 30, speaking],
+        overall: 90 + speaking,
+      },
+    },
+  });
+  const check = (date: string, speaking: number, passport?: string) =>
+    get('AU-186-DE', 'english', evidence(date, speaking, passport));
+  expect(check('2023-07-25', 30).status).toBe('MET');
+  for (const date of ['2023-07-26', '2024-02-01', '2024-05-04']) {
+    expect(check(date, 30)).toMatchObject({
+      status: 'NOT_MET',
+      sources: expect.arrayContaining([
+        expect.objectContaining({ srcId: 'SRC-226' }),
+      ]),
+    });
+  }
+  expect(functionalEnglish(evidence('2024-05-04', 30))).toBe(false);
+  expect(functionalEnglish(evidence('2024-05-05', 30))).toBe(true);
+  expect(check('2024-05-05', 17).status).toBe('NOT_MET');
+  for (const speaking of [18, 20]) {
+    expect(check('2024-05-05', speaking)).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-200'],
+    });
+  }
+  expect(check('2024-05-05', 21).status).toBe('MET');
+  expect(check('2024-05-05', 18, 'GB').status).toBe('MET');
 });
 
 test('functional English assessment date, score, education, passport and instalment alternatives', () => {
