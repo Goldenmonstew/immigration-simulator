@@ -296,7 +296,7 @@ describe('Niederlassungserlaubnis, general route (§ 9)', () => {
     expect(p.status).toBe('MET');
   });
 
-  test('§ 20a: the first opportunity card rules out § 9, a follow-up does not (review73-2)', () => {
+  test('§ 20a: a job-search opportunity card rules out § 9, a follow-up card does not (review73-2, review73-3)', () => {
     const req: Partial<DeRequest> = {
       simulationDate: '2026-11-23',
       firstEntry: '2021-09-01',
@@ -310,20 +310,46 @@ describe('Niederlassungserlaubnis, general route (§ 9)', () => {
     expect(pathway(req, 'DE-SETTLEMENT').status).toBe('NOT_MET');
     expect(pathway(req, 'DE-NATURALISATION').status).toBe('NOT_MET');
     expect(pathway(req, 'DE-EU-LONG-TERM').status).toBe('NOT_MET');
-    // A card right after another card is the follow-up (Abs. 5 Satz 2): § 9
-    // applies and the card time counts (BMI 20a.6.1–20a.6.2).
+    // A follow-up card (Abs. 5 Satz 2): § 9 applies and the card time counts
+    // (BMI 20a.6.1–20a.6.2).
     const followUp = pathway(
       {
         ...req,
         permits: [
           ...req.permits!,
-          { kind: 'opportunity-card', from: '2027-09-01', to: '2029-08-31' },
+          { kind: 'follow-up-card', from: '2027-09-01', to: '2029-08-31' },
         ],
       },
       'DE-SETTLEMENT',
     );
     expect(followUp.status).toBe('FUTURE');
     expect(followUp.earliestDate).toBe('2027-09-01');
+  });
+
+  test('a job-search opportunity card issued again still rules out § 9 (review73-3)', () => {
+    const req: Partial<DeRequest> = {
+      simulationDate: '2026-11-23',
+      firstEntry: '2020-09-01',
+      permits: [
+        { kind: 'skilled', from: '2020-09-01', to: '2026-01-31' },
+        { kind: 'opportunity-card', from: '2026-02-01', to: '2026-07-31' },
+        { kind: 'opportunity-card', from: '2026-08-01', to: '2027-01-31' },
+      ],
+    };
+    // Shorter job-search cards one after another are one (BMI 20a.5.7).
+    expect(pathway(req, 'DE-SETTLEMENT').status).toBe('NOT_MET');
+    // Switching to a follow-up card lifts the exclusion.
+    const switched = pathway(
+      {
+        ...req,
+        permits: [
+          ...req.permits!.slice(0, 2),
+          { kind: 'follow-up-card', from: '2026-08-01', to: '2028-07-31' },
+        ],
+      },
+      'DE-SETTLEMENT',
+    );
+    expect(switched.status).toBe('MET');
   });
 
   test('a temporary permit with its renewal pending needs both readings (review73-2)', () => {
@@ -1516,6 +1542,41 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     expect(p.summary).toContain(
       '2023-06-01 至 2024-07-01 出境时是否仍持有许可',
     );
+  });
+
+  test('a trip past the opportunity card expiry (review73-3)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        firstEntry: '2026-06-01',
+        permits: [
+          { kind: 'opportunity-card', from: '2026-06-01', to: '2027-05-31' },
+        ],
+        trips: [{ departed: '2027-05-25', returned: '2027-06-15' }],
+      },
+      'DE-TRAVEL',
+    );
+    // § 51 Abs. 1 Nr. 1: the card ends on its expiry while you are away.
+    expect(p.status).toBe('NOT_MET');
+    expect(p.checks[0].text).toContain('2027-05-31');
+  });
+
+  test('the EU summary names both long trips (review73-3)', () => {
+    const req = {
+      simulationDate: '2026-11-23',
+      permits: [{ kind: 'eu-long-term' as const, from: '2018-01-01' }],
+      trips: [
+        { departed: '2021-06-01', returned: '2022-07-01' },
+        { departed: '2023-06-01', returned: '2024-07-01' },
+      ],
+    };
+    for (const id of ['DE-EU-LONG-TERM', 'DE-SETTLEMENT'] as const) {
+      const p = pathway(req, id);
+      expect(p.summary).toContain('2023-06-01 至 2024-07-01');
+      expect(p.summary).toContain(
+        '之前 2021-06-01 至 2022-07-01 的出境也可能已使其失效',
+      );
+    }
   });
 
   test('a short trip after an undetermined exchange (task 73)', () => {

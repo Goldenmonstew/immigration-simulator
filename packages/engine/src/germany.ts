@@ -22,8 +22,9 @@ import type { IsoDate, Locale } from './types';
  * Blaue Karte EU (§ 18g); german-family: family of a German (§ 28); other:
  * any other permit for a lasting purpose; temporary: a permit for a
  * temporary purpose (such as au pair); job-seeking: looking for work after
- * study, research or training in Germany (§ 20); opportunity-card:
- * Chancenkarte (§ 20a); protection:
+ * study, research or training in Germany (§ 20); opportunity-card: the
+ * job-search Chancenkarte (§ 20a Abs. 5 Satz 1); follow-up-card: the
+ * Folge-Chancenkarte (Satz 2); protection:
  * asylum or refugee status (§ 25 Abs. 1, Abs. 2 Satz 1); subsidiary:
  * subsidiary protection (§ 25 Abs. 2 Satz 2); resettlement: admission by
  * federal order (§ 23 Abs. 2); integration: § 23 Abs. 1, § 25a, § 25b;
@@ -45,6 +46,7 @@ export const DE_PERMIT_KINDS = [
   'temporary',
   'job-seeking',
   'opportunity-card',
+  'follow-up-card',
   'protection',
   'subsidiary',
   'resettlement',
@@ -180,7 +182,8 @@ const KIND_NAMES: Record<DePermitKind, [string, string]> = {
   other: ['居留许可', 'a residence permit'],
   temporary: ['临时目的的许可', 'a permit for a temporary purpose'],
   'job-seeking': ['求职许可', 'a job-seeking permit'],
-  'opportunity-card': ['机会卡', 'an opportunity card'],
+  'opportunity-card': ['找工作用的机会卡', 'a job-search opportunity card'],
+  'follow-up-card': ['后续机会卡', 'a follow-up opportunity card'],
   protection: ['庇护或难民许可', 'an asylum or refugee permit'],
   subsidiary: ['辅助保护许可', 'a subsidiary protection permit'],
   resettlement: ['联邦接收的居留许可', 'a permit on federal admission'],
@@ -237,13 +240,20 @@ function settlementRule(req: DeRequest): SettlementRule {
           'temporary',
           'job-seeking',
           'opportunity-card',
+          'follow-up-card',
           'integration',
           'humanitarian',
           'temporary-humanitarian',
         ],
         half: ['study', 'training'],
-        // § 20 job seeking does not rule out § 9, unlike § 20a Abs. 6.
-        hold: [...TITLES.filter((k) => !SECTION_5.includes(k)), 'job-seeking'],
+        // § 20 job seeking does not rule out § 9; § 20a Abs. 6 rules it out
+        // on a job-search opportunity card, even one issued again, but not on
+        // a follow-up card (BMI 20a.5.7, 20a.6.1).
+        hold: [
+          ...TITLES.filter((k) => !SECTION_5.includes(k)),
+          'job-seeking',
+          'follow-up-card',
+        ],
         years: v.generalYears.value,
         months: v.generalContributionMonths.value,
         what: [
@@ -257,7 +267,10 @@ function settlementRule(req: DeRequest): SettlementRule {
           aufenthG('§ 16b Abs. 4 Satz 2', '16b'),
           aufenthG('§ 16a Abs. 1 Satz 3', '16a'),
           aufenthG('§ 20a Abs. 6', '20a'),
-          { srcId: 'SRC-107', locator: 'Nr. 20a.6.1–20a.6.2 (p201)' },
+          {
+            srcId: 'SRC-107',
+            locator: 'Nr. 20a.5.7, 20a.6.1–20a.6.2 (p200–p201)',
+          },
         ],
       };
     case 'skilled': {
@@ -544,14 +557,20 @@ export function evaluateGermany(req: DeRequest): DeResult {
   /** Why holding EU long-term residence on day `k` is uncertain. */
   const doubtText = (k: number) => {
     const e = doubtful.filter((x) => doubtFrom(x)! < days.date(k)).at(-1)!;
+    const earlier = e.after
+      ? L(
+          `之前 ${tripText(e.after)} 的出境也可能已使其失效。`,
+          ` The earlier trip ${tripText(e.after)} may already have ended it.`,
+        )
+      : '';
     if (e.mobility)
       return L(
-        `你的${N(KIND_NAMES[e.kind])}可能已因 ${tripText(e)} 的出境失效：若这段时间是按欧盟学生或研究人员流动（指令 2016/801）在其他成员国学习或研究，许可不失效（§ 51 Abs. 1a Satz 2），否则在 ${e.by} 之后失效，试点无法判断（见"出境与居留失效"）。`,
-        `Your ${N(KIND_NAMES[e.kind]).replace(/^an? /, '')} may have lapsed on the trip ${tripText(e)}: it does not lapse if you were studying or doing research in another member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2), otherwise it lapsed after ${e.by}, which this pilot cannot tell (see “Trips abroad and loss of residence”).`,
+        `你的${N(KIND_NAMES[e.kind])}可能已因 ${tripText(e)} 的出境失效：若这段时间是按欧盟学生或研究人员流动（指令 2016/801）在其他成员国学习或研究，许可不失效（§ 51 Abs. 1a Satz 2），否则在 ${e.by} 之后失效，试点无法判断（见"出境与居留失效"）。${earlier}`,
+        `Your ${N(KIND_NAMES[e.kind]).replace(/^an? /, '')} may have lapsed on the trip ${tripText(e)}: it does not lapse if you were studying or doing research in another member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2), otherwise it lapsed after ${e.by}, which this pilot cannot tell (see “Trips abroad and loss of residence”).${earlier}`,
       );
     return L(
-      `你持有的欧盟长期居留可能已因 ${tripText(e)} 的出境失效：这段时间若都在欧盟以外，许可在 ${e.euBy} 之后失效（§ 51 Abs. 9 Satz 1 Nr. 3），在其他欧盟国家的不失效，试点无法判断（见"出境与居留失效"）。`,
-      `Your EU long-term residence may have lapsed on the trip ${tripText(e)}: if all of that time was outside the EU it lapsed after ${e.euBy} (§ 51 Abs. 9 Satz 1 Nr. 3); time in other EU countries does not count against it, which this pilot cannot tell (see “Trips abroad and loss of residence”).`,
+      `你持有的欧盟长期居留可能已因 ${tripText(e)} 的出境失效：这段时间若都在欧盟以外，许可在 ${e.euBy} 之后失效（§ 51 Abs. 9 Satz 1 Nr. 3），在其他欧盟国家的不失效，试点无法判断（见"出境与居留失效"）。${earlier}`,
+      `Your EU long-term residence may have lapsed on the trip ${tripText(e)}: if all of that time was outside the EU it lapsed after ${e.euBy} (§ 51 Abs. 9 Satz 1 Nr. 3); time in other EU countries does not count against it, which this pilot cannot tell (see “Trips abroad and loss of residence”).${earlier}`,
     );
   };
   /** What a conditional date may rest on beyond the certain reading. */
@@ -743,16 +762,6 @@ export function evaluateGermany(req: DeRequest): DeResult {
       if (rule.hold.includes(kd)) return held;
       if (route !== 'general') return false;
       if (kd === 'temporary') return held && allow.has('permit');
-      // § 20a Abs. 6: not while holding the first (search) opportunity card;
-      // a follow-up card (Abs. 5 Satz 2) does not rule it out (BMI 20a.6.1).
-      // A card right after another card is taken as the follow-up.
-      if (kd === 'opportunity-card') {
-        const rows = req.permits
-          .filter((p) => p.from <= days.date(k))
-          .sort((a, b) => (a.from < b.from ? -1 : 1));
-        const at = rows.map((p) => p.kind).lastIndexOf('opportunity-card');
-        return held && at > 0 && rows[at - 1].kind === 'opportunity-card';
-      }
       if (kd !== 'training') return false;
       const since = req.permits
         .filter((p) => p.kind === 'training' && p.from <= days.date(k))
@@ -935,8 +944,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
     if (route === 'general')
       assumptions.push(
         L(
-          `出境时持定居许可而失效的，此前持许可的时间减去那次出境的时间后最多计 ${v.priorSettlementCreditYears.value} 年（§ 9 Abs. 4 Nr. 1，AVwV 9.4.1.3，每年按 ${v.daysPerYear.value} 天，PD-121）。持学习许可（§ 16b）时不能取得；持职业培训许可（§ 16a）的，只有此前持过技术工人许可才能取得，持临时目的许可的另看具体条款；持首张机会卡（§ 20a）时不能取得，后续机会卡可以，两者的期间都计入（§ 20a Abs. 6，BMI 20a.6.1–20a.6.2；紧接在其他许可之后的机会卡按首张计）；持第 5 节人道许可（含庇护、难民、辅助保护）的，定居许可按 § 26 办理，不走本路径（PD-122）。`,
-          `If a settlement permit lapsed abroad, the time held before, less the time abroad that ended it, counts for up to ${v.priorSettlementCreditYears.value} years (§ 9 Abs. 4 Nr. 1, AVwV 9.4.1.3, ${v.daysPerYear.value} days a year, PD-121). You cannot get it on a study permit (§ 16b); on a vocational training permit (§ 16a) only if you held a skilled worker permit before, on a permit for a temporary purpose it depends on the section, and on a first opportunity card (§ 20a) you cannot get it while on a follow-up card you can, time on both counting (§ 20a Abs. 6, BMI 20a.6.1–20a.6.2; a card right after another permit is taken as the first); with a Section 5 humanitarian permit (asylum, refugee and subsidiary protection included) the settlement permit is under § 26, not this route (PD-122).`,
+          `出境时持定居许可而失效的，此前持许可的时间减去那次出境的时间后最多计 ${v.priorSettlementCreditYears.value} 年（§ 9 Abs. 4 Nr. 1，AVwV 9.4.1.3，每年按 ${v.daysPerYear.value} 天，PD-121）。持学习许可（§ 16b）时不能取得；持职业培训许可（§ 16a）的，只有此前持过技术工人许可才能取得，持临时目的许可的另看具体条款；持找工作用的机会卡（§ 20a，含再次签发的）时不能取得，持后续机会卡可以，两者的期间都计入（§ 20a Abs. 6，BMI 20a.5.7、20a.6.1–20a.6.2）；持第 5 节人道许可（含庇护、难民、辅助保护）的，定居许可按 § 26 办理，不走本路径（PD-122）。`,
+          `If a settlement permit lapsed abroad, the time held before, less the time abroad that ended it, counts for up to ${v.priorSettlementCreditYears.value} years (§ 9 Abs. 4 Nr. 1, AVwV 9.4.1.3, ${v.daysPerYear.value} days a year, PD-121). You cannot get it on a study permit (§ 16b); on a vocational training permit (§ 16a) only if you held a skilled worker permit before, on a permit for a temporary purpose it depends on the section, and on a job-search opportunity card (§ 20a, one issued again included) you cannot get it while on a follow-up card you can, time on both counting (§ 20a Abs. 6, BMI 20a.5.7, 20a.6.1–20a.6.2); with a Section 5 humanitarian permit (asylum, refugee and subsidiary protection included) the settlement permit is under § 26, not this route (PD-122).`,
         ),
       );
     if (route === 'refugee')
@@ -1109,6 +1118,7 @@ export function evaluateGermany(req: DeRequest): DeResult {
         : k === 'temporary' ||
             k === 'job-seeking' ||
             k === 'opportunity-card' ||
+            k === 'follow-up-card' ||
             (k === 'temporary-humanitarian' && !counted)
           ? 0
           : k === 'asylum'
@@ -1120,6 +1130,7 @@ export function evaluateGermany(req: DeRequest): DeResult {
       k === 'temporary' ||
       k === 'job-seeking' ||
       k === 'opportunity-card' ||
+      k === 'follow-up-card' ||
       (k === 'temporary-humanitarian' && !counted);
     const short = req.trips.map(
       (t) => t.returned <= addMonths(t.departed, v.euSingleAbsenceMonths.value),

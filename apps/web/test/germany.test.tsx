@@ -83,7 +83,7 @@ test('§ 20 job seeking needs its expiry; the hint tells § 20 from § 20a (revi
   }
 });
 
-test('a first § 20a opportunity card, from form to result (review73-2)', () => {
+test('a job-search § 20a opportunity card, from form to result (review73-2, review73-3)', () => {
   const form: DeForm = {
     ...emptyDeForm('2026-11-23'),
     firstEntry: '2021-09-01',
@@ -110,11 +110,21 @@ test('a first § 20a opportunity card, from form to result (review73-2)', () => 
   // § 20a Abs. 6 excludes § 9 on the first card; StAG § 10 lists § 20a.
   expect(status('DE-SETTLEMENT')).toBe('NOT_MET');
   expect(status('DE-NATURALISATION')).toBe('NOT_MET');
-  // The hint sends the card to its own option.
-  expect(t('de.permitsHint')).toContain('§ 20a 机会卡选"机会卡"');
-  expect(t('de.permitsHint', 'en')).toContain(
-    'for the § 20a opportunity card choose “Opportunity card”',
+  // The hint sends the card to its own options (review73-3).
+  expect(t('de.permitsHint')).toContain(
+    '选"找工作用的机会卡"或"后续机会卡"（再次签发的找工作用机会卡仍选前者），到期日必填',
   );
+  expect(t('de.permitsHint', 'en')).toContain(
+    'choose “Job-search opportunity card” or “Follow-up opportunity card”',
+  );
+  // Both cards need their expiry (§ 20a Abs. 5, review73-3).
+  for (const kind of ['opportunity-card', 'follow-up-card'] as const)
+    expect(
+      validateDeForm({
+        ...form,
+        permits: [{ kind, from: '2026-09-01', to: '', renewing: false }],
+      }),
+    ).toEqual({ 'de-permit-0-to': 'de.error.opportunityCardEnd' });
 });
 
 test('home links to the Germany pilot', () => {
