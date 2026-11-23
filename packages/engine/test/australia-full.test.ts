@@ -1,0 +1,472 @@
+import { describe, expect, test } from 'vitest';
+import {
+  australiaFull2026_11,
+  PARAMETERS_BY_COUNTRY,
+  RULE_SET_IDS_BY_COUNTRY,
+} from '@uk-immigration/policy-data';
+import {
+  AU_FULL_PATHWAYS,
+  evaluateAustralia,
+  evaluateAustraliaFull,
+  type AuFullPathId,
+  type AuFullRequest,
+} from '../src';
+
+const date = '2026-11-23';
+const solo: AuFullRequest = {
+  simulationDate: date,
+  dateOfBirth: '1990-01-01',
+  firstArrival: '2020-01-01',
+  visas: [{ subclass: '491', from: '2023-07-01' }],
+  trips: [],
+  locationAtApplication: 'onshore',
+  locationAtDecision: 'onshore',
+  visaCompliance: 'complied',
+  regional: {
+    assessmentYears: [2024, 2025, 2026],
+    regionalCondition: 'complied',
+    changeNotice: 'complied',
+    evidenceAndInterview: 'complied',
+  },
+  publicInterest: {
+    officialPassport: true,
+    character: 'clear-history',
+    health: 'cleared',
+    policeDocuments: 'supplied',
+    securityAndForeignPolicy: 'cleared',
+    criticalTechnology: 'cleared',
+    commonwealthDebt: 'none',
+    valuesSigned: true,
+    integrity: {
+      identityEstablished: true,
+      accurateDocuments: true,
+      lastIdentityRefusal: null,
+      lastDocumentRefusal: null,
+    },
+    returnBan5001: false,
+    removedOn: null,
+    sponsoredStudy: { applies: false },
+    settlementWithoutUndueDifficulty: true,
+    childInterestsSatisfied: true,
+  },
+};
+function path(id: AuFullPathId, r: Partial<AuFullRequest> = {}) {
+  return evaluateAustraliaFull({ simulationDate: date, ...r, pathway: id })
+    .columns[0].pathways[0];
+}
+function get(id: AuFullPathId, key: string, r: Partial<AuFullRequest>) {
+  return path(id, r).checks.find((c) => c.id === key)!;
+}
+
+test('all eleven paths have stable bilingual check IDs, registered locators and no decision on an empty questionnaire', () => {
+  const en = evaluateAustraliaFull({ simulationDate: date, locale: 'en' });
+  const zh = evaluateAustraliaFull({ simulationDate: date });
+  expect(en.policyAsOf).toBe('2026-11-23');
+  expect(en.columns.map((c) => c.id)).toEqual(RULE_SET_IDS_BY_COUNTRY.au);
+  expect(
+    PARAMETERS_BY_COUNTRY.au[
+      en.columns[0].id as typeof australiaFull2026_11.ruleSetId
+    ],
+  ).toBe(australiaFull2026_11);
+  expect(en.columns[0].pathways.map((p) => p.id)).toEqual(AU_FULL_PATHWAYS);
+  expect(AU_FULL_PATHWAYS).toHaveLength(11);
+  for (const [i, p] of en.columns[0].pathways.entries()) {
+    const chinese = zh.columns[0].pathways[i];
+    expect(p.status, p.id).toBe('UNKNOWN');
+    expect(p.title).not.toBe(chinese.title);
+    expect(new Set(p.checks.map((c) => c.id)).size).toBe(p.checks.length);
+    expect(p.checks.map((c) => c.id)).toEqual(chinese.checks.map((c) => c.id));
+    for (const [j, c] of p.checks.entries()) {
+      expect(c.title && chinese.checks[j].title, c.id).toBeTruthy();
+      expect(c.explanation, c.id).not.toBe(chinese.checks[j].explanation);
+      expect(c.sources.length, c.id).toBeGreaterThan(0);
+      expect(
+        c.sources.every((s) => /^SRC-\d+$/.test(s.srcId) && s.locator),
+      ).toBe(true);
+    }
+  }
+});
+
+describe('regional residence and income years', () => {
+  test('three years, three notices and confirmed non-time conditions pass with an unknown fee estimate', () => {
+    const p = path('AU-191', solo);
+    expect(p.checks.filter((c) => c.status !== 'MET').map((c) => c.id)).toEqual(
+      ['AU-FEES-APPLICATION'],
+    );
+    expect(p.status).toBe('MET');
+    expect(p.earliestDate).toBe(date);
+    expect(
+      path('AU-191', {
+        ...solo,
+        regional: { ...solo.regional, assessmentYears: [2024, 2025] },
+      }).status,
+    ).toBe('NOT_MET');
+    expect(
+      path('AU-191', {
+        ...solo,
+        publicInterest: {
+          ...solo.publicInterest,
+          health: 'no-known-condition',
+        },
+      }).status,
+    ).toBe('UNKNOWN');
+  });
+
+  test('only distinct completed overlapping years count, including a one-day overlap', () => {
+    const r = {
+      ...solo,
+      visas: [{ subclass: '491' as const, from: '2023-06-30' }],
+      regional: { assessmentYears: [2023, 2023, 2024, 2026] },
+    };
+    expect(
+      get('AU-191', 'AU-191-tax-notices', {
+        ...r,
+        simulationDate: '2026-06-30',
+      }).status,
+    ).toBe('NOT_MET');
+    expect(
+      get('AU-191', 'AU-191-tax-notices', {
+        ...r,
+        simulationDate: '2026-07-01',
+      }).status,
+    ).toBe('MET');
+    expect(
+      get('AU-191', 'AU-191-tax-notices', {
+        ...r,
+        visas: [...r.visas, { subclass: '482', from: '2024-07-01' }],
+      }).status,
+    ).toBe('NOT_MET');
+    expect(
+      get('AU-191', 'AU-191-tax-notices', {
+        ...r,
+        regional: { ...r.regional, disputedAssessment: true },
+      }).pendingDetails,
+    ).toEqual(['PD-212']);
+  });
+
+  test.each([
+    [
+      'regionalCondition',
+      'outside-region',
+      'AU-191-regional-activity',
+      'NOT_MET',
+    ],
+    [
+      'regionalCondition',
+      'class-claimed',
+      'AU-191-regional-activity',
+      'UNKNOWN',
+    ],
+    ['changeNotice', 'minor-breach', 'AU-191-change-notice', 'UNKNOWN'],
+    ['evidenceAndInterview', 'not-complied', 'AU-191-evidence', 'NOT_MET'],
+  ] as const)('%s=%s', (key, value, id, expected) => {
+    expect(
+      get('AU-191', id, {
+        ...solo,
+        regional: { ...solo.regional, [key]: value },
+      }).status,
+    ).toBe(expected);
+  });
+  test('a lapse of required insurance refers compliance to review', () => {
+    expect(
+      get('AU-191', 'AU-prior-visa-compliance', {
+        ...solo,
+        publicInterest: { temporaryInsurance: 'lapsed' },
+      }),
+    ).toMatchObject({ status: 'UNKNOWN', pendingDetails: ['PD-204'] });
+  });
+
+  test('regional stream opened on 16 November 2022', () => {
+    expect(
+      get('AU-191', 'AU-stream-open', { simulationDate: '2022-11-15' }).status,
+    ).toBe('NOT_MET');
+    expect(
+      get('AU-191', 'AU-stream-open', { simulationDate: '2022-11-16' }).status,
+    ).toBe('MET');
+  });
+});
+
+describe('application and grant', () => {
+  test.each([
+    'AU-186-DE',
+    'AU-189-PT',
+    'AU-190',
+    'AU-858',
+    'AU-PARTNER',
+  ] as const)('%s checks actual years on the last substantive visa', (id) => {
+    const r: AuFullRequest = {
+      ...solo,
+      visas: [{ subclass: '494', from: '2023-11-24' }],
+      regionalLockException: 'none',
+      partner: { stream: 'onshore' },
+    };
+    expect(get(id, 'AU-regional-lock', r).status).toBe('NOT_MET');
+    expect(
+      get(id, 'AU-regional-lock', { ...r, simulationDate: '2026-11-24' })
+        .status,
+    ).toBe('MET');
+    expect(
+      get(id, 'AU-regional-lock', { ...r, regionalLockException: 'claimed' })
+        .status,
+    ).toBe(id === 'AU-PARTNER' ? 'NOT_MET' : 'UNKNOWN');
+    expect(
+      get(id, 'AU-regional-lock', {
+        ...r,
+        simulationDate: '2027-01-01',
+        visas: [
+          { subclass: '491', from: '2023-11-24', to: '2025-11-23' },
+          { subclass: 'bridging', from: '2025-11-24' },
+        ],
+      }).status,
+    ).toBe('NOT_MET');
+  });
+  test('partner lock uses original lodgement; offshore partner is exempt', () => {
+    const r = {
+      ...solo,
+      partnerApplication: {
+        lodged: '2024-11-23',
+        stream: 'onshore' as const,
+        longTermRelationship: true,
+      },
+    };
+    expect(get('AU-PARTNER', 'AU-regional-lock', r).status).toBe('NOT_MET');
+    expect(
+      get('AU-PARTNER', 'AU-regional-lock', {
+        ...r,
+        partnerApplication: { ...r.partnerApplication, stream: 'offshore' },
+      }),
+    ).toBeUndefined();
+  });
+  test('apply and decide location are separate; onshore 189 PT needs a qualifying visa', () => {
+    expect(
+      get('AU-189-PT', 'AU-lodgement-location', {
+        locationAtApplication: 'onshore',
+        permissibleOnshoreVisa: false,
+      }).status,
+    ).toBe('NOT_MET');
+    expect(
+      get('AU-189-PT', 'AU-lodgement-location', {
+        locationAtApplication: 'offshore',
+      }).status,
+    ).toBe('MET');
+    expect(
+      get('AU-191', 'AU-grant-location', {
+        ...solo,
+        locationAtDecision: 'clearance',
+      }).status,
+    ).toBe('NOT_MET');
+  });
+});
+
+test('Hong Kong retains the old holding, residence and regional checks and separates passport and visa terms', () => {
+  const complete = {
+    simulationDate: date,
+    dateOfBirth: '1990-01-01',
+    firstArrival: '2020-01-01',
+    visas: [{ subclass: '485' as const, from: '2022-11-23' }],
+    trips: [],
+    hongKong: { regionalSince: '2023-11-23' },
+  };
+  for (const id of ['AU-189-HK', 'AU-191-HK'] as const) {
+    const p = path(id, complete);
+    const legacy = evaluateAustralia(complete).pathways.find(
+      (p) => p.id === id,
+    )!;
+    expect(
+      p.checks
+        .filter((c) => c.id.startsWith(id + '-time-'))
+        .map((c) => c.explanation),
+    ).toEqual(legacy.checks.map((c) => c.text));
+    expect(legacy.status).toBe('MET');
+    expect(
+      get(id, 'AU-HK-passport', { ...complete, hongKongPassport: false })
+        .status,
+    ).toBe('NOT_MET');
+    expect(
+      get(id, 'AU-HK-primary-visa', {
+        ...complete,
+        hongKongPrimaryVisaTerms: false,
+      }).status,
+    ).toBe('NOT_MET');
+    expect(
+      get(id, id + '-time-residence', {
+        ...complete,
+        trips: [{ departed: '2026-10-01', returned: '2026-10-03' }],
+      }).pendingDetails,
+    ).toEqual(['PD-108']);
+    expect(
+      get(id, id + '-time-residence', { ...complete, trips: undefined }).status,
+    ).toBe('UNKNOWN');
+  }
+  expect(
+    get('AU-191-HK', 'AU-191-HK-time-regional', { ...complete, hongKong: {} })
+      .status,
+  ).toBe('UNKNOWN');
+  expect(
+    get('AU-189-HK', 'AU-stream-open', { simulationDate: '2022-03-04' }).status,
+  ).toBe('NOT_MET');
+});
+
+test('TRT uses the old visa and work counts, independently of an age exemption', () => {
+  const complete = {
+    simulationDate: date,
+    dateOfBirth: '1970-01-01',
+    firstArrival: '2020-01-01',
+    trips: [],
+    visas: [{ subclass: '482' as const, from: '2023-11-23' }],
+    sponsoredFullTime: true,
+    employer: { exemption: 'academic' as const },
+  };
+  const p = path('AU-186-TRT', complete);
+  expect(
+    p.checks.filter((c) => c.id.includes('-time-')).map((c) => c.status),
+  ).toEqual(['MET', 'MET', 'MET']);
+  expect(p.checks.find((c) => c.id === 'AU-186-TRT-age')?.status).toBe('MET');
+  expect(
+    get('AU-186-TRT', 'AU-186-TRT-time-work', {
+      ...complete,
+      sponsoredFullTime: false,
+    }).pendingDetails,
+  ).toEqual(['PD-207']);
+  const short = {
+    ...complete,
+    visas: [{ subclass: '482' as const, from: '2026-01-01' }],
+  };
+  expect(get('AU-186-TRT', 'AU-186-TRT-time-held', short).status).toBe(
+    'NOT_MET',
+  );
+  expect(
+    get('AU-186-TRT', 'AU-186-TRT-time-current', { ...complete, visas: [] })
+      .status,
+  ).toBe('NOT_MET');
+});
+
+test('the residence milestone is projected only when the remaining evidence passes', () => {
+  const r = {
+    ...solo,
+    visas: [{ subclass: '491' as const, from: '2023-11-24' }],
+    regional: { ...solo.regional, assessmentYears: [2024, 2025, 2026] },
+  };
+  expect(path('AU-191', r)).toMatchObject({
+    status: 'FUTURE',
+    earliestDate: '2026-11-24',
+  });
+  expect(path('AU-191', { ...r, visaCompliance: undefined })).toMatchObject({
+    status: 'UNKNOWN',
+  });
+  expect(
+    path('AU-191', { ...r, visaCompliance: 'not-complied' }),
+  ).toMatchObject({ status: 'NOT_MET' });
+});
+
+test('positive main-applicant English does not discharge adult dependants’ instalments', () => {
+  for (const id of [
+    'AU-186-TRT',
+    'AU-186-DE',
+    'AU-189-PT',
+    'AU-190',
+    'AU-189-HK',
+    'AU-191-HK',
+    'AU-858',
+  ] as const) {
+    const fees = { additionalAdults: 1, chargeableAdditionalAdults: 1 };
+    expect(get(id, 'AU-additional-english', { fees }).status).toBe('UNKNOWN');
+    expect(
+      get(id, 'AU-additional-english', {
+        fees: { ...fees, additionalInstalmentsPaid: false },
+      }).status,
+    ).toBe('NOT_MET');
+    expect(
+      get(id, 'AU-additional-english', {
+        fees: { ...fees, additionalInstalmentsPaid: true },
+      }).status,
+    ).toBe('MET');
+  }
+});
+
+test('191 HK regional history is independent of the passport and the regional provisional visa exemption', () => {
+  const r: AuFullRequest = {
+    simulationDate: date,
+    firstArrival: '2020-01-01',
+    visas: [{ subclass: '485', from: '2022-11-23' }],
+    trips: [],
+    regional: { hongKongOnlySince: null, regionalCondition: 'class-confirmed' },
+  };
+  const checkId = 'AU-191-HK-time-regional';
+  expect(get('AU-191-HK', checkId, r).status).toBe('NOT_MET');
+  expect(
+    get('AU-191-HK', checkId, {
+      ...r,
+      regional: { hongKongOnlySince: '2023-11-23' },
+    }).status,
+  ).toBe('MET');
+  expect(
+    get('AU-191-HK', 'AU-HK-passport', {
+      ...r,
+      regional: { hongKongOnlySince: '2023-11-23' },
+    }).status,
+  ).toBe('UNKNOWN');
+  expect(
+    get('AU-191-HK', checkId, {
+      ...r,
+      regional: { hongKongRegionalException: 'confirmed' },
+    }),
+  ).toMatchObject({ status: 'MET' });
+});
+
+test('TRT projects a confirmed age-exempt worker; an expiring nomination still blocks the projected date', () => {
+  const r: AuFullRequest = {
+    ...solo,
+    dateOfBirth: '1970-01-01',
+    visas: [{ subclass: '482', from: '2024-11-24' }],
+    sponsoredFullTime: true,
+    permissibleOnshoreVisa: true,
+    fees: { additionalAdults: 0, additionalMinors: 0 },
+    english: { passport: 'US' },
+    employer: {
+      exemption: 'academic',
+      nomination: 'approved',
+      nominationLodged: '2026-07-01',
+      nominationApproved: '2026-07-10',
+      positionAvailable: true,
+      fullTimeRenewable: true,
+      offeredYears: 2,
+      annualSalary: 79423,
+      acceptedMarketRate: 79423,
+      licensing: 'unregulated',
+      sponsorshipConduct: 'clear',
+      trtPrimaryVisa: true,
+      trtOccupationMatches: true,
+      trtSkillsDemonstration: 'not-requested',
+    },
+  };
+  expect(path('AU-186-TRT', r)).toMatchObject({
+    status: 'FUTURE',
+    earliestDate: '2026-11-24',
+  });
+  const expiring = {
+    ...r,
+    employer: {
+      ...r.employer,
+      nominationLodged: '2026-05-20',
+      nominationApproved: '2026-05-23',
+    },
+  };
+  expect(path('AU-186-TRT', expiring).status).toBe('NOT_MET');
+  expect(path('AU-186-TRT', expiring).earliestDate).toBeUndefined();
+});
+
+test('an unfinished partner questionnaire does not force a negative long-term relationship declaration', () => {
+  const r: AuFullRequest = {
+    simulationDate: date,
+    partnerApplication: { stream: 'onshore', lodged: '2026-08-01' },
+    partner: { relationshipAtDecision: 'continuing' },
+  };
+  expect(get('AU-PARTNER', 'AU-PARTNER-time', r).status).toBe('UNKNOWN');
+  expect(
+    get('AU-PARTNER', 'AU-PARTNER-time', {
+      ...r,
+      partnerApplication: { stream: 'onshore', lodged: '2024-11-23' },
+    }).status,
+  ).toBe('MET');
+});

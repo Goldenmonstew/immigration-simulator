@@ -484,3 +484,4 @@
 | 490 | 任务 82：网站改名 immigration-simulator——Cloudflare 新项目与部署变量、仓库改名与 GitHub Pages 新路径；旧 Cloudflare 项目与新建的旧名仓库只做跳转并自行注销旧 service worker；部署文档补记。 | docs/deploy.md |
 | 500 | 任务 83：登记澳大利亚完整版官方法源、费用表及待定细节，复用原时间规则的来源。 | policy-sources/、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
 | 501 | 任务 83：登记澳大利亚现行规则集、英语与打分分项、地区与家庭条件、签证及入籍费用参数。 | packages/policy-data/src/{types,index}.ts、packages/policy-data/src/parameters/{index,australia-2026-11}.ts |
+| 502 | 任务 83：完成十一条路径的双语规则与边界测试，复用旧时间计算；报告列出条件 ID、来源、待定事项及页面问卷问题。 | packages/engine/src/{index,australia-check,australia-common,australia-family,australia-fees,australia-full,australia-skilled}.ts、packages/engine/test/australia-{common,family,full,skilled}.test.ts、docs/tasks/reports/83-au-rules.md |
