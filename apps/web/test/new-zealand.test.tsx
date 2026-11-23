@@ -104,3 +104,24 @@ test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
   expect(html).toContain(`href="${sourceUrls['SRC-072']}"`);
   expect(html).toContain('PD-087');
 });
+
+test.each([
+  ['zh-CN', '时间以主申请人为准', '本计算不按你自己的记录推算。'],
+  [
+    'en',
+    'the timing follows theirs',
+    'This calculator does not work it out from your own record.',
+  ],
+] as const)(
+  'the non-principal PRV result uses calculator wording in %s',
+  (locale, timing, wording) => {
+    const result = evaluateNewZealand(
+      nzRequest({ ...filled, nonPrincipal: true, prvGranted: '' }, locale),
+    );
+    const html = render(<PilotResult result={result} />, locale);
+    expect(html).toContain('data-pathway="NZ-PRV" data-status="UNKNOWN"');
+    expect(html).toContain(timing);
+    expect(html).not.toMatch(/试点|\bthis pilot\b/i);
+    expect(html).toContain(wording);
+  },
+);

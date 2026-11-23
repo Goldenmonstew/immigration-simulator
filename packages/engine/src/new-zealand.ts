@@ -287,8 +287,8 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
         title,
         status: 'UNKNOWN',
         summary: L(
-          '你是居民签证的随同申请人（伴侣或子女）：按 RV1.20，主申请人持永久居民签证后你通常也可获批，时间以主申请人为准；例外包括你从未以居民身份到过新西兰、不符合品格要求或须单独评估。本试点不按你自己的记录推算。',
-          'You were included in someone else’s resident visa as a partner or child: under RV1.20 you can usually be granted a permanent resident visa once the principal applicant holds one, so the timing follows theirs. Exceptions include never having been in New Zealand as a resident, not meeting character requirements, or being assessed on your own. This pilot does not work it out from your own record.',
+          '你是居民签证的随同申请人（伴侣或子女）：按 RV1.20，主申请人持永久居民签证后你通常也可获批，时间以主申请人为准；例外包括你从未以居民身份到过新西兰、不符合品格要求或须单独评估。本计算不按你自己的记录推算。',
+          'You were included in someone else’s resident visa as a partner or child: under RV1.20 you can usually be granted a permanent resident visa once the principal applicant holds one, so the timing follows theirs. Exceptions include never having been in New Zealand as a resident, not meeting character requirements, or being assessed on your own. This calculator does not work it out from your own record.',
         ),
         checks: [],
         notChecked: [
@@ -305,8 +305,8 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
         title,
         status: 'UNKNOWN',
         summary: L(
-          'Active Investor Plus 居民签证转永居按 RV2.10，看投资条件是否已满足，本试点不判断。',
-          'An Active Investor Plus resident visa moves to permanent residence under RV2.10, which depends on meeting the investment conditions; this pilot does not check them.',
+          'Active Investor Plus 居民签证转永居按 RV2.10，看投资条件是否已满足，本计算不判断。',
+          'An Active Investor Plus resident visa moves to permanent residence under RV2.10, which depends on meeting the investment conditions; this calculator does not check them.',
         ),
         checks: [],
         notChecked: [
@@ -368,8 +368,8 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
                     )) +
           (conditional && !stuck
             ? L(
-                '你的居民签证带有 s49(1) 条件（父母类可能为 5 年或 10 年，宗教工作者须受担保从事宗教工作满 5 年，其他类别见签证），须先满足并申请取消，才能获批永久居民签证（RV2.5(d)），本试点不判断。',
-                ' Your resident visa carries s49(1) conditions (5 or 10 years for Parent visas, 5 years of sponsored religious work for Religious Worker visas, otherwise as on your visa); they must be met and removed before a permanent resident visa can be granted (RV2.5(d)), which this pilot does not check.',
+                '你的居民签证带有 s49(1) 条件（父母类可能为 5 年或 10 年，宗教工作者须受担保从事宗教工作满 5 年，其他类别见签证），须先满足并申请取消，才能获批永久居民签证（RV2.5(d)），本计算不判断。',
+                ' Your resident visa carries s49(1) conditions (5 or 10 years for Parent visas, 5 years of sponsored religious work for Religious Worker visas, otherwise as on your visa); they must be met and removed before a permanent resident visa can be granted (RV2.5(d)), which this calculator does not check.',
               )
             : '') +
           (!stuck &&
@@ -569,8 +569,8 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
                     )) +
           (conditional && !stuck
             ? L(
-                '你的居民签证带有 s49(1) 条件（父母类、宗教工作者、Active Investor Plus 都有，其他类别见签证），须已满足或取消才能入籍（s8(3)），本试点不判断；已获永久居民签证的则没有这些条件。',
-                ' Your resident visa carries s49(1) conditions (Parent, Religious Worker and Active Investor Plus visas all do; otherwise see your visa), which must be met or cancelled before citizenship (s8(3)); this pilot does not check them, and a permanent resident visa has no such conditions.',
+                '你的居民签证带有 s49(1) 条件（父母类、宗教工作者、Active Investor Plus 都有，其他类别见签证），须已满足或取消才能入籍（s8(3)），本计算不判断；已获永久居民签证的则没有这些条件。',
+                ' Your resident visa carries s49(1) conditions (Parent, Religious Worker and Active Investor Plus visas all do; otherwise see your visa), which must be met or cancelled before citizenship (s8(3)); this calculator does not check them, and a permanent resident visa has no such conditions.',
               )
             : ''),
         checks: [
