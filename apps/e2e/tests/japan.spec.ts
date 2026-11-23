@@ -30,6 +30,7 @@ test('the Japan pilot works out permanent residence for a spouse', async ({
   await page.getByLabel('开始实际婚姻生活的日期').fill('2023-12-01');
   await page.getByLabel('适用的帰化路线').selectOption('general');
   await page.getByLabel('出生日期').fill('1990-05-05');
+  await page.getByLabel('我的本国法成年年龄不超过 18 岁').check();
   await page.getByRole('button', { name: '计算' }).click();
 
   await expect(page.getByRole('heading', { name: '计算结果' })).toBeFocused();

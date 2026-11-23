@@ -848,10 +848,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'jp.natRoute.spouse':
     'Spouse of a Japanese national (Nationality Act art. 7)',
   'jp.dateOfBirth': 'Date of birth',
-  'jp.homeMajorityAge':
-    "Age of majority under your home country's law (leave blank if 18 or lower)",
+  'jp.homeMajorityLow': "My home country's age of majority is 18 or lower",
+  'jp.homeMajorityAge': "Age of majority under your home country's law (years)",
   'jp.homeMajorityAgeHint':
-    'Nationality Act art. 5 asks for age 18 and adulthood under your home country’s law; if adulthood there is above 18 (such as 19), enter that age.',
+    'Nationality Act art. 5 asks for age 18 and adulthood under your home country’s law; if adulthood there is above 18 (such as 19), enter that age, otherwise tick the box above.',
   'jp.trips': 'Trips abroad',
   'jp.tripsHint':
     'Add a row for each time you left Japan. You can include planned trips. A trip without a re-entry permit ticked uses the deemed re-entry permit (back within 1 year); if you enter the period of stay you held when leaving, you must also be back by then.',
@@ -875,8 +875,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'jp.error.specialPeriod':
     'Even with a renewal pending you can leave only within 2 months after your period of stay ended; check the dates.',
   'jp.error.newStatus': 'Choose how the new guideline counts your status.',
+  'jp.error.homeMajority':
+    "Tick that your home country's age of majority is 18 or lower, or enter the age.",
+  'jp.error.age': 'Enter a whole number of years from 1 to 99.',
   'jp.error.overlap': 'This trip overlaps an earlier one.',
-  'jp.error.age': 'Enter a whole number of years, or leave it blank.',
   'us.entryLink': 'Open the United States pilot',
   'us.entryDesc':
     'Use your green card date and travel record to work out the dates for naturalization, naturalization as the spouse of a citizen, removing conditions and time abroad.',

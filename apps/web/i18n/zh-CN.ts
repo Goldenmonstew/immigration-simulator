@@ -624,9 +624,10 @@ export const zhCN = {
   'jp.natRoute.general': '一般（国籍法第 5 条）',
   'jp.natRoute.spouse': '日本国民的配偶者（国籍法第 7 条）',
   'jp.dateOfBirth': '出生日期',
-  'jp.homeMajorityAge': '本国法的成年年龄（不超过 18 岁可留空）',
+  'jp.homeMajorityLow': '我的本国法成年年龄不超过 18 岁',
+  'jp.homeMajorityAge': '本国法的成年年龄（岁）',
   'jp.homeMajorityAgeHint':
-    '国籍法第5条要求年满 18 岁，并且按本国法也已成年；本国法成年年龄高于 18 岁的（如 19 岁），请填写岁数。',
+    '国籍法第5条要求年满 18 岁，并且按本国法也已成年；本国法成年年龄高于 18 岁的（如 19 岁），请填写岁数，否则勾选上一项。',
   'jp.trips': '出境记录',
   'jp.tripsHint':
     '每次离开日本填一行，计划中的出行也可以填。没有勾选再入国许可的，按みなし再入国许可（出国后 1 年内返回）计算；填了出境时的在留期限的，返回也不能晚于它。',
@@ -649,8 +650,9 @@ export const zhCN = {
   'jp.error.specialPeriod':
     '更新申请中也只能在在留期限届满后 2 个月内离开日本，请核对日期。',
   'jp.error.newStatus': '请选择新版指南下的起点。',
+  'jp.error.homeMajority': '请勾选本国法成年年龄不超过 18 岁，或填写岁数。',
+  'jp.error.age': '请填写 1 至 99 之间的整数岁数。',
   'jp.error.overlap': '这次出境与前面的出境日期重叠。',
-  'jp.error.age': '请填写整数岁数，或留空。',
   'us.entryLink': '打开美国试点',
   'us.entryDesc':
     '按绿卡日期与出入境记录，计算入籍、配偶入籍、取消绿卡条件与离境时长的时间节点。',

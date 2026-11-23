@@ -45,6 +45,13 @@ const practice = [
   },
 ];
 const article7 = [{ srcId: 'SRC-111', locator: '第7条' }];
+const ageChange = [
+  {
+    srcId: 'SRC-117',
+    locator: 'Q9 能力条件（注）',
+    url: 'https://www.moj.go.jp/MINJI/minji78.html#a09',
+  },
+];
 const holidaysLaw = [
   {
     srcId: 'SRC-112',
@@ -419,6 +426,9 @@ export const japan2026_11 = {
         },
       ],
     },
+    // Before this date the age in art. 5(1)(ii) was this one (MOJ Q9 note).
+    naturalisationAgeFrom: { value: '2022-04-01', sources: ageChange },
+    naturalisationAgeBefore: { value: 20, sources: ageChange },
     // Review practice from this date: in principle this many years of stay.
     naturalisationPracticeYears: { value: 10, sources: practice },
     naturalisationPracticeFrom: {

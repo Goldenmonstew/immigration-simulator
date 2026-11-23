@@ -29,6 +29,7 @@ const filled: JpForm = {
   marriedLifeFrom: '2023-12-01',
   natRoute: 'general',
   dateOfBirth: '1990-05-05',
+  homeMajorityLow: true,
 };
 const trip = (departed: string, returned: string) => ({
   ...emptyJpTrip(),
@@ -347,24 +348,35 @@ test('the home-country age of majority for naturalisation', () => {
   // Korean national born 2008-11-24, in Japan since 2016-04-01.
   const form: JpForm = {
     ...filled,
-    simulationDate: '2026-11-24',
+    simulationDate: '2026-11-23',
     stayStart: '2016-04-01',
     dateOfBirth: '2008-11-24',
+    homeMajorityLow: false,
   };
-  const nat = (homeMajorityAge: string) =>
-    evaluateJapan(jpRequest({ ...form, homeMajorityAge }, 'zh-CN')).pathways[1];
-  expect(nat('').status).toBe('MET');
-  expect(nat('19').earliestDate).toBe('2027-11-24');
-  expect(
-    jpRequest({ ...form, homeMajorityAge: '19' }, 'en').naturalisation,
-  ).toEqual({
+  // Neither ticked nor entered: the form asks.
+  expect(validateJpForm(form)).toEqual({
+    'jp-home-majority-age': 'jp.error.homeMajority',
+  });
+  const nat = (patch: Partial<JpForm>) =>
+    evaluateJapan(jpRequest({ ...form, ...patch }, 'zh-CN')).pathways[1];
+  // Confirmed 18 or lower: the 18th birthday.
+  const low = { homeMajorityLow: true };
+  expect(validateJpForm({ ...form, ...low })).toEqual({});
+  expect(nat(low).earliestDate).toBe('2026-11-24');
+  // 19 under Korean law.
+  const nineteen = { homeMajorityAge: '19' };
+  expect(validateJpForm({ ...form, ...nineteen })).toEqual({});
+  expect(nat(nineteen).earliestDate).toBe('2027-11-24');
+  expect(jpRequest({ ...form, ...nineteen }, 'en').naturalisation).toEqual({
     route: 'general',
     dateOfBirth: '2008-11-24',
     homeMajorityAge: 19,
   });
-  expect(validateJpForm({ ...form, homeMajorityAge: '19.5' })).toEqual({
-    'jp-home-majority-age': 'jp.error.age',
-  });
+  // Whole numbers from 1 to 99 only.
+  for (const homeMajorityAge of ['19.5', '0', '1000000'])
+    expect(validateJpForm({ ...form, homeMajorityAge })).toEqual({
+      'jp-home-majority-age': 'jp.error.age',
+    });
 });
 
 test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {

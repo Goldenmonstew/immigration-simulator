@@ -287,29 +287,46 @@ export default function JapanContent() {
           {draft.natRoute === 'general' && (
             <div className={form.followUp}>
               {date('jp-date-of-birth', t('jp.dateOfBirth'), 'dateOfBirth')}
-              <Field
-                id="jp-home-majority-age"
-                label={t('jp.homeMajorityAge')}
-                hint={t('jp.homeMajorityAgeHint')}
-                error={errors['jp-home-majority-age']}
-              >
-                <input
+              <div className={form.checkboxes}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={draft.homeMajorityLow}
+                    onChange={(e) => {
+                      // A hidden age must not keep its error.
+                      setErrors({});
+                      set({ homeMajorityLow: e.target.checked });
+                    }}
+                  />
+                  {t('jp.homeMajorityLow')}
+                </label>
+              </div>
+              {!draft.homeMajorityLow && (
+                <Field
                   id="jp-home-majority-age"
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  value={draft.homeMajorityAge}
-                  onChange={(e) => set({ homeMajorityAge: e.target.value })}
-                  aria-invalid={
-                    errors['jp-home-majority-age'] ? true : undefined
-                  }
-                  aria-describedby={
-                    errors['jp-home-majority-age']
-                      ? 'jp-home-majority-age-hint jp-home-majority-age-error'
-                      : 'jp-home-majority-age-hint'
-                  }
-                />
-              </Field>
+                  label={t('jp.homeMajorityAge')}
+                  hint={t('jp.homeMajorityAgeHint')}
+                  error={errors['jp-home-majority-age']}
+                >
+                  <input
+                    id="jp-home-majority-age"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={99}
+                    value={draft.homeMajorityAge}
+                    onChange={(e) => set({ homeMajorityAge: e.target.value })}
+                    aria-invalid={
+                      errors['jp-home-majority-age'] ? true : undefined
+                    }
+                    aria-describedby={
+                      errors['jp-home-majority-age']
+                        ? 'jp-home-majority-age-hint jp-home-majority-age-error'
+                        : 'jp-home-majority-age-hint'
+                    }
+                  />
+                </Field>
+              )}
             </div>
           )}
           {draft.natRoute === 'spouse' && (

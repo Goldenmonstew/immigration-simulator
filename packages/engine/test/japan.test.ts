@@ -888,10 +888,8 @@ describe('review70-10', () => {
       },
     });
 
-  test('blank: 18, said in the summary', () => {
-    const p = korean('2026-11-23');
-    expect(p.earliestDate).toBe('2026-11-24');
-    expect(p.summary).toContain('不超过 18 岁');
+  test('confirmed 18 or lower: the 18th birthday', () => {
+    expect(korean('2026-11-23').earliestDate).toBe('2026-11-24');
     expect(korean('2026-11-24').status).toBe('MET');
   });
 
@@ -901,7 +899,20 @@ describe('review70-10', () => {
     expect(p.status).toBe('FUTURE');
     expect(p.earliestDate).toBe('2027-11-24');
     expect(p.checks[1].met).toBe(false);
-    expect(p.summary).not.toContain('不超过 18 岁');
+  });
+});
+
+describe('review70-11', () => {
+  test('before 2022-04-01 the age was 20', () => {
+    // 19 on 2021-06-01; 18 is enough from 2022-04-01.
+    const p = nat({
+      simulationDate: '2021-06-01',
+      stayStart: '2010-01-01',
+      naturalisation: { route: 'general', dateOfBirth: '2002-05-01' },
+    });
+    expect(p.earliestDate).toBe('2022-04-01');
+    expect(p.checks[1].text).toContain('年满 20 岁');
+    expect(p.checks[1].met).toBe(false);
   });
 });
 
