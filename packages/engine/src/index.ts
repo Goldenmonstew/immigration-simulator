@@ -146,6 +146,25 @@ export type {
   JpResult,
   JpTrip,
 } from './japan';
+export { evaluateJapanFull } from './japan-full';
+export type { JpFullRequest } from './japan-full';
+export type {
+  JpFullCheck,
+  JpFullPathway,
+  JpFullResult,
+} from './japan-full-shared';
+export type {
+  JpFullPrRequest,
+  JpFullPrRoute,
+  JpPrCommonEvidence,
+} from './japan-full-pr';
+export type {
+  JpFullNaturalisationRequest,
+  JpFullNaturalisationRoute,
+  JpNaturalisationEvidence,
+} from './japan-full-naturalisation';
+export type { JpFullReentryRequest } from './japan-full-reentry';
+export type { JpHspSnapshot, JpJSkipSnapshot } from './japan-full-talent';
 export { NZ_RESIDENT_CATEGORIES, evaluateNewZealand } from './new-zealand';
 export type {
   NzPathway,
