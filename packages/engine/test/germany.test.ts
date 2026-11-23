@@ -254,10 +254,46 @@ describe('Niederlassungserlaubnis, general route (§ 9)', () => {
       },
       'DE-EU-LONG-TERM',
     );
-    // Temporary protection is a temporary purpose: not counted (PD-155).
+    // Temporary protection is a temporary purpose: not counted (PD-155);
+    // counting it is the other reading (review73-1).
     expect(p.status).toBe('FUTURE');
     expect(p.earliestDate).toBe('2030-03-04');
-    expect(p.summary).not.toContain('2027-04-01');
+    expect(p.summary).toContain('2027-04-01');
+    // When only counting it meets the simulation date: unknown, both dates.
+    const later = pathway(
+      {
+        simulationDate: '2027-05-01',
+        permits: [
+          {
+            kind: 'temporary-humanitarian',
+            from: '2022-04-01',
+            to: '2025-03-03',
+          },
+          { kind: 'skilled', from: '2025-03-04' },
+        ],
+      },
+      'DE-EU-LONG-TERM',
+    );
+    expect(later.status).toBe('UNKNOWN');
+    expect(later.summary).toContain('2030-03-04');
+    expect(later.summary).toContain('§ 24');
+  });
+
+  test('§ 20 between study and work keeps the study time (review73-1)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        permits: [
+          { kind: 'study', from: '2019-09-01', to: '2021-08-31' },
+          { kind: 'job-seeking', from: '2021-09-01', to: '2022-02-28' },
+          { kind: 'skilled', from: '2022-03-01' },
+        ],
+      },
+      'DE-EU-LONG-TERM',
+    );
+    // 731 study half days + 2 × 1,728 days of work: more than 2 × 1,826.
+    // The job search counts for nothing but does not break the time.
+    expect(p.status).toBe('MET');
   });
 
   test('a § 25b permit (review69-4, task 73)', () => {
@@ -852,10 +888,12 @@ describe('Einbürgerung (StAG §§ 9, 10, 12b)', () => {
   });
 
   test('§ 20 job seeking: settlement yes, EU long-term no (task 73)', () => {
+    // § 20 Abs. 1 Nr. 2: job search after § 18d research.
     const req = {
+      simulationDate: '2026-03-01',
       permits: [
-        { kind: 'skilled' as const, from: '2020-01-01', to: '2024-12-31' },
-        { kind: 'job-seeking' as const, from: '2025-01-01' },
+        { kind: 'research' as const, from: '2020-01-01', to: '2024-12-31' },
+        { kind: 'job-seeking' as const, from: '2025-01-01', to: '2026-06-30' },
       ],
     };
     // § 20 does not rule out § 9 (unlike § 20a Abs. 6).
@@ -1291,11 +1329,11 @@ describe('trips abroad and loss of residence (§ 51)', () => {
         },
         'DE-EU-LONG-TERM',
       );
-      // § 24 time does not count (PD-155): 5 years from 2025-03-04, and
-      // only if the renewal is granted.
+      // Met on the simulation date only if the renewal is granted and the
+      // § 24 time counts: both named.
       expect(p.status).toBe('UNKNOWN');
       expect(p.summary).toContain('§ 81 Abs. 4');
-      expect(p.summary).toContain('2030-03-04');
+      expect(p.summary).toContain('§ 24');
     });
 
     test('training after a skilled worker permit: also uncertain (review69-6)', () => {
@@ -1387,6 +1425,23 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     // § 51 Abs. 1a spares only Nr. 6 and 7, not the expiry (Nr. 1).
     expect(p.status).toBe('NOT_MET');
     expect(p.checks[0].text).toContain('2026-04-30');
+  });
+
+  test('a second trip names the earlier trip as the cause (review73-1)', () => {
+    const req = {
+      permits: [{ kind: 'eu-long-term' as const, from: '2020-01-01' }],
+      trips: [
+        // 13 months away: lapsed only if all of it was outside the EU.
+        { departed: '2023-01-10', returned: '2024-03-01' },
+        { departed: '2024-06-01', returned: '2024-06-20' },
+      ],
+    };
+    const travel = pathway(req, 'DE-TRAVEL');
+    expect(travel.checks[1].met).toBeUndefined();
+    expect(travel.checks[1].text).toContain('2023-01-10 至 2024-03-01');
+    const eu = pathway(req, 'DE-EU-LONG-TERM');
+    expect(eu.summary).toContain('2023-01-10 至 2024-03-01');
+    expect(eu.summary).not.toContain('2024-06-01 至 2024-06-20');
   });
 
   test('a short trip after an undetermined exchange (task 73)', () => {

@@ -64,6 +64,25 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
+test('§ 20 job seeking needs its expiry; the hint tells § 20 from § 20a (review73-1)', () => {
+  expect(
+    validateDeForm({
+      ...filled,
+      permits: [
+        { kind: 'job-seeking', from: '2026-09-01', to: '', renewing: false },
+      ],
+    }),
+  ).toEqual({ 'de-permit-0-to': 'de.error.jobSeekingEnd' });
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const hint = t('de.permitsHint', locale);
+    expect(hint).toMatch(/§ 20[）)]/);
+    expect(hint).toContain('§ 20a');
+    expect(render(<GermanyPage />, locale)).toContain(
+      hint.replaceAll('"', '&quot;'),
+    );
+  }
+});
+
 test('home links to the Germany pilot', () => {
   expect(render(<Home />, 'zh-CN')).toContain('href="/germany"');
 });

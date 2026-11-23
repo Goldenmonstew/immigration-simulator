@@ -419,3 +419,4 @@
 | 405 | 任务 73：德国试点入籍对失效未定的出境（欧盟长期居留在欧盟外、学生或研究人员流动）也按两种读法：确定日期按已失效计，回德后要等下一张许可才重新起算合法居留；未失效的日期另列；回归用例 1 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts |
 | 406 | 任务 73：德国页单测补"每种许可类型在中英文下都有标签"，覆盖新增的研究人员、§ 20 求职与四类人道居留。 | apps/web/test/germany.test.tsx |
 | 407 | 任务 73 报告（四段）；任务 69 报告第 4 节注明遗留风险已在任务 73 处理。 | docs/tasks/reports/73-germany-risks.md、docs/tasks/reports/69-germany.md |
+| 408 | 任务 73 审核修正（review73-1）：§ 20 求职许可到期日必填（§ 20 Abs. 2）；表单提示区分 § 20 与 § 20a；欧盟长期居留中临时目的、§ 20、§ 24 期间不计但不中断，此前学习等期间照常保留；§ 24 期间恢复两种读法（PD-155）；后续短途出境的不确定归到之前那次出境；回归用例新增 3 项、改写 3 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、apps/web/lib/germany.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/germany.test.tsx、docs/pending-details.md、docs/tasks/reports/73-germany-risks.md |

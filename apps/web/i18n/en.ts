@@ -563,7 +563,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'If you came on a national visa, time counts from the day you arrived, not from when the visa started.',
   'de.permits': 'Residence permits',
   'de.permitsHint':
-    'Add a row for each permit, then the next one when it is renewed or replaced; a new permit ends the one before it even if that card shows a later expiry, and a blank end date runs until the next permit starts. If you applied to renew before expiry and the new card came after the old one ran out, tick “Renewal or a new permit applied for before it ran out”; otherwise the gap breaks continuity. Tick it too while the decision is pending: settlement and EU long-term results that rely on the wait are then shown as uncertain, while naturalisation counts it as lawful residence. If a permit was extended by law or regulation, enter the date it is legally valid until, not the date on the card. A settlement permit and EU long-term residence have no end date (the date on the card is only the document’s), so there is none to enter. Enter a national entry visa as the type it was issued for; for the asylum procedure choose “Asylum claim pending” from the day you claimed asylum. Choose “Permit for a temporary purpose” for job seeking, au pair and the like.',
+    'Add a row for each permit, then the next one when it is renewed or replaced; a new permit ends the one before it even if that card shows a later expiry, and a blank end date runs until the next permit starts. If you applied to renew before expiry and the new card came after the old one ran out, tick “Renewal or a new permit applied for before it ran out”; otherwise the gap breaks continuity. Tick it too while the decision is pending: settlement and EU long-term results that rely on the wait are then shown as uncertain, while naturalisation counts it as lawful residence. If a permit was extended by law or regulation, enter the date it is legally valid until, not the date on the card. A settlement permit and EU long-term residence have no end date (the date on the card is only the document’s), so there is none to enter. Enter a national entry visa as the type it was issued for; for the asylum procedure choose “Asylum claim pending” from the day you claimed asylum. For a job-seeking permit after study, research or training (§ 20) choose “Looking for work after study, research or training” and enter its expiry; for the § 20a opportunity card, au pair and other temporary purposes choose “Permit for a temporary purpose”.',
   'de.permit': 'Permit {n}',
   'de.kind': 'Permit type',
   'de.kind.study': 'University study (§ 16b)',
@@ -637,6 +637,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.error.date': 'Enter a valid date.',
   'de.error.order': 'This date cannot be before the start date.',
   'de.error.months': 'Enter a whole number of months, or leave it blank.',
+  'de.error.jobSeekingEnd':
+    'A § 20 job-seeking permit has a statutory maximum; enter the expiry date on the permit.',
   'gr.entryLink': 'Open the Greece pilot',
   'gr.entryDesc':
     'Use your residence permits (golden visa included) and travel record to work out the dates for long-term residence, golden visa renewal and naturalisation.',

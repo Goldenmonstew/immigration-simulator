@@ -89,7 +89,11 @@ export function validateDeForm(form: DeForm): DeErrors {
   form.permits.forEach((permit, i) => {
     date(`de-permit-${i}-from`, permit.from);
     if (!hasEndDate(permit.kind)) return;
-    date(`de-permit-${i}-to`, permit.to, true);
+    // § 20 Abs. 2: a job-seeking permit has a statutory maximum, so a blank
+    // end date would run on past it.
+    if (permit.kind === 'job-seeking' && !permit.to)
+      errors[`de-permit-${i}-to`] = 'de.error.jobSeekingEnd';
+    else date(`de-permit-${i}-to`, permit.to, true);
     if (validDate(permit.to) && permit.to < permit.from)
       errors[`de-permit-${i}-to`] = 'de.error.order';
   });
