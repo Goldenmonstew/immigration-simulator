@@ -5,6 +5,12 @@ const CACHE_NAME = `${CACHE_PREFIX}2026-11-04-v4`;
 // The site may live under a base path (GitHub Pages): take it from the scope.
 const BASE = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 const at = (path) => `${BASE}${path}`;
+const legacyDestinations = new Map(
+  ['simulate', 'result', 'whatif', 'policy', 'about', 'game'].map((page) => [
+    at(`/${page}`),
+    at(`/uk/${page}`),
+  ]),
+);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -79,6 +85,12 @@ self.addEventListener('fetch', (event) => {
         }
         return (await fallback()) ?? response;
       } catch {
+        const destination = legacyDestinations.get(url.pathname);
+        if (request.mode === 'navigate' && destination) {
+          // Keep the query. The browser carries the fragment across the redirect.
+          url.pathname = destination;
+          return Response.redirect(url);
+        }
         return (await fallback()) ?? Response.error();
       }
     })(),

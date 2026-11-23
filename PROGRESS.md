@@ -467,6 +467,7 @@
 | 443 | 任务 77：静态导出离线页面清单，service worker 按注册作用域读取并升级至 v3；离线与无障碍 e2e 复用注册表，离线流程最后填写爱尔兰表单。 | apps/web/app/offline-pages.json/route.ts、apps/web/public/sw.js、apps/web/test/about-page.test.tsx、apps/e2e/tests/{site,a11y}.spec.ts、docs/tasks/reports/77-registry.md |
 | 450 | 任务 78：英国七页迁到 /uk，根路径复用英国首页。更新导航、问卷、结果分享、方案与游戏链接，离线清单保留根路径并覆盖七个英国页面，缓存升到 v4。 | apps/web/{app/uk/,app/page.tsx,app/error.tsx,app/offline-pages.json/route.ts,components/,lib/{site-countries,mock-results}.ts,public/sw.js,test/}、apps/e2e/tests/{a11y,game,life,mobile,questionnaire,site}.spec.ts、apps/e2e/tests/helpers.ts |
 | 451 | 任务 78：六个旧网址导出带 noindex 与后备链接的跳转页，保留查询串和分享片段；添加 Cloudflare 301 规则与旧结果、问卷、游戏入口回归用例。 | apps/web/app/[legacyPage]/page.tsx、apps/web/public/_redirects、apps/e2e/tests/legacy-urls.spec.ts、docs/tasks/reports/78-uk-move.md |
+| 452 | 任务 78 审核修正（review78-1）：断网首次访问六个旧英国网址时，Service Worker 按部署前缀重定向到已缓存的 /uk 页面。新增旧分享链接离线回归用例，检查查询串、分享片段、载入提示和两栏评估。 | apps/web/public/sw.js、apps/e2e/tests/legacy-urls.spec.ts、docs/tasks/reports/78-uk-move.md |
 | 460 | 任务 79：去掉十国与首页双语文案中的"试点 / pilot"字样（标题、范围说明与入口链接），保留"只检查时间条件"的事实说明。 | apps/web/i18n/{zh-CN,en}.ts、apps/web/i18n/countries/*.ts |
 | 461 | 任务 79：站名、手机短名与 Web App Manifest 更新为"移民路径模拟 / Immigration Path Simulator"（短名"移民模拟 / Path Sim"）。 | apps/web/i18n/{zh-CN,en}.ts、apps/web/public/manifest.webmanifest |
 | 462 | 任务 79：全站外壳顶栏导航增加"所有国家 / All countries"返回根路径 `/` 的入口，非游戏页左上站名链接回 `/`，游戏页按当前国家返回模拟器主页。 | apps/web/components/site-shell.tsx、apps/web/app/site.module.css、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/game-theme.test.tsx |
