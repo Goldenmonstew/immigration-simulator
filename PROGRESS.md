@@ -416,3 +416,4 @@
 | 392 | 任务 72：爱尔兰 Stamp 4 路线中住在北爱尔兰的日子优先于重叠的爱尔兰许可：家庭团聚配偶的 5 年不计这些日子（FAQ 第 30 问"在爱尔兰"），Stamp 4 升级递交当天须住在爱尔兰（SRC-096"residing in the State"）；回归用例；PD-115 更新。 | packages/engine/src/ireland.ts、packages/engine/test/ireland.test.ts、docs/pending-details.md |
 | 393 | 任务 72：爱尔兰 Stamp 5 满期时在境外、回国前许可已到期的，不再以回国日为最早递交日，写明须先取得有效许可（SRC-097 申请表 p1）；回归用例；SRC-097 备注更新。 | packages/engine/src/ireland.ts、packages/engine/test/ireland.test.ts、docs/SOURCES.md |
 | 394 | 任务 72：爱尔兰 57 个月规则对 ICT 的最早可依据日期取升级页发布日 2025-07-22（参数 ictRuleFrom，SRC-096），早于该日满期的 ICT 输出 UNKNOWN；GEP 仍取 2024-04-03；摘要称该日为"按 57 个月规则满足的最早日期"；模拟日期提示、PD-116、SRC-096 备注更新；回归用例。 | packages/engine/src/ireland.ts、packages/engine/test/ireland.test.ts、packages/policy-data/src/parameters/ireland-2026-11.ts、apps/web/i18n/{zh-CN,en}.ts、docs/pending-details.md、docs/SOURCES.md |
+| 395 | 任务 72 报告：爱尔兰试点审核遗留风险的处理（五项改动、验证、未做与建议）。 | docs/tasks/reports/72-ireland-risks.md |
