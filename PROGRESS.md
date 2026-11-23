@@ -472,3 +472,4 @@
 | 471 | 任务 80：英国问卷、结果、对比、分享、方案和政策页接入 CountryModule。旧分享串与两个本地存储键继续可用，游戏结局使用新信封；补国家隔离、多路径和政策页用例。 | apps/web/{lib,components,i18n,test}/、apps/web/app/uk/{home-content.tsx,simulate/form-kit.tsx,result/result-content.tsx,whatif/,policy/page.tsx,game/ending.tsx}、docs/tasks/reports/80-country-module.md |
 | 472 | 任务 80 审核修正（review80-1）：英国 What-if 调整日期触发筛查中止时，两栏恢复“此规则集暂无评估结果。”提示。补日期及通用路径增删对比回归；对比页与已保存方案按国家重置组件状态。 | apps/web/components/{whatif-lab,saved-scenarios}.tsx、apps/web/test/country-views.test.tsx、docs/tasks/reports/80-country-module.md |
 | 620 | 任务 87：登记西班牙完整版官方快照和原址，复用 5 份同哈希原件，新增 SRC-320–349 及 PD-280–299。 | policy-sources/*-es-*、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
+| 621 | 任务 87：登记 es.current-law，将入籍、国内与欧盟长居、跨境、恢复和自由流动的参数按条款与版本归档。 | packages/policy-data/src/{types,index,parameters/index,parameters/spain-2026-11}.ts |

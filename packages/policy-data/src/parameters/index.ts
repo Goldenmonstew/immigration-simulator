@@ -5,9 +5,11 @@ import type {
 } from '../types';
 import { currentLaw2026_11 } from './current-law-2026-11';
 import { earnedSettlement2026_11 } from './earned-settlement-2026-11';
+import { spainFull2026_11 } from './spain-2026-11';
 
 /** A parameter file for every rule set registered in that country. */
 export const PARAMETERS_BY_COUNTRY = {
+  es: { [spainFull2026_11.ruleSetId]: spainFull2026_11 },
   uk: {
     [currentLaw2026_11.ruleSetId]: currentLaw2026_11,
     [earnedSettlement2026_11.ruleSetId]: earnedSettlement2026_11,
