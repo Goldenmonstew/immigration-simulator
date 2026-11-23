@@ -125,6 +125,68 @@ describe('permanent residence under EU free movement', () => {
     }
   });
 
+  test('early retirement establishes the day from which permanent residence can be lost', () => {
+    const retired: EsFreeMovementFacts = {
+      earlyBasis: 'retirement',
+      residenceFrom: '2021-01-01',
+      employmentFrom: '2021-01-01',
+      workStopped: '2024-01-02',
+      qualifiedWorker: true,
+      earlyEmployeeRetirement: true,
+      history: [],
+    };
+    for (const returned of ['2026-03-01', '2026-02-01']) {
+      const kept = returned === '2026-02-01';
+      const facts = {
+        ...retired,
+        trips: [
+          { departed: '2024-02-01', returned, reason: 'ordinary' as const },
+        ],
+      };
+      const inferred = fullPath(facts);
+      const documented = fullPath({ ...facts, acquiredOn: '2024-01-02' });
+      expect(inferred.checks.find((c) => c.id === 'ES-U07')?.status).toBe(
+        'MET',
+      );
+      expect(inferred.status).toBe(kept ? 'MET' : 'NOT_MET');
+      expect(
+        inferred.checks.find((c) => c.id === 'ES-U04-retention')?.status,
+      ).toBe(inferred.status);
+      expect(inferred.pathwayCompletionDate).toBe(
+        kept ? '2024-01-02' : undefined,
+      );
+      expect(inferred.earliestDate).toBe(
+        kept ? request.simulationDate : undefined,
+      );
+      expect(documented.status).toBe(inferred.status);
+    }
+    const regained = fullPath({
+      ...retired,
+      acquiredOn: '2014-01-01',
+      trips: [
+        { departed: '2016-01-01', returned: '2021-01-01', reason: 'ordinary' },
+      ],
+    });
+    expect(regained.status).toBe('MET');
+    expect(regained.pathwayCompletionDate).toBe('2024-01-02');
+  });
+
+  test('family acquiring with a worker needs the acquisition date to place a long absence', () => {
+    const trip = { departed: '2024-02-01', returned: '2026-03-01' };
+    const facts: EsFreeMovementFacts = {
+      ...family,
+      earlyBasis: 'worker-family',
+      coResidentWithWorker: true,
+      workerAcquiredEarly: true,
+      history: [],
+      trips: [trip],
+    };
+    expect(fullPath(facts).status).toBe('UNKNOWN');
+    expect(
+      fullPath({ ...facts, longestPostAcquisitionAbsence: trip }).status,
+    ).toBe('NOT_MET');
+  });
+
   test('historical acquisition respects leap-day starts, residence gaps and returns after a loss', () => {
     const facts: EsFreeMovementFacts = {
       residenceFrom: '2015-01-01',
@@ -563,6 +625,16 @@ describe('permanent residence under EU free movement', () => {
     expect(row('U09', { ...cross, returnsAtLeastWeekly: false }).status).toBe(
       'NOT_MET',
     );
+    const undatedTransfer = fullPath({
+      ...cross,
+      residenceFrom: '2020-01-01',
+      employmentFrom: '2020-01-01',
+      workStopped: '2024-01-02',
+      history: [],
+      trips: [{ departed: '2024-02-01', returned: '2026-03-01' }],
+    });
+    expect(undatedTransfer.status).toBe('UNKNOWN');
+    expect(undatedTransfer.pendingDetails).toContain('PD-298');
   });
   test('U10 and U11 use the worker’s evidence and offer alternative statutory grounds', () => {
     const dependent: EsFreeMovementFacts = {

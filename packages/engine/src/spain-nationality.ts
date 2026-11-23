@@ -105,6 +105,8 @@ export interface EsNationalityFacts {
   };
   /** Registration with a centre covered by Orden JUS/1625/2016 art. 10.6. */
   registeredWithSchoolOrCareCentre?: boolean;
+  /** First teaching day on the local calendar for the applicant's primary entry cohort. */
+  primarySchoolStartsOn?: IsoDate;
   schoolOrCareCertificateIfRequired?: boolean;
   integrationDecision?: boolean;
   documents?: Partial<Record<NationalityDocument, boolean>>;
@@ -173,6 +175,21 @@ function inForce(
 ): Finding {
   if (issue && issue > date) return false;
   return end === undefined ? undefined : date <= end;
+}
+
+function ofCompulsorySchoolAge(
+  n: EsNationalityFacts,
+  date: IsoDate,
+  age?: number,
+): Finding {
+  if (age === undefined || !n.birthDate) return undefined;
+  const [year, month] = date.split('-').map(Number);
+  const entryYear = Number(n.birthDate.split('-')[0]) + v.schoolAgeFrom.value;
+  if (year !== entryYear)
+    return year > entryYear && age < v.schoolAgeUntil.value;
+  if (n.primarySchoolStartsOn) return date >= n.primarySchoolStartsOn;
+  const openingMonth = v.primarySchoolStartMonth.value;
+  return month === openingMonth ? undefined : month > openingMonth;
 }
 
 function examFindings(n: EsNationalityFacts, date: IsoDate, age?: number) {
@@ -261,9 +278,10 @@ function residenceRecord(
   n: EsNationalityFacts,
   pilot: EsPathway,
 ) {
-  if (req.route !== 'marriage' || !n.diplomaticPosting?.length)
+  const spans = req.route === 'marriage' ? (n.diplomaticPosting ?? []) : [];
+  const continuityAccepted = n.continuityDecision === true;
+  if (!spans.length && !(continuityAccepted && pilot.status === 'UNKNOWN'))
     return { time: pilot, trips: req.trips };
-  const spans = n.diplomaticPosting;
   let trips = req.trips;
   for (const span of spans) {
     trips = trips.flatMap((t) => {
@@ -283,7 +301,9 @@ function residenceRecord(
   const time = evaluateSpain({
     ...req,
     permits: [...req.permits, ...spans],
-    trips,
+    // The authority has already settled continuity. Use the permit anniversary
+    // for the candidate date and retain the trip record for the N01 finding.
+    trips: continuityAccepted ? [] : trips,
   }).pathways.find((p) => p.id === 'ES-NATIONALITY')!;
   return { time, trips };
 }
@@ -640,10 +660,6 @@ export function nationalityPath(
       ['PD-284'],
     ),
   );
-  const compulsorySchoolAge =
-    age === undefined
-      ? undefined
-      : age >= v.schoolAgeFrom.value && age < v.schoolAgeUntil.value;
   const minorOrJudiciallyExempt = any(
     exams.minor,
     n.examRelief === undefined
@@ -651,14 +667,14 @@ export function nationalityPath(
       : n.examRelief === 'judicial-exemption-confirmed',
   );
   const centreRequired = any(
-    compulsorySchoolAge,
+    ofCompulsorySchoolAge(n, date, age),
     all(minorOrJudiciallyExempt, n.registeredWithSchoolOrCareCentre),
   );
   checks.push(
     rule(
       'N13',
-      '免试程序已解决，机关已认可社会融合。义务教育学龄的未成年人，以及已在适用机构登记的未成年人或获司法豁免者，须提供机构证明。',
-      'Any dispensation proceeding is resolved and the authority accepted integration. A centre certificate is required for minors of compulsory school age and for minors or judicially exempt applicants registered with a covered centre.',
+      '免试程序已解决，机关已认可社会融合。义务教育学龄的未成年人，以及已在适用机构登记的未成年人或获司法豁免者，须提供机构证明。小学入学按出生年份分届，开学月份内递交时须核当地开学日。',
+      'Any dispensation proceeding is resolved and the authority accepted integration. A centre certificate is required for minors of compulsory school age and for minors or judicially exempt applicants registered with a covered centre. Primary entry is by birth year. For applications in the opening month of the entry year, check the local first teaching day.',
       all(
         exams.simultaneous ? false : exams.pending ? undefined : true,
         evidenceIfRequired(centreRequired, n.schoolOrCareCertificateIfRequired),
@@ -671,6 +687,7 @@ export function nationalityPath(
           'Orden JUS/1625/2016 art. 10.5–6; Resolución 7-11-2022 anexo',
         ),
         ...v.schoolAgeFrom.sources,
+        ...v.primarySchoolStartMonth.sources,
       ],
       ['PD-282'],
     ),
@@ -825,8 +842,8 @@ export function nationalityPath(
   const assumptions =
     req.timeRecordsComplete === false
       ? []
-      : [...pilot.assumptions, pilot.summary];
-  if (time !== pilot)
+      : [...time.assumptions, time.summary];
+  if (req.route === 'marriage' && n.diplomaticPosting?.length)
     assumptions.push(
       L(
         '有证明的外交或领事人员配偶外驻期间按合法居留计。',

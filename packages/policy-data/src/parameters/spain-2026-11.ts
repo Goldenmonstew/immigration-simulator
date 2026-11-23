@@ -53,6 +53,16 @@ export const spain2026_11 = {
 };
 
 const nationalityValues = {
+  primarySchoolStartMonth: {
+    value: 9,
+    sources: [
+      { srcId: 'SRC-341', locator: 'RD 157/2022 art. 5.1–2 (entry cohort)' },
+      {
+        srcId: 'SRC-341',
+        locator: 'Eurydice España §4.1, Organisation of the school year, ¶1–2',
+      },
+    ],
+  },
   nationalityRefugeeCertificateMonths: {
     value: 6,
     sources: [{ srcId: 'SRC-322', locator: 'Orden JUS/1625/2016 anexo §2.h' }],

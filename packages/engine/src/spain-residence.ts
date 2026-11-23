@@ -797,10 +797,20 @@ export function residencePath(
       : undefined;
     if (recordCertain) {
       durationDate = extended === true ? day : pilot.earliestDate;
-      if (period === false) {
-        // The first qualifying permit anniversary is a lower bound even for work or exempt trips.
+      const lastBreak = trips
+        .filter((t) => absenceVerdict([t], from, day, false, true) === false)
+        .map((t) => t.returned)
+        .sort()
+        .at(-1);
+      if (period === false || lastBreak) {
+        // Art. 183.1–2: a fresh qualifying period can start no earlier than the return from a disqualifying trip.
         const anniversary = permits
-          .map((p) => afterYears(p.from, years))
+          .map((p) =>
+            afterYears(
+              lastBreak && lastBreak > p.from ? lastBreak : p.from,
+              years,
+            ),
+          )
           .sort()
           .find(
             (d) =>

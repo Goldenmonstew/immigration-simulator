@@ -115,6 +115,33 @@ describe('Spanish national long-term residence, arts. 183–184', () => {
     ]);
   });
 
+  test('projects five continuous years from the return after an overlong ordinary trip', () => {
+    const trip = {
+      departed: '2022-01-01',
+      returned: '2022-08-01',
+      reason: 'ordinary' as const,
+      irregularExit: false,
+    };
+    const run = (simulationDate: string) =>
+      evaluateSpainFull({
+        ...base,
+        simulationDate,
+        targets: ['L'],
+        permits: [{ from: '2017-01-01' }],
+        trips: [trip],
+        residence: { ...ready, tripDetails: [trip] },
+      }).columns[0].pathways[0];
+    const path = run('2026-11-23');
+    expect(row(path, 'L01-PERMIT').status).toBe('MET');
+    expect(row(path, 'L01-SINGLE').status).toBe('NOT_MET');
+    expect([
+      path.status,
+      path.pathwayCompletionDate,
+      path.earliestDate,
+    ]).toEqual(['FUTURE', '2027-08-01', '2027-08-01']);
+    expect(run('2027-08-01').status).toBe('MET');
+  });
+
   test.each([
     ['clear', 'MET', 'FUTURE', '2027-01-01'],
     ['pending', 'UNKNOWN', 'UNKNOWN', undefined],

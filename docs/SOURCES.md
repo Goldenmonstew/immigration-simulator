@@ -165,7 +165,7 @@
 | SRC-338 | LAW | BOE · RD 1155/2024 原始公报；BOE · RD 316/2026 修订原文；BOE · 最高法院 2026-07-08 判决及更正 | https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-24099 ；https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-8284 ；https://www.boe.es/buscar/doc.php?id=BOE-A-2026-19632 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-publicacion-reglamento.html`（sha256 `758517103d2e302548291155305e3258e2a9fe16f9f84fd04694367ae3fb4bad`）；`policy-sources/2026-11-23-es-rd316.html`（sha256 `bdbc814ab04e8000e152b4c46d343446d317ecd88991063c1edc31d56769dcdc`）；`policy-sources/2026-11-23-es-ts-reglamento.html`（sha256 `8809055e6784e5f58c77769513a27d2f01b68cec1ab51795b3f5dfb5d029b8eb`） | archived |
 | SRC-339 | GUIDANCE | CGPJ · Audiencia Nacional，学习停留的按居住入籍判决摘要 | https://www.poderjudicial.es/cgpj/es/Poder-Judicial/Audiencia-Nacional/Jurisprudencia/Actualidad-Jurisprudencial/ci.AN-C-A--Estima-el-recurso-contra-resolucion-de-la-DGRN---que-acuerda-conceder-la-nacionalidad-espanola-por-residencia--Anula-la-misma-por-su-disconformidad-a-Derecho--La-permanencia-en-Espana-amparada-en-la-tarjeta-de-estudiante-o-en-autorizacion-de-estancia-para-cursar-estudios-no-puede-considerarse-que-reuna-las-notas-exigidas-de-residencia-legal--continuada-e-inmediatamente-anterior-a-la-peticion-previsto-en-el-art--22-3-del-CC-para-la-adquisicion-de-la-nacionalidad-.formato3 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-cgpj-estudios.html`（sha256 `3a8584fb16b913e4d1f958bc468b8aad28a70434a0ca4ade8e21b5e603ad5144`） | archived |
 | SRC-340 | LAW | BOE · RD 126/2026，2026 SMI；BOE · RDL 2/2015，劳动者法典 | https://www.boe.es/buscar/act.php?id=BOE-A-2026-3815 ；https://www.boe.es/buscar/act.php?id=BOE-A-2015-11430 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-smi2026.html`（sha256 `d3c8ead4ea540ff39439f4e4849225493e5aa3bdc03c859b6e1dd1c4fcf0774e`）；`policy-sources/2026-11-23-es-estatuto-trabajadores.html`（sha256 `b3dd19df24b8bfefe65370cf7bbee78a5030a9a691687f878cf54796c32e3286`） | archived |
-| SRC-341 | LAW | BOE · LO 2/2006，教育法 | https://www.boe.es/buscar/act.php?id=BOE-A-2006-7899 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-educacion.html`（sha256 `4fcf4ea5940cde0f089a41d53e32fdf8bba056bcac5fdaae1bfd6411dd6ef502`） | archived |
+| SRC-341 | LAW / GUIDANCE | BOE · LO 2/2006 教育法、RD 157/2022 小学教育规定，Eurydice España · 小学学年安排 | https://www.boe.es/buscar/act.php?id=BOE-A-2006-7899 、https://www.boe.es/eli/es/rd/2022/03/01/157/con/20220302#a5 、https://eurydice.eacea.ec.europa.eu/eurypedia/spain/organisation-primary-education | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-educacion.html`（sha256 `4fcf4ea5940cde0f089a41d53e32fdf8bba056bcac5fdaae1bfd6411dd6ef502`）、`policy-sources/2026-11-23-es-primary-art5.xml`（sha256 `65cad7f5d85609804c41b2917af0d088e356744f777135f2390e91b300ef12cb`）、`policy-sources/2026-11-23-es-primary-calendar.html`（sha256 `1b7782041ca61b3de20261e74f3b876272d8f03043d7089b6c04f9a979302816`） | archived |
 | SRC-342 | LAW | BOE · 最高法院 2024-07-15 判决，入籍 art. 12.1；BOE · Ley 8/2021，支持措施及民法修订 | https://www.boe.es/buscar/doc.php?id=BOE-A-2024-18114 ；https://www.boe.es/buscar/act.php?id=BOE-A-2021-9233 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-ts-nacionalidad.html`（sha256 `5c9f14a03ad9011a81ad30ba5177ede419273d7627c90a040a8b0e8394874285`）；`policy-sources/2026-11-23-es-ley8-2021.html`（sha256 `d3f06be9de1a579da85529900e380d3e24990d6720407a4ecb2a2cd2ab304df9`） | archived |
 | SRC-343 | LAW | BOE · Ley 20/2011，Registro Civil；司法部 · 2021-12-22 公证宣誓声明指令；BOE · Ley 18/2014，民事登记公共服务费用 | https://www.boe.es/buscar/act.php?id=BOE-A-2011-12628 ；https://www.mjusticia.gob.es/es/Ciudadano/Nacionalidad/Documents/Instruccion%20DGSJFP%20Notarias%20declaraciones%20nacionalidad%20residencia.pdf ；https://www.boe.es/buscar/act.php?id=BOE-A-2014-10517 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-ley20-2011.html`（sha256 `dfc8f51ba806a571b0f98e798e5cbb8e42383fa7669764e98d3eca11c3a81d12`）；`policy-sources/2026-11-23-es-justicia-jura-notaria.pdf`（sha256 `90709937b593f674b9f8ff1a0a1e87cf6d1bc64b29c61ff37b33a419b68a56a9`）；`policy-sources/2026-11-23-es-registro-civil-gratuidad.html`（sha256 `2012e04d093a1cac35f249b6248e11dae0eb554e3bcd886b486e41ec01f4ae65`） | archived |
 | SRC-344 | GUIDANCE | Seguridad Social · Jubilación ordinaria，法定退休年龄 | https://www.seg-social.es/wps/portal/wss/internet/Trabajadores/PrestacionesPensionesTrabajadores/10963/28393/28396/28472?changeLanguage=es | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-edad-jubilacion.html`（sha256 `59cb47a400d0b1adb9e17be428285646df4d0c4f3d7852cce34ab6ad67b51add`） | archived |
@@ -1290,11 +1290,19 @@ SRC-340b BOE · RDL 2/2015，劳动者法典。
 
 - `policy-sources/2026-11-23-es-estatuto-trabajadores.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2015-11430>
 
-## SRC-341 BOE · LO 2/2006，教育法
+## SRC-341 西班牙义务教育学龄与小学学年
 
-SRC-341 BOE · LO 2/2006，教育法。
+SRC-341a BOE · LO 2/2006 art. 4.2 规定通常的义务教育年龄范围。
 
 - `policy-sources/2026-11-23-es-educacion.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2006-7899>
+
+SRC-341b BOE · RD 157/2022 art. 5.1–2 规定小学为义务教育，通常在满六岁的自然年进入一年级。
+
+- `policy-sources/2026-11-23-es-primary-art5.xml` → <https://www.boe.es/datosabiertos/api/legislacion-consolidada/id/BOE-A-2022-3296/texto/bloque/a5>
+
+SRC-341c 西班牙教育部 Eurydice España §4.1「Organisation of the school year」第 1–2 段说明，小学学生于九月开始上课，具体日期由各自治区教育当局确定。
+
+- `policy-sources/2026-11-23-es-primary-calendar.html` → <https://eurydice.eacea.ec.europa.eu/eurypedia/spain/organisation-primary-education>
 
 ## SRC-342 西班牙完整版关联文书
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import type { EsRequest } from '../src/spain';
+import { evaluateSpain, type EsRequest } from '../src/spain';
 import { evaluateSpainFull } from '../src/spain-full';
 import type { EsNationalityFacts } from '../src/spain-nationality';
 
@@ -105,6 +105,27 @@ describe('Spanish nationality by residence', () => {
     expect(expires.earliestDate).toBeUndefined();
     expect(expires.pathwayCompletionDate).toBe('2027-01-01');
     expect(expires.summary).toContain('ES-N12');
+  });
+  test('N keeps the permit anniversary when continuity through a short trip is confirmed', () => {
+    const req = {
+      permits: [{ from: '2017-01-01' }],
+      trips: [{ departed: '2026-07-01', returned: '2026-07-15' }],
+    };
+    const facts = { continuityDecision: true };
+    const future = assess(facts, req);
+    expect(future.status).toBe('FUTURE');
+    expect(future.pathwayCompletionDate).toBe('2027-01-01');
+    expect(future.earliestDate).toBe('2027-01-01');
+    expect(assess(facts, { ...req, simulationDate: '2027-01-01' }).status).toBe(
+      'MET',
+    );
+    expect(assess({}, req).earliestDate).toBeUndefined();
+    expect(
+      assess({ continuityDecision: false }, req).earliestDate,
+    ).toBeUndefined();
+    const timeOnly = evaluateSpain({ ...base, ...req }).pathways[1];
+    expect(timeOnly.status).toBe('UNKNOWN');
+    expect(timeOnly.earliestDate).toBeUndefined();
   });
   test('N01 handles missing history, qualifying permits, absences and the diplomatic fiction', () => {
     expect(row('N01', {}, { timeRecordsComplete: false }).status).toBe(
@@ -447,12 +468,35 @@ describe('Spanish nationality by residence', () => {
       [{ registeredWithSchoolOrCareCentre: true }, 'NOT_MET'],
       [{ registeredWithSchoolOrCareCentre: undefined }, 'UNKNOWN'],
       [{ birthDate: '2020-11-23' }, 'NOT_MET'],
+      [{ birthDate: '2020-12-10' }, 'NOT_MET'],
     ] as const) {
       const other = assess({ ...child, ...facts }, req);
       expect(other.checks.find((c) => c.id === 'ES-N13')?.status).toBe(status);
       expect(other.status).toBe(status);
       expect(other.earliestDate).toBeUndefined();
       expect(other.pathwayCompletionDate).toBe(base.simulationDate);
+    }
+  });
+  test('N13 uses the local school year for the cohort turning six', () => {
+    const child = {
+      birthDate: '2020-04-03',
+      registeredWithSchoolOrCareCentre: false,
+      schoolOrCareCertificateIfRequired: false,
+    };
+    expect(row('N13', child, { simulationDate: '2026-08-31' }).status).toBe(
+      'MET',
+    );
+    const openingMonth = { simulationDate: '2026-09-08' };
+    const unknown = row('N13', child, openingMonth);
+    expect(unknown.status).toBe('UNKNOWN');
+    expect(unknown.pendingDetails).toContain('PD-282');
+    for (const [primarySchoolStartsOn, status] of [
+      ['2026-09-09', 'MET'],
+      ['2026-09-08', 'NOT_MET'],
+    ]) {
+      expect(
+        row('N13', { ...child, primarySchoolStartsOn }, openingMonth).status,
+      ).toBe(status);
     }
   });
   test('N16 fee estimate uses only the outstanding sittings and their price table', () => {

@@ -445,31 +445,66 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
   ];
   const info: CountryCheck[] = [];
   const already = f.acquiredOn && f.acquiredOn <= d ? f.acquiredOn : undefined;
+  const early = f.earlyBasis ? earlyCheck(req, f) : undefined;
+  let earlyAcquiredOn: IsoDate | undefined;
+  if (early?.status === 'MET') {
+    if (f.earlyBasis === 'retirement' || f.earlyBasis === 'incapacity')
+      earlyAcquiredOn = f.workStopped;
+    if (f.earlyBasis === 'death-at-work') earlyAcquiredOn = f.eventDate;
+  }
   let ordinary = ordinaryWindow(req, f, already ?? d);
-  let acquiredOn = already
-    ? already
-    : all(ordinary.ordinaryTime, ordinary.historical)
-      ? ordinary.end
-      : undefined;
+  const firstAcquisition = (ordinaryDate?: IsoDate, earlyDate?: IsoDate) =>
+    ordinaryDate && (!earlyDate || ordinaryDate < earlyDate)
+      ? ordinaryDate
+      : earlyDate;
+  let acquiredOn =
+    already ??
+    firstAcquisition(
+      all(ordinary.ordinaryTime, ordinary.historical)
+        ? ordinary.end
+        : undefined,
+      earlyAcquiredOn,
+    );
   const limits = v.freeMovementResidence.value;
   const travel = f.trips ?? req.trips;
   const absences = f.longestPostAcquisitionAbsence
     ? [...travel, f.longestPostAcquisitionAbsence]
     : travel;
-  const lostOnTrip = absences
-    .filter((t) => {
-      if (!acquiredOn) return false;
-      const from = t.departed > acquiredOn ? t.departed : acquiredOn;
-      const until = t.returned < d ? t.returned : d;
-      return until > addYears(from, limits.lossYears);
-    })
+  // For a cross-border worker, the last day of Spanish employment is only a
+  // lower bound on when qualifying work in the other Member State began.
+  const earliestPossibleAcquisition =
+    acquiredOn ?? (f.earlyBasis === 'cross-border' ? f.workStopped : undefined);
+  const longAbsences = absences.filter((t) => {
+    const from =
+      earliestPossibleAcquisition && t.departed < earliestPossibleAcquisition
+        ? earliestPossibleAcquisition
+        : t.departed;
+    const until = t.returned < d ? t.returned : d;
+    return until > addYears(from, limits.lossYears);
+  });
+  const lostOnTrip = longAbsences
+    .filter(
+      (t) =>
+        acquiredOn ||
+        (early?.status === 'MET' && t === f.longestPostAcquisitionAbsence),
+    )
     .sort((a, b) => b.returned.localeCompare(a.returned))[0];
   let lost = !!lostOnTrip;
   if (lostOnTrip && lostOnTrip.returned <= d) {
     const afterReturn = ordinaryWindow(req, f, d, lostOnTrip.returned);
-    if (all(afterReturn.ordinaryTime, afterReturn.historical)) {
-      ordinary = afterReturn;
-      acquiredOn = ordinary.end;
+    const ordinaryReacquired = all(
+      afterReturn.ordinaryTime,
+      afterReturn.historical,
+    );
+    if (ordinaryReacquired) ordinary = afterReturn;
+    const reacquiredOn = firstAcquisition(
+      ordinaryReacquired ? afterReturn.end : undefined,
+      earlyAcquiredOn && earlyAcquiredOn >= lostOnTrip.returned
+        ? earlyAcquiredOn
+        : undefined,
+    );
+    if (reacquiredOn) {
+      acquiredOn = reacquiredOn;
       lost = false;
     }
   }
@@ -640,7 +675,6 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
     ['PD-298'],
   );
 
-  const early = f.earlyBasis ? earlyCheck(req, f) : undefined;
   if (early || already) {
     info.push(timeCheck, historyCheck);
     if (early) info.push(early);
@@ -663,7 +697,7 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
       ),
     );
   } else checks.push(timeCheck, historyCheck);
-  if (acquiredOn) {
+  if (acquiredOn || early?.status === 'MET') {
     checks.push(
       rule(
         'U04-retention',
@@ -672,8 +706,9 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
         lost
           ? false
           : acquiredOn === d ||
-              (f.postAcquisitionTravelComplete ??
-                (f.trips !== undefined || req.timeRecordsComplete === true))
+              ((acquiredOn || longAbsences.length === 0) &&
+                (f.postAcquisitionTravelComplete ??
+                  (f.trips !== undefined || req.timeRecordsComplete === true)))
             ? true
             : undefined,
         '10.7',
