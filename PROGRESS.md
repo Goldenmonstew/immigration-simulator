@@ -389,3 +389,4 @@
 | 374 | 任务 71 报告补记最终门禁、手机宽度预览与第六轮审核结论（通过）及其风险。 | docs/tasks/reports/71-portugal.md |
 | 375 | 任务 70 第七轮审核修正（review70-7）：永住与帰化摘要区分"最早满足时间条件的日期"与窗口递交日，落在行政机关休日时另给最早可递交的平日（SRC-119 受付時間，永住不在网上申请范围内）；国民の祝日补收 2022–2024 年暦要項，之后年份按祝日法第2、3条推算、春分日秋分日用国立天文台预测，只在取决于它们时 UNKNOWN；出生日期提示与结果说明同步；补回归用例。 | packages/engine/src/japan.ts、packages/engine/test/japan.test.ts、packages/policy-data/src/parameters/japan-2026-11.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/japan.test.tsx、docs/、policy-sources/（5 份快照） |
 | 377 | 任务 70 第八轮审核修正（review70-8）：窗口递交日提示取休日之后第一个既开放、又通过主搜索同一判定（在日本、条件满足）的日子；提示日为预测春分日或秋分日时说明按预测历推算；帰化提示改为法务局递交、不再引用永住窗口页；补回归用例。 | packages/engine/src/japan.ts、packages/engine/test/japan.test.ts、docs/tasks/reports/70-japan.md |
+| 379 | 任务 70 第九轮审核修正（review70-9）：递交日顺延只写通过检查的日子，碰到 10 年计算上限时说明超出范围；UNKNOWN 时提示写作"若候选日期成立"；出生路线没有收录祝日的年份说明未收录、不提春分日；补回归用例。 | packages/engine/src/japan.ts、packages/engine/test/japan.test.ts、docs/tasks/reports/70-japan.md |

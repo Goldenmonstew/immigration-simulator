@@ -798,6 +798,58 @@ describe('review70-7', () => {
     expect(p.summary).toContain('预测历');
   });
 
+  test('no filing day beyond the 10-year search', () => {
+    // Both reach the time requirement on Saturday 2036-11-29; the next open
+    // day, 2036-12-01, is past the horizon (2036-11-30).
+    const req: Partial<JpRequest> = {
+      simulationDate: '2026-11-30',
+      stayStart: '2026-11-29',
+      pr: { route: 'general', statusStart: '2026-11-29' },
+    };
+    for (const p of [pr(req), nat(req)]) {
+      expect(p.earliestDate).toBe('2036-11-29');
+      expect(p.summary).toContain('超出试点的 10 年计算范围');
+      expect(p.summary).not.toContain('2036-11-30');
+    }
+  });
+
+  test('the round-8 trip case: no filing day for naturalisation in 10 years', () => {
+    // Met on Saturday 2027-04-03, before leaving; from 04-12 the trip is in
+    // the 10 years until 2037, past the horizon.
+    const p = nat({
+      stayStart: '2017-04-03',
+      trips: [{ departed: '2027-04-04', returned: '2027-04-11' }],
+    });
+    expect(p.earliestDate).toBe('2027-04-03');
+    expect(p.summary).toContain('超出试点的 10 年计算范围');
+    expect(p.summary).not.toContain('2036-11-23');
+  });
+
+  test('a candidate date names its filing day as conditional', () => {
+    // 10 years on Saturday 2026-11-28, uncertain under the old guideline
+    // because of a trip.
+    const p = pr({
+      stayStart: '2016-11-28',
+      pr: { route: 'general', statusStart: '2018-01-01' },
+      trips: [{ departed: '2025-08-01', returned: '2025-08-20' }],
+    });
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('若候选日期 2026-11-28 成立');
+    expect(p.summary).toContain('最早可在 2026-11-30 递交');
+  });
+
+  test('a year with no holiday list says so, not the equinox', () => {
+    // 30 days from 2021-01-05 is 2021-02-04; 2021 is not covered.
+    const p = pr({
+      simulationDate: '2021-03-05',
+      stayStart: '2021-01-05',
+      pr: { route: 'child-birth', bornOn: '2021-01-05' },
+    });
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('没有收录 2021 年');
+    expect(p.summary).not.toContain('春分日');
+  });
+
   test('naturalisation is filed at the Legal Affairs Bureau', () => {
     // 10 years of stay on Saturday 2027-04-03.
     const p = nat({ stayStart: '2017-04-03' });

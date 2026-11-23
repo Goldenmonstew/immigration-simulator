@@ -348,15 +348,21 @@ export function evaluateJapan(req: JpRequest): JpResult {
     d: IsoDate,
     ok: (x: IsoDate) => boolean,
     office: 'isa' | 'bureau',
+    candidate = false,
   ) => {
     const state = closed(d);
     if (state === 'no') return '';
+    // Only a day that passed the checks, within the search horizon.
     const end = addDays(sim, horizon);
-    let open = addDays(d, 1);
-    while (open < end && (closed(open) === 'yes' || !ok(open)))
-      open = addDays(open, 1);
-    const where =
-      office === 'isa'
+    let open: IsoDate | undefined;
+    for (let x = addDays(d, 1); !open && x <= end; x = addDays(x, 1))
+      if (closed(x) !== 'yes' && ok(x)) open = x;
+    const where = !open
+      ? L(
+          '之后可递交的开放日超出试点的 10 年计算范围',
+          'the next open day you could file on is beyond the 10 years the pilot looks ahead',
+        )
+      : office === 'isa'
         ? L(
             `窗口在平日受理，最早可在 ${open} 递交（SRC-112、SRC-119）`,
             `the counters take filings on working days, so you can file from ${open} (SRC-112, SRC-119)`,
@@ -366,6 +372,9 @@ export function evaluateJapan(req: JpRequest): JpResult {
             `the next open day is ${open}; naturalisation is filed in person at the Legal Affairs Bureau, so the actual date depends on the bureau (SRC-112, SRC-117 Q10)`,
           );
     return (
+      (candidate
+        ? L(`若候选日期 ${d} 成立：`, ` If the candidate date ${d} holds:`)
+        : '') +
       (state === 'yes'
         ? L(
             `${d} 是行政机关休日，${where}。`,
@@ -375,7 +384,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
             `${d} 按国立天文台的预测是春分日或秋分日（或因此成为休日），若正式公布为休日，${where}。`,
             ` ${d} is a predicted equinox day (or a holiday because of one); if it is confirmed as a holiday, ${where}.`,
           )) +
-      (closed(open) === 'maybe'
+      (open && closed(open) === 'maybe'
         ? L(
             `${open} 按国立天文台的预测历推算，若正式公布为休日，则顺延到其后的开放日（PD-130）。`,
             ` ${open} rests on the predicted calendar; if it is confirmed as a holiday, it moves to the next open day (PD-130).`,
@@ -409,8 +418,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
             ? 'NOT_MET'
             : 'UNKNOWN';
     const when = L(
-      `出生之日起 ${days} 日为 ${raw}${deadline === raw ? '' : `，遇行政机关休日顺延至 ${deadline}`}${exact ? '' : `；${deadline} 是否为春分日或秋分日（或因此成为休日）要到前一年 2 月才正式公布，期限可能再顺延（PD-130）`}`,
-      `${days} days from birth is ${raw}${deadline === raw ? '' : `, moved to ${deadline} past days the offices are closed`}${exact ? '' : `; whether ${deadline} is an equinox day (or a holiday because of one) is fixed only in February of the year before, so it may move later still (PD-130)`}`,
+      `出生之日起 ${days} 日为 ${raw}${deadline === raw ? '' : `，遇行政机关休日顺延至 ${deadline}`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `；${deadline} 是否为春分日或秋分日（或因此成为休日）要到前一年 2 月才正式公布，期限可能再顺延（PD-130）` : `；试点没有收录 ${deadline.slice(0, 4)} 年的国民の祝日，期限可能再顺延（PD-130）`}`,
+      `${days} days from birth is ${raw}${deadline === raw ? '' : `, moved to ${deadline} past days the offices are closed`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `; whether ${deadline} is an equinox day (or a holiday because of one) is fixed only in February of the year before, so it may move later still (PD-130)` : `; the pilot does not cover national holidays for ${deadline.slice(0, 4)}, so it may move later still (PD-130)`}`,
     );
     const late = L(
       '已持有其他在留资格的，可改选"实子等（在留资格变更）"按在留年限计算；还没有在留资格的，请尽快联系地方出入国在留管理局。',
@@ -798,7 +807,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
                       ` The earliest date without this doubt is ${earliest}.`,
                     )
                   : '') +
-                filingNote(possible!, (x) => verdict(x) !== 'no', 'isa')
+                filingNote(possible!, (x) => verdict(x) !== 'no', 'isa', true)
               : L(
                   '按现有记录，10 年内达不到永住许可的时间条件。',
                   'With your record you will not meet the time requirements for permanent residence within 10 years.',
@@ -976,7 +985,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
               ) +
               practiceNote(possible!) +
               tripNote(possible!) +
-              filingNote(possible!, (x) => verdict(x) !== 'no', 'bureau')
+              filingNote(possible!, (x) => verdict(x) !== 'no', 'bureau', true)
             : L(
                 '按现有记录，10 年内达不到帰化的时间条件。',
                 'With your record you will not meet the time requirements for naturalisation within 10 years.',
