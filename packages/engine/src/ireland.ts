@@ -560,6 +560,9 @@ export function evaluateIreland(req: IeRequest): IeResult {
               ? start
               : days.date(s);
         };
+        // Before the 57-month rule took effect the earlier rule applied,
+        // which this pilot does not model (PD-116).
+        const ruleFrom = route === 'gep' ? v.gepRuleFrom.value : undefined;
         const verdict = (d: IsoDate): Verdict => {
           const from = countFrom(d);
           // Renewing as Stamp 4: the permit is held on the application day.
@@ -568,7 +571,7 @@ export function evaluateIreland(req: IeRequest): IeResult {
           // or the 1st of the next (PD-116).
           const end = addMonths(from, months);
           if (d >= (end.slice(8) === from.slice(8) ? end : addDays(end, 1)))
-            return 'yes';
+            return ruleFrom && d < ruleFrom ? 'maybe' : 'yes';
           // A month-end start, or the time on both sides of a gap added up.
           return d >= end ||
             (d > start && days.total(heldSums, start, addDays(d, -1)) >= span)
@@ -604,12 +607,16 @@ export function evaluateIreland(req: IeRequest): IeResult {
                   )) +
             (possible && possible !== earliest
               ? L(
-                  countFrom(possible) === start
-                    ? `若从月末起算按当月最后一天届满，最早 ${possible}（PD-116）。`
-                    : `若许可空档前后的受雇时间可以累加，最早 ${possible}（PD-116）。`,
-                  countFrom(possible) === start
-                    ? ` If months from a month-end start end on the last day of the month, it could be ${possible} (PD-116).`
-                    : ` If the time on both sides of a gap in the permit can be added up, it could be ${possible} (PD-116).`,
+                  ruleFrom && possible < ruleFrom
+                    ? `${months} 个月规则自 ISD ${ruleFrom} 的通告起适用，此前的规则本试点没有收录：${possible} 起按当时的规则是否已满足待确认（PD-116）。`
+                    : countFrom(possible) === start
+                      ? `若从月末起算按当月最后一天届满，最早 ${possible}（PD-116）。`
+                      : `若许可空档前后的受雇时间可以累加，最早 ${possible}（PD-116）。`,
+                  ruleFrom && possible < ruleFrom
+                    ? ` The ${months}-month rule applies from ISD’s notice of ${ruleFrom}; this pilot does not have the earlier rule, so whether you qualified under it from ${possible} is uncertain (PD-116).`
+                    : countFrom(possible) === start
+                      ? ` If months from a month-end start end on the last day of the month, it could be ${possible} (PD-116).`
+                      : ` If the time on both sides of a gap in the permit can be added up, it could be ${possible} (PD-116).`,
                 )
               : '') +
             (missing > 0
@@ -755,6 +762,11 @@ export function evaluateIreland(req: IeRequest): IeResult {
       const possible = firstDate((d) => verdict(d) !== 'no');
       const from = addMonths(sim, -months);
       const now = verdict(sim);
+      // Applications from outside the State are not accepted (SRC-097
+      // application form p1): after a trip under way, from the return day.
+      let back = earliest ? days.index(earliest) : 0;
+      while (earliest && back < days.count && away[back]) back++;
+      const filing = earliest && days.date(back);
       pathways.push({
         id: 'IE-STAMP4',
         title: L(
@@ -765,13 +777,13 @@ export function evaluateIreland(req: IeRequest): IeResult {
         summary:
           (earliest === sim
             ? L(
-                `模拟日已有连续 ${months} 个月的合法居留，可以申请 Stamp 5。`,
-                `You have ${months} months of legal residence without a break on the simulation date and can apply for Stamp 5.`,
+                `模拟日已有连续 ${months} 个月的合法居留。`,
+                `You have ${months} months of legal residence without a break on the simulation date.`,
               )
             : earliest
               ? L(
-                  `连续 ${months} 个月合法居留、可申请 Stamp 5 的最早日期是 ${earliest}。`,
-                  `The earliest date with ${months} months of legal residence without a break to apply for Stamp 5 is ${earliest}.`,
+                  `连续 ${months} 个月合法居留的最早日期是 ${earliest}。`,
+                  `The earliest date with ${months} months of legal residence without a break is ${earliest}.`,
                 )
               : L(
                   `按现有记录，10 年内达不到连续 ${months} 个月的合法居留。`,
@@ -783,6 +795,17 @@ export function evaluateIreland(req: IeRequest): IeResult {
                 ` Counting "other" permissions, or adding up residence on both sides of a gap, it could be ${possible} (PD-114, PD-118).`,
               )
             : '') +
+          (filing && filing !== earliest
+            ? L(
+                `按已录入的出行，你那天在境外；ISD 不受理在境外递交的申请，最早 ${filing} 回到爱尔兰后递交。`,
+                ` By your recorded trips you are abroad that day; ISD does not accept applications from outside the State, so the earliest filing date is ${filing}, when you are back.`,
+              )
+            : filing
+              ? L(
+                  '须在爱尔兰境内、持有效居留许可时递交。',
+                  ' You must be in Ireland and hold a residence permission when you apply.',
+                )
+              : '') +
           L(policy, ` ${policy}`),
         checks: [
           {
@@ -791,19 +814,30 @@ export function evaluateIreland(req: IeRequest): IeResult {
               `A permission that counts for Stamp 5 on every day of the ${months} months before applying (from ${from}) and on the application day (Stamp 1, 1H, 1G, 3, 4, 4D and 4S count; Stamp 0, 1A, 4 EUFam, ICT Stamp 1, ICT family 1G and student permissions do not)`,
             ),
             met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
-            sources: v.wcattMonths.sources,
+            sources: [
+              ...v.wcattMonths.sources,
+              {
+                srcId: 'SRC-097',
+                locator: 'Application form p1',
+                url: 'https://www.irishimmigration.ie/wp-content/uploads/2026/02/Without-Conditions-as-to-Time-Stamp-5-editable-23-02-2026.pdf',
+              },
+            ],
           },
         ],
         notChecked: [
           L(
-            '良好品格、没有成为国家负担、遵守以往许可的条件，申请时仍在爱尔兰合法居留',
-            'Good character, not being a burden on the State, having kept to the conditions of earlier permissions, and living legally in Ireland when you apply',
+            '良好品格、没有成为国家负担、遵守以往许可的条件',
+            'Good character, not being a burden on the State, and having kept to the conditions of earlier permissions',
           ),
         ],
         assumptions: [
           L(
             `${months} 个月按连续持有计，住在北爱尔兰的日子不算在国家合法居留；许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。"其他"类许可是否计入待确认（PD-114）。`,
             `The ${months} months are taken as held without a break, and days living in Northern Ireland are not legal residence in the State; after a gap, whether residence on both sides can be added up is not stated, so that date is shown separately (PD-118). Whether "other" permissions count is uncertain (PD-114).`,
+          ),
+          L(
+            'ISD 不受理在境外或没有有效居留许可时递交的申请（申请表 p1）：满期那天按已录入的出行在境外的，最早递交日顺延到回到爱尔兰当天。',
+            'ISD does not accept applications from people outside the State or without a residence permission (application form p1): if your recorded trips have you abroad on the date the months are complete, the earliest filing date moves to the day you are back.',
           ),
           L(
             `"每年在境外不超过 ${v.wcattAbsenceMonths.value} 个月"是获批后 Stamp 5 的居住条件，不用于判断能否申请；申请前的出境是否减少 ${months} 个月没有写，本试点不扣除（PD-117）。`,

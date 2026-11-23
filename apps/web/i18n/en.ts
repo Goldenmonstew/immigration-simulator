@@ -603,7 +603,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.basics': 'About you',
   'ie.simulationDate': 'Simulation date',
   'ie.simulationDateHint':
-    'Results are worked out for this date (the application date). It starts as today. The rules are the current ones checked in 2026-11, also for past dates (for example, the 57 months for a GEP only apply from 2024-04-03).',
+    'Results are worked out for this date (the application date). It starts as today. The rules are the current ones checked in 2026-11, also for past dates; the 57 months for a GEP only apply from 2024-04-03 and the earlier rule is not included, so completion before that date shows as uncertain.',
   'ie.permits': 'Immigration permissions',
   'ie.permitsHint':
     'Going by your IRP cards or passport stamps, add a row for each permission, then the next one if renewed on time; leave the end blank if it is still valid. Include student permissions and time waiting for a protection decision too: they do not count. If you are married to an Irish citizen, you can also add periods of lawful residence in Northern Ireland, which count for naturalisation as a spouse only; after a move to Northern Ireland, an Irish permission that has not expired no longer counts as residence in the State.',

@@ -145,6 +145,25 @@ test('an Irish card overlapping a move to Northern Ireland', () => {
   });
 });
 
+test('Stamp 5 with a planned trip over the 96-month date', () => {
+  const form: IeForm = {
+    ...emptyIeForm('2026-11-23'),
+    permissions: [
+      { kind: 'stamp4', from: '2018-12-01', to: '2026-10-14' },
+      { kind: 'stamp4', from: '2026-10-15', to: '2028-10-14' },
+    ],
+    trips: [{ departed: '2026-11-29', returned: '2026-12-10' }],
+    stamp4Route: 'wcatt',
+  };
+  expect(validateIeForm(form)).toEqual({});
+  const stamp5 = evaluateIreland(ieRequest(form, 'en')).pathways.find(
+    (p) => p.id === 'IE-STAMP4',
+  );
+  expect(stamp5?.status).toBe('FUTURE');
+  expect(stamp5?.earliestDate).toBe('2026-12-01');
+  expect(stamp5?.summary).toContain('the earliest filing date is 2026-12-10');
+});
+
 test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
   const result = evaluateIreland(ieRequest(filled, locale));
   const html = render(<PilotResult result={result} />, locale);

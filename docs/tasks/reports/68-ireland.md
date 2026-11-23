@@ -50,12 +50,19 @@
   - Stamp 1G 配偶转 Stamp 4 的摘要不再称 5 年节点为"可申请的最早日期"，改为满 5 年的日期，并写明 ISD 要求满期后在下一次网上续期时申请。存档 ISD 家庭团聚 FAQ（第 30 问）并入 SRC-096，参数来源加上该定位。
   - 按协调要求只记为风险、不实现：CSEP 后转普通 GEP 的混合履历在 21 个月路线上仍可能判满足；家庭团聚 FAQ 第 30 问按"在家庭团聚许可下满 5 年"计，2024 年前以 Stamp 3 居住的时间可能也算，本试点只计 1G，这类情形的日期可能晚于 ISD 的最早路径（PD-118）。
   - 引擎用例 42 项（新增 2 项），网页用例 10 项（新增 1 项，从表单到三条路径的结果）。
+- 第五轮审核修正（review68-5，Codex 结论"需要修改"，1 个问题与 2 条小建议）：
+  - Stamp 5 的摘要不再把满 96 个月的日期称为最早递交日：改为写明满期日期，并写明须在爱尔兰境内、持有效居留许可时递交；满期那天按已录入的出行在境外的，写明最早递交日为回到爱尔兰当天。存档 ISD Stamp 5 申请表（2026-02-23 版，p1："Applications will not be accepted from persons outside the State"）并入 SRC-097，作为覆盖检查的来源之一。复现输入（2018-12-01 起持 Stamp 4，出行 2026-11-29 至 2026-12-10）仍为 FUTURE 2026-12-01，摘要给出 2026-12-10 递交。
+  - GEP 的 57 个月规则自 ISD 2024-04-03 通告起适用（参数 `gepRuleFrom`，SRC-096）；此前的规则未收录，早于该日满 57 个月的输出 `UNKNOWN`，确定日期取 2024-04-03（PD-116）；模拟日期提示同步。复现输入（GEP 自 2019-03-01，模拟日 2024-02-01）改为 `UNKNOWN`。
+  - 第 4 节最后一条更新：家庭团聚 FAQ 第 30 问已在第四轮存档并入 SRC-096。
+  - 按协调要求只记为风险、不实现：Stamp 1G 配偶在接近 5 年节点时搬到北爱尔兰；CSEP 后转普通 GEP 的混合履历；2024 年前家庭团聚 Stamp 3 的时间。
+  - 引擎用例 44 项（新增 2 项），网页用例 11 项（新增 1 项）。
 
 ## 2. 怎么验证的
 
 - `pnpm exec tsc --noEmit -p .`：packages/engine、packages/policy-data、apps/web、apps/e2e 均通过。
 - `pnpm exec vitest run test/ireland.test.ts test/index.test.ts test/rules.test.ts`（engine）：73 项通过，其中爱尔兰 30 项。
 - review68-1 修正后：engine `test/ireland.test.ts` 35 项通过（审核中的每组反例都写成回归用例）；web `test/ireland.test.tsx` 7 项通过；policy-data 全部通过；engine、policy-data、web、e2e 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过。离线提交的 e2e 断言未运行（按 brief 不跑 Playwright）。
+- review68-5 修正后：engine `test/ireland.test.ts` 44 项通过；web `test/ireland.test.tsx` 11 项通过；policy-data 全部通过；engine、policy-data、web 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过；新存档的 Stamp 5 申请表已写入 SRC-097（PDF 显式对应网址）并离线核对。
 - review68-4 修正后：engine `test/ireland.test.ts` 42 项通过；web `test/ireland.test.tsx` 10 项通过；policy-data 全部通过；engine、policy-data、web 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过；新存档的家庭团聚 FAQ 已写入 SRC-096 并离线核对网址对应。
 - review68-3 修正后：engine `test/ireland.test.ts` 40 项通过；web `test/ireland.test.tsx` 9 项通过；policy-data 全部通过；engine、policy-data、web 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过；新存档通告的 sha256 已写入 SRC-096，按 `check-sources.mjs` 的规则离线核对它对到正确网址。
 - review68-2 修正后：engine `test/ireland.test.ts` 37 项通过；web `test/ireland.test.tsx` 7 项通过；engine、policy-data、web 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过。
@@ -85,4 +92,5 @@
   - 如需"与官方计算器一致"的结果，可另做兼容模式，不建议作为默认。
 - ISD 页面之间的不一致：Stamp 页的 Stamp 4 示例写 2 年／5 年，升级页写 21／57 个月（以后者为准）；长期居留页的 CSEP FAQ 仍提到 2023-11-30 已停办的 DETE 支持信。
 - 出境记录只有一份，配偶路径按"爱尔兰岛"计时，去北爱尔兰的行程本应不算缺席；若要精确，可给出境行加"去北爱尔兰"勾选。
-- 审核提到的 ISD 家庭团聚 FAQ（第 30 问，Stamp 1G 配偶满 5 年在下一次网上续期时申请）未存档，本次只按 SRC-096 的 Stamp 1G 原文实现；如需引用可补登。
+- ISD 家庭团聚 FAQ 第 30 问（Stamp 1G 配偶满 5 年在下一次网上续期时申请）已在第四轮存档并入 SRC-096；它写的是"在家庭团聚许可下满 5 年"，可能包括 2024 年前的 Stamp 3 时间，试点只计 1G（PD-118）。
+- Stamp 1G 配偶在接近 5 年节点时搬到北爱尔兰：这条路线按持有许可计时，不看居住地，审核记为风险，未处理。

@@ -612,6 +612,43 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     ).toBe('NOT_MET');
   });
 
+  test('Stamp 5: filed in Ireland, after a trip covering the 96-month date (review68-5)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2026-11-23',
+      permissions: [
+        { kind: 'stamp4', from: '2018-12-01', to: '2026-10-14' },
+        { kind: 'stamp4', from: '2026-10-15', to: '2028-10-14' },
+      ],
+      stamp4Route: 'wcatt',
+    };
+    const p = pathway(
+      { ...req, trips: [{ departed: '2026-11-29', returned: '2026-12-10' }] },
+      'IE-STAMP4',
+    );
+    // 96 months from 2018-12-01; abroad from 2026-11-30 to 2026-12-09.
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2026-12-01');
+    expect(p.summary).toContain('最早 2026-12-10 回到爱尔兰后递交');
+    expect(pathway(req, 'IE-STAMP4').summary).toContain('须在爱尔兰境内');
+  });
+
+  test('GEP before the 2024-04-03 notice: the earlier rule is not modelled (review68-5)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2024-02-01',
+      permissions: [{ kind: 'stamp1', from: '2019-03-01' }],
+      stamp4Route: 'gep',
+      employmentStart: '2019-03-01',
+    };
+    // 57 months end on 2023-11-30, before the notice.
+    const p = pathway(req, 'IE-STAMP4');
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[0].met).toBeUndefined();
+    expect(p.summary).toContain('2024-04-03');
+    expect(
+      pathway({ ...req, simulationDate: '2024-04-03' }, 'IE-STAMP4').status,
+    ).toBe('MET');
+  });
+
   test('Stamp 5 after 96 months', () => {
     const req: Partial<IeRequest> = {
       simulationDate: '2025-01-01',

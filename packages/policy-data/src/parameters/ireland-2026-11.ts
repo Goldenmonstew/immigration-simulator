@@ -94,6 +94,18 @@ export const ireland2026_11 = {
         },
       ],
     },
+    // The 57-month rule for GEPs applies from this ISD notice; the earlier
+    // rule is not in the register.
+    gepRuleFrom: {
+      value: '2024-04-03',
+      sources: [
+        {
+          srcId: 'SRC-096',
+          locator: 'Update to eligibility requirements for Stamp 4 upgrades',
+          url: 'https://www.irishimmigration.ie/update-to-eligibility-requirements-for-stamp-4-upgrades/',
+        },
+      ],
+    },
     // Spouses or partners of employment permit holders (CSEP, GEP, ICT) and
     // researchers on Stamp 1G.
     spouse1gYears: {
@@ -167,5 +179,5 @@ export const ireland2026_11 = {
   },
 } satisfies {
   asOf: string;
-  values: Record<string, Parameter<number | Record<string, number>>>;
+  values: Record<string, Parameter<number | string | Record<string, number>>>;
 };
