@@ -414,3 +414,4 @@
 | 420 | 任务 75：黄金签证最低停留只算在当前卡到期日之前开始的期间，卡恰在授予周年日到期时，从这天开始的期间归下一张卡（PD-148 同步）。 | packages/engine/src/portugal.ts、packages/engine/test/portugal.test.ts、docs/pending-details.md、PROGRESS.md |
 | 421 | 任务 75：已持欧盟长期居民身份、录入计划长期出境时，摘要同时预告离开满 12 个月（若在欧盟以外会失去身份，待确认）与满 6 年两个节点，并写明 art. 131 n.º 2–3 的例外。 | packages/engine/src/portugal.ts、packages/engine/test/portugal.test.ts、PROGRESS.md |
 | 422 | 任务 75：入籍结果只在待确认读法下成立时（如卡刚到期、按 6 个月宽限期计），摘要同时列出该读法计入期间里的出境（PD-144），不再只提宽限期；PD-144 同步。 | packages/engine/src/portugal.ts、packages/engine/test/portugal.test.ts、docs/pending-details.md、PROGRESS.md |
+| 423 | 任务 75：永久居留路径的注销检查（art. 85 n.º 2 a 每张临时许可、n.º 2 b 已持永居）只看模拟日以前的出境，计划中的出境在摘要里预告达到上限的日期；PD-146 同步。 | packages/engine/src/portugal.ts、packages/engine/test/portugal.test.ts、docs/pending-details.md、PROGRESS.md |

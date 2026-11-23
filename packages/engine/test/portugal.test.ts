@@ -444,7 +444,7 @@ describe('permanent residence (Lei 23/2007 art. 80)', () => {
     const p = pathway(
       {
         permits: [{ kind: 'temporary', from: '2020-03-15', to: '2022-03-14' }],
-        simulationDate: '2021-01-01',
+        simulationDate: '2021-06-01',
         trips: [
           { departed: '2020-05-01', returned: '2020-09-15' },
           { departed: '2021-01-10', returned: '2021-05-20' },
@@ -454,6 +454,32 @@ describe('permanent residence (Lei 23/2007 art. 80)', () => {
     );
     // 136 + 129 = 265 days abroad: more than 8 months can have.
     expect(p.checks[1].met).toBe(false);
+  });
+
+  test('planned trips are a forecast, not a breach on the simulation date', () => {
+    // Task 75: away from 2027-01-11, 6 months on 2027-07-10.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        trips: [{ departed: '2027-01-10', returned: '2027-07-20' }],
+      },
+      'PT-PERMANENT',
+    );
+    expect(p.status).toBe('MET');
+    expect(p.checks[1].met).toBe(true);
+    expect(p.summary).toContain('2027-07-10');
+    // Holding permanent residence: 24 months away on 2029-01-01.
+    const held = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'permanent', from: '2022-01-01' }],
+        trips: [{ departed: '2027-01-01', returned: '2029-02-01' }],
+      },
+      'PT-PERMANENT',
+    );
+    expect(held.status).toBe('NOT_APPLICABLE');
+    expect(held.checks[0].met).toBe(true);
+    expect(held.summary).toContain('2029-01-01');
   });
 
   test('for the golden visa the absence rule is uncertain (PD-146)', () => {

@@ -173,23 +173,29 @@ export function evaluatePortugal(req: PtRequest): PtResult {
     req.trips.filter(
       (t) => addDays(t.departed, 1) <= to && addDays(t.returned, -1) >= from,
     );
-  /** Some trip keeps you abroad `months` in a row within [from, to]. */
-  const longAway = (from: IsoDate, to: IsoDate, months: number) =>
-    req.trips.some((t) => {
-      const a = later(addDays(t.departed, 1), from);
-      const b = earlier(addDays(t.returned, -1), to);
-      return a <= b && b >= addMonths(addDays(a, -1), months);
-    });
   /** The first day some trip from `from` on has kept you abroad `months`. */
-  const awayFor = (from: IsoDate, months: number) =>
+  const awayFor = (from: IsoDate, months: number, to = end) =>
     req.trips
       .map((t) => {
         const a = later(addDays(t.departed, 1), from);
         const d = addMonths(addDays(a, -1), months);
-        return d <= addDays(t.returned, -1) ? d : '';
+        return d <= earlier(addDays(t.returned, -1), to) ? d : '';
       })
       .filter(Boolean)
       .sort()[0] as IsoDate | undefined;
+  /** The first day from `from` to `to` on which `ok` holds. */
+  const firstFrom = (
+    from: IsoDate,
+    to: IsoDate,
+    ok: (d: IsoDate) => boolean,
+  ) => {
+    for (let i = Math.max(0, days.index(from)); i <= days.index(to); i++)
+      if (ok(days.date(i))) return days.date(i);
+    return undefined;
+  };
+  /** The earlier of two optional dates. */
+  const sooner = (a?: IsoDate, b?: IsoDate) =>
+    a && b ? earlier(a, b) : (a ?? b);
   /**
    * First day of the `n` years that must be complete before `d`: the day a
    * period starts is not counted, and it ends with the same date `n` years
@@ -627,25 +633,37 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       const windowYears = v.permanentAbsenceWindowYears.value;
       const [fewest, most] = monthSpan(v.permanentAbsenceTotalMonths.value);
       const to = lastDay(permanent);
-      let worst = 0;
-      const last = days.index(to);
-      for (let i = Math.max(0, days.index(permanent.from)); i <= last; i++) {
-        const d = days.date(i);
-        const from = addDays(addYears(d, -windowYears), 1);
-        worst = Math.max(
-          worst,
-          days.total(awaySums, later(from, permanent.from), d),
+      const inWindow = (d: IsoDate) =>
+        days.total(
+          awaySums,
+          later(addDays(addYears(d, -windowYears), 1), permanent.from),
+          d,
         );
-      }
-      const long = longAway(permanent.from, to, v.permanentAbsenceMonths.value);
+      // Checked with trips up to the simulation date; planned trips that
+      // would reach a limit later are a forecast.
+      let worst = 0;
+      const last = days.index(earlier(to, sim));
+      for (let i = Math.max(0, days.index(permanent.from)); i <= last; i++)
+        worst = Math.max(worst, inWindow(days.date(i)));
+      const breach = sooner(
+        awayFor(permanent.from, v.permanentAbsenceMonths.value, to),
+        firstFrom(permanent.from, to, (d) => inWindow(d) >= most),
+      );
       pathways.push({
         id: 'PT-PERMANENT',
         title,
         status: 'NOT_APPLICABLE',
-        summary: L(
-          `记录中已有 ${permanent.from} 起的永久居留，许可本身没有期限，卡面到期只需换发（art. 76 n.º 1–2）。`,
-          `Your record has permanent residence from ${permanent.from}; the permit itself has no time limit, and an expired card only needs renewing (art. 76 n.º 1–2).`,
-        ),
+        summary:
+          L(
+            `记录中已有 ${permanent.from} 起的永久居留，许可本身没有期限，卡面到期只需换发（art. 76 n.º 1–2）。`,
+            `Your record has permanent residence from ${permanent.from}; the permit itself has no time limit, and an expired card only needs renewing (art. 76 n.º 1–2).`,
+          ) +
+          (breach && breach > sim
+            ? L(
+                `按已录入的计划出境，${breach} 起出境达到上限，许可可能被注销（art. 85 n.º 2 b，不自动失效）。`,
+                ` With the trips you plan, your time abroad reaches the limit on ${breach}, and the permit may then be cancelled (art. 85 n.º 2 b; it does not lapse by itself).`,
+              )
+            : ''),
         checks: [
           {
             text: L(
@@ -653,7 +671,7 @@ export function evaluatePortugal(req: PtRequest): PtResult {
               `No absence of ${v.permanentAbsenceMonths.value} months in a row, or ${v.permanentAbsenceTotalMonths.value} months within any ${windowYears} years (${worst} days abroad in the worst ${windowYears} years; beyond that the permit may be cancelled, art. 85 n.º 2 b)`,
             ),
             met:
-              long || worst >= most
+              breach && breach <= sim
                 ? false
                 : worst >= fewest
                   ? undefined
@@ -690,18 +708,29 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       const status = statusOf(earliest, possible);
       // Art. 85 n.º 2 a: within each temporary permit's validity.
       const [fewest, most] = monthSpan(v.temporaryAbsenceTotalMonths.value);
-      const flagged = req.permits
+      // Checked with trips up to the simulation date; planned trips that
+      // would reach a limit later are a forecast.
+      const permits = req.permits
         .filter((p) => TEMPORARY.includes(p.kind))
         .map((p) => {
           const to = lastDay(p);
-          const absent = days.total(awaySums, p.from, to);
-          const over =
-            absent >= most ||
-            longAway(p.from, to, v.temporaryAbsenceMonths.value);
-          return { p, absent, over, near: !over && absent >= fewest };
-        })
-        .filter((x) => x.over || x.near);
+          const absent = days.total(awaySums, p.from, earlier(to, sim));
+          const breach = sooner(
+            awayFor(p.from, v.temporaryAbsenceMonths.value, to),
+            firstFrom(
+              p.from,
+              to,
+              (d) => days.total(awaySums, p.from, d) >= most,
+            ),
+          );
+          const over = !!breach && breach <= sim;
+          return { p, absent, breach, over, near: !over && absent >= fewest };
+        });
+      const flagged = permits.filter((x) => x.over || x.near);
       const worst = flagged.find((x) => x.over) ?? flagged[0];
+      const planned = permits
+        .filter((x) => x.breach && x.breach > sim)
+        .sort((a, b) => ((a.breach ?? '') < (b.breach ?? '') ? -1 : 1))[0];
       pathways.push({
         id: 'PT-PERMANENT',
         title,
@@ -733,6 +762,12 @@ export function evaluatePortugal(req: PtRequest): PtResult {
             ? L(
                 `${worst.p.from} 起的许可期内出境合计 ${worst.absent} 天，许可可能被注销（不自动失效，不改变上面的日期）。`,
                 ` During the permit from ${worst.p.from} you were abroad ${worst.absent} days in all, so the permit may be cancelled (it does not lapse by itself, and the date above is unchanged).`,
+              )
+            : '') +
+          (planned
+            ? L(
+                `按已录入的计划出境，${planned.p.from} 起的许可期内出境在 ${planned.breach} 达到上限，许可可能被注销（不自动失效，不改变上面的日期）。`,
+                ` With the trips you plan, time abroad during the permit from ${planned.p.from} reaches the limit on ${planned.breach}, and the permit may then be cancelled (it does not lapse by itself, and the date above is unchanged).`,
               )
             : '') +
           (req.permits.some((p) => p.kind === 'eu-long-term' && p.from <= sim)
