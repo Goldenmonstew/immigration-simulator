@@ -9,8 +9,8 @@ export type {
   RuleSetId,
   SourceRef,
 } from './types';
-export { RULE_SET_IDS } from './types';
-export { PARAMETERS } from './parameters';
+export { RULE_SET_IDS, RULE_SET_IDS_BY_COUNTRY } from './types';
+export { PARAMETERS, PARAMETERS_BY_COUNTRY } from './parameters';
 export { ROUTE_GROUPS, ROUTE_GROUP_SOURCES } from './routes';
 export type { Route, RouteGroup } from './routes';
 export { currentLaw2026_11 } from './parameters/current-law-2026-11';
