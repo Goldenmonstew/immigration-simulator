@@ -3,7 +3,7 @@ import {
   irelandFull2026_11 as full,
 } from '@uk-immigration/policy-data';
 import { addDays, addYears, daysBetween } from '../dates';
-import { evaluateIreland } from '../ireland';
+import { evaluateIreland, permissionValidity, RECKONABLE } from '../ireland';
 import type { IeRequest, IeTrip } from '../ireland';
 import { Days } from '../pilot';
 import type { IsoDate } from '../types';
@@ -61,7 +61,7 @@ export interface IrelandCitizenship {
     suppliedOn?: IsoDate;
   };
   addressUpdated?: boolean;
-  /** Actual legal and factual residence, including lawful registration exemptions. */
+  /** Actual legal and factual residence. Record permission validity and trips separately. */
   residence?: (IrelandResidencePeriod & {
     basis: 'reckonable' | 'excluded' | 'uncertain';
   })[];
@@ -186,6 +186,43 @@ function tripPeriods(trips: IeTrip[]) {
   }));
 }
 
+function residenceWithTrips(residence: IrelandCitizenship['residence'], req: IeRequest) {
+  if (!residence || !req.trips.length) return residence;
+  const day = req.simulationDate;
+  const away = mergePeriods(tripPeriods(req.trips), day);
+  const present = residence.filter(({ basis }) => basis !== 'excluded');
+  const confirmed = residence.filter(({ basis }) => basis === 'reckonable');
+  const ranges = mergePeriods(present, day);
+  const permissions = permissionValidity(req.permissions);
+  const reckonable = permissions.filter(({ kind }) => RECKONABLE.includes(kind));
+  const excluded = [
+    ...residence.filter(({ basis }) => basis === 'excluded'),
+    ...permissions.filter(({ kind }) => kind === 'ni-residence'),
+  ];
+  const gaps: NonNullable<IrelandCitizenship['residence']> = [];
+  for (let i = 1; i < ranges.length; i++) {
+    const departed = ranges[i - 1].to;
+    const returned = ranges[i].from;
+    const from = addDays(departed, 1);
+    const to = addDays(returned, -1);
+    if (
+      !covers(away, from, to) ||
+      excluded.some(
+        (period) => period.from <= to && (!period.to || period.to >= from),
+      )
+    ) continue;
+    // Travel explains the physical gap. Count it as legally covered only
+    // when reckonable residence on both sides and permission throughout agree.
+    const basis = covers(confirmed, departed, departed) &&
+      covers(confirmed, returned, returned) &&
+      covers(reckonable, departed, returned)
+      ? 'reckonable'
+      : 'uncertain';
+    gaps.push({ from, to, basis });
+  }
+  return [...residence, ...gaps];
+}
+
 function periodDays(periods: IrelandResidencePeriod[], from: IsoDate, to: IsoDate) {
   return mergePeriods(periods, to).reduce(
     (sum, range) =>
@@ -218,13 +255,12 @@ function finalYearResidence(
   if (!residence) return undefined;
   const from = addYears(day, -continuousYears);
   const through = addDays(day, -1);
-  const tripsAsPeriods = tripPeriods(trips);
   const confirmed = residence.filter(({ basis }) => basis === 'reckonable');
   const possible = residence.filter(({ basis }) => basis !== 'excluded');
-  const away = periodDays(tripsAsPeriods, from, through);
+  const away = absenceDays(trips, from, through);
   const { absenceDays: ordinary, exceptionalDays } = pilot.values;
   if (away > ordinary.value + exceptionalDays.value ||
-    !covers([...possible, ...tripsAsPeriods], from, through))
+    !covers(possible, from, through))
     return false;
   if (away > ordinary.value || !covers(confirmed, from, through))
     return undefined;
@@ -247,13 +283,13 @@ function discretionaryResidence(
       '核对递交前一年的连续合法居住，或适用的正式部长豁免。酌情路径的居住口径须按个案确认（PD-325）。',
       'Check continuous lawful residence in the year before filing, or a formal ministerial waiver. Confirm how residence is assessed for discretionary cases (PD-325).',
     ),
-    ['PD-325'],
+    ['PD-323', 'PD-325'],
   );
 }
 
 function minorResidence(
   a: IrelandAssessment,
-  c: IrelandCitizenship,
+  residence: IrelandCitizenship['residence'],
   trips: IeTrip[],
 ) {
   const { priorYears, windowYears, from: effective } = p.minor.value;
@@ -269,7 +305,7 @@ function minorResidence(
     end: IsoDate,
   ) => {
     const flags = new Array<boolean>(days.count).fill(false);
-    for (const period of c.residence ?? []) {
+    for (const period of residence ?? []) {
       if (
         period.basis === 'reckonable' ||
         (includeUncertain && period.basis === 'uncertain')
@@ -301,7 +337,7 @@ function minorResidence(
   const possible = count(true, false, from, a.day);
   a.add(
     'A04',
-    !c.residence || a.day < effective
+    !residence || a.day < effective
       ? undefined
       : all(
           permitted === lastNeeded
@@ -317,10 +353,10 @@ function minorResidence(
           lower >= priorDays ? true : upper < priorDays ? false : undefined,
         ),
     a.L(
-      `递交前连续居住自 ${from} 起，缺席 ${away} 天。此前 ${windowYears} 年累计已确认 ${lower} 天，需 ${priorYears} 年（本窗口按 ${priorDays} 天）；许可、出境和酌情认定见 PD-110–114。`,
-      `The continuous period starts on ${from}, with ${away} days absent. ${lower} days are confirmed in the preceding ${windowYears} years. The ${priorYears}-year requirement is ${priorDays} days in this window. See PD-110–114 for permissions, trips and discretion.`,
+      `递交前连续居住自 ${from} 起，缺席 ${away} 天。此前 ${windowYears} 年累计已确认 ${lower} 天，需 ${priorYears} 年（本窗口按 ${priorDays} 天）。许可、出境和酌情认定见 PD-110–114、PD-323。`,
+      `The continuous period starts on ${from}, with ${away} days absent. ${lower} days are confirmed in the preceding ${windowYears} years. The ${priorYears}-year requirement is ${priorDays} days in this window. See PD-110–114 and PD-323 for permissions, trips and discretion.`,
     ),
-    ['PD-110', 'PD-111', 'PD-112', 'PD-113', 'PD-114'],
+    ['PD-110', 'PD-111', 'PD-112', 'PD-113', 'PD-114', 'PD-323'],
   );
 }
 
@@ -374,6 +410,7 @@ export function naturalisation(
   const associated = route === 'IE-IRISH-ASSOCIATIONS';
   const protection = route === 'IE-PROTECTION';
   const publicService = route === 'IE-PUBLIC-SERVICE';
+  const residence = residenceWithTrips(c.residence, req);
   const adultAge = ageAtLeast(dob, day, p.age.value.adult);
   const appropriateAge =
     isMinor || parent
@@ -578,7 +615,7 @@ export function naturalisation(
       ),
     );
   }
-  if (isMinor) minorResidence(a, c, req.trips);
+  if (isMinor) minorResidence(a, residence, req.trips);
 
   const declarationRequired = !isMinor || minorAge === true;
   if (declarationRequired) {
@@ -863,11 +900,11 @@ export function naturalisation(
         'Check the parent’s naturalisation certificate date, Form 9, parental authority and the child’s residence evidence.',
       ),
     );
-    discretionaryResidence(a, c.residence, req.trips, m?.parentRouteWaiverGranted);
+    discretionaryResidence(a, residence, req.trips, m?.parentRouteWaiverGranted);
   }
   if (associated) {
     const data = c.association;
-    discretionaryResidence(a, c.residence, req.trips, data?.waiverGranted);
+    discretionaryResidence(a, residence, req.trips, data?.waiverGranted);
     add(
       'A18',
       all(data?.qualifyingRelationship, data?.relativeEligibleAtRelevantDate),
@@ -923,7 +960,7 @@ export function naturalisation(
     const finalYearStarts = addYears(day, -n.continuousYears);
     const priorYears = years - n.continuousYears;
     const earliestPriorStart = addYears(finalYearStarts, -priorYears);
-    const residence = grant ? c.residence?.map((period) => ({
+    const afterRecognition = grant ? residence?.map((period) => ({
       ...period,
       from: period.from < grant ? grant : period.from,
     })) : undefined;
@@ -931,16 +968,16 @@ export function naturalisation(
       location === undefined ? undefined : location === 'state',
       grant && grant > finalYearStarts
         ? false
-        : finalYearResidence(day, residence, req.trips, n.continuousYears),
+        : finalYearResidence(day, afterRecognition, req.trips, n.continuousYears),
     );
     let prior: boolean | undefined;
     if (grant && grant > earliestPriorStart) {
       prior = false;
-    } else if (residence) {
+    } else if (afterRecognition) {
       const through = addDays(finalYearStarts, -1);
       const needed = daysBetween(earliestPriorStart, finalYearStarts);
-      const confirmed = residence.filter(({ basis }) => basis === 'reckonable');
-      const possible = residence.filter(({ basis }) => basis !== 'excluded');
+      const confirmed = afterRecognition.filter(({ basis }) => basis === 'reckonable');
+      const possible = afterRecognition.filter(({ basis }) => basis !== 'excluded');
       prior = confirmedResidenceDays(confirmed, req.trips, through) >= needed
         ? true
         : confirmedResidenceDays(possible, req.trips, through) < needed
@@ -975,7 +1012,7 @@ export function naturalisation(
   }
   if (publicService) {
     const data = c.publicService;
-    discretionaryResidence(a, c.residence, req.trips, data?.waiverGranted);
+    discretionaryResidence(a, residence, req.trips, data?.waiverGranted);
     add(
       'A21',
       all(

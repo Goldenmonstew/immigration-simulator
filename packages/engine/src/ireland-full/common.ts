@@ -63,8 +63,8 @@ export function ageAtLeast(
 export function assessment(day: IsoDate, locale: Locale | undefined) {
   const L = textFor({ locale });
   const checks: CountryCheck[] = [];
-  const required: CountryCheck[] = [];
-  let availableOn: IsoDate | undefined;
+  const requirementStatuses: CountryCheck['status'][] = [];
+  let readyOn = day;
   let timeResult:
     | Pick<
         IePathway,
@@ -72,12 +72,20 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
       >
     | undefined;
 
+  function recordRequirement(status: CountryCheck['status'], availableOn?: IsoDate) {
+    if (availableOn && availableOn > day) {
+      if (availableOn > readyOn) readyOn = availableOn;
+    } else {
+      requirementStatuses.push(status);
+    }
+  }
+
   function add(
     id: IrelandConditionId,
     met: boolean | undefined,
     explanation?: string,
     pendingDetails?: string[],
-    affectsEligibility = true,
+    requirement: boolean | { availableOn: IsoDate } = true,
   ) {
     const meta = irelandCondition(id);
     const title = L(meta.zh, meta.en);
@@ -99,7 +107,12 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
         : {}),
     };
     checks.push(check);
-    if (affectsEligibility) required.push(check);
+    if (requirement) {
+      recordRequirement(
+        check.status,
+        typeof requirement === 'object' ? requirement.availableOn : undefined,
+      );
+    }
   }
 
   function time(
@@ -108,10 +121,16 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
     unknownPds: string[][] = [],
     affectsEligibility = true,
   ) {
-    if (affectsEligibility) timeResult = result;
+    if (affectsEligibility) {
+      timeResult = result;
+      if (result.status === 'FUTURE') recordRequirement('UNKNOWN', result.earliestDate);
+      else if (result.status !== 'MET') {
+        recordRequirement(result.status === 'NOT_MET' ? 'NOT_MET' : 'UNKNOWN');
+      }
+    }
     for (const [index, id] of ids.entries()) {
       const previous = result.checks[index];
-      checks.push({
+      const check: CountryCheck = {
         id: `IE-${id}`,
         title:
           previous?.text ??
@@ -134,7 +153,9 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
         ...(previous?.met === undefined && unknownPds[index]?.length
           ? { pendingDetails: unknownPds[index] }
           : {}),
-      });
+      };
+      checks.push(check);
+      if (affectsEligibility && result.status === 'MET') recordRequirement(check.status);
     }
   }
 
@@ -143,27 +164,16 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
     title: string,
     applicable: boolean | undefined = true,
   ): CountryPathway {
-    const timeStatus = timeResult?.status ?? 'MET';
-    const earliestDate =
-      timeStatus === 'FUTURE' ? timeResult?.earliestDate : day;
-    const readyOn =
-      availableOn && (!earliestDate || availableOn > earliestDate)
-        ? availableOn
-        : earliestDate;
     const status =
       applicable === false
         ? 'NOT_APPLICABLE'
-        : required.some((check) => check.status === 'NOT_MET') ||
-            timeStatus === 'NOT_MET'
+        : requirementStatuses.includes('NOT_MET')
           ? 'NOT_MET'
-          : applicable === undefined ||
-              required.some((check) => check.status === 'UNKNOWN') ||
-              timeStatus === 'UNKNOWN' ||
-              timeStatus === 'NOT_APPLICABLE'
+          : applicable === undefined || requirementStatuses.includes('UNKNOWN')
             ? 'UNKNOWN'
-            : readyOn && readyOn > day
+            : readyOn > day
               ? 'FUTURE'
-              : timeStatus;
+              : 'MET';
     const pendingDetails = [
       ...new Set([
         ...(timeResult?.pendingDetails ?? []),
@@ -183,11 +193,7 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
     };
   }
 
-  function availableFrom(date: IsoDate) {
-    if (!availableOn || date > availableOn) availableOn = date;
-  }
-
-  return { L, day, add, time, availableFrom, finish };
+  return { L, day, add, time, finish };
 }
 
 export type IrelandAssessment = ReturnType<typeof assessment>;
@@ -207,7 +213,6 @@ export function renewalWindow(
   const opens = expires && addDays(expires, -weeks * 7);
   const inWindow = opens && expires && expires >= a.day ? opens <= a.day : undefined;
   const waiting = inState === true && inWindow === false;
-  if (waiting && opens) a.availableFrom(opens);
   a.add(
     'IRP-RENEWAL-WINDOW',
     all(inState, inWindow),
@@ -221,7 +226,7 @@ export function renewalWindow(
           'Apply online from the Republic of Ireland and confirm the expiry date of the current IRP (PD-321).',
         ),
     ['PD-321'],
-    !waiting,
+    waiting && opens ? { availableOn: opens } : true,
   );
   return opens;
 }

@@ -555,7 +555,9 @@ export function treatyResidence(
   a: IrelandAssessment,
   r: IrelandTreatyResidence,
   wa: boolean,
-  dob?: IsoDate,
+  dob: IsoDate | undefined,
+  renewal: boolean,
+  renewalInState: boolean | undefined,
 ) {
   const { add, L, day } = a;
   const d = r.document;
@@ -714,9 +716,9 @@ export function treatyResidence(
       ? true
       : all(d?.addressAndStatusNotified, d?.prolongedAbsenceNotified);
   const document = all(
-    d?.inState,
+    renewal ? renewalInState : d?.inState,
     d?.identityAndResidenceEvidence,
-    beforeExpiry,
+    renewal ? true : beforeExpiry,
     notification,
   );
   const cleared =
@@ -730,12 +732,15 @@ export function treatyResidence(
     add(
       'D06',
       document,
-      L(
+      renewal ? L(
+        '按 Stamp 4EUFam 续期清单核对身份、居住材料及适用的住址和离境通知。卡片到期日另按 IRP 续期窗口核对（PD-338）。',
+        'Check identity and residence evidence under the Stamp 4EUFam renewal checklist and any required address and absence notices. The IRP renewal window checks the card expiry separately (PD-338).',
+      ) : L(
         `EU 本人用 EUTR2，非欧盟家属用 EUTR3。核对现有卡到期、住址及超过 ${p.absenceNoticeMonths} 个月的离境通知（另有 ${p.absenceNoticeDays} 日通知期限）。证件与实体权利分别判断（PD-338）。`,
         `Use EUTR2 for the EU applicant or EUTR3 for non-EU family. Check card expiry, address and notice for absences beyond ${p.absenceNoticeMonths} month(s), due within a further ${p.absenceNoticeDays} days. Document and substantive right are separate (PD-338).`,
       ),
       ['PD-338'],
-      false,
+      renewal,
     );
     add(
       'D07',
@@ -745,7 +750,7 @@ export function treatyResidence(
         `Check official restrictions and public interest review. A public health exam is assessed if directed within ${p.healthReviewMonths} months of entry. A past conviction does not automatically disqualify.`,
       ),
       undefined,
-      false,
+      renewal,
     );
     add(
       'D08',
@@ -761,18 +766,22 @@ export function treatyResidence(
         `Absence exceeding ${lossYears} consecutive years can end permanent rights. The document usually renews after ${p.documentYears} years. Specified valid documents are exempt from registration fees. Verify any extra charge (PD-339).`,
       ),
       afterLoss ? ['PD-337', 'PD-338', 'PD-339'] : ['PD-339'],
-      afterLoss !== undefined && requalified !== true,
+      (afterLoss !== undefined && requalified !== true) ||
+        (renewal && d?.extraFeeRequested === true),
     );
   } else {
     add(
       'E03',
       all(document, cleared, exam, d?.extraFeeRequested ? undefined : true),
-      L(
+      renewal ? L(
+        '按 Withdrawal Agreement Beneficiary 续期清单核对身份、居住材料和适用的审查。卡片到期日另按 IRP 续期窗口核对（PD-338、PD-339）。',
+        'Check identity and residence evidence and any applicable review under the Withdrawal Agreement Beneficiary renewal checklist. The IRP renewal window checks the card expiry separately (PD-338, PD-339).',
+      ) : L(
         `按身份选择 EUTR2／EUTR3，核对旧证、材料及公共利益审查；WA 文件费 €${p.waFee}，证件通常 ${p.documentYears} 年续期（PD-338、PD-339）。`,
         `Use EUTR2 or EUTR3 by status. Check the former card, evidence and public interest review. WA documents cost €${p.waFee} and normally renew after ${p.documentYears} years (PD-338, PD-339).`,
       ),
       ['PD-338', 'PD-339'],
-      false,
+      renewal,
     );
   }
   add('TREATY-RESTRICTION', cleared, undefined, undefined, cleared === false);

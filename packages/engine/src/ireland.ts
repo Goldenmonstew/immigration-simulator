@@ -98,7 +98,7 @@ type Verdict = 'yes' | 'maybe' | 'no';
 // (Stamp 2 and 2A, no permission, awaiting a protection decision) leave in.
 // Stamp 1A mixes training with work, so the study exclusion (s16A(1)(b))
 // may reach it; `other` is unknown (PD-114).
-const RECKONABLE: IePermissionKind[] = [
+export const RECKONABLE: IePermissionKind[] = [
   'stamp0',
   'stamp1',
   'stamp1-csep',
@@ -131,6 +131,22 @@ const WCATT: IePermissionKind[] = [
   'stamp5',
 ];
 
+export function permissionValidity(permissions: IePermission[]): IePermission[] {
+  // An open-ended permission is renewed until the next one starts. An Irish
+  // permission can still cover the days before and after a stay in Northern Ireland.
+  return permissions.map((permission) => {
+    const next = permissions
+      .filter(
+        (other) =>
+          other.from > permission.from &&
+          (permission.kind === 'ni-residence' || other.kind !== 'ni-residence'),
+      )
+      .map((other) => other.from)
+      .sort()[0];
+    return { ...permission, to: permission.to ?? (next && addDays(next, -1)) };
+  });
+}
+
 export function evaluateIreland(req: IeRequest): IeResult {
   const L = textFor(req);
   const sim = req.simulationDate;
@@ -147,19 +163,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
   const byKind = Object.fromEntries(
     IE_PERMISSION_KINDS.map((k) => [k, flags()]),
   ) as Record<IePermissionKind, boolean[]>;
-  // One permission at a time: one without an end date is renewed on time
-  // until the next permission starts. A stay in Northern Ireland only
-  // overrides the days it overlaps; it does not end an Irish permission.
-  for (const p of req.permissions) {
-    const next = req.permissions
-      .filter(
-        (q) =>
-          q.from > p.from &&
-          (p.kind === 'ni-residence' || q.kind !== 'ni-residence'),
-      )
-      .map((q) => q.from)
-      .sort()[0];
-    days.mark(byKind[p.kind], p.from, p.to ?? (next && addDays(next, -1)));
+  for (const p of permissionValidity(req.permissions)) {
+    days.mark(byKind[p.kind], p.from, p.to);
   }
   // Departure and return days are not absences (s15C(5); ISD guide).
   const away = flags();

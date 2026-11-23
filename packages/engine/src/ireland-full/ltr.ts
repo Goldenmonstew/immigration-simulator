@@ -138,6 +138,7 @@ export function longTermResidence(
   family: boolean,
   data: IrelandLtr,
   inState: boolean | undefined,
+  renewal: boolean,
 ) {
   const { add, L, day } = a;
   if (!family) {
@@ -220,9 +221,9 @@ export function longTermResidence(
     );
   }
   const m = data.maintenance;
-  if (m) {
+  if (m || renewal) {
     const travel =
-      m.largestCalendarYearAbsenceDays === undefined
+      m?.largestCalendarYearAbsenceDays === undefined
         ? undefined
         : m.largestCalendarYearAbsenceDays <= p.travelDays
           ? m.tripsPermittedOrExceptionConfirmed
@@ -233,21 +234,21 @@ export function longTermResidence(
       'C08',
       all(
         travel,
-        m.workEffortsAndResidence,
-        m.renewal ? m.previousGrantYearsEvidence : true,
+        family && renewal ? true : m?.workEffortsAndResidence,
+        renewal ? m?.previousGrantYearsEvidence : true,
       ),
       L(
         `主申准许通常 ${p.grantYears} 年。获批后一般每历年出境不超过 ${p.travelDays} 日，并核原因、就业努力与续期材料（PD-334、PD-335）。`,
         `The principal grant usually lasts ${p.grantYears} years. After grant, general guidance allows ${p.travelDays} days absent per calendar year. Check the purpose, employment efforts and renewal evidence (PD-334, PD-335).`,
       ),
       ['PD-334', 'PD-335'],
-      false,
+      renewal,
     );
   }
   const deadline =
     data.approvalLetterOn && addDays(data.approvalLetterOn, p.payDays);
   const feeKnown =
-    (!family && !m?.renewal) || data.familyOrRenewalFeeConfirmed === true;
+    (!family && !renewal) || data.familyOrRenewalFeeConfirmed === true;
   add(
     'C09',
     !feeKnown || !deadline

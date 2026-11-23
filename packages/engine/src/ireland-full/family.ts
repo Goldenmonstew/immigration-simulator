@@ -751,9 +751,10 @@ export function independentFamily(
       : undefined;
   const eligibleAtRenewal = renewal === undefined ? undefined : day >= renewal;
   const timeEligible = alternate ? true : ordinary;
-  const waitingForRenewal =
-    !changed && timeEligible === true && eligibleAtRenewal === false;
-  if (waitingForRenewal && renewal) a.availableFrom(renewal);
+  const scheduledRenewal =
+    !changed && timeEligible === true && eligibleAtRenewal === false && renewal
+      ? { availableOn: renewal }
+      : true;
   const eligible = changed
     ? changed.approval
     : timeEligible === true
@@ -767,7 +768,7 @@ export function independentFamily(
       `Apply at the next online renewal${renewal ? ` (${renewal})` : ''} after ${years} years of dependent residence or a sponsor's naturalisation during dependency. If dependency was under ${pRel.naturalisedSponsorDependentYears} years at naturalisation, permission through that branch remains sponsor-dependent.`,
     ),
     ['PD-118', 'PD-329'],
-    !waitingForRenewal,
+    scheduledRenewal,
   );
   if (alternate) {
     const independent = any(ordinary, independentOnNaturalisation);
@@ -779,7 +780,7 @@ export function independentFamily(
         'Assess independence from the sponsor separately from eligibility to apply for Stamp 4 at the next renewal.',
       ),
       ['PD-329'],
-      !waitingForRenewal || independent !== true,
+      independent === true ? scheduledRenewal : true,
     );
   }
   if (changed) {

@@ -37,7 +37,7 @@ const conditions = {
     [
       ['SRC-091', 'ss15(1)(c), 15A(1)(e)–(f), 15B(1)(c), 15C, 16(1), 16A'],
       ['SRC-093', 's295'],
-      ['SRC-095', 'Time That Does Not Count'],
+      ['SRC-095', 'Time That Does Not Count; 70 Days Absence Rule'],
     ],
   ],
   A05: [
@@ -550,6 +550,7 @@ const conditions = {
     [
       ['SRC-390', 'regs. 11(2), 14–15 and Schedules 5–8'],
       ['SRC-391', 'EUTR2 and EUTR3'],
+      ['SRC-384', 'Stamp 4EUFAM Registrations and Renewals: Renewals'],
     ],
   ],
   D07: [
@@ -595,6 +596,7 @@ const conditions = {
     [
       ['SRC-392', 'S.I. 728/2020 regs. 11–12, 14–21 and Brexit FAQ'],
       ['SRC-383', 'S.I. 421/2025 reg. 4(a)(vi)–(vii)'],
+      ['SRC-384', 'Withdrawal Agreement Beneficiary Registrations and Renewals: Renewals'],
     ],
   ],
 } as const satisfies Record<string, Condition>;

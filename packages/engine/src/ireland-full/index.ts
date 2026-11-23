@@ -137,7 +137,9 @@ export function evaluateIrelandFull(
     const waPath = id === 'IE-WA-PERMANENT';
     const treatyDocument = euPath ? request.eu?.document : waPath ? request.wa?.document : undefined;
     const irpRenewal = request.registration?.stage === 'renewal';
+    const ltrRenewal = ltrPath && (irpRenewal || request.ltr?.maintenance?.renewal === true);
     const treatyRenewal = (euPath || waPath) && irpRenewal;
+    const treatyInState = inState ?? treatyDocument?.inState;
     let applicable: boolean | undefined = true;
     const isRenewal =
       familyRenewal ||
@@ -145,12 +147,12 @@ export function evaluateIrelandFull(
         !family?.change && family?.nextRenewalOn !== undefined) ||
       (workPath && workRegistration !== 'first') ||
       (id === 'IE-STAMP5' && (irpRenewal || request.stamp5?.renewWithPassport === true)) ||
-      (ltrPath && (irpRenewal || request.ltr?.maintenance?.renewal === true)) ||
+      ltrRenewal ||
       treatyRenewal;
     const opens = isRenewal
       ? renewalWindow(
           a,
-          treatyRenewal ? inState ?? treatyDocument?.inState : inState,
+          treatyRenewal ? treatyInState : inState,
           request.registration?.irpExpiresOn ?? treatyDocument?.currentCardExpiresOn,
           request.permissions,
         )
@@ -192,6 +194,7 @@ export function evaluateIrelandFull(
           id === 'IE-LTR-FAMILY',
           request.ltr ?? {},
           inState,
+          ltrRenewal,
         );
         break;
       case 'IE-EU-PERMANENT':
@@ -201,6 +204,8 @@ export function evaluateIrelandFull(
           (id === 'IE-EU-PERMANENT' ? request.eu : request.wa) ?? {},
           id === 'IE-WA-PERMANENT',
           dob,
+          treatyRenewal,
+          treatyInState,
         );
         break;
       default:
