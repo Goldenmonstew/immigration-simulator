@@ -563,7 +563,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'If you came on a national visa, time counts from the day you arrived, not from when the visa started.',
   'de.permits': 'Residence permits',
   'de.permitsHint':
-    'Add a row for each permit, then the next one when it is renewed or replaced; a new permit ends the one before it even if that card shows a later expiry, and a blank end date runs until the next permit starts. If you applied to renew before expiry and the new card came after the old one ran out, tick “Renewal or a new permit applied for before it ran out”; otherwise the gap breaks continuity. Tick it too while the decision is pending: settlement and EU long-term results that rely on the wait are then shown as uncertain, while naturalisation counts it as lawful residence. If a permit was extended by law or regulation, enter the date it is legally valid until, not the date on the card. A settlement permit and EU long-term residence have no end date (the date on the card is only the document’s), so there is none to enter. Enter a national entry visa as the type it was issued for; for the asylum procedure choose “Asylum claim pending” from the day you claimed asylum. For a job-seeking permit after study, research or training (§ 20) choose “Looking for work after study, research or training” and enter its expiry; for the § 20a opportunity card, au pair and other temporary purposes choose “Permit for a temporary purpose”.',
+    'Add a row for each permit, then the next one when it is renewed or replaced; a new permit ends the one before it even if that card shows a later expiry, and a blank end date runs until the next permit starts. If you applied to renew before expiry and the new card came after the old one ran out, tick “Renewal or a new permit applied for before it ran out”; otherwise the gap breaks continuity. Tick it too while the decision is pending: settlement and EU long-term results that rely on the wait are then shown as uncertain, while naturalisation counts it as lawful residence. If a permit was extended by law or regulation, enter the date it is legally valid until, not the date on the card. A settlement permit and EU long-term residence have no end date (the date on the card is only the document’s), so there is none to enter. Enter a national entry visa as the type it was issued for; for the asylum procedure choose “Asylum claim pending” from the day you claimed asylum. For a job-seeking permit after study, research or training (§ 20) choose “Looking for work after study, research or training” and enter its expiry; for the § 20a opportunity card choose “Opportunity card”, with a follow-up card in its own row (a card right after another permit is taken as the first card); for au pair and other temporary purposes choose “Permit for a temporary purpose”.',
   'de.permit': 'Permit {n}',
   'de.kind': 'Permit type',
   'de.kind.study': 'University study (§ 16b)',
@@ -575,9 +575,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.kind.other':
     'Other residence permit for a lasting purpose (such as family of a foreign national or other work)',
   'de.kind.temporary':
-    'Permit for a temporary purpose (such as au pair, seasonal work, language courses, the § 20a opportunity card, ICT card)',
+    'Permit for a temporary purpose (such as au pair, seasonal work, language courses, ICT card)',
   'de.kind.job-seeking':
     'Looking for work after study, research or training (§ 20)',
+  'de.kind.opportunity-card': 'Opportunity card (Chancenkarte, § 20a)',
   'de.kind.protection': 'Asylum or refugee status (§ 25 Abs. 1, Abs. 2 Satz 1)',
   'de.kind.subsidiary': 'Subsidiary protection (§ 25 Abs. 2 Satz 2)',
   'de.kind.resettlement':

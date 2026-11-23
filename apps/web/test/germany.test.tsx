@@ -83,6 +83,40 @@ test('§ 20 job seeking needs its expiry; the hint tells § 20 from § 20a (revi
   }
 });
 
+test('a first § 20a opportunity card, from form to result (review73-2)', () => {
+  const form: DeForm = {
+    ...emptyDeForm('2026-11-23'),
+    firstEntry: '2021-09-01',
+    permits: [
+      {
+        kind: 'skilled',
+        from: '2021-09-01',
+        to: '2026-08-31',
+        renewing: false,
+      },
+      {
+        kind: 'opportunity-card',
+        from: '2026-09-01',
+        to: '2027-08-31',
+        renewing: false,
+      },
+    ],
+    contributionMonths: '60',
+  };
+  expect(validateDeForm(form)).toEqual({});
+  const status = (id: string) =>
+    evaluateGermany(deRequest(form, 'zh-CN')).pathways.find((p) => p.id === id)
+      ?.status;
+  // § 20a Abs. 6 excludes § 9 on the first card; StAG § 10 lists § 20a.
+  expect(status('DE-SETTLEMENT')).toBe('NOT_MET');
+  expect(status('DE-NATURALISATION')).toBe('NOT_MET');
+  // The hint sends the card to its own option.
+  expect(t('de.permitsHint')).toContain('§ 20a 机会卡选"机会卡"');
+  expect(t('de.permitsHint', 'en')).toContain(
+    'for the § 20a opportunity card choose “Opportunity card”',
+  );
+});
+
 test('home links to the Germany pilot', () => {
   expect(render(<Home />, 'zh-CN')).toContain('href="/germany"');
 });

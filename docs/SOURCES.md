@@ -904,7 +904,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-107 BMI Anwendungshinweise zum Fachkräfteeinwanderungsgesetz
 
 - `policy-sources/2024-05-28-de-bmi-anwendungshinweise-feg.pdf` → <https://www.bmi.bund.de/SharedDocs/downloads/DE/veroeffentlichungen/themen/migration/anwendungshinweise-fachkraefteeinwanderungsgesetz.pdf?__blob=publicationFile&v=5>
-- PDF 277 页，`p<N>` 为物理页序；法律状态为 2024-06-01 起。`Nr. 18c.2.1.1`（p117）：欧盟蓝卡就业 27 个月（B1 为 21 个月），旧法蓝卡与此前的国家签证期间计入。`Nr. 18c.2.1.3`：缴费看效果，允许补缴。
+- PDF 277 页，`p<N>` 为物理页序；法律状态为 2024-06-01 起。`Nr. 18c.2.1.1`（p117）：欧盟蓝卡就业 27 个月（B1 为 21 个月），旧法蓝卡与此前的国家签证期间计入。`Nr. 18c.2.1.3`：缴费看效果，允许补缴。`Nr. 20a.6.1–20a.6.2`（p201）：§ 20a Abs. 6 只排除首张（找工作用的）机会卡转定居许可，后续机会卡（Abs. 5 Satz 2）不排除；两种机会卡的期间都计入定居许可的年限。
 
 ## SRC-108 AVwV zum Aufenthaltsgesetz（2009）
 

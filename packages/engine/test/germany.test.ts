@@ -296,6 +296,57 @@ describe('Niederlassungserlaubnis, general route (§ 9)', () => {
     expect(p.status).toBe('MET');
   });
 
+  test('§ 20a: the first opportunity card rules out § 9, a follow-up does not (review73-2)', () => {
+    const req: Partial<DeRequest> = {
+      simulationDate: '2026-11-23',
+      firstEntry: '2021-09-01',
+      permits: [
+        { kind: 'skilled', from: '2021-09-01', to: '2026-08-31' },
+        { kind: 'opportunity-card', from: '2026-09-01', to: '2027-08-31' },
+      ],
+    };
+    // § 20a Abs. 6 (BMI 20a.6.1); StAG § 10 Abs. 1 Satz 1 Nr. 2 lists § 20a;
+    // a temporary purpose for EU long-term residence (PD-155).
+    expect(pathway(req, 'DE-SETTLEMENT').status).toBe('NOT_MET');
+    expect(pathway(req, 'DE-NATURALISATION').status).toBe('NOT_MET');
+    expect(pathway(req, 'DE-EU-LONG-TERM').status).toBe('NOT_MET');
+    // A card right after another card is the follow-up (Abs. 5 Satz 2): § 9
+    // applies and the card time counts (BMI 20a.6.1–20a.6.2).
+    const followUp = pathway(
+      {
+        ...req,
+        permits: [
+          ...req.permits!,
+          { kind: 'opportunity-card', from: '2027-09-01', to: '2029-08-31' },
+        ],
+      },
+      'DE-SETTLEMENT',
+    );
+    expect(followUp.status).toBe('FUTURE');
+    expect(followUp.earliestDate).toBe('2027-09-01');
+  });
+
+  test('a temporary permit with its renewal pending needs both readings (review73-2)', () => {
+    const req: Partial<DeRequest> = {
+      simulationDate: '2026-11-23',
+      permits: [
+        { kind: 'skilled', from: '2020-01-01', to: '2025-08-31' },
+        {
+          kind: 'temporary',
+          from: '2025-09-01',
+          to: '2026-08-31',
+          renewing: true,
+        },
+      ],
+    };
+    for (const id of ['DE-SETTLEMENT', 'DE-NATURALISATION'] as const) {
+      const p = pathway(req, id);
+      expect(p.status).toBe('UNKNOWN');
+      expect(p.summary).toContain('§ 81 Abs. 4');
+      expect(p.summary).toContain('PD-122');
+    }
+  });
+
   test('a § 25b permit (review69-4, task 73)', () => {
     const req = {
       firstEntry: '2010-01-01',
@@ -1442,6 +1493,29 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     const eu = pathway(req, 'DE-EU-LONG-TERM');
     expect(eu.summary).toContain('2023-01-10 至 2024-03-01');
     expect(eu.summary).not.toContain('2024-06-01 至 2024-06-20');
+  });
+
+  test('a second long trip may end EU long-term residence on its own (review73-2)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        permits: [{ kind: 'eu-long-term', from: '2018-01-01' }],
+        trips: [
+          { departed: '2021-06-01', returned: '2022-07-01' },
+          { departed: '2023-06-01', returned: '2024-07-01' },
+        ],
+      },
+      'DE-TRAVEL',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    // Both trips may end it if spent outside the EU, and whether it was
+    // still held for the second depends on the first.
+    expect(p.summary).toContain(
+      '2021-06-01 至 2022-07-01、2023-06-01 至 2024-07-01 持欧盟长期居留离开德国较久',
+    );
+    expect(p.summary).toContain(
+      '2023-06-01 至 2024-07-01 出境时是否仍持有许可',
+    );
   });
 
   test('a short trip after an undetermined exchange (task 73)', () => {
