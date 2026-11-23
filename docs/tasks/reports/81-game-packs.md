@@ -49,3 +49,24 @@
 ### 4. 发现与建议
 
 接口注释已注明 `travel-` 是内建旅行活动的保留前缀，后缀会按月数解析。自定义活动应使用其他 ID。新内容包应在 `places` 注册钓鱼点和菜地，并分别提供 `catchItem` 和菜地的 `rent-plot` 活动。
+
+## 第二轮审核修正（review81-2）
+
+### 1. 做了什么
+
+- 建议提交 `Fix: 修正首次做菜回忆地点和节日日期顺序`，附 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。涉及 `packages/game/src/game.ts`、`packages/game/test/content-pack.test.ts`、`PROGRESS.md` 第 483 项和本报告。
+- 首次做菜回忆使用内容包的住处 ID。最小包从 `courtyard` 开场，做菜消耗原料并入库，存档经 JSON 往返后仍记录 `courtyard`。英国菜谱回归验证 `home`。
+- 引擎沿用英国日历按整周顺延的做法，将本季度内早于或等于可玩周末的节日排到周末之后。季度外的节日跳过，第三天使用本季度最后一天。2030 年 1 月 1 日开局时，原定 1 月 6 日的节日顺延到 1 月 20 日，三天依次为 1 月 15 日、19 日、20 日。
+
+### 2. 怎么验证的
+
+- `pnpm --filter @uk-immigration/game test test/content-pack.test.ts` 在修复前复现 4 项失败，覆盖回忆地点、周末前节日和两个季度边界。修复后执行 `pnpm --filter @uk-immigration/game test test/content-pack.test.ts test/content-pack-baseline.test.ts test/collections.test.ts`，24 项通过。四个英国角色的固定种子快照全部匹配。
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 整链退出码为 0。全仓 5,237 项测试通过，1 项按既有条件跳过。游戏包 1,348 项、网页 647 项通过。确认 `apps/web/out/uk/game.html` 已生成，`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+本轮改动留在工作区，由 Fable 提交。Playwright e2e 与浏览器验收未执行。
+
+### 4. 发现与建议
+
+内容包的固定节日回调可返回当前季度的原始日期，由引擎处理三天的排期顺序。

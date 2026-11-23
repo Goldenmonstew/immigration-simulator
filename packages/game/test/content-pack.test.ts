@@ -26,7 +26,10 @@ const character: Character<Timeline, Stamp, Result, Festival> = {
       {
         id: 'arrive',
         label: text,
-        effects: [{ type: 'item', item: 'seed-radish', delta: 1 }],
+        effects: [
+          { type: 'item', item: 'seed-radish', delta: 1 },
+          { type: 'item', item: 'radish', delta: 1 },
+        ],
       },
     ],
   },
@@ -86,11 +89,21 @@ const pack: GameContentPack<
   items: [
     { id: 'minnow', kind: 'fish', name: text },
     { id: 'radish', kind: 'crop', name: text },
+    { id: 'roast-radish', kind: 'food', name: text },
     {
       id: 'seed-radish',
       kind: 'seed',
       name: text,
       grows: { crop: 'radish', days: 2, seasons: [1] },
+    },
+  ],
+  recipes: [
+    {
+      id: 'roast-radish',
+      label: text,
+      needs: { radish: 1 },
+      makes: 'roast-radish',
+      minutes: 20,
     },
   ],
   catchItem: () => ({ item: 'minnow', junk: false }),
@@ -148,6 +161,48 @@ test('a minimal pack plays from opening through its own festival, assessment and
     'light',
     'quarter',
     'timeout',
+  ]);
+});
+
+test.each([
+  ['2030-01-06', '2030-01-20', 'lantern-walk'],
+  ['2029-12-30', '2030-03-31', undefined],
+  ['2030-04-06', '2030-03-31', undefined],
+] as const)(
+  'a pack festival dated %s keeps the special day within the quarter and after the weekend',
+  (date, expectedDate, expectedFestival) => {
+    const game = createGame({
+      ...pack,
+      calendar: () => ({ date, festival: 'lantern-walk' }),
+    });
+    const arrived = game.resolve(game.newGame(character.id, 81, 'en'), 'arrive');
+    const weekend = game.sleep(arrived);
+    const special = game.sleep(weekend);
+
+    expect([arrived.day.date, weekend.day.date, special.day.date]).toEqual([
+      '2030-01-15',
+      '2030-01-19',
+      expectedDate,
+    ]);
+    expect(special.day.festival).toBe(expectedFestival);
+    expect(game.activities(special, 'courtyard').map(({ id }) => id)).toEqual(
+      expectedFestival ? ['light'] : [],
+    );
+  },
+);
+
+test('the first dish records the pack home through a JSON round trip', () => {
+  const game = createGame(pack);
+  const arrived = game.resolve(game.newGame(character.id, 3, 'en'), 'arrive');
+  expect(arrived.lifeRecords?.dishes).toEqual([]);
+
+  const cooked = game.cook(arrived, 'roast-radish');
+  expect(cooked.day.place).toBe('courtyard');
+  expect(cooked.inventory).toMatchObject({ radish: 0, 'roast-radish': 1 });
+
+  const restored: typeof cooked = JSON.parse(JSON.stringify(cooked));
+  expect(restored.lifeRecords?.dishes).toMatchObject([
+    { itemId: 'roast-radish', memory: { place: 'courtyard' } },
   ]);
 });
 
@@ -214,7 +269,7 @@ test('a plot rented at the pack garden supports planting, watering and harvest',
   expect(grown.plots[0].growth).toBe(2);
   expect(() => game.harvest(grown, 0)).toThrow('Go to the open garden first');
   const harvested = game.harvest(game.enter(grown, 'garden'), 0);
-  expect(harvested.inventory.radish).toBeGreaterThan(0);
+  expect(harvested.inventory.radish).toBeGreaterThan(grown.inventory.radish);
   expect(harvested.plots[0]).toEqual({ growth: 0 });
   expect(harvested.lifeRecords?.harvests).toMatchObject([{ itemId: 'radish' }]);
 });

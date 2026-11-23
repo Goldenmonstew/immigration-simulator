@@ -1049,19 +1049,23 @@ export function createGame<
     const weather = (['sunny', 'cloudy', 'rain', 'snow'] as Weather[])[
       weights.findIndex((n) => (cursor -= n) < 0)
     ];
-    const special = pack.calendar?.(state) ?? {
-      date: addDays(addMonths(state.date, b.monthsPerQuarter), -1),
-      festival: undefined,
-    };
+    const workday = firstWeekday(addDays(state.date, 7), 2);
+    const weekend = firstWeekday(workday, 6);
+    const quarterEnd = addMonths(state.date, b.monthsPerQuarter);
+    const fallbackDate = addDays(quarterEnd, -1);
+    const scheduled = pack.calendar?.(state);
+    let specialDate = scheduled?.date ?? fallbackDate;
+    // Keep the festival's weekday when it falls before the playable weekend.
+    while (specialDate >= state.date && specialDate <= weekend)
+      specialDate = addDays(specialDate, 7);
+    const special =
+      specialDate > weekend && specialDate < quarterEnd
+        ? { date: specialDate, festival: scheduled?.festival }
+        : { date: fallbackDate, festival: undefined };
     state.day = {
       index,
       kind: (['workday', 'weekend', 'special'] as const)[index],
-      date:
-        index === 0
-          ? firstWeekday(addDays(state.date, 7), 2)
-          : index === 1
-            ? firstWeekday(firstWeekday(addDays(state.date, 7), 2), 6)
-            : special.date,
+      date: [workday, weekend, special.date][index],
       minute: b.wakeMinute,
       weather,
       ...(index === 2 && special.festival && { festival: special.festival }),
@@ -1724,7 +1728,7 @@ export function createGame<
     );
     next.outcome = { kind: 'cook', text: dish.label, items: changes };
     recordItem(next, 'dishes', dish.makes, {
-      place: 'home',
+      place: home,
       weather: next.day.weather,
     });
     return advanceClock(next, dish.minutes);
