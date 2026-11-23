@@ -1,5 +1,5 @@
 import type { GameState } from '@uk-immigration/game';
-import { asset } from '../../../lib/asset';
+import { ukAsset, ukStorageKey } from './country';
 
 // Audio is created only after a real pointer/key gesture in the game client.
 let unlocked = false;
@@ -21,7 +21,7 @@ export function playSound(kind: keyof typeof files, npc = '') {
   let audio = sounds.get(kind);
   if (!audio) {
     audio = new Audio(
-      asset(`/game/assets/ninja-adventure/sounds/${files[kind]}.ogg`),
+      ukAsset(`/assets/ninja-adventure/sounds/${files[kind]}.ogg`),
     );
     audio.volume = kind === 'step' ? 0.12 : 0.23;
     sounds.set(kind, audio);
@@ -75,21 +75,21 @@ export function setMuted(value: boolean) {
   syncMusic();
   syncAmbience();
   try {
-    localStorage.setItem('uk-immigration-life-muted', String(value));
+    localStorage.setItem(ukStorageKey('muted'), String(value));
   } catch {
     /* Storage may be unavailable. */
   }
 }
 export function readMuted() {
   try {
-    return localStorage.getItem('uk-immigration-life-muted') !== 'false';
+    return localStorage.getItem(ukStorageKey('muted')) !== 'false';
   } catch {
     return true;
   }
 }
 export function setSoundSeason(quarter: number, festival: boolean) {
-  desired = asset(
-    `/game/assets/ninja-adventure/musics/theme-${festival ? 5 : [9, 2, 3, 4][quarter - 1]}.ogg`,
+  desired = ukAsset(
+    `/assets/ninja-adventure/musics/theme-${festival ? 5 : [9, 2, 3, 4][quarter - 1]}.ogg`,
   );
   syncMusic();
   syncAmbience();
@@ -160,7 +160,7 @@ function syncAmbience() {
     if (!buffers.has(kind)) {
       buffers.set(
         kind,
-        fetch(asset(`/game/assets/ambience/${kind}.ogg`))
+        fetch(ukAsset(`/assets/ambience/${kind}.ogg`))
           .then((response) => {
             if (!response.ok) throw new Error('Audio unavailable');
             return response.arrayBuffer();

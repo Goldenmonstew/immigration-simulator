@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import type { SimulationResult } from '@uk-immigration/engine';
+import type { RuleSet, SimulationResult } from '@uk-immigration/engine';
 import { ROUTE_GROUPS } from '@uk-immigration/policy-data';
 import type { TranslationKey } from '../i18n';
 import { useTranslation } from '../i18n/locale';
@@ -125,18 +125,20 @@ export function AssessmentColumns({
   simulationDate,
   canWhatIf = false,
   dependant = false,
+  ruleSets = displayedRuleSets,
 }: {
   result: SimulationResult;
   idPrefix?: string;
   simulationDate?: string;
   canWhatIf?: boolean;
   dependant?: boolean;
+  ruleSets?: readonly RuleSet[];
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
   return (
     <div className={styles.columns}>
-      {displayedRuleSets.map((ruleSet) => {
+      {ruleSets.map((ruleSet) => {
         const assessment = result.byRuleSet[ruleSet.id];
         return (
           <section
@@ -151,7 +153,7 @@ export function AssessmentColumns({
             >
               {t(`policy.${ruleSet.kind}`)}
             </h2>
-            {displayedRuleSets
+            {ruleSets
               .filter((other) => other.id !== ruleSet.id)
               .map((other) => (
                 <button

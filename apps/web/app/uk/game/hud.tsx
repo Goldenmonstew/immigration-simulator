@@ -4,12 +4,12 @@ import { type ReactNode } from 'react';
 import type { RuleSetId } from '@uk-immigration/engine';
 import { withCount } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
-import { displayedRuleSets } from '../../../lib/policy';
 import {
   places,
   npcs,
   characters,
   progress,
+  ukGameRuleColumns,
   type GameState,
   type StatKey,
 } from '@uk-immigration/game';
@@ -188,14 +188,14 @@ export function ProgressBars({
   const bars = progress(state);
   return (
     <div className={styles.progressBars}>
-      {displayedRuleSets.map(({ id }, index) => (
+      {ukGameRuleColumns.map(({ id, label }) => (
         <button
           className={styles.progressButton}
           key={id}
           onClick={() => onOpen(id)}
         >
           <span>
-            {t(index === 0 ? 'game.currentLaw' : 'game.reform')}
+            {t(label)}
             <strong>
               {bars[id].earliestDate ? `${Math.round(bars[id].percent)}%` : '—'}
             </strong>
@@ -204,7 +204,7 @@ export function ProgressBars({
             <span
               className={styles.track}
               role="progressbar"
-              aria-label={t(index === 0 ? 'game.currentLaw' : 'game.reform')}
+              aria-label={t(label)}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={Math.round(bars[id].percent)}
