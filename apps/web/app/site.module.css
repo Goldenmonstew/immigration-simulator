@@ -557,6 +557,27 @@
   }
 }
 
+@media screen and (max-width: 375px) {
+  .headerInner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 0;
+  }
+  .headerInner > a {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .navigation {
+    grid-column: 1;
+    grid-row: 2;
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+  .languages {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
 @media screen and (max-width: 340px) {
   .countryActions {
     grid-template-columns: minmax(0, 1fr);

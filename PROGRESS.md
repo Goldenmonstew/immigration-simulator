@@ -475,3 +475,4 @@
 | 465 | 任务 79 审核修正（review79-1）：核对十国引擎和网页双语文案，替换七国结果中的“试点 / pilot”称呼，同步更新旧断言，补新西兰随同申请人留空 PRV 获批日期的双语结果回归。 | packages/engine/src/{australia,germany,ireland,japan,new-zealand,portugal,united-states}.ts、packages/engine/test/{ireland,japan}.test.ts、apps/web/test/new-zealand.test.tsx |
 | 466 | 任务 79 审核修正（review79-1）：集合入口的中英文导语和徽章写明英国定居路径的条件核对范围，其他十国目前只检查时间条件。 | apps/web/i18n/{zh-CN,en}.ts |
 | 467 | 任务 79 审核修正（review79-1）：集合入口的中英文隐私文案说明浏览器本地计算、英国草稿及方案和游戏进度的本机保存，以及其他国家问卷刷新后重置。 | apps/web/i18n/{zh-CN,en}.ts |
+| 468 | 任务 79 审核修正（review79-1）：顶栏在最多 375 px 的屏幕上将站名与导航分行，保留全部链接和语言按钮。 | apps/web/app/site.module.css |
