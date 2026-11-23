@@ -1,13 +1,13 @@
 export const zhCN = {
   'es.name': '西班牙',
-  'es.entryLink': '打开西班牙试点',
+  'es.entryLink': '打开西班牙模拟器',
   'es.entryDesc':
     '按居留许可与出入境记录，计算国内长期居留与按居住入籍的时间节点。',
-  'es.title': '西班牙：长期居留与入籍的时间（试点）',
+  'es.title': '西班牙：长期居留与入籍的时间',
   'es.intro':
     '按你在西班牙的居留许可和出入境记录，计算两个只看时间的节点：国内长期居留（residencia de larga duración nacional）与按居住入籍（nacionalidad por residencia）。工作、投资等入境许可与 arraigo 的资格不在范围内。',
   'es.scope':
-    '试点只检查条例与民法典写明的时间条件；语言与宪法考试、品行、放弃原国籍等不检查，结果里逐项列出。原文没说清的计法会标出。所填内容只在你的浏览器里计算，不保存、不上传。',
+    '这里只检查条例与民法典写明的时间条件；语言与宪法考试、品行、放弃原国籍等不检查，结果里逐项列出。原文没说清的计法会标出。所填内容只在你的浏览器里计算，不保存、不上传。',
   'es.basics': '基本信息',
   'es.simulationDate': '模拟日期',
   'es.simulationDateHint': '按这一天判断（按递交日），默认今天。',
@@ -43,14 +43,14 @@ export const zhCN = {
 
 export const en: Record<keyof typeof zhCN, string> = {
   'es.name': 'Spain',
-  'es.entryLink': 'Open the Spain pilot',
+  'es.entryLink': 'Open Spain',
   'es.entryDesc':
     'Use your residence permits and travel record to work out the dates for national long-term residence and citizenship by residence.',
-  'es.title': 'Spain: dates for long-term residence and citizenship (pilot)',
+  'es.title': 'Spain: dates for long-term residence and citizenship',
   'es.intro':
     'From your Spanish residence permits and trips, this works out two steps that depend on time alone: national long-term residence (residencia de larga duración nacional) and citizenship by residence (nacionalidad por residencia). Eligibility for work, investment or arraigo permits is out of scope.',
   'es.scope':
-    'The pilot checks only the time requirements in the regulations and the Civil Code. It does not check the language and constitution tests, conduct, giving up your nationality or other requirements; each result lists them, and counting the rules leave open is flagged. Your entries are processed in your browser and are not saved or uploaded.',
+    'This checks only the time requirements in the regulations and the Civil Code. It does not check the language and constitution tests, conduct, giving up your nationality or other requirements; each result lists them, and counting the rules leave open is flagged. Your entries are processed in your browser and are not saved or uploaded.',
   'es.basics': 'About you',
   'es.simulationDate': 'Simulation date',
   'es.simulationDateHint':

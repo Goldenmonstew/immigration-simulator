@@ -432,8 +432,8 @@ export function evaluateAustralia(req: AuRequest): AuResult {
       ];
       const assumptions = [
         L(
-          '你已确认持香港特区或 BN(O) 护照，且当前这份 457／482／485 签证是作为主申请人获批、自生效起准许停留 5 年的签证（2020-07-09 起获批的；更早获批的须不准许在 2025-07-08 之后停留，Sch 1 item 1137(4M)(c)、1139(3A)(c)）；本试点不核对。',
-          'You have confirmed that you hold a Hong Kong or BN(O) passport and that your current 457, 482 or 485 visa was granted to you as the primary applicant and allows a 5-year stay from when it came into effect (granted from 9 July 2020; one granted earlier must not allow a stay after 8 July 2025, Sch 1 items 1137(4M)(c), 1139(3A)(c)); this pilot does not check it.',
+          '你已确认持香港特区或 BN(O) 护照，且当前这份 457／482／485 签证是作为主申请人获批、自生效起准许停留 5 年的签证（2020-07-09 起获批的；更早获批的须不准许在 2025-07-08 之后停留，Sch 1 item 1137(4M)(c)、1139(3A)(c)）；本计算不核对。',
+          'You have confirmed that you hold a Hong Kong or BN(O) passport and that your current 457, 482 or 485 visa was granted to you as the primary applicant and allows a 5-year stay from when it came into effect (granted from 9 July 2020; one granted earlier must not allow a stay after 8 July 2025, Sch 1 items 1137(4M)(c), 1139(3A)(c)); this calculator does not check it.',
         ),
         L(
           `这份签证最晚在生效后 ${v.hongKongVisaYears.value} 年到期；${v.hongKongNewVisaFrom.value} 前生效的旧签证最晚到 ${v.hongKongOldVisaUntil.value}（Sch 1 item 1137(4M)(c)、1139(3A)(c)，以生效日代替获批日）。到期日留空或被后续签证取代的也按此计；递交时须仍持有这份签证。`,

@@ -418,7 +418,7 @@ export function evaluatePortugal(req: PtRequest): PtResult {
     const newSummary =
       (eu
         ? L(
-            `欧盟、欧洲经济区与瑞士公民按自由流动制度登记居留，不持外国人法的居留许可，表单也无法录入这类登记；它怎么计入 ${years} 年，试点没有建模（art. 15 n.º 2，PD-140）。`,
+            `欧盟、欧洲经济区与瑞士公民按自由流动制度登记居留，不持外国人法的居留许可，表单也无法录入这类登记；它怎么计入 ${years} 年，本计算没有建模（art. 15 n.º 2，PD-140）。`,
             `EU, EEA and Swiss citizens register their residence under the free movement rules rather than holding permits under the foreigners law, and the form cannot record that registration; how it counts towards the ${years} years is not modelled (art. 15 n.º 2, PD-140). `,
           )
         : '') +
@@ -489,8 +489,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
     };
     const newAssumptions = [
       L(
-        '法条：合法居留指持外国人法规定的证件、签证或许可在葡萄牙的人（art. 15 n.º 1），"自申请居留许可之日起算"的旧 art. 15 n.º 4 已废止。判决理由：宪法法院认为取得居留证件即开始计算（D.5）。试点假设：按录入的许可生效日起算；居留签证期间、居留卡到期后 6 个月内的居留权不作为满足条件的依据，计入后的日期另列（PD-140、PD-145）。递交当天须合法居留。',
-        'The law: legal residence means being in Portugal on a title, visa or permit under the foreigners law (art. 15 n.º 1), and old art. 15 n.º 4, counting from the residence application, was repealed. The Constitutional Court’s reasoning: the count starts when the residence title is obtained (D.5). The pilot’s assumption: the count starts on the permit dates you entered; time on a residence visa and the right of residence in the months after a card expires are not relied on, and the date counting them is shown separately (PD-140, PD-145). You must be legally resident on the application day.',
+        '法条：合法居留指持外国人法规定的证件、签证或许可在葡萄牙的人（art. 15 n.º 1），"自申请居留许可之日起算"的旧 art. 15 n.º 4 已废止。判决理由：宪法法院认为取得居留证件即开始计算（D.5）。本计算的假设：按录入的许可生效日起算；居留签证期间、居留卡到期后 6 个月内的居留权不作为满足条件的依据，计入后的日期另列（PD-140、PD-145）。递交当天须合法居留。',
+        'The law: legal residence means being in Portugal on a title, visa or permit under the foreigners law (art. 15 n.º 1), and old art. 15 n.º 4, counting from the residence application, was repealed. The Constitutional Court’s reasoning: the count starts when the residence title is obtained (D.5). The calculator’s assumption: the count starts on the permit dates you entered; time on a residence visa and the right of residence in the months after a card expires are not relied on, and the date counting them is shown separately (PD-140, PD-145). You must be legally resident on the application day.',
       ),
       L(
         `连续居留按日历计：起算日当天不计，满 ${years} 年对应日的次日起可以递交（Código Civil art. 279，PD-142）。有空档时把 ${interval} 年内各段（每段起算日不计）的天数相加，按以递交日为终点的 ${interval} 年计（PD-141）。`,
@@ -527,8 +527,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
         ...common,
         status: 'UNKNOWN',
         summary: L(
-          `申请在 ${pending} 递交，早于 LO 1/2024 施行（${oldFrom}），适用更早的文本，试点没有建模（PD-143）。`,
-          `The application was made on ${pending}, before LO 1/2024 came into force (${oldFrom}), so an even earlier text applies; the pilot does not model it (PD-143).`,
+          `申请在 ${pending} 递交，早于 LO 1/2024 施行（${oldFrom}），适用更早的文本，本计算没有建模（PD-143）。`,
+          `The application was made on ${pending}, before LO 1/2024 came into force (${oldFrom}), so an even earlier text applies; the calculator does not model it (PD-143).`,
         ),
         checks: [],
         assumptions: [],
@@ -1394,7 +1394,7 @@ export function evaluatePortugal(req: PtRequest): PtResult {
               summary:
                 (sim > deadline
                   ? L(
-                      `许可到期日是 ${expiry}，须在到期前 ${v.renewalDeadlineDays.value} 天（${deadline}）前申请续期，这一期限已过；逾期递交的后果不在试点范围。`,
+                      `许可到期日是 ${expiry}，须在到期前 ${v.renewalDeadlineDays.value} 天（${deadline}）前申请续期，这一期限已过；逾期递交的后果不在本计算范围内。`,
                       `The permit expires on ${expiry} and renewal had to be applied for by ${deadline}, ${v.renewalDeadlineDays.value} days before; that has passed, and what happens to a late application is out of scope.`,
                     )
                   : L(
@@ -1413,8 +1413,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
                       )
                     : '') +
                 L(
-                  `投资须自 ${granted} 起维持 ${v.goldenVisaInvestmentYears.value} 年（到 ${kept}），本试点不检查投资。`,
-                  ` The investment must be kept for ${v.goldenVisaInvestmentYears.value} years from ${granted} (to ${kept}); this pilot does not check it.`,
+                  `投资须自 ${granted} 起维持 ${v.goldenVisaInvestmentYears.value} 年（到 ${kept}），本计算不检查投资。`,
+                  ` The investment must be kept for ${v.goldenVisaInvestmentYears.value} years from ${granted} (to ${kept}); this calculator does not check it.`,
                 ),
               checks: [
                 {

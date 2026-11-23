@@ -760,7 +760,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     );
     // 96 months on 2026-12-01; the card ends on 2026-12-05, abroad.
     expect(p.earliestDate).toBe('2026-12-01');
-    expect(p.summary).toContain('本试点不给出递交日期');
+    expect(p.summary).toContain('本计算不给出递交日期');
     expect(p.summary).not.toContain('回到爱尔兰后递交');
   });
 
@@ -777,7 +777,7 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     // Back on 2026-12-10 on a student permission, which does not count.
     const p = pathway(req, 'IE-STAMP4');
     expect(p.earliestDate).toBe('2026-12-01');
-    expect(p.summary).toContain('本试点不给出递交日期');
+    expect(p.summary).toContain('本计算不给出递交日期');
     expect(
       pathway({ ...req, simulationDate: '2026-12-10' }, 'IE-STAMP4').status,
     ).toBe('NOT_MET');

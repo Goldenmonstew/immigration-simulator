@@ -1,13 +1,13 @@
 export const zhCN = {
   'pt.name': '葡萄牙',
-  'pt.entryLink': '打开葡萄牙试点',
+  'pt.entryLink': '打开葡萄牙模拟器',
   'pt.entryDesc':
     '按居留证件（含黄金签证）与出入境记录，计算入籍、永久居留、欧盟长期居民与黄金签证续期的时间节点。',
-  'pt.title': '葡萄牙：入籍、永久居留与黄金签证的时间（试点）',
+  'pt.title': '葡萄牙：入籍、永久居留与黄金签证的时间',
   'pt.intro':
     '按你在葡萄牙的居留证件（含黄金签证）和出入境记录，计算四个只看时间的节点：入籍的居留年限（2026 年 5 月起的新国籍法）、永久居留、欧盟长期居民，以及黄金签证（ARI）的最低停留与续期时间。投资金额与语言考试不在范围内。',
   'pt.scope':
-    '试点只检查国籍法与外国人法写明的时间条件；语言、刑事记录、收入、住房等不检查，结果里逐项列出。新国籍法从哪天起算、分段累计怎么算等原文没说清的地方会标出。所填内容只在你的浏览器里计算，不保存、不上传。',
+    '这里只检查国籍法与外国人法写明的时间条件；语言、刑事记录、收入、住房等不检查，结果里逐项列出。新国籍法从哪天起算、分段累计怎么算等原文没说清的地方会标出。所填内容只在你的浏览器里计算，不保存、不上传。',
   'pt.basics': '基本信息',
   'pt.simulationDate': '模拟日期',
   'pt.simulationDateHint': '按这一天判断（按递交日），默认今天。',
@@ -62,15 +62,15 @@ export const zhCN = {
 
 export const en: Record<keyof typeof zhCN, string> = {
   'pt.name': 'Portugal',
-  'pt.entryLink': 'Open the Portugal pilot',
+  'pt.entryLink': 'Open Portugal',
   'pt.entryDesc':
     'Use your residence permits (golden visa included) and travel record to work out the dates for naturalisation, permanent residence, EU long-term residence and golden visa renewal.',
   'pt.title':
-    'Portugal: dates for naturalisation, permanent residence and the golden visa (pilot)',
+    'Portugal: dates for naturalisation, permanent residence and the golden visa',
   'pt.intro':
     'From your Portuguese residence permits (golden visa included) and trips, this works out four steps that depend on time alone: the years of residence for naturalisation (under the nationality law in force since May 2026), permanent residence, EU long-term resident status, and the golden visa (ARI) minimum stays and renewal period. Investment amounts and language tests are out of scope.',
   'pt.scope':
-    'The pilot checks only the time requirements in the nationality law and the foreigners law. It does not check language, criminal record, income, accommodation or other requirements; each result lists them, and open questions such as when the new law starts counting or how periods with gaps add up are flagged. Your entries are processed in your browser and are not saved or uploaded.',
+    'This checks only the time requirements in the nationality law and the foreigners law. It does not check language, criminal record, income, accommodation or other requirements; each result lists them, and open questions such as when the new law starts counting or how periods with gaps add up are flagged. Your entries are processed in your browser and are not saved or uploaded.',
   'pt.basics': 'About you',
   'pt.simulationDate': 'Simulation date',
   'pt.simulationDateHint':

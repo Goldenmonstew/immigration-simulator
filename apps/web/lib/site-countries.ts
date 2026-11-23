@@ -1,21 +1,22 @@
 import type { TranslationKey } from '../i18n';
 
 export const siteCountries = [
-  { id: 'uk', slug: 'uk', nameKey: 'uk.name' },
-  { id: 'au', slug: 'australia', nameKey: 'au.name' },
-  { id: 'nz', slug: 'new-zealand', nameKey: 'nz.name' },
-  { id: 'ca', slug: 'canada', nameKey: 'ca.name' },
-  { id: 'us', slug: 'united-states', nameKey: 'us.name' },
-  { id: 'es', slug: 'spain', nameKey: 'es.name' },
-  { id: 'gr', slug: 'greece', nameKey: 'gr.name' },
-  { id: 'ie', slug: 'ireland', nameKey: 'ie.name' },
-  { id: 'pt', slug: 'portugal', nameKey: 'pt.name' },
-  { id: 'jp', slug: 'japan', nameKey: 'jp.name' },
-  { id: 'de', slug: 'germany', nameKey: 'de.name' },
+  { id: 'uk', slug: 'uk', nameKey: 'uk.name', hasGame: true },
+  { id: 'au', slug: 'australia', nameKey: 'au.name', hasGame: false },
+  { id: 'nz', slug: 'new-zealand', nameKey: 'nz.name', hasGame: false },
+  { id: 'ca', slug: 'canada', nameKey: 'ca.name', hasGame: false },
+  { id: 'us', slug: 'united-states', nameKey: 'us.name', hasGame: false },
+  { id: 'es', slug: 'spain', nameKey: 'es.name', hasGame: false },
+  { id: 'gr', slug: 'greece', nameKey: 'gr.name', hasGame: false },
+  { id: 'ie', slug: 'ireland', nameKey: 'ie.name', hasGame: false },
+  { id: 'pt', slug: 'portugal', nameKey: 'pt.name', hasGame: false },
+  { id: 'jp', slug: 'japan', nameKey: 'jp.name', hasGame: false },
+  { id: 'de', slug: 'germany', nameKey: 'de.name', hasGame: false },
 ] as const satisfies readonly {
   id: string;
   slug: string;
   nameKey: TranslationKey;
+  hasGame: boolean;
 }[];
 
 export const nonUkCountries = siteCountries.filter(
