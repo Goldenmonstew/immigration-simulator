@@ -23,6 +23,7 @@ export type RuleSetId = (typeof RULE_SET_IDS)[number] | `${string}.${string}`;
 /** Each country's rule sets, in registration order (contracts §13). */
 export const RULE_SET_IDS_BY_COUNTRY = {
   uk: RULE_SET_IDS,
+  ca: ['ca.current-law-2026-11'],
 } as const satisfies Record<string, readonly RuleSetId[]>;
 
 export interface Parameter<T> {
