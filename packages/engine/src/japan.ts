@@ -432,7 +432,18 @@ export function evaluateJapan(req: JpRequest): JpResult {
     // (PD-130).
     let early = addDays(raw, -1);
     while (closed(early) === 'yes') early = addDays(early, 1);
-    const status: PilotStatus =
+    // The child's first trip abroad starting by the deadline: filing is in
+    // Japan before it (PD-160).
+    const out = req.trips
+      .filter((t) => t.departed >= born && t.departed <= deadline)
+      .sort((a, b) => (a.departed < b.departed ? -1 : 1))[0];
+    const lastDay = out && out.departed < deadline ? out.departed : deadline;
+    const canFile = (x: IsoDate) =>
+      x <= lastDay && closed(x) !== 'yes' && !abroad(x);
+    let fileOn: IsoDate | undefined = sim < born ? born : sim;
+    while (fileOn && !canFile(fileOn))
+      fileOn = fileOn < lastDay ? addDays(fileOn, 1) : undefined;
+    const timeStatus: PilotStatus =
       sim < born
         ? 'FUTURE'
         : sim <= early
@@ -442,6 +453,14 @@ export function evaluateJapan(req: JpRequest): JpResult {
             : exact || latest < sim
               ? 'NOT_MET'
               : 'UNKNOWN';
+    // No day left to file in Japan: abroad past the deadline, or back
+    // within it after leaving (PD-160).
+    const stranded = !!out && !fileOn && sim <= deadline;
+    const status: PilotStatus = stranded
+      ? out.returned > deadline
+        ? 'NOT_MET'
+        : 'UNKNOWN'
+      : timeStatus;
     const when = L(
       `出生之日起 ${days} 日为 ${raw}${deadline === raw ? '' : `，遇行政机关休日顺延至 ${deadline}`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `；${deadline} 是否为春分日或秋分日（或因此成为休日）要到前一年 2 月才正式公布，期限可能再顺延（PD-130）` : `；试点没有收录 ${deadline.slice(0, 4)} 年的国民の祝日，期限可能再顺延（PD-130）`}`,
       `${days} days from birth is ${raw}${deadline === raw ? '' : `, moved to ${deadline} past days the offices are closed`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `; whether ${deadline} is an equinox day (or a holiday because of one) is fixed only in February of the year before, so it may move later still (PD-130)` : `; the pilot does not cover national holidays for ${deadline.slice(0, 4)}, so it may move later still (PD-130)`}`,
@@ -456,8 +475,17 @@ export function evaluateJapan(req: JpRequest): JpResult {
       status,
       earliestDate:
         status === 'MET' ? sim : status === 'FUTURE' ? born : undefined,
-      summary:
-        status === 'NOT_MET'
+      summary: stranded
+        ? (out.returned > deadline
+            ? L(
+                `孩子 ${out.departed} 出境、${out.returned} 才回到日本，申请期限（${when}）内已没有能在日本递交的日子；按出生取得的申请由在日本在留的孩子提出（入管法第22条の2第2項，SRC-119 申請提出者）。`,
+                `The child left on ${out.departed} and is back only on ${out.returned}, so no day is left within the time allowed (${when}) to file in Japan; the application after birth is made for a child staying in Japan (art. 22-2(2), SRC-119).`,
+              )
+            : L(
+                `孩子 ${out.departed} 出境、${out.returned} 回到日本，仍在申请期限（${when}）内；回国时要经过上陆手续，而第22条の2适用于未经上陆手续在日本在留的人，回国后能否仍按出生取得申请没有写明（PD-160）。`,
+                `The child left on ${out.departed} and is back on ${out.returned}, still within the time allowed (${when}); coming back goes through landing, while art. 22-2 covers people staying without landing, and whether the application after birth is still open is not stated (PD-160).`,
+              )) + late
+        : status === 'NOT_MET'
           ? L(
               `出生后取得在留资格的申请期限（${when}）已过。`,
               `The time to apply to acquire status after birth (${when}) has passed.`,
@@ -476,7 +504,13 @@ export function evaluateJapan(req: JpRequest): JpResult {
                   `在日本出生的，可在申请期限内申请取得永住者资格，不必等在留年限（${when}）${status === 'MET' ? '；模拟日在期限内' : `；出生后（${born} 起）才能递交`}。`,
                   `Born in Japan, you can apply to acquire permanent resident status within the time allowed, without waiting for years of stay (${when})${status === 'MET' ? '; the simulation date is within it' : `; you can apply from the birth (${born})`}.`,
                 ) +
-                filingNote(status === 'MET' ? sim : born, () => true, 'isa'),
+                (out
+                  ? L(
+                      `孩子计划 ${out.departed} 出境，须在出境前递交。`,
+                      ` The child is due to leave on ${out.departed}, so file before that.`,
+                    )
+                  : '') +
+                filingNote(status === 'MET' ? sim : born, canFile, 'isa'),
       checks: [
         {
           text: L(
@@ -503,7 +537,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
           `The ${days} days run from the day after birth (the Civil Code leaves out the first day), up to the ${days}th day after birth; a deadline on a day the offices are closed (Saturdays, Sundays, national holidays and ${v.yearEndClosureFrom.value} to ${v.yearEndClosureTo.value}) moves to the next open day. National holidays are listed from the National Astronomical Observatory almanac for ${v.nationalHolidays.value[0].slice(0, 4)}–${v.nationalHolidays.value.at(-1)!.slice(0, 4)}; later years follow the holidays law (art. 2, 3), with only predicted equinox days, so a result that turns on one is uncertain; earlier years are not listed, so dates after a deadline there are uncertain. Counters take filings on working days only, and permanent residence cannot be applied for online (PD-130).`,
         ),
       ],
-      pendingDetails: ['PD-130'],
+      pendingDetails: ['PD-130', ...(out ? ['PD-160'] : [])],
     });
   } else {
     const pr = req.pr;

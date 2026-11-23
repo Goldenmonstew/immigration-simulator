@@ -929,6 +929,61 @@ describe('review70-11', () => {
   });
 });
 
+describe('task 74: trips after birth', () => {
+  const born = (
+    bornOn: string,
+    simulationDate: string,
+    trip: { departed: string; returned: string },
+  ) =>
+    pr({
+      simulationDate,
+      stayStart: bornOn,
+      pr: { route: 'child-birth', bornOn },
+      trips: [trip],
+    });
+  // Born 2026-11-10: 30 days end on 2026-12-10.
+  const long = { departed: '2026-11-25', returned: '2027-01-20' };
+
+  test('a planned trip: file before leaving', () => {
+    const p = born('2026-11-10', '2026-11-23', long);
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('须在出境前递交');
+  });
+
+  test('abroad until after the deadline', () => {
+    const p = born('2026-11-10', '2026-11-30', long);
+    expect(p.status).toBe('NOT_MET');
+    expect(p.summary).toContain('2027-01-20');
+  });
+
+  test('back within the time allowed is uncertain (PD-160)', () => {
+    const p = born('2026-11-10', '2026-11-30', {
+      departed: '2026-11-15',
+      returned: '2026-11-25',
+    });
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('PD-160');
+  });
+
+  test('the filing day is a day in Japan before leaving', () => {
+    // Saturday 2026-11-21; 11-22 Sunday, 11-23 勤労感謝の日; the child
+    // leaves on 11-24.
+    const p = born('2026-11-01', '2026-11-21', {
+      departed: '2026-11-24',
+      returned: '2027-01-10',
+    });
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('最早可在 2026-11-24 递交');
+    // Leaving on 11-23 instead leaves no open day: abroad past 12-01.
+    expect(
+      born('2026-11-01', '2026-11-21', {
+        departed: '2026-11-23',
+        returned: '2027-01-10',
+      }).status,
+    ).toBe('NOT_MET');
+  });
+});
+
 describe('task 74: on a trip on the simulation date', () => {
   test('a planned late return is the stay the checks describe', () => {
     // Away 2027-05-01 to 2028-08-01 without a re-entry permit: the status
