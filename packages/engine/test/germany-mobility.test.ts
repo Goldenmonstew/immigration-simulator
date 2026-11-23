@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import type { DeFullRequest } from '../src/germany-full';
+import { evaluateGermanyFull, type DeFullRequest } from '../src/germany-full';
 import {
   blueCardTimeInputs,
   mobilityChecks,
@@ -40,6 +40,39 @@ const active: Blue = {
   degreeOn: '2015-01-01',
   employmentAgencyApproved: false,
   countableAnnualGross: 50700,
+};
+
+const fullBlue = (overrides: Partial<Blue>) =>
+  evaluateGermanyFull({
+    simulationDate: day,
+    routes: ['R03'],
+    firstEntry: '2024-12-01',
+    permits: [{ kind: 'blue-card', from: '2024-12-01' }],
+    trips: [],
+    common: {
+      identityEstablished: true,
+      nationalityEstablishedOrNotRequired: true,
+      capableOrRepresented: true,
+      passport: 'valid',
+      entry: 'required-visa-and-disclosed',
+      livelihoodConfirmed: true,
+      insurance: ['statutory'],
+      security: 'no-known-ground',
+      employmentAuthorisedOrNotRequired: true,
+      permanentProfessionalPermissionOrNotRequired: true,
+      knowledgeEvidence: 'school',
+      housing: { authorityAccepted: true },
+    },
+    mobility: { blueCard: { ...active, ...overrides } },
+  }).columns[0].pathways[0];
+
+const employment = {
+  firstMonth: '2025-01',
+  lastMonth: '2025-10',
+  payBand: 'standard' as const,
+  countableAnnualGross: 51000,
+  qualifyingWork: true,
+  pensionForSameMonths: true,
 };
 
 describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
@@ -119,6 +152,141 @@ describe('Blue Card employment and pay, § 18c(2), § 18g', () => {
     ).toBe('NOT_MET');
     expect(
       blue('C19-months', { ...fields, creditBeforeInterruption: true }),
+    ).toBe('MET');
+  });
+
+  test('explicit and omitted unemployment have the same result for each pre-gap credit decision', () => {
+    const gap = {
+      ...employment,
+      firstMonth: '2025-11',
+      lastMonth: '2025-11',
+      qualifyingWork: false,
+      pensionForSameMonths: false,
+    };
+    const resumed = {
+      ...employment,
+      firstMonth: '2025-12',
+      lastMonth: '2026-10',
+    };
+    for (const periods of [
+      [employment, gap, resumed],
+      [employment, resumed],
+    ]) {
+      const cases = [
+        [undefined, 'UNKNOWN', 'UNKNOWN', undefined],
+        [false, 'NOT_MET', 'FUTURE', '2027-09-23'],
+        [true, 'MET', 'MET', day],
+      ] as const;
+      for (const [
+        creditBeforeInterruption,
+        status,
+        routeStatus,
+        date,
+      ] of cases) {
+        const path = fullBlue({
+          employment: periods,
+          creditBeforeInterruption,
+        });
+        const check = path.checks.find((c) => c.id === 'DE-C19-months');
+        expect(check?.status).toBe(status);
+        expect(path.status).toBe(routeStatus);
+        expect(path.earliestDate).toBe(date);
+        if (status === 'UNKNOWN')
+          expect(check?.pendingDetails).toContain('PD-123');
+      }
+    }
+    const postGap = fullBlue({
+      employment: [
+        { ...employment, firstMonth: '2024-12', lastMonth: '2024-12' },
+        { ...gap, firstMonth: '2025-01', lastMonth: '2025-01' },
+        { ...employment, firstMonth: '2025-02', lastMonth: '2026-10' },
+      ],
+    });
+    expect(postGap).toMatchObject({ status: 'MET', earliestDate: day });
+  });
+
+  test('a temporary annual-floor shortfall is credited after a raise when decision pay qualifies', () => {
+    const first = {
+      ...employment,
+      firstMonth: '2024-12',
+      lastMonth: '2025-04',
+      countableAnnualGross: 46000,
+    };
+    const raised = {
+      ...employment,
+      firstMonth: '2025-05',
+      lastMonth: '2026-10',
+    };
+    for (const historicalPayAccepted of [undefined, true]) {
+      const path = fullBlue({
+        employment: [{ ...first, historicalPayAccepted }, raised],
+        countableAnnualGross: 51000,
+      });
+      expect(path.checks.find((c) => c.id === 'DE-C19-months')).toMatchObject({
+        status: 'MET',
+        explanation: expect.stringContaining('已确认 23 月'),
+      });
+      expect(path).toMatchObject({ status: 'MET', earliestDate: day });
+    }
+    for (const incomplete of [
+      { countableAnnualGross: undefined },
+      { latestRelevantChangeOn: '2025-01-01' },
+      { latestRelevantChangeOn: '2025-05-01' },
+      { employment: [first, { ...raised, countableAnnualGross: undefined }] },
+    ]) {
+      const path = fullBlue({ employment: [first, raised], ...incomplete });
+      expect(path.checks.find((c) => c.id === 'DE-C19-months')).toMatchObject({
+        status: 'UNKNOWN',
+        pendingDetails: expect.arrayContaining(['PD-350']),
+      });
+      expect(path.status).toBe('UNKNOWN');
+      expect(path.earliestDate).toBeUndefined();
+    }
+    const payCut = fullBlue({
+      employment: [
+        { ...first, lastMonth: '2024-12', countableAnnualGross: 51000 },
+        { ...first, firstMonth: '2025-01' },
+        raised,
+      ],
+    });
+    expect(payCut.checks.find((c) => c.id === 'DE-C19-months')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(payCut).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2027-01-23',
+    });
+  });
+
+  test('an unchanged qualifying job needs no change decision; an applicable unresolved change still does', () => {
+    const sameJob = {
+      employmentStartedOn: '2025-02-01',
+      employment: [
+        { ...employment, firstMonth: '2025-02', lastMonth: '2026-10' },
+      ],
+      jobChangeDecision: undefined,
+    };
+    const unchanged = fullBlue(sameJob);
+    expect(unchanged.checks.find((c) => c.id === 'DE-C21-job')?.status).toBe(
+      'MET',
+    );
+    expect(unchanged).toMatchObject({ status: 'MET', earliestDate: day });
+    const changed = { ...sameJob, latestRelevantChangeOn: '2025-12-01' };
+    const pending = fullBlue(changed);
+    expect(pending.checks.find((c) => c.id === 'DE-C21-job')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-346'],
+    });
+    expect(pending.status).toBe('UNKNOWN');
+    expect(pending.earliestDate).toBeUndefined();
+    expect(fullBlue({ ...changed, jobChangeDecision: 'rejected' }).status).toBe(
+      'NOT_MET',
+    );
+    expect(fullBlue({ ...changed, jobChangeDecision: 'clear' }).status).toBe(
+      'MET',
+    );
+    expect(
+      fullBlue({ ...changed, latestRelevantChangeOn: '2026-02-01' }).status,
     ).toBe('MET');
   });
 
@@ -502,6 +670,27 @@ const permanent: Title = {
   noListedExpulsionInterest: true,
 };
 describe('independent permit retention, § 51', () => {
+  test('concurrent documents of one kind keep distinct IDs, labels and outcomes across locales', () => {
+    const titles = [ordinary, { ...ordinary, noOtherLossEvent: false }];
+    for (const locale of ['zh-CN', 'en'] as const) {
+      const path = evaluateGermanyFull({
+        ...request({ titles }),
+        routes: ['R00'],
+        locale,
+      }).columns[0].pathways[0];
+      const docs = path.checks.filter((c) => c.id.startsWith('DE-C63-skilled'));
+      expect(docs.map((c) => [c.id, c.status])).toEqual([
+        ['DE-C63-skilled', 'MET'],
+        ['DE-C63-skilled-2', 'NOT_MET'],
+      ]);
+      expect(docs[0].title).not.toBe(docs[1].title);
+      expect(docs[1].title).toContain(
+        locale === 'en' ? 'skilled worker permit' : '技术工人许可',
+      );
+      expect(path).toMatchObject({ status: 'MET', earliestDate: day });
+    }
+  });
+
   test('ordinary return deadline is inclusive; non-temporary departure is independent', () => {
     expect(survived(ordinary)).toBe(true);
     expect(status('R00', 'C63-skilled', request({ titles: [ordinary] }))).toBe(

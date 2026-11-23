@@ -172,7 +172,7 @@ const TITLES: DePermitKind[] = [
   'eu-long-term',
 ];
 
-const KIND_NAMES: Record<DePermitKind, [string, string]> = {
+export const KIND_NAMES: Record<DePermitKind, [string, string]> = {
   study: ['学习许可', 'a study permit'],
   training: ['职业培训许可', 'a vocational training permit'],
   skilled: ['技术工人许可', 'a skilled worker permit'],

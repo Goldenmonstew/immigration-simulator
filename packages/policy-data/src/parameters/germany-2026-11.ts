@@ -382,6 +382,7 @@ export const germanyFull2026_11 = {
         {
           srcId: 'SRC-434',
           locator: 'BGBl. 2023 I Nr. 290 Art. 3 Nr. 3, Art. 13 Abs. 3',
+          url: 'https://www.recht.bund.de/bgbl/1/2023/290/regelungstext.pdf?__blob=publicationFile&v=2',
         },
       ],
     },
@@ -471,8 +472,11 @@ export const germanyFull2026_11 = {
       ],
     },
     citizenshipConvictions: {
-      value: { fineDayRates: 90, probationMonths: 3 },
-      sources: [stAG('§ 12a Abs. 1 Satz 1 Nr. 2–3, Sätze 2–4', '12a')],
+      value: { fineDayRates: 90, probationMonths: 3, minorExcessDayRates: 21 },
+      sources: [
+        stAG('§ 12a Abs. 1 Satz 1 Nr. 2–3, Sätze 2–4', '12a'),
+        { srcId: 'SRC-106', locator: 'Nr. 12a.1.3–4 Rdn. 8–10 (p95)' },
+      ],
     },
     citizenshipSpouseException: {
       value: { publicInterestMarriageYears: 3, endedApplicationYears: 1 },
@@ -602,6 +606,17 @@ export const germanyFull2026_11 = {
         {
           srcId: 'SRC-439',
           locator: 'BGBl. 2023 I Nr. 217 Art. 2 Nr. 12, Art. 12 Abs. 1',
+        },
+      ],
+    },
+    protectionPriorNoticeFrom: {
+      value: '2023-01-01',
+      sources: [
+        {
+          srcId: 'SRC-438',
+          locator:
+            'BGBl. 2022 I S. 2817 Art. 2 Nr. 1, Art. 4; § 26 Abs. 3 Satz 1 Nr. 2, Satz 3 Nr. 2',
+          url: 'https://rvrecht.deutsche-rentenversicherung.de/SharedDocs/rvRecht/05_Normen_und_Vertraege/02_A-B/AufenthG/0026/0026_2023_01_01.html',
         },
       ],
     },

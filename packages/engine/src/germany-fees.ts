@@ -5,6 +5,14 @@ import type { DeFullRequest } from './germany-full';
 import { check, src } from './germany-full-shared';
 
 const p = policy.values;
+const protectionFeeRefs = [
+  src(410, '§ 52 Abs. 3 Nr. 1, 4, Abs. 4'),
+  {
+    ...src(434, 'BT-Drs. 18/12050 Art. 2 Nr. 11, Art. 3'),
+    url: 'https://dserver.bundestag.de/btd/18/120/1812050.pdf',
+  },
+  src(438, 'BGBl. 2026 I Nr. 111 Art. 7 Nr. 2, Art. 13 Abs. 2'),
+];
 
 export interface DeFeeAnswers {
   applicationDate?: string;
@@ -19,6 +27,7 @@ export interface DeFeeAnswers {
     | 'association-right'
     | 'authority-set'
     | 'pending';
+  /** Amount assessed by the authority for the specified stage. */
   assessedFee?: number;
   paid?: number;
   expressAccepted?: boolean;
@@ -144,6 +153,8 @@ export function feeChecks(route: string, req: DeFullRequest): CountryCheck[] {
     chargeId = euLong ? 'DE-C66' : 'DE-C65';
     refs = [...p.settlementFees.sources, ...p.feeScheduleFrom.sources];
     let advance: number | undefined;
+    const processingShare =
+      schedule.advanceShare * (minor ? schedule.minorShare : 1);
     const base = euLong
       ? schedule.euLongTerm
       : route === 'R10'
@@ -160,26 +171,30 @@ export function feeChecks(route: string, req: DeFullRequest): CountryCheck[] {
               ? schedule.familyChild
               : undefined
             : base * schedule.minorShare;
-      if (minor !== undefined)
-        advance =
-          base * schedule.advanceShare * (minor ? schedule.minorShare : 1);
+      if (minor !== undefined) advance = base * processingShare;
     }
     if (f.reduction === 'association-right') {
       due = cardFee;
-      advance = undefined; // Confirm processing charges with the issuing authority.
+      advance = cardFee === undefined ? undefined : cardFee * processingShare;
+      refs.push(
+        src(410, '§§ 49 Abs. 1, 50 Abs. 1, 52a Abs. 2'),
+        ...p.identityCardFees.sources,
+      );
     } else if (
       f.reduction === 'section52-protection-or-admission' &&
       !['R06', 'R10', 'R13'].includes(route)
     ) {
-      due = advance = day >= p.protectionNoticeFrom.value ? 0 : undefined;
+      due = advance = day >= p.feeScheduleFrom.value ? 0 : undefined;
+      refs.push(...protectionFeeRefs);
     } else if (f.reduction === 'authority-set' || f.reduction === 'pending') {
       due = f.reduction === 'authority-set' ? f.assessedFee : undefined;
-      advance = undefined;
+      // After substantive review, the assessed amount is itself the processing fee.
+      advance = f.stage === 'after-substantive-review' ? due : undefined;
     }
     const reductionRefs = [
       src(410, '§§ 52 Abs. 3–4, 7, 52a, 53'),
       ...p.identityCardFees.sources,
-      src(438, 'BGBl. 2026 I Nr. 111 Art. 7 Nr. 2, Art. 13'),
+      ...protectionFeeRefs,
     ];
     results.push(
       check(
@@ -190,7 +205,7 @@ export function feeChecks(route: string, req: DeFullRequest): CountryCheck[] {
         f.reduction === undefined ||
           f.reduction === 'pending' ||
           (f.reduction === 'section52-protection-or-admission' &&
-            day < p.protectionNoticeFrom.value) ||
+            day < p.feeScheduleFrom.value) ||
           (f.reduction === 'authority-set' && f.assessedFee === undefined)
           ? undefined
           : true,

@@ -243,7 +243,7 @@ function timeCheck(
     first = undefined;
     changed = true;
   }
-  let override = citizenshipTimeOverride(route, req, first);
+  let override = citizenshipTimeOverride(route, req, first, old?.earliestDate);
   if (override === 'pilot' && route === 'R06' && req.settlement?.euMobility)
     override = any(first, mobilityTime(req));
   if (override !== 'pilot') {
@@ -395,11 +395,15 @@ export function evaluateGermanyFull(req: DeFullRequest): CountryResult {
         route !== 'R00'
       )
         status = 'NOT_APPLICABLE';
-      const date = time?.old?.earliestDate;
       const timeOnly = new Set([time?.rule.id]);
       if (route === 'R03') timeOnly.add('DE-C19-months');
       if (route === 'R01') timeOnly.add('DE-C05');
       if (route === 'R02') timeOnly.add('DE-C17');
+      const date = checks.some(
+        (c) => timeOnly.has(c.id) && c.status === 'UNKNOWN',
+      )
+        ? undefined
+        : time?.old?.earliestDate;
       if (
         time?.old?.status === 'FUTURE' &&
         !time.changed &&

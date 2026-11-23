@@ -6,7 +6,10 @@ import { addDays } from './dates';
 import type { CountryCheck } from './country-result';
 import type { DeFullRequest } from './germany-full';
 import { all, any, check, src } from './germany-full-shared';
-import { germanFamilyLivelihoodException } from './germany-settlement';
+import {
+  germanFamilyLivelihoodException,
+  refugeeMedicalWaiver,
+} from './germany-settlement';
 
 const p = policy.values;
 type Ruling = 'granted' | 'pending' | 'denied';
@@ -51,6 +54,7 @@ export interface DeCommonAnswers {
   };
   insurance?: Insurance[];
   livelihoodMedicalWaiver?: Ruling;
+  /** A separate ruling on insurance takes precedence over the general livelihood waiver. */
   insuranceWaiver?: Ruling;
   spouseContributionMonths?: number;
   creditedCareMonths?: number;
@@ -213,9 +217,10 @@ export function commonChecks(
     'R14',
     'R15',
   ].includes(route);
-  const healthWaiver = medicalApplies
-    ? waiver(c.livelihoodMedicalWaiver)
-    : false;
+  const healthWaiver =
+    route === 'R05'
+      ? refugeeMedicalWaiver(req)
+      : medicalApplies && waiver(c.livelihoodMedicalWaiver);
   if (!refugee && route !== 'R11') {
     const benefits =
       c.benefits === undefined || c.benefits === 'unclassified'
@@ -242,13 +247,18 @@ export function commonChecks(
   if (route !== 'R11')
     record(
       'C04',
-      '本人及相关家属的医疗保障',
-      'Health cover for the applicant and relevant family members',
+      '本人及相关家属的医疗保障或适用豁免',
+      'Health cover for the applicant and relevant family members or an applicable waiver',
       any(
         covered(c.insurance),
-        medicalApplies ? waiver(c.insuranceWaiver) : false,
+        medicalApplies && c.insuranceWaiver !== undefined
+          ? waiver(c.insuranceWaiver)
+          : healthWaiver,
       ),
-      '§ 2 Abs. 3 Sätze 1, 3; § 9c Satz 1 Nr. 3',
+      route === 'R06'
+        ? '§ 9c Satz 1 Nr. 3'
+        : '§ 2 Abs. 3 Sätze 1, 3' +
+            (medicalApplies ? '; § 9 Abs. 2 Satz 6' : ''),
       'PD-343',
       src(415, 'Krankenversicherung'),
     );
@@ -277,6 +287,12 @@ export function commonChecks(
   if (route === 'R01' || route === 'R09') {
     const months = req.contributionMonths;
     const threshold = p.generalContributionMonths.value;
+    const spousePension =
+      c.spouseContributionMonths === undefined
+        ? c.spouseInHousehold === true
+          ? undefined
+          : false
+        : all(c.spouseInHousehold, c.spouseContributionMonths >= threshold);
     record(
       'C05',
       '本人、同住配偶的养老记录或法定免除',
@@ -285,15 +301,13 @@ export function commonChecks(
         months === undefined
           ? undefined
           : months + (c.creditedCareMonths ?? 0) >= threshold,
-        c.spouseInHousehold && c.spouseContributionMonths !== undefined
-          ? c.spouseContributionMonths >= threshold
-          : false,
+        spousePension,
         route === 'R01' && c.recognisedEducation === true,
         waiver(c.pensionEquivalentOrMedicalWaiver),
         uncertainTransition ? undefined : legacy,
       ),
       '§ 9 Abs. 2 Satz 1 Nr. 3, Satz 6, Abs. 3; § 104 Abs. 2',
-      'PD-344 PD-349',
+      uncertainTransition ? 'PD-344 PD-349' : 'PD-344',
     );
   }
   record(

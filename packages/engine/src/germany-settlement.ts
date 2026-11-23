@@ -272,6 +272,13 @@ function retirementReached(req: DeFullRequest) {
   return req.simulationDate >= addMonths(base, extra);
 }
 
+export function refugeeMedicalWaiver(req: DeFullRequest) {
+  const decision = req.settlement?.refugeeIncome?.medicalExemption;
+  if (decision) return decided(decision);
+  const waiver = req.common?.livelihoodMedicalWaiver;
+  return waiver === 'pending' ? undefined : waiver === 'granted';
+}
+
 function refugeeShare(req: DeFullRequest, fast: boolean) {
   const income = req.settlement?.refugeeIncome;
   const decision = fast
@@ -297,11 +304,7 @@ function refugeeShare(req: DeFullRequest, fast: boolean) {
   return any(
     incomeTest,
     retirementReached(req),
-    income?.medicalExemption
-      ? decided(income.medicalExemption)
-      : req.common?.livelihoodMedicalWaiver === 'pending'
-        ? undefined
-        : req.common?.livelihoodMedicalWaiver === 'granted',
+    refugeeMedicalWaiver(req),
   );
 }
 
@@ -721,12 +724,15 @@ export function settlementChecks(
         'PD-351',
       );
       const notice = a.bamfNotice;
+      const deprivationBarsGrant =
+        !fast && req.simulationDate >= v.protectionNoticeFrom.value;
       const clear =
         notice === undefined ||
         notice === 'only-applicant-unaware' ||
-        req.simulationDate < v.protectionNoticeFrom.value
+        req.simulationDate < v.protectionPriorNoticeFrom.value
           ? undefined
-          : notice === 'confirmed-none' || (fast && notice === 'deprivation');
+          : notice === 'confirmed-none' ||
+            (notice === 'deprivation' && !deprivationBarsGrant);
       item(
         'C24-notice',
         '已核实 BAMF 未发出适用档次所列的机关间通知',
@@ -734,7 +740,8 @@ export function settlementChecks(
         clear,
         '§ 26 Abs. 3 Satz 1 Nr. 2, Satz 3 Nr. 2',
         'PD-351',
-        src(438, 'BGBl. 2026 I Nr. 111 Art. 2 Nr. 12, Art. 13 Abs. 2'),
+        ...v.protectionPriorNoticeFrom.sources,
+        ...v.protectionNoticeFrom.sources,
       );
       item(
         fast ? 'C26' : 'C25',

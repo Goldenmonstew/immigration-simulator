@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import type { DeFullRequest } from '../src/germany-full';
+import { evaluateGermanyFull, type DeFullRequest } from '../src/germany-full';
 import {
   citizenshipAdvisoryIds,
   citizenshipChecks,
@@ -46,6 +46,25 @@ function find(
   }).find((c) => c.id === 'DE-' + id);
   if (!c) throw new Error('Missing ' + id);
   return c;
+}
+
+function ordinaryRoute(
+  from: string,
+  citizenship: Partial<DeCitizenshipAnswers>,
+) {
+  return evaluateGermanyFull({
+    ...base,
+    routes: ['R07'],
+    firstEntry: from,
+    permits: [{ kind: 'blue-card', from }],
+    trips: [],
+    mobility: {
+      titles: [
+        { kind: 'blue-card', validTo: null, noOtherLossEvent: true, trips: [] },
+      ],
+    },
+    citizenship: { ...standard, ...citizenship },
+  }).columns[0].pathways[0];
 }
 
 describe('StAG common entitlement conditions', () => {
@@ -338,7 +357,7 @@ describe('StAG common entitlement conditions', () => {
     ).toBe('MET');
     expect(
       find('C52', {
-        criminalRecord: { ...custody, months: 4, disregardExcess: 'refused' },
+        criminalRecord: { ...custody, months: 4, disregardExcess: 'accepted' },
       }).status,
     ).toBe('NOT_MET');
     expect(
@@ -358,6 +377,18 @@ describe('StAG common entitlement conditions', () => {
       }).status,
     ).toBe('MET');
     expect(
+      find('C52', {
+        criminalRecord: {
+          kind: 'mixed-sentences',
+          prisonDays: 45,
+          fineDayRates: [67],
+          allCustodySuspendedAndRemitted: true,
+          judgmentFoundHateMotive: false,
+          disregardExcess: 'accepted',
+        },
+      }).status,
+    ).toBe('NOT_MET');
+    expect(
       find('C52', { criminalRecord: { kind: 'foreign-record' } }).status,
     ).toBe('UNKNOWN');
     expect(
@@ -367,6 +398,59 @@ describe('StAG common entitlement conditions', () => {
 });
 
 describe('StAG specific pathways', () => {
+  test('the same confirmed § 12b start preserves the five-year projection', () => {
+    const start = '2022-08-01';
+    for (const countedResidenceSince of [undefined, start]) {
+      const route = ordinaryRoute(start, { countedResidenceSince });
+      const check = route.checks.find((c) => c.id === 'DE-C55');
+      expect(check?.status).toBe('NOT_MET');
+      expect(check?.pendingDetails).toBeUndefined();
+      expect(route.status).toBe('FUTURE');
+      expect(route.earliestDate).toBe('2027-08-01');
+      expect(route.pendingDetails).not.toContain('PD-128');
+    }
+    const laterStart = ordinaryRoute(start, {
+      countedResidenceSince: '2022-09-01',
+    });
+    expect(laterStart.earliestDate).not.toBe('2027-08-01');
+    expect(laterStart.summary ?? '').not.toContain('2027-08-01');
+  });
+
+  test.each([
+    [90, undefined, 'MET'],
+    [111, undefined, 'UNKNOWN'],
+    [111, 'accepted', 'MET'],
+    [111, 'refused', 'NOT_MET'],
+    [112, 'accepted', 'NOT_MET'],
+    [120, undefined, 'NOT_MET'],
+    [120, 'accepted', 'NOT_MET'],
+  ] as const)(
+    'a final fine of %i day rates with decision %s gives %s',
+    (dayRates, disregardExcess, status) => {
+      const route = ordinaryRoute('2021-11-23', {
+        criminalRecord: {
+          kind: 'fines',
+          dayRates: [dayRates],
+          judgmentFoundHateMotive: false,
+          disregardExcess,
+        },
+      });
+      const check = route.checks.find((c) => c.id === 'DE-C52');
+      expect(check?.status).toBe(status);
+      expect(route.status).toBe(status);
+      expect(route.earliestDate).toBe(
+        status === 'MET' ? base.simulationDate : undefined,
+      );
+      if (status === 'UNKNOWN') {
+        expect(check?.pendingDetails).toContain('PD-345');
+        expect(route.pendingDetails).toContain('PD-345');
+      } else {
+        expect(check?.pendingDetails).toBeUndefined();
+        expect(route.pendingDetails).not.toContain('PD-345');
+      }
+    },
+  );
+
   test('ordinary § 10 uses the existing timeline by default and confirmed periods for Swiss rights', () => {
     expect(citizenshipTimeOverride('R07', base)).toBe('pilot');
     const input = (from: string) =>

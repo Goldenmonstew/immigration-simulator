@@ -5,7 +5,7 @@ import {
 import type { CefrLevel } from '@uk-immigration/policy-data';
 import type { CountryCheck } from './country-result';
 import { addDays, addMonths, addYears } from './dates';
-import type { DePermitKind } from './germany';
+import { KIND_NAMES, type DePermitKind } from './germany';
 import type { DeFullRequest } from './germany-full';
 import { all, any, check, src } from './germany-full-shared';
 import { afterYears } from './pilot';
@@ -201,59 +201,160 @@ function salaryMeets(
   return pay[year] === undefined ? undefined : atLeast(gross, pay[year]);
 }
 
-function employmentMonths(req: DeFullRequest) {
-  const history = req.mobility?.blueCard?.employment;
-  if (!history) {
+const shiftMonth = (month: string, offset: number) =>
+  addMonths(month + '-01', offset).slice(0, 7);
+
+// BMI Nr. 18c.2.1.2 (pp117–118): a new annual floor may temporarily
+// exceed an existing wage if a later raise restores it and pay qualifies at issue.
+function annualRaiseCredits(
+  band: 'standard' | 'reduced',
+  history: [string, EmploymentPeriod[]][],
+  b: BlueCard,
+  simulationMonth: string,
+  decisionPay: Answer,
+) {
+  const credits = new Map<string, Answer>();
+  let shortfall: string[] = [];
+  let supported: Answer = true;
+  const finish = (restored: Answer) => {
+    for (const month of shortfall)
+      credits.set(month, all(restored, supported, decisionPay));
+    shortfall = [];
+    supported = true;
+  };
+  let previousMonth: string | undefined;
+  let previousGross: number | undefined;
+  let previousPay: Answer;
+  const changeMonth = b.latestRelevantChangeOn?.slice(0, 7);
+  for (const [month, records] of history) {
+    const work = records.filter(
+      (r) => r.qualifyingWork !== false && (r.payBand === band || !r.payBand),
+    );
+    const gross = work[0]?.countableAnnualGross;
+    const next =
+      previousMonth !== undefined && shiftMonth(previousMonth, 1) === month;
+    // A higher overlapping wage is not evidence that the lower wage was raised.
+    if (!work.length || work.some((r) => r.countableAnnualGross !== gross)) {
+      finish(undefined);
+      previousMonth = undefined;
+      continue;
+    }
+    const pay = salaryMeets(month.slice(0, 4), gross, band);
+    const cut =
+      previousGross !== undefined &&
+      gross !== undefined &&
+      gross < previousGross;
+    if (!next || cut) finish(undefined);
+    const newFloor =
+      next &&
+      month.endsWith('-01') &&
+      !cut &&
+      previousPay !== false &&
+      pay !== true &&
+      salaryMeets(shiftMonth(month, -1).slice(0, 4), gross, band) !== false;
+    const documented = work.some(
+      (r) =>
+        r.qualifyingWork && r.payBand === band && !r.historicalPayReviewPending,
+    );
+    if (shortfall.length || newFloor) {
+      if (newFloor && !shortfall.length) supported = previousPay;
+      if (
+        !documented ||
+        gross === undefined ||
+        month === changeMonth ||
+        (!changeMonth && b.changeReported !== undefined)
+      )
+        supported = undefined;
+      if (pay === true) finish(true);
+      else shortfall.push(month);
+    }
+    previousMonth = month;
+    previousGross = gross;
+    previousPay = all(pay, documented ? true : undefined);
+  }
+  // The decision salary may be the first raise following the last completed month.
+  if (previousMonth && shiftMonth(previousMonth, 1) === simulationMonth) {
+    if (simulationMonth === changeMonth) supported = undefined;
+    finish(
+      salaryMeets(simulationMonth.slice(0, 4), b.countableAnnualGross, band),
+    );
+  } else {
+    finish(previousMonth === simulationMonth ? previousPay : undefined);
+  }
+  return credits;
+}
+
+function employmentMonths(req: DeFullRequest, decisionPay: Answer) {
+  const b = req.mobility?.blueCard;
+  if (!b?.employment) {
     return {
       confirmed: req.blueCardEmploymentMonths,
       possible: req.blueCardEmploymentMonths,
     };
   }
-  const months = new Map<string, Answer>();
+  const history = new Map<string, EmploymentPeriod[]>();
   const simulationMonth = req.simulationDate.slice(0, 7);
-  for (const period of history) {
+  for (const period of b.employment) {
     for (
       let month = period.firstMonth;
       month <= period.lastMonth && month <= simulationMonth;
+      month = shiftMonth(month, 1)
     ) {
-      const pay = period.payBand
-        ? salaryMeets(
-            month.slice(0, 4),
-            period.countableAnnualGross,
-            period.payBand,
-          )
-        : undefined;
-      const paidEnough =
-        period.historicalPayAccepted === true
-          ? true
-          : period.historicalPayReviewPending
-            ? undefined
-            : pay;
-      const credited = all(
-        period.qualifyingWork,
-        period.pensionForSameMonths,
-        paidEnough,
-      );
-      months.set(
-        month,
-        months.has(month) ? any(months.get(month), credited) : credited,
-      );
-      month = addMonths(month + '-01', 1).slice(0, 7);
+      const records = history.get(month);
+      if (records) records.push(period);
+      else history.set(month, [period]);
     }
   }
-  const ordered = [...months.keys()].sort();
-  let latestStart = 0;
-  for (let i = 1; i < ordered.length; i++) {
-    const next = addMonths(ordered[i - 1] + '-01', 1).slice(0, 7);
-    if (ordered[i] !== next) latestStart = i;
+  const ordered = [...history.entries()].sort(([a], [b]) => a.localeCompare(b));
+  const raises = {
+    standard: annualRaiseCredits(
+      'standard',
+      ordered,
+      b,
+      simulationMonth,
+      decisionPay,
+    ),
+    reduced: annualRaiseCredits(
+      'reduced',
+      ordered,
+      b,
+      simulationMonth,
+      decisionPay,
+    ),
+  };
+  let confirmed = 0,
+    possible = 0;
+  let previous: string | undefined;
+  for (const [month, records] of ordered) {
+    const working = any(...records.map((r) => r.qualifyingWork));
+    const gap = previous !== undefined && month !== shiftMonth(previous, 1);
+    if (b.creditBeforeInterruption !== true && (gap || working !== true))
+      confirmed = 0;
+    if (b.creditBeforeInterruption === false && (gap || working === false))
+      possible = 0;
+    const credited = any(
+      ...records.map((r) => {
+        const band = r.payBand;
+        const pay =
+          band && salaryMeets(month.slice(0, 4), r.countableAnnualGross, band);
+        const adjustment = band && raises[band];
+        const historical =
+          r.historicalPayAccepted === true
+            ? true
+            : r.historicalPayReviewPending
+              ? undefined
+              : pay === false &&
+                  r.historicalPayAccepted !== false &&
+                  adjustment?.has(month)
+                ? adjustment.get(month)
+                : pay;
+        return all(r.qualifyingWork, r.pensionForSameMonths, historical);
+      }),
+    );
+    if (credited === true) confirmed++;
+    if (credited !== false) possible++;
+    previous = month;
   }
-  const beforeGap = req.mobility?.blueCard?.creditBeforeInterruption;
-  const confirmed = (
-    beforeGap === true ? ordered : ordered.slice(latestStart)
-  ).filter((m) => months.get(m) === true).length;
-  const possible = (
-    beforeGap === false ? ordered.slice(latestStart) : ordered
-  ).filter((m) => months.get(m) !== false).length;
   return { confirmed, possible };
 }
 
@@ -275,39 +376,9 @@ function blueTier(req: DeFullRequest): Answer {
     : req.germanB1;
 }
 
-export function blueCardTimeInputs(req: DeFullRequest) {
-  const months = employmentMonths(req);
-  return {
-    germanB1: blueTier(req),
-    blueCardEmploymentMonths:
-      months.confirmed === months.possible ? months.confirmed : undefined,
-  };
-}
-
-function blueCardChecks(req: DeFullRequest): CountryCheck[] {
+function currentBlueCardPay(req: DeFullRequest): Answer {
   const b = req.mobility?.blueCard ?? {};
   const p = v.blueCardJob.value;
-  const fast = blueTier(req);
-  const threshold = fast ? pilot.blueCardB1Months : pilot.blueCardMonths;
-  const level = v.blueCardLanguage.value[fast ? 1 : 0];
-  const evidence = blueLanguage(req);
-  const language = evidence
-    ? languageOrder.indexOf(evidence) >= languageOrder.indexOf(level)
-    : undefined;
-  const months = employmentMonths(req);
-  // When the language tier is unknown, 21–26 months could already suffice.
-  const possibleThreshold =
-    fast === undefined ? pilot.blueCardB1Months.value : threshold.value;
-  const requiredMonths =
-    fast === undefined
-      ? `${possibleThreshold}–${threshold.value}`
-      : String(threshold.value);
-  const enoughMonths =
-    atLeast(months.confirmed, threshold.value) === true
-      ? true
-      : atLeast(months.possible, possibleThreshold) === false
-        ? false
-        : undefined;
   const year = req.simulationDate.slice(0, 4);
   const shortage =
     b.isco === undefined
@@ -359,6 +430,43 @@ function blueCardChecks(req: DeFullRequest): CountryCheck[] {
       all(academic, any(shortage, recentGraduate, graduateRenewal)),
     ),
   );
+  return any(standard, reduced);
+}
+
+export function blueCardTimeInputs(req: DeFullRequest) {
+  const months = employmentMonths(req, currentBlueCardPay(req));
+  return {
+    germanB1: blueTier(req),
+    blueCardEmploymentMonths:
+      months.confirmed === months.possible ? months.confirmed : undefined,
+  };
+}
+
+function blueCardChecks(req: DeFullRequest): CountryCheck[] {
+  const b = req.mobility?.blueCard ?? {};
+  const p = v.blueCardJob.value;
+  const fast = blueTier(req);
+  const threshold = fast ? pilot.blueCardB1Months : pilot.blueCardMonths;
+  const level = v.blueCardLanguage.value[fast ? 1 : 0];
+  const evidence = blueLanguage(req);
+  const language = evidence
+    ? languageOrder.indexOf(evidence) >= languageOrder.indexOf(level)
+    : undefined;
+  const decisionPay = currentBlueCardPay(req);
+  const months = employmentMonths(req, decisionPay);
+  // When the language tier is unknown, 21–26 months could already suffice.
+  const possibleThreshold =
+    fast === undefined ? pilot.blueCardB1Months.value : threshold.value;
+  const requiredMonths =
+    fast === undefined
+      ? `${possibleThreshold}–${threshold.value}`
+      : String(threshold.value);
+  const enoughMonths =
+    atLeast(months.confirmed, threshold.value) === true
+      ? true
+      : atLeast(months.possible, possibleThreshold) === false
+        ? false
+        : undefined;
   const activePermit = req.permits
     ?.filter((p) => p.from <= req.simulationDate)
     .sort((a, b) => b.from.localeCompare(a.from))[0];
@@ -377,18 +485,6 @@ function blueCardChecks(req: DeFullRequest): CountryCheck[] {
     : (b.cardHeldAtDecision ??
       recordedCard ??
       (req.citizenship?.currentTitle === 'blue-card' ? true : undefined));
-  const currentJob = all(
-    b.jobInGermanyMatchesQualification,
-    b.genuineEmployment,
-    b.requiredLicencesHeld,
-    b.noExclusionUnder19f,
-    atLeast(b.contractMonths, p.minimumContractMonths),
-    b.jobChangeDecision === 'clear'
-      ? true
-      : b.jobChangeDecision === 'rejected'
-        ? false
-        : undefined,
-  );
   const inReportingPeriod =
     b.latestRelevantChangeOn &&
     b.employmentStartedOn &&
@@ -396,6 +492,26 @@ function blueCardChecks(req: DeFullRequest): CountryCheck[] {
     b.latestRelevantChangeOn <= req.simulationDate &&
     b.latestRelevantChangeOn <
       addMonths(b.employmentStartedOn, p.jobChangeMonths);
+  const undatedChange = b.latestRelevantChangeOn
+    ? b.latestRelevantChangeOn <= req.simulationDate && !b.employmentStartedOn
+    : b.changeReported !== undefined;
+  const changeCleared =
+    b.jobChangeDecision === 'rejected'
+      ? false
+      : b.jobChangeDecision === 'suspended'
+        ? undefined
+        : b.jobChangeDecision === 'clear' ||
+            (!inReportingPeriod && !undatedChange)
+          ? true
+          : undefined;
+  const currentJob = all(
+    b.jobInGermanyMatchesQualification,
+    b.genuineEmployment,
+    b.requiredLicencesHeld,
+    b.noExclusionUnder19f,
+    atLeast(b.contractMonths, p.minimumContractMonths),
+    changeCleared,
+  );
   const changeNote: [string, string] = inReportingPeriod
     ? [
         `首次就业的前 ${p.jobChangeMonths} 个月内发生变更，通报状态：${b.changeReported === true ? '已报' : b.changeReported === false ? '未报' : '未知'}。须另核岗位及机关决定。`,
@@ -470,7 +586,7 @@ function blueCardChecks(req: DeFullRequest): CountryCheck[] {
       'DE-C21-pay',
       '按决定年份核定工资、资格与低档批准',
       'Pay, qualifications and lower-band approval in the decision year',
-      any(standard, reduced),
+      decisionPay,
       [
         ...v.blueCardStandardPay.sources,
         ...v.blueCardReducedPay.sources,
@@ -845,6 +961,13 @@ export function retainedTitle(req: DeFullRequest, kind?: TitleKind): Answer {
   );
 }
 
+const titleNames = {
+  ...KIND_NAMES,
+  'blue-card-family': ['蓝卡家属许可', 'a Blue Card family permit'],
+  ict: ['企业内部调动许可', 'an ICT permit'],
+  visa: ['签证', 'a visa'],
+};
+
 function titleChecks(req: DeFullRequest): CountryCheck[] {
   const titles = req.mobility?.titles;
   if (!titles?.length) {
@@ -860,9 +983,16 @@ function titleChecks(req: DeFullRequest): CountryCheck[] {
       ),
     ];
   }
-  return titles.map((t) => {
+  const seen = new Map<TitleKind, number>();
+  return titles.map((t, index) => {
     const permanent = t.kind === 'settlement' || t.kind === 'eu-long-term';
-    const id = (permanent ? 'DE-C64-' : 'DE-C63-') + t.kind;
+    const ordinal = (seen.get(t.kind) ?? 0) + 1;
+    seen.set(t.kind, ordinal);
+    const id =
+      (permanent ? 'DE-C64-' : 'DE-C63-') +
+      t.kind +
+      (ordinal > 1 ? '-' + ordinal : '');
+    const [zh, en] = titleNames[t.kind];
     const loc =
       t.kind === 'eu-long-term'
         ? '§ 51 Abs. 9 Sätze 1–2, Abs. 2–4'
@@ -872,8 +1002,8 @@ function titleChecks(req: DeFullRequest): CountryCheck[] {
     return check(
       req.locale,
       id,
-      `该许可是否存续（${t.kind}）`,
-      `Retention of the ${t.kind} title`,
+      `第 ${index + 1} 份文书（${zh}）是否存续`,
+      `Retention of document ${index + 1} (${en})`,
       individualTitle(t, req.simulationDate),
       [src(100, loc), src(108, 'Nr. 51.1.6.6–7, pp236–237')],
       'PD-124 / PD-353',

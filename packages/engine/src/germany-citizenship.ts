@@ -317,34 +317,32 @@ function criminalRecord(record?: CriminalRecord): Answer {
     case 'fines':
     case 'mixed-sentences':
     case 'custody': {
-      if (record.judgmentFoundHateMotive) return false;
-      if (record.judgmentFoundHateMotive === undefined) return undefined;
+      const limit = p.citizenshipConvictions.value;
+      const noHateMotive =
+        record.judgmentFoundHateMotive === undefined
+          ? undefined
+          : !record.judgmentFoundHateMotive;
+      let total: number;
+      let remitted: Answer = true;
       if (record.kind === 'custody') {
-        if (record.suspendedAndRemitted !== true)
-          return record.suspendedAndRemitted;
-        return (
-          record.months <= p.citizenshipConvictions.value.probationMonths ||
-          decision(record.disregardExcess)
-        );
-      }
-      if (record.kind === 'mixed-sentences') {
-        if (record.allCustodySuspendedAndRemitted !== true)
-          return record.allCustodySuspendedAndRemitted;
-        const days =
+        remitted = record.suspendedAndRemitted;
+        total = record.months * (limit.fineDayRates / limit.probationMonths);
+      } else if (record.kind === 'mixed-sentences') {
+        remitted = record.allCustodySuspendedAndRemitted;
+        total =
           record.lowerCombinedDays ??
           record.fineDayRates.reduce((sum, n) => sum + n, record.prisonDays);
-        return (
-          days <= p.citizenshipConvictions.value.fineDayRates ||
-          decision(record.disregardExcess)
-        );
+      } else {
+        if (!record.dayRates.length) return all(noHateMotive, undefined);
+        total =
+          record.lowerCombinedDayRates ??
+          record.dayRates.reduce((a, b) => a + b, 0);
       }
-      if (!record.dayRates.length) return undefined;
-      const total =
-        record.lowerCombinedDayRates ??
-        record.dayRates.reduce((a, b) => a + b, 0);
-      return (
-        total <= p.citizenshipConvictions.value.fineDayRates ||
-        decision(record.disregardExcess)
+      if (total > limit.fineDayRates + limit.minorExcessDayRates) return false;
+      return all(
+        noHateMotive,
+        remitted,
+        total <= limit.fineDayRates || decision(record.disregardExcess),
       );
     }
     default:
@@ -359,6 +357,7 @@ export function citizenshipTimeOverride(
   route: string,
   req: DeFullRequest,
   pilotResidence?: boolean,
+  pilotDate?: IsoDate,
 ): Answer | 'pilot' {
   const a = req.citizenship ?? {};
   const sim = req.simulationDate;
@@ -385,14 +384,14 @@ export function citizenshipTimeOverride(
         return undefined;
       return 'pilot';
     }
-    const regular = yearsSince(
+    const due = afterYears(
       a.countedResidenceSince,
-      sim,
       time.naturalisationYears.value.general,
     );
-    return !regular && (pendingOldCase || sim < time.turboAbolishedFrom.value)
-      ? undefined
-      : regular;
+    if (due <= sim) return true;
+    if (pendingOldCase || sim < time.turboAbolishedFrom.value) return undefined;
+    // Keep the projection only when both timelines give the same due date.
+    return pilotResidence === false && due === pilotDate ? 'pilot' : false;
   }
   if (route !== 'R08') return 'pilot';
   const s = a.spouse;
@@ -565,12 +564,13 @@ export function citizenshipChecks(
     convictions,
     [
       src(101, '§§ 8 Abs. 1 Nr. 2, Abs. 2; 10 Abs. 1 Nr. 5; 12a Abs. 1–4'),
+      ...p.citizenshipConvictions.sources,
       src(424, 'BZRG §§ 46, 51, 52'),
     ],
     'PD-345',
     [
-      '核对合并刑量、判决载明的仇恨动机、缓刑期满免刑、境外记录及个案决定。侦查或判决未生效须等待。',
-      'Check aggregate sentences, a hate motive found in the judgment, remission after probation, foreign records and any individual ruling. Pending proceedings suspend the decision.',
+      `核对合并刑量、判决载明的仇恨动机、缓刑期满免刑和境外记录。按 BMI 指引，罚金超过 ${p.citizenshipConvictions.value.fineDayRates} 个日额时，只有超出不多于 ${p.citizenshipConvictions.value.minorExcessDayRates} 个日额才可由机关决定是否忽略。侦查或判决未生效须等待。`,
+      `Check aggregate sentences, a hate motive found in the judgment, remission after probation and foreign records. Under BMI guidance, the authority may disregard a fine above ${p.citizenshipConvictions.value.fineDayRates} day rates only if the excess is at most ${p.citizenshipConvictions.value.minorExcessDayRates} day rates. Pending proceedings suspend the decision.`,
     ],
   );
   add(

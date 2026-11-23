@@ -214,6 +214,87 @@ describe('German full route results', () => {
 });
 
 describe('common settlement requirements', () => {
+  test('a cohabiting spouse can meet the pension threshold even when the applicant has only 36 months', () => {
+    const pension = (
+      spouseContributionMonths?: number,
+      contributionMonths = 36,
+    ) =>
+      pathway('R01', {
+        contributionMonths,
+        common: {
+          ...evidence,
+          spouseInHousehold: true,
+          spouseContributionMonths,
+        },
+      });
+    const missing = pension();
+    expect(missing.checks.find((c) => c.id === 'DE-C05')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: expect.arrayContaining(['PD-344']),
+    });
+    expect(missing.status).toBe('UNKNOWN');
+    expect(missing.pendingDetails).toContain('PD-344');
+    expect(missing.earliestDate).toBeUndefined();
+    expect(missing.summary).toBeUndefined();
+    const unconfirmedHousehold = pathway('R01', {
+      contributionMonths: 36,
+      common: { ...evidence, spouseContributionMonths: 60 },
+    });
+    expect(unconfirmedHousehold.status).toBe('UNKNOWN');
+    expect(unconfirmedHousehold.earliestDate).toBeUndefined();
+    for (const sufficient of [pension(60), pension(undefined, 60)]) {
+      expect(sufficient.checks.find((c) => c.id === 'DE-C05')?.status).toBe(
+        'MET',
+      );
+      expect(sufficient).toMatchObject({ status: 'MET', earliestDate: day });
+    }
+    const insufficient = pension(0);
+    expect(insufficient.checks.find((c) => c.id === 'DE-C05')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(insufficient).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2028-11-23',
+    });
+  });
+  test('a medical livelihood waiver covers its insurance component on general settlement', () => {
+    const uninsured = (
+      route: DeFullRoute,
+      livelihoodMedicalWaiver: 'pending' | 'granted' | 'denied',
+    ) =>
+      pathway(route, {
+        common: {
+          ...evidence,
+          livelihoodConfirmed: false,
+          livelihoodMedicalWaiver,
+          insurance: ['none'],
+        },
+      });
+    for (const [ruling, status] of [
+      ['pending', 'UNKNOWN'],
+      ['granted', 'MET'],
+      ['denied', 'NOT_MET'],
+    ] as const) {
+      const result = uninsured('R01', ruling);
+      expect(result.checks.find((c) => c.id === 'DE-C03')?.status).toBe(status);
+      expect(result.checks.find((c) => c.id === 'DE-C04')?.status).toBe(status);
+      expect(result.status).toBe(status);
+      expect(result.earliestDate).toBe(status === 'MET' ? day : undefined);
+    }
+    for (const route of ['R06', 'R05-fast'] as const) {
+      expect(
+        uninsured(route, 'granted').checks.find((c) => c.id === 'DE-C04')
+          ?.status,
+      ).toBe('NOT_MET');
+    }
+    const ordinaryRefugee = pathway('R05', {
+      common: { ...evidence, insurance: ['none'] },
+      settlement: { refugeeIncome: { medicalExemption: 'accepted' } },
+    });
+    expect(ordinaryRefugee.checks.find((c) => c.id === 'DE-C04')?.status).toBe(
+      'MET',
+    );
+  });
   test.each([
     ['C01', { passport: 'unconfirmed' }, 'UNKNOWN'],
     ['C01', { capableOrRepresented: false }, 'NOT_MET'],
@@ -340,6 +421,16 @@ describe('common settlement requirements', () => {
 });
 
 describe('application and exam fee information', () => {
+  test('the express surcharge links to its 2023 Gazette article', () => {
+    const charge = pathway('R01', {
+      fees: { expressAccepted: true },
+    }).checks.find((c) => c.id === 'DE-C65-express');
+    expect(charge?.sources).toContainEqual({
+      srcId: 'SRC-434',
+      locator: expect.stringContaining('2023 I Nr. 290'),
+      url: 'https://www.recht.bund.de/bgbl/1/2023/290/regelungstext.pdf?__blob=publicationFile&v=2',
+    });
+  });
   test.each([
     ['R01', 'C65', {}, '113.00'],
     ['R13', 'C65', {}, '147.00'],
@@ -576,3 +667,111 @@ test('recognised resettlement is counted on its own permit while a different § 
     result(false).checks.find((c) => c.id === 'DE-C24-title')?.status,
   ).toBe('MET');
 });
+
+test('refugee settlement applies the notice wording in force on the decision day and the protection exemption on the application day', () => {
+  const refugee = (
+    date: string,
+    notice: NonNullable<DeFullRequest['settlement']>['bamfNotice'],
+    route: 'R05' | 'R05-fast' = 'R05',
+  ) =>
+    pathway(route, {
+      simulationDate: date,
+      firstEntry: '2017-01-01',
+      permits: [{ kind: 'protection', from: '2017-01-01' }],
+      mobility: {
+        titles: [
+          {
+            kind: 'protection',
+            validTo: null,
+            noOtherLossEvent: true,
+            trips: [],
+          },
+        ],
+      },
+      common: { ...evidence, provenGerman: 'C1' },
+      settlement: {
+        protectionTitle: 'section25-refugee',
+        bamfNotice: notice,
+        refugeeIncome: {
+          ordinaryDecision: 'accepted',
+          acceleratedDecision: 'accepted',
+        },
+      },
+      fees: {
+        applicationDate: date,
+        reduction: 'section52-protection-or-admission',
+        paid: 0,
+      },
+    });
+  const historic = refugee('2025-11-20', 'confirmed-none');
+  expect(historic).toMatchObject({ status: 'MET', earliestDate: '2025-11-20' });
+  expect(historic.checks).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ id: 'DE-C24-notice', status: 'MET' }),
+      expect.objectContaining({
+        id: 'DE-C65',
+        status: 'MET',
+        explanation: expect.stringContaining('€0.00'),
+      }),
+      expect.objectContaining({ id: 'DE-C65-paid', status: 'MET' }),
+      expect.objectContaining({ id: 'DE-C67', status: 'MET' }),
+    ]),
+  );
+  for (const notice of ['revocation', 'withdrawal'] as const) {
+    const result = refugee('2025-11-20', notice);
+    expect(result.status).toBe('NOT_MET');
+    expect(result.earliestDate).toBeUndefined();
+    expect(result.checks.find((c) => c.id === 'DE-C24-notice')?.status).toBe(
+      'NOT_MET',
+    );
+  }
+  expect(refugee('2026-06-11', 'deprivation').status).toBe('MET');
+  expect(refugee('2026-06-12', 'deprivation').status).toBe('NOT_MET');
+  expect(refugee('2026-06-12', 'deprivation', 'R05-fast').status).toBe('MET');
+  for (const [date, notice] of [
+    ['2025-11-20', 'only-applicant-unaware'],
+    ['2022-12-31', 'confirmed-none'],
+  ] as const) {
+    const result = refugee(date, notice);
+    expect(result.status).toBe('UNKNOWN');
+    expect(result.earliestDate).toBeUndefined();
+    expect(result.checks.find((c) => c.id === 'DE-C24-notice')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-351'],
+    });
+  }
+});
+
+test.each([
+  ['association-right', undefined, 23],
+  ['authority-set', 20, 20],
+] as const)(
+  'substantive review uses the %s processing charge for payment',
+  (reduction, assessedFee, amount) => {
+    const run = (paid: number) =>
+      pathway('R01', {
+        fees: {
+          stage: 'after-substantive-review',
+          reduction,
+          assessedFee,
+          paid,
+        },
+      });
+    for (const [paid, status] of [
+      [amount, 'MET'],
+      [amount - 0.01, 'NOT_MET'],
+    ] as const) {
+      const result = run(paid);
+      expect(result).toMatchObject({ status: 'MET', earliestDate: day });
+      for (const id of ['DE-C65', 'DE-C65-advance']) {
+        expect(result.checks.find((c) => c.id === id)).toMatchObject({
+          status: 'MET',
+          explanation: expect.stringContaining('€' + amount.toFixed(2)),
+        });
+      }
+      expect(result.checks.find((c) => c.id === 'DE-C65-paid')?.status).toBe(
+        status,
+      );
+    }
+  },
+);
