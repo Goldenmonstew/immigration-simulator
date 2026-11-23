@@ -26,6 +26,7 @@ Codex 第二轮指出：表单说"不勾选即按みなし再入国许可"，出
 
 ## 2. 怎么验证的
 
+- Fable 门禁（`2bce9a0`）：`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0，engine 3,171 项（另 1 项跳过）、game 1,336 项、web 640 项通过；e2e 桌面 55 项全部通过。手机宽度（375 px）预览 `/japan`：选"在日本出生"路线、加一条出境并选"持みなし再入国许可出境"，出境方式选项只在该路线出现，结果卡片写明须在出境前递交并获许可。Codex 审核三轮，第三轮结论"通过"，其建议已在 `2bce9a0` 处理。
 - 2019–2021 年暦要項快照 sha256 与文件一致，按 `check-sources.mjs` 的解析规则能对上地址；列表中的特别法休日逐日核对星期。
 - 审核建议处理（review74-3）后：engine 日本 87 项通过，apps/web 同上四个文件 35 项通过；engine、web 的 `tsc --noEmit`，改动文件的 eslint、prettier 通过。
 - 审核修正（review74-2）后：engine 日本 85 项通过，apps/web 同上四个文件 35 项通过；engine、web 的 `tsc --noEmit`，改动文件的 eslint、prettier 通过。
