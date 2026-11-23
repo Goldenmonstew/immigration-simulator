@@ -28,3 +28,10 @@
 ## 4. 发现与建议
 
 预发时可直接请求 `/result` 检查 301 状态和 `Location`，再用浏览器打开带 `#s=` 的旧链接检查实际结果。片段由浏览器处理，HTTP 请求只包含路径和查询串。[Cloudflare Pages 跳转规则](https://developers.cloudflare.com/pages/configuration/redirects/)
+
+## 审核修正（review78-1）
+
+1. **做了什么**　建议提交 `Fix: 修复旧英国分享链接首次离线访问失败`。`apps/web/public/sw.js` 在导航请求断网失败时，将六个旧入口重定向到同一部署前缀下的 `/uk/...`。重定向保留查询串，分享片段由浏览器继承。`apps/e2e/tests/legacy-urls.spec.ts` 新增断网用例，等待 worker 接管首页后首次打开带查询串和有效分享片段的旧结果链接，断言最终 URL、载入提示及两栏评估可见。改动记录在 `PROGRESS.md` 第 452 项和本报告。
+2. **怎么验证的**　`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0，包含 e2e 的 `tsc --noEmit`。单元测试 5,224 项通过、1 项跳过。另用 Node 执行修改前后的 worker 导航处理函数，模拟断网，并按导出的离线清单提供缓存页面。根路径和 `/immigration-simulator` 下各测六个旧入口。修改前 12 次均返回 `Response.error()`，修改后 12 次均返回 302，`Location` 保留原查询串，目标页均从缓存返回 200。
+3. **没做或没验证的**　按 brief 未提交。Playwright 浏览器运行及分享片段继承的端到端验证留给 Fable。
+4. **发现与建议**　v4 已预缓存六个目标页，本次沿用该缓存版本与离线清单。
