@@ -160,4 +160,19 @@ export const sourceUrls: Record<string, string> = {
     'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2010/20100100049.pdf',
   'SRC-089':
     'https://www.ypes.gr/wp-content/uploads/2026/02/Proypotheseis20260130.pdf',
+  'SRC-120':
+    'https://files.diariodarepublica.pt/1s/2026/05/09500/0000200020.pdf',
+  'SRC-121':
+    'https://files.diariodarepublica.pt/1s/2024/03/04600/0000200019.pdf',
+  'SRC-122': 'https://www.tribunalconstitucional.pt/tc/acordaos/20251133.html',
+  'SRC-123':
+    'https://files.diariodarepublica.pt/1s/2022/08/16400/0000200137.pdf',
+  'SRC-124':
+    'https://files.diariodarepublica.pt/1s/2015/09/17101/0000200038.pdf',
+  'SRC-125':
+    'https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=940&tabela=leis',
+  'SRC-126':
+    'https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a',
+  'SRC-127':
+    'https://justica.gov.pt/Noticias/Lei-da-Nacionalidade-novas-regras-entram-em-vigor-a-19-de-maio',
 };

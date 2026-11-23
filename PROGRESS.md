@@ -355,3 +355,4 @@
 | 316 | 任务 65 合入 main，报告补记最终验证（门禁、e2e 47 项、四轮 Codex 审核通过）。 | docs/tasks/reports/65-australia-hong-kong.md |
 | 317 | 任务 66：网站另部署到 GitHub Pages（不含姓名的地址）；basePath 与 asset() 前缀、sw.js 与 manifest 支持子路径；Pages 发布工作流；仓库开启 Pages；部署说明与报告。 | apps/web/next.config.ts、apps/web/lib/asset.ts、apps/web/app/game/、apps/web/app/layout.tsx、apps/web/components/service-worker.tsx、apps/web/public/{sw.js,manifest.webmanifest}、.github/workflows/github-pages.yml、docs/ |
 | 318 | 任务 66 审核修正（review66-1）：分享链接带子路径；首页链接指向带尾斜杠的地址；Pages 工作流补 contents: read 并在发布前检查子路径。 | apps/web/components/{share-link,site-shell}.tsx、apps/web/app/error.tsx、apps/web/app/simulate/page.tsx、.github/workflows/github-pages.yml、docs/ |
+| 360 | 任务 71：登记葡萄牙官方来源 SRC-120～127（国籍法 LO 1/2026 与旧文本 LO 1/2024、宪法法院 1133/2025、外国人法 Lei 23/2007 及修改、DR 15-A/2015、里斯本检察院编纂版、AIMA 页面、政府说明，19 份快照）与 PD-140～149；网站来源链接同步。 | docs/SOURCES.md、docs/pending-details.md、policy-sources/（19 份 pt 快照）、apps/web/lib/sources.ts、PROGRESS.md |
