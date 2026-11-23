@@ -1,16 +1,16 @@
 # AGENTS.md — 本仓库所有 agent 的工作约定
 
-适用于在本仓库工作的所有 agent：Codex CLI（astra / sol 等）与 Claude Code。Claude Code 通过 `CLAUDE.md` 引入本文件。
+适用于在本仓库工作的所有 agent：Codex CLI（gpt-6.2-astra / gpt-6.2-sol）、agy CLI（Claude Opus / Sonnet 5.5、GPT-OSS 120B、Gemini 4 等模型）与 Claude Code。Claude Code 通过 `CLAUDE.md` 引入本文件。
 
-2026-11-16 起（用户决定）：Fable（Claude）直接实现；Codex 模型（astra / sol）只做代码审核，不再写代码；agy（Gemini 模型）只做页面设计、布局与风格的评审。（2026-11-15 至 11-16 曾由 Codex 写代码、Fable 只统筹。）
+2026-11-23 起（用户决定，第 20 阶段）：Codex 与 agy 的模型负责实现；Fable（Claude Code）只做分工统筹、写 brief、跑门禁与 e2e、做视觉验收、开 PR 与合并。代码审核仍由 Codex（gpt-6.2-sol）只读进行，页面设计评审由 agy 的 Gemini 模型进行。（2026-11-16 至 11-23 曾由 Fable 实现、Codex 只审核。）
 
 main 受分支保护：所有改动走 PR。CI 的 `check` 与 `e2e` 通过、Codex 审核意见处理完后才合并；合并后自动走预发、冒烟、正式发布。
 
 ## 角色与边界
 
-- Fable（Claude）：实现、提交、开 PR、合并、更新 `PROGRESS.md`。规则语义改动须附 SRC 定位与测试。
-- Codex（astra / sol）：只读审核 PR 的 diff，按"问题 / 风险 / 建议"列出意见，不改文件、不提交。
-- agy（Gemini）：只评审页面设计、布局与风格。
+- 实现者（Codex gpt-6.2-astra / gpt-6.2-sol，agy 的 Claude、GPT-OSS、Gemini 模型）：在各自的 worktree / 分支上按 brief 实现，规则语义改动须附 SRC 定位与测试，每个逻辑改动更新 `PROGRESS.md` 一行（用 brief 分配的行号段）。agy 可以自己 commit；Codex 的沙箱写不了 `.git`，按 brief 在报告里分组列出改动，由 Fable 代为提交。
+- Fable（Claude Code）：拆任务、写 brief、分配编号段、跑门禁与 e2e、在浏览器里做视觉验收、推分支、开 PR、处理合并冲突、合并、核对线上。不写业务代码。
+- 审核者（Codex gpt-6.2-sol 只读；agy Gemini 只评审页面设计、布局与风格）：按"问题 / 风险 / 建议"列出意见，不改文件、不提交。
 - 每个任务只做约定的范围。范围外的问题写进报告的"发现与建议"，不要擅自实现。
 - 审核者不要修改 `PROGRESS.md`、`AGENTS.md`、`CLAUDE.md`。
 
@@ -22,7 +22,7 @@ main 受分支保护：所有改动走 PR。CI 的 `check` 与 `e2e` 通过、Co
 ## 政策内容的硬规则
 
 - 任何政策数字（门槛、年限、日期）必须能追溯到 `docs/SOURCES.md` 的 `SRC-xxx` + 页码或段落号；没有来源的数字不要写进代码、数据或文档。
-- 规则语义改动由 Fable 实现，须附 SRC 定位与测试，并经 Codex 只读审核；审核者发现规则问题只报告。
+- 规则语义改动由实现者按 brief 实现，须附 SRC 定位与测试，并经 Codex 只读审核；审核者发现规则问题只报告。
 - 政府未定的细节输出 `UNKNOWN`，并登记到 `docs/pending-details.md`；不要猜。
 - 不要在代码里硬编码裸数字门槛，一律走 `packages/policy-data` 的参数文件。
 - 不要用律所、媒体页面替代官方来源；二手来源只能用于交叉验证。
@@ -31,12 +31,15 @@ main 受分支保护：所有改动走 PR。CI 的 `check` 与 `e2e` 通过、Co
 
 - 在自己的 worktree / 分支上工作；改动推到分支并开 PR，不直接推 main；不要改 git 配置；不要 rebase 或改写已推送的历史。
 - 一个逻辑改动一次 commit。格式：`Type: 简短描述`，Type 取 `Feat` / `Fix` / `Refactor` / `Test` / `Chore` / `Docs`；正文可写要点；末尾一行 `Co-Authored-By: <agent 名> <noreply@...>`，例如：
-  - `Co-Authored-By: Codex gpt-6.1-sol <noreply@openai.com>`
-  - `Co-Authored-By: Codex gpt-6-astra <noreply@openai.com>`
-  - `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`
+  - `Co-Authored-By: Codex gpt-6.2-astra <noreply@openai.com>`
+  - `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`
+  - `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`（agy 或 Claude Code）
+  - `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`
+  - `Co-Authored-By: Gemini 4 Hydrogen <noreply@google.com>`
+  - `Co-Authored-By: GPT-OSS 120B <noreply@openai.com>`
 - 只 `git add` 本次改动相关的文件；不要提交 `node_modules`、构建产物、`.env`。
 - commit 前必须通过 brief 里的验收命令。
-- Codex 只审核：不改文件、不提交；审核意见写进它的最终消息，由 Fable 处理并附在 PR 说明里。
+- 审核者不改文件、不提交；审核意见写进它的最终消息，由 Fable 转给实现者处理并附在 PR 说明里。
 
 ## 验证
 
