@@ -877,6 +877,25 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     expect(back.summary).toContain('2026-12-10');
   });
 
+  test('Stamp 5: an "other" permission from the return day is the pending item, not a gap (review72-3)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        permissions: [
+          { kind: 'stamp4', from: '2018-12-01', to: '2026-12-09' },
+          { kind: 'other', from: '2026-12-10' },
+        ],
+        trips: [{ departed: '2026-11-29', returned: '2026-12-10' }],
+        stamp4Route: 'wcatt',
+      },
+      'IE-STAMP4',
+    );
+    expect(p.earliestDate).toBe('2026-12-01');
+    expect(p.summary).toContain('"其他"类许可');
+    expect(p.summary).toContain('若计入，最早 2026-12-10 回到爱尔兰后递交');
+    expect(p.summary).not.toContain('空档前后能否累加');
+  });
+
   test('Stamp 5 after 96 months', () => {
     const req: Partial<IeRequest> = {
       simulationDate: '2025-01-01',

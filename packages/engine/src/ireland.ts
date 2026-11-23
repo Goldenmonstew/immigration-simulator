@@ -821,6 +821,10 @@ export function evaluateIreland(req: IeRequest): IeResult {
       // Nor from people without a residence permission (same page): the
       // return day must pass the same check as applying that day.
       const onReturn = filing && filing !== earliest ? verdict(filing) : 'yes';
+      // Pending on the return day: an "other" permission with no gap, or a
+      // real gap between permissions.
+      const otherOnly =
+        !!filing && covered(wideSums, addMonths(filing, -months), filing);
       pathways.push({
         id: 'IE-STAMP4',
         title: L(
@@ -849,27 +853,32 @@ export function evaluateIreland(req: IeRequest): IeResult {
                 ` Counting "other" permissions, or adding up residence on both sides of a gap, it could be ${possible} (PD-114, PD-118).`,
               )
             : '') +
-          (onReturn === 'maybe'
+          (onReturn === 'maybe' && otherOnly
             ? L(
-                `按已录入的出行，你那天在境外；${filing} 回到爱尔兰时许可之间有空档，空档前后能否累加没写：若可累加，最早 ${filing} 回到爱尔兰后递交（PD-118）。`,
-                ` By your recorded trips you are abroad that day, and when you are back on ${filing} there is a gap between your permissions; whether time on both sides can be added up is not stated, but if it can, the earliest filing date is ${filing} (PD-118).`,
+                `按已录入的出行，你那天在境外；${filing} 回到爱尔兰时持的是"其他"类许可，它能否计入 Stamp 5 待确认：若计入，最早 ${filing} 回到爱尔兰后递交（PD-114）。`,
+                ` By your recorded trips you are abroad that day, and when you are back on ${filing} you hold an "other" permission, which may or may not count for Stamp 5: if it does, the earliest filing date is ${filing} (PD-114).`,
               )
-            : onReturn === 'no'
+            : onReturn === 'maybe'
               ? L(
-                  `按已录入的出行，你那天在境外；${filing} 回到爱尔兰时，按录入的许可已不再连续持有可计入 Stamp 5 的有效许可。ISD 不受理在境外或没有居留许可时递交的申请，本试点不给出递交日期。`,
-                  ` By your recorded trips you are abroad that day, and when you are back on ${filing} the permissions you entered no longer give an unbroken permission that counts for Stamp 5; ISD does not accept applications from outside the State or without a residence permission, so this pilot gives no filing date.`,
+                  `按已录入的出行，你那天在境外；${filing} 回到爱尔兰时许可之间有空档，空档前后能否累加没写：若可累加，最早 ${filing} 回到爱尔兰后递交（PD-118）。`,
+                  ` By your recorded trips you are abroad that day, and when you are back on ${filing} there is a gap between your permissions; whether time on both sides can be added up is not stated, but if it can, the earliest filing date is ${filing} (PD-118).`,
                 )
-              : filing && filing !== earliest
+              : onReturn === 'no'
                 ? L(
-                    `按已录入的出行，你那天在境外；ISD 不受理在境外递交的申请，最早 ${filing} 回到爱尔兰后递交。`,
-                    ` By your recorded trips you are abroad that day; ISD does not accept applications from outside the State, so the earliest filing date is ${filing}, when you are back.`,
+                    `按已录入的出行，你那天在境外；${filing} 回到爱尔兰时，按录入的许可已不再连续持有可计入 Stamp 5 的有效许可。ISD 不受理在境外或没有居留许可时递交的申请，本试点不给出递交日期。`,
+                    ` By your recorded trips you are abroad that day, and when you are back on ${filing} the permissions you entered no longer give an unbroken permission that counts for Stamp 5; ISD does not accept applications from outside the State or without a residence permission, so this pilot gives no filing date.`,
                   )
-                : filing
+                : filing && filing !== earliest
                   ? L(
-                      '须在爱尔兰境内、持有效居留许可时递交。',
-                      ' You must be in Ireland and hold a residence permission when you apply.',
+                      `按已录入的出行，你那天在境外；ISD 不受理在境外递交的申请，最早 ${filing} 回到爱尔兰后递交。`,
+                      ` By your recorded trips you are abroad that day; ISD does not accept applications from outside the State, so the earliest filing date is ${filing}, when you are back.`,
                     )
-                  : '') +
+                  : filing
+                    ? L(
+                        '须在爱尔兰境内、持有效居留许可时递交。',
+                        ' You must be in Ireland and hold a residence permission when you apply.',
+                      )
+                    : '') +
           L(policy, ` ${policy}`),
         checks: [
           {
