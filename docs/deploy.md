@@ -24,7 +24,7 @@ cd /path/to/web-UK
 git branch --show-current # Must print main
 pnpm install --frozen-lockfile
 
-export CF_PAGES_PROJECT=uk-immigration-simulator
+export CF_PAGES_PROJECT=immigration-simulator
 read -rp 'Cloudflare Account ID: ' CLOUDFLARE_ACCOUNT_ID
 export CLOUDFLARE_ACCOUNT_ID
 read -rsp 'Cloudflare API token: ' CLOUDFLARE_API_TOKEN
@@ -41,7 +41,7 @@ unset CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID
 
 `deploy:pages` 会先运行 `pnpm build`，再用固定版本 `wrangler@4.157.0` 上传 `apps/web/out`。此版本由 2026-11-04 的 `npm view wrangler version` 查询确定，不添加项目依赖。Wrangler 自行读取 `CLOUDFLARE_ACCOUNT_ID` 与 `CLOUDFLARE_API_TOKEN`；项目名未设置或为空时，构建后会明确报错 `CF_PAGES_PROJECT: set CF_PAGES_PROJECT` 并退出。
 
-部署成功后，打开 `https://<项目名>.pages.dev`（例如 `https://uk-immigration-simulator.pages.dev`），以控制台给出的实际地址为准。Fable 再用浏览器检查首页、`/simulate`、`/result`，并直接打开、刷新这些 clean URL。
+部署成功后，打开 `https://<项目名>.pages.dev`（例如 `https://immigration-simulator.pages.dev`），以控制台给出的实际地址为准。Fable 再用浏览器检查首页、`/simulate`、`/result`，并直接打开、刷新这些 clean URL。
 
 官方说明：[Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/#wrangler-cli)、[Wrangler Pages 命令](https://developers.cloudflare.com/workers/wrangler/commands/pages/#pages-project-create)。此类项目之后仍通过 Wrangler 上传；GitHub Actions 采用下节工作流，无需切换 Cloudflare 内置 Git integration。
 
@@ -53,7 +53,7 @@ unset CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID
 |---|---|---|
 | Secrets → New repository secret | `CLOUDFLARE_API_TOKEN` | 上面创建的 Pages 编辑 token |
 | Secrets → New repository secret | `CLOUDFLARE_ACCOUNT_ID` | 同一个 Cloudflare 账号的 Account ID |
-| Variables → New repository variable | `CF_PAGES_PROJECT` | 已创建的 Pages 项目名，例如 `uk-immigration-simulator` |
+| Variables → New repository variable | `CF_PAGES_PROJECT` | 已创建的 Pages 项目名，例如 `immigration-simulator` |
 
 配置好之后再次 push `main`，`.github/workflows/deploy.yml` 会安装锁文件依赖并执行 `pnpm deploy:pages`。在 GitHub **Actions → Deploy to Cloudflare Pages** 查看运行结果，再打开 `https://<项目名>.pages.dev` 确认更新。
 
@@ -81,8 +81,16 @@ Cloudflare Pages 的 [Serving Pages：Route matching](https://developers.cloudfl
 
 ## 附：GitHub Pages 镜像
 
-2026-11-23 起，`.github/workflows/github-pages.yml` 在 main 的 CI 通过后另建一份副本到 GitHub Pages：<https://goldenmonstew.github.io/uk-immigration-simulator/>。用于 pages.dev 或自定义域名打不开的网络，地址里不含个人姓名。
+2026-11-23 起，`.github/workflows/github-pages.yml` 在 main 的 CI 通过后另建一份副本到 GitHub Pages：<https://goldenmonstew.github.io/immigration-simulator/>。用于 pages.dev 或自定义域名打不开的网络，地址里不含个人姓名。
 
 - 仓库 Settings → Pages 的 Source 为 **GitHub Actions**（已用 `gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow` 开启）。
 - 项目站点挂在 `/<仓库名>` 子路径下：构建时设 `BASE_PATH=/<仓库名>`，Next 的 `basePath` 处理页面链接与脚本，游戏素材等普通资源路径用 `apps/web/lib/asset.ts` 的 `asset()` 加前缀，`sw.js` 从注册范围取前缀，`manifest.webmanifest` 用相对路径。
 - 不设 `BASE_PATH` 时与原来完全相同，Cloudflare 部署不受影响。
+
+## 附：2026-11-23 改名为 immigration-simulator（第 20 阶段，任务 82）
+
+- 网站改为多国集合入口后改名：Cloudflare Pages 新项目 `immigration-simulator`（<https://immigration-simulator.pages.dev>，仓库变量 `CF_PAGES_PROJECT` 已改为它），GitHub 仓库改名为 `Goldenmonstew/immigration-simulator`，GitHub Pages 副本随仓库名变为 <https://goldenmonstew.github.io/immigration-simulator/>（`github-pages.yml` 用仓库名作 base path，无需改动）。
+- 旧地址保留并跳转：
+  - Cloudflare 旧项目 `uk-immigration-simulator`（含自定义域名 `wanruncong.uk`）只部署一个跳转站：`_redirects` 把 `/*` 301 到新域名同一路径；`/sw.js` 改写到一个自行注销的 service worker，清掉老用户浏览器里的离线缓存。
+  - GitHub 新建仓库 `Goldenmonstew/uk-immigration-simulator`，只放跳转页（`index.html`、`404.html` 保留路径、查询串与 `#` 片段跳到新地址）和同样的自注销 `sw.js`。注意：旧名字的仓库已重新创建，GitHub 不再把旧仓库网址自动转到改名后的仓库，本地 remote 已改为新地址。
+- 新旧网站是不同的源（origin），浏览器里保存在旧地址的英国问卷草稿、方案与游戏存档不会带到新地址。
