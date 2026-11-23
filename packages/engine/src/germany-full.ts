@@ -26,6 +26,7 @@ import {
 import {
   blueCardTimeInputs,
   mobilityChecks,
+  naturalisationTitleLosses,
   retainedTitle,
   type DeMobilityAnswers,
   type DocumentReviews,
@@ -126,6 +127,7 @@ function currentPermit(req: DeFullRequest) {
 // Reuse the same evaluation when several full routes request the same pilot timeline.
 function pilotReader(req: DeFullRequest) {
   const cache = new Map<string, ReturnType<typeof evaluateGermanyTimeline>>();
+  const titleLosses = naturalisationTitleLosses(req);
   return (
     route: PilotRoute,
     trained = req.trainedInGermany,
@@ -177,8 +179,10 @@ function pilotReader(req: DeFullRequest) {
           }),
         },
         {
-          employmentDue: blue?.employmentDue,
+          employmentWindows: blue?.employmentWindows,
           countedResidenceSince: req.citizenship?.countedResidenceSince,
+          naturalisationTitleLosses:
+            naturalisationRoute === 'general' ? titleLosses : undefined,
         },
       );
       cache.set(key, result);
@@ -491,8 +495,11 @@ function matchDocuments(req: DeFullRequest): {
   const titles = detailed ?? [];
   const issued = permits.filter((p) => p.from <= req.simulationDate);
   const matches = titles.map((title) => {
+    if (title.from)
+      return permits.filter(
+        (p) => p.kind === title.kind && p.from === title.from,
+      );
     const sameKind = issued.filter((p) => p.kind === title.kind);
-    if (title.from) return sameKind.filter((p) => p.from === title.from);
     const unclaimed = sameKind.filter(
       (p) => !titles.some((t) => t.kind === p.kind && t.from === p.from),
     );
@@ -616,10 +623,12 @@ export function evaluateGermanyFull(input: DeFullRequest): CountryResult {
       )
         ? undefined
         : time?.old?.earliestDate;
+      const uncertainDeparture =
+        time?.old?.status === 'UNKNOWN' &&
+        time.old.pendingDetails?.includes('PD-353');
       if (
-        time?.old?.status === 'FUTURE' &&
-        !time.changed &&
-        date &&
+        ((time?.old?.status === 'FUTURE' && date) || uncertainDeparture) &&
+        !time?.changed &&
         status === 'NOT_MET' &&
         checks.every(
           (c) =>
@@ -628,14 +637,28 @@ export function evaluateGermanyFull(input: DeFullRequest): CountryResult {
             (timeOnly.has(c.id) && c.status === 'NOT_MET'),
         )
       )
-        status = 'FUTURE';
+        status = uncertainDeparture ? 'UNKNOWN' : 'FUTURE';
       checks.push(...feeChecks(route, req));
       const pendingDetails = [
-        ...new Set(checks.flatMap((c) => c.pendingDetails ?? [])),
+        ...new Set([
+          ...checks.flatMap((c) => c.pendingDetails ?? []),
+          ...(uncertainDeparture ? ['PD-353'] : []),
+        ]),
       ];
       const assumptions: string[] = [];
       if (status === 'FUTURE')
         assumptions.push(...(time?.old?.assumptions ?? []));
+      if (
+        status === 'FUTURE' &&
+        route === 'R03' &&
+        req.mobility?.blueCard?.employment
+      )
+        assumptions.push(
+          L(
+            '按月填报时，预测以相应工资月结束后确认同期缴费为前提，且决定日仍须受雇并达到届时适用的工资线。',
+            'The forecast assumes contributions are confirmed after each payroll month closes and the job still meets the applicable pay threshold on the decision date.',
+          ),
+        );
       return {
         id: 'DE-' + route,
         title: L(routes[route][0], routes[route][1]),

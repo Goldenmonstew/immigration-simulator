@@ -272,3 +272,66 @@ PROGRESS 716。建议提交 `Fix: 按实际工作日期计算德国蓝卡就业�
 ### 4. 发现与建议
 
 审核中 R05 退休生计豁免是否涵盖医保的问题仍登记在 PD-351，等待官方口径。
+
+## 第五轮审核修正（review90-5）
+
+### 1. 做了什么
+
+PROGRESS 717。建议提交 `Fix: 区分德国蓝卡已缴与预测月份并核对决定日就业和入籍许可（review90-5）`。
+
+R03 同时核对实际工作日与该期间的工资、养老证据。B1 档需要 21 个月。审核样例从 2025-02-15 入职，缴费自 2025-02 至 2026-10，一共涉及 21 个工资月，但从入职到 2026-11-01 只满 20 个整月。模拟日 11-15 或 11-23 均确认 20 个月。若 11 月继续合格就业并缴费，按逐月问卷最早可在 12-01 确认第 21 个月。工资月关闭是本问卷处理证据的边界，法条要求的是同期缴费或等值保障。较早轮次表格中的逐月预测日期以本节为准。依据为 SRC-100 § 18c Abs. 2 Sätze 1、3，SRC-107 Nr. 18c.2.1.1–3（第 117–118 页），连续及非连续期间折算见 SRC-102 BGB §§ 187、188、191。[AufenthG § 18c](https://www.gesetze-im-internet.de/aufenthg_2004/__18c.html)
+
+R07 将已录入、会导致对应许可失效的非暂时性离境放入入籍时间线。失效从离境日开始；只有后续新许可才能恢复相应的合法居留期间。机关已核定的既往可计居住起点继续按核定记录处理。逐证例外待核且影响预测时返回 `UNKNOWN`，关联 PD-353。依据为 SRC-100 § 51 Abs. 1 Nr. 6、Abs. 1a、2、4、7、9，以及 SRC-101 § 10 Abs. 1 Satz 1 Nr. 2、§ 12b Abs. 2–3。[AufenthG § 51](https://www.gesetze-im-internet.de/aufenthg_2004/__51.html) · [StAG § 12b](https://www.gesetze-im-internet.de/stag/__12b.html)
+
+### 2. 怎么验证的
+
+以下均从公开入口 `evaluateGermanyFull` 读取。R03 断言 `DE-C19-months`、路径状态及 `earliestDate`；R07 断言 `DE-C55`、`DE-C63-current`、路径状态及 `earliestDate`。无日期的主要离境用例也检查没有预测摘要。
+
+| 输入 | 模拟日条件 | 路径状态 | earliestDate |
+|---|---|---|---|
+| R03 自 2025-02-15 持续就业，缴费填至 2026-10；或提前将记录填至 11 月、12 月 | 2026-11-15 和 11-30 均已确认 20 月，C19-months 为 `NOT_MET` | `FUTURE` | 2026-12-01 |
+| 同一岗位分为两行，实际入职日均为 2025-02-15，第一行至 2025-12 为 €51,000，第二行自 2026-01 至 11 月为 €56,000 | 2026-11-23 为 20 月、`NOT_MET`。12-01 且 11 月已缴为 21 月、`MET` | 依次为 `FUTURE`、`MET`，与连续填一行相同 | 均为 2026-12-01 |
+| 11 月另列一行，缴费留空 | 11-15 为 20 月、`NOT_MET`。到 12-01 仍留空时，已确认 20 月、至多 21 月，条件为 `UNKNOWN` | 依次为 `FUTURE`、`UNKNOWN` | 依次为 2026-12-01、无 |
+| R03 自 2025-04-01 在职，最后工作日分别为 2026-12-31 和 2027-01-01 | 2026-11-23 已确认 19 月，C19-months 均为 `NOT_MET` | 提前一天结束为 `NOT_MET`，覆盖届满日为 `FUTURE` | 依次为无、2027-01-01 |
+| R07 蓝卡及核定居住自 2022-10-01，2027-08-01 非暂时性离境，08-05 返德，无例外、无新证 | 2026-11-23 的 C63-current 仍为 `MET`，C55 为 `NOT_MET` | `NOT_MET` | 无 |
+| R07 同一次离境，适用例外待核、已确认适用旅行证件例外、或旧证失效后于 08-05 获新蓝卡 | 模拟日的持证与居住条件同上 | 依次为 `UNKNOWN`、`FUTURE`、`FUTURE` | 依次为无、2027-10-01、2032-08-05 |
+
+另外验证了按模拟日向前推进时已确认月数不会倒退、同岗缺一月缴费仍保留此前工龄、同日入职的两个岗位各自按合同结束、明确未缴的月份只排除该月。R07 覆盖离境在周年日当天或次日、逐证资料分填在未来新证及历史中断后已换证的情况。
+
+在基线 `d6d3c17` 上，新增 R03 初始对照有 5 项失败，包含提前达标、调薪分行及固定期限合同。R07 初始对照有 4 项失败，另复现了离境记录只填在未来新证、以及既往离境返德后换证两种情况。旧入口 `evaluateGermany` 与基线分别运行五组输入，中英文共 10 份完整结果通过 `assert.deepStrictEqual`。
+
+最终工作树运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码为 0。全仓 5,411 项测试通过（error-report 2、policy-data 23、engine 3,396、game 1,336、web 654），1 项既有文案导出测试按条件跳过。构建生成 27 个静态页面，已回读确认 `apps/web/out/germany.html` 非空。`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+本轮保留未提交工作树供 Fable 接手。页面任务 100 和浏览器 e2e 不在本次验收范围内。德国页面继续使用原计时入口 `evaluateGermany`。
+
+### 4. 发现与建议（任务 100 的 R03 输入）
+
+**逐行填写的工资与就业记录**
+
+| 字段 | 含义与边界 |
+|---|---|
+| `simulationDate` | 模拟决定日，使用 ISO 日期。月初评估时上月已经结束，月末当天本月仍开放。 |
+| `mobility.blueCard.employment[]`、`blueCardEmploymentMonths` | 有逐行历史时以它为准，空数组表示零段。省略整个数组才读取顶层已核定的合格就业并缴费总月数。总数模式由填报人确认截至模拟日的已获认可月数，引擎无法从单一总数反查工资单或合同终止日。 |
+| `jobId`、`startedOn` | `jobId` 是同一岗位的可选标识；`startedOn` 是实际第一工作日，包含当天。同一工作调薪时两行沿用相同的标识和实际入职日。旧数据两行均无标识时，可按同一实际入职日对应；同日开始的不同工作应给不同标识。起日缺失时，仅在首次就业日或最近换岗日能唯一对应该起薪月份的一行时补齐，否则按可能起日计算上下限。 |
+| `endedOn` | 实际或已知合同约定的最后工作日，包含当天。未确定结束时留空。属于同一工作的各行共用该日，在任一行填写即可；页面应在岗位层维护一个值。调薪只更新工资区间。决定日须仍有合格就业。 |
+| `firstMonth`、`lastMonth` | 这一行的工资、缴费事实覆盖的首末日历月，均包含，格式为 `YYYY-MM`。逐行覆盖月与实际工作期间取交集，同月多份记录只计一次。在同一份工作中，缺某月工资记录仍保留此前已证期间；缺的月份不能作为已证缴费。 |
+| 行内 `countableAnnualGross`、`payBand` | 这段工资可计的税前年薪（欧元）与已适用的 `standard` 或 `reduced` 档。跨年按每个工作年份的门槛核对，调薪后金额仅用于对应区间。已公布的门槛见 SRC-420 两份 BAnz 公告各第 1 页、SRC-425 SVBezGrV 2024 § 4 Abs. 1 Nr. 1。 |
+| `qualifyingWork`、`pensionForSameMonths` | 前者表示该段属于 § 18g 合格就业，后者表示同月已缴强制或自愿养老费、或同期等值保障已获认可。已结束月份的 `true` 可进入确认数，`false` 排除，未填仅进入可能上限。开放月即使填 `true` 也只支持预测；显式填 `false` 的月份排除在预测缴费之外。 |
+| `historicalPayAccepted`、`historicalPayReviewPending` | 前者记录机关对既往差额或旧法工资条件的认定，`false` 排除该差额的例外计入。后者表示工资成分、短工或育儿期仍待核。已认可的历史期间优先；其余有争议的期间仅进入上限。年度工资线上调与后续同岗恢复达线按 SRC-107 Nr. 18c.2.1.2 核对。 |
+| `creditBeforeInterruption` | 只用于真实就业中断前的工龄。机关确认可计填 `true`，确认不能计填 `false`，未裁定留空。两种读法跨越门槛时，C19-months 为 `UNKNOWN`，不能确定最早日时留空。相关情形沿用 PD-350。 |
+
+**决定日及分档字段**（下列字段均在 `mobility.blueCard` 内，另标路径者除外）。
+
+| 字段 | 含义与边界 |
+|---|---|
+| `cardHeldAtDecision`、`permits[]`、`mobility.titles[]`、`firstEntry`、`trips[]` | 决定日持蓝卡的事实、许可时间线、逐证存续、首次入境与旅行记录。已提供逐证记录时从对应文书判断。预测需要时间线与就业均支持同一天。 |
+| `fastTrack`、`language`、`languageWaiverAcceptedForTier`、`languageWaiverPendingForTier` | 选择较短档或普通档、已证德语级别、本档豁免已获准或仍待核。未选档时由语言推导；还可读取 `common.provenGerman`、`common.integrationCoursePassed`、`germanB1`。普通档 A1／27 月，较短档 B1／21 月，见 SRC-100 § 2 Abs. 9、11 及 § 18c Abs. 2 Sätze 1、3。 |
+| 顶层蓝卡对象的 `countableAnnualGross`、`contractMonths`、`jobInGermanyMatchesQualification`、`genuineEmployment`、`requiredLicencesHeld`、`noExclusionUnder19f` | 分别为决定日可计年薪、合同期限（月）、在德岗位与资质相符、真实就业、所需执业许可齐备，以及没有 § 19f 排除事由。合同期限用于岗位门槛，固定合同的最后工作日填在 `endedOn`。 |
+| `qualification`、`recognisedQualification`、`tertiaryProgrammeYears`、`tertiaryLevel` | 分别选择学位、等同高等教育或无此学历，并填学历是否认可。等同高等教育还需课程年数与资格等级。 |
+| `isco`、`employmentAgencyApproved`、`relevantItYearsInLookback`、`itExperienceNeededForJob` | ISCO 职业代码、联邦就业局是否批准低档、法定回溯期内同等层次的 IT 从业年数，以及岗位是否需要该经验。 |
+| `degreeOn`、`applicationOn`、`renewal`、`firstGraduateCardOn` | 学位取得日、申请日、是否续签及首次以近期毕业生低档获卡日。用来核对对应低档的时间窗。工资、资格及岗位各档依据见 SRC-100 § 18g Abs. 1–7。 |
+| `employmentStartedOn`、`latestRelevantChangeOn`、`changeReported`、`jobChangeDecision` | 全局的首次就业日、最近需通报的变更日、通报情况、机关处理状态（无障碍、已暂停、已拒绝）。调薪分行沿用岗位的实际起日；这些全局字段另供首次就业后的换岗审查使用。依据为 SRC-100 §§ 18g Abs. 4、82 Abs. 1 Satz 6，SRC-107 Nr. 18g.4.2–4。 |
+
+R05 退休生计豁免是否涵盖医保仍列 PD-351，留待官方口径确认。

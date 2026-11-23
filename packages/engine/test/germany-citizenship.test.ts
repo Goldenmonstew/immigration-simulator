@@ -473,6 +473,105 @@ describe('StAG specific pathways', () => {
   );
 
   test.each([
+    ['2027-08-01', '2027-08-05', true, 'none', undefined, 'NOT_MET', undefined],
+    ['2027-10-01', '2027-10-05', true, 'none', undefined, 'NOT_MET', undefined],
+    [
+      '2027-10-02',
+      '2027-10-05',
+      true,
+      'none',
+      undefined,
+      'FUTURE',
+      '2027-10-01',
+    ],
+    [
+      '2027-08-01',
+      '2027-08-05',
+      false,
+      'none',
+      undefined,
+      'FUTURE',
+      '2027-10-01',
+    ],
+    [
+      '2027-08-01',
+      '2027-08-05',
+      true,
+      undefined,
+      undefined,
+      'UNKNOWN',
+      undefined,
+    ],
+    [
+      '2027-08-01',
+      '2027-08-05',
+      true,
+      'refugee-document',
+      undefined,
+      'FUTURE',
+      '2027-10-01',
+    ],
+    [
+      '2027-08-01',
+      '2027-08-05',
+      true,
+      'none',
+      '2027-08-05',
+      'FUTURE',
+      '2032-08-05',
+    ],
+  ] as const)(
+    'R07 projects title retention for the trip on %s (return %s, non-temporary %s, exception %s, replacement %s)',
+    (
+      departed,
+      returned,
+      nonTemporary,
+      exception,
+      replacement,
+      status,
+      date,
+    ) => {
+      const from = '2022-10-01';
+      const trip = { departed, returned, nonTemporary, exception };
+      const route = citizenshipRoute(
+        from,
+        { countedResidenceSince: from },
+        {
+          permits: [
+            { kind: 'blue-card', from },
+            ...(replacement
+              ? [{ kind: 'blue-card' as const, from: replacement }]
+              : []),
+          ],
+          trips: [{ departed, returned }],
+          mobility: {
+            titles: [
+              {
+                kind: 'blue-card',
+                from,
+                validTo: null,
+                noOtherLossEvent: true,
+                trips: [trip],
+              },
+            ],
+          },
+        },
+      );
+      expect(route.checks.find((c) => c.id === 'DE-C63-current')?.status).toBe(
+        'MET',
+      );
+      expect(route.checks.find((c) => c.id === 'DE-C55')?.status).toBe(
+        'NOT_MET',
+      );
+      expect(route.status).toBe(status);
+      expect(route.earliestDate).toBe(date);
+      if (!date) expect(route.summary).toBeUndefined();
+      if (status === 'UNKNOWN')
+        expect(route.pendingDetails).toContain('PD-353');
+    },
+  );
+
+  test.each([
     ['2027-09-30', undefined],
     ['2026-10-31', true],
   ] as const)(
@@ -504,6 +603,90 @@ describe('StAG specific pathways', () => {
         status: 'FUTURE',
         earliestDate: '2027-10-01',
       });
+    },
+  );
+
+  test('a dated future card carries its own non-temporary departure', () => {
+    const from = '2022-10-01';
+    const next = '2027-03-01';
+    const trip = { departed: '2027-08-01', returned: '2027-08-05' };
+    const card = {
+      kind: 'blue-card' as const,
+      validTo: null,
+      noOtherLossEvent: true,
+    };
+    const path = citizenshipRoute(
+      from,
+      { countedResidenceSince: from },
+      {
+        permits: [
+          { kind: 'blue-card', from },
+          { kind: 'blue-card', from: next },
+        ],
+        trips: [trip],
+        mobility: {
+          titles: [
+            { ...card, from, trips: [] },
+            {
+              ...card,
+              from: next,
+              trips: [{ ...trip, nonTemporary: true, exception: 'none' }],
+            },
+          ],
+        },
+      },
+    );
+    expect(path.checks.find((c) => c.id === 'DE-C63-current')?.status).toBe(
+      'MET',
+    );
+    expect(path.checks.find((c) => c.id === 'DE-C55')?.status).toBe('NOT_MET');
+    expect(path.status).toBe('NOT_MET');
+    expect(path.earliestDate).toBeUndefined();
+    expect(path.summary).toBeUndefined();
+  });
+
+  test.each([
+    [undefined, '2031-04-05'],
+    ['2022-11-01', '2027-11-01'],
+  ] as const)(
+    'a past loss restarts the period unless its current start is confirmed (%s)',
+    (countedResidenceSince, date) => {
+      const from = '2022-10-01';
+      const trip = { departed: '2026-04-01', returned: '2026-04-05' };
+      const path = citizenshipRoute(
+        from,
+        { countedResidenceSince },
+        {
+          permits: [
+            {
+              kind: 'blue-card',
+              from,
+              trips: [{ ...trip, nonTemporary: true, exception: 'none' }],
+            },
+            { kind: 'blue-card', from: trip.returned },
+          ],
+          trips: [trip],
+          mobility: {
+            titles: [
+              {
+                kind: 'blue-card',
+                from: trip.returned,
+                validTo: null,
+                noOtherLossEvent: true,
+                trips: [],
+              },
+            ],
+          },
+        },
+      );
+      expect(path.checks.find((c) => c.id === 'DE-C63-current')?.status).toBe(
+        'MET',
+      );
+      expect(path.checks.find((c) => c.id === 'DE-C55')?.status).toBe(
+        'NOT_MET',
+      );
+      expect(path.status).toBe('FUTURE');
+      expect(path.earliestDate).toBe(date);
     },
   );
 

@@ -8,7 +8,7 @@ import { addDays, addMonths, addYears, daysBetween } from './dates';
 import { KIND_NAMES, type DePermitKind } from './germany';
 import type { DeFullRequest } from './germany-full';
 import { all, any, check, src } from './germany-full-shared';
-import { afterYears } from './pilot';
+import { afterYears, HORIZON_YEARS } from './pilot';
 import type { IsoDate } from './types';
 
 type Answer = boolean | undefined;
@@ -20,9 +20,11 @@ const atLeast = (n: number | undefined, limit: number): Answer =>
 const negate = (a: Answer): Answer => (a === undefined ? undefined : !a);
 
 interface EmploymentPeriod {
-  /** Calendar months actually credited through the decision date (YYYY-MM, inclusive). */
+  /** Inclusive payroll range (YYYY-MM). An open month can only support a forecast. */
   firstMonth: string;
   lastMonth: string;
+  /** Reuse for pay changes; distinguish concurrent jobs with the same actual start. */
+  jobId?: string;
   /** Actual first and last working days (inclusive), distinct from payroll months. */
   startedOn?: IsoDate;
   endedOn?: IsoDate;
@@ -201,6 +203,36 @@ export interface DeMobilityAnswers {
   titles?: TitleReview[];
 }
 
+interface PayrollPeriod extends EmploymentPeriod {
+  job: { lastMonth: string; endedOn?: IsoDate };
+}
+
+// A payslip ends a pay segment. Only an actual last working day ends the job.
+function payrollPeriods(
+  b: BlueCard,
+  rows: EmploymentPeriod[],
+): PayrollPeriod[] {
+  const jobs = new Map<string, PayrollPeriod['job']>();
+  return rows
+    .map((row) => {
+      const startedOn =
+        row.startedOn ??
+        (rows.filter((r) => r.firstMonth === row.firstMonth).length === 1
+          ? [b.employmentStartedOn, b.latestRelevantChangeOn].find(
+              (d) => d?.slice(0, 7) === row.firstMonth,
+            )
+          : undefined);
+      const key = startedOn && JSON.stringify([row.jobId, startedOn]);
+      const job = (key && jobs.get(key)) || { lastMonth: row.lastMonth };
+      if (row.lastMonth > job.lastMonth) job.lastMonth = row.lastMonth;
+      if (row.endedOn && (!job.endedOn || row.endedOn < job.endedOn))
+        job.endedOn = row.endedOn;
+      if (key) jobs.set(key, job);
+      return { ...row, startedOn, job };
+    })
+    .map((row) => ({ ...row, endedOn: row.job.endedOn }));
+}
+
 function salaryMeets(
   year: string,
   gross: number | undefined,
@@ -227,7 +259,7 @@ function employmentAnniversary(start: IsoDate, months: number) {
 // exceed an existing wage if a later raise restores it and pay qualifies at issue.
 function annualRaiseCredits(
   band: 'standard' | 'reduced',
-  history: [string, EmploymentPeriod[]][],
+  history: [string, PayrollPeriod[]][],
   b: BlueCard,
   sim: IsoDate,
   decisionPay: Answer,
@@ -244,7 +276,7 @@ function annualRaiseCredits(
   };
   let previousMonth: string | undefined;
   let previousGross: number | undefined;
-  let previousWork: EmploymentPeriod[] = [];
+  let previousWork: PayrollPeriod[] = [];
   let previousPay: Answer;
   const changeMonth = b.latestRelevantChangeOn?.slice(0, 7);
   for (const [month, records] of history) {
@@ -269,16 +301,21 @@ function annualRaiseCredits(
     const boundary = month + '-01';
     // Adjacent payslips alone cannot connect a pay shortfall to a later raise.
     const continuous =
-      previousWork.some((r) => work.includes(r)) ||
+      previousWork.some((prior) => work.some((r) => r.job === prior.job)) ||
       (previousWork.some(
         (r) => r.endedOn && addDays(r.endedOn, 1) >= boundary,
       ) &&
         work.some((r) => r.startedOn && r.startedOn <= boundary));
+    const differentJobs = previousWork.every(
+      (prior) =>
+        prior.jobId && work.every((r) => r.jobId && r.jobId !== prior.jobId),
+    );
     const separated =
       next &&
-      (previousWork.every(
-        (r) => r.endedOn && addDays(r.endedOn, 1) < boundary,
-      ) ||
+      (differentJobs ||
+        previousWork.every(
+          (r) => r.endedOn && addDays(r.endedOn, 1) < boundary,
+        ) ||
         work.every((r) => r.startedOn && r.startedOn > boundary));
     if (separated) finish(false);
     const newFloor =
@@ -355,7 +392,7 @@ function completedMonths({ from, until }: WorkInterval) {
 
 interface EmploymentEvidence {
   month: string;
-  period: EmploymentPeriod;
+  period: PayrollPeriod;
   credit: Answer;
 }
 
@@ -363,11 +400,10 @@ function employmentBound(
   evidence: EmploymentEvidence[],
   b: BlueCard,
   sim: IsoDate,
-  threshold: number,
   possible: boolean,
 ) {
   const lastMonth = evidence.at(-1)?.month;
-  const recentPayroll = shiftMonth(sim.slice(0, 7), -1);
+  const closedUntil = sim.slice(0, 7) + '-01';
   const startOfRecord = (p: EmploymentPeriod) =>
     p.startedOn ?? p.firstMonth + '-01';
   const lastStart = evidence
@@ -377,6 +413,9 @@ function employmentBound(
     .at(-1);
   const accepts = (fact: Answer) =>
     fact === true || (possible && fact === undefined);
+  const lastPayrollByJob = new Map<PayrollPeriod['job'], string>();
+  for (const { month, period } of evidence)
+    lastPayrollByJob.set(period.job, month);
   const slices = evidence.map(({ month, period, credit }) => {
     const first = month + '-01';
     const next = addMonths(first, 1);
@@ -390,17 +429,17 @@ function employmentBound(
     let from = start > first ? start : first;
     if (from > sim) from = sim;
     if (period.endedOn && from > period.endedOn) from = period.endedOn;
-    const latestPayroll = month === lastMonth && month >= recentPayroll;
     const current =
-      latestPayroll &&
+      month === lastMonth &&
       (period.endedOn
         ? period.endedOn >= sim
         : possible ||
-          period.lastMonth > month ||
+          period.job.lastMonth > month ||
           startOfRecord(period) === lastStart);
-    let until = latestPayroll ? sim : next;
+    let until = next;
     if (
-      month === period.lastMonth &&
+      month === period.job.lastMonth &&
+      month === lastPayrollByJob.get(period.job) &&
       !period.endedOn &&
       !current &&
       !possible
@@ -412,12 +451,29 @@ function employmentBound(
     if (period.endedOn && period.endedOn < until)
       until = addDays(period.endedOn, 1);
     if (until > sim) until = sim;
-    return { from, until, period, credit, month, current };
+    return { from, until, period, credit, month };
   });
 
-  const working = unionIntervals(
-    slices.filter((s) => accepts(s.period.qualifyingWork)),
-  );
+  // Pay records may have a gap even though both refer to the same job.
+  // Bridge work on that job, preserving the separate slices for contributions.
+  const work: WorkInterval[] = [];
+  const jobs = new Map<PayrollPeriod['job'], WorkInterval>();
+  for (const slice of slices) {
+    const job = slice.period.job;
+    if (!accepts(slice.period.qualifyingWork)) {
+      jobs.delete(job);
+      continue;
+    }
+    const span = jobs.get(job);
+    if (span) {
+      if (slice.until > span.until) span.until = slice.until;
+    } else {
+      const span = { from: slice.from, until: slice.until };
+      jobs.set(job, span);
+      work.push(span);
+    }
+  }
+  const working = unionIntervals(work);
   const lastWork = working.at(-1);
   if (!lastWork) return { months: 0 };
   const combine =
@@ -427,8 +483,13 @@ function employmentBound(
   // A possible break affects only the lower bound until continuity is established.
   if (!combine && slices.some((s) => s.until > lastWork.until))
     return { months: 0 };
+  // A confirmed contribution covers work inside its closed payroll month only.
   const credited = slices.filter(
-    (s) => accepts(s.credit) && (combine || s.from >= lastWork.from),
+    (s) =>
+      s.from < closedUntil &&
+      s.from < s.until &&
+      accepts(s.credit) &&
+      (combine || s.from >= lastWork.from),
   );
   const spans = unionIntervals(credited);
   if (!spans.length) return { months: 0 };
@@ -443,17 +504,8 @@ function employmentBound(
       : Math.floor(days / dayMonth);
   const payrollMonths = new Set(credited.map((s) => s.month)).size;
   const months = Math.min(duration, payrollMonths);
-  const due =
-    spans.length === 1
-      ? employmentAnniversary(spans[0].from, threshold)
-      : addDays(sim, threshold * dayMonth - days);
-  const canContinue = credited.some(
-    (s) =>
-      s.current && (!s.period.endedOn || due <= addDays(s.period.endedOn, 1)),
-  );
   return {
     months,
-    due: months < threshold && due > sim && canContinue ? due : undefined,
     splitPossible:
       spans.length > 1 ||
       (working.length > 1 && b.creditBeforeInterruption !== false),
@@ -473,7 +525,31 @@ function employmentBound(
   };
 }
 
-function employmentMonths(req: DeFullRequest, decisionPay: Answer) {
+function monthBounds(
+  evidence: EmploymentEvidence[],
+  b: BlueCard,
+  date: IsoDate,
+) {
+  const lower = employmentBound(evidence, b, date, false);
+  const upper = employmentBound(evidence, b, date, true);
+  if (lower.splitPossible && upper.splitMonths !== undefined)
+    return {
+      confirmed: Math.min(lower.months, lower.calendarMonths),
+      possible: Math.max(upper.months, upper.splitMonths),
+    };
+  return { confirmed: lower.months, possible: upper.months };
+}
+
+function employmentMonths(
+  req: DeFullRequest,
+  decisionPay: Answer,
+  project = false,
+): {
+  confirmed?: number;
+  possible?: number;
+  employed?: Answer;
+  windows?: WorkInterval[];
+} {
   const b = req.mobility?.blueCard;
   if (!b?.employment) {
     return {
@@ -481,21 +557,13 @@ function employmentMonths(req: DeFullRequest, decisionPay: Answer) {
       possible: req.blueCardEmploymentMonths,
     };
   }
-  const history = new Map<string, EmploymentPeriod[]>();
-  const simulationMonth = req.simulationDate.slice(0, 7);
-  for (const row of b.employment) {
-    // Older requests recorded only first entry and the latest change globally.
-    // Use such a date only when it identifies one row in that start month.
-    const startedOn =
-      row.startedOn ??
-      (b.employment.filter((r) => r.firstMonth === row.firstMonth).length === 1
-        ? [b.employmentStartedOn, b.latestRelevantChangeOn].find(
-            (d) => d?.slice(0, 7) === row.firstMonth,
-          )
-        : undefined);
-    if (startedOn && startedOn > req.simulationDate) continue;
-    const period = { ...row, startedOn };
-    const startMonth = startedOn?.slice(0, 7);
+  const periods = payrollPeriods(b, b.employment);
+  const history = new Map<string, PayrollPeriod[]>();
+  const sim = req.simulationDate;
+  const simulationMonth = sim.slice(0, 7);
+  for (const period of periods) {
+    if (period.startedOn && period.startedOn > sim) continue;
+    const startMonth = period.startedOn?.slice(0, 7);
     const endMonth = period.endedOn?.slice(0, 7) ?? period.lastMonth;
     for (
       let month =
@@ -514,81 +582,167 @@ function employmentMonths(req: DeFullRequest, decisionPay: Answer) {
   }
   const ordered = [...history.entries()].sort(([a], [b]) => a.localeCompare(b));
   const raises = {
-    standard: annualRaiseCredits(
-      'standard',
-      ordered,
-      b,
-      req.simulationDate,
-      decisionPay,
-    ),
-    reduced: annualRaiseCredits(
-      'reduced',
-      ordered,
-      b,
-      req.simulationDate,
-      decisionPay,
-    ),
+    standard: annualRaiseCredits('standard', ordered, b, sim, decisionPay),
+    reduced: annualRaiseCredits('reduced', ordered, b, sim, decisionPay),
   };
-  const evidence = ordered.flatMap(([month, periods]) =>
-    periods.map((period) => {
-      const band = period.payBand;
-      const pay =
-        band &&
-        salaryMeets(month.slice(0, 4), period.countableAnnualGross, band);
-      const adjustment = band && raises[band];
-      const historical =
-        period.historicalPayAccepted === true
-          ? true
-          : period.historicalPayReviewPending
-            ? undefined
-            : pay === false &&
-                period.historicalPayAccepted !== false &&
-                adjustment?.has(month)
-              ? adjustment.get(month)
-              : pay;
-      return {
-        month,
-        period,
-        credit: all(
-          period.qualifyingWork,
-          period.pensionForSameMonths,
-          historical,
-        ),
-      };
-    }),
+  function qualifyingPay(
+    month: string,
+    period: PayrollPeriod,
+    forecast: boolean,
+  ) {
+    const band = period.payBand;
+    if (!band) return undefined;
+    const pay = salaryMeets(
+      month.slice(0, 4),
+      period.countableAnnualGross,
+      band,
+    );
+    if (
+      period.historicalPayReviewPending &&
+      period.historicalPayAccepted !== true
+    )
+      return undefined;
+    if (!forecast) {
+      if (period.historicalPayAccepted === true) return true;
+      if (
+        pay === false &&
+        period.historicalPayAccepted !== false &&
+        raises[band].has(month)
+      )
+        return raises[band].get(month);
+    }
+    // Project continued qualifying pay beyond published annual floors only as
+    // an assumption for an already qualifying salary, never as historical credit.
+    return forecast &&
+      month > period.lastMonth &&
+      pay === undefined &&
+      month.slice(0, 4) > sim.slice(0, 4)
+      ? salaryMeets(sim.slice(0, 4), period.countableAnnualGross, band)
+      : pay;
+  }
+  const reported = ordered.flatMap(([month, records]) =>
+    records.map((period) => ({
+      month,
+      period,
+      credit: all(
+        period.qualifyingWork,
+        period.pensionForSameMonths,
+        qualifyingPay(month, period, false),
+      ),
+    })),
   );
+  const startedJobs = periods.filter(
+    (r) => (r.startedOn ?? r.firstMonth + '-01') <= sim,
+  );
+  const today = {
+    ...monthBounds(reported, b, sim),
+    employed: periods.length
+      ? startedJobs.some((r) => !r.endedOn || r.endedOn >= sim)
+      : undefined,
+  };
+  if (!project) return today;
+
+  // Keep forecast evidence separate. Each new month closes the previous
+  // payslip. Explicit future pay, work and pension records override continuation.
   const threshold = (
     blueTier(req) ? pilot.blueCardB1Months : pilot.blueCardMonths
   ).value;
-  const lower = employmentBound(
-    evidence,
-    b,
-    req.simulationDate,
-    threshold,
-    false,
-  );
-  const upper = employmentBound(
-    evidence,
-    b,
-    req.simulationDate,
-    threshold,
-    true,
-  );
-  if (lower.splitPossible && upper.splitMonths !== undefined) {
-    const confirmed = Math.min(lower.months, lower.calendarMonths);
-    return {
-      confirmed,
-      possible: Math.max(upper.months, upper.splitMonths),
-      uncertainDue: confirmed < threshold,
-    };
+  const evidence = reported.filter((r) => r.month < simulationMonth);
+  const horizon = addYears(sim, HORIZON_YEARS);
+  const windows: WorkInterval[] = [];
+  let previous =
+    ordered.filter(([month]) => month < simulationMonth).at(-1)?.[1] ?? [];
+  for (
+    let month = simulationMonth;
+    month <= horizon.slice(0, 7);
+    month = shiftMonth(month, 1)
+  ) {
+    const first = month + '-01';
+    const next = addMonths(first, 1);
+    const explicit = periods.filter(
+      (r) =>
+        r.firstMonth <= month &&
+        month <= r.lastMonth &&
+        (!r.startedOn || r.startedOn < next) &&
+        (!r.endedOn || r.endedOn >= first),
+    );
+    const latestStart = previous
+      .map((r) => r.startedOn ?? r.firstMonth + '-01')
+      .sort()
+      .at(-1);
+    const carried = previous.filter(
+      (r) =>
+        !explicit.some((e) => e.job === r.job) &&
+        (r.endedOn
+          ? r.endedOn >= first
+          : !explicit.length &&
+            (r.startedOn ?? r.firstMonth + '-01') === latestStart),
+    );
+    const records = [...explicit, ...carried];
+    previous = records;
+    if (!records.length) {
+      if (!periods.some((r) => r.firstMonth > month)) break;
+      continue;
+    }
+    const current = records.map((period) => {
+      const work = all(
+        period.qualifyingWork,
+        qualifyingPay(month, period, true),
+      );
+      return {
+        month,
+        period,
+        work,
+        credit: all(
+          work,
+          month > period.lastMonth || period.pensionForSameMonths !== false,
+        ),
+      };
+    });
+    // Within a payroll month only an actual job start or end can change
+    // whether there is a qualifying job on the decision date.
+    const boundaries = new Set([first, next]);
+    for (const { period } of current) {
+      if (
+        period.startedOn &&
+        period.startedOn > first &&
+        period.startedOn < next
+      )
+        boundaries.add(period.startedOn);
+      if (period.endedOn && period.endedOn >= first && period.endedOn < next)
+        boundaries.add(addDays(period.endedOn, 1));
+    }
+    const dates = [...boundaries].sort();
+    for (let i = 0; i + 1 < dates.length; i++) {
+      const from = dates[i] < sim ? sim : dates[i];
+      if (from >= dates[i + 1]) continue;
+      const started = current.filter(
+        ({ period }) => !period.startedOn || period.startedOn <= from,
+      );
+      const decisionWork = any(
+        ...started
+          .filter(({ period }) => !period.endedOn || period.endedOn >= from)
+          .map(({ work }) => work),
+      );
+      if (decisionWork === false) continue;
+      const { confirmed, possible } = monthBounds(
+        [...evidence, ...started],
+        b,
+        from,
+      );
+      if (possible < threshold) continue;
+      // Where different histories yield different first dates the date is unresolved.
+      if (
+        (confirmed < threshold || decisionWork === undefined) &&
+        !windows.length
+      )
+        return { ...today, windows };
+      if (confirmed >= threshold && decisionWork)
+        windows.push({ from, until: dates[i + 1] });
+    }
+    evidence.push(...current);
   }
-  const employmentDue = lower.due === upper.due ? lower.due : undefined;
-  return {
-    confirmed: lower.months,
-    possible: upper.months,
-    employmentDue,
-    uncertainDue: !employmentDue && lower.months < threshold,
-  };
+  return { ...today, windows: unionIntervals(windows) };
 }
 
 function blueLanguage(req: DeFullRequest): string | undefined {
@@ -667,14 +821,12 @@ function currentBlueCardPay(req: DeFullRequest): Answer {
 }
 
 export function blueCardTimeInputs(req: DeFullRequest) {
-  const months = employmentMonths(req, currentBlueCardPay(req));
+  const months = employmentMonths(req, currentBlueCardPay(req), true);
   return {
     germanB1: blueTier(req),
     blueCardEmploymentMonths:
-      months.confirmed === months.possible && !months.uncertainDue
-        ? months.confirmed
-        : undefined,
-    employmentDue: months.employmentDue,
+      months.confirmed === months.possible ? months.confirmed : undefined,
+    employmentWindows: months.windows,
   };
 }
 
@@ -750,6 +902,7 @@ function blueCardChecks(
           ? true
           : undefined;
   const currentJob = all(
+    months.employed !== false,
     b.jobInGermanyMatchesQualification,
     b.genuineEmployment,
     b.requiredLicencesHeld,
@@ -793,8 +946,8 @@ function blueCardChecks(
       ],
       'PD-123 / PD-350',
       [
-        `与德语档对应的期限为 ${requiredMonths} 月，已确认 ${months.confirmed ?? '未知'} 月，计入待核月份后至多 ${months.possible ?? '未知'} 月。`,
-        `The language-dependent period is ${requiredMonths} months. Confirmed: ${months.confirmed ?? 'unknown'}. Including unresolved months: ${months.possible ?? 'unknown'}.`,
+        `与德语档对应的期限为 ${requiredMonths} 月，已确认 ${months.confirmed ?? '未知'} 月，计入待核月份后至多 ${months.possible ?? '未知'} 月。${b.employment ? '逐月记录只计入模拟日前已结束的缴费月。' : ''}`,
+        `The language-dependent period is ${requiredMonths} months. Confirmed: ${months.confirmed ?? 'unknown'}. Including unresolved months: ${months.possible ?? 'unknown'}.${b.employment ? ' Itemised contributions count only after the payroll month has ended.' : ''}`,
       ],
     ),
     check(
@@ -1202,6 +1355,35 @@ function individualTitle(
         );
   const trips = t.trips?.map((trip) => titleTripRetained(t, trip, sim));
   return all(t.noOtherLossEvent, unexpired, trips && all(...trips));
+}
+
+/** SRC-100 § 51(1) no. 6: a non-temporary departure can end the document
+ * on departure. A short return does not restore it. */
+export function naturalisationTitleLosses(req: DeFullRequest) {
+  const permits = [...(req.permits ?? [])].sort((a, b) =>
+    a.from.localeCompare(b.from),
+  );
+  return permits.flatMap((permit, i) => {
+    const next = permits[i + 1]?.from;
+    return (permit.trips ?? []).flatMap((trip) => {
+      if (
+        !trip.nonTemporary ||
+        trip.departed < permit.from ||
+        (next && trip.departed >= next)
+      )
+        return [];
+      const retained = titleTripRetained(permit, trip, trip.departed);
+      return retained === true
+        ? []
+        : [
+            {
+              from: trip.departed,
+              to: next && addDays(next, -1),
+              uncertain: retained === undefined,
+            },
+          ];
+    });
+  });
 }
 
 export function retainedTitle(
