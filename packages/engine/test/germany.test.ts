@@ -220,6 +220,40 @@ describe('Niederlassungserlaubnis, general route (§ 9)', () => {
     }
   });
 
+  test('Section 5 permits settle under § 26, not § 9 (review69-4)', () => {
+    const sub = pathway(
+      {
+        permits: [
+          { kind: 'asylum', from: '2020-01-01', to: '2020-06-30' },
+          { kind: 'subsidiary', from: '2020-07-01' },
+        ],
+      },
+      'DE-SETTLEMENT',
+    );
+    expect(sub.status).toBe('NOT_APPLICABLE');
+    expect(sub.summary).toContain('§ 26 Abs. 4');
+    const refugee = pathway(
+      { permits: [{ kind: 'protection', from: '2020-07-01' }] },
+      'DE-SETTLEMENT',
+    );
+    expect(refugee.status).toBe('NOT_APPLICABLE');
+    expect(refugee.summary).toContain('§ 26 Abs. 3');
+  });
+
+  test('a § 25b permit (review69-4)', () => {
+    const req = {
+      firstEntry: '2010-01-01',
+      permits: [{ kind: 'humanitarian' as const, from: '2020-01-01' }],
+    };
+    // § 9a Abs. 3 Nr. 1: no EU long-term residence while holding it.
+    expect(pathway(req, 'DE-EU-LONG-TERM').status).toBe('NOT_APPLICABLE');
+    expect(pathway(req, 'DE-SETTLEMENT').status).toBe('NOT_APPLICABLE');
+    // § 25b is not on the § 10 list, § 25 Abs. 3–5 is: depends on the section.
+    const naturalisation = pathway(req, 'DE-NATURALISATION');
+    expect(naturalisation.status).toBe('UNKNOWN');
+    expect(naturalisation.summary).toContain('§ 25b');
+  });
+
   test('a later permit replaces one with a later printed expiry (review69-2)', () => {
     const req = {
       simulationDate: '2026-11-23',
@@ -936,6 +970,40 @@ describe('trips abroad and loss of residence (§ 51)', () => {
         'DE-TRAVEL',
       ).status,
     ).toBe('MET');
+  });
+
+  test('a trip while a timely renewal is pending (§ 81 Abs. 4, review69-4)', () => {
+    const req = {
+      permits: [
+        {
+          kind: 'skilled' as const,
+          from: '2020-01-01',
+          to: '2026-03-31',
+          renewing: true,
+        },
+        { kind: 'skilled' as const, from: '2026-05-01' },
+      ],
+      trips: [{ departed: '2026-03-27', returned: '2026-04-06' }],
+    };
+    expect(pathway(req, 'DE-TRAVEL').status).toBe('MET');
+    expect(pathway(req, 'DE-SETTLEMENT').status).toBe('MET');
+    // Without the renewal ticked the permit ends on 2026-03-31.
+    const late = {
+      ...req,
+      permits: [{ ...req.permits[0], renewing: false }, req.permits[1]],
+    };
+    expect(pathway(late, 'DE-TRAVEL').status).toBe('NOT_MET');
+  });
+
+  test('an unlimited permit has no expiry near the forecast limit (review69-4)', () => {
+    const p = pathway(
+      {
+        permits: [{ kind: 'settlement', from: '2020-01-01' }],
+        trips: [{ departed: '2036-10-01', returned: '2037-01-01' }],
+      },
+      'DE-TRAVEL',
+    );
+    expect(p.status).toBe('MET');
   });
 
   test('12 months on a Blue Card (§ 51 Abs. 10)', () => {

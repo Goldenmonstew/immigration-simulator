@@ -200,13 +200,27 @@ export default function GermanyContent() {
                   error={errors[`de-permit-${i}-from`]}
                 />
                 {hasEndDate(permit.kind) && (
-                  <PilotDate
-                    id={`de-permit-${i}-to`}
-                    label={t('de.to')}
-                    value={permit.to}
-                    onChange={(to) => update({ to })}
-                    error={errors[`de-permit-${i}-to`]}
-                  />
+                  <>
+                    <PilotDate
+                      id={`de-permit-${i}-to`}
+                      label={t('de.to')}
+                      value={permit.to}
+                      onChange={(to) => update({ to })}
+                      error={errors[`de-permit-${i}-to`]}
+                    />
+                    <div className={form.checkboxes}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={permit.renewing}
+                          onChange={(e) =>
+                            update({ renewing: e.target.checked })
+                          }
+                        />
+                        {t('de.renewing')}
+                      </label>
+                    </div>
+                  </>
                 )}
                 <button
                   type="button"

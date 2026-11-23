@@ -20,7 +20,7 @@ const render = (node: React.ReactNode, locale: 'zh-CN' | 'en') =>
 const filled: DeForm = {
   ...emptyDeForm('2026-11-22'),
   firstEntry: '2024-03-01',
-  permits: [{ kind: 'blue-card', from: '2024-03-10', to: '' }],
+  permits: [{ kind: 'blue-card', from: '2024-03-10', to: '', renewing: false }],
   trips: [{ departed: '2025-01-10', returned: '2025-02-10' }],
   settlementRoute: 'blue-card',
   germanB1: true,
@@ -40,6 +40,8 @@ test.each(['zh-CN', 'en'] as const)('the form renders in %s', (locale) => {
     'de.contributions',
     'de.naturalisationRoute',
     'de.kind.subsidiary',
+    'de.kind.humanitarian',
+    'de.renewing',
     'de.submit',
   ] as const)
     expect(html).toContain(t(key, locale));
@@ -53,7 +55,14 @@ test('validation marks dates, order, months and the marriage date', () => {
   expect(
     validateDeForm({
       ...emptyDeForm('2026-11-22'),
-      permits: [{ kind: 'skilled', from: '2022-01-01', to: '2021-01-01' }],
+      permits: [
+        {
+          kind: 'skilled',
+          from: '2022-01-01',
+          to: '2021-01-01',
+          renewing: false,
+        },
+      ],
       trips: [{ departed: '2024-02-10', returned: '' }],
       contributionMonths: '12.5',
       naturalisationRoute: 'spouse',
@@ -81,7 +90,9 @@ test('the request leaves out blanks and hidden fields', () => {
       blueCardMonths: '',
       contributionMonths: '40',
       marriedOn: '2020-01-01',
-      permits: [{ kind: 'skilled', from: '2020-01-01', to: '' }],
+      permits: [
+        { kind: 'skilled', from: '2020-01-01', to: '', renewing: false },
+      ],
     },
     'en',
   );
@@ -93,11 +104,35 @@ test('the request leaves out blanks and hidden fields', () => {
   // The marriage date only goes with the spouse route.
   expect(req.marriedOn).toBeUndefined();
   expect(deRequest(filled, 'en').blueCardEmploymentMonths).toBe(21);
+  // A renewal applied for before expiry goes with the permit (review69-4).
+  expect(
+    deRequest(
+      {
+        ...filled,
+        permits: [
+          {
+            kind: 'skilled',
+            from: '2020-01-01',
+            to: '2026-03-31',
+            renewing: true,
+          },
+        ],
+      },
+      'en',
+    ).permits,
+  ).toEqual([
+    { kind: 'skilled', from: '2020-01-01', to: '2026-03-31', renewing: true },
+  ]);
   // Settlement and EU long-term residence have no end date (review69-3).
   const unlimited = {
     ...filled,
     permits: [
-      { kind: 'settlement' as const, from: '2025-01-01', to: '2026-10-31' },
+      {
+        kind: 'settlement' as const,
+        from: '2025-01-01',
+        to: '2026-10-31',
+        renewing: false,
+      },
     ],
   };
   expect(deRequest(unlimited, 'en').permits).toEqual([
@@ -106,7 +141,14 @@ test('the request leaves out blanks and hidden fields', () => {
   expect(
     validateDeForm({
       ...unlimited,
-      permits: [{ kind: 'eu-long-term', from: '2025-01-01', to: '2024-01-01' }],
+      permits: [
+        {
+          kind: 'eu-long-term',
+          from: '2025-01-01',
+          to: '2024-01-01',
+          renewing: false,
+        },
+      ],
     }),
   ).toEqual({});
   const spouse = deRequest(

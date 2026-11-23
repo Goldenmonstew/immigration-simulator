@@ -17,6 +17,8 @@ export interface DePermitRow {
   kind: DePermitKind;
   from: string;
   to: string;
+  /** Renewal applied for before the end date (§ 81 Abs. 4). */
+  renewing: boolean;
 }
 
 export interface DeTripRow {
@@ -53,6 +55,7 @@ export const emptyDePermit = (): DePermitRow => ({
   kind: 'skilled',
   from: '',
   to: '',
+  renewing: false,
 });
 export const emptyDeTrip = (): DeTripRow => ({ departed: '', returned: '' });
 
@@ -118,6 +121,7 @@ export function deRequest(form: DeForm, locale: Locale): DeRequest {
       kind: p.kind,
       from: p.from,
       ...(p.to && hasEndDate(p.kind) ? { to: p.to } : {}),
+      ...(p.renewing && hasEndDate(p.kind) ? { renewing: true } : {}),
     })),
     trips: form.trips,
     settlementRoute: form.settlementRoute,
