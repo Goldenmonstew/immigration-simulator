@@ -84,6 +84,11 @@ export default function Home() {
               {p.colon}
               {t('pt.entryDesc')}
             </li>
+            <li>
+              <Link href="/japan">{t('jp.entryLink')}</Link>
+              {p.colon}
+              {t('jp.entryDesc')}
+            </li>
           </ul>
         </section>
         <section className={styles.section}>
