@@ -22,6 +22,7 @@ import {
   emptyDeForm,
   emptyDePermit,
   emptyDeTrip,
+  hasEndDate,
   validateDeForm,
 } from '../../lib/germany';
 import type { DeErrors, DeForm } from '../../lib/germany';
@@ -198,13 +199,15 @@ export default function GermanyContent() {
                   onChange={(from) => update({ from })}
                   error={errors[`de-permit-${i}-from`]}
                 />
-                <PilotDate
-                  id={`de-permit-${i}-to`}
-                  label={t('de.to')}
-                  value={permit.to}
-                  onChange={(to) => update({ to })}
-                  error={errors[`de-permit-${i}-to`]}
-                />
+                {hasEndDate(permit.kind) && (
+                  <PilotDate
+                    id={`de-permit-${i}-to`}
+                    label={t('de.to')}
+                    value={permit.to}
+                    onChange={(to) => update({ to })}
+                    error={errors[`de-permit-${i}-to`]}
+                  />
+                )}
                 <button
                   type="button"
                   className={form.remove}

@@ -50,6 +50,7 @@ export {
   DE_NATURALISATION_ROUTES,
   DE_PERMIT_KINDS,
   DE_SETTLEMENT_ROUTES,
+  DE_UNLIMITED_KINDS,
   evaluateGermany,
 } from './germany';
 export type {

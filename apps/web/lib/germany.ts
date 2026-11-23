@@ -5,8 +5,13 @@ import type {
   DeSettlementRoute,
   Locale,
 } from '@uk-immigration/engine';
+import { DE_UNLIMITED_KINDS } from '@uk-immigration/engine';
 import type { TranslationKey } from '../i18n';
 import { validDate } from './questionnaire';
+
+/** Settlement and EU long-term residence have no end date to enter. */
+export const hasEndDate = (kind: DePermitKind) =>
+  !DE_UNLIMITED_KINDS.includes(kind);
 
 export interface DePermitRow {
   kind: DePermitKind;
@@ -80,6 +85,7 @@ export function validateDeForm(form: DeForm): DeErrors {
   date('de-first-entry', form.firstEntry);
   form.permits.forEach((permit, i) => {
     date(`de-permit-${i}-from`, permit.from);
+    if (!hasEndDate(permit.kind)) return;
     date(`de-permit-${i}-to`, permit.to, true);
     if (validDate(permit.to) && permit.to < permit.from)
       errors[`de-permit-${i}-to`] = 'de.error.order';
@@ -111,7 +117,7 @@ export function deRequest(form: DeForm, locale: Locale): DeRequest {
     permits: form.permits.map((p) => ({
       kind: p.kind,
       from: p.from,
-      ...(p.to ? { to: p.to } : {}),
+      ...(p.to && hasEndDate(p.kind) ? { to: p.to } : {}),
     })),
     trips: form.trips,
     settlementRoute: form.settlementRoute,

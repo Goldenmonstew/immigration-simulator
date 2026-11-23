@@ -205,6 +205,21 @@ describe('Niederlassungserlaubnis, general route (§ 9)', () => {
     expect(unsure.summary).toContain('2026-11-22');
   });
 
+  test('settlement and EU long-term residence have no end date (review69-3)', () => {
+    for (const kind of ['settlement', 'eu-long-term'] as const) {
+      const req = {
+        simulationDate: '2026-11-23',
+        permits: [
+          { kind: 'skilled' as const, from: '2020-01-01', to: '2024-12-31' },
+          // The date on the card is only the document's.
+          { kind, from: '2025-01-01', to: '2026-10-31' },
+        ],
+      };
+      expect(pathway(req, 'DE-SETTLEMENT').status, kind).toBe('NOT_APPLICABLE');
+      expect(pathway(req, 'DE-NATURALISATION').status, kind).toBe('MET');
+    }
+  });
+
   test('a later permit replaces one with a later printed expiry (review69-2)', () => {
     const req = {
       simulationDate: '2026-11-23',
@@ -374,6 +389,25 @@ describe('Niederlassungserlaubnis for Blue Card holders (§ 18c Abs. 2)', () => 
     expect(p.status).toBe('FUTURE');
     expect(p.earliestDate).toBe('2027-01-01');
     expect(p.checks.map((c) => c.met)).toEqual([true, false]);
+  });
+
+  test('§ 18g employment under another permit counts (review69-3)', () => {
+    const p = pathway(
+      {
+        ...blueCard,
+        simulationDate: '2026-11-23',
+        germanB1: true,
+        permits: [
+          { kind: 'skilled', from: '2024-09-01' },
+          { kind: 'blue-card', from: '2026-08-01' },
+        ],
+        // The same job met § 18g from 2024-09-01: 26 full months.
+        blueCardEmploymentMonths: 26,
+      },
+      'DE-SETTLEMENT',
+    );
+    expect(p.status).toBe('MET');
+    expect(p.pendingDetails).toContain('PD-123');
   });
 
   test('months count only from the switch to the Blue Card (review69-2)', () => {
@@ -876,6 +910,32 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     );
     expect(p.status).toBe('NOT_MET');
     expect(p.checks[0].met).toBe(false);
+  });
+
+  test('a permit that expires while away ends then (§ 51 Abs. 1 Nr. 1, review69-3)', () => {
+    const trips = [{ departed: '2026-02-01', returned: '2026-04-15' }];
+    const p = pathway(
+      {
+        permits: [{ kind: 'skilled', from: '2022-03-15', to: '2026-03-31' }],
+        trips,
+      },
+      'DE-TRAVEL',
+    );
+    expect(p.status).toBe('NOT_MET');
+    expect(p.checks[0].text).toContain('2026-03-31');
+    // Renewed from 2026-04-01: the 6 months apply.
+    expect(
+      pathway(
+        {
+          permits: [
+            { kind: 'skilled', from: '2022-03-15', to: '2026-03-31' },
+            { kind: 'skilled', from: '2026-04-01' },
+          ],
+          trips,
+        },
+        'DE-TRAVEL',
+      ).status,
+    ).toBe('MET');
   });
 
   test('12 months on a Blue Card (§ 51 Abs. 10)', () => {

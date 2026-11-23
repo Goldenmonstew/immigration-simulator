@@ -24,7 +24,7 @@ test('the Germany pilot works out Blue Card settlement dates', async ({
   await permit.getByLabel('生效日期').fill('2024-03-10');
   await page.getByLabel('适用的定居路径').selectOption('blue-card');
   await page.getByLabel(/我的德语达到 B1/).check();
-  await page.getByLabel(/以蓝卡按 § 18g 就业并缴费的月数/).fill('21');
+  await page.getByLabel(/符合 § 18g 条件就业并缴费的月数/).fill('21');
   await page.getByRole('button', { name: '计算' }).click();
 
   await expect(page.getByRole('heading', { name: '计算结果' })).toBeFocused();

@@ -44,6 +44,15 @@ export const DE_PERMIT_KINDS = [
 ] as const;
 export type DePermitKind = (typeof DE_PERMIT_KINDS)[number];
 
+/**
+ * Unlimited titles (§ 9 Abs. 1 Satz 1, § 9a Abs. 1 Satz 1): the date on the
+ * card only concerns the document, so they have no end date.
+ */
+export const DE_UNLIMITED_KINDS: readonly DePermitKind[] = [
+  'settlement',
+  'eu-long-term',
+];
+
 export const DE_SETTLEMENT_ROUTES = [
   'general',
   'skilled',
@@ -263,6 +272,8 @@ interface Exit {
   kind: DePermitKind;
   /** The last day to come back. */
   by: IsoDate;
+  /** `by` is the day the title itself expired (§ 51 Abs. 1 Nr. 1). */
+  expires?: boolean;
   /** EU long-term residence: the last day if the time was outside the EU. */
   euBy?: IsoDate;
   lapses: boolean;
@@ -297,7 +308,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
   sorted.forEach((p, n) => {
     const next = sorted.slice(n + 1).find((q) => q.from > p.from);
     const cut = next && addDays(next.from, -1);
-    const to = p.to && (!cut || p.to < cut) ? p.to : cut;
+    const end = DE_UNLIMITED_KINDS.includes(p.kind) ? undefined : p.to;
+    const to = end && (!cut || end < cut) ? end : cut;
     const a = Math.max(0, days.index(p.from));
     const b = Math.min(days.count - 1, to ? days.index(to) : days.count - 1);
     for (let i = a; i <= b; i++) kinds[i] = p.kind;
@@ -350,13 +362,26 @@ export function evaluateGermany(req: DeRequest): DeResult {
         unsure: trip.returned > euBy && trip.returned <= by,
       };
     } else {
-      const by = addMonths(
+      const months = addMonths(
         trip.departed,
         kind === 'blue-card'
           ? v.blueCardLapseMonths.value
           : v.lapseMonths.value,
       );
-      exit = { trip, kind, by, lapses: trip.returned > by, unsure: false };
+      // A title that runs out while you are away has lapsed by then (§ 51
+      // Abs. 1 Nr. 1); the 6 months never reach past it (AVwV 51.1.6.7).
+      let k = days.index(trip.departed);
+      while (k + 1 < days.count && kinds[k + 1]) k++;
+      const expires = days.date(k) < months;
+      const by = expires ? days.date(k) : months;
+      exit = {
+        trip,
+        kind,
+        by,
+        expires,
+        lapses: trip.returned > by,
+        unsure: false,
+      };
     }
     exits[n] = exit;
     if (exit.lapses) {
@@ -582,8 +607,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
     const counted =
       route === 'blue-card'
         ? L(
-            `按 § 18g 以蓝卡就业并缴费的月数（需 ${need} 个月）`,
-            `your months of Blue Card employment under § 18g with contributions (${need} needed)`,
+            `符合 § 18g 条件就业并缴费的月数（需 ${need} 个月）`,
+            `your months of employment meeting the § 18g criteria with contributions (${need} needed)`,
           )
         : L(
             `已缴的养老保险月数（需 ${need} 个月）`,
@@ -600,8 +625,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
         'A job that fits §§ 18a, 18b, 18d or 18g, German at B1, livelihood, housing, public safety and so on (§ 18c Abs. 1 Satz 1 Nr. 2, 4, 5); whether you completed training or a degree in Germany is taken from your answer',
       ),
       'blue-card': L(
-        '所填月数是否都是 § 18g 的蓝卡就业且同期缴费，基本德语（A1；勾选 B1 时按较短期限），生计、住房、公共安全等（§ 18c Abs. 2）',
-        'Whether the months you entered were all Blue Card employment under § 18g with contributions for them, basic German (A1; the shorter period with B1 as you answered), livelihood, housing, public safety and so on (§ 18c Abs. 2)',
+        '所填月数是否都符合 § 18g 的条件（薪资门槛等）且同期缴费，基本德语（A1；勾选 B1 时按较短期限），生计、住房、公共安全等（§ 18c Abs. 2）',
+        'Whether the months you entered all met the § 18g criteria (salary threshold and so on) with contributions for them, basic German (A1; the shorter period with B1 as you answered), livelihood, housing, public safety and so on (§ 18c Abs. 2)',
       ),
       'german-family': L(
         '与德国人的家庭共同生活在德国持续、没有驱逐利益、德语 B1（§ 28 Abs. 2 Satz 1）',
@@ -631,12 +656,12 @@ export function evaluateGermany(req: DeRequest): DeResult {
           route === 'blue-card'
             ? entered === undefined
               ? L(
-                  `按 § 18g 以蓝卡就业并缴费满 ${need} 个月（未填写月数）`,
-                  `${need} months of Blue Card employment under § 18g with contributions (not entered)`,
+                  `符合 § 18g 条件就业并缴费满 ${need} 个月（未填写月数）`,
+                  `${need} months of employment meeting the § 18g criteria with contributions (not entered)`,
                 )
               : L(
-                  `按 § 18g 以蓝卡就业并缴费满 ${need} 个月（已填 ${entered} 个月）`,
-                  `${need} months of Blue Card employment under § 18g with contributions (${entered} entered)`,
+                  `符合 § 18g 条件就业并缴费满 ${need} 个月（已填 ${entered} 个月）`,
+                  `${need} months of employment meeting the § 18g criteria with contributions (${entered} entered)`,
                 )
             : entered === undefined
               ? L(
@@ -669,8 +694,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
           )
         : route === 'blue-card'
           ? L(
-              `就业月数按你填写的截至模拟日的数字，之后只在持蓝卡期间按每月 1 个月累计（换成蓝卡前的月份不计），假设一直以蓝卡就业并缴费；中间有失业或换雇主空档的，空档前后的月数能否合计未明（PD-123）。递交当天须仍持蓝卡。${req.germanB1 ? '按你勾选的 B1 德语用较短期限。' : ''}`,
-              `Employment months are the number you entered for the simulation date; after it a month is added for each month on the Blue Card only (not before you switch to it), assuming you stay employed with contributions. Whether months either side of a gap between jobs add up is not settled (PD-123). You must still hold the Blue Card when applying.${req.germanB1 ? ' The shorter period follows your answer that you have German at B1.' : ''}`,
+              `就业月数按你填写的截至模拟日、符合 § 18g 条件并缴费的月数（按柏林外国人管理局的说明，也包括持其他许可期间的这类就业，联邦条文未明，PD-123）；之后只在持蓝卡期间按每月 1 个月累计（其他许可下的就业将来是否符合 § 18g 无法判断），假设一直以蓝卡就业并缴费；中间有失业或换雇主空档的，空档前后的月数能否合计未明（PD-123）。递交当天须仍持蓝卡。${req.germanB1 ? '按你勾选的 B1 德语用较短期限。' : ''}`,
+              `Employment months are the months meeting the § 18g criteria with contributions that you entered for the simulation date (following the Berlin immigration office, these include such employment under another permit; the federal text does not say, PD-123). After it a month is added only for each month on the Blue Card, since whether future work on another permit meets § 18g cannot be told, assuming you stay employed with contributions. Whether months either side of a gap between jobs add up is not settled (PD-123). You must still hold the Blue Card when applying.${req.germanB1 ? ' The shorter period follows your answer that you have German at B1.' : ''}`,
             )
           : L(
               `该路径的条文没有引用 § 9 Abs. 4：学习期间不计，每次出境按 § 9 Abs. 4 Nr. 2 类推最多计 ${v.abroadCreditMonths.value} 个月（PD-122）。`,
@@ -1317,22 +1342,34 @@ export function evaluateGermany(req: DeRequest): DeResult {
                 ],
               }
             : {
-                text: L(
-                  `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回`,
-                  `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}`,
-                ),
+                text: e.expires
+                  ? L(
+                      `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：许可 ${e.by} 到期、没有录入续期，最晚当天返回`,
+                      `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): the permit expires on ${e.by} with no renewal entered, so back by that day`,
+                    )
+                  : L(
+                      `${trip(e)}（出境时持${N(KIND_NAMES[e.kind])}）：最晚 ${e.by} 返回`,
+                      `${trip(e)} (holding ${N(KIND_NAMES[e.kind])} when you left): back by ${e.by}`,
+                    ),
                 met: !e.lapses,
-                sources:
-                  e.kind === 'blue-card'
+                sources: [
+                  ...(e.kind === 'blue-card'
                     ? v.blueCardLapseMonths.sources
-                    : v.lapseMonths.sources,
+                    : v.lapseMonths.sources),
+                  ...(e.expires
+                    ? [
+                        aufenthG('§ 51 Abs. 1 Nr. 1', '51'),
+                        { srcId: 'SRC-108', locator: 'Nr. 51.1.6.7 (p236)' },
+                      ]
+                    : []),
+                ],
               },
         ),
         notChecked,
         assumptions: [
           L(
-            `期限从离境日起按日历月计，对应日当天返回仍算按时（BGB §§ 187、188，PD-120）；一般 ${v.lapseMonths.value} 个月，欧盟蓝卡 ${v.blueCardLapseMonths.value} 个月；欧盟长期居留离开欧盟 ${v.euLapseMonths.value} 个月（之前持过蓝卡的 ${v.euLapseBlueCardMonths.value} 个月）或离开德国 ${v.euLapseYears.value} 年。失效的许可在期限届满后不再算持有，直到录入的下一张许可生效。未来的出境按你填写的返回日判断。`,
-            `Deadlines run in calendar months from the day you left, and coming back on the same day of the month is still in time (BGB §§ 187, 188, PD-120): usually ${v.lapseMonths.value} months, ${v.blueCardLapseMonths.value} on an EU Blue Card; EU long-term residence lapses after ${v.euLapseMonths.value} months outside the EU (${v.euLapseBlueCardMonths.value} after a Blue Card) or ${v.euLapseYears.value} years outside Germany. A lapsed title is no longer held after the deadline until the next permit you entered begins. Future trips are judged by the return date you entered.`,
+            `期限从离境日起按日历月计，对应日当天返回仍算按时（BGB §§ 187、188，PD-120）；一般 ${v.lapseMonths.value} 个月，欧盟蓝卡 ${v.blueCardLapseMonths.value} 个月；欧盟长期居留离开欧盟 ${v.euLapseMonths.value} 个月（之前持过蓝卡的 ${v.euLapseBlueCardMonths.value} 个月）或离开德国 ${v.euLapseYears.value} 年。出境期间许可本身到期、又没有录入续期的，以到期日为最晚返回日（§ 51 Abs. 1 Nr. 1）。失效的许可在期限届满后不再算持有，直到录入的下一张许可生效。未来的出境按你填写的返回日判断。`,
+            `Deadlines run in calendar months from the day you left, and coming back on the same day of the month is still in time (BGB §§ 187, 188, PD-120): usually ${v.lapseMonths.value} months, ${v.blueCardLapseMonths.value} on an EU Blue Card; EU long-term residence lapses after ${v.euLapseMonths.value} months outside the EU (${v.euLapseBlueCardMonths.value} after a Blue Card) or ${v.euLapseYears.value} years outside Germany. If the permit itself expires while you are away and no renewal is entered, its expiry is the last day to come back (§ 51 Abs. 1 Nr. 1). A lapsed title is no longer held after the deadline until the next permit you entered begins. Future trips are judged by the return date you entered.`,
           ),
         ],
         pendingDetails: ['PD-120'],

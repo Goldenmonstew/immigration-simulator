@@ -563,7 +563,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'If you came on a national visa, time counts from the day you arrived, not from when the visa started.',
   'de.permits': 'Residence permits',
   'de.permitsHint':
-    'Add a row for each permit, then the next one when it is renewed or replaced; a new permit ends the one before it even if that card shows a later expiry, and a blank end date runs until the next permit starts. Enter a national entry visa as the type it was issued for; for the asylum procedure choose “Asylum claim pending” from the day you claimed asylum. Choose “Permit for a temporary purpose” for job seeking, au pair and the like.',
+    'Add a row for each permit, then the next one when it is renewed or replaced; a new permit ends the one before it even if that card shows a later expiry, and a blank end date runs until the next permit starts. A settlement permit and EU long-term residence have no end date (the date on the card is only the document’s), so there is none to enter. Enter a national entry visa as the type it was issued for; for the asylum procedure choose “Asylum claim pending” from the day you claimed asylum. Choose “Permit for a temporary purpose” for job seeking, au pair and the like.',
   'de.permit': 'Permit {n}',
   'de.kind': 'Permit type',
   'de.kind.study': 'University study (§ 16b)',
@@ -606,9 +606,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.contributionsHint':
     'Voluntary contributions count; your pension insurance record (Versicherungsverlauf) shows them. Needed for the general and skilled worker routes; if blank, only the time held is worked out.',
   'de.blueCardMonths':
-    'Months employed on a Blue Card under § 18g with contributions, by the simulation date (can be left blank)',
+    'Months of employment meeting the § 18g criteria with contributions by the simulation date, also under another permit (can be left blank)',
   'de.blueCardMonthsHint':
-    'Count only months employed with contributions while holding the Blue Card (or the national visa issued for it); months out of work and contributions on earlier permits do not count. If blank, only holding the card is checked.',
+    'Count the months employed at the Blue Card (§ 18g) level, salary threshold included, with contributions for them; such employment before you switched to the Blue Card counts too. Months out of work do not. If blank, only holding the card is checked.',
   'de.naturalisation': 'Naturalisation',
   'de.naturalisationRoute': 'Naturalisation route that applies to you',
   'de.naturalisationRoute.general': 'General (StAG § 10)',

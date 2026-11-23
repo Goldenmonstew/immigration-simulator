@@ -93,6 +93,22 @@ test('the request leaves out blanks and hidden fields', () => {
   // The marriage date only goes with the spouse route.
   expect(req.marriedOn).toBeUndefined();
   expect(deRequest(filled, 'en').blueCardEmploymentMonths).toBe(21);
+  // Settlement and EU long-term residence have no end date (review69-3).
+  const unlimited = {
+    ...filled,
+    permits: [
+      { kind: 'settlement' as const, from: '2025-01-01', to: '2026-10-31' },
+    ],
+  };
+  expect(deRequest(unlimited, 'en').permits).toEqual([
+    { kind: 'settlement', from: '2025-01-01' },
+  ]);
+  expect(
+    validateDeForm({
+      ...unlimited,
+      permits: [{ kind: 'eu-long-term', from: '2025-01-01', to: '2024-01-01' }],
+    }),
+  ).toEqual({});
   const spouse = deRequest(
     {
       ...filled,
