@@ -686,16 +686,19 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.basics': 'About you',
   'ie.simulationDate': 'Simulation date',
   'ie.simulationDateHint':
-    'Results are worked out for this date (the application date). It starts as today. The rules are the current ones checked in 2026-11, also for past dates; the 57 months for a GEP only apply from 2024-04-03 and the earlier rule is not included, so completion before that date shows as uncertain.',
+    'Results are worked out for this date (the application date). It starts as today. The rules are the current ones checked in 2026-11, also for past dates; in the archived sources the 57-month rule first covers a GEP on 2024-04-03 and an intra-company transfer on 2026-02-25 (when the upgrade page was last changed); the earlier rule is not included, so completion before that date shows as uncertain.',
   'ie.permits': 'Immigration permissions',
   'ie.permitsHint':
-    'Going by your IRP cards or passport stamps, add a row for each permission, then the next one if renewed on time; leave the end blank if it is still valid. Include student permissions and time waiting for a protection decision too: they do not count. If you are married to an Irish citizen, you can also add periods of lawful residence in Northern Ireland, which count for naturalisation as a spouse only; after a move to Northern Ireland, an Irish permission that has not expired no longer counts as residence in the State.',
+    'Going by your IRP cards or passport stamps, add a row for each permission, then the next one if renewed on time; leave the end blank if it is still valid. If a permission was replaced before the expiry printed on its card (for example a CSEP card to 2026-12-31 but a GEP from 2026-09-01), enter the actual last day of the old permission, not the card date. Include student permissions and time waiting for a protection decision too: they do not count. Add periods of lawful residence in Northern Ireland too, whatever route you choose: they count for naturalisation as a spouse only; after a move to Northern Ireland, an Irish permission that has not expired no longer counts as residence in the State.',
   'ie.permit': 'Permission {n}',
   'ie.from': 'Valid from',
   'ie.to': 'Valid until (leave blank if still valid)',
   'ie.kind': 'Permission type',
   'ie.kind.stamp1':
-    'Stamp 1 or 1H (employment permit, researcher’s Hosting Agreement, business and so on; not intra-company transfer)',
+    'Stamp 1 (business, working holiday, ISD letter to work without an employment permit and other cases)',
+  'ie.kind.stamp1-gep': 'Stamp 1 (General Employment Permit)',
+  'ie.kind.stamp1-csep':
+    'Stamp 1 or 1H (Critical Skills Employment Permit, researcher’s Hosting Agreement, Multi-Site GEP for hospital doctors)',
   'ie.kind.stamp1-ict': 'Stamp 1 (intra-company transfer permit)',
   'ie.kind.stamp1g-graduate': 'Stamp 1G (Third Level Graduate Programme)',
   'ie.kind.stamp1g-spouse':
@@ -706,7 +709,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.kind.stamp0':
     'Stamp 0 (independent means, visiting academic, elderly dependent relative and so on)',
   'ie.kind.stamp3':
-    'Stamp 3 (family members who cannot work, volunteers, ministers of religion and so on)',
+    'Stamp 3 (volunteers, ministers of religion and other cases)',
+  'ie.kind.stamp3-family':
+    'Stamp 3 (spouse or partner of an employment permit holder or researcher, held under family reunification before moving to 1G)',
   'ie.kind.stamp4': 'Stamp 4',
   'ie.kind.stamp4d': 'Stamp 4D or 4S',
   'ie.kind.stamp4-eufam': 'Stamp 4 EUFam (family member of an EU citizen)',
@@ -739,7 +744,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.stamp4Route.gep':
     'Stamp 4 upgrade, 57 months: General Employment Permit, intra-company transfer',
   'ie.stamp4Route.spouse-1g':
-    'Stamp 4 for spouses and partners on Stamp 1G, after 5 years',
+    'Stamp 4 for spouses and partners on family reunification (Stamp 3 or 1G), after 5 years',
   'ie.stamp4Route.wcatt': 'Stamp 5: 96 months of legal residence',
   'ie.employmentStart': 'Date you started work in Ireland on that permit',
   'ie.employmentStartHint':

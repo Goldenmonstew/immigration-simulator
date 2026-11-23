@@ -23,7 +23,7 @@ test('the Ireland pilot works out naturalisation and Stamp 4 dates', async ({
 
   await page.getByLabel('模拟日期').fill('2026-11-22');
   const permit = page.getByRole('group', { name: '许可 1' });
-  await permit.getByLabel('许可类型').selectOption('stamp1');
+  await permit.getByLabel('许可类型').selectOption('stamp1-csep');
   await permit.getByLabel('生效日期').fill('2021-03-01');
   await page.getByLabel('要计算的许可').selectOption('csep');
   await page.getByLabel('在爱尔兰凭该许可开始工作的日期').fill('2025-03-15');

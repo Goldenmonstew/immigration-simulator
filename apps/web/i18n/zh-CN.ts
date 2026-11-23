@@ -483,16 +483,19 @@ export const zhCN = {
   'ie.basics': '基本信息',
   'ie.simulationDate': '模拟日期',
   'ie.simulationDateHint':
-    '按这一天判断（按递交日），默认今天。规则按 2026-11 核对的现行版本，模拟过去的日期也照此计算；GEP 的 57 个月自 2024-04-03 起才适用，此前的规则没有收录，早于该日满期的显示为待确认。',
+    '按这一天判断（按递交日），默认今天。规则按 2026-11 核对的现行版本，模拟过去的日期也照此计算；存档来源中 57 个月规则对 GEP 最早见于 2024-04-03、对公司内调（ICT）最早见于 2026-02-25（升级页现行文本的修改日），此前的规则没有收录，早于该日满期的显示为待确认。',
   'ie.permits': '居留许可',
   'ie.permitsHint':
-    '按 IRP 卡或护照印章，每段许可填一行，按时续期的接着填下一段；仍有效的到期日可留空。学生许可、等待国际保护决定的期间也请填上，它们不计入。与爱尔兰公民结婚的，在北爱尔兰合法居住的期间也可以填，只计入配偶入籍；搬到北爱尔兰后，爱尔兰许可即使尚未到期，那段时间也不算在爱尔兰（国家）居住。',
+    '按 IRP 卡或护照印章，每段许可填一行，按时续期的接着填下一段；仍有效的到期日可留空。旧许可在卡上到期日之前就被新许可取代的（例如 CSEP 卡到 2026-12-31，但 2026-09-01 起改持 GEP），到期日填旧许可实际的最后一天，不填卡上的日期。学生许可、等待国际保护决定的期间也请填上，它们不计入。在北爱尔兰合法居住的期间也请填上（无论选哪条路线）：它只计入配偶入籍；搬到北爱尔兰后，爱尔兰许可即使尚未到期，那段时间也不算在爱尔兰（国家）居住。',
   'ie.permit': '许可 {n}',
   'ie.from': '生效日期',
   'ie.to': '到期日期（仍有效可留空）',
   'ie.kind': '许可类型',
   'ie.kind.stamp1':
-    'Stamp 1 或 1H（雇佣许可、研究员 Hosting Agreement、经营等，公司内调除外）',
+    'Stamp 1（经营、打工度假、ISD 准许免雇佣许可工作等其他情形）',
+  'ie.kind.stamp1-gep': 'Stamp 1（General Employment Permit）',
+  'ie.kind.stamp1-csep':
+    'Stamp 1 或 1H（Critical Skills Employment Permit、研究员 Hosting Agreement、NCHD 医生的多地点 GEP）',
   'ie.kind.stamp1-ict': 'Stamp 1（公司内调 ICT 许可）',
   'ie.kind.stamp1g-graduate':
     'Stamp 1G（毕业生计划 Third Level Graduate Programme）',
@@ -501,7 +504,9 @@ export const zhCN = {
   'ie.kind.stamp1g-ict': 'Stamp 1G（公司内调 ICT 许可持有人的配偶、伴侣）',
   'ie.kind.stamp1a': 'Stamp 1A（见习会计）',
   'ie.kind.stamp0': 'Stamp 0（经济独立者、访问学者、年长受抚养亲属等）',
-  'ie.kind.stamp3': 'Stamp 3（不能工作的家属、志愿者、宗教人员等）',
+  'ie.kind.stamp3': 'Stamp 3（志愿者、宗教人员等其他情形）',
+  'ie.kind.stamp3-family':
+    'Stamp 3（雇佣许可持有人或研究员的配偶、伴侣，在家庭团聚下所持、改发 1G 之前）',
   'ie.kind.stamp4': 'Stamp 4',
   'ie.kind.stamp4d': 'Stamp 4D 或 4S',
   'ie.kind.stamp4-eufam': 'Stamp 4 EUFam（欧盟公民家属）',
@@ -529,7 +534,8 @@ export const zhCN = {
     'Stamp 4 升级，21 个月：Critical Skills 许可、研究员 Hosting Agreement、NCHD 医生的多地点 GEP',
   'ie.stamp4Route.gep':
     'Stamp 4 升级，57 个月：General Employment Permit、公司内调 ICT',
-  'ie.stamp4Route.spouse-1g': 'Stamp 4：持 Stamp 1G 的配偶或伴侣，满 5 年',
+  'ie.stamp4Route.spouse-1g':
+    'Stamp 4：家庭团聚的配偶或伴侣（Stamp 3／1G），满 5 年',
   'ie.stamp4Route.wcatt': 'Stamp 5：合法居留满 96 个月',
   'ie.employmentStart': '在爱尔兰凭该许可开始工作的日期',
   'ie.employmentStartHint':
