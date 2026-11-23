@@ -33,12 +33,18 @@
   - 风险：模拟日本身只在较宽读法下满足时（如缺席 71 天）输出 `UNKNOWN`，确定的未来日期写在摘要，不再显示 FUTURE；Stamp 1G 与 Stamp 5 有许可空档时，累加读法的日期另列（PD-118），仅此可达时为 `UNKNOWN`。模拟日期的提示注明按 2026-11 的现行规则计算历史日期（例如 57 个月自 2024-04-03 起）。
   - 建议：离线 e2e 在 `/ireland` 断网后提交表单并断言结果标题已聚焦。
   - 引擎用例由 30 项增至 35 项（新增 7 项回归，删去 2 项旧的缺席分级用例），网页用例同一文件增加新类型的渲染断言。
+- 第二轮审核修正（review68-2，Codex 结论"需要修改"，2 个问题与 1 项风险）：
+  - Stamp 4 雇佣路线：从填写的开始工作日到转为 Stamp 1 之前，凭其他合法许可（如毕业生 1G）的日子不再当作空档（SRC-096：先凭其他许可工作、后转 Stamp 1 的按雇佣许可有效期起算）；递交当天须持该许可。复现输入（1G 至 2025-03-31、Stamp 1 自 2025-04-01、CSEP 自 2025-02-01）改为 MET，满 21 个月为 2026-11-01（PD-116）。
+  - 配偶入籍：落在"在北爱尔兰合法居住"期间内的出境记录不算离开爱尔兰岛；表单出境提示改为这些期间不必再填。复现输入（期间同时记为 2021-07-01 至 2025-01-01 的出境）改为 MET（PD-115）。
+  - 风险：满期摘要改为"已满 21 个月"，何时能递交以 ISD 续期安排为准，不再写"可以申请"。混合雇佣履历（CSEP 后转 GEP，两段都选 Stamp 1）仍按所选路线计算，见第 3 节。
+  - 引擎用例 37 项（新增 2 项回归）。
 
 ## 2. 怎么验证的
 
 - `pnpm exec tsc --noEmit -p .`：packages/engine、packages/policy-data、apps/web、apps/e2e 均通过。
 - `pnpm exec vitest run test/ireland.test.ts test/index.test.ts test/rules.test.ts`（engine）：73 项通过，其中爱尔兰 30 项。
 - review68-1 修正后：engine `test/ireland.test.ts` 35 项通过（审核中的每组反例都写成回归用例）；web `test/ireland.test.tsx` 7 项通过；policy-data 全部通过；engine、policy-data、web、e2e 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过。离线提交的 e2e 断言未运行（按 brief 不跑 Playwright）。
+- review68-2 修正后：engine `test/ireland.test.ts` 37 项通过；web `test/ireland.test.tsx` 7 项通过；engine、policy-data、web 的 `tsc --noEmit`，改动文件的 eslint 与 prettier 通过。
 - `pnpm exec vitest run`（policy-data，含来源登记一致性）：23 项通过。
 - `pnpm exec vitest run test/ireland.test.tsx test/policy-page.test.tsx test/page.test.tsx`（web，含 `sourceUrls` 与登记表一致）：24 项通过，其中爱尔兰 7 项。
 - `pnpm exec eslint`（改动的源码、测试与 e2e 文件）、`pnpm exec prettier --check`：通过。

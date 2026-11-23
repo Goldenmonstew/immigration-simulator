@@ -150,7 +150,6 @@ export function evaluateIreland(req: IeRequest): IeResult {
   const holds = (kinds: IePermissionKind[]) => (i: number) =>
     kinds.some((k) => byKind[k][i]);
   const sums = {
-    away: days.sums((i) => away[i]),
     leap: days.sums((i) => days.date(i).endsWith('-02-29')),
   };
   const covered = (s: number[], from: IsoDate, to: IsoDate) =>
@@ -213,7 +212,12 @@ export function evaluateIreland(req: IeRequest): IeResult {
     const reckonable = holds([...RECKONABLE, ...extra]);
     const sure = days.sums(reckonable);
     const maybe = days.sums(holds([...RECKONABLE, ...UNLISTED, ...extra]));
-    const sureHome = days.sums((i) => reckonable(i) && !away[i]);
+    // In Northern Ireland on a recorded residence: not away from the island
+    // (s15A), even if entered as a trip too.
+    const absent = (i: number) =>
+      away[i] && !(route === 'spouse' && byKind['ni-residence'][i]);
+    const absentSums = days.sums(absent);
+    const sureHome = days.sums((i) => reckonable(i) && !absent(i));
     const windowYears = v.priorWindowYears.value[route];
     const priorDays = v.priorResidenceDays.value[route];
     const year = v.continuousYears.value;
@@ -230,7 +234,7 @@ export function evaluateIreland(req: IeRequest): IeResult {
         // The whole year and the application day on a reckonable permission.
         sure: covered(sure, from, d),
         maybe: covered(maybe, from, d),
-        away: days.total(sums.away, from, addDays(d, -1)),
+        away: days.total(absentSums, from, addDays(d, -1)),
         // Strict: days abroad left out; wide: uncertain permissions in.
         strict: days.total(sureHome, priorFrom, priorTo),
         wide: days.total(maybe, priorFrom, priorTo),
@@ -373,8 +377,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
         ...(spouse
           ? [
               L(
-                '配偶路径按"爱尔兰岛"（含北爱尔兰）计算：录入为"在北爱尔兰合法居住"的期间计入（只用于配偶路径）；出境记录按离开爱尔兰（国家）填写，去北爱尔兰的行程仍按缺席计（较严，PD-115）。',
-                'The spouse route counts residence in the island of Ireland (Northern Ireland included): periods entered as "lawful residence in Northern Ireland" count (for this route only); trips are entered as leaving the State, so trips to Northern Ireland still count as absences (stricter, PD-115).',
+                '配偶路径按"爱尔兰岛"（含北爱尔兰）计算：录入为"在北爱尔兰合法居住"的期间计入（只用于配偶路径），这些期间里的出境记录不算缺席；其他去北爱尔兰的行程仍按缺席计（较严，PD-115）。',
+                'The spouse route counts residence in the island of Ireland (Northern Ireland included): periods entered as "lawful residence in Northern Ireland" count (for this route only), and trips within them are not absences; other trips to Northern Ireland still count as absences (stricter, PD-115).',
               ),
             ]
           : []),
@@ -505,9 +509,21 @@ export function evaluateIreland(req: IeRequest): IeResult {
       } else {
         // The permit for this route: Stamp 1 or 1H, and ICT for the
         // 57-month group.
-        const held = holds(
+        const permit = holds(
           route === 'csep' ? ['stamp1'] : ['stamp1', 'stamp1-ict'],
         );
+        // Work started under another permission counts until the move to
+        // Stamp 1, from the employment permit's validity (SRC-096).
+        const lawful = holds(
+          IE_PERMISSION_KINDS.filter(
+            (k) => k !== 'ni-residence' && k !== 'protection-applicant',
+          ),
+        );
+        const from0 = Math.max(0, days.index(start));
+        let moved = from0;
+        while (moved < days.count && !permit(moved)) moved++;
+        const held = (i: number) =>
+          permit(i) || (i >= from0 && i < moved && lawful(i));
         const heldSums = days.sums(held);
         const stretch = stretchStart(held);
         // Calendar days in the months from the start of work.
@@ -523,7 +539,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
         };
         const verdict = (d: IsoDate): Verdict => {
           const from = countFrom(d);
-          if (!from) return 'no';
+          // Renewing as Stamp 4: the permit is held on the application day.
+          if (!from || !permit(days.index(d))) return 'no';
           // From the 29th–31st into a shorter month: that month's last day
           // or the 1st of the next (PD-116).
           const end = addMonths(from, months);
@@ -550,13 +567,13 @@ export function evaluateIreland(req: IeRequest): IeResult {
           summary:
             (earliest === sim
               ? L(
-                  `模拟日已满 ${months} 个月，可以申请把许可续为 Stamp 4。`,
-                  `You have completed ${months} months on the simulation date and can renew your permission as Stamp 4.`,
+                  `模拟日已满 ${months} 个月；何时能递交续为 Stamp 4，以 ISD 的续期安排为准。`,
+                  `You have completed ${months} months on the simulation date; when you can apply to renew as Stamp 4 follows ISD’s renewal arrangements.`,
                 )
               : earliest
                 ? L(
-                    `满 ${months} 个月、可申请 Stamp 4 的最早日期是 ${earliest}。`,
-                    `The earliest date you complete ${months} months and can apply for Stamp 4 is ${earliest}.`,
+                    `满 ${months} 个月的最早日期是 ${earliest}。`,
+                    `The earliest date you complete ${months} months is ${earliest}.`,
                   )
                 : L(
                     `按现有记录，10 年内达不到凭该许可受雇满 ${months} 个月。`,
@@ -613,8 +630,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
               `"${months} months" are calendar months with the first day of work counted (Interpretation Act 2005 s18(h) and Schedule "month"); the start date is the one in Revenue’s Employment Detail Summary, and if you moved to Stamp 1 from another permission it runs from the validity of that employment permit (ISD).`,
             ),
             L(
-              '只计持该许可（Stamp 1 或 1H，57 个月一类含 ICT）的日子；开始工作后许可有空档的，确定日期从空档后重新起算，空档前后能否累加没有写明，累加后的日期另列（PD-116）。21 个月与 57 个月两类不可互换：GEP、ICT 的受雇时间不计入 21 个月（ISD）；换雇主或两类混合时怎样计没有写明。',
-              'Only days holding that permit (Stamp 1 or 1H, with ICT in the 57-month group) count. After a gap in the permit since starting work, the definite date counts again from the end of the gap; whether time on both sides can be added up is not stated, so that date is shown separately (PD-116). The 21-month and 57-month groups are not interchangeable: time on a GEP or ICT does not count towards 21 months (ISD); a change of employer or a mixed history is not covered.',
+              '只计持该许可（Stamp 1 或 1H，57 个月一类含 ICT）的日子，转 Stamp 1 之前凭其他许可工作的日子也计入（ISD 按雇佣许可的有效期起算），递交当天须持该许可；开始工作后许可有空档的，确定日期从空档后重新起算，空档前后能否累加没有写明，累加后的日期另列（PD-116）。21 个月与 57 个月两类不可互换：GEP、ICT 的受雇时间不计入 21 个月（ISD）；换雇主或两类混合时怎样计没有写明。',
+              'Only days holding that permit (Stamp 1 or 1H, with ICT in the 57-month group) count, plus days worked on another permission before moving to Stamp 1 (ISD counts from the employment permit’s validity), and you hold the permit on the application day. After a gap in the permit since starting work, the definite date counts again from the end of the gap; whether time on both sides can be added up is not stated, so that date is shown separately (PD-116). The 21-month and 57-month groups are not interchangeable: time on a GEP or ICT does not count towards 21 months (ISD); a change of employer or a mixed history is not covered.',
             ),
             projection,
           ],

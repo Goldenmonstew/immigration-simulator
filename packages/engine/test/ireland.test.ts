@@ -286,6 +286,24 @@ test('lawful residence in Northern Ireland counts for s15A only (review68-1)', (
   expect(general.earliestDate).toBe('2030-01-02');
 });
 
+test('a Northern Ireland residence recorded as a trip is still in the island (review68-2)', () => {
+  const p = pathway(
+    {
+      simulationDate: '2026-11-22',
+      permissions: [
+        { kind: 'stamp4', from: '2020-01-01', to: '2021-06-30' },
+        { kind: 'ni-residence', from: '2021-07-01', to: '2024-12-31' },
+        { kind: 'stamp4', from: '2025-01-01' },
+      ],
+      trips: [{ departed: '2021-07-01', returned: '2025-01-01' }],
+      marriedOn: '2020-01-01',
+    },
+    'IE-SPOUSE',
+  );
+  expect(p.status).toBe('MET');
+  expect(p.checks.map((c) => c.met)).toEqual([true, true, true, true]);
+});
+
 test('permissions ISD does not list for naturalisation stay uncertain (PD-114)', () => {
   for (const kind of [
     'stamp4d',
@@ -469,6 +487,37 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
         'IE-STAMP4',
       ).earliestDate,
     ).toBe('2029-09-01');
+  });
+
+  test('Stamp 4: work on another permission before Stamp 1 counts (review68-2)', () => {
+    // Graduate 1G, then a CSEP valid from 2025-02-01 and Stamp 1 from
+    // 2025-04-01: 21 months from 2025-02-01 end on 2026-10-31.
+    const req: Partial<IeRequest> = {
+      simulationDate: '2026-11-22',
+      permissions: [
+        { kind: 'stamp1g-graduate', from: '2024-05-01', to: '2025-03-31' },
+        { kind: 'stamp1', from: '2025-04-01', to: '2027-01-31' },
+      ],
+      stamp4Route: 'csep',
+      employmentStart: '2025-02-01',
+    };
+    const p = pathway(req, 'IE-STAMP4');
+    expect(p.status).toBe('MET');
+    expect(p.summary).not.toContain('没有该许可');
+    expect(
+      pathway({ ...req, simulationDate: '2026-10-31' }, 'IE-STAMP4')
+        .earliestDate,
+    ).toBe('2026-11-01');
+    // Still on the graduate 1G: not yet renewing from Stamp 1.
+    expect(
+      pathway(
+        {
+          ...req,
+          permissions: [{ kind: 'stamp1g-graduate', from: '2024-05-01' }],
+        },
+        'IE-STAMP4',
+      ).status,
+    ).toBe('NOT_MET');
   });
 
   test('Stamp 5 after 96 months', () => {

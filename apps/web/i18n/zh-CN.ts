@@ -437,7 +437,7 @@ export const zhCN = {
   'ie.addPermit': '添加许可',
   'ie.trips': '出境记录',
   'ie.tripsHint':
-    '每次离开爱尔兰填一行（去北爱尔兰也算），计划中的出行也可以填。出境当天和回来当天不算缺席。',
+    '每次离开爱尔兰填一行（去北爱尔兰也算；已在许可里填为"在北爱尔兰合法居住"的期间不必再填），计划中的出行也可以填。出境当天和回来当天不算缺席。',
   'ie.trip': '出境 {n}',
   'ie.departed': '离开爱尔兰的日期',
   'ie.returned': '回到爱尔兰的日期',
@@ -457,7 +457,7 @@ export const zhCN = {
   'ie.stamp4Route.wcatt': 'Stamp 5：合法居留满 96 个月',
   'ie.employmentStart': '在爱尔兰凭该许可开始工作的日期',
   'ie.employmentStartHint':
-    '以 Revenue 的 Employment Detail Summary 为准；先持其他许可、后转 Stamp 1 的，填该雇佣许可的生效日。之后的 Stamp 1／1H 许可请在上面逐段填好，没有许可的日子不计。',
+    '以 Revenue 的 Employment Detail Summary 为准；先持其他许可、后转 Stamp 1 的，填该雇佣许可的生效日。转 Stamp 1 之前所持的许可（如毕业生 1G）和之后的 Stamp 1／1H 都请在上面逐段填好，没有任何许可的日子不计。',
   'ie.remove': '删除',
   'ie.submit': '计算',
   'ie.errorSummary': '请先修正标红的项目。',

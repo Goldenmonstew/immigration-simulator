@@ -637,7 +637,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.addPermit': 'Add a permission',
   'ie.trips': 'Trips abroad',
   'ie.tripsHint':
-    'Add a row for each time you left Ireland (Northern Ireland included). You can include planned trips. The days you leave and come back are not absences.',
+    'Add a row for each time you left Ireland (Northern Ireland included, except periods already entered as lawful residence in Northern Ireland). You can include planned trips. The days you leave and come back are not absences.',
   'ie.trip': 'Trip {n}',
   'ie.departed': 'Date you left Ireland',
   'ie.returned': 'Date you came back to Ireland',
@@ -660,7 +660,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.stamp4Route.wcatt': 'Stamp 5: 96 months of legal residence',
   'ie.employmentStart': 'Date you started work in Ireland on that permit',
   'ie.employmentStartHint':
-    'As in Revenue’s Employment Detail Summary; if you moved to Stamp 1 from another permission, the date the employment permit became valid. Enter each later Stamp 1 or 1H permission above: days without one do not count.',
+    'As in Revenue’s Employment Detail Summary; if you moved to Stamp 1 from another permission, the date the employment permit became valid. Enter above the permission you held before moving to Stamp 1 (such as a graduate 1G) and each later Stamp 1 or 1H: days without any permission do not count.',
   'ie.remove': 'Remove',
   'ie.submit': 'Work out dates',
   'ie.errorSummary': 'Fix the items marked in red first.',
