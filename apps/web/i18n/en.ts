@@ -672,10 +672,16 @@ export const en: Record<keyof typeof zhCN, string> = {
     'First day with 80 points (or as special highly skilled), kept since',
   'jp.statusStartHint.general':
     'Technical Intern Training and Specified Skilled Worker (i) do not count; for applications from 2027-04-01, Employment for Skill Development, Intra-company Transferee and some Designated Activities do not count either.',
+  'jp.newStatus':
+    'Under the new guideline from 2027-04-01, first day on a work or residence status',
+  'jp.newStatusHint':
+    'The new guideline no longer counts Intra-company Transferee, Employment for Skill Development, Specified Skilled Worker (i) or some Designated Activities as work statuses. Applications from 2027-04-01 count the 5 years from here.',
+  'jp.newStatus.same': 'The same date as above',
+  'jp.newStatus.own': 'A later date (I held a status it does not count)',
+  'jp.newStatus.none':
+    'My current status does not count (such as Intra-company Transferee)',
   'jp.newStatusStart':
-    'Under the new guideline from 2027-04-01, first day on a work or residence status (leave blank if the same as above)',
-  'jp.newStatusStartHint':
-    'The new guideline no longer counts Intra-company Transferee, Employment for Skill Development, Specified Skilled Worker (i) or some Designated Activities as work statuses; if you held one of them, enter when you began holding a qualifying status without a break after it. Applications from 2027-04-01 count the 5 years from this date.',
+    'First day on a status the new guideline counts, held since',
   'jp.renewalPending':
     'Before leaving I had applied to renew (or change) my status within the period of stay, and the decision was still pending',
   'jp.marriedLifeFrom': 'Date your married life began',
@@ -717,6 +723,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'jp.error.prRoute':
     'Choose the permanent residence route that applies to you.',
   'jp.error.natRoute': 'Choose the naturalisation route that applies to you.',
+  'jp.error.specialPeriod':
+    'Even with a renewal pending you can leave only within 2 months after your period of stay ended; check the dates.',
   'jp.error.overlap': 'This trip overlaps an earlier one.',
   'us.entryLink': 'Open the United States pilot',
   'us.entryDesc':

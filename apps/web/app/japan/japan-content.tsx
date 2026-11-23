@@ -186,12 +186,34 @@ export default function JapanContent() {
           )}
           {draft.prRoute === 'general' && (
             <div className={form.followUp}>
-              {date(
-                'jp-new-status-start',
-                t('jp.newStatusStart'),
-                'newStatusStart',
-                t('jp.newStatusStartHint'),
-              )}
+              <Field
+                id="jp-new-status"
+                label={t('jp.newStatus')}
+                hint={t('jp.newStatusHint')}
+              >
+                <select
+                  id="jp-new-status"
+                  value={draft.newStatus}
+                  onChange={(e) => {
+                    // A hidden date must not keep its error.
+                    setErrors({});
+                    set({ newStatus: e.target.value as JpForm['newStatus'] });
+                  }}
+                  aria-describedby="jp-new-status-hint"
+                >
+                  {(['same', 'own', 'none'] as const).map((k) => (
+                    <option key={k} value={k}>
+                      {t(`jp.newStatus.${k}`)}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              {draft.newStatus === 'own' &&
+                date(
+                  'jp-new-status-start',
+                  t('jp.newStatusStart'),
+                  'newStatusStart',
+                )}
               <p className={form.hint}>{t('jp.excludedHint')}</p>
               <PilotDateRows
                 prefix="jp-excluded"

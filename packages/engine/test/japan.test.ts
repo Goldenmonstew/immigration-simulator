@@ -599,6 +599,55 @@ describe('review70-2', () => {
   });
 });
 
+describe('review70-3', () => {
+  const ict = {
+    stayStart: '2017-04-05',
+    pr: {
+      route: 'general',
+      statusStart: '2017-04-05',
+      newStatusStart: 'none',
+    },
+  } as const;
+
+  test('no status the new guideline counts: its 5 years never start', () => {
+    // Intra-company Transferee since 2021-04-05, still held.
+    const p = pr({ ...ict, simulationDate: '2027-05-10' });
+    expect(p.status).toBe('NOT_MET');
+    expect(p.checks[1].met).toBe(false);
+    expect(p.summary).toContain('PD-134');
+  });
+
+  test('the old guideline still counts it up to 2027-03-31', () => {
+    const p = pr({
+      ...ict,
+      simulationDate: '2027-03-01',
+      stayStart: '2017-02-01',
+    });
+    expect(p.status).toBe('MET');
+    // From 2027-04-01 the new guideline is never met.
+    expect(p.summary).toContain('10 年内达不到');
+  });
+
+  test('leaving during the renewal special period keeps the stay', () => {
+    // Period of stay to 2027-04-20, renewal pending, away 05-01 to 05-08.
+    const req: Partial<JpRequest> = {
+      simulationDate: '2027-05-10',
+      stayStart: '2016-04-01',
+      pr: { route: 'general', statusStart: '2018-04-01' },
+      trips: [
+        {
+          departed: '2027-05-01',
+          returned: '2027-05-08',
+          stayExpiry: '2027-04-20',
+          renewalPending: true,
+        },
+      ],
+    };
+    expect(pr(req).status).toBe('MET');
+    expect(nat(req).status).toBe('UNKNOWN');
+  });
+});
+
 test('English text', () => {
   const result = evaluateJapan({ ...base, locale: 'en' });
   expect(result.pathways[0].title).toBe('Permanent residence (永住許可)');

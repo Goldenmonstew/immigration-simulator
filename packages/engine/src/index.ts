@@ -74,7 +74,12 @@ export type {
   CaResult,
   CaTrip,
 } from './canada';
-export { JP_NATURALISATION_ROUTES, JP_PR_ROUTES, evaluateJapan } from './japan';
+export {
+  JP_NATURALISATION_ROUTES,
+  JP_PR_ROUTES,
+  evaluateJapan,
+  jpStayLimit,
+} from './japan';
 export type {
   JpNaturalisationRequest,
   JpNaturalisationRoute,

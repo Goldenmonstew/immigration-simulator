@@ -1,3 +1,4 @@
+import { jpStayLimit } from '@uk-immigration/engine';
 import type {
   JpNaturalisationRoute,
   JpPrRoute,
@@ -30,7 +31,11 @@ export interface JpForm {
   prRoute: JpPrRoute | '';
   /** The status, recognition or points date the route counts from. */
   statusStart: string;
-  /** General route: the start under the new guideline, if different. */
+  /**
+   * General route, under the new guideline: the same start, its own start
+   * (`newStatusStart`), or no status it counts held yet.
+   */
+  newStatus: 'same' | 'own' | 'none';
   newStatusStart: string;
   /** General route only. */
   excluded: JpExcludedRow[];
@@ -60,6 +65,7 @@ export function emptyJpForm(today: string): JpForm {
     stayStart: '',
     prRoute: '',
     statusStart: '',
+    newStatus: 'same',
     newStatusStart: '',
     excluded: [],
     marriedLifeFrom: '',
@@ -91,7 +97,8 @@ export function validateJpForm(form: JpForm): JpErrors {
   if (!form.prRoute) errors['jp-pr-route'] = 'jp.error.prRoute';
   if (needsStatusStart(form.prRoute)) date('jp-status-start', form.statusStart);
   if (form.prRoute === 'general') {
-    date('jp-new-status-start', form.newStatusStart, true);
+    if (form.newStatus === 'own')
+      date('jp-new-status-start', form.newStatusStart);
     form.excluded.forEach((row, i) => {
       date(`jp-excluded-${i}-from`, row.from);
       date(`jp-excluded-${i}-to`, row.to);
@@ -109,7 +116,13 @@ export function validateJpForm(form: JpForm): JpErrors {
     // A pending renewal only matters against the expiry it extends.
     date(`jp-trip-${i}-stayExpiry`, trip.stayExpiry, !trip.renewalPending);
     order(`jp-trip-${i}-returned`, trip.departed, trip.returned);
-    order(`jp-trip-${i}-stayExpiry`, trip.departed, trip.stayExpiry);
+    // With a renewal pending, leaving is lawful until the special period
+    // ends (art. 20(6), FAQ Q61).
+    const limit = validDate(trip.stayExpiry) && jpStayLimit(trip);
+    if (limit && validDate(trip.departed) && trip.departed > limit)
+      errors[`jp-trip-${i}-stayExpiry`] = trip.renewalPending
+        ? 'jp.error.specialPeriod'
+        : 'jp.error.order';
     // Overlapping trips would count the same days twice.
     if (
       form.trips
@@ -138,9 +151,11 @@ export function jpRequest(form: JpForm, locale: Locale): JpRequest {
           ? {
               route: 'general',
               statusStart: form.statusStart,
-              ...(form.newStatusStart
+              ...(form.newStatus === 'own'
                 ? { newStatusStart: form.newStatusStart }
-                : {}),
+                : form.newStatus === 'none'
+                  ? { newStatusStart: 'none' as const }
+                  : {}),
               ...(form.excluded.length ? { excluded: form.excluded } : {}),
             }
           : {

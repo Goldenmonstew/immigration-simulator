@@ -139,7 +139,7 @@ export const japan2026_11 = {
         {
           srcId: 'SRC-116',
           locator: '出入国審査・在留審査Q&A Q61',
-          url: 'https://www.moj.go.jp/isa/immigration/faq/kanri_qa.html#q61',
+          url: 'https://www.moj.go.jp/isa/immigration/faq/kanri_qa.html#q62',
         },
       ],
     },

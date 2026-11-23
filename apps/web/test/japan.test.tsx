@@ -152,6 +152,7 @@ test('the request carries each route with its own date', () => {
         ...filled,
         prRoute: 'general',
         statusStart: '2021-04-01',
+        newStatus: 'own',
         newStatusStart: '2024-04-01',
         excluded: [{ from: '2020-10-01', to: '2021-03-31' }],
       },
@@ -166,6 +167,82 @@ test('the request carries each route with its own date', () => {
   expect(jpRequest(filled, 'en').pr).toEqual({
     route: 'spouse',
     marriedLifeFrom: '2023-12-01',
+  });
+});
+
+test('the new-guideline start: same, own date or not yet held', () => {
+  const general: JpForm = {
+    ...filled,
+    prRoute: 'general',
+    statusStart: '2017-04-05',
+    newStatusStart: '2024-04-01',
+  };
+  const pr = (newStatus: JpForm['newStatus']) =>
+    jpRequest({ ...general, newStatus }, 'en').pr;
+  // A date typed in before switching back to "same" is not sent.
+  expect(pr('same')).toEqual({ route: 'general', statusStart: '2017-04-05' });
+  expect(pr('own')).toEqual({
+    route: 'general',
+    statusStart: '2017-04-05',
+    newStatusStart: '2024-04-01',
+  });
+  expect(pr('none')).toEqual({
+    route: 'general',
+    statusStart: '2017-04-05',
+    newStatusStart: 'none',
+  });
+  expect(
+    validateJpForm({ ...general, newStatus: 'own', newStatusStart: '' }),
+  ).toEqual({ 'jp-new-status-start': 'jp.error.date' });
+  expect(
+    validateJpForm({ ...general, newStatus: 'none', newStatusStart: '' }),
+  ).toEqual({});
+  // Still holding Intra-company Transferee on 2027-05-10.
+  const result = evaluateJapan(
+    jpRequest(
+      {
+        ...general,
+        simulationDate: '2027-05-10',
+        stayStart: '2017-04-05',
+        newStatus: 'none',
+      },
+      'zh-CN',
+    ),
+  );
+  expect(result.pathways[0].status).toBe('NOT_MET');
+});
+
+test('leaving with a renewal pending (FAQ Q61)', () => {
+  // Period of stay to 2027-04-20, renewal applied for on 2027-04-10.
+  const form = (departed: string, returned: string, pending: boolean) => ({
+    ...filled,
+    simulationDate: '2027-05-10',
+    stayStart: '2016-04-01',
+    prRoute: 'general' as const,
+    statusStart: '2018-04-01',
+    trips: [
+      {
+        ...trip(departed, returned),
+        stayExpiry: '2027-04-20',
+        renewalPending: pending,
+      },
+    ],
+  });
+  // Before the original expiry.
+  expect(validateJpForm(form('2027-04-15', '2027-04-30', true))).toEqual({});
+  // After it, within the 2 months the status lasts.
+  const special = form('2027-05-01', '2027-05-08', true);
+  expect(validateJpForm(special)).toEqual({});
+  expect(evaluateJapan(jpRequest(special, 'zh-CN')).pathways[0].status).toBe(
+    'MET',
+  );
+  // Without a pending renewal the status had ended before leaving.
+  expect(validateJpForm(form('2027-05-01', '2027-05-08', false))).toEqual({
+    'jp-trip-0-stayExpiry': 'jp.error.order',
+  });
+  // Past the special period too.
+  expect(validateJpForm(form('2027-06-21', '2027-06-25', true))).toEqual({
+    'jp-trip-0-stayExpiry': 'jp.error.specialPeriod',
   });
 });
 

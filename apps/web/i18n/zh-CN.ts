@@ -466,10 +466,13 @@ export const zhCN = {
   'jp.statusStart.hsp80': '达到 80 点（或特別高度人材）并一直保持的开始日',
   'jp.statusStartHint.general':
     '技能実習、特定技能1号不算；2027-04-01 起递交的，育成就労、企業内転勤与部分特定活動也不算。',
-  'jp.newStatusStart':
-    '按 2027-04-01 起的新版指南，连续持就労或居住资格的开始日（与上面相同可留空）',
-  'jp.newStatusStartHint':
-    '新版把企業内転勤、育成就労、特定技能1号与部分特定活動排除在就労资格外；之前持过这些资格的，填其后连续持合格资格的开始日。2027-04-01 起递交的按这一日期计 5 年。',
+  'jp.newStatus': '按 2027-04-01 起的新版指南，连续持就労或居住资格的开始日',
+  'jp.newStatusHint':
+    '新版把企業内転勤、育成就労、特定技能1号与部分特定活動排除在就労资格外。2027-04-01 起递交的按这里计 5 年。',
+  'jp.newStatus.same': '与上面的日期相同',
+  'jp.newStatus.own': '另有日期（之前持过新版不认可的资格）',
+  'jp.newStatus.none': '目前持有的资格新版不认可（如企業内転勤）',
+  'jp.newStatusStart': '连续持新版认可的资格的开始日',
   'jp.renewalPending':
     '出境前已在在留期限内申请更新（或变更）在留资格，出境时尚未出结果',
   'jp.marriedLifeFrom': '开始实际婚姻生活的日期',
@@ -508,6 +511,8 @@ export const zhCN = {
   'jp.error.order': '这个日期不能早于开始的日期。',
   'jp.error.prRoute': '请选择适用的永住许可路线。',
   'jp.error.natRoute': '请选择适用的帰化路线。',
+  'jp.error.specialPeriod':
+    '更新申请中也只能在在留期限届满后 2 个月内离开日本，请核对日期。',
   'jp.error.overlap': '这次出境与前面的出境日期重叠。',
   'us.entryLink': '打开美国试点',
   'us.entryDesc':

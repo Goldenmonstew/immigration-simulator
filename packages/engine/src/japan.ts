@@ -71,9 +71,9 @@ export type JpPrRequest =
       /**
        * The same under the 2026-10-01 guideline, which no longer counts
        * Intra-company Transferee and others as work statuses; absent = as
-       * `statusStart`.
+       * `statusStart`, 'none' = no such status held yet.
        */
-      newStatusStart?: IsoDate;
+      newStatusStart?: IsoDate | 'none';
       /**
        * Stays that do not count towards the 10 years, such as temporary
        * Designated Activities (2026-10-01 guideline 第5).
@@ -130,6 +130,19 @@ interface Need {
   sources: SourceRef[];
 }
 
+/**
+ * Last day on the period of stay held when leaving: with a renewal pending,
+ * the status lasts until the decision or 2 months after expiry (art. 20(6)),
+ * and a re-entry must come back by then (FAQ Q61; the decision is taken as
+ * granted). Undefined when no period of stay was entered.
+ */
+export const jpStayLimit = (
+  t: Pick<JpTrip, 'stayExpiry' | 'renewalPending'>,
+): IsoDate | undefined =>
+  t.stayExpiry && t.renewalPending
+    ? addMonths(t.stayExpiry, v.renewalPendingMonths.value)
+    : t.stayExpiry;
+
 const metOf = (state: Verdict) =>
   state === 'yes' ? true : state === 'no' ? false : undefined;
 
@@ -147,17 +160,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
   // The status ends on a trip past the period of stay, or past the deemed
   // permit's year without a regular permit (art. 26-2(2)); the stay starts
   // again on return (PD-136).
-  /**
-   * Last day to come back on the period of stay: with a renewal pending, the
-   * status lasts until the decision or 2 months after expiry (art. 20(6)),
-   * and so does the re-entry (FAQ Q61; the decision is taken as granted).
-   */
-  const stayLimit = (t: JpTrip) =>
-    t.stayExpiry && t.renewalPending
-      ? addMonths(t.stayExpiry, v.renewalPendingMonths.value)
-      : t.stayExpiry;
   const pastExpiry = (t: JpTrip) => {
-    const limit = stayLimit(t);
+    const limit = jpStayLimit(t);
     return !!limit && t.returned > limit;
   };
   const lapsed = req.trips
@@ -227,8 +231,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
   const lapseNotes = lapsed.map((t) =>
     pastExpiry(t)
       ? L(
-          `${t.departed} 至 ${t.returned} 的出境在 ${stayLimit(t)} 之后才返回（在留期限${t.renewalPending ? `届满后 ${v.renewalPendingMonths.value} 个月，更新申请中` : ''}），在留资格消灭，连续在留从 ${t.returned} 重新起算。`,
-          ` The trip from ${t.departed} to ${t.returned} came back after ${stayLimit(t)} (${t.renewalPending ? `${v.renewalPendingMonths.value} months after your period of stay ended, with a renewal pending` : 'the end of your period of stay'}), so the status ended and the unbroken stay starts again on ${t.returned}.`,
+          `${t.departed} 至 ${t.returned} 的出境在 ${jpStayLimit(t)} 之后才返回（在留期限${t.renewalPending ? `届满后 ${v.renewalPendingMonths.value} 个月，更新申请中` : ''}），在留资格消灭，连续在留从 ${t.returned} 重新起算。`,
+          ` The trip from ${t.departed} to ${t.returned} came back after ${jpStayLimit(t)} (${t.renewalPending ? `${v.renewalPendingMonths.value} months after your period of stay ended, with a renewal pending` : 'the end of your period of stay'}), so the status ended and the unbroken stay starts again on ${t.returned}.`,
         )
       : L(
           `${t.departed} 至 ${t.returned} 的出境没有再入国许可、超过みなし再入国许可的 ${v.deemedReentryYears.value} 年期限，在留资格消灭，连续在留从 ${t.returned} 重新起算。`,
@@ -301,10 +305,13 @@ export function evaluateJapan(req: JpRequest): JpResult {
             g === 'new'
               ? addDays(afterYears(stay, years), excludedDays)
               : afterYears(stay, years);
+          // No status the new guideline counts: its 5 years cannot start
+          // (SRC-114 注2).
+          const none = g === 'new' && pr.newStatusStart === 'none';
           const from = since(
             d,
-            g === 'new'
-              ? (pr.newStatusStart ?? pr.statusStart)
+            g === 'new' && pr.newStatusStart && pr.newStatusStart !== 'none'
+              ? pr.newStatusStart
               : pr.statusStart,
           );
           const statusYears = v.prStatusYears.value;
@@ -336,9 +343,13 @@ export function evaluateJapan(req: JpRequest): JpResult {
             {
               years: statusYears,
               stay: true,
-              state: reached(d, from, statusYears),
-              text:
-                g === 'new'
+              state: none ? 'no' : reached(d, from, statusYears),
+              text: none
+                ? L(
+                    `其中以新版指南认可的就労资格或居住资格连续在留满 ${statusYears} 年：目前持有的资格（如企業内転勤）新版不认可，尚未起算`,
+                    `Of that, ${statusYears} years in a row on a status the new guideline counts as work or residence: your current status (such as Intra-company Transferee) does not count, so they have not started`,
+                  )
+                : g === 'new'
                   ? L(
                       `其中自 ${from} 起以新版指南认可的就労资格或居住资格连续在留满 ${statusYears} 年`,
                       `Of that, ${statusYears} years in a row since ${from} on a status the new guideline counts as work or residence`,
@@ -590,6 +601,12 @@ export function evaluateJapan(req: JpRequest): JpResult {
                   'With your record you will not meet the time requirements for permanent residence within 10 years.',
                 )) +
         version +
+        (pr.route === 'general' && pr.newStatusStart === 'none'
+          ? L(
+              `${switchDate} 起递交适用的新版指南不把你目前的资格（如企業内転勤）算作就労资格，换成认可的资格后才开始计 ${v.prStatusYears.value} 年（PD-134）。`,
+              ` From ${switchDate} the new guideline does not count your current status (such as Intra-company Transferee) as a work status, so its ${v.prStatusYears.value} years start only once you hold one it counts (PD-134).`,
+            )
+          : '') +
         lapseNotes.join(''),
       checks: [
         ...needs(sim).map((n) => ({
@@ -619,8 +636,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
           `The guideline depends on the application date: up to and including ${lastOld} the 2026-02-24 version, from ${switchDate} the 2026-10-01 version (spouses ${v.spouseMarriageYears.value.old} → ${v.spouseMarriageYears.value.new} years of marriage and ${v.spouseStayYears.value.old} → ${v.spouseStayYears.value.new} years of stay, children ${v.childStayYears.value.old} → ${v.childStayYears.value.new} years, and a new test for absences). The old version does not specify a numerical limit on absences, so trips in the period leave the date uncertain (PD-132).`,
         ),
         L(
-          `新版出境标准看递交日前 ${years} 年，出入境当天按在日本计。单次：${months} 个日历月是 ${halfMin}–${halfMax} 天，境外整天 ${halfMax} 天以上且整段在这 ${years} 年内的算达到，连出入境当天也不满 ${halfMin} 天的算未达到，其间与跨窗口的长行程待确认；合计按境外整天，少于 ${totalMin} 天算未达到 ${total} 个月，${totalMax} 天及以上算达到。达到的原则上消极评价，有合理理由的个案判断，结果待确认（PD-131）。`,
-          `The new absence test looks at the ${years} years before applying, with departure and return days counted as days in Japan. A single absence: ${months} calendar months are ${halfMin}–${halfMax} days, so ${halfMax} or more whole days abroad, all inside those ${years} years, reaches it, and under ${halfMin} days even counting travel days does not; anything between, or a long trip that started before the window, is uncertain. The total is in whole days abroad: under ${totalMin} days is short of ${total} months and ${totalMax} days or more reaches it. Reaching it counts against you unless there is a reasonable reason, decided case by case, so the result is uncertain (PD-131).`,
+          `新版出境标准看递交日前 ${years} 年，出入境当天按在日本计。单次：${months} 个日历月是 ${halfMin}–${halfMax} 天，境外整天 ${halfMax} 天以上且整段在这 ${years} 年内的算达到，连出入境当天也不满 ${halfMin} 天的算未达到，其间与跨窗口的长行程待确认；合计：连出入境当天也少于 ${totalMin} 天算未达到 ${total} 个月，境外整天 ${totalMax} 天及以上算达到，其间待确认；模拟日仍在境外的行程只算到模拟日。达到的原则上消极评价，有合理理由的个案判断，结果待确认（PD-131）。`,
+          `The new absence test looks at the ${years} years before applying, with departure and return days counted as days in Japan. A single absence: ${months} calendar months are ${halfMin}–${halfMax} days, so ${halfMax} or more whole days abroad, all inside those ${years} years, reaches it, and under ${halfMin} days even counting travel days does not; anything between, or a long trip that started before the window, is uncertain. The total: under ${totalMin} days even counting travel days is short of ${total} months, ${totalMax} or more whole days abroad reaches it, and anything between is uncertain; a trip still under way on the simulation date counts only up to that date. Reaching it counts against you unless there is a reasonable reason, decided case by case, so the result is uncertain (PD-131).`,
         ),
         anniversary,
         reentry,
