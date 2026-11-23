@@ -760,6 +760,23 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     ).toBe('MET');
   });
 
+  test('ICT before the upgrade page listed it: the earlier rule is not modelled (task 72)', () => {
+    const req: Partial<IeRequest> = {
+      simulationDate: '2025-01-01',
+      permissions: [{ kind: 'stamp1-ict', from: '2019-03-01' }],
+      stamp4Route: 'gep',
+      employmentStart: '2019-03-01',
+    };
+    // 57 months end on 2023-11-30; ICT is first listed on 2025-07-22.
+    const p = pathway(req, 'IE-STAMP4');
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('按 57 个月规则满足的最早日期是 2025-07-22');
+    expect(p.summary).toContain('公司内调');
+    expect(
+      pathway({ ...req, simulationDate: '2025-07-22' }, 'IE-STAMP4').status,
+    ).toBe('MET');
+  });
+
   test('Stamp 5 after 96 months', () => {
     const req: Partial<IeRequest> = {
       simulationDate: '2025-01-01',

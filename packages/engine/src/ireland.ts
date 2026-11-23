@@ -575,9 +575,16 @@ export function evaluateIreland(req: IeRequest): IeResult {
               ? start
               : days.date(s);
         };
-        // Before the 57-month rule took effect the earlier rule applied,
-        // which this pilot does not model (PD-116).
-        const ruleFrom = route === 'gep' ? v.gepRuleFrom.value : undefined;
+        // The 57-month rule's earliest sourced date: GEP from ISD's 2024
+        // notice, ICT from the first archived page listing it. The earlier
+        // rule is not modelled (PD-116).
+        const ict = byKind['stamp1-ict'];
+        const ruleFor = (i: number) =>
+          route !== 'gep'
+            ? undefined
+            : ict[i]
+              ? v.ictRuleFrom.value
+              : v.gepRuleFrom.value;
         const verdict = (d: IsoDate): Verdict => {
           const from = countFrom(d);
           // Renewing as Stamp 4: residing in the State on the permit on the
@@ -587,8 +594,10 @@ export function evaluateIreland(req: IeRequest): IeResult {
           // From the 29th–31st into a shorter month: that month's last day
           // or the 1st of the next (PD-116).
           const end = addMonths(from, months);
-          if (d >= (end.slice(8) === from.slice(8) ? end : addDays(end, 1)))
-            return ruleFrom && d < ruleFrom ? 'maybe' : 'yes';
+          if (d >= (end.slice(8) === from.slice(8) ? end : addDays(end, 1))) {
+            const rule = ruleFor(i);
+            return rule && d < rule ? 'maybe' : 'yes';
+          }
           // A month-end start, or the time on both sides of a gap added up.
           return d >= end ||
             (d > start && days.total(heldSums, start, addDays(d, -1)) >= span)
@@ -597,6 +606,9 @@ export function evaluateIreland(req: IeRequest): IeResult {
         };
         const earliest = firstDate((d) => verdict(d) === 'yes');
         const possible = firstDate((d) => verdict(d) !== 'no');
+        const ruleFrom = possible && ruleFor(days.index(possible));
+        const ruleBound = !!ruleFrom && !!possible && possible < ruleFrom;
+        const ictRule = !!possible && ict[days.index(possible)];
         const missing =
           sim > start
             ? daysBetween(start, sim) -
@@ -614,23 +626,28 @@ export function evaluateIreland(req: IeRequest): IeResult {
                   `You have completed ${months} months on the simulation date; when you can apply to renew as Stamp 4 follows ISD’s renewal arrangements.`,
                 )
               : earliest
-                ? L(
-                    `满 ${months} 个月的最早日期是 ${earliest}。`,
-                    `The earliest date you complete ${months} months is ${earliest}.`,
-                  )
+                ? ruleBound
+                  ? L(
+                      `按 ${months} 个月规则满足的最早日期是 ${earliest}。`,
+                      `The earliest date under the ${months}-month rule is ${earliest}.`,
+                    )
+                  : L(
+                      `满 ${months} 个月的最早日期是 ${earliest}。`,
+                      `The earliest date you complete ${months} months is ${earliest}.`,
+                    )
                 : L(
                     `按现有记录，10 年内达不到凭该许可受雇满 ${months} 个月。`,
                     `With your record you will not complete ${months} months on that permit within 10 years.`,
                   )) +
             (possible && possible !== earliest
               ? L(
-                  ruleFrom && possible < ruleFrom
-                    ? `${months} 个月规则自 ISD ${ruleFrom} 的通告起适用，此前的规则本试点没有收录：${possible} 起按当时的规则是否已满足待确认（PD-116）。`
+                  ruleBound
+                    ? `已存档的来源中，${months} 个月规则对${ictRule ? '公司内调（ICT）' : 'General Employment Permit'}最早见于 ${ruleFrom}（${ictRule ? 'ISD 升级页的发布日' : 'ISD 通告'}），此前的规则本试点没有收录：${possible} 起按当时的规则是否已满足待确认（PD-116）。`
                     : countFrom(possible) === start
                       ? `若从月末起算按当月最后一天届满，最早 ${possible}（PD-116）。`
                       : `若许可空档前后的受雇时间可以累加，最早 ${possible}（PD-116）。`,
-                  ruleFrom && possible < ruleFrom
-                    ? ` The ${months}-month rule applies from ISD’s notice of ${ruleFrom}; this pilot does not have the earlier rule, so whether you qualified under it from ${possible} is uncertain (PD-116).`
+                  ruleBound
+                    ? ` In the archived sources the ${months}-month rule first covers ${ictRule ? 'intra-company transfers' : 'General Employment Permits'} on ${ruleFrom} (${ictRule ? 'the publication date of ISD’s upgrade page' : 'ISD’s notice'}); this pilot does not have the earlier rule, so whether you qualified under it from ${possible} is uncertain (PD-116).`
                     : countFrom(possible) === start
                       ? ` If months from a month-end start end on the last day of the month, it could be ${possible} (PD-116).`
                       : ` If the time on both sides of a gap in the permit can be added up, it could be ${possible} (PD-116).`,
