@@ -12,14 +12,14 @@ export const portugal2026_11 = {
   values: {
     // Naturalisation: years of legal residence by nationality.
     nationalityYears: {
-      value: { cplp: 7, eu: 7, other: 10, stateless: 4 },
+      value: { cplp: 7, eu: 7, eea: 10, other: 10, stateless: 4 },
       sources: [
         { srcId: 'SRC-120', locator: 'art. 6 n.º 1 b) (p2), n.º 3 (p3)' },
       ],
     },
     // The counted periods must fall within this many years.
     nationalityIntervalYears: {
-      value: { cplp: 9, eu: 9, other: 12, stateless: 6 },
+      value: { cplp: 9, eu: 9, eea: 12, other: 12, stateless: 6 },
       sources: [{ srcId: 'SRC-120', locator: 'art. 15 n.º 3 (p5)' }],
     },
     // Applications pending on this date keep the earlier text of the law.
@@ -102,6 +102,16 @@ export const portugal2026_11 = {
     longTermTotalAbsenceMonths: {
       value: 10,
       sources: [{ srcId: 'SRC-123', locator: 'art. 126 n.º 4 (p101)' }],
+    },
+    // EU long-term resident status is lost after this many months in a row
+    // outside the EU, or this many years in a row outside Portugal.
+    longTermLossEuMonths: {
+      value: 12,
+      sources: [{ srcId: 'SRC-123', locator: 'art. 131 n.º 1 c) (p103)' }],
+    },
+    longTermLossYears: {
+      value: 6,
+      sources: [{ srcId: 'SRC-123', locator: 'art. 131 n.º 1 e) (p103)' }],
     },
     // Golden visa (ARI, art. 90-A): each renewal lasts this many years.
     goldenVisaRenewalYears: {

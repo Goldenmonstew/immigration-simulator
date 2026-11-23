@@ -500,6 +500,23 @@ describe('permanent residence (Lei 23/2007 art. 80)', () => {
   });
 });
 
+test('EEA and Swiss citizens also fall outside the foreigners law', () => {
+  // review71-2: a Norwegian with only a free-movement registration.
+  for (const id of [
+    'PT-PERMANENT',
+    'PT-EU-LONG-TERM',
+    'PT-GOLDEN-VISA',
+  ] as const)
+    expect(pathway({ route: 'eea', permits: [] }, id).status).toBe(
+      'NOT_APPLICABLE',
+    );
+  // Not EU nationals for naturalisation: 10 years, registration not modelled.
+  const p = pathway({ route: 'eea', permits: [] }, 'PT-NATURALISATION');
+  expect(p.status).toBe('UNKNOWN');
+  expect(p.summary).toContain('10 年');
+  expect(p.summary).toContain('art. 15 n.º 2');
+});
+
 describe('EU long-term residence (Lei 23/2007 art. 125–126)', () => {
   test('5 years immediately before applying', () => {
     const p = pathway({}, 'PT-EU-LONG-TERM');
@@ -577,6 +594,62 @@ describe('EU long-term residence (Lei 23/2007 art. 125–126)', () => {
     );
     expect(p.status).toBe('UNKNOWN');
     expect(p.pendingDetails).toContain('PD-145');
+  });
+
+  test('EU long-term resident status already held (art. 130–131)', () => {
+    // review71-2: a 7-month stay in Spain does not lose the status.
+    const req: Partial<PtRequest> = {
+      simulationDate: '2026-11-22',
+      permits: [
+        { kind: 'temporary', from: '2020-01-01', to: '2021-12-31' },
+        { kind: 'temporary', from: '2022-01-01', to: '2025-01-01' },
+        { kind: 'eu-long-term', from: '2025-01-02' },
+      ],
+      trips: [{ departed: '2025-03-01', returned: '2025-10-01' }],
+    };
+    const p = pathway(req, 'PT-EU-LONG-TERM');
+    expect(p.status).toBe('NOT_APPLICABLE');
+    expect(p.earliestDate).toBeUndefined();
+    expect(p.summary).toContain('2025-01-02');
+    expect(p.checks[0].met).toBe(true);
+    // The permanent residence node no longer calls it an art. 76 permit.
+    const permanent = pathway(req, 'PT-PERMANENT');
+    expect(permanent.status).not.toBe('NOT_APPLICABLE');
+    expect(permanent.summary).not.toContain('art. 76');
+    expect(permanent.summary).toContain('欧盟长期居民');
+    // 12 months away may lose it outside the EU; 6 years away loses it.
+    const year = pathway(
+      { ...req, trips: [{ departed: '2025-03-01', returned: '2026-03-02' }] },
+      'PT-EU-LONG-TERM',
+    );
+    expect(year.checks[0].met).toBeUndefined();
+    // An expired card does not end the status (art. 130 n.º 2).
+    expect(
+      pathway(
+        {
+          simulationDate: '2026-11-22',
+          permits: [
+            { kind: 'eu-long-term', from: '2020-01-01', to: '2025-01-01' },
+          ],
+        },
+        'PT-EU-LONG-TERM',
+      ).status,
+    ).toBe('NOT_APPLICABLE');
+  });
+
+  test('the months after a study permit are no permit to apply with', () => {
+    // review71-2: work to 2026-03-31, then study to 2026-10-31.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [
+          { kind: 'temporary', from: '2021-04-01', to: '2026-03-31' },
+          { kind: 'study', from: '2026-04-01', to: '2026-10-31' },
+        ],
+      },
+      'PT-EU-LONG-TERM',
+    );
+    expect(p.status).toBe('NOT_MET');
   });
 
   test('a study permit holder cannot apply', () => {
@@ -682,6 +755,29 @@ describe('golden visa (ARI) renewal and minimum stays', () => {
     );
     expect(p.status).toBe('FUTURE');
     expect(p.earliestDate).toBe('2026-10-26');
+  });
+
+  test('both readings short by the renewal deadline: not met', () => {
+    // review71-2: 2025-12-01, 12-02 and the return day make 3 days; staying
+    // on, 14 come 11 days after returning. The deadline is 2026-10-31.
+    const back = (returned: string) =>
+      pathway(
+        {
+          simulationDate: returned,
+          permits: [
+            { kind: 'golden-visa', from: '2024-12-01', to: '2026-11-30' },
+          ],
+          trips: [{ departed: '2025-12-02', returned }],
+        },
+        'PT-GOLDEN-VISA',
+      );
+    const late = back('2026-10-28'); // 14 days on 2026-11-08
+    expect(late.status).toBe('NOT_MET');
+    expect(late.summary).toContain('2026-11-08');
+    const onDeadline = back('2026-10-20'); // 14 days on 2026-10-31
+    expect(onDeadline.status).toBe('FUTURE');
+    expect(onDeadline.earliestDate).toBe('2026-10-31');
+    expect(back('2026-10-21').status).toBe('NOT_MET'); // on 2026-11-01
   });
 
   test('14 days a year on AIMA’s page, per 2 years in the regulation', () => {

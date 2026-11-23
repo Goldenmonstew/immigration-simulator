@@ -30,13 +30,20 @@
   - 入籍的出境只看与计入居留日重叠的部分，完全落在空档里的出境不再触发 PD-144。
   - 风险与建议中处理的：跨续期的出境按每张许可分开计（art. 85 n.º 2 a）；"满 N 年"反推在闰年 2 月 29 日不再晚一天（2021-02-28 起 7 年 → 2028-02-29，PD-142）；入籍假设把法条、宪法法院判决理由与试点假设分开写；更正 SOURCES 与本报告里"LO 1/2024 第 6 条为过渡规定"的错误（该条只涉及塞法迪后裔），PD-149 与 SRC-125 备注记下审核指出的 DR 9/2018 出处。
   - 回归测试：上述每个复现输入都有断言（engine 葡萄牙测试由 38 项增至 50 项，web 由 7 项增至 9 项）。
+- 第二轮审核修正（review71-2，`Fix: 葡萄牙试点第二轮审核修正（review71-2）`）：
+  - 黄金签证：两种写法都要到续期期限（到期前 30 天，art. 78 n.º 1）之后才达到最低停留的，状态为不满足，摘要写明推算日期晚于期限；补期限当天达到（`FUTURE`）与次日达到（不满足）的用例。
+  - 自由流动：国籍选项新增"挪威、冰岛、列支敦士登或瑞士公民（10 年）"。外国人法 art. 4 n.º 2 a 同样排除欧洲经济区和与欧盟有人员自由流动协定国家的国民；条文不点名瑞士，试点把瑞士按这一类处理。所以永久居留、欧盟长期居民、黄金签证显示不适用，入籍沿用欧盟公民的做法输出 `UNKNOWN`，并说明表单无法录入自由流动登记。入籍年限仍按"其他国家"10 年、12 年区间：art. 6、15 只给欧盟成员国 7 年，没有给欧洲经济区和瑞士。所以没有把它们并进欧盟选项。
+  - 证件类型把"永久居留许可"（art. 76）和"欧盟长期居民身份"（art. 125–131）拆开。两者都不看卡面到期日（art. 76 n.º 1–2、art. 130 n.º 2）。已持欧盟长期居民身份的，欧盟长期居民一项显示"已持有"，并检查离开葡萄牙连续 6 年、离开欧盟连续 12 个月的丧失情形（art. 131 n.º 1 c、e，新参数 `longTermLossYears`、`longTermLossEuMonths`；出境记录分不出是否在欧盟内，满 12 个月的标待确认）。永久居留一项不再把它称为 art. 76 许可，只提示已持有另一种身份。
+  - 学习许可到期后 6 个月只保持连续，不再算递交欧盟长期居民申请时持有的许可（art. 125 n.º 2 a），改动只是把宽限期拆成"全部"与"非学习"两组。
+  - PD-140、PD-145、PD-148 与 SRC-123 备注同步。可选项 DR 9/2018 公报存档没有做，原因见第 3 节。
 
 ## 2. 怎么验证的
 
 - 关键数字逐一对照快照原文（`pdftotext -layout -f N -l N` 与 HTML 抽文本）：LO 1/2026 art. 6 n.º 1 b（p2）、n.º 3（p3）、art. 15 n.º 3（p5）、n.º 1（p14）、第 5、7、8 条（p7）；LO 1/2024 art. 6 n.º 1 b（p8）、art. 15 n.º 3–4（p13）；Lei 18/2022 附件 art. 3 n.º 1 d、v（p27、p29）、74–76（p65）、78 n.º 1（p66）、80 n.º 1 a（p67）、85 n.º 2（p69）、90-A n.º 2（p72）、125–126（p100–p101）、131（p103）；Lei 62/2026 第 4 条只改 art. 78（p7）、85（p8）；DR 15-A/2015 art. 65-B、65-C（p3）；编纂版 DR 84/2007 art. 63 n.º 14、16，Código Civil art. 279；AIMA ARI 页"此后各年 14 天"；TC D.5 原句。复制的 19 份快照 `shasum -a 256 -c` 与 dossier 清单一致。
 - `pnpm exec tsc --noEmit -p .`（packages/engine、packages/policy-data、apps/web）：通过。
 - `pnpm exec eslint`（本次改动的 ts/tsx 文件）：通过；`pnpm exec prettier --write` 已格式化。
-- 审核修正后：engine `vitest run test/portugal.test.ts test/index.test.ts` 51 项通过（葡萄牙 50 项）；policy-data 23 项通过；web `vitest run test/portugal.test.tsx test/policy-page.test.tsx test/page.test.tsx` 26 项通过（葡萄牙 9 项）；三处 `tsc --noEmit`、改动文件 eslint 与 prettier 检查通过。
+- 第二轮审核修正后：engine 葡萄牙 54 项（另含 index 1 项，共 55 项）通过；policy-data 23 项；web 26 项（葡萄牙 9 项）；三处 `tsc --noEmit`、改动文件的 eslint 与 prettier 检查通过。
+- 第一轮审核修正后：engine `vitest run test/portugal.test.ts test/index.test.ts` 51 项通过（葡萄牙 50 项）；policy-data 23 项通过；web `vitest run test/portugal.test.tsx test/policy-page.test.tsx test/page.test.tsx` 26 项通过（葡萄牙 9 项）；三处 `tsc --noEmit`、改动文件 eslint 与 prettier 检查通过。
 - 首轮：engine `vitest run test/portugal.test.ts test/index.test.ts`：39 项通过（葡萄牙 38 项，四条路径的 MET／FUTURE／NOT_MET／UNKNOWN、三种国籍、区间规则、旧法过渡与分界当天、缺席上限、黄金签证最低停留与续期；最早日期按条文手算后写进断言）。
 - policy-data `vitest run`：23 项通过（含来源登记检查）。
 - web `vitest run test/portugal.test.tsx test/policy-page.test.tsx test/page.test.tsx`：24 项通过（葡萄牙 7 项；来源链接与登记表一致）。
@@ -46,7 +53,7 @@
 - 未跑 `pnpm build`、全量 `pnpm test` 与 Playwright（按 brief 由 Fable 统一跑）；`portugal.spec.ts` 与 a11y、site 列表的改动未实际运行，页面也未在浏览器中目测。
 - 语言、文化与公民知识、刑事记录、安全与制裁、生计、住房、医保、投资金额都不检查；婚姻、在葡出生子女、后裔等入籍途径，欧盟公民按 Lei 37/2006 的居留登记，国际保护的起算，2023-10 停收的房产类黄金签证旧案（Lei 56/2023 art. 42），2024-04-01（LO 1/2024 施行）前递交、2026-05-19 仍在审的申请（输出 `UNKNOWN`），都没有建模。
 - 欧盟长期居民的学习期间按半天精确折算，折算与取整方式是试点假设（PD-147）；欧盟公民的居留登记（Lei 37/2006）没有建模。
-- 新国籍条例（部长会议 2026-10-29 通过）尚未公布；续期窗口的 90 天只依据编纂版，审核指出的 DR 9/2018 公报原文未下载存档（PD-149）。
+- 新国籍条例（部长会议 2026-10-29 通过）尚未公布；续期窗口的 90 天只依据编纂版，审核指出的 DR 9/2018 公报原文未下载存档（PD-149）；下载新文件须经用户同意，第二轮可选项也没有做。
 - 2025-06-30 前到期的居留卡另延至 2026-04-15 的特别规定没有建模（PD-145）。
 - 大文件：`2022-08-25-pt-lei-18-2022-dr164.pdf` 约 12 MB、`2023-10-06-pt-lei-56-2023-dr194.pdf` 约 4.5 MB、Código Civil 编纂版约 5 MB，仓库现有最大快照约 4 MB。
 

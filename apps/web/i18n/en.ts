@@ -607,7 +607,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Results are worked out for this date (the application date). It starts as today.',
   'pt.permits': 'Residence permits',
   'pt.permitsHint':
-    'Add a row for each permit, then the next one if renewed on time; leave the end blank if it is still valid (for a golden visa, enter the expiry on the card to get the renewal dates). You can also add a row for time on a residence visa before your first permit. Permanent residence has no time limit, so an expired card does not end it; the right of residence for 6 months after a temporary card expires is explained in the results.',
+    'Add a row for each permit, then the next one if renewed on time; leave the end blank if it is still valid (for a golden visa, enter the expiry on the card to get the renewal dates). You can also add a row for time on a residence visa before your first permit. Permanent residence and EU long-term resident status have no time limit, so an expired card does not end them; the right of residence for 6 months after a temporary card expires is explained in the results.',
   'pt.permit': 'Permit {n}',
   'pt.from': 'Valid from',
   'pt.to': 'Valid until (leave blank if still valid)',
@@ -616,7 +616,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'pt.kind.golden-visa': 'Golden visa (residence permit for investment, ARI)',
   'pt.kind.study': 'Study, unpaid traineeship or volunteering permit',
   'pt.kind.visa': 'Residence visa (before your residence permit)',
-  'pt.kind.permanent': 'Permanent residence or EU long-term resident status',
+  'pt.kind.permanent':
+    'Permanent residence (autorização de residência permanente)',
+  'pt.kind.eu-long-term':
+    'EU long-term resident status (título UE de residência de longa duração)',
   'pt.addPermit': 'Add a permit',
   'pt.trips': 'Trips abroad',
   'pt.tripsHint':
@@ -630,6 +633,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'pt.route.choose': 'Choose one',
   'pt.route.cplp': 'National of a Portuguese-speaking country (7 years)',
   'pt.route.eu': 'Citizen of an EU member state (7 years)',
+  'pt.route.eea':
+    'Citizen of Norway, Iceland, Liechtenstein or Switzerland (10 years)',
   'pt.route.other': 'National of another country, China included (10 years)',
   'pt.route.stateless': 'Stateless (4 years)',
   'pt.pending':

@@ -409,7 +409,7 @@ export const zhCN = {
   'pt.simulationDateHint': '按这一天判断（按递交日），默认今天。',
   'pt.permits': '居留证件',
   'pt.permitsHint':
-    '每张证件填一行，按时续期的接着填下一张；仍有效的到期日可留空（黄金签证请填卡上的到期日，才能算续期时间）。拿到许可前持居留签证的期间也可以填一行。永久居留许可本身没有期限，卡面到期不影响；临时居留卡到期后 6 个月内的居留权会另作说明。',
+    '每张证件填一行，按时续期的接着填下一张；仍有效的到期日可留空（黄金签证请填卡上的到期日，才能算续期时间）。拿到许可前持居留签证的期间也可以填一行。永久居留许可与欧盟长期居民身份本身没有期限，卡面到期不影响；临时居留卡到期后 6 个月内的居留权会另作说明。',
   'pt.permit': '证件 {n}',
   'pt.from': '生效日期',
   'pt.to': '到期日期（仍有效可留空）',
@@ -418,7 +418,9 @@ export const zhCN = {
   'pt.kind.golden-visa': '黄金签证（投资居留许可 ARI）',
   'pt.kind.study': '学习、无薪实习或志愿居留许可',
   'pt.kind.visa': '居留签证（拿到居留许可之前）',
-  'pt.kind.permanent': '永久居留许可或欧盟长期居民',
+  'pt.kind.permanent': '永久居留许可（autorização de residência permanente）',
+  'pt.kind.eu-long-term':
+    '欧盟长期居民身份（título UE de residência de longa duração）',
   'pt.addPermit': '添加证件',
   'pt.trips': '出境记录',
   'pt.tripsHint':
@@ -432,6 +434,7 @@ export const zhCN = {
   'pt.route.choose': '请选择',
   'pt.route.cplp': '葡语国家国民（7 年）',
   'pt.route.eu': '欧盟成员国公民（7 年）',
+  'pt.route.eea': '挪威、冰岛、列支敦士登或瑞士公民（10 年）',
   'pt.route.other': '其他国家国民，含中国（10 年）',
   'pt.route.stateless': '无国籍（4 年）',
   'pt.pending':

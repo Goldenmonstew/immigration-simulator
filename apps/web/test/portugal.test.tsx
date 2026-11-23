@@ -35,6 +35,7 @@ test.each(['zh-CN', 'en'] as const)('the form renders in %s', (locale) => {
     'pt.permits',
     'pt.kind',
     'pt.kind.golden-visa',
+    'pt.kind.eu-long-term',
     'pt.trips',
     'pt.route',
     'pt.pending',
@@ -91,6 +92,14 @@ test('EU citizens are a separate group outside the foreigners law', () => {
     'data-pathway="PT-EU-LONG-TERM" data-status="NOT_APPLICABLE"',
   );
   expect(render(<PortugalPage />, 'zh-CN')).toContain(t('pt.route.eu'));
+  // review71-2: EEA and Swiss citizens, 10 years for naturalisation.
+  const eea = evaluatePortugal(
+    ptRequest({ ...filled, route: 'eea', permits: [] }, 'en'),
+  );
+  expect(render(<PilotResult result={eea} />, 'en')).toContain(
+    'data-pathway="PT-PERMANENT" data-status="NOT_APPLICABLE"',
+  );
+  expect(render(<PortugalPage />, 'en')).toContain(t('pt.route.eea', 'en'));
 });
 
 test('the request leaves out blank and hidden dates', () => {

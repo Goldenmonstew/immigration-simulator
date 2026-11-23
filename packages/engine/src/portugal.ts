@@ -16,7 +16,8 @@ import type { IsoDate, Locale } from './types';
  * temporary: ordinary temporary residence (work, family and others);
  * golden-visa: residence for investment (ARI); study: study, unpaid
  * traineeship or volunteering; visa: a residence visa before the first
- * permit; permanent: permanent residence or EU long-term resident status.
+ * permit; permanent: permanent residence (art. 76); eu-long-term: EU
+ * long-term resident status (art. 125–131).
  */
 export const PT_PERMIT_KINDS = [
   'temporary',
@@ -24,13 +25,18 @@ export const PT_PERMIT_KINDS = [
   'study',
   'visa',
   'permanent',
+  'eu-long-term',
 ] as const;
 export type PtPermitKind = (typeof PT_PERMIT_KINDS)[number];
 
-/** cplp: a Portuguese-speaking country; eu: an EU member state. */
+/**
+ * cplp: a Portuguese-speaking country; eu: an EU member state; eea: another
+ * EEA state or Switzerland (free movement, but not EU for naturalisation).
+ */
 export const PT_NATIONALITY_ROUTES = [
   'cplp',
   'eu',
+  'eea',
   'other',
   'stateless',
 ] as const;
@@ -78,9 +84,15 @@ const TITLES: PtPermitKind[] = [
   'golden-visa',
   'study',
   'permanent',
+  'eu-long-term',
 ];
 const TEMPORARY: PtPermitKind[] = ['temporary', 'golden-visa', 'study'];
-const FULL: PtPermitKind[] = ['temporary', 'golden-visa', 'permanent'];
+const FULL: PtPermitKind[] = [
+  'temporary',
+  'golden-visa',
+  'permanent',
+  'eu-long-term',
+];
 
 const later = (a: IsoDate, b: IsoDate) => (a > b ? a : b);
 const earlier = (a: IsoDate, b: IsoDate) => (a < b ? a : b);
@@ -89,7 +101,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
   const L = textFor(req);
   const sim = req.simulationDate;
   const pending = req.pendingApplication;
-  const eu = req.route === 'eu';
+  // Free movement: outside the foreigners law (art. 4 n.º 2 a).
+  const eu = req.route === 'eu' || req.route === 'eea';
   const longest = Math.max(
     v.oldIntervalYears.value,
     ...Object.values(v.nationalityIntervalYears.value),
@@ -102,12 +115,14 @@ export function evaluatePortugal(req: PtRequest): PtResult {
   const end = days.date(days.count - 1);
   const flags = () => new Array<boolean>(days.count).fill(false);
   /**
-   * The last day a permit counts: a permanent permit has no time limit
-   * whatever the card says (art. 76 n.º 1–2); one without an end date lasts
-   * until its renewal (the next one of the same kind) starts.
+   * The last day a permit counts: permanent residence and EU long-term
+   * resident status have no time limit whatever the card says (art. 76
+   * n.º 1–2, art. 130 n.º 2); one without an end date lasts until its
+   * renewal (the next one of the same kind) starts.
    */
   const lastDay = (permit: PtPermit) => {
-    if (permit.kind === 'permanent') return end;
+    if (permit.kind === 'permanent' || permit.kind === 'eu-long-term')
+      return end;
     const next = req.permits
       .filter((p) => p.kind === permit.kind && p.from > permit.from)
       .map((p) => p.from)
@@ -118,16 +133,21 @@ export function evaluatePortugal(req: PtRequest): PtResult {
     PT_PERMIT_KINDS.map((k) => [k, flags()]),
   ) as Record<PtPermitKind, boolean[]>;
   // The right of residence lasts some months after a temporary card expires
-  // (SRC-126); how that time counts is uncertain (PD-145).
+  // (SRC-126); how that time counts is uncertain (PD-145). After a study
+  // permit it keeps continuity but is no permit to apply with.
   const grace = flags();
+  const graceNotStudy = flags();
   for (const permit of req.permits) {
     days.mark(byKind[permit.kind], permit.from, lastDay(permit));
     if (permit.to && TEMPORARY.includes(permit.kind))
-      days.mark(
-        grace,
-        addDays(permit.to, 1),
-        addMonths(permit.to, v.residenceRightMonths.value),
-      );
+      for (const g of permit.kind === 'study'
+        ? [grace]
+        : [grace, graceNotStudy])
+        days.mark(
+          g,
+          addDays(permit.to, 1),
+          addMonths(permit.to, v.residenceRightMonths.value),
+        );
   }
   const holds = (kinds: PtPermitKind[]) => (i: number) =>
     kinds.some((k) => byKind[k][i]);
@@ -215,8 +235,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
     title,
     status: 'NOT_APPLICABLE' as const,
     summary: L(
-      `外国人法不适用于欧盟成员国公民（art. 4 n.º 2 a）${extra}；欧盟公民按欧盟居留制度登记。`,
-      `The foreigners law does not apply to EU citizens (art. 4 n.º 2 a)${extra}; they register under the EU residence rules.`,
+      `外国人法不适用于欧盟、欧洲经济区国家以及与欧盟有人员自由流动协定的国家（如瑞士）的国民（art. 4 n.º 2 a）${extra}；这些国民按自由流动制度登记居留。`,
+      `The foreigners law does not apply to nationals of the EU, the EEA or a country with a free movement agreement with the EU such as Switzerland (art. 4 n.º 2 a)${extra}; they register their residence under the free movement rules.`,
     ),
     checks: [],
     notChecked: [],
@@ -344,8 +364,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
     const newSummary =
       (eu
         ? L(
-            `欧盟公民的居留按欧盟制度登记，不持外国人法的居留许可；这类登记怎么计入 ${years} 年，试点没有建模（art. 15 n.º 2，PD-140）。`,
-            `EU citizens register their residence under the EU rules rather than holding permits under the foreigners law; how that registration counts towards the ${years} years is not modelled (art. 15 n.º 2, PD-140). `,
+            `欧盟、欧洲经济区与瑞士公民按自由流动制度登记居留，不持外国人法的居留许可，表单也无法录入这类登记；它怎么计入 ${years} 年，试点没有建模（art. 15 n.º 2，PD-140）。`,
+            `EU, EEA and Swiss citizens register their residence under the free movement rules rather than holding permits under the foreigners law, and the form cannot record that registration; how it counts towards the ${years} years is not modelled (art. 15 n.º 2, PD-140). `,
           )
         : '') +
       (earliest === sim && !unsure
@@ -679,6 +699,12 @@ export function evaluatePortugal(req: PtRequest): PtResult {
                 `${worst.p.from} 起的许可期内出境合计 ${worst.absent} 天，许可可能被注销（不自动失效，不改变上面的日期）。`,
                 ` During the permit from ${worst.p.from} you were abroad ${worst.absent} days in all, so the permit may be cancelled (it does not lapse by itself, and the date above is unchanged).`,
               )
+            : '') +
+          (req.permits.some((p) => p.kind === 'eu-long-term' && p.from <= sim)
+            ? L(
+                '记录中已有欧盟长期居民身份（另一种没有期限的身份，见下一项）；国内永久居留仍按 art. 80 另算。',
+                ' Your record already has EU long-term resident status (another status without a time limit, see below); national permanent residence is still worked out under art. 80.',
+              )
             : ''),
         checks: [
           {
@@ -748,6 +774,9 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       '欧盟长期居民（estatuto de residente de longa duração）',
       'EU long-term resident status (estatuto de residente de longa duração)',
     );
+    const longTerm = req.permits.find(
+      (p) => p.kind === 'eu-long-term' && p.from <= sim,
+    );
     if (eu) {
       pathways.push(
         notForEu(
@@ -759,6 +788,51 @@ export function evaluatePortugal(req: PtRequest): PtResult {
           ),
         ),
       );
+    } else if (longTerm) {
+      // Loss (art. 131 n.º 1 c, e): 12 months in a row outside the EU, or 6
+      // years in a row outside Portugal; trips do not say where you went.
+      const lossYears = v.longTermLossYears.value;
+      const lossMonths = v.longTermLossEuMonths.value;
+      pathways.push({
+        id: 'PT-EU-LONG-TERM',
+        title,
+        status: 'NOT_APPLICABLE',
+        summary: L(
+          `记录中已有 ${longTerm.from} 起的欧盟长期居民身份，身份本身没有期限，卡面到期只需换发（art. 130 n.º 2）。`,
+          `Your record has EU long-term resident status from ${longTerm.from}; the status has no time limit, and an expired card only needs renewing (art. 130 n.º 2).`,
+        ),
+        checks: [
+          {
+            text: L(
+              `没有离开葡萄牙连续 ${lossYears} 年，也没有离开欧盟连续 ${lossMonths} 个月（出境记录分不出是否在欧盟内；超过时失去身份，art. 131 n.º 1 c、e）`,
+              `No absence from Portugal of ${lossYears} years in a row, nor from the EU of ${lossMonths} months in a row (trips do not say whether you stayed in the EU; beyond that the status is lost, art. 131 n.º 1 c, e)`,
+            ),
+            met: longAway(longTerm.from, end, lossYears * 12)
+              ? false
+              : longAway(longTerm.from, end, lossMonths)
+                ? undefined
+                : true,
+            sources: [
+              ...v.longTermLossEuMonths.sources,
+              ...v.longTermLossYears.sources,
+              { srcId: 'SRC-123', locator: 'art. 130 n.º 2 (p102)' },
+            ],
+          },
+        ],
+        notChecked: [
+          L(
+            '有特殊或例外理由的缺席不失去身份（art. 131 n.º 2–3）',
+            'Absences for specific or exceptional reasons do not lose the status (art. 131 n.º 2–3)',
+          ),
+        ],
+        assumptions: [
+          L(
+            '按离境日起的日历月、年判断，出入境当天按在葡萄牙计（PD-146）。',
+            'Measured in calendar months and years from the day you left; departure and return days count as days in Portugal (PD-146).',
+          ),
+        ],
+        pendingDetails: ['PD-146'],
+      });
     } else {
       const [totalMin, totalMax] = monthSpan(
         v.longTermTotalAbsenceMonths.value,
@@ -811,7 +885,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
         const i = days.index(d);
         // A study permit holder cannot apply (art. 125 n.º 2 a).
         const sure = full(i) ? sureFrom(to, need) : undefined;
-        const maybe = orGrace(full)(i) ? maybeFrom(to, need) : undefined;
+        const maybe =
+          full(i) || graceNotStudy[i] ? maybeFrom(to, need) : undefined;
         return {
           sure: sure ? absences(sure, to) : undefined,
           maybe: maybe ? absences(maybe, to) : undefined,
@@ -1025,8 +1100,10 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       const law = reading(v.goldenVisaLaterPeriodYears.value);
       // AIMA's page asks for 14 days in each later year.
       const aima = reading(1);
+      // Both readings fall short by the renewal deadline: not met.
+      const late = !!law.date && law.date > deadline;
       const status: PilotStatus =
-        law.short || sim > deadline
+        law.short || sim > deadline || late
           ? 'NOT_MET'
           : aima.date && aima.date <= deadline
             ? aima.date === sim
@@ -1085,8 +1162,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
               )
             : (law.pending
                 ? L(
-                    `最低停留尚未满足：${pendingText(law.pending)}。`,
-                    ` Minimum stay not yet met: ${pendingText(law.pending)}.`,
+                    `最低停留尚未满足：${pendingText(law.pending)}${late ? `，晚于续期期限 ${deadline}，续期可能被拒` : ''}。`,
+                    ` Minimum stay not yet met: ${pendingText(law.pending)}${late ? `, after the renewal deadline of ${deadline}, so renewal may be refused` : ''}.`,
                   )
                 : '') +
               (aima.short
