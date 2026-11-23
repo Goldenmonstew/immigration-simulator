@@ -51,7 +51,7 @@ test.each(['zh-CN', 'en'] as const)('the form renders in %s', (locale) => {
     expect(html).toContain(t(key, locale));
 });
 
-test('home links to the Japan pilot', () => {
+test('home links to Japan', () => {
   expect(render(<Home />, 'zh-CN')).toContain('href="/japan"');
 });
 

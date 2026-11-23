@@ -1,11 +1,11 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-test('the Portugal pilot works out golden visa and naturalisation dates', async ({
+test('Portugal calculator works out golden visa and naturalisation dates', async ({
   page,
 }) => {
   await page.goto('/');
-  await page.getByRole('link', { name: '打开葡萄牙试点' }).click();
+  await page.getByRole('link', { name: '葡萄牙：开始计算' }).click();
   await expect(page).toHaveURL(/\/portugal/);
 
   // Submitting without dates moves focus to the linked summary.

@@ -12,16 +12,11 @@ on:
 concurrency: github-pages
 
 jobs:
-  deploy:
+  build:
     if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -43,5 +38,18 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/web/out
+
+  # A separate job: deploy-pages in the same job as the upload can miss the
+  # just-finalised artifact ("No artifacts named github-pages were found").
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v5

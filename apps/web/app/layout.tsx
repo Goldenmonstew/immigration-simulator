@@ -9,7 +9,7 @@ import styles from './site.module.css';
 import { asset } from '../lib/asset';
 
 export const metadata: Metadata = {
-  description: t('home.intro'),
+  description: t('hub.intro'),
   referrer: 'no-referrer',
   manifest: asset('/manifest.webmanifest'),
   icons: { icon: asset('/icon.svg'), apple: asset('/icon-192.png') },

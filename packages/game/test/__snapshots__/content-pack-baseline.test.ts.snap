@@ -1,0 +1,45 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`family-partner matches the pre-pack quarterly results, event sequence and final save 1`] = `
+{
+  "assessments": "1217130d35ea5f056dfaeb72f95481d44b4420de60bdc45b0fd62eb1e7e45e71",
+  "ending": "overstayed",
+  "eventCount": 53,
+  "events": "f3e89ca0dec3a6a6452fec2e7dec1f3281d8dfcc7834925a3f559e0090429223",
+  "quarterCount": 26,
+  "state": "a832f9da3ab8e260c3184e7d765532d0005bfdc0feb0286b1478dca033472593",
+}
+`;
+
+exports[`graduate matches the pre-pack quarterly results, event sequence and final save 1`] = `
+{
+  "assessments": "c63badc1ad5590d8da08bc618c1e22e732e4ef86113bcc4781ddfad450ccaee2",
+  "ending": "overstayed",
+  "eventCount": 17,
+  "events": "3cb51c4797b0c3c22c869573b69c2f4db219fe4071b2aafd441be82a699375f2",
+  "quarterCount": 8,
+  "state": "91424ae832629d58ddf2a9e7f9042699c42af5b9855de8cc2046566d14a09997",
+}
+`;
+
+exports[`hong-kong-bno matches the pre-pack quarterly results, event sequence and final save 1`] = `
+{
+  "assessments": "14f9b66dcaada12ccbfbce83cb5fbd0a64b97c6f5c92100aa69471164e369919",
+  "ending": "timeout",
+  "eventCount": 84,
+  "events": "70265ec50e6fe1608f7119389e6d2a72e310e9112ce37c15ef169e421a060411",
+  "quarterCount": 40,
+  "state": "61fa74f7c36de4848cc2425a9a9f2409cd91469bc83ed10231d7ec5e82db1c45",
+}
+`;
+
+exports[`skilled-worker matches the pre-pack quarterly results, event sequence and final save 1`] = `
+{
+  "assessments": "efdbe46d3dc823298cc57e5e8dda181e7ddbf0f78db34253aa0a857efb6dfa6a",
+  "ending": "timeout",
+  "eventCount": 72,
+  "events": "cb24979a377cacade869de44927b12c003af5feaaa1caea58d1e5c9c7c1d491a",
+  "quarterCount": 40,
+  "state": "075d664c12dcb55692bf19cc5744ee85abdb9e394089dc233125ab487c512cfb",
+}
+`;
