@@ -172,3 +172,20 @@ export type {
   AuTrip,
   AuVisa,
 } from './australia';
+export { evaluateIrelandFull } from './ireland-full';
+export type {
+  IrelandBurden,
+  IrelandCharacter,
+  IrelandCitizenship,
+  IrelandFamily,
+  IrelandFullPathwayId,
+  IrelandFullRequest,
+  IrelandLtr,
+  IrelandRegistration,
+  IrelandResidencePeriod,
+  IrelandTreatyActivity,
+  IrelandTreatyResidence,
+  IrelandWcatt,
+  IrelandWorkPermit,
+  IrelandWorkUpgrade,
+} from './ireland-full';

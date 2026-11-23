@@ -483,3 +483,4 @@
 | 472 | 任务 80 审核修正（review80-1）：英国 What-if 调整日期触发筛查中止时，两栏恢复“此规则集暂无评估结果。”提示。补日期及通用路径增删对比回归；对比页与已保存方案按国家重置组件状态。 | apps/web/components/{whatif-lab,saved-scenarios}.tsx、apps/web/test/country-views.test.tsx、docs/tasks/reports/80-country-module.md |
 | 680 | 任务 89：登记爱尔兰完整版官方快照、来源及待定细节，保留现有入籍与 Stamp 来源。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 681 | 任务 89：登记爱尔兰完整版的年龄、证明、许可、家庭、长期居留和条约居留参数及原文定位。 | packages/policy-data/src/{index,parameters/ireland-2026-11}.ts |
+| 682 | 任务 89：实现 16 条爱尔兰完整版评估，合并原有时间条件与法定资格、材料、费用和待确认事项，补双语 ID、边界及组合测试和交接报告。 | packages/engine/src/{index.ts,ireland-full/}、packages/engine/test/ireland-full.test.ts、docs/tasks/reports/89-ie-rules.md |
