@@ -28,3 +28,24 @@
 ## 4. 发现与建议
 
 新国家最少提供一位可加载角色（档案、开场、起始日期、初始属性与时间线）、地点和活动列表、结局文案、把游戏状态交给该国规则引擎的 `evaluate` 与 `progress`。若剧情需要写入国家特有的时间线字段，再用 `rules.applyEffect` 处理专用效果；若需要续签、到期或旅行，由相应的评估适配器方法处理。镇民排班与对话、日常事件、节日历和道具按包提供。正式上线还需为网页国家入口登记内容加载器与美术路径，配置评估列、故事立绘和城镇场景。
+
+## 审核修正（review81-1）
+
+### 1. 做了什么
+
+- 建议提交 `Fix: 修复内容包午夜归家和钓鱼种植地点`，附 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。涉及 `packages/game/src/{content-pack,game,model}.ts`、`packages/game/src/packs/uk/index.ts`、`packages/game/test/content-pack.test.ts`、`apps/web/app/uk/game/life-overlays.tsx`、`PROGRESS.md` 第 482 项和本报告。
+- 午夜先按当前位置触发事件，再把待处理事件状态的 `day.place` 设为内容包的 `home`。
+- `fishingPlace` 用于校验钓鱼地点和保存首次钓获地点。自定义钓鱼点使用通用抛竿文案。`allotmentPlace` 用于校验种植、浇水和收获地点。英国包显式配置原有 ID `pond` 和 `allotment`，两者也是省略配置时的默认值。英国网页只为 `pond` 和 `home` 渲染对应的图鉴回忆文案。
+
+### 2. 怎么验证的
+
+- `pnpm --filter @uk-immigration/game test test/content-pack.test.ts` 在修复前复现三项失败。修复后执行 `pnpm --filter @uk-immigration/game test test/content-pack.test.ts test/content-pack-baseline.test.ts`，8 项通过。最小包以种子 3 测试广场午夜事件、河边钓获和花园租地至收获。英国四个角色的固定种子快照全部匹配。
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 整链退出码 0。全仓 5,233 项测试通过，1 项按既有条件跳过。游戏包 1,344 项、网页 647 项通过。确认 `apps/web/out/uk/game.html` 已生成，`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+按本次 brief 由 Fable 提交。Playwright e2e 与浏览器验收未执行。
+
+### 4. 发现与建议
+
+接口注释已注明 `travel-` 是内建旅行活动的保留前缀，后缀会按月数解析。自定义活动应使用其他 ID。新内容包应在 `places` 注册钓鱼点和菜地，并分别提供 `catchItem` 和菜地的 `rent-plot` 活动。

@@ -22,7 +22,13 @@ const character: Character<Timeline, Stamp, Result, Festival> = {
     title: text,
     text,
     weight: 1,
-    choices: [{ id: 'arrive', label: text, effects: [] }],
+    choices: [
+      {
+        id: 'arrive',
+        label: text,
+        effects: [{ type: 'item', item: 'seed-radish', delta: 1 }],
+      },
+    ],
   },
   events: [],
 };
@@ -39,7 +45,13 @@ const pack: GameContentPack<
   loadCharacter: async () => character,
   characterOf: () => character,
   home: 'courtyard',
-  places: [{ id: 'courtyard', kind: 'outdoor', name: text }],
+  fishingPlace: 'river',
+  allotmentPlace: 'garden',
+  places: ['courtyard', 'square', 'river', 'garden'].map((id) => ({
+    id,
+    kind: 'outdoor',
+    name: text,
+  })),
   actions: [
     {
       id: 'light',
@@ -52,7 +64,36 @@ const pack: GameContentPack<
       ],
       when: [{ festival: 'lantern-walk' }],
     },
+    {
+      id: 'rent-plot',
+      place: 'garden',
+      label: text,
+      minutes: 20,
+      effects: [{ type: 'money', delta: -3 }],
+    },
   ],
+  events: [
+    {
+      id: 'midnight-lantern',
+      title: text,
+      text,
+      weight: 1,
+      channel: 'place:square',
+      when: [{ dayKind: 'workday' }, { minuteMin: 1440 }],
+      choices: [{ id: 'watch', label: text, effects: [] }],
+    },
+  ],
+  items: [
+    { id: 'minnow', kind: 'fish', name: text },
+    { id: 'radish', kind: 'crop', name: text },
+    {
+      id: 'seed-radish',
+      kind: 'seed',
+      name: text,
+      grows: { crop: 'radish', days: 2, seasons: [1] },
+    },
+  ],
+  catchItem: () => ({ item: 'minnow', junk: false }),
   festivals: [{ id: 'lantern-walk', name: text, text, season: 1 }],
   calendar: () => ({ date: '2030-03-20', festival: 'lantern-walk' }),
   rules: {
@@ -108,4 +149,72 @@ test('a minimal pack plays from opening through its own festival, assessment and
     'quarter',
     'timeout',
   ]);
+});
+
+test('a midnight event from the square leaves the player at the pack home', () => {
+  const game = createGame(pack);
+  const arrived = game.resolve(game.newGame(character.id, 3, 'en'), 'arrive');
+  const square = game.enter(arrived, 'square');
+  const before = game.tick(square, 1439 - square.day.minute);
+  expect(before.day.place).toBe('square');
+  expect(game.currentEvent(before)).toBeUndefined();
+
+  const midnight = game.tick(before, 1);
+  expect(game.currentEvent(midnight)?.id).toBe('midnight-lantern');
+  expect(midnight.day).toMatchObject({ minute: 1440, place: 'courtyard' });
+
+  const next = game.resolve(midnight, 'watch');
+  expect(next.day).toMatchObject({ index: 1, place: 'courtyard' });
+  expect(game.currentEvent(next)).toBeUndefined();
+});
+
+test('fishing uses the pack location and records the catch there', () => {
+  const game = createGame(pack);
+  const arrived = game.resolve(game.newGame(character.id, 3, 'en'), 'arrive');
+  expect(() => game.fish(arrived, true)).toThrow('Go to the open river first');
+
+  const river = game.enter(arrived, 'river');
+  const caught = game.fish(river, true);
+  expect(river.inventory.minnow).toBeUndefined();
+  expect(caught.inventory.minnow).toBe(1);
+  expect(caught.outcome).toMatchObject({
+    kind: 'catch',
+    items: { minnow: 1 },
+  });
+  expect(caught.lifeRecords?.fish).toMatchObject([
+    {
+      itemId: 'minnow',
+      memory: { place: 'river', weather: river.day.weather },
+    },
+  ]);
+});
+
+test('a plot rented at the pack garden supports planting, watering and harvest', () => {
+  const game = createGame(pack);
+  const arrived = game.resolve(game.newGame(character.id, 3, 'en'), 'arrive');
+  const garden = game.enter(arrived, 'garden');
+  expect(garden.plots).toEqual([]);
+  const rented = game.doActivity(garden, 'rent-plot');
+  expect(rented.stats.money).toBe(garden.stats.money - 3);
+  expect(rented.plots[0]).toEqual({ growth: 0 });
+
+  expect(() =>
+    game.plant(game.enter(rented, 'courtyard'), 0, 'seed-radish'),
+  ).toThrow('Go to the open garden first');
+  const planted = game.plant(rented, 0, 'seed-radish');
+  expect(planted.plots[0]).toMatchObject({ seed: 'seed-radish', growth: 0 });
+  expect(planted.inventory['seed-radish']).toBe(0);
+  expect(() => game.water(game.enter(planted, 'courtyard'), 0)).toThrow(
+    'Go to the open garden first',
+  );
+  const watered = game.water(planted, 0);
+  expect(watered.plots[0].wateredOn).toBe(planted.dayNumber);
+
+  const grown = game.sleep(watered);
+  expect(grown.plots[0].growth).toBe(2);
+  expect(() => game.harvest(grown, 0)).toThrow('Go to the open garden first');
+  const harvested = game.harvest(game.enter(grown, 'garden'), 0);
+  expect(harvested.inventory.radish).toBeGreaterThan(0);
+  expect(harvested.plots[0]).toEqual({ growth: 0 });
+  expect(harvested.lifeRecords?.harvests).toMatchObject([{ itemId: 'radish' }]);
 });

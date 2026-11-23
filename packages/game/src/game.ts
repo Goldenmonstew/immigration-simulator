@@ -60,6 +60,8 @@ export function createGame<
     achievements = [],
     lifeAchievements = [],
     home = 'home',
+    fishingPlace = 'pond',
+    allotmentPlace = 'allotment',
   } = pack;
   const b = { ...defaultBalance, ...pack.balance };
   const tools: GameTools<Timeline, Result, E, F> = {
@@ -1217,7 +1219,7 @@ export function createGame<
         ]);
         state.day.done.push('midnight');
       }
-      state.day.place = 'home';
+      state.day.place = home;
       return state.pendingEvent ? state : sleep(state);
     }
     return state;
@@ -1594,7 +1596,7 @@ export function createGame<
   }
 
   function plant(state: GameState, plot: number, seed: ItemId): GameState {
-    ready(state, 'allotment', b.minutes.plant);
+    ready(state, allotmentPlace, b.minutes.plant);
     const grows = items.find((i) => i.id === seed)?.grows;
     if (
       !state.plots[plot] ||
@@ -1617,7 +1619,7 @@ export function createGame<
     return advanceClock(next, b.minutes.plant);
   }
   function water(state: GameState, plot: number): GameState {
-    ready(state, 'allotment', b.minutes.water);
+    ready(state, allotmentPlace, b.minutes.water);
     if (
       !state.plots[plot]?.seed ||
       state.plots[plot].wateredOn === state.dayNumber
@@ -1635,7 +1637,7 @@ export function createGame<
     return advanceClock(next, b.minutes.water);
   }
   function harvest(state: GameState, plot: number): GameState {
-    ready(state, 'allotment', b.minutes.harvest);
+    ready(state, allotmentPlace, b.minutes.harvest);
     const planted = state.plots[plot];
     const grows = items.find((i) => i.id === planted?.seed)?.grows;
     if (!grows || planted.growth < grows.days)
@@ -1658,9 +1660,15 @@ export function createGame<
     return advanceClock(next, b.minutes.harvest);
   }
   function fish(state: GameState, caught: boolean): GameState {
-    ready(state, 'pond', b.minutes.fish);
+    ready(state, fishingPlace, b.minutes.fish);
     const next = structuredClone(state);
-    recordLife(next, 'fishing', { zhCN: '在池塘抛竿', en: 'Cast at the pond' });
+    recordLife(
+      next,
+      'fishing',
+      fishingPlace === 'pond'
+        ? { zhCN: '在池塘抛竿', en: 'Cast at the pond' }
+        : { zhCN: '抛竿钓鱼', en: 'Cast a fishing line' },
+    );
     if (!caught) {
       next.outcome = {
         kind: 'catch',
@@ -1676,7 +1684,7 @@ export function createGame<
       applyEffects(next, [{ type: 'item', item, delta: 1 }]);
       if (!junk) {
         recordItem(next, 'fish', item, {
-          place: 'pond',
+          place: fishingPlace,
           weather: next.day.weather,
         });
         recordLife(next, 'catch-fish', items.find((i) => i.id === item)!.name);

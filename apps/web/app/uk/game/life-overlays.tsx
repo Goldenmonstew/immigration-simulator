@@ -485,14 +485,16 @@ export function LifeCollection({ state }: { state: GameState }) {
                             t(`game.season${record.quarter}`),
                           )}
                       </small>
-                      {memory && (
-                        <small className={styles.collectionDate}>
-                          {t(`game.collectionMemory.${memory.place}`).replace(
-                            '{weather}',
-                            t(`game.collectionWeather.${memory.weather}`),
-                          )}
-                        </small>
-                      )}
+                      {memory &&
+                        (memory.place === 'pond' ||
+                          memory.place === 'home') && (
+                          <small className={styles.collectionDate}>
+                            {t(`game.collectionMemory.${memory.place}`).replace(
+                              '{weather}',
+                              t(`game.collectionWeather.${memory.weather}`),
+                            )}
+                          </small>
+                        )}
                     </>
                   ) : (
                     <>

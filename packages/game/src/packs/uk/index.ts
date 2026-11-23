@@ -36,6 +36,8 @@ export const ukGameContent: GameContentPack<
   characters,
   loadCharacter,
   characterOf,
+  fishingPlace: 'pond',
+  allotmentPlace: 'allotment',
   places,
   actions: locationActions,
   informationAction: { id: 'assessment', place: 'council' },

@@ -104,7 +104,7 @@ export interface LifeRecord {
   year: number;
   quarter: Quarter;
   /** Saved with first catches and first dishes. Earlier records omit it. */
-  memory?: { place: 'pond' | 'home'; weather: Weather };
+  memory?: { place: PlaceId; weather: Weather };
 }
 export interface LifeRecords {
   /** First actual catch of each fish; buying or receiving does not count. */

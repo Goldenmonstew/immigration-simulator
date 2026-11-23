@@ -109,7 +109,12 @@ export interface GameContentPack<
   loadCharacter(id: string): Promise<Character<Timeline, E, Result, F>>;
   characterOf(id: string): Character<Timeline, E, Result, F>;
   home?: PlaceId;
+  /** Registered fishing location. Defaults to `pond`. */
+  fishingPlace?: PlaceId;
+  /** Registered location for the `rent-plot` activity and growing crops. Defaults to `allotment`. */
+  allotmentPlace?: PlaceId;
   places: readonly Place[];
+  /** The engine reserves the `travel-` prefix for travel actions with a duration in months. */
   actions: readonly Activity<E, F>[];
   informationAction?: { id: string; place: PlaceId };
   npcs?: readonly Npc<F>[];
