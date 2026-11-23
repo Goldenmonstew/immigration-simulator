@@ -121,7 +121,8 @@ export function validateJpForm(form: JpForm): JpErrors {
     if (form.newStatus === 'own') {
       date('jp-new-status-start', form.newStatusStart);
       // The new guideline counts fewer statuses than the old one (SRC-114
-      // 注2 against SRC-113 1(3)ア), so its start is never earlier.
+      // 注2 p5, 第2の5(6) p7, 第5の2 p12 against SRC-113 1(3)ア), so its
+      // start is never earlier.
       if (validDate(form.newStatusStart) && form.statusNone)
         errors['jp-new-status-start'] = 'jp.error.newWithoutOld';
       else if (

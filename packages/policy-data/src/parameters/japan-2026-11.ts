@@ -109,6 +109,19 @@ export const japan2026_11 = {
         },
       ],
     },
+    // A newborn may stay this many days without a status; leaving within
+    // them without a re-entry permit needs no application.
+    birthStayWithoutStatusDays: {
+      value: 60,
+      sources: [
+        { srcId: 'SRC-110', locator: '第22条の2第1項' },
+        {
+          srcId: 'SRC-116',
+          locator: '出入国審査・在留審査Q&A Q28',
+          url: 'https://www.moj.go.jp/isa/immigration/faq/kanri_qa.html#q28',
+        },
+      ],
+    },
     // A statutory filing deadline on a day the offices are closed moves to
     // the next open day: Saturdays, Sundays, national holidays, and these
     // days at the turn of the year (行政機関の休日に関する法律 第1条・第2条).

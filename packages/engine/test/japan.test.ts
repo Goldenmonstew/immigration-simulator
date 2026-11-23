@@ -927,8 +927,21 @@ describe('review70-11', () => {
     expect(p.status).toBe('UNKNOWN');
     expect(p.summary).toContain('PD-161');
     expect(p.checks[1].text).toContain('按 2021-06-01 递交：年满 20 岁');
-    expect(p.checks[1].text).toContain('2022-04-01 起递交为 18 岁');
+    // review74-1: the later age applies from 2022-04-01, not from the 18th
+    // birthday (2020-05-01) before the change.
+    expect(p.checks[1].text).toContain(
+      '2022-04-01 起递交为 18 岁（满足自 2022-04-01 起）',
+    );
     expect(p.checks[1].met).toBeUndefined();
+    expect(p.pendingDetails).toContain('PD-161');
+    expect(
+      nat({
+        simulationDate: '2021-06-01',
+        stayStart: '2010-01-01',
+        naturalisation: { route: 'general', dateOfBirth: '2002-05-01' },
+        locale: 'en',
+      }).summary,
+    ).toContain('you were 18 or over but not yet 20');
     // 18 only after the change (2022-06-01): nothing to doubt.
     const younger = nat({
       simulationDate: '2021-06-01',
@@ -944,7 +957,7 @@ describe('task 74: trips after birth', () => {
   const born = (
     bornOn: string,
     simulationDate: string,
-    trip: { departed: string; returned: string },
+    trip: { departed: string; returned: string; reentryPermit?: boolean },
   ) =>
     pr({
       simulationDate,
@@ -952,26 +965,40 @@ describe('task 74: trips after birth', () => {
       pr: { route: 'child-birth', bornOn },
       trips: [trip],
     });
-  // Born 2026-11-10: 30 days end on 2026-12-10.
-  const long = { departed: '2026-11-25', returned: '2027-01-20' };
 
-  test('a planned trip: file before leaving', () => {
+  test('leaving within 60 days without a permit needs no application', () => {
+    // review74-1: born 2026-11-10, away 11-27 to 12-01 (FAQ Q28).
+    const trip = { departed: '2026-11-27', returned: '2026-12-01' };
+    const p = born('2026-11-10', '2026-11-24', trip);
+    expect(p.status).toBe('NOT_APPLICABLE');
+    expect(p.summary).toContain('Q28');
+    expect(born('2026-11-10', '2026-12-02', trip).status).toBe(
+      'NOT_APPLICABLE',
+    );
+    // Leaving only after the 60 days (2027-01-09): the usual window.
+    expect(
+      born('2026-11-10', '2026-11-24', {
+        departed: '2027-01-15',
+        returned: '2027-02-01',
+      }).status,
+    ).toBe('MET');
+  });
+
+  // Born 2026-11-10: 30 days end on 2026-12-10.
+  const long = {
+    departed: '2026-11-25',
+    returned: '2027-01-20',
+    reentryPermit: true,
+  };
+
+  test('with a re-entry permit: file before leaving', () => {
     const p = born('2026-11-10', '2026-11-23', long);
     expect(p.status).toBe('MET');
     expect(p.summary).toContain('须在出境前递交');
   });
 
-  test('abroad until after the deadline', () => {
+  test('a permit with no day left to file before leaving is unclear', () => {
     const p = born('2026-11-10', '2026-11-30', long);
-    expect(p.status).toBe('NOT_MET');
-    expect(p.summary).toContain('2027-01-20');
-  });
-
-  test('back within the time allowed is uncertain (PD-160)', () => {
-    const p = born('2026-11-10', '2026-11-30', {
-      departed: '2026-11-15',
-      returned: '2026-11-25',
-    });
     expect(p.status).toBe('UNKNOWN');
     expect(p.summary).toContain('PD-160');
   });
@@ -982,16 +1009,42 @@ describe('task 74: trips after birth', () => {
     const p = born('2026-11-01', '2026-11-21', {
       departed: '2026-11-24',
       returned: '2027-01-10',
+      reentryPermit: true,
     });
     expect(p.status).toBe('MET');
     expect(p.summary).toContain('最早可在 2026-11-24 递交');
-    // Leaving on 11-23 instead leaves no open day: abroad past 12-01.
+    // Leaving on 11-23 instead leaves no open day to file.
     expect(
       born('2026-11-01', '2026-11-21', {
         departed: '2026-11-23',
         returned: '2027-01-10',
+        reentryPermit: true,
       }).status,
-    ).toBe('NOT_MET');
+    ).toBe('UNKNOWN');
+  });
+
+  test('a predicted holiday does not settle a trip case as unmet', () => {
+    // 30 days from 2028-02-19 is 03-20, the predicted 春分日.
+    const trip = { departed: '2028-03-16', returned: '2028-03-21' };
+    expect(
+      born('2028-02-19', '2028-03-17', { ...trip, reentryPermit: true }).status,
+    ).toBe('UNKNOWN');
+    expect(born('2028-02-19', '2028-03-17', trip).status).toBe(
+      'NOT_APPLICABLE',
+    );
+  });
+});
+
+describe('review74-1: both deadlines', () => {
+  test('the earlier deadline is shown as the safer one', () => {
+    const p = pr({
+      simulationDate: '2026-12-08',
+      stayStart: '2026-11-10',
+      pr: { route: 'child-birth', bornOn: '2026-11-10' },
+    });
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('到 2026-12-09 为止');
+    expect(p.checks[0].text).toContain('含出生日计到 2026-12-09');
   });
 });
 
