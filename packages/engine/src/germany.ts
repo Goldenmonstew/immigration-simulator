@@ -1286,37 +1286,46 @@ export function evaluateGermany(req: DeRequest): DeResult {
     );
     // Lawful habitual residence: any title, the asylum procedure once
     // international protection was granted (AsylG § 55 Abs. 3). For each
-    // unbroken stretch, the stretch before it (first and last day).
-    const run = new Array<number>(days.count).fill(-1);
-    const before = new Map<number, [number, number]>();
-    let start = -1;
-    let last: [number, number] = [0, -1];
-    let cut = -1;
-    for (let i = 0; i < days.count; i++) {
-      const k = kinds[i];
-      const n = tripOn[i];
-      const lawful = !!k && (k !== 'asylum' || recognised);
-      if (!lawful || (n >= 0 && (longTrip[n] || n === cut))) {
-        if (start >= 0) last = [start, i - 1];
-        start = -1;
-        continue;
+    // unbroken stretch, the stretch before it (first and last day). With
+    // `lapsed`, a title a trip may have ended is taken as ended: no lawful
+    // residence until the next permit.
+    const runsWith = (lapsed: boolean) => {
+      const run = new Array<number>(days.count).fill(-1);
+      const before = new Map<number, [number, number]>();
+      let start = -1;
+      let last: [number, number] = [0, -1];
+      let cut = -1;
+      for (let i = 0; i < days.count; i++) {
+        const k = kinds[i];
+        const n = tripOn[i];
+        const lawful =
+          !!k && (k !== 'asylum' || recognised) && !(lapsed && doubt[i]);
+        if (!lawful || (n >= 0 && (longTrip[n] || n === cut))) {
+          if (start >= 0) last = [start, i - 1];
+          start = -1;
+          continue;
+        }
+        if (start < 0) {
+          start = i;
+          before.set(i, last);
+        }
+        const from = Math.max(
+          start,
+          days.index(addYears(days.date(i), -years)) + 1,
+        );
+        if (n >= 0 && away[i + 1] - away[from] > half) {
+          cut = n;
+          last = [start, i - 1];
+          start = -1;
+          continue;
+        }
+        run[i] = start;
       }
-      if (start < 0) {
-        start = i;
-        before.set(i, last);
-      }
-      const from = Math.max(
-        start,
-        days.index(addYears(days.date(i), -years)) + 1,
-      );
-      if (n >= 0 && away[i + 1] - away[from] > half) {
-        cut = n;
-        last = [start, i - 1];
-        start = -1;
-        continue;
-      }
-      run[i] = start;
-    }
+      return { run, before };
+    };
+    type Runs = ReturnType<typeof runsWith>;
+    const sureRuns = runsWith(true);
+    const notLapsedRuns = doubtful.length ? runsWith(false) : sureRuns;
     // § 12b Abs. 2: residence before an interruption may be counted, up to
     // 3 years (2 for spouses, and only while married: AH-StAG Nr. 9.1
     // Rdn. 5), at discretion (PD-128).
@@ -1325,8 +1334,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
       route === 'spouse' && req.marriedOn
         ? days.index(req.marriedOn)
         : undefined;
-    const credit = (r: number) => {
-      const [a, b] = before.get(r) ?? [0, -1];
+    const credit = (R: Runs, r: number) => {
+      const [a, b] = R.before.get(r) ?? [0, -1];
       const from = marriedIndex === undefined ? a : Math.max(a, marriedIndex);
       return Math.min(cap, Math.max(0, b - from + 1));
     };
@@ -1346,13 +1355,14 @@ export function evaluateGermany(req: DeRequest): DeResult {
       return kd === 'temporary' && allow.has('permit');
     };
     const residenceOK = (d: IsoDate, allow: Allow): boolean => {
+      const R = allow.has('lapse') ? notLapsedRuns : sureRuns;
       const k = days.index(d);
-      if (k < 1 || run[k] < 0 || !holdsOK(k, allow)) return false;
-      const r = run[k - 1];
+      if (k < 1 || R.run[k] < 0 || !holdsOK(k, allow)) return false;
+      const r = R.run[k - 1];
       if (r < 0) return false;
       const need = daysBetween(addYears(d, -years), d);
       return (
-        k - r >= need || (allow.has('credit') && k - r + credit(r) >= need)
+        k - r >= need || (allow.has('credit') && k - r + credit(R, r) >= need)
       );
     };
     const conds: Cond[] = ['lapse', 'pending', 'permit', 'credit'];

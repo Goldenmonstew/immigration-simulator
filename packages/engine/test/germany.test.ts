@@ -1449,6 +1449,28 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     expect(eu.summary).toContain('2030-11-21');
   });
 
+  test('naturalisation after a possible lapse and a gap (task 73)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        permits: [
+          { kind: 'eu-long-term', from: '2024-01-01' },
+          { kind: 'skilled', from: '2026-09-01' },
+        ],
+        // 13 months away, back 2026-02-01; a new permit only from 2026-09-01.
+        trips: [{ departed: '2025-01-01', returned: '2026-02-01' }],
+      },
+      'DE-NATURALISATION',
+    );
+    // Certain: lapsed, so lawful residence starts again with the new permit.
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2031-09-01');
+    // Not lapsed, and with the year before the trip credited: 2030-01-30.
+    expect(p.summary).toContain('2030-01-30');
+    expect(p.summary).toContain('2025-01-01 至 2026-02-01');
+    expect(p.summary).toContain('§ 12b Abs. 2');
+  });
+
   test('the same after EU long-term residence that may have lapsed (review69-11)', () => {
     const p = pathway(
       {
