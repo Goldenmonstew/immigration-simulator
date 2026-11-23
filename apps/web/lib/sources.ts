@@ -219,4 +219,47 @@ export const sourceUrls: Record<string, string> = {
     'https://www.verwaltungsvorschriften-im-internet.de/pdf/BMI-MI3-20091026-SF-A001.pdf',
   'SRC-109':
     'https://www.bamf.de/DE/Themen/MigrationAufenthalt/ZuwandererDrittstaaten/Migrathek/Niederlassen/niederlassen-node.html',
+  'SRC-200':
+    'https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text',
+  'SRC-201':
+    'https://www.legislation.gov.au/F2019L01400/2019-10-31/2019-10-31/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-202':
+    'https://www.legislation.gov.au/F2022L00231/2022-03-02/2022-03-02/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-203':
+    'https://www.legislation.gov.au/F2019L01404/2024-12-07/2024-12-07/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-204':
+    'https://www.legislation.gov.au/F2018L01092/2024-12-07/2024-12-07/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-205':
+    'https://www.legislation.gov.au/F2025L00904/2025-08-06/2025-08-06/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-206':
+    'https://www.legislation.gov.au/F2025L00905/2025-08-06/2025-08-06/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-207':
+    'https://www.legislation.gov.au/F2019L00278/2026-03-28/2026-03-28/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-208':
+    'https://www.legislation.gov.au/F2024L01618/2026-03-28/2026-03-28/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-209':
+    'https://www.legislation.gov.au/F2016L01916/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-210':
+    'https://www.legislation.gov.au/F2018L00284/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-211':
+    'https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text/original/epub/OEBPS/document_2/document_2.html',
+  'SRC-212':
+    'https://www.legislation.gov.au/F2009L02356/2026-11-01/2026-11-01/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-213':
+    'https://www.legislation.gov.au/C2004A00101/2026-11-04/2026-11-04/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-214':
+    'https://immi.homeaffairs.gov.au/visas/employing-and-sponsoring-someone/sponsoring-workers/nominating-a-position/salary-requirements',
+  'SRC-215':
+    'https://immi.homeaffairs.gov.au/citizenship/test-and-interview/learn-about-citizenship-interview-and-test',
+  'SRC-216':
+    'https://immi.homeaffairs.gov.au/entering-and-leaving-australia/new-zealand-citizens/pathway-to-permanent-resident-and-citizenship',
+  'SRC-217': 'https://immi.homeaffairs.gov.au/form-listing/forms/1298i.pdf',
+  'SRC-218':
+    'https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/health/protecting-health-care-and-community-services',
+  'SRC-219':
+    'https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/health/health-waiver',
+  'SRC-220':
+    'https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/character',
+  'SRC-221':
+    'https://immi.homeaffairs.gov.au/visas/getting-a-visa/fees-and-charges/current-visa-pricing',
 };

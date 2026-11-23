@@ -80,11 +80,11 @@
 | SRC-060 | LAW | Statement of Changes in Immigration Rules HC 590（2024-03-14）Implementation：2024-04-04 前签发 CoS 的 Skilled Worker 申请按 2024-04-03 的规则审理 | https://www.gov.uk/government/publications/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024-accessible-version | 2024-03-14 | 2026-11-20 | `policy-sources/2024-03-14-hc590-statement-of-changes-accessible.html`（sha256 `c538acdbce21a3f9cd49c99689efd8134c4f6b9bdbfca6646a01017826ce5ef8`） | archived |
 | SRC-061 | LAW | Australian Citizenship Act 2007（Compilation No. 37，2026-06-04；一般资格 s21(2)，一般居住要求 s22） | https://www.legislation.gov.au/C2007A00020/2026-06-04/2026-06-04/text/original/epub/OEBPS/document_1/document_1.html （登记版本：https://www.legislation.gov.au/C2007A00020/2026-06-04/2026-06-04/text ；现行版入口：https://www.legislation.gov.au/C2007A00020/latest/text ） | 2026-06-04 | 2026-11-21 | `policy-sources/2026-06-04-au-australian-citizenship-act-2007-compilation-37.html`（sha256 `75fe3d5ae7abb63837f9348123cfe94baa0cbbda13693d0779da17e4d6aeacab`） | archived |
 | SRC-062 | LAW | Migration Regulations 1994（Compilation No. 291，2026-11-03）Volume 1（reg 1.03 定义；Schedule 1 item 1139）与 Volume 2（Schedule 2：100、155、186、189、190、191、801） | https://www.legislation.gov.au/F1996B03551/2026-11-03/2026-11-03/text/original/epub/OEBPS/document_1/document_1.html ；https://www.legislation.gov.au/F1996B03551/2026-11-03/2026-11-03/text/original/epub/OEBPS/document_2/document_2.html （登记版本：https://www.legislation.gov.au/F1996B03551/2026-11-03/2026-11-03/text ；现行版入口：https://www.legislation.gov.au/F1996B03551/latest/text ） | 2026-11-03 | 2026-11-21 | `policy-sources/2026-11-03-au-migration-regulations-1994-compilation-291-vol1.html`（sha256 `fc8ed8facbe2ac35cc28385f014ec15d4b9ebf122f4534ac6e3c01c48e3192f3`）；`policy-sources/2026-11-03-au-migration-regulations-1994-compilation-291-vol2.html`（sha256 `cb7187a13efa7a73f20da21c1e2743e94aff950abe8250d8e6af01c0ac00e0a8`） | archived |
-| SRC-063 | GUIDANCE | Department of Home Affairs：Skilled Regional visa（subclass 191）Regional Provisional Visas stream | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-regional-191/regional-provisional | —（动态页面） | 2026-11-21 | `policy-sources/2026-11-21-au-191-regional-provisional-stream.html`（sha256 `07d09a632a0d95bef34e23f755e31f7aafc088be9b62ee615633cce239bfc02d`） | archived |
-| SRC-064 | GUIDANCE | Department of Home Affairs：Employer Nomination Scheme visa（subclass 186）Temporary Residence Transition stream | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/employer-nomination-scheme-186/temporary-residence-transition-stream | —（动态页面） | 2026-11-21 | `policy-sources/2026-11-21-au-186-temporary-residence-transition-stream.html`（sha256 `391aca298eb2a556682e583e43d2d9de1d32ce223bd2ece8ef4ecb5db5b9b4d9`） | archived |
-| SRC-065 | GUIDANCE | Department of Home Affairs：Partner visa（subclass 801）永久阶段 | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/partner-onshore/permanent-801 | —（动态页面） | 2026-11-21 | `policy-sources/2026-11-21-au-801-partner-permanent.html`（sha256 `31b63e4b5bc7a2153a76a4bb845c22760253a39a377e45fd1cdea57821aff706`） | archived |
-| SRC-066 | GUIDANCE | Department of Home Affairs：Resident Return visa（subclasses 155 和 157） | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/resident-return-visa-155-157 | —（动态页面） | 2026-11-21 | `policy-sources/2026-11-21-au-resident-return-visa-155-157.html`（sha256 `af071d452dd84af5dbcbd3672dd41f8745da6021476e0c4af5ba024b35e7bfb3`） | archived |
-| SRC-067 | GUIDANCE | Department of Home Affairs：Become an Australian citizen（by conferral）——永久居民 | https://immi.homeaffairs.gov.au/citizenship/become-a-citizen/permanent-resident | —（动态页面） | 2026-11-21 | `policy-sources/2026-11-21-au-citizenship-permanent-resident.html`（sha256 `312c97ec6555e1007a3557412cf96fde445f1e57915cfb7e73418e3e4cbb049d`） | archived |
+| SRC-063 | GUIDANCE | Department of Home Affairs：Skilled Regional visa（subclass 191）Regional Provisional Visas stream | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-regional-191/regional-provisional | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-191-regional-provisional.html`（sha256 `612bd2717774a52da492e7aa491a4474ffc2077a18d2ca2724fe05679e89bde2`） | archived |
+| SRC-064 | GUIDANCE | Department of Home Affairs：Employer Nomination Scheme visa（subclass 186）Temporary Residence Transition stream | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/employer-nomination-scheme-186/temporary-residence-transition-stream | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-186-trt.html`（sha256 `fd07d36cea2163df7356a0e791233b3bfe912f0c815073d0640fa8fbaa0a394d`） | archived |
+| SRC-065 | GUIDANCE | Department of Home Affairs：Partner visa（subclass 801）永久阶段 | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/partner-onshore/permanent-801 | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-801-partner-perm.html`（sha256 `3a3c032788ef353b5954bf9dc63a3a426769c6152e4fe1099fb75a6de827b451`） | archived |
+| SRC-066 | GUIDANCE | Department of Home Affairs：Resident Return visa（subclasses 155 和 157） | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/resident-return-visa-155-157 | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-155-157-rrv.html`（sha256 `f3c72b157f077a55ec72b056ba8cc4b925f36b4a0365b9e9c68602992138f0de`） | archived |
+| SRC-067 | GUIDANCE | Department of Home Affairs：Become an Australian citizen（by conferral）——永久居民 | https://immi.homeaffairs.gov.au/citizenship/become-a-citizen/permanent-resident | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-citizenship-permanent-resident.html`（sha256 `2037bbd1680192ef6c460f0732e861fb3357ed0793046e3970655d63b5ee41c7`） | archived |
 | SRC-068 | GUIDANCE | Department of Home Affairs Standard Operating Procedure：General residence requirement and permanent resident status（依 FOI 申请 FA 25/08/01434 公开，部分删节，23 页） | https://www.homeaffairs.gov.au/foi/files/2025/fa-250801434-document-released.PDF | PDF 2025-09-15 | 2026-11-21 | `policy-sources/2025-09-15-au-sop-general-residence-requirement-foi.pdf`（sha256 `4fce927e1b93f2b296f899ffd096b9ec44659b083906d60112f67ad6d22be8b0`） | archived |
 | SRC-069 | LAW | Migration Act 1958（Compilation No. 172，2026-10-08）Volume 1：签证何时终止（s82） | https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text/original/epub/OEBPS/document_1/document_1.html （登记版本：https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text ；现行版入口：https://www.legislation.gov.au/C1958A00062/latest/text ） | 2026-10-08 | 2026-11-21 | `policy-sources/2026-10-08-au-migration-act-1958-compilation-172-vol1.html`（sha256 `52a074ece7fdf107db0802e2079a71870d33f75aeabb91b2ecb842537330d29b`） | archived |
 | SRC-070 | LAW | Citizenship Act 1977（新西兰，Version as at 2026-06-06；s8 citizenship by grant） | https://www.legislation.govt.nz/act/public/1977/61/en/latest/ （登记版本 PDF：https://www.legislation.govt.nz/act/public/1977/61/en/2026-06-06.pdf ） | 2026-06-06 | 2026-11-21 | `policy-sources/2026-06-06-nz-citizenship-act-1977-s8.html`（sha256 `f9a43233fabbbbedf29b4b9e56d2c49d2d66f99fd1ae12a865e954132db3be2c`） | archived |
@@ -144,6 +144,29 @@
 | SRC-125 | GUIDANCE | 里斯本检察院（PGD Lisboa）编纂版（非官方公报文本，仅交叉核对）：Decreto Regulamentar 84/2007（列至 DR 1/2024）art. 63 续期；Código Civil art. 279、296 期间计算 | https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=940&tabela=leis ；https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=775&tabela=leis | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-pgdlisboa-dr-84-2007-consolidado.html`（sha256 `8c0509aba4b9cf5f98fcb0f0f39742d91917e6500626ddd2302cd4a5f6a1f49f`）；`policy-sources/2026-11-22-pt-pgdlisboa-codigo-civil.html`（sha256 `1134e2bc2feb5ca33aaafd4e7f6c34d55b847ec3f389d8ea9cc1c7613eeaf538`） | archived |
 | SRC-126 | GUIDANCE | AIMA（移民与庇护署）页面：投资居留许可 ARI（art. 90-A）、永久居留（art. 80）、欧盟长期居民 ERLD（art. 125）；《Esclarecimento: Direito de Residência》（2025-10-17） | https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a ；https://aima.gov.pt/pt/viver/autorizacao-de-residencia-permanente-art-80-o ；https://aima.gov.pt/pt/viver/aquisicao-do-estatuto-de-residente-de-longa-duracao-erld-art-125-o ；https://aima.gov.pt/pt/noticias/direito-de-residencia | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-aima-ari-art-90-a.html`（sha256 `759f939a21c33b9a228b1f85146c37b65db06127d8f3c6378474fd9465197d37`）；`policy-sources/2026-11-22-pt-aima-ar-permanente-art-80.html`（sha256 `739864b9a7789f04abe2502b87d991cd6b89bee22b381518a73a0aa6a8ad04ef`）；`policy-sources/2026-11-22-pt-aima-erld-art-125.html`（sha256 `188f74257278bb429fe5977e8ee73c6fddeb3c7fc966f0ab1756ad553c4f9f5e`）；`policy-sources/2025-10-17-pt-aima-direito-de-residencia.html`（sha256 `93937c52620f1a21cf5acce152f5850131b5483b073ef67ed4d9dd07785cb036`） | archived |
 | SRC-127 | GUIDANCE | 葡萄牙政府关于新国籍法的说明：司法部新闻《Lei da Nacionalidade: novas regras entram em vigor a 19 de maio》（2026-05-19）；司法部入籍指南《Reside legalmente em Portugal há pelo menos 5 anos》（2026-11-22 抓取，仍按旧法写 5 年，已过时）；部长会议公报（2026-10-29，第 2 项通过国籍条例 Decreto-Lei） | https://justica.gov.pt/Noticias/Lei-da-Nacionalidade-novas-regras-entram-em-vigor-a-19-de-maio ；https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/Reside-legalmente-em-Portugal-ha-pelo-menos-5-anos ；https://www.portugal.gov.pt/pt/gc25/governo/comunicados-do-conselho-de-ministros/comunicado-do-conselho-de-ministros-de-29-de-outubro-de-2026 | 见标题 | 2026-11-22 | `policy-sources/2026-05-19-pt-justica-noticia-lei-nacionalidade.html`（sha256 `667814f2bcfdc424689f8bd24dcf4378abfdd7124d8f2402a30116a395183c4a`）；`policy-sources/2026-11-22-pt-justica-guia-reside-5-anos.html`（sha256 `1eb2c2027170a3a4f7d5f4458e08e7ac42096c08fb12b3220d3e4708cfc702d4`）；`policy-sources/2026-10-29-pt-gov-comunicado-cm.html`（sha256 `7e5d433eed2dba88a608d27a9712b2966e14637a3f0601e31e50ddd8fffd2f1e`） | archived |
+
+| SRC-200 | LAW | Migration Regulations 1994（Compilation 292，卷 1–3） | https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text （正文分卷：https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text/original/epub/OEBPS/document_1/document_1.html https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text/original/epub/OEBPS/document_2/document_2.html https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text/original/epub/OEBPS/document_3/document_3.html） | 2026-11-12 | 2026-11-23 | `policy-sources/2026-11-12-au-migration-regulations-1994-vol1.html`（sha256 `8bd51e1c4db77f7fabeae91e722504253851b701950dafc6a7ee2cf4bcd883c6`）、`policy-sources/2026-11-12-au-migration-regulations-1994-vol2.html`（sha256 `895af717db009d1b024983727620f02361b7df9f0cf4ab66a134acf87f0d316a`）、`policy-sources/2026-11-12-au-migration-regulations-1994-vol3.html`（sha256 `4b40e5acf24e31ea8774505041010eeb9ac07a99866751cfd30125d0634b103e`） | archived |
+| SRC-201 | LAW | LIN 19/210 技术签证及格线 | https://www.legislation.gov.au/F2019L01400/2019-10-31/2019-10-31/text/original/epub/OEBPS/document_1/document_1.html | 2019-10-31 | 2026-11-23 | `policy-sources/2019-10-31-au-lin-19-210-pool-pass-marks.html`（sha256 `972c72c93c43f657ad14efd8eb5e7332ef98a76990d8dc63f20535a0527580c6`） | archived |
+| SRC-202 | LAW | LIN 22/022 指定偏远地区 | https://www.legislation.gov.au/F2022L00231/2022-03-02/2022-03-02/text/original/epub/OEBPS/document_1/document_1.html | 2022-03-02 | 2026-11-23 | `policy-sources/2022-03-02-au-lin-22-022-designated-regional-areas.html`（sha256 `86d620e57c6f3e938062a9ebae517b3dd5591084100cb3e97dd0ac12159179a0`） | archived |
+| SRC-203 | LAW | LIN 19/216 雇主提名类别豁免 | https://www.legislation.gov.au/F2019L01404/2024-12-07/2024-12-07/text/original/epub/OEBPS/document_1/document_1.html | 2024-12-07 | 2026-11-23 | `policy-sources/2024-12-07-au-lin-19-216-186-exemptions.html`（sha256 `c9888cd702725fca145d1573f97e8d605a34953a4d68a612d3bfe23adebdfdde`） | archived |
+| SRC-204 | LAW | Migration (Skilling Australians Fund) Charges Regulations 2018 | https://www.legislation.gov.au/F2018L01092/2024-12-07/2024-12-07/text/original/epub/OEBPS/document_1/document_1.html | 2024-12-07 | 2026-11-23 | `policy-sources/2024-12-07-au-saf-charges-regulations-2018.html`（sha256 `6ab40dcc0bc214a542357a7db126fbaa10622fafdd6b81fc27b41c3d1d726d1f`） | archived |
+| SRC-205 | LAW | LIN 25/014 Functional English | https://www.legislation.gov.au/F2025L00904/2025-08-06/2025-08-06/text/original/epub/OEBPS/document_1/document_1.html | 2025-08-06 | 2026-11-23 | `policy-sources/2025-08-06-au-lin-25-014-functional-english.html`（sha256 `3b7bab57ffeb4aa8c7138b909e519fe822a651c05dce6d1ee4df60c390823e9a`） | archived |
+| SRC-206 | LAW | LIN 25/016 英语考试、成绩与护照 | https://www.legislation.gov.au/F2025L00905/2025-08-06/2025-08-06/text/original/epub/OEBPS/document_1/document_1.html | 2025-08-06 | 2026-11-23 | `policy-sources/2025-08-06-au-lin-25-016-language-tests-scores-passports.html`（sha256 `ddf1bd3e693591a6b876c44302a2d47ec7dd232af76683f9054067914047fd89`） | archived |
+| SRC-207 | LAW | LIN 19/051 技术职业与评估机构 | https://www.legislation.gov.au/F2019L00278/2026-03-28/2026-03-28/text/original/epub/OEBPS/document_1/document_1.html | 2026-03-28 | 2026-11-23 | `policy-sources/2026-03-28-au-lin-19-051-skilled-occupations.html`（sha256 `be0a63a30b3e2d5b0b60654f9e8c101ddf5230d8604317ff122b6701d24cb4d5`） | archived |
+| SRC-208 | LAW | LIN 24/089 雇主提名职业清单 | https://www.legislation.gov.au/F2024L01618/2026-03-28/2026-03-28/text/original/epub/OEBPS/document_1/document_1.html | 2026-03-28 | 2026-11-23 | `policy-sources/2026-03-28-au-lin-24-089-186-csol-occupations.html`（sha256 `ad71f913ab0aeb6a157aa4f215e2f9e90c0d2cbde65ac497becbd8c83ca2922c`） | archived |
+| SRC-209 | LAW | Australian Citizenship Regulation 2016 | https://www.legislation.gov.au/F2016L01916/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html | 2026-07-01 | 2026-11-23 | `policy-sources/2026-07-01-au-citizenship-regulation-2016.html`（sha256 `a321c5d59388fa3294996dc4aa3cbb44f4943e7ab89b01921f59222cd44271cf`） | archived |
+| SRC-210 | LAW | IMMI 18/033 市场年薪 | https://www.legislation.gov.au/F2018L00284/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html | 2026-07-01 | 2026-11-23 | `policy-sources/2026-07-01-au-immi-18-033-amsr-annual-earnings.html`（sha256 `84cb1092d5fb0eb4864f04d141f9245ee96b285154924b72b5193ffa657790bc`） | archived |
+| SRC-211 | LAW | Migration Act 1958（Compilation 172，卷 2） | https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text/original/epub/OEBPS/document_2/document_2.html | 2026-10-08 | 2026-11-23 | `policy-sources/2026-10-08-au-migration-act-1958-vol2.html`（sha256 `85cfa9c63bfebe5a85e2c2e84f7f69e66f38bcf77a522072a29c0f7796f6875c`） | archived |
+| SRC-212 | LAW | Fair Work Regulations 2009 | https://www.legislation.gov.au/F2009L02356/2026-11-01/2026-11-01/text/original/epub/OEBPS/document_1/document_1.html | 2026-11-01 | 2026-11-23 | `policy-sources/2026-11-01-au-fair-work-regulations-2009.html`（sha256 `175e98d98e660b54732442fc45a206ec5946a3873d9101587c8fd40e927f760b`） | archived |
+| SRC-213 | LAW | Health Insurance Act 1973 | https://www.legislation.gov.au/C2004A00101/2026-11-04/2026-11-04/text/original/epub/OEBPS/document_1/document_1.html | 2026-11-04 | 2026-11-23 | `policy-sources/2026-11-04-au-health-insurance-act-1973-vol1.html`（sha256 `a76febada28d2ccddca89e373a526074a2f21389cb599030f797c7f4c10e5713`） | archived |
+| SRC-214 | GUIDANCE | 内政部雇主提名薪资要求 | https://immi.homeaffairs.gov.au/visas/employing-and-sponsoring-someone/sponsoring-workers/nominating-a-position/salary-requirements | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-salary-requirements.html`（sha256 `8866e256c8c38dda8ddebd68f6f37ee98503a63941873cf0a252bad7495d501f`） | archived |
+| SRC-215 | GUIDANCE | 内政部入籍面试与考试 | https://immi.homeaffairs.gov.au/citizenship/test-and-interview/learn-about-citizenship-interview-and-test | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-citizenship-test.html`（sha256 `77e0f6b06bc8c0b177f6967638699585dc59a37d57055327f6c11456279d363a`） | archived |
+| SRC-216 | GUIDANCE | 内政部新西兰公民直接入籍指引 | https://immi.homeaffairs.gov.au/entering-and-leaving-australia/new-zealand-citizens/pathway-to-permanent-resident-and-citizenship | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-citizenship-nz-direct.html`（sha256 `729192a53dabb7f10f030aaed001d58ac1fbe90e890da75d806d45079876b853`） | archived |
+| SRC-217 | GUIDANCE | 内政部 Form 1298i（07/26） | https://immi.homeaffairs.gov.au/form-listing/forms/1298i.pdf | 07/26 | 2026-11-23 | `policy-sources/2026-11-23-au-immi-citizenship-form1298i.pdf`（sha256 `41a646d8f048ef930a0c6920381c90de1b049e05ca3ace637b8de259aaede0c6`） | archived |
+| SRC-218 | GUIDANCE | 内政部 Significant Cost Threshold | https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/health/protecting-health-care-and-community-services | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-health-sct.html`（sha256 `04d980fecff773faf2f5d4d4b9244ca243035f861bb188ac4e74bae882377a79`） | archived |
+| SRC-219 | GUIDANCE | 内政部 Health waiver | https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/health/health-waiver | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-health-waiver.html`（sha256 `5da24d2679f3183ab87327e83a55fe5daf135c8755621d0ef159642489ab32a7`） | archived |
+| SRC-220 | GUIDANCE | 内政部签证品格审查 | https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/character | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-character.html`（sha256 `436634c6fc24670761e86baef17c7d82040d22c9452908f692fe1570cc97772d`） | archived |
+| SRC-221 | GUIDANCE | 内政部签证费率 | https://immi.homeaffairs.gov.au/visas/getting-a-visa/fees-and-charges/current-visa-pricing | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-visa-fees-pricing.html`（sha256 `c2a74843b61c5da7a6f5ecfcc341b45e8d2ab8da5ab5151f3879496706ae8f34`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -651,21 +674,31 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ## SRC-063 191 Regional Provisional Visas stream
 
+任务 83 重新抓取同一官方页面。2026-11-21 历史快照为 `policy-sources/2026-11-21-au-191-regional-provisional-stream.html`（sha256 `07d09a632a0d95bef34e23f755e31f7aafc088be9b62ee615633cce239bfc02d`）。
+
 - `Eligibility → Have an eligible visa`：申请时须持 491 或 494，且已持有满 3 年。`Satisfy the income requirement`：没有最低收入要求，须提供合格签证 5 年中 3 个财年的 ATO 评估通知。页面内容以 JSON 嵌在 HTML 中，按小节标题定位。
 
 ## SRC-064 186 Temporary Residence Transition stream
+
+任务 83 重新抓取同一官方页面。2026-11-21 历史快照为 `policy-sources/2026-11-21-au-186-temporary-residence-transition-stream.html`（sha256 `391aca298eb2a556682e583e43d2d9de1d32ce223bd2ece8ef4ecb5db5b9b4d9`）。
 
 - `Eligibility → Have 2 years eligible sponsored employment in the 3 years prior to your application`：全职、在澳、持 457／482 或合格 bridging visa 期间、在获批职业内。年龄小节写明通常须未满 45 岁，并列出豁免类别。`Have this visa`：申请时须是 457 或 482 的主签证持有人，或持因 457、482、186、187 申请获发的 bridging visa，且上一份实质签证是 457／482。
 
 ## SRC-065 801 Partner（permanent）
 
+任务 83 重新抓取同一官方页面。2026-11-21 历史快照为 `policy-sources/2026-11-21-au-801-partner-permanent.html`（sha256 `31b63e4b5bc7a2153a76a4bb845c22760253a39a377e45fd1cdea57821aff706`）。
+
 - `Eligibility → Visa requirements`：须持 820（或 445），自递交 820 与 801 申请起满 2 年才进入永久阶段评估；部分情形可不满 2 年获批。
 
 ## SRC-066 Resident Return visa 155／157
 
+任务 83 重新抓取同一官方页面。2026-11-21 历史快照为 `policy-sources/2026-11-21-au-resident-return-visa-155-157.html`（sha256 `af071d452dd84af5dbcbd3672dd41f8745da6021476e0c4af5ba024b35e7bfb3`）。
+
 - `Eligibility → Meet our residence, substantial ties, or member of the family unit requirements` 中的 `Option 1: Present in Australia for 2 of the last 5 years`：2 年按 730 个累计在澳日计算，5 年从 RRV 递交日倒数；入境日与出境日都计为在澳，同日出入境只计一天，在澳的部分日按整日计。符合者获 5 年旅行便利。
 
 ## SRC-067 入籍（永久居民）
+
+任务 83 重新抓取同一官方页面。2026-11-21 历史快照为 `policy-sources/2026-11-21-au-citizenship-permanent-resident.html`（sha256 `312c97ec6555e1007a3557412cf96fde445f1e57915cfb7e73418e3e4cbb049d`）。
 
 - `Residence requirement → Meet the general residence requirement`：申请前 4 年持有效签证在澳，最后 12 个月持永久签证，4 年内出境合计不超过 12 个月，其中最后 12 个月不超过 90 天。符合条件的 SCV 444 持有人与部分新西兰 189 签证持有人另有起算方式，试点不建模。官方 Residence Calculator（https://immi.homeaffairs.gov.au/help-support/tools/residence-calculator ）只作估算参考。
 
@@ -1045,3 +1078,99 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 司法部新闻（2026-05-19）："Regulamentação complementar"一节写明新规定 2026-05-19 施行，在审程序继续适用旧文本，新规定只适用于施行后递交的申请；正文列出 7 年、10 年。
 - 司法部入籍指南页（2026-11-22 抓取）标题与正文仍写居住满 5 年，是旧法内容，不作为现行规则的依据。
 - 部长会议公报（2026-10-29）第 2 项：通过实施新国籍法的 Decree-Law；截至 2026-11-22 未见公布，新法下居留起算的证明方式待条例明确（PD-140）。
+
+## SRC-200 Migration Regulations 1994（Compilation 292，卷 1–3）
+
+任务 83 复用 SRC-061、SRC-068、SRC-069 同版本快照及 SRC-062 的原时间算法定位。SRC-063–067 的一级来源表列最新抓取，各条备注保留早期快照。
+
+卷 1 收录 regs 1.03、1.20J–KC、2.03A、5.19 和 Schedule 1 的递交条件与费用。卷 2 收录 100、155、157、186、189、190、191、309、801。卷 3 收录 820、858 及 Schedules 3–6D、8。
+
+- `policy-sources/2026-11-12-au-migration-regulations-1994-vol1.html` → <https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text/original/epub/OEBPS/document_1/document_1.html>
+- `policy-sources/2026-11-12-au-migration-regulations-1994-vol2.html` → <https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text/original/epub/OEBPS/document_2/document_2.html>
+- `policy-sources/2026-11-12-au-migration-regulations-1994-vol3.html` → <https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text/original/epub/OEBPS/document_3/document_3.html>
+
+## SRC-201 LIN 19/210 技术签证及格线
+
+s 6 规定打分签证的 pool mark 与 pass mark。
+
+## SRC-202 LIN 22/022 指定偏远地区
+
+Schedules 1–2 按州与邮编界定地区。491 按获签时的地区，494 按相关提名时的地区判断（SRC-200 Sch 8 cond 8579）。
+
+## SRC-203 LIN 19/216 雇主提名类别豁免
+
+ss 4–7 按通道分别规定年龄、技能评估及工作经验的例外。
+
+## SRC-204 Migration (Skilling Australians Fund) Charges Regulations 2018
+
+s 6 规定雇主提名培训税的营业额分界与费率。
+
+## SRC-205 LIN 25/014 Functional English
+
+s 6 与 Schedule 1 规定可选的护照、教育经历及考试证明。
+
+## SRC-206 LIN 25/016 英语考试、成绩与护照
+
+ss 7–10、Schedules 1–3 按考试日期、考种和等级给出各单科门槛。
+
+## SRC-207 LIN 19/051 技术职业与评估机构
+
+职业及评估机构按签证类别核对 MLTSSL 与 STSOL。
+
+## SRC-208 LIN 24/089 雇主提名职业清单
+
+职业表与附加限制用于 186 Direct Entry。
+
+## SRC-209 Australian Citizenship Regulation 2016
+
+Schedule 3 按申请类别、优惠资格与费用豁免区分入籍收费。
+
+## SRC-210 IMMI 18/033 市场年薪
+
+指定年收入金额见 Part 2，annual market salary rate 的举证方法见 Part 3 s 7。
+
+## SRC-211 Migration Act 1958（Compilation 172，卷 2）
+
+s 501(6)–(7A) 区分品格测试、刑罚与裁量，信息变更及签证终止见已登记的卷 1（SRC-069）。
+
+## SRC-212 Fair Work Regulations 2009
+
+reg 2.13 给出 high income threshold 调整公式。当前年度澳元公告尚待核实，见 PD-206。
+
+## SRC-213 Health Insurance Act 1973
+
+s 3(1) 定义 Australian resident，Medicare 资格与健康 PIC 分别判断。
+
+## SRC-214 内政部雇主提名薪资要求
+
+Salary requirements 小节列出适用财年的 CSIT、AMSR 与保证年收入的关系。
+
+## SRC-215 内政部入籍面试与考试
+
+About the test 与 Pass the test 小节列出考试题数、价值观题和及格要求。
+
+## SRC-216 内政部新西兰公民直接入籍指引
+
+Direct pathway to Australian citizenship 小节解释 SCV 持有人的永久居留起算。
+
+## SRC-217 内政部 Form 1298i（07/26）
+
+p1–2 列出入籍费用、优惠卡与豁免，页码按 PDF 物理页序。
+
+- `policy-sources/2026-11-23-au-immi-citizenship-form1298i.pdf` → <https://immi.homeaffairs.gov.au/form-listing/forms/1298i.pdf>
+
+## SRC-218 内政部 Significant Cost Threshold
+
+Significant healthcare and community service costs 小节解释 MOC 的评估期限及费用门槛。
+
+## SRC-219 内政部 Health waiver
+
+Health waiver 小节说明 PIC 4007 的个案审查和不可豁免的健康条件。
+
+## SRC-220 内政部签证品格审查
+
+Police certificates 与 Character requirements 小节说明刑事记录、警方证明和审查程序。
+
+## SRC-221 内政部签证费率
+
+Current visa pricing 提供费用入口，法定费率按 SRC-200 Schedule 1 和 reg 2.12C 核对。
