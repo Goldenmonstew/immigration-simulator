@@ -130,7 +130,8 @@ export function groupedMemories(
         existing.count += entry.count;
         for (const [stat, value] of Object.entries(entry.statDeltas ?? {})) {
           const k = stat as keyof NonNullable<DayMemory['statDeltas']>;
-          existing.statDeltas![k] = (existing.statDeltas![k] ?? 0) + value;
+          existing.statDeltas![k] =
+            (existing.statDeltas![k] ?? 0) + (value ?? 0);
         }
       } else
         grouped.set(key, { ...entry, statDeltas: { ...entry.statDeltas } });

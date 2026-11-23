@@ -246,6 +246,7 @@ export const zhCN = {
     '主申请人的其他亲属（adult dependant relative：主申请人是我的子女、孙子女、兄弟姐妹或父母，HK 59.1）',
   'result.principal': '主申请人的评估',
   'site.navigation': '主要导航',
+  'site.allCountries': '所有国家',
   'site.policy': '政策依据',
   'site.chinese': '中文',
   'policyPage.title': '政策依据',
@@ -262,7 +263,74 @@ export const zhCN = {
   'site.chineseShort': '中',
   'site.shortName': '移民模拟',
   'uk.name': '英国',
-  'site.name': '英国移民路径模拟',
+  'site.name': '移民路径模拟',
+  'hub.title': '选择国家，了解可能适用的移民路径',
+  'hub.intro':
+    '根据你的签证、居留与出入境记录，查看永居、定居或入籍的最早日期与待确认事项。英国计算器核对所涵盖定居路径的法定条件，其他国家目前只检查时间条件。你也可以在像素小镇体验人生模拟。',
+  'hub.badge.rules': '英国定居法定条件核对',
+  'hub.badge.whatif': '“如果……会怎样”情景对比',
+  'hub.badge.sources': '官方来源逐条可查',
+  'hub.badge.game': '像素小镇人生模拟',
+  'hub.badge.local': '纯浏览器本地计算',
+  'hub.countriesTitle': '目的地国家',
+  'hub.calculate': '开始计算',
+  'hub.playGame': '人生模拟',
+  'hub.calculateAria': '{country}：开始计算',
+  'hub.playGameAria': '{country}：人生模拟',
+  'hub.beforeTitle': '开始前',
+  'hub.prepare':
+    '准备你的签证或居留许可起止日期、出入境记录，以及与所选国家相关的收入、语言、社保或考试信息。只有问卷中标为可选的项目可以留空，其余项目均为必填。',
+  'hub.privacy':
+    '无需账号，计算在浏览器本地完成，问卷输入不会上传。英国问卷草稿、已保存的方案和游戏进度保存在此浏览器中，使用共享设备时，其他使用者可能看到这些记录。其他国家的问卷在刷新页面后会重置。',
+  'hub.disclaimerTitle': '使用说明与免责说明',
+  'hub.disclaimer':
+    '本网站提供一般政策信息、法定条件梳理与假设情景模拟，不判定你的法律移民身份，不构成移民或法律意见，也不保证任何申请结果。递交真实申请前，请核对各国移民部门的最新官方规定，或咨询具备相应资格的专业人士。',
+  'hub.disclaimerEnglish':
+    'This site provides general policy information, statutory requirement checks and hypothetical scenario modelling. It does not determine your legal immigration status, is not immigration or legal advice, and does not guarantee the outcome of any application.',
+  'hub.uk.code': 'UK',
+  'hub.uk.paths': '定居 ILR · 现行法律与改革对比',
+  'hub.uk.desc':
+    '评估 Skilled Worker、BN(O)、Global Talent、家庭、保护与 10 年长居等路线的定居条件，并排对比现行 Immigration Rules 与已公布改革。',
+  'hub.au.code': 'AU',
+  'hub.au.paths': '转永居 PR · 回头签 RRV · 入籍',
+  'hub.au.desc':
+    '核对 191 和香港类别（189／191）的持签或居住时长、186 TRT 的持签时长、为担保雇主全职工作的时长及申请年龄，以及伴侣签永久阶段（801／100）的等待期。也核对回头签 RRV 的在境天数和入籍的居住时间。',
+  'hub.nz.code': 'NZ',
+  'hub.nz.paths': '永久居民 PRV · 旅行条件 · 入籍',
+  'hub.nz.desc':
+    '计算居民签证旅行条件的到期日，核对转永久居民签证（PRV）所需的持签时长和在境天数，以及入籍所需的在境天数。',
+  'hub.ca.code': 'CA',
+  'hub.ca.paths': '永居居住义务 · 入籍',
+  'hub.ca.desc':
+    '核对维持永久居民身份所需的居住天数，以及入籍所需的在加拿大天数。入籍计算包含可计入的永居前在境时间。',
+  'hub.us.code': 'US',
+  'hub.us.paths': '入籍 · 条件绿卡转正 · 离境时长',
+  'hub.us.desc':
+    '核对一般入籍和美国公民配偶入籍的居住时间与在境天数、条件绿卡取消条件（I-751／I-829）的递交窗口，以及离境多久会影响凭绿卡回美。',
+  'hub.es.code': 'ES',
+  'hub.es.paths': '国内长期居留 · 按居住入籍',
+  'hub.es.desc':
+    '按居留许可、学习停留与出入境记录，核对国内长期居留与按居住入籍（10 年、难民 5 年、拉美等 2 年、配偶 1 年）的居住时间。',
+  'hub.gr.code': 'GR',
+  'hub.gr.paths': '长期居留 · 黄金签证续期 · 入籍',
+  'hub.gr.desc':
+    '按居留许可（含黄金签证）与出入境记录，核对长期居留（Μ1）和 7 年、3 年或 12 年入籍路线的居住时间，以及黄金签证（Β.5）的续期时段。',
+  'hub.ie.code': 'IE',
+  'hub.ie.paths': 'Stamp 4 / 5 · 入籍 · 配偶入籍',
+  'hub.ie.desc':
+    '按各段 Stamp 居留许可与出入境记录，核对 Stamp 4 升级、Stamp 5（满 96 个月）、一般入籍及爱尔兰公民配偶或民事伴侣入籍的时间条件。',
+  'hub.pt.code': 'PT',
+  'hub.pt.paths': '入籍 · 永久居留 · 欧盟长居 · 黄金签证',
+  'hub.pt.desc':
+    '核对 2026 年国籍法下入籍所需的居住年限、永久居留与欧盟长期居民所需的居住时间，以及黄金签证的最低停留时间和续期时段。',
+  'hub.jp.code': 'JP',
+  'hub.jp.paths': '永住许可 · 帰化（入籍）',
+  'hub.jp.desc':
+    '核对永住许可（含高度人才与配偶路线及 2027 年 4 月改版指南）和帰化所需的在留时间，并计算出境是否超过再入国许可期限。',
+  'hub.de.code': 'DE',
+  'hub.de.paths': '定居许可 · 欧盟长期居留 · 入籍',
+  'hub.de.desc':
+    '核对定居许可（含技术工人与欧盟蓝卡路线）、欧盟长期居留和入籍的居留时长，以及适用的养老保险缴费时长。也计算长期出境何时使居留许可失效。',
   'site.skip': '跳到主要内容',
   'site.home': '首页',
   'site.language': '语言',
@@ -281,7 +349,7 @@ export const zhCN = {
   'home.disclaimerTitle': '使用说明与免责说明',
   'home.disclaimer':
     '根据你填写的信息，这些规则可能与你有关。本模拟器提供一般政策信息与假设情景模拟，不判定你的法律移民身份，不构成移民或法律意见，也不保证申请结果。',
-  'pilot.entryTitle': '其他国家（试点）',
+  'pilot.entryTitle': '其他国家',
   ...au,
   'pilot.resultTitle': '计算结果',
   'pilot.policyAsOf': '依据核对至 {date} 的官方来源。',

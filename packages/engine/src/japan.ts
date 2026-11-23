@@ -383,8 +383,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
       if (jpOfficeClosed(x) !== 'yes' && ok(x)) open = x;
     const where = !open
       ? L(
-          '之后可递交的开放日超出试点的 10 年计算范围',
-          'the next open day you could file on is beyond the 10 years the pilot looks ahead',
+          '之后可递交的开放日超出本计算的 10 年范围',
+          'the next open day you could file on is beyond the 10 years the calculator looks ahead',
         )
       : office === 'isa'
         ? L(
@@ -489,8 +489,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
         ? 'UNKNOWN'
         : timeStatus;
     const when = L(
-      `出生之日起 ${days} 日为 ${raw}${deadline === raw ? '' : `，遇行政机关休日顺延至 ${deadline}`}${early === deadline ? '' : `；若连出生当天算作第 1 天，到 ${early} 为止，按这一天递交更稳妥（PD-130）`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `；${deadline} 是否为春分日或秋分日（或因此成为休日）要到前一年 2 月才正式公布，期限可能再顺延（PD-130）` : `；试点没有收录 ${deadline.slice(0, 4)} 年的国民の祝日，期限可能再顺延（PD-130）`}`,
-      `${days} days from birth is ${raw}${deadline === raw ? '' : `, moved to ${deadline} past days the offices are closed`}${early === deadline ? '' : `; counting the birth day as the first, it ends on ${early}, the safer day to file by (PD-130)`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `; whether ${deadline} is an equinox day (or a holiday because of one) is fixed only in February of the year before, so it may move later still (PD-130)` : `; the pilot does not cover national holidays for ${deadline.slice(0, 4)}, so it may move later still (PD-130)`}`,
+      `出生之日起 ${days} 日为 ${raw}${deadline === raw ? '' : `，遇行政机关休日顺延至 ${deadline}`}${early === deadline ? '' : `；若连出生当天算作第 1 天，到 ${early} 为止，按这一天递交更稳妥（PD-130）`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `；${deadline} 是否为春分日或秋分日（或因此成为休日）要到前一年 2 月才正式公布，期限可能再顺延（PD-130）` : `；本计算没有收录 ${deadline.slice(0, 4)} 年的国民の祝日，期限可能再顺延（PD-130）`}`,
+      `${days} days from birth is ${raw}${deadline === raw ? '' : `, moved to ${deadline} past days the offices are closed`}${early === deadline ? '' : `; counting the birth day as the first, it ends on ${early}, the safer day to file by (PD-130)`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `; whether ${deadline} is an equinox day (or a holiday because of one) is fixed only in February of the year before, so it may move later still (PD-130)` : `; the calculator does not cover national holidays for ${deadline.slice(0, 4)}, so it may move later still (PD-130)`}`,
     );
     const late = L(
       '已持有其他在留资格的，可改选"实子等（在留资格变更）"按在留年限计算；还没有在留资格的，请尽快联系地方出入国在留管理局。',

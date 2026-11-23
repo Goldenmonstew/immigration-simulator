@@ -141,7 +141,7 @@ test('the expiry label says required where the form requires it (review73-4)', (
   expect(t('de.toRequired', 'en')).toBe('Valid until (required)');
 });
 
-test('home links to the Germany pilot', () => {
+test('home links to Germany', () => {
   expect(render(<Home />, 'zh-CN')).toContain('href="/germany"');
 });
 

@@ -408,8 +408,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
       ],
       assumptions: [
         L(
-          `${year} 年从递交日往回数到上一年的同一日，不含递交当天（ISD 示例：2025-11-11 递交，看 2024-11-11 至 2025-11-10）；递交当天须持有效许可。"递交日"具体指哪一天法条没有定义（PD-110）。官方计算器把递交当天也算 1 天，本试点不这样算。`,
-          'The year is counted back from the application date to the same date a year earlier, not including the application day (ISD example: applying on 2025-11-11, check 2024-11-11 to 2025-11-10); you need a valid permission on the application day. The law does not define which day is the "date of the application" (PD-110). The official calculator also counts the application day; this pilot does not.',
+          `${year} 年从递交日往回数到上一年的同一日，不含递交当天（ISD 示例：2025-11-11 递交，看 2024-11-11 至 2025-11-10）；递交当天须持有效许可。"递交日"具体指哪一天法条没有定义（PD-110）。官方计算器把递交当天也算 1 天，本计算不这样算。`,
+          'The year is counted back from the application date to the same date a year earlier, not including the application day (ISD example: applying on 2025-11-11, check 2024-11-11 to 2025-11-10); you need a valid permission on the application day. The law does not define which day is the "date of the application" (PD-110). The official calculator also counts the application day; this calculator does not.',
         ),
         L(
           '出入境当天不算缺席（s15C(5)："day" 不含不足一日；ISD 指南）。许可到期后到续期前的空档不计入，连续一年因此中断（ISD 指南）。凡在境内持有效许可、不属 s16A(1) 与 ISD"Time That Does Not Count"所列情形（学生 Stamp 2／2A、无许可、等待保护决定）的居住都计入，包括 Stamp 4 EUFam、4D 与 ICT 许可持有人配偶的 1G；Stamp 1A 兼有培训，可能落入学习类排除，与"其他"一样待确认（PD-114）。住在北爱尔兰的日子不算在国家居住，即使爱尔兰许可尚未到期。此前几年里的出境是否减少"累计居住"法条和指南都没写：严格读法扣除，较宽读法不扣（PD-112）；闰日按期间内的 2 月 29 日各加 1 天，较宽读法不加（PD-113）。',
@@ -654,12 +654,12 @@ export function evaluateIreland(req: IeRequest): IeResult {
             (possible && possible !== earliest
               ? L(
                   ruleBound
-                    ? `已存档的来源中，${months} 个月规则对${ictRule ? '公司内调（ICT）' : 'General Employment Permit'}最早见于 ${ruleFrom}（${ictRule ? 'ISD 升级页现行文本的修改日' : 'ISD 通告'}），此前的规则本试点没有收录：${possible} 起按当时的规则是否已满足待确认（PD-116）。`
+                    ? `已存档的来源中，${months} 个月规则对${ictRule ? '公司内调（ICT）' : 'General Employment Permit'}最早见于 ${ruleFrom}（${ictRule ? 'ISD 升级页现行文本的修改日' : 'ISD 通告'}），此前的规则本计算没有收录：${possible} 起按当时的规则是否已满足待确认（PD-116）。`
                     : countFrom(possible) === start
                       ? `若从月末起算按当月最后一天届满，最早 ${possible}（PD-116）。`
                       : `若许可空档前后的受雇时间可以累加，最早 ${possible}（PD-116）。`,
                   ruleBound
-                    ? ` In the archived sources the ${months}-month rule first covers ${ictRule ? 'intra-company transfers' : 'General Employment Permits'} on ${ruleFrom} (${ictRule ? 'the date ISD’s upgrade page was last changed to its current text' : 'ISD’s notice'}); this pilot does not have the earlier rule, so whether you qualified under it from ${possible} is uncertain (PD-116).`
+                    ? ` In the archived sources the ${months}-month rule first covers ${ictRule ? 'intra-company transfers' : 'General Employment Permits'} on ${ruleFrom} (${ictRule ? 'the date ISD’s upgrade page was last changed to its current text' : 'ISD’s notice'}); this calculator does not have the earlier rule, so whether you qualified under it from ${possible} is uncertain (PD-116).`
                     : countFrom(possible) === start
                       ? ` If months from a month-end start end on the last day of the month, it could be ${possible} (PD-116).`
                       : ` If the time on both sides of a gap in the permit can be added up, it could be ${possible} (PD-116).`,
@@ -865,8 +865,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
                 )
               : onReturn === 'no'
                 ? L(
-                    `按已录入的出行，你那天在境外；${filing} 回到爱尔兰时，按录入的许可已不再连续持有可计入 Stamp 5 的有效许可。ISD 不受理在境外或没有居留许可时递交的申请，本试点不给出递交日期。`,
-                    ` By your recorded trips you are abroad that day, and when you are back on ${filing} the permissions you entered no longer give an unbroken permission that counts for Stamp 5; ISD does not accept applications from outside the State or without a residence permission, so this pilot gives no filing date.`,
+                    `按已录入的出行，你那天在境外；${filing} 回到爱尔兰时，按录入的许可已不再连续持有可计入 Stamp 5 的有效许可。ISD 不受理在境外或没有居留许可时递交的申请，本计算不给出递交日期。`,
+                    ` By your recorded trips you are abroad that day, and when you are back on ${filing} the permissions you entered no longer give an unbroken permission that counts for Stamp 5; ISD does not accept applications from outside the State or without a residence permission, so this calculator gives no filing date.`,
                   )
                 : filing && filing !== earliest
                   ? L(
@@ -913,8 +913,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
             'ISD does not accept applications from people outside the State or without a residence permission (application form p1): if your recorded trips have you abroad on the date the months are complete, the earliest filing date moves to the day you are back, when you also need a valid permission.',
           ),
           L(
-            `"每年在境外不超过 ${v.wcattAbsenceMonths.value} 个月"是获批后 Stamp 5 的居住条件，不用于判断能否申请；申请前的出境是否减少 ${months} 个月没有写，本试点不扣除（PD-117）。`,
-            `"No more than ${v.wcattAbsenceMonths.value} months abroad in a year" is a condition of Stamp 5 once granted, not of applying for it; whether trips before applying reduce the ${months} months is not stated, and this pilot does not deduct them (PD-117).`,
+            `"每年在境外不超过 ${v.wcattAbsenceMonths.value} 个月"是获批后 Stamp 5 的居住条件，不用于判断能否申请；申请前的出境是否减少 ${months} 个月没有写，本计算不扣除（PD-117）。`,
+            `"No more than ${v.wcattAbsenceMonths.value} months abroad in a year" is a condition of Stamp 5 once granted, not of applying for it; whether trips before applying reduce the ${months} months is not stated, and this calculator does not deduct them (PD-117).`,
           ),
           projection,
         ],
