@@ -44,7 +44,10 @@ export const germany2026_11 = {
     // this many years.
     priorSettlementCreditYears: {
       value: 4,
-      sources: [aufenthG('§ 9 Abs. 4 Nr. 1', '9')],
+      sources: [
+        aufenthG('§ 9 Abs. 4 Nr. 1', '9'),
+        { srcId: 'SRC-108', locator: 'Nr. 9.4.1.3 (p69)' },
+      ],
     },
     // § 18c Abs. 1: skilled workers (§§ 18a, 18b, 18d, 18g permits).
     skilledYears: {
@@ -90,7 +93,7 @@ export const germany2026_11 = {
       value: 3,
       sources: [
         aufenthG('§ 28 Abs. 2 Satz 1', '28'),
-        { srcId: 'SRC-108', locator: 'Nr. 28.2 (p165)' },
+        { srcId: 'SRC-108', locator: 'Nr. 28.2.3 (p165)' },
       ],
     },
     // § 26 Abs. 3: recognised refugees and people granted asylum, counting

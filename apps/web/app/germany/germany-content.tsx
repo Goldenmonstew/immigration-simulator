@@ -17,6 +17,7 @@ import type { TranslationKey } from '../../i18n';
 import { useTranslation } from '../../i18n/locale';
 import { today } from '../../lib/questionnaire';
 import {
+  contributionRoute,
   deRequest,
   emptyDeForm,
   emptyDePermit,
@@ -36,8 +37,11 @@ import site from '../site.module.css';
 
 const FIELD_LABELS: Record<string, TranslationKey> = {
   'de-simulation-date': 'de.simulationDate',
+  'de-first-entry': 'de.firstEntry',
   'de-contributions': 'de.contributions',
+  'de-blue-card-months': 'de.blueCardMonths',
   'de-married-on': 'de.marriedOn',
+  'de-spouse-german-since': 'de.spouseGermanSince',
   from: 'de.from',
   to: 'de.to',
   departed: 'de.departed',
@@ -99,7 +103,7 @@ export default function GermanyContent() {
   const date = (
     id: string,
     key: TranslationKey,
-    field: 'simulationDate' | 'marriedOn',
+    field: 'simulationDate' | 'firstEntry' | 'marriedOn' | 'spouseGermanSince',
     hint?: string,
   ) => (
     <PilotDate
@@ -110,6 +114,26 @@ export default function GermanyContent() {
       hint={hint}
       error={errors[id]}
     />
+  );
+  const months = (
+    id: string,
+    label: TranslationKey,
+    hint: TranslationKey,
+    field: 'contributionMonths' | 'blueCardMonths',
+  ) => (
+    <Field id={id} label={t(label)} hint={t(hint)} error={errors[id]}>
+      <input
+        id={id}
+        type="text"
+        inputMode="numeric"
+        value={draft[field]}
+        onChange={(e) => set({ [field]: e.target.value.trim() })}
+        aria-invalid={errors[id] ? true : undefined}
+        aria-describedby={[`${id}-hint`, errors[id] && `${id}-error`]
+          .filter(Boolean)
+          .join(' ')}
+      />
+    </Field>
   );
   const flag = ROUTE_FLAGS[draft.settlementRoute];
 
@@ -132,6 +156,12 @@ export default function GermanyContent() {
             'de.simulationDate',
             'simulationDate',
             t('de.simulationDateHint'),
+          )}
+          {date(
+            'de-first-entry',
+            'de.firstEntry',
+            'firstEntry',
+            t('de.firstEntryHint'),
           )}
 
           <h2>{t('de.permits')}</h2>
@@ -224,9 +254,11 @@ export default function GermanyContent() {
             <select
               id="de-settlement-route"
               value={draft.settlementRoute}
-              onChange={(e) =>
-                set({ settlementRoute: e.target.value as DeSettlementRoute })
-              }
+              onChange={(e) => {
+                // Hidden month fields must not keep their errors.
+                setErrors({});
+                set({ settlementRoute: e.target.value as DeSettlementRoute });
+              }}
             >
               {DE_SETTLEMENT_ROUTES.map((r) => (
                 <option key={r} value={r}>
@@ -247,29 +279,20 @@ export default function GermanyContent() {
               </label>
             </div>
           )}
-          <Field
-            id="de-contributions"
-            label={t('de.contributions')}
-            hint={t('de.contributionsHint')}
-            error={errors['de-contributions']}
-          >
-            <input
-              id="de-contributions"
-              type="text"
-              inputMode="numeric"
-              value={draft.contributionMonths}
-              onChange={(e) =>
-                set({ contributionMonths: e.target.value.trim() })
-              }
-              aria-invalid={errors['de-contributions'] ? true : undefined}
-              aria-describedby={[
-                'de-contributions-hint',
-                errors['de-contributions'] && 'de-contributions-error',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-            />
-          </Field>
+          {contributionRoute(draft.settlementRoute) &&
+            months(
+              'de-contributions',
+              'de.contributions',
+              'de.contributionsHint',
+              'contributionMonths',
+            )}
+          {draft.settlementRoute === 'blue-card' &&
+            months(
+              'de-blue-card-months',
+              'de.blueCardMonths',
+              'de.blueCardMonthsHint',
+              'blueCardMonths',
+            )}
 
           <h2>{t('de.naturalisation')}</h2>
           <Field
@@ -297,6 +320,11 @@ export default function GermanyContent() {
           {draft.naturalisationRoute === 'spouse' && (
             <div className={form.followUp}>
               {date('de-married-on', 'de.marriedOn', 'marriedOn')}
+              {date(
+                'de-spouse-german-since',
+                'de.spouseGermanSince',
+                'spouseGermanSince',
+              )}
             </div>
           )}
           <div className={site.actions}>

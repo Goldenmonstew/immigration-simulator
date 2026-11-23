@@ -21,6 +21,7 @@ export interface DeTripRow {
 
 export interface DeForm {
   simulationDate: string;
+  firstEntry: string;
   permits: DePermitRow[];
   trips: DeTripRow[];
   settlementRoute: DeSettlementRoute;
@@ -29,9 +30,17 @@ export interface DeForm {
   germanC1: boolean;
   /** Months of pension contributions; blank = not entered. */
   contributionMonths: string;
+  /** Months of Blue Card employment with contributions; blank = not entered. */
+  blueCardMonths: string;
   naturalisationRoute: DeNaturalisationRoute;
   marriedOn: string;
+  /** Blank = the spouse was German throughout. */
+  spouseGermanSince: string;
 }
+
+/** Settlement routes that ask for pension contribution months. */
+export const contributionRoute = (route: DeSettlementRoute) =>
+  route === 'general' || route === 'skilled';
 
 export type DeErrors = Partial<Record<string, TranslationKey>>;
 
@@ -45,6 +54,7 @@ export const emptyDeTrip = (): DeTripRow => ({ departed: '', returned: '' });
 export function emptyDeForm(today: string): DeForm {
   return {
     simulationDate: today,
+    firstEntry: '',
     permits: [emptyDePermit()],
     trips: [],
     settlementRoute: 'general',
@@ -52,8 +62,10 @@ export function emptyDeForm(today: string): DeForm {
     germanB1: false,
     germanC1: false,
     contributionMonths: '',
+    blueCardMonths: '',
     naturalisationRoute: 'general',
     marriedOn: '',
+    spouseGermanSince: '',
   };
 }
 
@@ -65,6 +77,7 @@ export function validateDeForm(form: DeForm): DeErrors {
     if (!validDate(value)) errors[id] = 'de.error.date';
   };
   date('de-simulation-date', form.simulationDate);
+  date('de-first-entry', form.firstEntry);
   form.permits.forEach((permit, i) => {
     date(`de-permit-${i}-from`, permit.from);
     date(`de-permit-${i}-to`, permit.to, true);
@@ -77,16 +90,24 @@ export function validateDeForm(form: DeForm): DeErrors {
     if (validDate(trip.returned) && trip.returned < trip.departed)
       errors[`de-trip-${i}-returned`] = 'de.error.order';
   });
-  if (form.contributionMonths && !/^\d{1,3}$/.test(form.contributionMonths))
-    errors['de-contributions'] = 'de.error.months';
-  if (form.naturalisationRoute === 'spouse')
+  const months = (id: string, value: string) => {
+    if (value && !/^\d{1,3}$/.test(value)) errors[id] = 'de.error.months';
+  };
+  if (contributionRoute(form.settlementRoute))
+    months('de-contributions', form.contributionMonths);
+  if (form.settlementRoute === 'blue-card')
+    months('de-blue-card-months', form.blueCardMonths);
+  if (form.naturalisationRoute === 'spouse') {
     date('de-married-on', form.marriedOn);
+    date('de-spouse-german-since', form.spouseGermanSince, true);
+  }
   return errors;
 }
 
 export function deRequest(form: DeForm, locale: Locale): DeRequest {
   return {
     simulationDate: form.simulationDate,
+    firstEntry: form.firstEntry,
     permits: form.permits.map((p) => ({
       kind: p.kind,
       from: p.from,
@@ -94,15 +115,23 @@ export function deRequest(form: DeForm, locale: Locale): DeRequest {
     })),
     trips: form.trips,
     settlementRoute: form.settlementRoute,
-    ...(form.contributionMonths
+    ...(contributionRoute(form.settlementRoute) && form.contributionMonths
       ? { contributionMonths: Number(form.contributionMonths) }
+      : {}),
+    ...(form.settlementRoute === 'blue-card' && form.blueCardMonths
+      ? { blueCardEmploymentMonths: Number(form.blueCardMonths) }
       : {}),
     trainedInGermany: form.trainedInGermany,
     germanB1: form.germanB1,
     germanC1: form.germanC1,
     naturalisationRoute: form.naturalisationRoute,
     ...(form.naturalisationRoute === 'spouse'
-      ? { marriedOn: form.marriedOn }
+      ? {
+          marriedOn: form.marriedOn,
+          ...(form.spouseGermanSince
+            ? { spouseGermanSince: form.spouseGermanSince }
+            : {}),
+        }
       : {}),
     locale,
   };

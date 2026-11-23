@@ -558,18 +558,25 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.simulationDate': 'Simulation date',
   'de.simulationDateHint':
     'Results are worked out for this date (the decision date for a settlement permit, the application date for EU long-term residence, the naturalisation date). It starts as today.',
+  'de.firstEntry': 'Date you first arrived in Germany',
+  'de.firstEntryHint':
+    'If you came on a national visa, time counts from the day you arrived, not from when the visa started.',
   'de.permits': 'Residence permits',
   'de.permitsHint':
-    'Add a row for each permit, then the next one when it is renewed or replaced; a blank end date runs until the next permit starts. Enter a national entry visa as the type it was issued for; for the asylum procedure choose “Asylum claim pending” from the day you claimed asylum.',
+    'Add a row for each permit, then the next one when it is renewed or replaced; a blank end date runs until the next permit starts. Enter a national entry visa as the type it was issued for; for the asylum procedure choose “Asylum claim pending” from the day you claimed asylum. Choose “Permit for a temporary purpose” for job seeking, au pair and the like.',
   'de.permit': 'Permit {n}',
   'de.kind': 'Permit type',
-  'de.kind.study': 'Study or vocational training (§§ 16a, 16b)',
+  'de.kind.study': 'University study (§ 16b)',
+  'de.kind.training': 'Vocational training or further training (§ 16a)',
   'de.kind.skilled': 'Skilled worker or researcher (§§ 18a, 18b, 18d)',
   'de.kind.blue-card': 'EU Blue Card (Blaue Karte EU, § 18g)',
   'de.kind.german-family': 'Family of a German (§ 28)',
   'de.kind.other':
-    'Other residence permit (such as family of a foreign national or other work)',
+    'Other residence permit for a lasting purpose (such as family of a foreign national or other work)',
+  'de.kind.temporary':
+    'Permit for a temporary purpose (such as § 20 job seeking, au pair, seasonal work, language courses, ICT card, § 25 Abs. 3–5)',
   'de.kind.protection': 'Asylum or refugee status (§ 25 Abs. 1, Abs. 2 Satz 1)',
+  'de.kind.subsidiary': 'Subsidiary protection (§ 25 Abs. 2 Satz 2)',
   'de.kind.asylum': 'Asylum claim pending (Aufenthaltsgestattung)',
   'de.kind.settlement': 'Settlement permit (Niederlassungserlaubnis)',
   'de.kind.eu-long-term': 'EU long-term residence (Daueraufenthalt-EU)',
@@ -597,7 +604,11 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.contributions':
     'Months of statutory pension contributions by the simulation date (can be left blank)',
   'de.contributionsHint':
-    'Voluntary contributions count; your pension insurance record (Versicherungsverlauf) shows them. Needed for the general, skilled worker and Blue Card routes; if blank, only the time held is worked out.',
+    'Voluntary contributions count; your pension insurance record (Versicherungsverlauf) shows them. Needed for the general and skilled worker routes; if blank, only the time held is worked out.',
+  'de.blueCardMonths':
+    'Months employed on a Blue Card under § 18g with contributions, by the simulation date (can be left blank)',
+  'de.blueCardMonthsHint':
+    'Count only months employed with contributions while holding the Blue Card (or the national visa issued for it); months out of work and contributions on earlier permits do not count. If blank, only holding the card is checked.',
   'de.naturalisation': 'Naturalisation',
   'de.naturalisationRoute': 'Naturalisation route that applies to you',
   'de.naturalisationRoute.general': 'General (StAG § 10)',
@@ -605,6 +616,8 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Spouse or registered partner of a German (StAG § 9)',
   'de.marriedOn':
     'Date you married, or registered a partnership with, a German',
+  'de.spouseGermanSince':
+    'Date your spouse became German (leave blank if always German)',
   'de.remove': 'Remove',
   'de.submit': 'Work out dates',
   'de.errorSummary': 'Fix the items marked in red first.',
