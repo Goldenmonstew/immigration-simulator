@@ -62,6 +62,21 @@ export type {
   IeTrip,
 } from './ireland';
 export {
+  PT_NATIONALITY_ROUTES,
+  PT_PERMIT_KINDS,
+  evaluatePortugal,
+} from './portugal';
+export type {
+  PtNationalityRoute,
+  PtPathway,
+  PtPathwayId,
+  PtPermit,
+  PtPermitKind,
+  PtRequest,
+  PtResult,
+  PtTrip,
+} from './portugal';
+export {
   DE_NATURALISATION_ROUTES,
   DE_PERMIT_KINDS,
   DE_SETTLEMENT_ROUTES,

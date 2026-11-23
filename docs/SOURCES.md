@@ -126,6 +126,14 @@
 | SRC-107 | GUIDANCE | BMI《Anwendungshinweise zum Fachkräfteeinwanderungsgesetz》更新版（按 2024-06-01 起的法律状态，277 页） | https://www.bmi.bund.de/SharedDocs/downloads/DE/veroeffentlichungen/themen/migration/anwendungshinweise-fachkraefteeinwanderungsgesetz.pdf?__blob=publicationFile&v=5 | 2024-05-28（PDF 生成日） | 2026-11-22 | `policy-sources/2024-05-28-de-bmi-anwendungshinweise-feg.pdf`（sha256 `c5ae086f09bab3d3972f53cc3fc70ad1c30f868dfbeb6dd6a86e96e90b7d49df`） | archived |
 | SRC-108 | GUIDANCE | Allgemeine Verwaltungsvorschrift zum Aufenthaltsgesetz（AVwV-AufenthG，2009-10-26，GMBl 2009 Nr. 42–61，390 页；条文编号按 2009 年版，部分过时） | https://www.verwaltungsvorschriften-im-internet.de/pdf/BMI-MI3-20091026-SF-A001.pdf | 2009-10-26 | 2026-11-22 | `policy-sources/2009-10-26-de-avwv-aufenthg.pdf`（sha256 `c6e02d7c930e6a2492370f2a1a367bb6fddfb9104eec6af426fd9baf730b2777`） | archived |
 | SRC-109 | GUIDANCE | BAMF 页面：In Deutschland niederlassen；Einbürgerung；Die Blaue Karte EU（页面标注 18.11.2023） | https://www.bamf.de/DE/Themen/MigrationAufenthalt/ZuwandererDrittstaaten/Migrathek/Niederlassen/niederlassen-node.html ；https://www.bamf.de/DE/Themen/Integration/ZugewanderteTeilnehmende/Einbuergerung/einbuergerung-node.html ；https://www.bamf.de/DE/Themen/MigrationAufenthalt/ZuwandererDrittstaaten/Migrathek/BlaueKarteEU/blauekarteeu-node.html | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-de-bamf-niederlassen.html`（sha256 `0dc72a37a100de4377dc15cfbdf19f4377be67b9734c6806d8b5372c708f187c`）；`policy-sources/2026-11-22-de-bamf-einbuergerung.html`（sha256 `d00ce9603e516dd06cf981979829aedb65273a1c2f8bf0356b445cc568edb2b9`）；`policy-sources/2026-11-22-de-bamf-blaue-karte.html`（sha256 `f635302a87360ca10bed7ac6ee72a67df142d54a470bffe41efa7b8d33cafe83`） | archived |
+| SRC-120 | LAW | Lei Orgânica n.º 1/2026（2026-05-18 公布、05-19 施行，修改 Lei 37/81 国籍法并在附件全文重新公布；DR 1.ª série n.º 95/2026，19 页）；同日 Declaração de Retificação n.º 17/2026/1（只更正第 6 条第 11 款）：art. 6 入籍年限、art. 15 合法居留与区间、LO 第 5 条废止旧 art. 15 n.º 4、第 7 条在审程序适用旧法、第 8 条施行日 | https://files.diariodarepublica.pt/1s/2026/05/09500/0000200020.pdf ；https://files.diariodarepublica.pt/1s/2026/05/09500/0002100021.pdf | 2026-05-18 | 2026-11-22 | `policy-sources/2026-05-18-pt-lo-1-2026-dr95.pdf`（sha256 `888ab695663747cedf12b6fba5f3203893339a1288910862b5c22fcebbba5edb`）；`policy-sources/2026-05-18-pt-dr-retificacao-17-2026.pdf`（sha256 `bc938042d022cdbdf8f7df7e31bfe23ce0ecfa35a8601ad99bcfd1df9704057a`） | archived |
+| SRC-121 | LAW | Lei Orgânica n.º 1/2024（2024-04-01 施行，第 10 次修改 Lei 37/81 并全文重新公布；DR 1.ª série n.º 46/2024，18 页）：2026-05-19 仍在审理的入籍申请适用的旧法文本（5 年、15 年区间、自申请居留许可之日起算） | https://files.diariodarepublica.pt/1s/2024/03/04600/0000200019.pdf | 2024-03-05 | 2026-11-22 | `policy-sources/2024-03-05-pt-lo-1-2024-dr46.pdf`（sha256 `480af017a03ea63f00b085864ed111f4cb2abd9e035c6aabd045ae6a120a4786`） | archived |
+| SRC-122 | LAW | 宪法法院 Acórdão n.º 1133/2025（对国籍法修改法令 Decreto 17/XVII 的预防性审查）：废止旧 art. 15 n.º 4 合宪，取得居留证件即开始计算 | https://www.tribunalconstitucional.pt/tc/acordaos/20251133.html | 2025-12-15 | 2026-11-22 | `policy-sources/2025-12-15-pt-tc-acordao-1133-2025.html`（sha256 `64790a2c7d695a93ebe722dce22f2f13bbe7551aff888a47f37f5dee9f8a037b`） | archived |
+| SRC-123 | LAW | Lei n.º 23/2007（外国人入境、居留法）：Lei n.º 18/2022 附件全文重新公布（DR 164/2022，136 页）及其后修改 Lei n.º 56/2023、Lei n.º 9/2025、Lei n.º 61/2025、Lei n.º 62/2026（2026-09-11 施行）：art. 3 定义、74–80 居留许可与永久居留、85 注销、90-A 黄金签证（ARI）、125–126、131 欧盟长期居民 | https://files.diariodarepublica.pt/1s/2022/08/16400/0000200137.pdf ；https://files.diariodarepublica.pt/1s/2023/10/19400/0000200050.pdf ；https://files.diariodarepublica.pt/1s/2025/02/03100/0000600014.pdf ；https://files.diariodarepublica.pt/1s/2025/10/20400/0000900017.pdf ；https://files.diariodarepublica.pt/1s/2026/09/17600/0006000111.pdf | 见标题 | 2026-11-22 | `policy-sources/2022-08-25-pt-lei-18-2022-dr164.pdf`（sha256 `9ebf2755905e9bef5a438edc8e69660189b064c53ee177129796a83b4e63ca2a`）；`policy-sources/2023-10-06-pt-lei-56-2023-dr194.pdf`（sha256 `c96d87415f71fce5e8ab29bfd246928c63824932b584656dd43c83582b30c4d3`）；`policy-sources/2025-02-13-pt-lei-9-2025-dr31.pdf`（sha256 `6e88f32f41e8c1bc7cdaae3189487b7d3965de0a4df00f60b5c023f903223e0a`）；`policy-sources/2025-10-22-pt-lei-61-2025-dr204.pdf`（sha256 `58297d7ff24defc529a9e754c732aa0373660f031a6aa8376e1fe6882300fdd5`）；`policy-sources/2026-09-10-pt-lei-62-2026-dr176.pdf`（sha256 `3fe455addb53dbe742e0d92ad08db0f7752fc84c3ea004f222cea41c21337a28`） | archived |
+| SRC-124 | LAW | Decreto Regulamentar n.º 15-A/2015（向 Decreto Regulamentar 84/2007 增设第 65-A 至 65-J 条并全文重新公布；DR 171/2015 1.º suplemento，37 页）：art. 65-B 投资维持期起算、art. 65-C 黄金签证最低停留 | https://files.diariodarepublica.pt/1s/2015/09/17101/0000200038.pdf | 2015-09-02 | 2026-11-22 | `policy-sources/2015-09-02-pt-dr-15-a-2015-dr171.pdf`（sha256 `4587bbe827ea10af5a9b44b46ab21416834e57f2616bfd759da6160af99f1118`） | archived |
+| SRC-125 | GUIDANCE | 里斯本检察院（PGD Lisboa）编纂版（非官方公报文本，仅交叉核对）：Decreto Regulamentar 84/2007（列至 DR 1/2024）art. 63 续期；Código Civil art. 279、296 期间计算 | https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=940&tabela=leis ；https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=775&tabela=leis | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-pgdlisboa-dr-84-2007-consolidado.html`（sha256 `8c0509aba4b9cf5f98fcb0f0f39742d91917e6500626ddd2302cd4a5f6a1f49f`）；`policy-sources/2026-11-22-pt-pgdlisboa-codigo-civil.html`（sha256 `1134e2bc2feb5ca33aaafd4e7f6c34d55b847ec3f389d8ea9cc1c7613eeaf538`） | archived |
+| SRC-126 | GUIDANCE | AIMA（移民与庇护署）页面：投资居留许可 ARI（art. 90-A）、永久居留（art. 80）、欧盟长期居民 ERLD（art. 125）；《Esclarecimento: Direito de Residência》（2025-10-17） | https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a ；https://aima.gov.pt/pt/viver/autorizacao-de-residencia-permanente-art-80-o ；https://aima.gov.pt/pt/viver/aquisicao-do-estatuto-de-residente-de-longa-duracao-erld-art-125-o ；https://aima.gov.pt/pt/noticias/direito-de-residencia | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-aima-ari-art-90-a.html`（sha256 `759f939a21c33b9a228b1f85146c37b65db06127d8f3c6378474fd9465197d37`）；`policy-sources/2026-11-22-pt-aima-ar-permanente-art-80.html`（sha256 `739864b9a7789f04abe2502b87d991cd6b89bee22b381518a73a0aa6a8ad04ef`）；`policy-sources/2026-11-22-pt-aima-erld-art-125.html`（sha256 `188f74257278bb429fe5977e8ee73c6fddeb3c7fc966f0ab1756ad553c4f9f5e`）；`policy-sources/2025-10-17-pt-aima-direito-de-residencia.html`（sha256 `93937c52620f1a21cf5acce152f5850131b5483b073ef67ed4d9dd07785cb036`） | archived |
+| SRC-127 | GUIDANCE | 葡萄牙政府关于新国籍法的说明：司法部新闻《Lei da Nacionalidade: novas regras entram em vigor a 19 de maio》（2026-05-19）；司法部入籍指南《Reside legalmente em Portugal há pelo menos 5 anos》（2026-11-22 抓取，仍按旧法写 5 年，已过时）；部长会议公报（2026-10-29，第 2 项通过国籍条例 Decreto-Lei） | https://justica.gov.pt/Noticias/Lei-da-Nacionalidade-novas-regras-entram-em-vigor-a-19-de-maio ；https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/Reside-legalmente-em-Portugal-ha-pelo-menos-5-anos ；https://www.portugal.gov.pt/pt/gc25/governo/comunicados-do-conselho-de-ministros/comunicado-do-conselho-de-ministros-de-29-de-outubro-de-2026 | 见标题 | 2026-11-22 | `policy-sources/2026-05-19-pt-justica-noticia-lei-nacionalidade.html`（sha256 `667814f2bcfdc424689f8bd24dcf4378abfdd7124d8f2402a30116a395183c4a`）；`policy-sources/2026-11-22-pt-justica-guia-reside-5-anos.html`（sha256 `1eb2c2027170a3a4f7d5f4458e08e7ac42096c08fb12b3220d3e4708cfc702d4`）；`policy-sources/2026-10-29-pt-gov-comunicado-cm.html`（sha256 `7e5d433eed2dba88a608d27a9712b2966e14637a3f0601e31e50ddd8fffd2f1e`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -601,6 +609,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 - `#publication` 标明 v10.0，2026-10-08 向 Home Office 工作人员发布。`#count-whole-days` 只计整天。`#calculating-the-length-of-absences` → `#the-12-month-period` 末段说明 Long Residence 跨过渡日行程何时开始适用滚动窗口。
 - `#calculating-absences-which-started-before-11-april-2024-for-appendix-long-residence` 与其 Example 2 分别定位单次和累计旧限额、跨日行程在旧限额的计数范围，法源为 SRC-008 CR 3.1、CR 3.3(a)–(b)，并受 CR 3.4 所列例外约束。`#time-spent-on-3c-or-3d-leave` 说明此类法定延续在 continuous residence 中按相关路线的许可时间计算。
+
 ## SRC-058 书面问题 40091
 
 - 快照取自[议会官方单条 API](https://questions-statements-api.parliament.uk/api/writtenquestions/questions/2026-11-02/40091?expandMember=true)。
@@ -896,3 +905,52 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-109 BAMF 页面
 
 - 《In Deutschland niederlassen》：定居许可一般须不间断持居留许可 5 年；难民含此前庇护程序 5 年。《Einbürgerung》：一般须在德惯常居住 5 年。《Die Blaue Karte EU》（标注 18.11.2023）：27 个月，B1 为 21 个月。
+
+## SRC-120 Lei Orgânica n.º 1/2026（现行国籍法）
+
+- `policy-sources/2026-05-18-pt-lo-1-2026-dr95.pdf` → <https://files.diariodarepublica.pt/1s/2026/05/09500/0000200020.pdf>
+- `policy-sources/2026-05-18-pt-dr-retificacao-17-2026.pdf` → <https://files.diariodarepublica.pt/1s/2026/05/09500/0002100021.pdf>
+- 官方公报 PDF（DRE 详情页由前端渲染，curl 只得空壳，地址取自详情页的"Descarregar PDF"）。`p<N>` 指 PDF 物理页序，与页脚"N/19"一致；附件为 Lei 37/81 的全文重新公布。
+- LO 第 2 条修改的 `art. 6 n.º 1 b)`（p2）：葡语国家国民与欧盟成员国公民居住满 7 年，其他国家国民 10 年，判断时点为"no momento do pedido"；`n.º 3`（p3）：无国籍人 4 年。`art. 15 n.º 3`（p5）：合法居留期间"seguidos ou interpolados"可以相加，须落在 6、9、12 年的区间内（依次为无国籍人、葡语国家与欧盟公民、其他国家国民）；`n.º 4`（p6）"[Revogado.]"。附件重新公布的 `art. 15 n.º 1`（p14）：持外国人法规定的任何证件、签证或许可在葡萄牙的人为合法居留。
+- LO 第 5 条（p7）废止 `art. 15 n.º 4`（自申请临时居留许可之日起算）；第 7 条 n.º 2（p7）：施行时仍在审理的行政程序适用修改前的文本；第 8 条（p7）：公布次日施行，即 2026-05-19。第 4 条（p7）要求 90 天内修改国籍条例。
+- 更正声明只改 art. 6 n.º 11 的刑期表述，与时间规则无关。DRE 修改记录页把 LO 1/2026 注为"com efeitos a partir de 18 de maio"，与第 8 条不一致，以公报原文为准（PD-143）。
+
+## SRC-121 Lei Orgânica n.º 1/2024（旧国籍法文本）
+
+- `policy-sources/2024-03-05-pt-lo-1-2024-dr46.pdf` → <https://files.diariodarepublica.pt/1s/2024/03/04600/0000200019.pdf>
+- 第 9 条（p5）：公布次月首日施行，即 2024-04-01。附件重新公布的 `art. 6 n.º 1 b)`（p8）：居住满 5 年；`art. 15 n.º 3`（p13）：15 年区间；`n.º 4`（p13）：自申请临时居留许可之日起算，以获批为前提。第 6 条（p4–p5）只涉及塞法迪后裔的在审申请；2024-04-01 前递交的普通入籍申请适用更早的文本，试点没有建模（PD-143）。
+
+## SRC-122 宪法法院 Acórdão 1133/2025
+
+- 判决 `III - Decisão` d 项宣告草案第 7 条第 3、4 款（按递交日旧法审查并定为解释性规定）违宪，最终法律删去了这两款。理由 `D.5`（第五个问题）认定废止旧 art. 15 n.º 4 合宪："com a obtenção do título de residência, inicia-se a contagem do prazo"；同节记述 2024 年前自批准临时居留许可之日起算。判决理由不是法条，起算锚点见 PD-140。
+
+## SRC-123 Lei n.º 23/2007（外国人法）
+
+- `policy-sources/2022-08-25-pt-lei-18-2022-dr164.pdf` → <https://files.diariodarepublica.pt/1s/2022/08/16400/0000200137.pdf>
+- `policy-sources/2023-10-06-pt-lei-56-2023-dr194.pdf` → <https://files.diariodarepublica.pt/1s/2023/10/19400/0000200050.pdf>
+- `policy-sources/2025-02-13-pt-lei-9-2025-dr31.pdf` → <https://files.diariodarepublica.pt/1s/2025/02/03100/0000600014.pdf>
+- `policy-sources/2025-10-22-pt-lei-61-2025-dr204.pdf` → <https://files.diariodarepublica.pt/1s/2025/10/20400/0000900017.pdf>
+- `policy-sources/2026-09-10-pt-lei-62-2026-dr176.pdf` → <https://files.diariodarepublica.pt/1s/2026/09/17600/0006000111.pdf>
+- 不另注明时，定位指 Lei 18/2022 PDF 的物理页序（p1 印"Pág. 2"），条号为附件重新公布的 Lei 23/2007。`art. 4 n.º 2 a)`（p31）：本法不适用于欧盟、欧洲经济区成员国及与欧盟有人员自由流动协定国家的国民（条文不点名瑞士，试点按此类国家处理）。`art. 3 n.º 1 v)`（p29）：合法居民指持有效期 1 年以上居留证件的外国人。`art. 3 n.º 1 d)`（p27）：投资活动须维持至少 5 年。`art. 74 n.º 1`（p65）：居留许可只分临时与永久两类；`art. 75 n.º 1`（p65）：临时居留首次 2 年、续期 3 年；`art. 76 n.º 1`（p65）：永久居留没有期限，证件定期换发。`art. 78 n.º 1`（p66）：续期最迟在到期前 30 天申请。`art. 80 n.º 1 a)`（p67）：持临时居留许可满 5 年可取得永久居留。`art. 85 n.º 2`（p69）：无正当理由出境，临时居留在许可有效期内连续 6 个月或累计 8 个月、永久居留连续 24 个月或 3 年内累计 30 个月的，许可"pode"被注销；n.º 4 在境外从事职业等活动的不注销。`art. 90-A n.º 2`（p72）：黄金签证每次续期 2 年。`art. 125 n.º 2`（p100–p101）：持学习、无薪实习、志愿许可者，临时保护、季节工、派遣与外交身份者不能取得欧盟长期居民身份。`art. 126`（p101）：n.º 1 a) 申请前紧邻的 5 年合法、不间断居留；n.º 3 学习等期间按一半计；n.º 4 单次少于 6 个连续月、合计不超过 10 个月的缺席计入；n.º 5 工作派遣的缺席照计。`art. 130 n.º 2`（p102）：欧盟长期居民卡至少 5 年、到期自动续期。`art. 131 n.º 1`（p103）：离开欧盟连续 12 个月或离开葡萄牙连续 6 年失去身份。
+- 其后修改只核对到与试点相关的条款：Lei 56/2023 第 42 条（p38–p39）自施行起停收房产等类黄金签证新申请，第 44 条只废止 art. 3 n.º 1 d) 的部分目；Lei 9/2025（p4）、Lei 61/2025（p3）的 art. 75 只改第 2 款；Lei 62/2026 第 4 条改 art. 78（p7，只废第 6 款、改第 8 款）与 art. 85（p8，只改第 5 款），没有改 art. 74–76、80、90-A、125–126、131。
+
+## SRC-124 Decreto Regulamentar n.º 15-A/2015
+
+- `policy-sources/2015-09-02-pt-dr-15-a-2015-dr171.pdf` → <https://files.diariodarepublica.pt/1s/2015/09/17101/0000200038.pdf>
+- `art. 65-B`（p3）：5 年投资维持期自居留许可授予日起算。`art. 65-C`（p3）：为续期，黄金签证持有人第 1 年至少停留 7 天，此后每个 2 年期至少 14 天，连续或分段均可。条文的期间划分沿用当时首张 1 年、续期 2 年的许可期限（PD-148）。
+
+## SRC-125 PGD Lisboa 编纂版
+
+- 里斯本检察院网站的编纂文本，不是官方公报；快照为 ISO-8859-1 编码的打印页。只在公报原文未取得时使用，结果里注明。
+- Decreto Regulamentar 84/2007 `art. 63.º`（编纂版列出经 DR 2/2013、15-A/2015、9/2018、1/2024 修改）：n.º 14 证件到期后 6 个月内居留权不失效（AIMA 在 SRC-126 中按此条复述）；n.º 16 续期可在到期前 90 至 30 天内申请。任务 71 审核指出 n.º 16 由 DR 9/2018 第 2 条加入、DR 1/2024 未改其内容，两份公报原文均未存档（PD-149）。
+- Código Civil `art. 279.º` b）期间起算的事件当天不计，c）按年计的期间止于对应日 24 时，没有对应日的止于该月末日；`art. 296.º` 法定期间同样适用。
+
+## SRC-126 AIMA 页面
+
+- ARI 页面：第 1 年停留不少于 7 天，"nos anos subsequentes"（此后各年）不少于 14 天，比 SRC-124 art. 65-C 的"每个 2 年期"更严（PD-148）；另写 ARI 自证件签发日起有效 2 年。永久居留页面：持临时居留许可至少 5 年，证件 5 年换发。ERLD 页面：申请前紧邻 5 年合法、不间断居留。《Direito de Residência》：非欧盟国民的居留权在居留卡到期后 6 个月内仍然保留（引 DR 84/2007 art. 63 n.º 14）；2025-06-30 前到期的卡另延至 2026-04-15（PD-145）。
+
+## SRC-127 葡萄牙政府关于新国籍法的说明
+
+- 司法部新闻（2026-05-19）："Regulamentação complementar"一节写明新规定 2026-05-19 施行，在审程序继续适用旧文本，新规定只适用于施行后递交的申请；正文列出 7 年、10 年。
+- 司法部入籍指南页（2026-11-22 抓取）标题与正文仍写居住满 5 年，是旧法内容，不作为现行规则的依据。
+- 部长会议公报（2026-10-29）第 2 项：通过实施新国籍法的 Decree-Law；截至 2026-11-22 未见公布，新法下居留起算的证明方式待条例明确（PD-140）。
