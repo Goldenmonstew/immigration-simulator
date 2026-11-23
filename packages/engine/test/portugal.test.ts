@@ -195,6 +195,35 @@ describe('naturalisation, current law (Lei 37/81 art. 6, 15)', () => {
     expect(counted.summary).toContain('合计 19 天');
   });
 
+  test('a trip covering the filing day makes it uncertain (PD-144)', () => {
+    // review71-5: away from 2026-11-22; filing on 11-22 and 11-23 agree.
+    const abroad = (simulationDate: string) =>
+      pathway(
+        {
+          simulationDate,
+          permits: [{ kind: 'temporary', from: '2015-01-01' }],
+          trips: [{ departed: '2026-11-21', returned: '2026-12-01' }],
+        },
+        'PT-NATURALISATION',
+      );
+    for (const day of ['2026-11-22', '2026-11-23']) {
+      const p = abroad(day);
+      expect(p.status).toBe('UNKNOWN');
+      expect(p.checks[0].met).toBeUndefined();
+      expect(p.pendingDetails).toContain('PD-144');
+    }
+    // Leaving on the filing day itself: still in Portugal that day.
+    const leaving = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'temporary', from: '2015-01-01' }],
+        trips: [{ departed: '2026-11-22', returned: '2026-12-01' }],
+      },
+      'PT-NATURALISATION',
+    );
+    expect(leaving.status).toBe('MET');
+  });
+
   test('legal residence is needed on the application day', () => {
     // The card expired on 2025-12-31; the 6 months after it ended on
     // 2026-06-30.

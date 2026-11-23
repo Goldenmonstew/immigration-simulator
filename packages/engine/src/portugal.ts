@@ -341,15 +341,18 @@ export function evaluatePortugal(req: PtRequest): PtResult {
         },
       };
     };
-    /** Trips abroad on days of counted residence from `from` to before `d`. */
-    const tripsBefore = (c: Count, from: IsoDate, d: IsoDate) => {
-      const to = addDays(d, -1);
+    /**
+     * Trips abroad on days of counted residence from `from` up to and
+     * including the filing day `d`: being here counts for legal residence
+     * (art. 15 n.º 1, PD-144).
+     */
+    const tripsUpTo = (c: Count, from: IsoDate, d: IsoDate) => {
       const trips = req.trips.filter((t) => {
         const a = later(addDays(t.departed, 1), from);
-        const b = earlier(addDays(t.returned, -1), to);
+        const b = earlier(addDays(t.returned, -1), d);
         return a <= b && days.total(c.away, a, b) > 0;
       });
-      return { count: trips.length, absent: days.total(c.away, from, to) };
+      return { count: trips.length, absent: days.total(c.away, from, d) };
     };
 
     const inForce = v.lawInForce.value;
@@ -369,11 +372,16 @@ export function evaluatePortugal(req: PtRequest): PtResult {
     const earliest = firstDate((d) => current.at(d).verdict === 'yes');
     const possible = firstDate((d) => current.at(d).verdict !== 'no');
     const span =
-      earliest &&
-      tripsBefore(current.sure, current.at(earliest).from, earliest);
+      earliest && tripsUpTo(current.sure, current.at(earliest).from, earliest);
     const trips = !!span && span.count > 0;
     const unsure = trips || eu;
-    const now = current.at(sim).verdict;
+    const nowAt = current.at(sim);
+    // Trips make a verdict met on the calendar uncertain (PD-144).
+    const now =
+      nowAt.verdict === 'yes' &&
+      tripsUpTo(current.sure, nowAt.from, sim).count > 0
+        ? 'maybe'
+        : nowAt.verdict;
     const newStatus: PilotStatus = unsure
       ? 'UNKNOWN'
       : statusOf(earliest, possible);
@@ -502,7 +510,7 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       const at = pending as IsoDate;
       const oldLaw = assess(oldYears, oldInterval, applied);
       const old = oldLaw.at(at);
-      const oldSpan = tripsBefore(oldLaw.sure, old.from, at);
+      const oldSpan = tripsUpTo(oldLaw.sure, old.from, at);
       const oldTrips = old.verdict === 'yes' && oldSpan.count > 0;
       // Short on permit time alone: the residence application may make it up.
       const ask = old.verdict === 'no' && !appliedOn;
@@ -561,9 +569,9 @@ export function evaluatePortugal(req: PtRequest): PtResult {
               `Legal residence on the application date (${at}), and ${oldYears} years of it within the ${oldInterval} years before (earlier text; an approved temporary residence permit counts from its application)`,
             ),
             met:
-              old.verdict === 'yes'
+              old.verdict === 'yes' && !oldTrips
                 ? true
-                : old.verdict === 'maybe' || ask
+                : old.verdict !== 'no' || ask
                   ? undefined
                   : false,
             sources: [
