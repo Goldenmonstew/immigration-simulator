@@ -489,3 +489,4 @@
 | 491 | GitHub Pages 部署拆成 build 与 deploy 两个 job：同一 job 里刚上传的产物偶尔查不到（554dc5f、083fefa 两次失败，重跑后成功）。 | .github/workflows/github-pages.yml |
 | 650 | 任务 88：登记希腊官方原件及哈希，复用 SRC-086–089，补充 SRC-350–372 与 PD-300–319；核实投资过渡交割、旧房短租和入籍经济融入通函。 | policy-sources/*-gr-*、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
 | 651 | 任务 88：按国家登记希腊完整版参数；工资、考试、保险、家庭构成、投资、期限与费用保留逐条法规定位。 | packages/policy-data/src/{types,index,parameters/index,parameters/greece-2026-11}.ts |
+| 652 | 任务 88：增加 evaluateGreeceFull，按八条路径和申请阶段评估通用及专属条件，复用原时间算法；以双语、手算边界、整条路径和旧版兼容用例验证。 | packages/engine/src/{index,greece-full,greece-rules,greece-common,greece-settlement,greece-property-family,greece-work-family}.ts、packages/engine/test/greece-*.test.ts、docs/tasks/reports/88-gr-rules.md |
