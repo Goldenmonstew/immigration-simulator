@@ -338,6 +338,28 @@ test('contradictory old and new guideline starts', () => {
   ).toEqual({ 'jp-new-status-start': 'jp.error.newWithoutOld' });
 });
 
+test('the birth route asks how the child leaves (FAQ Q28)', () => {
+  // Born 2026-11-10, sim 11-16, away 11-27 to 12-01.
+  const form = (departure: JpForm['trips'][number]['departure']): JpForm => ({
+    ...filled,
+    simulationDate: '2026-11-16',
+    stayStart: '2026-11-10',
+    prRoute: 'child-birth',
+    bornOn: '2026-11-10',
+    trips: [{ ...trip('2026-11-27', '2026-12-01'), departure }],
+  });
+  const status = (departure: JpForm['trips'][number]['departure']) =>
+    evaluateJapan(jpRequest(form(departure), 'zh-CN')).pathways[0].status;
+  expect(validateJpForm(form(''))).toEqual({});
+  expect(jpRequest(form('deemed'), 'en').trips[0].departure).toBe('deemed');
+  expect(status('none')).toBe('NOT_APPLICABLE');
+  expect(status('deemed')).toBe('MET');
+  expect(status('permit')).toBe('MET');
+  expect(status('')).toBe('UNKNOWN');
+  // The choice shows only for the birth route.
+  expect(render(<JapanPage />, 'zh-CN')).not.toContain(t('jp.departure'));
+});
+
 test('leaving with a renewal pending (FAQ Q61)', () => {
   // Period of stay to 2027-04-20, renewal applied for on 2027-04-10.
   const form = (departed: string, returned: string, pending: boolean) => ({

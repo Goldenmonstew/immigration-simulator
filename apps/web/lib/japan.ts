@@ -16,6 +16,8 @@ export interface JpTripRow {
   reentryPermit: boolean;
   /** A renewal applied for before the expiry was pending when leaving. */
   renewalPending: boolean;
+  /** Birth route: how the newborn left (FAQ Q28); empty = not said. */
+  departure: '' | 'none' | 'deemed' | 'permit';
 }
 
 /** A stay that does not count towards the 10 years. */
@@ -64,6 +66,7 @@ export const emptyJpTrip = (): JpTripRow => ({
   stayExpiry: '',
   reentryPermit: false,
   renewalPending: false,
+  departure: '',
 });
 export const emptyJpExcluded = (): JpExcludedRow => ({ from: '', to: '' });
 
@@ -215,6 +218,7 @@ export function jpRequest(form: JpForm, locale: Locale): JpRequest {
       ...(t.stayExpiry ? { stayExpiry: t.stayExpiry } : {}),
       ...(t.reentryPermit ? { reentryPermit: true } : {}),
       ...(t.renewalPending ? { renewalPending: true } : {}),
+      ...(t.departure ? { departure: t.departure } : {}),
     })),
     pr,
     naturalisation:

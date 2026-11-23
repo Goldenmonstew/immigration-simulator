@@ -56,6 +56,11 @@ export interface JpTrip {
    * was still pending when leaving (art. 20(6), FAQ Q61).
    */
   renewalPending?: boolean;
+  /**
+   * Birth route: how the newborn left — without a permit, on a deemed
+   * permit, or on a re-entry permit (FAQ Q28); absent = not said.
+   */
+  departure?: 'none' | 'deemed' | 'permit';
 }
 
 /** Both days included. */
@@ -442,9 +447,13 @@ export function evaluateJapan(req: JpRequest): JpResult {
       .sort((a, b) => (a.departed < b.departed ? -1 : 1))[0];
     const noStatusUntil = addDays(born, v.birthStayWithoutStatusDays.value);
     const leaves = first && first.departed <= noStatusUntil ? first : undefined;
-    const noNeed = !!leaves && !leaves.reentryPermit;
+    const noNeed = leaves?.departure === 'none';
+    // Either permit needs a status first (FAQ Q28 excludes both).
+    const unsaid = !!leaves && !leaves.departure;
     const out =
-      leaves?.reentryPermit && leaves.departed <= deadline ? leaves : undefined;
+      leaves && !noNeed && !unsaid && leaves.departed <= deadline
+        ? leaves
+        : undefined;
     const lastDay = out && out.departed < deadline ? out.departed : deadline;
     const canFile = (x: IsoDate) =>
       x <= lastDay && closed(x) !== 'yes' && !abroad(x);
@@ -467,7 +476,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
     const stranded = !!out && !fileOn && sim <= deadline;
     const status: PilotStatus = noNeed
       ? 'NOT_APPLICABLE'
-      : stranded
+      : unsaid || stranded
         ? 'UNKNOWN'
         : timeStatus;
     const when = L(
@@ -486,40 +495,51 @@ export function evaluateJapan(req: JpRequest): JpResult {
         status === 'MET' ? sim : status === 'FUTURE' ? born : undefined,
       summary: noNeed
         ? L(
-            `孩子 ${leaves.departed} 出境，在出生后 ${v.birthStayWithoutStatusDays.value} 日内（到 ${noStatusUntil}）且没有勾选持再入国许可：这样出境的不需要申请取得在留资格，回国时重新办理上陆（入管法第22条の2第1項，入管厅 Q&A Q28），本路线不适用。若打算出境前先取得在留资格、持再入国许可出境，请在这次出境勾选"持再入国许可"，并须在出境前递交。`,
-            `The child leaves on ${leaves.departed}, within ${v.birthStayWithoutStatusDays.value} days of birth (by ${noStatusUntil}) and without a re-entry permit ticked: leaving like this needs no application to acquire status, and the child lands anew on return (art. 22-2(1), ISA Q&A Q28), so this route does not apply. If you mean to acquire status first and leave on a re-entry permit, tick "re-entry permit" for this trip and file before leaving.`,
+            `孩子 ${leaves.departed} 出境，在出生后 ${v.birthStayWithoutStatusDays.value} 日内（到 ${noStatusUntil}）且不持再入国许可：这样出境的不需要申请取得在留资格，回国时重新办理上陆（入管法第22条の2第1項，入管厅 Q&A Q28），本路线不适用。`,
+            `The child leaves on ${leaves.departed}, within ${v.birthStayWithoutStatusDays.value} days of birth (by ${noStatusUntil}) and without a re-entry permit: leaving like this needs no application to acquire status, and the child lands anew on return (art. 22-2(1), ISA Q&A Q28), so this route does not apply.`,
           )
-        : stranded
+        : unsaid
           ? L(
-              `孩子 ${out.departed} 持再入国许可出境，但出境前的申请期限（${when}）内没有能在日本递交的日子；没有在留资格就无法持再入国许可出境，返回方式不明，待确认（PD-160）。`,
-              `The child leaves on ${out.departed} on a re-entry permit, but there is no day before that within the time allowed (${when}) to file in Japan; without a status the child could not hold a permit, so how it returns is unclear (PD-160).`,
-            ) + late
-          : status === 'NOT_MET'
+              `孩子 ${leaves.departed} 出境（出生后 ${v.birthStayWithoutStatusDays.value} 日内），但没有选择出境方式：不持再入国许可出境的不需要申请（入管厅 Q&A Q28）；持再入国许可或みなし再入国许可出境的须先取得在留资格，在出境前递交。请在出境记录里选择出境方式（PD-160）。`,
+              `The child leaves on ${leaves.departed} (within ${v.birthStayWithoutStatusDays.value} days of birth), but how is not said: leaving without a re-entry permit needs no application (ISA Q&A Q28), while leaving on a re-entry or deemed re-entry permit needs the status first, filed before leaving. Choose how the child leaves in the trip record (PD-160).`,
+            )
+          : stranded
             ? L(
-                `出生后取得在留资格的申请期限（${when}）已过。`,
-                `The time to apply to acquire status after birth (${when}) has passed.`,
+                `孩子 ${out.departed} 持再入国许可（或みなし再入国许可）出境，但出境前的申请期限（${when}）内没有能在日本递交的日子；没有在留资格就无法持再入国许可出境，返回方式不明，待确认（PD-160）。`,
+                `The child leaves on ${out.departed} on a re-entry or deemed re-entry permit, but there is no day before that within the time allowed (${when}) to file in Japan; without a status the child could not hold a permit, so how it returns is unclear (PD-160).`,
               ) + late
-            : status === 'UNKNOWN' && sim <= deadline
+            : status === 'NOT_MET'
               ? L(
-                  `出生之日起 ${days} 日按初日不算入到 ${deadline}；若连出生当天算作第 1 天，到 ${early} 为止。入管厅没有写明哪一种，模拟日在这两种期限之间，待确认（PD-130）。`,
-                  `${days} days from birth run to ${deadline} if the birth day is left out, or to ${early} if it counts as the first day; the agency does not say which, and the simulation date falls between them, so it is uncertain (PD-130).`,
-                )
-              : status === 'UNKNOWN'
+                  `出生后取得在留资格的申请期限（${when}）已过。`,
+                  `The time to apply to acquire status after birth (${when}) has passed.`,
+                ) + late
+              : status === 'UNKNOWN' && sim <= deadline
                 ? L(
-                    `出生后取得在留资格的申请期限至少到 ${deadline}（${when}），模拟日是否仍在期限内待确认。`,
-                    `The time to apply to acquire status after birth runs at least to ${deadline} (${when}); whether the simulation date is still within it is uncertain.`,
-                  ) + late
-                : L(
-                    `在日本出生的，可在申请期限内申请取得永住者资格，不必等在留年限（${when}）${status === 'MET' ? '；模拟日在期限内' : `；出生后（${born} 起）才能递交`}。`,
-                    `Born in Japan, you can apply to acquire permanent resident status within the time allowed, without waiting for years of stay (${when})${status === 'MET' ? '; the simulation date is within it' : `; you can apply from the birth (${born})`}.`,
-                  ) +
-                  (out
-                    ? L(
-                        `孩子计划 ${out.departed} 出境，须在出境前递交。`,
-                        ` The child is due to leave on ${out.departed}, so file before that.`,
-                      )
-                    : '') +
-                  filingNote(status === 'MET' ? sim : born, canFile, 'isa'),
+                    `出生之日起 ${days} 日按初日不算入到 ${deadline}；若连出生当天算作第 1 天，到 ${early} 为止。入管厅没有写明哪一种，模拟日在这两种期限之间，待确认（PD-130）。`,
+                    `${days} days from birth run to ${deadline} if the birth day is left out, or to ${early} if it counts as the first day; the agency does not say which, and the simulation date falls between them, so it is uncertain (PD-130).`,
+                  )
+                : status === 'UNKNOWN'
+                  ? L(
+                      `出生后取得在留资格的申请期限至少到 ${deadline}（${when}），模拟日是否仍在期限内待确认。`,
+                      `The time to apply to acquire status after birth runs at least to ${deadline} (${when}); whether the simulation date is still within it is uncertain.`,
+                    ) + late
+                  : L(
+                      `在日本出生的，可在申请期限内申请取得永住者资格，不必等在留年限（${when}）${status === 'MET' ? '；模拟日在期限内' : `；出生后（${born} 起）才能递交`}。`,
+                      `Born in Japan, you can apply to acquire permanent resident status within the time allowed, without waiting for years of stay (${when})${status === 'MET' ? '; the simulation date is within it' : `; you can apply from the birth (${born})`}.`,
+                    ) +
+                    (out
+                      ? L(
+                          `孩子计划 ${out.departed} 出境，须在出境前递交。`,
+                          ` The child is due to leave on ${out.departed}, so file before that.`,
+                        ) +
+                        (fileOn === out.departed
+                          ? L(
+                              '可递交的第一个开放日就是出境当天；持再入国许可出境须在出境前取得在留资格，当天才递交可能来不及（PD-160）。',
+                              ' The first open day to file is the day of departure; leaving on a permit needs the status granted before leaving, so filing that day may be too late (PD-160).',
+                            )
+                          : '')
+                      : '') +
+                    filingNote(status === 'MET' ? sim : born, canFile, 'isa'),
       checks: [
         {
           text: L(

@@ -957,7 +957,11 @@ describe('task 74: trips after birth', () => {
   const born = (
     bornOn: string,
     simulationDate: string,
-    trip: { departed: string; returned: string; reentryPermit?: boolean },
+    trip: {
+      departed: string;
+      returned: string;
+      departure?: 'none' | 'deemed' | 'permit';
+    },
   ) =>
     pr({
       simulationDate,
@@ -968,7 +972,11 @@ describe('task 74: trips after birth', () => {
 
   test('leaving within 60 days without a permit needs no application', () => {
     // review74-1: born 2026-11-10, away 11-27 to 12-01 (FAQ Q28).
-    const trip = { departed: '2026-11-27', returned: '2026-12-01' };
+    const trip = {
+      departed: '2026-11-27',
+      returned: '2026-12-01',
+      departure: 'none' as const,
+    };
     const p = born('2026-11-10', '2026-11-24', trip);
     expect(p.status).toBe('NOT_APPLICABLE');
     expect(p.summary).toContain('Q28');
@@ -988,7 +996,7 @@ describe('task 74: trips after birth', () => {
   const long = {
     departed: '2026-11-25',
     returned: '2027-01-20',
-    reentryPermit: true,
+    departure: 'permit' as const,
   };
 
   test('with a re-entry permit: file before leaving', () => {
@@ -1009,7 +1017,7 @@ describe('task 74: trips after birth', () => {
     const p = born('2026-11-01', '2026-11-21', {
       departed: '2026-11-24',
       returned: '2027-01-10',
-      reentryPermit: true,
+      departure: 'permit' as const,
     });
     expect(p.status).toBe('MET');
     expect(p.summary).toContain('最早可在 2026-11-24 递交');
@@ -1018,7 +1026,7 @@ describe('task 74: trips after birth', () => {
       born('2026-11-01', '2026-11-21', {
         departed: '2026-11-23',
         returned: '2027-01-10',
-        reentryPermit: true,
+        departure: 'permit' as const,
       }).status,
     ).toBe('UNKNOWN');
   });
@@ -1027,11 +1035,43 @@ describe('task 74: trips after birth', () => {
     // 30 days from 2028-02-19 is 03-20, the predicted 春分日.
     const trip = { departed: '2028-03-16', returned: '2028-03-21' };
     expect(
-      born('2028-02-19', '2028-03-17', { ...trip, reentryPermit: true }).status,
+      born('2028-02-19', '2028-03-17', {
+        ...trip,
+        departure: 'permit' as const,
+      }).status,
     ).toBe('UNKNOWN');
-    expect(born('2028-02-19', '2028-03-17', trip).status).toBe(
-      'NOT_APPLICABLE',
-    );
+    expect(
+      born('2028-02-19', '2028-03-17', { ...trip, departure: 'none' }).status,
+    ).toBe('NOT_APPLICABLE');
+  });
+
+  test('review74-2: how the child leaves must be said', () => {
+    // Born 2026-11-10, sim 11-16, away 11-27 to 12-01.
+    const at = (departure?: 'none' | 'deemed' | 'permit') =>
+      born('2026-11-10', '2026-11-16', {
+        departed: '2026-11-27',
+        returned: '2026-12-01',
+        departure,
+      });
+    expect(at('none').status).toBe('NOT_APPLICABLE');
+    // A deemed permit needs a status too (FAQ Q28 excludes both permits).
+    expect(at('deemed').status).toBe('MET');
+    expect(at('deemed').summary).toContain('须在出境前递交');
+    expect(at('permit').status).toBe('MET');
+    const unsaid = at();
+    expect(unsaid.status).toBe('UNKNOWN');
+    expect(unsaid.summary).toContain('没有选择出境方式');
+  });
+
+  test('review74-2: filing on the departure day may be too late', () => {
+    // Saturday 11-21, Sunday 11-22, 勤労感謝の日 11-23; leaving 11-24.
+    const p = born('2026-11-10', '2026-11-21', {
+      departed: '2026-11-24',
+      returned: '2026-12-01',
+      departure: 'permit',
+    });
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('当天才递交可能来不及');
   });
 });
 

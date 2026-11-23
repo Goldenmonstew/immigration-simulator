@@ -396,6 +396,30 @@ export default function JapanContent() {
                     {t('jp.renewalPending')}
                   </label>
                 </div>
+                {draft.prRoute === 'child-birth' && (
+                  <Field
+                    id={`jp-trip-${i}-departure`}
+                    label={t('jp.departure')}
+                    hint={t('jp.departureHint')}
+                  >
+                    <select
+                      id={`jp-trip-${i}-departure`}
+                      value={trip.departure}
+                      onChange={(e) =>
+                        update({
+                          departure: e.target.value as typeof trip.departure,
+                        })
+                      }
+                      aria-describedby={`jp-trip-${i}-departure-hint`}
+                    >
+                      {(['', 'none', 'deemed', 'permit'] as const).map((k) => (
+                        <option key={k} value={k}>
+                          {t(`jp.departure.${k || 'choose'}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                )}
                 <button
                   type="button"
                   className={form.remove}

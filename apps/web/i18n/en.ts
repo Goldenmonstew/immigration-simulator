@@ -910,6 +910,13 @@ export const en: Record<keyof typeof zhCN, string> = {
     'My current status does not count (such as Intra-company Transferee)',
   'jp.newStatusStart':
     'First day on a status the new guideline counts, held since',
+  'jp.departure': 'How the child leaves (birth route)',
+  'jp.departureHint':
+    'Leaving within 60 days of birth without a re-entry permit needs no application to acquire status (ISA Q&A Q28); leaving on a re-entry or deemed re-entry permit needs the status first.',
+  'jp.departure.choose': 'Choose one',
+  'jp.departure.none': 'Without a re-entry permit (landing anew on return)',
+  'jp.departure.deemed': 'On a deemed re-entry permit (みなし再入国許可)',
+  'jp.departure.permit': 'On a re-entry permit',
   'jp.renewalPending':
     'Before leaving I had applied to renew (or change) my status within the period of stay, and the decision was still pending',
   'jp.marriedLifeFrom': 'Date your married life began',
@@ -937,7 +944,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Nationality Act art. 5 asks for age 18 and adulthood under your home country’s law; if adulthood there is above 18 (such as 19), enter that age, otherwise tick the box above.',
   'jp.trips': 'Trips abroad',
   'jp.tripsHint':
-    'Add a row for each time you left Japan. You can include planned trips. A trip without a re-entry permit ticked uses the deemed re-entry permit (back within 1 year); if you enter the period of stay you held when leaving, you must also be back by then.',
+    'Add a row for each time you left Japan. You can include planned trips. A trip without a re-entry permit ticked uses the deemed re-entry permit (back within 1 year); if you enter the period of stay you held when leaving, you must also be back by then. On the born-in-Japan route, also choose how the child leaves (no permit, deemed or re-entry permit).',
   'jp.trip': 'Trip {n}',
   'jp.departed': 'Date you left Japan',
   'jp.returned': 'Date you came back to Japan',
