@@ -2,23 +2,26 @@
 
 import Link from 'next/link';
 import { useId, useState } from 'react';
-import type { SettlementAssessment } from '@uk-immigration/engine';
+import type { CountryPathway } from '@uk-immigration/engine';
 import { withCount } from '../i18n';
 import { useTranslation } from '../i18n/locale';
 import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
 import { firstSentence, gapRules, remainingTime } from '../lib/gap-summary';
-import { focusForRule, rememberWhatIfTarget } from '../lib/whatif';
+import type { CountryDraft, CountryModule } from '../lib/country-module';
+import { rememberWhatIfTarget } from '../lib/whatif';
 import site from '../app/site.module.css';
 import styles from '../app/uk/result/result.module.css';
 
-export function GapSummary({
+export function GapSummary<D extends CountryDraft, K>({
+  country,
   assessment,
   simulationDate,
   canWhatIf = false,
   dependant = false,
 }: {
-  assessment: SettlementAssessment;
+  country: CountryModule<D, K>;
+  assessment: CountryPathway;
   simulationDate?: string;
   canWhatIf?: boolean;
   /** A dependant's reassessment date comes from the principal's record. */
@@ -29,14 +32,17 @@ export function GapSummary({
   const id = useId();
   const [expanded, setExpanded] = useState(false);
   if (
-    assessment.outcome === 'REQUIRES_REGULATED_REVIEW' ||
-    assessment.outcome === 'POLICY_NOT_YET_IN_FORCE'
+    assessment.status === 'REQUIRES_REGULATED_REVIEW' ||
+    assessment.status === 'POLICY_NOT_YET_IN_FORCE' ||
+    assessment.status === 'NOT_APPLICABLE'
   )
     return null;
-  const eligible = assessment.outcome === 'LIKELY_ELIGIBLE';
+  const eligible =
+    assessment.status === 'LIKELY_ELIGIBLE' || assessment.status === 'MET';
   const rules = eligible ? [] : gapRules(assessment);
   const date =
-    assessment.outcome === 'LIKELY_NOT_ELIGIBLE'
+    assessment.status === 'LIKELY_NOT_ELIGIBLE' ||
+    assessment.status === 'FUTURE'
       ? assessment.earliestDate
       : undefined;
   const wait =
@@ -70,7 +76,9 @@ export function GapSummary({
             )}
             {date && (
               <li>
-                {t('gap.earliest').replace('{date}', date)}
+                {assessment.status === 'FUTURE'
+                  ? `${t('result.earliest')}${p.colon}${date}`
+                  : t('gap.earliest').replace('{date}', date)}
                 {wait &&
                   withCount(
                     withCount(t('gap.wait'), 'years', wait.years),
@@ -80,7 +88,9 @@ export function GapSummary({
               </li>
             )}
             {rules.map((rule, index) => {
-              const focus = canWhatIf ? focusForRule(rule.id) : undefined;
+              const focus = canWhatIf
+                ? country.whatif.focusForRule(rule.id)
+                : undefined;
               return (
                 <li
                   key={rule.id}
@@ -109,10 +119,10 @@ export function GapSummary({
                   {focus && (
                     <Link
                       className={`${styles.gapAction} ${site.noPrint}`}
-                      href={`${countryPath('uk', 'whatif')}?focus=${focus}`}
+                      href={`${countryPath(country.id, 'whatif')}?focus=${focus}`}
                       scroll={false}
                       onClick={() =>
-                        rememberWhatIfTarget({
+                        rememberWhatIfTarget(country.id, {
                           focus,
                           ruleId: rule.id,
                           assessment,

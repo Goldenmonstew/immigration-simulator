@@ -6,6 +6,7 @@ import { AssessmentColumns } from '../../../components/result-view';
 import { useTranslation } from '../../../i18n/locale';
 import { countryPath } from '../../../lib/site-countries';
 import { encodeDraft } from '../../../lib/share';
+import { ukModule } from '../../../lib/uk-module';
 import {
   achievements,
   characterOf,
@@ -171,7 +172,7 @@ export function Ending({
       <div className={styles.buttons}>
         <Link
           className={styles.button}
-          href={`${countryPath('uk', 'result')}#s=${encodeDraft(gameDraft(state))}`}
+          href={`${countryPath('uk', 'result')}#s=${encodeDraft(ukModule, gameDraft(state))}`}
         >
           {t('game.openTimeline')}
         </Link>

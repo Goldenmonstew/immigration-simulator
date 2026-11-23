@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test, vi } from 'vitest';
 import * as engine from '@uk-immigration/engine';
-import { ResultView } from '../components/result-view';
+import { ResultView } from './uk-result-views';
 import { t } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
 import {
@@ -12,8 +12,7 @@ import {
   runSimulation,
   validateStep,
 } from '../lib/questionnaire';
-import { decodeDraft, encodeDraft } from '../lib/share';
-import { draftStorage } from '../lib/storage';
+import { decodeDraft, draftStorage, encodeDraft } from './uk-scenarios';
 
 function protectionDraft() {
   const draft = createDraft();

@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
 import type { DecisionOutcome, SimulationResult } from '@uk-immigration/engine';
 import Home from '../app/uk/page';
-import { ResultView } from '../components/result-view';
+import { ResultView } from './uk-result-views';
 import { t } from '../i18n';
 import { routeGroupNames } from '../i18n/routes';
 import { policyAsOf } from '../lib/policy';

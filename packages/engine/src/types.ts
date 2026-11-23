@@ -3,6 +3,7 @@ import type {
   Route,
   RouteGroup,
   RuleSetId,
+  RULE_SET_IDS,
   SourceRef,
 } from '@uk-immigration/policy-data';
 
@@ -369,9 +370,13 @@ export interface SettlementAssessment {
   assumptions: string[];
 }
 
+type LegacyRuleSetId = (typeof RULE_SET_IDS)[number];
+
 export interface SimulationResult {
   policyAsOf: IsoDate;
-  byRuleSet: Partial<Record<RuleSetId, SettlementAssessment>>;
+  /** Only evaluated rule sets have entries. */
+  byRuleSet: Partial<Record<LegacyRuleSetId, SettlementAssessment>> &
+    Record<Exclude<RuleSetId, LegacyRuleSetId>, SettlementAssessment>;
   shortCircuit?: {
     /**
      * PROTECTION: a dependant on a protection route (Chapter 7 does not

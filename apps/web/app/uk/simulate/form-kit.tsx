@@ -16,25 +16,27 @@ import { punct } from '../../../i18n/punctuation';
 import {
   activePersonDraft,
   assessesSettledWorkerPartner,
-  createDraft,
   currentEpisode,
   hasFamilyPartnerFiveYear,
   needsPrincipal,
   stepSequence,
   draftReducer,
-  runSimulation,
   shortCircuitKeys,
-  validateStep,
 } from '../../../lib/questionnaire';
 import type { Draft, Errors, ScreeningKey } from '../../../lib/questionnaire';
 import { draftStorage, rememberResult } from '../../../lib/storage';
+import { ukModule } from '../../../lib/uk-module';
 import styles from '../../simulate/form.module.css';
 
 export function useFormKit() {
   const { t, locale } = useTranslation();
   const p = punct(locale);
   const router = useRouter();
-  const [draft, dispatch] = useReducer(draftReducer, undefined, createDraft);
+  const [draft, dispatch] = useReducer(
+    draftReducer,
+    undefined,
+    ukModule.createDraft,
+  );
   const [ready, setReady] = useState(false);
   const [storageAvailable, setStorageAvailable] = useState(true);
   const [errors, setErrors] = useState<Errors>({});
@@ -58,7 +60,7 @@ export function useFormKit() {
   }, []);
 
   useEffect(() => {
-    const stored = draftStorage();
+    const stored = draftStorage(ukModule);
     if (stored.draft) {
       dispatch({
         type: 'restore',
@@ -70,14 +72,14 @@ export function useFormKit() {
         draft: stored.draft,
       });
       if (stored.draft.completed && !restored.completed)
-        setErrors(validateStep(activePersonDraft(restored)));
+        setErrors(ukModule.validateStep(activePersonDraft(restored)));
     }
     setStorageAvailable(stored.available);
     setReady(true);
   }, []);
 
   useEffect(() => {
-    if (ready) setStorageAvailable(draftStorage(draft).available);
+    if (ready) setStorageAvailable(draftStorage(ukModule, draft).available);
   }, [draft, ready]);
 
   useEffect(() => {
@@ -101,9 +103,9 @@ export function useFormKit() {
   };
   const finish = (value: Draft) => {
     const completed = { ...value, completed: true };
-    const result = runSimulation(completed, locale);
-    setStorageAvailable(draftStorage(completed).available);
-    rememberResult(result, locale);
+    const result = ukModule.run(completed, locale);
+    setStorageAvailable(draftStorage(ukModule, completed).available);
+    rememberResult(ukModule, result, locale);
     dispatch({ type: 'restore', draft: completed });
     router.push(countryPath('uk', 'result'));
   };
@@ -128,7 +130,7 @@ export function useFormKit() {
       finish(draft);
       return;
     }
-    const nextErrors = validateStep(active);
+    const nextErrors = ukModule.validateStep(active);
     if (active.step === 4 && familyPartnerFiveYear && errors['cash-savings'])
       nextErrors['cash-savings'] = errors['cash-savings'];
     setErrors(nextErrors);

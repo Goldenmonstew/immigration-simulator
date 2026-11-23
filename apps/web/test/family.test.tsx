@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import * as engine from '@uk-immigration/engine';
 import { esP31IndividualAPartnerArrivesTogether as together } from '../../../packages/policy-data/fixtures/es-p31-individual-a-partner-arrives-together';
 import { esP31IndividualBPartnerJoinsLater as later } from '../../../packages/policy-data/fixtures/es-p31-individual-b-partner-joins-later';
-import { PrincipalAssessment } from '../components/result-view';
+import { PrincipalAssessment } from './uk-result-views';
 import {
   activePersonDraft,
   createDraft,
@@ -16,9 +16,8 @@ import {
   validateStep,
   visibleIncomeYears,
 } from '../lib/questionnaire';
-import { draftStorage } from '../lib/storage';
-import { decodeDraft, encodeDraft } from '../lib/share';
-import { applyWhatIf, initialWhatIf } from '../lib/whatif';
+import { decodeDraft, draftStorage, encodeDraft } from './uk-scenarios';
+import { applyWhatIf, initialWhatIf } from '../lib/uk-whatif';
 
 function familyDraft(fixture = together) {
   const screening = {

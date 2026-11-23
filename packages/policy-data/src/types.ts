@@ -11,16 +11,19 @@ export interface SourceRef {
   url?: string;
 }
 
-/**
- * Every rule set, in the order they were added. The one place to add a rule
- * set: RULE_SETS, RULES and PARAMETERS are keyed by these ids (contracts §13).
- */
+/** The existing UK ids are also used by the game and existing result links. */
 export const RULE_SET_IDS = [
   'current-law-2026-11',
   'earned-settlement-2026-11',
 ] as const;
 
-export type RuleSetId = (typeof RULE_SET_IDS)[number];
+/** New rule sets use a country prefix, e.g. "au.current-law". */
+export type RuleSetId = (typeof RULE_SET_IDS)[number] | `${string}.${string}`;
+
+/** Each country's rule sets, in registration order (contracts §13). */
+export const RULE_SET_IDS_BY_COUNTRY = {
+  uk: RULE_SET_IDS,
+} as const satisfies Record<string, readonly RuleSetId[]>;
 
 export interface Parameter<T> {
   value: T;
@@ -54,7 +57,13 @@ export interface ParameterSet {
   asOf: string;
   values: Record<
     string,
-    // string: a YYYY-MM-DD date or a CEFR level.
-    Parameter<number | string | BestYears | DatedEnglishRequirement>
+    Parameter<
+      | number
+      | string
+      | BestYears
+      | DatedEnglishRequirement
+      | string[]
+      | Record<string, number>
+    >
   >;
 }

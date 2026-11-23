@@ -1,0 +1,159 @@
+import {
+  asylumSupportRepaymentNames,
+  resettlementSchemeNames,
+  sustainedActivityNames,
+} from '@uk-immigration/policy-data';
+import { type Draft, screeningKeys, steps } from './questionnaire';
+
+export function decodeUkDraft(value: unknown): Draft | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const draft = value as Draft;
+  // Check the containers needed to reopen external input in the questionnaire.
+  const { timeline, principalScreening } = draft;
+  if (
+    draft.version !== 1 ||
+    !Number.isInteger(draft.step) ||
+    draft.step < 0 ||
+    draft.step >= steps.length ||
+    typeof draft.completed !== 'boolean' ||
+    typeof draft.simulationDate !== 'string' ||
+    !screeningKeys.every((key) =>
+      ['', 'yes', 'no'].includes(draft.screening?.[key]),
+    ) ||
+    !validTimeline(timeline) ||
+    (draft.principal !== undefined && !validTimeline(draft.principal)) ||
+    (principalScreening !== undefined &&
+      (!principalScreening ||
+        !screeningKeys.every((key) =>
+          ['', 'yes', 'no'].includes(principalScreening[key]),
+        ))) ||
+    (draft.principalCompleted !== undefined &&
+      typeof draft.principalCompleted !== 'boolean') ||
+    (draft.principalStep !== undefined &&
+      (!Number.isInteger(draft.principalStep) ||
+        draft.principalStep < 0 ||
+        draft.principalStep > 7 ||
+        !draft.principal ||
+        !draft.principalScreening))
+  )
+    return undefined;
+  return draft;
+}
+
+function validTimeline(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const timeline = value as Record<string, unknown>;
+  const settled = timeline.settled as Record<string, unknown> | undefined;
+  const exception = timeline.englishFifteenYearException as
+    Record<string, unknown> | undefined;
+  return !(
+    typeof timeline.dateOfBirth !== 'string' ||
+    typeof timeline.nationality !== 'string' ||
+    ![
+      'episodes',
+      'absences',
+      'incomeYears',
+      'benefits',
+      'relationships',
+      'criminalRecord',
+      'immigrationBreaches',
+    ].every(
+      (key) =>
+        Array.isArray(timeline[key]) &&
+        timeline[key].every(
+          (row: unknown) =>
+            row !== null && typeof row === 'object' && !Array.isArray(row),
+        ),
+    ) ||
+    !(timeline.episodes as Record<string, unknown>[]).every(
+      (episode) =>
+        (episode.dependantOf === undefined ||
+          ['PARTNER', 'PARENT', 'RELATIVE'].includes(
+            episode.dependantOf as string,
+          )) &&
+        (episode.immigrationSalaryList === undefined ||
+          typeof episode.immigrationSalaryList === 'boolean') &&
+        (episode.sponsorshipCertificateDate === undefined ||
+          (typeof episode.sponsorshipCertificateDate === 'string' &&
+            /^\d{4}-\d{2}-\d{2}$/.test(episode.sponsorshipCertificateDate))) &&
+        (episode.skilledWorkerSponsorshipException === undefined ||
+          ['OPTION_D', 'OPTION_I', 'TEMPORARY_SHORTAGE_LIST'].includes(
+            episode.skilledWorkerSponsorshipException as string,
+          )) &&
+        (episode.resettlementScheme === undefined ||
+          Object.keys(resettlementSchemeNames).includes(
+            episode.resettlementScheme as string,
+          )) &&
+        (episode.sustainedActivity === undefined ||
+          Object.keys(sustainedActivityNames).includes(
+            episode.sustainedActivity as string,
+          )) &&
+        (episode.globalTalentEndorsement === undefined ||
+          [
+            'RESEARCH_BODY',
+            'ARTS_COUNCIL_ENGLAND',
+            'TECH_NATION',
+            'PRIZE',
+          ].includes(episode.globalTalentEndorsement as string)) &&
+        (episode.globalTalentCriteria === undefined ||
+          ['EXCEPTIONAL_TALENT', 'EXCEPTIONAL_PROMISE'].includes(
+            episode.globalTalentCriteria as string,
+          )) &&
+        (episode.familyPermission === undefined ||
+          ['PARTNER_FIVE_YEAR', 'PARTNER_TEN_YEAR', 'PARENT'].includes(
+            episode.familyPermission as string,
+          )) &&
+        (episode.innovatorSettlementEndorser === undefined ||
+          ['NON_LEGACY', 'LEGACY_SAME', 'LEGACY_DIFFERENT'].includes(
+            episode.innovatorSettlementEndorser as string,
+          )) &&
+        (episode.innovatorSettlementCriteria === undefined ||
+          (Array.isArray(episode.innovatorSettlementCriteria) &&
+            episode.innovatorSettlementCriteria.every((criterion) =>
+              [
+                'INVESTMENT',
+                'CUSTOMERS',
+                'RESEARCH_AND_IP',
+                'REVENUE',
+                'EXPORT_REVENUE',
+                'JOBS',
+                'JOBS_WITH_SALARY',
+              ].includes(criterion),
+            ))) &&
+        (episode.privateLifeRoute === undefined ||
+          ['CHILD', 'YOUNG_ADULT', 'ADULT'].includes(
+            episode.privateLifeRoute as string,
+          )),
+    ) ||
+    !(timeline.immigrationBreaches as Record<string, unknown>[]).every(
+      (breach) =>
+        breach.article31 === undefined || typeof breach.article31 === 'boolean',
+    ) ||
+    (timeline.asylumSupportRepayment !== undefined &&
+      !Object.keys(asylumSupportRepaymentNames).includes(
+        timeline.asylumSupportRepayment as string,
+      )) ||
+    (timeline.protectionStatusRevoked !== undefined &&
+      typeof timeline.protectionStatusRevoked !== 'boolean') ||
+    (timeline.cashSavings !== undefined &&
+      (typeof timeline.cashSavings !== 'number' ||
+        !Number.isFinite(timeline.cashSavings) ||
+        timeline.cashSavings < 0)) ||
+    (timeline.partnerSpecifiedBenefit !== undefined &&
+      typeof timeline.partnerSpecifiedBenefit !== 'boolean') ||
+    (exception !== undefined &&
+      (!exception ||
+        typeof exception.applicationDate !== 'string' ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(exception.applicationDate) ||
+        !['B1', 'B2'].includes(exception.teacherAssessedAgainst as string))) ||
+    !['english', 'lifeInTheUk', 'settled'].every(
+      (key) =>
+        timeline[key] === undefined ||
+        (timeline[key] !== null &&
+          typeof timeline[key] === 'object' &&
+          !Array.isArray(timeline[key])),
+    ) ||
+    (settled !== undefined &&
+      (typeof settled.date !== 'string' || typeof settled.route !== 'string'))
+  );
+}

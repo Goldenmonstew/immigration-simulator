@@ -5,7 +5,7 @@ import AboutPage, { metadata } from '../app/uk/about/page';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
 import Home from '../app/uk/page';
 import PolicyPage from '../app/uk/policy/page';
-import { ResultView } from '../components/result-view';
+import { ResultView } from './uk-result-views';
 import { SiteShell } from '../components/site-shell';
 import { t } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
