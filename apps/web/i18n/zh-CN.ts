@@ -246,6 +246,7 @@ export const zhCN = {
     '主申请人的其他亲属（adult dependant relative：主申请人是我的子女、孙子女、兄弟姐妹或父母，HK 59.1）',
   'result.principal': '主申请人的评估',
   'site.navigation': '主要导航',
+  'site.allCountries': '所有国家',
   'site.policy': '政策依据',
   'site.chinese': '中文',
   'policyPage.title': '政策依据',

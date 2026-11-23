@@ -344,8 +344,8 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
-    gap: 8px;
-    padding: 4px 12px;
+    gap: 6px;
+    padding: 4px 10px;
   }
   .headerInner > a {
     display: flex;
@@ -376,7 +376,7 @@
     grid-column: 2;
     grid-row: 1;
     flex-wrap: nowrap;
-    gap: 8px;
+    gap: 6px;
   }
   .navigation a {
     display: flex;

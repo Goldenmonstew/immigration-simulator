@@ -271,6 +271,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Adult dependant relative (the principal applicant is my child, grandchild, sibling or parent; HK 59.1)',
   'result.principal': 'Principal applicant’s assessment',
   'site.navigation': 'Main navigation',
+  'site.allCountries': 'All countries',
   'site.policy': 'Policy',
   'site.chinese': 'Chinese',
   'policyPage.title': 'Policy basis',

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from '../i18n/locale';
-import { countryPath } from '../lib/site-countries';
+import { countryPath, siteCountries } from '../lib/site-countries';
 import { buildVersion } from '../lib/report';
 import styles from '../app/site.module.css';
 import game from '../app/uk/game/game.module.css';
@@ -14,8 +14,12 @@ import { asset } from '../lib/asset';
 export function SiteShell({ children }: { children: ReactNode }) {
   const { t, locale, setLocale } = useTranslation();
   const pathname = usePathname();
-  const gamePath = countryPath('uk', 'game');
-  const isGame = pathname === gamePath || pathname === `${gamePath}/`;
+  const cleanPath = (pathname ?? '/').replace(/\/+$/, '') || '/';
+  const isGame = cleanPath === '/game' || cleanPath.endsWith('/game');
+  const firstSegment = cleanPath.split('/')[1] ?? '';
+  const currentCountry = siteCountries.find(
+    (country) => country.slug === firstSegment,
+  );
   useEffect(() => {
     let details: [HTMLDetailsElement, boolean][] | undefined;
     const beforePrint = () => {
@@ -50,7 +54,11 @@ export function SiteShell({ children }: { children: ReactNode }) {
       </a>
       <header className={isGame ? game.siteHeader : styles.header}>
         <div className={isGame ? game.siteHeaderInner : styles.headerInner}>
-          <a href={asset(countryPath('uk'))}>
+          <a
+            href={asset(
+              isGame ? countryPath(currentCountry?.id ?? 'uk') : '/',
+            )}
+          >
             {isGame ? (
               t('game.returnSimulator')
             ) : (
@@ -67,6 +75,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
               className={styles.navigation}
               aria-label={t('site.navigation')}
             >
+              <Link href="/">{t('site.allCountries')}</Link>
               <Link href={countryPath('uk', 'policy')}>{t('site.policy')}</Link>
               <Link href={countryPath('uk', 'about')}>{t('site.about')}</Link>
             </nav>
