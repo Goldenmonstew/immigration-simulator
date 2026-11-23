@@ -1028,11 +1028,14 @@ describe('trips abroad and loss of residence (§ 51)', () => {
       const p = pathway(req, 'DE-SETTLEMENT');
       expect(p.status).toBe('UNKNOWN');
       expect(p.summary).toContain('§ 81 Abs. 4');
-      // Without contribution months the summary still names the renewal.
-      expect(
-        pathway({ ...req, contributionMonths: undefined }, 'DE-SETTLEMENT')
-          .summary,
-      ).toContain('§ 81 Abs. 4');
+      // Without contribution months the summary still names the renewal,
+      // and does not say the years are met (review69-7).
+      const blank = pathway(
+        { ...req, contributionMonths: undefined },
+        'DE-SETTLEMENT',
+      ).summary;
+      expect(blank).toContain('§ 81 Abs. 4');
+      expect(blank).toContain('只在下述待确认的情形下满足');
     });
 
     test('EU long-term residence: only if the renewal is granted', () => {
@@ -1043,6 +1046,47 @@ describe('trips abroad and loss of residence (§ 51)', () => {
 
     test('naturalisation: the wait is lawful residence (review69-6)', () => {
       expect(pathway(req, 'DE-NATURALISATION').status).toBe('MET');
+    });
+
+    test('naturalisation: later waiting time is conditional (review69-7)', () => {
+      const p = pathway(
+        {
+          permits: [
+            {
+              kind: 'skilled',
+              from: '2022-03-15',
+              to: '2026-10-31',
+              renewing: true,
+            },
+          ],
+        },
+        'DE-NATURALISATION',
+      );
+      // 5 years only on 2027-03-15, after the simulation date.
+      expect(p.status).toBe('UNKNOWN');
+      expect(p.earliestDate).toBeUndefined();
+      expect(p.summary).toContain('2027-03-15');
+    });
+
+    test('EU long-term residence: both conditions named (review69-7)', () => {
+      const p = pathway(
+        {
+          simulationDate: '2027-05-01',
+          permits: [
+            { kind: 'humanitarian', from: '2022-04-01', to: '2025-03-03' },
+            {
+              kind: 'skilled',
+              from: '2025-03-04',
+              to: '2027-03-31',
+              renewing: true,
+            },
+          ],
+        },
+        'DE-EU-LONG-TERM',
+      );
+      expect(p.status).toBe('UNKNOWN');
+      expect(p.summary).toContain('§ 81 Abs. 4');
+      expect(p.summary).toContain('§ 24');
     });
 
     test('training after a skilled worker permit: also uncertain (review69-6)', () => {

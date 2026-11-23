@@ -388,3 +388,4 @@
 | 372 | 合入 main 时首页列表把爱尔兰与 /portugal 并进了同一个列表项，拆回两项。 | apps/web/app/home-content.tsx |
 | 373 | 任务 69 第六轮审核修正（review69-6）：入籍把等待续期决定的期间（§ 81 Abs. 4）按合法居留计入，定居许可与欧盟长期居留仍为 UNKNOWN；欧盟长期居留对"其他人道居留许可"期间分确定（不计）与较宽（计入）两种读法，§ 24 转工作许可的例子为 2030-03-04；§ 16a 例外分支遵守等待续期标记，缺缴费月数时摘要写出原因；PD-122、124 与报告同步；回归用例 4 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、apps/web/i18n/{zh-CN,en}.ts、docs/pending-details.md、docs/tasks/reports/69-germany.md |
 | 374 | 任务 71 报告补记最终门禁、手机宽度预览与第六轮审核结论（通过）及其风险。 | docs/tasks/reports/71-portugal.md |
+| 376 | 任务 69 第七轮审核修正（review69-7）：入籍只把到模拟日为止的等待续期时间按合法居留计，之后的等待只靠它才满足时输出 UNKNOWN；欧盟长期居留摘要写出等待续期与人道期间（或出境合计）两个条件；定居许可缺缴费月数时第一句改为条件说法；报告与 PD-124 同步；回归用例 2 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、docs/pending-details.md、docs/tasks/reports/69-germany.md |

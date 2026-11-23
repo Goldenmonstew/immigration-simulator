@@ -854,10 +854,15 @@ export function evaluateGermany(req: DeRequest): DeResult {
         earliestDate: dateOf(status, earliest),
         summary: missing
           ? timeEarliest
-            ? L(
-                `按${routeName}，${length}的条件最早 ${timeEarliest} 满足；请填写${counted}，才能确认。`,
-                `On ${routeName}, ${route === 'blue-card' ? 'holding the Blue Card' : `the ${length} held`} is met from ${timeEarliest}; enter ${counted} to confirm the date.`,
-              ) + (time(timeEarliest) === 'maybe' ? reason(timeEarliest) : '')
+            ? time(timeEarliest) === 'maybe'
+              ? L(
+                  `按${routeName}，${length}的条件只在下述待确认的情形下满足；请同时填写${counted}。`,
+                  `On ${routeName}, ${route === 'blue-card' ? 'holding the Blue Card' : `the ${length} held`} is met only in the uncertain case below; enter ${counted} as well.`,
+                ) + reason(timeEarliest)
+              : L(
+                  `按${routeName}，${length}的条件最早 ${timeEarliest} 满足；请填写${counted}，才能确认。`,
+                  `On ${routeName}, ${route === 'blue-card' ? 'holding the Blue Card' : `the ${length} held`} is met from ${timeEarliest}; enter ${counted} to confirm the date.`,
+                )
             : L(
                 `按${routeName}和现有记录，10 年内达不到${length}的条件；月数也未填写。`,
                 `On ${routeName}, with your record ${route === 'blue-card' ? 'you will not hold a Blue Card' : `the time held will not reach ${length}`} within 10 years; the months were not entered either.`,
@@ -1030,7 +1035,18 @@ export function evaluateGermany(req: DeRequest): DeResult {
                       )) +
               (possible && (!earliest || possible < earliest)
                 ? pending[days.index(possible)]
-                  ? pendingText(possible)
+                  ? pendingText(possible) +
+                    (judge(strict, possible) === 'no'
+                      ? L(
+                          '同时还须"其他人道居留许可"的期间（如 § 24 临时保护）也计入 5 年，条文没有写明（PD-122）。',
+                          ' It also needs time on another humanitarian permit (such as § 24 temporary protection) to count towards the 5 years, which the law does not state (PD-122).',
+                        )
+                      : judge(strict, possible) === 'maybe'
+                        ? L(
+                            `同时还须出境合计按 ${v.euTotalAbsenceMonths.value} 个月的较宽口径全部计入（PD-125）。`,
+                            ` It also needs all of your absences to count under a generous reading of the ${v.euTotalAbsenceMonths.value} months (PD-125).`,
+                          )
+                        : '')
                   : judge(strict, possible) === 'no'
                     ? L(
                         `若"其他人道居留许可"的期间（如 § 24 临时保护）也计入 5 年，最早 ${possible}；这类期间能否计入，条文没有写明（§ 9a Abs. 3 Nr. 1 只规定持有时不能申请，PD-122）。`,
@@ -1185,7 +1201,7 @@ export function evaluateGermany(req: DeRequest): DeResult {
       return !kd
         ? 'no'
         : TITLES.includes(kd)
-          ? doubt[k]
+          ? doubt[k] || (pending[k] && k > days.index(sim))
             ? 'maybe'
             : 'yes'
           : kd === 'temporary' || kd === 'humanitarian'
@@ -1227,10 +1243,12 @@ export function evaluateGermany(req: DeRequest): DeResult {
         ? undefined
         : doubt[unsureAt]
           ? 'doubt'
-          : kinds[unsureAt] === 'temporary' ||
-              kinds[unsureAt] === 'humanitarian'
-            ? 'temporary'
-            : 'credit';
+          : pending[unsureAt]
+            ? 'pending'
+            : kinds[unsureAt] === 'temporary' ||
+                kinds[unsureAt] === 'humanitarian'
+              ? 'temporary'
+              : 'credit';
     const onTemporary = why === 'temporary';
     // The uncertain date may also rest on discretionary credit.
     const withCredit =
@@ -1262,29 +1280,34 @@ export function evaluateGermany(req: DeRequest): DeResult {
                   `按现有记录，10 年内达不到入籍的时间条件。`,
                   `With your record you will not meet the time requirements for naturalisation within 10 years.`,
                 )) +
-        (why === 'doubt'
-          ? `${L('', ' ')}${doubtText(unsureAt)}${
-              withCredit
+        (why === 'pending'
+          ? L(
+              `你的许可到期后正在等待续期决定：到模拟日为止的等待时间按合法居留计（§ 81 Abs. 4），之后的时间要看申请仍在等待或续期获批；这样的话，最早 ${possible}（PD-124）。`,
+              ` Your permit ran out while a renewal is being decided: the wait up to the simulation date counts as lawful residence (§ 81 Abs. 4), but later time depends on the application still pending or the renewal being granted; if so, it could be ${possible} (PD-124).`,
+            )
+          : why === 'doubt'
+            ? `${L('', ' ')}${doubtText(unsureAt)}${
+                withCredit
+                  ? L(
+                      `仍有效、且主管机关酌情把中断前的居住最多 ${v.priorResidenceCreditYears.value[route]} 年计入的话，最早 ${possible}（§ 12b Abs. 2，裁量，PD-128）。`,
+                      ` If it is still valid and the authority uses its discretion to count up to ${v.priorResidenceCreditYears.value[route]} years of residence before the interruption, it could be ${possible} (§ 12b Abs. 2, PD-128).`,
+                    )
+                  : L(
+                      `仍有效的话，最早 ${possible}。`,
+                      ` If it is still valid, it could be ${possible}.`,
+                    )
+              }`
+            : why
+              ? onTemporary
                 ? L(
-                    `仍有效、且主管机关酌情把中断前的居住最多 ${v.priorResidenceCreditYears.value[route]} 年计入的话，最早 ${possible}（§ 12b Abs. 2，裁量，PD-128）。`,
-                    ` If it is still valid and the authority uses its discretion to count up to ${v.priorResidenceCreditYears.value[route]} years of residence before the interruption, it could be ${possible} (§ 12b Abs. 2, PD-128).`,
+                    `若你当时所持的许可不在 § 10 Abs. 1 Satz 1 Nr. 2 的清单内（§ 20 求职、§ 25 Abs. 3–5 在清单内，§ 25a、§ 25b 不在），最早 ${possible}（PD-122）。`,
+                    ` If the permit you hold then is not on the list in § 10 Abs. 1 Satz 1 Nr. 2 (§ 20 job seeking and § 25 Abs. 3–5 are; § 25a and § 25b are not), it could be ${possible} (PD-122).`,
                   )
                 : L(
-                    `仍有效的话，最早 ${possible}。`,
-                    ` If it is still valid, it could be ${possible}.`,
+                    `若主管机关酌情把中断前的居住最多 ${v.priorResidenceCreditYears.value[route]} 年计入${route === 'spouse' ? '（只计婚后的居住）' : ''}，最早 ${possible}（§ 12b Abs. 2，裁量，PD-128）。`,
+                    ` If the authority uses its discretion to count up to ${v.priorResidenceCreditYears.value[route]} years of residence before the interruption${route === 'spouse' ? ' (only while married)' : ''}, it could be ${possible} (§ 12b Abs. 2, PD-128).`,
                   )
-            }`
-          : why
-            ? onTemporary
-              ? L(
-                  `若你当时所持的许可不在 § 10 Abs. 1 Satz 1 Nr. 2 的清单内（§ 20 求职、§ 25 Abs. 3–5 在清单内，§ 25a、§ 25b 不在），最早 ${possible}（PD-122）。`,
-                  ` If the permit you hold then is not on the list in § 10 Abs. 1 Satz 1 Nr. 2 (§ 20 job seeking and § 25 Abs. 3–5 are; § 25a and § 25b are not), it could be ${possible} (PD-122).`,
-                )
-              : L(
-                  `若主管机关酌情把中断前的居住最多 ${v.priorResidenceCreditYears.value[route]} 年计入${route === 'spouse' ? '（只计婚后的居住）' : ''}，最早 ${possible}（§ 12b Abs. 2，裁量，PD-128）。`,
-                  ` If the authority uses its discretion to count up to ${v.priorResidenceCreditYears.value[route]} years of residence before the interruption${route === 'spouse' ? ' (only while married)' : ''}, it could be ${possible} (§ 12b Abs. 2, PD-128).`,
-                )
-            : '') +
+              : '') +
         (route === 'general'
           ? L(
               `3 年快速入籍（§ 10 Abs. 3）自 ${turbo} 起取消，一般须满 ${years} 年。`,
