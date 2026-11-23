@@ -1,0 +1,619 @@
+import { describe, expect, test } from 'vitest';
+import type { EsFullRequest } from '../src/spain-full';
+import { evaluateSpain } from '../src/spain';
+import type { EsRequest, EsPathway } from '../src/spain';
+import {
+  familyResourcesCheck,
+  insuranceCheck,
+  residencePath,
+} from '../src/spain-residence';
+import type { EsEuPeriod, EsResidenceFacts } from '../src/spain-residence';
+
+const base: EsRequest = {
+  simulationDate: '2026-11-23',
+  route: 'general',
+  permits: [{ from: '2021-11-23' }],
+  trips: [],
+  locale: 'en',
+};
+const ready: EsResidenceFacts = {
+  thirdCountryRegime: true,
+  entryRestrictionsClear: true,
+  noReturnCommitmentClear: true,
+  validIdentityDocument: true,
+  competentOfficeAndApplication: true,
+  criminalCertificatesWhereRequired: true,
+  securityDecision: 'clear',
+  nationalAlternatives: [],
+  schooling: { children: [] },
+  resources: { familySize: 2, eligibleMonthlyIncome: 900, stable: true },
+  insurance: {
+    kind: 'public',
+    proof: true,
+    entitledOrAuthorized: true,
+    validFrom: '2021-01-01',
+  },
+  fee: {
+    amount: 21.87,
+    paid: true,
+    workingDaysAfterAdmission: 10,
+    exemptPublicGuardian: false,
+  },
+};
+const cache = new Map<string, EsPathway>();
+function assess(
+  kind: 'L' | 'E',
+  facts: EsResidenceFacts = {},
+  opts: Partial<EsFullRequest> = {},
+) {
+  const r = {
+    ...base,
+    timeRecordsComplete: true,
+    ...opts,
+    residence: { ...ready, ...facts },
+  };
+  const key = JSON.stringify([r.permits, r.trips, r.locale, r.simulationDate]);
+  if (!cache.has(key)) cache.set(key, evaluateSpain(r).pathways[0]);
+  return residencePath(r, cache.get(key)!, kind);
+}
+const row = (p: ReturnType<typeof assess>, id: string) => {
+  const c = p.checks.find((c) => c.id === 'ES-' + id);
+  if (!c) throw new Error('Missing ' + id);
+  return c;
+};
+
+describe('Spanish national long-term residence, arts. 183–184', () => {
+  test('all common checks on the exact fifth anniversary; payment and the candidate date stay inspectable', () => {
+    const p = assess('L');
+    expect(p.status).toBe('MET');
+    for (const id of [
+      'L01',
+      'L01-PERMIT',
+      'L01-SINGLE',
+      'L01-TOTAL',
+      'L10',
+      'L11',
+      'L12',
+      'L12-CERT',
+      'L13',
+      'L14',
+    ])
+      expect(row(p, id).status).toBe('MET');
+    expect(row(p, 'L14').title).toContain('21.87');
+    const early = assess('L', {}, { simulationDate: '2026-11-22' });
+    expect(row(early, 'L01').status).toBe('NOT_MET');
+    expect(early.summary).toContain('2026-11-23');
+    expect(early.pathwayCompletionDate).toBe('2026-11-23');
+    expect(early.earliestDate).toBeUndefined();
+  });
+
+  test('unknown records do not establish ordinary residence; a direct basis can still qualify', () => {
+    const missing = assess('L', {}, { timeRecordsComplete: false });
+    expect(row(missing, 'L01').status).toBe('UNKNOWN');
+    const direct = assess(
+      'L',
+      {
+        nationalAlternatives: ['former-spaniard'],
+        lostSpanishNationalityOfOriginDocumented: true,
+      },
+      { timeRecordsComplete: false },
+    );
+    expect(direct.status).toBe('MET');
+    expect(row(direct, 'L01').status).toBe('UNKNOWN');
+  });
+
+  test('ordinary, lawful work and mixed absences have distinct limits', () => {
+    const trips = [
+      { departed: '2022-01-01', returned: '2022-07-01' },
+      { departed: '2023-01-01', returned: '2023-07-01' },
+      { departed: '2024-01-01', returned: '2024-06-01' },
+    ];
+    const ordinary = trips.map((t) => ({
+      ...t,
+      reason: 'ordinary' as const,
+      irregularExit: false,
+    }));
+    const work = trips.map((t) => ({
+      ...t,
+      reason: 'work' as const,
+      irregularExit: false,
+    }));
+    expect(
+      row(assess('L', { tripDetails: ordinary }, { trips }), 'L01').status,
+    ).toBe('NOT_MET');
+    expect(
+      row(assess('L', { tripDetails: work }, { trips }), 'L01').status,
+    ).toBe('MET');
+    expect(
+      row(
+        assess(
+          'L',
+          { tripDetails: [ordinary[0], ...work.slice(1)] },
+          { trips },
+        ),
+        'L01',
+      ).pendingDetails,
+    ).toContain('PD-285');
+    expect(
+      row(
+        assess(
+          'L',
+          { tripDetails: [{ ...work[0], irregularExit: true }] },
+          { trips: [trips[0]] },
+        ),
+        'L01',
+      ).status,
+    ).toBe('NOT_MET');
+  });
+
+  test.each(['force-majeure', 'cooperation'] as const)(
+    '%s can preserve continuity only with the requisite decision or evidence',
+    (reason) => {
+      const trip = {
+        departed: '2022-01-01',
+        returned: '2022-08-01',
+        irregularExit: false,
+        reason,
+      };
+      for (const [evidence, expected] of [
+        [true, 'MET'],
+        [false, 'NOT_MET'],
+        [undefined, 'UNKNOWN'],
+      ] as const) {
+        const p = assess(
+          'L',
+          { tripDetails: [{ ...trip, exceptionDocumented: evidence }] },
+          { trips: [trip] },
+        );
+        expect(row(p, 'L01').status).toBe('NOT_MET');
+        expect(row(p, 'L02').status).toBe(expected);
+        expect(row(p, 'L-BASIS').status).toBe(expected);
+      }
+    },
+  );
+
+  test('each direct legal basis can stand alone, independently of five ordinary years', () => {
+    type Ground = NonNullable<EsResidenceFacts['nationalAlternatives']>[number];
+    const proofs: [Ground, string, EsResidenceFacts, EsResidenceFacts][] = [
+      [
+        'retirement',
+        'L03',
+        { spanishContributoryRetirement: true },
+        { spanishContributoryRetirement: false },
+      ],
+      [
+        'disability',
+        'L04',
+        { disabilityBenefit: 'spanish-contributory-absolute-or-severe' },
+        { disabilityBenefit: 'other' },
+      ],
+      [
+        'spanish-birth',
+        'L05',
+        { bornInSpainDocumented: true },
+        { bornInSpainDocumented: false },
+      ],
+      [
+        'former-spaniard',
+        'L06',
+        { lostSpanishNationalityOfOriginDocumented: true },
+        { lostSpanishNationalityOfOriginDocumented: false },
+      ],
+      [
+        'public-care',
+        'L07',
+        { spanishPublicGuardianship: { from: '2021-11-23' } },
+        { spanishPublicGuardianship: { from: '2021-11-24' } },
+      ],
+      [
+        'protection',
+        'L08',
+        { validRecognizedProtectionInEu: true },
+        { validRecognizedProtectionInEu: false },
+      ],
+      [
+        'contribution',
+        'L09',
+        { contributionDecision: 'granted' },
+        { contributionDecision: 'refused' },
+      ],
+    ];
+    for (const [ground, id, met, failed] of proofs) {
+      const facts = {
+        nationalAlternatives: [ground],
+        residentInSpain: true,
+        inSpain: true,
+        birthDate: '2008-11-23',
+      };
+      const opts = { permits: [{ from: '2023-11-23' }] };
+      const p = assess('L', { ...facts, ...met }, opts);
+      expect(row(p, id).status, id).toBe('MET');
+      expect(p.status, id).toBe('MET');
+      const n = assess('L', { ...facts, ...failed }, opts);
+      expect(row(n, id).status, id).toBe('NOT_MET');
+      expect(n.status, id).toBe('NOT_MET');
+    }
+    const annuity = assess('L', {
+      nationalAlternatives: ['disability'],
+      residentInSpain: true,
+      disabilityBenefit: 'analogous-spanish',
+      analogousLifelongNonCapitalisable: true,
+    });
+    expect(row(annuity, 'L04').pendingDetails).toContain('PD-286');
+    const late = assess('L', {
+      nationalAlternatives: ['spanish-birth'],
+      residentInSpain: true,
+      birthDate: '2008-11-22',
+      bornInSpainDocumented: true,
+    });
+    expect(row(late, 'L05').pendingDetails).toContain('PD-287');
+  });
+
+  test('school enrolment, the one-month cure period and foreign schooling', () => {
+    const child = {
+      birthDate: '2020-11-23',
+      standardSpanishSchooling: true,
+      enrolledWithProof: false,
+    };
+    const p = (childBirth: string, noticeDate: string, standard = true) =>
+      row(
+        assess('L', {
+          schooling: {
+            children: [
+              {
+                ...child,
+                birthDate: childBirth,
+                standardSpanishSchooling: standard,
+              },
+            ],
+            noticeDate,
+          },
+        }),
+        'L13',
+      );
+    expect(p('2020-11-24', '2026-09-20').status).toBe('MET');
+    expect(p('2020-11-23', '2026-10-23').status).toBe('UNKNOWN');
+    expect(p('2020-11-23', '2026-10-22').status).toBe('UNKNOWN'); // Sunday rolls to Monday 23rd.
+    expect(p('2020-11-23', '2026-10-20').status).toBe('NOT_MET');
+    expect(p('2010-11-23', '2026-09-01').status).toBe('MET');
+    expect(p('2015-11-23', '2026-10-22', false).pendingDetails).toContain(
+      'PD-288',
+    );
+  });
+
+  test.each(['L', 'E'] as const)(
+    '%s distinguishes evidence, security decisions, filing and fees',
+    (k) => {
+      const p = assess(k, {
+        entryRestrictionsClear: false,
+        criminalCertificatesWhereRequired: false,
+        securityDecision: 'pending',
+        validIdentityDocument: false,
+        fee: {
+          exemptPublicGuardian: false,
+          paid: true,
+          amount: 21.87,
+          workingDaysAfterAdmission: 11,
+        },
+      });
+      const ids =
+        k === 'L'
+          ? ['L10', 'L11', 'L12', 'L12-CERT', 'L14']
+          : ['E01-SCOPE', 'E07', 'E08', 'E08-CERT', 'E09'];
+      expect(ids.map((id) => row(p, id).status)).toEqual([
+        'NOT_MET',
+        'NOT_MET',
+        'UNKNOWN',
+        'NOT_MET',
+        'NOT_MET',
+      ]);
+      expect(p.status).toBe('NOT_MET');
+      expect(
+        row(assess(k, { securityDecision: 'threat' }), ids[2]).status,
+      ).toBe('NOT_MET');
+      const noFee = assess(k, { fee: undefined });
+      expect(noFee.status).toBe('MET');
+      expect(row(noFee, ids[4]).status).toBe('UNKNOWN');
+    },
+  );
+});
+
+describe('EU long-term residence under art. 176', () => {
+  test('ordinary fifth anniversary, gap and special purpose-only permits', () => {
+    const p = assess('E');
+    expect(p.status).toBe('MET');
+    for (const id of [
+      'E01',
+      'E01-SCOPE',
+      'E05',
+      'E06',
+      'E07',
+      'E08',
+      'E08-CERT',
+      'E09',
+    ])
+      expect(row(p, id).status, id).toBe('MET');
+    const period: EsEuPeriod = {
+      territory: 'spain',
+      kind: 'residence',
+      from: '2021-11-24',
+    };
+    expect(row(assess('E', { periods: [period] }), 'E01').status).toBe(
+      'NOT_MET',
+    );
+    expect(
+      row(
+        assess('E', {
+          periods: [{ ...period, from: '2018-01-01', kind: 'temporary-only' }],
+        }),
+        'E01',
+      ).status,
+    ).toBe('NOT_MET');
+    expect(
+      row(
+        assess('E', {
+          periods: [{ ...period, from: '2018-01-01', kind: 'unclassified' }],
+        }),
+        'E01',
+      ).pendingDetails,
+    ).toContain('PD-289');
+  });
+  test('half credit, required Spanish residence, a lost day and overlapping permissions', () => {
+    const periods: EsEuPeriod[] = [
+      {
+        territory: 'spain',
+        kind: 'study',
+        from: '2020-11-23',
+        to: '2022-11-22',
+      },
+      { territory: 'spain', kind: 'residence', from: '2022-11-23' },
+    ];
+    expect(row(assess('E', { periods }), 'E02').status).toBe('MET');
+    expect(row(assess('E', { periods }), 'E01').status).toBe('MET');
+    // 730 half-credit days give 365 days. Duplicating the same record adds nothing.
+    const short = { ...periods[0], from: '2020-11-25' };
+    expect(
+      row(assess('E', { periods: [short, short, periods[1]] }), 'E01').status,
+    ).toBe('NOT_MET');
+    expect(
+      row(
+        assess('E', {
+          periods: [{ ...periods[0], from: '2010-01-01', to: undefined }],
+          residentInSpain: false,
+        }),
+        'E02',
+      ).status,
+    ).toBe('NOT_MET');
+    expect(
+      row(
+        assess('E', {
+          periods: [{ ...periods[0], from: '2020-11-24' }, periods[1]],
+        }),
+        'E01',
+      ).status,
+    ).toBe('UNKNOWN');
+  });
+  test('Spanish grant credits its linked asylum application, excluding a denied or unclassified period', () => {
+    const wait: EsEuPeriod = {
+      territory: 'spain',
+      kind: 'asylum-wait',
+      from: '2021-11-23',
+      to: '2023-11-22',
+      protectionGranted: true,
+    };
+    const grant: EsEuPeriod = {
+      territory: 'spain',
+      kind: 'protection',
+      from: '2023-11-23',
+    };
+    for (const [granted, expected] of [
+      [true, 'MET'],
+      [false, 'NOT_MET'],
+      [undefined, 'UNKNOWN'],
+    ] as const) {
+      const p = assess('E', {
+        periods: [{ ...wait, protectionGranted: granted }, grant],
+      });
+      expect(row(p, 'E04').status).toBe(expected);
+      expect(row(p, 'E01').status).toBe(expected);
+    }
+  });
+  test('Blue Card mobility needs both five EU years and the immediately preceding two Spanish Blue Card years', () => {
+    const blueMobility = {
+      exercisedLawfully: true,
+      priorPeriodsDocumented: true,
+      firstCardFrom: '2023-11-23',
+      moveDate: '2024-11-23',
+      movedPreviously: false,
+    };
+    const periods: EsEuPeriod[] = [
+      {
+        territory: 'other-eu',
+        kind: 'research',
+        from: '2021-11-23',
+        to: '2023-11-22',
+      },
+      {
+        territory: 'other-eu',
+        kind: 'blue-card',
+        from: '2023-11-23',
+        to: '2024-11-22',
+      },
+      { territory: 'spain', kind: 'blue-card', from: '2024-11-23' },
+    ];
+    const p = assess('E', { periods, blueMobility });
+    expect(row(p, 'E01').status).toBe('NOT_MET');
+    expect(row(p, 'E03').status).toBe('MET');
+    expect(p.status).toBe('MET');
+    expect(
+      row(
+        assess('E', {
+          periods,
+          blueMobility: { ...blueMobility, moveDate: '2024-11-22' },
+        }),
+        'E03',
+      ).status,
+    ).toBe('NOT_MET');
+    expect(
+      row(
+        assess('E', {
+          periods: [
+            ...periods.slice(0, 2),
+            { ...periods[2], from: '2024-11-24' },
+          ],
+          blueMobility,
+        }),
+        'E03',
+      ).status,
+    ).toBe('NOT_MET');
+    const trip = {
+      departed: '2022-01-01',
+      returned: '2023-01-01',
+      outsideEu: true,
+    };
+    expect(
+      row(assess('E', { periods, blueMobility, tripDetails: [trip] }), 'E03')
+        .status,
+    ).toBe('MET');
+    expect(
+      row(
+        assess('E', {
+          periods,
+          blueMobility,
+          tripDetails: [{ ...trip, returned: '2023-01-02' }],
+        }),
+        'E03',
+      ).status,
+    ).toBe('NOT_MET');
+    expect(
+      row(
+        assess('E', {
+          periods,
+          blueMobility,
+          tripDetails: [
+            { ...trip, departed: '2025-05-01', returned: '2025-05-06' },
+          ],
+        }),
+        'E03',
+      ).pendingDetails,
+    ).toContain('PD-285');
+  });
+  test('regular income comparisons follow 600/month IPREM plus the art. 67 family factors; uncertain cases stay open', () => {
+    for (const id of ['ES-E05', 'ES-F03'] as const) {
+      const calc = (n: number, euros: number) =>
+        familyResourcesCheck(
+          base,
+          { familySize: n, eligibleMonthlyIncome: euros, stable: true },
+          id,
+        ).status;
+      for (const [n, threshold] of [
+        [2, 900],
+        [3, 1200],
+        [4, 1500],
+      ]) {
+        expect(calc(n, threshold)).toBe('MET');
+        expect(calc(n, threshold - 0.01)).toBe('NOT_MET');
+      }
+      expect(calc(1, 2400)).toBe('UNKNOWN');
+      expect(
+        familyResourcesCheck(
+          { ...base, simulationDate: '2027-01-01' },
+          ready.resources,
+          id,
+        ).status,
+      ).toBe('UNKNOWN');
+      expect(
+        familyResourcesCheck(
+          base,
+          {
+            ...ready.resources,
+            eligibleMonthlyIncome: 10,
+            reduction: 'pending',
+          },
+          id,
+        ).pendingDetails,
+      ).toContain('PD-290');
+    }
+  });
+  test('count verified eligible household income, exclude aid and leave asset conversion to the authority', () => {
+    const resources = {
+      familySize: 2,
+      stable: true,
+      income: [
+        {
+          kind: 'net-business' as const,
+          eligibleHouseholdMember: true,
+          amount: 700,
+        },
+        {
+          kind: 'gross-pension' as const,
+          eligibleHouseholdMember: true,
+          amount: 190,
+        },
+        {
+          kind: 'study-or-housing-aid' as const,
+          eligibleHouseholdMember: true,
+          amount: 500,
+        },
+        {
+          kind: 'gross-pay' as const,
+          eligibleHouseholdMember: false,
+          amount: 800,
+        },
+      ],
+    };
+    expect(familyResourcesCheck(base, resources, 'ES-E05').status).toBe(
+      'NOT_MET',
+    );
+    expect(
+      familyResourcesCheck(
+        base,
+        { ...resources, sixMonthAverageAssets: 10_000 },
+        'ES-E05',
+      ).status,
+    ).toBe('UNKNOWN');
+    expect(
+      familyResourcesCheck(
+        base,
+        {
+          ...resources,
+          income: [
+            ...resources.income,
+            {
+              kind: 'taxable-capital-gain',
+              eligibleHouseholdMember: true,
+              amount: 10,
+            },
+          ],
+        },
+        'ES-F03',
+      ).status,
+    ).toBe('MET');
+    expect(
+      familyResourcesCheck(
+        base,
+        { familySize: 1, stable: true, sufficiencyDecision: 'accepted' },
+        'ES-E05',
+      ).status,
+    ).toBe('MET');
+  });
+  test('private insurance starts and expires on the inclusive dates, uncertain coverage goes to PD-291', () => {
+    const f = {
+      kind: 'private' as const,
+      proof: true,
+      entitledOrAuthorized: true,
+      equivalentCoverage: true,
+      validFrom: '2026-11-23',
+      validTo: '2026-11-23',
+    };
+    const c = (d: string, cover = f) =>
+      insuranceCheck({ simulationDate: d }, cover, 'ES-E06');
+    expect(c('2026-11-23').status).toBe('MET');
+    expect(c('2026-11-24').status).toBe('NOT_MET');
+    expect(c('2026-11-22').status).toBe('NOT_MET');
+    expect(
+      insuranceCheck(base, { ...f, equivalentCoverage: undefined }, 'ES-E06')
+        .pendingDetails,
+    ).toContain('PD-291');
+  });
+});

@@ -1,0 +1,542 @@
+import { describe, expect, test } from 'vitest';
+import { freeMovementPath } from '../src/spain-free-movement';
+import type { EsFreeMovementFacts } from '../src/spain-free-movement';
+import type { EsFullRequest } from '../src/spain-full';
+
+const request: EsFullRequest = {
+  simulationDate: '2026-11-23',
+  route: 'general',
+  permits: [],
+  trips: [],
+};
+const worker: EsFreeMovementFacts = {
+  person: 'eu-eea-swiss',
+  residenceFrom: '2021-11-23',
+  noExecutedExpulsion: true,
+  history: [{ from: '2021-11-23', basis: 'employment', documented: true }],
+  noOfficialRestriction: true,
+};
+const family: EsFreeMovementFacts = {
+  person: 'third-country-family',
+  sponsor: 'eu-eea-swiss',
+  accompanyingOrJoining: true,
+  relationship: 'spouse',
+  relationshipDocumented: true,
+  jointResidenceFrom: '2021-11-23',
+};
+function assess(
+  facts: EsFreeMovementFacts = {},
+  req: Partial<EsFullRequest> = {},
+) {
+  return freeMovementPath({
+    ...request,
+    ...req,
+    freeMovement: { ...worker, ...facts },
+  });
+}
+function row(
+  id: string,
+  facts: EsFreeMovementFacts,
+  req: Partial<EsFullRequest> = {},
+) {
+  const result = assess(facts, req);
+  const check = result.checks.find((c) => c.id === 'ES-' + id);
+  if (!check) throw new Error('Missing check ES-' + id);
+  return check;
+}
+
+describe('permanent residence under EU free movement', () => {
+  test('U01 checks the regime and an individual Spanish sponsor’s free movement or transitional basis', () => {
+    expect(row('U01', {}).status).toBe('MET');
+    expect(row('U01', { person: 'other' }).status).toBe('NOT_MET');
+    const spanish: EsFreeMovementFacts = {
+      ...family,
+      sponsor: 'spanish',
+      transitionalEuRegimeConfirmed: false,
+    };
+    expect(row('U01', spanish).pendingDetails).toContain('PD-297');
+    expect(
+      row('U01', { ...spanish, spanishFreeMovementConfirmed: false }).status,
+    ).toBe('NOT_MET');
+    expect(
+      row('U01', { ...spanish, spanishFreeMovementConfirmed: true }).status,
+    ).toBe('MET');
+    expect(
+      row('U01', { ...spanish, transitionalEuRegimeConfirmed: true }).status,
+    ).toBe('MET');
+  });
+  test('U02 distinguishes dependency at 21 and the narrower student family circle', () => {
+    const child: EsFreeMovementFacts = {
+      ...family,
+      relationship: 'descendant',
+      birthDate: '2005-11-24',
+      studentSponsor: false,
+      dependent: false,
+      incapacitated: false,
+    };
+    expect(row('U02', child).status).toBe('MET');
+    expect(row('U02', { ...child, birthDate: '2005-11-23' }).status).toBe(
+      'NOT_MET',
+    );
+    expect(row('U02', { ...child, studentSponsor: true }).status).toBe(
+      'NOT_MET',
+    );
+    expect(
+      row('U02', { ...child, studentSponsor: true, dependent: true }).status,
+    ).toBe('MET');
+    expect(
+      row('U02', {
+        ...family,
+        relationship: 'ascendant',
+        studentSponsor: true,
+        dependent: true,
+      }).status,
+    ).toBe('NOT_MET');
+    expect(
+      row('U02', {
+        ...family,
+        relationship: 'ascendant',
+        studentSponsor: false,
+        dependent: true,
+      }).status,
+    ).toBe('MET');
+  });
+  test('U03 tests 24 months in the household, one year for a durable partner, and recognition', () => {
+    const extended: EsFreeMovementFacts = {
+      ...family,
+      relationship: 'extended-relative',
+      previouslyCohabitedFrom: '2024-11-23',
+      previouslyCohabitedUntil: '2026-11-23',
+      personalCareNecessary: false,
+      dependent: false,
+    };
+    expect(row('U03', extended).status).toBe('UNKNOWN');
+    expect(
+      row('U03', { ...extended, extendedFamilyRecognized: true }).status,
+    ).toBe('MET');
+    expect(
+      row('U03', { ...extended, previouslyCohabitedFrom: '2024-11-24' }).status,
+    ).toBe('NOT_MET');
+    const partner: EsFreeMovementFacts = {
+      ...extended,
+      relationship: 'durable-partner',
+      previouslyCohabitedFrom: '2025-11-23',
+      commonChildAndStableCohabitation: false,
+    };
+    expect(row('U03', partner).status).toBe('UNKNOWN');
+    expect(
+      row('U03', { ...partner, previouslyCohabitedFrom: '2025-11-24' }).status,
+    ).toBe('NOT_MET');
+    expect(
+      row('U03', {
+        ...partner,
+        commonChildAndStableCohabitation: true,
+        extendedFamilyRecognized: true,
+      }).status,
+    ).toBe('MET');
+  });
+  test('U04 requires five years, distinguishes annual absence and the twelve-month exception', () => {
+    expect(assess().status).toBe('MET');
+    expect(row('U04', { residenceFrom: '2021-11-24' }).status).toBe('NOT_MET');
+    expect(row('U04', { noExecutedExpulsion: false }).status).toBe('NOT_MET');
+    expect(
+      row('U04', { ...family, jointResidenceFrom: '2021-11-24' }).status,
+    ).toBe('NOT_MET');
+    const six = {
+      departed: '2024-03-01',
+      returned: '2024-09-01',
+      reason: 'ordinary' as const,
+    };
+    expect(row('U04', { trips: [six] }).status).toBe('MET');
+    expect(
+      row('U04', { trips: [{ ...six, returned: '2024-09-02' }] }).status,
+    ).toBe('NOT_MET');
+    expect(
+      row('U04', {
+        trips: [{ ...six, returned: '2025-03-01', reason: 'important' }],
+      }).status,
+    ).toBe('MET');
+    expect(
+      row('U04', {
+        trips: [{ ...six, returned: '2025-03-02', reason: 'important' }],
+      }).status,
+    ).toBe('NOT_MET');
+    expect(
+      row('U04', {
+        trips: [{ ...six, returned: '2025-03-02', reason: 'military' }],
+      }).status,
+    ).toBe('MET');
+    expect(
+      row('U04', {
+        trips: [{ ...six, returned: '2025-03-02', reason: 'unconfirmed' }],
+      }).pendingDetails,
+    ).toContain('PD-298');
+    const paired: NonNullable<EsFreeMovementFacts['trips']> = [
+      { departed: '2023-01-01', returned: '2023-02-01', reason: 'important' },
+      { departed: '2024-02-01', returned: '2024-11-01', reason: 'important' },
+    ];
+    expect(row('U04', { trips: paired }).status).toBe('MET');
+    expect(row('U04', { trips: [...paired].reverse() }).status).toBe('MET');
+  });
+  test('U04 retention uses only time after acquisition and through the simulation date', () => {
+    const acquired: EsFreeMovementFacts = {
+      acquiredOn: '2022-01-01',
+      history: [],
+      residenceFrom: undefined,
+      postAcquisitionTravelComplete: true,
+    };
+    expect(assess(acquired).status).toBe('MET');
+    expect(
+      assess({
+        ...acquired,
+        ...family,
+        accompanyingOrJoining: false,
+        relationshipDocumented: undefined,
+      }).status,
+    ).toBe('MET');
+    expect(
+      row('U04-retention', {
+        ...acquired,
+        longestPostAcquisitionAbsence: {
+          departed: '2023-06-01',
+          returned: '2025-06-01',
+        },
+      }).status,
+    ).toBe('MET');
+    expect(
+      row('U04-retention', {
+        ...acquired,
+        longestPostAcquisitionAbsence: {
+          departed: '2023-06-01',
+          returned: '2025-06-02',
+        },
+      }).status,
+    ).toBe('NOT_MET');
+    expect(
+      row('U04-retention', {
+        ...acquired,
+        longestPostAcquisitionAbsence: {
+          departed: '2024-11-23',
+          returned: '2027-01-01',
+        },
+      }).status,
+    ).toBe('MET');
+    expect(
+      row('U04-retention', {
+        ...acquired,
+        postAcquisitionTravelComplete: undefined,
+      }).status,
+    ).toBe('UNKNOWN');
+  });
+  test('U05 requires coverage in each period, recognises overlaps and preserves individual resource assessment', () => {
+    type Period = NonNullable<EsFreeMovementFacts['history']>[number];
+    const prior: Period = {
+      from: '2021-11-23',
+      to: '2025-12-31',
+      basis: 'employment',
+      documented: true,
+    };
+    const resources: Period = {
+      from: '2026-01-01',
+      basis: 'resources',
+      singleHousehold: true,
+      annualMeans: 8803.21,
+      allRiskInsurance: true,
+      documented: true,
+    };
+    const status = (period: Period) =>
+      row('U05', { history: [prior, period] }).status;
+    expect(status(resources)).toBe('MET');
+    expect(status({ ...resources, annualMeans: 8803.2 })).toBe('UNKNOWN');
+    expect(
+      status({
+        ...resources,
+        annualMeans: 6000,
+        sufficientMeansAccepted: true,
+      }),
+    ).toBe('MET');
+    expect(status({ ...resources, allRiskInsurance: false })).toBe('NOT_MET');
+    expect(status({ ...resources, from: '2026-01-02' })).toBe('NOT_MET');
+    expect(row('U05', { history: undefined }).status).toBe('UNKNOWN');
+    expect(
+      row('U05', { history: [{ ...prior, to: '2026-02-01' }, resources] })
+        .status,
+    ).toBe('MET');
+    const student: Period = {
+      from: '2026-01-01',
+      basis: 'student',
+      documented: true,
+      recognizedCourse: true,
+      allRiskInsurance: true,
+      resourceDeclaration: true,
+    };
+    expect(status(student)).toBe('MET');
+    expect(status({ ...student, resourceDeclaration: false })).toBe('NOT_MET');
+  });
+  test('U05 retained worker status uses strictly more than one year and six months for shorter employment', () => {
+    const from = '2026-05-23';
+    const prior = {
+      from: '2021-11-23',
+      to: '2026-05-22',
+      basis: 'employment' as const,
+      documented: true,
+    };
+    const period = {
+      from,
+      basis: 'unemployed' as const,
+      documented: true,
+      involuntaryAndRegistered: true,
+      employmentStarted: '2025-05-23',
+      fixedTermUnderOneYear: false,
+    };
+    const req = { simulationDate: '2026-11-23' };
+    expect(row('U05', { history: [prior, period] }, req).status).toBe('MET');
+    expect(
+      row('U05', { history: [prior, period] }, { simulationDate: '2026-11-24' })
+        .status,
+    ).toBe('UNKNOWN');
+    expect(
+      row(
+        'U05',
+        { history: [prior, { ...period, employmentStarted: '2025-05-22' }] },
+        { simulationDate: '2026-11-24' },
+      ).status,
+    ).toBe('MET');
+    expect(
+      row(
+        'U05',
+        { history: [prior, { ...period, involuntaryAndRegistered: false }] },
+        req,
+      ).status,
+    ).toBe('NOT_MET');
+  });
+  test('U06 death, divorce and a child continuing education can retain a personal right', () => {
+    const survivor: EsFreeMovementFacts = {
+      ...family,
+      retainedEvent: 'sponsor-death',
+      eventDate: '2025-11-23',
+      eventReported: true,
+      priorFamilyResidenceFrom: '2024-11-23',
+      accompanyingOrJoining: false,
+    };
+    expect(row('U06', survivor).status).toBe('MET');
+    expect(
+      assess({ ...survivor, priorFamilyResidenceFrom: '2021-11-23' }).status,
+    ).toBe('MET');
+    expect(
+      row('U06', { ...survivor, priorFamilyResidenceFrom: '2024-11-24' })
+        .pendingDetails,
+    ).toContain('PD-299');
+    const divorce: EsFreeMovementFacts = {
+      ...survivor,
+      retainedEvent: 'divorce',
+      relationshipFrom: '2022-11-23',
+      custodyOrAccessInSpain: false,
+      exceptionalHardshipProved: false,
+    };
+    expect(row('U06', divorce).status).toBe('MET');
+    expect(
+      row('U06', { ...divorce, relationshipFrom: '2022-11-24' }).status,
+    ).toBe('NOT_MET');
+    expect(
+      row('U06', {
+        ...divorce,
+        relationshipFrom: '2022-11-24',
+        custodyOrAccessInSpain: true,
+      }).status,
+    ).toBe('MET');
+    expect(
+      row('U06', {
+        ...survivor,
+        retainedEvent: 'child-in-education',
+        continuingChildEducationAndCustody: true,
+      }).status,
+    ).toBe('MET');
+  });
+  test('U07 retirement uses 459 contributions, 65 or 66y10m, 12 months work and strictly over three years', () => {
+    const retired: EsFreeMovementFacts = {
+      earlyBasis: 'retirement',
+      workStopped: '2026-11-23',
+      employmentFrom: '2025-11-23',
+      qualifiedWorker: true,
+      residenceFrom: '2023-11-22',
+      earlyEmployeeRetirement: false,
+      spanishSpouseExemption: false,
+      birthDate: '1961-11-23',
+      contributionMonths: 459,
+      pensionContributionsQualified: true,
+    };
+    expect(row('U07', retired).status).toBe('MET');
+    expect(assess(retired).status).toBe('MET');
+    expect(row('U07', { ...retired, contributionMonths: 458 }).status).toBe(
+      'NOT_MET',
+    );
+    expect(
+      row('U07', {
+        ...retired,
+        contributionMonths: 458,
+        birthDate: '1960-01-23',
+      }).status,
+    ).toBe('MET');
+    expect(
+      row('U07', {
+        ...retired,
+        contributionMonths: 458,
+        birthDate: '1960-01-24',
+      }).status,
+    ).toBe('NOT_MET');
+    expect(row('U07', { ...retired, residenceFrom: '2023-11-23' }).status).toBe(
+      'NOT_MET',
+    );
+    expect(
+      row('U07', { ...retired, employmentFrom: '2025-11-24' }).status,
+    ).toBe('NOT_MET');
+    expect(
+      row('U07', {
+        ...retired,
+        employmentFrom: '2025-11-24',
+        spanishSpouseExemption: true,
+      }).pendingDetails,
+    ).toContain('PD-299');
+    expect(
+      row('U07', { ...retired, pensionContributionsQualified: undefined })
+        .status,
+    ).toBe('UNKNOWN');
+  });
+  test('U08 and U09 have different residence cutoffs and occupational tests', () => {
+    const incapacity: EsFreeMovementFacts = {
+      earlyBasis: 'incapacity',
+      workStopped: '2026-11-23',
+      qualifiedWorker: true,
+      permanentIncapacity: true,
+      occupationalSpanishBenefit: false,
+      spanishSpouseExemption: false,
+      residenceFrom: '2024-11-22',
+    };
+    expect(row('U08', incapacity).status).toBe('MET');
+    expect(
+      row('U08', { ...incapacity, residenceFrom: '2024-11-23' }).status,
+    ).toBe('NOT_MET');
+    expect(
+      row('U08', {
+        ...incapacity,
+        residenceFrom: '2026-10-01',
+        occupationalSpanishBenefit: true,
+      }).status,
+    ).toBe('MET');
+    const cross: EsFreeMovementFacts = {
+      earlyBasis: 'cross-border',
+      workStopped: '2026-11-23',
+      qualifiedWorker: true,
+      employmentFrom: '2023-11-23',
+      residenceFrom: '2023-11-23',
+      workingInAnotherMemberState: true,
+      retainedSpanishHome: true,
+      returnsAtLeastWeekly: true,
+    };
+    expect(row('U09', cross).status).toBe('MET');
+    expect(row('U09', { ...cross, employmentFrom: '2023-11-24' }).status).toBe(
+      'NOT_MET',
+    );
+    expect(row('U09', { ...cross, returnsAtLeastWeekly: false }).status).toBe(
+      'NOT_MET',
+    );
+  });
+  test('U10 and U11 use the worker’s evidence and offer alternative statutory grounds', () => {
+    const dependent: EsFreeMovementFacts = {
+      ...family,
+      earlyBasis: 'worker-family',
+      coResidentWithWorker: true,
+      workerAcquiredEarly: true,
+    };
+    expect(row('U10', dependent).status).toBe('MET');
+    expect(
+      row('U10', { ...dependent, workerAcquiredEarly: undefined }).status,
+    ).toBe('UNKNOWN');
+    const death: EsFreeMovementFacts = {
+      ...family,
+      earlyBasis: 'death-at-work',
+      eventDate: '2026-10-23',
+      diedDuringWorkBeforePermanent: true,
+      coResidentWithWorker: true,
+      workerResidenceFrom: '2024-10-23',
+      priorFamilyResidenceFrom: '2026-01-01',
+      occupationalDeath: false,
+      spouseLostSpanishNationalityThroughMarriage: false,
+    };
+    expect(row('U11', death).status).toBe('MET');
+    expect(
+      row('U11', { ...death, workerResidenceFrom: '2024-10-24' }).status,
+    ).toBe('NOT_MET');
+    expect(
+      row('U11', {
+        ...death,
+        workerResidenceFrom: undefined,
+        occupationalDeath: true,
+      }).status,
+    ).toBe('MET');
+    expect(
+      row('U11', {
+        ...death,
+        workerResidenceFrom: undefined,
+        spouseLostSpanishNationalityThroughMarriage: true,
+      }).status,
+    ).toBe('MET');
+  });
+  test('U12 needs an official result and U13 separates card timing and costs from residence rights', () => {
+    expect(row('U12', {}).status).toBe('MET');
+    expect(assess({ noOfficialRestriction: false }).status).toBe('NOT_MET');
+    expect(assess({ noOfficialRestriction: undefined }).status).toBe('UNKNOWN');
+    const doc = {
+      officeHolidays: [],
+      validIdOrRenewal: true,
+      entitlementDocuments: true,
+      feePaid: 12,
+      ex19: true,
+      photos: 3,
+      priorCardExpiry: '2026-08-23',
+      applied: '2026-11-23',
+    };
+    expect(row('U13', { ...family, document: doc }).status).toBe('MET');
+    expect(
+      row('U13', { ...family, document: { ...doc, applied: '2026-07-23' } })
+        .status,
+    ).toBe('MET');
+    expect(
+      row('U13', { ...family, document: { ...doc, applied: '2026-07-22' } })
+        .status,
+    ).not.toBe('MET');
+    expect(
+      row(
+        'U13',
+        { ...family, document: { ...doc, applied: '2026-11-24' } },
+        { simulationDate: '2026-11-25' },
+      ).status,
+    ).toBe('NOT_MET');
+    expect(
+      row(
+        'U13',
+        { ...family, document: { ...doc, applied: '2026-11-23' } },
+        { simulationDate: '2026-11-22' },
+      ).status,
+    ).not.toBe('MET');
+    expect(
+      row('U13', { ...family, document: { ...doc, feePaid: 11.99 } }).status,
+    ).toBe('NOT_MET');
+    expect(
+      row('U13', { ...family, document: { ...doc, photos: 2 } }).status,
+    ).toBe('NOT_MET');
+    expect(assess({ ...family, document: { ...doc, photos: 2 } }).status).toBe(
+      'MET',
+    );
+    expect(
+      row('U13', {
+        document: {
+          feePaid: 12,
+          validIdOrRenewal: true,
+          entitlementDocuments: true,
+        },
+      }).status,
+    ).toBe('MET');
+  });
+});

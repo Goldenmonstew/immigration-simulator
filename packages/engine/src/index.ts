@@ -101,6 +101,18 @@ export type {
   DeSettlementRoute,
   DeTrip,
 } from './germany';
+export { ES_FULL_TARGETS, evaluateSpainFull } from './spain-full';
+export type { EsFullInput, EsFullRequest, EsFullTarget } from './spain-full';
+export type { EsNationalityFacts } from './spain-nationality';
+export type {
+  EsResidenceFacts,
+  EsEuPeriod,
+  EsFamilyResources,
+  EsHealthCover,
+} from './spain-residence';
+export type { EsMobilityFacts } from './spain-mobility';
+export type { EsFreeMovementFacts } from './spain-free-movement';
+export type { EsLongTermCardFacts, EsRecoveryFacts } from './spain-recovery';
 export { ES_NATIONALITY_ROUTES, evaluateSpain } from './spain';
 export type {
   EsNationalityRoute,
