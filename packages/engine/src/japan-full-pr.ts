@@ -27,6 +27,7 @@ import type {
 } from './japan-full-shared';
 import { hspAssessment, jSkipAssessment } from './japan-full-talent';
 import type { JpHspSnapshot, JpJSkipSnapshot } from './japan-full-talent';
+import { jpOfficeClosed } from './japan';
 import type { JpPrRequest } from './japan';
 import { afterYears } from './pilot';
 import type { IsoDate } from './types';
@@ -117,14 +118,11 @@ export interface JpPrCommonEvidence {
   contributionEvidence?: boolean;
   statusActivitiesCompliant?: boolean;
   residenceCardDutiesCompliant?: boolean;
-  affiliationNotices?: { eventOn: IsoDate; notifiedOn?: IsoDate }[];
+  affiliationNotices?: JpPrNotice[];
   tax?: JpPayment;
   pension?: JpPayment;
   publicHealthInsurance?: JpPayment;
-  addressNotices?: {
-    eventOn: IsoDate;
-    notifiedOn?: IsoDate;
-  }[];
+  addressNotices?: JpPrNotice[];
   actualAddressAndRegister?: boolean;
   livelihoodConfirmed?: boolean;
   applicantAnnualIncomeYen?: number;
@@ -173,8 +171,15 @@ export interface JpPrCommonEvidence {
   };
 }
 
+interface JpPrNotice {
+  eventOn: IsoDate;
+  /** Omit if unknown; null confirms the notice was still unfiled at assessment. */
+  notifiedOn?: IsoDate | null;
+}
+
 export type JpFullPrRoute =
-  | Extract<JpPrRequest, { route: 'general' | 'spouse' | 'child' }>
+  | Extract<JpPrRequest, { route: 'general' | 'spouse' }>
+  | { route: 'child'; bornInJapan?: boolean }
   | {
       route: 'child-birth';
       bornOn: IsoDate;
@@ -362,7 +367,7 @@ function longestPeriod(status: JpPrStatusEvidence | undefined, date: IsoDate) {
 function onTimeNotices(
   date: IsoDate,
   maxDays: number,
-  events?: { eventOn: IsoDate; notifiedOn?: IsoDate }[],
+  events?: JpPrNotice[],
 ) {
   return (
     events &&
@@ -370,9 +375,11 @@ function onTimeNotices(
       ...events
         .filter((event) => event.eventOn <= date)
         .map((event) => {
-          const elapsed = daysBetween(event.eventOn, date);
-          if (!event.notifiedOn || event.notifiedOn > date)
+          if (event.notifiedOn === undefined) return undefined;
+          if (event.notifiedOn === null || event.notifiedOn > date) {
+            const elapsed = daysBetween(event.eventOn, date);
             return elapsed > maxDays ? false : undefined;
+          }
           const days = daysBetween(event.eventOn, event.notifiedOn);
           return days >= 0 && days <= maxDays;
         }),
@@ -439,6 +446,46 @@ function incomeEvidence(e: JpPrCommonEvidence, L: JpText): string {
 }
 
 export function assessJapanPr(
+  req: JpFullContext,
+  route: JpFullPrRoute,
+  e: JpPrCommonEvidence,
+): JpFullPathway {
+  const result = assessJapanPrOnDate(req, route, e);
+  const { earliestDate } = result;
+  if (earliestDate === undefined) return result;
+
+  let next = earliestDate;
+  while (jpOfficeClosed(next) === 'yes') next = addDays(next, 1);
+  const { L } = filingContext(req);
+  if (jpOfficeClosed(next) === 'maybe')
+    return {
+      ...result,
+      earliestDate: undefined,
+      summary:
+        result.summary +
+        L(
+          '候选递交日的窗口开放情况待确认（PD-370）。',
+          ' Confirm whether the counter opens on the proposed filing date (PD-370).',
+        ),
+      pendingDetails: [...new Set([...(result.pendingDetails ?? []), 'PD-370'])],
+    };
+  if (next === earliestDate) return result;
+
+  const filing = assessJapanPrOnDate({ ...req, applicationDate: next }, route, e);
+  return {
+    ...result,
+    earliestDate: filing.earliestDate,
+    summary: filing.earliestDate
+      ? result.summary
+      : result.summary +
+        L(
+          `按已录入资料，无法确认可在下一个窗口受理日 ${next} 递交。`,
+          ` The evidence does not confirm that you can file on the next open day, ${next}.`,
+        ),
+  };
+}
+
+function assessJapanPrOnDate(
   req: JpFullContext,
   route: JpFullPrRoute,
   e: JpPrCommonEvidence,
@@ -533,8 +580,14 @@ export function assessJapanPr(
 
   const timeProxy = ((): JpPrRequest => {
     switch (route.route) {
+      case 'general':
       case 'international-protection':
-        return { ...route, route: 'general' };
+        // The revised guideline excludes the current transferee status (SRC-114, note 2).
+        return {
+          ...route,
+          route: 'general',
+          ...(status?.kind === 'transfer' ? { newStatusStart: 'none' } : {}),
+        };
       case 'j-skip':
         return {
           route: 'hsp80',
@@ -611,6 +664,8 @@ export function assessJapanPr(
     const isNewTime =
       (req.trips.find((t) => t.departed < date && date < t.returned)
         ?.returned ?? date) >= old.newGuidelineFrom.value;
+    if (isNewTime && timeProxy.route === 'general')
+      timeChecks[1].sources.push(guideline('第2の4(2) 注2 (p5)'));
     const ids = isNewTime
       ? ['single-absence', 'total-absence']
       : ['old-guideline-absences'];
@@ -1017,7 +1072,7 @@ export function assessJapanPr(
     e.qualifyingHspApplicantOrFamily === true ||
     e.otherLanguageExemptionConfirmed === true ||
     threshold(e.qualifyingSchoolYears, v.prLanguage.value.educationYears) ||
-    (birth &&
+    ('bornInJapan' in route &&
       route.bornInJapan === true &&
       family.child === true &&
       e.family?.relativeStatus === 'permanent' &&

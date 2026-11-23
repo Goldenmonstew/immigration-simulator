@@ -673,11 +673,11 @@ export function assessJapanNaturalisation(
         route.bornInJapan,
         any(continuous(earlier, years), route.biologicalParentBornInJapan),
       );
-      const overseas =
-        route.bornInJapan === false &&
-        route.biologicalParentBornInJapan === true
-          ? route.authorityConfirmsOverseasBirthBranch
-          : false;
+      const overseas = all(
+        route.bornInJapan === undefined ? undefined : !route.bornInJapan,
+        route.biologicalParentBornInJapan,
+        route.authorityConfirmsOverseasBirthBranch,
+      );
       a6(
         'japan-birth',
         any(locallyBorn, overseas),

@@ -132,6 +132,62 @@ const status = (path: JpFullPathway, suffix: string) =>
   condition(path, suffix).status;
 
 describe('permanent residence', () => {
+  test('excludes Intra-company Transferee from qualifying stay only under the revised guideline', () => {
+    const evidence = {
+      ...prEvidence,
+      status: { ...prEvidence.status, kind: 'transfer' },
+    } satisfies JpPrCommonEvidence;
+    const stayStart = '2012-04-01';
+    const revised = pr(general, evidence, { stayStart });
+    expect(status(revised, 'continuous-stay')).toBe('MET');
+    expect(status(revised, 'qualifying-status-stay')).toBe('NOT_MET');
+    expect(revised.status).toBe('NOT_MET');
+    expect(revised.earliestDate).toBeUndefined();
+    expect(
+      status(
+        pr({ ...general, statusStart: '2022-03-31' }, evidence, {
+          stayStart,
+          applicationDate: '2027-03-31',
+        }),
+        'qualifying-status-stay',
+      ),
+    ).toBe('MET');
+  });
+
+  test('moves Saturday filing to the next open day and preserves the time result', () => {
+    const result = pr(general, prEvidence, { simulationDate: '2027-04-03' });
+    expect(result).toMatchObject({
+      status: 'MET',
+      earliestDate: '2027-04-05',
+      timeStatus: 'MET',
+      timeEarliestDate: '2027-04-03',
+    });
+  });
+
+  test('does not give a rescheduled filing date after the current status expires', () => {
+    const result = pr(
+      general,
+      {
+        ...prEvidence,
+        status: {
+          ...prEvidence.status,
+          expiresOn: '2027-04-04',
+          timelyRenewalPending: false,
+        },
+      },
+      { simulationDate: '2027-04-03' },
+    );
+    expect(result.timeEarliestDate).toBe('2027-04-03');
+    expect(result.earliestDate).toBeUndefined();
+  });
+
+  test('leaves the filing date open when the next weekday may be a holiday', () => {
+    const result = pr(general, prEvidence, { simulationDate: '2028-03-18' });
+    expect(result.timeEarliestDate).toBe('2028-03-18');
+    expect(result.earliestDate).toBeUndefined();
+    expect(result.pendingDetails).toContain('PD-370');
+  });
+
   const cases = [
     ['lawful-filing-status', { inJapan: false }, 'NOT_MET'],
     ['filing-in-japan', { inJapan: false }, 'NOT_MET'],
@@ -342,17 +398,35 @@ describe('permanent residence', () => {
     );
   });
 
-  test('distinguishes day 14 from 15, and first school cohorts born April 1 and 2', () => {
-    const result = (eventOn: string, notifiedOn: string) =>
-      pr(general, {
-        ...prEvidence,
-        addressNotices: [{ eventOn, notifiedOn }],
-        affiliationNotices: [{ eventOn, notifiedOn }],
+  test.each([
+    ['addressNotices', 'address-registration'],
+    ['affiliationNotices', 'immigration-duties'],
+  ] as const)(
+    '%s distinguishes an omitted filing date from late or unfiled notices',
+    (notices, id) => {
+      const eventOn = '2027-03-01';
+      const assess = (notifiedOn?: string | null, event = eventOn) =>
+        condition(
+          pr(general, {
+            ...prEvidence,
+            [notices]: [
+              { eventOn: event, ...(notifiedOn !== undefined ? { notifiedOn } : {}) },
+            ],
+          }),
+          id,
+        );
+      expect(assess()).toMatchObject({
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-366'],
       });
-    for (const id of ['address-registration', 'immigration-duties']) {
-      expect(status(result('2027-03-01', '2027-03-15'), id)).toBe('MET');
-      expect(status(result('2027-03-01', '2027-03-16'), id)).toBe('NOT_MET');
-    }
+      expect(assess('2027-03-15').status).toBe('MET');
+      expect(assess('2027-03-16').status).toBe('NOT_MET');
+      expect(assess(null).status).toBe('NOT_MET');
+      expect(assess(null, '2027-03-18').status).toBe('UNKNOWN');
+    },
+  );
+
+  test('distinguishes first school cohorts born April 1 and 2', () => {
     const school = (
       bornOn: string,
       attendance: 'alternative' | 'not-attending',
@@ -503,6 +577,27 @@ describe('permanent residence', () => {
     expect(status(late, 'birth-filing-window')).toBe('NOT_MET');
     expect(status(late, 'birth-registration')).toBe('NOT_MET');
     expect(status(late, 'birth-acquisition')).toBe('NOT_MET');
+  });
+
+  test('omits the language factor for a Japan-born child changing from a PR family status', () => {
+    const route = { route: 'child', bornInJapan: true } as const;
+    const evidence = {
+      ...prEvidence,
+      status: { ...prEvidence.status, kind: 'prFamily' },
+      family: { relativeStatus: 'permanent', relation: 'biological-child' },
+      japaneseB1Confirmed: false,
+      raisingParentB1Confirmed: true,
+    } satisfies JpPrCommonEvidence;
+    const result = pr(route, evidence);
+    expect(status(result, 'qualifying-family')).toBe('MET');
+    expect(result.status).toBe('MET');
+    expect(condition(result, 'japanese-language').applicable).toBe(false);
+    expect(
+      status(
+        pr({ ...route, bornInJapan: false }, evidence),
+        'japanese-language',
+      ),
+    ).toBe('NOT_MET');
   });
 
   test('teijusha, refugee and international recognition are distinct', () => {
@@ -1191,6 +1286,20 @@ describe('naturalisation', () => {
       bornInJapan: false,
       biologicalParentBornInJapan: true,
     } as const;
+    const unknownParent = nat({
+      route: 'article-6-japan-birth',
+      bornInJapan: false,
+    });
+    expect(condition(unknownParent, 'japan-birth')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: expect.arrayContaining(['PD-373']),
+    });
+    expect(
+      status(
+        nat({ ...route, biologicalParentBornInJapan: false }),
+        'japan-birth',
+      ),
+    ).toBe('NOT_MET');
     expect(status(nat(route), 'japan-birth')).toBe('UNKNOWN');
     expect(
       status(
@@ -1412,6 +1521,25 @@ describe('re-entry and travel documents', () => {
       currency: 'JPY',
       amount: 0,
     });
+  });
+
+  test('an ordinary permanent resident can use deemed re-entry without an original grant length', () => {
+    const result = reentry({
+      route: 'deemed',
+      stayIndefinite: true,
+      specialPermanentResident: false,
+      lawfulStatus: true,
+      passportValid: true,
+      residentCardOrCertificate: true,
+      formalPermitRequired: false,
+      declaredIntentAtDeparture: true,
+      permitVoided: false,
+      departureOn: '2026-11-23',
+      returnOn: '2027-01-04',
+    });
+    expect(status(result, 'deemed-eligibility')).toBe('MET');
+    expect(status(result, 'return-continuity')).toBe('MET');
+    expect(result.status).toBe('MET');
   });
   test('refugee travel has separate fee, endorsement and consular branches', () => {
     const refugee = {

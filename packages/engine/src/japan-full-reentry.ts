@@ -21,6 +21,7 @@ interface JpTravelDates {
   departureOn?: IsoDate;
   returnOn?: IsoDate;
   stayExpiresOn?: IsoDate;
+  /** The underlying status has no period of stay, as for permanent residents. */
   stayIndefinite?: boolean;
   timelyRenewalPending?: boolean;
   renewalDecisionOn?: IsoDate;
@@ -98,7 +99,7 @@ export function assessJapanReentry(
     ],
     deemed: [
       ref('SRC-110', '第19条の3・第26条の2'),
-      ref('SRC-440', '第29条の4'),
+      ref('SRC-440', '第29条の4、別表第2「永住者」'),
       ref('SRC-442', '第23条第2項'),
       ref('SRC-116', 'Q57–61・みなし再入国許可'),
     ],
@@ -281,7 +282,7 @@ export function assessJapanReentry(
       );
   } else if (route.route === 'deemed') {
     const durationAllowed =
-      route.specialPermanentResident === true
+      route.specialPermanentResident === true || route.stayIndefinite === true
         ? true
         : route.originalStayMonths === undefined
           ? undefined
@@ -289,7 +290,8 @@ export function assessJapanReentry(
     const temporaryAllows =
       route.specialPermanentResident === true
         ? true
-        : excluded(route.temporaryVisitor);
+        : (excluded(route.temporaryVisitor) ??
+          (route.stayIndefinite === true ? true : undefined));
     r(
       'deemed-eligibility',
       'みなし再入国资格与出境表明',
@@ -304,8 +306,8 @@ export function assessJapanReentry(
         route.declaredIntentAtDeparture,
       ),
       routeSources,
-      `通常排除原授予期间为 ${rr.deemedExcludedMonths} 个月以下、短期滞在或依法须办普通许可者。出境时用有效证件表明拟再入国。`,
-      `Ordinarily excluded are grants of ${rr.deemedExcludedMonths} months or less, temporary visitors and people who require a formal permit. Show valid documents and declare intent at departure.`,
+      `通常排除原授予期间为 ${rr.deemedExcludedMonths} 个月以下、短期滞在或依法须办普通许可者。永住者无在留期限。出境时用有效证件表明拟再入国。`,
+      `Ordinarily excluded are grants of ${rr.deemedExcludedMonths} months or less, temporary visitors and people who require a formal permit. Permanent residents have an indefinite period of stay. Show valid documents and declare intent at departure.`,
     );
     const years = route.specialPermanentResident
       ? rr.specialPermanentDeemedYears

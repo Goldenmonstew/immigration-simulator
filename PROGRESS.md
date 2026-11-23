@@ -474,3 +474,4 @@
 | 740 | 任务 91：登记日本完整版使用的官方法条、指南、手续费及办事材料，校对调研哈希，补 PD-360–379 与网页来源索引。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 741 | 任务 91：加入永住审查过渡、许可期间、教育与证据窗口、人才分值、帰化特例、再入国和手续费参数。 | packages/policy-data/src/{index.ts,parameters/japan-2026-11.ts} |
 | 742 | 任务 91：新增日本完整版评估入口，复用原时间结果，逐项检查永住、帰化与再入国并补边界测试。 | packages/engine/src/{index.ts,japan-full*.ts}、packages/engine/test/japan-full.test.ts、docs/tasks/reports/91-jp-rules.md |
+| 743 | 任务 91 审核修正（review91-1）：排除新版企業内転勤合资格年限，永住递交日期按窗口日历顺延，修正无限期在留的みなし再入国、申报日期缺失、永住者子女日语豁免及第6条第2号生父母出生地未知的判断。补回归用例并更正 PD-370 来源。 | packages/engine/src/{japan,japan-full-pr,japan-full-naturalisation,japan-full-reentry}.ts、packages/engine/test/japan-full.test.ts、docs/{pending-details,tasks/reports/91-jp-rules}.md |
