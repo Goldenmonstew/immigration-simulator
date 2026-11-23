@@ -1085,7 +1085,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - **SRC-384** Stamp 4 Registrations and Renewals (1)–(3)；Stamp 5 Registrations and Renewals。
 - **SRC-385** Policy Document Archive；main changes。
 - **SRC-386** Financial Thresholds for Spouses, Civil Partners and De Facto Partners；Table 1。
-- **SRC-387** June 2026 §§2–10、13–17 和 Appendices C–E；November 2025 §§7、10、16；2016 §§16–17。
+- **SRC-387** June 2026 §§2–10、12–17 和 Appendices C–E；November 2025 §§7、10、16；2016 §§16–17。
   - `2026-11-23-ie-family-2016.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2021/04/Policy-document-on-Non-EEA-family-reunification.pdf)。
   - `2026-11-23-ie-family-2025.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/11/FINAL-PDF-Revised-Family-Reunification-Policy.pdf)。
   - `2026-11-23-ie-family-2026.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/06/Family-Reunification-Policy-12-June-2026.pdf)。
@@ -1100,7 +1100,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - **SRC-392** S.I. regs. 2–7、10–12、14–23；Agreement Arts. 9–10、13、15–17。
   - `2026-11-23-ie-wa-agreement.pdf` 对应 [官方 PDF](https://assets.publishing.service.gov.uk/media/5daaab7fed915d42a05eea12/Agreement_on_the_withdrawal_of_the_United_Kingdom_of_Great_Britain_and_Northern_Ireland_from_the_European_Union_and_the_European_Atomic_Energy_Community.pdf)。
   - `2026-11-23-ie-wa-brexit-faq.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2022/03/Impact-of-Brexit-on-UK-Nationals-in-Ireland-and-their-non-EEA-national-family-members-March-2022.pdf)。
-- **SRC-393** Act ss2–4、9、18、21–24、47–48、55；S.I. 444/2024 Parts 6–8、Schedule 6；S.I. 643/2025 Schedule 8。
+- **SRC-393** Act ss2–4、9、18、21–24、36(2)(a)、47–48、55；S.I. 444/2024 reg. 7、Parts 6–8、Schedule 1；S.I. 643/2025 Schedule 8。
   - `2026-11-23-ie-permit-mar-regs.pdf` 对应 [官方 PDF](https://www.irishstatutebook.ie/eli/2025/si/643/made/en/pdf)。
 - **SRC-394** Eligibility criteria；Remuneration criteria；Fees；Labour Market Needs Test；What’s next?。
 - **SRC-395** EMN NCP Ireland 问题 1；爱尔兰未参加 Directive 2003/109/EC。

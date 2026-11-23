@@ -484,3 +484,4 @@
 | 680 | 任务 89：登记爱尔兰完整版官方快照、来源及待定细节，保留现有入籍与 Stamp 来源。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 681 | 任务 89：登记爱尔兰完整版的年龄、证明、许可、家庭、长期居留和条约居留参数及原文定位。 | packages/policy-data/src/{index,parameters/ireland-2026-11}.ts |
 | 682 | 任务 89：实现 16 条爱尔兰完整版评估，合并原有时间条件与法定资格、材料、费用和待确认事项，补双语 ID、边界及组合测试和交接报告。 | packages/engine/src/{index.ts,ireland-full/}、packages/engine/test/ireland-full.test.ts、docs/tasks/reports/89-ie-rules.md |
+| 683 | 任务 89 审核修正（review89-1）：修正家庭 Stamp 4、ICT、EU／WA 居留和难民身份材料，补 LTR 零头月的 PD-335 及收费、来源定位回归。 | packages/engine/src/ireland-full/、packages/engine/test/ireland-full.test.ts、packages/policy-data/src/parameters/ireland-2026-11.ts、docs/{SOURCES,pending-details,tasks/reports/89-ie-rules}.md |

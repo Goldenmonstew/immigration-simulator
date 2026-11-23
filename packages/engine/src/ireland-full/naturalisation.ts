@@ -122,6 +122,13 @@ export interface IrelandCitizenship {
       | 'none';
     grantOn?: IsoDate;
     validRecognition?: boolean;
+    identityEvidence?: {
+      nationalPassportUnavailable?: boolean;
+      certifiedIrishTravelDocument?: boolean;
+      refugeeStatusLetter?: boolean;
+      /** The official passport affidavit is complete and signed before a legal witness. */
+      witnessedPassportAffidavit?: boolean;
+    };
     certificationFeeExemptionConfirmed?: boolean;
     waiverGranted?: boolean;
   };
@@ -533,12 +540,27 @@ export function naturalisation(
     );
   }
   const points = identityScore(c, day);
+  const protectedKind = c.protection?.kind;
+  const refugee =
+    protectedKind === 'convention-refugee' ||
+    protectedKind === 'programme-refugee';
+  const refugeeIdentity = c.protection?.identityEvidence;
+  const refugeeEvidenceMet =
+    refugee && refugeeIdentity
+      ? all(
+          c.protection?.validRecognition,
+          refugeeIdentity.nationalPassportUnavailable,
+          refugeeIdentity.certifiedIrishTravelDocument,
+          refugeeIdentity.refugeeStatusLetter,
+          refugeeIdentity.witnessedPassportAffidavit,
+        )
+      : undefined;
   const identityMet =
-    points === undefined
-      ? undefined
-      : points >= p.identity.value.minimum
-        ? true
-        : c.alternativeIdentityEvidence
+    points !== undefined && points >= p.identity.value.minimum
+      ? true
+      : refugee && refugeeIdentity
+        ? refugeeEvidenceMet
+        : points === undefined || c.alternativeIdentityEvidence
           ? undefined
           : false;
   const form8 =
@@ -561,10 +583,17 @@ export function naturalisation(
       c.birthCertificateOrAcceptedAlternative,
       c.prescribedFormAndWitness,
     ),
-    L(
-      `身份分 ${points ?? '待确认'}，门槛 ${p.identity.value.minimum}；同时核对出生证明、表格、见证及适用推荐人（PD-322）。`,
-      `Identity score ${points ?? 'unconfirmed'}, minimum ${p.identity.value.minimum}. Also check birth evidence, prescribed form, witnesses and applicable referees (PD-322).`,
-    ),
+    refugee &&
+      refugeeIdentity &&
+      (points === undefined || points < p.identity.value.minimum)
+      ? L(
+          '难民无法取得本国护照时，核对经认证的爱尔兰旅行证件、难民认定信和见证后的护照宣誓书。出生证明、表格、见证及适用推荐人仍需核对。',
+          'For a refugee unable to obtain a national passport, check the certified Irish-issued travel document, refugee status letter and witnessed passport affidavit. Also check birth evidence, prescribed form, witnesses and applicable referees.',
+        )
+      : L(
+          `身份分 ${points ?? '待确认'}，门槛 ${p.identity.value.minimum}；同时核对出生证明、表格、见证及适用推荐人（PD-322）。`,
+          `Identity score ${points ?? 'unconfirmed'}, minimum ${p.identity.value.minimum}. Also check birth evidence, prescribed form, witnesses and applicable referees (PD-322).`,
+        ),
     ['PD-322'],
   );
   const evidence = c.residenceEvidence;
@@ -605,13 +634,9 @@ export function naturalisation(
     ['PD-339'],
     false,
   );
-  const protectedKind = c.protection?.kind;
   const recognisedFeeExemption =
     c.protection?.certificationFeeExemptionConfirmed === true ||
-    (protection &&
-      c.protection?.validRecognition === true &&
-      (protectedKind === 'convention-refugee' ||
-        protectedKind === 'programme-refugee'));
+    (protection && c.protection?.validRecognition === true && refugee);
   const certificationFee =
     day < fees.from
       ? undefined
@@ -840,9 +865,6 @@ export function naturalisation(
   if (protection) {
     const n = p.refugee.value;
     const data = c.protection;
-    const refugee =
-      protectedKind === 'convention-refugee' ||
-      protectedKind === 'programme-refugee';
     const years = day < n.changedOn ? n.previousYears : n.currentYears;
     const grant = data?.grantOn;
     const from = addYears(day, -years);

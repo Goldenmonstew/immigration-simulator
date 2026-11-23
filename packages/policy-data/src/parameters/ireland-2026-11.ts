@@ -406,7 +406,8 @@ export const irelandFull2026_11 = {
       sources: [
         {
           srcId: 'SRC-393',
-          locator: 'Act s55; S.I. 444/2024 reg. 1 and Schedule 6',
+          locator:
+            'Act ss36(2)(a), 55; S.I. 444/2024 regs. 1, 7 and Schedule 1',
         },
       ],
     },
@@ -422,6 +423,7 @@ export const irelandFull2026_11 = {
         deFactoYears: 2,
         changeSponsorYears: 5,
         specializedChangeYears: 7,
+        independentResidenceYears: 5,
         naturalisedSponsorDependentYears: 3,
         endRelationshipYears: 3,
         coResidenceYears: 2,

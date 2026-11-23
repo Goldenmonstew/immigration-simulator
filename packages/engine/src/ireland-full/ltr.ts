@@ -106,11 +106,11 @@ function principalResidence(a: IrelandAssessment, data: IrelandLtr) {
   const met =
     data.registeredPeriods === undefined
       ? undefined
-      : registeredMonths(certain, a.day, p.months)
+      : registeredMonths(certain, a.day, p.months) === true
         ? true
-        : registeredMonths(possible, a.day, p.months)
-          ? undefined
-          : false;
+        : registeredMonths(possible, a.day, p.months) === false
+          ? false
+          : undefined;
   a.add(
     'C01',
     met,

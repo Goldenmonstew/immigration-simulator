@@ -2,7 +2,7 @@ import { irelandFull2026_11 as full } from '@uk-immigration/policy-data';
 import type { CountryCheck, CountryPathway } from '../country-result';
 import { addDays, addMonths, daysBetween } from '../dates';
 import type { IePathway } from '../ireland';
-import { afterYears } from '../pilot';
+import { afterYears, monthSpan } from '../pilot';
 import { textFor } from '../rule';
 import type { IsoDate, Locale } from '../types';
 import { irelandCondition } from './conditions';
@@ -59,6 +59,7 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
   const L = textFor({ locale });
   const checks: CountryCheck[] = [];
   const required: CountryCheck[] = [];
+  let availableOn: IsoDate | undefined;
   let timeResult:
     | Pick<
         IePathway,
@@ -138,6 +139,12 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
     applicable: boolean | undefined = true,
   ): CountryPathway {
     const timeStatus = timeResult?.status ?? 'MET';
+    const earliestDate =
+      timeStatus === 'FUTURE' ? timeResult?.earliestDate : day;
+    const readyOn =
+      availableOn && (!earliestDate || availableOn > earliestDate)
+        ? availableOn
+        : earliestDate;
     const status =
       applicable === false
         ? 'NOT_APPLICABLE'
@@ -149,7 +156,9 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
               timeStatus === 'UNKNOWN' ||
               timeStatus === 'NOT_APPLICABLE'
             ? 'UNKNOWN'
-            : timeStatus;
+            : readyOn && readyOn > day
+              ? 'FUTURE'
+              : timeStatus;
     const pendingDetails = [
       ...new Set([
         ...(timeResult?.pendingDetails ?? []),
@@ -162,18 +171,18 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
       status,
       checks,
       earliestDate:
-        status === 'MET'
-          ? day
-          : status === 'FUTURE'
-            ? timeResult?.earliestDate
-            : undefined,
+        status === 'MET' ? day : status === 'FUTURE' ? readyOn : undefined,
       summary: timeResult?.summary,
       assumptions: timeResult?.assumptions ?? [],
       pendingDetails,
     };
   }
 
-  return { L, day, add, time, finish };
+  function availableFrom(date: IsoDate) {
+    if (!availableOn || date > availableOn) availableOn = date;
+  }
+
+  return { L, day, add, time, availableFrom, finish };
 }
 
 export type IrelandAssessment = ReturnType<typeof assessment>;
@@ -295,18 +304,28 @@ export function covers(
   );
 }
 
-/** Accumulate registered periods using the calendar months ending on the filing day. */
+/** Deduplicate registration and preserve uncertainty when partial months decide the result. */
 export function registeredMonths(
   periods: readonly IrelandResidencePeriod[],
   day: IsoDate,
   months: number,
 ) {
   const ranges = mergePeriods(periods, addDays(day, -1));
-  if (ranges.some(({ from, to }) => addMonths(from, months) <= addDays(to, 1)))
-    return true;
-  const total = ranges.reduce(
-    (sum, { from, to }) => sum + daysBetween(from, addDays(to, 1)),
-    0,
-  );
-  return total >= daysBetween(addMonths(day, -months), day);
+  let wholeMonths = 0;
+  let partialDays = 0;
+  for (const { from, to } of ranges) {
+    const end = addDays(to, 1);
+    let count = 0;
+    while (addMonths(from, count + 1) <= end) {
+      count++;
+      if (wholeMonths + count >= months) return true;
+    }
+    wholeMonths += count;
+    partialDays += daysBetween(addMonths(from, count), end);
+  }
+  if (ranges.length <= 1) return false;
+  const [shortest, longest] = monthSpan(1);
+  const remaining = months - wholeMonths;
+  if (partialDays >= remaining * longest) return true;
+  return partialDays >= remaining * shortest ? undefined : false;
 }

@@ -47,7 +47,7 @@
 | `A04` | 递交时居住与合法身份 | SRC-091 ss15(1)(c), 15A(1)(e)–(f), 15B(1)(c), 15C, 16A；SRC-093 s295；SRC-095 Time That Does Not Count |
 | `A05` | 善意继续居住 | SRC-091 ss15(1)(d), 15A(1)(g), 15A(4) |
 | `A06` | 效忠声明、守法与民主价值承诺 | SRC-091 ss15(1)(e), 15A(1)(h), 15B(1)(d)；SRC-380 S.I. 569/2011 reg. 9 |
-| `A07` | 身份与申请材料 | SRC-091 s17；SRC-095 Citizenship Identity Scorecard；SRC-380 Forms 8–11；SRC-381 Proof of identity |
+| `A07` | 身份与申请材料 | SRC-091 s17；SRC-095 Citizenship Identity Scorecard、If You Are a Refugee；SRC-380 Forms 8–11；SRC-381 Proof of identity |
 | `A08` | 逐年居住证明 | SRC-095 The 150-Point Rule；SRC-381 Proof of residence and Residency Affidavit |
 | `A09` | 入籍申请费 | SRC-380 S.I. 569/2011 reg. 13(1)(a) |
 | `A10` | 发证费与取得国籍 | SRC-091 s18；SRC-380 S.I. 569/2011 reg. 13(1)(b), (2) |
@@ -70,8 +70,8 @@
 | `B06` | 就业升级与续期手续 | SRC-096 Information on Stamp 4 upgrades；SRC-384 Stamp 4 Registrations and Renewals |
 | `B07` | 基础 CSEP 的职业、雇主及工资 | SRC-393 Act ss4,18,21,47 and S.I. 643/2025 Schedule 8 Part 1；SRC-394 CSEP: Eligibility and fees |
 | `B08` | 基础 GEP 的职业、雇主及工资 | SRC-393 Act ss18,22–23,47–48 and S.I. 643/2025 Schedule 8 Part 3；SRC-394 GEP: Eligibility and Labour Market Needs Test |
-| `B09` | 基础 ICT、研究员及医师条件 | SRC-393 Act ss9,24,47–48 and S.I. 444/2024 regs. 42–46；SRC-394 ICT: Eligibility；SRC-096 Stamp 4 upgrades: Eligibility criteria |
-| `B10` | 基础就业许可签发和续期费用 | SRC-393 Act ss2–3,47–48,55 and S.I. 444/2024 Schedule 6；SRC-404 Indexation |
+| `B09` | 基础 ICT、研究员及医师条件 | SRC-393 Act ss9,22(1)(c),22(2),24,47–48 and S.I. 444/2024 regs. 42–46；SRC-394 ICT: Eligibility；SRC-096 Stamp 4 upgrades: Eligibility criteria |
+| `B10` | 基础就业许可签发和续期费用 | SRC-393 Act ss36(2)(a),55 and S.I. 444/2024 reg. 7, Schedule 1；SRC-404 Indexation |
 | `B11` | 家属身份和担保资格 | SRC-387 June 2026 §§6.5–6.6, 16 and Appendix C；SRC-096 Joining family FAQ 30 |
 | `B12` | 依亲年限、担保人入籍及独立资格 | SRC-387 June 2026 §16.2, footnote 41 and Appendix C；SRC-096 Joining family FAQ 30 |
 | `B13` | 分居、死亡或家暴后的居留 | SRC-387 June 2026 §§16.3–17.2；SRC-399 Independent immigration permission |
@@ -81,8 +81,8 @@
 | `B17` | 担保人税前收入 | SRC-387 June 2026 §§10.7–10.14 and November 2025 §10；SRC-386 Financial thresholds |
 | `B18` | C 类家庭子女净收入门槛 | SRC-387 June 2026 §§10.13–10.14 and Appendix D；SRC-386 Table 1 |
 | `B19` | 住房适格与居住空间 | SRC-387 June 2026 §9.3–9.5 and Appendix E；SRC-402 s63 |
-| `B20` | 团聚材料、安全、医疗与签证办理 | SRC-387 June 2026 §§2–3, 13–15；SRC-409 Join non-EEA family member §9；SRC-406 Visa Fees |
-| `B21` | 爱尔兰公民配偶／民事伴侣境内登记 | SRC-388 Irish spouse and civil partner scheme: Am I eligible?；SRC-384 Stamp 4 (3) |
+| `B20` | 团聚材料、安全、医疗与签证办理 | SRC-387 June 2026 §§2–3, 12–15；SRC-409 Join non-EEA family member §9；SRC-406 Visa Fees |
+| `B21` | 爱尔兰公民配偶／民事伴侣境内登记 | SRC-388 Irish spouse and civil partner scheme: Am I eligible?；SRC-384 Stamp 4 (3), First Time Registrations and Renewals |
 | `B22` | 境内 de facto 办理 | SRC-388 De facto: Am I eligible?, Police clearance, What happens next? |
 | `B23` | 境外 de facto 办理 | SRC-388 Overseas de facto: How do I apply?, Medical insurance, Police clearance；SRC-387 June 2026 §§7.16, 10.7 |
 | `B24` | Stamp 5 合格许可及递交地点 | SRC-097 Eligibility and form p1；SRC-383 Immigration Act s5 |
@@ -135,7 +135,7 @@
 
 ## 3. 没做或没验证的
 
-页面接线由任务 99 完成。当前工作树供 Fable 提交，未运行浏览器 E2E、视觉验收或部署。按 2026-11-23 调研档案评估。早于已收录法规或超出已知年度表的历史和未来金额，仅在有可定位的费率或阈值时输出金额。既有计时口径及 PD-110–119 随相应路径保留。新路径通过模拟日核对，裁量、续期及证据准备通常由领到的书面决定或下一步资料推进。LTR 多段登记先合并重叠和相接的区间，再按递交日往回的日历月长度比较累计天数。EU／WA 的多次短期出境若落在非整月边界，按 PD-337 留待确认。
+页面接线由任务 99 完成。当前工作树供 Fable 提交，未运行浏览器 E2E、视觉验收或部署。按 2026-11-23 调研档案评估。早于已收录法规或超出已知年度表的历史和未来金额，仅在有可定位的费率或阈值时输出金额。既有计时口径及 PD-110–119 随相应路径保留。新路径通过模拟日核对，裁量、续期及证据准备通常由领到的书面决定或下一步资料推进。LTR 多段登记先合并重叠和相接的区间，再累计整月。不同月长会改变零头折算结论时按 PD-335 留待确认。EU／WA 的多次短期出境若落在非整月边界，按 PD-337 留待确认。
 
 ### 仍可能为 UNKNOWN 的条件
 
@@ -156,7 +156,7 @@
 | PD-332 | B19 | 公共住房支持及房间布局、同卧规定和补件的个案确认。 |
 | PD-333 | B26、C05 | 两个行政方案不同的 undue burden 个案认定。 |
 | PD-334 | B27、C08 | 获批后出境跨年、用途和例外。不把获批后的一般上限用于初次申请时间检查。 |
-| PD-335 | C01、C02、C04、C07–C09 | 特殊许可、医生及家属身份组合、家属和续期收费。 |
+| PD-335 | C01、C02、C04、C07–C09 | 特殊许可、医生及家属身份组合、家属和续期收费、多段登记零头月折算。 |
 | PD-336 | D01、D02、D04、D05 | 回流、双重国籍、仅求职、特殊家庭和活动基础。 |
 | PD-337 | D02、D03、E02 | 无统一资金或保险金额。跨月合计与例外理由需证据。 |
 | PD-338 | D04–D06、E01–E03 | 保留权、证件与实体权利、复杂 WA 关系及跨过渡证据。 |
@@ -177,3 +177,33 @@ A02、A13、A14、B20、B25、C06、D07 或 E03 也可因缺少个人事实或�
 7. **前端接线**。中英文都使用评估返回的条件文案；对比按列、路径、条件 ID 对齐。先区分 `UNKNOWN` 来自未答、个案认定还是未公开的规则细节。出境或就业变动可改同一草稿中的对应日期。品格、健康、家暴和儿童，只收类别、日期和文件状态；无需案情、病情、证件号或任何上传文件。
 
 主要法规和政策入口见 [爱尔兰国籍法编纂版](https://revisedacts.lawreform.ie/eli/1956/act/26/revised/en/html)、[ISD 家庭政策档案](https://www.irishimmigration.ie/coming-to-join-family-in-ireland/policy-document-archive/)、[ISD Long Term Residency](https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/long-term-residency/)、[EU 自由流动条例](https://www.irishstatutebook.ie/eli/2015/si/548/made/en/print)及 [Withdrawal Agreement 实施条例](https://www.irishstatutebook.ie/eli/2020/si/728/made/en/print)。
+
+## 审核修正（review89-1）
+
+### 1. 做了什么
+
+PROGRESS 683 建议提交为 `Fix: 修正爱尔兰完整版资格与续期判定（review89-1）`。
+
+| 检查 | 修正与回归 |
+|---|---|
+| B11／B12 | 普通五年分支按已确认的依亲居留期间核对。审核的 Stamp 1G 输入在模拟日为 `FUTURE`，最早日为 `2027-04-01`。同期依亲 Stamp 4 到续期日时为 `MET`。符合年限但续期日未确认时为 `UNKNOWN`（PD-329）。SRC-387 §16.2、脚注 41 和附录 C。 |
+| B14／B21 | 普通境外团聚接受拟共同迁回的爱尔兰公民担保。配偶 Stamp 4 登记区分首次和续期，普通续期按续期清单核对，许可附加保险条款按个案材料判定。SRC-387 §6.2、SRC-384 Stamp 4 (3)。 |
+| B09／B10／B20 | 新 ICT 许可核对关联实体的 EEA、瑞士及英国籍雇员比例和法定豁免。CSEP 续期费用不适用。B10 定位到 SRC-393 Act s36(2)(a)、S.I. 444/2024 reg. 7、Schedule 1，B20 补上 SRC-387 §12。 |
+| D03／D06 | 初期可计居留从实际入境日起算。记录完整的合规短期离境可保持两段活动之间的连续性。EU 公民本人申请文件时无须填写非欧盟家属通知项。SRC-390 regs. 6(1)、11(2)、12(5)。 |
+| D08／E02 | 以 `absences` 核对已取得权利后的连续离境，兼容现有的 `document.postGrantAbsence`。审核的离境在 EU 下导致失权，在 WA 下仍保留。新增 EU 回国后重新满五年的回归。SRC-390 reg. 12(6)、SRC-392 reg. 10(4)。 |
+| A07／A20 | 可分别确认无法取得本国护照、经认证的爱尔兰旅行证件、难民认定信和见证后的护照宣誓书。三项文件组合齐备时 A07 为 `MET`，A20 继续独立核对居住。SRC-095 If You Are a Refugee。 |
+| C01／C07 | 多段登记去重后累计整月，零头折算方式会改变是否达标时返回 `UNKNOWN`。在 PD-335 登记不同月长及闰日问题。SRC-398 重叠登记示例。 |
+
+### 2. 怎么验证的
+
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码为 0。engine 3,266 项通过、文案导出 1 项按默认配置跳过，policy-data 23 项、game 1,336 项、web 659 项、error-report 2 项通过。Next.js 生成了 27 个静态页面。
+- 爱尔兰完整版新增 12 项回归，合计 41 项。断言覆盖检查项、路径状态及最早日期，并保留六条 `evaluateIreland` 旧计时路径的逐项对照。
+- `git diff --check` 通过。旧 `evaluateIreland` 的实现、测试与页面入口无改动。
+
+### 3. 没做或没验证的
+
+提交交由 Fable。页面接线、浏览器 E2E 和部署沿用后续任务安排。
+
+### 4. 发现与建议
+
+任务 99 接线时应明确采集依亲居留区间、满足资格后的下次线上续期日、首次登记或续期阶段，以及难民身份材料的分别确认。ICT 问卷中的雇员比例覆盖 EEA、瑞士和英国籍雇员。普通居留和永久权维持可共用同一份出入境记录。

@@ -522,6 +522,56 @@ describe('Ireland full naturalisation', () => {
     );
   });
 
+  test('a recognised refugee can use the ISD document combination without a national passport', () => {
+    const id = 'IE-PROTECTION';
+    const citizenship: IrelandCitizenship = {
+      ...citizen,
+      identityDocuments: [],
+      alternativeIdentityEvidence: true,
+      protection: {
+        kind: 'convention-refugee',
+        grantOn: '2021-11-23',
+        validRecognition: true,
+      },
+      residence: [{ basis: 'reckonable', from: '2021-11-23' }],
+    };
+    expect(
+      checks(id, { citizenship }, { A07: 'UNKNOWN', A20: 'MET' }),
+    ).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+    const identityEvidence = {
+      nationalPassportUnavailable: true,
+      certifiedIrishTravelDocument: true,
+      refugeeStatusLetter: true,
+      witnessedPassportAffidavit: true,
+    };
+    const protection = { ...citizenship.protection, identityEvidence };
+    expect(
+      checks(
+        id,
+        { citizenship: { ...citizenship, protection } },
+        { A07: 'MET', A20: 'MET' },
+      ),
+    ).toMatchObject({ status: 'MET', earliestDate: day });
+    expect(
+      checks(
+        id,
+        {
+          citizenship: {
+            ...citizenship,
+            protection: {
+              ...protection,
+              identityEvidence: {
+                ...identityEvidence,
+                witnessedPassportAffidavit: false,
+              },
+            },
+          },
+        },
+        { A07: 'NOT_MET', A20: 'MET' },
+      ),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+  });
+
   test('confirmed overseas Irish appointment and waiver are both required', () => {
     const id = 'IE-PUBLIC-SERVICE';
     const publicService = {
@@ -781,6 +831,66 @@ describe('Ireland work upgrades, registration and Stamp 5', () => {
     );
   });
 
+  test('new ICT permits check the connected entity staff share and the statutory exemption', () => {
+    const id = 'IE-STAMP4-57';
+    const request: Partial<IrelandFullRequest> = {
+      permissions: [{ kind: 'stamp1-ict', from: '2022-02-23' }],
+      employmentStart: '2022-02-23',
+    };
+    const ict: IrelandWorkPermit = {
+      ...permit,
+      tier: 'ict',
+      eeaStaffShare: 0.3,
+      associatedEmployersAndAssignment: true,
+      foreignEmploymentFrom: '2026-05-23',
+      transferOn: day,
+      eligibleAnnualRemuneration: 49523,
+      eligibleHourlyRemuneration: 24.42,
+    };
+    const upgrade: IrelandWorkUpgrade = { ...work, basis: 'ict' };
+    expect(
+      checks(
+        id,
+        { ...request, work: { ...upgrade, permitApplication: ict } },
+        { 'STAMP4-WORK-TIME': 'MET', B09: 'NOT_MET', B10: 'MET' },
+      ),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+    for (const permitApplication of [
+      { ...ict, eeaStaffShare: 0.5 },
+      { ...ict, staffShareExemption: true },
+    ]) {
+      expect(
+        checks(
+          id,
+          { ...request, work: { ...upgrade, permitApplication } },
+          { B09: 'MET', B10: 'MET' },
+        ),
+      ).toMatchObject({ status: 'MET', earliestDate: day });
+    }
+  });
+
+  test('CSEP renewal is inapplicable and quotes no underlying permit fee', () => {
+    const path = checks(
+      id,
+      {
+        ...shortClock,
+        work: { ...work, permitApplication: { ...permit, renewal: true } },
+      },
+      { B07: 'MET', B10: 'NOT_MET' },
+    );
+    expect(path).toMatchObject({ status: 'MET', earliestDate: day });
+    expect(checkOf(path.checks, 'B10')).toMatchObject({
+      explanation: expect.stringContaining('not renewable'),
+      sources: expect.arrayContaining([
+        {
+          srcId: 'SRC-393',
+          locator: expect.stringContaining('reg. 7, Schedule 1'),
+        },
+      ]),
+    });
+    expect(checkOf(path.checks, 'B10')?.explanation).not.toContain('€1000');
+  });
+
   test('Stamp 5 preserves the 96-month time check and applies distinct character and burden checks', () => {
     const stamp = 'IE-STAMP5';
     const stamp5: IrelandWcatt = {
@@ -847,6 +957,7 @@ describe('Ireland work upgrades, registration and Stamp 5', () => {
 const familyApplication: NonNullable<IrelandFamily['application']> = {
   date: day,
   channel: 'spouse-registration',
+  registrationStage: 'first',
   entryOrConversionValid: true,
   priorSponsorshipHistoryComplete: true,
   sponsorResponsible: true,
@@ -881,6 +992,126 @@ const family: IrelandFamily = {
 describe('Ireland family Stamp 4', () => {
   const direct = 'IE-STAMP4-IRISH-FAMILY';
   const independent = 'IE-STAMP4-INDEPENDENT-FAMILY';
+
+  test('a five-year dependent Stamp 1G qualifies at the next renewal', () => {
+    const request = {
+      permissions: [{ kind: 'stamp1g-spouse', from: '2021-11-01' }],
+      family: {
+        ...family,
+        application: undefined,
+        sponsorCategory: 'B',
+        sponsorIrish: false,
+        dependentPeriods: [{ from: '2021-11-01' }],
+        nextRenewalOn: '2027-04-01',
+      },
+    } satisfies Partial<IrelandFullRequest>;
+    expect(
+      checks(independent, request, {
+        'FAMILY-LEGACY-TIME': 'MET',
+        B11: 'MET',
+        B12: 'NOT_MET',
+      }),
+    ).toMatchObject({ status: 'FUTURE', earliestDate: '2027-04-01' });
+    expect(
+      checks(
+        independent,
+        { ...request, simulationDate: '2027-04-01' },
+        { B11: 'MET', B12: 'MET' },
+      ),
+    ).toMatchObject({ status: 'MET', earliestDate: '2027-04-01' });
+    expect(
+      checks(
+        independent,
+        { ...request, family: { ...request.family, nextRenewalOn: undefined } },
+        { B12: 'UNKNOWN' },
+      ),
+    ).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+  });
+
+  test('dependent Stamp 4 as the spouse of an Irish citizen counts for independence', () => {
+    expect(
+      checks(
+        independent,
+        {
+          permissions: [{ kind: 'stamp4', from: '2021-11-01' }],
+          family: {
+            ...family,
+            application: undefined,
+            sponsorCategory: 'A',
+            dependentPeriods: [{ from: '2021-11-01' }],
+            nextRenewalOn: day,
+          },
+        },
+        { 'FAMILY-LEGACY-TIME': 'NOT_MET', B11: 'MET', B12: 'MET' },
+      ),
+    ).toMatchObject({ status: 'MET', earliestDate: day });
+  });
+
+  test('an Irish sponsor can apply from abroad while intending to move back together', () => {
+    const abroad: IrelandFamily = {
+      ...family,
+      sponsorLawfulAndResident: false,
+      application: {
+        ...familyApplication,
+        channel: 'ordinary',
+        insuranceRequiredForEntry: false,
+      },
+    };
+    const path = checks(
+      direct,
+      { currentLocation: 'elsewhere', family: abroad },
+      {
+        'FAMILY-IRISH-SPONSOR': 'MET',
+        'FAMILY-CHANNEL': 'MET',
+        B14: 'MET',
+        B15: 'MET',
+        B20: 'MET',
+      },
+    );
+    expect(path).toMatchObject({ status: 'MET', earliestDate: day });
+    expect(checkOf(path.checks, 'B20')?.sources).toContainEqual({
+      srcId: 'SRC-387',
+      locator: 'June 2026 §§2–3, 12–15',
+    });
+    expect(
+      checks(
+        direct,
+        {
+          currentLocation: 'elsewhere',
+          family: { ...abroad, intendsToLiveTogetherInState: false },
+        },
+        { B14: 'NOT_MET', B15: 'NOT_MET' },
+      ),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+  });
+
+  test('ordinary Irish spouse registration renewal does not require first-registration insurance', () => {
+    const application = {
+      ...familyApplication,
+      registrationStage: 'renewal',
+      insurance: undefined,
+      renewalInsuranceRequired: false,
+    } as const;
+    expect(
+      checks(
+        direct,
+        { family: { ...family, application } },
+        { B14: 'MET', B20: 'MET', B21: 'MET' },
+      ),
+    ).toMatchObject({ status: 'MET', earliestDate: day });
+    for (const variant of [
+      { ...application, registrationStage: 'first' } as const,
+      { ...application, renewalInsuranceRequired: true },
+    ]) {
+      expect(
+        checks(
+          direct,
+          { family: { ...family, application: variant } },
+          { B21: 'UNKNOWN' },
+        ),
+      ).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+    }
+  });
 
   test('Irish sponsor financial version changes at 12 June and the dedicated route can be unresolved', () => {
     const p = checks(
@@ -1234,6 +1465,34 @@ const ltr: IrelandLtr = {
 };
 
 describe('Ireland Long Term Residency', () => {
+  test('uncertain conversion of partial months in split registrations is reported as PD-335', () => {
+    const path = checks(
+      'IE-LTR-PRINCIPAL',
+      {
+        ltr: {
+          ...ltr,
+          registeredPeriods: [
+            {
+              from: '2019-01-01',
+              to: '2021-01-14',
+              basis: 'hosting',
+              evidence: true,
+            },
+            {
+              from: '2023-01-01',
+              to: '2025-12-15',
+              basis: 'hosting-stamp4',
+              evidence: true,
+            },
+          ],
+        },
+      },
+      { C01: 'UNKNOWN', C02: 'MET' },
+    );
+    expect(path).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+    expect(checkOf(path.checks, 'C01')?.pendingDetails).toContain('PD-335');
+  });
+
   test('two hosting years plus three qualifying Stamp 4 years meet 60 months', () => {
     const id = 'IE-LTR-PRINCIPAL';
     const p = checks(
@@ -1376,6 +1635,186 @@ const eu: IrelandTreatyResidence = {
 
 describe('Ireland EU Treaty Rights and the Withdrawal Agreement', () => {
   const id = 'IE-EU-PERMANENT';
+  test('a permitted four-month trip bridges the gap between qualifying jobs', () => {
+    const residence: IrelandTreatyResidence = {
+      ...eu,
+      activities: [
+        {
+          from: '2020-01-01',
+          to: '2022-07-31',
+          basis: 'employed',
+          verified: true,
+        },
+        { from: '2022-12-01', basis: 'employed', verified: true },
+      ],
+      absences: [
+        { leftOn: '2022-08-01', returnedOn: '2022-12-01', reason: 'temporary' },
+      ],
+    };
+    expect(
+      checks(id, { eu: residence }, { D02: 'MET', D03: 'MET', D08: 'MET' }),
+    ).toMatchObject({ status: 'MET', earliestDate: day });
+    expect(
+      checks(
+        id,
+        { eu: residence, simulationDate: '2025-01-01' },
+        { D03: 'MET', D08: 'MET' },
+      ),
+    ).toMatchObject({ status: 'MET', earliestDate: '2025-01-01' });
+    expect(
+      checks(
+        id,
+        { eu: residence, simulationDate: '2024-12-31' },
+        { D03: 'NOT_MET', D08: 'UNKNOWN' },
+      ),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+    expect(
+      checks(id, { eu: { ...residence, absences: [] } }, { D03: 'NOT_MET' }),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+  });
+
+  test('the initial residence period starts on actual entry despite an earlier activity date', () => {
+    const residence: IrelandTreatyResidence = {
+      ...eu,
+      activities: [
+        {
+          from: '2019-01-01',
+          enteredOn: '2022-01-01',
+          basis: 'initial',
+          verified: true,
+          sufficientIdentity: true,
+          unreasonableBurden: false,
+        },
+        { from: '2022-04-01', basis: 'employed', verified: true },
+      ],
+    };
+    expect(
+      checks(
+        id,
+        { eu: residence },
+        { D02: 'MET', D03: 'NOT_MET', D08: 'UNKNOWN' },
+      ),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+    expect(
+      checks(
+        id,
+        { eu: residence, simulationDate: '2027-01-01' },
+        { D03: 'MET', D08: 'MET' },
+      ),
+    ).toMatchObject({ status: 'MET', earliestDate: '2027-01-01' });
+  });
+
+  test('the citizen certificate does not need notices required only from non-EU family members', () => {
+    const document: IrelandTreatyResidence['document'] = {
+      inState: true,
+      identityAndResidenceEvidence: true,
+      publicInterest: 'clear',
+    };
+    expect(
+      checks(
+        id,
+        { eu: { ...eu, document } },
+        { D01: 'MET', D03: 'MET', D06: 'MET', D08: 'MET' },
+      ),
+    ).toMatchObject({ status: 'MET', earliestDate: day });
+    expect(
+      checks(
+        id,
+        {
+          eu: {
+            ...eu,
+            role: 'family',
+            nonEuFamily: true,
+            relationship: 'spouse',
+            qualifyingSponsor: true,
+            relationshipEvidence: true,
+            document: {
+              ...document,
+              filedOn: day,
+              currentCardExpiresOn: '2026-11-24',
+            },
+          },
+        },
+        { D06: 'UNKNOWN' },
+      ),
+    ).toMatchObject({ status: 'MET', earliestDate: day });
+  });
+
+  test('travel history shows loss after EU acquisition and acquisition again after return', () => {
+    const residence: IrelandTreatyResidence = {
+      ...eu,
+      activities: [
+        {
+          from: '2016-02-01',
+          to: '2021-02-28',
+          basis: 'employed',
+          verified: true,
+        },
+        { from: '2024-04-01', basis: 'employed', verified: true },
+      ],
+      absences: [
+        { leftOn: '2021-03-01', returnedOn: '2024-04-01', reason: 'temporary' },
+      ],
+    };
+    for (const document of [
+      residence.document,
+      {
+        ...residence.document,
+        postGrantAbsence: { from: '2021-03-01', returnedOn: '2024-04-01' },
+      },
+    ]) {
+      expect(
+        checks(
+          id,
+          { eu: { ...residence, document } },
+          { D03: 'MET', D08: 'NOT_MET' },
+        ),
+      ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+    }
+    expect(
+      checks(
+        id,
+        { eu: residence, simulationDate: '2029-04-01' },
+        { D03: 'MET', D08: 'MET' },
+      ),
+    ).toMatchObject({ status: 'MET', earliestDate: '2029-04-01' });
+    const waId = 'IE-WA-PERMANENT';
+    const wa: IrelandTreatyResidence = {
+      ...residence,
+      wa: {
+        britishOrQualifyingFamily: true,
+        relevantStart: '2016-02-01T00:00:00Z',
+        protectedBeforeAndContinued: true,
+      },
+    };
+    expect(
+      checks(waId, { wa }, { E01: 'MET', E02: 'MET', E03: 'MET' }),
+    ).toMatchObject({ status: 'MET', earliestDate: day });
+    expect(
+      checks(
+        waId,
+        {
+          simulationDate: '2027-04-01',
+          wa: {
+            ...wa,
+            activities: [
+              wa.activities![0],
+              { ...wa.activities![1], from: '2027-04-01' },
+            ],
+            absences: [
+              {
+                leftOn: '2021-03-01',
+                returnedOn: '2027-04-01',
+                reason: 'temporary',
+              },
+            ],
+          },
+        },
+        { E01: 'MET', E02: 'NOT_MET', E03: 'MET' },
+      ),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+  });
+
   test('five-year anniversary needs a qualifying residence basis, including CSI where applicable', () => {
     expect(
       checks(

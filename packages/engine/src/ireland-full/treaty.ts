@@ -181,7 +181,8 @@ function eligibleActivityPeriod(activity: IrelandTreatyActivity, day: IsoDate) {
         ? addMonths(a.employmentEndedOn, p.retainedWorkerMonths)
         : undefined;
   const to = [a.to ?? day, day, limit ? addDays(limit, -1) : day].sort()[0];
-  return { from: a.from, to };
+  const from = a.enteredOn && a.enteredOn > a.from ? a.enteredOn : a.from;
+  return { from, to };
 }
 
 function familyStatus(
@@ -239,6 +240,7 @@ function absenceCompliance(
   r: IrelandTreatyResidence,
   start: IsoDate,
   end: IsoDate,
+  day: IsoDate,
 ) {
   const windows: { from: IsoDate; to: IsoDate }[] = [];
   let important = false;
@@ -252,7 +254,7 @@ function absenceCompliance(
     )
       continue;
     const returned =
-      absence.returnedOn && absence.returnedOn < end ? absence.returnedOn : end;
+      absence.returnedOn && absence.returnedOn < day ? absence.returnedOn : day;
     const from = absence.leftOn < start ? start : absence.leftOn;
     if (returned <= from) continue;
     if (absence.reason === 'military' && absence.exceptionConfirmed === true)
@@ -307,54 +309,68 @@ function absenceCompliance(
     : true;
 }
 
-function ordinaryResidence(r: IrelandTreatyResidence, day: IsoDate) {
+function ordinaryResidence(
+  r: IrelandTreatyResidence,
+  day: IsoDate,
+  notBefore?: IsoDate,
+) {
   const certain: IrelandResidencePeriod[] = [];
   const possible: IrelandResidencePeriod[] = [];
   for (const activity of r.activities ?? []) {
     const period = eligibleActivityPeriod(activity, day);
     const status = activityMet(activity);
-    if (status !== false) possible.push(period ?? activity);
-    if (status === true && period) certain.push(period);
+    const range = period ?? activity;
+    const from = notBefore && notBefore > range.from ? notBefore : range.from;
+    if (status !== false) possible.push({ ...range, from });
+    if (status === true && period) certain.push({ ...period, from });
   }
-  const spans = mergePeriods(certain, day);
-  let uncertain = false;
-  for (const { from, to } of spans) {
-    // After a long absence the next qualifying window may begin on return,
-    // even when the supplied activity has no break in evidence.
-    const starts = [
-      from,
-      ...(r.absences ?? []).flatMap((trip) =>
-        trip.returnedOn && trip.returnedOn >= from && trip.returnedOn <= to
-          ? [trip.returnedOn]
-          : [],
-      ),
-    ];
-    for (const start of starts) {
-      const acquired = afterYears(start, p.ordinaryYears);
-      if (acquired > day || acquired > addDays(to, 1)) continue;
-      const absence = absenceCompliance(r, start, acquired);
-      if (absence === true && r.residenceAndTravelComplete === true)
-        return { met: true, acquired } as const;
-      if (absence !== false) uncertain = true;
+  const away = mergePeriods(
+    (r.absences ?? []).map(({ leftOn, returnedOn }) => ({
+      from: leftOn,
+      to: returnedOn ? addDays(returnedOn, -1) : undefined,
+    })),
+    addDays(day, -1),
+  );
+  const returns = away.map(({ to }) => addDays(to, 1));
+  function qualifyingSpan(periods: IrelandResidencePeriod[]) {
+    const residence = mergePeriods(periods, day);
+    // A trip can bridge a gap in the activity records, but cannot begin a
+    // residence period. Test the statutory absence rules on each candidate.
+    const spans = mergePeriods([...residence, ...away], day);
+    let uncertain = false;
+    for (const span of spans) {
+      const evidence = residence.filter(
+        ({ from }) => span.from <= from && from <= span.to,
+      );
+      const last = evidence.at(-1)?.to;
+      if (!last) continue;
+      const starts = [
+        ...evidence.map(({ from }) => from),
+        ...returns.filter((date) =>
+          evidence.some(({ from, to }) => from <= date && date <= to),
+        ),
+      ].sort();
+      for (const start of starts) {
+        const acquired = afterYears(start, p.ordinaryYears);
+        if (
+          acquired > day ||
+          acquired > addDays(last, 1) ||
+          away.some(({ from, to }) => from <= start && start <= to)
+        )
+          continue;
+        const absence = absenceCompliance(r, start, acquired, day);
+        if (absence === true) return { met: true, acquired } as const;
+        if (absence === undefined) uncertain = true;
+      }
     }
+    return { met: uncertain ? undefined : false, acquired: undefined };
   }
-  const possibleRanges = mergePeriods(possible, day);
-  const unknownActivity = r.activities?.some(
-    (activity) =>
-      activityMet(activity) === undefined ||
-      eligibleActivityPeriod(activity, day) === undefined,
-  );
-  const possibleSufficient = possibleRanges.some(
-    ({ from, to }) => afterYears(from, p.ordinaryYears) <= addDays(to, 1),
-  );
+  if (r.residenceAndTravelComplete !== true || !r.activities)
+    return { met: undefined, acquired: undefined };
+  const proven = qualifyingSpan(certain);
+  if (proven.met !== false) return proven;
   return {
-    met:
-      uncertain ||
-      r.residenceAndTravelComplete !== true ||
-      !r.activities ||
-      (unknownActivity && possibleSufficient)
-        ? undefined
-        : false,
+    met: qualifyingSpan(possible).met === false ? false : undefined,
     acquired: undefined,
   };
 }
@@ -599,17 +615,38 @@ export function treatyResidence(
   }
   const acquired =
     holder ??
-    (acquisition === 'early' && early === true
-      ? r.early?.eventOn
-      : ordinary.acquired);
+    (acquisition === 'early'
+      ? early === true
+        ? r.early?.eventOn
+        : undefined
+      : acquisition !== 'retained' || retained === true
+        ? ordinary.acquired
+        : undefined);
   const lossYears = wa ? p.waLossYears : p.euLossYears;
-  const absence = d?.postGrantAbsence;
-  const loses =
-    acquired && absence && absence.from >= acquired
-      ? (absence.returnedOn && absence.returnedOn < day
-          ? absence.returnedOn
-          : day) > afterYears(absence.from, lossYears)
-      : undefined;
+  const postGrant = d?.postGrantAbsence;
+  const trips = [
+    ...(r.absences ?? []),
+    ...(postGrant
+      ? [{ leftOn: postGrant.from, returnedOn: postGrant.returnedOn }]
+      : []),
+  ];
+  const lastLoss =
+    acquired &&
+    mergePeriods(
+      trips.map(({ leftOn, returnedOn }) => ({
+        from: leftOn < acquired ? acquired : leftOn,
+        to: returnedOn ? addDays(returnedOn, -1) : undefined,
+      })),
+      addDays(day, -1),
+    )
+      .reverse()
+      .find(({ from, to }) => addDays(to, 1) > afterYears(from, lossYears));
+  const afterLoss = lastLoss ? addDays(lastLoss.to, 1) : undefined;
+  const requalified =
+    afterLoss && afterLoss < day
+      ? ordinaryResidence(r, day, afterLoss).met
+      : false;
+  const retainsRight = afterLoss ? requalified : true;
   if (wa) {
     add(
       'E02',
@@ -621,7 +658,7 @@ export function treatyResidence(
             : acquisition === 'retained'
               ? all(retained, ordinary.met)
               : ordinary.met,
-        loses === undefined ? true : !loses,
+        retainsRight,
       ),
       L(
         `合并过渡前 EU 与其后 WA 合规居住；一般需连续 ${p.ordinaryYears} 年。取得后连续离境超过 ${lossYears} 年会丧失权利（PD-337、PD-338）。`,
@@ -641,12 +678,15 @@ export function treatyResidence(
         : day < card
           ? undefined
           : false;
+  const notification =
+    r.role === 'citizen' || r.nonEuFamily === false
+      ? true
+      : all(d?.addressAndStatusNotified, d?.prolongedAbsenceNotified);
   const document = all(
     d?.inState,
     d?.identityAndResidenceEvidence,
     beforeExpiry,
-    d?.addressAndStatusNotified,
-    d?.prolongedAbsenceNotified,
+    notification,
   );
   const cleared =
     d?.publicInterest === 'clear'
@@ -678,8 +718,8 @@ export function treatyResidence(
     );
     add(
       'D08',
-      loses === true
-        ? false
+      retainsRight !== true
+        ? retainsRight
         : d?.extraFeeRequested
           ? undefined
           : acquired
@@ -689,8 +729,8 @@ export function treatyResidence(
         `连续离境超过 ${lossYears} 年可失去永久权，证件通常 ${p.documentYears} 年换发。指定有效证件免登记费，额外收费核官方通知（PD-339）。`,
         `Absence exceeding ${lossYears} consecutive years can end permanent rights. The document usually renews after ${p.documentYears} years. Specified valid documents are exempt from registration fees. Verify any extra charge (PD-339).`,
       ),
-      ['PD-339'],
-      loses === true,
+      afterLoss ? ['PD-337', 'PD-338', 'PD-339'] : ['PD-339'],
+      afterLoss !== undefined && requalified !== true,
     );
   } else {
     add(

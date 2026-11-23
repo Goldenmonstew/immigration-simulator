@@ -45,6 +45,7 @@ export interface IrelandWorkPermit {
   occupationEligible?: boolean;
   recognisedQualifications?: boolean;
   employerEligible?: boolean;
+  /** Share of EEA, Swiss and UK employees; for ICT, use the connected person. */
   eeaStaffShare?: number;
   staffShareExemption?: boolean;
   graduateNfqLevel?: number;
@@ -193,6 +194,13 @@ export function employmentPermit(
         ? undefined
         : data.termMonths <= values.ictTraineeMaxMonths,
   );
+  const ictStaffRule =
+    ict && data.renewal !== true
+      ? L(
+          `新办 ICT 时，关联实体的 EEA、瑞士及英国籍雇员须占至少 ${values.eeaShare * 100}%，或满足法定豁免。`,
+          `For a new ICT permit, at least ${values.eeaShare * 100}% of the connected entity's employees must be EEA, Swiss or UK nationals unless a statutory exemption applies.`,
+        )
+      : '';
   add(
     category,
     all(
@@ -202,7 +210,12 @@ export function employmentPermit(
       data.occupationEligible,
       data.recognisedQualifications,
       data.employerEligible,
-      ict ? ictTerms : ratio,
+      ict ? ictTerms : true,
+      ict && data.renewal !== false
+        ? data.renewal === true || ratio === true
+          ? true
+          : undefined
+        : ratio,
       basis === 'csep'
         ? offer
         : basis === 'gep' || basis === 'multi-site-doctor'
@@ -210,19 +223,20 @@ export function employmentPermit(
           : true,
     ),
     L(
-      `需核对雇主、职业、资格及适用报酬。${annual === undefined || !rate ? '' : `本档年薪门槛 €${annual.toFixed(2)}、时薪 €${rate.hourly}。`} 分档或历史薪酬冲突见 PD-328。`,
-      `Check the employer, occupation, qualifications and applicable remuneration. ${annual === undefined || !rate ? '' : `This tier uses €${annual.toFixed(2)} annually and €${rate.hourly} hourly. `}See PD-328 for classification or historic remuneration issues.`,
+      `需核对雇主、职业、资格及适用报酬。${annual === undefined || !rate ? '' : `本档年薪门槛 €${annual.toFixed(2)}、时薪 €${rate.hourly}。`}${ictStaffRule} 分档或历史薪酬冲突见 PD-328。`,
+      `Check the employer, occupation, qualifications and applicable remuneration. ${annual === undefined || !rate ? '' : `This tier uses €${annual.toFixed(2)} annually and €${rate.hourly} hourly. `}${ictStaffRule ? `${ictStaffRule} ` : ''}See PD-328 for classification or historic remuneration issues.`,
     ),
     ['PD-328'],
   );
   const fee = p.fees.value;
   const term = data.termMonths;
+  const csepRenewal = basis === 'csep' && data.renewal === true;
   const amount =
-    !date || date < fee.from
+    csepRenewal || !date || date < fee.from || data.renewal === undefined
       ? undefined
       : basis === 'csep'
         ? fee.csep
-        : term === undefined || data.renewal === undefined || !basis
+        : term === undefined || !basis
           ? undefined
           : !data.renewal
             ? term <= fee.shortMonths
@@ -245,16 +259,21 @@ export function employmentPermit(
                   : undefined;
   add(
     'B10',
-    amount === undefined ? undefined : data.feePrepared,
-    amount === undefined
+    csepRenewal ? false : amount === undefined ? undefined : data.feePrepared,
+    csepRenewal
       ? L(
-          '需确认许可期限、收费日期及签发或续期类别（PD-339）。',
-          'Confirm the term, date and whether this is a new permit or renewal (PD-339).',
+          'CSEP 不能续期，续期费用不适用。IRP 登记另行核对。',
+          'A CSEP is not renewable, so no renewal fee applies. IRP registration is assessed separately.',
         )
-      : L(
-          `基础就业许可费 €${amount}，另核 IRP 登记。`,
-          `Underlying employment permit fee €${amount}. IRP registration is assessed separately.`,
-        ),
+      : amount === undefined
+        ? L(
+            '需确认许可期限、收费日期及签发或续期类别（PD-339）。',
+            'Confirm the term, date and whether this is a new permit or renewal (PD-339).',
+          )
+        : L(
+            `基础就业许可费 €${amount}，另核 IRP 登记。`,
+            `Underlying employment permit fee €${amount}. IRP registration is assessed separately.`,
+          ),
     ['PD-339'],
     false,
   );

@@ -58,7 +58,7 @@ const conditions = {
     'Identity and application documents',
     [
       ['SRC-091', 's17'],
-      ['SRC-095', 'Citizenship Identity Scorecard'],
+      ['SRC-095', 'Citizenship Identity Scorecard; If You Are a Refugee'],
       ['SRC-380', 'Forms 8–11'],
       ['SRC-381', 'Proof of identity'],
     ],
@@ -239,7 +239,10 @@ const conditions = {
     '基础 ICT、研究员及医师条件',
     'Underlying ICT, researcher and medical doctor conditions',
     [
-      ['SRC-393', 'Act ss9,24,47–48 and S.I. 444/2024 regs. 42–46'],
+      [
+        'SRC-393',
+        'Act ss9,22(1)(c),22(2),24,47–48 and S.I. 444/2024 regs. 42–46',
+      ],
       ['SRC-394', 'ICT: Eligibility'],
       ['SRC-096', 'Stamp 4 upgrades: Eligibility criteria'],
     ],
@@ -248,7 +251,7 @@ const conditions = {
     '基础就业许可签发和续期费用',
     'Underlying employment permit and renewal fees',
     [
-      ['SRC-393', 'Act ss2–3,47–48,55 and S.I. 444/2024 Schedule 6'],
+      ['SRC-393', 'Act ss36(2)(a),55 and S.I. 444/2024 reg. 7, Schedule 1'],
       ['SRC-404', 'Indexation'],
     ],
   ],
@@ -347,7 +350,7 @@ const conditions = {
     '团聚材料、安全、医疗与签证办理',
     'Family application evidence, security, health and visa process',
     [
-      ['SRC-387', 'June 2026 §§2–3, 13–15'],
+      ['SRC-387', 'June 2026 §§2–3, 12–15'],
       ['SRC-409', 'Join non-EEA family member §9'],
       ['SRC-406', 'Visa Fees'],
     ],
@@ -365,7 +368,7 @@ const conditions = {
     'Irish spouse or civil partner registration in Ireland',
     [
       ['SRC-388', 'Irish spouse and civil partner scheme: Am I eligible?'],
-      ['SRC-384', 'Stamp 4 (3)'],
+      ['SRC-384', 'Stamp 4 (3), First Time Registrations and Renewals'],
     ],
   ],
   B22: [

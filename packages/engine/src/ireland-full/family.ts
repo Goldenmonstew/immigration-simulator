@@ -1,7 +1,4 @@
-import {
-  ireland2026_11 as pilot,
-  irelandFull2026_11 as full,
-} from '@uk-immigration/policy-data';
+import { irelandFull2026_11 as full } from '@uk-immigration/policy-data';
 import { addDays, addMonths } from '../dates';
 import type { IePathway } from '../ireland';
 import { afterYears } from '../pilot';
@@ -9,6 +6,7 @@ import type { IsoDate } from '../types';
 import {
   ageAtLeast,
   all,
+  any,
   character,
   mergePeriods,
   registeredMonths,
@@ -42,8 +40,10 @@ export interface IrelandFamily {
   protectionRelationshipFormedAfterEntry?: boolean;
   grantOn?: IsoDate;
   sponsorNaturalisedOn?: IsoDate;
+  /** Earliest online renewal on or after becoming eligible for this route. */
   nextRenewalOn?: IsoDate;
   establishedFamilyPermission?: boolean;
+  /** Lawful residence in the State under a qualifying dependent permission. */
   dependentPeriods?: IrelandResidencePeriod[];
   change?: {
     kind: 'separation' | 'death' | 'domestic-abuse';
@@ -57,6 +57,10 @@ export interface IrelandFamily {
   /** Facts for a new application or re-check under the family policies. */
   application?: {
     date?: IsoDate;
+    registrationStage?: 'first' | 'renewal';
+    /** Whether the permission letter imposes a specific insurance condition on renewal. */
+    renewalInsuranceRequired?: boolean;
+    renewalInsuranceConditionMet?: boolean;
     channel?:
       | 'ordinary'
       | 'spouse-registration'
@@ -164,10 +168,19 @@ function familyApplication(
           : undefined;
   add(
     'B14',
-    all(data.sponsorLawfulAndResident, waiting, app.entryOrConversionValid),
+    all(
+      channel === 'ordinary'
+        ? any(
+            data.sponsorLawfulAndResident,
+            all(data.sponsorIrish, data.intendsToLiveTogetherInState),
+          )
+        : data.sponsorLawfulAndResident,
+      waiting,
+      app.entryOrConversionValid,
+    ),
     L(
-      `核对合格 A／B／C 类担保人与入境或境内转换。C 类新案通常等 ${n.categoryCWaitMonths} 个月，特定国际保护家庭等 ${n.protectionWaitYears} 年。`,
-      `Check the qualifying category A, B or C sponsor and entry or in-State permission. New category C cases usually wait ${n.categoryCWaitMonths} months, or ${n.protectionWaitYears} years for specified protection families.`,
+      `核对 A／B／C 类担保人与入境或转换资格。爱尔兰公民可拟回国定居。C 类新案通常等 ${n.categoryCWaitMonths} 个月，特定国际保护家庭等 ${n.protectionWaitYears} 年。`,
+      `Check category A, B or C sponsorship and entry or conversion. Irish citizens may intend to move back to Ireland. New category C cases usually wait ${n.categoryCWaitMonths} months, or ${n.protectionWaitYears} years for specified protection families.`,
     ),
     ['PD-329', 'PD-330'],
   );
@@ -458,6 +471,13 @@ function familyApplication(
             : insurance.coverageMonths >= coverage,
         )
       : undefined;
+    const renewal =
+      channel === 'spouse-registration' && app.registrationStage === 'renewal';
+    const insuranceMet = renewal
+      ? app.renewalInsuranceRequired === true
+        ? app.renewalInsuranceConditionMet
+        : true
+      : ins;
     add(
       'B21',
       all(
@@ -465,15 +485,20 @@ function familyApplication(
         partner && rel !== 'de-facto',
         livingTogether,
         app.addressEvidence,
-        ins,
+        insuranceMet,
         channel === 'spouse-in-state'
           ? character(app.applicantCharacter)
           : true,
       ),
-      L(
-        `核对爱尔兰公民合法配偶／民事伴侣、同址及首次登记保险（通常 ${e.firstRegistrationInsuranceMonths} 个月，较短许可按全段）。专门境内案参见 PD-330。`,
-        `Check the Irish spouse or civil partner, joint address and first-registration insurance (normally ${e.firstRegistrationInsuranceMonths} months or the full shorter permission). See PD-330 for the dedicated in-State route.`,
-      ),
+      renewal
+        ? L(
+            '核对爱尔兰公民合法配偶／民事伴侣、同址及续期材料。续期保险按许可附加条件核对。',
+            'Check the Irish spouse or civil partner, joint address and renewal evidence. Check insurance if the permission imposes a renewal condition.',
+          )
+        : L(
+            `核对爱尔兰公民合法配偶／民事伴侣、同址及首次登记保险（通常 ${e.firstRegistrationInsuranceMonths} 个月，较短许可按全段）。专门境内案参见 PD-330。`,
+            `Check the Irish spouse or civil partner, joint address and first-registration insurance (normally ${e.firstRegistrationInsuranceMonths} months or the full shorter permission). See PD-330 for the dedicated in-State route.`,
+          ),
       ['PD-330'],
     );
   }
@@ -600,8 +625,7 @@ export function independentFamily(
       ({ from, to }) => from <= event && (!to || event <= to),
     );
   const changed = data.change;
-  const useLegacy = !child && !alternate && !changed;
-  a.time(clock, ['FAMILY-LEGACY-TIME'], [['PD-118', 'PD-329']], useLegacy);
+  a.time(clock, ['FAMILY-LEGACY-TIME'], [['PD-118', 'PD-329']], false);
   add(
     'B11',
     all(
@@ -615,25 +639,27 @@ export function independentFamily(
     ),
     ['PD-329'],
   );
-  const years = pilot.values.spouse1gYears.value;
-  const sufficient = data.dependentPeriods
-    ? mergePeriods(data.dependentPeriods, addDays(day, -1)).some(
+  const years = pRel.independentResidenceYears;
+  const renewal = data.nextRenewalOn;
+  const reviewOn = renewal && renewal > day ? renewal : day;
+  const periods = data.dependentPeriods?.filter(({ from }) => from <= day);
+  const sufficient = periods
+    ? mergePeriods(periods, addDays(reviewOn, -1)).some(
         ({ from, to }) => afterYears(from, years) <= addDays(to, 1),
       )
     : undefined;
-  const combinedOnly =
-    sufficient === false &&
-    data.dependentPeriods &&
-    registeredMonths(data.dependentPeriods, day, years * 12);
-  const ordinary = child
-    ? combinedOnly
-      ? undefined
-      : sufficient
-    : clock.status === 'MET'
+  const ordinary = periods
+    ? sufficient
       ? true
-      : clock.status === 'UNKNOWN'
-        ? undefined
-        : false;
+      : registeredMonths(periods, reviewOn, years * 12) === false
+        ? false
+        : undefined
+    : child || clock.status === 'UNKNOWN'
+      ? undefined
+      : clock.status === 'MET' ||
+        (clock.status === 'FUTURE' &&
+          clock.earliestDate !== undefined &&
+          clock.earliestDate <= reviewOn);
   const independentOnNaturalisation =
     alternate && event && data.dependentPeriods
       ? mergePeriods(data.dependentPeriods, event).some(
@@ -642,40 +668,39 @@ export function independentFamily(
             afterYears(from, pRel.naturalisedSponsorDependentYears) <= event,
         )
       : undefined;
-  const eligibleAtRenewal = alternate
-    ? data.nextRenewalOn === undefined
-      ? undefined
-      : day >= data.nextRenewalOn
-    : undefined;
+  const eligibleAtRenewal = renewal === undefined ? undefined : day >= renewal;
+  const timeEligible = alternate ? true : ordinary;
+  const waitingForRenewal =
+    !changed && timeEligible === true && eligibleAtRenewal === false;
+  if (waitingForRenewal && renewal) a.availableFrom(renewal);
   const eligible = changed
     ? changed.approval
-    : alternate
-      ? ordinary === true
-        ? true
-        : eligibleAtRenewal
-      : ordinary;
+    : timeEligible === true
+      ? eligibleAtRenewal
+      : timeEligible;
   add(
     'B12',
     eligible,
     L(
-      `家庭许可通常需 ${years} 年。担保人在依亲期间入籍，可于下次线上续期申请；入籍时依亲不足 ${pRel.naturalisedSponsorDependentYears} 年时，按此入口获发的许可仍附担保条件。`,
-      `Usually ${years} years on a family permission. A sponsor naturalising during dependency allows filing at the next online renewal. If dependency was under ${pRel.naturalisedSponsorDependentYears} years at naturalisation, permission through that branch remains sponsor-dependent.`,
+      `依亲居留满 ${years} 年或担保人在依亲期间入籍后，在下次线上续期申请${renewal ? `（${renewal}）` : ''}。若入籍时依亲不足 ${pRel.naturalisedSponsorDependentYears} 年，通过入籍分支获发的许可仍附担保条件。`,
+      `Apply at the next online renewal${renewal ? ` (${renewal})` : ''} after ${years} years of dependent residence or a sponsor's naturalisation during dependency. If dependency was under ${pRel.naturalisedSponsorDependentYears} years at naturalisation, permission through that branch remains sponsor-dependent.`,
     ),
     ['PD-118', 'PD-329'],
-    !useLegacy,
+    !waitingForRenewal,
   );
-  if (alternate)
+  if (alternate) {
+    const independent = any(ordinary, independentOnNaturalisation);
     add(
       'FAMILY-INDEPENDENCE',
-      ordinary === true
-        ? true
-        : all(eligibleAtRenewal, independentOnNaturalisation),
+      independent === true ? eligibleAtRenewal : independent,
       L(
         '分开核对能否在下次续期申请 Stamp 4 和许可是否独立于担保人。',
         'Assess independence from the sponsor separately from eligibility to apply for Stamp 4 at the next renewal.',
       ),
       ['PD-329'],
+      !waitingForRenewal || independent !== true,
     );
+  }
   if (changed) {
     const ended = changed.endedOn;
     const relationshipMet =
