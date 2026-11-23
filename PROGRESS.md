@@ -473,3 +473,4 @@
 | 472 | 任务 80 审核修正（review80-1）：英国 What-if 调整日期触发筛查中止时，两栏恢复“此规则集暂无评估结果。”提示。补日期及通用路径增删对比回归；对比页与已保存方案按国家重置组件状态。 | apps/web/components/{whatif-lab,saved-scenarios}.tsx、apps/web/test/country-views.test.tsx、docs/tasks/reports/80-country-module.md |
 | 560 | 任务 85：归档加拿大完整版的官方快照，登记 SRC-260–279、PD-240–259 及组内原文链接。 | policy-sources/*-ca-*、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
 | 561 | 任务 85：在加拿大参数文件增加完整版门槛、费表、适用日期与逐项来源，登记 ca.current-law-2026-11；保留旧参数版本。 | packages/policy-data/src/{types,index,parameters/{canada-2026-11,index}}.ts |
+| 562 | 任务 85：新增加拿大十条路径、80 项条件、双语结果与边界及组合测试，记录各条件来源及页面问卷交接。 | packages/engine/src/{index.ts,canada-full/}、packages/engine/test/canada-*-full.test.ts、docs/tasks/reports/85-ca-rules.md |

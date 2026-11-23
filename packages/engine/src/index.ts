@@ -120,6 +120,13 @@ export type {
   UsResult,
   UsTrip,
 } from './united-states';
+export { evaluateCanadaFull } from './canada-full';
+export type {
+  CaFullCheck,
+  CaFullPathwayId,
+  CaFullRequest,
+  CaFullResult,
+} from './canada-full';
 export { evaluateCanada } from './canada';
 export type {
   CaPathway,
