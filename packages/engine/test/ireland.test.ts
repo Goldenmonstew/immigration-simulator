@@ -549,6 +549,39 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     expect(other.earliestDate).toBe('2029-05-15');
   });
 
+  test('Stamp 4 routes: living in Northern Ireland on an unexpired card does not count (task 72)', () => {
+    // Spouse 1G to 2027-05-31, but living in Northern Ireland from 2026-03-01.
+    const spouse = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permissions: [
+          { kind: 'stamp1g-spouse', from: '2021-06-01', to: '2027-05-31' },
+          { kind: 'ni-residence', from: '2026-03-01' },
+        ],
+        stamp4Route: 'spouse-1g',
+      },
+      'IE-STAMP4',
+    );
+    expect(spouse.status).toBe('NOT_MET');
+    expect(spouse.checks[0].met).toBe(false);
+    // 21 months on a CSEP were complete on 2025-10-01, but on the
+    // simulation date the applicant lives in Northern Ireland.
+    const csep = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permissions: [
+          { kind: 'stamp1-csep', from: '2024-01-01', to: '2027-12-31' },
+          { kind: 'ni-residence', from: '2025-11-01' },
+        ],
+        stamp4Route: 'csep',
+        employmentStart: '2024-01-01',
+      },
+      'IE-STAMP4',
+    );
+    expect(csep.status).toBe('NOT_MET');
+    expect(csep.checks[0].met).toBe(false);
+  });
+
   test('Stamp 1G: graduate programme time does not count (review68-1)', () => {
     const p = pathway(
       {

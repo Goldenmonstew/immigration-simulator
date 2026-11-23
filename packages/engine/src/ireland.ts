@@ -580,8 +580,10 @@ export function evaluateIreland(req: IeRequest): IeResult {
         const ruleFrom = route === 'gep' ? v.gepRuleFrom.value : undefined;
         const verdict = (d: IsoDate): Verdict => {
           const from = countFrom(d);
-          // Renewing as Stamp 4: the permit is held on the application day.
-          if (!from || !permit(days.index(d))) return 'no';
+          // Renewing as Stamp 4: residing in the State on the permit on the
+          // application day (SRC-096), not living in Northern Ireland.
+          const i = days.index(d);
+          if (!from || !permit(i) || ni[i]) return 'no';
           // From the 29th–31st into a shorter month: that month's last day
           // or the 1st of the next (PD-116).
           const end = addMonths(from, months);
@@ -646,12 +648,12 @@ export function evaluateIreland(req: IeRequest): IeResult {
               text:
                 route === 'csep'
                   ? L(
-                      `凭 Critical Skills Employment Permit、研究员 Hosting Agreement 或 NCHD 医生的多地点 General Employment Permit（Stamp 1 或 1H），自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；GEP、ICT 的 Stamp 1、庇护申请期间与北爱尔兰居住不算），递交当天持该许可`,
-                      `${months} months from starting work on ${start} on a Critical Skills Employment Permit, a researcher’s Hosting Agreement or a Multi-Site General Employment Permit as a non-consultant hospital doctor (Stamp 1 or 1H), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not Stamp 1 on a GEP or ICT, time awaiting a protection decision or living in Northern Ireland) and on the application day`,
+                      `凭 Critical Skills Employment Permit、研究员 Hosting Agreement 或 NCHD 医生的多地点 General Employment Permit（Stamp 1 或 1H），自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；GEP、ICT 的 Stamp 1、庇护申请期间与北爱尔兰居住不算），递交当天在爱尔兰居住并持该许可`,
+                      `${months} months from starting work on ${start} on a Critical Skills Employment Permit, a researcher’s Hosting Agreement or a Multi-Site General Employment Permit as a non-consultant hospital doctor (Stamp 1 or 1H), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not Stamp 1 on a GEP or ICT, time awaiting a protection decision or living in Northern Ireland), and residing in Ireland on it on the application day`,
                     )
                   : L(
-                      `凭 General Employment Permit 或公司内调（ICT）的 Stamp 1，自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；CSEP 一类的 Stamp 1、庇护申请期间与北爱尔兰居住不算），递交当天持该许可`,
-                      `${months} months from starting work on ${start} on a General Employment Permit or an Intra-Company Transfer (Stamp 1), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not Stamp 1 in the Critical Skills group, time awaiting a protection decision or living in Northern Ireland) and on the application day`,
+                      `凭 General Employment Permit 或公司内调（ICT）的 Stamp 1，自 ${start} 开始受雇满 ${months} 个月，其间每天都持该许可（转为 Stamp 1 之前凭其他合法许可工作的日子也算，如学生许可、毕业生 1G；CSEP 一类的 Stamp 1、庇护申请期间与北爱尔兰居住不算），递交当天在爱尔兰居住并持该许可`,
+                      `${months} months from starting work on ${start} on a General Employment Permit or an Intra-Company Transfer (Stamp 1), holding it every day since (before moving to Stamp 1, days worked on another valid permission such as a student permission or graduate 1G also count; not Stamp 1 in the Critical Skills group, time awaiting a protection decision or living in Northern Ireland), and residing in Ireland on it on the application day`,
                     ),
               met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
               sources: [
@@ -685,9 +687,11 @@ export function evaluateIreland(req: IeRequest): IeResult {
       }
     } else if (route === 'spouse-1g') {
       const years = v.spouse1gYears.value;
-      // 5 years on a family reunification permission (FAQ 30): Stamp 1G as
-      // a spouse or partner, and the Stamp 3 these spouses held before 2024.
-      const held = holds(['stamp1g-spouse', 'stamp1g-ict', 'stamp3-family']);
+      // 5 years in Ireland on a family reunification permission (FAQ 30):
+      // Stamp 1G as a spouse or partner, and the Stamp 3 these spouses held
+      // before 2024; not while living in Northern Ireland.
+      const family = holds(['stamp1g-spouse', 'stamp1g-ict', 'stamp3-family']);
+      const held = (i: number) => !ni[i] && family(i);
       const heldSums = days.sums(held);
       const verdict = (d: IsoDate): Verdict => {
         const from = addYears(d, -years);
@@ -734,8 +738,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
         checks: [
           {
             text: L(
-              `${addYears(sim, -years)} 起每天都作为雇佣许可持有人（CSEP、GEP、ICT 等）或研究员的配偶、伴侣持家庭团聚许可（Stamp 1G，或 2024 年前的 Stamp 3），递交当天仍持有（毕业生计划的 1G 不计）`,
-              `A family reunification permission (Stamp 1G, or Stamp 3 before 2024) as the spouse or partner of an employment permit holder (CSEP, GEP, ICT and so on) or researcher on every day since ${addYears(sim, -years)} and on the application day (graduate programme 1G does not count)`,
+              `${addYears(sim, -years)} 起每天都作为雇佣许可持有人（CSEP、GEP、ICT 等）或研究员的配偶、伴侣持家庭团聚许可（Stamp 1G，或 2024 年前的 Stamp 3）并住在爱尔兰，递交当天仍持有（毕业生计划的 1G 与住在北爱尔兰的日子不计）`,
+              `A family reunification permission (Stamp 1G, or Stamp 3 before 2024) as the spouse or partner of an employment permit holder (CSEP, GEP, ICT and so on) or researcher and living in Ireland on every day since ${addYears(sim, -years)} and on the application day (graduate programme 1G and days living in Northern Ireland do not count)`,
             ),
             met: now === 'yes' ? true : now === 'maybe' ? undefined : false,
             sources: v.spouse1gYears.sources,
@@ -749,8 +753,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
         ],
         assumptions: [
           L(
-            '"5 年"按 ISD 家庭团聚 FAQ 第 30 问计"在家庭团聚许可下满 5 年"：配偶、伴侣类的 Stamp 1G（与毕业生计划的 1G 分开），以及 2024-05-15 改发 1G 之前这些配偶、伴侣所持的 Stamp 3（通告写明其家庭团聚许可原为 Stamp 3）；其他原因的 Stamp 3 不计。按连续持有计，许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。',
-            '"5 years" follows ISD’s family reunification FAQ 30, "5 years or more … on a family reunification permission": Stamp 1G as a spouse or partner (apart from graduate programme 1G), and the Stamp 3 these spouses and partners held before the move to 1G on 2024-05-15 (the notice says their family reunification permission was Stamp 3); Stamp 3 for other reasons does not count. It is taken as held without a break; after a gap, whether time on both sides can be added up is not stated, so that date is shown separately (PD-118).',
+            '"5 年"按 ISD 家庭团聚 FAQ 第 30 问计"在家庭团聚许可下满 5 年"：配偶、伴侣类的 Stamp 1G（与毕业生计划的 1G 分开），以及 2024-05-15 改发 1G 之前这些配偶、伴侣所持的 Stamp 3（通告写明其家庭团聚许可原为 Stamp 3）；其他原因的 Stamp 3 不计；FAQ 写的是在爱尔兰满 5 年，住在北爱尔兰的日子不计。按连续持有计，许可之间有空档时，空档前后能否累加没写，累加后的日期另列（PD-118）。',
+            '"5 years" follows ISD’s family reunification FAQ 30, "5 years or more … on a family reunification permission": Stamp 1G as a spouse or partner (apart from graduate programme 1G), and the Stamp 3 these spouses and partners held before the move to 1G on 2024-05-15 (the notice says their family reunification permission was Stamp 3); Stamp 3 for other reasons does not count; the FAQ speaks of 5 years in Ireland, so days living in Northern Ireland do not count. It is taken as held without a break; after a gap, whether time on both sides can be added up is not stated, so that date is shown separately (PD-118).',
           ),
           projection,
         ],
