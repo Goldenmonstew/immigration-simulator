@@ -487,3 +487,4 @@
 | 483 | 任务 81 第二轮审核修正（review81-2）：首次做菜回忆记录内容包住处，节日按周顺延到周末之后并限定在本季度内。新增最小包存档往返和节日顺序回归。 | packages/game/src/game.ts、packages/game/test/content-pack.test.ts、docs/tasks/reports/81-game-packs.md、PROGRESS.md |
 | 490 | 任务 82：网站改名 immigration-simulator——Cloudflare 新项目与部署变量、仓库改名与 GitHub Pages 新路径；旧 Cloudflare 项目与新建的旧名仓库只做跳转并自行注销旧 service worker；部署文档补记。 | docs/deploy.md |
 | 491 | GitHub Pages 部署拆成 build 与 deploy 两个 job：同一 job 里刚上传的产物偶尔查不到（554dc5f、083fefa 两次失败，重跑后成功）。 | .github/workflows/github-pages.yml |
+| 590 | 任务 86：核对并登记美国完整版官方快照、哈希及来源网址，追加 PD-260–279。 | docs/SOURCES.md、docs/pending-details.md、policy-sources/、apps/web/lib/sources.ts |
