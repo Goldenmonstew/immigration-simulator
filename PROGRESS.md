@@ -487,3 +487,11 @@
 | 483 | 任务 81 第二轮审核修正（review81-2）：首次做菜回忆记录内容包住处，节日按周顺延到周末之后并限定在本季度内。新增最小包存档往返和节日顺序回归。 | packages/game/src/game.ts、packages/game/test/content-pack.test.ts、docs/tasks/reports/81-game-packs.md、PROGRESS.md |
 | 490 | 任务 82：网站改名 immigration-simulator——Cloudflare 新项目与部署变量、仓库改名与 GitHub Pages 新路径；旧 Cloudflare 项目与新建的旧名仓库只做跳转并自行注销旧 service worker；部署文档补记。 | docs/deploy.md |
 | 491 | GitHub Pages 部署拆成 build 与 deploy 两个 job：同一 job 里刚上传的产物偶尔查不到（554dc5f、083fefa 两次失败，重跑后成功）。 | .github/workflows/github-pages.yml |
+| 740 | 任务 91：登记日本完整版使用的官方法条、指南、手续费及办事材料，校对调研哈希，补 PD-360–379 与网页来源索引。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
+| 741 | 任务 91：加入永住审查过渡、许可期间、教育与证据窗口、人才分值、帰化特例、再入国和手续费参数。 | packages/policy-data/src/{index.ts,parameters/japan-2026-11.ts} |
+| 742 | 任务 91：新增日本完整版评估入口，复用原时间结果，逐项检查永住、帰化与再入国并补边界测试。 | packages/engine/src/{index.ts,japan-full*.ts}、packages/engine/test/japan-full.test.ts、docs/tasks/reports/91-jp-rules.md |
+| 743 | 任务 91 审核修正（review91-1）：排除新版企業内転勤合资格年限，永住递交日期按窗口日历顺延，修正无限期在留的みなし再入国、申报日期缺失、永住者子女日语豁免及第6条第2号生父母出生地未知的判断。补回归用例并更正 PD-370 来源。 | packages/engine/src/{japan,japan-full-pr,japan-full-naturalisation,japan-full-reentry}.ts、packages/engine/test/japan-full.test.ts、docs/{pending-details,tasks/reports/91-jp-rules}.md |
+| 744 | 修正任务 91 第二轮审核问题（review91-2）。归化递交日顺延至窗口开放日，永住按顺延日复核合法在留，新版指南下的长出境按理由认定状态判断。补回归测试并更新 PD-360、PD-370。 | packages/engine/src/japan-full-{shared,pr,naturalisation}.ts、packages/engine/test/japan-full.test.ts、docs/{pending-details,tasks/reports/91-jp-rules}.md |
+| 745 | 修正任务 91 第三轮审核问题（review91-3）。普通再入国窗口渠道按共用日历顺延，并按候选日复核出境期限。补窗口、在线渠道和日历待确认回归，更新 SRC-461、PD-370 及两项审核风险。 | packages/engine/src/japan-full-{shared,reentry}.ts、packages/engine/test/japan-full.test.ts、docs/{SOURCES,pending-details,tasks/reports/91-jp-rules}.md |
+| 746 | 修正任务 91 第四轮审核问题（review91-4）。普通再入国留空渠道时根据在线资格选用递交日历，资格未知或候选日与出境日相同时留空最早递交日。核对永住和归化窗口入口，补回归并更新 PD-370。 | packages/engine/src/japan-full-reentry.ts、packages/engine/test/japan-full.test.ts、docs/{pending-details,tasks/reports/91-jp-rules}.md |
+| 747 | 修正任务 91 第五轮审核问题（review91-5）。普通再入国留空渠道和在线资格时，原候选日窗口已知开放且早于出境日即可保留当天。补周一回归并收窄 PD-370。 | packages/engine/src/japan-full-reentry.ts、packages/engine/test/japan-full.test.ts、docs/{pending-details,tasks/reports/91-jp-rules}.md |
