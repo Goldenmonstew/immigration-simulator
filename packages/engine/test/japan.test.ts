@@ -593,8 +593,11 @@ describe('review70-2', () => {
       pr: { route: 'general', statusStart: '2010-01-01' },
       trips: [{ departed: '2027-05-01', returned: '2027-12-01' }],
     });
-    // 8 whole days abroad by 2027-05-10.
-    expect(p.checks[2].met).toBe(true);
+    // Task 74: the checks describe the planned return on 2027-12-01, as the
+    // projected dates do: 213 whole days abroad is half a year or more.
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[2].met).toBe(false);
+    expect(p.summary).toContain('检查项按计划返回日 2027-12-01 计算');
     expect(p.checks.at(-1)?.met).toBe(false);
   });
 });
@@ -690,7 +693,13 @@ describe('review70-5', () => {
   });
 
   test('the last day is 30 days after the birth', () => {
-    expect(born('2026-12-10').status).toBe('MET');
+    // Task 74: counting the birth day as the first day ends on 12-09, so
+    // 12-10 is the one day the readings differ (PD-130).
+    expect(born('2026-12-09').status).toBe('MET');
+    const p = born('2026-12-10');
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('2026-12-09');
+    expect(p.summary).toContain('PD-130');
   });
 
   test('after the window, the change-of-status route', () => {
@@ -725,8 +734,9 @@ describe('review70-6', () => {
   });
 
   test('a deadline on a Saturday moves to the Monday', () => {
-    // 2026-12-05 is a Saturday.
-    expect(born('2026-11-05', '2026-12-07').status).toBe('MET');
+    // 2026-12-05 is a Saturday; counting the birth day, 12-04 (Friday).
+    expect(born('2026-11-05', '2026-12-04').status).toBe('MET');
+    expect(born('2026-11-05', '2026-12-07').status).toBe('UNKNOWN');
     expect(born('2026-11-05', '2026-12-08').status).toBe('NOT_MET');
   });
 
@@ -737,8 +747,10 @@ describe('review70-6', () => {
   });
 
   test('a year not listed yet follows the holidays law', () => {
-    // 2028-01-19 is a Wednesday and no holiday under the law.
-    expect(born('2027-12-20', '2028-01-19').status).toBe('MET');
+    // 2028-01-19 is a Wednesday and no holiday under the law (01-18
+    // counting the birth day).
+    expect(born('2027-12-20', '2028-01-18').status).toBe('MET');
+    expect(born('2027-12-20', '2028-01-19').status).toBe('UNKNOWN');
     expect(born('2027-12-20', '2028-01-20').status).toBe('NOT_MET');
     expect(born('2027-12-20', '2028-02-01').status).toBe('NOT_MET');
   });
@@ -839,14 +851,15 @@ describe('review70-7', () => {
   });
 
   test('a year with no holiday list says so, not the equinox', () => {
-    // 30 days from 2021-01-05 is 2021-02-04; 2021 is not covered.
+    // 30 days from 2018-01-05 is Sunday 2018-02-04, then Monday 02-05;
+    // 2018 is not covered.
     const p = pr({
-      simulationDate: '2021-03-05',
-      stayStart: '2021-01-05',
-      pr: { route: 'child-birth', bornOn: '2021-01-05' },
+      simulationDate: '2018-03-05',
+      stayStart: '2018-01-05',
+      pr: { route: 'child-birth', bornOn: '2018-01-05' },
     });
     expect(p.status).toBe('UNKNOWN');
-    expect(p.summary).toContain('没有收录 2021 年');
+    expect(p.summary).toContain('没有收录 2018 年');
     expect(p.summary).not.toContain('春分日');
   });
 
@@ -904,15 +917,236 @@ describe('review70-10', () => {
 
 describe('review70-11', () => {
   test('before 2022-04-01 the age was 20', () => {
-    // 19 on 2021-06-01; 18 is enough from 2022-04-01.
+    // 19 on 2021-06-01: 18 is enough from 2022-04-01, while an application
+    // before then may be decided after the change (task 74, PD-161).
     const p = nat({
       simulationDate: '2021-06-01',
       stayStart: '2010-01-01',
       naturalisation: { route: 'general', dateOfBirth: '2002-05-01' },
     });
-    expect(p.earliestDate).toBe('2022-04-01');
-    expect(p.checks[1].text).toContain('年满 20 岁');
-    expect(p.checks[1].met).toBe(false);
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('PD-161');
+    expect(p.checks[1].text).toContain('按 2021-06-01 递交：年满 20 岁');
+    // review74-1: the later age applies from 2022-04-01, not from the 18th
+    // birthday (2020-05-01) before the change.
+    expect(p.checks[1].text).toContain(
+      '2022-04-01 起递交为 18 岁（满足自 2022-04-01 起）',
+    );
+    expect(p.checks[1].met).toBeUndefined();
+    expect(p.pendingDetails).toContain('PD-161');
+    expect(
+      nat({
+        simulationDate: '2021-06-01',
+        stayStart: '2010-01-01',
+        naturalisation: { route: 'general', dateOfBirth: '2002-05-01' },
+        locale: 'en',
+      }).summary,
+    ).toContain('you were 18 or over but not yet 20');
+    // 18 only after the change (2022-06-01): nothing to doubt.
+    const younger = nat({
+      simulationDate: '2021-06-01',
+      stayStart: '2010-01-01',
+      naturalisation: { route: 'general', dateOfBirth: '2004-06-01' },
+    });
+    expect(younger.earliestDate).toBe('2022-06-01');
+    expect(younger.checks[1].met).toBe(false);
+  });
+});
+
+describe('task 74: trips after birth', () => {
+  const born = (
+    bornOn: string,
+    simulationDate: string,
+    trip: {
+      departed: string;
+      returned: string;
+      departure?: 'none' | 'deemed' | 'permit';
+    },
+  ) =>
+    pr({
+      simulationDate,
+      stayStart: bornOn,
+      pr: { route: 'child-birth', bornOn },
+      trips: [trip],
+    });
+
+  test('leaving within 60 days without a permit needs no application', () => {
+    // review74-1: born 2026-11-10, away 11-27 to 12-01 (FAQ Q28).
+    const trip = {
+      departed: '2026-11-27',
+      returned: '2026-12-01',
+      departure: 'none' as const,
+    };
+    const p = born('2026-11-10', '2026-11-24', trip);
+    expect(p.status).toBe('NOT_APPLICABLE');
+    expect(p.summary).toContain('Q28');
+    expect(born('2026-11-10', '2026-12-02', trip).status).toBe(
+      'NOT_APPLICABLE',
+    );
+    // Leaving only after the 60 days (2027-01-09): the usual window.
+    expect(
+      born('2026-11-10', '2026-11-24', {
+        departed: '2027-01-15',
+        returned: '2027-02-01',
+      }).status,
+    ).toBe('MET');
+  });
+
+  // Born 2026-11-10: 30 days end on 2026-12-10.
+  const long = {
+    departed: '2026-11-25',
+    returned: '2027-01-20',
+    departure: 'permit' as const,
+  };
+
+  test('with a re-entry permit: file before leaving', () => {
+    const p = born('2026-11-10', '2026-11-23', long);
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('须在出境前递交');
+  });
+
+  test('a permit with no day left to file before leaving is unclear', () => {
+    const p = born('2026-11-10', '2026-11-30', long);
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('PD-160');
+  });
+
+  test('the filing day is a day in Japan before leaving', () => {
+    // Saturday 2026-11-21; 11-22 Sunday, 11-23 勤労感謝の日; the child
+    // leaves on 11-24.
+    const p = born('2026-11-01', '2026-11-21', {
+      departed: '2026-11-24',
+      returned: '2027-01-10',
+      departure: 'permit' as const,
+    });
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('最早可在 2026-11-24 递交');
+    // Leaving on 11-23 instead leaves no open day to file.
+    expect(
+      born('2026-11-01', '2026-11-21', {
+        departed: '2026-11-23',
+        returned: '2027-01-10',
+        departure: 'permit' as const,
+      }).status,
+    ).toBe('UNKNOWN');
+  });
+
+  test('a predicted holiday does not settle a trip case as unmet', () => {
+    // 30 days from 2028-02-19 is 03-20, the predicted 春分日.
+    const trip = { departed: '2028-03-16', returned: '2028-03-21' };
+    expect(
+      born('2028-02-19', '2028-03-17', {
+        ...trip,
+        departure: 'permit' as const,
+      }).status,
+    ).toBe('UNKNOWN');
+    expect(
+      born('2028-02-19', '2028-03-17', { ...trip, departure: 'none' }).status,
+    ).toBe('NOT_APPLICABLE');
+  });
+
+  test('review74-2: how the child leaves must be said', () => {
+    // Born 2026-11-10, sim 11-16, away 11-27 to 12-01.
+    const at = (departure?: 'none' | 'deemed' | 'permit') =>
+      born('2026-11-10', '2026-11-16', {
+        departed: '2026-11-27',
+        returned: '2026-12-01',
+        departure,
+      });
+    expect(at('none').status).toBe('NOT_APPLICABLE');
+    // A deemed permit needs a status too (FAQ Q28 excludes both permits).
+    expect(at('deemed').status).toBe('MET');
+    expect(at('deemed').summary).toContain('须在出境前递交');
+    expect(at('permit').status).toBe('MET');
+    const unsaid = at();
+    expect(unsaid.status).toBe('UNKNOWN');
+    expect(unsaid.summary).toContain('没有选择出境方式');
+  });
+
+  test('review74-3: the only filing day is a predicted holiday', () => {
+    // Born 2028-03-01; Saturday 03-18, Sunday 03-19, and 03-20 (the
+    // predicted 春分日) is the departure day.
+    const p = born('2028-03-01', '2028-03-18', {
+      departed: '2028-03-20',
+      returned: '2028-03-26',
+      departure: 'deemed',
+    });
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('按国立天文台的预测是休日');
+  });
+
+  test('review74-3: a permit needs the status before leaving', () => {
+    const p = born('2026-11-10', '2026-11-16', {
+      departed: '2026-11-27',
+      returned: '2026-12-01',
+      departure: 'deemed',
+    });
+    expect(p.summary).toContain('持みなし再入国许可出境');
+    expect(p.summary).toContain('须在出境前已取得在留资格');
+  });
+
+  test('review74-2: filing on the departure day may be too late', () => {
+    // Saturday 11-21, Sunday 11-22, 勤労感謝の日 11-23; leaving 11-24.
+    const p = born('2026-11-10', '2026-11-21', {
+      departed: '2026-11-24',
+      returned: '2026-12-01',
+      departure: 'permit',
+    });
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('当天才递交可能来不及');
+  });
+});
+
+describe('review74-1: both deadlines', () => {
+  test('the earlier deadline is shown as the safer one', () => {
+    const p = pr({
+      simulationDate: '2026-12-08',
+      stayStart: '2026-11-10',
+      pr: { route: 'child-birth', bornOn: '2026-11-10' },
+    });
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('到 2026-12-09 为止');
+    expect(p.checks[0].text).toContain('含出生日计到 2026-12-09');
+  });
+});
+
+describe('task 74: on a trip on the simulation date', () => {
+  test('a planned late return is the stay the checks describe', () => {
+    // Away 2027-05-01 to 2028-08-01 without a re-entry permit: the status
+    // ends, and the stay counts again from the return.
+    const p = pr({
+      simulationDate: '2027-06-01',
+      stayStart: '2010-01-01',
+      pr: { route: 'general', statusStart: '2010-01-01' },
+      trips: [{ departed: '2027-05-01', returned: '2028-08-01' }],
+    });
+    expect(p.checks[0].text).toContain('自 2028-08-01 起');
+    expect(p.summary).toContain('检查项按计划返回日 2028-08-01 计算');
+    const n = nat({
+      simulationDate: '2027-06-01',
+      stayStart: '2010-01-01',
+      trips: [{ departed: '2027-05-01', returned: '2028-08-01' }],
+    });
+    expect(n.checks[0].text).toContain('自 2028-08-01 起');
+    expect(n.summary).toContain('检查项按计划返回日 2028-08-01 计算');
+  });
+});
+
+describe('task 74: 2019–2021 almanacs', () => {
+  test('the 2021 Olympic holidays are known, not predicted', () => {
+    // 30 days from 2021-07-09 is Sunday 08-08 (山の日, moved); its
+    // substitute 08-09 is closed too, so 08-10 on either reading.
+    const born = (simulationDate: string) =>
+      pr({
+        simulationDate,
+        stayStart: '2021-07-09',
+        pr: { route: 'child-birth', bornOn: '2021-07-09' },
+      });
+    expect(born('2021-08-10').status).toBe('MET');
+    expect(born('2021-08-11').status).toBe('NOT_MET');
+    const p = born('2021-08-09');
+    expect(p.summary).toContain('最早可在 2021-08-10 递交');
+    expect(p.summary).not.toContain('预测');
   });
 });
 

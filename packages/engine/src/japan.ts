@@ -56,6 +56,11 @@ export interface JpTrip {
    * was still pending when leaving (art. 20(6), FAQ Q61).
    */
   renewalPending?: boolean;
+  /**
+   * Birth route: how the newborn left — without a permit, on a deemed
+   * permit, or on a re-entry permit (FAQ Q28); absent = not said.
+   */
+  departure?: 'none' | 'deemed' | 'permit';
 }
 
 /** Both days included. */
@@ -202,6 +207,16 @@ export function evaluateJapan(req: JpRequest): JpResult {
   /** Abroad all day on `d`: applications are made in person in Japan. */
   const abroad = (d: IsoDate) =>
     req.trips.some((t) => t.departed < d && d < t.returned);
+  // On a trip under way on the simulation date, the checks describe the
+  // planned return, as the projected dates do.
+  const ongoing = req.trips.find((t) => t.departed < sim && sim < t.returned);
+  const at = ongoing ? ongoing.returned : sim;
+  const forecast = ongoing
+    ? L(
+        `模拟日在境外（${ongoing.departed} 至 ${ongoing.returned} 的出境），检查项按计划返回日 ${at} 计算。`,
+        ` You are abroad on the simulation date (the trip from ${ongoing.departed} to ${ongoing.returned}), so the checks are worked out for the planned return on ${at}.`,
+      )
+    : '';
   /**
    * Trips under way on any day of [from, to], travel days included; a lapse
    * is left out, since the stay counted starts on its return.
@@ -417,17 +432,62 @@ export function evaluateJapan(req: JpRequest): JpResult {
     const exact = closed(deadline) === 'no';
     let latest = deadline;
     while (latest < sim && closed(latest) !== 'no') latest = addDays(latest, 1);
-    const status: PilotStatus =
+    // Counting the birth day as the first of the days (a city's example)
+    // ends a day earlier; where that changes the answer, it is uncertain
+    // (PD-130).
+    let early = addDays(raw, -1);
+    while (closed(early) === 'yes') early = addDays(early, 1);
+    // The child's first trip abroad after birth. Leaving within the days a
+    // newborn may stay without a status, and without a re-entry permit,
+    // needs no application: the child lands anew on return (art. 22-2(1),
+    // FAQ Q28). With a permit the child must already hold a status, so the
+    // filing is in Japan before leaving (PD-160).
+    const first = req.trips
+      .filter((t) => t.departed >= born)
+      .sort((a, b) => (a.departed < b.departed ? -1 : 1))[0];
+    const noStatusUntil = addDays(born, v.birthStayWithoutStatusDays.value);
+    const leaves = first && first.departed <= noStatusUntil ? first : undefined;
+    const noNeed = leaves?.departure === 'none';
+    // Either permit needs a status first (FAQ Q28 excludes both).
+    const unsaid = !!leaves && !leaves.departure;
+    const out =
+      leaves && !noNeed && !unsaid && leaves.departed <= deadline
+        ? leaves
+        : undefined;
+    const lastDay = out && out.departed < deadline ? out.departed : deadline;
+    const canFile = (x: IsoDate) =>
+      x <= lastDay && closed(x) !== 'yes' && !abroad(x);
+    let fileOn: IsoDate | undefined = sim < born ? born : sim;
+    while (fileOn && !canFile(fileOn))
+      fileOn = fileOn < lastDay ? addDays(fileOn, 1) : undefined;
+    const timeStatus: PilotStatus =
       sim < born
         ? 'FUTURE'
-        : sim <= deadline
+        : sim <= early
           ? 'MET'
-          : exact || latest < sim
-            ? 'NOT_MET'
-            : 'UNKNOWN';
+          : sim <= deadline
+            ? 'UNKNOWN'
+            : exact || latest < sim
+              ? 'NOT_MET'
+              : 'UNKNOWN';
+    // A permit with no day left to file before leaving: without a status
+    // the child could not have had one, so how it returns is unclear
+    // (PD-160).
+    const stranded = !!out && !fileOn && sim <= deadline;
+    // The only day left before leaving is a predicted holiday: if it is
+    // confirmed, there is none (PD-130, PD-160).
+    let sureOn = fileOn;
+    while (sureOn && !(canFile(sureOn) && closed(sureOn) === 'no'))
+      sureOn = sureOn < lastDay ? addDays(sureOn, 1) : undefined;
+    const onlyPredicted = !!out && !!fileOn && !sureOn;
+    const status: PilotStatus = noNeed
+      ? 'NOT_APPLICABLE'
+      : unsaid || stranded || onlyPredicted
+        ? 'UNKNOWN'
+        : timeStatus;
     const when = L(
-      `出生之日起 ${days} 日为 ${raw}${deadline === raw ? '' : `，遇行政机关休日顺延至 ${deadline}`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `；${deadline} 是否为春分日或秋分日（或因此成为休日）要到前一年 2 月才正式公布，期限可能再顺延（PD-130）` : `；试点没有收录 ${deadline.slice(0, 4)} 年的国民の祝日，期限可能再顺延（PD-130）`}`,
-      `${days} days from birth is ${raw}${deadline === raw ? '' : `, moved to ${deadline} past days the offices are closed`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `; whether ${deadline} is an equinox day (or a holiday because of one) is fixed only in February of the year before, so it may move later still (PD-130)` : `; the pilot does not cover national holidays for ${deadline.slice(0, 4)}, so it may move later still (PD-130)`}`,
+      `出生之日起 ${days} 日为 ${raw}${deadline === raw ? '' : `，遇行政机关休日顺延至 ${deadline}`}${early === deadline ? '' : `；若连出生当天算作第 1 天，到 ${early} 为止，按这一天递交更稳妥（PD-130）`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `；${deadline} 是否为春分日或秋分日（或因此成为休日）要到前一年 2 月才正式公布，期限可能再顺延（PD-130）` : `；试点没有收录 ${deadline.slice(0, 4)} 年的国民の祝日，期限可能再顺延（PD-130）`}`,
+      `${days} days from birth is ${raw}${deadline === raw ? '' : `, moved to ${deadline} past days the offices are closed`}${early === deadline ? '' : `; counting the birth day as the first, it ends on ${early}, the safer day to file by (PD-130)`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `; whether ${deadline} is an equinox day (or a holiday because of one) is fixed only in February of the year before, so it may move later still (PD-130)` : `; the pilot does not cover national holidays for ${deadline.slice(0, 4)}, so it may move later still (PD-130)`}`,
     );
     const late = L(
       '已持有其他在留资格的，可改选"实子等（在留资格变更）"按在留年限计算；还没有在留资格的，请尽快联系地方出入国在留管理局。',
@@ -439,30 +499,71 @@ export function evaluateJapan(req: JpRequest): JpResult {
       status,
       earliestDate:
         status === 'MET' ? sim : status === 'FUTURE' ? born : undefined,
-      summary:
-        status === 'NOT_MET'
+      summary: noNeed
+        ? L(
+            `孩子 ${leaves.departed} 出境，在出生后 ${v.birthStayWithoutStatusDays.value} 日内（到 ${noStatusUntil}）且不持再入国许可：这样出境的不需要申请取得在留资格，回国时重新办理上陆（入管法第22条の2第1項，入管厅 Q&A Q28），本路线不适用。`,
+            `The child leaves on ${leaves.departed}, within ${v.birthStayWithoutStatusDays.value} days of birth (by ${noStatusUntil}) and without a re-entry permit: leaving like this needs no application to acquire status, and the child lands anew on return (art. 22-2(1), ISA Q&A Q28), so this route does not apply.`,
+          )
+        : unsaid
           ? L(
-              `出生后取得在留资格的申请期限（${when}）已过。`,
-              `The time to apply to acquire status after birth (${when}) has passed.`,
-            ) + late
-          : status === 'UNKNOWN'
+              `孩子 ${leaves.departed} 出境（出生后 ${v.birthStayWithoutStatusDays.value} 日内），但没有选择出境方式：不持再入国许可出境的不需要申请（入管厅 Q&A Q28）；持再入国许可或みなし再入国许可出境的须先取得在留资格，在出境前递交。请在出境记录里选择出境方式（PD-160）。`,
+              `The child leaves on ${leaves.departed} (within ${v.birthStayWithoutStatusDays.value} days of birth), but how is not said: leaving without a re-entry permit needs no application (ISA Q&A Q28), while leaving on a re-entry or deemed re-entry permit needs the status first, filed before leaving. Choose how the child leaves in the trip record (PD-160).`,
+            )
+          : onlyPredicted
             ? L(
-                `出生后取得在留资格的申请期限至少到 ${deadline}（${when}），模拟日是否仍在期限内待确认。`,
-                `The time to apply to acquire status after birth runs at least to ${deadline} (${when}); whether the simulation date is still within it is uncertain.`,
+                `孩子 ${out.departed} 出境前唯一可递交的日子 ${fileOn} 按国立天文台的预测是休日；若正式公布为休日，出境前就没有能递交的开放日，而持许可出境须在出境前已取得在留资格，待确认（PD-130、PD-160）。`,
+                `Before the child leaves on ${out.departed}, the only day to file, ${fileOn}, is a predicted holiday; if it is confirmed, no open day is left before leaving, and leaving on a permit needs the status granted first, so it is uncertain (PD-130, PD-160).`,
               ) + late
-            : L(
-                `在日本出生的，可在申请期限内申请取得永住者资格，不必等在留年限（${when}）${status === 'MET' ? '；模拟日在期限内' : `；出生后（${born} 起）才能递交`}。`,
-                `Born in Japan, you can apply to acquire permanent resident status within the time allowed, without waiting for years of stay (${when})${status === 'MET' ? '; the simulation date is within it' : `; you can apply from the birth (${born})`}.`,
-              ) + filingNote(status === 'MET' ? sim : born, () => true, 'isa'),
+            : stranded
+              ? L(
+                  `孩子 ${out.departed} 持再入国许可（或みなし再入国许可）出境，但出境前的申请期限（${when}）内没有能在日本递交的日子；没有在留资格就无法持再入国许可出境，返回方式不明，待确认（PD-160）。`,
+                  `The child leaves on ${out.departed} on a re-entry or deemed re-entry permit, but there is no day before that within the time allowed (${when}) to file in Japan; without a status the child could not hold a permit, so how it returns is unclear (PD-160).`,
+                ) + late
+              : status === 'NOT_MET'
+                ? L(
+                    `出生后取得在留资格的申请期限（${when}）已过。`,
+                    `The time to apply to acquire status after birth (${when}) has passed.`,
+                  ) + late
+                : status === 'UNKNOWN' && sim <= deadline
+                  ? L(
+                      `出生之日起 ${days} 日按初日不算入到 ${deadline}；若连出生当天算作第 1 天，到 ${early} 为止。入管厅没有写明哪一种，模拟日在这两种期限之间，待确认（PD-130）。`,
+                      `${days} days from birth run to ${deadline} if the birth day is left out, or to ${early} if it counts as the first day; the agency does not say which, and the simulation date falls between them, so it is uncertain (PD-130).`,
+                    )
+                  : status === 'UNKNOWN'
+                    ? L(
+                        `出生后取得在留资格的申请期限至少到 ${deadline}（${when}），模拟日是否仍在期限内待确认。`,
+                        `The time to apply to acquire status after birth runs at least to ${deadline} (${when}); whether the simulation date is still within it is uncertain.`,
+                      ) + late
+                    : L(
+                        `在日本出生的，可在申请期限内申请取得永住者资格，不必等在留年限（${when}）${status === 'MET' ? '；模拟日在期限内' : `；出生后（${born} 起）才能递交`}。`,
+                        `Born in Japan, you can apply to acquire permanent resident status within the time allowed, without waiting for years of stay (${when})${status === 'MET' ? '; the simulation date is within it' : `; you can apply from the birth (${born})`}.`,
+                      ) +
+                      (out
+                        ? L(
+                            `孩子计划 ${out.departed} 持${out.departure === 'deemed' ? 'みなし再入国许可' : '再入国许可'}出境；持许可出境须在出境前已取得在留资格，须在出境前递交并获许可。`,
+                            ` The child is due to leave on ${out.departed} on a ${out.departure === 'deemed' ? 'deemed re-entry permit' : 're-entry permit'}; leaving on a permit needs the status granted before leaving, so file and have it granted before that.`,
+                          ) +
+                          (fileOn === out.departed
+                            ? L(
+                                '可递交的第一个开放日就是出境当天；持再入国许可出境须在出境前取得在留资格，当天才递交可能来不及（PD-160）。',
+                                ' The first open day to file is the day of departure; leaving on a permit needs the status granted before leaving, so filing that day may be too late (PD-160).',
+                              )
+                            : '')
+                        : '') +
+                      filingNote(status === 'MET' ? sim : born, canFile, 'isa'),
       checks: [
         {
           text: L(
-            `在申请期限内（${born} 至 ${deadline}${exact ? '' : ' 或更晚'}）递交取得在留资格的申请`,
-            `Apply to acquire status within the time allowed (${born} to ${deadline}${exact ? '' : ' or later'})`,
+            `在申请期限内（${born} 至 ${deadline}${early === deadline ? '' : `；含出生日计到 ${early}`}${exact ? '' : ' 或更晚'}）递交取得在留资格的申请`,
+            `Apply to acquire status within the time allowed (${born} to ${deadline}${early === deadline ? '' : `; ${early} counting the birth day`}${exact ? '' : ' or later'})`,
           ),
-          met: status === 'UNKNOWN' ? undefined : status === 'MET',
+          met:
+            status === 'UNKNOWN' || status === 'NOT_APPLICABLE'
+              ? undefined
+              : status === 'MET',
           sources: [
             ...v.birthAcquisitionDays.sources,
+            ...v.birthStayWithoutStatusDays.sources,
             ...v.yearEndClosureFrom.sources,
             ...v.nationalHolidays.sources,
           ],
@@ -480,7 +581,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
           `The ${days} days run from the day after birth (the Civil Code leaves out the first day), up to the ${days}th day after birth; a deadline on a day the offices are closed (Saturdays, Sundays, national holidays and ${v.yearEndClosureFrom.value} to ${v.yearEndClosureTo.value}) moves to the next open day. National holidays are listed from the National Astronomical Observatory almanac for ${v.nationalHolidays.value[0].slice(0, 4)}–${v.nationalHolidays.value.at(-1)!.slice(0, 4)}; later years follow the holidays law (art. 2, 3), with only predicted equinox days, so a result that turns on one is uncertain; earlier years are not listed, so dates after a deadline there are uncertain. Counters take filings on working days only, and permanent residence cannot be applied for online (PD-130).`,
         ),
       ],
-      pendingDetails: ['PD-130'],
+      pendingDetails: ['PD-130', ...(leaves ? ['PD-160'] : [])],
     });
   } else {
     const pr = req.pr;
@@ -741,21 +842,21 @@ export function evaluateJapan(req: JpRequest): JpResult {
             ` ${shown} follows the 2026-02-24 guideline, which covers applications up to ${lastOld}; from ${switchDate} the 2026-10-01 guideline applies${repeated ? '' : newDate ? `, with ${newDate} the earliest date` : ', which you will not meet within 10 years'}.`,
           )
         : '';
-    const a = absences(sim);
+    const a = absences(at);
     const absenceChecks: PilotCheck[] =
-      guideline(sim) === 'old'
+      guideline(at) === 'old'
         ? [
             {
-              text: oldTrips(sim).length
+              text: oldTrips(at).length
                 ? L(
-                    `前 ${stayYears(sim)} 年有 ${oldTrips(sim).length} 次出境；截至 ${lastOld}（含当日）递交适用的指南没有出境天数标准`,
-                    `${count(oldTrips(sim).length, 'trip')} abroad in the past ${count(stayYears(sim), 'year')}; the guideline for applications up to ${lastOld} does not specify a numerical limit on absences`,
+                    `前 ${stayYears(at)} 年有 ${oldTrips(at).length} 次出境；截至 ${lastOld}（含当日）递交适用的指南没有出境天数标准`,
+                    `${count(oldTrips(at).length, 'trip')} abroad in the past ${count(stayYears(at), 'year')}; the guideline for applications up to ${lastOld} does not specify a numerical limit on absences`,
                   )
                 : L(
-                    `前 ${stayYears(sim)} 年没有出境`,
-                    `No trips abroad in the past ${count(stayYears(sim), 'year')}`,
+                    `前 ${stayYears(at)} 年没有出境`,
+                    `No trips abroad in the past ${count(stayYears(at), 'year')}`,
                   ),
-              met: oldTrips(sim).length ? undefined : true,
+              met: oldTrips(at).length ? undefined : true,
               sources: [{ srcId: 'SRC-113', locator: '1(3)ア, 2' }],
             },
           ]
@@ -834,9 +935,10 @@ export function evaluateJapan(req: JpRequest): JpResult {
               ` From ${switchDate} the new guideline does not count your current status (such as Intra-company Transferee) as a work status, so its ${v.prStatusYears.value} years start only once you hold one it counts (PD-134).`,
             )
           : '') +
-        lapseNotes.join(''),
+        lapseNotes.join('') +
+        forecast,
       checks: [
-        ...needs(sim).map((n) => ({
+        ...needs(at).map((n) => ({
           text: n.text,
           met: metOf(n.state),
           sources: n.sources,
@@ -863,8 +965,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
           `The guideline depends on the application date: up to and including ${lastOld} the 2026-02-24 version, from ${switchDate} the 2026-10-01 version (spouses ${v.spouseMarriageYears.value.old} → ${v.spouseMarriageYears.value.new} years of marriage and ${v.spouseStayYears.value.old} → ${v.spouseStayYears.value.new} years of stay, children ${v.childStayYears.value.old} → ${v.childStayYears.value.new} years, and a new test for absences). The old version does not specify a numerical limit on absences, so trips in the period leave the date uncertain (PD-132).`,
         ),
         L(
-          `新版出境标准看递交日前 ${years} 年，出入境当天按在日本计。单次：${months} 个日历月是 ${halfMin}–${halfMax} 天，境外整天 ${halfMax} 天以上且整段在这 ${years} 年内的算达到，连出入境当天也不满 ${halfMin} 天的算未达到，其间与跨窗口的长行程待确认；合计：连出入境当天也少于 ${totalMin} 天算未达到 ${total} 个月，境外整天 ${totalMax} 天及以上算达到，其间待确认；模拟日仍在境外的行程只算到模拟日。达到的原则上消极评价，有合理理由的个案判断，结果待确认（PD-131）。`,
-          `The new absence test looks at the ${years} years before applying, with departure and return days counted as days in Japan. A single absence: ${months} calendar months are ${halfMin}–${halfMax} days, so ${halfMax} or more whole days abroad, all inside those ${years} years, reaches it, and under ${halfMin} days even counting travel days does not; anything between, or a long trip that started before the window, is uncertain. The total: under ${totalMin} days even counting travel days is short of ${total} months, ${totalMax} or more whole days abroad reaches it, and anything between is uncertain; a trip still under way on the simulation date counts only up to that date. Reaching it counts against you unless there is a reasonable reason, decided case by case, so the result is uncertain (PD-131).`,
+          `新版出境标准看递交日前 ${years} 年，出入境当天按在日本计。单次：${months} 个日历月是 ${halfMin}–${halfMax} 天，境外整天 ${halfMax} 天以上且整段在这 ${years} 年内的算达到，连出入境当天也不满 ${halfMin} 天的算未达到，其间与跨窗口的长行程待确认；合计：连出入境当天也少于 ${totalMin} 天算未达到 ${total} 个月，境外整天 ${totalMax} 天及以上算达到，其间待确认；模拟日仍在境外时，检查项按计划返回日计算。达到的原则上消极评价，有合理理由的个案判断，结果待确认（PD-131）。`,
+          `The new absence test looks at the ${years} years before applying, with departure and return days counted as days in Japan. A single absence: ${months} calendar months are ${halfMin}–${halfMax} days, so ${halfMax} or more whole days abroad, all inside those ${years} years, reaches it, and under ${halfMin} days even counting travel days does not; anything between, or a long trip that started before the window, is uncertain. The total: under ${totalMin} days even counting travel days is short of ${total} months, ${totalMax} or more whole days abroad reaches it, and anything between is uncertain; while you are abroad on the simulation date, the checks are worked out for the planned return. Reaching it counts against you unless there is a reasonable reason, decided case by case, so the result is uncertain (PD-131).`,
         ),
         anniversary,
         reentry,
@@ -921,6 +1023,26 @@ export function evaluateJapan(req: JpRequest): JpResult {
       );
     const adultOn = (d: IsoDate) =>
       nat.route === 'general' ? afterYears(nat.dateOfBirth, ageOn(d)) : d;
+    /** Adult from the 2022-04-01 age, for an application before it. */
+    const adultLater =
+      nat.route === 'general'
+        ? afterYears(
+            nat.dateOfBirth,
+            Math.max(v.naturalisationAge.value, nat.homeMajorityAge ?? 0),
+          )
+        : sim;
+    // An application before 2022-04-01 that meets the later age but not the
+    // age then may have been decided after the change (PD-161).
+    const youngBefore = (d: IsoDate) =>
+      nat.route === 'general' &&
+      d < v.naturalisationAgeFrom.value &&
+      d < adultOn(d) &&
+      d >= adultLater;
+    /** When the later age is met, no earlier than the date it applies. */
+    const laterFrom =
+      adultLater > v.naturalisationAgeFrom.value
+        ? adultLater
+        : v.naturalisationAgeFrom.value;
     // Art. 7 applies to a spouse on the application day.
     const legal = (d: IsoDate) => {
       const stay = stayFrom(d);
@@ -942,7 +1064,12 @@ export function evaluateJapan(req: JpRequest): JpResult {
     // The 10-year practice is certain only for general applications reviewed
     // from its start; earlier ones may still be pending then (PD-137).
     const verdict = (d: IsoDate): Verdict => {
-      if (abroad(d) || !legal(d)) return 'no';
+      if (abroad(d)) return 'no';
+      if (!legal(d))
+        return youngBefore(d) &&
+          d >= afterYears(stayFrom(d), v.naturalisationYears.value)
+          ? 'maybe'
+          : 'no';
       if (!practice(d))
         return nat.route === 'general' && d >= practiceFrom ? 'no' : 'maybe';
       return tripsBefore(d, practiceYears).length ? 'maybe' : 'yes';
@@ -954,7 +1081,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
     const practiceDate = firstDate(
       (d) => !abroad(d) && legal(d) && practice(d),
     );
-    const stay = stayFrom(sim);
+    const stay = stayFrom(at);
     const tripNote = (d: IsoDate) => {
       const n = practice(d) ? practiceYears : legalYears(d);
       const found = tripsBefore(d, n);
@@ -1003,6 +1130,12 @@ export function evaluateJapan(req: JpRequest): JpResult {
                 `按年限计算的候选日期是 ${possible}。`,
                 `Counting years alone, the candidate date is ${possible}.`,
               ) +
+              (youngBefore(possible!)
+                ? L(
+                    `按 ${possible} 递交适用 ${japanAge(possible!)} 岁，那时已满 ${v.naturalisationAge.value} 岁但未满 ${japanAge(possible!)} 岁；${v.naturalisationAgeFrom.value} 起改为 ${v.naturalisationAge.value} 岁，此前递交、之后才审结的申请按哪个年龄审没有写明（PD-161）。`,
+                    ` Applying on ${possible} the age was ${japanAge(possible!)}, and you were ${v.naturalisationAge.value} or over but not yet ${japanAge(possible!)}; from ${v.naturalisationAgeFrom.value} it is ${v.naturalisationAge.value}, and which age applies to an application made before and decided after that is not stated (PD-161).`,
+                  )
+                : '') +
               practiceNote(possible!) +
               tripNote(possible!) +
               filingNote(possible!, (x) => verdict(x) !== 'no', 'bureau', true)
@@ -1021,7 +1154,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
         : '';
     /** A period reached on the simulation date, unless trips cloud it. */
     const continuous = (ok: boolean, n: number) =>
-      !ok ? false : tripsBefore(sim, n).length ? undefined : true;
+      !ok ? false : tripsBefore(at, n).length ? undefined : true;
     const practiceCheck: PilotCheck = {
       text:
         nat.route === 'general'
@@ -1033,9 +1166,9 @@ export function evaluateJapan(req: JpRequest): JpResult {
               `若 ${practiceFrom} 起的审查运用也适用于配偶者：自 ${stay} 起在留满 ${practiceYears} 年`,
               `If the review practice from ${practiceFrom} also applies to spouses: ${practiceYears} years of stay since ${stay}`,
             ),
-      met: practice(sim)
+      met: practice(at)
         ? continuous(true, practiceYears)
-        : nat.route === 'general' && sim >= practiceFrom
+        : nat.route === 'general' && at >= practiceFrom
           ? false
           : undefined,
       sources: [
@@ -1052,23 +1185,35 @@ export function evaluateJapan(req: JpRequest): JpResult {
                 `${v.naturalisationYears.value} years of continuous domicile in Japan since ${stay}`,
               ),
               met: continuous(
-                sim >= afterYears(stay, v.naturalisationYears.value),
+                at >= afterYears(stay, v.naturalisationYears.value),
                 v.naturalisationYears.value,
               ),
               sources: v.naturalisationYears.sources,
             },
             {
-              text: nat.homeMajorityAge
-                ? L(
-                    `年满 ${japanAge(sim)} 岁并达到本国法的成年年龄 ${nat.homeMajorityAge} 岁（${adultOn(sim)} 起）`,
-                    `Aged ${japanAge(sim)} and an adult under your home country's law at ${nat.homeMajorityAge} (from ${adultOn(sim)})`,
-                  )
-                : L(
-                    `年满 ${japanAge(sim)} 岁（${adultOn(sim)} 起；你确认本国法的成年年龄不高于此）`,
-                    `Aged ${japanAge(sim)} or over (from ${adultOn(sim)}; you confirmed your home country's age of majority is no higher)`,
-                  ),
-              met: sim >= adultOn(sim),
-              sources: v.naturalisationAge.sources,
+              text:
+                L(`按 ${at} 递交：`, `Applying on ${at}: `) +
+                (nat.homeMajorityAge
+                  ? L(
+                      `年满 ${japanAge(at)} 岁并达到本国法的成年年龄 ${nat.homeMajorityAge} 岁（${adultOn(at)} 起）`,
+                      `aged ${japanAge(at)} and an adult under your home country's law at ${nat.homeMajorityAge} (from ${adultOn(at)})`,
+                    )
+                  : L(
+                      `年满 ${japanAge(at)} 岁（${adultOn(at)} 起；你确认本国法的成年年龄不高于此）`,
+                      `aged ${japanAge(at)} or over (from ${adultOn(at)}; you confirmed your home country's age of majority is no higher)`,
+                    )) +
+                (at < v.naturalisationAgeFrom.value
+                  ? L(
+                      `；${v.naturalisationAgeFrom.value} 起递交为 ${v.naturalisationAge.value} 岁（满足自 ${laterFrom} 起）`,
+                      `; applying from ${v.naturalisationAgeFrom.value} the age is ${v.naturalisationAge.value} (met from ${laterFrom})`,
+                    )
+                  : ''),
+              met:
+                at >= adultOn(at) ? true : youngBefore(at) ? undefined : false,
+              sources: [
+                ...v.naturalisationAge.sources,
+                ...v.naturalisationAgeFrom.sources,
+              ],
             },
           ]
         : [
@@ -1077,7 +1222,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
                 `国籍法第 7 条：递交时是日本国民的配偶者（${nat.marriedOn} 登记结婚），且自 ${stay} 起在日本连续有住所或居所满 ${v.spouseNaturalisationYears.value} 年，或结婚满 ${v.spouseNaturalisationMarriageYears.value} 年且连续有住所满 ${v.spouseNaturalisationDomicileYears.value} 年`,
                 `Nationality Act art. 7: a spouse of a Japanese national when applying (married on ${nat.marriedOn}), with ${v.spouseNaturalisationYears.value} years of continuous domicile or residence in Japan since ${stay}, or ${v.spouseNaturalisationMarriageYears.value} years married with ${v.spouseNaturalisationDomicileYears.value} year of continuous domicile`,
               ),
-              met: continuous(legal(sim), legalYears(sim)),
+              met: continuous(legal(at), legalYears(at)),
               sources: v.spouseNaturalisationYears.sources,
             },
           ]),
@@ -1096,7 +1241,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
       title: L('帰化（入籍）', 'Naturalisation (帰化)'),
       status,
       earliestDate: status === 'UNKNOWN' ? undefined : earliest,
-      summary: main + lawOnly + lapseNotes.join(''),
+      summary: main + lawOnly + lapseNotes.join('') + forecast,
       checks,
       notChecked: [
         L(
@@ -1125,7 +1270,16 @@ export function evaluateJapan(req: JpRequest): JpResult {
         reentry,
         projection,
       ],
-      pendingDetails: ['PD-130', 'PD-136', 'PD-137', 'PD-138', 'PD-139'],
+      pendingDetails: [
+        'PD-130',
+        'PD-136',
+        'PD-137',
+        'PD-138',
+        'PD-139',
+        ...(youngBefore(at) || (possible && youngBefore(possible))
+          ? ['PD-161']
+          : []),
+      ],
     });
   }
 
