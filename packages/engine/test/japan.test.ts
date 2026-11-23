@@ -693,7 +693,13 @@ describe('review70-5', () => {
   });
 
   test('the last day is 30 days after the birth', () => {
-    expect(born('2026-12-10').status).toBe('MET');
+    // Task 74: counting the birth day as the first day ends on 12-09, so
+    // 12-10 is the one day the readings differ (PD-130).
+    expect(born('2026-12-09').status).toBe('MET');
+    const p = born('2026-12-10');
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('2026-12-09');
+    expect(p.summary).toContain('PD-130');
   });
 
   test('after the window, the change-of-status route', () => {
@@ -728,8 +734,9 @@ describe('review70-6', () => {
   });
 
   test('a deadline on a Saturday moves to the Monday', () => {
-    // 2026-12-05 is a Saturday.
-    expect(born('2026-11-05', '2026-12-07').status).toBe('MET');
+    // 2026-12-05 is a Saturday; counting the birth day, 12-04 (Friday).
+    expect(born('2026-11-05', '2026-12-04').status).toBe('MET');
+    expect(born('2026-11-05', '2026-12-07').status).toBe('UNKNOWN');
     expect(born('2026-11-05', '2026-12-08').status).toBe('NOT_MET');
   });
 
@@ -740,8 +747,10 @@ describe('review70-6', () => {
   });
 
   test('a year not listed yet follows the holidays law', () => {
-    // 2028-01-19 is a Wednesday and no holiday under the law.
-    expect(born('2027-12-20', '2028-01-19').status).toBe('MET');
+    // 2028-01-19 is a Wednesday and no holiday under the law (01-18
+    // counting the birth day).
+    expect(born('2027-12-20', '2028-01-18').status).toBe('MET');
+    expect(born('2027-12-20', '2028-01-19').status).toBe('UNKNOWN');
     expect(born('2027-12-20', '2028-01-20').status).toBe('NOT_MET');
     expect(born('2027-12-20', '2028-02-01').status).toBe('NOT_MET');
   });
@@ -944,13 +953,13 @@ describe('task 74: on a trip on the simulation date', () => {
 
 describe('task 74: 2019–2021 almanacs', () => {
   test('the 2021 Olympic holidays are known, not predicted', () => {
-    // 30 days from 2021-07-08 is Saturday 08-07; 08-08 (山の日, moved) and
-    // 08-09 (its substitute) are closed, so 08-10.
+    // 30 days from 2021-07-09 is Sunday 08-08 (山の日, moved); its
+    // substitute 08-09 is closed too, so 08-10 on either reading.
     const born = (simulationDate: string) =>
       pr({
         simulationDate,
-        stayStart: '2021-07-08',
-        pr: { route: 'child-birth', bornOn: '2021-07-08' },
+        stayStart: '2021-07-09',
+        pr: { route: 'child-birth', bornOn: '2021-07-09' },
       });
     expect(born('2021-08-10').status).toBe('MET');
     expect(born('2021-08-11').status).toBe('NOT_MET');

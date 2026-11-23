@@ -427,14 +427,21 @@ export function evaluateJapan(req: JpRequest): JpResult {
     const exact = closed(deadline) === 'no';
     let latest = deadline;
     while (latest < sim && closed(latest) !== 'no') latest = addDays(latest, 1);
+    // Counting the birth day as the first of the days (a city's example)
+    // ends a day earlier; where that changes the answer, it is uncertain
+    // (PD-130).
+    let early = addDays(raw, -1);
+    while (closed(early) === 'yes') early = addDays(early, 1);
     const status: PilotStatus =
       sim < born
         ? 'FUTURE'
-        : sim <= deadline
+        : sim <= early
           ? 'MET'
-          : exact || latest < sim
-            ? 'NOT_MET'
-            : 'UNKNOWN';
+          : sim <= deadline
+            ? 'UNKNOWN'
+            : exact || latest < sim
+              ? 'NOT_MET'
+              : 'UNKNOWN';
     const when = L(
       `出生之日起 ${days} 日为 ${raw}${deadline === raw ? '' : `，遇行政机关休日顺延至 ${deadline}`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `；${deadline} 是否为春分日或秋分日（或因此成为休日）要到前一年 2 月才正式公布，期限可能再顺延（PD-130）` : `；试点没有收录 ${deadline.slice(0, 4)} 年的国民の祝日，期限可能再顺延（PD-130）`}`,
       `${days} days from birth is ${raw}${deadline === raw ? '' : `, moved to ${deadline} past days the offices are closed`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `; whether ${deadline} is an equinox day (or a holiday because of one) is fixed only in February of the year before, so it may move later still (PD-130)` : `; the pilot does not cover national holidays for ${deadline.slice(0, 4)}, so it may move later still (PD-130)`}`,
@@ -455,15 +462,21 @@ export function evaluateJapan(req: JpRequest): JpResult {
               `出生后取得在留资格的申请期限（${when}）已过。`,
               `The time to apply to acquire status after birth (${when}) has passed.`,
             ) + late
-          : status === 'UNKNOWN'
+          : status === 'UNKNOWN' && sim <= deadline
             ? L(
-                `出生后取得在留资格的申请期限至少到 ${deadline}（${when}），模拟日是否仍在期限内待确认。`,
-                `The time to apply to acquire status after birth runs at least to ${deadline} (${when}); whether the simulation date is still within it is uncertain.`,
-              ) + late
-            : L(
-                `在日本出生的，可在申请期限内申请取得永住者资格，不必等在留年限（${when}）${status === 'MET' ? '；模拟日在期限内' : `；出生后（${born} 起）才能递交`}。`,
-                `Born in Japan, you can apply to acquire permanent resident status within the time allowed, without waiting for years of stay (${when})${status === 'MET' ? '; the simulation date is within it' : `; you can apply from the birth (${born})`}.`,
-              ) + filingNote(status === 'MET' ? sim : born, () => true, 'isa'),
+                `出生之日起 ${days} 日按初日不算入到 ${deadline}；若连出生当天算作第 1 天，到 ${early} 为止。入管厅没有写明哪一种，模拟日在这两种期限之间，待确认（PD-130）。`,
+                `${days} days from birth run to ${deadline} if the birth day is left out, or to ${early} if it counts as the first day; the agency does not say which, and the simulation date falls between them, so it is uncertain (PD-130).`,
+              )
+            : status === 'UNKNOWN'
+              ? L(
+                  `出生后取得在留资格的申请期限至少到 ${deadline}（${when}），模拟日是否仍在期限内待确认。`,
+                  `The time to apply to acquire status after birth runs at least to ${deadline} (${when}); whether the simulation date is still within it is uncertain.`,
+                ) + late
+              : L(
+                  `在日本出生的，可在申请期限内申请取得永住者资格，不必等在留年限（${when}）${status === 'MET' ? '；模拟日在期限内' : `；出生后（${born} 起）才能递交`}。`,
+                  `Born in Japan, you can apply to acquire permanent resident status within the time allowed, without waiting for years of stay (${when})${status === 'MET' ? '; the simulation date is within it' : `; you can apply from the birth (${born})`}.`,
+                ) +
+                filingNote(status === 'MET' ? sim : born, () => true, 'isa'),
       checks: [
         {
           text: L(

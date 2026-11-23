@@ -267,9 +267,12 @@ test('a child born in Japan applies within 30 days of birth', () => {
   });
   const status = (simulationDate: string) =>
     evaluateJapan(jpRequest(born(simulationDate), 'zh-CN')).pathways[0].status;
-  // In the window, on its last day (2026-12-10), and after it.
+  // In the window, on the last day counting the birth day (2026-12-09),
+  // on the last day leaving it out (2026-12-10: the readings differ), and
+  // after it.
   expect(status('2026-11-23')).toBe('MET');
-  expect(status('2026-12-10')).toBe('MET');
+  expect(status('2026-12-09')).toBe('MET');
+  expect(status('2026-12-10')).toBe('UNKNOWN');
   expect(status('2026-12-11')).toBe('NOT_MET');
   const html = render(
     <PilotResult
