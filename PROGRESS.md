@@ -375,3 +375,4 @@
 | 366 | 任务 71 第五轮审核修正（review71-5）：入籍的出境检查算到递交当天（含），递交当天在境外的输出 UNKNOWN，模拟日检查项同为待确认（旧法检查项同样处理）；欧盟长期居民仍只算到递交日前一天（与 art. 126 自身规则一致）；PD-144 与报告同步。 | packages/engine/src/portugal.ts、packages/engine/test/portugal.test.ts、docs/{pending-details.md,tasks/reports/71-portugal.md}、PROGRESS.md |
 | 367 | 合入 main 后离线 e2e 把 /portugal 放在 /ireland 之前，保持最后一页是爱尔兰表单（测试按爱尔兰表单断言离线可用）。 | apps/e2e/tests/site.spec.ts |
 | 372 | 合入 main 时首页列表把爱尔兰与 /portugal 并进了同一个列表项，拆回两项。 | apps/web/app/home-content.tsx |
+| 374 | 任务 71 报告补记最终门禁、手机宽度预览与第六轮审核结论（通过）及其风险。 | docs/tasks/reports/71-portugal.md |
