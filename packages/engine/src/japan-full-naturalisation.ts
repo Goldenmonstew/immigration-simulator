@@ -14,6 +14,7 @@ import {
   paidOnTime,
   pilotFor,
   ref,
+  scheduleFiling,
 } from './japan-full-shared';
 import type {
   JpFiling,
@@ -152,6 +153,30 @@ const titles: Record<JpFullNaturalisationRoute['route'], [string, string]> = {
 };
 
 export function assessJapanNaturalisation(
+  req: JpFullContext,
+  route: JpFullNaturalisationRoute,
+  e: JpNaturalisationEvidence,
+): JpFullPathway {
+  const { L } = filingContext(req);
+  const result = scheduleFiling(
+    assessJapanNaturalisationOnDate(req, route, e),
+    L,
+    (applicationDate) =>
+      assessJapanNaturalisationOnDate({ ...req, applicationDate }, route, e),
+  );
+  if (result.earliestDate === undefined) return result;
+  return {
+    ...result,
+    summary:
+      result.summary +
+      L(
+        '实际递交日由管辖法务局安排。',
+        ' The actual filing date depends on the competent Legal Affairs Bureau.',
+      ),
+  };
+}
+
+function assessJapanNaturalisationOnDate(
   req: JpFullContext,
   route: JpFullNaturalisationRoute,
   e: JpNaturalisationEvidence,
@@ -781,7 +806,10 @@ export function assessJapanNaturalisation(
       '在日本递交',
       'Filing in Japan',
       history.abroad ? false : e.inJapan,
-      [ref('SRC-117', 'Q10', 'https://www.moj.go.jp/MINJI/minji78.html#a10')],
+      [
+        ref('SRC-112', '行政機関の休日に関する法律 第1条'),
+        ref('SRC-117', 'Q10', 'https://www.moj.go.jp/MINJI/minji78.html#a10'),
+      ],
       '确认本人或法定代理人在住所辖区的日本法务局递交。',
       'Confirm filing in Japan at the competent bureau by the applicant or legal representative.',
       ['PD-139'],

@@ -164,19 +164,41 @@ describe('permanent residence', () => {
     });
   });
 
-  test('does not give a rescheduled filing date after the current status expires', () => {
+  test.each([undefined, true])(
+    'rechecks lawful filing on the rescheduled day after expiry (original validity: %s)',
+    (valid) => {
+      const result = pr(
+        general,
+        {
+          ...prEvidence,
+          status: {
+            ...prEvidence.status,
+            valid,
+            expiresOn: '2027-04-04',
+            timelyRenewalPending: false,
+          },
+        },
+        { simulationDate: '2027-04-03' },
+      );
+      expect(status(result, 'lawful-filing-status')).toBe('NOT_MET');
+      expect(result.status).toBe('NOT_MET');
+      expect(result.timeEarliestDate).toBe('2027-04-03');
+      expect(result.earliestDate).toBeUndefined();
+    },
+  );
+
+  test('rechecks presence in Japan on the rescheduled filing day', () => {
     const result = pr(
       general,
+      prEvidence,
       {
-        ...prEvidence,
-        status: {
-          ...prEvidence.status,
-          expiresOn: '2027-04-04',
-          timelyRenewalPending: false,
-        },
+        simulationDate: '2027-04-03',
+        trips: [{ departed: '2027-04-04', returned: '2027-04-07' }],
       },
-      { simulationDate: '2027-04-03' },
     );
+    expect(status(result, 'filing-in-japan')).toBe('NOT_MET');
+    expect(status(result, 'lawful-filing-status')).toBe('NOT_MET');
+    expect(result.status).toBe('NOT_MET');
     expect(result.timeEarliestDate).toBe('2027-04-03');
     expect(result.earliestDate).toBeUndefined();
   });
@@ -187,6 +209,50 @@ describe('permanent residence', () => {
     expect(result.earliestDate).toBeUndefined();
     expect(result.pendingDetails).toContain('PD-370');
   });
+
+  test.each([
+    [undefined, 'UNKNOWN', undefined],
+    [false, 'NOT_MET', undefined],
+    [true, 'MET', '2027-04-01'],
+  ] as const)(
+    'assesses a long absence with a valid re-entry permit using the authority’s finding (%s)',
+    (absenceReasonsConfirmedReasonable, expected, earliestDate) => {
+      const result = pr(
+        general,
+        {
+          ...prEvidence,
+          nationalInterestConfirmed:
+            absenceReasonsConfirmedReasonable === true ? true : undefined,
+          absenceReasonsConfirmedReasonable,
+        },
+        {
+          stayStart: '2012-04-01',
+          trips: [
+            {
+              departed: '2021-05-01',
+              returned: '2021-12-01',
+              reentryPermit: true,
+            },
+          ],
+        },
+      );
+      expect(status(result, 'continuous-stay')).toBe('MET');
+      expect(status(result, 'qualifying-status-stay')).toBe('MET');
+      expect(status(result, 'single-absence')).toBe(expected);
+      expect(status(result, 'total-absence')).toBe('MET');
+      expect(result.timeStatus).toBe('UNKNOWN');
+      expect(result.status).toBe(expected);
+      expect(result.earliestDate).toBe(earliestDate);
+      if (expected === 'UNKNOWN') {
+        const absence = condition(result, 'single-absence');
+        expect(absence.pendingDetails).toEqual(['PD-360']);
+        expect(absence.sources.map(({ srcId }) => srcId)).toEqual([
+          'SRC-114',
+          'SRC-115',
+        ]);
+      }
+    },
+  );
 
   const cases = [
     ['lawful-filing-status', { inJapan: false }, 'NOT_MET'],
@@ -930,6 +996,21 @@ describe('highly skilled routes', () => {
 });
 
 describe('naturalisation', () => {
+  test('moves ordinary naturalisation filing from Saturday to the next open day', () => {
+    const result = nat({ route: 'general' }, natEvidence, {
+      simulationDate: '2027-04-03',
+    });
+    expect(status(result, 'domicile-years')).toBe('MET');
+    expect(status(result, 'filing-in-japan')).toBe('MET');
+    expect(result).toMatchObject({
+      status: 'MET',
+      earliestDate: '2027-04-05',
+      timeStatus: 'MET',
+      timeEarliestDate: '2027-04-03',
+    });
+    expect(result.summary).toContain('competent Legal Affairs Bureau');
+  });
+
   const cases = [
     ['foreign-national', { japaneseCitizen: true }, 'NOT_MET'],
     ['lawful-domicile', { lawfulDomicile: false }, 'NOT_MET'],

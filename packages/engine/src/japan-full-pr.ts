@@ -15,6 +15,7 @@ import {
   paidOnTime,
   pilotFor,
   ref,
+  scheduleFiling,
   threshold,
 } from './japan-full-shared';
 import type {
@@ -27,7 +28,6 @@ import type {
 } from './japan-full-shared';
 import { hspAssessment, jSkipAssessment } from './japan-full-talent';
 import type { JpHspSnapshot, JpJSkipSnapshot } from './japan-full-talent';
-import { jpOfficeClosed } from './japan';
 import type { JpPrRequest } from './japan';
 import { afterYears } from './pilot';
 import type { IsoDate } from './types';
@@ -46,7 +46,7 @@ type Recognition = 'refugee' | 'complementary-protection' | 'pending' | 'none';
 
 export interface JpPrStatusEvidence {
   kind: StatusKind;
-  /** Confirmed still valid, including any applicable pending-renewal period. */
+  /** Valid on the requested filing date, including any pending-renewal period. */
   valid?: boolean;
   grantedPeriodMonths?: number | 'indefinite';
   expiresOn?: IsoDate;
@@ -114,6 +114,8 @@ export interface JpPrCommonEvidence {
     | 'traffic-penalty'
     | 'other';
   nationalInterestConfirmed?: boolean;
+  /** Whether the authority accepted the reasons for the absences assessed under the revised general guideline. */
+  absenceReasonsConfirmedReasonable?: boolean;
   japanMainHomeIntended?: boolean;
   contributionEvidence?: boolean;
   statusActivitiesCompliant?: boolean;
@@ -450,39 +452,16 @@ export function assessJapanPr(
   route: JpFullPrRoute,
   e: JpPrCommonEvidence,
 ): JpFullPathway {
-  const result = assessJapanPrOnDate(req, route, e);
-  const { earliestDate } = result;
-  if (earliestDate === undefined) return result;
-
-  let next = earliestDate;
-  while (jpOfficeClosed(next) === 'yes') next = addDays(next, 1);
   const { L } = filingContext(req);
-  if (jpOfficeClosed(next) === 'maybe')
-    return {
-      ...result,
-      earliestDate: undefined,
-      summary:
-        result.summary +
-        L(
-          '候选递交日的窗口开放情况待确认（PD-370）。',
-          ' Confirm whether the counter opens on the proposed filing date (PD-370).',
-        ),
-      pendingDetails: [...new Set([...(result.pendingDetails ?? []), 'PD-370'])],
-    };
-  if (next === earliestDate) return result;
-
-  const filing = assessJapanPrOnDate({ ...req, applicationDate: next }, route, e);
-  return {
-    ...result,
-    earliestDate: filing.earliestDate,
-    summary: filing.earliestDate
-      ? result.summary
-      : result.summary +
-        L(
-          `按已录入资料，无法确认可在下一个窗口受理日 ${next} 递交。`,
-          ` The evidence does not confirm that you can file on the next open day, ${next}.`,
-        ),
-  };
+  return scheduleFiling(
+    assessJapanPrOnDate(req, route, e),
+    L,
+    (applicationDate) =>
+      assessJapanPrOnDate({ ...req, applicationDate }, route, {
+        ...e,
+        status: e.status && { ...e.status, valid: undefined },
+      }),
+  );
 }
 
 function assessJapanPrOnDate(
@@ -669,16 +648,41 @@ function assessJapanPrOnDate(
     const ids = isNewTime
       ? ['single-absence', 'total-absence']
       : ['old-guideline-absences'];
-    ids.forEach((id, i) =>
+    ids.forEach((id, i) => {
+      const absence = pilot.checks[needCount + i];
+      const checkId = `jp.pr.${id}`;
+      const title = L('出境记录', 'Absences');
+      if (!isNewTime || special || absence.met === true) {
+        timeChecks.push(
+          fromPilot(checkId, title, absence, pilot.pendingDetails),
+        );
+        return;
+      }
+      const reasonable = e.absenceReasonsConfirmedReasonable;
+      const met = reasonable === false ? absence.met : reasonable;
+      const months = old.singleAbsenceMonths.value;
+      const duration =
+        id === 'single-absence'
+          ? L(
+              `单次出境的审查标准为 ${months} 个月以上。`,
+              `The guideline considers a single absence of ${months} months or more.`,
+            )
+          : `${absence.text}.`;
       timeChecks.push(
-        fromPilot(
-          `jp.pr.${id}`,
-          L('出境记录', 'Absences'),
-          pilot.checks[needCount + i],
-          pilot.pendingDetails,
+        check(
+          checkId,
+          title,
+          met,
+          absence.sources,
+          duration +
+            L(
+              '达到时长标准且无合理理由的出境原则上作消极评价，理由由入管个案认定。',
+              ' An absence reaching the threshold counts against the application when there is no reasonable reason. The immigration authority assesses the reasons case by case.',
+            ),
+          ['PD-360'],
         ),
-      ),
-    );
+      );
+    });
     timeChecks.push(
       history.abroad
         ? fromPilot(

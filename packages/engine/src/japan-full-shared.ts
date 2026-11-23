@@ -5,8 +5,8 @@ import type {
   CountryPathway,
   CountryResult,
 } from './country-result';
-import { addYears } from './dates';
-import { evaluateJapan, jpStayLimit } from './japan';
+import { addDays, addYears } from './dates';
+import { evaluateJapan, jpOfficeClosed, jpStayLimit } from './japan';
 import type { JpNaturalisationRequest, JpPrRequest, JpRequest } from './japan';
 import { afterYears } from './pilot';
 import type { PilotCheck, PilotPathway, PilotStatus } from './pilot';
@@ -134,6 +134,49 @@ export function filingContext(req: JpFullContext) {
   const L = textFor(req);
   const input = { ...req, simulationDate: date };
   return { date, L, input };
+}
+
+export function scheduleFiling(
+  result: JpFullPathway,
+  L: JpText,
+  assessOnDate: (date: IsoDate) => JpFullPathway,
+): JpFullPathway {
+  const { earliestDate } = result;
+  if (earliestDate === undefined) return result;
+
+  let next = earliestDate;
+  while (jpOfficeClosed(next) === 'yes') next = addDays(next, 1);
+  if (jpOfficeClosed(next) === 'maybe')
+    return {
+      ...result,
+      earliestDate: undefined,
+      summary:
+        result.summary +
+        L(
+          '候选递交日的窗口开放情况待确认（PD-370）。',
+          ' Confirm whether the counter opens on the proposed filing date (PD-370).',
+        ),
+      pendingDetails: [...new Set([...(result.pendingDetails ?? []), 'PD-370'])],
+    };
+  if (next === earliestDate) return result;
+
+  const filing = assessOnDate(next);
+  return {
+    ...filing,
+    timeStatus: result.timeStatus,
+    timeEarliestDate: result.timeEarliestDate,
+    summary:
+      filing.summary +
+      (filing.earliestDate
+        ? L(
+            `按窗口日历，最早可从 ${next} 起考虑递交。`,
+            ` The next open day to consider for filing is ${next}.`,
+          )
+        : L(
+            `按已录入资料，无法确认可在下一个窗口受理日 ${next} 递交。`,
+            ` The evidence does not confirm that you can file on the next open day, ${next}.`,
+          )),
+  };
 }
 
 export function pilotFor(
