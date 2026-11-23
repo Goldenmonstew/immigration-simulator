@@ -51,6 +51,7 @@ const FIELD_LABELS: Record<string, TranslationKey> = {
   'jp-married-on': 'jp.marriedOn',
   'jp-nat-route': 'jp.natRoute',
   'jp-date-of-birth': 'jp.dateOfBirth',
+  'jp-home-majority-age': 'jp.homeMajorityAge',
   departed: 'jp.departed',
   returned: 'jp.returned',
   stayExpiry: 'jp.stayExpiry',
@@ -286,6 +287,29 @@ export default function JapanContent() {
           {draft.natRoute === 'general' && (
             <div className={form.followUp}>
               {date('jp-date-of-birth', t('jp.dateOfBirth'), 'dateOfBirth')}
+              <Field
+                id="jp-home-majority-age"
+                label={t('jp.homeMajorityAge')}
+                hint={t('jp.homeMajorityAgeHint')}
+                error={errors['jp-home-majority-age']}
+              >
+                <input
+                  id="jp-home-majority-age"
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  value={draft.homeMajorityAge}
+                  onChange={(e) => set({ homeMajorityAge: e.target.value })}
+                  aria-invalid={
+                    errors['jp-home-majority-age'] ? true : undefined
+                  }
+                  aria-describedby={
+                    errors['jp-home-majority-age']
+                      ? 'jp-home-majority-age-hint jp-home-majority-age-error'
+                      : 'jp-home-majority-age-hint'
+                  }
+                />
+              </Field>
             </div>
           )}
           {draft.natRoute === 'spouse' && (

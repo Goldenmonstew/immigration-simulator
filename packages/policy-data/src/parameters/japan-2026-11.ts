@@ -408,6 +408,11 @@ export const japan2026_11 = {
       sources: [
         { srcId: 'SRC-111', locator: '第5条第1項第2号' },
         {
+          srcId: 'SRC-117',
+          locator: 'Q9 能力条件',
+          url: 'https://www.moj.go.jp/MINJI/minji78.html#a09',
+        },
+        {
           srcId: 'SRC-112',
           locator: '年齢計算ニ関スル法律',
           url: 'https://laws.e-gov.go.jp/law/135AC1000000050',

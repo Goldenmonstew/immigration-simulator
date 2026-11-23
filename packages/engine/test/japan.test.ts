@@ -875,6 +875,36 @@ describe('review70-7', () => {
   });
 });
 
+describe('review70-10', () => {
+  // Born 2008-11-24, in Japan since 2016-04-01: 18 on 2026-11-24.
+  const korean = (simulationDate: string, homeMajorityAge?: number) =>
+    nat({
+      simulationDate,
+      stayStart: '2016-04-01',
+      naturalisation: {
+        route: 'general',
+        dateOfBirth: '2008-11-24',
+        homeMajorityAge,
+      },
+    });
+
+  test('blank: 18, said in the summary', () => {
+    const p = korean('2026-11-23');
+    expect(p.earliestDate).toBe('2026-11-24');
+    expect(p.summary).toContain('不超过 18 岁');
+    expect(korean('2026-11-24').status).toBe('MET');
+  });
+
+  test('a home-country majority of 19 waits a year', () => {
+    expect(korean('2026-11-23', 19).earliestDate).toBe('2027-11-24');
+    const p = korean('2026-11-24', 19);
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2027-11-24');
+    expect(p.checks[1].met).toBe(false);
+    expect(p.summary).not.toContain('不超过 18 岁');
+  });
+});
+
 test('English text', () => {
   const result = evaluateJapan({ ...base, locale: 'en' });
   expect(result.pathways[0].title).toBe('Permanent residence (永住許可)');

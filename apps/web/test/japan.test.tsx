@@ -343,6 +343,30 @@ test('leaving with a renewal pending (FAQ Q61)', () => {
   });
 });
 
+test('the home-country age of majority for naturalisation', () => {
+  // Korean national born 2008-11-24, in Japan since 2016-04-01.
+  const form: JpForm = {
+    ...filled,
+    simulationDate: '2026-11-24',
+    stayStart: '2016-04-01',
+    dateOfBirth: '2008-11-24',
+  };
+  const nat = (homeMajorityAge: string) =>
+    evaluateJapan(jpRequest({ ...form, homeMajorityAge }, 'zh-CN')).pathways[1];
+  expect(nat('').status).toBe('MET');
+  expect(nat('19').earliestDate).toBe('2027-11-24');
+  expect(
+    jpRequest({ ...form, homeMajorityAge: '19' }, 'en').naturalisation,
+  ).toEqual({
+    route: 'general',
+    dateOfBirth: '2008-11-24',
+    homeMajorityAge: 19,
+  });
+  expect(validateJpForm({ ...form, homeMajorityAge: '19.5' })).toEqual({
+    'jp-home-majority-age': 'jp.error.age',
+  });
+});
+
 test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
   const result = evaluateJapan(jpRequest(filled, locale));
   const html = render(<PilotResult result={result} />, locale);

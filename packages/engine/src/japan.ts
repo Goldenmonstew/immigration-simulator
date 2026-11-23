@@ -102,7 +102,15 @@ export type JpPrRequest =
   | { route: 'child' };
 
 export type JpNaturalisationRequest =
-  | { route: 'general'; dateOfBirth: IsoDate }
+  | {
+      route: 'general';
+      dateOfBirth: IsoDate;
+      /**
+       * Age of majority under the home country's law, when above 18 (art.
+       * 5(1)(ii)); absent = taken as 18 or lower.
+       */
+      homeMajorityAge?: number;
+    }
   /** Spouse of a Japanese national: the day the marriage was registered. */
   | { route: 'spouse'; marriedOn: IsoDate };
 
@@ -900,12 +908,18 @@ export function evaluateJapan(req: JpRequest): JpResult {
       d >=
         afterYears(nat.marriedOn, v.spouseNaturalisationMarriageYears.value) &&
       d >= afterYears(stayFrom(d), v.spouseNaturalisationDomicileYears.value);
+    // Art. 5(1)(ii): 18 and an adult under the home country's law.
+    const age =
+      nat.route === 'general'
+        ? Math.max(v.naturalisationAge.value, nat.homeMajorityAge ?? 0)
+        : v.naturalisationAge.value;
+    const adult =
+      nat.route === 'general' ? afterYears(nat.dateOfBirth, age) : sim;
     // Art. 7 applies to a spouse on the application day.
     const legal = (d: IsoDate) => {
       const stay = stayFrom(d);
       return nat.route === 'general'
-        ? d >= afterYears(stay, v.naturalisationYears.value) &&
-            d >= afterYears(nat.dateOfBirth, v.naturalisationAge.value)
+        ? d >= afterYears(stay, v.naturalisationYears.value) && d >= adult
         : d >= nat.marriedOn &&
             (d >= afterYears(stay, v.spouseNaturalisationYears.value) ||
               married(d));
@@ -995,8 +1009,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
       legalDate &&
       (!possible || legalDate < possible)
         ? L(
-            `国籍法本身只要求住所 ${v.naturalisationYears.value} 年、年满 ${v.naturalisationAge.value} 岁，按年限最早 ${legalDate}；${practiceFrom} 起法务省在审查中原则要求在留 ${practiceYears} 年以上，例外个案判断（PD-137）。`,
-            ` The Nationality Act itself asks only for ${v.naturalisationYears.value} years of domicile and age ${v.naturalisationAge.value}, which by years alone is from ${legalDate}; from ${practiceFrom} the Ministry of Justice in principle requires ${practiceYears} years of stay in its review, with exceptions decided case by case (PD-137).`,
+            `国籍法本身只要求住所 ${v.naturalisationYears.value} 年、年满 ${v.naturalisationAge.value} 岁并达到本国法的成年年龄（按 ${age} 岁计），按年限最早 ${legalDate}；${practiceFrom} 起法务省在审查中原则要求在留 ${practiceYears} 年以上，例外个案判断（PD-137）。`,
+            ` The Nationality Act itself asks only for ${v.naturalisationYears.value} years of domicile, age ${v.naturalisationAge.value} and adulthood under your home country's law (taken as ${age}), which by years alone is from ${legalDate}; from ${practiceFrom} the Ministry of Justice in principle requires ${practiceYears} years of stay in its review, with exceptions decided case by case (PD-137).`,
           )
         : '';
     /** A period reached on the simulation date, unless trips cloud it. */
@@ -1038,12 +1052,16 @@ export function evaluateJapan(req: JpRequest): JpResult {
               sources: v.naturalisationYears.sources,
             },
             {
-              text: L(
-                `年满 ${v.naturalisationAge.value} 岁（${afterYears(nat.dateOfBirth, v.naturalisationAge.value)} 起）`,
-                `Aged ${v.naturalisationAge.value} or over (from ${afterYears(nat.dateOfBirth, v.naturalisationAge.value)})`,
-              ),
-              met:
-                sim >= afterYears(nat.dateOfBirth, v.naturalisationAge.value),
+              text: nat.homeMajorityAge
+                ? L(
+                    `年满 ${v.naturalisationAge.value} 岁并达到本国法的成年年龄 ${nat.homeMajorityAge} 岁（${adult} 起）`,
+                    `Aged ${v.naturalisationAge.value} and an adult under your home country's law at ${nat.homeMajorityAge} (from ${adult})`,
+                  )
+                : L(
+                    `年满 ${v.naturalisationAge.value} 岁（${adult} 起；假设本国法的成年年龄不超过 ${v.naturalisationAge.value} 岁）`,
+                    `Aged ${v.naturalisationAge.value} or over (from ${adult}; assuming adulthood under your home country's law is ${v.naturalisationAge.value} or lower)`,
+                  ),
+              met: sim >= adult,
               sources: v.naturalisationAge.sources,
             },
           ]
@@ -1072,7 +1090,20 @@ export function evaluateJapan(req: JpRequest): JpResult {
       title: L('帰化（入籍）', 'Naturalisation (帰化)'),
       status,
       earliestDate: status === 'UNKNOWN' ? undefined : earliest,
-      summary: main + lawOnly + lapseNotes.join(''),
+      summary:
+        main +
+        lawOnly +
+        // Without a home-country age, say what was assumed when age could
+        // matter: the 18th birthday falls during the stay.
+        (nat.route === 'general' &&
+        !nat.homeMajorityAge &&
+        adult > req.stayStart
+          ? L(
+              `年龄按本国法的成年年龄不超过 ${v.naturalisationAge.value} 岁计算；本国法规定更高的（国籍法第5条第1項第2号），请在表单中填写。`,
+              ` Age is worked out assuming adulthood under your home country's law is ${v.naturalisationAge.value} or lower; if it is higher (art. 5(1)(ii)), enter it in the form.`,
+            )
+          : '') +
+        lapseNotes.join(''),
       checks,
       notChecked: [
         L(

@@ -47,6 +47,8 @@ export interface JpForm {
   bornOn: string;
   natRoute: JpNaturalisationRoute | '';
   dateOfBirth: string;
+  /** Age of majority under the home country's law; blank = 18 or lower. */
+  homeMajorityAge: string;
   /** Spouse route for naturalisation: the registered marriage. */
   marriedOn: string;
   trips: JpTripRow[];
@@ -78,6 +80,7 @@ export function emptyJpForm(today: string): JpForm {
     bornOn: '',
     natRoute: '',
     dateOfBirth: '',
+    homeMajorityAge: '',
     marriedOn: '',
     trips: [],
   };
@@ -124,7 +127,11 @@ export function validateJpForm(form: JpForm): JpErrors {
     date('jp-married-life-from', form.marriedLifeFrom);
   if (form.prRoute === 'child-birth') date('jp-born-on', form.bornOn);
   if (!form.natRoute) errors['jp-nat-route'] = 'jp.error.natRoute';
-  if (form.natRoute === 'general') date('jp-date-of-birth', form.dateOfBirth);
+  if (form.natRoute === 'general') {
+    date('jp-date-of-birth', form.dateOfBirth);
+    if (form.homeMajorityAge && !/^[1-9]\d*$/.test(form.homeMajorityAge))
+      errors['jp-home-majority-age'] = 'jp.error.age';
+  }
   if (form.natRoute === 'spouse') date('jp-married-on', form.marriedOn);
   form.trips.forEach((trip, i) => {
     date(`jp-trip-${i}-departed`, trip.departed);
@@ -195,7 +202,13 @@ export function jpRequest(form: JpForm, locale: Locale): JpRequest {
     naturalisation:
       form.natRoute === 'spouse'
         ? { route: 'spouse', marriedOn: form.marriedOn }
-        : { route: 'general', dateOfBirth: form.dateOfBirth },
+        : {
+            route: 'general',
+            dateOfBirth: form.dateOfBirth,
+            ...(form.homeMajorityAge
+              ? { homeMajorityAge: Number(form.homeMajorityAge) }
+              : {}),
+          },
     locale,
   };
 }
