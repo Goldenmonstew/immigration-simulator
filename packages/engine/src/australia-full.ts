@@ -9,7 +9,7 @@ import {
   type AuVisa,
 } from './australia';
 import { instalmentChecks } from './australia-fees';
-import { checker } from './australia-check';
+import { checker, withNoFurtherStay } from './australia-check';
 import {
   auNotes,
   commonChecks,
@@ -96,6 +96,8 @@ export interface AuFullRequest
   locationAtDecision?: Location;
   /** Onshore visa status at lodgement for streams requiring a substantive visa or bridging A, B or C. */
   permissibleOnshoreVisa?: boolean;
+  /** Applicable no-further-stay condition since last entry, including any waiver effective at the proposed lodgement. */
+  noFurtherStay?: 'clear' | 'waived' | 'waiver-pending' | 'barred';
   regionalLockException?: 'instrument-confirmed' | 'claimed' | 'none';
   hongKongPassport?: boolean;
   /** Primary grant with the travel/stay entitlement in Sch 1 item 1137(4M) / 1139(3A). */
@@ -217,19 +219,22 @@ function locationChecks(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {
             ? r.permissibleOnshoreVisa
             : true;
     result.push(
-      check(
-        'AU-lodgement-location',
-        valid,
-        '递交地点及境内签证身份',
-        'Place and status at lodgement',
-        requiresVisa
-          ? '递交时须在移民查验区外；在澳洲境内者须持实质签证或 A、B、C 类过桥签证。'
-          : '允许在境内或境外递交，须在移民查验区外。',
-        requiresVisa
-          ? 'Lodge outside immigration clearance. In Australia, hold a substantive visa or a bridging visa A, B or C.'
-          : 'Lodge in or outside Australia, outside immigration clearance.',
-        'SRC-200',
-        'Sch 1 item ' + item,
+      withNoFurtherStay(
+        r,
+        check(
+          'AU-lodgement-location',
+          valid,
+          '递交地点及境内签证身份',
+          'Place and status at lodgement',
+          requiresVisa
+            ? '递交时须在移民查验区外；在澳洲境内者须持实质签证或 A、B、C 类过桥签证。'
+            : '允许在境内或境外递交，须在移民查验区外。',
+          requiresVisa
+            ? 'Lodge outside immigration clearance. In Australia, hold a substantive visa or a bridging visa A, B or C.'
+            : 'Lodge in or outside Australia, outside immigration clearance.',
+          'SRC-200',
+          'Sch 1 item ' + item,
+        ),
       ),
     );
   }
@@ -552,7 +557,23 @@ function eligibilityCheck(check: CountryCheck) {
 }
 
 export function evaluateAustraliaFull(r: AuFullRequest): CountryResult {
-  return assess(r, true);
+  // Resolve the original and proposed lodgements before projecting a future date.
+  const sameLodgement =
+    !r.partnerApplication || r.partnerApplication.lodged === r.simulationDate;
+  const sharedCondition = r.noFurtherStay ?? r.partner?.noFurtherStay;
+  return assess(
+    {
+      ...r,
+      noFurtherStay: sameLodgement ? sharedCondition : r.noFurtherStay,
+      partner: {
+        ...r.partner,
+        noFurtherStay: sameLodgement
+          ? sharedCondition
+          : r.partner?.noFurtherStay,
+      },
+    },
+    true,
+  );
 }
 
 function assess(r: AuFullRequest, project: boolean): CountryResult {

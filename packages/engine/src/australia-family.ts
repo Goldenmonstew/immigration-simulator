@@ -3,7 +3,7 @@ import {
   australia2026_11,
 } from '@uk-immigration/policy-data';
 import type { AuCitizenshipResidence, AuRequest } from './australia';
-import { checker } from './australia-check';
+import { checker, withNoFurtherStay } from './australia-check';
 import type { AuFullPathId, AuFullRequest } from './australia-full';
 import type { CountryCheck } from './country-result';
 import { addMonths, fullYears } from './dates';
@@ -43,8 +43,10 @@ export interface AuFamilyAnswers {
     sponsorshipApprovedInForce?: boolean;
     onshoreStatus?:
       'substantive' | 'schedule-3-satisfied' | 'needs-review' | 'transit';
-    noFurtherStay?: 'clear' | 'waiver-pending' | 'barred';
+    /** Status at the original combined lodgement if different from the proposed lodgement. */
+    noFurtherStay?: AuFullRequest['noFurtherStay'];
     temporaryStageGranted?: boolean;
+    /** Continued sponsorship for 801 or the sponsoring partner's nomination for 100. */
     continuingSponsorship?: boolean;
     relationshipAtDecision?:
       'continuing' | 'ended' | 'death' | 'family-violence' | 'child-orders';
@@ -258,6 +260,17 @@ function partnerChecks(r: AuFullRequest, pilot?: PilotPathway): CountryCheck[] {
     p.relationshipAtDecision === 'family-violence' ||
     p.relationshipAtDecision === 'child-orders';
   const evidence = finding(p.exceptionEvidence);
+  const longTerm = relationshipIsLong(r);
+  const humanitarian =
+    stream === 'offshore' &&
+    p.offshoreHumanitarianRelationshipDisclosed === true;
+  // An early offshore decision under 100.221(5) or (6) precedes the
+  // nomination requirement in 100.226(a). A normal projection reaches it.
+  const earlyOffshoreDecision =
+    stream === 'offshore' &&
+    application &&
+    (longTerm || humanitarian) &&
+    r.simulationDate < afterYears(application.lodged, v.partnerWaitYears.value);
   const episode = exception
     ? every(
         evidence,
@@ -269,15 +282,14 @@ function partnerChecks(r: AuFullRequest, pilot?: PilotPathway): CountryCheck[] {
       ? undefined
       : every(
           p.relationshipAtDecision === 'continuing',
-          stream === 'onshore' ? p.continuingSponsorship : true,
+          earlyOffshoreDecision ? true : p.continuingSponsorship,
         );
   const waiting =
     application && application.lodged <= r.simulationDate
       ? any(
           pilot?.checks[0]?.met,
-          relationshipIsLong(r),
-          stream === 'offshore' &&
-            p.offshoreHumanitarianRelationshipDisclosed === true,
+          longTerm,
+          humanitarian,
           exception ? episode : false,
         )
       : application
@@ -292,16 +304,9 @@ function partnerChecks(r: AuFullRequest, pilot?: PilotPathway): CountryCheck[] {
       ? true
       : stream === undefined
         ? undefined
-        : every(
-            p.onshoreStatus === undefined || p.onshoreStatus === 'needs-review'
-              ? undefined
-              : p.onshoreStatus !== 'transit',
-            p.noFurtherStay === 'clear'
-              ? true
-              : p.noFurtherStay === 'barred'
-                ? false
-                : undefined,
-          );
+        : p.onshoreStatus === undefined || p.onshoreStatus === 'needs-review'
+          ? undefined
+          : p.onshoreStatus !== 'transit';
   return [
     q(
       'AU-PARTNER-relationship',
@@ -420,16 +425,23 @@ function partnerChecks(r: AuFullRequest, pilot?: PilotPathway): CountryCheck[] {
       'SRC-200',
       'Sch 1 items 1214C(3), 1220A(3)',
     ),
-    q(
-      'AU-PARTNER-onshore-status',
-      onshoreVisa,
-      '境内签证与 Schedule 3',
-      'Onshore status and Schedule 3',
-      '境外不受此限制；境内须核对 771、后续停留限制及无实质签证时的 Schedule 3 或豁免决定。',
-      'For onshore applications check transit status, no-further-stay conditions and Schedule 3 or its waiver if there is no substantive visa. Offshore applications are exempt.',
-      'SRC-200',
-      '820.211(1), (2)(d); Sch 3; reg 2.05(4)',
-      'PD-214',
+    withNoFurtherStay(
+      {
+        locale: r.locale,
+        locationAtApplication: stream ?? r.locationAtApplication,
+        noFurtherStay: p.noFurtherStay,
+      },
+      q(
+        'AU-PARTNER-onshore-status',
+        onshoreVisa,
+        '境内签证与 Schedule 3',
+        'Onshore status and Schedule 3',
+        '境内递交须核对 771 过境签证，以及无实质签证时适用的 Schedule 3 或豁免决定。',
+        'For an onshore application, check transit visa status and, if there is no substantive visa, Schedule 3 or its waiver.',
+        'SRC-200',
+        '820.211(1), (2)(d); Sch 3',
+        'PD-214',
+      ),
     ),
     q(
       'AU-PARTNER-temporary-stage',
@@ -446,24 +458,20 @@ function partnerChecks(r: AuFullRequest, pilot?: PilotPathway): CountryCheck[] {
       episode,
       '永久阶段的关系或例外',
       'Continuing relationship or exception',
-      '关系持续且继续获所需担保，或死亡、家庭暴力、子女监护等法定例外已获认定。',
-      'The relationship and required sponsorship must continue, or an applicable death, family violence or child-order exception must be established.',
+      '普通路径须维持伴侣关系。801 须继续获担保，100 自合并递交满两年起须获担保伴侣提名。死亡、家庭暴力或子女监护按已认定的法定例外判断。',
+      'For a continuing relationship, 801 requires continued sponsorship. For 100, the sponsoring partner must nominate the applicant once two years have passed since combined lodgement. Recognised death, family violence or child-order exceptions are assessed separately.',
       'SRC-200',
-      '801.221(2)–(6AB); 100.221(2)–(4AA)',
+      '801.221(2)(b)–(c), (3)–(6AB); 100.221(2)–(6); 100.226(a)–(b)',
     ),
     q(
       'AU-PARTNER-time',
       waiting,
       '永久阶段等待期',
       'Permanent-stage waiting period',
-      exception ||
-        relationshipIsLong(r) ||
-        (stream === 'offshore' && p.offshoreHumanitarianRelationshipDisclosed)
+      exception || longTerm || humanitarian
         ? '按递交时的长期关系、人道或关系终止例外评估免等候资格。'
         : (pilot?.checks[0]?.text ?? '请提供合并申请的递交日期。'),
-      exception ||
-        relationshipIsLong(r) ||
-        (stream === 'offshore' && p.offshoreHumanitarianRelationshipDisclosed)
+      exception || longTerm || humanitarian
         ? 'An established long-term relationship at lodgement, humanitarian or relationship-ending exception can remove the wait.'
         : (pilot?.checks[0]?.text ??
             'Provide the date of the combined application.'),
@@ -556,22 +564,25 @@ function rrvChecks(r: AuFullRequest, pilot?: PilotPathway): CountryCheck[] {
       'SRC-200',
       'Sch 1 item 1128(3)(c)–(e)',
     ),
-    q(
-      'AU-RRV-clearance',
-      every(
-        r.locationAtApplication === undefined
-          ? undefined
-          : r.locationAtApplication !== 'clearance',
-        r.locationAtDecision === undefined
-          ? undefined
-          : r.locationAtDecision !== 'clearance',
+    withNoFurtherStay(
+      r,
+      q(
+        'AU-RRV-clearance',
+        every(
+          r.locationAtApplication === undefined
+            ? undefined
+            : r.locationAtApplication !== 'clearance',
+          r.locationAtDecision === undefined
+            ? undefined
+            : r.locationAtDecision !== 'clearance',
+        ),
+        '递交与获批所在地',
+        'Location at application and grant',
+        '申请时及获批时可在境内或境外，但须在移民查验区以外。',
+        'Lodgement and grant can occur in or outside Australia, outside immigration clearance.',
+        'SRC-200',
+        'Sch 1 item 1128(3)(b); 155.411; 157.411',
       ),
-      '递交与获批所在地',
-      'Location at application and grant',
-      '申请时及获批时可在境内或境外，但须在移民查验区以外。',
-      'Lodgement and grant can occur in or outside Australia, outside immigration clearance.',
-      'SRC-200',
-      'Sch 1 item 1128(3)(b); 155.411; 157.411',
     ),
     q(
       'AU-RRV-option-residence',

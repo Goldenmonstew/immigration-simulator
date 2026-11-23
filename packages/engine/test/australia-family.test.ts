@@ -141,7 +141,7 @@ describe('combined partner application and permanent stage', () => {
     ['disclosure', { consentToDisclosure: false }, 'NOT_MET'],
     ['sponsorship', { sponsorshipApprovedInForce: false }, 'NOT_MET'],
     ['onshore-status', { onshoreStatus: 'needs-review' }, 'UNKNOWN'],
-    ['onshore-status', { noFurtherStay: 'waiver-pending' }, 'UNKNOWN'],
+    ['onshore-status', { noFurtherStay: 'waiver-pending' }, 'NOT_MET'],
     ['temporary-stage', { temporaryStageGranted: false }, 'NOT_MET'],
     ['continuity', { relationshipAtDecision: 'ended' }, 'NOT_MET'],
     ['continuity', { continuingSponsorship: false }, 'NOT_MET'],
@@ -215,6 +215,7 @@ const returnRequest: AuFullRequest = {
   ...base,
   locationAtApplication: 'onshore',
   locationAtDecision: 'offshore',
+  noFurtherStay: 'clear',
 };
 function returnResult(rrv: Rrv, overrides?: Partial<AuFullRequest>) {
   return familyChecks('AU-RRV', { ...returnRequest, ...overrides, rrv });

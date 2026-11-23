@@ -21,6 +21,7 @@ const solo: AuFullRequest = {
   trips: [],
   locationAtApplication: 'onshore',
   locationAtDecision: 'onshore',
+  noFurtherStay: 'clear',
   visaCompliance: 'complied',
   regional: {
     assessmentYears: [2024, 2025, 2026],
@@ -522,6 +523,222 @@ const approvedNomination = {
   lodged: '2026-07-01',
   approved: '2026-07-10',
 } as const;
+
+test('186 Direct Entry on the same Sponsored Family visitor visa requires an effective waiver of 8503', () => {
+  const request: AuFullRequest = {
+    ...solo,
+    // A 600 Sponsored Family grant is recorded as other-temporary in the timeline.
+    visas: [
+      { subclass: 'other-temporary', from: '2026-11-01', to: '2027-01-31' },
+    ],
+    permissibleOnshoreVisa: true,
+    fees: { additionalAdults: 0, additionalMinors: 0 },
+    english: { passport: 'US' },
+    employer: {
+      nominations: { 'AU-186-DE': approvedNomination },
+      exemption: 'none',
+      sponsorshipConduct: 'clear',
+      csolOccupation: true,
+      assessment: { kind: 'positive', issued: '2026-01-01' },
+      fullTimeExperienceYears: 4,
+    },
+  };
+  for (const [noFurtherStay, expected] of [
+    ['barred', 'NOT_MET'],
+    ['waiver-pending', 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+    ['waived', 'MET'],
+  ] as const) {
+    const result = path('AU-186-DE', { ...request, noFurtherStay });
+    expect(
+      result.checks.find((c) => c.id === 'AU-lodgement-location')?.status,
+    ).toBe(expected);
+    expect(result.status).toBe(expected);
+    expect(result.earliestDate).toBe(expected === 'MET' ? date : undefined);
+  }
+  const legacy = path('AU-186-DE', {
+    ...request,
+    noFurtherStay: undefined,
+    partner: { noFurtherStay: 'barred' },
+  });
+  expect(legacy.status).toBe('NOT_MET');
+  expect(legacy.earliestDate).toBeUndefined();
+  expect(
+    get('AU-186-DE', 'AU-lodgement-location', {
+      ...request,
+      noFurtherStay: 'waived',
+      permissibleOnshoreVisa: false,
+    }).status,
+  ).toBe('NOT_MET');
+});
+
+test('no further stay applies across onshore visa lodgements and only at lodgement', () => {
+  for (const [noFurtherStay, expected] of [
+    ['barred', 'NOT_MET'],
+    ['waived', 'MET'],
+  ] as const) {
+    const request: AuFullRequest = {
+      ...solo,
+      permissibleOnshoreVisa: true,
+      noFurtherStay,
+      partner: { stream: 'onshore', onshoreStatus: 'substantive' },
+    };
+    const onshore = evaluateAustraliaFull(request).columns[0].pathways;
+    const offshore = evaluateAustraliaFull({
+      ...request,
+      locationAtApplication: 'offshore',
+      partner: { stream: 'offshore' },
+    }).columns[0].pathways;
+    for (const [index, result] of onshore.entries()) {
+      if (result.id === 'AU-CITIZENSHIP') {
+        expect(result).toEqual(offshore[index]);
+        continue;
+      }
+      const key =
+        result.id === 'AU-PARTNER'
+          ? 'AU-PARTNER-onshore-status'
+          : result.id === 'AU-RRV'
+            ? 'AU-RRV-clearance'
+            : 'AU-lodgement-location';
+      expect(result.checks.find((c) => c.id === key)?.status, result.id).toBe(
+        expected,
+      );
+      expect(
+        offshore[index].checks.find((c) => c.id === key)?.status,
+        result.id,
+      ).toBe('MET');
+    }
+  }
+});
+
+function combinedPartner(stream: 'onshore' | 'offshore'): AuFullRequest {
+  return {
+    ...solo,
+    visas: [
+      { subclass: stream === 'offshore' ? '309' : '820', from: '2025-06-01' },
+    ],
+    partnerApplication: {
+      stream,
+      lodged: '2024-11-01',
+      longTermRelationship: false,
+    },
+    locationAtApplication: stream,
+    publicInterest: {
+      ...solo.publicInterest,
+      permanentSettlementAndSupport: true,
+    },
+    partner: {
+      relationship: 'married',
+      relationshipAtDecision: 'continuing',
+      partnerAgeAtLodgement: 30,
+      relationshipEvidenceAtLodgement: 'confirmed',
+      eligiblePartnerStatus: true,
+      priorSponsoredPeople: 0,
+      lastRelevantPartnerApplication: 'none',
+      parentVisaGrant: 'none',
+      subclass204RestrictedAtLodgement: false,
+      childOffenceBarApplies: false,
+      relevantSentenceMonths: 0,
+      consentToDisclosure: true,
+      sponsorPoliceCheckIfRequested: true,
+      sponsorshipApprovedInForce: true,
+      onshoreStatus: 'substantive',
+      noFurtherStay: 'clear',
+      temporaryStageGranted: true,
+    },
+  };
+}
+
+test('a dated partner lodgement and a proposed visa lodgement can have different conditions', () => {
+  const request = combinedPartner('onshore');
+  for (const [current, original, proposed, combined] of [
+    ['waived', 'barred', 'MET', 'NOT_MET'],
+    [undefined, 'waived', 'UNKNOWN', 'MET'],
+    ['waived', undefined, 'MET', 'UNKNOWN'],
+  ] as const) {
+    const paths = evaluateAustraliaFull({
+      ...request,
+      permissibleOnshoreVisa: true,
+      noFurtherStay: current,
+      partner: { ...request.partner, noFurtherStay: original },
+    }).columns[0].pathways;
+    expect(
+      paths
+        .find((p) => p.id === 'AU-186-DE')
+        ?.checks.find((c) => c.id === 'AU-lodgement-location')?.status,
+    ).toBe(proposed);
+    expect(
+      paths
+        .find((p) => p.id === 'AU-PARTNER')
+        ?.checks.find((c) => c.id === 'AU-PARTNER-onshore-status')?.status,
+    ).toBe(combined);
+  }
+});
+
+test.each(['offshore', 'onshore'] as const)(
+  '%s partner permanent stage requires its own nomination or sponsorship to project and meet the anniversary',
+  (stream) => {
+    const request = combinedPartner(stream);
+    for (const [continuingSponsorship, continuity] of [
+      [false, 'NOT_MET'],
+      [undefined, 'UNKNOWN'],
+      [true, 'MET'],
+    ] as const) {
+      for (const simulationDate of ['2026-10-31', '2026-11-01', '2026-11-02']) {
+        const result = path('AU-PARTNER', {
+          ...request,
+          simulationDate,
+          partner: { ...request.partner, continuingSponsorship },
+        });
+        const before = simulationDate < '2026-11-01';
+        expect(
+          result.checks.find((c) => c.id === 'AU-PARTNER-continuity')?.status,
+        ).toBe(continuity);
+        expect(
+          result.checks.find((c) => c.id === 'AU-PARTNER-time')?.status,
+        ).toBe(before ? 'NOT_MET' : 'MET');
+        expect(result.status).toBe(
+          continuingSponsorship && before ? 'FUTURE' : continuity,
+        );
+        expect(result.earliestDate).toBe(
+          continuingSponsorship
+            ? before
+              ? '2026-11-01'
+              : simulationDate
+            : undefined,
+        );
+      }
+    }
+  },
+);
+
+test('100.226 preserves early offshore decisions and recognised relationship-ending exceptions', () => {
+  const request = combinedPartner('offshore');
+  const assess = (simulationDate: string, changes: AuFullRequest['partner']) =>
+    path('AU-PARTNER', {
+      ...request,
+      simulationDate,
+      partner: { ...request.partner, continuingSponsorship: false, ...changes },
+    });
+  for (const changes of [
+    { relationshipFrom: '2020-01-01' },
+    { offshoreHumanitarianRelationshipDisclosed: true },
+  ]) {
+    expect(assess('2026-10-31', changes)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2026-10-31',
+    });
+    const due = assess('2026-11-01', changes);
+    expect(due.status).toBe('NOT_MET');
+    expect(due.earliestDate).toBeUndefined();
+  }
+  expect(
+    assess('2026-11-01', {
+      relationshipAtDecision: 'death',
+      exceptionEvidence: 'confirmed',
+    }),
+  ).toMatchObject({ status: 'MET', earliestDate: '2026-11-01' });
+});
 
 test('one approved 186 nomination supports only its own stream in a full comparison', () => {
   const oldRecord = {
