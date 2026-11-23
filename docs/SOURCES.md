@@ -144,6 +144,36 @@
 | SRC-125 | GUIDANCE | 里斯本检察院（PGD Lisboa）编纂版（非官方公报文本，仅交叉核对）：Decreto Regulamentar 84/2007（列至 DR 1/2024）art. 63 续期；Código Civil art. 279、296 期间计算 | https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=940&tabela=leis ；https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=775&tabela=leis | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-pgdlisboa-dr-84-2007-consolidado.html`（sha256 `8c0509aba4b9cf5f98fcb0f0f39742d91917e6500626ddd2302cd4a5f6a1f49f`）；`policy-sources/2026-11-22-pt-pgdlisboa-codigo-civil.html`（sha256 `1134e2bc2feb5ca33aaafd4e7f6c34d55b847ec3f389d8ea9cc1c7613eeaf538`） | archived |
 | SRC-126 | GUIDANCE | AIMA（移民与庇护署）页面：投资居留许可 ARI（art. 90-A）、永久居留（art. 80）、欧盟长期居民 ERLD（art. 125）；《Esclarecimento: Direito de Residência》（2025-10-17） | https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a ；https://aima.gov.pt/pt/viver/autorizacao-de-residencia-permanente-art-80-o ；https://aima.gov.pt/pt/viver/aquisicao-do-estatuto-de-residente-de-longa-duracao-erld-art-125-o ；https://aima.gov.pt/pt/noticias/direito-de-residencia | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-aima-ari-art-90-a.html`（sha256 `759f939a21c33b9a228b1f85146c37b65db06127d8f3c6378474fd9465197d37`）；`policy-sources/2026-11-22-pt-aima-ar-permanente-art-80.html`（sha256 `739864b9a7789f04abe2502b87d991cd6b89bee22b381518a73a0aa6a8ad04ef`）；`policy-sources/2026-11-22-pt-aima-erld-art-125.html`（sha256 `188f74257278bb429fe5977e8ee73c6fddeb3c7fc966f0ab1756ad553c4f9f5e`）；`policy-sources/2025-10-17-pt-aima-direito-de-residencia.html`（sha256 `93937c52620f1a21cf5acce152f5850131b5483b073ef67ed4d9dd07785cb036`） | archived |
 | SRC-127 | GUIDANCE | 葡萄牙政府关于新国籍法的说明：司法部新闻《Lei da Nacionalidade: novas regras entram em vigor a 19 de maio》（2026-05-19）；司法部入籍指南《Reside legalmente em Portugal há pelo menos 5 anos》（2026-11-22 抓取，仍按旧法写 5 年，已过时）；部长会议公报（2026-10-29，第 2 项通过国籍条例 Decreto-Lei） | https://justica.gov.pt/Noticias/Lei-da-Nacionalidade-novas-regras-entram-em-vigor-a-19-de-maio ；https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/Reside-legalmente-em-Portugal-ha-pelo-menos-5-anos ；https://www.portugal.gov.pt/pt/gc25/governo/comunicados-do-conselho-de-ministros/comunicado-do-conselho-de-ministros-de-29-de-outubro-de-2026 | 见标题 | 2026-11-22 | `policy-sources/2026-05-19-pt-justica-noticia-lei-nacionalidade.html`（sha256 `667814f2bcfdc424689f8bd24dcf4378abfdd7124d8f2402a30116a395183c4a`）；`policy-sources/2026-11-22-pt-justica-guia-reside-5-anos.html`（sha256 `1eb2c2027170a3a4f7d5f4458e08e7ac42096c08fb12b3220d3e4708cfc702d4`）；`policy-sources/2026-10-29-pt-gov-comunicado-cm.html`（sha256 `7e5d433eed2dba88a608d27a9712b2966e14637a3f0601e31e50ddd8fffd2f1e`） | archived |
+| SRC-320 | LAW | BOE · LO 4/2000，外国人组织法 | https://www.boe.es/buscar/act.php?id=BOE-A-2000-544 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-lo4-2000.html`（sha256 `f19cbf7f1ceb94fe9ec699240b41afe1ee65f7ff90382c6eece43feaee1e99b2`） | archived |
+| SRC-321 | LAW | BOE · RD 1004/2015，入籍程序条例 | https://www.boe.es/eli/es/rd/2015/11/06/1004/con | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-rd1004.html`（sha256 `71ab38547fa498590082790162795e46dc329181dda57081525390f843d591ab`） | archived |
+| SRC-322 | LAW | BOE · Orden JUS/1625/2016，入籍办理及附件；BOE · Resolución 7/11/2022，考试豁免表 | https://www.boe.es/eli/es/o/2016/09/30/jus1625/con ；https://www.boe.es/diario_boe/txt.php?id=BOE-A-2022-19664 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-orden-jus1625.html`（sha256 `7270a7e8f679393e94d90734bbb0677ddf871284089c378b2bfb4fa9ebcf03f1`）；`policy-sources/2026-11-23-es-orden-dispensa.html`（sha256 `a41530c0371f394314885c367e367b56d3732c03e25d9985e71726c0d4818edd`） | archived |
+| SRC-323 | GUIDANCE | 司法部 · Información Nacionalidad；司法部 · Nueva tasa desde el 1 de enero de 2022；司法部 · Residencia，入籍费及宣誓说明；司法部 · 2021-09-03 未满 14 岁的代表申请说明；司法部电子政务 · Nacionalidad española por residencia | https://www.mjusticia.gob.es/es/ciudadania/nacionalidad/informacion-nacionalidad ；https://www.mjusticia.gob.es/es/atencion-ciudadano/avisos-centro-atencion/nueva-tasa-desde-enero-2015 ；https://www.mjusticia.gob.es/es/ciudadania/nacionalidad/que-es-nacionalidad/como-adquiere-nacionalidad/residencia ；https://www.mjusticia.gob.es/es/Ciudadano/Nacionalidad/Documents/Nota%20entrada%20en%20vigor%20Ley%208-2021.pdf ；https://sede.mjusticia.gob.es/es/tramites/nacionalidad-espanola | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-justicia-nacionalidad.html`（sha256 `7678cb8e332c1faf720e58e79ef0c23323fac1657c5811bbc533c0eaad5c3ca3`）；`policy-sources/2026-11-23-es-justicia-tasa-aviso.html`（sha256 `d6963ddab3b76462667db3cd7627c2427e721bfaf965b149252d05c3e902a4af`）；`policy-sources/2026-11-23-es-justicia-residencia.html`（sha256 `05a545c08a15be9a0b5ff596cfa4c1d63752680ece9882ba82f0fc1cbf0a8c28`）；`policy-sources/2026-11-23-es-justicia-menores.pdf`（sha256 `fcdcf3eda47377306010ceb168e275df5a7d027b3b047d45f6f1ca97d0fdcef8`）；`policy-sources/2026-11-23-es-justicia-sede-nacionalidad.html`（sha256 `ee79be39c62841d8f7cb6a03e9d7280416740716c176b23f20f4c7a9aff1d6d4`） | archived |
+| SRC-324 | GUIDANCE | 移民部 · Hoja 50，欧盟长期居留 | https://www.inclusion.gob.es/web/migraciones/w/50.-autorizacion-de-residencia-de-larga-duracion-ue | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-hoja50.html`（sha256 `0976e49357ac4bb6303cf7a64c852a8a69a0e355955f7d6959d0c9953febd5fd`） | archived |
+| SRC-325 | LAW | BOE · Orden PJC/617/2025，居留和证件费 | https://www.boe.es/buscar/act.php?id=BOE-A-2025-12056 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-orden-pjc617.html`（sha256 `efe4a431bcada17d2eef95f29eb62cb55cdf317fde2ad870b77dbeea55a3186b`） | archived |
+| SRC-326 | LAW | BOE · Ley 31/2022，国家预算；SEPE · Cuantías anuales，现行 IPREM／SMI 表 | https://www.boe.es/buscar/act.php?id=BOE-A-2022-22128 ；https://www.sepe.es/HomeSepe/prestaciones-desempleo/Cuantias-anuales.html | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-ley31-2022.html`（sha256 `bd9f42aad5d09415e003f2d30678154a97025834c1440f546dc5043dd04551b2`）；`policy-sources/2026-11-23-es-sepe-cuantias.html`（sha256 `342c4a3257a01609e55f6d92b011fc07efcc268b7ab61c0b708c15ac712cbb29`） | archived |
+| SRC-327 | LAW | BOE · RD 240/2007，EU／EEA／瑞士自由流动制度 | https://www.boe.es/buscar/act.php?id=BOE-A-2007-4184 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-rd240.html`（sha256 `5c35757b2af475438751311d331def3356fce4da8f1aee0e4423ca98497bc12b`） | archived |
+| SRC-328 | GUIDANCE | 移民部 · Hoja 63，永久家属卡；移民部 · Instrucciones SEM 2/2025，西籍家属和长居衔接 | https://www.inclusion.gob.es/web/migraciones/w/63.-tarjeta-de-residencia-permanente-de-familiar-de-ciudadano-de-la-union-europea ；https://www.inclusion.gob.es/documents/d/migraciones/instrucciones-sem-2-2025-sobre-la-residencia-temporal-de-familiares-de-personas-con-nacionalidad-espanola | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-hoja63.html`（sha256 `460d130c86e5994260dc3492f5a69d120c007f522518303d1bbdb8508ccbc46e`）；`policy-sources/2026-11-23-es-sem2-2025.pdf`（sha256 `1c7ea39e4b707559e090b01342311c86b18c9e5b10a60f61ff3f30789926bec8`） | archived |
+| SRC-329 | LAW | BOE · Orden PRE/1490/2012，自由流动居留证明 | https://www.boe.es/eli/es/o/2012/07/09/pre1490 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-orden-pre1490.html`（sha256 `a7e22079f3efea61cdf2ecf77a0febb47ea6358f05253865d516fa938bae5571`） | archived |
+| SRC-330 | LAW | DOUE／BOE · Directiva 2004/38/CE 校正重刊 PDF | https://www.boe.es/doue/2004/229/L00035-00048.pdf | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-directiva2004-38.pdf`（sha256 `5cfe07546dd2d88b638803a24d741f890e1063aeca8de51415e92706f4eef80b`） | archived |
+| SRC-331 | LAW | EUR-Lex · Directiva 2003/109/CE 合并文本；DOUE／BOE · Directiva 2003/109/CE 原始公布 | https://eur-lex.europa.eu/legal-content/ES/TXT/HTML/?uri=CELEX:02003L0109-20110520 ；https://www.boe.es/buscar/doc.php?id=DOUE-L-2004-80112 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-directiva2003-109.html`（sha256 `3ef25bd66ee9a1551bbb9ea887a4ceccf72d5f0355ea6cce0c1d987e4b7c971b`）；`policy-sources/2026-11-23-es-directiva2003-109-boe.html`（sha256 `7aaff36d3f38eca7a277a5049866758cf3507d54238c0c32961e26c0419be56c`） | archived |
+| SRC-332 | LAW | BOE · Ley 14/2013，蓝卡及流动 | https://www.boe.es/buscar/act.php?id=BOE-A-2013-10074 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-ley14-2013.html`（sha256 `aa9a513a35bd9128a70a08216643f6e59dc76960d6ecf742fe7d7979ca7347ee`） | archived |
+| SRC-333 | GUIDANCE | 移民部 · Hoja 53，恢复国内长居；移民部 · Hoja 54，恢复欧盟长居；西班牙驻河内使馆 · 恢复长居办事表，有旧版条目，仅用于标明冲突 | https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue-duplicar-0-1 ；https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue-duplicar-0-2 ；https://www.exteriores.gob.es/DocumentosAuxiliaresSC/Vietnam/HANOI%20%28E%29/27a.%20Nacionales.RLD%20%28ES%29.pdf | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-hoja53.html`（sha256 `83bb61f480187a68b1448891e559cbe8dc8317945cc49273edeffb79d2f5d69b`）；`policy-sources/2026-11-23-es-hoja54.html`（sha256 `54ae75827a344f7bb5cf83a5bceedd8763da9994599dc315f3d203ac14a949b3`）；`policy-sources/2026-11-23-es-recuperacion-consulado-hanoi.pdf`（sha256 `af8c1bbf81adcaf74d848b7687a07e2e3e8cd2342915f96efce264cd112734ad`） | archived |
+| SRC-334 | LAW | BOE · Ley 19/2015，入籍费用法源 | https://www.boe.es/buscar/act.php?id=BOE-A-2015-7851 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-ley19-2015.html`（sha256 `01b26e707f5c28dfe7149f8bdd698fa1b6e4b7861354bae1c023a752a929bd46`） | archived |
+| SRC-335 | GUIDANCE | Instituto Cervantes 布鲁塞尔 · CCSE 考试与费用；Instituto Cervantes · Guía para la prueba CCSE；Instituto Cervantes · Términos y condiciones，报名条款；Instituto Cervantes · Precio de la prueba CCSE | https://bruselas.cervantes.es/es/examenes_espanol/ccse/ccse.htm?cadena_busqueda=2026 ；https://examenes.cervantes.es/sites/default/files/guia_prueba_ccse.pdf ；https://examenes.cervantes.es/es/node/1142109 ；https://examenes.cervantes.es/es/ccse/cuanto | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-ccse-bruselas.html`（sha256 `4ac109bdfdb9560ebab37246bdae354b0ba63237f1c4aa13929d808bffe37bbe`）；`policy-sources/2026-11-23-es-ccse-guia.pdf`（sha256 `cc9cf2cbde6e9c65902190beb377a9ccb9b3277356ebf52c5e094d5551f8b2cc`）；`policy-sources/2026-11-23-es-ccse-terminos.html`（sha256 `67197c4423508a73a33651a577134ce8942f426c2797a7546cd7c615815e8827`）；`policy-sources/2026-11-23-es-ccse-precio.html`（sha256 `e26fbf57b5a53e5adb10e63da80cb465a58f700b62a0643010077226a96bf5c9`） | archived |
+| SRC-336 | GUIDANCE | Instituto Cervantes · DELE 2026 各国考试费表 | https://examenes.cervantes.es/sites/default/files/ic-tabla-precios-dele-2026.pdf | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-dele-2026.pdf`（sha256 `dc9a9f33ff66b4f060ca3c988198abb7368d812996a356e7aa5e578dc5996aeb`） | archived |
+| SRC-337 | LAW | BOE · Ley 19/2021，IMV；BOE · RDL 3/2026，2026 非缴费型养老金金额 | https://www.boe.es/buscar/act.php?id=BOE-A-2021-21007 ；https://www.boe.es/buscar/act.php?id=BOE-A-2026-2548 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-ley19-2021.html`（sha256 `7238ec6c68a25a54511c9174244bcafb17f1ee4fd554f6cb9c2c33f1db84da22`）；`policy-sources/2026-11-23-es-rdl3-2026.html`（sha256 `8fad364805dcb60875504e90bc17c86b6fdd9d0ebebcf9767c369dbdeb2da2b6`） | archived |
+| SRC-338 | LAW | BOE · RD 1155/2024 原始公报；BOE · RD 316/2026 修订原文；BOE · 最高法院 2026-07-08 判决及更正 | https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-24099 ；https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-8284 ；https://www.boe.es/buscar/doc.php?id=BOE-A-2026-19632 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-publicacion-reglamento.html`（sha256 `758517103d2e302548291155305e3258e2a9fe16f9f84fd04694367ae3fb4bad`）；`policy-sources/2026-11-23-es-rd316.html`（sha256 `bdbc814ab04e8000e152b4c46d343446d317ecd88991063c1edc31d56769dcdc`）；`policy-sources/2026-11-23-es-ts-reglamento.html`（sha256 `8809055e6784e5f58c77769513a27d2f01b68cec1ab51795b3f5dfb5d029b8eb`） | archived |
+| SRC-339 | GUIDANCE | CGPJ · Audiencia Nacional，学习停留的按居住入籍判决摘要 | https://www.poderjudicial.es/cgpj/es/Poder-Judicial/Audiencia-Nacional/Jurisprudencia/Actualidad-Jurisprudencial/ci.AN-C-A--Estima-el-recurso-contra-resolucion-de-la-DGRN---que-acuerda-conceder-la-nacionalidad-espanola-por-residencia--Anula-la-misma-por-su-disconformidad-a-Derecho--La-permanencia-en-Espana-amparada-en-la-tarjeta-de-estudiante-o-en-autorizacion-de-estancia-para-cursar-estudios-no-puede-considerarse-que-reuna-las-notas-exigidas-de-residencia-legal--continuada-e-inmediatamente-anterior-a-la-peticion-previsto-en-el-art--22-3-del-CC-para-la-adquisicion-de-la-nacionalidad-.formato3 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-cgpj-estudios.html`（sha256 `3a8584fb16b913e4d1f958bc468b8aad28a70434a0ca4ade8e21b5e603ad5144`） | archived |
+| SRC-340 | LAW | BOE · RD 126/2026，2026 SMI；BOE · RDL 2/2015，劳动者法典 | https://www.boe.es/buscar/act.php?id=BOE-A-2026-3815 ；https://www.boe.es/buscar/act.php?id=BOE-A-2015-11430 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-smi2026.html`（sha256 `d3c8ead4ea540ff39439f4e4849225493e5aa3bdc03c859b6e1dd1c4fcf0774e`）；`policy-sources/2026-11-23-es-estatuto-trabajadores.html`（sha256 `b3dd19df24b8bfefe65370cf7bbee78a5030a9a691687f878cf54796c32e3286`） | archived |
+| SRC-341 | LAW | BOE · LO 2/2006，教育法 | https://www.boe.es/buscar/act.php?id=BOE-A-2006-7899 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-educacion.html`（sha256 `4fcf4ea5940cde0f089a41d53e32fdf8bba056bcac5fdaae1bfd6411dd6ef502`） | archived |
+| SRC-342 | LAW | BOE · 最高法院 2024-07-15 判决，入籍 art. 12.1；BOE · Ley 8/2021，支持措施及民法修订 | https://www.boe.es/buscar/doc.php?id=BOE-A-2024-18114 ；https://www.boe.es/buscar/act.php?id=BOE-A-2021-9233 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-ts-nacionalidad.html`（sha256 `5c9f14a03ad9011a81ad30ba5177ede419273d7627c90a040a8b0e8394874285`）；`policy-sources/2026-11-23-es-ley8-2021.html`（sha256 `d3f06be9de1a579da85529900e380d3e24990d6720407a4ecb2a2cd2ab304df9`） | archived |
+| SRC-343 | LAW | BOE · Ley 20/2011，Registro Civil；司法部 · 2021-12-22 公证宣誓声明指令；BOE · Ley 18/2014，民事登记公共服务费用 | https://www.boe.es/buscar/act.php?id=BOE-A-2011-12628 ；https://www.mjusticia.gob.es/es/Ciudadano/Nacionalidad/Documents/Instruccion%20DGSJFP%20Notarias%20declaraciones%20nacionalidad%20residencia.pdf ；https://www.boe.es/buscar/act.php?id=BOE-A-2014-10517 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-ley20-2011.html`（sha256 `dfc8f51ba806a571b0f98e798e5cbb8e42383fa7669764e98d3eca11c3a81d12`）；`policy-sources/2026-11-23-es-justicia-jura-notaria.pdf`（sha256 `90709937b593f674b9f8ff1a0a1e87cf6d1bc64b29c61ff37b33a419b68a56a9`）；`policy-sources/2026-11-23-es-registro-civil-gratuidad.html`（sha256 `2012e04d093a1cac35f249b6248e11dae0eb554e3bcd886b486e41ec01f4ae65`） | archived |
+| SRC-344 | GUIDANCE | Seguridad Social · Jubilación ordinaria，法定退休年龄 | https://www.seg-social.es/wps/portal/wss/internet/Trabajadores/PrestacionesPensionesTrabajadores/10963/28393/28396/28472?changeLanguage=es | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-edad-jubilacion.html`（sha256 `59cb47a400d0b1adb9e17be428285646df4d0c4f3d7852cce34ab6ad67b51add`） | archived |
+| SRC-345 | GUIDANCE | 移民部 · Hoja 51，其他成员国长居者迁西；移民部 · Hoja 52，上述持有人家属 | https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue ；https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue-duplicar-0 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-hoja51.html`（sha256 `3a570fcd592f329761d7b8278f1df503af9e88ce19a5a42a330a6ac491efdb10`）；`policy-sources/2026-11-23-es-hoja52.html`（sha256 `436f406c0fa6a3192cbcabe162ac6caf6094a99d34d68261329fd2adf615fce7`） | archived |
+| SRC-346 | LAW | BOE · 西班牙—法国国籍协定；BOE · 司法部西法协定适用指令 | https://www.boe.es/buscar/doc.php?id=BOE-A-2022-4916 ；https://www.boe.es/eli/es/ins/2022/03/31/%281%29/con | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-convenio-francia.html`（sha256 `b949582e7f093eeed9535d1eea09ed66af4c9814d01b0be87a22116418a87b1f`）；`policy-sources/2026-11-23-es-convenio-francia-instruccion.html`（sha256 `66e355fb48e355397084dd2c66ea760da3069e475b0148034903ca9ca0ee4a2e`） | archived |
+| SRC-347 | LAW | BOE · Ley 9/2011，领事收费 | https://www.boe.es/buscar/act.php?id=BOE-A-2011-8222 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-visa-tasas-consulares.html`（sha256 `d7fccaf0dabceb9814b1b79ce642a40f1b5e7f09914502c4339826ea0d9f4833`） | archived |
+| SRC-348 | GUIDANCE | TJUE · C-432/20 判决官方公报摘要 | https://curia.europa.eu/jcms/upload/docs/application/pdf/2022-01/cp220010es.pdf | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-tjue-ltr-ausencias.pdf`（sha256 `ed464a5c124d4efd127aad177e2345a9f7ff2045f4da2c9dafa61520c0a4865e`） | archived |
+| SRC-349 | LAW | BOE · RDL 3/2004，IPREM 制定机制 | https://www.boe.es/buscar/act.php?id=BOE-A-2004-12010 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-iprem-ley-base.html`（sha256 `81b9fa9060ee47b2b08dd0f1a6303cb9cd97ef8ad6f749b977234ddafdbe641e`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -763,16 +793,32 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ## SRC-083 Real Decreto 1155/2024（外国人法实施条例）
 
+SRC-083 BOE · RD 1155/2024 合并 PDF，仓库第 18 阶段同版。
+
+- `policy-sources/2026-09-22-es-rd1155-2024-reglamento-extranjeria.pdf` → <https://www.boe.es/buscar/pdf/2024/BOE-A-2024-24099-consolidado.pdf>
+
 - BOE 合并文本自注仅供参考、无法律效力，有效力的是公报原文；条例 2025-05-20 生效，RD 316/2026 修订了其他章节，没有改第 X 编（长期居留，art. 175–189）与 art. 201。`p<N>` 指 PDF 物理页序。
 - `art. 183.1`（p133）：申请前 5 年在西班牙合法、连续居留，可取得国内长期居留。`art. 183.2`（p133–p134）：单次不超过 6 个月、5 年内合计不超过 10 个月的出境不影响连续性，非正常出境除外；因工作出境合计上限 18 个月；不可抗力与 NGO 合作者另有例外。`art. 183.3` 列出可直接取得的情形。`art. 176` 为长期居留-欧盟，学习停留按一半计入（国内版没有这一句）。`art. 48.2`（p39）只就免签短期停留规定入境日为第一天、出境日为最后一天。`art. 201` 规定取得后离开欧盟连续 12 个月可被宣告失效。
 
 ## SRC-084 Código Civil（民法典）
+
+SRC-084 BOE · Código Civil 合并 PDF，仓库第 18 阶段同版。
+
+- `policy-sources/2025-01-03-es-codigo-civil.pdf` → <https://www.boe.es/buscar/pdf/1889/BOE-A-1889-4763-consolidado.pdf>
 
 - BOE 合并文本，`p<N>` 指 PDF 物理页序。
 - `art. 5.1`（p14）：按月或年计的期间"de fecha a fecha"（从某日到对应日），到期月没有对应日的，以该月最后一天为准。引擎的年、月加减即按此计（2 月 29 日加年数取 2 月 28 日）。
 - `art. 22.1`（p21）：按居住入籍一般 10 年；难民 5 年；伊比利亚美洲国家、安道尔、菲律宾、赤道几内亚、葡萄牙原始国籍公民及塞法迪人 2 年。`art. 22.2`：在西班牙出生、与西班牙公民结婚满 1 年且未分居等情形 1 年。`art. 22.3`：居留须合法、连续、紧接申请之前，没有规定缺席天数。`art. 23.b`：须声明放弃原国籍（art. 24.1 所列国家的原住民与原籍西班牙的塞法迪人除外，范围比 art. 22.1 的两年路线窄）。`art. 25.1.a`：入籍后 3 年只使用已放弃的国籍会丧失西班牙国籍。
 
 ## SRC-085 西班牙官方说明
+
+SRC-085a Administración General del Estado · Adquisición de la nacionalidad。
+
+- `policy-sources/2026-11-21-es-administracion-gob-adquisicion-nacionalidad.html` → <https://administracion.gob.es/pag_Home/Tu-espacio-europeo/derechos-obligaciones/ciudadanos/residencia/obtencion-nacionalidad>
+
+SRC-085b 移民部 · Hoja 49，国内长居。
+
+- `policy-sources/2026-11-21-es-hoja49-larga-duracion-nacional.html` → <https://www.inclusion.gob.es/web/migraciones/w/49.-autorizacion-de-residencia-de-larga-duracion-nacional>
 
 - administracion.gob.es：只有外国人法规定的居留许可才算入籍所需的合法居留（"Los únicos títulos válidos…"）；原路径 301 跳转，快照为跳转后的页面。
 - Hoja informativa 49：国内长期居留须 5 年连续合法居留，出境单次不超过 6 个月、合计不超过 10 个月，因工作合计不超过 18 个月；页面自注仅供参考。
@@ -798,6 +844,10 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 编纂版（p8–p10）与上列 ΦΕΚ 一致，用于核对现行 άρθ. 5 全文。《归化的形式与实质条件》（p1–p2）：可接受的身份含"投资活动许可、房产所有人许可或投资者永久居留许可"；临时居留身份不能用于申请归化。ypes.gr 对脚本请求返回 403，每周核对需人工处理。清单（άρθ. 5 παρ. 1 ε αθ）只点名旧法（ν. 4251/2014）下的投资者许可，新法 Β.5 是否同样认可没有部长决定，见 PD-105。
 
 ## SRC-090 西班牙行政程序法 Ley 39/2015
+
+SRC-090 BOE · Ley 39/2015 行政程序法 PDF。
+
+- `policy-sources/2024-11-06-es-boe-ley39-2015.pdf` → <https://www.boe.es/buscar/pdf/2015/BOE-A-2015-10565-consolidado.pdf>
 
 - `policy-sources/2024-11-06-es-boe-ley39-2015.pdf` → <https://www.boe.es/buscar/pdf/2015/BOE-A-2015-10565-consolidado.pdf>
 - art. 30（p29–p30）：期间按日计时为工作日，周六、周日与法定节假日不计（30.2）；按月计的期间到起算日在届满月的同一日结束（30.4）；最后一天不是工作日的，顺延到下一个工作日（30.5）。节假日由国家与各自治区每年公布（30.7）。
@@ -1045,3 +1095,271 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 司法部新闻（2026-05-19）："Regulamentação complementar"一节写明新规定 2026-05-19 施行，在审程序继续适用旧文本，新规定只适用于施行后递交的申请；正文列出 7 年、10 年。
 - 司法部入籍指南页（2026-11-22 抓取）标题与正文仍写居住满 5 年，是旧法内容，不作为现行规则的依据。
 - 部长会议公报（2026-10-29）第 2 项：通过实施新国籍法的 Decree-Law；截至 2026-11-22 未见公布，新法下居留起算的证明方式待条例明确（PD-140）。
+
+## SRC-320 BOE · LO 4/2000，外国人组织法
+
+SRC-320 BOE · LO 4/2000，外国人组织法。
+
+- `policy-sources/2026-11-23-es-lo4-2000.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2000-544>
+
+## SRC-321 BOE · RD 1004/2015，入籍程序条例
+
+SRC-321 BOE · RD 1004/2015，入籍程序条例。
+
+- `policy-sources/2026-11-23-es-rd1004.html` → <https://www.boe.es/eli/es/rd/2015/11/06/1004/con>
+
+## SRC-322 西班牙完整版关联文书
+
+SRC-322a BOE · Orden JUS/1625/2016，入籍办理及附件。
+
+- `policy-sources/2026-11-23-es-orden-jus1625.html` → <https://www.boe.es/eli/es/o/2016/09/30/jus1625/con>
+
+SRC-322b BOE · Resolución 7/11/2022，考试豁免表。
+
+- `policy-sources/2026-11-23-es-orden-dispensa.html` → <https://www.boe.es/diario_boe/txt.php?id=BOE-A-2022-19664>
+
+## SRC-323 西班牙完整版关联文书
+
+SRC-323a 司法部 · Información Nacionalidad。
+
+- `policy-sources/2026-11-23-es-justicia-nacionalidad.html` → <https://www.mjusticia.gob.es/es/ciudadania/nacionalidad/informacion-nacionalidad>
+
+SRC-323b 司法部 · Nueva tasa desde el 1 de enero de 2022。
+
+- `policy-sources/2026-11-23-es-justicia-tasa-aviso.html` → <https://www.mjusticia.gob.es/es/atencion-ciudadano/avisos-centro-atencion/nueva-tasa-desde-enero-2015>
+
+SRC-323c 司法部 · Residencia，入籍费及宣誓说明。
+
+- `policy-sources/2026-11-23-es-justicia-residencia.html` → <https://www.mjusticia.gob.es/es/ciudadania/nacionalidad/que-es-nacionalidad/como-adquiere-nacionalidad/residencia>
+
+SRC-323d 司法部 · 2021-09-03 未满 14 岁的代表申请说明。
+
+- `policy-sources/2026-11-23-es-justicia-menores.pdf` → <https://www.mjusticia.gob.es/es/Ciudadano/Nacionalidad/Documents/Nota%20entrada%20en%20vigor%20Ley%208-2021.pdf>
+
+SRC-323e 司法部电子政务 · Nacionalidad española por residencia。
+
+- `policy-sources/2026-11-23-es-justicia-sede-nacionalidad.html` → <https://sede.mjusticia.gob.es/es/tramites/nacionalidad-espanola>
+
+## SRC-324 移民部 · Hoja 50，欧盟长期居留
+
+SRC-324 移民部 · Hoja 50，欧盟长期居留。
+
+- `policy-sources/2026-11-23-es-hoja50.html` → <https://www.inclusion.gob.es/web/migraciones/w/50.-autorizacion-de-residencia-de-larga-duracion-ue>
+
+## SRC-325 BOE · Orden PJC/617/2025，居留和证件费
+
+SRC-325 BOE · Orden PJC/617/2025，居留和证件费。
+
+- `policy-sources/2026-11-23-es-orden-pjc617.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2025-12056>
+
+## SRC-326 西班牙完整版关联文书
+
+SRC-326a BOE · Ley 31/2022，国家预算。
+
+- `policy-sources/2026-11-23-es-ley31-2022.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2022-22128>
+
+SRC-326b SEPE · Cuantías anuales，现行 IPREM／SMI 表。
+
+- `policy-sources/2026-11-23-es-sepe-cuantias.html` → <https://www.sepe.es/HomeSepe/prestaciones-desempleo/Cuantias-anuales.html>
+
+## SRC-327 BOE · RD 240/2007，EU／EEA／瑞士自由流动制度
+
+SRC-327 BOE · RD 240/2007，EU／EEA／瑞士自由流动制度。
+
+- `policy-sources/2026-11-23-es-rd240.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2007-4184>
+
+## SRC-328 西班牙完整版关联文书
+
+SRC-328a 移民部 · Hoja 63，永久家属卡。[官方原件的历史响应](https://web.archive.org/web/20260716204307id_/https://www.inclusion.gob.es/web/migraciones/w/63.-tarjeta-de-residencia-permanente-de-familiar-de-ciudadano-de-la-union-europea)
+
+- `policy-sources/2026-11-23-es-hoja63.html` → <https://www.inclusion.gob.es/web/migraciones/w/63.-tarjeta-de-residencia-permanente-de-familiar-de-ciudadano-de-la-union-europea>
+
+SRC-328b 移民部 · Instrucciones SEM 2/2025，西籍家属和长居衔接。[官方原件的历史响应](https://web.archive.org/web/20250714054618id_/https://www.inclusion.gob.es/documents/d/migraciones/instrucciones-sem-2-2025-sobre-la-residencia-temporal-de-familiares-de-personas-con-nacionalidad-espanola)
+
+- `policy-sources/2026-11-23-es-sem2-2025.pdf` → <https://www.inclusion.gob.es/documents/d/migraciones/instrucciones-sem-2-2025-sobre-la-residencia-temporal-de-familiares-de-personas-con-nacionalidad-espanola>
+
+## SRC-329 BOE · Orden PRE/1490/2012，自由流动居留证明
+
+SRC-329 BOE · Orden PRE/1490/2012，自由流动居留证明。
+
+- `policy-sources/2026-11-23-es-orden-pre1490.html` → <https://www.boe.es/eli/es/o/2012/07/09/pre1490>
+
+## SRC-330 DOUE／BOE · Directiva 2004/38/CE 校正重刊 PDF
+
+SRC-330 DOUE／BOE · Directiva 2004/38/CE 校正重刊 PDF。
+
+- `policy-sources/2026-11-23-es-directiva2004-38.pdf` → <https://www.boe.es/doue/2004/229/L00035-00048.pdf>
+
+## SRC-331 西班牙完整版关联文书
+
+SRC-331a EUR-Lex · Directiva 2003/109/CE 合并文本。
+
+- `policy-sources/2026-11-23-es-directiva2003-109.html` → <https://eur-lex.europa.eu/legal-content/ES/TXT/HTML/?uri=CELEX:02003L0109-20110520>
+
+SRC-331b DOUE／BOE · Directiva 2003/109/CE 原始公布。
+
+- `policy-sources/2026-11-23-es-directiva2003-109-boe.html` → <https://www.boe.es/buscar/doc.php?id=DOUE-L-2004-80112>
+
+## SRC-332 BOE · Ley 14/2013，蓝卡及流动
+
+SRC-332 BOE · Ley 14/2013，蓝卡及流动。
+
+- `policy-sources/2026-11-23-es-ley14-2013.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2013-10074>
+
+## SRC-333 西班牙完整版关联文书
+
+SRC-333a 移民部 · Hoja 53，恢复国内长居。
+
+- `policy-sources/2026-11-23-es-hoja53.html` → <https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue-duplicar-0-1>
+
+SRC-333b 移民部 · Hoja 54，恢复欧盟长居。
+
+- `policy-sources/2026-11-23-es-hoja54.html` → <https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue-duplicar-0-2>
+
+SRC-333c 西班牙驻河内使馆 · 恢复长居办事表，有旧版条目，仅用于标明冲突。
+
+- `policy-sources/2026-11-23-es-recuperacion-consulado-hanoi.pdf` → <https://www.exteriores.gob.es/DocumentosAuxiliaresSC/Vietnam/HANOI%20%28E%29/27a.%20Nacionales.RLD%20%28ES%29.pdf>
+
+## SRC-334 BOE · Ley 19/2015，入籍费用法源
+
+SRC-334 BOE · Ley 19/2015，入籍费用法源。
+
+- `policy-sources/2026-11-23-es-ley19-2015.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2015-7851>
+
+## SRC-335 西班牙完整版关联文书
+
+SRC-335a Instituto Cervantes 布鲁塞尔 · CCSE 考试与费用。
+
+- `policy-sources/2026-11-23-es-ccse-bruselas.html` → <https://bruselas.cervantes.es/es/examenes_espanol/ccse/ccse.htm?cadena_busqueda=2026>
+
+SRC-335b Instituto Cervantes · Guía para la prueba CCSE。[官方原件的历史响应](https://web.archive.org/web/20260916054911id_/https://examenes.cervantes.es/sites/default/files/guia_prueba_ccse.pdf)
+
+- `policy-sources/2026-11-23-es-ccse-guia.pdf` → <https://examenes.cervantes.es/sites/default/files/guia_prueba_ccse.pdf>
+
+SRC-335c Instituto Cervantes · Términos y condiciones，报名条款。[官方原件的历史响应](https://web.archive.org/web/20260721214938id_/https://examenes.cervantes.es/es/node/1142109)，解开 HTTP gzip
+
+- `policy-sources/2026-11-23-es-ccse-terminos.html` → <https://examenes.cervantes.es/es/node/1142109>
+
+SRC-335d Instituto Cervantes · Precio de la prueba CCSE。[官方原件的历史响应](https://web.archive.org/web/20261004065910id_/https://examenes.cervantes.es/es/ccse/cuanto)，解开 HTTP gzip
+
+- `policy-sources/2026-11-23-es-ccse-precio.html` → <https://examenes.cervantes.es/es/ccse/cuanto>
+
+## SRC-336 Instituto Cervantes · DELE 2026 各国考试费表
+
+SRC-336 Instituto Cervantes · DELE 2026 各国考试费表。[官方原件的历史响应](https://web.archive.org/web/20260521205136id_/https://examenes.cervantes.es/sites/default/files/ic-tabla-precios-dele-2026.pdf)
+
+- `policy-sources/2026-11-23-es-dele-2026.pdf` → <https://examenes.cervantes.es/sites/default/files/ic-tabla-precios-dele-2026.pdf>
+
+## SRC-337 西班牙完整版关联文书
+
+SRC-337a BOE · Ley 19/2021，IMV。
+
+- `policy-sources/2026-11-23-es-ley19-2021.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2021-21007>
+
+SRC-337b BOE · RDL 3/2026，2026 非缴费型养老金金额。
+
+- `policy-sources/2026-11-23-es-rdl3-2026.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2026-2548>
+
+## SRC-338 西班牙完整版关联文书
+
+SRC-338a BOE · RD 1155/2024 原始公报。
+
+- `policy-sources/2026-11-23-es-publicacion-reglamento.html` → <https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-24099>
+
+SRC-338b BOE · RD 316/2026 修订原文。
+
+- `policy-sources/2026-11-23-es-rd316.html` → <https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-8284>
+
+SRC-338c BOE · 最高法院 2026-07-08 判决及更正。
+
+- `policy-sources/2026-11-23-es-ts-reglamento.html` → <https://www.boe.es/buscar/doc.php?id=BOE-A-2026-19632>
+
+## SRC-339 CGPJ · Audiencia Nacional，学习停留的按居住入籍判决摘要
+
+SRC-339 CGPJ · Audiencia Nacional，学习停留的按居住入籍判决摘要。
+
+- `policy-sources/2026-11-23-es-cgpj-estudios.html` → <https://www.poderjudicial.es/cgpj/es/Poder-Judicial/Audiencia-Nacional/Jurisprudencia/Actualidad-Jurisprudencial/ci.AN-C-A--Estima-el-recurso-contra-resolucion-de-la-DGRN---que-acuerda-conceder-la-nacionalidad-espanola-por-residencia--Anula-la-misma-por-su-disconformidad-a-Derecho--La-permanencia-en-Espana-amparada-en-la-tarjeta-de-estudiante-o-en-autorizacion-de-estancia-para-cursar-estudios-no-puede-considerarse-que-reuna-las-notas-exigidas-de-residencia-legal--continuada-e-inmediatamente-anterior-a-la-peticion-previsto-en-el-art--22-3-del-CC-para-la-adquisicion-de-la-nacionalidad-.formato3>
+
+## SRC-340 西班牙完整版关联文书
+
+SRC-340a BOE · RD 126/2026，2026 SMI。
+
+- `policy-sources/2026-11-23-es-smi2026.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2026-3815>
+
+SRC-340b BOE · RDL 2/2015，劳动者法典。
+
+- `policy-sources/2026-11-23-es-estatuto-trabajadores.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2015-11430>
+
+## SRC-341 BOE · LO 2/2006，教育法
+
+SRC-341 BOE · LO 2/2006，教育法。
+
+- `policy-sources/2026-11-23-es-educacion.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2006-7899>
+
+## SRC-342 西班牙完整版关联文书
+
+SRC-342a BOE · 最高法院 2024-07-15 判决，入籍 art. 12.1。
+
+- `policy-sources/2026-11-23-es-ts-nacionalidad.html` → <https://www.boe.es/buscar/doc.php?id=BOE-A-2024-18114>
+
+SRC-342b BOE · Ley 8/2021，支持措施及民法修订。
+
+- `policy-sources/2026-11-23-es-ley8-2021.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2021-9233>
+
+## SRC-343 西班牙完整版关联文书
+
+SRC-343a BOE · Ley 20/2011，Registro Civil。
+
+- `policy-sources/2026-11-23-es-ley20-2011.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2011-12628>
+
+SRC-343b 司法部 · 2021-12-22 公证宣誓声明指令。
+
+- `policy-sources/2026-11-23-es-justicia-jura-notaria.pdf` → <https://www.mjusticia.gob.es/es/Ciudadano/Nacionalidad/Documents/Instruccion%20DGSJFP%20Notarias%20declaraciones%20nacionalidad%20residencia.pdf>
+
+SRC-343c BOE · Ley 18/2014，民事登记公共服务费用。
+
+- `policy-sources/2026-11-23-es-registro-civil-gratuidad.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2014-10517>
+
+## SRC-344 Seguridad Social · Jubilación ordinaria，法定退休年龄
+
+SRC-344 Seguridad Social · Jubilación ordinaria，法定退休年龄。
+
+- `policy-sources/2026-11-23-es-edad-jubilacion.html` → <https://www.seg-social.es/wps/portal/wss/internet/Trabajadores/PrestacionesPensionesTrabajadores/10963/28393/28396/28472?changeLanguage=es>
+
+## SRC-345 西班牙完整版关联文书
+
+SRC-345a 移民部 · Hoja 51，其他成员国长居者迁西。[官方原件的历史响应](https://web.archive.org/web/20260715201606id_/https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue)
+
+- `policy-sources/2026-11-23-es-hoja51.html` → <https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue>
+
+SRC-345b 移民部 · Hoja 52，上述持有人家属。[官方原件的历史响应](https://web.archive.org/web/20260715194414id_/https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue-duplicar-0)
+
+- `policy-sources/2026-11-23-es-hoja52.html` → <https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue-duplicar-0>
+
+## SRC-346 西班牙完整版关联文书
+
+SRC-346a BOE · 西班牙—法国国籍协定。
+
+- `policy-sources/2026-11-23-es-convenio-francia.html` → <https://www.boe.es/buscar/doc.php?id=BOE-A-2022-4916>
+
+SRC-346b BOE · 司法部西法协定适用指令。
+
+- `policy-sources/2026-11-23-es-convenio-francia-instruccion.html` → <https://www.boe.es/eli/es/ins/2022/03/31/%281%29/con>
+
+## SRC-347 BOE · Ley 9/2011，领事收费
+
+SRC-347 BOE · Ley 9/2011，领事收费。
+
+- `policy-sources/2026-11-23-es-visa-tasas-consulares.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2011-8222>
+
+## SRC-348 TJUE · C-432/20 判决官方公报摘要
+
+SRC-348 TJUE · C-432/20 判决官方公报摘要。
+
+- `policy-sources/2026-11-23-es-tjue-ltr-ausencias.pdf` → <https://curia.europa.eu/jcms/upload/docs/application/pdf/2022-01/cp220010es.pdf>
+
+## SRC-349 BOE · RDL 3/2004，IPREM 制定机制
+
+SRC-349 BOE · RDL 3/2004，IPREM 制定机制。
+
+- `policy-sources/2026-11-23-es-iprem-ley-base.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2004-12010>
