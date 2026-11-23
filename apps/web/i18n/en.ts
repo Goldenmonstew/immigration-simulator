@@ -776,6 +776,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'pt.kind.visa': 'Residence visa (before your residence permit)',
   'pt.kind.permanent':
     'Permanent residence (autorização de residência permanente)',
+  'pt.kind.ari-permanent':
+    'Permanent residence for investment, from a golden visa (autorização de residência para atividade de investimento permanente)',
   'pt.kind.eu-long-term':
     'EU long-term resident status (título UE de residência de longa duração)',
   'pt.addPermit': 'Add a permit',

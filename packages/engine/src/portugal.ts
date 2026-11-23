@@ -16,8 +16,9 @@ import type { IsoDate, Locale } from './types';
  * temporary: ordinary temporary residence (work, family and others);
  * golden-visa: residence for investment (ARI); study: study, unpaid
  * traineeship or volunteering; visa: a residence visa before the first
- * permit; permanent: permanent residence (art. 76); eu-long-term: EU
- * long-term resident status (art. 125–131).
+ * permit; permanent: permanent residence (art. 76); ari-permanent:
+ * permanent residence for investment, from a golden visa (DR 84/2007 art.
+ * 65-K); eu-long-term: EU long-term resident status (art. 125–131).
  */
 export const PT_PERMIT_KINDS = [
   'temporary',
@@ -25,6 +26,7 @@ export const PT_PERMIT_KINDS = [
   'study',
   'visa',
   'permanent',
+  'ari-permanent',
   'eu-long-term',
 ] as const;
 export type PtPermitKind = (typeof PT_PERMIT_KINDS)[number];
@@ -84,6 +86,7 @@ const TITLES: PtPermitKind[] = [
   'golden-visa',
   'study',
   'permanent',
+  'ari-permanent',
   'eu-long-term',
 ];
 const TEMPORARY: PtPermitKind[] = ['temporary', 'golden-visa', 'study'];
@@ -91,6 +94,7 @@ const FULL: PtPermitKind[] = [
   'temporary',
   'golden-visa',
   'permanent',
+  'ari-permanent',
   'eu-long-term',
 ];
 
@@ -121,7 +125,11 @@ export function evaluatePortugal(req: PtRequest): PtResult {
    * renewal (the next one of the same kind) starts.
    */
   const lastDay = (permit: PtPermit) => {
-    if (permit.kind === 'permanent' || permit.kind === 'eu-long-term')
+    if (
+      permit.kind === 'permanent' ||
+      permit.kind === 'ari-permanent' ||
+      permit.kind === 'eu-long-term'
+    )
       return end;
     const next = req.permits
       .filter((p) => p.kind === permit.kind && p.from > permit.from)
@@ -174,7 +182,7 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       (t) => addDays(t.departed, 1) <= to && addDays(t.returned, -1) >= from,
     );
   /** The first day some trip from `from` on has kept you abroad `months`. */
-  const awayFor = (from: IsoDate, months: number, to = end, after = '') =>
+  const awayDates = (from: IsoDate, months: number, to = end, after = '') =>
     req.trips
       .map((t) => {
         const a = later(addDays(t.departed, 1), from);
@@ -182,7 +190,9 @@ export function evaluatePortugal(req: PtRequest): PtResult {
         return d <= earlier(addDays(t.returned, -1), to) ? d : '';
       })
       .filter((d) => d > after)
-      .sort()[0] as IsoDate | undefined;
+      .sort();
+  const awayFor = (from: IsoDate, months: number, to = end) =>
+    awayDates(from, months, to)[0] as IsoDate | undefined;
   /** The first day from `from` to `to` on which `ok` holds. */
   const firstFrom = (
     from: IsoDate,
@@ -640,10 +650,50 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       'Permanent residence (autorização de residência permanente)',
     );
     const permanent = req.permits.find(
-      (p) => p.kind === 'permanent' && p.from <= sim,
+      (p) =>
+        (p.kind === 'permanent' || p.kind === 'ari-permanent') && p.from <= sim,
     );
     if (eu) {
       pathways.push(notForEu('PT-PERMANENT', title));
+    } else if (permanent?.kind === 'ari-permanent') {
+      // Permanent residence for investment is not cancelled for absences
+      // (art. 85 n.º 2 b, 3 and 4 excepted).
+      pathways.push({
+        id: 'PT-PERMANENT',
+        title,
+        status: 'NOT_APPLICABLE',
+        summary: L(
+          `记录中已有 ${permanent.from} 起的投资类永久居留（由黄金签证转来），许可本身没有期限，也不适用因出境注销的规定（art. 85 n.º 2 b、n.º 3–4 除外）。`,
+          `Your record has permanent residence for investment from ${permanent.from} (from a golden visa); the permit has no time limit, and the rules on cancelling it for time abroad do not apply (art. 85 n.º 2 b, 3 and 4 excepted).`,
+        ),
+        checks: [
+          {
+            text: L(
+              '投资类永久居留不因出境被注销',
+              'Permanent residence for investment is not cancelled for time abroad',
+            ),
+            met: true,
+            sources: [
+              {
+                srcId: 'SRC-125',
+                locator: 'Decreto Regulamentar 84/2007 art. 65.º-K',
+              },
+              {
+                srcId: 'SRC-123',
+                locator: 'Lei 56/2023 art. 42 n.º 4 (p38–p39)',
+                url: 'https://files.diariodarepublica.pt/1s/2023/10/19400/0000200050.pdf',
+              },
+              {
+                srcId: 'SRC-126',
+                locator:
+                  'Autorização de Residência para Atividade de Investimento Permanente',
+              },
+            ],
+          },
+        ],
+        notChecked: [],
+        assumptions: [],
+      });
     } else if (permanent) {
       // Art. 85 n.º 2 b: 24 months in a row, or 30 within any 3 years.
       const windowYears = v.permanentAbsenceWindowYears.value;
@@ -891,9 +941,9 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       // would reach a limit later are a forecast.
       const lostAll = awayFor(longTerm.from, lossYears * 12);
       const lostEu = awayFor(longTerm.from, lossMonths);
-      // Each limit planned trips reach later, whatever happened before.
-      const nextAll = awayFor(longTerm.from, lossYears * 12, end, sim);
-      const nextEu = awayFor(longTerm.from, lossMonths, end, sim);
+      // Each limit each planned trip reaches, whatever happened before.
+      const nextAll = awayDates(longTerm.from, lossYears * 12, end, sim);
+      const nextEu = awayDates(longTerm.from, lossMonths, end, sim);
       pathways.push({
         id: 'PT-EU-LONG-TERM',
         title,
@@ -903,14 +953,14 @@ export function evaluatePortugal(req: PtRequest): PtResult {
             `记录中已有 ${longTerm.from} 起的欧盟长期居民身份，身份是永久的（art. 129 n.º 9），卡面到期不会失去身份，只需换发（art. 130 n.º 2、art. 131 n.º 6）。`,
             `Your record has EU long-term resident status from ${longTerm.from}; the status is permanent (art. 129 n.º 9), and an expired card does not end it, it only needs renewing (art. 130 n.º 2, art. 131 n.º 6).`,
           ) +
-          (nextEu || nextAll
+          (nextEu.length || nextAll.length
             ? L(
                 `按已录入的计划出境，${[
-                  nextEu
-                    ? `${nextEu} 离开葡萄牙满 ${lossMonths} 个月，若这段时间在欧盟以外会失去身份（出境记录分不出是否在欧盟内，待确认）`
+                  nextEu.length
+                    ? `${nextEu.join('、')} 离开葡萄牙满 ${lossMonths} 个月，若这段时间在欧盟以外会失去身份（出境记录分不出是否在欧盟内，待确认）`
                     : '',
-                  nextAll
-                    ? `${nextAll} 离开葡萄牙满 ${lossYears} 年，会失去身份`
+                  nextAll.length
+                    ? `${nextAll.join('、')} 离开葡萄牙满 ${lossYears} 年，会失去身份`
                     : '',
                 ]
                   .filter(Boolean)
@@ -918,11 +968,11 @@ export function evaluatePortugal(req: PtRequest): PtResult {
                     '；',
                   )}。有特殊或例外理由（例如在原籍国从事职业、经营、文化或社会活动）的缺席不失去身份（art. 131 n.º 2–3）。`,
                 ` With the trips you plan, ${[
-                  nextEu
-                    ? `you will have been away from Portugal ${lossMonths} months on ${nextEu}, and lose the status if that time is outside the EU (trips do not say, so this is uncertain)`
+                  nextEu.length
+                    ? `you will have been away from Portugal ${lossMonths} months on ${nextEu.join(', ')}, and lose the status if that time is outside the EU (trips do not say, so this is uncertain)`
                     : '',
-                  nextAll
-                    ? `you will have been away from Portugal ${lossYears} years on ${nextAll} and lose the status`
+                  nextAll.length
+                    ? `you will have been away from Portugal ${lossYears} years on ${nextAll.join(', ')} and lose the status`
                     : '',
                 ]
                   .filter(Boolean)
@@ -1219,10 +1269,11 @@ export function evaluatePortugal(req: PtRequest): PtResult {
             need: v.goldenVisaFirstPeriodDays.value,
           },
         ];
-        // A period starting on the expiry day belongs to the next card.
+        // A period that only starts on or after the renewal deadline (such
+        // as one starting on the expiry day) belongs to the next card.
         for (
           let n = firstYears;
-          afterYears(granted, n) < expiry;
+          afterYears(granted, n) < deadline;
           n += laterYears
         )
           periods.push({

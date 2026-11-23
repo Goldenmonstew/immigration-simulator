@@ -516,6 +516,25 @@ describe('permanent residence (Lei 23/2007 art. 80)', () => {
     expect(held.summary).toContain('2029-01-01');
   });
 
+  test('permanent residence for investment is not cancelled for absences', () => {
+    // review75-2: DR 84/2007 art. 65-K; Lei 56/2023 art. 42 n.º 4.
+    const req: Partial<PtRequest> = {
+      permits: [
+        { kind: 'golden-visa', from: '2020-10-01', to: '2022-09-30' },
+        { kind: 'golden-visa', from: '2022-10-01', to: '2024-09-30' },
+        { kind: 'golden-visa', from: '2024-10-01', to: '2026-09-30' },
+        { kind: 'ari-permanent', from: '2026-10-01' },
+      ],
+      trips: [{ departed: '2027-01-10', returned: '2029-01-20' }],
+    };
+    for (const simulationDate of ['2026-11-22', '2029-01-11']) {
+      const p = pathway({ ...req, simulationDate }, 'PT-PERMANENT');
+      expect(p.status).toBe('NOT_APPLICABLE');
+      expect(p.checks[0].met).toBe(true);
+      expect(p.summary).not.toContain('2029-01-10');
+    }
+  });
+
   test('a golden visa forecast names the unconfirmed limit (PD-146)', () => {
     // review75-1: 6 months away on 2027-07-10 during the ARI card.
     const p = pathway(
@@ -845,6 +864,24 @@ describe('EU long-term residence (Lei 23/2007 art. 125–126)', () => {
     expect(p.summary).toContain('art. 131 n.º 6');
   });
 
+  test('every planned trip that reaches 12 months is listed', () => {
+    // review75-2: 12 months on 2028-01-01 and 2030-01-01, 6 years on
+    // 2035-01-01.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'eu-long-term', from: '2019-01-01' }],
+        trips: [
+          { departed: '2027-01-01', returned: '2028-02-01' },
+          { departed: '2029-01-01', returned: '2035-02-01' },
+        ],
+      },
+      'PT-EU-LONG-TERM',
+    );
+    expect(p.summary).toContain('2028-01-01、2030-01-01');
+    expect(p.summary).toContain('2035-01-01');
+  });
+
   test('a newer study permit ends the grace of the work permit before', () => {
     // review71-3: on 2026-11-22 only the study permit is held.
     const p = pathway(
@@ -1066,6 +1103,23 @@ describe('golden visa (ARI) renewal and minimum stays', () => {
     expect(p.checks[1].met).toBe(true);
     expect(p.summary).toContain('2025-10-12');
     expect(p.summary).toContain('2025-12-11');
+  });
+
+  test('a period starting after the renewal deadline is not required', () => {
+    // review75-2: renewed late, the card to 2029-01-12 is renewed by
+    // 2028-12-13; the period from 2029-01-10 belongs to the next card.
+    const p = pathway(
+      {
+        simulationDate: '2028-11-01',
+        permits: [
+          { kind: 'golden-visa', from: '2024-01-10', to: '2026-01-10' },
+          { kind: 'golden-visa', from: '2027-01-12', to: '2029-01-12' },
+        ],
+      },
+      'PT-GOLDEN-VISA',
+    );
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('2028-12-13');
   });
 
   test('the renewed card in force is used', () => {

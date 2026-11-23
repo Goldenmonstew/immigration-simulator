@@ -563,6 +563,8 @@ export const zhCN = {
   'pt.kind.study': '学习、无薪实习或志愿居留许可',
   'pt.kind.visa': '居留签证（拿到居留许可之前）',
   'pt.kind.permanent': '永久居留许可（autorização de residência permanente）',
+  'pt.kind.ari-permanent':
+    '投资类永久居留（由黄金签证转来，autorização de residência para atividade de investimento permanente）',
   'pt.kind.eu-long-term':
     '欧盟长期居民身份（título UE de residência de longa duração）',
   'pt.addPermit': '添加证件',
