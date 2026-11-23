@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { evaluateSpain } from '../src/spain';
 import type { EsRequest } from '../src/spain';
-import { nationalityPath } from '../src/spain-nationality';
+import { evaluateSpainFull } from '../src/spain-full';
 import type { EsNationalityFacts } from '../src/spain-nationality';
 
 const base: EsRequest = {
@@ -42,11 +41,12 @@ function assess(
   facts: Partial<EsNationalityFacts> = {},
   request: Partial<EsRequest> & { timeRecordsComplete?: boolean } = {},
 ) {
-  const req = { ...base, ...request, nationality: { ...complete, ...facts } };
-  const pilot = evaluateSpain(req).pathways.find(
-    (p) => p.id === 'ES-NATIONALITY',
-  )!;
-  return nationalityPath(req, pilot);
+  return evaluateSpainFull({
+    ...base,
+    ...request,
+    nationality: { ...complete, ...facts },
+    targets: ['N'],
+  }).columns[0].pathways[0];
 }
 function row(
   id: string,
@@ -67,13 +67,44 @@ describe('Spanish nationality by residence', () => {
     expect(incomplete.status).toBe('UNKNOWN');
     expect(incomplete.earliestDate).toBeUndefined();
     expect(incomplete.pathwayCompletionDate).toBe(base.simulationDate);
-    const future = assess({}, { permits: [{ from: '2016-11-24' }] });
-    expect(future.pathwayCompletionDate).toBe('2026-11-24');
-    expect(future.earliestDate).toBeUndefined();
-    expect(future.status).toBe('NOT_MET');
     expect(
       assess({ feePaid: false, conductAndSecurityDecision: undefined }).status,
     ).toBe('NOT_MET');
+  });
+  test('N projects the residence anniversary only when the remaining filing conditions are met', () => {
+    const req = { permits: [{ from: '2017-01-01' }] };
+    const future = assess({}, req);
+    expect(future.checks.find((c) => c.id === 'ES-N01')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(future.status).toBe('FUTURE');
+    expect(future.earliestDate).toBe('2027-01-01');
+    expect(future.pathwayCompletionDate).toBe('2027-01-01');
+    for (const conduct of [undefined, false]) {
+      const pending = assess({ conductAndSecurityDecision: conduct }, req);
+      const status = conduct === false ? 'NOT_MET' : 'UNKNOWN';
+      expect(pending.checks.find((c) => c.id === 'ES-N10')?.status).toBe(
+        status,
+      );
+      expect(pending.status).toBe(status);
+      expect(pending.earliestDate).toBeUndefined();
+      expect(pending.pathwayCompletionDate).toBe('2027-01-01');
+    }
+    const expires = assess(
+      {
+        ccse: {
+          verifiedPass: true,
+          issued: '2023-01-01',
+          validThrough: '2026-12-31',
+        },
+      },
+      req,
+    );
+    expect(expires.checks.find((c) => c.id === 'ES-N12')?.status).toBe('MET');
+    expect(expires.status).toBe('NOT_MET');
+    expect(expires.earliestDate).toBeUndefined();
+    expect(expires.pathwayCompletionDate).toBe('2027-01-01');
+    expect(expires.summary).toContain('ES-N12');
   });
   test('N01 handles missing history, qualifying permits, absences and the diplomatic fiction', () => {
     expect(row('N01', {}, { timeRecordsComplete: false }).status).toBe(
@@ -388,6 +419,41 @@ describe('Spanish nationality by residence', () => {
     expect(row('N13', { integrationDecision: undefined }).status).toBe(
       'UNKNOWN',
     );
+  });
+  test('N13 applies the centre certificate to minors of compulsory school age or registered with a covered centre', () => {
+    const req = {
+      route: 'one-year' as const,
+      permits: [{ from: '2023-11-23' }],
+    };
+    const child: EsNationalityFacts = {
+      birthDate: '2023-11-23',
+      oneYearGround: 'birth',
+      spanishCivilBirthRecord: true,
+      applicantSignature: 'representative',
+      representationDocumented: true,
+      emancipated: false,
+      deleEvidence: 'none',
+      ccse: { verifiedPass: false },
+      registeredWithSchoolOrCareCentre: false,
+      schoolOrCareCertificateIfRequired: false,
+    };
+    const preschool = assess(child, req);
+    for (const id of ['ES-N11', 'ES-N12', 'ES-N13'])
+      expect(preschool.checks.find((c) => c.id === id)?.status).toBe('MET');
+    expect(preschool.status).toBe('MET');
+    expect(preschool.earliestDate).toBe(base.simulationDate);
+    expect(preschool.pathwayCompletionDate).toBe(base.simulationDate);
+    for (const [facts, status] of [
+      [{ registeredWithSchoolOrCareCentre: true }, 'NOT_MET'],
+      [{ registeredWithSchoolOrCareCentre: undefined }, 'UNKNOWN'],
+      [{ birthDate: '2020-11-23' }, 'NOT_MET'],
+    ] as const) {
+      const other = assess({ ...child, ...facts }, req);
+      expect(other.checks.find((c) => c.id === 'ES-N13')?.status).toBe(status);
+      expect(other.status).toBe(status);
+      expect(other.earliestDate).toBeUndefined();
+      expect(other.pathwayCompletionDate).toBe(base.simulationDate);
+    }
   });
   test('N16 fee estimate uses only the outstanding sittings and their price table', () => {
     const unpaid: EsNationalityFacts = {

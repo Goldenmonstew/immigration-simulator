@@ -1,7 +1,7 @@
 import { spainFull2026_11 } from '@uk-immigration/policy-data';
 import type { CountryCheck, CountryPathway } from './country-result';
 import { addDays, addMonths, addYears, daysBetween, fullYears } from './dates';
-import { Days, monthSpan } from './pilot';
+import { afterYears, Days, monthSpan } from './pilot';
 import { textFor } from './rule';
 import {
   all,
@@ -16,6 +16,9 @@ import type { EsTrip } from './spain';
 import type { IsoDate } from './types';
 
 const v = spainFull2026_11.values;
+const annualAwayDays = monthSpan(
+  v.freeMovementResidence.value.annualAwayMonths,
+);
 const source = (article: string) => [
   { srcId: 'SRC-327', locator: 'RD 240/2007 art. ' + article },
 ];
@@ -92,7 +95,9 @@ export interface EsFreeMovementFacts {
   /** The authority's finding on disputed continuity, if available. */
   continuityAccepted?: boolean;
   retainedEvent?: 'sponsor-death' | 'child-in-education' | 'divorce';
+  /** Effective date of the death, divorce or other change in family status. */
   eventDate?: IsoDate;
+  divorceProceedingsStartedOn?: IsoDate;
   eventReported?: boolean;
   priorFamilyResidenceFrom?: IsoDate;
   continuingChildEducationAndCustody?: boolean;
@@ -230,6 +235,7 @@ function tripsMet(
   const trips =
     f.trips ?? (req.timeRecordsComplete === false ? undefined : req.trips);
   if (!trips) return undefined;
+  if (!trips.length) return true;
   const limit = v.freeMovementResidence.value;
   const days = new Days(start, end),
     absent = Array<boolean>(days.count).fill(false);
@@ -261,7 +267,6 @@ function tripsMet(
     if (reason === 'cooperation-or-eu-study' || reason === 'unconfirmed')
       uncertain = true;
     if (
-      t.departed >= start &&
       t.returned <= end &&
       t.returned > addMonths(t.departed, limit.annualAwayMonths) &&
       reason !== 'cooperation-or-eu-study' &&
@@ -271,18 +276,17 @@ function tripsMet(
     days.mark(absent, addDays(t.departed, 1), addDays(t.returned, -1));
   }
   const sums = days.sums((i) => absent[i]);
-  const [min, max] = monthSpan(limit.annualAwayMonths);
+  const [min, max] = annualAwayDays;
   if ((ordinaryTrips === 1 && singleWithinLimit) || sums[days.count] <= min)
     return true;
   // A definite excess within a residence year, or a borderline rolling window.
   const boundaryDays = new Set<IsoDate>([start, addDays(end, 1)]);
-  let borderline = false;
-  for (let i = 0; i < days.count; i++) {
-    const from = days.date(i);
-    if (from.slice(5) === '01-01' || from.slice(5) === start.slice(5))
-      boundaryDays.add(from);
-    if (days.total(sums, from, addDays(addYears(from, 1), -1)) > min)
-      borderline = true;
+  for (let year = 1; year <= limit.years; year++) {
+    const anniversary = addYears(start, year);
+    const jan = anniversary.slice(0, 4) + '-01-01';
+    if (jan <= end) boundaryDays.add(jan);
+    if (anniversary <= end && anniversary.slice(5) === start.slice(5))
+      boundaryDays.add(anniversary);
   }
   // An excess inside both the calendar year and the residence year is
   // conclusive under either reading. Keep conflicting year boundaries open.
@@ -294,7 +298,102 @@ function tripsMet(
       .some((to, i) => days.total(sums, boundaries[i], addDays(to, -1)) > max)
   )
     return false;
-  return borderline ? undefined : true;
+  for (let i = 0; i < days.count; i++) {
+    // Consult the leap-day boundary only when the extra day changes the result.
+    if (sums[Math.min(days.count, i + 365)] - sums[i] > min) return undefined;
+    if (sums[Math.min(days.count, i + 366)] - sums[i] > min) {
+      const from = days.date(i);
+      if (days.total(sums, from, addDays(addYears(from, 1), -1)) > min)
+        return undefined;
+    }
+  }
+  return true;
+}
+
+function ordinaryWindow(
+  req: EsFullRequest,
+  f: EsFreeMovementFacts,
+  end: IsoDate,
+  since?: IsoDate,
+) {
+  const { years, annualAwayMonths, importantMonths } =
+    v.freeMovementResidence.value;
+  const joint = f.person === 'third-country-family' && !f.retainedEvent;
+  const at = (start: IsoDate, completion: IsoDate) => ({
+    end: completion,
+    ordinaryTime: all(
+      f.residenceFrom ? f.residenceFrom <= start : undefined,
+      joint
+        ? f.jointResidenceFrom
+          ? f.jointResidenceFrom <= start
+          : undefined
+        : true,
+      !since || since <= start,
+      f.noExecutedExpulsion,
+      tripsMet(req, f, start, completion),
+    ),
+    historical: historyMet(f.history, start, addDays(completion, -1)),
+  });
+  const lastStart = addYears(end, -years);
+  const current = at(lastStart, end);
+  if (!f.history?.length) return current;
+  // Coverage can improve after a gap only when a qualifying period starts.
+  const lower = [
+    since,
+    f.residenceFrom,
+    joint ? f.jointResidenceFrom : undefined,
+  ]
+    .filter((s): s is IsoDate => s !== undefined)
+    .sort()
+    .at(-1);
+  const starts = [
+    ...new Set(
+      f.history.map((p) => (lower && p.from < lower ? lower : p.from)),
+    ),
+  ]
+    .filter((s) => s <= lastStart)
+    .sort();
+  const trips = f.trips ?? req.trips;
+  const interruptions = f.trips?.filter(
+    (t) =>
+      (t.reason === 'ordinary' &&
+        t.returned > addMonths(t.departed, annualAwayMonths)) ||
+      (t.reason === 'important' &&
+        t.returned > addMonths(t.departed, importantMonths)),
+  );
+  let possible: typeof current | undefined;
+  for (const [i, first] of starts.entries()) {
+    const next = starts[i + 1] ?? addDays(lastStart, 1);
+    for (let start = first; start < next; start = addDays(start, 1)) {
+      const completion = afterYears(start, years);
+      const interruption =
+        f.continuityAccepted === undefined &&
+        interruptions?.find(
+          (t) => start < t.returned && t.returned <= completion,
+        );
+      if (interruption) {
+        start = addDays(interruption.returned, -1);
+        continue;
+      }
+      const w = at(start, completion);
+      const qualifies = all(w.ordinaryTime, w.historical);
+      if (qualifies) return w;
+      if (qualifies === undefined) possible ??= w;
+      // Only the placement of travel within a rolling window can improve
+      // continuity between these starts. Missing or failed history cannot.
+      if (
+        !trips.length ||
+        f.continuityAccepted !== undefined ||
+        w.ordinaryTime === true ||
+        w.historical === false ||
+        f.noExecutedExpulsion !== true
+      )
+        break;
+    }
+  }
+  return all(current.ordinaryTime, current.historical) === false && possible
+    ? possible
+    : current;
 }
 
 export function freeMovementPath(req: EsFullRequest): CountryPathway {
@@ -345,7 +444,36 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
     ),
   ];
   const info: CountryCheck[] = [];
-  const already = f.acquiredOn !== undefined && f.acquiredOn <= d;
+  const already = f.acquiredOn && f.acquiredOn <= d ? f.acquiredOn : undefined;
+  let ordinary = ordinaryWindow(req, f, already ?? d);
+  let acquiredOn = already
+    ? already
+    : all(ordinary.ordinaryTime, ordinary.historical)
+      ? ordinary.end
+      : undefined;
+  const limits = v.freeMovementResidence.value;
+  const travel = f.trips ?? req.trips;
+  const absences = f.longestPostAcquisitionAbsence
+    ? [...travel, f.longestPostAcquisitionAbsence]
+    : travel;
+  const lostOnTrip = absences
+    .filter((t) => {
+      if (!acquiredOn) return false;
+      const from = t.departed > acquiredOn ? t.departed : acquiredOn;
+      const until = t.returned < d ? t.returned : d;
+      return until > addYears(from, limits.lossYears);
+    })
+    .sort((a, b) => b.returned.localeCompare(a.returned))[0];
+  let lost = !!lostOnTrip;
+  if (lostOnTrip && lostOnTrip.returned <= d) {
+    const afterReturn = ordinaryWindow(req, f, d, lostOnTrip.returned);
+    if (all(afterReturn.ordinaryTime, afterReturn.historical)) {
+      ordinary = afterReturn;
+      acquiredOn = ordinary.end;
+      lost = false;
+    }
+  }
+  const qualifyingDate = acquiredOn ?? d;
   if (family && !already && !f.retainedEvent) {
     const familyRules = v.euFamily.value;
     if (
@@ -371,8 +499,8 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
       checks.push(
         rule(
           'U03',
-          `扩展亲属核在原籍受扶养、共同生活（${familyRules.householdMonths} 个月）或必要照料。稳定伴侣可凭共同生活 ${familyRules.partnerYears} 年或共同子女及稳定共居，取决于个案认定。`,
-          `Verify dependence, a shared household (${familyRules.householdMonths} months) or necessary personal care. Durable partners may evidence ${familyRules.partnerYears} year together or a common child and stable cohabitation. Individual recognition is required.`,
+          `扩展亲属须证明在原居住国受扶养或共同生活（${familyRules.householdMonths} 个月），或因健康或残障需要亲属照料。稳定伴侣可凭共同生活 ${familyRules.partnerYears} 年或共同子女及稳定共居，取决于个案认定。`,
+          `Extended relatives must show dependence or a shared household (${familyRules.householdMonths} months) in the country of previous residence, or a need for personal care due to serious health grounds or disability. Durable partners may evidence ${familyRules.partnerYears} year together or a common child and stable cohabitation. Individual recognition is required.`,
           all(
             f.accompanyingOrJoining,
             f.relationshipDocumented,
@@ -385,7 +513,7 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
       );
     } else {
       const under = f.birthDate
-        ? fullYears(f.birthDate, d) < familyRules.dependentAge
+        ? fullYears(f.birthDate, qualifyingDate) < familyRules.dependentAge
         : undefined;
       let relative: Evidence;
       switch (f.relationship) {
@@ -424,7 +552,15 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
     }
   }
   const retained = f.retainedEvent !== undefined;
-  if (family && retained && !already) {
+  const priorJointResidence =
+    f.priorFamilyResidenceFrom ?? f.jointResidenceFrom;
+  const permanentBeforeEvent =
+    acquiredOn &&
+    f.eventDate &&
+    acquiredOn <= f.eventDate &&
+    priorJointResidence &&
+    priorJointResidence <= addYears(acquiredOn, -limits.years);
+  if (family && retained && !already && !permanentBeforeEvent) {
     const r = v.euRetention.value;
     const lived =
       f.priorFamilyResidenceFrom && f.eventDate
@@ -441,11 +577,20 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
     } else if (f.retainedEvent === 'child-in-education')
       criteria = f.continuingChildEducationAndCustody;
     else {
-      const duration =
-        f.relationshipFrom && f.priorFamilyResidenceFrom && f.eventDate
-          ? addYears(f.relationshipFrom, r.relationshipYears) <= f.eventDate &&
-            addYears(f.priorFamilyResidenceFrom, r.inSpainYears) <= f.eventDate
+      const started =
+        f.divorceProceedingsStartedOn &&
+        f.eventDate &&
+        f.divorceProceedingsStartedOn <= f.eventDate
+          ? f.divorceProceedingsStartedOn
           : undefined;
+      const duration = all(
+        started && f.relationshipFrom
+          ? addYears(f.relationshipFrom, r.relationshipYears) <= started
+          : undefined,
+        started && priorJointResidence
+          ? addYears(priorJointResidence, r.inSpainYears) <= started
+          : undefined,
+      );
       criteria = all(
         f.eventReported,
         any(duration, f.custodyOrAccessInSpain, f.exceptionalHardshipProved),
@@ -455,12 +600,12 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
       check(
         L,
         'ES-U06',
-        '主体死亡、子女持续就学或离婚后，核独立保留依据、关系和居住期间、报告及监护、探望或困难证据。',
-        'Verify personal retention after death, continuing education or divorce, including residence and relationship periods, reporting, custody, access or hardship.',
+        '主体死亡、子女持续就学或离婚后，核独立保留依据、报告及监护、探望或困难证据。离婚的婚期及在西居住年限算至诉讼启动日。',
+        'Verify personal retention after death, continuing education or divorce, including reporting, custody, access or hardship. Count the marriage and Spanish residence periods up to the start of divorce proceedings.',
         f.retainedStatusAccepted ??
           all(f.eventDate ? f.eventDate <= d : undefined, criteria),
         [
-          ...source('9, 9 bis'),
+          ...source('9.2–4 (including 9.4.a), 9 bis'),
           { srcId: 'SRC-330', locator: 'arts. 12–13, 18' },
         ],
         ['PD-299'],
@@ -468,20 +613,7 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
     );
   }
 
-  const limits = v.freeMovementResidence.value;
-  const end = f.acquiredOn && f.acquiredOn < d ? f.acquiredOn : d;
-  const start = addYears(end, -limits.years);
-  const ordinaryTime = all(
-    f.residenceFrom ? f.residenceFrom <= start : undefined,
-    family && !retained
-      ? f.jointResidenceFrom
-        ? f.jointResidenceFrom <= start
-        : undefined
-      : true,
-    f.noExecutedExpulsion,
-    tripsMet(req, f, start, end),
-  );
-  const historical = historyMet(f.history, start, addDays(end, -1));
+  const { ordinaryTime, historical } = ordinary;
   const timeCheck = check(
     L,
     'ES-U04',
@@ -497,11 +629,11 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
   const historyCheck = check(
     L,
     'ES-U05',
-    '核对合资格期间的工作、自雇、保留工作者身份、家属资格，或足够财力与全面医保；学生需有效注册、资源声明及全面医保。',
-    'Cover the qualifying period with work, self-employment, retained worker or family status, or sufficient means and comprehensive insurance. Students need enrolment, a means declaration and insurance.',
+    '取得永久权前，核对合资格期间的工作、自雇、保留工作者身份、家属资格，或足够财力与全面医保。学生需有效注册、资源声明及全面医保。取得后可凭历史期间证明该项。',
+    'For the period before acquisition, verify work, self-employment, retained worker or family status, or sufficient means and comprehensive insurance. Students need enrolment, a means declaration and insurance. A completed qualifying period establishes this condition after acquisition.',
     historical,
     [
-      ...source('7.1–4, 7.6–7'),
+      ...source('7.1–4, 7.6–7, 10.1'),
       { srcId: 'SRC-329', locator: 'art. 3.2' },
       { srcId: 'SRC-337', locator: 'RDL 3/2026 art. 2.5' },
     ],
@@ -513,7 +645,7 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
     info.push(timeCheck, historyCheck);
     if (early) info.push(early);
     const acquired = any(
-      already,
+      !!already,
       all(ordinaryTime, historical),
       early
         ? early.status === 'UNKNOWN'
@@ -531,18 +663,17 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
       ),
     );
   } else checks.push(timeCheck, historyCheck);
-  if (already) {
-    const away = f.longestPostAcquisitionAbsence;
+  if (acquiredOn) {
     checks.push(
       rule(
         'U04-retention',
         `取得后离开西班牙连续超过 ${limits.lossYears} 年可丧失永久权。`,
         `After acquisition, more than ${limits.lossYears} consecutive years outside Spain can end permanent residence.`,
-        away &&
-          (away.returned < d ? away.returned : d) >
-            addYears(away.departed, limits.lossYears)
+        lost
           ? false
-          : f.postAcquisitionTravelComplete === true
+          : acquiredOn === d ||
+              (f.postAcquisitionTravelComplete ??
+                (f.trips !== undefined || req.timeRecordsComplete === true))
             ? true
             : undefined,
         '10.7',
@@ -602,12 +733,17 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
       ['PD-298'],
     ),
   );
-  return pathway(
+  const result = pathway(
     'ES-U',
     L('自由流动制度下的永久居留', 'Permanent residence under free movement'),
     checks,
     info,
   );
+  if (result.status === 'MET') {
+    result.earliestDate = d;
+    if (acquiredOn) result.pathwayCompletionDate = acquiredOn;
+  }
+  return result;
 }
 
 function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {

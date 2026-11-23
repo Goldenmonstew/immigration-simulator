@@ -103,6 +103,8 @@ export interface EsNationalityFacts {
     issued?: IsoDate;
     validThrough?: IsoDate;
   };
+  /** Registration with a centre covered by Orden JUS/1625/2016 art. 10.6. */
+  registeredWithSchoolOrCareCentre?: boolean;
   schoolOrCareCertificateIfRequired?: boolean;
   integrationDecision?: boolean;
   documents?: Partial<Record<NationalityDocument, boolean>>;
@@ -638,17 +640,25 @@ export function nationalityPath(
       ['PD-284'],
     ),
   );
-  const centreRequired = any(
+  const compulsorySchoolAge =
+    age === undefined
+      ? undefined
+      : age >= v.schoolAgeFrom.value && age < v.schoolAgeUntil.value;
+  const minorOrJudiciallyExempt = any(
     exams.minor,
     n.examRelief === undefined
       ? undefined
       : n.examRelief === 'judicial-exemption-confirmed',
   );
+  const centreRequired = any(
+    compulsorySchoolAge,
+    all(minorOrJudiciallyExempt, n.registeredWithSchoolOrCareCentre),
+  );
   checks.push(
     rule(
       'N13',
-      '免试程序已解决，学校或照护机构材料齐备（适用时），机关已认可社会融合。',
-      'Any dispensation proceeding is resolved, required school or care-centre evidence is available, and the authority accepted integration.',
+      '免试程序已解决，机关已认可社会融合。义务教育学龄的未成年人，以及已在适用机构登记的未成年人或获司法豁免者，须提供机构证明。',
+      'Any dispensation proceeding is resolved and the authority accepted integration. A centre certificate is required for minors of compulsory school age and for minors or judicially exempt applicants registered with a covered centre.',
       all(
         exams.simultaneous ? false : exams.pending ? undefined : true,
         evidenceIfRequired(centreRequired, n.schoolOrCareCertificateIfRequired),
@@ -660,6 +670,7 @@ export function nationalityPath(
           'SRC-322',
           'Orden JUS/1625/2016 art. 10.5–6; Resolución 7-11-2022 anexo',
         ),
+        ...v.schoolAgeFrom.sources,
       ],
       ['PD-282'],
     ),
@@ -822,7 +833,22 @@ export function nationalityPath(
         'Documented diplomatic or consular spouse postings count as legal residence for this route.',
       ),
     );
-  const result = pathway(pilot.id, pilot.title, checks, info, assumptions);
+  const futureResidence =
+    !needsRoute &&
+    residence === false &&
+    continuity === true &&
+    time.status === 'FUTURE' &&
+    time.earliestDate
+      ? { checkId: 'ES-N01', date: time.earliestDate }
+      : undefined;
+  const result = pathway(
+    pilot.id,
+    pilot.title,
+    checks,
+    info,
+    assumptions,
+    futureResidence,
+  );
   if (req.timeRecordsComplete !== false)
     result.pathwayCompletionDate = time.earliestDate;
   if (result.status === 'MET') result.earliestDate = date;

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { evaluateSpainFull } from '../src';
 import type { EsFullRequest } from '../src/spain-full';
 import { evaluateSpain } from '../src/spain';
 import type { EsRequest, EsPathway } from '../src/spain';
@@ -84,8 +85,94 @@ describe('Spanish national long-term residence, arts. 183–184', () => {
     expect(row(early, 'L01').status).toBe('NOT_MET');
     expect(early.summary).toContain('2026-11-23');
     expect(early.pathwayCompletionDate).toBe('2026-11-23');
-    expect(early.earliestDate).toBeUndefined();
+    expect(early.earliestDate).toBe('2026-11-23');
   });
+
+  test('a classified study stay contributes no ordinary national residence', () => {
+    const [p] = evaluateSpainFull({
+      simulationDate: base.simulationDate,
+      targets: ['L'],
+      residence: {
+        ...ready,
+        tripDetails: [],
+        periods: [
+          {
+            territory: 'spain',
+            kind: 'study',
+            from: '2019-01-01',
+            to: '2023-11-22',
+          },
+          { territory: 'spain', kind: 'residence', from: '2023-11-23' },
+        ],
+      },
+    }).columns[0].pathways;
+    for (const id of ['L01', 'L01-PERMIT', 'L-BASIS'])
+      expect(row(p, id).status).toBe('NOT_MET');
+    expect([p.status, p.earliestDate, p.pathwayCompletionDate]).toEqual([
+      'FUTURE',
+      '2028-11-23',
+      '2028-11-23',
+    ]);
+  });
+
+  test.each([
+    ['clear', 'MET', 'FUTURE', '2027-01-01'],
+    ['pending', 'UNKNOWN', 'UNKNOWN', undefined],
+    ['threat', 'NOT_MET', 'NOT_MET', undefined],
+  ] as const)(
+    'only the residence duration can be projected with a %s security decision',
+    (securityDecision, security, status, earliest) => {
+      const [p] = evaluateSpainFull({
+        ...base,
+        targets: ['L'],
+        permits: [{ from: '2022-01-01' }],
+        residence: { ...ready, securityDecision },
+      }).columns[0].pathways;
+      expect([
+        row(p, 'L01').status,
+        row(p, 'L-BASIS').status,
+        row(p, 'L12').status,
+      ]).toEqual(['NOT_MET', 'NOT_MET', security]);
+      expect([p.status, p.earliestDate, p.pathwayCompletionDate]).toEqual([
+        status,
+        earliest,
+        '2027-01-01',
+      ]);
+    },
+  );
+
+  test.each(['L', 'E'] as const)(
+    '%s extends the expired permit through an official holiday and the following weekend',
+    (target) => {
+      const run = (officeHolidays?: string[], simulationDate = '2026-05-04') =>
+        evaluateSpainFull({
+          ...base,
+          simulationDate,
+          targets: [target],
+          permits: [{ from: '2021-02-01', to: '2026-02-01' }],
+          residence: { ...ready, officeHolidays },
+        }).columns[0].pathways[0];
+      const filing = target === 'L' ? 'L11' : 'E07';
+      const duration = target === 'L' ? 'L01' : 'E01';
+      for (const [path, expected] of [
+        [run(['2026-05-01']), 'MET'],
+        [run(), 'UNKNOWN'],
+        [run([]), 'NOT_MET'],
+        [run(['2026-05-01'], '2026-05-05'), 'NOT_MET'],
+      ] as const) {
+        expect([
+          row(path, duration).status,
+          row(path, filing).status,
+          path.status,
+        ]).toEqual([expected, expected, expected]);
+        expect(path.earliestDate).toBe(
+          expected === 'MET' ? '2026-05-04' : undefined,
+        );
+        if (expected === 'UNKNOWN')
+          expect(row(path, filing).pendingDetails).toContain('PD-285');
+      }
+    },
+  );
 
   test('unknown records do not establish ordinary residence; a direct basis can still qualify', () => {
     const missing = assess('L', {}, { timeRecordsComplete: false });
@@ -231,7 +318,7 @@ describe('Spanish national long-term residence, arts. 183–184', () => {
       expect(p.status, id).toBe('MET');
       const n = assess('L', { ...facts, ...failed }, opts);
       expect(row(n, id).status, id).toBe('NOT_MET');
-      expect(n.status, id).toBe('NOT_MET');
+      expect([n.status, n.earliestDate], id).toEqual(['FUTURE', '2028-11-23']);
     }
     const annuity = assess('L', {
       nationalAlternatives: ['disability'],

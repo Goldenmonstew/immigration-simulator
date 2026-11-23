@@ -53,18 +53,26 @@ export function pathway(
   checks: CountryCheck[],
   info: CountryCheck[] = [],
   assumptions: string[] = [],
+  future?: { checkId: string; date: IsoDate },
 ): CountryPathway {
   const rows = [...checks, ...info];
+  const decisions = checks.map((c) =>
+    c.status === 'NOT_MET' && c.id === future?.checkId ? 'FUTURE' : c.status,
+  );
+  const status = decisions.includes('NOT_MET')
+    ? 'NOT_MET'
+    : !decisions.length || decisions.includes('UNKNOWN')
+      ? 'UNKNOWN'
+      : decisions.includes('FUTURE')
+        ? 'FUTURE'
+        : 'MET';
   return {
     id,
     title,
     checks: rows,
     assumptions,
-    status: checks.some((c) => c.status === 'NOT_MET')
-      ? 'NOT_MET'
-      : !checks.length || checks.some((c) => c.status === 'UNKNOWN')
-        ? 'UNKNOWN'
-        : 'MET',
+    status,
+    ...(status === 'FUTURE' && { earliestDate: future?.date }),
     decidedBy: checks.map((c) => c.id),
     pendingDetails: [...new Set(rows.flatMap((c) => c.pendingDetails ?? []))],
   };

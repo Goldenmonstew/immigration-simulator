@@ -2,11 +2,18 @@ import { spain2026_11, spainFull2026_11 } from '@uk-immigration/policy-data';
 import type { SourceRef } from '@uk-immigration/policy-data';
 import type { CountryCheck, CountryPathway } from './country-result';
 import { addDays, addMonths, addYears, daysBetween, fullYears } from './dates';
-import { monthSpan } from './pilot';
+import { afterYears, monthSpan } from './pilot';
 import { textFor } from './rule';
 import type { EsPathway, EsTrip } from './spain';
 import type { EsFullRequest } from './spain-full';
-import { all, any, applicationFee, check, pathway } from './spain-full-common';
+import {
+  all,
+  any,
+  applicationFee,
+  byFilingDeadline,
+  check,
+  pathway,
+} from './spain-full-common';
 import type { EsApplicationFee } from './spain-full-common';
 import type { IsoDate, Locale } from './types';
 
@@ -153,41 +160,46 @@ export interface EsHealthCover {
   proof?: boolean;
 }
 
-export function insuranceCheck(
-  req: Context,
+export function insuranceEvidence(
+  filedOn: IsoDate,
   facts: EsHealthCover | undefined,
-  id: 'ES-E06' | 'ES-M03' | 'ES-F04' | 'ES-R07',
-): CountryCheck {
+): Answer {
   const f = facts ?? {};
-  const locators = {
-    'ES-E06': 'arts. 176.c, 177.3.e',
-    'ES-M03': 'arts. 179.3.d.1, 61.2.b',
-    'ES-F04': 'arts. 180.3.e, 179.3.d.1',
-    'ES-R07': 'art. 187.3.b',
-  };
   const valid =
     f.validFrom === undefined
       ? undefined
-      : f.validFrom <= req.simulationDate &&
-        (!f.validTo || f.validTo >= req.simulationDate);
+      : f.validFrom <= filedOn && (!f.validTo || f.validTo >= filedOn);
   const type =
     f.kind === 'public' || f.kind === 'private'
       ? true
       : f.kind === 'none'
         ? false
         : undefined;
+  return all(
+    type,
+    f.entitledOrAuthorized,
+    f.kind === 'public' ? true : f.equivalentCoverage,
+    valid,
+    f.proof,
+  );
+}
+
+export function insuranceCheck(
+  req: Context,
+  facts: EsHealthCover | undefined,
+  id: 'ES-E06' | 'ES-M03' | 'ES-R07',
+): CountryCheck {
+  const locators = {
+    'ES-E06': 'arts. 176.c, 177.3.e',
+    'ES-M03': 'arts. 179.3.d.1, 61.2.b',
+    'ES-R07': 'art. 187.3.b',
+  };
   return check(
     textFor(req),
     id,
     '递交时有效且有凭证的公共医保或获准在西承保、涵盖相应医疗风险的私保。非标准保单须核保期和风险范围。',
     'Document public entitlement or authorised private health cover valid at filing and covering the relevant risks in Spain. Nonstandard policies require review of dates and benefits.',
-    all(
-      type,
-      f.entitledOrAuthorized,
-      f.kind === 'public' ? true : f.equivalentCoverage,
-      valid,
-      f.proof,
-    ),
+    insuranceEvidence(req.simulationDate, facts),
     [
       rd(locators[id]),
       ...(id === 'ES-E06'
@@ -272,6 +284,8 @@ export interface EsResidenceFacts {
   permitExpiry?: IsoDate;
   /** Official determination of filing window, including deadline extensions/non-working days. */
   filingWindowAccepted?: boolean;
+  /** Complete official filing calendar, excluding weekends already handled by the engine. */
+  officeHolidays?: IsoDate[];
   /** Complete typed record for E, including Spanish permits. Otherwise legacy permits are used. */
   periods?: EsEuPeriod[];
   /** Matched to Spanish trips by both travel dates. Additional trips may describe travel in the EU history. */
@@ -537,6 +551,14 @@ function absenceVerdict(
   return assess(false) ? true : assess(true) ? undefined : false;
 }
 
+function lastExpiry(periods: Period[], day: IsoDate) {
+  return periods
+    .filter((p) => p.from <= day && p.to && p.to < day)
+    .map((p) => p.to!)
+    .sort()
+    .at(-1);
+}
+
 function permitWindow(
   req: EsFullRequest,
   periods: Period[],
@@ -549,20 +571,17 @@ function permitWindow(
   if (req.timeRecordsComplete === false) return undefined;
   const day = req.simulationDate;
   if (periods.some((p) => p.from <= day && (!p.to || p.to >= day))) return true;
-  const expiry =
-    f.permitExpiry ??
-    periods
-      .filter((p) => p.from <= day && p.to && p.to < day)
-      .map((p) => p.to!)
-      .sort()
-      .at(-1);
+  const expiry = f.permitExpiry ?? lastExpiry(periods, day);
   if (!expiry) return undefined;
-  const last = nextWorkingDay(
-    addMonths(expiry, pilotValues.longTermLateMonths.value),
+  const inWindow = all(
+    day >= addMonths(expiry, -v.earlyFilingMonths.value),
+    byFilingDeadline(
+      day,
+      addMonths(expiry, pilotValues.longTermLateMonths.value),
+      f.officeHolidays,
+    ),
   );
-  const inWindow =
-    day <= last && day >= addMonths(expiry, -v.earlyFilingMonths.value);
-  return inWindow || (priorRequired === undefined ? undefined : false);
+  return any(inWindow, priorRequired === undefined ? undefined : false);
 }
 
 const isPartial = (p: EsEuPeriod) =>
@@ -664,18 +683,10 @@ function euTime(
     (p) => p.from <= day && (!p.to || p.to >= day),
   );
   let end = day;
-  const expiry = residentPermits
-    .filter((p) => p.to && p.to < day)
-    .map((p) => p.to!)
-    .sort()
-    .at(-1);
-  if (
-    !blue &&
-    !current &&
-    expiry &&
-    permitWindow(req, residentPermits, true) === true
-  )
-    end = addDays(expiry, 1);
+  const expiry =
+    !blue && !current ? lastExpiry(residentPermits, day) : undefined;
+  const window = expiry ? permitWindow(req, residentPermits, true) : true;
+  if (expiry && window !== false) end = addDays(expiry, 1);
   const trips = tripsWithFacts(req);
   let windows: [IsoDate, IsoDate] | undefined;
   function assess(optimistic: boolean): Answer {
@@ -732,7 +743,7 @@ function euTime(
       physicallyContinuous,
     );
   }
-  return { met: time, windows };
+  return { met: all(time, window), windows };
 }
 
 export function residencePath(
@@ -755,30 +766,74 @@ export function residencePath(
     }));
   const recordCertain = req.timeRecordsComplete !== false;
   const recordsRisk = ['PD-097', 'PD-099', 'PD-285'];
+  let durationDate: IsoDate | undefined;
+  let future: { checkId: string; date: IsoDate } | undefined;
   let priorRequired: Answer = true;
   if (isL) {
+    const years = pilotValues.longTermYears.value;
+    const permits = req.permits.filter((p) => !p.study);
     const trips = tripsWithFacts(req),
-      from = addYears(day, -pilotValues.longTermYears.value);
+      from = addYears(day, -years);
     const exc = trips.filter(
       (t) => t.reason === 'force-majeure' || t.reason === 'cooperation',
     );
-    const period = recordCertain ? pilot.checks[0].met : undefined;
+    const expiry = lastExpiry(permits, day);
+    const period = recordCertain
+      ? any(
+          covers(permits, from, addDays(day, -1)),
+          expiry && !covers(permits, day, day)
+            ? all(
+                covers(permits, addYears(addDays(expiry, 1), -years), expiry),
+                permitWindow(req, permits, true),
+              )
+            : false,
+        )
+      : undefined;
     const ordinary = recordCertain
       ? all(period, absenceVerdict(trips, from, day, false, false))
       : undefined;
     const extended = recordCertain
       ? all(period, absenceVerdict(trips, from, day, false, true))
       : undefined;
+    if (recordCertain) {
+      durationDate = extended === true ? day : pilot.earliestDate;
+      if (period === false) {
+        // The first qualifying permit anniversary is a lower bound even for work or exempt trips.
+        const anniversary = permits
+          .map((p) => afterYears(p.from, years))
+          .sort()
+          .find(
+            (d) =>
+              d > day && covers(permits, addYears(d, -years), addDays(d, -1)),
+          );
+        if (
+          anniversary &&
+          absenceVerdict(
+            trips,
+            addYears(anniversary, -years),
+            anniversary,
+            false,
+            true,
+          ) === true
+        ) {
+          durationDate = anniversary;
+          future = { checkId: 'ES-L-BASIS', date: anniversary };
+        }
+      }
+    }
+    const ordinarySources = [
+      rd('arts. 182, 183.1–2, 184.2 (pp133–135)'),
+      ref('SRC-320', 'arts. 30 bis, 32.2, 33'),
+    ];
     const base = check(
       L,
       'ES-L01',
-      `递交前连续合法居留 ${pilotValues.longTermYears.value} 年；普通与工作出境分别核对，工作出境合计至多 ${v.workAbsenceMonths.value} 个月。`,
-      `Continuous legal residence for ${pilotValues.longTermYears.value} years. Check ordinary and work absences separately; documented work absences may total up to ${v.workAbsenceMonths.value} months.`,
+      `递交前连续合法居留 ${years} 年，学习停留不计入。普通与工作出境分别核对，工作出境合计至多 ${v.workAbsenceMonths.value} 个月。`,
+      `Continuous legal residence for ${years} years, excluding study stays. Check ordinary and work absences separately; documented work absences may total up to ${v.workAbsenceMonths.value} months.`,
       ordinary,
-      [rd('arts. 182, 183.1–2 (pp133–134)')],
-      [...recordsRisk, 'PD-098'],
+      ordinarySources,
+      recordsRisk,
     );
-    if (recordCertain) base.explanation += ' ' + pilot.summary;
     details.push(base);
     for (const [i, c] of pilot.checks.entries()) {
       // The pilot contains the ordinary date and count independently of claimed exceptions.
@@ -788,9 +843,9 @@ export function residencePath(
           ['ES-L01-PERMIT', 'ES-L01-SINGLE', 'ES-L01-TOTAL'][i],
           c.text,
           c.text,
-          recordCertain ? c.met : undefined,
-          [...c.sources],
-          ['PD-097', 'PD-098', 'PD-099'],
+          i === 0 ? period : recordCertain ? c.met : undefined,
+          i === 0 ? ordinarySources : [...c.sources],
+          i === 0 ? ['PD-099', 'PD-285'] : ['PD-097'],
         ),
       );
     }
@@ -847,19 +902,19 @@ export function residencePath(
         '满足普通连续居留或已主张的直接取得事由之一',
         'Qualifies through ordinary continuous residence or one of the claimed direct grounds',
         any(...timed, ...untimed),
-        [rd('art. 183.1–3')],
+        [...ordinarySources, rd('art. 183.3')],
       ),
     );
     const alternative = any(...noPriorPermit);
     priorRequired = alternative === undefined ? undefined : !alternative;
-    const subjectToSchool = all(any(...timed), school);
+    const subjectToSchool = all(future ? true : any(...timed), school);
     // When no basis relying on prior residence was proved, do not duplicate the failure here.
     const schoolResult =
       any(...untimed) === true
         ? true
         : school === true
           ? true
-          : any(...timed) === false
+          : !future && any(...timed) === false
             ? undefined
             : any(subjectToSchool, ...untimed);
     requirements.push(
@@ -1042,9 +1097,10 @@ export function residencePath(
       ),
       [
         rd(isL ? 'art. 184.1–3.a' : 'art. 177.1–3.a'),
+        ref('SRC-090', 'art. 30.4–6'),
         ...pilotValues.longTermLateMonths.sources,
       ],
-      ['PD-099'],
+      ['PD-285'],
     ),
   );
   requirements.push(
@@ -1086,15 +1142,16 @@ export function residencePath(
     requirements,
     details,
     isL && recordCertain ? pilot.assumptions : [],
+    future,
   );
-  if (isL && recordCertain && pilot.earliestDate) {
+  if (durationDate) {
     // A candidate date for the ordinary duration alone cannot establish all legal conditions.
-    result.pathwayCompletionDate = pilot.earliestDate;
+    result.pathwayCompletionDate = durationDate;
     result.summary =
       L(
         '普通居留时间条件的候选日期为 ',
         'Candidate date for the ordinary residence period alone: ',
-      ) + pilot.earliestDate;
+      ) + durationDate;
   }
   if (result.status === 'MET') result.earliestDate = day;
   return result;

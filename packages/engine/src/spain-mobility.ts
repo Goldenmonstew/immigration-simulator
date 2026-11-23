@@ -12,7 +12,11 @@ import {
   pathway,
 } from './spain-full-common';
 import type { EsApplicationFee } from './spain-full-common';
-import { familyResourcesCheck, insuranceCheck } from './spain-residence';
+import {
+  familyResourcesCheck,
+  insuranceCheck,
+  insuranceEvidence,
+} from './spain-residence';
 import type { EsFamilyResources, EsHealthCover } from './spain-residence';
 import type { IsoDate } from './types';
 
@@ -44,7 +48,6 @@ interface Application {
   signedEx11?: boolean;
   competentOffice?: boolean;
   fee?: EsApplicationFee;
-  healthCover?: EsHealthCover;
   grant?: {
     notifiedOn?: IsoDate;
     inSpainWhenNotified?: boolean;
@@ -110,12 +113,17 @@ export interface EsMobilityFacts {
   purpose?: Purpose;
   holder?: Application & {
     statusDocument?: boolean;
+    healthCover?: EsHealthCover & {
+      /** Whether the holder's cover also includes the family member applying. */
+      coversFamilyMember?: boolean;
+    };
     nonWorking?: {
       dependants?: number;
       monthlyNonWorkIncome?: number;
       availableCapitalEur?: number;
       confirmedCoverageMonths?: number;
       sourceAndAvailabilityDocumented?: boolean;
+      accommodationAvailable?: boolean;
       accommodationDocumented?: boolean;
     };
     employment?: Employment;
@@ -139,6 +147,7 @@ export interface EsMobilityFacts {
     spanishEuLongTermGranted?: boolean;
   };
   family?: Application & {
+    healthCover?: EsHealthCover;
     priorFamilyUnitAndResidenceProved?: boolean;
     noRefusalAlert?: boolean;
     principalFiledOn?: IsoDate;
@@ -379,23 +388,24 @@ export function mobilityPath(
       ),
     ];
     if (!m.purpose || m.purpose === 'non-working') {
-      const cover = insuranceCheck(
-        { ...req, simulationDate: day },
-        f.healthCover,
-        'ES-F04',
-      );
       checks.push(
-        m.purpose
-          ? cover
-          : check(
-              L,
-              'ES-F04',
-              '须先确认主申请人的居留目的，才能判断家属医保要求。',
-              'The sponsor’s purpose of residence determines whether the family needs health insurance.',
-              undefined,
-              [rd('arts. 179.3.d.1º, 180.3.e (pp131–132)'), familyGuide],
-              ['PD-291'],
-            ),
+        check(
+          L,
+          'ES-F04',
+          '主申请人以非工作为居留目的时，随迁家属须有递交时在西班牙有效的公共医保或获准承保且保障相当的私保。家属可提供自己的凭证，也可提供覆盖本人的主申请人医保证明。',
+          'If the holder applies for non-working residence, document public entitlement or authorised equivalent private cover in Spain at filing. The family member may use their own evidence or the holder’s cover if it includes them.',
+          m.purpose
+            ? any(
+                insuranceEvidence(day, f.healthCover),
+                all(
+                  h.healthCover?.coversFamilyMember,
+                  insuranceEvidence(day, h.healthCover),
+                ),
+              )
+            : undefined,
+          [rd('arts. 179.3.d.1º, 180.3.e (pp131–132)'), familyGuide],
+          ['PD-291'],
+        ),
       );
     }
     const principalApproved =
@@ -475,17 +485,18 @@ export function mobilityPath(
               : false;
       } else if (income !== undefined && capital === 0) sufficient = false;
     }
+    // Hoja 51 requires accommodation but does not specify every acceptable form of proof (PD-292).
+    const accommodation =
+      n.accommodationAvailable === false
+        ? false
+        : n.accommodationDocumented || undefined;
     checks.push(
       check(
         L,
         'ES-M02',
-        `非营利居住：证明可动用的非工作资金和住所。${v.ipremYear.value} 年参考${monthly === undefined ? '取决于随行受扶养人数' : '每月 EUR ' + monthly}${periodTotal === undefined ? '' : '，已确认期间合计 EUR ' + periodTotal}；其他年度另核。`,
-        `Non-working residence: document available non-work resources and accommodation. The ${v.ipremYear.value} reference ${monthly === undefined ? 'depends on the number of dependants' : 'is EUR ' + monthly + ' a month'}${periodTotal === undefined ? '' : ', EUR ' + periodTotal + ' for the confirmed period'}. Other years need verification.`,
-        all(
-          sufficient,
-          n.sourceAndAvailabilityDocumented,
-          n.accommodationDocumented,
-        ),
+        `非营利居住须证明可动用的非工作资金。Hoja 51 另列住所要求，证明形式待确认时须向主管机关核实。${v.ipremYear.value} 年参考${monthly === undefined ? '取决于随行受扶养人数' : '每月 EUR ' + monthly}${periodTotal === undefined ? '' : '，已确认期间合计 EUR ' + periodTotal}；其他年度另核。`,
+        `Document available non-work resources. Hoja 51 also requires accommodation. Check with the competent office if the form of proof is uncertain. The ${v.ipremYear.value} reference ${monthly === undefined ? 'depends on the number of dependants' : 'is EUR ' + monthly + ' a month'}${periodTotal === undefined ? '' : ', EUR ' + periodTotal + ' for the confirmed period'}. Other years need verification.`,
+        all(sufficient, n.sourceAndAvailabilityDocumented, accommodation),
         [
           rd('arts. 61–62, 179.3.d.1º (pp51–52, 131)'),
           holderGuide,

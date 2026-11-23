@@ -2,7 +2,7 @@ import { spainFull2026_11 as policy } from '@uk-immigration/policy-data';
 import type { CountryResult, CountryPathway } from './country-result';
 import { textFor } from './rule';
 import { evaluateSpain } from './spain';
-import type { EsRequest } from './spain';
+import type { EsRequest, EsResult } from './spain';
 import { nationalityPath } from './spain-nationality';
 import type { EsNationalityFacts } from './spain-nationality';
 import { residencePath } from './spain-residence';
@@ -41,6 +41,39 @@ export interface EsFullRequest extends EsRequest {
 /** An omitted history is unanswered; an explicitly empty history is an answer. */
 export type EsFullInput = Omit<EsFullRequest, 'route' | 'permits' | 'trips'> &
   Partial<Pick<EsRequest, 'route' | 'permits' | 'trips'>>;
+
+function filingWithResidenceDate(
+  req: EsFullRequest,
+  pilot: EsResult,
+  target: 'N' | 'L',
+  routeConfirmed = true,
+): CountryPathway {
+  const assess = (r: EsFullRequest, time: EsResult) =>
+    target === 'N'
+      ? nationalityPath(r, time.pathways[1], routeConfirmed)
+      : residencePath(r, time.pathways[0], target);
+  const today = assess(req, pilot);
+  if (today.status !== 'FUTURE' || !today.earliestDate) return today;
+
+  // A certificate can expire or a child can reach school age before the residence anniversary.
+  const date = today.earliestDate;
+  const filing = { ...req, simulationDate: date };
+  const atFiling = assess(filing, evaluateSpain(filing));
+  if (atFiling.status === 'MET') return today;
+  const outstanding = atFiling.checks
+    .filter((c) => atFiling.decidedBy?.includes(c.id) && c.status !== 'MET')
+    .map((c) => c.id)
+    .join(', ');
+  return {
+    ...today,
+    status: atFiling.status,
+    earliestDate: undefined,
+    summary: textFor(req)(
+      `居留年限在 ${date} 满足。按已填事实，届时仍需满足或核实 ${outstanding}。`,
+      `The residence period completes on ${date}. At filing, these requirements still need to be met or confirmed: ${outstanding}.`,
+    ),
+  };
+}
 
 export function evaluateSpainFull(input: EsFullInput): CountryResult {
   // The page may send the detailed EU history once for all three residence calculations.
@@ -85,10 +118,13 @@ export function evaluateSpainFull(input: EsFullInput): CountryResult {
     let p: CountryPathway;
     switch (target) {
       case 'N':
-        p = nationalityPath(req, pilot!.pathways[1], input.route !== undefined);
-        break;
       case 'L':
-        p = residencePath(req, pilot!.pathways[0], target);
+        p = filingWithResidenceDate(
+          req,
+          pilot!,
+          target,
+          input.route !== undefined,
+        );
         break;
       case 'E':
         p = residencePath(
@@ -165,9 +201,10 @@ export function evaluateSpainFull(input: EsFullInput): CountryResult {
       p.checks.some((c) => c.pendingDetails?.includes('PD-280'))
     ) {
       const generalReq = { ...req, route: 'general' as const };
-      const alternative = nationalityPath(
+      const alternative = filingWithResidenceDate(
         generalReq,
-        evaluateSpain(generalReq).pathways[1],
+        evaluateSpain(generalReq),
+        'N',
       );
       paths.push({
         ...alternative,

@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { freeMovementPath } from '../src/spain-free-movement';
 import type { EsFreeMovementFacts } from '../src/spain-free-movement';
+import { evaluateSpainFull } from '../src/spain-full';
 import type { EsFullRequest } from '../src/spain-full';
 
 const request: EsFullRequest = {
@@ -46,6 +47,123 @@ function row(
 }
 
 describe('permanent residence under EU free movement', () => {
+  const fullPath = (facts: EsFreeMovementFacts) =>
+    evaluateSpainFull({
+      ...request,
+      targets: ['U'],
+      freeMovement: { ...worker, ...facts },
+    }).columns[0].pathways[0];
+
+  test('five completed years establish permanent residence before retirement without a certificate', () => {
+    const retired: EsFreeMovementFacts = {
+      residenceFrom: '2017-01-01',
+      history: [
+        {
+          from: '2017-01-01',
+          to: '2021-12-31',
+          basis: 'employment',
+          documented: true,
+        },
+        { from: '2022-01-01', basis: 'other', documented: true },
+      ],
+    };
+    for (const returned of ['2025-01-01', '2025-01-02']) {
+      const kept = returned === '2025-01-01';
+      const p = fullPath({
+        ...retired,
+        trips: [{ departed: '2023-01-01', returned }],
+      });
+      expect(p.checks.find((c) => c.id === 'ES-U05')?.status).toBe('MET');
+      expect(p.checks.find((c) => c.id === 'ES-U04-retention')?.status).toBe(
+        kept ? 'MET' : 'NOT_MET',
+      );
+      expect(p.status).toBe(kept ? 'MET' : 'NOT_MET');
+      expect(p.pathwayCompletionDate).toBe(kept ? '2022-01-01' : undefined);
+      expect(p.earliestDate).toBe(kept ? request.simulationDate : undefined);
+    }
+    const p = fullPath(retired);
+    expect(p.checks.find((c) => c.id === 'ES-U05')?.status).toBe('MET');
+    expect(p.status).toBe('MET');
+    expect(p.pathwayCompletionDate).toBe('2022-01-01');
+    expect(p.earliestDate).toBe(request.simulationDate);
+  });
+
+  test('retained residence uses the start of divorce proceedings for the marriage and Spanish residence periods', () => {
+    const divorced: EsFreeMovementFacts = {
+      ...family,
+      retainedEvent: 'divorce',
+      relationshipFrom: '2021-11-23',
+      priorFamilyResidenceFrom: '2021-11-23',
+      eventDate: '2025-02-01',
+      eventReported: true,
+      custodyOrAccessInSpain: false,
+      exceptionalHardshipProved: false,
+      history: [
+        {
+          from: '2021-11-23',
+          to: '2025-01-31',
+          basis: 'qualifying-family',
+          documented: true,
+        },
+        { from: '2025-02-01', basis: 'employment', documented: true },
+      ],
+    };
+    for (const [divorceProceedingsStartedOn, expected] of [
+      ['2024-10-10', 'NOT_MET'],
+      ['2024-11-23', 'MET'],
+      [undefined, 'UNKNOWN'],
+    ] as const) {
+      const p = fullPath({ ...divorced, divorceProceedingsStartedOn });
+      expect(p.checks.find((c) => c.id === 'ES-U06')?.status).toBe(expected);
+      expect(p.status).toBe(expected);
+      expect(p.earliestDate).toBe(
+        expected === 'MET' ? request.simulationDate : undefined,
+      );
+      expect(p.pathwayCompletionDate).toBe(
+        expected === 'MET' ? request.simulationDate : undefined,
+      );
+    }
+  });
+
+  test('historical acquisition respects leap-day starts, residence gaps and returns after a loss', () => {
+    const facts: EsFreeMovementFacts = {
+      residenceFrom: '2015-01-01',
+      history: [
+        {
+          from: '2015-01-01',
+          to: '2015-12-31',
+          basis: 'employment',
+          documented: true,
+        },
+        { from: '2016-02-29', basis: 'employment', documented: true },
+      ],
+    };
+    const leap = fullPath(facts);
+    expect(leap.checks.find((c) => c.id === 'ES-U04')?.status).toBe('MET');
+    expect(leap.status).toBe('MET');
+    expect(leap.pathwayCompletionDate).toBe('2021-03-01');
+    const afterInterruption = fullPath({
+      ...facts,
+      trips: [
+        { departed: '2017-06-01', returned: '2018-06-01', reason: 'ordinary' },
+      ],
+    });
+    expect(afterInterruption.status).toBe('MET');
+    expect(afterInterruption.pathwayCompletionDate).toBe('2023-06-01');
+    const reacquired = fullPath({
+      residenceFrom: '2010-01-01',
+      history: [{ from: '2010-01-01', basis: 'employment', documented: true }],
+      trips: [
+        { departed: '2016-01-01', returned: '2021-04-01', reason: 'ordinary' },
+      ],
+    });
+    expect(
+      reacquired.checks.find((c) => c.id === 'ES-U04-retention')?.status,
+    ).toBe('MET');
+    expect(reacquired.status).toBe('MET');
+    expect(reacquired.pathwayCompletionDate).toBe('2026-04-01');
+  });
+
   test('U01 checks the regime and an individual Spanish sponsor’s free movement or transitional basis', () => {
     expect(row('U01', {}).status).toBe('MET');
     expect(row('U01', { person: 'other' }).status).toBe('NOT_MET');
@@ -292,8 +410,11 @@ describe('permanent residence under EU free movement', () => {
     const req = { simulationDate: '2026-11-23' };
     expect(row('U05', { history: [prior, period] }, req).status).toBe('MET');
     expect(
-      row('U05', { history: [prior, period] }, { simulationDate: '2026-11-24' })
-        .status,
+      row(
+        'U05',
+        { residenceFrom: '2021-11-24', history: [prior, period] },
+        { simulationDate: '2026-11-24' },
+      ).status,
     ).toBe('UNKNOWN');
     expect(
       row(
@@ -331,6 +452,7 @@ describe('permanent residence under EU free movement', () => {
       ...survivor,
       retainedEvent: 'divorce',
       relationshipFrom: '2022-11-23',
+      divorceProceedingsStartedOn: '2025-11-23',
       custodyOrAccessInSpain: false,
       exceptionalHardshipProved: false,
     };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EsFullRequest } from '../src/spain-full';
-import { mobilityPath } from '../src/spain-mobility';
+import { evaluateSpainFull } from '../src';
 import type { EsMobilityFacts } from '../src/spain-mobility';
 
 const request: EsFullRequest = {
@@ -81,20 +81,18 @@ function run(
   m: EsMobilityFacts,
   changes: Partial<EsFullRequest> = {},
 ) {
-  const result = mobilityPath(
-    {
-      ...request,
-      ...changes,
-      mobility: {
-        otherMemberStatus: 'eu-long-term',
-        purpose: 'non-working',
-        holder,
-        family,
-        ...m,
-      },
+  const [result] = evaluateSpainFull({
+    ...request,
+    ...changes,
+    targets: [kind],
+    mobility: {
+      otherMemberStatus: 'eu-long-term',
+      purpose: 'non-working',
+      holder,
+      family,
+      ...m,
     },
-    kind,
-  );
+  }).columns[0].pathways;
   return {
     result,
     get: (id: string) => result.checks.find((c) => c.id === id)?.status,
@@ -207,6 +205,30 @@ describe('Spanish mobility from another EU Member State (arts. 179–181)', () =
         'ES-M03',
       ),
     ).toBe('NOT_MET');
+  });
+  it('distinguishes missing accommodation from an unconfirmed form of proof', () => {
+    for (const [available, documented, status] of [
+      [true, false, 'UNKNOWN'],
+      [false, false, 'NOT_MET'],
+      [true, true, 'MET'],
+    ] as const) {
+      const { row, result } = run('M', {
+        holder: {
+          ...holder,
+          nonWorking: {
+            ...holder.nonWorking,
+            accommodationAvailable: available,
+            accommodationDocumented: documented,
+          },
+        },
+      });
+      expect(row('ES-M02')?.status).toBe(status);
+      if (status === 'UNKNOWN')
+        expect(row('ES-M02')?.pendingDetails).toContain('PD-292');
+      expect(result.status).toBe(status);
+      expect(result.earliestDate).toBeUndefined();
+      expect(result.pathwayCompletionDate).toBeUndefined();
+    }
   });
   it('applies the full-time annual SMI to employment and checks labour age, contract and employer separately', () => {
     const work = (override: Partial<typeof employment>) =>
@@ -501,9 +523,10 @@ describe('Spanish mobility from another EU Member State (arts. 179–181)', () =
     expect(under.get('ES-F03')).toBe('NOT_MET');
     expect(run('F', {}).get('ES-F04')).toBe('MET');
     expect(
-      run('F', { family: { ...family, healthCover: { kind: 'none' } } }).get(
-        'ES-F04',
-      ),
+      run('F', {
+        holder: { ...holder, healthCover: { kind: 'none' } },
+        family: { ...family, healthCover: { kind: 'none' } },
+      }).get('ES-F04'),
     ).toBe('NOT_MET');
     expect(
       run('F', {
@@ -512,6 +535,41 @@ describe('Spanish mobility from another EU Member State (arts. 179–181)', () =
       }).get('ES-F04'),
     ).toBeUndefined();
     expect(run('F', { purpose: undefined }).get('ES-F04')).toBe('UNKNOWN');
+  });
+  it('accepts either spouse’s evidence of cover for the accompanying family member at filing', () => {
+    const validPolicy = {
+      ...holder.healthCover,
+      kind: 'private' as const,
+      validFrom: '2026-11-23',
+      validTo: '2026-11-23',
+    };
+    const noOwnPolicy = { kind: 'none' as const };
+    for (const [sponsorPolicy, ownPolicy, status] of [
+      [{ ...validPolicy, coversFamilyMember: true }, undefined, 'MET'],
+      [{ ...validPolicy, coversFamilyMember: true }, noOwnPolicy, 'MET'],
+      [validPolicy, noOwnPolicy, 'UNKNOWN'],
+      [{ ...validPolicy, coversFamilyMember: false }, noOwnPolicy, 'NOT_MET'],
+      [{ ...validPolicy, coversFamilyMember: false }, validPolicy, 'MET'],
+      [
+        {
+          ...validPolicy,
+          coversFamilyMember: true,
+          validFrom: '2026-01-01',
+          validTo: '2026-11-22',
+        },
+        noOwnPolicy,
+        'NOT_MET',
+      ],
+    ] as const) {
+      const { row, result } = run('F', {
+        holder: { ...holder, healthCover: sponsorPolicy },
+        family: { ...family, healthCover: ownPolicy },
+      });
+      expect(row('ES-F04')?.status).toBe(status);
+      expect(result.status).toBe(status);
+      expect(result.earliestDate).toBeUndefined();
+      expect(result.pathwayCompletionDate).toBeUndefined();
+    }
   });
   it('separates family filing fees, activation and card issuance for permits exceeding six months', () => {
     const grant = {
