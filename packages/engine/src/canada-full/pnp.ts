@@ -4,7 +4,10 @@ import type { IsoDate } from '../types';
 import {
   all,
   any,
+  documentValidAtReceipt,
   filingDatesForRoute,
+  receivedBy,
+  receivedInWindow,
   ref,
   type Context,
   type Item,
@@ -15,6 +18,7 @@ const on = ca.values.ontarioWorkforce.value;
 export interface PnpAnswers {
   stream?: 'ontario-workforce' | 'other';
   mode?: 'base' | 'enhanced';
+  /** Current disposition: expired means natural expiry without withdrawal. */
   nomination?: 'valid' | 'pending' | 'withdrawn' | 'expired' | 'refused';
   intendsNominatingProvince?: boolean;
   investment?: 'none' | 'scheme' | 'business';
@@ -37,6 +41,8 @@ interface OntarioAnswers {
   category?: 'high' | 'lower' | 'physician';
   eoi?: IsoDate;
   invited?: IsoDate;
+  /** An official cancellation of this invitation by the simulation date. */
+  invitationRevoked?: boolean;
   employerFiled?: IsoDate;
   filed?: IsoDate;
   employerPortalPosition?: boolean;
@@ -91,8 +97,13 @@ interface OntarioAnswers {
   fullTimeStudyYears?: number;
   origin?: 'canadian-eligible' | 'foreign-equivalent' | 'unrecognised';
   designatedEcaDate?: IsoDate;
+  designatedEcaRevoked?: boolean;
   /** Approved English/French test: all four CLB/NCLC scores. */
-  language?: { date: IsoDate; scores: [number, number, number, number] };
+  language?: {
+    date: IsoDate;
+    scores: [number, number, number, number];
+    revoked?: boolean;
+  };
   selfEmployedPhysician?: boolean;
   cpsoGoodStanding?: boolean;
   physicianLicence?:
@@ -107,25 +118,15 @@ function meets(amount?: number, minimum?: number) {
     : amount >= minimum;
 }
 
-function filedInWindow(
-  start: IsoDate | undefined,
-  filed: IsoDate | undefined,
-  days: number,
-  asOf: IsoDate,
-) {
-  if (!start || start > asOf) return undefined;
-  const deadline = addDays(start, days);
-  if (!filed || filed > asOf) return asOf > deadline ? false : undefined;
-  return filed >= start && filed <= deadline;
-}
-
-function recentGraduate(a: OntarioAnswers, date: IsoDate) {
+function recentGraduate(a: OntarioAnswers, date: IsoDate | undefined) {
   const g = a.recentGraduate;
   if (!g) return g;
   return all(
     g.eligibleOntarioInstitution,
-    g.graduation <= date &&
-      g.graduation >= addYears(date, -on.graduateWindowYears),
+    date
+      ? g.graduation <= date &&
+          g.graduation >= addYears(date, -on.graduateWindowYears)
+      : undefined,
     any(
       g.credential === 'masters-phd-graduate-certificate',
       all(
@@ -153,15 +154,22 @@ function relatedWork(a: OntarioAnswers) {
   );
 }
 
-function education(a: OntarioAnswers, date: IsoDate, secondary: boolean) {
+function education(
+  a: OntarioAnswers,
+  date: IsoDate | undefined,
+  secondary: boolean,
+) {
   const recognised =
     a.origin === undefined
       ? undefined
       : a.origin === 'foreign-equivalent'
-        ? a.designatedEcaDate === undefined
-          ? undefined
-          : a.designatedEcaDate <= date &&
-            a.designatedEcaDate > addYears(date, -on.ecaYears)
+        ? all(
+            !a.designatedEcaRevoked,
+            a.designatedEcaDate && date
+              ? a.designatedEcaDate <= date &&
+                  a.designatedEcaDate > addYears(date, -on.ecaYears)
+              : undefined,
+          )
         : a.origin === 'canadian-eligible';
   const level =
     a.education === undefined
@@ -179,12 +187,19 @@ function education(a: OntarioAnswers, date: IsoDate, secondary: boolean) {
   );
 }
 
-function language(a: OntarioAnswers, date: IsoDate, threshold: number) {
+function language(
+  a: OntarioAnswers,
+  date: IsoDate | undefined,
+  threshold: number,
+) {
   if (!a.language) return undefined;
-  return (
-    a.language.date <= date &&
-    a.language.date > addYears(date, -on.languageYears) &&
-    a.language.scores.every((score) => score >= threshold)
+  return all(
+    !a.language.revoked,
+    date
+      ? a.language.date <= date &&
+          a.language.date > addYears(date, -on.languageYears)
+      : undefined,
+    a.language.scores.every((score) => score >= threshold),
   );
 }
 
@@ -198,15 +213,14 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
     employer,
   } = filingDatesForRoute(req, 'CA-PNP');
   const provincialDate = provincial ?? sim;
-  const fedDate = filed ?? sim;
-  const nomination =
-    p.nomination === 'pending' ||
-    p.nomination === undefined ||
-    (p.nominationIssued !== undefined && p.nominationIssued > sim)
-      ? undefined
-      : p.nomination === 'valid' &&
-        (!p.nominationExpires || fedDate <= p.nominationExpires) &&
-        (!p.nominationIssued || p.nominationIssued <= fedDate);
+  const provincialReceipt = receivedBy(provincial, sim);
+  const nomination = documentValidAtReceipt(
+    p.nomination,
+    p.nominationIssued,
+    p.nominationExpires,
+    filed,
+    sim,
+  );
   const investment = ca.values.pnpInvestment.value;
   const investmentEligible =
     p.investment === undefined
@@ -224,7 +238,10 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
         );
   const nominationSources = [
     ref('SRC-261', 'IRPR s87(1)–(6), (12)'),
-    ref('SRC-271', 'PNP: How the program works'),
+    ref(
+      'SRC-271',
+      'Confirmation of provincial nomination; BC, Post-nomination support for workers / Conditions of nomination',
+    ),
     ref('SRC-279', 'Canada Gazette, SOR/2026-63, s1'),
   ];
   const checks = [
@@ -244,8 +261,7 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
       L('提名后的联邦递交', 'Federal filing after nomination'),
       all(
         nomination,
-        p.nominationExpires ? fedDate <= p.nominationExpires : undefined,
-        filed && filed <= sim ? true : undefined,
+        p.nominationExpires ? true : undefined,
         p.mode === 'base'
           ? p.viaPrPortal
           : p.mode === 'enhanced'
@@ -256,12 +272,15 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
             : undefined,
       ),
       L(
-        '按证书有效期核对联邦收件。Base 经 PR Portal；enhanced 还须有合资格 EE 项目、匹配并接受电子提名，再按 ITA 递交。只有省级邀请时需等待提名。',
-        'Check federal receipt against the certificate expiry. Base nominees use the PR Portal. Enhanced nominees must qualify under an EE program, match and accept the nomination, and file under an ITA. A provincial invitation alone leaves the nomination pending.',
+        '联邦收件时提名须有效。按期收件后证书自然到期可继续审理，省方撤回提名则不满足条件。Base 经 PR Portal；enhanced 须符合 EE 项目要求，匹配并接受电子提名，再按 ITA 递交。',
+        'The nomination must be valid at federal receipt. A timely application can continue past the printed expiry if the province maintains the nomination. Base nominees use the PR Portal. Enhanced nominees must qualify under an EE program, match and accept the nomination, and file under an ITA.',
       ),
       [
         ref('SRC-261', 'IRPR s87'),
-        ref('SRC-271', 'PNP: Non-Express Entry process; Express Entry process'),
+        ref(
+          'SRC-271',
+          'Confirmation of provincial nomination; Non-Express Entry process; Express Entry process and withdrawal of a nomination',
+        ),
         ref('SRC-269', 'EE ministerial instructions, s28'),
       ],
       ['PD-250'],
@@ -274,20 +293,22 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
   const evidence = [
     ref(
       'SRC-272',
-      'O. Reg. 422/17 ss2.1–7; Ontario Workforce Priority: Steps to apply; 2026 program updates, August 4',
+      'O. Reg. 422/17 ss2.1–7; Ontario Workforce Priority: Steps to apply; OINP application process / Deadlines to apply: Ontario Workforce Priority',
     ),
   ];
-  const employerWindow = filedInWindow(
-    a.invited,
+  const invited = receivedBy(a.invited, sim);
+  const employerReceipt = receivedBy(employer, sim);
+  const employerWindow = receivedInWindow(
     employer,
-    on.employerDays,
     sim,
+    invited,
+    invited && addDays(invited, on.employerDays),
   );
-  const applicantWindow = filedInWindow(
-    a.invited,
+  const applicantWindow = receivedInWindow(
     provincial,
-    on.applicantDays,
     sim,
+    invited,
+    invited && addDays(invited, on.applicantDays),
   );
   checks.push(
     check(
@@ -295,6 +316,7 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
       L('安省 EOI、邀请与递交', 'Ontario EOI, invitation and filing'),
       all(
         categoriesKnown ? true : undefined,
+        !a.invitationRevoked,
         a.eoi && a.invited
           ? a.eoi >= on.eoiOpens && a.eoi <= a.invited
           : undefined,
@@ -306,7 +328,9 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
           all(
             a.employerPortalPosition,
             employerWindow,
-            employer && provincial ? employer <= provincial : undefined,
+            employerReceipt && provincialReceipt
+              ? employerReceipt <= provincialReceipt
+              : undefined,
           ),
       ),
       L(
@@ -459,16 +483,16 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
       const langEd = (skilledTrade: boolean) =>
         all(
           any(
-            graduate,
+            recentGraduate(a, provincialReceipt),
             language(
               a,
-              provincialDate,
+              provincialReceipt,
               skilledTrade ? on.tradeLanguage : on.highLanguage,
             ),
           ),
           any(
             !driving ? licensed : false,
-            education(a, provincialDate, skilledTrade),
+            education(a, provincialReceipt, skilledTrade),
           ),
         );
       const ordinary = langEd(false);
@@ -513,8 +537,8 @@ export function pnpChecks({ req, L, check }: Context): Item[] {
           all(
             licensing,
             meets(a.lowerOntarioMonths, on.lowerTeerMonths),
-            language(a, provincialDate, on.lowerLanguage),
-            education(a, provincialDate, true),
+            language(a, provincialReceipt, on.lowerLanguage),
+            education(a, provincialReceipt, true),
           ),
           L(
             `两年内安省合法同岗累计 ${on.lowerTeerMonths} 个月，持所需执照、中学或等值学历，四项均达 CLB/NCLC ${on.lowerLanguage}。`,

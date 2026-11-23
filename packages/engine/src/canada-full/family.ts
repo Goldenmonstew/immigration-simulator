@@ -5,6 +5,7 @@ import {
   all,
   any,
   filingDatesForRoute,
+  receivedBy,
   ref,
   type Context,
   type Item,
@@ -81,6 +82,7 @@ export interface FamilyAnswers {
     eligibleLastYearIncome?: number;
   };
   province?: {
+    /** The required IRCC letter or qualifying inland acknowledgment for this undertaking. */
     eligibilityLetterOrQualifyingInlandAor?: boolean;
     letterDate?: IsoDate;
     submissionDate?: IsoDate;
@@ -343,12 +345,14 @@ export function familyChecks({ req, L, check }: Context): Item[] {
     q?.intakeExemptionConfirmed,
   );
   const schedule = v.familyQcIntakeSchedule.value;
-  const applicable = schedule.filter((x) => x.opens <= provDate).at(-1);
+  const received = receivedBy(filing.provincial, req.simulationDate);
+  const applicable =
+    received && received <= v.familyQcIntakeThrough.value
+      ? schedule.filter((x) => x.opens <= received).at(-1)
+      : undefined;
   const letter = q?.letterDate;
-  const withinPublishedSchedule =
-    provDate >= schedule[0].opens && provDate <= v.familyQcIntakeThrough.value;
   const scheduled =
-    withinPublishedSchedule && letter && applicable
+    letter && applicable
       ? letter <= applicable.lettersThrough
         ? true
         : letter <= schedule[schedule.length - 1].lettersThrough
@@ -357,11 +361,13 @@ export function familyChecks({ req, L, check }: Context): Item[] {
       : undefined;
   const entry = any(
     exemptIntake,
-    all(
-      scheduled,
-      q?.eligibilityLetterOrQualifyingInlandAor,
-      q?.intakeCapacityConfirmed,
-    ),
+    received
+      ? all(
+          scheduled,
+          q?.eligibilityLetterOrQualifyingInlandAor,
+          q?.intakeCapacityConfirmed,
+        )
+      : undefined,
   );
   const fees = v.familyQcFees.value;
   const amount =
@@ -531,6 +537,7 @@ export function familyChecks({ req, L, check }: Context): Item[] {
       qcOnly(
         all(
           q?.eligibilityLetterOrQualifyingInlandAor,
+          received ? !letter || letter <= received : undefined,
           q?.sponsorResidenceOrReturnConfirmed,
           q?.provincialFinancialAndConductBarsClear,
           q?.custodyConsentIfRequired,
@@ -552,7 +559,7 @@ export function familyChecks({ req, L, check }: Context): Item[] {
         ref('SRC-261', 'IRPR ss.131–134, 137'),
         ref(
           'SRC-275',
-          'Eligibility, submitting the undertaking, responsibilities; form A-0546-GF: Durée',
+          'Eligibility: Positive Decision; Application Admissibility Rules; submitting the undertaking, responsibilities; form A-0546-GF: Durée',
         ),
       ],
       ['PD-255'],
@@ -583,10 +590,10 @@ export function familyChecks({ req, L, check }: Context): Item[] {
       qc === false
         ? ex
         : L(
-            `伴侣受理期上限 ${v.familyQcIntakeCap.value} 份。核对联邦通知种类、日期及实时余量；合资格子女免受批次限制。`,
-            `The partner intake cap is ${v.familyQcIntakeCap.value}. Check the federal letter type, issue date and actual capacity. Qualifying children are exempt from the intake schedule.`,
+            `伴侣受理期上限 ${v.familyQcIntakeCap.value} 份。按魁省实际收件日核对批次、联邦通知种类与签发日，以及当时余量。合资格子女免受批次限制。`,
+            `The partner intake cap is ${v.familyQcIntakeCap.value}. Use the date Québec received the undertaking to check the intake schedule, federal letter type and issue date, and capacity at receipt. Qualifying children are exempt from the intake schedule.`,
           ) +
-            (applicable && withinPublishedSchedule
+            (applicable
               ? L(
                   ` 此档信件截止 ${applicable.lettersThrough}。`,
                   ` Letter cutoff for this batch: ${applicable.lettersThrough}.`,

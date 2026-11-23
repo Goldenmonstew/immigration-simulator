@@ -132,14 +132,20 @@ describe('Canadian residency obligation and document branches', () => {
       photosAndSignaturesReady: true,
       firstCardDetailsDate: '2026-06-30',
     } as const;
-    const over = { permanentResident: '2026-01-01' };
-    expect(check(pr({ card }, over), '04').status).toBe('MET');
-    expect(
-      check(
-        pr({ card: { ...card, firstCardDetailsDate: '2026-07-01' } }, over),
-        '04',
-      ).status,
-    ).toBe('NOT_MET');
+    for (const [simulationDate, firstCardDetailsDate, expected] of [
+      ['2026-06-29', undefined, 'UNKNOWN'],
+      ['2026-06-29', '2026-06-30', 'UNKNOWN'],
+      [today, undefined, 'UNKNOWN'],
+      [today, '2026-06-30', 'MET'],
+      [today, '2026-07-01', 'NOT_MET'],
+    ] as const) {
+      const result = pr(
+        { card: { ...card, firstCardDetailsDate } },
+        { permanentResident: '2026-01-01', simulationDate },
+      );
+      expect(check(result, '04').status).toBe(expected);
+      expect(result.status).toBe('MET');
+    }
     const t = {
       outsideCanada: true,
       lacksValidCard: true,

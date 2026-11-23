@@ -76,7 +76,11 @@ function rule(
     simulationDate,
     dateOfBirth: '1992-01-01',
     locale: lang,
-    express: { ...complete, ...changes },
+    express: {
+      ...complete,
+      invitation: { ...complete.invitation!, program: route },
+      ...changes,
+    },
   };
   const pathway = evaluateCanadaFull(req).columns[0].pathways.find(
     (p) => p.id === route,
@@ -84,13 +88,16 @@ function rule(
   return pathway.checks.find((c) => c.id === 'CA-' + id)!;
 }
 
-function filedFsw(changes: Partial<ExpressAnswers>, examOn = '2026-11-04') {
-  const filedOn = '2026-11-20';
+function filedFsw(
+  changes: Partial<ExpressAnswers>,
+  examOn = '2026-11-04',
+  filedOn: string | null = '2026-11-20',
+) {
   const dateOfBirth = '1992-01-01';
   return evaluateCanadaFull({
     simulationDate,
     dateOfBirth,
-    express: { ...complete, applicationDate: filedOn, ...changes },
+    express: { ...complete, applicationDate: filedOn ?? undefined, ...changes },
     federal: {
       ...federal,
       principal: {
@@ -98,7 +105,9 @@ function filedFsw(changes: Partial<ExpressAnswers>, examOn = '2026-11-04') {
         dateOfBirth,
         exam: { examOn, panelExamComplete: true, inCanada: false },
       },
-      applications: { 'CA-EE-FSW': { ...filed, filedOn } },
+      applications: {
+        'CA-EE-FSW': { ...filed, filedOn: filedOn ?? undefined },
+      },
     },
   }).columns[0].pathways.find((p) => p.id === 'CA-EE-FSW')!;
 }
@@ -131,15 +140,48 @@ describe('Express Entry application, ranking and evidence', () => {
     expect(rule('R29').status).toBe('MET');
     expect(rule('R29', { profileDate: '2025-11-03' }).status).toBe('NOT_MET');
     expect(rule('R29', { profileDate: '2025-11-04' }).status).toBe('MET');
-    expect(rule('R29', { applicationDate: '2027-01-02' }).status).toBe('MET');
-    expect(rule('R29', { applicationDate: '2027-01-03' }).status).toBe(
-      'NOT_MET',
-    );
+    const invitation = { date: '2026-09-01', program: 'CA-EE-FSW' as const };
+    for (const [applicationDate, expected] of [
+      ['2026-09-01', 'NOT_MET'],
+      ['2026-09-02', 'MET'],
+      ['2026-10-31', 'MET'],
+      ['2026-11-01', 'NOT_MET'],
+    ] as const)
+      expect(rule('R29', { invitation, applicationDate }).status).toBe(
+        expected,
+      );
     expect(rule('R29', { invitation: undefined }).pendingDetails).toContain(
       'PD-246',
     );
-    expect(rule('R29', {}, 'CA-EE-CEC').status).toBe('NOT_MET');
+    expect(
+      rule('R29', { invitation: complete.invitation }, 'CA-EE-CEC').status,
+    ).toBe('NOT_MET');
   });
+  test.each([
+    ['2026-11-03', null, false, 'UNKNOWN'],
+    ['2026-11-03', '2026-12-05', false, 'UNKNOWN'],
+    ['2026-04-29', null, false, 'UNKNOWN'],
+    ['2026-04-29', '2026-06-10', false, 'MET'],
+    ['2026-04-29', '2026-06-29', false, 'NOT_MET'],
+    ['2026-04-29', '2026-06-10', true, 'NOT_MET'],
+  ] as const)(
+    'R29 and FSW: ITA %s, receipt %s, revoked %s → %s',
+    (date, receipt, revoked, expected) => {
+      const result = filedFsw(
+        {
+          invitation: { program: 'CA-EE-FSW', date, revoked },
+          round: { ...complete.round!, date },
+          workHistory: [{ ...job, from: '2023-01-01', to: '2025-12-31' }],
+        },
+        date === '2026-11-03' ? '2026-11-04' : '2026-05-08',
+        receipt,
+      );
+      expect(result.checks.find((c) => c.id === 'CA-R29')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    },
+  );
   test.each([
     ['CA-EE-FSW', 'federal', '2026-04-29', '2026-05-08', '2026-06-10'],
     ['CA-PNP', 'pnp', '2026-06-22', '2026-06-30', '2026-07-10'],
@@ -164,6 +206,7 @@ describe('Express Entry application, ranking and evidence', () => {
             ? {
                 mode: 'enhanced',
                 nomination: 'valid',
+                nominationIssued: '2026-06-01',
                 nominationExpires: '2026-08-01',
                 intendsNominatingProvince: true,
                 investment: 'none',
@@ -234,7 +277,9 @@ describe('Express Entry application, ranking and evidence', () => {
       expect(skilled.checks.find((c) => c.id === 'CA-R29')?.status).toBe('MET');
       expect(skilled.status).toBe('MET');
       const nominee = pathways.find((p) => p.id === pnp)!;
-      expect(nominee.checks.find((c) => c.id === 'CA-R45')?.status).toBe('MET');
+      expect(nominee.checks.find((c) => c.id === 'CA-R45')?.status).toBe(
+        federalFiled ? 'MET' : 'UNKNOWN',
+      );
       expect(nominee.checks.find((c) => c.id === 'CA-R46')?.status).toBe(
         federalFiled ? 'MET' : 'UNKNOWN',
       );
@@ -243,6 +288,15 @@ describe('Express Entry application, ranking and evidence', () => {
       );
       expect(nominee.status).toBe('NOT_MET');
     }
+  });
+  test('a future federal filing date does not hide an actual receipt for this invitation', () => {
+    const result = filedFsw(
+      { applicationDate: '2026-11-12' },
+      '2026-11-04',
+      '2026-12-01',
+    );
+    expect(result.checks.find((c) => c.id === 'CA-R29')?.status).toBe('MET');
+    expect(result.status).toBe('MET');
   });
   test('R30 contemporaneous official score, published cutoff and timestamp', () => {
     const round = complete.round!;
@@ -323,6 +377,34 @@ describe('Express Entry application, ranking and evidence', () => {
       expect(result.status).toBe(status);
     }
   });
+  test.each([
+    ['2026-11-20', false, false, 'MET', 'MET'],
+    ['2026-11-21', false, false, 'NOT_MET', 'NOT_MET'],
+    ['2026-11-20', true, false, 'NOT_MET', 'MET'],
+    ['2026-11-20', false, true, 'NOT_MET', 'NOT_MET'],
+    [null, false, false, 'UNKNOWN', 'UNKNOWN'],
+  ] as const)(
+    'R31 and R35 check the submitted reports: %s, test revoked %s, ECA revoked %s',
+    (receipt, revoked, ecaRevoked, r31, r35) => {
+      const result = filedFsw(
+        {
+          primary: { ...language, resultDate: '2024-11-21', revoked },
+          education: {
+            origin: 'foreign',
+            level: 'masters',
+            appropriateEca: true,
+            ecaDate: '2021-11-21',
+            ecaRevoked,
+          },
+        },
+        '2026-11-04',
+        receipt,
+      );
+      expect(result.checks.find((c) => c.id === 'CA-R31')?.status).toBe(r31);
+      expect(result.checks.find((c) => c.id === 'CA-R35')?.status).toBe(r35);
+      expect(result.status).toBe(r31);
+    },
+  );
   test('R32 French all four NCLC 7, unconfirmed occupational category', () => {
     const round = { ...complete.round!, category: 'french' as const };
     const french = { ...language, test: 'TEF Canada' as const };

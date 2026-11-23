@@ -7,6 +7,7 @@ import {
   all,
   any,
   filingDatesForRoute,
+  receivedInWindow,
   ref,
   type CaFullRequest,
   type Context,
@@ -260,18 +261,12 @@ function prChecks({ req, L, check }: Context, a: ResidenceAnswers): Item[] {
     const deadline =
       req.permanentResident &&
       addDays(req.permanentResident, v.firstPrCardDays.value);
-    const timely =
-      filed && deadline && req.permanentResident
-        ? filed >= req.permanentResident && filed <= deadline && filed <= date
-        : deadline && date > deadline
-          ? false
-          : undefined;
     cardOk = all(
       pr,
       card.inCanada,
       card.canadianAddress,
       card.photosAndSignaturesReady,
-      timely,
+      receivedInWindow(filed, date, req.permanentResident, deadline),
     );
   } else if (card) {
     cardOk = all(

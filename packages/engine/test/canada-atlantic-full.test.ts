@@ -60,37 +60,49 @@ function rule(n: number, change: Partial<AtlanticAnswers> = {}) {
   return evaluateCanadaFull({
     simulationDate: when,
     locale: 'en',
-    atlantic: { ...base, ...change },
+    atlantic: { ...base, applicationDate: when, ...change },
   })
     .columns[0].pathways.find((p) => p.id === 'CA-AIP')!
     .checks.find((c) => c.id === 'CA-R' + n)!;
 }
 describe('Atlantic Immigration Program', () => {
-  test('R55 checks the endorsement on the receipt recorded only in the federal application', () => {
-    const result = evaluateCanadaFull({
-      simulationDate: when,
-      atlantic: {
-        ...base,
-        endorsement: { ...base.endorsement!, expires: '2026-07-01' },
-        workHistory: [{ ...job, from: '2024-01-01', to: '2025-12-31' }],
-      },
-      federal: {
-        ...federal,
-        principal: {
-          ...person,
-          exam: {
-            instructionOn: '2026-06-15',
-            examOn: '2026-06-22',
-            panelExamComplete: true,
-          },
+  test.each([
+    ['2026-06-10', false, 'MET'],
+    ['2026-07-01', false, 'MET'],
+    ['2026-07-02', false, 'NOT_MET'],
+    ['2026-06-10', true, 'NOT_MET'],
+    [undefined, false, 'UNKNOWN'],
+    ['2026-12-01', false, 'UNKNOWN'],
+  ] as const)(
+    'R55 and AIP: federal receipt %s, endorsement revoked %s → %s',
+    (filedOn, revoked, expected) => {
+      const result = evaluateCanadaFull({
+        simulationDate: when,
+        atlantic: {
+          ...base,
+          endorsement: { ...base.endorsement!, expires: '2026-07-01', revoked },
+          workHistory: [{ ...job, from: '2024-01-01', to: '2025-12-31' }],
         },
-        applications: { 'CA-AIP': { ...filed, filedOn: '2026-06-10' } },
-      },
-    }).columns[0].pathways.find((p) => p.id === 'CA-AIP')!;
-    expect(result.checks.find((c) => c.id === 'CA-R24')?.status).toBe('MET');
-    expect(result.checks.find((c) => c.id === 'CA-R55')?.status).toBe('MET');
-    expect(result.status).toBe('MET');
-  });
+        federal: {
+          ...federal,
+          principal: {
+            ...person,
+            exam: {
+              instructionOn: '2026-06-15',
+              examOn: '2026-06-22',
+              panelExamComplete: true,
+            },
+          },
+          applications: { 'CA-AIP': { ...filed, filedOn } },
+        },
+      }).columns[0].pathways.find((p) => p.id === 'CA-AIP')!;
+      expect(result.checks.find((c) => c.id === 'CA-R24')?.status).toBe('MET');
+      expect(result.checks.find((c) => c.id === 'CA-R55')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    },
+  );
   test('R55 valid endorsement in same province, including expiration date', () => {
     expect(rule(55).status).toBe('MET');
     expect(rule(55, { jobProvince: 'NB' }).status).toBe('NOT_MET');
@@ -222,6 +234,13 @@ describe('Atlantic Immigration Program', () => {
   });
   test('R58 TEER-specific education, regulated assessor, test validity, and all four skills', () => {
     expect(rule(58).status).toBe('MET');
+    expect(rule(58, { applicationDate: undefined }).status).toBe('UNKNOWN');
+    expect(
+      rule(58, { language: { ...base.language, revoked: true } }).status,
+    ).toBe('NOT_MET');
+    expect(
+      rule(58, { education: { ...base.education, ecaRevoked: true } }).status,
+    ).toBe('NOT_MET');
     expect(rule(58, { ecaIssuer: 'general-designated' }).status).toBe(
       'NOT_MET',
     );

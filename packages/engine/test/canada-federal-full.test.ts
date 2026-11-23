@@ -566,6 +566,7 @@ describe('full Canadian assessment contract', () => {
       stream: 'other',
       mode: 'base',
       nomination: 'valid',
+      nominationIssued: '2026-08-01',
       intendsNominatingProvince: true,
       investment: 'none',
       nominationExpires: '2026-12-31',
@@ -588,6 +589,13 @@ describe('full Canadian assessment contract', () => {
       p.status,
       JSON.stringify(p.checks.filter((c) => !c.advisory && c.status !== 'MET')),
     ).toBe('MET');
+    const undated = result('CA-PNP', {
+      ...patch,
+      pnp: { ...answers, nominationIssued: undefined },
+    });
+    for (const id of ['CA-R45', 'CA-R46'])
+      expect(undated.checks.find((c) => c.id === id)?.status).toBe('UNKNOWN');
+    expect(undated.status).toBe('UNKNOWN');
     expect(
       result('CA-PNP', {
         ...patch,

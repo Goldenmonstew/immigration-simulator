@@ -17,6 +17,8 @@ import {
   all,
   any,
   filingDatesForRoute,
+  receivedBy,
+  receivedInWindow,
   ref,
   type Context,
   type Item,
@@ -123,8 +125,10 @@ function offerLevel(
 }
 
 export function atlanticChecks({ req, L, check }: Context): Item[] {
-  const a = req.atlantic ?? {},
-    when = filingDatesForRoute(req, 'CA-AIP').federal ?? req.simulationDate;
+  const a = req.atlantic ?? {};
+  const filed = filingDatesForRoute(req, 'CA-AIP').federal;
+  const received = receivedBy(filed, req.simulationDate);
+  const when = filed ?? req.simulationDate;
   const o = a.offer,
     teer = o?.teer,
     e = a.endorsement;
@@ -140,7 +144,7 @@ export function atlanticChecks({ req, L, check }: Context): Item[] {
     a.settlementPlanGivenToEmployer,
     a.employerDesignated,
     e && e.issued <= req.simulationDate
-      ? e.issued <= when && when <= e.expires
+      ? receivedInWindow(filed, req.simulationDate, e.issued, e.expires)
       : undefined,
     e?.revoked === undefined ? undefined : !e.revoked,
   );
@@ -212,8 +216,8 @@ export function atlanticChecks({ req, L, check }: Context): Item[] {
     teer === undefined ? undefined : teer <= aip.maxTeer,
     degree,
     issuer,
-    educationValid(edu, when),
-    languageValid(a.language, when),
+    educationValid(edu, received),
+    languageValid(a.language, received),
     oral === undefined ? undefined : levelMet(a.language?.levels, oral),
   );
   const funds = fundsAssessment(
@@ -236,6 +240,10 @@ export function atlanticChecks({ req, L, check }: Context): Item[] {
       ),
       [
         ref('SRC-261', 'IRPR §87.3(2)(a)–(b)'),
+        ref(
+          'SRC-271',
+          'Procedures at the Centralized Intake Office: Atlantic Immigration Program (AIP), endorsement expiry at receipt',
+        ),
         ref(
           'SRC-270',
           'aip-program, aip-settlement / Get a settlement plan and provincial endorsement',

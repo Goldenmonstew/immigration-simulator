@@ -1,6 +1,11 @@
 import { describe, expect, test } from 'vitest';
 import { evaluateCanadaFull } from '../src';
 import type { PnpAnswers } from '../src/canada-full/pnp';
+import {
+  federal as federalEvidence,
+  filed,
+  person,
+} from './canada-federal-fixture';
 
 const date = '2026-11-23';
 type Ontario = NonNullable<PnpAnswers['ontario']>;
@@ -63,6 +68,14 @@ function route(pnp: PnpAnswers) {
   return evaluateCanadaFull({
     simulationDate: date,
     pnp,
+    federal: {
+      ...federalEvidence,
+      principal: {
+        ...person,
+        exam: { instructionOn: date, examOn: date, panelExamComplete: true },
+      },
+      applications: { 'CA-PNP': { ...filed, filedOn: undefined } },
+    },
   }).columns[0].pathways.find((p) => p.id === 'CA-PNP')!;
 }
 function on(rule: number, patch: Partial<Ontario>) {
@@ -77,6 +90,56 @@ function federal(rule: number, patch: Partial<PnpAnswers>) {
 }
 
 describe('provincial nominee class and Ontario Workforce Priority', () => {
+  test.each([
+    ['expired', '2026-11-20', 'MET'],
+    ['expired', '2026-11-21', 'MET'],
+    ['expired', '2026-11-22', 'NOT_MET'],
+    ['withdrawn', '2026-11-20', 'NOT_MET'],
+    ['expired', undefined, 'UNKNOWN'],
+    ['expired', '2026-11-24', 'UNKNOWN'],
+  ] as const)(
+    'BC base nomination %s at federal receipt %s',
+    (nomination, federalFiled, expected) => {
+      const result = route({
+        ...base,
+        stream: 'other',
+        nominationIssued: '2026-05-21',
+        nominationExpires: '2026-11-21',
+        nomination,
+        federalFiled,
+      });
+      for (const id of ['CA-R45', 'CA-R46'])
+        expect(result.checks.find((c) => c.id === id)?.status).toBe(expected);
+      expect(result.status).toBe(expected);
+    },
+  );
+
+  test.each<[Partial<Ontario>, string]>([
+    [{}, 'MET'],
+    [{ employerFiled: undefined }, 'UNKNOWN'],
+    [{ filed: undefined }, 'UNKNOWN'],
+    [{ filed: '2026-11-24' }, 'UNKNOWN'],
+    [{ invitationRevoked: true }, 'NOT_MET'],
+    [{ filed: '2026-11-19' }, 'NOT_MET'],
+  ])(
+    'Ontario invitation uses each actual provincial receipt: %j',
+    (patch, expected) => {
+      const result = route({
+        ...base,
+        ontario: {
+          ...high,
+          language: { date: '2026-09-01', scores: [6, 6, 6, 6] },
+          designatedEcaDate: '2024-03-01',
+          ...patch,
+        },
+      });
+      expect(result.checks.find((c) => c.id === 'CA-R47')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    },
+  );
+
   test('known base and Ontario evidence meets each applicable provincial rule; the selected category controls the checks', () => {
     const checks = route(base).checks;
     for (const id of [45, 46, 47, 48, 49, 50, 51, 54])
@@ -270,6 +333,32 @@ describe('provincial nominee class and Ontario Workforce Priority', () => {
       }).status,
     ).toBe('NOT_MET');
   });
+  test.each(['high', 'lower'] as const)(
+    'Ontario %s language and ECA must be valid at applicant receipt and remain unrevoked',
+    (category) => {
+      const id = category === 'high' ? 'CA-R51' : 'CA-R52';
+      const evidence =
+        category === 'high'
+          ? high
+          : {
+              ...high,
+              category,
+              offerNoc: '44101',
+              lowerOntarioMonths: 9,
+              education: 'secondary' as const,
+            };
+      for (const [patch, expected] of [
+        [{}, 'MET'],
+        [{ filed: undefined }, 'UNKNOWN'],
+        [{ language: { ...high.language!, revoked: true } }, 'NOT_MET'],
+        [{ designatedEcaRevoked: true }, 'NOT_MET'],
+      ] as const) {
+        const result = route({ ...base, ontario: { ...evidence, ...patch } });
+        expect(result.checks.find((c) => c.id === id)?.status).toBe(expected);
+        expect(result.status).toBe(expected);
+      }
+    },
+  );
   test('self-employed physicians use their own filing and licence branch', () => {
     const physician: Partial<Ontario> = {
       category: 'physician',

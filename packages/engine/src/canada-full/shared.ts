@@ -43,6 +43,47 @@ interface FilingDates {
   citizenshipSigning?: IsoDate;
 }
 
+export function receivedBy(received: IsoDate | undefined, asOf: IsoDate) {
+  return received && received <= asOf ? received : undefined;
+}
+
+export function receivedInWindow(
+  received: IsoDate | undefined,
+  asOf: IsoDate,
+  start: IsoDate | undefined,
+  end: IsoDate | undefined,
+) {
+  const date = receivedBy(received, asOf);
+  if (!date || !start || !end) return undefined;
+  return start <= date && date <= end;
+}
+
+export function documentValidAtReceipt(
+  status:
+    | 'valid'
+    | 'expired'
+    | 'revoked'
+    | 'withdrawn'
+    | 'refused'
+    | 'pending'
+    | undefined,
+  issued: IsoDate | undefined,
+  expires: IsoDate | undefined,
+  received: IsoDate | undefined,
+  asOf: IsoDate,
+) {
+  if (status === 'revoked' || status === 'withdrawn' || status === 'refused')
+    return false;
+  const date = receivedBy(received, asOf);
+  if (!date || (issued && issued > asOf)) return undefined;
+  if ((issued && date < issued) || (expires && date > expires)) return false;
+  if (!status || status === 'pending') return undefined;
+  // Today's status alone cannot establish that a certificate existed at an earlier receipt.
+  if (!issued && date < asOf) return undefined;
+  if (status === 'expired' && !expires) return undefined;
+  return true;
+}
+
 export function filingDatesForRoute(
   req: CaFullRequest,
   id: CaFullPathwayId,
@@ -54,6 +95,14 @@ export function filingDatesForRoute(
 
   const application = req.federal?.applications?.[id];
   const receipt = application?.filedOn;
+  function federalDate(...alternatives: (IsoDate | undefined)[]) {
+    const dates = [receipt, ...alternatives];
+    // A planned filing can still date a projection, but cannot hide an actual receipt.
+    return (
+      dates.find((date) => receivedBy(date, req.simulationDate)) ??
+      dates.find((date) => date !== undefined)
+    );
+  }
   const eeReceipt =
     req.express?.invitation?.program === id
       ? req.express.applicationDate
@@ -62,26 +111,26 @@ export function filingDatesForRoute(
     case 'CA-EE-FSW':
     case 'CA-EE-CEC':
     case 'CA-EE-FST':
-      return { federal: receipt ?? eeReceipt };
+      return { federal: federalDate(eeReceipt) };
     case 'CA-PNP':
       return {
-        federal:
-          receipt ??
-          req.pnp?.federalFiled ??
-          (req.pnp?.mode === 'enhanced' ? eeReceipt : undefined),
+        federal: federalDate(
+          req.pnp?.federalFiled,
+          req.pnp?.mode === 'enhanced' ? eeReceipt : undefined,
+        ),
         provincial: req.pnp?.ontario?.filed,
         employer: req.pnp?.ontario?.employerFiled,
       };
     case 'CA-AIP':
-      return { federal: receipt ?? req.atlantic?.applicationDate };
+      return { federal: federalDate(req.atlantic?.applicationDate) };
     case 'CA-QC-PSTQ':
       return {
-        federal: receipt ?? req.quebec?.federalReceived,
+        federal: federalDate(req.quebec?.federalReceived),
         provincial: req.quebec?.filed,
       };
     case 'CA-FAMILY': {
       const complete = req.family?.completeApplicationReceived;
-      const federal = receipt ?? req.family?.filingDate ?? complete;
+      const federal = federalDate(req.family?.filingDate, complete);
       return {
         federal,
         completeFamilyApplication:

@@ -66,9 +66,10 @@ function filedFamily(
   family: FamilyAnswers,
   dateOfBirth = '1990-01-01',
   application: Partial<typeof filed> = {},
+  simulationDate = '2026-11-23',
 ) {
   return evaluateCanadaFull({
-    simulationDate: '2026-11-23',
+    simulationDate,
     dateOfBirth,
     family: { ...base, filingDate: undefined, ...family },
     federal: {
@@ -280,6 +281,20 @@ test('Québec undertaking, income tables, income-only base amount and separate s
   };
   for (const id of ['77', '78', '79', '80'])
     expect(inspect(id, input).status, id).toBe('MET');
+  const lateNotice = filedFamily({
+    quebec: true,
+    province: {
+      ...qc,
+      submissionDate: '2026-11-19',
+      letterDate: '2026-11-20',
+      intakeExemptionConfirmed: true,
+    },
+  });
+  expect(lateNotice.checks.find((c) => c.id === 'CA-R77')?.status).toBe(
+    'NOT_MET',
+  );
+  expect(lateNotice.checks.find((c) => c.id === 'CA-R79')?.status).toBe('MET');
+  expect(lateNotice.status).toBe('NOT_MET');
   expect(
     inspect('77', { ...input, province: { ...qc, mifiDecision: 'pending' } })
       .status,
@@ -340,15 +355,25 @@ test('Québec intake separates schedule, actual capacity, exemptions and fees', 
     quebec: true,
     province: { ...qc, ...p },
   });
-  expect(inspect('79', phase({ letterDate: '2025-07-01' })).status).toBe(
-    'NOT_MET',
-  );
-  expect(
-    inspect(
-      '79',
-      phase({ submissionDate: '2027-01-01', letterDate: '2025-08-31' }),
-    ).status,
-  ).toBe('MET');
+  for (const [simulationDate, submissionDate, letterDate, expected] of [
+    ['2026-11-23', undefined, '2025-06-30', 'UNKNOWN'],
+    ['2026-11-23', '2026-11-23', '2025-06-30', 'MET'],
+    ['2026-11-23', '2026-11-23', '2025-07-01', 'NOT_MET'],
+    ['2026-11-23', '2027-01-01', '2025-08-31', 'UNKNOWN'],
+    ['2027-01-01', '2027-01-01', '2025-08-31', 'MET'],
+  ] as const) {
+    const result = filedFamily(
+      phase({ submissionDate, letterDate }),
+      undefined,
+      undefined,
+      simulationDate,
+    );
+    expect(result.checks.find((c) => c.id === 'CA-R79')?.status).toBe(expected);
+    expect(result.checks.find((c) => c.id === 'CA-R77')?.status).toBe(
+      submissionDate && submissionDate <= simulationDate ? 'MET' : 'UNKNOWN',
+    );
+    expect(result.status).toBe(expected);
+  }
   expect(
     inspect('79', phase({ intakeCapacityConfirmed: undefined })).pendingDetails,
   ).toContain('PD-256');
@@ -357,7 +382,7 @@ test('Québec intake separates schedule, actual capacity, exemptions and fees', 
   );
   expect(
     inspect('79', {
-      ...phase({ intakeCapacityConfirmed: false }),
+      ...phase({ submissionDate: undefined, intakeCapacityConfirmed: false }),
       relationship: 'child',
     }).status,
   ).toBe('MET');

@@ -4,7 +4,10 @@ import type { IsoDate } from '../types';
 import {
   all,
   any,
+  documentValidAtReceipt,
   filingDatesForRoute,
+  receivedBy,
+  receivedInWindow,
   ref,
   type Context,
   type Item,
@@ -16,6 +19,7 @@ const rates = ca.values.quebecSelection2026.value;
 interface QuebecFrench {
   evidence?: 'approved-test' | 'accepted-education' | 'unrecognised';
   testDate?: IsoDate;
+  revoked?: boolean;
   listening?: number;
   speaking?: number;
   reading?: number;
@@ -38,6 +42,7 @@ interface ValuesAttestation {
   };
   /** An official final refusal after any permitted retry or session. */
   refused?: boolean;
+  revoked?: boolean;
 }
 
 interface QuebecEducation {
@@ -64,6 +69,8 @@ export interface QuebecAnswers {
   scholarshipReturnConditionsSatisfiedIfAny?: boolean;
   eoi?: IsoDate;
   invited?: IsoDate;
+  /** Official cancellation of this invitation by the simulation date. */
+  invitationRevoked?: boolean;
   accepted?: IsoDate;
   filed?: IsoDate;
   invitationCriteriaProven?: boolean;
@@ -100,15 +107,24 @@ export interface QuebecAnswers {
     | 'full'
     | 'receipt-only'
     | 'pending'
+    | 'revoked'
     | 'refused';
   recognitionDate?: IsoDate;
   exceptionalExpertiseAndTrackRecord?: boolean;
   listedAchievement?: boolean;
   favourableOfficialPartnerOpinion?: boolean;
+  /** Current disposition: expired means natural expiry without revocation. */
   principalCsq?: 'valid' | 'pending' | 'expired' | 'revoked';
   principalCsqIssued?: IsoDate;
   principalCsqExpires?: IsoDate;
+  /** Confirmation that all accompanying CSQs were valid at receipt and remain unrevoked. */
   accompanyingCsqsValid?: boolean;
+  /** Individual CSQs take precedence over the collective confirmation. */
+  accompanyingCsqs?: {
+    status: NonNullable<QuebecAnswers['principalCsq']>;
+    issued?: IsoDate;
+    expires?: IsoDate;
+  }[];
   /** Receipt by the federal Québec-selected skilled workers program. CSQ validity is checked at that date. */
   federalReceived?: IsoDate;
   feePaid?: number;
@@ -149,12 +165,12 @@ function amountForHousehold(a: QuebecAnswers, date: IsoDate) {
 
 function attested(
   v: ValuesAttestation | undefined,
-  filing: IsoDate,
+  filing: IsoDate | undefined,
   asOf: IsoDate,
 ) {
   if (!v) return undefined;
   if (v.confirmedDisabilityExemption) return true;
-  if (v.refused) return false;
+  if (v.refused || v.revoked) return false;
   const deadline = v.requestDate && addDays(v.requestDate, q.valuesDays);
   let proof = v.issued ?? v.authorisedSessionCompleted;
   const exam = v.online;
@@ -171,16 +187,16 @@ function attested(
       else if (exam.attempt === 'final') return false;
     }
   }
-  if (!proof || proof > asOf)
-    return deadline && asOf > deadline ? false : undefined;
-  return (
-    proof > addYears(filing, -q.valuesYears) && (!deadline || proof <= deadline)
+  if (!proof || proof > asOf) return undefined;
+  return all(
+    filing ? proof > addYears(filing, -q.valuesYears) : undefined,
+    !deadline || proof <= deadline,
   );
 }
 
 function french(
   f: QuebecFrench | undefined,
-  date: IsoDate,
+  date: IsoDate | undefined,
   oral: number,
   written?: number,
 ) {
@@ -190,10 +206,11 @@ function french(
       ? undefined
       : f.evidence === 'accepted-education' ||
         (f.evidence === 'approved-test' &&
-          (f.testDate === undefined
+          (f.testDate === undefined || !date
             ? undefined
             : inWindow(f.testDate, addYears(date, -q.languageYears), date)));
   return all(
+    !f.revoked,
     valid,
     meets(f.speaking, oral),
     meets(f.listening, oral),
@@ -296,24 +313,21 @@ function invitation(
   sim: IsoDate,
   provincial: IsoDate | undefined,
 ) {
-  if (!a.invited || a.invited > sim) return undefined;
-  const replyDue = addDays(a.invited, q.responseDays);
-  if (!a.accepted || a.accepted > sim)
-    return sim > replyDue ? false : undefined;
-  const normalEnd = addDays(a.accepted, q.filingDays);
-  const submitted = provincial && provincial <= sim ? provincial : undefined;
-  const timely = (end: IsoDate) =>
-    submitted
-      ? inWindow(submitted, a.accepted!, end)
-      : sim > end
-        ? false
-        : undefined;
+  const invited = receivedBy(a.invited, sim);
+  const accepted = receivedBy(a.accepted, sim);
+  const receipt = receivedBy(provincial, sim);
+  const replyDue = invited && addDays(invited, q.responseDays);
+  const normalEnd = accepted && addDays(accepted, q.filingDays);
+  const timely = (end: IsoDate | undefined) =>
+    end && receipt ? receipt <= end : undefined;
   let filing: boolean | undefined;
   if (a.officialFilingDeadline) filing = timely(a.officialFilingDeadline);
   else if (a.stream === 'regulated' && a.hadRecognitionAtAcceptance !== true) {
-    const fromInvite = timely(addYears(a.invited, q.recognitionWindowYears));
+    const fromInvite = timely(
+      invited && addYears(invited, q.recognitionWindowYears),
+    );
     const fromAcceptance = timely(
-      addYears(a.accepted, q.recognitionWindowYears),
+      accepted && addYears(accepted, q.recognitionWindowYears),
     );
     const longWindow = fromInvite === fromAcceptance ? fromInvite : undefined;
     filing =
@@ -322,8 +336,10 @@ function invitation(
         : undefined;
   } else if (a.stream) filing = timely(normalEnd);
   return all(
-    a.eoi === undefined ? undefined : a.eoi <= a.invited,
-    inWindow(a.accepted, a.invited, replyDue),
+    !a.invitationRevoked,
+    a.eoi && invited ? a.eoi <= invited : undefined,
+    receivedInWindow(accepted, sim, invited, replyDue),
+    accepted && receipt ? accepted <= receipt : undefined,
     filing,
     a.sameInvitedOccupationAndStream,
     a.invitationCriteriaProven,
@@ -341,6 +357,7 @@ export function quebecChecks({ req, L, check }: Context): Item[] {
   const a = req.quebec ?? {};
   const sim = req.simulationDate;
   const filing = filingDatesForRoute(req, 'CA-QC-PSTQ');
+  const provincialReceipt = receivedBy(filing.provincial, sim);
   const date = filing.provincial ?? sim;
   const age = req.dateOfBirth ? fullYears(req.dateOfBirth, date) : undefined;
   const amount = amountForHousehold(a, date);
@@ -356,7 +373,9 @@ export function quebecChecks({ req, L, check }: Context): Item[] {
           a.familyValues === undefined ||
           a.familyValues.length !== familyCount
         ? undefined
-        : all(...a.familyValues.map((v) => attested(v, date, sim)));
+        : all(
+            ...a.familyValues.map((v) => attested(v, provincialReceipt, sim)),
+          );
   const high =
     a.stream === 'high' ||
     (a.stream === 'regulated' &&
@@ -370,7 +389,7 @@ export function quebecChecks({ req, L, check }: Context): Item[] {
       all(
         french(
           a.french,
-          date,
+          provincialReceipt,
           high ? q.highOral : q.lowerOral,
           high ? q.highWritten : undefined,
         ),
@@ -378,7 +397,7 @@ export function quebecChecks({ req, L, check }: Context): Item[] {
           a.accompanyingPartner === undefined
             ? undefined
             : !a.accompanyingPartner,
-          french(a.partnerFrench, date, q.partnerOral),
+          french(a.partnerFrench, provincialReceipt, q.partnerOral),
         ),
       );
   const checks = [
@@ -447,7 +466,7 @@ export function quebecChecks({ req, L, check }: Context): Item[] {
     check(
       'CA-R63',
       L('魁省价值观证明', 'Québec values attestations'),
-      all(attested(a.principalValues, date, sim), familyAttested),
+      all(attested(a.principalValues, provincialReceipt, sim), familyAttested),
       L(
         `逐人确认有效证明或已认可的障碍豁免。收到请求通常须在 ${q.valuesDays} 天内完成，证明有效 ${q.valuesYears} 年。线上 ${q.valuesQuestions} 题、${q.valuesHours} 小时、至少 ${q.valuesPassPercent}%，重试须间隔 ${q.retryDays} 天；也可按身份和尝试次数参加 Objectif Intégration。`,
         `Verify each required person's attestation or documented disability exemption. The normal request deadline is ${q.valuesDays} days and the attestation lasts ${q.valuesYears} years. Online: ${q.valuesQuestions} questions, ${q.valuesHours} hours, ${q.valuesPassPercent}% to pass, ${q.retryDays} days between attempts. Permit status and attempts determine the Objectif Intégration option.`,
@@ -538,15 +557,15 @@ export function quebecChecks({ req, L, check }: Context): Item[] {
     const recognised =
       a.recognition === 'valid-licence'
         ? true
-        : a.recognition === 'refused'
+        : a.recognition === 'refused' || a.recognition === 'revoked'
           ? false
           : a.recognition === 'partial' || a.recognition === 'full'
-            ? a.recognitionDate === undefined
+            ? a.recognitionDate === undefined || !provincialReceipt
               ? undefined
               : inWindow(
                   a.recognitionDate,
-                  addYears(date, -q.equivalenceYears),
-                  date,
+                  addYears(provincialReceipt, -q.equivalenceYears),
+                  provincialReceipt,
                 )
             : undefined;
     checks.push(
@@ -595,19 +614,39 @@ export function quebecChecks({ req, L, check }: Context): Item[] {
         ['PD-253'],
       ),
     );
-  const hasFamily =
+  const accompanyingCount =
     familyCount !== undefined && a.accompanyingMinorChildren !== undefined
-      ? familyCount + a.accompanyingMinorChildren > 0
+      ? familyCount + a.accompanyingMinorChildren
       : undefined;
-  const federalDate = filing.federal ?? sim;
-  const granted =
-    a.principalCsq === undefined ||
-    a.principalCsq === 'pending' ||
-    (a.principalCsqIssued !== undefined && a.principalCsqIssued > sim)
-      ? undefined
-      : a.principalCsq === 'valid' &&
-        (!a.principalCsqExpires || federalDate <= a.principalCsqExpires) &&
-        (!a.principalCsqIssued || federalDate >= a.principalCsqIssued);
+  const granted = documentValidAtReceipt(
+    a.principalCsq,
+    a.principalCsqIssued,
+    a.principalCsqExpires,
+    filing.federal,
+    sim,
+  );
+  const accompanying =
+    accompanyingCount === 0
+      ? true
+      : a.accompanyingCsqs
+        ? all(
+            accompanyingCount === a.accompanyingCsqs.length ? true : undefined,
+            ...a.accompanyingCsqs.map((csq) =>
+              documentValidAtReceipt(
+                csq.status,
+                csq.issued,
+                csq.expires,
+                filing.federal,
+                sim,
+              ),
+            ),
+          )
+        : any(
+            accompanyingCount === undefined ? undefined : false,
+            receivedBy(filing.federal, sim)
+              ? a.accompanyingCsqsValid
+              : undefined,
+          );
   checks.push(
     check(
       'CA-R69',
@@ -615,23 +654,15 @@ export function quebecChecks({ req, L, check }: Context): Item[] {
         'CSQ 与魁省技术移民联邦递交',
         'CSQ and federal Québec skilled-worker filing',
       ),
-      all(
-        a.intendsQuebec,
-        granted,
-        any(
-          hasFamily === undefined ? undefined : !hasFamily,
-          a.accompanyingCsqsValid,
-        ),
-        filing.federal && filing.federal <= sim ? true : undefined,
-      ),
+      all(a.intendsQuebec, granted, accompanying),
       L(
-        '须有本人及适用随员的有效 CSQ、定居魁省的意图及联邦收件。CSQ 本身不授予 PR 或工作权限。',
-        'Confirm valid CSQs for the principal and relevant accompanying members, intent to live in Québec and federal receipt. A CSQ confers neither permanent residence nor work authorisation.',
+        '本人及适用随员的 CSQ 须在联邦收件时有效。按期收件后证书自然到期可继续审理，撤销则不满足条件。另须有定居魁省的意图。CSQ 本身不授予 PR 或工作权限。',
+        'The principal and relevant accompanying members need valid CSQs at federal receipt and intent to live in Québec. A timely application can continue past the printed expiry while the certificates remain unrevoked. A CSQ confers neither permanent residence nor work authorisation.',
       ),
       [
         ref('SRC-261', 'IRPR ss70(3)–(4), 86'),
         guide(
-          'Québec-selected skilled workers: Who can apply; Examination: Decision',
+          'Québec-selected skilled workers: Who can apply; How to apply / You must now apply online (CSQ validity until decision); Examination: Decision',
         ),
       ],
       ['PD-250', 'PD-253'],

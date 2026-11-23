@@ -4,6 +4,7 @@ import {
   all,
   any,
   filingDatesForRoute,
+  receivedBy,
   ref,
   type Context,
   type Item,
@@ -38,6 +39,8 @@ export interface LanguageEvidence {
     | 'TCF Canada'
     | 'other';
   resultDate?: string;
+  /** The issuing body invalidated this result, independently of its age. */
+  revoked?: boolean;
   /** CLB/NCLC equivalents from the approved test's conversion table. */
   levels?: Levels;
 }
@@ -49,6 +52,8 @@ export interface EducationEvidence {
   level?: Education;
   origin?: 'Canada' | 'foreign';
   ecaDate?: string;
+  /** The designated body withdrew the ECA used for this application. */
+  ecaRevoked?: boolean;
   /** Designated body, immigration purpose, and applicable professional body. */
   appropriateEca?: boolean;
 }
@@ -107,7 +112,12 @@ export interface OfferEvidence {
 export interface ExpressAnswers {
   profileDate?: string;
   profileUpdated?: boolean;
-  invitation?: { date: string; program: Program; deadline?: string };
+  invitation?: {
+    date: string;
+    program: Program;
+    deadline?: string;
+    revoked?: boolean;
+  };
   /** Receipt of the application for invitation.program. */
   applicationDate?: string;
   completeElectronicApplication?: boolean;
@@ -215,6 +225,7 @@ export function languageValid(
 ): Answer {
   return all(
     language?.test === undefined ? undefined : language.test !== 'other',
+    !language?.revoked,
     validAt(language?.resultDate, when, procedure.testYears),
   );
 }
@@ -226,6 +237,7 @@ export function educationValid(
   if (education?.origin !== 'foreign') return undefined;
   return all(
     education.appropriateEca,
+    !education.ecaRevoked,
     validAt(education.ecaDate, when, procedure.ecaYears),
   );
 }
@@ -514,6 +526,7 @@ function fswScore(
   a: ExpressAnswers,
   birth: string | undefined,
   when: string,
+  received: string | undefined,
   offer: Answer,
 ) {
   let low = 0,
@@ -523,7 +536,7 @@ function fswScore(
     high += n ?? max;
   }
   const education = a.education;
-  const eca = educationValid(education, when);
+  const eca = educationValid(education, received);
   const degree = education?.level;
   const band =
     degree === 'masters' || degree === 'regulatedTeerOneEntryToPractice'
@@ -537,7 +550,7 @@ function fswScore(
     eca === false ? 0 : eca === true ? educationPoints : undefined,
     educationPoints ?? selection.education.doctorate,
   );
-  const primaryValid = languageValid(a.primary, when);
+  const primaryValid = languageValid(a.primary, received);
   for (const skill of skills) {
     const lv = a.primary?.levels?.[skill];
     const rules = selection.firstLanguage;
@@ -565,7 +578,7 @@ function fswScore(
         ? ['TCF Canada', 'TEF Canada'].includes(a.primary.test) !==
             ['TCF Canada', 'TEF Canada'].includes(a.secondary.test)
         : undefined,
-      languageValid(a.secondary, when),
+      languageValid(a.secondary, received),
       levelMet(a.secondary?.levels, selection.secondLanguage.minimum),
     ),
     selection.secondLanguage.points,
@@ -600,7 +613,7 @@ function fswScore(
     [
       all(
         ad?.spouseAccompanying,
-        languageValid(ad?.spouseLanguage, when),
+        languageValid(ad?.spouseLanguage, received),
         levelMet(ad?.spouseLanguage?.levels, s.spouseLanguage),
       ),
       s.otherFactor,
@@ -629,8 +642,10 @@ function fswScore(
 }
 
 export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
-  const a = req.express ?? {},
-    when = filingDatesForRoute(req, id).federal ?? req.simulationDate;
+  const a = req.express ?? {};
+  const filed = filingDatesForRoute(req, id).federal;
+  const received = receivedBy(filed, req.simulationDate);
+  const when = filed ?? req.simulationDate;
   const { round, invitation, profileDate } = a;
   const observedThrough =
     req.simulationDate < ca.asOf ? req.simulationDate : ca.asOf;
@@ -656,19 +671,23 @@ export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
         ? 'ee-fst, Skilled trades work experience / job offer'
         : 'ee-cec, Canadian work experience and language',
   );
+  const issuedInvitationDate = receivedBy(invitation?.date, observedThrough);
   const profileValid = validAt(
     profileDate,
-    invitation?.date ?? when,
+    issuedInvitationDate,
     procedure.profileYears,
   );
   const deadline =
     invitation?.deadline ??
     (invitation && addDays(invitation.date, procedure.invitationDays));
   const invitationValid =
-    invitation && invitation.date <= observedThrough
+    invitation && issuedInvitationDate
       ? all(
           invitation.program === id,
-          when >= invitation.date && !!deadline && when <= deadline,
+          !invitation.revoked,
+          received && deadline
+            ? invitation.date < received && received <= deadline
+            : undefined,
         )
       : undefined;
   const result: Item[] = [
@@ -682,17 +701,20 @@ export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
         profileValid,
         a.profileUpdated,
         invitationValid,
-        a.completeElectronicApplication,
+        received ? a.completeElectronicApplication : undefined,
         a.qualificationsRetained,
       ),
       L(
-        `须在有效 profile 内获本项目邀请，按信上期限递交完整申请，并通过邀请及收件两时点核对。${deadline ? ' 截止日 ' + deadline + '。' : ' 尚需有效邀请及截止日期。'}`,
-        `An active, updated profile, an invitation for this class, a complete application and qualifications at invitation and receipt are required.${deadline ? ' Deadline ' + deadline + '.' : ' Supply the issued invitation and deadline.'}`,
+        `须在有效 profile 内获本项目邀请，核对邀请未撤销，并按本申请的实际收件日确认是否按期递交。资格须在邀请和收件时均满足。${deadline ? ' 截止日 ' + deadline + '。' : ' 尚需有效邀请及截止日期。'}`,
+        `Confirm an active, updated profile, an unrevoked invitation for this class, and the actual receipt date of the complete application. Qualifications must be met at invitation and receipt.${deadline ? ' Deadline ' + deadline + '.' : ' Supply the issued invitation and deadline.'}`,
       ),
       [
         ee,
-        ref('SRC-261', 'IRPA §§10.1–10.3, 11.2'),
-        ref('SRC-277', 'ee-apply, 1. Fill out the application form'),
+        ref('SRC-261', 'IRPA §§10.1(1), 10.2(5), 11.2'),
+        ref(
+          'SRC-277',
+          'ee-apply, 1. Fill out the application form; 4. Submit your application',
+        ),
       ],
       ['PD-246'],
     ),
@@ -752,12 +774,12 @@ export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
       L('语言测试与适用学历评估的效期', 'Test and applicable ECA validity'),
       all(
         languageValid(profileLanguage, profileDate),
-        languageValid(a.primary, when),
+        languageValid(a.primary, received),
         any(
           ecaExempt,
           all(
             educationValid(profileEducation, profileDate),
-            educationValid(a.education, when),
+            educationValid(a.education, received),
           ),
         ),
       ),
@@ -851,10 +873,7 @@ export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
   );
   if (id === 'CA-PNP') return result;
 
-  const actualIta =
-    invitation && invitation.date <= observedThrough
-      ? invitation.date
-      : undefined;
+  const actualIta = issuedInvitationDate;
   const experience = workAssessment(
     a.workHistory,
     fsw ? 'FSW' : fst ? 'FST' : 'CEC',
@@ -897,7 +916,7 @@ export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
           a.education?.level === undefined
             ? undefined
             : a.education.level !== 'none',
-          educationValid(a.education, when),
+          educationValid(a.education, received),
         ),
         L(
           '须有已完成的加拿大中学或以上文凭，或已获适用机构移民用途 ECA 确认的外国等值资格。',
@@ -906,7 +925,7 @@ export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
         [languageSource, workSource, workGuide],
       ),
     );
-    const score = fswScore(a, req.dateOfBirth, when, offer);
+    const score = fswScore(a, req.dateOfBirth, when, received, offer);
     result.push(
       check(
         'CA-R36',

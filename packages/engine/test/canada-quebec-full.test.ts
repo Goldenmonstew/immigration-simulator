@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { evaluateCanadaFull } from '../src';
+import type { FederalMember } from '../src/canada-full/federal';
 import type { QuebecAnswers } from '../src/canada-full/quebec';
 import { federal, filed, person } from './canada-federal-fixture';
 
@@ -49,11 +50,25 @@ const base: QuebecAnswers = {
   federalReceived: date,
   feePaid: 940,
 };
-function route(quebec: QuebecAnswers, dob = '2008-10-30', sim = date) {
+function route(
+  quebec: QuebecAnswers,
+  dob = '2008-10-30',
+  sim = date,
+  members: FederalMember[] = [],
+) {
   return evaluateCanadaFull({
     simulationDate: sim,
     dateOfBirth: dob,
     quebec,
+    federal: {
+      ...federal,
+      members,
+      principal: {
+        ...person,
+        exam: { instructionOn: sim, examOn: sim, panelExamComplete: true },
+      },
+      applications: { 'CA-QC-PSTQ': { ...filed, filedOn: undefined } },
+    },
   }).columns[0].pathways.find((p) => p.id === 'CA-QC-PSTQ')!;
 }
 function check(
@@ -67,6 +82,99 @@ function check(
   )!;
 }
 describe('Québec PSTQ selection and federal filing', () => {
+  test.each([
+    ['expired', '2028-10-15', 'MET'],
+    ['expired', '2028-11-02', 'MET'],
+    ['expired', '2028-11-03', 'NOT_MET'],
+    ['revoked', '2028-10-15', 'NOT_MET'],
+    ['expired', undefined, 'UNKNOWN'],
+    ['expired', '2028-12-01', 'UNKNOWN'],
+  ] as const)(
+    'principal CSQ %s with receipt %s during federal processing',
+    (principalCsq, federalReceived, expected) => {
+      const result = route(
+        {
+          ...base,
+          principalCsq,
+          principalCsqIssued: '2026-11-02',
+          principalCsqExpires: '2028-11-02',
+          federalReceived,
+        },
+        '1990-01-01',
+        '2028-11-23',
+      );
+      expect(result.checks.find((c) => c.id === 'CA-R69')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    },
+  );
+
+  test.each([
+    ['expired', '2026-11-20', 'MET'],
+    ['expired', '2026-11-22', 'NOT_MET'],
+    ['revoked', '2026-11-20', 'NOT_MET'],
+  ] as const)(
+    'accompanying CSQ %s with receipt %s',
+    (status, federalReceived, expected) => {
+      const result = route(
+        {
+          ...base,
+          availableFunds: 10000,
+          accompanyingMinorChildren: 1,
+          principalCsqIssued: '2026-11-02',
+          accompanyingCsqs: [
+            { status, issued: '2026-11-02', expires: '2026-11-21' },
+          ],
+          federalReceived,
+        },
+        '1990-01-01',
+        date,
+        [
+          {
+            ...person,
+            dateOfBirth: '2017-06-01',
+            relationship: 'child',
+            accompanying: true,
+            otherAdmissibility: 'clear',
+            exam: {
+              instructionOn: date,
+              examOn: date,
+              panelExamComplete: true,
+            },
+          },
+        ],
+      );
+      expect(result.checks.find((c) => c.id === 'CA-R69')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    },
+  );
+
+  test.each<[Partial<QuebecAnswers>, string]>([
+    [{}, 'MET'],
+    [{ filed: undefined }, 'UNKNOWN'],
+    [{ filed: '2026-11-24' }, 'UNKNOWN'],
+    [{ accepted: undefined }, 'UNKNOWN'],
+    [{ accepted: undefined, officialFilingDeadline: '2026-10-29' }, 'NOT_MET'],
+    [{ invitationRevoked: true }, 'NOT_MET'],
+    [{ filed: '2026-10-31' }, 'NOT_MET'],
+  ])(
+    'Arrima invitation uses an actual response and provincial receipt: %j',
+    (patch, expected) => {
+      const result = route({
+        ...base,
+        french: { ...base.french, testDate: '2026-01-01' },
+        ...patch,
+      });
+      expect(result.checks.find((c) => c.id === 'CA-R61')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    },
+  );
+
   test('R69 checks the CSQ at federal receipt independently of provincial filing', () => {
     for (const [filedOn, principalCsqExpires, expected] of [
       ['2026-11-05', '2028-11-02', 'MET'],
@@ -229,6 +337,14 @@ describe('Québec PSTQ selection and federal filing', () => {
       'NOT_MET',
     );
     expect(
+      check(63, { principalValues: { requestDate: '2026-09-01' } }).status,
+    ).toBe('UNKNOWN');
+    expect(
+      check(63, { principalValues: { ...base.principalValues, revoked: true } })
+        .status,
+    ).toBe('NOT_MET');
+    expect(check(63, { filed: undefined }).status).toBe('UNKNOWN');
+    expect(
       check(63, { principalValues: { issued: '2024-10-29' } }).status,
     ).toBe('NOT_MET');
   });
@@ -274,6 +390,16 @@ describe('Québec PSTQ selection and federal filing', () => {
     ).toBe('MET');
   });
   test('French evidence uses all required Québec scores, the filing date and partner evidence', () => {
+    for (const [patch, expected] of [
+      [{ filed: undefined }, 'UNKNOWN'],
+      [{ french: { ...base.french, revoked: true } }, 'NOT_MET'],
+    ] as const) {
+      const result = route({ ...base, ...patch });
+      expect(result.checks.find((c) => c.id === 'CA-R64')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    }
     expect(check(64, { french: { ...base.french, writing: 4 } }).status).toBe(
       'NOT_MET',
     );
@@ -388,6 +514,22 @@ describe('Québec PSTQ selection and federal filing', () => {
     expect(check(67, { ...trade, recognition: 'refused' }).status).toBe(
       'NOT_MET',
     );
+    for (const [patch, expected] of [
+      [{}, 'MET'],
+      [{ filed: undefined }, 'UNKNOWN'],
+      [{ recognition: 'revoked' }, 'NOT_MET'],
+    ] as const) {
+      const result = route({
+        ...base,
+        ...trade,
+        hadRecognitionAtAcceptance: true,
+        ...patch,
+      });
+      expect(result.checks.find((c) => c.id === 'CA-R67')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    }
     expect(
       check(67, {
         ...trade,
