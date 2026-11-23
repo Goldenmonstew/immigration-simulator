@@ -961,6 +961,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'jp.error.homeMajority':
     "Tick that your home country's age of majority is 18 or lower, or enter the age.",
   'jp.error.age': 'Enter a whole number of years from 1 to 99.',
+  'jp.error.newBeforeOld':
+    'The new guideline counts fewer statuses than the old one, so this start cannot be before the old-guideline start above.',
+  'jp.error.newWithoutOld':
+    'You ticked that you hold no status the old guideline counts; anything the new guideline counts, the old one counts too, so choose "The same as above" or "My current status does not count" instead of a date.',
   'jp.error.overlap': 'This trip overlaps an earlier one.',
   'us.entryLink': 'Open the United States pilot',
   'us.entryDesc':

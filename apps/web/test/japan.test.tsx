@@ -309,6 +309,32 @@ test('a child born in Japan applies within 30 days of birth', () => {
   expect(t('jp.bornOnHint')).toContain('地方出入国在留管理局');
 });
 
+test('contradictory old and new guideline starts', () => {
+  const general: JpForm = {
+    ...filled,
+    prRoute: 'general',
+    statusStart: '2019-04-01',
+    newStatus: 'own',
+    newStatusStart: '2018-01-01',
+  };
+  // The new guideline counts fewer statuses: its start is never earlier.
+  expect(validateJpForm(general)).toEqual({
+    'jp-new-status-start': 'jp.error.newBeforeOld',
+  });
+  expect(validateJpForm({ ...general, newStatusStart: '2021-04-05' })).toEqual(
+    {},
+  );
+  // No old-guideline status, yet a date under the new one.
+  expect(
+    validateJpForm({
+      ...general,
+      statusNone: true,
+      statusStart: '',
+      newStatusStart: '2021-04-05',
+    }),
+  ).toEqual({ 'jp-new-status-start': 'jp.error.newWithoutOld' });
+});
+
 test('leaving with a renewal pending (FAQ Q61)', () => {
   // Period of stay to 2027-04-20, renewal applied for on 2027-04-10.
   const form = (departed: string, returned: string, pending: boolean) => ({

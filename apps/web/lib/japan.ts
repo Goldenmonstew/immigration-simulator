@@ -118,8 +118,19 @@ export function validateJpForm(form: JpForm): JpErrors {
     date('jp-status-start', form.statusStart);
   if (form.prRoute === 'general') {
     if (!form.newStatus) errors['jp-new-status'] = 'jp.error.newStatus';
-    if (form.newStatus === 'own')
+    if (form.newStatus === 'own') {
       date('jp-new-status-start', form.newStatusStart);
+      // The new guideline counts fewer statuses than the old one (SRC-114
+      // 注2 against SRC-113 1(3)ア), so its start is never earlier.
+      if (validDate(form.newStatusStart) && form.statusNone)
+        errors['jp-new-status-start'] = 'jp.error.newWithoutOld';
+      else if (
+        validDate(form.newStatusStart) &&
+        validDate(form.statusStart) &&
+        form.newStatusStart < form.statusStart
+      )
+        errors['jp-new-status-start'] = 'jp.error.newBeforeOld';
+    }
     form.excluded.forEach((row, i) => {
       date(`jp-excluded-${i}-from`, row.from);
       date(`jp-excluded-${i}-to`, row.to);

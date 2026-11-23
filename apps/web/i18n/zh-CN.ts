@@ -728,6 +728,10 @@ export const zhCN = {
   'jp.error.newStatus': '请选择新版指南下的起点。',
   'jp.error.homeMajority': '请勾选本国法成年年龄不超过 18 岁，或填写岁数。',
   'jp.error.age': '请填写 1 至 99 之间的整数岁数。',
+  'jp.error.newBeforeOld':
+    '新版认可的资格比旧版少，这个起点不能早于上面旧版的起点。',
+  'jp.error.newWithoutOld':
+    '上面勾选了还没有旧版认可的资格；新版认可的资格旧版也认可，不能另填日期，请选"与上面相同"或"目前持有的资格新版不认可"。',
   'jp.error.overlap': '这次出境与前面的出境日期重叠。',
   'us.entryLink': '打开美国试点',
   'us.entryDesc':
