@@ -1,5 +1,15 @@
-export type * from './types';
+import { createGame } from './game';
+import { ukGameContent } from './packs/uk';
+
+export { createGame, ukGameContent };
 export {
+  ukGameDraft,
+  ukGameRuleColumns,
+  ukEndingAssessment,
+} from './packs/uk/assessment';
+export type { EvaluationAdapter, GameContentPack } from './content-pack';
+export type * from './types';
+export const {
   newGame,
   activities,
   doActivity,
@@ -32,7 +42,7 @@ export {
   isOver,
   narrative,
   visaMonthsLeft,
-} from './game';
+} = createGame(ukGameContent);
 export { characters, characterOf, loadCharacter } from './characters';
 export { places } from './locations';
 export { graduateNextStep } from './graduate-route';
