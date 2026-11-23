@@ -1071,6 +1071,8 @@ describe('trips abroad and loss of residence (§ 51)', () => {
         'DE-TRAVEL',
       );
       expect(p.status).toBe('MET');
+      // Worded as the § 51 limit, not an unconditional date (review69-10).
+      expect(p.checks[0].text).toContain('§ 51 的返回期限为 2027-04-25');
     });
 
     test('trips back after the old expiry are conditional (review69-8)', () => {
@@ -1197,6 +1199,22 @@ describe('trips abroad and loss of residence (§ 51)', () => {
       'DE-TRAVEL',
     );
     expect(p.status).toBe('MET');
+  });
+
+  test('a study permit and EU student mobility (§ 51 Abs. 1a, review69-10)', () => {
+    const req = {
+      simulationDate: '2026-06-01',
+      permits: [
+        { kind: 'study' as const, from: '2024-10-01', to: '2026-09-30' },
+      ],
+      // Two semesters in France under Directive (EU) 2016/801.
+      trips: [{ departed: '2025-09-15', returned: '2026-05-15' }],
+    };
+    const p = pathway(req, 'DE-TRAVEL');
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[0].met).toBeUndefined();
+    expect(p.summary).toContain('§ 51 Abs. 1a');
+    expect(p.checks[0].text).toContain('2026-03-15');
   });
 
   test('12 months on a Blue Card (§ 51 Abs. 10)', () => {

@@ -606,9 +606,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.b1': 'My German is at B1 (§ 18c Abs. 2 Satz 3)',
   'de.c1': 'My German is at C1 (§ 26 Abs. 3 Satz 3)',
   'de.contributions':
-    'Months of statutory pension contributions by the simulation date (can be left blank)',
+    'Months of statutory pension contributions, or payments to a comparable insurance or pension scheme, by the simulation date (can be left blank)',
   'de.contributionsHint':
-    'Voluntary contributions count; your pension insurance record (Versicherungsverlauf) shows them. Needed for the general and skilled worker routes; if blank, only the time held is worked out.',
+    'Voluntary contributions count; your pension insurance record (Versicherungsverlauf) shows them. Months paid to a comparable insurance or pension scheme (such as a professional scheme for doctors or lawyers) count too (§ 9 Abs. 2 Satz 1 Nr. 3, § 18c Abs. 1 Satz 1 Nr. 3). Needed for the general and skilled worker routes; if blank, only the time held is worked out.',
   'de.blueCardMonths':
     'Months of employment meeting the § 18g criteria with contributions by the simulation date, also under another permit (can be left blank)',
   'de.blueCardMonthsHint':

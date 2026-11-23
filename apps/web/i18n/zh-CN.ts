@@ -409,9 +409,10 @@ export const zhCN = {
   'de.trained': '我在德国完成了职业培训或大学学业（§ 18c Abs. 1 Satz 2）',
   'de.b1': '我的德语达到 B1（§ 18c Abs. 2 Satz 3）',
   'de.c1': '我的德语达到 C1（§ 26 Abs. 3 Satz 3）',
-  'de.contributions': '截至模拟日已缴的法定养老保险月数（可留空）',
+  'de.contributions':
+    '截至模拟日已缴法定养老保险，或向可比的保险、养老机构缴费的月数（可留空）',
   'de.contributionsHint':
-    '含自愿缴费，可在德国养老保险的缴费记录（Versicherungsverlauf）里查。一般与技术工人路径需要；留空时只算持有时间。',
+    '含自愿缴费，可在德国养老保险的缴费记录（Versicherungsverlauf）里查；向可比的保险或养老机构（如医生、律师等职业养老机构）缴费的月数也算（§ 9 Abs. 2 Satz 1 Nr. 3、§ 18c Abs. 1 Satz 1 Nr. 3）。一般与技术工人路径需要；留空时只算持有时间。',
   'de.blueCardMonths':
     '截至模拟日符合 § 18g 条件就业并缴费的月数（也包括持其他许可期间的这类就业，可留空）',
   'de.blueCardMonthsHint':

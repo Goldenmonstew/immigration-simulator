@@ -47,6 +47,13 @@ test.each(['zh-CN', 'en'] as const)('the form renders in %s', (locale) => {
     expect(html).toContain(t(key, locale));
 });
 
+test('contributions include comparable pension schemes (review69-10)', () => {
+  expect(t('de.contributions')).toContain('可比的保险、养老机构');
+  expect(t('de.contributions', 'en')).toContain(
+    'comparable insurance or pension scheme',
+  );
+});
+
 test('home links to the Germany pilot', () => {
   expect(render(<Home />, 'zh-CN')).toContain('href="/germany"');
 });
