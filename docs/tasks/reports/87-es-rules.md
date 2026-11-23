@@ -308,3 +308,35 @@ L13 的受扶养子女、N13 的未成年申请人共用 `ofCompulsorySchoolAge`
 
 - **U04 跨居留周年的长假（PD-298）。** 2023-05-01 至 2024-01-01 的普通离境，在自 09-01 起算的两个居留年度内各约四个月。当前单次检查仍按整段处理，可能低估资格；本轮保留该风险。依据为 SRC-330 art. 16.3 及欧委会自由流动指引 §9.2。[欧委会指引](https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng)
 - **R03 获准延长访西（PD-296）。** 完整版输入尚无延期批准和获准期限字段。即使填写 `visitsLawful: true`，超过普通三个月的获准停留仍可能被判为 `NOT_MET`，需按批准文书复核。依据为 SRC-083 art. 189.4。[自愿返乡承诺期间的访西规定](https://www.boe.es/buscar/act.php?id=BOE-A-2024-24099#a1-101)
+
+## 第四轮审核修正（review87-4）
+
+### 1. 做了什么
+
+建议提交 `Fix: 修正西班牙子女迁居许可与长居、退休资格日期（review87-4）`。本组记入 PROGRESS 第 626 项。
+
+| 路径 | 公共入口 `evaluateSpainFull` 的回归结果 | 条款定位 |
+|---|---|---|
+| F02 随迁子女 | 仅属一方的未成年子女，共同监护且另一监护人同意迁居时，F02 和路径均为 `MET`。单独监护且实际扶养已证实时，另一方同意或法院许可均可通过；确认所需许可未获准时为 `NOT_MET`，未填写时为 `UNKNOWN`。旧的监护及扶养勾选项本身无法证明已获迁居许可。双方共同子女保留原亲属资格。 | SRC-083 arts. 66.1.c、180.1，SRC-320 art. 17.1.b |
+| L 国内长居 | 许可于 2026-09-30 到期时累计普通离境 330 个完整日。2026-10-01 和旧候选日 2026-10-29 虽均在递交窗口内，两次复算均为 `NOT_MET`，无居留候选日或最早递交日。E 在同一输入下结果一致。 | SRC-083 arts. 183.1–2、184.2（pp. 133–135） |
+| U07 退休 | 2024-03-01 至 2024-10-01 普通离境中断居住。模拟日 2026-11-23 及原候选日 2026-12-01 均为 `NOT_MET`，无退休取得日或最早递交日。若改在 2027-10-01 停工，返西恰满三年，U07 仍为 `NOT_MET`；改在 10-02 停工则为 `MET`。 | SRC-327 arts. 10.2.a、10.6、14.3，SRC-330 arts. 16.3、17.1.a、21 |
+
+另核对了三条路径的子女条件。N09 接受适用的代表签署、授权或法院文书。L07 核公共机构监护，L13 核子女入学。U02 核后代关系，U06 在特定情形下核实际监护或探望权。这些条件均未要求父母一方单独监护。
+
+### 2. 怎么验证的
+
+新增两条 F 公共入口回归，修正前分别复现共同监护获同意却被拒、单独监护未获许可却通过。L 和 U 的公共入口回归均在模拟日和旧候选日复算，并检查路径状态及两个日期字段。
+
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0。全仓 5,360 项通过，1 项既有文案导出测试按环境开关跳过，构建生成 27 个静态页面。
+- 验收期间补充了 L 简表漏录一段已有详细行程的情形，并复核 U07 在较早中断后重新计算居住周年的情况。最终工作树依次运行 `pnpm --filter @uk-immigration/engine lint`、`pnpm --filter @uk-immigration/engine typecheck`、`pnpm --filter @uk-immigration/engine test test/spain-mobility.test.ts test/spain-residence.test.ts test/spain-free-movement.test.ts test/spain.test.ts`，均退出 0，四个文件共 97/97 项通过。
+- `git diff --check` 和 `git diff --exit-code 715cd01 -- packages/engine/src/spain.ts packages/engine/test/spain.test.ts apps/web/app/spain` 退出码均为 0。
+
+### 3. 没做或没验证的
+
+按要求未提交。未运行浏览器 e2e。与本轮基线 `715cd01` 比较，旧 `evaluateSpain`、其测试及西班牙页面均无差异。
+
+### 4. 发现与建议
+
+- F02 共同监护仅录有法院许可时，条文未明确该文书能否替代另一监护人的同意，返回 `UNKNOWN` 并登记 PD-294。[SRC-083 art. 66.1.c](https://www.boe.es/buscar/act.php?id=BOE-A-2024-24099#a6-8)
+- U04 普通永久居留仍可能将跨两个居留周年的普通离境整段判为超限，见 PD-298。U07 的退休连续期另按居住周年核对。[欧委会自由流动指引 §9.2](https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng)
+- 审核风险第 3 项保留在 PD-296。R-N/R03 尚无法录入获准访西延期及其期限，已合法延期的停留仍可能被判为 `NOT_MET`，需按延期文书复核。[SRC-083 art. 189.4](https://www.boe.es/buscar/act.php?id=BOE-A-2024-24099#a1-101)

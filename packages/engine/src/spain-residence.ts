@@ -4,6 +4,7 @@ import type { CountryCheck, CountryPathway } from './country-result';
 import { addDays, addMonths, addYears, daysBetween } from './dates';
 import { afterYears, HORIZON_YEARS, monthSpan } from './pilot';
 import { textFor } from './rule';
+import { evaluateSpain } from './spain';
 import type { EsPathway, EsTrip } from './spain';
 import type { EsFullRequest } from './spain-full';
 import {
@@ -774,41 +775,47 @@ export function residencePath(
     }));
   const recordCertain = req.timeRecordsComplete !== false;
   const recordsRisk = ['PD-097', 'PD-099', 'PD-285'];
+  let assumptions = isL && recordCertain ? pilot.assumptions : [];
   let durationDate: IsoDate | undefined;
   const filingDates: (IsoDate | undefined)[] = [];
   let priorRequired: Answer = true;
   if (isL) {
     const years = pilotValues.longTermYears.value;
     const permits = req.permits.filter((p) => !p.study);
-    const trips = tripsWithFacts(req),
-      from = addYears(day, -years);
+    const trips = tripsWithFacts(req);
     const exc = trips.filter(
       (t) => t.reason === 'force-majeure' || t.reason === 'cooperation',
     );
-    function periodOn(date: IsoDate): Answer {
-      if (!recordCertain) return undefined;
-      if (covers(permits, addYears(date, -years), addDays(date, -1)))
-        return true;
-      const expiry = lastExpiry(permits, date);
-      if (!expiry || covers(permits, date, date)) return false;
-      return all(
-        covers(permits, addYears(addDays(expiry, 1), -years), expiry),
-        permitWindow({ ...req, simulationDate: date }, permits, true),
-      );
+    function windowOn(date: IsoDate) {
+      const expiry = covers(permits, date, date)
+        ? undefined
+        : lastExpiry(permits, date);
+      // Late filing extends the filing window, not the completed residence period.
+      const end = expiry ? addDays(expiry, 1) : date;
+      const from = addYears(end, -years);
+      const period = recordCertain
+        ? all(
+            covers(permits, from, addDays(end, -1)),
+            expiry
+              ? permitWindow({ ...req, simulationDate: date }, permits, true)
+              : true,
+          )
+        : undefined;
+      return { from, end, period };
     }
-    const period = periodOn(day);
+    const { from, end, period } = windowOn(day);
     const ordinary = recordCertain
-      ? all(period, absenceVerdict(trips, from, day, false, false))
+      ? all(period, absenceVerdict(trips, from, end, false, false))
       : undefined;
     const extended = recordCertain
-      ? all(period, absenceVerdict(trips, from, day, false, true))
+      ? all(period, absenceVerdict(trips, from, end, false, true))
       : undefined;
     if (extended === true) durationDate = day;
     if (project && recordCertain && extended !== true && permits.length) {
       // A disqualifying trip interrupts residence until return. Shorter trips
       // can leave the rolling total one day at a time before a new anniversary.
       const lastBreak = trips
-        .filter((t) => absenceVerdict([t], from, day, false, true) === false)
+        .filter((t) => absenceVerdict([t], from, end, false, true) === false)
         .map((t) => t.returned)
         .sort()
         .at(-1);
@@ -828,14 +835,14 @@ export function residencePath(
         f.officeHolidays,
       );
       const through = lastFiling < horizon ? lastFiling : horizon;
-      durationDate = firstFutureDate(
-        after,
-        through,
-        (date) =>
-          periodOn(date) === true &&
-          absenceVerdict(trips, addYears(date, -years), date, false, true) ===
-            true,
-      );
+      durationDate = firstFutureDate(after, through, (date) => {
+        const candidate = windowOn(date);
+        return (
+          candidate.period === true &&
+          absenceVerdict(trips, candidate.from, candidate.end, false, true) ===
+            true
+        );
+      });
     }
     const ordinarySources = [
       rd('arts. 182, 183.1–2, 184.2 (pp133–135)'),
@@ -851,7 +858,20 @@ export function residencePath(
       recordsRisk,
     );
     details.push(base);
-    for (const [i, c] of pilot.checks.entries()) {
+    const timeChecks =
+      end < day || trips.length !== req.trips.length
+        ? evaluateSpain({ ...req, simulationDate: end, trips }).pathways[0]
+            .checks
+        : pilot.checks;
+    if (end < day && recordCertain)
+      assumptions = [
+        L(
+          `到期后递交，居留与离境均核对 ${from} 至 ${addDays(end, -1)}（含首尾）；出入境当天按在西班牙计（PD-097）。`,
+          `For late filing, both residence and absences are assessed from ${from} through ${addDays(end, -1)} inclusive. Departure and return days count as days in Spain (PD-097).`,
+        ),
+        ...assumptions.slice(1),
+      ];
+    for (const [i, c] of timeChecks.entries()) {
       // The pilot contains the ordinary date and count independently of claimed exceptions.
       details.push(
         check(
@@ -1231,7 +1251,7 @@ export function residencePath(
     isL ? pilot.title : L('欧盟长期居留', 'EU long-term residence'),
     requirements,
     details,
-    isL && recordCertain ? pilot.assumptions : [],
+    assumptions,
   );
   if (durationDate) {
     // A candidate date for the ordinary duration alone cannot establish all legal conditions.

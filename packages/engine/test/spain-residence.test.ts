@@ -192,6 +192,41 @@ describe('Spanish national long-term residence, arts. 183–184', () => {
     ]).toEqual(['MET', '2027-07-28', '2027-07-28']);
   });
 
+  test('late filing freezes the residence and absence windows at the last covered day', () => {
+    const trips = [
+      { departed: '2021-10-01', returned: '2022-03-01' },
+      { departed: '2023-01-01', returned: '2023-07-01' },
+    ].map((trip) => ({
+      ...trip,
+      reason: 'ordinary' as const,
+      irregularExit: false,
+    }));
+    for (const simulationDate of ['2026-10-01', '2026-10-29']) {
+      const [national, eu] = evaluateSpainFull({
+        ...base,
+        simulationDate,
+        targets: ['L', 'E'],
+        permits: [{ from: '2021-04-01', to: '2026-09-30' }],
+        // The detailed history can include journeys omitted from the pilot input.
+        trips: [trips[0]],
+        residence: { ...ready, tripDetails: trips },
+      }).columns[0].pathways;
+      for (const path of [national, eu])
+        expect([
+          path.status,
+          path.pathwayCompletionDate,
+          path.earliestDate,
+        ]).toEqual(['NOT_MET', undefined, undefined]);
+      expect(row(national, 'L11').status).toBe('MET');
+      expect(row(national, 'L01-PERMIT').status).toBe('MET');
+      expect(row(national, 'L01-SINGLE').status).toBe('MET');
+      expect(row(national, 'L01-TOTAL')).toMatchObject({
+        status: 'NOT_MET',
+        title: expect.stringContaining('330 days'),
+      });
+    }
+  });
+
   test('projects five continuous years from the return after an overlong ordinary trip', () => {
     const trip = {
       departed: '2022-01-01',

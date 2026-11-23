@@ -512,7 +512,7 @@ describe('Spanish mobility from another EU Member State (arts. 179–181)', () =
     const child = {
       kind: 'child' as const,
       childOfSponsorOrPartner: true,
-      soleCustodyAndSupportIfApplicable: true,
+      custodyArrangement: 'child-of-both' as const,
       adoptionRecognisedIfApplicable: true,
       disabledAndUnableToProvideForSelf: false,
     };
@@ -557,6 +557,73 @@ describe('Spanish mobility from another EU Member State (arts. 179–181)', () =
         humanitarianGroundsApproved: true,
       }),
     ).toBe('MET');
+  });
+  const minor = {
+    kind: 'child' as const,
+    birthDate: '2016-06-01',
+    childOfSponsorOrPartner: true,
+    adoptionRecognisedIfApplicable: true,
+  };
+  function assessChild(custody: NonNullable<Family['relationship']>) {
+    return run('F', {
+      family: { ...family, relationship: { ...minor, ...custody } },
+    });
+  }
+  it('accepts shared custody with the other custodian’s consent to live in Spain', () => {
+    const shared = {
+      custodyArrangement: 'shared' as const,
+      soleCustodyAndSupportIfApplicable: false,
+    };
+    const consent = assessChild({
+      ...shared,
+      relocationPermission: 'consent',
+    });
+    expect(consent.get('ES-F02')).toBe('MET');
+    expect(consent.result.status).toBe('MET');
+    expect(assessChild(shared).result.status).toBe('UNKNOWN');
+    expect(
+      assessChild({ ...shared, relocationPermission: 'not-granted' }).result
+        .status,
+    ).toBe('NOT_MET');
+    const orderOnly = assessChild({
+      ...shared,
+      relocationPermission: 'court-order',
+    });
+    expect(orderOnly.row('ES-F02')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-294'],
+    });
+  });
+  it('requires permission for a minor to relocate even with documented sole custody and support', () => {
+    const sole = {
+      custodyArrangement: 'sole' as const,
+      soleCustodyAndSupportIfApplicable: true,
+    };
+    const denied = assessChild({
+      ...sole,
+      relocationPermission: 'not-granted',
+    });
+    expect(denied.get('ES-F02')).toBe('NOT_MET');
+    expect(denied.result.status).toBe('NOT_MET');
+    expect(denied.result.earliestDate).toBeUndefined();
+    expect(assessChild(sole).result.status).toBe('UNKNOWN');
+    expect(
+      assessChild({ soleCustodyAndSupportIfApplicable: true }).result.status,
+    ).toBe('UNKNOWN');
+    expect(
+      assessChild({ ...sole, relocationPermission: 'court-order' }).result
+        .status,
+    ).toBe('MET');
+    expect(
+      assessChild({ ...sole, relocationPermission: 'consent' }).result.status,
+    ).toBe('MET');
+    expect(
+      assessChild({
+        ...sole,
+        soleCustodyAndSupportIfApplicable: false,
+        relocationPermission: 'court-order',
+      }).result.status,
+    ).toBe('NOT_MET');
   });
   it('uses family resources and checks insurance only on the non-working branch', () => {
     expect(run('F', {}).get('ES-F03')).toBe('MET');

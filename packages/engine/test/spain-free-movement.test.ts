@@ -295,6 +295,121 @@ describe('permanent residence under EU free movement', () => {
     expect(regained.pathwayCompletionDate).toBe('2024-01-02');
   });
 
+  test('retirement cannot use residence before a disqualifying absence', () => {
+    const retirement: EsFreeMovementFacts = {
+      earlyBasis: 'retirement',
+      residenceFrom: '2023-01-01',
+      employmentFrom: '2024-10-01',
+      workStopped: '2026-12-01',
+      qualifiedWorker: true,
+      pensionEligibilityDecided: true,
+      spanishSpouseExemption: false,
+      history: [
+        {
+          from: '2024-10-01',
+          to: '2026-12-01',
+          basis: 'employment',
+          documented: true,
+        },
+      ],
+      trips: [
+        { departed: '2024-03-01', returned: '2024-10-01', reason: 'ordinary' },
+      ],
+    };
+    for (const day of [request.simulationDate, '2026-12-01']) {
+      const p = fullPath(retirement, day);
+      expect(p.checks.find((c) => c.id === 'ES-U07')?.status).toBe('NOT_MET');
+      expect(p.status).toBe('NOT_MET');
+      expect(p.pathwayCompletionDate).toBeUndefined();
+      expect(p.earliestDate).toBeUndefined();
+    }
+    for (const [workStopped, expected] of [
+      ['2027-10-01', 'NOT_MET'],
+      ['2027-10-02', 'MET'],
+    ] as const) {
+      const p = fullPath(
+        { ...retirement, workStopped, history: [] },
+        workStopped,
+      );
+      expect(p.checks.find((c) => c.id === 'ES-U07')?.status).toBe(expected);
+    }
+    const returnsAcrossAnniversary = fullPath({
+      ...retirement,
+      trips: [
+        { departed: '2023-09-01', returned: '2024-05-01', reason: 'ordinary' },
+      ],
+    });
+    expect(returnsAcrossAnniversary.status).toBe('FUTURE');
+    expect(returnsAcrossAnniversary.earliestDate).toBe('2026-12-01');
+    const pendingReason = fullPath(
+      {
+        ...retirement,
+        trips: [
+          {
+            departed: '2024-03-01',
+            returned: '2024-10-01',
+            reason: 'unconfirmed',
+          },
+        ],
+      },
+      '2026-12-01',
+    );
+    expect(pendingReason.checks.find((c) => c.id === 'ES-U07')?.status).toBe(
+      'UNKNOWN',
+    );
+    expect(pendingReason.earliestDate).toBeUndefined();
+    const restartedYears = fullPath(
+      {
+        ...retirement,
+        residenceFrom: '2021-01-01',
+        employmentFrom: '2025-06-01',
+        history: [],
+        trips: [
+          {
+            departed: '2021-02-01',
+            returned: '2021-10-01',
+            reason: 'ordinary',
+          },
+          {
+            departed: '2024-11-01',
+            returned: '2025-06-01',
+            reason: 'ordinary',
+          },
+        ],
+      },
+      '2026-12-01',
+    );
+    expect(restartedYears.checks.find((c) => c.id === 'ES-U07')?.status).toBe(
+      'NOT_MET',
+    );
+    const confirmedExcess = fullPath(
+      {
+        ...retirement,
+        trips: [
+          {
+            departed: '2024-01-10',
+            returned: '2024-05-15',
+            reason: 'ordinary',
+          },
+          {
+            departed: '2024-06-01',
+            returned: '2024-09-01',
+            reason: 'ordinary',
+          },
+          {
+            departed: '2025-01-01',
+            returned: '2025-02-01',
+            reason: 'unconfirmed',
+          },
+        ],
+      },
+      '2026-12-01',
+    );
+    expect(confirmedExcess.checks.find((c) => c.id === 'ES-U07')?.status).toBe(
+      'NOT_MET',
+    );
+  });
+
   test('family acquiring with a worker needs the acquisition date to place a long absence', () => {
     const trip = { departed: '2024-02-01', returned: '2026-03-01' };
     const facts: EsFreeMovementFacts = {

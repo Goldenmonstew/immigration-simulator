@@ -100,6 +100,11 @@ interface FamilyRelationship {
   exclusivePartnershipEffectiveInSpain?: boolean;
   childOfSponsorOrPartner?: boolean;
   adoptionRecognisedIfApplicable?: boolean;
+  /** A child of both partners is outside the one-parent custody rule in art. 66.1.c. */
+  custodyArrangement?: 'child-of-both' | 'sole' | 'shared';
+  /** Consent to live in Spain from the other parent (sole custody) or other custodian (shared custody). */
+  relocationPermission?: 'consent' | 'court-order' | 'not-granted';
+  /** Evidence of sole custody and actual support. Does not establish permission to relocate. */
   soleCustodyAndSupportIfApplicable?: boolean;
   disabledAndUnableToProvideForSelf?: boolean;
   legalRepresentationValidInSpain?: boolean;
@@ -173,6 +178,25 @@ function filedInTime(app: Application, day: IsoDate) {
   return app.beforeEntry === true ? true : undefined;
 }
 
+function childCustodyMet(f: FamilyRelationship, minor: boolean | undefined) {
+  if (f.custodyArrangement === 'child-of-both') return true;
+  if (minor === false)
+    return (
+      f.custodyArrangement === 'shared' || f.soleCustodyAndSupportIfApplicable
+    );
+  const permission = f.relocationPermission;
+  if (permission === 'not-granted') return minor === true ? false : undefined;
+  if (f.custodyArrangement === 'sole')
+    return all(
+      f.soleCustodyAndSupportIfApplicable,
+      permission ? true : undefined,
+    );
+  if (f.custodyArrangement === 'shared' && permission === 'consent')
+    return true;
+  // Art. 66.1.c specifies the other custodian's consent for shared custody.
+  return undefined;
+}
+
 function relationshipMet(f: FamilyRelationship, day: IsoDate) {
   const age = f.birthDate ? fullYears(f.birthDate, day) : undefined;
   const child =
@@ -186,7 +210,7 @@ function relationshipMet(f: FamilyRelationship, day: IsoDate) {
       return all(
         f.childOfSponsorOrPartner,
         f.adoptionRecognisedIfApplicable,
-        f.soleCustodyAndSupportIfApplicable,
+        childCustodyMet(f, child),
         any(child, f.disabledAndUnableToProvideForSelf),
       );
     case 'represented':
@@ -383,11 +407,20 @@ function mobilityApplication(
       check(
         L,
         'ES-F02',
-        '关系属于法定团聚亲属，且已证实适用的婚姻或伴侣、监护、扶养、年龄及人道条件。',
-        'The relationship is eligible for reunification, with the applicable marriage, partnership, custody, dependency, age or humanitarian grounds evidenced.',
+        relative?.kind === 'child'
+          ? '核对未成年子女或因残障不能自给的成年子女的亲子关系及适用的收养证明。仅属一方的未成年子女，单独监护时须证明实际扶养，并有另一方同意或法院许可迁居西班牙。共同监护时须有另一监护人同意迁居。'
+          : '关系属于法定团聚亲属，且已证实适用的婚姻或伴侣、监护、扶养、年龄及人道条件。',
+        relative?.kind === 'child'
+          ? 'Verify parentage and applicable adoption evidence for a minor or an adult child unable to support themselves due to disability. For a minor child of one partner, sole custody requires actual support and the other parent’s consent or a court order permitting the move to Spain. Shared custody requires the other custodian’s consent to the move.'
+          : 'The relationship is eligible for reunification, with the applicable marriage, partnership, custody, dependency, age or humanitarian grounds evidenced.',
         relationshipMet(f.relationship ?? {}, day),
-        [rd('art. 180.1 (p132)'), ...v.reunificationAge.sources, familyGuide],
-        day === ascendantBirthday ? ['PD-294'] : [],
+        [rd('arts. 66.1.c, 180.1'), ...v.reunificationAge.sources, familyGuide],
+        day === ascendantBirthday ||
+          (relative?.kind === 'child' &&
+            relative.custodyArrangement === 'shared' &&
+            relative.relocationPermission === 'court-order')
+          ? ['PD-294']
+          : [],
       ),
       familyResourcesCheck(
         { ...req, simulationDate: day },

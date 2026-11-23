@@ -231,6 +231,7 @@ function tripsMet(
   f: EsFreeMovementFacts,
   start: IsoDate,
   end: IsoDate,
+  residenceFrom?: IsoDate,
 ): Evidence {
   if (f.continuityAccepted !== undefined) return f.continuityAccepted;
   const trips =
@@ -238,8 +239,15 @@ function tripsMet(
   if (!trips) return undefined;
   if (!trips.length) return true;
   const limit = v.freeMovementResidence.value;
-  const days = new Days(start, end),
+  const firstYear = residenceFrom ? fullYears(residenceFrom, start) : 0;
+  const days = new Days(
+      residenceFrom ? afterYears(residenceFrom, firstYear) : start,
+      end,
+    ),
     absent = Array<boolean>(days.count).fill(false);
+  const confirmed = residenceFrom
+    ? Array<boolean>(days.count).fill(false)
+    : undefined;
   const importantTrip = trips
     .filter(
       (t) =>
@@ -257,29 +265,66 @@ function tripsMet(
   let ordinaryTrips = 0,
     singleWithinLimit = true;
   let uncertain = false;
+  let possibleBreak = false;
   for (const t of trips) {
-    if (t.returned <= start || t.departed >= end) continue;
+    if (t.returned <= days.start || t.departed >= end) continue;
     const reason = 'reason' in t ? (t.reason ?? 'unconfirmed') : 'unconfirmed';
     if (reason === 'military') continue;
     if (t === importantTrip) continue;
     ordinaryTrips++;
     if (t.returned > addMonths(t.departed, limit.annualAwayMonths))
       singleWithinLimit = false;
-    if (reason === 'cooperation-or-eu-study' || reason === 'unconfirmed')
-      uncertain = true;
-    if (
+    const unconfirmed =
+      reason === 'cooperation-or-eu-study' || reason === 'unconfirmed';
+    if (unconfirmed) uncertain = true;
+    if (residenceFrom && t.returned > start) {
+      const from = t.departed < residenceFrom ? residenceFrom : t.departed;
+      const until = t.returned < end ? t.returned : end;
+      const nextYear = afterYears(
+        residenceFrom,
+        fullYears(residenceFrom, from) + 1,
+      );
+      // Split a single absence at the residence anniversary before comparing
+      // calendar months. A full intervening residence year also exceeds the limit.
+      const firstEnd = until < nextYear ? until : nextYear;
+      if (
+        firstEnd > addMonths(from, limit.annualAwayMonths) ||
+        until > addMonths(nextYear, limit.annualAwayMonths)
+      ) {
+        if (!unconfirmed) return false;
+        possibleBreak = true;
+      }
+    } else if (
+      !residenceFrom &&
+      !unconfirmed &&
       t.returned <= end &&
-      t.returned > addMonths(t.departed, limit.annualAwayMonths) &&
-      reason !== 'cooperation-or-eu-study' &&
-      reason !== 'unconfirmed'
+      t.returned > addMonths(t.departed, limit.annualAwayMonths)
     )
       return false;
     days.mark(absent, addDays(t.departed, 1), addDays(t.returned, -1));
+    if (confirmed && !unconfirmed)
+      days.mark(confirmed, addDays(t.departed, 1), addDays(t.returned, -1));
   }
   const sums = days.sums((i) => absent[i]);
   const [min, max] = annualAwayDays;
   if ((ordinaryTrips === 1 && singleWithinLimit) || sums[days.count] <= min)
-    return true;
+    return possibleBreak ? undefined : true;
+  if (residenceFrom && confirmed) {
+    // At retirement, count absences in the actual residence years. An excess
+    // before the required period alone does not disqualify the later years.
+    let met: Evidence = possibleBreak ? undefined : true;
+    const known = uncertain ? days.sums((i) => confirmed[i]) : sums;
+    for (let year = firstYear; ; year++) {
+      const from = afterYears(residenceFrom, year);
+      if (from > end) break;
+      const to = addDays(afterYears(residenceFrom, year + 1), -1);
+      const requiredFrom = from < start ? start : from;
+      if (!days.total(sums, requiredFrom, to)) continue;
+      if (days.total(known, requiredFrom, to) > max) return false;
+      if (days.total(sums, from, to) > min) met = undefined;
+    }
+    return met;
+  }
   // A definite excess within a residence year, or a borderline rolling window.
   const boundaryDays = new Set<IsoDate>([start, addDays(end, 1)]);
   for (let year = 1; year <= limit.years; year++) {
@@ -850,6 +895,33 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
   );
 }
 
+function retirementResidence(
+  req: EsFullRequest,
+  f: EsFreeMovementFacts,
+): Evidence {
+  const end = f.workStopped;
+  let residenceFrom = f.residenceFrom;
+  if (!end || !residenceFrom) return undefined;
+  const years = v.earlyPermanent.value.retirementResidenceYears;
+  const anniversary = addYears(end, -years);
+  const latestStart =
+    addYears(anniversary, years) < end ? anniversary : addDays(anniversary, -1);
+  if (residenceFrom > latestStart) return false;
+  // A proven earlier interruption restarts the residence years on return.
+  const returns = (f.trips ?? req.trips)
+    .map((t) => t.returned)
+    .filter((date) => date <= latestStart)
+    .sort();
+  for (const date of returns) {
+    if (
+      date > residenceFrom &&
+      tripsMet(req, f, residenceFrom, date, residenceFrom) === false
+    )
+      residenceFrom = date;
+  }
+  return tripsMet(req, f, latestStart, end, residenceFrom);
+}
+
 function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {
   const L = textFor(req),
     d = req.simulationDate,
@@ -889,7 +961,7 @@ function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {
           : undefined;
       const duration = any(
         f.spanishSpouseExemption,
-        lived(t.retirementResidenceYears, true),
+        all(f.noExecutedExpulsion, retirementResidence(req, f)),
       );
       return check(
         L,
@@ -906,11 +978,11 @@ function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {
             : work,
         ),
         [
-          ...source('10.2.a, 10.4'),
+          ...source('10.2.a, 10.4, 10.6, 14.3, 15.3'),
           ...v.retirementTable.sources,
-          { srcId: 'SRC-330', locator: 'art. 17.1.a, 17.2' },
+          { srcId: 'SRC-330', locator: 'arts. 16.3, 17.1.a, 17.2, 21' },
         ],
-        ['PD-299'],
+        ['PD-298', 'PD-299'],
       );
     }
     case 'incapacity':
