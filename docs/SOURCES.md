@@ -144,6 +144,29 @@
 | SRC-125 | GUIDANCE | 里斯本检察院（PGD Lisboa）编纂版（非官方公报文本，仅交叉核对）：Decreto Regulamentar 84/2007（列至 DR 1/2024）art. 63 续期；Código Civil art. 279、296 期间计算 | https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=940&tabela=leis ；https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=775&tabela=leis | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-pgdlisboa-dr-84-2007-consolidado.html`（sha256 `8c0509aba4b9cf5f98fcb0f0f39742d91917e6500626ddd2302cd4a5f6a1f49f`）；`policy-sources/2026-11-22-pt-pgdlisboa-codigo-civil.html`（sha256 `1134e2bc2feb5ca33aaafd4e7f6c34d55b847ec3f389d8ea9cc1c7613eeaf538`） | archived |
 | SRC-126 | GUIDANCE | AIMA（移民与庇护署）页面：投资居留许可 ARI（art. 90-A）、永久居留（art. 80）、欧盟长期居民 ERLD（art. 125）；《Esclarecimento: Direito de Residência》（2025-10-17） | https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a ；https://aima.gov.pt/pt/viver/autorizacao-de-residencia-permanente-art-80-o ；https://aima.gov.pt/pt/viver/aquisicao-do-estatuto-de-residente-de-longa-duracao-erld-art-125-o ；https://aima.gov.pt/pt/noticias/direito-de-residencia | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-aima-ari-art-90-a.html`（sha256 `759f939a21c33b9a228b1f85146c37b65db06127d8f3c6378474fd9465197d37`）；`policy-sources/2026-11-22-pt-aima-ar-permanente-art-80.html`（sha256 `739864b9a7789f04abe2502b87d991cd6b89bee22b381518a73a0aa6a8ad04ef`）；`policy-sources/2026-11-22-pt-aima-erld-art-125.html`（sha256 `188f74257278bb429fe5977e8ee73c6fddeb3c7fc966f0ab1756ad553c4f9f5e`）；`policy-sources/2025-10-17-pt-aima-direito-de-residencia.html`（sha256 `93937c52620f1a21cf5acce152f5850131b5483b073ef67ed4d9dd07785cb036`） | archived |
 | SRC-127 | GUIDANCE | 葡萄牙政府关于新国籍法的说明：司法部新闻《Lei da Nacionalidade: novas regras entram em vigor a 19 de maio》（2026-05-19）；司法部入籍指南《Reside legalmente em Portugal há pelo menos 5 anos》（2026-11-22 抓取，仍按旧法写 5 年，已过时）；部长会议公报（2026-10-29，第 2 项通过国籍条例 Decreto-Lei） | https://justica.gov.pt/Noticias/Lei-da-Nacionalidade-novas-regras-entram-em-vigor-a-19-de-maio ；https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/Reside-legalmente-em-Portugal-ha-pelo-menos-5-anos ；https://www.portugal.gov.pt/pt/gc25/governo/comunicados-do-conselho-de-ministros/comunicado-do-conselho-de-ministros-de-29-de-outubro-de-2026 | 见标题 | 2026-11-22 | `policy-sources/2026-05-19-pt-justica-noticia-lei-nacionalidade.html`（sha256 `667814f2bcfdc424689f8bd24dcf4378abfdd7124d8f2402a30116a395183c4a`）；`policy-sources/2026-11-22-pt-justica-guia-reside-5-anos.html`（sha256 `1eb2c2027170a3a4f7d5f4458e08e7ac42096c08fb12b3220d3e4708cfc702d4`）；`policy-sources/2026-10-29-pt-gov-comunicado-cm.html`（sha256 `7e5d433eed2dba88a608d27a9712b2966e14637a3f0601e31e50ddd8fffd2f1e`） | archived |
+| SRC-440 | LAW | 入管法施行规则 | https://laws.e-gov.go.jp/api/2/law_data/356M50000010054_20261001_508M60000010047?response_format=xml&law_full_text_format=xml（法令页面：https://laws.e-gov.go.jp/law/356M50000010054） | 见快照 | 2026-11-23 | `policy-sources/2026-10-01-jp-egov-nyukanho-sekokisoku-current.xml`（sha256 `af8add5f029901391c4b954dc7034812138b2996bf84d4eb26e084058ab0b0fd`） | archived |
+| SRC-441 | LAW | 入管法 2027-04-01 施行版 | https://laws.e-gov.go.jp/api/2/law_data/326CO0000000319_20270401_506AC0000000060?response_format=xml&law_full_text_format=xml | 见快照 | 2026-11-23 | `policy-sources/2027-04-01-jp-egov-nyukanho-unenforced-r6-60.xml`（sha256 `dc9e71f60bb5a357c14d65ff1d90813f443459fbc4c4b53aca289aabed8001f2`） | archived |
+| SRC-442 | LAW | 入管特例法 | https://laws.e-gov.go.jp/api/2/law_data/403AC0000000071_20260614_507AC0000000039?response_format=xml&law_full_text_format=xml（法令页面：https://laws.e-gov.go.jp/law/403AC0000000071） | 见快照 | 2026-11-23 | `policy-sources/2026-06-14-jp-egov-tokureiho-current.xml`（sha256 `a9b6197ff993e90b1e8640c67a4ece0e341817aa5f63d31bbab02a7f8ccdf5a5`） | archived |
+| SRC-443 | LAW | 入管法施行令与手续费版本 | https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178?response_format=xml&law_full_text_format=xml；https://laws.e-gov.go.jp/api/2/law_revisions/410CO0000000178；https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20240610_506CO0000000197?response_format=xml&law_full_text_format=xml；https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20250401_507CO0000000027?response_format=xml&law_full_text_format=xml；https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20260701_508CO0000000177?response_format=xml&law_full_text_format=xml；https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20270401_507CO0000000341?response_format=xml&law_full_text_format=xml（法令页面：https://laws.e-gov.go.jp/law/410CO0000000178） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-nyukanho-sekorei.xml`（sha256 `7e5b02bc067d900e4f01308ce27edcc9527ddb07eacb64d5350dcf6d28db3377`）；`policy-sources/2026-11-23-jp-egov-nyukanho-sekorei-revisions.json`（sha256 `dcb5c5254d338608fb09da4a9fe2d01616b9b90c4006f3152db9d913ed8d11c4`）；`policy-sources/2024-06-10-jp-egov-nyukanho-sekorei-fees.xml`（sha256 `d824c8fa6f4318b1c0df92996ad58008b3eceb6a623636d1c467e39beb0271c5`）；`policy-sources/2025-04-01-jp-egov-nyukanho-sekorei-fees.xml`（sha256 `b109d101e776fac24d995917e43c7b1b790c3bfec2464464a681ceb903a60fff`）；`policy-sources/2026-07-01-jp-egov-nyukanho-sekorei-fees.xml`（sha256 `8da5503d1eefbbc286a05d49243e55efdcb99dd48cea189445af3d5e0a711332`）；`policy-sources/2027-04-01-jp-egov-nyukanho-sekorei-fees.xml`（sha256 `0c42bdf09b45dad0c8aff2d01f61e14a58d6976a3bf71150f02e025552ac632a`） | archived |
+| SRC-444 | GUIDANCE | 入管厅手续费改定及减额 | https://www.moj.go.jp/isa/01_00644.html；https://www.moj.go.jp/isa/10_00273.html；https://www.moj.go.jp/isa/applications/faq/01_00650.html；https://www.moj.go.jp/isa/content/001469198.pdf；https://www.moj.go.jp/isa/content/001469270.pdf；https://www.moj.go.jp/isa/11_00053.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-fees-reform.html`（sha256 `e16a58a93cb5051552a28f808d34018533437dcb6dd88b7e7cd41af19d6f3e86`）；`policy-sources/2026-11-23-jp-isa-fees-waivers.html`（sha256 `78a3d5f3a9e9005ff9abfdb8481c5d8584ab5d5c3e810679371bd9a57c8bc4a5`）；`policy-sources/2026-11-23-jp-isa-fees-qa.html`（sha256 `ebddf702055c527883610b4b2f9d6099efab040920fc52f08ee3fff17a7d1c3e`）；`policy-sources/2026-10-01-jp-isa-fees-flyer.pdf`（sha256 `0b42be3a289914476c4135850c5be99456f728d790d740b569279c7ef02b511b`）；`policy-sources/2026-11-23-jp-isa-fee-reduction-guidelines.pdf`（sha256 `2bcc9a7213882ea156c046480bd50db314f81128ecee87d2ac64b103fa131625`）；`policy-sources/2026-11-23-jp-isa-fees-2025.html`（sha256 `f003400b74364324176614bc588d7fa16f45960d0a40163d98973475a4ea1d12`） | archived |
+| SRC-445 | GUIDANCE | 法务省帰化許可申請与法务局手引 | https://www.moj.go.jp/ONLINE/NATIONALITY/6-2.html；https://houmukyoku.moj.go.jp/kofu/page000001_00305.pdf；https://houmukyoku.moj.go.jp/tokyo/page000001_00885.html；https://houmukyoku.moj.go.jp/shizuoka/content/000135122.pdf | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-moj-kika-application.html`（sha256 `1dac47475fa318b6cabea21baa60c4730804bd128a9cb1c57dfdaa646549de9a`）；`policy-sources/2026-11-22-jp-moj-kika-tebiki-r8-4.pdf`（sha256 `f55c0b8ba570e7c772786fbcf4a0ba927ce05dd487681278458c0baff599d0ab`）；`policy-sources/2026-11-23-jp-tokyo-kika.html`（sha256 `4d3beb1caa3739deff95f57ef5bd27fca6efb183b1a08ba1fba8b634eac307cf`）；`policy-sources/2026-11-23-jp-shizuoka-kika-interview.pdf`（sha256 `a5a1b510bad670636a38267fe1e5b7dc4d1cd294466c44a53f3c7696b15a40ad`） | archived |
+| SRC-446 | LAW | 国籍法施行规则 | https://laws.e-gov.go.jp/api/2/law_data/359M50000010039?response_format=xml&law_full_text_format=xml（法令页面：https://laws.e-gov.go.jp/law/359M50000010039） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-kokusekiho-sekokisoku.xml`（sha256 `19629c5df6571a0473b8807182ccf7259ed5b94324a257a6eeb743924bf509d9`） | archived |
+| SRC-447 | LAW | 戸籍法 | https://laws.e-gov.go.jp/api/2/law_data/322AC0000000224?response_format=xml&law_full_text_format=xml（法令页面：https://laws.e-gov.go.jp/law/322AC0000000224） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-kosekiho.xml`（sha256 `fe556fe18dfb32b280e2bf84b3c9d83e015dfc13bfbb631772ca59f43aed588d`） | archived |
+| SRC-448 | LAW | 高度専門職省令与积分表 | https://laws.e-gov.go.jp/api/2/law_data/426M60000010037?response_format=xml&law_full_text_format=xml；https://www.moj.go.jp/isa/content/001447348.pdf；https://www.moj.go.jp/isa/applications/resources/newimmiact_3_qa.html（法令页面：https://laws.e-gov.go.jp/law/426M60000010037） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-hsp-ordinance.xml`（sha256 `1334eda824310ff7d24c4b5f2d62f3e327f3d99be6de61ca6b171dd6b2298721`）；`policy-sources/2026-11-23-jp-isa-hsp-points.pdf`（sha256 `02159933596a25097f4749e94cbb2dc67b06a3c56fadef4010af879b64661f3a`）；`policy-sources/2026-11-23-jp-isa-hsp-qa.html`（sha256 `0d18fc0216069bd4ec6cdad9648cf47c264a2aa70b2f384d52f2afb3159c5149`） | archived |
+| SRC-449 | LAW | 特別高度人材省令与 J-Skip 手续 | https://laws.e-gov.go.jp/api/2/law_data/505M60000010025?response_format=xml&law_full_text_format=xml；https://www.moj.go.jp/isa/applications/resources/nyuukokukanri01_00009.html；https://www.moj.go.jp/isa/10_00226.html；https://www.moj.go.jp/isa/10_00227.html；https://www.moj.go.jp/isa/10_00228.html（法令页面：https://laws.e-gov.go.jp/law/505M60000010025） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-j-skip-ordinance.xml`（sha256 `bbddab4873b4cd3a19a892ca3677918ff60022983102f9f0e36eca83b8085490`）；`policy-sources/2026-11-23-jp-isa-j-skip.html`（sha256 `1a5ba12bfc065a98cfb7f19da12067b5e3af1f2fee9930b5eb7dc7452099b5b1`）；`policy-sources/2026-11-23-jp-isa-pr-j-skip-menu.html`（sha256 `0520b2dc94cc243409f7e6382de84ce214fc7e50bf3580d9bad0de12af81d882`）；`policy-sources/2026-11-23-jp-isa-pr-j-skip-recognized.html`（sha256 `0aca9b4d7d38272799c92293c69088e85d54f07b5223a32a9749ed0dad02893f`）；`policy-sources/2026-11-23-jp-isa-pr-j-skip-retro.html`（sha256 `8f31a02c7ac766776dd2a54472468478af3569fcea4e3f65f967d5f0981dfa0b`） | archived |
+| SRC-450 | GUIDANCE | 永住工作及家族材料清单 | https://www.moj.go.jp/isa/content/001436512.pdf；https://www.moj.go.jp/isa/content/001422055.pdf；https://www.moj.go.jp/isa/applications/procedures/zairyu_eijyu01.html；https://www.moj.go.jp/isa/applications/procedures/zairyu_eijyu02.html；https://www.moj.go.jp/isa/applications/procedures/zairyu_eijyu03.html；https://www.moj.go.jp/isa/applications/procedures/nyuukokukanri07_00131.html；https://www.moj.go.jp/isa/applications/procedures/nyuukokukanri07_00132.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-pr-work-evidence.pdf`（sha256 `55c97d0d711593051cd4210583d15d338354167b749e1099487a4a4727540298`）；`policy-sources/2026-11-23-jp-isa-pr-family-evidence.pdf`（sha256 `15b2d3d3ab29825ed7eec4cff35f86f3786783b809ff66498b4ac989b0474f7d`）；`policy-sources/2026-11-23-jp-isa-pr-family.html`（sha256 `c890c3cace34023d5abfa6fa798e947dc9217a25bd0074c97f0d11855ffa1b64`）；`policy-sources/2026-11-23-jp-isa-pr-teijusha.html`（sha256 `8afeab12ae2d67ef1ba18b6e6cb0310906de603df241d4170764f5a4e1641759`）；`policy-sources/2026-11-23-jp-isa-pr-regular.html`（sha256 `4be64690278b192a925051cd28a62f1826f8bc1a1613ba2142c7771c04456a72`）；`policy-sources/2026-11-23-jp-isa-pr-hsp-menu.html`（sha256 `1b7808c1466f6e1e36858c3366d57abb2f9503f38b7bf1b973954a71f868aa36`）；`policy-sources/2026-11-23-jp-isa-pr-hsp80-other.html`（sha256 `dd48bfbc512edf117db1510c52fa365c2a03e051ff74219972e643d63c6513ef`） | archived |
+| SRC-451 | GUIDANCE | 在留资格取得与新生儿 | https://www.moj.go.jp/isa/applications/procedures/16-10.html；https://www.moj.go.jp/isa/publications/faq/newimmiact_4_q-and-a_page3.html；https://www.moj.go.jp/isa/applications/status/spouseorchildofpermanentresident.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-status-acquisition.html`（sha256 `e9de07d5716fa409ddda052a0a69fce5c6e29a9ba7045231f6472c2de99f36bd`）；`policy-sources/2026-11-23-jp-isa-resident-card-qa.html`（sha256 `c51ccb59114cb8d56abc050fc4fde90cc99c87ecbc5780c073beea88316db911`）；`policy-sources/2026-11-23-jp-isa-pr-spouse-status.html`（sha256 `3a14e39c33c3069b1471dec3e3b290e437c8fd990df1b1ee8166d602ccac8a23`） | archived |
+| SRC-452 | LAW | 上陆许可基准省令与経営・管理改定 | https://laws.e-gov.go.jp/api/2/law_data/402M50000010016?response_format=xml&law_full_text_format=xml；https://www.moj.go.jp/isa/applications/resources/10_00237.html（法令页面：https://laws.e-gov.go.jp/law/402M50000010016） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-landing-criteria.xml`（sha256 `e1365027b82aa3cf329ec14619036a2d589be42acf27de1e91569465c75181aa`）；`policy-sources/2026-11-23-jp-isa-business-manager.html`（sha256 `1087c4e6965bd9f0c852fe572a5946c01bf93b5b4f4add79f75fa4887828bede`） | archived |
+| SRC-453 | GUIDANCE | 対日貢献旧指南 | https://www.moj.go.jp/isa/applications/resources/nyukan_nyukan36.html；https://www.moj.go.jp/isa/content/930002484.pdf | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-pr-contribution.html`（sha256 `bd4395efb73b938f161c06abbcfe7cc35f18dee4dd22861dd43c073ec3aab5cd`）；`policy-sources/2026-11-23-jp-isa-pr-contribution-old.pdf`（sha256 `f9d89bcc192c837840e33a21fb5a01e011d1d1ee9b22f9bf4fc5cea4b2c29147`） | archived |
+| SRC-454 | LAW | 学校教育法与外国儿童就学 | https://laws.e-gov.go.jp/api/2/law_data/322AC0000000026?response_format=xml&law_full_text_format=xml；https://www.mext.go.jp/a_menu/shotou/clarinet/004/1415154_00003.htm（法令页面：https://laws.e-gov.go.jp/law/322AC0000000026） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-school-education.xml`（sha256 `3d8ee77a18ba5208a8f6ef924a82d666649bb32f255add96dbe48c050c835c30`）；`policy-sources/2026-11-23-jp-mext-foreign-children-school.html`（sha256 `cfc25a1397ab74906e91ba57fe4b7261c9b25be49271908cf0780592840a4175`） | archived |
+| SRC-455 | GUIDANCE | 在留申請在线范围与支付 | https://www.moj.go.jp/isa/content/001351658.pdf；https://www.moj.go.jp/isa/11_00107.html | 见快照 | 2026-11-23 | `policy-sources/2026-01-05-jp-isa-online-scope.pdf`（sha256 `b5e5d38f577f0eec672e75454727c3fb3057187d4ea7b4a6af67cdac2416c1b1`）；`policy-sources/2026-11-23-jp-isa-online-fees.html`（sha256 `91b47c821cc7b16baaa3bd3da00509fcc8cc25801cde19508d2af85be52b2161`） | archived |
+| SRC-456 | GUIDANCE | 生活・就労ガイドブック | https://www.moj.go.jp/isa/support/portal/guidebook_all.html；https://www.moj.go.jp/isa/content/930004717.pdf | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-kikin-japanese-guide.html`（sha256 `12ce5adc7f13a43176f910a201515101be19654ffb942e1311e76a5ba9ccc1fa`）；`policy-sources/2026-11-23-jp-isa-guidebook-entry.pdf`（sha256 `0f0c1aeb1e7f4b4a55ff5e90a9a1397386cdb1763f8598a0fa937362b184e407`） | archived |
+| SRC-457 | GUIDANCE | 特定在留カード | https://www.moj.go.jp/isa/tokutei.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-integrated-card.html`（sha256 `20899c13634a6ac1e78f96671e160817668bcfcb262a32cfbb9195c7c3512a0e`） | archived |
+| SRC-458 | LAW | 特定活動告示与就労资格资料 | https://www.moj.go.jp/isa/policies/bill/nyukan_hourei_h02.html；https://www.moj.go.jp/isa/content/001360125.pdf；https://www.moj.go.jp/isa/content/001436513.pdf；https://www.moj.go.jp/isa/content/001389017.pdf；https://www.moj.go.jp/isa/applications/status/designatedactivities07.html；https://www.moj.go.jp/isa/applications/status/designatedactivities08.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-designated-activities-notice.html`（sha256 `a3aeed02a8d91c2d478476187c28e1ba1fbd05838856e5bfdae87aa267f26127`）；`policy-sources/2026-11-23-jp-isa-designated-activities-notice.pdf`（sha256 `469bfb3a883ecf35b1839a16f36f42e5731a419b981730f380901edcd6de3fe3`）；`policy-sources/2026-11-23-jp-isa-designated-work.pdf`（sha256 `6c79d7c145e07dc5ec7f08e23cf639ec188355d076b687e81b51d5b6eb2907b9`）；`policy-sources/2026-11-23-jp-isa-designated-activities-list.pdf`（sha256 `af12f5689945ea7a1d14074474d0197c6c824bffbc5d630436fbd411b0a0adb8`）；`policy-sources/2026-11-23-jp-isa-designated-research.html`（sha256 `9e4a0efd8dd5ba26fd3dd03b730562e2feb8bf78e9bc49d0af45951c10da591d`）；`policy-sources/2026-11-23-jp-isa-designated-information-processing.html`（sha256 `6295193bb424b6338e9659256d062fc7e2efc5a134aa0f69dfd804f365221218`） | archived |
+| SRC-459 | GUIDANCE | 東京・広島法務局帰化证据清单 | https://houmukyoku.moj.go.jp/tokyo/page000001_00891.html；https://houmukyoku.moj.go.jp/hiroshima/page000001_01045.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-tokyo-kika-evidence.html`（sha256 `15f04d088ea9df3147e7a91105dbfc198675471dcccaf19ac3fe090d7f413e32`）；`policy-sources/2026-11-23-jp-hiroshima-kika-china-evidence.html`（sha256 `df0b98c9475e7f6b58992ba158bdb50f8f14945ee31c27410bee550379503d52`） | archived |
+| SRC-460 | GUIDANCE | 国籍法官方参考英译 | https://www.japaneselawtranslation.go.jp/ja/laws/download/4713/14/s25Aa001470504je16.0_r4A102.pdf | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-moj-nationality-translation.pdf`（sha256 `e46ba90d41e379e07dda8aea025bfa5e404c5e3be0ba138066237647bd418a80`） | archived |
+| SRC-461 | GUIDANCE | 普通再入国与難民旅行証明書手续 | https://www.moj.go.jp/isa/immigration/procedures/16-5.html；https://www.moj.go.jp/isa/refugee/procedures/16-7.html；https://www.moj.go.jp/isa/refugee/procedures/ryokou_00001.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-22-jp-isa-reentry-application.html`（sha256 `efa1298369ebf91eca0fd8608def5948474a0fadc47bd2f16d0f71f6b96e2319`）；`policy-sources/2026-11-23-jp-isa-refugee-travel-application.html`（sha256 `1ef3e798ca2d99df68372c7d955691517d35a1b2e537506e292fe08b0184b3c2`）；`policy-sources/2026-11-23-jp-isa-refugee-travel.html`（sha256 `a7b2f2e22116e420bcbc16309ee8d151cd374ee57a28ba41e5bc72a47e437baf`） | archived |
+| SRC-462 | LAW | 驻外领事费用 | https://laws.e-gov.go.jp/api/2/law_data/327CO0000000074?response_format=xml&law_full_text_format=xml；https://laws.e-gov.go.jp/api/2/law_data/327M50000020004?response_format=xml&law_full_text_format=xml（法令页面：https://laws.e-gov.go.jp/law/327CO0000000074） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-consular-fees-order.xml`（sha256 `763b555edbae194526b78fcd9afe1214cfb94f1dbcd236eef6ae41058399d956`）；`policy-sources/2026-11-23-jp-egov-consular-fees-regulation.xml`（sha256 `fb6cc2334119170f9f4d89cd54dfcf83aab987b04a83dc57af0e145632df8a45`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -922,8 +945,8 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `第22条第2項`：永住许可须素行善良、有独立生计且其永住合于日本国利益；法律本身没有年数，年数都来自指南（SRC-113、SRC-114）。日本人、永住者、特別永住者的配偶者或子免除第1、2号。`第22条第4項`：许可自交付在留卡时生效。
 - `第22条の2`：因出生等未经上陆手续在日本在留的外国人，第2項须自出生等之日起 30 日以内申请取得在留资格，第4項把永住者资格的取得准用第22条。
 - `第26条第3項`：再入国许可的有效期自生效日起不超过 5 年；`第26条第5項`：在外延长每次不超过 1 年，且自生效日起不超过 6 年。
-- `第26条の2第2項`：みなし再入国许可的有效期为出国日起 1 年，在留期限早于此的到在留期限为止；`第3項`：不能延长。特別永住者为 2 年（入管特例法第23条第2項，未存档，试点不涵盖）。
-- 令和6年法律第60号（2027-04-01 施行）改写第22条第2項措辞并新增永住取消事由，令和8年法律第32号只改第26条第1項的引用条号；都不涉及时间规则（调研时对比 e-Gov 未施行版本，未存档）。
+- `第26条の2第2項`：みなし再入国许可的有效期为出国日起 1 年，在留期限早于此的到在留期限为止；`第3項`：不能延长。特別永住者为 2 年（入管特例法第23条第2項，SRC-442）。
+- 令和6年法律第60号（2027-04-01 施行）改写第22条第2項措辞并新增永住取消事由，令和8年法律第32号只改第26条第1項的引用条号；新版条文见 SRC-441。
 
 ## SRC-111 国籍法
 
@@ -931,6 +954,8 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `第5条第1項第1号`：引き続き五年以上日本に住所を有すること；`第2号`：十八歳以上で本国法によつて行為能力を有すること。
 - `第7条`（日本国民の配偶者，免除第5条第1項第1、2号）：前段为连续 3 年以上在日本有住所或居所、且现在日本有住所；后段为婚姻之日起满 3 年、且连续 1 年以上在日本有住所。
 - `第10条第2項`：帰化自官报告示之日生效。e-Gov 修订历史显示国籍法没有未施行修订。
+
+- 第5条第1項第3–6号与第2項、第6–9条、第18条：完整版的品格、生计、失籍、宪法遵守、简易及特别功劳归化与申报。
 
 ## SRC-112 民法与年龄计算
 
@@ -954,8 +979,9 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `第2の5(6)`（PDF p7）：原则连续在留 10 年以上，其中以就労資格或居住資格连续 5 年以上；申请时起过去 10 年内，无合理理由单次出国半年以上不在、或通算 2 年 6 个月以上不在的，原则上消极评价。`注2`（PDF p5）：就労資格不含技能実習、育成就労、特定技能1号、企業内転勤与部分特定活動；哪些特定活動算就労资格见 `第5の2`（PDF p12）。
 - `第3の1`（PDF p9）：配偶者实体婚姻生活 5 年以上且连续在留 3 年以上；实子等连续在留 3 年以上。`第3の2`、`第3の3`：定住者 5 年、难民认定后 5 年。`第3の6`、`第3の7`、`第3の8`：高度人才 70 点 3 年、80 点 1 年、特別高度人材 1 年。
 - `第5の1`（PDF p12，锚点 `#midashi05`）：特定活動中"特例的、かつ、一時的"的在留不计入"10 年"，例子有继续就职活动、就职内定者、本邦大学毕业后起业活动的留学生、难民认定等手续中、因本国情势不安获准在留者；没有说这些期间前后的在留能否接续（PD-134）。2026-02-24 版没有这一条。
-- `第6`（PDF p13）：本次改定适用于令和9年（2027 年）4 月 1 日以后的申请。
+- `第6`（PDF p13）：本次改定适用于令和9年（2027 年）4 月 1 日以后的申请。2026-04-01 至 2026-09-30 递交的收入及公共负担两项，以 2026-10-01 仍在审为新版适用条件（同条、SRC-115 第69号）。
 - 适用说明（【お知らせ】）：2026-03-31 前申请的适用 2026-02-24 版；2026-04-01 至 2027-03-31 申请的仍适用 2026-02-24 版（收入部分另按新版第2の4(2)、第2の5(7)）；2027-04-01 起申请的适用新版。
+- `第2の3–5`（PDF p3–9）：品格、生计、国益、最长在留期间三年过渡（p7 注4）、日语与规则、就学。第3注5（PDF p10）列特别许可的捷径排除，第4（PDF p11）列贡献类别。
 - `policy-sources/2026-10-01-jp-isa-pr-guideline-r8-10-01.pdf` → <https://www.moj.go.jp/isa/content/001471577.pdf>
 
 ## SRC-115 永住指南公众意见答复
@@ -1045,3 +1071,159 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 司法部新闻（2026-05-19）："Regulamentação complementar"一节写明新规定 2026-05-19 施行，在审程序继续适用旧文本，新规定只适用于施行后递交的申请；正文列出 7 年、10 年。
 - 司法部入籍指南页（2026-11-22 抓取）标题与正文仍写居住满 5 年，是旧法内容，不作为现行规则的依据。
 - 部长会议公报（2026-10-29）第 2 项：通过实施新国籍法的 Decree-Law；截至 2026-11-22 未见公布，新法下居留起算的证明方式待条例明确（PD-140）。
+
+## SRC-440 入管法施行规则
+
+- 第22、24、25、29条の4、別表第2。
+- `policy-sources/2026-10-01-jp-egov-nyukanho-sekokisoku-current.xml` → <https://laws.e-gov.go.jp/api/2/law_data/356M50000010054_20261001_508M60000010047?response_format=xml&law_full_text_format=xml>
+
+## SRC-441 入管法 2027-04-01 施行版
+
+- 第22条第2項，永住义务；第22条の4、第22条の6，许可后的取消及变更。
+- `policy-sources/2027-04-01-jp-egov-nyukanho-unenforced-r6-60.xml` → <https://laws.e-gov.go.jp/api/2/law_data/326CO0000000319_20270401_506AC0000000060?response_format=xml&law_full_text_format=xml>
+
+## SRC-442 入管特例法
+
+- 第4条及第23条，特別永住取得分流及再入国。
+- `policy-sources/2026-06-14-jp-egov-tokureiho-current.xml` → <https://laws.e-gov.go.jp/api/2/law_data/403AC0000000071_20260614_507AC0000000039?response_format=xml&law_full_text_format=xml>
+
+## SRC-443 入管法施行令与手续费版本
+
+- 第25条及附则；历史及未来版本按收件日核对。
+- `policy-sources/2026-11-23-jp-egov-nyukanho-sekorei.xml` → <https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-11-23-jp-egov-nyukanho-sekorei-revisions.json` → <https://laws.e-gov.go.jp/api/2/law_revisions/410CO0000000178>
+- `policy-sources/2024-06-10-jp-egov-nyukanho-sekorei-fees.xml` → <https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20240610_506CO0000000197?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2025-04-01-jp-egov-nyukanho-sekorei-fees.xml` → <https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20250401_507CO0000000027?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-07-01-jp-egov-nyukanho-sekorei-fees.xml` → <https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20260701_508CO0000000177?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2027-04-01-jp-egov-nyukanho-sekorei-fees.xml` → <https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20270401_507CO0000000341?response_format=xml&law_full_text_format=xml>
+
+## SRC-444 入管厅手续费改定及减额
+
+- 收费告知、减免与困难人道资料、Q&A Q11、价目单与旧版变更。
+- `policy-sources/2026-11-23-jp-isa-fees-reform.html` → <https://www.moj.go.jp/isa/01_00644.html>
+- `policy-sources/2026-11-23-jp-isa-fees-waivers.html` → <https://www.moj.go.jp/isa/10_00273.html>
+- `policy-sources/2026-11-23-jp-isa-fees-qa.html` → <https://www.moj.go.jp/isa/applications/faq/01_00650.html>
+- `policy-sources/2026-10-01-jp-isa-fees-flyer.pdf` → <https://www.moj.go.jp/isa/content/001469198.pdf>
+- `policy-sources/2026-11-23-jp-isa-fee-reduction-guidelines.pdf` → <https://www.moj.go.jp/isa/content/001469270.pdf>
+- `policy-sources/2026-11-23-jp-isa-fees-2025.html` → <https://www.moj.go.jp/isa/11_00053.html>
+
+## SRC-445 法务省帰化許可申請与法务局手引
+
+- 提出方法、收费、动机书、语言、面谈与附件。法务局手引页码以 PDF 物理页为准。
+- `policy-sources/2026-11-23-jp-moj-kika-application.html` → <https://www.moj.go.jp/ONLINE/NATIONALITY/6-2.html>
+- `policy-sources/2026-11-22-jp-moj-kika-tebiki-r8-4.pdf` → <https://houmukyoku.moj.go.jp/kofu/page000001_00305.pdf>
+- `policy-sources/2026-11-23-jp-tokyo-kika.html` → <https://houmukyoku.moj.go.jp/tokyo/page000001_00885.html>
+- `policy-sources/2026-11-23-jp-shizuoka-kika-interview.pdf` → <https://houmukyoku.moj.go.jp/shizuoka/content/000135122.pdf>
+
+## SRC-446 国籍法施行规则
+
+- 第2条，递交、证明与宣誓。
+- `policy-sources/2026-11-23-jp-egov-kokusekiho-sekokisoku.xml` → <https://laws.e-gov.go.jp/api/2/law_data/359M50000010039?response_format=xml&law_full_text_format=xml>
+
+## SRC-447 戸籍法
+
+- 第49条出生届；第102条の2帰化届。
+- `policy-sources/2026-11-23-jp-egov-kosekiho.xml` → <https://laws.e-gov.go.jp/api/2/law_data/322AC0000000224?response_format=xml&law_full_text_format=xml>
+
+## SRC-448 高度専門職省令与积分表
+
+- 第1条第1項第1–3号各表、积分表 PDF p3（印刷 p2）及注、Q&A Q4–9、49。
+- `policy-sources/2026-11-23-jp-egov-hsp-ordinance.xml` → <https://laws.e-gov.go.jp/api/2/law_data/426M60000010037?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-11-23-jp-isa-hsp-points.pdf` → <https://www.moj.go.jp/isa/content/001447348.pdf>
+- `policy-sources/2026-11-23-jp-isa-hsp-qa.html` → <https://www.moj.go.jp/isa/applications/resources/newimmiact_3_qa.html>
+
+## SRC-449 特別高度人材省令与 J-Skip 手续
+
+- 省令本则、附则及官方说明和永住认定与回溯两分支。
+- `policy-sources/2026-11-23-jp-egov-j-skip-ordinance.xml` → <https://laws.e-gov.go.jp/api/2/law_data/505M60000010025?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-11-23-jp-isa-j-skip.html` → <https://www.moj.go.jp/isa/applications/resources/nyuukokukanri01_00009.html>
+- `policy-sources/2026-11-23-jp-isa-pr-j-skip-menu.html` → <https://www.moj.go.jp/isa/10_00226.html>
+- `policy-sources/2026-11-23-jp-isa-pr-j-skip-recognized.html` → <https://www.moj.go.jp/isa/10_00227.html>
+- `policy-sources/2026-11-23-jp-isa-pr-j-skip-retro.html` → <https://www.moj.go.jp/isa/10_00228.html>
+
+## SRC-450 永住工作及家族材料清单
+
+- 概要税务、年金、医疗、第18–21行；常见分支的材料窗口。
+- `policy-sources/2026-11-23-jp-isa-pr-work-evidence.pdf` → <https://www.moj.go.jp/isa/content/001436512.pdf>
+- `policy-sources/2026-11-23-jp-isa-pr-family-evidence.pdf` → <https://www.moj.go.jp/isa/content/001422055.pdf>
+- `policy-sources/2026-11-23-jp-isa-pr-family.html` → <https://www.moj.go.jp/isa/applications/procedures/zairyu_eijyu01.html>
+- `policy-sources/2026-11-23-jp-isa-pr-teijusha.html` → <https://www.moj.go.jp/isa/applications/procedures/zairyu_eijyu02.html>
+- `policy-sources/2026-11-23-jp-isa-pr-regular.html` → <https://www.moj.go.jp/isa/applications/procedures/zairyu_eijyu03.html>
+- `policy-sources/2026-11-23-jp-isa-pr-hsp-menu.html` → <https://www.moj.go.jp/isa/applications/procedures/nyuukokukanri07_00131.html>
+- `policy-sources/2026-11-23-jp-isa-pr-hsp80-other.html` → <https://www.moj.go.jp/isa/applications/procedures/nyuukokukanri07_00132.html>
+
+## SRC-451 在留资格取得与新生儿
+
+- 在留資格取得「必要書類」、居民管理 Q&A 及永住者亲属资格。
+- `policy-sources/2026-11-23-jp-isa-status-acquisition.html` → <https://www.moj.go.jp/isa/applications/procedures/16-10.html>
+- `policy-sources/2026-11-23-jp-isa-resident-card-qa.html` → <https://www.moj.go.jp/isa/publications/faq/newimmiact_4_q-and-a_page3.html>
+- `policy-sources/2026-11-23-jp-isa-pr-spouse-status.html` → <https://www.moj.go.jp/isa/applications/status/spouseorchildofpermanentresident.html>
+
+## SRC-452 上陆许可基准省令与経営・管理改定
+
+- 省令各资格表，経営・管理改定后的基准与更新过渡。
+- `policy-sources/2026-11-23-jp-egov-landing-criteria.xml` → <https://laws.e-gov.go.jp/api/2/law_data/402M50000010016?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-11-23-jp-isa-business-manager.html` → <https://www.moj.go.jp/isa/applications/resources/10_00237.html>
+
+## SRC-453 対日貢献旧指南
+
+- 附 PDF 逐类别条件；旧指南适用至 SRC-114 的完整新版切换日。
+- `policy-sources/2026-11-23-jp-isa-pr-contribution.html` → <https://www.moj.go.jp/isa/applications/resources/nyukan_nyukan36.html>
+- `policy-sources/2026-11-23-jp-isa-pr-contribution-old.pdf` → <https://www.moj.go.jp/isa/content/930002484.pdf>
+
+## SRC-454 学校教育法与外国儿童就学
+
+- 学校教育法第17条及就学指引「基本的な考え方」。
+- `policy-sources/2026-11-23-jp-egov-school-education.xml` → <https://laws.e-gov.go.jp/api/2/law_data/322AC0000000026?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-11-23-jp-mext-foreign-children-school.html` → <https://www.mext.go.jp/a_menu/shotou/clarinet/004/1415154_00003.htm>
+
+## SRC-455 在留申請在线范围与支付
+
+- 在线申请的适用范围、再入国在线手续和指定支付处理费用。
+- `policy-sources/2026-01-05-jp-isa-online-scope.pdf` → <https://www.moj.go.jp/isa/content/001351658.pdf>
+- `policy-sources/2026-11-23-jp-isa-online-fees.html` → <https://www.moj.go.jp/isa/11_00107.html>
+
+## SRC-456 生活・就労ガイドブック
+
+- 目录及第1章入国・在留手続；新版永住制度理解的内容参考。
+- `policy-sources/2026-11-23-jp-isa-kikin-japanese-guide.html` → <https://www.moj.go.jp/isa/support/portal/guidebook_all.html>
+- `policy-sources/2026-11-23-jp-isa-guidebook-entry.pdf` → <https://www.moj.go.jp/isa/content/930004717.pdf>
+
+## SRC-457 特定在留カード
+
+- 「手数料」；功能、电子证书及附加费。
+- `policy-sources/2026-11-23-jp-isa-integrated-card.html` → <https://www.moj.go.jp/isa/tokutei.html>
+
+## SRC-458 特定活動告示与就労资格资料
+
+- 第36・37号及别表第6–8；以及可计入就労资格的资料和指定研究、信息处理说明。
+- `policy-sources/2026-11-23-jp-isa-designated-activities-notice.html` → <https://www.moj.go.jp/isa/policies/bill/nyukan_hourei_h02.html>
+- `policy-sources/2026-11-23-jp-isa-designated-activities-notice.pdf` → <https://www.moj.go.jp/isa/content/001360125.pdf>
+- `policy-sources/2026-11-23-jp-isa-designated-work.pdf` → <https://www.moj.go.jp/isa/content/001436513.pdf>
+- `policy-sources/2026-11-23-jp-isa-designated-activities-list.pdf` → <https://www.moj.go.jp/isa/content/001389017.pdf>
+- `policy-sources/2026-11-23-jp-isa-designated-research.html` → <https://www.moj.go.jp/isa/applications/status/designatedactivities07.html>
+- `policy-sources/2026-11-23-jp-isa-designated-information-processing.html` → <https://www.moj.go.jp/isa/applications/status/designatedactivities08.html>
+
+## SRC-459 東京・広島法務局帰化证据清单
+
+- 分国籍及办理局的纳税、社会保险、居住等证据窗口。
+- `policy-sources/2026-11-23-jp-tokyo-kika-evidence.html` → <https://houmukyoku.moj.go.jp/tokyo/page000001_00891.html>
+- `policy-sources/2026-11-23-jp-hiroshima-kika-china-evidence.html` → <https://houmukyoku.moj.go.jp/hiroshima/page000001_01045.html>
+
+## SRC-460 国籍法官方参考英译
+
+- 第6条 p3；以 SRC-111 日文为准。
+- `policy-sources/2026-11-23-jp-moj-nationality-translation.pdf` → <https://www.japaneselawtranslation.go.jp/ja/laws/download/4713/14/s25Aa001470504je16.0_r4A102.pdf>
+
+## SRC-461 普通再入国与難民旅行証明書手续
+
+- 審査基準、手数料、オンライン申請及旅行证件的适用。
+- `policy-sources/2026-11-22-jp-isa-reentry-application.html` → <https://www.moj.go.jp/isa/immigration/procedures/16-5.html>
+- `policy-sources/2026-11-23-jp-isa-refugee-travel-application.html` → <https://www.moj.go.jp/isa/refugee/procedures/16-7.html>
+- `policy-sources/2026-11-23-jp-isa-refugee-travel.html` → <https://www.moj.go.jp/isa/refugee/procedures/ryokou_00001.html>
+
+## SRC-462 驻外领事费用
+
+- 领事费政令第1条第1項第5・6号，及省令本则与别表。
+- `policy-sources/2026-11-23-jp-egov-consular-fees-order.xml` → <https://laws.e-gov.go.jp/api/2/law_data/327CO0000000074?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-11-23-jp-egov-consular-fees-regulation.xml` → <https://laws.e-gov.go.jp/api/2/law_data/327M50000020004?response_format=xml&law_full_text_format=xml>
