@@ -1123,6 +1123,13 @@ export function evaluateAustraliaTimeline(req: AuRequest) {
 
   return {
     result: { policyAsOf: au.asOf, pathways },
+    holdsSubstantiveVisaOn: (date: IsoDate) =>
+      visas.some(
+        (visa) =>
+          !BRIDGING.has(visa.subclass) &&
+          visa.from <= date &&
+          (!visa.to || date <= visa.to),
+      ),
     citizenshipResidence: {
       atApplication: permanentAtApplication,
       previousYear:

@@ -7,7 +7,6 @@ import {
 import {
   citizenshipTimeRequest,
   familyChecks,
-  partnerTimeRequest,
   type AuFamilyAnswers,
 } from '../src/australia-family';
 import {
@@ -52,6 +51,7 @@ const partner: Partner = {
   onshoreStatus: 'substantive',
   noFurtherStay: 'clear',
   temporaryStageGranted: true,
+  temporaryGrant: { basis: 'ordinary' },
   continuingSponsorship: true,
   relationshipAtDecision: 'continuing',
 };
@@ -75,13 +75,7 @@ function partnerResult(
     ...request,
     partner: { ...partner, ...changes },
   };
-  const old = evaluateAustralia(
-    partnerTimeRequest(r, {
-      ...partnerRequest,
-      partnerApplication: r.partnerApplication,
-    }),
-  ).pathways.find((x) => x.id === 'AU-PARTNER');
-  return familyChecks('AU-PARTNER', r, old);
+  return familyChecks('AU-PARTNER', r);
 }
 
 describe('combined partner application and permanent stage', () => {

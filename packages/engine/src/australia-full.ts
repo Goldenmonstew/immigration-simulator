@@ -18,7 +18,7 @@ import {
 import {
   citizenshipTimeRequest,
   familyChecks,
-  partnerTimeRequest,
+  partnerWaitDate,
   type AuFamilyAnswers,
 } from './australia-family';
 import {
@@ -98,6 +98,9 @@ export interface AuFullRequest
   permissibleOnshoreVisa?: boolean;
   /** Applicable no-further-stay condition since last entry, including any waiver effective at the proposed lodgement. */
   noFurtherStay?: 'clear' | 'waived' | 'waiver-pending' | 'barred';
+  /** At the proposed lodgement, since last entry as defined by s 48(1B)–(3).
+   * Count only refusals in s 48(1)(b)(i)/(1A) or cancellations in s 48(1)(b)(ii). */
+  section48History?: 'none' | 'qualifying-refusal' | 'qualifying-cancellation';
   regionalLockException?: 'instrument-confirmed' | 'claimed' | 'none';
   hongKongPassport?: boolean;
   /** Primary grant with the travel/stay entitlement in Sch 1 item 1137(4M) / 1139(3A). */
@@ -253,6 +256,103 @@ function locationChecks(id: AuFullPathId, r: AuFullRequest): CountryCheck[] {
     ),
   );
   return result;
+}
+
+// Visa classes in SRC-200 Schedule 1. Regulation 2.12 prescribes SN, UK and BS.
+const section48Classes = {
+  'AU-186-TRT': 'EN',
+  'AU-186-DE': 'EN',
+  'AU-189-PT': 'SI',
+  'AU-189-HK': 'SI',
+  'AU-190': 'SN',
+  'AU-191': 'PR',
+  'AU-191-HK': 'PR',
+  'AU-858': 'BX',
+  'AU-RRV': 'BB',
+} as const;
+
+function section48Checks(
+  id: AuFullPathId,
+  r: AuFullRequest,
+  holdsSubstantiveVisaOn?: (date: IsoDate) => boolean,
+): CountryCheck[] {
+  if (id === 'AU-CITIZENSHIP') return [];
+  const partner = id === 'AU-PARTNER';
+  const stream = r.partnerApplication?.stream ?? r.partner?.stream;
+  const onshorePartner = partner && stream === 'onshore';
+  const visaClass = partner
+    ? onshorePartner
+      ? 'UK / BS'
+      : 'UF / BC'
+    : section48Classes[id];
+  const prescribed = partner
+    ? stream && stream === 'onshore'
+    : visaClass === 'SN';
+  const history = partner ? r.partner?.section48History : r.section48History;
+  const lodged =
+    partner && r.partnerApplication
+      ? r.partnerApplication.lodged
+      : r.simulationDate;
+  const partnerStatus = onshorePartner && r.partner?.onshoreStatus;
+  const substantive =
+    partnerStatus === 'substantive' || partnerStatus === 'transit'
+      ? true
+      : partnerStatus === 'schedule-3-satisfied'
+        ? false
+        : (holdsSubstantiveVisaOn?.(lodged) ??
+          (id === 'AU-RRV' && r.rrv?.status === 'current-pr'
+            ? true
+            : undefined));
+  const applies =
+    r.locationAtApplication === 'offshore' || substantive || history === 'none'
+      ? false
+      : r.locationAtApplication === undefined ||
+          substantive === undefined ||
+          history === undefined
+        ? undefined
+        : true;
+  const q = checker(r.locale);
+  const section48 = q(
+    'AU-lodgement-s48',
+    prescribed || applies === false
+      ? true
+      : applies === true
+        ? prescribed
+        : undefined,
+    '境内递交的 s 48 限制',
+    'Section 48 restriction on lodgement in Australia',
+    `境内递交时无实质签证，且最近一次入境后有法定拒签或撤签记录时，只可申请 reg 2.12 列明的类别。${partner && !stream ? '请确认配偶签递交通道。' : `${visaClass} 类${prescribed ? '已列入' : '未列入'}。`}`,
+    `When lodging in Australia without a substantive visa after a relevant refusal or cancellation since last entry, only classes prescribed by reg 2.12 are available. ${partner && !stream ? 'Confirm the partner stream.' : `Class ${visaClass} is ${prescribed ? 'listed' : 'not listed'}.`}`,
+    'SRC-069',
+    'ss 5(1) substantive visa, 46(1)(d)(i), 48(1)–(4)',
+  );
+  section48.sources.push({
+    srcId: 'SRC-200',
+    locator: prescribed
+      ? onshorePartner
+        ? 'reg 2.12(a)–(b)'
+        : 'reg 2.12(s)'
+      : 'reg 2.12',
+  });
+  if (!onshorePartner) return [section48];
+  const requirements = r.partner?.section48LodgementRequirementsMet;
+  return [
+    section48,
+    q(
+      'AU-PARTNER-s48-documents',
+      applies === false || requirements === true
+        ? true
+        : applies === true
+          ? requirements
+          : undefined,
+      's 48 适用时的配偶合并递交材料',
+      'Partner lodgement evidence when section 48 applies',
+      '核对最近入境后的指定配偶拒签记录、递交时的伴侣签署表格与法定声明，或适用的受抚养子女条款。',
+      'Check the specified partner refusals since last entry, signed partner form and statutory declarations at lodgement, or the dependent-child provision.',
+      'SRC-200',
+      'Sch 1 item 1124B(3)(e), (3A); item 1214C(3)(a)',
+    ),
+  ];
 }
 
 // A date counts only once, in a completed income year overlapping a regional
@@ -542,10 +642,6 @@ function timeChecks(
   });
 }
 
-function familyPath(id: AuFullPathId) {
-  return id === 'AU-RRV' || id === 'AU-PARTNER' || id === 'AU-CITIZENSHIP';
-}
-
 function eligibilityCheck(check: CountryCheck) {
   // RRV alternatives have their own disjunction. Charges and the citizenship
   // ceremony describe costs or a later stage, not grounds to refuse an application.
@@ -567,6 +663,9 @@ export function evaluateAustraliaFull(r: AuFullRequest): CountryResult {
       noFurtherStay: sameLodgement ? sharedCondition : r.noFurtherStay,
       partner: {
         ...r.partner,
+        section48History:
+          r.partner?.section48History ??
+          (sameLodgement ? r.section48History : undefined),
         noFurtherStay: sameLodgement
           ? sharedCondition
           : r.partner?.noFurtherStay,
@@ -582,7 +681,13 @@ function assess(r: AuFullRequest, project: boolean): CountryResult {
   let pilots: PilotPathway[] = [];
   let citizenshipPilot: PilotPathway | undefined;
   let citizenshipResidence: AuCitizenshipResidence | undefined;
-  if (ids.some((id) => timeFields[id] || familyPath(id))) {
+  let holdsSubstantiveVisaOn: ((date: IsoDate) => boolean) | undefined;
+  if (
+    ids.some(
+      (id) => timeFields[id] || id === 'AU-RRV' || id === 'AU-CITIZENSHIP',
+    ) ||
+    (r.visas && r.locationAtApplication !== 'offshore')
+  ) {
     // The legacy evaluator requires a complete timeline. Its date of birth is
     // irrelevant to the holding and work counts. Consumers below mask missing
     // evidence before reporting a check or a projected date.
@@ -592,8 +697,9 @@ function assess(r: AuFullRequest, project: boolean): CountryResult {
       ids.includes('AU-186-TRT') &&
       r.employer?.exemption !== undefined &&
       r.employer.exemption !== 'none';
-    const base = partnerTimeRequest(r, {
+    const base: AuRequest = {
       ...r,
+      partnerApplication: undefined,
       dateOfBirth: separateTrtAge
         ? r.simulationDate
         : (r.dateOfBirth ?? r.simulationDate),
@@ -605,8 +711,9 @@ function assess(r: AuFullRequest, project: boolean): CountryResult {
             ? undefined
             : (r.regional?.hongKongOnlySince ?? r.hongKong?.regionalSince),
       },
-    });
+    };
     const timeline = evaluateAustraliaTimeline(base);
+    if (r.visas) holdsSubstantiveVisaOn = timeline.holdsSubstantiveVisaOn;
     pilots = timeline.result.pathways;
     if (ids.includes('AU-CITIZENSHIP')) {
       const citizenBase =
@@ -641,6 +748,7 @@ function assess(r: AuFullRequest, project: boolean): CountryResult {
     const checks = [
       ...timeChecks(id, r, pilot),
       ...locationChecks(id, r),
+      ...section48Checks(id, r, holdsSubstantiveVisaOn),
       ...(lock ? [lock.check] : []),
       ...regionalChecks(id, r),
       ...skilledChecks(id, r),
@@ -654,11 +762,11 @@ function assess(r: AuFullRequest, project: boolean): CountryResult {
     const pilotDue =
       trusted?.status === 'FUTURE' ? trusted.earliestDate : undefined;
     const dates = failed.map((c) => {
+      if (c.id === 'AU-PARTNER-time') return partnerWaitDate(r);
       if (c.id === 'AU-regional-lock') return lock?.due;
       if (
         c.id.startsWith(id + '-time-') ||
         c.id.startsWith('AU-CIT-time-') ||
-        c.id === 'AU-PARTNER-time' ||
         c.id === 'AU-RRV-basis' ||
         (c.id === 'AU-CIT-pr' &&
           r.citizenship?.permanentAtApplication === undefined &&

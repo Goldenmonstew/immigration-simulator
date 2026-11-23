@@ -45,7 +45,14 @@ export interface AuFamilyAnswers {
       'substantive' | 'schedule-3-satisfied' | 'needs-review' | 'transit';
     /** Status at the original combined lodgement if different from the proposed lodgement. */
     noFurtherStay?: AuFullRequest['noFurtherStay'];
+    /** Section 48 evidence at the original combined lodgement. */
+    section48History?: AuFullRequest['section48History'];
+    /** All applicable Sch 1 item 1124B(3)(e), (3A) requirements met at lodgement. */
+    section48LodgementRequirementsMet?: boolean;
     temporaryStageGranted?: boolean;
+    /** Grant of the temporary 309/820 under the ordinary or ministerial intervention provisions. */
+    temporaryGrant?:
+      { basis: 'ordinary' } | { basis: 'ministerial'; decisionDate?: IsoDate };
     /** Continued sponsorship for 801 or the sponsoring partner's nomination for 100. */
     continuingSponsorship?: boolean;
     relationshipAtDecision?:
@@ -153,18 +160,23 @@ function relationshipIsLong(r: AuFullRequest): Tri {
   );
 }
 
-export function partnerTimeRequest(
-  r: AuFullRequest,
-  base: Omit<AuRequest, 'partnerApplication'> &
-    Pick<AuFullRequest, 'partnerApplication'>,
-): AuRequest {
-  return {
-    ...base,
-    partnerApplication: base.partnerApplication && {
-      ...base.partnerApplication,
-      longTermRelationship: relationshipIsLong(r) === true,
-    },
-  };
+function partnerWaitExemptionAtLodgement(r: AuFullRequest): Tri {
+  const stream = r.partnerApplication?.stream ?? r.partner?.stream;
+  return any(
+    relationshipIsLong(r),
+    stream === 'offshore' &&
+      r.partner?.offshoreHumanitarianRelationshipDisclosed === true,
+  );
+}
+
+export function partnerWaitDate(r: AuFullRequest): IsoDate | undefined {
+  const grant = r.partner?.temporaryGrant;
+  const start =
+    grant?.basis === 'ordinary'
+      ? r.partnerApplication?.lodged
+      : grant?.decisionDate;
+  if (!start || partnerWaitExemptionAtLodgement(r)) return start;
+  return afterYears(start, v.partnerWaitYears.value);
 }
 
 export function citizenshipTimeRequest(
@@ -195,7 +207,7 @@ export function citizenshipTimeRequest(
   };
 }
 
-function partnerChecks(r: AuFullRequest, pilot?: PilotPathway): CountryCheck[] {
+function partnerChecks(r: AuFullRequest): CountryCheck[] {
   const p = r.partner ?? {};
   const q = checker(r.locale);
   const application = r.partnerApplication;
@@ -260,17 +272,17 @@ function partnerChecks(r: AuFullRequest, pilot?: PilotPathway): CountryCheck[] {
     p.relationshipAtDecision === 'family-violence' ||
     p.relationshipAtDecision === 'child-orders';
   const evidence = finding(p.exceptionEvidence);
-  const longTerm = relationshipIsLong(r);
-  const humanitarian =
-    stream === 'offshore' &&
-    p.offshoreHumanitarianRelationshipDisclosed === true;
-  // An early offshore decision under 100.221(5) or (6) precedes the
-  // nomination requirement in 100.226(a). A normal projection reaches it.
+  const exemptAtLodgement = partnerWaitExemptionAtLodgement(r);
+  const grant = p.temporaryGrant;
+  const ministerial = grant && grant.basis === 'ministerial';
+  const waitDate = partnerWaitDate(r);
+  const beforeLodgementAnniversary =
+    application &&
+    r.simulationDate < afterYears(application.lodged, v.partnerWaitYears.value);
   const earlyOffshoreDecision =
     stream === 'offshore' &&
-    application &&
-    (longTerm || humanitarian) &&
-    r.simulationDate < afterYears(application.lodged, v.partnerWaitYears.value);
+    beforeLodgementAnniversary === true &&
+    exemptAtLodgement;
   const episode = exception
     ? every(
         evidence,
@@ -282,19 +294,22 @@ function partnerChecks(r: AuFullRequest, pilot?: PilotPathway): CountryCheck[] {
       ? undefined
       : every(
           p.relationshipAtDecision === 'continuing',
-          earlyOffshoreDecision ? true : p.continuingSponsorship,
+          any(
+            earlyOffshoreDecision === true,
+            ministerial,
+            p.continuingSponsorship,
+          ),
         );
+  const waitExempt = any(
+    exemptAtLodgement,
+    exception ? every(episode, beforeLodgementAnniversary) : false,
+  );
   const waiting =
-    application && application.lodged <= r.simulationDate
-      ? any(
-          pilot?.checks[0]?.met,
-          longTerm,
-          humanitarian,
-          exception ? episode : false,
-        )
-      : application
+    waitDate === undefined
+      ? undefined
+      : application && application.lodged > r.simulationDate
         ? false
-        : undefined;
+        : any(r.simulationDate >= waitDate, waitExempt);
   const location =
     stream === undefined || r.locationAtApplication === undefined
       ? undefined
@@ -445,7 +460,11 @@ function partnerChecks(r: AuFullRequest, pilot?: PilotPathway): CountryCheck[] {
     ),
     q(
       'AU-PARTNER-temporary-stage',
-      p.temporaryStageGranted,
+      grant?.basis === 'ministerial' &&
+        grant.decisionDate &&
+        grant.decisionDate > r.simulationDate
+        ? false
+        : p.temporaryStageGranted,
       '取得临时配偶签',
       'Temporary partner stage',
       '批准永久阶段前通常须持对应的 820 或 309 签证。',
@@ -458,25 +477,28 @@ function partnerChecks(r: AuFullRequest, pilot?: PilotPathway): CountryCheck[] {
       episode,
       '永久阶段的关系或例外',
       'Continuing relationship or exception',
-      '普通路径须维持伴侣关系。801 须继续获担保，100 自合并递交满两年起须获担保伴侣提名。死亡、家庭暴力或子女监护按已认定的法定例外判断。',
-      'For a continuing relationship, 801 requires continued sponsorship. For 100, the sponsoring partner must nominate the applicant once two years have passed since combined lodgement. Recognised death, family violence or child-order exceptions are assessed separately.',
+      '普通路径须维持伴侣关系。801 须继续获担保，100 自合并递交满两年起须获担保伴侣提名。按 (2A) 特批者核对持续关系。死亡、家庭暴力或子女监护按已认定的法定例外判断。',
+      'Under the ordinary criteria, 801 requires continued sponsorship. For 100, the sponsoring partner must nominate the applicant once two years have passed since combined lodgement. Under (2A), check the continuing relationship. Recognised death, family violence or child-order exceptions are assessed separately.',
       'SRC-200',
-      '801.221(2)(b)–(c), (3)–(6AB); 100.221(2)–(6); 100.226(a)–(b)',
+      '801.221(2)(b)–(c), (2A), (3)–(6AB); 100.221(2)–(6); 100.226(a)–(b)',
     ),
     q(
       'AU-PARTNER-time',
       waiting,
       '永久阶段等待期',
       'Permanent-stage waiting period',
-      exception || longTerm || humanitarian
-        ? '按递交时的长期关系、人道或关系终止例外评估免等候资格。'
-        : (pilot?.checks[0]?.text ?? '请提供合并申请的递交日期。'),
-      exception || longTerm || humanitarian
-        ? 'An established long-term relationship at lodgement, humanitarian or relationship-ending exception can remove the wait.'
-        : (pilot?.checks[0]?.text ??
-            'Provide the date of the combined application.'),
+      waitDate && waitExempt
+        ? '按长期关系、人道或关系终止的法定例外核对等候期。'
+        : waitDate
+          ? `自${ministerial ? '部长决定日' : '合并递交日'}起算，等待期在 ${waitDate} 届满。`
+          : '请确认临时签证获批依据，并提供普通合并申请的递交日或部长特批决定日。',
+      waitDate && waitExempt
+        ? 'Assess the statutory long-term relationship, humanitarian or relationship-ending exception to the wait.'
+        : waitDate
+          ? `The wait runs from ${ministerial ? 'the ministerial decision' : 'combined lodgement'} and ends on ${waitDate}.`
+          : 'Confirm the temporary grant basis and provide the ordinary combined lodgement date or the ministerial decision date.',
       'SRC-200',
-      'reg 1.03; 801.221(2), (6A)–(7); 100.221(2), (5)–(7)',
+      'reg 1.03; 801.221(2)(d), (2A)(a)–(c), (6A)–(7); 100.221(2)(c), (2A)(a)–(c), (5)–(7)',
     ),
   ];
 }
@@ -1028,7 +1050,7 @@ export function familyChecks(
 ): CountryCheck[] {
   switch (id) {
     case 'AU-PARTNER':
-      return partnerChecks(r, pilot);
+      return partnerChecks(r);
     case 'AU-RRV':
       return rrvChecks(r, pilot);
     case 'AU-CITIZENSHIP':
