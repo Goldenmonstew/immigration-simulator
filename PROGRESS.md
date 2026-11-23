@@ -416,3 +416,4 @@
 | 422 | 任务 75：入籍结果只在待确认读法下成立时（如卡刚到期、按 6 个月宽限期计），摘要同时列出该读法计入期间里的出境（PD-144），不再只提宽限期；PD-144 同步。 | packages/engine/src/portugal.ts、packages/engine/test/portugal.test.ts、docs/pending-details.md、PROGRESS.md |
 | 423 | 任务 75：永久居留路径的注销检查（art. 85 n.º 2 a 每张临时许可、n.º 2 b 已持永居）只看模拟日以前的出境，计划中的出境在摘要里预告达到上限的日期；PD-146 同步。 | packages/engine/src/portugal.ts、packages/engine/test/portugal.test.ts、docs/pending-details.md、PROGRESS.md |
 | 424 | 任务 75：旧法在审申请按居留记录已满 5 年、但因出境或分界当天输出 UNKNOWN 时，摘要改为"仅按居留记录计算，递交时已满 5 年"，与状态一致。 | packages/engine/src/portugal.ts、packages/engine/test/portugal.test.ts、PROGRESS.md |
+| 425 | 任务 75 报告：葡萄牙试点遗留风险五项的修正、验证（5 项回归在 main 引擎上失败、修改后通过）与未做事项（DR 9/2018 公报存档须用户本人确认下载）。 | docs/tasks/reports/75-portugal-risks.md、PROGRESS.md |
