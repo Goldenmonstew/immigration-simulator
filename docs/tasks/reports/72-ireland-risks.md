@@ -52,6 +52,7 @@
 
 ## 2. 怎么验证的
 
+- Fable 门禁（`f3bd3f4`）：`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0，engine 3,170 项（另 1 项跳过）、game 1,336 项、web 639 项通过；e2e 桌面 55 项全部通过。手机宽度（375 px）预览 `/ireland`：许可类型含新增的 CSEP、GEP、家庭团聚 Stamp 3，选 57 个月路线提交后结果卡片与来源链接显示正常。Codex 审核三轮，第三轮结论"通过"，其建议已在 `f3bd3f4` 处理。
 - engine `pnpm exec vitest run test/ireland.test.ts test/index.test.ts test/rules.test.ts`：92 项通过，其中爱尔兰 49 项（新增 7 项，每项改动至少一条回归用例；最早日期均按条文手算）。
 - policy-data `pnpm exec vitest run`：23 项通过，含来源登记一致性。
 - web `pnpm exec vitest run test/ireland.test.tsx test/policy-page.test.tsx test/page.test.tsx`：28 项通过，其中爱尔兰 11 项。
@@ -73,3 +74,4 @@
 
 - 家庭团聚 FAQ 第 30 问同样适用于其他担保人的配偶（例如 Stamp 4 持有人的配偶）。试点这条路线只覆盖雇佣许可持有人与研究员的配偶伴侣；扩展到其他担保人，需要先确认这些人所持的许可类型。
 - ISD 升级页没有写 ICT 被列入 57 个月一类的生效日。可留意 ISD 是否另有通告，届时更新 `ictRuleFrom`。
+- 第三轮审核（review72-3）后仍记为风险：照录已被替代的旧卡印刷到期日时会继续计算旧许可（已在表单提示里说明填实际失效日）。
