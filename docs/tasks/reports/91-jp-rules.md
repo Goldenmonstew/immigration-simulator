@@ -247,3 +247,27 @@ PD-370 的保证人问答改为 SRC-116 Q53。
 
 - 交给页面任务 101。高度人材永住的积分证据与日期绑定。窗口顺延后，界面应提示用户补充对应候选递交日的证据。审核例中的 `hsp70` 证据只对应周六，周一候选日的条件为 `UNKNOWN`，递交日期留空。使用周一有效证据直接评估时为 `MET`。SRC-114 第3の6–8，PD-375。
 - 交给页面任务 101。みなし再入国应区分拟出境行程和实际出境。仅在当事人确认出境时已表明返日意图后传入 `declaredIntentAtDeparture: true`，避免预填将拟出境情景显示为已满足。SRC-116「みなし再入国許可」。 [出入国在留管理庁みなし再入国说明](https://www.moj.go.jp/isa/immigration/procedures/minashisainyukoku_00001.html)
+
+## 第五轮审核修正（review91-5）
+
+### 1. 做了什么
+
+第 747 项建议提交为 `Fix: 恢复普通再入国窗口开放日的递交判断（review91-5）`，尾注为 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+普通再入国的渠道和在线资格留空时，先查原候选日的窗口日历。候选日已知开放、早于出境日且其余要求满足时，`ordinary-eligibility` 和路径均为 `MET`，`earliestDate` 保留当天，`online-application` 单独显示为 `UNKNOWN`。窗口已关闭或开放情况待确认时，在线资格未知仍可能影响最早递交日，按 PD-370 留空日期。显式选择窗口或明确不符合在线资格时，继续按窗口日历顺延。候选递交日与出境日相同时，仍需确认当天能否先递交。依据为 SRC-461「申請期間」「受付時間」「オンライン申請」及 SRC-112 行政機関の休日に関する法律第1条第1項。 [出入国在留管理庁办理说明](https://www.moj.go.jp/isa/immigration/procedures/16-5.html)
+
+### 2. 怎么验证的
+
+- `pnpm --filter @uk-immigration/engine test test/japan-full.test.ts -t 'checks ordinary'` 在修正前复现周一用例的 `UNKNOWN`，原有 8 个用例通过。
+- `pnpm --filter @uk-immigration/engine test test/japan-full.test.ts test/japan.test.ts` 共 190 项通过。周一用例确认 `ordinary-eligibility` 和路径均为 `MET`，最早递交日为 `2027-04-05`，在线资格为 `UNKNOWN`。现有周六、窗口顺延及出境当天用例均通过。
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0。全量测试 5,343 项通过，1 项既有测试跳过，构建生成 27 个静态页面。
+- `git diff --check` 通过。旧时间入口 `evaluateJapan`、共用窗口日历、旧时间测试及 Web 源码均无差异。
+
+### 3. 没做或没验证的
+
+改动留在当前工作树，由 Fable 提交。页面接入和线上验证由后续任务处理。
+
+### 4. 发现与建议
+
+- 高度人材积分证据与窗口顺延叠加时，结果偏保守。第五轮审核中，`hsp70` 的 80 分证据只对应 `2027-04-03`，窗口顺延到 `2027-04-05` 后返回 `UNKNOWN`，日期留空。提供周一有效的同等证据时，返回 `MET` 和 `2027-04-05`。页面任务 101 可提示补充候选递交日的证据。SRC-114 第3の6–8，PD-375。
+- みなし再入国仍受未来行程预填影响。第五轮审核中，`2027-04-05` 模拟、拟于 `2027-04-19` 出境，预填 `declaredIntentAtDeparture: true` 会返回 `MET` 和模拟日，省略该字段则返回 `UNKNOWN`。任务 101 接入时，应在确认申请人已于出境时表明返日意图后传入 `true`。SRC-116「みなし再入国許可」。 [出入国在留管理庁みなし再入国说明](https://www.moj.go.jp/isa/immigration/procedures/minashisainyukoku_00001.html)

@@ -1488,6 +1488,15 @@ describe('re-entry and travel documents', () => {
       earliestDate: undefined,
     },
     {
+      channel: undefined,
+      onlineConcurrentEligibleApplication: undefined,
+      simulationDate: '2027-04-05',
+      departureOn: '2027-04-12',
+      permitEffectiveOn: '2027-04-05',
+      expectedStatus: 'MET',
+      earliestDate: '2027-04-05',
+    },
+    {
       channel: 'counter',
       onlineConcurrentEligibleApplication: true,
       simulationDate: '2027-04-03',

@@ -1,5 +1,6 @@
 import { japanFull2026_11 } from '@uk-immigration/policy-data';
 import { addMonths, addYears } from './dates';
+import { jpOfficeClosed } from './japan';
 import {
   all,
   assemblePathway,
@@ -170,7 +171,7 @@ export function assessJapanReentry(
       route.channel ??
       (onlineEligible === true
         ? 'online'
-        : onlineEligible === false
+        : onlineEligible === false || jpOfficeClosed(requestedDate) === 'no'
           ? 'counter'
           : undefined);
     const counterFiling =
