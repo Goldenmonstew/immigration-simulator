@@ -304,9 +304,9 @@ const conditions = {
     '团聚入口、担保人及等待期',
     'Family entry, sponsor and waiting period',
     [
-      ['SRC-387', 'June 2026 §§2–6'],
+      ['SRC-387', 'June 2026 §§2–6, especially §6.2'],
       ['SRC-409', 'Eligibility'],
-      ['SRC-388', 'Am I eligible?'],
+      ['SRC-388', 'Am I eligible?; Overseas de facto: Who can sponsor me?'],
     ],
   ],
   B15: [
@@ -369,6 +369,16 @@ const conditions = {
     [
       ['SRC-388', 'Irish spouse and civil partner scheme: Am I eligible?'],
       ['SRC-384', 'Stamp 4 (3), First Time Registrations and Renewals'],
+      ['SRC-384', 'Online renewal: When should I submit a Renewal Application?'],
+    ],
+  ],
+  'FAMILY-RENEWAL': [
+    '现有家庭许可的普通续期',
+    'Ordinary renewal of existing family permission',
+    [
+      ['SRC-384', 'Stamp 1G (1), Stamp 3 (3), Stamp 4 (4), (7)–(8), (12): Renewals'],
+      ['SRC-384', 'Online renewal: When should I submit a Renewal Application?'],
+      ['SRC-388', 'In-State de facto: What happens next?'],
     ],
   ],
   B22: [
@@ -500,7 +510,7 @@ const conditions = {
   D03: [
     '通常取得永久居留的连续期间',
     'Ordinary continuous residence for permanent residence',
-    [['SRC-390', 'reg. 12(1)–(7)']],
+    [['SRC-390', 'reg. 12(1)(a)–(b), (2)–(7)']],
   ],
   D04: [
     '提前取得永久居留',

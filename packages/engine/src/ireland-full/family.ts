@@ -54,9 +54,10 @@ export interface IrelandFamily {
     approval?: boolean;
     abusePermissionEvidence?: boolean;
   };
-  /** Facts for a new application or re-check under the family policies. */
+  /** Facts for a new family application or an ordinary renewal of existing permission. */
   application?: {
     date?: IsoDate;
+    /** 'renewal' keeps the existing permission. Use nextRenewalOn for an upgrade. */
     registrationStage?: 'first' | 'renewal';
     /** Whether the permission letter imposes a specific insurance condition on renewal. */
     renewalInsuranceRequired?: boolean;
@@ -78,6 +79,7 @@ export interface IrelandFamily {
     noSocialWelfare?: boolean;
     differentPartnerGrantOn?: IsoDate;
     priorSponsorshipHistoryComplete?: boolean;
+    /** Documents on the applicable first application or renewal checklist. */
     familyEvidenceComplete?: boolean;
     addressEvidence?: boolean;
     applicantCharacter?: IrelandCharacter;
@@ -132,6 +134,40 @@ export interface IrelandFamily {
   };
 }
 
+function familyRenewal(
+  a: IrelandAssessment,
+  data: IrelandFamily,
+  inState: boolean | undefined,
+) {
+  const app = data.application;
+  const irishSpouse =
+    data.sponsorIrish === true &&
+    (data.relationship === 'spouse' || data.relationship === 'civil-partner');
+  const jointAddress = irishSpouse ||
+    (data.sponsorIrish === true && data.relationship === 'de-facto');
+  a.add(
+    irishSpouse ? 'B21' : 'FAMILY-RENEWAL',
+    all(
+      inState,
+      app?.familyEvidenceComplete,
+      jointAddress ? all(data.livingTogether, app?.addressEvidence) : true,
+      app?.renewalInsuranceRequired === true
+        ? app.renewalInsuranceConditionMet
+        : true,
+    ),
+    irishSpouse
+      ? a.L(
+          '须在爱尔兰递交，核对双方护照、当前 IRP、结婚或民事伴侣证明、共同住址及许可附加保险条件。',
+          'Apply from Ireland with both passports, the current IRP, the marriage or civil partnership certificate and proof of joint address. Check any insurance condition in the permission.',
+        )
+      : a.L(
+          '须在爱尔兰递交，核对现行许可所属的续期清单，包括当前 IRP、护照及适用的担保人文件、共同住址、持续关系证明和许可附加条件。',
+          'Apply from Ireland using the checklist for the current permission, including the current IRP, passport and any required sponsor documents, joint address, proof of a continuing relationship and permission conditions.',
+        ),
+    ['PD-329'],
+  );
+}
+
 function familyApplication(
   a: IrelandAssessment,
   data: IrelandFamily,
@@ -169,12 +205,10 @@ function familyApplication(
   add(
     'B14',
     all(
-      channel === 'ordinary'
-        ? any(
-            data.sponsorLawfulAndResident,
-            all(data.sponsorIrish, data.intendsToLiveTogetherInState),
-          )
-        : data.sponsorLawfulAndResident,
+      any(
+        data.sponsorLawfulAndResident,
+        all(data.sponsorIrish, data.intendsToLiveTogetherInState),
+      ),
       waiting,
       app.entryOrConversionValid,
     ),
@@ -471,13 +505,6 @@ function familyApplication(
             : insurance.coverageMonths >= coverage,
         )
       : undefined;
-    const renewal =
-      channel === 'spouse-registration' && app.registrationStage === 'renewal';
-    const insuranceMet = renewal
-      ? app.renewalInsuranceRequired === true
-        ? app.renewalInsuranceConditionMet
-        : true
-      : ins;
     add(
       'B21',
       all(
@@ -485,20 +512,15 @@ function familyApplication(
         partner && rel !== 'de-facto',
         livingTogether,
         app.addressEvidence,
-        insuranceMet,
+        ins,
         channel === 'spouse-in-state'
           ? character(app.applicantCharacter)
           : true,
       ),
-      renewal
-        ? L(
-            '核对爱尔兰公民合法配偶／民事伴侣、同址及续期材料。续期保险按许可附加条件核对。',
-            'Check the Irish spouse or civil partner, joint address and renewal evidence. Check insurance if the permission imposes a renewal condition.',
-          )
-        : L(
-            `核对爱尔兰公民合法配偶／民事伴侣、同址及首次登记保险（通常 ${e.firstRegistrationInsuranceMonths} 个月，较短许可按全段）。专门境内案参见 PD-330。`,
-            `Check the Irish spouse or civil partner, joint address and first-registration insurance (normally ${e.firstRegistrationInsuranceMonths} months or the full shorter permission). See PD-330 for the dedicated in-State route.`,
-          ),
+      L(
+        `核对爱尔兰公民合法配偶／民事伴侣、同址及首次登记保险（通常 ${e.firstRegistrationInsuranceMonths} 个月，较短许可按全段）。专门境内案参见 PD-330。`,
+        `Check the Irish spouse or civil partner, joint address and first-registration insurance (normally ${e.firstRegistrationInsuranceMonths} months or the full shorter permission). See PD-330 for the dedicated in-State route.`,
+      ),
       ['PD-330'],
     );
   }
@@ -600,7 +622,12 @@ export function independentFamily(
   clock: IePathway,
   data: IrelandFamily,
   dob?: IsoDate,
+  inState?: boolean,
 ) {
+  if (data.application?.registrationStage === 'renewal') {
+    familyRenewal(a, data, inState);
+    return;
+  }
   const { add, L, day } = a;
   const pRel = p.relationship.value;
   const child = data.relationship === 'child';
@@ -740,6 +767,7 @@ export function directFamily(
   a: IrelandAssessment,
   data: IrelandFamily,
   dob?: IsoDate,
+  inState?: boolean,
 ) {
   const relation = data.relationship;
   a.add(
@@ -753,6 +781,10 @@ export function directFamily(
             relation === 'de-facto',
     ),
   );
+  if (data.application?.registrationStage === 'renewal') {
+    familyRenewal(a, data, inState);
+    return;
+  }
   a.add(
     'FAMILY-CHANNEL',
     data.application?.channel === undefined

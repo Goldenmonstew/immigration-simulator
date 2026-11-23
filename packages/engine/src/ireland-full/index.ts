@@ -109,6 +109,8 @@ export function evaluateIrelandFull(
   } = request;
   const options =
     request.pathways ?? (Object.keys(titles) as IrelandFullPathwayId[]);
+  const family = request.family;
+  const renewal = family?.application?.registrationStage === 'renewal';
   const inState =
     currentLocation === undefined ? undefined : currentLocation === 'state';
   const timeline = (stamp4Route: IeStamp4Route) =>
@@ -120,6 +122,9 @@ export function evaluateIrelandFull(
     : undefined;
   const pathways = options.map((id) => {
     const a = assessment(day, locale);
+    const directFamilyPath = id === 'IE-STAMP4-IRISH-FAMILY';
+    const familyRenewal = renewal &&
+      (directFamilyPath || id === 'IE-STAMP4-INDEPENDENT-FAMILY');
     let applicable: boolean | undefined = true;
     switch (id) {
       case 'IE-STAMP4-21':
@@ -132,15 +137,16 @@ export function evaluateIrelandFull(
         independentFamily(
           a,
           timeline('spouse-1g').pathways[2],
-          request.family ?? {},
+          family ?? {},
           dob,
+          inState,
         );
         break;
       case 'IE-STAMP5':
         wcatt(a, timeline('wcatt').pathways[2], request.stamp5 ?? {}, inState);
         break;
       case 'IE-STAMP4-IRISH-FAMILY':
-        directFamily(a, request.family ?? {}, dob);
+        directFamily(a, family ?? {}, dob, inState);
         break;
       case 'IE-LTR-PRINCIPAL':
       case 'IE-LTR-FAMILY':
@@ -174,23 +180,26 @@ export function evaluateIrelandFull(
         );
     }
     if (id.startsWith('IE-STAMP') || id.startsWith('IE-LTR')) {
-      const familyRegistration = id === 'IE-STAMP4-IRISH-FAMILY';
       const irishSpouseExemption =
-        familyRegistration &&
-        request.family?.sponsorIrish === true &&
-        (request.family.relationship === 'spouse' ||
-          request.family.relationship === 'civil-partner') &&
-        request.family.relationshipValidAndGenuine === true;
+        (directFamilyPath || familyRenewal) &&
+        family?.sponsorIrish === true &&
+        (family.relationship === 'spouse' || family.relationship === 'civil-partner') &&
+        (familyRenewal
+          ? family.application?.familyEvidenceComplete === true
+          : family.relationshipValidAndGenuine === true);
       registration(
         a,
         request.registration,
         dob,
         birthplace === 'state',
         irishSpouseExemption,
-        !familyRegistration,
+        !directFamilyPath,
       );
     }
-    return a.finish(id, L(titles[id][0], titles[id][1]), applicable);
+    const title = familyRenewal
+      ? L('现有家庭许可续期', 'Renewal of existing family permission')
+      : L(titles[id][0], titles[id][1]);
+    return a.finish(id, title, applicable);
   });
   return {
     policyAsOf: irelandFull2026_11.asOf,

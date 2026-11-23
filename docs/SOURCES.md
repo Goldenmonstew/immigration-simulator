@@ -1082,22 +1082,22 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
   - `2026-11-23-ie-citizen-affidavit.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/citizenship/residency-affidavit-proof-form-citizenship-0092026.pdf)。
 - **SRC-382** Eligibility；What is e-Vetting?。
 - **SRC-383** Act ss4–5、9、19；S.I. 421/2025 regs. 1–5。
-- **SRC-384** Stamp 4 Registrations and Renewals (1)–(3)；Stamp 5 Registrations and Renewals。
+- **SRC-384** Stamp 1G (1)、Stamp 3 (3)、Stamp 4 (1)–(4)、(7)–(8)、(12)、Stamp 5 的登记与续期清单；在线续期 When should I submit a Renewal Application?（须在爱尔兰递交）。
 - **SRC-385** Policy Document Archive；main changes。
 - **SRC-386** Financial Thresholds for Spouses, Civil Partners and De Facto Partners；Table 1。
-- **SRC-387** June 2026 §§2–10、12–17 和 Appendices C–E；November 2025 §§7、10、16；2016 §§16–17。
+- **SRC-387** June 2026 §§2–10、12–17 和 Appendices C–E，其中 §6.2 为居住或拟居住在爱尔兰的爱尔兰公民担保人；November 2025 §§7、10、16；2016 §§16–17。
   - `2026-11-23-ie-family-2016.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2021/04/Policy-document-on-Non-EEA-family-reunification.pdf)。
   - `2026-11-23-ie-family-2025.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/11/FINAL-PDF-Revised-Family-Reunification-Policy.pdf)。
   - `2026-11-23-ie-family-2026.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/06/Family-Reunification-Policy-12-June-2026.pdf)。
 - **SRC-388** Am I eligible?；Police clearance；Medical insurance；Who can sponsor me?。
 - **SRC-389** Irish citizens；What is a qualifying family member?；Permanent Residence Card/Certificate。
-- **SRC-390** regs. 2–6、9–20；Schedules 1、5–8。
+- **SRC-390** regs. 2–6、9–20，其中 reg. 12(1)(b) 为非欧盟家属与 EU 公民合规居留，reg. 12(4) 为保留权利后的居留；Schedules 1、5–8。
 - **SRC-391** EUTR2 证书、EUTR3 永久卡、EUTR5 权利保留；EUTR3 pp2–3。
   - `2026-11-23-ie-eu-eutr2-leaflet.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/05/Explanatory-leaflet-for-Form-EUTR2.pdf)。
   - `2026-11-23-ie-eu-eutr2.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/05/Form-EUTR2.pdf)。
   - `2026-11-23-ie-eu-eutr3-2026.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/09/Explanatory-leaflet-for-Form-EUTR3-updated-August-2026.pdf)。
   - `2026-11-23-ie-eu-eutr5-leaflet.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/05/Explanatory-leaflet-for-Form-EUTR5.pdf)。
-- **SRC-392** S.I. regs. 2–7、10–12、14–23；Agreement Arts. 9–10、13、15–17。
+- **SRC-392** S.I. regs. 2–7、10–12、14–23，其中 reg. 10(3)–(4) 为非欧盟非英国籍家属及过渡前后的可计居留和失权；Agreement Arts. 9–10、13、15–17。
   - `2026-11-23-ie-wa-agreement.pdf` 对应 [官方 PDF](https://assets.publishing.service.gov.uk/media/5daaab7fed915d42a05eea12/Agreement_on_the_withdrawal_of_the_United_Kingdom_of_Great_Britain_and_Northern_Ireland_from_the_European_Union_and_the_European_Atomic_Energy_Community.pdf)。
   - `2026-11-23-ie-wa-brexit-faq.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2022/03/Impact-of-Brexit-on-UK-Nationals-in-Ireland-and-their-non-EEA-national-family-members-March-2022.pdf)。
 - **SRC-393** Act ss2–4、9、18、21–24、36(2)(a)、47–48、55；S.I. 444/2024 reg. 7、Parts 6–8、Schedule 1；S.I. 643/2025 Schedule 8。

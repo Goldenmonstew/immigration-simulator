@@ -15,12 +15,17 @@ export type IrelandTreatyActivity = IrelandResidencePeriod & {
     | 'self-sufficient'
     | 'student'
     | 'family'
+    | 'retained-family'
     | 'registered-involuntary-unemployment'
     | 'temporary-incapacity'
     | 'vocational-training'
     | 'jobseeker'
     | 'ineligible';
-  /** Evidence of the named activity or, for family, the sponsor's qualifying residence. */
+  /**
+   * Evidence of the named basis for this whole period. A family period confirms
+   * qualifying residence with the sponsor. A retained-family period confirms
+   * residence under the retained right after the family event.
+   */
   verified?: boolean;
   sufficientResources?: boolean;
   comprehensiveSicknessInsurance?: boolean;
@@ -108,6 +113,8 @@ export interface IrelandTreatyResidence {
       | 'necessary-carer';
     qualifyingFamilyEventConfirmed?: boolean;
     recognisedWaScope?: boolean;
+    /** WA scope for residence after returning from the latest absence that ended permanent residence. */
+    postLossScopeConfirmed?: boolean;
   };
   document?: {
     inState?: boolean;
@@ -309,14 +316,36 @@ function absenceCompliance(
     : true;
 }
 
+function treatyActivities(r: IrelandTreatyResidence) {
+  const retainedOn =
+    r.role === 'family' && r.acquisition === 'retained'
+      ? r.retention?.eventOn
+      : undefined;
+  return r.activities?.flatMap((activity) => {
+    if (activity.basis === 'retained-family') {
+      if (!retainedOn || (activity.to && activity.to < retainedOn)) return [];
+      const from = activity.from < retainedOn ? retainedOn : activity.from;
+      return [{ ...activity, from }];
+    }
+    if (r.role !== 'family') return [activity];
+    if (activity.basis !== 'family') return [];
+    if (!retainedOn || (activity.to && activity.to < retainedOn))
+      return [activity];
+    return activity.from < retainedOn
+      ? [{ ...activity, to: addDays(retainedOn, -1) }]
+      : [];
+  });
+}
+
 function ordinaryResidence(
   r: IrelandTreatyResidence,
+  activities: IrelandTreatyActivity[] | undefined,
   day: IsoDate,
   notBefore?: IsoDate,
 ) {
   const certain: IrelandResidencePeriod[] = [];
   const possible: IrelandResidencePeriod[] = [];
-  for (const activity of r.activities ?? []) {
+  for (const activity of activities ?? []) {
     const period = eligibleActivityPeriod(activity, day);
     const status = activityMet(activity);
     const range = period ?? activity;
@@ -365,7 +394,7 @@ function ordinaryResidence(
     }
     return { met: uncertain ? undefined : false, acquired: undefined };
   }
-  if (r.residenceAndTravelComplete !== true || !r.activities)
+  if (r.residenceAndTravelComplete !== true || !activities)
     return { met: undefined, acquired: undefined };
   const proven = qualifyingSpan(certain);
   if (proven.met !== false) return proven;
@@ -535,9 +564,48 @@ export function treatyResidence(
     d?.priorPermanentRightOn && d.priorPermanentRightOn <= day
       ? d.priorPermanentRightOn
       : undefined;
-  const ordinary = ordinaryResidence(r, day);
+  const activities = treatyActivities(r);
+  const ordinary = ordinaryResidence(r, activities, day);
+  const early = acquisition === 'early' ? earlyResidence(r, day) : undefined;
+  const retained =
+    acquisition === 'retained' ? retainedResidence(r, day) : undefined;
+  const acquired =
+    holder ??
+    (acquisition === 'early'
+      ? early === true
+        ? r.early?.eventOn
+        : undefined
+      : acquisition !== 'retained' || retained === true
+        ? ordinary.acquired
+        : undefined);
+  const lossYears = wa ? p.waLossYears : p.euLossYears;
+  const postGrant = d?.postGrantAbsence;
+  const trips = [
+    ...(r.absences ?? []),
+    ...(postGrant
+      ? [{ leftOn: postGrant.from, returnedOn: postGrant.returnedOn }]
+      : []),
+  ];
+  const lastLoss =
+    acquired &&
+    mergePeriods(
+      trips.map(({ leftOn, returnedOn }) => ({
+        from: leftOn < acquired ? acquired : leftOn,
+        to: returnedOn ? addDays(returnedOn, -1) : undefined,
+      })),
+      addDays(day, -1),
+    )
+      .reverse()
+      .find(({ from, to }) => addDays(to, 1) > afterYears(from, lossYears));
+  const afterLoss = lastLoss ? addDays(lastLoss.to, 1) : undefined;
+  const requalified =
+    afterLoss && afterLoss < day
+      ? ordinaryResidence(r, activities, day, afterLoss).met
+      : false;
   const scope = wa
-    ? waScope(r)
+    ? afterLoss
+      ? r.wa?.postLossScopeConfirmed
+      : waScope(r)
     : holder
       ? true
       : familyStatus({ ...a, day: ordinary.acquired ?? day }, r, dob);
@@ -546,8 +614,8 @@ export function treatyResidence(
     scope,
     wa
       ? L(
-          `适用 Withdrawal Agreement 个人范围，过渡截止 ${p.transitionEnd}。单独的 Common Travel Area 权利不能证明 WA 家属资格（PD-338）。`,
-          `Apply the Withdrawal Agreement personal scope and transition cutoff ${p.transitionEnd}. Common Travel Area rights alone do not establish WA family protection (PD-338).`,
+          `适用 Withdrawal Agreement 个人范围，过渡截止 ${p.transitionEnd}。长期离境失权后，须重新确认返爱后的 WA 适用范围。仅凭 Common Travel Area 权利返爱不足以确认（PD-338）。`,
+          `Apply the Withdrawal Agreement personal scope and transition cutoff ${p.transitionEnd}. After loss through absence, confirm WA scope for residence since return. Common Travel Area rights alone are insufficient (PD-338).`,
         )
       : L(
           `核对自由流动国籍或家属类别。直系后代未满 ${p.descendantAge} 岁或受扶养；学生、其他家属与回流情形另核（PD-336）。`,
@@ -555,7 +623,6 @@ export function treatyResidence(
         ),
     wa ? ['PD-338'] : ['PD-336'],
   );
-  const activities = r.activities;
   const recorded = activities?.filter((period) => period.from <= day);
   const basis =
     recorded === undefined
@@ -567,15 +634,12 @@ export function treatyResidence(
     'D02',
     basis,
     L(
-      `核对合规活动：初期 ${p.initialMonths} 个月的身份及公帑条件、就业或自雇、自足或学生的资源与全面医疗保险。短期工作后的登记失业可保留工作者身份 ${p.retainedWorkerMonths} 个月（PD-336、PD-337）。`,
-      `Check residence bases: identity and burden conditions in the first ${p.initialMonths} months, employment or self-employment, and resources plus comprehensive sickness insurance for students or self-sufficient residents. Registered unemployment after short employment can retain worker status for ${p.retainedWorkerMonths} months (PD-336, PD-337).`,
+      `核对合规居留依据。家属按与担保人一起合规居留或保留权利的期间核对。本人核对初期 ${p.initialMonths} 个月的身份及公帑条件、就业、自雇、学生或自足的资源与全面医疗保险。短期工作后的登记失业可保留工作者身份 ${p.retainedWorkerMonths} 个月（PD-336、PD-337）。`,
+      `Check the residence basis. Family periods require qualifying residence with the sponsor or a retained right. For citizens, check identity and burden during the first ${p.initialMonths} months, work or self-employment, and resources and comprehensive sickness insurance for students or self-sufficient residents. Registered unemployment after short employment can retain worker status for ${p.retainedWorkerMonths} months (PD-336, PD-337).`,
     ),
     ['PD-336', 'PD-337'],
     false,
   );
-  const early = acquisition === 'early' ? earlyResidence(r, day) : undefined;
-  const retained =
-    acquisition === 'retained' ? retainedResidence(r, day) : undefined;
   if (acquisition === 'early') {
     add(
       'D04',
@@ -613,40 +677,7 @@ export function treatyResidence(
       acquisition === 'ordinary',
     );
   }
-  const acquired =
-    holder ??
-    (acquisition === 'early'
-      ? early === true
-        ? r.early?.eventOn
-        : undefined
-      : acquisition !== 'retained' || retained === true
-        ? ordinary.acquired
-        : undefined);
-  const lossYears = wa ? p.waLossYears : p.euLossYears;
-  const postGrant = d?.postGrantAbsence;
-  const trips = [
-    ...(r.absences ?? []),
-    ...(postGrant
-      ? [{ leftOn: postGrant.from, returnedOn: postGrant.returnedOn }]
-      : []),
-  ];
-  const lastLoss =
-    acquired &&
-    mergePeriods(
-      trips.map(({ leftOn, returnedOn }) => ({
-        from: leftOn < acquired ? acquired : leftOn,
-        to: returnedOn ? addDays(returnedOn, -1) : undefined,
-      })),
-      addDays(day, -1),
-    )
-      .reverse()
-      .find(({ from, to }) => addDays(to, 1) > afterYears(from, lossYears));
-  const afterLoss = lastLoss ? addDays(lastLoss.to, 1) : undefined;
-  const requalified =
-    afterLoss && afterLoss < day
-      ? ordinaryResidence(r, day, afterLoss).met
-      : false;
-  const retainsRight = afterLoss ? requalified : true;
+  const retainsRight = afterLoss ? all(requalified, wa ? scope : true) : true;
   if (wa) {
     add(
       'E02',

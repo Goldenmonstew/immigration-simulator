@@ -1085,32 +1085,176 @@ describe('Ireland family Stamp 4', () => {
     ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
   });
 
-  test('ordinary Irish spouse registration renewal does not require first-registration insurance', () => {
-    const application = {
-      ...familyApplication,
+  test.each([
+    'spouse-registration', 'spouse-in-state', 'de-facto-in-state',
+  ] as const)('B14 applies the same returning Irish sponsor rule to %s', (channel) => {
+    const request = {
+      family: {
+        ...family,
+        relationship: channel === 'de-facto-in-state' ? 'de-facto' : 'spouse',
+        sponsorLawfulAndResident: false,
+        application: { ...familyApplication, channel },
+      },
+    } satisfies Partial<IrelandFullRequest>;
+    checks(direct, request, { B14: 'MET' });
+    checks(
+      direct,
+      { family: { ...request.family, intendsToLiveTogetherInState: false } },
+      { B14: 'NOT_MET' },
+    );
+  });
+
+  const spouseRenewal: IrelandFamily = {
+    relationship: 'spouse',
+    sponsorIrish: true,
+    livingTogether: true,
+    application: {
+      channel: 'spouse-registration',
       registrationStage: 'renewal',
-      insurance: undefined,
+      // SRC-384 Stamp 4 (3): both passports, current IRP, certificate and joint address.
+      familyEvidenceComplete: true,
+      addressEvidence: true,
       renewalInsuranceRequired: false,
-    } as const;
-    expect(
-      checks(
-        direct,
-        { family: { ...family, application } },
-        { B14: 'MET', B20: 'MET', B21: 'MET' },
-      ),
-    ).toMatchObject({ status: 'MET', earliestDate: day });
-    for (const variant of [
-      { ...application, registrationStage: 'first' } as const,
-      { ...application, renewalInsuranceRequired: true },
-    ]) {
+    },
+  };
+
+  test('ordinary Irish spouse renewal uses the renewal checklist and requires presence in Ireland', () => {
+    const path = checks(
+      direct,
+      { family: spouseRenewal },
+      { B01: 'MET', B02: 'MET', B21: 'MET' },
+    );
+    expect(path).toMatchObject({ status: 'MET', earliestDate: day });
+    expect(path.checks.map(({ id }) => id)).toEqual([
+      'IE-FAMILY-IRISH-SPONSOR', 'IE-B21', 'IE-B01', 'IE-B02',
+    ]);
+    expect(checkOf(path.checks, 'B02')?.explanation).toContain('€0');
+    for (const [location, status] of [
+      ['elsewhere', 'NOT_MET'],
+      ['northern-ireland', 'NOT_MET'],
+      [undefined, 'UNKNOWN'],
+    ] as const) {
       expect(
         checks(
           direct,
-          { family: { ...family, application: variant } },
-          { B21: 'UNKNOWN' },
+          { currentLocation: location, family: spouseRenewal },
+          { B21: status },
         ),
-      ).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+      ).toMatchObject({ status, earliestDate: undefined });
     }
+  });
+
+  test('ordinary spouse renewal checks the documents and any permission-specific insurance', () => {
+    for (const [evidence, status] of [
+      [{ familyEvidenceComplete: false }, 'NOT_MET'],
+      [{ addressEvidence: false }, 'NOT_MET'],
+      [{ renewalInsuranceRequired: true }, 'UNKNOWN'],
+      [{ renewalInsuranceRequired: true, renewalInsuranceConditionMet: false }, 'NOT_MET'],
+      [{ renewalInsuranceRequired: true, renewalInsuranceConditionMet: true }, 'MET'],
+    ] as const) {
+      const application = { ...spouseRenewal.application, ...evidence };
+      expect(
+        checks(
+          direct,
+          { family: { ...spouseRenewal, application } },
+          { B21: status },
+        ),
+      ).toMatchObject({ status, earliestDate: status === 'MET' ? day : undefined });
+    }
+    expect(
+      checks(
+        direct,
+        { family: { ...family, application: { ...familyApplication, insurance: undefined } } },
+        { B21: 'UNKNOWN' },
+      ),
+    ).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+  });
+
+  test.each([
+    ['ordinary', 'spouse', 'B21'],
+    ['spouse-in-state', 'civil-partner', 'B21'],
+    ['de-facto-in-state', 'de-facto', 'FAMILY-RENEWAL'],
+    ['de-facto-overseas', 'de-facto', 'FAMILY-RENEWAL'],
+  ] as const)('ordinary renewal after the %s channel uses the current Stamp 4 checklist', (channel, relationship, check) => {
+    // SRC-384 Stamp 4 (3), (7): current IRP, both passports, joint address,
+    // relationship evidence and (for de facto) the permission letter if applicable.
+    const renewal: IrelandFamily = {
+      relationship,
+      sponsorIrish: true,
+      livingTogether: true,
+      application: {
+        channel,
+        registrationStage: 'renewal',
+        familyEvidenceComplete: true,
+        addressEvidence: true,
+        renewalInsuranceRequired: false,
+      },
+    };
+    const path = checks(direct, { family: renewal }, { [check]: 'MET' });
+    expect(path).toMatchObject({ status: 'MET', earliestDate: day });
+    expect(path.checks.map(({ id }) => id)).toEqual([
+      'IE-FAMILY-IRISH-SPONSOR', `IE-${check}`, 'IE-B01', 'IE-B02',
+    ]);
+    expect(
+      checks(
+        direct,
+        { currentLocation: 'elsewhere', family: renewal },
+        { [check]: 'NOT_MET' },
+      ),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+  });
+
+  test('ordinary dependent renewal uses the applicable checklist without meeting the Stamp 4 upgrade clock', () => {
+    // SRC-384 Stamp 1G (1): both passports and IRPs, sponsor permit and
+    // continuing de facto proof where applicable.
+    const dependent: IrelandFamily = {
+      relationship: 'de-facto',
+      sponsorIrish: false,
+      application: {
+        channel: 'ordinary',
+        registrationStage: 'renewal',
+        familyEvidenceComplete: true,
+      },
+    };
+    const input = {
+      permissions: [{ kind: 'stamp1g-spouse', from: '2026-11-01' }],
+      family: dependent,
+    } satisfies Partial<IrelandFullRequest>;
+    const path = checks(independent, input, { B01: 'MET', 'FAMILY-RENEWAL': 'MET' });
+    expect(path).toMatchObject({ status: 'MET', earliestDate: day });
+    expect(path.title).toBe('Renewal of existing family permission');
+    expect(path.checks.map(({ id }) => id)).toEqual(['IE-FAMILY-RENEWAL', 'IE-B01', 'IE-B02']);
+    expect(
+      checks(
+        independent,
+        { ...input, currentLocation: 'elsewhere' },
+        { 'FAMILY-RENEWAL': 'NOT_MET' },
+      ),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+  });
+
+  test('a child who has aged out at the independent Stamp 4 renewal stays under PD-329', () => {
+    const input = {
+      dateOfBirth: '2009-01-01',
+      family: {
+        relationship: 'child',
+        childUnmarriedDependent: true,
+        establishedFamilyPermission: true,
+        sponsorLawfulAndResident: true,
+        dependentPeriods: [{ from: '2021-11-01' }],
+        nextRenewalOn: '2027-04-01',
+      },
+    } satisfies Partial<IrelandFullRequest>;
+    expect(
+      checks(independent, input, { B11: 'MET', B12: 'NOT_MET' }),
+    ).toMatchObject({ status: 'FUTURE', earliestDate: '2027-04-01' });
+    const atRenewal = checks(
+      independent,
+      { ...input, simulationDate: '2027-04-01' },
+      { B11: 'UNKNOWN', B12: 'MET' },
+    );
+    expect(atRenewal).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+    expect(checkOf(atRenewal.checks, 'B11')?.pendingDetails).toContain('PD-329');
   });
 
   test('Irish sponsor financial version changes at 12 June and the dedicated route can be unresolved', () => {
@@ -1413,6 +1557,27 @@ describe('Ireland family Stamp 4', () => {
       { family: { ...partner, application: abroad } },
       { B23: 'MET', 'FAMILY-ENTRY-FEE': 'MET' },
     );
+    const returning = {
+      ...partner,
+      cohabitationFrom: '2024-11-01',
+      sponsorLawfulAndResident: false,
+      intendsToLiveTogetherInState: true,
+      application: abroad,
+    } satisfies IrelandFamily;
+    expect(
+      checks(
+        direct,
+        { currentLocation: 'elsewhere', family: returning },
+        { B14: 'MET', B15: 'MET', B19: 'MET', B23: 'MET' },
+      ),
+    ).toMatchObject({ status: 'MET', earliestDate: day });
+    expect(
+      checks(
+        direct,
+        { currentLocation: 'elsewhere', family: { ...returning, intendsToLiveTogetherInState: false } },
+        { B14: 'NOT_MET', B23: 'MET' },
+      ),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
     checks(
       direct,
       {
@@ -1635,6 +1800,73 @@ const eu: IrelandTreatyResidence = {
 
 describe('Ireland EU Treaty Rights and the Withdrawal Agreement', () => {
   const id = 'IE-EU-PERMANENT';
+  const waId = 'IE-WA-PERMANENT';
+
+  test('a non-EU spouse cannot count GEP residence before qualifying as an EU family member', () => {
+    const residence: IrelandTreatyResidence = {
+      ...eu,
+      role: 'family',
+      nonEuFamily: true,
+      relationship: 'spouse',
+      qualifyingSponsor: true,
+      relationshipEvidence: true,
+      activities: [
+        { from: '2020-01-01', to: '2025-05-31', basis: 'employed', verified: true },
+        { from: '2025-06-01', basis: 'family', verified: true },
+      ],
+    };
+    expect(
+      checks(id, { eu: residence }, { D01: 'MET', D02: 'MET', D03: 'NOT_MET', D08: 'UNKNOWN' }),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+    expect(
+      checks(
+        id,
+        { simulationDate: '2030-05-31', eu: residence },
+        { D03: 'NOT_MET', D08: 'UNKNOWN' },
+      ),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+    expect(
+      checks(
+        id,
+        { simulationDate: '2030-06-01', eu: residence },
+        { D03: 'MET', D08: 'MET' },
+      ),
+    ).toMatchObject({ status: 'MET', earliestDate: '2030-06-01' });
+  });
+
+  test('WA family residence can span the transition but cannot include earlier ordinary work', () => {
+    const residence: IrelandTreatyResidence = {
+      ...eu,
+      role: 'family',
+      nonEuFamily: true,
+      activities: [
+        { from: '2016-01-01', to: '2020-11-30', basis: 'employed', verified: true },
+        { from: '2020-12-01', basis: 'family', verified: true },
+      ],
+      wa: {
+        britishOrQualifyingFamily: true,
+        relevantStart: '2020-12-01T00:00:00Z',
+        protectedBeforeAndContinued: true,
+        familyCategory: 'already-resident',
+        qualifyingFamilyEventConfirmed: true,
+      },
+    };
+    expect(
+      checks(
+        waId,
+        { simulationDate: '2025-11-30', wa: residence },
+        { E01: 'MET', E02: 'NOT_MET' },
+      ),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+    expect(
+      checks(
+        waId,
+        { simulationDate: '2025-12-01', wa: residence },
+        { E01: 'MET', E02: 'MET' },
+      ),
+    ).toMatchObject({ status: 'MET', earliestDate: '2025-12-01' });
+  });
+
   test('a permitted four-month trip bridges the gap between qualifying jobs', () => {
     const residence: IrelandTreatyResidence = {
       ...eu,
@@ -1728,6 +1960,7 @@ describe('Ireland EU Treaty Rights and the Withdrawal Agreement', () => {
             relationship: 'spouse',
             qualifyingSponsor: true,
             relationshipEvidence: true,
+            activities: [{ from: '2021-11-23', basis: 'family', verified: true }],
             document: {
               ...document,
               filedOn: day,
@@ -1778,7 +2011,6 @@ describe('Ireland EU Treaty Rights and the Withdrawal Agreement', () => {
         { D03: 'MET', D08: 'MET' },
       ),
     ).toMatchObject({ status: 'MET', earliestDate: '2029-04-01' });
-    const waId = 'IE-WA-PERMANENT';
     const wa: IrelandTreatyResidence = {
       ...residence,
       wa: {
@@ -1810,9 +2042,40 @@ describe('Ireland EU Treaty Rights and the Withdrawal Agreement', () => {
             ],
           },
         },
-        { E01: 'MET', E02: 'NOT_MET', E03: 'MET' },
+        { E01: 'UNKNOWN', E02: 'NOT_MET', E03: 'MET' },
       ),
     ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+  });
+
+  test('WA residence after loss needs new scope confirmation even after five years of work', () => {
+    const residence: IrelandTreatyResidence = {
+      ...eu,
+      activities: [{ from: '2022-01-01', basis: 'employed', verified: true }],
+      absences: [
+        { leftOn: '2016-01-01', returnedOn: '2022-01-01', reason: 'temporary' },
+      ],
+      document: { ...eu.document, priorPermanentRightOn: '2015-01-01' },
+      wa: { britishOrQualifyingFamily: true, recognisedWaScope: true },
+    };
+    for (const [postLossScopeConfirmed, status] of [
+      [undefined, 'UNKNOWN'],
+      [false, 'NOT_MET'],
+      [true, 'MET'],
+    ] as const) {
+      const path = checks(
+        waId,
+        {
+          simulationDate: '2027-01-01',
+          wa: { ...residence, wa: { ...residence.wa, postLossScopeConfirmed } },
+        },
+        { E01: status, E02: status },
+      );
+      expect(path).toMatchObject({
+        status,
+        earliestDate: status === 'MET' ? '2027-01-01' : undefined,
+      });
+      if (status === 'UNKNOWN') expect(path.pendingDetails).toContain('PD-338');
+    }
   });
 
   test('five-year anniversary needs a qualifying residence basis, including CSI where applicable', () => {
@@ -1953,6 +2216,10 @@ describe('Ireland EU Treaty Rights and the Withdrawal Agreement', () => {
       relationshipEvidence: true,
       nonEuFamily: true,
       acquisition: 'retained',
+      activities: [
+        { from: '2021-11-23', basis: 'family', verified: true },
+        { from: '2025-11-23', basis: 'retained-family', verified: true },
+      ],
       retention: {
         event: 'dissolution',
         eventOn: '2025-11-23',
@@ -1969,6 +2236,13 @@ describe('Ireland EU Treaty Rights and the Withdrawal Agreement', () => {
       },
     };
     checks(id, { eu: euFamily }, { D05: 'MET' });
+    expect(
+      checks(
+        id,
+        { eu: { ...euFamily, activities: eu.activities } },
+        { D05: 'NOT_MET' },
+      ),
+    ).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
     checks(
       id,
       {
@@ -2000,6 +2274,7 @@ describe('Ireland EU Treaty Rights and the Withdrawal Agreement', () => {
       relationshipEvidence: true,
       dependency: false,
       nonEuFamily: true,
+      activities: [{ from: '2021-11-23', basis: 'family', verified: true }],
       document: {
         ...eu.document,
         currentCardExpiresOn: day,
@@ -2047,7 +2322,6 @@ describe('Ireland EU Treaty Rights and the Withdrawal Agreement', () => {
         { D08: 'NOT_MET' },
       ).status,
     ).toBe('NOT_MET');
-    const waId = 'IE-WA-PERMANENT';
     const wa: IrelandTreatyResidence = {
       ...eu,
       activities: [{ from: '2019-11-23', basis: 'employed', verified: true }],

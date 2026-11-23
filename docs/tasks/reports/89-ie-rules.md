@@ -29,9 +29,9 @@
 | `IE-PUBLIC-SERVICE` | 本人在境外从事爱尔兰公共服务 | A01–A03、A06–A12、A21 |
 | `IE-STAMP4-21` | CSEP、研究员、NCHD 多地点 GEP | B01–B07、B09–B10；多地点 GEP 另核 B08；STAMP4-WORK-TIME |
 | `IE-STAMP4-57` | GEP、ICT | B01–B06、B08–B10；STAMP4-WORK-TIME |
-| `IE-STAMP4-INDEPENDENT-FAMILY` | 家庭团聚转独立 Stamp 4 | B01–B02、B11–B20（适用时）、FAMILY-LEGACY-TIME、FAMILY-INDEPENDENCE、FAMILY-ENTRY-FEE（适用时） |
+| `IE-STAMP4-INDEPENDENT-FAMILY` | 家庭团聚转独立 Stamp 4 或现有家庭许可续期 | 转独立 Stamp 4 使用 B01–B02、B11–B23（适用时）、FAMILY-LEGACY-TIME、FAMILY-INDEPENDENCE、FAMILY-ENTRY-FEE。普通续期使用 B01–B02 和 B21 或 FAMILY-RENEWAL。 |
 | `IE-STAMP5` | Without Condition As To Time | B01–B02、B24–B28、WCATT-TIME |
-| `IE-STAMP4-IRISH-FAMILY` | 爱尔兰公民伴侣的直接家庭 Stamp 4 | B01–B02、B14–B17、B19–B23（依渠道）、FAMILY-IRISH-SPONSOR、FAMILY-CHANNEL、FAMILY-ENTRY-FEE |
+| `IE-STAMP4-IRISH-FAMILY` | 爱尔兰公民伴侣的直接家庭 Stamp 4 | B01–B02、FAMILY-IRISH-SPONSOR。首办另核对 B14–B17、B19–B23（依渠道）、FAMILY-CHANNEL、FAMILY-ENTRY-FEE。普通续期使用 B21 或 FAMILY-RENEWAL。 |
 | `IE-LTR-PRINCIPAL` | Long Term Residency 主申请人 | B01–B02、C01–C06、C08–C10 |
 | `IE-LTR-FAMILY` | Long Term Residency 家属 | B01–B02、C04–C10 |
 | `IE-EU-PERMANENT` | EU Treaty Rights 永久居留 | D01–D08、TREATY-RESTRICTION |
@@ -75,14 +75,15 @@
 | `B11` | 家属身份和担保资格 | SRC-387 June 2026 §§6.5–6.6, 16 and Appendix C；SRC-096 Joining family FAQ 30 |
 | `B12` | 依亲年限、担保人入籍及独立资格 | SRC-387 June 2026 §16.2, footnote 41 and Appendix C；SRC-096 Joining family FAQ 30 |
 | `B13` | 分居、死亡或家暴后的居留 | SRC-387 June 2026 §§16.3–17.2；SRC-399 Independent immigration permission |
-| `B14` | 团聚入口、担保人及等待期 | SRC-387 June 2026 §§2–6；SRC-409 Eligibility；SRC-388 Am I eligible? |
+| `B14` | 团聚入口、担保人及等待期 | SRC-387 June 2026 §§2–6（返爱担保人为 §6.2）；SRC-409 Eligibility；SRC-388 Am I eligible?、Who can sponsor me? |
 | `B15` | 合格关系、年龄、照护授权与同住 | SRC-387 June 2026 §§7.2–7.16, 7.21–7.27 |
 | `B16` | 担保义务、福利及储蓄 | SRC-387 June 2026 §§9.1–9.7, 10.2–10.6；SRC-386 Introduction |
 | `B17` | 担保人税前收入 | SRC-387 June 2026 §§10.7–10.14 and November 2025 §10；SRC-386 Financial thresholds |
 | `B18` | C 类家庭子女净收入门槛 | SRC-387 June 2026 §§10.13–10.14 and Appendix D；SRC-386 Table 1 |
 | `B19` | 住房适格与居住空间 | SRC-387 June 2026 §9.3–9.5 and Appendix E；SRC-402 s63 |
 | `B20` | 团聚材料、安全、医疗与签证办理 | SRC-387 June 2026 §§2–3, 12–15；SRC-409 Join non-EEA family member §9；SRC-406 Visa Fees |
-| `B21` | 爱尔兰公民配偶／民事伴侣境内登记 | SRC-388 Irish spouse and civil partner scheme: Am I eligible?；SRC-384 Stamp 4 (3), First Time Registrations and Renewals |
+| `B21` | 爱尔兰公民配偶／民事伴侣境内登记与续期 | SRC-388 Irish spouse and civil partner scheme: Am I eligible?；SRC-384 Stamp 4 (3)、在线续期 When should I submit a Renewal Application? |
+| `FAMILY-RENEWAL` | 其他现有家庭许可普通续期 | SRC-384 Stamp 1G (1)、Stamp 3 (3)、Stamp 4 (4)、(7)–(8)、(12) 的续期清单及在线续期地点；SRC-388 境内 de facto 的 What happens next? |
 | `B22` | 境内 de facto 办理 | SRC-388 De facto: Am I eligible?, Police clearance, What happens next? |
 | `B23` | 境外 de facto 办理 | SRC-388 Overseas de facto: How do I apply?, Medical insurance, Police clearance；SRC-387 June 2026 §§7.16, 10.7 |
 | `B24` | Stamp 5 合格许可及递交地点 | SRC-097 Eligibility and form p1；SRC-383 Immigration Act s5 |
@@ -207,3 +208,39 @@ PROGRESS 683 建议提交为 `Fix: 修正爱尔兰完整版资格与续期判定
 ### 4. 发现与建议
 
 任务 99 接线时应明确采集依亲居留区间、满足资格后的下次线上续期日、首次登记或续期阶段，以及难民身份材料的分别确认。ICT 问卷中的雇员比例覆盖 EEA、瑞士和英国籍雇员。普通居留和永久权维持可共用同一份出入境记录。
+
+## 第二轮审核修正（review89-2）
+
+### 1. 做了什么
+
+PROGRESS 684 对应建议提交 `Fix: 修正爱尔兰家庭续期、担保资格与条约居留计时（review89-2）`。
+
+- 普通续期按现行许可的清单核对材料及批准信附加条件，并要求在线递交时身处爱尔兰共和国。爱尔兰公民的配偶／民事伴侣用 `B21`，其他家庭许可用 `FAMILY-RENEWAL`。符合清单的配偶在 `2026-11-23` 为 `MET`，最早日为当天。短期出境为 `NOT_MET`，地点缺失为 `UNKNOWN`，后两者均无最早日。见 SRC-384 Stamp 4 (3)、(7)–(8)、在线续期 When should I submit a Renewal Application? 及 SRC-388 境内 de facto 的 What happens next?。
+- `B14` 统一接受已在境内合法居住的担保人，或拟与申请人一起迁回爱尔兰的爱尔兰公民。审核的境外 de facto 输入同时得到 `B14=MET`、`B23=MET`，路径可在模拟日递交。见 SRC-387 June 2026 §6.2 及 SRC-388 境外 de facto 的 Who can sponsor me?。
+- EU 和 WA 家属的累计期按核实的家庭居留依据计算。审核用例的普通 GEP 期间不计，开始以 EU 公民配偶身份合规居留后的第五个周年日 `2030-06-01` 得到 `D03=MET`、`D08=MET`。WA 过渡前后合规家属居留可以相接。见 SRC-390 regs. 12(1)(b)、12(4)–(6) 及 SRC-392 S.I. 728/2020 reg. 10(2)–(4)、Agreement Art. 15。
+- WA 长期离境失去永久权后，在符合累计期的情况下，返爱后的 WA 适用范围未重新确认时 `E01`、`E02` 为 `UNKNOWN`（PD-338）。明确仅凭 CTA 返爱时为 `NOT_MET`。见 SRC-392 S.I. 728/2020 reg. 10(4) 及 Agreement Arts. 10、11、15(3)。
+
+#### 渠道及路径排查清单
+
+| 渠道或路径 | 核对结果 | 回归覆盖 |
+|---|---|---|
+| `ordinary` | 首办 `B14` 接受拟返爱的爱尔兰公民。已持许可时按适用续期清单走 `B21` 或 `FAMILY-RENEWAL`。 | 境外配偶担保、家庭 Stamp 4 续期、依亲 Stamp 1G 续期。 |
+| `spouse-registration`、`spouse-in-state` | 首办核各渠道入口和材料。续期按 SRC-384 Stamp 4 (3) 核对共同住址、关系证明、护照、IRP 及适用的许可附加条件。 | 两渠道的拟返爱担保，以及普通续期、首办保险、续期附加保险、材料缺失及境外递交。 |
+| `de-facto-in-state`、`de-facto-overseas` | 首办核各渠道的同住、警方证明、保险及适用的境外递交流程。普通续期按 Stamp 4 (7) 核对。 | 两渠道的拟返爱担保及普通续期，涵盖境外渠道 `B23`、续期地点和最早日。 |
+| `IE-STAMP4-INDEPENDENT-FAMILY` | `registrationStage: 'renewal'` 评估当前许可续期。依亲转独立 Stamp 4 通过 `nextRenewalOn` 评估 `B11/B12`。关系变化按 `B13`，续期时成年按 PD-329。 | 依亲 Stamp 1G 普通续期、依亲 Stamp 4 转独立、担保人入籍、推演至成年后的升级申请。 |
+| `IE-EU-PERMANENT`、`IE-WA-PERMANENT` | 家属合规段用 `family`，权利保留决定后的合规段用 `retained-family`。本人按其合规活动累计，提前取得按对应事件核对，已取得后的失权及重新累计按各自规则核对。 | EU 婚前 GEP、五年分界、保留权利后的居留，以及 WA 跨过渡和失权后仅凭 CTA 返爱。已有回归涵盖本人计时、出境及证件检查。 |
+| `IE-LTR-FAMILY` | 通过 `C07/C08` 核对 LTR 家属同期居住、续期与维持，使用 SRC-398 的专门流程。 | 现有 LTR 家属回归。 |
+
+### 2. 怎么验证的
+
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0。engine 3,279 项通过、文案导出 1 项按默认配置跳过，policy-data 23 项、game 1,336 项、web 659 项、error-report 2 项通过。Next.js 生成 27 个静态页面。
+- 第二轮新增 13 项 engine 回归，爱尔兰完整版共 54 项。三个审核复现均断言检查项、路径状态和最早日期，续期样例以官方续期清单单独构造。
+- `git diff --check` 通过。旧 `evaluateIreland` 的六条时间路径仍逐项比对，原评估实现、参数和页面入口保留。
+
+### 3. 没做或没验证的
+
+提交交由 Fable。页面接线、浏览器 E2E 和部署属于后续任务。
+
+### 4. 发现与建议
+
+任务 99 接线时，按当前许可问续期材料，按日收集 EU／WA 家属合规居留依据。WA 失权后应单独采集 `wa.postLossScopeConfirmed`。在展示升级路径时将 `FAMILY-LEGACY-TIME` 标为旧计时参考。
