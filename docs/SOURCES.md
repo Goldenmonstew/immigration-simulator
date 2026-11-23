@@ -835,15 +835,15 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 - `Immigration permission/stamps`：Stamp 1、1H、1G、3、4、5 计入入籍，Stamp 2、2A 不计入；`Stamp 1G` 第 2 类（CSEP 持有人或 Hosting Agreement 研究员的配偶、事实伴侣）每年续期，"after 5 years on a Stamp 1G, you may apply for a Stamp 4"。`Stamp 4` 的示例写"2 years""5 years"，比升级页粗略，以升级页为准。
 - `Information on Stamp 4 upgrades` → `Eligibility criteria`：自在境内开始受雇满 21 个月（(i) CSEP、(ii) Hosting Agreement 研究员、(iii) NCHD 医生的多地点 GEP）或满 57 个月（(iv) GEP、(v) ICT）可续为 Stamp 4；21 个月时 (iv)(v) 与 (i)–(iii) 不可互换；开始受雇日按 Revenue 的 Employment Detail Summary，先持其他许可后转 Stamp 1 的按该雇佣许可的有效期；升级后的 Stamp 4 每 2 年（i–iii）或每年（iv–v）续期。
-- `Update to eligibility requirements for Stamp 4 upgrades`（2024-04-03）：GEP 改为满 57 个月。
+- `Update to eligibility requirements for Stamp 4 upgrades`（2024-04-03）：GEP 改为满 57 个月，没有提到 ICT。升级页列有 (v) ICT，其页面元数据 `datePublished` 为 2025-07-22、`dateModified` 为 2026-02-25；发布日不能证明当时已列 ICT，存档文本只能确认到 2026-02-25。试点把 2024-04-03 与 2026-02-25 分别作为该规则对 GEP、ICT 可确定适用的最早日期（PD-116，任务 72，review72-1）。
 - `Attention eligible spouses and partners of General Employment Permit and Intra-Corporate Transferee Irish Employment Permit holders`（2024-05-15，2026-11-23 抓取）：GEP、ICT 许可持有人经家庭团聚获批的配偶、伴侣改发 Stamp 1G（原为 Stamp 3），已持 Stamp 3 的自 2024-05-15 起按 1G 条件；`Summary of immigration conditions attached to a Stamp 1G permission`：每年续期，"After 5 years on a Stamp 1G, you may be eligible for a Stamp 4 permission"。通告没有说此前的 Stamp 3 时间是否计入这 5 年。
-- `Frequently asked questions for joining family` 第 30 问 `When can I get a Stamp 4 permission?`（2026-11-23 抓取）：配偶、民事伴侣、事实伴侣或未成年子女"may apply for a Stamp 4 permission after you have spent 5 years or more in Ireland on a family reunification permission"，并"at your next online renewal date after becoming eligible"。试点据此只给满 5 年的时间节点，递交在其后的下一次网上续期；"家庭团聚许可"可能包括 2024 年前的 Stamp 3，试点只计 1G（PD-118）。
+- `Frequently asked questions for joining family` 第 30 问 `When can I get a Stamp 4 permission?`（2026-11-23 抓取）：配偶、民事伴侣、事实伴侣或未成年子女"may apply for a Stamp 4 permission after you have spent 5 years or more in Ireland on a family reunification permission"，并"at your next online renewal date after becoming eligible"。试点据此只给满 5 年的时间节点，递交在其后的下一次网上续期；结合 2024-05-15 通告（这些配偶伴侣此前持 Stamp 3），试点把家庭团聚的 Stamp 3 与配偶伴侣类 1G 一起计入 5 年（PD-118，任务 72）。
 - ISD 页面为 WordPress 动态页面，每周核对可能报 changed，需人工核对正文。
 
 ## SRC-097 ISD：Without condition as to time（Stamp 5）
 
 - `policy-sources/2026-02-23-ie-isd-wcatt-application-form.pdf` → <https://www.irishimmigration.ie/wp-content/uploads/2026/02/Without-Conditions-as-to-Time-Stamp-5-editable-23-02-2026.pdf>
-- 申请表（PDF 元数据修改日 2026-02-25，文件名注 23-02-2026）p1：适用于在境内合法居留满 8 年（96 个月）的非 EEA 国民；"Applications will not be accepted from persons outside the State"，也不受理当前没有居留许可者的申请。试点据此在满期那天按已录入出行在境外时，把最早递交日顺延到回国当天。
+- 申请表（PDF 元数据修改日 2026-02-25，文件名注 23-02-2026）p1：适用于在境内合法居留满 8 年（96 个月）的非 EEA 国民；"Applications will not be accepted from persons outside the State"，也不受理当前没有居留许可者的申请。试点据此在满期那天按已录入出行在境外时，把最早递交日顺延到回国当天，并核对当天是否持有效许可（任务 72）。
 - `Introduction`、`Eligibility`：合法居留满 8 年（96 个月）可申请 Stamp 5，只按护照印章或过期 IRP 卡计算；计入 Stamp 1、1H、1G、3、4、4D、4S，不计 Stamp 4 EuFam、0、2、2A、1A、ICT 的 Stamp 1、ICT 配偶或家属的 1G、口岸临时许可、已注销许可（页面注明清单仅为示例）。FAQ `What are the conditions attached to my Stamp 5 permission`：连续居住允许合理的缺席，"for Without Condition As To Time endorsement, does not exceed more than 4 months in a year"。
 - ISD 页面为 WordPress 动态页面，每周核对可能报 changed，需人工核对正文。
 

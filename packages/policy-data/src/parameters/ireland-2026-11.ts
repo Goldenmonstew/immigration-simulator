@@ -106,6 +106,20 @@ export const ireland2026_11 = {
         },
       ],
     },
+    // The upgrade page lists ICT in the 57-month group; its current text is
+    // only evidenced from its last change on this date, so earlier ICT
+    // dates are uncertain (PD-116).
+    ictRuleFrom: {
+      value: '2026-02-25',
+      sources: [
+        {
+          srcId: 'SRC-096',
+          locator:
+            'Information on Stamp 4 upgrades: Eligibility criteria (v); dateModified 2026-02-25',
+          url: ISD_STAMP4,
+        },
+      ],
+    },
     // Spouses or partners of employment permit holders (CSEP, GEP, ICT) and
     // researchers on Stamp 1G.
     spouse1gYears: {
