@@ -473,3 +473,4 @@
 | 472 | 任务 80 审核修正（review80-1）：英国 What-if 调整日期触发筛查中止时，两栏恢复“此规则集暂无评估结果。”提示。补日期及通用路径增删对比回归；对比页与已保存方案按国家重置组件状态。 | apps/web/components/{whatif-lab,saved-scenarios}.tsx、apps/web/test/country-views.test.tsx、docs/tasks/reports/80-country-module.md |
 | 740 | 任务 91：登记日本完整版使用的官方法条、指南、手续费及办事材料，校对调研哈希，补 PD-360–379 与网页来源索引。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 741 | 任务 91：加入永住审查过渡、许可期间、教育与证据窗口、人才分值、帰化特例、再入国和手续费参数。 | packages/policy-data/src/{index.ts,parameters/japan-2026-11.ts} |
+| 742 | 任务 91：新增日本完整版评估入口，复用原时间结果，逐项检查永住、帰化与再入国并补边界测试。 | packages/engine/src/{index.ts,japan-full*.ts}、packages/engine/test/japan-full.test.ts、docs/tasks/reports/91-jp-rules.md |
