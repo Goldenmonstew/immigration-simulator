@@ -318,6 +318,11 @@ export function evaluateGermany(req: DeRequest): DeResult {
     for (let i = Math.max(0, from); i <= Math.min(days.count - 1, to); i++)
       kinds[i] = undefined;
   };
+  // A renewal applied for before expiry keeps the permit until the decision
+  // (§ 81 Abs. 4 Satz 1). With no later permit entered the decision is still
+  // pending, and whether that time counts depends on the renewal being
+  // granted (PD-124).
+  const pending = new Array<boolean>(days.count).fill(false);
   sorted.forEach((p, n) => {
     const next = sorted.slice(n + 1).find((q) => q.from > p.from);
     const cut = next && addDays(next.from, -1);
@@ -327,6 +332,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
     const a = Math.max(0, days.index(p.from));
     const b = Math.min(days.count - 1, to ? days.index(to) : days.count - 1);
     for (let i = a; i <= b; i++) kinds[i] = p.kind;
+    if (p.renewing && p.to && !next && !DE_UNLIMITED_KINDS.includes(p.kind))
+      days.mark(pending, addDays(p.to, 1));
   });
   clear(0, days.index(req.firstEntry) - 1);
   const kindAt = (i: number) =>
@@ -514,9 +521,15 @@ export function evaluateGermany(req: DeRequest): DeResult {
     'Periods are calendar periods: counted from the day a permit starts (or your first arrival, if later) and met on the anniversary (or the same day of the month); if the first day does not count, it is one day later (BGB § 187, PD-120). The days you leave and come back count as days in Germany.',
   );
   const gaps = L(
-    '录入的许可之间有空档即中断（§ 85 允许不计 1 年以内的中断，属裁量，PD-124）；按时申请续期的，请把等待新许可的期间也录入。',
-    'Any gap between the permits you entered breaks continuity (§ 85 lets gaps of up to a year be disregarded at discretion, PD-124); if you applied to renew on time, enter the wait for the new permit as well.',
+    '录入的许可之间有空档即中断（§ 85 允许不计 1 年以内的中断，属裁量，PD-124）。到期前已申请续期的请勾选"到期前已申请续期"：录入了续期后的新许可，等待期间照常计入；还在等待决定的，依赖等待期间的结果为待确认（§ 81 Abs. 4）。',
+    'Any gap between the permits you entered breaks continuity (§ 85 lets gaps of up to a year be disregarded at discretion, PD-124). If you applied to renew before expiry, tick “Renewal or a new permit applied for before it ran out”: once the new permit is entered the wait counts; while the decision is pending, results that rely on the wait are uncertain (§ 81 Abs. 4).',
   );
+  /** The reason a date relies on a renewal still being decided. */
+  const pendingText = (possible: IsoDate) =>
+    L(
+      `你的许可到期后正在等待续期决定（§ 81 Abs. 4 视为继续有效），这段时间能否计入取决于续期获批；获批的话，最早 ${possible}（PD-124）。`,
+      ` Your permit ran out while a renewal is being decided (it continues meanwhile, § 81 Abs. 4), and whether that time counts depends on the renewal being granted; if it is, it could be ${possible} (PD-124).`,
+    );
   const lapse = L(
     '导致许可失效的出境（§ 51，见"出境与居留失效"）使计时归零；失效后要等录入的下一张许可生效才重新起算。',
     'A trip that ended your title (§ 51, see “Trips abroad and loss of residence”) resets the count, which starts again only when the next permit you entered begins.',
@@ -561,7 +574,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
     const holds = (k: number): Verdict => {
       const kd = kinds[k];
       if (!kd) return 'no';
-      if (rule.hold.includes(kd)) return doubt[k] ? 'maybe' : 'yes';
+      if (rule.hold.includes(kd))
+        return doubt[k] || pending[k] ? 'maybe' : 'yes';
       if (route !== 'general') return 'no';
       if (kd === 'temporary') return 'maybe';
       if (kd !== 'training') return 'no';
@@ -855,10 +869,12 @@ export function evaluateGermany(req: DeRequest): DeResult {
             (possible && (!earliest || possible < earliest)
               ? doubt[days.index(possible)]
                 ? `${L('', ' ')}${doubtText(days.index(possible))}${L(`仍有效的话，最早 ${possible}。`, ` If it is still valid, it could be ${possible}.`)}`
-                : L(
-                    `若你当时所持的许可不排除定居许可（如学校职业培训 § 16a Abs. 2；企业内培训、§ 16d、§ 16f、§ 20a 等排除），最早 ${possible}（PD-122）。`,
-                    ` If the permit you hold then does not rule out a settlement permit (school-based training under § 16a Abs. 2 does not; in-company training, § 16d, § 16f, § 20a and others do), it could be ${possible} (PD-122).`,
-                  )
+                : pending[days.index(possible)]
+                  ? pendingText(possible)
+                  : L(
+                      `若你当时所持的许可不排除定居许可（如学校职业培训 § 16a Abs. 2；企业内培训、§ 16d、§ 16f、§ 20a 等排除），最早 ${possible}（PD-122）。`,
+                      ` If the permit you hold then does not rule out a settlement permit (school-based training under § 16a Abs. 2 does not; in-company training, § 16d, § 16f, § 20a and others do), it could be ${possible} (PD-122).`,
+                    )
               : ''),
         checks,
         notChecked: [
@@ -928,7 +944,7 @@ export function evaluateGermany(req: DeRequest): DeResult {
       const f = facts(d);
       if (!f) return 'no';
       if (f.paused || (f.start !== undefined && f.absent <= totalMin))
-        return 'yes';
+        return pending[days.index(d)] ? 'maybe' : 'yes';
       return f.start !== undefined && f.absent <= totalMax ? 'maybe' : 'no';
     };
     const already = held === 'eu-long-term';
@@ -989,10 +1005,12 @@ export function evaluateGermany(req: DeRequest): DeResult {
                         'With your record you will not meet the time requirements for EU long-term residence within 10 years.',
                       )) +
               (possible && (!earliest || possible < earliest)
-                ? L(
-                    `若出境合计按 ${v.euTotalAbsenceMonths.value} 个月的较宽口径全部计入，最早 ${possible}；超过上限时怎样扣除，条文未写明（PD-125）。`,
-                    ` Counting all of your absences under a generous reading of the ${v.euTotalAbsenceMonths.value} months, it could be ${possible}; how time over the limit is taken off is not stated (PD-125).`,
-                  )
+                ? pending[days.index(possible)]
+                  ? pendingText(possible)
+                  : L(
+                      `若出境合计按 ${v.euTotalAbsenceMonths.value} 个月的较宽口径全部计入，最早 ${possible}；超过上限时怎样扣除，条文未写明（PD-125）。`,
+                      ` Counting all of your absences under a generous reading of the ${v.euTotalAbsenceMonths.value} months, it could be ${possible}; how time over the limit is taken off is not stated (PD-125).`,
+                    )
                 : ''),
       checks: unsureHeld
         ? [doubtCheck(simIndex)]
@@ -1138,7 +1156,7 @@ export function evaluateGermany(req: DeRequest): DeResult {
       return !kd
         ? 'no'
         : TITLES.includes(kd)
-          ? doubt[k]
+          ? doubt[k] || pending[k]
             ? 'maybe'
             : 'yes'
           : kd === 'temporary' || kd === 'humanitarian'
@@ -1180,14 +1198,16 @@ export function evaluateGermany(req: DeRequest): DeResult {
         ? undefined
         : doubt[unsureAt]
           ? 'doubt'
-          : kinds[unsureAt] === 'temporary' ||
-              kinds[unsureAt] === 'humanitarian'
-            ? 'temporary'
-            : 'credit';
+          : pending[unsureAt]
+            ? 'pending'
+            : kinds[unsureAt] === 'temporary' ||
+                kinds[unsureAt] === 'humanitarian'
+              ? 'temporary'
+              : 'credit';
     const onTemporary = why === 'temporary';
     // The uncertain date may also rest on discretionary credit.
     const withCredit =
-      why === 'doubt' &&
+      (why === 'doubt' || why === 'pending') &&
       unsureAt - run[unsureAt - 1] <
         daysBetween(addYears(possible!, -years), possible!);
     pathways.push({
@@ -1215,29 +1235,37 @@ export function evaluateGermany(req: DeRequest): DeResult {
                   `按现有记录，10 年内达不到入籍的时间条件。`,
                   `With your record you will not meet the time requirements for naturalisation within 10 years.`,
                 )) +
-        (why === 'doubt'
-          ? `${L('', ' ')}${doubtText(unsureAt)}${
-              withCredit
+        (why === 'pending'
+          ? pendingText(possible!) +
+            (withCredit
+              ? L(
+                  `同时还须主管机关酌情把中断前的居住计入（§ 12b Abs. 2，裁量，PD-128）。`,
+                  ` The authority would also have to use its discretion to count residence before the interruption (§ 12b Abs. 2, PD-128).`,
+                )
+              : '')
+          : why === 'doubt'
+            ? `${L('', ' ')}${doubtText(unsureAt)}${
+                withCredit
+                  ? L(
+                      `仍有效、且主管机关酌情把中断前的居住最多 ${v.priorResidenceCreditYears.value[route]} 年计入的话，最早 ${possible}（§ 12b Abs. 2，裁量，PD-128）。`,
+                      ` If it is still valid and the authority uses its discretion to count up to ${v.priorResidenceCreditYears.value[route]} years of residence before the interruption, it could be ${possible} (§ 12b Abs. 2, PD-128).`,
+                    )
+                  : L(
+                      `仍有效的话，最早 ${possible}。`,
+                      ` If it is still valid, it could be ${possible}.`,
+                    )
+              }`
+            : why
+              ? onTemporary
                 ? L(
-                    `仍有效、且主管机关酌情把中断前的居住最多 ${v.priorResidenceCreditYears.value[route]} 年计入的话，最早 ${possible}（§ 12b Abs. 2，裁量，PD-128）。`,
-                    ` If it is still valid and the authority uses its discretion to count up to ${v.priorResidenceCreditYears.value[route]} years of residence before the interruption, it could be ${possible} (§ 12b Abs. 2, PD-128).`,
+                    `若你当时所持的许可不在 § 10 Abs. 1 Satz 1 Nr. 2 的清单内（§ 20 求职、§ 25 Abs. 3–5 在清单内，§ 25a、§ 25b 不在），最早 ${possible}（PD-122）。`,
+                    ` If the permit you hold then is not on the list in § 10 Abs. 1 Satz 1 Nr. 2 (§ 20 job seeking and § 25 Abs. 3–5 are; § 25a and § 25b are not), it could be ${possible} (PD-122).`,
                   )
                 : L(
-                    `仍有效的话，最早 ${possible}。`,
-                    ` If it is still valid, it could be ${possible}.`,
+                    `若主管机关酌情把中断前的居住最多 ${v.priorResidenceCreditYears.value[route]} 年计入${route === 'spouse' ? '（只计婚后的居住）' : ''}，最早 ${possible}（§ 12b Abs. 2，裁量，PD-128）。`,
+                    ` If the authority uses its discretion to count up to ${v.priorResidenceCreditYears.value[route]} years of residence before the interruption${route === 'spouse' ? ' (only while married)' : ''}, it could be ${possible} (§ 12b Abs. 2, PD-128).`,
                   )
-            }`
-          : why
-            ? onTemporary
-              ? L(
-                  `若你当时所持的许可不在 § 10 Abs. 1 Satz 1 Nr. 2 的清单内（§ 20 求职、§ 25 Abs. 3–5 在清单内，§ 25a、§ 25b 不在），最早 ${possible}（PD-122）。`,
-                  ` If the permit you hold then is not on the list in § 10 Abs. 1 Satz 1 Nr. 2 (§ 20 job seeking and § 25 Abs. 3–5 are; § 25a and § 25b are not), it could be ${possible} (PD-122).`,
-                )
-              : L(
-                  `若主管机关酌情把中断前的居住最多 ${v.priorResidenceCreditYears.value[route]} 年计入${route === 'spouse' ? '（只计婚后的居住）' : ''}，最早 ${possible}（§ 12b Abs. 2，裁量，PD-128）。`,
-                  ` If the authority uses its discretion to count up to ${v.priorResidenceCreditYears.value[route]} years of residence before the interruption${route === 'spouse' ? ' (only while married)' : ''}, it could be ${possible} (§ 12b Abs. 2, PD-128).`,
-                )
-            : '') +
+              : '') +
         (route === 'general'
           ? L(
               `3 年快速入籍（§ 10 Abs. 3）自 ${turbo} 起取消，一般须满 ${years} 年。`,

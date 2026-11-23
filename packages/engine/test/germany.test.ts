@@ -995,6 +995,44 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     expect(pathway(late, 'DE-TRAVEL').status).toBe('NOT_MET');
   });
 
+  test('waiting for a renewal decision is uncertain (§ 81 Abs. 4, review69-5)', () => {
+    const req = {
+      permits: [
+        {
+          kind: 'skilled' as const,
+          from: '2021-11-15',
+          to: '2026-10-31',
+          renewing: true,
+        },
+      ],
+    };
+    // The 5 years end on 2026-11-15, after the card ran out: they count only
+    // if the renewal is granted.
+    for (const id of [
+      'DE-SETTLEMENT',
+      'DE-EU-LONG-TERM',
+      'DE-NATURALISATION',
+    ] as const) {
+      const p = pathway(req, id);
+      expect(p.status, id).toBe('UNKNOWN');
+      expect(p.summary, id).toContain('§ 81 Abs. 4');
+    }
+  });
+
+  test('a permit extended by law: enter the legal end date (review69-5)', () => {
+    const p = pathway(
+      {
+        // Temporary protection (§ 24) with the date it was extended to.
+        permits: [
+          { kind: 'humanitarian', from: '2024-04-01', to: '2027-03-04' },
+        ],
+        trips: [{ departed: '2026-02-27', returned: '2026-03-10' }],
+      },
+      'DE-TRAVEL',
+    );
+    expect(p.status).toBe('MET');
+  });
+
   test('an unlimited permit has no expiry near the forecast limit (review69-4)', () => {
     const p = pathway(
       {
