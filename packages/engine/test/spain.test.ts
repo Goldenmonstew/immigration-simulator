@@ -106,7 +106,10 @@ describe('residencia de larga duración nacional (art. 183)', () => {
     expect(at('2026-11-21')).toBe('MET');
     expect(at('2026-12-20')).toBe('MET');
     expect(at('2027-02-20')).toBe('MET');
-    expect(at('2027-02-21')).toBe('NOT_MET');
+    // 2027-02-20 is a Saturday: the period runs to Monday 2027-02-22
+    // (Ley 39/2015 art. 30.5).
+    expect(at('2027-02-22')).toBe('MET');
+    expect(at('2027-02-23')).toBe('NOT_MET');
   });
 
   test('the gap after expiry does not make up missing years', () => {

@@ -90,6 +90,8 @@ export function evaluateGreece(req: GrRequest): GrResult {
   const sums = {
     // Study time gives no further rights (Migration Code άρθ. 123 παρ. 6).
     lawful: held(['regular', 'investor', 'temporary']),
+    // Whether national visa (Ζ) time counts for naturalisation is open.
+    settled: held(['regular', 'investor']),
     away: days.sums((i) => away[i]),
   };
   // Long-term residence counts `full` permits in full and study at half
@@ -413,10 +415,14 @@ export function evaluateGreece(req: GrRequest): GrResult {
     // Legal residence on any permit but study counts for the years
     // (άρθ. 5 παρ. 1 δ, παρ. 3); when applying, a temporary status cannot be
     // used (SRC-089), so an ordinary permit or golden visa must be held.
-    const ok = (d: IsoDate) =>
-      covered(sums.lawful, addYears(d, -years), addDays(d, -1)) &&
+    const okWith = (s: number[]) => (d: IsoDate) =>
+      covered(s, addYears(d, -years), addDays(d, -1)) &&
       holding(d, ['regular', 'investor']);
-    const earliest = firstDate(ok);
+    const sure = firstDate(okWith(sums.settled));
+    // Counting national visa (Ζ) stays too, which may be earlier (PD-109).
+    const withVisa = firstDate(okWith(sums.lawful));
+    const visaEarlier = !!withVisa && (!sure || withVisa < sure);
+    const earliest = sure ?? withVisa;
     const window = earliest && {
       from: addYears(earliest, -years),
       to: addDays(earliest, -1),
@@ -427,14 +433,14 @@ export function evaluateGreece(req: GrRequest): GrResult {
         )
       : [];
     const absent = window ? days.total(sums.away, window.from, window.to) : 0;
-    const unsure = !!earliest && absences.length > 0;
+    const unsure = !!earliest && (absences.length > 0 || !sure);
     pathways.push({
       id: 'GR-NATIONALITY',
       title: L('入籍（πολιτογράφηση）', 'Naturalisation (πολιτογράφηση)'),
       status: unsure ? 'UNKNOWN' : statusOf(earliest),
       earliestDate: unsure ? undefined : earliest,
       summary:
-        (earliest === sim
+        (earliest === sim && !unsure
           ? L(
               `模拟日已有 ${years} 年不间断的居留许可。`,
               `You have held residence permits for ${years} years without a gap on the simulation date.`,
@@ -444,7 +450,13 @@ export function evaluateGreece(req: GrRequest): GrResult {
               ? L(
                   `仅按许可年限计算的候选递交日是 ${earliest}。`,
                   `Counting permit years alone, the candidate application date is ${earliest}.`,
-                )
+                ) +
+                (sure
+                  ? ''
+                  : L(
+                      '这个日期要把国家签证（Ζ）期间计入；国家签证期间能否算入籍的合法居留，现有说明没有确认（PD-109）。',
+                      ' That date counts your national visa (Ζ) stays; whether they count as legal residence for naturalisation is not confirmed (PD-109).',
+                    ))
               : L(
                   `合法居留满 ${years} 年的最早递交日是 ${earliest}。`,
                   `The earliest application date with ${years} years of legal residence is ${earliest}.`,
@@ -453,19 +465,29 @@ export function evaluateGreece(req: GrRequest): GrResult {
                 `按现有记录，10 年内达不到 ${years} 年的合法居留。`,
                 `With your record you will not reach ${years} years of legal residence within 10 years.`,
               )) +
-        (unsure
+        (absences.length > 0 && earliest
           ? L(
-              `这 ${years} 年里有 ${absences.length} 次出境、合计 ${absent} 天；法律没有规定"连续"允许多少缺席，由审批个案判断（PD-106）。`,
-              ` In those ${years} years you have ${absences.length} trips abroad, ${absent} days in all; the law sets no limit on absences for "continuous" residence, so it is decided case by case (PD-106).`,
+              `这 ${years} 年里有 ${absences.length} 次出境、境外整天合计 ${absent} 天；法律没有规定"连续"允许多少缺席，由审批个案判断（PD-106）。`,
+              ` In those ${years} years you have ${absences.length} trips abroad, ${absent} full days abroad in all; the law sets no limit on absences for "continuous" residence, so it is decided case by case (PD-106).`,
+            )
+          : '') +
+        (sure && visaEarlier
+          ? L(
+              `若国家签证（Ζ）期间也算，最早 ${withVisa}，现有说明没有确认（PD-109）。`,
+              ` Counting national visa (Ζ) stays too, it could be ${withVisa}; this is not confirmed (PD-109).`,
             )
           : ''),
       checks: [
         {
           text: L(
-            `递交前 ${years} 年一直合法居留（学习以外的居留许可），递交当天持普通许可或黄金签证`,
-            `Legal residence on a permit other than study throughout the ${years} years before applying, and an ordinary permit or golden visa on the application day`,
+            `递交前 ${years} 年一直合法居留（普通许可或黄金签证；国家签证待确认，学习不计），递交当天持普通许可或黄金签证`,
+            `Legal residence throughout the ${years} years before applying (ordinary permits or golden visa; national visas uncertain, study not counted), and an ordinary permit or golden visa on the application day`,
           ),
-          met: ok(sim),
+          met: okWith(sums.settled)(sim)
+            ? true
+            : okWith(sums.lawful)(sim)
+              ? undefined
+              : false,
           sources: [
             ...v.nationalityYears.sources,
             { srcId: 'SRC-086', locator: 'άρθ. 123 παρ. 6 (p82)' },
@@ -493,8 +515,8 @@ export function evaluateGreece(req: GrRequest): GrResult {
       ],
       assumptions: [
         L(
-          '年限从递交日往回数，不含递交当天；期间内学习以外的居留许可（含国家签证）都算合法居留（άρθ. 5 παρ. 1 δ），学生居留不计入取得其他权利（移民法典 άρθ. 123 παρ. 6），职业培训也按不计处理（PD-103）；递交当天须持普通许可或黄金签证。黄金签证按内政部指引计为认可的居留身份，法条只点名旧法许可（PD-105）；许可之间有空档即中断（PD-107）。',
-          'Years are counted back from the application date, not including it; any residence permit in that time other than study (national visas included) is legal residence (άρθ. 5 παρ. 1 δ), since time as a student does not count towards further rights (Migration Code άρθ. 123 παρ. 6) and vocational training is treated the same (PD-103); you need an ordinary permit or golden visa on the application day. Golden visa time counts as a recognised status under Ministry of Interior guidance, though the law names only permits under the old law (PD-105); any gap between permits breaks continuity (PD-107).',
+          '年限从递交日往回数，不含递交当天；期间内普通许可与黄金签证都算合法居留（άρθ. 5 παρ. 1 δ），国家签证（Ζ）期间能否计入没有确认，计入后的日期另列（PD-109）；学生居留不计入取得其他权利（移民法典 άρθ. 123 παρ. 6），职业培训也按不计处理（PD-103）；递交当天须持普通许可或黄金签证。黄金签证按内政部指引计为认可的居留身份，法条只点名旧法许可（PD-105）；许可之间有空档即中断（PD-107）。',
+          'Years are counted back from the application date, not including it; ordinary permits and the golden visa in that time are legal residence (άρθ. 5 παρ. 1 δ), and whether national visa (Ζ) stays count is not confirmed, so the date counting them is shown separately (PD-109); time as a student does not count towards further rights (Migration Code άρθ. 123 παρ. 6) and vocational training is treated the same (PD-103); you need an ordinary permit or golden visa on the application day. Golden visa time counts as a recognised status under Ministry of Interior guidance, though the law names only permits under the old law (PD-105); any gap between permits breaks continuity (PD-107).',
         ),
         projection,
       ],
@@ -502,7 +524,8 @@ export function evaluateGreece(req: GrRequest): GrResult {
         ...(req.permits.some((p) => p.kind === 'study') ? ['PD-103'] : []),
         ...(hasInvestor ? ['PD-105'] : []),
         'PD-107',
-        ...(unsure ? ['PD-106'] : []),
+        ...(absences.length > 0 && earliest ? ['PD-106'] : []),
+        ...(visaEarlier ? ['PD-109'] : []),
       ],
     });
   }

@@ -272,6 +272,31 @@ describe('naturalisation (art. 5)', () => {
     expect(p.notChecked[0]).not.toContain('清单');
   });
 
+  test('national visa (Ζ) time is uncertain (PD-109)', () => {
+    const permits = (to?: string): GrRequest['permits'] => [
+      { kind: 'temporary', from: '2019-11-21', to: '2022-11-20' },
+      { kind: 'regular', from: '2022-11-21', ...(to ? { to } : {}) },
+    ];
+    // A later date without the Ζ stay is certain; the earlier one is noted.
+    const later = pathway(
+      { simulationDate: '2026-11-21', permits: permits() },
+      'GR-NATIONALITY',
+    );
+    expect(later.status).toBe('FUTURE');
+    expect(later.earliestDate).toBe('2029-11-21');
+    expect(later.summary).toContain('2026-11-21');
+    expect(later.pendingDetails).toContain('PD-109');
+    expect(later.checks[0].met).toBeUndefined();
+    // Only with the Ζ stay are 7 years ever met: unknown, candidate date.
+    const only = pathway(
+      { simulationDate: '2026-11-21', permits: permits('2028-12-31') },
+      'GR-NATIONALITY',
+    );
+    expect(only.status).toBe('UNKNOWN');
+    expect(only.summary).toContain('2026-11-21');
+    expect(only.pendingDetails).toContain('PD-109');
+  });
+
   test('a study permit alone cannot be used to apply', () => {
     const p = pathway(
       {

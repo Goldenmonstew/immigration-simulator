@@ -436,8 +436,8 @@ export function evaluateAustralia(req: AuRequest): AuResult {
           'You have confirmed that you hold a Hong Kong or BN(O) passport and that your current 457, 482 or 485 visa was granted to you as the primary applicant and allows a 5-year stay from when it came into effect (granted from 9 July 2020; one granted earlier must not allow a stay after 8 July 2025, Sch 1 items 1137(4M)(c), 1139(3A)(c)); this pilot does not check it.',
         ),
         L(
-          `这份签证最晚在生效后 ${v.hongKongVisaYears.value} 年到期（Sch 1 item 1137(4M)(c)(ii)、1139(3A)(c)(ii)），到期日留空或被后续签证取代的也按此计；递交时须仍持有这份签证。`,
-          `This visa ends ${v.hongKongVisaYears.value} years after it came into effect at the latest (Sch 1 items 1137(4M)(c)(ii), 1139(3A)(c)(ii)), also when no end date is entered or a later visa replaces it; you must still hold it when applying.`,
+          `这份签证最晚在生效后 ${v.hongKongVisaYears.value} 年到期；${v.hongKongNewVisaFrom.value} 前生效的旧签证最晚到 ${v.hongKongOldVisaUntil.value}（Sch 1 item 1137(4M)(c)、1139(3A)(c)，以生效日代替获批日）。到期日留空或被后续签证取代的也按此计；递交时须仍持有这份签证。`,
+          `This visa ends ${v.hongKongVisaYears.value} years after it came into effect at the latest; one in effect before ${v.hongKongNewVisaFrom.value} ends by ${v.hongKongOldVisaUntil.value} (Sch 1 items 1137(4M)(c), 1139(3A)(c), taking the first day in effect for the grant date). This also applies when no end date is entered or a later visa replaces it; you must still hold it when applying.`,
         ),
         L(
           `"连续通常居住"法规没有定义：从首次入境起算，年限内有出境记录的输出 UNKNOWN，摘要给出不计出境时的日期（PD-108）。`,
@@ -465,10 +465,12 @@ export function evaluateAustralia(req: AuRequest): AuResult {
       // Held the current visa for the years, and still hold it then. The
       // confirmed 5-year stay ends it at the latest.
       const heldDue = afterYears(current.from, n);
-      const cap = addDays(
-        afterYears(current.from, v.hongKongVisaYears.value),
-        -1,
-      );
+      // Granted from 9 July 2020: 5 years; earlier: to 8 July 2025 at most
+      // (the first day in effect stands for the grant date).
+      const cap =
+        current.from >= v.hongKongNewVisaFrom.value
+          ? addDays(afterYears(current.from, v.hongKongVisaYears.value), -1)
+          : v.hongKongOldVisaUntil.value;
       const end = current.to && current.to < cap ? current.to : cap;
       const holding = (d: IsoDate) => d >= heldDue && end >= d;
       // Usually resident in Australia throughout the years before applying.
@@ -485,7 +487,13 @@ export function evaluateAustralia(req: AuRequest): AuResult {
       const noRegion = !!s.regional && !since;
       const earliest = noRegion
         ? undefined
-        : firstDate((d) => holding(d) && resident(d) && regionalOk(d));
+        : firstDate(
+            (d) =>
+              d >= v.hongKongStreamsFrom.value &&
+              holding(d) &&
+              resident(d) &&
+              regionalOk(d),
+          );
       const unsure = !!earliest && tripsIn(earliest).length > 0;
       const trips = earliest ? tripsIn(earliest) : [];
       pathways.push({

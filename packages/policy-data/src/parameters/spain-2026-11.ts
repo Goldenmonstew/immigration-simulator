@@ -14,7 +14,11 @@ export const spain2026_11 = {
     // Applying within this many months after the permit expired extends it.
     longTermLateMonths: {
       value: 3,
-      sources: [{ srcId: 'SRC-083', locator: 'art. 184.2 (p134–p135)' }],
+      sources: [
+        { srcId: 'SRC-083', locator: 'art. 184.2 (p134–p135)' },
+        // Ending on a Saturday or Sunday, it moves to the next working day.
+        { srcId: 'SRC-090', locator: 'art. 30.2, 30.4, 30.5 (p29–p30)' },
+      ],
     },
     // Absences that do not break continuity: each up to this many months...
     singleAbsenceMonths: {
