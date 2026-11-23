@@ -334,11 +334,14 @@ describe('initial PR federal checks', () => {
     ) =>
       c(
         26,
-        applicant({
-          definitiveChecklistSatisfied: undefined,
-          dateOfBirth: dob,
-          foreignStays: s,
-        }),
+        {
+          ...applicant({
+            definitiveChecklistSatisfied: undefined,
+            dateOfBirth: dob,
+            foreignStays: s,
+          }),
+          applications: { [id]: filed },
+        },
         id,
       );
     expect(police([stay]).status).toBe('MET');
@@ -380,7 +383,79 @@ describe('initial PR federal checks', () => {
     const missing = [{ ...stay, certificateIssued: undefined, missing: true }];
     expect(police(missing, undefined, 'CA-AIP').status).toBe('UNKNOWN');
     expect(police(missing, undefined, 'CA-FAMILY').status).toBe('NOT_MET');
-    expect(police([], undefined, 'CA-QC-PSTQ').status).toBe('UNKNOWN');
+    expect(police([], undefined, 'CA-QC-PSTQ').status).toBe('MET');
+  });
+  test.each([
+    ['CA-EE-FSW', undefined],
+    ['CA-EE-CEC', undefined],
+    ['CA-EE-FST', undefined],
+    ['CA-PNP', 'enhanced'],
+    ['CA-PNP', 'base'],
+    ['CA-QC-PSTQ', undefined],
+    ['CA-AIP', undefined],
+    ['CA-FAMILY', undefined],
+  ] as const)('R26 certificate evidence for %s %s', (id, mode) => {
+    const current = { from: '2024-01-01', currentCountry: true };
+    const past = {
+      from: '2020-01-01',
+      until: '2021-01-01',
+      currentCountry: false,
+    };
+    const assess = (
+      foreignStays: FederalPerson['foreignStays'],
+      request: Pick<
+        FederalPerson,
+        'definitiveChecklistSatisfied' | 'outstandingPoliceRequest'
+      > = {},
+      filedOn = '2026-10-20',
+    ) =>
+      c(
+        26,
+        {
+          ...applicant({
+            foreignStays,
+            definitiveChecklistSatisfied: undefined,
+            ...request,
+          }),
+          applications: { [id]: { ...filed, filedOn } },
+        },
+        id,
+        { pnp: { mode } },
+      ).status;
+    const confirmed = {
+      ...past,
+      certificateIssued: '2026-10-22',
+      supplementReceipts: { [id]: '2026-10-23' },
+    };
+    expect(
+      assess([{ ...current, certificateIssued: '2026-04-20' }, confirmed]),
+    ).toBe('MET');
+    const stale = { ...current, certificateIssued: '2026-04-19' };
+    expect(
+      assess([stale, confirmed], { definitiveChecklistSatisfied: true }),
+    ).toBe('NOT_MET');
+    expect(
+      assess([stale, { ...past, missing: true }], {
+        definitiveChecklistSatisfied: false,
+        outstandingPoliceRequest: true,
+      }),
+    ).toBe('NOT_MET');
+    expect(assess([{ ...past, certificateIssued: '2020-12-31' }])).toBe(
+      'NOT_MET',
+    );
+    expect(
+      assess([{ ...current, certificateIssued: '2026-10-22' }, confirmed]),
+    ).toBe('UNKNOWN');
+    expect(assess([{ ...current, certificateIssued: '2026-11-24' }])).toBe(
+      'UNKNOWN',
+    );
+    expect(assess([confirmed], undefined, '2026-12-01')).toBe('UNKNOWN');
+    const otherRoute = id === 'CA-AIP' ? 'CA-FAMILY' : 'CA-AIP';
+    expect(
+      assess([
+        { ...confirmed, supplementReceipts: { [otherRoute]: '2026-10-23' } },
+      ]),
+    ).toBe('UNKNOWN');
   });
   test.each([
     ['2012-11-24', 'MET'],

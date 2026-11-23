@@ -96,12 +96,13 @@ export const canadaFull2026_11 = {
         },
         {
           srcId: 'SRC-266',
-          locator: 'Biometrics: Who needs to give their biometrics, Exemptions',
+          locator:
+            'Biometrics: Who needs to give their biometrics, Exemptions; When to get a police certificate, How long your police certificate is valid / If you need a request letter; IMM 0199 and IMM 5690, p.3 item 11',
         },
         { srcId: 'SRC-274', locator: 'Guide 5289, Police certificates' },
         {
           srcId: 'SRC-279',
-          locator: 'IMM 0155, item 19 Police Certificates and Clearances',
+          locator: 'IMM 0155, p.4 item 19 Police Certificates and Clearances',
         },
       ],
     },

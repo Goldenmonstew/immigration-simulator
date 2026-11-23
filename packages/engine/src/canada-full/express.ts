@@ -677,16 +677,18 @@ export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
     issuedInvitationDate,
     procedure.profileYears,
   );
+  // SRC-269e §6 counts from the day after issue through the 60th day after that start.
+  const invitationStart = invitation && addDays(invitation.date, 1);
   const deadline =
     invitation?.deadline ??
-    (invitation && addDays(invitation.date, procedure.invitationDays));
+    (invitationStart && addDays(invitationStart, procedure.invitationDays));
   const invitationValid =
-    invitation && issuedInvitationDate
+    invitation && issuedInvitationDate && invitationStart
       ? all(
           invitation.program === id,
           !invitation.revoked,
           received && deadline
-            ? invitation.date < received && received <= deadline
+            ? invitationStart <= received && received <= deadline
             : undefined,
         )
       : undefined;

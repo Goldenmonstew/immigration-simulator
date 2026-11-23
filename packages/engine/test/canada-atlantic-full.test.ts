@@ -67,6 +67,56 @@ function rule(n: number, change: Partial<AtlanticAnswers> = {}) {
 }
 describe('Atlantic Immigration Program', () => {
   test.each([
+    [undefined, undefined, true, 'UNKNOWN'],
+    ['2026-06-09', undefined, false, 'MET'],
+    ['2026-07-01', undefined, false, 'UNKNOWN'],
+    ['2026-07-01', '2026-07-02', false, 'MET'],
+    ['2026-07-01', '2026-06-30', false, 'UNKNOWN'],
+    ['2026-07-01', '2026-11-24', false, 'UNKNOWN'],
+    ['2026-11-24', undefined, false, 'UNKNOWN'],
+  ] as const)(
+    'R26 and AIP: issued %s, supplement received %s, outstanding %s → %s',
+    (
+      certificateIssued,
+      supplementReceivedOn,
+      outstandingPoliceRequest,
+      expected,
+    ) => {
+      const result = evaluateCanadaFull({
+        simulationDate: when,
+        atlantic: {
+          ...base,
+          applicationDate: '2026-06-10',
+          workHistory: [{ ...job, from: '2024-01-01', to: '2025-12-31' }],
+        },
+        federal: {
+          ...federal,
+          applications: { 'CA-AIP': { ...filed, filedOn: undefined } },
+          principal: {
+            ...person,
+            exam: { disposition: 'exempt' },
+            definitiveChecklistSatisfied: undefined,
+            outstandingPoliceRequest,
+            foreignStays: [
+              {
+                from: '2021-01-01',
+                until: '2025-12-31',
+                currentCountry: false,
+                certificateIssued,
+                supplementReceipts: { 'CA-AIP': supplementReceivedOn },
+              },
+            ],
+          },
+        },
+      }).columns[0].pathways.find((p) => p.id === 'CA-AIP')!;
+      expect(result.checks.find((c) => c.id === 'CA-R26')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    },
+  );
+
+  test.each([
     ['2026-06-10', false, 'MET'],
     ['2026-07-01', false, 'MET'],
     ['2026-07-02', false, 'NOT_MET'],

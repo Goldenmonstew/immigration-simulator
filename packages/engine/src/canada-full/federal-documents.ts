@@ -1,5 +1,6 @@
 import { canadaFull2026_11 as ca } from '@uk-immigration/policy-data';
 import { addDays, addMonths, addYears, fullYears } from '../dates';
+import type { InitialPrRoute } from './federal';
 import { all } from './shared';
 
 const medical = ca.values.federalMedical.value;
@@ -104,6 +105,8 @@ export interface PoliceStay {
   until?: string;
   currentCountry: boolean;
   certificateIssued?: string;
+  /** IRCC's receipt date for this requested certificate, by federal application. */
+  supplementReceipts?: Partial<Record<InitialPrRoute, string>>;
   /** Explicit absence of a required document vs a missing answer. */
   missing?: boolean;
   exemptionGranted?: boolean;
@@ -113,6 +116,7 @@ export interface DocumentAnswers {
   definitiveChecklistSatisfied?: boolean;
   /** All non-Canadian stays, including an explicit empty history. */
   foreignStays?: PoliceStay[];
+  /** An open IRCC request. Its absence does not document receipt of any particular certificate. */
   outstandingPoliceRequest?: boolean;
   biometrics?:
     | 'provided-for-pr'
@@ -125,42 +129,68 @@ export interface DocumentAnswers {
 export function policeDocuments(
   answers: DocumentAnswers,
   dob: string | undefined,
+  route: InitialPrRoute,
   procedure: PrProcedure,
-  filing: string,
+  filing: string | undefined,
+  asOf: string,
 ) {
-  if (answers.outstandingPoliceRequest) return false;
-  if (answers.definitiveChecklistSatisfied !== undefined)
-    return answers.definitiveChecklistSatisfied;
-  if (dob && fullYears(dob, filing) < police.minAge) return true;
-  if (
-    !dob ||
-    !answers.foreignStays ||
-    procedure === 'checklist' ||
-    procedure === 'unknown'
-  )
-    return undefined;
+  const {
+    definitiveChecklistSatisfied,
+    outstandingPoliceRequest,
+    foreignStays,
+  } = answers;
+  const requestsCleared = outstandingPoliceRequest ? undefined : true;
+  const checklist = outstandingPoliceRequest
+    ? undefined
+    : definitiveChecklistSatisfied;
+  if (checklist === false) return false;
+  if (dob && filing && fullYears(dob, filing) < police.minAge)
+    return requestsCleared;
+  if (!filing || !dob || !foreignStays || procedure === 'unknown')
+    return checklist;
   const adult = addYears(dob, police.minAge);
   const windowStart =
     procedure === 'express' ? addYears(filing, -police.lookbackYearsEE) : adult;
   return all(
-    ...answers.foreignStays.map((stay) => {
+    requestsCleared,
+    ...foreignStays.map((stay) => {
+      if (stay.exemptionGranted) return true;
+      const { certificateIssued } = stay;
+      const supplementReceivedOn = stay.supplementReceipts?.[route];
       const start = [adult, windowStart, stay.from].sort().at(-1)!;
       const end = stay.until && stay.until < filing ? stay.until : filing;
-      if (addMonths(start, police.stayMonths) > end || stay.exemptionGranted)
+      // IMM 0199 and IMM 5690 separately require the country of current residence.
+      if (
+        !supplementReceivedOn &&
+        !(procedure === 'checklist' && stay.currentCountry) &&
+        addMonths(start, police.stayMonths) > end
+      )
         return true;
-      if (!stay.certificateIssued || stay.certificateIssued > filing) {
-        // AIP accepts initial filing without the certificate, subject to a later request.
-        if (procedure === 'atlantic') return undefined;
-        return stay.missing || stay.certificateIssued ? false : undefined;
+      if (!certificateIssued || (stay.missing && !supplementReceivedOn)) {
+        if (
+          outstandingPoliceRequest ||
+          supplementReceivedOn ||
+          (procedure === 'atlantic' && stay.missing)
+        )
+          return undefined;
+        return stay.missing ? false : checklist;
       }
-      if (procedure !== 'express') return true;
-      if (stay.currentCountry)
-        return (
-          stay.certificateIssued >=
-          addMonths(filing, -police.currentCertificateMonths)
-        );
+      if (certificateIssued > asOf) return undefined;
+      if (supplementReceivedOn) {
+        if (
+          supplementReceivedOn < filing ||
+          supplementReceivedOn < certificateIssued ||
+          supplementReceivedOn > asOf
+        )
+          return undefined;
+      } else if (certificateIssued > filing) {
+        return undefined;
+      }
       // 'until' is the first day no longer staying in that country.
-      return stay.certificateIssued >= end;
+      return stay.currentCountry
+        ? certificateIssued >=
+            addMonths(filing, -police.currentCertificateMonths)
+        : certificateIssued >= end;
     }),
   );
 }

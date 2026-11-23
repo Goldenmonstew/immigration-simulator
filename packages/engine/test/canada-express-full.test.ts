@@ -145,7 +145,8 @@ describe('Express Entry application, ranking and evidence', () => {
       ['2026-09-01', 'NOT_MET'],
       ['2026-09-02', 'MET'],
       ['2026-10-31', 'MET'],
-      ['2026-11-01', 'NOT_MET'],
+      ['2026-11-01', 'MET'],
+      ['2026-11-02', 'NOT_MET'],
     ] as const)
       expect(rule('R29', { invitation, applicationDate }).status).toBe(
         expected,
@@ -162,7 +163,8 @@ describe('Express Entry application, ranking and evidence', () => {
     ['2026-11-03', '2026-12-05', false, 'UNKNOWN'],
     ['2026-04-29', null, false, 'UNKNOWN'],
     ['2026-04-29', '2026-06-10', false, 'MET'],
-    ['2026-04-29', '2026-06-29', false, 'NOT_MET'],
+    ['2026-04-29', '2026-06-29', false, 'MET'],
+    ['2026-04-29', '2026-06-30', false, 'NOT_MET'],
     ['2026-04-29', '2026-06-10', true, 'NOT_MET'],
   ] as const)(
     'R29 and FSW: ITA %s, receipt %s, revoked %s → %s',
@@ -182,6 +184,27 @@ describe('Express Entry application, ranking and evidence', () => {
       expect(result.status).toBe(expected);
     },
   );
+  test('R29 and FSW use the deadline in the issued letter when supplied', () => {
+    for (const [receipt, expected] of [
+      ['2026-06-28', 'MET'],
+      ['2026-06-29', 'NOT_MET'],
+    ] as const) {
+      const date = '2026-04-29';
+      const result = filedFsw(
+        {
+          invitation: { date, program: 'CA-EE-FSW', deadline: '2026-06-28' },
+          round: { ...complete.round!, date },
+          workHistory: [{ ...job, from: '2023-01-01', to: '2025-12-31' }],
+        },
+        '2026-05-08',
+        receipt,
+      );
+      expect(result.checks.find((c) => c.id === 'CA-R29')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    }
+  });
   test.each([
     ['CA-EE-FSW', 'federal', '2026-04-29', '2026-05-08', '2026-06-10'],
     ['CA-PNP', 'pnp', '2026-06-22', '2026-06-30', '2026-07-10'],

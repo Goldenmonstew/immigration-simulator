@@ -364,3 +364,44 @@ FSW 的 R36 仍按递交日年龄计分。审核个案获邀时 67 分，因生�
 #### 风险
 
 FSW 在获邀时恰好 67 分、仅因递交前生日降到 66 分时，R36 仍可能给出 `NOT_MET`。选拔门槛和年龄分见 SRC-267a “Selection factors” 及 SRC-261b，IRPR ss.76(1)(a)(iv)、81。IRCC 公共政策的 “Conditions” 允许获授权官员在其他条件满足时给予豁免，结果取决于个案决定。本轮仅记录这一风险。[IRCC 获邀后年龄变化公共政策](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)
+
+## 第六轮审核修正（review85-6）
+
+### 1. 做了什么
+
+建议提交 `Fix: 按联邦收件日核对加拿大警证效期和补件回执，修正 EE 邀请截止日（review85-6）`。对应 PROGRESS 第 568 条。
+
+R26 按每名申请人、每份所需的境外警证核对。本路径联邦收到申请时，现居国警证须在此前六个日历月内签发，恰满六个月可用。原居国警证须覆盖最后一次符合条件的连续居住。收件后的模拟日仅用于核实签发和补件回执是否已经发生。三份新增快照、原文定位和 SHA-256 登记在 SRC-266g–i。[IRCC 警证有效期](https://www.canada.ca/en/immigration-refugees-citizenship/services/application/medical-police/police-certificates/when.html)
+
+| R26 适用路径 | 对应清单及审查范围 |
+|---|---|
+| EE 的 FSW、CEC、FST，以及 Enhanced PNP | SRC-277c 的 “Who needs police certificates” 和 “When the certificate must be issued”。按成年后、递交前十年内的合资格境外停留核对。额外索证按 IRCC 实际要求处理。 |
+| Base PNP、魁省技术移民联邦阶段 | SRC-266h、266i 的 IMM 0199、IMM 5690（2026-05）第 3 页第 11 项分别列出现居国及原居国的签发要求。两类申请均可凭居住记录、签发日期和适用的补件回执逐份判定。 |
+| 家庭担保 | SRC-274c，Guide 5289 “Police certificates”，结合 SRC-266g 核对成年人符合条件的连续境外居住和警证效期。 |
+| AIP | SRC-279b，IMM 0155 第 4 页第 19 项允许先递交，再应要求补交警证。随申请提供的警证按 SRC-266g 核有效期。 |
+
+补件回执保存在对应停留的 `supplementReceipts[路径 ID]`。签发日、申请收件日及该份补件的回执日期须相符。仅有收件后签发的警证、仅填未来日期、或仍有待补要求时，警证材料为 `UNKNOWN`，登记于 PD-245。`outstandingPoliceRequest: false` 表示目前没有未结要求，确认某份补件仍需其回执。其他申请的回执不能证明本申请已收到该份材料。生物识别继续单独核对，并与警证共同决定 R26。
+
+R29 优先采用邀请信列明的截止日。没有信上期限时，依 SRC-269e 第 6 条从签发次日起算，至该起算日之后第 60 天结束，含截止日。此计算修正了第五轮报告中 2026-06-29 收件的预期。[部长指令第 6 条](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/ministerial-instructions/express-entry-application-management-system/current.html)
+
+### 2. 怎么验证的
+
+在 `7552c21` 上先跑新回归。家庭担保的两份超期警证、AIP 待补和补件已收、两例 R29 备用期限边界共六例失败。修正后的下列回归从 `evaluateCanadaFull` 进入，分别断言单项和整条路径。
+
+| 单项及路径 | 复现输入与结果 |
+|---|---|
+| R26 与家庭担保 | 成年配偶持续居住境外，2026-10-20 联邦收件，2026-11-23 模拟。09-01、04-20 签发均为 `MET`，04-19、02-01 签发均为 `NOT_MET`。未填总括清单。 |
+| R26 与 AIP | 2026-06-10 收件。原居国警证待补为 `UNKNOWN`；07-01 签发、07-02 补件获确认，两者均为 `MET`。仅填 07-01 签发、补件回执早于签发或晚于模拟日、只填未来签发日，均为 `UNKNOWN`。未填总括清单。 |
+| R29 与 FSW | 2026-04-29 签发，备用期限从 04-30 起算，06-29 收件为 `MET`，06-30 为 `NOT_MET`。信上若写 06-28，则 06-28 为 `MET`，06-29 为 `NOT_MET`。 |
+
+R26 另覆盖所有七条初次 PR 路径及 PNP 的两种模式，包括总括勾选与已知超期冲突、一份超期而另一份待补、原居国停留尚未结束就签发、仅填未来申请日，以及另一条路径的补件回执。
+
+加拿大定向命令 `pnpm --filter @uk-immigration/engine test test/canada --reporter=dot` 通过 8 个文件、195 项测试，含原时间引擎。首次完整验收发现跨路径参数表的行长度不一致，已统一测试参数。最终代码运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码为 0，全仓 5,420 项测试通过，1 项既有测试跳过，生成 27 个静态页面。三份新快照均与来源登记中的 SHA-256 匹配，两个 PDF 第 3 页的条目已回读。`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+工作区改动按要求留给 Fable 提交。原时间引擎 `evaluateCanada` 及其参数和网页调用未改。本轮未运行浏览器 e2e 或部署。
+
+### 4. 发现与建议
+
+审核风险第 2 项已记录。FSW 获邀时恰好 67 分，在递交前仅因生日降到 66 分时，R36 仍可能显示 `NOT_MET`。计分依据为 SRC-267a “Selection factors” 和 SRC-261b，IRPR ss.76(1)(a)(iv)、81。符合公共政策其他条件时，获授权官员可决定给予年龄豁免。本轮保留 R36 原判定。[IRCC 年龄豁免公共政策 “Conditions”](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)

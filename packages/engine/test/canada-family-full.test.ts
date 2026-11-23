@@ -90,6 +90,36 @@ function filedFamily(
   }).columns[0].pathways.find((p) => p.id === 'CA-FAMILY')!;
 }
 
+test.each([
+  ['2026-09-01', 'MET'],
+  ['2026-04-20', 'MET'],
+  ['2026-04-19', 'NOT_MET'],
+  ['2026-02-01', 'NOT_MET'],
+] as const)(
+  'R26 and family sponsorship: current certificate issued %s → %s',
+  (certificateIssued, expected) => {
+    const result = evaluateCanadaFull({
+      simulationDate: '2026-11-23',
+      family: { ...base, filingDate: '2026-10-20' },
+      dateOfBirth: person.dateOfBirth,
+      federal: {
+        ...federal,
+        applications: { 'CA-FAMILY': { ...filed, filedOn: undefined } },
+        principal: {
+          ...person,
+          exam: { disposition: 'exempt' },
+          definitiveChecklistSatisfied: undefined,
+          foreignStays: [
+            { from: '2024-01-01', currentCountry: true, certificateIssued },
+          ],
+        },
+      },
+    }).columns[0].pathways.find((p) => p.id === 'CA-FAMILY')!;
+    expect(result.checks.find((c) => c.id === 'CA-R26')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  },
+);
+
 test('R73 counts cohabitation up to the family application receipt', () => {
   const partner = {
     relationship: 'common-law',

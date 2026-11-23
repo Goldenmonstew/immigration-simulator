@@ -5,6 +5,7 @@ import {
   any,
   completePrApplication,
   filingDatesForRoute,
+  receivedBy,
   ref,
   type Context,
   type Item,
@@ -57,7 +58,7 @@ export interface FederalMember extends FederalPerson {
   examinationScope?: Scope;
 }
 
-type InitialPrRoute = Exclude<
+export type InitialPrRoute = Exclude<
   CaFullPathwayId,
   'CA-RESIDENCY' | 'CA-CITIZENSHIP' | 'CA-CIT-MINOR-52'
 >;
@@ -462,13 +463,20 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
       L('警证与 PR 生物识别', 'Police certificates and PR biometrics'),
       peopleMeet(a, true, (p) =>
         all(
-          policeDocuments(p, principalDob(p), procedure, date),
+          policeDocuments(
+            p,
+            principalDob(p),
+            id,
+            procedure,
+            receivedBy(filed, req.simulationDate),
+            req.simulationDate,
+          ),
           biometrics(p, principalDob(p), date),
         ),
       ),
       L(
-        '按项目逐人核对成年后的连续境外停留、警证签发日、补件及本次 PR 生物识别。AIP 可在警证待补时递交，收到要求后须提供。',
-        'Check adult stays abroad, certificate issue dates, additional requests and PR biometrics for each person. AIP can accept filing with police certificates outstanding and request them later.',
+        '按本路径联邦收件日核对每人的现居国警证效期、原居国警证是否覆盖相应停留，以及本次 PR 生物识别。AIP 可先递交申请。IRCC 要求补件时，按每份警证的签发日和补件回执确认办理进度。',
+        'Use this application’s federal receipt date to check each person’s current-country certificate and coverage of previous stays. Check PR biometrics separately. AIP permits initial filing without all certificates. For a requested supplement, check its issue date and IRCC’s receipt for that certificate.',
       ),
       [
         ref('SRC-261', 'IRPA ss.10.01, 16; IRPR Part 1, Division 2.1'),
