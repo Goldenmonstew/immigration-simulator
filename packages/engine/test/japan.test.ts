@@ -736,18 +736,60 @@ describe('review70-6', () => {
     expect(born('2026-12-12', '2027-01-13').status).toBe('NOT_MET');
   });
 
-  test('holidays not listed for the year leave a late date uncertain', () => {
-    // 2028-01-19 is a Wednesday; 2028 holidays are not listed yet.
+  test('a year not listed yet follows the holidays law', () => {
+    // 2028-01-19 is a Wednesday and no holiday under the law.
     expect(born('2027-12-20', '2028-01-19').status).toBe('MET');
-    const p = born('2027-12-20', '2028-01-20');
-    expect(p.status).toBe('UNKNOWN');
-    expect(p.checks[0].met).toBeUndefined();
+    expect(born('2027-12-20', '2028-01-20').status).toBe('NOT_MET');
+    expect(born('2027-12-20', '2028-02-01').status).toBe('NOT_MET');
   });
 
   test('after the window: change of status, or contact the bureau', () => {
     const p = born('2026-11-10', '2026-12-11');
     expect(p.summary).toContain('实子等（在留资格变更）');
     expect(p.summary).toContain('地方出入国在留管理局');
+  });
+});
+
+describe('review70-7', () => {
+  const born = (bornOn: string, simulationDate: string) =>
+    pr({
+      simulationDate,
+      stayStart: bornOn,
+      pr: { route: 'child-birth', bornOn },
+    });
+
+  test('in time on a closed day, filed on the next open day', () => {
+    // 2027-01-02 is in the year-end closure; the deadline is 2027-01-04.
+    const p = born('2026-11-30', '2027-01-02');
+    expect(p.status).toBe('MET');
+    expect(p.summary).toContain('最早可在 2027-01-04 递交');
+  });
+
+  test('a time requirement met on a Saturday is filed on the Monday', () => {
+    const p = pr({
+      stayStart: '2017-04-03',
+      pr: { route: 'general', statusStart: '2019-04-03' },
+    });
+    expect(p.earliestDate).toBe('2027-04-03');
+    expect(p.summary).toContain('最早满足永住许可时间条件的日期是 2027-04-03');
+    expect(p.summary).toContain('最早可在 2027-04-05 递交');
+    expect(p.summary).not.toContain('最早递交日');
+  });
+
+  test('a listed past year: 文化の日 on a Sunday and its substitute', () => {
+    // 2024-11-03 (Sunday) and 11-04 (substitute) are closed: 11-05.
+    expect(born('2024-10-04', '2024-11-05').status).toBe('MET');
+    expect(born('2024-10-04', '2024-11-06').status).toBe('NOT_MET');
+  });
+
+  test('only the predicted equinox of an unlisted year is uncertain', () => {
+    // 30 days from 2028-02-19 is 2028-03-20, the predicted 春分日.
+    expect(born('2028-02-19', '2028-03-20').status).toBe('MET');
+    const p = born('2028-02-19', '2028-03-21');
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('春分日');
+    // Even if 03-20 is a holiday, 03-21 is the last day.
+    expect(born('2028-02-19', '2028-03-22').status).toBe('NOT_MET');
   });
 });
 

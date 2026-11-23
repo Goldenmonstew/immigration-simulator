@@ -291,6 +291,21 @@ test('a child born in Japan applies within 30 days of birth', () => {
   ).pathways[0];
   expect(yearEnd.status).toBe('MET');
   expect(yearEnd.summary).toContain('2027-01-04');
+  // On a closed day inside the window: in time, filed from the next open day.
+  const closedDay = evaluateJapan(
+    jpRequest(
+      {
+        ...born('2027-01-02'),
+        stayStart: '2026-11-30',
+        bornOn: '2026-11-30',
+      },
+      'zh-CN',
+    ),
+  ).pathways[0];
+  expect(closedDay.status).toBe('MET');
+  expect(closedDay.summary).toContain('最早可在 2027-01-04 递交');
+  // The form hint matches the result: another status, or no status yet.
+  expect(t('jp.bornOnHint')).toContain('地方出入国在留管理局');
 });
 
 test('leaving with a renewal pending (FAQ Q61)', () => {

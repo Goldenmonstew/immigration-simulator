@@ -273,6 +273,81 @@ export function evaluateJapan(req: JpRequest): JpResult {
           },
         ]
       : [];
+  const listed = new Set(v.nationalHolidays.value);
+  const listedYears = new Set(
+    v.nationalHolidays.value.map((d) => d.slice(0, 4)),
+  );
+  const dayOfWeek = (d: IsoDate) => new Date(`${d}T00:00:00Z`).getUTCDay();
+  /**
+   * National holidays by the holidays law (art. 2, 3) for a year with no
+   * almanac list: those sure without the equinoxes, and those once the
+   * predicted equinoxes are added.
+   */
+  const byLaw = (year: string) => {
+    const monday = (month: string, nth: number) => {
+      let d = `${year}-${month}-01`;
+      while (dayOfWeek(d) !== 1) d = addDays(d, 1);
+      return addDays(d, 7 * (nth - 1));
+    };
+    const base = [
+      ...v.fixedHolidays.value.map((md) => `${year}-${md}`),
+      ...Object.entries(v.mondayHolidays.value).map(([m, n]) => monday(m, n)),
+    ];
+    // Substitute day after a Sunday holiday (art. 3(2)) and a day between
+    // two holidays (art. 3(3)).
+    const withRest = (days: IsoDate[]) => {
+      const set = new Set(days);
+      for (const d of days) {
+        if (dayOfWeek(d) === 0) {
+          let x = addDays(d, 1);
+          while (days.includes(x)) x = addDays(x, 1);
+          set.add(x);
+        }
+        if (days.includes(addDays(d, 2)) && !days.includes(addDays(d, 1)))
+          set.add(addDays(d, 1));
+      }
+      return set;
+    };
+    return {
+      sure: withRest(base),
+      withEquinox: withRest([
+        ...base,
+        ...v.predictedEquinoxes.value.filter((d) => d.startsWith(year)),
+      ]),
+    };
+  };
+  const lawYears = new Set(
+    v.predictedEquinoxes.value.map((d) => d.slice(0, 4)),
+  );
+  /**
+   * Offices closed on `d` (休日法 第1条): maybe for a day that is a holiday
+   * only if the predicted equinox holds, or any weekday in a year neither
+   * listed nor predicted.
+   */
+  const closed = (d: IsoDate): Verdict => {
+    const md = d.slice(5);
+    const year = d.slice(0, 4);
+    if (
+      [0, 6].includes(dayOfWeek(d)) ||
+      md >= v.yearEndClosureFrom.value ||
+      md <= v.yearEndClosureTo.value
+    )
+      return 'yes';
+    if (listedYears.has(year)) return listed.has(d) ? 'yes' : 'no';
+    if (!lawYears.has(year)) return 'maybe';
+    const law = byLaw(year);
+    return law.sure.has(d) ? 'yes' : law.withEquinox.has(d) ? 'maybe' : 'no';
+  };
+  /** When `d` is a closed day, the next day the counters take filings. */
+  const filingNote = (d: IsoDate) => {
+    if (closed(d) !== 'yes') return '';
+    let open = d;
+    while (closed(open) === 'yes') open = addDays(open, 1);
+    return L(
+      `${d} 是行政机关休日，窗口在平日受理，最早可在 ${open} 递交（SRC-112、SRC-119）。`,
+      ` ${d} is a day the offices are closed and the counters take filings on working days, so you can file from ${open} (SRC-112, SRC-119).`,
+    );
+  };
   const pathways: JpPathway[] = [];
 
   // ---------- Permanent residence (art. 22, guidelines) ----------
@@ -282,39 +357,25 @@ export function evaluateJapan(req: JpRequest): JpResult {
     const born = req.pr.bornOn;
     const days = v.birthAcquisitionDays.value;
     const raw = addDays(born, days);
-    const holidays = new Set(v.nationalHolidays.value);
-    /**
-     * Offices closed on `d`: yes / no, or maybe for a weekday in a year
-     * whose national holidays are not listed.
-     */
-    const closed = (d: IsoDate): Verdict => {
-      const md = d.slice(5);
-      if (
-        [0, 6].includes(new Date(`${d}T00:00:00Z`).getUTCDay()) ||
-        md >= v.yearEndClosureFrom.value ||
-        md <= v.yearEndClosureTo.value ||
-        holidays.has(d)
-      )
-        return 'yes';
-      return v.nationalHolidays.value.some((h) => h.startsWith(d.slice(0, 4)))
-        ? 'no'
-        : 'maybe';
-    };
-    // A deadline on a closed day moves to the next day (休日法 第2条).
+    // A deadline on a closed day moves to the next day (休日法 第2条):
+    // at least past the days surely closed; a day that may be closed (the
+    // equinox of a year not yet listed) leaves it open until an open day.
     let deadline = raw;
     while (closed(deadline) === 'yes') deadline = addDays(deadline, 1);
     const exact = closed(deadline) === 'no';
+    let latest = deadline;
+    while (latest < sim && closed(latest) !== 'no') latest = addDays(latest, 1);
     const status: PilotStatus =
       sim < born
         ? 'FUTURE'
         : sim <= deadline
           ? 'MET'
-          : exact
+          : exact || latest < sim
             ? 'NOT_MET'
             : 'UNKNOWN';
     const when = L(
-      `出生之日起 ${days} 日为 ${raw}${deadline === raw ? '' : `，遇行政机关休日顺延至 ${deadline}`}${exact ? '' : `；${deadline.slice(0, 4)} 年的国民の祝日未收录，期限可能再顺延（PD-130）`}`,
-      `${days} days from birth is ${raw}${deadline === raw ? '' : `, moved to ${deadline} past days the offices are closed`}${exact ? '' : `; national holidays for ${deadline.slice(0, 4)} are not listed, so it may move later still (PD-130)`}`,
+      `出生之日起 ${days} 日为 ${raw}${deadline === raw ? '' : `，遇行政机关休日顺延至 ${deadline}`}${exact ? '' : `；${deadline} 是否为春分日或秋分日（或因此成为休日）要到前一年 2 月才正式公布，期限可能再顺延（PD-130）`}`,
+      `${days} days from birth is ${raw}${deadline === raw ? '' : `, moved to ${deadline} past days the offices are closed`}${exact ? '' : `; whether ${deadline} is an equinox day (or a holiday because of one) is fixed only in February of the year before, so it may move later still (PD-130)`}`,
     );
     const late = L(
       '已持有其他在留资格的，可改选"实子等（在留资格变更）"按在留年限计算；还没有在留资格的，请尽快联系地方出入国在留管理局。',
@@ -340,7 +401,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
             : L(
                 `在日本出生的，可在申请期限内申请取得永住者资格，不必等在留年限（${when}）${status === 'MET' ? '；模拟日在期限内' : `；出生后（${born} 起）才能递交`}。`,
                 `Born in Japan, you can apply to acquire permanent resident status within the time allowed, without waiting for years of stay (${when})${status === 'MET' ? '; the simulation date is within it' : `; you can apply from the birth (${born})`}.`,
-              ),
+              ) + filingNote(status === 'MET' ? sim : born),
       checks: [
         {
           text: L(
@@ -363,8 +424,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
       ],
       assumptions: [
         L(
-          `${days} 日从出生次日起算（民法初日不算入），到出生后第 ${days} 天为止；落在行政机关休日（周六、周日、国民の祝日与 ${v.yearEndClosureFrom.value} 至 ${v.yearEndClosureTo.value}）的顺延到其后第一个开放日。国民の祝日按国立天文台暦要項收录 ${v.nationalHolidays.value[0].slice(0, 4)}–${v.nationalHolidays.value.at(-1)!.slice(0, 4)} 年，其他年份落在工作日的期限之后待确认（PD-130）。`,
-          `The ${days} days run from the day after birth (the Civil Code leaves out the first day), up to the ${days}th day after birth; a deadline on a day the offices are closed (Saturdays, Sundays, national holidays and ${v.yearEndClosureFrom.value} to ${v.yearEndClosureTo.value}) moves to the next open day. National holidays are listed from the National Astronomical Observatory almanac for ${v.nationalHolidays.value[0].slice(0, 4)}–${v.nationalHolidays.value.at(-1)!.slice(0, 4)}; after a weekday deadline in another year the result is uncertain (PD-130).`,
+          `${days} 日从出生次日起算（民法初日不算入），到出生后第 ${days} 天为止；落在行政机关休日（周六、周日、国民の祝日与 ${v.yearEndClosureFrom.value} 至 ${v.yearEndClosureTo.value}）的顺延到其后第一个开放日。国民の祝日按国立天文台暦要項收录 ${v.nationalHolidays.value[0].slice(0, 4)}–${v.nationalHolidays.value.at(-1)!.slice(0, 4)} 年；之后的年份按祝日法第2、3条推算，春分日、秋分日只有国立天文台的预测，期限取决于它们时待确认；更早的年份未收录，期限之后的日期待确认。窗口只在平日受理，永住申请不在网上申请范围内（PD-130）。`,
+          `The ${days} days run from the day after birth (the Civil Code leaves out the first day), up to the ${days}th day after birth; a deadline on a day the offices are closed (Saturdays, Sundays, national holidays and ${v.yearEndClosureFrom.value} to ${v.yearEndClosureTo.value}) moves to the next open day. National holidays are listed from the National Astronomical Observatory almanac for ${v.nationalHolidays.value[0].slice(0, 4)}–${v.nationalHolidays.value.at(-1)!.slice(0, 4)}; later years follow the holidays law (art. 2, 3), with only predicted equinox days, so a result that turns on one is uncertain; earlier years are not listed, so dates after a deadline there are uncertain. Counters take filings on working days only, and permanent residence cannot be applied for online (PD-130).`,
         ),
       ],
       pendingDetails: ['PD-130'],
@@ -684,24 +745,25 @@ export function evaluateJapan(req: JpRequest): JpResult {
           ? L(
               '模拟日已满足永住许可的时间条件。',
               'You meet the time requirements for permanent residence on the simulation date.',
-            )
+            ) + filingNote(sim)
           : status === 'FUTURE'
             ? L(
-                `满足永住许可时间条件的最早递交日是 ${earliest}。`,
-                `The earliest application date that meets the time requirements for permanent residence is ${earliest}.`,
-              )
+                `最早满足永住许可时间条件的日期是 ${earliest}。`,
+                `The earliest date that meets the time requirements for permanent residence is ${earliest}.`,
+              ) + filingNote(earliest!)
             : status === 'UNKNOWN'
               ? L(
-                  `按年限计算的候选递交日是 ${possible}，`,
-                  `Counting years alone, the candidate application date is ${possible},`,
+                  `按年限计算的候选日期是 ${possible}，`,
+                  `Counting years alone, the candidate date is ${possible},`,
                 ) +
                 reason(possible!) +
                 (earliest
                   ? L(
-                      `不受这一点影响的最早递交日是 ${earliest}。`,
+                      `不受这一点影响的最早日期是 ${earliest}。`,
                       ` The earliest date without this doubt is ${earliest}.`,
                     )
-                  : '')
+                  : '') +
+                filingNote(possible!)
               : L(
                   '按现有记录，10 年内达不到永住许可的时间条件。',
                   'With your record you will not meet the time requirements for permanent residence within 10 years.',
@@ -866,19 +928,20 @@ export function evaluateJapan(req: JpRequest): JpResult {
         ? L(
             '模拟日已满足帰化的时间条件。',
             'You meet the time requirements for naturalisation on the simulation date.',
-          )
+          ) + filingNote(sim)
         : status === 'FUTURE'
           ? L(
-              `满足帰化时间条件的最早递交日是 ${earliest}。`,
-              `The earliest application date that meets the time requirements for naturalisation is ${earliest}.`,
-            )
+              `最早满足帰化时间条件的日期是 ${earliest}。`,
+              `The earliest date that meets the time requirements for naturalisation is ${earliest}.`,
+            ) + filingNote(earliest!)
           : status === 'UNKNOWN'
             ? L(
-                `按年限计算的候选递交日是 ${possible}。`,
-                `Counting years alone, the candidate application date is ${possible}.`,
+                `按年限计算的候选日期是 ${possible}。`,
+                `Counting years alone, the candidate date is ${possible}.`,
               ) +
               practiceNote(possible!) +
-              tripNote(possible!)
+              tripNote(possible!) +
+              filingNote(possible!)
             : L(
                 '按现有记录，10 年内达不到帰化的时间条件。',
                 'With your record you will not meet the time requirements for naturalisation within 10 years.',

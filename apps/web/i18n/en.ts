@@ -736,7 +736,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Child of a permanent resident or similar born in Japan, applying for permanent resident status within 30 days of birth',
   'jp.bornOn': 'Date of birth in Japan',
   'jp.bornOnHint':
-    'A child born in Japan, without landing, can apply to acquire status within 30 days of birth (Immigration Control Act art. 22-2; a deadline on a weekend, holiday or at the turn of the year moves to the next working day); after that, choose the child route for a change of status.',
+    'A child born in Japan, without landing, can apply to acquire status within 30 days of birth (Immigration Control Act art. 22-2; a deadline on a weekend, holiday or at the turn of the year moves to the next working day); after that, if the child already holds another status choose the child route for a change of status, and if the child has no status yet contact the regional immigration services bureau promptly.',
   'jp.prRoute.teijusha': 'Long-term resident (定住者)',
   'jp.prRoute.refugee': 'Recognised refugee or complementary protection',
   'jp.prRoute.hsp70': 'Highly skilled professional, 70 points or more',
