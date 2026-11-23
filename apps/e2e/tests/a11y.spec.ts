@@ -21,6 +21,7 @@ for (const path of [
   '/united-states',
   '/spain',
   '/greece',
+  '/ireland',
   '/germany',
 ]) {
   test(`no serious accessibility violations on ${path}`, async ({ page }) => {
