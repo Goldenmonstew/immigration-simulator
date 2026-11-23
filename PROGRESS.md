@@ -488,3 +488,4 @@
 | 490 | 任务 82：网站改名 immigration-simulator——Cloudflare 新项目与部署变量、仓库改名与 GitHub Pages 新路径；旧 Cloudflare 项目与新建的旧名仓库只做跳转并自行注销旧 service worker；部署文档补记。 | docs/deploy.md |
 | 491 | GitHub Pages 部署拆成 build 与 deploy 两个 job：同一 job 里刚上传的产物偶尔查不到（554dc5f、083fefa 两次失败，重跑后成功）。 | .github/workflows/github-pages.yml |
 | 650 | 任务 88：登记希腊官方原件及哈希，复用 SRC-086–089，补充 SRC-350–372 与 PD-300–319；核实投资过渡交割、旧房短租和入籍经济融入通函。 | policy-sources/*-gr-*、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
+| 651 | 任务 88：按国家登记希腊完整版参数；工资、考试、保险、家庭构成、投资、期限与费用保留逐条法规定位。 | packages/policy-data/src/{types,index,parameters/index,parameters/greece-2026-11}.ts |
