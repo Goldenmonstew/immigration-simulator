@@ -238,6 +238,25 @@ describe('naturalisation, current law (Lei 37/81 art. 6, 15)', () => {
     expect(p.status).toBe('NOT_MET');
   });
 
+  test('card just expired and abroad on the filing day: both named', () => {
+    // Task 75: the summary names the grace (PD-145) and the trip (PD-144).
+    const p = pathway(
+      {
+        route: 'cplp',
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'temporary', from: '2018-11-01', to: '2026-10-31' }],
+        trips: [{ departed: '2026-11-21', returned: '2026-12-01' }],
+      },
+      'PT-NATURALISATION',
+    );
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('PD-145');
+    expect(p.summary).toContain('1 次出境');
+    expect(p.pendingDetails).toEqual(
+      expect.arrayContaining(['PD-144', 'PD-145']),
+    );
+  });
+
   test('within 6 months of a card expiring: unknown (PD-145)', () => {
     // review71-1: the right of residence lasts to 2027-04-30.
     const p = pathway(

@@ -330,6 +330,7 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       };
       return {
         sure,
+        maybe,
         at: (d: IsoDate): Assessment => {
           const a = judge(sure, d);
           if (a.verdict !== 'no') return a;
@@ -374,6 +375,16 @@ export function evaluatePortugal(req: PtRequest): PtResult {
     const span =
       earliest && tripsUpTo(current.sure, current.at(earliest).from, earliest);
     const trips = !!span && span.count > 0;
+    // A status resting on an uncertain reading (PD-140, PD-141, PD-145)
+    // also names the trips in that reading's period (PD-144).
+    const maybeSpan =
+      !trips &&
+      possible &&
+      possible !== earliest &&
+      (!earliest || possible === sim)
+        ? tripsUpTo(current.maybe, current.at(possible).from, possible)
+        : undefined;
+    const absence = trips ? span : maybeSpan?.count ? maybeSpan : undefined;
     const unsure = trips || eu;
     const nowAt = current.at(sim);
     // Trips make a verdict met on the calendar uncertain (PD-144).
@@ -418,10 +429,10 @@ export function evaluatePortugal(req: PtRequest): PtResult {
         'Counting time on a residence visa or the months after a card expired, or converting years to days generously when periods are added up',
         ['PD-140', 'PD-141', 'PD-145'],
       ) +
-      (trips && span
+      (absence
         ? L(
-            `计入的期间里有 ${span.count} 次出境、合计 ${span.absent} 天；国籍法没有规定缺席上限，影响待确认（PD-144）。`,
-            ` In the counted period you have ${span.count} trips abroad, ${span.absent} days in all; the nationality law sets no limit on absences, so their effect is uncertain (PD-144).`,
+            `计入的期间里有 ${absence.count} 次出境、合计 ${absence.absent} 天；国籍法没有规定缺席上限，影响待确认（PD-144）。`,
+            ` In the counted period you have ${absence.count} trips abroad, ${absence.absent} days in all; the nationality law sets no limit on absences, so their effect is uncertain (PD-144).`,
           )
         : '');
     const newCheck = {
@@ -472,7 +483,7 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       'PD-140',
       'PD-141',
       'PD-142',
-      ...(trips ? ['PD-144'] : []),
+      ...(absence ? ['PD-144'] : []),
       ...(possible && (!earliest || possible < earliest) ? ['PD-145'] : []),
     ];
 
