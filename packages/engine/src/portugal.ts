@@ -1111,7 +1111,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
           ? 0
           : daysBetween(from, to) + 1 - days.total(awaySums, from, to);
       // Minimum stays from the grant: the first year, then each later period
-      // (2 years in the regulation, each year on AIMA's page), up to expiry.
+      // (2 years in the regulation, each year on AIMA's page) that starts
+      // before the card expires.
       // Days up to the simulation date are counted as spent; a period not
       // yet met gets the day it would be, staying on after that (PD-148).
       const firstYears = v.goldenVisaFirstPeriodYears.value;
@@ -1123,7 +1124,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
             need: v.goldenVisaFirstPeriodDays.value,
           },
         ];
-        for (let n = firstYears; afterYears(granted, n) <= expiry; n += step)
+        // A period starting on the expiry day belongs to the next card.
+        for (let n = firstYears; afterYears(granted, n) < expiry; n += step)
           periods.push({
             from: afterYears(granted, n),
             to: addDays(afterYears(granted, n + step), -1),

@@ -411,3 +411,4 @@
 | 384 | 任务 69 第十一轮审核修正（review69-11）：学习许可在返回前自身到期的出境按 § 51 Abs. 1 Nr. 1 判为失效（学生流动只豁免 Nr. 6、7）；失效与否不明的出境（学生流动、欧盟长期居留），定居许可与欧盟长期居留的确定日期按已失效计、未失效的日期另列，也解决了欧盟长期居留失效不明不影响后续计时的风险；回归用例 3 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、docs/tasks/reports/69-germany.md |
 | 385 | 任务 70 报告补记最终门禁、手机宽度预览与第十二轮审核结论（通过）及其风险。 | docs/tasks/reports/70-japan.md |
 | 386 | 任务 69 报告补记最终门禁、手机宽度预览与第十二轮审核结论（通过）及其风险。 | docs/tasks/reports/69-germany.md |
+| 420 | 任务 75：黄金签证最低停留只算在当前卡到期日之前开始的期间，卡恰在授予周年日到期时，从这天开始的期间归下一张卡（PD-148 同步）。 | packages/engine/src/portugal.ts、packages/engine/test/portugal.test.ts、docs/pending-details.md、PROGRESS.md |

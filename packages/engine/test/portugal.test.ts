@@ -917,6 +917,25 @@ describe('golden visa (ARI) renewal and minimum stays', () => {
     expect(p.pendingDetails).toContain('PD-148');
   });
 
+  test('a period starting on the expiry day belongs to the next card', () => {
+    // Task 75: a card valid to the second anniversary of the grant
+    // (2026-01-10) is renewed by 2025-12-11; the year from 2026-01-10 is
+    // not part of it.
+    const p = pathway(
+      {
+        simulationDate: '2025-11-01',
+        permits: [
+          { kind: 'golden-visa', from: '2024-01-10', to: '2026-01-10' },
+        ],
+      },
+      'PT-GOLDEN-VISA',
+    );
+    expect(p.status).toBe('MET');
+    expect(p.checks[1].met).toBe(true);
+    expect(p.summary).toContain('2025-10-12');
+    expect(p.summary).toContain('2025-12-11');
+  });
+
   test('the renewed card in force is used', () => {
     const p = pathway(
       {
