@@ -917,15 +917,26 @@ describe('review70-10', () => {
 
 describe('review70-11', () => {
   test('before 2022-04-01 the age was 20', () => {
-    // 19 on 2021-06-01; 18 is enough from 2022-04-01.
+    // 19 on 2021-06-01: 18 is enough from 2022-04-01, while an application
+    // before then may be decided after the change (task 74, PD-161).
     const p = nat({
       simulationDate: '2021-06-01',
       stayStart: '2010-01-01',
       naturalisation: { route: 'general', dateOfBirth: '2002-05-01' },
     });
-    expect(p.earliestDate).toBe('2022-04-01');
-    expect(p.checks[1].text).toContain('年满 20 岁');
-    expect(p.checks[1].met).toBe(false);
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('PD-161');
+    expect(p.checks[1].text).toContain('按 2021-06-01 递交：年满 20 岁');
+    expect(p.checks[1].text).toContain('2022-04-01 起递交为 18 岁');
+    expect(p.checks[1].met).toBeUndefined();
+    // 18 only after the change (2022-06-01): nothing to doubt.
+    const younger = nat({
+      simulationDate: '2021-06-01',
+      stayStart: '2010-01-01',
+      naturalisation: { route: 'general', dateOfBirth: '2004-06-01' },
+    });
+    expect(younger.earliestDate).toBe('2022-06-01');
+    expect(younger.checks[1].met).toBe(false);
   });
 });
 

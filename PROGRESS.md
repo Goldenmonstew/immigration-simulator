@@ -416,3 +416,4 @@
 | 412 | 任务 74：表单拒绝新旧版起点矛盾——新版起点早于旧版起点，或勾选没有旧版认可的资格却另填新版日期（新版认可的资格旧版也认可，SRC-113 1(3)ア、SRC-114 注2）；补回归用例。 | apps/web/lib/japan.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/japan.test.tsx |
 | 413 | 任务 74：出生路线"30 日"是否含出生日——入管厅按初日不算入，东广岛市说明含出生日；两种读法（各自按休日顺延）给出的期限不同时，落在两者之间的日子输出 UNKNOWN（PD-130）；更新边界用例。 | packages/engine/src/japan.ts、packages/engine/test/japan.test.ts、apps/web/test/japan.test.tsx、docs/pending-details.md |
 | 414 | 任务 74：出生路线使用出境记录——递交日须是出生后第一次出境当天或之前、在日本的开放日；已没有这样的日子时，出境到期限之后才回国的为 NOT_MET，期限内回国的为 UNKNOWN（PD-160）；补回归用例。 | packages/engine/src/japan.ts、packages/engine/test/japan.test.ts、docs/pending-details.md |
+| 415 | 任务 74：帰化年龄检查项写明所描述递交日适用的门槛并附 2022-04-01 起的门槛；2022-04-01 前递交时已满 18 岁但未满 20 岁的输出 UNKNOWN（此前递交、之后审结适用哪个年龄没有写明，PD-161）；补回归用例。 | packages/engine/src/japan.ts、packages/engine/test/japan.test.ts、docs/pending-details.md |

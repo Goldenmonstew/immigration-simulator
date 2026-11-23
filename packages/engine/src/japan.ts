@@ -979,6 +979,21 @@ export function evaluateJapan(req: JpRequest): JpResult {
       );
     const adultOn = (d: IsoDate) =>
       nat.route === 'general' ? afterYears(nat.dateOfBirth, ageOn(d)) : d;
+    /** Adult from the 2022-04-01 age, for an application before it. */
+    const adultLater =
+      nat.route === 'general'
+        ? afterYears(
+            nat.dateOfBirth,
+            Math.max(v.naturalisationAge.value, nat.homeMajorityAge ?? 0),
+          )
+        : sim;
+    // An application before 2022-04-01 that meets the later age but not the
+    // age then may have been decided after the change (PD-161).
+    const youngBefore = (d: IsoDate) =>
+      nat.route === 'general' &&
+      d < v.naturalisationAgeFrom.value &&
+      d < adultOn(d) &&
+      d >= adultLater;
     // Art. 7 applies to a spouse on the application day.
     const legal = (d: IsoDate) => {
       const stay = stayFrom(d);
@@ -1000,7 +1015,12 @@ export function evaluateJapan(req: JpRequest): JpResult {
     // The 10-year practice is certain only for general applications reviewed
     // from its start; earlier ones may still be pending then (PD-137).
     const verdict = (d: IsoDate): Verdict => {
-      if (abroad(d) || !legal(d)) return 'no';
+      if (abroad(d)) return 'no';
+      if (!legal(d))
+        return youngBefore(d) &&
+          d >= afterYears(stayFrom(d), v.naturalisationYears.value)
+          ? 'maybe'
+          : 'no';
       if (!practice(d))
         return nat.route === 'general' && d >= practiceFrom ? 'no' : 'maybe';
       return tripsBefore(d, practiceYears).length ? 'maybe' : 'yes';
@@ -1061,6 +1081,12 @@ export function evaluateJapan(req: JpRequest): JpResult {
                 `按年限计算的候选日期是 ${possible}。`,
                 `Counting years alone, the candidate date is ${possible}.`,
               ) +
+              (youngBefore(possible!)
+                ? L(
+                    `按 ${possible} 递交适用 ${japanAge(possible!)} 岁，那时已满 ${v.naturalisationAge.value} 岁但未满 ${japanAge(possible!)} 岁；${v.naturalisationAgeFrom.value} 起改为 ${v.naturalisationAge.value} 岁，此前递交、之后才审结的申请按哪个年龄审没有写明（PD-161）。`,
+                    ` Applying on ${possible} the age was ${japanAge(possible!)}, and you were ${v.naturalisationAge.value} but not yet ${japanAge(possible!)}; from ${v.naturalisationAgeFrom.value} it is ${v.naturalisationAge.value}, and which age applies to an application made before and decided after that is not stated (PD-161).`,
+                  )
+                : '') +
               practiceNote(possible!) +
               tripNote(possible!) +
               filingNote(possible!, (x) => verdict(x) !== 'no', 'bureau', true)
@@ -1116,17 +1142,29 @@ export function evaluateJapan(req: JpRequest): JpResult {
               sources: v.naturalisationYears.sources,
             },
             {
-              text: nat.homeMajorityAge
-                ? L(
-                    `年满 ${japanAge(at)} 岁并达到本国法的成年年龄 ${nat.homeMajorityAge} 岁（${adultOn(at)} 起）`,
-                    `Aged ${japanAge(at)} and an adult under your home country's law at ${nat.homeMajorityAge} (from ${adultOn(at)})`,
-                  )
-                : L(
-                    `年满 ${japanAge(at)} 岁（${adultOn(at)} 起；你确认本国法的成年年龄不高于此）`,
-                    `Aged ${japanAge(at)} or over (from ${adultOn(at)}; you confirmed your home country's age of majority is no higher)`,
-                  ),
-              met: at >= adultOn(at),
-              sources: v.naturalisationAge.sources,
+              text:
+                L(`按 ${at} 递交：`, `Applying on ${at}: `) +
+                (nat.homeMajorityAge
+                  ? L(
+                      `年满 ${japanAge(at)} 岁并达到本国法的成年年龄 ${nat.homeMajorityAge} 岁（${adultOn(at)} 起）`,
+                      `aged ${japanAge(at)} and an adult under your home country's law at ${nat.homeMajorityAge} (from ${adultOn(at)})`,
+                    )
+                  : L(
+                      `年满 ${japanAge(at)} 岁（${adultOn(at)} 起；你确认本国法的成年年龄不高于此）`,
+                      `aged ${japanAge(at)} or over (from ${adultOn(at)}; you confirmed your home country's age of majority is no higher)`,
+                    )) +
+                (at < v.naturalisationAgeFrom.value
+                  ? L(
+                      `；${v.naturalisationAgeFrom.value} 起递交为 ${v.naturalisationAge.value} 岁（${adultLater} 起）`,
+                      `; applying from ${v.naturalisationAgeFrom.value} the age is ${v.naturalisationAge.value} (from ${adultLater})`,
+                    )
+                  : ''),
+              met:
+                at >= adultOn(at) ? true : youngBefore(at) ? undefined : false,
+              sources: [
+                ...v.naturalisationAge.sources,
+                ...v.naturalisationAgeFrom.sources,
+              ],
             },
           ]
         : [
