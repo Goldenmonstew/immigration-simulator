@@ -607,7 +607,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Results are worked out for this date (the application date). It starts as today.',
   'pt.permits': 'Residence permits',
   'pt.permitsHint':
-    'Add a row for each permit, then the next one if renewed on time; leave the end blank if it is still valid (for a golden visa, enter the expiry on the card to get the renewal dates). You can also add a row for time on a residence visa before your first permit.',
+    'Add a row for each permit, then the next one if renewed on time; leave the end blank if it is still valid (for a golden visa, enter the expiry on the card to get the renewal dates). You can also add a row for time on a residence visa before your first permit. Permanent residence has no time limit, so an expired card does not end it; the right of residence for 6 months after a temporary card expires is explained in the results.',
   'pt.permit': 'Permit {n}',
   'pt.from': 'Valid from',
   'pt.to': 'Valid until (leave blank if still valid)',
@@ -628,8 +628,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'pt.nationality': 'Naturalisation',
   'pt.route': 'Your nationality',
   'pt.route.choose': 'Choose one',
-  'pt.route.cplp-eu':
-    'National of a Portuguese-speaking country or an EU member state (7 years)',
+  'pt.route.cplp': 'National of a Portuguese-speaking country (7 years)',
+  'pt.route.eu': 'Citizen of an EU member state (7 years)',
   'pt.route.other': 'National of another country, China included (10 years)',
   'pt.route.stateless': 'Stateless (4 years)',
   'pt.pending':
@@ -645,6 +645,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'pt.error.date': 'Enter a valid date.',
   'pt.error.order': 'This date cannot be before the start date.',
   'pt.error.route': 'Choose your nationality group.',
+  'pt.error.pendingDate':
+    'Applications made after the new law came into force (2026-05-19) do not fall under the earlier law; check the date or untick the box.',
+  'pt.error.afterSimulation':
+    'The application date cannot be after the simulation date.',
   'es.entryLink': 'Open the Spain pilot',
   'es.entryDesc':
     'Use your residence permits and travel record to work out the dates for national long-term residence and citizenship by residence.',

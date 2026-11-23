@@ -4,6 +4,7 @@ import type {
   PtPermitKind,
   PtRequest,
 } from '@uk-immigration/engine';
+import { portugal2026_11 as pt } from '@uk-immigration/policy-data';
 import type { TranslationKey } from '../i18n';
 import { validDate } from './questionnaire';
 
@@ -74,6 +75,12 @@ export function validatePtForm(form: PtForm): PtErrors {
   if (!form.route) errors['pt-route'] = 'pt.error.route';
   if (form.pending) {
     date('pt-applied-on', form.appliedOn);
+    const applied = validDate(form.appliedOn) && form.appliedOn;
+    // Applied on the day the new law came in is left open (PD-143).
+    if (applied && applied > pt.values.lawInForce.value)
+      errors['pt-applied-on'] = 'pt.error.pendingDate';
+    else if (applied && applied > form.simulationDate)
+      errors['pt-applied-on'] = 'pt.error.afterSimulation';
     date('pt-residence-applied', form.residenceApplied, true);
   }
   return errors;

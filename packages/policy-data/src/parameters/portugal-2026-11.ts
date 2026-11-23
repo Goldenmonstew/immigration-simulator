@@ -12,14 +12,14 @@ export const portugal2026_11 = {
   values: {
     // Naturalisation: years of legal residence by nationality.
     nationalityYears: {
-      value: { 'cplp-eu': 7, other: 10, stateless: 4 },
+      value: { cplp: 7, eu: 7, other: 10, stateless: 4 },
       sources: [
         { srcId: 'SRC-120', locator: 'art. 6 n.º 1 b) (p2), n.º 3 (p3)' },
       ],
     },
     // The counted periods must fall within this many years.
     nationalityIntervalYears: {
-      value: { 'cplp-eu': 9, other: 12, stateless: 6 },
+      value: { cplp: 9, eu: 9, other: 12, stateless: 6 },
       sources: [{ srcId: 'SRC-120', locator: 'art. 15 n.º 3 (p5)' }],
     },
     // Applications pending on this date keep the earlier text of the law.
@@ -31,6 +31,15 @@ export const portugal2026_11 = {
           srcId: 'SRC-127',
           locator: 'Regulamentação complementar',
         },
+      ],
+    },
+    // The earlier text (LO 1/2024) applies to applications made from this
+    // date until the current law came into force.
+    oldTextFrom: {
+      value: '2024-04-01',
+      sources: [
+        { srcId: 'SRC-121', locator: 'LO 1/2024 art. 9 (p5)' },
+        { srcId: 'SRC-122', locator: 'fundamentação D.5' },
       ],
     },
     // Earlier text (LO 1/2024): years, counted from the residence
@@ -131,6 +140,22 @@ export const portugal2026_11 = {
         },
       ],
     },
+    // The right of residence lasts this many months after a temporary
+    // residence card expires.
+    residenceRightMonths: {
+      value: 6,
+      sources: [
+        {
+          srcId: 'SRC-126',
+          locator: 'Esclarecimento: Direito de Residência',
+          url: 'https://aima.gov.pt/pt/noticias/direito-de-residencia',
+        },
+        {
+          srcId: 'SRC-125',
+          locator: 'Decreto Regulamentar 84/2007 art. 63.º n.º 14',
+        },
+      ],
+    },
     // Renewal: apply no later than this many days before expiry...
     renewalDeadlineDays: {
       value: 30,
@@ -143,7 +168,8 @@ export const portugal2026_11 = {
         },
       ],
     },
-    // ...and from this many days before it (regulation, consolidated text).
+    // ...and from this many days before it (regulation; consolidated text
+    // only, PD-149).
     renewalWindowDays: {
       value: 90,
       sources: [

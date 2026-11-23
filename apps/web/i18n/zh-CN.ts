@@ -409,7 +409,7 @@ export const zhCN = {
   'pt.simulationDateHint': '按这一天判断（按递交日），默认今天。',
   'pt.permits': '居留证件',
   'pt.permitsHint':
-    '每张证件填一行，按时续期的接着填下一张；仍有效的到期日可留空（黄金签证请填卡上的到期日，才能算续期时间）。拿到许可前持居留签证的期间也可以填一行。',
+    '每张证件填一行，按时续期的接着填下一张；仍有效的到期日可留空（黄金签证请填卡上的到期日，才能算续期时间）。拿到许可前持居留签证的期间也可以填一行。永久居留许可本身没有期限，卡面到期不影响；临时居留卡到期后 6 个月内的居留权会另作说明。',
   'pt.permit': '证件 {n}',
   'pt.from': '生效日期',
   'pt.to': '到期日期（仍有效可留空）',
@@ -430,7 +430,8 @@ export const zhCN = {
   'pt.nationality': '入籍',
   'pt.route': '你的国籍',
   'pt.route.choose': '请选择',
-  'pt.route.cplp-eu': '葡语国家或欧盟成员国国民（7 年）',
+  'pt.route.cplp': '葡语国家国民（7 年）',
+  'pt.route.eu': '欧盟成员国公民（7 年）',
   'pt.route.other': '其他国家国民，含中国（10 年）',
   'pt.route.stateless': '无国籍（4 年）',
   'pt.pending':
@@ -445,6 +446,9 @@ export const zhCN = {
   'pt.error.date': '请填写有效日期。',
   'pt.error.order': '这个日期不能早于开始的日期。',
   'pt.error.route': '请选择你的国籍类别。',
+  'pt.error.pendingDate':
+    '新法施行（2026-05-19）后递交的申请不适用旧法；请检查日期或取消勾选。',
+  'pt.error.afterSimulation': '递交日期不能晚于模拟日期。',
   'es.entryLink': '打开西班牙试点',
   'es.entryDesc':
     '按居留许可与出入境记录，计算国内长期居留与按居住入籍的时间节点。',

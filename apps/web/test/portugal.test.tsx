@@ -66,6 +66,33 @@ test('validation marks missing and out-of-order dates', () => {
   expect(validatePtForm(filled)).toEqual({});
 });
 
+test('a pending application must predate the new law and the simulation', () => {
+  // review71-1: the box says the application was pending on 2026-05-19.
+  const pending = (appliedOn: string, simulationDate = '2026-11-23') =>
+    validatePtForm({
+      ...filled,
+      simulationDate,
+      pending: true,
+      appliedOn,
+    })['pt-applied-on'];
+  expect(pending('2026-12-01')).toBe('pt.error.pendingDate');
+  expect(pending('2026-05-20')).toBe('pt.error.pendingDate');
+  // The day itself stays open (PD-143).
+  expect(pending('2026-05-19')).toBeUndefined();
+  expect(pending('2025-03-01', '2025-01-01')).toBe('pt.error.afterSimulation');
+});
+
+test('EU citizens are a separate group outside the foreigners law', () => {
+  const result = evaluatePortugal(
+    ptRequest({ ...filled, route: 'eu', permits: [] }, 'zh-CN'),
+  );
+  const html = render(<PilotResult result={result} />, 'zh-CN');
+  expect(html).toContain(
+    'data-pathway="PT-EU-LONG-TERM" data-status="NOT_APPLICABLE"',
+  );
+  expect(render(<PortugalPage />, 'zh-CN')).toContain(t('pt.route.eu'));
+});
+
 test('the request leaves out blank and hidden dates', () => {
   const request = ptRequest(
     {
