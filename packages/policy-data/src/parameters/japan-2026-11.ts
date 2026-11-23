@@ -129,6 +129,20 @@ export const japan2026_11 = {
         },
       ],
     },
+    // With a renewal or change of status pending at expiry, the status lasts
+    // until the decision or this many months after expiry, and a deemed
+    // re-entry must come back by then.
+    renewalPendingMonths: {
+      value: 2,
+      sources: [
+        { srcId: 'SRC-110', locator: '第20条第6項' },
+        {
+          srcId: 'SRC-116',
+          locator: '出入国審査・在留審査Q&A Q61',
+          url: 'https://www.moj.go.jp/isa/immigration/faq/kanri_qa.html#q61',
+        },
+      ],
+    },
     // Naturalisation (art. 5): years of domicile and age.
     naturalisationYears: {
       value: 5,

@@ -13,6 +13,8 @@ export interface JpTripRow {
   /** Period of stay held when leaving; blank for permanent residents. */
   stayExpiry: string;
   reentryPermit: boolean;
+  /** A renewal applied for before the expiry was pending when leaving. */
+  renewalPending: boolean;
 }
 
 /** A stay that does not count towards the 10 years. */
@@ -28,6 +30,8 @@ export interface JpForm {
   prRoute: JpPrRoute | '';
   /** The status, recognition or points date the route counts from. */
   statusStart: string;
+  /** General route: the start under the new guideline, if different. */
+  newStatusStart: string;
   /** General route only. */
   excluded: JpExcludedRow[];
   /** Spouse route for permanent residence: married life from. */
@@ -46,6 +50,7 @@ export const emptyJpTrip = (): JpTripRow => ({
   returned: '',
   stayExpiry: '',
   reentryPermit: false,
+  renewalPending: false,
 });
 export const emptyJpExcluded = (): JpExcludedRow => ({ from: '', to: '' });
 
@@ -55,6 +60,7 @@ export function emptyJpForm(today: string): JpForm {
     stayStart: '',
     prRoute: '',
     statusStart: '',
+    newStatusStart: '',
     excluded: [],
     marriedLifeFrom: '',
     natRoute: '',
@@ -84,12 +90,14 @@ export function validateJpForm(form: JpForm): JpErrors {
   date('jp-stay-start', form.stayStart);
   if (!form.prRoute) errors['jp-pr-route'] = 'jp.error.prRoute';
   if (needsStatusStart(form.prRoute)) date('jp-status-start', form.statusStart);
-  if (form.prRoute === 'general')
+  if (form.prRoute === 'general') {
+    date('jp-new-status-start', form.newStatusStart, true);
     form.excluded.forEach((row, i) => {
       date(`jp-excluded-${i}-from`, row.from);
       date(`jp-excluded-${i}-to`, row.to);
       order(`jp-excluded-${i}-to`, row.from, row.to);
     });
+  }
   if (form.prRoute === 'spouse')
     date('jp-married-life-from', form.marriedLifeFrom);
   if (!form.natRoute) errors['jp-nat-route'] = 'jp.error.natRoute';
@@ -98,7 +106,8 @@ export function validateJpForm(form: JpForm): JpErrors {
   form.trips.forEach((trip, i) => {
     date(`jp-trip-${i}-departed`, trip.departed);
     date(`jp-trip-${i}-returned`, trip.returned);
-    date(`jp-trip-${i}-stayExpiry`, trip.stayExpiry, true);
+    // A pending renewal only matters against the expiry it extends.
+    date(`jp-trip-${i}-stayExpiry`, trip.stayExpiry, !trip.renewalPending);
     order(`jp-trip-${i}-returned`, trip.departed, trip.returned);
     order(`jp-trip-${i}-stayExpiry`, trip.departed, trip.stayExpiry);
     // Overlapping trips would count the same days twice.
@@ -129,6 +138,9 @@ export function jpRequest(form: JpForm, locale: Locale): JpRequest {
           ? {
               route: 'general',
               statusStart: form.statusStart,
+              ...(form.newStatusStart
+                ? { newStatusStart: form.newStatusStart }
+                : {}),
               ...(form.excluded.length ? { excluded: form.excluded } : {}),
             }
           : {
@@ -143,6 +155,7 @@ export function jpRequest(form: JpForm, locale: Locale): JpRequest {
       returned: t.returned,
       ...(t.stayExpiry ? { stayExpiry: t.stayExpiry } : {}),
       ...(t.reentryPermit ? { reentryPermit: true } : {}),
+      ...(t.renewalPending ? { renewalPending: true } : {}),
     })),
     pr,
     naturalisation:

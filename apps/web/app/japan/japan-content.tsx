@@ -34,6 +34,7 @@ type DateField =
   | 'simulationDate'
   | 'stayStart'
   | 'statusStart'
+  | 'newStatusStart'
   | 'marriedLifeFrom'
   | 'marriedOn'
   | 'dateOfBirth';
@@ -42,6 +43,7 @@ const FIELD_LABELS: Record<string, TranslationKey> = {
   'jp-simulation-date': 'jp.simulationDate',
   'jp-stay-start': 'jp.stayStart',
   'jp-pr-route': 'jp.prRoute',
+  'jp-new-status-start': 'jp.newStatusStart',
   'jp-married-life-from': 'jp.marriedLifeFrom',
   'jp-married-on': 'jp.marriedOn',
   'jp-nat-route': 'jp.natRoute',
@@ -184,6 +186,12 @@ export default function JapanContent() {
           )}
           {draft.prRoute === 'general' && (
             <div className={form.followUp}>
+              {date(
+                'jp-new-status-start',
+                t('jp.newStatusStart'),
+                'newStatusStart',
+                t('jp.newStatusStartHint'),
+              )}
               <p className={form.hint}>{t('jp.excludedHint')}</p>
               <PilotDateRows
                 prefix="jp-excluded"
@@ -281,6 +289,16 @@ export default function JapanContent() {
                       }
                     />
                     {t('jp.reentryPermit')}
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={trip.renewalPending}
+                      onChange={(e) =>
+                        update({ renewalPending: e.target.checked })
+                      }
+                    />
+                    {t('jp.renewalPending')}
                   </label>
                 </div>
                 <button

@@ -100,11 +100,14 @@ test('validation catches overlapping trips and an early period of stay', () => {
         { ...trip('2024-01-20', '2024-03-01'), stayExpiry: '2024-01-10' },
         // Leaving on the day of return is not an overlap.
         trip('2024-03-01', '2024-03-05'),
+        // A pending renewal needs the expiry it extends.
+        { ...trip('2024-04-01', '2024-04-05'), renewalPending: true },
       ],
     }),
   ).toEqual({
     'jp-trip-1-departed': 'jp.error.overlap',
     'jp-trip-1-stayExpiry': 'jp.error.order',
+    'jp-trip-3-stayExpiry': 'jp.error.date',
   });
 });
 
@@ -121,6 +124,7 @@ test('the request carries each route with its own date', () => {
           ...trip('2026-01-01', '2026-01-10'),
           reentryPermit: true,
           stayExpiry: '2026-06-30',
+          renewalPending: true,
         },
         trip('2026-03-01', '2026-03-05'),
       ],
@@ -138,6 +142,7 @@ test('the request carries each route with its own date', () => {
       returned: '2026-01-10',
       stayExpiry: '2026-06-30',
       reentryPermit: true,
+      renewalPending: true,
     },
     { departed: '2026-03-01', returned: '2026-03-05' },
   ]);
@@ -147,6 +152,7 @@ test('the request carries each route with its own date', () => {
         ...filled,
         prRoute: 'general',
         statusStart: '2021-04-01',
+        newStatusStart: '2024-04-01',
         excluded: [{ from: '2020-10-01', to: '2021-03-31' }],
       },
       'en',
@@ -154,6 +160,7 @@ test('the request carries each route with its own date', () => {
   ).toEqual({
     route: 'general',
     statusStart: '2021-04-01',
+    newStatusStart: '2024-04-01',
     excluded: [{ from: '2020-10-01', to: '2021-03-31' }],
   });
   expect(jpRequest(filled, 'en').pr).toEqual({

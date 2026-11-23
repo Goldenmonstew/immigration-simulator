@@ -106,8 +106,9 @@ describe('永住許可, general route (10 years, 5 on a work status)', () => {
     expect(p.checks[3].text).toContain('912');
     expect(p.checks[3].text).toContain('911–915');
     expect(p.checks[3].met).toBeUndefined();
-    // From 2028-01-04 the window starts on 2018-01-04: 150 + 5 × 152 = 910.
-    expect(p.summary).toContain('2028-01-04');
+    // Counting travel days, each trip is 154 days: 924 in all. From
+    // 2028-01-15 the window starts on 2018-01-15: 140 + 5 × 154 = 910.
+    expect(p.summary).toContain('2028-01-15');
   });
 
   test('915 days or more reaches 30 months', () => {
@@ -504,6 +505,97 @@ describe('review70-1', () => {
       pr: { route: 'general', statusStart: '2028-02-29' },
     });
     expect(p.earliestDate).toBe('2038-03-01');
+  });
+});
+
+describe('review70-2', () => {
+  test('the new guideline counts work statuses from its own date', () => {
+    // Intra-company Transferee from 2021-04-05 to 2024-03-31 counts under
+    // the old guideline only.
+    const at = (newStatusStart?: string) =>
+      pr({
+        simulationDate: '2027-03-30',
+        stayStart: '2017-04-05',
+        pr: { route: 'general', statusStart: '2017-04-05', newStatusStart },
+      }).earliestDate;
+    // 10 years on 2027-04-05 falls under the new guideline: 2024-04-01 + 5.
+    expect(at('2024-04-01')).toBe('2029-04-01');
+    // Left blank, the same start serves both guidelines.
+    expect(at()).toBe('2027-04-05');
+  });
+
+  test('a deemed re-entry with a renewal pending (FAQ Q61)', () => {
+    const req: Partial<JpRequest> = {
+      simulationDate: '2027-05-10',
+      stayStart: '2016-04-01',
+      pr: { route: 'general', statusStart: '2018-04-01' },
+    };
+    const trip = {
+      departed: '2027-04-15',
+      returned: '2027-04-30',
+      stayExpiry: '2027-04-20',
+    };
+    const pending = { ...req, trips: [{ ...trip, renewalPending: true }] };
+    expect(pr(pending).status).toBe('MET');
+    // Naturalisation still sees a trip in the 10 years.
+    expect(nat(pending).status).toBe('UNKNOWN');
+    // Without the pending renewal the status ended on 2027-04-20.
+    const lapsed = pr({ ...req, trips: [trip] });
+    expect(lapsed.status).toBe('FUTURE');
+    expect(lapsed.earliestDate).toBe('2037-04-30');
+    // A pending renewal keeps the status 2 months after expiry, no longer.
+    const late = pr({
+      ...req,
+      simulationDate: '2027-07-01',
+      trips: [{ ...trip, returned: '2027-06-21', renewalPending: true }],
+    });
+    expect(late.summary).toContain('2027-06-20');
+    expect(late.summary).toContain('2027-06-21 重新起算');
+  });
+
+  test('a spouse 10-year date with trips is only a candidate', () => {
+    const p = nat({
+      simulationDate: '2027-06-01',
+      stayStart: '2019-05-01',
+      naturalisation: { route: 'spouse', marriedOn: '2023-06-01' },
+      trips: [{ departed: '2022-11-15', returned: '2022-12-01' }],
+    });
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('候选日是 2029-05-01');
+    expect(p.summary).not.toContain('最早 2029-05-01');
+  });
+
+  test('a total near 30 months on the travel-day reading is uncertain', () => {
+    // 903 whole days abroad, 915 counting both travel days.
+    const p = pr({
+      simulationDate: '2027-06-01',
+      stayStart: '2015-01-01',
+      pr: { route: 'general', statusStart: '2015-01-01' },
+      trips: [
+        { departed: '2018-01-01', returned: '2018-06-01' },
+        { departed: '2019-01-01', returned: '2019-06-01' },
+        { departed: '2020-01-01', returned: '2020-05-31' },
+        { departed: '2021-01-01', returned: '2021-06-01' },
+        { departed: '2022-01-01', returned: '2022-06-01' },
+        { departed: '2023-01-01', returned: '2023-06-04' },
+      ],
+    });
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[3].text).toContain('903');
+    expect(p.checks[3].text).toContain('915');
+    expect(p.checks[3].met).toBeUndefined();
+  });
+
+  test('a trip under way on the simulation date counts so far', () => {
+    const p = pr({
+      simulationDate: '2027-05-10',
+      stayStart: '2010-01-01',
+      pr: { route: 'general', statusStart: '2010-01-01' },
+      trips: [{ departed: '2027-05-01', returned: '2027-12-01' }],
+    });
+    // 8 whole days abroad by 2027-05-10.
+    expect(p.checks[2].met).toBe(true);
+    expect(p.checks.at(-1)?.met).toBe(false);
   });
 });
 

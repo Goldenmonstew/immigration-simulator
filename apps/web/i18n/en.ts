@@ -672,6 +672,12 @@ export const en: Record<keyof typeof zhCN, string> = {
     'First day with 80 points (or as special highly skilled), kept since',
   'jp.statusStartHint.general':
     'Technical Intern Training and Specified Skilled Worker (i) do not count; for applications from 2027-04-01, Employment for Skill Development, Intra-company Transferee and some Designated Activities do not count either.',
+  'jp.newStatusStart':
+    'Under the new guideline from 2027-04-01, first day on a work or residence status (leave blank if the same as above)',
+  'jp.newStatusStartHint':
+    'The new guideline no longer counts Intra-company Transferee, Employment for Skill Development, Specified Skilled Worker (i) or some Designated Activities as work statuses; if you held one of them, enter when you began holding a qualifying status without a break after it. Applications from 2027-04-01 count the 5 years from this date.',
+  'jp.renewalPending':
+    'Before leaving I had applied to renew (or change) my status within the period of stay, and the decision was still pending',
   'jp.marriedLifeFrom': 'Date your married life began',
   'jp.marriedLifeFromHint':
     'The permanent residence guideline counts married life in substance and does not say whether it runs from registration or from when you began living together; if they differ, the later one gives the more cautious result.',
@@ -701,7 +707,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Left on a re-entry permit (not the deemed permit) and came back while it was valid',
   'jp.stayExpiry': 'Period of stay when you left (optional)',
   'jp.stayExpiryHint':
-    'The expiry date on your residence card; leave blank if you are a permanent resident or it did not end before you came back.',
+    'The expiry date on your residence card when you left; leave blank if you are a permanent resident or it did not end before you came back. If a renewal was pending when you left, also tick the box below (you then have until 2 months after expiry).',
   'jp.addTrip': 'Add a trip',
   'jp.remove': 'Remove',
   'jp.submit': 'Work out dates',
