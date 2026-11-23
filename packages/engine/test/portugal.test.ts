@@ -535,6 +535,27 @@ describe('permanent residence (Lei 23/2007 art. 80)', () => {
     }
   });
 
+  test('from the switch to permanent residence for investment, no renewal', () => {
+    // review75-3: the same record before and after 2026-10-01.
+    const permits: PtRequest['permits'] = [
+      { kind: 'golden-visa', from: '2020-10-01', to: '2022-09-30' },
+      { kind: 'golden-visa', from: '2022-10-01', to: '2024-09-30' },
+      { kind: 'golden-visa', from: '2024-10-01', to: '2026-09-30' },
+      { kind: 'ari-permanent', from: '2026-10-01' },
+    ];
+    // Renewal opens 90 days before 2026-09-30.
+    const before = pathway(
+      { simulationDate: '2026-07-01', permits },
+      'PT-GOLDEN-VISA',
+    );
+    expect(before.status).toBe('FUTURE');
+    expect(before.earliestDate).toBe('2026-07-02');
+    for (const simulationDate of ['2026-10-01', '2026-11-22'])
+      expect(
+        pathway({ simulationDate, permits }, 'PT-GOLDEN-VISA').status,
+      ).toBe('NOT_APPLICABLE');
+  });
+
   test('a golden visa forecast names the unconfirmed limit (PD-146)', () => {
     // review75-1: 6 months away on 2027-07-10 during the ARI card.
     const p = pathway(
@@ -862,6 +883,20 @@ describe('EU long-term residence (Lei 23/2007 art. 125–126)', () => {
     expect(p.summary).toContain('2033-01-01');
     expect(p.summary).toContain('art. 129 n.º 9');
     expect(p.summary).toContain('art. 131 n.º 6');
+  });
+
+  test('a planned trip is followed past the calculation horizon', () => {
+    // review75-3: 6 years on 2037-01-01, after 2036-11-22.
+    const p = pathway(
+      {
+        simulationDate: '2026-11-22',
+        permits: [{ kind: 'eu-long-term', from: '2019-01-01' }],
+        trips: [{ departed: '2031-01-01', returned: '2037-02-01' }],
+      },
+      'PT-EU-LONG-TERM',
+    );
+    expect(p.summary).toContain('2032-01-01');
+    expect(p.summary).toContain('2037-01-01');
   });
 
   test('every planned trip that reaches 12 months is listed', () => {

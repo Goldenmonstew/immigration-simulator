@@ -182,12 +182,15 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       (t) => addDays(t.departed, 1) <= to && addDays(t.returned, -1) >= from,
     );
   /** The first day some trip from `from` on has kept you abroad `months`. */
-  const awayDates = (from: IsoDate, months: number, to = end, after = '') =>
+  // Without `to`, a recorded trip is followed to its return, past the
+  // horizon.
+  const awayDates = (from: IsoDate, months: number, to?: IsoDate, after = '') =>
     req.trips
       .map((t) => {
         const a = later(addDays(t.departed, 1), from);
         const d = addMonths(addDays(a, -1), months);
-        return d <= earlier(addDays(t.returned, -1), to) ? d : '';
+        const b = addDays(t.returned, -1);
+        return d <= (to ? earlier(b, to) : b) ? d : '';
       })
       .filter((d) => d > after)
       .sort();
@@ -657,14 +660,14 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       pathways.push(notForEu('PT-PERMANENT', title));
     } else if (permanent?.kind === 'ari-permanent') {
       // Permanent residence for investment is not cancelled for absences
-      // (art. 85 n.º 2 b, 3 and 4 excepted).
+      // (art. 85 n.º 2 b, 3 and 4 do not apply).
       pathways.push({
         id: 'PT-PERMANENT',
         title,
         status: 'NOT_APPLICABLE',
         summary: L(
-          `记录中已有 ${permanent.from} 起的投资类永久居留（由黄金签证转来），许可本身没有期限，也不适用因出境注销的规定（art. 85 n.º 2 b、n.º 3–4 除外）。`,
-          `Your record has permanent residence for investment from ${permanent.from} (from a golden visa); the permit has no time limit, and the rules on cancelling it for time abroad do not apply (art. 85 n.º 2 b, 3 and 4 excepted).`,
+          `记录中已有 ${permanent.from} 起的投资类永久居留（由黄金签证转来），许可本身没有期限；因出境注销的 art. 85 n.º 2 b 与 n.º 3–4 不适用于这一许可。`,
+          `Your record has permanent residence for investment from ${permanent.from} (from a golden visa); the permit has no time limit, and art. 85 n.º 2 b and n.º 3–4, on cancelling it for time abroad, do not apply to it.`,
         ),
         checks: [
           {
@@ -942,8 +945,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       const lostAll = awayFor(longTerm.from, lossYears * 12);
       const lostEu = awayFor(longTerm.from, lossMonths);
       // Each limit each planned trip reaches, whatever happened before.
-      const nextAll = awayDates(longTerm.from, lossYears * 12, end, sim);
-      const nextEu = awayDates(longTerm.from, lossMonths, end, sim);
+      const nextAll = awayDates(longTerm.from, lossYears * 12, undefined, sim);
+      const nextEu = awayDates(longTerm.from, lossMonths, undefined, sim);
       pathways.push({
         id: 'PT-EU-LONG-TERM',
         title,
@@ -1225,8 +1228,26 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       .filter((p) => p.kind === 'golden-visa')
       .sort((a, b) => (a.from < b.from ? -1 : 1));
     const current = cards.filter((p) => p.from <= sim).at(-1) ?? cards[0];
+    // From the day permanent residence for investment starts, the temporary
+    // golden visa is no longer renewed (DR 84/2007 art. 65-K).
+    const ariPermanent = req.permits.find(
+      (p) => p.kind === 'ari-permanent' && p.from <= sim,
+    );
     if (eu) {
       pathways.push(notForEu('PT-GOLDEN-VISA', title));
+    } else if (ariPermanent) {
+      pathways.push({
+        id: 'PT-GOLDEN-VISA',
+        title,
+        status: 'NOT_APPLICABLE',
+        summary: L(
+          `记录中已有 ${ariPermanent.from} 起的投资类永久居留，临时黄金签证不再续期。`,
+          `Your record has permanent residence for investment from ${ariPermanent.from}, so the temporary golden visa is no longer renewed.`,
+        ),
+        checks: [],
+        notChecked: [],
+        assumptions: [],
+      });
     } else if (!current || !current.to) {
       pathways.push({
         id: 'PT-GOLDEN-VISA',
