@@ -36,3 +36,33 @@
 
 - `apps/e2e/tests/site.spec.ts` 中的 `home.png` 视觉快照对应 `/uk` 页面；由于本次顶栏站名改为“移民路径模拟”、顶栏导航增加了“所有国家”且 `/uk` 移除了底部的十国列表，Fable 在跑 e2e 视觉验收时可核对并更新相关快照，或为根路径 `/` 补充集合入口截图。
 - 后续各国游戏在任务 103–112 落地时，只需在 `apps/web/lib/site-countries.ts` 中将对应国家的 `hasGame` 设为 `true`，集合入口卡片即会自动并排展示该国的“人生模拟”入口按钮。
+
+## 审核修正（review79-1，Codex gpt-6.2-sol 接手）
+
+### 1. 做了什么（按拟提交分组）
+
+| PROGRESS | 建议 commit message | 改动与涉及文件 |
+|---|---|---|
+| 465 | `Fix: 移除十国计算结果中的试点称呼` | 核对十国引擎和网页双语文案，替换澳大利亚、德国、爱尔兰、日本、新西兰、葡萄牙和美国的结果称呼。改动在 `packages/engine/src/{australia,germany,ireland,japan,new-zealand,portugal,united-states}.ts`。同步更新 `packages/engine/test/{ireland,japan}.test.ts` 的文案断言，并在 `apps/web/test/new-zealand.test.tsx` 增加随同申请人留空 PRV 获批日期的双语回归。 |
+| 466 | `Fix: 说明各国计算器的检查范围` | `apps/web/i18n/{zh-CN,en}.ts` 的 `hub.intro` 和 `hub.badge.rules` 写明英国所涵盖定居路径的法定条件核对范围，以及其他十国目前只检查时间条件。 |
+| 467 | `Fix: 更正集合入口的本机存储说明` | `apps/web/i18n/{zh-CN,en}.ts` 的 `hub.privacy` 说明问卷在浏览器本地计算，英国问卷草稿、已保存的方案和游戏进度保存在本机，其他十国问卷在刷新后重置。 |
+| 468 | `Fix: 避免窄屏顶栏链接重叠` | `apps/web/app/site.module.css` 在最多 375 px 的屏幕上将站名与导航分行，保留全部导航链接和语言按钮。 |
+| 469 | `Docs: 记录任务 79 审核修正与验收` | `PROGRESS.md` 与本报告。 |
+
+建议提交时附 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+### 2. 怎么验证的
+
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码为 `0`。共 5,229 项测试通过，1 项按配置跳过。静态构建生成 27 个路由。
+- 使用 `rg -in --hidden '试点|\bpilots?\b'` 全仓检查，并逐项核对应用与引擎的匹配结果。七个引擎文件的 diff 仅涉及称呼替换。新西兰随同申请人回归用例在原版中英文结果上均失败，修正后均通过。
+- 使用 Chromium 检查静态导出的 `/uk`。原版在 320 px 下中英文站名均与「所有国家」链接重叠。修正后逐个检查 320–376 px 的两种语言，全部顶栏控件均可见且无重叠。复查了 320、375 px 截图，1280 px 顶栏各项的位置和尺寸与原版一致。
+- 在 Chromium 中切换 `/` 的语言，核对两种语言的检查范围和存储说明。进入 `/new-zealand`，勾选随同申请人并留空 PRV 获批日期，`NZ-PRV` 的中英文状态均为 `UNKNOWN`，摘要使用新称呼。刷新页面后，勾选项和填写的出生日期均重置。
+
+### 3. 没做或没验证的
+
+- 按交接要求保留工作树改动，未创建 Git 提交。
+- 完整 Playwright e2e 与 CI 截图比对留给 Fable。
+
+### 4. 发现与建议
+
+- Fable 在 CI 截图验收时更新 `apps/e2e/tests/site.spec.ts` 使用的 `/uk` 首页和问卷截图基线。
