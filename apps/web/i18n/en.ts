@@ -304,7 +304,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.playGameAria': '{country}: Life game',
   'hub.beforeTitle': 'Before you start',
   'hub.prepare':
-    'Have your visa or residence permit dates and travel record ready, along with any income, language, contribution or test details relevant to the country. Leave uncertain items blank to see what is already met and what remains to be confirmed.',
+    'Have your visa or residence permit dates and travel record ready, along with any income, language, contribution or test details relevant to the country. Only items marked as optional in the questionnaire may be left blank. All other items are required.',
   'hub.privacy':
     'No account is needed. Calculations run in your browser, and questionnaire inputs are never uploaded. UK questionnaire drafts, saved scenarios and game progress are stored in this browser, where others using a shared device may see them. Questionnaires for the other countries reset when you refresh the page.',
   'hub.disclaimerTitle': 'About this simulator',
