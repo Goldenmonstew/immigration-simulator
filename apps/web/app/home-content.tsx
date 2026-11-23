@@ -78,6 +78,8 @@ export default function Home() {
               <Link href="/ireland">{t('ie.entryLink')}</Link>
               {p.colon}
               {t('ie.entryDesc')}
+            </li>
+            <li>
               <Link href="/germany">{t('de.entryLink')}</Link>
               {p.colon}
               {t('de.entryDesc')}
