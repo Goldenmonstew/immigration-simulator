@@ -306,6 +306,12 @@ describe('permanent residence under EU free movement', () => {
       spanishSpouseExemption: false,
       history: [
         {
+          from: '2023-01-01',
+          to: '2024-09-30',
+          basis: 'qualifying-family',
+          documented: true,
+        },
+        {
           from: '2024-10-01',
           to: '2026-12-01',
           basis: 'employment',
@@ -363,7 +369,9 @@ describe('permanent residence under EU free movement', () => {
         ...retirement,
         residenceFrom: '2021-01-01',
         employmentFrom: '2025-06-01',
-        history: [],
+        history: [
+          { from: '2021-01-01', basis: 'employment', documented: true },
+        ],
         trips: [
           {
             departed: '2021-02-01',
@@ -424,6 +432,384 @@ describe('permanent residence under EU free movement', () => {
     expect(
       fullPath({ ...facts, longestPostAcquisitionAbsence: trip }).status,
     ).toBe('NOT_MET');
+  });
+
+  test('a co-resident family member derives early acquisition from the worker’s established right', () => {
+    for (const [workerAcquiredEarly, status] of [
+      [true, 'MET'],
+      [false, 'NOT_MET'],
+      [undefined, 'UNKNOWN'],
+    ] as const) {
+      const p = fullPath({
+        ...family,
+        residenceFrom: '2026-11-01',
+        jointResidenceFrom: '2026-11-01',
+        history: [],
+        trips: [],
+        earlyBasis: 'worker-family',
+        coResidentWithWorker: true,
+        workerAcquiredEarly,
+      });
+      expect(p.status).toBe(status);
+      expect(p.pathwayCompletionDate).toBeUndefined();
+      expect(p.earliestDate).toBe(
+        status === 'MET' ? request.simulationDate : undefined,
+      );
+    }
+  });
+
+  test.each(['retirement', 'incapacity'] as const)(
+    '%s cannot project acquisition across the recorded interruption',
+    (earlyBasis) => {
+      const retirement = earlyBasis === 'retirement';
+      const facts: EsFreeMovementFacts = {
+        earlyBasis,
+        residenceFrom: '2023-01-01',
+        employmentFrom: retirement ? '2025-06-01' : '2025-10-01',
+        workStopped: '2026-12-01',
+        qualifiedWorker: true,
+        pensionEligibilityDecided: true,
+        permanentIncapacity: true,
+        occupationalSpanishBenefit: false,
+        spanishSpouseExemption: false,
+        history: retirement
+          ? [
+              {
+                from: '2023-01-01',
+                to: '2023-12-31',
+                basis: 'employment',
+                documented: true,
+              },
+              {
+                from: '2024-01-01',
+                to: '2025-05-31',
+                basis: 'other',
+                documented: true,
+              },
+              { from: '2025-06-01', basis: 'employment', documented: true },
+            ]
+          : [{ from: '2023-01-01', basis: 'employment', documented: true }],
+        trips: retirement
+          ? []
+          : [
+              {
+                departed: '2025-03-01',
+                returned: '2025-10-01',
+                reason: 'ordinary',
+              },
+            ],
+      };
+      for (const day of [request.simulationDate, '2026-12-01']) {
+        const p = fullPath(facts, day);
+        expect([p.status, p.pathwayCompletionDate, p.earliestDate]).toEqual([
+          'NOT_MET',
+          undefined,
+          undefined,
+        ]);
+        expect(
+          p.checks.find((c) => c.id === (retirement ? 'ES-U07' : 'ES-U08'))
+            ?.status,
+        ).toBe('NOT_MET');
+      }
+      const anniversary = retirement ? '2028-06-01' : '2027-10-01';
+      const next = retirement ? '2028-06-02' : '2027-10-02';
+      for (const [workStopped, expected] of [
+        [anniversary, 'NOT_MET'],
+        [next, 'MET'],
+      ] as const) {
+        const p = fullPath({ ...facts, workStopped }, workStopped);
+        expect(p.status).toBe(expected);
+        expect(p.earliestDate).toBe(
+          expected === 'MET' ? workStopped : undefined,
+        );
+      }
+    },
+  );
+
+  test('cross-border work counts from the last lawful return and requires work throughout the period', () => {
+    const facts: EsFreeMovementFacts = {
+      earlyBasis: 'cross-border',
+      residenceFrom: '2020-01-01',
+      employmentFrom: '2022-07-01',
+      qualifiedWorker: true,
+      workingInAnotherMemberState: true,
+      retainedSpanishHome: true,
+      returnsAtLeastWeekly: true,
+      history: [
+        {
+          from: '2022-07-01',
+          to: '2028-03-15',
+          basis: 'employment',
+          documented: true,
+        },
+        {
+          from: '2021-01-01',
+          to: '2022-06-30',
+          basis: 'other',
+          documented: true,
+        },
+        {
+          from: '2020-01-01',
+          to: '2020-12-31',
+          basis: 'employment',
+          documented: true,
+        },
+      ],
+      // This trip crosses January, but lies within one year of the July restart.
+      trips: [
+        { departed: '2024-08-15', returned: '2025-03-15', reason: 'ordinary' },
+      ],
+    };
+    for (const [workStopped, expected] of [
+      ['2028-03-14', 'NOT_MET'],
+      ['2028-03-15', 'MET'],
+    ] as const) {
+      const p = fullPath({ ...facts, workStopped }, workStopped);
+      expect(p.checks.find((c) => c.id === 'ES-U09')?.status).toBe(expected);
+      expect(p.earliestDate).toBe(expected === 'MET' ? workStopped : undefined);
+    }
+    const workStopped = '2026-12-01';
+    const priorWork = {
+      from: '2023-01-01',
+      to: '2024-11-30',
+      basis: 'employment' as const,
+      documented: true,
+    };
+    const resumed = {
+      from: '2024-12-02',
+      to: workStopped,
+      basis: 'employment' as const,
+      documented: true,
+    };
+    for (const [basis, expected] of [
+      ['temporary-incapacity', 'MET'],
+      ['qualifying-family', 'NOT_MET'],
+    ] as const) {
+      const p = fullPath(
+        {
+          ...facts,
+          trips: [],
+          workStopped,
+          history: [
+            resumed,
+            { from: '2024-12-01', to: '2024-12-01', basis, documented: true },
+            priorWork,
+          ],
+        },
+        workStopped,
+      );
+      expect(p.checks.find((c) => c.id === 'ES-U09')?.status).toBe(expected);
+    }
+  });
+
+  test('death in service uses the worker’s own residence, travel and inclusive anniversary', () => {
+    const facts: EsFreeMovementFacts = {
+      ...family,
+      earlyBasis: 'death-at-work',
+      coResidentWithWorker: true,
+      diedDuringWorkBeforePermanent: true,
+      workerResidenceFrom: '2021-01-01',
+      occupationalDeath: false,
+      spouseLostSpanishNationalityThroughMarriage: false,
+      history: [],
+      trips: [],
+      workerResidenceEvidence: {
+        history: [
+          {
+            from: '2021-01-01',
+            to: '2023-12-31',
+            basis: 'other',
+            documented: true,
+          },
+          { from: '2024-01-01', basis: 'employment', documented: true },
+        ],
+        trips: [
+          {
+            departed: '2025-03-01',
+            returned: '2025-10-01',
+            reason: 'ordinary',
+          },
+        ],
+        noExecutedExpulsion: true,
+      },
+    };
+    for (const [eventDate, expected] of [
+      ['2026-12-01', 'NOT_MET'],
+      ['2027-10-01', 'MET'],
+    ] as const) {
+      const p = fullPath({ ...facts, eventDate });
+      expect(p.status).toBe(expected === 'MET' ? 'FUTURE' : expected);
+      expect(p.pathwayCompletionDate).toBe(
+        expected === 'MET' ? eventDate : undefined,
+      );
+      expect(p.earliestDate).toBe(p.pathwayCompletionDate);
+      expect(fullPath({ ...facts, eventDate }, eventDate).status).toBe(
+        expected,
+      );
+    }
+    const eventDate = '2026-12-01';
+    const p = fullPath(
+      {
+        ...facts,
+        eventDate,
+        history: worker.history,
+        residenceFrom: '2025-01-01',
+        workerResidenceEvidence: undefined,
+      },
+      eventDate,
+    );
+    expect(p.checks.find((c) => c.id === 'ES-U11')?.status).toBe('UNKNOWN');
+    expect(p.earliestDate).toBeUndefined();
+    const occupational = fullPath(
+      { ...facts, eventDate, occupationalDeath: true },
+      eventDate,
+    );
+    expect(occupational.earliestDate).toBe(eventDate);
+  });
+
+  test('an unresolved break can affect the residence year of a later confirmed absence', () => {
+    const facts: EsFreeMovementFacts = {
+      earlyBasis: 'retirement',
+      residenceFrom: '2021-01-01',
+      employmentFrom: '2021-01-01',
+      workStopped: '2026-12-01',
+      qualifiedWorker: true,
+      pensionEligibilityDecided: true,
+      spanishSpouseExemption: false,
+      history: [{ from: '2021-01-01', basis: 'employment', documented: true }],
+    };
+    for (const [reason, expected] of [
+      ['military', 'MET'],
+      ['ordinary', 'NOT_MET'],
+      ['unconfirmed', 'UNKNOWN'],
+    ] as const) {
+      const p = fullPath(
+        {
+          ...facts,
+          trips: [
+            {
+              departed: '2024-11-01',
+              returned: '2025-06-01',
+              reason: 'ordinary',
+            },
+            { departed: '2021-02-01', returned: '2021-10-01', reason },
+          ],
+        },
+        '2026-12-01',
+      );
+      expect(p.checks.find((c) => c.id === 'ES-U07')?.status).toBe(expected);
+    }
+  });
+
+  test('unresolved or missing residence evidence cannot establish an early acquisition date', () => {
+    const workStopped = '2026-12-01';
+    const facts: EsFreeMovementFacts = {
+      earlyBasis: 'incapacity',
+      workStopped,
+      residenceFrom: '2023-01-01',
+      qualifiedWorker: true,
+      permanentIncapacity: true,
+      occupationalSpanishBenefit: false,
+      spanishSpouseExemption: false,
+    };
+    const later = {
+      from: '2025-06-01',
+      basis: 'employment' as const,
+      documented: true,
+    };
+    const earlier = {
+      from: '2023-01-01',
+      to: '2025-05-31',
+      basis: 'resources' as const,
+      allRiskInsurance: true,
+      documented: true,
+    };
+    for (const [sufficientMeansAccepted, expected] of [
+      [false, 'NOT_MET'],
+      [undefined, 'UNKNOWN'],
+      [true, 'MET'],
+    ] as const) {
+      const p = fullPath(
+        { ...facts, history: [later, { ...earlier, sufficientMeansAccepted }] },
+        workStopped,
+      );
+      expect(p.checks.find((c) => c.id === 'ES-U08')?.status).toBe(expected);
+      expect(p.earliestDate).toBe(expected === 'MET' ? workStopped : undefined);
+    }
+    const projected = fullPath({ ...facts, history: [later, earlier] });
+    expect(projected.status).toBe('UNKNOWN');
+    expect(projected.earliestDate).toBeUndefined();
+    const missing = fullPath({ ...facts, history: undefined }, workStopped);
+    expect(missing.checks.find((c) => c.id === 'ES-U08')?.status).toBe(
+      'UNKNOWN',
+    );
+    expect(missing.earliestDate).toBeUndefined();
+    const exempt = fullPath(
+      { ...facts, history: [later], spanishSpouseExemption: true },
+      workStopped,
+    );
+    expect(exempt.earliestDate).toBe(workStopped);
+  });
+
+  test('a separate lawful basis after cessation can still establish ordinary permanent residence', () => {
+    const facts: EsFreeMovementFacts = {
+      earlyBasis: 'incapacity',
+      qualifiedWorker: true,
+      permanentIncapacity: true,
+      occupationalSpanishBenefit: false,
+      spanishSpouseExemption: false,
+      residenceFrom: '2025-06-01',
+      workStopped: '2026-12-01',
+      history: [
+        { from: '2025-06-01', basis: 'employment', documented: true },
+        {
+          from: '2026-12-02',
+          basis: 'resources',
+          sufficientMeansAccepted: true,
+          allRiskInsurance: true,
+          documented: true,
+        },
+      ],
+    };
+    for (const day of [request.simulationDate, '2026-12-01', '2030-06-01']) {
+      const p = fullPath(facts, day);
+      expect(p.checks.find((c) => c.id === 'ES-U08')?.status).toBe('NOT_MET');
+      expect(p.status).toBe(day === '2030-06-01' ? 'MET' : 'FUTURE');
+      expect(p.earliestDate).toBe('2030-06-01');
+    }
+  });
+
+  test('a recorded ordinary absence still interrupts incapacity when the U trip list omits it', () => {
+    const trip = {
+      departed: '2025-03-01',
+      returned: '2025-10-01',
+      reason: 'ordinary' as const,
+    };
+    for (const trips of [[], undefined]) {
+      const p = evaluateSpainFull({
+        ...request,
+        targets: ['U'],
+        simulationDate: '2026-12-01',
+        timeRecordsComplete: false,
+        residence: { tripDetails: [trip] },
+        freeMovement: {
+          ...worker,
+          residenceFrom: '2023-01-01',
+          history: [
+            { from: '2023-01-01', basis: 'employment', documented: true },
+          ],
+          earlyBasis: 'incapacity',
+          workStopped: '2026-12-01',
+          permanentIncapacity: true,
+          qualifiedWorker: true,
+          occupationalSpanishBenefit: false,
+          spanishSpouseExemption: false,
+          trips,
+        },
+      }).columns[0].pathways[0];
+      expect(p.checks.find((c) => c.id === 'ES-U08')?.status).toBe('NOT_MET');
+      expect(p.earliestDate).toBeUndefined();
+    }
   });
 
   test('historical acquisition respects leap-day starts, residence gaps and returns after a loss', () => {
@@ -893,6 +1279,13 @@ describe('permanent residence under EU free movement', () => {
       diedDuringWorkBeforePermanent: true,
       coResidentWithWorker: true,
       workerResidenceFrom: '2024-10-23',
+      workerResidenceEvidence: {
+        history: [
+          { from: '2024-10-23', basis: 'employment', documented: true },
+        ],
+        trips: [],
+        noExecutedExpulsion: true,
+      },
       priorFamilyResidenceFrom: '2026-01-01',
       occupationalDeath: false,
       spouseLostSpanishNationalityThroughMarriage: false,
@@ -905,6 +1298,7 @@ describe('permanent residence under EU free movement', () => {
       row('U11', {
         ...death,
         workerResidenceFrom: undefined,
+        workerResidenceEvidence: undefined,
         occupationalDeath: true,
       }).status,
     ).toBe('MET');
@@ -912,6 +1306,7 @@ describe('permanent residence under EU free movement', () => {
       row('U11', {
         ...death,
         workerResidenceFrom: undefined,
+        workerResidenceEvidence: undefined,
         spouseLostSpanishNationalityThroughMarriage: true,
       }).status,
     ).toBe('MET');

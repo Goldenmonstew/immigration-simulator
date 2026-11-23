@@ -51,13 +51,28 @@ interface FreeMovementPeriod {
   continuedWorkerStatusRecognized?: boolean;
   trainingRelatedOrInvoluntaryUnemployment?: boolean;
 }
+interface FreeMovementTrip extends EsTrip {
+  reason?:
+    | 'ordinary'
+    | 'military'
+    | 'important'
+    | 'cooperation-or-eu-study'
+    | 'unconfirmed';
+}
+interface ResidenceEvidence {
+  history?: FreeMovementPeriod[];
+  trips?: FreeMovementTrip[];
+  noExecutedExpulsion?: boolean;
+  /** The authority's finding on disputed continuity, if available. */
+  continuityAccepted?: boolean;
+}
 type EarlyBasis =
   | 'retirement'
   | 'incapacity'
   | 'cross-border'
   | 'worker-family'
   | 'death-at-work';
-export interface EsFreeMovementFacts {
+export interface EsFreeMovementFacts extends ResidenceEvidence {
   person?: 'eu-eea-swiss' | 'third-country-family' | 'other';
   sponsor?: 'eu-eea-swiss' | 'spanish' | 'other';
   spanishFreeMovementConfirmed?: boolean;
@@ -83,18 +98,6 @@ export interface EsFreeMovementFacts {
   extendedFamilyRecognized?: boolean;
   residenceFrom?: IsoDate;
   jointResidenceFrom?: IsoDate;
-  history?: FreeMovementPeriod[];
-  trips?: (EsTrip & {
-    reason?:
-      | 'ordinary'
-      | 'military'
-      | 'important'
-      | 'cooperation-or-eu-study'
-      | 'unconfirmed';
-  })[];
-  noExecutedExpulsion?: boolean;
-  /** The authority's finding on disputed continuity, if available. */
-  continuityAccepted?: boolean;
   retainedEvent?: 'sponsor-death' | 'child-in-education' | 'divorce';
   /** Effective date of the death, divorce or other change in family status. */
   eventDate?: IsoDate;
@@ -111,6 +114,8 @@ export interface EsFreeMovementFacts {
   employmentFrom?: IsoDate;
   qualifiedWorker?: boolean;
   workerResidenceFrom?: IsoDate;
+  /** U11 concerns the deceased worker's residence, independently of the applicant's. */
+  workerResidenceEvidence?: ResidenceEvidence;
   pensionContributionsQualified?: boolean;
   pensionEligibilityDecided?: boolean;
   contributionMonths?: number;
@@ -226,16 +231,17 @@ function historyMet(
   return covers(false) ? true : covers(true) ? undefined : false;
 }
 
+function recordedTrips(req: EsFullRequest, f: EsFreeMovementFacts) {
+  return f.trips ?? (req.timeRecordsComplete === false ? undefined : req.trips);
+}
+
 function tripsMet(
-  req: EsFullRequest,
-  f: EsFreeMovementFacts,
+  trips: ResidenceEvidence['trips'],
   start: IsoDate,
   end: IsoDate,
   residenceFrom?: IsoDate,
+  eventDate = end,
 ): Evidence {
-  if (f.continuityAccepted !== undefined) return f.continuityAccepted;
-  const trips =
-    f.trips ?? (req.timeRecordsComplete === false ? undefined : req.trips);
   if (!trips) return undefined;
   if (!trips.length) return true;
   const limit = v.freeMovementResidence.value;
@@ -253,8 +259,8 @@ function tripsMet(
       (t) =>
         'reason' in t &&
         t.reason === 'important' &&
-        t.returned > start &&
-        t.departed < end &&
+        t.returned > (residenceFrom ?? start) &&
+        t.departed < eventDate &&
         t.returned <= addMonths(t.departed, limit.importantMonths),
     )
     .sort(
@@ -274,8 +280,7 @@ function tripsMet(
     ordinaryTrips++;
     if (t.returned > addMonths(t.departed, limit.annualAwayMonths))
       singleWithinLimit = false;
-    const unconfirmed =
-      reason === 'cooperation-or-eu-study' || reason === 'unconfirmed';
+    const unconfirmed = reason !== 'ordinary' && reason !== 'important';
     if (unconfirmed) uncertain = true;
     if (residenceFrom && t.returned > start) {
       const from = t.departed < residenceFrom ? residenceFrom : t.departed;
@@ -310,7 +315,7 @@ function tripsMet(
   if ((ordinaryTrips === 1 && singleWithinLimit) || sums[days.count] <= min)
     return possibleBreak ? undefined : true;
   if (residenceFrom && confirmed) {
-    // At retirement, count absences in the actual residence years. An excess
+    // For early acquisition, count absences in the actual residence years. An excess
     // before the required period alone does not disqualify the later years.
     let met: Evidence = possibleBreak ? undefined : true;
     const known = uncertain ? days.sums((i) => confirmed[i]) : sums;
@@ -366,6 +371,20 @@ function ordinaryWindow(
   const { years, annualAwayMonths, importantMonths } =
     v.freeMovementResidence.value;
   const joint = f.person === 'third-country-family' && !f.retainedEvent;
+  // A known cessation ends that employment record, even when its end was omitted.
+  // Subsequent, independently recorded bases can still establish ordinary residence.
+  const stop =
+    (f.earlyBasis === 'retirement' || f.earlyBasis === 'incapacity') &&
+    f.workStopped;
+  const history = stop
+    ? f.history?.map((p) =>
+        (p.basis === 'employment' || p.basis === 'self-employment') &&
+        p.from <= stop &&
+        (!p.to || p.to > stop)
+          ? { ...p, to: stop }
+          : p,
+      )
+    : f.history;
   const at = (start: IsoDate, completion: IsoDate) => ({
     end: completion,
     ordinaryTime: all(
@@ -377,9 +396,10 @@ function ordinaryWindow(
         : true,
       !since || since <= start,
       f.noExecutedExpulsion,
-      tripsMet(req, f, start, completion),
+      f.continuityAccepted ??
+        tripsMet(recordedTrips(req, f), start, completion),
     ),
-    historical: historyMet(f.history, start, addDays(completion, -1)),
+    historical: historyMet(history, start, addDays(completion, -1)),
   });
   const lastStart = addYears(end, -years);
   const current = at(lastStart, end);
@@ -832,7 +852,34 @@ function freeMovementAt(req: EsFullRequest) {
   };
 }
 
-export function freeMovementPath(req: EsFullRequest): CountryPathway {
+// Absences recorded for the same applicant also apply to early acquisition.
+// Keep the U reason when both questionnaires describe the same journey.
+function withRecordedTravel(req: EsFullRequest): EsFullRequest {
+  const f = req.freeMovement;
+  if (
+    !f?.earlyBasis ||
+    (!req.trips.length && !req.residence?.tripDetails?.length)
+  )
+    return req;
+  const records = new Map<string, FreeMovementTrip>();
+  const add = (t: FreeMovementTrip) => {
+    const key = t.departed + '/' + t.returned;
+    records.set(key, { ...t, reason: t.reason ?? records.get(key)?.reason });
+  };
+  for (const t of req.trips) add(t);
+  for (const t of req.residence?.tripDetails ?? [])
+    add({
+      departed: t.departed,
+      returned: t.returned,
+      reason: t.reason === 'ordinary' ? 'ordinary' : undefined,
+    });
+  for (const t of f.trips ?? []) add(t);
+  const trips = [...records.values()];
+  return { ...req, trips, freeMovement: f.trips ? { ...f, trips } : f };
+}
+
+export function freeMovementPath(input: EsFullRequest): CountryPathway {
+  const req = withRecordedTravel(input);
   const { result, acquiredOn, restartFrom } = freeMovementAt(req);
   const f = req.freeMovement;
   if (result.status === 'MET' || !f) return result;
@@ -871,12 +918,11 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
       : f.earlyBasis === 'retirement' || f.earlyBasis === 'incapacity'
         ? f.workStopped
         : undefined;
-  if (
-    event &&
-    event > day &&
-    earlyCheck({ ...req, simulationDate: event }, f).status === 'MET'
-  )
-    candidates.push(event);
+  const eventStatus =
+    event && event > day
+      ? earlyCheck({ ...req, simulationDate: event }, f).status
+      : undefined;
+  if (event && eventStatus === 'MET') candidates.push(event);
   const retentionEvent =
     f.retainedEvent && f.eventDate && f.eventDate > day
       ? f.eventDate
@@ -889,37 +935,109 @@ export function freeMovementPath(req: EsFullRequest): CountryPathway {
   return projectFilingDates(
     timed,
     day,
-    [...candidates, retentionEvent],
+    [
+      ...candidates,
+      retentionEvent,
+      eventStatus === 'UNKNOWN' ? event : undefined,
+    ],
     (date) => freeMovementAt({ ...req, simulationDate: date }).result,
     req.locale,
   );
 }
 
-function retirementResidence(
-  req: EsFullRequest,
-  f: EsFreeMovementFacts,
-): Evidence {
-  const end = f.workStopped;
-  let residenceFrom = f.residenceFrom;
-  if (!end || !residenceFrom) return undefined;
-  const years = v.earlyPermanent.value.retirementResidenceYears;
-  const anniversary = addYears(end, -years);
-  const latestStart =
-    addYears(anniversary, years) < end ? anniversary : addDays(anniversary, -1);
-  if (residenceFrom > latestStart) return false;
-  // A proven earlier interruption restarts the residence years on return.
-  const returns = (f.trips ?? req.trips)
-    .map((t) => t.returned)
-    .filter((date) => date <= latestStart)
-    .sort();
-  for (const date of returns) {
-    if (
-      date > residenceFrom &&
-      tripsMet(req, f, residenceFrom, date, residenceFrom) === false
-    )
-      residenceFrom = date;
+// Walk backwards from the event. Adjacent or overlapping lawful bases form
+// one period; an uncovered day prevents earlier records extending that period.
+function coveredStarts(
+  history: FreeMovementPeriod[],
+  end: IsoDate,
+  qualifies = periodMet,
+): Set<IsoDate> {
+  const starts = new Set([end]);
+  for (const p of [...history].sort((a, b) => b.from.localeCompare(a.from))) {
+    for (const start of [...starts]) {
+      const last = addDays(start, -1);
+      if (p.from > last || (p.to && p.to < last)) continue;
+      const met = qualifies(p, last);
+      if (met === true) starts.delete(start);
+      if (met !== false) starts.add(p.from);
+    }
   }
-  return tripsMet(req, f, latestStart, end, residenceFrom);
+  return starts;
+}
+
+function durationMet(
+  starts: Set<IsoDate>,
+  longEnough: (from: IsoDate) => boolean,
+): Evidence {
+  const outcomes = [...starts].map(longEnough);
+  if (outcomes.every(Boolean)) return true;
+  return outcomes.some(Boolean) ? undefined : false;
+}
+
+function earlyResidence(
+  evidence: ResidenceEvidence,
+  residenceFrom: IsoDate | undefined,
+  end: IsoDate | undefined,
+  years: number,
+  strict: boolean,
+): Evidence {
+  const { history, trips, continuityAccepted, noExecutedExpulsion } = evidence;
+  if (!end || (!history && !residenceFrom))
+    return all(undefined, noExecutedExpulsion, continuityAccepted);
+  const longEnough = (from: IsoDate) => {
+    const anniversary = addYears(from, years);
+    return strict ? anniversary < end : anniversary <= end;
+  };
+  if (residenceFrom && !longEnough(residenceFrom)) return false;
+  const historyStarts = history
+    ? coveredStarts(history, end)
+    : [residenceFrom!];
+  let starts = new Set(
+    [...historyStarts].map((s) =>
+      residenceFrom && s < residenceFrom ? residenceFrom : s,
+    ),
+  );
+  if (trips && continuityAccepted === undefined) {
+    for (const t of [...trips].sort((a, b) =>
+      a.returned.localeCompare(b.returned),
+    )) {
+      if (t.departed >= end || t.reason === 'military') continue;
+      const until = t.returned < end ? t.returned : end;
+      const next = new Set(starts);
+      for (const start of starts) {
+        if (start >= until || !longEnough(start)) continue;
+        const from = t.departed > start ? t.departed : start;
+        const year = afterYears(start, fullYears(start, from));
+        const met = tripsMet(trips, year, until, start, end);
+        // A disputed interruption can change the anniversary used for later trips.
+        if (met !== true) next.add(until);
+        if (met === false) next.delete(start);
+      }
+      starts = next;
+    }
+  }
+  return all(
+    durationMet(starts, longEnough),
+    history ? true : undefined,
+    noExecutedExpulsion,
+    continuityAccepted ?? (trips ? true : undefined),
+  );
+}
+
+// RD 240/2007 art. 10.4 counts documented involuntary unemployment and
+// suspensions due to illness or accident as employment.
+function employmentPeriod(p: FreeMovementPeriod): Evidence {
+  switch (p.basis) {
+    case 'employment':
+    case 'self-employment':
+    case 'temporary-incapacity':
+      return p.documented;
+    case 'unemployed':
+    case 'training':
+      return all(p.documented, p.involuntaryAndRegistered);
+    default:
+      return false;
+  }
 }
 
 function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {
@@ -928,12 +1046,45 @@ function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {
     end = f.workStopped,
     t = v.earlyPermanent.value;
   const eventOccurred = end ? end <= d : undefined;
-  const lived = (years: number, strict: boolean) =>
-    end && f.residenceFrom
-      ? strict
-        ? addYears(f.residenceFrom, years) < end
-        : addYears(f.residenceFrom, years) <= end
-      : undefined;
+  const lived = (years: number, strict: boolean) => {
+    // The dated worker declaration can evidence residence in summary-only inputs.
+    // Where a detailed history is supplied it determines coverage instead.
+    const history =
+      !f.history?.length &&
+      f.residenceFrom &&
+      f.employmentFrom &&
+      f.qualifiedWorker
+        ? [
+            {
+              from: f.employmentFrom,
+              basis: 'employment' as const,
+              documented: true,
+            },
+          ]
+        : f.history;
+    const residence = earlyResidence(
+      { ...f, history, trips: f.trips ?? req.trips },
+      f.residenceFrom,
+      end,
+      years,
+      strict,
+    );
+    // Incomplete travel can establish a break, but cannot establish continuity.
+    return all(
+      residence,
+      f.continuityAccepted ?? (recordedTrips(req, f) ? true : undefined),
+    );
+  };
+  const workedFor = (anniversary: (from: IsoDate) => IsoDate) => {
+    if (!end) return undefined;
+    const longEnough = (from: IsoDate) => anniversary(from) <= end;
+    if (f.employmentFrom && !longEnough(f.employmentFrom)) return false;
+    if (!f.history?.length) return f.employmentFrom ? true : undefined;
+    return durationMet(
+      coveredStarts(f.history, end, employmentPeriod),
+      longEnough,
+    );
+  };
   switch (f.earlyBasis) {
     case 'retirement': {
       const table = v.retirementTable.value;
@@ -955,13 +1106,10 @@ function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {
         f.pensionEligibilityDecided ??
           all(reached, f.pensionContributionsQualified),
       );
-      const work =
-        end && f.employmentFrom
-          ? addMonths(f.employmentFrom, t.retirementWorkMonths) <= end
-          : undefined;
+      const work = workedFor((from) => addMonths(from, t.retirementWorkMonths));
       const duration = any(
         f.spanishSpouseExemption,
-        all(f.noExecutedExpulsion, retirementResidence(req, f)),
+        lived(t.retirementResidenceYears, true),
       );
       return check(
         L,
@@ -978,7 +1126,7 @@ function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {
             : work,
         ),
         [
-          ...source('10.2.a, 10.4, 10.6, 14.3, 15.3'),
+          ...source('7, 10.2.a, 10.4, 10.6, 14.3, 15.3'),
           ...v.retirementTable.sources,
           { srcId: 'SRC-330', locator: 'arts. 16.3, 17.1.a, 17.2, 21' },
         ],
@@ -1002,10 +1150,10 @@ function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {
           ),
         ),
         [
-          ...source('10.2.b, 10.4'),
-          { srcId: 'SRC-330', locator: 'art. 17.1.b, 17.2' },
+          ...source('7, 10.2.b, 10.4, 10.6, 14.3, 15.3'),
+          { srcId: 'SRC-330', locator: 'arts. 16.3, 17.1.b, 17.2, 21' },
         ],
-        ['PD-299'],
+        ['PD-298', 'PD-299'],
       );
     case 'cross-border':
       return check(
@@ -1017,14 +1165,16 @@ function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {
           eventOccurred,
           f.qualifiedWorker,
           lived(t.crossBorderYears, false),
-          end && f.employmentFrom
-            ? addYears(f.employmentFrom, t.crossBorderYears) <= end
-            : undefined,
+          workedFor((from) => addYears(from, t.crossBorderYears)),
           f.workingInAnotherMemberState,
           f.retainedSpanishHome,
           f.returnsAtLeastWeekly,
         ),
-        source('10.2.c, 10.4'),
+        [
+          ...source('7, 10.2.c, 10.4, 10.6, 14.3, 15.3'),
+          { srcId: 'SRC-330', locator: 'arts. 16.3, 17.1.c, 21' },
+        ],
+        ['PD-298'],
       );
     case 'worker-family':
       return check(
@@ -1037,10 +1187,13 @@ function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {
       );
     default: {
       const death = f.eventDate;
-      const before =
-        death && f.workerResidenceFrom
-          ? addYears(f.workerResidenceFrom, t.deathYears) <= death
-          : undefined;
+      const before = earlyResidence(
+        f.workerResidenceEvidence ?? {},
+        f.workerResidenceFrom,
+        death,
+        t.deathYears,
+        false,
+      );
       return check(
         L,
         'ES-U11',
@@ -1056,7 +1209,11 @@ function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {
             f.spouseLostSpanishNationalityThroughMarriage,
           ),
         ),
-        [...source('10.5'), { srcId: 'SRC-330', locator: 'art. 17.4' }],
+        [
+          ...source('7, 10.5–6, 14.3, 15.3'),
+          { srcId: 'SRC-330', locator: 'arts. 16.3, 17.4, 21' },
+        ],
+        ['PD-298'],
       );
     }
   }
