@@ -1453,6 +1453,7 @@ describe('re-entry and travel documents', () => {
   test.each([
     {
       channel: 'counter',
+      onlineConcurrentEligibleApplication: true,
       simulationDate: '2027-04-03',
       departureOn: '2027-04-12',
       permitEffectiveOn: '2027-04-05',
@@ -1460,7 +1461,44 @@ describe('re-entry and travel documents', () => {
       earliestDate: '2027-04-05',
     },
     {
+      channel: undefined,
+      onlineConcurrentEligibleApplication: false,
+      simulationDate: '2027-04-03',
+      departureOn: '2027-04-12',
+      permitEffectiveOn: '2027-04-05',
+      expectedStatus: 'MET',
+      earliestDate: '2027-04-05',
+    },
+    {
+      channel: undefined,
+      onlineConcurrentEligibleApplication: true,
+      simulationDate: '2027-04-03',
+      departureOn: '2027-04-04',
+      permitEffectiveOn: '2027-04-03',
+      expectedStatus: 'MET',
+      earliestDate: '2027-04-03',
+    },
+    {
+      channel: undefined,
+      onlineConcurrentEligibleApplication: undefined,
+      simulationDate: '2027-04-03',
+      departureOn: '2027-04-12',
+      permitEffectiveOn: '2027-04-05',
+      expectedStatus: 'UNKNOWN',
+      earliestDate: undefined,
+    },
+    {
       channel: 'counter',
+      onlineConcurrentEligibleApplication: true,
+      simulationDate: '2027-04-03',
+      departureOn: '2027-04-05',
+      permitEffectiveOn: '2027-04-05',
+      expectedStatus: 'UNKNOWN',
+      earliestDate: undefined,
+    },
+    {
+      channel: 'counter',
+      onlineConcurrentEligibleApplication: true,
       simulationDate: '2027-04-03',
       departureOn: '2027-04-04',
       permitEffectiveOn: '2027-04-03',
@@ -1469,6 +1507,7 @@ describe('re-entry and travel documents', () => {
     },
     {
       channel: 'online',
+      onlineConcurrentEligibleApplication: true,
       simulationDate: '2027-04-03',
       departureOn: '2027-04-04',
       permitEffectiveOn: '2027-04-03',
@@ -1477,6 +1516,7 @@ describe('re-entry and travel documents', () => {
     },
     {
       channel: 'counter',
+      onlineConcurrentEligibleApplication: true,
       simulationDate: '2028-03-18',
       departureOn: '2028-03-24',
       permitEffectiveOn: '2028-03-22',
@@ -1484,9 +1524,10 @@ describe('re-entry and travel documents', () => {
       earliestDate: undefined,
     },
   ] as const)(
-    'checks ordinary $channel filing from $simulationDate for departure on $departureOn',
+    'checks ordinary $channel filing (online eligible: $onlineConcurrentEligibleApplication) from $simulationDate for departure on $departureOn',
     ({
       channel,
+      onlineConcurrentEligibleApplication,
       simulationDate,
       departureOn,
       permitEffectiveOn,
@@ -1497,6 +1538,7 @@ describe('re-entry and travel documents', () => {
         {
           ...ordinary,
           channel,
+          onlineConcurrentEligibleApplication,
           stayIndefinite: false,
           stayExpiresOn: '2030-04-01',
           departureOn,
@@ -1514,6 +1556,17 @@ describe('re-entry and travel documents', () => {
       expect(result.earliestDate).toBe(earliestDate);
       if (channel === 'online') {
         expect(status(result, 'online-application')).toBe('MET');
+      }
+      if (channel === undefined) {
+        expect(condition(result, 'online-application')).toMatchObject({
+          kind: 'information',
+          status:
+            onlineConcurrentEligibleApplication === undefined
+              ? 'UNKNOWN'
+              : onlineConcurrentEligibleApplication
+                ? 'MET'
+                : 'NOT_MET',
+        });
       }
       if (expectedStatus === 'UNKNOWN') {
         expect(

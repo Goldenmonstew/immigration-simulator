@@ -89,11 +89,7 @@ export function assessJapanReentry(
   route: JpFullReentryRequest,
 ): JpFullPathway {
   const { date: requestedDate, L } = filingContext(req);
-  const counterFiling =
-    route.route === 'ordinary' && route.channel === 'counter'
-      ? nextCounterFilingDay(requestedDate)
-      : undefined;
-  const date = counterFiling?.date ?? requestedDate;
+  let date = requestedDate;
   const rr = full.reentry.value;
   const fees = full.fees.value;
   const travel = full.reentry.sources;
@@ -169,7 +165,38 @@ export function assessJapanReentry(
   let fee: number | undefined;
 
   if (route.route === 'ordinary') {
-    const counterOpen = counterFiling ? counterFiling.open : true;
+    const onlineEligible = route.onlineConcurrentEligibleApplication;
+    const filingChannel =
+      route.channel ??
+      (onlineEligible === true
+        ? 'online'
+        : onlineEligible === false
+          ? 'counter'
+          : undefined);
+    const counterFiling =
+      filingChannel === 'counter'
+        ? nextCounterFilingDay(requestedDate)
+        : undefined;
+    date = counterFiling?.date ?? requestedDate;
+    const filingAvailable =
+      filingChannel === 'online' ? true : counterFiling?.open;
+    const sameDayDeparture = date === departure;
+    const [filingDateIssueZh, filingDateIssueEn] = sameDayDeparture
+      ? [
+          '递交候选日与出境日相同，须确认当天能否先递交。',
+          ' The proposed filing date is the departure date. Confirm that filing can take place before departure.',
+        ]
+      : filingChannel === undefined
+        ? [
+            '在线申请资格待确认，无法确定最早递交日。',
+            ' Confirm online eligibility to determine the earliest filing date.',
+          ]
+        : filingAvailable === undefined
+          ? [
+              '候选递交日的窗口开放情况待确认。',
+              ' Confirm whether the counter opens on the proposed filing date.',
+            ]
+          : ['', ''];
     r(
       'ordinary-eligibility',
       '普通再入国资格与材料',
@@ -179,24 +206,27 @@ export function assessJapanReentry(
         excluded(route.excludedStatusOrDetention),
         route.inJapanWhenApplying,
         route.intendsReturn,
-        departure ? date <= departure : undefined,
-        counterOpen,
+        departure && !sameDayDeparture ? date < departure : undefined,
+        filingAvailable,
         route.passportOrApprovedAlternative,
         route.residentCardOrCertificate,
       ),
       [
         ...routeSources,
         ref('SRC-461', '再入国許可申請「申請期間」'),
-        ...(counterFiling
+        ...(counterFiling || filingChannel === undefined
           ? [
               ref('SRC-461', '再入国許可申請「受付時間」'),
               ref('SRC-112', '行政機関の休日に関する法律第1条第1項'),
             ]
           : []),
+        ...(route.channel === undefined
+          ? [ref('SRC-461', '再入国許可申請「オンライン申請」')]
+          : []),
       ],
-      '在日本以适用身份合法在留，赴海外前申请，确认返日意向、证件、获准替代材料及处分限制。',
-      'Apply in Japan before departure while lawfully residing under a qualifying status. Confirm return intent, documents or alternatives and any restrictions.',
-      counterOpen === undefined ? ['PD-370', 'PD-379'] : ['PD-379'],
+      `在日本以适用身份合法在留，赴海外前申请，确认返日意向、证件、获准替代材料及处分限制。${filingDateIssueZh}`,
+      `Apply in Japan before departure while lawfully residing under a qualifying status. Confirm return intent, documents or alternatives and any restrictions.${filingDateIssueEn}`,
+      filingDateIssueZh ? ['PD-370', 'PD-379'] : ['PD-379'],
     );
 
     const permit = route.permit;
@@ -267,10 +297,7 @@ export function assessJapanReentry(
             ? fees.reentryCounter
             : fees.reentryHistorical
         )[route.visits];
-      if (
-        route.channel === 'online' &&
-        route.onlineConcurrentEligibleApplication === true
-      )
+      if (route.channel === 'online' && onlineEligible === true)
         fee =
           (date >= fees.firstChange
             ? fees.reentryOnline
@@ -281,9 +308,7 @@ export function assessJapanReentry(
       'online-application',
       '再入国在线渠道',
       'Online re-entry application',
-      route.channel === 'online'
-        ? route.onlineConcurrentEligibleApplication
-        : undefined,
+      onlineEligible,
       [
         ref('SRC-455', '在留申請オンラインシステムの対象・再入国許可'),
         ref('SRC-461', 'オンライン申請'),

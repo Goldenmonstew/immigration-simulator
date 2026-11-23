@@ -221,3 +221,29 @@ PD-370 的保证人问答改为 SRC-116 Q53。
 
 - 高度人材永住使用与日期绑定的积分证据。审核例中，`hsp70` 的 80 分证据对应 `2027-04-03`。窗口顺延到 `2027-04-05` 后，缺少当天积分证据时，积分条件和路径为 `UNKNOWN`，`earliestDate` 留空。用周一有效证据直接评估时为 `MET`。
 - 交给页面任务 101。在 `2027-04-05` 模拟 `2027-04-19` 出境时，如果把 `declaredIntentAtDeparture` 预填为 `true`，みなし再入国会返回模拟日 `2027-04-05`。页面应区分拟出境与已在出境时表明返日意图，仅在确认已完成表明后传入该事实。SRC-116「みなし再入国許可」。
+
+## 第四轮审核修正（review91-4）
+
+### 1. 做了什么
+
+第 746 项建议提交为 `Fix: 按可用渠道确认普通再入国递交日（review91-4）`，尾注为 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+普通再入国未选渠道时，已确认在线资格则可按在线渠道确定最早递交日，明确不符合在线资格时则按窗口日历顺延。其余条件满足而在线资格待确认时，路径为 `UNKNOWN`，`earliestDate` 留空。采用这一口径是因为若后来确认可以同时在线申请，可能有比窗口受理日更早的日期。最早可考虑的递交日与出境日相同时，日级输入无法判断当天能否先递交，递交条件同样为 `UNKNOWN`，`earliestDate` 留空。候选日晚于出境日时，递交条件为 `NOT_MET`。待确认情形记入 PD-370。依据为 SRC-461 再入国許可申請「申請期間」「受付時間」「オンライン申請」、SRC-455 在线范围 PDF p1 和 SRC-112 行政機関の休日に関する法律第1条第1項。 [出入国在留管理庁办理说明](https://www.moj.go.jp/isa/immigration/procedures/16-5.html)
+
+逐项复核三处窗口日历入口。永住和归化均按窗口日历处理，在线资格判断只用于普通再入国。永住依据 SRC-119「受付時間」及在线范围 PDF p1，归化依据 SRC-117 Q10 和 SRC-112 行政機関の休日に関する法律第1条第1項。 [永住申請手续](https://www.moj.go.jp/isa/applications/procedures/16-4.html) · [国籍 Q&A](https://www.moj.go.jp/MINJI/minji78)
+
+### 2. 怎么验证的
+
+- `pnpm --filter @uk-immigration/engine test test/japan-full.test.ts -t 'checks ordinary'` 在修正前复现三项失败，分别为未选渠道且在线资格明确不满足、在线资格未知、窗口顺延至出境当天。
+- `pnpm --filter @uk-immigration/engine test test/japan-full.test.ts test/japan.test.ts` 共 189 项通过。回归覆盖留空渠道的在线资格三态、出境当日，且保留显式在线申请的周六用例和永住、归化的窗口顺延用例。
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码为 0。全量测试 5,342 项通过，1 项既有测试跳过。构建生成 27 个静态页面。
+- `git diff --check` 通过。核对旧时间入口 `evaluateJapan` 及其测试、永住与归化窗口逻辑、Web 源码均无差异。
+
+### 3. 没做或没验证的
+
+改动留在当前工作树，交由 Fable 提交。页面接入和线上验证由后续任务处理。
+
+### 4. 发现与建议
+
+- 交给页面任务 101。高度人材永住的积分证据与日期绑定。窗口顺延后，界面应提示用户补充对应候选递交日的证据。审核例中的 `hsp70` 证据只对应周六，周一候选日的条件为 `UNKNOWN`，递交日期留空。使用周一有效证据直接评估时为 `MET`。SRC-114 第3の6–8，PD-375。
+- 交给页面任务 101。みなし再入国应区分拟出境行程和实际出境。仅在当事人确认出境时已表明返日意图后传入 `declaredIntentAtDeparture: true`，避免预填将拟出境情景显示为已满足。SRC-116「みなし再入国許可」。 [出入国在留管理庁みなし再入国说明](https://www.moj.go.jp/isa/immigration/procedures/minashisainyukoku_00001.html)
