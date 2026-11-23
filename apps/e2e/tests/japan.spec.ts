@@ -27,7 +27,7 @@ test('the Japan pilot works out permanent residence for a spouse', async ({
   await page.getByLabel('模拟日期').fill('2026-11-22');
   await page.getByLabel('在日本连续在留的开始日').fill('2025-10-01');
   await page.getByLabel('适用的永住许可路线').selectOption('spouse');
-  await page.getByLabel('结婚日期').fill('2023-12-01');
+  await page.getByLabel('开始实际婚姻生活的日期').fill('2023-12-01');
   await page.getByLabel('适用的帰化路线').selectOption('general');
   await page.getByLabel('出生日期').fill('1990-05-05');
   await page.getByRole('button', { name: '计算' }).click();

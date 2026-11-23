@@ -73,10 +73,12 @@ describe('永住許可, general route (10 years, 5 on a work status)', () => {
     expect(p.summary).toContain('2034-07-11');
   });
 
-  test('back on the same date 6 months later is not half a year', () => {
+  test('under 181 days even with travel days is not half a year', () => {
+    // 2024-01-10 to 2024-07-07: 180 days counting both travel days, and 6
+    // calendar months span 181 to 184 days.
     const p = pr({
       stayStart: '2017-04-01',
-      trips: [{ departed: '2024-01-10', returned: '2024-07-10' }],
+      trips: [{ departed: '2024-01-10', returned: '2024-07-07' }],
     });
     expect(p.status).toBe('FUTURE');
     expect(p.earliestDate).toBe('2027-04-01');
@@ -124,7 +126,7 @@ describe('永住許可 special routes and the 2027-04-01 switch', () => {
   test('spouse: 3 years married and 1 year of stay before the switch', () => {
     const p = pr({
       stayStart: '2025-10-01',
-      pr: { route: 'spouse', marriedOn: '2023-12-01' },
+      pr: { route: 'spouse', marriedLifeFrom: '2023-12-01' },
     });
     expect(p.status).toBe('FUTURE');
     expect(p.earliestDate).toBe('2026-12-01');
@@ -133,8 +135,8 @@ describe('永住許可 special routes and the 2027-04-01 switch', () => {
   });
 
   test('spouse: 2027-03-31 is the last day for the old rule', () => {
-    const at = (marriedOn: string) =>
-      pr({ stayStart: '2024-01-01', pr: { route: 'spouse', marriedOn } })
+    const at = (marriedLifeFrom: string) =>
+      pr({ stayStart: '2024-01-01', pr: { route: 'spouse', marriedLifeFrom } })
         .earliestDate;
     expect(at('2024-03-31')).toBe('2027-03-31');
     expect(at('2024-04-01')).toBe('2029-04-01');
@@ -255,7 +257,8 @@ describe('帰化, general (art. 5 and the 10-year practice)', () => {
     expect(p.earliestDate).toBe('2029-01-10');
     expect(p.checks[0].met).toBe(true);
     expect(p.checks[2].met).toBe(false);
-    expect(p.summary).toContain('模拟日已满足');
+    // By years alone the Nationality Act is met on the simulation date.
+    expect(p.summary).toContain('按年限最早 2026-11-22');
   });
 
   test('aged 18 on the birthday', () => {
@@ -275,6 +278,8 @@ describe('帰化, general (art. 5 and the 10-year practice)', () => {
     expect(p.summary).toContain('2026-11-22');
     // 8 whole days abroad.
     expect(p.summary).toContain('8 天');
+    expect(p.checks[0].met).toBeUndefined();
+    expect(p.checks[2].met).toBeUndefined();
   });
 
   test('not within 10 years, though the law alone is met', () => {
@@ -315,6 +320,190 @@ describe('帰化, spouse of a Japanese national (art. 7)', () => {
       naturalisation: { route: 'spouse', marriedOn: '2025-01-01' },
     });
     expect(p.status).toBe('MET');
+  });
+});
+
+describe('review70-1', () => {
+  test('stays the new guideline leaves out of the 10 years', () => {
+    // 継続就職活動 from 2020-10-01 to 2021-03-31: 182 days.
+    const excluded = [{ from: '2020-10-01', to: '2021-03-31' }];
+    const p = pr({
+      simulationDate: '2027-06-01',
+      stayStart: '2017-05-01',
+      pr: { route: 'general', statusStart: '2021-04-01', excluded },
+    });
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[0].met).toBe(false);
+    // Leaving the 182 days out: 2027-05-01 + 182 days. Counting again after
+    // them: 2021-04-01 + 10 years.
+    expect(p.summary).toContain('2027-10-30');
+    expect(p.summary).toContain('2031-04-01');
+    expect(p.summary).toContain('PD-134');
+  });
+
+  test('the old guideline does not say whether such stays count', () => {
+    const p = pr({
+      simulationDate: '2027-03-01',
+      stayStart: '2016-05-01',
+      pr: {
+        route: 'general',
+        statusStart: '2021-04-01',
+        excluded: [{ from: '2020-10-01', to: '2021-03-31' }],
+      },
+    });
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[0].met).toBeUndefined();
+    expect(p.summary).toContain('2027-03-01');
+  });
+
+  test('the deemed permit also ends with the period of stay', () => {
+    const base2 = {
+      simulationDate: '2027-06-01',
+      stayStart: '2016-05-01',
+      pr: { route: 'general', statusStart: '2018-05-01' },
+    } as const;
+    const trip = { departed: '2026-02-01', returned: '2026-04-01' };
+    expect(pr({ ...base2, trips: [trip] }).status).toBe('MET');
+    const p = pr({ ...base2, trips: [{ ...trip, stayExpiry: '2026-03-01' }] });
+    // The stay starts again on 2026-04-01: 10 years on 2036-04-01.
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2036-04-01');
+    expect(p.summary).toContain('2026-03-01');
+  });
+
+  test('a regular permit does not outlast the period of stay', () => {
+    const p = pr({
+      simulationDate: '2027-06-01',
+      stayStart: '2016-05-01',
+      pr: { route: 'general', statusStart: '2018-05-01' },
+      trips: [
+        {
+          departed: '2026-02-01',
+          returned: '2026-04-01',
+          reentryPermit: true,
+          stayExpiry: '2026-03-01',
+        },
+      ],
+    });
+    expect(p.earliestDate).toBe('2036-04-01');
+  });
+
+  test('married life for PR, the registration for art. 7', () => {
+    const r = evaluateJapan({
+      ...base,
+      stayStart: '2025-06-01',
+      pr: { route: 'spouse', marriedLifeFrom: '2025-06-01' },
+      naturalisation: { route: 'spouse', marriedOn: '2023-10-01' },
+    });
+    // Too late for the old rule; 5 years of married life from 2025-06-01.
+    expect(r.pathways[0].status).toBe('FUTURE');
+    expect(r.pathways[0].earliestDate).toBe('2030-06-01');
+    // Married 3 years on 2026-10-01 with 1 year of domicile on 2026-06-01.
+    expect(r.pathways[1].checks[0].met).toBe(true);
+  });
+
+  test('exactly six calendar months abroad is uncertain', () => {
+    // 2026-03-01 to 2026-09-01: 183 whole days abroad.
+    const p = pr({
+      simulationDate: '2027-06-01',
+      stayStart: '2016-05-01',
+      pr: { route: 'general', statusStart: '2018-05-01' },
+      trips: [{ departed: '2026-03-01', returned: '2026-09-01' }],
+    });
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[2].met).toBeUndefined();
+  });
+
+  test('a long trip that started before the 10 years is uncertain', () => {
+    // Only 70 whole days of it fall after 2017-06-01.
+    const p = pr({
+      simulationDate: '2027-06-01',
+      stayStart: '2010-01-01',
+      pr: { route: 'general', statusStart: '2010-01-01' },
+      trips: [{ departed: '2017-01-10', returned: '2017-08-10' }],
+    });
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[2].met).toBeUndefined();
+  });
+
+  test('no application date during a trip', () => {
+    const req: Partial<JpRequest> = {
+      simulationDate: '2027-05-01',
+      stayStart: '2017-06-01',
+      pr: { route: 'general', statusStart: '2018-01-01' },
+      trips: [{ departed: '2027-05-27', returned: '2027-06-14' }],
+    };
+    // 10 years on 2027-06-01, but abroad until 2027-06-14.
+    const p = pr(req);
+    expect(p.status).toBe('FUTURE');
+    expect(p.earliestDate).toBe('2027-06-14');
+    const n = nat(req);
+    expect(n.status).toBe('UNKNOWN');
+    expect(n.summary).toContain('2027-06-14');
+    expect(n.summary).not.toContain('2027-06-01');
+    // Abroad on the simulation date.
+    const away = pr({ ...req, simulationDate: '2027-06-05' });
+    expect(away.earliestDate).toBe('2027-06-14');
+    expect(away.checks.at(-1)?.met).toBe(false);
+  });
+
+  test('the 10-year practice applies from 2026-04-01', () => {
+    const p = nat({
+      simulationDate: '2026-03-01',
+      stayStart: '2019-02-01',
+      naturalisation: { route: 'general', dateOfBirth: '1990-01-01' },
+    });
+    // The law is met, but the application may still be pending on
+    // 2026-04-01 (PD-137); with the practice, 2019-02-01 + 10 years.
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('2026-03-01');
+    expect(p.summary).toContain('2029-02-01');
+    expect(p.checks[2].met).toBeUndefined();
+  });
+
+  test('trips cloud the 10-year line for a spouse too', () => {
+    const p = nat({
+      simulationDate: '2027-06-01',
+      stayStart: '2017-05-01',
+      naturalisation: { route: 'spouse', marriedOn: '2021-06-01' },
+      trips: [
+        { departed: '2023-01-01', returned: '2023-10-01', reentryPermit: true },
+      ],
+    });
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.checks[0].met).toBe(true);
+    expect(p.checks[1].met).toBeUndefined();
+  });
+
+  test('no "met" wording while trips leave naturalisation uncertain', () => {
+    const p = nat({
+      stayStart: '2018-06-01',
+      naturalisation: { route: 'general', dateOfBirth: '1990-01-01' },
+      trips: [
+        { departed: '2025-03-01', returned: '2025-11-01', reentryPermit: true },
+      ],
+    });
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).not.toContain('模拟日已满足');
+    expect(p.checks[0].met).toBeUndefined();
+  });
+
+  test('art. 7 needs the marriage by the application day', () => {
+    const p = nat({
+      stayStart: '2020-01-01',
+      naturalisation: { route: 'spouse', marriedOn: '2027-01-01' },
+    });
+    expect(p.checks[0].met).toBe(false);
+    expect(p.summary).toContain('2027-01-01');
+  });
+
+  test('a 29 February start reaches 10 years on 1 March', () => {
+    const p = pr({
+      simulationDate: '2028-02-29',
+      stayStart: '2028-02-29',
+      pr: { route: 'general', statusStart: '2028-02-29' },
+    });
+    expect(p.earliestDate).toBe('2038-03-01');
   });
 });
 

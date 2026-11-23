@@ -466,9 +466,17 @@ export const zhCN = {
   'jp.statusStart.hsp80': '达到 80 点（或特別高度人材）并一直保持的开始日',
   'jp.statusStartHint.general':
     '技能実習、特定技能1号不算；2027-04-01 起递交的，育成就労、企業内転勤与部分特定活動也不算。',
-  'jp.marriedOn': '结婚日期',
-  'jp.marriedOnHint':
-    '永住指南按"实际婚姻生活"计，国籍法按结婚之日计；试点都用这一日期。',
+  'jp.marriedLifeFrom': '开始实际婚姻生活的日期',
+  'jp.marriedLifeFromHint':
+    '永住指南按"实体婚姻生活"计，以登记日还是开始共同生活的日子起算没有写明；两者不同时，填较晚的一个结果更保守。',
+  'jp.excludedHint':
+    '在留期间如有持"継続就職活動""就職内定者"、难民认定申请中等特例性、临时性"特定活動"的时段，请逐段填写：2027-04-01 起递交的，这些时段不计入 10 年（指南第5）。没有可不填。',
+  'jp.excludedPeriod': '不计入期间 {n}',
+  'jp.excludedFrom': '开始日期',
+  'jp.excludedTo': '结束日期',
+  'jp.addExcluded': '添加不计入 10 年的期间',
+  'jp.marriedOn': '结婚登记日（婚姻の日）',
+  'jp.marriedOnHint': '国籍法第 7 条从结婚之日起算，填婚姻成立（登记）的日期。',
   'jp.naturalisation': '帰化（入籍）',
   'jp.natRoute': '适用的帰化路线',
   'jp.natRoute.choose': '请选择',
@@ -477,12 +485,14 @@ export const zhCN = {
   'jp.dateOfBirth': '出生日期',
   'jp.trips': '出境记录',
   'jp.tripsHint':
-    '每次离开日本填一行，计划中的出行也可以填。没有勾选再入国许可的，按みなし再入国许可（出国后 1 年内返回）计算。',
+    '每次离开日本填一行，计划中的出行也可以填。没有勾选再入国许可的，按みなし再入国许可（出国后 1 年内返回）计算；填了出境时的在留期限的，返回也不能晚于它。',
   'jp.trip': '出境 {n}',
   'jp.departed': '离开日本的日期',
   'jp.returned': '回到日本的日期',
   'jp.reentryPermit':
     '持再入国许可（不是みなし再入国许可）出境，并在许可有效期内返回',
+  'jp.stayExpiry': '出境时的在留期限（可留空）',
+  'jp.stayExpiryHint': '在留卡上的到期日；永住者，或返回前没有到期的，可留空。',
   'jp.addTrip': '添加出境记录',
   'jp.remove': '删除',
   'jp.submit': '计算',
@@ -491,6 +501,7 @@ export const zhCN = {
   'jp.error.order': '这个日期不能早于开始的日期。',
   'jp.error.prRoute': '请选择适用的永住许可路线。',
   'jp.error.natRoute': '请选择适用的帰化路线。',
+  'jp.error.overlap': '这次出境与前面的出境日期重叠。',
   'us.entryLink': '打开美国试点',
   'us.entryDesc':
     '按绿卡日期与出入境记录，计算入籍、配偶入籍、取消绿卡条件与离境时长的时间节点。',

@@ -117,6 +117,7 @@
 | SRC-116 | GUIDANCE | 出入国在留管理庁：「再入国許可（入管法第26条）」与「みなし再入国許可（入管法第26条の2）」说明页；「『永住許可に関するガイドライン』における『継続在留要件』の取扱いについて」（令和2年8月5日，令和4年10月7日更新）；法務省入国管理局「永住者の在留資格について」（平成30年9月，7 页） | https://www.moj.go.jp/isa/immigration/procedures/sainyukoku_00002.html ；https://www.moj.go.jp/isa/immigration/procedures/minashisainyukoku_00001.html ；https://www.moj.go.jp/isa/content/930006016.pdf ；https://www.moj.go.jp/isa/content/930003741.pdf | 说明页无日期；继续在留 2022-10-07；永住者 2018-09 | 2026-11-22 | `policy-sources/2026-11-22-jp-isa-reentry.html`（sha256 `b7df131165226b0ed09d3c13e5695269705df909907a421e85d323a0ce3d016b`）；`policy-sources/2026-11-22-jp-isa-minashi-reentry.html`（sha256 `4662997bea8003b5a79ef9dc5be0f80a9243efd2deb9b5ef0ce9541d56dc96f9`）；`policy-sources/2022-10-07-jp-isa-pr-continuity-covid-notice.pdf`（sha256 `90af7dd784b23a3c4e6be04f0d6280fc5871e6f200670c370881198ad1a7dd84`）；`policy-sources/2018-09-14-jp-moj-pr-status-overview.pdf`（sha256 `3c014419995f91f47e407c43d8f6bb9e8b6e1602f95e5133545aed2026f148b3`） | archived |
 | SRC-117 | GUIDANCE | 法務省民事局「国籍Q&A」（Q9 帰化の条件）；法務省リーフレット「帰化による日本国籍の取得」（2 页，无日期） | https://www.moj.go.jp/MINJI/minji78.html ；https://www.moj.go.jp/content/001459013.pdf | Q&A 页无日期；リーフレット无日期 | 2026-11-22 | `policy-sources/2026-11-22-jp-moj-nationality-qa.html`（sha256 `fb224a19a5cfec24f22efe59adc22efbf33d5eaf4662f544b7cff15d86b43af0`）；`policy-sources/2026-11-22-jp-moj-kika-leaflet.pdf`（sha256 `2ba4e6e1236c908db8ee58d234b44d720717335549a1b4b36d25d313fb76fb78`） | archived |
 | SRC-118 | POLICY | 帰化审查运用的变更（2026-04-01 起原则 10 年在留）：法務大臣閣議後記者会見の概要（令和8年3月27日）；参議院 答弁書（内閣参質二二一第九一号，2026-07-28）；参議院法務委員会第4号（2026-04-14）政府参考人发言 No.120（国会会議録検索システム API） | https://www.moj.go.jp/hisho/kouhou/hisho08_00706.html ；https://www.sangiin.go.jp/japanese/joho1/kousei/syuisyo/221/touh/t221091.htm ；https://kokkai.ndl.go.jp/api/speech?issueID=122115206X00420260414&speechNumber=120&recordPacking=json | 2026-03-27；2026-07-28；2026-04-14 | 2026-11-22 | `policy-sources/2026-03-27-jp-moj-minister-press-kika.html`（sha256 `75c35583e267513f6f4a163374645767b5db3705ed0688316724c04b96bbb21f`）；`policy-sources/2026-07-28-jp-sangiin-answer-221-91-kika.htm`（sha256 `1e594bd61ee39aee6a92daa3f288c9c4cbf56807ef797676f1ca79c079331318`）；`policy-sources/2026-04-14-jp-ndl-sangiin-homu-speech120.json`（sha256 `1770a0a52210ccb542e84e210c6c4f705928ffcc73c2c422cf8e1c923f9f054c`） | archived |
+| SRC-119 | GUIDANCE | 出入国在留管理庁「永住許可申請」手续页（手続根拠、申請期間、申請提出者、手数料、標準処理期間） | https://www.moj.go.jp/isa/applications/procedures/16-4.html | 页面无日期 | 2026-11-22 | `policy-sources/2026-11-22-jp-isa-pr-application-page.html`（sha256 `bb207e27e84ea3b6c0d596516d3e9c73d258b4a054a38f6de6b60de662e0b7ff`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -807,6 +808,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - HTML 锚点：`#midashi02` 第2、`#midashi03` 第3、`#midashi06` 第6；PDF 的 `p<N>` 指物理页。
 - `第2の5(6)`（PDF p7）：原则连续在留 10 年以上，其中以就労資格或居住資格连续 5 年以上；申请时起过去 10 年内，无合理理由单次出国半年以上不在、或通算 2 年 6 个月以上不在的，原则上消极评价。`注2`：就労資格不含技能実習、育成就労、特定技能1号、企業内転勤与部分特定活動。
 - `第3の1`（PDF p9）：配偶者实体婚姻生活 5 年以上且连续在留 3 年以上；实子等连续在留 3 年以上。`第3の2`、`第3の3`：定住者 5 年、难民认定后 5 年。`第3の6`、`第3の7`、`第3の8`：高度人才 70 点 3 年、80 点 1 年、特別高度人材 1 年。
+- `第5の1`（PDF p12，锚点 `#midashi05`）：特定活動中"特例的、かつ、一時的"的在留不计入"10 年"，例子有继续就职活动、就职内定者、本邦大学毕业后起业活动的留学生、难民认定等手续中、因本国情势不安获准在留者；没有说这些期间前后的在留能否接续（PD-134）。2026-02-24 版没有这一条。
 - `第6`（PDF p13）：本次改定适用于令和9年（2027 年）4 月 1 日以后的申请。
 - 适用说明（【お知らせ】）：2026-03-31 前申请的适用 2026-02-24 版；2026-04-01 至 2027-03-31 申请的仍适用 2026-02-24 版（收入部分另按新版第2の4(2)、第2の5(7)）；2027-04-01 起申请的适用新版。
 - `policy-sources/2026-10-01-jp-isa-pr-guideline-r8-10-01.pdf` → <https://www.moj.go.jp/isa/content/001471577.pdf>
@@ -828,7 +830,8 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-117 国籍Q&A 与帰化リーフレット
 
 - Q&A 锚点 `#a09`（Q9 帰化の条件）：住所条件为申请时为止连续 5 年以上，住所须合法、持正当在留资格；能力条件 18 岁；末段要求"10年以上在留していることなど、日本社会に融和していること"。同段先说明第6–8条对日本人配偶者等放宽条件，但没有说 10 年是否同样适用（PD-137）。
-- リーフレット p2 同样写"１０年以上在留していることなど"。
+- Q&A 锚点 `#a10`（Q10 帰化の手続）：本人（15 岁未满由法定代理人）须亲自到申请地的法务局递交书面申请。
+- リーフレット p1 同样要求本人亲自到法务局递交；p2 同样写"１０年以上在留していることなど"。
 - `policy-sources/2026-11-22-jp-moj-kika-leaflet.pdf` → <https://www.moj.go.jp/content/001459013.pdf>
 
 ## SRC-118 帰化审查运用的变更
@@ -838,3 +841,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 参議院法務委員会（2026-04-14）政府参考人（法務省民事局長）发言 No.120：本年 4 月 1 日起帰化审查一般运用的变更点。
 - 三份文件都只说"帰化の審査において"，没有区分第5条与第6–8条的简易帰化（PD-137）。
 - `policy-sources/2026-04-14-jp-ndl-sangiin-homu-speech120.json` → <https://kokkai.ndl.go.jp/api/speech?issueID=122115206X00420260414&speechNumber=120&recordPacking=json>
+
+## SRC-119 永住許可申請 手续页
+
+- 页面没有锚点，按栏目名定位。`手続根拠`：入管法第22条、第22条の2；永住申请是"在留資格の変更"（在日本的外国人申请变更为永住者）。`申請期間`：在留期间届满日之前，申请中在留期间届满的须另行申请更新。`申請提出者`：申请人本人（日本での滞在を希望している外国人本人），或法定代理人、经批准的取次者；18 岁以上本人须自行申请（取次者除外）。页面没有直接写取次者代为申请时本人须在日本，只在在留期间更新处写明须在日本（PD-130）。

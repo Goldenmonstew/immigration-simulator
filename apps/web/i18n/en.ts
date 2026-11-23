@@ -672,9 +672,18 @@ export const en: Record<keyof typeof zhCN, string> = {
     'First day with 80 points (or as special highly skilled), kept since',
   'jp.statusStartHint.general':
     'Technical Intern Training and Specified Skilled Worker (i) do not count; for applications from 2027-04-01, Employment for Skill Development, Intra-company Transferee and some Designated Activities do not count either.',
-  'jp.marriedOn': 'Date of marriage',
+  'jp.marriedLifeFrom': 'Date your married life began',
+  'jp.marriedLifeFromHint':
+    'The permanent residence guideline counts married life in substance and does not say whether it runs from registration or from when you began living together; if they differ, the later one gives the more cautious result.',
+  'jp.excludedHint':
+    'If part of your stay was on an exceptional, temporary Designated Activities status (such as continued job hunting, a job offer awaiting start, or a pending refugee claim), enter each period: for applications from 2027-04-01 it does not count towards the 10 years (guideline 第5). Leave this empty if none.',
+  'jp.excludedPeriod': 'Excluded period {n}',
+  'jp.excludedFrom': 'From',
+  'jp.excludedTo': 'To',
+  'jp.addExcluded': 'Add a period that does not count towards the 10 years',
+  'jp.marriedOn': 'Date the marriage was registered (婚姻の日)',
   'jp.marriedOnHint':
-    'The permanent residence guideline counts married life, the Nationality Act the wedding day; the pilot uses this date for both.',
+    'Nationality Act art. 7 counts from the day of marriage: enter the date the marriage took effect (was registered).',
   'jp.naturalisation': 'Naturalisation (帰化)',
   'jp.natRoute': 'Naturalisation route that applies to you',
   'jp.natRoute.choose': 'Choose one',
@@ -684,12 +693,15 @@ export const en: Record<keyof typeof zhCN, string> = {
   'jp.dateOfBirth': 'Date of birth',
   'jp.trips': 'Trips abroad',
   'jp.tripsHint':
-    'Add a row for each time you left Japan. You can include planned trips. A trip without a re-entry permit ticked uses the deemed re-entry permit (back within 1 year).',
+    'Add a row for each time you left Japan. You can include planned trips. A trip without a re-entry permit ticked uses the deemed re-entry permit (back within 1 year); if you enter the period of stay you held when leaving, you must also be back by then.',
   'jp.trip': 'Trip {n}',
   'jp.departed': 'Date you left Japan',
   'jp.returned': 'Date you came back to Japan',
   'jp.reentryPermit':
     'Left on a re-entry permit (not the deemed permit) and came back while it was valid',
+  'jp.stayExpiry': 'Period of stay when you left (optional)',
+  'jp.stayExpiryHint':
+    'The expiry date on your residence card; leave blank if you are a permanent resident or it did not end before you came back.',
   'jp.addTrip': 'Add a trip',
   'jp.remove': 'Remove',
   'jp.submit': 'Work out dates',
@@ -699,6 +711,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'jp.error.prRoute':
     'Choose the permanent residence route that applies to you.',
   'jp.error.natRoute': 'Choose the naturalisation route that applies to you.',
+  'jp.error.overlap': 'This trip overlaps an earlier one.',
   'us.entryLink': 'Open the United States pilot',
   'us.entryDesc':
     'Use your green card date and travel record to work out the dates for naturalization, naturalization as the spouse of a citizen, removing conditions and time abroad.',

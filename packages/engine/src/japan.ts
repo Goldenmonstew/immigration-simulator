@@ -1,12 +1,6 @@
 import { japan2026_11 as jp } from '@uk-immigration/policy-data';
 import type { SourceRef } from '@uk-immigration/policy-data';
-import {
-  addDays,
-  addMonths,
-  addYears,
-  daysBetween,
-  overlapDays,
-} from './dates';
+import { addDays, addYears, daysBetween, overlapDays } from './dates';
 import { HORIZON_YEARS, afterYears, monthSpan } from './pilot';
 import type {
   PilotCheck,
@@ -45,25 +39,45 @@ export interface JpTrip {
    * valid; otherwise the deemed permit (みなし再入国許可) applies.
    */
   reentryPermit?: boolean;
+  /**
+   * Last day of the period of stay held when leaving; absent = it did not
+   * end before the return (a permanent resident has none).
+   */
+  stayExpiry?: IsoDate;
+}
+
+/** Both days included. */
+export interface JpPeriod {
+  from: IsoDate;
+  to: IsoDate;
 }
 
 export type JpPrRequest =
   | {
-      route: Exclude<JpPrRoute, 'spouse' | 'child'>;
+      route: 'general';
+      /** First day on a work or residence status, held since. */
+      statusStart: IsoDate;
       /**
-       * general: first day on a work or residence status; teijusha: first
-       * day as 定住者; refugee: recognition date; hsp: first day with the
-       * points, kept since.
+       * Stays that do not count towards the 10 years, such as temporary
+       * Designated Activities (2026-10-01 guideline 第5).
+       */
+      excluded?: JpPeriod[];
+    }
+  | {
+      route: 'teijusha' | 'refugee' | 'hsp70' | 'hsp80';
+      /**
+       * teijusha: first day as 定住者; refugee: recognition date; hsp: first
+       * day with the points, kept since.
        */
       statusStart: IsoDate;
     }
-  /** Spouse of a Japanese national or permanent resident: married life from. */
-  | { route: 'spouse'; marriedOn: IsoDate }
+  /** Spouse of a Japanese national or permanent resident. */
+  | { route: 'spouse'; marriedLifeFrom: IsoDate }
   | { route: 'child' };
 
 export type JpNaturalisationRequest =
   | { route: 'general'; dateOfBirth: IsoDate }
-  /** Spouse of a Japanese national: the wedding day. */
+  /** Spouse of a Japanese national: the day the marriage was registered. */
   | { route: 'spouse'; marriedOn: IsoDate };
 
 export interface JpRequest {
@@ -86,34 +100,43 @@ const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 type Verdict = 'yes' | 'maybe' | 'no';
 /** old: the 2026-02-24 guideline; new: the 2026-10-01 one. */
 type Guideline = 'old' | 'new';
+const NEW_GUIDELINE = 'https://www.moj.go.jp/isa/10_00279.html';
 
-/** A period that must have passed: `years` from `from`. */
+/** A period that must have passed, as it stands on one date. */
 interface Need {
-  from: IsoDate;
   years: number;
   /** A stay in Japan, rather than a marriage. */
   stay: boolean;
+  /** maybe: met only on an unsettled reading. */
+  state: Verdict;
   text: string;
   sources: SourceRef[];
 }
 
+const metOf = (state: Verdict) =>
+  state === 'yes' ? true : state === 'no' ? false : undefined;
+
 export function evaluateJapan(req: JpRequest): JpResult {
   const L = textFor(req);
   const sim = req.simulationDate;
-  const horizon = daysBetween(sim, addYears(sim, HORIZON_YEARS));
+  // To the anniversary, so a 29 February date reaches 1 March.
+  const horizon = daysBetween(sim, afterYears(sim, HORIZON_YEARS));
   const switchDate = v.newGuidelineFrom.value;
   const lastOld = addDays(switchDate, -1);
   const guideline = (d: IsoDate): Guideline => (d < switchDate ? 'old' : 'new');
-  const passed = (d: IsoDate, n: Need) => d >= afterYears(n.from, n.years);
+  const reached = (d: IsoDate, from: IsoDate, years: number): Verdict =>
+    d >= afterYears(from, years) ? 'yes' : 'no';
 
-  // Leaving without a regular permit and staying out past the deemed
-  // permit's year ends the status (art. 26-2(2)); the stay starts again on
-  // return (PD-136).
+  // The status ends on a trip past the period of stay, or past the deemed
+  // permit's year without a regular permit (art. 26-2(2)); the stay starts
+  // again on return (PD-136).
+  const pastExpiry = (t: JpTrip) => !!t.stayExpiry && t.returned > t.stayExpiry;
   const lapsed = req.trips
     .filter(
       (t) =>
-        !t.reentryPermit &&
-        t.returned > addYears(t.departed, v.deemedReentryYears.value),
+        pastExpiry(t) ||
+        (!t.reentryPermit &&
+          t.returned > addYears(t.departed, v.deemedReentryYears.value)),
     )
     .sort((a, b) => (a.departed < b.departed ? -1 : 1));
   /** First day of the stay that is unbroken on `d`. */
@@ -126,6 +149,9 @@ export function evaluateJapan(req: JpRequest): JpResult {
     const stay = stayFrom(d);
     return from > stay ? from : stay;
   };
+  /** Abroad all day on `d`: applications are made in person in Japan. */
+  const abroad = (d: IsoDate) =>
+    req.trips.some((t) => t.departed < d && d < t.returned);
   /**
    * Trips under way on any day of [from, to], travel days included; a lapse
    * is left out, since the stay counted starts on its return.
@@ -134,6 +160,9 @@ export function evaluateJapan(req: JpRequest): JpResult {
     req.trips.filter(
       (t) => !lapsed.includes(t) && t.departed <= to && t.returned >= from,
     );
+  /** Trips touching the `years` before `d`. */
+  const tripsBefore = (d: IsoDate, years: number) =>
+    tripsTouching(addYears(d, -years), addDays(d, -1));
   /** Trips with a whole day abroad in [from, to]. */
   const tripsIn = (from: IsoDate, to: IsoDate) =>
     req.trips.filter(
@@ -167,23 +196,41 @@ export function evaluateJapan(req: JpRequest): JpResult {
           ? 'MET'
           : 'FUTURE';
   const lapseNotes = lapsed.map((t) =>
-    L(
-      `${t.departed} 至 ${t.returned} 的出境没有再入国许可、超过みなし再入国许可的 ${v.deemedReentryYears.value} 年期限，在留资格消灭，连续在留从 ${t.returned} 重新起算。`,
-      ` The trip from ${t.departed} to ${t.returned} had no re-entry permit and went past the ${v.deemedReentryYears.value}-year deemed permit, so the status ended and the unbroken stay starts again on ${t.returned}.`,
-    ),
+    pastExpiry(t)
+      ? L(
+          `${t.departed} 至 ${t.returned} 的出境在在留期限 ${t.stayExpiry} 之后才返回，在留资格消灭，连续在留从 ${t.returned} 重新起算。`,
+          ` The trip from ${t.departed} to ${t.returned} came back after your period of stay ended on ${t.stayExpiry}, so the status ended and the unbroken stay starts again on ${t.returned}.`,
+        )
+      : L(
+          `${t.departed} 至 ${t.returned} 的出境没有再入国许可、超过みなし再入国许可的 ${v.deemedReentryYears.value} 年期限，在留资格消灭，连续在留从 ${t.returned} 重新起算。`,
+          ` The trip from ${t.departed} to ${t.returned} had no re-entry permit and went past the ${v.deemedReentryYears.value}-year deemed permit, so the status ended and the unbroken stay starts again on ${t.returned}.`,
+        ),
   );
   const projection = L(
     '最早日期假设模拟日之后一直在日本（已录入的未来出境除外），在留资格按时更新，婚姻等身份持续。',
     'Projected dates assume you stay in Japan after the simulation date (apart from trips you entered), renew your status on time and stay married where that counts.',
   );
   const anniversary = L(
-    '年限按周年计：起算日 N 年后的同一天起算满足（2 月 29 日起算的取 3 月 1 日）；按民法初日不算入的严格读法可能晚一天，审查实际怎么数没有公开（PD-130）。',
-    'Years run to the anniversary: N years after the start date counts as met (from 29 February, 1 March). On the strict Civil Code reading, which leaves out the first day, it could be a day later; how the authorities count is not published (PD-130).',
+    '年限按周年计：起算日 N 年后的同一天起算满足（2 月 29 日起算的取 3 月 1 日）；按民法初日不算入的严格读法可能晚一天，审查实际怎么数没有公开。须本人在日本递交，整天在境外的日子不作为递交日（PD-130）。',
+    'Years run to the anniversary: N years after the start date counts as met (from 29 February, 1 March). On the strict Civil Code reading, which leaves out the first day, it could be a day later; how the authorities count is not published. You apply in person in Japan, so a day spent wholly abroad is not an application date (PD-130).',
   );
   const reentry = L(
-    `出境没有勾选"持再入国许可"的，按みなし再入国许可：须在出国日 ${v.deemedReentryYears.value} 年后的同一天之前返回，超过即在留资格消灭、连续在留从返回日重新起算；假设这期间在留期限没有先到期（みなし许可不超过在留期限），勾选的按在许可有效期内返回计（PD-136）。`,
-    `A trip without "re-entry permit" ticked uses the deemed permit: you must be back by the same date ${v.deemedReentryYears.value} year after leaving, or the status ends and the unbroken stay starts again when you return. This assumes your period of stay did not end first (the deemed permit never runs past it); a ticked trip is taken as returning while the permit was valid (PD-136).`,
+    `出境没有勾选"持再入国许可"的，按みなし再入国许可：须在出国日 ${v.deemedReentryYears.value} 年后的同一天之前返回；填了出境时的在留期限的，返回日也不能晚于该期限（勾选的同样）。超过即在留资格消灭、连续在留从返回日重新起算；没填在留期限的假设它没有先到期，勾选的按在许可有效期内返回计（PD-136）。`,
+    `A trip without "re-entry permit" ticked uses the deemed permit: you must be back by the same date ${v.deemedReentryYears.value} year after leaving; if you entered the period of stay you held when leaving, you must also be back by its last day (ticked or not). Otherwise the status ends and the unbroken stay starts again when you return. Without a period of stay entered, it is taken not to have ended first, and a ticked trip is taken as returning while the permit was valid (PD-136).`,
   );
+  const inJapan = (sources: SourceRef[]): PilotCheck[] =>
+    abroad(sim)
+      ? [
+          {
+            text: L(
+              '模拟日在日本（须本人在日本递交）',
+              'In Japan on the simulation date (you apply in person in Japan)',
+            ),
+            met: false,
+            sources,
+          },
+        ]
+      : [];
   const pathways: JpPathway[] = [];
 
   // ---------- Permanent residence (art. 22, guidelines) ----------
@@ -194,28 +241,71 @@ export function evaluateJapan(req: JpRequest): JpResult {
       const g = guideline(d);
       const stay = stayFrom(d);
       const stayNeed = (years: number, sources: SourceRef[]): Need => ({
-        from: stay,
         years,
         stay: true,
+        state: reached(d, stay, years),
         text: L(
           `自 ${stay} 起在日本连续在留满 ${years} 年`,
-          `${years} year${years === 1 ? '' : 's'} of unbroken stay in Japan since ${stay}`,
+          `${count(years, 'year')} of unbroken stay in Japan since ${stay}`,
         ),
         sources,
       });
       switch (pr.route) {
         case 'general': {
+          const years = v.prStayYears.value;
+          // Excluded stays (第5の1): counting again after them is sure;
+          // under the new guideline, leaving them out of an unbroken stay
+          // may be enough, and the old guideline does not mention them
+          // (PD-134).
+          const excluded = (pr.excluded ?? []).filter(
+            (p) => p.from < d && p.to >= stay,
+          );
+          const restart = excluded.reduce((s, p) => {
+            const after = addDays(p.to, 1);
+            return after > s ? after : s;
+          }, stay);
+          const excludedDays = excluded.reduce(
+            (n, p) => n + overlapDays(p.from, p.to, stay, addDays(d, -1)),
+            0,
+          );
+          const lenient =
+            g === 'new'
+              ? addDays(afterYears(stay, years), excludedDays)
+              : afterYears(stay, years);
           const from = since(d, pr.statusStart);
-          const years = v.prStatusYears.value;
+          const statusYears = v.prStatusYears.value;
           return [
-            stayNeed(v.prStayYears.value, v.prStayYears.sources),
+            excluded.length
+              ? {
+                  years,
+                  stay: true,
+                  state:
+                    reached(d, restart, years) === 'yes'
+                      ? 'yes'
+                      : d >= lenient
+                        ? 'maybe'
+                        : 'no',
+                  text: L(
+                    `自 ${stay} 起在日本连续在留满 ${years} 年，其中 ${excludedDays} 天属不计入 ${years} 年的期间（按其后重新起算，自 ${restart} 起）`,
+                    `${years} years of unbroken stay in Japan since ${stay}, ${excludedDays} days of it not counting towards the ${years} years (counting again after them, since ${restart})`,
+                  ),
+                  sources: [
+                    ...v.prStayYears.sources,
+                    {
+                      srcId: 'SRC-114',
+                      locator: '第5の1 (p12)',
+                      url: `${NEW_GUIDELINE}#midashi05`,
+                    },
+                  ],
+                }
+              : stayNeed(years, v.prStayYears.sources),
             {
-              from,
-              years,
+              years: statusYears,
               stay: true,
+              state: reached(d, from, statusYears),
               text: L(
-                `其中自 ${from} 起以就労资格或居住资格连续在留满 ${years} 年`,
-                `Of that, ${years} years in a row on a work or residence status since ${from}`,
+                `其中自 ${from} 起以就労资格或居住资格连续在留满 ${statusYears} 年`,
+                `Of that, ${statusYears} years in a row on a work or residence status since ${from}`,
               ),
               sources: v.prStatusYears.sources,
             },
@@ -225,12 +315,12 @@ export function evaluateJapan(req: JpRequest): JpResult {
           const years = v.spouseMarriageYears.value[g];
           return [
             {
-              from: pr.marriedOn,
               years,
               stay: false,
+              state: reached(d, pr.marriedLifeFrom, years),
               text: L(
-                `自 ${pr.marriedOn} 起实际婚姻生活满 ${years} 年`,
-                `${years} years of married life since ${pr.marriedOn}`,
+                `自 ${pr.marriedLifeFrom} 起实际婚姻生活满 ${years} 年`,
+                `${years} years of married life since ${pr.marriedLifeFrom}`,
               ),
               sources: v.spouseMarriageYears.sources,
             },
@@ -249,12 +339,12 @@ export function evaluateJapan(req: JpRequest): JpResult {
             zh: string,
             en: string,
           ): Need => ({
-            from,
             years,
             stay: true,
+            state: reached(d, from, years),
             text: L(
               `自 ${from} 起${zh}满 ${years} 年`,
-              `${years} year${years === 1 ? '' : 's'} ${en} since ${from}`,
+              `${count(years, 'year')} ${en} since ${from}`,
             ),
             sources,
           });
@@ -290,32 +380,43 @@ export function evaluateJapan(req: JpRequest): JpResult {
           .filter((n) => n.stay)
           .map((n) => n.years),
       );
-    const oldTrips = (d: IsoDate) =>
-      tripsTouching(addYears(d, -stayYears(d)), addDays(d, -1));
-    const [totalMin, totalMax] = monthSpan(v.totalAbsenceMonths.value);
+    const oldTrips = (d: IsoDate) => tripsBefore(d, stayYears(d));
+    const years = v.absenceWindowYears.value;
+    const months = v.singleAbsenceMonths.value;
+    const total = v.totalAbsenceMonths.value;
+    // Neither "half a year" nor "2 years 6 months" is given in days: in
+    // calendar months they span these days (PD-131).
+    const [halfMin, halfMax] = monthSpan(months);
+    const [totalMin, totalMax] = monthSpan(total);
     const absences = (d: IsoDate) => {
-      const from = addYears(d, -v.absenceWindowYears.value);
-      const to = addDays(d, -1);
+      const from = addYears(d, -years);
+      const trips = tripsIn(from, addDays(d, -1));
       return {
-        long: tripsIn(from, to).filter(
+        // Half a year whatever the reading: enough whole days abroad, all
+        // of them in the window.
+        long: trips.filter(
           (t) =>
-            t.returned > addMonths(t.departed, v.singleAbsenceMonths.value),
+            daysBetween(t.departed, t.returned) - 1 >= halfMax &&
+            addDays(t.departed, 1) >= from,
         ),
-        days: daysAbroad(from, to),
+        // Not under half a year on every reading, travel days included.
+        maybeLong: trips.filter(
+          (t) => daysBetween(t.departed, t.returned) + 1 >= halfMin,
+        ),
+        days: daysAbroad(from, addDays(d, -1)),
       };
     };
     const verdict = (d: IsoDate): Verdict => {
-      if (!needs(d).every((n) => passed(d, n))) return 'no';
+      const states = needs(d).map((n) => n.state);
+      if (abroad(d) || states.includes('no')) return 'no';
+      if (states.includes('maybe')) return 'maybe';
       if (guideline(d) === 'old') return oldTrips(d).length ? 'maybe' : 'yes';
       const a = absences(d);
-      return a.long.length || a.days >= totalMin ? 'maybe' : 'yes';
+      return a.maybeLong.length || a.days >= totalMin ? 'maybe' : 'yes';
     };
     const earliest = firstDate((d) => verdict(d) === 'yes');
     const possible = firstDate((d) => verdict(d) !== 'no');
     const status = statusOf(earliest, possible);
-    const years = v.absenceWindowYears.value;
-    const months = v.singleAbsenceMonths.value;
-    const total = v.totalAbsenceMonths.value;
     const applies = special
       ? L(
           '这一出境标准写在一般路径下，是否也适用于本特例没有写明（PD-133）。',
@@ -324,16 +425,26 @@ export function evaluateJapan(req: JpRequest): JpResult {
       : '';
     /** Why the date `d` is uncertain. */
     const reason = (d: IsoDate) => {
+      if (needs(d).some((n) => n.state === 'maybe'))
+        return guideline(d) === 'new'
+          ? L(
+              '但其中有不计入 10 年的期间；新版指南不计入这些期间，但没有说之前与之后的在留能否接续计算（PD-134）。',
+              ' but part of the stay does not count towards the 10 years; the new guideline leaves it out but does not say whether the stay before and after it can be added together (PD-134).',
+            )
+          : L(
+              `但其中有你标为不计入 10 年的期间；截至 ${lastOld}（含当日）递交适用的指南没有写这些期间是否计入（PD-134）。`,
+              ` but it includes stays you marked as not counting towards the 10 years; the guideline for applications up to ${lastOld} does not say whether they count (PD-134).`,
+            );
       if (guideline(d) === 'old')
         return L(
-          `但前 ${stayYears(d)} 年里有 ${oldTrips(d).length} 次出境，${lastOld} 前递交适用的指南没有出境天数标准（PD-132）。`,
-          ` but you have ${count(oldTrips(d).length, 'trip')} abroad in the ${count(stayYears(d), 'year')} before it, and the guideline for applications up to ${lastOld} sets no limit on absences (PD-132).`,
+          `但前 ${stayYears(d)} 年里有 ${oldTrips(d).length} 次出境，截至 ${lastOld}（含当日）递交适用的指南没有出境天数标准（PD-132）。`,
+          ` but you have ${count(oldTrips(d).length, 'trip')} abroad in the ${count(stayYears(d), 'year')} before it, and the guideline for applications up to ${lastOld} does not specify a numerical limit on absences (PD-132).`,
         );
       const a = absences(d);
       return (
         L(
-          `但前 ${years} 年里${a.long.length ? `有 ${a.long.length} 次单次 ${months} 个月以上的出境、` : ''}出境合计 ${a.days} 天；${switchDate} 起的指南对无合理理由单次出境 ${months} 个月以上或合计 ${total} 个月以上的原则上消极评价，是否有合理理由个案判断（PD-131）。`,
-          ` but in the ${years} years before it you have ${a.long.length ? `${count(a.long.length, 'trip')} of ${months} months or more and ` : ''}${a.days} days abroad in all; from ${switchDate} the guideline counts against you, unless there is a reasonable reason, one absence of ${months} months or more or ${total} months in total (PD-131).`,
+          `但前 ${years} 年里${a.maybeLong.length ? `有 ${a.maybeLong.length} 次单次可能达到 ${months} 个月的出境、` : ''}出境合计 ${a.days} 天；${switchDate} 起的指南对无合理理由单次出境 ${months} 个月以上或合计 ${total} 个月以上的原则上消极评价，是否有合理理由个案判断（PD-131）。`,
+          ` but in the ${years} years before it you have ${a.maybeLong.length ? `${count(a.maybeLong.length, 'trip')} that may reach ${months} months and ` : ''}${a.days} days abroad in all; from ${switchDate} the guideline counts against you, unless there is a reasonable reason, one absence of ${months} months or more or ${total} months in total (PD-131).`,
         ) + applies
       );
     };
@@ -347,20 +458,19 @@ export function evaluateJapan(req: JpRequest): JpResult {
     const version =
       shown && shown < switchDate
         ? L(
-            `${shown} 按 ${lastOld} 前递交适用的 2026-02-24 版指南计算；${switchDate} 起递交适用 2026-10-01 版${repeated ? '' : newDate ? `，最早 ${newDate}` : '，10 年内达不到'}。`,
+            `${shown} 按截至 ${lastOld}（含当日）递交适用的 2026-02-24 版指南计算；${switchDate} 起递交适用 2026-10-01 版${repeated ? '' : newDate ? `，最早 ${newDate}` : '，10 年内达不到'}。`,
             ` ${shown} follows the 2026-02-24 guideline, which covers applications up to ${lastOld}; from ${switchDate} the 2026-10-01 guideline applies${repeated ? '' : newDate ? `, with ${newDate} the earliest date` : ', which you will not meet within 10 years'}.`,
           )
         : '';
-    const g = guideline(sim);
     const a = absences(sim);
     const absenceChecks: PilotCheck[] =
-      g === 'old'
+      guideline(sim) === 'old'
         ? [
             {
               text: oldTrips(sim).length
                 ? L(
-                    `前 ${stayYears(sim)} 年有 ${oldTrips(sim).length} 次出境；${lastOld} 前递交适用的指南没有出境天数标准`,
-                    `${count(oldTrips(sim).length, 'trip')} abroad in the past ${count(stayYears(sim), 'year')}; the guideline for applications up to ${lastOld} sets no limit on absences`,
+                    `前 ${stayYears(sim)} 年有 ${oldTrips(sim).length} 次出境；截至 ${lastOld}（含当日）递交适用的指南没有出境天数标准`,
+                    `${count(oldTrips(sim).length, 'trip')} abroad in the past ${count(stayYears(sim), 'year')}; the guideline for applications up to ${lastOld} does not specify a numerical limit on absences`,
                   )
                 : L(
                     `前 ${stayYears(sim)} 年没有出境`,
@@ -373,10 +483,14 @@ export function evaluateJapan(req: JpRequest): JpResult {
         : [
             {
               text: L(
-                `前 ${years} 年没有单次 ${months} 个月以上的出境`,
-                `No absence of ${months} months or more in the past ${years} years`,
+                `前 ${years} 年没有单次 ${months} 个月以上的出境（${months} 个月即 ${halfMin}–${halfMax} 天）`,
+                `No absence of ${months} months or more in the past ${years} years (${months} months, ${halfMin}–${halfMax} days)`,
               ),
-              met: a.long.length ? (special ? undefined : false) : true,
+              met: !a.maybeLong.length
+                ? true
+                : a.long.length && !special
+                  ? false
+                  : undefined,
               sources: v.singleAbsenceMonths.sources,
             },
             {
@@ -431,10 +545,14 @@ export function evaluateJapan(req: JpRequest): JpResult {
       checks: [
         ...needs(sim).map((n) => ({
           text: n.text,
-          met: passed(sim, n),
+          met: metOf(n.state),
           sources: n.sources,
         })),
         ...absenceChecks,
+        ...inJapan([
+          { srcId: 'SRC-110', locator: '第22条第1項' },
+          { srcId: 'SRC-119', locator: '申請提出者' },
+        ]),
       ],
       notChecked: [
         L(
@@ -448,28 +566,28 @@ export function evaluateJapan(req: JpRequest): JpResult {
       ],
       assumptions: [
         L(
-          `按递交日选指南：${lastOld} 前递交适用 2026-02-24 版，${switchDate} 起适用 2026-10-01 版（配偶者婚姻 ${v.spouseMarriageYears.value.old} 年改 ${v.spouseMarriageYears.value.new} 年、在留 ${v.spouseStayYears.value.old} 年改 ${v.spouseStayYears.value.new} 年，实子等 ${v.childStayYears.value.old} 年改 ${v.childStayYears.value.new} 年，并新增出境标准）。旧版没有出境天数标准，期间内有出境的待确认（PD-132）。`,
-          `The guideline depends on the application date: up to ${lastOld} the 2026-02-24 version, from ${switchDate} the 2026-10-01 version (spouses ${v.spouseMarriageYears.value.old} → ${v.spouseMarriageYears.value.new} years of marriage and ${v.spouseStayYears.value.old} → ${v.spouseStayYears.value.new} years of stay, children ${v.childStayYears.value.old} → ${v.childStayYears.value.new} years, and a new test for absences). The old version sets no limit on absences, so trips in the period leave the date uncertain (PD-132).`,
+          `按递交日选指南：截至 ${lastOld}（含当日）递交适用 2026-02-24 版，${switchDate} 起适用 2026-10-01 版（配偶者婚姻 ${v.spouseMarriageYears.value.old} 年改 ${v.spouseMarriageYears.value.new} 年、在留 ${v.spouseStayYears.value.old} 年改 ${v.spouseStayYears.value.new} 年，实子等 ${v.childStayYears.value.old} 年改 ${v.childStayYears.value.new} 年，并新增出境标准）。旧版没有出境天数标准，期间内有出境的待确认（PD-132）。`,
+          `The guideline depends on the application date: up to and including ${lastOld} the 2026-02-24 version, from ${switchDate} the 2026-10-01 version (spouses ${v.spouseMarriageYears.value.old} → ${v.spouseMarriageYears.value.new} years of marriage and ${v.spouseStayYears.value.old} → ${v.spouseStayYears.value.new} years of stay, children ${v.childStayYears.value.old} → ${v.childStayYears.value.new} years, and a new test for absences). The old version does not specify a numerical limit on absences, so trips in the period leave the date uncertain (PD-132).`,
         ),
         L(
-          `新版出境标准看递交日前 ${years} 年：单次出境按离境日起 ${months} 个日历月判断（回来日期晚于 ${months} 个月后的同一天即算）；合计按整天在境外的天数，少于 ${totalMin} 天算未达到 ${total} 个月，${totalMax} 天及以上算达到；出入境当天按在日本计。达到的原则上消极评价，有合理理由的个案判断，结果待确认（PD-131）。`,
-          `The new absence test looks at the ${years} years before applying: a single absence is measured as ${months} calendar months from the day you left (back after the same date ${months} months later counts); the total is in whole days abroad, under ${totalMin} days is short of ${total} months and ${totalMax} days or more reaches it; departure and return days count as days in Japan. Reaching it counts against you unless there is a reasonable reason, decided case by case, so the result is uncertain (PD-131).`,
+          `新版出境标准看递交日前 ${years} 年，出入境当天按在日本计。单次：${months} 个日历月是 ${halfMin}–${halfMax} 天，境外整天 ${halfMax} 天以上且整段在这 ${years} 年内的算达到，连出入境当天也不满 ${halfMin} 天的算未达到，其间与跨窗口的长行程待确认；合计按境外整天，少于 ${totalMin} 天算未达到 ${total} 个月，${totalMax} 天及以上算达到。达到的原则上消极评价，有合理理由的个案判断，结果待确认（PD-131）。`,
+          `The new absence test looks at the ${years} years before applying, with departure and return days counted as days in Japan. A single absence: ${months} calendar months are ${halfMin}–${halfMax} days, so ${halfMax} or more whole days abroad, all inside those ${years} years, reaches it, and under ${halfMin} days even counting travel days does not; anything between, or a long trip that started before the window, is uncertain. The total is in whole days abroad: under ${totalMin} days is short of ${total} months and ${totalMax} days or more reaches it. Reaching it counts against you unless there is a reasonable reason, decided case by case, so the result is uncertain (PD-131).`,
         ),
         anniversary,
         reentry,
         ...(pr.route === 'general'
           ? [
               L(
-                `就労资格或居住资格的范围由你自行确认：${switchDate} 起递交的，就労资格不含技能実習、育成就労、特定技能1号、企業内転勤与部分特定活動（PD-134）。`,
-                `Check yourself that your status counts as a work or residence status: for applications from ${switchDate} work statuses exclude Technical Intern Training, Employment for Skill Development, Specified Skilled Worker (i), Intra-company Transferee and some Designated Activities (PD-134).`,
+                `就労资格或居住资格的范围由你自行确认：${switchDate} 起递交的，就労资格不含技能実習、育成就労、特定技能1号、企業内転勤与部分特定活動。特例性、临时性的特定活動（如继续就职活动、难民认定申请中）不计入 10 年，请作为不计入期间填写；按其后重新起算的日期作为确定日期，只扣除这些天数的日期待确认（PD-134）。`,
+                `Check yourself that your status counts as a work or residence status: for applications from ${switchDate} work statuses exclude Technical Intern Training, Employment for Skill Development, Specified Skilled Worker (i), Intra-company Transferee and some Designated Activities. Exceptional, temporary Designated Activities (such as continued job hunting or a pending refugee claim) do not count towards the 10 years: enter them as excluded stays. Counting again after them gives the sure date; only leaving out those days is uncertain (PD-134).`,
               ),
             ]
           : []),
         ...(pr.route === 'spouse'
           ? [
               L(
-                '婚姻生活从你填写的日期起算；指南写的是"实体婚姻生活"，以登记日还是同居日起算没有写明（PD-135）。',
-                'Married life runs from the date you entered; the guideline says "married life in substance" and does not say whether it starts at registration or when you began living together (PD-135).',
+                '婚姻年限从你填写的开始实际婚姻生活的日期起算；指南写的是"实体婚姻生活"，以登记日还是同居日起算没有写明（PD-135）。',
+                'Married life runs from the date you entered for when married life began; the guideline says "married life in substance" and does not say whether it starts at registration or when you began living together (PD-135).',
               ),
             ]
           : []),
@@ -497,45 +615,64 @@ export function evaluateJapan(req: JpRequest): JpResult {
       d >=
         afterYears(nat.marriedOn, v.spouseNaturalisationMarriageYears.value) &&
       d >= afterYears(stayFrom(d), v.spouseNaturalisationDomicileYears.value);
+    // Art. 7 applies to a spouse on the application day.
     const legal = (d: IsoDate) => {
       const stay = stayFrom(d);
       return nat.route === 'general'
         ? d >= afterYears(stay, v.naturalisationYears.value) &&
             d >= afterYears(nat.dateOfBirth, v.naturalisationAge.value)
-        : d >= afterYears(stay, v.spouseNaturalisationYears.value) ||
-            married(d);
+        : d >= nat.marriedOn &&
+            (d >= afterYears(stay, v.spouseNaturalisationYears.value) ||
+              married(d));
     };
     const practice = (d: IsoDate) =>
       d >= afterYears(stayFrom(d), practiceYears);
-    /** Years before `d` in which trips leave continuity uncertain. */
-    const windowYears = (d: IsoDate) =>
+    /** Years the law counts on `d`. */
+    const legalYears = (d: IsoDate) =>
       nat.route === 'general'
-        ? practiceYears
+        ? v.naturalisationYears.value
         : married(d)
           ? v.spouseNaturalisationDomicileYears.value
           : v.spouseNaturalisationYears.value;
-    const trips = (d: IsoDate) =>
-      tripsTouching(addYears(d, -windowYears(d)), addDays(d, -1));
+    // The 10-year practice is certain only for general applications reviewed
+    // from its start; earlier ones may still be pending then (PD-137).
     const verdict = (d: IsoDate): Verdict => {
-      if (!legal(d) || (nat.route === 'general' && !practice(d))) return 'no';
-      return !practice(d) || trips(d).length ? 'maybe' : 'yes';
+      if (abroad(d) || !legal(d)) return 'no';
+      if (!practice(d))
+        return nat.route === 'general' && d >= practiceFrom ? 'no' : 'maybe';
+      return tripsBefore(d, practiceYears).length ? 'maybe' : 'yes';
     };
     const earliest = firstDate((d) => verdict(d) === 'yes');
     const possible = firstDate((d) => verdict(d) !== 'no');
     const status = statusOf(earliest, possible);
-    const legalDate = firstDate(legal);
-    const practiceDate = firstDate((d) => legal(d) && practice(d));
+    const legalDate = firstDate((d) => !abroad(d) && legal(d));
+    const practiceDate = firstDate(
+      (d) => !abroad(d) && legal(d) && practice(d),
+    );
     const stay = stayFrom(sim);
     const tripNote = (d: IsoDate) => {
-      const found = trips(d);
-      const days = daysAbroad(addYears(d, -windowYears(d)), addDays(d, -1));
+      const n = practice(d) ? practiceYears : legalYears(d);
+      const found = tripsBefore(d, n);
+      const days = daysAbroad(addYears(d, -n), addDays(d, -1));
       return found.length
         ? L(
-            `这 ${windowYears(d)} 年里有 ${found.length} 次出境、合计 ${days} 天；法律与官方说明都没有"引き続き"允许多少出境的标准（PD-138）。`,
-            ` In those ${count(windowYears(d), 'year')} you have ${count(found.length, 'trip')} abroad, ${days} days in all; neither the law nor official guidance says how much absence "continuous" allows (PD-138).`,
+            `这 ${n} 年里有 ${found.length} 次出境、合计 ${days} 天；法律与官方说明都没有"引き続き"允许多少出境的标准（PD-138）。`,
+            ` In the ${count(n, 'year')} before it you have ${count(found.length, 'trip')} abroad, ${days} days in all; neither the law nor official guidance says how much absence "continuous" allows (PD-138).`,
           )
         : '';
     };
+    const practiceNote = (d: IsoDate) =>
+      practice(d)
+        ? ''
+        : nat.route === 'general'
+          ? L(
+              `${practiceFrom} 起法务省在帰化审查中原则要求在留 ${practiceYears} 年以上；此前递交、届时尚未审结的申请是否适用没有说明，若适用，${practiceDate ? `最早 ${practiceDate}` : '10 年内达不到'}（PD-137）。`,
+              ` From ${practiceFrom} the Ministry of Justice in principle requires ${practiceYears} years of stay in its review; whether this applies to applications made earlier and still pending then is not stated, and if it does, ${practiceDate ? `the earliest date is ${practiceDate}` : 'you will not meet it within 10 years'} (PD-137).`,
+            )
+          : L(
+              `${practiceFrom} 起法务省在帰化审查中原则要求在留 ${practiceYears} 年以上，是否也适用于日本人配偶者没有说明；若适用，${practiceDate ? `最早 ${practiceDate}` : '10 年内达不到'}（PD-137）。`,
+              ` From ${practiceFrom} the Ministry of Justice in principle requires ${practiceYears} years of stay in its review; whether this also applies to spouses of Japanese nationals is not stated, and if it does, ${practiceDate ? `the earliest date is ${practiceDate}` : 'you will not meet it within 10 years'} (PD-137).`,
+            );
     const main =
       status === 'MET'
         ? L(
@@ -552,12 +689,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
                 `按年限计算的候选递交日是 ${possible}。`,
                 `Counting years alone, the candidate application date is ${possible}.`,
               ) +
-              (practice(possible!)
-                ? ''
-                : L(
-                    `${practiceFrom} 起法务省在帰化审查中原则要求在留 ${practiceYears} 年以上，是否也适用于日本人配偶者没有说明；若适用，${practiceDate ? `最早 ${practiceDate}` : '10 年内达不到'}（PD-137）。`,
-                    ` From ${practiceFrom} the Ministry of Justice in principle requires ${practiceYears} years of stay in its review; whether this also applies to spouses of Japanese nationals is not stated, and if it does, ${practiceDate ? `the earliest date is ${practiceDate}` : 'you will not meet it within 10 years'} (PD-137).`,
-                  )) +
+              practiceNote(possible!) +
               tripNote(possible!)
             : L(
                 '按现有记录，10 年内达不到帰化的时间条件。',
@@ -568,19 +700,46 @@ export function evaluateJapan(req: JpRequest): JpResult {
       legalDate &&
       (!possible || legalDate < possible)
         ? L(
-            `国籍法本身只要求住所 ${v.naturalisationYears.value} 年、年满 ${v.naturalisationAge.value} 岁，${legalDate === sim ? '模拟日已满足' : `最早 ${legalDate}`}；${practiceFrom} 起法务省在审查中原则要求在留 ${practiceYears} 年以上，例外个案判断（PD-137）。`,
-            ` The Nationality Act itself asks only for ${v.naturalisationYears.value} years of domicile and age ${v.naturalisationAge.value}, ${legalDate === sim ? 'which you meet on the simulation date' : `met from ${legalDate}`}; from ${practiceFrom} the Ministry of Justice in principle requires ${practiceYears} years of stay in its review, with exceptions decided case by case (PD-137).`,
+            `国籍法本身只要求住所 ${v.naturalisationYears.value} 年、年满 ${v.naturalisationAge.value} 岁，按年限最早 ${legalDate}；${practiceFrom} 起法务省在审查中原则要求在留 ${practiceYears} 年以上，例外个案判断（PD-137）。`,
+            ` The Nationality Act itself asks only for ${v.naturalisationYears.value} years of domicile and age ${v.naturalisationAge.value}, which by years alone is from ${legalDate}; from ${practiceFrom} the Ministry of Justice in principle requires ${practiceYears} years of stay in its review, with exceptions decided case by case (PD-137).`,
           )
         : '';
-    const checks: PilotCheck[] =
-      nat.route === 'general'
+    /** A period reached on the simulation date, unless trips cloud it. */
+    const continuous = (ok: boolean, n: number) =>
+      !ok ? false : tripsBefore(sim, n).length ? undefined : true;
+    const practiceCheck: PilotCheck = {
+      text:
+        nat.route === 'general'
+          ? L(
+              `按 ${practiceFrom} 起的审查运用，自 ${stay} 起原则在留满 ${practiceYears} 年`,
+              `Under the review practice from ${practiceFrom}, in principle ${practiceYears} years of stay since ${stay}`,
+            )
+          : L(
+              `若 ${practiceFrom} 起的审查运用也适用于配偶者：自 ${stay} 起在留满 ${practiceYears} 年`,
+              `If the review practice from ${practiceFrom} also applies to spouses: ${practiceYears} years of stay since ${stay}`,
+            ),
+      met: practice(sim)
+        ? continuous(true, practiceYears)
+        : nat.route === 'general' && sim >= practiceFrom
+          ? false
+          : undefined,
+      sources: [
+        ...v.naturalisationPracticeYears.sources,
+        ...v.naturalisationPracticeFrom.sources,
+      ],
+    };
+    const checks: PilotCheck[] = [
+      ...(nat.route === 'general'
         ? [
             {
               text: L(
                 `自 ${stay} 起在日本连续有住所满 ${v.naturalisationYears.value} 年`,
                 `${v.naturalisationYears.value} years of continuous domicile in Japan since ${stay}`,
               ),
-              met: sim >= afterYears(stay, v.naturalisationYears.value),
+              met: continuous(
+                sim >= afterYears(stay, v.naturalisationYears.value),
+                v.naturalisationYears.value,
+              ),
               sources: v.naturalisationYears.sources,
             },
             {
@@ -592,39 +751,26 @@ export function evaluateJapan(req: JpRequest): JpResult {
                 sim >= afterYears(nat.dateOfBirth, v.naturalisationAge.value),
               sources: v.naturalisationAge.sources,
             },
-            {
-              text: L(
-                `按 ${practiceFrom} 起的审查运用，自 ${stay} 起原则在留满 ${practiceYears} 年`,
-                `Under the review practice from ${practiceFrom}, in principle ${practiceYears} years of stay since ${stay}`,
-              ),
-              met: practice(sim),
-              sources: [
-                ...v.naturalisationPracticeYears.sources,
-                ...v.naturalisationPracticeFrom.sources,
-              ],
-            },
           ]
         : [
             {
               text: L(
-                `国籍法第 7 条：自 ${stay} 起在日本连续有住所或居所满 ${v.spouseNaturalisationYears.value} 年；或结婚（${nat.marriedOn}）满 ${v.spouseNaturalisationMarriageYears.value} 年且连续有住所满 ${v.spouseNaturalisationDomicileYears.value} 年`,
-                `Nationality Act art. 7: ${v.spouseNaturalisationYears.value} years of continuous domicile or residence in Japan since ${stay}, or ${v.spouseNaturalisationMarriageYears.value} years since the wedding (${nat.marriedOn}) with ${v.spouseNaturalisationDomicileYears.value} year of continuous domicile`,
+                `国籍法第 7 条：递交时是日本国民的配偶者（${nat.marriedOn} 登记结婚），且自 ${stay} 起在日本连续有住所或居所满 ${v.spouseNaturalisationYears.value} 年，或结婚满 ${v.spouseNaturalisationMarriageYears.value} 年且连续有住所满 ${v.spouseNaturalisationDomicileYears.value} 年`,
+                `Nationality Act art. 7: a spouse of a Japanese national when applying (married on ${nat.marriedOn}), with ${v.spouseNaturalisationYears.value} years of continuous domicile or residence in Japan since ${stay}, or ${v.spouseNaturalisationMarriageYears.value} years married with ${v.spouseNaturalisationDomicileYears.value} year of continuous domicile`,
               ),
-              met: legal(sim),
+              met: continuous(legal(sim), legalYears(sim)),
               sources: v.spouseNaturalisationYears.sources,
             },
-            {
-              text: L(
-                `若 ${practiceFrom} 起的审查运用也适用于配偶者：自 ${stay} 起在留满 ${practiceYears} 年`,
-                `If the review practice from ${practiceFrom} also applies to spouses: ${practiceYears} years of stay since ${stay}`,
-              ),
-              met: practice(sim) ? true : undefined,
-              sources: [
-                ...v.naturalisationPracticeYears.sources,
-                ...v.naturalisationPracticeFrom.sources,
-              ],
-            },
-          ];
+          ]),
+      practiceCheck,
+      ...inJapan([
+        {
+          srcId: 'SRC-117',
+          locator: 'Q10',
+          url: 'https://www.moj.go.jp/MINJI/minji78.html#a10',
+        },
+      ]),
+    ];
 
     pathways.push({
       id: 'JP-NATURALISATION',
@@ -639,8 +785,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
           'Conduct, livelihood, giving up your current nationality, respect for the Constitution (art. 5(1)(iii)–(vi)), Japanese language and the other parts of "integration into Japanese society", and the longer review of tax and social insurance payments from 2026-04',
         ),
         L(
-          '第 6、8 条的其他简易情形（如在日本出生、日本国民之子），以及 2026-04-01 前已递交的申请是否适用新运用',
-          'The other simplified cases in art. 6 and 8 (such as being born in Japan or a child of a Japanese national), and whether applications made before 2026-04-01 follow the new practice',
+          '第 6、8 条的其他简易情形（如在日本出生、日本国民之子）',
+          'The other simplified cases in art. 6 and 8 (such as being born in Japan or a child of a Japanese national)',
         ),
       ],
       assumptions: [
@@ -649,8 +795,12 @@ export function evaluateJapan(req: JpRequest): JpResult {
           'Domicile and stay both run from the start of your current stay as entered, without telling domicile from residence; domicile must be lawful, that is on a valid status throughout (PD-139).',
         ),
         L(
-          `法律与官方说明都没有出境天数标准，计入的年限内有出境的待确认（${nat.route === 'general' ? `前 ${practiceYears} 年` : `前 ${v.spouseNaturalisationYears.value} 年，结婚满 ${v.spouseNaturalisationMarriageYears.value} 年后为前 ${v.spouseNaturalisationDomicileYears.value} 年`}，PD-138）。`,
-          `There is no limit on absences in the law or official guidance, so trips in the counted years leave the date uncertain (${nat.route === 'general' ? `the past ${practiceYears} years` : `the past ${v.spouseNaturalisationYears.value} years, or the past ${v.spouseNaturalisationDomicileYears.value} year once ${v.spouseNaturalisationMarriageYears.value} years married`}, PD-138).`,
+          `${practiceFrom} 起的审查运用原则要求在留 ${practiceYears} 年：一般帰化在这天起递交的按 ${practiceYears} 年计；此前递交的、以及日本人配偶者是否适用没有说明，只满足国籍法的日期待确认（PD-137）。`,
+          `The review practice from ${practiceFrom} in principle requires ${practiceYears} years of stay: general applications made from that day are counted with ${practiceYears} years; whether it applies to earlier applications or to spouses of Japanese nationals is not stated, so a date meeting only the Nationality Act is uncertain (PD-137).`,
+        ),
+        L(
+          `法律与官方说明都没有出境天数标准：前 ${practiceYears} 年内有出境的，连续在留与住所都待确认（PD-138）。`,
+          `There is no limit on absences in the law or official guidance: trips in the past ${practiceYears} years leave both the unbroken stay and domicile uncertain (PD-138).`,
         ),
         anniversary,
         reentry,

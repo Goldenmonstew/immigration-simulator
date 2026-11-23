@@ -174,4 +174,5 @@ export const sourceUrls: Record<string, string> = {
     'https://www.moj.go.jp/isa/immigration/procedures/sainyukoku_00002.html',
   'SRC-117': 'https://www.moj.go.jp/MINJI/minji78.html',
   'SRC-118': 'https://www.moj.go.jp/hisho/kouhou/hisho08_00706.html',
+  'SRC-119': 'https://www.moj.go.jp/isa/applications/procedures/16-4.html',
 };

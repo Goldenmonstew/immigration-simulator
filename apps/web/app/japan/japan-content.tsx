@@ -12,6 +12,7 @@ import type { TranslationKey } from '../../i18n';
 import { useTranslation } from '../../i18n/locale';
 import { today } from '../../lib/questionnaire';
 import {
+  emptyJpExcluded,
   emptyJpForm,
   emptyJpTrip,
   jpRequest,
@@ -19,24 +20,37 @@ import {
   validateJpForm,
 } from '../../lib/japan';
 import type { JpErrors, JpForm } from '../../lib/japan';
-import { PilotDate, PilotErrorSummary } from '../pilot/pilot-form';
+import {
+  PilotDate,
+  PilotDateRows,
+  PilotErrorSummary,
+} from '../pilot/pilot-form';
 import { PilotResult } from '../pilot/pilot-result';
 import { Field } from '../simulate/field';
 import form from '../simulate/form.module.css';
 import site from '../site.module.css';
 
 type DateField =
-  'simulationDate' | 'stayStart' | 'statusStart' | 'marriedOn' | 'dateOfBirth';
+  | 'simulationDate'
+  | 'stayStart'
+  | 'statusStart'
+  | 'marriedLifeFrom'
+  | 'marriedOn'
+  | 'dateOfBirth';
 
 const FIELD_LABELS: Record<string, TranslationKey> = {
   'jp-simulation-date': 'jp.simulationDate',
   'jp-stay-start': 'jp.stayStart',
   'jp-pr-route': 'jp.prRoute',
+  'jp-married-life-from': 'jp.marriedLifeFrom',
   'jp-married-on': 'jp.marriedOn',
   'jp-nat-route': 'jp.natRoute',
   'jp-date-of-birth': 'jp.dateOfBirth',
   departed: 'jp.departed',
   returned: 'jp.returned',
+  stayExpiry: 'jp.stayExpiry',
+  from: 'jp.excludedFrom',
+  to: 'jp.excludedTo',
 };
 
 export default function JapanContent() {
@@ -73,9 +87,13 @@ export default function JapanContent() {
   const statusLabel = `jp.statusStart.${draft.prRoute}` as TranslationKey;
   const fieldLabel = (id: string) => {
     if (id === 'jp-status-start') return t(statusLabel);
-    const [, n, field] = id.match(/^jp-trip-(\d+)-(\w+)$/) ?? [];
+    const [, kind, n, field] =
+      id.match(/^jp-(trip|excluded)-(\d+)-(\w+)$/) ?? [];
     if (!field) return t(FIELD_LABELS[id]);
-    const entry = t('jp.trip').replace('{n}', String(Number(n) + 1));
+    const entry = t(kind === 'trip' ? 'jp.trip' : 'jp.excludedPeriod').replace(
+      '{n}',
+      String(Number(n) + 1),
+    );
     return `${entry} · ${t(FIELD_LABELS[field])}`;
   };
   const date = (id: string, label: string, field: DateField, hint?: string) => (
@@ -87,12 +105,6 @@ export default function JapanContent() {
       hint={hint}
       error={errors[id]}
     />
-  );
-  const marriedOn = date(
-    'jp-married-on',
-    t('jp.marriedOn'),
-    'marriedOn',
-    t('jp.marriedOnHint'),
   );
   const route = (
     id: string,
@@ -170,8 +182,35 @@ export default function JapanContent() {
               )}
             </div>
           )}
+          {draft.prRoute === 'general' && (
+            <div className={form.followUp}>
+              <p className={form.hint}>{t('jp.excludedHint')}</p>
+              <PilotDateRows
+                prefix="jp-excluded"
+                rows={draft.excluded}
+                fields={[
+                  { key: 'from', label: t('jp.excludedFrom') },
+                  { key: 'to', label: t('jp.excludedTo') },
+                ]}
+                legend={(n) => t('jp.excludedPeriod').replace('{n}', String(n))}
+                addLabel={t('jp.addExcluded')}
+                removeLabel={t('jp.remove')}
+                empty={emptyJpExcluded}
+                errors={errors}
+                onChange={(excluded) => set({ excluded })}
+                onRemove={() => setErrors({})}
+              />
+            </div>
+          )}
           {draft.prRoute === 'spouse' && (
-            <div className={form.followUp}>{marriedOn}</div>
+            <div className={form.followUp}>
+              {date(
+                'jp-married-life-from',
+                t('jp.marriedLifeFrom'),
+                'marriedLifeFrom',
+                t('jp.marriedLifeFromHint'),
+              )}
+            </div>
           )}
 
           <h2>{t('jp.naturalisation')}</h2>
@@ -187,9 +226,15 @@ export default function JapanContent() {
               {date('jp-date-of-birth', t('jp.dateOfBirth'), 'dateOfBirth')}
             </div>
           )}
-          {/* One marriage date serves both spouse routes, shown once. */}
-          {draft.natRoute === 'spouse' && draft.prRoute !== 'spouse' && (
-            <div className={form.followUp}>{marriedOn}</div>
+          {draft.natRoute === 'spouse' && (
+            <div className={form.followUp}>
+              {date(
+                'jp-married-on',
+                t('jp.marriedOn'),
+                'marriedOn',
+                t('jp.marriedOnHint'),
+              )}
+            </div>
           )}
 
           <h2>{t('jp.trips')}</h2>
@@ -217,6 +262,14 @@ export default function JapanContent() {
                   value={trip.returned}
                   onChange={(returned) => update({ returned })}
                   error={errors[`jp-trip-${i}-returned`]}
+                />
+                <PilotDate
+                  id={`jp-trip-${i}-stayExpiry`}
+                  label={t('jp.stayExpiry')}
+                  value={trip.stayExpiry}
+                  onChange={(stayExpiry) => update({ stayExpiry })}
+                  hint={t('jp.stayExpiryHint')}
+                  error={errors[`jp-trip-${i}-stayExpiry`]}
                 />
                 <div className={form.checkboxes}>
                   <label>
