@@ -10,6 +10,7 @@ import {
   any,
   atLeast,
   atMost,
+  not,
   type NzContext,
 } from './new-zealand-checks';
 import type { NzResult, NzPathway } from './new-zealand';
@@ -107,6 +108,7 @@ interface CitizenshipEvidence {
   ageAtDecision?: number;
   parentCitizenOrAboutToBe?: boolean;
   fullCapacity?: boolean;
+  capacityException?: 'referred' | 'granted' | 'declined';
   entitlementConfirmed?: boolean;
   presenceException?: 'none' | 'exceptional' | 'realm' | 'crown-service';
   exceptionalResidentDaysInWindow?: number;
@@ -169,7 +171,9 @@ function residentRecord(ctx: NzContext, a: NzResidentAnswers) {
             ? req.firstArrival
             : trips && (abroadAtGrant ? abroadAtGrant.returned : granted))));
   let deadline =
-    granted && addDays(afterYears(granted, time.firstEntryYears.value), -1);
+    granted && t.firstEntryClass === 'standard'
+      ? addDays(afterYears(granted, time.firstEntryYears.value), -1)
+      : undefined;
   if (granted && t.firstEntryClass === 'pacific-quota')
     deadline = addDays(addMonths(granted, travel.quotaEntryMonths), -1);
   if (t.firstEntryClass === 'aip-child')
@@ -205,27 +209,55 @@ function residentRecord(ctx: NzContext, a: NzResidentAnswers) {
           !req.permanentResidentVisa || req.permanentResidentVisa >= date,
       )
       .sort()[0];
-  const lapse = a.prv?.expiredOn ?? tripLapse;
-  const expired = lapse
-    ? lapse <= ctx.date
-    : trips && first && end
-      ? false
-      : undefined;
+  const tripOnDate = trips?.find(
+    (trip) => trip.departed <= ctx.date && ctx.date <= trip.returned,
+  );
+  // A completed-trip list alone cannot tell us whether the person has left again.
+  const onshore =
+    t.currentlyInNz ??
+    (tripOnDate
+      ? tripOnDate.departed === ctx.date || tripOnDate.returned === ctx.date
+      : req.firstArrival && req.firstArrival >= ctx.date
+        ? req.firstArrival === ctx.date
+        : undefined);
+  const openTrip = onshore === false && !tripOnDate;
+  const offshoreAfterEnd = end && end < ctx.date && openTrip;
+  const datedLapse = a.prv?.expiredOn ?? tripLapse;
+  const lapse =
+    offshoreAfterEnd && datedLapse && datedLapse > ctx.date
+      ? undefined
+      : datedLapse;
+  // RV1.5 establishes loss of status in either expiry scenario. The open
+  // trip could have started before OR after travel conditions ended.
+  const expired =
+    lapse && lapse <= ctx.date
+      ? true
+      : offshoreAfterEnd
+        ? true
+        : trips &&
+            first &&
+            end &&
+            (ctx.date <= end || onshore === true || tripOnDate)
+          ? false
+          : undefined;
   const entered =
     t.firstResidentEntry === null
       ? false
       : all(entryValid, hasDate(first, ctx.date));
-  const onshore =
-    t.currentlyInNz ??
-    (req.firstArrival && trips
-      ? req.firstArrival <= ctx.date &&
-        !trips.some(
-          (trip) => trip.departed < ctx.date && ctx.date < trip.returned,
-        )
-      : undefined);
+  // If the visa lapsed strictly after the first possible expiry day, it
+  // lapsed on departure, fixing the start of the current absence.
+  const departureEstablishedByLapse =
+    openTrip &&
+    !hasDate(req.permanentResidentVisa, ctx.date) &&
+    end &&
+    lapse &&
+    lapse <= ctx.date &&
+    lapse > addDays(end, 1);
+  const knownPresence =
+    onshore === true || !!tripOnDate || departureEstablishedByLapse;
   // Count each NZ day once even if the travel history contains overlapping trips.
   const residentDays = (from: string, until: string) => {
-    if (!trips || !first || entryValid !== true || expired === undefined)
+    if (!trips || !first || entryValid !== true || !knownPresence)
       return undefined;
     let count = 0;
     for (let d = from; d < until; d = addDays(d, 1)) {
@@ -249,6 +281,9 @@ function residentRecord(ctx: NzContext, a: NzResidentAnswers) {
       : [recent, earlier];
   };
   const standardTimeline =
+    knownPresence &&
+    !openTrip &&
+    (first === granted || t.firstEntryClass === 'standard') &&
     t.firstResidentEntry === undefined &&
     t.firstEntryClass !== 'pacific-quota' &&
     t.firstEntryClass !== 'aip-child' &&
@@ -299,6 +334,36 @@ function furtherPolice(ctx: NzContext, evidence: PrvEvidence) {
     '再次居民申请通常免主动提交无犯罪证明；若签证官已要求，须提交所要求的证明。',
     'A further residence applicant does not routinely file fresh police certificates. Supply any evidence the officer has requested.',
   );
+}
+
+function filingFee(ctx: NzContext, citizenship = false) {
+  return ctx.check(
+    'NZ-FILING-FEE',
+    '递交时应缴的申请费',
+    'Required fee at lodgement',
+    ctx.requiredFeePaid,
+    citizenship
+      ? ref('SRC-231', 'pp9, 37: receipt of a complete application and fee')
+      : ref('SRC-230', 'RV1.10.10(c)(iii), (d)(vi)'),
+    '确认本次申请应缴的费用已支付，或无需缴费。',
+    'Confirm payment of the fee due for this application, or that no fee is due.',
+  );
+}
+
+function residentFilingChecks(ctx: NzContext) {
+  return [
+    ctx.check(
+      'NZ-IDENTITY',
+      '居民申请身份文件',
+      'Identity evidence for residence',
+      ctx.identityDocumentsComplete,
+      ref('SRC-230', 'RV1.10.10(c)–(d)'),
+      '核对各位申请人按递交方式所需的身份文件与照片。',
+      'Confirm the identity documents and photographs required for each applicant and the filing method.',
+    ),
+    ctx.dependantEligibility(),
+    filingFee(ctx),
+  ];
 }
 
 function currentCompliance(ctx: NzContext, a: NzResidentAnswers) {
@@ -362,9 +427,6 @@ function travelPath(
   const initialEntry = standardTimeChecks?.find((check) =>
     check.sources.some((source) => source.locator === 'R5.66.1(a)'),
   );
-  const multiEntry = standardTimeChecks?.find((check) =>
-    check.sources.some((source) => source.locator === 'RV1.5'),
-  );
   const pendingEntry = r.entryValid === true && !!r.first && r.first > ctx.date;
   const awaitingFirstEntry =
     t.firstResidentEntry === null && (!r.deadline || ctx.date <= r.deadline);
@@ -387,7 +449,7 @@ function travelPath(
         'NZ-P1-1-TRAVEL',
         '多次往返条件',
         'Multiple-entry conditions',
-        multiEntry?.met ?? (r.end && ctx.time.trips ? !r.lapse : undefined),
+        not(r.expired),
         ref('SRC-072', 'R5.66.5; RV1.5(a)–(b)'),
         `按签证与行程核对旅行条件末日 ${r.end ?? '待确认'}；无有效旅行条件时离境或到期时在境外会导致居民签证失效。`,
         `Last travel day: ${r.end ?? 'unknown'}. Departure without valid travel conditions, or being overseas at expiry, ends the resident visa.`,
@@ -631,6 +693,7 @@ function travelPath(
       ? p.residentFeeReference.value.variation
       : p.residentFeeReference.value.subsequent;
   checks.push(
+    ...residentFilingChecks(ctx),
     ctx.check(
       'NZ-P1-FEE',
       '旅行申请费用',
@@ -770,7 +833,7 @@ function prvPath(
     pr.category === 'parent-retirement' ||
     ctx.time.residentVisa?.category.startsWith('aip-');
   const standardTimeChecks =
-    r.standardTimeline && !r.expired ? old?.checks : undefined;
+    r.standardTimeline && r.expired === false ? old?.checks : undefined;
   const fromPilot = (locator: string) =>
     standardTimeChecks?.find((check) =>
       check.sources.some((source) => source.locator === locator),
@@ -836,8 +899,8 @@ function prvPath(
                 : undefined),
           ),
           [...time.prvHeldDays.sources, ...p.formerResident.sources],
-          `持签和首次居民入境分别满 ${time.prvHeldDays.value} 天。失效前已满足持签期者可在 ${p.formerResident.value.ordinaryGraceDays} 天内申请。`,
-          `Check ${time.prvHeldDays.value} days on the visa and since first resident entry. A former holder must already have held it for the full period and apply within ${p.formerResident.value.ordinaryGraceDays} days.`,
+          `持签和首次居民入境分别满 ${time.prvHeldDays.value} 天。曾持有人须在签证失效前满足持签期；${p.formerResident.value.ordinaryGraceDays} 天宽限从实际失效日起算，缺该日期时待确认。`,
+          `Check ${time.prvHeldDays.value} days on the visa and since first resident entry. A former holder must meet the holding period before expiry. The ${p.formerResident.value.ordinaryGraceDays}-day grace period needs the actual lapse date.`,
         ),
       );
       const oldPortions = standardTimeChecks?.filter((check) =>
@@ -893,6 +956,7 @@ function prvPath(
     );
   }
   checks.push(
+    ...residentFilingChecks(ctx),
     ctx.character(),
     furtherPolice(ctx, pr),
     ctx.check(
@@ -900,7 +964,7 @@ function prvPath(
       '驱逐责任与体检豁免',
       'Deportation liability and medical exemption',
       all(
-        a.travel?.restrictedEntry !== true,
+        not(a.travel?.restrictedEntry),
         pr.deportationLiability === undefined
           ? undefined
           : pr.deportationLiability === 'none',
@@ -933,6 +997,7 @@ function prvPath(
     !linked &&
     onlyTime &&
     r.standardTimeline &&
+    r.expired === false &&
     old?.status === 'FUTURE' &&
     pr.otherCommitments?.length === 0
   )
@@ -997,10 +1062,12 @@ function citizenshipPath(
   const minor = age === undefined ? undefined : age < adultAge;
   const checks: CountryCheck[] = [];
   const entitled =
-    c.entitlementConfirmed ??
-    (hasDate(ctx.time.permanentResidentVisa, ctx.date)
-      ? true
-      : all(r.entered, r.expired === undefined ? undefined : !r.expired));
+    r.expired === true && !hasDate(ctx.time.permanentResidentVisa, ctx.date)
+      ? false
+      : (c.entitlementConfirmed ??
+        (hasDate(ctx.time.permanentResidentVisa, ctx.date)
+          ? true
+          : all(r.entered, not(r.expired))));
   checks.push(
     ctx.check(
       'NZ-P3-1-STATUS',
@@ -1077,10 +1144,16 @@ function citizenshipPath(
       'Age at decision and full capacity',
       age === undefined
         ? undefined
-        : any(minor, c.fullCapacity === true ? true : undefined),
-      ref('SRC-231', 'pp6–7; ss8(1), 9(1)(a)'),
-      '以批准日年龄判断；未成年人参加相应年龄组评估。成人欠缺完全行为能力须转呈部长。',
-      'Age is assessed at decision. Children follow the applicable age band. Lack of adult capacity needs a ministerial decision.',
+        : any(
+            minor,
+            c.fullCapacity,
+            c.capacityException === 'referred'
+              ? undefined
+              : c.capacityException === 'granted',
+          ),
+      ref('SRC-231', 'pp6–7, 23; ss8(1), 9(1)(a), 9(1)(c)'),
+      '按批准日年龄判断。成人须有完全行为能力，或已获部长特许；已转呈而尚未决定时待确认。',
+      'Assess age at decision. Adults need full capacity or a ministerial grant. A pending referral requires an individual decision.',
       'PD-223',
     ),
   );
@@ -1101,7 +1174,7 @@ function citizenshipPath(
     (c.overseasMonthsLong ?? 0) > conviction.overseasLongMonths;
   const police =
     c.foreignPoliceEvidence === 'requested-outstanding'
-      ? undefined
+      ? false
       : c.foreignPoliceEvidence === 'provided' ||
           c.foreignPoliceEvidence === 'not-requested' ||
           (!overseasTrigger &&
@@ -1195,14 +1268,15 @@ function citizenshipPath(
       'NZ-P3-7-IDENTITY',
       '身份文件与见证人',
       'Identity documents and witness',
-      c.identityDocumentsAndWitness === true ? true : undefined,
+      c.identityDocumentsAndWitness,
       ref('SRC-231', 'p36; Establishing identity'),
-      '核对出生证明、护照及合格见证人；如缺文件须由 DIA 核实替代材料。',
-      'Check birth and passport records and a qualified witness. DIA must confirm alternative evidence if documents are missing.',
+      '确认身份材料及合格见证人齐备；替代材料须经 DIA 认可。',
+      'Confirm the identity evidence and a qualified witness. Alternative documents must be accepted by DIA.',
       'PD-223',
     ),
   );
   checks.push(
+    filingFee(ctx, true),
     ctx.check(
       'NZ-P3-7-OATH',
       '获批后的宣誓',
@@ -1225,7 +1299,10 @@ function citizenshipPath(
         : ctx.age < adultAge
           ? p.grantFee.value.child
           : p.grantFee.value.adult;
-  const feeKnown = fee !== undefined && ctx.date >= p.grantFeeEffective.value;
+  const feeKnown =
+    c.feeCategory !== undefined &&
+    fee !== undefined &&
+    ctx.date >= p.grantFeeEffective.value;
   checks.push(
     ctx.check(
       'NZ-P3-7-FEE',

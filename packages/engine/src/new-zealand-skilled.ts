@@ -212,6 +212,7 @@ function jobEvidence(
     job.genuineOfferInNZ,
     job.employerCompliant,
     job.occupationMatch,
+    job.sleepHoursExcluded ? job.sleepExclusionVerified : true,
     transport
       ? job.accreditedAtApplication
       : any(job.accreditedAtApplication, job.accreditedAtDecision),
@@ -255,8 +256,9 @@ function fee(
 }
 
 function qualificationPoints(s: SmcAnswers) {
-  if (s.qualification === 'other') return 0;
-  if (!s.qualificationRecognised) return undefined;
+  if (s.qualification === 'other' || s.qualificationRecognised === false)
+    return 0;
+  if (s.qualificationRecognised === undefined) return undefined;
   const withBachelor = (score: number) =>
     s.holdsBachelor === undefined ? undefined : s.holdsBachelor ? score : 0;
   switch (s.qualification) {
@@ -538,10 +540,14 @@ function smcPath(ctx: NzContext, input: NzSkilledAnswers) {
                 s.accrualStarted,
                 v.experienceMonths.value.additional,
               ) <= ctx.date,
-          atLeast(
-            amber ? s.directNzMonthsInLast10Years : s.directMonthsInLast10Years,
-            v.experienceMonths.value.direct,
-          ),
+          amber === undefined
+            ? undefined
+            : atLeast(
+                amber
+                  ? s.directNzMonthsInLast10Years
+                  : s.directMonthsInLast10Years,
+                v.experienceMonths.value.direct,
+              ),
           atLeast(
             s.additionalNzMonthsInWindow,
             v.experienceMonths.value.additional,
@@ -557,8 +563,8 @@ function smcPath(ctx: NzContext, input: NzSkilledAnswers) {
     const recognised =
       s.tradeQualificationOrigin === 'nz'
         ? atLeast(s.nzCreditsExcludingRpl, v.tradeQualification.value.credits)
-        : s.tradeQualificationOrigin === 'overseas' && s.overseasTradeIqa
-          ? true
+        : s.tradeQualificationOrigin === 'overseas'
+          ? s.overseasTradeIqa
           : undefined;
     checks.push(
       ctx.check(
@@ -628,7 +634,7 @@ function roadTransition(t: TransportHistory = {}) {
     timely(t.aewvAppliedOn),
     all(
       timely(t.offerOn),
-      t.otherWorkVisaGrantedOn !== undefined,
+      t.otherWorkVisaGrantedOn === undefined ? undefined : true,
       any(
         commencedWithin(t.employmentSignedOn),
         commencedWithin(t.otherWorkVisaGrantedOn),
@@ -708,6 +714,7 @@ function qualifyingPeriod(
   const base = all(
     visa,
     atLeast(p.guaranteedWeeklyHours, v.employmentHours.value),
+    p.accrualStarted === undefined ? undefined : true,
   );
   if (p.kind === 'high-pay')
     return all(
@@ -718,10 +725,10 @@ function qualifyingPeriod(
   if (p.kind === 'care')
     return all(
       base,
-      any(
-        knownIn(code, v.careCodes.value),
-        p.maintainedRemovedOccupation ?? false,
-      ),
+      code === undefined
+        ? undefined
+        : v.careCodes.value.includes(code) ||
+            (p.maintainedRemovedOccupation ?? false),
       paid(p.minimumHourlyPay, rateAt(v.careRates.value, lock)),
     );
   if (p.kind === 'transport')
@@ -754,7 +761,9 @@ function qualifyingPeriod(
     wage = any(wage, paid(currentPay, rateAt(v.greenRateBase.value, date)));
   return all(
     base,
-    any(listed, p.maintainedRemovedOccupation ?? false),
+    listed === undefined
+      ? undefined
+      : listed || (p.maintainedRemovedOccupation ?? false),
     p.occupationRequirementsVerified,
     wage,
   );
@@ -764,11 +773,14 @@ function monthsRequirement(
   a: WorkResidenceAnswers,
   date: string,
   currentPay: number | undefined,
-  accept: (p: WorkPeriod) => boolean,
+  requiredKind: WorkType | undefined,
+  accept: (p: WorkPeriod) => boolean = () => true,
 ) {
-  if (!a.periods) return undefined;
+  if (!a.periods) return all(undefined, a.distinctMonthsAndEarningsVerified);
   let met = 0;
   let possible = 0;
+  let hasRouteWork: boolean | undefined =
+    requiredKind === undefined ? undefined : false;
   for (const p of a.periods.filter(accept)) {
     const status = qualifyingPeriod(p, date, currentPay);
     // An accrual date cannot support a larger number of elapsed whole months.
@@ -779,14 +791,16 @@ function monthsRequirement(
       continue;
     if (status !== false) possible += p.monthsInWindow;
     if (status === true) met += p.monthsInWindow;
+    if (p.kind === requiredKind && p.monthsInWindow > 0)
+      hasRouteWork = any(hasRouteWork, status);
   }
-  if (possible < v.workResidenceMonths.value.required) return false;
-  if (
-    met < v.workResidenceMonths.value.required ||
-    !a.distinctMonthsAndEarningsVerified
-  )
-    return undefined;
-  return true;
+  const required = v.workResidenceMonths.value.required;
+  if (possible < required) return false;
+  return all(
+    hasRouteWork,
+    met >= required ? true : undefined,
+    a.distinctMonthsAndEarningsVerified,
+  );
 }
 
 function greenPath(ctx: NzContext, input: NzSkilledAnswers) {
@@ -862,6 +876,7 @@ function greenPath(ctx: NzContext, input: NzSkilledAnswers) {
         g,
         ctx.date,
         rate,
+        'tier2',
         (p) => p.kind === 'tier2' && p.occupationCode === code,
       ),
     );
@@ -875,7 +890,7 @@ function greenPath(ctx: NzContext, input: NzSkilledAnswers) {
         'Tier 2 当前岗位',
         'Current Tier 2 job',
         all(
-          any(listed, retained),
+          listed === undefined ? undefined : any(listed, retained),
           g.rowRequirementsVerified,
           jobEvidence(job, contract(job, false)),
           wage,
@@ -897,11 +912,12 @@ function greenPath(ctx: NzContext, input: NzSkilledAnswers) {
           g,
           ctx.date,
           rate,
+          'tier2',
           (p) => p.kind === 'tier2' || p.kind === 'high-pay',
         ),
         [...greenRef('SR5.15(a)–(m), SR5.20'), ...ref('SRC-235', 'SR2.15.1')],
-        `过去 ${v.workResidenceMonths.value.window} 个月内累计 ${v.workResidenceMonths.value.required} 个不重叠的合格月，可用两倍中位数工资的工作补足。`,
-        `Count ${v.workResidenceMonths.value.required} distinct qualifying months in the last ${v.workResidenceMonths.value.window}. Work at twice the median wage can complete the period.`,
+        `过去 ${v.workResidenceMonths.value.window} 个月内累计 ${v.workResidenceMonths.value.required} 个不重叠的合格月。须有 Tier 2 合格工作经历，其余月份可用两倍中位数工资的工作补足。`,
+        `Count ${v.workResidenceMonths.value.required} distinct qualifying months in the last ${v.workResidenceMonths.value.window}. Some qualifying Tier 2 work is required. Work at twice the median wage can cover the balance.`,
       ),
     );
   }
@@ -944,6 +960,7 @@ function sectorPath(ctx: NzContext, input: NzSkilledAnswers) {
         s,
         ctx.date,
         rate,
+        'care',
         (p) => p.kind === 'care' && p.occupationCode === code,
       ),
     );
@@ -953,7 +970,9 @@ function sectorPath(ctx: NzContext, input: NzSkilledAnswers) {
         '护理岗位、工资与合同',
         'Care occupation, pay and contract',
         all(
-          any(knownIn(code, v.careCodes.value), retained),
+          code === undefined
+            ? undefined
+            : any(v.careCodes.value.includes(code), retained),
           paid(rate, rateAt(v.careRates.value, lock)),
           jobEvidence(job, contract(job, false)),
         ),
@@ -971,17 +990,19 @@ function sectorPath(ctx: NzContext, input: NzSkilledAnswers) {
   }
   if (s.category === 'transport') {
     const sea = knownIn(code, v.seaCodes.value);
-    const protectedMonths = sea
-      ? true
-      : monthsRequirement(
-          s,
-          ctx.date,
-          rate,
-          (p) =>
-            p.kind === 'transport' &&
-            (p.occupationCode === v.busCode.value ||
-              v.truckCodes.value.includes(p.occupationCode ?? '')),
-        );
+    const protectedMonths =
+      sea === false
+        ? monthsRequirement(
+            s,
+            ctx.date,
+            rate,
+            'transport',
+            (p) =>
+              p.kind === 'transport' &&
+              (p.occupationCode === v.busCode.value ||
+                v.truckCodes.value.includes(p.occupationCode ?? '')),
+          )
+        : sea;
     checks.push(
       ctx.check(
         'NZ-P6-2',
@@ -1004,14 +1025,14 @@ function sectorPath(ctx: NzContext, input: NzSkilledAnswers) {
       'NZ-P6-WORK',
       '行业工签转居留月数',
       'Work to Residence months',
-      monthsRequirement(s, ctx.date, rate, () => true),
+      monthsRequirement(s, ctx.date, rate, s.category),
       [
-        ...sectorRef('SR6.15, SR7.15'),
+        ...sectorRef('SR6.15(a)–(l), SR7.15(a)–(n)'),
         ...greenRef('SR5.15, SR5.20'),
         ...ref('SRC-235', 'SR2.15.1'),
       ],
-      `过去 ${v.workResidenceMonths.value.window} 个月内累计 ${v.workResidenceMonths.value.required} 个不重叠的护理、运输、Tier 2 或合格高薪月；每段分别检查工签、工时与薪资。`,
-      `Count ${v.workResidenceMonths.value.required} distinct months of care, transport, Tier 2 or qualifying high-pay work in the last ${v.workResidenceMonths.value.window}. Check each period’s visa, hours and wage.`,
+      `过去 ${v.workResidenceMonths.value.window} 个月内累计 ${v.workResidenceMonths.value.required} 个不重叠的合格月。须有所选行业的合格工作经历，其他合格行业、Tier 2 或高薪工作可补足其余月份。逐段核对工签、工时和薪资。`,
+      `Count ${v.workResidenceMonths.value.required} distinct qualifying months in the last ${v.workResidenceMonths.value.window}. Some work must qualify in the selected sector. Other eligible sector, Tier 2 or high-pay work can cover the balance. Check each period’s visa, hours and wage.`,
     ),
   );
   checks.push(fee(ctx, feeId, input.feeBand));

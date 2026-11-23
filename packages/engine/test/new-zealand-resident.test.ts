@@ -16,7 +16,12 @@ const base: NzFullRequest = {
   residentVisa: { granted: '2020-01-01', category: 'general' },
   trips: [],
   nonPrincipal: false,
-  common: { character: 'clear', dependants: [] },
+  common: {
+    character: 'clear',
+    dependants: [],
+    identityDocuments: true,
+    requiredFeePaid: true,
+  },
 };
 const prvReady: Prv = {
   role: 'principal',
@@ -35,6 +40,7 @@ const citizenReady: Citizen = {
   identityDocumentsAndWitness: true,
   oath: 'willing',
   presenceException: 'none',
+  feeCategory: 'standard',
 };
 function pathway(
   id: string,
@@ -44,11 +50,29 @@ function pathway(
   return evaluateNewZealandFull({
     ...base,
     ...req,
-    resident,
+    resident: {
+      ...resident,
+      travel: {
+        currentlyInNz: true,
+        restrictedEntry: false,
+        firstEntryClass: 'standard',
+        ...resident.travel,
+      },
+    },
   }).columns[0].pathways.find((p) => p.id === id)!;
 }
 function check(p: ReturnType<typeof pathway>, id: string) {
   return p.checks.find((c) => c.id === id)!;
+}
+function expectOutcome(
+  path: ReturnType<typeof pathway>,
+  id: string,
+  status: 'MET' | 'UNKNOWN' | 'NOT_MET',
+  date = base.simulationDate,
+) {
+  expect(check(path, id).status, id).toBe(status);
+  expect(path.status, path.id).toBe(status);
+  expect(path.earliestDate, path.id).toBe(status === 'MET' ? date : undefined);
 }
 const travel = (
   t: Travel,
@@ -68,7 +92,193 @@ const citizen = (
     req,
   );
 
+describe('required facts at filing', () => {
+  const subsequent: Travel = {
+    action: 'subsequent',
+    variationBasis: 'ordinary',
+    atExpiry: { eligibleForPrv: true, variation: 'none' },
+  };
+  const former: Prv = {
+    ...prvReady,
+    expiredOn: '2026-10-01',
+    formerResidentIssue: 'none',
+  };
+  it.each([true, false, undefined])(
+    'uses the actual payment answer (%s) for each application',
+    (requiredFeePaid) => {
+      const req = { common: { ...base.common, requiredFeePaid } };
+      const status =
+        requiredFeePaid === undefined
+          ? 'UNKNOWN'
+          : requiredFeePaid
+            ? 'MET'
+            : 'NOT_MET';
+      for (const result of [
+        travel({ action: 'variation', variationBasis: 'ordinary' }, req),
+        travel(subsequent, req, former),
+        prv({}, req),
+        citizen({}, req),
+      ]) {
+        expectOutcome(result, 'NZ-FILING-FEE', status);
+        if (requiredFeePaid === undefined)
+          expect(check(result, 'NZ-FILING-FEE').pendingDetails).toEqual([
+            'PD-220',
+          ]);
+      }
+      expect(
+        travel({ passportCoversInitialConditions: true }, req).status,
+      ).toBe('MET');
+    },
+  );
+  it.each([false, undefined])(
+    'checks lodging documents (%s) and the original grant separately',
+    (identityDocuments) => {
+      const req = { common: { ...base.common, identityDocuments } };
+      const status = identityDocuments === undefined ? 'UNKNOWN' : 'NOT_MET';
+      for (const result of [
+        travel({ action: 'variation', variationBasis: 'ordinary' }, req),
+        travel(subsequent, req, former),
+        prv({}, req),
+      ])
+        expectOutcome(result, 'NZ-IDENTITY', status);
+      expectOutcome(
+        travel({ passportCoversInitialConditions: identityDocuments }),
+        'NZ-P1-1-PASSPORT',
+        status,
+      );
+    },
+  );
+  it('applies R2.1 to inclusion in a further visa application without disqualifying a former secondary applicant filing alone', () => {
+    const child = {
+      relation: 'child' as const,
+      dateOfBirth: '2001-11-23',
+      single: true,
+      hasOwnChildren: false,
+      financiallyDependent: true,
+      identityDocuments: true,
+      character: 'clear' as const,
+    };
+    const req = { common: { ...base.common, dependants: [child] } };
+    for (const result of [
+      travel({ action: 'variation', variationBasis: 'ordinary' }, req),
+      travel(subsequent, req, former),
+      prv({}, req),
+    ])
+      expectOutcome(result, 'NZ-DEPENDANTS', 'NOT_MET');
+    expectOutcome(
+      prv(
+        { role: 'linked', principalHoldsPrv: true },
+        { dateOfBirth: child.dateOfBirth },
+      ),
+      'NZ-P2-6',
+      'MET',
+    );
+  });
+  it('requires an answer on entry bans for permanent residence and distinguishes outstanding DIA evidence', () => {
+    for (const restrictedEntry of [true, undefined]) {
+      expectOutcome(
+        pathway('NZ-PRV', { prv: prvReady, travel: { restrictedEntry } }),
+        'NZ-P2-5',
+        restrictedEntry === true ? 'NOT_MET' : 'UNKNOWN',
+      );
+    }
+    expectOutcome(
+      citizen({ foreignPoliceEvidence: 'requested-outstanding' }),
+      'NZ-P3-3-POLICE',
+      'NOT_MET',
+    );
+    expectOutcome(
+      citizen({ foreignPoliceEvidence: undefined }),
+      'NZ-P3-3-POLICE',
+      'UNKNOWN',
+    );
+  });
+});
+
 describe('resident travel conditions and subsequent residence', () => {
+  const reviewRecord: Partial<NzFullRequest> = {
+    firstArrival: '2018-01-01',
+    residentVisa: { granted: '2018-01-01', category: 'general' },
+    travelConditionsEnd: '2026-06-30',
+    trips: [],
+  };
+  const reviewPath = (
+    id: string,
+    location: boolean | undefined,
+    expiredOn?: string,
+  ) =>
+    pathway(
+      id,
+      {
+        travel: {
+          currentlyInNz: location,
+          passportCoversInitialConditions: true,
+        },
+        prv: { ...prvReady, formerResidentIssue: 'none', expiredOn },
+        citizenship: citizenReady,
+      },
+      reviewRecord,
+    );
+
+  it.each([
+    ['NZ-TRAVEL', 'NZ-P1-1-TRAVEL', 'NOT_MET'],
+    ['NZ-PRV', 'NZ-P2-1', 'UNKNOWN'],
+    ['NZ-CITIZENSHIP', 'NZ-P3-1-STATUS', 'NOT_MET'],
+  ] as const)(
+    'assesses the open trip after expiry for %s without inventing a lapse date',
+    (id, condition, offshore) => {
+      expectOutcome(reviewPath(id, false), condition, offshore);
+      expectOutcome(reviewPath(id, undefined), condition, 'UNKNOWN');
+      expectOutcome(reviewPath(id, true), condition, 'MET');
+    },
+  );
+
+  it('uses the actual offshore lapse date at 90 and 91 days, and does not count an undated absence', () => {
+    expectOutcome(reviewPath('NZ-PRV', false, '2026-08-25'), 'NZ-P2-1', 'MET');
+    expectOutcome(
+      reviewPath('NZ-PRV', false, '2026-08-24'),
+      'NZ-P2-1',
+      'NOT_MET',
+    );
+    expect(
+      check(reviewPath('NZ-CITIZENSHIP', false), 'NZ-P3-1-PRESENCE').status,
+    ).toBe('UNKNOWN');
+  });
+
+  it('keeps the visa valid through its last travel day and uses the lapse date of a recorded trip', () => {
+    const req = {
+      ...reviewRecord,
+      trips: [{ departed: '2026-06-25', returned: '2026-07-03' }],
+    };
+    const t = { passportCoversInitialConditions: true, currentlyInNz: false };
+    expectOutcome(
+      travel(t, { ...req, simulationDate: '2026-06-30' }),
+      'NZ-P1-1-TRAVEL',
+      'MET',
+      '2026-06-30',
+    );
+    expectOutcome(
+      travel(t, { ...req, simulationDate: '2026-07-01' }),
+      'NZ-P1-1-TRAVEL',
+      'NOT_MET',
+    );
+    const laterTrip = {
+      ...req,
+      trips: [{ departed: '2026-07-01', returned: '2026-07-03' }],
+    };
+    expectOutcome(
+      travel(t, { ...laterTrip, simulationDate: '2026-07-01' }),
+      'NZ-P1-1-TRAVEL',
+      'MET',
+      '2026-07-01',
+    );
+    expectOutcome(
+      travel(t, { ...laterTrip, simulationDate: '2026-07-02' }),
+      'NZ-P1-1-TRAVEL',
+      'NOT_MET',
+    );
+  });
+
   it('retains initial travel, separates passport, and uses the shorter Pacific first-entry deadline', () => {
     expect(travel({ passportCoversInitialConditions: true }).status).toBe(
       'MET',
@@ -95,6 +305,14 @@ describe('resident travel conditions and subsequent residence', () => {
       check(travel(t, { ...offshore, firstArrival: '2025-04-01' }), 'NZ-P1-1')
         .status,
     ).toBe('NOT_MET');
+    expectOutcome(
+      travel(
+        { ...t, firstEntryClass: undefined },
+        { ...offshore, firstArrival: '2025-04-01' },
+      ),
+      'NZ-P1-1',
+      'UNKNOWN',
+    );
     const lapse = travel(t, {
       ...offshore,
       firstArrival: '2025-03-01',
@@ -386,10 +604,16 @@ describe('citizenship by grant', () => {
       check(citizen({}, { simulationDate: '2025-11-23' }), 'NZ-P3-7-FEE')
         .status,
     ).toBe('UNKNOWN');
-    expect(
-      check(citizen({ identityDocumentsAndWitness: false }), 'NZ-P3-7-IDENTITY')
-        .status,
-    ).toBe('UNKNOWN');
+    expectOutcome(
+      citizen({ identityDocumentsAndWitness: false }),
+      'NZ-P3-7-IDENTITY',
+      'NOT_MET',
+    );
+    expectOutcome(
+      citizen({ identityDocumentsAndWitness: undefined }),
+      'NZ-P3-7-IDENTITY',
+      'UNKNOWN',
+    );
     expect(check(citizen({ oath: 'unwilling' }), 'NZ-P3-7-OATH').status).toBe(
       'NOT_MET',
     );
@@ -416,8 +640,16 @@ describe('citizenship by grant', () => {
       check(citizen({ ...child, ageAtDecision: undefined }, req), 'NZ-P3-2')
         .status,
     ).toBe('UNKNOWN');
-    expect(check(citizen({ fullCapacity: false }), 'NZ-P3-2').status).toBe(
+    expectOutcome(citizen({ fullCapacity: false }), 'NZ-P3-2', 'NOT_MET');
+    expectOutcome(
+      citizen({ fullCapacity: false, capacityException: 'referred' }),
+      'NZ-P3-2',
       'UNKNOWN',
+    );
+    expectOutcome(
+      citizen({ fullCapacity: false, capacityException: 'granted' }),
+      'NZ-P3-2',
+      'MET',
     );
   });
   it('enforces the exceptional day floor and reserves discretion for DIA', () => {

@@ -244,4 +244,9 @@ export const sourceUrls: Record<string, string> = {
     'https://www.ird.govt.nz/international-tax/individuals/tax-residency-status-for-individuals',
   'SRC-248':
     'https://www.regulation.govt.nz/assets/RIS-Documents/Supplementary-Analysis-Report-Enabling-investor-visa-holders-to-purchase-or-build-a-home-in-New-Zealand.pdf',
+  'SRC-249':
+    'https://www.immigration.govt.nz/assets/inz/documents/forms-and-guides/Fees-Guide-INZ-1028.pdf',
+  'SRC-250':
+    'https://www.linz.govt.nz/sites/default/files/doc/guidance-investor-visa-holders-long-form-march2026-v3.pdf',
+  'SRC-251': 'https://www.immigration.govt.nz/opsmanual/88409.htm',
 };

@@ -257,6 +257,7 @@ export const nzFamilyParameters = {
         locator:
           'R4.5(d), F4.1.10, F4.5.3.1, F4.5.5, F4.10.1, F4.20.1–10, F4.35.1–5.1, F4.45',
       },
+      { srcId: 'SRC-230', locator: 'R2.1.30–35, dependent child age bands' },
     ],
   },
   parentMedianIncome: {
@@ -1092,6 +1093,15 @@ export const nzSkilledParameters = {
 >;
 
 export const nzCommonParameters = {
+  temporaryChildMaxAge: {
+    value: 19,
+    sources: [
+      {
+        srcId: 'SRC-251',
+        locator: 'BD3.1(a)–(e); E4.1(b)–(e), E4.1.10, E4.1.20',
+      },
+    ],
+  },
   health: {
     value: {
       significantCostNzd: 81000,
@@ -1102,7 +1112,10 @@ export const nzCommonParameters = {
       tbResidenceMonths: 6,
     },
     sources: [
-      { srcId: 'SRC-239', locator: 'A4.10.2(a)–(d), A4.20(a)–(e), A4.60(a)' },
+      {
+        srcId: 'SRC-239',
+        locator: 'A4.10.2(a)–(d), A4.20(a)–(f), A4.60(a)–(d)',
+      },
     ],
   },
   character: {
@@ -1175,7 +1188,10 @@ export const nzCommonParameters = {
       },
     ],
   },
-} satisfies Record<string, Parameter<Record<string, number> | string[]>>;
+} satisfies Record<
+  string,
+  Parameter<number | Record<string, number> | string[]>
+>;
 
 export const newZealandFull2026_11 = {
   ruleSetId: 'nz.current-law',

@@ -65,11 +65,12 @@ function result(
     skilled,
     common: {
       identityDocuments: true,
+      requiredFeePaid: true,
       health: 'clear',
       character: 'clear',
       dependants: [],
       evidence: {
-        medical: { issued: '2026-11-01' },
+        medical: { issued: '2026-11-01', limited: false },
         xray: { issued: '2026-11-01' },
         policeCountriesComplete: true,
         police: [{ issued: '2026-11-01' }],
@@ -99,6 +100,18 @@ function check(skilled: NzSkilledAnswers, id: string, date?: string) {
   return result(skilled, undefined, date)
     .flatMap((p) => p.checks)
     .find((c) => c.id === id)!;
+}
+
+function expectDecision(
+  input: NzSkilledAnswers,
+  pathId: string,
+  checkId: string,
+  expected: 'MET' | 'NOT_MET' | 'UNKNOWN',
+) {
+  const path = pathway(input, pathId);
+  expect(path.checks.find((c) => c.id === checkId)?.status).toBe(expected);
+  expect(path.status).toBe(expected);
+  expect(path.earliestDate).toBe(expected === 'MET' ? '2026-11-23' : undefined);
 }
 const smcInput = (update: Partial<Smc> = {}, j: Partial<Job> = {}) => ({
   job: { ...job, ...j },
@@ -263,6 +276,12 @@ describe('SMC, Green List and sector residence', () => {
       check(smcInput({ ...q, qualificationRecognised: undefined }), 'NZ-P4-3')
         .status,
     ).toBe('UNKNOWN');
+    expectDecision(
+      smcInput({ ...q, qualificationRecognised: false }),
+      'NZ-SMC',
+      'NZ-P4-3',
+      'NOT_MET',
+    );
     const r: Partial<Smc> = {
       claim: 'registration',
       sr330Registration: true,
@@ -345,6 +364,30 @@ describe('SMC, Green List and sector residence', () => {
       ).status,
     ).toBe('UNKNOWN');
   });
+  it.each([
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+    [true, 'MET'],
+  ] as const)(
+    'checks overseas trade IQA %s on the application date',
+    (iqa, status) => {
+      const input = smcInput(
+        {
+          ...experience,
+          route: 'trades',
+          invitedRoute: 'trades',
+          tradeQualificationOrigin: 'overseas',
+          tradeQualificationRelevant: true,
+          tradeQualificationLevel: 4,
+          overseasTradeIqa: iqa,
+          directMonthsInLast10Years: 30,
+          additionalNzMonthsInWindow: 18,
+        },
+        { occupationCode: '321211' },
+      );
+      expectDecision(input, 'NZ-SMC', 'NZ-P4-5', status);
+    },
+  );
   it('uses the actual Appendix 13 pay for the current Tier 1 occupation and its service contract', () => {
     expect(check(greenInput({}, { hourlyPay: 72.8 }), 'NZ-P5-2').status).toBe(
       'MET',
@@ -352,10 +395,16 @@ describe('SMC, Green List and sector residence', () => {
     expect(check(greenInput({}, { hourlyPay: 72.79 }), 'NZ-P5-2').status).toBe(
       'NOT_MET',
     );
-    expect(
-      check(greenInput({ rowRequirementsVerified: undefined }), 'NZ-P5-2')
-        .status,
-    ).toBe('UNKNOWN');
+    for (const [verified, status] of [
+      [undefined, 'UNKNOWN'],
+      [false, 'NOT_MET'],
+    ] as const)
+      expectDecision(
+        greenInput({ rowRequirementsVerified: verified }),
+        'NZ-GREEN-LIST',
+        'NZ-P5-2',
+        status,
+      );
     const j: Partial<Job> = {
       contract: 'services',
       contractMonths: 6,
@@ -409,6 +458,73 @@ describe('SMC, Green List and sector residence', () => {
       check(greenInput(g, { ...j, hourlyPay: 41.08 }), 'NZ-P5-3-JOB').status,
     ).toBe('NOT_MET');
   });
+  it.each([
+    ['tier2', '241111', 'NZ-GREEN-LIST', 'NZ-P5-3'],
+    ['care', '423313', 'NZ-SECTOR', 'NZ-P6-WORK'],
+    ['transport', '899211', 'NZ-SECTOR', 'NZ-P6-WORK'],
+  ] as const)(
+    'requires qualifying %s work before counting supplementary months',
+    (kind, code, pathId, checkId) => {
+      const highPay: Period = {
+        ...period,
+        occupationCode: '261313',
+        kind: 'high-pay',
+        minimumHourlyPay: 70,
+        guaranteedWeeklyHours: 40,
+      };
+      const native: Period = {
+        ...highPay,
+        kind,
+        occupationCode: code,
+        occupationRequirementsVerified: true,
+        monthsInWindow: 6,
+        accrualStarted: '2026-05-23',
+      };
+      const input = (periods: Period[], verified: boolean | undefined) => {
+        const work = {
+          accrualStarted: periods[0]?.accrualStarted,
+          currentVisa: 'work' as const,
+          periods,
+          distinctMonthsAndEarningsVerified: verified,
+        };
+        const offer = {
+          occupationCode: code,
+          hourlyPay: 70,
+          guaranteedWeeklyHours: 40,
+        };
+        return kind === 'tier2'
+          ? greenInput({ ...work, tier: 'work' }, offer)
+          : sectorInput(
+              { ...work, category: kind, maritimeCertificateHeld: true },
+              offer,
+            );
+      };
+      expectDecision(input([highPay], true), pathId, checkId, 'NOT_MET');
+      const balance = { ...highPay, monthsInWindow: 18 };
+      const mixed = [balance, native];
+      expectDecision(input(mixed, true), pathId, checkId, 'MET');
+      expectDecision(input(mixed, false), pathId, checkId, 'NOT_MET');
+      expectDecision(input(mixed, undefined), pathId, checkId, 'UNKNOWN');
+      // The extra high-pay months cannot resolve an unverified or ineligible sector period.
+      const prior24 = { ...highPay, accrualStarted: '2024-05-23' };
+      for (const [visa, status] of [
+        [undefined, 'UNKNOWN'],
+        ['WI21', 'NOT_MET'],
+      ] as const)
+        expectDecision(
+          input([prior24, { ...native, visa }], true),
+          pathId,
+          checkId,
+          status,
+        );
+      expectDecision(
+        input([highPay, { ...native, monthsInWindow: 0 }], true),
+        pathId,
+        checkId,
+        'NOT_MET',
+      );
+    },
+  );
   it('honours the five-calendar-month wage lock and the separate fixed care wage and employment list', () => {
     const input = (grant: string) =>
       greenInput(
@@ -426,6 +542,15 @@ describe('SMC, Green List and sector residence', () => {
     expect(
       check(sectorInput({}, { sleepHoursExcluded: true }), 'NZ-P6-1').status,
     ).toBe('UNKNOWN');
+    expectDecision(
+      sectorInput(
+        {},
+        { sleepHoursExcluded: true, sleepExclusionVerified: false },
+      ),
+      'NZ-SECTOR',
+      'NZ-P6-1',
+      'NOT_MET',
+    );
     expect(
       check(
         sectorInput({ periods: [{ ...period, visa: 'other-interim-work' }] }),
@@ -443,6 +568,36 @@ describe('SMC, Green List and sector residence', () => {
         .status,
     ).toBe('NOT_MET');
   });
+  it.each([
+    ['tier2', 'NZ-GREEN-LIST', 'NZ-P5-3-JOB', 'NZ-P5-3'],
+    ['care', 'NZ-SECTOR', 'NZ-P6-1', 'NZ-P6-WORK'],
+  ] as const)(
+    'checks the occupation code against a retained %s role',
+    (kind, pathId, jobId, workId) => {
+      const work = {
+        ...sector,
+        maintainedRemovedOccupation: true,
+        archivedHourlyFloor: 28.25,
+        periods: [
+          {
+            ...period,
+            kind,
+            occupationCode: undefined,
+            occupationRequirementsVerified: true,
+            maintainedRemovedOccupation: true,
+            archivedHourlyFloor: 28.25,
+          },
+        ],
+      };
+      const offer = { occupationCode: undefined };
+      const input =
+        kind === 'tier2'
+          ? greenInput({ ...work, tier: 'work' }, offer)
+          : sectorInput(work, offer);
+      expectDecision(input, pathId, jobId, 'UNKNOWN');
+      expectDecision(input, pathId, workId, 'UNKNOWN');
+    },
+  );
   it('requires maritime credentials at application and protects qualifying road occupations', () => {
     const p: Period = {
       ...period,
@@ -458,12 +613,16 @@ describe('SMC, Green List and sector residence', () => {
     expect(pathway(sea(true), 'NZ-SECTOR').status).toBe('MET');
     expect(check(sea(false), 'NZ-P6-2').status).toBe('NOT_MET');
     expect(check(sea(false), 'NZ-P6-WORK').status).toBe('MET');
-    const bus = (applicationDate: string) => {
+    const bus = (
+      applicationDate: string,
+      history: Sector['transport'] = {},
+    ) => {
       const t = {
         aewvAppliedOn: applicationDate,
         busOperatorEligible: true,
         qualifyingBeforeRemoval: false,
         offerOn: '2025-01-01',
+        ...history,
       };
       return sectorInput(
         {
@@ -483,5 +642,12 @@ describe('SMC, Green List and sector residence', () => {
     };
     expect(pathway(bus('2024-04-06'), 'NZ-SECTOR').status).toBe('MET');
     expect(check(bus('2024-04-07'), 'NZ-P6-2').status).toBe('NOT_MET');
+    const missingGrant = bus('2024-04-07', {
+      offerOn: '2024-04-06',
+      employmentSignedOn: '2024-04-06',
+      startedOn: '2024-04-10',
+    });
+    expectDecision(missingGrant, 'NZ-SECTOR', 'NZ-P6-2', 'UNKNOWN');
+    expectDecision(missingGrant, 'NZ-SECTOR', 'NZ-P6-WORK', 'UNKNOWN');
   });
 });

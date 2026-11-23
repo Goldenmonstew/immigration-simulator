@@ -175,6 +175,7 @@ export type {
 export { evaluateNewZealandFull, type NzFullRequest } from './new-zealand-full';
 export type {
   NzCommonAnswers,
+  NzDependantAnswers,
   NzPersonAnswers,
   NzEnglishEvidence,
 } from './new-zealand-checks';

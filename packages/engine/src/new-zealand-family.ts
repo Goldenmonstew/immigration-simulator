@@ -11,6 +11,7 @@ import {
   atLeast,
   atMost,
   esolCharge,
+  not,
   skilledEnglish,
   type NzContext,
 } from './new-zealand-checks';
@@ -211,9 +212,12 @@ function englishEvidence(
   e: EnglishEvidence | undefined,
   date: string,
   role: 'parent' | 'principal',
+  testRequested: boolean | undefined,
 ) {
-  if (!e || e.method === 'alternative-under-review') return undefined;
-  if (e.method === 'accepted-alternative') return true;
+  if (!e) return undefined;
+  if (e.method === 'alternative-under-review')
+    return all(not(testRequested), undefined);
+  if (e.method === 'accepted-alternative') return not(testRequested);
   if (e.method === 'esol-paid') return role !== 'principal';
   if (e.method !== 'test') return false;
   const current =
@@ -269,13 +273,13 @@ function dependantEnglish(ctx: NzContext, route: 'religious' | 'business') {
     let passed = skilledEnglish(person, ctx.date, false, false);
     if (route === 'religious' && person.english?.method !== 'test') {
       // RW5.1 leaves non-test evidence to the officer rather than applying the SR2 citizenship and qualification rules.
-      passed = person.testSpecificallyRequested
-        ? false
-        : person.religiousEnglishBackground === undefined
-          ? person.english?.method === 'none'
-            ? false
-            : undefined
-          : assessed(person.religiousEnglishBackground);
+      passed = all(
+        not(person.testSpecificallyRequested),
+        person.religiousEnglishBackground === undefined &&
+          person.english?.method === 'none'
+          ? false
+          : assessed(person.religiousEnglishBackground),
+      );
     }
     if (
       exempt === false &&
@@ -288,11 +292,7 @@ function dependantEnglish(ctx: NzContext, route: 'religious' | 'business') {
     return any(
       exempt,
       passed,
-      person.esol === 'paid-and-signed'
-        ? true
-        : person.esol === 'declined'
-          ? false
-          : undefined,
+      person.esol === undefined ? undefined : person.esol === 'paid-and-signed',
     );
   });
   const amounts = charges
@@ -445,14 +445,20 @@ function partnerPath(ctx: NzContext, a: PartnerAnswers): CountryPathway {
       `历史家庭类费用建议为 NZ$${historicFees.family}`,
       `Historical Family Category proposal: NZ$${historicFees.family}`,
     ),
-    ...ctx.common('partner'),
   ];
+  const advisory =
+    a.goal === 'direct-prv' ? ['NZ-P7-FEE'] : ['NZ-P7-FEE', 'NZ-P7-4'];
   return ctx.path(
     'NZ-P7',
     '伴侣类别居民签证',
     'Partnership residence',
-    checks,
-    a.goal === 'direct-prv' ? ['NZ-P7-FEE'] : ['NZ-P7-FEE', 'NZ-P7-4'],
+    [
+      ...checks,
+      ...ctx.partnerCommon(
+        checks.filter((check) => !advisory.includes(check.id)),
+      ),
+    ],
+    advisory,
   );
 }
 
@@ -485,6 +491,7 @@ function noDependentChildren(children: ParentAnswers['children']) {
 function parentIncome(ctx: NzContext, a: ParentAnswers, sponsorCount?: number) {
   const count = a.parentsSponsored;
   const selection = a.selectionDate;
+  if (a.incomePeriods?.length === 0) return false;
   if (count === undefined || !sponsorCount || !selection || !a.incomePeriods)
     return undefined;
   if (count < 1 || count > parent.maxParents) return false;
@@ -581,12 +588,32 @@ function parentPath(ctx: NzContext, a: ParentAnswers): CountryPathway {
       : a.scheme === undefined
         ? undefined
         : true;
+  const includedPartner = ctx.dependants?.find(
+    (person) => person.relation === 'partner',
+  );
+  // A declared partner needs a household entry for the shared health,
+  // character and identity checks to assess that person.
+  const partnerRosterComplete =
+    a.includesPartner === true && includedPartner === undefined
+      ? undefined
+      : true;
+  const includesPartner = includedPartner !== undefined || a.includesPartner;
   const parentTest = all(
-    englishEvidence(a.applicantEnglish, ctx.date, 'parent'),
-    a.includesPartner === false
+    englishEvidence(
+      a.applicantEnglish,
+      ctx.date,
+      'parent',
+      ctx.testSpecificallyRequested,
+    ),
+    includesPartner === false
       ? true
-      : a.includesPartner === true
-        ? englishEvidence(a.partnerEnglish, ctx.date, 'parent')
+      : includesPartner === true
+        ? englishEvidence(
+            a.partnerEnglish,
+            ctx.date,
+            'parent',
+            includedPartner?.testSpecificallyRequested,
+          )
         : undefined,
   );
   const eoiFee =
@@ -595,7 +622,7 @@ function parentPath(ctx: NzContext, a: ParentAnswers): CountryPathway {
       : a.eoiChannel === 'paper'
         ? historicFees.parentPaperEoi
         : historicFees.parentOnlineEoi;
-  const applicants = a.includesPartner
+  const applicants = includesPartner
     ? [a.applicantEnglish, a.partnerEnglish]
     : [a.applicantEnglish];
   const esolCost =
@@ -619,10 +646,10 @@ function parentPath(ctx: NzContext, a: ParentAnswers): CountryPathway {
       'NZ-P8-1',
       '亲属关系与受抚养子女',
       'Family relationship and dependent children',
-      all(relationship, noDependentChildren(a.children)),
+      all(relationship, noDependentChildren(a.children), partnerRosterComplete),
       ref('F4.20.1; F4.30.1–10'),
-      '核实亲属或监护关系；任何纳入申请的父母仍有受抚养子女都会阻断申请。',
-      'Verify the relationship or qualifying guardianship. Dependent children of any included applicant bar the application.',
+      '核实亲属或监护关系。随行伴侣须列入家属名单。任何纳入申请的父母仍有受抚养子女都会阻断申请。',
+      'Verify the relationship or qualifying guardianship and list any accompanying partner. Dependent children of any included applicant bar the application.',
       'PD-227',
     ),
     c(
@@ -711,7 +738,7 @@ function activeChecks(
     (a.approvalInPrinciple > a.allInvestmentsCompleted
       ? a.approvalInPrinciple
       : a.allInvestmentsCompleted);
-  const finish = start && addMonths(start, period);
+  const finish = a.category && start && addMonths(start, period);
   const interim = start && addMonths(start, investor.checkpointMonths);
   const donation =
     a.totalInvested === undefined
@@ -720,41 +747,29 @@ function activeChecks(
           a.qualifyingPhilanthropy,
           investor.growthGiftShare * a.totalInvested,
         );
-  const deadline =
-    a.approvalInPrinciple &&
-    addMonths(
-      a.approvalInPrinciple,
-      a.extensionGranted ? investor.extendedMonths : investor.transferMonths,
-    );
   function byDeadline(filed?: string, until?: string, from?: string) {
     if (!until) return undefined;
     if (filed)
       return filed <= ctx.date && filed <= until && (!from || filed >= from);
     return undefined;
   }
-  const regularDeadline =
-    a.approvalInPrinciple &&
-    addMonths(a.approvalInPrinciple, investor.transferMonths);
-  // The ordinary limit suffices if all documentary requirements already fell
-  // within it. A missing answer about an extension cannot prove a late filing.
-  const extensionUnclear =
-    a.extensionGranted === undefined &&
-    regularDeadline !== undefined &&
-    ((a.allInvestmentsCompleted &&
-      a.allInvestmentsCompleted > regularDeadline) ||
-      (a.transferEvidenceFiled &&
-        a.transferEvidenceFiled >
-          addMonths(regularDeadline, investor.proofMonths)));
-  const transferTime = extensionUnclear
-    ? undefined
-    : all(
-        byDeadline(a.allInvestmentsCompleted, deadline),
-        byDeadline(
-          a.transferEvidenceFiled,
-          deadline && addMonths(deadline, investor.proofMonths),
-          a.allInvestmentsCompleted,
-        ),
-      );
+  function transferWithin(months: number) {
+    if (!a.approvalInPrinciple) return undefined;
+    const deadline = addMonths(a.approvalInPrinciple, months);
+    return all(
+      a.approvalInPrinciple <= ctx.date,
+      byDeadline(a.allInvestmentsCompleted, deadline),
+      byDeadline(
+        a.transferEvidenceFiled,
+        addMonths(deadline, investor.proofMonths),
+        a.allInvestmentsCompleted,
+      ),
+    );
+  }
+  const transferTime = any(
+    transferWithin(investor.transferMonths),
+    all(a.extensionGranted, transferWithin(investor.extendedMonths)),
+  );
   const noEligibleIncrement = [
     a.nominatedFunds,
     a.totalInvested,
@@ -917,8 +932,16 @@ function businessChecks(ctx: NzContext, a: BusinessAnswers): CountryCheck[] {
       a.workApplicationAge ?? (a.stage === 'work' ? ctx.age : undefined),
       business.maxAge,
     ),
-    workDate && workDate <= ctx.date
-      ? englishEvidence(a.principalEnglish, workDate, 'principal')
+    workDate
+      ? all(
+          workDate <= ctx.date,
+          englishEvidence(
+            a.principalEnglish,
+            workDate,
+            'principal',
+            ctx.testSpecificallyRequested,
+          ),
+        )
       : undefined,
     atLeast(a.cleanBankruptcyYears, business.bankruptcyYears),
     assessed(a.fitAndProper),
@@ -994,10 +1017,17 @@ function investmentPath(
   ctx: NzContext,
   a: NonNullable<NzFamilyAnswers['investment']>,
 ): CountryPathway {
-  const work = a.route === 'business' && a.business?.stage === 'work';
+  const stage = a.business?.stage;
+  const work = a.route === 'business' && stage === 'work';
   const checks = ctx
     .common('general')
-    .filter((c) => !work || c.id === 'NZ-C1' || c.id === 'NZ-C2');
+    .filter(
+      (c) =>
+        a.route === 'active' ||
+        (a.route === 'business' && stage === 'residence') ||
+        c.id === 'NZ-C1' ||
+        c.id === 'NZ-C2',
+    );
   const advisory = ['NZ-P9-4'];
   if (a.route === 'active') {
     checks.push(...activeChecks(ctx, a.active ?? {}));
@@ -1007,33 +1037,39 @@ function investmentPath(
         '投资者购房提示',
         'Investor home purchase',
         undefined,
-        source('SRC-248', 'Treasury, investor home purchase analysis pp1–2'),
-        '财政部历史分析讨论投资者购房；个人购房资格、现行生效条件须另行核实。',
-        'Treasury analysed a home purchase option for investors. Current commencement and individual purchase eligibility need separate confirmation.',
+        source('SRC-250', 'LINZ investor visa holders guidance, pp1–2'),
+        '通过投资者购房通道购买或建造住宅须事先取得 LINZ 许可。个人购房资格单独核实。',
+        'Buying or building a home through the investor visa holder pathway requires prior LINZ consent. Individual purchase eligibility requires assessment.',
         'PD-233',
       ),
     );
     advisory.push('NZ-P9-HOME');
     if (a.active?.goal !== 'investment-conditions') advisory.push('NZ-P9-2');
-  } else if (a.route === 'business') {
+  } else if (a.route === 'business' && stage) {
     checks.push(...businessChecks(ctx, a.business ?? {}));
     // Prior BD2 approval establishes the work-stage prerequisites. They are
     // shown for reference and are not reapplied at a later age or salary.
     if (work) {
       checks.push(
+        ctx.dependantEligibility('business-work'),
         ctx.check(
           'NZ-P9-3-WORK-EVIDENCE',
           '前置工签递交与证明材料',
           'Work visa lodgement and evidence',
-          a.business?.workApplicationEvidenceComplete,
+          all(
+            ctx.identityDocumentsComplete,
+            ctx.requiredFeePaid,
+            a.business?.workApplicationEvidenceComplete,
+          ),
           [
             ...source('SRC-245', 'BD2.1(a)–(c)'),
             ...source('SRC-239', 'A4.5, A4.25'),
             ...source('SRC-240', 'A5.10'),
+            ...source('SRC-251', 'E4.50.1(a)–(c)'),
           ],
-          '核查 Business Investor 工签实际要求的身份证件、体检、胸片、警方证明与递交材料。',
-          'Confirm identity, medical, chest X-ray, police and lodging evidence applicable to the Business Investor work visa.',
-          'PD-228',
+          '核查每名申请人的身份证件、工签所需的体检、胸片、警方证明及其他递交材料，并确认已支付应缴费用。',
+          'Confirm identity documents for each applicant, the required medical, chest X-ray, police and other work visa evidence, and payment of all fees due.',
+          'PD-220',
         ),
       );
       advisory.push('NZ-P9-3', 'NZ-P9-3-OPERATIONS', 'NZ-P9-3-ENGLISH');
@@ -1046,22 +1082,25 @@ function investmentPath(
         'Investment or business route',
         undefined,
         [...source('SRC-244', 'BN3'), ...source('SRC-245', 'BI2.1')],
-        '请选择 Active Investor Plus 或 Business Investor，以核对该类别的条件。',
-        'Select Active Investor Plus or Business Investor to assess its requirements.',
+        '请选择 Active Investor Plus 或 Business Investor。办理 Business Investor 时还需注明申请工签还是居留。',
+        'Select Active Investor Plus or Business Investor. For Business Investor, specify whether you are applying for a work or resident visa.',
         'PD-220',
       ),
     );
   }
   checks.push(
-    fee(
-      ctx,
+    ctx.check(
       'NZ-P9-4',
-      a.route === 'active'
-        ? `AIP 历史建议价为 Band A/C NZ$${historicFees.investorAC}、B NZ$${historicFees.investorB}`
-        : '2024 费用建议早于 Business Investor 类别',
-      a.route === 'active'
-        ? `Historical AIP proposal: NZ$${historicFees.investorAC} (A/C), NZ$${historicFees.investorB} (B)`
-        : 'The historical fee proposal predates Business Investor',
+      '费用参考',
+      'Fee information',
+      undefined,
+      source(
+        'SRC-249',
+        'INZ 1028, fees and levies by application type and band, pp1–3',
+      ),
+      '按 INZ 费表中 Active Investor Plus、Business Investor 工签或居留的对应栏目核对申请费及征费。个人金额取决于适用费区和豁免。',
+      'Check the INZ schedule for Active Investor Plus, Business Investor Work or Business Investor Resident fees and levies. Individual charges depend on the applicable band and exemptions.',
+      'PD-225',
     ),
   );
   return ctx.path(
@@ -1131,7 +1170,12 @@ function religiousPath(ctx: NzContext, a: ReligiousAnswers): CountryPathway {
       '宗教工作者及家属英语',
       'Worker and family English',
       all(
-        englishEvidence(a.principalEnglish, ctx.date, 'principal'),
+        englishEvidence(
+          a.principalEnglish,
+          ctx.date,
+          'principal',
+          ctx.testSpecificallyRequested,
+        ),
         familyEnglish.met,
       ),
       ref('RW5.1, RW5.1.1, RW5.40'),

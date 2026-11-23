@@ -1,6 +1,7 @@
 import {
   newZealandFull2026_11,
   nzCommonParameters as p,
+  nzFamilyParameters,
 } from '@uk-immigration/policy-data';
 import type { SourceRef } from '@uk-immigration/policy-data';
 import type { CountryCheck, CountryPathway } from './country-result';
@@ -10,6 +11,8 @@ import { textFor, type Lang } from './rule';
 import type { IsoDate, Locale } from './types';
 
 type Answer = boolean | undefined;
+export const not = (value: Answer): Answer =>
+  value === undefined ? undefined : !value;
 
 // A known failure decides AND; a known success decides OR, even with missing answers.
 export const all = (...values: Answer[]): Answer =>
@@ -61,7 +64,11 @@ interface Certificate {
 }
 
 interface NzEvidence {
-  medical?: Certificate & { limited?: boolean };
+  medical?: Certificate & {
+    limited?: boolean;
+    /** An officer's A4.20(f) decision to use a General certificate in place of a Limited one. */
+    generalAsLimited?: 'accepted' | 'declined' | 'pending';
+  };
   xray?: Certificate;
   pregnant?: boolean;
   /** Since the previous chest X-ray. */
@@ -112,10 +119,23 @@ export interface NzPersonAnswers {
   esol?: 'paid-and-signed' | 'declined' | 'planned';
 }
 
+export interface NzDependantAnswers extends NzPersonAnswers {
+  /** A child is a biological or adopted child of the applicant or their included partner. */
+  relation?: 'partner' | 'child' | 'other';
+  /** Includes the recognised relationship and the applicable partnership evidence. */
+  partnershipRequirementsMet?: boolean;
+  single?: boolean;
+  hasOwnChildren?: boolean;
+  /** Totally or substantially reliant on the applicant or their included partner. */
+  financiallyDependent?: boolean;
+}
+
+type InclusionCategory = 'partner' | 'parent' | 'business-work';
+
 export interface NzCommonAnswers extends Omit<NzPersonAnswers, 'dateOfBirth'> {
   /** An explicitly empty list confirms there are no accompanying applicants. */
-  dependants?: NzPersonAnswers[];
-  /** Only an explicitly unpaid required fee prevents lodging. */
+  dependants?: NzDependantAnswers[];
+  /** All fees due at lodgement have been paid or acceptably arranged, or none is due. */
   requiredFeePaid?: boolean;
   levyBasis?:
     | 'ordinary'
@@ -134,7 +154,7 @@ export interface NzContext {
   history?: NzRequest;
   policyAsOf: string;
   familyOmission?: boolean;
-  dependants?: NzPersonAnswers[];
+  dependants?: NzDependantAnswers[];
   L: Lang;
   check(
     id: string,
@@ -157,6 +177,11 @@ export interface NzContext {
     category: ResidenceCategory,
     registeredForSmc?: boolean,
   ): CountryCheck[];
+  requiredFeePaid?: boolean;
+  identityDocumentsComplete?: boolean;
+  testSpecificallyRequested?: boolean;
+  dependantEligibility(category?: InclusionCategory): CountryCheck;
+  partnerCommon(otherRequirements: CountryCheck[]): CountryCheck[];
   character(): CountryCheck;
 }
 
@@ -193,7 +218,11 @@ function character(person: NzPersonAnswers, date: string): Answer {
   return true;
 }
 
-function health(person: NzPersonAnswers, category: ResidenceCategory): Answer {
+function health(
+  person: NzPersonAnswers,
+  category: ResidenceCategory,
+  otherF2Met: boolean,
+): Answer {
   if (person.health === 'excluded-from-waiver') return false;
   if (
     person.health === 'assessed-acceptable' ||
@@ -212,7 +241,7 @@ function health(person: NzPersonAnswers, category: ResidenceCategory): Answer {
         person.familyOmission === false &&
         person.health === 'assessed-unacceptable'
       )
-        return true;
+        return otherF2Met ? true : undefined;
     }
     return undefined;
   }
@@ -244,13 +273,18 @@ function medicalEvidence(
 ): Answer {
   const v = p.health.value;
   const e = person.evidence;
-  const needsFullMedical =
-    category !== 'partner' ? true : person.familyOmission;
-  const correctType = e?.medical?.limited
-    ? needsFullMedical === undefined
-      ? undefined
-      : !needsFullMedical
-    : true;
+  const requiresLimited =
+    category === 'partner' ? not(person.familyOmission) : false;
+  const form = e?.medical;
+  let correctType: Answer;
+  if (form?.limited !== undefined && requiresLimited !== undefined) {
+    correctType = requiresLimited === form.limited;
+    if (requiresLimited && !form.limited)
+      correctType =
+        form.generalAsLimited === 'pending'
+          ? undefined
+          : form.generalAsLimited === 'accepted';
+  }
   const medical = all(
     correctType,
     currentCertificate(
@@ -258,7 +292,7 @@ function medicalEvidence(
       date,
       v.certificateMonths,
       v.reuseMonths,
-      !e?.freshMedicalRequested,
+      not(e?.freshMedicalRequested),
     ),
   );
   const xrayExempt = any(
@@ -274,7 +308,7 @@ function medicalEvidence(
     date,
     v.certificateMonths,
     v.reuseMonths,
-    all(!e?.freshXrayRequested, canReuseXray),
+    all(not(e?.freshXrayRequested), canReuseXray),
   );
   return all(medical, any(xrayExempt, xray));
 }
@@ -351,11 +385,13 @@ export function skilledEnglish(
     return false;
   if (e.method === 'citizenship')
     return all(
+      not(person.testSpecificallyRequested),
       e.eligibleCitizenship,
       atLeast(e.workOrStudyYearsInSixCountries, testEvidence.citizenshipYears),
     );
   if (e.method === 'qualification')
     return all(
+      not(person.testSpecificallyRequested),
       e.eligibleCountry,
       e.assessedOrExempt,
       any(
@@ -519,32 +555,77 @@ export function createNzContext(
       'PD-231',
     );
   }
+  const identityDocumentsComplete = household(
+    (person) => person.identityDocuments,
+  );
+
+  function dependantEligibility(category?: InclusionCategory): CountryCheck {
+    const temporary = category === 'business-work';
+    const limits = nzFamilyParameters.parentSponsorship.value;
+    const assessments = answers.dependants?.map((person) => {
+      if (person.relation === undefined) return undefined;
+      if (person.relation === 'partner')
+        return all(category !== 'partner', person.partnershipRequirementsMet);
+      if (person.relation !== 'child' || category === 'parent') return false;
+      const years =
+        person.dateOfBirth === undefined
+          ? undefined
+          : fullYears(person.dateOfBirth, date);
+      const minor = years === undefined ? undefined : years < limits.adultAge;
+      const youngAdult = atMost(years, limits.childAgeWithoutChildren);
+      return all(
+        person.single,
+        atMost(
+          years,
+          temporary ? p.temporaryChildMaxAge.value : limits.dependentAge,
+        ),
+        any(minor, not(person.hasOwnChildren)),
+        temporary
+          ? any(
+              all(minor, person.financiallyDependent !== false),
+              person.financiallyDependent,
+            )
+          : any(youngAdult, person.financiallyDependent),
+      );
+    });
+    return check(
+      'NZ-DEPENDANTS',
+      '随行家属纳入资格',
+      'Eligibility of included family members',
+      assessments && all(...assessments),
+      temporary
+        ? p.temporaryChildMaxAge.sources
+        : [
+            { srcId: 'SRC-230', locator: 'R2.1(b), R2.1.10–15, R2.1.30–35' },
+            ...(category === 'parent'
+              ? [{ srcId: 'SRC-243', locator: 'F4.15.1(c), F4.20.1, F4.30.5' }]
+              : []),
+            ...(category === 'partner'
+              ? [{ srcId: 'SRC-242', locator: 'F2.5(a)–(d)' }]
+              : []),
+          ],
+      '逐人核对亲属关系。随行伴侣须符合适用的伴侣要求。子女须单身，并按签证阶段和年龄核对是否育有子女及是否依靠父母生活。',
+      'Check the relationship of each included person. Partners must meet the applicable partnership requirements. Children must be single. Their age and visa stage determine the requirements for children of their own and financial dependence.',
+    );
+  }
+
   function common(
     category: ResidenceCategory,
     registered?: boolean,
+    f2Requirements?: CountryCheck[],
   ): CountryCheck[] {
     const checks = [
       check(
         'NZ-IDENTITY',
         '身份与递交材料',
         'Identity and lodging documents',
-        all(
-          household((person) => person.identityDocuments),
-          answers.requiredFeePaid !== false,
-        ),
+        all(identityDocumentsComplete, answers.requiredFeePaid),
         [{ srcId: 'SRC-230', locator: 'R2.40, R2.40.1' }],
-        '确认每人的身份证件、照片、规定表格及声明齐备，并支付递交时到期的费用。',
-        'Confirm identity documents, photos, required forms and declarations for everyone included, and pay any fee due at lodgement.',
+        '确认每人的身份证件、照片、规定表格及声明齐备，并确认应缴费已付或已按认可方式安排付款。',
+        'Confirm identity documents, photos, required forms and declarations for everyone included, and confirm payment or an accepted arrangement for fees due.',
       ),
-      check(
-        'NZ-C1',
-        '健康及医疗豁免',
-        'Health and medical waiver',
-        household((person) => health(person, category)),
-        p.health.sources,
-        `须核对每名申请人的健康状况。急性病按 ${p.health.value.acuteYears} 年、慢性病按预计病程评估；成本超过 NZ$${p.health.value.significantCostNzd.toLocaleString('en')}、公共服务供给或其他健康问题须由 INZ 评估。适用的伴侣豁免以其余条件均满足为前提。`,
-        `Check each applicant. INZ assesses acute conditions over ${p.health.value.acuteYears} years and chronic conditions over their predicted course. Costs exceeding NZ$${p.health.value.significantCostNzd.toLocaleString('en')}, service demand and other concerns require assessment. A partnership waiver assumes the other requirements are met.`,
-        'PD-230',
+      dependantEligibility(
+        category === 'partner' || category === 'parent' ? category : undefined,
       ),
       check(
         'NZ-C1-EVIDENCE',
@@ -554,8 +635,8 @@ export function createNzContext(
           medicalEvidence(person, category, date, age),
         ),
         [{ srcId: 'SRC-239', locator: 'A4.20(a)–(f)' }],
-        '核对出具日、体检类型、既往获认可的证明及结核风险地区居住史。怀孕或未达胸片年龄可免拍。',
-        'Check dates, certificate type, eligibility for reuse and residence in TB-risk countries. Pregnancy or age may exempt a person from the X-ray.',
+        '逐人核对体检表及有效期。普通伴侣居留须交限定表，适用 R5.96 时须交普通表。以普通表代限定表须有签证官按 A4.20(f) 采纳的结论。复用胸片还须核对结核风险地区居住史。',
+        'Check certificate type and validity for each applicant. Partnership residence requires the Limited form unless R5.96 requires the General form. A General form in place of a Limited form requires an officer’s acceptance under A4.20(f). Check TB exposure before X-ray reuse.',
       ),
       characterCheck(),
       check(
@@ -584,6 +665,24 @@ export function createNzContext(
         'There is no general home ownership, floor area, address registration or private insurance threshold. Sponsorship, cohabitation, Parent Boost insurance and investment contact obligations depend on the category.',
       ),
     ];
+    // A4.60(d) depends on all applicable F2 requirements, including the other common checks.
+    const otherF2Met =
+      f2Requirements !== undefined &&
+      [...f2Requirements, ...checks].every(
+        (condition) => condition.status === 'MET',
+      );
+    checks.push(
+      check(
+        'NZ-C1',
+        '健康及医疗豁免',
+        'Health and medical waiver',
+        household((person) => health(person, category, otherF2Met)),
+        p.health.sources,
+        `须核对每名申请人的健康状况。急性病按 ${p.health.value.acuteYears} 年、慢性病按预计病程评估；成本超过 NZ$${p.health.value.significantCostNzd.toLocaleString('en')}、公共服务供给或其他健康问题须由 INZ 评估。适用的伴侣豁免以其余条件均满足为前提。`,
+        `Check each applicant. INZ assesses acute conditions over ${p.health.value.acuteYears} years and chronic conditions over their predicted course. Costs exceeding NZ$${p.health.value.significantCostNzd.toLocaleString('en')}, service demand and other concerns require assessment. A partnership waiver assumes the other requirements are met.`,
+        'PD-230',
+      ),
+    );
     const levy = answers.levyBasis;
     const ordinary = levy === 'ordinary';
     const known = levy !== undefined && levy !== 'under-review';
@@ -639,11 +738,9 @@ export function createNzContext(
         return any(
           exempt,
           passed,
-          person.esol === 'paid-and-signed'
-            ? true
-            : person.esol === 'declined'
-              ? false
-              : undefined,
+          person.esol === undefined
+            ? undefined
+            : person.esol === 'paid-and-signed',
         );
       });
       const fees = charges
@@ -656,7 +753,7 @@ export function createNzContext(
           'Accompanying family English or ESOL',
           family && all(...family),
           [...p.dependantEnglish.sources, ...p.englishEsolBands.sources],
-          `逐人核对：未满 ${testEvidence.dependantAge} 岁免查，其他家属可提交英语证明或签署协议并预付 ESOL。仅计划付款仍待确认。${fees ? ' 可按已有资料估算的个人费用为 ' + fees + '。' : ''}`,
+          `逐人核对：未满 ${testEvidence.dependantAge} 岁免查，其他家属可提交英语证明或签署协议并预付 ESOL。计划付款尚未满足预付要求。${fees ? ' 可按已有资料估算的个人费用为 ' + fees + '。' : ''}`,
           `Check each person aged ${testEvidence.dependantAge} or over for English evidence or signed, prepaid ESOL. Planned payment is still outstanding.${fees ? ' Individual charges estimable from these answers: ' + fees + '.' : ''}`,
           'PD-232',
         ),
@@ -672,6 +769,12 @@ export function createNzContext(
     history,
     policyAsOf: newZealandFull2026_11.asOf,
     familyOmission: answers.familyOmission,
+    requiredFeePaid: answers.requiredFeePaid,
+    identityDocumentsComplete,
+    testSpecificallyRequested: answers.testSpecificallyRequested,
+    dependantEligibility,
+    partnerCommon: (otherRequirements) =>
+      common('partner', undefined, otherRequirements),
     dependants: answers.dependants,
     L,
     check,

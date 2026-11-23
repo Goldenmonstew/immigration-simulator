@@ -7,13 +7,16 @@ import {
 import {
   createNzContext,
   type NzCommonAnswers,
+  type NzDependantAnswers,
   type NzEnglishEvidence,
 } from '../src/new-zealand-checks';
 
 const date = '2026-11-23';
 const time = { simulationDate: date, dateOfBirth: '1986-11-23' };
 const evidence: NzCommonAnswers['evidence'] = {
-  medical: { issued: '2026-09-01' },
+  medical: { issued: '2026-09-01', limited: false },
+  freshMedicalRequested: false,
+  freshXrayRequested: false,
   xray: { issued: '2026-09-01' },
   pregnant: false,
   policeCountriesComplete: true,
@@ -21,6 +24,8 @@ const evidence: NzCommonAnswers['evidence'] = {
 };
 const base: NzCommonAnswers = {
   identityDocuments: true,
+  requiredFeePaid: true,
+  testSpecificallyRequested: false,
   dependants: [],
   health: 'clear',
   character: 'clear',
@@ -93,6 +98,10 @@ test('ten stable pathways are available without assuming an existing visa, regis
 
 test('identity and lodging need every included person, and an explicitly unpaid mandatory fee prevents filing', () => {
   expect(get('NZ-IDENTITY', {}).status).toBe('MET');
+  expect(get('NZ-IDENTITY', { requiredFeePaid: undefined })).toMatchObject({
+    status: 'UNKNOWN',
+    pendingDetails: ['PD-220'],
+  });
   expect(get('NZ-IDENTITY', { dependants: undefined }).status).toBe('UNKNOWN');
   expect(
     get('NZ-IDENTITY', { dependants: [{ identityDocuments: false }] }).status,
@@ -131,7 +140,7 @@ test('NZ$81,000 is a strict cost threshold; one non-waivable condition affects t
       { health: 'assessed-unacceptable', familyOmission: false },
       'partner',
     ).status,
-  ).toBe('MET');
+  ).toBe('UNKNOWN');
   expect(
     get(
       'NZ-C1',
@@ -149,22 +158,46 @@ test('medical evidence uses calendar months, the under-11 exemption, pregnancy, 
   ) =>
     get('NZ-C1-EVIDENCE', { evidence: e, familyOmission: false }, category, dob)
       .status;
-  expect(status({ ...evidence, medical: { issued: '2026-08-24' } })).toBe(
-    'MET',
-  );
   expect(
-    status({ ...evidence, medical: { issued: '2026-08-23', reusable: false } }),
-  ).toBe('NOT_MET');
-  expect(
-    status({ ...evidence, medical: { issued: '2023-11-24', reusable: true } }),
+    status({ ...evidence, medical: { limited: false, issued: '2026-08-24' } }),
   ).toBe('MET');
   expect(
-    status({ ...evidence, medical: { issued: '2023-11-23', reusable: true } }),
+    status({
+      ...evidence,
+      medical: { limited: false, issued: '2026-08-23', reusable: false },
+    }),
   ).toBe('NOT_MET');
+  expect(
+    status({
+      ...evidence,
+      medical: { limited: false, issued: '2023-11-24', reusable: true },
+    }),
+  ).toBe('MET');
+  expect(
+    status({
+      ...evidence,
+      medical: { limited: false, issued: '2023-11-23', reusable: true },
+    }),
+  ).toBe('NOT_MET');
+  expect(status({ ...evidence, medical: { issued: date } })).toBe('UNKNOWN');
+  expect(
+    status({
+      ...evidence,
+      medical: { issued: '2023-11-24', limited: false, reusable: true },
+      freshMedicalRequested: undefined,
+    }),
+  ).toBe('UNKNOWN');
   const reused = {
     ...evidence,
     xray: { issued: '2025-11-23', reusable: true },
   };
+  expect(
+    status({
+      ...reused,
+      consecutiveMonthsInTbRiskCountries: 5,
+      freshXrayRequested: undefined,
+    }),
+  ).toBe('UNKNOWN');
   expect(status({ ...reused, consecutiveMonthsInTbRiskCountries: 5 })).toBe(
     'MET',
   );
@@ -334,6 +367,9 @@ test('citizenship/study and qualification evidence have their own conditions and
   };
   expect(get('NZ-C3', { english }).status).toBe('MET');
   expect(
+    get('NZ-C3', { english, testSpecificallyRequested: undefined }).status,
+  ).toBe('UNKNOWN');
+  expect(
     get('NZ-C3', { english: { ...english, workOrStudyYearsInSixCountries: 4 } })
       .status,
   ).toBe('NOT_MET');
@@ -391,7 +427,7 @@ test('accompanying family has an age cutoff and four different ESOL charges; pla
       status: 'MET',
       explanation: expect.stringContaining(charge),
     });
-    expect(member('2010-11-23', score, 'planned').status).toBe('UNKNOWN');
+    expect(member('2010-11-23', score, 'planned').status).toBe('NOT_MET');
   }
 });
 
@@ -412,3 +448,121 @@ test('housing is informational and a statutory levy exemption affects the budget
     '缴纳',
   );
 });
+
+const tierOne: NzFullRequest = {
+  ...time,
+  skilled: {
+    green: { tier: 'straight', rowRequirementsVerified: true },
+    job: {
+      occupationCode: '261313',
+      occupationMatch: true,
+      employerCompliant: true,
+      accreditedAtApplication: true,
+      genuineOfferInNZ: true,
+      guaranteedWeeklyHours: 40,
+      contract: 'permanent',
+      hourlyPay: 105,
+    },
+  },
+};
+
+function tierOnePath(answers: NzCommonAnswers) {
+  return evaluateNewZealandFull({
+    ...tierOne,
+    common: { ...base, english: ielts, ...answers },
+  }).columns[0].pathways.find((p) => p.id === 'NZ-GREEN-LIST')!;
+}
+
+test.each([
+  [true, 'MET', date],
+  [false, 'NOT_MET', undefined],
+  [undefined, 'UNKNOWN', undefined],
+] as const)(
+  'Tier 1 lodging fee %s controls the condition, path and date',
+  (requiredFeePaid, status, earliest) => {
+    const path = tierOnePath({ requiredFeePaid });
+    const check = path.checks.find((c) => c.id === 'NZ-IDENTITY');
+    expect(check?.status).toBe(status);
+    if (requiredFeePaid === undefined)
+      expect(check?.pendingDetails).toEqual(['PD-220']);
+    expect(path.status).toBe(status);
+    expect(path.earliestDate).toBe(earliest);
+  },
+);
+
+const child: NzDependantAnswers = {
+  relation: 'child',
+  dateOfBirth: '2001-11-23',
+  single: true,
+  hasOwnChildren: false,
+  financiallyDependent: true,
+  identityDocuments: true,
+  health: 'clear',
+  character: 'clear',
+  evidence,
+  english: ielts,
+};
+
+test.each([
+  ['25th birthday', {}, 'NOT_MET'],
+  ['day before 25', { dateOfBirth: '2001-11-24' }, 'MET'],
+  ['relationship omitted', { relation: undefined }, 'UNKNOWN'],
+  ['another relative', { relation: 'other' }, 'NOT_MET'],
+  ['partner evidence missing', { relation: 'partner' }, 'UNKNOWN'],
+  [
+    'partner recognised',
+    { relation: 'partner', partnershipRequirementsMet: true },
+    'MET',
+  ],
+  [
+    'partner ineligible',
+    { relation: 'partner', partnershipRequirementsMet: false },
+    'NOT_MET',
+  ],
+  [
+    'minor with own child',
+    { dateOfBirth: '2008-11-24', hasOwnChildren: true },
+    'MET',
+  ],
+  ['minor not single', { dateOfBirth: '2008-11-24', single: false }, 'NOT_MET'],
+  [
+    '18 with own child',
+    { dateOfBirth: '2008-11-23', hasOwnChildren: true },
+    'NOT_MET',
+  ],
+  [
+    '20 and self-supporting',
+    { dateOfBirth: '2005-11-24', financiallyDependent: false },
+    'MET',
+  ],
+  [
+    '21 and self-supporting',
+    { dateOfBirth: '2005-11-23', financiallyDependent: false },
+    'NOT_MET',
+  ],
+  [
+    '21 and dependence unanswered',
+    { dateOfBirth: '2005-11-23', financiallyDependent: undefined },
+    'UNKNOWN',
+  ],
+  [
+    'single unanswered',
+    { dateOfBirth: '2006-11-23', single: undefined },
+    'UNKNOWN',
+  ],
+  [
+    'own children unanswered',
+    { dateOfBirth: '2006-11-23', hasOwnChildren: undefined },
+    'UNKNOWN',
+  ],
+] satisfies [string, Partial<NzDependantAnswers>, string][])(
+  'R2.1 Tier 1 with %s',
+  (_label, change, status) => {
+    const path = tierOnePath({ dependants: [{ ...child, ...change }] });
+    expect(path.checks.find((c) => c.id === 'NZ-DEPENDANTS')?.status).toBe(
+      status,
+    );
+    expect(path.status).toBe(status);
+    expect(path.earliestDate).toBe(status === 'MET' ? date : undefined);
+  },
+);

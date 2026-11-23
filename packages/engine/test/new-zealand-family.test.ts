@@ -1,30 +1,51 @@
 import { describe, expect, it } from 'vitest';
 import { evaluateNewZealandFull } from '../src/new-zealand-full';
 import type { NzFamilyAnswers } from '../src/new-zealand-family';
+import type { CountryPathway } from '../src/country-result';
 
 type Request = Parameters<typeof evaluateNewZealandFull>[0];
 const common: Request['common'] = {
   identityDocuments: true,
+  requiredFeePaid: true,
   health: 'clear',
   character: 'clear',
   familyOmission: false,
   evidence: {
-    medical: { issued: '2026-11-01' },
+    medical: { issued: '2026-11-01', limited: false },
     xray: { issued: '2026-11-01' },
     policeCountriesComplete: true,
     police: [{ issued: '2026-11-01' }],
   },
   dependants: [],
 };
+const partnerCommon = {
+  ...common,
+  evidence: {
+    ...common.evidence,
+    medical: { issued: '2026-11-01', limited: true },
+  },
+};
 function run(id: string, family: NzFamilyAnswers, r: Partial<Request> = {}) {
   const result = evaluateNewZealandFull({
     simulationDate: '2026-11-23',
     dateOfBirth: '1971-11-23',
-    common,
+    common: id === 'NZ-P7' ? partnerCommon : common,
     family,
     ...r,
   });
   return result.columns[0].pathways.find((p) => p.id === id)!;
+}
+function expectDecision(
+  pathway: CountryPathway,
+  id: string,
+  checkStatus: 'MET' | 'NOT_MET' | 'UNKNOWN',
+  pathwayStatus = checkStatus,
+) {
+  expect(pathway.checks.find((c) => c.id === id)?.status).toBe(checkStatus);
+  expect(pathway.status).toBe(pathwayStatus);
+  expect(pathway.earliestDate).toBe(
+    pathwayStatus === 'MET' ? '2026-11-23' : undefined,
+  );
 }
 function check(id: string, family: NzFamilyAnswers, r: Partial<Request> = {}) {
   return run(id.split('-').slice(0, 2).join('-'), family, r).checks.find(
@@ -145,7 +166,143 @@ const religious: NonNullable<NzFamilyAnswers['religious']> = {
   },
 };
 
+describe('non-test English evidence', () => {
+  const alternative = { method: 'accepted-alternative' } as const;
+  const cases: [string, string, NzFamilyAnswers][] = [
+    [
+      'NZ-P8',
+      'NZ-P8-3',
+      { parent: { ...parent, applicantEnglish: alternative } },
+    ],
+    [
+      'NZ-P9',
+      'NZ-P9-3-WORK',
+      {
+        investment: {
+          route: 'business',
+          business: { ...business, principalEnglish: alternative },
+        },
+      },
+    ],
+    [
+      'NZ-P10',
+      'NZ-P10-1-ENGLISH',
+      { religious: { ...religious, principalEnglish: alternative } },
+    ],
+  ];
+  it.each(cases)(
+    '%s checks whether INZ specifically requested a test',
+    (path, id, family) => {
+      for (const [testSpecificallyRequested, status] of [
+        [undefined, 'UNKNOWN'],
+        [true, 'NOT_MET'],
+        [false, 'MET'],
+      ] as const) {
+        expectDecision(
+          run(path, family, {
+            common: { ...common, testSpecificallyRequested },
+          }),
+          id,
+          status,
+        );
+      }
+    },
+  );
+});
+
 describe('F2 partnership', () => {
+  it.each([
+    [false, false, 'NOT_MET'],
+    [false, undefined, 'UNKNOWN'],
+    [false, true, 'MET'],
+    [true, true, 'NOT_MET'],
+    [true, false, 'MET'],
+    [undefined, true, 'UNKNOWN'],
+  ] as const)(
+    'checks the medical form for omission=%s, limited=%s',
+    (familyOmission, limited, status) => {
+      const p = run(
+        'NZ-P7',
+        { partner: { ...partner, earlierCategoryRequiredEnglish: false } },
+        {
+          common: {
+            ...partnerCommon,
+            familyOmission,
+            evidence: {
+              ...partnerCommon.evidence,
+              medical: { issued: '2026-11-01', limited },
+            },
+          },
+        },
+      );
+      expectDecision(p, 'NZ-C1-EVIDENCE', status);
+    },
+  );
+  it.each([
+    ['pending', 'UNKNOWN'],
+    ['declined', 'NOT_MET'],
+    ['accepted', 'MET'],
+  ] as const)(
+    'uses an explicit A4.20(f) decision for a General Medical Certificate (%s)',
+    (generalAsLimited, status) => {
+      const p = run(
+        'NZ-P7',
+        { partner },
+        {
+          common: {
+            ...partnerCommon,
+            evidence: {
+              ...partnerCommon.evidence,
+              medical: {
+                issued: '2026-11-01',
+                limited: false,
+                generalAsLimited,
+              },
+            },
+          },
+        },
+      );
+      expectDecision(p, 'NZ-C1-EVIDENCE', status);
+    },
+  );
+  it.each([
+    [true, 'MET', 'MET'],
+    [undefined, 'UNKNOWN', 'UNKNOWN'],
+    [false, 'UNKNOWN', 'NOT_MET'],
+  ] as const)(
+    'checks the other F2 criteria before applying A4.60(d) (met in person: %s)',
+    (metInPerson, healthStatus, pathStatus) => {
+      const p = run(
+        'NZ-P7',
+        { partner: { ...partner, metInPerson } },
+        {
+          common: { ...partnerCommon, health: 'assessed-unacceptable' },
+        },
+      );
+      expectDecision(p, 'NZ-C1', healthStatus, pathStatus);
+    },
+  );
+  it.each([
+    [undefined, 'UNKNOWN'],
+    [false, 'NOT_MET'],
+    [true, 'MET'],
+  ] as const)(
+    'checks all direct PRV location answers (citizen offshore: %s)',
+    (citizenOffshore, status) => {
+      const p = run('NZ-P7', {
+        partner: {
+          ...partner,
+          goal: 'direct-prv',
+          sponsorStatus: 'citizen',
+          monthsTogetherAfterBothAdult: 60,
+          citizenNzMonthsPerYear: [2, 2, 2, 2, 2],
+          citizenOffshore,
+          citizenLastReturn: '2026-01-01',
+        },
+      });
+      expectDecision(p, 'NZ-P7-4', status);
+    },
+  );
   it('keeps ordinary residence open when only direct PRV fails', () => {
     const p = run('NZ-P7', { partner });
     expect(p.status).toBe('MET');
@@ -234,6 +391,57 @@ describe('F2 partnership', () => {
 });
 
 describe('F4 Parent residence', () => {
+  it('requires a household entry for a partner declared on the application', () => {
+    expectDecision(
+      run('NZ-P8', {
+        parent: {
+          ...parent,
+          includesPartner: true,
+          partnerEnglish: { method: 'esol-paid' },
+        },
+      }),
+      'NZ-P8-1',
+      'UNKNOWN',
+    );
+  });
+  it.each([
+    [undefined, 'UNKNOWN'],
+    [[], 'NOT_MET'],
+    [parent.incomePeriods, 'MET'],
+  ] as const)('checks the sponsor income evidence (%j)', (periods, status) => {
+    const p = run('NZ-P8', {
+      parent: { ...parent, incomePeriods: periods && [...periods] },
+    });
+    expectDecision(p, 'NZ-P8-2-INCOME', status);
+  });
+  it.each([
+    [undefined, 'UNKNOWN'],
+    ['none', 'NOT_MET'],
+    ['accepted-alternative', 'MET'],
+  ] as const)(
+    'checks English for a partner identified on the application (%s)',
+    (method, status) => {
+      const p = run(
+        'NZ-P8',
+        { parent: { ...parent, partnerEnglish: method && { method } } },
+        {
+          common: {
+            ...common,
+            dependants: [
+              {
+                ...common,
+                dateOfBirth: '1970-01-01',
+                relation: 'partner',
+                partnershipRequirementsMet: true,
+                testSpecificallyRequested: false,
+              },
+            ],
+          },
+        },
+      );
+      expectDecision(p, 'NZ-P8-3', status);
+    },
+  );
   it('checks one sponsor at 1.5 times each period-end median', () => {
     const p = run('NZ-P8', { parent });
     expect(p.status).toBe('MET');
@@ -400,6 +608,27 @@ describe('BN Active Investor Plus', () => {
   const f = (changes: Partial<typeof investor> = {}): NzFamilyAnswers => ({
     investment: { route: 'active', active: { ...investor, ...changes } },
   });
+  it.each([
+    [undefined, 'UNKNOWN'],
+    [false, 'NOT_MET'],
+    [true, 'MET'],
+  ] as const)(
+    'requires the extension decision after the ordinary deadline (%s)',
+    (extensionGranted, status) => {
+      const p = run(
+        'NZ-P9',
+        f({ allInvestmentsCompleted: '2026-07-06', extensionGranted }),
+      );
+      expectDecision(p, 'NZ-P9-1-TRANSFER', status);
+    },
+  );
+  it('rejects completed transfers outside both possible deadlines', () => {
+    const p = run(
+      'NZ-P9',
+      f({ approvalInPrinciple: '2025-06-01', extensionGranted: undefined }),
+    );
+    expectDecision(p, 'NZ-P9-1-TRANSFER', 'NOT_MET');
+  });
   it('grants residence before the post-grant checkpoints and keeps the fee pending', () => {
     expect(run('NZ-P9', f()).status).toBe('MET');
     expect(check('NZ-P9-HOME', f())).toMatchObject({
@@ -496,6 +725,52 @@ describe('BD2 and BI stages', () => {
   const f = (changes: Partial<typeof business> = {}): NzFamilyAnswers => ({
     investment: { route: 'business', business: { ...business, ...changes } },
   });
+  it('requires a Business Investor stage even when all residence facts would pass', () => {
+    expectDecision(
+      run('NZ-P9', f({ stage: undefined })),
+      'NZ-P9-ROUTE',
+      'UNKNOWN',
+    );
+  });
+  it.each([
+    ['2006-11-23', true, 'NOT_MET'],
+    ['2007-11-23', undefined, 'UNKNOWN'],
+    ['2007-11-23', false, 'NOT_MET'],
+    ['2007-11-23', true, 'MET'],
+  ] as const)(
+    'applies temporary entry rules to an accompanying child born %s (dependent: %s)',
+    (dateOfBirth, financiallyDependent, status) => {
+      const p = run('NZ-P9', f(), {
+        common: {
+          ...common,
+          dependants: [
+            {
+              identityDocuments: true,
+              health: 'clear',
+              character: 'clear',
+              relation: 'child',
+              dateOfBirth,
+              single: true,
+              hasOwnChildren: false,
+              financiallyDependent,
+            },
+          ],
+        },
+      });
+      expectDecision(p, 'NZ-DEPENDANTS', status);
+    },
+  );
+  it.each([
+    [undefined, 'UNKNOWN'],
+    [false, 'NOT_MET'],
+    [true, 'MET'],
+  ] as const)(
+    'checks the mandatory fee at the work visa stage (%s)',
+    (requiredFeePaid, status) => {
+      const p = run('NZ-P9', f(), { common: { ...common, requiredFeePaid } });
+      expectDecision(p, 'NZ-P9-3-WORK-EVIDENCE', status);
+    },
+  );
   it('tests reserve capital, age, part-time conversion and paid management experience at the work stage', () => {
     expect(run('NZ-P9', f()).status).toBe('MET');
     expect(
@@ -576,6 +851,44 @@ describe('BD2 and BI stages', () => {
 });
 
 describe('RW7 religious workers', () => {
+  it('distinguishes planned ESOL from prepayment for a dependant with no English evidence', () => {
+    for (const [esol, status] of [
+      ['planned', 'NOT_MET'],
+      ['paid-and-signed', 'MET'],
+    ] as const) {
+      const p = run(
+        'NZ-P10',
+        { religious },
+        {
+          common: {
+            ...common,
+            dependants: [
+              {
+                ...common,
+                relation: 'child',
+                dateOfBirth: '2010-11-23',
+                single: true,
+                english: { method: 'none' },
+                esol,
+              },
+            ],
+          },
+        },
+      );
+      expectDecision(p, 'NZ-P10-1-ENGLISH', status);
+    }
+  });
+  it.each([
+    [undefined, 'UNKNOWN'],
+    [false, 'NOT_MET'],
+    [true, 'MET'],
+  ] as const)('requires the current onshore answer (%s)', (inNz, status) => {
+    expectDecision(
+      run('NZ-P10', { religious: { ...religious, inNz } }),
+      'NZ-P10-1',
+      status,
+    );
+  });
   it('accepts the exact term, age and experience with an advisory-only fee', () => {
     expect(run('NZ-P10', { religious }).status).toBe('MET');
     expect(check('NZ-P10-2', { religious }).pendingDetails).toEqual(['PD-225']);

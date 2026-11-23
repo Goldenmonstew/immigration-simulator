@@ -490,3 +490,4 @@
 | 530 | 任务 84：登记新西兰完整版适用的官方快照、SHA-256、网址与条文，记录档案中的未决政策和个案判断。 | policy-sources/*-nz-*、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
 | 531 | 任务 84：登记 nz.current-law 参数集，分别保存居留、入籍、技术、家庭、投资和宗教路径的数字、日期、费率及来源。 | packages/policy-data/src/{index,types,parameters/index,parameters/new-zealand-2026-11}.ts |
 | 532 | 任务 84：新增十条新西兰路径的双语 CountryResult 入口、逐人材料核对和条件边界测试，保留旧时间引擎。 | packages/engine/src/{index,new-zealand-{checks,full,resident,skilled,family}}.ts、packages/engine/test/new-zealand-*.test.ts、docs/tasks/reports/84-nz-rules.md |
+| 533 | 任务 84 审核修正（review84-1）：修复六组反例和伴侣医疗豁免，逐条核对十条路径漏答及否定答案，补录历史指引版本、INZ 费用及 LINZ 购房来源。 | packages/engine/src/{index,new-zealand-{checks,resident,skilled,family}}.ts、packages/engine/test/new-zealand-{full,resident,skilled,family}.test.ts、packages/policy-data/src/parameters/new-zealand-2026-11.ts、apps/web/lib/sources.ts、policy-sources/、docs/{SOURCES,pending-details,tasks/reports/84-nz-rules}.md |
