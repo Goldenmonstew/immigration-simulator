@@ -7,7 +7,12 @@ import Home from '../app/page';
 import { t } from '../i18n';
 import type { TranslationKey } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
-import { deRequest, emptyDeForm, validateDeForm } from '../lib/germany';
+import {
+  deRequest,
+  emptyDeForm,
+  endDateRequired,
+  validateDeForm,
+} from '../lib/germany';
 import type { DeForm } from '../lib/germany';
 import { sourceUrls } from '../lib/sources';
 
@@ -125,6 +130,15 @@ test('a job-search § 20a opportunity card, from form to result (review73-2, rev
         permits: [{ kind, from: '2026-09-01', to: '', renewing: false }],
       }),
     ).toEqual({ 'de-permit-0-to': 'de.error.opportunityCardEnd' });
+});
+
+test('the expiry label says required where the form requires it (review73-4)', () => {
+  for (const kind of DE_PERMIT_KINDS)
+    expect(!!endDateRequired(kind)).toBe(
+      ['job-seeking', 'opportunity-card', 'follow-up-card'].includes(kind),
+    );
+  expect(t('de.toRequired')).toBe('到期日期（必填）');
+  expect(t('de.toRequired', 'en')).toBe('Valid until (required)');
 });
 
 test('home links to the Germany pilot', () => {

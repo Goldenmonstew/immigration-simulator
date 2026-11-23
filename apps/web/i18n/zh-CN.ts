@@ -399,6 +399,7 @@ export const zhCN = {
   'de.renewing':
     '到期前已申请续期或换发新许可（决定前原许可视为继续有效，§ 81 Abs. 4），续到下一张许可生效',
   'de.to': '到期日期（可留空）',
+  'de.toRequired': '到期日期（必填）',
   'de.addPermit': '添加许可',
   'de.trips': '出境记录',
   'de.tripsHint': '每次离开德国填一行，计划中的出行也可以填。',

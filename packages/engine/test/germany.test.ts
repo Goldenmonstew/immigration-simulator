@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { evaluateGermany } from '../src';
+import { needed } from '../src/germany';
 import type { DePathwayId, DeRequest } from '../src';
 
 // A skilled worker permit from 2022-03-15, renewed on time, 60 months of
@@ -1579,6 +1580,27 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     }
   });
 
+  test('every undetermined earlier trip is named (review73-4)', () => {
+    const req = {
+      simulationDate: '2026-11-23',
+      permits: [{ kind: 'eu-long-term' as const, from: '2018-01-01' }],
+      trips: [
+        { departed: '2021-06-01', returned: '2022-07-01' },
+        { departed: '2023-06-01', returned: '2024-07-01' },
+        { departed: '2025-06-01', returned: '2026-07-01' },
+      ],
+    };
+    const both = '2021-06-01 至 2022-07-01、2023-06-01 至 2024-07-01';
+    for (const id of ['DE-EU-LONG-TERM', 'DE-SETTLEMENT'] as const) {
+      const p = pathway(req, id);
+      expect(p.summary).toContain('2025-06-01 至 2026-07-01');
+      expect(p.summary).toContain(`之前 ${both} 的出境也可能已使其失效`);
+    }
+    expect(pathway(req, 'DE-TRAVEL').checks[2].text).toContain(
+      `取决于之前 ${both} 的出境`,
+    );
+  });
+
   test('a short trip after an undetermined exchange (task 73)', () => {
     const p = pathway(
       {
@@ -1740,5 +1762,39 @@ describe('trips abroad and loss of residence (§ 51)', () => {
     const p = evaluateGermany({ ...base, locale: 'en' }).pathways[0];
     expect(p.title).toBe('Settlement permit (Niederlassungserlaubnis)');
     expect(p.summary).toContain('2027-03-15');
+  });
+});
+
+describe('conditional readings (review73-4)', () => {
+  const d = '2027-01-01';
+  test('one reading required, plus either of two', () => {
+    expect(
+      needed(
+        ['lapse', 'pending', 'absence'],
+        (_, a) => a.has('pending') && (a.has('lapse') || a.has('absence')),
+        d,
+      ),
+    ).toEqual({ all: ['pending'], any: ['lapse', 'absence'] });
+  });
+  test('all required, or each enough', () => {
+    expect(
+      needed(
+        ['lapse', 'pending'],
+        (_, a) => a.has('lapse') && a.has('pending'),
+        d,
+      ),
+    ).toEqual({ all: ['lapse', 'pending'], any: [] });
+    expect(
+      needed(
+        ['lapse', 'pending'],
+        (_, a) => a.has('lapse') || a.has('pending'),
+        d,
+      ),
+    ).toEqual({ all: [], any: ['lapse', 'pending'] });
+  });
+  test('no single reading enough: every reading listed', () => {
+    expect(
+      needed(['lapse', 'pending', 'absence'], (_, a) => a.size >= 2, d),
+    ).toEqual({ all: ['lapse', 'pending', 'absence'], any: [] });
   });
 });

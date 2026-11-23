@@ -599,6 +599,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.renewing':
     'Renewal or a new permit applied for before it ran out (the permit continues until the decision, § 81 Abs. 4), so it runs until the next permit starts',
   'de.to': 'Valid until (can be left blank)',
+  'de.toRequired': 'Valid until (required)',
   'de.addPermit': 'Add a permit',
   'de.trips': 'Trips abroad',
   'de.tripsHint':

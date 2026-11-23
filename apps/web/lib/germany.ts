@@ -13,6 +13,19 @@ import { validDate } from './questionnaire';
 export const hasEndDate = (kind: DePermitKind) =>
   !DE_UNLIMITED_KINDS.includes(kind);
 
+/**
+ * § 20 Abs. 2 and § 20a Abs. 5: permits with a statutory maximum, so a
+ * blank end date would run on past it; the error when it is left blank.
+ */
+export const endDateRequired = (
+  kind: DePermitKind,
+): TranslationKey | undefined =>
+  kind === 'job-seeking'
+    ? 'de.error.jobSeekingEnd'
+    : kind === 'opportunity-card' || kind === 'follow-up-card'
+      ? 'de.error.opportunityCardEnd'
+      : undefined;
+
 export interface DePermitRow {
   kind: DePermitKind;
   from: string;
@@ -89,14 +102,7 @@ export function validateDeForm(form: DeForm): DeErrors {
   form.permits.forEach((permit, i) => {
     date(`de-permit-${i}-from`, permit.from);
     if (!hasEndDate(permit.kind)) return;
-    // § 20 Abs. 2 and § 20a Abs. 5: these permits have a statutory maximum,
-    // so a blank end date would run on past it.
-    const capped =
-      permit.kind === 'job-seeking'
-        ? 'de.error.jobSeekingEnd'
-        : permit.kind === 'opportunity-card' || permit.kind === 'follow-up-card'
-          ? 'de.error.opportunityCardEnd'
-          : undefined;
+    const capped = endDateRequired(permit.kind);
     if (capped && !permit.to) errors[`de-permit-${i}-to`] = capped;
     else date(`de-permit-${i}-to`, permit.to, true);
     if (validDate(permit.to) && permit.to < permit.from)

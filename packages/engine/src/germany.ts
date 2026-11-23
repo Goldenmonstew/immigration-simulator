@@ -353,14 +353,42 @@ interface Exit {
    * EU student mobility, which spares only Nr. 6 and 7 (§ 51 Abs. 1 Nr. 1).
    */
   studyEnd?: IsoDate;
-  /** Left at a time when an earlier trip may already have ended the title. */
-  after?: Exit;
+  /** Left at a time when earlier trips may already have ended the title. */
+  after?: Exit[];
   /** EU long-term residence: the last day if the time was outside the EU. */
   euBy?: IsoDate;
   lapses: boolean;
   unsure: boolean;
 }
 
+/** What a conditional date may rest on beyond the certain reading. */
+export type Cond =
+  'lapse' | 'pending' | 'permit' | 'absence' | 'credit' | 'humanitarian';
+export type Allow = ReadonlySet<Cond>;
+const NONE: Allow = new Set();
+interface Needed {
+  all: Cond[];
+  any: Cond[];
+}
+/**
+ * The readings `meets` needs on `d`: `all` it fails without, then `any`
+ * one of the rest that is enough with them ("C, and A or B"). When no
+ * single one is enough, every reading is listed.
+ */
+export const needed = (
+  conds: Cond[],
+  meets: (d: IsoDate, allow: Allow) => boolean,
+  d: IsoDate,
+): Needed => {
+  const all = conds.filter(
+    (c) => !meets(d, new Set(conds.filter((x) => x !== c))),
+  );
+  if (all.length && meets(d, new Set(all))) return { all, any: [] };
+  const any = conds.filter(
+    (c) => !all.includes(c) && meets(d, new Set([...all, c])),
+  );
+  return any.length ? { all, any } : { all: conds, any: [] };
+};
 export function evaluateGermany(req: DeRequest): DeResult {
   const L = textFor(req);
   const N = ([zh, en]: [string, string]) => L(zh, en);
@@ -508,11 +536,11 @@ export function evaluateGermany(req: DeRequest): DeResult {
         unsure: (pendingRenewal && trip.returned <= by) || mobility,
       };
     }
-    const prior = undetermined.find(
+    const prior = undetermined.filter(
       (u) => trip.departed > u.from && (!u.until || trip.departed <= u.until),
     );
-    if (prior && !exit.lapses) {
-      exit.after = prior.exit;
+    if (prior.length && !exit.lapses) {
+      exit.after = prior.map((u) => u.exit);
       exit.unsure = true;
     }
     const from = ownDoubtFrom(exit);
@@ -559,8 +587,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
     const e = doubtful.filter((x) => doubtFrom(x)! < days.date(k)).at(-1)!;
     const earlier = e.after
       ? L(
-          `之前 ${tripText(e.after)} 的出境也可能已使其失效。`,
-          ` The earlier trip ${tripText(e.after)} may already have ended it.`,
+          `之前 ${e.after.map(tripText).join('、')} 的出境也可能已使其失效。`,
+          ` The earlier trip${e.after.length > 1 ? 's' : ''} ${e.after.map(tripText).join(', ')} may already have ended it.`,
         )
       : '';
     if (e.mobility)
@@ -573,37 +601,27 @@ export function evaluateGermany(req: DeRequest): DeResult {
       `Your EU long-term residence may have lapsed on the trip ${tripText(e)}: if all of that time was outside the EU it lapsed after ${e.euBy} (§ 51 Abs. 9 Satz 1 Nr. 3); time in other EU countries does not count against it, which this pilot cannot tell (see “Trips abroad and loss of residence”).${earlier}`,
     );
   };
-  /** What a conditional date may rest on beyond the certain reading. */
-  type Cond =
-    'lapse' | 'pending' | 'permit' | 'absence' | 'credit' | 'humanitarian';
-  type Allow = ReadonlySet<Cond>;
-  const NONE: Allow = new Set();
-  /**
-   * The readings `meets` needs on `d`: each one it fails without, or if none
-   * is needed on its own, the ones that each suffice.
-   */
-  const needed = (
-    conds: Cond[],
-    meets: (d: IsoDate, allow: Allow) => boolean,
-    d: IsoDate,
-  ) => {
-    const each = conds.filter(
-      (c) => !meets(d, new Set(conds.filter((x) => x !== c))),
-    );
-    return each.length
-      ? { conds: each, all: true }
-      : { conds: conds.filter((c) => meets(d, new Set([c]))), all: false };
-  };
-  /** "If A and B, it could be d", with every reading the date rests on. */
+  /** "If C, and A or B, it could be d", with every reading it rests on. */
   const conditional = (
     d: IsoDate,
-    n: { conds: Cond[]; all: boolean },
+    n: Needed,
     phrase: Partial<Record<Cond, [string, string]>>,
-  ) =>
-    L(
-      `若${n.conds.map((c) => phrase[c]![0]).join(n.all ? '，且' : '，或')}，最早 ${d}。`,
-      ` If ${n.conds.map((c) => phrase[c]![1]).join(n.all ? ', and ' : ', or ')}, it could be ${d}.`,
+  ) => {
+    const say = (cs: Cond[], i: 0 | 1) => cs.map((c) => phrase[c]![i]);
+    const zh = [...say(n.all, 0)];
+    const en = [...say(n.all, 1)];
+    if (n.any.length) {
+      zh.push(say(n.any, 0).join(n.all.length ? '或' : '，或'));
+      en.push(
+        (n.all.length ? 'either ' : '') +
+          say(n.any, 1).join(n.all.length ? ' or ' : ', or '),
+      );
+    }
+    return L(
+      `若${zh.join('，且')}，最早 ${d}。`,
+      ` If ${en.join(', and ')}, it could be ${d}.`,
     );
+  };
   const lapsePhrase: [string, string] = [
     `出境（${doubtful.map(tripText).join('、')}）没有使许可失效（见"出境与居留失效"）`,
     `the trip ${doubtful.map(tripText).join(', ')} did not end your title (see “Trips abroad and loss of residence”)`,
@@ -1602,10 +1620,14 @@ export function evaluateGermany(req: DeRequest): DeResult {
       ],
       pendingDetails: [
         'PD-120',
-        ...(why?.conds.includes('permit') ? ['PD-122'] : []),
+        ...(why && [...why.all, ...why.any].includes('permit')
+          ? ['PD-122']
+          : []),
         'PD-124',
         'PD-127',
-        ...(why?.conds.includes('credit') ? ['PD-128'] : []),
+        ...(why && [...why.all, ...why.any].includes('credit')
+          ? ['PD-128']
+          : []),
         'PD-129',
       ],
     });
@@ -1714,8 +1736,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
             : {
                 text: e.after
                   ? L(
-                      `${trip(e)}（出境时是否仍持有${N(KIND_NAMES[e.kind])}，取决于之前 ${trip(e.after)} 的出境）：仍持有的话，最晚 ${e.euBy ?? e.by} 返回${e.euBy ? `（在欧盟以内的，${e.by} 前）` : ''}`,
-                      `${trip(e)} (whether you still held ${N(KIND_NAMES[e.kind])} when you left depends on the earlier trip ${trip(e.after)}): if you did, back by ${e.euBy ?? e.by}${e.euBy ? ` (${e.by} if within the EU)` : ''}`,
+                      `${trip(e)}（出境时是否仍持有${N(KIND_NAMES[e.kind])}，取决于之前 ${e.after.map(trip).join('、')} 的出境）：仍持有的话，最晚 ${e.euBy ?? e.by} 返回${e.euBy ? `（在欧盟以内的，${e.by} 前）` : ''}`,
+                      `${trip(e)} (whether you still held ${N(KIND_NAMES[e.kind])} when you left depends on the earlier trip${e.after.length > 1 ? 's' : ''} ${e.after.map(trip).join(', ')}): if you did, back by ${e.euBy ?? e.by}${e.euBy ? ` (${e.by} if within the EU)` : ''}`,
                     )
                   : e.pendingRenewal
                     ? L(
