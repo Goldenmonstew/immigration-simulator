@@ -30,6 +30,7 @@ export function medicalExam(
   procedure: PrProcedure,
   filed: string | undefined,
   asOf: string,
+  invitedOn: string | undefined,
 ): { met: boolean | undefined; missedDeadline?: string } {
   if (!exam) return { met: undefined };
   if (exam.disposition === 'exempt') return { met: true };
@@ -71,6 +72,14 @@ export function medicalExam(
         (exam.panelExamComplete === false && filed <= asOf))
     )
       return { met: false };
+    // Calendar dates alone cannot establish the order of same-day events.
+    if (
+      !invitedOn ||
+      !completedOn ||
+      completedOn <= invitedOn ||
+      completedOn === filed
+    )
+      return { met: undefined };
     return { met: valid };
   }
   if (procedure === 'unknown' || !exam.instructionOn) return { met: undefined };

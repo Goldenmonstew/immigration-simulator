@@ -255,6 +255,39 @@ describe('Canadian citizenship grants', () => {
     expect(check(adjusted, '08').timeBaseline?.earliestDate).toBe('2026-12-31');
     expect(adjusted.earliestDate).toBeUndefined();
   });
+  test('the projected signing date crosses the adult language and knowledge threshold', () => {
+    const applicant = {
+      dateOfBirth: '2008-12-10',
+      permanentResident: '2024-01-01',
+    };
+    const minor: ResidenceAnswers = {
+      grantDate: undefined,
+      authorizedRepresentativeSigned: true,
+      minorCountersignedOrExcused: true,
+      language: undefined,
+      test: undefined,
+    };
+    const projected = cit(minor, applicant);
+    expect(check(projected, '08').earliestDate).toBe('2026-12-31');
+    for (const id of ['10', '11'])
+      expect(check(projected, id).status).toBe('MET');
+    expect(projected.status).toBe('UNKNOWN');
+    expect(projected.earliestDate).toBeUndefined();
+    expect(projected.summary).toContain('2026-12-31');
+    for (const id of ['10', '11'])
+      expect(projected.summary).toContain(check(projected, id).title);
+
+    const atSigning = cit({ ...minor, signingDate: '2026-12-31' }, applicant);
+    for (const id of ['10', '11'])
+      expect(check(atSigning, id).status).toBe('UNKNOWN');
+    expect(atSigning.status).toBe('UNKNOWN');
+    expect(
+      cit({ ...minor, language: clear.language, test: clear.test }, applicant),
+    ).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-12-31',
+    });
+  });
   test('ordinary physical baseline 1,094.5 then 1,095; disputed credit and exclusions', () => {
     const over = {
       simulationDate: '2026-11-30',

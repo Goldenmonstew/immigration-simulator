@@ -394,8 +394,16 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
     ),
   );
   const missedDeadlines = new Set<string>();
+  const invitation = req.express?.invitation;
+  const invitedOn = invitation?.program === id ? invitation.date : undefined;
   const examResult = peopleMeet(a, true, (p) => {
-    const result = medicalExam(p.exam, procedure, filed, req.simulationDate);
+    const result = medicalExam(
+      p.exam,
+      procedure,
+      filed,
+      req.simulationDate,
+      invitedOn,
+    );
     if (result.missedDeadline) missedDeadlines.add(result.missedDeadline);
     return result.met;
   });
@@ -405,8 +413,8 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
       L('移民体检及复用决定', 'Immigration medical examination and reuse'),
       examResult,
       L(
-        `核对各成员的指定医师体检、指示和有效期。EE 通常递交前体检，其他类别收到指示后一般有 ${health.instructionDays} 天。复用旧体检需 IRCC 确认。这些项目没有通用私人医保要求。`,
-        `Check panel exams, instructions and validity for each member. Express Entry usually requires an upfront exam. Other applicants normally have ${health.instructionDays} days after instructions. IRCC confirms reuse of an older exam. These routes have no general private insurance requirement.`,
+        `核对各成员的指定医师体检、指示和有效期。EE 常规体检须在获邀后、递交前完成。获邀前的体检能否使用，由 IRCC 确认。其他类别收到指示后一般有 ${health.instructionDays} 天。这些项目没有通用私人医保要求。`,
+        `Check panel exams, instructions and validity for each member. For Express Entry, complete the routine exam after receiving the invitation and before filing. IRCC must confirm whether an earlier exam can be used. Other applicants normally have ${health.instructionDays} days after instructions. These routes have no general private insurance requirement.`,
       ) +
         (missedDeadlines.size
           ? L(

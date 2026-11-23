@@ -7,48 +7,14 @@ import type {
   FederalMember,
   FederalPerson,
 } from '../src/canada-full/federal';
+import { federal, filed, person } from './canada-federal-fixture';
 
 const sim = '2026-11-23';
-const filed = {
-  filedOn: sim,
-  signed: true,
-  allFamilyDeclared: true,
-  changesReported: true,
-  validIdentityAndTravelDocuments: true,
-  applicationEvidenceComplete: true,
-  processingFeesPaid: true,
-  biometricPayers: 1,
-  amountPaidIncludingBiometrics: 1675,
-};
-const person: FederalPerson = {
-  dateOfBirth: '1980-01-01',
-  safety: {
-    security: 'clear',
-    humanRights: 'clear',
-    sanctions: 'clear',
-    organisedCrime: 'clear',
-  },
-  criminalFinding: 'clear',
-  publicHealth: 'clear',
-  publicSafety: 'clear',
-  excessiveDemand: 'clear',
-  exam: { examOn: '2026-11-01', panelExamComplete: true },
-  foreignStays: [],
-  biometrics: 'provided-for-pr',
-  definitiveChecklistSatisfied: true,
-};
-const federal: FederalAnswers = {
-  principal: person,
-  members: [],
-  adequateSupportArrangements: true,
-  misrepresentation: 'clear',
-  protectionAndCompliance: 'clear',
-  applications: { 'CA-EE-FSW': filed },
-};
 function result(id: CaFullPathwayId, patch: Partial<CaFullRequest>) {
   return evaluateCanadaFull({
     simulationDate: sim,
     dateOfBirth: person.dateOfBirth,
+    express: { invitation: { program: 'CA-EE-FSW', date: '2026-10-30' } },
     federal,
     ...patch,
   }).columns[0].pathways.find((p) => p.id === id)!;
@@ -166,12 +132,25 @@ describe('initial PR federal checks', () => {
       id: CaFullPathwayId = 'CA-EE-FSW',
     ) => c(24, applicant({ exam: patch }), id);
     expect(exam({ panelExamComplete: false }).status).toBe('NOT_MET');
-    expect(exam({ examOn: '2025-11-23', panelExamComplete: true }).status).toBe(
-      'UNKNOWN',
-    );
-    expect(exam({ examOn: '2025-11-24', panelExamComplete: true }).status).toBe(
-      'MET',
-    );
+    for (const [examOn, status] of [
+      ['2025-11-23', 'UNKNOWN'],
+      ['2025-11-24', 'MET'],
+    ] as const)
+      expect(
+        c(
+          24,
+          {
+            ...applicant({ exam: { examOn, panelExamComplete: true } }),
+            applications: { 'CA-EE-FSW': { ...filed, filedOn: '2025-11-25' } },
+          },
+          'CA-EE-FSW',
+          {
+            express: {
+              invitation: { program: 'CA-EE-FSW', date: '2025-11-20' },
+            },
+          },
+        ).status,
+      ).toBe(status);
     expect(
       exam({ instructionOn: '2026-10-24', panelExamComplete: false }, 'CA-AIP')
         .status,

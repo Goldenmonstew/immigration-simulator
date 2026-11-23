@@ -128,6 +128,32 @@ export function evaluateCanadaFull(req: CaFullRequest): CaFullResult {
         'CA-CIT-MINOR-52',
       ].includes(id);
       let summary: string | undefined;
+      let signingBlockers: Item[] = [];
+      if (id === 'CA-CITIZENSHIP' && status === 'FUTURE' && earliestDate) {
+        const atSigning = residenceChecks(
+          {
+            ...ctx,
+            req: {
+              ...req,
+              residence: { ...req.residence, signingDate: earliestDate },
+            },
+          },
+          id,
+        );
+        signingBlockers = atSigning.filter(
+          (c) => !c.advisory && c.status !== 'MET',
+        );
+        if (signingBlockers.length) {
+          status = signingBlockers.some((c) => c.status === 'NOT_MET')
+            ? 'NOT_MET'
+            : 'UNKNOWN';
+          const titles = signingBlockers.map((c) => c.title);
+          summary = L(
+            `预计 ${earliestDate} 满足居住天数。按当天签署核对，${titles.join('、')}仍未满足或待确认。`,
+            `The residence requirement is projected to be met on ${earliestDate}. For an application signed that day, these requirements remain unmet or unconfirmed (${titles.join(', ')}).`,
+          );
+        }
+      }
       if (
         initialPr &&
         req.residence?.prStatus === 'valid' &&
@@ -153,7 +179,7 @@ export function evaluateCanadaFull(req: CaFullRequest): CaFullResult {
       const title = routes[id];
       const pending = [
         ...new Set(
-          checks.flatMap((c) => [
+          [...checks, ...signingBlockers].flatMap((c) => [
             ...(c.pendingDetails ?? []),
             ...(c.timeBaseline?.pendingDetails ?? []),
           ]),

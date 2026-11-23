@@ -188,3 +188,34 @@
 ### 4. 发现与建议
 
 任务 95 接入完整版时可直接读路径的 `status` 和 `earliestDate`。境外抵扣可能使日期提前，或排除日、执法截点使基线日期无法成立时，`timeBaseline` 只供查看原计算。魁省法规汇编的逐条核验仍按 PD-257 跟进。
+
+## 第二轮审核修正（review85-2）
+
+### 1. 做了什么
+
+建议提交 `Fix: 修正加拿大 EE 凭证时点与入籍跨龄预测（review85-2）`。对应 PROGRESS 第 564 条。
+
+- R31 分别核对建档和递交时适用的 ECA。递交所用报告签发晚于建档日，且未提供建档所用报告时，建档时点保留 `UNKNOWN`。依据 SRC-268c 的 “How long your ECA is valid for”。[IRCC 学历认证效期](https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/education-assessment.html#valid)
+- R24 按本项目实际 ITA 与递交日期核对指定医师体检。提前体检且无适用的复用或豁免决定时返回 `UNKNOWN`，在 PD-244 登记。输入仅精确到日，若体检与邀请或递交同日，也无法确定当天先后。依据 SRC-266b 的 “When to get your medical exam”，Express Entry 小节。[IRCC 永久居民体检时点](https://www.canada.ca/en/immigration-refugees-citizenship/services/application/medical-police/medical-exams/requirements-permanent-residents.html#when)
+- 普通入籍原本只差居住天数时，再以住满当天为签署日复核实质条件。模拟日的逐项结果保留，路径摘要列出预计签署日仍未满足或待确认的条件。R10 和 R11 的年龄以申请日为准，依据 SRC-074、SRC-260a，Citizenship Act s.5(1)(d)–(e)。[Citizenship Act 第 5 条](https://laws-lois.justice.gc.ca/eng/acts/c-29/section-5.html)
+
+### 2. 怎么验证的
+
+三组新增回归在修改规则前分别复现了 R31 的 `NOT_MET`、R24 的 `MET` 和普通入籍路径的 `FUTURE`。修正后，`pnpm --filter @uk-immigration/engine test test/canada` 通过 8 个文件、116 项测试，包括原时间引擎。下表中每个 EE 结果都同时断言了对应条件和 FSW 路径汇总。
+
+| 复现输入 | 修正后结果 |
+|---|---|
+| FSW 于 2026-01-01 建档、2026-11-20 递交。语言成绩在两日有效，外国硕士 ECA 于 2026-10-15 换发。 | 缺建档报告为 `UNKNOWN`。补 2021-11-10 的合资格报告为 `MET`，补建档时已过期的报告为 `NOT_MET`。 |
+| 境外 FSW 于 2026-11-03 获邀、2026-11-20 递交，无复用或豁免决定。 | 2026-10-01 体检为 `UNKNOWN`，关联 PD-244。11-04 体检为 `MET`，11-21 为 `NOT_MET`。同日顺序不明和未提供 ITA 时均为 `UNKNOWN`。 |
+| 2008-12-10 出生，2024-01-01 获 PR，无出境，缺语言和考试资料，其他适用条件满足。 | 2026-11-23 模拟日的 R10、R11 均为 `MET`。2026-12-31 住满时已成年，这两项在预计签署日均为 `UNKNOWN`，路径为 `UNKNOWN` 且不返回最早签署日。补齐两项后恢复 `FUTURE / 2026-12-31`。 |
+
+`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 首次运行退出码为 0。全仓 5,341 项测试通过，1 项既有测试按原配置跳过，构建生成 27 个静态页面。
+
+### 3. 没做或没验证的
+
+按要求未提交。原时间引擎 `evaluateCanada` 与加拿大页面调用点均无改动。未运行浏览器 e2e 或部署。
+
+### 4. 发现与建议
+
+- R36 仍按递交日计算 FSW 年龄分。审核用例在获邀时达到 67 分，获邀后过生日，递交时为 66 分。IRCC 公共政策允许官员对符合条件的个案豁免年龄扣分，现有判定未纳入该决定。选拔分与年龄分依据 SRC-267a 的 “Selection factors” 和 SRC-261b，IRPR ss.76、81。[IRCC 获邀后年龄变化公共政策及适用条件](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)
+- 魁省 PSTQ Stream 1/2 本地学历学时仍待按现行汇编法规逐条核实，继续由 PD-257 跟踪（SRC-273b、SRC-278e/g）。

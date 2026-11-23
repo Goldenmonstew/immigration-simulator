@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { evaluateCanadaFull } from '../src';
 import type { ExpressAnswers, WorkPeriod } from '../src/canada-full/express';
+import { federal, filed, person } from './canada-federal-fixture';
 
 const simulationDate = '2026-11-23';
 const skills = (n: number) => ({
@@ -83,7 +84,49 @@ function rule(
   return pathway.checks.find((c) => c.id === 'CA-' + id)!;
 }
 
+function filedFsw(changes: Partial<ExpressAnswers>, examOn = '2026-11-04') {
+  const filedOn = '2026-11-20';
+  const dateOfBirth = '1992-01-01';
+  return evaluateCanadaFull({
+    simulationDate,
+    dateOfBirth,
+    express: { ...complete, applicationDate: filedOn, ...changes },
+    federal: {
+      ...federal,
+      principal: {
+        ...person,
+        dateOfBirth,
+        exam: { examOn, panelExamComplete: true, inCanada: false },
+      },
+      applications: { 'CA-EE-FSW': { ...filed, filedOn } },
+    },
+  }).columns[0].pathways.find((p) => p.id === 'CA-EE-FSW')!;
+}
+
 describe('Express Entry application, ranking and evidence', () => {
+  test('R24 checks the overseas panel exam against the ITA and filing dates', () => {
+    for (const [examOn, status] of [
+      ['2026-10-01', 'UNKNOWN'],
+      ['2026-11-03', 'UNKNOWN'],
+      ['2026-11-04', 'MET'],
+      ['2026-11-20', 'UNKNOWN'],
+      ['2026-11-21', 'NOT_MET'],
+    ] as const) {
+      const result = filedFsw({}, examOn);
+      const exam = result.checks.find((c) => c.id === 'CA-R24')!;
+      expect(exam.status).toBe(status);
+      expect(result.status).toBe(status);
+      if (status === 'UNKNOWN') {
+        expect(exam.pendingDetails).toContain('PD-244');
+        expect(result.pendingDetails).toContain('PD-244');
+      }
+    }
+    const noInvitation = filedFsw({ invitation: undefined });
+    expect(noInvitation.checks.find((c) => c.id === 'CA-R24')?.status).toBe(
+      'UNKNOWN',
+    );
+    expect(noInvitation.status).toBe('UNKNOWN');
+  });
   test('R29 profile anniversary, issued program and 60-day deadline', () => {
     expect(rule('R29').status).toBe('MET');
     expect(rule('R29', { profileDate: '2025-11-03' }).status).toBe('NOT_MET');
@@ -158,6 +201,23 @@ describe('Express Entry application, ranking and evidence', () => {
     expect(status()).toBe('UNKNOWN');
     expect(status(language)).toBe('MET');
     expect(status({ ...language, resultDate: '2024-01-01' })).toBe('NOT_MET');
+  });
+  test('R31 checks the old ECA at profile creation and the renewed ECA at filing', () => {
+    const education = {
+      origin: 'foreign',
+      level: 'masters',
+      appropriateEca: true,
+      ecaDate: '2026-10-15',
+    } as const;
+    for (const [profileEducation, status] of [
+      [undefined, 'UNKNOWN'],
+      [{ ...education, ecaDate: '2021-11-10' }, 'MET'],
+      [{ ...education, ecaDate: '2021-01-01' }, 'NOT_MET'],
+    ] as const) {
+      const result = filedFsw({ education, profileEducation });
+      expect(result.checks.find((c) => c.id === 'CA-R31')?.status).toBe(status);
+      expect(result.status).toBe(status);
+    }
   });
   test('R32 French all four NCLC 7, unconfirmed occupational category', () => {
     const round = { ...complete.round!, category: 'french' as const };

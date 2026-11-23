@@ -725,6 +725,12 @@ export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
     (a.primary?.resultDate && profileDate && a.primary.resultDate <= profileDate
       ? a.primary
       : undefined);
+  const profileEducation =
+    a.profileEducation ??
+    (a.education?.origin === 'Canada' ||
+    (a.education?.ecaDate && profileDate && a.education.ecaDate <= profileDate)
+      ? a.education
+      : undefined);
   const hasEducation =
     a.profileEducation !== undefined || a.education !== undefined;
   const ecaExempt =
@@ -742,14 +748,14 @@ export function expressChecks({ req, L, check }: Context, id: Program): Item[] {
         any(
           ecaExempt,
           all(
-            educationValid(a.profileEducation ?? a.education, profileDate),
+            educationValid(profileEducation, profileDate),
             educationValid(a.education, when),
           ),
         ),
       ),
       L(
-        `核对认可测试在建档与递交时均未满 ${procedure.testYears} 年；用于资格或积分的外国学历评估须来自适用指定机构，两个时点均未满 ${procedure.ecaYears} 年。`,
-        `Check an approved test less than ${procedure.testYears} years old at profile and filing. A foreign credential relied on for eligibility or points needs an appropriate ECA less than ${procedure.ecaYears} years old at both dates.`,
+        `核对认可测试在建档与递交时均未满 ${procedure.testYears} 年。用于资格或积分的外国学历评估须来自适用指定机构，两个时点均未满 ${procedure.ecaYears} 年。如报告在建档后换发，请提供建档时的报告。`,
+        `Check an approved test less than ${procedure.testYears} years old at profile and filing. A foreign credential relied on for eligibility or points needs an appropriate ECA less than ${procedure.ecaYears} years old at both dates. If the ECA was renewed after profile creation, provide the report used for the profile.`,
       ),
       [languageSource, ref('SRC-261', 'IRPR §§74–75, 79, 87.1–87.2')],
     ),
