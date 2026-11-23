@@ -401,10 +401,12 @@ export function evaluateGermany(req: DeRequest): DeResult {
         k < days.count - 1 &&
         days.date(k) < months;
       const by = expires ? days.date(k) : months;
-      // Back after the old expiry with the renewal still pending: the permit
-      // only continues until the decision (§ 81 Abs. 4), so the 6 months are
-      // a conditional limit (PD-124).
-      const pendingRenewal = !!pending[days.index(trip.returned)];
+      // Coming back after the simulation date and the old expiry with the
+      // renewal still pending: the permit only continues until the decision
+      // (§ 81 Abs. 4), so the months are a conditional limit (PD-124). A return
+      // by the simulation date, still pending then, was on the old permit.
+      const pendingRenewal =
+        trip.returned > sim && !!pending[days.index(trip.returned)];
       exit = {
         trip,
         kind,
@@ -1479,8 +1481,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
                 : '') +
               (renewalUnsure.length
                 ? L(
-                    `${renewalUnsure.map(trip).join('、')} 的返回日在原许可到期之后，续期还在等待决定：原许可只延续到决定作出（§ 81 Abs. 4）。续期获批或申请仍在等待的话，按 ${v.lapseMonths.value} 个月期限判断；否则许可在到期后已失效（§ 51 Abs. 1 Nr. 1），试点无法判断。`,
-                    `${euUnsure.length ? ' ' : ''}For ${renewalUnsure.map(trip).join(', ')} you come back after the old permit ran out while the renewal is pending: the permit only continues until the decision (§ 81 Abs. 4). If the renewal is granted or still pending, the ${v.lapseMonths.value}-month limit applies; otherwise the permit lapsed when it ran out (§ 51 Abs. 1 Nr. 1), which this pilot cannot tell.`,
+                    `${renewalUnsure.map(trip).join('、')} 的返回日在原许可到期之后，续期还在等待决定：原许可只延续到决定作出（§ 81 Abs. 4）。续期获批或申请仍在等待的话，按检查项里的期限判断（一般 ${v.lapseMonths.value} 个月，欧盟蓝卡 ${v.blueCardLapseMonths.value} 个月）；否则许可在到期后已失效（§ 51 Abs. 1 Nr. 1），试点无法判断。`,
+                    `${euUnsure.length ? ' ' : ''}For ${renewalUnsure.map(trip).join(', ')} you come back after the old permit ran out while the renewal is pending: the permit only continues until the decision (§ 81 Abs. 4). If the renewal is granted or still pending, the limit in the check below applies (usually ${v.lapseMonths.value} months, ${v.blueCardLapseMonths.value} on an EU Blue Card); otherwise the permit lapsed when it ran out (§ 51 Abs. 1 Nr. 1), which this pilot cannot tell.`,
                   )
                 : '')
             : L(

@@ -390,3 +390,4 @@
 | 374 | 任务 71 报告补记最终门禁、手机宽度预览与第六轮审核结论（通过）及其风险。 | docs/tasks/reports/71-portugal.md |
 | 376 | 任务 69 第七轮审核修正（review69-7）：入籍只把到模拟日为止的等待续期时间按合法居留计，之后的等待只靠它才满足时输出 UNKNOWN；欧盟长期居留摘要写出等待续期与人道期间（或出境合计）两个条件；定居许可缺缴费月数时第一句改为条件说法；报告与 PD-124 同步；回归用例 2 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、docs/pending-details.md、docs/tasks/reports/69-germany.md |
 | 378 | 任务 69 第八轮审核修正（review69-8）：入籍当天只凭等待中的续期持有许可时，持证检查与状态输出 UNKNOWN（年限仍计入等待期间，PD-124）；续期待决定且返回日在原许可到期之后的出境改为 UNKNOWN，6 个月作为条件上限；报告风险说法同步；回归用例 1 项，改写 1 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、docs/pending-details.md、docs/tasks/reports/69-germany.md |
+| 380 | 任务 69 第九轮审核修正（review69-9）：模拟日或之前已返回、续期仍在等待的出境按原许可判断（不再 UNKNOWN），只有计划在模拟日后、原许可到期后返回的才是 UNKNOWN；续期待决定的出境摘要按检查项的期限（蓝卡 12 个月）；PD-124 与报告同步；回归用例 1 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、docs/pending-details.md、docs/tasks/reports/69-germany.md |

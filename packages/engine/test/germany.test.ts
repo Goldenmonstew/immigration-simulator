@@ -1054,6 +1054,25 @@ describe('trips abroad and loss of residence (§ 51)', () => {
       expect(p.summary).toContain('§ 10 Abs. 1 Satz 1 Nr. 2');
     });
 
+    test('already back, still pending: on the old permit (review69-9)', () => {
+      const p = pathway(
+        {
+          simulationDate: '2026-11-23',
+          permits: [
+            {
+              kind: 'skilled',
+              from: '2024-03-15',
+              to: '2026-10-31',
+              renewing: true,
+            },
+          ],
+          trips: [{ departed: '2026-10-25', returned: '2026-11-05' }],
+        },
+        'DE-TRAVEL',
+      );
+      expect(p.status).toBe('MET');
+    });
+
     test('trips back after the old expiry are conditional (review69-8)', () => {
       const permits = [
         {
@@ -1073,6 +1092,16 @@ describe('trips abroad and loss of residence (§ 51)', () => {
       expect(p.status).toBe('UNKNOWN');
       expect(p.checks[0].met).toBeUndefined();
       expect(p.checks[0].text).toContain('2027-06-20');
+      // A Blue Card: the summary gives its 12 months too.
+      const blue = pathway(
+        {
+          permits: [{ ...permits[0], kind: 'blue-card' }],
+          trips: [{ departed: '2026-12-20', returned: '2027-01-10' }],
+        },
+        'DE-TRAVEL',
+      );
+      expect(blue.checks[0].text).toContain('2027-12-20');
+      expect(blue.summary).toContain('欧盟蓝卡 12 个月');
       // Back before the old expiry: as before.
       expect(
         pathway(
