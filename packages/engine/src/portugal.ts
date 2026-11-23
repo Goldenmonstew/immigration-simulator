@@ -117,7 +117,7 @@ export function evaluatePortugal(req: PtRequest): PtResult {
   /**
    * The last day a permit counts: permanent residence and EU long-term
    * resident status have no time limit whatever the card says (art. 76
-   * n.º 1–2, art. 130 n.º 2); one without an end date lasts until its
+   * n.º 1–2, art. 129 n.º 9, art. 131 n.º 6); one without an end date lasts until its
    * renewal (the next one of the same kind) starts.
    */
   const lastDay = (permit: PtPermit) => {
@@ -174,14 +174,14 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       (t) => addDays(t.departed, 1) <= to && addDays(t.returned, -1) >= from,
     );
   /** The first day some trip from `from` on has kept you abroad `months`. */
-  const awayFor = (from: IsoDate, months: number, to = end) =>
+  const awayFor = (from: IsoDate, months: number, to = end, after = '') =>
     req.trips
       .map((t) => {
         const a = later(addDays(t.departed, 1), from);
         const d = addMonths(addDays(a, -1), months);
         return d <= earlier(addDays(t.returned, -1), to) ? d : '';
       })
-      .filter(Boolean)
+      .filter((d) => d > after)
       .sort()[0] as IsoDate | undefined;
   /** The first day from `from` to `to` on which `ok` holds. */
   const firstFrom = (
@@ -529,6 +529,16 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       const old = oldLaw.at(at);
       const oldSpan = tripsUpTo(oldLaw.sure, old.from, at);
       const oldTrips = old.verdict === 'yes' && oldSpan.count > 0;
+      // Resting on an uncertain reading: name its trips too (PD-144).
+      const oldMaybeSpan =
+        old.verdict === 'maybe'
+          ? tripsUpTo(oldLaw.maybe, old.from, at)
+          : undefined;
+      const oldAbsence = oldTrips
+        ? oldSpan
+        : oldMaybeSpan?.count
+          ? oldMaybeSpan
+          : undefined;
       // Short on permit time alone: the residence application may make it up.
       const ask = old.verdict === 'no' && !appliedOn;
       // Short anyway: a new application falls under the current law, which
@@ -578,10 +588,10 @@ export function evaluatePortugal(req: PtRequest): PtResult {
                     `递交时不满 ${oldYears} 年合法居留。重新递交的申请适用现行法：`,
                     `you did not have ${oldYears} years of legal residence when you applied. A new application falls under the current law: `,
                   ) + newSummary) +
-          (oldTrips
+          (oldAbsence
             ? L(
-                `计入的期间里有 ${oldSpan.count} 次出境、合计 ${oldSpan.absent} 天；国籍法没有规定缺席上限，影响待确认（PD-144）。`,
-                ` In the counted period you have ${oldSpan.count} trips abroad, ${oldSpan.absent} days in all; the nationality law sets no limit on absences, so their effect is uncertain (PD-144).`,
+                `计入的期间里有 ${oldAbsence.count} 次出境、合计 ${oldAbsence.absent} 天；国籍法没有规定缺席上限，影响待确认（PD-144）。`,
+                ` In the counted period you have ${oldAbsence.count} trips abroad, ${oldAbsence.absent} days in all; the nationality law sets no limit on absences, so their effect is uncertain (PD-144).`,
               )
             : ''),
         checks: [
@@ -599,6 +609,7 @@ export function evaluatePortugal(req: PtRequest): PtResult {
             sources: [
               ...v.oldNationalityYears.sources,
               ...v.oldIntervalYears.sources,
+              { srcId: 'SRC-121', locator: 'art. 15 n.º 1 (p12)' },
               ...v.lawInForce.sources,
             ],
           },
@@ -614,7 +625,7 @@ export function evaluatePortugal(req: PtRequest): PtResult {
         pendingDetails: [
           ...(showNew ? newPending : ['PD-140', 'PD-141', 'PD-142']),
           ...(law === 'unclear' ? ['PD-143'] : []),
-          ...(oldTrips ? ['PD-144'] : []),
+          ...(oldAbsence ? ['PD-144'] : []),
           ...(old.verdict === 'maybe' ? ['PD-145'] : []),
         ],
       });
@@ -732,6 +743,14 @@ export function evaluatePortugal(req: PtRequest): PtResult {
           return { p, absent, breach, over, near: !over && absent >= fewest };
         });
       const flagged = permits.filter((x) => x.over || x.near);
+      // Whether the general limit applies to the golden visa is unclear.
+      const ariUnclear = (p: PtPermit) =>
+        p.kind === 'golden-visa'
+          ? {
+              zh: '；这一上限对黄金签证是否适用不明，PD-146',
+              en: '; whether this limit applies to the golden visa is unconfirmed, PD-146',
+            }
+          : { zh: '', en: '' };
       const worst = flagged.find((x) => x.over) ?? flagged[0];
       const planned = permits
         .filter((x) => x.breach && x.breach > sim)
@@ -765,14 +784,14 @@ export function evaluatePortugal(req: PtRequest): PtResult {
           ) +
           (worst
             ? L(
-                `${worst.p.from} 起的许可期内出境合计 ${worst.absent} 天，许可可能被注销（不自动失效，不改变上面的日期）。`,
-                ` During the permit from ${worst.p.from} you were abroad ${worst.absent} days in all, so the permit may be cancelled (it does not lapse by itself, and the date above is unchanged).`,
+                `${worst.p.from} 起的许可期内出境合计 ${worst.absent} 天，许可可能被注销（不自动失效，不改变上面的日期${ariUnclear(worst.p).zh}）。`,
+                ` During the permit from ${worst.p.from} you were abroad ${worst.absent} days in all, so the permit may be cancelled (it does not lapse by itself, and the date above is unchanged${ariUnclear(worst.p).en}).`,
               )
             : '') +
           (planned
             ? L(
-                `按已录入的计划出境，${planned.p.from} 起的许可期内出境在 ${planned.breach} 达到上限，许可可能被注销（不自动失效，不改变上面的日期）。`,
-                ` With the trips you plan, time abroad during the permit from ${planned.p.from} reaches the limit on ${planned.breach}, and the permit may then be cancelled (it does not lapse by itself, and the date above is unchanged).`,
+                `按已录入的计划出境，${planned.p.from} 起的许可期内出境在 ${planned.breach} 达到上限，许可可能被注销（不自动失效，不改变上面的日期${ariUnclear(planned.p).zh}）。`,
+                ` With the trips you plan, time abroad during the permit from ${planned.p.from} reaches the limit on ${planned.breach}, and the permit may then be cancelled (it does not lapse by itself, and the date above is unchanged${ariUnclear(planned.p).en}).`,
               )
             : '') +
           (req.permits.some((p) => p.kind === 'eu-long-term' && p.from <= sim)
@@ -872,25 +891,26 @@ export function evaluatePortugal(req: PtRequest): PtResult {
       // would reach a limit later are a forecast.
       const lostAll = awayFor(longTerm.from, lossYears * 12);
       const lostEu = awayFor(longTerm.from, lossMonths);
-      const lostSoonAll = !!lostAll && lostAll > sim;
-      const lostSoonEu = !!lostEu && lostEu > sim;
+      // Each limit planned trips reach later, whatever happened before.
+      const nextAll = awayFor(longTerm.from, lossYears * 12, end, sim);
+      const nextEu = awayFor(longTerm.from, lossMonths, end, sim);
       pathways.push({
         id: 'PT-EU-LONG-TERM',
         title,
         status: 'NOT_APPLICABLE',
         summary:
           L(
-            `记录中已有 ${longTerm.from} 起的欧盟长期居民身份，身份本身没有期限，卡面到期只需换发（art. 130 n.º 2）。`,
-            `Your record has EU long-term resident status from ${longTerm.from}; the status has no time limit, and an expired card only needs renewing (art. 130 n.º 2).`,
+            `记录中已有 ${longTerm.from} 起的欧盟长期居民身份，身份是永久的（art. 129 n.º 9），卡面到期不会失去身份，只需换发（art. 130 n.º 2、art. 131 n.º 6）。`,
+            `Your record has EU long-term resident status from ${longTerm.from}; the status is permanent (art. 129 n.º 9), and an expired card does not end it, it only needs renewing (art. 130 n.º 2, art. 131 n.º 6).`,
           ) +
-          (lostSoonEu || lostSoonAll
+          (nextEu || nextAll
             ? L(
                 `按已录入的计划出境，${[
-                  lostSoonEu
-                    ? `${lostEu} 离开葡萄牙满 ${lossMonths} 个月，若这段时间在欧盟以外会失去身份（出境记录分不出是否在欧盟内，待确认）`
+                  nextEu
+                    ? `${nextEu} 离开葡萄牙满 ${lossMonths} 个月，若这段时间在欧盟以外会失去身份（出境记录分不出是否在欧盟内，待确认）`
                     : '',
-                  lostSoonAll
-                    ? `${lostAll} 离开葡萄牙满 ${lossYears} 年，会失去身份`
+                  nextAll
+                    ? `${nextAll} 离开葡萄牙满 ${lossYears} 年，会失去身份`
                     : '',
                 ]
                   .filter(Boolean)
@@ -898,11 +918,11 @@ export function evaluatePortugal(req: PtRequest): PtResult {
                     '；',
                   )}。有特殊或例外理由（例如在原籍国从事职业、经营、文化或社会活动）的缺席不失去身份（art. 131 n.º 2–3）。`,
                 ` With the trips you plan, ${[
-                  lostSoonEu
-                    ? `you will have been away from Portugal ${lossMonths} months on ${lostEu}, and lose the status if that time is outside the EU (trips do not say, so this is uncertain)`
+                  nextEu
+                    ? `you will have been away from Portugal ${lossMonths} months on ${nextEu}, and lose the status if that time is outside the EU (trips do not say, so this is uncertain)`
                     : '',
-                  lostSoonAll
-                    ? `you will have been away from Portugal ${lossYears} years on ${lostAll} and lose the status`
+                  nextAll
+                    ? `you will have been away from Portugal ${lossYears} years on ${nextAll} and lose the status`
                     : '',
                 ]
                   .filter(Boolean)
@@ -926,7 +946,11 @@ export function evaluatePortugal(req: PtRequest): PtResult {
             sources: [
               ...v.longTermLossEuMonths.sources,
               ...v.longTermLossYears.sources,
-              { srcId: 'SRC-123', locator: 'art. 130 n.º 2 (p102)' },
+              {
+                srcId: 'SRC-123',
+                locator:
+                  'art. 129 n.º 9 (p102), art. 130 n.º 2 (p102), art. 131 n.º 6 (p103)',
+              },
             ],
           },
         ],
@@ -1181,12 +1205,13 @@ export function evaluatePortugal(req: PtRequest): PtResult {
           ? 0
           : daysBetween(from, to) + 1 - days.total(awaySums, from, to);
       // Minimum stays from the grant: the first year, then each later period
-      // (2 years in the regulation, each year on AIMA's page) that starts
+      // of 2 years (art. 65-C; AIMA's FAQ n.º 24 says the same) that starts
       // before the card expires.
       // Days up to the simulation date are counted as spent; a period not
       // yet met gets the day it would be, staying on after that (PD-148).
       const firstYears = v.goldenVisaFirstPeriodYears.value;
-      const reading = (step: number) => {
+      const laterYears = v.goldenVisaLaterPeriodYears.value;
+      const stays = (() => {
         const periods = [
           {
             from: granted,
@@ -1195,10 +1220,14 @@ export function evaluatePortugal(req: PtRequest): PtResult {
           },
         ];
         // A period starting on the expiry day belongs to the next card.
-        for (let n = firstYears; afterYears(granted, n) < expiry; n += step)
+        for (
+          let n = firstYears;
+          afterYears(granted, n) < expiry;
+          n += laterYears
+        )
           periods.push({
             from: afterYears(granted, n),
-            to: addDays(afterYears(granted, n + step), -1),
+            to: addDays(afterYears(granted, n + laterYears), -1),
             need: v.goldenVisaLaterPeriodDays.value,
           });
         type Stay = (typeof periods)[number] & { stayed: number };
@@ -1226,22 +1255,15 @@ export function evaluatePortugal(req: PtRequest): PtResult {
           // When the stays are all met, staying on after the simulation date.
           date: short ? undefined : later(opens, pending?.date ?? sim),
         };
-      };
-      const law = reading(v.goldenVisaLaterPeriodYears.value);
-      // AIMA's page asks for 14 days in each later year.
-      const aima = reading(1);
-      // Both readings fall short by the renewal deadline: not met.
-      const late = !!law.date && law.date > deadline;
+      })();
+      // Stays met only after the renewal deadline: not met.
+      const late = !!stays.date && stays.date > deadline;
       const status: PilotStatus =
-        law.short || sim > deadline || late
+        stays.short || sim > deadline || late
           ? 'NOT_MET'
-          : aima.date && aima.date <= deadline
-            ? aima.date === sim
-              ? 'MET'
-              : law.date === sim
-                ? 'UNKNOWN'
-                : 'FUTURE'
-            : 'UNKNOWN';
+          : stays.date === sim
+            ? 'MET'
+            : 'FUTURE';
       const kept = afterYears(granted, v.goldenVisaInvestmentYears.value);
       const shortText = (p: {
         from: IsoDate;
@@ -1264,17 +1286,12 @@ export function evaluatePortugal(req: PtRequest): PtResult {
           `${p.from} 至 ${p.to} 截至模拟日在葡萄牙 ${p.stayed} 天，还差 ${p.need - p.stayed} 天，按之后一直在葡萄牙推算 ${p.date} 达到`,
           `${p.stayed} days in Portugal from ${p.from} up to the simulation date, ${p.need - p.stayed} short of ${p.need} for the period to ${p.to}; staying on, you reach it on ${p.date}`,
         );
-      const aimaNote = (text: string) =>
-        L(
-          `按 AIMA 页面"此后每年 ${v.goldenVisaLaterPeriodDays.value} 天"的写法，${text}（PD-148）。`,
-          ` On AIMA's page, which asks for ${v.goldenVisaLaterPeriodDays.value} days in each later year, ${text} (PD-148).`,
-        );
       pathways.push({
         id: 'PT-GOLDEN-VISA',
         title,
         status,
         earliestDate:
-          status === 'FUTURE' ? aima.date : status === 'MET' ? sim : undefined,
+          status === 'FUTURE' ? stays.date : status === 'MET' ? sim : undefined,
         summary:
           (sim > deadline
             ? L(
@@ -1285,22 +1302,17 @@ export function evaluatePortugal(req: PtRequest): PtResult {
                 `续期申请在 ${opens} 至 ${deadline} 之间递交（到期日 ${expiry}），续期后每次 ${v.goldenVisaRenewalYears.value} 年。`,
                 `Apply to renew from ${opens} to ${deadline} (the permit expires on ${expiry}); each renewal lasts ${v.goldenVisaRenewalYears.value} years.`,
               )) +
-          (law.short
+          (stays.short
             ? L(
-                `最低停留不足：${shortText(law.short)}，续期可能被拒。`,
-                ` Minimum stay not met: ${shortText(law.short)}, so renewal may be refused.`,
+                `最低停留不足：${shortText(stays.short)}，续期可能被拒。`,
+                ` Minimum stay not met: ${shortText(stays.short)}, so renewal may be refused.`,
               )
-            : (law.pending
-                ? L(
-                    `最低停留尚未满足：${pendingText(law.pending)}${late ? `，晚于续期期限 ${deadline}，续期可能被拒` : ''}。`,
-                    ` Minimum stay not yet met: ${pendingText(law.pending)}${late ? `, after the renewal deadline of ${deadline}, so renewal may be refused` : ''}.`,
-                  )
-                : '') +
-              (aima.short
-                ? aimaNote(shortText(aima.short))
-                : aima.pending && !law.pending
-                  ? aimaNote(pendingText(aima.pending))
-                  : '')) +
+            : stays.pending
+              ? L(
+                  `最低停留尚未满足：${pendingText(stays.pending)}${late ? `，晚于续期期限 ${deadline}，续期可能被拒` : ''}。`,
+                  ` Minimum stay not yet met: ${pendingText(stays.pending)}${late ? `, after the renewal deadline of ${deadline}, so renewal may be refused` : ''}.`,
+                )
+              : '') +
           L(
             `投资须自 ${granted} 起维持 ${v.goldenVisaInvestmentYears.value} 年（到 ${kept}），本试点不检查投资。`,
             ` The investment must be kept for ${v.goldenVisaInvestmentYears.value} years from ${granted} (to ${kept}); this pilot does not check it.`,
@@ -1323,12 +1335,7 @@ export function evaluatePortugal(req: PtRequest): PtResult {
               `最低停留：第 1 年在葡萄牙至少 ${v.goldenVisaFirstPeriodDays.value} 天，此后每 ${v.goldenVisaLaterPeriodYears.value} 年至少 ${v.goldenVisaLaterPeriodDays.value} 天（连续或分段，截至模拟日）`,
               `Minimum stays: at least ${v.goldenVisaFirstPeriodDays.value} days in Portugal in the first year, then ${v.goldenVisaLaterPeriodDays.value} days in each ${v.goldenVisaLaterPeriodYears.value}-year period (in one go or not, up to the simulation date)`,
             ),
-            met:
-              !aima.short && !aima.pending
-                ? true
-                : law.short || law.pending
-                  ? false
-                  : undefined,
+            met: !stays.short && !stays.pending,
             sources: [
               ...v.goldenVisaFirstPeriodDays.sources,
               ...v.goldenVisaLaterPeriodDays.sources,
@@ -1343,8 +1350,8 @@ export function evaluatePortugal(req: PtRequest): PtResult {
         ],
         assumptions: [
           L(
-            '授予日按第一张黄金签证卡的生效日；第 1 年和之后各期从授予日起按日历计，截至模拟日只算实际停留，未满的期间按之后一直在葡萄牙推算达到的日期；出入境当天按在葡萄牙计。条例的期间划分沿用首张 1 年的旧制，与现行首张期限怎么对应没写；条例写法满足、AIMA 写法不满足的输出待确认（PD-148）。',
-            'The grant date is taken as the start of your first golden visa card; the first year and the later periods run from it by the calendar. Only days up to the simulation date count as spent, and a period not yet met gets the date it would be met if you stay on; departure and return days count as days in Portugal. The regulation’s periods follow the old one-year first card, and how they fit the current first card is not stated; met under the regulation but not on AIMA’s page is shown as uncertain (PD-148).',
+            '授予日按第一张黄金签证卡的生效日；第 1 年和之后每 2 年一期从授予日起按日历计（AIMA 常见问题第 24 问同样按 2 年期），截至模拟日只算实际停留，未满的期间按之后一直在葡萄牙推算达到的日期，须在续期期限前达到；出入境当天按在葡萄牙计。条例的期间划分沿用首张 1 年的旧制，与现行首张 2 年的卡怎么对应没写（PD-148）。',
+            'The grant date is taken as the start of your first golden visa card; the first year and each later 2-year period run from it by the calendar (AIMA’s FAQ n.º 24 also uses 2-year periods). Only days up to the simulation date count as spent, and a period not yet met gets the date it would be met if you stay on, which must come by the renewal deadline; departure and return days count as days in Portugal. The regulation’s periods follow the old one-year first card, and how they fit today’s two-year first card is not stated (PD-148).',
           ),
           L(
             `到期前 ${v.renewalDeadlineDays.value} 天是法律期限（art. 78 n.º 1）；最早到期前 ${v.renewalWindowDays.value} 天来自条例的编纂版，公报原文未存档（PD-149）。`,

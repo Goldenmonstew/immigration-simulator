@@ -24,10 +24,20 @@
 - `Docs: 任务 75 报告`：本报告与 `PROGRESS.md`。
 
 每个 `Fix` commit 都带回归测试；PROGRESS 第 420–425 行。没有新增 SRC 或 PD 编号，只改写了 PD-144、PD-146、PD-148。
+- 审核修正（review75-1，`Fix: 葡萄牙遗留风险第一轮审核修正（review75-1）`）：
+  - 黄金签证最低停留去掉"此后每年 14 天"的写法，只按条例的第 1 年 7 天、此后每 2 年期 14 天判断（SRC-124 art. 65-C）。AIMA 常见问题第 24 问写法相同；该页 2026-11-23 读取，下载存档须用户确认，所以只在 SRC-126 备注里作交叉核对，未存档。AIMA 概览页"此后各年"的写法只是简写。
+    - 原来只因某一年不足 14 天而判待确认的情形（main 上也是这样），现在为满足。原回归改为断言满足，并补审核的例子（2026-07-01 续期、2024-09-01 起那一年只有 8 天）。
+    - PD-148 改为只保留"首张 2 年卡与停留期怎么对应"的未决问题；正在进行中的 2 年期，须在续期期限前推算达到。
+  - 已持欧盟长期居民身份的丧失预告按每次计划出境分别算：以前已有过一次满 12 个月的出境，也不再遮住以后计划出境的 12 个月节点。摘要的永久性与证件过期依据改为 art. 129 n.º 9（p102）、art. 130 n.º 2、art. 131 n.º 6（p103）。
+  - 旧法在审申请只靠居留卡到期后的宽限期成立时，摘要列出宽限期内的出境（PD-144），检查项补 LO 1/2024 附件 art. 15 n.º 1（p12）。
+  - 永久居留路径里，黄金签证许可期内出境的注销提示与预告，都写明这一上限对黄金签证是否适用不明（PD-146）。
+  - 网页"在审"勾选项写明：施行前递交的适用旧法，恰在 2026-05-19 当天递交的适用哪一版待确认（PD-143），与表单校验一致。
+  - PD-143、PD-148、SRC-121、SRC-123、SRC-126 备注同步；engine 新增 3 项回归，改写 1 项。
 
 ## 2. 怎么验证的
 
-- engine `vitest run test/portugal.test.ts test/index.test.ts`：64 项通过（葡萄牙 63 项，比 main 多 5 项回归）。把 main（16c9d94）的 `portugal.ts` 临时换回去跑同一测试文件，5 项新回归全部失败、其余 58 项通过；换回本分支后全部通过。
+- review75-1 修正后：engine 67 项通过（葡萄牙 66 项）；policy-data 23 项、web 26 项通过；三处 `tsc --noEmit`、改动文件的 eslint 与 prettier 检查通过。
+- 首轮：engine `vitest run test/portugal.test.ts test/index.test.ts`：64 项通过（葡萄牙 63 项，比 main 多 5 项回归）。把 main（16c9d94）的 `portugal.ts` 临时换回去跑同一测试文件，5 项新回归全部失败、其余 58 项通过；换回本分支后全部通过。
 - policy-data `vitest run`：23 项通过。
 - web `vitest run test/portugal.test.tsx test/policy-page.test.tsx test/page.test.tsx`：26 项通过。
 - `tsc --noEmit`（packages/engine、packages/policy-data、apps/web）通过；改动文件的 eslint 与 prettier 检查通过。
