@@ -5,7 +5,7 @@ import type { DecisionOutcome, SimulationResult } from '@uk-immigration/engine';
 import HubPage, { metadata as hubMetadata } from '../app/page';
 import { metadata as rootMetadata } from '../app/layout';
 import Home from '../app/uk/page';
-import { ResultView } from '../components/result-view';
+import { ResultView } from './uk-result-views';
 import { SiteShell } from '../components/site-shell';
 import { t } from '../i18n';
 import type { TranslationKey } from '../i18n';

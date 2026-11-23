@@ -478,3 +478,6 @@
 | 467 | 任务 79 审核修正（review79-1）：集合入口的中英文隐私文案说明浏览器本地计算、英国草稿及方案和游戏进度的本机保存，以及其他国家问卷刷新后重置。 | apps/web/i18n/{zh-CN,en}.ts |
 | 468 | 任务 79 审核修正（review79-1）：顶栏在最多 375 px 的屏幕上将站名与导航分行，保留全部链接和语言按钮。 | apps/web/app/site.module.css |
 | 469 | 任务 79 审核修正（review79-1）：记录改动分组、验收结果及截图基线交接。 | PROGRESS.md、docs/tasks/reports/79-hub.md |
+| 470 | 任务 80：按国家登记规则集与参数，保留英国旧 ID；新增 CountryResult 与英国适配器，用四组英国输入逐字段比对两种语言的输出。 | packages/policy-data/src/{types,index,parameters/index}.ts、packages/engine/src/{types,index,country-result}.ts、packages/engine/test/country-result.test.ts |
+| 471 | 任务 80：英国问卷、结果、对比、分享、方案和政策页接入 CountryModule。旧分享串与两个本地存储键继续可用，游戏结局使用新信封；补国家隔离、多路径和政策页用例。 | apps/web/{lib,components,i18n,test}/、apps/web/app/uk/{home-content.tsx,simulate/form-kit.tsx,result/result-content.tsx,whatif/,policy/page.tsx,game/ending.tsx}、docs/tasks/reports/80-country-module.md |
+| 472 | 任务 80 审核修正（review80-1）：英国 What-if 调整日期触发筛查中止时，两栏恢复“此规则集暂无评估结果。”提示。补日期及通用路径增删对比回归；对比页与已保存方案按国家重置组件状态。 | apps/web/components/{whatif-lab,saved-scenarios}.tsx、apps/web/test/country-views.test.tsx、docs/tasks/reports/80-country-module.md |

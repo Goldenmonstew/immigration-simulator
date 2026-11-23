@@ -2,7 +2,7 @@ import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, expect, test, vi } from 'vitest';
 import SimulatePage from '../app/uk/simulate/page';
-import { AssessmentColumns, ResultView } from '../components/result-view';
+import { AssessmentColumns, ResultView } from './uk-result-views';
 import { SiteShell } from '../components/site-shell';
 import { LocaleContext } from '../i18n/locale';
 import { displayedRuleSets } from '../lib/policy';

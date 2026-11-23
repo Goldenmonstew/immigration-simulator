@@ -24,6 +24,7 @@ export const nonUkCountries = siteCountries.filter(
 );
 
 type SiteCountry = (typeof siteCountries)[number];
+export type CountryId = SiteCountry['id'];
 
 export function countryPath(
   id: SiteCountry['id'] | SiteCountry['slug'],

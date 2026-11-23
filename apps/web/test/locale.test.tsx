@@ -4,9 +4,9 @@ import * as engine from '@uk-immigration/engine';
 import * as policyData from '@uk-immigration/policy-data';
 import { esP31IndividualAPartnerArrivesTogether as together } from '../../../packages/policy-data/fixtures/es-p31-individual-a-partner-arrives-together';
 import Home from '../app/uk/page';
-import { PrincipalAssessment, ResultView } from '../components/result-view';
+import { PrincipalAssessment, ResultView } from './uk-result-views';
 import { SiteShell } from '../components/site-shell';
-import { WhatIfView } from '../components/whatif-lab';
+import { WhatIfView } from './uk-whatif';
 import { t, withCount } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
 import { routeNames, routeGroupNames, routeLabel } from '../i18n/routes';
@@ -15,8 +15,8 @@ import {
   runPrincipalSimulation,
   runSimulation,
   shortCircuitKeys,
-} from '../lib/questionnaire';
-import { getRememberedResult, rememberResult } from '../lib/storage';
+} from './uk-scenarios';
+import { getRememberedResult, rememberResult } from './uk-scenarios';
 
 const familyDraft = () => ({
   ...createDraft(),

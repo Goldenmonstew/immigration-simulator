@@ -6,6 +6,13 @@ export function getEngineVersion(): string {
 
 export type * from './types';
 export type {
+  CountryCheck,
+  CountryColumn,
+  CountryPathway,
+  CountryResult,
+} from './country-result';
+export { adaptUkResult } from './country-result';
+export type {
   CefrLevel,
   Route,
   RouteGroup,
