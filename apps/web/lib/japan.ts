@@ -216,7 +216,15 @@ export function jpRequest(form: JpForm, locale: Locale): JpRequest {
       departed: t.departed,
       returned: t.returned,
       ...(t.stayExpiry ? { stayExpiry: t.stayExpiry } : {}),
-      ...(t.reentryPermit ? { reentryPermit: true } : {}),
+      // On the birth route the departure method says which permit was used,
+      // so every calculation sees the same one.
+      ...((
+        form.prRoute === 'child-birth'
+          ? t.departure === 'permit'
+          : t.reentryPermit
+      )
+        ? { reentryPermit: true }
+        : {}),
       ...(t.renewalPending ? { renewalPending: true } : {}),
       ...(t.departure ? { departure: t.departure } : {}),
     })),

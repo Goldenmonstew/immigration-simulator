@@ -375,16 +375,19 @@ export default function JapanContent() {
                   error={errors[`jp-trip-${i}-stayExpiry`]}
                 />
                 <div className={form.checkboxes}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={trip.reentryPermit}
-                      onChange={(e) =>
-                        update({ reentryPermit: e.target.checked })
-                      }
-                    />
-                    {t('jp.reentryPermit')}
-                  </label>
+                  {/* The birth route asks how the child leaves instead. */}
+                  {draft.prRoute !== 'child-birth' && (
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={trip.reentryPermit}
+                        onChange={(e) =>
+                          update({ reentryPermit: e.target.checked })
+                        }
+                      />
+                      {t('jp.reentryPermit')}
+                    </label>
+                  )}
                   <label>
                     <input
                       type="checkbox"

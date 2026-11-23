@@ -1063,6 +1063,28 @@ describe('task 74: trips after birth', () => {
     expect(unsaid.summary).toContain('没有选择出境方式');
   });
 
+  test('review74-3: the only filing day is a predicted holiday', () => {
+    // Born 2028-03-01; Saturday 03-18, Sunday 03-19, and 03-20 (the
+    // predicted 春分日) is the departure day.
+    const p = born('2028-03-01', '2028-03-18', {
+      departed: '2028-03-20',
+      returned: '2028-03-26',
+      departure: 'deemed',
+    });
+    expect(p.status).toBe('UNKNOWN');
+    expect(p.summary).toContain('按国立天文台的预测是休日');
+  });
+
+  test('review74-3: a permit needs the status before leaving', () => {
+    const p = born('2026-11-10', '2026-11-16', {
+      departed: '2026-11-27',
+      returned: '2026-12-01',
+      departure: 'deemed',
+    });
+    expect(p.summary).toContain('持みなし再入国许可出境');
+    expect(p.summary).toContain('须在出境前已取得在留资格');
+  });
+
   test('review74-2: filing on the departure day may be too late', () => {
     // Saturday 11-21, Sunday 11-22, 勤労感謝の日 11-23; leaving 11-24.
     const p = born('2026-11-10', '2026-11-21', {

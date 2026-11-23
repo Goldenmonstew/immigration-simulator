@@ -358,6 +358,22 @@ test('the birth route asks how the child leaves (FAQ Q28)', () => {
   expect(status('')).toBe('UNKNOWN');
   // The choice shows only for the birth route.
   expect(render(<JapanPage />, 'zh-CN')).not.toContain(t('jp.departure'));
+  // review74-3: the departure method sets the re-entry tick, so the
+  // naturalisation re-entry rules see the same permit.
+  const tripOf = (
+    departure: JpForm['trips'][number]['departure'],
+    reentryPermit: boolean,
+  ) =>
+    jpRequest(
+      {
+        ...form(departure),
+        trips: [{ ...form(departure).trips[0], reentryPermit }],
+      },
+      'en',
+    ).trips[0].reentryPermit;
+  expect(tripOf('permit', false)).toBe(true);
+  expect(tripOf('deemed', true)).toBeUndefined();
+  expect(tripOf('none', true)).toBeUndefined();
 });
 
 test('leaving with a renewal pending (FAQ Q61)', () => {
