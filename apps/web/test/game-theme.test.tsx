@@ -72,7 +72,9 @@ test.each(['zh-CN', 'en'] as const)(
         t(isGame ? 'game.returnSimulator' : 'site.name', locale),
       );
       expect(html).toContain(isGame ? 'href="/uk"' : 'href="/"');
-      expect(html.includes(t('site.allCountries', locale))).toBe(!isGame);
+      expect(html.includes(t('site.allCountries', locale))).toBe(
+        !isGame && path !== '/',
+      );
       expect(html).toContain('lang="zh-CN"');
       expect(html).toContain('lang="en"');
     }

@@ -30,7 +30,7 @@ test.each(['zh-CN', 'en'] as const)(
     for (const key of [
       'site.name',
       'site.shortName',
-      'site.allCountries',
+      'site.navigation',
       'hub.title',
       'hub.intro',
       'hub.badge.rules',
@@ -47,6 +47,7 @@ test.each(['zh-CN', 'en'] as const)(
     ] as const) {
       expect(html).toContain(t(key, locale));
     }
+    expect(html).not.toContain(t('site.allCountries', locale));
     expect(html).toContain(`<a href="/uk/about">${t('about.link', locale)}</a>`);
     if (locale === 'zh-CN') {
       expect(html).toContain(t('hub.disclaimerEnglish', locale));

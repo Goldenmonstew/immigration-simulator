@@ -75,7 +75,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
               className={styles.navigation}
               aria-label={t('site.navigation')}
             >
-              <Link href="/">{t('site.allCountries')}</Link>
+              {cleanPath !== '/' && (
+                <Link href="/">{t('site.allCountries')}</Link>
+              )}
               <Link href={countryPath('uk', 'policy')}>{t('site.policy')}</Link>
               <Link href={countryPath('uk', 'about')}>{t('site.about')}</Link>
             </nav>
