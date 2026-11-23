@@ -14,6 +14,18 @@ type Finding = boolean | undefined;
 type TestName = keyof typeof language.current;
 type EnglishLevel = keyof typeof scale.english;
 type SkilledPath = 'AU-189-PT' | 'AU-190';
+type EmployerPath = 'AU-186-TRT' | 'AU-186-DE';
+type EmployerNomination = {
+  status?: 'pending' | 'approved' | 'withdrawn' | 'refused';
+  lodged?: IsoDate;
+  approved?: IsoDate;
+  positionAvailable?: boolean;
+  fullTimeRenewable?: boolean;
+  offeredYears?: number;
+  annualSalary?: number;
+  acceptedMarketRate?: number;
+  licensing?: 'unregulated' | 'licensed-or-eligible' | 'ineligible';
+};
 type Assessment = {
   // A positive assessment covers this nominated occupation and its competent authority.
   // For points visas, any Australian student qualification must be from a registered course.
@@ -64,15 +76,9 @@ export interface AuSkilledAnswers {
       | 'transitional-457'
       | 'high-income-457-482'
       | '444-461';
-    nomination?: 'pending' | 'approved' | 'withdrawn' | 'refused';
-    nominationLodged?: IsoDate;
-    nominationApproved?: IsoDate;
-    positionAvailable?: boolean;
-    fullTimeRenewable?: boolean;
-    offeredYears?: number;
-    annualSalary?: number;
-    acceptedMarketRate?: number;
-    licensing?: 'unregulated' | 'licensed-or-eligible' | 'ineligible';
+    // Complete list of nominations, keyed by the stream named in each application.
+    // Omit the map if unknown. An omitted key in a supplied map means no nomination for that stream.
+    nominations?: Partial<Record<EmployerPath, EmployerNomination>>;
     sponsorshipConduct?: 'clear' | 'being-assessed' | 'disregarded' | 'adverse';
     trtPrimaryVisa?: boolean;
     trtOccupationMatches?: boolean;
@@ -247,11 +253,14 @@ export function functionalEnglish(r: AuFullRequest): Finding {
           ? language.legacyFunctional
           : language.functional;
       const minimum = scores[test.name];
-      const score =
-        test.name === 'ielts' && test.components
-          ? test.components.reduce((sum, part) => sum + part, 0) /
-            test.components.length
-          : test.overall;
+      let score = test.overall;
+      if (test.name === 'ielts' && test.components) {
+        const mean =
+          test.components.reduce((sum, part) => sum + part, 0) /
+          test.components.length;
+        const step = language.ieltsBandStep;
+        score = Math.round(mean / step) * step;
+      }
       passed = minimum === undefined ? false : atLeast(score, minimum);
     }
   }
@@ -301,6 +310,11 @@ export function functionalEnglishCheck(
           : '1139(2)'),
   });
   if (suspendedToefl(r.english?.test)) result.sources.push(toeflGuidance);
+  if (typeof r.english?.test === 'object' && r.english.test.name === 'ielts')
+    result.sources.push({
+      srcId: 'SRC-229',
+      locator: 'Understanding IELTS test scores → Overall band score',
+    });
   return result;
 }
 
@@ -372,7 +386,7 @@ function assessmentAt(
   );
 }
 
-function employerChecks(id: 'AU-186-TRT' | 'AU-186-DE', r: AuFullRequest) {
+function employerChecks(id: EmployerPath, r: AuFullRequest) {
   const trt = id === 'AU-186-TRT';
   const e = r.employer ?? {};
   const age = ageAt(r, r.simulationDate);
@@ -407,38 +421,43 @@ function employerChecks(id: 'AU-186-TRT' | 'AU-186-DE', r: AuFullRequest) {
     }
   }
   const ageMet = any(age === undefined ? undefined : age < ens.maxAge, exempt);
-  const nomination =
-    e.nomination === 'approved'
+  const offer = e.nominations?.[id];
+  const nomination = offer?.status;
+  const approved =
+    nomination === 'approved'
       ? true
-      : e.nomination === 'refused' || e.nomination === 'withdrawn'
+      : (e.nominations && !offer) ||
+          nomination === 'refused' ||
+          nomination === 'withdrawn'
         ? false
         : undefined;
   // The nomination must have been lodged for the position when the visa application
   // was made. Its approval can follow lodgement; approval starts the outer deadline.
-  const nominationFiled = e.nominationLodged
-    ? e.nominationLodged <= r.simulationDate
-    : e.nominationApproved && e.nominationApproved <= r.simulationDate
+  const nominationFiled = offer?.lodged
+    ? offer.lodged <= r.simulationDate
+    : offer?.approved && offer.approved <= r.simulationDate
       ? true
       : undefined;
   const timely =
-    e.nominationApproved === undefined
+    offer?.approved === undefined
       ? undefined
-      : r.simulationDate <=
-        addMonths(e.nominationApproved, ens.nominationMonths);
-  const salary = e.annualSalary;
+      : r.simulationDate <= addMonths(offer.approved, ens.nominationMonths);
+  const salary = offer?.annualSalary;
   // A proposed nomination uses the simulation date. Existing nominations use their lodgement date.
   const lodged =
-    e.nominationLodged ??
-    (e.nomination === undefined ? r.simulationDate : undefined);
+    offer?.lodged ??
+    (offer && nomination === undefined ? r.simulationDate : undefined);
   const threshold =
     lodged &&
     ens.salaryThresholds.find((b) => b.from <= lodged && lodged <= b.to);
   const marketExempt = atLeast(salary, ens.marketSalaryExemption);
   const marketMet =
-    salary === undefined || e.acceptedMarketRate === undefined || !threshold
+    salary === undefined ||
+    offer?.acceptedMarketRate === undefined ||
+    !threshold
       ? undefined
-      : e.acceptedMarketRate >= threshold.salary &&
-        salary >= e.acceptedMarketRate;
+      : offer.acceptedMarketRate >= threshold.salary &&
+        salary >= offer.acceptedMarketRate;
   const checks = [
     check(
       id + '-age',
@@ -458,19 +477,22 @@ function employerChecks(id: 'AU-186-TRT' | 'AU-186-DE', r: AuFullRequest) {
     competentCheck(id, r, r.simulationDate),
     check(
       id + '-nomination',
-      all(nomination, nominationFiled, timely, e.positionAvailable),
+      all(approved, nominationFiled, timely, offer?.positionAvailable),
       '有效雇主提名',
       'Approved employer nomination',
-      '签证递交时岗位已获提名；批准可稍后作出，申请最迟须在批准后的法定期限内递交。决定时提名仍有效且岗位可供职。TRT 须由最近的担保雇主提名。',
-      'The position must already be nominated at lodgement. Approval may follow, and starts the outer deadline. At decision the nomination must be approved and current, and the job available. TRT requires the most recent sponsor.',
+      `递交时须已有${trt ? '最近担保雇主的 TRT' : ' Direct Entry'} 岗位提名。批准可在递交后作出，已获批的提名须在法定期限内用于申请。决定时提名须仍有效且岗位可供职。`,
+      `At lodgement the position must already have a ${trt ? 'TRT nomination from the most recent sponsor' : 'Direct Entry nomination'}. Approval may follow lodgement. An approved nomination has a statutory filing deadline and must remain current, with the job available at decision.`,
       'SRC-200',
       trt
-        ? 'vol 1 reg 5.19(4)–(5); vol 2 cl 186.223'
-        : 'vol 1 reg 5.19(4), (9); vol 2 cl 186.233',
+        ? 'vol 1 reg 5.19(4)–(5); vol 2 cl 186.223(1)(a)(ii), (2)–(5)'
+        : 'vol 1 reg 5.19(4), (9); vol 2 cl 186.233(1)(a)(ii), (2)–(6)',
     ),
     check(
       id + '-position',
-      all(e.fullTimeRenewable, atLeast(e.offeredYears, ens.positionYears)),
+      all(
+        offer?.fullTimeRenewable,
+        atLeast(offer?.offeredYears, ens.positionYears),
+      ),
       '提名岗位与雇用期',
       'Position and term of employment',
       `雇主须提供至少 ${ens.positionYears} 年全职岗位，合同须允许续约。`,
@@ -501,13 +523,15 @@ function employerChecks(id: 'AU-186-TRT' | 'AU-186-DE', r: AuFullRequest) {
       `Annual earnings of AUD ${ens.marketSalaryExemption} satisfy the high-earner exception. Otherwise check the accepted market rate against the CSIT and the offered earnings against the market rate.`,
       'SRC-210',
       'ss 5, 7–8; SRC-200 vol 1 reg 5.19(5)(o), (9)(h)',
-      marketExempt === false && e.acceptedMarketRate === undefined
+      marketExempt === false && offer?.acceptedMarketRate === undefined
         ? 'PD-208'
         : undefined,
     ),
     check(
       id + '-licence',
-      e.licensing === undefined ? undefined : e.licensing !== 'ineligible',
+      offer?.licensing === undefined
+        ? undefined
+        : offer.licensing !== 'ineligible',
       '执业注册与牌照',
       'Occupational licence or registration',
       '递交时须持有或有资格取得工作所在地规定的执照、注册或专业会员资格。无需牌照的岗位满足本项。',

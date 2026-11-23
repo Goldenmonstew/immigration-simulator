@@ -110,7 +110,7 @@
 |---|---|
 | SRC-062、SRC-200 | `AU-189-HK-time-held`、`AU-189-HK-time-residence` |
 | SRC-200 | `AU-lodgement-location`、`AU-grant-location`、`AU-prior-visa-compliance`、`AU-stream-open`、`AU-HK-passport`、`AU-HK-primary-visa`、`AU-additional-english`、`AU-PIC-PASSPORT`、`AU-RETURN-5001`、`AU-RETURN-5002`、`AU-PIC-SECURITY`、`AU-PIC-DEBT`、`AU-PIC-TECHNOLOGY`、`AU-PIC-VALUES`、`AU-PIC-INTEGRITY`、`AU-PIC-ESTABLISHMENT`、`AU-PIC-CHILDREN`、`AU-FEES-APPLICATION` |
-| SRC-200、SRC-205 | `AU-189-HK-functional-english` |
+| SRC-200、SRC-205、SRC-229（IELTS 总分） | `AU-189-HK-functional-english` |
 | SRC-200、SRC-211 | `AU-PIC-CHARACTER` |
 | SRC-200、SRC-218、SRC-219 | `AU-PIC-HEALTH` |
 | SRC-200、SRC-220 | `AU-PIC-POLICE` |
@@ -121,7 +121,7 @@
 |---|---|
 | SRC-062、SRC-200 | `AU-191-HK-time-held`、`AU-191-HK-time-residence`、`AU-191-HK-time-regional` |
 | SRC-200 | `AU-lodgement-location`、`AU-grant-location`、`AU-prior-visa-compliance`、`AU-stream-open`、`AU-HK-passport`、`AU-HK-primary-visa`、`AU-additional-english`、`AU-PIC-PASSPORT`、`AU-RETURN-5001`、`AU-RETURN-5002`、`AU-PIC-SECURITY`、`AU-PIC-DEBT`、`AU-PIC-TECHNOLOGY`、`AU-PIC-VALUES`、`AU-PIC-INTEGRITY`、`AU-PIC-ESTABLISHMENT`、`AU-PIC-CHILDREN`、`AU-RETURN-5010`、`AU-FEES-APPLICATION` |
-| SRC-200、SRC-205 | `AU-191-HK-functional-english` |
+| SRC-200、SRC-205、SRC-229（IELTS 总分） | `AU-191-HK-functional-english` |
 | SRC-200、SRC-211 | `AU-PIC-CHARACTER` |
 | SRC-200、SRC-218、SRC-219 | `AU-PIC-HEALTH` |
 | SRC-200、SRC-220 | `AU-PIC-POLICE` |
@@ -140,7 +140,7 @@
 | 来源 | 该路径的条件 ID |
 |---|---|
 | SRC-200 | `AU-lodgement-location`、`AU-grant-location`、`AU-regional-lock`、`AU-858-invitation`、`AU-858-achievement`、`AU-858-invited-field`、`AU-858-nominator`、`AU-858-age-benefit`、`AU-additional-english`、`AU-PIC-PASSPORT`、`AU-RETURN-5001`、`AU-RETURN-5002`、`AU-PIC-SECURITY`、`AU-PIC-DEBT`、`AU-PIC-TECHNOLOGY`、`AU-PIC-VALUES`、`AU-PIC-INTEGRITY`、`AU-PIC-SETTLEMENT`、`AU-PIC-ESTABLISHMENT`、`AU-PIC-CHILDREN`、`AU-RETURN-5010`、`AU-FEES-APPLICATION` |
-| SRC-200、SRC-205 | `AU-858-functional-english` |
+| SRC-200、SRC-205、SRC-229（IELTS 总分） | `AU-858-functional-english` |
 | SRC-200、SRC-211 | `AU-PIC-CHARACTER` |
 | SRC-200、SRC-218、SRC-219 | `AU-PIC-HEALTH` |
 | SRC-200、SRC-220 | `AU-PIC-POLICE` |
@@ -208,7 +208,7 @@
 
 1. 申请哪条路径？递交与决定时各在哪里？当前和最后一份实质签证何时生效、何时终止？境内持哪类过桥签？香港通道另问护照和前置主签证的停留权限。
 2. 哪天收到本路径邀请？信上截止日及分数是多少？职评由哪个机构针对哪个职业作出、何时出具和到期？英语护照、考种、日期、四科分数、重考及全英语授课经历分别是什么？
-3. 技术打分问年龄、各地合资格工作月数、学历、澳洲学习、配偶、专业年、社区语言与州提名。雇主通道另问提名递交及批准日、保证年薪、市场薪资证据、牌照、全职岗位、担保时间及豁免类别。
+3. 技术打分问年龄、各地合资格工作月数、学历、澳洲学习、配偶、专业年、社区语言与州提名。雇主通道先核对提名书上所列的 TRT 或 Direct Entry 分支，每份提名分别问递交及批准日、保证年薪、市场薪资证据、牌照及全职岗位，再问申请人的担保时间及豁免类别。
 4. 191 问已备齐原始及修订 ATO 通知的具体财年、地区邮编及生效日、变更和通知间隔、资料或面谈要求的履行情况。香港地区通道另问只在指定地区居住、工作及学习的起始日。
 5. 配偶问原合并递交日期及地点、关系起点、注册、共同受抚养子女、既往担保与相关申请日期、担保人记录、临时阶段及关系终止原因。RRV 问前永居或公民身份、取消情况、合资格天数、实质联系、亲属返程签证及离境理由。
 6. 哪些家人随行、哪些虽不随行仍须体检？是否已有医官、品格、安全或豁免结论？哪些警方或身份证明已被要求、哪些尚未取得？请分别核对联邦欠款、虚假材料、返澳限制、前签医保和价值观声明。
@@ -249,3 +249,45 @@ PROGRESS 第 503 项，建议提交 `Fix: 修正澳洲永居满期日、技术�
 页面可将该字段标作**预计满足本路径评估条件的日期**。`MET` 给出模拟日，`FUTURE` 给出按录入时间线推算、并在当天重新核对决定性条件后通过的日期；`UNKNOWN` 和 `NOT_MET` 没有该字段。条件列表始终描述原模拟日，所以路径为 `FUTURE` 时仍可看到当天尚未满足的条件。
 
 该日期把申请时和决定时的条件一并纳入模拟，不能据此断言当天才允许递交，也不能预测正式批准日。以 191 为例，合资格财年必须在递交前结束，相应 ATO 原始及修订通知要在审理决定前提供（SRC-200 191.111、191.222）。适用的第二期费用在批签前缴纳（SRC-200 reg 2.12C(1)）。页面应分开标注这几个时点。仅预算缺资料或入籍尚待批准后宣誓，不会推迟该日期。
+
+## 第二轮审核修正（review83-2）
+
+### 1. 做了什么
+
+PROGRESS 第 504 项，建议提交 `Fix: 按分支核对 186 雇主提名并修正 IELTS 总分舍入（review83-2）`。
+
+186 的 `employer.nominations` 按提名书上的 `AU-186-TRT` 或 `AU-186-DE` 分别记录状态、递交日、批准日及岗位条件。每个分支只用本条记录核对岗位、薪资和提名有效期。提供完整清单时，缺少某分支表示该分支没有提名。清单未填或旧数据只有未标类别的提名时，提名项为 `UNKNOWN`，选择展示某条路径也不能补足该材料。法定类别见 SRC-200 卷 2 第 186.223(1)(a)(ii)、186.233(1)(a)(ii) 条。
+
+审核用例省略 `pathway`，模拟日为 2026-11-23。申请人自 2023-11-23 持 482 并全职受雇，有有效职评及四年相关经验，其余条件均满足。单份提名在 2026-07-01 递交、07-10 获批。
+
+| 提名记录 | TRT 提名项 / 路径 | Direct Entry 提名项 / 路径 | 最早日期 |
+|---|---|---|---|
+| 仅 TRT | `MET` / `MET` | `NOT_MET` / `NOT_MET` | 仅 TRT 为 2026-11-23 |
+| 仅 Direct Entry | `NOT_MET` / `NOT_MET` | `MET` / `MET` | 仅 Direct Entry 为 2026-11-23 |
+| TRT 已批准，另一份 Direct Entry 已撤回 | `MET` / `MET` | `NOT_MET` / `NOT_MET` | 仅 TRT 为 2026-11-23 |
+| 两份分别获批且有效 | `MET` / `MET` | `MET` / `MET` | 均为 2026-11-23 |
+| 确认没有提名（空清单） | `NOT_MET` / `NOT_MET` | `NOT_MET` / `NOT_MET` | 均无日期 |
+| 旧记录只有状态和日期，类别未知 | `UNKNOWN` / `UNKNOWN` | `UNKNOWN` / `UNKNOWN` | 均无日期 |
+
+858 成年主申请人尚未缴第二期费用时，IELTS 四科 `4 / 4 / 4 / 5` 的均值 4.25 按官方计分规则记作 4.5。只填成绩单总分、只填四科、或同时填两者，Functional English 项和整条路径均为 `MET`。对照组 `4 / 4 / 4 / 4.5` 的均值 4.125 记作 4.0，两项均为 `NOT_MET`。门槛依据是 SRC-205 s 4、s 6(c)、Sch 1 第 2、3 行及旧成绩 s 7(2)。新登记的 SRC-229「Overall band score」提供舍入规则，已保存官方快照并核对 SHA-256。[IELTS 官方计分说明](https://ielts.org/take-a-test/your-results/ielts-scoring-in-detail)
+
+### 2. 怎么验证的
+
+`pnpm --filter @uk-immigration/engine exec vitest run test/australia-full.test.ts -t 'one approved 186|858 functional English uses'` 在修改引擎前复现两处失败。单份 TRT 提名使 Direct Entry 提名项也为 `MET`，补齐 IELTS 四科反使 Functional English 从 `MET` 变为 `NOT_MET`。修正后通过 `evaluateAustraliaFull` 检查各条件、总状态及最早日期。
+
+完整验收 `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 首次运行退出码为 0。共 5,394 项测试通过（engine 3,374、game 1,336、web 659、policy-data 23、error-report 2），原有的文案导出测试按开关跳过 1 项。构建生成 27 个静态页面，已确认 `apps/web/out/australia.html` 非空。
+
+与 `e760774` 对照，只算时间的 `evaluateAustralia`、日期计算依赖、原时间参数 `australia2026_11` 和其测试均无改动。
+
+### 3. 没做或没验证的
+
+186 TRT 高薪年龄豁免保留 `UNKNOWN` 和 PD-206。Fair Work Commission 年度公告及门槛页下载返回 HTTP 403，网页读取公告返回 HTTP 429，官方 benchbook PDF 请求也只收到 HTML 验证页，未取得可归档的官方快照。年度金额未写入参数。后续应按 SRC-203 s 5「Subclass 457/482 worker」(a)–(c)，将两个合资格工作年度的实际收入分别与该工作年度结束时适用的 FWHIT 比较，指数化公式见 SRC-212 reg 2.13。[FWC 年度公告](https://www.fwc.gov.au/about-us/news-and-media/news/increase-application-fee-2026-27)
+
+按本轮要求保留工作树供 Fable 提交。
+
+### 4. 发现与建议
+
+- **189／190 及 858 的邀请各自独立。** 同一份请求中，189 邀请为 11-01 至 11-15，190 邀请为 11-20 至 12-01，共用 11-03 的 IELTS 和 11-16 出具的职评。在 2026-11-23 模拟，189 的邀请、职评、英语、及格线、邀请分数五项均为 `NOT_MET`，190 五项均为 `MET`。移除 190 邀请后，其五项均为 `UNKNOWN`；已确认的 190 州提名项仍为 `MET`。858 只读自己的书面邀请。491 在现有完整版中是已持有的前置签证，用于 191 和地区签证限制，没有独立的获邀、州提名或加分评估。见 `australia-skilled.ts` 的 `pointsChecks`、`innovationChecks` 和 `australia-full.ts` 的 `AU_FULL_PATHWAYS`。
+- **职评的职业和获邀时的积分资料仍有共用字段。** 189／190 会按各自邀请核对职评日期和有效期，但 `skills.assessment` 只能表达一个职业的职评。实测 190 的职业与邀请不符时，职业项为 `NOT_MET`，有效的公共职评项仍可为 `MET`，总路径被职业项阻断。工作月数、职业年、学历和配偶等加分也只接收一份预汇总资料。两份邀请涉及不同职业，或两次获邀之间这些事实发生变化时，须按各自申请分别录入才能比较。见 SRC-200 189.222–224、190.212–214、Sch 6D 及 SRC-225 的 General Skilled Migration 小节。
+- **缴费和个案健康豁免也可能跨申请计入。** 同时比较时，全局 `secondInstalmentPaid=true` 可满足两个 186 分支的主申缴费项，以及 189-HK、191-HK、858 的 Functional English 或缴费项；成年副申的缴费也共用 `fees.additionalInstalmentsPaid`。`publicInterest.health='waiver-granted'` 可满足多条允许豁免的路径。若缴费收据或决定只属于其中一份申请，其他路径的对应条件会被高估。本轮仅记录这些输入限制。见 SRC-200 reg 2.12C、Sch 1、Sch 4 PIC 4007(2)，以及 `australia-fees.ts` 的 `instalmentChecks` 和 `australia-common.ts` 的健康检查。
+- **入籍申请日仍有同日先后顺序风险。** 2020-01-01 获 189，旅行便利期届满后于 2026-11-23 离境并在境外递交，11-25 获 155，12-01 返澳且决定时具永居。实测 `AU-CIT-pr` 和整条路径仍为 `MET`，最早日期为 2026-11-23。显式录入 `citizenship.permanentAtApplication=false` 后，两项均为 `NOT_MET` 且无日期。现有时间线在离境日采用离境前身份，尚未结合明确的境外递交地点区分当天先后。按本轮要求记录该边界。见 SRC-061 ss 5(1)、21(2)(b) 及 SRC-069 s 82(6)。

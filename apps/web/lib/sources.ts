@@ -266,4 +266,6 @@ export const sourceUrls: Record<string, string> = {
     'https://immi.homeaffairs.gov.au/visas/working-in-australia/skills-assessment',
   'SRC-226':
     'https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/english-language/competent-english',
+  'SRC-229':
+    'https://ielts.org/take-a-test/your-results/ielts-scoring-in-detail',
 };

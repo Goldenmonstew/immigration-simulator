@@ -179,6 +179,7 @@ export const australiaSkilledParameters = {
       },
       skilledYears: 3,
       functionalMonths: 12,
+      ieltsBandStep: 0.5,
       passports: ['CA', 'NZ', 'IE', 'GB', 'US'],
       // Listening, reading, writing, speaking at each level, from Schedule 2.
       current: {
@@ -268,6 +269,10 @@ export const australiaSkilledParameters = {
       {
         srcId: 'SRC-226',
         locator: 'Table 2, TOEFL iBT row and date restriction',
+      },
+      {
+        srcId: 'SRC-229',
+        locator: 'Understanding IELTS test scores → Overall band score',
       },
     ],
   },

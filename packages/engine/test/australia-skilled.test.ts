@@ -15,17 +15,20 @@ const base: AuFullRequest = {
   dateOfBirth: '1994-11-23',
   locale: 'en',
 };
-const employer: NonNullable<AuFullRequest['employer']> = {
-  exemption: 'none',
-  nomination: 'approved',
-  nominationLodged: '2026-07-01',
-  nominationApproved: '2026-07-10',
+const offer = {
+  status: 'approved',
+  lodged: '2026-07-01',
+  approved: '2026-07-10',
   positionAvailable: true,
   fullTimeRenewable: true,
   offeredYears: 2,
   annualSalary: 79423,
   acceptedMarketRate: 79423,
   licensing: 'licensed-or-eligible',
+} as const;
+const employer: NonNullable<AuFullRequest['employer']> = {
+  exemption: 'none',
+  nominations: { 'AU-186-DE': offer, 'AU-186-TRT': offer },
   sponsorshipConduct: 'clear',
   trtPrimaryVisa: true,
   trtOccupationMatches: true,
@@ -205,59 +208,39 @@ test('DE experience and short assessments, including statutory exemptions', () =
 
 test('186 salary on the nomination date, AMSR and offer duration', () => {
   for (const id of ['AU-186-TRT', 'AU-186-DE'] as const) {
-    expect(
-      get(id, 'salary', {
+    const check = (
+      suffix: string,
+      nomination: NonNullable<typeof employer.nominations>[typeof id],
+    ) =>
+      get(id, suffix, {
         ...full,
-        employer: { ...employer, annualSalary: 79422 },
-      }).status,
-    ).toBe('NOT_MET');
+        employer: { ...employer, nominations: { [id]: nomination } },
+      });
+    expect(check('salary', { ...offer, annualSalary: 79422 }).status).toBe(
+      'NOT_MET',
+    );
     expect(
-      get(id, 'salary', {
-        ...full,
-        employer: {
-          ...employer,
-          nominationLodged: '2026-06-30',
-          annualSalary: 76515,
-        },
-      }).status,
-    ).toBe('MET');
-    expect(
-      get(id, 'market-salary', {
-        ...full,
-        employer: { ...employer, acceptedMarketRate: 79424 },
-      }).status,
-    ).toBe('NOT_MET');
-    expect(
-      get(id, 'market-salary', {
-        ...full,
-        employer: { ...employer, acceptedMarketRate: 79422 },
-      }).status,
-    ).toBe('NOT_MET');
-    expect(
-      get(id, 'market-salary', { ...full, employer: { annualSalary: 249999 } })
-        .pendingDetails,
-    ).toEqual(['PD-208']);
-    expect(
-      get(id, 'market-salary', { ...full, employer: { annualSalary: 250000 } })
+      check('salary', { ...offer, lodged: '2026-06-30', annualSalary: 76515 })
         .status,
     ).toBe('MET');
     expect(
-      get(id, 'position', {
-        ...full,
-        employer: { ...employer, offeredYears: 1.99 },
-      }).status,
+      check('market-salary', { ...offer, acceptedMarketRate: 79424 }).status,
     ).toBe('NOT_MET');
     expect(
-      get(id, 'nomination', {
-        ...full,
-        employer: { ...employer, nominationApproved: '2026-05-23' },
-      }).status,
+      check('market-salary', { ...offer, acceptedMarketRate: 79422 }).status,
+    ).toBe('NOT_MET');
+    expect(
+      check('market-salary', { annualSalary: 249999 }).pendingDetails,
+    ).toEqual(['PD-208']);
+    expect(check('market-salary', { annualSalary: 250000 }).status).toBe('MET');
+    expect(check('position', { ...offer, offeredYears: 1.99 }).status).toBe(
+      'NOT_MET',
+    );
+    expect(
+      check('nomination', { ...offer, approved: '2026-05-23' }).status,
     ).toBe('MET');
     expect(
-      get(id, 'nomination', {
-        ...full,
-        employer: { ...employer, nominationApproved: '2026-05-22' },
-      }).status,
+      check('nomination', { ...offer, approved: '2026-05-22' }).status,
     ).toBe('NOT_MET');
   }
 });
@@ -736,26 +719,31 @@ test('a primary TRT grant or qualifying bridging status is required; visa lodgem
   ).toBe('NOT_MET');
   for (const id of ['AU-186-DE', 'AU-186-TRT'] as const) {
     const concurrent = {
-      ...employer,
-      nominationLodged: '2026-11-23',
-      nominationApproved: '2026-12-01',
+      ...offer,
+      lodged: '2026-11-23',
+      approved: '2026-12-01',
     };
     expect(
-      get(id, 'nomination', { ...full, employer: concurrent }).status,
+      get(id, 'nomination', {
+        ...full,
+        employer: { nominations: { [id]: concurrent } },
+      }).status,
     ).toBe('MET');
     expect(
       get(id, 'nomination', {
         ...full,
-        employer: { ...concurrent, nominationLodged: '2026-11-24' },
+        employer: {
+          nominations: { [id]: { ...concurrent, lodged: '2026-11-24' } },
+        },
       }).status,
     ).toBe('NOT_MET');
     expect(
       get(id, 'nomination', {
         ...full,
         employer: {
-          ...concurrent,
-          nomination: 'pending',
-          nominationApproved: undefined,
+          nominations: {
+            [id]: { ...concurrent, status: 'pending', approved: undefined },
+          },
         },
       }).status,
     ).toBe('UNKNOWN');

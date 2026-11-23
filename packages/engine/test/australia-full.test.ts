@@ -508,6 +508,145 @@ test('191 HK regional history is independent of the passport and the regional pr
   ).toMatchObject({ status: 'MET' });
 });
 
+const nominatedPosition = {
+  positionAvailable: true,
+  fullTimeRenewable: true,
+  offeredYears: 2,
+  annualSalary: 79423,
+  acceptedMarketRate: 79423,
+  licensing: 'unregulated' as const,
+} as const;
+const approvedNomination = {
+  ...nominatedPosition,
+  status: 'approved' as const,
+  lodged: '2026-07-01',
+  approved: '2026-07-10',
+} as const;
+
+test('one approved 186 nomination supports only its own stream in a full comparison', () => {
+  const oldRecord = {
+    ...nominatedPosition,
+    nomination: 'approved' as const,
+    nominationLodged: approvedNomination.lodged,
+    nominationApproved: approvedNomination.approved,
+  };
+  const request: AuFullRequest = {
+    ...solo,
+    firstArrival: '2023-11-23',
+    visas: [{ subclass: '482', from: '2023-11-23' }],
+    sponsoredFullTime: true,
+    permissibleOnshoreVisa: true,
+    fees: { additionalAdults: 0, additionalMinors: 0 },
+    english: { passport: 'US' },
+    employer: {
+      exemption: 'none',
+      sponsorshipConduct: 'clear',
+      trtPrimaryVisa: true,
+      trtOccupationMatches: true,
+      trtSkillsDemonstration: 'not-requested',
+      csolOccupation: true,
+      assessment: { kind: 'positive', issued: '2026-01-01' },
+      fullTimeExperienceYears: 4,
+    },
+  };
+  const trt = 'AU-186-TRT';
+  const de = 'AU-186-DE';
+  for (const [nominations, trtStatus, deStatus] of [
+    [{ [trt]: approvedNomination }, 'MET', 'NOT_MET'],
+    [{ [de]: approvedNomination }, 'NOT_MET', 'MET'],
+    [
+      {
+        [trt]: approvedNomination,
+        [de]: { ...approvedNomination, status: 'withdrawn' },
+      },
+      'MET',
+      'NOT_MET',
+    ],
+    [
+      {
+        [trt]: approvedNomination,
+        [de]: {
+          ...approvedNomination,
+          lodged: '2026-08-03',
+          approved: '2026-08-10',
+        },
+      },
+      'MET',
+      'MET',
+    ],
+    [{}, 'NOT_MET', 'NOT_MET'],
+    [undefined, 'UNKNOWN', 'UNKNOWN'],
+  ] as const) {
+    const employer = nominations
+      ? { ...request.employer, nominations }
+      : { ...request.employer, ...oldRecord };
+    const paths = evaluateAustraliaFull({ ...request, employer }).columns[0]
+      .pathways;
+    for (const [id, expected] of [
+      [trt, trtStatus],
+      [de, deStatus],
+    ] as const) {
+      const p = paths.find((p) => p.id === id)!;
+      expect(
+        p.checks.find((c) => c.id === id + '-nomination')?.status,
+        id,
+      ).toBe(expected);
+      expect(p.status, id).toBe(expected);
+      expect(p.earliestDate, id).toBe(expected === 'MET' ? date : undefined);
+    }
+  }
+});
+
+test('858 functional English uses the reported IELTS band with or without component scores', () => {
+  const assess = (
+    components?: [number, number, number, number],
+    overall?: number,
+  ) =>
+    path('AU-858', {
+      ...solo,
+      visas: [],
+      locationAtApplication: 'offshore',
+      locationAtDecision: 'offshore',
+      fees: { additionalAdults: 0, additionalMinors: 0 },
+      publicInterest: {
+        ...solo.publicInterest,
+        permanentSettlementAndSupport: true,
+      },
+      english: {
+        passport: 'other',
+        education: 'none',
+        test: {
+          name: 'ielts',
+          date: '2026-06-01',
+          format: 'approved',
+          components,
+          overall,
+        },
+      },
+      secondInstalmentPaid: false,
+      innovation: {
+        invitation: { issued: '2026-11-01', deadline: date },
+        achievement: 'accepted',
+        achievementsMatchInvitation: true,
+        form1000: 'confirmed',
+      },
+    });
+  for (const [result, expected] of [
+    [assess(undefined, 4.5), 'MET'],
+    [assess([4, 4, 4, 5], 4.5), 'MET'],
+    [assess([4, 4, 4, 5]), 'MET'],
+    [assess([4, 4, 4, 4.5]), 'NOT_MET'],
+  ] as const) {
+    const check = result.checks.find(
+      (c) => c.id === 'AU-858-functional-english',
+    )!;
+    expect(check.status).toBe(expected);
+    expect(check.sources.map((source) => source.srcId)).toContain('SRC-229');
+    expect(result.status).toBe(expected);
+    expect(result.earliestDate).toBe(expected === 'MET' ? date : undefined);
+  }
+});
+
 test('TRT projects a confirmed age-exempt worker; an expiring nomination still blocks the projected date', () => {
   const r: AuFullRequest = {
     ...solo,
@@ -519,15 +658,7 @@ test('TRT projects a confirmed age-exempt worker; an expiring nomination still b
     english: { passport: 'US' },
     employer: {
       exemption: 'academic',
-      nomination: 'approved',
-      nominationLodged: '2026-07-01',
-      nominationApproved: '2026-07-10',
-      positionAvailable: true,
-      fullTimeRenewable: true,
-      offeredYears: 2,
-      annualSalary: 79423,
-      acceptedMarketRate: 79423,
-      licensing: 'unregulated',
+      nominations: { 'AU-186-TRT': approvedNomination },
       sponsorshipConduct: 'clear',
       trtPrimaryVisa: true,
       trtOccupationMatches: true,
@@ -542,8 +673,13 @@ test('TRT projects a confirmed age-exempt worker; an expiring nomination still b
     ...r,
     employer: {
       ...r.employer,
-      nominationLodged: '2026-05-20',
-      nominationApproved: '2026-05-23',
+      nominations: {
+        'AU-186-TRT': {
+          ...approvedNomination,
+          lodged: '2026-05-20',
+          approved: '2026-05-23',
+        },
+      },
     },
   };
   expect(path('AU-186-TRT', expiring).status).toBe('NOT_MET');

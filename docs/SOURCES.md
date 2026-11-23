@@ -169,6 +169,7 @@
 | SRC-221 | GUIDANCE | 内政部签证费率 | https://immi.homeaffairs.gov.au/visas/getting-a-visa/fees-and-charges/current-visa-pricing | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-visa-fees-pricing.html`（sha256 `c2a74843b61c5da7a6f5ecfcc341b45e8d2ab8da5ab5151f3879496706ae8f34`） | archived |
 | SRC-225 | GUIDANCE | 内政部技术移民职业评估 | https://immi.homeaffairs.gov.au/visas/working-in-australia/skills-assessment | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-skills-assessment.html`（sha256 `42c9875accba8edc3898927f8aed6cd5b4fcf20d5bbcfb93ea470aa876b3cb5c`） | archived |
 | SRC-226 | GUIDANCE | 内政部 Competent English 考试和成绩 | https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/english-language/competent-english | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-english-competent.html`（sha256 `89b69eaa9ef88fdc05222fcbe936179595350d833076d856578e479e5a077cb5`） | archived |
+| SRC-229 | GUIDANCE | IELTS 官方成绩说明（Overall band score） | https://ielts.org/take-a-test/your-results/ielts-scoring-in-detail | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-ielts-scoring-in-detail.html`（sha256 `0b611e3fd51650e8e3e675075bf2e5deebc815c55ff961001c385568763554e4`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -1184,3 +1185,7 @@ Visas 下的 General Skilled Migration (GSM) visas 小节说明，按 *Thapa* [2
 ## SRC-226 内政部 Competent English 考试和成绩
 
 表 2 的 TOEFL iBT 行列出 2023-07-26 至 2024-05-04（含首尾）对澳大利亚签证停认，并列出旧版口语最低 21 分。SRC-206 s 10(5)(c) 的对应分数是 18。两者影响结果的区间见 PD-200。
+
+## SRC-229 IELTS 官方成绩说明
+
+Understanding IELTS test scores 下的 Overall band score 小节说明，成绩单总分取听、说、读、写四科均值，舍入到最近的 0.5 分，恰在中点时向上舍入。澳大利亚 Functional English 的 IELTS 门槛见 SRC-205 s 4、s 6(c)、Sch 1 第 2、3 行，旧成绩见 s 7(1)–(2)。
