@@ -65,8 +65,17 @@ test('the service worker keeps the site pages available offline', async ({
     '/spain',
     '/greece',
     '/japan',
+    '/ireland',
   ]) {
     expect((await page.goto(path))?.ok()).toBe(true);
   }
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  // The last page's script is cached too: the Ireland form works offline.
+  await page
+    .getByRole('group', { name: '许可 1' })
+    .getByLabel('生效日期')
+    .fill('2021-03-01');
+  await page.getByLabel('要计算的许可').selectOption('none');
+  await page.getByRole('button', { name: '计算' }).click();
+  await expect(page.getByRole('heading', { name: '计算结果' })).toBeFocused();
 });
