@@ -569,6 +569,8 @@ export const zhCN = {
   'pt.kind.study': '学习、无薪实习或志愿居留许可',
   'pt.kind.visa': '居留签证（拿到居留许可之前）',
   'pt.kind.permanent': '永久居留许可（autorização de residência permanente）',
+  'pt.kind.ari-permanent':
+    '投资类永久居留（由黄金签证转来，autorização de residência para atividade de investimento permanente）',
   'pt.kind.eu-long-term':
     '欧盟长期居民身份（título UE de residência de longa duração）',
   'pt.addPermit': '添加证件',
@@ -588,7 +590,7 @@ export const zhCN = {
   'pt.route.other': '其他国家国民，含中国（10 年）',
   'pt.route.stateless': '无国籍（4 年）',
   'pt.pending':
-    '我在 2026 年 5 月 19 日新法施行前已递交入籍申请，当天仍在审理（适用旧法）',
+    '我在 2026 年 5 月 19 日新法施行前（或当天）已递交入籍申请，施行时仍在审理（施行前递交的适用旧法；恰在当天递交的适用哪一版待确认）',
   'pt.appliedOn': '入籍申请的递交日期',
   'pt.residenceApplied': '首张临时居留许可的申请日期（可留空）',
   'pt.residenceAppliedHint':

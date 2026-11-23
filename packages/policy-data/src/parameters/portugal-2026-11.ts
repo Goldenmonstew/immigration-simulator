@@ -144,9 +144,11 @@ export const portugal2026_11 = {
       value: 14,
       sources: [
         { srcId: 'SRC-124', locator: 'art. 65-C b) (p3)' },
+        // Cross-check only, not archived (SRC-126 notes).
         {
           srcId: 'SRC-126',
-          locator: 'Autorização de Residência para Investimento (art. 90.º-A)',
+          locator: 'Perguntas frequentes ARI, n.º 24',
+          url: 'https://aima.gov.pt/pt/a-aima/perguntas-frequentes-faqs/autorizacao-de-residencia-para-investimento-ari',
         },
       ],
     },

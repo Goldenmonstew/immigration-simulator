@@ -781,6 +781,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'pt.kind.visa': 'Residence visa (before your residence permit)',
   'pt.kind.permanent':
     'Permanent residence (autorização de residência permanente)',
+  'pt.kind.ari-permanent':
+    'Permanent residence for investment, from a golden visa (autorização de residência para atividade de investimento permanente)',
   'pt.kind.eu-long-term':
     'EU long-term resident status (título UE de residência de longa duração)',
   'pt.addPermit': 'Add a permit',
@@ -801,7 +803,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'pt.route.other': 'National of another country, China included (10 years)',
   'pt.route.stateless': 'Stateless (4 years)',
   'pt.pending':
-    'I applied for naturalisation before the new law came into force on 19 May 2026, and it was still pending that day (the earlier law applies)',
+    'I applied for naturalisation before (or on) 19 May 2026, when the new law came into force, and it was still pending then (an application made before that day falls under the earlier law; for one made on the day itself, which law applies is uncertain)',
   'pt.appliedOn': 'Date you applied for naturalisation',
   'pt.residenceApplied':
     'Date you applied for your first temporary residence permit (optional)',
