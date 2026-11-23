@@ -15,7 +15,15 @@ export { ROUTE_GROUPS, ROUTE_GROUP_SOURCES } from './routes';
 export type { Route, RouteGroup } from './routes';
 export { currentLaw2026_11 } from './parameters/current-law-2026-11';
 export { earnedSettlement2026_11 } from './parameters/earned-settlement-2026-11';
-export { australia2026_11 } from './parameters/australia-2026-11';
+export {
+  australia2026_11,
+  australiaFull2026_11,
+  auFamilyParameters,
+  auRegionalParameters,
+  australiaSkilledParameters,
+  auPublicCriteria,
+  auCharges,
+} from './parameters/australia-2026-11';
 export { newZealand2026_11 } from './parameters/new-zealand-2026-11';
 export { canada2026_11 } from './parameters/canada-2026-11';
 export { unitedStates2026_11 } from './parameters/united-states-2026-11';

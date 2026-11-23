@@ -3,11 +3,13 @@ import type {
   RuleSetId,
   RULE_SET_IDS_BY_COUNTRY,
 } from '../types';
+import { australiaFull2026_11 } from './australia-2026-11';
 import { currentLaw2026_11 } from './current-law-2026-11';
 import { earnedSettlement2026_11 } from './earned-settlement-2026-11';
 
 /** A parameter file for every rule set registered in that country. */
 export const PARAMETERS_BY_COUNTRY = {
+  au: { [australiaFull2026_11.ruleSetId]: australiaFull2026_11 },
   uk: {
     [currentLaw2026_11.ruleSetId]: currentLaw2026_11,
     [earnedSettlement2026_11.ruleSetId]: earnedSettlement2026_11,
@@ -15,7 +17,7 @@ export const PARAMETERS_BY_COUNTRY = {
 } satisfies {
   [Country in keyof typeof RULE_SET_IDS_BY_COUNTRY]: Record<
     (typeof RULE_SET_IDS_BY_COUNTRY)[Country][number],
-    ParameterSet
+    ParameterSet<unknown>
   >;
 };
 

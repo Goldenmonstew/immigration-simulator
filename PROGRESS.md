@@ -483,3 +483,4 @@
 | 472 | 任务 80 审核修正（review80-1）：英国 What-if 调整日期触发筛查中止时，两栏恢复“此规则集暂无评估结果。”提示。补日期及通用路径增删对比回归；对比页与已保存方案按国家重置组件状态。 | apps/web/components/{whatif-lab,saved-scenarios}.tsx、apps/web/test/country-views.test.tsx、docs/tasks/reports/80-country-module.md |
 | 490 | 任务 82：网站改名 immigration-simulator——Cloudflare 新项目与部署变量、仓库改名与 GitHub Pages 新路径；旧 Cloudflare 项目与新建的旧名仓库只做跳转并自行注销旧 service worker；部署文档补记。 | docs/deploy.md |
 | 500 | 任务 83：登记澳大利亚完整版官方法源、费用表及待定细节，复用原时间规则的来源。 | policy-sources/、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
+| 501 | 任务 83：登记澳大利亚现行规则集、英语与打分分项、地区与家庭条件、签证及入籍费用参数。 | packages/policy-data/src/{types,index}.ts、packages/policy-data/src/parameters/{index,australia-2026-11}.ts |
