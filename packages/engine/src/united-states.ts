@@ -117,6 +117,22 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
     return longest;
   };
 
+  /**
+   * An absence inside [from, to] of more than 6 calendar months, counted from
+   * the later of leaving and `from` to the return (PM 12 D.3(C)(1) example:
+   * back on 2018-08-01, apply from 2023-02-01).
+   */
+  const presumed = (from: IsoDate, to: IsoDate) =>
+    req.trips.some((trip) => {
+      if (addDays(trip.departed, 1) > to || addDays(trip.returned, -1) < from)
+        return false;
+      const start = [trip.departed, from, lpr].reduce((a, b) =>
+        a > b ? a : b,
+      );
+      const end = trip.returned <= to ? trip.returned : addDays(to, 1);
+      return end > addMonths(start, v.presumptionMonths.value);
+    });
+
   const firstDate = (ok: (d: IsoDate) => boolean): IsoDate | undefined => {
     for (let i = days.index(sim); i < days.count; i++) {
       const d = days.date(i);
@@ -160,16 +176,23 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       days.total(present, addYears(d, -years), addDays(d, -1));
     const absence = (d: IsoDate) =>
       longestAbsence(addYears(d, -years), addDays(d, -1));
-    const ok = (limit: number) => (d: IsoDate) =>
+    // The Policy Manual states "more than 180 days" but its worked examples
+    // count calendar months (PD-093): no rebuttal is needed only when neither
+    // reading presumes a break; the months-only date is shown as a note.
+    const ok = (rule: 'both' | 'months' | 'rebut') => (d: IsoDate) =>
       d >= earlyFrom &&
       d >= adult &&
       (!stateFrom || d >= stateFrom) &&
       count(d) >= need &&
-      absence(d) <= limit &&
+      absence(d) < v.breakDays.value &&
+      (rule === 'rebut' ||
+        (!presumed(addYears(d, -years), addDays(d, -1)) &&
+          (rule === 'months' || absence(d) <= v.presumptionDays.value))) &&
       extra(d);
-    const earliest = firstDate(ok(v.presumptionDays.value));
-    // Absences of more than 180 days but under a year can be rebutted.
-    const rebuttable = firstDate(ok(v.breakDays.value - 1));
+    const earliest = firstDate(ok('both'));
+    const byMonths = firstDate(ok('months'));
+    // Absences of more than 6 months but under a year can be rebutted.
+    const rebuttable = firstDate(ok('rebut'));
     return {
       residence,
       earlyFrom,
@@ -178,13 +201,18 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
         rebuttable && (!earliest || rebuttable < earliest)
           ? rebuttable
           : undefined,
+      byMonths:
+        byMonths && (!earliest || byMonths < earliest) ? byMonths : undefined,
       count: count(sim),
       absence: absence(sim),
+      presumed:
+        presumed(addYears(sim, -years), addDays(sim, -1)) ||
+        absence(sim) > v.presumptionDays.value,
     };
   };
 
   const summaryOf = (
-    n: { earliest?: IsoDate; rebuttable?: IsoDate },
+    n: { earliest?: IsoDate; rebuttable?: IsoDate; byMonths?: IsoDate },
     what: [string, string],
   ) =>
     (!stateFrom && n.earliest
@@ -208,8 +236,14 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
             )) +
     (n.rebuttable && stateFrom
       ? L(
-          `如能证明离境超过 180 天但不满 1 年期间没有放弃居住（推定可反驳），最早 ${n.rebuttable}。`,
-          ` If you can show you did not abandon your residence during an absence of more than 180 days but under a year (the presumption can be rebutted), the earliest date is ${n.rebuttable}.`,
+          `如能证明离境超过 ${v.presumptionMonths.value} 个月但不满 1 年期间没有放弃居住（推定可反驳），最早 ${n.rebuttable}。`,
+          ` If you can show you did not abandon your residence during an absence of more than ${v.presumptionMonths.value} months but under a year (the presumption can be rebutted), the earliest date is ${n.rebuttable}.`,
+        )
+      : '') +
+    (n.byMonths && stateFrom
+      ? L(
+          `USCIS 政策手册的示例按日历月计 6 个月，按此最早 ${n.byMonths}；手册正文写的是 ${v.presumptionDays.value} 天，按天数计到那天仍须反驳推定（PD-093）。`,
+          ` The USCIS Policy Manual's examples count the 6 months in calendar months, which gives ${n.byMonths}; its text says ${v.presumptionDays.value} days, by which you would still need to rebut the presumption then (PD-093).`,
         )
       : '');
 
@@ -229,11 +263,15 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
     },
     {
       text: L(
-        `前 ${years} 年最长一次离境 ${n.absence} 天（超过 180 天推定中断，满 365 天即中断）`,
-        `Longest absence in the past ${years} years: ${n.absence} days (more than 180 is presumed to break continuity; 365 or more breaks it)`,
+        `前 ${years} 年最长一次离境 ${n.absence} 天（超过 ${v.presumptionDays.value} 天或 ${v.presumptionMonths.value} 个月推定中断，满 ${v.breakDays.value} 天即中断）`,
+        `Longest absence in the past ${years} years: ${n.absence} days (more than ${v.presumptionDays.value} days or ${v.presumptionMonths.value} months is presumed to break continuity; ${v.breakDays.value} days or more breaks it)`,
       ),
-      met: n.absence <= v.presumptionDays.value,
-      sources: [...v.presumptionDays.sources, ...v.breakDays.sources],
+      met: !n.presumed && n.absence < v.breakDays.value,
+      sources: [
+        ...v.presumptionDays.sources,
+        ...v.presumptionMonths.sources,
+        ...v.breakDays.sources,
+      ],
     },
     {
       text: L(
@@ -285,8 +323,8 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       `Windows are counted back from the filing date, not including it, and only the part of an absence inside the window counts (PM 12 D.3 examples). Only days after you became a permanent resident count: when filing early, days before that in the window are left out (PD-092).`,
     ),
     L(
-      '"超过 6 个月""不满 1 年"按天数计（超过 180 天、不满 365 天，PM 12 D.3）；PM 另有按月计的写法，在已核对的 PM 示例中按天数得出的日期不早于按月计，有时晚一天（PD-093）。3 个月州居住按日历月计，提前递交时也要求递交前住满（PD-096）。',
-      '"More than 6 months" and "less than 1 year" are counted in days (more than 180, under 365; PM 12 D.3); the PM also counts in months, and in the PM examples checked, counting in days never gives an earlier date and is sometimes a day later (PD-093). The 3 months in your state are calendar months, and are required before filing even when filing early (PD-096).',
+      '"超过 6 个月"PM 正文写 180 天，示例按日历月计：两种读法都不推定中断才算无须反驳，按月计更早的日期另列；"满 1 年"按 365 天计（PD-093）。3 个月州居住按日历月计，提前递交时也要求递交前住满（PD-096）。',
+      '"More than 6 months" is 180 days in the PM text but calendar months in its examples: no rebuttal is needed only when neither reading presumes a break, and the earlier date by months is shown separately; "1 year" is 365 days (PD-093). The 3 months in your state are calendar months, and are required before filing even when filing early (PD-096).',
     ),
   ];
   const assumptions = [...naturalizationAssumptions, projection];
