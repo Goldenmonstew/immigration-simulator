@@ -291,8 +291,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'site.name': 'Immigration Path Simulator',
   'hub.title': 'Choose a country to explore immigration pathways',
   'hub.intro':
-    'Assess permanent residence, settlement and citizenship requirements from your visa and travel timeline under official rules, or play through a life in town to see how everyday choices shape your dates.',
-  'hub.badge.rules': 'Full statutory checks',
+    'Use your visa, residence and travel history to see the earliest dates and open questions for permanent residence, settlement or citizenship. The UK calculator checks statutory requirements for the settlement routes it covers. The other countries currently check time requirements only. You can also try the pixel-town life simulation.',
+  'hub.badge.rules': 'UK statutory settlement checks',
   'hub.badge.whatif': 'What-if scenario comparison',
   'hub.badge.sources': 'Traceable official sources',
   'hub.badge.game': 'Pixel-town life simulation',
@@ -306,7 +306,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.prepare':
     'Have your visa or residence permit dates and travel record ready, along with any income, language, contribution or test details relevant to the country. Leave uncertain items blank to see what is already met and what remains to be confirmed.',
   'hub.privacy':
-    'No account or document uploads. All questionnaire inputs, saved scenarios and game progress are processed and stored only in this browser on your device. Other people using a shared device may see records saved on it.',
+    'No account is needed. Calculations run in your browser, and questionnaire inputs are never uploaded. UK questionnaire drafts, saved scenarios and game progress are stored in this browser, where others using a shared device may see them. Questionnaires for the other countries reset when you refresh the page.',
   'hub.disclaimerTitle': 'About this simulator',
   'hub.disclaimer':
     'This site provides general policy information, statutory requirement checks and hypothetical scenario modelling. It does not determine your legal immigration status, is not immigration or legal advice, and does not guarantee the outcome of any application. Check the immigration authority’s official guidance or consult a qualified professional before applying.',
