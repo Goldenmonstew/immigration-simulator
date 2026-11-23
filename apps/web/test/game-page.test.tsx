@@ -55,7 +55,7 @@ import {
 import { t, withCount } from '../i18n';
 import townMap from '../public/game/town.json';
 import homeMap from '../public/game/home.json';
-import { decodeDraft, encodeDraft } from '../lib/share';
+import { decodeDraft, encodeDraft } from './uk-scenarios';
 import { portraitPath, townBanner } from '../app/uk/game/art';
 import Home from '../app/uk/home-content';
 import { AssessmentColumns } from '../components/result-view';

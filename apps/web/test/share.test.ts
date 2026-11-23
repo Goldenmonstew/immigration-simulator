@@ -6,8 +6,8 @@ import type {
   PersonTimeline,
 } from '@uk-immigration/engine';
 import { createDraft, runSimulation } from '../lib/questionnaire';
-import { decodeDraft, encodeDraft } from '../lib/share';
-import { applyWhatIf, initialWhatIf } from '../lib/whatif';
+import { decodeDraft, encodeDraft } from './uk-scenarios';
+import { applyWhatIf, initialWhatIf } from '../lib/uk-whatif';
 
 test('a complete draft round trips through UTF-8 base64url without dropping inputs', () => {
   const draft = createDraft();

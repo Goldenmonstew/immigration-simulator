@@ -11,6 +11,7 @@ async function seriousViolations(page: Page) {
 }
 
 for (const path of [
+  '/',
   ...['', 'simulate', 'policy', 'about', 'game'].map((sub) =>
     countryPath('uk', sub),
   ),

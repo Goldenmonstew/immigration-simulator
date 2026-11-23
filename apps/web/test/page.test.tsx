@@ -1,14 +1,110 @@
+import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
 import type { DecisionOutcome, SimulationResult } from '@uk-immigration/engine';
+import HubPage, { metadata as hubMetadata } from '../app/page';
+import { metadata as rootMetadata } from '../app/layout';
 import Home from '../app/uk/page';
-import { ResultView } from '../components/result-view';
+import { ResultView } from './uk-result-views';
+import { SiteShell } from '../components/site-shell';
 import { t } from '../i18n';
+import type { TranslationKey } from '../i18n';
+import { LocaleContext } from '../i18n/locale';
 import { routeGroupNames } from '../i18n/routes';
 import { policyAsOf } from '../lib/policy';
 import { mockResults } from '../lib/mock-results';
+import { countryPath, siteCountries } from '../lib/site-countries';
 import { sourceUrls } from '../lib/sources';
 import { createDraft, runSimulation } from '../lib/questionnaire';
+
+test.each(['zh-CN', 'en'] as const)(
+  'hub page renders 11 country cards, links, shell navigation and bilingual copy in %s',
+  (locale) => {
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <SiteShell>
+          <HubPage />
+        </SiteShell>
+      </LocaleContext>,
+    );
+    for (const key of [
+      'site.name',
+      'site.shortName',
+      'site.navigation',
+      'hub.title',
+      'hub.intro',
+      'hub.badge.rules',
+      'hub.badge.whatif',
+      'hub.badge.sources',
+      'hub.badge.game',
+      'hub.badge.local',
+      'hub.countriesTitle',
+      'hub.beforeTitle',
+      'hub.prepare',
+      'hub.privacy',
+      'hub.disclaimerTitle',
+      'hub.disclaimer',
+    ] as const) {
+      expect(html).toContain(t(key, locale));
+    }
+    expect(html).not.toContain(t('site.allCountries', locale));
+    expect(html).toContain(`<a href="/uk/about">${t('about.link', locale)}</a>`);
+    if (locale === 'zh-CN') {
+      expect(html).toContain(t('hub.disclaimerEnglish', locale));
+    } else {
+      expect(html).not.toMatch(/[\u3400-\u9fff：、（）]/);
+    }
+    expect(html).not.toMatch(/试点|\bpilots?\b/i);
+    expect(html.match(/<article\b/g)).toHaveLength(siteCountries.length);
+
+    for (const { id, nameKey, hasGame } of siteCountries) {
+      const name = t(nameKey, locale);
+      expect(html).toContain(`<h3 id="country-${id}">${name}</h3>`);
+      expect(html).toContain(t(`hub.${id}.code` as TranslationKey, locale));
+      expect(html).toContain(t(`hub.${id}.desc` as TranslationKey, locale));
+      for (const pathLabel of t(
+        `hub.${id}.paths` as TranslationKey,
+        locale,
+      ).split(' · ')) {
+        expect(html).toContain(`<li>${pathLabel}</li>`);
+      }
+      const calcAria = t('hub.calculateAria', locale).replace(
+        '{country}',
+        name,
+      );
+      expect(html).toContain(`href="${countryPath(id)}"`);
+      expect(html).toContain(`aria-label="${calcAria}"`);
+      const gameHref = `href="${countryPath(id, 'game')}"`;
+      if (hasGame) {
+        const gameAria = t('hub.playGameAria', locale).replace(
+          '{country}',
+          name,
+        );
+        expect(html).toContain(gameHref);
+        expect(html).toContain(`aria-label="${gameAria}"`);
+      } else {
+        expect(html).not.toContain(gameHref);
+      }
+    }
+  },
+);
+
+test('site metadata and manifest use the multi-country name and hub intro', () => {
+  const manifest = JSON.parse(
+    readFileSync(
+      new URL('../public/manifest.webmanifest', import.meta.url),
+      'utf8',
+    ),
+  ) as { name: string; short_name: string };
+  expect(t('site.name')).toBe('移民路径模拟');
+  expect(t('site.name', 'en')).toBe('Immigration Path Simulator');
+  expect(t('site.shortName')).toBe('移民模拟');
+  expect(t('site.shortName', 'en')).toBe('Path Sim');
+  expect(rootMetadata.description).toBe(t('hub.intro'));
+  expect(hubMetadata.description).toBe(t('hub.intro'));
+  expect(manifest.name).toBe('移民路径模拟');
+  expect(manifest.short_name).toBe('移民模拟');
+});
 
 test('homepage presents policy status, disclaimer, privacy and the questionnaire entry', () => {
   const html = renderToStaticMarkup(<Home />);

@@ -3,7 +3,7 @@ import * as React from 'react';
 import { expect, test, vi } from 'vitest';
 import * as engine from '@uk-immigration/engine';
 import SimulatePage from '../app/uk/simulate/page';
-import { ResultView } from '../components/result-view';
+import { ResultView } from './uk-result-views';
 import { en } from '../i18n/en';
 import { t } from '../i18n';
 import { LocaleContext } from '../i18n/locale';

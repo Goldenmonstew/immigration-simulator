@@ -1,13 +1,13 @@
 export const zhCN = {
   'us.name': '美国',
-  'us.entryLink': '打开美国试点',
+  'us.entryLink': '打开美国模拟器',
   'us.entryDesc':
     '按绿卡日期与出入境记录，计算入籍、配偶入籍、取消绿卡条件与离境时长的时间节点。',
-  'us.title': '美国：入籍与绿卡的时间（试点）',
+  'us.title': '美国：入籍与绿卡的时间',
   'us.intro':
     '按你的绿卡日期和出入境记录，计算只看时间的几个节点：一般入籍、美国公民配偶入籍、条件绿卡的取消条件递交期，以及离境多久会影响凭绿卡回美。绿卡本身怎么拿（亲属、雇主、投资类别与排期）不在范围内。',
   'us.scope':
-    '试点只检查法律与 USCIS 政策手册写明的时间条件；英语与公民考试、品行、是否放弃居住等不检查，结果里逐项列出。所填内容只在你的浏览器里计算，不保存、不上传。',
+    '这里只检查法律与 USCIS 政策手册写明的时间条件；英语与公民考试、品行、是否放弃居住等不检查，结果里逐项列出。所填内容只在你的浏览器里计算，不保存、不上传。',
   'us.basics': '基本信息',
   'us.simulationDate': '模拟日期',
   'us.simulationDateHint': '按这一天判断（入籍按递交日），默认今天。',
@@ -49,15 +49,14 @@ export const zhCN = {
 
 export const en: Record<keyof typeof zhCN, string> = {
   'us.name': 'United States',
-  'us.entryLink': 'Open the United States pilot',
+  'us.entryLink': 'Open the United States',
   'us.entryDesc':
     'Use your green card date and travel record to work out the dates for naturalization, naturalization as the spouse of a citizen, removing conditions and time abroad.',
-  'us.title':
-    'United States: dates for naturalization and your green card (pilot)',
+  'us.title': 'United States: dates for naturalization and your green card',
   'us.intro':
     'From your green card date and trips, this works out the steps that depend on time alone: general naturalization, naturalization as the spouse of a U.S. citizen, the filing period for removing conditions, and how long you can be away and still return on your green card. How you get a green card (family, employment and investment categories, priority dates) is out of scope.',
   'us.scope':
-    'The pilot checks only the time requirements in the law and the USCIS Policy Manual. It does not check the English and civics tests, good moral character, abandonment of residence or other requirements; each result lists them. Your entries are processed in your browser and are not saved or uploaded.',
+    'This checks only the time requirements in the law and the USCIS Policy Manual. It does not check the English and civics tests, good moral character, abandonment of residence or other requirements; each result lists them. Your entries are processed in your browser and are not saved or uploaded.',
   'us.basics': 'About you',
   'us.simulationDate': 'Simulation date',
   'us.simulationDateHint':

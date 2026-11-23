@@ -10,7 +10,7 @@ import type {
   SimulationResult,
 } from '@uk-immigration/engine';
 import { t, type TranslationKey } from '../i18n';
-import { displayedRuleSets, policyAsOf } from './policy';
+import { displayedRuleSets, policyAsOf } from './uk-policy';
 import { countries } from './country-names';
 
 export const steps = [

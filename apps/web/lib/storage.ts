@@ -1,57 +1,84 @@
-import type { Locale, SimulationResult } from '@uk-immigration/engine';
-import type { Draft } from './questionnaire';
+import type { CountryResult, Locale } from '@uk-immigration/engine';
+import type { CountryDraft, CountryModule } from './country-module';
 
-const draftKey = 'uk-immigration-draft-v1';
-let memoryDraft: Draft | undefined;
-let memoryResult: { result: SimulationResult; locale: Locale } | undefined;
+type DraftModule<D extends CountryDraft> = Pick<
+  CountryModule<D, never>,
+  'id' | 'version' | 'createDraft'
+>;
+type StorageCountry = Pick<DraftModule<CountryDraft>, 'id' | 'version'>;
+
+function storageKey(country: StorageCountry, kind: 'draft' | 'scenarios') {
+  return `${country.id}-immigration-${kind}-v${country.version}`;
+}
+
+const memoryDrafts = new Map<string, CountryDraft>();
+const memoryResults = new Map<
+  string,
+  { result: CountryResult; locale: Locale }
+>();
 
 // A single storage boundary handles unavailable storage and invalid JSON.
-export function draftStorage(next?: Draft): {
-  draft: Draft | undefined;
+export function draftStorage<D extends CountryDraft>(
+  country: DraftModule<D>,
+  next?: D,
+): {
+  draft: D | undefined;
   available: boolean;
 } {
+  const key = storageKey(country, 'draft');
+  let draft = memoryDrafts.get(key) as D | undefined;
   if (next) {
-    memoryDraft = next;
-    memoryResult = undefined;
+    draft = next;
+    memoryDrafts.set(key, next);
+    memoryResults.delete(key);
   }
   try {
     if (next) {
-      localStorage.setItem(draftKey, JSON.stringify(next));
+      localStorage.setItem(key, JSON.stringify(next));
     } else {
-      const saved = localStorage.getItem(draftKey);
-      const parsed: Draft | undefined = saved ? JSON.parse(saved) : undefined;
-      if (parsed?.version === 1) memoryDraft = parsed;
+      const saved = localStorage.getItem(key);
+      const parsed: D | undefined = saved ? JSON.parse(saved) : undefined;
+      if (parsed?.version === country.version) {
+        draft = parsed;
+        memoryDrafts.set(key, parsed);
+      }
     }
-    return { draft: memoryDraft, available: true };
+    return { draft, available: true };
   } catch {
-    return { draft: memoryDraft, available: false };
+    return { draft, available: false };
   }
 }
 
-export function rememberResult(result: SimulationResult, locale: Locale): void {
-  memoryResult = { result, locale };
+export function rememberResult(
+  country: StorageCountry,
+  result: CountryResult,
+  locale: Locale,
+): void {
+  memoryResults.set(storageKey(country, 'draft'), { result, locale });
 }
 export function getRememberedResult(
+  country: StorageCountry,
   locale: Locale,
-): SimulationResult | undefined {
-  return memoryResult?.locale === locale ? memoryResult.result : undefined;
+): CountryResult | undefined {
+  const cached = memoryResults.get(storageKey(country, 'draft'));
+  return cached?.locale === locale ? cached.result : undefined;
 }
 
-export interface SavedScenario {
+export interface SavedScenario<D extends CountryDraft> {
   id: string;
   name: string;
   savedAt: string;
-  draft: Draft;
+  draft: D;
 }
 
-const scenariosKey = 'uk-immigration-scenarios-v1';
-
-export function readScenarios(): {
-  scenarios: SavedScenario[];
+export function readScenarios<D extends CountryDraft>(
+  country: DraftModule<D>,
+): {
+  scenarios: SavedScenario<D>[];
   available: boolean;
 } {
   try {
-    const saved = localStorage.getItem(scenariosKey);
+    const saved = localStorage.getItem(storageKey(country, 'scenarios'));
     const scenarios = saved ? JSON.parse(saved) : [];
     if (
       !Array.isArray(scenarios) ||
@@ -61,7 +88,7 @@ export function readScenarios(): {
           typeof item.id !== 'string' ||
           typeof item.name !== 'string' ||
           typeof item.savedAt !== 'string' ||
-          item.draft?.version !== 1,
+          item.draft?.version !== country.version,
       )
     )
       return { scenarios: [], available: false };
@@ -71,19 +98,29 @@ export function readScenarios(): {
   }
 }
 
-function writeScenarios(scenarios: SavedScenario[]) {
+function writeScenarios<D extends CountryDraft>(
+  country: DraftModule<D>,
+  scenarios: SavedScenario<D>[],
+) {
   try {
-    localStorage.setItem(scenariosKey, JSON.stringify(scenarios));
+    localStorage.setItem(
+      storageKey(country, 'scenarios'),
+      JSON.stringify(scenarios),
+    );
     return { scenarios, available: true };
   } catch {
-    return { ...readScenarios(), available: false };
+    return { ...readScenarios(country), available: false };
   }
 }
 
-export function saveScenario(name: string, draft: Draft) {
-  const stored = readScenarios();
+export function saveScenario<D extends CountryDraft>(
+  country: DraftModule<D>,
+  name: string,
+  draft: D,
+) {
+  const stored = readScenarios(country);
   if (!stored.available) return stored;
-  return writeScenarios([
+  return writeScenarios(country, [
     ...stored.scenarios,
     {
       id: crypto.randomUUID(),
@@ -94,17 +131,24 @@ export function saveScenario(name: string, draft: Draft) {
   ]);
 }
 
-export function deleteScenario(id: string) {
-  const stored = readScenarios();
+export function deleteScenario<D extends CountryDraft>(
+  country: DraftModule<D>,
+  id: string,
+) {
+  const stored = readScenarios(country);
   if (!stored.available) return stored;
   return writeScenarios(
+    country,
     stored.scenarios.filter((scenario) => scenario.id !== id),
   );
 }
 
-export function loadScenario(scenario: SavedScenario): Draft {
+export function loadScenario<D extends CountryDraft>(
+  country: DraftModule<D>,
+  scenario: SavedScenario<D>,
+): D {
   // What-if share links can contain drafts marked incomplete after an edit.
   const next = { ...scenario.draft, completed: true };
-  draftStorage(next);
+  draftStorage(country, next);
   return next;
 }

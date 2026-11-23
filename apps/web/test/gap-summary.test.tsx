@@ -1,8 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
 import type { RuleOutcome, SettlementAssessment } from '@uk-immigration/engine';
-import { GapSummary } from '../components/gap-summary';
-import { ResultView } from '../components/result-view';
+import { GapSummary, gapRules } from './uk-result-views';
+import { ResultView } from './uk-result-views';
 import { clHkbnoFiveYears } from '../../../packages/policy-data/fixtures/cl-hkbno-five-years';
 import { clFamilyFiveYearChildProjected } from '../../../packages/policy-data/fixtures/cl-family-five-year-child-projected';
 import { esP45IndividualCCareWorkerAfterCutoff as skilledWorker } from '../../../packages/policy-data/fixtures/es-p45-individual-c-care-worker-after-cutoff';
@@ -13,7 +13,7 @@ import {
 } from '../lib/questionnaire';
 import { LocaleContext } from '../i18n/locale';
 import { t } from '../i18n';
-import { firstSentence, gapRules, remainingTime } from '../lib/gap-summary';
+import { firstSentence, remainingTime } from '../lib/gap-summary';
 
 const rule = (
   id: string,

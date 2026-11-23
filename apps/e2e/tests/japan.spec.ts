@@ -1,11 +1,11 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-test('the Japan pilot works out permanent residence for a spouse', async ({
+test('Japan calculator works out permanent residence for a spouse', async ({
   page,
 }) => {
   await page.goto('/');
-  await page.getByRole('link', { name: '打开日本试点' }).click();
+  await page.getByRole('link', { name: '日本：开始计算' }).click();
   await expect(page).toHaveURL(/\/japan/);
 
   // Submitting without dates moves focus to the linked summary.

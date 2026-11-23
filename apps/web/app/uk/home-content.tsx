@@ -4,18 +4,17 @@ import Link from 'next/link';
 import { PolicyStatus } from '../../components/policy-status';
 import { SavedScenarios } from '../../components/saved-scenarios';
 import { useTranslation } from '../../i18n/locale';
-import { punct } from '../../i18n/punctuation';
-import { policyAsOf } from '../../lib/policy';
-import { countryPath, nonUkCountries } from '../../lib/site-countries';
+import { ukModule } from '../../lib/uk-module';
+import { policyAsOf } from '../../lib/uk-policy';
+import { countryPath } from '../../lib/site-countries';
 import { townBanner } from './game/art';
 import styles from '../site.module.css';
 
 export default function Home() {
   const { t, locale } = useTranslation();
-  const p = punct(locale);
   return (
     <main id="main" className={styles.main}>
-      <PolicyStatus asOf={policyAsOf} />
+      <PolicyStatus country={ukModule} asOf={policyAsOf} />
       <div className={styles.homeHero}>
         <div className={styles.narrow}>
           <h1>{t('home.title')}</h1>
@@ -44,19 +43,7 @@ export default function Home() {
         </Link>
       </div>
       <div className={styles.narrow}>
-        <SavedScenarios />
-        <section className={styles.section}>
-          <h2>{t('pilot.entryTitle')}</h2>
-          <ul>
-            {nonUkCountries.map(({ id }) => (
-              <li key={id}>
-                <Link href={countryPath(id)}>{t(`${id}.entryLink`)}</Link>
-                {p.colon}
-                {t(`${id}.entryDesc`)}
-              </li>
-            ))}
-          </ul>
-        </section>
+        <SavedScenarios country={ukModule} />
         <section className={styles.section}>
           <h2>{t('home.before')}</h2>
           <p>{t('home.prepare')}</p>

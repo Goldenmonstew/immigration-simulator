@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
-import { WhatIfView } from '../components/whatif-lab';
+import { WhatIfView } from './uk-whatif';
 import { t } from '../i18n';
 import { createDraft } from '../lib/questionnaire';
 
