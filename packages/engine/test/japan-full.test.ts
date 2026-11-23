@@ -1449,6 +1449,80 @@ describe('re-entry and travel documents', () => {
     returnOn: '2027-10-02',
     stayExpiresOn: '2028-10-02',
   } as const;
+
+  test.each([
+    {
+      channel: 'counter',
+      simulationDate: '2027-04-03',
+      departureOn: '2027-04-12',
+      permitEffectiveOn: '2027-04-05',
+      expectedStatus: 'MET',
+      earliestDate: '2027-04-05',
+    },
+    {
+      channel: 'counter',
+      simulationDate: '2027-04-03',
+      departureOn: '2027-04-04',
+      permitEffectiveOn: '2027-04-03',
+      expectedStatus: 'NOT_MET',
+      earliestDate: undefined,
+    },
+    {
+      channel: 'online',
+      simulationDate: '2027-04-03',
+      departureOn: '2027-04-04',
+      permitEffectiveOn: '2027-04-03',
+      expectedStatus: 'MET',
+      earliestDate: '2027-04-03',
+    },
+    {
+      channel: 'counter',
+      simulationDate: '2028-03-18',
+      departureOn: '2028-03-24',
+      permitEffectiveOn: '2028-03-22',
+      expectedStatus: 'UNKNOWN',
+      earliestDate: undefined,
+    },
+  ] as const)(
+    'checks ordinary $channel filing from $simulationDate for departure on $departureOn',
+    ({
+      channel,
+      simulationDate,
+      departureOn,
+      permitEffectiveOn,
+      expectedStatus,
+      earliestDate,
+    }) => {
+      const result = reentry(
+        {
+          ...ordinary,
+          channel,
+          stayIndefinite: false,
+          stayExpiresOn: '2030-04-01',
+          departureOn,
+          returnOn: '2028-05-01',
+          permit: {
+            effectiveOn: permitEffectiveOn,
+            expiresOn: '2029-04-05',
+          },
+        },
+        { simulationDate },
+      );
+      expect(status(result, 'ordinary-eligibility')).toBe(expectedStatus);
+      expect(status(result, 'ordinary-validity')).toBe('MET');
+      expect(result.status).toBe(expectedStatus);
+      expect(result.earliestDate).toBe(earliestDate);
+      if (channel === 'online') {
+        expect(status(result, 'online-application')).toBe('MET');
+      }
+      if (expectedStatus === 'UNKNOWN') {
+        expect(
+          condition(result, 'ordinary-eligibility').pendingDetails,
+        ).toContain('PD-370');
+      }
+    },
+  );
+
   test('ordinary term, extension, fee timing and available channel', () => {
     const result = reentry(ordinary, { applicationDate: '2026-10-01' });
     expect(result.status).toBe('MET');

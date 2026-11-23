@@ -7,6 +7,7 @@ import {
   filingContext,
   full,
   inapplicable,
+  nextCounterFilingDay,
   old,
   ref,
 } from './japan-full-shared';
@@ -87,7 +88,12 @@ export function assessJapanReentry(
   req: JpFullContext,
   route: JpFullReentryRequest,
 ): JpFullPathway {
-  const { date, L } = filingContext(req);
+  const { date: requestedDate, L } = filingContext(req);
+  const counterFiling =
+    route.route === 'ordinary' && route.channel === 'counter'
+      ? nextCounterFilingDay(requestedDate)
+      : undefined;
+  const date = counterFiling?.date ?? requestedDate;
   const rr = full.reentry.value;
   const fees = full.fees.value;
   const travel = full.reentry.sources;
@@ -163,6 +169,7 @@ export function assessJapanReentry(
   let fee: number | undefined;
 
   if (route.route === 'ordinary') {
+    const counterOpen = counterFiling ? counterFiling.open : true;
     r(
       'ordinary-eligibility',
       '普通再入国资格与材料',
@@ -173,12 +180,23 @@ export function assessJapanReentry(
         route.inJapanWhenApplying,
         route.intendsReturn,
         departure ? date <= departure : undefined,
+        counterOpen,
         route.passportOrApprovedAlternative,
         route.residentCardOrCertificate,
       ),
-      routeSources,
+      [
+        ...routeSources,
+        ref('SRC-461', '再入国許可申請「申請期間」'),
+        ...(counterFiling
+          ? [
+              ref('SRC-461', '再入国許可申請「受付時間」'),
+              ref('SRC-112', '行政機関の休日に関する法律第1条第1項'),
+            ]
+          : []),
+      ],
       '在日本以适用身份合法在留，赴海外前申请，确认返日意向、证件、获准替代材料及处分限制。',
       'Apply in Japan before departure while lawfully residing under a qualifying status. Confirm return intent, documents or alternatives and any restrictions.',
+      counterOpen === undefined ? ['PD-370', 'PD-379'] : ['PD-379'],
     );
 
     const permit = route.permit;

@@ -1218,6 +1218,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-461 普通再入国与難民旅行証明書手续
 
 - 審査基準、手数料、オンライン申請及旅行证件的适用。
+- 再入国許可申請「申請期間」「受付時間」「オンライン申請」分别说明出境前递交、平日窗口受理和在线合并申请条件。
 - `policy-sources/2026-11-22-jp-isa-reentry-application.html` → <https://www.moj.go.jp/isa/immigration/procedures/16-5.html>
 - `policy-sources/2026-11-23-jp-isa-refugee-travel-application.html` → <https://www.moj.go.jp/isa/refugee/procedures/16-7.html>
 - `policy-sources/2026-11-23-jp-isa-refugee-travel.html` → <https://www.moj.go.jp/isa/refugee/procedures/ryokou_00001.html>

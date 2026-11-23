@@ -136,6 +136,15 @@ export function filingContext(req: JpFullContext) {
   return { date, L, input };
 }
 
+export function nextCounterFilingDay(date: IsoDate) {
+  let closed = jpOfficeClosed(date);
+  while (closed === 'yes') {
+    date = addDays(date, 1);
+    closed = jpOfficeClosed(date);
+  }
+  return { date, open: closed === 'no' ? true : undefined };
+}
+
 export function scheduleFiling(
   result: JpFullPathway,
   L: JpText,
@@ -144,9 +153,8 @@ export function scheduleFiling(
   const { earliestDate } = result;
   if (earliestDate === undefined) return result;
 
-  let next = earliestDate;
-  while (jpOfficeClosed(next) === 'yes') next = addDays(next, 1);
-  if (jpOfficeClosed(next) === 'maybe')
+  const { date: next, open } = nextCounterFilingDay(earliestDate);
+  if (open === undefined)
     return {
       ...result,
       earliestDate: undefined,
