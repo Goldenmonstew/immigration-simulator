@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { countryPath, nonUkCountries } from '../../web/lib/site-countries';
 import { completedDraft as draft } from './helpers';
 
 test(
@@ -55,19 +56,11 @@ test('the service worker keeps the site pages available offline', async ({
     .toBe(true);
   await context.setOffline(true);
   for (const path of [
-    '/result',
-    '/whatif',
-    '/policy',
-    '/australia',
-    '/new-zealand',
-    '/canada',
-    '/united-states',
-    '/spain',
-    '/greece',
-    '/portugal',
-    '/japan',
-    '/germany',
-    '/ireland',
+    ...['result', 'whatif', 'policy'].map((sub) => countryPath('uk', sub)),
+    ...nonUkCountries
+      .filter(({ id }) => id !== 'ie')
+      .map(({ id }) => countryPath(id)),
+    countryPath('ie'),
   ]) {
     expect((await page.goto(path))?.ok()).toBe(true);
   }

@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { countryPath, nonUkCountries } from '../../web/lib/site-countries';
 import { completedDraft, startGame } from './helpers';
 
 async function seriousViolations(page: Page) {
@@ -10,21 +11,10 @@ async function seriousViolations(page: Page) {
 }
 
 for (const path of [
-  '/',
-  '/simulate',
-  '/policy',
-  '/about',
-  '/game',
-  '/australia',
-  '/new-zealand',
-  '/canada',
-  '/united-states',
-  '/spain',
-  '/greece',
-  '/ireland',
-  '/portugal',
-  '/japan',
-  '/germany',
+  ...['', 'simulate', 'policy', 'about', 'game'].map((sub) =>
+    countryPath('uk', sub),
+  ),
+  ...nonUkCountries.map(({ id }) => countryPath(id)),
 ]) {
   test(`no serious accessibility violations on ${path}`, async ({ page }) => {
     await page.goto(path);
