@@ -465,7 +465,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'benefits.publicFunds': 'Public funds',
   'benefits.notPublicFunds': 'Not public funds',
   'site.language': 'Language',
-  'pilot.entryTitle': 'Other countries (pilots)',
+  'pilot.entryTitle': 'Other countries',
   ...au,
   'pilot.resultTitle': 'Results',
   'pilot.policyAsOf': 'Based on official sources checked on {date}.',

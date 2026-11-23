@@ -2,12 +2,12 @@ export const zhCN = {
   'au.name': '澳大利亚',
   'au.entryDesc':
     '按签证与出入境记录，计算 191、186 TRT、伴侣签永久阶段、回头签与入籍居住的时间节点。',
-  'au.entryLink': '打开澳大利亚试点',
-  'au.title': '澳大利亚：转永居、回头签与入籍的时间（试点）',
+  'au.entryLink': '打开澳大利亚模拟器',
+  'au.title': '澳大利亚：转永居、回头签与入籍的时间',
   'au.intro':
     '按你在澳洲的签证和出入境记录，计算只看时间的几个节点：191、香港类别（189、191）、186 TRT、伴侣签永久阶段、回头签 RRV 和入籍居住要求。靠打分邀请的签证（189 打分类、190、491 等）不在范围内。',
   'au.scope':
-    '试点只检查条例写明的时间条件；英语、健康、品格、雇主提名、地区居住等条件不检查（191 香港地区类别按你填写的指定地区起始日计算），结果里逐项列出。所填内容只在你的浏览器里计算，不保存、不上传。',
+    '这里只检查条例写明的时间条件；英语、健康、品格、雇主提名、地区居住等条件不检查（191 香港地区类别按你填写的指定地区起始日计算），结果里逐项列出。所填内容只在你的浏览器里计算，不保存、不上传。',
   'au.basics': '基本信息',
   'au.simulationDate': '模拟日期',
   'au.simulationDateHint': '按这一天判断，默认今天。',
@@ -73,13 +73,13 @@ export const en: Record<keyof typeof zhCN, string> = {
   'au.name': 'Australia',
   'au.entryDesc':
     'Use your visa and travel record to work out the dates for subclass 191, 186 TRT, the partner permanent stage, the Resident Return visa and citizenship residence.',
-  'au.entryLink': 'Open the Australia pilot',
+  'au.entryLink': 'Open Australia',
   'au.title':
-    'Australia: permanent residence, return visa and citizenship dates (pilot)',
+    'Australia: permanent residence, return visa and citizenship dates',
   'au.intro':
     'From your Australian visas and trips, this works out the steps that depend on time alone: subclass 191, the Hong Kong streams of 189 and 191, the 186 Temporary Residence Transition stream, the partner visa permanent stage, the Resident Return visa and the citizenship residence requirement. Points-tested visas (such as the points-tested 189, 190 and 491) are out of scope.',
   'au.scope':
-    'The pilot checks only the time requirements written in the regulations. It does not check English, health, character, employer nomination, regional residence or other requirements (the 191 Hong Kong (Regional) stream uses the regional start date you enter); each result lists them. Your entries are processed in your browser and are not saved or uploaded.',
+    'This checks only the time requirements written in the regulations. It does not check English, health, character, employer nomination, regional residence or other requirements (the 191 Hong Kong (Regional) stream uses the regional start date you enter); each result lists them. Your entries are processed in your browser and are not saved or uploaded.',
   'au.basics': 'About you',
   'au.simulationDate': 'Simulation date',
   'au.simulationDateHint':

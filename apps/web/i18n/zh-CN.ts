@@ -281,7 +281,7 @@ export const zhCN = {
   'home.disclaimerTitle': '使用说明与免责说明',
   'home.disclaimer':
     '根据你填写的信息，这些规则可能与你有关。本模拟器提供一般政策信息与假设情景模拟，不判定你的法律移民身份，不构成移民或法律意见，也不保证申请结果。',
-  'pilot.entryTitle': '其他国家（试点）',
+  'pilot.entryTitle': '其他国家',
   ...au,
   'pilot.resultTitle': '计算结果',
   'pilot.policyAsOf': '依据核对至 {date} 的官方来源。',
