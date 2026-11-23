@@ -843,7 +843,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-097 ISD：Without condition as to time（Stamp 5）
 
 - `policy-sources/2026-02-23-ie-isd-wcatt-application-form.pdf` → <https://www.irishimmigration.ie/wp-content/uploads/2026/02/Without-Conditions-as-to-Time-Stamp-5-editable-23-02-2026.pdf>
-- 申请表（PDF 元数据修改日 2026-02-25，文件名注 23-02-2026）p1：适用于在境内合法居留满 8 年（96 个月）的非 EEA 国民；"Applications will not be accepted from persons outside the State"，也不受理当前没有居留许可者的申请。试点据此在满期那天按已录入出行在境外时，把最早递交日顺延到回国当天。
+- 申请表（PDF 元数据修改日 2026-02-25，文件名注 23-02-2026）p1：适用于在境内合法居留满 8 年（96 个月）的非 EEA 国民；"Applications will not be accepted from persons outside the State"，也不受理当前没有居留许可者的申请。试点据此在满期那天按已录入出行在境外时，把最早递交日顺延到回国当天，并核对当天是否持有效许可（任务 72）。
 - `Introduction`、`Eligibility`：合法居留满 8 年（96 个月）可申请 Stamp 5，只按护照印章或过期 IRP 卡计算；计入 Stamp 1、1H、1G、3、4、4D、4S，不计 Stamp 4 EuFam、0、2、2A、1A、ICT 的 Stamp 1、ICT 配偶或家属的 1G、口岸临时许可、已注销许可（页面注明清单仅为示例）。FAQ `What are the conditions attached to my Stamp 5 permission`：连续居住允许合理的缺席，"for Without Condition As To Time endorsement, does not exceed more than 4 months in a year"。
 - ISD 页面为 WordPress 动态页面，每周核对可能报 changed，需人工核对正文。
 

@@ -788,6 +788,15 @@ export function evaluateIreland(req: IeRequest): IeResult {
       let back = earliest ? days.index(earliest) : 0;
       while (earliest && back < days.count && away[back]) back++;
       const filing = earliest && days.date(back);
+      // Nor from people without a residence permission (same page): the
+      // return day needs a permission in the State too.
+      const permitted = holds(
+        IE_PERMISSION_KINDS.filter(
+          (k) => k !== 'ni-residence' && k !== 'protection-applicant',
+        ),
+      );
+      const lapsed =
+        !!filing && filing !== earliest && (!permitted(back) || ni[back]);
       pathways.push({
         id: 'IE-STAMP4',
         title: L(
@@ -816,17 +825,22 @@ export function evaluateIreland(req: IeRequest): IeResult {
                 ` Counting "other" permissions, or adding up residence on both sides of a gap, it could be ${possible} (PD-114, PD-118).`,
               )
             : '') +
-          (filing && filing !== earliest
+          (lapsed
             ? L(
-                `按已录入的出行，你那天在境外；ISD 不受理在境外递交的申请，最早 ${filing} 回到爱尔兰后递交。`,
-                ` By your recorded trips you are abroad that day; ISD does not accept applications from outside the State, so the earliest filing date is ${filing}, when you are back.`,
+                `按已录入的出行，你那天在境外，${filing} 回到爱尔兰时按录入的许可已没有有效居留许可；ISD 不受理在境外或没有居留许可时递交的申请，须先取得有效许可，本试点不给出递交日期。`,
+                ` By your recorded trips you are abroad that day, and when you are back on ${filing} the permissions you entered have expired; ISD does not accept applications from outside the State or without a residence permission, so you need a valid permission first and this pilot gives no filing date.`,
               )
-            : filing
+            : filing && filing !== earliest
               ? L(
-                  '须在爱尔兰境内、持有效居留许可时递交。',
-                  ' You must be in Ireland and hold a residence permission when you apply.',
+                  `按已录入的出行，你那天在境外；ISD 不受理在境外递交的申请，最早 ${filing} 回到爱尔兰后递交。`,
+                  ` By your recorded trips you are abroad that day; ISD does not accept applications from outside the State, so the earliest filing date is ${filing}, when you are back.`,
                 )
-              : '') +
+              : filing
+                ? L(
+                    '须在爱尔兰境内、持有效居留许可时递交。',
+                    ' You must be in Ireland and hold a residence permission when you apply.',
+                  )
+                : '') +
           L(policy, ` ${policy}`),
         checks: [
           {
@@ -857,8 +871,8 @@ export function evaluateIreland(req: IeRequest): IeResult {
             `The ${months} months are taken as held without a break, and days living in Northern Ireland are not legal residence in the State; after a gap, whether residence on both sides can be added up is not stated, so that date is shown separately (PD-118). Whether "other" permissions count is uncertain (PD-114).`,
           ),
           L(
-            'ISD 不受理在境外或没有有效居留许可时递交的申请（申请表 p1）：满期那天按已录入的出行在境外的，最早递交日顺延到回到爱尔兰当天。',
-            'ISD does not accept applications from people outside the State or without a residence permission (application form p1): if your recorded trips have you abroad on the date the months are complete, the earliest filing date moves to the day you are back.',
+            'ISD 不受理在境外或没有有效居留许可时递交的申请（申请表 p1）：满期那天按已录入的出行在境外的，最早递交日顺延到回到爱尔兰当天，那天还须持有效许可。',
+            'ISD does not accept applications from people outside the State or without a residence permission (application form p1): if your recorded trips have you abroad on the date the months are complete, the earliest filing date moves to the day you are back, when you also need a valid permission.',
           ),
           L(
             `"每年在境外不超过 ${v.wcattAbsenceMonths.value} 个月"是获批后 Stamp 5 的居住条件，不用于判断能否申请；申请前的出境是否减少 ${months} 个月没有写，本试点不扣除（PD-117）。`,

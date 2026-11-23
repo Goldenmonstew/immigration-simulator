@@ -727,6 +727,22 @@ describe('Stamp 4 and Stamp 5 (ISD policy)', () => {
     expect(pathway(req, 'IE-STAMP4').summary).toContain('须在爱尔兰境内');
   });
 
+  test('Stamp 5: no filing date when the permission lapses before the return (task 72)', () => {
+    const p = pathway(
+      {
+        simulationDate: '2026-11-23',
+        permissions: [{ kind: 'stamp4', from: '2018-12-01', to: '2026-12-05' }],
+        trips: [{ departed: '2026-11-29', returned: '2026-12-10' }],
+        stamp4Route: 'wcatt',
+      },
+      'IE-STAMP4',
+    );
+    // 96 months on 2026-12-01; the card ends on 2026-12-05, abroad.
+    expect(p.earliestDate).toBe('2026-12-01');
+    expect(p.summary).toContain('没有有效居留许可');
+    expect(p.summary).not.toContain('回到爱尔兰后递交');
+  });
+
   test('GEP before the 2024-04-03 notice: the earlier rule is not modelled (review68-5)', () => {
     const req: Partial<IeRequest> = {
       simulationDate: '2024-02-01',
