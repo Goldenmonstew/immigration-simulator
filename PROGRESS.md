@@ -456,3 +456,4 @@
 | 432 | 任务 75 报告补记最终门禁、手机宽度预览与审核结论（通过）。 | docs/tasks/reports/75-portugal-risks.md |
 | 433 | 任务 73 审核建议处理（review73-4）：多次超期出境时说明列出此前每一次失效未定的出境；条件列表支持"若 C，且 A或B"的混合结构，更复杂的组合列出全部读法；§ 20 与两种机会卡的到期日标签改为"必填"；回归用例新增 5 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts、apps/web/lib/germany.ts、apps/web/app/germany/germany-content.tsx、apps/web/i18n/{zh-CN,en}.ts、apps/web/test/germany.test.tsx、docs/tasks/reports/73-germany-risks.md |
 | 434 | 任务 73 报告补记最终门禁、手机宽度预览与审核结论（通过）。 | docs/tasks/reports/73-germany-risks.md |
+| 440 | 第 20 阶段计划：去掉"试点"、十国完整版（全部条件、对比、分享、政策页、人生模拟游戏）、集合入口与英国迁到 /uk/、网站改名 immigration-simulator；AGENTS.md 改为 Codex 与 agy 的模型实现、Fable 统筹。 | docs/tasks/phase-20-plan.md、AGENTS.md |
