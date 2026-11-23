@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { useTranslation } from '../i18n/locale';
+import { countryPath } from '../lib/site-countries';
 import { issueUrl, reportError } from '../lib/report';
 import styles from './site.module.css';
 import { asset } from '../lib/asset';
@@ -42,7 +43,7 @@ export default function ErrorPage({
           <button type="button" className={styles.button} onClick={retry}>
             {t('error.retry')}
           </button>
-          <a className={styles.secondary} href={asset('/')}>
+          <a className={styles.secondary} href={asset(countryPath('uk'))}>
             {t('error.home')}
           </a>
         </p>

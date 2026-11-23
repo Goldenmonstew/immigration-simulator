@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import * as engine from '@uk-immigration/engine';
 import * as policyData from '@uk-immigration/policy-data';
 import { esP31IndividualAPartnerArrivesTogether as together } from '../../../packages/policy-data/fixtures/es-p31-individual-a-partner-arrives-together';
-import Home from '../app/page';
+import Home from '../app/uk/page';
 import { PrincipalAssessment, ResultView } from '../components/result-view';
 import { SiteShell } from '../components/site-shell';
 import { WhatIfView } from '../components/whatif-lab';

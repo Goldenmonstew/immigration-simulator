@@ -465,3 +465,4 @@
 | 441 | 任务 77：按国家拆分十国中英文案，保留原字典接口，补齐注册表使用的 11 个国家名称键。 | apps/web/i18n/{zh-CN,en}.ts、apps/web/i18n/countries/*.ts |
 | 442 | 任务 77：建立 11 国注册表与 countryPath，首页十国入口按原顺序从注册表渲染。 | apps/web/lib/site-countries.ts、apps/web/app/home-content.tsx |
 | 443 | 任务 77：静态导出离线页面清单，service worker 按注册作用域读取并升级至 v3；离线与无障碍 e2e 复用注册表，离线流程最后填写爱尔兰表单。 | apps/web/app/offline-pages.json/route.ts、apps/web/public/sw.js、apps/web/test/about-page.test.tsx、apps/e2e/tests/{site,a11y}.spec.ts、docs/tasks/reports/77-registry.md |
+| 450 | 任务 78：英国七页迁到 /uk，根路径复用英国首页。更新导航、问卷、结果分享、方案与游戏链接，离线清单保留根路径并覆盖七个英国页面，缓存升到 v4。 | apps/web/{app/uk/,app/page.tsx,app/error.tsx,app/offline-pages.json/route.ts,components/,lib/{site-countries,mock-results}.ts,public/sw.js,test/}、apps/e2e/tests/{a11y,game,life,mobile,questionnaire,site}.spec.ts、apps/e2e/tests/helpers.ts |

@@ -5,19 +5,19 @@ import { usePathname } from 'next/navigation';
 import { SiteShell } from '../components/site-shell';
 import { LocaleContext } from '../i18n/locale';
 import { t } from '../i18n';
-import game from '../app/game/game.module.css';
+import game from '../app/uk/game/game.module.css';
 import site from '../app/site.module.css';
-import { ItemIcon } from '../app/game/life-overlays';
+import { ItemIcon } from '../app/uk/game/life-overlays';
 
 vi.mock('next/navigation', () => ({ usePathname: vi.fn() }));
 afterEach(() => vi.resetAllMocks());
 
 const css = readFileSync(
-  new URL('../app/game/game.module.css', import.meta.url),
+  new URL('../app/uk/game/game.module.css', import.meta.url),
   'utf8',
 );
 const canvasCss = readFileSync(
-  new URL('../app/game/town-canvas.module.css', import.meta.url),
+  new URL('../app/uk/game/town-canvas.module.css', import.meta.url),
   'utf8',
 );
 
@@ -41,18 +41,19 @@ test('celebration icons fill a centered 72px slot and crops scale to their last 
 });
 
 test.each(['zh-CN', 'en'] as const)(
-  'entering and leaving /game scopes the warm theme and compact header in %s',
+  'entering and leaving /uk/game scopes the warm theme and compact header in %s',
   (locale) => {
     for (const path of [
-      '/simulate',
-      '/game',
-      '/policy',
-      '/game/',
-      '/result',
-      '/about',
-      '/whatif',
+      '/uk/simulate',
+      '/uk/game',
+      '/uk/policy',
+      '/uk/game/',
+      '/uk/result',
+      '/uk/about',
+      '/uk/whatif',
+      '/uk',
       '/',
-      '/game-preview',
+      '/uk/game-preview',
     ]) {
       vi.mocked(usePathname).mockReturnValue(path);
       const html = renderToStaticMarkup(
@@ -62,7 +63,7 @@ test.each(['zh-CN', 'en'] as const)(
           </SiteShell>
         </LocaleContext>,
       );
-      const isGame = path === '/game' || path === '/game/';
+      const isGame = path === '/uk/game' || path === '/uk/game/';
       expect(html.includes(`class="${game.theme}"`)).toBe(isGame);
       expect(html.includes(`class="${game.siteHeader}"`)).toBe(isGame);
       expect(html.includes(`class="${site.header}"`)).toBe(!isGame);
@@ -70,7 +71,7 @@ test.each(['zh-CN', 'en'] as const)(
       expect(html).toContain(
         t(isGame ? 'game.returnSimulator' : 'site.name', locale),
       );
-      expect(html).toContain('href="/"');
+      expect(html).toContain('href="/uk"');
       expect(html).toContain('lang="zh-CN"');
       expect(html).toContain('lang="en"');
     }
@@ -184,7 +185,7 @@ test('nearby places have a lighter frame while only the current interaction gets
 
 test('assessment theming preserves website defaults and supplies warm game overrides', () => {
   const result = readFileSync(
-    new URL('../app/result/result.module.css', import.meta.url),
+    new URL('../app/uk/result/result.module.css', import.meta.url),
     'utf8',
   );
   const siteCss = readFileSync(

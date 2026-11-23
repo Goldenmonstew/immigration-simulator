@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
 import type { DecisionOutcome, SimulationResult } from '@uk-immigration/engine';
-import Home from '../app/page';
+import Home from '../app/uk/page';
 import { ResultView } from '../components/result-view';
 import { t } from '../i18n';
 import { routeGroupNames } from '../i18n/routes';
@@ -20,7 +20,7 @@ test('homepage presents policy status, disclaimer, privacy and the questionnaire
     t('home.privacy'),
   ])
     expect(html).toContain(text);
-  expect(html).toContain('href="/simulate"');
+  expect(html).toContain('href="/uk/simulate"');
   expect(html).not.toContain('mock=');
   expect(html).toMatch(/<details[^>]*><summary>建模范围<\/summary>/);
   expect(html).not.toMatch(/<details[^>]*\bopen/);

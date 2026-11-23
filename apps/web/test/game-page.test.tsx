@@ -7,7 +7,7 @@ import { evaluate, type Locale } from '@uk-immigration/engine';
 import { currentLaw2026_11 } from '@uk-immigration/policy-data';
 import * as core from '@uk-immigration/game';
 import type { GameState } from '@uk-immigration/game';
-import TownCanvas from '../app/game/town-canvas';
+import TownCanvas from '../app/uk/game/town-canvas';
 import {
   CharacterSelect,
   ControlHint,
@@ -21,7 +21,7 @@ import {
   QuarterSummary,
   StatusBar,
   VisaReminder,
-} from '../app/game/game-view';
+} from '../app/uk/game/game-view';
 import {
   Dialogue,
   Fishing,
@@ -34,7 +34,7 @@ import {
   Shop,
   TravelCard,
   OutcomeText,
-} from '../app/game/life-overlays';
+} from '../app/uk/game/life-overlays';
 import {
   gameStorage,
   previewGameSave,
@@ -46,18 +46,18 @@ import {
   homeSpot,
   endingMemories,
   visaExpiresThisSeason,
-} from '../app/game/session';
+} from '../app/uk/game/session';
 import {
   recordMemories,
   groupedMemories,
   type DayMemory,
-} from '../app/game/diary';
+} from '../app/uk/game/diary';
 import { t, withCount } from '../i18n';
 import townMap from '../public/game/town.json';
 import homeMap from '../public/game/home.json';
 import { decodeDraft, encodeDraft } from '../lib/share';
-import { portraitPath, townBanner } from '../app/game/art';
-import Home from '../app/home-content';
+import { portraitPath, townBanner } from '../app/uk/game/art';
+import Home from '../app/uk/home-content';
 import { AssessmentColumns } from '../components/result-view';
 function expectCelebrationIcon(html: string) {
   const icon = html.match(
@@ -787,7 +787,7 @@ test('final season leads to the ending without another morning event', () => {
     () => Ending({ state: after, onChange: vi.fn() }),
     'en',
   );
-  expect(ending.html).toContain('href="/result#s=');
+  expect(ending.html).toContain('href="/uk/result#s=');
   expect(ending.html).not.toMatch(cjk);
 });
 
@@ -2180,7 +2180,7 @@ test.each(['zh-CN', 'en'] as const)(
     expect(select).toContain(townBanner);
     const home = renderView(() => <Home />, locale).html;
     expect(home).toContain(townBanner);
-    expect(home).toContain('href="/game"');
+    expect(home).toContain('href="/uk/game"');
     expect(home).toContain(t('game.entry', locale));
     for (const character of core.characters) {
       expect(select).toContain(portraitPath(character.id));

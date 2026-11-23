@@ -1,9 +1,9 @@
 import { mountClient } from './game-client-harness';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import * as core from '@uk-immigration/game';
-import { CharacterSelect } from '../app/game/character-select';
-import styles from '../app/game/game.module.css';
-import TownCanvas from '../app/game/town-canvas';
+import { CharacterSelect } from '../app/uk/game/character-select';
+import styles from '../app/uk/game/game.module.css';
+import TownCanvas from '../app/uk/game/town-canvas';
 import { t } from '../i18n';
 
 beforeEach(() => {

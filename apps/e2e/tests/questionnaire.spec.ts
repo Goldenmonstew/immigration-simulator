@@ -74,7 +74,7 @@ async function runQuestionnaire(page: Page, t: Dict, s: Scenario) {
   await page.getByLabel(t['date.label']).fill(s.date);
   await page.getByRole('button', { name: t['form.results'] }).click();
 
-  await expect(page).toHaveURL(/\/result/);
+  await expect(page).toHaveURL('/uk/result');
   await expect(
     page.getByRole('heading', { level: 1, name: t['result.title'] }),
   ).toBeVisible();
@@ -94,7 +94,7 @@ async function runQuestionnaire(page: Page, t: Dict, s: Scenario) {
 test('questionnaire by clicks: 5-year Skilled Worker on the day (G-SW-5Y-ON-DAY)', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/uk');
   await runQuestionnaire(page, zhCN, {
     date: '2026-06-01',
     outcome: 'outcome.LIKELY_ELIGIBLE',
@@ -108,7 +108,7 @@ test('questionnaire by clicks: 5-year Skilled Worker on the day (G-SW-5Y-ON-DAY)
 test('questionnaire by clicks in English: 200 days abroad (G-SW-ABSENCE-200-DAYS)', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/uk');
   await page.getByRole('button', { name: 'English' }).click();
   await runQuestionnaire(page, en, {
     date: '2026-06-01',

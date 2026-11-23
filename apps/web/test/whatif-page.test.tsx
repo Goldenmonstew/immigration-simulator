@@ -8,7 +8,7 @@ test('no completed draft renders a questionnaire link instead of controls', () =
   for (const draft of [undefined, createDraft()]) {
     const html = renderToStaticMarkup(<WhatIfView draft={draft} />);
     expect(html).toContain(t('whatif.empty'));
-    expect(html).toContain('href="/simulate"');
+    expect(html).toContain('href="/uk/simulate"');
     expect(html).not.toContain('type="range"');
     expect(html).not.toContain(t('whatif.becameMet'));
   }
@@ -20,6 +20,6 @@ test('a screening short circuit renders the unsupported state and return link', 
   draft.screening.criminality = 'yes';
   const html = renderToStaticMarkup(<WhatIfView draft={draft} />);
   expect(html).toContain(t('whatif.unsupported'));
-  expect(html).toContain('href="/result"');
+  expect(html).toContain('href="/uk/result"');
   expect(html).not.toContain('type="range"');
 });

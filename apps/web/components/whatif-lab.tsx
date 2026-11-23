@@ -12,6 +12,7 @@ import {
 } from '@uk-immigration/policy-data';
 import { withCount } from '../i18n';
 import { useTranslation } from '../i18n/locale';
+import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
 import { displayedRuleSets } from '../lib/policy';
 import {
@@ -34,8 +35,8 @@ import {
 import { PolicyStatus, RuleSetStatus } from './policy-status';
 import { ShareLink } from './share-link';
 import site from '../app/site.module.css';
-import resultStyles from '../app/result/result.module.css';
-import styles from '../app/whatif/whatif.module.css';
+import resultStyles from '../app/uk/result/result.module.css';
+import styles from '../app/uk/whatif/whatif.module.css';
 
 const incomePresets = [
   earnedSettlement2026_11.values.earningsThresholdMinimum.value,
@@ -481,7 +482,7 @@ function WhatIfLab({
             >
               {t('whatif.reset')}
             </button>
-            <Link href="/result">{t('whatif.back')}</Link>
+            <Link href={countryPath('uk', 'result')}>{t('whatif.back')}</Link>
           </div>
         </section>
         <div className={styles.comparisons} aria-live="polite">
@@ -534,7 +535,7 @@ export function WhatIfView({
       <div className={site.narrow}>
         <h1>{t('whatif.title')}</h1>
         <p>{t('whatif.empty')}</p>
-        <Link className={site.button} href="/simulate">
+        <Link className={site.button} href={countryPath('uk', 'simulate')}>
           {t('home.start')}
         </Link>
       </div>
@@ -549,7 +550,7 @@ export function WhatIfView({
           <p className={site.notice}>{t('whatif.unsupported')}</p>
           <p>{before.shortCircuit.message}</p>
           <ShareLink draft={draft} />
-          <Link className={site.secondary} href="/result">
+          <Link className={site.secondary} href={countryPath('uk', 'result')}>
             {t('whatif.back')}
           </Link>
         </div>

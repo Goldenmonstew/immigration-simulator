@@ -9,20 +9,20 @@ import {
   tick,
   type GameState,
 } from '@uk-immigration/game';
-import { TownScene, type SceneView } from '../app/game/scene';
-import { gameStorage, homeSpot, previewGameSave } from '../app/game/session';
+import { TownScene, type SceneView } from '../app/uk/game/scene';
+import { gameStorage, homeSpot, previewGameSave } from '../app/uk/game/session';
 import townMap from '../public/game/town.json';
 import homeMap from '../public/game/home.json';
-import { SceneText, textPosition } from '../app/game/scene-text';
-import { shopSignIds, signPath } from '../app/game/art';
+import { SceneText, textPosition } from '../app/uk/game/scene-text';
+import { shopSignIds, signPath } from '../app/uk/game/art';
 import {
   animalIds,
   animalPath,
   animalRoutes,
   animalStep,
   visibleAnimals,
-} from '../app/game/wildlife';
-import * as sound from '../app/game/sound';
+} from '../app/uk/game/wildlife';
+import * as sound from '../app/uk/game/sound';
 import { readFileSync } from 'node:fs';
 
 const TransformMatrix = createRequire(import.meta.url)(

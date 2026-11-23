@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '../i18n/locale';
+import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
 import { displayedRuleSets } from '../lib/policy';
 import { type Draft, runSimulation } from '../lib/questionnaire';
@@ -118,7 +119,7 @@ export function SavedScenarios({
             </dl>
             <div className={styles.row}>
               <Link
-                href="/result"
+                href={countryPath('uk', 'result')}
                 className={site.button}
                 aria-label={`${t('scenarios.load')} ${scenario.name}`}
                 onClick={() => {

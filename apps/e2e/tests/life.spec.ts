@@ -159,7 +159,7 @@ test('a catch shows up in the collection', async ({ page }) => {
 });
 
 test('the game runs in English', async ({ page }) => {
-  await page.goto('/game');
+  await page.goto('/uk/game');
   await page.getByRole('button', { name: 'English' }).click();
   await expect(
     page.getByRole('heading', { name: /Immigration Life/ }).first(),
@@ -209,5 +209,5 @@ test('renewing and leaving the UK works in English', async ({ page }) => {
     name: 'Open this timeline in the simulator',
   });
   await expect(timeline).toBeVisible();
-  await expect(timeline).toHaveAttribute('href', /^\/result#s=.+/);
+  await expect(timeline).toHaveAttribute('href', /^\/uk\/result#s=.+/);
 });

@@ -5,11 +5,12 @@ import { useId, useState } from 'react';
 import type { SettlementAssessment } from '@uk-immigration/engine';
 import { withCount } from '../i18n';
 import { useTranslation } from '../i18n/locale';
+import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
 import { firstSentence, gapRules, remainingTime } from '../lib/gap-summary';
 import { focusForRule, rememberWhatIfTarget } from '../lib/whatif';
 import site from '../app/site.module.css';
-import styles from '../app/result/result.module.css';
+import styles from '../app/uk/result/result.module.css';
 
 export function GapSummary({
   assessment,
@@ -108,7 +109,7 @@ export function GapSummary({
                   {focus && (
                     <Link
                       className={`${styles.gapAction} ${site.noPrint}`}
-                      href={`/whatif?focus=${focus}`}
+                      href={`${countryPath('uk', 'whatif')}?focus=${focus}`}
                       scroll={false}
                       onClick={() =>
                         rememberWhatIfTarget({

@@ -11,9 +11,13 @@ import {
   type MapSurprise,
   type PlaceId,
 } from '@uk-immigration/game';
-import { TownScene, type Interaction, type SceneView } from '../app/game/scene';
-import type { SceneText } from '../app/game/scene-text';
-import { flowerbedStage, lifePlaceLabel } from '../app/game/scene-life';
+import {
+  TownScene,
+  type Interaction,
+  type SceneView,
+} from '../app/uk/game/scene';
+import type { SceneText } from '../app/uk/game/scene-text';
+import { flowerbedStage, lifePlaceLabel } from '../app/uk/game/scene-life';
 import town from '../public/game/town.json';
 
 vi.mock('phaser', () => ({

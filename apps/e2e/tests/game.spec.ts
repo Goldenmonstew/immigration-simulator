@@ -12,7 +12,7 @@ test(
   'the character picker lists every protagonist',
   { tag: '@smoke' },
   async ({ page }) => {
-    await page.goto('/game');
+    await page.goto('/uk/game');
     for (const { name } of characters)
       await expect(
         page.getByRole('button', { name: new RegExp(`^和${name}`) }),
@@ -23,7 +23,7 @@ test(
 
 test('the static page already has the welcome banner', async ({ request }) => {
   // The largest paint; it must not wait for the game scripts.
-  const response = await request.get('/game');
+  const response = await request.get('/uk/game');
   expect(response.ok()).toBe(true);
   const html = await response.text();
   const banner = '/game/assets/meadow-town/town-banner.png';
@@ -70,7 +70,7 @@ test.describe(() => {
   test('retry reloads the page when a story download fails', async ({
     page,
   }) => {
-    await page.goto('/game');
+    await page.goto('/uk/game');
     const start = page.getByRole('button', { name: /^和林遥/ });
     await expect(start).toBeVisible();
     // As after a deploy: this page's lazily loaded files are gone until a

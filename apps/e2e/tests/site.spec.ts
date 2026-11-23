@@ -6,11 +6,11 @@ test(
   'home page leads into the questionnaire',
   { tag: '@smoke' },
   async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/uk');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page).toHaveScreenshot('home.png');
     await page.getByRole('link', { name: '开始模拟' }).click();
-    await expect(page).toHaveURL(/\/simulate/);
+    await expect(page).toHaveURL('/uk/simulate');
     await expect(page.getByRole('heading', { name: '基本信息' })).toBeVisible();
     await expect(page).toHaveScreenshot('simulate-step-1.png');
   },
@@ -20,13 +20,13 @@ test(
   'a completed timeline shows both assessment columns',
   { tag: '@smoke' },
   async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/uk');
     await page.evaluate(
       (value) =>
         localStorage.setItem('uk-immigration-draft-v1', JSON.stringify(value)),
       draft,
     );
-    await page.goto('/result');
+    await page.goto('/uk/result');
     await expect(
       page.getByRole('heading', { name: '你的路径模拟' }),
     ).toBeVisible();
@@ -39,7 +39,7 @@ test(
   },
 );
 
-for (const path of ['/policy', '/about']) {
+for (const path of ['/uk/policy', '/uk/about']) {
   test(`${path} renders`, async ({ page }) => {
     await page.goto(path);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
@@ -50,13 +50,16 @@ test('the service worker keeps the site pages available offline', async ({
   page,
   context,
 }) => {
-  await page.goto('/');
+  await page.goto('/uk');
   await expect
     .poll(() => page.evaluate(() => !!navigator.serviceWorker.controller))
     .toBe(true);
   await context.setOffline(true);
   for (const path of [
-    ...['result', 'whatif', 'policy'].map((sub) => countryPath('uk', sub)),
+    '/',
+    ...['', 'simulate', 'result', 'whatif', 'policy', 'about', 'game'].map(
+      (sub) => countryPath('uk', sub),
+    ),
     ...nonUkCountries
       .filter(({ id }) => id !== 'ie')
       .map(({ id }) => countryPath(id)),

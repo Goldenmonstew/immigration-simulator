@@ -8,7 +8,7 @@ afterEach(() => {
 async function load(hostname: string, webdriver = false) {
   const beacon = vi.fn(() => true);
   vi.stubGlobal('window', {});
-  vi.stubGlobal('location', { hostname, pathname: '/result' });
+  vi.stubGlobal('location', { hostname, pathname: '/uk/result' });
   vi.stubGlobal('navigator', {
     webdriver,
     userAgent: 'test',
