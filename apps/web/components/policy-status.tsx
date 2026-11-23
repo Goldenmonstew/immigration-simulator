@@ -2,7 +2,7 @@
 
 import type { RuleSet } from '@uk-immigration/engine';
 import { useTranslation } from '../i18n/locale';
-import { displayedRuleSets } from '../lib/policy';
+import type { CountryPolicy } from '../lib/policy';
 import styles from '../app/site.module.css';
 
 export function RuleSetStatus({ ruleSet }: { ruleSet: RuleSet }) {
@@ -15,7 +15,13 @@ export function RuleSetStatus({ ruleSet }: { ruleSet: RuleSet }) {
     : t(`policy.${ruleSet.status}`);
 }
 
-export function PolicyStatus({ asOf }: { asOf: string }) {
+export function PolicyStatus({
+  country,
+  asOf,
+}: {
+  country: { policy: CountryPolicy };
+  asOf: string;
+}) {
   const { t } = useTranslation();
   return (
     <section className={styles.policy} aria-label={t('policy.asOf')}>
@@ -23,7 +29,7 @@ export function PolicyStatus({ asOf }: { asOf: string }) {
         {t('policy.asOf')} <time dateTime={asOf}>{asOf}</time>
       </p>
       <div className={styles.badges}>
-        {displayedRuleSets.map((ruleSet) => (
+        {country.policy.displayedRuleSets.map((ruleSet) => (
           <span
             key={ruleSet.id}
             className={`${styles.badge} ${ruleSet.kind === 'ANNOUNCED' ? styles.announced : ''}`}

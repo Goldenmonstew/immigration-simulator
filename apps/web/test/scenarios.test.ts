@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { createDraft, runSimulation } from '../lib/questionnaire';
-import { applyWhatIf, initialWhatIf } from '../lib/whatif';
+import { createDraft, runSimulation } from './uk-scenarios';
+import { applyWhatIf, initialWhatIf } from '../lib/uk-whatif';
 import {
   deleteScenario,
   draftStorage,
@@ -9,7 +9,7 @@ import {
   readScenarios,
   rememberResult,
   saveScenario,
-} from '../lib/storage';
+} from './uk-scenarios';
 
 const storage = new Map<string, string>();
 beforeEach(() => {
@@ -31,7 +31,7 @@ test('two named scenarios persist as drafts including the principal, without sto
   saveScenario('家庭情景', draft);
   saveScenario('家庭情景', { ...draft, simulationDate: '2030-01-01' });
   vi.resetModules();
-  const reloaded = await import('../lib/storage');
+  const reloaded = await import('./uk-scenarios');
   const { scenarios, available } = reloaded.readScenarios();
   expect(available).toBe(true);
   expect(scenarios).toHaveLength(2);

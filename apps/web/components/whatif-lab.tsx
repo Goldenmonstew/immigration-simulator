@@ -1,35 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import type {
-  SettlementAssessment,
-  SimulationResult,
-} from '@uk-immigration/engine';
-import {
-  type CefrLevel,
-  earnedSettlement2026_11,
-} from '@uk-immigration/policy-data';
-import { withCount } from '../i18n';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import type { CountryPathway, CountryResult } from '@uk-immigration/engine';
 import { useTranslation } from '../i18n/locale';
-import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
-import { displayedRuleSets } from '../lib/policy';
 import {
-  type Draft,
-  runSimulation,
-  validateStep,
-  visibleIncomeYears,
-} from '../lib/questionnaire';
+  type CountryDraft,
+  type CountryModule,
+  checkLabelStatus,
+  isDecisionOutcome,
+  pathwayTitle,
+} from '../lib/country-module';
+import { displayedColumns } from '../lib/policy';
+import { countryPath } from '../lib/site-countries';
+import { draftStorage } from '../lib/storage';
 import {
-  applyWhatIf,
-  diffAssessment,
-  initialWhatIf,
-  focusControls,
-  focusForRule,
-  tripDays,
-  validTrip,
-  type WhatIf,
+  diffPathways,
+  parseWhatIfFocus,
+  takeWhatIfTarget,
   type WhatIfTarget,
 } from '../lib/whatif';
 import { PolicyStatus, RuleSetStatus } from './policy-status';
@@ -38,27 +27,28 @@ import site from '../app/site.module.css';
 import resultStyles from '../app/uk/result/result.module.css';
 import styles from '../app/uk/whatif/whatif.module.css';
 
-const incomePresets = [
-  earnedSettlement2026_11.values.earningsThresholdMinimum.value,
-  earnedSettlement2026_11.values.earningsThreshold5Year.value,
-  earnedSettlement2026_11.values.earningsThreshold3Year.value,
-];
-const maxIncome =
-  earnedSettlement2026_11.values.earningsThreshold3Year.value * 2;
-const money = (amount: number) => `£${amount.toLocaleString('en-GB')}`;
+// Retain both sides when a control adds or removes an entire column or path.
+function pairById<T extends { id: string }>(before: T[], after: T[]) {
+  const ids = new Set([...before, ...after].map((item) => item.id));
+  return Array.from(ids, (id) => ({
+    id,
+    before: before.find((item) => item.id === id),
+    after: after.find((item) => item.id === id),
+  }));
+}
 
 function Comparison({
   before,
   after,
 }: {
-  before: SettlementAssessment;
-  after: SettlementAssessment;
+  before?: CountryPathway;
+  after?: CountryPathway;
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
-  const diff = diffAssessment(before, after);
-  const years = (assessment: SettlementAssessment) =>
-    assessment.pathwayYears === undefined
+  const diff = diffPathways(before, after);
+  const years = (assessment?: CountryPathway) =>
+    assessment?.pathwayYears === undefined
       ? t('result.undetermined')
       : `${assessment.pathwayYears} ${t('result.years')}`;
   return (
@@ -70,32 +60,36 @@ function Comparison({
         {[
           [
             t('whatif.outcome'),
-            t(`outcome.${before.outcome}`),
-            t(`outcome.${after.outcome}`),
+            before ? pathwayTitle(before, t) : '—',
+            after ? pathwayTitle(after, t) : '—',
           ],
-          [t('result.pathway'), years(before), years(after)],
+          ...(before?.pathwayYears !== undefined ||
+          after?.pathwayYears !== undefined ||
+          (before && isDecisionOutcome(before.status))
+            ? [[t('result.pathway'), years(before), years(after)]]
+            : []),
           [
             t('result.earliest'),
-            before.earliestDate ?? t('result.undetermined'),
-            after.earliestDate ?? t('result.undetermined'),
+            before?.earliestDate ?? t('result.undetermined'),
+            after?.earliestDate ?? t('result.undetermined'),
           ],
           // A6#7: a conditional completion is not an earliest date.
-          ...(before.pathwayCompletionDate || after.pathwayCompletionDate
+          ...(before?.pathwayCompletionDate || after?.pathwayCompletionDate
             ? [
                 [
                   t('result.completion'),
-                  before.pathwayCompletionDate ?? '—',
-                  after.pathwayCompletionDate ?? '—',
+                  before?.pathwayCompletionDate ?? '—',
+                  after?.pathwayCompletionDate ?? '—',
                 ],
               ]
             : []),
-          ...(before.publicFundsReassessmentDate ||
-          after.publicFundsReassessmentDate
+          ...(before?.publicFundsReassessmentDate ||
+          after?.publicFundsReassessmentDate
             ? [
                 [
                   t('result.reassessment'),
-                  before.publicFundsReassessmentDate ?? '—',
-                  after.publicFundsReassessmentDate ?? '—',
+                  before?.publicFundsReassessmentDate ?? '—',
+                  after?.publicFundsReassessmentDate ?? '—',
                 ],
               ]
             : []),
@@ -110,6 +104,7 @@ function Comparison({
           </div>
         ))}
       </dl>
+      {after?.summary && <p>{after.summary}</p>}
       {!diff.changed && <p className={site.notice}>{t('whatif.unchanged')}</p>}
       {(['becameMet', 'becameUnmet', 'stillUnmet'] as const).map((group) => (
         <section
@@ -131,11 +126,11 @@ function Comparison({
                 <li
                   key={rule.id}
                   className={resultStyles.rule}
-                  data-status={rule.status}
+                  data-status={checkLabelStatus[rule.status]}
                 >
                   <strong>{rule.title}</strong>
                   <div className={styles.ruleMeta}>
-                    {rule.id} · {t(`result.${rule.status}`)}
+                    {rule.id} · {t(`result.${checkLabelStatus[rule.status]}`)}
                   </div>
                   <p>{rule.explanation}</p>
                 </li>
@@ -144,7 +139,7 @@ function Comparison({
           )}
         </section>
       ))}
-      {after.assumptions.length ? (
+      {after?.assumptions.length ? (
         <details>
           <summary>
             {t('result.assumptions')}
@@ -168,352 +163,134 @@ function Comparison({
   );
 }
 
-function WhatIfLab({
+function WhatIfLab<D extends CountryDraft, K>({
+  country,
   draft,
   before,
   target,
 }: {
-  draft: Draft;
-  before: SimulationResult;
+  country: CountryModule<D, K>;
+  draft: D;
+  before: CountryResult;
   target?: WhatIfTarget;
 }) {
   const { t, locale } = useTranslation();
-  const p = punct(locale);
-  const [whatIf, setWhatIf] = useState(() => {
-    // A directly opened focus URL has no clicked-row context: use the first matching gap.
-    const assessment =
-      target && !target.assessment
-        ? Object.values(before.byRuleSet).find((item) =>
-            item.rules.some(
-              (rule) =>
-                rule.status !== 'PASS' &&
-                focusForRule(rule.id) === target.focus,
-            ),
-          )
-        : target?.assessment;
-    const ruleId =
-      target?.ruleId ??
-      assessment?.rules.find(
-        (rule) =>
-          rule.status !== 'PASS' && focusForRule(rule.id) === target?.focus,
-      )?.id;
-    return initialWhatIf(draft, target && { ...target, assessment, ruleId });
+  const controls = country.whatif;
+  const [knobs, setKnobs] = useState<K>(() => {
+    if (!target || target.assessment) return controls.initial(draft, target);
+    // A direct focus link has no clicked row. Start with the first matching gap.
+    for (const column of before.columns) {
+      for (const assessment of column.pathways) {
+        const check = assessment.checks.find(
+          (rule) =>
+            rule.status !== 'MET' &&
+            controls.focusForRule(rule.id) === target.focus,
+        );
+        if (check)
+          return controls.initial(draft, {
+            ...target,
+            assessment,
+            ruleId: target.ruleId ?? check.id,
+          });
+      }
+    }
+    return controls.initial(draft, target);
   });
   useEffect(() => {
     if (!target) return;
-    const control = document.getElementById(focusControls[target.focus]);
+    const control = document.getElementById(
+      controls.focusControls[target.focus],
+    );
     control?.scrollIntoView({ block: 'center' });
     control?.focus({ preventScroll: true });
-  }, [target]);
-  const update = (patch: Partial<WhatIf>) =>
-    setWhatIf((current) => ({ ...current, ...patch }));
-  const afterDraft = applyWhatIf(draft, whatIf);
-  const dateError = validateStep({ ...afterDraft, step: 8 }).simulationDate;
-  const incomeError =
-    whatIf.incomeEnabled &&
-    (whatIf.earnings === undefined ||
-      !Number.isFinite(whatIf.earnings) ||
-      whatIf.earnings < 0);
-  const after =
-    dateError || incomeError ? undefined : runSimulation(afterDraft, locale);
+  }, [controls, target]);
+  const afterDraft = controls.apply(draft, knobs);
+  const errors = controls.validate(afterDraft, knobs);
+  const after = Object.keys(errors).length
+    ? undefined
+    : country.run(afterDraft, locale);
+  const beforeColumns = displayedColumns(country, before);
   return (
     <>
       <p className={site.lead}>{t('whatif.intro')}</p>
-      {after && <ShareLink draft={afterDraft} />}
-      <p className={`${site.notice} ${site.warning}`}>
-        {t('policy.hypothesis')}
-      </p>
+      {after && <ShareLink country={country} draft={afterDraft} />}
+      {country.resultNotes?.().notices.map((key) => (
+        <p key={key} className={`${site.notice} ${site.warning}`}>
+          {t(key)}
+        </p>
+      ))}
       <div className={styles.layout}>
         <section className={styles.controls} aria-labelledby="whatif-controls">
           <h2 id="whatif-controls">{t('whatif.controls')}</h2>
-          <div className={styles.field}>
-            <label htmlFor="whatif-date">{t('whatif.date')}</label>
-            <input
-              id="whatif-date"
-              type="date"
-              value={whatIf.simulationDate}
-              aria-invalid={!!dateError}
-              aria-describedby={dateError ? 'whatif-date-error' : undefined}
-              onChange={(event) =>
-                update({ simulationDate: event.target.value })
-              }
-            />
-            {dateError && (
-              <p id="whatif-date-error" role="alert" className={styles.error}>
-                {t(dateError)}
-              </p>
-            )}
-          </div>
-          <fieldset className={styles.income}>
-            <legend>{t('whatif.income')}</legend>
-            <label className={styles.checkbox}>
-              <input
-                type="checkbox"
-                checked={whatIf.incomeEnabled}
-                onChange={(event) =>
-                  update({ incomeEnabled: event.target.checked })
-                }
-              />
-              {t('whatif.enableIncome')}
-            </label>
-            <p className={styles.hint}>{t('whatif.incomeHint')}</p>
-            <div className={styles.field}>
-              <label htmlFor="whatif-years">{t('whatif.incomeYears')}</label>
-              <select
-                id="whatif-years"
-                disabled={!whatIf.incomeEnabled}
-                value={whatIf.incomeYears}
-                onChange={(event) =>
-                  update({ incomeYears: Number(event.target.value) })
-                }
-              >
-                {Array.from({ length: 7 }, (_, i) => i + 1).map((years) => (
-                  <option key={years} value={years}>
-                    {years}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="whatif-earnings">{t('whatif.earnings')}</label>
-              <input
-                id="whatif-earnings"
-                type="number"
-                min="0"
-                step="any"
-                disabled={!whatIf.incomeEnabled}
-                value={whatIf.earnings ?? ''}
-                aria-invalid={!!incomeError}
-                aria-describedby={
-                  incomeError ? 'whatif-income-error' : undefined
-                }
-                onChange={(event) =>
-                  update({
-                    earnings:
-                      event.target.value === ''
-                        ? undefined
-                        : event.target.valueAsNumber,
-                  })
-                }
-              />
-              <label htmlFor="whatif-income-slider">
-                {t('whatif.incomeSlider')}
-              </label>
-              <input
-                id="whatif-income-slider"
-                type="range"
-                min="0"
-                max={maxIncome}
-                step="500"
-                disabled={!whatIf.incomeEnabled}
-                value={whatIf.earnings ?? 0}
-                onChange={(event) =>
-                  update({ earnings: event.target.valueAsNumber })
-                }
-              />
-              {incomeError && (
-                <p
-                  id="whatif-income-error"
-                  role="alert"
-                  className={styles.error}
-                >
-                  {t('error.number')}
-                </p>
-              )}
-            </div>
-            <div className={styles.presets}>
-              {incomePresets.map((amount) => (
-                <button
-                  key={amount}
-                  type="button"
-                  className={site.secondary}
-                  onClick={() =>
-                    update({ incomeEnabled: true, earnings: amount })
-                  }
-                >
-                  {money(amount)}
-                </button>
-              ))}
-            </div>
-            <p className={styles.hint}>
-              {t('date.incomeWindow')}
-              {p.colon}
-              {visibleIncomeYears(afterDraft)
-                .map((row) => row.taxYear)
-                .join(p.list)}
-            </p>
-          </fieldset>
-          <div className={styles.field}>
-            <label htmlFor="whatif-english">{t('english.level')}</label>
-            <select
-              id="whatif-english"
-              value={
-                whatIf.english
-                  ? 'exempt' in whatIf.english
-                    ? 'exempt'
-                    : whatIf.english.cefrLevel
-                  : ''
-              }
-              onChange={(event) =>
-                update({
-                  english:
-                    event.target.value === ''
-                      ? undefined
-                      : event.target.value === 'exempt'
-                        ? { exempt: true }
-                        : { cefrLevel: event.target.value as CefrLevel },
-                })
-              }
-            >
-              <option value="">{t('form.unknown')}</option>
-              {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((level) => (
-                <option key={level} value={level}>
-                  {level}
-                </option>
-              ))}
-              <option value="exempt">{t('english.exempt')}</option>
-            </select>
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="whatif-life">{t('english.life')}</label>
-            <select
-              id="whatif-life"
-              value={
-                whatIf.lifeInTheUk
-                  ? 'passed' in whatIf.lifeInTheUk
-                    ? 'passed'
-                    : 'exempt'
-                  : ''
-              }
-              onChange={(event) =>
-                update({
-                  lifeInTheUk:
-                    event.target.value === ''
-                      ? undefined
-                      : event.target.value === 'passed'
-                        ? { passed: true }
-                        : { exempt: true },
-                })
-              }
-            >
-              <option value="">{t('form.unknown')}</option>
-              <option value="passed">{t('english.passed')}</option>
-              <option value="exempt">{t('english.exempt')}</option>
-            </select>
-          </div>
-          <label className={styles.checkbox}>
-            <input
-              type="checkbox"
-              checked={whatIf.noPublicFunds}
-              id="whatif-public-funds"
-              onChange={(event) =>
-                update({ noPublicFunds: event.target.checked })
-              }
-            />
-            {t('whatif.noPublicFunds')}
-          </label>
-          <label className={styles.checkbox}>
-            <input
-              type="checkbox"
-              checked={whatIf.noAbsences}
-              onChange={(event) => update({ noAbsences: event.target.checked })}
-            />
-            {t('whatif.noAbsences')}
-          </label>
-          <label className={styles.checkbox}>
-            <input
-              type="checkbox"
-              checked={!!whatIf.trip}
-              onChange={(event) =>
-                update({
-                  // Start empty: the trip counts only once both dates are set.
-                  trip: event.target.checked ? { from: '', to: '' } : undefined,
-                })
-              }
-            />
-            {t('whatif.trip')}
-          </label>
-          {whatIf.trip && (
-            <div className={styles.tripFields}>
-              <div className={styles.field}>
-                <label htmlFor="whatif-trip-from">{t('whatif.tripFrom')}</label>
-                <input
-                  id="whatif-trip-from"
-                  type="date"
-                  value={whatIf.trip.from}
-                  onChange={(event) =>
-                    update({
-                      trip: { ...whatIf.trip!, from: event.target.value },
-                    })
-                  }
-                />
-              </div>
-              <div className={styles.field}>
-                <label htmlFor="whatif-trip-to">{t('whatif.tripTo')}</label>
-                <input
-                  id="whatif-trip-to"
-                  type="date"
-                  value={whatIf.trip.to}
-                  onChange={(event) =>
-                    update({
-                      trip: { ...whatIf.trip!, to: event.target.value },
-                    })
-                  }
-                />
-              </div>
-              <p className={site.muted} role="status">
-                {!whatIf.trip.from || !whatIf.trip.to
-                  ? t('whatif.tripIncomplete')
-                  : !validTrip(whatIf.trip)
-                    ? t('whatif.tripInvalid')
-                    : withCount(
-                        t('whatif.tripDays'),
-                        'days',
-                        tripDays(whatIf.trip),
-                      )}
-              </p>
-            </div>
-          )}
+          <controls.Controls
+            afterDraft={afterDraft}
+            knobs={knobs}
+            errors={errors}
+            update={(patch) =>
+              setKnobs((current) => ({ ...current, ...patch }))
+            }
+          />
           <div className={site.actions}>
             <button
               type="button"
               className={site.secondary}
-              onClick={() => setWhatIf(initialWhatIf(draft))}
+              onClick={() => setKnobs(() => controls.initial(draft))}
             >
               {t('whatif.reset')}
             </button>
-            <Link href={countryPath('uk', 'result')}>{t('whatif.back')}</Link>
+            <Link href={countryPath(country.id, 'result')}>
+              {t('whatif.back')}
+            </Link>
           </div>
         </section>
         <div className={styles.comparisons} aria-live="polite">
           {!after ? (
             <p role="status">{t('form.fixErrors')}</p>
           ) : (
-            displayedRuleSets.map((ruleSet) => {
-              const previous = before.byRuleSet[ruleSet.id];
-              const next = after.byRuleSet[ruleSet.id];
-              return (
-                <section
-                  key={ruleSet.id}
-                  aria-labelledby={`${ruleSet.id}-heading`}
-                  className={`${resultStyles.assessment} ${ruleSet.kind === 'ANNOUNCED' ? resultStyles.announced : ''}`}
-                >
-                  <h2 id={`${ruleSet.id}-heading`}>
-                    {t(`policy.${ruleSet.kind}`)}
-                  </h2>
-                  <span
-                    className={`${site.badge} ${ruleSet.kind === 'ANNOUNCED' ? site.announced : ''}`}
+            pairById(beforeColumns, displayedColumns(country, after)).map(
+              ({ id, before: previous, after: next }) => {
+                const column = (next ?? previous)!;
+                const ruleSet = column.ruleSet;
+                const paths = pairById(
+                  previous?.pathways ?? [],
+                  next?.pathways ?? [],
+                );
+                return (
+                  <section
+                    key={id}
+                    aria-labelledby={`${id}-heading`}
+                    className={`${resultStyles.assessment} ${ruleSet?.kind === 'ANNOUNCED' ? resultStyles.announced : ''}`}
                   >
-                    <RuleSetStatus ruleSet={ruleSet} />
-                  </span>
-                  {previous && next ? (
-                    <Comparison before={previous} after={next} />
-                  ) : (
-                    <p>{t('result.missingAssessment')}</p>
-                  )}
-                </section>
-              );
-            })
+                    <h2 id={`${id}-heading`}>{column.title}</h2>
+                    {ruleSet && (
+                      <span
+                        className={`${site.badge} ${ruleSet.kind === 'ANNOUNCED' ? site.announced : ''}`}
+                      >
+                        <RuleSetStatus ruleSet={ruleSet} />
+                      </span>
+                    )}
+                    {paths.length ? (
+                      paths.map((path) => {
+                        const title = (path.after ?? path.before)!.title;
+                        return (
+                          <Fragment key={path.id}>
+                            {(paths.length > 1 || title !== column.title) && (
+                              <h3>{title}</h3>
+                            )}
+                            <Comparison
+                              before={path.before}
+                              after={path.after}
+                            />
+                          </Fragment>
+                        );
+                      })
+                    ) : (
+                      <p>{t('result.missingAssessment')}</p>
+                    )}
+                  </section>
+                );
+              },
+            )
           )}
         </div>
       </div>
@@ -522,11 +299,13 @@ function WhatIfLab({
   );
 }
 
-export function WhatIfView({
+export function WhatIfView<D extends CountryDraft, K>({
+  country,
   draft,
   target,
 }: {
-  draft?: Draft;
+  country: CountryModule<D, K>;
+  draft?: D;
   target?: WhatIfTarget;
 }) {
   const { t, locale } = useTranslation();
@@ -535,28 +314,84 @@ export function WhatIfView({
       <div className={site.narrow}>
         <h1>{t('whatif.title')}</h1>
         <p>{t('whatif.empty')}</p>
-        <Link className={site.button} href={countryPath('uk', 'simulate')}>
+        <Link
+          className={site.button}
+          href={countryPath(country.id, 'simulate')}
+        >
           {t('home.start')}
         </Link>
       </div>
     );
-  const before = runSimulation(draft, locale);
+  const before = country.run(draft, locale);
   return (
     <>
-      <PolicyStatus asOf={before.policyAsOf} />
+      <PolicyStatus country={country} asOf={before.policyAsOf} />
       <h1>{t('whatif.title')}</h1>
       {before.shortCircuit ? (
         <div className={site.narrow}>
           <p className={site.notice}>{t('whatif.unsupported')}</p>
           <p>{before.shortCircuit.message}</p>
-          <ShareLink draft={draft} />
-          <Link className={site.secondary} href={countryPath('uk', 'result')}>
+          <ShareLink country={country} draft={draft} />
+          <Link
+            className={site.secondary}
+            href={countryPath(country.id, 'result')}
+          >
             {t('whatif.back')}
           </Link>
         </div>
       ) : (
-        <WhatIfLab draft={draft} before={before} target={target} />
+        <WhatIfLab
+          country={country}
+          draft={draft}
+          before={before}
+          target={target}
+        />
       )}
     </>
+  );
+}
+
+export function WhatIfPageContent<D extends CountryDraft, K>({
+  country,
+}: {
+  country: CountryModule<D, K>;
+}) {
+  const { t } = useTranslation();
+  const [draft, setDraft] = useState<D>();
+  const [ready, setReady] = useState(false);
+  const [target, setTarget] = useState<WhatIfTarget>();
+  const loaded = useRef<CountryModule<D, K> | undefined>(undefined);
+  useEffect(() => {
+    if (loaded.current === country) return;
+    loaded.current = country;
+    setDraft(draftStorage(country).draft);
+    const url = new URL(window.location.href);
+    setTarget(
+      takeWhatIfTarget(
+        country.id,
+        parseWhatIfFocus(
+          country.whatif.focusControls,
+          url.searchParams.get('focus'),
+        ),
+      ),
+    );
+    if (url.searchParams.has('focus')) {
+      url.searchParams.delete('focus');
+      window.history.replaceState(
+        window.history.state,
+        '',
+        `${url.pathname}${url.search}${url.hash}`,
+      );
+    }
+    setReady(true);
+  }, [country]);
+  return (
+    <main id="main" className={site.main}>
+      {ready ? (
+        <WhatIfView country={country} draft={draft} target={target} />
+      ) : (
+        <p role="status">{t('result.loading')}</p>
+      )}
+    </main>
   );
 }

@@ -6,7 +6,7 @@ import {
 } from '@uk-immigration/policy-data';
 import type { PersonTimeline } from '@uk-immigration/engine';
 import { clFamilyPartnerFiveYears as family } from '../../../packages/policy-data/fixtures/cl-family-partner-five-years';
-import { WhatIfView } from '../components/whatif-lab';
+import { WhatIfView } from './uk-whatif';
 import { LocaleContext } from '../i18n/locale';
 import { createDraft, runSimulation } from '../lib/questionnaire';
 import {
@@ -16,7 +16,7 @@ import {
   parseWhatIfFocus,
   rememberWhatIfTarget,
   takeWhatIfTarget,
-} from '../lib/whatif';
+} from './uk-whatif';
 
 const baseline = () => ({
   ...createDraft(),

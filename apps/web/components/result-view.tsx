@@ -2,21 +2,30 @@
 
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import type { SimulationResult } from '@uk-immigration/engine';
-import { ROUTE_GROUPS } from '@uk-immigration/policy-data';
+import type {
+  CountryResult,
+  CountryPathway,
+  CountryCheck,
+  SimulationResult,
+} from '@uk-immigration/engine';
 import type { TranslationKey } from '../i18n';
 import { useTranslation } from '../i18n/locale';
+import { displayedColumns } from '../lib/policy';
 import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
 import { routeGroupNames, routeLabel } from '../i18n/routes';
-import { displayedRuleSets } from '../lib/policy';
-import { currentEpisode, type Draft } from '../lib/questionnaire';
+import {
+  checkLabelStatus,
+  isDecisionOutcome,
+  pathwayTitle,
+  type CountryDraft,
+  type CountryModule,
+} from '../lib/country-module';
+import { ukModule, ukResult } from '../lib/uk-module';
 import { issueUrl } from '../lib/report';
-import { sourceUrls } from '../lib/sources';
 import { PolicyStatus, RuleSetStatus } from './policy-status';
 import { GapSummary } from './gap-summary';
 import { basisRule, shorterPathwaysNotUsed } from '../lib/gap-summary';
-import type { RuleOutcome } from '@uk-immigration/engine';
 import site from '../app/site.module.css';
 import styles from '../app/uk/result/result.module.css';
 
@@ -26,49 +35,59 @@ function jumpToAssessment(id: string) {
   heading?.scrollIntoView({ block: 'start' });
 }
 
-function Advice() {
+function Advice<D extends CountryDraft, K>({
+  country,
+}: {
+  country: CountryModule<D, K>;
+}) {
   const { t } = useTranslation();
+  const { advice } = country;
+  if (!advice) return null;
   return (
     <section className={site.notice}>
       <h2>{t('result.advice')}</h2>
-      <p>{t('result.adviceText')}</p>
+      <p>{t(advice.text)}</p>
       <p>
-        <a href={sourceUrls['SRC-016']} target="_blank" rel="noreferrer">
-          {t('result.adviceLink')}
+        <a
+          href={country.policy.sourceUrls[advice.sourceId]}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t(advice.linkLabel)}
         </a>
       </p>
     </section>
   );
 }
 
-export function ResultView({
+export function ResultView<D extends CountryDraft, K>({
+  country,
   result,
   mock = false,
   draft,
   actions,
 }: {
-  result: SimulationResult;
+  country: CountryModule<D, K>;
+  result: CountryResult;
   mock?: boolean;
-  draft?: Draft;
+  draft?: D;
   /** Shortcuts shown near the overview as well as after the columns. */
   actions?: ReactNode;
 }) {
   const { t } = useTranslation();
-  const episode = draft && currentEpisode(draft);
-  const protection =
-    episode &&
-    ROUTE_GROUPS[episode.route].some((group) => group === 'PROTECTION');
+  const notes = country.resultNotes?.(draft);
+  const columns = displayedColumns(country, result);
   return (
     <>
-      <PolicyStatus asOf={result.policyAsOf} />
+      <PolicyStatus country={country} asOf={result.policyAsOf} />
       {mock && (
         <p className={`${site.notice} ${site.warning}`}>{t('result.mock')}</p>
       )}
-      {result.shortCircuit && Object.keys(result.byRuleSet).length === 0 ? (
+      {result.shortCircuit && result.columns.length === 0 ? (
         <div className={site.narrow}>
           <h1>{t('result.shortCircuit')}</h1>
           <p className={site.lead}>{result.shortCircuit.message}</p>
-          <Advice />
+          <Advice country={country} />
         </div>
       ) : (
         <>
@@ -77,13 +96,13 @@ export function ResultView({
             className={styles.columnNavigation}
             aria-label={t('result.navigation')}
           >
-            {displayedRuleSets.map((ruleSet) => (
+            {columns.map((column) => (
               <button
-                key={ruleSet.id}
+                key={column.id}
                 type="button"
-                onClick={() => jumpToAssessment(`${ruleSet.id}-heading`)}
+                onClick={() => jumpToAssessment(`${column.id}-heading`)}
               >
-                {t(`policy.${ruleSet.kind}`)}
+                {column.title}
               </button>
             ))}
           </nav>
@@ -94,65 +113,65 @@ export function ResultView({
             </p>
           )}
           <p className={site.lead}>{t('result.intro')}</p>
-          <p className={`${site.notice} ${site.warning}`}>
-            {t('policy.hypothesis')}
-          </p>
-          {protection && (
-            <p className={`${site.notice} ${site.warning}`}>
-              {t('result.protectionNotice')}
+          {notes?.notices.map((key) => (
+            <p key={key} className={`${site.notice} ${site.warning}`}>
+              {t(key)}
             </p>
-          )}
-          <AssessmentColumns
+          ))}
+          <CountryAssessmentColumns
+            country={country}
             result={result}
             simulationDate={draft?.simulationDate}
             canWhatIf={!!draft && !mock && !result.shortCircuit}
-            dependant={episode?.role === 'DEPENDANT'}
+            dependant={notes?.dependant}
           />
-          <Advice />
+          <Advice country={country} />
         </>
       )}
       <p className={`${site.muted} ${site.noPrint}`}>
         {t('home.disclaimer')}{' '}
-        <Link href={countryPath('uk', 'about')}>{t('about.link')}</Link>
+        <Link href={countryPath(country.id, 'about')}>{t('about.link')}</Link>
       </p>
     </>
   );
 }
 
-export function AssessmentColumns({
+export function CountryAssessmentColumns<D extends CountryDraft, K>({
+  country,
   result,
   idPrefix = '',
   simulationDate,
   canWhatIf = false,
   dependant = false,
 }: {
-  result: SimulationResult;
+  country: CountryModule<D, K>;
+  result: CountryResult;
   idPrefix?: string;
   simulationDate?: string;
   canWhatIf?: boolean;
   dependant?: boolean;
 }) {
-  const { t, locale } = useTranslation();
-  const p = punct(locale);
+  const { t } = useTranslation();
+  const columns = displayedColumns(country, result);
   return (
     <div className={styles.columns}>
-      {displayedRuleSets.map((ruleSet) => {
-        const assessment = result.byRuleSet[ruleSet.id];
+      {columns.map((column) => {
+        const { ruleSet } = column;
         return (
           <section
-            key={ruleSet.id}
-            className={`${styles.assessment} ${ruleSet.kind === 'ANNOUNCED' ? styles.announced : ''}`}
-            aria-labelledby={`${idPrefix}${ruleSet.id}-heading`}
+            key={column.id}
+            className={`${styles.assessment} ${ruleSet?.kind === 'ANNOUNCED' ? styles.announced : ''}`}
+            aria-labelledby={`${idPrefix}${column.id}-heading`}
           >
             <h2
-              id={`${idPrefix}${ruleSet.id}-heading`}
+              id={`${idPrefix}${column.id}-heading`}
               className={styles.heading}
               tabIndex={-1}
             >
-              {t(`policy.${ruleSet.kind}`)}
+              {column.title}
             </h2>
-            {displayedRuleSets
-              .filter((other) => other.id !== ruleSet.id)
+            {columns
+              .filter((other) => other.id !== column.id)
               .map((other) => (
                 <button
                   key={other.id}
@@ -162,188 +181,34 @@ export function AssessmentColumns({
                     jumpToAssessment(`${idPrefix}${other.id}-heading`)
                   }
                 >
-                  {t('result.jumpTo').replace(
-                    '{column}',
-                    t(`policy.${other.kind}`),
-                  )}
+                  {t('result.jumpTo').replace('{column}', other.title)}
                 </button>
               ))}
-            <span
-              className={`${site.badge} ${ruleSet.kind === 'ANNOUNCED' ? site.announced : ''}`}
-            >
-              <RuleSetStatus ruleSet={ruleSet} />
-            </span>
-            {!assessment ? (
+            {ruleSet && (
+              <span
+                className={`${site.badge} ${ruleSet?.kind === 'ANNOUNCED' ? site.announced : ''}`}
+              >
+                <RuleSetStatus ruleSet={ruleSet} />
+              </span>
+            )}
+            {!column.pathways.length ? (
               <p className={site.notice}>{t('result.missingAssessment')}</p>
             ) : (
-              <>
-                <div
-                  className={`${styles.outcome} ${assessment.outcome === 'LIKELY_ELIGIBLE' ? styles.success : assessment.outcome === 'LIKELY_NOT_ELIGIBLE' ? styles.failure : styles.unknown}`}
-                >
-                  <h3>{t(`outcome.${assessment.outcome}`)}</h3>
-                  <p>{t(`outcome.${assessment.outcome}.description`)}</p>
-                  {assessment.decidedBy &&
-                    assessment.pathwayYears !== undefined && (
-                      <p className={styles.basis}>
-                        {(basisRule(assessment)
-                          ? t('result.basis').replace(
-                              '{route}',
-                              basisRule(assessment)!.title,
-                            )
-                          : t('result.basisNoRoute')
-                        ).replace('{years}', String(assessment.pathwayYears))}
-                      </p>
-                    )}
-                  {shorterPathwaysNotUsed(assessment).length > 0 && (
-                    <>
-                      <p>{t('result.shorterBlocked')}</p>
-                      <ul className={styles.shorterBlocked}>
-                        {shorterPathwaysNotUsed(assessment).map(
-                          ({ years, entry, status, rules }) => (
-                            <li key={`${years}-${entry}`}>
-                              {t(
-                                status === 'FAIL'
-                                  ? 'result.shorterNotMet'
-                                  : 'result.shorterUnconfirmed',
-                              )
-                                .replace(
-                                  '{pathway}',
-                                  (entry
-                                    ? t('result.shorterPathwayEntry').replace(
-                                        '{entry}',
-                                        t(
-                                          `result.entry.${entry}` as TranslationKey,
-                                        ),
-                                      )
-                                    : t('result.shorterPathway')
-                                  ).replace('{years}', String(years)),
-                                )
-                                .replace(
-                                  '{rules}',
-                                  rules.map((rule) => rule.title).join(p.list),
-                                )}
-                            </li>
-                          ),
-                        )}
-                      </ul>
-                    </>
-                  )}
-                </div>
-                <GapSummary
+              column.pathways.map((assessment) => (
+                <PathwayAssessment
+                  key={assessment.id}
+                  country={country}
                   assessment={assessment}
+                  columnId={column.id}
+                  showTitle={
+                    column.pathways.length > 1 ||
+                    assessment.title !== column.title
+                  }
                   simulationDate={simulationDate}
                   canWhatIf={canWhatIf}
                   dependant={dependant}
                 />
-                <dl className={styles.facts}>
-                  {assessment.routeGroup && (
-                    <div>
-                      <dt>{t('result.routeGroup')}</dt>
-                      <dd>
-                        {routeLabel(
-                          routeGroupNames[assessment.routeGroup],
-                          locale,
-                        )}
-                      </dd>
-                    </div>
-                  )}
-                  <div>
-                    <dt>{t('result.pathway')}</dt>
-                    <dd>
-                      {assessment.pathwayYears === undefined
-                        ? t('result.undetermined')
-                        : `${assessment.pathwayYears} ${t('result.years')}`}
-                    </dd>
-                  </div>
-                  {assessment.pathwayCompletionDate &&
-                  !assessment.earliestDate ? (
-                    <div>
-                      <dt>{t('result.completion')}</dt>
-                      <dd>
-                        <time dateTime={assessment.pathwayCompletionDate}>
-                          {assessment.pathwayCompletionDate}
-                        </time>
-                      </dd>
-                    </div>
-                  ) : (
-                    <div>
-                      <dt>{t('result.earliest')}</dt>
-                      <dd>
-                        {assessment.earliestDate ? (
-                          <time dateTime={assessment.earliestDate}>
-                            {assessment.earliestDate}
-                          </time>
-                        ) : (
-                          t('result.undetermined')
-                        )}
-                      </dd>
-                    </div>
-                  )}
-                  {assessment.publicFundsReassessmentDate && (
-                    <div>
-                      <dt>{t('result.reassessment')}</dt>
-                      <dd>
-                        <time dateTime={assessment.publicFundsReassessmentDate}>
-                          {assessment.publicFundsReassessmentDate}
-                        </time>
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-                <h3>{t('result.why')}</h3>
-                {!assessment.rules.length ? (
-                  <p className={site.muted}>{t('result.noRules')}</p>
-                ) : assessment.decidedBy ? (
-                  <>
-                    <h4 className={styles.pathwayHeading}>
-                      {t('result.thisPathway')}
-                    </h4>
-                    <RuleGroups
-                      rules={assessment.rules.filter((rule) =>
-                        assessment.decidedBy!.includes(rule.id),
-                      )}
-                      ruleSetId={ruleSet.id}
-                    />
-                    {assessment.rules.some(
-                      (rule) => !assessment.decidedBy!.includes(rule.id),
-                    ) && (
-                      <details className={styles.otherPathways}>
-                        <summary>{t('result.otherPathways')}</summary>
-                        <RuleGroups
-                          rules={assessment.rules.filter(
-                            (rule) => !assessment.decidedBy!.includes(rule.id),
-                          )}
-                          ruleSetId={ruleSet.id}
-                          collapsed
-                        />
-                      </details>
-                    )}
-                  </>
-                ) : (
-                  <RuleGroups rules={assessment.rules} ruleSetId={ruleSet.id} />
-                )}
-                {assessment.assumptions.length ? (
-                  <details>
-                    <summary>
-                      {t('result.assumptions')}
-                      {p.openParen}
-                      {assessment.assumptions.length}{' '}
-                      {t('result.assumptionCount')}
-                      {p.closeParen}
-                    </summary>
-                    <ul className={styles.assumptions}>
-                      {assessment.assumptions.map((assumption, i) => (
-                        <li key={i}>{assumption}</li>
-                      ))}
-                    </ul>
-                  </details>
-                ) : (
-                  <>
-                    <h3>{t('result.assumptions')}</h3>
-                    <p className={site.muted}>{t('result.noAssumptions')}</p>
-                  </>
-                )}
-              </>
+              ))
             )}
           </section>
         );
@@ -352,19 +217,236 @@ export function AssessmentColumns({
   );
 }
 
+function PathwayAssessment<D extends CountryDraft, K>({
+  country,
+  assessment,
+  columnId,
+  showTitle,
+  simulationDate,
+  canWhatIf,
+  dependant,
+}: {
+  country: CountryModule<D, K>;
+  assessment: CountryPathway;
+  columnId: string;
+  showTitle: boolean;
+  simulationDate?: string;
+  canWhatIf: boolean;
+  dependant: boolean;
+}) {
+  const { t, locale } = useTranslation();
+  const p = punct(locale);
+  const basis = basisRule(assessment);
+  const shorter = shorterPathwaysNotUsed(assessment);
+  const eligible =
+    assessment.status === 'LIKELY_ELIGIBLE' || assessment.status === 'MET';
+  const ineligible =
+    assessment.status === 'LIKELY_NOT_ELIGIBLE' ||
+    assessment.status === 'NOT_MET';
+  return (
+    <>
+      {showTitle && <h3>{assessment.title}</h3>}
+      <div
+        className={`${styles.outcome} ${eligible ? styles.success : ineligible ? styles.failure : styles.unknown}`}
+      >
+        <h3>{pathwayTitle(assessment, t)}</h3>
+        {isDecisionOutcome(assessment.status) && (
+          <p>{t(`outcome.${assessment.status}.description`)}</p>
+        )}
+        {assessment.summary && <p>{assessment.summary}</p>}
+        {assessment.decidedBy && assessment.pathwayYears !== undefined && (
+          <p className={styles.basis}>
+            {(basis
+              ? t('result.basis').replace('{route}', basis.title)
+              : t('result.basisNoRoute')
+            ).replace('{years}', String(assessment.pathwayYears))}
+          </p>
+        )}
+        {shorter.length > 0 && (
+          <>
+            <p>{t('result.shorterBlocked')}</p>
+            <ul className={styles.shorterBlocked}>
+              {shorter.map(({ years, entry, status, rules }) => (
+                <li key={`${years}-${entry}`}>
+                  {t(
+                    status === 'FAIL'
+                      ? 'result.shorterNotMet'
+                      : 'result.shorterUnconfirmed',
+                  )
+                    .replace(
+                      '{pathway}',
+                      (entry
+                        ? t('result.shorterPathwayEntry').replace(
+                            '{entry}',
+                            t(`result.entry.${entry}` as TranslationKey),
+                          )
+                        : t('result.shorterPathway')
+                      ).replace('{years}', String(years)),
+                    )
+                    .replace(
+                      '{rules}',
+                      rules.map((rule) => rule.title).join(p.list),
+                    )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+      <GapSummary
+        country={country}
+        assessment={assessment}
+        simulationDate={simulationDate}
+        canWhatIf={canWhatIf}
+        dependant={dependant}
+      />
+      <dl className={styles.facts}>
+        {assessment.routeGroup && (
+          <div>
+            <dt>{t('result.routeGroup')}</dt>
+            <dd>
+              {routeLabel(routeGroupNames[assessment.routeGroup], locale)}
+            </dd>
+          </div>
+        )}
+        {(isDecisionOutcome(assessment.status) ||
+          assessment.pathwayYears !== undefined) && (
+          <div>
+            <dt>{t('result.pathway')}</dt>
+            <dd>
+              {assessment.pathwayYears === undefined
+                ? t('result.undetermined')
+                : `${assessment.pathwayYears} ${t('result.years')}`}
+            </dd>
+          </div>
+        )}
+        {assessment.pathwayCompletionDate && !assessment.earliestDate ? (
+          <div>
+            <dt>{t('result.completion')}</dt>
+            <dd>
+              <time dateTime={assessment.pathwayCompletionDate}>
+                {assessment.pathwayCompletionDate}
+              </time>
+            </dd>
+          </div>
+        ) : (
+          <div>
+            <dt>{t('result.earliest')}</dt>
+            <dd>
+              {assessment.earliestDate ? (
+                <time dateTime={assessment.earliestDate}>
+                  {assessment.earliestDate}
+                </time>
+              ) : (
+                t('result.undetermined')
+              )}
+            </dd>
+          </div>
+        )}
+        {assessment.publicFundsReassessmentDate && (
+          <div>
+            <dt>{t('result.reassessment')}</dt>
+            <dd>
+              <time dateTime={assessment.publicFundsReassessmentDate}>
+                {assessment.publicFundsReassessmentDate}
+              </time>
+            </dd>
+          </div>
+        )}
+      </dl>
+      <h3>{t('result.why')}</h3>
+      {!assessment.checks.length ? (
+        <p className={site.muted}>{t('result.noRules')}</p>
+      ) : assessment.decidedBy ? (
+        <>
+          <h4 className={styles.pathwayHeading}>{t('result.thisPathway')}</h4>
+          <RuleGroups
+            rules={assessment.checks.filter((rule) =>
+              assessment.decidedBy!.includes(rule.id),
+            )}
+            sourceUrls={country.policy.sourceUrls}
+            ruleSetId={columnId}
+          />
+          {assessment.checks.some(
+            (rule) => !assessment.decidedBy!.includes(rule.id),
+          ) && (
+            <details className={styles.otherPathways}>
+              <summary>{t('result.otherPathways')}</summary>
+              <RuleGroups
+                rules={assessment.checks.filter(
+                  (rule) => !assessment.decidedBy!.includes(rule.id),
+                )}
+                sourceUrls={country.policy.sourceUrls}
+                ruleSetId={columnId}
+                collapsed
+              />
+            </details>
+          )}
+        </>
+      ) : (
+        <RuleGroups
+          rules={assessment.checks}
+          sourceUrls={country.policy.sourceUrls}
+          ruleSetId={columnId}
+        />
+      )}
+      {!!assessment.notChecked?.length && (
+        <>
+          <h3>{t('pilot.notChecked')}</h3>
+          <ul>
+            {assessment.notChecked.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </>
+      )}
+      {!!assessment.pendingDetails?.length && (
+        <p>
+          {t('result.pendingDetails')}
+          {p.colon}
+          {assessment.pendingDetails.join(p.list)}
+        </p>
+      )}
+      {assessment.assumptions.length ? (
+        <details>
+          <summary>
+            {t('result.assumptions')}
+            {p.openParen}
+            {assessment.assumptions.length} {t('result.assumptionCount')}
+            {p.closeParen}
+          </summary>
+          <ul className={styles.assumptions}>
+            {assessment.assumptions.map((assumption, i) => (
+              <li key={i}>{assumption}</li>
+            ))}
+          </ul>
+        </details>
+      ) : (
+        <>
+          <h3>{t('result.assumptions')}</h3>
+          <p className={site.muted}>{t('result.noAssumptions')}</p>
+        </>
+      )}
+    </>
+  );
+}
+
 function RuleGroups({
+  sourceUrls,
   rules: all,
   ruleSetId,
   collapsed = false,
 }: {
-  rules: RuleOutcome[];
+  sourceUrls: Record<string, string>;
+  rules: CountryCheck[];
   ruleSetId: string;
   collapsed?: boolean;
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
-  return (['FAIL', 'UNKNOWN', 'PASS'] as const).map((status) => {
-    const rules = all.filter((rule) => rule.status === status);
+  return (['NOT_MET', 'UNKNOWN', 'MET'] as const).map((checkStatus) => {
+    const status = checkLabelStatus[checkStatus];
+    const rules = all.filter((rule) => rule.status === checkStatus);
     if (collapsed && !rules.length) return null;
     return (
       <details
@@ -397,10 +479,10 @@ function RuleGroups({
                   </summary>
                   <div className={styles.sources}>
                     {rule.sources.map((source, index) =>
-                      sourceUrls[source.srcId] ? (
+                      (source.url ?? sourceUrls[source.srcId]) ? (
                         <a
                           key={index}
-                          href={sourceUrls[source.srcId]}
+                          href={source.url ?? sourceUrls[source.srcId]}
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -443,11 +525,13 @@ function RuleGroups({
   });
 }
 
-export function PrincipalAssessment({
+export function PrincipalAssessment<D extends CountryDraft, K>({
+  country,
   result,
   simulationDate,
 }: {
-  result: SimulationResult;
+  country: CountryModule<D, K>;
+  result: CountryResult;
   simulationDate?: string;
 }) {
   const { t } = useTranslation();
@@ -457,13 +541,33 @@ export function PrincipalAssessment({
       {result.shortCircuit && (
         <p className={site.notice}>{result.shortCircuit.message}</p>
       )}
-      {!!Object.keys(result.byRuleSet).length && (
-        <AssessmentColumns
+      {!!result.columns.length && (
+        <CountryAssessmentColumns
+          country={country}
           result={result}
           idPrefix="principal-"
           simulationDate={simulationDate}
         />
       )}
     </details>
+  );
+}
+
+// The UK game still supplies engine assessments directly.
+export function AssessmentColumns({
+  result,
+  ...props
+}: {
+  result: SimulationResult;
+  idPrefix?: string;
+  simulationDate?: string;
+}) {
+  const { locale } = useTranslation();
+  return (
+    <CountryAssessmentColumns
+      country={ukModule}
+      result={ukResult(result, locale)}
+      {...props}
+    />
   );
 }

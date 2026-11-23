@@ -5,8 +5,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '../i18n/locale';
 import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
-import { displayedRuleSets } from '../lib/policy';
-import { type Draft, runSimulation } from '../lib/questionnaire';
+import { displayedColumns, ruleSetTitle } from '../lib/policy';
+import {
+  type CountryDraft,
+  type CountryModule,
+  pathwayTitle,
+} from '../lib/country-module';
 import {
   type SavedScenario,
   deleteScenario,
@@ -17,33 +21,42 @@ import {
 import site from '../app/site.module.css';
 import styles from './saved-scenarios.module.css';
 
-export function SavedScenarios({
+export function SavedScenarios<D extends CountryDraft, K>({
+  country,
   draft,
   onLoad,
 }: {
-  draft?: Draft;
-  onLoad?: (draft: Draft) => void;
+  country: CountryModule<D, K>;
+  draft?: D;
+  onLoad?: (draft: D) => void;
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
-  const [scenarios, setScenarios] = useState<SavedScenario[]>([]);
+  const [scenarios, setScenarios] = useState<SavedScenario<D>[]>([]);
   const [name, setName] = useState<string>();
   const [available, setAvailable] = useState(true);
   const [ready, setReady] = useState(false);
   const [saved, setSaved] = useState(false);
   useEffect(() => {
-    const stored = readScenarios();
+    const stored = readScenarios(country);
     setScenarios(stored.scenarios);
     setAvailable(stored.available);
     setReady(true);
-  }, []);
+  }, [country]);
   const summaries = useMemo(
     () =>
-      scenarios.map((scenario) => ({
-        ...scenario,
-        result: runSimulation(scenario.draft, locale),
-      })),
-    [scenarios, locale],
+      scenarios.map((scenario) => {
+        const result = country.run(scenario.draft, locale);
+        const columns = result.columns.length
+          ? displayedColumns(country, result)
+          : country.policy.displayedRuleSets.map((ruleSet) => ({
+              id: ruleSet.id,
+              title: ruleSetTitle(ruleSet, locale),
+              pathways: [],
+            }));
+        return { ...scenario, columns, shortCircuit: result.shortCircuit };
+      }),
+    [country, scenarios, locale],
   );
   const defaultName = `${t('scenarios.defaultName')} ${scenarios.length + 1}`;
 
@@ -59,7 +72,11 @@ export function SavedScenarios({
           className={styles.save}
           onSubmit={(event) => {
             event.preventDefault();
-            const stored = saveScenario(name?.trim() || defaultName, draft);
+            const stored = saveScenario(
+              country,
+              name?.trim() || defaultName,
+              draft,
+            );
             setScenarios(stored.scenarios);
             setAvailable(stored.available);
             setSaved(stored.available);
@@ -102,28 +119,33 @@ export function SavedScenarios({
               </time>
             </p>
             <dl className={styles.summaries}>
-              {displayedRuleSets.map((ruleSet) => {
-                const assessment = scenario.result.byRuleSet[ruleSet.id];
-                return (
-                  <div key={ruleSet.id}>
-                    <dt>{t(`policy.${ruleSet.kind}`)}</dt>
+              {scenario.columns.map((column) => (
+                <div key={column.id}>
+                  <dt>{column.title}</dt>
+                  {column.pathways.length ? (
+                    column.pathways.map((pathway) => (
+                      <dd key={pathway.id}>
+                        {column.pathways.length > 1 &&
+                          `${pathway.title}${p.colon}`}
+                        {pathwayTitle(pathway, t)}
+                      </dd>
+                    ))
+                  ) : (
                     <dd>
-                      {assessment
-                        ? t(`outcome.${assessment.outcome}`)
-                        : (scenario.result.shortCircuit?.message ??
-                          t('result.missingAssessment'))}
+                      {scenario.shortCircuit?.message ??
+                        t('result.missingAssessment')}
                     </dd>
-                  </div>
-                );
-              })}
+                  )}
+                </div>
+              ))}
             </dl>
             <div className={styles.row}>
               <Link
-                href={countryPath('uk', 'result')}
+                href={countryPath(country.id, 'result')}
                 className={site.button}
                 aria-label={`${t('scenarios.load')} ${scenario.name}`}
                 onClick={() => {
-                  const next = loadScenario(scenario);
+                  const next = loadScenario(country, scenario);
                   onLoad?.(next);
                   setSaved(false);
                 }}
@@ -144,7 +166,7 @@ export function SavedScenarios({
                     )
                   )
                     return;
-                  const stored = deleteScenario(scenario.id);
+                  const stored = deleteScenario(country, scenario.id);
                   setScenarios(stored.scenarios);
                   setAvailable(stored.available);
                   setSaved(false);

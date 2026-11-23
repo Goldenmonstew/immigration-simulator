@@ -11,7 +11,7 @@ import {
   diffAssessment,
   initialWhatIf,
   tripDays,
-} from '../lib/whatif';
+} from './uk-whatif';
 
 function baseline() {
   const draft = draftReducer(createDraft(), {

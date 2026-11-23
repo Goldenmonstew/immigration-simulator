@@ -11,7 +11,7 @@ import {
   validateStep,
   visibleIncomeYears,
 } from '../lib/questionnaire';
-import { draftStorage } from '../lib/storage';
+import { draftStorage } from './uk-scenarios';
 import { en } from '../i18n/en';
 import { zhCN } from '../i18n/zh-CN';
 

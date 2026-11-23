@@ -6,9 +6,9 @@ import { PARAMETERS, RULE_SET_IDS } from '@uk-immigration/policy-data';
 import { esP31IndividualAPartnerArrivesTogether as fixture } from '../../../packages/policy-data/fixtures/es-p31-individual-a-partner-arrives-together';
 import AboutContent from '../app/uk/about/about-content';
 import PolicyPage from '../app/uk/policy/page';
-import { PolicyStatus } from '../components/policy-status';
-import { PrincipalAssessment, ResultView } from '../components/result-view';
-import { WhatIfView } from '../components/whatif-lab';
+import { PolicyStatus } from './uk-result-views';
+import { PrincipalAssessment, ResultView } from './uk-result-views';
+import { WhatIfView } from './uk-whatif';
 import { LocaleContext } from '../i18n/locale';
 import { allRuleSets, displayedRuleSets, policyAsOf } from '../lib/policy';
 import {
@@ -16,8 +16,8 @@ import {
   runPrincipalSimulation,
   runSimulation,
 } from '../lib/questionnaire';
-import { loadScenario, readScenarios, saveScenario } from '../lib/storage';
-import { applyWhatIf, initialWhatIf } from '../lib/whatif';
+import { loadScenario, readScenarios, saveScenario } from './uk-scenarios';
+import { applyWhatIf, initialWhatIf } from '../lib/uk-whatif';
 
 const { CURRENT, ANNOUNCED, FUTURE } = vi.hoisted(() => ({
   CURRENT: 'current-law-2026-11' as RuleSetId,

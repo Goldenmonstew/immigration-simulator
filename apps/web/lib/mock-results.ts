@@ -1,6 +1,6 @@
 import type { Locale, SimulationResult } from '@uk-immigration/engine';
 import { earnedSettlement2026_11 as es } from '@uk-immigration/policy-data';
-import { policyAsOf } from './policy';
+import { policyAsOf } from './uk-policy';
 
 /** Handwritten development previews (`/uk/result?mock=1` or `2`). */
 export function mockResults(

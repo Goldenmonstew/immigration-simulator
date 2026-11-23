@@ -3,19 +3,25 @@
 import { useState } from 'react';
 import { useTranslation } from '../i18n/locale';
 import { countryPath } from '../lib/site-countries';
-import type { Draft } from '../lib/questionnaire';
+import type { CountryDraft, CountryModule } from '../lib/country-module';
 import { encodeDraft } from '../lib/share';
 import site from '../app/site.module.css';
 import styles from './share-link.module.css';
 import { asset } from '../lib/asset';
 
-export function ShareLink({ draft }: { draft: Draft }) {
+export function ShareLink<D extends CountryDraft, K>({
+  country,
+  draft,
+}: {
+  country: CountryModule<D, K>;
+  draft: D;
+}) {
   const { t } = useTranslation();
-  const encoded = encodeDraft(draft);
+  const encoded = encodeDraft(country, draft);
   const [copied, setCopied] = useState<string>();
   const [manual, setManual] = useState<{ encoded: string; url: string }>();
   const copy = async () => {
-    const url = `${window.location.origin}${asset(countryPath('uk', 'result'))}#s=${encoded}`;
+    const url = `${window.location.origin}${asset(countryPath(country.id, 'result'))}#s=${encoded}`;
     setCopied(undefined);
     setManual(undefined);
     try {

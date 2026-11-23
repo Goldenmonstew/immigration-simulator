@@ -1,12 +1,12 @@
-import type { SettlementAssessment } from '@uk-immigration/engine';
+import type { CountryPathway } from '@uk-immigration/engine';
 
 // A future date does not mean only waiting: requirements still to be
 // confirmed on the pathway stay listed (task 31 A6#6).
-export function gapRules(assessment: SettlementAssessment) {
-  return assessment.rules.filter(
+export function gapRules(assessment: CountryPathway) {
+  return assessment.checks.filter(
     (rule) =>
       (!assessment.decidedBy || assessment.decidedBy.includes(rule.id)) &&
-      (rule.status === 'FAIL' || rule.status === 'UNKNOWN'),
+      (rule.status === 'NOT_MET' || rule.status === 'UNKNOWN'),
   );
 }
 
@@ -16,8 +16,8 @@ export function gapRules(assessment: SettlementAssessment) {
  * arrangement…), the minimum earnings of the longer pathways or, under
  * current law, the route's residence rule.
  */
-export function basisRule(assessment: SettlementAssessment) {
-  const decided = assessment.rules.filter((rule) =>
+export function basisRule(assessment: CountryPathway) {
+  const decided = assessment.checks.filter((rule) =>
     assessment.decidedBy?.includes(rule.id),
   );
   return (
@@ -35,11 +35,11 @@ export function basisRule(assessment: SettlementAssessment) {
 }
 
 /** Each shorter candidate pathway and why it was not used (engine). */
-export function shorterPathwaysNotUsed(assessment: SettlementAssessment) {
+export function shorterPathwaysNotUsed(assessment: CountryPathway) {
   return (assessment.shorterPathwaysNotUsed ?? []).map(
     ({ ruleIds, ...pathway }) => ({
       ...pathway,
-      rules: assessment.rules.filter((rule) => ruleIds.includes(rule.id)),
+      rules: assessment.checks.filter((rule) => ruleIds.includes(rule.id)),
     }),
   );
 }
