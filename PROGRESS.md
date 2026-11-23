@@ -417,3 +417,4 @@
 | 403 | 任务 73：德国试点出境卡：之前的出境是否已使许可失效未定（学生、研究人员流动或欧盟长期居留在欧盟外）时，之后、下一张许可生效前的出境改为 UNKNOWN，并写明取决于哪次出境；回归用例 1 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts |
 | 404 | 任务 73：德国试点定居许可、欧盟长期居留与入籍的条件性日期改由一个共用的条件列表生成：逐项检查日期依赖哪些待确认读法（失效未定、等待续期、所持许可、出境合计、酌情折算），摘要全部列出，不再只写其中一个；回归用例 3 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts |
 | 405 | 任务 73：德国试点入籍对失效未定的出境（欧盟长期居留在欧盟外、学生或研究人员流动）也按两种读法：确定日期按已失效计，回德后要等下一张许可才重新起算合法居留；未失效的日期另列；回归用例 1 项。 | packages/engine/src/germany.ts、packages/engine/test/germany.test.ts |
+| 406 | 任务 73：德国页单测补"每种许可类型在中英文下都有标签"，覆盖新增的研究人员、§ 20 求职与四类人道居留。 | apps/web/test/germany.test.tsx |

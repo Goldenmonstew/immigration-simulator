@@ -1,10 +1,11 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
-import { evaluateGermany } from '@uk-immigration/engine';
+import { DE_PERMIT_KINDS, evaluateGermany } from '@uk-immigration/engine';
 import GermanyPage from '../app/germany/page';
 import { PilotResult } from '../app/pilot/pilot-result';
 import Home from '../app/page';
 import { t } from '../i18n';
+import type { TranslationKey } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
 import { deRequest, emptyDeForm, validateDeForm } from '../lib/germany';
 import type { DeForm } from '../lib/germany';
@@ -53,6 +54,15 @@ test('contributions include comparable pension schemes (review69-10)', () => {
     'comparable insurance or pension scheme',
   );
 });
+
+test.each(['zh-CN', 'en'] as const)(
+  'every permit type has a label in %s (task 73)',
+  (locale) => {
+    const html = render(<GermanyPage />, locale);
+    for (const kind of DE_PERMIT_KINDS)
+      expect(html).toContain(t(`de.kind.${kind}` as TranslationKey, locale));
+  },
+);
 
 test('home links to the Germany pilot', () => {
   expect(render(<Home />, 'zh-CN')).toContain('href="/germany"');
