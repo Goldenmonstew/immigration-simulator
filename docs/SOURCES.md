@@ -120,8 +120,8 @@
 | SRC-101 | LAW | Staatsangehörigkeitsgesetz（StAG，德国国籍法），gesetze-im-internet 现行汇编（Stand：Zuletzt geändert durch Art. 3 G v. 21.7.2026, BGBl. 2026 I Nr. 221）：§ 9 德国人配偶入籍、§ 10 一般入籍（Abs. 3 已删除）、§ 12b 居住中断、§ 40a 过渡规定 | https://www.gesetze-im-internet.de/stag/BJNR005830913.html | 2026-07-21（最近修改法签署日） | 2026-11-22 | `policy-sources/2026-11-22-de-stag-full.html`（sha256 `5539ac4ccb8cac6ac615d677c492c5d98a0e4edd6d0c98e27d40ce184bf31156`） | archived |
 | SRC-102 | LAW | 德国期间计算：BGB § 187 Fristbeginn、§ 188 Fristende、§ 191 Berechnung von Zeiträumen；VwVfG § 31 Fristen und Termine（gesetze-im-internet 单条页面） | https://www.gesetze-im-internet.de/bgb/__187.html ；https://www.gesetze-im-internet.de/bgb/__188.html ；https://www.gesetze-im-internet.de/bgb/__191.html ；https://www.gesetze-im-internet.de/vwvfg/__31.html | —（单条页面无版本日） | 2026-11-22 | `policy-sources/2026-11-22-de-bgb-187.html`（sha256 `8a1f3c70ceb349b44b3f995bf7d3ffc26d7a2b512ea77c384eb87c44cd961369`）；`policy-sources/2026-11-22-de-bgb-188.html`（sha256 `b80b9e0feb801a7e7b984b5294e37bba247080a1122b7af59d4dab21ebbd807e`）；`policy-sources/2026-11-22-de-bgb-191.html`（sha256 `30e5ed07deb62753f108e27c6a5bfecc90f01c3bc28704b833c9c15a38fb0538`）；`policy-sources/2026-11-22-de-vwvfg-31.html`（sha256 `80c85b5876c22e6aa1a19ecfa943a00a281f05336e148fe95a4201ff4e278345`） | archived |
 | SRC-103 | LAW | Asylgesetz § 55 Aufenthaltsgestattung（gesetze-im-internet 单条页面，GEAS 改造后的现行文本）：Abs. 3 庇护程序期间只在获承认或获国际保护后计入 | https://www.gesetze-im-internet.de/asylvfg_1992/__55.html | —（单条页面无版本日） | 2026-11-22 | `policy-sources/2026-11-22-de-asylg-55.html`（sha256 `88da857fd21bb069fbf953d6b2d48c828a43ab8e89589ac5e15641dd3d0286fc`） | archived |
-| SRC-104 | LAW | 取消 3 年快速入籍：已公布法令 BGBl. 2025 I Nr. 256（Gesetz zur Änderung des Staatsangehörigkeitsgesetzes sowie weiterer Vorschriften，2025-10-27 签署、2025-10-29 公布，原文未能存档）；议会草案 BT-Drs. 21/537（政府草案及理由）；BMI 立法程序页（进度与公布日）；部长讲话 Bulletin Nr. 89-5（内政部长 2025-10-08 在联邦议院，只作背景） | https://dserver.bundestag.de/btd/21/005/2100537.pdf ；https://www.bmi.bund.de/SharedDocs/gesetzgebungsverfahren/DE/VII5/gesetz-6-aenderung-des-staatsangehoerigkeitsrechts.html ；https://www.bundesregierung.de/resource/blob/975954/2388128/f26afadd67ac33455496c4e532b4afcc/89-5-bmi-aenderung-staatsangehoerigeitsrecht-bt-data.pdf?download=1 ；https://www.recht.bund.de/bgbl/1/2025/256/VO.html （未存档） | 2025-06-23；2025-10-08；公布 2025-10-29 | 2026-11-22 | `policy-sources/2025-06-23-de-bt-drs-21-537-stag-entwurf.pdf`（sha256 `98fa18c46c5ef381e7178af5f54ab8350b4302315edbbdb0d864fe6d8808af54`）；`policy-sources/2026-11-22-de-bmi-gesetzgebung-stag-2025.html`（sha256 `45022a73049f34c6f906dd0cfe0a3909dda6db58de0e6fc2e64a02eae99364dd`）；`policy-sources/2025-10-08-de-breg-bulletin-89-5-stag.pdf`（sha256 `69e1db0aad2a36560df46040295f11ca8dcea0ca3242a7af276e6c3cd4e73ba4`） | archived（BGBl. 原文未存档，见备注） |
-| SRC-105 | LAW | 国籍法现代化法（StARModG）：已公布法令 BGBl. 2024 I Nr. 104（2024-06-27 施行，原文未能存档）；议会草案 BT-Drs. 20/9044（政府草案，含 § 12b 修改理由） | https://dserver.bundestag.de/btd/20/090/2009044.pdf ；https://www.recht.bund.de/bgbl/1/2024/104/VO.html （未存档） | 2023-11-01 | 2026-11-22 | `policy-sources/2023-11-01-de-bt-drs-20-9044-starmodg-entwurf.pdf`（sha256 `db7fdf4bd2a95fe83473a9668b508f72232c0dc838c3401fec8b5c5b4315a30d`） | archived（BGBl. 原文未存档，见备注） |
+| SRC-104 | LAW | 取消 3 年快速入籍：已公布法令 BGBl. 2025 I Nr. 256（Gesetz zur Änderung des Staatsangehörigkeitsgesetzes sowie weiterer Vorschriften，2025-10-27 签署、2025-10-29 公布，本次已补入公报原文）；议会草案 BT-Drs. 21/537（政府草案及理由）；BMI 立法程序页（进度与公布日）；部长讲话 Bulletin Nr. 89-5（内政部长 2025-10-08 在联邦议院，只作背景） | https://dserver.bundestag.de/btd/21/005/2100537.pdf ；https://www.bmi.bund.de/SharedDocs/gesetzgebungsverfahren/DE/VII5/gesetz-6-aenderung-des-staatsangehoerigkeitsrechts.html ；https://www.bundesregierung.de/resource/blob/975954/2388128/f26afadd67ac33455496c4e532b4afcc/89-5-bmi-aenderung-staatsangehoerigeitsrecht-bt-data.pdf?download=1 ；https://www.recht.bund.de/bgbl/1/2025/256/VO.html （未存档） ；https://www.recht.bund.de/bgbl/1/2025/256/regelungstext.pdf?__blob=publicationFile&v=3 | 2025-06-23；2025-10-08；公布 2025-10-29 | 2026-11-22；公报原文 2026-11-23 | `policy-sources/2025-06-23-de-bt-drs-21-537-stag-entwurf.pdf`（sha256 `98fa18c46c5ef381e7178af5f54ab8350b4302315edbbdb0d864fe6d8808af54`）；`policy-sources/2026-11-22-de-bmi-gesetzgebung-stag-2025.html`（sha256 `45022a73049f34c6f906dd0cfe0a3909dda6db58de0e6fc2e64a02eae99364dd`）；`policy-sources/2025-10-08-de-breg-bulletin-89-5-stag.pdf`（sha256 `69e1db0aad2a36560df46040295f11ca8dcea0ca3242a7af276e6c3cd4e73ba4`）；`policy-sources/2026-11-23-de-bundesgesetzblatt-2025-256.pdf`（sha256 `4cc6e0230eb43983978d74f57dd246aaca97fcdb778d84d6219961b464c4d00c`） | archived（BGBl. 原文未存档，见备注） |
+| SRC-105 | LAW | 国籍法现代化法（StARModG）：已公布法令 BGBl. 2024 I Nr. 104（2024-06-27 施行，本次已补入公报原文）；议会草案 BT-Drs. 20/9044（政府草案，含 § 12b 修改理由） | https://dserver.bundestag.de/btd/20/090/2009044.pdf ；https://www.recht.bund.de/bgbl/1/2024/104/VO.html （未存档） ；https://www.recht.bund.de/bgbl/1/2024/104/regelungstext.pdf?__blob=publicationFile | 2023-11-01 | 2026-11-22；公报原文 2026-11-23 | `policy-sources/2023-11-01-de-bt-drs-20-9044-starmodg-entwurf.pdf`（sha256 `db7fdf4bd2a95fe83473a9668b508f72232c0dc838c3401fec8b5c5b4315a30d`）；`policy-sources/2026-11-23-de-bundesgesetzblatt-2024-104.pdf`（sha256 `f83b710a968ef811c12aa65355094377f0e18d77d816ac1e4ef187a1caffe050`） | archived（BGBl. 原文未存档，见备注） |
 | SRC-106 | GUIDANCE | BMI《Anwendungshinweise zum Staatsangehörigkeitsgesetz》（AH-StAG 2025，Stand 1. Mai 2025，146 页；早于 § 10 Abs. 3 删除） | https://www.bmi.bund.de/SharedDocs/downloads/DE/veroeffentlichungen/themen/verfassung/staatsangehoerigkeit/2505_anwendungshinweise-staatsangehoerigkeit.pdf?__blob=publicationFile&v=6 | 2025-05-01 | 2026-11-22 | `policy-sources/2025-05-01-de-bmi-anwendungshinweise-stag.pdf`（sha256 `95dc87965f3c604f1e00c18bb3d531fef4d293e366ca1096a486a6f227a4ecd6`） | archived |
 | SRC-107 | GUIDANCE | BMI《Anwendungshinweise zum Fachkräfteeinwanderungsgesetz》更新版（按 2024-06-01 起的法律状态，277 页） | https://www.bmi.bund.de/SharedDocs/downloads/DE/veroeffentlichungen/themen/migration/anwendungshinweise-fachkraefteeinwanderungsgesetz.pdf?__blob=publicationFile&v=5 | 2024-05-28（PDF 生成日） | 2026-11-22 | `policy-sources/2024-05-28-de-bmi-anwendungshinweise-feg.pdf`（sha256 `c5ae086f09bab3d3972f53cc3fc70ad1c30f868dfbeb6dd6a86e96e90b7d49df`） | archived |
 | SRC-108 | GUIDANCE | Allgemeine Verwaltungsvorschrift zum Aufenthaltsgesetz（AVwV-AufenthG，2009-10-26，GMBl 2009 Nr. 42–61，390 页；条文编号按 2009 年版，部分过时） | https://www.verwaltungsvorschriften-im-internet.de/pdf/BMI-MI3-20091026-SF-A001.pdf | 2009-10-26 | 2026-11-22 | `policy-sources/2009-10-26-de-avwv-aufenthg.pdf`（sha256 `c6e02d7c930e6a2492370f2a1a367bb6fddfb9104eec6af426fd9baf730b2777`） | archived |
@@ -144,6 +144,36 @@
 | SRC-125 | GUIDANCE | 里斯本检察院（PGD Lisboa）编纂版（非官方公报文本，仅交叉核对）：Decreto Regulamentar 84/2007（列至 DR 1/2024）art. 63 续期；Código Civil art. 279、296 期间计算 | https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=940&tabela=leis ；https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=775&tabela=leis | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-pgdlisboa-dr-84-2007-consolidado.html`（sha256 `8c0509aba4b9cf5f98fcb0f0f39742d91917e6500626ddd2302cd4a5f6a1f49f`）；`policy-sources/2026-11-22-pt-pgdlisboa-codigo-civil.html`（sha256 `1134e2bc2feb5ca33aaafd4e7f6c34d55b847ec3f389d8ea9cc1c7613eeaf538`） | archived |
 | SRC-126 | GUIDANCE | AIMA（移民与庇护署）页面：投资居留许可 ARI（art. 90-A）、永久居留（art. 80）、欧盟长期居民 ERLD（art. 125）；《Esclarecimento: Direito de Residência》（2025-10-17） | https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a ；https://aima.gov.pt/pt/viver/autorizacao-de-residencia-permanente-art-80-o ；https://aima.gov.pt/pt/viver/aquisicao-do-estatuto-de-residente-de-longa-duracao-erld-art-125-o ；https://aima.gov.pt/pt/noticias/direito-de-residencia | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-aima-ari-art-90-a.html`（sha256 `759f939a21c33b9a228b1f85146c37b65db06127d8f3c6378474fd9465197d37`）；`policy-sources/2026-11-22-pt-aima-ar-permanente-art-80.html`（sha256 `739864b9a7789f04abe2502b87d991cd6b89bee22b381518a73a0aa6a8ad04ef`）；`policy-sources/2026-11-22-pt-aima-erld-art-125.html`（sha256 `188f74257278bb429fe5977e8ee73c6fddeb3c7fc966f0ab1756ad553c4f9f5e`）；`policy-sources/2025-10-17-pt-aima-direito-de-residencia.html`（sha256 `93937c52620f1a21cf5acce152f5850131b5483b073ef67ed4d9dd07785cb036`） | archived |
 | SRC-127 | GUIDANCE | 葡萄牙政府关于新国籍法的说明：司法部新闻《Lei da Nacionalidade: novas regras entram em vigor a 19 de maio》（2026-05-19）；司法部入籍指南《Reside legalmente em Portugal há pelo menos 5 anos》（2026-11-22 抓取，仍按旧法写 5 年，已过时）；部长会议公报（2026-10-29，第 2 项通过国籍条例 Decreto-Lei） | https://justica.gov.pt/Noticias/Lei-da-Nacionalidade-novas-regras-entram-em-vigor-a-19-de-maio ；https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/Reside-legalmente-em-Portugal-ha-pelo-menos-5-anos ；https://www.portugal.gov.pt/pt/gc25/governo/comunicados-do-conselho-de-ministros/comunicado-do-conselho-de-ministros-de-29-de-outubro-de-2026 | 见标题 | 2026-11-22 | `policy-sources/2026-05-19-pt-justica-noticia-lei-nacionalidade.html`（sha256 `667814f2bcfdc424689f8bd24dcf4378abfdd7124d8f2402a30116a395183c4a`）；`policy-sources/2026-11-22-pt-justica-guia-reside-5-anos.html`（sha256 `1eb2c2027170a3a4f7d5f4458e08e7ac42096c08fb12b3220d3e4708cfc702d4`）；`policy-sources/2026-10-29-pt-gov-comunicado-cm.html`（sha256 `7e5d433eed2dba88a608d27a9712b2966e14637a3f0601e31e50ddd8fffd2f1e`） | archived |
+| SRC-410 | LAW | Aufenthaltsverordnung（签发、处理、证件收费及境内申请） | https://www.gesetze-im-internet.de/aufenthv/BJNR294510004.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-aufenthv.html`（sha256 `f59699a4f234c135525b15508d7a738fbd2b96ce203f04f4dde6aff3b43c9368`） | archived |
+| SRC-411 | LAW | Einbürgerungstestverordnung 与联邦政府入籍收费答复 | https://dserver.bundestag.de/btd/20/085/2008575.pdf ；https://www.gesetze-im-internet.de/einbtestv/__5.html ；https://www.gesetze-im-internet.de/einbtestv/BJNR164900008.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bt-20-8575.pdf`（sha256 `2bd51091715fa45310d04d7b2ae0c1b8bc9d1ba891d3262f96a60788c8b415c0`）；`policy-sources/2026-11-23-de-einbtestv-5.html`（sha256 `a4a2765e8c04f1f06c1953a4f16f99530044d87b82b4be8258e48b9979a2e701`）；`policy-sources/2026-11-23-de-einbtestv.html`（sha256 `2d4c0751f052c46beb5de29ae17f700018b88c7bae46de921693da5ee2852e09`） | archived |
+| SRC-412 | LAW | Integrationskursverordnung（整合课程、考试与费用） | https://www.gesetze-im-internet.de/intv/BJNR337000004.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-intv.html`（sha256 `0a4d351ab1acb276752581d1ff3cc26cbe85f57f21668aab9a83ca4207a1f9d0`） | archived |
+| SRC-413 | LAW | Bundesmeldegesetz（入住登记和住所证明） | https://www.gesetze-im-internet.de/bmg/BJNR108410013.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bmg.html`（sha256 `c24fd8d1160ed6197957677d9d0bffeea6e25122006107b87b66eb045fef3d91`） | archived |
+| SRC-414 | GUIDANCE | 柏林 LEA：Einbürgerung | https://service.berlin.de/dienstleistung/318998/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-einbuergerung.html`（sha256 `dccfc4f442e727dedab5660711fcb40e585335ee87972ba558568349f74b45ad`） | archived |
+| SRC-415 | GUIDANCE | 柏林 LEA：生计审查与家庭需要 | https://service.berlin.de/dienstleistung/354205/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-lebensunterhalt.html`（sha256 `3a5c8b256f6631687754c14e0a9990a8c63c6861aee8d1ba29fe2e8cae048d26`） | archived |
+| SRC-416 | GUIDANCE | 柏林 LEA：辅助保护者定居 | https://service.berlin.de/dienstleistung/352770/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-subsidiaer.html`（sha256 `f6c88636c399898ff16397a3534c5fa2b10f19e1c9d37bde412045cb8e65f37d`） | archived |
+| SRC-417 | GUIDANCE | 柏林 LEA：企业经营者定居 | https://service.berlin.de/dienstleistung/326564/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-selbstaendige.html`（sha256 `80847281493629b3919fd352082c4f38eb60067ddf9342f1d79d57477fc1a8e0`） | archived |
+| SRC-418 | GUIDANCE | 柏林 LEA：子女定居 | https://service.berlin.de/dienstleistung/324863/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-kinder.html`（sha256 `2a6956a55229243868c941321fada34e143527282f3477876fc0548e17d987ed`） | archived |
+| SRC-419 | GUIDANCE | 柏林 LEA：一般定居 | https://service.berlin.de/dienstleistung/121864/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-allgemein.html`（sha256 `affbc74703ad239268048fa150557ac141b8402c7ec29f080599146561f87dc2`） | archived |
+| SRC-420 | LAW | 欧盟蓝卡年度公告与联邦政府蓝卡指南 | https://www.bundesanzeiger.de/pub/publication/6yuuiNCa7LgGKapMrQK/content/6yuuiNCa7LgGKapMrQK/BAnz%20AT%2004.12.2024%20B2.pdf ；https://www.bundesanzeiger.de/pub/publication/REViP4bN6jVdpGxPaiQ/content/REViP4bN6jVdpGxPaiQ/BAnz%20AT%2018.12.2025%20B3.pdf?inline= ；https://www.make-it-in-germany.com/en/visa-recognition/visa-types/eu-blue-card ；https://www.make-it-in-germany.com/fileadmin/1_Rebrush_2022/a_Fachkraefte/PDF-Dateien/3_Visum_u_Aufenthalt/Visagrafik_DE/Visum_Blaue_Karte_DE.pdf | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-banz-2025-b2-blaue-karte.pdf`（sha256 `94d6acc095c1552c24f312f46f08c39e20b08614cf760234dcf63b8962ac8035`）；`policy-sources/2026-11-23-de-banz-2026-b3-blaue-karte.pdf`（sha256 `8524b487983b3169780d7a6a43b0a252d2fc894f85873b79e461782788443359`）；`policy-sources/2026-11-23-de-mig-blue-card.html`（sha256 `5d3acfb4f47ca1398d1bf816fc529c3ee3dafad077141925dd1df93405e12db0`）；`policy-sources/2026-11-23-de-mig-blue-card.pdf`（sha256 `db66bcc9c89139a14aaf2df1784f24bff3bb6f12453118f5b5dad4a3e8e4c53e`） | archived |
+| SRC-421 | GUIDANCE | 联邦政府 Make it in Germany：Niederlassungserlaubnis | https://www.make-it-in-germany.com/de/ankommen-bleiben/dauerhaft-in-deutschland/niederlassungserlaubnis | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-mig-niederlassung.html`（sha256 `5911fc677405996f74d6c9a78781abf64041c0d853ac81d68b3d14cc10a1d32b`） | archived |
+| SRC-422 | LAW | FreizügG/EU（自由流动及永久居住权） | https://www.gesetze-im-internet.de/freiz_gg_eu_2004/BJNR198600004.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-freizuegg.html`（sha256 `4010331cd271bc0fd567da66800308e3ada3bb44151364b48d7882e2f79fb95c`） | archived |
+| SRC-423 | LAW | SGB VI §§ 35、235（法定退休年龄） | https://www.gesetze-im-internet.de/sgb_6/__235.html ；https://www.gesetze-im-internet.de/sgb_6/__35.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-sgb-vi-235.html`（sha256 `7e28241d059e66b768e49e975d76c7eff5f653e651c7377d2fc1ea904434837d`）；`policy-sources/2026-11-23-de-sgb-vi-35.html`（sha256 `a052a5b5df1022621ea30ee4037a49df4aa1e5866b958f2d7bceb5222102b76b`） | archived |
+| SRC-424 | LAW | BZRG §§ 46、51、52（前科消除与使用限制） | https://www.gesetze-im-internet.de/bzrg/__46.html ；https://www.gesetze-im-internet.de/bzrg/__51.html ；https://www.gesetze-im-internet.de/bzrg/__52.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bzrg-46.html`（sha256 `9d2a3ca683d8e74681292904a93aa51855b2d8b5876ce473369417f1c866581b`）；`policy-sources/2026-11-23-de-bzrg-51.html`（sha256 `a3b0a67578dcd312767f41a843782aa0324ba9e6cb8a8c30b65dedf71e81e1f7`）；`policy-sources/2026-11-23-de-bzrg-52.html`（sha256 `2bdc30d4afbc8f2a6ece95b8d569ce2713577cb529b46ea1b7f97d77f37c0d70`） | archived |
+| SRC-425 | LAW | SVBezGrV 2024、2026 与 2026 年 Fachkräfte 工资公告 | https://www.bundesanzeiger.de/pub/publication/qiidOUvOxBc4NVmtxPl/content/qiidOUvOxBc4NVmtxPl/BAnz%20AT%2018.12.2025%20B2.pdf ；https://www.gesetze-im-internet.de/svbezgrv_2024/BJNR1420A0023.html ；https://www.gesetze-im-internet.de/svbezgrv_2026/BJNR1160A0025.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-banz-2026-b2-fachkraft.pdf`（sha256 `6e7110e6782b737c3de7c977886829d02b138acd31bb94dfdbe0ea84dbefc88d`）；`policy-sources/2026-11-23-de-svbezgrv-2024.html`（sha256 `e7218d20be250401d80f3bc2caed41c4051dbfc8625238662d7958a8212ad4c2`）；`policy-sources/2026-11-23-de-svbezgrv-2026.html`（sha256 `42648823e666322dc826642665bf6c46ab6682e7e7e1a3dff6b03c08bc71f9fb`） | archived |
+| SRC-426 | LAW | BMAS、RBSFV 2026、SGB XII § 28a（家庭需求标准） | https://www.bmas.de/DE/Arbeit/Grundsicherung-fuer-Arbeitsuchende/Leistungen-und-Bedarfe-in-der-Grundsicherung-fuer-Arbeitsuchende/leistungen-und-bedarfe-in-der-grundsicherung-fuer-arbeitsuchende-art.html ；https://www.gesetze-im-internet.de/rbsfv_2026/RBSFV_2026.pdf ；https://www.gesetze-im-internet.de/sgb_12/__28a.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bmas-regelbedarf.html`（sha256 `9961824dd1a9bfb89dd08067db65120af6b3799105623587d5ee895a70f55c1c`）；`policy-sources/2026-11-23-de-rbsfv-2026.pdf`（sha256 `570caca83a1ad1ee255c3c6967c49edfd5172f154f3abb834c181a01190c2c07`）；`policy-sources/2026-11-23-de-sgb-28a.html`（sha256 `dd753f9581a3d31c6c9101215ba676239ba698888a16ca899e0cab577a4c42a5`） | archived |
+| SRC-427 | GUIDANCE | 柏林 LEA：德国公民家属定居 | https://service.berlin.de/dienstleistung/327012/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-de-familie.html`（sha256 `3f1538e561ce8fae5cc14a9a45a8d3fc35c13f79e8382712925f318ebb6e6b20`） | archived |
+| SRC-428 | GUIDANCE | 柏林 LEA：难民定居与两档生计 | https://service.berlin.de/dienstleistung/326554/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-fluechtlinge.html`（sha256 `0fd3b333d8642f2a155a37f3f123e91dc37e0faa53ea405b0db4dbc59f7837b1`） | archived |
+| SRC-429 | GUIDANCE | 柏林 LEA：Daueraufenthalt–EU | https://service.berlin.de/dienstleistung/324281/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-daueraufenthalt-eu.html`（sha256 `a5d1af9fa2db3c3717bf861df56c5532f7882dc56f2703721a23dbdb607cee45`） | archived |
+| SRC-430 | GUIDANCE | 柏林 LEA：Fachkräfte 定居 | https://service.berlin.de/dienstleistung/326558/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-fachkraefte.html`（sha256 `c9e81c580e7a3d2b0fa5a261d31e9466260a527a0624271f654ae31b76841b87`） | archived |
+| SRC-431 | GUIDANCE | 柏林 LEA：蓝卡定居 | https://service.berlin.de/dienstleistung/326556/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-blaue-karte.html`（sha256 `8085c5495222ef591f9974ee1c1a9169d265e5257263dd0fe6a030fb15c97b82`） | archived |
+| SRC-432 | GUIDANCE | BAMF：LiD 实施说明及整合课程结业标准 | https://www.bamf.de/SharedDocs/Anlagen/DE/Integration/Integrationskurse/Lehrkraefte/konzeption-fuer-die-zusatzqualifizierung-von-lehrkraeften-neu-pdf.pdf?__blob=publicationFile&v=6 ；https://www.bamf.de/SharedDocs/Anlagen/DE/Integration/Integrationskurse/Kurstraeger/Traegerrundschreiben/Anlagen/2023/traegerrundschreiben-20230425-03-anlage2.pdf?__blob=publicationFile&v=3 | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bamf-daz-abschluss.pdf`（sha256 `cbe90c2b7b72106e7ecd74b422fb2e6f06f1707303a647b4fe50c787b11abbec`）；`policy-sources/2026-11-23-de-bamf-lid.pdf`（sha256 `a88d4672c0a7a25855bc9ae15a4032786818301aae94927700c5f09da774d929`） | archived |
+| SRC-433 | LAW | PAuswGebV 与 2026 年身份证收费修正 | https://www.recht.bund.de/bgbl/1/2026/31/regelungstext.pdf?__blob=publicationFile ；https://www.gesetze-im-internet.de/pauswgebv/__1.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bgbl-ausweis-2026-31.pdf`（sha256 `534eb11e7d599dd95408f2921669866c0275ea5baeb08a3ee06b9920e607e11e`）；`policy-sources/2026-11-23-de-pauswgebv.html`（sha256 `bf93f5f60aac7f5af5aef8611dd780292dc0b24aecde5e1aedd48fccc199b6b0`） | archived |
+| SRC-434 | LAW | 2017 年居留收费调整的议会资料与公报索引、2023 年加急收费公报 | https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F%2A%5B%40attr_id%3D%27I_2017_47_inhaltsverz%27%5D ；https://dserver.bundestag.de/btd/18/120/1812050.pdf ；https://dserver.bundestag.de/btd/18/124/1812402.pdf ；https://www.recht.bund.de/bgbl/1/2023/290/regelungstext.pdf?__blob=publicationFile&v=2 | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bgbl-gebuehren-2017-index.html`（sha256 `a41c791aa5da3b433bf50f15b738655b4e8a8c19f68acdc9fc7b374816e33079`）；`policy-sources/2026-11-23-de-bt-18-12050.pdf`（sha256 `af2d3347907aff18effc5c956a6a311940625fd32550b4da2ec60fe9bbf0a587`）；`policy-sources/2026-11-23-de-gebuehren-2017-beschluss.pdf`（sha256 `95f583794218a8e430ab5315338b1976627c91ce2667b6d2e6ab52f5ca3a9044`）；`policy-sources/2026-11-23-de-bundesgesetzblatt-2023-290.pdf`（sha256 `e37326bf049797cf32211cc64149f5f4295ff6ae5147c422b8a02fd6cf5d8f1f`） | archived |
+| SRC-435 | LAW | BVerwG 1 C 12.10、1 C 21.09（家庭生计） | https://www.bverwg.de/160811U1C12.10.0 ；https://www.bverwg.de/161110U1C21.09.0 | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bverwg-1c12-10.html`（sha256 `3f730ce90292ca27194791124e4dd12955d0b11f5ca9d9e69f93bcc8a5ea4cd2`）；`policy-sources/2026-11-23-de-bverwg-1c21-09.html`（sha256 `92cb8f3189a6aebc14204206e6f5e9c2bbd89a48f59e1f568a8c08cedef7a6b5`） | archived |
+| SRC-436 | LAW | SGB VI §§ 159、160（年度养老计费上限） | https://www.gesetze-im-internet.de/sgb_6/__159.html ；https://www.gesetze-im-internet.de/sgb_6/__160.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-sgb-vi-159.html`（sha256 `2bfe5d624e0ecf4bf433bcaa18115c8b5ae0b2ffdc6862aac9c2fa507a75856e`）；`policy-sources/2026-11-23-de-sgb-vi-160.html`（sha256 `890e35ad160afed9b4b6c188758e5f19814e6b8473aa86ccffe64797a1cdaebe`） | archived |
+| SRC-437 | LAW | 指令 2003/109/EG（欧盟长期居民，合并文本） | https://publications.europa.eu/resource/cellar/9d5fe9f4-69bd-11f1-ae88-01aa75ed71a1.0005.02/DOC_1 | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-eu-2003-109-de.html`（sha256 `47037d0a9ad615ecc937ba192ab93b2c6aecf110e7fbb342335fa171991e410c`） | archived |
+| SRC-438 | LAW | BGBl. 2026 I Nr. 111、221、318（移民法修正及生效） | https://www.recht.bund.de/bgbl/1/2026/111/regelungstext.pdf?__blob=publicationFile ；https://www.recht.bund.de/bgbl/1/2026/221/regelungstext.pdf?__blob=publicationFile ；https://www.recht.bund.de/bgbl/1/2026/318/regelungstext.pdf?__blob=publicationFile | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bundesgesetzblatt-2026-111.pdf`（sha256 `6ad22e70448c22a448a47c7a778b131a7ac662f99780c5fd982c6b63b930cb29`）；`policy-sources/2026-11-23-de-bundesgesetzblatt-2026-221.pdf`（sha256 `be483ae5386c79ef3257a0e5fce30e6ee2466947818987ba69f37c0eef308ee9`）；`policy-sources/2026-11-23-de-bundesgesetzblatt-2026-318.pdf`（sha256 `3a84d8721375b4aef2943b099535afb7c61d14db6209049725f3ef18ca140beb`） | archived |
+| SRC-439 | LAW | BGBl. 2023 I Nr. 217（技术移民法改革与生效） | https://www.recht.bund.de/bgbl/1/2023/217/regelungstext.pdf?__blob=publicationFile | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bundesgesetzblatt-2023-217.pdf`（sha256 `f48f96a825e5c059b06ed9db7ead791860e00f6f4ff88d6bdfd2ee9ad4e937c0`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -882,7 +912,8 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ## SRC-104 取消 3 年快速入籍
 
-- BGBl. 2025 I Nr. 256 原文（<https://www.recht.bund.de/bgbl/1/2025/256/VO.html>）对脚本请求返回 403，未能存档；调研时在浏览器中读了第 1 条（"§ 10 Absatz 3 wird gestrichen."）和第 6 条第 1 款（公布次日生效），公布日 2025-10-29，即 2025-10-30 生效。该法没有关于已递交申请的过渡条款（PD-129）。
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2025-256.pdf` → <https://www.recht.bund.de/bgbl/1/2025/256/regelungstext.pdf?__blob=publicationFile&v=3>
+- BGBl. 2025 I Nr. 256 原文（<https://www.recht.bund.de/bgbl/1/2025/256/VO.html>）在第 19 阶段对脚本请求返回 403；任务 90 已补存上列原刊。此前调研时在浏览器中读了第 1 条（"§ 10 Absatz 3 wird gestrichen."）和第 6 条第 1 款（公布次日生效），公布日 2025-10-29，即 2025-10-30 生效。该法没有关于已递交申请的过渡条款（PD-129）。
 - `policy-sources/2025-06-23-de-bt-drs-21-537-stag-entwurf.pdf` → <https://dserver.bundestag.de/btd/21/005/2100537.pdf>
 - `policy-sources/2025-10-08-de-breg-bulletin-89-5-stag.pdf` → <https://www.bundesregierung.de/resource/blob/975954/2388128/f26afadd67ac33455496c4e532b4afcc/89-5-bmi-aenderung-staatsangehoerigeitsrecht-bt-data.pdf?download=1>
 - BT-Drs. 21/537（PDF 12 页，`p<N>` 为物理页序）：p5 第 1 条只删除 § 10 Abs. 3；p6 立法理由回顾 StARModG 2024-06-27 施行前的规定；草案第 2 条（p5）与理由（p10）写"公布次日生效"。
@@ -891,7 +922,8 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ## SRC-105 国籍法现代化法（StARModG）
 
-- BGBl. 2024 I Nr. 104 原文（<https://www.recht.bund.de/bgbl/1/2024/104/VO.html>，更正见 BGBl. 2025 I Nr. 98）对脚本请求返回 403，未能存档；施行日 2024-06-27 取自 SRC-106 封面与 SRC-104 BT-Drs. 21/537 p6。
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2024-104.pdf` → <https://www.recht.bund.de/bgbl/1/2024/104/regelungstext.pdf?__blob=publicationFile>
+- BGBl. 2024 I Nr. 104 原文（<https://www.recht.bund.de/bgbl/1/2024/104/VO.html>，更正见 BGBl. 2025 I Nr. 98）在第 19 阶段对脚本请求返回 403；任务 90 已补存上列原刊。施行日 2024-06-27 取自 SRC-106 封面与 SRC-104 BT-Drs. 21/537 p6。
 - `policy-sources/2023-11-01-de-bt-drs-20-9044-starmodg-entwurf.pdf` → <https://dserver.bundestag.de/btd/20/090/2009044.pdf>
 - BT-Drs. 20/9044（PDF 80 页）p40（Zu Nummer 10）：§ 12b Abs. 1 Satz 5 过半规则的理由——从使境外合计超过一半的那次中断之后重新起算；§ 12b Abs. 2 中断前居住的折算由 5 年降为 3 年，过半情形同样适用。§ 12b 的修改内容与现行汇编（SRC-101）一致，未与 BGBl. 正式文本逐字比对。
 
@@ -1045,3 +1077,208 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 司法部新闻（2026-05-19）："Regulamentação complementar"一节写明新规定 2026-05-19 施行，在审程序继续适用旧文本，新规定只适用于施行后递交的申请；正文列出 7 年、10 年。
 - 司法部入籍指南页（2026-11-22 抓取）标题与正文仍写居住满 5 年，是旧法内容，不作为现行规则的依据。
 - 部长会议公报（2026-10-29）第 2 项：通过实施新国籍法的 Decree-Law；截至 2026-11-22 未见公布，新法下居留起算的证明方式待条例明确（PD-140）。
+
+## 德国完整版登记备注（第 20 阶段，任务 90）
+
+SRC-100、101、103、106–108 复用已有快照。SRC-104、105 的议会材料继续保留，本次补入已公布的法令正文。柏林 LEA 的办事标准按当地范围使用。以下逐项列出快照对应的网址。
+
+### SRC-410 Aufenthaltsverordnung（签发、处理、证件收费及境内申请）
+
+对应 AufenthV §§ 39、41 的境内申请条件，以及 §§ 44–53 的费率、预缴、未成年人及减免。
+
+- `policy-sources/2026-11-23-de-aufenthv.html` → <https://www.gesetze-im-internet.de/aufenthv/BJNR294510004.html>
+
+### SRC-411 Einbürgerungstestverordnung 与联邦政府入籍收费答复
+
+EinbTestV §§ 1–5 规定入籍考试构成、联邦考点费用和生效。BT-Drs. 20/8575 对问题 34 的答复载明欧元收费的起算期间。
+
+- `policy-sources/2026-11-23-de-bt-20-8575.pdf` → <https://dserver.bundestag.de/btd/20/085/2008575.pdf>
+- `policy-sources/2026-11-23-de-einbtestv-5.html` → <https://www.gesetze-im-internet.de/einbtestv/__5.html>
+- `policy-sources/2026-11-23-de-einbtestv.html` → <https://www.gesetze-im-internet.de/einbtestv/BJNR164900008.html>
+
+### SRC-412 Integrationskursverordnung（整合课程、考试与费用）
+
+IntV §§ 9、17、20 涵盖课程分担、减免和结业考试。
+
+- `policy-sources/2026-11-23-de-intv.html` → <https://www.gesetze-im-internet.de/intv/BJNR337000004.html>
+
+### SRC-413 Bundesmeldegesetz（入住登记和住所证明）
+
+BMG §§ 17、19、27 涵盖通常登记期限、住房提供者的证明及例外。
+
+- `policy-sources/2026-11-23-de-bmg.html` → <https://www.gesetze-im-internet.de/bmg/BJNR108410013.html>
+
+### SRC-414 柏林 LEA：Einbürgerung
+
+使用 Voraussetzungen 和 Nachweis der staatsbürgerlichen Kenntnisse 两节，限当地受理和证明材料。
+
+- `policy-sources/2026-11-23-de-berlin-einbuergerung.html` → <https://service.berlin.de/dienstleistung/318998/>
+
+### SRC-415 柏林 LEA：生计审查与家庭需要
+
+使用 Voraussetzungen、Krankenversicherung 和 Erforderliche Unterlagen，结合家庭成员与可计净收入评估需要。
+
+- `policy-sources/2026-11-23-de-berlin-lebensunterhalt.html` → <https://service.berlin.de/dienstleistung/354205/>
+
+### SRC-416 柏林 LEA：辅助保护者定居
+
+使用 Voraussetzungen，区分辅助保护的裁量定居与 § 26 Abs. 3 请求权。
+
+- `policy-sources/2026-11-23-de-berlin-subsidiaer.html` → <https://service.berlin.de/dienstleistung/352770/>
+
+### SRC-417 柏林 LEA：企业经营者定居
+
+使用 Voraussetzungen，核对实际企业经营、持续性及证明。
+
+- `policy-sources/2026-11-23-de-berlin-selbstaendige.html` → <https://service.berlin.de/dienstleistung/326564/>
+
+### SRC-418 柏林 LEA：子女定居
+
+使用 Voraussetzungen 中 16 岁生日和成年家庭居留分支。
+
+- `policy-sources/2026-11-23-de-berlin-kinder.html` → <https://service.berlin.de/dienstleistung/324863/>
+
+### SRC-419 柏林 LEA：一般定居
+
+使用 Voraussetzungen 交叉核对 § 9 的语言、知识、住房、养老与许可。
+
+- `policy-sources/2026-11-23-de-berlin-allgemein.html` → <https://service.berlin.de/dienstleistung/121864/>
+
+### SRC-420 欧盟蓝卡年度公告与联邦政府蓝卡指南
+
+两份 BAnz 公告的 p1 分别覆盖 2025 和 2026 年；联邦指南用于岗位、认可、合同和低工资档。2024 年按 SRC-425 的当年计费上限核算。
+
+- `policy-sources/2026-11-23-de-banz-2025-b2-blaue-karte.pdf` → <https://www.bundesanzeiger.de/pub/publication/6yuuiNCa7LgGKapMrQK/content/6yuuiNCa7LgGKapMrQK/BAnz%20AT%2004.12.2024%20B2.pdf>
+- `policy-sources/2026-11-23-de-banz-2026-b3-blaue-karte.pdf` → <https://www.bundesanzeiger.de/pub/publication/REViP4bN6jVdpGxPaiQ/content/REViP4bN6jVdpGxPaiQ/BAnz%20AT%2018.12.2025%20B3.pdf?inline=>
+- `policy-sources/2026-11-23-de-mig-blue-card.html` → <https://www.make-it-in-germany.com/en/visa-recognition/visa-types/eu-blue-card>
+- `policy-sources/2026-11-23-de-mig-blue-card.pdf` → <https://www.make-it-in-germany.com/fileadmin/1_Rebrush_2022/a_Fachkraefte/PDF-Dateien/3_Visum_u_Aufenthalt/Visagrafik_DE/Visum_Blaue_Karte_DE.pdf>
+
+### SRC-421 联邦政府 Make it in Germany：Niederlassungserlaubnis
+
+使用联邦政府定居指南各路径的小节交叉核对一般、技术人员和蓝卡定居。
+
+- `policy-sources/2026-11-23-de-mig-niederlassung.html` → <https://www.make-it-in-germany.com/de/ankommen-bleiben/dauerhaft-in-deutschland/niederlassungserlaubnis>
+
+### SRC-422 FreizügG/EU（自由流动及永久居住权）
+
+FreizügG/EU §§ 2–6、12 区分自由流动权源、通常及提前取得、永久居住权证明与失权。
+
+- `policy-sources/2026-11-23-de-freizuegg.html` → <https://www.gesetze-im-internet.de/freiz_gg_eu_2004/BJNR198600004.html>
+
+### SRC-423 SGB VI §§ 35、235（法定退休年龄）
+
+§ 35 Satz 2 与 § 235 Abs. 2 的出生年表确定普通难民档的退休节点。
+
+- `policy-sources/2026-11-23-de-sgb-vi-235.html` → <https://www.gesetze-im-internet.de/sgb_6/__235.html>
+- `policy-sources/2026-11-23-de-sgb-vi-35.html` → <https://www.gesetze-im-internet.de/sgb_6/__35.html>
+
+### SRC-424 BZRG §§ 46、51、52（前科消除与使用限制）
+
+BZRG §§ 46、51、52 适用于是否已到消除期以及能否使用境外或既有裁判，结合 StAG § 12a 核对。
+
+- `policy-sources/2026-11-23-de-bzrg-46.html` → <https://www.gesetze-im-internet.de/bzrg/__46.html>
+- `policy-sources/2026-11-23-de-bzrg-51.html` → <https://www.gesetze-im-internet.de/bzrg/__51.html>
+- `policy-sources/2026-11-23-de-bzrg-52.html` → <https://www.gesetze-im-internet.de/bzrg/__52.html>
+
+### SRC-425 SVBezGrV 2024、2026 与 2026 年 Fachkräfte 工资公告
+
+SVBezGrV § 4 与生效条款规定年度计费基数，2026 年 BAnz B2 的 p1 为首次技术人员许可的金额。
+
+- `policy-sources/2026-11-23-de-banz-2026-b2-fachkraft.pdf` → <https://www.bundesanzeiger.de/pub/publication/qiidOUvOxBc4NVmtxPl/content/qiidOUvOxBc4NVmtxPl/BAnz%20AT%2018.12.2025%20B2.pdf>
+- `policy-sources/2026-11-23-de-svbezgrv-2024.html` → <https://www.gesetze-im-internet.de/svbezgrv_2024/BJNR1420A0023.html>
+- `policy-sources/2026-11-23-de-svbezgrv-2026.html` → <https://www.gesetze-im-internet.de/svbezgrv_2026/BJNR1160A0025.html>
+
+### SRC-426 BMAS、RBSFV 2026、SGB XII § 28a（家庭需求标准）
+
+RBSFV 2026 §§ 1–2、BMAS 的 2026 Regelbedarf 表与 SGB XII § 28a 为基本需求定档和按年调整依据。
+
+- `policy-sources/2026-11-23-de-bmas-regelbedarf.html` → <https://www.bmas.de/DE/Arbeit/Grundsicherung-fuer-Arbeitsuchende/Leistungen-und-Bedarfe-in-der-Grundsicherung-fuer-Arbeitsuchende/leistungen-und-bedarfe-in-der-grundsicherung-fuer-arbeitsuchende-art.html>
+- `policy-sources/2026-11-23-de-rbsfv-2026.pdf` → <https://www.gesetze-im-internet.de/rbsfv_2026/RBSFV_2026.pdf>
+- `policy-sources/2026-11-23-de-sgb-28a.html` → <https://www.gesetze-im-internet.de/sgb_12/__28a.html>
+
+### SRC-427 柏林 LEA：德国公民家属定居
+
+使用 Voraussetzungen、Krankenversicherung，结合 SRC-435 的家庭收入判例。
+
+- `policy-sources/2026-11-23-de-berlin-de-familie.html` → <https://service.berlin.de/dienstleistung/327012/>
+
+### SRC-428 柏林 LEA：难民定居与两档生计
+
+使用 Gesicherter Lebensunterhalt durch eigenes Einkommen 的两档定义，仅适用于柏林资料所述情形。
+
+- `policy-sources/2026-11-23-de-berlin-fluechtlinge.html` → <https://service.berlin.de/dienstleistung/326554/>
+
+### SRC-429 柏林 LEA：Daueraufenthalt–EU
+
+使用 Voraussetzungen 下的 Altersversorgung、Krankenversicherung 等小节及 Gebühren。
+
+- `policy-sources/2026-11-23-de-berlin-daueraufenthalt-eu.html` → <https://service.berlin.de/dienstleistung/324281/>
+
+### SRC-430 柏林 LEA：Fachkräfte 定居
+
+使用 Voraussetzungen 中的 Arbeitsplatz、Altersversorgung 和语言条件。
+
+- `policy-sources/2026-11-23-de-berlin-fachkraefte.html` → <https://service.berlin.de/dienstleistung/326558/>
+
+### SRC-431 柏林 LEA：蓝卡定居
+
+使用 Voraussetzungen，核对持卡、合格就业、缴费和德语档。
+
+- `policy-sources/2026-11-23-de-berlin-blaue-karte.html` → <https://service.berlin.de/dienstleistung/326556/>
+
+### SRC-432 BAMF：LiD 实施说明及整合课程结业标准
+
+ZQ DaZ 的章节 Abschluss des Integrationskurses（印刷页 180）说明 LiD 结业成绩；Durchführungshinweise Nr. 4、12 说明外部考生费用。
+
+- `policy-sources/2026-11-23-de-bamf-daz-abschluss.pdf` → <https://www.bamf.de/SharedDocs/Anlagen/DE/Integration/Integrationskurse/Lehrkraefte/konzeption-fuer-die-zusatzqualifizierung-von-lehrkraeften-neu-pdf.pdf?__blob=publicationFile&v=6>
+- `policy-sources/2026-11-23-de-bamf-lid.pdf` → <https://www.bamf.de/SharedDocs/Anlagen/DE/Integration/Integrationskurse/Kurstraeger/Traegerrundschreiben/Anlagen/2023/traegerrundschreiben-20230425-03-anlage2.pdf?__blob=publicationFile&v=3>
+
+### SRC-433 PAuswGebV 与 2026 年身份证收费修正
+
+PAuswGebV § 1 Abs. 1 与 2026 I Nr. 31 Art. 4、10 共同确定身份证两档费率和生效日。
+
+- `policy-sources/2026-11-23-de-bgbl-ausweis-2026-31.pdf` → <https://www.recht.bund.de/bgbl/1/2026/31/regelungstext.pdf?__blob=publicationFile>
+- `policy-sources/2026-11-23-de-pauswgebv.html` → <https://www.gesetze-im-internet.de/pauswgebv/__1.html>
+
+### SRC-434 2017 年居留收费调整的议会资料与公报索引、2023 年加急收费公报
+
+2017 年原刊正文未取得，使用公报目录及 BT-Drs. 18/12050 Art. 2–3 与委员会报告。加急附加费以 2023 I Nr. 290 Art. 3、13 为据。§ 35 未成年特例的历史起算仍列 PD-359。
+
+- `policy-sources/2026-11-23-de-bgbl-gebuehren-2017-index.html` → <https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F%2A%5B%40attr_id%3D%27I_2017_47_inhaltsverz%27%5D>
+- `policy-sources/2026-11-23-de-bt-18-12050.pdf` → <https://dserver.bundestag.de/btd/18/120/1812050.pdf>
+- `policy-sources/2026-11-23-de-gebuehren-2017-beschluss.pdf` → <https://dserver.bundestag.de/btd/18/124/1812402.pdf>
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2023-290.pdf` → <https://www.recht.bund.de/bgbl/1/2023/290/regelungstext.pdf?__blob=publicationFile&v=2>
+
+### SRC-435 BVerwG 1 C 12.10、1 C 21.09（家庭生计）
+
+1 C 12.10、1 C 21.09 的 Leitsätze 和 Entscheidungsgründe 涵盖特定德国家属的家庭缺口及供养范围。
+
+- `policy-sources/2026-11-23-de-bverwg-1c12-10.html` → <https://www.bverwg.de/160811U1C12.10.0>
+- `policy-sources/2026-11-23-de-bverwg-1c21-09.html` → <https://www.bverwg.de/161110U1C21.09.0>
+
+### SRC-436 SGB VI §§ 159、160（年度养老计费上限）
+
+SGB VI §§ 159、160 规定养老计费上限的调整和年度条例。
+
+- `policy-sources/2026-11-23-de-sgb-vi-159.html` → <https://www.gesetze-im-internet.de/sgb_6/__159.html>
+- `policy-sources/2026-11-23-de-sgb-vi-160.html` → <https://www.gesetze-im-internet.de/sgb_6/__160.html>
+
+### SRC-437 指令 2003/109/EG（欧盟长期居民，合并文本）
+
+欧盟出版局合并文本 Art. 3–7、9 涵盖适用范围和长期居民资格。跨成员国折算须同时满足德国转置条文。
+
+- `policy-sources/2026-11-23-de-eu-2003-109-de.html` → <https://publications.europa.eu/resource/cellar/9d5fe9f4-69bd-11f1-ae88-01aa75ed71a1.0005.02/DOC_1>
+
+### SRC-438 BGBl. 2026 I Nr. 111、221、318（移民法修正及生效）
+
+2026 I Nr. 111 Art. 2 Nr. 12、Art. 7 Nr. 2、Art. 13 规定保护及收费条款重编号的切换。Nr. 221、318 保留档案的后续修法版本。
+
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2026-111.pdf` → <https://www.recht.bund.de/bgbl/1/2026/111/regelungstext.pdf?__blob=publicationFile>
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2026-221.pdf` → <https://www.recht.bund.de/bgbl/1/2026/221/regelungstext.pdf?__blob=publicationFile>
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2026-318.pdf` → <https://www.recht.bund.de/bgbl/1/2026/318/regelungstext.pdf?__blob=publicationFile>
+
+### SRC-439 BGBl. 2023 I Nr. 217（技术移民法改革与生效）
+
+2023 I Nr. 217 Art. 1 Nr. 7、Art. 2 Nr. 12、Art. 12 规定蓝卡和技术人员定居改革的分段施行。
+
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2023-217.pdf` → <https://www.recht.bund.de/bgbl/1/2023/217/regelungstext.pdf?__blob=publicationFile>

@@ -471,3 +471,4 @@
 | 470 | 任务 80：按国家登记规则集与参数，保留英国旧 ID；新增 CountryResult 与英国适配器，用四组英国输入逐字段比对两种语言的输出。 | packages/policy-data/src/{types,index,parameters/index}.ts、packages/engine/src/{types,index,country-result}.ts、packages/engine/test/country-result.test.ts |
 | 471 | 任务 80：英国问卷、结果、对比、分享、方案和政策页接入 CountryModule。旧分享串与两个本地存储键继续可用，游戏结局使用新信封；补国家隔离、多路径和政策页用例。 | apps/web/{lib,components,i18n,test}/、apps/web/app/uk/{home-content.tsx,simulate/form-kit.tsx,result/result-content.tsx,whatif/,policy/page.tsx,game/ending.tsx}、docs/tasks/reports/80-country-module.md |
 | 472 | 任务 80 审核修正（review80-1）：英国 What-if 调整日期触发筛查中止时，两栏恢复“此规则集暂无评估结果。”提示。补日期及通用路径增删对比回归；对比页与已保存方案按国家重置组件状态。 | apps/web/components/{whatif-lab,saved-scenarios}.tsx、apps/web/test/country-views.test.tsx、docs/tasks/reports/80-country-module.md |
+| 710 | 任务 90：登记德国完整版 SRC-410–439、补入 SRC-104、105 原刊；59 份官方快照中复用 6 份，新增 53 份。登记 PD-340–359 并补齐网址。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
