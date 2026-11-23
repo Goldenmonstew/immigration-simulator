@@ -463,3 +463,4 @@
 | # | 改动描述 | 涉及文件 |
 |---|---|---|
 | 441 | 任务 77：按国家拆分十国中英文案，保留原字典接口，补齐注册表使用的 11 个国家名称键。 | apps/web/i18n/{zh-CN,en}.ts、apps/web/i18n/countries/*.ts |
+| 442 | 任务 77：建立 11 国注册表与 countryPath，首页十国入口按原顺序从注册表渲染。 | apps/web/lib/site-countries.ts、apps/web/app/home-content.tsx |
