@@ -64,8 +64,8 @@ test('the service worker keeps the site pages available offline', async ({
     '/united-states',
     '/spain',
     '/greece',
-    '/ireland',
     '/portugal',
+    '/ireland',
   ]) {
     expect((await page.goto(path))?.ok()).toBe(true);
   }
