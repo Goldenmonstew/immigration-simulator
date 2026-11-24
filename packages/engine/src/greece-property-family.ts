@@ -354,6 +354,24 @@ function ordinaryPeriodsWithinLimit(
 }
 
 // SRC-377 §9.2 (pp. 45–46): count ordinary absences within actual residence years.
+function* annualAbsences(
+  trips: FamilyTrips,
+  residenceFrom: IsoDate,
+  until: IsoDate,
+  from = residenceFrom,
+) {
+  for (let year = 0; addYears(residenceFrom, year) < until; year++) {
+    const start = addYears(residenceFrom, year);
+    const next = addYears(residenceFrom, year + 1);
+    if (next <= from) continue;
+    const windowStart = start < from ? from : start;
+    yield {
+      windowStart,
+      periods: absencePeriods(trips, windowStart, next < until ? next : until),
+    };
+  }
+}
+
 function ordinaryTripsWithinLimit(
   trips: FamilyTrips,
   from: IsoDate | undefined,
@@ -366,15 +384,7 @@ function ordinaryTripsWithinLimit(
       undefined
     );
   let result: Answer = true;
-  for (let year = 0; addYears(residenceFrom, year) < until; year++) {
-    const start = addYears(residenceFrom, year);
-    const next = addYears(residenceFrom, year + 1);
-    if (from && next <= from) continue;
-    const periods = absencePeriods(
-      trips,
-      from && start < from ? from : start,
-      next < until ? next : until,
-    );
+  for (const { periods } of annualAbsences(trips, residenceFrom, until, from)) {
     const within = ordinaryPeriodsWithinLimit(periods);
     if (within === false) return false;
     if (within === undefined) result = undefined;
@@ -382,7 +392,6 @@ function ordinaryTripsWithinLimit(
   return result;
 }
 
-// Only the reasons attached to dated trips identify exemptions within the window.
 function familyTripContinuity(
   trips: FamilyTrips,
   from: IsoDate | undefined,
@@ -448,20 +457,249 @@ function summaryWithinWindow(reported: Answer, wholePeriod: boolean): Answer {
   return reported === false && !wholePeriod ? undefined : reported;
 }
 
+interface FamilyTravel {
+  trips: GrFullRequest['trips'];
+  summary: Answer;
+  hasSummary: boolean;
+  unlocated: boolean;
+  conflictingReasons: boolean;
+}
+
+// Match a month summary to the reported departure/return dates. Eligibility
+// itself continues to count only full days abroad through absencePeriods.
+function accountsForAnnualMonths(
+  trips: FamilyTrips,
+  start: IsoDate | undefined,
+  end: IsoDate,
+  months: number | undefined,
+  summary: Answer,
+) {
+  if (!months || (months <= eu.ordinaryAbsenceMonths && summary !== undefined))
+    return true;
+  if (!start) return false;
+  const departures = new Set(trips.map((t) => t.departed));
+  for (const { windowStart, periods } of annualAbsences(trips, start, end)) {
+    if (periods.length === 1) {
+      const [period] = periods;
+      const departure = addDays(period.from, -1);
+      const from =
+        departures.has(departure) && departure >= windowStart
+          ? departure
+          : period.from;
+      if (
+        period.until >= addMonths(from, Math.ceil(months)) &&
+        (months <= eu.ordinaryAbsenceMonths ||
+          ordinaryPeriodsWithinLimit(periods) === false)
+      )
+        return true;
+    } else if (periods.length > 1) {
+      const days = periods.reduce(
+        (sum, t) => sum + daysBetween(t.from, t.until),
+        0,
+      );
+      if (days >= monthSpan(Math.ceil(months))[1]) return true;
+    }
+  }
+  return false;
+}
+
+// A single serious-reason declaration can supply the missing reason when one
+// recorded interval matches. Departure and return bound the stated duration.
+function singleSeriousTrip(
+  trips: FamilyTrips,
+  start: IsoDate | undefined,
+  end: IsoDate,
+  months: number | undefined,
+) {
+  const candidates = trips.filter((t) => {
+    if (t.familyAbsenceReason && t.familyAbsenceReason !== 'serious-reason')
+      return false;
+    const from = start && start > t.departed ? start : t.departed;
+    const until = end < t.returned ? end : t.returned;
+    if (from >= until) return false;
+    if (months === undefined) return true;
+    const firstDayAbroad =
+      start && start > t.departed ? start : addDays(from, 1);
+    return (
+      Number.isInteger(months) &&
+      addMonths(from, months) <= until &&
+      until <= addMonths(firstDayAbroad, months)
+    );
+  });
+  return candidates.length === 1 ? candidates[0] : undefined;
+}
+
+function withSeriousReason(
+  trips: FamilyTrips,
+  single: FamilyTrips[number],
+): FamilyTrips {
+  return trips.map((t) =>
+    t === single ? { ...t, familyAbsenceReason: 'serious-reason' } : t,
+  );
+}
+
+function greekFamilyTravel(
+  req: GrFullRequest,
+  a: GreekFamilyAnswers,
+): FamilyTravel {
+  const summary = greekAbsenceSummary(a);
+  const history: FamilyTravel = {
+    trips: req.trips,
+    summary,
+    hasSummary: summary !== undefined,
+    unlocated: false,
+    conflictingReasons: false,
+  };
+  if (!req.trips?.length) return history;
+  const start = a.residenceFrom ?? a.initialCardGrantedOn;
+  const end = req.simulationDate;
+  const trips = req.trips.filter(
+    (t) => (!start || t.returned > start) && t.departed < end,
+  );
+  history.unlocated = !accountsForAnnualMonths(
+    trips,
+    start,
+    end,
+    a.maxAnnualAbsenceMonths,
+    summary,
+  );
+  if (!a.extendedAbsence) return history;
+  const reason =
+    a.extendedAbsence === 'single-serious-reason'
+      ? 'serious-reason'
+      : a.extendedAbsence;
+  const others = trips.filter(
+    (t) => t.familyAbsenceReason && t.familyAbsenceReason !== reason,
+  );
+  // The answer attributes all time in excess of the ordinary limit to this reason.
+  history.conflictingReasons =
+    ordinaryTripsWithinLimit(others, start, end, start) === false;
+  if (reason !== 'serious-reason') {
+    // Military service protects the entire declared excess. An ordinary excess
+    // with several unclassified returns does not identify which return reset the clock.
+    const unclassified = trips.filter((t) => !t.familyAbsenceReason);
+    if (reason === 'compulsory-service' || unclassified.length === 1)
+      history.trips = req.trips.map((t) =>
+        unclassified.includes(t) ? { ...t, familyAbsenceReason: reason } : t,
+      );
+    return history;
+  }
+  const serious = trips.filter((t) => t.familyAbsenceReason === reason);
+  const months = a.extendedAbsenceMonths;
+  if (serious.length) {
+    const periods = absencePeriods(serious, start, end);
+    history.conflictingReasons ||= periods.length > eu.seriousAbsences;
+    history.unlocated ||=
+      months !== undefined &&
+      months > eu.seriousAbsenceMonths &&
+      !periods.some(
+        (t) => t.until >= addMonths(addDays(t.from, -1), Math.ceil(months)),
+      );
+  } else {
+    const single = singleSeriousTrip(trips, start, end, months);
+    if (single) history.trips = withSeriousReason(req.trips, single);
+    else history.unlocated = true;
+  }
+  return history;
+}
+
+function euFamilyTravel(req: GrFullRequest, a: EuFamilyAnswers): FamilyTravel {
+  const months = a.maxSeriousAbsenceMonths;
+  const count = a.seriousAbsenceCount;
+  const history: FamilyTravel = {
+    trips: req.trips,
+    summary: euAbsenceSummary(a),
+    hasSummary:
+      a.maxOrdinaryAnnualAbsenceMonths !== undefined ||
+      count !== undefined ||
+      months !== undefined,
+    unlocated: false,
+    conflictingReasons: false,
+  };
+  if (!req.trips?.length) return history;
+  const start = a.residenceFrom ?? a.arrivedOn;
+  const end = req.simulationDate;
+  const ordinary = req.trips.filter(
+    (t) => t.familyAbsenceReason === 'ordinary',
+  );
+  const seriousTrips = req.trips.filter(
+    (t) => t.familyAbsenceReason === 'serious-reason',
+  );
+  const serious = absencePeriods(seriousTrips, start, end);
+  history.conflictingReasons =
+    (count !== undefined && serious.length > count) ||
+    (a.maxOrdinaryAnnualAbsenceMonths === 0 &&
+      absencePeriods(ordinary, start, end).length > 0);
+  if (
+    !serious.length &&
+    count === 1 &&
+    months !== undefined &&
+    months <= eu.seriousAbsenceMonths &&
+    maximum(a.maxOrdinaryAnnualAbsenceMonths, eu.ordinaryAbsenceMonths) === true
+  ) {
+    const single = singleSeriousTrip(req.trips, start, end, months);
+    if (single) history.trips = withSeriousReason(req.trips, single);
+  }
+  const missingSeriousMonths =
+    count !== 0 &&
+    months !== undefined &&
+    months > 0 &&
+    (months > eu.seriousAbsenceMonths || history.summary === undefined) &&
+    !serious.some(
+      (t) =>
+        t.until >=
+        addMonths(
+          t.from > (start ?? '') ? addDays(t.from, -1) : t.from,
+          Math.ceil(months),
+        ),
+    );
+  if (missingSeriousMonths && count === serious.length)
+    history.conflictingReasons = true;
+  history.unlocated =
+    !accountsForAnnualMonths(
+      ordinary,
+      start,
+      end,
+      a.maxOrdinaryAnnualAbsenceMonths,
+      history.summary,
+    ) ||
+    (count !== undefined &&
+      (count > eu.seriousAbsences || history.summary === undefined) &&
+      serious.length < count) ||
+    missingSeriousMonths;
+  return history;
+}
+
+function windowContinuity(
+  history: FamilyTravel,
+  dated: Answer,
+  wholePeriod: boolean,
+): Answer {
+  if (history.conflictingReasons) return undefined;
+  if (history.unlocated)
+    return history.summary === false && wholePeriod ? false : undefined;
+  if (!history.trips?.length && (!history.trips || history.hasSummary))
+    return summaryWithinWindow(history.summary, wholePeriod);
+  return dated;
+}
+
 function ordinaryCardContinuity(
   req: GrFullRequest,
   from: IsoDate | undefined,
   expiry: IsoDate | undefined,
-  summary: Answer,
+  history: FamilyTravel,
   residenceFrom = from,
 ): Answer {
   // Ordinary renewal requires further evidence if the declared absences may break continuity.
-  if (!req.trips?.length) return summary !== false || undefined;
+  if (!history.trips?.length) return history.summary !== false || undefined;
   const until =
     expiry && expiry < req.simulationDate ? expiry : req.simulationDate;
   return (
-    familyTripContinuity(req.trips, from, until, residenceFrom) === true ||
-    undefined
+    windowContinuity(
+      history,
+      familyTripContinuity(history.trips, from, until, residenceFrom),
+      false,
+    ) === true || undefined
   );
 }
 
@@ -475,13 +713,87 @@ function consecutiveAbsenceWithin(
 ): Answer {
   if (!req.trips || (!req.trips.length && reported !== undefined))
     return reported;
-  if (from && from > until) return true;
   const periods = absencePeriods(req.trips, from, until);
   const exceeded = periods.some((period) => {
     const limit = addYears(period.from, years);
     return strict ? period.until >= limit : period.until > limit;
   });
-  return !exceeded || (from ? false : undefined);
+  if (exceeded) return from ? false : undefined;
+  // The declared period can include an unlisted absence.
+  return reported === false ? undefined : true;
+}
+
+function historicalConsecutiveAbsence(
+  req: GrFullRequest,
+  a: GreekFamilyAnswers,
+  from: IsoDate | undefined,
+  until: IsoDate,
+): Answer {
+  const limit = p.tenYearCard.value.absenceYears;
+  const longest = a.longestConsecutiveAbsenceYears;
+  const within = longest === undefined ? undefined : longest < limit;
+  if (!req.trips?.length && within !== undefined)
+    return summaryWithinWindow(
+      within,
+      !!from && from === a.residenceFrom && until === req.simulationDate,
+    );
+  const dated = consecutiveAbsenceWithin(
+    req,
+    from,
+    limit,
+    undefined,
+    true,
+    until,
+  );
+  if (dated !== true || longest === undefined || longest < limit) return dated;
+  // A longer history can locate its maximum outside the qualifying window.
+  return (
+    tripsAccountForYears(req, a.residenceFrom, req.simulationDate, longest) ||
+    undefined
+  );
+}
+
+function tripsAccountForYears(
+  req: GrFullRequest,
+  from: IsoDate | undefined,
+  until: IsoDate,
+  years: number,
+) {
+  return absencePeriods(req.trips ?? [], from, until).some((period) =>
+    spanCoversYears(period.from, period.until, years),
+  );
+}
+
+function spanCoversYears(from: IsoDate, until: IsoDate, years: number) {
+  const whole = Math.floor(years);
+  const anniversary = addYears(from, whole);
+  const yearDays = daysBetween(anniversary, addYears(from, whole + 1));
+  return daysBetween(anniversary, until) >= (years - whole) * yearDays;
+}
+
+function postEventAbsenceWithin(
+  req: GrFullRequest,
+  from: IsoDate | undefined,
+  years: number,
+  reportedYears: number | undefined,
+  fallback?: Answer,
+): Answer {
+  const within = consecutiveAbsenceWithin(
+    req,
+    from,
+    years,
+    maximum(reportedYears, years) ?? fallback,
+  );
+  if (
+    within === true &&
+    req.trips?.length &&
+    from &&
+    reportedYears !== undefined &&
+    reportedYears > 0 &&
+    !spanCoversYears(from, req.simulationDate, reportedYears)
+  )
+    return undefined;
+  return within;
 }
 
 function heldAfterAcquisition(
@@ -498,7 +810,7 @@ function heldAfterAcquisition(
   if (latest && consecutiveAbsenceWithin(req, latest, years, true) === false)
     return false;
   return (
-    consecutiveAbsenceWithin(req, earliest, years, undefined) === true ||
+    postEventAbsenceWithin(req, earliest, years, reportedYears) === true ||
     undefined
   );
 }
@@ -1363,7 +1675,7 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
             req,
             from,
             expiry,
-            greekAbsenceSummary(a),
+            greekFamilyTravel(req, a),
             a.residenceFrom ?? from,
           ),
           a.ordinaryRenewalDocumentsReady,
@@ -1380,37 +1692,28 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
     );
   }
   if (a.stage === 'permanent') {
+    const history = greekFamilyTravel(req, a);
     const window = jointResidenceWindow(
       a,
-      req,
+      { ...req, trips: history.trips },
       family.residenceYears,
       family.interruptionYears,
       !a.permanentRightAcquiredOn,
       a,
     );
     const { anniversary, until: at, continuity: dated } = window;
-    const summary = greekAbsenceSummary(a);
-    const useTrips =
-      !!req.trips?.length || (!!req.trips && summary === undefined);
     // Article 93(7) lists the protected absences. Other cases need confirmation (PD-314).
-    const continuity = useTrips ? (window.from ? dated : undefined) : summary;
+    const wholePeriod =
+      !!window.from && window.from === a.residenceFrom && at === sim;
+    const continuity = windowContinuity(
+      history,
+      window.from ? dated : undefined,
+      wholePeriod,
+    );
     const allowedAbsence = continuity === true || undefined;
     const tolerableGap = !reformed
       ? all(
-          !req.trips?.length && a.longestConsecutiveAbsenceYears !== undefined
-            ? summaryWithinWindow(
-                a.longestConsecutiveAbsenceYears <
-                  p.tenYearCard.value.absenceYears,
-                !!window.from && window.from === a.residenceFrom && at === sim,
-              )
-            : consecutiveAbsenceWithin(
-                req,
-                window.from,
-                p.tenYearCard.value.absenceYears,
-                undefined,
-                true,
-                at,
-              ),
+          historicalConsecutiveAbsence(req, a, window.from, at),
           consecutiveAbsenceWithin(
             req,
             addYears(sim, -p.tenYearCard.value.absenceYears),
@@ -1419,13 +1722,13 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
             true,
           ),
         )
-      : a.priorCardExpiry && sim <= a.priorCardExpiry
+      : a.priorCardExpiry && sim <= a.priorCardExpiry && !req.trips?.length
         ? true
-        : consecutiveAbsenceWithin(
+        : postEventAbsenceWithin(
             req,
             a.priorCardExpiry && addDays(a.priorCardExpiry, 1),
             family.interruptionYears,
-            maximum(a.interruptionAfterExpiryYears, family.interruptionYears),
+            a.interruptionAfterExpiryYears,
           );
     // Automatic conversion at expiry and an actual permanent grant are distinct.
     // If the old card chronology cannot resolve a long intervening trip, verify the right.
@@ -1433,17 +1736,19 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       a.longestAbsenceAfterPrYears,
       family.interruptionYears,
     );
-    const survived = consecutiveAbsenceWithin(
+    const survived = postEventAbsenceWithin(
       req,
       a.permanentRightAcquiredOn ?? anniversary,
       family.interruptionYears,
-      reportedRetention ?? true,
+      a.longestAbsenceAfterPrYears,
+      true,
     );
     const knownGrantPeriod =
       !!a.permanentRightAcquiredOn ||
       (!req.trips?.length && reportedRetention === false);
     const documented = all(
-      !reformed || survived || (knownGrantPeriod ? false : undefined),
+      !reformed ||
+        (survived === false && !knownGrantPeriod ? undefined : survived),
       a.qualifyingResidenceDocumented,
       tolerableGap,
       allowedAbsence,
@@ -1471,7 +1776,11 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         reformed
           ? `Establish ${family.residenceYears} years of qualifying residence together. A residence interruption of up to ${family.interruptionYears} years after card expiry preserves conversion. Verify absences during those years.`
           : `Under the earlier law, ${family.residenceYears} years of qualifying residence together lead to Μ.2. Verify the former family card, full insurance, consecutive absences and all travel-document pages for the ${p.tenYearCard.value.absenceYears} years before filing.`,
-        continuity === false || (useTrips && dated !== true)
+        continuity === false ||
+          (!!req.trips && dated !== true) ||
+          history.unlocated ||
+          history.conflictingReasons ||
+          (!req.trips?.length && history.summary === false)
           ? ['PD-314']
           : undefined,
       ),
@@ -1736,11 +2045,12 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       ),
     ];
   const early = earlyRight(a.early, sim);
+  const history = euFamilyTravel(req, a);
   const window =
     a.stage === 'permanent'
       ? jointResidenceWindow(
           a,
-          req,
+          { ...req, trips: history.trips },
           eu.residenceYears,
           eu.lossYears,
           early !== undefined && !a.permanentRightAcquiredOn,
@@ -1869,7 +2179,7 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
                 req,
                 residenceStart,
                 a.priorCardExpiry,
-                euAbsenceSummary(a),
+                history,
               ),
               !article59Family ||
                 (a.permanentRightAcquired === undefined
@@ -1924,26 +2234,20 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       (a.priorCardExpiry === undefined
         ? undefined
         : sim <= addYears(a.priorCardExpiry, eu.lateYears));
-    const hasSummary =
-      a.maxOrdinaryAnnualAbsenceMonths !== undefined ||
-      a.seriousAbsenceCount !== undefined ||
-      a.maxSeriousAbsenceMonths !== undefined;
-    const useTrips = !!req.trips?.length || (!!req.trips && !hasSummary);
     const disputedAbsence = !!window?.disputedReturn && !relyOnEarly;
-    const reported = euAbsenceSummary(a);
     const coversWholePeriod =
       !!window?.from && window.from === a.residenceFrom && window.until === sim;
     const summaryNeedsDates =
       a.stage === 'permanent' &&
       !relyOnEarly &&
-      !useTrips &&
-      reported === false &&
-      !coversWholePeriod;
-    const absences = useTrips
-      ? window?.from
-        ? window.continuity
-        : undefined
-      : summaryWithinWindow(reported, coversWholePeriod);
+      !coversWholePeriod &&
+      history.summary === false &&
+      (history.unlocated || !req.trips?.length);
+    const absences = windowContinuity(
+      history,
+      window?.from ? window.continuity : undefined,
+      coversWholePeriod,
+    );
     // The ordinary anniversary sets a lower bound only when an earlier
     // acquisition is excluded, or is itself too recent to have been lost.
     const tooRecentForLoss = (date: IsoDate | undefined) =>
@@ -1954,15 +2258,32 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       : tooRecentForLoss(anniversary) &&
         (early === false ||
           tooRecentForLoss(a.early?.eventDate ?? a.residenceFrom));
+    // A documented loss of an early right precedes a new acquisition.
+    // Do not charge the same reported absence to the later right.
+    const earlierLossAccountedFor =
+      !a.permanentRightAcquiredOn &&
+      !relyOnEarly &&
+      earlyHeld === false &&
+      earlyDate &&
+      anniversary &&
+      a.longestAbsenceAfterPrYears !== undefined &&
+      a.longestAbsenceAfterPrYears > eu.lossYears &&
+      tripsAccountForYears(
+        req,
+        earlyDate,
+        anniversary < sim ? anniversary : sim,
+        a.longestAbsenceAfterPrYears,
+      );
+    const postGrantYears = earlierLossAccountedFor
+      ? undefined
+      : a.longestAbsenceAfterPrYears;
     const retainedPermanentRight =
-      a.stage === 'permanent' &&
-      (req.trips?.length || a.longestAbsenceAfterPrYears === undefined) &&
-      noTimeForLoss
+      a.stage === 'permanent' && postGrantYears === undefined && noTimeForLoss
         ? true
         : heldAfterAcquisition(
             req,
             eu.lossYears,
-            a.longestAbsenceAfterPrYears,
+            postGrantYears,
             a.permanentRightAcquiredOn ??
               (a.stage === 'permanent' && early !== undefined
                 ? acquired

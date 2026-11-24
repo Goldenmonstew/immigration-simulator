@@ -418,19 +418,26 @@ function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
     (!e.statusGrantedOn || e.statusGrantedOn <= r.simulationDate)
       ? absencePeriods(r.trips, e.statusGrantedOn, r.simulationDate)
       : undefined;
-  const eu = r.trips?.length ? undefined : e.continuousOutsideEuMonths;
+  const eu = e.continuousOutsideEuMonths;
+  const greekYears = e.continuousOutsideGreeceYears;
+  // A single recorded Greek absence must be long enough. Do not add distinct
+  // trips, or assume a day-count convention for fractions of a calendar month.
+  const tripsCoverMonths = (months: number) =>
+    sinceGrant &&
+    (months === 0 ||
+      sinceGrant.some((a) => a.until >= addMonths(a.from, Math.ceil(months))));
+  const euRetained = (months: number) => {
+    if (months < p.lossEuMonths) return true;
+    if (months > v.formerBlueCardEuAbsenceMonths.value) return false;
+    return e.formerBlueCardEndorsement;
+  };
   let retained: boolean | undefined;
   if (eu !== undefined) {
-    if (eu < p.lossEuMonths) retained = true;
-    else if (
-      eu > v.formerBlueCardEuAbsenceMonths.value ||
-      e.formerBlueCardEndorsement === false
-    )
-      retained = false;
-    else retained = e.formerBlueCardEndorsement;
+    if (!r.trips?.length || tripsCoverMonths(eu)) retained = euRetained(eu);
   } else if (
     // Greek departures have no destination. They give only an upper bound
     // on time outside the EU (arts. 43(4), 148(1)(γ), 149(1)(α)).
+    (greekYears === undefined || euRetained(greekYears * 12) === true) &&
     sinceGrant?.every((a) =>
       e.formerBlueCardEndorsement
         ? a.until <= addMonths(a.from, v.formerBlueCardEuAbsenceMonths.value)
@@ -463,18 +470,26 @@ function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
     ];
   }
   const renewal = e.stage === 'renewal';
-  const greekAbsence = r.trips?.length
-    ? undefined
-    : e.continuousOutsideGreeceYears;
-  let withinGreeceLimit: boolean | undefined;
-  if (greekAbsence !== undefined)
-    withinGreeceLimit = greekAbsence <= p.lossGreeceYears;
-  else if (sinceGrant) {
-    const within = sinceGrant.every(
-      (a) => a.until <= addYears(a.from, p.lossGreeceYears),
-    );
-    // Without a grant date, a long trip may predate acquisition.
-    withinGreeceLimit = within || (e.statusGrantedOn ? false : undefined);
+  const recordedWithinGreeceLimit = sinceGrant?.every(
+    (a) => a.until <= addYears(a.from, p.lossGreeceYears),
+  );
+  let withinGreeceLimit: boolean | undefined =
+    recordedWithinGreeceLimit || undefined;
+  // A dated post-grant breach establishes loss. Without a grant date,
+  // a long recorded trip may predate acquisition.
+  if (recordedWithinGreeceLimit === false && e.statusGrantedOn)
+    withinGreeceLimit = false;
+  else if (greekYears !== undefined) {
+    const months = greekYears * 12;
+    if (greekYears <= p.lossGreeceYears)
+      withinGreeceLimit =
+        !r.trips?.length ||
+        !e.statusGrantedOn ||
+        addMonths(e.statusGrantedOn, Math.ceil(months)) <= r.simulationDate ||
+        undefined;
+    else
+      withinGreeceLimit =
+        !r.trips?.length || tripsCoverMonths(months) ? false : undefined;
   }
   const checks: CountryCheck[] = [];
   if (!renewal) {

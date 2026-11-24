@@ -459,7 +459,50 @@ describe('M.1 long-term grant and retention', () => {
       }),
     ).toBe('NOT_MET');
   });
-  test('M.1 retention and loss use the recorded trips since grant before absence summaries', () => {
+  test.each([
+    [0, false, 'MET', 'NOT_MET'],
+    [12, false, 'NOT_MET', 'MET'],
+    [14, false, 'NOT_MET', 'MET'],
+    [14, true, 'MET', 'NOT_MET'],
+    [15, false, 'UNKNOWN', 'UNKNOWN'],
+    [undefined, false, 'UNKNOWN', 'UNKNOWN'],
+  ] as const)(
+    'M.1 checks %s post-grant months outside the EU against the same trip (former Blue Card %s)',
+    (
+      continuousOutsideEuMonths,
+      formerBlueCardEndorsement,
+      renewal,
+      reacquisition,
+    ) => {
+      for (const [stage, id, expected] of [
+        ['renewal', 'LT-07', renewal],
+        ['reacquisition', 'LT-REACQUISITION', reacquisition],
+      ] as const) {
+        const path = full(lt, {
+          simulationDate: '2026-11-24',
+          currentCardExpiresOn: '2026-12-01',
+          trips: [{ departed: '2023-01-01', returned: '2024-03-02' }],
+          longTerm: {
+            stage,
+            statusGrantedOn: '2021-12-01',
+            passportHistory: 'complete',
+            otherMemberStateLongTermOrRevocationGround: false,
+            continuousOutsideGreeceYears: 14 / 12,
+            continuousOutsideEuMonths,
+            formerBlueCardEndorsement,
+            lossReason: 'absence-from-eu',
+            lossEvidenceReady: true,
+          },
+        });
+        expect(path.checks.find((check) => check.id === id)?.status).toBe(
+          expected,
+        );
+        expect(path.status).toBe(expected);
+        expect(path.earliestDate).toBeUndefined();
+      }
+    },
+  );
+  test('M.1 flags reported post-grant absences longer than any recorded Greek absence', () => {
     const longTerm = {
       passportHistory: 'complete',
       formerBlueCardEndorsement: false,
@@ -470,36 +513,85 @@ describe('M.1 long-term grant and retention', () => {
       lossEvidenceReady: true,
     } as const;
     const past = { departed: '2012-01-01', returned: '2019-01-01' };
-    for (const [trip, statusGrantedOn, renewal, reacquisition] of [
-      [past, '2019-01-01', 'MET', 'NOT_MET'],
-      [past, undefined, 'UNKNOWN', 'UNKNOWN'],
+    for (const [trips, statusGrantedOn] of [
+      [[past], '2019-01-01'],
+      [[past], undefined],
+      [[{ departed: '2020-01-01', returned: '2020-02-01' }], undefined],
+      [[{ departed: '2020-01-01', returned: '2021-02-01' }], '2019-01-01'],
       [
-        { departed: '2020-01-01', returned: '2020-02-01' },
-        undefined,
-        'MET',
-        'NOT_MET',
-      ],
-      [
-        { departed: '2020-01-01', returned: '2021-02-01' },
-        '2019-01-01',
-        'UNKNOWN',
-        'UNKNOWN',
+        [
+          { departed: '2017-01-01', returned: '2020-09-02' },
+          { departed: '2021-01-01', returned: '2024-09-02' },
+        ],
+        '2016-01-01',
       ],
     ] as const) {
-      for (const [stage, id, expected] of [
-        ['renewal', 'LT-07', renewal],
-        ['reacquisition', 'LT-REACQUISITION', reacquisition],
+      for (const [stage, id] of [
+        ['renewal', 'LT-07'],
+        ['reacquisition', 'LT-REACQUISITION'],
       ] as const) {
         const path = full(lt, {
           longTerm: { ...longTerm, statusGrantedOn, stage },
           currentCardExpiresOn: '2026-12-01',
-          trips: [trip],
+          trips: [...trips],
         });
         expect(path.checks.find((item) => item.id === id)?.status).toBe(
-          expected,
+          'UNKNOWN',
         );
-        expect(path.status).toBe(expected);
+        expect(path.status).toBe('UNKNOWN');
       }
+    }
+  });
+  test('short recorded trips cannot bound an unreported EU duration when a longer Greek absence is declared', () => {
+    for (const [stage, id] of [
+      ['renewal', 'LT-07'],
+      ['reacquisition', 'LT-REACQUISITION'],
+    ] as const) {
+      const path = full(lt, {
+        currentCardExpiresOn: '2026-12-01',
+        trips: [{ departed: '2025-04-01', returned: '2025-04-08' }],
+        longTerm: {
+          stage,
+          statusGrantedOn: '2021-12-01',
+          passportHistory: 'complete',
+          otherMemberStateLongTermOrRevocationGround: false,
+          continuousOutsideGreeceYears: 2,
+          formerBlueCardEndorsement: false,
+          lossReason: 'absence-from-eu',
+          lossEvidenceReady: true,
+        },
+      });
+      expect(path.checks.find((check) => check.id === id)?.status).toBe(
+        'UNKNOWN',
+      );
+      expect(path.status).toBe('UNKNOWN');
+    }
+  });
+  test('a reported Greek absence must fit between the grant and filing dates when trips are supplied', () => {
+    const shortTrip = [{ departed: '2026-11-01', returned: '2026-11-08' }];
+    for (const [statusGrantedOn, trips, expected] of [
+      ['2026-10-24', shortTrip, 'UNKNOWN'],
+      ['2021-12-01', shortTrip, 'MET'],
+      ['2026-10-24', undefined, 'MET'],
+    ] as const) {
+      const path = full(lt, {
+        simulationDate: '2026-11-24',
+        currentCardExpiresOn: '2026-12-01',
+        trips,
+        longTerm: {
+          stage: 'renewal',
+          statusGrantedOn,
+          passportHistory: 'complete',
+          otherMemberStateLongTermOrRevocationGround: false,
+          continuousOutsideGreeceYears: 2,
+          continuousOutsideEuMonths: 0,
+        },
+      });
+      expect(path.checks.find((check) => check.id === 'LT-07')?.status).toBe(
+        expected,
+      );
+      expect(path.status).toBe(expected);
+      expect(path.earliestDate).toBeUndefined();
     }
   });
 });
