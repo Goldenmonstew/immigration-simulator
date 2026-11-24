@@ -591,6 +591,7 @@
 | 676 | 任务 98：政策页标题与参数千分位按国家通用（与任务 93 相同的 `policy-page.tsx`），非英国国家读 `<国家>.policy.pageTitle`。 | apps/web/components/policy-page.tsx |
 | 677 | 任务 98：希腊完整版国家模块、问卷字段、对比旋钮与政策目录，首页／问卷／结果／对比／政策页接入 `evaluateGreeceFull`；旧的只算时间单页由新页面接管，问卷要求确认离境行程已列全，年度离境汇总按居留周年提示，PD-312／PD-315 在相关问题标注待确认。集合入口卡片改为完整版范围。 | apps/web/lib/greece-{draft,fields,module,policy,whatif}.ts、删除 apps/web/lib/greece.ts、apps/web/app/greece/、apps/web/i18n/{zh-CN,en,countries/greece,countries/greece-form}.ts、apps/web/lib/site-countries.ts、apps/web/public/sw.js、apps/web/test/about-page.test.tsx |
 | 678 | 任务 98：希腊模块单测（草稿编解码、分步校验、满足／未来日期／待确认、未确认行程、对比旋钮、政策目录与问卷字段 id）与双语 e2e。 | apps/web/test/greece.test.tsx、apps/e2e/tests/greece.spec.ts |
+| 679 | 任务 98：任务报告（问卷步骤与字段、对比旋钮、旧链接处理、验证结果）。 | docs/tasks/reports/98-gr-pages.md |
 | 680 | 任务 89：登记爱尔兰完整版官方快照、来源及待定细节，保留现有入籍与 Stamp 来源。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 681 | 任务 89：登记爱尔兰完整版的年龄、证明、许可、家庭、长期居留和条约居留参数及原文定位。 | packages/policy-data/src/{index,parameters/ireland-2026-11}.ts |
 | 682 | 任务 89：实现 16 条爱尔兰完整版评估，合并原有时间条件与法定资格、材料、费用和待确认事项，补双语 ID、边界及组合测试和交接报告。 | packages/engine/src/{index.ts,ireland-full/}、packages/engine/test/ireland-full.test.ts、docs/tasks/reports/89-ie-rules.md |
