@@ -276,4 +276,5 @@ export const sourceUrls: Record<string, string> = {
   'SRC-377':
     'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:C_202301392',
   'SRC-378': 'https://api.et.gr/apiFEK/1/2021/81/pdf',
+  'SRC-379': 'https://api.et.gr/apiFEK/1/1983/25/pdf',
 };

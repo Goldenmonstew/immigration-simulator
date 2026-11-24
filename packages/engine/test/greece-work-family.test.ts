@@ -224,6 +224,69 @@ test('residence and age waits use the actual anniversary and require every other
   expect(blocked.earliestDate).toBeUndefined();
 });
 
+test.each([
+  ['investor', '2005-11-24', '2026-11-24'],
+  ['ordinary', '2008-11-24', '2026-11-24'],
+] as const)(
+  'Ο.2 child conversion for an %s sponsor starts on the applicable birthday',
+  (sponsor, birthDate, birthday) => {
+    const request = {
+      birthDate,
+      familyTcn: {
+        stage: 'autonomous',
+        autonomousBasis: 'child',
+        sponsor,
+        member: 'child',
+        previousFamilyCard: true,
+        previousAutonomousChildCard: false,
+      },
+    } satisfies Partial<GrFullRequest>;
+    const before = route('GR-FAMILY-TCN', { ...request, simulationDate: date });
+    expect(before.checks.find((item) => item.id === 'FT-07')).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining(birthday),
+    });
+    expect(before).toMatchObject({ status: 'FUTURE', earliestDate: birthday });
+    const on = route('GR-FAMILY-TCN', { ...request, simulationDate: birthday });
+    expect(on.checks.find((item) => item.id === 'FT-07')?.status).toBe('MET');
+    expect(on.status).toBe('MET');
+  },
+);
+
+test('Ο.2 distinguishes the investor child permit from the five-year residence basis', () => {
+  const request = {
+    simulationDate: '2026-11-24',
+    birthDate: '2007-01-01',
+    familyTcn: {
+      stage: 'autonomous',
+      member: 'child',
+      sponsor: 'investor',
+      previousFamilyCard: true,
+      autonomousBasis: 'child',
+      familyResidenceYears: 5,
+    },
+  } satisfies GrFullRequest;
+  expect(route('GR-FAMILY-TCN', request)).toMatchObject({
+    status: 'FUTURE',
+    earliestDate: '2028-01-01',
+  });
+  const unknownSponsor = route('GR-FAMILY-TCN', {
+    ...request,
+    familyTcn: { ...request.familyTcn, sponsor: undefined },
+  });
+  expect(
+    unknownSponsor.checks.find((item) => item.id === 'FT-07')?.status,
+  ).toBe('UNKNOWN');
+  expect(unknownSponsor.status).toBe('UNKNOWN');
+  expect(unknownSponsor.earliestDate).toBeUndefined();
+  expect(
+    route('GR-FAMILY-TCN', {
+      ...request,
+      familyTcn: { ...request.familyTcn, autonomousBasis: 'residence' },
+    }).status,
+  ).toBe('MET');
+});
+
 test('Ο.2 uses combined Blue Card family residence and the final years in Greece', () => {
   const familyTcn: Family = {
     stage: 'autonomous',

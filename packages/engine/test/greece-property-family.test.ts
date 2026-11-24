@@ -900,6 +900,95 @@ describe('property and family reviews through evaluateGreeceFull', () => {
     expect(path.earliestDate).toBe(earliestDate);
   }
 
+  test('Ν recognises the primary carer on whom a mobile EU child depends', () => {
+    const care = {
+      childBirthDate: '2014-05-01',
+      residenceBasis: 'self-sufficient',
+      sufficientResourcesForBoth: true,
+      comprehensiveCoverForBoth: true,
+    } as const;
+    const family = {
+      ...european,
+      relationship: 'primary-carer-of-mobile-eu-minor',
+      dependent: false,
+      primaryCare: care,
+    } as const;
+    const assess = (patch: Partial<EU>) =>
+      full('GR-EU-FAMILY-PR', { euFamily: { ...family, ...patch } });
+    verify(assess({}), 'EF-01', 'MET');
+    verify(
+      assess({
+        relationship: undefined,
+        qualifyingNonGreekEuSponsor: undefined,
+        qualifyingNonGreekEuSponsorAndRelationship: true,
+      }),
+      'EF-01',
+      'MET',
+    );
+    verify(assess({ relationship: 'ascendant' }), 'EF-01', 'NOT_MET');
+    verify(assess({ sponsorExercisedTreatyRights: false }), 'EF-01', 'NOT_MET');
+    verify(
+      assess({ qualifyingResidenceDocumented: undefined }),
+      'EF-01',
+      'UNKNOWN',
+    );
+    verify(
+      assess({ primaryCare: { ...care, sufficientResourcesForBoth: false } }),
+      'EF-01',
+      'NOT_MET',
+    );
+    verify(
+      assess({ primaryCare: { ...care, comprehensiveCoverForBoth: false } }),
+      'EF-01',
+      'NOT_MET',
+    );
+    verify(
+      assess({
+        primaryCare: { ...care, comprehensiveCoverForBoth: undefined },
+      }),
+      'EF-01',
+      'UNKNOWN',
+    );
+    verify(
+      assess({ primaryCare: { ...care, childBirthDate: undefined } }),
+      'EF-01',
+      'UNKNOWN',
+    );
+    // The child held permanent residence throughout this period of care.
+    verify(
+      assess({
+        primaryCare: {
+          childBirthDate: care.childBirthDate,
+          residenceBasis: 'permanent',
+        },
+      }),
+      'EF-01',
+      'MET',
+    );
+  });
+
+  test('Ν checks minority during the qualifying period of care, including on a later claim', () => {
+    const assess = (childBirthDate: string) =>
+      full('GR-EU-FAMILY-PR', {
+        euFamily: {
+          ...european,
+          residenceFrom: '2020-11-23',
+          relationship: 'primary-carer-of-mobile-eu-minor',
+          primaryCare: {
+            childBirthDate,
+            residenceBasis: 'self-sufficient',
+            sufficientResourcesForBoth: true,
+            comprehensiveCoverForBoth: true,
+          },
+        },
+      });
+    // Five years completed in November 2025, a year before the application.
+    verify(assess('2007-11-24'), 'EF-01', 'MET');
+    verify(assess('2007-11-23'), 'EF-01', 'MET');
+    verify(assess('2007-11-22'), 'EF-01', 'NOT_MET');
+    verify(assess('2022-11-23'), 'EF-01', 'NOT_MET');
+  });
+
   test('Ο.3 first grant and ordinary renewal accept the same registered partner and apply their own evidence lists', () => {
     const partner = {
       relationship: 'registered-partner',

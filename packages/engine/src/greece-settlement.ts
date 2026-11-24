@@ -35,6 +35,7 @@ interface IntegrationEvidence {
     | 'none';
   greekLevel?: 'legacy-A' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
   a2Certificate?: boolean;
+  /** Sitting date for full A2 or the history-only paper. */
   a2ExamOn?: IsoDate;
   a2Total?: number;
   a2SectionsAtPassMark?: number;
@@ -194,7 +195,7 @@ const tenYearLaw = [
 const integrationLaw = [
   grSource('F36', 'art. 37, Migration Code art. 160(1)'),
   migration('145(2)'),
-  grSource('F14', 'art. 12'),
+  grSource('F14', 'arts. 2(1), 3, 12'),
   grSource('F46', 'Prerequisites and cost'),
 ];
 
@@ -235,28 +236,33 @@ function integrationMet(r: GrFullRequest): boolean | IsoDate | undefined {
         ? undefined
         : e.greekLevel !== 'legacy-A' &&
             e.greekLevel >= v.settlementGreekLevel.value;
-    case 'a2': {
-      if (e.a2Certificate === true) return true;
+    case 'a2':
+    case 'history': {
+      if (e.basis === 'a2' && e.a2Certificate === true) return true;
       const age = ageOn(r.birthDate, e.a2ExamOn ?? r.simulationDate);
-      return all(
+      const eligibleForSitting = all(
         !e.a2ExamOn || e.a2ExamOn <= r.simulationDate,
         age === undefined ? undefined : age >= p.a2ExamAge,
+      );
+      if (e.basis === 'history')
+        return all(
+          eligibleForSitting,
+          e.greekLevel === undefined
+            ? undefined
+            : e.greekLevel === 'legacy-A' ||
+                e.greekLevel === v.historyExamGreekLevel.value,
+          e.historyPoints === undefined
+            ? undefined
+            : e.historyPoints >= p.history,
+        );
+      return all(
+        eligibleForSitting,
         e.a2Total === undefined ? undefined : e.a2Total >= p.total,
         e.a2SectionsAtPassMark === undefined
           ? undefined
           : e.a2SectionsAtPassMark >= p.sections,
       );
     }
-    case 'history':
-      return all(
-        e.greekLevel === undefined
-          ? undefined
-          : e.greekLevel === 'legacy-A' ||
-              e.greekLevel === v.historyExamGreekLevel.value,
-        e.historyPoints === undefined
-          ? undefined
-          : e.historyPoints >= p.history,
-      );
     case 'residence': {
       const legacyTotal =
         r.simulationDate < v.workReformEffective.value
@@ -289,8 +295,8 @@ function integrationCheck(r: GrFullRequest, c: GrContext, id: string) {
     id === 'TY-02'
       ? [grSource('F36', 'arts. 38 (art. 161(1)(a)), 69'), ...integrationLaw]
       : integrationLaw,
-    `可提交认可学历、身份或语言证书；全科 Α2 须满 ${p.total} 分且至少 ${p.sections} 项达 ${p.sectionPercent}%（€${p.fullFee}），持语证仅考历史须满 ${p.history} 分（€${p.historyFee}）。${legacy ? '原第 145(2)(γ) 条接受合法居留' : '连续合法居留'} ${p.consecutiveYears} 年也可举证，学习期与续卡断档须核实。`,
-    `Provide recognised education, status or language evidence. The full A2 exam requires ${p.total} points and ${p.sections} sections at ${p.sectionPercent}% (€${p.fullFee}). With a language certificate, history requires ${p.history} points (€${p.historyFee}). The ${p.consecutiveYears}-year option requires ${legacy ? 'documented lawful residence under former article 145(2)(γ)' : 'an uninterrupted lawful record'}. Study and disputed renewal gaps need review.`,
+    `可提交认可学历、身份或语言证书。Α2 全科和历史单科应试者均须年满 ${p.a2ExamAge} 岁。全科须满 ${p.total} 分且至少 ${p.sections} 项达 ${p.sectionPercent}%（€${p.fullFee}），持语证仅考历史须满 ${p.history} 分（€${p.historyFee}）。${legacy ? '原第 145(2)(γ) 条接受合法居留' : '连续合法居留'} ${p.consecutiveYears} 年也可举证，学习期与续卡断档须核实。`,
+    `Provide recognised education, status or language evidence. Candidates for the full A2 or history-only exam must be at least ${p.a2ExamAge}. The full exam requires ${p.total} points and ${p.sections} sections at ${p.sectionPercent}% (€${p.fullFee}). With a language certificate, history requires ${p.history} points (€${p.historyFee}). The ${p.consecutiveYears}-year option requires ${legacy ? 'documented lawful residence under former article 145(2)(γ)' : 'an uninterrupted lawful record'}. Study and disputed renewal gaps need review.`,
     met === undefined && r.integration?.includesStudyOrDisputedGap
       ? ['PD-305']
       : undefined,
@@ -879,7 +885,11 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       : e.shortRouteBasis === undefined
         ? undefined
         : e.shortRouteBasis === 'parent-of-greek-child-born-in-greece'
-          ? underAgeOn(e.childBirthDate, filing, p.adultAge)
+          ? underAgeOn(
+              e.childBirthDate,
+              filing,
+              p.parentalResponsibilityMinorAge,
+            )
           : e.shortRouteBasis !== 'none';
   const clear = convictionClear(r, filing);
   const school = any(
@@ -899,7 +909,7 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
     c.filingYear(r.simulationDate, e.examOn ?? e.pendingApplicationFiledOn) -
       Number(r.birthDate.split('-')[0]);
   const oral = any(
-    typeof examYearAge === 'number' ? examYearAge > exam.oralAge : undefined,
+    typeof examYearAge === 'number' ? examYearAge >= exam.oralAge : undefined,
     e.disabilityPercent === undefined
       ? undefined
       : currentExamOptions
@@ -1066,8 +1076,8 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
         grSource('F33', 'art. 96'),
         ...(order ? [grSource(order.file, order.format)] : []),
       ],
-      `以出生年计算超过 ${exam.oralAge} 岁、认证残障 ${currentExamOptions ? '≥' : '>'}${exam.disabilityPercent}% 或有学习障碍证明适用口试；完成 ${exam.schoolGrades} 个年级或 ${exam.secondaryGrades} 个中学年级、或取得希腊高校希腊语学位可免试。`,
-      `The oral procedure applies above age ${exam.oralAge} by calendar year, with certified disability ${currentExamOptions ? 'of at least' : 'above'} ${exam.disabilityPercent}% or a certified learning disability. ${exam.schoolGrades} Greek school grades, ${exam.secondaryGrades} secondary grades or a Greek-taught Greek university degree can exempt the exam.`,
+      `按考试年减出生年计算已满 ${exam.oralAge} 岁、认证残障 ${currentExamOptions ? '≥' : '>'}${exam.disabilityPercent}% 或有学习障碍证明适用口试；完成 ${exam.schoolGrades} 个年级或 ${exam.secondaryGrades} 个中学年级、或取得希腊高校希腊语学位可免试。`,
+      `The oral procedure applies from age ${exam.oralAge} by calendar year, with certified disability ${currentExamOptions ? 'of at least' : 'above'} ${exam.disabilityPercent}% or a certified learning disability. ${exam.schoolGrades} Greek school grades, ${exam.secondaryGrades} secondary grades or a Greek-taught Greek university degree can exempt the exam.`,
     ),
     nationalityIncomeCheck(r, c),
     c.check(

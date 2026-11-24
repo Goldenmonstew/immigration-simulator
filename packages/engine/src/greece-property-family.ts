@@ -1,6 +1,6 @@
 import { greeceFull2026_11, grSource } from '@uk-immigration/policy-data';
 import type { CountryCheck } from './country-result';
-import { addMonths, addYears, fullYears } from './dates';
+import { addDays, addMonths, addYears, fullYears } from './dates';
 import { overseasInvestorFiling } from './greece-common';
 import type { GrFullRequest } from './greece-full';
 import { ageOn, all, any, insuranceMet, underAgeOn } from './greece-rules';
@@ -186,12 +186,24 @@ interface EuFamilyAnswers extends Omit<FamilyResidence, 'stage'> {
     | 'registered-partner'
     | 'descendant'
     | 'ascendant'
+    | 'primary-carer-of-mobile-eu-minor'
     | 'durable-partner'
     | 'extended-family'
     | 'other';
   partnershipRecognisedAsMarriageEquivalent?: boolean;
   /** Dependency establishing the residence right of the sponsor's or either partner's direct relative. */
   dependent?: boolean;
+  /** The child relies on this non-EU primary carer to exercise free movement in Greece. */
+  primaryCare?: {
+    childBirthDate?: IsoDate;
+    /** Use self-sufficient if any of the claimed period relied on Article 7(1)(b).
+     * Otherwise the child held worker/self-employed status or permanent residence throughout. */
+    residenceBasis?:
+      'self-sufficient' | 'worker-or-self-employed' | 'permanent';
+    /** Resources and insurance for both during the Article 7(1)(b) period, from either person. */
+    sufficientResourcesForBoth?: boolean;
+    comprehensiveCoverForBoth?: boolean;
+  };
   /** Recognised incapacity evidence, shared home and support for a child of either partner. */
   incapacityDocumentedAndLivingAsDependant?: boolean;
   /** The EU citizen's residence rests solely on the student provision in Article 7(1)(c). */
@@ -345,7 +357,7 @@ function investorMember(m: InvestorFamilyMember, on: IsoDate): Answer {
       age === undefined ? undefined : age < limit,
       m.unmarriedWithRequiredCustody,
     ),
-    all(minimum(age, p.gvFees.value.minorAge), incapacity),
+    all(minimum(age, p.gvFamily.value.adultAge), incapacity),
     all(
       m.convertingPreviousFamilyCard,
       age === undefined
@@ -549,7 +561,7 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         ? ' Provide proof of completed lease registration.'
         : ' Provide proof of completed registration or a lawyer’s certificate confirming registration.';
     const adultOn =
-      req.birthDate && addYears(req.birthDate, p.gvFees.value.minorAge);
+      req.birthDate && addYears(req.birthDate, investment.adultRecipientAge);
     checks.push(
       c.check(
         'GV-03',
@@ -811,7 +823,7 @@ function greekKin(a: GreekFamilyAnswers, req: GrFullRequest): Answer {
         descendant,
         all(
           on === undefined ? undefined : on >= p.workReformEffective.value,
-          minimum(age, p.gvFees.value.minorAge),
+          minimum(age, family.minorAge),
           a.incapacityDocumentedAndLivingAsDependant,
         ),
       );
@@ -832,13 +844,9 @@ function greekKin(a: GreekFamilyAnswers, req: GrFullRequest): Answer {
         if (at === undefined) {
           // Someone still under age cannot have aged out during the original card.
           if (dob > on) return false;
-          return fullYears(dob, on) < p.gvFees.value.minorAge
-            ? true
-            : undefined;
+          return fullYears(dob, on) < family.minorAge ? true : undefined;
         }
-        return (
-          dob <= at && at <= on && fullYears(dob, at) < p.gvFees.value.minorAge
-        );
+        return dob <= at && at <= on && fullYears(dob, at) < family.minorAge;
       };
       return all(
         minor(a.greekRelativeBirthDate),
@@ -932,7 +940,7 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
             all(
               siblingAtExpiry === undefined
                 ? undefined
-                : siblingAtExpiry < family.childAge,
+                : siblingAtExpiry < family.siblingRenewalAge,
               a.siblingExtensionAlreadyGranted === undefined
                 ? undefined
                 : !a.siblingExtensionAlreadyGranted,
@@ -1168,12 +1176,44 @@ function euFamilyLink(a: EuFamilyAnswers, req: GrFullRequest): Answer {
       }
       return any(
         a.dependent,
+        // This combined evidence also establishes dependency, which has no age limit.
         a.incapacityDocumentedAndLivingAsDependant === true,
         all(underLimit, nonStudent),
       );
     }
     case 'ascendant':
       return all(a.dependent, any(nonStudent, a.extendedFamilyRecognised));
+    case 'primary-carer-of-mobile-eu-minor': {
+      const care = a.primaryCare;
+      let end = a.retention?.eventDate ?? req.simulationDate;
+      if (a.stage === 'permanent') {
+        // Count care up to acquisition; the claim can be made after the child reaches majority.
+        const anniversary =
+          a.residenceFrom && addYears(a.residenceFrom, eu.residenceYears);
+        if (anniversary && anniversary <= end) end = addDays(anniversary, -1);
+        if (
+          a.early?.eventDate &&
+          a.early.eventDate < end &&
+          earlyRight(a.early, req.simulationDate)
+        )
+          end = a.early.eventDate;
+      }
+      return all(
+        a.residenceFrom
+          ? beforeOrOn(care?.childBirthDate, a.residenceFrom)
+          : true,
+        underAgeOn(care?.childBirthDate, end, eu.minorAge),
+        any(
+          care?.residenceBasis === undefined
+            ? undefined
+            : care.residenceBasis !== 'self-sufficient',
+          all(
+            care?.sufficientResourcesForBoth,
+            care?.comprehensiveCoverForBoth,
+          ),
+        ),
+      );
+    }
     case 'durable-partner':
     case 'extended-family':
       return a.extendedFamilyRecognised;
@@ -1189,6 +1229,9 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
   const a = req.euFamily ?? {};
   const sim = req.simulationDate;
   const checks: CountryCheck[] = [];
+  const primaryCarer =
+    a.relationship === 'primary-carer-of-mobile-eu-minor' &&
+    !(a.stage === 'retained' && a.schooling);
   if (!a.stage)
     return [
       c.check(
@@ -1219,10 +1262,17 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
           grSource('F16', 'art. 4(λη)'),
           grSource('F36', 'arts. 9(4), 53'),
           grSource('F21', 'art. 59(1)–(13)'),
-          grSource('F61', '§§2.2.2.4, 2.2.3, 9'),
+          grSource('F61', '§§2.2.2.4, 2.2.2.5, 2.2.3, 5.2.4, 9.1–9.2'),
+          ...(primaryCarer
+            ? [grSource('F63', 'art. 3, Civil Code art. 127, p. 430')]
+            : []),
         ],
-        `核对非希腊籍欧盟、EEA 或瑞士担保人的条约居留。配偶、获认可的登记伴侣、双方的直系后裔（含收养子女）及受养尊亲属可适用。后裔按取得家属居留时未满 ${eu.childAge} 岁或受养核实，此后成年可保留资格。学生的子女须受养。学生的受养尊亲属、其他亲属及稳定未登记伴侣须确认第 3(2) 条的个案认定。学业保留权另核在学子女及实际监护人。`,
-        `Verify the non-Greek EU/EEA/Swiss sponsor's treaty residence. Spouses, recognised registered partners, either partner's direct descendants (including adopted children) and dependent ascendants can qualify. Descendants who acquired residence while under ${eu.childAge} or dependent retain that basis. Children of student-only sponsors must be dependent. Confirm individual recognition for their ascendants, extended relatives or a durable unregistered partner. The education provision covers the enrolled child and the parent with actual custody.`,
+        primaryCarer
+          ? '核实行使自由流动权的欧盟未成年人在希腊依赖申请人作为主要照护人。以自给自足为依据的期间，须有足以供养双方的资源和覆盖双方的全面医保。资源或保险可由任一方提供。子女取得永久居留权后免核这两项。'
+          : `核对非希腊籍欧盟、EEA 或瑞士担保人的条约居留。配偶、获认可的登记伴侣、双方的直系后裔（含收养子女）及受养尊亲属可适用。后裔按取得家属居留时未满 ${eu.childAge} 岁或受养核实，此后成年可保留资格。学生的子女须受养。学生的受养尊亲属、其他亲属及稳定未登记伴侣须确认第 3(2) 条的个案认定。学业保留权另核在学子女及实际监护人。`,
+        primaryCarer
+          ? 'Verify that the mobile EU child depended on the applicant as primary carer in Greece. During residence based on self-sufficiency, resources must support both and comprehensive sickness insurance must cover both. Either person may provide them. These requirements cease once the child acquires permanent residence.'
+          : `Verify the non-Greek EU/EEA/Swiss sponsor's treaty residence. Spouses, recognised registered partners, either partner's direct descendants (including adopted children) and dependent ascendants can qualify. Descendants who acquired residence while under ${eu.childAge} or dependent retain that basis. Children of student-only sponsors must be dependent. Confirm individual recognition for their ascendants, extended relatives or a durable unregistered partner. The education provision covers the enrolled child and the parent with actual custody.`,
       ),
     );
   }
@@ -1288,7 +1338,7 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
           retainedGround(r, false),
           retainedLivelihood(r, req),
           r.basis === 'access-in-greece'
-            ? underAgeOn(r.childBirthDate, sim, p.familyMembers.value.adultAge)
+            ? underAgeOn(r.childBirthDate, sim, eu.minorAge)
             : true,
         );
     checks.push(
@@ -1336,13 +1386,17 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       ? '换卡时核对旧永久卡。'
       : a.stage === 'retained'
         ? '提供关系终止及保留权凭证。'
-        : '普通永久卡核原卡和有效医保；提前取得时另核担保人登记、亲属关系及适用的死亡证明。';
+        : primaryCarer
+          ? '核对原卡、实际照护关系和适用期间的条约居留证明。'
+          : '普通永久卡核原卡和有效医保；提前取得时另核担保人登记、亲属关系及适用的死亡证明。';
   const documentsEn =
     a.stage === 'maintain'
       ? 'Present the old permanent card at renewal.'
       : a.stage === 'retained'
         ? 'Document the family event and the retained right.'
-        : 'For ordinary acquisition, confirm the prior card and current insurance. For early acquisition also verify sponsor registration, kinship and any required death evidence.';
+        : primaryCarer
+          ? 'Verify the prior card, the primary care relationship and evidence of qualifying residence for the relevant period.'
+          : 'For ordinary acquisition, confirm the prior card and current insurance. For early acquisition also verify sponsor registration, kinship and any required death evidence.';
   const late =
     a.stage === 'permanent' &&
     a.priorCardExpiry !== undefined &&
@@ -1353,7 +1407,11 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       '家属证件与费用',
       'Family documents and fees',
       a.stage === 'maintain' ? true : a.rightsDocumentsReady,
-      [grSource('F02', 'art. 17(2)–(5)'), grSource('F21', 'arts. 2(γ),59')],
+      [
+        grSource('F02', 'art. 17(2)–(5)'),
+        grSource('F21', 'arts. 2(γ),59'),
+        ...(primaryCarer ? [grSource('F61', '§§2.2.2.5, 5.2.4, 9.1')] : []),
+      ],
       `${documentsZh}申请费 €${family.applicationFee}，制卡 €${p.gvFees.value.card}。${late ? `本次逾期罚款最高 €${eu.maxFine}。` : ''}永久卡每 ${eu.cardYears} 年更新，核发最长 ${eu.decisionMonths} 个月。`,
       `${documentsEn} Filing €${family.applicationFee}, card €${p.gvFees.value.card}.${late ? ` Late fine up to €${eu.maxFine}.` : ''} The permanent card renews every ${eu.cardYears} years; issue within ${eu.decisionMonths} months.`,
     ),

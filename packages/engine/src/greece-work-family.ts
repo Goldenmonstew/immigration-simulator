@@ -681,6 +681,7 @@ function familyMember(f: FamilyAnswers, req: GrFullRequest): Filing {
     return f.sponsor === 'investor' || f.formedLegallyInGreece;
   if (f.member === 'ascendant') return f.sponsor === 'investor';
   if (f.member !== 'child') return false;
+  if (age !== undefined && age < 0) return false;
   const adultException = all(
     req.simulationDate >= p.workReformEffective.value,
     f.adultChildIncapacityDependencyProved,
@@ -693,9 +694,13 @@ function familyMember(f: FamilyAnswers, req: GrFullRequest): Filing {
     f.sponsor === 'investor'
       ? p.familyMembers.value.investorChildLimit
       : p.familyMembers.value.adultAge;
+  const adultAge =
+    f.sponsor === 'investor'
+      ? p.gvFamily.value.adultAge
+      : p.familyMembers.value.adultAge;
   return any(
     all(age < ageLimit, f.unmarriedChildWithCustodyAndConsent),
-    all(age >= p.familyMembers.value.adultAge, adultException),
+    all(age >= adultAge, adultException),
   );
 }
 
@@ -744,29 +749,35 @@ function autonomousResidenceDue(f: FamilyAnswers, today: IsoDate): Filing {
 function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
   const a = p.familyAutonomy.value;
   const age = ageOn(req.birthDate, req.simulationDate);
-  const adulthood =
-    req.birthDate &&
-    dueOn(
-      addYears(req.birthDate, p.familyMembers.value.adultAge),
-      req.simulationDate,
-    );
+  const birthday = (years: number) =>
+    req.birthDate && dueOn(addYears(req.birthDate, years), req.simulationDate);
   switch (f.autonomousBasis) {
-    case 'child':
+    case 'child': {
       if (f.member && f.member !== 'child') return false;
       if (age === undefined || !f.member) return undefined;
-      return allDue(
+      const investorAge = p.familyMembers.value.investorChildLimit;
+      const investor = allDue(
+        age < investorAge + p.gvFamily.value.independentYears,
+        birthday(investorAge),
+        f.previousFamilyCard,
+      );
+      if (f.sponsor === 'investor') return investor;
+      const ordinary = allDue(
         age < a.finalChildAge,
-        adulthood,
-        age < a.childRenewalAge || f.sponsor === 'investor'
+        birthday(a.adultAge),
+        age < a.childRenewalAge
           ? f.previousFamilyCard
           : f.previousAutonomousChildCard,
       );
+      if (f.sponsor || ordinary === investor) return ordinary;
+      return undefined;
+    }
     case 'residence': {
       const member =
         f.member &&
         (f.member === 'spouse' ||
           f.member === 'registered-partner' ||
-          (f.member === 'child' && adulthood));
+          (f.member === 'child' && birthday(a.adultAge)));
       return allDue(
         f.previousFamilyCard,
         autonomousResidenceDue(f, req.simulationDate),
@@ -995,14 +1006,16 @@ function familyChecks(
   }
   const fees = p.familyFees.value;
   const a = p.familyAutonomy.value;
+  const specialFeeAge =
+    f.sponsor === 'investor'
+      ? p.familyMembers.value.investorChildLimit
+      : a.childRenewalAge;
   const fee =
     age === undefined
       ? undefined
-      : age < p.familyMembers.value.adultAge
+      : age < fees.minorAge
         ? 0
-        : isAutonomous &&
-            f.autonomousBasis === 'child' &&
-            age >= a.childRenewalAge
+        : isAutonomous && f.autonomousBasis === 'child' && age >= specialFeeAge
           ? fees.childRenewal
           : fees.permit;
   checks.push(
@@ -1012,8 +1025,8 @@ function familyChecks(
       'Family residence fees',
       fee === undefined ? undefined : true,
       [...p.familyFees.sources, grSource('F21', 'art. 2(γ)')],
-      `${fee === undefined ? `按年龄及卡别核对：未成年人免申请费，成人 €${fees.permit}，满 ${a.childRenewalAge} 岁的子女专项续卡 €${fees.childRenewal}。` : `申请费 €${fee}。`}另付制卡 €${p.workFees.value.print}。${initial ? `须办理团聚 D 签时领事费 €${fees.nationalVisa}。` : ''}`,
-      `${fee === undefined ? `Verify age and permit: minors are exempt, adults pay €${fees.permit}, and the special child renewal at ${a.childRenewalAge} costs €${fees.childRenewal}.` : `Application fee €${fee}.`} Printing costs €${p.workFees.value.print}.${initial ? ` Add €${fees.nationalVisa} if a family national visa is required.` : ''}`,
+      `${fee === undefined ? `按年龄及卡别核对：未成年人免申请费，成人 €${fees.permit}，满 ${specialFeeAge} 岁的子女专项卡 €${fees.childRenewal}。` : `申请费 €${fee}。`}另付制卡 €${p.workFees.value.print}。${initial ? `须办理团聚 D 签时领事费 €${fees.nationalVisa}。` : ''}`,
+      `${fee === undefined ? `Verify age and permit: minors are exempt, adults pay €${fees.permit}, and the special child permit at ${specialFeeAge} costs €${fees.childRenewal}.` : `Application fee €${fee}.`} Printing costs €${p.workFees.value.print}.${initial ? ` Add €${fees.nationalVisa} if a family national visa is required.` : ''}`,
     ),
   );
   if (isAutonomous) {
@@ -1028,8 +1041,8 @@ function familyChecks(
           grSource('F21', 'art. 24(1.1)–(1.2)'),
           grSource('F36', 'art. 29 (art. 95(2))'),
         ],
-        `持家属卡满 ${a.residenceYears} 年的配偶、登记伴侣或成年子女可申请。蓝卡家属可合计成员国居留，但最后 ${a.blueGreekYears} 年须在希腊。丧偶前在希至少 ${a.bereavementYears} 年，婚姻或登记伴侣关系解除前须持续至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年。另核对成年子女专用卡和有证据的特殊困难。Ο.2 最长 ${a.cardYears} 年。`,
-        `Spouses, registered partners and adult children with ${a.residenceYears} years on family permits can apply. Blue Card families can count residence in other Member States if the final ${a.blueGreekYears} years were in Greece. Alternatives include ${a.bereavementYears} year before bereavement, a marriage or registered partnership of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before dissolution, the child permit on adulthood, or documented exceptional hardship. Autonomous residence runs for up to ${a.cardYears} years.`,
+        `持家属卡满 ${a.residenceYears} 年的配偶、登记伴侣或成年子女可申请。蓝卡家属可合计成员国居留，但最后 ${a.blueGreekYears} 年须在希腊。丧偶前在希至少 ${a.bereavementYears} 年，婚姻或登记伴侣关系解除前须持续至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年。普通 Ο.1 子女从 ${a.adultAge} 岁起可凭家属卡转自主卡，满 ${a.childRenewalAge} 岁续卡须出示原自主卡。投资者子女从 ${p.familyMembers.value.investorChildLimit} 岁起可凭原家属卡转 ${p.gvFamily.value.independentYears} 年独立卡。特殊困难须提供证明。Ο.2 最长 ${a.cardYears} 年。`,
+        `Spouses, registered partners and adult children with ${a.residenceYears} years on family permits can apply. Blue Card families can count residence in other Member States if the final ${a.blueGreekYears} years were in Greece. Alternatives include ${a.bereavementYears} year before bereavement, a marriage or registered partnership of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before dissolution, or documented exceptional hardship. Ordinary Ο.1 children can convert their family card at ${a.adultAge} and renew at ${a.childRenewalAge} with the previous autonomous card. Investors’ children can convert their family card at ${p.familyMembers.value.investorChildLimit} for ${p.gvFamily.value.independentYears} years. Autonomous residence runs for up to ${a.cardYears} years.`,
       ),
     );
   } else {

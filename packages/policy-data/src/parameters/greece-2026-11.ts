@@ -274,6 +274,7 @@ const official = {
     'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:C_202301392',
   ],
   F62: ['SRC-378', 'https://api.et.gr/apiFEK/1/2021/81/pdf'],
+  F63: ['SRC-379', 'https://api.et.gr/apiFEK/1/1983/25/pdf'],
 } as const;
 
 export function grSource(
@@ -361,6 +362,11 @@ const commencements = {
 export const grPolicyEffectiveDates = Object.values(commencements).map(
   (parameter) => parameter.value,
 );
+
+const majority = {
+  age: 18,
+  source: grSource('F63', 'art. 3, Civil Code art. 127, p. 430'),
+};
 
 export const greeceFull2026_11 = {
   ruleSetId: 'gr.current-law-2026-11',
@@ -454,7 +460,7 @@ export const greeceFull2026_11 = {
       },
       sources: [
         grSource('F36', 'art. 37, Migration Code art. 160(1)'),
-        grSource('F14', 'arts. 3, 12'),
+        grSource('F14', 'arts. 2(1), 3, 12'),
         grSource('F46', 'Prerequisites, Cost'),
       ],
     },
@@ -495,7 +501,8 @@ export const greeceFull2026_11 = {
     },
     naturalisationScreen: {
       value: {
-        adultAge: 18,
+        adultAge: majority.age,
+        parentalResponsibilityMinorAge: majority.age,
         criminalLookbackYears: 10,
         intentionalSentenceMonths: 12,
         listedSentenceMonths: 6,
@@ -503,7 +510,9 @@ export const greeceFull2026_11 = {
         oathYears: 1,
       },
       sources: [
-        grSource('F34', 'ΚΕΙ arts. 5(1)(a)–(b), 8(3), 9(1)'),
+        majority.source,
+        grSource('F62', 'art. 7(1), Civil Code art. 1510'),
+        grSource('F34', 'ΚΕΙ arts. 5(1)(a)–(b),(δ), 8(3), 9(1)'),
         grSource('F33', 'arts. 97–98'),
       ],
     },
@@ -575,6 +584,7 @@ export const greeceFull2026_11 = {
     },
     gvInvestment: {
       value: {
+        adultRecipientAge: majority.age,
         highEur: 800000,
         otherEur: 400000,
         specialEur: 250000,
@@ -584,6 +594,7 @@ export const greeceFull2026_11 = {
         properties: 1,
       },
       sources: [
+        majority.source,
         grSource(
           'F23',
           'ν. 5100/2024 art. 64(1), art. 100(1)–(2), pp. 1198–1199',
@@ -620,11 +631,12 @@ export const greeceFull2026_11 = {
         adultFamily: 150,
         independentChild: 450,
         minor: 0,
-        minorAge: 18,
+        minorAge: majority.age,
         card: 16,
         visaD: 180,
       },
       sources: [
+        majority.source,
         grSource('F04', 'art. 1, consular fee schedule A4(b)'),
         grSource('F40', 'Κόστος, initial Β.5 change of use'),
         grSource('F16', 'art. 171(1)(β,γ), (2)(γ)'),
@@ -632,8 +644,11 @@ export const greeceFull2026_11 = {
       ],
     },
     gvFamily: {
-      value: { childAge: 21, independentYears: 3 },
-      sources: [grSource('F36', 'art. 29, amending art. 95(2), p. 466')],
+      value: { childAge: 21, independentYears: 3, adultAge: majority.age },
+      sources: [
+        majority.source,
+        grSource('F36', 'art. 29, amending art. 95(2), p. 466'),
+      ],
     },
     gvFines: {
       value: { prohibitedUse: 50000, listedRestoration: 150000 },
@@ -643,7 +658,9 @@ export const greeceFull2026_11 = {
     },
     gfPeriods: {
       value: {
+        minorAge: majority.age,
         childAge: 21,
+        siblingRenewalAge: 21,
         residenceYears: 5,
         interruptionYears: 2,
         lateFeeAfterYears: 1,
@@ -657,6 +674,7 @@ export const greeceFull2026_11 = {
           'F36',
           'arts. 9(3), 27–28, art. 93(9),(11) and 93Α(1)–(4), pp. 444–445, 464–466',
         ),
+        majority.source,
         grSource('F16', 'art. 93(2)–(4),(7)'),
       ],
     },
@@ -669,6 +687,7 @@ export const greeceFull2026_11 = {
     },
     efPeriods: {
       value: {
+        minorAge: majority.age,
         childAge: 21,
         residenceYears: 5,
         retirementYears: 3,
@@ -686,7 +705,9 @@ export const greeceFull2026_11 = {
         cardYears: 10,
       },
       sources: [
-        grSource('F02', 'arts. 2(2)(β), 13–15, 17(2)–(5), pp. 2978, 2982–2984'),
+        majority.source,
+        grSource('F61', '§§2.2.2.5, 5.2.4, 9.1'),
+        grSource('F02', 'arts. 2(2)(β), 12(2)(δ), 13–15, 17(2)–(5)'),
         grSource('F36', 'art. 9(4), Migration Code art. 4(ληγ), p. 445'),
       ],
     },
@@ -802,6 +823,7 @@ export const greeceFull2026_11 = {
     },
     familyAutonomy: {
       value: {
+        adultAge: majority.age,
         residenceYears: 5,
         bereavementYears: 1,
         marriageYears: 3,
@@ -812,13 +834,20 @@ export const greeceFull2026_11 = {
         blueGreekYears: 2,
       },
       sources: [
+        majority.source,
         grSource('F16', 'arts. 90(1)–(5), 42(6)'),
         grSource('F21', 'ΚΥΑ 95391/2024, art. 24(1.3)–(1.4)'),
       ],
     },
     familyFees: {
-      value: { permit: 150, childRenewal: 450, nationalVisa: 90 },
+      value: {
+        minorAge: majority.age,
+        permit: 150,
+        childRenewal: 450,
+        nationalVisa: 90,
+      },
       sources: [
+        majority.source,
         grSource('F04', 'art. 1, schedule A4(b)'),
         grSource('F16', 'art. 171(1)(β), (2)'),
         grSource('F21', 'ΚΥΑ 95391/2024, arts. 23(2), 24(1.3)–(1.4)'),

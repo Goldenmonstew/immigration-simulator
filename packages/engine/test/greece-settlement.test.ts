@@ -273,6 +273,22 @@ describe('M.1 long-term grant and retention', () => {
       greekLevel: 'A2',
       historyPoints: 10,
     } as const;
+    for (const [birthDate, expected] of [
+      ['2010-11-23', 'NOT_MET'],
+      ['2010-11-22', 'MET'],
+      [undefined, 'UNKNOWN'],
+    ] as const) {
+      const request = {
+        birthDate,
+        integration: { ...hist, a2ExamOn: '2026-11-22' },
+      };
+      expect(
+        full(lt, request).checks.find((c) => c.id === 'LT-04')?.status,
+      ).toBe(expected);
+      expect(
+        full(ty, request).checks.find((c) => c.id === 'TY-02')?.status,
+      ).toBe(expected);
+    }
     expect(status(lt, 'LT-04', { integration: hist })).toBe('MET');
     expect(
       status(lt, 'LT-04', { integration: { ...hist, greekLevel: 'legacy-A' } }),
@@ -1244,12 +1260,15 @@ describe('ΚΕΙ naturalisation', () => {
       disabilityPercent: 66,
       certifiedLearningDisability: false,
     } as const;
-    expect(
-      status(nat, 'NAT-06', { nationality: oral, birthDate: '1964-12-31' }),
-    ).toBe('NOT_MET');
-    expect(
-      status(nat, 'NAT-06', { nationality: oral, birthDate: '1963-12-31' }),
-    ).toBe('MET');
+    for (const [birthDate, expected] of [
+      ['1965-01-01', 'NOT_MET'],
+      ['1964-12-31', 'MET'],
+    ] as const) {
+      const result = full(nat, { nationality: oral, birthDate });
+      for (const id of ['NAT-05', 'NAT-06']) {
+        expect(result.checks.find((c) => c.id === id)?.status).toBe(expected);
+      }
+    }
     expect(
       status(nat, 'NAT-06', {
         nationality: { ...oral, disabilityPercent: 67 },
