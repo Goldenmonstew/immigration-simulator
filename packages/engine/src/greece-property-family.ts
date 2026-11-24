@@ -53,7 +53,12 @@ interface GoldenVisaAnswers {
   registeredTransferEvidence?: boolean;
   builtOrBuildingPermit?: boolean;
   mainAreaSqm?: number;
+  /** Whether the main spaces had been converted to housing by filing. */
   conversionComplete?: boolean;
+  /** Physical completion date, also used under Circular 9/2024 before the 2025 decision. */
+  conversionCompletedOn?: IsoDate;
+  /** Date of the qualifying act certified by the engineer, including a file update or permit revision. */
+  conversionActDate?: IsoDate;
   factoryIdleYears?: number;
   fullyPaidAndConditionsReleased?: boolean;
   payment?: 'bank-transfer' | 'crossed-cheque' | 'greek-pos' | 'other';
@@ -199,15 +204,37 @@ function yearsBy(
   return from && end ? addYears(from, years) <= end : undefined;
 }
 
-function currentInvestmentMinimum(a: GoldenVisaAnswers, transfer: boolean) {
-  if (!transfer && a.kind === undefined) return;
-  if (!transfer && a.kind !== 'standard') return investment.specialEur;
-  if (a.zone === 'named-high-cost') return investment.highEur;
-  if (a.zone === 'other-mainland') return investment.otherEur;
+function meetsStandardPrice(
+  a: GoldenVisaAnswers,
+  price: number | undefined,
+): Answer {
+  if (price === undefined) return;
+  if (price >= investment.highEur) return true;
+  if (price < investment.otherEur) return false;
+  if (a.zone === 'named-high-cost') return false;
+  if (a.zone === 'other-mainland') return true;
   if (a.zone === 'other-island' && a.censusPopulation !== undefined)
-    return a.censusPopulation > investment.islandPopulation
-      ? investment.highEur
-      : investment.otherEur;
+    return a.censusPopulation <= investment.islandPopulation;
+}
+
+function conversionTier(a: GoldenVisaAnswers, filed: IsoDate): Answer {
+  const completed =
+    a.conversionCompletedOn === undefined
+      ? a.conversionComplete
+      : a.conversionComplete !== false && a.conversionCompletedOn <= filed;
+  const date =
+    filed < p.gvConversionDecisionEffective.value
+      ? a.conversionCompletedOn
+      : a.conversionActDate;
+  return all(
+    completed,
+    date === undefined
+      ? undefined
+      : date >= p.gvReformEffective.value && date <= filed,
+    a.kind === 'factory-conversion'
+      ? minimum(a.factoryIdleYears, investment.factoryIdleYears)
+      : true,
+  );
 }
 
 function legacyTerms(
@@ -295,22 +322,32 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
   const current = a.regime === 'current' && !historical;
   const transfer =
     a.acquisition === 'inheritance' || a.acquisition === 'parental-gift';
-  const value = currentInvestmentMinimum(a, transfer);
   const lease = a.title === 'qualifying-tourist-lease';
   const acquisitionKnown = lease || a.acquisition !== undefined;
-  const areaApplies =
+  const conversion =
     !lease &&
     !transfer &&
-    a.kind === 'standard' &&
-    a.builtOrBuildingPermit === true;
-  const areaExempt =
-    transfer ||
-    lease ||
-    (a.kind && (a.kind !== 'standard' || a.builtOrBuildingPermit === false));
+    (a.kind === 'conversion' || a.kind === 'factory-conversion');
+  const specialTier = conversion
+    ? conversionTier(a, a.overseasFilingDate ?? sim)
+    : !lease && !transfer && a.kind === 'listed';
+  const price = transfer ? a.assessedValueEur : a.qualifyingValueEur;
+  const standardPrice = meetsStandardPrice(a, price);
   const priceMet =
-    value === undefined
+    !transfer && a.kind === undefined
       ? undefined
-      : minimum(transfer ? a.assessedValueEur : a.qualifyingValueEur, value);
+      : any(
+          standardPrice,
+          all(specialTier, minimum(price, investment.specialEur)),
+        );
+  const built = conversion || a.builtOrBuildingPermit;
+  const standardArea =
+    transfer || lease || built === false
+      ? true
+      : built
+        ? minimum(a.mainAreaSqm, investment.minMainAreaSqm)
+        : undefined;
+  const areaMet = any(specialTier, standardArea);
   const property = all(
     priceMet,
     a.title === undefined ? undefined : a.title !== 'ineligible',
@@ -321,12 +358,6 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       : a.propertyCount === undefined
         ? undefined
         : a.propertyCount === investment.properties,
-    !transfer && (a.kind === 'conversion' || a.kind === 'factory-conversion')
-      ? a.conversionComplete
-      : true,
-    !transfer && a.kind === 'factory-conversion'
-      ? minimum(a.factoryIdleYears, investment.factoryIdleYears)
-      : true,
   );
   const oldTerms = historical
     ? a.originalConditionsStillMet
@@ -349,7 +380,8 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       use =
         a.kind === undefined
           ? undefined
-          : !['conversion', 'factory-conversion'].includes(a.kind);
+          : !['conversion', 'factory-conversion'].includes(a.kind) ||
+            (!renewal && current && all(standardPrice, standardArea));
     else use = true;
   }
   const fee = p.gvFees.value;
@@ -370,12 +402,16 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         '投资区位、产权及金额',
         'Investment zone, title and value',
         current && acquisitionKnown ? property : undefined,
-        p.gvInvestment.sources,
-        `核对单处购房或合格旅游租约，继承和父母赠与按完整产权的评估价值。标准档 €${investment.highEur}/€${investment.otherEur}，改住宅或保护建筑购置 €${investment.specialEur}。核实岛屿普查、持分及变更用途竣工记录。`,
-        `Verify a single property purchase or qualifying tourist lease. For inherited property or a parental gift, verify full ownership and assessed value. Standard tiers €${investment.highEur}/€${investment.otherEur}, converted or listed purchases €${investment.specialEur}. Check the census, qualifying share and completed conversion.`,
-        a.zone === 'other-island' &&
-          a.kind === 'standard' &&
-          a.censusPopulation === undefined
+        [...p.gvInvestment.sources, ...p.gvConversionDecisionEffective.sources],
+        `核对单处购房或合格旅游租约，继承和父母赠与按完整产权的评估价值。标准档 €${investment.highEur}/€${investment.otherEur}，合格改住宅或保护建筑购置 €${investment.specialEur}。改住宅须在递件前完成。${p.gvConversionDecisionEffective.value} 起递件，工程师须核实相关行政文件签发于 ${p.gvReformEffective.value} 当日或之后，包括旧许可的更新或修订；在部令生效前递件按实际竣工日核对。适用标准档时核区位、持分和面积。`,
+        `Verify a single property purchase or qualifying tourist lease. For inherited property or a parental gift, verify full ownership and assessed value. Standard tiers €${investment.highEur}/€${investment.otherEur}, qualifying converted or listed purchases €${investment.specialEur}. Complete the conversion before filing. For applications from ${p.gvConversionDecisionEffective.value}, the engineer must verify an act dated on or after ${p.gvReformEffective.value}, including an update or revision of an earlier permit. Earlier filings use the completion date. Standard purchases need the applicable zone, share and floor area.`,
+        current &&
+          acquisitionKnown &&
+          property === undefined &&
+          priceMet === undefined &&
+          price !== undefined &&
+          ((conversion && specialTier === undefined) ||
+            ((a.kind !== undefined || transfer) && standardPrice === undefined))
           ? ['PD-306']
           : undefined,
       ),
@@ -385,16 +421,17 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         'GV-02',
         '主要使用面积',
         'Main floor area',
-        current && acquisitionKnown
-          ? areaApplies
-            ? minimum(a.mainAreaSqm, investment.minMainAreaSqm)
-            : areaExempt
-              ? true
-              : undefined
-          : undefined,
+        current && acquisitionKnown ? areaMet : undefined,
         p.gvInvestment.sources,
         `标准档已建房或已获建筑许可的地块主空间至少 ${investment.minMainAreaSqm} m²。`,
         `Standard built property or land with a building permit needs at least ${investment.minMainAreaSqm} m² of main space.`,
+        current &&
+          acquisitionKnown &&
+          areaMet === undefined &&
+          conversion &&
+          specialTier === undefined
+          ? ['PD-306']
+          : undefined,
       ),
     );
   }

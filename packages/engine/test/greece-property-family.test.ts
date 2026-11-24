@@ -126,7 +126,9 @@ describe('Β.5 property and family conditions', () => {
       gv('GV-01', { zone: 'other-mainland', qualifyingValueEur: 399999 })
         .status,
     ).toBe('NOT_MET');
-    expect(gv('GV-01', { zone: 'other-island' })).toMatchObject({
+    expect(
+      gv('GV-01', { zone: 'other-island', qualifyingValueEur: 799999 }),
+    ).toMatchObject({
       status: 'UNKNOWN',
       pendingDetails: ['PD-306'],
     });
@@ -137,6 +139,7 @@ describe('Β.5 property and family conditions', () => {
       kind: 'factory-conversion',
       qualifyingValueEur: 250000,
       conversionComplete: true,
+      conversionActDate: '2024-04-05',
       factoryIdleYears: 5,
       mainAreaSqm: 47,
     };
@@ -193,7 +196,11 @@ describe('Β.5 property and family conditions', () => {
       }),
     ).toMatchObject({ status: 'UNKNOWN', pendingDetails: ['PD-308'] });
     expect(
-      gv('GV-04', { kind: 'conversion', use: 'business-office' }).status,
+      gv('GV-04', {
+        kind: 'conversion',
+        qualifyingValueEur: 250000,
+        use: 'business-office',
+      }).status,
     ).toBe('NOT_MET');
     expect(gv('GV-05', {}).status).toBe('MET');
     expect(gv('GV-05', { worksInGreeceUnderThisPermit: true }).status).toBe(
@@ -562,7 +569,7 @@ describe('Ν EU family', () => {
   });
 });
 
-describe('review88-1 through evaluateGreeceFull', () => {
+describe('property and family reviews through evaluateGreeceFull', () => {
   const full = (
     id: Parameters<typeof propertyFamilyChecks>[0],
     patch: Partial<GrFullRequest> = {},
@@ -602,6 +609,112 @@ describe('review88-1 through evaluateGreeceFull', () => {
     expect(path.status).toBe(status);
     expect(path.earliestDate).toBe(earliestDate);
   }
+
+  test('Β.5 conversion uses the certified permit, file update or revision date and the filing date', () => {
+    const converted: Investor = {
+      ...investor,
+      kind: 'conversion',
+      qualifyingValueEur: 250000,
+      mainAreaSqm: 47,
+      conversionComplete: true,
+      conversionCompletedOn: '2023-06-01',
+    };
+    const run = (facts: Partial<Investor>, req: Partial<GrFullRequest> = {}) =>
+      full('GR-GOLDEN-VISA', {
+        ...req,
+        goldenVisa: { ...converted, ...facts },
+      });
+    const neverUpdated = { conversionActDate: '2023-06-01' } as const;
+    const revised = { conversionActDate: '2024-04-05' } as const;
+    verify(run(neverUpdated), 'GV-01', 'NOT_MET');
+    verify(run({ conversionActDate: '2024-04-04' }), 'GV-01', 'NOT_MET');
+    verify(run(revised), 'GV-01', 'MET');
+    const islandConversion = run({ ...revised, zone: 'other-island' });
+    verify(islandConversion, 'GV-01', 'MET');
+    expect(islandConversion.pendingDetails).not.toContain('PD-306');
+    verify(run({ conversionActDate: '2026-11-24' }), 'GV-01', 'NOT_MET');
+    const unknown = run({});
+    verify(unknown, 'GV-01', 'UNKNOWN');
+    expect(
+      unknown.checks.find((check) => check.id === 'GV-01')?.pendingDetails,
+    ).toEqual(['PD-306']);
+    expect(
+      run(revised).checks.find((check) => check.id === 'GV-01')?.sources,
+    ).toContainEqual(expect.objectContaining({ srcId: 'SRC-375' }));
+    verify(run(revised, { simulationDate: '2025-11-10' }), 'GV-01', 'NOT_MET');
+    verify(run(revised, { simulationDate: '2025-11-11' }), 'GV-01', 'MET');
+    verify(
+      run(
+        { conversionCompletedOn: '2024-04-05' },
+        { simulationDate: '2025-11-10' },
+      ),
+      'GV-01',
+      'MET',
+    );
+    verify(
+      run(
+        {
+          ...revised,
+          overseasFilingDate: '2025-11-10',
+          overseasEvidenceCompletedOn: '2026-01-01',
+        },
+        { entry: 'receipt' },
+      ),
+      'GV-01',
+      'NOT_MET',
+    );
+    verify(
+      run(
+        {
+          conversionActDate: '2026-01-01',
+          overseasFilingDate: '2025-11-23',
+          overseasEvidenceCompletedOn: '2026-01-01',
+        },
+        { entry: 'receipt' },
+      ),
+      'GV-01',
+      'NOT_MET',
+    );
+  });
+
+  test('Β.5 an earlier conversion can qualify at the ordinary price and floor area for the zone', () => {
+    const oldConversion: Investor = {
+      ...investor,
+      kind: 'conversion',
+      conversionComplete: true,
+      conversionActDate: '2023-06-01',
+    };
+    const run = (facts: Partial<Investor>) =>
+      full('GR-GOLDEN-VISA', { goldenVisa: { ...oldConversion, ...facts } });
+    verify(run({ qualifyingValueEur: 799999 }), 'GV-01', 'NOT_MET');
+    verify(run({ mainAreaSqm: 119.99 }), 'GV-02', 'NOT_MET');
+    verify(run({ use: 'business-office' }), 'GV-01', 'MET');
+    verify(
+      run({ zone: 'other-mainland', qualifyingValueEur: 400000 }),
+      'GV-01',
+      'MET',
+    );
+    for (const zone of [undefined, 'other-island'] as const) {
+      const atHighestPrice = run({ zone, conversionActDate: undefined });
+      verify(atHighestPrice, 'GV-01', 'MET');
+      verify(atHighestPrice, 'GV-02', 'MET');
+      expect(atHighestPrice.pendingDetails).not.toContain('PD-306');
+    }
+    const unknownZone = run({ zone: undefined, qualifyingValueEur: 799999 });
+    verify(unknownZone, 'GV-01', 'UNKNOWN');
+    expect(unknownZone.pendingDetails).toContain('PD-306');
+    const unknownTitle = run({
+      conversionActDate: undefined,
+      title: undefined,
+    });
+    verify(unknownTitle, 'GV-01', 'UNKNOWN');
+    expect(unknownTitle.pendingDetails).not.toContain('PD-306');
+    verify(
+      run({ conversionActDate: undefined, mainAreaSqm: 119.99 }),
+      'GV-02',
+      'UNKNOWN',
+    );
+  });
 
   test('2. Athens purchase filed by an overseas representative can receive a receipt before cover and biometrics', () => {
     const req = {

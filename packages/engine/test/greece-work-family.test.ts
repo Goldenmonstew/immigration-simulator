@@ -333,25 +333,84 @@ test.each([
 );
 
 test.each([
-  [undefined, 1, 'MET'],
-  [true, undefined, 'MET'],
-  [false, 6, 'NOT_MET'],
-  [undefined, 0, 'NOT_MET'],
-  [undefined, undefined, 'UNKNOWN'],
+  ['2024-11-23', '2024-12-01', false, undefined],
+  ['2026-11-23', '2026-12-01', undefined, 0],
 ] as const)(
-  'Ε.4 renewal requires a current contract (%s, fixed term %s months)',
-  (hasCurrentEmploymentContract, contractMonths, status) => {
+  'ordinary Ε.4 renewal on %s accepts tax and insurance evidence after the job ended',
+  (
+    simulationDate,
+    currentCardExpiresOn,
+    hasCurrentEmploymentContract,
+    grossPayEur,
+  ) => {
     const result = route('GR-WORK', {
-      currentCardExpiresOn: '2026-12-01',
+      simulationDate,
+      currentCardExpiresOn,
       work: {
-        ...employed,
+        permit: 'E4',
         stage: 'renewal',
         taxesSettledDuringPermit: true,
         hasCurrentEmploymentContract,
-        contractMonths,
+        grossPayEur,
       },
     });
-    expect(result.checks.find((item) => item.id === 'WK-04')?.status).toBe(
+    expect(result.checks.map((item) => item.id)).not.toContain('WK-04');
+    const taxAndCover = result.checks.find((item) => item.id === 'WK-07');
+    expect(taxAndCover?.status).toBe('MET');
+    expect(taxAndCover?.sources.map((source) => source.srcId)).toEqual(
+      expect.arrayContaining(['SRC-373', 'SRC-374']),
+    );
+    expect(
+      result.checks.find((item) => item.id === 'WK-09')?.explanation,
+    ).toMatch(/€150.*€16/);
+    expect(result.status).toBe('MET');
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
+  [false, 'public', 'NOT_MET'],
+  [undefined, 'public', 'UNKNOWN'],
+  [true, 'uninsured', 'NOT_MET'],
+  [true, undefined, 'UNKNOWN'],
+] as const)(
+  'Ε.4 renewal requires tax compliance (%s) and active public insurance (%s)',
+  (taxesSettledDuringPermit, kind, status) => {
+    const result = route('GR-WORK', {
+      simulationDate: '2024-11-23',
+      currentCardExpiresOn: '2024-12-01',
+      insurance: kind && { kind },
+      work: { permit: 'E4', stage: 'renewal', taxesSettledDuringPermit },
+    });
+    expect(result.checks.find((item) => item.id === 'WK-07')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
+  ['unemployment-benefit', true, 'MET'],
+  ['accepted-force-majeure', false, 'NOT_MET'],
+  ['unemployment-benefit', undefined, 'UNKNOWN'],
+  ['none', true, 'NOT_MET'],
+  ['pending', true, 'UNKNOWN'],
+] as const)(
+  'Ε.4 renewal checks the previous coverage gap (%s) and current public coverage (%s)',
+  (gapEvidence, activePublicCoverAfterGap, status) => {
+    const result = route('GR-WORK', {
+      simulationDate: '2024-11-23',
+      currentCardExpiresOn: '2024-12-01',
+      insurance: { kind: 'gap', gapEvidence },
+      work: {
+        permit: 'E4',
+        stage: 'renewal',
+        taxesSettledDuringPermit: true,
+        activePublicCoverAfterGap,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'WK-07')?.status).toBe(
       status,
     );
     expect(result.status).toBe(status);
@@ -706,7 +765,7 @@ describe('Gr employment routes', () => {
       work('WK-07', renewal, {
         insurance: { kind: 'gap', gapEvidence: 'unemployment-benefit' },
       }).status,
-    ).toBe('MET');
+    ).toBe('UNKNOWN');
     expect(
       work('WK-07', renewal, { insurance: { kind: 'private' } }),
     ).toMatchObject({ status: 'UNKNOWN', pendingDetails: ['PD-303'] });

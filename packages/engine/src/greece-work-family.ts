@@ -15,7 +15,7 @@ interface WorkAnswers {
     expiresOn?: IsoDate;
   };
   contractMonths?: number;
-  /** Ε.4 renewal can also rely on an open-ended employment contract. */
+  /** Legacy Ε.4 renewal input. Filing does not require a current employment contract. */
   hasCurrentEmploymentContract?: boolean;
   grossAnnualEur?: number;
   payBasis?: 'monthly' | 'daily';
@@ -47,6 +47,8 @@ interface WorkAnswers {
   protectedLeaveAccepted?: boolean;
   taxesSettledDuringPermit?: boolean;
   insuranceApplicationFiled?: boolean;
+  /** Only for Ε.4 renewal with a historical insurance gap: active public cover on the filing date. */
+  activePublicCoverAfterGap?: boolean;
 }
 
 interface FamilyAnswers {
@@ -216,6 +218,7 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
   }
   const isBlue = w.permit === 'E1';
   const renewal = w.stage === 'renewal';
+  const employeeRenewal = !isBlue && renewal;
   const isSwitch = w.admission === 'domestic-switch';
   const project = !isBlue && w.admission === 'strategic-project';
   const reformed = req.simulationDate >= p.workReformEffective.value;
@@ -307,25 +310,21 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
         ),
       );
     }
-  } else {
+  } else if (!renewal) {
     const months = reformed
       ? contracts.employee
       : contracts.employeeBeforeReform;
     const floor =
       w.payBasis && wageFloor(req.simulationDate, w.payBasis === 'daily');
-    const contract = renewal
-      ? (w.hasCurrentEmploymentContract ??
-        (w.contractMonths === undefined ? undefined : w.contractMonths > 0))
-      : atLeast(w.contractMonths, months);
     checks.push(
       check(
         'WK-04',
         '受雇合同与最低工资',
         'Employment contract and minimum wage',
-        all(contract, atLeast(w.grossPayEur, floor)),
+        all(atLeast(w.contractMonths, months), atLeast(w.grossPayEur, floor)),
         [
           ...p.workContractMonths.sources,
-          grSource('F21', 'art. 7(1)(α), (4)(α)'),
+          grSource('F21', 'art. 7(1)(α), (3)(β)'),
           ...(w.payBasis === 'daily'
             ? p.minimumDailyGrossEur
             : p.minimumMonthlyGrossEur
@@ -336,8 +335,8 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
           ).sources,
           ...p.wage2024GrossEur.sources,
         ],
-        `${renewal ? '续期须有现行劳动合同。' : `合同至少 ${months} 个月。`}按全职雇员月薪或体力劳动者日薪比较${floor === undefined ? '；请核对工资类别及当期费率' : `，相应毛额下限 €${floor}`}。`,
-        `${renewal ? 'Renewal requires a current employment contract.' : `The contract must cover at least ${months} months.`} Compare full-time monthly employee pay or daily manual-worker pay${floor === undefined ? ' once the rate and period are known' : ` with a gross minimum of €${floor}`}.`,
+        `合同至少 ${months} 个月。按全职雇员月薪或体力劳动者日薪比较${floor === undefined ? '；请核对工资类别及当期费率' : `，相应毛额下限 €${floor}`}。`,
+        `The contract must cover at least ${months} months. Compare full-time monthly employee pay or daily manual-worker pay${floor === undefined ? ' once the rate and period are known' : ` with a gross minimum of €${floor}`}.`,
       ),
     );
   }
@@ -449,18 +448,34 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
           (deferred && req.insurance?.kind !== 'uninsured' ? true : undefined),
         insuranceMet(req.insurance, 'work'),
       );
+  const currentCover =
+    employeeRenewal && req.insurance?.kind === 'gap'
+      ? w.activePublicCoverAfterGap
+      : true;
   checks.push(
     check(
       'WK-07',
-      '工作医保、地址和续期税单',
-      'Employment insurance, address and renewal tax record',
-      all(cover, !renewal || w.taxesSettledDuringPermit),
-      [
-        grSource('F16', 'arts. 10(9), 31(1)(ε, ζ)'),
-        grSource('F21', 'arts. 2(δ), 4(3), (5), 7(3)–(4)'),
-      ],
-      `首签核对公保登记申请或参保证明。按第 10(9) 条递件后，须在 ${p.initialEvidenceMonths.value} 个月内补交欠缺的参保申请凭证。蓝卡申请人须申报已知住址，最迟在发卡时提供永久地址。续期核查原卡期间医保及纳税义务。`,
-      `Show public insurance registration or active cover at first issue. Article 10(9) allows ${p.initialEvidenceMonths.value} months after filing to supply the outstanding registration certificate. Blue Card applicants must disclose any known address and provide the permanent address by issue. Renewals require cover and tax compliance during the previous permit.`,
+      renewal ? '续期税务与有效公保' : '工作医保与蓝卡地址',
+      renewal
+        ? 'Renewal tax and active insurance evidence'
+        : 'Employment insurance and Blue Card address',
+      all(cover, currentCover, !renewal || w.taxesSettledDuringPermit),
+      employeeRenewal
+        ? [
+            grSource('F57', 'p. 1, reply on art. 7(4), paras. 2–3'),
+            grSource('F58', 'Προϋποθέσεις 2–3; Δικαιολογητικά 2–3'),
+            grSource('F21', 'art. 2(δ), evidence for gaps in past coverage'),
+          ]
+        : [
+            grSource('F16', 'arts. 10(9), 31(1)(ε, ζ)'),
+            grSource('F21', 'arts. 2(δ), 4(3), (5), 7(3)–(4)'),
+          ],
+      renewal
+        ? '提供原卡有效期间的纳税义务履行证明及保险机构出具的有效公保证明。曾有参保空档时，核对同期失业补助或获认可的不可抗力证明。'
+        : `首签核对公保登记申请或参保证明。按第 10(9) 条递件后，须在 ${p.initialEvidenceMonths.value} 个月内补交欠缺的参保申请凭证。蓝卡申请人须申报已知住址，最迟在发卡时提供永久地址。`,
+      renewal
+        ? 'Provide evidence of tax compliance during the expiring permit and active coverage from the public insurer. For earlier gaps, document unemployment benefits for that period or accepted force majeure.'
+        : `Show public insurance registration or active cover at first issue. Article 10(9) allows ${p.initialEvidenceMonths.value} months after filing to supply the outstanding registration certificate. Blue Card applicants must disclose any known address and provide the permanent address by issue.`,
       renewal && cover === undefined && req.insurance ? ['PD-303'] : undefined,
     ),
   );
@@ -500,9 +515,9 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
       '雇主和雇员费用及办理时间',
       'Employer and applicant fees and timing',
       true,
-      p.workFees.sources,
-      `许可 €${fees.permit}，制卡 €${fees.print}。需国家签证时另付 €${fees.visa}。${invitation === undefined ? '' : `雇主每人邀请费 €${invitation}，不退。`}${isBlue ? `蓝卡完整申请的审理时限为 ${fees.blueDecisionDays} 天。` : reformed && !renewal ? `领馆决定后 ${fees.consulateNotificationDays} 天内通知主管机关，主管机关再于 ${fees.employerNotificationDays} 天内通知雇主。` : ''}`,
-      `Permit €${fees.permit}, printing €${fees.print}. A national visa, when required, costs €${fees.visa}.${invitation === undefined ? '' : ` The employer pays a non-refundable €${invitation} per recruit.`}${isBlue ? ` A complete Blue Card application has a ${fees.blueDecisionDays}-day decision period.` : reformed && !renewal ? ` Following a decision, the consulate has ${fees.consulateNotificationDays} days to notify the authority, which has ${fees.employerNotificationDays} days to inform the employer.` : ''}`,
+      employeeRenewal ? [grSource('F58', 'Κόστος 1–2')] : p.workFees.sources,
+      `许可 €${fees.permit}，制卡 €${fees.print}。${renewal ? '' : `需国家签证时另付 €${fees.visa}。`}${invitation === undefined ? '' : `雇主每人邀请费 €${invitation}，不退。`}${isBlue ? `蓝卡完整申请的审理时限为 ${fees.blueDecisionDays} 天。` : reformed && !renewal ? `领馆决定后 ${fees.consulateNotificationDays} 天内通知主管机关，主管机关再于 ${fees.employerNotificationDays} 天内通知雇主。` : ''}`,
+      `Permit €${fees.permit}, printing €${fees.print}.${renewal ? '' : ` A national visa, when required, costs €${fees.visa}.`}${invitation === undefined ? '' : ` The employer pays a non-refundable €${invitation} per recruit.`}${isBlue ? ` A complete Blue Card application has a ${fees.blueDecisionDays}-day decision period.` : reformed && !renewal ? ` Following a decision, the consulate has ${fees.consulateNotificationDays} days to notify the authority, which has ${fees.employerNotificationDays} days to inform the employer.` : ''}`,
     ),
   );
   return checks;

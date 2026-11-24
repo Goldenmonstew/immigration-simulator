@@ -256,6 +256,18 @@ const official = {
     'SRC-372',
     'https://www.ypes.gr/wp-content/uploads/2026/09/eggr52779-20260924.pdf',
   ],
+  F57: [
+    'SRC-373',
+    'https://www.hellenicparliament.gr/UserFiles/67715b2c-ec81-4f0c-ad6a-476a34d732bd/12574231.pdf',
+  ],
+  F58: [
+    'SRC-374',
+    'https://mitos.gov.gr/index.php/ΔΔ:Άδεια_διαμονής_κατόπιν_έγκρισης_μετάκλησης_για_εξαρτημένη_εργασία_–_Ανανέωση_(«Ε.4»)',
+  ],
+  F59: [
+    'SRC-375',
+    'https://api.et.gr/apiFEK/2/2025/6014/pdf',
+  ],
 } as const;
 
 export function grSource(
@@ -520,6 +532,10 @@ export const greeceFull2026_11 = {
       value: '2024-04-05',
       sources: [grSource('F23', 'arts. 64, 69(1)'), grSource('F53', 'II(γ)')],
     },
+    gvConversionDecisionEffective: {
+      value: '2025-11-11',
+      sources: [grSource('F59', 'arts. 3–4, pp. 75069–75070')],
+    },
     gvInvestment: {
       value: {
         highEur: 800000,
@@ -535,6 +551,9 @@ export const greeceFull2026_11 = {
           'F23',
           'ν. 5100/2024 art. 64(1), art. 100(1)–(2), pp. 1198–1199',
         ),
+        grSource('F53', 'Circular 9/2024, I(Α)–(Β), pp. 1–2'),
+        grSource('F40', 'Προϋποθέσεις, 5 (Χρονικές)'),
+        grSource('F59', 'art. 2, §§2.1, 2.6(ε), pp. 75064–75065, 75067–75068'),
       ],
     },
     gvLegacyDepositPercent: {

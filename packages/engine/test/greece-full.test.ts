@@ -582,6 +582,46 @@ test('naturalisation oath is assessed independently of application conditions an
   expect(path('GR-NATIONALITY', { nationality: oath }).status).toBe('UNKNOWN');
 });
 
+test.each([
+  [[2019, 2020, 2021, 2022, 2023], 'UNKNOWN', undefined],
+  [[2019, 2020, 2021, 2022, 2023, 2024], 'FUTURE', '2027-08-15'],
+  [[2020, 2021, 2022, 2023, 2026], 'FUTURE', '2027-08-15'],
+] as const)(
+  'refiling in a later tax year with tax records for %j',
+  (years, projectedStatus, earliestDate) => {
+    const nationality = {
+      permit: 'listed',
+      convictions: [],
+      removalOrStatusProceedings: false,
+      exam: 'certificate',
+      economicActivity: 'stable-declared-work',
+      livingResources: 'substantiated',
+      incomeByTaxYear: Object.fromEntries(
+        years.map((year) => [year, { taxableEur: 8000, dependants: 0 }]),
+      ),
+      taxAndSocialInsuranceCurrent: true,
+      integrationAssessment: 'accepted',
+      civilStatusProof: 'legalised-translation',
+      hasAmka: true,
+      hasTaxAssessments: true,
+      lastRejection: '2026-08-15',
+    } satisfies GrFullRequest['nationality'];
+    const checkOn = (simulationDate: string) =>
+      path('GR-NATIONALITY', { simulationDate, nationality });
+    const projection = checkOn(day);
+    const onOpening = checkOn('2027-08-15');
+    const incomeStatus = earliestDate ? 'MET' : 'UNKNOWN';
+    for (const result of [projection, onOpening])
+      expect(result.checks.find((check) => check.id === 'NAT-07')?.status).toBe(
+        incomeStatus,
+      );
+    expect(projection.status).toBe(projectedStatus);
+    expect(projection.earliestDate).toBe(earliestDate);
+    expect(onOpening.status).toBe(earliestDate ? 'MET' : 'UNKNOWN');
+    expect(onOpening.earliestDate).toBe(earliestDate);
+  },
+);
+
 test('birth and continuous residence exempt only the general time requirement', () => {
   const p = path('GR-NATIONALITY', {
     permits: [],

@@ -33,6 +33,7 @@ import {
 } from './greece-rules';
 import {
   backlogCredits,
+  nationalityIncomeCheck,
   settlementChecks,
   type GrSettlementAnswers,
 } from './greece-settlement';
@@ -567,12 +568,21 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
     }
     // Address changes carry their own fine. The old time assessment already combines alternative
     // renewal windows and distinguishes a future date from an unresolved interpretation.
-    const gates = rules.filter((check) => check.id !== 'C-06');
-    const blocked = gates.some(
-      (check) => check.status === 'NOT_MET' && !c.waitDates.has(check),
+    const refiling =
+      nationality &&
+      req.nationality?.lastRejection &&
+      req.nationality.lastRejection !== 'none' &&
+      !req.nationality.pendingApplicationFiledOn;
+    const incomeIndex = refiling
+      ? rules.findIndex((check) => check.id === 'NAT-07')
+      : -1;
+    const fixedGates = rules.filter(
+      (check, index) => check.id !== 'C-06' && index !== incomeIndex,
     );
-    const unknown = gates.some((check) => check.status === 'UNKNOWN');
-    const waits = gates
+    const canProject = fixedGates.every(
+      (check) => check.status === 'MET' || c.waitDates.has(check),
+    );
+    const waits = fixedGates
       .map((check) => c.waitDates.get(check))
       .filter((date) => date !== undefined);
     let earliestDate = [
@@ -588,8 +598,7 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
       time?.earliestDate &&
       earliestDate &&
       earliestDate > time.earliestDate &&
-      !blocked &&
-      !unknown
+      canProject
     ) {
       const onOpening = { ...req, simulationDate: earliestDate };
       jointTime = routeTiming(
@@ -600,7 +609,46 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
       );
       earliestDate = jointTime?.earliestDate;
     }
-    let status: CountryPathway['status'] =
+    let summary =
+      jointTime && jointTime !== time ? jointTime.summary : undefined;
+    if (
+      canProject &&
+      (!needed ||
+        jointTime?.status === 'MET' ||
+        jointTime?.status === 'FUTURE') &&
+      earliestDate &&
+      earliestDate > req.simulationDate
+    ) {
+      if (incomeIndex >= 0) {
+        const income = nationalityIncomeCheck(
+          { ...req, simulationDate: earliestDate },
+          c,
+        );
+        const filing = c.L(
+          `按预计重申日 ${earliestDate} 核对税年材料。`,
+          `Tax years are assessed as of the projected refiling date, ${earliestDate}. `,
+        );
+        rules[incomeIndex] = {
+          ...income,
+          explanation: filing + income.explanation,
+        };
+        if (income.status !== 'MET') summary = rules[incomeIndex].explanation;
+      }
+      const index = rules.findIndex((check) => check.id === 'C-01');
+      if (index >= 0) {
+        const document = passportCheck(id, req, c, earliestDate);
+        if (document.status === 'UNKNOWN') {
+          rules[index] = document;
+          summary = document.explanation;
+        }
+      }
+    }
+    const gates = rules.filter((check) => check.id !== 'C-06');
+    const blocked = gates.some(
+      (check) => check.status === 'NOT_MET' && !c.waitDates.has(check),
+    );
+    const unknown = gates.some((check) => check.status === 'UNKNOWN');
+    const status: CountryPathway['status'] =
       blocked ||
       jointTime?.status === 'NOT_MET' ||
       jointTime?.status === 'NOT_APPLICABLE'
@@ -610,23 +658,6 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
           : waits.length > 0 || jointTime?.status === 'FUTURE'
             ? 'FUTURE'
             : 'MET';
-    let summary =
-      jointTime && jointTime !== time ? jointTime.summary : undefined;
-    if (
-      status === 'FUTURE' &&
-      earliestDate &&
-      earliestDate > req.simulationDate
-    ) {
-      const index = rules.findIndex((check) => check.id === 'C-01');
-      if (index >= 0) {
-        const document = passportCheck(id, req, c, earliestDate);
-        if (document.status === 'UNKNOWN') {
-          rules[index] = document;
-          status = 'UNKNOWN';
-          summary = document.explanation;
-        }
-      }
-    }
     const checks = [...timing, ...rules];
     return {
       id,

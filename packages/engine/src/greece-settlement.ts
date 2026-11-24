@@ -780,6 +780,44 @@ function economicIntegration(r: GrFullRequest) {
       : undefined;
 }
 
+export function nationalityIncomeCheck(r: GrFullRequest, c: GrContext) {
+  const e = r.nationality ?? {};
+  const exam = v.naturalisationExam.value;
+  const financial = economicIntegration(r);
+  const holistic = r.simulationDate >= v.economicCircularFrom.value;
+  const years = r.route && v.naturalisationIncomeYears.value[r.route];
+  const income = v.naturalisationIncome.value;
+  return c.check(
+    'NAT-07',
+    '各税年经济融入与税保合规',
+    'Economic integration by tax year and compliance',
+    financial,
+    [
+      citizenship('5Α(1)(δ)'),
+      grSource('F12', 'art. 1.A'),
+      grSource('F13', 'amendments 1–4'),
+      grSource('F35', 'pp3–4'),
+      grSource('F54', 'pp2–6, assessment before and after circular 52779'),
+    ],
+    holistic
+      ? `新申请和待决案须核验${years ? years + ' 个' : '相应'}税年材料、在希持续合法工作或其他经济活动、合法生活资源及税保合规。可举证重复季节工、家庭供养、已申报储蓄及自住房；年度金额不足仍可综合满足，反复出现无解释的支出差额须个案审查。`
+      : `按当时指引核验${years ? years + ' 个' : '相应'}税年的应税收入及税保记录。已刊普通表止于 ${income.lastYear} 年；指南对认证残障 ≥${exam.disabilityPercent}% 允许福利并采用 €${income.disability}，临界比例见 PD-311。`,
+    holistic
+      ? `New and pending files require evidence for ${years ?? 'the applicable'} tax years, sustained lawful work or other economic activity in Greece, substantiated resources and tax/insurance compliance. Recurrent seasonal work, family support, documented savings and an owner-occupied home can count. A shortfall alone does not prevent a positive finding; repeated unexplained spending discrepancies need review.`
+      : `Under the earlier guidance, check taxable income and compliance for ${years ?? 'the applicable'} tax years. The ordinary table ends in ${income.lastYear}. Ministry guidance counts welfare and uses €${income.disability} at certified disability ≥${exam.disabilityPercent}% (PD-311 at the boundary).`,
+    financial === undefined &&
+      e.incomeByTaxYear &&
+      (!holistic ||
+        e.livingResources === 'unexplained-spending' ||
+        e.economicActivity === 'dependent-supported-by-household')
+      ? [
+          'PD-310',
+          ...(e.disabilityPercent === exam.disabilityPercent ? ['PD-311'] : []),
+        ]
+      : undefined,
+  );
+}
+
 function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   const e = r.nationality ?? {};
   const p = v.naturalisationScreen.value;
@@ -894,10 +932,6 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   }
   if ((e.exam === 'written' || e.exam === 'oral') && examOn > filing)
     knowledge = false;
-  const financial = economicIntegration(r);
-  const holistic = r.simulationDate >= v.economicCircularFrom.value;
-  const years = r.route && v.naturalisationIncomeYears.value[r.route];
-  const income = v.naturalisationIncome.value;
   const rejected = e.lastRejection;
   const reapplyOn =
     rejected && rejected !== 'none'
@@ -1007,37 +1041,7 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       `以出生年计算超过 ${exam.oralAge} 岁、认证残障 ${currentExamOptions ? '≥' : '>'}${exam.disabilityPercent}% 或有学习障碍证明适用口试；完成 ${exam.schoolGrades} 个年级或 ${exam.secondaryGrades} 个中学年级、或取得希腊高校希腊语学位可免试。`,
       `The oral procedure applies above age ${exam.oralAge} by calendar year, with certified disability ${currentExamOptions ? 'of at least' : 'above'} ${exam.disabilityPercent}% or a certified learning disability. ${exam.schoolGrades} Greek school grades, ${exam.secondaryGrades} secondary grades or a Greek-taught Greek university degree can exempt the exam.`,
     ),
-    c.check(
-      'NAT-07',
-      '各税年经济融入与税保合规',
-      'Economic integration by tax year and compliance',
-      financial,
-      [
-        citizenship('5Α(1)(δ)'),
-        grSource('F12', 'art. 1.A'),
-        grSource('F13', 'amendments 1–4'),
-        grSource('F35', 'pp3–4'),
-        grSource('F54', 'pp2–6, assessment before and after circular 52779'),
-      ],
-      holistic
-        ? `新申请和待决案须核验${years ? years + ' 个' : '相应'}税年材料、在希持续合法工作或其他经济活动、合法生活资源及税保合规。可举证重复季节工、家庭供养、已申报储蓄及自住房；年度金额不足仍可综合满足，反复出现无解释的支出差额须个案审查。`
-        : `按当时指引核验${years ? years + ' 个' : '相应'}税年的应税收入及税保记录。已刊普通表止于 ${income.lastYear} 年；指南对认证残障 ≥${exam.disabilityPercent}% 允许福利并采用 €${income.disability}，临界比例见 PD-311。`,
-      holistic
-        ? `New and pending files require evidence for ${years ?? 'the applicable'} tax years, sustained lawful work or other economic activity in Greece, substantiated resources and tax/insurance compliance. Recurrent seasonal work, family support, documented savings and an owner-occupied home can count. A shortfall alone does not prevent a positive finding; repeated unexplained spending discrepancies need review.`
-        : `Under the earlier guidance, check taxable income and compliance for ${years ?? 'the applicable'} tax years. The ordinary table ends in ${income.lastYear}. Ministry guidance counts welfare and uses €${income.disability} at certified disability ≥${exam.disabilityPercent}% (PD-311 at the boundary).`,
-      financial === undefined &&
-        e.incomeByTaxYear &&
-        (!holistic ||
-          e.livingResources === 'unexplained-spending' ||
-          e.economicActivity === 'dependent-supported-by-household')
-        ? [
-            'PD-310',
-            ...(e.disabilityPercent === exam.disabilityPercent
-              ? ['PD-311']
-              : []),
-          ]
-        : undefined,
-    ),
+    nationalityIncomeCheck(r, c),
     c.check(
       'NAT-08',
       '社会融入及生活中心',
