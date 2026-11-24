@@ -1,8 +1,12 @@
-import { AU_FULL_PATHWAYS } from '@uk-immigration/engine';
+import { AU_FULL_PATHWAYS, type Locale } from '@uk-immigration/engine';
 import { australiaFull2026_11 } from '@uk-immigration/policy-data';
 import { t, type TranslationKey } from '../i18n';
 import { australiaRules } from './australia-policy-rules';
-import { withPolicySources, type PolicyRuleSet } from './policy';
+import {
+  withPolicySources,
+  type PolicyParameterValue,
+  type PolicyRuleSet,
+} from './policy';
 
 function title(key: TranslationKey) {
   return { 'zh-CN': t(key), en: t(key, 'en') };
@@ -24,6 +28,105 @@ const set: PolicyRuleSet = {
   ],
 };
 
+const tariffs = [
+  'employer',
+  'independent',
+  'nominated',
+  'regional',
+  'regionalHk',
+  'partner',
+  'currentProspectiveMarriage',
+  'formerProspectiveMarriage',
+  'innovation',
+] as const;
+// Schedule 2 score tables list the Competent, Proficient and Superior levels in order.
+const levels = ['Competent', 'Proficient', 'Superior'];
+
+function mapValues<T, U>(
+  record: Readonly<Record<string, T>>,
+  f: (value: T) => U,
+) {
+  return Object.fromEntries(
+    Object.entries(record).map(([key, value]) => [key, f(value)]),
+  );
+}
+
+// Show Schedule 6D bands, test score tables and family charges by meaning.
+function displayParameter(
+  name: string,
+  locale: Locale,
+): PolicyParameterValue | undefined {
+  const label = (key: TranslationKey) => t(key, locale);
+  const money = (amount: number) => `AUD ${amount.toLocaleString(locale)}`;
+  const bands = (rows: readonly (readonly number[])[], from: TranslationKey) =>
+    rows.map(([minimum, points]) => ({
+      [label(from)]: minimum,
+      [label('au.policy.points')]: points,
+    }));
+  const scores = (rows: readonly (readonly number[])[]) =>
+    rows.map(([listening, reading, writing, speaking], i) => ({
+      [label('au.policy.level')]: levels[i],
+      [label('au.policy.listening')]: listening,
+      [label('au.policy.reading')]: reading,
+      [label('au.policy.writing')]: writing,
+      [label('au.policy.speaking')]: speaking,
+    }));
+  if (name === 'skilledPoints') {
+    const points = v.skilledPoints.value;
+    return {
+      ...points,
+      ageBands: bands(points.ageBands, 'au.policy.minAge'),
+      overseasMonths: bands(points.overseasMonths, 'au.policy.minMonths'),
+      australianMonths: bands(points.australianMonths, 'au.policy.minMonths'),
+    };
+  }
+  if (name === 'skilledEnglish') {
+    const english = v.skilledEnglish.value;
+    const { oet, ...legacy } = english.legacy;
+    return {
+      ...english,
+      current: mapValues(english.current, scores),
+      legacy: {
+        ...mapValues(legacy, scores),
+        oet: oet.map((grade, i) => ({
+          [label('au.policy.level')]: levels[i],
+          [label('au.policy.lowestGrade')]: grade,
+        })),
+      },
+      // Overall scores, not amounts.
+      functional: mapValues(english.functional, String),
+      legacyFunctional: mapValues(english.legacyFunctional, String),
+    };
+  }
+  const tariff = tariffs.find((id) => id === name);
+  if (tariff) {
+    const rate = v[tariff].value;
+    const row = (category: TranslationKey, amounts: readonly number[]) => ({
+      [label('au.policy.category')]: label(category),
+      [label('au.policy.primary')]: money(amounts[0]),
+      [label('au.policy.additionalAdult')]: money(amounts[1]),
+      [label('au.policy.additionalMinor')]: money(amounts[2]),
+    });
+    return {
+      [label('au.policy.firstInstalment')]: [
+        row('au.policy.standardRate', rate.standard),
+        row('au.policy.pacificRate', rate.pacific),
+      ],
+      [label('au.policy.secondInstalment')]: money(rate.second),
+    };
+  }
+  if (name === 'returnVisa') {
+    const rate = v.returnVisa.value;
+    return {
+      [label('au.policy.standardRate')]: money(rate.standard),
+      [label('au.policy.pacificRate')]: money(rate.pacific),
+      [label('au.policy.paperSurcharge')]: money(rate.nonInternet),
+    };
+  }
+  if (name === 'employerPrimarySecond')
+    return money(v.employerPrimarySecond.value);
+}
+
 export const australiaPolicy = withPolicySources({
   ruleSets: [set],
   displayedRuleSets: [set],
@@ -33,6 +136,7 @@ export const australiaPolicy = withPolicySources({
   })),
   parameters: { [set.id]: full },
   rules: { [set.id]: australiaRules },
+  displayParameter,
   changelog: [
     {
       date: v.hongKongStreamsFrom.value,

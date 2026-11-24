@@ -7,6 +7,7 @@ import {
   australiaFull2026_11,
   type SourceRef,
 } from '@uk-immigration/policy-data';
+import { t, type TranslationKey } from '../i18n';
 
 // Probe requests exercise conditional checks, sources and pending-detail codes
 // across all 11 pathways so the policy catalogue matches engine output 1-to-1.
@@ -128,6 +129,12 @@ const extraSources: Record<string, SourceRef[]> = {
   ],
 };
 
+// Shared checks whose engine title names one pathway's criterion or charge.
+const catalogueTitles: Record<string, TranslationKey> = {
+  'AU-PIC-HEALTH': 'au.policy.healthRule',
+  'AU-FEES-APPLICATION': 'au.policy.feesRule',
+};
+
 const extraPending: Record<string, string[]> = {
   'AU-186-TRT-time-held': ['PD-085'],
   'AU-186-TRT-time-work': ['PD-085', 'PD-207'],
@@ -189,8 +196,8 @@ function buildAustraliaRules(): RuleMeta[] {
 
   return Array.from(byId.entries(), ([id, entry]) => ({
     id,
-    title: entry.title,
-    titleEn: entry.titleEn,
+    title: catalogueTitles[id] ? t(catalogueTitles[id]) : entry.title,
+    titleEn: catalogueTitles[id] ? t(catalogueTitles[id], 'en') : entry.titleEn,
     sources: [...entry.sources.values()],
     pendingDetails: [...entry.pending],
     ruleSetId: australiaFull2026_11.ruleSetId,

@@ -36,19 +36,47 @@ function Sources({
   );
 }
 
+// Amounts and counts are grouped. A calendar year, named by a key ending in
+// "year", "from" or "cohort", keeps its digits (2026, not 2,026).
+function formatNumber(value: number, name: string, locale: string) {
+  return Number.isInteger(value) &&
+    value >= 1900 &&
+    value <= 2100 &&
+    /(year|from|cohort)$/i.test(name)
+    ? String(value)
+    : value.toLocaleString(locale);
+}
+
+type Row = { readonly [name: string]: PolicyParameterValue };
+const isRow = (item: PolicyParameterValue): item is Row =>
+  typeof item === 'object' && !Array.isArray(item);
+
+// Rows with the same flat fields, such as a points schedule, form a table.
+function tableColumns(items: readonly PolicyParameterValue[]) {
+  const first = items[0];
+  if (!first || !isRow(first)) return undefined;
+  const columns = Object.keys(first);
+  return items.every(
+    (item) =>
+      isRow(item) &&
+      Object.keys(item).join() === columns.join() &&
+      Object.values(item).every((cell) => typeof cell !== 'object'),
+  )
+    ? columns
+    : undefined;
+}
+
 function ParameterValue({
   value,
-  groupNumbers,
+  name,
 }: {
   value: PolicyParameterValue;
-  groupNumbers: boolean;
+  name: string;
 }) {
   const { t, locale } = useTranslation();
-  const inlineValue = (item: PolicyParameterValue) =>
-    groupNumbers && typeof item === 'number'
-      ? item.toLocaleString(locale)
-      : String(item);
-  if (typeof value === 'number') return value.toLocaleString(locale);
+  const inlineValue = (item: PolicyParameterValue, key: string) =>
+    typeof item === 'number' ? formatNumber(item, key, locale) : String(item);
+  if (typeof value === 'number') return formatNumber(value, name, locale);
   if (typeof value === 'string')
     return /^\d{4}-\d{2}-\d{2}$/.test(value) ? (
       <time dateTime={value}>{value}</time>
@@ -56,13 +84,42 @@ function ParameterValue({
       value
     );
   if (Array.isArray(value)) {
-    return value.every((item) => typeof item !== 'object') ? (
-      value.map(inlineValue).join(punct(locale).list)
-    ) : (
+    if (value.every((item) => typeof item !== 'object'))
+      return value
+        .map((item) => inlineValue(item, name))
+        .join(punct(locale).list);
+    const items: readonly PolicyParameterValue[] = value;
+    const columns = tableColumns(items);
+    if (columns)
+      return (
+        <table className={styles.valueTable}>
+          <thead>
+            <tr>
+              {columns.map((column) => (
+                <th key={column} scope="col">
+                  {column}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {items.filter(isRow).map((row, index) => (
+              <tr key={index}>
+                {columns.map((column) => (
+                  <td key={column}>
+                    <ParameterValue value={row[column]} name={column} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      );
+    return (
       <ul>
         {value.map((item, index) => (
           <li key={index}>
-            <ParameterValue value={item} groupNumbers={groupNumbers} />
+            <ParameterValue value={item} name={name} />
           </li>
         ))}
       </ul>
@@ -76,15 +133,15 @@ function ParameterValue({
     const entries = Object.entries(value);
     if (entries.every(([, entry]) => typeof entry !== 'object'))
       return entries
-        .map(([name, entry]) => `${name} ${inlineValue(entry)}`)
+        .map(([key, entry]) => `${key} ${inlineValue(entry, key)}`)
         .join(punct(locale).list);
     return (
       <dl>
-        {entries.map(([name, entry]) => (
-          <div key={name}>
-            <dt>{name}</dt>
+        {entries.map(([key, entry]) => (
+          <div key={key}>
+            <dt>{key}</dt>
             <dd>
-              <ParameterValue value={entry} groupNumbers={groupNumbers} />
+              <ParameterValue value={entry} name={key} />
             </dd>
           </div>
         ))}
@@ -120,11 +177,10 @@ export function PolicyPage({
   return (
     <main id="main" className={site.main}>
       <h1>
-        {t(
-          country.id === 'uk'
-            ? 'policyPage.title'
-            : (`${country.id}.policy.pageTitle` as TranslationKey),
-        )}
+        {(country.id &&
+          country.id !== 'uk' &&
+          t(`${country.id}.policy.pageTitle` as TranslationKey)) ||
+          t('policyPage.title')}
       </h1>
       <section className={site.section} aria-labelledby="rule-sets-heading">
         <h2 id="rule-sets-heading">{t('policyPage.ruleSets')}</h2>
@@ -206,8 +262,11 @@ export function PolicyPage({
                         </th>
                         <td data-label={t('policyPage.value')}>
                           <ParameterValue
-                            value={parameter.value}
-                            groupNumbers={country.id !== 'uk'}
+                            value={
+                              country.policy.displayParameter?.(name, locale) ??
+                              parameter.value
+                            }
+                            name={name}
                           />
                         </td>
                         <td data-label={t('result.sources')}>

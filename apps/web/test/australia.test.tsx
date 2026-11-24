@@ -682,3 +682,54 @@ test('case-by-case pending details are not presented as details awaiting a gover
   expect(html).not.toContain(t('result.pendingDetails'));
   expect(html).not.toContain(t('gap.pending'));
 });
+
+test.each(['zh-CN', 'en'] as const)(
+  'the policy page shows points bands, test score tables and family charges by meaning (%s)',
+  (locale) => {
+    const html = render(<AustraliaPolicyPage />, locale);
+    const l = (key: Parameters<typeof t>[0]) => t(key, locale);
+    const head = (...keys: Parameters<typeof t>[0][]) =>
+      keys.map((key) => `<th scope="col">${l(key)}</th>`).join('');
+    expect(html).toContain(head('au.policy.minAge', 'au.policy.points'));
+    expect(html).toContain('<td>18</td><td>25</td>');
+    expect(html).toContain(head('au.policy.minMonths', 'au.policy.points'));
+    expect(html).toContain(
+      head(
+        'au.policy.level',
+        'au.policy.listening',
+        'au.policy.reading',
+        'au.policy.writing',
+        'au.policy.speaking',
+      ),
+    );
+    expect(html).toContain(
+      '<td>Competent</td><td>47</td><td>48</td><td>51</td><td>54</td>',
+    );
+    expect(html).toContain('<td>Superior</td><td>A</td>');
+    expect(html).toContain(
+      head(
+        'au.policy.category',
+        'au.policy.primary',
+        'au.policy.additionalAdult',
+        'au.policy.additionalMinor',
+      ),
+    );
+    expect(html).toContain(
+      `<td>${l('au.policy.standardRate')}</td><td>AUD 6,140</td><td>AUD 3,070</td><td>AUD 1,535</td>`,
+    );
+    expect(html).toContain('oet 1020');
+    const list = locale === 'en' ? ', ' : '、';
+    for (const raw of [
+      `18${list}25`,
+      `47${list}48${list}51${list}54`,
+      `6,140${list}3,070${list}1,535`,
+    ])
+      expect(html).not.toContain(raw);
+    expect(html).toContain(
+      `<li data-rule="AU-PIC-HEALTH"><h4>${l('au.policy.healthRule')}</h4>`,
+    );
+    expect(html).toContain(
+      `<li data-rule="AU-FEES-APPLICATION"><h4>${l('au.policy.feesRule')}</h4>`,
+    );
+  },
+);

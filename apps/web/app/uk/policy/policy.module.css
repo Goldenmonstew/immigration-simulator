@@ -48,6 +48,15 @@
   font-size: 1rem;
   overflow-wrap: anywhere;
 }
+.valueTable {
+  border-collapse: collapse;
+  margin: 4px 0;
+}
+.parameters .valueTable th,
+.parameters .valueTable td {
+  padding: 2px 12px 2px 0;
+  border-bottom: 1px solid #e3e3e3;
+}
 .group {
   margin: 16px 0;
   border-bottom: 1px solid #b1b4b6;
@@ -123,6 +132,29 @@
   .parameters td::before {
     content: attr(data-label) ': ';
     font-weight: 700;
+  }
+  .parameters .valueTable thead {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+  .parameters .valueTable tbody {
+    display: table-row-group;
+  }
+  .parameters .valueTable tr {
+    display: table-row;
+    border: 0;
+    padding: 0;
+  }
+  .parameters .valueTable th,
+  .parameters .valueTable td {
+    display: table-cell;
+    padding: 2px 8px 2px 0;
+  }
+  .parameters .valueTable td::before {
+    content: none;
   }
 }
 
