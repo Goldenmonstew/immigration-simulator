@@ -649,6 +649,8 @@ export function decodeJapanDraft(
     typeof value.completed !== 'boolean' ||
     typeof value.simulationDate !== 'string' ||
     typeof value.stayStart !== 'string' ||
+    (value.tripsForReentryOnly !== undefined &&
+      typeof value.tripsForReentryOnly !== 'boolean') ||
     !Array.isArray(value.trips) ||
     !value.trips.every(isRecord) ||
     !isRecord(value.permanentResidence) ||

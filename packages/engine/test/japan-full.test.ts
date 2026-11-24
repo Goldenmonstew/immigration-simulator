@@ -1786,8 +1786,16 @@ describe('re-entry and travel documents', () => {
         simulationDate,
         applicationDate: '2026-11-27',
       });
-      expect(status(before, 'ordinary-eligibility')).toBe('MET');
-      expect(status(after, 'ordinary-eligibility')).toBe('NOT_MET');
+      for (const path of [before, after]) {
+        expect(path.status).toBe('MET');
+        expect(path.earliestDate).toBeUndefined();
+        for (const id of [
+          'ordinary-eligibility',
+          'online-application',
+          'travel-fee',
+        ])
+          expect(condition(path, id).applicable).toBe(false);
+      }
       for (const id of ['ordinary-validity', 'return-continuity']) {
         expect(status(before, id)).toBe('MET');
         expect(condition(after, id)).toEqual(condition(before, id));
@@ -1952,7 +1960,7 @@ describe('re-entry and travel documents', () => {
       onlineConcurrentEligibleApplication: true,
       simulationDate: '2027-04-03',
       departureOn: '2027-04-04',
-      permitEffectiveOn: '2027-04-03',
+      permitEffectiveOn: '2027-04-04',
       expectedStatus: 'MET',
       earliestDate: '2027-04-03',
     },
@@ -1970,7 +1978,7 @@ describe('re-entry and travel documents', () => {
       onlineConcurrentEligibleApplication: undefined,
       simulationDate: '2027-04-05',
       departureOn: '2027-04-12',
-      permitEffectiveOn: '2027-04-05',
+      permitEffectiveOn: '2027-04-06',
       expectedStatus: 'MET',
       earliestDate: '2027-04-05',
     },
@@ -1988,7 +1996,7 @@ describe('re-entry and travel documents', () => {
       onlineConcurrentEligibleApplication: true,
       simulationDate: '2027-04-03',
       departureOn: '2027-04-04',
-      permitEffectiveOn: '2027-04-03',
+      permitEffectiveOn: '2027-04-04',
       expectedStatus: 'NOT_MET',
       earliestDate: undefined,
     },
@@ -1997,7 +2005,7 @@ describe('re-entry and travel documents', () => {
       onlineConcurrentEligibleApplication: true,
       simulationDate: '2027-04-03',
       departureOn: '2027-04-04',
-      permitEffectiveOn: '2027-04-03',
+      permitEffectiveOn: '2027-04-04',
       expectedStatus: 'MET',
       earliestDate: '2027-04-03',
     },
@@ -2065,19 +2073,23 @@ describe('re-entry and travel documents', () => {
   );
 
   test('ordinary term, extension, fee timing and available channel', () => {
-    const result = reentry(ordinary, { applicationDate: '2026-10-01' });
+    const apply = (
+      route: JpFullReentryRequest,
+      simulationDate = '2026-10-01',
+    ) => reentry(route, { simulationDate });
+    const result = apply(ordinary);
     expect(result.status).toBe('MET');
     expect(status(result, 'ordinary-eligibility')).toBe('MET');
     expect(
       status(
-        reentry({ ...ordinary, excludedStatusOrDetention: true }),
+        apply({ ...ordinary, excludedStatusOrDetention: true }),
         'ordinary-eligibility',
       ),
     ).toBe('NOT_MET');
     expect(status(result, 'ordinary-validity')).toBe('MET');
     expect(
       status(
-        reentry({
+        apply({
           ...ordinary,
           permit: { ...ordinary.permit, extendedUntil: '2032-10-03' },
         }),
@@ -2085,49 +2097,43 @@ describe('re-entry and travel documents', () => {
       ),
     ).toBe('NOT_MET');
     expect(status(result, 'online-application')).toBe('MET');
-    const unavailable = reentry(
-      { ...ordinary, onlineConcurrentEligibleApplication: false },
-      { applicationDate: '2026-10-01' },
-    );
+    const unavailable = apply({
+      ...ordinary,
+      onlineConcurrentEligibleApplication: false,
+    });
     expect(status(unavailable, 'online-application')).toBe('NOT_MET');
     expect(unavailable.status).toBe('NOT_MET');
     expect(
-      condition(
-        reentry(ordinary, { applicationDate: '2025-03-31' }),
-        'travel-fee',
-      ).fee?.amount,
+      condition(apply(ordinary, '2025-03-31'), 'travel-fee').fee?.amount,
     ).toBe(6_000);
     expect(condition(result, 'travel-fee').fee).toEqual({
       currency: 'JPY',
       amount: 6_720,
     });
     expect(
-      condition(
-        reentry(ordinary, { applicationDate: '2026-09-30' }),
-        'travel-fee',
-      ).fee?.amount,
+      condition(apply(ordinary, '2026-09-30'), 'travel-fee').fee?.amount,
     ).toBe(6_500);
     expect(
       condition(
-        reentry(
+        apply(
           { ...ordinary, channel: 'counter', visits: 'single' },
-          { applicationDate: '2025-03-31' },
+          '2025-03-31',
         ),
         'travel-fee',
       ).fee?.amount,
     ).toBe(3_000);
     expect(
       condition(
-        reentry(
+        apply(
           { ...ordinary, channel: 'counter', visits: 'single' },
-          { applicationDate: '2025-04-01' },
+          '2025-04-01',
         ),
         'travel-fee',
       ).fee?.amount,
     ).toBe(4_000);
     expect(
       status(
-        reentry({
+        apply({
           ...ordinary,
           onlineConcurrentEligibleApplication: undefined,
         }),
@@ -2157,6 +2163,7 @@ describe('re-entry and travel documents', () => {
       ),
     ).toBe('MET');
   });
+
   test.each([
     ['2031-10-02', undefined, 'MET'],
     ['2031-11-10', undefined, 'UNKNOWN'],

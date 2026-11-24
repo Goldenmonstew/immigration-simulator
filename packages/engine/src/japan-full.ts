@@ -19,6 +19,8 @@ import {
 } from './japan-trip-answers';
 
 export interface JpFullRequest extends JpFullContext {
+  /** A no-trips comparison can retain matched history as evidence for re-entry. */
+  tripsForReentryOnly?: boolean;
   permanentResidence?: JpFullPrRequest;
   naturalisation?: JpFullNaturalisationRequest;
   reentry?: JpFullReentryRequest[];
@@ -160,7 +162,7 @@ export function evaluateJapanFull(
     }
     if (conflicts.length) {
       const explanation = conflicts.map(({ notice }) => L(...notice)).join(' ');
-      conflictNotices.push(explanation);
+      if (!req.tripsForReentryOnly) conflictNotices.push(explanation);
       trip.assessedReturn = { explanation };
       if (conflicts.some(({ field }) => field === 'departure'))
         trip.departure = undefined;
@@ -184,7 +186,7 @@ export function evaluateJapanFull(
     }
     return trip;
   });
-  const history = { ...req, trips };
+  const history = { ...req, trips: req.tripsForReentryOnly ? [] : trips };
   return {
     policyAsOf: japanFull2026_11.asOf,
     columns: [

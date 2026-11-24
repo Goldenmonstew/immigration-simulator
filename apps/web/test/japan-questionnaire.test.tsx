@@ -1529,7 +1529,8 @@ test('deselecting residence gives the same shared and compared return assessment
   expect(decodeDraft(jp, older)).toEqual(fresh);
   const actual = path(shared);
   expect(continuity(shared)).toBe('MET');
-  expect(actual.earliestDate).toBe('2026-11-24');
+  expect(actual.earliestDate).toBeUndefined();
+  expect(actual.travelDate).toBeNull();
   expect(actual).toEqual(path(fresh));
   expect(path(switched)).toEqual(actual);
   const knobs = {

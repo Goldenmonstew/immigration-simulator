@@ -305,6 +305,20 @@ function JapanStep({ draft, errors, update }: StepProps) {
       {draft.step === 1 && (
         <>
           <p>{t('jp.form.history')}</p>
+          {draft.tripsForReentryOnly !== undefined && (
+            <div className={form.checkboxes}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={draft.tripsForReentryOnly}
+                  onChange={(event) =>
+                    update({ tripsForReentryOnly: event.target.checked })
+                  }
+                />
+                {t('jp.form.reentryOnlyHistory')}
+              </label>
+            </div>
+          )}
           <EvidenceFields
             fields={[tripList]}
             values={{ trips: active.trips }}

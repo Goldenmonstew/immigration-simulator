@@ -79,7 +79,7 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
     const nat = draft.naturalisation.evidence;
     return {
       applicationDate: draft.applicationDate ?? draft.simulationDate,
-      noTrips: false,
+      noTrips: draft.tripsForReentryOnly === true,
       prJapaneseB1: pr.japaneseB1Confirmed,
       prIncome: pr.applicantAnnualIncomeYen,
       prHousehold: pr.householdIncomeConfirmed,
@@ -100,9 +100,15 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
     );
     const pr = compared.permanentResidence;
     const nat = compared.naturalisation;
+    const trips = knobs.noTrips
+      ? compared.trips.filter((trip) =>
+          compared.reentry.some((route) => sameJapanTrip(trip, route)),
+        )
+      : compared.trips;
     return activeJapanAnswers({
       ...compared,
-      trips: knobs.noTrips ? [] : compared.trips,
+      trips,
+      tripsForReentryOnly: (knobs.noTrips && trips.length > 0) || undefined,
       permanentResidence: {
         ...pr,
         evidence: {

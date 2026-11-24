@@ -201,6 +201,7 @@ export function assessJapanReentry(
     detailEn: string,
     pending: string[] = ['PD-379'],
     kind?: JpFullCheck['kind'],
+    notApplicableReason?: string,
   ) => {
     const relevant = (history.conflicts ?? []).filter(({ field }) => {
       if (key === 'return-continuity') return true;
@@ -225,8 +226,11 @@ export function assessJapanReentry(
       relevant.length ? ['PD-136'] : pending,
       kind,
     );
-    checks.push(item);
-    return item;
+    const result = notApplicableReason
+      ? inapplicable(item, notApplicableReason)
+      : item;
+    checks.push(result);
+    return result;
   };
   const departure = route.departureOn;
   const returned = route.returnOn ?? route.newLandingOn;
@@ -288,6 +292,16 @@ export function assessJapanReentry(
       ? addYears(departure, rr.specialPermanentDeemedYears)
       : undefined;
   const permit = route.route === 'deemed' ? undefined : route.permit;
+  // Use the simulation date, independent of a proposed new filing date.
+  const heldPermitReason =
+    route.route === 'ordinary' &&
+    permit?.effectiveOn &&
+    permit.effectiveOn <= req.simulationDate
+      ? L(
+          '这份普通许可已经生效，本项仅适用于申请新许可。',
+          'This ordinary permit has already taken effect. This check only applies to a new application.',
+        )
+      : undefined;
   const effectiveAtDeparture = all(
     permit?.effectiveOn && departure
       ? permit.effectiveOn <= departure
@@ -422,6 +436,8 @@ export function assessJapanReentry(
       `在日本以适用身份合法在留，赴海外前申请，确认返日意向、证件、获准替代材料及处分限制。${filingDateIssueZh}`,
       `Apply in Japan before departure while lawfully residing under a qualifying status. Confirm return intent, documents or alternatives and any restrictions.${filingDateIssueEn}`,
       filingDateIssueZh ? ['PD-370', 'PD-379'] : ['PD-379'],
+      'requirement',
+      heldPermitReason,
     );
 
     const start = permit?.effectiveOn;
@@ -520,7 +536,7 @@ export function assessJapanReentry(
         `${plannedReturn ? '计划' : ''}返日在原许可期限内。`,
         `The ${plannedReturn ? 'planned return would fall' : 'return fell'} within the original permit period.`,
       );
-    if (route.visits && date >= fees.historicalFrom) {
+    if (!heldPermitReason && route.visits && date >= fees.historicalFrom) {
       if (route.channel === 'counter')
         fee = (
           date >= fees.firstChange
@@ -534,7 +550,7 @@ export function assessJapanReentry(
             : fees.reentryHistorical)[route.visits] +
           (date >= fees.reform ? fees.paymentProcessing : 0);
     }
-    const online = r(
+    r(
       'online-application',
       '再入国在线渠道',
       'Online re-entry application',
@@ -547,12 +563,12 @@ export function assessJapanReentry(
       'Online re-entry applications must accompany an eligible online change, renewal or acquisition application.',
       ['PD-379'],
       route.channel === 'online' ? 'requirement' : 'information',
+      heldPermitReason ??
+        (route.channel === 'counter'
+          ? L('已选择窗口办理。', 'Counter service was selected.')
+          : undefined),
     );
-    if (route.channel === 'counter')
-      checks[checks.indexOf(online)] = inapplicable(
-        online,
-        L('已选择窗口办理。', 'Counter service was selected.'),
-      );
+    if (heldPermitReason) travelDate = null;
   } else if (route.route === 'deemed') {
     travelDate = { kind: 'departure', date: departure };
     eligibleAtDeparture = deemedDepartureEligibility(route);
@@ -819,6 +835,7 @@ export function assessJapanReentry(
       : `The procedure fee is JPY ${fee}.`,
     ['PD-379'],
     'information',
+    heldPermitReason,
   );
   if (fee !== undefined) cost.fee = { currency: 'JPY', amount: fee };
 
@@ -859,7 +876,7 @@ export function assessJapanReentry(
   const pathway = assemblePathway(
     `jp.reentry.${route.route}`,
     title,
-    route.route === 'ordinary' ? date : undefined,
+    route.route === 'ordinary' && !heldPermitReason ? date : undefined,
     checks,
     L,
   );

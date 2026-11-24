@@ -38,6 +38,10 @@ const messages = {
     '每次出境和返日各记为一段行程，可包含计划行程。出境方式选“无”表示原在留随出境结束，返日须以新身份上陆。没有行程可直接继续。',
     'Enter one record per trip, including planned travel. Choose “None” if leaving Japan ended your status and returning required a new landing permission. Continue directly if there are no trips.',
   ],
+  'jp.form.reentryOnlyHistory': [
+    '永住和帰化按无出境记录评估，仅将下列行程用于再入国。',
+    'Assume no trips for permanent residence and naturalisation. Use the trips below only for re-entry.',
+  ],
   'jp.form.departureEvidence': [
     '请核对出境记录，确认使用的再入国许可或難民旅行証明書。如持普通许可，需核对返日当天是否仍有效。如持難民旅行証明書，可在同趟行程的旅行证件路径填写证件期限及入境期限。',
     'Check your departure record for the re-entry permission or refugee travel document used. For an ordinary permit, check its validity on return. For a refugee travel document, enter its validity and any separate entry deadline on the travel document route for the same trip.',
