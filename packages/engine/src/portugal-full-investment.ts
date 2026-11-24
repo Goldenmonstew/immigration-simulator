@@ -435,6 +435,14 @@ export function investmentResidence(
         : e?.entry === 'schengen-visa'
           ? entryTiming
           : undefined;
+  const familyFiling =
+    e?.familyApplicationChannel === 'abroad'
+      ? true
+      : e?.familyApplicationChannel === 'in-portugal' ||
+          e?.lawfullyInPortugal === true ||
+          e?.entry !== undefined
+        ? all(legalEntry, e?.lawfullyInPortugal)
+        : undefined;
   const conviction =
     e?.qualifyingConviction === false
       ? true
@@ -447,10 +455,12 @@ export function investmentResidence(
   const invested = compare(e?.investedOn, (date) => date <= at);
   const newRegime = at >= p.ariInvestmentReform.value;
   const sponsorGrant =
-    e?.sponsorAriStatus === 'pending'
-      ? undefined
-      : (compare(e?.sponsorAriStatus, (status) => status === 'approved') ??
-        e?.sponsorAriValid);
+    e?.sponsorAriValid === true
+      ? true
+      : e?.sponsorAriStatus === 'pending'
+        ? undefined
+        : (e?.sponsorAriValid ??
+          compare(e?.sponsorAriStatus, (status) => status === 'approved'));
   return pathway(
     id,
     title,
@@ -458,8 +468,7 @@ export function investmentResidence(
       check(
         'D01',
         all(
-          legalEntry,
-          e?.lawfullyInPortugal,
+          family ? familyFiling : all(legalEntry, e?.lawfullyInPortugal),
           r?.travelDocumentValid,
           compare(e?.visaRefusalGround, (value) => !value),
           family
@@ -472,16 +481,17 @@ export function investmentResidence(
               ? true
               : undefined,
         ),
-        family ? '合法入境及 ARI 家庭团聚资格' : '身份、合法入境及办理期限',
+        family ? 'ARI 家庭团聚资格与递交渠道' : '身份、合法入境及办理期限',
         family
-          ? 'Lawful entry and ARI family reunification eligibility'
+          ? 'ARI family reunification eligibility and filing channel'
           : 'Identity, lawful entry and regularisation deadline',
         family
           ? [
               foreignLaw(
                 'Lei 61/2025 art. 2 (Lei 23/2007 arts. 98(1), (3)(c), 99, 103(2)), pp4–6',
               ),
-              ariGuide('Reagrupamento Familiar'),
+              foreignLaw('Lei 18/2022 annex art. 103(1), (3), p81'),
+              ariGuide('Reagrupamento Familiar · fora/em Território Nacional'),
               ariFaq('FAQ 11'),
             ]
           : [
@@ -492,10 +502,10 @@ export function investmentResidence(
         family ? ['PD-392'] : ['PD-391'],
         family
           ? L(
-              '核对合法入境、有效证件和家庭团聚资格。ARI 家属享有法定等待期豁免，可以与主申请人同步递交。家属最终获批取决于主案获批。',
-              'Verify lawful entry, valid documents and family reunification eligibility. ARI family members are exempt from the waiting period and may file at the same time as the investor. Their grant depends on approval of the investor’s application.',
+              '境外家属由担保人向 AIMA 提出入境及居留申请，结果评估递交团聚申请的资格。境内递交须核对合法入境及在葡状态。两种渠道均须核对有效证件及团聚资格。ARI 家属享有等待期豁免，可与投资人同步递交，家属获批以主案获批及当前许可有效为前提。',
+              'For family abroad, the sponsor applies to AIMA for entry and residence. This result assesses eligibility to file for reunification. Filing in Portugal requires lawful entry and stay. Both channels require valid documents and family eligibility. ARI family members are exempt from the waiting period and may file with the investor. Their grant depends on the principal approval and current title validity.',
             ) +
-              (e.sponsorAriStatus === 'pending'
+              (e.sponsorAriStatus === 'pending' && sponsorGrant === undefined
                 ? L(' 主案待批。', ' The principal application is pending.')
                 : '')
           : L(

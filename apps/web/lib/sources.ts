@@ -237,6 +237,8 @@ export const sourceUrls: Record<string, string> = {
   'SRC-493':
     'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62013CJ0244',
   'SRC-494': 'https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng',
+  'SRC-495':
+    'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62019CJ0032',
   'SRC-110': 'https://laws.e-gov.go.jp/law/326CO0000000319',
   'SRC-111': 'https://laws.e-gov.go.jp/law/325AC0000000147',
   'SRC-112': 'https://laws.e-gov.go.jp/law/129AC0000000089',

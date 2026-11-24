@@ -629,6 +629,131 @@ describe('review92-2', () => {
   );
 });
 
+describe('review92-3', () => {
+  test.each([
+    ['abroad', 'MET', '2026-11-23'],
+    [undefined, 'UNKNOWN', undefined],
+    ['in-portugal', 'NOT_MET', undefined],
+  ] as const)(
+    'ARI family reunification without Portuguese entry uses the %s filing channel',
+    (familyApplicationChannel, status, earliestDate) => {
+      const request: Partial<PtFullRequest> = {
+        residence: {
+          ...residence,
+          means: { officialAssessment: 'clear' },
+        },
+        investment: {
+          ...investment,
+          holder: 'family',
+          sponsorAriValid: true,
+          familyEvidenceAccepted: true,
+          familyApplicationChannel,
+          lawfullyInPortugal: false,
+          entry: undefined,
+          firstEntry: undefined,
+          regularizedOn: undefined,
+          investment: undefined,
+        },
+      };
+      statuses(D, request, { D01: status });
+      expect(pathway(D, request)).toMatchObject({ status, earliestDate });
+      if (status === 'UNKNOWN') {
+        expect(condition(D, 'D01', request).pendingDetails).toContain('PD-392');
+      }
+    },
+  );
+
+  test('a cancelled sponsor ARI takes precedence over the initial approval', () => {
+    const request: Partial<PtFullRequest> = {
+      residence: {
+        ...residence,
+        means: { officialAssessment: 'clear' },
+      },
+      investment: {
+        ...investment,
+        holder: 'family',
+        sponsorAriStatus: 'approved',
+        sponsorAriValid: false,
+        familyEvidenceAccepted: true,
+      },
+    };
+    statuses(D, request, { D01: 'NOT_MET' });
+    expect(pathway(D, request)).toMatchObject({
+      status: 'NOT_MET',
+      earliestDate: undefined,
+    });
+  });
+
+  test.each([
+    [true, 'MET', '2026-11-23'],
+    [false, 'NOT_MET', undefined],
+    [undefined, 'UNKNOWN', undefined],
+  ] as const)(
+    'a five-month study absence with acceptance %s and two ordinary months',
+    (accepted, status, earliestDate) => {
+      const request: Partial<PtFullRequest> = {
+        freeMovement: {
+          ...freeMovement,
+          absences: [
+            {
+              departed: '2023-01-01',
+              returned: '2023-06-01',
+              reason: 'justified',
+              accepted,
+            },
+            {
+              departed: '2023-07-01',
+              returned: '2023-09-01',
+              reason: 'ordinary',
+            },
+          ],
+        },
+      };
+      statuses(F, request, { F02: status });
+      expect(pathway(F, request)).toMatchObject({ status, earliestDate });
+    },
+  );
+
+  test('retirement does not extend the period credited to early permanent residence', () => {
+    const movement: NonNullable<PtFullRequest['freeMovement']> = {
+      ...freeMovement,
+      continuousResidenceFrom: '2023-01-01',
+      basis: 'early-worker',
+      earlyWorker: {
+        reason: 'retirement',
+        retiredOn: '2024-07-01',
+        retirementQualifies: true,
+        continuousResidenceFrom: '2023-01-01',
+        creditedWorkFrom: '2023-01-01',
+        portuguesePartnerException: false,
+      },
+    };
+    for (const simulationDate of ['2024-07-01', '2026-11-23', '2028-01-01']) {
+      const request = { simulationDate, freeMovement: movement };
+      statuses(F, request, { F05: 'NOT_MET' });
+      expect(pathway(F, request)).toMatchObject({
+        status: 'NOT_MET',
+        earliestDate: undefined,
+      });
+    }
+
+    const ordinary = {
+      freeMovement: { ...movement, basis: 'ordinary' as const },
+    };
+    statuses(F, ordinary, { F02: 'NOT_MET' });
+    expect(pathway(F, ordinary)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2028-01-01',
+    });
+    const atFiveYears = { ...ordinary, simulationDate: '2028-01-01' };
+    statuses(F, atFiveYears, { F02: 'MET' });
+    expect(pathway(F, atFiveYears)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2028-01-01',
+    });
+  });
+});
+
 describe('country result and existing time checks', () => {
   test('all pathways have unique scoped checks, sources and localized explanations', () => {
     const patch = {
@@ -1932,29 +2057,67 @@ describe('F · free movement', () => {
     );
   });
 
-  test('a descendant becomes subject to dependency on the 21st birthday, and family rights can be retained', () => {
-    const family = {
-      ...freeMovement,
-      applicant: 'third-country-family' as const,
-      sponsorEligible: true,
-      relationship: 'descendant' as const,
-      relationshipVerified: true,
-      dependant: false,
-      accompaniesOrJoins: true,
-      livedWithSponsor: true,
+  const descendant: NonNullable<PtFullRequest['freeMovement']> = {
+    ...freeMovement,
+    applicant: 'third-country-family',
+    sponsorEligible: true,
+    relationship: 'descendant',
+    relationshipVerified: true,
+    dependant: false,
+    accompaniesOrJoins: true,
+    qualifyingResidenceWithSponsor: true,
+  };
+
+  test('a descendant who acquired derived residence before 21 can turn 21 before permanent acquisition', () => {
+    const request: Partial<PtFullRequest> = {
+      birthDate: '2004-06-01',
+      freeMovement: {
+        ...descendant,
+        continuousResidenceFrom: '2021-01-01',
+      },
     };
-    statuses(
-      F,
-      { freeMovement: family, birthDate: '2005-11-24' },
-      { F01: 'MET', F02: 'MET' },
-    );
-    statuses(
-      F,
-      { freeMovement: family, birthDate: '2005-11-23' },
-      { F01: 'NOT_MET' },
-    );
+    statuses(F, request, { F01: 'MET', F02: 'MET', F03: 'MET' });
+    expect(pathway(F, request)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2026-01-01',
+    });
+    const separateStartDates: Partial<PtFullRequest> = {
+      birthDate: '2000-11-23',
+      freeMovement: { ...descendant, derivedResidenceFrom: '2021-01-01' },
+    };
+    statuses(F, separateStartDates, { F01: 'MET', F02: 'MET', F03: 'MET' });
+    expect(pathway(F, separateStartDates)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2026-11-23',
+    });
+  });
+
+  test.each([
+    [true, 'MET', '2026-11-23'],
+    [false, 'NOT_MET', undefined],
+    [undefined, 'UNKNOWN', undefined],
+  ] as const)(
+    'a descendant who first joins on the 21st birthday requires dependency, recorded as %s',
+    (dependant, status, earliestDate) => {
+      const request: Partial<PtFullRequest> = {
+        birthDate: '2000-11-23',
+        freeMovement: {
+          ...descendant,
+          dependant,
+          historicalBasisReview: undefined,
+          residenceBasis: 'family',
+          sponsorResidenceBasisEstablished: true,
+          identityAtEntryValid: true,
+        },
+      };
+      statuses(F, request, { F01: status, F02: 'MET', F03: status });
+      expect(pathway(F, request)).toMatchObject({ status, earliestDate });
+    },
+  );
+
+  test('family rights can be retained', () => {
     const retained = {
-      ...family,
+      ...descendant,
       basis: 'retained-family' as const,
       dependant: true,
       retentionEvent: 'death' as const,
@@ -2014,6 +2177,7 @@ describe('F · free movement', () => {
       basis: 'early-worker' as const,
       earlyWorker: {
         reason: 'retirement' as const,
+        retiredOn: '2026-11-23',
         retirementQualifies: true,
         continuousResidenceFrom: '2023-11-22',
         creditedWorkFrom: '2025-11-23',
@@ -2025,6 +2189,41 @@ describe('F · free movement', () => {
       { freeMovement: retirement },
       { F05: 'MET', 'F02-EARLY-CONTINUITY': 'MET' },
     );
+    const afterRetirement = {
+      freeMovement: retirement,
+      simulationDate: '2027-11-23',
+    };
+    statuses(F, afterRetirement, { F05: 'MET' });
+    expect(pathway(F, afterRetirement)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2026-11-23',
+    });
+    const missingDate = {
+      freeMovement: {
+        ...retirement,
+        earlyWorker: { ...retirement.earlyWorker, retiredOn: undefined },
+      },
+    };
+    statuses(F, missingDate, { F05: 'UNKNOWN' });
+    expect(pathway(F, missingDate)).toMatchObject({
+      status: 'UNKNOWN',
+      earliestDate: undefined,
+    });
+    const shortWork = {
+      ...afterRetirement,
+      freeMovement: {
+        ...retirement,
+        earlyWorker: {
+          ...retirement.earlyWorker,
+          creditedWorkFrom: '2025-11-24',
+        },
+      },
+    };
+    statuses(F, shortWork, { F05: 'NOT_MET' });
+    expect(pathway(F, shortWork)).toMatchObject({
+      status: 'NOT_MET',
+      earliestDate: undefined,
+    });
     statuses(
       F,
       {
@@ -2070,6 +2269,7 @@ describe('F · free movement', () => {
       F,
       {
         birthDate: '1966-11-24',
+        simulationDate: '2027-11-23',
         freeMovement: {
           ...retirement,
           earlyWorker: {

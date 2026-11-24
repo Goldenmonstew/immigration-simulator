@@ -198,11 +198,13 @@ export interface PtInvestmentEvidence {
   holder?: 'investor' | 'family';
   /** Sponsor's initial ARI decision for a family grant, including simultaneous filings. */
   sponsorAriStatus?: 'approved' | 'pending' | 'refused';
-  /** Whether the sponsor holds a valid ARI, used when no initial decision status is supplied. */
+  /** Current sponsor ARI validity. A pending first application may have no valid title yet. */
   sponsorAriValid?: boolean;
   relationshipContinues?: boolean;
   /** The family evidence establishes eligibility for reunification, including any applicable age or dependency requirements. */
   familyEvidenceAccepted?: boolean;
+  /** The AIMA family reunification channel, based on where the family member is at filing. */
+  familyApplicationChannel?: 'abroad' | 'in-portugal';
   entry?: 'schengen-visa' | 'visa-free' | 'other-legal' | 'irregular';
   lawfullyInPortugal?: boolean;
   firstEntry?: IsoDate;
@@ -272,8 +274,11 @@ export interface PtFreeMovementEvidence {
   /** Individual residence permission for an art. 3(2) other-family case. */
   otherFamilyPermission?: PtOfficialReview;
   accompaniesOrJoins?: boolean;
-  /** Dependency during qualifying residence, where required. */
+  /** Dependency on first accompanying or joining the sponsor, where required. */
   dependant?: boolean;
+  /** Start of the derived residence right, if different from the qualifying continuous period. */
+  derivedResidenceFrom?: IsoDate;
+  /** Start of qualifying continuous residence for the selected basis. */
   continuousResidenceFrom?: IsoDate;
   /** Whether both people had qualifying residence in Portugal throughout the required derived period. */
   qualifyingResidenceWithSponsor?: boolean;
@@ -281,6 +286,7 @@ export interface PtFreeMovementEvidence {
   livedWithSponsor?: boolean;
   absences?: (PtTrip & {
     reason?: 'ordinary' | 'military' | 'justified';
+    /** Whether the absence was accepted under the applicable exception. */
     accepted?: boolean;
   })[];
   expulsionExecuted?: boolean;
@@ -312,6 +318,8 @@ export interface PtFreeMovementEvidence {
     | 'none';
   earlyWorker?: {
     reason?: 'retirement' | 'permanent-disability' | 'cross-border';
+    /** Date the worker stopped working due to retirement. */
+    retiredOn?: IsoDate;
     retirementQualifies?: boolean;
     selfEmployedWithoutPension?: boolean;
     continuousResidenceFrom?: IsoDate;

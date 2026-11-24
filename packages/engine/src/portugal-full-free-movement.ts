@@ -7,20 +7,21 @@ import type { IsoDate } from './types';
 
 const law = (locator: string) => src('SRC-478', locator);
 
-function familyEligibility(
-  { req }: PtFullContext,
-  at: IsoDate,
-  join = true,
-): Verdict {
+function familyEligibility({ req }: PtFullContext, join = true): Verdict {
   const e = req.freeMovement;
   const kind = e?.relationship;
+  const derivedFrom = e?.derivedResidenceFrom ?? e?.continuousResidenceFrom;
   const relation =
     kind === 'descendant'
       ? any(
-          compare(
-            req.birthDate,
-            (date) => at < addYears(date, p.freeMovementDescendantAge.value),
-          ),
+          derivedFrom
+            ? compare(
+                req.birthDate,
+                (date) =>
+                  derivedFrom <
+                  addYears(date, p.freeMovementDescendantAge.value),
+              )
+            : undefined,
           e?.dependant,
         )
       : kind === 'ascendant'
@@ -56,11 +57,7 @@ function freeMovementContinuity({ req }: PtFullContext, at: IsoDate) {
     const start = trip.departed < from ? from : trip.departed;
     const end = trip.returned > at ? at : trip.returned;
     if (trip.reason === 'military' && trip.accepted === true) continue;
-    if (
-      trip.reason === 'justified' &&
-      trip.accepted === true &&
-      end > addMonths(start, limits.ordinaryMonths)
-    ) {
+    if (trip.reason === 'justified' && trip.accepted === true) {
       if (end > addMonths(start, limits.justifiedMonths)) return false;
       justified += 1;
       continue;
@@ -122,11 +119,7 @@ function freeMovementContinuity({ req }: PtFullContext, at: IsoDate) {
   );
 }
 
-function historicalBasis(
-  ctx: PtFullContext,
-  at: IsoDate,
-  individualPermission: Verdict,
-) {
+function historicalBasis(ctx: PtFullContext, individualPermission: Verdict) {
   const e = ctx.req.freeMovement;
   if (e?.historicalBasisReview)
     return all(reviewed(e.historicalBasisReview), individualPermission);
@@ -148,10 +141,7 @@ function historicalBasis(
           : basis === 'retained-worker'
             ? e?.workerStatusRetained
             : basis === 'family'
-              ? all(
-                  e?.sponsorResidenceBasisEstablished,
-                  familyEligibility(ctx, at),
-                )
+              ? all(e?.sponsorResidenceBasisEstablished, familyEligibility(ctx))
               : undefined;
   return all(e?.identityAtEntryValid, facts, individualPermission);
 }
@@ -235,20 +225,32 @@ function earlyWorker(ctx: PtFullContext): Verdict {
   const residence = e?.continuousResidenceFrom;
   const work = e?.creditedWorkFrom;
   if (e?.reason === 'retirement') {
+    const { retiredOn } = e;
     const retirement = e.selfEmployedWithoutPension
-      ? compare(
-          req.birthDate,
-          (date) => at >= addYears(date, rule.selfEmployedAge),
-        )
+      ? retiredOn
+        ? compare(
+            req.birthDate,
+            (date) => retiredOn >= addYears(date, rule.selfEmployedAge),
+          )
+        : undefined
       : e.retirementQualifies;
-    const required = all(
-      compare(
-        residence,
-        (date) => at > addYears(date, rule.retirementResidenceYears),
-      ),
-      compare(work, (date) => at >= addMonths(date, rule.workMonths)),
+    const required = retiredOn
+      ? all(
+          compare(
+            residence,
+            (date) => retiredOn > addYears(date, rule.retirementResidenceYears),
+          ),
+          compare(
+            work,
+            (date) => retiredOn >= addMonths(date, rule.workMonths),
+          ),
+        )
+      : undefined;
+    return all(
+      compare(retiredOn, (date) => date <= at),
+      retirement,
+      any(e.portuguesePartnerException, required),
     );
-    return all(retirement, any(e.portuguesePartnerException, required));
   }
   if (e?.reason === 'permanent-disability') {
     return any(
@@ -428,7 +430,7 @@ export function freeMovementResidence(ctx: PtFullContext) {
       : applicant === 'andorra'
         ? undefined
         : familyBasis
-          ? familyEligibility(ctx, qualifyingAt, basis === 'ordinary')
+          ? familyEligibility(ctx, basis === 'ordinary')
           : applicant === 'eu-eea-swiss'
             ? true
             : undefined;
@@ -437,7 +439,6 @@ export function freeMovementResidence(ctx: PtFullContext) {
     (familyBasis || e.residenceBasis === 'family');
   const historical = historicalBasis(
     ctx,
-    qualifyingAt,
     otherFamilyInScope ? reviewed(e.otherFamilyPermission) : true,
   );
   const hasContinuity = compare(e?.expulsionExecuted, (value) => !value);
@@ -472,6 +473,7 @@ export function freeMovementResidence(ctx: PtFullContext) {
         law('arts. 1(2), 2(e), 3, 10(1)–(2)'),
         ...p.freeMovementDescendantAge.sources,
         src('SRC-484', 'Quem pode requerer'),
+        src('SRC-494', 'ss. 2.2.2.3–2.2.2.4, pp13–15'),
       ],
       ['PD-396'],
       familyBasis && otherFamilyInScope
@@ -480,8 +482,8 @@ export function freeMovementResidence(ctx: PtFullContext) {
             'Verify the authority’s individual residence permission. Relationship evidence alone cannot establish eligibility.',
           )
         : L(
-            `直系后代未满 ${p.freeMovementDescendantAge.value} 岁可按年龄分支核对；成年受养关系、其他家属及安道尔适用范围可能需专门确认。`,
-            `Direct descendants under ${p.freeMovementDescendantAge.value} can use the age branch. Adult dependency, other relatives and Andorran cases may need individual confirmation.`,
+            `直系后代按首次取得派生居留权时的年龄核对。未满 ${p.freeMovementDescendantAge.value} 岁取得该权利，满龄后仍受覆盖；首次团聚时已满该年龄须核对受扶养事实。`,
+            `Assess direct descendants at the start of their derived right of residence. Those who acquired it before age ${p.freeMovementDescendantAge.value} remain covered at that age. Those first joining at or above that age must establish dependency.`,
           ),
     ),
     ...(early
@@ -533,8 +535,19 @@ export function freeMovementResidence(ctx: PtFullContext) {
             earlyWorker(ctx),
             '工作者提前取得永久权',
             'Early permanent residence for workers',
-            p.workerEarlyResidence.sources,
+            e?.earlyWorker?.reason === 'retirement'
+              ? [
+                  ...p.workerEarlyResidence.sources,
+                  src('SRC-495', 'C-32/19, paras. 38–39, 44'),
+                ]
+              : p.workerEarlyResidence.sources,
             ['PD-396', 'PD-397'],
+            e?.earlyWorker?.reason === 'retirement'
+              ? L(
+                  '按停止工作的退休日核对当时的退休资格、合资格工作及连续居留。请提供退休日及相关证据。',
+                  'Verify retirement eligibility, qualifying work and continuous residence at the date work ceased. Provide the retirement date and supporting evidence.',
+                )
+              : undefined,
           ),
         ]
       : []),
@@ -551,9 +564,16 @@ export function freeMovementResidence(ctx: PtFullContext) {
         ]
       : []),
   ];
+  const acquisitionDate =
+    eligibleOn ??
+    (basis === 'early-worker' && e?.earlyWorker?.reason === 'retirement'
+      ? e.earlyWorker.retiredOn
+      : undefined);
   const acquired =
-    eligibleOn && eligibleOn <= at && checks.every((c) => c.status === 'MET')
-      ? eligibleOn
+    acquisitionDate &&
+    acquisitionDate <= at &&
+    checks.every((c) => c.status === 'MET')
+      ? acquisitionDate
       : undefined;
   return pathway(
     id,

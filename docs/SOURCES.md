@@ -169,6 +169,7 @@
 | SRC-492 | LAW | 葡萄牙 · Lei 69/2026，总体规划 | https://files.diariodarepublica.pt/1s/2026/11/22400/0000200050.pdf | 2026-11-18 | 2026-11-23 | `policy-sources/2026-11-18-pt-lei-69-2026.pdf`（sha256 `50c387cb53ba61c4d263bafc9a9c6c0b45d79f23eb97a4c630953d42984801f9`） | archived |
 | SRC-493 | LAW | 欧盟法院 · Ogieriakhi，C-244/13，第三国配偶的永久居留权 | https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62013CJ0244 | 2014-07-10 | 2026-11-24 | `policy-sources/2014-07-10-pt-cjeu-c-244-13.pdf`（sha256 `5d818b90c74050a290d259aca87b753900b8b66a7719aacc9be8ad28adae14cd`） | archived |
 | SRC-494 | GUIDANCE | 欧委会 · C/2023/1392，欧盟公民及其家属自由流动指引 | https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng | 2023-12-22 | 2026-11-24 | `policy-sources/2023-12-22-pt-eu-free-movement-guidance.pdf`（sha256 `fc3c76bbfc117d29c6f8f6061d3c51a181b759b2ce7eeb366ff55cce37390430`） | archived |
+| SRC-495 | LAW | 欧盟法院 · AT v Pensionsversicherungsanstalt，C-32/19，退休工作者提前取得永久权 | https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62019CJ0032 | 2020-01-22 | 2026-11-24 | `policy-sources/2020-01-22-pt-cjeu-c-32-19.pdf`（sha256 `7522f78f46fb90b96b478e62c06984a75e48a9b2df7115dece6c49a62d5525ba`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -1044,6 +1045,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ## SRC-123 Lei n.º 23/2007（外国人法）
 
+- ARI 境外家属由担保人提出入境及居留申请，见 Lei 18/2022 附件 art. 103(1)、(3)（p81）。境内申请适用 Lei 61/2025 art. 2 修订的 art. 103(2)（p5），担保人的许可有效性及 ARI 等待期豁免见同法修订的 art. 98(1)、(3)(c)（p4）。
 - 任务 92：Lei 18/2022 附件 arts. 77–82（pp65–68）、90-A（p72）、121-I、125–131（pp100–104）分别用于授予、续期、永久居留、ARI、蓝卡与 ERLD。ERLD 因缺席丧失后的恢复条件与决定期限见 art. 131(4)–(5)（p104）。投资选五项与历史过渡查 Lei 56/2023 arts. 42–44、55，蓝卡与通用拒绝的中间修订查 SRC-491。ARI 家庭团聚的资格及等待期例外见 Lei 61/2025 art. 2 对 arts. 98(1)、98(3)(c)、99、103(2) 的修订（pp4–6）。Lei 62/2026 arts. 2、4 为后续修订。
 
 - `policy-sources/2022-08-25-pt-lei-18-2022-dr164.pdf` → <https://files.diariodarepublica.pt/1s/2022/08/16400/0000200137.pdf>
@@ -1068,7 +1070,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ## SRC-126 AIMA 页面
 
-- ARI 页 `Reagrupamento Familiar` 段明确允许家属与投资人同时递交，家属的授予取决于投资人主案获批。
+- ARI 页 `Reagrupamento Familiar` 段明确允许家属与投资人同时递交，家属的授予取决于投资人主案获批。同名材料小节分列 `fora de Território Nacional` 与 `familiar em Território Nacional` 两条渠道。
 - ARI 页面：第 1 年停留不少于 7 天，"nos anos subsequentes"（此后各年）不少于 14 天；这是简写，AIMA 常见问题第 24 问与 SRC-124 art. 65-C 都写每个 2 年期 14 天，试点按 2 年期计（PD-148）；同页写明符合 art. 80 的持有人获发投资类永久居留（Autorização de Residência para Atividade de Investimento Permanente），不适用因出境注销的规定（引 DR 84/2007 art. 65-K）；另写 ARI 自证件签发日起有效 2 年。永久居留页面：持临时居留许可至少 5 年，证件 5 年换发。ERLD 页面：申请前紧邻 5 年合法、不间断居留。《Direito de Residência》：非欧盟国民的居留权在居留卡到期后 6 个月内仍然保留（引 DR 84/2007 art. 63 n.º 14）；2025-06-30 前到期的卡另延至 2026-04-15（PD-145）。
 - AIMA《Perguntas frequentes – Autorização de Residência para Investimento (ARI)》已在 SRC-481 归档。第 24 问列第 1 年 7 天、此后每个 2 年期 14 天，与 art. 65-C 一致。
 
@@ -1238,6 +1240,12 @@ art. 2 修改外国人法 arts. 77、81、121-I、121-J，扩展蓝卡欧盟累�
 
 ## SRC-494 欧委会 · 自由流动指引（C/2023/1392）
 
-§2.2.2.1（p12）说明配偶可在同一东道国分址居住。§9.2 与注 236（p46）说明普通缺席在每个合法居留年度内累计，以合法居留起始日的周年为新年度起点。
+§2.2.2.1（p12）说明配偶可在同一东道国分址居住。§§2.2.2.3–2.2.2.4（pp13–15）说明首次随行或团聚时核对受扶养事实，未满 21 岁取得派生居留权的直系后代满龄后仍受覆盖。§9.2 与注 236（p46）分别列普通缺席、必要兵役及一次不超过 12 个连续月的正当缺席。普通缺席在每个合法居留年度内累计，以合法居留起始日的周年为起点，正当缺席例外没有最低时长。
 
 - `policy-sources/2023-12-22-pt-eu-free-movement-guidance.pdf` → <https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng/pdf>
+
+## SRC-495 欧盟法院 · AT v Pensionsversicherungsanstalt（C-32/19）
+
+§§38–39、44 及主文将退休提前取得的工作和居留条件锚定在停止工作时。葡萄牙对应条文见 SRC-478 art. 11(1)(a)、(2)–(5)。
+
+- `policy-sources/2020-01-22-pt-cjeu-c-32-19.pdf` → <https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62019CJ0032>
