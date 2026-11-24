@@ -1,3 +1,4 @@
+import { japanImmigrationGuidance } from '@uk-immigration/policy-data';
 import { addDays, addMonths, addYears, daysBetween } from './dates';
 import {
   ageAtLeast,
@@ -1088,7 +1089,7 @@ function assessJapanPrOnDate(
           : undefined),
     [
       ref('SRC-440', '第22条第1項第3号・但書、第24条第4項'),
-      ref('SRC-116', '出入国審査・在留審査 Q&A Q53'),
+      japanImmigrationGuidance.guarantor,
       prProcedure,
     ],
     '核对在日保证人、保证书、身份与官署是否同意其他保证人或省略材料。',

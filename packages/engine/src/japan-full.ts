@@ -24,7 +24,7 @@ const sameDeemedTrip = (
   trip.departed === route.departureOn &&
   trip.returned === route.returnOn;
 
-/** SRC-442 art. 23(2): share status at departure only for the same deemed trip. */
+/** Share departure status (SRC-442 art. 23(2)) and declarations only for the same trip. */
 export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
   trips: JpTrip[],
   routes: T[],
@@ -52,7 +52,26 @@ export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
       ? { ...route, specialPermanentResident: trip.specialPermanentResident }
       : route;
   });
-  return { trips: history, reentry };
+  // SRC-110 art. 26-2(1), SRC-116: record the declaration while the original
+  // dates still match, including when a comparison will vary the return date.
+  const resolvedTrips = history.map((trip) => {
+    const answers = new Set(
+      routes.map((route) =>
+        sameDeemedTrip(trip, route) ? route.declaredIntentAtDeparture : undefined,
+      ),
+    );
+    answers.delete(undefined);
+    // A negative deemed declaration does not invalidate a separate ordinary permit.
+    if (
+      !answers.size ||
+      (answers.size === 1 && answers.has(false) && trip.departure !== 'deemed')
+    )
+      return trip;
+    const departure: JpTrip['departure'] =
+      answers.size > 1 ? undefined : answers.has(true) ? 'deemed' : 'none';
+    return { ...trip, departure };
+  });
+  return { trips: resolvedTrips, reentry };
 }
 
 /** Evaluates selected routes for one person at the requested filing date. */
@@ -64,30 +83,7 @@ export function evaluateJapanFull(req: JpFullRequest): JpFullResult {
     req.trips,
     req.reentry ?? [],
   );
-  // SRC-110 art. 26-2(1), SRC-116: the declaration records how the person
-  // actually left. Apply it to the matching history only for this assessment.
-  const history = {
-    ...req,
-    trips: trips.map((trip) => {
-      const answers = new Set(
-        reentry
-          .filter((route): route is DeemedRoute => sameDeemedTrip(trip, route))
-          .map((route) => route.declaredIntentAtDeparture),
-      );
-      answers.delete(undefined);
-      // A negative deemed declaration does not invalidate a separate ordinary permit.
-      if (
-        !answers.size ||
-        (answers.size === 1 &&
-          answers.has(false) &&
-          trip.departure !== 'deemed')
-      )
-        return trip;
-      const departure: JpTrip['departure'] =
-        answers.size > 1 ? undefined : answers.has(true) ? 'deemed' : 'none';
-      return { ...trip, departure };
-    }),
-  };
+  const history = { ...req, trips };
   return {
     policyAsOf: japanFull2026_11.asOf,
     columns: [

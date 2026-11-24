@@ -1,4 +1,7 @@
-import { japanFull2026_11 } from '@uk-immigration/policy-data';
+import {
+  japanFull2026_11,
+  japanImmigrationGuidance,
+} from '@uk-immigration/policy-data';
 import { addMonths, addYears } from './dates';
 import { jpOfficeClosed, jpStayLimit } from './japan';
 import {
@@ -98,14 +101,15 @@ export function assessJapanReentry(
     ordinary: [
       ref('SRC-110', '第26条（境外延長は第5・6項）'),
       ref('SRC-442', '第23条第1項'),
-      ref('SRC-116', '再入国許可'),
+      japanImmigrationGuidance.ordinaryReentry,
       ref('SRC-461', '再入国許可申請「審査基準」「必要書類」'),
     ],
     deemed: [
       ref('SRC-110', '第19条の3・第26条の2第1–3項'),
       ref('SRC-440', '第29条の4、別表第2「永住者」'),
       ref('SRC-442', '第23条第2項'),
-      ref('SRC-116', 'Q57–61・みなし再入国許可'),
+      japanImmigrationGuidance.deemedQuestions,
+      japanImmigrationGuidance.deemedReentry,
     ],
     'refugee-travel-document': [
       ref('SRC-110', '第61条の2の15第1・3–9項'),
@@ -239,6 +243,11 @@ export function assessJapanReentry(
   let fee: number | undefined;
   let travelDate: JpFullPathway['travelDate'];
   let documentNotice = '';
+  const deadlineNotice = (limit: IsoDate) =>
+    L(
+      `目前可核对截止日为 ${limit}。`,
+      `The current verifiable deadline is ${limit}.`,
+    );
   const extensionNotice = () => {
     if (!extensionEndUnknown || !permit?.expiresOn) return '';
     const notice = missingExtensionEnd
@@ -258,7 +267,7 @@ export function assessJapanReentry(
           )
       : notice;
   };
-  let eligibility: boolean | undefined;
+  let eligibleAtDeparture: boolean | undefined;
   let validAtDeparture: boolean | undefined;
   let extensionValid: boolean | undefined = true;
   let withinEntryDeadline: boolean | undefined = true;
@@ -296,7 +305,11 @@ export function assessJapanReentry(
               ' Confirm whether the counter opens on the proposed filing date.',
             ]
           : ['', ''];
-    eligibility = all(
+    const departureDocuments = all(
+      route.passportOrApprovedAlternative,
+      route.residentCardOrCertificate,
+    );
+    const filingEligibility = all(
       route.lawfulStatus,
       excluded(route.excludedStatusOrDetention),
       route.inJapanWhenApplying,
@@ -304,14 +317,18 @@ export function assessJapanReentry(
       departure && !sameDayDeparture ? date < departure : undefined,
       filingAvailable,
       route.channel === 'online' ? onlineEligible : true,
-      route.passportOrApprovedAlternative,
-      route.residentCardOrCertificate,
+      departureDocuments,
     );
+    // SRC-116: a completed trip is assessed against the permit held at departure.
+    eligibleAtDeparture =
+      returned && returned <= req.simulationDate
+        ? departureDocuments
+        : filingEligibility;
     r(
       'ordinary-eligibility',
       '普通再入国资格与材料',
       'Ordinary permit eligibility and documents',
-      eligibility,
+      filingEligibility,
       [
         ...routeSources,
         ref('SRC-461', '再入国許可申請「申請期間」'),
@@ -332,10 +349,6 @@ export function assessJapanReentry(
 
     const start = permit?.effectiveOn;
     const original = permit?.expiresOn;
-    const extended =
-      permit?.extensionApproved === true ? permit.extendedUntil : undefined;
-    // An extension of unknown length still covers the original permit period.
-    const confirmedThrough = extended ?? original;
     if (extensionEndUnknown && start) {
       // SRC-110 art. 26(5); SRC-442 art. 23(1) substitutes the longer total
       // limit. If special status is unknown, only the latest limit is certain.
@@ -349,6 +362,18 @@ export function assessJapanReentry(
         ? earlier(extensionCeiling, totalCeiling)
         : totalCeiling;
     }
+    // SRC-110 art. 26(4–5): an overseas extension cannot outlast the stay.
+    if (extensionCeiling && stay && renewedLimit)
+      extensionCeiling = earlier(
+        extensionCeiling,
+        route.timelyRenewalPending === false ? stay : renewedLimit,
+      );
+    const extensionCannotLengthen = !!original && extensionCeiling === original;
+    const extended =
+      permit?.extensionApproved === true
+        ? (permit.extendedUntil ??
+          (extensionCannotLengthen ? original : undefined))
+        : undefined;
     const withinCeiling = (end: IsoDate, normal: number, special: number) => {
       if (!start) return undefined;
       if (end <= addYears(start, normal)) return true;
@@ -382,26 +407,42 @@ export function assessJapanReentry(
       effectiveAtDeparture,
       withinStay(original),
     );
-    permitEnd = confirmedThrough;
+    permitEnd = extended ?? original;
     const permitTermMet = all(validAtDeparture, extensionValid);
-    if (permitTermMet && !extensionEndUnknown)
+    if (permitTermMet && (!extensionEndUnknown || extensionCannotLengthen))
       verifiedLimit = limitedByStay(permitEnd);
-    documentNotice = [
-      extensionNotice(),
-      renewalNotice(extensionEndUnknown ? extensionCeiling : permitEnd),
-    ]
-      .filter(Boolean)
-      .join(' ');
+    if (!verifiedLimit)
+      documentNotice = [
+        extensionNotice(),
+        renewalNotice(extensionEndUnknown ? extensionCeiling : permitEnd),
+      ]
+        .filter(Boolean)
+        .join(' ');
+    const termNotice = verifiedLimit
+      ? deadlineNotice(verifiedLimit)
+      : documentNotice;
     r(
       'ordinary-validity',
       '普通许可期限与延期',
       'Ordinary validity and extension',
       termStatus(permitTermMet),
       [...routeSources, ...travel, ...old.renewalPendingMonths.sources],
-      `普通最长 ${rr.ordinaryYears} 年、特別永住者 ${rr.specialPermanentYears} 年。境外最长延长 ${rr.extensionYears} 年，合计分别不得超过 ${rr.ordinaryExtendedYears} 或 ${rr.specialPermanentExtendedYears} 年，且受在留期限限制。${documentNotice}`,
-      `The normal maximum is ${rr.ordinaryYears} years, or ${rr.specialPermanentYears} for special permanent residents. An overseas extension is up to ${rr.extensionYears} year, with total limits of ${rr.ordinaryExtendedYears} and ${rr.specialPermanentExtendedYears} years respectively and the applicable stay limit.${documentNotice ? ' ' + documentNotice : ''}`,
+      `普通最长 ${rr.ordinaryYears} 年、特別永住者 ${rr.specialPermanentYears} 年。境外最长延长 ${rr.extensionYears} 年，合计分别不得超过 ${rr.ordinaryExtendedYears} 或 ${rr.specialPermanentExtendedYears} 年，且受在留期限限制。${termNotice}`,
+      `The normal maximum is ${rr.ordinaryYears} years, or ${rr.specialPermanentYears} years for special permanent residents. An overseas extension is up to ${rr.extensionYears} year, with total limits of ${rr.ordinaryExtendedYears} and ${rr.specialPermanentExtendedYears} years respectively and the applicable stay limit.${termNotice ? ' ' + termNotice : ''}`,
       ['PD-136', 'PD-379'],
     );
+    if (
+      extensionEndUnknown &&
+      !verifiedLimit &&
+      validAtDeparture &&
+      returned &&
+      original &&
+      returned <= original
+    )
+      documentNotice = L(
+        '返日在原许可期限内。',
+        'The return falls within the original permit period.',
+      );
     if (route.visits && date >= fees.historicalFrom) {
       if (route.channel === 'counter')
         fee = (
@@ -448,7 +489,7 @@ export function assessJapanReentry(
         ? true
         : (excluded(route.temporaryVisitor) ??
           (route.stayIndefinite === true ? true : undefined));
-    eligibility = all(
+    eligibleAtDeparture = all(
       route.lawfulStatus,
       durationAllowed,
       temporaryAllows,
@@ -462,7 +503,7 @@ export function assessJapanReentry(
       'deemed-eligibility',
       'みなし再入国资格与出境表明',
       'Deemed re-entry eligibility and departure declaration',
-      eligibility,
+      eligibleAtDeparture,
       routeSources,
       `通常排除原授予期间为 ${rr.deemedExcludedMonths} 个月以下、短期滞在或依法须办普通许可者。永住者无在留期限。出境时用有效证件表明拟再入国。`,
       `Ordinarily excluded are grants of ${rr.deemedExcludedMonths} months or less, temporary visitors and people who require a formal permit. Permanent residents have an indefinite period of stay. Show valid documents and declare intent at departure.`,
@@ -504,7 +545,7 @@ export function assessJapanReentry(
     );
     fee = fees.deemed;
   } else {
-    eligibility = all(
+    eligibleAtDeparture = all(
       route.refugeeRecognition,
       route.hasJapaneseTravelDocument,
       excluded(route.permitVoided),
@@ -513,7 +554,7 @@ export function assessJapanReentry(
       'refugee-document',
       '難民旅行証明書',
       'Refugee travel document',
-      eligibility,
+      eligibleAtDeparture,
       routeSources,
       '持日本签发且有效的難民旅行証明書可按指定有效期及入境期限往来，免普通再入国许可。',
       'A valid Japanese refugee travel document permits travel within its applicable validity and entry limits without an ordinary re-entry permit.',
@@ -564,7 +605,7 @@ export function assessJapanReentry(
           entryLimit ?? (extensionEndUnknown ? undefined : permitEnd);
       travelDate = {
         kind: 'returnDeadline',
-        date: eligibility ? verifiedLimit : undefined,
+        date: eligibleAtDeparture ? verifiedLimit : undefined,
       };
       if (!verifiedLimit) documentNotice = extensionNotice();
       if (!entryLimit && p?.entryDeadlineNotSpecified === false)
@@ -615,7 +656,7 @@ export function assessJapanReentry(
         : undefined;
   // The date comparison can succeed independently of permission to leave and return.
   const departurePermission = all(
-    eligibility,
+    eligibleAtDeparture,
     validAtDeparture,
     excluded(route.permitVoided),
     entryUnused,
@@ -633,6 +674,7 @@ export function assessJapanReentry(
   );
   if (
     missedExtensionLimit &&
+    !verifiedLimit &&
     !route.permitVoided &&
     withinEntryDeadline !== false
   )
@@ -641,10 +683,7 @@ export function assessJapanReentry(
       `The return was after the statutory extension limit of ${missedExtensionLimit}.`,
     );
   if (!documentNotice && verifiedLimit && departurePermission)
-    documentNotice = L(
-      `目前可核对截止日为 ${verifiedLimit}。`,
-      `The current verifiable deadline is ${verifiedLimit}.`,
-    );
+    documentNotice = deadlineNotice(verifiedLimit);
   if (departurePermission !== true)
     documentNotice +=
       departurePermission === false
@@ -663,7 +702,7 @@ export function assessJapanReentry(
     validity,
     [
       ...routeSources,
-      ref('SRC-116', '再入国失效与继续在留'),
+      japanImmigrationGuidance.lossOfPermanentResidence,
       ...(usesStay ? old.renewalPendingMonths.sources : []),
     ],
     `${documentNotice}${route.route === 'deemed' ? '凭みなし再入国继续原在留身份，须在出境时表明再入国意图。' : ''}遗失须核对官方期限证明，许可失效后原身份不能靠原许可恢复。${route.newLandingOn ? `已填重新上陆日 ${route.newLandingOn}。` : ''}`,

@@ -342,6 +342,12 @@ const aprilPermit = {
   extensionApproved: false,
 };
 const ordinaryTrip = { ...ordinary, ...aprilTrip, permit: aprilPermit };
+const ordinaryTripAtStayLimit = {
+  ...ordinaryTrip,
+  stayIndefinite: false,
+  stayExpiresOn: aprilPermit.expiresOn,
+  timelyRenewalPending: false,
+};
 const deemedTrip = {
   ...aprilTrip,
   route: 'deemed',
@@ -572,7 +578,70 @@ test.each([
         expect(row.explanation).toContain('截止日待确认');
         expect(row.explanation).not.toMatch(/可核对截止日为|截止 2024-06-30/);
       }
+      if (
+        id === 'return-continuity' &&
+        _label ===
+          'ordinary extension decision unknown, return within original term'
+      ) {
+        expect(row.explanation).toContain('返日在原许可期限内');
+        expect(row.explanation).not.toContain('延期审批待确认');
+      }
     }
+  },
+);
+
+test.each([
+  ['no proposed filing date', ordinaryTrip, undefined, 'NOT_MET'],
+  ['filing before departure', ordinaryTrip, '2024-03-29', 'MET'],
+  [
+    'extension declined at the stay limit',
+    ordinaryTripAtStayLimit,
+    '2024-03-29',
+    'MET',
+  ],
+  [
+    'extension unanswered at the stay limit',
+    {
+      ...ordinaryTripAtStayLimit,
+      permit: { ...aprilPermit, extensionApproved: undefined },
+    },
+    '2024-03-29',
+    'MET',
+  ],
+] as const)(
+  'the completed ordinary trip keeps its deadline and continuity with %s',
+  (_label, route, applicationDate, filingStatus) => {
+    const draft = decodeDraft(
+      jp,
+      encodeDraft(jp, {
+        ...travelDraft(),
+        simulationDate: '2024-04-08',
+        applicationDate,
+        reentry: [route],
+      }),
+    )!;
+    const result = jp.run(draft, 'zh-CN');
+    const path = result.columns[0].pathways[0];
+    const html = renderToStaticMarkup(
+      <ResultView country={jp} result={result} draft={draft} />,
+    );
+    expect(path.status).toBe(filingStatus);
+    expect(
+      path.checks.find((row) => row.id === 'jp.reentry.ordinary-eligibility')
+        ?.status,
+    ).toBe(filingStatus);
+    for (const id of ['ordinary-validity', 'return-continuity']) {
+      const row = path.checks.find((check) => check.id === 'jp.reentry.' + id)!;
+      expect(row.status).toBe('MET');
+      expect(row.explanation).toContain(aprilPermit.expiresOn);
+      expect(html).toContain(
+        `data-status="PASS"><strong>${row.title}</strong>`,
+      );
+      expect(html).toContain(row.explanation);
+    }
+    expect(html).not.toMatch(
+      /延期审批待确认|法定延期上限为 2026-04-01|出境时所需的再入国条件未满足/,
+    );
   },
 );
 
@@ -838,6 +907,49 @@ test.each([
   },
 );
 
+test('changing the deemed return keeps the declaration for the original PR history', () => {
+  const baseline: JapanDraft = {
+    ...travelDraft(),
+    permanentResidence: {
+      routes: [
+        {
+          route: 'general',
+          statusStart: '2014-04-01',
+          newStatusStart: '2014-04-01',
+        },
+      ],
+      evidence: {},
+    },
+    trips: [
+      {
+        departed: aprilTrip.departureOn,
+        returned: aprilTrip.returnOn,
+        departure: 'deemed',
+      },
+    ],
+    reentry: [{ ...deemedTrip, declaredIntentAtDeparture: false }],
+  };
+  const knobs = {
+    ...jp.whatif.initial(baseline),
+    returns: { deemed: '2024-04-08' },
+  };
+  const compared = jp.whatif.apply(baseline, knobs);
+  expect(compared.reentry[0].returnOn).toBe(knobs.returns.deemed);
+  for (const scenario of [baseline, compared]) {
+    const draft = decodeDraft(jp, encodeDraft(jp, scenario))!;
+    const [pr, deemed] = jp.run(draft, 'zh-CN').columns[0].pathways;
+    expect(
+      pr.checks.find((row) => row.id === 'jp.pr.continuous-stay')?.status,
+    ).toBe('NOT_MET');
+    expect(pr.timeEarliestDate).toBe('2034-04-07');
+    expect(
+      deemed.checks.find((row) => row.id === 'jp.reentry.return-continuity')
+        ?.status,
+    ).toBe('NOT_MET');
+  }
+  expect(baseline.trips[0].departure).toBe('deemed');
+});
+
 test('each re-entry continuity gap links to the return date for its own route', () => {
   const draft = travelDraft();
   draft.reentry = [
@@ -915,6 +1027,30 @@ test('Japan policy lists every cited source exactly once and includes pathway-sp
     'jp.reentry.consular-extension-fee',
   ])
     expect(rules).toContain(id);
+});
+
+test('Japan policy links every SRC-116 locator to its official document', () => {
+  const html = renderToStaticMarkup(<JapanPolicyPage />);
+  const links = [
+    ...html.matchAll(/<a href="([^"]+)"[^>]*>SRC-116 ([^<]+)<\/a>/g),
+  ].map(([, href, locator]) => [locator.replaceAll('&amp;', '&'), href]);
+  const isa = 'https://www.moj.go.jp/isa';
+  const qa = isa + '/immigration/faq/kanri_qa.html';
+  const expected = {
+    '出入国審査・在留審査Q&A Q28': qa + '#q28',
+    '出入国審査・在留審査 Q&A Q53': qa + '#q54',
+    '出入国審査・在留審査Q&A Q57–61': qa + '#q58',
+    '出入国審査・在留審査Q&A Q61': qa + '#q62',
+    再入国許可: isa + '/immigration/procedures/sainyukoku_00002.html',
+    みなし再入国許可:
+      isa + '/immigration/procedures/minashisainyukoku_00001.html',
+    '永住者の在留資格について p5': isa + '/content/930003741.pdf',
+  };
+  expect(new Set(links.map(([locator]) => locator))).toEqual(
+    new Set(Object.keys(expected)),
+  );
+  for (const [locator, href] of links)
+    expect(expected).toHaveProperty([locator], href);
 });
 
 test.each(['zh-CN', 'en'] as const)(

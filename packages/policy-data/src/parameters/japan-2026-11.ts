@@ -7,6 +7,35 @@ import type { Parameter } from '../types';
 const NEW_GUIDELINE = 'https://www.moj.go.jp/isa/10_00279.html';
 const NEW_GUIDELINE_PDF = 'https://www.moj.go.jp/isa/content/001471577.pdf';
 
+// SRC-116 collects separate ISA documents under one registry entry.
+export const japanImmigrationGuidance = {
+  guarantor: {
+    srcId: 'SRC-116',
+    locator: '出入国審査・在留審査 Q&A Q53',
+    url: 'https://www.moj.go.jp/isa/immigration/faq/kanri_qa.html#q54',
+  },
+  ordinaryReentry: {
+    srcId: 'SRC-116',
+    locator: '再入国許可',
+    url: 'https://www.moj.go.jp/isa/immigration/procedures/sainyukoku_00002.html',
+  },
+  deemedQuestions: {
+    srcId: 'SRC-116',
+    locator: '出入国審査・在留審査Q&A Q57–61',
+    url: 'https://www.moj.go.jp/isa/immigration/faq/kanri_qa.html#q58',
+  },
+  deemedReentry: {
+    srcId: 'SRC-116',
+    locator: 'みなし再入国許可',
+    url: 'https://www.moj.go.jp/isa/immigration/procedures/minashisainyukoku_00001.html',
+  },
+  lossOfPermanentResidence: {
+    srcId: 'SRC-116',
+    locator: '永住者の在留資格について p5',
+    url: 'https://www.moj.go.jp/isa/content/930003741.pdf',
+  },
+} as const;
+
 const generalStay = [
   { srcId: 'SRC-113', locator: '1(3)ア' },
   {
@@ -443,16 +472,8 @@ export const japan2026_11 = {
       value: 1,
       sources: [
         { srcId: 'SRC-110', locator: '第26条の2第2項・第3項' },
-        {
-          srcId: 'SRC-116',
-          locator: 'みなし再入国許可',
-          url: 'https://www.moj.go.jp/isa/immigration/procedures/minashisainyukoku_00001.html',
-        },
-        {
-          srcId: 'SRC-116',
-          locator: '永住者の在留資格について p5',
-          url: 'https://www.moj.go.jp/isa/content/930003741.pdf',
-        },
+        japanImmigrationGuidance.deemedReentry,
+        japanImmigrationGuidance.lossOfPermanentResidence,
       ],
     },
     // With a renewal or change of status pending at expiry, the status lasts
