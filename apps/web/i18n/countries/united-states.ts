@@ -52,12 +52,13 @@ export const zhCN = {
   'us.error.overlap': '这次出境与前面的出境日期重叠。',
   'us.error.principalOrder': '主申请人的日期不能晚于你取得绿卡的日期。',
   'us.error.wageYear': '日期须在这条记录的年度内。',
+  'us.error.year': '请填写四位数的年份。',
   'us.error.wageOverlap':
     '同一年度的两条记录期间重叠。请合并，或拆成不重叠的期间；年初至今的累计记录请使用相同的开始日。',
   'us.error.wageCumulative':
     '同一开始日的累计工资不能随截止日期减少，请核对金额。',
   'us.error.wageProration':
-    '未获 USCIS 接受按比例核算时，优先日所在年度的记录须从 1 月 1 日开始，以便计入优先日前的亏损。',
+    '未获 USCIS 接受按比例核算时，优先日所在年度的净收入须从 1 月 1 日起算，以便计入优先日前的亏损；按比例核算被拒时，当年所有记录都从 1 月 1 日开始。',
   'us.error.ground': '请按 INA 212(a) 款项填写，例如 6 或 6(C)。',
   'us.error.duplicate': '这一项与前面的记录重复。',
   'us.error.consularPetition':
@@ -119,12 +120,13 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.error.principalOrder':
     'The principal applicant’s date cannot be after the date you got your green card.',
   'us.error.wageYear': 'The date must be within this entry’s year.',
+  'us.error.year': 'Enter a four-digit year.',
   'us.error.wageOverlap':
     'Two entries for the same year overlap. Combine them or split them into periods that do not overlap. Year-to-date entries should share the same start date.',
   'us.error.wageCumulative':
     'Year-to-date wages from the same start date cannot fall as the end date moves later. Check the amounts.',
   'us.error.wageProration':
-    'Unless USCIS accepts proration, entries for the priority-date year must start on 1 January so that losses before the priority date are included.',
+    'Unless USCIS accepts proration, net income for the priority-date year must start on 1 January so that losses before the priority date are included. If proration was refused, every entry for that year starts on 1 January.',
   'us.error.ground': 'Use an INA 212(a) paragraph, such as 6 or 6(C).',
   'us.error.duplicate': 'This repeats an earlier entry.',
   'us.error.consularPetition':

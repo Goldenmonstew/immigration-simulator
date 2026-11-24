@@ -668,3 +668,83 @@ test('questions are shown, kept and required where the engine reads them (review
     }),
   ).toEqual([0, 1, 13]);
 });
+
+test('wage and trip checks read the records as the engine does (review96-1)', () => {
+  // A blank end date in the coverage year runs to the coverage date (#5).
+  expect(
+    us.validateStep(
+      employmentDraft({
+        profferedWageUsd: 75000,
+        permRecruitment: { laborCertificationFiledOn: '2026-01-01' },
+        wagePeriodComplete: true,
+        wageYears: [
+          { year: 2026, through: '2026-11-21', paidUsd: 50000 },
+          { year: 2026, paidUsd: 80000 },
+        ],
+      }),
+    ),
+  ).toEqual({ 'us-employment-wageYears-1-from': 'us.error.wageOverlap' });
+  // An EB-1B petition filed with the I-485 takes its receipt as the priority date (#5).
+  const concurrent: UsDraft = {
+    ...us.createDraft(),
+    simulationDate: '2026-11-23',
+    step: 8,
+    pathway: 'US-EMPLOYMENT',
+    admission: { process: 'adjustment', petitionStatus: 'filed-with-i485' },
+    employment: {
+      category: 'eb1b',
+      profferedWageUsd: 60000,
+      wagePeriodComplete: true,
+      wageYears: [
+        { year: 2026, through: '2026-11-22', netIncomeUsd: -20000 },
+        {
+          year: 2026,
+          from: '2026-11-23',
+          through: '2026-11-23',
+          netIncomeUsd: 70000,
+        },
+      ],
+    },
+  };
+  expect(us.validateStep(concurrent)).toEqual({
+    'us-employment-wageYears-1-from': 'us.error.wageProration',
+  });
+  // While proration is undecided, wages paid from the priority date are
+  // accepted; net income still covers the whole year (risk 3).
+  const afterPriority = (
+    finding?: 'pending' | 'barred',
+    amounts: object = { paidUsd: 45000 },
+  ) =>
+    us.validateStep(
+      employmentDraft({
+        profferedWageUsd: 60000,
+        wageYears: [
+          { year: 2025, from: '2025-07-01', ...amounts },
+          { year: 2026, paidUsd: 60000 },
+        ],
+        ...(finding && { priorityYearProration: { finding } }),
+      }),
+    );
+  const proration = {
+    'us-employment-wageYears-0-from': 'us.error.wageProration',
+  };
+  expect(afterPriority()).toEqual({});
+  expect(afterPriority('pending')).toEqual({});
+  expect(afterPriority('barred')).toEqual(proration);
+  expect(afterPriority('pending', { netIncomeUsd: 70000 })).toEqual(proration);
+  // Years have four digits (risk 4).
+  expect(
+    us.validateStep(employmentDraft({ wageYears: [{ year: 25, paidUsd: 1 }] })),
+  ).toEqual({ 'us-employment-wageYears-0-year': 'us.error.year' });
+  // A blank departure is reported once, not as an overlap (risk 4).
+  expect(
+    us.validateStep({
+      ...travelDraft(),
+      step: 1,
+      trips: [
+        { departed: '', returned: '2026-11-05' },
+        { departed: '2026-09-01', returned: '2026-09-20' },
+      ],
+    }),
+  ).toEqual({ 'us-trips-0-departed': 'us.error.entered' });
+});

@@ -259,17 +259,27 @@ function checkTrips(draft: UsDraft, errors: Errors) {
   const since = isPermanentResident(draft)
     ? date(draft.permanentResident)
     : undefined;
+  const periods = trips.map((trip) => ({
+    departed: date(trip.departed),
+    returned: date(trip.returned),
+  }));
   trips.forEach((trip, index) => {
     const id = `us-trips-${index}`;
+    const { departed, returned } = periods[index];
     checkOrder(errors, `${id}-returned`, trip.departed, trip.returned);
-    if (since && date(trip.departed) && trip.departed < since)
+    if (since && departed && departed < since)
       errors[`${id}-departed`] ??= 'us.error.beforeGreenCard';
     if (
-      trips
+      departed &&
+      returned &&
+      periods
         .slice(0, index)
         .some(
           (other) =>
-            trip.departed < other.returned && other.departed < trip.returned,
+            other.departed &&
+            other.returned &&
+            departed < other.returned &&
+            other.departed < returned,
         )
     )
       errors[`${id}-departed`] ??= 'us.error.overlap';
@@ -286,10 +296,17 @@ function checkTrips(draft: UsDraft, errors: Errors) {
 function checkWages(draft: UsDraft, errors: Errors) {
   const employment = draft.employment ?? {};
   const rows = Array.isArray(employment.wageYears) ? employment.wageYears : [];
+  // A blank end date in the coverage year runs to the coverage date.
+  const coverage =
+    date(employment.wagePeriodThrough) ?? date(draft.simulationDate);
   const periods = rows.map((row, index) => {
     const id = `us-employment-wageYears-${index}`;
     if (typeof row.year !== 'number' || !Number.isInteger(row.year))
       return undefined;
+    if (row.year < 1000 || row.year > 9999) {
+      errors[`${id}-year`] ??= 'us.error.year';
+      return undefined;
+    }
     const start = `${row.year}-01-01`;
     const end = `${row.year}-12-31`;
     for (const key of ['from', 'through'] as const) {
@@ -302,7 +319,9 @@ function checkWages(draft: UsDraft, errors: Errors) {
       id,
       year: row.year,
       from: date(row.from) ?? start,
-      through: date(row.through) ?? end,
+      through:
+        date(row.through) ??
+        (coverage?.startsWith(`${row.year}-`) ? coverage : end),
       paid: row.paidUsd,
     };
   });
@@ -328,31 +347,51 @@ function checkWages(draft: UsDraft, errors: Errors) {
         errors[`${current.id}-paidUsd`] ??= 'us.error.wageCumulative';
     }
   });
-  const priority = recordedPriorityDate(draft);
-  if (
-    !priority ||
-    priority.endsWith('-01-01') ||
-    employment.priorityYearProration?.finding === 'cleared'
-  )
-    return;
+  const priority = priorityDate(draft);
+  const finding = employment.priorityYearProration?.finding;
+  if (!priority || priority.endsWith('-01-01') || finding === 'cleared') return;
   const year = Number(priority.slice(0, 4));
-  for (const period of periods)
-    if (period?.year === year && period.from !== `${year}-01-01`)
+  periods.forEach((period, index) => {
+    if (period?.year !== year || period.from === `${year}-01-01`) return;
+    // Until proration is decided, wages paid from the priority date count;
+    // net income is for the whole year. A refusal assesses the whole year.
+    if (finding === 'barred' || rows[index].netIncomeUsd !== undefined)
       errors[`${period.id}-from`] ??= 'us.error.wageProration';
+  });
 }
 
-// Matches the engine's recorded priority date for the petition (8 CFR 204.5(d)).
-function recordedPriorityDate(draft: UsDraft) {
+// Matches the engine's priority date for the petition (8 CFR 204.5(d)). An
+// I-140 without a recorded date is dated from its candidate receipt: the
+// I-485 receipt when filed together, otherwise the assessment date.
+function priorityDate(draft: UsDraft) {
   const employment = draft.employment ?? {};
+  const admission = draft.admission;
   const ordinaryPerm =
     (employment.category === 'eb2-perm' || employment.category === 'eb3') &&
     employment.perm !== 'schedule-a';
-  const i140 = employment.i140FiledOn ?? draft.admission?.petitionFiledOn;
-  return date(
+  const i140 = employment.i140FiledOn ?? admission?.petitionFiledOn;
+  const recorded = date(
     (ordinaryPerm
       ? employment.permRecruitment?.laborCertificationFiledOn
       : i140) ?? employment.priorityDate,
   );
+  if (
+    recorded ||
+    ordinaryPerm ||
+    admission?.petitionStatus === 'pending' ||
+    admission?.petitionStatus === 'approved'
+  )
+    return recorded;
+  const filed =
+    admission?.process === 'adjustment'
+      ? date(
+          admission.i485FiledOn ??
+            (admission.i485BasisTransfer
+              ? undefined
+              : employment.jobPortability?.i485PendingSince),
+        )
+      : undefined;
+  return filed && filed <= draft.simulationDate ? filed : draft.simulationDate;
 }
 
 function checkTables(
