@@ -40,7 +40,7 @@ const files: Record<string, string> = {
   'double-double': '/assets/items/tea.png',
   'maple-doughnut': '/assets/items/biscuits.png',
   oatcakes: '/assets/items/biscuits.png',
-  blueberries: '/assets/items/fish.png',
+  blueberries: '/assets/indoor/item.png',
   'maple-syrup': '/assets/items/cake.png',
   flowers: '/assets/items/flowers.png',
   'maple-taffy': '/assets/items/cake.png',
