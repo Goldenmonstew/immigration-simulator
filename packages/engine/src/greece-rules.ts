@@ -86,16 +86,24 @@ export function grContext(locale?: Locale) {
   const L = textFor({ locale });
   // Only a known wait can clear a NOT_MET check on a predictable date.
   const waitDates = new Map<CountryCheck, IsoDate>();
+  // A dated requirement can survive a change in law even when another fact
+  // in the same check prevents a positive forecast under today's law.
+  const filingDates = new Map<CountryCheck, IsoDate>();
+  function whenDue(eligible: Answer, due: IsoDate | undefined, today: IsoDate) {
+    if (due && due > today) return { eligible, due };
+    return eligible && (due ? true : undefined);
+  }
   function check(
     id: string,
     zhTitle: string,
     enTitle: string,
-    met: Answer | IsoDate,
+    fact: Answer | IsoDate | ReturnType<typeof whenDue>,
     sources: SourceRef[],
     zhExplanation?: string,
     enExplanation?: string,
     pendingDetails?: string[],
   ): CountryCheck {
+    const met = typeof fact === 'object' ? fact.eligible && fact.due : fact;
     const title = L(zhTitle, enTitle);
     const explanation =
       zhExplanation !== undefined && enExplanation !== undefined
@@ -123,8 +131,10 @@ export function grContext(locale?: Locale) {
         : {}),
     };
     if (typeof met === 'string') waitDates.set(result, met);
+    const due = typeof fact === 'object' ? fact.due : met;
+    if (typeof due === 'string') filingDates.set(result, due);
     return result;
   }
-  return { check, L, waitDates };
+  return { check, L, waitDates, whenDue, filingDates };
 }
 export type GrContext = ReturnType<typeof grContext>;

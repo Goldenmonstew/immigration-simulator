@@ -480,6 +480,155 @@ function pilotTimes(req: GrFullRequest, required: GrPathwayId[], c: GrContext) {
   return times;
 }
 
+function filingConditions(
+  id: GrFullPathwayId,
+  req: GrFullRequest,
+  scope: CountryCheck,
+  times?: GrPathway[],
+) {
+  const c = grContext(req.locale);
+  const rules = [
+    scope,
+    ...commonChecks(id, req, c),
+    ...specialChecks(id, req, c),
+  ];
+  let time: GrPathway | undefined;
+  let timing: CountryCheck[] = [];
+  const needed = timeRoute(id, req);
+  if (needed) {
+    time = routeTiming(needed, req, times ?? pilotTimes(req, [needed], c), c);
+    timing = timeChecks(needed, time, c);
+  } else if (id === 'GR-NATIONALITY' && req.nationality?.stage !== 'oath') {
+    rules.push(
+      c.check(
+        'NAT-BIRTH-EXEMPTION',
+        '在希出生并持续居住',
+        'Born and continuously resident in Greece',
+        true,
+        [grSource('F34', 'ΚΕΙ art. 5(1)(δ)'), grSource('F35', 'p2')],
+        '已声明在希腊出生并持续居住，适用一般居住年限豁免。',
+        'Continuous residence in Greece since birth exempts the applicant from the general residence period.',
+      ),
+    );
+  }
+  // Address changes carry their own fine. The old time assessment already combines alternative
+  // renewal windows and distinguishes a future date from an unresolved interpretation.
+  const incomeIndex =
+    id === 'GR-NATIONALITY' && !req.nationality?.pendingApplicationFiledOn
+      ? rules.findIndex((check) => check.id === 'NAT-07')
+      : -1;
+  const fixedGates = rules.filter(
+    (check, index) => check.id !== 'C-06' && index !== incomeIndex,
+  );
+  const canProject = fixedGates.every(
+    (check) => check.status === 'MET' || c.waitDates.has(check),
+  );
+  const waits = fixedGates
+    .map((check) => c.waitDates.get(check))
+    .filter((date) => date !== undefined);
+  let earliestDate = [
+    ...waits,
+    ...(time?.earliestDate ? [time.earliestDate] : []),
+  ]
+    .sort()
+    .at(-1);
+  // The period counted today may end before another requirement (e.g. a refiling ban) matures.
+  let jointTime = time;
+  if (
+    needed &&
+    time?.earliestDate &&
+    earliestDate &&
+    earliestDate > time.earliestDate &&
+    canProject
+  ) {
+    const onOpening = { ...req, simulationDate: earliestDate };
+    jointTime = routeTiming(
+      needed,
+      onOpening,
+      pilotTimes(onOpening, [needed], c),
+      c,
+    );
+    earliestDate = jointTime?.earliestDate;
+  }
+  const candidate = [...c.filingDates.values()];
+  if (earliestDate) candidate.push(earliestDate);
+  return {
+    rules,
+    timing,
+    time,
+    jointTime,
+    needed,
+    canProject,
+    incomeIndex,
+    waits,
+    earliestDate,
+    candidate: candidate.sort().at(-1),
+    filingDates: c.filingDates,
+    waitDates: c.waitDates,
+  };
+}
+
+// SRC-087: ν. 5100/2024 arts. 64, 69; ν. 5275/2026 art. 69; ν. 5307/2026 art. 265.
+const amendments = [
+  policy.values.gvReformEffective.value,
+  policy.values.workReformEffective.value,
+  policy.values.protectionCreditFrom.value,
+];
+
+function filingUnderApplicableLaw(
+  id: GrFullPathwayId,
+  req: GrFullRequest,
+  scope: CountryCheck,
+  times: GrPathway[],
+) {
+  const initial = filingConditions(id, req, scope, times);
+  const waitsFromReview = new Map<string, IsoDate>();
+  const firstCandidate = initial.candidate;
+  // SRC-087 changes the Migration Code. An independently blocked citizenship
+  // or EU-family application has no filing forecast under its own code.
+  if (
+    !firstCandidate ||
+    !amendments.some(
+      (date) => req.simulationDate < date && date <= firstCandidate,
+    ) ||
+    (!initial.canProject &&
+      (id === 'GR-NATIONALITY' || id === 'GR-EU-FAMILY-PR'))
+  )
+    return {
+      initial,
+      filing: initial,
+      projectedOn: undefined,
+      waitsFromReview,
+    };
+
+  const milestones = [...amendments];
+  if (id === 'GR-LONG-TERM' || id === 'GR-TEN-YEAR') {
+    // A recorded grant can bring a newly creditable period into the calculation.
+    for (const period of req.backlogRenewals ?? [])
+      milestones.push(period.permitEffectiveOn);
+    if (id === 'GR-LONG-TERM' && req.grantedProtection)
+      milestones.push(req.grantedProtection.grantedOn);
+  }
+  milestones.sort();
+  let filing = initial;
+  let on = req.simulationDate;
+  let target = firstCandidate;
+  while (on < target) {
+    on = milestones.find((date) => date > on && date <= target) ?? target;
+    for (const [check, due] of filing.filingDates)
+      waitsFromReview.set(check.id, due < on ? due : on);
+    filing = filingConditions(id, { ...req, simulationDate: on }, scope);
+    if (filing.candidate && filing.candidate > on) target = filing.candidate;
+    else if (
+      filing.canProject &&
+      (!filing.needed || filing.jointTime?.status === 'MET')
+    )
+      break;
+    // If an intermediate law blocks the date, still verify the original filing under the next law.
+  }
+  return { initial, filing, projectedOn: on, waitsFromReview };
+}
+
 export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
   const c = grContext(req.locale);
   const ids = req.pathways ?? (Object.keys(titles) as GrFullPathwayId[]);
@@ -543,73 +692,24 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
         pendingDetails: ['PD-300'],
       };
     }
-    const rules = [
-      scope,
-      ...commonChecks(id, req, c),
-      ...specialChecks(id, req, c),
-    ];
-    let time: GrPathway | undefined;
-    let timing: CountryCheck[] = [];
-    const needed = timeRoute(id, req);
-    if (needed) {
-      time = routeTiming(needed, req, times, c);
-      timing = timeChecks(needed, time, c);
-    } else if (id === 'GR-NATIONALITY' && req.nationality?.stage !== 'oath') {
-      rules.push(
-        c.check(
-          'NAT-BIRTH-EXEMPTION',
-          '在希出生并持续居住',
-          'Born and continuously resident in Greece',
-          true,
-          [grSource('F34', 'ΚΕΙ art. 5(1)(δ)'), grSource('F35', 'p2')],
-          '已声明在希腊出生并持续居住，适用一般居住年限豁免。',
-          'Continuous residence in Greece since birth exempts the applicant from the general residence period.',
-        ),
-      );
-    }
-    // Address changes carry their own fine. The old time assessment already combines alternative
-    // renewal windows and distinguishes a future date from an unresolved interpretation.
-    const incomeIndex =
-      nationality && !req.nationality?.pendingApplicationFiledOn
-        ? rules.findIndex((check) => check.id === 'NAT-07')
-        : -1;
-    const fixedGates = rules.filter(
-      (check, index) => check.id !== 'C-06' && index !== incomeIndex,
-    );
-    const canProject = fixedGates.every(
-      (check) => check.status === 'MET' || c.waitDates.has(check),
-    );
-    const waits = fixedGates
-      .map((check) => c.waitDates.get(check))
-      .filter((date) => date !== undefined);
-    let earliestDate = [
-      ...waits,
-      ...(time?.earliestDate ? [time.earliestDate] : []),
-    ]
-      .sort()
-      .at(-1);
-    // The period counted today may end before another requirement (e.g. a refiling ban) matures.
-    let jointTime = time;
-    if (
-      needed &&
-      time?.earliestDate &&
-      earliestDate &&
-      earliestDate > time.earliestDate &&
-      canProject
-    ) {
-      const onOpening = { ...req, simulationDate: earliestDate };
-      jointTime = routeTiming(
-        needed,
-        onOpening,
-        pilotTimes(onOpening, [needed], c),
-        c,
-      );
-      earliestDate = jointTime?.earliestDate;
-    }
+    const { initial, filing, projectedOn, waitsFromReview } =
+      filingUnderApplicableLaw(id, req, scope, times);
+    const {
+      rules,
+      timing,
+      time,
+      jointTime,
+      needed,
+      canProject,
+      incomeIndex,
+      waits,
+      waitDates,
+    } = filing;
+    const earliestDate = projectedOn ?? filing.earliestDate;
     let summary =
       jointTime && jointTime !== time ? jointTime.summary : undefined;
     if (
-      canProject &&
+      (canProject || projectedOn) &&
       (!needed ||
         jointTime?.status === 'MET' ||
         jointTime?.status === 'FUTURE') &&
@@ -620,6 +720,12 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
         id === 'GR-TEN-YEAR' &&
         req.tenYear?.basis === 'residence' &&
         req.tenYear.stage !== 'renewal' &&
+        req.tenYear.residesInGreece !== false &&
+        (!projectedOn ||
+          (req.permits?.length &&
+            req.permits.every(
+              (permit) => permit.to && permit.to < earliestDate,
+            ))) &&
         tenYearResidence({ ...req, simulationDate: earliestDate }) !== true
       ) {
         const index = rules.findIndex((check) => check.id === 'TY-01');
@@ -633,7 +739,7 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
           explanation: summary,
         };
       }
-      if (incomeIndex >= 0) {
+      if (incomeIndex >= 0 && !projectedOn) {
         const income = nationalityIncomeCheck(
           { ...req, simulationDate: earliestDate },
           c,
@@ -649,7 +755,11 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
         if (income.status !== 'MET') summary = rules[incomeIndex].explanation;
       }
       const index = rules.findIndex((check) => check.id === 'C-01');
-      if (index >= 0) {
+      if (
+        index >= 0 &&
+        (!projectedOn ||
+          initial.rules.find((check) => check.id === 'C-01')?.status === 'MET')
+      ) {
         const document = passportCheck(id, req, c, earliestDate);
         if (document.status === 'UNKNOWN') {
           rules[index] = document;
@@ -659,7 +769,7 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
     }
     const gates = rules.filter((check) => check.id !== 'C-06');
     const blocked = gates.some(
-      (check) => check.status === 'NOT_MET' && !c.waitDates.has(check),
+      (check) => check.status === 'NOT_MET' && !waitDates.has(check),
     );
     const unknown = gates.some((check) => check.status === 'UNKNOWN');
     const status: CountryPathway['status'] =
@@ -669,10 +779,32 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
         ? 'NOT_MET'
         : unknown || (needed && !jointTime) || jointTime?.status === 'UNKNOWN'
           ? 'UNKNOWN'
-          : waits.length > 0 || jointTime?.status === 'FUTURE'
+          : projectedOn || waits.length > 0 || jointTime?.status === 'FUTURE'
             ? 'FUTURE'
             : 'MET';
     const checks = [...timing, ...rules];
+    if (projectedOn) {
+      const projected = c.L(
+        `按预计递件日 ${projectedOn} 适用的规定核对。`,
+        `Assessed under the law in force on the projected filing date, ${projectedOn}.`,
+      );
+      summary = summary ? projected + ' ' + summary : projected;
+      for (const check of checks) {
+        const date = waitsFromReview.get(check.id);
+        if (!date || check.status !== 'MET') continue;
+        check.status = 'NOT_MET';
+        if (check.id === id + '-TIME')
+          check.explanation = c.L(
+            `按递件时适用的规定，时间条件于 ${date} 满足。`,
+            `The timing requirement is met on ${date} under the law in force on filing.`,
+          );
+        else if (!check.explanation.includes(date))
+          check.explanation += c.L(
+            ` 最早日期为 ${date}。`,
+            ` Earliest date: ${date}.`,
+          );
+      }
+    }
     return {
       id,
       title: c.L(titles[id][0], titles[id][1]),

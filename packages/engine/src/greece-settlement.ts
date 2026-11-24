@@ -285,12 +285,15 @@ function integrationCheck(r: GrFullRequest, c: GrContext, id: string) {
   );
 }
 
-function incomeMet(r: GrFullRequest): boolean | undefined {
+function incomeMet(
+  r: GrFullRequest,
+  filing = r.simulationDate,
+): boolean | undefined {
   const e = r.residenceIncome;
   if (e?.regularAndDocumented === false || e?.netEur === 0) return false;
   if (e?.netEur === undefined || e.dependants === undefined) return undefined;
-  if (r.simulationDate < v.incomeMethodEffective.value) return undefined;
-  const monthly = wageFloor(r.simulationDate);
+  if (filing < v.incomeMethodEffective.value) return undefined;
+  const monthly = wageFloor(filing);
   if (monthly === undefined) return undefined;
   const base = monthly * v.annualPayPeriods.value;
   // Compare integer percentage units to avoid rounding an inclusive euro boundary up by a cent.
@@ -591,11 +594,8 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       ),
     );
     if (!youth) {
-      // A residence anniversary can place the first possible filing under the amended law.
-      const filingDate =
-        typeof eligible === 'string' ? eligible : r.simulationDate;
       checks.push(
-        filingDate < v.workReformEffective.value
+        legacy
           ? c.check(
               'TY-02',
               '经济与社会融入',
@@ -603,11 +603,7 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
               e.legacyEconomicAndSocialIntegration,
               [migration('161(1)(a), original text'), citizenship('5Α(1)(δ)')],
             )
-          : integrationCheck(
-              legacy ? { ...r, simulationDate: filingDate } : r,
-              c,
-              'TY-02',
-            ),
+          : integrationCheck(r, c, 'TY-02'),
       );
     }
     checks.push(
@@ -622,9 +618,11 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   }
   const conversion = renewal && (ordinary || (legacy && youth));
   const absent = conversion ? conversionAbsences(r) : undefined;
-  const income = legacy ? true : conversion ? incomeMet(r) : undefined;
-  const pending: string[] = [];
   const expiry = e.cardExpiresOn ?? r.currentCardExpiresOn;
+  const filing =
+    expiry && expiry > r.simulationDate ? expiry : r.simulationDate;
+  const income = legacy ? true : conversion ? incomeMet(r, filing) : undefined;
+  const pending: string[] = [];
   if (conversion && absent === undefined && r.trips && expiry)
     pending.push('PD-102');
   if (
@@ -646,12 +644,10 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       'TY-04',
       '到期转换或续期',
       'Conversion or renewal at expiry',
-      renewal && conversion && renewalMet && expiry && expiry > r.simulationDate
-        ? expiry
-        : renewal
-          ? renewalMet
-          : true,
-      [...tenYearLaw, ...incomeSources],
+      conversion
+        ? c.whenDue(renewalMet, expiry, r.simulationDate)
+        : !renewal || renewalMet,
+      [...tenYearLaw, grSource('F36', 'art. 45(18), p. 478'), ...incomeSources],
       legacy
         ? `依原第 161(3) 条，到期时凭旧卡核查最后 ${pilot.longTermYears.value} 年离境后转 Μ.1。`
         : `普通 Μ.2 到期时查最后 ${pilot.longTermYears.value} 年离境和 Μ.1 收入，达标后凭旧卡转 Μ.1；否则可申请其他类别。出生或学籍类每 ${p.years} 年续卡，查连续离境与公共秩序。`,

@@ -135,6 +135,8 @@ interface GreekFamilyAnswers extends FamilyResidence {
   registeredInGreece?: boolean;
   dependent?: boolean;
   genuineRelationship?: boolean;
+  /** For the initial Ο.3, does the applicant live in Greece on a stable basis? */
+  stableResidenceInGreece?: boolean;
   appliedForFullPublicCover?: boolean;
   // Entry or subsequent qualifying civil-registry event (for an initial Ο.3).
   initialFilingFrom?: IsoDate;
@@ -492,10 +494,6 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         : ' Provide proof of completed registration or a lawyer’s certificate confirming registration.';
     const adultOn =
       req.birthDate && addYears(req.birthDate, p.gvFees.value.minorAge);
-    const transferMet =
-      acquisitionEvidence === true
-        ? adultOn && (adultOn <= sim || adultOn)
-        : acquisitionEvidence;
     checks.push(
       c.check(
         'GV-03',
@@ -504,7 +502,7 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         a.title === undefined || !acquisitionKnown
           ? undefined
           : transfer
-            ? transferMet
+            ? c.whenDue(acquisitionEvidence, adultOn, sim)
             : all(
                 a.fullyPaidAndConditionsReleased,
                 a.payment === undefined ? undefined : a.payment !== 'other',
@@ -794,6 +792,15 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         true && a.appliedForFullPublicCover !== false;
     checks.push(
       c.check(
+        'GF-07',
+        '申请人在希腊稳定居住',
+        'Stable residence in Greece',
+        a.stableResidenceInGreece,
+        [grSource('F16', 'art. 93(1), p4163')],
+        '请确认申请人已在希腊安家。仍常住境外、仅短期来访的家属不满足这项条件。',
+        'Confirm that the applicant has established a home in Greece. A family member who normally lives abroad and is visiting temporarily does not meet this condition.',
+      ),
+      c.check(
         'GF-02',
         'Ο.3 的医保及首卡条件',
         'Health cover for the initial Ο.3',
@@ -842,9 +849,7 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         'GF-03',
         '连续合法共居与卡到期后中断',
         'Continuous qualifying residence and interruptions',
-        documented === true
-          ? anniversary && (anniversary <= sim || anniversary)
-          : documented,
+        c.whenDue(documented, anniversary, sim),
         [
           grSource('F36', 'art. 28, art. 93Α(1)'),
           grSource('F16', 'arts. 93(7),(9), 161(1)(δ),(2)'),

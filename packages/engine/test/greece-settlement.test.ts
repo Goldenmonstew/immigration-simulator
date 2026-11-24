@@ -113,6 +113,73 @@ describe('M.1 long-term grant and retention', () => {
       'UNKNOWN',
     );
   });
+  test.each([
+    ['2021-04-01', '2022-04-01', '2026-06-12'],
+    ['2021-08-01', '2022-08-01', '2026-08-01'],
+  ])(
+    'protection claimed on %s and granted on %s gives the first lawful filing on %s under article 179',
+    (claimedOn, grantedOn, filing) => {
+      const request: Partial<GrFullRequest> = {
+        longTerm: { category: 'protected', passportHistory: 'complete' },
+        permits: [{ kind: 'regular', from: grantedOn }],
+        grantedProtection: { claimedOn, grantedOn },
+      };
+      expect(
+        full(lt, { ...request, simulationDate: '2026-06-11' }),
+      ).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: filing,
+      });
+      expect(full(lt, { ...request, simulationDate: filing })).toMatchObject({
+        status: 'MET',
+        earliestDate: filing,
+      });
+    },
+  );
+  test('a forecast spanning both 2026 amendments applies the exclusion of earlier residence', () => {
+    const filing = '2028-01-01';
+    const request: Partial<GrFullRequest> = {
+      longTerm: { category: 'protected', passportHistory: 'complete' },
+      permits: [{ kind: 'regular', from: '2022-08-01' }],
+      grantedProtection: {
+        claimedOn: '2021-08-01',
+        grantedOn: '2022-08-01',
+        priorResidenceExcludedThrough: '2022-12-31',
+      },
+    };
+    expect(
+      full(lt, { ...request, simulationDate: '2026-02-05' }),
+    ).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: filing,
+    });
+    expect(full(lt, { ...request, simulationDate: filing }).status).toBe('MET');
+  });
+  test('an article 52 credit advances the forecast only when the recorded renewal takes effect', () => {
+    const filing = '2026-05-01';
+    const request: Partial<GrFullRequest> = {
+      permits: [
+        { kind: 'regular', from: '2019-01-01', to: '2022-01-01' },
+        { kind: 'regular', from: filing },
+      ],
+      backlogRenewals: [
+        {
+          filedOn: '2022-01-02',
+          permitEffectiveOn: filing,
+          category: 'employment',
+          typeAReceipt: true,
+          pendingAtCommencement: true,
+        },
+      ],
+    };
+    expect(
+      full(lt, { ...request, simulationDate: '2026-02-05' }),
+    ).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: filing,
+    });
+    expect(full(lt, { ...request, simulationDate: filing }).status).toBe('MET');
+  });
   test('the income method and expanded integration credentials apply from their own commencement dates', () => {
     const historical = full(lt, { simulationDate: '2024-09-16' });
     const income = historical.checks.find((c) => c.id === 'LT-02');
@@ -441,6 +508,93 @@ describe('M.2 acquisition and conversion', () => {
       explanation: expect.stringContaining(expiry),
     });
     expect(upcoming).toMatchObject({ status: 'FUTURE', earliestDate: expiry });
+  });
+  test.each([
+    ['2026-02-05', 0, 'MET'],
+    ['2026-02-06', 0, 'NOT_MET'],
+    ['2026-06-01', 0, 'NOT_MET'],
+    ['2026-06-01', undefined, 'UNKNOWN'],
+    // Sufficient on commencement in February, below the gross upper bound on filing in June.
+    ['2026-06-01', 12320, 'UNKNOWN'],
+    ['2026-06-01', 12880, 'MET'],
+  ] as const)(
+    'an ordinary M.2 expiring on %s with income %s has filing-day result %s (articles 38 and 45(18))',
+    (expiry, netEur, expected) => {
+      const request: Partial<GrFullRequest> = {
+        tenYear: {
+          stage: 'renewal',
+          basis: 'residence',
+          hasPriorCard: true,
+          cardExpiresOn: expiry,
+        },
+        residenceIncome: { netEur, dependants: 0, regularAndDocumented: true },
+      };
+      const simulationDate =
+        expiry === '2026-02-05' ? '2026-02-04' : '2026-02-05';
+      const forecast = full(ty, { ...request, simulationDate });
+      const filed = full(ty, { ...request, simulationDate: expiry });
+      expect(filed.checks.find((c) => c.id === 'TY-04')?.status).toBe(expected);
+      expect(filed.status).toBe(expected);
+      expect(forecast.status).toBe(expected === 'MET' ? 'FUTURE' : expected);
+      expect(forecast.earliestDate).toBe(
+        expected === 'MET' ? expiry : undefined,
+      );
+      if (expected === 'MET') {
+        expect(forecast.checks.find((c) => c.id === 'TY-04')).toMatchObject({
+          status: 'NOT_MET',
+          explanation: expect.stringContaining(expiry),
+        });
+      } else {
+        expect(forecast.checks.find((c) => c.id === 'TY-04')?.status).toBe(
+          expected,
+        );
+        expect(filed.earliestDate).toBeUndefined();
+      }
+    },
+  );
+  test('a school-based M.2 can use the new renewal window before its original conversion date', () => {
+    const request: Partial<GrFullRequest> = {
+      tenYear: {
+        stage: 'renewal',
+        basis: 'birth-school',
+        hasPriorCard: true,
+        cardExpiresOn: '2026-06-01',
+      },
+      residenceIncome: undefined,
+    };
+    expect(
+      full(ty, { ...request, simulationDate: '2026-02-05' }),
+    ).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-04-01',
+    });
+    expect(full(ty, { ...request, simulationDate: '2026-04-01' }).status).toBe(
+      'MET',
+    );
+  });
+  test('an M.2 forecast made after commencement uses the income evidence threshold on expiry', () => {
+    const request: Partial<GrFullRequest> = {
+      tenYear: {
+        stage: 'renewal',
+        basis: 'residence',
+        hasPriorCard: true,
+        cardExpiresOn: '2026-06-01',
+      },
+      residenceIncome: {
+        netEur: 12320,
+        dependants: 0,
+        regularAndDocumented: true,
+      },
+    };
+    for (const simulationDate of ['2026-02-06', '2026-06-01']) {
+      const result = full(ty, { ...request, simulationDate });
+      expect(result.checks.find((c) => c.id === 'TY-04')).toMatchObject({
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-304'],
+      });
+      expect(result.status).toBe('UNKNOWN');
+      expect(result.earliestDate).toBeUndefined();
+    }
   });
   test('ten years on definitive permits, study ambiguity and integration', () => {
     for (const c of rules(ty, {})) expect(c.status, c.id).toBe('MET');

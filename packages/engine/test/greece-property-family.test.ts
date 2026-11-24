@@ -1351,10 +1351,41 @@ describe('property and family reviews through evaluateGreeceFull', () => {
       );
     }
   });
+  test.each([
+    [false, 'NOT_MET'],
+    [true, 'MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'Ο.3 first filing after lawful short entry checks whether the applicant lives in Greece on a stable basis (%s)',
+    (stableResidenceInGreece, status) => {
+      const path = full('GR-GREEK-FAMILY-PR', {
+        entry: 'short-stay',
+        greekFamily: {
+          stage: 'initial',
+          relationship: 'spouse',
+          registeredInGreece: true,
+          genuineRelationship: true,
+          qualifyingResidenceDocumented: false,
+          stableResidenceInGreece,
+        },
+      });
+      expect(path.checks.find((check) => check.id === 'C-02')?.status).toBe(
+        'MET',
+      );
+      expect(path.checks.find((check) => check.id === 'GF-01')?.status).toBe(
+        'MET',
+      );
+      verify(path, 'GF-07', status);
+    },
+  );
   test('Ο.3 first filing accepts the explicitly deferred public insurance application receipt', () => {
     verify(
       full('GR-GREEK-FAMILY-PR', {
-        greekFamily: { ...greek, stage: 'initial' },
+        greekFamily: {
+          ...greek,
+          stage: 'initial',
+          stableResidenceInGreece: true,
+        },
         entry: 'short-stay',
         insurance: undefined,
         deferredInitialEvidence: ['public-insurance-application'],

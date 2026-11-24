@@ -503,8 +503,8 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
       'Permit stage and duration',
       true,
       p.workValidity.sources,
-      `按模拟日法律，${w.permit} ${renewal ? '续签' : '首次'}有效期 ${years} 年。${isBlue ? `短合同加 ${validity.blueShortContractExtraMonths} 个月，上限 ${years} 年；护照有效期也影响发卡时长。` : ''}`,
-      `On the simulation date the ${w.permit} ${renewal ? 'renewal' : 'initial permit'} lasts ${years} years.${isBlue ? ` For a shorter contract add ${validity.blueShortContractExtraMonths} months, up to ${years} years. Passport validity can affect the period issued.` : ''}`,
+      `按递件日法律，${w.permit} ${renewal ? '续签' : '首次'}有效期 ${years} 年。${isBlue ? `短合同加 ${validity.blueShortContractExtraMonths} 个月，上限 ${years} 年；护照有效期也影响发卡时长。` : ''}`,
+      `Under the law on the filing date the ${w.permit} ${renewal ? 'renewal' : 'initial permit'} lasts ${years} years.${isBlue ? ` For a shorter contract add ${validity.blueShortContractExtraMonths} months, up to ${years} years. Passport validity can affect the period issued.` : ''}`,
     ),
   );
   const invitation =
