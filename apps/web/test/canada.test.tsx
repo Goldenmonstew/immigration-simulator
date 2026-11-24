@@ -1,5 +1,6 @@
+import { isValidElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import CanadaPage from '../app/canada/page';
 import CanadaPolicyPage from '../app/canada/policy/page';
 import CanadaSimulatePage from '../app/canada/simulate/page';
@@ -29,6 +30,29 @@ const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
       {node}
     </LocaleContext>,
   );
+
+// Keep each rendered input's change handler so a test can type into it.
+type Change = (event: { target: { value: string } }) => void;
+const inputs = new Map<string, Change>();
+vi.mock('../app/simulate/field', async (original) => {
+  const { Field } = await original<typeof import('../app/simulate/field')>();
+  return {
+    Field: (props: Parameters<typeof Field>[0]) => {
+      if (isValidElement<{ onChange: Change }>(props.children))
+        inputs.set(props.id, props.children.props.onChange);
+      return <Field {...props} />;
+    },
+  };
+});
+
+function form(
+  draft: CanadaDraft,
+  update: (patch: Partial<CanadaDraft>) => void = () => {},
+  errors = ca.validateStep(draft),
+) {
+  inputs.clear();
+  return render(CanadaSimulatePage().props.children({ draft, errors, update }));
+}
 
 // Became PR in 2020, then lived abroad from 2021 to mid-2025.
 function residencyDraft(): CanadaDraft {
@@ -189,6 +213,163 @@ test('step validation requires a route and dates, then checks rows, groups and n
   });
 });
 
+// review95-1 #5: a required score set is one question with its own error.
+test('a blank required score set is reported on its fieldset and cannot be bypassed', () => {
+  const id = 'ca-pnp-ontario-language-scores';
+  const draft: CanadaDraft = {
+    ...ca.createDraft(),
+    step: 6,
+    simulationDate: '2026-11-24',
+    goals: ['CA-PNP'],
+    answers: {
+      pnp: {
+        stream: 'ontario-workforce',
+        ontario: { language: { date: '2026-01-01' } as never },
+      },
+    },
+  };
+  expect(ca.validateStep(draft)).toEqual({ [id]: 'ca.error.required' });
+  const html = form(draft);
+  expect(html).toMatch(
+    new RegExp(
+      `<fieldset id="${id}" [^>]*tabindex="-1" aria-invalid="true" aria-describedby="${id}-error">`,
+    ),
+  );
+  expect(html).toContain(`<p id="${id}-error"`);
+  expect(html).toContain(t('ca.error.required'));
+
+  // Four blank scores are no answer at all, in the form and in a share.
+  const blank: CanadaDraft = {
+    ...draft,
+    answers: {
+      pnp: {
+        stream: 'ontario-workforce',
+        ontario: {
+          language: {
+            date: '2026-01-01',
+            scores: [null, null, null, null] as never,
+          },
+        },
+      },
+    },
+  };
+  expect(ca.validateStep(blank)).toEqual({ [id]: 'ca.error.required' });
+  expect(ca.decodeDraft({ ...blank, completed: true })).toBeUndefined();
+  expect(ca.decodeDraft(blank)?.answers.pnp?.ontario?.language).toEqual({
+    date: '2026-01-01',
+  });
+  const job = {
+    from: '2024-01-01',
+    to: '2024-12-31',
+    noc: '21231',
+    teer: 1,
+    dailyHours: Array(7).fill(null),
+  };
+  expect(
+    ca.decodeDraft({
+      ...draft,
+      step: 7,
+      goals: ['CA-EE-CEC'],
+      answers: { express: { workHistory: [job] } },
+    })?.answers.express?.workHistory,
+  ).toEqual([{ from: '2024-01-01', to: '2024-12-31', noc: '21231', teer: 1 }]);
+});
+
+// review95-1 risk 2: periods and documents cannot end before they start.
+test('periods and documents cannot end before they start, and values results stay within the test', () => {
+  const draft: CanadaDraft = {
+    ...ca.createDraft(),
+    simulationDate: '2026-11-24',
+    goals: ['CA-PNP', 'CA-QC-PSTQ', 'CA-AIP'],
+    answers: {
+      federal: {
+        principal: {
+          foreignStays: [
+            {
+              from: '2024-01-01',
+              until: '2023-12-31',
+              currentCountry: false,
+              certificateIssued: '2024-02-01',
+              certificateExpires: '2024-01-31',
+            },
+          ],
+        },
+      },
+      pnp: { nominationIssued: '2026-06-01', nominationExpires: '2026-05-31' },
+      quebec: {
+        principalCsqIssued: '2026-06-01',
+        principalCsqExpires: '2026-05-31',
+        accompanyingCsqs: [
+          { status: 'valid', issued: '2026-06-01', expires: '2026-05-31' },
+        ],
+        principalValues: {
+          online: {
+            completed: '2026-06-01',
+            correctAnswers: 21,
+            attempt: 'first',
+          },
+        },
+      },
+      atlantic: {
+        endorsement: {
+          province: 'NS',
+          issued: '2026-06-01',
+          expires: '2026-05-31',
+        },
+      },
+    },
+  };
+  expect(ca.validateStep({ ...draft, step: 5 })).toEqual({
+    'ca-federal-principal-foreignStays-0-until': 'ca.error.order',
+    'ca-federal-principal-foreignStays-0-certificateExpires': 'ca.error.order',
+  });
+  expect(ca.validateStep({ ...draft, step: 6 })).toEqual({
+    'ca-pnp-nominationExpires': 'ca.error.order',
+  });
+  expect(ca.validateStep({ ...draft, step: 8 })).toEqual({
+    'ca-quebec-principalValues-online-correctAnswers': 'ca.error.range',
+    'ca-quebec-principalCsqExpires': 'ca.error.order',
+    'ca-quebec-accompanyingCsqs-0-expires': 'ca.error.order',
+  });
+  expect(ca.validateStep({ ...draft, step: 9 })).toEqual({
+    'ca-atlantic-endorsement-expires': 'ca.error.order',
+  });
+  // The same day is allowed.
+  const sameDay = structuredClone(draft);
+  sameDay.answers.atlantic!.endorsement!.expires = '2026-06-01';
+  expect(ca.validateStep({ ...sameDay, step: 9 })).toEqual({});
+});
+
+// review95-1 risk 5 and suggestion 3: typed text and the extension date.
+test('typed codes drop surrounding spaces and an extension asks for its date', () => {
+  const draft: CanadaDraft = {
+    ...ca.createDraft(),
+    step: 6,
+    simulationDate: '2026-11-24',
+    goals: ['CA-PNP'],
+    answers: { pnp: { stream: 'ontario-workforce' } },
+  };
+  let patch: Partial<CanadaDraft> = {};
+  form(draft, (next) => (patch = next));
+  inputs.get('ca-pnp-ontario-offerNoc')!({ target: { value: ' 21231 ' } });
+  expect(patch.answers?.pnp?.ontario?.offerNoc).toBe('21231');
+  inputs.get('ca-pnp-ontario-offerNoc')!({ target: { value: '   ' } });
+  expect(patch.answers?.pnp?.ontario).toBeUndefined();
+
+  const extension = 'ca-federal-principal-exam-instructionExtension-until';
+  const html = form({
+    ...draft,
+    step: 5,
+    answers: {
+      federal: {
+        principal: { exam: { instructionExtension: { until: '' } } },
+      },
+    },
+  });
+  expect(html).toContain(`${t('ca.field.extensionUntil')} *</label>`);
+  expect(html).toMatch(new RegExp(`id="${extension}"[^>]* required=""`));
+});
+
 test('drafts round-trip in their envelope and reject malformed answers', () => {
   const draft: CanadaDraft = {
     ...residencyDraft(),
@@ -329,8 +510,7 @@ test.each([
       decodeDraft(ca, encodeDraft(ca, draft))?.answers.pnp?.equityShare,
     ).toBe(percent);
     expect(
-      pathway(draft, 'CA-PNP').checks.find(({ id }) => id === 'CA-R45')
-        ?.status,
+      pathway(draft, 'CA-PNP').checks.find(({ id }) => id === 'CA-R45')?.status,
     ).toBe(status);
   },
 );

@@ -374,7 +374,13 @@ const valuesAttestation = [
     'online',
     [
       required(date('completed')),
-      required(integer('correctAnswers')),
+      required(
+        integer(
+          'correctAnswers',
+          'correctAnswers',
+          v.quebecSelection.value.valuesQuestions,
+        ),
+      ),
       required(choice('attempt', 'attempt', ['first', 'second', 'final'])),
       date('previousAttempt'),
       bool('validStudyOrWorkPermit'),

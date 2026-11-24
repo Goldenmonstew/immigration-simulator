@@ -142,13 +142,35 @@ function checkNumber(field: CanadaField, value: unknown) {
   if (max !== undefined && value > max) return 'ca.error.range';
 }
 
+// A set of numbers with every entry blank is no answer.
+const blankTuple = (field: CanadaField, value: unknown) =>
+  field.type === 'tuple' &&
+  Array.isArray(value) &&
+  value.every((item) => item === null);
+
+// Periods and documents: the second date cannot be before the first.
+const orderedDates = [
+  ['from', 'to'],
+  ['from', 'until'],
+  ['departed', 'returned'],
+  ['issued', 'expires'],
+  ['nominationIssued', 'nominationExpires'],
+  ['certificateIssued', 'certificateExpires'],
+  ['principalCsqIssued', 'principalCsqExpires'],
+] as const;
+
 function checkField(
   field: CanadaField,
   value: unknown,
   id: string,
   errors: Errors,
 ) {
-  if (value === undefined || value === null || value === '') {
+  if (
+    value === undefined ||
+    value === null ||
+    value === '' ||
+    blankTuple(field, value)
+  ) {
     if (field.required) errors[id] = 'ca.error.required';
     return;
   }
@@ -186,25 +208,9 @@ function checkField(
       if (isRecord(value)) checkFields(field.fields, value, id, errors);
       return;
     case 'list':
-      (value as Answers[]).forEach((row, index) => {
-        const rowId = `${id}-${index}`;
-        checkFields(field.fields, row, rowId, errors);
-        for (const [start, end] of [
-          ['from', 'to'],
-          ['departed', 'returned'],
-        ]) {
-          const first = row[start] as string | undefined;
-          const last = row[end] as string | undefined;
-          if (
-            first &&
-            last &&
-            validDate(first) &&
-            validDate(last) &&
-            last < first
-          )
-            errors[`${rowId}-${end}`] = 'ca.error.order';
-        }
-      });
+      (value as Answers[]).forEach((row, index) =>
+        checkFields(field.fields, row, `${id}-${index}`, errors),
+      );
       return;
     case 'routes':
       for (const [route, answer] of Object.entries(value as Answers))
@@ -221,6 +227,13 @@ function checkFields(
 ) {
   for (const field of fields)
     checkField(field, record?.[field.name], `${id}-${field.name}`, errors);
+  for (const [start, end] of orderedDates) {
+    if (!fields.some(({ name }) => name === end)) continue;
+    const first = record?.[start] as string | undefined;
+    const last = record?.[end] as string | undefined;
+    if (first && last && validDate(first) && validDate(last) && last < first)
+      errors[`${id}-${end}`] = 'ca.error.order';
+  }
 }
 
 export function validateCanadaStep(draft: CanadaDraft): Errors {
@@ -270,11 +283,13 @@ function cleanField(field: CanadaField, value: unknown): unknown {
         ? value
         : invalid();
     case 'tuple':
-      return Array.isArray(value) &&
-        value.length === field.size &&
-        value.every((item) => item === null || typeof item === 'number')
-        ? value
-        : invalid();
+      if (
+        !Array.isArray(value) ||
+        value.length !== field.size ||
+        !value.every((item) => item === null || typeof item === 'number')
+      )
+        invalid();
+      return blankTuple(field, value) ? undefined : value;
     case 'dates':
       return Array.isArray(value) &&
         value.every((item) => typeof item === 'string')

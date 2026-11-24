@@ -171,12 +171,13 @@ function Question({
           {until && (
             <Field
               id={`${id}-until`}
-              label={t('ca.field.extensionUntil')}
+              label={`${t('ca.field.extensionUntil')} *`}
               error={errors[`${id}-until`]}
             >
               <input
                 {...inputProps(`${id}-until`, errors)}
                 type="date"
+                required
                 value={(value as { until: string }).until}
                 onChange={(event) => set({ until: event.target.value })}
               />
@@ -202,8 +203,13 @@ function Question({
             value={String(value ?? '')}
             onChange={(event) => {
               const text = event.target.value;
+              // Codes and timestamps are compared exactly.
               set(
-                text.trim() === '' ? undefined : numeric ? Number(text) : text,
+                text.trim() === ''
+                  ? undefined
+                  : numeric
+                    ? Number(text)
+                    : text.trim(),
               );
             }}
           />
@@ -215,9 +221,20 @@ function Question({
         number | null
       )[];
       return (
-        <fieldset className={form.fieldset}>
+        <fieldset
+          id={id}
+          className={form.fieldset}
+          tabIndex={-1}
+          aria-invalid={errors[id] ? true : undefined}
+          aria-describedby={errors[id] ? `${id}-error` : undefined}
+        >
           <legend className={form.legend}>{label}</legend>
           <p className={form.hint}>{t('ca.form.tupleHint')}</p>
+          {errors[id] && (
+            <p id={`${id}-error`} className={form.error}>
+              {t(errors[id])}
+            </p>
+          )}
           {items.map((item, index) => {
             const key = `${id}-${index}`;
             return (

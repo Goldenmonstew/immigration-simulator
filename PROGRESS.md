@@ -530,6 +530,7 @@
 | 577 | 任务 95：政策页组件按国家读 `<国家>.policy.pageTitle`（与任务 93 相同改动），加拿大标题生效。 | apps/web/components/policy-page.tsx |
 | 578 | 任务 95 审核修正（review95-1 问题 2、建议 1）。加拿大模块提供 `activeAnswers`：只把可见步骤、可见分组和已选路径的答案送入引擎、逐步校验与分享链接，本机草稿仍保留隐藏答案。取消魁省或路径后残留的半成品不再让结果页崩溃，也不再卡住第 5 步。 | apps/web/lib/canada-{draft,module}.ts、apps/web/test/canada.test.tsx |
 | 579 | 任务 95 审核修正（review95-1 问题 1）。PNP 投资持股比例在问卷与分享中保留用户填写的百分数，送入引擎时换算为小数，与三分之一门槛同口径；补 1%、33.33%、33.34%、100% 边界回归。 | apps/web/lib/canada-draft.ts、apps/web/test/canada.test.tsx |
+| 580 | 任务 95 审核修正（review95-1 问题 5、风险 2、5、建议 3 部分）。安省语言成绩等必填元组的报错显示在自身 fieldset 上并可聚焦；全空元组按未答处理，不再绕过必填校验与分享解码。期间与证件的起止日期（含警证停留、证书、提名、CSQ、AIP endorsement）不得倒置；魁省价值观线上题数不超过参数题数；文本去除首尾空格；延长体检的日期框标必填。 | apps/web/lib/canada-{draft,fields}.ts、apps/web/app/canada/simulate/fields.tsx、apps/web/test/canada.test.tsx |
 | 590 | 任务 86：核对并登记美国完整版官方快照、哈希及来源网址，追加 PD-260–279。 | docs/SOURCES.md、docs/pending-details.md、policy-sources/、apps/web/lib/sources.ts |
 | 591 | 任务 86：登记美国完整版出处、日期参数、数字门槛及费用。 | packages/policy-data/src/{index.ts,parameters/united-states-2026-11.ts} |
 | 592 | 任务 86：提供美国九路径完整版 CountryResult，接入既有时间计算，增加资格、审查与费用条件、回归测试及页面接线交接。 | packages/engine/src/{index.ts,united-states-full/}、packages/engine/test/united-states-full.test.ts、docs/tasks/reports/86-us-rules.md |
