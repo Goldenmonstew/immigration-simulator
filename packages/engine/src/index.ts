@@ -191,3 +191,5 @@ export type {
   AuTrip,
   AuVisa,
 } from './australia';
+export { DE_FULL_ROUTES, evaluateGermanyFull } from './germany-full';
+export type { DeFullRequest, DeFullRoute } from './germany-full';

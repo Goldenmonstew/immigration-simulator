@@ -1,0 +1,1477 @@
+import {
+  germany2026_11,
+  germanyFull2026_11,
+} from '@uk-immigration/policy-data';
+import type { CefrLevel } from '@uk-immigration/policy-data';
+import type { CountryCheck } from './country-result';
+import { addDays, addMonths, addYears, daysBetween } from './dates';
+import { KIND_NAMES, type DePermitKind } from './germany';
+import type { DeFullRequest } from './germany-full';
+import { all, any, check, src } from './germany-full-shared';
+import { afterYears, HORIZON_YEARS } from './pilot';
+import type { IsoDate } from './types';
+
+type Answer = boolean | undefined;
+const v = germanyFull2026_11.values;
+const pilot = germany2026_11.values;
+const languageOrder = ['below-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const atLeast = (n: number | undefined, limit: number): Answer =>
+  n === undefined ? undefined : n >= limit;
+const negate = (a: Answer): Answer => (a === undefined ? undefined : !a);
+
+interface EmploymentPeriod {
+  /** Inclusive payroll range (YYYY-MM). An open month can only support a forecast. */
+  firstMonth: string;
+  lastMonth: string;
+  /** Reuse for pay changes; distinguish concurrent jobs with the same actual start. */
+  jobId?: string;
+  /** Actual first and last working days (inclusive), distinct from payroll months. */
+  startedOn?: IsoDate;
+  endedOn?: IsoDate;
+  countableAnnualGross?: number;
+  payBand?: 'standard' | 'reduced';
+  /** Recognised § 18g job for this band, including prior visa/other title where accepted. */
+  qualifyingWork?: boolean;
+  pensionForSameMonths?: boolean;
+  /** Authority accepted a historical pay shortfall or the old-law pay test. */
+  historicalPayAccepted?: boolean;
+  /** Pay components, short-time work or parental leave await a historical determination. */
+  historicalPayReviewPending?: boolean;
+}
+
+interface BlueCard {
+  fastTrack?: boolean;
+  language?: CefrLevel | 'below-A1';
+  languageWaiverAcceptedForTier?: boolean;
+  languageWaiverPendingForTier?: boolean;
+  /** Authority's treatment of months before an interruption in the history. */
+  creditBeforeInterruption?: boolean;
+  cardHeldAtDecision?: boolean;
+  /** Complete history; overlapping months are counted once. */
+  employment?: EmploymentPeriod[];
+  countableAnnualGross?: number;
+  contractMonths?: number;
+  jobInGermanyMatchesQualification?: boolean;
+  requiredLicencesHeld?: boolean;
+  genuineEmployment?: boolean;
+  /** No ground in § 19f(1) or (2), including posted workers and pending protection. */
+  noExclusionUnder19f?: boolean;
+  qualification?: 'academic' | 'equivalent-tertiary' | 'none';
+  recognisedQualification?: boolean;
+  tertiaryProgrammeYears?: number;
+  tertiaryLevel?: number;
+  isco?: string;
+  degreeOn?: IsoDate;
+  applicationOn?: IsoDate;
+  /** A renewal of a reduced-band card first issued to a recent graduate. */
+  firstGraduateCardOn?: IsoDate;
+  renewal?: boolean;
+  employmentAgencyApproved?: boolean;
+  /** Years in an eligible IT occupation within the statutory lookback, at degree level. */
+  relevantItYearsInLookback?: number;
+  itExperienceNeededForJob?: boolean;
+  employmentStartedOn?: IsoDate;
+  latestRelevantChangeOn?: IsoDate;
+  changeReported?: boolean;
+  jobChangeDecision?: 'clear' | 'suspended' | 'rejected';
+}
+
+interface FreedomPeriod {
+  from: IsoDate;
+  to?: IsoDate;
+  basis?:
+    | 'work'
+    | 'self-employment'
+    | 'services'
+    | 'seeking-work'
+    | 'inactive'
+    | 'family'
+    | 'retained'
+    | 'none';
+  /** While looking for work beyond the initial period. */
+  seekingWithGenuineProspects?: boolean;
+  /** The actual date of starting the job search, if earlier than this period. */
+  searchSince?: IsoDate;
+  resourcesAndInsurance?: boolean;
+  /** Includes the sponsor's lawful status and living together where required. */
+  familyRightConfirmed?: boolean;
+  retainedPersonalRightConfirmed?: boolean;
+}
+
+interface EarlyFreedom {
+  basis:
+    | 'none'
+    | 'retirement'
+    | 'disability'
+    | 'frontier'
+    | 'bereaved'
+    | 'family-of-worker';
+  /** At cessation of work / death; applies to the relevant worker before that event. */
+  qualifyingWorker?: boolean;
+  continuousResidenceYearsAtEvent?: number;
+  finalMonthsWorked?: number;
+  ageAtRetirement?: number;
+  retiredUnderEarlyScheme?: boolean;
+  ceasedBecauseFullyIncapacitated?: boolean;
+  occupationalInjuryWithGermanPension?: boolean;
+  /** German spouse/partner or the applicable historical loss of German nationality. */
+  spouseNationalityException?: boolean;
+  continuousGermanWorkYears?: number;
+  worksInOtherMemberState?: boolean;
+  retainsGermanHome?: boolean;
+  returnsWeekly?: boolean;
+  familyWasResidentWithWorker?: boolean;
+  occupationalDeath?: boolean;
+  survivingPartnerNationalityException?: boolean;
+  workerAcquiredEarlyRight?: boolean;
+}
+
+interface FreeMovement {
+  /** Applicant is an EU/EEA citizen, eligible family/close person, or a retained-right holder. */
+  withinPersonalScope?: boolean;
+  permanentRightPreviouslyAcquired?: boolean;
+  /** Complete period history, including periods retained following job/family changes. */
+  periods?: FreedomPeriod[];
+  /** § 4a(6) for the claimed period. Totals are per residence year. */
+  annualOrdinaryAbsenceMonths?: number[];
+  importantAbsences?: { months: number; reasonAccepted?: boolean }[];
+  early?: EarlyFreedom;
+  /** Since the most recent acquisition, including any still-open absence. */
+  subsequentTrips?: {
+    departed: IsoDate;
+    returned?: IsoDate;
+    nonTemporary?: boolean;
+  }[];
+  lossDecision?: 'clear' | 'pending' | 'lost';
+}
+
+type TitleKind = DePermitKind | 'blue-card-family' | 'ict' | 'visa';
+interface TitleTrip {
+  departed: IsoDate;
+  returned?: IsoDate;
+  nonTemporary?: boolean;
+  /** null means the ordinary deadline applies. */
+  approvedReturnBy?: IsoDate | null;
+  /** Report the applicable exception or explicitly select none. */
+  exception?:
+    | 'none'
+    | 'eu-mobility'
+    | 'military'
+    | 'forced-marriage'
+    | 'refugee-document';
+  militaryDischargedOn?: IsoDate;
+  coercionEndedOn?: IsoDate;
+  qualifiesUnder37?: boolean;
+  /** All uninterrupted periods outside the territory granting long-term resident status. */
+  outsideArea?: { from: IsoDate; to?: IsoDate }[];
+}
+
+export interface TitleReview {
+  /** Start of this document's validity, when available to match it to a timeline record. */
+  from?: IsoDate;
+  /** § 23(4) or a qualifying § 104(5) resettlement decision for this document. */
+  protectedResettlement?: boolean;
+  /** One record per present document, including independent concurrent permanent titles. */
+  kind: TitleKind;
+  /** No applicable termination event other than absence or expiry; for § 9a only § 51(9). */
+  noOtherLossEvent?: boolean;
+  /** null means the validity term is known to cover the simulation date. */
+  validTo?: IsoDate | null;
+  /** An in-time application is still effective on the simulation date. */
+  continuingUnder81?: boolean;
+  trips?: TitleTrip[];
+  /** Applicant's lawful years, or their cohabiting spouse's qualifying 15-year history. */
+  lawfulYears?: number;
+  spouseHasQualifyingLongResidence?: boolean;
+  ageOnDeparture?: number;
+  germanSpouseLivingTogether?: boolean;
+  livelihoodSecured?: boolean;
+  noListedExpulsionInterest?: boolean;
+  priorBlueCardOrQualifyingFamilyTitle?: boolean;
+  multipleEntryVisa?: boolean;
+  visaDurationDays?: number;
+}
+
+export interface DocumentReviews {
+  current?: TitleReview;
+  unresolved?: ReadonlySet<TitleReview>;
+}
+
+export interface DeMobilityAnswers {
+  blueCard?: BlueCard;
+  freedom?: FreeMovement;
+  titles?: TitleReview[];
+}
+
+interface PayrollPeriod extends EmploymentPeriod {
+  job: { lastMonth: string; endedOn?: IsoDate };
+}
+
+// A payslip ends a pay segment. Only an actual last working day ends the job.
+function payrollPeriods(
+  b: BlueCard,
+  rows: EmploymentPeriod[],
+): PayrollPeriod[] {
+  const jobs = new Map<string, PayrollPeriod['job']>();
+  return rows
+    .map((row) => {
+      const startedOn =
+        row.startedOn ??
+        (rows.filter((r) => r.firstMonth === row.firstMonth).length === 1
+          ? [b.employmentStartedOn, b.latestRelevantChangeOn].find(
+              (d) => d?.slice(0, 7) === row.firstMonth,
+            )
+          : undefined);
+      const key = startedOn && JSON.stringify([row.jobId, startedOn]);
+      const job = (key && jobs.get(key)) || { lastMonth: row.lastMonth };
+      if (row.lastMonth > job.lastMonth) job.lastMonth = row.lastMonth;
+      if (row.endedOn && (!job.endedOn || row.endedOn < job.endedOn))
+        job.endedOn = row.endedOn;
+      if (key) jobs.set(key, job);
+      return { ...row, startedOn, job };
+    })
+    .map((row) => ({ ...row, endedOn: row.job.endedOn }));
+}
+
+function salaryMeets(
+  year: string,
+  gross: number | undefined,
+  band: 'standard' | 'reduced',
+): Answer {
+  const pay: Record<string, number> =
+    band === 'standard'
+      ? v.blueCardStandardPay.value
+      : v.blueCardReducedPay.value;
+  return pay[year] === undefined ? undefined : atLeast(gross, pay[year]);
+}
+
+const shiftMonth = (month: string, offset: number) =>
+  addMonths(month + '-01', offset).slice(0, 7);
+
+// PD-120: when the anniversary day does not exist, the period is complete
+// on the first of the following month.
+function employmentAnniversary(start: IsoDate, months: number) {
+  const date = addMonths(start, months);
+  return date.slice(8) === start.slice(8) ? date : addDays(date, 1);
+}
+
+// BMI Nr. 18c.2.1.2 (pp117–118): a new annual floor may temporarily
+// exceed an existing wage if a later raise restores it and pay qualifies at issue.
+function annualRaiseCredits(
+  band: 'standard' | 'reduced',
+  history: [string, PayrollPeriod[]][],
+  b: BlueCard,
+  sim: IsoDate,
+  decisionPay: Answer,
+) {
+  const simulationMonth = sim.slice(0, 7);
+  const credits = new Map<string, Answer>();
+  let shortfall: string[] = [];
+  let supported: Answer = true;
+  const finish = (restored: Answer) => {
+    for (const month of shortfall)
+      credits.set(month, all(restored, supported, decisionPay));
+    shortfall = [];
+    supported = true;
+  };
+  let previousMonth: string | undefined;
+  let previousGross: number | undefined;
+  let previousWork: PayrollPeriod[] = [];
+  let previousPay: Answer;
+  const changeMonth = b.latestRelevantChangeOn?.slice(0, 7);
+  for (const [month, records] of history) {
+    const work = records.filter(
+      (r) => r.qualifyingWork !== false && (r.payBand === band || !r.payBand),
+    );
+    const gross = work[0]?.countableAnnualGross;
+    const next =
+      previousMonth !== undefined && shiftMonth(previousMonth, 1) === month;
+    // A higher overlapping wage is not evidence that the lower wage was raised.
+    if (!work.length || work.some((r) => r.countableAnnualGross !== gross)) {
+      finish(undefined);
+      previousMonth = undefined;
+      continue;
+    }
+    const pay = salaryMeets(month.slice(0, 4), gross, band);
+    const cut =
+      previousGross !== undefined &&
+      gross !== undefined &&
+      gross < previousGross;
+    if (!next || cut) finish(undefined);
+    const boundary = month + '-01';
+    // Adjacent payslips alone cannot connect a pay shortfall to a later raise.
+    const continuous =
+      previousWork.some((prior) => work.some((r) => r.job === prior.job)) ||
+      (previousWork.some(
+        (r) => r.endedOn && addDays(r.endedOn, 1) >= boundary,
+      ) &&
+        work.some((r) => r.startedOn && r.startedOn <= boundary));
+    const differentJobs = previousWork.every(
+      (prior) =>
+        prior.jobId && work.every((r) => r.jobId && r.jobId !== prior.jobId),
+    );
+    const separated =
+      next &&
+      (differentJobs ||
+        previousWork.every(
+          (r) => r.endedOn && addDays(r.endedOn, 1) < boundary,
+        ) ||
+        work.every((r) => r.startedOn && r.startedOn > boundary));
+    if (separated) finish(false);
+    const newFloor =
+      next &&
+      month.endsWith('-01') &&
+      !cut &&
+      !separated &&
+      previousPay !== false &&
+      pay !== true &&
+      salaryMeets(shiftMonth(month, -1).slice(0, 4), gross, band) !== false;
+    const documented = work.some(
+      (r) =>
+        r.qualifyingWork && r.payBand === band && !r.historicalPayReviewPending,
+    );
+    if (shortfall.length || newFloor) {
+      if (newFloor && !shortfall.length) supported = previousPay;
+      if (
+        !documented ||
+        !continuous ||
+        gross === undefined ||
+        month === changeMonth ||
+        (!changeMonth && b.changeReported !== undefined)
+      )
+        supported = undefined;
+      if (pay === true) finish(true);
+      else shortfall.push(month);
+    }
+    previousMonth = month;
+    previousGross = gross;
+    previousWork = work;
+    previousPay = all(pay, documented ? true : undefined);
+  }
+  // The decision salary may be the first raise following the last completed month.
+  if (previousMonth && shiftMonth(previousMonth, 1) === simulationMonth) {
+    if (
+      simulationMonth === changeMonth ||
+      previousWork.every((r) => r.endedOn && r.endedOn < sim)
+    )
+      supported = undefined;
+    finish(
+      salaryMeets(simulationMonth.slice(0, 4), b.countableAnnualGross, band),
+    );
+  } else {
+    finish(previousMonth === simulationMonth ? previousPay : undefined);
+  }
+  return credits;
+}
+
+// Half-open working intervals: the anniversary is assessed at the start of the
+// decision day, and the last working day belongs to a completed period.
+interface WorkInterval {
+  from: IsoDate;
+  until: IsoDate;
+}
+
+function unionIntervals(intervals: WorkInterval[]) {
+  const spans: WorkInterval[] = [];
+  for (const { from, until } of intervals.sort((a, b) =>
+    a.from.localeCompare(b.from),
+  )) {
+    const last = spans.at(-1);
+    if (!last || from > last.until) spans.push({ from, until });
+    else if (until > last.until) last.until = until;
+  }
+  return spans;
+}
+
+function completedMonths({ from, until }: WorkInterval) {
+  const [year, month] = until.split('-').map(Number);
+  const [startYear, startMonth] = from.split('-').map(Number);
+  const months = (year - startYear) * 12 + month - startMonth;
+  return months - Number(employmentAnniversary(from, months) > until);
+}
+
+interface EmploymentEvidence {
+  month: string;
+  period: PayrollPeriod;
+  credit: Answer;
+}
+
+function employmentBound(
+  evidence: EmploymentEvidence[],
+  b: BlueCard,
+  sim: IsoDate,
+  possible: boolean,
+) {
+  const lastMonth = evidence.at(-1)?.month;
+  const closedUntil = sim.slice(0, 7) + '-01';
+  const startOfRecord = (p: EmploymentPeriod) =>
+    p.startedOn ?? p.firstMonth + '-01';
+  const lastStart = evidence
+    .filter((r) => r.month === lastMonth)
+    .map((r) => startOfRecord(r.period))
+    .sort()
+    .at(-1);
+  const accepts = (fact: Answer) =>
+    fact === true || (possible && fact === undefined);
+  const lastPayrollByJob = new Map<PayrollPeriod['job'], string>();
+  for (const { month, period } of evidence)
+    lastPayrollByJob.set(period.job, month);
+  const slices = evidence.map(({ month, period, credit }) => {
+    const first = month + '-01';
+    const next = addMonths(first, 1);
+    const actualStart = period.startedOn;
+    // A monthly contribution certifies neither the first nor the last working day.
+    const start =
+      actualStart ??
+      (month === period.firstMonth && !possible ? addDays(next, -1) : first);
+    // If only the month is known, the start cannot be later than the
+    // observation or a known last working day in that month.
+    let from = start > first ? start : first;
+    if (from > sim) from = sim;
+    if (period.endedOn && from > period.endedOn) from = period.endedOn;
+    const current =
+      month === lastMonth &&
+      (period.endedOn
+        ? period.endedOn >= sim
+        : possible ||
+          period.job.lastMonth > month ||
+          startOfRecord(period) === lastStart);
+    let until = next;
+    if (
+      month === period.job.lastMonth &&
+      month === lastPayrollByJob.get(period.job) &&
+      !period.endedOn &&
+      !current &&
+      !possible
+    ) {
+      // A one-month record with unknown dates proves no specific working day.
+      until =
+        month === period.firstMonth && !actualStart ? from : addDays(from, 1);
+    }
+    if (period.endedOn && period.endedOn < until)
+      until = addDays(period.endedOn, 1);
+    if (until > sim) until = sim;
+    return { from, until, period, credit, month };
+  });
+
+  // Pay records may have a gap even though both refer to the same job.
+  // Bridge work on that job, preserving the separate slices for contributions.
+  const work: WorkInterval[] = [];
+  const jobs = new Map<PayrollPeriod['job'], WorkInterval>();
+  for (const slice of slices) {
+    const job = slice.period.job;
+    if (!accepts(slice.period.qualifyingWork)) {
+      jobs.delete(job);
+      continue;
+    }
+    const span = jobs.get(job);
+    if (span) {
+      if (slice.until > span.until) span.until = slice.until;
+    } else {
+      const span = { from: slice.from, until: slice.until };
+      jobs.set(job, span);
+      work.push(span);
+    }
+  }
+  const working = unionIntervals(work);
+  const lastWork = working.at(-1);
+  if (!lastWork) return { months: 0 };
+  const combine =
+    b.creditBeforeInterruption === true ||
+    (possible && b.creditBeforeInterruption === undefined);
+  // A definite break discards earlier employment when the authority excludes it.
+  // A possible break affects only the lower bound until continuity is established.
+  if (!combine && slices.some((s) => s.until > lastWork.until))
+    return { months: 0 };
+  // A confirmed contribution covers work inside its closed payroll month only.
+  const credited = slices.filter(
+    (s) =>
+      s.from < closedUntil &&
+      s.from < s.until &&
+      accepts(s.credit) &&
+      (combine || s.from >= lastWork.from),
+  );
+  const spans = unionIntervals(credited);
+  if (!spans.length) return { months: 0 };
+  const days = spans.reduce(
+    (sum, span) => sum + daysBetween(span.from, span.until),
+    0,
+  );
+  const dayMonth = pilot.daysPerMonth.value; // SRC-102, BGB § 191.
+  const duration =
+    spans.length === 1
+      ? completedMonths(spans[0])
+      : Math.floor(days / dayMonth);
+  const payrollMonths = new Set(credited.map((s) => s.month)).size;
+  const months = Math.min(duration, payrollMonths);
+  return {
+    months,
+    splitPossible:
+      spans.length > 1 ||
+      (working.length > 1 && b.creditBeforeInterruption !== false),
+    // With an unknown internal gap either § 191 or the calendar anniversary
+    // may govern. A split loses at least one day from the widest interval.
+    calendarMonths: Math.min(
+      payrollMonths,
+      completedMonths({
+        from: spans[0].from,
+        until: spans[spans.length - 1].until,
+      }),
+    ),
+    splitMonths:
+      spans.length === 1
+        ? Math.min(payrollMonths, Math.floor(Math.max(0, days - 1) / dayMonth))
+        : undefined,
+  };
+}
+
+function monthBounds(
+  evidence: EmploymentEvidence[],
+  b: BlueCard,
+  date: IsoDate,
+) {
+  const lower = employmentBound(evidence, b, date, false);
+  const upper = employmentBound(evidence, b, date, true);
+  if (lower.splitPossible && upper.splitMonths !== undefined)
+    return {
+      confirmed: Math.min(lower.months, lower.calendarMonths),
+      possible: Math.max(upper.months, upper.splitMonths),
+    };
+  return { confirmed: lower.months, possible: upper.months };
+}
+
+function employmentMonths(
+  req: DeFullRequest,
+  decisionPay: Answer,
+  project = false,
+): {
+  confirmed?: number;
+  possible?: number;
+  employed?: Answer;
+  windows?: WorkInterval[];
+} {
+  const b = req.mobility?.blueCard;
+  if (!b?.employment) {
+    return {
+      confirmed: req.blueCardEmploymentMonths,
+      possible: req.blueCardEmploymentMonths,
+    };
+  }
+  const periods = payrollPeriods(b, b.employment);
+  const history = new Map<string, PayrollPeriod[]>();
+  const sim = req.simulationDate;
+  const simulationMonth = sim.slice(0, 7);
+  for (const period of periods) {
+    if (period.startedOn && period.startedOn > sim) continue;
+    const startMonth = period.startedOn?.slice(0, 7);
+    const endMonth = period.endedOn?.slice(0, 7) ?? period.lastMonth;
+    for (
+      let month =
+        startMonth && startMonth > period.firstMonth
+          ? startMonth
+          : period.firstMonth;
+      month <= period.lastMonth &&
+      month <= endMonth &&
+      month <= simulationMonth;
+      month = shiftMonth(month, 1)
+    ) {
+      const records = history.get(month);
+      if (records) records.push(period);
+      else history.set(month, [period]);
+    }
+  }
+  const ordered = [...history.entries()].sort(([a], [b]) => a.localeCompare(b));
+  const raises = {
+    standard: annualRaiseCredits('standard', ordered, b, sim, decisionPay),
+    reduced: annualRaiseCredits('reduced', ordered, b, sim, decisionPay),
+  };
+  function qualifyingPay(
+    month: string,
+    period: PayrollPeriod,
+    forecast: boolean,
+  ) {
+    const band = period.payBand;
+    if (!band) return undefined;
+    const pay = salaryMeets(
+      month.slice(0, 4),
+      period.countableAnnualGross,
+      band,
+    );
+    if (
+      period.historicalPayReviewPending &&
+      period.historicalPayAccepted !== true
+    )
+      return undefined;
+    if (!forecast) {
+      if (period.historicalPayAccepted === true) return true;
+      if (
+        pay === false &&
+        period.historicalPayAccepted !== false &&
+        raises[band].has(month)
+      )
+        return raises[band].get(month);
+    }
+    // Project continued qualifying pay beyond published annual floors only as
+    // an assumption for an already qualifying salary, never as historical credit.
+    return forecast &&
+      month > period.lastMonth &&
+      pay === undefined &&
+      month.slice(0, 4) > sim.slice(0, 4)
+      ? salaryMeets(sim.slice(0, 4), period.countableAnnualGross, band)
+      : pay;
+  }
+  const reported = ordered.flatMap(([month, records]) =>
+    records.map((period) => ({
+      month,
+      period,
+      credit: all(
+        period.qualifyingWork,
+        period.pensionForSameMonths,
+        qualifyingPay(month, period, false),
+      ),
+    })),
+  );
+  const startedJobs = periods.filter(
+    (r) => (r.startedOn ?? r.firstMonth + '-01') <= sim,
+  );
+  const today = {
+    ...monthBounds(reported, b, sim),
+    employed: periods.length
+      ? startedJobs.some((r) => !r.endedOn || r.endedOn >= sim)
+      : undefined,
+  };
+  if (!project) return today;
+
+  // Keep forecast evidence separate. Each new month closes the previous
+  // payslip. Explicit future pay, work and pension records override continuation.
+  const threshold = (
+    blueTier(req) ? pilot.blueCardB1Months : pilot.blueCardMonths
+  ).value;
+  const evidence = reported.filter((r) => r.month < simulationMonth);
+  const horizon = addYears(sim, HORIZON_YEARS);
+  const windows: WorkInterval[] = [];
+  let previous =
+    ordered.filter(([month]) => month < simulationMonth).at(-1)?.[1] ?? [];
+  for (
+    let month = simulationMonth;
+    month <= horizon.slice(0, 7);
+    month = shiftMonth(month, 1)
+  ) {
+    const first = month + '-01';
+    const next = addMonths(first, 1);
+    const explicit = periods.filter(
+      (r) =>
+        r.firstMonth <= month &&
+        month <= r.lastMonth &&
+        (!r.startedOn || r.startedOn < next) &&
+        (!r.endedOn || r.endedOn >= first),
+    );
+    const latestStart = previous
+      .map((r) => r.startedOn ?? r.firstMonth + '-01')
+      .sort()
+      .at(-1);
+    const carried = previous.filter(
+      (r) =>
+        !explicit.some((e) => e.job === r.job) &&
+        (r.endedOn
+          ? r.endedOn >= first
+          : !explicit.length &&
+            (r.startedOn ?? r.firstMonth + '-01') === latestStart),
+    );
+    const records = [...explicit, ...carried];
+    previous = records;
+    if (!records.length) {
+      if (!periods.some((r) => r.firstMonth > month)) break;
+      continue;
+    }
+    const current = records.map((period) => {
+      const work = all(
+        period.qualifyingWork,
+        qualifyingPay(month, period, true),
+      );
+      return {
+        month,
+        period,
+        work,
+        credit: all(
+          work,
+          month > period.lastMonth || period.pensionForSameMonths !== false,
+        ),
+      };
+    });
+    // Within a payroll month only an actual job start or end can change
+    // whether there is a qualifying job on the decision date.
+    const boundaries = new Set([first, next]);
+    for (const { period } of current) {
+      if (
+        period.startedOn &&
+        period.startedOn > first &&
+        period.startedOn < next
+      )
+        boundaries.add(period.startedOn);
+      if (period.endedOn && period.endedOn >= first && period.endedOn < next)
+        boundaries.add(addDays(period.endedOn, 1));
+    }
+    const dates = [...boundaries].sort();
+    for (let i = 0; i + 1 < dates.length; i++) {
+      const from = dates[i] < sim ? sim : dates[i];
+      if (from >= dates[i + 1]) continue;
+      const started = current.filter(
+        ({ period }) => !period.startedOn || period.startedOn <= from,
+      );
+      const decisionWork = any(
+        ...started
+          .filter(({ period }) => !period.endedOn || period.endedOn >= from)
+          .map(({ work }) => work),
+      );
+      if (decisionWork === false) continue;
+      const { confirmed, possible } = monthBounds(
+        [...evidence, ...started],
+        b,
+        from,
+      );
+      if (possible < threshold) continue;
+      // Where different histories yield different first dates the date is unresolved.
+      if (
+        (confirmed < threshold || decisionWork === undefined) &&
+        !windows.length
+      )
+        return { ...today, windows };
+      if (confirmed >= threshold && decisionWork)
+        windows.push({ from, until: dates[i + 1] });
+    }
+    evidence.push(...current);
+  }
+  return { ...today, windows: unionIntervals(windows) };
+}
+
+function blueLanguage(req: DeFullRequest): string | undefined {
+  const explicit = req.mobility?.blueCard?.language ?? req.common?.provenGerman;
+  if (explicit) return explicit === 'none' ? 'below-A1' : explicit;
+  return req.common?.integrationCoursePassed || req.germanB1
+    ? v.blueCardLanguage.value[1]
+    : undefined;
+}
+
+function blueTier(req: DeFullRequest): Answer {
+  const selected = req.mobility?.blueCard?.fastTrack;
+  if (selected !== undefined) return selected;
+  const level = blueLanguage(req);
+  return level
+    ? languageOrder.indexOf(level) >=
+        languageOrder.indexOf(v.blueCardLanguage.value[1])
+    : req.germanB1;
+}
+
+function currentBlueCardPay(req: DeFullRequest): Answer {
+  const b = req.mobility?.blueCard ?? {};
+  const p = v.blueCardJob.value;
+  const year = req.simulationDate.slice(0, 4);
+  const shortage =
+    b.isco === undefined
+      ? undefined
+      : v.blueCardShortageGroups.value.some((code) => b.isco!.startsWith(code));
+  const it =
+    b.isco === undefined
+      ? undefined
+      : v.blueCardItGroups.value.some((code) => b.isco!.startsWith(code));
+  const recentGraduate =
+    b.degreeOn && b.applicationOn
+      ? b.applicationOn >= b.degreeOn &&
+        b.applicationOn <= afterYears(b.degreeOn, p.recentDegreeYears)
+      : undefined;
+  const graduateRenewal = all(
+    b.renewal,
+    b.applicationOn && b.firstGraduateCardOn
+      ? b.applicationOn >= b.firstGraduateCardOn &&
+          b.applicationOn < addMonths(b.firstGraduateCardOn, p.renewalMonths)
+      : undefined,
+  );
+  const academic = all(
+    b.recognisedQualification,
+    b.qualification === undefined
+      ? undefined
+      : b.qualification === 'academic'
+        ? true
+        : b.qualification === 'equivalent-tertiary'
+          ? all(
+              atLeast(b.tertiaryProgrammeYears, p.tertiaryYears),
+              atLeast(b.tertiaryLevel, p.tertiaryLevel),
+            )
+          : false,
+  );
+  const itExperience = all(
+    it,
+    atLeast(b.relevantItYearsInLookback, p.experienceYears),
+    b.itExperienceNeededForJob,
+  );
+  const standard = all(
+    academic,
+    salaryMeets(year, b.countableAnnualGross, 'standard'),
+  );
+  const reduced = all(
+    b.employmentAgencyApproved,
+    salaryMeets(year, b.countableAnnualGross, 'reduced'),
+    any(
+      itExperience,
+      all(academic, any(shortage, recentGraduate, graduateRenewal)),
+    ),
+  );
+  return any(standard, reduced);
+}
+
+export function blueCardTimeInputs(req: DeFullRequest) {
+  const months = employmentMonths(req, currentBlueCardPay(req), true);
+  return {
+    germanB1: blueTier(req),
+    blueCardEmploymentMonths:
+      months.confirmed === months.possible ? months.confirmed : undefined,
+    employmentWindows: months.windows,
+  };
+}
+
+function blueCardChecks(
+  req: DeFullRequest,
+  reviews?: DocumentReviews,
+): CountryCheck[] {
+  const b = req.mobility?.blueCard ?? {};
+  const p = v.blueCardJob.value;
+  const fast = blueTier(req);
+  const threshold = fast ? pilot.blueCardB1Months : pilot.blueCardMonths;
+  const level = v.blueCardLanguage.value[fast ? 1 : 0];
+  const evidence = blueLanguage(req);
+  const language = evidence
+    ? languageOrder.indexOf(evidence) >= languageOrder.indexOf(level)
+    : undefined;
+  const decisionPay = currentBlueCardPay(req);
+  const months = employmentMonths(req, decisionPay);
+  // When the language tier is unknown, 21–26 months could already suffice.
+  const possibleThreshold =
+    fast === undefined ? pilot.blueCardB1Months.value : threshold.value;
+  const requiredMonths =
+    fast === undefined
+      ? `${possibleThreshold}–${threshold.value}`
+      : String(threshold.value);
+  const enoughMonths =
+    atLeast(months.confirmed, threshold.value) === true
+      ? true
+      : atLeast(months.possible, possibleThreshold) === false
+        ? false
+        : undefined;
+  const activePermit = req.permits
+    ?.filter((p) => p.from <= req.simulationDate)
+    .sort((a, b) => b.from.localeCompare(a.from))[0];
+  const recordedCard =
+    activePermit?.kind === 'blue-card'
+      ? !activePermit.to || activePermit.to >= req.simulationDate
+        ? true
+        : activePermit.renewing
+          ? undefined
+          : false
+      : req.permits
+        ? false
+        : undefined;
+  const card = req.mobility?.titles
+    ? retainedTitle(req, 'blue-card', reviews)
+    : (b.cardHeldAtDecision ??
+      recordedCard ??
+      (req.citizenship?.currentTitle === 'blue-card' ? true : undefined));
+  const reportingEnds =
+    b.employmentStartedOn &&
+    employmentAnniversary(b.employmentStartedOn, p.jobChangeMonths);
+  const inReportingPeriod =
+    b.latestRelevantChangeOn &&
+    b.employmentStartedOn &&
+    b.latestRelevantChangeOn >= b.employmentStartedOn &&
+    b.latestRelevantChangeOn <= req.simulationDate &&
+    reportingEnds &&
+    b.latestRelevantChangeOn < reportingEnds;
+  const undatedChange = b.latestRelevantChangeOn
+    ? b.latestRelevantChangeOn <= req.simulationDate && !b.employmentStartedOn
+    : b.changeReported !== undefined;
+  const changeCleared =
+    b.jobChangeDecision === 'rejected'
+      ? false
+      : b.jobChangeDecision === 'suspended'
+        ? undefined
+        : b.jobChangeDecision === 'clear' ||
+            (inReportingPeriod &&
+              b.changeReported === true &&
+              req.simulationDate >= reportingEnds) ||
+            (!inReportingPeriod && !undatedChange)
+          ? true
+          : undefined;
+  const currentJob = all(
+    months.employed !== false,
+    b.jobInGermanyMatchesQualification,
+    b.genuineEmployment,
+    b.requiredLicencesHeld,
+    b.noExclusionUnder19f,
+    atLeast(b.contractMonths, p.minimumContractMonths),
+    changeCleared,
+  );
+  const changeNote: [string, string] = inReportingPeriod
+    ? [
+        `首次就业的前 ${p.jobChangeMonths} 个月内发生变更，通报状态：${b.changeReported === true ? '已报' : b.changeReported === false ? '未报' : '未知'}。换岗无需事先许可。机关可在此期间暂停换岗，并自实际通知暂停之日起 ${p.suspensionDays} 天内拒绝。`,
+        `The change falls within the first ${p.jobChangeMonths} months. Notification: ${b.changeReported === true ? 'reported' : b.changeReported === false ? 'not reported' : 'unknown'}. Prior permission is not required. The authority may suspend the change during that period and reject it within ${p.suspensionDays} days of notifying the holder of the suspension.`,
+      ]
+    : [
+        `核实工作、职业许可与当前状态。首 ${p.jobChangeMonths} 个月换岗可被暂停 ${p.suspensionDays} 天。`,
+        `Check the job, licence and current decision. During the first ${p.jobChangeMonths} months a job change can be suspended for ${p.suspensionDays} days.`,
+      ];
+  const c = req.locale;
+  return [
+    check(
+      c,
+      'DE-C19',
+      '决定日仍持有效蓝卡',
+      'A current EU Blue Card at decision',
+      card,
+      [src(100, '§ 18c Abs. 2 Satz 1'), src(107, 'Nr. 18c.2.1.1, p117')],
+      'PD-353',
+    ),
+    check(
+      c,
+      'DE-C19-months',
+      '合格就业与同期养老缴费月数',
+      'Qualifying employment months with matching pension contributions',
+      enoughMonths,
+      [
+        ...threshold.sources,
+        ...pilot.blueCardB1Months.sources,
+        ...pilot.daysPerMonth.sources,
+        src(431, 'Voraussetzungen – Beschäftigung'),
+        src(107, 'Nr. 18c.2.1.1–3, pp117–118'),
+        ...v.blueCardReducedPay.sources,
+      ],
+      'PD-123 / PD-350',
+      [
+        `与德语档对应的期限为 ${requiredMonths} 月，已确认 ${months.confirmed ?? '未知'} 月，计入待核月份后至多 ${months.possible ?? '未知'} 月。${b.employment ? '逐月记录只计入模拟日前已结束的缴费月。' : ''}`,
+        `The language-dependent period is ${requiredMonths} months. Confirmed: ${months.confirmed ?? 'unknown'}. Including unresolved months: ${months.possible ?? 'unknown'}.${b.employment ? ' Itemised contributions count only after the payroll month has ended.' : ''}`,
+      ],
+    ),
+    check(
+      c,
+      'DE-C20',
+      '蓝卡定居档对应的德语证明',
+      'German evidence for the selected Blue Card tier',
+      any(
+        language,
+        b.languageWaiverAcceptedForTier === true,
+        b.languageWaiverPendingForTier ? undefined : false,
+      ),
+      v.blueCardLanguage.sources,
+      'PD-347',
+      [
+        `核实 ${level} 或本档获准的豁免。`,
+        `Evidence of ${level} or an accepted waiver for this tier is required.`,
+      ],
+    ),
+    check(
+      c,
+      'DE-C21-job',
+      '当前岗位、合同期限、职业许可与签发排除',
+      'Current job, contract term, professional licence and exclusions',
+      currentJob,
+      [
+        src(100, '§§ 18 Abs. 2, 18g Abs. 1–4, 19f Abs. 1–2, 82 Abs. 1'),
+        src(107, 'Nr. 18c.2.1.1–2, pp117–118'),
+        src(107, 'Nr. 18g.4.0, 18g.4.2–4, pp150–151'),
+      ],
+      'PD-346',
+      changeNote,
+    ),
+    check(
+      c,
+      'DE-C21-pay',
+      '按决定年份核定工资、资格与低档批准',
+      'Pay, qualifications and lower-band approval in the decision year',
+      decisionPay,
+      [
+        ...v.blueCardStandardPay.sources,
+        ...v.blueCardReducedPay.sources,
+        ...v.blueCardJob.sources,
+      ],
+      'PD-350',
+    ),
+  ];
+}
+
+function earlyFreedom(e: EarlyFreedom | undefined): Answer {
+  if (!e) return undefined;
+  const p = v.freeMovementPeriods.value;
+  switch (e.basis) {
+    case 'none':
+      return false;
+    case 'retirement':
+      return all(
+        e.qualifyingWorker,
+        any(
+          atLeast(e.ageAtRetirement, p.retirementAge),
+          e.retiredUnderEarlyScheme,
+        ),
+        any(
+          e.spouseNationalityException,
+          all(
+            atLeast(
+              e.continuousResidenceYearsAtEvent,
+              p.retirementResidenceYears,
+            ),
+            atLeast(e.finalMonthsWorked, p.retirementWorkMonths),
+          ),
+        ),
+      );
+    case 'disability':
+      return all(
+        e.qualifyingWorker,
+        e.ceasedBecauseFullyIncapacitated,
+        any(
+          e.spouseNationalityException,
+          e.occupationalInjuryWithGermanPension,
+          atLeast(
+            e.continuousResidenceYearsAtEvent,
+            p.disabilityResidenceYears,
+          ),
+        ),
+      );
+    case 'frontier':
+      return all(
+        e.qualifyingWorker,
+        atLeast(e.continuousGermanWorkYears, p.frontierWorkYears),
+        e.worksInOtherMemberState,
+        e.retainsGermanHome,
+        e.returnsWeekly,
+      );
+    case 'bereaved':
+      return all(
+        e.qualifyingWorker,
+        e.familyWasResidentWithWorker,
+        any(
+          e.occupationalDeath,
+          e.survivingPartnerNationalityException,
+          atLeast(
+            e.continuousResidenceYearsAtEvent,
+            p.bereavementResidenceYears,
+          ),
+        ),
+      );
+    case 'family-of-worker':
+      return all(e.familyWasResidentWithWorker, e.workerAcquiredEarlyRight);
+  }
+}
+
+function freeResidence(f: FreeMovement, sim: IsoDate): Answer {
+  if (!f.periods) return undefined;
+  const p = v.freeMovementPeriods.value;
+  const spans: { from: IsoDate; to: IsoDate; lawful: Answer }[] = [];
+  for (const period of f.periods) {
+    if (period.from > sim) continue;
+    const end = period.to && period.to < sim ? period.to : sim;
+    let lawful: Answer;
+    switch (period.basis) {
+      case 'work':
+      case 'self-employment':
+      case 'services':
+        lawful = true;
+        break;
+      case 'inactive':
+        lawful = period.resourcesAndInsurance;
+        break;
+      case 'retained':
+        lawful = period.retainedPersonalRightConfirmed;
+        break;
+      case 'family':
+        lawful = period.familyRightConfirmed;
+        break;
+      case 'none':
+        lawful = false;
+        break;
+      case 'seeking-work': {
+        const last = addDays(
+          addMonths(period.searchSince ?? period.from, p.jobseekingMonths),
+          -1,
+        );
+        if (period.from <= last)
+          spans.push({
+            from: period.from,
+            to: end < last ? end : last,
+            lawful: true,
+          });
+        if (end > last)
+          spans.push({
+            from: period.from > last ? period.from : addDays(last, 1),
+            to: end,
+            lawful: period.seekingWithGenuineProspects,
+          });
+        continue;
+      }
+    }
+    spans.push({ from: period.from, to: end, lawful });
+  }
+  spans.sort((a, b) => a.from.localeCompare(b.from));
+  function hasTerm(includeUnresolved: boolean) {
+    let start: IsoDate | undefined, end: IsoDate | undefined;
+    for (const s of spans) {
+      if (s.lawful === false || (!includeUnresolved && s.lawful !== true))
+        continue;
+      if (!start || !end || s.from > addDays(end, 1)) start = s.from;
+      end = end && end > s.to ? end : s.to;
+      if (end >= afterYears(start, p.residenceYears)) return true;
+    }
+    return false;
+  }
+  const time = hasTerm(false) ? true : hasTerm(true) ? undefined : false;
+  const ordinary = f.annualOrdinaryAbsenceMonths?.every(
+    (m) => m <= p.ordinaryAbsenceMonths,
+  );
+  // Only a single absence needing the important-reason exception may be claimed.
+  const absences = f.importantAbsences;
+  const special = !absences
+    ? undefined
+    : absences.length > 1
+      ? false
+      : all(
+          ...absences.map((a) =>
+            all(a.months <= p.importantAbsenceMonths, a.reasonAccepted),
+          ),
+        );
+  return all(time, ordinary, special);
+}
+
+function freedomChecks(req: DeFullRequest): CountryCheck[] {
+  const f = req.mobility?.freedom ?? {};
+  const p = v.freeMovementPeriods.value;
+  const residence = freeResidence(f, req.simulationDate);
+  const early = earlyFreedom(f.early);
+  const acquired = any(
+    f.permanentRightPreviouslyAcquired === true,
+    residence,
+    early,
+  );
+  const subsequent = f.subsequentTrips
+    ?.filter((t) => t.departed <= req.simulationDate)
+    .map((t) => {
+      const until =
+        t.returned && t.returned < req.simulationDate
+          ? t.returned
+          : req.simulationDate;
+      return until <= afterYears(t.departed, p.lossYears)
+        ? true
+        : negate(t.nonTemporary);
+    });
+  const retained = all(
+    subsequent && all(...subsequent),
+    f.lossDecision === 'lost'
+      ? false
+      : f.lossDecision === 'clear'
+        ? true
+        : undefined,
+  );
+  const c = req.locale;
+  const details = f.permanentRightPreviouslyAcquired
+    ? ([
+        '已取得永久权，无需继续就业。',
+        'A previously acquired permanent right does not require ongoing employment.',
+      ] as const)
+    : residence === true
+      ? ([
+          '连续合法自由流动居住达到通常期限。',
+          'The ordinary continuous lawful residence period is met.',
+        ] as const)
+      : early === true
+        ? ([
+            '适用提前取得永久权的法定情形。',
+            'The selected statutory ground for early acquisition is met.',
+          ] as const)
+        : ([
+            '核对合法居留区间、每年离境，以及退休、失能、跨境就业或家属取得的事实。',
+            'Check lawful periods, yearly absences and any retirement, incapacity, cross-border work or family ground.',
+          ] as const);
+  return [
+    check(
+      c,
+      'DE-C43',
+      '自由流动法适用身份',
+      'Personal scope of EU/EEA free movement',
+      any(f.permanentRightPreviouslyAcquired === true, f.withinPersonalScope),
+      [src(422, '§§ 1–4, 4a Abs. 1, 5, § 12')],
+      'PD-357',
+    ),
+    check(
+      c,
+      'DE-C44',
+      '通常居留期限或提前取得永久权',
+      'Ordinary residence period or early acquisition',
+      acquired,
+      [src(422, '§§ 2–4, § 4a Abs. 1–6')],
+      'PD-357',
+      details,
+    ),
+    check(
+      c,
+      'DE-C45',
+      '取得后仍保有永久居住权',
+      'Retention of the permanent right after acquisition',
+      retained,
+      [src(422, '§ 4a Abs. 7, § 5 Abs. 5–6, § 6 Abs. 1–5')],
+      'PD-345 / PD-357',
+      [
+        `核实取得后的离境和失权决定。EU 公民可申请证明，非 EU 家属的永久卡须在申请后 ${p.cardIssueMonths} 个月内签发。`,
+        `Check absences after acquisition and any loss decision. EU citizens can request a certificate. A non-EU family member's permanent card is issued within ${p.cardIssueMonths} months of application.`,
+      ],
+    ),
+  ];
+}
+
+function titleTripRetained(
+  t: TitleReview,
+  trip: TitleTrip,
+  sim: IsoDate,
+): Answer {
+  if (trip.departed > sim) return true;
+  const returned = trip.returned && trip.returned < sim ? trip.returned : sim;
+  const p = v.permanentTitleAbsence.value;
+  const longResidence = any(
+    atLeast(t.lawfulYears, p.longResidenceYears),
+    t.spouseHasQualifyingLongResidence,
+  );
+  const permanent = t.kind === 'settlement' || t.kind === 'eu-long-term';
+  const permanentExempt = permanent
+    ? all(
+        t.noListedExpulsionInterest,
+        any(
+          t.germanSpouseLivingTogether,
+          all(longResidence, t.livelihoodSecured),
+        ),
+      )
+    : false;
+  const special = trip.exception;
+  const forced =
+    special === 'forced-marriage'
+      ? all(
+          trip.qualifiesUnder37,
+          trip.coercionEndedOn
+            ? returned <= addMonths(trip.coercionEndedOn, p.returnMonths)
+            : undefined,
+          returned <= afterYears(trip.departed, p.coercionMaximumYears),
+        )
+      : false;
+  const military =
+    special === 'military'
+      ? trip.militaryDischargedOn
+        ? returned <= addMonths(trip.militaryDischargedOn, p.returnMonths)
+        : undefined
+      : false;
+  const extension =
+    trip.approvedReturnBy === null
+      ? false
+      : trip.approvedReturnBy
+        ? returned <= trip.approvedReturnBy
+        : undefined;
+  if (t.kind === 'eu-long-term') {
+    const outsideGermany =
+      returned <= addYears(trip.departed, pilot.euLapseYears.value);
+    // Within the ordinary outside-area limit even an unspecified destination cannot end the title.
+    const areaLimit = (months: number) => {
+      if (returned <= addMonths(trip.departed, months)) return true;
+      return trip.outsideArea
+        ?.filter((a) => a.from <= returned)
+        .every(
+          (a) =>
+            (a.to && a.to < returned ? a.to : returned) <=
+            addMonths(a.from, months),
+        );
+    };
+    const area = any(
+      areaLimit(pilot.euLapseMonths.value),
+      all(
+        t.priorBlueCardOrQualifyingFamilyTitle,
+        areaLimit(pilot.euLapseBlueCardMonths.value),
+      ),
+    );
+    return any(
+      all(outsideGermany, area),
+      permanentExempt,
+      forced,
+      military,
+      extension,
+      special === undefined ? undefined : false,
+    );
+  }
+  const visa =
+    t.kind === 'visa'
+      ? any(
+          t.multipleEntryVisa,
+          t.visaDurationDays === undefined
+            ? undefined
+            : t.visaDurationDays > p.longVisaDays,
+        )
+      : false;
+  const mobile =
+    special === 'eu-mobility' && ['study', 'research', 'ict'].includes(t.kind);
+  // § 51(7) turns on recognised refugee/asylum status and a German travel
+  // document, including where the person now holds a settlement permit.
+  const refugee = special === 'refugee-document';
+  const extendedMonths =
+    t.kind === 'blue-card' || t.kind === 'blue-card-family'
+      ? true
+      : t.kind === 'settlement'
+        ? all(longResidence, atLeast(t.ageOnDeparture, p.olderResidentAge))
+        : false;
+  const timely = any(
+    returned <= addMonths(trip.departed, pilot.lapseMonths.value),
+    all(
+      extendedMonths,
+      returned <= addMonths(trip.departed, pilot.blueCardLapseMonths.value),
+    ),
+    military,
+    extension,
+  );
+  return any(
+    visa,
+    mobile,
+    refugee,
+    permanentExempt,
+    forced,
+    all(negate(trip.nonTemporary), timely),
+    special === undefined ? undefined : false,
+  );
+}
+
+function individualTitle(
+  t: TitleReview,
+  sim: IsoDate,
+  reviews?: DocumentReviews,
+): Answer {
+  if (t.from && t.from > sim) return false;
+  if (reviews?.unresolved?.has(t)) return undefined;
+  const permanent = t.kind === 'settlement' || t.kind === 'eu-long-term';
+  const unexpired =
+    permanent || t.validTo === null
+      ? true
+      : any(
+          t.validTo === undefined ? undefined : sim <= t.validTo,
+          t.continuingUnder81,
+        );
+  const trips = t.trips?.map((trip) => titleTripRetained(t, trip, sim));
+  return all(t.noOtherLossEvent, unexpired, trips && all(...trips));
+}
+
+/** SRC-100 § 51(1) no. 6: a non-temporary departure can end the document
+ * on departure. A short return does not restore it. */
+export function naturalisationTitleLosses(req: DeFullRequest) {
+  const permits = [...(req.permits ?? [])].sort((a, b) =>
+    a.from.localeCompare(b.from),
+  );
+  return permits.flatMap((permit, i) => {
+    const next = permits[i + 1]?.from;
+    return (permit.trips ?? []).flatMap((trip) => {
+      if (
+        !trip.nonTemporary ||
+        trip.departed < permit.from ||
+        (next && trip.departed >= next)
+      )
+        return [];
+      const retained = titleTripRetained(permit, trip, trip.departed);
+      return retained === true
+        ? []
+        : [
+            {
+              from: trip.departed,
+              to: next && addDays(next, -1),
+              uncertain: retained === undefined,
+            },
+          ];
+    });
+  });
+}
+
+export function retainedTitle(
+  req: DeFullRequest,
+  kind?: TitleKind,
+  reviews?: DocumentReviews,
+): Answer {
+  if (kind && reviews?.current?.kind === kind)
+    return individualTitle(reviews.current, req.simulationDate, reviews);
+  const titles = req.mobility?.titles;
+  if (!titles) return undefined;
+  return any(
+    ...titles
+      .filter((t) => !kind || t.kind === kind)
+      .map((t) => individualTitle(t, req.simulationDate, reviews)),
+  );
+}
+
+const titleNames = {
+  ...KIND_NAMES,
+  'blue-card-family': ['蓝卡家属许可', 'a Blue Card family permit'],
+  ict: ['企业内部调动许可', 'an ICT permit'],
+  visa: ['签证', 'a visa'],
+};
+
+function titleChecks(
+  req: DeFullRequest,
+  reviews?: DocumentReviews,
+): CountryCheck[] {
+  const titles = req.mobility?.titles;
+  if (!titles?.length) {
+    return [
+      check(
+        req.locale,
+        'DE-C63',
+        '许可和出境失效依据',
+        'Title and grounds for loss during absence',
+        titles ? false : undefined,
+        [src(100, '§ 51 Abs. 1–4, 7, 9–10; § 81 Abs. 4')],
+        'PD-353',
+      ),
+    ];
+  }
+  const seen = new Map<TitleKind, number>();
+  return titles.map((t, index) => {
+    const permanent = t.kind === 'settlement' || t.kind === 'eu-long-term';
+    const ordinal = (seen.get(t.kind) ?? 0) + 1;
+    seen.set(t.kind, ordinal);
+    const id =
+      (permanent ? 'DE-C64-' : 'DE-C63-') +
+      t.kind +
+      (ordinal > 1 ? '-' + ordinal : '');
+    const [zh, en] = titleNames[t.kind];
+    const loc =
+      t.kind === 'eu-long-term'
+        ? '§ 51 Abs. 9 Sätze 1–2, Abs. 2–4'
+        : permanent
+          ? '§ 51 Abs. 1–4, 10'
+          : '§ 51 Abs. 1, 1a, 3–4, 7, 10; § 81 Abs. 4';
+    return check(
+      req.locale,
+      id,
+      `第 ${index + 1} 份文书（${zh}）是否存续`,
+      `Retention of document ${index + 1} (${en})`,
+      individualTitle(t, req.simulationDate, reviews),
+      [src(100, loc), src(108, 'Nr. 51.1.6.6–7, pp236–237')],
+      'PD-124 / PD-353',
+      [
+        '按这份文书的独立失效原因、出境性质、法定或获准返回期限和例外判断。',
+        'Assessed against this document’s termination events, purpose of absence, return deadline and exceptions.',
+      ],
+    );
+  });
+}
+
+export function mobilityChecks(
+  route: string,
+  req: DeFullRequest,
+  reviews?: DocumentReviews,
+): CountryCheck[] {
+  switch (route) {
+    case 'R03':
+      return blueCardChecks(req, reviews);
+    case 'R18':
+      return freedomChecks(req);
+    case 'R00':
+      return titleChecks(req, reviews);
+    default:
+      return [];
+  }
+}

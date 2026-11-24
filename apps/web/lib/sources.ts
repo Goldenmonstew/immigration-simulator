@@ -245,4 +245,44 @@ export const sourceUrls: Record<string, string> = {
     'https://www.japaneselawtranslation.go.jp/ja/laws/download/4713/14/s25Aa001470504je16.0_r4A102.pdf',
   'SRC-461': 'https://www.moj.go.jp/isa/immigration/procedures/16-5.html',
   'SRC-462': 'https://laws.e-gov.go.jp/law/327CO0000000074',
+  'SRC-410': 'https://www.gesetze-im-internet.de/aufenthv/BJNR294510004.html',
+  'SRC-411': 'https://www.gesetze-im-internet.de/einbtestv/BJNR164900008.html',
+  'SRC-412': 'https://www.gesetze-im-internet.de/intv/BJNR337000004.html',
+  'SRC-413': 'https://www.gesetze-im-internet.de/bmg/BJNR108410013.html',
+  'SRC-414': 'https://service.berlin.de/dienstleistung/318998/',
+  'SRC-415': 'https://service.berlin.de/dienstleistung/354205/',
+  'SRC-416': 'https://service.berlin.de/dienstleistung/352770/',
+  'SRC-417': 'https://service.berlin.de/dienstleistung/326564/',
+  'SRC-418': 'https://service.berlin.de/dienstleistung/324863/',
+  'SRC-419': 'https://service.berlin.de/dienstleistung/121864/',
+  'SRC-420':
+    'https://www.bundesanzeiger.de/pub/publication/REViP4bN6jVdpGxPaiQ/content/REViP4bN6jVdpGxPaiQ/BAnz%20AT%2018.12.2025%20B3.pdf?inline=',
+  'SRC-421':
+    'https://www.make-it-in-germany.com/de/ankommen-bleiben/dauerhaft-in-deutschland/niederlassungserlaubnis',
+  'SRC-422':
+    'https://www.gesetze-im-internet.de/freiz_gg_eu_2004/BJNR198600004.html',
+  'SRC-423': 'https://www.gesetze-im-internet.de/sgb_6/__35.html',
+  'SRC-424': 'https://www.gesetze-im-internet.de/bzrg/__46.html',
+  'SRC-425':
+    'https://www.gesetze-im-internet.de/svbezgrv_2026/BJNR1160A0025.html',
+  'SRC-426':
+    'https://www.bmas.de/DE/Arbeit/Grundsicherung-fuer-Arbeitsuchende/Leistungen-und-Bedarfe-in-der-Grundsicherung-fuer-Arbeitsuchende/leistungen-und-bedarfe-in-der-grundsicherung-fuer-arbeitsuchende-art.html',
+  'SRC-427': 'https://service.berlin.de/dienstleistung/327012/',
+  'SRC-428': 'https://service.berlin.de/dienstleistung/326554/',
+  'SRC-429': 'https://service.berlin.de/dienstleistung/324281/',
+  'SRC-430': 'https://service.berlin.de/dienstleistung/326558/',
+  'SRC-431': 'https://service.berlin.de/dienstleistung/326556/',
+  'SRC-432':
+    'https://www.bamf.de/SharedDocs/Anlagen/DE/Integration/Integrationskurse/Lehrkraefte/konzeption-fuer-die-zusatzqualifizierung-von-lehrkraeften-neu-pdf.pdf?__blob=publicationFile&v=6',
+  'SRC-433': 'https://www.gesetze-im-internet.de/pauswgebv/__1.html',
+  'SRC-434':
+    'https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F%2A%5B%40attr_id%3D%27I_2017_47_inhaltsverz%27%5D',
+  'SRC-435': 'https://www.bverwg.de/160811U1C12.10.0',
+  'SRC-436': 'https://www.gesetze-im-internet.de/sgb_6/__159.html',
+  'SRC-437':
+    'https://publications.europa.eu/resource/cellar/9d5fe9f4-69bd-11f1-ae88-01aa75ed71a1.0005.02/DOC_1',
+  'SRC-438':
+    'https://www.recht.bund.de/bgbl/1/2026/111/regelungstext.pdf?__blob=publicationFile',
+  'SRC-439':
+    'https://www.recht.bund.de/bgbl/1/2023/217/regelungstext.pdf?__blob=publicationFile',
 };
