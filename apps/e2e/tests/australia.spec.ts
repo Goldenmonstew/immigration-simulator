@@ -152,16 +152,16 @@ test('Australia questionnaire flows to results, saves and shares scenarios, and 
   await gaps.locator('a[href*="?focus=citizenshipTest"]').click();
   await expect(page.locator('#au-whatif-cit-test')).toBeFocused();
 
-  // Passing the citizenship test in What-if turns the pathway from UNKNOWN to FUTURE (2027-01-01),
-  // and advancing simulation date to 2027-01-01 turns it to MET.
+  // The only visa on record is a 189 from 2026-01-01, so four years of lawful residence end on
+  // 2030-01-01: passing the citizenship test gives that date, and moving the date there turns it MET.
   await page.locator('#au-whatif-cit-test').selectOption('true');
   const comparison = assessment(page, zhCN)
     .getByText(zhCN['result.earliest'], { exact: true })
     .locator('xpath=following-sibling::dd[1]');
   await expect(comparison).toHaveText(
-    `${zhCN['result.undetermined']}→2027-01-01`,
+    `${zhCN['result.undetermined']}→2030-01-01`,
   );
-  await page.locator('#au-whatif-date').fill('2027-01-01');
+  await page.locator('#au-whatif-date').fill('2030-01-01');
   await expect(
     assessment(page, zhCN).getByText(
       `${zhCN['country.status.UNKNOWN']}→${zhCN['country.status.MET']}`,
