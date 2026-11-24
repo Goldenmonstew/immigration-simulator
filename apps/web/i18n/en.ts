@@ -232,6 +232,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'scenarios.save': 'Save this scenario',
   'scenarios.saved': 'Scenario saved on this device.',
   'scenarios.empty': 'No saved scenarios yet.',
+  'scenarios.needsCorrection': 'Needs correction',
   'scenarios.load': 'Load',
   'scenarios.delete': 'Delete',
   'scenarios.confirmDelete': 'Delete scenario “{name}”?',

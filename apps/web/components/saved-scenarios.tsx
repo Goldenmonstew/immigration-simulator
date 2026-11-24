@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '../i18n/locale';
 import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
+import { readPageResult } from '../lib/page-result';
 import { displayedColumns, ruleSetTitle } from '../lib/policy';
 import {
   type CountryDraft,
@@ -54,7 +55,13 @@ function CountryScenarios<D extends CountryDraft, K>({
   const summaries = useMemo(
     () =>
       scenarios.map((scenario) => {
-        const result = country.run(scenario.draft, locale);
+        const { result } = readPageResult(
+          country,
+          locale,
+          scenario.draft,
+          'preview',
+        );
+        if (!result) return { ...scenario, columns: undefined };
         const columns = result.columns.length
           ? displayedColumns(country, result)
           : country.policy.displayedRuleSets.map((ruleSet) => ({
@@ -126,27 +133,31 @@ function CountryScenarios<D extends CountryDraft, K>({
                 {scenario.draft.simulationDate}
               </time>
             </p>
-            <dl className={styles.summaries}>
-              {scenario.columns.map((column) => (
-                <div key={column.id}>
-                  <dt>{column.title}</dt>
-                  {column.pathways.length ? (
-                    column.pathways.map((pathway) => (
-                      <dd key={pathway.id}>
-                        {column.pathways.length > 1 &&
-                          `${pathway.title}${p.colon}`}
-                        {pathwayTitle(pathway, t)}
+            {scenario.columns ? (
+              <dl className={styles.summaries}>
+                {scenario.columns.map((column) => (
+                  <div key={column.id}>
+                    <dt>{column.title}</dt>
+                    {column.pathways.length ? (
+                      column.pathways.map((pathway) => (
+                        <dd key={pathway.id}>
+                          {column.pathways.length > 1 &&
+                            `${pathway.title}${p.colon}`}
+                          {pathwayTitle(pathway, t)}
+                        </dd>
+                      ))
+                    ) : (
+                      <dd>
+                        {scenario.shortCircuit?.message ??
+                          t('result.missingAssessment')}
                       </dd>
-                    ))
-                  ) : (
-                    <dd>
-                      {scenario.shortCircuit?.message ??
-                        t('result.missingAssessment')}
-                    </dd>
-                  )}
-                </div>
-              ))}
-            </dl>
+                    )}
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p>{t('scenarios.needsCorrection')}</p>
+            )}
             <div className={styles.row}>
               <Link
                 href={countryPath(country.id, 'result')}

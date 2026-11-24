@@ -13,6 +13,7 @@ import {
   pathwayDate,
   pathwayTitle,
 } from '../lib/country-module';
+import { readPageResult } from '../lib/page-result';
 import { displayedColumns } from '../lib/policy';
 import { countryPath } from '../lib/site-countries';
 import { draftStorage } from '../lib/storage';
@@ -227,14 +228,17 @@ function WhatIfLab<D extends CountryDraft, K>({
   }, [controls, target]);
   const afterDraft = controls.apply(draft, knobs);
   const errors = controls.validate(afterDraft, knobs);
-  const after = Object.keys(errors).length
+  const compared = Object.keys(errors).length
     ? undefined
-    : country.run(afterDraft, locale);
+    : readPageResult(country, locale, afterDraft, 'preview');
+  const after = compared?.result;
   const beforeColumns = displayedColumns(country, before);
   return (
     <>
       <p className={site.lead}>{t('whatif.intro')}</p>
-      {after && <ShareLink country={country} draft={afterDraft} />}
+      {after && compared.draft && (
+        <ShareLink country={country} draft={compared.draft} />
+      )}
       {country.resultNotes?.().notices.map((key) => (
         <p key={key} className={`${site.notice} ${site.warning}`}>
           {t(key)}
@@ -339,11 +343,13 @@ export function WhatIfView<D extends CountryDraft, K>({
   target?: WhatIfTarget;
 }) {
   const { t, locale } = useTranslation();
-  if (!draft?.completed)
+  const page = draft && readPageResult(country, locale, draft);
+  const before = page?.result;
+  if (!page?.draft || !before)
     return (
       <div className={site.narrow}>
         <h1>{t('whatif.title')}</h1>
-        <p>{t('whatif.empty')}</p>
+        <p>{page?.correction ?? t('whatif.empty')}</p>
         <Link
           className={site.button}
           href={countryPath(country.id, 'simulate')}
@@ -352,7 +358,6 @@ export function WhatIfView<D extends CountryDraft, K>({
         </Link>
       </div>
     );
-  const before = country.run(draft, locale);
   return (
     <>
       <PolicyStatus country={country} asOf={before.policyAsOf} />
@@ -361,7 +366,7 @@ export function WhatIfView<D extends CountryDraft, K>({
         <div className={site.narrow}>
           <p className={site.notice}>{t('whatif.unsupported')}</p>
           <p>{before.shortCircuit.message}</p>
-          <ShareLink country={country} draft={draft} />
+          <ShareLink country={country} draft={page.draft} />
           <Link
             className={site.secondary}
             href={countryPath(country.id, 'result')}
@@ -372,7 +377,7 @@ export function WhatIfView<D extends CountryDraft, K>({
       ) : (
         <WhatIfLab
           country={country}
-          draft={draft}
+          draft={page.draft}
           before={before}
           target={target}
         />

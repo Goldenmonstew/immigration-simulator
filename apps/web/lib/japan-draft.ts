@@ -1,4 +1,5 @@
 import {
+  japanOrdinaryFiling,
   japanTripReturnOn,
   jpStayLimit,
   sameJapanTrip,
@@ -52,6 +53,16 @@ export function createJapanDraft(): JapanDraft {
   };
 }
 
+export function ordinaryStatusDate(
+  draft: Pick<JapanDraft, 'simulationDate' | 'applicationDate'>,
+  route: Extract<JpFullReentryRequest, { route: 'ordinary' }>,
+) {
+  return route.permit?.effectiveOn &&
+    route.permit.effectiveOn <= draft.simulationDate
+    ? route.departureOn
+    : (draft.applicationDate ?? draft.simulationDate);
+}
+
 export function withJapanFilingDate(
   draft: JapanDraft,
   applicationDate: string | undefined,
@@ -65,7 +76,21 @@ export function withJapanFilingDate(
   const filingChanged =
     (applicationDate ?? simulationDate) !==
     (draft.applicationDate ?? draft.simulationDate);
-  if (!filingChanged) return next;
+  const reentry = next.reentry.map((route) => {
+    if (route.route !== 'ordinary') return route;
+    const statusChanged =
+      ordinaryStatusDate(draft, route) !== ordinaryStatusDate(next, route);
+    if (!filingChanged && !statusChanged) return route;
+    return {
+      ...route,
+      ...(filingChanged && {
+        inJapanWhenApplying: undefined,
+        onlineConcurrentEligibleApplication: undefined,
+      }),
+      ...(statusChanged && { lawfulStatus: undefined }),
+    };
+  });
+  if (!filingChanged) return { ...next, reentry };
 
   const pr = draft.permanentResidence;
   const nat = draft.naturalisation;
@@ -78,16 +103,7 @@ export function withJapanFilingDate(
     );
   return {
     ...next,
-    reentry: next.reentry.map((route) =>
-      route.route === 'ordinary'
-        ? {
-            ...route,
-            inJapanWhenApplying: undefined,
-            lawfulStatus: undefined,
-            onlineConcurrentEligibleApplication: undefined,
-          }
-        : route,
-    ),
+    reentry,
     permanentResidence: {
       routes: pr.routes.map((route) => {
         if (route.route === 'hsp70' || route.route === 'hsp80')
@@ -421,6 +437,21 @@ function checkStep(
     checkActualDates && validDate(draft.simulationDate)
       ? draft.simulationDate
       : undefined;
+  if (asOf && (step === 0 || step === 6)) {
+    const ordinary = reentry.find((route) => route.route === 'ordinary');
+    const requested = draft.applicationDate ?? asOf;
+    if (
+      ordinary?.permit?.effectiveOn &&
+      validDate(ordinary.permit.effectiveOn) &&
+      validDate(requested) &&
+      japanOrdinaryFiling(ordinary, asOf, requested).afterEffectiveDate
+    )
+      errors[
+        step === 0
+          ? 'jp-applicationDate'
+          : 'jp-travel-ordinary-permit-effectiveOn'
+      ] = 'jp.error.filingAfterPermit';
+  }
   const fields = (definitions: JapanField[], values: object, prefix: string) =>
     checkFields(definitions, values, prefix, submitting, errors, asOf);
   const order = (id: string, start?: string, end?: string) => {
@@ -579,6 +610,12 @@ export function validateJapanStep(draft: JapanDraft) {
 export function invalidJapanFactStep(draft: JapanDraft) {
   for (const step of japanSteps(draft)) {
     const errors = Object.values(checkStep(draft, step.step, false, true));
+    if (errors.includes('jp.error.filingAfterPermit'))
+      return {
+        ...step,
+        reason: 'filing-after-permit',
+        message: 'jp.error.filingAfterPermit',
+      } as const;
     if (errors.includes('jp.error.futureFact'))
       return {
         ...step,

@@ -1803,6 +1803,25 @@ describe('re-entry and travel documents', () => {
     },
   );
 
+  test('a new ordinary permit cannot take effect before it can be filed for', () => {
+    const path = reentry(
+      {
+        ...ordinary,
+        departureOn: '2026-11-26',
+        returnOn: '2026-11-30',
+        permit: {
+          effectiveOn: '2026-11-24',
+          expiresOn: '2027-11-24',
+          extensionApproved: false,
+        },
+      },
+      { simulationDate: '2026-11-23', applicationDate: '2026-11-25' },
+    );
+    expect(status(path, 'ordinary-eligibility')).toBe('NOT_MET');
+    expect(path.status).toBe('NOT_MET');
+    expect(path.earliestDate).toBeUndefined();
+  });
+
   test('holding an ordinary permit does not establish that it was used for a recorded departure without permission', () => {
     const returned = '2026-10-07';
     const [pr, travel] = evaluateJapanFull({

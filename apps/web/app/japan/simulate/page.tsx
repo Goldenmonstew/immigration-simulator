@@ -13,6 +13,7 @@ import {
   hasJapanResidenceRoute,
   japanDepartureTiming,
   japanSteps,
+  ordinaryStatusDate,
   withJapanFilingDate,
   type JapanDraft,
 } from '../../../lib/japan-draft';
@@ -137,6 +138,13 @@ function JapanStep({ draft, errors, update }: StepProps) {
                         'comparisonHistoryReturnOn',
                         undefined,
                       );
+                    if (
+                      r.route === 'ordinary' &&
+                      next.route === 'ordinary' &&
+                      ordinaryStatusDate(draft, r) !==
+                        ordinaryStatusDate(draft, next)
+                    )
+                      next = updateAnswer(next, 'lawfulStatus', undefined);
                     if (r.route !== 'deemed') return next;
                     if (key === 'declaredIntentAtDeparture')
                       return {

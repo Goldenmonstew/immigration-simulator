@@ -208,7 +208,10 @@ export type {
   JpFullNaturalisationRoute,
   JpNaturalisationEvidence,
 } from './japan-full-naturalisation';
-export type { JpFullReentryRequest } from './japan-full-reentry';
+export {
+  japanOrdinaryFiling,
+  type JpFullReentryRequest,
+} from './japan-full-reentry';
 export type { JpHspSnapshot, JpJSkipSnapshot } from './japan-full-talent';
 export { NZ_RESIDENT_CATEGORIES, evaluateNewZealand } from './new-zealand';
 export type {

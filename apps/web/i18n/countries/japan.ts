@@ -29,6 +29,8 @@ export const zhCN = {
   'jp.result.correctRenewalAtDeparture':
     '请在问卷的「{step}」中核对续期或变更记录。所填处分日早于出境日，但你填写了出境时仍在等待决定。',
   'jp.error.order': '这个日期不能早于开始的日期。',
+  'jp.error.filingAfterPermit':
+    '请核对拟递交日和普通许可生效日。新申请的递交日（窗口休息时顺延）不能晚于这份许可的生效日。',
   'jp.error.specialPeriod':
     '更新申请中也只能在在留期限届满后 2 个月内离开日本，请核对日期。',
   'jp.error.age': '请填写 1 至 99 之间的整数岁数。',
@@ -68,6 +70,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'jp.result.correctRenewalAtDeparture':
     'Review the renewal or change application in “{step}”. The decision predates departure, but the application is marked as still pending at departure.',
   'jp.error.order': 'This date cannot be before the start date.',
+  'jp.error.filingAfterPermit':
+    'Check the filing date and the effective date of the ordinary permit. The filing date, adjusted for counter closures where applicable, cannot be after the effective date of the same permit.',
   'jp.error.specialPeriod':
     'Even with a renewal pending you can leave only within 2 months after your period of stay ended; check the dates.',
   'jp.error.age': 'Enter a whole number of years from 1 to 99.',

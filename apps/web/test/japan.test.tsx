@@ -11,7 +11,7 @@ import { GET as offlinePages } from '../app/offline-pages.json/route';
 import sitemap from '../app/sitemap';
 import UkPolicyPage from '../app/uk/policy/page';
 import { GapSummary } from '../components/gap-summary';
-import { readPageResult } from '../components/result-page';
+import { readPageResult } from '../lib/page-result';
 import { ResultView } from '../components/result-view';
 import { WhatIfView } from '../components/whatif-lab';
 import { LocaleContext } from '../i18n/locale';
@@ -756,8 +756,9 @@ test.each(['zh-CN', 'en'] as const)(
 
 test('moving the filing date clears ordinary permit evidence for the original date', () => {
   const baseline = travelDraft();
+  const permit = { ...ordinary.permit, effectiveOn: '2027-04-06' };
   baseline.reentry = [
-    { ...ordinary, onlineConcurrentEligibleApplication: true },
+    { ...ordinary, permit, onlineConcurrentEligibleApplication: true },
   ];
   const initial = jp.whatif.initial(baseline);
   const knobs = { ...initial, applicationDate: '2027-04-06' };
@@ -771,7 +772,7 @@ test('moving the filing date clears ordinary permit evidence for the original da
     inJapanWhenApplying: undefined,
     onlineConcurrentEligibleApplication: undefined,
     channel: 'counter',
-    permit: ordinary.permit,
+    permit,
   });
   expect(jp.run(baseline, 'en').columns[0].pathways[0].earliestDate).toBe(
     '2027-04-05',
@@ -831,6 +832,85 @@ test('sharing a later filing date keeps the issued permit valid for the planned 
         path.checks.find((row) => row.id === 'jp.reentry.' + id)?.status,
       ).toBe('MET');
   }
+});
+
+test.each([
+  [true, 'MET'],
+  [false, 'NOT_MET'],
+  [undefined, 'UNKNOWN'],
+] as const)(
+  'sharing an issued ordinary permit preserves lawful status at departure (%s)',
+  (lawfulStatus, expected) => {
+    const baseline: JapanDraft = {
+      ...travelDraft(),
+      simulationDate: '2026-11-26',
+      reentry: [
+        {
+          ...ordinary,
+          departureOn: '2026-11-26',
+          returnOn: '2026-11-30',
+          lawfulStatus,
+          permit: { ...ordinary.permit, effectiveOn: '2026-11-24' },
+        },
+      ],
+    };
+    const moved = jp.whatif.apply(baseline, {
+      ...jp.whatif.initial(baseline),
+      applicationDate: '2026-11-27',
+    });
+    for (const draft of [baseline, moved]) {
+      expect(jp.validateStep(draft)).toEqual({});
+      const { result } = readPageResult(jp, 'en', encodeDraft(jp, draft));
+      const path = result!.columns[0].pathways[0];
+      expect(path.status).toBe(expected);
+      expect(path.earliestDate).toBeUndefined();
+      expect(
+        path.checks.find((c) => c.id === 'jp.reentry.ordinary-eligibility')
+          ?.applicable,
+      ).toBe(false);
+      expect(
+        path.checks.find((c) => c.id === 'jp.reentry.return-continuity')
+          ?.status,
+      ).toBe(expected);
+    }
+  },
+);
+
+test('filing for an ordinary permit after its effective date returns field errors and no shared result', () => {
+  const invalid: JapanDraft = {
+    ...travelDraft(),
+    simulationDate: '2026-11-23',
+    applicationDate: '2026-11-25',
+    reentry: [
+      {
+        ...ordinary,
+        departureOn: '2026-11-26',
+        returnOn: '2026-11-30',
+        permit: { ...ordinary.permit, effectiveOn: '2026-11-24' },
+      },
+    ],
+  };
+  expect(jp.validateStep({ ...invalid, step: 0 })).toHaveProperty(
+    'jp-applicationDate',
+    'jp.error.filingAfterPermit',
+  );
+  expect(jp.validateStep(invalid)).toHaveProperty(
+    'jp-travel-ordinary-permit-effectiveOn',
+    'jp.error.filingAfterPermit',
+  );
+  expect(jp.whatif.validate(invalid, jp.whatif.initial(invalid)).date).toBe(
+    'jp.error.filingAfterPermit',
+  );
+  const shared = readPageResult(jp, 'en', encodeDraft(jp, invalid));
+  expect(shared.correction).toContain('filing date');
+  expect(shared.result).toBeUndefined();
+  const corrected = { ...invalid, applicationDate: '2026-11-24' };
+  expect(jp.validateStep(corrected)).toEqual({});
+  const { result } = readPageResult(jp, 'en', encodeDraft(jp, corrected));
+  expect(result!.columns[0].pathways[0]).toMatchObject({
+    status: 'MET',
+    earliestDate: '2026-11-24',
+  });
 });
 
 test('the filing date knob clears dated residence and talent answers without altering the original evidence', () => {
@@ -972,7 +1052,8 @@ test('language, household evidence and travel knobs update only the comparison',
     reading: 'independent',
     authorityConfirmed: true,
   });
-  expect(compared.trips).toEqual([]);
+  expect(compared.trips).toEqual(original.trips);
+  expect(compared.tripsForReentryOnly).toBe(true);
   expect(compared.reentry[0].returnOn).toBe('2027-04-20');
   expect(draft).toEqual(original);
 });
@@ -1024,7 +1105,10 @@ test('assuming no residence trips preserves the linked deemed return evidence af
   const [pr, deemed] = jp.run(baseline, 'en').columns[0].pathways;
   const emptyHistory = jp.run({ ...baseline, trips: [] }, 'en').columns[0]
     .pathways[0];
-  expect(pr.timeStatus).not.toBe('MET');
+  expect(pr).toMatchObject({
+    timeStatus: 'FUTURE',
+    timeEarliestDate: '2035-03-12',
+  });
   expect(deemed.status).toBe('MET');
   for (const id of [
     'jp.reentry.deemed-validity',
@@ -1034,16 +1118,20 @@ test('assuming no residence trips preserves the linked deemed return evidence af
   const knobs = { ...jp.whatif.initial(baseline), noTrips: true };
   const compared = jp.whatif.apply(baseline, knobs);
   expect(jp.whatif.validate(compared, knobs)).toEqual({});
-  for (const draft of [
-    compared,
-    decodeDraft(jp, encodeDraft(jp, compared), true)!,
-  ]) {
-    const [residence, travel] = jp.run(draft, 'en').columns[0].pathways;
-    expect(draft.trips).toEqual([baseline.trips[0]]);
-    expect(jp.whatif.initial(draft).noTrips).toBe(true);
+  for (const source of [encodeDraft(jp, compared), compared]) {
+    const page = readPageResult(jp, 'en', source);
+    const draft = page.draft!;
+    const [residence, travel] = page.result!.columns[0].pathways;
+    const sharedKnobs = jp.whatif.initial(draft);
+    expect(sharedKnobs.noTrips).toBe(true);
     expect(residence).toEqual(emptyHistory);
     expect(travel).toEqual(deemed);
     expect(draft.reentry[0].stayExpiresOn).toBeUndefined();
+    const restored = jp.whatif.apply(draft, { ...sharedKnobs, noTrips: false });
+    const paths = readPageResult(jp, 'en', restored).result!.columns[0]
+      .pathways;
+    expect(paths).toEqual([pr, deemed]);
+    expect(draft.trips).toEqual(baseline.trips);
   }
   const form = renderToStaticMarkup(
     JapanSimulatePage().props.children({

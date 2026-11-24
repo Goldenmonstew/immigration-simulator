@@ -13,7 +13,7 @@ import type { TranslationKey } from '../i18n';
 import { useTranslation } from '../i18n/locale';
 import type { CountryDraft, CountryModule } from '../lib/country-module';
 import { countryPath } from '../lib/site-countries';
-import { draftStorage, rememberResult } from '../lib/storage';
+import { draftStorage } from '../lib/storage';
 import site from '../app/site.module.css';
 import form from '../app/simulate/form.module.css';
 
@@ -32,7 +32,7 @@ export function QuestionnaireShell<D extends CountryDraft, K>({
     errors: Errors;
   }) => ReactNode;
 }) {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const router = useRouter();
   const [draft, setDraft] = useState<D>();
   const [available, setAvailable] = useState(true);
@@ -93,9 +93,7 @@ export function QuestionnaireShell<D extends CountryDraft, K>({
       return;
     }
     const completed = { ...draft, completed: true };
-    const result = country.run(completed, locale);
     draftStorage(country, completed);
-    rememberResult(country, completed, result, locale);
     router.push(countryPath(country.id, 'result'));
   };
   return (

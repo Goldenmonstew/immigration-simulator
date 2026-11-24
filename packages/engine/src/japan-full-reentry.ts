@@ -107,6 +107,33 @@ const earlier = (a: IsoDate, b: IsoDate) => (a < b ? a : b);
 const excluded = (value: boolean | undefined) =>
   value === undefined ? undefined : !value;
 
+// SRC-461, 再入国許可申請「申請期間」「受付時間」「オンライン申請」.
+export function japanOrdinaryFiling(
+  route: Extract<JpFullReentryRequest, { route: 'ordinary' }>,
+  simulationDate: IsoDate,
+  requestedDate = simulationDate,
+) {
+  const online = route.onlineConcurrentEligibleApplication;
+  const channel =
+    route.channel ??
+    (online === true
+      ? 'online'
+      : online === false || jpOfficeClosed(requestedDate) === 'no'
+        ? 'counter'
+        : undefined);
+  const counter =
+    channel === 'counter' ? nextCounterFilingDay(requestedDate) : undefined;
+  const date = counter?.date ?? requestedDate;
+  const start = route.permit?.effectiveOn;
+  return {
+    date,
+    channel,
+    counter,
+    held: !!start && start <= simulationDate,
+    afterEffectiveDate: !!start && simulationDate < start && date > start,
+  };
+}
+
 // SRC-110 art. 26-2(1), SRC-116: the declaration requires valid documents at departure.
 function deemedDepartureEligibility(
   route: Extract<JpFullReentryRequest, { route: 'deemed' }>,
@@ -292,16 +319,7 @@ export function assessJapanReentry(
       ? addYears(departure, rr.specialPermanentDeemedYears)
       : undefined;
   const permit = route.route === 'deemed' ? undefined : route.permit;
-  // Use the simulation date, independent of a proposed new filing date.
-  const heldPermitReason =
-    route.route === 'ordinary' &&
-    permit?.effectiveOn &&
-    permit.effectiveOn <= req.simulationDate
-      ? L(
-          '这份普通许可已经生效，本项仅适用于申请新许可。',
-          'This ordinary permit has already taken effect. This check only applies to a new application.',
-        )
-      : undefined;
+  let heldPermitReason: string | undefined;
   const effectiveAtDeparture = all(
     permit?.effectiveOn && departure
       ? permit.effectiveOn <= departure
@@ -367,41 +385,47 @@ export function assessJapanReentry(
   let withinEntryDeadline: boolean | undefined = true;
 
   if (route.route === 'ordinary') {
+    const filing = japanOrdinaryFiling(
+      route,
+      req.simulationDate,
+      requestedDate,
+    );
+    if (filing.held)
+      heldPermitReason = L(
+        '这份普通许可已经生效，本项仅适用于申请新许可。',
+        'This ordinary permit has already taken effect. This check only applies to a new application.',
+      );
     const onlineEligible = route.onlineConcurrentEligibleApplication;
-    const filingChannel =
-      route.channel ??
-      (onlineEligible === true
-        ? 'online'
-        : onlineEligible === false || jpOfficeClosed(requestedDate) === 'no'
-          ? 'counter'
-          : undefined);
-    const counterFiling =
-      filingChannel === 'counter'
-        ? nextCounterFilingDay(requestedDate)
-        : undefined;
-    date = counterFiling?.date ?? requestedDate;
+    const { channel: filingChannel, counter: counterFiling } = filing;
+    date = filing.date;
     const filingAvailable =
       filingChannel === 'online' ? true : counterFiling?.open;
     const sameDayDeparture = date === departure;
-    const [filingDateIssueZh, filingDateIssueEn] = sameDayDeparture
+    const [filingDateIssueZh, filingDateIssueEn] = filing.afterEffectiveDate
       ? [
-          '递交候选日与出境日相同，须确认当天能否先递交。',
-          ' The proposed filing date is the departure date. Confirm that filing can take place before departure.',
+          '新申请的递交日不能晚于这份许可的生效日。',
+          ' A new application cannot be filed after the effective date of the same permit.',
         ]
-      : filingChannel === undefined
+      : sameDayDeparture
         ? [
-            '在线申请资格待确认，无法确定最早递交日。',
-            ' Confirm online eligibility to determine the earliest filing date.',
+            '递交候选日与出境日相同，须确认当天能否先递交。',
+            ' The proposed filing date is the departure date. Confirm that filing can take place before departure.',
           ]
-        : filingAvailable === undefined
+        : filingChannel === undefined
           ? [
-              '候选递交日的窗口开放情况待确认。',
-              ' Confirm whether the counter opens on the proposed filing date.',
+              '在线申请资格待确认，无法确定最早递交日。',
+              ' Confirm online eligibility to determine the earliest filing date.',
             ]
-          : ['', ''];
+          : filingAvailable === undefined
+            ? [
+                '候选递交日的窗口开放情况待确认。',
+                ' Confirm whether the counter opens on the proposed filing date.',
+              ]
+            : ['', ''];
     // SRC-116, 再入国許可 paras 2–5: use the permit held for this trip.
     // SRC-461, 申請期間: the proposed filing date concerns a new application.
     eligibleAtDeparture = all(
+      filing.held ? route.lawfulStatus : true,
       route.passportOrApprovedAlternative,
       route.residentCardOrCertificate,
     );
@@ -410,6 +434,7 @@ export function assessJapanReentry(
       excluded(route.excludedStatusOrDetention),
       route.inJapanWhenApplying,
       route.intendsReturn,
+      !filing.afterEffectiveDate,
       departure && !sameDayDeparture ? date < departure : undefined,
       filingAvailable,
       route.channel === 'online' ? onlineEligible : true,

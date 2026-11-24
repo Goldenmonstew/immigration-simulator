@@ -111,7 +111,6 @@ test('an old named plan shows the same renewal correction from home, results, re
     zhCN['jp.form.step6'],
   );
   async function expectCorrection(tab: Page) {
-    // Saved plan summaries can repeat the message below the actual result.
     const heading = tab.getByRole('heading', {
       level: 1,
       name: zhCN['result.title'],
@@ -123,10 +122,16 @@ test('an old named plan shows the same renewal correction from home, results, re
       tab.getByRole('button', { name: zhCN['share.copy'], exact: true }),
     ).toHaveCount(0);
     await expect(
+      tab.getByRole('button', { name: zhCN['scenarios.save'], exact: true }),
+    ).toHaveCount(0);
+    await expect(
       tab.getByText(zhCN['result.empty'], { exact: true }),
     ).toHaveCount(0);
   }
 
+  const card = page.getByRole('listitem').filter({ has: load });
+  await expect(card.getByText(zhCN['scenarios.needsCorrection'])).toBeVisible();
+  await expect(card.locator('dl')).toHaveCount(0);
   await load.click();
   await expect
     .poll(() => stored(page))
@@ -139,6 +144,8 @@ test('an old named plan shows the same renewal correction from home, results, re
 
   await page.evaluate(() => localStorage.removeItem('jp-immigration-draft-v1'));
   await page.goto(path());
+  await expect(card.getByText(zhCN['scenarios.needsCorrection'])).toBeVisible();
+  await expect(card.locator('dl')).toHaveCount(0);
   await load.click();
   await expect(page).toHaveURL(path('result'));
   await expectCorrection(page);
@@ -302,7 +309,7 @@ test('English mobile questionnaire compares filing dates and shows Japanese poli
   const field = (key: string) => page.locator('#jp-travel-ordinary-' + key);
   await field('departureOn').fill('2027-04-12');
   await field('returnOn').fill('2027-04-19');
-  await field('permit-effectiveOn').fill('2027-04-05');
+  await field('permit-effectiveOn').fill('2027-04-06');
   await field('permit-expiresOn').fill('2028-04-04');
   for (const key of [
     'lawfulStatus',

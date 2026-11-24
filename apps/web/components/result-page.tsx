@@ -10,59 +10,10 @@ import { useTranslation } from '../i18n/locale';
 import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
 import type { CountryDraft, CountryModule } from '../lib/country-module';
-import { decodeDraft } from '../lib/share';
-import {
-  draftStorage,
-  getRememberedResult,
-  rememberResult,
-} from '../lib/storage';
+import { readPageResult, type ResultPageState } from '../lib/page-result';
 import styles from '../app/site.module.css';
 
-interface ResultPageState<D> {
-  draft?: D;
-  result?: CountryResult;
-  correction?: string;
-  shared?: boolean;
-  mock?: boolean;
-}
-
-export function readPageResult<D extends CountryDraft, K>(
-  country: CountryModule<D, K>,
-  locale: Locale,
-  source: D | string | null = null,
-): ResultPageState<D> {
-  const shared = typeof source === 'string';
-  function assess(draft?: D): ResultPageState<D> {
-    if (!draft) return {};
-    if (!draft.completed) {
-      if (country.incompleteResultMessage) {
-        return {
-          draft: shared ? undefined : draft,
-          correction: country.incompleteResultMessage(draft, locale),
-        };
-      }
-      // Older UK comparison links can carry an otherwise complete draft.
-      if (!shared || !country.decodeDraft({ ...draft, completed: true }))
-        return {};
-    }
-    const result =
-      (!shared && getRememberedResult(country, draft, locale)) ||
-      country.run(draft, locale);
-    if (shared) {
-      draftStorage(country, draft);
-      rememberResult(country, draft, result, locale);
-    }
-    return { draft, result, shared };
-  }
-
-  if (!shared) return assess(source ?? draftStorage(country).draft);
-  try {
-    return assess(decodeDraft(country, source, 'show-correction'));
-  } catch {
-    // A malformed external scenario must not replace the saved draft.
-    return {};
-  }
-}
+export { readPageResult };
 
 export function ResultPage<D extends CountryDraft, K>({
   country,
@@ -73,7 +24,7 @@ export function ResultPage<D extends CountryDraft, K>({
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
-  const [page, setPage] = useState<ResultPageState<D>>();
+  const [page, setPage] = useState<ResultPageState<D> & { mock?: boolean }>();
   useEffect(() => {
     const load = () => {
       const encoded = new URLSearchParams(window.location.hash.slice(1)).get(
@@ -188,7 +139,7 @@ export function ResultPage<D extends CountryDraft, K>({
       {page && (
         <SavedScenarios
           country={country}
-          draft={draft}
+          draft={result ? draft : undefined}
           onLoad={(next) => setPage(readPageResult(country, locale, next))}
         />
       )}

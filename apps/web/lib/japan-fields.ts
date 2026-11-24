@@ -286,7 +286,7 @@ export const natRouteFields = {
   'article-9-special-merit': flags('specialMeritConfirmed', 'dietApproval'),
 } satisfies Record<JpFullNaturalisationRoute['route'], JapanField[]>;
 
-const travelCommon = [
+const travelCommon = (lawfulStatus = bool('lawfulStatus')) => [
   date('returnOn'),
   date('stayExpiresOn'),
   bool('stayIndefinite'),
@@ -300,13 +300,9 @@ const travelCommon = [
     'renewalDecisionOn',
     'renewalDecisionHint',
   ),
-  ...flags(
-    'specialPermanentResident',
-    'lawfulStatus',
-    'permitVoided',
-    'travelDocumentLost',
-    'expiryCertificateObtained',
-  ),
+  bool('specialPermanentResident'),
+  lawfulStatus,
+  ...flags('permitVoided', 'travelDocumentLost', 'expiryCertificateObtained'),
   actualDate('newLandingOn'),
 ];
 const permitFields = [
@@ -323,7 +319,7 @@ const consular = [
 export const travelRouteFields = {
   ordinary: [
     date('departureOn'),
-    ...travelCommon,
+    ...travelCommon({ ...bool('lawfulStatus'), hint: 'ordinaryLawfulStatus' }),
     ...flags(
       'excludedStatusOrDetention',
       'inJapanWhenApplying',
@@ -343,7 +339,7 @@ export const travelRouteFields = {
   deemed: [
     { ...date('departureOn'), actualDate: 'alreadyDeparted' },
     bool('alreadyDeparted'),
-    ...travelCommon,
+    ...travelCommon(),
     bool('temporaryVisitor'),
     integer('originalStayMonths'),
     ...flags(
@@ -355,7 +351,7 @@ export const travelRouteFields = {
   ],
   'refugee-travel-document': [
     date('departureOn'),
-    ...travelCommon,
+    ...travelCommon(),
     ...flags('refugeeRecognition', 'hasJapaneseTravelDocument'),
     group('permit', [
       ...permitFields,

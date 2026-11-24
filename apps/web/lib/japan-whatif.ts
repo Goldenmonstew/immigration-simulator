@@ -100,15 +100,9 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
     );
     const pr = compared.permanentResidence;
     const nat = compared.naturalisation;
-    const trips = knobs.noTrips
-      ? compared.trips.filter((trip) =>
-          compared.reentry.some((route) => sameJapanTrip(trip, route)),
-        )
-      : compared.trips;
     return activeJapanAnswers({
       ...compared,
-      trips,
-      tripsForReentryOnly: (knobs.noTrips && trips.length > 0) || undefined,
+      tripsForReentryOnly: knobs.noTrips || undefined,
       permanentResidence: {
         ...pr,
         evidence: {
@@ -164,8 +158,9 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
     }
     if (!Object.keys(errors).length) {
       for (const { step } of japanSteps(draft)) {
-        if (Object.keys(validateJapanStep({ ...draft, step })).length) {
-          errors.date = 'jp.whatif.invalidDates';
+        const issues = validateJapanStep({ ...draft, step });
+        if (Object.keys(issues).length) {
+          errors.date = issues['jp-applicationDate'] ?? 'jp.whatif.invalidDates';
           break;
         }
       }

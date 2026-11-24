@@ -4,7 +4,8 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { prEvidence } from '../../../packages/engine/test/japan-pr-fixture';
 import JapanSimulatePage from '../app/japan/simulate/page';
 import { ShareLink } from '../components/share-link';
-import { readPageResult } from '../components/result-page';
+import { WhatIfView } from '../components/whatif-lab';
+import { readPageResult } from '../lib/page-result';
 import { t } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
 import { japanSteps, type JapanDraft } from '../lib/japan-draft';
@@ -51,6 +52,39 @@ function form(
     </LocaleContext>,
   );
 }
+
+test('ordinary permit edits keep lawful status only for the date the answer describes', () => {
+  let draft: JapanDraft = {
+    ...jp.createDraft(),
+    step: 0,
+    simulationDate: '2026-11-23',
+    applicationDate: '2026-11-24',
+    reentry: [
+      {
+        route: 'ordinary',
+        departureOn: '2026-11-26',
+        lawfulStatus: true,
+        permit: { effectiveOn: '2026-11-25' },
+      },
+    ],
+  };
+  function answer(id: string, value: string) {
+    form(draft, (patch) => {
+      draft = { ...draft, ...patch };
+    });
+    fields.get(id)!({ target: { value } });
+  }
+  answer('jp-simulationDate', '2026-11-25');
+  expect(draft.applicationDate).toBe('2026-11-24');
+  expect(draft.reentry[0].lawfulStatus).toBeUndefined();
+  draft.step = 6;
+  expect(form(draft)).toContain(t('jp.form.ordinaryLawfulStatus', 'en'));
+  answer('jp-travel-ordinary-lawfulStatus', 'no');
+  answer('jp-travel-ordinary-permit-effectiveOn', '2026-11-25');
+  expect(draft.reentry[0].lawfulStatus).toBe(false);
+  answer('jp-travel-ordinary-permit-effectiveOn', '2026-11-26');
+  expect(draft.reentry[0].lawfulStatus).toBeUndefined();
+});
 
 test('birth departure method and return within permit validity can be answered and edited independently', () => {
   let draft: JapanDraft = {
@@ -489,6 +523,39 @@ test('loading, refreshing and sharing an old named plan agree about a renewal pe
     shared: true,
   });
   expect(decodeDraft(jp, encodeDraft(jp, plan.draft), true)).toEqual(corrected);
+});
+
+test('a contradictory permit extension is never assessed from a draft, scenario preview or share', () => {
+  const draft: JapanDraft = {
+    ...jp.createDraft(),
+    completed: true,
+    reentry: [
+      {
+        route: 'ordinary',
+        permit: { expiresOn: '2027-04-05', extendedUntil: '2027-04-04' },
+      },
+    ],
+  };
+  const country = { ...jp, run: vi.fn(jp.run) };
+  const correction = t('jp.result.finishQuestionnaire', 'en');
+  expect(readPageResult(country, 'en', draft)).toMatchObject({
+    draft: { completed: false, step: 6 },
+    correction,
+  });
+  expect(
+    readPageResult(country, 'en', draft, 'preview').result,
+  ).toBeUndefined();
+  expect(readPageResult(country, 'en', encodeDraft(country, draft))).toEqual({
+    correction,
+  });
+  const comparison = renderToStaticMarkup(
+    <LocaleContext value={{ locale: 'en', setLocale: () => {} }}>
+      <WhatIfView country={country} draft={draft} />
+    </LocaleContext>,
+  );
+  expect(comparison).toContain(correction);
+  expect(comparison).not.toContain(t('share.copy', 'en'));
+  expect(country.run).not.toHaveBeenCalled();
 });
 
 test.each([true, false])(

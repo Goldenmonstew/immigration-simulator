@@ -211,6 +211,7 @@ export const zhCN = {
   'scenarios.save': '保存此情景',
   'scenarios.saved': '情景已保存在本机。',
   'scenarios.empty': '还没有保存的情景。',
+  'scenarios.needsCorrection': '需修正',
   'scenarios.load': '载入',
   'scenarios.delete': '删除',
   'scenarios.confirmDelete': '删除情景“{name}”？',

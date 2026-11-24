@@ -34,6 +34,10 @@ const messages = {
     '留空时按模拟日期评估。改动评估所用的递交日后，请重新确认当天的在日情况、合法在留及适用的高度人材证据。',
     'Leave blank to use the simulation date. If the filing date changes, confirm presence in Japan, lawful status and any applicable highly skilled evidence for the new date.',
   ],
+  'jp.form.ordinaryLawfulStatus': [
+    '若这份普通许可已在模拟日生效，请按本次出境日作答。若为新申请，请按拟递交日作答。',
+    'If the ordinary permit is already effective on the simulation date, answer for the date of departure on this trip. For a new application, answer for the intended filing date.',
+  ],
   'jp.form.history': [
     '每次出境和返日各记为一段行程，可包含计划行程。出境方式选“无”表示原在留随出境结束，返日须以新身份上陆。没有行程可直接继续。',
     'Enter one record per trip, including planned travel. Choose “None” if leaving Japan ended your status and returning required a new landing permission. Continue directly if there are no trips.',
