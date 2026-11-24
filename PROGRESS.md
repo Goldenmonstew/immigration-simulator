@@ -659,3 +659,4 @@
 | 815 | 任务 101 第二十五轮审核修正（review101-25）。日本对比页和分享结果按假设描述修改的拟递交日、三条路线的返日，保留原行程事实。对比页逐项显示退出计数的条件及原因。日本场景页在脚本接管前激活「跳到主要内容」也会保留场景片段。 | apps/web/{app/japan/simulate,components,i18n,lib,test}/、packages/engine/{src,test}/、apps/e2e/tests/japan.spec.ts、docs/tasks/reports/101-jp-pages.md |
 | 816 | 任务 101 第二十六轮审核修正（review101-26）。日本对比与分享仅在消费拟递交日的路径附加假设递交日说明；みなし再入国与已生效普通再入国许可不附加该说明，在其余输入未变时保留「与当前情景相同」。补只选みなし与已生效普通许可的对比及分享回读回归。 | apps/web/lib/japan-module.ts、apps/web/test/{japan.test.tsx,japan-questionnaire.test.tsx}、docs/tasks/reports/101-jp-pages.md |
 | 850 | 任务 113：归档马来西亚完整版官方快照 39 份，登记 SRC-500–528（含 Google Drive 托管指南、LOM 加密修订表、内政部证书链的来源链说明）、PD-400–429 与网页来源索引。 | policy-sources/、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
+| 851 | 任务 113：新增马来西亚参数文件（永久居留各类别年限与费用、REP、Residence Pass、宪法第三部分年龄与居住、证书费、MM2H、RP-T、DE Rantau、EP 薪资分类），登记规则集 `my.current-law-2026-11`。 | packages/policy-data/src/{index.ts,types.ts,parameters/index.ts,parameters/malaysia-2026-11.ts} |

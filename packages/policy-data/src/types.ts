@@ -29,6 +29,7 @@ export const RULE_SET_IDS_BY_COUNTRY = {
   ca: ['ca.current-law-2026-11'],
   nz: ['nz.current-law'],
   gr: ['gr.current-law-2026-11'],
+  my: ['my.current-law-2026-11'],
 } as const satisfies Record<string, readonly RuleSetId[]>;
 
 export interface Parameter<T> {
