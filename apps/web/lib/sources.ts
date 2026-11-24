@@ -506,4 +506,35 @@ export const sourceUrls: Record<string, string> = {
     'https://www.irishstatutebook.ie/eli/2026/act/9/enacted/en/print.html',
   'SRC-409':
     'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/family-dependents/',
+  'SRC-230': 'https://www.immigration.govt.nz/opsmanual/43640.htm',
+  'SRC-231':
+    'https://www.dia.govt.nz/diawebsite.nsf/Files/Citizenship-2026/$file/Citizenship-Guidance-Document-October-2026.pdf',
+  'SRC-232':
+    'https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/requirements-for-nz-citizenship/',
+  'SRC-233':
+    'https://www.regulation.govt.nz/assets/RIS-Documents/cris2-mbie-ifalr-jun24-v2.pdf',
+  'SRC-234':
+    'https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/citizenship-fees/',
+  'SRC-235': 'https://www.immigration.govt.nz/opsmanual/77806.htm',
+  'SRC-236': 'https://www.immigration.govt.nz/opsmanual/77811.htm',
+  'SRC-237': 'https://www.immigration.govt.nz/opsmanual/77204.htm',
+  'SRC-238': 'https://www.immigration.govt.nz/opsmanual/78790.htm',
+  'SRC-239': 'https://www.immigration.govt.nz/opsmanual/46506.htm',
+  'SRC-240': 'https://www.immigration.govt.nz/opsmanual/35057.htm',
+  'SRC-241': 'https://www.immigration.govt.nz/opsmanual/77808.htm',
+  'SRC-242': 'https://www.immigration.govt.nz/opsmanual/46503.htm',
+  'SRC-243': 'https://www.immigration.govt.nz/opsmanual/73244.htm',
+  'SRC-244': 'https://www.immigration.govt.nz/opsmanual/78330.htm',
+  'SRC-245': 'https://www.immigration.govt.nz/opsmanual/88421.htm',
+  'SRC-246': 'https://www.immigration.govt.nz/opsmanual/42677.htm',
+  'SRC-247':
+    'https://www.ird.govt.nz/international-tax/individuals/tax-residency-status-for-individuals',
+  'SRC-248':
+    'https://www.regulation.govt.nz/assets/RIS-Documents/Supplementary-Analysis-Report-Enabling-investor-visa-holders-to-purchase-or-build-a-home-in-New-Zealand.pdf',
+  'SRC-249':
+    'https://www.immigration.govt.nz/assets/inz/documents/forms-and-guides/Fees-Guide-INZ-1028.pdf',
+  'SRC-250':
+    'https://www.linz.govt.nz/sites/default/files/doc/guidance-investor-visa-holders-long-form-march2026-v3.pdf',
+  'SRC-251': 'https://www.immigration.govt.nz/opsmanual/88409.htm',
+  'SRC-252': 'https://www.immigration.govt.nz/opsmanual/91747.htm',
 };
