@@ -191,6 +191,54 @@ export const sourceUrls: Record<string, string> = {
     'https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a',
   'SRC-127':
     'https://justica.gov.pt/Noticias/Lei-da-Nacionalidade-novas-regras-entram-em-vigor-a-19-de-maio',
+  'SRC-470':
+    'https://files.diariodarepublica.pt/1s/2022/03/05500/0000200059.pdf',
+  'SRC-471':
+    'https://files.diariodarepublica.pt/1s/2024/01/01200/0000600050.pdf',
+  'SRC-472':
+    'https://files.diariodarepublica.pt/1s/2022/09/19000/0002800097.pdf',
+  'SRC-473':
+    'https://files.diariodarepublica.pt/gratuitos/1s/2007/12/23800.pdf',
+  'SRC-474':
+    'https://files.diariodarepublica.pt/1s/2025/12/24900/0001400016.pdf',
+  'SRC-475': 'https://aima.gov.pt/pt/temas-transversais/meios-de-subsistencia',
+  'SRC-476':
+    'https://aima.gov.pt/media/pages/documents/dc677d0005-1772305205/tabela-de-taxas-e-demais-encargos-a-cobrar-pelos-procedimentos-administrativos.pdf',
+  'SRC-477':
+    'https://aima.gov.pt/media/pages/documents/fa233e86c7-1750429842/portaria-307.pdf',
+  'SRC-478': 'https://files.diariodarepublica.pt/1s/2006/08/15300/57175724.pdf',
+  'SRC-479':
+    'https://files.diariodarepublica.pt/1s/2024/01/01500/0001300017.pdf',
+  'SRC-480':
+    'https://files.diariodarepublica.pt/gratuitos/1s/2020/08/15100.pdf',
+  'SRC-481':
+    'https://aima.gov.pt/pt/a-aima/perguntas-frequentes-faqs/autorizacao-de-residencia-para-investimento-ari',
+  'SRC-482': 'https://caple.letras.ulisboa.pt/exame/2/ciple',
+  'SRC-483':
+    'https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/E-casado-ou-vive-em-uniao-de-facto-com-um-portugues-ha-mais-de-3-anos',
+  'SRC-484':
+    'https://aima.gov.pt/pt/nacionais-ue-e-familiares/nacionais-ue/certificado-de-residencia-permanente-para-nacionais-ue',
+  'SRC-485':
+    'https://files.diariodarepublica.pt/gratuitos/1s/2023/06/10700.pdf',
+  'SRC-486':
+    'https://files.diariodarepublica.pt/1s/2024/06/10601/0000200003.pdf',
+  'SRC-487':
+    'https://files.diariodarepublica.pt/1s/2025/04/06400/0000300012.pdf',
+  'SRC-488':
+    'https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/legislacao/diplomas_legislativos/Documents/Decreto_Lei_209_2012.pdf',
+  'SRC-489':
+    'https://files.diariodarepublica.pt/2s/2014/10/205000000/2681226813.pdf',
+  'SRC-490':
+    'https://files.diariodarepublica.pt/1s/2017/07/13400/0373103734.pdf',
+  'SRC-491':
+    'https://files.diariodarepublica.pt/1s/2023/08/16900/0000700024.pdf',
+  'SRC-492':
+    'https://files.diariodarepublica.pt/1s/2026/11/22400/0000200050.pdf',
+  'SRC-493':
+    'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62013CJ0244',
+  'SRC-494': 'https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng',
+  'SRC-495':
+    'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62019CJ0032',
   'SRC-110': 'https://laws.e-gov.go.jp/law/326CO0000000319',
   'SRC-111': 'https://laws.e-gov.go.jp/law/325AC0000000147',
   'SRC-112': 'https://laws.e-gov.go.jp/law/129AC0000000089',

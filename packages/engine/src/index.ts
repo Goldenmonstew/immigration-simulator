@@ -85,6 +85,22 @@ export type {
   PtResult,
   PtTrip,
 } from './portugal';
+export { evaluatePortugalFull } from './portugal-full';
+export type {
+  PtFreeMovementEvidence,
+  PtFullRequest,
+  PtInvestment,
+  PtInvestmentEvidence,
+  PtLanguageEvidence,
+  PtLongTermEvidence,
+  PtMeansEvidence,
+  PtNationalityCrime,
+  PtNationalityEvidence,
+  PtOfficialReview,
+  PtPartnerEvidence,
+  PtRenewalEvidence,
+  PtResidenceEvidence,
+} from './portugal-full-types';
 export {
   DE_NATURALISATION_ROUTES,
   DE_PERMIT_KINDS,
