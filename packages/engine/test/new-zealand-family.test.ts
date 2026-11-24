@@ -16,6 +16,10 @@ const common: Request['common'] = {
     policeCountriesComplete: true,
     police: [{ issued: '2026-11-01' }],
   },
+  residenceFiling: {
+    atImmigrationControlArea: false,
+    dependentChildrenUnlawfullyInNz: [],
+  },
   dependants: [],
 };
 const partnerCommon = {

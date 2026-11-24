@@ -249,4 +249,5 @@ export const sourceUrls: Record<string, string> = {
   'SRC-250':
     'https://www.linz.govt.nz/sites/default/files/doc/guidance-investor-visa-holders-long-form-march2026-v3.pdf',
   'SRC-251': 'https://www.immigration.govt.nz/opsmanual/88409.htm',
+  'SRC-252': 'https://www.immigration.govt.nz/opsmanual/91747.htm',
 };

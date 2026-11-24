@@ -68,6 +68,10 @@ function result(
       requiredFeePaid: true,
       health: 'clear',
       character: 'clear',
+      residenceFiling: {
+        atImmigrationControlArea: false,
+        dependentChildrenUnlawfullyInNz: [],
+      },
       dependants: [],
       evidence: {
         medical: { issued: '2026-11-01', limited: false },

@@ -265,7 +265,7 @@ function englishEvidence(
 function dependantEnglish(ctx: NzContext, route: 'religious' | 'business') {
   const bands = nzCommonParameters.englishEsolBands.value;
   const charges: number[] = [];
-  const assessments = ctx.dependants?.map((person) => {
+  const assessments = ctx.answers.dependants?.map((person) => {
     const exempt =
       person.dateOfBirth === undefined
         ? undefined
@@ -588,7 +588,7 @@ function parentPath(ctx: NzContext, a: ParentAnswers): CountryPathway {
       : a.scheme === undefined
         ? undefined
         : true;
-  const includedPartner = ctx.dependants?.find(
+  const includedPartner = ctx.answers.dependants?.find(
     (person) => person.relation === 'partner',
   );
   // A declared partner needs a household entry for the shared health,
@@ -1023,7 +1023,10 @@ function investmentPath(
     .common('general')
     .filter(
       (c) =>
-        a.route === 'active' ||
+        (a.route === 'active' &&
+          !(
+            a.active?.goal === 'investment-conditions' && c.id === 'NZ-R5-125'
+          )) ||
         (a.route === 'business' && stage === 'residence') ||
         c.id === 'NZ-C1' ||
         c.id === 'NZ-C2',

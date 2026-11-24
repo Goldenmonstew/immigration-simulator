@@ -1093,6 +1093,18 @@ export const nzSkilledParameters = {
 >;
 
 export const nzCommonParameters = {
+  childRemovalAge: {
+    value: 16,
+    sources: [
+      { srcId: 'SRC-230', locator: 'R2.1.45(a)–(d), R2.1.50(a)–(e)' },
+      { srcId: 'SRC-251', locator: 'E4.1.15(a)–(b)' },
+      { srcId: 'SRC-252', locator: 'R5.125(b)' },
+    ],
+  },
+  unlawfulChildRuleFrom: {
+    value: '2026-11-12',
+    sources: [{ srcId: 'SRC-252', locator: 'R5.125(a)–(c), effective date' }],
+  },
   temporaryChildMaxAge: {
     value: 19,
     sources: [
@@ -1190,7 +1202,7 @@ export const nzCommonParameters = {
   },
 } satisfies Record<
   string,
-  Parameter<number | Record<string, number> | string[]>
+  Parameter<number | string | Record<string, number> | string[]>
 >;
 
 export const newZealandFull2026_11 = {

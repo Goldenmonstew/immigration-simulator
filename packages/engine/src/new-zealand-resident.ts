@@ -10,10 +10,15 @@ import {
   any,
   atLeast,
   atMost,
+  createNzContext,
   not,
   type NzContext,
 } from './new-zealand-checks';
-import type { NzResult, NzPathway } from './new-zealand';
+import {
+  evaluateNewZealand,
+  type NzResult,
+  type NzPathway,
+} from './new-zealand';
 import { afterYears } from './pilot';
 
 const time = newZealand2026_11.values;
@@ -449,10 +454,13 @@ function travelPath(
         'NZ-P1-1-TRAVEL',
         '多次往返条件',
         'Multiple-entry conditions',
-        not(r.expired),
+        all(
+          not(r.expired),
+          r.end === undefined ? undefined : ctx.date <= r.end,
+        ),
         ref('SRC-072', 'R5.66.5; RV1.5(a)–(b)'),
-        `按签证与行程核对旅行条件末日 ${r.end ?? '待确认'}；无有效旅行条件时离境或到期时在境外会导致居民签证失效。`,
-        `Last travel day: ${r.end ?? 'unknown'}. Departure without valid travel conditions, or being overseas at expiry, ends the resident visa.`,
+        `按签证与行程核对旅行条件末日 ${r.end ?? '待确认'}。末日后不能凭原条件往返；仍在境内的居民可继续居留，离境或在境外到期会使签证失效。`,
+        `Last travel day: ${r.end ?? 'unknown'}. After this day the holder may remain onshore, but cannot re-enter on these conditions. Leaving without valid travel conditions, or being overseas at expiry, ends the visa.`,
       ),
     );
     // Currency of the passport is a condition of the original grant.
@@ -803,7 +811,7 @@ function prvPath(
   a: NzResidentAnswers,
   r: ResidentRecord,
   old?: NzPathway,
-) {
+): CountryPathway {
   const pr = a.prv ?? {};
   const checks: CountryCheck[] = [];
   const finish = () =>
@@ -1010,6 +1018,127 @@ function prvPath(
   return {
     ...path,
     ...(path.status === 'MET' ? { earliestDate: ctx.date } : {}),
+  };
+}
+
+function jointPrvPath(
+  ctx: NzContext,
+  resident: NzResidentAnswers,
+  principal: CountryPathway,
+): CountryPathway {
+  const partner = ctx.answers.dependants?.find(
+    (person) => person.relation === 'partner',
+  );
+  if (!partner || principal.status === 'NOT_APPLICABLE') return principal;
+
+  const application = partner.prvApplication;
+  const role = application?.prv?.role;
+  const partnerResident: NzResidentAnswers = {
+    travel: application?.travel,
+    prv: {
+      ...application?.prv,
+      // A linked partner on the same original application can qualify when the principal does.
+      principalHoldsPrv: any(
+        application?.prv?.principalHoldsPrv,
+        application?.linkedToJointPrincipal,
+      ),
+    },
+  };
+  const partnerCtx = createNzContext(
+    {
+      ...application,
+      dateOfBirth: partner.dateOfBirth,
+      simulationDate: ctx.date,
+      locale: ctx.locale,
+    },
+    { ...partner, dependants: [], requiredFeePaid: ctx.requiredFeePaid },
+  );
+  function assess(person: NzContext, answers: NzResidentAnswers) {
+    const old =
+      person.history &&
+      evaluateNewZealand(person.history).pathways.find(
+        (p) => p.id === 'NZ-PRV',
+      );
+    return prvPath(person, answers, residentRecord(person, answers), old);
+  }
+  const own =
+    role && role !== 'independent-review'
+      ? assess(partnerCtx, partnerResident)
+      : undefined;
+  const blockers = own?.checks
+    .filter((c) => own.decidedBy?.includes(c.id) && c.status !== 'MET')
+    .map((c) => c.title);
+  const detail =
+    own?.status === 'FUTURE' ? own.earliestDate : blockers?.join(', ');
+  const check = ctx.check(
+    'NZ-P2-PARTNER',
+    '同表伴侣的永久居民资格',
+    'Permanent residence eligibility of the included partner',
+    !own || own.status === 'UNKNOWN' ? undefined : own.status === 'MET',
+    ref('SRC-072', 'RV1.20(a)–(b), Sue and Mike example; RV2.5, RV2.10'),
+    `核对伴侣原居民签证的申请角色。原主申请人须按自己的首次入境、持签、承诺和附加条件判断。${detail ? '伴侣个人评估：' + detail + '。' : ''}`,
+    `Check the partner’s original residence role. An original principal must qualify on their own entry, residence, commitment and visa conditions.${detail ? ' Individual assessment: ' + detail + '.' : ''}`,
+    'PD-222',
+  );
+  const joint = ctx.path(
+    principal.id,
+    '永久居民签证',
+    'Permanent Resident Visa',
+    [...principal.checks, check],
+    ['NZ-P2-7'],
+  );
+  if (principal.status === 'NOT_MET' || own?.status === 'NOT_MET') return joint;
+  if (!principal.earliestDate || !own?.earliestDate)
+    return { ...joint, status: 'UNKNOWN', earliestDate: undefined };
+  const date =
+    principal.earliestDate > own.earliestDate
+      ? principal.earliestDate
+      : own.earliestDate;
+  if (date === ctx.date) return joint;
+
+  // A date that works for one applicant may be outside the other's rolling window or expiry grace.
+  const earlier = principal.earliestDate < date ? ctx : partnerCtx;
+  if (principal.earliestDate !== own.earliestDate) {
+    const laterCtx = createNzContext(
+      { ...earlier.time, simulationDate: date },
+      earlier.answers,
+    );
+    const later = assess(
+      laterCtx,
+      earlier === ctx ? resident : partnerResident,
+    );
+    if (later.status !== 'MET') {
+      // This person already met the holding and first-entry periods. Only expiry
+      // beyond the applicable grace can make that same holding check fail later.
+      const pastGrace = later.checks.some(
+        (c) =>
+          (c.id === 'NZ-P2-1' || c.id === 'NZ-P2-3') && c.status === 'NOT_MET',
+      );
+      if (pastGrace)
+        return {
+          ...joint,
+          status: 'NOT_MET',
+          earliestDate: undefined,
+          summary: ctx.L(
+            `另一人最早可申请的 ${date} 已超过先达标者的失效宽限期。`,
+            `By the other applicant’s earliest date, ${date}, the first applicant’s expiry grace period has ended.`,
+          ),
+        };
+      return {
+        ...joint,
+        status: 'UNKNOWN',
+        earliestDate: undefined,
+        pendingDetails: [
+          ...new Set([...(joint.pendingDetails ?? []), 'PD-222']),
+        ],
+      };
+    }
+  }
+  return {
+    ...joint,
+    status: 'FUTURE',
+    earliestDate: date,
+    assumptions: [...new Set([...principal.assumptions, ...own.assumptions])],
   };
 }
 
@@ -1362,7 +1491,7 @@ export function residentPathways(
   const permanent = prvPath(ctx, answers, record, find('NZ-PRV'));
   return [
     travelPath(ctx, answers, record, permanent, find('NZ-TRAVEL')),
-    permanent,
+    jointPrvPath(ctx, answers, permanent),
     citizenshipPath(ctx, answers, record, find('NZ-CITIZENSHIP')),
   ];
 }

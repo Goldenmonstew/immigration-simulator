@@ -7,6 +7,7 @@ import type { SourceRef } from '@uk-immigration/policy-data';
 import type { CountryCheck, CountryPathway } from './country-result';
 import { addMonths, addYears, fullYears } from './dates';
 import type { NzRequest } from './new-zealand';
+import type { NzResidentAnswers } from './new-zealand-resident';
 import { textFor, type Lang } from './rule';
 import type { IsoDate, Locale } from './types';
 
@@ -124,6 +125,24 @@ export interface NzDependantAnswers extends NzPersonAnswers {
   relation?: 'partner' | 'child' | 'other';
   /** Includes the recognised relationship and the applicable partnership evidence. */
   partnershipRequirementsMet?: boolean;
+  /** The partner's own RV2 timeline and evidence. A linked role refers to the original principal. */
+  prvApplication?: Partial<
+    Pick<
+      NzRequest,
+      | 'firstArrival'
+      | 'residentVisa'
+      | 'travelConditionsEnd'
+      | 'trips'
+      | 'conditions'
+    >
+  > &
+    Pick<NzResidentAnswers, 'travel' | 'prv'> & {
+      /** Whether the person filing jointly was the principal on this partner's original visa. */
+      linkedToJointPrincipal?: boolean;
+    };
+  /** For this child: applicable right/consent evidenced, an established exemption, or neither right nor consent. */
+  relocationAuthority?:
+    'right-evidenced' | 'consent-evidenced' | 'not-required' | 'none';
   single?: boolean;
   hasOwnChildren?: boolean;
   /** Totally or substantially reliant on the applicant or their included partner. */
@@ -135,6 +154,15 @@ type InclusionCategory = 'partner' | 'parent' | 'business-work';
 export interface NzCommonAnswers extends Omit<NzPersonAnswers, 'dateOfBirth'> {
   /** An explicitly empty list confirms there are no accompanying applicants. */
   dependants?: NzDependantAnswers[];
+  residenceFiling?: {
+    atImmigrationControlArea?: boolean;
+    /** Every applicant's biological/adopted dependent children unlawfully in NZ, including those not applying. */
+    dependentChildrenUnlawfullyInNz?: {
+      dateOfBirth?: IsoDate;
+      /** Demonstrated lack of removal rights in the jurisdiction specified by R5.125(b). */
+      lackOfRemovalRightDemonstrated?: boolean;
+    }[];
+  };
   /** All fees due at lodgement have been paid or acceptably arranged, or none is due. */
   requiredFeePaid?: boolean;
   levyBasis?:
@@ -154,7 +182,7 @@ export interface NzContext {
   history?: NzRequest;
   policyAsOf: string;
   familyOmission?: boolean;
-  dependants?: NzDependantAnswers[];
+  answers: NzCommonAnswers;
   L: Lang;
   check(
     id: string,
@@ -575,6 +603,12 @@ export function createNzContext(
       const youngAdult = atMost(years, limits.childAgeWithoutChildren);
       return all(
         person.single,
+        any(
+          atLeast(years, p.childRemovalAge.value),
+          person.relocationAuthority === undefined
+            ? undefined
+            : person.relocationAuthority !== 'none',
+        ),
         atMost(
           years,
           temporary ? p.temporaryChildMaxAge.value : limits.dependentAge,
@@ -594,9 +628,15 @@ export function createNzContext(
       'Eligibility of included family members',
       assessments && all(...assessments),
       temporary
-        ? p.temporaryChildMaxAge.sources
+        ? [
+            ...p.temporaryChildMaxAge.sources,
+            { srcId: 'SRC-251', locator: 'E4.1.15(a)–(b)' },
+          ]
         : [
-            { srcId: 'SRC-230', locator: 'R2.1(b), R2.1.10–15, R2.1.30–35' },
+            {
+              srcId: 'SRC-230',
+              locator: 'R2.1(b), R2.1.10–15, R2.1.30–35, R2.1.45–50',
+            },
             ...(category === 'parent'
               ? [{ srcId: 'SRC-243', locator: 'F4.15.1(c), F4.20.1, F4.30.5' }]
               : []),
@@ -604,8 +644,8 @@ export function createNzContext(
               ? [{ srcId: 'SRC-242', locator: 'F2.5(a)–(d)' }]
               : []),
           ],
-      '逐人核对亲属关系。随行伴侣须符合适用的伴侣要求。子女须单身，并按签证阶段和年龄核对是否育有子女及是否依靠父母生活。',
-      'Check the relationship of each included person. Partners must meet the applicable partnership requirements. Children must be single. Their age and visa stage determine the requirements for children of their own and financial dependence.',
+      `逐人核对伴侣关系及子女的单身、子女和经济依赖情况。未满 ${p.childRemovalAge.value} 岁时，按父母是否分居、是否同申及签证类别核对迁居权或另一方同意的证明，或确认该要求不适用。`,
+      `Check partnership, and each child's single status, children of their own and financial dependence. For a child under ${p.childRemovalAge.value}, confirm the applicable evidence of removal rights or parental consent, or that the requirement does not apply to the parents' circumstances and visa type.`,
     );
   }
 
@@ -665,6 +705,38 @@ export function createNzContext(
         'There is no general home ownership, floor area, address registration or private insurance threshold. Sponsorship, cohabitation, Parent Boost insurance and investment contact obligations depend on the category.',
       ),
     ];
+    if (
+      date >= p.unlawfulChildRuleFrom.value &&
+      !answers.residenceFiling?.atImmigrationControlArea
+    ) {
+      const filing = answers.residenceFiling;
+      const children = filing?.dependentChildrenUnlawfullyInNz;
+      // R5.125(b) lifts this bar only if every affected child meets the exception.
+      const exceptions =
+        children &&
+        all(
+          ...children.map((child) =>
+            all(
+              child.dateOfBirth === undefined
+                ? undefined
+                : fullYears(child.dateOfBirth, date) < p.childRemovalAge.value,
+              child.lackOfRemovalRightDemonstrated,
+            ),
+          ),
+        );
+      checks.push(
+        check(
+          'NZ-R5-125',
+          '在新西兰非法居留的受抚养子女',
+          'Dependent children unlawfully in New Zealand',
+          any(filing?.atImmigrationControlArea, exceptions),
+          p.unlawfulChildRuleFrom.sources,
+          `核对所有申请人的亲生及收养受抚养子女，包括未随行子女。普通递交时，每名在新西兰非法居留的子女均须未满 ${p.childRemovalAge.value} 岁，且申请人能证明无权将其迁出监护或探视权授予国（未授予这些权利时为居住国），才可适用例外。`,
+          `Include every applicant’s biological or adopted dependent children, even if not applying. At ordinary lodgement, each child unlawfully in New Zealand must be under ${p.childRemovalAge.value} and the applicant must demonstrate no right of removal from the country granting custody or visitation rights, or the country of residence if no such rights were granted.`,
+          'PD-234',
+        ),
+      );
+    }
     // A4.60(d) depends on all applicable F2 requirements, including the other common checks.
     const otherF2Met =
       f2Requirements !== undefined &&
@@ -775,7 +847,7 @@ export function createNzContext(
     dependantEligibility,
     partnerCommon: (otherRequirements) =>
       common('partner', undefined, otherRequirements),
-    dependants: answers.dependants,
+    answers,
     L,
     check,
     path,

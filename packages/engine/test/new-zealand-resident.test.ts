@@ -126,7 +126,10 @@ describe('required facts at filing', () => {
           ]);
       }
       expect(
-        travel({ passportCoversInitialConditions: true }, req).status,
+        travel(
+          { passportCoversInitialConditions: true },
+          { ...req, travelConditionsEnd: base.simulationDate },
+        ).status,
       ).toBe('MET');
     },
   );
@@ -142,7 +145,10 @@ describe('required facts at filing', () => {
       ])
         expectOutcome(result, 'NZ-IDENTITY', status);
       expectOutcome(
-        travel({ passportCoversInitialConditions: identityDocuments }),
+        travel(
+          { passportCoversInitialConditions: identityDocuments },
+          { travelConditionsEnd: base.simulationDate },
+        ),
         'NZ-P1-1-PASSPORT',
         status,
       );
@@ -195,6 +201,151 @@ describe('required facts at filing', () => {
   });
 });
 
+describe('RV1.20 joint PRV application', () => {
+  const recent = {
+    firstArrival: '2025-11-01',
+    residentVisa: { granted: '2025-11-01', category: 'general' as const },
+    trips: [],
+  };
+  const application = {
+    ...recent,
+    prv: prvReady,
+    travel: { currentlyInNz: true, restrictedEntry: false },
+  };
+  const partner = {
+    relation: 'partner' as const,
+    partnershipRequirementsMet: true,
+    identityDocuments: true,
+    character: 'clear' as const,
+    dateOfBirth: '1992-05-01',
+    prvApplication: application,
+  };
+  type Included = NonNullable<
+    NonNullable<NzFullRequest['common']>['dependants']
+  >[number];
+  const together = (person: Included, main: Partial<NzFullRequest> = {}) =>
+    prv(
+      {},
+      {
+        firstArrival: '2018-01-01',
+        residentVisa: { granted: '2018-01-01', category: 'general' },
+        ...main,
+        common: { ...base.common, dependants: [person] },
+      },
+    );
+
+  it('assesses each original principal in their own right, with the same date as filing alone', () => {
+    const joint = together(partner);
+    const alone = prv(prvReady, {
+      ...recent,
+      dateOfBirth: partner.dateOfBirth,
+    });
+    expect(check(joint, 'NZ-P2-1').status).toBe('MET');
+    expect(check(joint, 'NZ-P2-PARTNER').status).toBe('NOT_MET');
+    expect(alone.status).toBe('FUTURE');
+    expect(joint.status).toBe(alone.status);
+    expect(joint.earliestDate).toBe('2027-11-01');
+    expect(joint.earliestDate).toBe(alone.earliestDate);
+    expectOutcome(
+      together(partner, { simulationDate: '2027-11-01' }),
+      'NZ-P2-PARTNER',
+      'MET',
+      '2027-11-01',
+    );
+  });
+  it('requires the partner’s original role and own timeline and checks non-time restrictions', () => {
+    expectOutcome(
+      together({ ...partner, prvApplication: undefined }),
+      'NZ-P2-PARTNER',
+      'UNKNOWN',
+    );
+    expectOutcome(
+      together({
+        ...partner,
+        prvApplication: {
+          ...application,
+          prv: { ...prvReady, role: undefined },
+        },
+      }),
+      'NZ-P2-PARTNER',
+      'UNKNOWN',
+    );
+    expectOutcome(
+      together({ ...partner, prvApplication: { prv: prvReady } }),
+      'NZ-P2-PARTNER',
+      'UNKNOWN',
+    );
+    expectOutcome(
+      together({
+        ...partner,
+        prvApplication: {
+          ...application,
+          prv: { ...prvReady, conditions: 'breached' },
+        },
+      }),
+      'NZ-P2-PARTNER',
+      'NOT_MET',
+    );
+    expectOutcome(
+      together({ ...partner, partnershipRequirementsMet: false }),
+      'NZ-DEPENDANTS',
+      'NOT_MET',
+    );
+  });
+  it('uses the original principal for a linked partner and checks their own entry', () => {
+    const linked = {
+      ...application,
+      linkedToJointPrincipal: true,
+      prv: { ...prvReady, role: 'linked' as const },
+    };
+    expectOutcome(
+      together({
+        ...partner,
+        prvApplication: { ...linked, linkedToJointPrincipal: false },
+      }),
+      'NZ-P2-PARTNER',
+      'UNKNOWN',
+    );
+    expectOutcome(
+      together({
+        ...partner,
+        prvApplication: {
+          ...linked,
+          linkedToJointPrincipal: false,
+          prv: { ...linked.prv, principalHoldsPrv: false },
+        },
+      }),
+      'NZ-P2-PARTNER',
+      'NOT_MET',
+    );
+    expectOutcome(
+      together({ ...partner, prvApplication: linked }),
+      'NZ-P2-PARTNER',
+      'MET',
+    );
+    expectOutcome(
+      together({
+        ...partner,
+        prvApplication: {
+          ...linked,
+          travel: { ...linked.travel, firstResidentEntry: null },
+        },
+      }),
+      'NZ-P2-PARTNER',
+      'NOT_MET',
+    );
+  });
+  it('does not project a joint date after the first applicant’s visa has lapsed outside the grace period', () => {
+    const joint = together(partner, {
+      travelConditionsEnd: '2026-12-01',
+      trips: [{ departed: '2026-11-29', returned: '2026-12-07' }],
+    });
+    expect(joint.status).toBe('NOT_MET');
+    expect(joint.summary).toContain('2027-11-01');
+    expect(joint.earliestDate).toBeUndefined();
+  });
+});
+
 describe('resident travel conditions and subsequent residence', () => {
   const reviewRecord: Partial<NzFullRequest> = {
     firstArrival: '2018-01-01',
@@ -221,15 +372,15 @@ describe('resident travel conditions and subsequent residence', () => {
     );
 
   it.each([
-    ['NZ-TRAVEL', 'NZ-P1-1-TRAVEL', 'NOT_MET'],
-    ['NZ-PRV', 'NZ-P2-1', 'UNKNOWN'],
-    ['NZ-CITIZENSHIP', 'NZ-P3-1-STATUS', 'NOT_MET'],
+    ['NZ-TRAVEL', 'NZ-P1-1-TRAVEL', 'NOT_MET', 'NOT_MET', 'NOT_MET'],
+    ['NZ-PRV', 'NZ-P2-1', 'UNKNOWN', 'UNKNOWN', 'MET'],
+    ['NZ-CITIZENSHIP', 'NZ-P3-1-STATUS', 'NOT_MET', 'UNKNOWN', 'MET'],
   ] as const)(
     'assesses the open trip after expiry for %s without inventing a lapse date',
-    (id, condition, offshore) => {
+    (id, condition, offshore, unreportedLocation, onshore) => {
       expectOutcome(reviewPath(id, false), condition, offshore);
-      expectOutcome(reviewPath(id, undefined), condition, 'UNKNOWN');
-      expectOutcome(reviewPath(id, true), condition, 'MET');
+      expectOutcome(reviewPath(id, undefined), condition, unreportedLocation);
+      expectOutcome(reviewPath(id, true), condition, onshore);
     },
   );
 
@@ -269,8 +420,7 @@ describe('resident travel conditions and subsequent residence', () => {
     expectOutcome(
       travel(t, { ...laterTrip, simulationDate: '2026-07-01' }),
       'NZ-P1-1-TRAVEL',
-      'MET',
-      '2026-07-01',
+      'NOT_MET',
     );
     expectOutcome(
       travel(t, { ...laterTrip, simulationDate: '2026-07-02' }),
@@ -280,9 +430,12 @@ describe('resident travel conditions and subsequent residence', () => {
   });
 
   it('retains initial travel, separates passport, and uses the shorter Pacific first-entry deadline', () => {
-    expect(travel({ passportCoversInitialConditions: true }).status).toBe(
-      'MET',
-    );
+    expect(
+      travel(
+        { passportCoversInitialConditions: true },
+        { travelConditionsEnd: base.simulationDate },
+      ).status,
+    ).toBe('MET');
     expect(
       check(
         travel({ passportCoversInitialConditions: false }),

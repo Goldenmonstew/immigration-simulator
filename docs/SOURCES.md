@@ -166,6 +166,7 @@
 | SRC-249 | GUIDANCE | 新西兰 INZ 1028《Fees Guide》，申请费、费区和征费 | https://www.immigration.govt.nz/assets/inz/documents/forms-and-guides/Fees-Guide-INZ-1028.pdf | 2026-05 | 2026-11-23 | 已在线核对 PDF 原文，待归档原件 | todo |
 | SRC-250 | GUIDANCE | 新西兰 LINZ 投资者签证持有人购房指引与修法沿革 | https://www.linz.govt.nz/sites/default/files/doc/guidance-investor-visa-holders-long-form-march2026-v3.pdf ；https://www.linz.govt.nz/our-work/overseas-investment-regulation/history-overseas-investment-regime | 2026-03-26；沿革页为动态页面 | 2026-11-23 | `policy-sources/2026-03-26-nz-linz-investor-housing.pdf`（sha256 `94111f35ca02668986e3555e221efabab06ed1b77454cd5c4ccce51e7200a047`）；`policy-sources/2026-11-23-nz-linz-investment-history.html`（sha256 `262a67bf6dc4ef6f3978eaf160eb1866b5a74c975fabe672481e79272f866a33`） | archived |
 | SRC-251 | LAW | 新西兰 Business Investor 工签家属、临时签证纳入与递交条件 | https://www.immigration.govt.nz/opsmanual/88409.htm ；https://www.immigration.govt.nz/opsmanual/46501.htm ；https://www.immigration.govt.nz/opsmanual/45639.htm | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-04-20-nz-ops-bd3-1.html`（sha256 `afb18eff525cdaeee5b93947dc2e14e026aa015914c2cb9fca93829088b13725`）；`policy-sources/2024-10-01-nz-ops-e4-1.html`（sha256 `a1a54f362ef3d2179f77fd00a14cd094a49c00ac0ade336557c4dd1afb0e2614`）；`policy-sources/2025-04-04-nz-ops-e4-50.html`（sha256 `b11323d05c55c2460e0a5f38b98bc45bf87ca348d47f1bcb6a896ec73bf04f5b`） | archived |
+| SRC-252 | LAW | 新西兰居民签证申请人有在新西兰非法居留的受抚养子女 | https://www.immigration.govt.nz/opsmanual/91747.htm | 2026-11-12 | 2026-11-23 | `policy-sources/2026-11-12-nz-ops-r5-125.html`（sha256 `e7699e1567ae21752e9e724c54a425cc79287477277296232db69d2ccd81e56b`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -1167,3 +1168,7 @@ p1 的 Application Fees 与 Immigration Levy 说明费区及豁免，p3 的 Resi
 ### SRC-251 商业投资者工签家属及缴费
 
 BD3.1(a)–(e) 转引 E4.1.10 与 E4.1.20，按临时签证规定核对随行伴侣与子女。E4.50.1(a)–(c) 规定纸质申请的身份、表格与费用。快照与网址按登记行中的相同顺序对应。
+
+### SRC-252 受抚养子女在新西兰非法居留
+
+R5.125(a) 涵盖任一申请人的亲生或收养受抚养子女。(b) 规定未满 16 岁子女的迁出权例外。(c) 排除 RV2、RV4 及在入境管制区递交的居民签证申请。
