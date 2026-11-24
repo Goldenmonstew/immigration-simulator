@@ -629,6 +629,20 @@ describe('review70-2', () => {
     },
   );
 
+  test('legacy evaluateJapan restarts both routes on return for an explicit departure without permission', () => {
+    const { pathways } = evaluateJapan({
+      ...base,
+      simulationDate: '2027-04-03',
+      trips: [
+        { departed: '2026-10-01', returned: '2026-11-10', departure: 'none' },
+      ],
+    });
+    expect(pathways.map((path) => [path.status, path.earliestDate])).toEqual([
+      ['FUTURE', '2036-11-10'],
+      ['FUTURE', '2036-11-10'],
+    ]);
+  });
+
   test('a spouse 10-year date with trips is only a candidate', () => {
     const p = nat({
       simulationDate: '2027-06-01',

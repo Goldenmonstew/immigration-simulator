@@ -171,7 +171,15 @@ test('the general PR questionnaire sends the departure method and permit validit
   expect(assessed().timeStatus).toBe('MET');
   expect(form(draft)).not.toContain('Check your departure record');
   expect(fields.has('jp-trips-0-reentryPermit')).toBe(false);
+  expect(fields.has('jp-trips-0-specialPermanentResident')).toBe(true);
+  answer('specialPermanentResident', 'yes');
+  expect(
+    decodeDraft(jp, encodeDraft(jp, draft))?.trips[0].specialPermanentResident,
+  ).toBe(true);
   answer('departure', 'permit');
+  expect(draft.trips[0]).not.toHaveProperty('specialPermanentResident');
+  form(draft);
+  expect(fields.has('jp-trips-0-specialPermanentResident')).toBe(false);
   expect(assessed().timeStatus).toBe('UNKNOWN');
   expect(jp.validateStep(draft)).toEqual({});
   answer('reentryPermit', 'no');

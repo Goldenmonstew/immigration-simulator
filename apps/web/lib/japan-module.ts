@@ -12,9 +12,31 @@ import {
 import { japanPolicy } from './japan-policy';
 import { japanWhatIf, type JapanWhatIf } from './japan-whatif';
 
+function formatCheckAmounts(
+  id: string,
+  text: string,
+  formatter: Intl.NumberFormat,
+) {
+  const group = (amount: string) => formatter.format(Number(amount));
+  // The pension check labels three slash-separated amounts with one currency.
+  if (id === 'jp.pr.projected-pension')
+    return text.replace(/\d+(?= \/ )|(?<= \/ )\d+/g, group);
+  return text.replace(/\b(?:JPY|CNY) \d+(?:–\d+)?/g, (amounts) =>
+    amounts.replace(/\d+/g, group),
+  );
+}
+
 function run(draft: JapanDraft, locale: Locale) {
   const confirmed = clearUnconfirmedJapanDeclaration(draft);
   const result = evaluateJapanFull({ ...confirmed, locale });
+  const formatter = new Intl.NumberFormat(locale);
+  for (const pathway of result.columns[0].pathways)
+    for (const check of pathway.checks)
+      check.explanation = formatCheckAmounts(
+        check.id,
+        check.explanation,
+        formatter,
+      );
   const deemed = confirmed.reentry.find((route) => route.route === 'deemed');
   if (deemed?.departureOn && deemed.declaredIntentAtDeparture === undefined) {
     const hint = canConfirmJapanDeparture(confirmed, deemed.departureOn)

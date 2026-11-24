@@ -66,6 +66,8 @@ export interface JpTrip {
    * A blank answer in the full questionnaire means the method is unknown.
    */
   departure?: 'none' | 'deemed' | 'permit';
+  /** Special permanent resident status at departure (SRC-442 art. 23(2)). */
+  specialPermanentResident?: boolean;
 }
 
 /** Both days included. */
@@ -139,6 +141,11 @@ export type JpPathway = PilotPathway<JpPathwayId>;
 export type JpResult = PilotResult<JpPathwayId>;
 
 const v = jp.values;
+const specialDeemedYears =
+  japanFull2026_11.values.reentry.value.specialPermanentDeemedYears;
+const pastOrdinaryDeemedTerm = (t: JpTrip) =>
+  t.returned > addYears(t.departed, v.deemedReentryYears.value);
+const specialDeemedSource = { srcId: 'SRC-442', locator: '第23条第2項' };
 /** English count: "1 trip", "3 trips". */
 const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 type Verdict = 'yes' | 'maybe' | 'no';
@@ -199,17 +206,22 @@ const latestPossibleReentry = (t: JpTrip) =>
 export function jpTripLapses(
   t: JpTrip,
   departure = t.departure,
+  specialResident = t.specialPermanentResident,
 ): boolean | undefined {
   // SRC-116, 再入国許可 paras 2–4 and 永住者の在留資格について p5.
   if (departure === 'none') return true;
   if (departure === 'permit' && t.reentryPermit === false) return true;
-  if (
-    departure === 'deemed' &&
-    t.returned > addYears(t.departed, v.deemedReentryYears.value)
-  )
-    return true;
   const stayLimit = latestStayLimit(t);
   if (stayLimit && t.returned > stayLimit) return true;
+  // SRC-110 art. 26-2(2); SRC-442 art. 23(2) substitutes two years.
+  if (departure === 'deemed' && pastOrdinaryDeemedTerm(t)) {
+    if (
+      specialResident === false ||
+      t.returned > addYears(t.departed, specialDeemedYears)
+    )
+      return true;
+    if (specialResident === undefined) return undefined;
+  }
   if (missingPermission(t, departure))
     return t.returned > latestPossibleReentry(t) ? true : undefined;
   if (
@@ -309,14 +321,15 @@ export function evaluateJapanTimeline(
   const reached = (d: IsoDate, from: IsoDate, years: number): Verdict =>
     d >= afterYears(from, years) ? 'yes' : 'no';
 
-  // The status ends on a trip past the period of stay, or past the deemed
-  // permit's year without a regular permit (art. 26-2(2)); the stay starts
-  // again on return (PD-136).
+  // The old time calculator assumed the ordinary deemed term (PD-136).
   const departureOf = (t: JpTrip) => {
     if (t.departure || !inferLegacyDeparture) return t.departure;
     return t.reentryPermit ? 'permit' : 'deemed';
   };
-  const lapseOf = (t: JpTrip) => jpTripLapses(t, departureOf(t));
+  const specialResidentOf = (t: JpTrip) =>
+    t.specialPermanentResident ?? (inferLegacyDeparture ? false : undefined);
+  const lapseOf = (t: JpTrip) =>
+    jpTripLapses(t, departureOf(t), specialResidentOf(t));
   const lapsed = req.trips.filter((t) => lapseOf(t) === true);
   const uncertainTrips = req.trips.filter((t) => lapseOf(t) === undefined);
   /** First day of the stay, counting the specified lapses before `d`. */
@@ -409,12 +422,20 @@ export function evaluateJapanTimeline(
         `${t.returned} 返日已超过从 ${t.departed} 出境算起最长可能的许可期限（${latestPossibleReentry(t)}），连续在留从返日重新起算。`,
         ` The return on ${t.returned} was after ${latestPossibleReentry(t)}, the latest possible permit limit even counting from departure on ${t.departed}. The stay starts again on return.`,
       );
+    const years =
+      specialResidentOf(t) === false ? v.deemedReentryYears.value : specialDeemedYears;
     return L(
-      `${t.departed} 至 ${t.returned} 的出境没有再入国许可、超过みなし再入国许可的 ${v.deemedReentryYears.value} 年期限，在留资格消灭，连续在留从 ${t.returned} 重新起算。`,
-      ` The trip from ${t.departed} to ${t.returned} had no re-entry permit and went past the ${v.deemedReentryYears.value}-year deemed permit, so the status ended and the unbroken stay starts again on ${t.returned}.`,
+      `${t.departed} 至 ${t.returned} 的行程超过适用みなし再入国许可最长 ${years} 年的期限，连续在留从 ${t.returned} 重新起算。`,
+      ` The trip from ${t.departed} to ${t.returned} exceeded the maximum applicable deemed re-entry period of ${count(years, 'year')}. The unbroken stay starts again on ${t.returned}.`,
     );
   });
   const continuitySources: SourceRef[] = [];
+  if (
+    req.trips.some(
+      (t) => departureOf(t) === 'deemed' && pastOrdinaryDeemedTerm(t),
+    )
+  )
+    continuitySources.push(specialDeemedSource);
   if (uncertainTrips.some((t) => missingPermission(t, departureOf(t))))
     continuitySources.push(
       {
@@ -443,6 +464,17 @@ export function evaluateJapanTimeline(
           ` Check whether the ordinary re-entry permit was still valid on return on ${t.returned}. If it had expired, the stay starts again on that date.`,
         ),
       );
+    else if (
+      departure === 'deemed' &&
+      specialResidentOf(t) === undefined &&
+      pastOrdinaryDeemedTerm(t)
+    )
+      lapseNotes.push(
+        L(
+          `请确认 ${t.departed} 出境时是否为特別永住者，才能判断 ${t.returned} 返日是否在みなし再入国期限内。`,
+          ` Confirm whether you were a special permanent resident on departure on ${t.departed} to check whether your return on ${t.returned} was within the deemed re-entry period.`,
+        ),
+      );
     if (needsRenewalEvidence(t))
       lapseNotes.push(
         L(
@@ -460,8 +492,8 @@ export function evaluateJapanTimeline(
     'Years run to the anniversary: N years after the start date counts as met (from 29 February, 1 March). On the strict Civil Code reading, which leaves out the first day, it could be a day later; how the authorities count is not published. You apply in person in Japan, so a day spent wholly abroad is not an application date (PD-130).',
   );
   const reentry = L(
-    `未持再入国许可出境，或持普通许可出境但逾期返日的，在留从返日重新起算。使用みなし再入国许可的，须在出境日 ${v.deemedReentryYears.value} 年后的同一天或之前返回。两种许可都受出境时在留期限限制。出境时有待决的按期续期申请，按获准且在原期限届满后 ${v.renewalPendingMonths.value} 个月内返回估算。未填在留期限时，假设它没有先到期（PD-136）。`,
-    `If you left without re-entry permission or your ordinary permit expired before return, the stay starts again when you return. With deemed re-entry you must return by the same date ${v.deemedReentryYears.value} year after leaving. Both permits are limited by the period of stay held at departure. For a timely renewal pending at departure, the projection assumes approval and allows up to ${v.renewalPendingMonths.value} months after the original expiry. A blank period of stay is assumed not to have ended before return (PD-136).`,
+    `未持再入国许可出境，或持普通许可出境但逾期返日的，在留从返日重新起算。使用みなし再入国许可，通常须在出境后 ${v.deemedReentryYears.value} 年内返回。特別永住者为 ${specialDeemedYears} 年（含届满日）。如有在留期限，须同时核对。出境时有待决的按期续期申请，按获准且在原期限届满后 ${v.renewalPendingMonths.value} 个月内返回估算。未填在留期限时，假设它没有先到期（PD-136）。`,
+    `If you left without re-entry permission or your ordinary permit expired before return, the stay starts again when you return. With deemed re-entry you must return within ${count(v.deemedReentryYears.value, 'year')} of departure, or ${count(specialDeemedYears, 'year')} for a special permanent resident, including the anniversary. Any applicable period of stay must also cover the return. For a timely renewal pending at departure, the projection assumes approval and allows up to ${v.renewalPendingMonths.value} months after the original expiry. A blank period of stay is assumed not to have ended before return (PD-136).`,
   ) + (inferLegacyDeparture && req.trips.some((t) => !t.departure)
     ? L(
         '旧版时间计算中，未填出境方式的行程根据普通许可是否标为有效区分普通和みなし。',
@@ -1355,7 +1387,7 @@ export function evaluateJapanTimeline(
                 at >= afterYears(stay, v.naturalisationYears.value),
                 v.naturalisationYears.value,
               ),
-              sources: v.naturalisationYears.sources,
+              sources: [...v.naturalisationYears.sources, ...continuitySources],
             },
             {
               text:

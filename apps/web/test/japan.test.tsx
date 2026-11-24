@@ -3,9 +3,11 @@ import { expect, test } from 'vitest';
 import type { JpFullReentryRequest } from '@uk-immigration/engine';
 import { japanFull2026_11 } from '@uk-immigration/policy-data';
 import JapanPage from '../app/japan/page';
+import JapanPolicyPage from '../app/japan/policy/page';
 import { JapanWhatIfControls } from '../app/japan/whatif/controls';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
 import sitemap from '../app/sitemap';
+import UkPolicyPage from '../app/uk/policy/page';
 import { GapSummary } from '../components/gap-summary';
 import { ResultView } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
@@ -315,6 +317,36 @@ test('a planned deemed departure leaves the declaration pending and labels the p
   );
 });
 
+test.each(['zh-CN', 'en'] as const)(
+  'Japan result details group currency amounts and ranges in %s',
+  (locale) => {
+    const draft: JapanDraft = {
+      ...travelDraft(),
+      permanentResidence: {
+        routes: [{ route: 'general', statusStart: '2014-04-01' }],
+        evidence: {
+          spouseExpectedAnnualPensionYen: 0,
+          pensionSupplementAssetsYen: 1_234_567,
+        },
+      },
+      reentry: [
+        { ...ordinary, consularExtension: true, consularArea: 'other' },
+      ],
+    };
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <ResultView country={jp} result={jp.run(draft, locale)} draft={draft} />
+      </LocaleContext>,
+    );
+    expect(html).toContain('JPY 30,000,000');
+    expect(html).toContain('JPY 2,900–3,100');
+    expect(html).toContain(
+      (locale === 'en' ? 'unreported' : '待填') + ' / 0 / 1,234,567',
+    );
+    expect(html).not.toMatch(/JPY \d{4,}/);
+  },
+);
+
 test('moving the filing date clears ordinary permit evidence for the original date', () => {
   const baseline = travelDraft();
   baseline.reentry = [
@@ -561,3 +593,26 @@ test('Japan policy lists every cited source exactly once and includes pathway-sp
   ])
     expect(rules).toContain(id);
 });
+
+test.each(['zh-CN', 'en'] as const)(
+  'Japan policy names the country and groups amounts, and the UK retains its heading in %s',
+  (locale) => {
+    const render = (Page: typeof JapanPolicyPage) =>
+      renderToStaticMarkup(
+        <LocaleContext value={{ locale, setLocale: () => {} }}>
+          <Page />
+        </LocaleContext>,
+      );
+    const japan = render(JapanPolicyPage);
+    expect(japan).toContain(
+      locale === 'en'
+        ? '<h1>Policy basis for Japan</h1>'
+        : '<h1>日本政策依据</h1>',
+    );
+    expect(japan).toContain('businessAssetsYen 30,000,000');
+    expect(japan).toContain(locale === 'en' ? '2,900, 3,100' : '2,900、3,100');
+    expect(render(UkPolicyPage)).toContain(
+      locale === 'en' ? '<h1>Policy basis</h1>' : '<h1>政策依据</h1>',
+    );
+  },
+);

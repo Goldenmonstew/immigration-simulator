@@ -9,6 +9,7 @@ import {
   type CountryPolicy,
   type PolicyParameterValue,
 } from '../lib/policy';
+import type { CountryId } from '../lib/site-countries';
 import site from '../app/site.module.css';
 import styles from '../app/uk/policy/policy.module.css';
 
@@ -34,8 +35,18 @@ function Sources({
   );
 }
 
-function ParameterValue({ value }: { value: PolicyParameterValue }) {
+function ParameterValue({
+  value,
+  groupNumbers,
+}: {
+  value: PolicyParameterValue;
+  groupNumbers: boolean;
+}) {
   const { t, locale } = useTranslation();
+  const inlineValue = (item: PolicyParameterValue) =>
+    groupNumbers && typeof item === 'number'
+      ? item.toLocaleString(locale)
+      : String(item);
   if (typeof value === 'number') return value.toLocaleString(locale);
   if (typeof value === 'string')
     return /^\d{4}-\d{2}-\d{2}$/.test(value) ? (
@@ -45,12 +56,12 @@ function ParameterValue({ value }: { value: PolicyParameterValue }) {
     );
   if (Array.isArray(value)) {
     return value.every((item) => typeof item !== 'object') ? (
-      value.join(punct(locale).list)
+      value.map(inlineValue).join(punct(locale).list)
     ) : (
       <ul>
         {value.map((item, index) => (
           <li key={index}>
-            <ParameterValue value={item} />
+            <ParameterValue value={item} groupNumbers={groupNumbers} />
           </li>
         ))}
       </ul>
@@ -64,7 +75,7 @@ function ParameterValue({ value }: { value: PolicyParameterValue }) {
     const entries = Object.entries(value);
     if (entries.every(([, entry]) => typeof entry !== 'object'))
       return entries
-        .map(([name, entry]) => `${name} ${entry}`)
+        .map(([name, entry]) => `${name} ${inlineValue(entry)}`)
         .join(punct(locale).list);
     return (
       <dl>
@@ -72,7 +83,7 @@ function ParameterValue({ value }: { value: PolicyParameterValue }) {
           <div key={name}>
             <dt>{name}</dt>
             <dd>
-              <ParameterValue value={entry} />
+              <ParameterValue value={entry} groupNumbers={groupNumbers} />
             </dd>
           </div>
         ))}
@@ -92,7 +103,7 @@ function ParameterValue({ value }: { value: PolicyParameterValue }) {
 export function PolicyPage({
   country,
 }: {
-  country: { policy: CountryPolicy };
+  country: { id?: CountryId; policy: CountryPolicy };
 }) {
   const {
     pathways,
@@ -107,7 +118,9 @@ export function PolicyPage({
   const p = punct(locale);
   return (
     <main id="main" className={site.main}>
-      <h1>{t('policyPage.title')}</h1>
+      <h1>
+        {t(country.id === 'jp' ? 'jp.policy.pageTitle' : 'policyPage.title')}
+      </h1>
       <section className={site.section} aria-labelledby="rule-sets-heading">
         <h2 id="rule-sets-heading">{t('policyPage.ruleSets')}</h2>
         <div className={styles.ruleSets}>
@@ -187,7 +200,10 @@ export function PolicyPage({
                           <code>{name}</code>
                         </th>
                         <td data-label={t('policyPage.value')}>
-                          <ParameterValue value={parameter.value} />
+                          <ParameterValue
+                            value={parameter.value}
+                            groupNumbers={country.id === 'jp'}
+                          />
                         </td>
                         <td data-label={t('result.sources')}>
                           <Sources

@@ -86,6 +86,10 @@ export const tripFields = [
   date('returned', true),
   choice('departure', ['none', 'deemed', 'permit']),
   bool('reentryPermit'),
+  {
+    ...bool('specialPermanentResident'),
+    label: 'specialAtDeparture',
+  } satisfies JapanField,
   date('stayExpiry', false, 'stayExpiry', 'tripExpiry'),
   bool('renewalPending'),
 ];

@@ -45,6 +45,8 @@ function Question({
   const value = answers[field.name];
   if (field.name === 'reentryPermit' && answers.departure !== 'permit')
     return null;
+  if (field.label === 'specialAtDeparture' && answers.departure !== 'deemed')
+    return null;
   const set = (next: unknown) => change(field.name, next);
   const label = t(`jp.field.${field.label}`).replace(
     '{date}',
@@ -68,8 +70,14 @@ function Question({
       errors={errors}
       change={(name, answer) => {
         let updated = updateAnswer(record, name, answer);
-        if (field.name === 'trips' && name === 'departure')
+        if (field.name === 'trips' && name === 'departure') {
           updated = updateAnswer(updated, 'reentryPermit', undefined);
+          updated = updateAnswer(
+            updated,
+            'specialPermanentResident',
+            undefined,
+          );
+        }
         if (
           field.name === 'status' &&
           name === 'kind' &&

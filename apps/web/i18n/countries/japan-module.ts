@@ -1,4 +1,5 @@
 export const zhCN = {
+  'jp.policy.pageTitle': '日本政策依据',
   'jp.policy.title': '日本现行及已公布规则',
   'jp.policy.naturalisationChange': '帰化居住与融和审查调整',
   'jp.policy.naturalisationSummary':
@@ -31,6 +32,7 @@ export const zhCN = {
 };
 
 export const en: Record<keyof typeof zhCN, string> = {
+  'jp.policy.pageTitle': 'Policy basis for Japan',
   'jp.policy.title': 'Japan’s current and published rules',
   'jp.policy.naturalisationChange':
     'Revised residence and integration review for naturalisation',

@@ -916,6 +916,10 @@ const messages = {
     '是否为特別永住者？',
     'Are you a special permanent resident?',
   ],
+  'jp.field.specialAtDeparture': [
+    '这次出境时是否为特別永住者？',
+    'Were you a special permanent resident when you left on this trip?',
+  ],
   'jp.field.lawfulStatus': [
     '是否持合法在留资格？',
     'Do you hold lawful status?',
