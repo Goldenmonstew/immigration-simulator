@@ -334,4 +334,45 @@ export const sourceUrls: Record<string, string> = {
     'https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/english-language/competent-english',
   'SRC-229':
     'https://ielts.org/take-a-test/your-results/ielts-scoring-in-detail',
+  'SRC-320': 'https://www.boe.es/buscar/act.php?id=BOE-A-2000-544',
+  'SRC-321': 'https://www.boe.es/eli/es/rd/2015/11/06/1004/con',
+  'SRC-322': 'https://www.boe.es/eli/es/o/2016/09/30/jus1625/con',
+  'SRC-323':
+    'https://www.mjusticia.gob.es/es/ciudadania/nacionalidad/informacion-nacionalidad',
+  'SRC-324':
+    'https://www.inclusion.gob.es/web/migraciones/w/50.-autorizacion-de-residencia-de-larga-duracion-ue',
+  'SRC-325': 'https://www.boe.es/buscar/act.php?id=BOE-A-2025-12056',
+  'SRC-326': 'https://www.boe.es/buscar/act.php?id=BOE-A-2022-22128',
+  'SRC-327': 'https://www.boe.es/buscar/act.php?id=BOE-A-2007-4184',
+  'SRC-328':
+    'https://www.inclusion.gob.es/web/migraciones/w/63.-tarjeta-de-residencia-permanente-de-familiar-de-ciudadano-de-la-union-europea',
+  'SRC-329': 'https://www.boe.es/eli/es/o/2012/07/09/pre1490',
+  'SRC-330': 'https://www.boe.es/doue/2004/229/L00035-00048.pdf',
+  'SRC-331':
+    'https://eur-lex.europa.eu/legal-content/ES/TXT/HTML/?uri=CELEX:02003L0109-20110520',
+  'SRC-332': 'https://www.boe.es/buscar/act.php?id=BOE-A-2013-10074',
+  'SRC-333':
+    'https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue-duplicar-0-1',
+  'SRC-334': 'https://www.boe.es/buscar/act.php?id=BOE-A-2015-7851',
+  'SRC-335':
+    'https://bruselas.cervantes.es/es/examenes_espanol/ccse/ccse.htm?cadena_busqueda=2026',
+  'SRC-336':
+    'https://examenes.cervantes.es/sites/default/files/ic-tabla-precios-dele-2026.pdf',
+  'SRC-337': 'https://www.boe.es/buscar/act.php?id=BOE-A-2021-21007',
+  'SRC-338': 'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-24099',
+  'SRC-339':
+    'https://www.poderjudicial.es/cgpj/es/Poder-Judicial/Audiencia-Nacional/Jurisprudencia/Actualidad-Jurisprudencial/ci.AN-C-A--Estima-el-recurso-contra-resolucion-de-la-DGRN---que-acuerda-conceder-la-nacionalidad-espanola-por-residencia--Anula-la-misma-por-su-disconformidad-a-Derecho--La-permanencia-en-Espana-amparada-en-la-tarjeta-de-estudiante-o-en-autorizacion-de-estancia-para-cursar-estudios-no-puede-considerarse-que-reuna-las-notas-exigidas-de-residencia-legal--continuada-e-inmediatamente-anterior-a-la-peticion-previsto-en-el-art--22-3-del-CC-para-la-adquisicion-de-la-nacionalidad-.formato3',
+  'SRC-340': 'https://www.boe.es/buscar/act.php?id=BOE-A-2026-3815',
+  'SRC-341': 'https://www.boe.es/buscar/act.php?id=BOE-A-2006-7899',
+  'SRC-342': 'https://www.boe.es/buscar/doc.php?id=BOE-A-2024-18114',
+  'SRC-343': 'https://www.boe.es/buscar/act.php?id=BOE-A-2011-12628',
+  'SRC-344':
+    'https://www.seg-social.es/wps/portal/wss/internet/Trabajadores/PrestacionesPensionesTrabajadores/10963/28393/28396/28472?changeLanguage=es',
+  'SRC-345':
+    'https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue',
+  'SRC-346': 'https://www.boe.es/buscar/doc.php?id=BOE-A-2022-4916',
+  'SRC-347': 'https://www.boe.es/buscar/act.php?id=BOE-A-2011-8222',
+  'SRC-348':
+    'https://curia.europa.eu/jcms/upload/docs/application/pdf/2022-01/cp220010es.pdf',
+  'SRC-349': 'https://www.boe.es/buscar/act.php?id=BOE-A-2004-12010',
 };
