@@ -501,3 +501,4 @@
 | # | 改动描述 | 涉及文件 |
 |---|---|---|
 | 750 | 任务 101：共用分步问卷的进度、按步校验、草稿恢复及结果跳转；政策来源从各国实际引用生成，修正英国来源清单。通用结果与对比支持独立时间节点、费用、条件类型和豁免。 | apps/web/components/{questionnaire-shell,policy-page,result-page,result-view,gap-summary,whatif-lab}.tsx、apps/web/lib/{policy,uk-module,gap-summary,whatif,site-countries}.ts、双语公共标签与相关测试、packages/engine/src/country-result.ts |
+| 751 | 任务 101：日本首页与问卷取代原时间单页，接入永住、帰化及再入国的路径和全部输入。结果、对比、分享、方案与政策页使用日本模块，集合入口更新日本卡片，五页纳入离线和 sitemap 清单。 | apps/web/app/japan/、apps/web/lib/japan*.ts、apps/web/i18n/countries/japan*.ts、apps/web/{app/{offline-pages.json/route.ts,sitemap.ts},components/site-shell.tsx,public/sw.js,test/{japan,about-page}.test.tsx} |

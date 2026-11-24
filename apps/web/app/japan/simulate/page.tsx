@@ -1,0 +1,239 @@
+'use client';
+
+import { QuestionnaireShell } from '../../../components/questionnaire-shell';
+import type { TranslationKey } from '../../../i18n';
+import { useTranslation } from '../../../i18n/locale';
+import { japanSteps, type JapanDraft } from '../../../lib/japan-draft';
+import {
+  basicFields,
+  natRouteFields,
+  natSections,
+  prFilingSections,
+  prRouteFields,
+  prStatusSections,
+  travelRouteFields,
+  tripList,
+  type JapanField,
+} from '../../../lib/japan-fields';
+import { japanModule } from '../../../lib/japan-module';
+import form from '../../simulate/form.module.css';
+import styles from './questionnaire.module.css';
+import { EvidenceFields, updateAnswer } from './evidence-fields';
+
+type RouteGroup = 'pr' | 'nat' | 'travel';
+const routeFields = {
+  pr: prRouteFields,
+  nat: natRouteFields,
+  travel: travelRouteFields,
+};
+interface StepProps {
+  draft: JapanDraft;
+  errors: Record<string, TranslationKey>;
+  update: (patch: Partial<JapanDraft>) => void;
+}
+
+function JapanStep({ draft, errors, update }: StepProps) {
+  const { t } = useTranslation();
+  const pr = draft.permanentResidence;
+  const nat = draft.naturalisation;
+  const routeLabel = (group: RouteGroup, route: string) =>
+    t(`jp.${group}.${route}` as TranslationKey);
+  const routes = { pr: pr.routes, nat: nat.routes, travel: draft.reentry };
+  // Required answers remain blank while a route is being edited. The shell
+  // validates each selected route before any request is sent to the engine.
+  const setRoutes = (group: RouteGroup, selected: { route: string }[]) => {
+    if (group === 'pr')
+      update({
+        permanentResidence: { ...pr, routes: selected as typeof pr.routes },
+      });
+    else if (group === 'nat')
+      update({
+        naturalisation: { ...nat, routes: selected as typeof nat.routes },
+      });
+    else update({ reentry: selected as typeof draft.reentry });
+  };
+  const routeQuestions = (group: RouteGroup) =>
+    routes[group].map((route) => {
+      const fields = (routeFields[group] as Record<string, JapanField[]>)[
+        route.route
+      ];
+      return (
+        <section key={route.route} className={styles.section}>
+          <h2>{routeLabel(group, route.route)}</h2>
+          {group === 'pr' &&
+            ['hsp70', 'hsp80', 'j-skip'].includes(route.route) && (
+              <p>{t('jp.form.talent')}</p>
+            )}
+          {fields.length ? (
+            <EvidenceFields
+              fields={fields}
+              prefix={'jp-' + group + '-' + route.route}
+              values={route}
+              errors={errors}
+              change={(key, value) =>
+                setRoutes(
+                  group,
+                  routes[group].map((r) =>
+                    r.route === route.route ? updateAnswer(r, key, value) : r,
+                  ),
+                )
+              }
+            />
+          ) : (
+            <p>{t('jp.form.noExtra')}</p>
+          )}
+        </section>
+      );
+    });
+  const evidence = (
+    sections: Record<string, JapanField[]>,
+    group: 'pr' | 'nat',
+  ) =>
+    Object.entries(sections).map(([section, fields]) => {
+      const values = group === 'pr' ? pr.evidence : nat.evidence;
+      const hasError = fields.some((field) => {
+        const id = 'jp-' + group + '-' + field.name;
+        return Object.keys(errors).some(
+          (key) => key === id || key.startsWith(id + '-'),
+        );
+      });
+      return (
+        <details
+          key={section}
+          open={hasError || undefined}
+          className={styles.evidence}
+        >
+          <summary>{t(`jp.form.${section}` as TranslationKey)}</summary>
+          <EvidenceFields
+            fields={fields}
+            values={values}
+            prefix={'jp-' + group}
+            errors={errors}
+            change={(key, value) => {
+              if (group === 'pr')
+                update({
+                  permanentResidence: {
+                    ...pr,
+                    evidence: updateAnswer(pr.evidence, key, value),
+                  },
+                });
+              else
+                update({
+                  naturalisation: {
+                    ...nat,
+                    evidence: updateAnswer(nat.evidence, key, value),
+                  },
+                });
+            }}
+          />
+        </details>
+      );
+    });
+
+  return (
+    <>
+      <p className={form.hint}>{t('jp.form.optional')}</p>
+      {draft.step === 0 && (
+        <>
+          <EvidenceFields
+            fields={basicFields}
+            values={draft}
+            prefix="jp"
+            errors={errors}
+            change={(key, value) =>
+              update({
+                [key]:
+                  value ??
+                  (key === 'simulationDate' || key === 'stayStart'
+                    ? ''
+                    : undefined),
+              })
+            }
+          />
+          <p>{t('jp.form.scope')}</p>
+          {(['pr', 'nat', 'travel'] as const).map((group) => (
+            <fieldset key={group} className={form.fieldset}>
+              <legend className={form.legend}>{t(`jp.form.${group}`)}</legend>
+              {group === 'pr' && errors['jp-route-pr-general'] && (
+                <p id="jp-routes-error" className={form.error}>
+                  {t(errors['jp-route-pr-general'])}
+                </p>
+              )}
+              <div className={form.checkboxes}>
+                {Object.keys(routeFields[group]).map((route) => {
+                  const checked = routes[group].some((r) => r.route === route);
+                  const id = 'jp-route-' + group + '-' + route;
+                  return (
+                    <label key={route}>
+                      <input
+                        type="checkbox"
+                        id={id}
+                        checked={checked}
+                        aria-describedby={
+                          errors[id] ? 'jp-routes-error' : undefined
+                        }
+                        onChange={(event) =>
+                          setRoutes(
+                            group,
+                            event.target.checked
+                              ? [...routes[group], { route }]
+                              : routes[group].filter((r) => r.route !== route),
+                          )
+                        }
+                      />
+                      {routeLabel(group, route)}
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ))}
+        </>
+      )}
+      {draft.step === 1 && (
+        <>
+          <p>{t('jp.form.history')}</p>
+          <EvidenceFields
+            fields={[
+              pr.routes.some((route) => route.route === 'child-birth')
+                ? tripList
+                : {
+                    ...tripList,
+                    fields: tripList.fields.filter(
+                      (field) => field.name !== 'departure',
+                    ),
+                  },
+            ]}
+            values={draft}
+            prefix="jp"
+            errors={errors}
+            change={(key, value) => update({ [key]: value })}
+          />
+        </>
+      )}
+      {draft.step === 2 && routeQuestions('pr')}
+      {draft.step === 3 && evidence(prStatusSections, 'pr')}
+      {draft.step === 4 && evidence(prFilingSections, 'pr')}
+      {draft.step === 5 && (
+        <>
+          {routeQuestions('nat')}
+          {evidence(natSections, 'nat')}
+        </>
+      )}
+      {draft.step === 6 && (
+        <>
+          <p>{t('jp.form.travelHint')}</p>
+          {routeQuestions('travel')}
+        </>
+      )}
+    </>
+  );
+}
+
+export default function JapanSimulatePage() {
+  return (
+    <QuestionnaireShell country={japanModule} steps={japanSteps}>
+      {(props) => <JapanStep {...props} />}
+    </QuestionnaireShell>
+  );
+}

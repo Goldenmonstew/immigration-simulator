@@ -5,7 +5,11 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from '../i18n/locale';
-import { countryPath, siteCountries } from '../lib/site-countries';
+import {
+  countryPath,
+  siteCountries,
+  sitePagePaths,
+} from '../lib/site-countries';
 import { buildVersion } from '../lib/report';
 import styles from '../app/site.module.css';
 import game from '../app/uk/game/game.module.css';
@@ -20,6 +24,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const currentCountry = siteCountries.find(
     (country) => country.slug === firstSegment,
   );
+  const policyPage = countryPath(currentCountry?.id ?? 'uk', 'policy');
+  const policyLink = sitePagePaths.includes(policyPage)
+    ? policyPage
+    : countryPath('uk', 'policy');
   useEffect(() => {
     let details: [HTMLDetailsElement, boolean][] | undefined;
     const beforePrint = () => {
@@ -55,9 +63,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <header className={isGame ? game.siteHeader : styles.header}>
         <div className={isGame ? game.siteHeaderInner : styles.headerInner}>
           <a
-            href={asset(
-              isGame ? countryPath(currentCountry?.id ?? 'uk') : '/',
-            )}
+            href={asset(isGame ? countryPath(currentCountry?.id ?? 'uk') : '/')}
           >
             {isGame ? (
               t('game.returnSimulator')
@@ -78,7 +84,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
               {cleanPath !== '/' && (
                 <Link href="/">{t('site.allCountries')}</Link>
               )}
-              <Link href={countryPath('uk', 'policy')}>{t('site.policy')}</Link>
+              <Link href={policyLink}>{t('site.policy')}</Link>
               <Link href={countryPath('uk', 'about')}>{t('site.about')}</Link>
             </nav>
           )}
@@ -116,7 +122,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <footer className={`${styles.footer} ${isGame ? game.siteFooter : ''}`}>
         <p>{t('site.footer')}</p>
         <p className={styles.footerLinks}>
-          <Link href={countryPath('uk', 'policy')}>{t('site.policy')}</Link>
+          <Link href={policyLink}>{t('site.policy')}</Link>
           <Link href={countryPath('uk', 'about')}>{t('site.about')}</Link>
           <a
             href="https://github.com/Goldenmonstew/uk-immigration-simulator/issues/new?template=feedback.md"
