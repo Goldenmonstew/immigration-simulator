@@ -121,8 +121,12 @@ const reentry = (
   route: JpFullReentryRequest,
   request: Partial<JpFullRequest> = {},
 ) =>
-  evaluateJapanFull({ ...base, ...request, reentry: [route] }).columns[0]
-    .pathways[0];
+  evaluateJapanFull({
+    ...base,
+    applicationDate: request.simulationDate ?? '2026-09-24',
+    ...request,
+    reentry: [route],
+  }).columns[0].pathways[0];
 
 const condition = (path: JpFullPathway, suffix: string) =>
   path.checks.find(
@@ -292,6 +296,39 @@ describe('permanent residence', () => {
         request,
       );
       expect(status(residence, 'long-residence')).toBe(expectedNat);
+    },
+  );
+
+  test.each([
+    ['deemed', false, '2024-04-07', 'NOT_MET', '2034-04-07'],
+    ['none', true, '2024-04-07', 'MET', '2027-04-01'],
+    ['deemed', false, '2024-04-08', 'MET', '2027-04-01'],
+    ['permit', false, '2024-04-07', 'MET', '2027-04-01'],
+    ['none', undefined, '2024-04-07', 'NOT_MET', '2034-04-07'],
+  ] as const)(
+    'general PR reconciles %s in history with declaration %s for return on %s',
+    (departure, declaredIntentAtDeparture, returnOn, expected, milestone) => {
+      const departed = '2024-04-01';
+      const result = pr(general, prEvidence, {
+        trips: [
+          {
+            departed,
+            returned: '2024-04-07',
+            departure,
+            reentryPermit: departure === 'permit',
+          },
+        ],
+        reentry: [
+          {
+            route: 'deemed',
+            departureOn: departed,
+            returnOn,
+            declaredIntentAtDeparture,
+          },
+        ],
+      });
+      expect(status(result, 'continuous-stay')).toBe(expected);
+      expect(result.timeEarliestDate).toBe(milestone);
     },
   );
 
@@ -1842,6 +1879,7 @@ describe('re-entry and travel documents', () => {
           permit: {
             effectiveOn: permitEffectiveOn,
             expiresOn: '2029-04-05',
+            extensionApproved: false,
           },
         },
         { simulationDate },
@@ -2009,6 +2047,8 @@ describe('re-entry and travel documents', () => {
         reentry({
           ...trip,
           route: 'refugee-travel-document',
+          refugeeRecognition: true,
+          hasJapaneseTravelDocument: true,
           permitVoided: false,
           permit: { ...permit, entryDeadlineNotSpecified: true },
         }),
@@ -2087,7 +2127,11 @@ describe('re-entry and travel documents', () => {
       const ordinaryResult = reentry({
         ...ordinary,
         ...trip,
-        permit: { effectiveOn: '2026-09-25', expiresOn: '2026-11-15' },
+        permit: {
+          effectiveOn: '2026-09-25',
+          expiresOn: '2026-11-15',
+          extensionApproved: false,
+        },
       });
       const deemedResult = reentry({ ...deemed, ...trip });
       expect(status(ordinaryResult, 'ordinary-validity')).toBe(expected);
@@ -2107,7 +2151,11 @@ describe('re-entry and travel documents', () => {
         renewalDecisionOn: '2026-10-08',
         timelyRenewalPending,
       };
-      const permit = { effectiveOn: '2026-09-25', expiresOn: '2026-10-15' };
+      const permit = {
+        effectiveOn: '2026-09-25',
+        expiresOn: '2026-10-15',
+        extensionApproved: false,
+      };
       const ordinaryResult = reentry({ ...ordinary, ...trip, permit });
       expect(status(ordinaryResult, 'ordinary-validity')).toBe('MET');
       expect(status(ordinaryResult, 'return-continuity')).toBe('MET');
@@ -2252,6 +2300,7 @@ describe('re-entry and travel documents', () => {
           stayExpiresOn: '2027-08-01',
           timelyRenewalPending: true,
           returnOn: '2027-10-01',
+          renewalDecisionOn: '2027-10-01',
         }),
         'deemed-validity',
       ),
@@ -2407,6 +2456,8 @@ describe('re-entry and travel documents', () => {
     (entryDeadline, documentStatus, returnStatus) => {
       const result = reentry({
         route: 'refugee-travel-document',
+        refugeeRecognition: true,
+        hasJapaneseTravelDocument: true,
         permitVoided: false,
         departureOn: '2026-10-01',
         returnOn: '2026-10-10',
@@ -2437,6 +2488,8 @@ describe('re-entry and travel documents', () => {
     (returnOn, expected) => {
       const result = reentry({
         route: 'refugee-travel-document',
+        refugeeRecognition: true,
+        hasJapaneseTravelDocument: true,
         permitVoided: false,
         departureOn: '2026-10-01',
         returnOn,

@@ -166,7 +166,11 @@ test('English mobile questionnaire compares filing dates and shows Japanese poli
   ]) {
     await field(key).selectOption('yes');
   }
-  for (const key of ['excludedStatusOrDetention', 'permitVoided']) {
+  for (const key of [
+    'excludedStatusOrDetention',
+    'permitVoided',
+    'permit-extensionApproved',
+  ]) {
     await field(key).selectOption('no');
   }
   await field('visits').selectOption('multiple');

@@ -15,16 +15,23 @@ export interface JpFullRequest extends JpFullContext {
   reentry?: JpFullReentryRequest[];
 }
 
+type DeemedRoute = Extract<JpFullReentryRequest, { route: 'deemed' }>;
+const sameDeemedTrip = (
+  trip: JpTrip,
+  route: JpFullReentryRequest,
+): route is DeemedRoute =>
+  route.route === 'deemed' &&
+  trip.departed === route.departureOn &&
+  trip.returned === route.returnOn;
+
 /** SRC-442 art. 23(2): share status at departure only for the same deemed trip. */
 export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
   trips: JpTrip[],
   routes: T[],
 ) {
   const matches = (trip: JpTrip, route: JpFullReentryRequest) =>
-    trip.departure === 'deemed' &&
-    route.route === 'deemed' &&
-    trip.departed === route.departureOn &&
-    trip.returned === route.returnOn;
+    sameDeemedTrip(trip, route) &&
+    (trip.departure === 'deemed' || route.declaredIntentAtDeparture === true);
   const history = trips.map((trip) => {
     const matched = routes.filter((route) => matches(trip, route));
     if (!matched.length) return trip;
@@ -57,7 +64,30 @@ export function evaluateJapanFull(req: JpFullRequest): JpFullResult {
     req.trips,
     req.reentry ?? [],
   );
-  const history = { ...req, trips };
+  // SRC-110 art. 26-2(1), SRC-116: the declaration records how the person
+  // actually left. Apply it to the matching history only for this assessment.
+  const history = {
+    ...req,
+    trips: trips.map((trip) => {
+      const answers = new Set(
+        reentry
+          .filter((route): route is DeemedRoute => sameDeemedTrip(trip, route))
+          .map((route) => route.declaredIntentAtDeparture),
+      );
+      answers.delete(undefined);
+      // A negative deemed declaration does not invalidate a separate ordinary permit.
+      if (
+        !answers.size ||
+        (answers.size === 1 &&
+          answers.has(false) &&
+          trip.departure !== 'deemed')
+      )
+        return trip;
+      const departure: JpTrip['departure'] =
+        answers.size > 1 ? undefined : answers.has(true) ? 'deemed' : 'none';
+      return { ...trip, departure };
+    }),
+  };
   return {
     policyAsOf: japanFull2026_11.asOf,
     columns: [

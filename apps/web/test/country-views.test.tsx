@@ -157,6 +157,7 @@ test.each([
       route: 'deemed',
       departureOn: '2025-09-02',
       returnOn: '2025-09-30',
+      specialPermanentResident: false,
       stayIndefinite: true,
       lawfulStatus: true,
       passportValid: true,

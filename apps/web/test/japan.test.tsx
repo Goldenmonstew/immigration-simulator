@@ -31,7 +31,11 @@ const ordinary = {
   visits: 'multiple',
   channel: 'counter',
   permitVoided: false,
-  permit: { effectiveOn: '2027-04-05', expiresOn: '2028-04-04' },
+  permit: {
+    effectiveOn: '2027-04-05',
+    expiresOn: '2028-04-04',
+    extensionApproved: false,
+  },
 } satisfies JpFullReentryRequest;
 
 function travelDraft(): JapanDraft {
@@ -331,6 +335,247 @@ test('a planned deemed departure leaves continuity pending and a shared negative
   }
 });
 
+const aprilTrip = { departureOn: '2024-04-01', returnOn: '2024-04-07' };
+const aprilPermit = {
+  effectiveOn: aprilTrip.departureOn,
+  expiresOn: '2025-04-01',
+  extensionApproved: false,
+};
+const ordinaryTrip = { ...ordinary, ...aprilTrip, permit: aprilPermit };
+const deemedTrip = {
+  ...aprilTrip,
+  route: 'deemed',
+  lawfulStatus: true,
+  specialPermanentResident: false,
+  temporaryVisitor: false,
+  originalStayMonths: 12,
+  passportValid: true,
+  residentCardOrCertificate: true,
+  formalPermitRequired: false,
+  declaredIntentAtDeparture: true,
+  declarationForDepartureOn: aprilTrip.departureOn,
+  permitVoided: false,
+  stayExpiresOn: '2024-09-01',
+  timelyRenewalPending: false,
+} as const;
+const renewalTrip = {
+  ...deemedTrip,
+  stayExpiresOn: '2024-04-30',
+  timelyRenewalPending: true,
+  returnOn: '2024-05-20',
+};
+const longDeemedTrip = {
+  ...deemedTrip,
+  returnOn: '2025-10-01',
+  stayIndefinite: true,
+  stayExpiresOn: undefined,
+};
+const refugeeTrip = {
+  ...aprilTrip,
+  route: 'refugee-travel-document',
+  refugeeRecognition: true,
+  hasJapaneseTravelDocument: true,
+  permitVoided: false,
+  permit: { ...aprilPermit, entryDeadlineNotSpecified: true },
+} as const;
+
+test.each([
+  ['ordinary permit effective on departure', ordinaryTrip, 'MET', 'MET', 'MET'],
+  [
+    'ordinary permit effective later',
+    { ...ordinaryTrip, permit: { ...aprilPermit, effectiveOn: '2024-04-02' } },
+    'MET',
+    'NOT_MET',
+    'NOT_MET',
+  ],
+  [
+    'ordinary permit missing start',
+    { ...ordinaryTrip, permit: { ...aprilPermit, effectiveOn: undefined } },
+    'MET',
+    'UNKNOWN',
+    'UNKNOWN',
+  ],
+  [
+    'ordinary passport or alternative missing',
+    { ...ordinaryTrip, passportOrApprovedAlternative: false },
+    'NOT_MET',
+    'MET',
+    'NOT_MET',
+  ],
+  [
+    'ordinary extension decision unknown, return within original term',
+    {
+      ...ordinaryTrip,
+      permit: { ...aprilPermit, extensionApproved: undefined },
+    },
+    'MET',
+    'UNKNOWN',
+    'MET',
+  ],
+  [
+    'single entry already used',
+    { ...ordinaryTrip, visits: 'single', previouslyUsedSingleEntry: true },
+    'MET',
+    'MET',
+    'NOT_MET',
+  ],
+  ['deemed passport valid', deemedTrip, 'MET', 'MET', 'MET'],
+  [
+    'deemed passport invalid',
+    { ...deemedTrip, passportValid: false },
+    'NOT_MET',
+    'MET',
+    'NOT_MET',
+  ],
+  [
+    'deemed passport unconfirmed',
+    { ...deemedTrip, passportValid: undefined },
+    'UNKNOWN',
+    'MET',
+    'UNKNOWN',
+  ],
+  [
+    'deemed declaration refused',
+    { ...deemedTrip, declaredIntentAtDeparture: false },
+    'NOT_MET',
+    'MET',
+    'NOT_MET',
+  ],
+  [
+    'deemed declaration missing',
+    { ...deemedTrip, declaredIntentAtDeparture: undefined },
+    'UNKNOWN',
+    'MET',
+    'UNKNOWN',
+  ],
+  [
+    'ordinary resident beyond the deemed term',
+    longDeemedTrip,
+    'MET',
+    'NOT_MET',
+    'NOT_MET',
+  ],
+  [
+    'special permanent resident within the deemed term',
+    { ...longDeemedTrip, specialPermanentResident: true },
+    'MET',
+    'MET',
+    'MET',
+  ],
+  [
+    'unconfirmed special status between the two terms',
+    { ...longDeemedTrip, specialPermanentResident: undefined },
+    'MET',
+    'UNKNOWN',
+    'UNKNOWN',
+  ],
+  ['renewal decision missing', renewalTrip, 'MET', 'UNKNOWN', 'UNKNOWN'],
+  [
+    'renewal decided before return',
+    { ...renewalTrip, renewalDecisionOn: '2024-05-10' },
+    'MET',
+    'NOT_MET',
+    'NOT_MET',
+  ],
+  [
+    'renewal decided on return',
+    { ...renewalTrip, renewalDecisionOn: renewalTrip.returnOn },
+    'MET',
+    'MET',
+    'MET',
+  ],
+  [
+    'return after special-period ceiling',
+    { ...renewalTrip, returnOn: '2024-07-01' },
+    'MET',
+    'NOT_MET',
+    'NOT_MET',
+  ],
+  [
+    'original stay still covers the return, renewal end unknown',
+    { ...renewalTrip, returnOn: renewalTrip.stayExpiresOn },
+    'MET',
+    'UNKNOWN',
+    'MET',
+  ],
+  ['refugee document valid', refugeeTrip, 'MET', 'MET', 'MET'],
+  [
+    'refugee document absent',
+    { ...refugeeTrip, hasJapaneseTravelDocument: false },
+    'NOT_MET',
+    'MET',
+    'NOT_MET',
+  ],
+  [
+    'refugee recognition missing',
+    { ...refugeeTrip, refugeeRecognition: undefined },
+    'UNKNOWN',
+    'MET',
+    'UNKNOWN',
+  ],
+  [
+    'refugee document effective later',
+    {
+      ...refugeeTrip,
+      permit: {
+        ...refugeeTrip.permit,
+        effectiveOn: '2024-04-02',
+        expiresOn: '2025-04-02',
+      },
+    },
+    'MET',
+    'NOT_MET',
+    'NOT_MET',
+  ],
+] as const)(
+  'shared re-entry assessment and result groups agree for %s',
+  (_label, route, eligibility, period, continuity) => {
+    const draft = decodeDraft(
+      jp,
+      encodeDraft(jp, {
+        ...travelDraft(),
+        applicationDate: '2024-03-29',
+        reentry: [route],
+      }),
+    )!;
+    const result = jp.run(draft, 'zh-CN');
+    const path = result.columns[0].pathways[0];
+    const html = renderToStaticMarkup(
+      <ResultView country={jp} result={result} draft={draft} />,
+    );
+    const [eligibilityId, periodId] = {
+      ordinary: ['ordinary-eligibility', 'ordinary-validity'],
+      deemed: ['deemed-eligibility', 'deemed-validity'],
+      'refugee-travel-document': [
+        'refugee-document',
+        'refugee-document-validity',
+      ],
+    }[route.route];
+    for (const [id, expected] of [
+      [eligibilityId, eligibility],
+      [periodId, period],
+      ['return-continuity', continuity],
+    ] as const) {
+      const row = path.checks.find((item) => item.id === 'jp.reentry.' + id)!;
+      expect(row.status).toBe(expected);
+      const group = { MET: 'PASS', NOT_MET: 'FAIL', UNKNOWN: 'UNKNOWN' }[
+        expected
+      ];
+      expect(html).toContain(
+        `data-status="${group}"><strong>${row.title}</strong>`,
+      );
+      if (id !== eligibilityId && 'renewalDecisionOn' in route)
+        expect(row.explanation).toContain(route.renewalDecisionOn);
+      if (id !== eligibilityId && route === renewalTrip) {
+        expect(row.explanation).toContain('上限');
+        expect(row.explanation).toContain('2024-06-30');
+        expect(row.explanation).toContain('截止日待确认');
+        expect(row.explanation).not.toMatch(/可核对截止日为|截止 2024-06-30/);
+      }
+    }
+  },
+);
+
 test.each(['zh-CN', 'en'] as const)(
   'Japan result details group currency amounts and ranges in %s',
   (locale) => {
@@ -558,6 +803,10 @@ test.each([
           departureOn: departed,
           returnOn: '2025-10-01',
           specialPermanentResident: routeStatus,
+          lawfulStatus: true,
+          passportValid: true,
+          residentCardOrCertificate: true,
+          formalPermitRequired: false,
           stayIndefinite: true,
           declaredIntentAtDeparture: true,
           declarationForDepartureOn: departed,
