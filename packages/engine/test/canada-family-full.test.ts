@@ -1,0 +1,649 @@
+import { expect, test } from 'vitest';
+import { evaluateCanadaFull } from '../src';
+import type { FamilyAnswers } from '../src/canada-full/family';
+import type { FederalMember } from '../src/canada-full/federal';
+import { federal, filed, person } from './canada-federal-fixture';
+
+const base: FamilyAnswers = {
+  relationship: 'spouse',
+  quebec: false,
+  filingDate: '2026-11-23',
+  sponsorBirthDate: '1980-01-01',
+  sponsorStatus: 'citizen',
+  sponsorInCanada: true,
+  noDuplicateSponsorship: true,
+  sponsorshipFiled: true,
+  sponsorPreviouslySponsoredAsPartner: false,
+  noActivePartnerUndertaking: true,
+  sponsor: {
+    notWithdrawn: true,
+    noRemovalOrder: true,
+    notDetained: true,
+    criminalBarCleared: true,
+    noProceedingSuspension: true,
+    noUndertakingOrSupportDefault: true,
+    immigrationDebtClear: true,
+    bankruptcyDischargedOrAbsent: true,
+    socialAssistancePermittedOrAbsent: true,
+  },
+  genuineAndContinuingRelationship: true,
+  marriageRecognizedAndEligible: true,
+  child: { priorDisclosureExamOrExceptionConfirmed: true },
+  applicationClass: 'family',
+  multigenerationalDependants: false,
+  federalUndertakingAndAgreementSigned: true,
+};
+const qc: NonNullable<FamilyAnswers['province']> = {
+  eligibilityLetterOrQualifyingInlandAor: true,
+  letterDate: '2025-06-30',
+  submissionDate: '2026-11-23',
+  sponsorResidenceOrReturnConfirmed: true,
+  provincialFinancialAndConductBarsClear: true,
+  custodyConsentIfRequired: true,
+  undertakingAndAdultDeclarationsSigned: true,
+  integrationPlanIfRequiredSigned: true,
+  mifiDecision: 'approved',
+  ownHouseholdSize: 1,
+  sponsoredGroups: [{ adults: 1, children: 1 }],
+  eligibleCanadianIncome: 29642,
+  eligibleCanadianAssets: 29131,
+  resourcesSustainable: true,
+  intakeExemptionConfirmed: false,
+  intakeCapacityConfirmed: true,
+  applications: 1,
+  additionalPersons: 1,
+  feesPaid: true,
+};
+function inspect(id: string, changes: FamilyAnswers = {}, dob = '1990-11-23') {
+  const p = evaluateCanadaFull({
+    simulationDate: '2026-11-23',
+    dateOfBirth: dob,
+    locale: 'en',
+    federal: { members: [] },
+    family: { ...base, ...changes },
+  }).columns[0].pathways.find((p) => p.id === 'CA-FAMILY')!;
+  return p.checks.find((c) => c.id === `CA-R${id}`)!;
+}
+function filedFamily(
+  family: FamilyAnswers,
+  dateOfBirth = '1990-01-01',
+  application: Partial<typeof filed> = {},
+  simulationDate = '2026-11-23',
+  members: FederalMember[] = [],
+) {
+  return evaluateCanadaFull({
+    simulationDate,
+    dateOfBirth,
+    family: { ...base, filingDate: undefined, ...family },
+    federal: {
+      ...federal,
+      members,
+      principal: {
+        ...person,
+        dateOfBirth,
+        exam: {
+          instructionOn: '2026-10-23',
+          examOn: '2026-11-05',
+          panelExamComplete: true,
+        },
+      },
+      applications: {
+        'CA-FAMILY': { ...filed, filedOn: '2026-10-20', ...application },
+      },
+    },
+  }).columns[0].pathways.find((p) => p.id === 'CA-FAMILY')!;
+}
+
+test.each([
+  ['2026-09-01', 'MET'],
+  ['2026-04-20', 'MET'],
+  ['2026-04-19', 'NOT_MET'],
+  ['2026-02-01', 'NOT_MET'],
+] as const)(
+  'R26 and family sponsorship: current certificate issued %s → %s',
+  (certificateIssued, expected) => {
+    const result = evaluateCanadaFull({
+      simulationDate: '2026-11-23',
+      family: { ...base, filingDate: '2026-10-20' },
+      dateOfBirth: person.dateOfBirth,
+      federal: {
+        ...federal,
+        applications: { 'CA-FAMILY': { ...filed, filedOn: undefined } },
+        principal: {
+          ...person,
+          exam: { disposition: 'exempt' },
+          definitiveChecklistSatisfied: undefined,
+          foreignStays: [
+            { from: '2024-01-01', currentCountry: true, certificateIssued },
+          ],
+        },
+      },
+    }).columns[0].pathways.find((p) => p.id === 'CA-FAMILY')!;
+    expect(result.checks.find((c) => c.id === 'CA-R26')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  },
+);
+
+test('R73 counts cohabitation up to the family application receipt', () => {
+  const partner = {
+    relationship: 'common-law',
+    cohabitationSince: '2025-11-01',
+    deemedCommonLawAccepted: false,
+  } as const;
+  for (const [filedOn, expected] of [
+    ['2026-10-20', 'NOT_MET'],
+    ['2026-11-01', 'MET'],
+  ] as const) {
+    const result = filedFamily(partner, undefined, { filedOn });
+    expect(result.checks.find((c) => c.id === 'CA-R24')?.status).toBe('MET');
+    expect(result.checks.find((c) => c.id === 'CA-R73')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  }
+});
+
+test('R74 and spousal sponsorship check a child who marries during processing even after disclosure', () => {
+  const member: FederalMember = {
+    ...person,
+    relationship: 'child',
+    dateOfBirth: '2005-01-01',
+    accompanying: true,
+    otherAdmissibility: 'clear',
+    exam: { disposition: 'exempt' },
+  };
+  for (const [simulationDate, unmarriedAndUnpartnered, expected] of [
+    ['2026-11-05', true, 'MET'],
+    ['2026-11-23', false, 'NOT_MET'],
+    ['2026-11-23', undefined, 'UNKNOWN'],
+  ] as const) {
+    const result = filedFamily(
+      { child: { ...base.child, unmarriedAndUnpartnered } },
+      undefined,
+      { changesReported: true },
+      simulationDate,
+      [member],
+    );
+    expect(result.checks.find((c) => c.id === 'CA-R20')?.status).toBe('MET');
+    expect(result.checks.find((c) => c.id === 'CA-R74')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  }
+});
+
+test('R74 evaluates each accompanying sibling from their own answers', () => {
+  const child: FederalMember = {
+    ...person,
+    relationship: 'child',
+    dateOfBirth: '2005-01-01',
+    accompanying: true,
+    unmarriedAndUnpartnered: true,
+    otherAdmissibility: 'clear',
+    exam: { disposition: 'exempt' },
+  };
+  for (const [unmarriedAndUnpartnered, expected] of [
+    [true, 'MET'],
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const) {
+    const result = filedFamily(
+      { child: { ...base.child, unmarriedAndUnpartnered: true } },
+      undefined,
+      undefined,
+      undefined,
+      [child, { ...child, dateOfBirth: '2006-01-01', unmarriedAndUnpartnered }],
+    );
+    expect(result.checks.find((c) => c.id === 'CA-R74')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  }
+});
+
+const accompanyingMinor: FederalMember = {
+  ...person,
+  relationship: 'child',
+  dateOfBirth: '2016-01-01',
+  accompanying: true,
+  unmarriedAndUnpartnered: true,
+  otherAdmissibility: 'clear',
+  exam: { disposition: 'exempt' },
+};
+
+test.each([
+  [{ custodyAndConsentReady: true }, 'MET'],
+  [{ custodyAndConsentReady: false }, 'UNKNOWN'],
+  [{}, 'UNKNOWN'],
+  [{ relocationAuthority: 'prohibited' }, 'NOT_MET'],
+  [{ relocationAuthority: 'no-separate-consent-required' }, 'MET'],
+] as const)(
+  'R74 and spousal sponsorship: sole accompanying minor %j → %s',
+  (answer, expected) => {
+    const result = filedFamily(
+      { child: { ...base.child, ...answer } },
+      undefined,
+      undefined,
+      undefined,
+      [accompanyingMinor],
+    );
+    const check = result.checks.find((c) => c.id === 'CA-R74')!;
+    expect(check.status).toBe(expected);
+    expect(result.status).toBe(expected);
+    if (expected === 'UNKNOWN')
+      expect(check.pendingDetails).toContain('PD-245');
+  },
+);
+
+test.each([
+  [{ custodyAndConsentReady: true }, 'MET'],
+  [{}, 'UNKNOWN'],
+  [{ relocationAuthority: 'prohibited' }, 'NOT_MET'],
+] as const)(
+  'R74 and spousal sponsorship: second minor’s own evidence %j → %s',
+  (answer, expected) => {
+    const result = filedFamily(
+      { child: { ...base.child, custodyAndConsentReady: true } },
+      undefined,
+      undefined,
+      undefined,
+      [
+        { ...accompanyingMinor, custodyAndConsentReady: true },
+        { ...accompanyingMinor, dateOfBirth: '2018-06-01', ...answer },
+      ],
+    );
+    expect(result.checks.find((c) => c.id === 'CA-R74')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  },
+);
+
+test.each([
+  ['2008-10-20', 'MET'],
+  ['2008-10-21', 'UNKNOWN'],
+] as const)(
+  'R74 checks minority at federal filing for a child born %s → %s',
+  (dateOfBirth, expected) => {
+    const result = filedFamily({}, undefined, undefined, undefined, [
+      { ...accompanyingMinor, dateOfBirth },
+    ]);
+    expect(result.checks.find((c) => c.id === 'CA-R74')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  },
+);
+
+test.each([
+  ['2007-01-01', {}, 'MET'],
+  ['2008-10-20', { custodyAndConsentReady: false }, 'MET'],
+  ['2008-10-21', { custodyAndConsentReady: false }, 'UNKNOWN'],
+  ['2016-01-01', { custodyAndConsentReady: false }, 'UNKNOWN'],
+  [
+    '2016-01-01',
+    { relocationAuthority: 'no-separate-consent-required' },
+    'MET',
+  ],
+  [
+    '2016-01-01',
+    { custodyAndConsentReady: true, relocationAuthority: 'prohibited' },
+    'NOT_MET',
+  ],
+] as const)(
+  'R74 and direct child sponsorship: born %s, custody evidence %j → %s',
+  (dateOfBirth, evidence, expected) => {
+    const result = filedFamily(
+      {
+        relationship: 'child',
+        completeApplicationReceived: '2026-10-20',
+        child: {
+          ...base.child,
+          parentageConfirmed: true,
+          unmarriedAndUnpartnered: true,
+          ...evidence,
+        },
+      },
+      dateOfBirth,
+    );
+    const check = result.checks.find((c) => c.id === 'CA-R74')!;
+    expect(check.status).toBe(expected);
+    expect(result.status).toBe(expected);
+    if (expected === 'UNKNOWN')
+      expect(check.pendingDetails).toContain('PD-245');
+  },
+);
+
+test('R74 locks child age on confirmed complete receipt, including a later resubmission', () => {
+  const child: FamilyAnswers = {
+    relationship: 'child',
+    child: {
+      ...base.child,
+      parentageConfirmed: true,
+      custodyAndConsentReady: true,
+      unmarriedAndUnpartnered: true,
+      dependentBeforeCutoffAndContinuing: false,
+    },
+  };
+  for (const [
+    applicationEvidenceComplete,
+    completeApplicationReceived,
+    expected,
+  ] of [
+    [true, undefined, 'MET'],
+    [undefined, undefined, 'UNKNOWN'],
+    [true, '2026-11-05', 'NOT_MET'],
+  ] as const) {
+    const result = filedFamily(
+      { ...child, completeApplicationReceived },
+      '2004-11-01',
+      {
+        applicationEvidenceComplete,
+      },
+    );
+    expect(result.checks.find((c) => c.id === 'CA-R74')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  }
+});
+
+test('sponsor at age 18, abroad or previously sponsored; suspension and defaults', () => {
+  expect(inspect('71', { sponsorBirthDate: '2008-11-23' }).status).toBe('MET');
+  expect(inspect('71', { sponsorBirthDate: '2008-11-24' }).status).toBe(
+    'NOT_MET',
+  );
+  const foreign = { sponsorInCanada: false, returnToCanadaConfirmed: true };
+  expect(inspect('71', foreign).status).toBe('MET');
+  expect(inspect('71', { ...foreign, sponsorStatus: 'pr' }).status).toBe(
+    'NOT_MET',
+  );
+  expect(inspect('71', { sponsorStatus: 'registered-indian' }).status).toBe(
+    'UNKNOWN',
+  );
+  for (const [start, status] of [
+    ['2021-11-23', 'MET'],
+    ['2021-11-24', 'NOT_MET'],
+  ]) {
+    expect(
+      inspect('71', {
+        sponsorPreviouslySponsoredAsPartner: true,
+        sponsorContinuousPrOrCitizenSince: start,
+      }).status,
+    ).toBe(status);
+  }
+  expect(inspect('72').status).toBe('MET');
+  expect(
+    inspect('72', { sponsor: { ...base.sponsor, immigrationDebtClear: false } })
+      .status,
+  ).toBe('NOT_MET');
+  expect(
+    inspect('72', {
+      sponsor: { ...base.sponsor, criminalBarCleared: undefined },
+    }).pendingDetails,
+  ).toContain('PD-243');
+});
+test('12 consecutive months, conjugal outside Canada, dependent child lock-in at 22', () => {
+  const co = {
+    relationship: 'common-law',
+    cohabitationSince: '2025-11-23',
+    deemedCommonLawAccepted: false,
+  } as const;
+  expect(inspect('73', co).status).toBe('MET');
+  expect(inspect('73', { ...co, cohabitationSince: '2025-11-24' }).status).toBe(
+    'NOT_MET',
+  );
+  const conj = {
+    relationship: 'conjugal',
+    partnershipSince: '2025-11-23',
+    legalOrPracticalBarriersConfirmed: true,
+    sponsoredOutsideCanada: true,
+  } as const;
+  expect(inspect('73', conj).status).toBe('MET');
+  expect(inspect('73', { ...conj, sponsoredOutsideCanada: false }).status).toBe(
+    'NOT_MET',
+  );
+  const kid = {
+    relationship: 'child',
+    completeApplicationReceived: '2026-11-23',
+    child: {
+      ...base.child,
+      unmarriedAndUnpartnered: true,
+      parentageConfirmed: true,
+      custodyAndConsentReady: true,
+      dependentBeforeCutoffAndContinuing: false,
+      unableToSupportSelfDueToCondition: false,
+    },
+  } as const;
+  expect(inspect('74', kid, '2004-11-24').status).toBe('MET');
+  expect(inspect('74', kid, '2004-11-23').status).toBe('NOT_MET');
+  expect(
+    inspect(
+      '74',
+      {
+        ...kid,
+        child: {
+          ...kid.child,
+          dependentBeforeCutoffAndContinuing: true,
+          unableToSupportSelfDueToCondition: true,
+        },
+      },
+      '2004-11-23',
+    ).status,
+  ).toBe('MET');
+});
+test('inland class and lack-of-status decision are independent of a genuine relationship', () => {
+  const inland = {
+    applicationClass: 'inland',
+    cohabitingInCanada: true,
+    temporaryStatusValid: false,
+  } as const;
+  expect(
+    inspect('75', { ...inland, lackOfStatusPolicy: 'requested' }).status,
+  ).toBe('UNKNOWN');
+  expect(
+    inspect('75', { ...inland, lackOfStatusPolicy: 'accepted' }).status,
+  ).toBe('MET');
+  expect(
+    inspect('75', {
+      ...inland,
+      relationship: 'conjugal',
+      lackOfStatusPolicy: 'accepted',
+    }).status,
+  ).toBe('NOT_MET');
+});
+test('federal undertaking: only nested dependants trigger MNI and the higher eligible income counts', () => {
+  expect(inspect('76').status).toBe('MET');
+  const f = {
+    multigenerationalDependants: true,
+    federalIncome: {
+      unduplicatedHouseholdSize: 8,
+      eligibleNoaIncome: 89007,
+      eligibleLastYearIncome: 89008,
+    },
+  };
+  // 7-person row 80,784 + 8,224 = 89,008.
+  expect(inspect('76', f).explanation).toContain('89008');
+  expect(inspect('76', f).status).toBe('MET');
+  expect(
+    inspect('76', {
+      ...f,
+      federalIncome: { ...f.federalIncome, eligibleLastYearIncome: 89007 },
+    }).status,
+  ).toBe('NOT_MET');
+  expect(
+    inspect('76', { ...f, filingDate: '2027-01-01' }).pendingDetails,
+  ).toContain('PD-248');
+  expect(
+    inspect(
+      '76',
+      { relationship: 'child', permanentResidenceDate: '2026-11-23' },
+      '2007-11-23',
+    ).explanation,
+  ).toContain('2032-11-23');
+});
+test('Québec undertaking, income tables, income-only base amount and separate sponsored groups', () => {
+  const input = {
+    quebec: true,
+    province: qc,
+    multigenerationalDependants: true,
+  };
+  for (const id of ['77', '78', '79', '80'])
+    expect(inspect(id, input).status, id).toBe('MET');
+  const lateNotice = filedFamily({
+    quebec: true,
+    province: {
+      ...qc,
+      submissionDate: '2026-11-19',
+      letterDate: '2026-11-20',
+      intakeExemptionConfirmed: true,
+    },
+  });
+  expect(lateNotice.checks.find((c) => c.id === 'CA-R77')?.status).toBe(
+    'NOT_MET',
+  );
+  expect(lateNotice.checks.find((c) => c.id === 'CA-R79')?.status).toBe('MET');
+  expect(lateNotice.status).toBe('NOT_MET');
+  expect(
+    inspect('77', { ...input, province: { ...qc, mifiDecision: 'pending' } })
+      .status,
+  ).toBe('UNKNOWN');
+  expect(
+    inspect('77', { ...input, province: { ...qc, mifiDecision: 'refused' } })
+      .status,
+  ).toBe('NOT_MET');
+  expect(
+    inspect(
+      '77',
+      { ...input, relationship: 'child', permanentResidenceDate: '2026-11-23' },
+      '2011-11-23',
+    ).explanation,
+  ).toContain('2036-11-23');
+  // A = 29,642. B for one adult with one minor = 29,131.
+  expect(inspect('78', input).explanation).toContain('58773');
+  expect(
+    inspect('78', {
+      ...input,
+      province: {
+        ...qc,
+        eligibleCanadianIncome: 29641,
+        eligibleCanadianAssets: 80000,
+      },
+    }).status,
+  ).toBe('NOT_MET');
+  expect(
+    inspect('78', {
+      ...input,
+      province: { ...qc, eligibleCanadianAssets: 29130 },
+    }).status,
+  ).toBe('NOT_MET');
+  // A = 29,642; B1 = 10,261; B2 = 38,450 + 10,107 + 2,823.
+  const groups = [
+    { adults: 0, children: 1 },
+    { adults: 3, children: 3 },
+  ];
+  expect(
+    inspect('78', {
+      ...input,
+      province: {
+        ...qc,
+        sponsoredGroups: groups,
+        eligibleCanadianIncome: 91283,
+      },
+    }).explanation,
+  ).toContain('91283');
+  expect(
+    inspect('78', {
+      ...input,
+      province: { ...qc, submissionDate: '2027-01-01' },
+    }).status,
+  ).toBe('UNKNOWN');
+});
+test('Québec intake separates schedule, actual capacity, exemptions and fees', () => {
+  const phase = (p: FamilyAnswers['province']) => ({
+    quebec: true,
+    province: { ...qc, ...p },
+  });
+  for (const [simulationDate, submissionDate, letterDate, expected] of [
+    ['2026-11-23', undefined, '2025-06-30', 'UNKNOWN'],
+    ['2026-11-23', '2026-11-23', '2025-06-30', 'MET'],
+    ['2026-11-23', '2026-11-23', '2025-07-01', 'NOT_MET'],
+    ['2026-11-23', '2027-01-01', '2025-08-31', 'UNKNOWN'],
+    ['2027-01-01', '2027-01-01', '2025-08-31', 'MET'],
+  ] as const) {
+    const result = filedFamily(
+      phase({ submissionDate, letterDate }),
+      undefined,
+      undefined,
+      simulationDate,
+    );
+    expect(result.checks.find((c) => c.id === 'CA-R79')?.status).toBe(expected);
+    expect(result.checks.find((c) => c.id === 'CA-R77')?.status).toBe(
+      submissionDate && submissionDate <= simulationDate ? 'MET' : 'UNKNOWN',
+    );
+    expect(result.status).toBe(expected);
+  }
+  expect(
+    inspect('79', phase({ intakeCapacityConfirmed: undefined })).pendingDetails,
+  ).toContain('PD-256');
+  expect(inspect('79', phase({ letterDate: '2028-06-01' })).status).toBe(
+    'UNKNOWN',
+  );
+  expect(
+    inspect('79', {
+      ...phase({ submissionDate: undefined, intakeCapacityConfirmed: false }),
+      relationship: 'child',
+    }).status,
+  ).toBe('MET');
+  expect(inspect('80', phase({})).explanation).toContain('470');
+  expect(
+    inspect('80', phase({ applications: 2, additionalPersons: 0 })).explanation,
+  ).toContain('670');
+  expect(inspect('80', phase({ feesPaid: false })).status).toBe('NOT_MET');
+  const unpublished = inspect('80', phase({ submissionDate: '2027-01-01' }));
+  expect(unpublished.pendingDetails).toContain('PD-258');
+  expect(unpublished.explanation).not.toContain('335');
+});
+
+test('sponsor conviction exception turns on jurisdiction and the fifth anniversary', () => {
+  const conviction = {
+    jurisdiction: 'foreign',
+    sentenceCompletedOn: '2021-11-23',
+    finalAcquittal: false,
+    foreignRehabilitationConfirmed: true,
+  } as const;
+  const sponsor = { ...base.sponsor, conviction };
+  expect(inspect('72', { sponsor }).status).toBe('MET');
+  expect(
+    inspect('72', {
+      sponsor: {
+        ...sponsor,
+        conviction: { ...conviction, sentenceCompletedOn: '2021-11-24' },
+      },
+    }).status,
+  ).toBe('NOT_MET');
+  expect(
+    inspect('72', {
+      sponsor: {
+        ...sponsor,
+        conviction: {
+          ...conviction,
+          foreignRehabilitationConfirmed: undefined,
+        },
+      },
+    }).status,
+  ).toBe('UNKNOWN');
+  expect(
+    inspect('72', {
+      sponsor: { ...base.sponsor, noProceedingSuspension: false },
+    }).status,
+  ).toBe('UNKNOWN');
+  expect(
+    inspect('72', {
+      quebec: true,
+      sponsor: { ...base.sponsor, immigrationDebtClear: false },
+    }).status,
+  ).toBe('NOT_MET');
+  expect(
+    inspect(
+      '77',
+      {
+        quebec: true,
+        province: {
+          ...qc,
+          integrationPlanIfRequiredSigned: false,
+          additionalSponsoredBirthDates: ['2000-01-01'],
+        },
+      },
+      '2011-11-23',
+    ).status,
+  ).toBe('NOT_MET');
+});
