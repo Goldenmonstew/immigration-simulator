@@ -161,7 +161,10 @@ function selectiveService(request: UsFullRequest, gmcYears: number): Answer {
   return reviewed(answer.selectiveNonWillful);
 }
 
-export function naturalizationChecks(request: UsFullRequest) {
+export function naturalizationChecks(
+  request: UsFullRequest,
+  receipt?: IsoDate,
+) {
   const check = checksFor(request);
   const a = request.naturalization;
   const date = request.simulationDate;
@@ -208,12 +211,17 @@ export function naturalizationChecks(request: UsFullRequest) {
     civics.special.age,
     civics.special.lprYears,
   );
-  const version = date >= civics.switchDate ? civics.current : civics.old;
+  const version = receipt
+    ? receipt >= civics.switchDate
+      ? civics.current
+      : civics.old
+    : undefined;
   const test = special ? civics.special : version;
   const score = a?.civicsCorrect;
-  const scored =
-    special === undefined && score !== undefined
-      ? score >= version.correct
+  const scored = !test
+    ? undefined
+    : special === undefined && score !== undefined
+      ? score >= test.correct
         ? true
         : score < civics.special.correct
           ? false
@@ -327,10 +335,15 @@ export function naturalizationChecks(request: UsFullRequest) {
             `重考通常在首次面谈后 ${civics.retestDays.earliest}–${civics.retestDays.latest} 天安排，具体日期待通知。`,
             `A retest is usually scheduled ${civics.retestDays.earliest}–${civics.retestDays.latest} days after the first interview. Await the notice.`,
           ]
-        : [
-            `适用题库 ${test.bank} 题，最多问 ${test.asked} 题，答对 ${test.correct} 题。简版资格未确认时仍需核实年龄和在美永居年限。`,
-            `The indicated bank has ${test.bank} questions, with up to ${test.asked} asked and ${test.correct} correct required. Confirm age and LPR residence for special consideration.`,
-          ],
+        : test
+          ? [
+              `适用题库 ${test.bank} 题，最多问 ${test.asked} 题，答对 ${test.correct} 题。简版资格未确认时仍需核实年龄和在美永居年限。`,
+              `The indicated bank has ${test.bank} questions, with up to ${test.asked} asked and ${test.correct} correct required. Confirm age and LPR residence for special consideration.`,
+            ]
+          : [
+              '纸质与网上收件日跨越题库切换日。请先确认实际收件日。',
+              'Paper and online receipt dates straddle the civics test change. Confirm the receipt date first.',
+            ],
       'NOT_APPLICABLE',
     ),
     {

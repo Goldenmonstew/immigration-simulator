@@ -128,9 +128,16 @@ export function admissionChecks(
   const consular = a?.process === 'consular';
   const consularVisa = consular && scope === 'immigrant';
   const approvalOnly = consularVisa ? 'NOT_APPLICABLE' : undefined;
-  const applicationDate = consularVisa
-    ? decision && (a.interviewOn ?? decision)
-    : receipt;
+  let applicationDate: IsoDate | undefined = receipt;
+  if (consularVisa) {
+    const { interviewOn, decisionOn } = a;
+    const beforeNvcOpening =
+      receipt > date && interviewOn && interviewOn <= receipt;
+    applicationDate =
+      !decisionOn && !beforeNvcOpening && interviewOn
+        ? interviewOn
+        : decision && (interviewOn ?? decision);
+  }
   const approvalDate = adjustment ? (decision ?? receipt) : receipt;
   const publicChargeDate = adjustment ? (request.fees?.filingOn ?? date) : date;
   const humanitarian = scope === 'humanitarian';
@@ -160,14 +167,20 @@ export function admissionChecks(
         : waiver === 'not-needed'
           ? false
           : undefined;
-  const assessGround = (grounds: Answer[], prerequisite: Answer) => {
+  const assessGround = (
+    grounds: Answer[],
+    prerequisite: Answer,
+    filingPrerequisite = prerequisite,
+  ) => {
     return {
       answer: all(
         prerequisite,
         ...(humanitarian ? waived(grounds, waiverDecision) : grounds),
       ),
       filingStatus: humanitarian
-        ? checkStatus(all(prerequisite, ...waived(grounds, waiverMaterials)))
+        ? checkStatus(
+            all(filingPrerequisite, ...waived(grounds, waiverMaterials)),
+          )
         : undefined,
     };
   };
@@ -183,17 +196,21 @@ export function admissionChecks(
   const healthGrounds = optionalMedicalForm
     ? health
     : ordinaryWaiver(health, a?.healthWaiver);
-  const medicalAtFiling = medicalEvidenceCheck(a, receipt, adjustment);
+  const medicalLaw = v.medical.value;
+  const medicalWithApplication =
+    (adjustment || humanitarian) && receipt >= medicalLaw.requiredWithI485From;
+  const checkI693Validity =
+    adjustment || (humanitarian && !optionalMedicalForm);
+  const medicalAtFiling = medicalWithApplication
+    ? medicalEvidenceCheck(a, receipt, checkI693Validity)
+    : true;
   const medical = assessGround(
     healthGrounds,
     all(
-      adjustment ? medicalAtFiling : true,
-      medicalEvidenceCheck(
-        a,
-        approvalDate,
-        adjustment || (humanitarian && !optionalMedicalForm),
-      ),
+      medicalAtFiling,
+      medicalEvidenceCheck(a, approvalDate, checkI693Validity),
     ),
+    medicalAtFiling,
   );
   const criminal = assessGround(
     criminalGrounds(a, applicationDate),
@@ -234,10 +251,20 @@ export function admissionChecks(
             '收到面谈通知后安排指定医生体检。健康结论、疫苗及体检材料在签证核准前核对。',
             'Arrange the panel physician exam after receiving the interview notice. Health findings, vaccination and the exam report are checked before visa issuance.',
           ]
-        : [
-            '核对 Class A 传染病、伴有有害行为的疾病、药物滥用、适龄疫苗及当前有效的体检材料。新冠疫苗已从清单移除。',
-            'Check Class A infectious diseases, disorders with harmful behavior, drug abuse, age-appropriate vaccination and currently valid medical evidence. COVID-19 vaccination was removed from the list.',
-          ],
+        : adjustment || humanitarian
+          ? medicalWithApplication
+            ? [
+                '所需 I-693 或部分疫苗记录须随 I-485 递交，并在核准时复核健康结论和材料有效性。',
+                'Submit any required I-693 or partial vaccination record with Form I-485. Health findings and validity are rechecked at approval.',
+              ]
+            : [
+                '该收件日可在递交 I-485 后补交所需体检材料。核准仍须确认健康、疫苗和体检材料。',
+                'For this receipt date, required medical evidence can follow Form I-485. Health, vaccination and medical evidence must still be established at approval.',
+              ]
+          : [
+              '核对 Class A 传染病、伴有有害行为的疾病、药物滥用、适龄疫苗及当前有效的体检材料。新冠疫苗已从清单移除。',
+              'Check Class A infectious diseases, disorders with harmful behavior, drug abuse, age-appropriate vaccination and currently valid medical evidence. COVID-19 vaccination was removed from the list.',
+            ],
       adjustment
         ? checkStatus(all(medicalAtFiling, ...healthGrounds))
         : (approvalOnly ?? medical.filingStatus),
@@ -553,7 +580,7 @@ export function adjustmentChecks(
   ];
 }
 
-export function humanitarianChecks(request: UsFullRequest) {
+export function humanitarianChecks(request: UsFullRequest, receipt: IsoDate) {
   const check = checksFor(request);
   const a = request.humanitarian;
   const refugee = a?.status === 'refugee';
@@ -617,6 +644,6 @@ export function humanitarianChecks(request: UsFullRequest) {
       ],
       'NOT_APPLICABLE',
     ),
-    ...admissionChecks(request, request.admission, 'humanitarian'),
+    ...admissionChecks(request, request.admission, 'humanitarian', receipt),
   ];
 }

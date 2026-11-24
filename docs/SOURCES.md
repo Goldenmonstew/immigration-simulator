@@ -166,7 +166,7 @@
 | SRC-309 | LAW | 境内调整身份、签证名额与例外 | https://uscode.house.gov/us/usc/t8/s1255/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-usc-8usc1255.html`（sha256 `90299c46d8d5774a900b46e9b124fe65cf97036b37e013e2b040347bbf774aec`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part245.xml`（sha256 `5e9dfd8efa0ceef2977745ac8b2202d807afbd8b6bbc30e710910fbca71dfe59`）；`policy-sources/2026-11-23-us-pm-v7-a-ch6.html`（sha256 `3de0704893e8b5bff8597095c8fd65d7af0c5d8ebe869926a999cf90b53d2d87`）；`policy-sources/2026-11-23-us-visa-availability.html`（sha256 `fb55a8388c2779da33742bf4d5e99221bee8afcccb8e8b7e6ca1808f338fba1e`）；`policy-sources/2026-11-23-us-i485instr.pdf`（sha256 `ed6a97aa2924bacebf443be6382bd506c24bd79e7c431f17d4eea7d9553e0daf`） | archived |
 | SRC-310 | GUIDANCE | 境内调整身份的裁量 | https://www.uscis.gov/sites/default/files/document/policy-alerts/05.21.2026_Discretionary_Adjudication_of_Adjustment_of_Status_Applications_PM-602-0199.pdf | 见各快照 | 2026-11-23 | `policy-sources/2026-05-21-us-pm-602-0199-aos-discretion.pdf`（sha256 `7e3c112420141d80255431d91f4bfc17af502325ac574eb38b432d9484b95692`）；`policy-sources/2026-11-23-us-pm-v7-a-ch10.html`（sha256 `9e7d1d3f4e3d564156ce2d677484b0b34d66184d6423dd32dd81e938166663e6`） | archived |
 | SRC-311 | LAW | 不予入境、非法居留、犯罪与安全 | https://uscode.house.gov/us/usc/t8/s1182/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-usc-8usc1182.html`（sha256 `0f8020a4e1c6c9f4f6fd24a0dd2307e5fe65d810137ba0d69db49e52f1cce99e`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part212.xml`（sha256 `1f465506a0fd171e8ca31663365b8f09c2c1714be29727c424ca79718d1b635f`）；`policy-sources/2026-09-23-us-pa-criminal-inadmissibility.pdf`（sha256 `f0db075adf1628801122143770c5439feec7786b1c18d3b1f79f6f1b7a84d0d7`）；`policy-sources/2026-11-24-us-9fam504.8.html`（sha256 `ea56b5fc301a90e6870349a82be0aab92f0a4ab3a01d9860d55521a19a7fb444`） | archived |
-| SRC-312 | LAW | 体检、疫苗与 I-693 有效性 | https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-42.xml?part=34 | 见各快照 | 2026-11-23 | `policy-sources/2026-11-19-us-ecfr-42cfr-part34.xml`（sha256 `2442f2bd9704951715570a8b63c06d8c5012840376cd00209577e8f470def27f`）；`policy-sources/2025-06-11-us-pa-i693-validity.pdf`（sha256 `19c2e2ebd3a942439fa27ec9dd95b3fe82dbbc737e7169c60fbc16a08ff83aad`）；`policy-sources/2026-11-23-us-pm-v8-b-ch9.html`（sha256 `bef7681daa0eed0e9433c837cb9b21c5b9168110e90d9b6fb3b79c3d87237211`）；`policy-sources/2026-11-23-us-i693instr.pdf`（sha256 `734f0b3070596d3f706e0da32f66feb3c60dee21d353e8ad3e151be6a40767cf`）；`policy-sources/2026-11-23-us-9fam302.2.html`（sha256 `2e232490a4bb30f03b1e119c6106af17f691323bda7fd1560dd1ca8888e105dc`） | archived |
+| SRC-312 | LAW | 体检、疫苗与 I-693 有效性 | https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-42.xml?part=34 | 见各快照 | 2026-11-24 | `policy-sources/2026-11-19-us-ecfr-42cfr-part34.xml`（sha256 `2442f2bd9704951715570a8b63c06d8c5012840376cd00209577e8f470def27f`）；`policy-sources/2025-06-11-us-pa-i693-validity.pdf`（sha256 `19c2e2ebd3a942439fa27ec9dd95b3fe82dbbc737e7169c60fbc16a08ff83aad`）；`policy-sources/2026-11-23-us-pm-v8-b-ch9.html`（sha256 `bef7681daa0eed0e9433c837cb9b21c5b9168110e90d9b6fb3b79c3d87237211`）；`policy-sources/2026-11-23-us-i693instr.pdf`（sha256 `734f0b3070596d3f706e0da32f66feb3c60dee21d353e8ad3e151be6a40767cf`）；`policy-sources/2026-11-23-us-9fam302.2.html`（sha256 `2e232490a4bb30f03b1e119c6106af17f691323bda7fd1560dd1ca8888e105dc`）；`policy-sources/2026-11-24-us-i693.html`（sha256 `41e3d1f141f8f4e59e4806ce18fd1df6b864b2ec094128f72193ff0831e43cff`） | archived |
 | SRC-313 | LAW | DHS 公共负担与领馆 FAM 对照 | https://www.federalregister.gov/documents/full_text/html/2026/07/20/2026-14539.html | 见各快照 | 2026-11-23 | `policy-sources/2026-07-20-us-fr-2026-14539-public-charge.html`（sha256 `e718bcbdbdf577c2beabd7457310e7336777ee7ecdb0c3450fcf0ddb72bbfd46`）；`policy-sources/2026-08-18-us-pa-public-charge.pdf`（sha256 `f420be8cfa76bf2ce1a510939c5db622480f8719942be9e8f4590f171103ea63`）；`policy-sources/2026-11-23-us-pm-v8-g-ch11.html`（sha256 `0360c83fae97695e0d019d455efb320795ba7efe421e91bb4ac268fcf239647d`）；`policy-sources/2026-11-23-us-9fam302.8.html`（sha256 `c09b8b71637f755a521f246ff0be22ecac8c277ce7ccf60111889f45afc1de15`）；`policy-sources/2026-11-24-us-i485.pdf`（sha256 `796eefb646ae1be6a6bd4c3eb52d0798fb06a209a7ee5317b14cdfcaf10dce18`） | archived |
 | SRC-314 | LAW | 难民、庇护调整身份与 INA 209(c) | https://uscode.house.gov/us/usc/t8/s1159/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-10-us-usc-8usc1159.html`（sha256 `1c42430977f7af86d7f94e5068c43dca227f87e131a5b002f016f03749dc636c`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part209.xml`（sha256 `216c32c0eb65cde6c5dd1ab74b9d6d6396e226deb9b0049b77af427b355e706f`）；`policy-sources/2026-11-23-us-pm-v7-l-ch2.html`（sha256 `41ab74a66b31ce6edcd67c6b8341db1876555293875a80ca076f6a18d17ce14c`）；`policy-sources/2026-11-23-us-pm-v7-l-ch3.html`（sha256 `00402355d551e9a779af52405a8fefa7ed6b559321aaf0487a3fdd39d88ce420`）；`policy-sources/2026-11-23-us-pm-v7-m-ch2.html`（sha256 `36db6bb567384d28e61dfb1ec48885fda719aadfe2d97b80e56a95360747504f`）；`policy-sources/2026-11-23-us-pm-v7-m-ch3.html`（sha256 `a2776c945242abd9be22e038ac703d1b536c1203a0f136bf4ff77da26f7f488a`） | archived |
 | SRC-315 | LAW | 军人入籍 INA 328、329 | https://uscode.house.gov/us/usc/t8/s1439/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-10-us-usc-8usc1439.html`（sha256 `db551f1270f7b87956d3963b7d38641a98ffabc0d300a88d1999c96187f5a1e9`）；`policy-sources/2026-11-23-us-usc-8usc1440.html`（sha256 `1b572cee7d7532857e34429098d5cdfee4c1c1f6f1c26d82eb00007ba0247ef2`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part328.xml`（sha256 `9fce72e00780051222ee9f225f83745446a0d8a631bd05da66734cea38d3c2c5`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part329.xml`（sha256 `8347744e7da91d2172450c323aa213b4f0e36f9ad217f8117c10595a69d724aa`）；`policy-sources/2026-11-23-us-pm-v12-i-ch2.html`（sha256 `166e6c38b0a3a48c4d89903129376ffb0093e5761e4354c380c704817763c1d7`）；`policy-sources/2026-11-23-us-pm-v12-i-ch3.html`（sha256 `7160846917dd69fe3828aa898a45656f5785a82d615d40865a83abff6c70ce2c`） | archived |
@@ -790,7 +790,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 联名递交事实单（PDF 4 页，2024-09-12）：p2 条件居民子女在父母取得身份当天或之后 90 天内取得的，可纳入父母的 I-751；须单独递交的子女（如晚于父母 90 天以上取得）可随时递交，不必等到两周年前 90 天，前提是没有最终递解令。
 - N-400 填表说明（PDF 29 页）：p3 提前 90 天递交；p18 实际居住表写"递交前所需连续居住期间内"在美的天数（913／548 天），与 PD-092 的保守计法相关。
 - I-829 表格页：Where to File 只列邮寄地址（Dallas Lockbox）；`Forms Available to File Online` 列有 I-751、没有 I-829，即 I-829 只能纸质递交，USCIS 只在工作日收纸质件（SRC-081 Vol 1 Part B Ch 6(E)）。
-- `Forms Available to File Online` 的 Form I-485 栏分别列出可网申的单独递交类别与可同包网申的 I-130、I-140。VAWA 可在 I-360 已递交后单独网申。清单未列难民／庇护、SIJ 或 EB-5 类 I-485。Form N-400 栏规定申请减费或免缴费的用纸申。
+- [Forms Available to File Online，Upload Completed PDF Online，Form I-485](https://www.uscis.gov/file-online/forms-available-to-file-online) 分列可单独网申的亲属、职业和 VAWA 类别，以及可同包网申的 I-130、I-140。I-130 同包需律师或获认可的代表，I-140 同包另允许符合条件的自请人。VAWA 可在 I-360 已递交后单独网申 I-485。清单未列难民／庇护、SIJ 或 EB-5 类 I-485。Form N-400 栏规定申请减费或免缴费的用纸申。I-751 栏列 PDF 网申，I-912 栏亦列可与 I-751 一并上传。
 - `International Travel as a Permanent Resident`：离境超过 1 年须有回美证，回美证有效期 2 年；在外超过 2 年可考虑申请返美居民签证 SB-1。
 
 ## SRC-083 Real Decreto 1155/2024（外国人法实施条例）
@@ -1095,6 +1095,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-pm-v12-e-ch2.html` → <https://www.uscis.gov/policy-manual/volume-12-part-e-chapter-2>
 - `policy-sources/2026-11-23-us-pm-v12-e-ch3.html` → <https://www.uscis.gov/policy-manual/volume-12-part-e-chapter-3>
 - `policy-sources/2025-10-20-us-pa-civics-test.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20251020-CivicsTest.pdf>
+- PA-2025-24 p2，*Policy Highlights*：USCIS 对 2025-10-20 起递交的 N-400 应用新版题库，普通考生须答对 12 题，更早递交适用旧题库的 6 题门槛。收件日依据见 SRC-081 1 USCIS-PM B.6(E)。
 - 12 USCIS-PM E.3(I)(1) 的 *Passing the English and Civics Requirements* 说明 N-648 不充分后通过两项考试的处理。
 
 ## SRC-293 USCIS 良好品格、整体审查及公共福利备忘录
@@ -1152,6 +1153,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-19-us-ecfr-22cfr42.22.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-22.xml?section=42.22>
 - `policy-sources/2026-11-21-us-9fam502.7.html` → <https://fam.state.gov/FAM/09FAM/09FAM050207.html>
 - `policy-sources/2026-11-23-us-i131instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-131instr.pdf>
+- I-131A 在 USCIS 网上付费，表格须在使领馆当面递交。DS-117 向办理该案的使领馆提交，SB-1 的后续 DS-260 按使领馆通知办理。见 [I-131A Payment，Before You Start The Payment Process](https://my.uscis.gov/accounts/travel-document/start/overview)、[Returning Resident Visas，Required Documentation 与 Step 2](https://travel.state.gov/content/travel/en/us-visas/immigrate/returning-resident.html)。
 
 ## SRC-301 境内递解事由
 
@@ -1183,6 +1185,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-pm-v6-e-ch4.html` → <https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-4>
 - `policy-sources/2026-11-23-us-pm-v6-e-ch6.html` → <https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-6>
 - 20 CFR §656.30(b)(1) 和 6 USCIS-PM E.6(B)(1) 按用于 I-140 的收件日计算 PERM 有效期。
+- 20 CFR §656.17(a)、(c) 的 ETA-9089 允许电子或邮寄。电子递交使用 [DOL FLAG，PERM Filing Process](https://flag.dol.gov/programs/PERM)。
 
 ## SRC-306 职业分类与 EB-1A、EB-2 NIW 证据
 
@@ -1196,6 +1199,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-i526instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-526instr.pdf>
 - `policy-sources/2026-11-23-us-i526einstr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-526einstr.pdf>
 - I-526 Instructions p9 Item 5 允许以有依据的商业计划证明将创造合资格岗位。INA §203(b)(5)(A)(i) 规定预计持续投资期。
+- [I-526](https://www.uscis.gov/i-526) 与 [I-526E](https://www.uscis.gov/i-526e) 的 *Where to File* 指向邮寄地址，SRC-082 网申清单未列两表。
 
 ## SRC-308 Gold Card 行政令与 I-140G
 
@@ -1203,6 +1207,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-i140g.html` → <https://www.uscis.gov/i-140g>
 - `policy-sources/2026-11-23-us-i140ginstr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-140ginstr.pdf>
 - I-140G Instructions p3 Items 1–3 规定个人或企业主申请的赠与额，以及每位随行配偶或子女各加 USD 1,000,000。
+- I-140G 的 *Where to File* 与 *When to File* 规定，登记获接纳并收到 USCIS 通知后，只能通过 USCIS 账户递交。
 
 ## SRC-309 境内调整身份、签证名额与例外
 
@@ -1239,6 +1244,8 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 - `policy-sources/2026-11-19-us-ecfr-42cfr-part34.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-42.xml?part=34>
 - `policy-sources/2025-06-11-us-pa-i693-validity.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20250611-I-693Validity.pdf>
+- `policy-sources/2026-11-24-us-i693.html` → <https://www.uscis.gov/i-693>
+- Form I-693 页首明确规定 2024-12-02 起将所需 I-693 或部分疫苗记录随 I-485 递交。PA-2025-08 p2 记载 2024-12-10 发布含该要求的 I-485 改版，并说明此前曾在递交后以 RFE 补取材料。两日期分别用于随件要求生效和改版发布。PA-2025-08 对个案绑定有效性的更新自 2025-06-11 起适用于待决或新递交的案件。
 - `policy-sources/2026-11-23-us-pm-v8-b-ch9.html` → <https://www.uscis.gov/policy-manual/volume-8-part-b-chapter-9>
 - `policy-sources/2026-11-23-us-i693instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-693instr.pdf>
 - `policy-sources/2026-11-23-us-9fam302.2.html` → <https://fam.state.gov/FAM/09FAM/09FAM030202.html>
@@ -1271,6 +1278,7 @@ Form I-485 Part 9 Item 56 列出的境内调整公共负担豁免类别如下。
 - `policy-sources/2026-11-23-us-pm-v7-l-ch3.html` → <https://www.uscis.gov/policy-manual/volume-7-part-l-chapter-3>
 - `policy-sources/2026-11-23-us-pm-v7-m-ch2.html` → <https://www.uscis.gov/policy-manual/volume-7-part-m-chapter-2>
 - `policy-sources/2026-11-23-us-pm-v7-m-ch3.html` → <https://www.uscis.gov/policy-manual/volume-7-part-m-chapter-3>
+- [Form I-602，Where to File](https://www.uscis.gov/i-602) 规定与 I-485 同件时邮寄，I-485 已递交时送相应审理办公室。
 
 ## SRC-315 军人入籍 INA 328、329
 
@@ -1280,6 +1288,7 @@ Form I-485 Part 9 Item 56 列出的境内调整公共负担豁免类别如下。
 - `policy-sources/2026-11-19-us-ecfr-8cfr-part329.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=329>
 - `policy-sources/2026-11-23-us-pm-v12-i-ch2.html` → <https://www.uscis.gov/policy-manual/volume-12-part-i-chapter-2>
 - `policy-sources/2026-11-23-us-pm-v12-i-ch3.html` → <https://www.uscis.gov/policy-manual/volume-12-part-i-chapter-3>
+- [Naturalization Through Military Service，Application Process](https://www.uscis.gov/military/naturalization-through-military-service) 允许军人纸交或网申 N-400，并说明在役 N-426 与离役 DD-214／NGB-22 的证明方式。
 
 ## SRC-316 USCIS 费用与减免表
 

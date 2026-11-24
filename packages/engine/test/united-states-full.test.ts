@@ -2144,7 +2144,13 @@ describe('review86-2 regressions', () => {
         approvalEarliestDate: '2026-11-23',
       });
     }
-    for (const request of [n, spouse, m, { ...p7, fees: undefined }]) {
+    for (const request of [
+      n,
+      spouse,
+      m,
+      { ...conditions, fees: undefined },
+      { ...p7, fees: { onlineCategoryAvailable: 'cleared' as const } },
+    ]) {
       expect(path({ ...request, simulationDate: saturday })).toMatchObject({
         status: 'MET',
         approvalStatus: 'MET',
@@ -3374,6 +3380,171 @@ describe('review86-7 regressions', () => {
       status: 'MET',
       explanation: expect.stringContaining('The prior policy'),
     });
+  });
+});
+
+describe('review86-8 regressions', () => {
+  test('defaults self-filed concurrent I-130 and I-485 to paper unless online filing is confirmed', () => {
+    const request: UsFullRequest = {
+      ...f,
+      simulationDate: '2026-11-21',
+      admission: { ...admission, petitionStatus: 'filed-with-i485' },
+    };
+    for (const fees of [
+      undefined,
+      { onlineCategoryAvailable: 'pending' },
+      { channel: 'paper' },
+    ] as const) {
+      expect(path({ ...request, fees })).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: '2026-11-23',
+        approvalStatus: 'UNKNOWN',
+      });
+    }
+    for (const channel of [undefined, 'online'] as const) {
+      expect(
+        path({
+          ...request,
+          fees: { channel, onlineCategoryAvailable: 'cleared' },
+        }),
+      ).toMatchObject({ status: 'MET', earliestDate: '2026-11-21' });
+    }
+    expect(
+      path({
+        ...request,
+        fees: { channel: 'online', onlineCategoryAvailable: 'barred' },
+      }),
+    ).toMatchObject({ status: 'NOT_MET', approvalStatus: 'NOT_MET' });
+  });
+
+  test('requires confirmation for a standalone I-485 when the channel is omitted', () => {
+    for (const request of [f, e, p7]) {
+      for (const onlineCategoryAvailable of [undefined, 'pending'] as const) {
+        const result = path({
+          ...request,
+          simulationDate: '2026-11-21',
+          fees: { onlineCategoryAvailable },
+        });
+        expect(result).toMatchObject({
+          status: 'UNKNOWN',
+          approvalStatus: 'UNKNOWN',
+          pendingDetails: expect.arrayContaining(['PD-267']),
+        });
+        expect(result.earliestDate).toBeUndefined();
+        expect(result.approvalEarliestDate).toBeUndefined();
+      }
+    }
+  });
+
+  test('assesses former party membership and the juvenile CIMT exception at a known consular interview before decision', () => {
+    const request: UsFullRequest = {
+      ...authorizedConsular,
+      admission: {
+        ...authorizedConsular.admission,
+        interviewOn: '2026-12-01',
+        party: {
+          membership: 'former',
+          endedOn: '2024-12-01',
+          ageEnded: 30,
+          rulingParty: false,
+          noSecurityThreat: true,
+        },
+        crime: {
+          ...noCrime,
+          convictionCount: 1,
+          cimtCount: 1,
+          cimtAgeAtOffense: 17,
+          cimtOffenseOrReleaseOn: '2021-11-30',
+          cimtMaximumMonths: 24,
+          cimtSentenceMonths: 7,
+        },
+      },
+    };
+    for (const id of ['C38-CRIMINAL-INADMISSIBILITY', 'C39-SECURITY']) {
+      expect(condition(request, id)).toMatchObject({
+        filingStatus: 'NOT_APPLICABLE',
+        status: 'MET',
+      });
+    }
+    const result = path(request);
+    expect(result).toMatchObject({
+      status: 'MET',
+      earliestDate: time.simulationDate,
+      approvalStatus: 'UNKNOWN',
+    });
+    expect(result.approvalEarliestDate).toBeUndefined();
+  });
+
+  test('selects the N-400 civics test by receipt when a Sunday paper filing reaches the cutoff', () => {
+    const request: UsFullRequest = {
+      ...withNatural({ civics: undefined, civicsCorrect: 6 }),
+      simulationDate: '2025-10-19',
+    };
+    const paper: UsFullRequest = { ...request, fees: { channel: 'paper' } };
+    expect(path(paper)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2025-10-20',
+      approvalStatus: 'NOT_MET',
+    });
+    expect(condition(paper, 'C04-CIVICS').status).toBe('NOT_MET');
+    expect(condition(request, 'C04-CIVICS').status).toBe('MET');
+    expect(
+      condition(
+        { ...request, fees: { onlineCategoryAvailable: 'pending' } },
+        'C04-CIVICS',
+      ).status,
+    ).toBe('UNKNOWN');
+  });
+
+  test.each([
+    ['2024-10-15', 'MET', '2024-10-15'],
+    ['2024-11-29', 'MET', '2024-11-29'],
+    ['2024-12-01', 'UNKNOWN', undefined],
+    ['2024-12-02', 'UNKNOWN', undefined],
+  ] as const)(
+    'requires applicable I-693 evidence at filing only from the receipt cutoff (%s)',
+    (simulationDate, status, earliestDate) => {
+      const request: UsFullRequest = {
+        ...withAdmission({ medicalEvidence: 'pending' }),
+        simulationDate,
+        support: { ...support, jointSponsor: 'cleared' },
+      };
+      expect(condition(request, 'C36-HEALTH')).toMatchObject({
+        status: 'UNKNOWN',
+        filingStatus: status,
+        pendingDetails: ['PD-275'],
+      });
+      const result = path(request);
+      expect(result).toMatchObject({ status, approvalStatus: 'UNKNOWN' });
+      expect(result.earliestDate).toBe(earliestDate);
+      expect(result.approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test('applies the historical I-693 filing rule to refugee and asylee adjustment', () => {
+    for (const status of ['refugee', 'asylee'] as const) {
+      const request: UsFullRequest = {
+        ...h,
+        simulationDate: '2024-11-29',
+        humanitarian: {
+          ...human,
+          status,
+          refugeeDefinitionOrDerivative: true,
+          firmlyResettled: false,
+          discretion: 'cleared',
+        },
+        admission: { ...admission, medicalEvidence: 'pending' },
+      };
+      expect(path(request)).toMatchObject({
+        status: 'MET',
+        earliestDate: '2024-11-29',
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(path({ ...request, simulationDate: '2024-12-01' })).toMatchObject({
+        status: 'UNKNOWN',
+        approvalStatus: 'UNKNOWN',
+      });
+    }
   });
 });
 

@@ -229,7 +229,7 @@ export const unitedStatesFullSources = {
   onlineFiling: [
     source(
       'SRC-082',
-      'Forms Available to File Online, Upload a Completed PDF, Forms I-485, I-751 and N-400',
+      'Forms Available to File Online, Fill Out Form Online (N-400) and Upload Completed PDF Online (I-485, I-751)',
       'https://www.uscis.gov/file-online/forms-available-to-file-online',
     ),
   ],
@@ -482,7 +482,12 @@ export const unitedStatesFullSources = {
   ],
   health: [
     usc('SRC-311', '1182', '(a)(1), (g)'),
-    source('SRC-312', '42 CFR 34.2–34.3; PA-2025-08 p1'),
+    source('SRC-312', '42 CFR 34.2–34.3; PA-2025-08 pp1–2'),
+    source(
+      'SRC-312',
+      'Form I-693, introduction, Dec. 2, 2024 effective date',
+      'https://www.uscis.gov/i-693',
+    ),
     pm('SRC-312', 8, 'B', 9),
     source(
       'SRC-309',
@@ -769,6 +774,7 @@ export const unitedStatesFull2026_11 = {
     medical: parameter(
       {
         covidRemoved: '2025-03-11',
+        requiredWithI485From: '2024-12-02',
         applicationLinkedFrom: '2025-06-11',
         previousSignatureCutoff: '2023-11-01',
         previousValidityYears: 2,

@@ -17,7 +17,7 @@ import {
   adjustmentChecks,
   humanitarianChecks,
 } from './admission';
-import { checksFor, checkStatus, reviewed, s } from './check';
+import { checksFor, checkStatus, reviewed, s, v } from './check';
 import { feeChecks } from './fees';
 import { familyChecks, employmentChecks, supportChecks } from './immigration';
 import { conditionChecks, travelChecks } from './maintenance';
@@ -202,6 +202,7 @@ type ConditionsTiming = FilingTiming & { special?: boolean };
 function conditionsTiming(
   req: UsFullRequest,
   legacy: UsPathway | undefined,
+  paper: boolean,
 ): ConditionsTiming {
   const marriage = req.conditions?.marriage;
   const lpr = req.permanentResident;
@@ -246,71 +247,68 @@ function conditionsTiming(
       special: !!single || late,
     };
   };
-  if (
-    investor ||
-    req.fees?.channel === 'paper' ||
-    (!req.fees?.channel && req.fees?.onlineCategoryAvailable === 'barred')
-  )
-    return onChannel(true);
+  if (paper) return onChannel(true);
   const online = onChannel(false);
-  if (req.fees?.channel === 'online') return online;
-  const paper = onChannel(true);
-  return paper.status === online.status &&
-    paper.earliestDate === online.earliestDate
+  if (req.fees?.channel === 'online' || online.earliestDate) return online;
+  const paperTiming = onChannel(true);
+  return paperTiming.status === online.status
     ? online
-    : { status: 'UNKNOWN', special: online.special || paper.special };
+    : { status: 'UNKNOWN', special: online.special || paperTiming.special };
 }
 
-function requiresPaper(request: UsFullRequest): boolean {
-  if (request.pathway === 'US-HUMANITARIAN') return true;
+function onlineFilingAvailability(request: UsFullRequest) {
+  const category = request.fees?.onlineCategoryAvailable;
+  const available = reviewed(category);
+  const admission = request.admission;
   if (
-    request.pathway === 'US-NATURALIZATION' ||
-    request.pathway === 'US-SPOUSE'
-  ) {
-    return (
-      request.fees?.relief === 'waiver' || request.fees?.relief === 'reduced'
-    );
-  }
-  if (request.pathway === 'US-CONDITIONS')
-    return request.conditional === 'investor';
-  return (
-    request.admission?.process === 'adjustment' &&
+    available === false ||
+    request.pathway === 'US-HUMANITARIAN' ||
+    (request.pathway === 'US-CONDITIONS' &&
+      request.conditional === 'investor') ||
+    ((request.pathway === 'US-NATURALIZATION' ||
+      request.pathway === 'US-SPOUSE') &&
+      (request.fees?.relief === 'waiver' || request.fees?.relief === 'reduced'))
+  )
+    return false;
+  if (
+    admission?.process === 'adjustment' &&
     (request.pathway === 'US-FAMILY' ||
       request.pathway === 'US-EMPLOYMENT' ||
-      request.pathway === 'US-ADJUSTMENT') &&
-    (request.admission.adjustmentBasis === 'sij' ||
-      (request.admission.adjustmentBasis === 'vawa' &&
-        request.admission.petitionStatus === 'filed-with-i485') ||
-      (request.employment?.category === 'eb5' &&
-        (request.pathway === 'US-EMPLOYMENT' ||
-          request.admission.adjustmentBasis === 'employment')))
-  );
+      request.pathway === 'US-ADJUSTMENT')
+  ) {
+    const basis = admission.adjustmentBasis;
+    const concurrent = admission.petitionStatus === 'filed-with-i485';
+    const employment = request.employment?.category;
+    if (
+      basis === 'sij' ||
+      (basis === 'vawa' && concurrent) ||
+      (employment === 'eb5' &&
+        (request.pathway === 'US-EMPLOYMENT' || basis === 'employment'))
+    )
+      return false;
+    // Concurrent I-130 packages need a representative to use USCIS online filing.
+    if (
+      concurrent &&
+      !request.fees?.channel &&
+      (request.pathway === 'US-FAMILY' ||
+        basis === 'immediate-relative' ||
+        basis === 'family-preference')
+    )
+      return available === true;
+    return available;
+  }
+  return category === 'pending' ? undefined : true;
 }
 
-function onlineFilingCheck(request: UsFullRequest, paperOnly: boolean) {
-  if (
-    request.fees?.channel !== 'online' ||
-    request.pathway === 'US-TRAVEL' ||
-    (request.pathway === 'US-CONDITIONS' &&
-      request.conditional !== 'marriage') ||
-    (request.pathway === 'US-ADJUSTMENT' &&
-      request.admission?.process === 'consular')
-  )
-    return undefined;
-  const category = request.fees.onlineCategoryAvailable;
-  const available =
-    paperOnly || category === 'barred'
-      ? false
-      : category === 'pending' ||
-          (request.admission?.process === 'adjustment' &&
-            category === undefined)
-        ? undefined
-        : true;
+function filingChannelCheck(
+  request: UsFullRequest,
+  available: boolean | undefined,
+) {
   const check = checksFor(request);
   return check(
     'FILING-CHANNEL',
-    '所选 USCIS 网申渠道',
-    'Selected USCIS online filing channel',
+    'USCIS 网申渠道',
+    'USCIS online filing channel',
     available,
     s.onlineFiling,
     'PD-267',
@@ -319,7 +317,12 @@ function onlineFilingCheck(request: UsFullRequest, paperOnly: boolean) {
           '所选网申渠道不可用。请选择适用的递交渠道。',
           'The selected online channel is unavailable. Use a channel that accepts this application.',
         ]
-      : undefined,
+      : available === undefined
+        ? [
+            '请确认该表格、类别与提交方式可网申，或选择纸质递交。',
+            'Confirm online filing for the form, category and submission method, or select paper filing.',
+          ]
+        : undefined,
   );
 }
 
@@ -388,20 +391,6 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   const L = textFor(request);
   const check = checksFor(request);
   const date = request.simulationDate;
-  const paperOnly = requiresPaper(request);
-  const paperDefault =
-    !request.fees?.channel &&
-    (paperOnly || request.fees?.onlineCategoryAvailable === 'barred');
-  const paper =
-    (request.fees?.channel === 'paper' || paperDefault) &&
-    request.pathway !== 'US-TRAVEL' &&
-    request.pathway !== 'US-CONDITIONS' &&
-    request.admission?.process !== 'consular';
-  const receiptOn = (candidate: IsoDate) =>
-    paper ? nextUsBusinessDay(candidate) : candidate;
-  const legacy = legacyPathway(request, receiptOn);
-  const timingChecks = timeChecks(request, legacy);
-  const filingChannel = onlineFilingCheck(request, paperOnly);
   const immigrantApplication =
     request.pathway === 'US-FAMILY' ||
     request.pathway === 'US-EMPLOYMENT' ||
@@ -409,6 +398,41 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   const admission = request.admission;
   const consularApplication =
     immigrantApplication && admission?.process === 'consular';
+  const usesUscisReceipt =
+    !consularApplication &&
+    request.pathway !== 'US-TRAVEL' &&
+    (request.pathway !== 'US-CONDITIONS' ||
+      request.conditional === 'marriage' ||
+      request.conditional === 'investor');
+  const channel = request.fees?.channel;
+  const onlineAvailable = usesUscisReceipt
+    ? onlineFilingAvailability(request)
+    : true;
+  const paperDefault = !channel && onlineAvailable === false;
+  const paper = usesUscisReceipt && (channel === 'paper' || paperDefault);
+  const receiptOn = (candidate: IsoDate) =>
+    paper && request.pathway !== 'US-CONDITIONS'
+      ? nextUsBusinessDay(candidate)
+      : candidate;
+  const legacy = legacyPathway(request, receiptOn);
+  const timingChecks = timeChecks(request, legacy);
+  const filingChannel =
+    usesUscisReceipt &&
+    (channel === 'online' || (!channel && onlineAvailable === undefined))
+      ? filingChannelCheck(request, onlineAvailable)
+      : undefined;
+  const naturalizationAt = (candidate: IsoDate) => {
+    const receipt = receiptOn(candidate);
+    const cutoff = v.civicsTest.value.switchDate;
+    const uncertainVersion =
+      filingChannel?.status === 'UNKNOWN' &&
+      receipt < cutoff &&
+      nextUsBusinessDay(receipt) >= cutoff;
+    return naturalizationChecks(
+      request,
+      uncertainVersion ? undefined : receipt,
+    );
+  };
   const nvcOpening = admission?.nvcFilingOpensOn;
   const nvcFilingDate =
     consularApplication &&
@@ -451,7 +475,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
             : (legacy?.status ?? 'UNKNOWN'),
         earliestDate: legacy?.earliestDate,
       };
-      requirements = naturalizationChecks(request);
+      requirements = naturalizationAt(eligibility.earliestDate ?? date);
       const years =
         request.pathway === 'US-SPOUSE'
           ? time.spouseYears
@@ -489,7 +513,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       break;
     }
     case 'US-CONDITIONS': {
-      const conditionFiling = conditionsTiming(request, legacy);
+      const conditionFiling = conditionsTiming(request, legacy, paper);
       eligibility = conditionFiling;
       requirements =
         eligibility.status === 'NOT_APPLICABLE' ? [] : conditionChecks(request);
@@ -587,13 +611,10 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       ];
       break;
     case 'US-HUMANITARIAN':
-      requirements = humanitarianChecks(request);
+      requirements = humanitarianChecks(request, adjustmentReceipt);
       break;
     case 'US-MILITARY':
-      requirements = [
-        ...militaryChecks(request),
-        ...naturalizationChecks(request),
-      ];
+      requirements = [...militaryChecks(request), ...naturalizationAt(date)];
       break;
   }
   if (filingChannel) requirements.push(filingChannel);

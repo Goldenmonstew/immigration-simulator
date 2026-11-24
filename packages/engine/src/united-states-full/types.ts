@@ -462,6 +462,7 @@ export interface UsFeeAnswers {
   receivesMeansTestedBenefit?: boolean;
   extremeFinancialHardship?: UsReview;
   applyingWithParent?: boolean;
+  /** Case-specific online eligibility, including any required representation for concurrent filing. */
   onlineCategoryAvailable?: UsReview;
   premiumProcessing?: boolean;
   eb5Amendment?: boolean;
