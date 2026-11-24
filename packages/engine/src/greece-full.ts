@@ -14,7 +14,7 @@ import {
   blueMobilityTiming,
   type GrBlueCardMobility,
 } from './greece-blue-mobility';
-import { evaluateGreece } from './greece';
+import { evaluateGreece, evaluateGreeceWithNationalityCredit } from './greece';
 import type { GrPathway, GrPathwayId, GrPermit, GrRequest } from './greece';
 import {
   commonChecks,
@@ -68,6 +68,11 @@ export interface GrFullRequest
     GrPropertyFamilyAnswers,
     GrWorkFamilyAnswers {
   simulationDate: IsoDate;
+  /** The time model uses validity dates. The full model can also use the grant on the card. */
+  permits?: (GrPermit & {
+    issuedOn?: IsoDate;
+    purpose?: 'family-reunification' | 'other';
+  })[];
   birthDate?: IsoDate;
   citizenship?: 'third-country' | 'stateless' | 'eu' | 'eea-swiss' | 'greek';
   /** National visa for the purpose selected; short stay means it is still lawful. */
@@ -100,7 +105,7 @@ function timeRoute(
 ): GrPathwayId | undefined {
   switch (id) {
     case 'GR-LONG-TERM':
-      return req.longTerm?.stage !== 'renewal' ? id : undefined;
+      return (req.longTerm?.stage ?? 'initial') === 'initial' ? id : undefined;
     case 'GR-NATIONALITY':
       return req.nationality?.stage !== 'oath' &&
         !(
@@ -334,7 +339,7 @@ function timeChecks(
             ? ['PD-305']
             : pending.filter((pd) => pd === (i === 0 ? 'PD-101' : 'PD-102'))
           : id === 'GR-NATIONALITY'
-            ? ['PD-109']
+            ? pending.filter((pd) => pd === 'PD-109')
             : [],
       ),
     ) ?? [];
@@ -411,21 +416,26 @@ function laterNationalityDate(
   base: GrRequest,
   time: GrPathway,
   c: GrContext,
+  evaluateOn = (date: IsoDate) =>
+    evaluateGreece({ ...base, simulationDate: date }).pathways[2],
+  serviceMilestones: IsoDate[] = [],
 ): GrPathway {
   if (time.status !== 'NOT_MET') return time;
   const years = policy.values.nationalityYears.value[base.route];
   const horizon = addYears(base.simulationDate, HORIZON_YEARS);
   // Beyond the pilot horizon, eligibility can first arise on a residence anniversary
   // or on receiving a qualifying title after a stretch of lawful residence.
-  const candidates = base.permits.flatMap((permit) => [
-    permit.from,
-    addYears(permit.from, years),
-  ]);
+  const candidates = [
+    ...serviceMilestones,
+    ...base.permits.flatMap((permit) => [
+      permit.from,
+      addYears(permit.from, years),
+    ]),
+  ];
   for (const date of [...new Set(candidates)]
     .filter((d) => d > horizon)
     .sort()) {
-    const future = evaluateGreece({ ...base, simulationDate: date })
-      .pathways[2];
+    const future = evaluateOn(date);
     if (future.status === 'UNKNOWN') return { ...future, checks: time.checks };
     if (!future.earliestDate) continue;
     const earliestDate = future.earliestDate;
@@ -442,6 +452,79 @@ function laterNationalityDate(
   return time;
 }
 
+function nationalityWithPosting(
+  req: GrRequest,
+  posting: NonNullable<
+    NonNullable<GrFullRequest['nationality']>['diplomaticSpouse']
+  >,
+  c: GrContext,
+) {
+  // The posting itself records an absence even when entered only under this procedure.
+  const trips = [...req.trips];
+  for (const period of posting.periods) {
+    const departed = addDays(period.from, -1);
+    const returned = addDays(period.through, 1);
+    if (
+      !trips.some(
+        (trip) => trip.departed <= departed && trip.returned >= returned,
+      )
+    )
+      trips.push({ departed, returned });
+  }
+  const base = { ...req, trips };
+  const ordinary = evaluateGreece(base).pathways[2];
+  const completed = posting.yearInGreeceCompletedOn;
+  if (
+    req.route === 'twelve-year' ||
+    posting.qualifyingServiceDocumented === false ||
+    completed === 'not-completed'
+  )
+    return ordinary;
+  const withPosting = evaluateGreeceWithNationalityCredit(base, {
+    periods: posting.periods,
+    usableFrom: completed ?? req.simulationDate,
+  }).pathways[2];
+  const sources = [
+    ...withPosting.checks[0].sources,
+    grSource('F34', 'Citizenship Code art. 5(1)(δ), p. 8'),
+    grSource('F35', 'special cases, p. 2'),
+  ];
+  const year =
+    policy.values.naturalisationScreen.value.diplomaticSpouseDomesticYears;
+  const explanation = c.L(
+    `申请人须曾在希腊居住满 ${year} 年，才可将随希腊配偶因外交或领事公务居住在境外的有据期间计入所选通道的居留期。递件日另查有效许可。`,
+    `Documented periods accompanying a Greek spouse on diplomatic or consular service count towards the selected residence period after completing ${year} year in Greece. A qualifying permit must be held on filing.`,
+  );
+  if (!completed || posting.qualifyingServiceDocumented === undefined) {
+    if (
+      ordinary.status === withPosting.status &&
+      ordinary.earliestDate === withPosting.earliestDate
+    )
+      return ordinary;
+    return {
+      ...ordinary,
+      status: 'UNKNOWN' as const,
+      earliestDate: undefined,
+      pendingDetails: [],
+      summary: explanation,
+      checks: [{ text: explanation, sources, met: undefined }],
+    };
+  }
+  return {
+    ...withPosting,
+    summary:
+      withPosting.status === 'MET'
+        ? explanation
+        : withPosting.status === 'FUTURE'
+          ? c.L(
+              `${explanation} 最早符合时间条件的日期为 ${withPosting.earliestDate}。`,
+              `${explanation} The earliest date meeting the time requirements is ${withPosting.earliestDate}.`,
+            )
+          : explanation + ' ' + withPosting.summary,
+    checks: [{ ...withPosting.checks[0], text: explanation, sources }],
+  };
+}
+
 function pilotTimes(req: GrFullRequest, required: GrPathwayId[], c: GrContext) {
   let times: GrPathway[] = [];
   if (required.length && req.permits) {
@@ -453,12 +536,33 @@ function pilotTimes(req: GrFullRequest, required: GrPathwayId[], c: GrContext) {
     };
     times = evaluateGreece(base).pathways;
     const filed = req.nationality?.pendingApplicationFiledOn;
-    if (filed && required.includes('GR-NATIONALITY')) {
-      const nat = evaluateGreece({ ...base, simulationDate: filed })
-        .pathways[2];
-      times[2] = filedNationalityTime(req, nat, c);
-    } else if (required.includes('GR-NATIONALITY')) {
-      times[2] = laterNationalityDate(base, times[2], c);
+    if (required.includes('GR-NATIONALITY')) {
+      const posting = req.nationality?.diplomaticSpouse;
+      const evaluateOn = (date: IsoDate) =>
+        posting?.periods.length
+          ? nationalityWithPosting(
+              { ...base, simulationDate: date },
+              posting,
+              c,
+            )
+          : evaluateGreece({ ...base, simulationDate: date }).pathways[2];
+      const milestones = (posting?.periods ?? []).map((p) =>
+        addYears(p.from, policy.values.nationalityYears.value[base.route]),
+      );
+      if (
+        posting?.yearInGreeceCompletedOn &&
+        posting.yearInGreeceCompletedOn !== 'not-completed'
+      )
+        milestones.push(posting.yearInGreeceCompletedOn);
+      times[2] = filed
+        ? filedNationalityTime(req, evaluateOn(filed), c)
+        : laterNationalityDate(
+            base,
+            posting?.periods.length ? evaluateOn(req.simulationDate) : times[2],
+            c,
+            evaluateOn,
+            milestones,
+          );
     }
     if (required.includes('GR-LONG-TERM')) {
       const permits = longTermPeriods(req, req.permits);

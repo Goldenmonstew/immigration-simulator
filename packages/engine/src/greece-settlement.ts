@@ -35,6 +35,8 @@ interface IntegrationEvidence {
     | 'none';
   greekLevel?: 'legacy-A' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
   a2Certificate?: boolean;
+  /** Issued history supplement that accompanies the earlier Greek-language certificate. */
+  historyCertificate?: boolean;
   /** Sitting date for full A2 or the history-only paper. */
   a2ExamOn?: IsoDate;
   a2Total?: number;
@@ -85,7 +87,7 @@ export interface GrSettlementAnswers {
   integration?: IntegrationEvidence;
   residenceIncome?: ResidenceIncome;
   longTerm?: {
-    stage?: 'initial' | 'renewal';
+    stage?: 'initial' | 'renewal' | 'reacquisition';
     category?:
       | 'ordinary'
       | 'protected'
@@ -94,7 +96,12 @@ export interface GrSettlementAnswers {
       | 'temporary'
       | 'asylum-pending'
       | 'diplomatic';
-    passportHistory?: 'complete' | 'official-substitute' | 'missing';
+    passportHistory?:
+      'complete' | 'official-substitute' | 'substitute-pending' | 'missing';
+    /** Established reason for the loss of a previously granted Greek M.1 status. */
+    lossReason?: 'absence-from-eu' | 'other-member-state-status' | 'other';
+    /** All travel-document pages evidencing the qualifying absence, or the permit issued by the other state. */
+    lossEvidenceReady?: boolean;
     convertingTenYearCard?: boolean;
     /** Months outside the EU and years outside Greece since acquiring long-term status. */
     continuousOutsideEuMonths?: number;
@@ -105,12 +112,21 @@ export interface GrSettlementAnswers {
   };
   tenYear?: {
     stage?: 'initial' | 'renewal';
-    basis?: 'residence' | 'birth-school';
+    basis?: 'residence' | 'birth-school' | 'unaccompanied-minor';
     residesInGreece?: boolean;
     bornInGreece?: boolean;
     greekGrades?: number;
     /** Date the qualifying Greek school grades were completed. */
     schoolCompletedOn?: IsoDate;
+    /** Birth record or certificates showing the completed grades and their years. */
+    birthOrSchoolEvidenceReady?: boolean;
+    /** Authority document confirming entry as an unaccompanied minor. */
+    unaccompaniedEntryEvidence?: boolean;
+    greekSecondaryGrades?: number;
+    inSecondarySchoolAtReform?: boolean;
+    taxAndInsuranceClearance?: boolean;
+    /** Copies of all pages for the period applicable to the selected procedure. */
+    travelDocumentPagesReady?: boolean;
     disputedPermitGap?: boolean;
     /** Former article 161(1)(a) required ten years of lawful residence and economic/social integration. */
     legacyTenLawfulYears?: boolean;
@@ -129,6 +145,14 @@ export interface GrSettlementAnswers {
       | 'parent-of-greek-child-born-in-greece'
       | 'stateless'
       | 'none';
+    diplomaticSpouse?: {
+      /** Confirm a Greek spouse's diplomatic or consular service and the applicant's accompanying stay. */
+      qualifyingServiceDocumented?: boolean;
+      /** Date by which a full year of residence in Greece, at any time, was established. */
+      yearInGreeceCompletedOn?: IsoDate | 'not-completed';
+      /** Inclusive first and last days of residence abroad because of that posting. */
+      periods: { from: IsoDate; through: IsoDate }[];
+    };
     /** For the Greek-born child over whom the applicant exercises parental responsibility. */
     childBirthDate?: IsoDate;
     convictions?: Conviction[];
@@ -137,6 +161,8 @@ export interface GrSettlementAnswers {
       'certificate' | 'written' | 'oral' | 'school-exemption' | 'not-passed';
     /** The sitting date when different from the filing date used in the simulation. */
     examOn?: IsoDate;
+    /** Issued PEGP or documentary proof of the statutory educational exemption. */
+    knowledgeDocumentReady?: boolean;
     languagePoints?: number;
     knowledgePoints?: number;
     oralPassed?: boolean;
@@ -246,14 +272,17 @@ function integrationMet(r: GrFullRequest): boolean | IsoDate | undefined {
       );
       if (e.basis === 'history')
         return all(
-          eligibleForSitting,
           e.greekLevel === undefined
             ? undefined
             : e.greekLevel === 'legacy-A' ||
                 e.greekLevel === v.historyExamGreekLevel.value,
-          e.historyPoints === undefined
-            ? undefined
-            : e.historyPoints >= p.history,
+          e.historyCertificate === true ||
+            all(
+              eligibleForSitting,
+              e.historyPoints === undefined
+                ? undefined
+                : e.historyPoints >= p.history,
+            ),
         );
       return all(
         eligibleForSitting,
@@ -342,6 +371,41 @@ function orderMet(r: GrFullRequest) {
 function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   const e = r.longTerm ?? {};
   const p = v.longTermCard.value;
+  const eu = e.continuousOutsideEuMonths;
+  let retained: boolean | undefined;
+  if (eu !== undefined) {
+    if (eu < p.lossEuMonths) retained = true;
+    else if (
+      eu > v.formerBlueCardEuAbsenceMonths.value ||
+      e.formerBlueCardEndorsement === false
+    )
+      retained = false;
+    else retained = e.formerBlueCardEndorsement;
+  }
+  if (e.stage === 'reacquisition') {
+    const loss =
+      e.lossReason === 'absence-from-eu'
+        ? retained === undefined
+          ? undefined
+          : !retained
+        : e.lossReason === undefined
+          ? undefined
+          : e.lossReason === 'other-member-state-status';
+    return [
+      c.check(
+        'LT-REACQUISITION',
+        '重新取得原希腊长期居民身份',
+        'Reacquisition of previous Greek long-term resident status',
+        all(loss, e.lossEvidenceReady, orderMet(r)),
+        [
+          migration('43(4), 147(3), 149(1)–(3)'),
+          grSource('F21', 'art. 57(3)(a)–(γ), pp. 34–35'),
+        ],
+        `向原签发机关申请。因连续离欧至少 ${p.lossEuMonths} 个月而失去身份者须以全本旅行证件举证；因另一成员国授予长期身份而失去原身份者须出示该国长期居留许可。`,
+        `Apply to the original authority. Evidence loss after at least ${p.lossEuMonths} consecutive months outside the EU with all travel-document pages, or loss after acquiring another member state's long-term status with that state's permit.`,
+      ),
+    ];
+  }
   const renewal = e.stage === 'renewal';
   const checks: CountryCheck[] = [];
   if (!renewal) {
@@ -417,7 +481,7 @@ function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       '申请材料与费用',
       'Application evidence and fees',
       e.passportHistory === undefined ||
-        (!renewal && e.passportHistory === 'missing')
+        e.passportHistory === 'substitute-pending'
         ? undefined
         : e.passportHistory !== 'missing',
       [
@@ -432,17 +496,6 @@ function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
         : `Verify every passport page for the last ${pilot.longTermYears.value} years or an accepted official substitute. Initial applications cost €${p.initialFee}, conversion from M.2 €${p.exemptFee}, plus €${p.cardFee} for printing.`,
     ),
   );
-  const eu = e.continuousOutsideEuMonths;
-  let retained: boolean | undefined;
-  if (eu !== undefined) {
-    if (eu < p.lossEuMonths) retained = true;
-    else if (
-      eu > v.formerBlueCardEuAbsenceMonths.value ||
-      e.formerBlueCardEndorsement === false
-    )
-      retained = false;
-    else retained = e.formerBlueCardEndorsement;
-  }
   checks.push(
     c.check(
       'LT-07',
@@ -570,6 +623,7 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   const p = v.tenYearCard.value;
   const renewal = e.stage === 'renewal';
   const youth = e.basis === 'birth-school';
+  const formerMinor = e.basis === 'unaccompanied-minor';
   const ordinary = e.basis === 'residence';
   const legacy = r.simulationDate < v.workReformEffective.value;
   const checks: CountryCheck[] = [];
@@ -597,6 +651,24 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       )
         eligible = e.schoolCompletedOn;
     }
+    if (formerMinor) {
+      const adultOn =
+        r.birthDate &&
+        addYears(r.birthDate, v.naturalisationScreen.value.adultAge);
+      const due =
+        adultOn &&
+        e.schoolCompletedOn &&
+        (adultOn > e.schoolCompletedOn ? adultOn : e.schoolCompletedOn);
+      const qualifies = all(
+        legacy || e.inSecondarySchoolAtReform,
+        e.unaccompaniedEntryEvidence,
+        e.greekSecondaryGrades === undefined
+          ? undefined
+          : e.greekSecondaryGrades >= p.legacySecondaryGrades,
+        underAgeOn(r.birthDate, e.schoolCompletedOn, p.beforeAge),
+      );
+      eligible = qualifies && due && (due <= r.simulationDate || due);
+    }
     checks.push(
       c.check(
         'TY-01',
@@ -605,15 +677,23 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
         typeof eligible === 'string'
           ? residence && eligible
           : all(residence, eligible),
-        [...tenYearLaw, grSource('F36', 'art. 52(1), pp. 483–484')],
-        `申请人须居住在希腊。普通通道须${legacy ? '' : '连续'}持确定性居留许可满 ${p.years} 年。${legacy ? '' : '第 52(1) 条涵盖的积压续期，从申请日计至新卡生效日。'}出生或学籍通道须在希出生，或在 ${p.beforeAge} 岁前完成希腊学校 ${p.grades} 个年级。`,
-        `The applicant must reside in Greece. The ordinary route requires ${p.years}${legacy ? '' : ' continuous'} years on definitive permits. ${legacy ? '' : 'Qualifying article 52(1) renewal time counts from filing through the effective date of the new permit. '}The alternative requires birth in Greece or ${p.grades} grades of Greek school before age ${p.beforeAge}.`,
+        [
+          ...tenYearLaw,
+          grSource('F36', 'arts. 45(16), (20), 52(1)'),
+          grSource('F21', 'art. 58(1)(a)–(δ), p. 35'),
+        ],
+        formerMinor
+          ? `申请时须已成年、居住在希腊，有主管机关的无人陪伴入境证明，并在 ${p.beforeAge} 岁前完成 ${p.legacySecondaryGrades} 个希腊中学年级。修法后新申须证明生效日正在读中学。`
+          : `申请人须居住在希腊。普通通道须${legacy ? '' : '连续'}持确定性居留许可满 ${p.years} 年。${legacy ? '' : '第 52(1) 条涵盖的积压续期，从申请日计至新卡生效日。'}出生或学籍通道须在希出生，或在 ${p.beforeAge} 岁前完成希腊学校 ${p.grades} 个年级。`,
+        formerMinor
+          ? `An adult residing in Greece must document entry as an unaccompanied minor and completion of ${p.legacySecondaryGrades} Greek secondary grades before age ${p.beforeAge}. New applications after the reform require secondary enrolment on its commencement date.`
+          : `The applicant must reside in Greece. The ordinary route requires ${p.years}${legacy ? '' : ' continuous'} years on definitive permits. ${legacy ? '' : 'Qualifying article 52(1) renewal time counts from filing through the effective date of the new permit. '}The alternative requires birth in Greece or ${p.grades} grades of Greek school before age ${p.beforeAge}.`,
         ordinary && eligible === undefined && r.permits !== undefined
           ? ['PD-312']
           : undefined,
       ),
     );
-    if (!youth) {
+    if (!youth && !formerMinor) {
       checks.push(
         legacy
           ? c.check(
@@ -636,7 +716,8 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       ),
     );
   }
-  const conversion = renewal && (ordinary || (legacy && youth));
+  const conversion =
+    renewal && (ordinary || (legacy && (youth || formerMinor)));
   const absent = conversion ? conversionAbsences(r) : undefined;
   const expiry = e.cardExpiresOn ?? r.currentCardExpiresOn;
   const filing =
@@ -657,8 +738,30 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       ? undefined
       : conversion
         ? all(absent, income)
-        : orderMet(r),
+        : youth
+          ? orderMet(r)
+          : undefined,
   );
+  if (!renewal || conversion) {
+    checks.push(
+      c.check(
+        'TY-DOCUMENTS',
+        '十年居留递件凭证',
+        'Evidence for the ten-year permit procedure',
+        all(
+          e.travelDocumentPagesReady,
+          renewal || !ordinary || e.taxAndInsuranceClearance,
+          renewal || (!youth && !formerMinor) || e.birthOrSchoolEvidenceReady,
+        ),
+        [
+          grSource('F21', 'art. 58(1)(a)–(δ), (ζ), 58(2)(β), p. 35'),
+          ...tenYearLaw,
+        ],
+        `首签提供递交前 ${p.absenceYears} 年的全部旅行证件页，转 Μ.1 提供递交前 ${pilot.longTermYears.value} 年的全本。普通首签提供税务、社保清偿凭证；出生或学籍首签提供出生记录或注明完成年份的学籍证明。`,
+        `Supply all travel-document pages for the ${p.absenceYears} years before initial filing or the ${pilot.longTermYears.value} years before conversion to M.1. Ordinary applicants provide tax and insurance clearance. Birth/school applicants supply a birth record or certificates recording the years completed.`,
+      ),
+    );
+  }
   checks.push(
     c.check(
       'TY-04',
@@ -701,10 +804,10 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       [
         migration('171(1)(ζ), 171(2)(a)'),
         ...tenYearLaw,
-        grSource('F21', 'art. 1'),
+        grSource('F21', 'arts. 1, 58(1)(η)'),
       ],
-      `首次普通类 €${p.ordinaryFee}、出生或学籍类 €${p.youthFee}，另收印卡 €${v.longTermCard.value.cardFee}；转 Μ.1 免申请费。Μ.2 可进入整个劳动力市场。续期按卡别核对（PD-313）。`,
-      `Initial ordinary grant €${p.ordinaryFee}, birth/school grant €${p.youthFee}, printing €${v.longTermCard.value.cardFee}; conversion to M.1 is exempt. M.2 grants full labour-market access. Verify the card category for renewal (PD-313).`,
+      `首次普通类 €${p.ordinaryFee}、出生或学籍类 €${p.youthFee}；原无人陪伴未成年人类别及转 Μ.1 免申请费。制卡 €${v.longTermCard.value.cardFee}。Μ.2 可进入整个劳动力市场。续期按卡别核对（PD-313）。`,
+      `Initial ordinary grant €${p.ordinaryFee}, birth/school grant €${p.youthFee}. The former unaccompanied-minor category and conversion to M.1 are exempt from the application fee. Printing costs €${v.longTermCard.value.cardFee}. M.2 grants full labour-market access. Verify the card category for renewal (PD-313).`,
     ),
   );
   return checks;
@@ -1102,24 +1205,26 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
     ),
     c.check(
       'NAT-09',
-      '出生证明、ΑΜΚΑ 与税单',
-      'Birth evidence, AMKA and tax assessments',
+      '申请表、知识证明、出生证明、ΑΜΚΑ 与税单',
+      'Application, knowledge and birth evidence, AMKA and tax assessments',
       all(
         e.civilStatusProof === undefined
           ? undefined
           : e.civilStatusProof !== 'missing',
         e.hasAmka,
         e.hasTaxAssessments,
+        e.knowledgeDocumentReady ?? (e.exam === 'certificate' || undefined),
+        r.filingDocuments?.formReady,
       ),
-      [citizenship('6(1)(δ)–(στ)')],
-      '提交认证翻译出生证、希腊出生登记或法定保护身份替代证明，并备好 ΑΜΚΑ 与对应年度税单。',
-      'Provide a legalised, translated birth certificate, Greek birth record or statutory protection substitute, plus AMKA and the relevant tax assessments.',
+      [citizenship('6(1)(γ)–(στ), 6(2), 7(4)')],
+      '提交 Π.Ε.Γ.Π. 证书或法定免试证明、认证翻译出生证或法定替代文件、ΑΜΚΑ 与对应年度税单。',
+      'Supply the issued PEGP or proof of educational exemption, a legalised translated birth record or statutory substitute, AMKA and the relevant tax assessments.',
     ),
     c.check(
       'NAT-10',
       '入籍及考试费用',
       'Naturalisation and examination fees',
-      true,
+      r.filingDocuments?.feeReceiptReady,
       [citizenship('6(1)(ζ), 7(1)')],
       `${filingFee === undefined ? `首次 €${fees.initial}，重申 €${fees.repeat}，优惠类 €${fees.reduced}` : '本次申请 €' + filingFee}。每次参加 Π.Ε.Γ.Π. 考试 €${exam.fee}；学历免试无考试费。`,
       `${filingFee === undefined ? `Initial €${fees.initial}, repeat €${fees.repeat}, reduced €${fees.reduced}` : 'Application fee €' + filingFee}. Each PEGP sitting costs €${exam.fee}; no exam fee for educational exemptions.`,
@@ -1142,7 +1247,34 @@ export function settlementChecks(
   req: GrFullRequest,
   c: GrContext,
 ): CountryCheck[] {
-  if (id === 'GR-LONG-TERM') return longTermChecks(req, c);
-  if (id === 'GR-TEN-YEAR') return tenYearChecks(req, c);
-  return nationalityChecks(req, c);
+  if (id === 'GR-NATIONALITY') return nationalityChecks(req, c);
+  const checks =
+    id === 'GR-LONG-TERM' ? longTermChecks(req, c) : tenYearChecks(req, c);
+  const integration = req.integration;
+  if (
+    (integration?.basis === 'a2' || integration?.basis === 'history') &&
+    checks.some(
+      (check) =>
+        check.id === 'LT-04' ||
+        (check.id === 'TY-02' &&
+          req.simulationDate >= v.workReformEffective.value),
+    )
+  ) {
+    checks.push(
+      c.check(
+        id === 'GR-LONG-TERM'
+          ? 'LT-INTEGRATION-DOCUMENT'
+          : 'TY-INTEGRATION-DOCUMENT',
+        '融入考试合格证书',
+        'Issued integration examination certificate',
+        integration.basis === 'a2'
+          ? integration.a2Certificate
+          : integration.historyCertificate,
+        [grSource('F21', 'art. 57(1)(δ), p. 34'), ...integrationLaw],
+        '单科历史文化考试须有获发的补充证明，完整 Α2 考试须有合格证书。',
+        'Provide the issued history supplement or the certificate for the full A2 examination.',
+      ),
+    );
+  }
+  return checks;
 }

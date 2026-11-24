@@ -8,6 +8,7 @@ import type { GrFullPathwayId, GrFullRequest, GrInsurance } from '../src';
 
 const day = '2026-11-23';
 const base = {
+  filingDocuments: { formReady: true, feeReceiptReady: true },
   simulationDate: day,
   citizenship: 'third-country',
   permits: [{ kind: 'regular', from: '2018-01-01' }],
@@ -79,6 +80,37 @@ test('one registered Greek law column; eight stable bilingual, sourced pathways 
       ).toBe(true);
     });
   });
+});
+
+test.each([
+  [true, true, 'MET'],
+  [false, true, 'NOT_MET'],
+  [undefined, true, 'UNKNOWN'],
+  [true, false, 'NOT_MET'],
+  [true, undefined, 'UNKNOWN'],
+] as const)(
+  'paid Μ.1 application checks the form (%s) and fee receipt (%s)',
+  (formReady, feeReceiptReady, status) => {
+    const result = path('GR-LONG-TERM', {
+      filingDocuments: { formReady, feeReceiptReady },
+    });
+    expect(result.checks.find((c) => c.id === 'C-FILING')?.status).toBe(status);
+    expect(result.status).toBe(status);
+  },
+);
+
+test('Μ.1 card renewal requires the form and is exempt from the application fee', () => {
+  const result = path('GR-LONG-TERM', {
+    longTerm: { stage: 'renewal' },
+    filingDocuments: { formReady: true, feeReceiptReady: false },
+  });
+  expect(result.checks.find((c) => c.id === 'C-FILING')?.status).toBe('MET');
+  expect(
+    path('GR-EU-FAMILY-PR', {
+      euFamily: { stage: 'maintain' },
+      filingDocuments: { formReady: false },
+    }).checks.some((c) => c.id === 'C-FILING'),
+  ).toBe(false);
 });
 
 describe('long-term eligibility through the public entry point', () => {
@@ -441,7 +473,14 @@ describe('common permit rules', () => {
       work: { stage: 'renewal', permit: 'E4' },
       familyTcn: { stage: 'renewal' },
     });
-    const ordinaryRenewal = ['C-01', 'C-03', 'C-06', 'C-07', 'C-07-window'];
+    const ordinaryRenewal = [
+      'C-01',
+      'C-FILING',
+      'C-03',
+      'C-06',
+      'C-07',
+      'C-07-window',
+    ];
     const byPath = Object.fromEntries(
       result.columns[0].pathways.map((pathway) => [
         pathway.id,
@@ -451,11 +490,11 @@ describe('common permit rules', () => {
       ]),
     );
     expect(byPath).toEqual({
-      'GR-LONG-TERM': ['C-01', 'C-06', 'C-07', 'C-07-window'],
-      'GR-GOLDEN-VISA': ['C-01', 'C-03', 'C-05', 'C-06', 'C-07'],
+      'GR-LONG-TERM': ['C-01', 'C-FILING', 'C-06', 'C-07', 'C-07-window'],
+      'GR-GOLDEN-VISA': ['C-01', 'C-FILING', 'C-03', 'C-05', 'C-06', 'C-07'],
       'GR-NATIONALITY': [],
       'GR-TEN-YEAR': ordinaryRenewal,
-      'GR-GREEK-FAMILY-PR': ['C-01', 'C-06', 'C-07'],
+      'GR-GREEK-FAMILY-PR': ['C-01', 'C-FILING', 'C-06', 'C-07'],
       'GR-EU-FAMILY-PR': [],
       'GR-WORK': ordinaryRenewal,
       'GR-FAMILY-TCN': ordinaryRenewal,
@@ -534,6 +573,7 @@ describe('common permit rules', () => {
   test('insurance checks all three limits, maximum participation, exclusions and term', () => {
     const policy: GrInsurance = {
       kind: 'private',
+      issuer: 'greek',
       disabilityEur: 15000,
       medicalEur: 1500,
       hospitalEur: 10000,

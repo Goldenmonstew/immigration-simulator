@@ -14,6 +14,8 @@ export interface GrBlueCardMobility {
   priorMemberPeriods?: {
     from: IsoDate;
     through: IsoDate;
+    /** Only permits issued by Greece engage the domestic article 90(1) exclusion. */
+    issuer?: 'greece' | 'other-member-state';
     kind:
       | 'blue-card'
       | 'highly-qualified'

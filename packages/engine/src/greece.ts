@@ -57,6 +57,17 @@ const v = gr.values;
 type Verdict = 'yes' | 'maybe' | 'no';
 
 export function evaluateGreece(req: GrRequest): GrResult {
+  return evaluateGreeceWithNationalityCredit(req);
+}
+
+/** Used by the full evaluator for Citizenship Code article 5(1)(δ). Credit applies only to past residence. */
+export function evaluateGreeceWithNationalityCredit(
+  req: GrRequest,
+  credit?: {
+    periods: { from: IsoDate; through: IsoDate }[];
+    usableFrom: IsoDate;
+  },
+): GrResult {
   const L = textFor(req);
   const sim = req.simulationDate;
   const longest = Math.max(...Object.values(v.nationalityYears.value));
@@ -415,24 +426,52 @@ export function evaluateGreece(req: GrRequest): GrResult {
     // Legal residence on any permit but study counts for the years
     // (άρθ. 5 παρ. 1 δ, παρ. 3); when applying, a temporary status cannot be
     // used (SRC-089), so an ordinary permit or golden visa must be held.
-    const okWith = (s: number[]) => (d: IsoDate) =>
-      covered(s, addYears(d, -years), addDays(d, -1)) &&
-      holding(d, ['regular', 'investor']);
-    const sure = firstDate(okWith(sums.settled));
+    const abroadOnService = flags();
+    for (const period of credit?.periods ?? [])
+      days.mark(abroadOnService, period.from, period.through);
+    const credited = (s: number[]) =>
+      credit && days.sums((i) => abroadOnService[i] || s[i + 1] > s[i]);
+    const okWith =
+      (s: number[], withService = credited(s)) =>
+      (d: IsoDate) =>
+        covered(
+          withService && credit && d >= credit.usableFrom ? withService : s,
+          addYears(d, -years),
+          addDays(d, -1),
+        ) && holding(d, ['regular', 'investor']);
+    const settledOn = okWith(sums.settled);
+    const lawfulOn = okWith(sums.lawful);
+    const sure = firstDate(settledOn);
     // Counting national visa (Ζ) stays too, which may be earlier (PD-109).
-    const withVisa = firstDate(okWith(sums.lawful));
+    const withVisa = firstDate(lawfulOn);
     const visaEarlier = !!withVisa && (!sure || withVisa < sure);
     const earliest = sure ?? withVisa;
     const window = earliest && {
       from: addYears(earliest, -years),
       to: addDays(earliest, -1),
     };
+    const otherAbsences =
+      credit && earliest && earliest >= credit.usableFrom
+        ? days.sums((i) => away[i] && !abroadOnService[i])
+        : undefined;
     const absences = window
-      ? req.trips.filter(
-          (t) => t.departed <= window.to && t.returned >= window.from,
-        )
+      ? req.trips.filter((t) => {
+          if (t.departed > window.to || t.returned < window.from) return false;
+          if (!otherAbsences) return true;
+          const first = addDays(t.departed, 1);
+          const last = addDays(t.returned, -1);
+          return (
+            days.total(
+              otherAbsences,
+              first > window.from ? first : window.from,
+              last < window.to ? last : window.to,
+            ) > 0
+          );
+        })
       : [];
-    const absent = window ? days.total(sums.away, window.from, window.to) : 0;
+    const absent = window
+      ? days.total(otherAbsences ?? sums.away, window.from, window.to)
+      : 0;
     const unsure = !!earliest && (absences.length > 0 || !sure);
     pathways.push({
       id: 'GR-NATIONALITY',
@@ -483,11 +522,7 @@ export function evaluateGreece(req: GrRequest): GrResult {
             `递交前 ${years} 年一直合法居留（普通许可或黄金签证；国家签证待确认，学习不计），递交当天持普通许可或黄金签证`,
             `Legal residence throughout the ${years} years before applying (ordinary permits or golden visa; national visas uncertain, study not counted), and an ordinary permit or golden visa on the application day`,
           ),
-          met: okWith(sums.settled)(sim)
-            ? true
-            : okWith(sums.lawful)(sim)
-              ? undefined
-              : false,
+          met: settledOn(sim) ? true : lawfulOn(sim) ? undefined : false,
           sources: [
             ...v.nationalityYears.sources,
             { srcId: 'SRC-086', locator: 'άρθ. 123 παρ. 6 (p82)' },

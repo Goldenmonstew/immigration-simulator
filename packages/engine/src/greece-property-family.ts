@@ -20,6 +20,8 @@ interface InvestorFamilyMember {
     | 'ascendant'
     | 'child'
     | 'other';
+  /** Relationship records and, as applicable, travel/entry or prior card, custody, unchanged-family declaration and renewal tax evidence. */
+  filingDocumentsReady?: boolean;
   birthDate?: IsoDate;
   // For children of only one parent, that parent must have legal custody.
   unmarriedWithRequiredCustody?: boolean;
@@ -43,7 +45,12 @@ interface GoldenVisaAnswers {
   depositDate?: IsoDate;
   closingDate?: IsoDate;
   replacementProperty?: boolean;
-  kind?: 'standard' | 'conversion' | 'factory-conversion' | 'listed';
+  kind?:
+    | 'standard'
+    | 'construction'
+    | 'conversion'
+    | 'factory-conversion'
+    | 'listed';
   zone?: 'named-high-cost' | 'other-mainland' | 'other-island';
   censusPopulation?: number;
   propertyCount?: number;
@@ -57,6 +64,7 @@ interface GoldenVisaAnswers {
     | 'own-share'
     | 'wholly-owned-eu-company'
     | 'qualifying-tourist-lease'
+    | 'qualifying-company-timeshare'
     | 'ineligible';
   /** Objective value recorded for an inheritance or parental gift. */
   assessedValueEur?: number;
@@ -84,7 +92,14 @@ interface GoldenVisaAnswers {
   payment?: 'bank-transfer' | 'crossed-cheque' | 'greek-pos' | 'other';
   payer?:
     'applicant' | 'spouse-partner' | 'relative-within-second-degree' | 'other';
+  /** The notary attests the transaction, payment and previous use; for the listed tier this includes the listing gazette and any applicable additions. */
   notarialEvidence?: boolean;
+  /** Title documents showing that the investor holds every share of the Greek/EU company. */
+  companyOwnershipDocumentsReady?: boolean;
+  /** Permit and building evidence required at filing, including contract/payment, valuation or completion evidence where applicable. */
+  constructionDocumentsReady?: boolean;
+  /** Signed no-short-letting declaration and, for the conversion tier, continued residential use and no business registration. */
+  renewalUseDeclarationsReady?: boolean;
   use?:
     | 'residential-or-long-let'
     | 'short-let-or-short-sublet'
@@ -95,6 +110,7 @@ interface GoldenVisaAnswers {
     | 'business-office';
   worksInGreeceUnderThisPermit?: boolean;
   retainsInvestment?: boolean;
+  /** Restoration certified by the engineer at first renewal; on later renewals includes the previously certified completion. */
   listedRestorationComplete?: boolean;
   family?: InvestorFamilyMember[];
   // Include every person obtaining a consular national investment visa.
@@ -160,6 +176,10 @@ interface GreekFamilyAnswers extends Omit<FamilyResidence, 'stage'> {
   /** Article 93(2) permits a single additional Ο.3 term for the sibling. */
   siblingExtensionAlreadyGranted?: boolean;
   dependent?: boolean;
+  /** Applicable Article 25(1) sponsor ID, civil records, custody/adoption, dependency/care and support declarations. */
+  initialFamilyDocumentsReady?: boolean;
+  /** Prior card, applicable death, registered divorce/dissolution, custody, or hardship evidence and documents for the livelihood basis. */
+  retainedRightDocumentsReady?: boolean;
   genuineRelationship?: boolean;
   /** For the initial Ο.3, does the applicant live in Greece on a stable basis? */
   stableResidenceInGreece?: boolean;
@@ -168,6 +188,8 @@ interface GreekFamilyAnswers extends Omit<FamilyResidence, 'stage'> {
   initialFilingFrom?: IsoDate;
   // Longest period of interrupted residence after the old card expired.
   interruptionAfterExpiryYears?: number;
+  /** Former Μ.2 conversion: prior Greek family card (including registry) and all travel-document pages for the statutory period. */
+  historicalConversionDocumentsReady?: boolean;
   // Historical family conversion under Article 161(1)(δ),(2).
   longestConsecutiveAbsenceYears?: number;
   maxAnnualAbsenceMonths?: number;
@@ -177,7 +199,27 @@ interface GreekFamilyAnswers extends Omit<FamilyResidence, 'stage'> {
 }
 
 interface EuFamilyAnswers extends Omit<FamilyResidence, 'stage'> {
-  stage?: 'permanent' | 'retained' | 'maintain';
+  stage?:
+    | 'initial'
+    | 'renewal'
+    | 'permanent'
+    | 'permanent-renewal'
+    | 'retained'
+    | 'maintain';
+  /** Date of arrival for the first ordinary residence card. */
+  arrivedOn?: IsoDate;
+  /** Onset of the disease under public health review; EU-law restrictions apply only to qualifying diseases. */
+  publicHealthConditionBeganOn?: IsoDate;
+  appliedForFullPublicCover?: boolean;
+  /** Article 59(2),(4),(6) ordinary renewal where the permanent right has not been acquired. */
+  permanentRightAcquired?: boolean;
+  partnerRenewal?: {
+    sponsorConfirmsContinuingRelationship?: boolean;
+    separationOn?: IsoDate;
+    marriageFrom?: IsoDate;
+    greeceResidenceFrom?: IsoDate;
+    resourcesAssessment?: Retention['resourcesAssessment'];
+  };
   /** False if no residence card was ever issued; a missing expiry alone leaves the deadline unknown. */
   priorCardIssued?: boolean;
   /** Legacy attestation for requests without separate sponsor and relationship answers. */
@@ -213,6 +255,7 @@ interface EuFamilyAnswers extends Omit<FamilyResidence, 'stage'> {
   /** Individual recognition as a family member under Article 3(2), including a student sponsor's ascendant. */
   extendedFamilyRecognised?: boolean;
   sponsorExercisedTreatyRights?: boolean;
+  /** The applicable Article 59 dossier (for permanent renewal, the old permanent card) for the selected card, including applicable card/alternative residence evidence, relationship, event, resources and insurance evidence. */
   rightsDocumentsReady?: boolean;
   shamOrFraud?: boolean;
   /** Retention until the end of studies under Article 11(3). */
@@ -406,7 +449,8 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
   const current = a.regime === 'current' && !historical;
   const transfer =
     a.acquisition === 'inheritance' || a.acquisition === 'parental-gift';
-  const lease = a.title === 'qualifying-tourist-lease';
+  const companyLease = a.title === 'qualifying-company-timeshare';
+  const lease = a.title === 'qualifying-tourist-lease' || companyLease;
   const filingDate = renewal ? sim : (a.overseasFilingDate ?? sim);
   const currentDocuments = filingDate >= p.gvConversionDecisionEffective.value;
   const ownershipE9Required = renewal
@@ -442,7 +486,8 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
           standardPrice,
           all(specialTier, minimum(price, investment.specialEur)),
         );
-  const built = conversion || a.builtOrBuildingPermit;
+  const built =
+    conversion || a.kind === 'construction' || a.builtOrBuildingPermit;
   const standardArea =
     transfer || lease || built === false
       ? true
@@ -455,6 +500,7 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
     a.title === undefined ? undefined : a.title !== 'ineligible',
     !transfer || (!lease && a.title !== 'wholly-owned-eu-company'),
     lease && a.kind !== undefined ? a.kind === 'standard' : true,
+    !companyLease || a.touristLeaseKind !== 'long-term-complex',
     transfer || lease
       ? true
       : a.propertyCount === undefined
@@ -482,7 +528,12 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       if (legacy) use = oldTerms;
       else if (renewal && a.originalGrantTier)
         use = a.originalGrantTier !== 'conversion';
-      else if (a.kind === 'standard' || a.kind === 'listed') use = true;
+      else if (
+        a.kind === 'standard' ||
+        a.kind === 'construction' ||
+        a.kind === 'listed'
+      )
+        use = true;
       else if (!renewal && a.kind !== undefined)
         use = current && all(standardPrice, standardArea);
     } else use = true;
@@ -544,10 +595,14 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
     const uncertainLeaseEvidence =
       lease &&
       !currentDocuments &&
+      !companyLease &&
       a.touristLeaseKind !== 'timeshare' &&
       a.eotLeaseAcknowledgment !== true;
     const acquisitionEvidence = all(
       a.notarialEvidence,
+      !(companyLease || a.title === 'wholly-owned-eu-company') ||
+        a.companyOwnershipDocumentsReady,
+      a.kind !== 'construction' || a.constructionDocumentsReady,
       receiptOnly ? acceptsReceipt : registration,
       e9,
       !lease || (uncertainLeaseEvidence ? undefined : a.eotLeaseAcknowledgment),
@@ -584,11 +639,8 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
             'F23',
             'art. 64(1), art. 100(1)(ε),(3),(5),(6) final sentence,(11), pp. 1198–1200; art. 69(1)',
           ),
-          grSource('F21', 'art. 31, §§2.1(β–γ), 2.2(β–στ), 2.3(β–γ)'),
-          grSource(
-            'F59',
-            'art. 2, §§2.1(β,γ,ζ), 2.2(β–ε), 2.3(γ,στ), 2.6(γ,η), 2.7(γ,ζ); arts. 3–4',
-          ),
+          grSource('F21', 'art. 31, §§2.1–2.4'),
+          grSource('F59', 'art. 2, §§2.1–2.7; arts. 3–4'),
         ],
         (transfer
           ? '成年继承人或受父母赠与人应提供公证估值，公证材料须列明房产此前的用卡记录。'
@@ -598,7 +650,13 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
               : '提供合格旅游租约、公证人的租金及付款证明，以及希腊国家旅游组织（ΕΟΤ）已知悉该具体租约的证明。'
             : '确认价款付清、解除条件已撤销、付款渠道和汇款人合规，且已核对原业主用卡记录。') +
           registrationZh +
-          e9Zh,
+          e9Zh +
+          (companyLease || a.title === 'wholly-owned-eu-company'
+            ? '须附公司全部权益的持股证明。'
+            : '') +
+          (a.kind === 'construction'
+            ? '另附建筑许可及本次清单要求的工程、付款或估价材料。'
+            : ''),
         (transfer
           ? 'An adult heir or recipient of a parental gift must document the assessed value and prior investor-card use in the notarial record.'
           : lease
@@ -607,7 +665,13 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
               : 'Provide the qualifying tourist lease, the notary’s certificate of rent and payment, and proof that the Greek National Tourism Organisation (ΕΟΤ) has acknowledged this specific lease.'
             : 'Confirm full payment, released conditions, a qualifying bank channel and payer, and the seller’s investor-card record.') +
           registrationEn +
-          e9En,
+          e9En +
+          (companyLease || a.title === 'wholly-owned-eu-company'
+            ? ' Supply proof of ownership of all company shares.'
+            : '') +
+          (a.kind === 'construction'
+            ? ' Supply the building permit and the construction, payment or valuation evidence required for this filing.'
+            : ''),
         uncertainLeaseEvidence || (!transfer && a.payer === undefined)
           ? ['PD-307']
           : undefined,
@@ -652,7 +716,7 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       'Private cover for investor and family',
       deferredCover ||
         all(
-          insuranceMet(req.insurance, 'private'),
+          insuranceMet(req.insurance, 'private', renewal),
           a.family?.length === 0 ? true : req.insurance?.coversFamily,
         ),
       [
@@ -695,6 +759,8 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         'Continued investment and renewal evidence',
         all(
           a.retainsInvestment,
+          a.kind !== 'construction' || a.constructionDocumentsReady,
+          !currentDocuments || lease || legacy || a.renewalUseDeclarationsReady,
           a.title !== 'ineligible',
           e9,
           !currentDocuments ||
@@ -704,19 +770,19 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
             ),
           legacy || historical
             ? true
-            : a.kind === undefined
+            : (a.originalGrantTier ?? a.kind) === undefined
               ? undefined
-              : a.kind === 'listed'
+              : (a.originalGrantTier ?? a.kind) === 'listed'
                 ? a.listedRestorationComplete
                 : true,
         ),
         [
           grSource('F23', 'art. 64, art. 100(4),(7Α),(8)'),
           grSource('F21', 'art. 31(3)(α), p. 16505'),
-          grSource('F59', 'art. 2, §3(α,δ,ε,η); arts. 3–4'),
+          grSource('F59', 'art. 2, §3(α–η) and final paragraph; arts. 3–4'),
         ],
-        `须保留产权或租约。${registrationZh}${e9Zh}保护建筑首次续期前须完成修复，否则罚 €${p.gvFines.value.listedRestoration}；离境不阻碍续期。`,
-        `Keep title or the lease.${registrationEn}${e9En} Listed buildings require full restoration by first renewal, with a €${p.gvFines.value.listedRestoration} fine for breach. Absence does not prevent renewal.`,
+        `须证明产权或租约持续有效。适用时附房产用途声明及工程证明。${registrationZh}${e9Zh}保护建筑首次续期前须完成修复，否则罚 €${p.gvFines.value.listedRestoration}；离境不阻碍续期。`,
+        `Document continued title or lease, with the applicable signed use declarations and construction evidence.${registrationEn}${e9En} Listed buildings require full restoration by first renewal, with a €${p.gvFines.value.listedRestoration} fine for breach. Absence does not prevent renewal.`,
       ),
     );
   }
@@ -725,14 +791,19 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       'GV-09',
       '随行家属与子女独立卡',
       'Accompanying family and independent child card',
-      a.family && all(...a.family.map((member) => investorMember(member, sim))),
+      a.family &&
+        all(
+          ...a.family.map((member) =>
+            all(investorMember(member, sim), member.filingDocumentsReady),
+          ),
+        ),
       [
         grSource('F16', 'art. 95(2)(α–δ)'),
         ...p.gvFamily.sources,
         grSource('F21', 'art. 23(I)(1)(β),(3)–(4)'),
       ],
-      `首签及续期均包括配偶、登记民事伴侣、双方的直系尊亲属，以及未满 ${p.gvFamily.value.childAge} 岁的未婚子女。非共同子女须由相应父母依法取得监护权。${sim >= p.workReformEffective.value ? '成年子女可凭认可的无行为能力证明及受养同住事实随行。' : ''}已持家属卡的适龄子女可凭旧卡转独立卡。`,
-      `At first grant and renewal, family includes a spouse or registered partner, either partner’s direct ascendants, and unmarried children under ${p.gvFamily.value.childAge}. For a child of only one parent, that parent needs legal custody.${sim >= p.workReformEffective.value ? ' An adult child may qualify with recognised evidence of legal incapacity, dependency and co-residence.' : ''} A child converting to an independent card must present the previous family card.`,
+      `首签及续期均包括配偶、登记民事伴侣、双方的直系尊亲属，以及未满 ${p.gvFamily.value.childAge} 岁的未婚子女。非共同子女须由相应父母依法取得监护权。${sim >= p.workReformEffective.value ? '成年子女可凭认可的无行为能力证明及受养同住事实随行。' : ''}按本次手续逐人提供亲属及监护文件、旧卡或入境证明、家庭状况声明，续期另核纳税材料。已持家属卡的适龄子女可凭旧卡转独立卡。`,
+      `At first grant and renewal, family includes a spouse or registered partner, either partner’s direct ascendants, and unmarried children under ${p.gvFamily.value.childAge}. For a child of only one parent, that parent needs legal custody.${sim >= p.workReformEffective.value ? ' An adult child may qualify with recognised evidence of legal incapacity, dependency and co-residence.' : ''} Check each applicant’s applicable kinship, custody, prior card or entry evidence, family declaration and renewal tax records. An independent child card requires the previous family card.`,
     ),
   );
   checks.push(
@@ -857,7 +928,7 @@ function greekKin(a: GreekFamilyAnswers, req: GrFullRequest): Answer {
       );
     }
     case 'dependent-needs-personal-care':
-      return true;
+      return a.dependent !== false;
     case 'other':
       return false;
   }
@@ -887,10 +958,14 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         'GF-01',
         '与希腊公民的真实亲属关系',
         'Genuine relationship to a Greek citizen',
-        all(greekKin(a, req), a.genuineRelationship),
+        all(
+          greekKin(a, req),
+          a.genuineRelationship,
+          a.stage !== 'initial' || a.initialFamilyDocumentsReady,
+        ),
         familySource(),
-        '婚姻须在希腊登记，民事伴侣协议可在希腊或希腊领事机关订立。凭亲属或收养文书证明关系，按类别补受养、监护、照护或无行为能力及同住证明。在希希腊籍未成年人的父母或未成年手足需提供相应家庭关系证明。',
-        'Document the registered marriage or a partnership concluded in Greece or at a Greek consulate. Supply kinship or adoption records and any applicable dependency, custody, personal care, or legal incapacity and co-residence evidence. Parents and minor siblings of a Greek minor resident in Greece need proof of that relationship.',
+        '婚姻须在希腊登记，民事伴侣协议可在希腊或希腊领事机关订立。首卡按类别提供希腊籍亲属身份证、家庭状况、亲属或收养文书，以及适用的监护、受养、医疗照护证明和同居供养声明。在希希腊籍未成年人的父母或未成年手足需提供相应家庭关系证明。',
+        'Document the registered marriage or a partnership concluded in Greece or at a Greek consulate. For the initial card supply the applicable Greek relative’s ID, family status, kinship or adoption records, custody, dependency or medical evidence and declarations of co-residence and support. Parents and minor siblings of a Greek minor resident in Greece need proof of that relationship.',
       ),
     );
   if (a.stage === 'initial') {
@@ -948,7 +1023,7 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
                 : !a.siblingExtensionAlreadyGranted,
             ),
           a.ordinaryRenewalDocumentsReady,
-          insuranceMet(req.insurance, 'either'),
+          insuranceMet(req.insurance, 'either', true),
         ),
         [
           grSource('F16', 'art. 93(2),(4),(7),(9)–(10)'),
@@ -983,6 +1058,15 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       tolerableGap,
       allowedAbsence,
       reformed || insuranceMet(req.insurance, 'either'),
+      reformed ||
+        all(
+          a.historicalConversionDocumentsReady ??
+            all(
+              a.priorCardExpiry ? true : undefined,
+              req.tenYear?.travelDocumentPagesReady,
+            ),
+          req.tenYear?.travelDocumentPagesReady !== false,
+        ),
     );
     const anniversary =
       a.residenceFrom && addYears(a.residenceFrom, family.residenceYears);
@@ -995,13 +1079,14 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         [
           grSource('F36', 'art. 28, art. 93Α(1)'),
           grSource('F16', 'arts. 93(7),(9), 161(1)(δ),(2)'),
+          grSource('F21', 'arts. 25(1), 58(1)(ε–η)'),
         ],
         reformed
           ? `与希腊籍家属共同合法居住满 ${family.residenceYears} 年。卡到期后实际居留中断不超过 ${family.interruptionYears} 年可保留转换权。核实共居期间的离境。`
-          : `旧制共同合法居住满 ${family.residenceYears} 年后转 Μ.2，须核对全额医保和连续离境期。`,
+          : `旧制共同合法居住满 ${family.residenceYears} 年后转 Μ.2，须核对原家属卡、全额医保、连续离境期及递件前 ${p.tenYearCard.value.absenceYears} 年旅行证件的全部内页。`,
         reformed
           ? `Establish ${family.residenceYears} years of qualifying residence together. A residence interruption of up to ${family.interruptionYears} years after card expiry preserves conversion. Verify absences during those years.`
-          : `Under the earlier law, ${family.residenceYears} years of qualifying residence together lead to Μ.2. Verify full insurance and consecutive absences.`,
+          : `Under the earlier law, ${family.residenceYears} years of qualifying residence together lead to Μ.2. Verify the former family card, full insurance, consecutive absences and all travel-document pages for the ${p.tenYearCard.value.absenceYears} years before filing.`,
         ordinary === false && !extended ? ['PD-314'] : undefined,
       ),
     );
@@ -1021,8 +1106,14 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         '关系终止后的个人居留权',
         'Retained personal residence right',
         reformed
-          ? all(retainedGround(r, true), retainedLivelihood(r, req), onTime)
+          ? all(
+              a.retainedRightDocumentsReady,
+              retainedGround(r, true),
+              retainedLivelihood(r, req),
+              onTime,
+            )
           : all(
+              a.retainedRightDocumentsReady,
               r.basis !== 'custody',
               retainedGround(r, true),
               beforeOrOn(r.eventDate, filed),
@@ -1031,12 +1122,13 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         [
           grSource('F36', 'art. 27(2), art. 93(11)(α)–(γ)'),
           grSource('F16', 'arts. 90, 93(11)'),
+          grSource('F21', 'art. 24(2)(α–ε), pp. 16498–16499'),
         ],
         reformed
-          ? '核对丧偶、离婚、子女监护或家庭暴力依据、就业或生计医保，以及事件后规定期限内的申请。'
+          ? '提供先前居留卡、死亡登记、离婚或关系解除登记、监护裁决或家暴／困难证据中适用的材料。核对相应就业或生计医保依据和事件后递件期限。'
           : '旧制按丧偶、离婚或家暴等困难情形转 Ο.2。',
         reformed
-          ? 'Check widowhood, divorce, custody or domestic violence, the employment or resources/coverage basis and timely filing after the event.'
+          ? 'Document the prior card, the applicable death, divorce/dissolution, custody or hardship evidence, the livelihood/insurance basis, and timely filing after the event.'
           : 'The earlier law routes widowhood, qualifying divorce or hardship such as domestic violence to an autonomous Ο.2.',
       ),
     );
@@ -1088,7 +1180,7 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       [
         grSource('F36', 'art. 27(2) and art. 28, art. 93Α(2)–(3)'),
         grSource('F21', 'art. 2(γ)'),
-        grSource('F16', 'art. 93(3)'),
+        grSource('F16', 'arts. 93(3), 171(2)(ε)'),
       ],
       `申请费 €${family.applicationFee}，每张制卡 €${card}。${reformed ? `Μ.3 每 ${family.cardYears} 年更新。` : ''}${lateFeeZh}`,
       `Application €${family.applicationFee}, card €${card}.${reformed ? ` Renew Μ.3 every ${family.cardYears} years.` : ''}${lateFeeEn}`,
@@ -1174,7 +1266,7 @@ function euFamilyLink(a: EuFamilyAnswers, req: GrFullRequest): Answer {
       let underLimit: Answer;
       if (age !== undefined) {
         if (age < eu.childAge) underLimit = age >= 0;
-        else if (a.residenceFrom) underLimit = false;
+        else if (a.residenceFrom || a.stage === 'initial') underLimit = false;
       }
       return any(
         a.dependent,
@@ -1234,6 +1326,10 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
   const primaryCarer =
     a.relationship === 'primary-carer-of-mobile-eu-minor' &&
     !(a.stage === 'retained' && a.schooling);
+  const ordinaryCard = a.stage === 'initial' || a.stage === 'renewal';
+  const existingPermanent =
+    a.stage === 'maintain' || a.stage === 'permanent-renewal';
+  const amendedLateFiling = sim >= p.euCardFineReformFrom.value;
   if (!a.stage)
     return [
       c.check(
@@ -1242,11 +1338,11 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         'EU family status and application stage',
         undefined,
         [grSource('F02', 'arts. 11–15,17')],
-        '请选择转永久卡、关系终止后个人保留或永居保有。',
-        'Select permanent acquisition, retention after a family event, or continued permanent status.',
+        '请选择普通卡首领或续期、关系终止后个人保留、永久卡首领或换卡，或永居保有。',
+        'Select first issue or renewal of an ordinary or permanent card, retention after a family event, or continued permanent status.',
       ),
     ];
-  if (a.stage !== 'maintain') {
+  if (!existingPermanent) {
     checks.push(
       c.check(
         'EF-01',
@@ -1278,11 +1374,113 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       ),
     );
   }
+  if (a.stage === 'initial') {
+    const lateOnset =
+      a.arrivedOn &&
+      a.publicHealthConditionBeganOn &&
+      a.publicHealthConditionBeganOn <= sim &&
+      a.publicHealthConditionBeganOn >
+        addMonths(a.arrivedOn, eu.publicHealthMonths);
+    checks.push(
+      c.check(
+        'EF-08',
+        '首卡公共卫生依据',
+        'Public health for the first ordinary card',
+        req.publicHealth === 'entry-refused'
+          ? false
+          : req.publicHealth === 'cleared' || lateOnset
+            ? true
+            : undefined,
+        [grSource('F02', 'arts. 9(3)–(4), 21(8)–(10)')],
+        `仅核法定公共卫生事由。须有具体严重迹象方可要求免费体检；入境 ${eu.publicHealthMonths} 个月后发生的疾病不能作为驱逐依据。`,
+        `Verify a statutory public health ground. Medical examinations require serious indications and are free. Disease first arising more than ${eu.publicHealthMonths} months after arrival cannot justify expulsion.`,
+        req.publicHealth === 'possible-risk' && !lateOnset
+          ? ['PD-302']
+          : undefined,
+      ),
+    );
+  }
+  if (ordinaryCard) {
+    const partner =
+      a.relationship === 'spouse' || a.relationship === 'registered-partner';
+    const article59Family =
+      partner ||
+      a.relationship === 'descendant' ||
+      a.relationship === 'ascendant';
+    const r = a.partnerRenewal;
+    const evidenceOfSeparation = all(
+      beforeOrOn(r?.separationOn, sim),
+      yearsBy(
+        r?.marriageFrom,
+        r?.separationOn,
+        p.familyRetention.value.marriageYears,
+      ),
+      yearsBy(
+        r?.greeceResidenceFrom,
+        r?.separationOn,
+        p.familyRetention.value.inGreeceYears,
+      ),
+    );
+    const finances =
+      r?.resourcesAssessment === 'accepted'
+        ? true
+        : r?.resourcesAssessment === 'rejected'
+          ? false
+          : undefined;
+    const appliesToSpouse = a.stage === 'renewal' && partner;
+    const due = a.arrivedOn && addMonths(a.arrivedOn, eu.initialFilingMonths);
+    const afterFineDeadline =
+      a.arrivedOn && sim > addYears(a.arrivedOn, eu.lateYears);
+    const timelyInitial =
+      a.arrivedOn === undefined
+        ? undefined
+        : a.arrivedOn <= sim &&
+          (amendedLateFiling || !afterFineDeadline || undefined);
+    checks.push(
+      c.check(
+        'EF-07',
+        '普通居留卡首领或续期',
+        'First or renewed ordinary residence card',
+        a.stage === 'initial'
+          ? timelyInitial
+          : all(
+              a.relationship === undefined ? undefined : true,
+              !article59Family ||
+                (a.permanentRightAcquired === undefined
+                  ? undefined
+                  : !a.permanentRightAcquired),
+              !appliesToSpouse ||
+                all(
+                  any(
+                    r?.sponsorConfirmsContinuingRelationship,
+                    evidenceOfSeparation,
+                  ),
+                  finances,
+                ),
+              a.priorCardIssued === false
+                ? false
+                : (a.priorCardIssued ?? (a.priorCardExpiry ? true : undefined)),
+            ),
+        [
+          grSource('F02', 'arts. 7, 9(2)–(5), 10'),
+          grSource('F21', 'art. 59(1)–(6),(10)–(13)'),
+          grSource('F64', 'art. 42(8), p. 2302; art. 47'),
+        ],
+        a.stage === 'initial'
+          ? `自入境之日起 ${eu.initialFilingMonths} 个月内申请。${due ? `本案期限 ${due}。` : ''}${afterFineDeadline && amendedLateFiling ? `另缴逾期罚款 €${eu.lateFine}。` : ''}`
+          : '配偶、直系亲属普通续卡核尚未取得永久权；配偶另核家庭关系持续或分居前的婚姻、在希期间，以及按个人情况认定的资源。扩展成员及稳定伴侣按获认可关系及其续期材料审查。',
+        a.stage === 'initial'
+          ? `Apply within ${eu.initialFilingMonths} months of arrival.${due ? ` Filing deadline ${due}.` : ''}${afterFineDeadline && amendedLateFiling ? ` Late fine €${eu.lateFine}.` : ''}`
+          : 'For a spouse or direct relative, check that permanent residence has not been acquired. For spouses check the continuing link or durations before separation and individually assessed resources. Extended family and durable partners renew on their recognised basis and evidence.',
+        appliesToSpouse && finances === undefined ? ['PD-316'] : undefined,
+      ),
+    );
+  }
+  const anniversary =
+    a.residenceFrom && addYears(a.residenceFrom, eu.residenceYears);
+  const early = earlyRight(a.early, sim);
   if (a.stage === 'permanent') {
-    const anniversary =
-      a.residenceFrom && addYears(a.residenceFrom, eu.residenceYears);
     const ordinary = beforeOrOn(anniversary, sim);
-    const early = earlyRight(a.early, sim);
     checks.push(
       c.check(
         'EF-02',
@@ -1297,7 +1495,7 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       ),
     );
   }
-  if (a.stage !== 'retained') {
+  if (a.stage === 'permanent' || existingPermanent) {
     const timely =
       a.priorCardIssued === false ||
       (a.priorCardExpiry === undefined
@@ -1310,21 +1508,41 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         ? true
         : maximum(a.maxSeriousAbsenceMonths, eu.seriousAbsenceMonths),
     );
+    const earlyDate = early === true ? a.early?.eventDate : undefined;
+    const acquired =
+      earlyDate && (!anniversary || earlyDate < anniversary)
+        ? earlyDate
+        : anniversary;
+    // Before two years could have elapsed, no history of post-acquisition absence is needed.
+    const retainedPermanentRight =
+      a.stage === 'permanent' &&
+      a.longestAbsenceAfterPrYears === undefined &&
+      acquired &&
+      sim <= addYears(acquired, eu.lossYears)
+        ? true
+        : maximum(a.longestAbsenceAfterPrYears, eu.lossYears);
     checks.push(
       c.check(
         'EF-03',
         '离境与旧卡递交期限',
         'Absences and filing deadline',
-        a.stage === 'maintain'
-          ? maximum(a.longestAbsenceAfterPrYears, eu.lossYears)
-          : all(absences, timely === false ? undefined : timely),
+        existingPermanent
+          ? retainedPermanentRight
+          : all(
+              absences,
+              retainedPermanentRight,
+              timely === false ? amendedLateFiling || undefined : timely,
+            ),
         [
           grSource('F02', 'arts. 13(2)–(3),17(2),(4),18'),
-          grSource('F61', '§§9, 12.3'),
+          grSource('F61', '§§9.1.2, 12.3'),
+          grSource('F64', 'art. 42(10), p. 2302; art. 47'),
         ],
-        `取得前每年普通离境最多 ${eu.ordinaryAbsenceMonths} 个月，强制兵役除外；一次重大理由最多 ${eu.seriousAbsenceMonths} 个月。取得后连续离境超过 ${eu.lossYears} 年丧失权利。曾获旧卡且逾期超过 ${eu.lateYears} 年须核实发卡。从未领卡者可用其他材料证明合格居留。`,
-        `Before acquisition, ordinary absences total at most ${eu.ordinaryAbsenceMonths} months annually, apart from compulsory service and one serious absence up to ${eu.seriousAbsenceMonths} months. After acquisition, absence over ${eu.lossYears} consecutive years ends the right. Filing more than ${eu.lateYears} year after a prior card expired needs review. Applicants never issued a card can document qualifying residence by other means.`,
-        a.stage === 'permanent' && timely === false ? ['PD-315'] : undefined,
+        `取得前每年普通离境最多 ${eu.ordinaryAbsenceMonths} 个月，强制兵役除外；一次重大理由最多 ${eu.seriousAbsenceMonths} 个月。取得后连续离境超过 ${eu.lossYears} 年丧失权利。${amendedLateFiling ? '已领旧卡者按到期日核对逾期罚款。' : '旧制逾期过久须核实发卡。'}从未领卡者可用其他材料证明合格居留。`,
+        `Before acquisition, ordinary absences total at most ${eu.ordinaryAbsenceMonths} months annually, apart from compulsory service and one serious absence up to ${eu.seriousAbsenceMonths} months. After acquisition, absence over ${eu.lossYears} consecutive years ends the right. ${amendedLateFiling ? 'Use the former card expiry to determine the late fine.' : 'A late filing under the earlier law may need review.'} Applicants never issued a card can document qualifying residence by other means.`,
+        a.stage === 'permanent' && timely === false && !amendedLateFiling
+          ? ['PD-315']
+          : undefined,
       ),
     );
   }
@@ -1387,41 +1605,61 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       req.publicOrder === 'review' ? ['PD-301'] : undefined,
     ),
   );
-  const documentsZh =
-    a.stage === 'maintain'
-      ? '换卡时核对旧永久卡。'
+  const docs = ordinaryCard
+    ? [
+        '按亲属类别提供担保人登记或永久证、亲属及适用的监护、受养或同居供养文件。稳定伴侣须证明关系及共同生活。首卡可交全面公保申请或私保；续卡查有效医保和持续关系材料。',
+        'Supply sponsor registration or permanent status, relationship and any required custody, dependency or household/support records. A durable partnership needs evidence of the relationship and shared life. Supply a full public cover application or private policy at first filing, active cover and continued family evidence at renewal.',
+      ]
+    : existingPermanent
+      ? [
+          '实际换卡须交旧永久卡。',
+          'Present the old permanent card for an actual renewal.',
+        ]
       : a.stage === 'retained'
-        ? '提供关系终止及保留权凭证。'
+        ? [
+            '提供旧卡、家庭事件及当事人适用的收入和医保证据。',
+            'Document the prior card, family event and applicable livelihood and insurance evidence.',
+          ]
         : primaryCarer
-          ? '提供实际照护关系和适用期间的条约居留证明。可用原卡或其他证明材料。'
-          : '普通永久卡核有效医保及原卡或其他合格居留证明。提前取得时另核担保人登记、亲属关系及适用的死亡证明。';
-  const documentsEn =
-    a.stage === 'maintain'
-      ? 'Present the old permanent card at renewal.'
-      : a.stage === 'retained'
-        ? 'Document the family event and the retained right.'
-        : primaryCarer
-          ? 'Document the primary care relationship and qualifying residence for the relevant period using a prior card or other evidence.'
-          : 'For ordinary acquisition, show current insurance and the prior card or other evidence of qualifying residence. For early acquisition also verify sponsor registration, kinship and any required death evidence.';
+          ? [
+              '提供实际照护关系和适用期间的条约居留证明。可用原卡或其他证明材料。',
+              'Document the primary care relationship and qualifying residence for the relevant period using a prior card or other evidence.',
+            ]
+          : [
+              '提供旧卡或其他合格居留证明、担保人登记和亲属关系及有效医保证明。提前取得时另核适用的死亡或职业事故证明。',
+              'Supply the former card or alternative qualifying residence evidence, sponsor registration, family records and insurance. For early acquisition, include applicable evidence of death or occupational accident.',
+            ];
+  const expiry = a.priorCardIssued === false ? undefined : a.priorCardExpiry;
   const late =
     a.stage === 'permanent' &&
-    a.priorCardIssued !== false &&
-    a.priorCardExpiry !== undefined &&
-    sim >= a.priorCardExpiry;
+    expiry &&
+    (amendedLateFiling ? sim > addYears(expiry, eu.lateYears) : sim >= expiry);
+  const insuranceEvidence =
+    primaryCarer ||
+    !req.insurance ||
+    (a.stage === 'initial' && a.appliedForFullPublicCover === true) ||
+    insuranceMet(req.insurance, 'either', a.stage === 'renewal');
   checks.push(
     c.check(
       'EF-06',
       '家属证件与费用',
       'Family documents and fees',
-      a.stage === 'maintain' ? true : a.rightsDocumentsReady,
+      a.stage === 'maintain'
+        ? true
+        : all(
+            a.rightsDocumentsReady,
+            a.stage !== 'permanent-renewal' || a.priorCardIssued !== false,
+            existingPermanent || insuranceEvidence,
+          ),
       [
-        grSource('F02', 'art. 17(2)–(5)'),
+        grSource('F02', 'arts. 9(2)–(5), 17(2)–(5)'),
+        grSource('F64', 'art. 42(8),(10), p. 2302; art. 47'),
         grSource('F21', 'arts. 2(γ),59'),
         ...(a.stage === 'permanent' ? [grSource('F61', '§§9, 12.3')] : []),
         ...(primaryCarer ? [grSource('F61', '§§2.2.2.5, 5.2.4, 9.1')] : []),
       ],
-      `${documentsZh}申请费 €${family.applicationFee}，制卡 €${p.gvFees.value.card}。${late ? `本次逾期罚款最高 €${eu.maxFine}。` : ''}永久卡每 ${eu.cardYears} 年更新，核发最长 ${eu.decisionMonths} 个月。`,
-      `${documentsEn} Filing €${family.applicationFee}, card €${p.gvFees.value.card}.${late ? ` Late fine up to €${eu.maxFine}.` : ''} The permanent card renews every ${eu.cardYears} years; issue within ${eu.decisionMonths} months.`,
+      `${docs[0]}申请费 €${family.applicationFee}，制卡 €${p.gvFees.value.card}。${late ? (amendedLateFiling ? `本次逾期罚款 €${eu.lateFine}。` : `本次逾期罚款最高 €${eu.maxFine}。`) : ''}永久卡每 ${eu.cardYears} 年更新，核发最长 ${eu.decisionMonths} 个月。`,
+      `${docs[1]} Filing €${family.applicationFee}, card €${p.gvFees.value.card}.${late ? (amendedLateFiling ? ` Late fine €${eu.lateFine}.` : ` Late fine up to €${eu.maxFine}.`) : ''} The permanent card renews every ${eu.cardYears} years; issue within ${eu.decisionMonths} months.`,
     ),
   );
   return checks;

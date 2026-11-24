@@ -275,6 +275,7 @@ const official = {
   ],
   F62: ['SRC-378', 'https://api.et.gr/apiFEK/1/2021/81/pdf'],
   F63: ['SRC-379', 'https://api.et.gr/apiFEK/1/1983/25/pdf'],
+  F64: ['SRC-350', 'https://api.et.gr/apiFEK/1/2012/85/pdf'],
 } as const;
 
 export function grSource(
@@ -287,6 +288,10 @@ export function grSource(
 
 // Filing rules and the projection calendar share these commencement parameters.
 const commencements = {
+  euCardFineReformFrom: {
+    value: '2012-04-11',
+    sources: [grSource('F64', 'arts. 42(8),(10), 47, pp. 2302, 2308')],
+  },
   examPreviousRulesFrom: {
     value: '2024-03-04',
     sources: [grSource('F19', 'art. 7 and final publication clause')],
@@ -406,7 +411,7 @@ export const greeceFull2026_11 = {
       },
       sources: [
         grSource('F16', 'arts. 14(6)–(7), 16(2)'),
-        grSource('F21', 'art. 2(c)'),
+        grSource('F21', 'art. 2(β–γ), p. 2'),
       ],
     },
     originalProtectionFullCreditMonths: {
@@ -489,6 +494,7 @@ export const greeceFull2026_11 = {
       value: {
         years: 10,
         grades: 6,
+        legacySecondaryGrades: 3,
         beforeAge: 23,
         absenceYears: 2,
         ordinaryFee: 900,
@@ -496,12 +502,15 @@ export const greeceFull2026_11 = {
       },
       sources: [
         grSource('F36', 'art. 38, Migration Code art. 161(1), (3), (5), (7)'),
-        grSource('F16', 'art. 171(1)(ζ)'),
+        grSource('F16', 'arts. 161(1)(γ), 171(1)(ζ), 171(2)'),
+        grSource('F21', 'art. 58(1)(δ), (η), p. 35'),
+        grSource('F36', 'art. 45(16), (20), pp. 46–47'),
       ],
     },
     naturalisationScreen: {
       value: {
         adultAge: majority.age,
+        diplomaticSpouseDomesticYears: 1,
         parentalResponsibilityMinorAge: majority.age,
         criminalLookbackYears: 10,
         intentionalSentenceMonths: 12,
@@ -511,6 +520,7 @@ export const greeceFull2026_11 = {
       },
       sources: [
         majority.source,
+        grSource('F34', 'Citizenship Code art. 5(1)(δ), p. 8'),
         grSource('F62', 'art. 7(1), Civil Code art. 1510'),
         grSource('F34', 'ΚΕΙ arts. 5(1)(a)–(b),(δ), 8(3), 9(1)'),
         grSource('F33', 'arts. 97–98'),
@@ -683,10 +693,14 @@ export const greeceFull2026_11 = {
       sources: [
         grSource('F36', 'art. 27(2), art. 93(11), pp. 464–465'),
         grSource('F02', 'arts. 11(2), 12(2)'),
+        grSource('F21', 'art. 59(2)(δ), p. 16518'),
       ],
     },
     efPeriods: {
       value: {
+        initialFilingMonths: 3,
+        publicHealthMonths: 3,
+        lateFine: 50,
         minorAge: majority.age,
         childAge: 21,
         residenceYears: 5,
@@ -707,7 +721,11 @@ export const greeceFull2026_11 = {
       sources: [
         majority.source,
         grSource('F61', '§§2.2.2.5, 5.2.4, 9.1'),
-        grSource('F02', 'arts. 2(2)(β), 12(2)(δ), 13–15, 17(2)–(5)'),
+        grSource(
+          'F02',
+          'arts. 2(2)(β), 9(2)–(5), 12(2)(δ), 13–15, 17(2)–(5), 21(8)–(10)',
+        ),
+        grSource('F64', 'art. 42(8),(10), p. 2302'),
         grSource('F36', 'art. 9(4), Migration Code art. 4(ληγ), p. 445'),
       ],
     },
@@ -754,6 +772,19 @@ export const greeceFull2026_11 = {
       sources: [
         grSource('F16', 'arts. 31(1)(α), 61(3)(α)'),
         grSource('F36', 'art. 21 (art. 61(3)(α))'),
+      ],
+    },
+    workBlueCardMobility: {
+      value: {
+        firstMoveMonths: 12,
+        subsequentMoveMonths: 6,
+        filingMonths: 1,
+        decisionDays: 30,
+        extensionDays: 30,
+      },
+      sources: [
+        grSource('F16', 'art. 45(1), (3)–(5), (8)–(11), pp. 36–38'),
+        grSource('F21', 'art. 4(4), p. 3'),
       ],
     },
     workEmployer: {
@@ -813,11 +844,14 @@ export const greeceFull2026_11 = {
       value: {
         adultAge: 18,
         investorChildLimit: 21,
+        certificateMonths: 6,
         decisionMonths: 9,
         extensionMonths: 3,
       },
       sources: [
         grSource('F16', 'arts. 4(λε), 86(3)'),
+        grSource('F21', 'art. 23(I)(1)(β), p. 16'),
+        grSource('F60', 'procedure 517141, document 4'),
         grSource('F36', 'arts. 9(2), 29 (arts. 4(λε), 95(2))'),
       ],
     },
@@ -836,7 +870,7 @@ export const greeceFull2026_11 = {
       sources: [
         majority.source,
         grSource('F16', 'arts. 90(1)–(5), 42(6)'),
-        grSource('F21', 'ΚΥΑ 95391/2024, art. 24(1.3)–(1.4)'),
+        grSource('F21', 'ΚΥΑ 95391/2024, art. 24(1.1)–(1.4), p. 17'),
       ],
     },
     familyFees: {

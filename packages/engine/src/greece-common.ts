@@ -9,6 +9,16 @@ import type { IsoDate } from './types';
 
 const p = greeceFull2026_11.values;
 export interface GrCommonAnswers {
+  filingDocuments?: {
+    /** Correct procedure form and required attachments: certified ID copy, applicable address/contact
+     * and (at initial grant if not shown elsewhere) place-of-birth declaration; authorised signature if represented. */
+    formReady?: boolean;
+    feeReceiptReady?: boolean;
+    /** A documented individual exemption, e.g. under the bilateral agreement in art. 171(2)(δ). */
+    feeExemptionDocumented?: boolean;
+  };
+  /** Other accepted evidence of entitlement to enter under the EU free movement rules. */
+  euFamilyEntryEvidenceAccepted?: boolean;
   passport?: {
     kind:
       'recognised' | 'unavailable' | 'exception-pending' | 'exception-granted';
@@ -176,8 +186,8 @@ function cardCheck(req: GrFullRequest, c: GrContext) {
     'Fingerprint appointments and card issue',
     met,
     p.cardFormalities.sources,
-    `制卡费 €${limits.printFee}。自 ${limits.fingerprintAge} 岁起须按通知采集指纹，身体原因可凭医疗证明豁免。尚待预约可递件；两次缺席会被驳回。`,
-    `The card costs €${limits.printFee}. From age ${limits.fingerprintAge} attend when summoned, subject to a documented medical exemption. Awaiting an appointment allows filing; missing both appointments leads to refusal.`,
+    `在采集生物信息时提交近期彩色纸质及 JPEG2000 数码照片，并缴制卡费 €${limits.printFee}。自 ${limits.fingerprintAge} 岁起按通知采集指纹，身体原因可凭医疗证明豁免。尚待预约可递件；两次缺席会被驳回。`,
+    `Bring the recent colour photo in print and JPEG2000 format and the €${limits.printFee} printing fee to biometrics. From age ${limits.fingerprintAge} attend when summoned, subject to a documented medical exemption. Awaiting an appointment allows filing; missing both appointments leads to refusal.`,
   );
 }
 
@@ -269,11 +279,7 @@ function autonomousInsuranceCheck(req: GrFullRequest, c: GrContext) {
     family?.appliedForFullPublicCover ??
     req.deferredInitialEvidence?.includes('public-insurance-application') ??
     false;
-  // A gap records past coverage, not current insurance at the initial grant.
-  const cover =
-    req.insurance?.kind === 'gap'
-      ? undefined
-      : insuranceMet(req.insurance, 'either');
+  const cover = insuranceMet(req.insurance, 'either');
   const personalCover =
     req.insurance?.kind === 'private'
       ? all(cover, family?.privateCoverPermitted)
@@ -322,6 +328,7 @@ const procedures = {
   'GR-LONG-TERM': {
     initial: { ...longTermCard, insurance: 'either' },
     renewal: { ...longTermCard, renewalWindow: true },
+    reacquisition: longTermCard,
   },
   'GR-GOLDEN-VISA': {
     initial: { ...initialPermit, insurance: 'private' },
@@ -344,6 +351,9 @@ const procedures = {
     unspecified: greekCard,
   },
   'GR-EU-FAMILY-PR': {
+    initial: { ...euCard, entry: true },
+    renewal: euCard,
+    'permanent-renewal': euCard,
     retained: euCard,
     permanent: euCard,
     maintain: undefined,
@@ -431,8 +441,54 @@ export function commonChecks(
   const kind = work ? req.work?.permit : undefined;
   const initialGold = id === 'GR-GOLDEN-VISA' && procedure.entry;
   const overseas = initialGold && overseasInvestorFiling(req);
+  if (procedure.card) {
+    const docs = req.filingDocuments;
+    const exempt =
+      id === 'GR-EU-FAMILY-PR' ||
+      id === 'GR-GREEK-FAMILY-PR' ||
+      (id === 'GR-LONG-TERM' &&
+        (req.longTerm?.stage === 'renewal' ||
+          req.longTerm?.convertingTenYearCard)) ||
+      (id === 'GR-TEN-YEAR' &&
+        ((req.tenYear?.stage === 'renewal' &&
+          (req.tenYear?.basis === 'residence' ||
+            req.simulationDate < p.workReformEffective.value)) ||
+          req.tenYear?.basis === 'unaccompanied-minor')) ||
+      docs?.feeExemptionDocumented === true ||
+      underAgeOn(
+        req.birthDate,
+        req.simulationDate,
+        p.familyFees.value.minorAge,
+      );
+    checks.push(
+      c.check(
+        'C-FILING',
+        '申请表、声明与申请费凭证',
+        'Application form, declarations and fee receipt',
+        all(
+          docs?.formReady,
+          any(
+            exempt,
+            docs?.feeReceiptReady,
+            id === 'GR-TEN-YEAR' &&
+              req.tenYear?.stage === 'renewal' &&
+              req.tenYear?.basis !== 'residence'
+              ? undefined
+              : false,
+          ),
+        ),
+        [
+          grSource('F21', 'arts. 1, 2(α, ε, στ), p. 2'),
+          grSource('F16', 'art. 171(1)–(2), pp. 103–104'),
+        ],
+        '备妥本手续的申请表、身份证件副本及适用的授权、住址和联系资料。首签时若已有文件未载出生地，须补拉丁字母声明。依法应付申请费时须有缴费凭证。',
+        'Prepare the procedure form, identity document copy and applicable mandate, address and contact details. At initial grant declare the place of birth in Latin characters if absent from other documents. Provide the payment receipt where an application fee is due.',
+      ),
+    );
+  }
   if (procedure.entry) {
     const greekFamily = id === 'GR-GREEK-FAMILY-PR';
+    const euFamily = id === 'GR-EU-FAMILY-PR';
     const family = req.familyTcn;
     const blueCardFamily = reunion && family?.sponsor === 'blue-card';
     const unconfirmedShortStay =
@@ -443,6 +499,7 @@ export function commonChecks(
     const shortStayOk =
       initialGold ||
       greekFamily ||
+      euFamily ||
       blueCardFamily ||
       kind === 'E1' ||
       (work && req.work?.admission === 'strategic-project');
@@ -450,7 +507,7 @@ export function commonChecks(
     switch (entry) {
       case 'outside':
         if (initialGold) allowed = req.overseasInvestorMandate;
-        else if (greekFamily) allowed = false;
+        else if (greekFamily || euFamily) allowed = false;
         break;
       case 'receipt':
       case 'restricted-permit':
@@ -465,9 +522,11 @@ export function commonChecks(
         allowed = true;
         break;
       case 'unlawful':
-        allowed = false;
+        allowed = euFamily ? req.euFamilyEntryEvidenceAccepted : false;
         break;
     }
+    if (euFamily && allowed === undefined && entry !== 'outside')
+      allowed = req.euFamilyEntryEvidenceAccepted;
     checks.push(
       c.check(
         'C-02',
@@ -477,6 +536,13 @@ export function commonChecks(
         [
           grSource('F16', 'arts. 8(b), 10(1),(11), 12, 84, 93, 100'),
           grSource('F36', 'arts. 13, 21'),
+          ...(euFamily
+            ? [
+                grSource('F02', 'arts. 5(4), 9'),
+                grSource('F21', 'art. 59, introductory paragraph'),
+                grSource('F61', '§§4.8, 12.3'),
+              ]
+            : []),
           ...(blueCardFamily
             ? [
                 grSource('F16', 'arts. 42(1)–(3), 86(1)'),
@@ -556,17 +622,21 @@ export function commonChecks(
         'C-05',
         '医疗保险凭证',
         'Health insurance evidence',
-        overseas || insuranceMet(req.insurance, procedure.insurance),
+        overseas ||
+          insuranceMet(
+            req.insurance,
+            procedure.insurance,
+            id === 'GR-GOLDEN-VISA' && !initialGold,
+          ),
         overseas
           ? [...p.privateInsurance.sources, ...p.investorEntryMonths.sources]
           : p.privateInsurance.sources,
         overseas
           ? `可由代理人递件，须在递件后 ${p.investorEntryMonths.value} 个月内入境并补交合格医保凭证。`
-          : '私保须核对全年三项年度保额、最高自付比例及有无免赔和除外条款。公保按许可类别核对。',
+          : '私保须核对全年三项保额、最高自付比例及免赔和除外条款。境外保险须明示保障在希停留期间的相应风险及给付。核对递件日保障；续期有既往断保时另核同期失业给付或获认可的不可抗力。',
         overseas
           ? `Filing by mandate is permitted. Enter and provide qualifying insurance within ${p.investorEntryMonths.value} months of filing.`
-          : 'Check all three annual limits, maximum copay, deductibles, exclusions and duration for private coverage. Public coverage depends on the permit category.',
-        req.insurance?.kind === 'gap' ? ['PD-303'] : [],
+          : 'Check the three annual limits, maximum copay, deductibles, exclusions and policy term. A foreign insurer must expressly cover the required risks and benefits during residence in Greece. Check coverage at filing and, on renewal, evidence of unemployment benefits or accepted force majeure for past gaps.',
       ),
     );
   }

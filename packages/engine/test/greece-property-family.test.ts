@@ -9,6 +9,7 @@ import type { GrInsurance } from '../src/greece-rules';
 const simulationDate = '2026-11-23';
 const insurance: GrInsurance = {
   kind: 'private',
+  issuer: 'greek',
   coversFamily: true,
   disabilityEur: 15000,
   medicalEur: 1500,
@@ -35,6 +36,7 @@ const investor: Investor = {
   payment: 'bank-transfer',
   payer: 'applicant',
   notarialEvidence: true,
+  renewalUseDeclarationsReady: true,
   registeredTransferEvidence: true,
   e9DeclarationCopy: true,
   use: 'residential-or-long-let',
@@ -47,6 +49,9 @@ const greek: Greek = {
   relationship: 'spouse',
   registeredInGreece: true,
   genuineRelationship: true,
+  initialFamilyDocumentsReady: true,
+  retainedRightDocumentsReady: true,
+  historicalConversionDocumentsReady: true,
   residenceFrom: '2021-11-23',
   qualifyingResidenceDocumented: true,
   priorCardExpiry: '2026-11-23',
@@ -237,7 +242,10 @@ describe('Β.5 property and family conditions', () => {
         'registered-partner',
         'ascendant',
       ] as const) {
-        expect(gv('GV-09', { stage, family: [{ kind }] }).status).toBe('MET');
+        expect(
+          gv('GV-09', { stage, family: [{ kind, filingDocumentsReady: true }] })
+            .status,
+        ).toBe('MET');
       }
       expect(gv('GV-09', { stage, family: [{ kind: 'other' }] }).status).toBe(
         'NOT_MET',
@@ -248,6 +256,7 @@ describe('Β.5 property and family conditions', () => {
     const child = {
       kind: 'child',
       birthDate: '2006-11-23',
+      filingDocumentsReady: true,
       unmarriedWithRequiredCustody: true,
     } as const;
     const at21 = {
@@ -697,6 +706,7 @@ describe('Ν EU family', () => {
         dependent: false,
       } as const;
       const result = evaluateGreeceFull({
+        filingDocuments: { formReady: true, feeReceiptReady: true },
         pathways: ['GR-EU-FAMILY-PR'],
         simulationDate,
         birthDate,
@@ -814,10 +824,7 @@ describe('Ν EU family', () => {
       'NOT_MET',
     );
     expect(ef('EF-03', { priorCardExpiry: '2025-11-23' }).status).toBe('MET');
-    expect(ef('EF-03', { priorCardExpiry: '2025-11-22' })).toMatchObject({
-      status: 'UNKNOWN',
-      pendingDetails: ['PD-315'],
-    });
+    expect(ef('EF-03', { priorCardExpiry: '2025-11-22' }).status).toBe('MET');
     expect(
       ef('EF-03', { stage: 'maintain', longestAbsenceAfterPrYears: 2 }).status,
     ).toBe('MET');
@@ -847,14 +854,17 @@ describe('Ν EU family', () => {
     expect(ef('EF-05', { shamOrFraud: true }).status).toBe('NOT_MET');
     expect(ef('EF-05', {}, { publicOrder: 'review' }).status).toBe('UNKNOWN');
   });
-  test('EU documents and costs have only a maximum fine', () => {
+  test('EU documents and costs apply the amended fine after a full year', () => {
     expect(ef('EF-06', {})).toMatchObject({
       status: 'MET',
       explanation: expect.stringContaining('card €16'),
     });
     expect(
       ef('EF-06', { priorCardExpiry: '2026-11-22' }).explanation,
-    ).toContain('up to €150');
+    ).not.toContain('Late fine');
+    expect(
+      ef('EF-06', { priorCardExpiry: '2025-11-22' }).explanation,
+    ).toContain('Late fine €50');
     expect(ef('EF-06', { rightsDocumentsReady: false }).status).toBe('NOT_MET');
   });
 });
@@ -865,6 +875,7 @@ describe('property and family reviews through evaluateGreeceFull', () => {
     patch: Partial<GrFullRequest> = {},
   ) =>
     evaluateGreeceFull({
+      filingDocuments: { formReady: true, feeReceiptReady: true },
       simulationDate,
       locale: 'en',
       pathways: [id],
@@ -899,6 +910,297 @@ describe('property and family reviews through evaluateGreeceFull', () => {
     expect(path.status).toBe(status);
     expect(path.earliestDate).toBe(earliestDate);
   }
+
+  test.each([
+    [0, 'MET'],
+    [2, 'MET'],
+    [3, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'Ν first permanent card checks %s years away since acquiring the right',
+    (years, status) => {
+      for (const priorCardIssued of [false, true]) {
+        const path = full('GR-EU-FAMILY-PR', {
+          simulationDate: '2026-11-24',
+          euFamily: {
+            ...european,
+            residenceFrom: '2017-01-01',
+            priorCardIssued,
+            priorCardExpiry: priorCardIssued ? '2026-12-31' : undefined,
+            longestAbsenceAfterPrYears: years,
+          },
+        });
+        verify(path, 'EF-03', status);
+      }
+    },
+  );
+
+  test('Ν counts post-acquisition absence from an earlier occupational event', () => {
+    const euFamily = {
+      ...european,
+      early: {
+        basis: 'occupational-incapacity',
+        eventDate: '2023-10-10',
+        livedTogetherAtEvent: true,
+      },
+    } as const;
+    verify(full('GR-EU-FAMILY-PR', { euFamily }), 'EF-03', 'UNKNOWN');
+    verify(
+      full('GR-EU-FAMILY-PR', {
+        euFamily: { ...euFamily, longestAbsenceAfterPrYears: 3 },
+      }),
+      'EF-03',
+      'NOT_MET',
+    );
+  });
+
+  test('Ν distinguishes the ordinary card insurance document from ongoing cover for a primary carer', () => {
+    verify(
+      full('GR-EU-FAMILY-PR', { insurance: { kind: 'uninsured' } }),
+      'EF-06',
+      'NOT_MET',
+    );
+    verify(
+      full('GR-EU-FAMILY-PR', {
+        euFamily: {
+          ...european,
+          relationship: 'primary-carer-of-mobile-eu-minor',
+          primaryCare: {
+            childBirthDate: '2012-07-01',
+            residenceBasis: 'permanent',
+          },
+        },
+        insurance: { kind: 'uninsured' },
+      }),
+      'EF-06',
+      'MET',
+    );
+  });
+
+  test.each([
+    [true, 'MET'],
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'Greek first and retained cards require their own supporting evidence (%s)',
+    (ready, status) => {
+      verify(
+        full('GR-GREEK-FAMILY-PR', {
+          greekFamily: {
+            ...greek,
+            stage: 'initial',
+            stableResidenceInGreece: true,
+            initialFamilyDocumentsReady: ready,
+          },
+        }),
+        'GF-01',
+        status,
+      );
+      verify(
+        full('GR-GREEK-FAMILY-PR', {
+          greekFamily: {
+            ...greek,
+            stage: 'retained',
+            retainedRightDocumentsReady: ready,
+            retention: {
+              basis: 'divorce',
+              marriageFrom: '2020-02-01',
+              greeceResidenceFrom: '2021-01-01',
+              divorceDurationEnd: '2026-06-01',
+              eventDate: simulationDate,
+              livelihood: 'employment',
+            },
+          },
+        }),
+        'GF-04',
+        status,
+      );
+    },
+  );
+
+  test.each([
+    [true, 'MET'],
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'Β.5 checks supporting evidence for the selected acquisition or renewal (%s)',
+    (ready, status) => {
+      for (const title of [
+        'wholly-owned-eu-company',
+        'qualifying-company-timeshare',
+      ] as const) {
+        verify(
+          full('GR-GOLDEN-VISA', {
+            goldenVisa: {
+              ...investor,
+              title,
+              companyOwnershipDocumentsReady: ready,
+              eotLeaseAcknowledgment: true,
+            },
+          }),
+          'GV-03',
+          status,
+        );
+      }
+      verify(
+        full('GR-GOLDEN-VISA', {
+          goldenVisa: {
+            ...investor,
+            kind: 'construction',
+            constructionDocumentsReady: ready,
+          },
+        }),
+        'GV-03',
+        status,
+      );
+      const renewal = renewInvestment({ renewalUseDeclarationsReady: ready });
+      expect(renewal.checks.find((x) => x.id === 'GV-08')?.status).toBe(status);
+      expect(renewal.status).toBe(status);
+      for (const stage of ['initial', 'renewal'] as const) {
+        const family = [
+          {
+            kind: 'spouse',
+            birthDate: '1990-01-01',
+            filingDocumentsReady: ready,
+          },
+        ] as const;
+        const path =
+          stage === 'renewal'
+            ? renewInvestment({ family: [...family] })
+            : full('GR-GOLDEN-VISA', {
+                goldenVisa: { ...investor, family: [...family] },
+              });
+        expect(path.checks.find((x) => x.id === 'GV-09')?.status).toBe(status);
+        expect(path.status).toBe(status);
+      }
+    },
+  );
+
+  test('Ν ordinary first card checks entry date, health timing and evidence', () => {
+    const euFamily = {
+      ...european,
+      stage: 'initial',
+      arrivedOn: '2026-05-01',
+    } as const;
+    const run = (
+      patch: Partial<EU>,
+      publicHealth: GrFullRequest['publicHealth'] = 'cleared',
+    ) =>
+      full('GR-EU-FAMILY-PR', {
+        euFamily: { ...euFamily, ...patch },
+        entry: 'short-stay',
+        publicHealth,
+      });
+    verify(run({}), 'EF-07', 'MET');
+    verify(run({ rightsDocumentsReady: false }), 'EF-06', 'NOT_MET');
+    verify(run({ arrivedOn: undefined }), 'EF-07', 'UNKNOWN');
+    verify(
+      run({ publicHealthConditionBeganOn: '2026-08-01' }, 'possible-risk'),
+      'EF-08',
+      'UNKNOWN',
+    );
+    verify(
+      run({ publicHealthConditionBeganOn: '2026-08-02' }, 'possible-risk'),
+      'EF-08',
+      'MET',
+    );
+    expect(
+      run({ arrivedOn: '2025-11-22' }).checks.find((x) => x.id === 'EF-07')
+        ?.explanation,
+    ).toContain('Late fine €50');
+  });
+
+  test('Ν ordinary renewal verifies spouse evidence, including the alternative at separation', () => {
+    const partnerRenewal = {
+      separationOn: '2026-09-01',
+      marriageFrom: '2023-09-01',
+      greeceResidenceFrom: '2025-09-01',
+      sponsorConfirmsContinuingRelationship: false,
+      resourcesAssessment: 'accepted',
+    } as const;
+    const run = (patch: Partial<EU>) =>
+      full('GR-EU-FAMILY-PR', {
+        euFamily: {
+          ...european,
+          stage: 'renewal',
+          permanentRightAcquired: false,
+          partnerRenewal,
+          ...patch,
+        },
+      });
+    verify(run({}), 'EF-07', 'MET');
+    verify(
+      run({
+        partnerRenewal: { ...partnerRenewal, marriageFrom: '2023-09-02' },
+      }),
+      'EF-07',
+      'NOT_MET',
+    );
+    verify(
+      run({
+        partnerRenewal: { ...partnerRenewal, resourcesAssessment: 'pending' },
+      }),
+      'EF-07',
+      'UNKNOWN',
+    );
+    verify(run({ permanentRightAcquired: true }), 'EF-07', 'NOT_MET');
+    verify(
+      run({
+        relationship: 'durable-partner',
+        extendedFamilyRecognised: true,
+        partnerRenewal: undefined,
+      }),
+      'EF-07',
+      'MET',
+    );
+  });
+
+  test('Ν presentation of the old permanent card is required only for an actual card renewal', () => {
+    for (const rightsDocumentsReady of [true, false, undefined]) {
+      const euFamily = {
+        stage: 'permanent-renewal',
+        longestAbsenceAfterPrYears: 2,
+        rightsDocumentsReady,
+        shamOrFraud: false,
+      } as const;
+      const run = (patch: Partial<EU>) =>
+        full('GR-EU-FAMILY-PR', {
+          euFamily: { ...euFamily, ...patch },
+          insurance: { kind: 'uninsured' },
+        });
+      verify(
+        run({}),
+        'EF-06',
+        rightsDocumentsReady === undefined
+          ? 'UNKNOWN'
+          : rightsDocumentsReady
+            ? 'MET'
+            : 'NOT_MET',
+      );
+      verify(run({ stage: 'maintain' }), 'EF-03', 'MET');
+      verify(run({ longestAbsenceAfterPrYears: 3 }), 'EF-03', 'NOT_MET');
+    }
+  });
+
+  test('Ν uses the 2012 amendment from publication for a first permanent card filed over one year after former expiry', () => {
+    const euFamily = {
+      ...european,
+      residenceFrom: '2006-01-01',
+      priorCardExpiry: '2011-04-09',
+      longestAbsenceAfterPrYears: 0,
+    };
+    const run = (date: string) =>
+      full('GR-EU-FAMILY-PR', {
+        simulationDate: date,
+        euFamily,
+        passport: { kind: 'exception-granted' },
+      });
+    verify(run('2012-04-10'), 'EF-03', 'UNKNOWN');
+    verify(run('2012-04-11'), 'EF-03', 'MET');
+    expect(
+      run('2012-04-11').checks.find((x) => x.id === 'EF-06')?.explanation,
+    ).toContain('Late fine €50');
+  });
 
   test('Ν recognises the primary carer on whom a mobile EU child depends', () => {
     const care = {
@@ -1033,6 +1335,7 @@ describe('property and family reviews through evaluateGreeceFull', () => {
       greekFamily: {
         ...partner,
         stage: 'initial',
+        initialFamilyDocumentsReady: true,
         stableResidenceInGreece: true,
       },
     });
@@ -1087,6 +1390,7 @@ describe('property and family reviews through evaluateGreeceFull', () => {
               {
                 kind: 'child',
                 birthDate,
+                filingDocumentsReady: true,
                 unmarriedWithRequiredCustody: true,
                 convertingPreviousFamilyCard: false,
                 incapacityDocumentedAndLivingAsDependant: false,
@@ -1709,6 +2013,7 @@ describe('property and family reviews through evaluateGreeceFull', () => {
         {
           kind: 'child',
           birthDate: '2001-11-23',
+          filingDocumentsReady: true,
           convertingPreviousFamilyCard: false,
           incapacityDocumentedAndLivingAsDependant: true,
         },
@@ -1725,6 +2030,25 @@ describe('property and family reviews through evaluateGreeceFull', () => {
       'MET',
     );
   });
+  test.each([
+    [true, 'MET'],
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'historical Μ.2 conversion of a Greek family card needs its old card and passport evidence (%s)',
+    (historicalConversionDocumentsReady, status) => {
+      const path = full('GR-GREEK-FAMILY-PR', {
+        simulationDate: '2026-02-05',
+        greekFamily: {
+          ...greek,
+          residenceFrom: '2020-02-05',
+          longestConsecutiveAbsenceYears: 0,
+          historicalConversionDocumentsReady,
+        },
+      });
+      verify(path, 'GF-03', status);
+    },
+  );
   test('Greek family conversion before the reform requires health cover under the earlier Μ.2 provisions', () => {
     const greekFamily = {
       ...greek,
@@ -1795,6 +2119,7 @@ describe('property and family reviews through evaluateGreeceFull', () => {
           stage: 'renewal',
           regime: 'current',
           kind: 'standard',
+          renewalUseDeclarationsReady: true,
           retainsInvestment: true,
           registrationProofSubmittedAtGrant: true,
           e9DeclarationCopy: true,
@@ -1856,6 +2181,7 @@ describe('property and family reviews through evaluateGreeceFull', () => {
           relationship: 'spouse',
           registeredInGreece: true,
           genuineRelationship: true,
+          initialFamilyDocumentsReady: true,
           qualifyingResidenceDocumented: false,
           stableResidenceInGreece,
         },

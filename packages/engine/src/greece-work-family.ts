@@ -1,6 +1,6 @@
 import { greeceFull2026_11, grSource } from '@uk-immigration/policy-data';
 import type { CountryCheck } from './country-result';
-import { addDays, addYears } from './dates';
+import { addDays, addMonths, addYears } from './dates';
 import type { GrFullRequest } from './greece-full';
 import { ageOn, all, any, insuranceMet, type GrContext } from './greece-rules';
 import type { IsoDate } from './types';
@@ -8,14 +8,26 @@ import type { IsoDate } from './types';
 interface WorkAnswers {
   permit?: 'E1' | 'E4';
   stage?: 'initial' | 'renewal';
-  admission?: 'ordinary' | 'domestic-switch' | 'strategic-project';
+  admission?:
+    'ordinary' | 'domestic-switch' | 'strategic-project' | 'blue-card-mobility';
+  /** Article 45: dates of lawful Blue Card residence in the sending state and entry into Greece. */
+  mobility?: {
+    residenceFrom?: IsoDate;
+    enteredGreeceOn?: IsoDate;
+    previousMove?: boolean;
+    validForeignBlueCardCopy?: boolean;
+  };
   /** For a domestic switch from a national visa. A standalone Z visa does not lead to its own permit. */
   switchVisa?: {
     kind: 'standalone-Z' | 'leads-to-permit';
     expiresOn?: IsoDate;
   };
   contractMonths?: number;
-  /** Legacy Ε.4 renewal input. Filing does not require a current employment contract. */
+  /** Signed Greek contract with the required terms and signatures (certified where required). */
+  contractDocumented?: boolean;
+  fullTimeEmployment?: boolean;
+  hiringNotificationFiled?: boolean;
+  /** If explicitly absent, contract-based stages fail. Ordinary Ε.4 renewal does not require it. */
   hasCurrentEmploymentContract?: boolean;
   grossAnnualEur?: number;
   payBasis?: 'monthly' | 'daily';
@@ -34,10 +46,12 @@ interface WorkAnswers {
   employerLastYearGrossEur?: number;
   taxEvidenceSupportsContractPay?: boolean;
   occupationMatchesBusiness?: boolean;
+  agriculturalStaffingCertificate?: 'provided' | 'not-required' | 'missing';
   agencyCapitalEur?: number;
   agencyManagementClear?: boolean;
   hostContractAndTaxEvidence?: boolean;
   quotaAvailable?: boolean;
+  /** The responsible ministry's certificate identifying the project and naming this recruit. */
   projectCertified?: boolean;
   projectWorkersTotal?: number;
   blueRenewalInterruption?:
@@ -47,8 +61,10 @@ interface WorkAnswers {
   protectedLeaveAccepted?: boolean;
   taxesSettledDuringPermit?: boolean;
   insuranceApplicationFiled?: boolean;
-  /** Only for Ε.4 renewal with a historical insurance gap: active public cover on the filing date. */
+  /** Active public cover on the filing date when the insurance answer describes an earlier gap. */
   activePublicCoverAfterGap?: boolean;
+  /** Article 31(3): switch from a Greek highly qualified national permit without changing employment. */
+  sameJobOnGreekHighlyQualifiedPermit?: boolean;
 }
 
 interface FamilyAnswers {
@@ -91,8 +107,15 @@ interface FamilyAnswers {
   adultChildIncapacityDependencyProved?: boolean;
   soleEligibleSpouse?: boolean;
   formedLegallyInGreece?: boolean;
-  /** Includes the civil-status record for this relationship and the applicable filing stage. */
+  /** Includes certified/translated records and the declaration of unchanged family status,
+   * or the civil death record, divorce/annulment decision or registered dissolution. */
   relationshipAndDocumentsGenuine?: boolean;
+  /** Issue date of the foreign family status record, when a recent certificate is required. */
+  relationshipCertificateIssuedOn?: IsoDate;
+  /** Where the unchanged-family declaration is required, including the sponsor's declaration at grant. */
+  unchangedFamilyDeclaration?: boolean;
+  /** Required for the ordinary child's age when it cannot be proved by the passport submitted. */
+  birthRecordProvesAge?: boolean;
   familyLifeContinues?: boolean;
   autonomousBasis?:
     'residence' | 'bereavement' | 'divorce' | 'hardship' | 'child';
@@ -105,12 +128,17 @@ interface FamilyAnswers {
   /** Whether private insurance is permitted for this applicant under Migration Code article 8(e). */
   privateCoverPermitted?: boolean;
   familyResidenceYears?: number;
+  /** First Greek family-reunification grant, or completed years evidenced by the family permits. */
+  firstFamilyPermitIssuedOn?: IsoDate;
+  yearsSinceFirstFamilyPermit?: number;
   /** Uninterrupted family residence in Greece, including the current period. */
   familyResidenceFrom?: IsoDate;
   blueFamilyYearsInEU?: number;
   /** First day of continuous qualifying family residence across Member States, including Greece. */
   blueFamilyResidenceFrom?: IsoDate;
-  /** For dissolution, these periods refer to the marriage or registered partnership. */
+  /** Without dates, familyResidenceYears on the bereavement basis is residence before death. */
+  sponsorDiedOn?: IsoDate;
+  /** Periods up to commencement of proceedings or consensual dissolution. */
   priorMarriageYears?: number;
   priorMarriageYearsInGreece?: number;
   hardshipDocumented?: boolean;
@@ -191,6 +219,11 @@ function employerFinance(w: WorkAnswers, reformed: boolean) {
     atLeast(w.employerLastYearGrossEur, threshold),
     w.taxEvidenceSupportsContractPay,
     w.permit === 'E1' || w.occupationMatchesBusiness,
+    w.permit === 'E1' ||
+      w.employer !== 'agriculture' ||
+      (w.agriculturalStaffingCertificate === undefined
+        ? undefined
+        : w.agriculturalStaffingCertificate !== 'missing'),
     w.employer !== 'agency' ||
       (reformed
         ? all(
@@ -199,6 +232,35 @@ function employerFinance(w: WorkAnswers, reformed: boolean) {
             w.hostContractAndTaxEvidence,
           )
         : undefined),
+  );
+}
+
+function blueMobilityFiling(w: WorkAnswers, date: IsoDate): Filing {
+  const {
+    residenceFrom,
+    enteredGreeceOn,
+    previousMove,
+    validForeignBlueCardCopy,
+  } = w.mobility ?? {};
+  const rule = p.workBlueCardMobility.value;
+  // The qualifying residence must already be complete on the day of the move.
+  const qualifiedOnEntry =
+    residenceFrom && enteredGreeceOn
+      ? any(
+          enteredGreeceOn >= addMonths(residenceFrom, rule.firstMoveMonths),
+          all(
+            previousMove,
+            enteredGreeceOn >=
+              addMonths(residenceFrom, rule.subsequentMoveMonths),
+          ),
+        )
+      : undefined;
+  return allDue(
+    validForeignBlueCardCopy,
+    qualifiedOnEntry,
+    enteredGreeceOn &&
+      date <= addMonths(enteredGreeceOn, rule.filingMonths) &&
+      dueOn(enteredGreeceOn, date),
   );
 }
 
@@ -238,9 +300,14 @@ function workChecks(
   const renewal = w.stage === 'renewal';
   const employeeRenewal = !isBlue && renewal;
   const isSwitch = w.admission === 'domestic-switch';
+  const mobility = !renewal && w.admission === 'blue-card-mobility';
   const project = !isBlue && w.admission === 'strategic-project';
   const reformed = req.simulationDate >= p.workReformEffective.value;
   const contracts = p.workContractMonths.value;
+  const contractEvidence = all(
+    w.hasCurrentEmploymentContract !== false,
+    w.contractDocumented,
+  );
   const qualified =
     w.qualification === undefined ? undefined : w.qualification !== 'missing';
   if (isBlue && renewal && w.blueRenewalInterruption) {
@@ -297,13 +364,17 @@ function workChecks(
         'WK-02',
         '高技能合同与职业资格',
         'Highly qualified contract and credentials',
-        all(atLeast(w.contractMonths, contracts.blue), qualified),
+        all(
+          atLeast(w.contractMonths, contracts.blue),
+          contractEvidence,
+          qualified,
+        ),
         [
           grSource('F16', 'arts. 31(1)(α–γ), (3), 36(1)(β)'),
-          grSource('F21', 'art. 4(1), (5)'),
+          grSource('F21', 'art. 4(1)(α–γ), (3)(β), (4)(β–δ), (5)(α), pp. 3–4'),
         ],
-        `合同至少 ${contracts.blue} 个月。首签和续期均须具备现岗位所需的执业资格或高级资历。此前希腊许可核验的资格对现岗位仍有效时，可复用该证明。`,
-        `A highly qualified contract of at least ${contracts.blue} months is required. At issue and renewal, the applicant needs recognition for a regulated profession or relevant higher qualifications for other jobs. Prior verification on a Greek permit counts if it still applies to the current job.`,
+        `提交已签署的希腊高技能岗位合同，按手续认证雇主签名，期限至少 ${contracts.blue} 个月。提交受监管职业的认可文件或其他岗位的高级资历证明。此前希腊许可核验的资格对现岗位仍有效时，可复用该证明。`,
+        `Submit the signed Greek high-skilled contract with the required authentication of the employer's signature, covering at least ${contracts.blue} months. Provide recognition for a regulated profession or evidence of higher qualifications for other jobs. Prior Greek verification can be reused if still applicable.`,
       ),
     );
     if (!renewal) {
@@ -318,13 +389,25 @@ function workChecks(
           'WK-03',
           '蓝卡申请与入境方式',
           'Blue Card admission procedure',
-          all(lawful, isSwitch || w.employerApproval),
+          mobility
+            ? allDue(
+                req.entry === undefined
+                  ? undefined
+                  : req.entry !== 'outside' && lawful,
+                blueMobilityFiling(w, req.simulationDate),
+              )
+            : all(lawful, isSwitch || w.employerApproval),
           [
             grSource('F16', 'arts. 12(4), 33(1)–(4)'),
             grSource('F21', 'art. 4(1)–(3)'),
+            ...(mobility ? p.workBlueCardMobility.sources : []),
           ],
-          '境外由雇主申请批准及国家签证。合法短期停留须在届满前申报；合法持卡人可按境内程序申请。',
-          'From abroad the employer obtains approval and a national visa. A lawful short-stay applicant must file before expiry. Lawful permit holders can use the domestic procedure.',
+          mobility
+            ? `提交迁出国有效蓝卡副本。在该国合法持卡满 ${p.workBlueCardMobility.value.firstMoveMonths} 个月（再次流动为 ${p.workBlueCardMobility.value.subsequentMoveMonths} 个月）方可迁入，自入希起 ${p.workBlueCardMobility.value.filingMonths} 个月内递交。`
+            : '境外由雇主申请批准及国家签证。合法短期停留须在届满前申报；合法持卡人可按境内程序申请。',
+          mobility
+            ? `Provide the valid sending-state Blue Card copy. Complete ${p.workBlueCardMobility.value.firstMoveMonths} months of lawful residence on that card (${p.workBlueCardMobility.value.subsequentMoveMonths} for a subsequent move) before moving, then file within ${p.workBlueCardMobility.value.filingMonths} month of entry into Greece.`
+            : 'From abroad the employer obtains approval and a national visa. A lawful short-stay applicant must file before expiry. Lawful permit holders can use the domestic procedure.',
         ),
       );
     }
@@ -339,7 +422,12 @@ function workChecks(
         'WK-04',
         '受雇合同与最低工资',
         'Employment contract and minimum wage',
-        all(atLeast(w.contractMonths, months), atLeast(w.grossPayEur, floor)),
+        all(
+          contractEvidence,
+          project || w.fullTimeEmployment,
+          atLeast(w.contractMonths, months),
+          atLeast(w.grossPayEur, floor),
+        ),
         [
           ...p.workContractMonths.sources,
           grSource('F21', 'art. 7(1)(α), (3)(β)'),
@@ -353,8 +441,8 @@ function workChecks(
           ).sources,
           ...p.wage2024GrossEur.sources,
         ],
-        `合同至少 ${months} 个月。按全职雇员月薪或体力劳动者日薪比较${floor === undefined ? '；请核对工资类别及当期费率' : `，相应毛额下限 €${floor}`}。`,
-        `The contract must cover at least ${months} months. Compare full-time monthly employee pay or daily manual-worker pay${floor === undefined ? ' once the rate and period are known' : ` with a gross minimum of €${floor}`}.`,
+        `提交已签署的希腊工作合同，期限至少 ${months} 个月；普通受雇清单要求全职合同。按雇员月薪或体力劳动者日薪比较${floor === undefined ? '；请核对工资类别及当期费率' : `，相应毛额下限 €${floor}`}。`,
+        `Provide the signed Greek contract covering at least ${months} months. The ordinary recruitment checklist requires full-time employment. Compare monthly employee pay or daily manual-worker pay${floor === undefined ? ' once the rate and period are known' : ` with a gross minimum of €${floor}`}.`,
       ),
     );
   }
@@ -368,13 +456,17 @@ function workChecks(
           '雇主财务能力',
           'Employer financial capacity',
           knownThreshold ? employerFinance(w, reformed) : undefined,
-          [...p.workEmployer.sources, ...p.workEmployerEffective.sources],
+          [
+            ...p.workEmployer.sources,
+            ...p.workEmployerEffective.sources,
+            grSource('F21', 'art. 7(1)(β, δ), pp. 8–9'),
+          ],
           !knownThreshold
             ? '须核实模拟日适用的雇主财务门槛。'
-            : `上年税单须支持合同工资。蓝卡和企业每名 €${p.workEmployer.value.business}，普通个人或农业雇主每名 €${p.workEmployer.value.individualOrAgriculture}。普通岗位须匹配业务。派遣机构自 ${p.workReformEffective.value} 起可按专门程序申请，需核实 €${p.workEmployer.value.agencyCapital} 资本、管理层和用工方材料。`,
+            : `上年税单须支持合同工资。蓝卡和企业每名 €${p.workEmployer.value.business}，普通个人或农业雇主每名 €${p.workEmployer.value.individualOrAgriculture}。普通岗位须匹配业务，农业邀请按适用情形提交耕地或牲畜与用工人数相符的证明。派遣机构自 ${p.workReformEffective.value} 起可按专门程序申请，需核实 €${p.workEmployer.value.agencyCapital} 资本、管理层和用工方材料。`,
           !knownThreshold
             ? 'Verify the employer threshold in force on the simulation date.'
-            : `Last year's tax evidence must support the offered wages. The Blue Card and business threshold is €${p.workEmployer.value.business}, or €${p.workEmployer.value.individualOrAgriculture} for an ordinary private or agricultural employer. Ordinary jobs must match the activity. Agency sponsorship from ${p.workReformEffective.value} requires €${p.workEmployer.value.agencyCapital} capital, management clearance and host evidence.`,
+            : `Last year's tax evidence must support the offered wages. The Blue Card and business threshold is €${p.workEmployer.value.business}, or €${p.workEmployer.value.individualOrAgriculture} for an ordinary private or agricultural employer. Ordinary jobs must match the activity. Agricultural recruits need the land or livestock staffing certificate where applicable. Agency sponsorship from ${p.workReformEffective.value} requires €${p.workEmployer.value.agencyCapital} capital, management clearance and host evidence.`,
           !knownThreshold || (w.employer === 'agency' && !reformed)
             ? ['PD-317']
             : undefined,
@@ -382,6 +474,26 @@ function workChecks(
       );
     }
     let quota: Filing = w.quotaAvailable;
+    // An invitation can be approved abroad. This check evaluates filing for
+    // the residence permit, after entry under the applicable procedure.
+    let invitationEntry: Answer = true;
+    if (!isBlue && !isSwitch && !mobility) {
+      switch (req.entry) {
+        case 'national-visa':
+        case 'short-stay':
+          invitationEntry = project
+            ? req.entry === 'short-stay'
+            : req.entry === 'national-visa';
+          break;
+        case 'outside':
+        case 'unlawful':
+        case 'permit':
+          invitationEntry = false;
+          break;
+        default:
+          invitationEntry = undefined;
+      }
+    }
     if (project) {
       const withinLimit =
         w.projectWorkersTotal === undefined
@@ -423,18 +535,24 @@ function workChecks(
         'Admission quota and recruitment approval',
         w.admission === undefined
           ? undefined
-          : allDue(quota, isSwitch || w.employerApproval),
+          : allDue(
+              quota,
+              invitationEntry,
+              mobility ? isBlue : isSwitch || w.employerApproval,
+            ),
         [
           grSource('F16', 'arts. 12, 26, 32, 33(3)'),
+          ...(mobility ? p.workBlueCardMobility.sources : []),
           grSource('F36', 'arts. 13, 17, 18, 21 (arts. 12(3), 61(6)–(7))'),
         ],
-        `Ε.1 在合法短停期间可凭合同递交，岗位计入配额。可转换的居留许可或长期签证按第 12(3) 条办理；自 ${p.workReformEffective.value} 起，独立 Ζ 类签证在到期时转换，通往居留卡的 D 签须先领卡。认证战略或公共工程自该日起最多邀请 ${p.workEmployer.value.projectWorkers} 人。`,
-        `An Ε.1 applicant may file with a contract during a lawful short stay. The job counts towards the quota. Article 12(3) covers switches from eligible permits or long-stay visas. From ${p.workReformEffective.value} a standalone Z visa can be switched at expiry, whereas a visa leading to a permit requires that permit first. A certified strategic or public project can then invite up to ${p.workEmployer.value.projectWorkers} people.`,
+        `Ε.1 在合法短停期间可凭合同递交，岗位计入配额。Ε.4 普通邀请凭该用途 D 签递件；持已有许可转类按第 12(3) 条。自 ${p.workReformEffective.value} 起，独立 Ζ 类签证在到期时转换，通往居留卡的 D 签须先领卡。认证项目可邀请最多 ${p.workEmployer.value.projectWorkers} 人，工人获邀后凭短期签证或免签合法入境递件。`,
+        `An Ε.1 applicant may file with a contract during a lawful short stay. The job counts towards the quota. Ordinary Ε.4 recruits file with the national employment visa. Eligible permit holders may switch under article 12(3). From ${p.workReformEffective.value} a standalone Z visa can be switched at expiry, whereas a visa leading to a permit requires the permit first. A certified project may invite up to ${p.workEmployer.value.projectWorkers} people who enter with a uniform short-stay visa or visa exemption.`,
       ),
     );
     if (
       reformed &&
       !isSwitch &&
+      !mobility &&
       (req.entry === 'outside' || req.entry === 'national-visa' || project)
     ) {
       checks.push(
@@ -455,21 +573,49 @@ function workChecks(
       );
     }
   }
+  if (!renewal && !mobility && !project) {
+    checks.push(
+      check(
+        'WK-HIRING',
+        '雇主招聘申报凭证',
+        'Employer hiring notification',
+        w.hiringNotificationFiled,
+        [
+          grSource('F21', 'arts. 4(3)(γ), 7(3)(γ), pp. 3, 9'),
+          grSource(isBlue ? 'F48' : 'F49', 'Δικαιολογητικά 3'),
+        ],
+        '首签须另交该岗位的招聘申报凭证。',
+        'Submit the hiring notification for this job in addition to the recruitment approval and employment contract.',
+      ),
+    );
+  }
   const deferred =
     !renewal &&
     req.deferredInitialEvidence?.includes('public-insurance-application') ===
       true;
+  const insurance =
+    req.insurance?.kind === 'gap' &&
+    req.insurance.activePublicCoverAfterGap === undefined
+      ? {
+          ...req.insurance,
+          activePublicCoverAfterGap: w.activePublicCoverAfterGap,
+        }
+      : req.insurance;
+  const currentCover = insuranceMet(insurance, 'work', renewal);
+  const sameJobExemption =
+    !renewal &&
+    isBlue &&
+    isSwitch &&
+    req.entry === 'permit' &&
+    w.sameJobOnGreekHighlyQualifiedPermit === true &&
+    currentCover !== false;
   const cover = renewal
-    ? insuranceMet(req.insurance, 'work')
+    ? currentCover
     : any(
         w.insuranceApplicationFiled ??
           (deferred && req.insurance?.kind !== 'uninsured' ? true : undefined),
-        insuranceMet(req.insurance, 'work'),
+        currentCover,
       );
-  const currentCover =
-    employeeRenewal && req.insurance?.kind === 'gap'
-      ? w.activePublicCoverAfterGap
-      : true;
   checks.push(
     check(
       'WK-07',
@@ -477,7 +623,7 @@ function workChecks(
       renewal
         ? 'Renewal tax and active insurance evidence'
         : 'Employment insurance and Blue Card address',
-      all(cover, currentCover, !renewal || w.taxesSettledDuringPermit),
+      all(sameJobExemption || cover, !renewal || w.taxesSettledDuringPermit),
       employeeRenewal
         ? [
             grSource('F57', 'p. 1, reply on art. 7(4), paras. 2–3'),
@@ -485,16 +631,21 @@ function workChecks(
             grSource('F21', 'art. 2(δ), evidence for gaps in past coverage'),
           ]
         : [
-            grSource('F16', 'arts. 10(9), 31(1)(ε, ζ)'),
+            grSource('F16', 'arts. 10(9), 31(1)(ε, ζ), (3)'),
             grSource('F21', 'arts. 2(δ), 4(3), (5), 7(3)–(4)'),
           ],
       renewal
         ? '提供原卡有效期间的纳税义务履行证明及保险机构出具的有效公保证明。曾有参保空档时，核对同期失业补助或获认可的不可抗力证明。'
-        : `首签核对公保登记申请或参保证明。按第 10(9) 条递件后，须在 ${p.initialEvidenceMonths.value} 个月内补交欠缺的参保申请凭证。蓝卡申请人须申报已知住址，最迟在发卡时提供永久地址。`,
+        : `首签核对公保登记申请或参保证明。按第 10(9) 条递件后，须在 ${p.initialEvidenceMonths.value} 个月内补交欠缺的参保申请凭证。持希腊高技能国家许可就原工作转蓝卡者免重复提交保险凭证。蓝卡申请人须申报已知住址，最迟在发卡时提供永久地址。`,
       renewal
         ? 'Provide evidence of tax compliance during the expiring permit and active coverage from the public insurer. For earlier gaps, document unemployment benefits for that period or accepted force majeure.'
-        : `Show public insurance registration or active cover at first issue. Article 10(9) allows ${p.initialEvidenceMonths.value} months after filing to supply the outstanding registration certificate. Blue Card applicants must disclose any known address and provide the permanent address by issue.`,
-      renewal && cover === undefined && req.insurance ? ['PD-303'] : undefined,
+        : `Show public insurance registration or active cover at first issue. Article 10(9) allows ${p.initialEvidenceMonths.value} months after filing to supply the outstanding registration certificate. A holder of a Greek national highly qualified permit switching to a Blue Card for the same job is exempt from resubmitting insurance evidence. Disclose any known address and provide the permanent address by issue.`,
+      renewal &&
+        cover === undefined &&
+        (req.insurance?.kind === 'private' ||
+          req.insurance?.gapEvidence === 'pending')
+        ? ['PD-303']
+        : undefined,
     ),
   );
   const validity = p.workValidity.value;
@@ -527,15 +678,21 @@ function workChecks(
           : undefined
         : fees.invitation
       : undefined;
+  const mobilityTiming = p.workBlueCardMobility.value;
   checks.push(
     check(
       'WK-09',
       '雇主和雇员费用及办理时间',
       'Employer and applicant fees and timing',
       true,
-      employeeRenewal ? [grSource('F58', 'Κόστος 1–2')] : p.workFees.sources,
-      `许可 €${fees.permit}，制卡 €${fees.print}。${renewal ? '' : `需国家签证时另付 €${fees.visa}。`}${invitation === undefined ? '' : `雇主每人邀请费 €${invitation}，不退。`}${isBlue ? `蓝卡完整申请的审理时限为 ${fees.blueDecisionDays} 天。` : reformed && !renewal ? `领馆决定后 ${fees.consulateNotificationDays} 天内通知主管机关，主管机关再于 ${fees.employerNotificationDays} 天内通知雇主。` : ''}`,
-      `Permit €${fees.permit}, printing €${fees.print}.${renewal ? '' : ` A national visa, when required, costs €${fees.visa}.`}${invitation === undefined ? '' : ` The employer pays a non-refundable €${invitation} per recruit.`}${isBlue ? ` A complete Blue Card application has a ${fees.blueDecisionDays}-day decision period.` : reformed && !renewal ? ` Following a decision, the consulate has ${fees.consulateNotificationDays} days to notify the authority, which has ${fees.employerNotificationDays} days to inform the employer.` : ''}`,
+      employeeRenewal
+        ? [grSource('F58', 'Κόστος 1–2')]
+        : [
+            ...p.workFees.sources,
+            ...(mobility ? p.workBlueCardMobility.sources : []),
+          ],
+      `许可 €${fees.permit}，制卡 €${fees.print}。${renewal || mobility || project ? '' : `需国家签证时另付 €${fees.visa}。`}${invitation === undefined ? '' : `雇主每人邀请费 €${invitation}，不退。`}${mobility ? `流动蓝卡完整申请须在 ${mobilityTiming.decisionDays} 天内通知，复杂案件可延长 ${mobilityTiming.extensionDays} 天。` : isBlue ? `蓝卡完整申请的审理时限为 ${fees.blueDecisionDays} 天。` : reformed && !renewal ? `领馆决定后 ${fees.consulateNotificationDays} 天内通知主管机关，主管机关再于 ${fees.employerNotificationDays} 天内通知雇主。` : ''}`,
+      `Permit €${fees.permit}, printing €${fees.print}.${renewal || mobility || project ? '' : ` A national visa, when required, costs €${fees.visa}.`}${invitation === undefined ? '' : ` The employer pays a non-refundable €${invitation} per recruit.`}${mobility ? ` Notify the decision within ${mobilityTiming.decisionDays} days of the complete mobility application, extendible by ${mobilityTiming.extensionDays} days for a complex case.` : isBlue ? ` A complete Blue Card application has a ${fees.blueDecisionDays}-day decision period.` : reformed && !renewal ? ` Following a decision, the consulate has ${fees.consulateNotificationDays} days to notify the authority, which has ${fees.employerNotificationDays} days to inform the employer.` : ''}`,
     ),
   );
   return checks;
@@ -710,18 +867,159 @@ function familyMember(f: FamilyAnswers, req: GrFullRequest): Filing {
   );
 }
 
-function autonomousResidenceDue(f: FamilyAnswers, today: IsoDate): Filing {
+interface IssuedPermit {
+  purpose: 'family' | 'other' | 'unconfirmed';
+  issuedOn?: IsoDate;
+  validity?: { from: IsoDate; to?: IsoDate };
+}
+
+/** Applicant grants only. Sponsor permits, visa stays and unissued applications do not belong here. */
+function applicantPermitHistory(
+  req: GrFullRequest,
+  f: FamilyAnswers,
+): IssuedPermit[] {
+  const history: IssuedPermit[] = [];
+  for (const permit of req.permits ?? []) {
+    if (permit.kind === 'temporary') continue;
+    const purpose =
+      permit.kind !== 'regular' || permit.purpose === 'other'
+        ? 'other'
+        : permit.purpose === 'family-reunification' ||
+            f.otherResidencePermitGranted === false
+          ? 'family'
+          : 'unconfirmed';
+    history.push({
+      purpose,
+      issuedOn: permit.issuedOn ?? permit.from,
+      validity: { from: permit.from, to: permit.to },
+    });
+  }
+  for (const renewal of req.backlogRenewals ?? [])
+    history.push({
+      purpose: renewal.category === 'family' ? 'family' : 'other',
+      issuedOn: renewal.permitEffectiveOn,
+    });
+  const mobility = req.blueCardMobility;
+  if (mobility?.greekBlueCardFrom)
+    history.push({ purpose: 'other', issuedOn: mobility.greekBlueCardFrom });
+  else if (mobility?.greekBlueCardThrough)
+    history.push(
+      mobility.greekBlueCardThrough <= req.simulationDate
+        ? { purpose: 'other' }
+        : { purpose: 'unconfirmed' },
+    );
+  for (const period of mobility?.priorMemberPeriods ?? []) {
+    if (period.issuer !== 'other-member-state')
+      history.push({
+        purpose: period.issuer === 'greece' ? 'other' : 'unconfirmed',
+        issuedOn: period.from,
+      });
+  }
+  if (req.greekFamily?.initialCardGrantedOn)
+    history.push({
+      purpose: 'other',
+      issuedOn: req.greekFamily.initialCardGrantedOn,
+    });
+  if (f.firstFamilyPermitIssuedOn)
+    history.push({ purpose: 'family', issuedOn: f.firstFamilyPermitIssuedOn });
+  if (
+    f.otherResidencePermitGranted ||
+    f.previousAutonomousChildCard ||
+    req.tenYear?.hasPriorCard ||
+    req.tenYear?.cardExpiresOn ||
+    req.longTerm?.convertingTenYearCard ||
+    req.longTerm?.formerBlueCardEndorsement ||
+    req.longTerm?.lossReason ||
+    req.longTerm?.category === 'investor' ||
+    req.longTerm?.category === 'study' ||
+    req.nationality?.permit === 'investor' ||
+    req.goldenVisa?.regime === 'legacy-card' ||
+    req.goldenVisa?.originalGrantTier ||
+    req.goldenVisa?.registrationProofSubmittedAtGrant === true ||
+    req.greekFamily?.priorCardExpiry ||
+    req.greekFamily?.ordinaryRenewalDocumentsReady ||
+    req.greekFamily?.retainedRightDocumentsReady ||
+    req.euFamily?.priorCardIssued ||
+    req.euFamily?.priorCardExpiry ||
+    req.integration?.basis === 'family-pr' ||
+    req.work?.sameJobOnGreekHighlyQualifiedPermit ||
+    (req.work?.blueCardYears ?? 0) > 0
+  )
+    history.push({ purpose: 'other' });
+  if (
+    req.longTerm?.category === 'ordinary' ||
+    req.nationality?.permit === 'listed' ||
+    req.nationality?.permit === 'other-definitive'
+  )
+    history.push({ purpose: 'unconfirmed' });
+  // A protection decision alone does not specify the grant date of a residence document.
+  if (req.grantedProtection)
+    history.push({
+      purpose: 'unconfirmed',
+      issuedOn: req.grantedProtection.grantedOn,
+    });
+  return history.filter(
+    (record) => !record.issuedOn || record.issuedOn <= req.simulationDate,
+  );
+}
+
+function autonomousResidenceDue(
+  f: FamilyAnswers,
+  today: IsoDate,
+  history: IssuedPermit[],
+): Filing {
   const limits = p.familyAutonomy.value;
-  const domestic = residenceDue(
+  const residence = residenceDue(
     f.familyResidenceFrom,
     f.familyResidenceYears,
     limits.residenceYears,
     today,
   );
+  const cards = history.filter(
+    (record) => record.purpose === 'family' && record.validity,
+  );
+  const firstRecordedCard = cards
+    .flatMap((record) => record.issuedOn ?? [])
+    .sort()[0];
+  // An original grant date or a duration verified from the series of cards takes
+  // precedence over inferring the first grant from a possibly partial history.
+  const permitPeriod = residenceDue(
+    f.firstFamilyPermitIssuedOn ??
+      (f.yearsSinceFirstFamilyPermit === undefined
+        ? firstRecordedCard
+        : undefined),
+    f.yearsSinceFirstFamilyPermit,
+    limits.residenceYears,
+    today,
+  );
+  // If residence was not separately reported, use only connected card periods
+  // reaching the filing date. An isolated expired card proves its grant, not later residence.
+  let coveredFrom: IsoDate | undefined;
+  const validity = cards
+    .flatMap((card) => card.validity ?? [])
+    .sort((a, b) => b.from.localeCompare(a.from));
+  for (const card of validity) {
+    const lastRequiredDay = coveredFrom ? addDays(coveredFrom, -1) : today;
+    if (card.from <= today && (!card.to || card.to >= lastRequiredDay))
+      coveredFrom = card.from;
+  }
+  const documentedResidence =
+    residence ??
+    residenceDue(
+      coveredFrom,
+      f.yearsSinceFirstFamilyPermit,
+      limits.residenceYears,
+      today,
+    );
+  const domestic =
+    f.member === 'child'
+      ? residence
+      : allDue(permitPeriod, documentedResidence);
   if (domestic === true || (f.sponsor && f.sponsor !== 'blue-card'))
     return domestic;
 
   // Greek residence also counts toward the Member State total under article 42(6).
+  if (f.sponsor === 'blue-card' && residence === true) return true;
   const acrossEU = residenceDue(
     f.blueFamilyResidenceFrom,
     f.blueFamilyYearsInEU,
@@ -752,35 +1050,6 @@ function autonomousResidenceDue(f: FamilyAnswers, today: IsoDate): Filing {
   return mobility === true || mobility === undefined ? undefined : false;
 }
 
-function familyPermitsOnly(f: FamilyAnswers, req: GrFullRequest): Answer {
-  if (
-    f.otherResidencePermitGranted ||
-    f.previousAutonomousChildCard ||
-    req.backlogRenewals?.some(
-      (renewal) =>
-        renewal.permitEffectiveOn <= req.simulationDate &&
-        renewal.category !== 'family',
-    )
-  )
-    return false;
-  const issued = req.permits?.filter(
-    (permit) => permit.from <= req.simulationDate,
-  );
-  if (
-    issued?.some(
-      (permit) => permit.kind === 'investor' || permit.kind === 'study',
-    )
-  )
-    return false;
-  // The time-only history groups family and employment cards under "regular"; Ζ is a visa.
-  if (
-    f.otherResidencePermitGranted === undefined &&
-    issued?.some((permit) => permit.kind === 'regular')
-  )
-    return undefined;
-  return true;
-}
-
 function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
   const a = p.familyAutonomy.value;
   const age = ageOn(req.birthDate, req.simulationDate);
@@ -800,6 +1069,9 @@ function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
       const ordinary = allDue(
         age < a.finalChildAge,
         birthday(a.adultAge),
+        age >= a.childRenewalAge ||
+          req.passport?.kind === 'recognised' ||
+          f.birthRecordProvesAge,
         age < a.childRenewalAge
           ? f.previousFamilyCard
           : f.previousAutonomousChildCard,
@@ -808,26 +1080,42 @@ function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
       return undefined;
     }
     case 'residence': {
+      const history = applicantPermitHistory(req, f);
+      const onlyFamilyPermits = history.some(
+        (record) => record.purpose === 'other',
+      )
+        ? false
+        : history.some((record) => record.purpose === 'unconfirmed') &&
+            f.otherResidencePermitGranted !== false
+          ? undefined
+          : true;
       const member =
         f.member &&
         (f.member === 'spouse' ||
           f.member === 'registered-partner' ||
           (f.member === 'child' && birthday(a.adultAge)));
       return allDue(
-        f.previousFamilyCard,
-        familyPermitsOnly(f, req),
-        autonomousResidenceDue(f, req.simulationDate),
+        f.previousFamilyCard ??
+          (history.some((record) => record.purpose === 'family') || undefined),
+        onlyFamilyPermits,
+        autonomousResidenceDue(f, req.simulationDate, history),
         member,
       );
     }
     case 'bereavement':
       return all(
         f.previousFamilyCard,
-        atLeast(f.familyResidenceYears, a.bereavementYears),
+        f.relationshipAndDocumentsGenuine,
+        f.sponsorDiedOn === undefined || f.sponsorDiedOn <= req.simulationDate,
+        f.sponsorDiedOn && f.familyResidenceFrom
+          ? addYears(f.familyResidenceFrom, a.bereavementYears) <=
+              f.sponsorDiedOn
+          : atLeast(f.familyResidenceYears, a.bereavementYears),
       );
     case 'divorce':
       return all(
         f.previousFamilyCard,
+        f.relationshipAndDocumentsGenuine,
         f.member &&
           (f.member === 'spouse' || f.member === 'registered-partner'),
         atLeast(f.priorMarriageYears, a.marriageYears),
@@ -996,7 +1284,10 @@ function familyChecks(
         'FT-04',
         '担保人与家属的全额医保',
         'Full cover for sponsor and family',
-        all(insuranceMet(req.insurance, 'either'), req.insurance?.coversFamily),
+        all(
+          insuranceMet(req.insurance, 'either', !initial),
+          req.insurance?.coversFamily,
+        ),
         [
           grSource('F16', 'art. 84(2)(γ)'),
           grSource('F21', 'art. 23(I)(1)(ε), (4)(β), (II)(2)(β)'),
@@ -1074,14 +1365,32 @@ function familyChecks(
         autonomous(f, req),
         [
           ...p.familyAutonomy.sources,
-          grSource('F21', 'art. 24(1.1)–(1.2)'),
+          grSource('F21', 'art. 24(1.1)(α), (1.2)(α–δ), (1.3)–(1.4), p. 17'),
           grSource('F36', 'art. 29 (art. 95(2))'),
         ],
-        `配偶、登记伴侣或成年子女凭家属居留满 ${a.residenceYears} 年转换时，须从未因家庭团聚以外的事由获发居留许可。记录仅注明“普通许可”时，请核实签发事由。蓝卡家属可合计成员国居留，但最后 ${a.blueGreekYears} 年须在希腊。丧偶前在希至少 ${a.bereavementYears} 年，婚姻或登记伴侣关系解除前须持续至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年。普通 Ο.1 子女从 ${a.adultAge} 岁起可凭家属卡转自主卡，满 ${a.childRenewalAge} 岁续卡须出示原自主卡。投资者子女从 ${p.familyMembers.value.investorChildLimit} 岁起可凭原家属卡转 ${p.gvFamily.value.independentYears} 年独立卡。特殊困难须提供证明。Ο.2 最长 ${a.cardYears} 年。`,
-        `Spouses, registered partners and adult children applying after ${a.residenceYears} years on family permits must never have been granted a residence permit for another purpose. Confirm the purpose of any permit recorded only as regular. Blue Card families can count residence in other Member States if the final ${a.blueGreekYears} years were in Greece. Alternatives include ${a.bereavementYears} year before bereavement, a marriage or registered partnership of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before dissolution, or documented exceptional hardship. Ordinary Ο.1 children can convert their family card at ${a.adultAge} and renew at ${a.childRenewalAge} with the previous autonomous card. Investors’ children can convert their family card at ${p.familyMembers.value.investorChildLimit} for ${p.gvFamily.value.independentYears} years. Autonomous residence runs for up to ${a.cardYears} years.`,
+        `配偶、登记伴侣凭首张团聚许可签发日起算，成年子女按在希居留计算。满 ${a.residenceYears} 年转换时，须从未因家庭团聚以外的事由获发居留许可。记录仅注明“普通许可”时，请核实签发事由。蓝卡家属可合计成员国居留，但最后 ${a.blueGreekYears} 年须在希腊。丧偶须交担保人死亡登记，离婚、婚姻撤销或伴侣解约须交相应决定或解约登记。丧偶前在希至少 ${a.bereavementYears} 年，婚姻或登记伴侣关系解除前须持续至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年。普通 Ο.1 子女从 ${a.adultAge} 岁起可凭家属卡转自主卡，满 ${a.childRenewalAge} 岁续卡须出示原自主卡。投资者子女从 ${p.familyMembers.value.investorChildLimit} 岁起可凭原家属卡转 ${p.gvFamily.value.independentYears} 年独立卡。特殊困难须提供证明。Ο.2 最长 ${a.cardYears} 年。`,
+        `For a spouse or registered partner, count from the first family permit grant. For an adult child, count residence in Greece. Applicants converting after ${a.residenceYears} years on family permits must never have been granted a residence permit for another purpose. Confirm the purpose of any permit recorded only as regular. Blue Card families can count residence in other Member States if the final ${a.blueGreekYears} years were in Greece. Provide the civil death record, divorce or annulment decision or registered dissolution as applicable. Alternatives include ${a.bereavementYears} year before bereavement, a marriage or registered partnership of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before dissolution, or documented exceptional hardship. Ordinary Ο.1 children can convert their family card at ${a.adultAge} and renew at ${a.childRenewalAge} with the previous autonomous card. Investors’ children can convert their family card at ${p.familyMembers.value.investorChildLimit} for ${p.gvFamily.value.independentYears} years. Autonomous residence runs for up to ${a.cardYears} years.`,
       ),
     );
   } else {
+    const foreignRecord =
+      initial &&
+      !f.formedLegallyInGreece &&
+      (f.sponsor === 'blue-card' ||
+        (f.sponsor === 'ordinary' && req.entry === 'outside'));
+    const issued = f.relationshipCertificateIssuedOn;
+    const currentRecord =
+      !foreignRecord ||
+      (issued === undefined
+        ? undefined
+        : issued <= req.simulationDate &&
+          issued >=
+            addMonths(
+              req.simulationDate,
+              -p.familyMembers.value.certificateMonths,
+            ));
+    const declarationRequired =
+      !initial || (!f.formedLegallyInGreece && req.entry !== 'outside');
     checks.push(
       check(
         'FT-08',
@@ -1089,6 +1398,8 @@ function familyChecks(
         'Genuine family relationship and family life',
         all(
           f.relationshipAndDocumentsGenuine,
+          currentRecord,
+          !declarationRequired || f.unchangedFamilyDeclaration,
           initial || f.familyLifeContinues,
         ),
         [
@@ -1101,8 +1412,8 @@ function familyChecks(
             ? [grSource('F60', 'procedure 517141, documents 4–5')]
             : []),
         ],
-        '境内组建家庭首签须按关系出示结婚、在希登记民事伴侣或子女出生记录。境外团聚须提供获认证及翻译的亲属证明，按情况附监护、同意材料。续期须声明家庭状况未变并确认家庭生活持续。',
-        'For domestic family formation, provide the applicable marriage record, Greek partnership registration or birth record. For admission from abroad, provide certified and translated evidence of the relationship, with custody and consent evidence where required. Renewal requires a declaration of unchanged family circumstances and continuing family life.',
+        `境内组建家庭按关系交婚姻、伴侣或出生登记。境外普通入境审批及蓝卡家属首签的亲属证明须经认证翻译，签发距递件不超过 ${p.familyMembers.value.certificateMonths} 个月。普通首卡或蓝卡首卡及续期核家庭状况未变声明，续期另核家庭生活持续。`,
+        `For domestic formation, provide the marriage, partnership or birth record. For ordinary admission approval and initial Blue Card family applications, the certified and translated civil status record must be no more than ${p.familyMembers.value.certificateMonths} months old at filing. Check the declaration of unchanged family status at grant or renewal as applicable, and continuing family life at renewal.`,
       ),
     );
   }

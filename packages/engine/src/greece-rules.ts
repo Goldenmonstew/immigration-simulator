@@ -17,6 +17,11 @@ export type GrEntry =
 export interface GrInsurance {
   /** Public means active national coverage; use gap for a break in the previous permit period. */
   kind: 'public' | 'private' | 'gap' | 'uninsured';
+  issuer?: 'greek' | 'foreign';
+  /** The insurer explicitly covers residence in Greece for the required risks and benefits. */
+  explicitlyCoversGreece?: boolean;
+  /** Active public insurance at filing, when kind is 'gap'. */
+  activePublicCoverAfterGap?: boolean;
   coversFamily?: boolean;
   gapEvidence?:
     'unemployment-benefit' | 'accepted-force-majeure' | 'pending' | 'none';
@@ -62,24 +67,43 @@ export function underAgeOn(
 export function insuranceMet(
   insurance: GrInsurance | undefined,
   mode: 'either' | 'private' | 'work',
+  renewal = false,
 ): Answer {
   if (!insurance) return undefined;
   if (insurance.kind === 'uninsured') return false;
-  if (insurance.kind === 'public') return mode !== 'private';
-  if (insurance.kind === 'gap') {
-    if (mode === 'private') return false;
-    if (
-      insurance.gapEvidence === 'unemployment-benefit' ||
-      insurance.gapEvidence === 'accepted-force-majeure'
-    )
-      return true;
-    return insurance.gapEvidence === 'none' ? false : undefined;
+  // SRC-356 art. 2(δ), p. 2. Public cover without an issuer is the existing
+  // national scheme input. An imported private policy needs territorial evidence.
+  const domestic =
+    insurance.issuer === 'greek' ||
+    (insurance.issuer === undefined && insurance.kind !== 'private');
+  const territory = domestic || insurance.explicitlyCoversGreece;
+  let pastCoverage: Answer = true;
+  if (
+    renewal &&
+    (insurance.kind === 'gap' || insurance.gapEvidence !== undefined)
+  ) {
+    pastCoverage =
+      insurance.gapEvidence === 'none'
+        ? false
+        : insurance.gapEvidence === 'unemployment-benefit' ||
+          insurance.gapEvidence === 'accepted-force-majeure' ||
+          undefined;
   }
-  if (mode === 'work') return undefined;
+  if (insurance.kind === 'public' || insurance.kind === 'gap') {
+    return all(
+      mode !== 'private',
+      territory,
+      insurance.kind === 'public' || insurance.activePublicCoverAfterGap,
+      pastCoverage,
+    );
+  }
+  if (mode === 'work') return all(territory, pastCoverage, undefined);
   const p = greeceFull2026_11.values.privateInsurance.value;
   const atLeast = (n: number | undefined, floor: number) =>
     n === undefined ? undefined : n >= floor;
   return all(
+    territory,
+    pastCoverage,
     atLeast(insurance.disabilityEur, p.disabilityEur),
     atLeast(insurance.medicalEur, p.medicalEur),
     atLeast(insurance.hospitalEur, p.hospitalEur),

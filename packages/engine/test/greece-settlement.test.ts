@@ -9,7 +9,13 @@ const lt = 'GR-LONG-TERM';
 const ty = 'GR-TEN-YEAR';
 const nat = 'GR-NATIONALITY';
 const day = '2026-11-23';
+const tenYearDocuments = {
+  travelDocumentPagesReady: true,
+  taxAndInsuranceClearance: true,
+  birthOrSchoolEvidenceReady: true,
+};
 const good = {
+  filingDocuments: { formReady: true, feeReceiptReady: true },
   simulationDate: day,
   route: 'general',
   birthDate: '1985-05-12',
@@ -20,7 +26,7 @@ const good = {
   longTerm: { category: 'ordinary', passportHistory: 'complete' },
   residenceIncome: { netEur: 14168, dependants: 3, regularAndDocumented: true },
   integration: { basis: 'language', greekLevel: 'B1' },
-  tenYear: { basis: 'residence', residesInGreece: true },
+  tenYear: { ...tenYearDocuments, basis: 'residence', residesInGreece: true },
 } satisfies GrFullRequest;
 
 function rules(route: Route, r: Partial<GrFullRequest>) {
@@ -41,6 +47,7 @@ function full(route: Route, r: Partial<GrFullRequest>) {
     changes: [],
     biometrics: 'provided',
     ...r,
+    tenYear: { ...tenYearDocuments, ...(r.tenYear ?? good.tenYear) },
     pathways: [route],
   }).columns[0].pathways[0];
 }
@@ -76,7 +83,7 @@ describe('M.1 long-term grant and retention', () => {
     expect(status(lt, 'LT-05', { publicOrder: 'adverse' })).toBe('NOT_MET');
     expect(
       status(lt, 'LT-06', { longTerm: { passportHistory: 'missing' } }),
-    ).toBe('UNKNOWN');
+    ).toBe('NOT_MET');
     expect(check(lt, 'LT-06').explanation).toMatch(/€150.*€0.*€16/);
     expect(check(lt, 'LT-08').explanation).toMatch(/no separate floor-area/i);
   });
@@ -849,6 +856,7 @@ describe('ΚΕΙ naturalisation', () => {
     convictions: [],
     removalOrStatusProceedings: false,
     exam: 'certificate',
+    knowledgeDocumentReady: true,
     disabilityPercent: 67,
     economicActivity: 'stable-declared-work',
     livingResources: 'substantiated',
@@ -861,6 +869,84 @@ describe('ΚΕΙ naturalisation', () => {
     feeClass: 'ordinary',
     lastRejection: 'none',
   };
+  test('naturalisation counts only evidenced diplomatic or consular spouse postings on the three- and seven-year routes', () => {
+    const returned = '2026-11-23';
+    const posting = {
+      periods: [{ from: '2023-01-01', through: '2026-11-22' }],
+      qualifyingServiceDocumented: true,
+      yearInGreeceCompletedOn: '2022-01-01',
+    } as const;
+    const facts: Partial<GrFullRequest> = {
+      permits: [
+        { kind: 'regular', from: '2018-01-01', to: '2022-12-31' },
+        { kind: 'regular', from: returned },
+      ],
+      trips: [{ departed: '2022-12-31', returned }],
+      nationality: {
+        ...satisfactory,
+        diplomaticSpouse: { ...posting, periods: [...posting.periods] },
+      },
+    };
+    expect(full(nat, facts).status).toBe('MET');
+    expect(full(nat, { ...facts, trips: [] }).status).toBe('MET');
+    expect(
+      full(nat, {
+        ...facts,
+        nationality: {
+          ...facts.nationality,
+          shortRouteBasis: 'greek-spouse-with-child',
+        },
+        route: 'three-year',
+      }).status,
+    ).toBe('MET');
+    expect(full(nat, { ...facts, route: 'twelve-year' }).status).not.toBe(
+      'MET',
+    );
+    expect(
+      full(nat, {
+        ...facts,
+        trips: [
+          ...facts.trips!,
+          { departed: '2020-01-01', returned: '2020-05-01' },
+        ],
+      }).status,
+    ).toBe('UNKNOWN');
+    for (const patch of [
+      { qualifyingServiceDocumented: false },
+      { yearInGreeceCompletedOn: 'not-completed' },
+    ] as const) {
+      expect(
+        full(nat, {
+          ...facts,
+          nationality: {
+            ...facts.nationality,
+            diplomaticSpouse: {
+              ...facts.nationality!.diplomaticSpouse!,
+              ...patch,
+            },
+          },
+        }).status,
+      ).not.toBe('MET');
+    }
+    expect(
+      full(nat, {
+        ...facts,
+        nationality: {
+          ...facts.nationality,
+          diplomaticSpouse: {
+            ...facts.nationality!.diplomaticSpouse!,
+            yearInGreeceCompletedOn: undefined,
+          },
+        },
+      }).status,
+    ).toBe('UNKNOWN');
+    expect(
+      full(nat, { ...facts, permits: facts.permits!.slice(0, 1) }).status,
+    ).toBe('NOT_MET');
+    expect(full(nat, { ...facts, simulationDate: '2026-11-22' })).toMatchObject(
+      { status: 'FUTURE', earliestDate: returned },
+    );
+  });
   test.each([
     [day, '2027-02-01', 'NOT_MET', 'NOT_MET', undefined],
     [day, '2027-08-15', 'MET', 'FUTURE', '2027-08-15'],
@@ -1516,6 +1602,32 @@ describe('ΚΕΙ naturalisation', () => {
       }),
     ).toBe('MET');
   });
+  test.each([
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+    [true, 'MET'],
+  ] as const)(
+    'naturalisation checks the issued knowledge document and the filing fee receipt (%s)',
+    (ready, expected) => {
+      const nationality = {
+        ...satisfactory,
+        exam: 'school-exemption',
+        greekTaughtUniversityDegree: true,
+        knowledgeDocumentReady: ready,
+      } as const;
+      const evidence = full(nat, { nationality });
+      expect(evidence.checks.find((x) => x.id === 'NAT-09')?.status).toBe(
+        expected,
+      );
+      expect(evidence.status).toBe(expected);
+      const fee = full(nat, {
+        nationality: satisfactory,
+        filingDocuments: { formReady: true, feeReceiptReady: ready },
+      });
+      expect(fee.checks.find((x) => x.id === 'NAT-10')?.status).toBe(expected);
+      expect(fee.status).toBe(expected);
+    },
+  );
   test('fees, one-year rejection period and old-committee exceptions', () => {
     expect(
       check(nat, 'NAT-10', { nationality: satisfactory }).explanation,
@@ -1569,4 +1681,171 @@ describe('ΚΕΙ naturalisation', () => {
       }),
     ).toBe('NOT_MET');
   });
+});
+
+describe('Greek settlement filing checklists', () => {
+  test.each([
+    [true, 'MET'],
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'M.1 reacquisition accepts the evidence for the actual loss reason (%s)',
+    (lossEvidenceReady, expected) => {
+      for (const facts of [
+        {
+          lossReason: 'absence-from-eu',
+          continuousOutsideEuMonths: 12,
+          formerBlueCardEndorsement: false,
+        },
+        { lossReason: 'other-member-state-status' },
+      ] as const) {
+        const path = full(lt, {
+          longTerm: { stage: 'reacquisition', ...facts, lossEvidenceReady },
+          permits: undefined,
+        });
+        expect(
+          path.checks.find((x) => x.id === 'LT-REACQUISITION')?.status,
+        ).toBe(expected);
+        expect(path.status).toBe(expected);
+      }
+    },
+  );
+  test('M.1 requires actual loss of the previous Greek status on a qualifying ground', () => {
+    for (const facts of [
+      { lossReason: 'absence-from-eu', continuousOutsideEuMonths: 11 },
+      {
+        lossReason: 'absence-from-eu',
+        continuousOutsideEuMonths: 18,
+        formerBlueCardEndorsement: true,
+      },
+      { lossReason: 'other' },
+    ] as const) {
+      expect(
+        full(lt, {
+          longTerm: {
+            stage: 'reacquisition',
+            ...facts,
+            lossEvidenceReady: true,
+          },
+        }).status,
+      ).toBe('NOT_MET');
+    }
+  });
+  test.each([
+    ['complete', 'MET'],
+    ['official-substitute', 'MET'],
+    ['substitute-pending', 'UNKNOWN'],
+    ['missing', 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'M.1 initial filing checks passport documents as well as trip dates (%s)',
+    (passportHistory, expected) => {
+      expect(
+        full(lt, { longTerm: { ...good.longTerm, passportHistory } }).status,
+      ).toBe(expected);
+    },
+  );
+  test.each([
+    [true, 'MET'],
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'M.2 checks the evidence specific to each filing (%s)',
+    (ready, expected) => {
+      for (const tenYear of [
+        { ...good.tenYear, travelDocumentPagesReady: ready },
+        { ...good.tenYear, taxAndInsuranceClearance: ready },
+        {
+          basis: 'birth-school',
+          bornInGreece: true,
+          birthOrSchoolEvidenceReady: ready,
+        },
+        {
+          basis: 'residence',
+          stage: 'renewal',
+          hasPriorCard: true,
+          cardExpiresOn: day,
+          travelDocumentPagesReady: ready,
+        },
+      ] as const) {
+        const path = full(ty, { tenYear });
+        expect(path.checks.find((c) => c.id === 'TY-DOCUMENTS')?.status).toBe(
+          expected,
+        );
+        expect(path.status).toBe(expected);
+      }
+    },
+  );
+  test('M.2 unaccompanied former minors must document entry, ages, Greek secondary studies and transitional eligibility', () => {
+    const tenYear = {
+      basis: 'unaccompanied-minor',
+      unaccompaniedEntryEvidence: true,
+      inSecondarySchoolAtReform: true,
+      greekSecondaryGrades: 3,
+      schoolCompletedOn: '2026-05-31',
+    } as const;
+    const facts = { tenYear, birthDate: '2007-06-01' };
+    expect(full(ty, facts).status).toBe('MET');
+    expect(
+      full(ty, {
+        ...facts,
+        tenYear: { ...tenYear, birthOrSchoolEvidenceReady: false },
+      }).status,
+    ).toBe('NOT_MET');
+    for (const patch of [
+      { unaccompaniedEntryEvidence: false },
+      { greekSecondaryGrades: 2 },
+      { inSecondarySchoolAtReform: false },
+    ]) {
+      expect(
+        full(ty, { ...facts, tenYear: { ...tenYear, ...patch } }).status,
+      ).toBe('NOT_MET');
+    }
+    expect(
+      full(ty, {
+        ...facts,
+        tenYear: { ...tenYear, inSecondarySchoolAtReform: undefined },
+      }).status,
+    ).toBe('UNKNOWN');
+    expect(
+      full(ty, {
+        ...facts,
+        simulationDate: '2026-02-05',
+        tenYear: {
+          ...tenYear,
+          inSecondarySchoolAtReform: undefined,
+          schoolCompletedOn: '2025-05-31',
+        },
+      }).status,
+    ).toBe('MET');
+  });
+  test.each([
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+    [true, 'MET'],
+  ] as const)(
+    'M.1 integration exam scores need the issued evidence (%s)',
+    (issued, expected) => {
+      for (const integration of [
+        {
+          basis: 'a2',
+          a2Certificate: issued,
+          a2Total: 70,
+          a2SectionsAtPassMark: 4,
+        },
+        {
+          basis: 'history',
+          historyCertificate: issued,
+          greekLevel: 'A2',
+          historyPoints: 15,
+        },
+      ] as const) {
+        const path = full(lt, { integration });
+        expect(
+          path.checks.find((x) => x.id === 'LT-INTEGRATION-DOCUMENT')?.status,
+        ).toBe(expected);
+        expect(path.status).toBe(expected);
+      }
+    },
+  );
 });

@@ -10,6 +10,7 @@ type Work = NonNullable<GrWorkFamilyAnswers['work']>;
 type Family = NonNullable<GrWorkFamilyAnswers['familyTcn']>;
 const date = '2026-11-23';
 const base = {
+  filingDocuments: { formReady: true, feeReceiptReady: true },
   simulationDate: date,
   birthDate: '1996-11-23',
   entry: 'national-visa',
@@ -26,6 +27,9 @@ const employed: Work = {
   stage: 'initial',
   admission: 'ordinary',
   contractMonths: 6,
+  contractDocumented: true,
+  fullTimeEmployment: true,
+  hiringNotificationFiled: true,
   payBasis: 'monthly',
   grossPayEur: 920,
   employerApproval: true,
@@ -44,6 +48,9 @@ const blue: Work = {
   permanentAddressAvailable: true,
 };
 const reunion: Family = {
+  relationshipCertificateIssuedOn: '2026-11-01',
+  unchangedFamilyDeclaration: true,
+  birthRecordProvesAge: true,
   stage: 'initial',
   sponsor: 'ordinary',
   sponsorLawfulYears: 2,
@@ -238,6 +245,7 @@ test.each([
         sponsor,
         member: 'child',
         previousFamilyCard: true,
+        birthRecordProvesAge: true,
         previousAutonomousChildCard: false,
       },
     } satisfies Partial<GrFullRequest>;
@@ -294,7 +302,218 @@ const fiveYearConversion: Family = {
   member: 'spouse',
   previousFamilyCard: true,
   familyResidenceYears: 5,
+  yearsSinceFirstFamilyPermit: 5,
 };
+
+describe('Ο.2 filing evidence under articles 24 and 90', () => {
+  const spouse: Family = {
+    stage: 'autonomous',
+    autonomousBasis: 'residence',
+    member: 'spouse',
+    sponsor: 'ordinary',
+    previousFamilyCard: true,
+    familyResidenceFrom: '2021-11-10',
+    otherResidencePermitGranted: false,
+  };
+  test.each([
+    ['2026-11-01', 'FUTURE'],
+    ['2026-11-24', 'FUTURE'],
+    ['2027-01-09', 'FUTURE'],
+    ['2027-01-10', 'MET'],
+  ] as const)(
+    'first grant after D-visa arrival on %s',
+    (simulationDate, status) => {
+      const result = route('GR-FAMILY-TCN', {
+        simulationDate,
+        familyTcn: spouse,
+        permits: [{ kind: 'regular', from: '2022-01-10' }],
+      });
+      expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+        status === 'MET' ? 'MET' : 'NOT_MET',
+      );
+      expect(result.status).toBe(status);
+      expect(result.earliestDate).toBe(
+        status === 'FUTURE' ? '2027-01-10' : undefined,
+      );
+    },
+  );
+
+  test('the recorded grant date governs a backdated card; residence alone cannot prove the anniversary', () => {
+    const result = route('GR-FAMILY-TCN', {
+      simulationDate: '2026-11-24',
+      familyTcn: spouse,
+      permits: [
+        {
+          kind: 'regular',
+          from: '2021-11-10',
+          issuedOn: '2022-01-10',
+          purpose: 'family-reunification',
+        },
+      ],
+    });
+    expect(result).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2027-01-10',
+    });
+    expect(route('GR-FAMILY-TCN', { familyTcn: spouse }).status).toBe(
+      'UNKNOWN',
+    );
+    const firstCard = {
+      ...spouse,
+      firstFamilyPermitIssuedOn: '2020-11-24',
+      familyResidenceFrom: '2020-11-01',
+    };
+    expect(
+      route('GR-FAMILY-TCN', {
+        familyTcn: firstCard,
+        permits: [{ kind: 'regular', from: '2025-01-01' }],
+      }).status,
+    ).toBe('MET');
+  });
+
+  test('an expired first card proves the original grant, but the later residence must also be documented', () => {
+    const familyTcn: Family = { ...spouse, familyResidenceFrom: undefined };
+    const first = {
+      kind: 'regular',
+      from: '2019-01-01',
+      to: '2021-12-31',
+    } as const;
+    expect(route('GR-FAMILY-TCN', { familyTcn, permits: [first] }).status).toBe(
+      'UNKNOWN',
+    );
+    expect(
+      route('GR-FAMILY-TCN', {
+        familyTcn,
+        permits: [first, { kind: 'regular', from: '2022-01-01' }],
+      }).status,
+    ).toBe('MET');
+    expect(
+      route('GR-FAMILY-TCN', {
+        familyTcn: {
+          ...familyTcn,
+          familyResidenceYears: 6,
+          yearsSinceFirstFamilyPermit: 6,
+        },
+        permits: [{ kind: 'regular', from: '2025-01-01' }],
+      }).status,
+    ).toBe('MET');
+  });
+
+  test.each([true, false, undefined])(
+    'divorce or registered dissolution evidence %s',
+    (evidence) => {
+      for (const member of ['spouse', 'registered-partner'] as const) {
+        const result = route('GR-FAMILY-TCN', {
+          simulationDate: '2026-11-24',
+          familyTcn: {
+            ...spouse,
+            member,
+            autonomousBasis: 'divorce',
+            priorMarriageYears: 4,
+            priorMarriageYearsInGreece: 2,
+            relationshipAndDocumentsGenuine: evidence,
+          },
+        });
+        const expected =
+          evidence === undefined ? 'UNKNOWN' : evidence ? 'MET' : 'NOT_MET';
+        expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+          expected,
+        );
+        expect(result.status).toBe(expected);
+      }
+    },
+  );
+
+  test.each([
+    ['2026-08-01', undefined, 'NOT_MET'],
+    ['2026-08-01', '2026-09-01', 'NOT_MET'],
+    ['2026-11-25', undefined, 'MET'],
+  ] as const)(
+    'applicant’s Greek Blue Card issued %s through %s',
+    (greekBlueCardFrom, greekBlueCardThrough, expected) => {
+      const result = route('GR-FAMILY-TCN', {
+        simulationDate: '2026-11-24',
+        familyTcn: {
+          ...spouse,
+          otherResidencePermitGranted: undefined,
+          firstFamilyPermitIssuedOn: '2020-11-24',
+          familyResidenceFrom: '2020-11-24',
+        },
+        blueCardMobility: { greekBlueCardFrom, greekBlueCardThrough },
+      });
+      expect(result.checks.find((c) => c.id === 'FT-07')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    },
+  );
+
+  test.each([
+    ['greece', 'NOT_MET'],
+    ['other-member-state', 'MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)('prior mobility period with issuer %s', (issuer, expected) => {
+    const result = route('GR-FAMILY-TCN', {
+      familyTcn: { ...fiveYearConversion },
+      blueCardMobility: {
+        priorMemberPeriods: [
+          {
+            kind: 'blue-card',
+            issuer,
+            from: '2019-04-01',
+            through: '2020-11-23',
+          },
+        ],
+      },
+    });
+    expect(result.status).toBe(expected);
+  });
+
+  test.each([
+    ['2021-11-09', true, 'NOT_MET'],
+    ['2022-11-10', true, 'MET'],
+    ['2022-11-10', false, 'NOT_MET'],
+    ['2022-11-10', undefined, 'UNKNOWN'],
+  ] as const)(
+    'bereavement on %s with civil record %s',
+    (sponsorDiedOn, evidence, expected) => {
+      const result = route('GR-FAMILY-TCN', {
+        familyTcn: {
+          ...spouse,
+          autonomousBasis: 'bereavement',
+          sponsorDiedOn,
+          relationshipAndDocumentsGenuine: evidence,
+        },
+      });
+      expect(result.status).toBe(expected);
+    },
+  );
+
+  test.each([
+    ['2026-05-23', true, 'NOT_MET'],
+    ['2026-05-24', true, 'MET'],
+    ['2026-11-25', true, 'NOT_MET'],
+    [undefined, true, 'UNKNOWN'],
+    ['2026-05-24', false, 'NOT_MET'],
+  ] as const)(
+    'Blue Card family grant with civil record dated %s and unchanged-status declaration %s',
+    (issued, declaration, expected) => {
+      const result = route('GR-FAMILY-TCN', {
+        simulationDate: '2026-11-24',
+        familyTcn: {
+          ...reunion,
+          sponsor: 'blue-card',
+          relationshipCertificateIssuedOn: issued,
+          unchangedFamilyDeclaration: declaration,
+        },
+      });
+      expect(result.checks.find((c) => c.id === 'FT-08')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    },
+  );
+});
 
 test.each([
   [{ kind: 'public', coversFamily: false }, undefined, [], 'MET'],
@@ -340,6 +559,7 @@ test.each([
       familyTcn: { ...fiveYearConversion, privateCoverPermitted },
       insurance: {
         kind: 'private',
+        issuer: 'greek',
         disabilityEur: 20000,
         medicalEur: 2000,
         hospitalEur: 20000,
@@ -392,6 +612,7 @@ test.each([
         sponsor: 'ordinary',
         member: 'child',
         previousFamilyCard: true,
+        birthRecordProvesAge: true,
         previousAutonomousChildCard,
       },
     });
@@ -617,6 +838,260 @@ test('employment filing can defer the insurance registration certificate and Blu
 });
 
 test.each([
+  [true, 'MET'],
+  [false, 'NOT_MET'],
+  [undefined, 'UNKNOWN'],
+] as const)(
+  'ordinary employment filing needs the hiring notice and signed contract (%s)',
+  (evidence, status) => {
+    for (const [permit, day, contractCheck] of [
+      ['E1', '2024-11-23', 'WK-02'],
+      ['E4', date, 'WK-04'],
+    ] as const) {
+      for (const [id, answers] of [
+        ['WK-HIRING', { hiringNotificationFiled: evidence }],
+        [contractCheck, { contractDocumented: evidence }],
+      ] as const) {
+        const path = route('GR-WORK', {
+          simulationDate: day,
+          work: { ...blue, permit, ...answers },
+        });
+        expect(path.checks.find((item) => item.id === id)?.status).toBe(status);
+        expect(path.status).toBe(status);
+      }
+    }
+    const ordinary = route('GR-WORK', {
+      work: { ...employed, fullTimeEmployment: evidence },
+    });
+    expect(ordinary.checks.find((item) => item.id === 'WK-04')?.status).toBe(
+      status,
+    );
+    expect(ordinary.status).toBe(status);
+  },
+);
+
+test.each([
+  ['provided', 'MET'],
+  ['not-required', 'MET'],
+  ['missing', 'NOT_MET'],
+  [undefined, 'UNKNOWN'],
+] as const)(
+  'Ε.4 agricultural invitation evidence (%s)',
+  (agriculturalStaffingCertificate, status) => {
+    const path = route('GR-WORK', {
+      work: {
+        ...employed,
+        employer: 'agriculture',
+        agriculturalStaffingCertificate,
+      },
+    });
+    expect(path.checks.find((item) => item.id === 'WK-05')?.status).toBe(
+      status,
+    );
+    expect(path.status).toBe(status);
+  },
+);
+
+test.each([
+  [true, 'MET'],
+  [false, 'NOT_MET'],
+  [undefined, 'UNKNOWN'],
+] as const)(
+  'Ε.1 renewal needs active public cover after a documented earlier gap (%s)',
+  (activePublicCoverAfterGap, status) => {
+    const path = route('GR-WORK', {
+      simulationDate: '2024-11-23',
+      currentCardExpiresOn: '2024-12-01',
+      work: {
+        ...blue,
+        stage: 'renewal',
+        taxesSettledDuringPermit: true,
+        activePublicCoverAfterGap,
+      },
+      insurance: { kind: 'gap', gapEvidence: 'unemployment-benefit' },
+    });
+    expect(path.checks.find((item) => item.id === 'WK-07')?.status).toBe(
+      status,
+    );
+    expect(path.status).toBe(status);
+  },
+);
+
+test.each([
+  ['ordinary', 'national-visa', 'MET'],
+  ['ordinary', 'permit', 'NOT_MET'],
+  ['ordinary', 'short-stay', 'NOT_MET'],
+  ['ordinary', undefined, 'UNKNOWN'],
+  ['strategic-project', 'short-stay', 'MET'],
+  ['strategic-project', 'national-visa', 'NOT_MET'],
+  ['strategic-project', undefined, 'UNKNOWN'],
+] as const)(
+  'Ε.4 %s applies its entry procedure to %s',
+  (admission, entry, status) => {
+    const path = route('GR-WORK', {
+      entry,
+      work: {
+        ...employed,
+        admission,
+        projectCertified: true,
+        projectWorkersTotal: 1,
+        hiringNotificationFiled: admission === 'ordinary',
+      },
+    });
+    expect(path.checks.find((item) => item.id === 'WK-06')?.status).toBe(
+      status,
+    );
+    expect(path.status).toBe(status);
+  },
+);
+
+test('past gap evidence alone does not prove initial cover or registration', () => {
+  const path = route('GR-WORK', {
+    work: employed,
+    insurance: { kind: 'gap', gapEvidence: 'accepted-force-majeure' },
+  });
+  expect(path.checks.find((item) => item.id === 'WK-07')?.status).toBe(
+    'UNKNOWN',
+  );
+  expect(path.status).toBe('UNKNOWN');
+});
+
+test.each([
+  ['greek', undefined, 'MET'],
+  ['foreign', true, 'MET'],
+  ['foreign', false, 'NOT_MET'],
+  ['foreign', undefined, 'UNKNOWN'],
+  [undefined, true, 'MET'],
+  [undefined, undefined, 'UNKNOWN'],
+] as const)(
+  'foreign private insurance requires explicit Greek territorial cover (%s, %s)',
+  (issuer, explicitlyCoversGreece, status) => {
+    const path = route('GR-FAMILY-TCN', {
+      familyTcn: { ...fiveYearConversion, privateCoverPermitted: true },
+      insurance: {
+        kind: 'private',
+        issuer,
+        explicitlyCoversGreece,
+        disabilityEur: 20000,
+        medicalEur: 2000,
+        hospitalEur: 20000,
+        maxCopayPercent: 0,
+        hasDeductibleOrExclusions: false,
+        policyMonths: 18,
+      },
+    });
+    expect(path.checks.find((item) => item.id === 'C-05')?.status).toBe(status);
+    expect(path.status).toBe(status);
+  },
+);
+
+test.each([
+  [true, 'MET'],
+  [false, 'NOT_MET'],
+  [undefined, 'UNKNOWN'],
+] as const)(
+  'foreign public insurance requires explicit Greek territorial cover (%s)',
+  (explicitlyCoversGreece, status) => {
+    const path = route('GR-WORK', {
+      work: { ...employed, stage: 'renewal', taxesSettledDuringPermit: true },
+      insurance: { kind: 'public', issuer: 'foreign', explicitlyCoversGreece },
+      currentCardExpiresOn: '2026-12-01',
+    });
+    expect(path.checks.find((item) => item.id === 'WK-07')?.status).toBe(
+      status,
+    );
+    expect(path.status).toBe(status);
+  },
+);
+
+test.each([
+  ['unemployment-benefit', true, 'MET', 'MET'],
+  ['unemployment-benefit', undefined, 'UNKNOWN', 'UNKNOWN'],
+  ['accepted-force-majeure', false, 'NOT_MET', 'NOT_MET'],
+  ['none', true, 'MET', 'NOT_MET'],
+  ['pending', true, 'MET', 'UNKNOWN'],
+] as const)(
+  'Ο.1 initial and renewal distinguish previous gap (%s) from active cover (%s)',
+  (gapEvidence, activePublicCoverAfterGap, initial, renewal) => {
+    for (const [stage, status] of [
+      ['initial', initial],
+      ['renewal', renewal],
+    ] as const) {
+      const path = route('GR-FAMILY-TCN', {
+        familyTcn: { ...reunion, stage, familyLifeContinues: true },
+        insurance: {
+          kind: 'gap',
+          coversFamily: true,
+          gapEvidence,
+          activePublicCoverAfterGap,
+        },
+        currentCardExpiresOn: '2026-12-01',
+      });
+      expect(path.checks.find((item) => item.id === 'FT-04')?.status).toBe(
+        status,
+      );
+      expect(path.status).toBe(status);
+    }
+  },
+);
+
+test('a Greek national high-skilled permit holder switching to a Blue Card for the same job need not resubmit insurance evidence', () => {
+  const path = route('GR-WORK', {
+    simulationDate: '2024-11-23',
+    entry: 'permit',
+    insurance: undefined,
+    work: {
+      ...blue,
+      admission: 'domestic-switch',
+      sameJobOnGreekHighlyQualifiedPermit: true,
+    },
+  });
+  expect(path.checks.find((item) => item.id === 'WK-07')?.status).toBe('MET');
+  expect(path.status).toBe('MET');
+});
+
+test.each([
+  ['2023-10-23', false, '2024-11-23', true, 'MET'],
+  ['2023-10-24', false, '2024-11-23', true, 'NOT_MET'],
+  ['2024-04-23', true, '2024-11-23', true, 'MET'],
+  ['2024-04-23', undefined, '2024-11-23', true, 'UNKNOWN'],
+  ['2023-10-23', false, '2024-11-24', true, 'NOT_MET'],
+  ['2023-10-23', false, '2024-11-23', false, 'NOT_MET'],
+  ['2023-10-23', false, '2024-11-23', undefined, 'UNKNOWN'],
+] as const)(
+  'Ε.1 mobility filed %s, prior move %s, date %s, foreign card %s',
+  (
+    residenceFrom,
+    previousMove,
+    simulationDate,
+    validForeignBlueCardCopy,
+    status,
+  ) => {
+    const path = route('GR-WORK', {
+      simulationDate,
+      entry: 'permit',
+      work: {
+        ...blue,
+        admission: 'blue-card-mobility',
+        employerApproval: false,
+        hiringNotificationFiled: false,
+        mobility: {
+          residenceFrom,
+          previousMove,
+          enteredGreeceOn: '2024-10-23',
+          validForeignBlueCardCopy,
+        },
+      },
+    });
+    expect(path.checks.find((item) => item.id === 'WK-03')?.status).toBe(
+      status,
+    );
+    expect(path.checks.some((item) => item.id === 'WK-HIRING')).toBe(false);
+    expect(path.status).toBe(status);
+  },
+);
+
+test.each([
   ['regulated-recognised', 'MET'],
   ['unregulated-documented', 'MET'],
   ['previously-verified-in-Greece', 'MET'],
@@ -789,6 +1264,7 @@ test.each(['initial', 'renewal'] as const)(
         formedLegallyInGreece: true,
         member: 'registered-partner',
         relationshipAndDocumentsGenuine: true,
+        unchangedFamilyDeclaration: true,
         familyLifeContinues: true,
         priorYearTaxAndInsuranceEvidence: true,
       },
@@ -875,6 +1351,8 @@ test.each(['residence', 'divorce'] as const)(
         sponsor: 'ordinary',
         previousFamilyCard: true,
         autonomousBasis,
+        relationshipAndDocumentsGenuine: true,
+        yearsSinceFirstFamilyPermit: 5,
         familyResidenceYears: 5,
         priorMarriageYears: 3,
         priorMarriageYearsInGreece: 1,
@@ -1377,6 +1855,8 @@ test.each([
         autonomousBasis: 'residence',
         previousFamilyCard: true,
         familyResidenceYears,
+        yearsSinceFirstFamilyPermit: familyResidenceYears,
+        firstFamilyPermitIssuedOn: familyResidenceFrom,
         familyResidenceFrom,
       },
     });
@@ -1504,7 +1984,11 @@ describe('Gr employment routes', () => {
     );
     for (const employer of ['agriculture', 'private-individual'] as const) {
       expect(
-        work('WK-05', { employer, employerLastYearGrossEur: 44000 }).status,
+        work('WK-05', {
+          employer,
+          employerLastYearGrossEur: 44000,
+          agriculturalStaffingCertificate: 'provided',
+        }).status,
       ).toBe('MET');
       expect(
         work('WK-05', { employer, employerLastYearGrossEur: 43999.99 }).status,
@@ -1547,9 +2031,13 @@ describe('Gr employment routes', () => {
       projectCertified: true,
       quotaAvailable: false,
     };
-    expect(work('WK-06', { ...project, projectWorkersTotal: 500 }).status).toBe(
-      'MET',
-    );
+    expect(
+      work(
+        'WK-06',
+        { ...project, projectWorkersTotal: 500 },
+        { entry: 'short-stay' },
+      ).status,
+    ).toBe('MET');
     expect(work('WK-06', { ...project, projectWorkersTotal: 501 }).status).toBe(
       'NOT_MET',
     );
@@ -1860,6 +2348,7 @@ describe('Gr third-country family', () => {
       autonomousBasis: 'residence',
       previousFamilyCard: true,
       familyResidenceYears: 5,
+      yearsSinceFirstFamilyPermit: 5,
     };
     expect(family('FT-07', spouse).status).toBe('MET');
     expect(family('FT-07', { ...spouse, familyResidenceYears: 4 }).status).toBe(

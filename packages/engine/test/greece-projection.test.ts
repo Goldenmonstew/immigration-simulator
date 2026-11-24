@@ -11,6 +11,7 @@ function assess(
   facts: Partial<GrFullRequest>,
 ) {
   return evaluateGreeceFull({
+    filingDocuments: { formReady: true, feeReceiptReady: true },
     citizenship: 'third-country',
     birthDate: '1985-01-01',
     passport: { kind: 'exception-granted' },
@@ -186,6 +187,7 @@ test.each([
         adultChildIncapacityDependencyProved,
         priorYearTaxAndInsuranceEvidence: true,
         relationshipAndDocumentsGenuine: true,
+        unchangedFamilyDeclaration: true,
         familyLifeContinues: true,
       },
     };
@@ -226,6 +228,7 @@ test.each([
         adultChildIncapacityDependencyProved: false,
         priorYearTaxAndInsuranceEvidence: true,
         relationshipAndDocumentsGenuine: true,
+        unchangedFamilyDeclaration: true,
         familyLifeContinues: true,
       },
     };
