@@ -33,6 +33,8 @@ export {
   familyIncomeThreshold,
   onProtection,
 } from './rules/current-law';
+export { AU_FULL_PATHWAYS, evaluateAustraliaFull } from './australia-full';
+export type { AuFullPathId, AuFullRequest } from './australia-full';
 export {
   AU_PERMANENT_SUBCLASSES,
   AU_TEMPORARY_SUBCLASSES,
