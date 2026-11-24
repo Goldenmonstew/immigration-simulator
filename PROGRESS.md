@@ -661,3 +661,4 @@
 | 630 | 任务 97：实现西班牙完整版国家模块、草稿编解码与校验、101 项条件政策目录、对比旋钮与双语文案，登记西班牙五页路由并移除旧单页辅助模块。 | apps/web/lib/spain-{draft,fields,module,policy,policy-rules,whatif}.ts、apps/web/lib/{spain,site-countries}.ts、apps/web/i18n/countries/spain{,-form,-module}.ts、apps/web/i18n/{zh-CN,en}.ts |
 | 631 | 任务 97：接入西班牙完整版首页、七步动态问卷、结果页、What-if 对比页与政策依据页。 | apps/web/app/spain/spain-content.tsx、apps/web/app/spain/simulate/{page,evidence-fields}.tsx、apps/web/app/spain/{result,policy}/page.tsx、apps/web/app/spain/whatif/{page,controls}.tsx |
 | 632 | 任务 97：补充西班牙完整版页面单元测试、双语与移动端 e2e 用例及任务报告。 | apps/web/test/spain.test.tsx、apps/e2e/tests/spain.spec.ts、docs/tasks/reports/97-es-pages.md |
+| 633 | 任务 97：政策页标题改为"西班牙政策依据"（政策页组件按国家通用，同任务 93），补标题单测；顺带用 prettier 格式化本任务两个文件。 | apps/web/components/policy-page.tsx、apps/web/i18n/countries/spain-module.ts、apps/web/test/spain.test.tsx |

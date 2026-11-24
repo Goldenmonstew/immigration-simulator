@@ -265,9 +265,9 @@ test('what-if controls adjust simulation date, household size, income, absences 
     .run(threePerson, 'en')
     .columns[0].pathways.find((p) => p.id === 'ES-LONG-TERM-EU')!;
   expect(euAfterSize.status).toBe('NOT_MET');
-  expect(
-    euAfterSize.checks.find((c) => c.id === 'ES-E05')?.status,
-  ).toBe('NOT_MET');
+  expect(euAfterSize.checks.find((c) => c.id === 'ES-E05')?.status).toBe(
+    'NOT_MET',
+  );
 
   // Raising monthly income to €1,250 restores ES-E05 to MET.
   const higherIncome = es.whatif.apply(draft, {
@@ -364,6 +364,9 @@ test.each(['zh-CN', 'en'] as const)(
     expect(resultHtml).toContain(`href="${sourceUrls['SRC-083']}"`);
 
     const policyHtml = render(<SpainPolicyPage />, locale);
+    expect(policyHtml).toContain(
+      locale === 'en' ? 'Policy basis for Spain' : '西班牙政策依据',
+    );
     expect(policyHtml.match(/data-pathway=/g)).toHaveLength(8);
     expect(policyHtml.match(/data-rule=/g)).toHaveLength(101);
     expect(policyHtml.match(/data-policy-change=/g)).toHaveLength(3);
