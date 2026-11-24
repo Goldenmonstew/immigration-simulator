@@ -71,7 +71,9 @@ interface FamilyAnswers {
   sponsorPermitValid?: boolean;
   /** Evidence for a pending renewal of the qualifying permit. A valid art. 11(10) certificate preserves its rights. */
   sponsorRenewal?: 'pending' | 'valid-certificate';
-  /** The complete initial family and sponsor's Blue Card applications are filed together. */
+  /** The sponsor and family member are filing their complete first applications together. */
+  jointInitialApplication?: boolean;
+  /** Earlier Blue Card requests use this when jointInitialApplication is absent. */
   jointBlueCardApplication?: boolean;
   /** Personal net income excludes social assistance and other household members' income. */
   sponsorPersonalNetEur?: number;
@@ -527,24 +529,66 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
   return checks;
 }
 
-function sponsorPermitForFiling(f: FamilyAnswers): Answer {
-  if (
+function sponsorPermitForFiling(f: FamilyAnswers, L: GrContext['L']) {
+  const joint =
     f.stage === 'initial' &&
-    f.sponsor === 'blue-card' &&
-    f.jointBlueCardApplication
-  )
-    return true;
+    (f.jointInitialApplication ??
+      (f.sponsor === 'blue-card' && f.jointBlueCardApplication));
+  if (joint) {
+    switch (f.sponsor) {
+      case 'blue-card':
+        return {
+          met: true,
+          note: L(
+            '蓝卡与家属的完整首签申请同步递交时，两项决定同时作出并通知。',
+            'When both complete applications are filed together, the Blue Card and family decisions are issued and notified together.',
+          ),
+        };
+      case 'intra-corporate':
+        return {
+          met: true,
+          note: L(
+            '企业内部调动许可与家属首签同时递交时，主管机关同时审查两份申请。',
+            'When filed together, the intra-corporate transfer and family applications are examined together.',
+          ),
+        };
+      case 'researcher':
+        return {
+          met: true,
+          note: L(
+            '家属的完整首签申请可与研究人员申请同时审查。研究人员获准后，主管机关才可签发家属许可。',
+            'The complete family application can be examined with the researcher’s application. The family permit can be issued only after the researcher is granted a permit.',
+          ),
+        };
+      case 'refugee':
+      case undefined:
+        return { met: undefined };
+    }
+  }
   if (f.sponsorPermitValid || f.sponsorRenewal === 'valid-certificate')
-    return true;
-  if (f.sponsorRenewal === 'pending') return undefined;
-  return (
-    f.sponsorPermitValid ??
-    (f.sponsorPermitDurationYears === 0 ? false : undefined)
-  );
+    return { met: true };
+  if (joint && (f.sponsor === 'special-employment' || f.sponsor === 'investor'))
+    return {
+      met: undefined,
+      note: L(
+        '该类别允许家属随行。主申请仍待批时，须核实本案适用的家属首签递件程序。',
+        'Family members may accompany the sponsor. Check the applicable family filing procedure while the principal application is pending.',
+      ),
+      pendingDetails: ['PD-319'],
+    };
+  if (f.sponsorRenewal === 'pending') return { met: undefined };
+  return {
+    met:
+      f.sponsorPermitValid ??
+      (f.sponsorPermitDurationYears === 0 ? false : undefined),
+  };
 }
 
-function familySponsor(f: FamilyAnswers, today: IsoDate): Filing {
-  const validPermit = sponsorPermitForFiling(f);
+function familySponsor(
+  f: FamilyAnswers,
+  today: IsoDate,
+  validPermit: Answer,
+): Filing {
   if (f.sponsor === 'excluded') return false;
   if (f.sponsor === 'refugee')
     return f.stage === 'initial' ? all(validPermit, undefined) : undefined;
@@ -749,42 +793,51 @@ function familyChecks(
   }
   const isAutonomous = f.stage === 'autonomous';
   const initial = f.stage === 'initial';
-  const sponsorRefs = [
-    grSource(
-      'F16',
-      'arts. 11(10), 42(2)–(4), 56(5), 60(2), 83(1)–(2), 84(1), 87(1), 88(1)(ε), 92, 95(2), 112(1)',
-    ),
-    grSource('F36', 'arts. 20, 29 (art. 95(2), p. 466)'),
-    grSource('F21', 'art. 23(I), (II)'),
-  ];
-  if (!isAutonomous && f.sponsor === 'refugee') {
-    return [
-      check(
-        'FT-01',
-        'Ο.1 担保资格与国际保护专门程序',
-        'Ο.1 sponsorship and the protection-specific procedure',
-        familySponsor(f, req.simulationDate),
-        sponsorRefs,
-        'Ο.1 单独首签须核对担保人的合资格居留。难民身份涉及的专门团聚程序、申请时间与材料豁免须另行核实。',
-        'A separate initial Ο.1 filing requires qualifying sponsor residence. Verify the protection-specific procedure, timing and document exemptions for a recognised refugee.',
-        ['PD-319'],
-      ),
-    ];
-  }
   if (!isAutonomous) {
-    let sponsorNote = L(
-      '核对担保人的当前许可。许可到期后，有效的续期申请证明可证明担保人仍享有相应的居留权利。',
-      'Check the sponsor’s current permit. After expiry, a valid renewal filing certificate confirms that the sponsor retains the corresponding residence rights.',
-    );
+    const permit = sponsorPermitForFiling(f, L);
+    const sponsorEligibility = familySponsor(f, req.simulationDate, permit.met);
+    const articles = {
+      ordinary: 'arts. 83(1), 84(1), 92',
+      'blue-card': 'arts. 42(2), 42(3), 42(4)',
+      'intra-corporate': 'art. 56(5)(α), 56(5)(β)',
+      researcher: 'arts. 112(1), 112(2)',
+      'special-employment': 'art. 60(2)',
+      investor: 'arts. 10(11), 95(2)',
+      refugee: 'art. 83',
+      excluded: 'art. 83(2)',
+    };
+    const sponsorRefs = [
+      grSource('F16', f.sponsor ? articles[f.sponsor] : 'arts. 83–84'),
+      grSource('F16', 'arts. 11(10), 87(1), 88(1)(ε)'),
+      grSource('F21', 'art. 23(I), (II)'),
+    ];
+    if (f.sponsor === 'special-employment')
+      sponsorRefs.push(grSource('F36', 'art. 20 (art. 60(2))'));
+    if (f.sponsor === 'investor')
+      sponsorRefs.push(grSource('F36', 'art. 29 (art. 95(2), p. 466)'));
+    if (f.sponsor === 'refugee')
+      return [
+        check(
+          'FT-01',
+          'Ο.1 担保资格与国际保护专门程序',
+          'Ο.1 sponsorship and the protection-specific procedure',
+          sponsorEligibility,
+          sponsorRefs,
+          'Ο.1 单独首签须核对担保人的合资格居留。难民身份涉及的专门团聚程序、申请时间与材料豁免须另行核实。',
+          'A separate initial Ο.1 filing requires qualifying sponsor residence. Verify the protection-specific procedure, timing and document exemptions for a recognised refugee.',
+          ['PD-319'],
+        ),
+      ];
+    let sponsorNote =
+      permit.note ??
+      L(
+        '核对担保人的当前许可。许可到期后，有效的续期申请证明可证明担保人仍享有相应的居留权利。',
+        'Check the sponsor’s current permit. After expiry, a valid renewal filing certificate confirms that the sponsor retains the corresponding residence rights.',
+      );
     if (!initial)
       sponsorNote += L(
         '担保人居留已终止时，家属可另按 Ο.2 核对自主居留权。',
         ' If the sponsor’s residence has ended, assess any independent right under Ο.2 separately.',
-      );
-    else if (f.sponsor === 'blue-card')
-      sponsorNote += L(
-        '蓝卡和家属的完整首签申请可同步递交、同时决定。',
-        ' Complete initial Blue Card and family applications may be filed and decided together.',
       );
     else if (f.sponsor === 'ordinary' && !f.formedLegallyInGreece)
       sponsorNote += L(
@@ -796,10 +849,11 @@ function familyChecks(
         'FT-01',
         '担保人资格与先期居留',
         'Sponsor permit and prior residence',
-        familySponsor(f, req.simulationDate),
+        sponsorEligibility,
         sponsorRefs,
         sponsorNote,
         sponsorNote,
+        permit.pendingDetails,
       ),
     );
     if (!initial) {

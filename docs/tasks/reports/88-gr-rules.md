@@ -338,3 +338,40 @@ PROGRESS 第 659 条对应一组改动。建议提交名为 `Fix: 统一希腊 �
 ### 4. 发现与建议
 
 公共卫生个案认定沿用 PD-302，国际保护专门程序沿用 PD-319。续期待决但缺有效证明属于个案材料待核实，本轮无新增 PD。家属单独首签的八类担保人均已覆盖，同步首签测试覆盖既有蓝卡流程。
+
+## 第八轮审核修正（review88-8）
+
+### 1. 做了什么
+
+PROGRESS 第 660 条对应一组修正。建议提交名为 `Fix: 修正希腊家属同步首签的担保许可与蓝卡短停入境判定（review88-8）`。
+
+Ο.1 的 FT-01 在 `sponsorPermitForFiling` 统一核对担保人的递件资格。`jointInitialApplication: true` 表示主申请人与家属同步递交各自完整的首签申请。旧请求的 `jointBlueCardApplication` 仅用于蓝卡，且仅在新字段未填时读取。
+
+下表假定主申请人的首张许可尚未签发，家属和主申请人同时递件，其余条件齐备。FT-01 的 `MET` 表示满足此项递件条件。
+
+| 担保人 | FT-01 | 同步审理条款及边界 |
+|---|---|---|
+| 蓝卡 | MET | 两份完整申请同时决定并通知。[SRC-086 第 42(3) 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=35) |
+| 企业内部调动 | MET | 同时提交的调动许可与家属许可申请须同时审查。[SRC-086 第 56(5)(β) 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=44) |
+| 研究人员 | MET | 家属的完整申请与研究人员申请同时审查。研究人员获准后方可签发家属许可。[SRC-086 第 112(2) 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=75) |
+| 普通 | NOT_MET | 普通团聚要求担保人已持合资格许可。在希合法组建家庭另依第 92 条核对已有居留。[SRC-086 第 83(1)、84(1) 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=59) |
+| 特殊就业 | UNKNOWN | 第 60(2) 条规定家属可随行、许可与主卡同日到期。条文未说明主卡待批时的同步审理程序，见 PD-319。[SRC-086 第 60(2) 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=46) · [SRC-087 修法第 20 条](https://api.et.gr/apiFEK/1/2026/17/pdf#page=27) |
+| 投资者 | UNKNOWN | 第 95(2) 条规定家属可随行及许可同日到期。第 10(11) 条另允许特定投资申请人及家属在境外授权递件。只填投资者大类不足以确定具体程序，见 PD-319。[SRC-086 第 10(11)、95(2) 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=18) · [SRC-087 修法第 29 条](https://api.et.gr/apiFEK/1/2026/17/pdf#page=34) |
+| 已获难民身份 | UNKNOWN | 国际保护家属须按专门程序核对。仅凭首张居留卡待发不能判定该程序的递件资格，见 PD-319。[SRC-086 第 83 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=59) |
+| 排除类别 | NOT_MET | 第 83(2) 条明文排除相应担保人适用普通团聚程序。[SRC-086 第 83(2) 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=59) |
+
+蓝卡家属的 C-02 按 ΜΙΤΟΣ 条件 2 和材料 1–3 核对入境依据，按第 42(3) 条处理同步首签。合法短停期间持统一签证或免签入境证明，同步和单独首签的 C-02 均为 `MET`。非法停留为 `NOT_MET`。公共卫生仍在 C-04 独立判定。[SRC-376 手续 517141](https://en.mitos.gov.gr/index.php/%CE%94%CE%94%3AResidence_permit_for_family_members_of_a_highly_qualified_residence_permit_holder_%28%E2%80%98E.1%E2%80%99%29_%E2%80%93_Initial_granting) · [SRC-086 第 42(3) 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=35)
+
+### 2. 怎么验证的
+
+在基线 `0f8e5f39` 上通过公开入口 `evaluateGreeceFull` 运行首批新增对照，12 项中 10 项失败。修正后执行 `VITEST_MAX_WORKERS=2 pnpm --filter @uk-immigration/engine exec vitest run test/greece-work-family.test.ts`，120 项通过，其中本轮新增 15 项。企业内部调动、研究人员及蓝卡用同一组申请资料分别验证同步首签、单独首签和续期，并检查 FT-01 的 SRC 条款与路径结果。蓝卡另测合法短停、非法停留及卫生待认定或已拒入境，研究人员另测家属关系证明不实。
+
+设置 `VITEST_MAX_WORKERS=2` 后串行执行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，整链退出码 0。共 5,558 项测试通过（error-report 2、policy-data 23、engine 3,525、game 1,348、web 660），既有文案导出测试按配置跳过 1 项。静态构建生成 27/27 页，已确认 `apps/web/out/greece.html` 非空。与基线对比，时间版引擎及其测试、共用结果结构和网页目录均无差异。希腊页面仍调用 `evaluateGreece`。`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+按要求保留未提交的工作树。未运行浏览器 e2e 或部署。
+
+### 4. 发现与建议
+
+PD-319 已补记特殊就业及投资者仅知担保大类时的同步递件问题，并保留已获难民身份者的专门程序。个案需补查适用的具体许可和递件依据。
