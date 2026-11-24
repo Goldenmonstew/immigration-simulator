@@ -225,3 +225,36 @@ test('a legacy form with an unknown citizenship category is not imported as gene
   expect(es.decodeDraft(legacy)).toBeUndefined();
   expect(es.decodeDraft({ ...legacy, route: 'ibero' })?.route).toBe('ibero');
 });
+
+test('record completeness and a notarial suspension after grant must be answered', () => {
+  const draft = { ...history(), timeRecordsComplete: undefined };
+  expect(es.validateStep(draft)).toEqual({
+    'es-timeRecordsComplete': 'es.form.required',
+  });
+  expect(form(draft)).toContain(
+    '<label for="es-timeRecordsComplete">Residence permit and travel records are complete *</label>',
+  );
+
+  const granted: SpainDraft = {
+    ...history(),
+    step: 2,
+    nationality: { grantNotifiedOn: '2026-06-01' },
+  };
+  expect(es.validateStep(granted)).toEqual({
+    'es-nat-notarialSuspensionAwaitingConfirmation': 'es.form.required',
+  });
+  expect(form(granted)).toMatch(
+    /<label for="es-nat-notarialSuspensionAwaitingConfirmation">[^<]* \*<\/label>/,
+  );
+  expect(
+    es.validateStep({
+      ...granted,
+      nationality: {
+        grantNotifiedOn: '2026-06-01',
+        notarialSuspensionAwaitingConfirmation: false,
+      },
+    }),
+  ).toEqual({});
+  // Before a grant, the question stays optional.
+  expect(es.validateStep({ ...granted, nationality: {} })).toEqual({});
+});

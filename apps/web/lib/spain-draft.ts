@@ -170,7 +170,12 @@ function checkFields(
     const id = `${prefix}-${field.name}`;
     const value = answers[field.name];
     if (value === undefined || (value === '' && field.type === 'date')) {
-      if (required && field.required) errors[id] = 'es.form.required';
+      if (
+        required &&
+        (field.required ||
+          (field.requiredWith && answers[field.requiredWith] !== undefined))
+      )
+        errors[id] = 'es.form.required';
       continue;
     }
     switch (field.type) {

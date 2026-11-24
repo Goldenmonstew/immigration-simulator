@@ -18,6 +18,8 @@ export type SpainField = {
   required?: boolean;
   /** Household sizes count at least one person. */
   min?: number;
+  /** Required once this sibling answer is given. */
+  requiredWith?: string;
 } & (
   | { type: 'boolean' | 'date' | 'number' | 'integer' | 'date-list' }
   | { type: 'choice'; options: readonly SpainOption[] }
@@ -101,7 +103,7 @@ export const spainStep0Fields: SpainField[] = [
 ];
 
 export const spainHistoryFields: SpainField[] = [
-  bool('timeRecordsComplete'),
+  bool('timeRecordsComplete', true),
   list('permits', [date('from', true), date('to'), bool('study', true)]),
   list('trips', [date('departed', true), date('returned', true)]),
 ];
@@ -266,11 +268,12 @@ export const spainNatSections = {
     date('declarationOn'),
     bool('declarationCompleted'),
     date('confirmedDeclarationDeadline'),
-    ...flags(
-      'notarialSuspensionAwaitingConfirmation',
-      'canDeclareInPerson',
-      'oathOrMilitaryEvidence',
-    ),
+    // Left blank, the engine would read it as no suspension.
+    {
+      ...bool('notarialSuspensionAwaitingConfirmation'),
+      requiredWith: 'grantNotifiedOn',
+    },
+    ...flags('canDeclareInPerson', 'oathOrMilitaryEvidence'),
     choice('renunciationBasis', [...origins, 'french', 'spanish-sephardic']),
     ...flags(
       'declaredRenunciation',

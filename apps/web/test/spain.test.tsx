@@ -181,6 +181,7 @@ test('step validation checks targets, simulation date and date ordering across s
     ...fresh,
     step: 1,
     targets: ['L'] as SpainDraft['targets'],
+    timeRecordsComplete: true,
     permits: [{ from: '2024-05-10', to: '2024-05-01', study: false }],
     trips: [{ departed: '2024-08-10', returned: '2024-08-01' }],
   };

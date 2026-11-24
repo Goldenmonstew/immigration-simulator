@@ -267,7 +267,9 @@ function Question({
         .filter(Boolean)
         .join(' ') || undefined,
   };
-  const required = !!field.required;
+  const required =
+    !!field.required ||
+    (!!field.requiredWith && answers[field.requiredWith] !== undefined);
   const marked = label + (required ? ' *' : '');
   if (field.type === 'boolean' || field.type === 'choice') {
     const isBool = field.type === 'boolean';
