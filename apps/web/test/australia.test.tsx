@@ -1,151 +1,413 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
-import { evaluateAustralia } from '@uk-immigration/engine';
 import AustraliaPage from '../app/australia/page';
-import { PilotResult } from '../app/pilot/pilot-result';
+import AustraliaPolicyPage from '../app/australia/policy/page';
+import AustraliaSimulatePage from '../app/australia/simulate/page';
+import { GET as offlinePages } from '../app/offline-pages.json/route';
 import Home from '../app/page';
+import sitemap from '../app/sitemap';
+import { ResultView } from '../components/result-view';
+import { WhatIfView } from '../components/whatif-lab';
 import { t } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
-import { auRequest, emptyAuForm, validateAuForm } from '../lib/australia';
-import type { AuForm } from '../lib/australia';
-import { sourceUrls } from '../lib/sources';
+import {
+  australiaSteps,
+  type AustraliaDraft,
+} from '../lib/australia-draft';
+import { australiaModule as au } from '../lib/australia-module';
+import { readPageResult } from '../lib/page-result';
+import { decodeDraft, encodeDraft } from '../lib/share';
+import { ukModule } from '../lib/uk-module';
 
-const render = (node: React.ReactNode, locale: 'zh-CN' | 'en') =>
+const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
   renderToStaticMarkup(
     <LocaleContext value={{ locale, setLocale: () => {} }}>
       {node}
     </LocaleContext>,
   );
 
-const filled: AuForm = {
-  ...emptyAuForm('2026-11-21'),
-  dateOfBirth: '1990-05-01',
-  firstArrival: '2021-02-01',
-  visas: [
-    { subclass: '482', from: '2021-02-01', to: '2023-08-31' },
-    { subclass: '186', from: '2023-09-01', to: '' },
-  ],
-  trips: [{ departed: '2025-01-10', returned: '2025-02-10' }],
-};
-
-test.each(['zh-CN', 'en'] as const)('the form renders in %s', (locale) => {
-  const html = render(<AustraliaPage />, locale);
-  for (const key of [
-    'au.title',
-    'au.basics',
-    'au.simulationDate',
-    'au.visas',
-    'au.trips',
-    'au.partner',
-    'au.submit',
-  ] as const)
-    expect(html).toContain(t(key, locale));
-});
-
-test('home links to Australia', () => {
-  expect(render(<Home />, 'zh-CN')).toContain('href="/australia"');
-});
-
-test('validation marks missing, out-of-order and conflicting dates', () => {
-  const errors = validateAuForm({
-    ...emptyAuForm('2026-11-21'),
-    visas: [{ subclass: '482', from: '2025-01-01', to: '2024-12-31' }],
-    trips: [{ departed: '2025-03-01', returned: '' }],
-  });
-  expect(errors).toEqual({
-    'au-date-of-birth': 'au.error.date',
-    'au-visa-0-to': 'au.error.order',
-    'au-trip-0-departed': 'au.error.beforeArrival',
-    'au-trip-0-returned': 'au.error.date',
-  });
-  expect(validateAuForm(filled)).toEqual({});
-  expect(
-    validateAuForm({ ...filled, dateOfBirth: '2021-03-01' })[
-      'au-first-arrival'
+function fullAustraliaDraft(): AustraliaDraft {
+  return {
+    ...au.createDraft(),
+    simulationDate: '2026-11-23',
+    completed: true,
+    dateOfBirth: '1990-01-01',
+    firstArrival: '2020-01-01',
+    visas: [
+      { subclass: '482', from: '2020-01-01', to: '2023-06-30' },
+      { subclass: '491', from: '2023-07-01' },
     ],
-  ).toBe('au.error.beforeBirth');
-  // Overlapping visas are accepted: the engine ends the earlier one (s82).
-  expect(
-    validateAuForm({
-      ...filled,
-      visas: [
-        { subclass: '482', from: '2021-02-01', to: '' },
-        { subclass: '186', from: '2023-09-01', to: '' },
-      ],
-    }),
-  ).toEqual({});
-  // An offshore partner applicant who has not arrived can still submit.
-  expect(
-    validateAuForm({
-      ...emptyAuForm('2026-11-21'),
-      dateOfBirth: '1990-05-01',
-      visas: [],
-      partner: true,
-      partnerLodged: '2025-03-10',
-      partnerStream: 'offshore',
-    }),
-  ).toEqual({});
+    trips: [],
+    locationAtApplication: 'onshore',
+    locationAtDecision: 'onshore',
+    permissibleOnshoreVisa: true,
+    noFurtherStay: 'clear',
+    section48History: 'none',
+    regionalLockException: 'none',
+    visaCompliance: 'complied',
+    regional: {
+      assessmentYears: [2024, 2025, 2026],
+      regionalCondition: 'complied',
+      changeNotice: 'complied',
+      evidenceAndInterview: 'complied',
+    },
+    english: {
+      passport: 'GB',
+      test: 'none',
+    },
+    fees: {
+      pacificRegionalPassport: false,
+      additionalAdults: 0,
+      additionalMinors: 0,
+    },
+    skills: {
+      invitations: {
+        'AU-190': {
+          issued: '2026-11-15',
+          deadline: '2027-01-13',
+          score: 65,
+        },
+      },
+      occupationList: 'MLTSSL',
+      occupationInInvitation: { 'AU-190': true },
+      assessment: { kind: 'positive', issued: '2026-10-01' },
+      nomination: 'active',
+      points: {
+        overseasMonths: 96,
+        australianMonths: 0,
+        professionalMonths: 0,
+        education: 'bachelor',
+        specialistStudyYears: 0,
+        australianStudy: { qualifying: false },
+        communityLanguageCredential: false,
+        partner: 'singleOrAustralian',
+      },
+    },
+    publicInterest: {
+      officialPassport: true,
+      character: 'clear-history',
+      health: 'cleared',
+      policeDocuments: 'supplied',
+      securityAndForeignPolicy: 'cleared',
+      criticalTechnology: 'cleared',
+      commonwealthDebt: 'none',
+      valuesSigned: true,
+      integrity: {
+        identityEstablished: true,
+        accurateDocuments: true,
+        lastIdentityRefusal: null,
+        lastDocumentRefusal: null,
+      },
+      returnBan5001: false,
+      removedOn: null,
+      sponsoredStudy: { applies: false },
+      settlementWithoutUndueDifficulty: true,
+      childInterestsSatisfied: true,
+    },
+  };
+}
+
+test.each(['zh-CN', 'en'] as const)(
+  'Australia home links to the questionnaire and policy page in %s',
+  (locale) => {
+    const html = render(<AustraliaPage />, locale);
+    expect(html).toContain('href="/australia/simulate"');
+    expect(html).toContain('href="/australia/policy"');
+    expect(html).toContain(t('au.title', locale));
+    expect(html).toContain(t('au.scope', locale));
+    expect(render(<Home />, locale)).toContain('href="/australia"');
+  },
+);
+
+test('all five Australia pages are exported in the offline and sitemap lists', async () => {
+  const offline = await offlinePages().json();
+  const paths = sitemap().map(({ url }) => new URL(url).pathname);
+  for (const path of [
+    '/australia',
+    '/australia/simulate',
+    '/australia/result',
+    '/australia/whatif',
+    '/australia/policy',
+  ]) {
+    expect(offline).toContain(path);
+    expect(paths).toContain(path);
+  }
 });
 
-test('the request leaves out blank end dates and an unticked partner', () => {
-  const request = auRequest(filled, 'en');
-  expect(request.visas[1]).toEqual({ subclass: '186', from: '2023-09-01' });
-  expect(auRequest({ ...filled, firstArrival: '' }, 'en')).not.toHaveProperty(
-    'firstArrival',
-  );
-  expect(request.partnerApplication).toBeUndefined();
+test('versioned drafts round-trip inside the Australia envelope and migrate legacy AuForm inputs', () => {
+  const draft = fullAustraliaDraft();
+  const encoded = encodeDraft(au, draft);
+  expect(decodeDraft(au, encoded)).toEqual(draft);
+  expect(decodeDraft(ukModule, encoded)).toBeUndefined();
   expect(
-    auRequest({ ...filled, partner: true, partnerLodged: '2025-03-10' }, 'en')
-      .partnerApplication,
-  ).toEqual({
-    lodged: '2025-03-10',
-    stream: 'onshore',
+    decodeDraft(au, encodeDraft(ukModule, ukModule.createDraft())),
+  ).toBeUndefined();
+
+  const fresh = au.createDraft();
+  expect(au.decodeDraft(fresh)).toEqual(fresh);
+
+  for (const bad of [
+    null,
+    { ...draft, version: 2 },
+    { ...draft, step: 9 },
+    { ...draft, visas: 'not-an-array' },
+    { ...draft, pathway: 'AU-MADE-UP' },
+    { ...draft, locationAtApplication: 'mars' },
+  ]) {
+    expect(au.decodeDraft(bad)).toBeUndefined();
+  }
+
+  // Legacy time-only AuForm object migrates into version 1 AustraliaDraft.
+  const legacyForm = {
+    simulationDate: '2026-11-21',
+    dateOfBirth: '1990-05-01',
+    firstArrival: '2021-02-01',
+    visas: [
+      { subclass: '485', from: '2022-12-01', to: '2027-11-30' },
+      { subclass: '186', from: '2023-09-01', to: '' },
+    ],
+    trips: [{ departed: '2025-01-10', returned: '2025-02-10' }],
+    sponsoredFullTime: true,
+    partner: true,
+    partnerLodged: '2025-03-10',
+    partnerStream: 'onshore',
     longTermRelationship: false,
+    hongKong: true,
+    regionalSince: '2024-06-01',
+  };
+  const migrated = au.decodeDraft(legacyForm);
+  expect(migrated).toMatchObject({
+    version: 1,
+    completed: true,
+    simulationDate: '2026-11-21',
+    dateOfBirth: '1990-05-01',
+    firstArrival: '2021-02-01',
+    sponsoredFullTime: true,
+    hongKongPassport: true,
+    hongKongPrimaryVisaTerms: true,
+    regional: { hongKongOnlySince: '2024-06-01' },
+    partnerApplication: {
+      lodged: '2025-03-10',
+      stream: 'onshore',
+      longTermRelationship: false,
+    },
   });
-  // The Hong Kong streams only when the passport question is ticked.
-  expect(request).not.toHaveProperty('hongKong');
-  expect(auRequest({ ...filled, hongKong: true }, 'en').hongKong).toEqual({});
-  expect(
-    auRequest({ ...filled, hongKong: true, regionalSince: '2024-06-01' }, 'en')
-      .hongKong,
-  ).toEqual({ regionalSince: '2024-06-01' });
-  expect(
-    validateAuForm({ ...filled, hongKong: true, regionalSince: '2024-13-01' })[
-      'au-regional-since'
-    ],
-  ).toBe('au.error.date');
+  expect(migrated?.visas?.[1]).toEqual({
+    subclass: '186',
+    from: '2023-09-01',
+  });
+  const legacyEncoded = Buffer.from(
+    JSON.stringify(legacyForm),
+    'utf8',
+  ).toString('base64url');
+  expect(decodeDraft(au, legacyEncoded)).toEqual(
+    au.activeAnswers?.(migrated!),
+  );
 });
 
-test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
-  const result = evaluateAustralia(auRequest(filled, locale));
-  const html = render(<PilotResult result={result} />, locale);
-  expect(html).toContain(t('pilot.resultTitle', locale));
-  expect(html.match(/data-pathway=/g)).toHaveLength(5);
-  expect(html).toContain('data-pathway="AU-CITIZENSHIP" data-status="MET"');
-  expect(html).toContain(t('pilot.status.MET', locale));
-  expect(html).toContain(`href="${sourceUrls['SRC-061']}"`);
-  expect(html).toContain('PD-084');
+test('step validation checks required dates, ordering, arrival vs birth/trips and nested step fields', () => {
+  const fresh = au.createDraft();
+  expect(au.validateStep({ ...fresh, simulationDate: '' })).toHaveProperty(
+    'au-simulationDate',
+  );
+  expect(
+    au.validateStep({
+      ...fresh,
+      simulationDate: '2026-11-21',
+      dateOfBirth: '2021-03-01',
+      firstArrival: '2021-02-01',
+    }),
+  ).toEqual({
+    'au-firstArrival': 'au.error.beforeBirth',
+  });
+  expect(
+    au.validateStep({
+      ...fresh,
+      simulationDate: '2026-11-21',
+      visas: [{ subclass: '482', from: '2025-01-01', to: '2024-12-31' }],
+      trips: [{ departed: '2025-03-01', returned: '2025-02-01' }],
+    }),
+  ).toEqual({
+    'au-visas-0-to': 'au.error.order',
+    'au-trips-0-returned': 'au.error.order',
+    'au-trips-0-departed': 'au.error.beforeArrival',
+  });
+
+  // Step 2: nomination approved date before lodged date is flagged.
+  expect(
+    au.validateStep({
+      ...fresh,
+      step: 2,
+      employer: {
+        nominations: {
+          'AU-186-TRT': {
+            status: 'approved',
+            lodged: '2026-07-10',
+            approved: '2026-07-01',
+          },
+        },
+      },
+    }),
+  ).toEqual({
+    'au-employer-nominations-AU-186-TRT-approved': 'au.error.order',
+  });
+
+  // Step 4: invalid fiscal year in assessmentYears is flagged.
+  expect(
+    au.validateStep({
+      ...fresh,
+      step: 4,
+      regional: { assessmentYears: [1800] },
+    }),
+  ).toEqual({
+    'au-regional-assessmentYears': 'au.form.yearError',
+  });
+
+  // Visible steps filter when a specific pathway is chosen.
+  expect(australiaSteps(fresh)).toHaveLength(7);
+  expect(
+    australiaSteps({ ...fresh, pathway: 'AU-CITIZENSHIP' }).map((s) => s.step),
+  ).toEqual([0, 1, 6]);
+});
+
+test('run produces MET, FUTURE and UNKNOWN pathways on a typical scenario', () => {
+  const draft: AustraliaDraft = {
+    ...fullAustraliaDraft(),
+    // 491 started 2023-12-01: 3 years not yet completed on 2026-11-23 -> AU-190 is FUTURE (2026-12-01),
+    // while AU-191 is also FUTURE (2026-12-01) and AU-189-PT is UNKNOWN (no 189 invitation).
+    // Adding an earlier 491 from 2023-07-01 makes AU-191 MET on 2026-11-23!
+    visas: [{ subclass: '491', from: '2023-12-01' }],
+  };
+  const futureAndUnknown = au.run(draft, 'zh-CN').columns[0].pathways;
+  const p190 = futureAndUnknown.find((p) => p.id === 'AU-190')!;
+  const p189 = futureAndUnknown.find((p) => p.id === 'AU-189-PT')!;
+  expect(p190).toMatchObject({
+    status: 'FUTURE',
+    earliestDate: '2026-12-01',
+  });
+  expect(p189).toMatchObject({
+    status: 'UNKNOWN',
+  });
+  expect(p189.earliestDate).toBeUndefined();
+
+  // With 491 held since 2023-07-01, both AU-191 and AU-190 are MET on 2026-11-23, while AU-189-PT stays UNKNOWN.
+  const metResult = au.run(fullAustraliaDraft(), 'en').columns[0].pathways;
+  expect(metResult.find((p) => p.id === 'AU-191')).toMatchObject({
+    status: 'MET',
+    earliestDate: '2026-11-23',
+  });
+  expect(metResult.find((p) => p.id === 'AU-190')).toMatchObject({
+    status: 'MET',
+    earliestDate: '2026-11-23',
+  });
+  expect(metResult.find((p) => p.id === 'AU-189-PT')?.status).toBe('UNKNOWN');
+});
+
+test('what-if knobs update simulation date, trips, IELTS band, 186 salary, 191 tax years, citizenship test and health', () => {
+  const base: AustraliaDraft = {
+    ...fullAustraliaDraft(),
+    visas: [{ subclass: '491', from: '2023-12-01' }],
+    employer: {
+      exemption: 'none',
+      sponsorshipConduct: 'clear',
+      csolOccupation: true,
+      assessment: { kind: 'positive', issued: '2026-01-01' },
+      fullTimeExperienceYears: 4,
+      nominations: {
+        'AU-186-DE': {
+          status: 'approved',
+          lodged: '2026-07-01',
+          approved: '2026-07-10',
+          positionAvailable: true,
+          fullTimeRenewable: true,
+          offeredYears: 2,
+          annualSalary: 70000,
+          acceptedMarketRate: 70000,
+          licensing: 'unregulated',
+        },
+      },
+    },
+  };
+
+  // Baseline: AU-190 is FUTURE (2026-12-01), AU-186-DE is NOT_MET (salary 70,000 < 79,423 and 491 regional lock).
+  expect(
+    au.run(base, 'zh-CN').columns[0].pathways.find((p) => p.id === 'AU-190'),
+  ).toMatchObject({
+    status: 'FUTURE',
+    earliestDate: '2026-12-01',
+  });
+
+  // Moving date knob to 2026-12-01 turns AU-190 from FUTURE to MET, and raising salary to 80,000 turns AU-186-DE to MET.
+  const knobs = {
+    ...au.whatif.initial(base),
+    simulationDate: '2026-12-01',
+    annualSalary: 80000,
+    ieltsBand: 8,
+    taxNoticeCount: 2,
+    citizenshipTestPassed: true,
+    health: 'cost-risk' as const,
+  };
+  expect(au.whatif.validate(base, knobs)).toEqual({});
+  const after = au.whatif.apply(base, knobs);
+  expect(after.simulationDate).toBe('2026-12-01');
+  expect(
+    after.employer?.nominations?.['AU-186-DE']?.annualSalary,
+  ).toBe(80000);
+  expect(after.regional?.assessmentYears).toEqual([2025, 2026]);
+  expect(after.citizenship?.test).toEqual({ correct: 20, valuesCorrect: 5 });
+  expect(after.publicInterest?.health).toBe('cost-risk');
+
+  // Focusing rules maps to the right What-if control IDs.
+  expect(au.whatif.focusForRule('AU-191-time-held', 'AU-191')).toBe('date');
+  expect(au.whatif.focusForRule('AU-CIT-time-recent-absences', 'AU-CITIZENSHIP')).toBe(
+    'trips',
+  );
+  expect(au.whatif.focusForRule('AU-189-PT-english', 'AU-189-PT')).toBe(
+    'english',
+  );
+  expect(au.whatif.focusForRule('AU-186-DE-salary', 'AU-186-DE')).toBe(
+    'salary',
+  );
+  expect(au.whatif.focusForRule('AU-191-tax-notices', 'AU-191')).toBe(
+    'taxYears',
+  );
+  expect(au.whatif.focusForRule('AU-CIT-test', 'AU-CITIZENSHIP')).toBe(
+    'citizenshipTest',
+  );
+  expect(au.whatif.focusForRule('AU-PIC-HEALTH', 'AU-191')).toBe('health');
 });
 
 test.each(['zh-CN', 'en'] as const)(
-  'Hong Kong stream results render in %s',
+  'questionnaire, result, what-if and policy views render in %s',
   (locale) => {
-    const result = evaluateAustralia(
-      auRequest(
-        {
-          ...emptyAuForm('2026-11-22'),
-          dateOfBirth: '1990-05-01',
-          firstArrival: '2021-07-01',
-          visas: [{ subclass: '485', from: '2022-12-01', to: '2027-11-30' }],
-          hongKong: true,
-          regionalSince: '2024-06-01',
-        },
-        locale,
-      ),
+    const draft = fullAustraliaDraft();
+    const formHtml = render(
+      AustraliaSimulatePage().props.children({
+        draft,
+        errors: {},
+        update: () => {},
+      }),
+      locale,
     );
-    const html = render(<PilotResult result={result} />, locale);
-    expect(html).toContain('data-pathway="AU-189-HK"');
-    expect(html).toContain('data-pathway="AU-191-HK" data-status="FUTURE"');
-    expect(html).toContain('2027-06-01');
+    expect(formHtml).toContain('id="au-simulationDate"');
+    expect(formHtml).toContain('id="au-pathway"');
+
+    const result = readPageResult(au, locale, encodeDraft(au, draft)).result!;
+    const resultHtml = render(
+      <ResultView country={au} result={result} draft={draft} />,
+      locale,
+    );
+    expect(resultHtml).toContain('2026-11-23');
+    expect(resultHtml).toContain('SRC-200');
+
+    const whatIfHtml = render(<WhatIfView country={au} draft={draft} />, locale);
+    expect(whatIfHtml).toContain('id="au-whatif-date"');
+    expect(whatIfHtml).toContain('id="au-whatif-salary"');
+
+    const policyHtml = render(<AustraliaPolicyPage />, locale);
+    expect(policyHtml).toContain(t('au.policy.pageTitle', locale));
+    expect(policyHtml).toContain('data-source="SRC-200"');
+    expect(policyHtml).not.toContain('data-source="SRC-001"');
+    expect(policyHtml).not.toContain('data-source="SRC-110"');
   },
 );

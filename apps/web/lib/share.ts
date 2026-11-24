@@ -50,8 +50,10 @@ export function decodeDraft<D extends CountryDraft>(
       const draft = country.decodeDraft(value.draft, mode);
       return draft && (country.activeAnswers?.(draft) ?? draft);
     }
-    // Before country envelopes, only UK questionnaires produced share links.
-    return country.id === 'uk' ? country.decodeDraft(value) : undefined;
+    // Before country envelopes, only UK questionnaires (and legacy Australia forms) produced bare objects.
+    return country.id === 'uk' || country.id === 'au'
+      ? country.decodeDraft(value)
+      : undefined;
   } catch {
     return undefined;
   }
@@ -63,7 +65,7 @@ export function linkedResultDraft<D extends CountryDraft>(
   country: ShareModule<D>,
   hash: string,
 ) {
-  if (country.id !== 'jp') return undefined;
+  if (country.id !== 'jp' && country.id !== 'au') return undefined;
   const params = new URLSearchParams(hash.slice(1));
   const shared = params.get('s');
   const encoded = shared ?? params.get('draft');

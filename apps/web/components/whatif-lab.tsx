@@ -456,7 +456,8 @@ function StoredWhatIfPage<D extends CountryDraft, K>({
       loaded.current = country;
       open(window.location.hash);
     }
-    if (country.id === 'jp') return watchScenarioHash(open);
+    if (country.id === 'jp' || country.id === 'au')
+      return watchScenarioHash(open);
   }, [country]);
   return (
     <main id="main" className={site.main}>
