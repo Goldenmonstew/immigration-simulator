@@ -282,8 +282,6 @@ export interface UsEmploymentAnswers {
   permCertifiedOn?: IsoDate;
   /** Actual receipt date of the underlying I-140, on or before the simulation date. */
   i140FiledOn?: IsoDate;
-  /** Set for an existing petition, including when its exact receipt date is unavailable. */
-  i140Status?: 'pending' | 'approved';
   prevailingWageUsd?: number;
   profferedWageUsd?: number;
   recruitmentAndFeesCompliant?: boolean;
@@ -357,16 +355,18 @@ export interface UsAdmissionAnswers {
   visaAtFiling?: UsVisaAvailability;
   /** Confirmed future opening date for NVC submission, when not yet authorized. */
   nvcFilingOpensOn?: IsoDate;
+  /** Readiness of required civil documents for all applicants, after country-specific exceptions. */
+  nvcCivilDocuments?: 'complete' | 'missing' | 'nonavailability-explained';
   /** USCIS filing chart by YYYY-MM; required for a receipt in a different month. */
   visaAtFilingByMonth?: Partial<Record<string, UsVisaAvailability>>;
   /** Final Action Dates status as of the simulation date. */
   visaAtDecision?: UsVisaAvailability;
   /** Final Action Dates by YYYY-MM, using the month of adjudication. */
   visaAtDecisionByMonth?: Partial<Record<string, UsVisaAvailability>>;
-  /** Adjudication date to assess, when known. */
+  /** Adjudication date to assess, after the interview for a consular case. */
   decisionOn?: IsoDate;
   qualifyingBasis?: UsReview;
-  /** Status of the petition underlying this adjustment, where applicable. */
+  /** Status of the underlying petition, including an I-140 with an unknown receipt date. */
   petitionStatus?: 'filed-with-i485' | 'pending' | 'approved';
   legalEntry?: 'admitted' | 'paroled' | 'without-inspection';
   adjustmentBasis?:

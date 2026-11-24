@@ -1211,10 +1211,12 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-pm-v7-a-ch6.html` → <https://www.uscis.gov/policy-manual/volume-7-part-a-chapter-6>
 - `policy-sources/2026-11-23-us-visa-availability.html` → <https://www.uscis.gov/green-card/green-card-processes-and-procedures/visa-availability-and-priority-dates>
 - `policy-sources/2026-11-23-us-i485instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf>
+- 8 U.S.C. §1255(h)(1) 在适用 §1255(a) 时，将获批的 SIJ 视为已获准假释入境。
 - 8 CFR §245.1(b)(4)–(6)、(10) 中的 SIJ 例外适用于身份中断和相关就业违规，其他禁令仍须核对。
 - 8 CFR §245.2(a)(2)(i)(A)–(C)、8 U.S.C. §1255(n) 及 I-485 Instructions pp3、17–21 规定适用即时亲属、亲属优先、I-140、EB-5、VAWA 和 SIJ 等类别的同时递交。7 USCIS-PM A.6(A)、(C)(4)–(5) 要求核对基础请愿案及递交月、裁决月两阶段的名额。I-485 Instructions p11 Item 9 要求按适用情形随件递交 I-693 或疫苗记录。
 - 国务院说明 NVC 在请愿案获批后通知申请人付款和递件，即时亲属同样由 NVC 发出通知。受排期限制的申请人按适用的 Dates for Filing 和收到的 NVC 说明递件，核准用 Final Action Dates。见 [National Visa Center，What happens after USCIS sends my petition to the NVC?](https://travel.state.gov/content/travel/en/us-visas/immigrate/national-visa-center.html)、[Visa Bulletin，Dates for Filing](https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin/2026/visa-bulletin-for-september-2026.html)。
 - NVC 审完签证申请、适用的 I-864 和支持文件，才发 documentarily complete 通知。适用的法庭、监狱及警方记录在递件阶段收集。见 [Submit Documents，Documentarily Complete](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-8-scan-collected-documents/step-9-upload-and-submit-scanned-documents.html)、[Civil Documents，Court and Prison Records、Police Certificates](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-5-collect-financial-evidence-and-other-supporting-documents/step-7-collect-civil-documents.html)。
+- CEAC 的必需民事文件有缺件时无法递交。适用国家互惠表的不可取得例外，或按要求补交书面缺件说明后，仍由领馆判断能否签发。见 [Submit Documents，Step 9](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-8-scan-collected-documents/step-9-upload-and-submit-scanned-documents.html)、[Civil Documents FAQs，I can’t get one of the required civil documents、The “Submit” button isn’t working](https://travel.state.gov/content/travel/en/us-visas/immigrate/civil-documents-faq.html)。
 
 ## SRC-310 境内调整身份的裁量
 
@@ -1226,6 +1228,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-usc-8usc1182.html` → <https://uscode.house.gov/us/usc/t8/s1182/>
 - `policy-sources/2026-11-19-us-ecfr-8cfr-part212.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=212>
 - `policy-sources/2026-09-23-us-pa-criminal-inadmissibility.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20260923-CriminalInadmissibility.pdf>
+- 8 U.S.C. §1182(a)(9)(B)(i)(I)–(II) 的非法居留禁令按离境后再次寻求入境的时点核对。领馆路径在签证裁决阶段按裁决日核对禁令是否届满。
 - `policy-sources/2026-11-24-us-9fam504.8.html`。签证裁决官完成确定签发资格所需的安全核查。见 [9 FAM 504.8-3，Clearing Immigrant Visa Applicants](https://fam.state.gov/FAM/09FAM/09FAM050408.html#M504_8_3)。
 
 ## SRC-312 体检、疫苗与 I-693 有效性
@@ -1236,6 +1239,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-i693instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-693instr.pdf>
 - `policy-sources/2026-11-23-us-9fam302.2.html` → <https://fam.state.gov/FAM/09FAM/09FAM030202.html>
 - 国务院要求在 NVC 发出面谈通知后安排指定医生体检。面谈阶段带照片和已递交的民事文件正本或认证副本。见 [Appointment，Medical Examination、What Do I Need to Bring to the Interview](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-10-prepare-for-the-interview/appointment.html)、[Prepare for the Interview，Step 10](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-10-prepare-for-the-interview.html)。
+- 领事官员在面谈后决定是否符合签证资格。NVC 确认所需资料齐备后再安排面谈，具体安排取决于签证名额及领馆提供的档期。见 [Applicant Interview，Step 11](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-10-prepare-for-the-interview/step-11-applicant-interview.html)、[Submit Documents，Documentarily Complete](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-8-scan-collected-documents/step-9-upload-and-submit-scanned-documents.html)。
 
 ## SRC-313 DHS 公共负担与领馆 FAM 对照
 

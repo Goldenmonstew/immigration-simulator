@@ -97,11 +97,11 @@ function criminalGrounds(
 
 function unlawfulPresence(
   a: UsAdmissionAnswers | undefined,
-  date: string,
+  date: IsoDate | undefined,
 ): Answer {
   const departure = a?.unlawfulDeparture;
   if (departure === 'none') return true;
-  if (!departure || departure.leftOn > date) return undefined;
+  if (!departure || !date || departure.leftOn > date) return undefined;
   const law = v.unlawfulPresence.value;
   if (departure.qualifyingDays >= law.longDays)
     return date >= afterYears(departure.leftOn, law.longBarYears);
@@ -117,6 +117,7 @@ export function admissionChecks(
   request: UsFullRequest,
   a: UsAdmissionAnswers | undefined,
   scope: 'immigrant' | 'return' | 'humanitarian' = 'immigrant',
+  consularDates?: { receipt: IsoDate; decision?: IsoDate },
 ) {
   const check = checksFor(request);
   const date = request.simulationDate;
@@ -140,11 +141,11 @@ export function admissionChecks(
       ? a.falseCitizenshipException
       : not(a?.falseCitizenship);
   const other = reviewed(a?.otherInadmissibility);
-  const immigration = [
+  const immigrationAt = (on: IsoDate | undefined) => [
     falseClaim,
     not(a?.unlawfulReentryBar),
     ...ordinaryWaiver(
-      [unlawfulPresence(a, date), noFraud, other],
+      [unlawfulPresence(a, on), noFraud, other],
       a?.immigrationWaiver,
     ),
   ];
@@ -193,7 +194,10 @@ export function admissionChecks(
       ? undefined
       : a.securityGround !== 'nonwaivable',
   );
-  const immigrationResult = assessGround(immigration, true);
+  const immigrationResult = assessGround(
+    immigrationAt(consularDates ? consularDates.decision : date),
+    true,
+  );
   return [
     check(
       'C36-HEALTH',
@@ -285,7 +289,9 @@ export function admissionChecks(
         '按合资格非法居留天数与离境日期计算禁令；另核对虚称公民、递解、非法再入境及可用豁免。',
         'Use qualifying unlawful-presence days and the departure date to assess the bars. Separately check false citizenship claims, removal, unlawful reentry and available waivers.',
       ],
-      immigrationResult.filingStatus,
+      consularDates
+        ? checkStatus(all(...immigrationAt(consularDates.receipt)))
+        : immigrationResult.filingStatus,
     ),
   ];
 }
@@ -317,11 +323,12 @@ function adjustmentBar(a?: UsAdmissionAnswers, immediate?: Answer): Answer {
 export function adjustmentChecks(
   request: UsFullRequest,
   receipt: IsoDate,
-  decision: IsoDate,
+  decision: IsoDate | undefined,
 ) {
   const check = checksFor(request);
   const a = request.admission;
   const basis = a?.adjustmentBasis;
+  const petition = a?.petitionStatus;
   const usesFamilyClassification =
     request.pathway === 'US-FAMILY' ||
     (basis === 'family-preference' && request.family !== undefined);
@@ -337,21 +344,27 @@ export function adjustmentChecks(
   const consular = a?.process === 'consular';
   const simulationMonth = request.simulationDate.slice(0, 7);
   const receiptMonth = receipt.slice(0, 7);
-  const decisionMonth = decision.slice(0, 7);
+  const decisionMonth = decision?.slice(0, 7);
   const filingChart =
     a?.process === 'adjustment'
       ? (a.visaAtFilingByMonth?.[receiptMonth] ??
         (receiptMonth === simulationMonth ? a.visaAtFiling : undefined))
       : a?.visaAtFiling;
-  const decisionChart =
-    a?.visaAtDecisionByMonth?.[decisionMonth] ??
-    (decisionMonth === simulationMonth ? a?.visaAtDecision : undefined);
   const visaAtFiling = consular
     ? receipt > request.simulationDate || availability(filingChart)
     : any(immediate, availability(filingChart));
-  const visaAtDecision = any(immediate, availability(decisionChart));
+  const visaAtDecision = decisionMonth
+    ? any(
+        immediate,
+        availability(
+          a?.visaAtDecisionByMonth?.[decisionMonth] ??
+            (decisionMonth === simulationMonth ? a?.visaAtDecision : undefined),
+        ),
+      )
+    : undefined;
+  const approvedSij = basis === 'sij' && petition === 'approved';
   const entry =
-    a?.legalEntry === 'admitted' || a?.legalEntry === 'paroled'
+    approvedSij || a?.legalEntry === 'admitted' || a?.legalEntry === 'paroled'
       ? true
       : a?.legalEntry === 'without-inspection'
         ? basis === 'vawa'
@@ -372,11 +385,9 @@ export function adjustmentChecks(
     employment?.category === 'eb2-perm' ||
     employment?.category === 'eb3';
   const usesI140 = employmentBasis && (i140Category || !employment?.category);
-  const i140Status = usesI140 ? employment?.i140Status : undefined;
   const i140FiledOn = usesI140 ? employment?.i140FiledOn : undefined;
   const inconsistentI140Date =
     i140FiledOn !== undefined && i140FiledOn > request.simulationDate;
-  const petition = a?.petitionStatus ?? i140Status;
   const awaitingPetition =
     petition === 'pending' || petition === 'filed-with-i485';
   const concurrent =
@@ -388,7 +399,7 @@ export function adjustmentChecks(
         basis === 'sij' ||
         (employmentBasis &&
           (i140Category ||
-            i140Status !== undefined ||
+            i140FiledOn !== undefined ||
             employment?.category === 'eb5')) ||
         undefined
       : consular
@@ -405,6 +416,7 @@ export function adjustmentChecks(
         visaAtFiling,
         consular ? true : a?.process === 'adjustment' ? entry : undefined,
       );
+  const civilDocuments = a?.nvcCivilDocuments;
   return [
     check(
       'C33-VISA-AND-ENTRY',
@@ -419,7 +431,7 @@ export function adjustmentChecks(
           ),
       [
         ...s.adjustment,
-        ...(consular ? s.consularFiling : []),
+        ...(consular ? [...s.consularFiling, ...s.consularInterview] : []),
         ...(usesFamilyClassification ? s.relationship : []),
       ],
       'PD-272',
@@ -428,14 +440,37 @@ export function adjustmentChecks(
             '已填的 I-140 实际收件日晚于模拟日。请核对收件日和请愿状态。',
             'The reported I-140 receipt is after the simulation date. Verify the receipt date and petition status.',
           ]
-        : [
-            `境内按 USCIS 收件月份（${receiptMonth}）指定表确认能否递交，领馆材料按 NVC 通知提交。允许同时递交的案件仍须等基础请愿案获批。受排期限制的案件按裁决月份（${decisionMonth}）的 Final Action Dates 确认名额。未满龄或 CSPA 锁龄的美国公民未婚子女可能属于即时亲属。`,
-            `Use the USCIS chart designated for the receipt month (${receiptMonth}), or NVC authorization to submit consular documents. Where concurrent filing is allowed, approval still depends on approval of the underlying petition. For numerically limited cases, use the Final Action Dates for the decision month (${decisionMonth}). An unmarried child of a U.S. citizen may qualify as an immediate relative based on age or CSPA protection.`,
-          ],
+        : decisionMonth === undefined
+          ? [
+              '按 NVC 通知的开放日递件。请提供面谈后的裁决日，再核对签证核准条件及适用的 Final Action Dates。',
+              'Submit on the opening date confirmed by NVC. Provide the post-interview adjudication date to assess visa approval and any applicable Final Action Dates.',
+            ]
+          : [
+              `境内按 USCIS 收件月份（${receiptMonth}）指定表确认能否递交，领馆材料按 NVC 通知提交。允许同时递交的案件仍须等基础请愿案获批。受排期限制的案件按裁决月份（${decisionMonth}）的 Final Action Dates 确认名额。未满龄或 CSPA 锁龄的美国公民未婚子女可能属于即时亲属。`,
+              `Use the USCIS chart designated for the receipt month (${receiptMonth}), or NVC authorization to submit consular documents. Where concurrent filing is allowed, approval still depends on approval of the underlying petition. For numerically limited cases, use the Final Action Dates for the decision month (${decisionMonth}). An unmarried child of a U.S. citizen may qualify as an immediate relative based on age or CSPA protection.`,
+            ],
       checkStatus(filing),
     ),
     ...(consular
-      ? []
+      ? [
+          check(
+            'NVC-CIVIL-DOCUMENTS',
+            'NVC 必需民事文件',
+            'Required NVC civil documents',
+            civilDocuments === 'complete'
+              ? true
+              : civilDocuments === 'missing'
+                ? false
+                : undefined,
+            s.consularDocuments,
+            'PD-272',
+            [
+              '递件须备齐适用的民事文件或所需的缺件说明。若以说明递件，签证核准前仍须由领馆确认能否接受缺件。',
+              'Prepare the required civil documents or the applicable statements of non-availability for submission. If you submit a statement, the consular officer must confirm whether the visa can be issued without the document.',
+            ],
+            civilDocuments === 'nonavailability-explained' ? 'MET' : undefined,
+          ),
+        ]
       : [
           check(
             'C34-ADJUSTMENT-BARS',
@@ -460,7 +495,12 @@ export function adjustmentChecks(
             'NOT_APPLICABLE',
           ),
         ]),
-    ...admissionChecks(request, a),
+    ...admissionChecks(
+      request,
+      a,
+      'immigrant',
+      consular ? { receipt, decision } : undefined,
+    ),
   ];
 }
 

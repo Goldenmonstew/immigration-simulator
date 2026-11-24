@@ -337,7 +337,11 @@ export function employmentChecks(request: UsFullRequest) {
     ),
   ];
   if (category === 'eb2-perm' || category === 'eb3') {
-    const priorI140 = a.i140Status !== undefined || a.i140FiledOn !== undefined;
+    const petition = request.admission?.petitionStatus;
+    const priorI140 =
+      petition === 'pending' ||
+      petition === 'approved' ||
+      a.i140FiledOn !== undefined;
     const inconsistentI140Date =
       a.i140FiledOn !== undefined && a.i140FiledOn > date;
     const i140Date = priorI140
@@ -384,7 +388,7 @@ export function employmentChecks(request: UsFullRequest) {
           'PERM 有效期按使用它的 I-140 收件日核对。拟递交 I-140 时使用预计收件日。',
           'Check PERM validity on the date USCIS received the I-140 using it. For a prospective I-140, use the expected receipt date.',
         ],
-        a.i140Status === 'approved' ? checkStatus(offer) : undefined,
+        petition === 'approved' ? checkStatus(offer) : undefined,
       ),
       check(
         'C29-ABILITY-TO-PAY',

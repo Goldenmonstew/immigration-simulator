@@ -400,7 +400,7 @@ export const unitedStatesFullSources = {
     ),
   ],
   adjustment: [
-    usc('SRC-309', '1255', '(a), (h), (i), (n)'),
+    usc('SRC-309', '1255', '(a), (h)(1), (i), (n)'),
     source('SRC-309', '8 CFR 245.2(a)(2)(i)(A)–(C)'),
     pm('SRC-309', 7, 'A', 6, '(A), (C)'),
     source(
@@ -414,6 +414,25 @@ export const unitedStatesFullSources = {
       'SRC-309',
       'DOS National Visa Center, What happens after USCIS sends my petition to the NVC?',
       'https://travel.state.gov/content/travel/en/us-visas/immigrate/national-visa-center.html',
+    ),
+  ],
+  consularDocuments: [
+    source(
+      'SRC-309',
+      'DOS Submit Documents, Step 9 and Documentarily Complete',
+      'https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-8-scan-collected-documents/step-9-upload-and-submit-scanned-documents.html',
+    ),
+    source(
+      'SRC-309',
+      'DOS Civil Documents FAQs, I can’t get one of the required civil documents',
+      'https://travel.state.gov/content/travel/en/us-visas/immigrate/civil-documents-faq.html',
+    ),
+  ],
+  consularInterview: [
+    source(
+      'SRC-312',
+      'DOS Applicant Interview, Step 11',
+      'https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-10-prepare-for-the-interview/step-11-applicant-interview.html',
     ),
   ],
   adjustmentBars: [

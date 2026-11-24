@@ -223,7 +223,12 @@ const e: UsFullRequest = {
 };
 const withEmployment = (
   overrides: Partial<UsEmploymentAnswers>,
-): UsFullRequest => ({ ...e, employment: { ...employment, ...overrides } });
+  petitionStatus?: UsAdmissionAnswers['petitionStatus'],
+): UsFullRequest => ({
+  ...e,
+  employment: { ...employment, ...overrides },
+  admission: { ...e.admission, petitionStatus },
+});
 const eb1a = withEmployment({
   category: 'eb1a',
   internationalAward: false,
@@ -253,7 +258,11 @@ const gold: UsFullRequest = {
       fundsAndWire: 'cleared',
     },
   }),
-  admission: { ...admission, process: 'consular' },
+  admission: {
+    ...admission,
+    process: 'consular',
+    nvcCivilDocuments: 'complete',
+  },
   fees: { channel: 'online' },
 };
 const human: UsHumanitarianAnswers = {
@@ -1383,6 +1392,7 @@ describe('admission, fees and pathway results', () => {
   test('consular cases omit adjustment discretion and a future bulletin keeps the decision unknown', () => {
     const consular = withAdmission({
       process: 'consular',
+      nvcCivilDocuments: 'complete',
       adjustmentBasis: 'employment',
       visaAtDecision: 'future-bulletin',
       publicCharge: 'pending',
@@ -1625,10 +1635,7 @@ describe('review86-1 regressions', () => {
         marriage: { ...marriage, filing: 'hardship', waiverBasis: 'cleared' },
       },
     };
-    const employed = withEmployment({
-      i140FiledOn: '2026-07-01',
-      i140Status: 'approved',
-    });
+    const employed = withEmployment({ i140FiledOn: '2026-07-01' }, 'approved');
     for (const request of [
       n,
       spouse,
@@ -1767,21 +1774,20 @@ describe('review86-1 regressions', () => {
   });
 
   test('I-485 does not restart PERM validity after a timely I-140', () => {
-    const approved = withEmployment({
-      permCertifiedOn: '2025-06-01',
-      i140FiledOn: '2025-07-01',
-      i140Status: 'approved',
-    });
+    const approved = withEmployment(
+      { permCertifiedOn: '2025-06-01', i140FiledOn: '2025-07-01' },
+      'approved',
+    );
     expect(condition(approved, 'C28-OFFER-PERM').status).toBe('MET');
     expect(path(approved)).toMatchObject({
       status: 'MET',
       approvalStatus: 'MET',
       earliestDate: time.simulationDate,
     });
-    const missing = withEmployment({
-      permCertifiedOn: '2025-06-01',
-      i140Status: 'approved',
-    });
+    const missing = withEmployment(
+      { permCertifiedOn: '2025-06-01' },
+      'approved',
+    );
     expect(condition(missing, 'C28-OFFER-PERM')).toMatchObject({
       status: 'UNKNOWN',
       pendingDetails: ['PD-277'],
@@ -1791,11 +1797,10 @@ describe('review86-1 regressions', () => {
       approvalStatus: 'UNKNOWN',
       earliestDate: time.simulationDate,
     });
-    const late = withEmployment({
-      permCertifiedOn: '2025-06-01',
-      i140FiledOn: '2025-11-29',
-      i140Status: 'pending',
-    });
+    const late = withEmployment(
+      { permCertifiedOn: '2025-06-01', i140FiledOn: '2025-11-29' },
+      'pending',
+    );
     expect(condition(late, 'C28-OFFER-PERM').status).toBe('NOT_MET');
     expect(path(late).approvalStatus).toBe('NOT_MET');
   });
@@ -2180,14 +2185,7 @@ describe('review86-2 regressions', () => {
       support: { ...support, sponsorStatus: 'lpr' },
       admission: { ...admission, adjustmentBasis: 'family-preference' },
     };
-    const employed = {
-      ...e,
-      employment: {
-        ...employment,
-        i140FiledOn: '2026-07-01',
-        i140Status: 'approved' as const,
-      },
-    };
+    const employed = withEmployment({ i140FiledOn: '2026-07-01' }, 'approved');
     for (const request of [
       preference,
       employed,
@@ -2266,6 +2264,7 @@ describe('review86-2 regressions', () => {
       admission: {
         ...preference.admission,
         process: 'consular',
+        nvcCivilDocuments: 'complete',
         visaAtFilingByMonth: { '2026-10': 'unavailable' },
       },
     };
@@ -2504,8 +2503,12 @@ describe('review86-3 regressions', () => {
   test('a timely pending I-140 permits filing under either basis answer, while approval waits', () => {
     for (const qualifyingBasis of ['cleared', 'pending'] as const) {
       const pending: UsFullRequest = {
-        ...withEmployment({ i140FiledOn: '2026-07-01', i140Status: 'pending' }),
-        admission: { ...e.admission, qualifyingBasis },
+        ...withEmployment({ i140FiledOn: '2026-07-01' }),
+        admission: {
+          ...e.admission,
+          qualifyingBasis,
+          petitionStatus: 'pending',
+        },
       };
       expect(condition(pending, 'C33-VISA-AND-ENTRY')).toMatchObject({
         filingStatus: 'MET',
@@ -2528,10 +2531,7 @@ describe('review86-3 regressions', () => {
       expect(path(unavailable).earliestDate).toBeUndefined();
       expect(path(unavailable).approvalEarliestDate).toBeUndefined();
     }
-    const approved = withEmployment({
-      i140FiledOn: '2026-07-01',
-      i140Status: 'approved',
-    });
+    const approved = withEmployment({ i140FiledOn: '2026-07-01' }, 'approved');
     expect(path(approved)).toMatchObject({
       status: 'MET',
       earliestDate: time.simulationDate,
@@ -2689,16 +2689,18 @@ describe('review86-3 regressions', () => {
   );
 });
 
-describe('review86-4 regressions', () => {
-  const consular: UsFullRequest = {
-    ...f,
-    admission: {
-      ...admission,
-      process: 'consular',
-      petitionStatus: 'approved',
-    },
-  };
+const authorizedConsular: UsFullRequest = {
+  ...f,
+  admission: {
+    ...admission,
+    process: 'consular',
+    petitionStatus: 'approved',
+    nvcCivilDocuments: 'complete',
+  },
+};
 
+describe('review86-4 regressions', () => {
+  const consular = authorizedConsular;
   test.each([
     ['unavailable', 'NOT_MET'],
     [undefined, 'UNKNOWN'],
@@ -2724,11 +2726,12 @@ describe('review86-4 regressions', () => {
   test('uses a confirmed future NVC opening independently of the adjudication chart', () => {
     const opensOn = '2026-12-01';
     const request: UsFullRequest = {
-      ...e,
+      ...withEmployment({ i140FiledOn: '2026-07-01' }),
       admission: {
         ...e.admission,
         process: 'consular',
         petitionStatus: 'approved',
+        nvcCivilDocuments: 'complete',
         visaAtFiling: 'unavailable',
         nvcFilingOpensOn: opensOn,
       },
@@ -2740,19 +2743,50 @@ describe('review86-4 regressions', () => {
       approvalStatus: 'UNKNOWN',
     });
     expect(awaitingChart.approvalEarliestDate).toBeUndefined();
-    expect(
-      path({
-        ...request,
-        admission: {
-          ...request.admission,
-          visaAtDecisionByMonth: { '2026-12': 'available' },
-        },
-      }),
-    ).toMatchObject({
+    const withChart: UsFullRequest = {
+      ...request,
+      admission: {
+        ...request.admission,
+        visaAtDecisionByMonth: { '2026-12': 'available' },
+      },
+    };
+    for (const decisionOn of [undefined, '2026-11-30', opensOn]) {
+      const candidate = {
+        ...withChart,
+        admission: { ...withChart.admission, decisionOn },
+      };
+      expect(condition(candidate, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        filingStatus: 'MET',
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-272'],
+      });
+      const result = path(candidate);
+      expect(result).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: opensOn,
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(result.approvalEarliestDate).toBeUndefined();
+    }
+    const decisionOn = '2027-01-05';
+    const withDecision: UsFullRequest = {
+      ...withChart,
+      admission: { ...withChart.admission, decisionOn },
+    };
+    expect(path(withDecision).approvalStatus).toBe('UNKNOWN');
+    expect(path(withDecision).approvalEarliestDate).toBeUndefined();
+    const withDecisionChart = path({
+      ...withDecision,
+      admission: {
+        ...withDecision.admission,
+        visaAtDecisionByMonth: { '2027-01': 'available' },
+      },
+    });
+    expect(withDecisionChart).toMatchObject({
       status: 'FUTURE',
       earliestDate: opensOn,
       approvalStatus: 'FUTURE',
-      approvalEarliestDate: opensOn,
+      approvalEarliestDate: decisionOn,
     });
   });
 
@@ -2828,12 +2862,11 @@ describe('review86-4 regressions', () => {
 
   test.each(['pending', 'approved', undefined] as const)(
     'treats an I-140 receipt after the simulation date as inconsistent (%s)',
-    (i140Status) => {
-      const request = withEmployment({
-        permCertifiedOn: '2026-06-01',
-        i140FiledOn: '2026-11-24',
-        i140Status,
-      });
+    (petitionStatus) => {
+      const request = withEmployment(
+        { permCertifiedOn: '2026-06-01', i140FiledOn: '2026-11-24' },
+        petitionStatus,
+      );
       expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
         filingStatus: 'UNKNOWN',
         status: 'UNKNOWN',
@@ -2850,6 +2883,173 @@ describe('review86-4 regressions', () => {
       });
       expect(result.earliestDate).toBeUndefined();
       expect(result.approvalEarliestDate).toBeUndefined();
+    },
+  );
+});
+
+describe('review86-5 regressions', () => {
+  test('uses the planned return date for the full assessment and preserves legacy timing', () => {
+    const returned = '2026-12-01';
+    const trips = [{ departed: '2026-11-20', returned }];
+    const request = { ...t, trips };
+    expect(path(request)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: returned,
+    });
+    expect(path(request).approvalStatus).toBeUndefined();
+    expect(path({ ...request, simulationDate: returned })).toMatchObject({
+      status: 'MET',
+      earliestDate: returned,
+    });
+    expect(
+      evaluateUnitedStates({ ...time, trips }).pathways.find(
+        (item) => item.id === 'US-TRAVEL',
+      ),
+    ).toMatchObject({ status: 'MET', earliestDate: time.simulationDate });
+  });
+
+  test('checks admission on the planned return day and omits the date when documents fail', () => {
+    const returned = '2026-12-05';
+    const request: UsFullRequest = {
+      ...t,
+      trips: [{ departed: '2026-11-28', returned }],
+      travel: {
+        ...travel,
+        admissionTriggers: 'triggered',
+        admission: {
+          ...admission,
+          unlawfulDeparture: { leftOn: '2016-12-01', qualifyingDays: 400 },
+        },
+      },
+      fees: { channel: 'paper' },
+    };
+    expect(condition(request, 'C40-IMMIGRATION-HISTORY').status).toBe('MET');
+    expect(path(request)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: returned,
+    });
+    const invalid = path({
+      ...request,
+      travel: { ...request.travel, documentValidAtReturn: false },
+    });
+    expect(invalid.status).toBe('NOT_MET');
+    expect(invalid.earliestDate).toBeUndefined();
+  });
+
+  test('an approved I-140 uses its actual receipt to check the historical PERM', () => {
+    const request: UsFullRequest = {
+      ...e,
+      employment: { ...employment, permCertifiedOn: '2025-10-01' },
+      admission: { ...e.admission, petitionStatus: 'approved' },
+    };
+    expect(condition(request, 'C33-VISA-AND-ENTRY').status).toBe('MET');
+    expect(condition(request, 'C28-OFFER-PERM')).toMatchObject({
+      filingStatus: 'MET',
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-277'],
+    });
+    expect(path(request)).toMatchObject({
+      status: 'MET',
+      earliestDate: time.simulationDate,
+      approvalStatus: 'UNKNOWN',
+    });
+    expect(path(request).approvalEarliestDate).toBeUndefined();
+    const withReceipt = {
+      ...request,
+      employment: { ...request.employment, i140FiledOn: '2025-11-01' },
+    };
+    expect(condition(withReceipt, 'C28-OFFER-PERM').status).toBe('MET');
+    expect(path(withReceipt)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'MET',
+      approvalEarliestDate: time.simulationDate,
+    });
+  });
+
+  test.each(['without-inspection', undefined] as const)(
+    'treats approved SIJ as paroled for adjustment (%s)',
+    (legalEntry) => {
+      const request: UsFullRequest = {
+        ...p7,
+        family: undefined,
+        support: undefined,
+        admission: {
+          ...admission,
+          adjustmentBasis: 'sij',
+          petitionStatus: 'approved',
+          legalEntry,
+          publicCharge: undefined,
+        },
+      };
+      expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        filingStatus: 'MET',
+        status: 'MET',
+      });
+      expect(path(request)).toMatchObject({
+        status: 'MET',
+        earliestDate: time.simulationDate,
+        approvalStatus: 'MET',
+        approvalEarliestDate: time.simulationDate,
+      });
+    },
+  );
+
+  test.each([
+    ['missing', 'NOT_MET', 'NOT_MET'],
+    [undefined, 'UNKNOWN', 'UNKNOWN'],
+    ['nonavailability-explained', 'MET', 'UNKNOWN'],
+  ] as const)(
+    'checks civil documents before filing with NVC (%s)',
+    (nvcCivilDocuments, status, approvalStatus) => {
+      const request: UsFullRequest = {
+        ...authorizedConsular,
+        admission: {
+          ...authorizedConsular.admission,
+          nvcCivilDocuments,
+          medicalEvidence:
+            nvcCivilDocuments === 'nonavailability-explained'
+              ? 'cleared'
+              : 'pending',
+        },
+      };
+      expect(condition(request, 'C33-VISA-AND-ENTRY').filingStatus).toBe('MET');
+      expect(condition(request, 'NVC-CIVIL-DOCUMENTS').status).toBe(
+        approvalStatus,
+      );
+      const result = path(request);
+      expect(result).toMatchObject({ status, approvalStatus });
+      expect(result.earliestDate).toBe(
+        status === 'MET' ? time.simulationDate : undefined,
+      );
+      expect(result.approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test.each([
+    ['2026-11-30', 'NOT_MET', 'NOT_MET'],
+    ['2026-12-01', 'MET', 'FUTURE'],
+    ['2026-12-10', 'MET', 'FUTURE'],
+  ] as const)(
+    'checks expiry of the unlawful-presence bar at consular adjudication (%s)',
+    (decisionOn, immigrationStatus, approvalStatus) => {
+      const request: UsFullRequest = {
+        ...authorizedConsular,
+        admission: {
+          ...authorizedConsular.admission,
+          unlawfulDeparture: { leftOn: '2016-12-01', qualifyingDays: 400 },
+          decisionOn,
+        },
+      };
+      expect(condition(request, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
+        filingStatus: 'NOT_MET',
+        status: immigrationStatus,
+      });
+      const result = path(request);
+      expect(result).toMatchObject({ status: 'NOT_MET', approvalStatus });
+      expect(result.earliestDate).toBeUndefined();
+      expect(result.approvalEarliestDate).toBe(
+        approvalStatus === 'FUTURE' ? decisionOn : undefined,
+      );
     },
   );
 });

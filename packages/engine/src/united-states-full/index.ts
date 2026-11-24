@@ -418,11 +418,13 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       ? nvcOpening
       : undefined;
   const adjustmentReceipt = receiptOn(nvcFilingDate ?? date);
-  const decisionOn = request.admission?.decisionOn;
+  const decisionOn = admission?.decisionOn;
   const decision =
     decisionOn && decisionOn > adjustmentReceipt
       ? decisionOn
-      : adjustmentReceipt;
+      : nvcFilingDate
+        ? undefined
+        : adjustmentReceipt;
   let eligibility: FilingTiming = {
     status: 'MET',
     earliestDate: nvcFilingDate,
@@ -536,6 +538,8 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
     }
     case 'US-TRAVEL': {
       const travel = travelChecks(request);
+      if (travel.returnedOn && travel.returnedOn > date)
+        eligibility.earliestDate = travel.returnedOn;
       requirements = [
         ...travel.checks,
         ...(travel.seekingAdmission === true
@@ -606,7 +610,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       item.approvalRequirementDate && item.approvalRequirementDate > earliest
         ? item.approvalRequirementDate
         : earliest,
-    immigrantApplication ? decision : receipt,
+    immigrantApplication ? (decision ?? receipt) : receipt,
   );
   const combine = (filing: boolean): PilotStatus => {
     if (timing === 'NOT_APPLICABLE') return timing;
@@ -659,8 +663,12 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       'Complete the missing information or obtain the individual findings before confirming this pathway.',
     ),
     FUTURE: L(
-      '已评估的递交条件须等到最早递交日。',
-      'The assessed filing requirements can be met on the earliest filing date shown.',
+      request.pathway === 'US-TRAVEL'
+        ? '所填资料满足计划返美日的已评估条件。'
+        : '已评估的递交条件须等到最早递交日。',
+      request.pathway === 'US-TRAVEL'
+        ? 'The information entered meets the assessed requirements on the planned return date.'
+        : 'The assessed filing requirements can be met on the earliest filing date shown.',
     ),
     NOT_APPLICABLE: L(
       '该类绿卡无需取消条件。',

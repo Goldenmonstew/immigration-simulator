@@ -212,3 +212,29 @@ PROGRESS 596 对应建议提交 `Fix: 修正美国领馆递件、公共负担豁
 ### 4. 发现与建议
 
 后续问卷可将 NVC 递件通知、文件齐备通知（DQ）与面谈通知分别采集。`visaAtFiling` 表示第一个时点。DQ 由 NVC 在审核已递交资料后确认，依据为 SRC-309 Submit Documents 的 Documentarily Complete 段。
+
+## 第五轮审核修正（review86-5）
+
+### 1. 做了什么
+
+PROGRESS 597 对应建议提交 `Fix: 修正美国返美日期、I-140 与领馆裁决条件（review86-5）`，附 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+- **P4 计划返美。** 按所填未来返美日核对证件和准入并汇总，条件齐备时返回 `FUTURE` 和该日。审核复现为 `2026-12-01`。条件不满足或资料不足时省略日期。核对了其他行程用途，P1、P2 继续按候选递交日之前的实际在美与离境窗口计算。依据为 SRC-080 的 8 CFR §§211.1(a)、211.3，SRC-300 的回美证及 SB-1 规则，以及 SRC-079 的 8 U.S.C. §1101(a)(13)(C)。
+- **C28／C33 职业请愿。** 请愿状态统一用 `admission.petitionStatus`，实际收件日用 `employment.i140FiledOn`。已获批的 I-140 按实际收件日核对 PERM。缺少历史收件日时 C28 核准项为 `UNKNOWN`，已确认满足的职业递交条件仍可为 `MET`。晚于模拟日的实际收件日继续让两阶段待核。依据为 SRC-305 的 20 CFR §656.30(b)(1) 和 6 USCIS-PM E.6(B)(1)，见 PD-272、PD-277。
+- **C33 SIJ。** 已获批 SIJ 的境内调整按法定假释满足入境条件，包含未查验入境和未填入境方式的复现。依据为 SRC-309 的 8 U.S.C. §1255(h)(1)。
+- **NVC 民事文件。** `admission.nvcCivilDocuments` 独立核对必需民事文件。必需文件缺失且无说明时为 `NOT_MET`，未填为 `UNKNOWN`，均省略递交日期。适用的缺件说明可用于递件，核准仍待领事官员确认。文件齐备后，待体检或安全审查仍只影响核准。依据为 SRC-309 的 Submit Documents Step 9 和 Civil Documents FAQs，见 PD-272、PD-275。
+- **C33／C40 领馆裁决。** 未来 NVC 开放日用于递件。核准须提供更晚的面谈后 `admission.decisionOn`，受排期限制的案件再取裁决月的 Final Action Dates。C40 的非法居留禁令在递交、核准阶段分别按各自日期计算。审核复现中，递交仍为 `NOT_MET`，禁令于 `2026-12-01` 届满，核准在 `2026-12-10` 为 `FUTURE`。依据为 SRC-312 的 Applicant Interview Step 11 和 SRC-311 的 8 U.S.C. §1182(a)(9)(B)(i)，见 PD-272、PD-274。
+
+### 2. 怎么验证的
+
+- 设置 `VITEST_MAX_WORKERS=2` 后，`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0。全仓 5,423 项测试通过，1 项既有用例跳过。静态构建生成 27 个页面，包含 `/united-states`。
+- `VITEST_MAX_WORKERS=2 pnpm --filter @uk-immigration/engine test test/united-states-full.test.ts test/united-states.test.ts`，189 项通过。覆盖四项审核复现、两项时点风险和旧时间入口。
+- `git diff --check` 通过。对照 `af44b0c` 核实旧 `evaluateUnitedStates` 的源码、专项测试和网页入口没有本轮差异。
+
+### 3. 没做或没验证的
+
+- 改动留在 `fable/86-us-rules` 工作树供 Fable 提交。本轮未跑浏览器 e2e。
+
+### 4. 发现与建议
+
+后续问卷可分别采集 NVC 授权、民事文件状态与面谈后的裁决日。现有 `decisionOn` 即为裁决时点输入。NVC 安排面谈的时间取决于个案和领馆档期，缺日期时按 PD-272 待确认。
