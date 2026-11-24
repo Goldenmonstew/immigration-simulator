@@ -426,7 +426,7 @@ export interface UsAdmissionAnswers {
   /** Whether INA 212(a)(9)(C) still bars this applicant after any case-specific relief. */
   unlawfulReentryBar?: boolean;
   otherInadmissibility?: UsReview;
-  /** INA 212(a) findings after individual waivers. They replace the aggregate review only when they clear every applicable ground without a dedicated input. */
+  /** INA 212(a) findings after individual waivers. Complete findings supersede the aggregate when they resolve or explain every applicable ground without a dedicated input. */
   otherInadmissibilityByGround?: Partial<
     Record<
       | `${UsOtherInadmissibilityParagraph}`

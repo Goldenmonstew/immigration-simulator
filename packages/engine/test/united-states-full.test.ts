@@ -155,6 +155,7 @@ const support: UsSupportAnswers = {
 const admission: UsAdmissionAnswers = {
   process: 'adjustment',
   qualifyingBasis: 'cleared',
+  petitionStatus: 'approved',
   visaAtFiling: 'available',
   visaAtDecision: 'available',
   legalEntry: 'admitted',
@@ -213,7 +214,7 @@ const employment: UsEmploymentAnswers = {
 const e: UsFullRequest = {
   ...time,
   pathway: 'US-EMPLOYMENT',
-  employment,
+  employment: { ...employment, i140FiledOn: '2026-07-01' },
   admission: {
     ...admission,
     adjustmentBasis: 'employment',
@@ -229,23 +230,29 @@ const withEmployment = (
   employment: { ...employment, ...overrides },
   admission: { ...e.admission, petitionStatus },
 });
-const eb1a = withEmployment({
-  category: 'eb1a',
-  internationalAward: false,
-  extraordinaryEvidenceCount: 3,
-  extraordinaryFinalMerits: 'cleared',
-  continuesWorkInField: true,
-  benefitsUnitedStates: true,
-});
-const eb5 = withEmployment({
-  category: 'eb5',
-  investment: {
-    ...investor,
-    project: 'tea',
-    capitalUsd: 800000,
-    qualifiesAsNewEnterprise: true,
+const eb1a = withEmployment(
+  {
+    category: 'eb1a',
+    internationalAward: false,
+    extraordinaryEvidenceCount: 3,
+    extraordinaryFinalMerits: 'cleared',
+    continuesWorkInField: true,
+    benefitsUnitedStates: true,
   },
-});
+  'approved',
+);
+const eb5 = withEmployment(
+  {
+    category: 'eb5',
+    investment: {
+      ...investor,
+      project: 'tea',
+      capitalUsd: 800000,
+      qualifiesAsNewEnterprise: true,
+    },
+  },
+  'approved',
+);
 const gold: UsFullRequest = {
   ...withEmployment({
     category: 'gold-card',
@@ -3782,7 +3789,14 @@ describe('review86-10 regressions', () => {
     ['I-140', withEmployment({ i140FiledOn: '2026-07-01' })],
     [
       'I-130',
-      { ...f, admission: { ...f.admission, petitionFiledOn: '2026-07-01' } },
+      {
+        ...f,
+        admission: {
+          ...f.admission,
+          petitionStatus: undefined,
+          petitionFiledOn: '2026-07-01',
+        },
+      },
     ],
   ] satisfies [string, UsFullRequest][])(
     'C33 permits adjustment filing with an %s receipt but unknown approval',
@@ -3910,6 +3924,7 @@ describe('review86-10 regressions', () => {
     (petition) => {
       const request = withAdmission({
         adjustmentBasis: 'sij',
+        petitionStatus: undefined,
         ...petition,
         qualifyingBasis: 'pending',
         legalEntry: 'without-inspection',
@@ -3964,6 +3979,208 @@ describe('review86-10 regressions', () => {
       ).toMatchObject({ filingStatus: 'NOT_MET', status: 'NOT_MET' });
     },
   );
+});
+
+describe('review86-11 regressions', () => {
+  // Map each input to the report column. Explicit lack of authorization blocks.
+  const scenarios = [
+    ['adjustment', undefined, undefined, 0],
+    ['consular', 'available', 'submitted', 1],
+    ['consular', 'available', undefined, 2],
+    ['consular', 'available', 'not-submitted', 2],
+    ['consular', undefined, 'submitted', 3],
+    ['consular', undefined, undefined, 4],
+    ['consular', undefined, 'not-submitted', 4],
+    ['consular', 'unavailable', 'submitted', undefined],
+    ['consular', 'unavailable', undefined, undefined],
+    ['consular', 'unavailable', 'not-submitted', undefined],
+  ] as const;
+  const met = ['MET', 'MET'] as const;
+  const canFile = ['MET', 'UNKNOWN'] as const;
+  const unknown = ['UNKNOWN', 'UNKNOWN'] as const;
+  const blocked = ['NOT_MET', 'NOT_MET'] as const;
+  const matrix = [
+    ['approved', undefined, met, met, met, unknown, unknown],
+    ['approved', '2026-07-01', met, met, met, unknown, unknown],
+    ['pending', undefined, canFile, met, blocked, blocked, blocked],
+    ['pending', '2026-07-01', canFile, met, blocked, blocked, blocked],
+    ['filed-with-i485', undefined, canFile, met, blocked, blocked, blocked],
+    ['filed-with-i485', '2026-07-01', canFile, met, blocked, blocked, blocked],
+    [undefined, undefined, canFile, met, unknown, unknown, unknown],
+    [undefined, '2026-07-01', canFile, met, unknown, unknown, unknown],
+  ] as const;
+
+  test.each(
+    matrix.flatMap(([petitionStatus, petitionFiledOn, ...expected]) =>
+      scenarios.map(([process, authorization, nvcDs260, column]) => ({
+        petitionStatus,
+        petitionFiledOn,
+        process,
+        authorization,
+        nvcDs260,
+        c33: column === undefined ? blocked : expected[column],
+      })),
+    ),
+  )(
+    'C33 $process: petition=$petitionStatus receipt=$petitionFiledOn NVC=$authorization DS-260=$nvcDs260',
+    ({
+      petitionStatus,
+      petitionFiledOn,
+      process,
+      authorization,
+      nvcDs260,
+      c33,
+    }) => {
+      const consular = process === 'consular';
+      const decisionOn = consular ? '2026-12-10' : time.simulationDate;
+      const request: UsFullRequest = {
+        ...f,
+        admission: {
+          ...admission,
+          process,
+          petitionStatus,
+          petitionFiledOn,
+          visaAtFiling: consular ? authorization : 'available',
+          interviewOn: consular ? decisionOn : undefined,
+          decisionOn,
+          nvcDs260,
+          nvcCivilDocuments: consular ? 'complete' : undefined,
+        },
+      };
+      const [filing, approval] = c33;
+      const withDs260 = (status: typeof filing) => {
+        if (!consular || nvcDs260 === 'submitted') return status;
+        return nvcDs260 === 'not-submitted' || status === 'NOT_MET'
+          ? 'NOT_MET'
+          : 'UNKNOWN';
+      };
+      const overallFiling = withDs260(filing);
+      const overallApproval = withDs260(approval);
+      const result = path(request);
+      expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        filingStatus: filing,
+        status: approval,
+      });
+      expect(result).toMatchObject({
+        status: overallFiling,
+        approvalStatus:
+          overallApproval === 'MET' && consular ? 'FUTURE' : overallApproval,
+      });
+      expect(result.earliestDate).toBe(
+        overallFiling === 'MET' ? time.simulationDate : undefined,
+      );
+      expect(result.approvalEarliestDate).toBe(
+        overallApproval === 'MET' ? decisionOn : undefined,
+      );
+    },
+  );
+
+  test('C33 can file EB-2 PERM with no petition status or receipt but cannot date approval', () => {
+    const request: UsFullRequest = {
+      ...e,
+      employment: { ...employment, i140FiledOn: undefined },
+      admission: { ...e.admission, petitionStatus: undefined },
+    };
+    expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+      filingStatus: 'MET',
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-272'],
+    });
+    expect(path(request)).toMatchObject({
+      status: 'MET',
+      earliestDate: time.simulationDate,
+      approvalStatus: 'UNKNOWN',
+    });
+    expect(path(request).approvalEarliestDate).toBeUndefined();
+  });
+
+  test('C33 preserves a cleared adjustment basis without an underlying petition', () => {
+    const request = withAdmission({
+      adjustmentBasis: 'other',
+      petitionStatus: undefined,
+    });
+    expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+      filingStatus: 'MET',
+      status: 'MET',
+    });
+  });
+
+  test.each([
+    ['barred', undefined, 'UNKNOWN'],
+    ['barred', { '6(D)': 'barred' }, 'UNKNOWN'],
+    ['barred', { '6': 'barred', '6(D)': 'barred' }, 'UNKNOWN'],
+    ['pending', { '6(D)': 'barred' }, 'UNKNOWN'],
+    ['barred', { '6(D)': 'barred', '9(A)': 'barred' }, 'NOT_MET'],
+  ] as const)(
+    'C40 resolves SIJ aggregate %s with findings %j',
+    (otherInadmissibility, otherInadmissibilityByGround, expected) => {
+      const request = withAdmission({
+        adjustmentBasis: 'sij',
+        petitionStatus: 'filed-with-i485',
+        qualifyingBasis: 'pending',
+        legalEntry: 'without-inspection',
+        otherInadmissibility,
+        otherInadmissibilityByGround,
+      });
+      expect(condition(request, 'C33-VISA-AND-ENTRY').filingStatus).toBe('MET');
+      expect(condition(request, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
+        filingStatus: expected,
+        status: expected,
+        ...(expected === 'UNKNOWN' ? { pendingDetails: ['PD-274'] } : {}),
+      });
+      expect(path(request)).toMatchObject({
+        status: expected,
+        approvalStatus: expected,
+      });
+      expect(path(request).earliestDate).toBeUndefined();
+      expect(path(request).approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test('C40 uses a complete SIJ review to isolate a stowaway bar', () => {
+    const request = withAdmission({
+      adjustmentBasis: 'sij',
+      petitionStatus: 'pending',
+      qualifyingBasis: 'pending',
+      legalEntry: 'without-inspection',
+      otherInadmissibility: 'barred',
+      otherInadmissibilityByGround: {
+        '5': 'cleared',
+        '6(A)': 'cleared',
+        '6(B)': 'cleared',
+        '6(D)': 'barred',
+        '6(E)': 'cleared',
+        '6(F)': 'cleared',
+        '6(G)': 'cleared',
+        '7': 'cleared',
+        '8': 'cleared',
+        '9': 'cleared',
+        '10': 'cleared',
+      },
+    });
+    expect(condition(request, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
+      filingStatus: 'UNKNOWN',
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-274'],
+    });
+    const approved: UsFullRequest = {
+      ...request,
+      admission: {
+        ...request.admission,
+        petitionStatus: 'approved',
+        qualifyingBasis: 'cleared',
+      },
+    };
+    expect(condition(approved, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
+      filingStatus: 'MET',
+      status: 'MET',
+    });
+    expect(path(approved)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'MET',
+      approvalEarliestDate: time.simulationDate,
+    });
+  });
 });
 
 describe('filing and evidence exceptions', () => {

@@ -186,8 +186,9 @@ export function admissionChecks(
     if (
       pendingSij &&
       answer !== true &&
-      v.sijAdmissionExemptions.value.some((exemption) =>
-        matchesGround(ground, exemption),
+      v.sijAdmissionExemptions.value.some(
+        (exemption) =>
+          matchesGround(ground, exemption) || matchesGround(exemption, ground),
       )
     )
       return undefined;
@@ -207,15 +208,25 @@ export function admissionChecks(
   const identifiedGrounds = otherGrounds.flatMap(([ground, finding]) =>
     finding === undefined ? [] : [assessExemption(ground, reviewed(finding))],
   );
+  const aggregateReview = reviewed(a?.otherInadmissibility);
   const completeReview = v.otherImmigrationGrounds.value.every(
     (ground) =>
       isExempt(ground) ||
       otherGrounds.some(
         ([provision, finding]) =>
-          finding === 'cleared' && matchesGround(ground, provision),
+          (finding === 'cleared' || (pendingSij && finding !== undefined)) &&
+          matchesGround(ground, provision),
       ),
   );
-  const otherReview = completeReview ? true : reviewed(a?.otherInadmissibility);
+  // Until SIJ is approved, an unexplained aggregate bar may include an exempt ground.
+  const unexplainedSijBar =
+    pendingSij &&
+    aggregateReview === false &&
+    (!completeReview ||
+      !otherGrounds.some(([, finding]) => finding === 'barred'));
+  const otherReview = unexplainedSijBar
+    ? undefined
+    : completeReview || aggregateReview;
   const { waiver, waiverFiling } = request.humanitarian ?? {};
   const waiverDecision = waiver === 'not-needed' ? false : reviewed(waiver);
   const waiverMaterials =
@@ -552,25 +563,38 @@ export function adjustmentChecks(
   );
   const inconsistentPetitionDate =
     petitionFiledOn !== undefined && petitionFiledOn > request.simulationDate;
+  const familyOrSpecialPetition =
+    usesFamilyClassification ||
+    basis === 'immediate-relative' ||
+    basis === 'family-preference' ||
+    basis === 'vawa' ||
+    basis === 'sij';
+  const requiresPetition =
+    familyOrSpecialPetition || employmentBasis || awaitingPetition;
+  const ds260 = a?.nvcDs260;
+  const nvcApprovalEvidence =
+    consular && a.visaAtFiling === 'available' && ds260 === 'submitted';
+  const petitionApproved = petition === 'approved' || nvcApprovalEvidence;
   const concurrent =
-    a?.process === 'adjustment'
-      ? usesFamilyClassification ||
-        basis === 'immediate-relative' ||
-        basis === 'family-preference' ||
-        basis === 'vawa' ||
-        basis === 'sij' ||
-        (employmentBasis &&
-          (i140Category ||
-            i140FiledOn !== undefined ||
-            employment?.category === 'eb5')) ||
-        undefined
-      : consular
+    a?.process === 'adjustment' &&
+    (familyOrSpecialPetition ||
+      (employmentBasis &&
+        (i140Category ||
+          i140FiledOn !== undefined ||
+          employment?.category === 'eb5')));
+  const petitionAtFiling =
+    petitionApproved || !requiresPetition || concurrent
+      ? true
+      : consular && petition !== undefined
         ? false
         : undefined;
   const qualifyingBasis = reviewed(a?.qualifyingBasis);
-  const filingBasis = awaitingPetition
-    ? all(concurrent, a?.qualifyingBasis === 'pending' ? true : qualifyingBasis)
-    : qualifyingBasis;
+  const filingBasis = all(
+    petitionAtFiling,
+    concurrent && awaitingPetition && a?.qualifyingBasis === 'pending'
+      ? true
+      : qualifyingBasis,
+  );
   const filing = inconsistentPetitionDate
     ? undefined
     : all(
@@ -582,7 +606,6 @@ export function adjustmentChecks(
             ? entryAtFiling
             : undefined,
       );
-  const ds260 = a?.nvcDs260;
   const civilDocuments = a?.nvcCivilDocuments;
   return [
     check(
@@ -593,12 +616,18 @@ export function adjustmentChecks(
         ? undefined
         : all(
             filing,
-            awaitingPetition ? undefined : qualifyingBasis,
+            petitionApproved || !requiresPetition ? qualifyingBasis : undefined,
             visaAtDecision,
           ),
       [
         ...s.adjustment,
-        ...(consular ? [...s.consularFiling, ...s.consularInterview] : []),
+        ...(consular
+          ? [
+              ...s.consularFiling,
+              ...s.consularApplication,
+              ...s.consularInterview,
+            ]
+          : []),
         ...(usesFamilyClassification ? s.relationship : []),
       ],
       'PD-272',

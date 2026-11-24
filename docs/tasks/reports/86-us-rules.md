@@ -400,3 +400,45 @@ PROGRESS 602 建议统一提交为 `Fix: 修正美国准入审查、请愿核准
 ### 4. 发现与建议
 
 - 已有综合审查结论时仍可填写 `otherInadmissibility`。使用分项时，上级法条的明确结论可覆盖其子条款，单独核对一条子条款只能覆盖该条款。
+
+## 第十一轮审核修正（review86-11）
+
+### 1. 做了什么
+
+PROGRESS 603 建议提交为 `Fix: 修正美国基础请愿核准与 SIJ 准入判定（review86-11）`，附 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+- **C33 基础请愿。** 依赖基础请愿的境内案按同时递交规则独立判断。所填请愿待决、与 I-485 同件递交或状态留空时，缺获批证据即保留核准为 `UNKNOWN`，无核准日期。符合同时递交规则且其他递交条件齐备时，可给递交日期。依据为 SRC-309 8 CFR §245.2(a)(2)(i)(A)–(C)、7 USCIS-PM A.6(A)、I-485 Instructions p3 及 PD-272。
+- **C33 领馆证据。** 同一领馆案已有 NVC 递件授权和 CEAC 的 DS-260 提交记录时，C33 据国务院流程确认基础请愿已获批。两项记录齐备时，以该流程证据处理留空、待决或同件递交状态，补录历史收件日两阶段结论一致。若只报告请愿待决或与 I-485 同件递交，且无完整 NVC 证据，领馆递交的请愿前置条件为 `NOT_MET`。依据为 SRC-309 DOS NVC Processing Step 2、Online Application Step 6 及 PD-272。
+- **C40 SIJ 待决。** 综合结果为不准入时，完整且能解释该结论的分项按适用法定例外判定。如果综合结论可能还包含独立障碍，未解释部分为 `UNKNOWN`。已明确的独立障碍仍使两阶段为 `NOT_MET`。若完整分项把障碍定位为偷乘，分类待决时两阶段为 `UNKNOWN`，分类获批后可适用该例外。依据为 SRC-309 8 U.S.C. §1255(h)(2)(A)、SRC-311 8 U.S.C. §1182(a)(6)(D) 及 PD-274。
+
+#### C33 基础请愿输入组合
+
+各格为 **C33 递交／核准**。假定类别依赖基础请愿，类别本身的证据齐备，境内允许同件递交且名额与入境条件满足，领馆裁决时点有效且裁决月名额可用。收件日「有」指不晚于模拟日的实际收件日。授权留空列适用于缺当前授权及未获确认的未来开放日。
+
+| 请愿状态 | 历史收件日 | 境内 | 领馆已授权／DS-260 已提交 | 领馆已授权／DS-260 留空或未提交 | 领馆授权留空／DS-260 已提交 | 领馆授权留空／DS-260 留空或未提交 | 领馆明确未授权／任意 DS-260 状态 |
+|---|---|---|---|---|---|---|---|
+| 获批 | 无 | MET／MET | MET／MET | MET／MET | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | NOT_MET／NOT_MET |
+| 获批 | 有 | MET／MET | MET／MET | MET／MET | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | NOT_MET／NOT_MET |
+| 待决 | 无 | MET／UNKNOWN | MET／MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET |
+| 待决 | 有 | MET／UNKNOWN | MET／MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET |
+| 同件递交 | 无 | MET／UNKNOWN | MET／MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET |
+| 同件递交 | 有 | MET／UNKNOWN | MET／MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET |
+| 留空 | 无 | MET／UNKNOWN | MET／MET | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | NOT_MET／NOT_MET |
+| 留空 | 有 | MET／UNKNOWN | MET／MET | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | NOT_MET／NOT_MET |
+
+- 路径汇总还要核对独立的 DS-260 检查。提交状态留空时，该检查两阶段为 `UNKNOWN`。明确未提交时，两阶段为 `NOT_MET`。汇总中已知的不满足优先，任一阶段为 `UNKNOWN` 或 `NOT_MET` 时省略该阶段日期。其余条件已确认且裁决日在未来时，领馆核准汇总为 `FUTURE`，给裁决日期。
+- 明确未授权列假定无已确认的未来 NVC 开放日。已确认的未来开放日仍可作为递交候选日。晚于模拟日的实际请愿收件日属于时点冲突，两阶段 C33 为 `UNKNOWN`。境内无法确认可同件递交且缺获批证据时，递交亦待确认。依据见 PD-272。
+
+### 2. 怎么验证的
+
+- 使用 `VITEST_MAX_WORKERS=2` 运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码 0。全仓 5,559 项测试通过，其中 Engine 3,526 项，1 项既有用例跳过。构建生成 27 个静态页面，包含 `/united-states`。
+- 先在修改引擎前复现两项 C33 和 SIJ 综合结论问题。表中 48 格展开为 80 种实际输入，逐一断言 C33 的两阶段、路径汇总及日期，覆盖授权及 DS-260 的明确否定与留空。另核对 EB-2 PERM 无请愿状态和收件日，以及 SIJ 分项不全、含潜在例外的上级条款、完整分项、独立障碍和分类获批。
+- `git diff --check` 通过。对照 `56ee463a`，旧 `evaluateUnitedStates` 实现、旧时间参数、专项测试、共用结果结构及网页一致。
+
+### 3. 没做或没验证的
+
+- 改动保留在 `fable/86-us-rules` 工作树，供 Fable 提交。本轮未运行浏览器端到端。
+
+### 4. 发现与建议
+
+- 领馆证据须来自同一请愿案。只知道历史收件日或只掌握一项 NVC 记录时，仍需核对请愿决定。

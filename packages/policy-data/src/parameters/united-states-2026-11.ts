@@ -425,6 +425,11 @@ export const unitedStatesFullSources = {
   consularFiling: [
     source(
       'SRC-309',
+      'DOS NVC Processing, Step 2 (transfer after petition approval)',
+      'https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-1-submit-a-petition/step-2-begin-nvc-processing.html',
+    ),
+    source(
+      'SRC-309',
       'DOS National Visa Center, What happens after USCIS sends my petition to the NVC?',
       'https://travel.state.gov/content/travel/en/us-visas/immigrate/national-visa-center.html',
     ),
