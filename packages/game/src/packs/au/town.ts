@@ -531,8 +531,8 @@ export const auActions: Activity<AuEffect, AuFestival>[] = [
       'Verify your identity and apply for police certificates',
     ),
     note: t(
-      `年满 ${police.overAge} 岁、过去 ${police.years} 年在某个国家或地区累计住满 ${police.months} 个月的，要提供当地的无犯罪证明（SRC-220）。游戏里证明不收费，只花时间。`,
-      `Anyone aged ${police.overAge} or over provides police certificates for each country where they spent ${police.months} months or more in the last ${police.years} years (SRC-220). In this game the certificates are free and only take time.`,
+      `超过 ${police.overAge} 岁、过去 ${police.years} 年在某个国家累计住满 ${police.months} 个月的人，通常要提供当地的无犯罪证明（SRC-220）。游戏里证明不收费，只花时间。`,
+      `Police certificates are usually requested for people over ${police.overAge} who spent ${police.months} months or more in a country in the past ${police.years} years (SRC-220). In this game the certificates are free and only take time.`,
     ),
     minutes: b.minutes.paperwork,
     effects: [{ type: 'police' }],
@@ -545,8 +545,8 @@ export const auActions: Activity<AuEffect, AuFestival>[] = [
       'Take the train to Melbourne for the visa medical',
     ),
     note: t(
-      '游戏把体检结果记为满足健康要求（SRC-200 PIC 4005、SRC-218、SRC-219）。体检费用不计。',
-      'The game records the result as meeting the health requirement (SRC-200 PIC 4005, SRC-218, SRC-219). The examination fee is not counted.',
+      '游戏把体检结果记为满足健康要求（SRC-200 Sch 4、SRC-218、SRC-219）。体检费用不计。',
+      'The game records the result as meeting the health requirement (SRC-200 Sch 4, SRC-218, SRC-219). The examination fee is not counted.',
     ),
     minutes: b.minutes.paperwork * 5,
     when: [{ dayKind: 'workday' }],
