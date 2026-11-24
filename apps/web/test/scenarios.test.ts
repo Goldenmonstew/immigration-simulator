@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { createDraft, runSimulation } from './uk-scenarios';
+import { createDraft, encodeDraft, runSimulation } from './uk-scenarios';
+import { readPageResult } from '../components/result-page';
+import { ukModule } from '../lib/uk-module';
 import { applyWhatIf, initialWhatIf } from '../lib/uk-whatif';
 import {
   deleteScenario,
@@ -55,11 +57,11 @@ test('loading replaces the current draft and clears the previous result; deletin
   saveScenario('B', { ...draft, simulationDate: '2030-01-01' });
   const [first, second] = readScenarios().scenarios;
   draftStorage(second.draft);
-  rememberResult(runSimulation(second.draft), 'zh-CN');
-  expect(getRememberedResult('zh-CN')).toBeDefined();
+  rememberResult(second.draft, runSimulation(second.draft), 'zh-CN');
+  expect(getRememberedResult(second.draft, 'zh-CN')).toBeDefined();
   loadScenario(first);
   expect(draftStorage().draft).toEqual(first.draft);
-  expect(getRememberedResult('zh-CN')).toBeUndefined();
+  expect(getRememberedResult(second.draft, 'zh-CN')).toBeUndefined();
   expect(deleteScenario(second.id).scenarios).toEqual([first]);
   expect(readScenarios().scenarios).toEqual([first]);
   expect(JSON.parse(storage.get('uk-immigration-scenarios-v1')!)).toHaveLength(
@@ -74,6 +76,13 @@ test('a saved What-if date change loads as completed while retaining the origina
     simulationDate: '2030-01-01',
   });
   expect(adjusted.completed).toBe(false);
+  draftStorage(adjusted);
+  expect(readPageResult(ukModule, 'en')).toEqual({});
+  expect(readPageResult(ukModule, 'en', encodeDraft(adjusted))).toEqual({
+    draft: adjusted,
+    result: ukModule.run(adjusted, 'en'),
+    shared: true,
+  });
   saveScenario('What-if', adjusted);
   const scenario = readScenarios().scenarios[0];
   expect(loadScenario(scenario)).toEqual({ ...adjusted, completed: true });

@@ -157,13 +157,29 @@ export function assessJapanNaturalisation(
   route: JpFullNaturalisationRoute,
   e: JpNaturalisationEvidence,
 ): JpFullPathway {
-  const { L } = filingContext(req);
-  const result = scheduleFiling(
-    assessJapanNaturalisationOnDate(req, route, e),
-    L,
-    (applicationDate) =>
-      assessJapanNaturalisationOnDate({ ...req, applicationDate }, route, e),
-  );
+  const { date, L } = filingContext(req);
+  const evidenceOn = req.residenceEvidenceOn ?? date;
+  const assess = (applicationDate: IsoDate) =>
+    assessJapanNaturalisationOnDate(
+      { ...req, applicationDate },
+      evidenceOn !== applicationDate && route.route === 'spouse'
+        ? { ...route, stillJapaneseSpouse: undefined }
+        : route,
+      evidenceOn === applicationDate
+        ? e
+        : { ...e, inJapan: undefined, lawfulDomicile: undefined },
+    );
+  const initial = assess(date);
+  const hasCandidateAnswers =
+    evidenceOn !== date &&
+    (e.inJapan !== undefined ||
+      e.lawfulDomicile !== undefined ||
+      (route.route === 'spouse' && route.stillJapaneseSpouse !== undefined));
+  const candidateDate =
+    hasCandidateAnswers && initial.status !== 'NOT_APPLICABLE'
+      ? date
+      : initial.earliestDate;
+  const result = scheduleFiling(initial, L, assess, candidateDate);
   if (result.earliestDate === undefined) return result;
   return {
     ...result,
@@ -196,8 +212,8 @@ function assessJapanNaturalisationOnDate(
   const earlier =
     domicileStart < residenceStart ? domicileStart : residenceStart;
   const continuous = (start: IsoDate, years: number) => {
-    const from = start > history.stay ? start : history.stay;
-    if (date < afterYears(from, years)) return false;
+    const met = history.yearsSince(start, years);
+    if (met !== true) return met;
     return history.hasTripsSince(afterYears(date, -years)) ? undefined : true;
   };
   const pilot =

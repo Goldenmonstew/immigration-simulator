@@ -16,12 +16,24 @@ export interface CountryDraft {
   simulationDate: string;
 }
 
+// Result pages can explain an invalid share without importing it.
+export type DraftReadMode = boolean | 'show-correction';
+
 export interface CountryModule<D extends CountryDraft, K> {
   id: CountryId;
   version: number;
   createDraft(): D;
+  storedAnswers?: {
+    encode(draft: D): object;
+    decode(stored: D): D;
+  };
+  // Project an editable draft onto the answers used for assessment and sharing.
+  activeAnswers?(draft: D): D;
+  // Return a new draft when a local correction needs to be persisted.
+  restoreStoredDraft?(draft: D, forResult?: boolean): D;
   validateStep(draft: D): Record<string, TranslationKey>;
-  decodeDraft(value: unknown): D | undefined;
+  decodeDraft(value: unknown, mode?: DraftReadMode): D | undefined;
+  incompleteResultMessage?(draft: D, locale: Locale): string;
   run(draft: D, locale: Locale): CountryResult;
   whatif: CountryWhatIf<D, K>;
   policy: CountryPolicy;
@@ -63,4 +75,14 @@ export function pathwayTitle(
         '{date}',
         pathway.earliestDate ?? t('result.undetermined'),
       );
+}
+
+export function pathwayDate(pathway?: CountryPathway) {
+  if (!pathway || pathway.travelDate === null) return undefined;
+  return pathway.travelDate
+    ? {
+        label: `country.${pathway.travelDate.kind}` as const,
+        date: pathway.travelDate.date,
+      }
+    : { label: 'result.earliest' as const, date: pathway.earliestDate };
 }

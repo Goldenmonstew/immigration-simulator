@@ -12,12 +12,14 @@ import type {
 import type { TranslationKey } from '../i18n';
 import { useTranslation } from '../i18n/locale';
 import { displayedColumns } from '../lib/policy';
-import { countryPath } from '../lib/site-countries';
+import { countryPath, sitePagePaths } from '../lib/site-countries';
+import { sourceUrls as registeredSources } from '../lib/sources';
 import { punct } from '../i18n/punctuation';
 import { routeGroupNames, routeLabel } from '../i18n/routes';
 import {
   checkLabelStatus,
   isDecisionOutcome,
+  pathwayDate,
   pathwayTitle,
   type CountryDraft,
   type CountryModule,
@@ -50,7 +52,10 @@ function Advice<D extends CountryDraft, K>({
       <p>{t(advice.text)}</p>
       <p>
         <a
-          href={country.policy.sourceUrls[advice.sourceId]}
+          href={
+            country.policy.sourceUrls[advice.sourceId] ??
+            registeredSources[advice.sourceId]
+          }
           target="_blank"
           rel="noreferrer"
         >
@@ -131,7 +136,13 @@ export function ResultView<D extends CountryDraft, K>({
       )}
       <p className={`${site.muted} ${site.noPrint}`}>
         {t('home.disclaimer')}{' '}
-        <Link href={countryPath(country.id, 'about')}>{t('about.link')}</Link>
+        {sitePagePaths.includes(countryPath(country.id, 'about')) ? (
+          <Link href={countryPath(country.id, 'about')}>{t('about.link')}</Link>
+        ) : (
+          <Link href={countryPath(country.id, 'policy')}>
+            {t('site.policy')}
+          </Link>
+        )}
       </p>
     </>
   );
@@ -155,7 +166,14 @@ export function CountryAssessmentColumns<D extends CountryDraft, K>({
   const { t } = useTranslation();
   const columns = displayedColumns(country, result);
   return (
-    <div className={styles.columns}>
+    <div
+      className={styles.columns}
+      style={
+        country.policy.displayedRuleSets.length === 1
+          ? { gridTemplateColumns: 'minmax(0, 1fr)' }
+          : undefined
+      }
+    >
       {columns.map((column) => {
         const { ruleSet } = column;
         return (
@@ -238,6 +256,7 @@ function PathwayAssessment<D extends CountryDraft, K>({
   const { t, locale } = useTranslation();
   const p = punct(locale);
   const basis = basisRule(assessment);
+  const primaryDate = pathwayDate(assessment);
   const shorter = shorterPathwaysNotUsed(assessment);
   const eligible =
     assessment.status === 'LIKELY_ELIGIBLE' || assessment.status === 'MET';
@@ -302,6 +321,27 @@ function PathwayAssessment<D extends CountryDraft, K>({
         dependant={dependant}
       />
       <dl className={styles.facts}>
+        {assessment.timeStatus && (
+          <div>
+            <dt>{t('country.timeConditions')}</dt>
+            <dd>
+              {t(`country.status.${assessment.timeStatus}`).replace(
+                '{date}',
+                assessment.timeEarliestDate ?? t('result.undetermined'),
+              )}
+            </dd>
+          </div>
+        )}
+        {assessment.timeEarliestDate && (
+          <div>
+            <dt>{t('country.timeDate')}</dt>
+            <dd>
+              <time dateTime={assessment.timeEarliestDate}>
+                {assessment.timeEarliestDate}
+              </time>
+            </dd>
+          </div>
+        )}
         {assessment.routeGroup && (
           <div>
             <dt>{t('result.routeGroup')}</dt>
@@ -330,20 +370,18 @@ function PathwayAssessment<D extends CountryDraft, K>({
               </time>
             </dd>
           </div>
-        ) : (
+        ) : primaryDate ? (
           <div>
-            <dt>{t('result.earliest')}</dt>
+            <dt>{t(primaryDate.label)}</dt>
             <dd>
-              {assessment.earliestDate ? (
-                <time dateTime={assessment.earliestDate}>
-                  {assessment.earliestDate}
-                </time>
+              {primaryDate.date ? (
+                <time dateTime={primaryDate.date}>{primaryDate.date}</time>
               ) : (
                 t('result.undetermined')
               )}
             </dd>
           </div>
-        )}
+        ) : null}
         {assessment.publicFundsReassessmentDate && (
           <div>
             <dt>{t('result.reassessment')}</dt>
@@ -403,7 +441,11 @@ function PathwayAssessment<D extends CountryDraft, K>({
       )}
       {!!assessment.pendingDetails?.length && (
         <p>
-          {t('result.pendingDetails')}
+          {t(
+            isDecisionOutcome(assessment.status)
+              ? 'result.pendingDetails'
+              : 'pilot.pending',
+          )}
           {p.colon}
           {assessment.pendingDetails.join(p.list)}
         </p>
@@ -445,19 +487,32 @@ function RuleGroups({
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
-  return (['NOT_MET', 'UNKNOWN', 'MET'] as const).map((checkStatus) => {
-    const status = checkLabelStatus[checkStatus];
-    const rules = all.filter((rule) => rule.status === checkStatus);
-    if (collapsed && !rules.length) return null;
+  const groups = ['NOT_MET', 'UNKNOWN', 'MET', 'NOT_APPLICABLE'] as const;
+  return groups.map((checkStatus) => {
+    const status =
+      checkStatus === 'NOT_APPLICABLE'
+        ? checkStatus
+        : checkLabelStatus[checkStatus];
+    const rules = all.filter(
+      (rule) =>
+        (rule.applicable === false ? 'NOT_APPLICABLE' : rule.status) ===
+        checkStatus,
+    );
+    if ((collapsed || status === 'NOT_APPLICABLE') && !rules.length)
+      return null;
     return (
       <details
         key={status}
         className={styles.group}
-        open={!collapsed && status !== 'PASS'}
+        open={!collapsed && (status === 'FAIL' || status === 'UNKNOWN')}
       >
         <summary>
           <h4>
-            {t(`result.${status}`)}
+            {t(
+              status === 'NOT_APPLICABLE'
+                ? 'country.status.NOT_APPLICABLE'
+                : `result.${status}`,
+            )}
             {p.openParen}
             {rules.length}
             {p.closeParen}
@@ -470,7 +525,34 @@ function RuleGroups({
             {rules.map((rule) => (
               <li className={styles.rule} key={rule.id} data-status={status}>
                 <strong>{rule.title}</strong>
+                {rule.kind && (
+                  <span className={site.muted}>
+                    {' '}
+                    ·{' '}
+                    {t(
+                      rule.applicable === false
+                        ? 'country.status.NOT_APPLICABLE'
+                        : `country.check.${rule.kind}`,
+                    )}
+                  </span>
+                )}
                 <p>{rule.explanation}</p>
+                {rule.fee && (
+                  <p>
+                    {t('country.fee')}
+                    {p.colon}
+                    {rule.fee.currency} {rule.fee.amount.toLocaleString(locale)}
+                    {rule.fee.possibleReducedAmount !== undefined && (
+                      <>
+                        {' '}
+                        · {t('country.reducedFee')}
+                        {p.colon}
+                        {rule.fee.currency}{' '}
+                        {rule.fee.possibleReducedAmount.toLocaleString(locale)}
+                      </>
+                    )}
+                  </p>
+                )}
                 <details className={styles.sourceDetails}>
                   <summary>
                     {t('result.sources')}
@@ -479,11 +561,15 @@ function RuleGroups({
                     {p.closeParen}
                   </summary>
                   <div className={styles.sources}>
-                    {rule.sources.map((source, index) =>
-                      (source.url ?? sourceUrls[source.srcId]) ? (
+                    {rule.sources.map((source, index) => {
+                      const url =
+                        source.url ??
+                        sourceUrls[source.srcId] ??
+                        registeredSources[source.srcId];
+                      return url ? (
                         <a
                           key={index}
-                          href={source.url ?? sourceUrls[source.srcId]}
+                          href={url}
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -493,8 +579,8 @@ function RuleGroups({
                         <span key={index}>
                           {source.srcId} {source.locator}
                         </span>
-                      ),
-                    )}
+                      );
+                    })}
                     <a
                       href={issueUrl(`[${rule.id}] ${rule.title}`, [
                         `rule set: ${ruleSetId}`,
@@ -512,7 +598,7 @@ function RuleGroups({
                 </details>
                 {!!rule.pendingDetails?.length && (
                   <p className={site.badge}>
-                    {t('result.pendingDetails')}
+                    {t(rule.kind ? 'pilot.pending' : 'result.pendingDetails')}
                     {p.colon}
                     {rule.pendingDetails.join(p.list)}
                   </p>

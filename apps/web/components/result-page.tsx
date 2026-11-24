@@ -1,22 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CountryResult, Locale } from '@uk-immigration/engine';
 import { PrincipalAssessment, ResultView } from './result-view';
+import { ResultScenarioHash } from './gap-summary';
 import { ShareLink } from './share-link';
 import { SavedScenarios } from './saved-scenarios';
 import { useTranslation } from '../i18n/locale';
 import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
 import type { CountryDraft, CountryModule } from '../lib/country-module';
-import { decodeDraft } from '../lib/share';
+import { readPageResult, type ResultPageState } from '../lib/page-result';
 import {
-  draftStorage,
-  getRememberedResult,
-  rememberResult,
-} from '../lib/storage';
+  encodeDraft,
+  rememberResultEdit,
+  watchScenarioHash,
+} from '../lib/share';
 import styles from '../app/site.module.css';
+
+export { readPageResult };
 
 export function ResultPage<D extends CountryDraft, K>({
   country,
@@ -27,61 +30,89 @@ export function ResultPage<D extends CountryDraft, K>({
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
-  const [result, setResult] = useState<CountryResult>();
-  const [draft, setDraft] = useState<D>();
-  const [shared, setShared] = useState(false);
-  const [ready, setReady] = useState(false);
-  const [mock, setMock] = useState(false);
+  const [page, setPage] = useState<ResultPageState<D> & { mock?: boolean }>();
+  const displayedScenario = useRef<{ hash: string; source?: D | string }>(
+    undefined,
+  );
   useEffect(() => {
-    const load = () => {
-      setResult(undefined);
-      setDraft(undefined);
-      setShared(false);
-      setMock(false);
-      const hash = new URLSearchParams(window.location.hash.slice(1));
+    const read = (linkHash?: string) => {
+      const hash = linkHash ?? window.location.hash;
+      const current = displayedScenario.current;
+      const refresh =
+        country.id === 'jp' &&
+        current &&
+        (linkHash === undefined || linkHash === current.hash);
+      const source = refresh
+        ? current.source
+        : new URLSearchParams(hash.slice(1)).get('s');
+      if (source === undefined) return;
       const previewId = new URLSearchParams(window.location.search).get('mock');
-      if (hash.has('s')) {
-        const incoming = decodeDraft(country, hash.get('s')!);
-        try {
-          if (incoming) {
-            const nextResult = country.run(incoming, locale);
-            draftStorage(country, incoming);
-            rememberResult(country, nextResult, locale);
-            setDraft(incoming);
-            setResult(nextResult);
-            setShared(true);
-          }
-        } catch {
-          // A malformed external scenario must not replace the saved draft.
-        }
+      const example =
+        source === null && previewId && preview?.(previewId, locale);
+      if (example) {
+        displayedScenario.current = undefined;
+        setPage({ result: example, mock: true });
       } else {
-        const example = previewId && preview?.(previewId, locale);
-        if (example) {
-          setResult(example);
-          setMock(true);
-          setReady(true);
-          return;
-        }
-        const { draft } = draftStorage(country);
-        if (draft?.completed) {
-          setDraft(draft);
-          setResult(
-            getRememberedResult(country, locale) ?? country.run(draft, locale),
-          );
-        }
+        const next = readPageResult(
+          country,
+          locale,
+          source,
+          refresh ? 'refresh' : 'result',
+        );
+        if (!refresh)
+          displayedScenario.current =
+            country.id === 'jp'
+              ? { hash, source: source ?? next.draft }
+              : undefined;
+        setPage(next);
       }
-      setReady(true);
     };
-    load();
-    window.addEventListener('hashchange', load);
-    return () => window.removeEventListener('hashchange', load);
+    read();
+    if (country.id !== 'jp') {
+      const openLocation = () => read(window.location.hash);
+      window.addEventListener('hashchange', openLocation);
+      return () => window.removeEventListener('hashchange', openLocation);
+    }
+
+    const stopWatching = watchScenarioHash(read);
+    let timer: number;
+    const scheduleMidnight = () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      timer = window.setTimeout(refresh, midnight.getTime() - now.getTime());
+    };
+    function refresh() {
+      window.clearTimeout(timer);
+      if (document.visibilityState !== 'visible') return;
+      read();
+      scheduleMidnight();
+    }
+    if (document.visibilityState === 'visible') scheduleMidnight();
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.clearTimeout(timer);
+      stopWatching();
+      document.removeEventListener('visibilitychange', refresh);
+    };
   }, [country, locale, preview]);
 
+  const { draft, result, shared, mock, correction } = page ?? {};
   const principalResult = draft && country.principal?.(draft, locale);
+  const scenarioHash =
+    country.id === 'jp' && draft
+      ? `#${shared ? 's' : 'draft'}=${encodeDraft(country, draft)}`
+      : '';
+  const compareHref = countryPath(country.id, 'whatif') + scenarioHash;
+  const editHref = countryPath(country.id, 'simulate') + scenarioHash;
+  const startEdit =
+    scenarioHash && draft
+      ? () => rememberResultEdit(scenarioHash, draft)
+      : undefined;
 
   return (
     <main id="main" className={styles.main}>
-      {!ready ? (
+      {!page ? (
         <p role="status">{t('result.loading')}</p>
       ) : result ? (
         <>
@@ -99,32 +130,32 @@ export function ResultPage<D extends CountryDraft, K>({
             </p>
           )}
           {draft && <ShareLink country={country} draft={draft} />}
-          <ResultView
-            country={country}
-            result={result}
-            mock={mock}
-            draft={draft}
-            actions={
-              <div
-                className={`${styles.actions} ${styles.topActions} ${styles.noPrint}`}
-              >
-                {!result.shortCircuit && (
+          <ResultScenarioHash value={scenarioHash}>
+            <ResultView
+              country={country}
+              result={result}
+              mock={mock}
+              draft={draft}
+              actions={
+                <div
+                  className={`${styles.actions} ${styles.topActions} ${styles.noPrint}`}
+                >
+                  {!result.shortCircuit && (
+                    <Link className={styles.secondary} href={compareHref}>
+                      {t('whatif.title')}
+                    </Link>
+                  )}
                   <Link
                     className={styles.secondary}
-                    href={countryPath(country.id, 'whatif')}
+                    href={editHref}
+                    onNavigate={startEdit}
                   >
-                    {t('whatif.title')}
+                    {t('result.edit')}
                   </Link>
-                )}
-                <Link
-                  className={styles.secondary}
-                  href={countryPath(country.id, 'simulate')}
-                >
-                  {t('result.edit')}
-                </Link>
-              </div>
-            }
-          />
+                </div>
+              }
+            />
+          </ResultScenarioHash>
           {principalResult && (
             <PrincipalAssessment
               country={country}
@@ -141,16 +172,14 @@ export function ResultPage<D extends CountryDraft, K>({
               {t('result.print')}
             </button>
             {!result.shortCircuit && (
-              <Link
-                className={styles.secondary}
-                href={countryPath(country.id, 'whatif')}
-              >
+              <Link className={styles.secondary} href={compareHref}>
                 {t('whatif.title')}
               </Link>
             )}
             <Link
               className={styles.button}
-              href={countryPath(country.id, 'simulate')}
+              href={editHref}
+              onNavigate={startEdit}
             >
               {t('result.edit')}
             </Link>
@@ -159,24 +188,24 @@ export function ResultPage<D extends CountryDraft, K>({
       ) : (
         <div className={styles.narrow}>
           <h1>{t('result.title')}</h1>
-          <p>{t('result.empty')}</p>
+          <p>{correction ?? t('result.empty')}</p>
           <Link
             className={styles.button}
-            href={countryPath(country.id, 'simulate')}
+            href={editHref}
+            onNavigate={startEdit}
           >
-            {t('home.start')}
+            {t(correction && draft ? 'result.edit' : 'home.start')}
           </Link>
         </div>
       )}
-      {ready && (
+      {page && (
         <SavedScenarios
           country={country}
-          draft={draft}
+          draft={result ? draft : undefined}
           onLoad={(next) => {
-            setDraft(next);
-            setResult(country.run(next, locale));
-            setShared(false);
-            setMock(false);
+            if (country.id === 'jp')
+              displayedScenario.current = { hash: '', source: next };
+            setPage(readPageResult(country, locale, next));
           }}
         />
       )}

@@ -5,21 +5,44 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from '../i18n/locale';
-import { countryPath, siteCountries } from '../lib/site-countries';
+import {
+  countryPath,
+  siteCountries,
+  sitePagePaths,
+} from '../lib/site-countries';
 import { buildVersion } from '../lib/report';
 import styles from '../app/site.module.css';
 import game from '../app/uk/game/game.module.css';
 import { asset } from '../lib/asset';
+
+function focusMain() {
+  const main = document.getElementById('main');
+  if (!main) return;
+  main.tabIndex = -1;
+  main.focus({ preventScroll: true });
+  main.scrollIntoView({ block: 'start' });
+}
 
 export function SiteShell({ children }: { children: ReactNode }) {
   const { t, locale, setLocale } = useTranslation();
   const pathname = usePathname();
   const cleanPath = (pathname ?? '/').replace(/\/+$/, '') || '/';
   const isGame = cleanPath === '/game' || cleanPath.endsWith('/game');
+  const isJapanScenario = ['result', 'simulate', 'whatif'].some(
+    (page) => cleanPath === countryPath('jp', page),
+  );
   const firstSegment = cleanPath.split('/')[1] ?? '';
   const currentCountry = siteCountries.find(
     (country) => country.slug === firstSegment,
   );
+  const policyPage = countryPath(currentCountry?.id ?? 'uk', 'policy');
+  const policyLink = sitePagePaths.includes(policyPage)
+    ? policyPage
+    : countryPath('uk', 'policy');
+  const languages = [
+    ['zh-CN', t('site.chinese'), t('site.chineseShort')],
+    ['en', 'English', 'EN'],
+  ] as const;
   useEffect(() => {
     let details: [HTMLDetailsElement, boolean][] | undefined;
     const beforePrint = () => {
@@ -49,15 +72,19 @@ export function SiteShell({ children }: { children: ReactNode }) {
   return (
     <div className={isGame ? game.theme : styles.shell}>
       <title>{t('site.name')}</title>
-      <a className={styles.skip} href="#main">
-        {t('site.skip')}
-      </a>
+      {isJapanScenario ? (
+        <button type="button" className={styles.skip} onClick={focusMain}>
+          {t('site.skip')}
+        </button>
+      ) : (
+        <a className={styles.skip} href="#main">
+          {t('site.skip')}
+        </a>
+      )}
       <header className={isGame ? game.siteHeader : styles.header}>
         <div className={isGame ? game.siteHeaderInner : styles.headerInner}>
           <a
-            href={asset(
-              isGame ? countryPath(currentCountry?.id ?? 'uk') : '/',
-            )}
+            href={asset(isGame ? countryPath(currentCountry?.id ?? 'uk') : '/')}
           >
             {isGame ? (
               t('game.returnSimulator')
@@ -78,7 +105,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
               {cleanPath !== '/' && (
                 <Link href="/">{t('site.allCountries')}</Link>
               )}
-              <Link href={countryPath('uk', 'policy')}>{t('site.policy')}</Link>
+              <Link href={policyLink}>{t('site.policy')}</Link>
               <Link href={countryPath('uk', 'about')}>{t('site.about')}</Link>
             </nav>
           )}
@@ -87,28 +114,23 @@ export function SiteShell({ children }: { children: ReactNode }) {
             role="group"
             aria-label={t('site.language')}
           >
-            <button
-              type="button"
-              lang="zh-CN"
-              aria-pressed={locale === 'zh-CN'}
-              aria-label={t('site.chinese')}
-              onClick={() => setLocale('zh-CN')}
-            >
-              <span className={styles.fullLabel}>{t('site.chinese')}</span>
-              <span className={styles.compactLabel}>
-                {t('site.chineseShort')}
-              </span>
-            </button>
-            <button
-              type="button"
-              lang="en"
-              aria-pressed={locale === 'en'}
-              aria-label="English"
-              onClick={() => setLocale('en')}
-            >
-              <span className={styles.fullLabel}>English</span>
-              <span className={styles.compactLabel}>EN</span>
-            </button>
+            {languages.map(([language, full, short]) => (
+              <button
+                key={language}
+                type="button"
+                lang={language}
+                aria-pressed={locale === language}
+                onClick={() => setLocale(language)}
+              >
+                <span className={styles.fullLabel}>{full}</span>{' '}
+                <span
+                  className={styles.compactLabel}
+                  aria-hidden={full.toLowerCase().includes(short.toLowerCase())}
+                >
+                  {short}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </header>
@@ -116,7 +138,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <footer className={`${styles.footer} ${isGame ? game.siteFooter : ''}`}>
         <p>{t('site.footer')}</p>
         <p className={styles.footerLinks}>
-          <Link href={countryPath('uk', 'policy')}>{t('site.policy')}</Link>
+          <Link href={policyLink}>{t('site.policy')}</Link>
           <Link href={countryPath('uk', 'about')}>{t('site.about')}</Link>
           <a
             href="https://github.com/Goldenmonstew/uk-immigration-simulator/issues/new?template=feedback.md"

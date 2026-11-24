@@ -131,6 +131,25 @@ test('locale renders the shell title, engine result, principal and What-if expla
     expect(html).not.toContain('My Immigration Path');
   expect(english).toContain('lang="en" aria-pressed="true"');
   expect(chinese).toContain('lang="zh-CN" aria-pressed="true"');
+  for (const [html, chineseName] of [
+    [chinese, '中文 中'],
+    [english, 'Chinese ZH'],
+  ]) {
+    const buttons =
+      html.match(/<button\b[^>]* lang="(?:zh-CN|en)"[^>]*>.*?<\/button>/g) ??
+      [];
+    expect(buttons.map((button) => button.replace(/<[^>]+>/g, ''))).toEqual([
+      chineseName,
+      'English EN',
+    ]);
+    for (const button of buttons) expect(button).not.toContain('aria-label=');
+    expect(buttons[1]).toMatch(/<span[^>]* aria-hidden="true">EN<\/span>/);
+    if (html === chinese) {
+      expect(buttons[0]).toMatch(/<span[^>]* aria-hidden="true">中<\/span>/);
+    } else {
+      expect(buttons[0]).not.toContain('aria-hidden="true"');
+    }
+  }
   for (const result of [
     runSimulation(draft, 'en'),
     runPrincipalSimulation(draft, 'en')!,
@@ -164,13 +183,13 @@ test('locale renders the shell title, engine result, principal and What-if expla
 test('a remembered result is only reused for its original locale', () => {
   const draft = familyDraft();
   const chinese = runSimulation(draft, 'zh-CN');
-  rememberResult(chinese, 'zh-CN');
-  expect(getRememberedResult('zh-CN')).toBe(chinese);
-  expect(getRememberedResult('en')).toBeUndefined();
+  rememberResult(draft, chinese, 'zh-CN');
+  expect(getRememberedResult(draft, 'zh-CN')).toBe(chinese);
+  expect(getRememberedResult(draft, 'en')).toBeUndefined();
   const english = runSimulation(draft, 'en');
-  rememberResult(english, 'en');
-  expect(getRememberedResult('en')).toBe(english);
-  expect(getRememberedResult('zh-CN')).toBeUndefined();
+  rememberResult(draft, english, 'en');
+  expect(getRememberedResult(draft, 'en')).toBe(english);
+  expect(getRememberedResult(draft, 'zh-CN')).toBeUndefined();
 });
 
 test.each(shortCircuitKeys)(

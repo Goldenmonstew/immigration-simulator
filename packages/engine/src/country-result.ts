@@ -12,6 +12,9 @@ import type {
 
 export interface CountryCheck extends Omit<RuleOutcome, 'status'> {
   status: 'MET' | 'NOT_MET' | 'UNKNOWN';
+  kind?: 'requirement' | 'factor' | 'information';
+  applicable?: boolean;
+  fee?: { currency: string; amount: number; possibleReducedAmount?: number };
 }
 
 export interface CountryPathway extends Omit<
@@ -25,6 +28,11 @@ export interface CountryPathway extends Omit<
   summary?: string;
   notChecked?: string[];
   pendingDetails?: string[];
+  /** Timing alone can be known even when other requirements remain open. */
+  timeStatus?: PilotStatus;
+  timeEarliestDate?: IsoDate;
+  /** Travel milestone in place of a filing date, or null if none applies. */
+  travelDate?: { kind: 'departure' | 'returnDeadline'; date?: IsoDate } | null;
 }
 
 export interface CountryColumn {

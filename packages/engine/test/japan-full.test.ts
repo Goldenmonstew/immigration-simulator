@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { evaluateJapan, evaluateJapanFull } from '../src';
+import { prEvidence } from './japan-pr-fixture';
+import { evaluateJapan, evaluateJapanFull, japanTripOccurrences } from '../src';
 import type {
   JpFullNaturalisationRoute,
   JpFullPathway,
@@ -21,54 +22,32 @@ const base = {
 } satisfies JpFullRequest;
 
 const general = { route: 'general', statusStart: '2022-04-01' } as const;
-const prEvidence = {
-  japaneseCitizen: false,
-  inJapan: true,
-  status: {
-    kind: 'engineer',
-    expiresOn: '2028-04-01',
-    grantedPeriodMonths: 60,
-    fitsCurrentCriteria: true,
+
+test.each([
+  ['', '2026-11-25', false],
+  ['2026-11-27', '2026-11-25', false],
+  ['2026-11-24', '2026-11-25', true],
+  ['2026-11-24', undefined, true],
+] as const)(
+  'without a departure date, only the original return %s can establish departure for a comparison with %s',
+  (original, assumed, departed) => {
+    const journeys = japanTripOccurrences({
+      simulationDate: '2026-11-26',
+      trips: [],
+      reentry: [
+        {
+          route: 'ordinary',
+          comparisonHistoryReturnOn: original,
+          returnOn: assumed,
+        },
+      ],
+    });
+    expect(journeys.reentry[0].occurrence).toEqual({
+      departed,
+      returned: false,
+    });
   },
-  family: { relativeStatus: 'other', relation: 'other' },
-  protectionRecognition: 'none',
-  internationalProtectionConfirmed: false,
-  goodConductConfirmed: true,
-  criminalHistory: 'none',
-  nationalInterestConfirmed: true,
-  statusActivitiesCompliant: true,
-  residenceCardDutiesCompliant: true,
-  affiliationNotices: [],
-  tax: 'on-time',
-  pension: 'lawful-exemption',
-  publicHealthInsurance: 'on-time',
-  addressNotices: [],
-  actualAddressAndRegister: true,
-  livelihoodConfirmed: true,
-  householdIncomeConfirmed: true,
-  pensionComparisonConfirmed: true,
-  publicBurdenConfirmedAcceptable: true,
-  publicHealthCleared: true,
-  otherLandingGroundsCleared: true,
-  guarantor: 'japanese-resident',
-  guarantorDocumentsReady: true,
-  japaneseB1Confirmed: true,
-  integrationKnowledgeConfirmed: true,
-  schoolChildren: [
-    { bornOn: '2015-04-02', attendance: 'primary-or-junior-high' },
-  ],
-  filer: 'self',
-  documentsReady: true,
-  photoReady: true,
-  specialPermission: { kind: 'none' },
-  feeReduction: 'not-requested',
-  integratedCard: {
-    requested: true,
-    immigrationChargeApplies: true,
-    jLisChargeApplies: true,
-    electronicCertificate: true,
-  },
-} satisfies JpPrCommonEvidence;
+);
 
 const natEvidence = {
   japaneseCitizen: false,
@@ -121,8 +100,12 @@ const reentry = (
   route: JpFullReentryRequest,
   request: Partial<JpFullRequest> = {},
 ) =>
-  evaluateJapanFull({ ...base, ...request, reentry: [route] }).columns[0]
-    .pathways[0];
+  evaluateJapanFull({
+    ...base,
+    applicationDate: request.simulationDate ?? '2026-09-24',
+    ...request,
+    reentry: [route],
+  }).columns[0].pathways[0];
 
 const condition = (path: JpFullPathway, suffix: string) =>
   path.checks.find(
@@ -130,6 +113,136 @@ const condition = (path: JpFullPathway, suffix: string) =>
   )!;
 const status = (path: JpFullPathway, suffix: string) =>
   condition(path, suffix).status;
+
+test.each(['zh-CN', 'en'] as const)(
+  'projects absences to the filing date using the original simulation date (%s)',
+  (locale) => {
+    const request = {
+      simulationDate: '2027-04-01',
+      applicationDate: '2027-04-08',
+      trips: [{ departed: '2027-04-04', returned: '2027-04-07', departure: 'deemed' }],
+      locale,
+    } satisfies Partial<JpFullRequest>;
+    const residence = pr(general, prEvidence, request);
+    expect(condition(residence, 'total-absence').explanation).toContain(
+      locale === 'en' ? 'Projected through 2027-04-08' : '按所填行程推算至 2027-04-08',
+    );
+    expect(condition(residence, 'total-absence').explanation).toContain(
+      locale === 'en' ? '2 days abroad' : '合计 2 天',
+    );
+    expect(residence.summary).toContain(
+      locale === 'en' ? 'would meet the time requirements' : '拟递交日（2027-04-08）预计满足',
+    );
+    expect(nat({ route: 'general' }, natEvidence, request).summary).toContain(
+      locale === 'en' ? 'would have 1 trip abroad' : '按所填行程预计，',
+    );
+  },
+);
+
+describe('deemed re-entry on a trip in the shared history', () => {
+  const departed = '2024-04-01';
+  const evaluateTrip = (
+    returned: string,
+    historyStatus?: boolean,
+    routeStatus?: boolean,
+    routeDeparture = departed,
+  ) =>
+    evaluateJapanFull({
+      ...base,
+      trips: [
+        {
+          departed,
+          returned,
+          departure: 'deemed',
+          specialPermanentResident: historyStatus,
+        },
+      ],
+      naturalisation: { routes: [{ route: 'general' }], evidence: natEvidence },
+      reentry: [
+        {
+          route: 'deemed',
+          departureOn: routeDeparture,
+          returnOn: returned,
+          specialPermanentResident: routeStatus,
+          stayIndefinite: true,
+          lawfulStatus: true,
+          passportValid: true,
+          residentCardOrCertificate: true,
+          formalPermitRequired: false,
+          declaredIntentAtDeparture: true,
+          permitVoided: false,
+        },
+      ],
+    }).columns[0].pathways;
+
+  test.each([
+    ['2025-10-01', undefined, true, 'MET', 'UNKNOWN'],
+    ['2025-10-01', true, undefined, 'MET', 'UNKNOWN'],
+    ['2025-10-01', false, undefined, 'NOT_MET', 'NOT_MET'],
+    ['2025-10-01', undefined, undefined, 'UNKNOWN', 'UNKNOWN'],
+    ['2025-10-01', true, false, 'UNKNOWN', 'UNKNOWN'],
+    ['2025-04-01', undefined, false, 'MET', 'UNKNOWN'],
+    ['2026-04-01', undefined, true, 'MET', 'UNKNOWN'],
+    ['2026-04-02', undefined, true, 'NOT_MET', 'NOT_MET'],
+  ] as const)(
+    'return on %s with special status in history %s and route %s',
+    (returned, historyStatus, routeStatus, travel, domicile) => {
+      const [nat, reentry] = evaluateTrip(returned, historyStatus, routeStatus);
+      expect(status(reentry, 'return-continuity')).toBe(travel);
+      const check = condition(nat, 'domicile-years');
+      expect(check.status).toBe(domicile);
+      // Even an unexpired permit leaves continuous domicile to individual review.
+      expect(check.explanation).toContain(
+        domicile === 'NOT_MET' ? returned : base.stayStart,
+      );
+      if (returned > '2025-04-01') {
+        expect(check.sources).toContainEqual({
+          srcId: 'SRC-442',
+          locator: '第23条第2項',
+        });
+        if (travel === 'UNKNOWN')
+          expect(nat.summary).toContain(
+            historyStatus === true && routeStatus === false
+              ? 'special permanent resident status at departure'
+              : 'whether you were a special permanent resident',
+          );
+      }
+    },
+  );
+
+  test('special status for another departure does not resolve the history', () => {
+    const [nat] = evaluateTrip('2025-10-01', undefined, true, '2024-04-02');
+    expect(nat.summary).toContain(
+      'whether you were a special permanent resident',
+    );
+  });
+
+  test('matches each return when several deemed itineraries are assessed', () => {
+    const returned = '2025-10-01';
+    const route = {
+      route: 'deemed',
+      departureOn: departed,
+      stayIndefinite: true,
+    } as const;
+    const [nat, other, matched] = evaluateJapanFull({
+      ...base,
+      trips: [{ departed, returned, departure: 'deemed' }],
+      naturalisation: { routes: [{ route: 'general' }], evidence: natEvidence },
+      reentry: [
+        { ...route, returnOn: '2025-10-02', specialPermanentResident: false },
+        { ...route, returnOn: returned, specialPermanentResident: true },
+      ],
+    }).columns[0].pathways;
+    expect(status(other, 'deemed-validity')).toBe('NOT_MET');
+    expect(status(matched, 'deemed-validity')).toBe('MET');
+    expect(condition(nat, 'domicile-years').explanation).toContain(
+      base.stayStart,
+    );
+    expect(nat.summary).not.toContain(
+      'whether you were a special permanent resident',
+    );
+  });
+});
 
 describe('permanent residence', () => {
   test('excludes Intra-company Transferee from qualifying stay only under the revised guideline', () => {
@@ -154,14 +267,172 @@ describe('permanent residence', () => {
     ).toBe('MET');
   });
 
+  test.each([
+    [undefined, undefined, 'UNKNOWN', 'UNKNOWN'],
+    [false, undefined, 'NOT_MET', 'NOT_MET'],
+    [true, undefined, 'UNKNOWN', 'UNKNOWN'],
+    [true, '2026-11-11', 'MET', 'UNKNOWN'],
+  ] as const)(
+    'residence and naturalisation retain renewal evidence at departure: %s, decision %s',
+    (renewalPending, renewalDecisionOn, expectedPr, expectedNat) => {
+      const trip = {
+        departure: 'deemed' as const,
+        departed: '2026-10-01',
+        stayExpiry: '2026-10-15',
+        returned: '2026-11-10',
+        renewalPending,
+        renewalDecisionOn,
+      };
+      const request = { trips: [trip], stayStart: '2012-04-01' };
+      const result = pr(general, prEvidence, request);
+      expect(status(result, 'continuous-stay')).toBe(expectedPr);
+      expect(result.status).toBe(expectedPr);
+      if (expectedPr === 'UNKNOWN') {
+        expect(result.timeStatus).toBe('UNKNOWN');
+        expect(result.timeEarliestDate).toBeUndefined();
+        expect(result.earliestDate).toBeUndefined();
+        expect(condition(result, 'continuous-stay').sources).toContainEqual(
+          expect.objectContaining({
+            srcId: 'SRC-116',
+            locator: expect.stringContaining('Q61'),
+          }),
+        );
+      }
+      const residence = nat(
+        { route: 'article-6-long-residence' },
+        natEvidence,
+        request,
+      );
+      expect(status(residence, 'long-residence')).toBe(expectedNat);
+    },
+  );
+
+  test.each([
+    ['deemed', false, '2024-04-07', 'UNKNOWN', undefined],
+    ['none', true, '2024-04-07', 'UNKNOWN', undefined],
+    ['deemed', false, '2024-04-08', 'MET', '2027-04-01'],
+    ['permit', false, '2024-04-07', 'MET', '2027-04-01'],
+    ['none', undefined, '2024-04-07', 'NOT_MET', '2034-04-07'],
+  ] as const)(
+    'general PR reconciles %s in history with declaration %s for return on %s',
+    (departure, declaredIntentAtDeparture, returnOn, expected, milestone) => {
+      const departed = '2024-04-01';
+      const result = pr(general, prEvidence, {
+        trips: [
+          {
+            departed,
+            returned: '2024-04-07',
+            departure,
+            reentryPermit: departure === 'permit',
+          },
+        ],
+        reentry: [
+          {
+            route: 'deemed',
+            departureOn: departed,
+            returnOn,
+            declaredIntentAtDeparture,
+            stayIndefinite: true,
+            lawfulStatus: true,
+            passportValid: true,
+            residentCardOrCertificate: true,
+            formalPermitRequired: false,
+            permitVoided: false,
+          },
+        ],
+      });
+      expect(status(result, 'continuous-stay')).toBe(expected);
+      expect(result.timeEarliestDate).toBe(milestone);
+    },
+  );
+
   test('moves Saturday filing to the next open day and preserves the time result', () => {
-    const result = pr(general, prEvidence, { simulationDate: '2027-04-03' });
+    const saturday = { simulationDate: '2027-04-03' };
+    const stale = pr(general, prEvidence, saturday);
+    expect(status(stale, 'filing-in-japan')).toBe('UNKNOWN');
+    expect(stale.earliestDate).toBeUndefined();
+    const result = pr(general, prEvidence, {
+      ...saturday,
+      residenceEvidenceOn: '2027-04-05',
+    });
     expect(result).toMatchObject({
       status: 'MET',
       earliestDate: '2027-04-05',
       timeStatus: 'MET',
       timeEarliestDate: '2027-04-03',
     });
+  });
+
+  test.each([
+    [undefined, false, 'UNKNOWN', undefined, undefined],
+    ['permit', undefined, 'UNKNOWN', undefined, undefined],
+    ['deemed', false, 'MET', '2027-04-05', '2027-04-03'],
+    ['permit', true, 'MET', '2027-04-05', '2027-04-03'],
+    ['permit', false, 'NOT_MET', undefined, '2036-11-10'],
+    ['none', false, 'NOT_MET', undefined, '2036-11-10'],
+  ] as const)(
+    'checks general PR for a %s departure with valid ordinary permit = %s',
+    (departure, reentryPermit, expected, filing, time) => {
+      const result = pr(general, prEvidence, {
+        simulationDate: '2027-04-03',
+        residenceEvidenceOn: '2027-04-05',
+        trips: [
+          {
+            departure,
+            reentryPermit,
+            departed: '2026-10-01',
+            returned: '2026-11-10',
+          },
+        ],
+      });
+      expect(result.status).toBe(expected);
+      expect(result.earliestDate).toBe(filing);
+      expect(result.timeEarliestDate).toBe(time);
+      if (expected === 'UNKNOWN') {
+        const stay = condition(result, 'continuous-stay');
+        expect(stay.status).toBe('UNKNOWN');
+        expect(stay.sources).toContainEqual(
+          expect.objectContaining({ srcId: 'SRC-116' }),
+        );
+        expect(result.summary).toContain(
+          departure ? 'still valid on return' : 'departure record',
+        );
+        expect(result.summary).toContain('2026-11-10');
+        expect(result.summary).not.toContain('2027-04-05');
+      }
+    },
+  );
+
+  test('an unknown departure method cannot preserve a stay past its confirmed expiry', () => {
+    const result = pr(general, prEvidence, {
+      trips: [
+        {
+          departed: '2026-10-01',
+          returned: '2026-11-10',
+          stayExpiry: '2026-10-15',
+          renewalPending: false,
+        },
+      ],
+    });
+    expect(status(result, 'continuous-stay')).toBe('NOT_MET');
+    expect(result.timeEarliestDate).toBe('2036-11-10');
+  });
+
+  test('an unknown method on a trip before the current stay does not delay filing', () => {
+    const result = pr(general, prEvidence, {
+      trips: [{ departed: '2015-10-01', returned: '2015-11-10' }],
+    });
+    expect(result.status).toBe('MET');
+    expect(result.earliestDate).toBe('2027-04-01');
+  });
+
+  test('an unconfirmed departure cannot preserve the stay beyond every permit term', () => {
+    const result = pr(general, prEvidence, {
+      trips: [{ departed: '2018-10-01', returned: '2026-11-10' }],
+    });
+    expect(status(result, 'continuous-stay')).toBe('NOT_MET');
+    expect(result.timeEarliestDate).toBe('2036-11-10');
+    expect(result.summary).toContain('2025-10-01');
   });
 
   test.each([undefined, true])(
@@ -180,8 +451,24 @@ describe('permanent residence', () => {
         },
         { simulationDate: '2027-04-03' },
       );
-      expect(status(result, 'lawful-filing-status')).toBe('NOT_MET');
-      expect(result.status).toBe('NOT_MET');
+      expect(status(result, 'lawful-filing-status')).toBe('UNKNOWN');
+      expect(result.status).toBe('UNKNOWN');
+      const confirmed = pr(
+        general,
+        {
+          ...prEvidence,
+          status: {
+            ...prEvidence.status,
+            expiresOn: '2027-04-04',
+            timelyRenewalPending: false,
+          },
+        },
+        {
+          simulationDate: '2027-04-03',
+          residenceEvidenceOn: '2027-04-05',
+        },
+      );
+      expect(status(confirmed, 'lawful-filing-status')).toBe('NOT_MET');
       expect(result.timeEarliestDate).toBe('2027-04-03');
       expect(result.earliestDate).toBeUndefined();
     },
@@ -207,6 +494,7 @@ describe('permanent residence', () => {
     const result = pr(general, prEvidence, { simulationDate: '2028-03-18' });
     expect(result.timeEarliestDate).toBe('2028-03-18');
     expect(result.earliestDate).toBeUndefined();
+    expect(result.summary).not.toContain('you can file from');
     expect(result.pendingDetails).toContain('PD-370');
   });
 
@@ -231,6 +519,7 @@ describe('permanent residence', () => {
             {
               departed: '2021-05-01',
               returned: '2021-12-01',
+              departure: 'permit',
               reentryPermit: true,
             },
           ],
@@ -813,6 +1102,79 @@ describe('highly skilled routes', () => {
     maintained: true,
     current: snapshot,
   } as const;
+  const saturday = '2027-04-03';
+  const monday = '2027-04-05';
+  const saturdayRoute = {
+    route: 'hsp70',
+    statusStart: '2024-04-01',
+    maintained: true,
+    mode: 'retrospective',
+    current: { on: saturday, confirmedPoints: 80 },
+    historical: { on: '2024-04-03', confirmedPoints: 80 },
+  } as const;
+  test.each(['en', 'zh-CN'] as const)(
+    'a closed counter gives dates for both replacement points records and confirms the corrected filing in %s',
+    (locale) => {
+      const shifted = pr(saturdayRoute, prEvidence, {
+        applicationDate: saturday,
+        locale,
+      });
+      expect(shifted.status).toBe('UNKNOWN');
+      expect(shifted.earliestDate).toBeUndefined();
+      expect(shifted.summary).toContain(
+        locale === 'en' ? 'in the questionnaire' : '在问卷中',
+      );
+      expect(shifted.summary).toContain(monday);
+      expect(shifted.summary).toContain('2024-04-05');
+
+      const corrected = pr(
+        {
+          ...saturdayRoute,
+          current: { on: monday, confirmedPoints: 80 },
+          historical: { on: '2024-04-05', confirmedPoints: 80 },
+        },
+        prEvidence,
+        { applicationDate: monday, locale },
+      );
+      expect(corrected).toMatchObject({ status: 'MET', earliestDate: monday });
+    },
+  );
+  test.each(['en', 'zh-CN'] as const)(
+    'the next counter day requires fresh points evidence even with other requirements unknown in %s',
+    (locale) => {
+      const pointsOnly = {
+        route: saturdayRoute.route,
+        statusStart: saturdayRoute.statusStart,
+        current: saturdayRoute.current,
+        historical: saturdayRoute.historical,
+      };
+      const result = pr(pointsOnly, {}, {
+        simulationDate: saturday,
+        locale,
+      });
+      expect(result).toMatchObject({
+        status: 'UNKNOWN',
+        timeStatus: 'MET',
+        timeEarliestDate: saturday,
+      });
+      expect(result.earliestDate).toBeUndefined();
+      expect(status(result, 'hsp-current-points')).toBe('UNKNOWN');
+      expect(status(result, 'hsp-history')).toBe('UNKNOWN');
+      expect(result.summary).not.toContain(
+        locale === 'en' ? 'you can file from' : '最早可在',
+      );
+      expect(result.summary).toContain(
+        locale === 'en'
+          ? `Set the proposed filing date in the questionnaire to ${monday}`
+          : `请在问卷中把拟递交日改为 ${monday}`,
+      );
+      expect(result.summary).toContain(
+        locale === 'en'
+          ? 'enter historical evidence for 2024-04-05'
+          : '补录 2024-04-05 的历史证据',
+      );
+    },
+  );
   test('70 points, the birthday band, salary minimum and continuous history', () => {
     const result = pr(hsp70);
     expect(condition(result, 'hsp-current-points')).toMatchObject({
@@ -997,8 +1359,15 @@ describe('highly skilled routes', () => {
 
 describe('naturalisation', () => {
   test('moves ordinary naturalisation filing from Saturday to the next open day', () => {
+    const old = nat({ route: 'general' }, natEvidence, {
+      simulationDate: '2027-04-03',
+    });
+    expect(status(old, 'filing-in-japan')).toBe('UNKNOWN');
+    expect(status(old, 'lawful-domicile')).toBe('UNKNOWN');
+    expect(old.earliestDate).toBeUndefined();
     const result = nat({ route: 'general' }, natEvidence, {
       simulationDate: '2027-04-03',
+      residenceEvidenceOn: '2027-04-05',
     });
     expect(status(result, 'domicile-years')).toBe('MET');
     expect(status(result, 'filing-in-japan')).toBe('MET');
@@ -1451,6 +1820,200 @@ describe('re-entry and travel documents', () => {
   } as const;
 
   test.each([
+    ['planned', '2026-11-24'],
+    ['abroad', '2026-11-28'],
+    ['returned', '2026-12-01'],
+  ])(
+    'changing only the filing date keeps the issued permit valid for a %s trip',
+    (_, simulationDate) => {
+      const trip = {
+        ...ordinary,
+        departureOn: '2026-11-26',
+        returnOn: '2026-11-30',
+        permit: {
+          effectiveOn: '2026-11-01',
+          expiresOn: '2027-11-01',
+          extensionApproved: false,
+        },
+      };
+      const before = reentry(trip, {
+        simulationDate,
+        applicationDate: '2026-11-24',
+      });
+      const after = reentry(trip, {
+        simulationDate,
+        applicationDate: '2026-11-27',
+      });
+      for (const path of [before, after]) {
+        expect(path.status).toBe('MET');
+        expect(path.earliestDate).toBeUndefined();
+        for (const id of [
+          'ordinary-eligibility',
+          'online-application',
+          'travel-fee',
+        ])
+          expect(condition(path, id).applicable).toBe(false);
+      }
+      for (const id of ['ordinary-validity', 'return-continuity']) {
+        expect(status(before, id)).toBe('MET');
+        expect(condition(after, id)).toEqual(condition(before, id));
+      }
+    },
+  );
+
+  test('a new ordinary permit cannot take effect before it can be filed for', () => {
+    const path = reentry(
+      {
+        ...ordinary,
+        departureOn: '2026-11-26',
+        returnOn: '2026-11-30',
+        permit: {
+          effectiveOn: '2026-11-24',
+          expiresOn: '2027-11-24',
+          extensionApproved: false,
+        },
+      },
+      { simulationDate: '2026-11-23', applicationDate: '2026-11-25' },
+    );
+    expect(status(path, 'ordinary-eligibility')).toBe('NOT_MET');
+    expect(path.status).toBe('NOT_MET');
+    expect(path.earliestDate).toBeUndefined();
+  });
+
+  test('holding an ordinary permit does not establish that it was used for a recorded departure without permission', () => {
+    const returned = '2026-10-07';
+    const [pr, travel] = evaluateJapanFull({
+      ...base,
+      trips: [{ departed: ordinary.departureOn, returned, departure: 'none' }],
+      permanentResidence: { routes: [general], evidence: prEvidence },
+      reentry: [{ ...ordinary, returnOn: returned }],
+    }).columns[0].pathways;
+    expect(status(pr, 'continuous-stay')).toBe('NOT_MET');
+    expect(status(travel, 'return-continuity')).toBe('NOT_MET');
+    expect(condition(travel, 'return-continuity').explanation).toContain('this route was not used');
+  });
+
+  test('planned travel uses conditional departure and return notices even for a later filing date', () => {
+    const trip = {
+      departed: '2028-07-01',
+      returned: '2028-12-02',
+      departure: 'none',
+    } as const;
+    const request: JpFullRequest = {
+      ...base,
+      applicationDate: '2028-08-01',
+      trips: [trip],
+      permanentResidence: { routes: [general] },
+      reentry: [
+        {
+          ...ordinary,
+          departureOn: trip.departed,
+          returnOn: trip.returned,
+          permitVoided: true,
+        },
+        {
+          route: 'refugee-travel-document',
+          departureOn: trip.departed,
+          returnOn: trip.returned,
+          permit: {
+            effectiveOn: '2027-10-01',
+            expiresOn: '2029-10-01',
+            entryDeadline: '2028-12-01',
+          },
+        },
+      ],
+    };
+    for (const locale of ['zh-CN', 'en'] as const) {
+      const [residence, permit, document] = evaluateJapanFull({
+        ...request,
+        locale,
+      }).columns[0].pathways;
+      expect(residence.summary).toContain(
+        locale === 'en'
+          ? 'You expect to be abroad on the proposed filing date'
+          : '按行程计划，拟递交日',
+      );
+      const details = condition(permit, 'return-continuity').explanation;
+      expect(details).toContain(
+        locale === 'en'
+          ? 'would not be met at departure'
+          : '届时无法满足出境所需的再入国条件',
+      );
+      expect(details).toContain(
+        locale === 'en'
+          ? 'planned departure uses a different route'
+          : '计划采用的出境方式与这条路径不同',
+      );
+      expect(condition(document, 'return-continuity').explanation).toContain(
+        locale === 'en'
+          ? 'planned return would be after the designated entry deadline'
+          : '计划返日将晚于证件指定的入境期限',
+      );
+    }
+  });
+
+  test('a decision and a new landing each use their own date in the engine result', () => {
+    const trip = {
+      departed: '2027-03-28',
+      returned: '2027-04-05',
+      departure: 'deemed',
+      stayExpiry: '2027-03-31',
+      renewalPending: true,
+      renewalDecisionOn: '2027-04-02',
+    } as const;
+    for (const locale of ['zh-CN', 'en'] as const) {
+      const result = (simulationDate: string) =>
+        pr(general, {}, { trips: [trip], locale, simulationDate }).summary;
+      expect(result('2027-04-01')).toContain(
+        locale === 'en'
+          ? 'If the renewal decision is made on 2027-04-02'
+          : '若于 2027-04-02 作出续期处分',
+      );
+      expect(result('2027-04-02')).toContain(
+        locale === 'en'
+          ? 'The renewal decision was on 2027-04-02'
+          : '续期处分日为 2027-04-02',
+      );
+      const route = reentry(
+        {
+          ...ordinary,
+          departureOn: trip.departed,
+          newLandingOn: trip.returned,
+          returnOn: trip.returned,
+        },
+        { locale, simulationDate: '2027-04-01' },
+      );
+      expect(condition(route, 'return-continuity').explanation).toContain(
+        locale === 'en'
+          ? 'Landing under a new status on 2027-04-05 would end'
+          : '若于 2027-04-05 以新身份上陆，原在留将中断',
+      );
+    }
+  });
+
+  test('an ordinary permit cannot preserve the prior stay on a new landing', () => {
+    const returned = '2026-10-07';
+    const request: JpFullRequest = {
+      ...base,
+      trips: [
+        {
+          departed: ordinary.departureOn,
+          returned,
+          departure: 'permit',
+          reentryPermit: true,
+        },
+      ],
+      permanentResidence: { routes: [general], evidence: prEvidence },
+      reentry: [{ ...ordinary, returnOn: undefined, newLandingOn: returned }],
+    };
+    const [pr, travel] = evaluateJapanFull(request).columns[0].pathways;
+    expect(status(travel, 'return-continuity')).toBe('NOT_MET');
+    expect(status(pr, 'continuous-stay')).toBe('NOT_MET');
+    expect(pr.timeEarliestDate).toBe('2036-10-07');
+    expect(pr.earliestDate).toBeUndefined();
+  });
+
+  test.each([
     {
       channel: 'counter',
       onlineConcurrentEligibleApplication: true,
@@ -1474,7 +2037,7 @@ describe('re-entry and travel documents', () => {
       onlineConcurrentEligibleApplication: true,
       simulationDate: '2027-04-03',
       departureOn: '2027-04-04',
-      permitEffectiveOn: '2027-04-03',
+      permitEffectiveOn: '2027-04-04',
       expectedStatus: 'MET',
       earliestDate: '2027-04-03',
     },
@@ -1492,7 +2055,7 @@ describe('re-entry and travel documents', () => {
       onlineConcurrentEligibleApplication: undefined,
       simulationDate: '2027-04-05',
       departureOn: '2027-04-12',
-      permitEffectiveOn: '2027-04-05',
+      permitEffectiveOn: '2027-04-06',
       expectedStatus: 'MET',
       earliestDate: '2027-04-05',
     },
@@ -1510,7 +2073,7 @@ describe('re-entry and travel documents', () => {
       onlineConcurrentEligibleApplication: true,
       simulationDate: '2027-04-03',
       departureOn: '2027-04-04',
-      permitEffectiveOn: '2027-04-03',
+      permitEffectiveOn: '2027-04-04',
       expectedStatus: 'NOT_MET',
       earliestDate: undefined,
     },
@@ -1519,7 +2082,7 @@ describe('re-entry and travel documents', () => {
       onlineConcurrentEligibleApplication: true,
       simulationDate: '2027-04-03',
       departureOn: '2027-04-04',
-      permitEffectiveOn: '2027-04-03',
+      permitEffectiveOn: '2027-04-04',
       expectedStatus: 'MET',
       earliestDate: '2027-04-03',
     },
@@ -1546,6 +2109,8 @@ describe('re-entry and travel documents', () => {
       const result = reentry(
         {
           ...ordinary,
+          lawfulStatusOn: earliestDate,
+          filingEvidenceOn: earliestDate,
           channel,
           onlineConcurrentEligibleApplication,
           stayIndefinite: false,
@@ -1555,6 +2120,7 @@ describe('re-entry and travel documents', () => {
           permit: {
             effectiveOn: permitEffectiveOn,
             expiresOn: '2029-04-05',
+            extensionApproved: false,
           },
         },
         { simulationDate },
@@ -1586,19 +2152,23 @@ describe('re-entry and travel documents', () => {
   );
 
   test('ordinary term, extension, fee timing and available channel', () => {
-    const result = reentry(ordinary, { applicationDate: '2026-10-01' });
+    const apply = (
+      route: JpFullReentryRequest,
+      simulationDate = '2026-10-01',
+    ) => reentry(route, { simulationDate });
+    const result = apply(ordinary);
     expect(result.status).toBe('MET');
     expect(status(result, 'ordinary-eligibility')).toBe('MET');
     expect(
       status(
-        reentry({ ...ordinary, excludedStatusOrDetention: true }),
+        apply({ ...ordinary, excludedStatusOrDetention: true }),
         'ordinary-eligibility',
       ),
     ).toBe('NOT_MET');
     expect(status(result, 'ordinary-validity')).toBe('MET');
     expect(
       status(
-        reentry({
+        apply({
           ...ordinary,
           permit: { ...ordinary.permit, extendedUntil: '2032-10-03' },
         }),
@@ -1606,49 +2176,43 @@ describe('re-entry and travel documents', () => {
       ),
     ).toBe('NOT_MET');
     expect(status(result, 'online-application')).toBe('MET');
-    const unavailable = reentry(
-      { ...ordinary, onlineConcurrentEligibleApplication: false },
-      { applicationDate: '2026-10-01' },
-    );
+    const unavailable = apply({
+      ...ordinary,
+      onlineConcurrentEligibleApplication: false,
+    });
     expect(status(unavailable, 'online-application')).toBe('NOT_MET');
     expect(unavailable.status).toBe('NOT_MET');
     expect(
-      condition(
-        reentry(ordinary, { applicationDate: '2025-03-31' }),
-        'travel-fee',
-      ).fee?.amount,
+      condition(apply(ordinary, '2025-03-31'), 'travel-fee').fee?.amount,
     ).toBe(6_000);
     expect(condition(result, 'travel-fee').fee).toEqual({
       currency: 'JPY',
       amount: 6_720,
     });
     expect(
-      condition(
-        reentry(ordinary, { applicationDate: '2026-09-30' }),
-        'travel-fee',
-      ).fee?.amount,
+      condition(apply(ordinary, '2026-09-30'), 'travel-fee').fee?.amount,
     ).toBe(6_500);
     expect(
       condition(
-        reentry(
+        apply(
           { ...ordinary, channel: 'counter', visits: 'single' },
-          { applicationDate: '2025-03-31' },
+          '2025-03-31',
         ),
         'travel-fee',
       ).fee?.amount,
     ).toBe(3_000);
     expect(
       condition(
-        reentry(
+        apply(
           { ...ordinary, channel: 'counter', visits: 'single' },
-          { applicationDate: '2025-04-01' },
+          '2025-04-01',
         ),
         'travel-fee',
       ).fee?.amount,
     ).toBe(4_000);
     expect(
       status(
-        reentry({
+        apply({
           ...ordinary,
           onlineConcurrentEligibleApplication: undefined,
         }),
@@ -1678,6 +2242,280 @@ describe('re-entry and travel documents', () => {
       ),
     ).toBe('MET');
   });
+
+  test.each([
+    ['2031-10-02', undefined, 'MET'],
+    ['2031-11-10', undefined, 'UNKNOWN'],
+    ['2031-11-10', '2031-12-02', 'MET'],
+    ['2031-11-10', '2031-11-01', 'NOT_MET'],
+    ['2032-10-02', undefined, 'UNKNOWN'],
+    ['2032-10-03', undefined, 'NOT_MET'],
+  ] as const)(
+    'ordinary return on %s with approved expiry %s gives %s',
+    (returnOn, extendedUntil, expected) => {
+      const result = reentry(
+        {
+          ...ordinary,
+          returnOn,
+          permit: { ...ordinary.permit, extendedUntil },
+        },
+        { applicationDate: '2026-10-01' },
+      );
+      expect(status(result, 'return-continuity')).toBe(expected);
+      if (returnOn === '2031-11-10') expect(result.status).toBe(expected);
+      const detail = condition(result, 'return-continuity').explanation;
+      if (!extendedUntil) {
+        expect(detail).not.toContain('verifiable deadline is 2031-10-02');
+        if (expected === 'UNKNOWN') expect(detail).toContain('extended expiry');
+        if (expected === 'NOT_MET') expect(detail).toContain('2032-10-02');
+      }
+    },
+  );
+
+  test.each([
+    ['2031-10-02', undefined, 'MET'],
+    ['2031-11-10', undefined, 'UNKNOWN'],
+    ['2032-10-02', true, 'UNKNOWN'],
+    ['2032-10-03', true, 'NOT_MET'],
+  ] as const)(
+    'an unanswered extension decision on return %s with consular answer %s gives %s for both documents',
+    (returnOn, consularExtension, expected) => {
+      const permit = { effectiveOn: '2026-10-02', expiresOn: '2031-10-02' };
+      const trip = { departureOn: '2026-10-03', returnOn, consularExtension };
+      const results = [
+        reentry({ ...ordinary, ...trip, permit }),
+        reentry({
+          ...trip,
+          route: 'refugee-travel-document',
+          refugeeRecognition: true,
+          hasJapaneseTravelDocument: true,
+          permitVoided: false,
+          permit: { ...permit, entryDeadlineNotSpecified: true },
+        }),
+      ];
+      for (const result of results) {
+        const continuity = condition(result, 'return-continuity');
+        expect(continuity.status).toBe(expected);
+        expect(continuity.explanation).not.toContain(permit.expiresOn);
+        if (expected === 'NOT_MET')
+          expect(continuity.explanation).toContain('2032-10-02');
+        expect(result.travelDate?.date).toBeUndefined();
+      }
+    },
+  );
+
+  test.each([
+    [false, '2032-10-03', 'NOT_MET'],
+    [true, '2032-10-03', 'UNKNOWN'],
+    [undefined, '2033-10-03', 'NOT_MET'],
+  ] as const)(
+    'the total ordinary extension limit applies with special resident status %s and return on %s',
+    (specialPermanentResident, returnOn, expected) => {
+      const result = reentry({
+        ...ordinary,
+        returnOn,
+        specialPermanentResident,
+        permit: { effectiveOn: '2026-10-02', extensionApproved: true },
+      });
+      expect(status(result, 'return-continuity')).toBe(expected);
+    },
+  );
+
+  test('the ordinary extension also ends within a year of a shorter permit expiry', () => {
+    const result = reentry({
+      ...ordinary,
+      returnOn: '2028-10-03',
+      permit: {
+        ...ordinary.permit,
+        expiresOn: '2027-10-02',
+        extendedUntil: undefined,
+      },
+    });
+    expect(status(result, 'return-continuity')).toBe('NOT_MET');
+    expect(condition(result, 'return-continuity').explanation).toContain(
+      '2028-10-02',
+    );
+  });
+
+  test('the stay can expire before an approved ordinary extension of unknown length', () => {
+    const result = reentry({
+      ...ordinary,
+      returnOn: '2031-11-10',
+      stayExpiresOn: '2031-11-09',
+      stayIndefinite: false,
+      timelyRenewalPending: false,
+      permit: { ...ordinary.permit, extendedUntil: undefined },
+    });
+    expect(status(result, 'return-continuity')).toBe('NOT_MET');
+  });
+
+  test.each([
+    [undefined, 'UNKNOWN'],
+    [false, 'NOT_MET'],
+    [true, 'MET'],
+  ] as const)(
+    'a return during the special period with renewal %s gives %s',
+    (renewal, expected) => {
+      const trip = {
+        departureOn: '2026-10-01',
+        returnOn: '2026-11-10',
+        stayExpiresOn: '2026-10-15',
+        stayIndefinite: false,
+        timelyRenewalPending: renewal,
+        renewalDecisionOn: renewal ? '2026-11-20' : undefined,
+      };
+      const ordinaryResult = reentry({
+        ...ordinary,
+        ...trip,
+        permit: {
+          effectiveOn: '2026-09-25',
+          expiresOn: '2026-11-15',
+          extensionApproved: false,
+        },
+      });
+      const deemedResult = reentry({ ...deemed, ...trip });
+      expect(status(ordinaryResult, 'ordinary-validity')).toBe(expected);
+      expect(status(deemedResult, 'deemed-validity')).toBe(expected);
+      for (const result of [ordinaryResult, deemedResult])
+        expect(status(result, 'return-continuity')).toBe(expected);
+    },
+  );
+
+  test.each([true, undefined])(
+    'a decision before expiry preserves the original stay limit with renewal %s',
+    (timelyRenewalPending) => {
+      const trip = {
+        departureOn: '2026-10-01',
+        returnOn: '2026-10-10',
+        stayExpiresOn: '2026-10-15',
+        renewalDecisionOn: '2026-10-08',
+        timelyRenewalPending,
+      };
+      const permit = {
+        effectiveOn: '2026-09-25',
+        expiresOn: '2026-10-15',
+        extensionApproved: false,
+      };
+      const ordinaryResult = reentry({ ...ordinary, ...trip, permit });
+      expect(status(ordinaryResult, 'ordinary-validity')).toBe('MET');
+      expect(status(ordinaryResult, 'return-continuity')).toBe('MET');
+      const deemedResult = reentry({ ...deemed, ...trip });
+      expect(status(deemedResult, 'deemed-validity')).toBe('MET');
+      expect(condition(deemedResult, 'deemed-validity').explanation).toContain(
+        '2026-10-15',
+      );
+      expect(status(deemedResult, 'return-continuity')).toBe('MET');
+      const afterExpiry = reentry({
+        ...deemed,
+        ...trip,
+        returnOn: '2026-10-16',
+      });
+      expect(status(afterExpiry, 'return-continuity')).toBe('NOT_MET');
+    },
+  );
+
+  test('unknown renewal preserves definite permit and special-period limits', () => {
+    const trip = {
+      departureOn: '2026-10-01',
+      returnOn: '2026-11-10',
+      stayExpiresOn: '2026-10-15',
+      stayIndefinite: false,
+    };
+    const permitExpired = reentry({
+      ...ordinary,
+      ...trip,
+      permit: {
+        effectiveOn: '2026-09-25',
+        expiresOn: '2026-10-10',
+        extensionApproved: false,
+      },
+    });
+    expect(status(permitExpired, 'ordinary-validity')).toBe('MET');
+    expect(status(permitExpired, 'return-continuity')).toBe('NOT_MET');
+    for (const input of [
+      { ...deemed, ...trip, returnOn: '2026-12-16' },
+      { ...deemed, ...trip, departureOn: '2025-10-01' },
+      { ...deemed, ...trip, renewalDecisionOn: '2026-11-09' },
+    ]) {
+      const result = reentry(input);
+      expect(status(result, 'deemed-validity')).toBe('NOT_MET');
+      expect(status(result, 'return-continuity')).toBe('NOT_MET');
+    }
+  });
+
+  test.each([
+    [false, '2024-04-01', '2024-04-07', 'NOT_MET'],
+    [undefined, '2027-04-02', '2027-04-07', 'UNKNOWN'],
+    [true, '2024-04-01', '2024-04-07', 'MET'],
+  ] as const)(
+    'deemed continuity depends on declaration %s for departure on %s',
+    (declaredIntentAtDeparture, departureOn, returnOn, expected) => {
+      const result = reentry({
+        ...deemed,
+        departureOn,
+        returnOn,
+        declaredIntentAtDeparture,
+      });
+      expect(status(result, 'deemed-eligibility')).toBe(expected);
+      expect(status(result, 'return-continuity')).toBe(expected);
+      expect(status(result, 'deemed-validity')).toBe('MET');
+    },
+  );
+
+  test.each(['en', 'zh-CN'] as const)(
+    'reports a deemed deadline only when the possible status limits agree (%s)',
+    (locale) => {
+      const trip = {
+        ...deemed,
+        departureOn: '2024-04-01',
+        returnOn: '2025-10-01',
+        specialPermanentResident: undefined,
+        stayIndefinite: true,
+        stayExpiresOn: undefined,
+      };
+      const pending = reentry(trip, { locale });
+      for (const key of ['deemed-validity', 'return-continuity']) {
+        const check = condition(pending, key);
+        expect(check.status).toBe('UNKNOWN');
+        expect(check.explanation).toContain(
+          locale === 'en' ? 'deadline is unconfirmed' : '截止日待确认',
+        );
+        expect(check.explanation).toContain(
+          locale === 'en'
+            ? '1 year, or 2 years for special permanent residents'
+            : '通常为 1 年，特別永住者为 2 年',
+        );
+        expect(check.explanation).not.toContain('2025-04-01');
+      }
+      for (const [specialPermanentResident, deadline, expected] of [
+        [false, '2025-04-01', 'NOT_MET'],
+        [true, '2026-04-01', 'MET'],
+      ] as const) {
+        const result = reentry(
+          { ...trip, specialPermanentResident },
+          { locale },
+        );
+        for (const key of ['deemed-validity', 'return-continuity']) {
+          expect(status(result, key)).toBe(expected);
+          expect(condition(result, key).explanation).toContain(deadline);
+        }
+      }
+      const earlyExpiry = reentry(
+        {
+          ...trip,
+          stayIndefinite: false,
+          stayExpiresOn: '2024-09-01',
+          timelyRenewalPending: false,
+        },
+        { locale },
+      );
+      for (const key of ['deemed-validity', 'return-continuity']) {
+        expect(status(earlyExpiry, key)).toBe('NOT_MET');
+        expect(condition(earlyExpiry, key).explanation).toContain('2024-09-01');
+      }
+    },
+  );
+
   test('deemed term ends at the earlier date including a pending-renewal period', () => {
     expect(reentry(deemed).status).toBe('MET');
     expect(
@@ -1693,12 +2531,6 @@ describe('re-entry and travel documents', () => {
       ),
     ).toBe('NOT_MET');
     expect(
-      status(
-        reentry({ ...deemed, declaredIntentAtDeparture: undefined }),
-        'deemed-eligibility',
-      ),
-    ).toBe('UNKNOWN');
-    expect(
       status(reentry({ ...deemed, returnOn: '2027-10-03' }), 'deemed-validity'),
     ).toBe('NOT_MET');
     expect(
@@ -1708,6 +2540,7 @@ describe('re-entry and travel documents', () => {
           stayExpiresOn: '2027-08-01',
           timelyRenewalPending: true,
           returnOn: '2027-10-01',
+          renewalDecisionOn: '2027-10-01',
         }),
         'deemed-validity',
       ),
@@ -1819,6 +2652,102 @@ describe('re-entry and travel documents', () => {
       ),
     ).toBe('UNKNOWN');
   });
+
+  test('a refugee document extension remains subject to a separate entry deadline', () => {
+    const route = {
+      route: 'refugee-travel-document',
+      refugeeRecognition: true,
+      hasJapaneseTravelDocument: true,
+      permitVoided: false,
+      departureOn: '2025-03-01',
+      returnOn: '2025-04-02',
+      permit: {
+        effectiveOn: '2024-04-01',
+        expiresOn: '2025-04-01',
+        extensionApproved: true,
+      },
+    } as const;
+    const missed = reentry({
+      ...route,
+      permit: { ...route.permit, entryDeadline: '2025-03-31' },
+    });
+    expect(status(missed, 'return-continuity')).toBe('NOT_MET');
+    expect(condition(missed, 'return-continuity').explanation).toContain(
+      '2025-03-31',
+    );
+    const confirmed = reentry({
+      ...route,
+      permit: {
+        ...route.permit,
+        extendedUntil: '2025-04-02',
+        entryDeadlineNotSpecified: true,
+      },
+    });
+    expect(confirmed.travelDate?.date).toBe('2025-04-02');
+    expect(status(confirmed, 'return-continuity')).toBe('MET');
+  });
+
+  test.each([
+    [undefined, 'UNKNOWN', 'UNKNOWN'],
+    ['2026-10-08', 'MET', 'NOT_MET'],
+    ['2026-10-12', 'MET', 'MET'],
+  ] as const)(
+    'a designated refugee entry deadline of %s gives document status %s and return status %s',
+    (entryDeadline, documentStatus, returnStatus) => {
+      const result = reentry({
+        route: 'refugee-travel-document',
+        refugeeRecognition: true,
+        hasJapaneseTravelDocument: true,
+        permitVoided: false,
+        departureOn: '2026-10-01',
+        returnOn: '2026-10-10',
+        permit: {
+          effectiveOn: '2025-10-15',
+          expiresOn: '2026-10-15',
+          extensionApproved: false,
+          entryDeadlineNotSpecified: false,
+          entryDeadline,
+        },
+      });
+      expect(status(result, 'refugee-document-validity')).toBe(documentStatus);
+      expect(status(result, 'return-continuity')).toBe(returnStatus);
+      expect(result.travelDate?.date).toBe(entryDeadline);
+      if (!entryDeadline) {
+        for (const id of ['refugee-document-validity', 'return-continuity'])
+          expect(condition(result, id).explanation).toContain('entry deadline');
+      }
+    },
+  );
+
+  test.each([
+    ['2026-10-15', 'MET'],
+    ['2027-10-15', 'UNKNOWN'],
+    ['2027-10-16', 'NOT_MET'],
+  ] as const)(
+    'return on %s with unknown refugee document extended expiry gives %s',
+    (returnOn, expected) => {
+      const result = reentry({
+        route: 'refugee-travel-document',
+        refugeeRecognition: true,
+        hasJapaneseTravelDocument: true,
+        permitVoided: false,
+        departureOn: '2026-10-01',
+        returnOn,
+        permit: {
+          effectiveOn: '2025-10-15',
+          expiresOn: '2026-10-15',
+          entryDeadlineNotSpecified: true,
+          extensionApproved: true,
+        },
+      });
+      expect(status(result, 'return-continuity')).toBe(expected);
+      expect(result.travelDate?.date).toBeUndefined();
+      if (expected === 'NOT_MET')
+        expect(condition(result, 'return-continuity').explanation).toContain(
+          '2027-10-15',
+        );
+    },
+  );
 });
 
 test('keeps all pilot time rows and output dates across the guideline switch', () => {

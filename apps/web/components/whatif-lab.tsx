@@ -10,11 +10,14 @@ import {
   type CountryModule,
   checkLabelStatus,
   isDecisionOutcome,
+  pathwayDate,
   pathwayTitle,
 } from '../lib/country-module';
+import { readPageResult } from '../lib/page-result';
 import { displayedColumns } from '../lib/policy';
 import { countryPath } from '../lib/site-countries';
 import { draftStorage } from '../lib/storage';
+import { linkedResultDraft, watchScenarioHash } from '../lib/share';
 import {
   diffPathways,
   parseWhatIfFocus,
@@ -47,6 +50,15 @@ function Comparison({
   const { t, locale } = useTranslation();
   const p = punct(locale);
   const diff = diffPathways(before, after);
+  const groups = (
+    ['becameMet', 'becameUnmet', 'stillUnmet', 'becameInapplicable'] as const
+  ).filter(
+    (group) =>
+      group !== 'becameInapplicable' || diff.becameInapplicable.length > 0,
+  );
+  const beforeDate = pathwayDate(before);
+  const afterDate = pathwayDate(after);
+  const primaryDate = afterDate ?? beforeDate;
   const years = (assessment?: CountryPathway) =>
     assessment?.pathwayYears === undefined
       ? t('result.undetermined')
@@ -68,11 +80,28 @@ function Comparison({
           (before && isDecisionOutcome(before.status))
             ? [[t('result.pathway'), years(before), years(after)]]
             : []),
-          [
-            t('result.earliest'),
-            before?.earliestDate ?? t('result.undetermined'),
-            after?.earliestDate ?? t('result.undetermined'),
-          ],
+          ...(primaryDate
+            ? [
+                [
+                  t(primaryDate.label),
+                  beforeDate
+                    ? (beforeDate.date ?? t('result.undetermined'))
+                    : '—',
+                  afterDate
+                    ? (afterDate.date ?? t('result.undetermined'))
+                    : '—',
+                ],
+              ]
+            : []),
+          ...(before?.timeEarliestDate || after?.timeEarliestDate
+            ? [
+                [
+                  t('country.timeDate'),
+                  before?.timeEarliestDate ?? '—',
+                  after?.timeEarliestDate ?? '—',
+                ],
+              ]
+            : []),
           // A6#7: a conditional completion is not an earliest date.
           ...(before?.pathwayCompletionDate || after?.pathwayCompletionDate
             ? [
@@ -106,7 +135,7 @@ function Comparison({
       </dl>
       {after?.summary && <p>{after.summary}</p>}
       {!diff.changed && <p className={site.notice}>{t('whatif.unchanged')}</p>}
-      {(['becameMet', 'becameUnmet', 'stillUnmet'] as const).map((group) => (
+      {groups.map((group) => (
         <section
           key={group}
           className={resultStyles.group}
@@ -118,6 +147,9 @@ function Comparison({
             {diff[group].length}
             {p.closeParen}
           </h3>
+          {group === 'becameInapplicable' && (
+            <p>{t('whatif.inapplicableCount')}</p>
+          )}
           {!diff[group].length ? (
             <p className={site.muted}>{t('result.noGroupRules')}</p>
           ) : (
@@ -126,11 +158,20 @@ function Comparison({
                 <li
                   key={rule.id}
                   className={resultStyles.rule}
-                  data-status={checkLabelStatus[rule.status]}
+                  data-status={
+                    rule.applicable === false
+                      ? 'NOT_APPLICABLE'
+                      : checkLabelStatus[rule.status]
+                  }
                 >
                   <strong>{rule.title}</strong>
                   <div className={styles.ruleMeta}>
-                    {rule.id} · {t(`result.${checkLabelStatus[rule.status]}`)}
+                    {rule.id} ·{' '}
+                    {t(
+                      rule.applicable === false
+                        ? 'country.status.NOT_APPLICABLE'
+                        : `result.${checkLabelStatus[rule.status]}`,
+                    )}
                   </div>
                   <p>{rule.explanation}</p>
                 </li>
@@ -168,11 +209,13 @@ function WhatIfLab<D extends CountryDraft, K>({
   draft,
   before,
   target,
+  backHref,
 }: {
   country: CountryModule<D, K>;
   draft: D;
   before: CountryResult;
   target?: WhatIfTarget;
+  backHref: string;
 }) {
   const { t, locale } = useTranslation();
   const controls = country.whatif;
@@ -184,7 +227,7 @@ function WhatIfLab<D extends CountryDraft, K>({
         const check = assessment.checks.find(
           (rule) =>
             rule.status !== 'MET' &&
-            controls.focusForRule(rule.id) === target.focus,
+            controls.focusForRule(rule.id, assessment.id) === target.focus,
         );
         if (check)
           return controls.initial(draft, {
@@ -206,14 +249,17 @@ function WhatIfLab<D extends CountryDraft, K>({
   }, [controls, target]);
   const afterDraft = controls.apply(draft, knobs);
   const errors = controls.validate(afterDraft, knobs);
-  const after = Object.keys(errors).length
+  const compared = Object.keys(errors).length
     ? undefined
-    : country.run(afterDraft, locale);
+    : readPageResult(country, locale, afterDraft, 'preview');
+  const after = compared?.result;
   const beforeColumns = displayedColumns(country, before);
   return (
     <>
       <p className={site.lead}>{t('whatif.intro')}</p>
-      {after && <ShareLink country={country} draft={afterDraft} />}
+      {after && compared.draft && (
+        <ShareLink country={country} draft={compared.draft} />
+      )}
       {country.resultNotes?.().notices.map((key) => (
         <p key={key} className={`${site.notice} ${site.warning}`}>
           {t(key)}
@@ -238,12 +284,18 @@ function WhatIfLab<D extends CountryDraft, K>({
             >
               {t('whatif.reset')}
             </button>
-            <Link href={countryPath(country.id, 'result')}>
-              {t('whatif.back')}
-            </Link>
+            <Link href={backHref}>{t('whatif.back')}</Link>
           </div>
         </section>
-        <div className={styles.comparisons} aria-live="polite">
+        <div
+          className={styles.comparisons}
+          style={
+            country.policy.displayedRuleSets.length === 1
+              ? { gridTemplateColumns: 'minmax(0, 1fr)' }
+              : undefined
+          }
+          aria-live="polite"
+        >
           {!after ? (
             <p role="status">{t('form.fixErrors')}</p>
           ) : (
@@ -304,17 +356,22 @@ export function WhatIfView<D extends CountryDraft, K>({
   country,
   draft,
   target,
+  resultHash = '',
 }: {
   country: CountryModule<D, K>;
   draft?: D;
   target?: WhatIfTarget;
+  resultHash?: string;
 }) {
   const { t, locale } = useTranslation();
-  if (!draft?.completed)
+  const page = draft && readPageResult(country, locale, draft);
+  const before = page?.result;
+  const backHref = countryPath(country.id, 'result') + resultHash;
+  if (!page?.draft || !before)
     return (
       <div className={site.narrow}>
         <h1>{t('whatif.title')}</h1>
-        <p>{t('whatif.empty')}</p>
+        <p>{page?.correction ?? t('whatif.empty')}</p>
         <Link
           className={site.button}
           href={countryPath(country.id, 'simulate')}
@@ -323,7 +380,6 @@ export function WhatIfView<D extends CountryDraft, K>({
         </Link>
       </div>
     );
-  const before = country.run(draft, locale);
   return (
     <>
       <PolicyStatus country={country} asOf={before.policyAsOf} />
@@ -332,20 +388,18 @@ export function WhatIfView<D extends CountryDraft, K>({
         <div className={site.narrow}>
           <p className={site.notice}>{t('whatif.unsupported')}</p>
           <p>{before.shortCircuit.message}</p>
-          <ShareLink country={country} draft={draft} />
-          <Link
-            className={site.secondary}
-            href={countryPath(country.id, 'result')}
-          >
+          <ShareLink country={country} draft={page.draft} />
+          <Link className={site.secondary} href={backHref}>
             {t('whatif.back')}
           </Link>
         </div>
       ) : (
         <WhatIfLab
           country={country}
-          draft={draft}
+          draft={page.draft}
           before={before}
           target={target}
+          backHref={backHref}
         />
       )}
     </>
@@ -366,38 +420,54 @@ function StoredWhatIfPage<D extends CountryDraft, K>({
   country: CountryModule<D, K>;
 }) {
   const { t } = useTranslation();
-  const [draft, setDraft] = useState<D>();
-  const [ready, setReady] = useState(false);
-  const [target, setTarget] = useState<WhatIfTarget>();
+  const [page, setPage] = useState<{
+    hash: string;
+    draft?: D;
+    target?: WhatIfTarget;
+    resultHash: string;
+  }>();
   const loaded = useRef<CountryModule<D, K> | undefined>(undefined);
   useEffect(() => {
-    if (loaded.current === country) return;
-    loaded.current = country;
-    setDraft(draftStorage(country).draft);
-    const url = new URL(window.location.href);
-    setTarget(
-      takeWhatIfTarget(
-        country.id,
-        parseWhatIfFocus(
-          country.whatif.focusControls,
-          url.searchParams.get('focus'),
+    const open = (hash: string) => {
+      const url = new URL(window.location.href);
+      const linked = linkedResultDraft(country, hash);
+      setPage({
+        hash,
+        draft: linked ? linked.draft : draftStorage(country).draft,
+        resultHash: linked?.resultHash ?? '',
+        target: takeWhatIfTarget(
+          country.id,
+          parseWhatIfFocus(
+            country.whatif.focusControls,
+            url.searchParams.get('focus'),
+          ),
         ),
-      ),
-    );
-    if (url.searchParams.has('focus')) {
-      url.searchParams.delete('focus');
-      window.history.replaceState(
-        window.history.state,
-        '',
-        `${url.pathname}${url.search}${url.hash}`,
-      );
+      });
+      if (url.searchParams.has('focus')) {
+        url.searchParams.delete('focus');
+        window.history.replaceState(
+          window.history.state,
+          '',
+          `${url.pathname}${url.search}${url.hash}`,
+        );
+      }
+    };
+    if (loaded.current !== country) {
+      loaded.current = country;
+      open(window.location.hash);
     }
-    setReady(true);
+    if (country.id === 'jp') return watchScenarioHash(open);
   }, [country]);
   return (
     <main id="main" className={site.main}>
-      {ready ? (
-        <WhatIfView country={country} draft={draft} target={target} />
+      {page ? (
+        <WhatIfView
+          key={page.hash}
+          country={country}
+          draft={page.draft}
+          target={page.target}
+          resultHash={page.resultHash}
+        />
       ) : (
         <p role="status">{t('result.loading')}</p>
       )}

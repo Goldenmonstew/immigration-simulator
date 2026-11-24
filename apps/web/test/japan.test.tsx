@@ -1,458 +1,1803 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
-import { evaluateJapan } from '@uk-immigration/engine';
+import type { JpFullReentryRequest } from '@uk-immigration/engine';
+import { prEvidence } from '../../../packages/engine/test/japan-pr-fixture';
+import { japanFull2026_11 } from '@uk-immigration/policy-data';
 import JapanPage from '../app/japan/page';
-import { PilotResult } from '../app/pilot/pilot-result';
-import Home from '../app/page';
-import { t } from '../i18n';
+import JapanPolicyPage from '../app/japan/policy/page';
+import JapanSimulatePage from '../app/japan/simulate/page';
+import { JapanWhatIfControls } from '../app/japan/whatif/controls';
+import { GET as offlinePages } from '../app/offline-pages.json/route';
+import sitemap from '../app/sitemap';
+import UkPolicyPage from '../app/uk/policy/page';
+import { GapSummary } from '../components/gap-summary';
+import { readPageResult } from '../lib/page-result';
+import { ResultView } from '../components/result-view';
+import { WhatIfView } from '../components/whatif-lab';
 import { LocaleContext } from '../i18n/locale';
-import {
-  emptyJpForm,
-  emptyJpTrip,
-  jpRequest,
-  validateJpForm,
-} from '../lib/japan';
-import type { JpForm } from '../lib/japan';
+import type { JapanDraft } from '../lib/japan-draft';
+import { japanModule as jp } from '../lib/japan-module';
+import { decodeDraft, encodeDraft } from '../lib/share';
+import { ukModule } from '../lib/uk-module';
 import { sourceUrls } from '../lib/sources';
 
-const render = (node: React.ReactNode, locale: 'zh-CN' | 'en') =>
-  renderToStaticMarkup(
-    <LocaleContext value={{ locale, setLocale: () => {} }}>
-      {node}
-    </LocaleContext>,
-  );
+const ordinary = {
+  route: 'ordinary',
+  departureOn: '2027-04-12',
+  returnOn: '2027-04-19',
+  lawfulStatus: true,
+  inJapanWhenApplying: true,
+  intendsReturn: true,
+  excludedStatusOrDetention: false,
+  passportOrApprovedAlternative: true,
+  residentCardOrCertificate: true,
+  stayIndefinite: true,
+  visits: 'multiple',
+  channel: 'counter',
+  permitVoided: false,
+  permit: {
+    effectiveOn: '2027-04-05',
+    expiresOn: '2028-04-04',
+    extensionApproved: false,
+  },
+} satisfies JpFullReentryRequest;
 
-const filled: JpForm = {
-  ...emptyJpForm('2026-11-22'),
-  stayStart: '2025-10-01',
-  prRoute: 'spouse',
-  marriedLifeFrom: '2023-12-01',
-  natRoute: 'general',
-  dateOfBirth: '1990-05-05',
-  homeMajorityLow: true,
-};
-const trip = (departed: string, returned: string) => ({
-  ...emptyJpTrip(),
-  departed,
-  returned,
-});
-
-test.each(['zh-CN', 'en'] as const)('the form renders in %s', (locale) => {
-  const html = render(<JapanPage />, locale);
-  for (const key of [
-    'jp.title',
-    'jp.basics',
-    'jp.stayStart',
-    'jp.prRoute',
-    'jp.natRoute',
-    'jp.trips',
-    'jp.submit',
-  ] as const)
-    expect(html).toContain(t(key, locale));
-});
-
-test('home links to Japan', () => {
-  expect(render(<Home />, 'zh-CN')).toContain('href="/japan"');
-});
-
-test('validation asks for the routes and the dates they need', () => {
-  expect(
-    validateJpForm({
-      ...emptyJpForm('2026-11-22'),
-      stayStart: '2016-06-01',
-      trips: [trip('2024-02-10', '2024-02-01')],
-    }),
-  ).toEqual({
-    // No route is picked for the user.
-    'jp-pr-route': 'jp.error.prRoute',
-    'jp-nat-route': 'jp.error.natRoute',
-    'jp-trip-0-returned': 'jp.error.order',
-  });
-  // Each spouse route has its own date.
-  expect(
-    validateJpForm({
-      ...filled,
-      marriedLifeFrom: '',
-      natRoute: 'spouse',
-    }),
-  ).toEqual({
-    'jp-married-life-from': 'jp.error.date',
-    'jp-married-on': 'jp.error.date',
-  });
-  expect(
-    validateJpForm({
-      ...filled,
-      prRoute: 'general',
-      excluded: [{ from: '2021-04-01', to: '2020-10-01' }],
-    }),
-  ).toEqual({
-    'jp-status-start': 'jp.error.date',
-    'jp-new-status': 'jp.error.newStatus',
-    'jp-excluded-0-to': 'jp.error.order',
-  });
-  expect(validateJpForm(filled)).toEqual({});
-});
-
-test('validation catches overlapping trips and an early period of stay', () => {
-  expect(
-    validateJpForm({
-      ...filled,
-      trips: [
-        trip('2024-01-01', '2024-02-01'),
-        { ...trip('2024-01-20', '2024-03-01'), stayExpiry: '2024-01-10' },
-        // Leaving on the day of return is not an overlap.
-        trip('2024-03-01', '2024-03-05'),
-        // A pending renewal needs the expiry it extends.
-        { ...trip('2024-04-01', '2024-04-05'), renewalPending: true },
-      ],
-    }),
-  ).toEqual({
-    'jp-trip-1-departed': 'jp.error.overlap',
-    'jp-trip-1-stayExpiry': 'jp.error.order',
-    'jp-trip-3-stayExpiry': 'jp.error.date',
-  });
-});
-
-test('the request carries each route with its own date', () => {
-  const req = jpRequest(
-    {
-      ...filled,
-      prRoute: 'hsp80',
-      statusStart: '2025-11-22',
-      natRoute: 'spouse',
-      marriedOn: '2023-10-01',
-      trips: [
-        {
-          ...trip('2026-01-01', '2026-01-10'),
-          reentryPermit: true,
-          stayExpiry: '2026-06-30',
-          renewalPending: true,
-        },
-        trip('2026-03-01', '2026-03-05'),
-      ],
-    },
-    'en',
-  );
-  expect(req.pr).toEqual({ route: 'hsp80', statusStart: '2025-11-22' });
-  expect(req.naturalisation).toEqual({
-    route: 'spouse',
-    marriedOn: '2023-10-01',
-  });
-  expect(req.trips).toEqual([
-    {
-      departed: '2026-01-01',
-      returned: '2026-01-10',
-      stayExpiry: '2026-06-30',
-      reentryPermit: true,
-      renewalPending: true,
-    },
-    { departed: '2026-03-01', returned: '2026-03-05' },
-  ]);
-  expect(
-    jpRequest(
+function travelDraft(): JapanDraft {
+  return {
+    ...jp.createDraft(),
+    step: 6,
+    completed: true,
+    simulationDate: '2027-04-03',
+    stayStart: '2014-04-01',
+    reentry: [
       {
-        ...filled,
-        prRoute: 'general',
-        statusStart: '2021-04-01',
-        newStatus: 'own',
-        newStatusStart: '2024-04-01',
-        excluded: [{ from: '2020-10-01', to: '2021-03-31' }],
-      },
-      'en',
-    ).pr,
-  ).toEqual({
-    route: 'general',
-    statusStart: '2021-04-01',
-    newStatusStart: '2024-04-01',
-    excluded: [{ from: '2020-10-01', to: '2021-03-31' }],
-  });
-  expect(jpRequest(filled, 'en').pr).toEqual({
-    route: 'spouse',
-    marriedLifeFrom: '2023-12-01',
-  });
-});
-
-test('the new-guideline start: same, own date or not yet held', () => {
-  const general: JpForm = {
-    ...filled,
-    prRoute: 'general',
-    statusStart: '2017-04-05',
-    newStatusStart: '2024-04-01',
-  };
-  const pr = (newStatus: JpForm['newStatus']) =>
-    jpRequest({ ...general, newStatus }, 'en').pr;
-  // A date typed in before switching back to "same" is not sent.
-  expect(pr('same')).toEqual({ route: 'general', statusStart: '2017-04-05' });
-  expect(pr('own')).toEqual({
-    route: 'general',
-    statusStart: '2017-04-05',
-    newStatusStart: '2024-04-01',
-  });
-  expect(pr('none')).toEqual({
-    route: 'general',
-    statusStart: '2017-04-05',
-    newStatusStart: 'none',
-  });
-  expect(
-    validateJpForm({ ...general, newStatus: 'own', newStatusStart: '' }),
-  ).toEqual({ 'jp-new-status-start': 'jp.error.date' });
-  expect(
-    validateJpForm({ ...general, newStatus: 'none', newStatusStart: '' }),
-  ).toEqual({});
-  // Still holding Intra-company Transferee on 2027-05-10.
-  const result = evaluateJapan(
-    jpRequest(
-      {
-        ...general,
-        simulationDate: '2027-05-10',
-        stayStart: '2017-04-05',
-        newStatus: 'none',
-      },
-      'zh-CN',
-    ),
-  );
-  expect(result.pathways[0].status).toBe('NOT_MET');
-});
-
-test('the new-guideline start must be chosen', () => {
-  // Intra-company Transferee since 2021-04-05; the choice left untouched.
-  const ict: JpForm = {
-    ...filled,
-    simulationDate: '2026-11-23',
-    stayStart: '2017-04-05',
-    prRoute: 'general',
-    statusStart: '2017-04-05',
-  };
-  expect(validateJpForm(ict)).toEqual({
-    'jp-new-status': 'jp.error.newStatus',
-  });
-  const chosen = { ...ict, newStatus: 'none' as const };
-  expect(validateJpForm(chosen)).toEqual({});
-  // 10 years on 2027-04-05 fall under the new guideline, never met.
-  expect(evaluateJapan(jpRequest(chosen, 'zh-CN')).pathways[0].status).toBe(
-    'NOT_MET',
-  );
-});
-
-test('no status the old guideline counts yet', () => {
-  // Only Specified Skilled Worker (i): no old-guideline start to enter.
-  const ssw: JpForm = {
-    ...filled,
-    simulationDate: '2026-11-23',
-    stayStart: '2016-01-01',
-    prRoute: 'general',
-    statusNone: true,
-    newStatus: 'same',
-  };
-  expect(validateJpForm(ssw)).toEqual({});
-  const req = jpRequest(ssw, 'zh-CN');
-  expect(req.pr).toEqual({ route: 'general', statusStart: 'none' });
-  expect(evaluateJapan(req).pathways[0].status).toBe('NOT_MET');
-});
-
-test('a child born in Japan applies within 30 days of birth', () => {
-  const born = (simulationDate: string): JpForm => ({
-    ...filled,
-    simulationDate,
-    stayStart: '2026-11-10',
-    prRoute: 'child-birth',
-    bornOn: '2026-11-10',
-  });
-  expect(validateJpForm({ ...born('2026-11-23'), bornOn: '' })).toEqual({
-    'jp-born-on': 'jp.error.date',
-  });
-  expect(jpRequest(born('2026-11-23'), 'en').pr).toEqual({
-    route: 'child-birth',
-    bornOn: '2026-11-10',
-  });
-  const status = (simulationDate: string) =>
-    evaluateJapan(jpRequest(born(simulationDate), 'zh-CN')).pathways[0].status;
-  // In the window, on the last day counting the birth day (2026-12-09),
-  // on the last day leaving it out (2026-12-10: the readings differ), and
-  // after it.
-  expect(status('2026-11-23')).toBe('MET');
-  expect(status('2026-12-09')).toBe('MET');
-  expect(status('2026-12-10')).toBe('UNKNOWN');
-  expect(status('2026-12-11')).toBe('NOT_MET');
-  const html = render(
-    <PilotResult
-      result={evaluateJapan(jpRequest(born('2026-11-23'), 'zh-CN'))}
-    />,
-    'zh-CN',
-  );
-  // The official page with the filing period.
-  expect(html).toContain('16-4.html#midashi04');
-  // Born 2026-11-30: 30 days end in the year-end closure, so 2027-01-04.
-  const yearEnd = evaluateJapan(
-    jpRequest(
-      {
-        ...born('2027-01-04'),
-        stayStart: '2026-11-30',
-        bornOn: '2026-11-30',
-      },
-      'zh-CN',
-    ),
-  ).pathways[0];
-  expect(yearEnd.status).toBe('MET');
-  expect(yearEnd.summary).toContain('2027-01-04');
-  // On a closed day inside the window: in time, filed from the next open day.
-  const closedDay = evaluateJapan(
-    jpRequest(
-      {
-        ...born('2027-01-02'),
-        stayStart: '2026-11-30',
-        bornOn: '2026-11-30',
-      },
-      'zh-CN',
-    ),
-  ).pathways[0];
-  expect(closedDay.status).toBe('MET');
-  expect(closedDay.summary).toContain('最早可在 2027-01-04 递交');
-  // The form hint matches the result: another status, or no status yet.
-  expect(t('jp.bornOnHint')).toContain('地方出入国在留管理局');
-});
-
-test('contradictory old and new guideline starts', () => {
-  const general: JpForm = {
-    ...filled,
-    prRoute: 'general',
-    statusStart: '2019-04-01',
-    newStatus: 'own',
-    newStatusStart: '2018-01-01',
-  };
-  // The new guideline counts fewer statuses: its start is never earlier.
-  expect(validateJpForm(general)).toEqual({
-    'jp-new-status-start': 'jp.error.newBeforeOld',
-  });
-  expect(validateJpForm({ ...general, newStatusStart: '2021-04-05' })).toEqual(
-    {},
-  );
-  // No old-guideline status, yet a date under the new one.
-  expect(
-    validateJpForm({
-      ...general,
-      statusNone: true,
-      statusStart: '',
-      newStatusStart: '2021-04-05',
-    }),
-  ).toEqual({ 'jp-new-status-start': 'jp.error.newWithoutOld' });
-});
-
-test('the birth route asks how the child leaves (FAQ Q28)', () => {
-  // Born 2026-11-10, sim 11-16, away 11-27 to 12-01.
-  const form = (departure: JpForm['trips'][number]['departure']): JpForm => ({
-    ...filled,
-    simulationDate: '2026-11-16',
-    stayStart: '2026-11-10',
-    prRoute: 'child-birth',
-    bornOn: '2026-11-10',
-    trips: [{ ...trip('2026-11-27', '2026-12-01'), departure }],
-  });
-  const status = (departure: JpForm['trips'][number]['departure']) =>
-    evaluateJapan(jpRequest(form(departure), 'zh-CN')).pathways[0].status;
-  expect(validateJpForm(form(''))).toEqual({});
-  expect(jpRequest(form('deemed'), 'en').trips[0].departure).toBe('deemed');
-  expect(status('none')).toBe('NOT_APPLICABLE');
-  expect(status('deemed')).toBe('MET');
-  expect(status('permit')).toBe('MET');
-  expect(status('')).toBe('UNKNOWN');
-  // The choice shows only for the birth route.
-  expect(render(<JapanPage />, 'zh-CN')).not.toContain(t('jp.departure'));
-  // review74-3: the departure method sets the re-entry tick, so the
-  // naturalisation re-entry rules see the same permit.
-  const tripOf = (
-    departure: JpForm['trips'][number]['departure'],
-    reentryPermit: boolean,
-  ) =>
-    jpRequest(
-      {
-        ...form(departure),
-        trips: [{ ...form(departure).trips[0], reentryPermit }],
-      },
-      'en',
-    ).trips[0].reentryPermit;
-  expect(tripOf('permit', false)).toBe(true);
-  expect(tripOf('deemed', true)).toBeUndefined();
-  expect(tripOf('none', true)).toBeUndefined();
-});
-
-test('leaving with a renewal pending (FAQ Q61)', () => {
-  // Period of stay to 2027-04-20, renewal applied for on 2027-04-10.
-  const form = (departed: string, returned: string, pending: boolean) => ({
-    ...filled,
-    simulationDate: '2027-05-10',
-    stayStart: '2016-04-01',
-    prRoute: 'general' as const,
-    statusStart: '2018-04-01',
-    newStatus: 'same' as const,
-    trips: [
-      {
-        ...trip(departed, returned),
-        stayExpiry: '2027-04-20',
-        renewalPending: pending,
+        ...structuredClone(ordinary),
+        lawfulStatusOn: '2027-04-05',
+        filingEvidenceOn: '2027-04-05',
       },
     ],
-  });
-  // Before the original expiry.
-  expect(validateJpForm(form('2027-04-15', '2027-04-30', true))).toEqual({});
-  // After it, within the 2 months the status lasts.
-  const special = form('2027-05-01', '2027-05-08', true);
-  expect(validateJpForm(special)).toEqual({});
-  expect(evaluateJapan(jpRequest(special, 'zh-CN')).pathways[0].status).toBe(
-    'MET',
-  );
-  // Without a pending renewal the status had ended before leaving.
-  expect(validateJpForm(form('2027-05-01', '2027-05-08', false))).toEqual({
-    'jp-trip-0-stayExpiry': 'jp.error.order',
-  });
-  // Past the special period too.
-  expect(validateJpForm(form('2027-06-21', '2027-06-25', true))).toEqual({
-    'jp-trip-0-stayExpiry': 'jp.error.specialPeriod',
-  });
+  };
+}
+
+test.each(['zh-CN', 'en'] as const)(
+  'Japan home links to the questionnaire and sources in %s',
+  (locale) => {
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <JapanPage />
+      </LocaleContext>,
+    );
+    expect(html).toContain('href="/japan/simulate"');
+    expect(html).toContain('href="/japan/policy"');
+    expect(html).toContain(locale === 'en' ? 'Japan' : '日本');
+  },
+);
+
+test('all five Japan pages are exported in the offline and sitemap lists', async () => {
+  const offline = await offlinePages().json();
+  const paths = sitemap().map(({ url }) => new URL(url).pathname);
+  for (const path of [
+    '/japan',
+    '/japan/simulate',
+    '/japan/result',
+    '/japan/whatif',
+    '/japan/policy',
+  ]) {
+    expect(offline).toContain(path);
+    expect(paths).toContain(path);
+  }
 });
 
-test('the home-country age of majority for naturalisation', () => {
-  // Korean national born 2008-11-24, in Japan since 2016-04-01.
-  const form: JpForm = {
-    ...filled,
+test('versioned drafts round-trip inside their country envelope, including negative and unknown evidence', () => {
+  const draft = travelDraft();
+  const encoded = encodeDraft(jp, draft);
+  expect(decodeDraft(jp, encoded)).toEqual({ ...draft, stayStart: '' });
+  expect(decodeDraft(ukModule, encoded)).toBeUndefined();
+  expect(
+    decodeDraft(jp, encodeDraft(ukModule, ukModule.createDraft())),
+  ).toBeUndefined();
+  const fresh = jp.createDraft();
+  expect(jp.decodeDraft(fresh)).toEqual(fresh);
+  for (const bad of [
+    null,
+    { ...draft, version: draft.version + 1 },
+    { ...draft, step: 3 },
+    { ...draft, trips: [null] },
+    { ...draft, reentry: [{ route: 'made-up' }] },
+    { ...draft, reentry: 'ordinary' },
+    { ...draft, tripsForReentryOnly: 'false' },
+  ])
+    expect(jp.decodeDraft(bad)).toBeUndefined();
+});
+
+test('step validation requires residence and a selected pathway, then validates trip dates', () => {
+  const fresh = jp.createDraft();
+  expect(jp.validateStep(fresh)).toEqual({ 'jp-routes': 'jp.form.routeError' });
+  expect(
+    jp.validateStep({
+      ...fresh,
+      permanentResidence: { routes: [{ route: 'child' }], evidence: {} },
+    }),
+  ).toHaveProperty('jp-stayStart');
+  expect(jp.validateStep({ ...fresh, stayStart: '2014-04-01' })).not.toEqual(
+    {},
+  );
+  const draft = travelDraft();
+  expect(jp.validateStep({ ...draft, step: 0 })).toEqual({});
+  const trip = {
+    departed: '2024-02-01',
+    returned: '2024-02-12',
+    reentryPermit: false,
+  };
+  const validateTrips = (trips: JapanDraft['trips']) =>
+    jp.validateStep({
+      ...draft,
+      step: 1,
+      trips,
+      permanentResidence: { routes: [{ route: 'child' }], evidence: {} },
+    });
+  expect(
+    validateTrips([
+      trip,
+      { ...trip, departed: trip.returned, returned: '2024-02-14' },
+    ]),
+  ).toEqual({});
+  expect(
+    validateTrips([
+      trip,
+      { ...trip, departed: '2024-02-04', returned: '2024-02-14' },
+    ]),
+  ).not.toEqual({});
+  expect(validateTrips([{ ...trip, returned: '2024-01-31' }])).not.toEqual({});
+  expect(
+    validateTrips([
+      { ...trip, stayExpiry: '2024-01-01', renewalPending: true },
+    ]),
+  ).toEqual({});
+  expect(
+    validateTrips([
+      { ...trip, stayExpiry: '2023-02-01', renewalPending: true },
+    ]),
+  ).not.toEqual({});
+});
+
+test('general permanent residence preserves the old and revised status-start choices', () => {
+  const draft = travelDraft();
+  const validate = (oldStart: string, newStart?: string) =>
+    jp.validateStep({
+      ...draft,
+      step: 2,
+      permanentResidence: {
+        routes: [
+          { route: 'general', statusStart: oldStart, newStatusStart: newStart },
+        ],
+        evidence: {},
+      },
+    });
+  expect(validate('none', 'none')).toEqual({});
+  expect(validate('2019-04-01')).not.toEqual({});
+  expect(validate('none', '2020-04-01')).not.toEqual({});
+  expect(validate('2021-04-01', '2020-04-01')).not.toEqual({});
+  expect(validate('2019-04-01', '2020-04-01')).toEqual({});
+});
+
+test('a counter application made on Saturday is met on the next open day, while missing eligibility remains pending', () => {
+  const draft = travelDraft();
+  expect(jp.validateStep(draft)).toEqual({});
+  const share = (scenario: JapanDraft) =>
+    readPageResult(jp, 'en', encodeDraft(jp, scenario)).result!.columns[0]
+      .pathways[0];
+  for (const lawfulStatusOn of [undefined, '2027-04-03']) {
+    const originalDay = {
+      ...draft,
+      reentry: [
+        { ...ordinary, lawfulStatusOn, filingEvidenceOn: '2027-04-05' },
+      ],
+    };
+    const stale = share(originalDay);
+    expect(stale.status).toBe('UNKNOWN');
+    expect(stale.earliestDate).toBeUndefined();
+  }
+  const assessed = share(draft);
+  expect(assessed).toMatchObject({
+    id: 'jp.reentry.ordinary',
+    title: 'Ordinary re-entry permit',
+    status: 'MET',
+    earliestDate: '2027-04-05',
+  });
+  expect(assessed.checks).toContainEqual(
+    expect.objectContaining({
+      id: 'jp.reentry.ordinary-eligibility',
+      status: 'MET',
+      sources: expect.arrayContaining([
+        expect.objectContaining({ srcId: 'SRC-461' }),
+      ]),
+    }),
+  );
+  const pending = jp.run(
+    {
+      ...draft,
+      reentry: [
+        {
+          ...ordinary,
+          lawfulStatusOn: '2027-04-05',
+          filingEvidenceOn: '2027-04-05',
+          inJapanWhenApplying: undefined,
+        },
+      ],
+    },
+    'zh-CN',
+  ).columns[0].pathways[0];
+  expect(pending).toMatchObject({
+    title: '普通再入国許可',
+    status: 'UNKNOWN',
+    pendingDetails: expect.arrayContaining(['PD-379']),
+  });
+  expect(pending.earliestDate).toBeUndefined();
+});
+
+test('a future residence milestone is distinct from confirmed permission to file', () => {
+  const draft: JapanDraft = {
+    ...jp.createDraft(),
+    simulationDate: '2026-11-22',
+    stayStart: '2025-10-01',
+    permanentResidence: {
+      routes: [{ route: 'spouse', marriedLifeFrom: '2023-12-01' }],
+      evidence: {},
+    },
+  };
+  const path = jp.run(draft, 'en').columns[0].pathways[0];
+  expect(path).toMatchObject({
+    id: 'jp.pr.spouse',
+    status: 'NOT_MET',
+    timeStatus: 'FUTURE',
+    timeEarliestDate: '2026-12-01',
+  });
+  expect(path.earliestDate).toBeUndefined();
+});
+
+test('the birth route keeps an unspecified departure distinct from leaving without a permit', () => {
+  const born: JapanDraft = {
+    ...jp.createDraft(),
+    simulationDate: '2026-11-16',
+    stayStart: '2026-11-10',
+    permanentResidence: {
+      routes: [{ route: 'child-birth', bornOn: '2026-11-10' }],
+      evidence: {},
+    },
+  };
+  const trip = { departed: '2026-11-27', returned: '2026-12-01' };
+  const leaving = (departure?: 'none' | 'deemed' | 'permit') =>
+    jp.run({ ...born, trips: [{ ...trip, departure }] }, 'en').columns[0]
+      .pathways[0];
+  expect(leaving().timeStatus).toBe('UNKNOWN');
+  expect(leaving('none').status).toBe('NOT_APPLICABLE');
+  expect(leaving('deemed').timeStatus).toBe('MET');
+});
+
+test('naturalisation retains the age of majority under the home-country law', () => {
+  const child: JapanDraft = {
+    ...jp.createDraft(),
     simulationDate: '2026-11-23',
     stayStart: '2016-04-01',
     dateOfBirth: '2008-11-24',
-    homeMajorityLow: false,
   };
-  // Neither ticked nor entered: the form asks.
-  expect(validateJpForm(form)).toEqual({
-    'jp-home-majority-age': 'jp.error.homeMajority',
-  });
-  const nat = (patch: Partial<JpForm>) =>
-    evaluateJapan(jpRequest({ ...form, ...patch }, 'zh-CN')).pathways[1];
-  // Confirmed 18 or lower: the 18th birthday.
-  const low = { homeMajorityLow: true };
-  expect(validateJpForm({ ...form, ...low })).toEqual({});
-  expect(nat(low).earliestDate).toBe('2026-11-24');
-  // 19 under Korean law.
-  const nineteen = { homeMajorityAge: '19' };
-  expect(validateJpForm({ ...form, ...nineteen })).toEqual({});
-  expect(nat(nineteen).earliestDate).toBe('2027-11-24');
-  expect(jpRequest({ ...form, ...nineteen }, 'en').naturalisation).toEqual({
-    route: 'general',
-    dateOfBirth: '2008-11-24',
-    homeMajorityAge: 19,
-  });
-  // Whole numbers from 1 to 99 only.
-  for (const homeMajorityAge of ['19.5', '0', '1000000'])
-    expect(validateJpForm({ ...form, homeMajorityAge })).toEqual({
-      'jp-home-majority-age': 'jp.error.age',
-    });
+  const adulthood = (homeMajorityAge: number) =>
+    jp.run(
+      {
+        ...child,
+        naturalisation: {
+          routes: [{ route: 'general', homeMajorityAge }],
+          evidence: {},
+        },
+      },
+      'en',
+    ).columns[0].pathways[0].timeEarliestDate;
+  expect(adulthood(18)).toBe('2026-11-24');
+  expect(adulthood(19)).toBe('2027-11-24');
 });
 
-test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
-  const result = evaluateJapan(jpRequest(filled, locale));
-  const html = render(<PilotResult result={result} />, locale);
-  expect(html.match(/data-pathway=/g)).toHaveLength(2);
-  // 3 years married and 1 year of stay before the 2027-04-01 switch.
-  expect(html).toContain('data-pathway="JP-PR" data-status="FUTURE"');
-  expect(html).toContain('2026-12-01');
-  expect(html).toContain(`href="${sourceUrls['SRC-113']}"`);
-  expect(html).toContain('PD-136');
+test('the result view separates a future time milestone, an unknown filing date, a zero fee and an inapplicable oath', () => {
+  const draft: JapanDraft = {
+    ...jp.createDraft(),
+    simulationDate: '2026-11-22',
+    stayStart: '2025-10-01',
+    dateOfBirth: '2015-02-01',
+    naturalisation: {
+      routes: [{ route: 'general', homeMajorityAge: 18 }],
+      evidence: {},
+    },
+  };
+  const result = jp.run(draft, 'en');
+  const nat = result.columns[0].pathways[0];
+  expect(nat.timeEarliestDate).toBe('2035-10-01');
+  expect(nat.earliestDate).toBeUndefined();
+  const html = renderToStaticMarkup(
+    <LocaleContext value={{ locale: 'en', setLocale: () => {} }}>
+      <ResultView country={jp} result={result} draft={draft} />
+    </LocaleContext>,
+  );
+  expect(html).toContain(
+    '<dt>Date based on time requirements alone</dt><dd><time dateTime="2035-10-01">2035-10-01</time></dd>',
+  );
+  expect(html).toContain(
+    '<dt>Earliest projected application date</dt><dd>Not yet determined</dd>',
+  );
+  expect(html).toContain('<p>Fee: JPY 0</p>');
+  expect(html).toContain(
+    'data-status="NOT_APPLICABLE"><strong>Motivation statement and oath</strong>',
+  );
+});
+
+test('moving the proposed filing date before the reform shows checks that leave the comparison counts', () => {
+  const draft: JapanDraft = {
+    ...jp.createDraft(),
+    completed: true,
+    simulationDate: '2026-11-26',
+    applicationDate: '2027-04-06',
+    stayStart: '2014-04-01',
+    permanentResidence: {
+      routes: [
+        {
+          route: 'general',
+          statusStart: '2014-04-01',
+          newStatusStart: '2014-04-01',
+        },
+      ],
+      evidence: { integrationKnowledgeConfirmed: false },
+    },
+  };
+  const id = 'jp.pr.life-rules';
+  const before = jp.run(draft, 'en').columns[0].pathways[0];
+  expect(before.checks.find((rule) => rule.id === id)).toMatchObject({
+    status: 'NOT_MET',
+  });
+  const knobs = { ...jp.whatif.initial(draft), applicationDate: '2027-03-31' };
+  const after = jp.whatif.apply(draft, knobs);
+  const path = jp.run(after, 'en').columns[0].pathways[0];
+  const removed = path.checks.filter(
+    (rule) =>
+      rule.applicable === false &&
+      before.checks.some(
+        (old) => old.id === rule.id && old.applicable !== false,
+      ),
+  );
+  const rule = removed.find((check) => check.id === id)!;
+  expect(rule).toBeDefined();
+  const html = renderToStaticMarkup(
+    <LocaleContext value={{ locale: 'en', setLocale: () => {} }}>
+      <WhatIfView
+        country={{ ...jp, whatif: { ...jp.whatif, initial: () => knobs } }}
+        draft={draft}
+      />
+    </LocaleContext>,
+  );
+  expect(html).toContain(`No longer applicable (${removed.length})</h3>`);
+  expect(html).toContain('Changed to met (1)</h3>');
+  expect(html).toContain('These checks no longer count toward the totals');
+  expect(html).toContain(
+    `data-status="NOT_APPLICABLE"><strong>${rule.title}</strong>`,
+  );
+  expect(html).toContain(rule.explanation);
+  for (const label of [
+    'Changed to met',
+    'Changed to not met / unknown',
+    'Still not met',
+  ]) {
+    const group = html.split(`aria-label="${label}"`)[1].split('</section>')[0];
+    expect(group).not.toContain(id);
+  }
+});
+
+test('a planned deemed departure leaves continuity pending and a shared negative declaration rules it out', () => {
+  const draft = travelDraft();
+  const deemed = {
+    route: 'deemed',
+    departureOn: '2027-04-12',
+    returnOn: '2027-04-19',
+    stayIndefinite: true,
+    specialPermanentResident: false,
+    lawfulStatus: true,
+    temporaryVisitor: false,
+    passportValid: true,
+    residentCardOrCertificate: true,
+    formalPermitRequired: false,
+    permitVoided: false,
+  } satisfies JpFullReentryRequest;
+  draft.reentry = [deemed];
+  const path = jp.run(draft, 'en').columns[0].pathways[0];
+  expect(path).toMatchObject({ status: 'UNKNOWN' });
+  expect(path.earliestDate).toBeUndefined();
+  expect(path.summary).toContain('2027-04-12');
+  const departed = '2024-04-01';
+  draft.reentry[0] = {
+    ...deemed,
+    departureOn: departed,
+    returnOn: '2024-04-07',
+    alreadyDeparted: true,
+    declaredIntentAtDeparture: false,
+    declarationForDepartureOn: departed,
+  };
+  const shared = jp.run(decodeDraft(jp, encodeDraft(jp, draft))!, 'en')
+    .columns[0].pathways[0];
+  for (const id of [
+    'jp.reentry.deemed-eligibility',
+    'jp.reentry.return-continuity',
+  ]) {
+    expect(path.checks.find((check) => check.id === id)?.status).toBe(
+      'UNKNOWN',
+    );
+    expect(shared.checks.find((check) => check.id === id)?.status).toBe(
+      'NOT_MET',
+    );
+  }
+});
+
+const aprilTrip = { departureOn: '2024-04-01', returnOn: '2024-04-07' };
+const aprilPermit = {
+  effectiveOn: aprilTrip.departureOn,
+  expiresOn: '2025-04-01',
+  extensionApproved: false,
+};
+const ordinaryTrip = { ...ordinary, ...aprilTrip, permit: aprilPermit };
+const ordinaryTripAtStayLimit = {
+  ...ordinaryTrip,
+  stayIndefinite: false,
+  stayExpiresOn: aprilPermit.expiresOn,
+  timelyRenewalPending: false,
+};
+const deemedTrip = {
+  ...aprilTrip,
+  route: 'deemed',
+  lawfulStatus: true,
+  specialPermanentResident: false,
+  temporaryVisitor: false,
+  originalStayMonths: 12,
+  passportValid: true,
+  residentCardOrCertificate: true,
+  formalPermitRequired: false,
+  alreadyDeparted: true,
+  declaredIntentAtDeparture: true,
+  declarationForDepartureOn: aprilTrip.departureOn,
+  permitVoided: false,
+  stayExpiresOn: '2024-09-01',
+  timelyRenewalPending: false,
+} as const;
+const renewalTrip = {
+  ...deemedTrip,
+  stayExpiresOn: '2024-04-30',
+  timelyRenewalPending: true,
+  returnOn: '2024-05-20',
+};
+const longDeemedTrip = {
+  ...deemedTrip,
+  returnOn: '2025-10-01',
+  stayIndefinite: true,
+  stayExpiresOn: undefined,
+};
+const refugeeTrip = {
+  ...aprilTrip,
+  route: 'refugee-travel-document',
+  refugeeRecognition: true,
+  hasJapaneseTravelDocument: true,
+  permitVoided: false,
+  permit: { ...aprilPermit, entryDeadlineNotSpecified: true },
+} as const;
+
+test.each([
+  [
+    'ordinary permit effective on departure',
+    ordinaryTrip,
+    'NOT_APPLICABLE',
+    'MET',
+    'MET',
+  ],
+  [
+    'ordinary permit effective later',
+    { ...ordinaryTrip, permit: { ...aprilPermit, effectiveOn: '2024-04-02' } },
+    'NOT_APPLICABLE',
+    'NOT_MET',
+    'NOT_MET',
+  ],
+  [
+    'ordinary permit missing start',
+    { ...ordinaryTrip, permit: { ...aprilPermit, effectiveOn: undefined } },
+    'MET',
+    'UNKNOWN',
+    'UNKNOWN',
+  ],
+  [
+    'ordinary passport or alternative missing',
+    { ...ordinaryTrip, passportOrApprovedAlternative: false },
+    'NOT_APPLICABLE',
+    'MET',
+    'NOT_MET',
+  ],
+  [
+    'ordinary extension decision unknown, return within original term',
+    {
+      ...ordinaryTrip,
+      permit: { ...aprilPermit, extensionApproved: undefined },
+    },
+    'NOT_APPLICABLE',
+    'UNKNOWN',
+    'MET',
+  ],
+  [
+    'single entry already used',
+    { ...ordinaryTrip, visits: 'single', previouslyUsedSingleEntry: true },
+    'NOT_APPLICABLE',
+    'MET',
+    'NOT_MET',
+  ],
+  ['deemed passport valid', deemedTrip, 'MET', 'MET', 'MET'],
+  [
+    'deemed passport invalid',
+    { ...deemedTrip, passportValid: false },
+    'NOT_MET',
+    'MET',
+    'NOT_MET',
+  ],
+  [
+    'deemed passport unconfirmed',
+    { ...deemedTrip, passportValid: undefined },
+    'UNKNOWN',
+    'MET',
+    'UNKNOWN',
+  ],
+  [
+    'deemed declaration refused',
+    { ...deemedTrip, declaredIntentAtDeparture: false },
+    'NOT_MET',
+    'MET',
+    'NOT_MET',
+  ],
+  [
+    'deemed declaration missing',
+    { ...deemedTrip, declaredIntentAtDeparture: undefined },
+    'UNKNOWN',
+    'MET',
+    'UNKNOWN',
+  ],
+  [
+    'ordinary resident beyond the deemed term',
+    longDeemedTrip,
+    'MET',
+    'NOT_MET',
+    'NOT_MET',
+  ],
+  [
+    'special permanent resident within the deemed term',
+    { ...longDeemedTrip, specialPermanentResident: true },
+    'MET',
+    'MET',
+    'MET',
+  ],
+  [
+    'unconfirmed special status between the two terms',
+    { ...longDeemedTrip, specialPermanentResident: undefined },
+    'MET',
+    'UNKNOWN',
+    'UNKNOWN',
+  ],
+  ['renewal decision missing', renewalTrip, 'MET', 'UNKNOWN', 'UNKNOWN'],
+  [
+    'renewal decided before return',
+    { ...renewalTrip, renewalDecisionOn: '2024-05-10' },
+    'MET',
+    'NOT_MET',
+    'NOT_MET',
+  ],
+  [
+    'renewal decided on return',
+    { ...renewalTrip, renewalDecisionOn: renewalTrip.returnOn },
+    'MET',
+    'MET',
+    'MET',
+  ],
+  [
+    'return after special-period ceiling',
+    { ...renewalTrip, returnOn: '2024-07-01' },
+    'MET',
+    'NOT_MET',
+    'NOT_MET',
+  ],
+  [
+    'original stay still covers the return, renewal end unknown',
+    { ...renewalTrip, returnOn: renewalTrip.stayExpiresOn },
+    'MET',
+    'UNKNOWN',
+    'MET',
+  ],
+  ['refugee document valid', refugeeTrip, 'MET', 'MET', 'MET'],
+  [
+    'refugee document absent',
+    { ...refugeeTrip, hasJapaneseTravelDocument: false },
+    'NOT_MET',
+    'MET',
+    'NOT_MET',
+  ],
+  [
+    'refugee recognition missing',
+    { ...refugeeTrip, refugeeRecognition: undefined },
+    'UNKNOWN',
+    'MET',
+    'UNKNOWN',
+  ],
+  [
+    'refugee document effective later',
+    {
+      ...refugeeTrip,
+      permit: {
+        ...refugeeTrip.permit,
+        effectiveOn: '2024-04-02',
+        expiresOn: '2025-04-02',
+      },
+    },
+    'MET',
+    'NOT_MET',
+    'NOT_MET',
+  ],
+] as const)(
+  'shared re-entry assessment and result groups agree for %s',
+  (_label, route, eligibility, period, continuity) => {
+    const draft = decodeDraft(
+      jp,
+      encodeDraft(jp, {
+        ...travelDraft(),
+        applicationDate: '2024-03-29',
+        reentry: [route],
+      }),
+    )!;
+    const result = jp.run(draft, 'zh-CN');
+    const path = result.columns[0].pathways[0];
+    const html = renderToStaticMarkup(
+      <ResultView country={jp} result={result} draft={draft} />,
+    );
+    const [eligibilityId, periodId] = {
+      ordinary: ['ordinary-eligibility', 'ordinary-validity'],
+      deemed: ['deemed-eligibility', 'deemed-validity'],
+      'refugee-travel-document': [
+        'refugee-document',
+        'refugee-document-validity',
+      ],
+    }[route.route];
+    for (const [id, expected] of [
+      [eligibilityId, eligibility],
+      [periodId, period],
+      ['return-continuity', continuity],
+    ] as const) {
+      const row = path.checks.find((item) => item.id === 'jp.reentry.' + id)!;
+      expect(row.applicable === false ? 'NOT_APPLICABLE' : row.status).toBe(
+        expected,
+      );
+      const group = {
+        MET: 'PASS',
+        NOT_MET: 'FAIL',
+        UNKNOWN: 'UNKNOWN',
+        NOT_APPLICABLE: 'NOT_APPLICABLE',
+      }[expected];
+      expect(html).toContain(
+        `data-status="${group}"><strong>${row.title}</strong>`,
+      );
+      if (id !== eligibilityId && 'renewalDecisionOn' in route)
+        expect(row.explanation).toContain(route.renewalDecisionOn);
+      if (id !== eligibilityId && route === renewalTrip) {
+        expect(row.explanation).toContain('上限');
+        expect(row.explanation).toContain('2024-06-30');
+        expect(row.explanation).toContain('截止日待确认');
+        expect(row.explanation).not.toMatch(/可核对截止日为|截止 2024-06-30/);
+      }
+      if (
+        id === 'return-continuity' &&
+        _label ===
+          'ordinary extension decision unknown, return within original term'
+      ) {
+        expect(row.explanation).toContain('返日在原许可期限内');
+        expect(row.explanation).not.toContain('延期审批待确认');
+      }
+    }
+  },
+);
+
+test.each([
+  ['2024-04-03', 'no proposed filing date', ordinaryTrip, undefined],
+  ['2024-04-03', 'filing before departure', ordinaryTrip, '2024-03-29'],
+  ['2024-04-08', 'no proposed filing date', ordinaryTrip, undefined],
+  ['2024-04-08', 'filing before departure', ordinaryTrip, '2024-03-29'],
+  [
+    '2024-04-08',
+    'extension declined at the stay limit',
+    ordinaryTripAtStayLimit,
+    '2024-03-29',
+  ],
+  [
+    '2024-04-08',
+    'extension unanswered at the stay limit',
+    {
+      ...ordinaryTripAtStayLimit,
+      permit: { ...aprilPermit, extensionApproved: undefined },
+    },
+    '2024-03-29',
+  ],
+] as const)(
+  'the departed ordinary trip keeps its deadline and continuity on %s with %s',
+  (simulationDate, _label, route, applicationDate) => {
+    const draft = decodeDraft(
+      jp,
+      encodeDraft(jp, {
+        ...travelDraft(),
+        simulationDate,
+        applicationDate,
+        reentry: [route],
+      }),
+    )!;
+    const result = jp.run(draft, 'zh-CN');
+    const path = result.columns[0].pathways[0];
+    const html = renderToStaticMarkup(
+      <ResultView country={jp} result={result} draft={draft} />,
+    );
+    expect(path.status).toBe('MET');
+    const filing = path.checks.find(
+      (row) => row.id === 'jp.reentry.ordinary-eligibility',
+    )!;
+    expect(filing.applicable).toBe(false);
+    expect(html).toContain(
+      `data-status="NOT_APPLICABLE"><strong>${filing.title}</strong>`,
+    );
+    for (const id of ['ordinary-validity', 'return-continuity']) {
+      const row = path.checks.find((check) => check.id === 'jp.reentry.' + id)!;
+      expect(row.status).toBe('MET');
+      expect(row.explanation).toContain(aprilPermit.expiresOn);
+      expect(html).toContain(
+        `data-status="PASS"><strong>${row.title}</strong>`,
+      );
+      expect(html).toContain(row.explanation);
+    }
+    expect(html).not.toMatch(
+      /延期审批待确认|法定延期上限为 2026-04-01|出境时所需的再入国条件未满足/,
+    );
+  },
+);
+
+test.each([
+  ['zh-CN', '本次出境前，这份单次许可是否已经用过？'],
+  [
+    'en',
+    'Had you already used this single-entry permit before this departure?',
+  ],
+] as const)(
+  'the single-entry question and shared return result agree in %s',
+  (locale, label) => {
+    for (const previouslyUsedSingleEntry of [false, true]) {
+      const draft = decodeDraft(
+        jp,
+        encodeDraft(jp, {
+          ...travelDraft(),
+          simulationDate: '2024-04-08',
+          reentry: [
+            { ...ordinaryTrip, visits: 'single', previouslyUsedSingleEntry },
+          ],
+        }),
+      )!;
+      const form = renderToStaticMarkup(
+        <LocaleContext value={{ locale, setLocale: () => {} }}>
+          {JapanSimulatePage().props.children({
+            draft,
+            errors: {},
+            update: () => {},
+          })}
+        </LocaleContext>,
+      );
+      expect(form).toContain(
+        `for="jp-travel-ordinary-previouslyUsedSingleEntry">${label}</label>`,
+      );
+      const result = jp.run(draft, locale);
+      const continuity = result.columns[0].pathways[0].checks.find(
+        (row) => row.id === 'jp.reentry.return-continuity',
+      )!;
+      expect(continuity.status).toBe(
+        previouslyUsedSingleEntry ? 'NOT_MET' : 'MET',
+      );
+      const html = renderToStaticMarkup(
+        <LocaleContext value={{ locale, setLocale: () => {} }}>
+          <ResultView country={jp} result={result} draft={draft} />
+        </LocaleContext>,
+      );
+      expect(html).toContain(
+        `data-status="${previouslyUsedSingleEntry ? 'FAIL' : 'PASS'}"><strong>${continuity.title}</strong>`,
+      );
+    }
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'Japan result details group currency amounts and ranges in %s',
+  (locale) => {
+    const draft: JapanDraft = {
+      ...travelDraft(),
+      permanentResidence: {
+        routes: [{ route: 'general', statusStart: '2014-04-01' }],
+        evidence: {
+          spouseExpectedAnnualPensionYen: 0,
+          pensionSupplementAssetsYen: 1_234_567,
+        },
+      },
+      reentry: [
+        { ...ordinary, consularExtension: true, consularArea: 'other' },
+      ],
+    };
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <ResultView country={jp} result={jp.run(draft, locale)} draft={draft} />
+      </LocaleContext>,
+    );
+    expect(html).toContain('JPY 30,000,000');
+    expect(html).toContain('JPY 2,900–3,100');
+    expect(html).toContain(
+      (locale === 'en' ? 'unreported' : '待填') + ' / 0 / 1,234,567',
+    );
+    expect(html).not.toMatch(/JPY \d{4,}/);
+  },
+);
+
+test('moving the filing date clears ordinary permit evidence for the original date', () => {
+  const baseline = travelDraft();
+  const permit = { ...ordinary.permit, effectiveOn: '2027-04-06' };
+  baseline.reentry = [
+    {
+      ...ordinary,
+      permit,
+      lawfulStatusOn: '2027-04-05',
+      filingEvidenceOn: '2027-04-05',
+      onlineConcurrentEligibleApplication: true,
+    },
+  ];
+  const initial = jp.whatif.initial(baseline);
+  const knobs = { ...initial, applicationDate: '2027-04-06' };
+  const after = jp.whatif.apply(baseline, knobs);
+  expect(jp.whatif.validate(after, knobs)).toEqual({});
+  const compared = jp.run(after, 'en').columns[0].pathways[0];
+  expect(compared.status).toBe('UNKNOWN');
+  expect(compared.earliestDate).toBeUndefined();
+  expect(after.reentry[0]).toMatchObject({
+    lawfulStatus: undefined,
+    inJapanWhenApplying: undefined,
+    onlineConcurrentEligibleApplication: undefined,
+    channel: 'counter',
+    permit,
+  });
+  expect(jp.run(baseline, 'en').columns[0].pathways[0].earliestDate).toBe(
+    '2027-04-05',
+  );
+});
+
+test('sharing a later filing date keeps the issued permit valid for the planned November trip', () => {
+  const baseline = travelDraft();
+  baseline.simulationDate = '2026-11-24';
+  baseline.reentry = [
+    {
+      ...ordinary,
+      channel: 'online',
+      onlineConcurrentEligibleApplication: true,
+      departureOn: '2026-11-26',
+      returnOn: '2026-11-30',
+      permit: {
+        effectiveOn: '2026-11-01',
+        expiresOn: '2027-11-01',
+        extensionApproved: false,
+      },
+    },
+  ];
+  const knobs = {
+    ...jp.whatif.initial(baseline),
+    applicationDate: '2026-11-27',
+  };
+  const compared = jp.whatif.apply(baseline, knobs);
+  expect(jp.whatif.validate(compared, knobs)).toEqual({});
+  const comparison = renderToStaticMarkup(
+    <WhatIfView
+      country={{ ...jp, whatif: { ...jp.whatif, initial: () => knobs } }}
+      draft={baseline}
+    />,
+  );
+  expect(comparison).toMatch(
+    /<dt>结论<\/dt><dd[^>]*><span[^>]*>已满足条件<\/span><span aria-hidden="true">→<\/span><span>已满足条件<\/span>/,
+  );
+  expect(comparison).toContain('与当前情景相同');
+  expect(comparison).not.toContain('假设于 2026-11-27 递交');
+  for (const source of [baseline, compared, encodeDraft(jp, compared)]) {
+    const { draft, result, shared } = readPageResult(jp, 'zh-CN', source);
+    expect(shared).toBe(typeof source === 'string');
+    const path = result!.columns[0].pathways[0];
+    expect(path.summary).not.toContain('假设于 2026-11-27 递交');
+    const html = renderToStaticMarkup(
+      <ResultView country={jp} result={result!} draft={draft} />,
+    );
+    expect(path.status).toBe('MET');
+    expect(html).toContain('<h3>已满足条件</h3>');
+    for (const id of ['ordinary-eligibility', 'online-application']) {
+      const check = path.checks.find((row) => row.id === 'jp.reentry.' + id)!;
+      expect(check.applicable).toBe(false);
+      expect(html).toContain(
+        `data-status="NOT_APPLICABLE"><strong>${check.title}</strong>`,
+      );
+    }
+    for (const id of ['ordinary-validity', 'return-continuity'])
+      expect(
+        path.checks.find((row) => row.id === 'jp.reentry.' + id)?.status,
+      ).toBe('MET');
+  }
+});
+
+test.each([
+  [true, 'MET'],
+  [false, 'NOT_MET'],
+  [undefined, 'UNKNOWN'],
+] as const)(
+  'sharing an issued ordinary permit preserves lawful status at departure (%s)',
+  (lawfulStatus, expected) => {
+    const baseline: JapanDraft = {
+      ...travelDraft(),
+      simulationDate: '2026-11-26',
+      reentry: [
+        {
+          ...ordinary,
+          departureOn: '2026-11-26',
+          returnOn: '2026-11-30',
+          lawfulStatus,
+          permit: { ...ordinary.permit, effectiveOn: '2026-11-24' },
+        },
+      ],
+    };
+    const moved = jp.whatif.apply(baseline, {
+      ...jp.whatif.initial(baseline),
+      applicationDate: '2026-11-27',
+    });
+    for (const draft of [baseline, moved]) {
+      expect(jp.validateStep(draft)).toEqual({});
+      const { result } = readPageResult(jp, 'en', encodeDraft(jp, draft));
+      const path = result!.columns[0].pathways[0];
+      expect(path.status).toBe(expected);
+      expect(path.earliestDate).toBeUndefined();
+      expect(
+        path.checks.find((c) => c.id === 'jp.reentry.ordinary-eligibility')
+          ?.applicable,
+      ).toBe(false);
+      expect(
+        path.checks.find((c) => c.id === 'jp.reentry.return-continuity')
+          ?.status,
+      ).toBe(expected);
+    }
+  },
+);
+
+test('filing for an ordinary permit after its effective date returns field errors and no shared result', () => {
+  const invalid: JapanDraft = {
+    ...travelDraft(),
+    simulationDate: '2026-11-23',
+    applicationDate: '2026-11-25',
+    reentry: [
+      {
+        ...ordinary,
+        departureOn: '2026-11-26',
+        returnOn: '2026-11-30',
+        permit: { ...ordinary.permit, effectiveOn: '2026-11-24' },
+      },
+    ],
+  };
+  expect(jp.validateStep({ ...invalid, step: 0 })).toHaveProperty(
+    'jp-applicationDate',
+    'jp.error.filingAfterPermit',
+  );
+  expect(jp.validateStep(invalid)).toHaveProperty(
+    'jp-travel-ordinary-permit-effectiveOn',
+    'jp.error.filingAfterPermit',
+  );
+  expect(jp.whatif.validate(invalid, jp.whatif.initial(invalid)).date).toBe(
+    'jp.error.filingAfterPermit',
+  );
+  const shared = readPageResult(jp, 'en', encodeDraft(jp, invalid));
+  expect(shared.correction).toContain('filing date');
+  expect(shared.result).toBeUndefined();
+  const corrected = { ...invalid, applicationDate: '2026-11-24' };
+  expect(jp.validateStep(corrected)).toEqual({});
+  const { result } = readPageResult(jp, 'en', encodeDraft(jp, corrected));
+  expect(result!.columns[0].pathways[0]).toMatchObject({
+    status: 'MET',
+    earliestDate: '2026-11-24',
+  });
+});
+
+test('the filing date knob clears dated residence and talent answers without altering the original evidence', () => {
+  const baseline: JapanDraft = {
+    ...jp.createDraft(),
+    simulationDate: '2026-11-24',
+    stayStart: '2010-01-01',
+    permanentResidence: {
+      routes: [
+        {
+          route: 'hsp70',
+          statusStart: '2015-01-01',
+          mode: 'recognised',
+          current: { on: '2026-11-24', confirmedPoints: 80 },
+          historical: { on: '2023-11-24', confirmedPoints: 70 },
+          recognisedOn: '2022-01-01',
+          recognisedPoints: 70,
+          maintained: true,
+        },
+        {
+          route: 'j-skip',
+          current: { on: '2026-11-24', confirmed: true },
+          historical: { on: '2025-11-24', confirmed: true },
+          remainedRecognised: true,
+        },
+      ],
+      evidence: {
+        inJapan: true,
+        status: {
+          kind: 'engineer',
+          valid: true,
+          expiresOn: '2026-11-30',
+          timelyRenewalPending: false,
+        },
+        pendingOnIncomeReviewDate: true,
+        addressNotices: [
+          { eventOn: '2026-11-12', notifiedOn: null },
+          { eventOn: '2026-09-01', notifiedOn: '2026-09-02' },
+        ],
+      },
+    },
+    naturalisation: {
+      routes: [{ route: 'general' }],
+      evidence: { inJapan: true, lawfulDomicile: true },
+    },
+  };
+  const original = structuredClone(baseline);
+  const initial = jp.whatif.initial(baseline);
+  const knobs = { ...initial, applicationDate: '2026-12-01' };
+  const adjusted = jp.whatif.apply(baseline, knobs);
+  const pr = (draft: JapanDraft) => jp.run(draft, 'en').columns[0].pathways[0];
+  const check = (draft: JapanDraft, key: string) =>
+    pr(draft).checks.find((item) => item.id === key)?.status;
+  expect(check(baseline, 'jp.pr.lawful-filing-status')).toBe('MET');
+  expect(check(adjusted, 'jp.pr.lawful-filing-status')).toBe('UNKNOWN');
+  expect(pr(adjusted).earliestDate).toBeUndefined();
+  expect(check(adjusted, 'jp.pr.hsp-current-points')).toBe('UNKNOWN');
+  expect(adjusted.permanentResidence.evidence).toMatchObject({
+    pendingOnIncomeReviewDate: true,
+    addressNotices: [
+      { eventOn: '2026-11-12', notifiedOn: undefined },
+      { eventOn: '2026-09-01', notifiedOn: '2026-09-02' },
+    ],
+  });
+  expect(adjusted.permanentResidence.routes).toMatchObject([
+    {
+      current: undefined,
+      historical: undefined,
+      maintained: undefined,
+      recognisedOn: '2022-01-01',
+      recognisedPoints: 70,
+    },
+    {
+      current: undefined,
+      historical: undefined,
+      remainedRecognised: undefined,
+    },
+  ]);
+  expect(adjusted.naturalisation.evidence).toMatchObject({
+    inJapan: undefined,
+    lawfulDomicile: undefined,
+  });
+  expect(jp.whatif.apply(baseline, initial).permanentResidence).toEqual(
+    original.permanentResidence,
+  );
+  expect(baseline).toEqual(original);
+  const renewed = structuredClone(baseline);
+  renewed.permanentResidence.evidence.status!.timelyRenewalPending = true;
+  const comparedRenewal = jp.whatif.apply(renewed, knobs);
+  expect(
+    comparedRenewal.permanentResidence.evidence.status?.timelyRenewalPending,
+  ).toBeUndefined();
+  expect(check(comparedRenewal, 'jp.pr.lawful-filing-status')).toBe('UNKNOWN');
+  const html = renderToStaticMarkup(
+    <LocaleContext value={{ locale: 'en', setLocale: () => {} }}>
+      <JapanWhatIfControls
+        afterDraft={adjusted}
+        knobs={knobs}
+        update={() => {}}
+        errors={{}}
+      />
+    </LocaleContext>,
+  );
+  expect(html).toContain('aria-describedby="jp-whatif-date-hint"');
+  expect(html).toContain('Set the new filing date in the questionnaire');
+});
+
+test('language, household evidence and travel knobs update only the comparison', () => {
+  const draft: JapanDraft = {
+    ...travelDraft(),
+    trips: [
+      { departed: '2026-06-01', returned: '2026-06-15', reentryPermit: true },
+    ],
+    permanentResidence: {
+      routes: [{ route: 'child' }],
+      evidence: { tax: 'on-time' },
+    },
+    naturalisation: {
+      routes: [{ route: 'general', homeMajorityAge: 18 }],
+      evidence: { japaneseLanguage: { reading: 'independent' } },
+    },
+  };
+  const original = structuredClone(draft);
+  const knobs = {
+    ...jp.whatif.initial(draft),
+    prIncome: 0,
+    prHousehold: false,
+    natJapanese: true,
+    noTrips: true,
+    returns: { ordinary: '2027-04-20' },
+  };
+  const compared = jp.whatif.apply(draft, knobs);
+  expect(compared.permanentResidence.evidence).toMatchObject({
+    applicantAnnualIncomeYen: 0,
+    householdIncomeConfirmed: false,
+    tax: 'on-time',
+  });
+  expect(compared.naturalisation.evidence.japaneseLanguage).toEqual({
+    reading: 'independent',
+    authorityConfirmed: true,
+  });
+  expect(compared.trips).toEqual(original.trips);
+  expect(compared.tripsForReentryOnly).toBe(true);
+  expect(compared.reentry[0].returnOn).toBe('2027-04-20');
+  expect(draft).toEqual(original);
+});
+
+function generalPrTravelDraft(
+  history: Partial<JapanDraft['trips'][number]>,
+  route: JapanDraft['reentry'][number],
+): JapanDraft {
+  return {
+    ...travelDraft(),
+    residenceEvidenceOn: '2027-04-05',
+    dateOfBirth: '1990-05-01',
+    permanentResidence: {
+      routes: [
+        {
+          route: 'general',
+          statusStart: '2014-04-01',
+          newStatusStart: '2014-04-01',
+        },
+      ],
+      evidence: prEvidence,
+    },
+    trips: [
+      {
+        departed: aprilTrip.departureOn,
+        returned: aprilTrip.returnOn,
+        departure: 'deemed',
+        ...history,
+      },
+    ],
+    reentry: [route],
+  };
+}
+
+test('assuming no residence trips preserves the linked deemed return evidence after sharing', () => {
+  const baseline = generalPrTravelDraft(
+    { returned: '2024-11-01', stayExpiry: '2025-01-31', renewalPending: false },
+    {
+      ...deemedTrip,
+      returnOn: '2024-11-01',
+      stayExpiresOn: undefined,
+      timelyRenewalPending: undefined,
+    },
+  );
+  baseline.trips.push({
+    departed: '2025-03-10',
+    returned: '2025-03-12',
+    departure: 'none',
+  });
+  const [pr, deemed] = jp.run(baseline, 'en').columns[0].pathways;
+  const emptyHistory = jp.run({ ...baseline, trips: [] }, 'en').columns[0]
+    .pathways[0];
+  expect(pr).toMatchObject({
+    timeStatus: 'FUTURE',
+    timeEarliestDate: '2035-03-12',
+  });
+  expect(deemed.status).toBe('MET');
+  for (const id of [
+    'jp.reentry.deemed-validity',
+    'jp.reentry.return-continuity',
+  ])
+    expect(deemed.checks.find((check) => check.id === id)?.status).toBe('MET');
+  const knobs = { ...jp.whatif.initial(baseline), noTrips: true };
+  const compared = jp.whatif.apply(baseline, knobs);
+  expect(jp.whatif.validate(compared, knobs)).toEqual({});
+  for (const source of [encodeDraft(jp, compared), compared]) {
+    const page = readPageResult(jp, 'en', source);
+    const draft = page.draft!;
+    const [residence, travel] = page.result!.columns[0].pathways;
+    const sharedKnobs = jp.whatif.initial(draft);
+    expect(sharedKnobs.noTrips).toBe(true);
+    expect(residence).toEqual(emptyHistory);
+    expect(travel).toEqual(deemed);
+    expect(draft.reentry[0].stayExpiresOn).toBeUndefined();
+    const restored = jp.whatif.apply(draft, { ...sharedKnobs, noTrips: false });
+    const paths = readPageResult(jp, 'en', restored).result!.columns[0]
+      .pathways;
+    expect(paths).toEqual([pr, deemed]);
+    expect(draft.trips).toEqual(baseline.trips);
+  }
+  const form = renderToStaticMarkup(
+    JapanSimulatePage().props.children({
+      draft: { ...compared, step: 1 },
+      errors: {},
+      update: () => {},
+    }),
+  );
+  expect(form).toContain('checked=""/>永住和帰化按无出境记录评估');
+});
+
+test.each(['zh-CN', 'en'] as const)(
+  'conflicting stay expiries remain unconfirmed in shared results and comparisons (%s)',
+  (locale) => {
+    const historyExpiry = '2024-04-03';
+    const reentryExpiry = '2024-04-10';
+    const draft = generalPrTravelDraft(
+      { stayExpiry: historyExpiry, renewalPending: false },
+      { ...deemedTrip, stayExpiresOn: reentryExpiry },
+    );
+    const compared = jp.whatif.apply(draft, {
+      ...jp.whatif.initial(draft),
+      returns: { deemed: '2024-04-08' },
+    });
+    for (const scenario of [draft, compared]) {
+      const shared = decodeDraft(jp, encodeDraft(jp, scenario))!;
+      const [pr, deemed] = jp.run(shared, locale).columns[0].pathways;
+      expect(
+        pr.checks.find((c) => c.id === 'jp.pr.continuous-stay')?.status,
+      ).toBe('UNKNOWN');
+      expect(pr.timeEarliestDate).toBeUndefined();
+      expect(pr.earliestDate).toBeUndefined();
+      const notice = locale === 'en' ? 'Check both records' : '请核对两处记录';
+      expect(pr.summary).toContain(notice);
+      for (const id of [
+        'jp.reentry.deemed-validity',
+        'jp.reentry.return-continuity',
+      ]) {
+        const check = deemed.checks.find((c) => c.id === id)!;
+        expect(check.status).toBe('UNKNOWN');
+        expect(check.explanation).toContain(notice);
+        expect(check.explanation).toContain(historyExpiry);
+        expect(check.explanation).toContain(reentryExpiry);
+      }
+    }
+    draft.trips[0].stayExpiry = reentryExpiry;
+    const [pr, deemed] = jp.run(draft, locale).columns[0].pathways;
+    expect(pr.earliestDate).toBe('2027-04-05');
+    expect(
+      deemed.checks.find((c) => c.id === 'jp.reentry.return-continuity')
+        ?.status,
+    ).toBe('MET');
+  },
+);
+
+test('legacy comparison expiries follow the original itinerary on both sides of a share', () => {
+  const draft = generalPrTravelDraft(
+    { stayExpiry: '2024-04-10', reentryStayExpiry: '2024-04-08' },
+    {
+      ...deemedTrip,
+      stayExpiresOn: '2024-04-10',
+      historyStayExpiry: '2024-04-08',
+      returnOn: '2024-04-09',
+      comparisonHistoryReturnOn: aprilTrip.returnOn,
+    },
+  );
+  const shared = () => decodeDraft(jp, encodeDraft(jp, draft))!;
+  const assessed = () => jp.run(shared(), 'en').columns[0].pathways;
+  expect(assessed()[0].timeStatus).toBe('UNKNOWN');
+  expect(shared().trips[0].reentryStayExpiry).toBe('2024-04-08');
+  expect(shared().reentry[0]).toHaveProperty('historyStayExpiry', '2024-04-08');
+
+  draft.reentry[0].departureOn = '2024-04-02';
+  let saved = shared();
+  expect(saved.trips[0]).not.toHaveProperty('reentryStayExpiry');
+  expect(saved.reentry[0]).not.toHaveProperty('historyStayExpiry');
+  expect(saved.reentry[0]).not.toHaveProperty('comparisonHistoryReturnOn');
+  expect(assessed()[0]).toMatchObject({
+    timeStatus: 'MET',
+    earliestDate: '2027-04-05',
+  });
+
+  // A different return also makes it a different trip, even with the same departure.
+  draft.reentry[0] = {
+    ...draft.reentry[0],
+    departureOn: aprilTrip.departureOn,
+    comparisonHistoryReturnOn: undefined,
+  };
+  saved = shared();
+  expect(saved.trips[0]).not.toHaveProperty('reentryStayExpiry');
+  expect(saved.reentry[0]).not.toHaveProperty('historyStayExpiry');
+  expect(assessed()[0]).toMatchObject({
+    timeStatus: 'MET',
+    earliestDate: '2027-04-05',
+  });
+});
+
+const specialPeriodTrip = {
+  ...deemedTrip,
+  stayExpiresOn: '2024-04-03',
+  renewalDecisionOn: '2024-04-08',
+};
+
+test.each([
+  [false, true, 'UNKNOWN', undefined, undefined],
+  [true, false, 'UNKNOWN', undefined, undefined],
+  [true, true, 'MET', '2027-04-03', '2027-04-05'],
+  [false, false, 'NOT_MET', '2034-04-07', undefined],
+  [true, undefined, 'MET', '2027-04-03', '2027-04-05'],
+  [undefined, false, 'NOT_MET', '2034-04-07', undefined],
+] as const)(
+  'shared renewal answers history=%s and re-entry=%s determine both continuity results',
+  (renewalPending, timelyRenewalPending, status, milestone, filing) => {
+    const draft = generalPrTravelDraft(
+      { stayExpiry: specialPeriodTrip.stayExpiresOn, renewalPending },
+      { ...specialPeriodTrip, timelyRenewalPending },
+    );
+    const compared = jp.whatif.apply(draft, {
+      ...jp.whatif.initial(draft),
+      returns: { deemed: '2024-04-08' },
+    });
+    for (const scenario of [draft, compared]) {
+      const shared = decodeDraft(jp, encodeDraft(jp, scenario))!;
+      const [pr, route] = jp.run(shared, 'en').columns[0].pathways;
+      const stay = pr.checks.find((c) => c.id === 'jp.pr.continuous-stay')!;
+      const returned = route.checks.find(
+        (c) => c.id === 'jp.reentry.return-continuity',
+      )!;
+      expect(stay.status).toBe(status);
+      expect(returned.status).toBe(status);
+      expect(pr.timeEarliestDate).toBe(milestone);
+      expect(pr.earliestDate).toBe(filing);
+      if (status === 'UNKNOWN') {
+        expect(pr.summary).toContain('Check both records');
+        expect(returned.explanation).toContain('Check both records');
+      }
+    }
+  },
+);
+
+test.each([
+  [
+    'renewal decision',
+    {
+      stayExpiry: specialPeriodTrip.stayExpiresOn,
+      renewalPending: true,
+      renewalDecisionOn: '2024-04-05',
+    },
+    { ...specialPeriodTrip, timelyRenewalPending: true },
+  ],
+  [
+    'actual new landing date',
+    { newLandingOn: '2024-04-07' },
+    { ...deemedTrip, newLandingOn: '2024-04-06' },
+  ],
+  [
+    'no permit versus a confirmed deemed declaration',
+    { departure: 'none' },
+    deemedTrip,
+  ],
+  [
+    'valid ordinary permit versus voided permit',
+    { departure: 'permit', reentryPermit: true },
+    { ...ordinaryTrip, permitVoided: true },
+  ],
+  [
+    'valid ordinary permit versus expired document',
+    { departure: 'permit', reentryPermit: true },
+    { ...ordinaryTrip, permit: { ...aprilPermit, expiresOn: '2024-04-05' } },
+  ],
+  [
+    'invalid ordinary permit versus confirmed valid document',
+    { departure: 'permit', reentryPermit: false },
+    ordinaryTrip,
+  ],
+] as const)(
+  'inconsistent evidence of %s keeps the shared trip unconfirmed',
+  (_case, history, route) => {
+    const draft = generalPrTravelDraft(history, route);
+    const shared = decodeDraft(jp, encodeDraft(jp, draft))!;
+    const [pr, reentry] = jp.run(shared, 'zh-CN').columns[0].pathways;
+    const returned = reentry.checks.find(
+      (c) => c.id === 'jp.reentry.return-continuity',
+    )!;
+    expect(returned.status).toBe('UNKNOWN');
+    expect(returned.explanation).toContain('请核对两处记录');
+    expect(
+      pr.checks.find((c) => c.id === 'jp.pr.continuous-stay')?.status,
+    ).toBe('UNKNOWN');
+    expect(pr.summary).toContain('请核对两处记录');
+    expect(pr.timeEarliestDate).toBeUndefined();
+    expect(pr.earliestDate).toBeUndefined();
+  },
+);
+
+test('an unmatched itinerary keeps its own answer about a pending renewal', () => {
+  const draft = generalPrTravelDraft(
+    {
+      returned: '2024-04-06',
+      stayExpiry: specialPeriodTrip.stayExpiresOn,
+      renewalPending: false,
+    },
+    { ...specialPeriodTrip, timelyRenewalPending: true },
+  );
+  const shared = decodeDraft(jp, encodeDraft(jp, draft))!;
+  const [pr, deemed] = jp.run(shared, 'en').columns[0].pathways;
+  expect(pr.checks.find((c) => c.id === 'jp.pr.continuous-stay')?.status).toBe(
+    'NOT_MET',
+  );
+  expect(pr.timeEarliestDate).toBe('2034-04-06');
+  expect(pr.earliestDate).toBeUndefined();
+  expect(
+    deemed.checks.find((c) => c.id === 'jp.reentry.return-continuity')?.status,
+  ).toBe('MET');
+});
+
+test.each([
+  ['matching special status', '2025-10-01', true, undefined, 'MET'],
+  ['matching ordinary status', '2025-10-01', false, undefined, 'NOT_MET'],
+  ['conflicting answers', '2025-10-01', true, false, 'UNKNOWN'],
+  ['another return', '2025-09-30', true, undefined, 'UNKNOWN'],
+] as const)(
+  'changing the deemed return date preserves the baseline evidence for %s',
+  (_case, historyReturn, historyStatus, routeStatus, expected) => {
+    const departed = '2024-04-01';
+    const baseline: JapanDraft = {
+      ...travelDraft(),
+      naturalisation: {
+        routes: [{ route: 'general', homeMajorityAge: 18 }],
+        evidence: {},
+      },
+      trips: [
+        {
+          departure: 'deemed',
+          departed,
+          returned: historyReturn,
+          specialPermanentResident: historyStatus,
+        },
+      ],
+      reentry: [
+        {
+          route: 'deemed',
+          departureOn: departed,
+          returnOn: '2025-10-01',
+          specialPermanentResident: routeStatus,
+          lawfulStatus: true,
+          passportValid: true,
+          residentCardOrCertificate: true,
+          formalPermitRequired: false,
+          stayIndefinite: true,
+          alreadyDeparted: true,
+          declaredIntentAtDeparture: true,
+          declarationForDepartureOn: departed,
+          permitVoided: false,
+        },
+      ],
+    };
+    const continuity = (draft: JapanDraft) =>
+      jp
+        .run(draft, 'en')
+        .columns[0].pathways.find((path) => path.id === 'jp.reentry.deemed')!
+        .checks.find((check) => check.id === 'jp.reentry.return-continuity')!
+        .status;
+    const knobs = {
+      ...jp.whatif.initial(baseline),
+      returns: { deemed: '2025-10-02' },
+    };
+    expect(continuity(baseline)).toBe(expected);
+    const compared = jp.whatif.apply(baseline, knobs);
+    expect(jp.whatif.validate(compared, knobs)).toEqual({});
+    expect(compared.reentry[0].returnOn).toBe('2025-10-02');
+    expect(continuity(compared)).toBe(expected);
+    expect(continuity(decodeDraft(jp, encodeDraft(jp, compared))!)).toBe(
+      expected,
+    );
+    expect(baseline.reentry[0].returnOn).toBe('2025-10-01');
+    expect(baseline.reentry[0].specialPermanentResident).toBe(routeStatus);
+    expect(baseline.trips[0].specialPermanentResident).toBe(historyStatus);
+  },
+);
+
+test.each([
+  ['valid departure documents', deemedTrip, 'MET'],
+  ['invalid passport', { ...deemedTrip, passportValid: false }, 'NOT_MET'],
+  ['voided permission', { ...deemedTrip, permitVoided: true }, 'NOT_MET'],
+  [
+    'lost document without validity evidence',
+    { ...deemedTrip, travelDocumentLost: true },
+    'UNKNOWN',
+  ],
+  [
+    'missing residence card',
+    { ...deemedTrip, residentCardOrCertificate: false },
+    'NOT_MET',
+  ],
+  [
+    'unconfirmed passport',
+    { ...deemedTrip, passportValid: undefined },
+    'UNKNOWN',
+  ],
+  [
+    'reported deemed departure conflicts with a negative declaration',
+    { ...deemedTrip, declaredIntentAtDeparture: false },
+    'UNKNOWN',
+  ],
+] as const)(
+  'shared PR and deemed results use the same trip evidence for %s',
+  (_label, route, expected) => {
+    const baseline: JapanDraft = {
+      ...travelDraft(),
+      permanentResidence: {
+        routes: [
+          {
+            route: 'general',
+            statusStart: '2014-04-01',
+            newStatusStart: '2014-04-01',
+          },
+        ],
+        evidence: {},
+      },
+      trips: [
+        {
+          departed: aprilTrip.departureOn,
+          returned: aprilTrip.returnOn,
+          departure: 'deemed',
+        },
+      ],
+      reentry: [route],
+    };
+    const knobs = {
+      ...jp.whatif.initial(baseline),
+      returns: { deemed: '2024-04-08' },
+    };
+    const compared = jp.whatif.apply(baseline, knobs);
+    expect(compared.reentry[0].returnOn).toBe(knobs.returns.deemed);
+    for (const scenario of [baseline, compared]) {
+      const draft = decodeDraft(jp, encodeDraft(jp, scenario))!;
+      const result = jp.run(draft, 'zh-CN');
+      const [pr, deemed] = result.columns[0].pathways;
+      expect(pr.timeEarliestDate).toBe(
+        expected === 'NOT_MET'
+          ? '2034-04-07'
+          : expected === 'MET'
+            ? draft.simulationDate
+            : undefined,
+      );
+      const html = renderToStaticMarkup(
+        <ResultView country={jp} result={result} draft={draft} />,
+      );
+      for (const row of [
+        pr.checks.find((item) => item.id === 'jp.pr.continuous-stay')!,
+        deemed.checks.find(
+          (item) => item.id === 'jp.reentry.return-continuity',
+        )!,
+      ]) {
+        expect(row.status).toBe(expected);
+        const group = { MET: 'PASS', NOT_MET: 'FAIL', UNKNOWN: 'UNKNOWN' }[
+          expected
+        ];
+        expect(html).toContain(
+          `data-status="${group}"><strong>${row.title}</strong>`,
+        );
+      }
+    }
+    expect(baseline.trips[0].departure).toBe('deemed');
+  },
+);
+
+test.each([
+  ['2024-04-05', undefined, 'NOT_MET', '2034-04-07', undefined],
+  ['2024-04-08', undefined, 'MET', '2027-04-03', '2027-04-05'],
+  [undefined, undefined, 'UNKNOWN', undefined, undefined],
+  ['2024-04-08', '2024-04-07', 'NOT_MET', '2034-04-07', undefined],
+  ['2024-04-08', '2024-04-09', 'UNKNOWN', undefined, undefined],
+] as const)(
+  'shared deemed return and general PR use decision %s and new landing %s',
+  (renewalDecisionOn, newLandingOn, status, timeEarliestDate, earliestDate) => {
+    const stayExpiry = '2024-04-03';
+    const scenario = generalPrTravelDraft(
+      { stayExpiry, renewalPending: true },
+      {
+        ...deemedTrip,
+        stayExpiresOn: stayExpiry,
+        timelyRenewalPending: true,
+        renewalDecisionOn,
+        newLandingOn,
+      },
+    );
+    const shared = decodeDraft(jp, encodeDraft(jp, scenario))!;
+    const [pr, deemed] = jp.run(shared, 'en').columns[0].pathways;
+    expect(
+      deemed.checks.find((c) => c.id === 'jp.reentry.return-continuity')
+        ?.status,
+    ).toBe(status);
+    expect(
+      pr.checks.find((c) => c.id === 'jp.pr.continuous-stay')?.status,
+    ).toBe(status);
+    expect(pr.timeEarliestDate).toBe(timeEarliestDate);
+    expect(pr.earliestDate).toBe(earliestDate);
+    if (status === 'NOT_MET') {
+      const onRestartedAnniversary: JapanDraft = {
+        ...shared,
+        applicationDate: timeEarliestDate,
+        residenceEvidenceOn: timeEarliestDate,
+        permanentResidence: {
+          ...shared.permanentResidence,
+          evidence: {
+            ...prEvidence,
+            status: { ...prEvidence.status, expiresOn: '2034-04-30' },
+          },
+        },
+      };
+      expect(
+        jp.run(onRestartedAnniversary, 'en').columns[0].pathways[0]
+          .earliestDate,
+      ).toBe('2034-04-07');
+    }
+  },
+);
+
+test('each re-entry continuity gap links to the return date for its own route', () => {
+  const draft = travelDraft();
+  draft.reentry = [
+    { ...ordinary, returnOn: '2028-04-10' },
+    {
+      route: 'deemed',
+      departureOn: '2027-04-12',
+      returnOn: '2028-04-13',
+      stayIndefinite: true,
+      specialPermanentResident: false,
+    },
+    {
+      route: 'refugee-travel-document',
+      departureOn: '2027-04-12',
+      returnOn: '2028-04-10',
+      permit: {
+        effectiveOn: '2027-04-05',
+        expiresOn: '2028-04-05',
+        entryDeadlineNotSpecified: true,
+      },
+    },
+  ];
+  const paths = jp.run(draft, 'en').columns[0].pathways;
+  for (const { route } of draft.reentry) {
+    const assessment = paths.find((path) => path.id === 'jp.reentry.' + route)!;
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale: 'en', setLocale: () => {} }}>
+        <GapSummary country={jp} assessment={assessment} canWhatIf />
+      </LocaleContext>,
+    );
+    const links = html.match(/<a\b[^>]*>/g) ?? [];
+    expect(
+      links.find((link) => link.includes('Return and continuity of status')),
+    ).toContain('href="/japan/whatif?focus=' + route + '"');
+  }
+  expect(
+    jp.whatif.focusForRule(
+      'jp.reentry.ordinary-validity',
+      'jp.reentry.ordinary',
+    ),
+  ).toBeUndefined();
+  expect(
+    jp.whatif.focusForRule(
+      'jp.reentry.refugee-document-validity',
+      'jp.reentry.refugee-travel-document',
+    ),
+  ).toBeUndefined();
+});
+
+test('Japan policy lists every cited source exactly once and includes pathway-specific rules', () => {
+  const policy = jp.policy;
+  const sources = [
+    ...policy.ruleSets.flatMap((s) => s.sources),
+    ...Object.values(policy.rules)
+      .flat()
+      .flatMap((r) => r.sources),
+    ...Object.values(policy.parameters).flatMap((p) =>
+      Object.values(p.values).flatMap((v) => v.sources),
+    ),
+    ...policy.changelog.flatMap((c) => c.sources),
+  ];
+  expect(Object.keys(policy.sourceUrls).sort()).toEqual(
+    [...new Set(sources.map((s) => s.srcId))].sort(),
+  );
+  for (const { srcId } of sources) {
+    expect(sourceUrls[srcId], srcId).toMatch(/^https:\/\//);
+    expect(policy.sourceUrls[srcId]).toBe(sourceUrls[srcId]);
+  }
+  expect(policy.sourceUrls).not.toHaveProperty('SRC-001');
+  const rules = policy.rules[japanFull2026_11.ruleSetId].map((r) => r.id);
+  for (const id of [
+    'jp.pr.hsp-current-points',
+    'jp.nat.japanese-language',
+    'jp.reentry.ordinary-validity',
+    'jp.reentry.consular-extension-fee',
+  ])
+    expect(rules).toContain(id);
+});
+
+test('Japan policy links every SRC-116 locator to its official document', () => {
+  const html = renderToStaticMarkup(<JapanPolicyPage />);
+  const links = [
+    ...html.matchAll(/<a href="([^"]+)"[^>]*>SRC-116 ([^<]+)<\/a>/g),
+  ].map(([, href, locator]) => [locator.replaceAll('&amp;', '&'), href]);
+  const isa = 'https://www.moj.go.jp/isa';
+  const qa = isa + '/immigration/faq/kanri_qa.html';
+  const expected = {
+    '出入国審査・在留審査Q&A Q28': qa + '#q28',
+    '出入国審査・在留審査 Q&A Q53': qa + '#q54',
+    '出入国審査・在留審査Q&A Q57–61': qa + '#q58',
+    '出入国審査・在留審査Q&A Q61': qa + '#q62',
+    再入国許可: isa + '/immigration/procedures/sainyukoku_00002.html',
+    みなし再入国許可:
+      isa + '/immigration/procedures/minashisainyukoku_00001.html',
+    '永住者の在留資格について p5': isa + '/content/930003741.pdf',
+  };
+  expect(new Set(links.map(([locator]) => locator))).toEqual(
+    new Set(Object.keys(expected)),
+  );
+  for (const [locator, href] of links)
+    expect(expected).toHaveProperty([locator], href);
+});
+
+test.each(['zh-CN', 'en'] as const)(
+  'Japan policy names the country and groups amounts, and the UK retains its heading in %s',
+  (locale) => {
+    const render = (Page: typeof JapanPolicyPage) =>
+      renderToStaticMarkup(
+        <LocaleContext value={{ locale, setLocale: () => {} }}>
+          <Page />
+        </LocaleContext>,
+      );
+    const japan = render(JapanPolicyPage);
+    expect(japan).toContain(
+      locale === 'en'
+        ? '<h1>Policy basis for Japan</h1>'
+        : '<h1>日本政策依据</h1>',
+    );
+    expect(japan).toContain('businessAssetsYen 30,000,000');
+    expect(japan).toContain(locale === 'en' ? '2,900, 3,100' : '2,900、3,100');
+    expect(render(UkPolicyPage)).toContain(
+      locale === 'en' ? '<h1>Policy basis</h1>' : '<h1>政策依据</h1>',
+    );
+  },
+);
+
+test('weekday evidence from an older draft remains usable when the requested weekend leads to that same counter day', () => {
+  const draft: JapanDraft = {
+    ...travelDraft(),
+    applicationDate: '2027-04-05',
+    dateOfBirth: '1990-05-01',
+    permanentResidence: {
+      routes: [
+        {
+          route: 'general',
+          statusStart: '2015-04-01',
+          newStatusStart: '2015-04-01',
+        },
+      ],
+      evidence: prEvidence,
+    },
+    reentry: [ordinary],
+  };
+  const adjusted = jp.whatif.apply(draft, {
+    ...jp.whatif.initial(draft),
+    applicationDate: '2027-04-03',
+  });
+  const paths = readPageResult(jp, 'en', encodeDraft(jp, adjusted)).result!
+    .columns[0].pathways;
+  for (const path of paths)
+    expect(path).toMatchObject({ status: 'MET', earliestDate: '2027-04-05' });
 });

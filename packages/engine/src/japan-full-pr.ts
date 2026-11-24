@@ -1,3 +1,4 @@
+import { japanImmigrationGuidance } from '@uk-immigration/policy-data';
 import { addDays, addMonths, addYears, daysBetween } from './dates';
 import {
   ageAtLeast,
@@ -447,20 +448,125 @@ function incomeEvidence(e: JpPrCommonEvidence, L: JpText): string {
   );
 }
 
+export function clearJapanPrFilingEvidence(
+  e: JpPrCommonEvidence,
+): JpPrCommonEvidence {
+  const notices = (rows: JpPrNotice[] | undefined) =>
+    rows?.map((row) =>
+      row.notifiedOn === null ? { ...row, notifiedOn: undefined } : row,
+    );
+  return {
+    ...e,
+    inJapan: undefined,
+    status: e.status && {
+      ...e.status,
+      valid: undefined,
+      timelyRenewalPending: undefined,
+      firstApplicationAfterTransition: undefined,
+    },
+    affiliationNotices: notices(e.affiliationNotices),
+    addressNotices: notices(e.addressNotices),
+  };
+}
+
+export function japanTalentHistoricalDate(
+  route: 'hsp70' | 'hsp80' | 'j-skip',
+  filing: IsoDate,
+) {
+  const years =
+    route === 'j-skip'
+      ? full.jSkip.value.stayYears
+      : old.highlySkilledYears.value[route];
+  return afterYears(filing, -years);
+}
+
+export function clearJapanTalentMaintenance(
+  route: JpFullPrRoute,
+): JpFullPrRoute {
+  if (route.route === 'hsp70' || route.route === 'hsp80')
+    return { ...route, maintained: undefined };
+  if (route.route === 'j-skip')
+    return { ...route, remainedRecognised: undefined };
+  return route;
+}
+
 export function assessJapanPr(
   req: JpFullContext,
   route: JpFullPrRoute,
   e: JpPrCommonEvidence,
 ): JpFullPathway {
-  const { L } = filingContext(req);
+  const { date, L } = filingContext(req);
+  const evidenceOn = req.residenceEvidenceOn ?? date;
+  const assess = (applicationDate: IsoDate) =>
+    assessJapanPrOnDate(
+      { ...req, applicationDate },
+      evidenceOn === applicationDate
+        ? route
+        : clearJapanTalentMaintenance(route),
+      evidenceOn === applicationDate ? e : clearJapanPrFilingEvidence(e),
+    );
+  const result = assess(date);
+  // A separate unmet requirement must not hide answers confirmed for the counter day.
+  const datedEvidence =
+    evidenceOn !== date &&
+    (e.inJapan !== undefined ||
+      e.status?.valid !== undefined ||
+      e.status?.timelyRenewalPending !== undefined ||
+      e.status?.firstApplicationAfterTransition !== undefined ||
+      e.affiliationNotices?.some((n) => n.notifiedOn === null) ||
+      e.addressNotices?.some((n) => n.notifiedOn === null) ||
+      ((route.route === 'hsp70' ||
+        route.route === 'hsp80' ||
+        route.route === 'j-skip') &&
+        (route.current?.on === evidenceOn ||
+          route.historical?.on ===
+            japanTalentHistoricalDate(route.route, evidenceOn) ||
+          (route.route === 'j-skip'
+            ? route.remainedRecognised
+            : route.maintained) !== undefined)));
+  // Time alone can identify the counter day whose evidence still needs checking.
+  const candidateDate =
+    datedEvidence && result.status !== 'NOT_APPLICABLE'
+      ? date
+      : result.status === 'UNKNOWN' && result.timeStatus === 'MET'
+        ? result.timeEarliestDate
+        : result.earliestDate;
   return scheduleFiling(
-    assessJapanPrOnDate(req, route, e),
+    result,
     L,
-    (applicationDate) =>
-      assessJapanPrOnDate({ ...req, applicationDate }, route, {
-        ...e,
-        status: e.status && { ...e.status, valid: undefined },
-      }),
+    (applicationDate) => {
+      const filing = assess(applicationDate);
+      if (
+        result.timeStatus === 'MET' &&
+        (route.route === 'hsp70' ||
+          route.route === 'hsp80' ||
+          route.route === 'j-skip') &&
+        filing.checks.some(
+          (item) =>
+            (item.id.startsWith('jp.pr.hsp-') ||
+              item.id.startsWith('jp.pr.j-skip-')) &&
+            item.status === 'UNKNOWN',
+        )
+      ) {
+        const past = japanTalentHistoricalDate(route.route, applicationDate);
+        filing.summary += L(
+          `请在问卷中把拟递交日改为 ${applicationDate}，再填写该日的${route.route === 'j-skip' ? 'J-Skip 资格' : '高度人材积分'}证据。`,
+          ` Set the proposed filing date in the questionnaire to ${applicationDate}, then enter the ${route.route === 'j-skip' ? 'J-Skip eligibility' : 'highly skilled points'} evidence for that day.`,
+        );
+        if (route.mode !== 'recognised')
+          filing.summary += L(
+            `采用回溯证明时，还需补录 ${past} 的历史证据。`,
+            ` For retrospective proof, also enter historical evidence for ${past}.`,
+          );
+        if (route.mode !== 'retrospective')
+          filing.summary += L(
+            '采用认定证明时，请重新确认认定后持续符合条件。',
+            ' For proof based on recognition, reconfirm that the requirements have been maintained since recognition.',
+          );
+      }
+      return filing;
+    },
+    candidateDate,
   );
 }
 
@@ -914,7 +1020,7 @@ function assessJapanPrOnDate(
     incomeOn === true ? e.householdIncomeConfirmed : undefined,
     v.incomeReview.sources,
     `${incomeEvidence(e, L)} 官方基准金额、持续期间及口径待确认。${incomeOn === undefined ? ' 另须确认改定日是否仍在审。' : ''}`,
-    `${incomeEvidence(e, (_zh, en) => en)} The comparison amount, sustained period and calculation details require confirmation.${incomeOn === undefined ? ' Confirm that the application was pending on the revision date.' : ''}`,
+    `${incomeEvidence(e, (_zh, en) => en)} The comparison amount, sustained period and calculation details require confirmation.${incomeOn === undefined ? ' Check whether the application is still pending on the revision date.' : ''}`,
     'PD-361',
   );
   const pension = factor(
@@ -1048,7 +1154,7 @@ function assessJapanPrOnDate(
           : undefined),
     [
       ref('SRC-440', '第22条第1項第3号・但書、第24条第4項'),
-      ref('SRC-116', '出入国審査・在留審査 Q&A Q53'),
+      japanImmigrationGuidance.guarantor,
       prProcedure,
     ],
     '核对在日保证人、保证书、身份与官署是否同意其他保证人或省略材料。',
@@ -1381,8 +1487,7 @@ function assessJapanPrOnDate(
     case 'hsp70':
     case 'hsp80': {
       const thresholdPoints = v.hsp.value.routePoints[route.route];
-      const years = old.highlySkilledYears.value[route.route];
-      const past = afterYears(date, -years);
+      const past = japanTalentHistoricalDate(route.route, date);
       const now = hspAssessment(route.current, date, thresholdPoints);
       const previous = hspAssessment(route.historical, past, thresholdPoints);
       p(
@@ -1433,7 +1538,7 @@ function assessJapanPrOnDate(
     }
     case 'j-skip': {
       const now = jSkipAssessment(route.current, date);
-      const past = afterYears(date, -v.jSkip.value.stayYears);
+      const past = japanTalentHistoricalDate(route.route, date);
       const earlier =
         route.mode === 'recognised'
           ? all(
@@ -1463,8 +1568,8 @@ function assessJapanPrOnDate(
         'J-Skip recognition or retrospective criteria',
         earlier,
         v.jSkip.sources,
-        `核对在 ${past} 前已认定并持续持有，或在该基准日已达到标准。`,
-        `Confirm recognition by ${past} that was maintained, or that the criteria were met on that reference date.`,
+        `核对是否自 ${past} 或更早起持续持有认定，或在该基准日符合标准。`,
+        `Check for continuous recognition from ${past} or earlier, or eligibility on that reference date.`,
         ['PD-375'],
       );
       if (now === true && earlier === true && newer)
@@ -1634,8 +1739,7 @@ function assessJapanPrOnDate(
       restriction.title,
       barred
         ? grant
-          ? date >=
-            afterYears(grant > history.stay ? grant : history.stay, years)
+          ? history.yearsSince(grant, years)
           : undefined
         : specialPermission
           ? true

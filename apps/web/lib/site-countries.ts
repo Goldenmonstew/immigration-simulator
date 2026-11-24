@@ -35,3 +35,16 @@ export function countryPath(
   )!;
   return '/' + [slug, sub.replace(/^\/+/, '')].filter(Boolean).join('/');
 }
+
+const calculatorPages = ['', 'simulate', 'result', 'whatif', 'policy'];
+const pagesByCountry: Partial<Record<CountryId, string[]>> = {
+  uk: [...calculatorPages, 'about', 'game'],
+  jp: calculatorPages,
+};
+
+export const sitePagePaths = [
+  '/',
+  ...siteCountries.flatMap(({ id }) =>
+    (pagesByCountry[id] ?? ['']).map((sub) => countryPath(id, sub)),
+  ),
+];

@@ -105,7 +105,7 @@ export function useFormKit() {
     const completed = { ...value, completed: true };
     const result = ukModule.run(completed, locale);
     setStorageAvailable(draftStorage(ukModule, completed).available);
-    rememberResult(ukModule, result, locale);
+    rememberResult(ukModule, completed, result, locale);
     dispatch({ type: 'restore', draft: completed });
     router.push(countryPath('uk', 'result'));
   };

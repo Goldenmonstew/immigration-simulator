@@ -5,8 +5,8 @@ import type {
   CountryPathway,
   CountryResult,
 } from './country-result';
-import { addDays, addYears } from './dates';
-import { evaluateJapan, jpOfficeClosed, jpStayLimit } from './japan';
+import { addDays } from './dates';
+import { evaluateJapanTimeline, jpOfficeClosed, jpTripLapses } from './japan';
 import type { JpNaturalisationRequest, JpPrRequest, JpRequest } from './japan';
 import { afterYears } from './pilot';
 import type { PilotCheck, PilotPathway, PilotStatus } from './pilot';
@@ -40,6 +40,8 @@ export interface JpFullContext extends Omit<
   dateOfBirth?: IsoDate;
   /** Days and ages are evaluated on the filing date. Defaults to simulationDate. */
   applicationDate?: IsoDate;
+  /** Reference date for filing-day PR and naturalisation answers in the questionnaire. */
+  residenceEvidenceOn?: IsoDate;
 }
 
 export type JpFiling =
@@ -132,8 +134,7 @@ export function fromPilot(
 export function filingContext(req: JpFullContext) {
   const date = req.applicationDate ?? req.simulationDate;
   const L = textFor(req);
-  const input = { ...req, simulationDate: date };
-  return { date, L, input };
+  return { date, L };
 }
 
 export function nextCounterFilingDay(date: IsoDate) {
@@ -149,11 +150,11 @@ export function scheduleFiling(
   result: JpFullPathway,
   L: JpText,
   assessOnDate: (date: IsoDate) => JpFullPathway,
+  candidateDate = result.earliestDate,
 ): JpFullPathway {
-  const { earliestDate } = result;
-  if (earliestDate === undefined) return result;
+  if (candidateDate === undefined) return result;
 
-  const { date: next, open } = nextCounterFilingDay(earliestDate);
+  const { date: next, open } = nextCounterFilingDay(candidateDate);
   if (open === undefined)
     return {
       ...result,
@@ -166,13 +167,18 @@ export function scheduleFiling(
         ),
       pendingDetails: [...new Set([...(result.pendingDetails ?? []), 'PD-370'])],
     };
-  if (next === earliestDate) return result;
+  if (next === candidateDate) return result;
 
-  const filing = assessOnDate(next);
-  return {
-    ...filing,
+  const filing = {
+    ...assessOnDate(next),
     timeStatus: result.timeStatus,
     timeEarliestDate: result.timeEarliestDate,
+  };
+  // Date-specific answers can be checked even when the residence timeline is unresolved.
+  if (!filing.earliestDate && result.timeStatus && result.timeStatus !== 'MET')
+    return filing;
+  return {
+    ...filing,
     summary:
       filing.summary +
       (filing.earliestDate
@@ -191,31 +197,34 @@ export function pilotFor(
   req: JpFullContext,
   selection: { pr: JpPrRequest } | { naturalisation: JpNaturalisationRequest },
 ): PilotPathway {
-  const { date, input } = filingContext(req);
+  const { date } = filingContext(req);
   const defaults = {
     pr: { route: 'child' },
     naturalisation: { route: 'general', dateOfBirth: req.dateOfBirth ?? date },
   } satisfies Pick<JpRequest, 'pr' | 'naturalisation'>;
-  const result = evaluateJapan({ ...input, ...defaults, ...selection });
+  const result = evaluateJapanTimeline(
+    { ...req, ...defaults, ...selection },
+    false,
+    date,
+  );
   return result.pathways['pr' in selection ? 0 : 1];
 }
 
 export function continuity(req: JpFullContext, date: IsoDate) {
-  const lapsed = req.trips.filter((trip) => {
-    const limit = jpStayLimit(trip);
-    return (
-      (limit !== undefined && trip.returned > limit) ||
-      (!trip.reentryPermit &&
-        trip.returned > addYears(trip.departed, old.deemedReentryYears.value))
-    );
-  });
+  const lapsed = req.trips.filter((t) => jpTripLapses(t) === true);
+  const uncertain = req.trips.filter((t) => jpTripLapses(t) === undefined);
+  const latestReturn = (start: IsoDate, t: JpRequest['trips'][number]) =>
+    t.departed < date && t.returned > start ? t.returned : start;
+  const stay = lapsed.reduce(latestReturn, req.stayStart);
+  const possibleRestart = uncertain.reduce(latestReturn, stay);
   return {
-    stay: lapsed
-      .filter((t) => t.departed < date)
-      .reduce(
-        (start, t) => (t.returned > start ? t.returned : start),
-        req.stayStart,
-      ),
+    yearsSince: (from: IsoDate, years: number) => {
+      if (date < afterYears(from > stay ? from : stay, years)) return false;
+      return date >=
+        afterYears(from > possibleRestart ? from : possibleRestart, years)
+        ? true
+        : undefined;
+    },
     abroad: req.trips.some((t) => t.departed < date && date < t.returned),
     hasTripsSince: (since: IsoDate) =>
       req.trips.some(
@@ -227,7 +236,7 @@ export function continuity(req: JpFullContext, date: IsoDate) {
 export function assemblePathway(
   id: string,
   title: string,
-  date: IsoDate,
+  filingDate: IsoDate | undefined,
   checks: JpFullCheck[],
   L: JpText,
   pilot?: PilotPathway,
@@ -267,7 +276,7 @@ export function assemblePathway(
     title,
     checks,
     status,
-    ...(status === 'MET' ? { earliestDate: date } : {}),
+    ...(status === 'MET' && filingDate ? { earliestDate: filingDate } : {}),
     ...(pilot
       ? { timeStatus: pilot.status, timeEarliestDate: pilot.earliestDate }
       : {}),

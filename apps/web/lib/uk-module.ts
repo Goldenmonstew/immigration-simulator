@@ -23,7 +23,7 @@ import {
   validateStep,
   type Draft,
 } from './questionnaire';
-import { sourceUrls } from './sources';
+import { ukSourceUrls } from './sources';
 import { decodeUkDraft } from './uk-draft';
 import { allRuleSets, displayedRuleSets } from './uk-policy';
 import type { WhatIf } from './uk-whatif';
@@ -80,6 +80,6 @@ export const ukModule: CountryModule<Draft, WhatIf> = {
       ]),
     ),
     changelog: policyChangelog,
-    sourceUrls,
+    sourceUrls: ukSourceUrls,
   },
 };

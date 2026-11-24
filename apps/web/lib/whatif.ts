@@ -17,7 +17,7 @@ export interface WhatIfControlsProps<D, K> {
 
 export interface CountryWhatIf<D, K> {
   focusControls: Record<string, string>;
-  focusForRule: (id: string) => string | undefined;
+  focusForRule: (id: string, pathwayId: string) => string | undefined;
   initial: (draft: D, target?: WhatIfTarget) => K;
   apply: (draft: D, knobs: K) => D;
   validate: (afterDraft: D, knobs: K) => Record<string, TranslationKey>;
@@ -49,10 +49,17 @@ export function diffPathways(before?: CountryPathway, after?: CountryPathway) {
   const becameMet: CountryPathway['checks'] = [];
   const becameUnmet: CountryPathway['checks'] = [];
   const stillUnmet: CountryPathway['checks'] = [];
+  const becameInapplicable: CountryPathway['checks'] = [];
   for (const check of after?.checks ?? []) {
     const previous = before?.checks.find((item) => item.id === check.id);
+    if (check.applicable === false) {
+      if (previous && previous.applicable !== false)
+        becameInapplicable.push(check);
+      continue;
+    }
     if (check.status === 'MET') {
-      if (previous?.status !== 'MET') becameMet.push(check);
+      if (previous?.status !== 'MET' || previous.applicable === false)
+        becameMet.push(check);
     } else if (
       !previous ||
       previous.status === 'MET' ||
@@ -67,6 +74,7 @@ export function diffPathways(before?: CountryPathway, after?: CountryPathway) {
     becameMet,
     becameUnmet,
     stillUnmet,
+    becameInapplicable,
     changed: JSON.stringify(before) !== JSON.stringify(after),
   };
 }

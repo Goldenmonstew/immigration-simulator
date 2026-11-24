@@ -209,6 +209,15 @@ describe('re-entry permits', () => {
     expect(p.summary).toContain('2031-03-01');
   });
 
+  test('an explicitly expired ordinary permit breaks a short trip without treating it as deemed re-entry', () => {
+    const trip = { departed: '2020-03-01', returned: '2020-03-20', reentryPermit: false };
+    const ordinary = pr({ ...lapsing, trips: [{ ...trip, departure: 'permit' }], locale: 'en' });
+    expect(ordinary.earliestDate).toBe('2030-03-20');
+    expect(ordinary.summary).toContain('ordinary re-entry permit');
+    expect(ordinary.summary).not.toContain('deemed permit');
+    expect(pr({ ...lapsing, trips: [trip] }).checks[0].met).toBe(true);
+  });
+
   test('a regular re-entry permit keeps the stay past a year', () => {
     const p = pr({
       ...lapsing,
@@ -365,7 +374,10 @@ describe('review70-1', () => {
     } as const;
     const trip = { departed: '2026-02-01', returned: '2026-04-01' };
     expect(pr({ ...base2, trips: [trip] }).status).toBe('MET');
-    const p = pr({ ...base2, trips: [{ ...trip, stayExpiry: '2026-03-01' }] });
+    const p = pr({
+      ...base2,
+      trips: [{ ...trip, stayExpiry: '2026-03-01', renewalPending: false }],
+    });
     // The stay starts again on 2026-04-01: 10 years on 2036-04-01.
     expect(p.status).toBe('FUTURE');
     expect(p.earliestDate).toBe('2036-04-01');
@@ -383,6 +395,7 @@ describe('review70-1', () => {
           returned: '2026-04-01',
           reentryPermit: true,
           stayExpiry: '2026-03-01',
+          renewalPending: false,
         },
       ],
     });
@@ -540,7 +553,7 @@ describe('review70-2', () => {
     // Naturalisation still sees a trip in the 10 years.
     expect(nat(pending).status).toBe('UNKNOWN');
     // Without the pending renewal the status ended on 2027-04-20.
-    const lapsed = pr({ ...req, trips: [trip] });
+    const lapsed = pr({ ...req, trips: [{ ...trip, renewalPending: false }] });
     expect(lapsed.status).toBe('FUTURE');
     expect(lapsed.earliestDate).toBe('2037-04-30');
     // A pending renewal keeps the status 2 months after expiry, no longer.
@@ -551,6 +564,83 @@ describe('review70-2', () => {
     });
     expect(late.summary).toContain('2027-06-20');
     expect(late.summary).toContain('2027-06-21 重新起算');
+  });
+
+  test('a missing renewal answer only clouds continuity when the two possible limits differ', () => {
+    const trip = {
+      departed: '2027-04-15',
+      returned: '2027-04-30',
+      stayExpiry: '2027-04-20',
+    };
+    const request = { simulationDate: '2027-07-01', trips: [trip] };
+    for (const pathway of [pr(request), nat(request)]) {
+      expect(pathway.status).toBe('UNKNOWN');
+      expect(pathway.checks[0].met).toBeUndefined();
+      expect(pathway.earliestDate).toBeUndefined();
+      expect(pathway.summary).toContain('请确认出境时');
+    }
+    const returningOn = (returned: string) =>
+      pr({ ...request, trips: [{ ...trip, returned }] });
+    expect(returningOn('2027-04-20').status).toBe('MET');
+    expect(returningOn('2027-06-20').status).toBe('UNKNOWN');
+    expect(returningOn('2027-06-21').earliestDate).toBe('2037-06-21');
+  });
+
+  test('the statutory domicile date in the summary depends on continuity at renewal', () => {
+    const trip = {
+      departed: '2026-10-01',
+      returned: '2026-11-10',
+      stayExpiry: '2026-10-15',
+    };
+    const request = { simulationDate: '2026-11-24', stayStart: '2020-01-01' };
+    const unknown = nat({ ...request, trips: [trip] });
+    expect(unknown.status).toBe('UNKNOWN');
+    expect(unknown.earliestDate).toBeUndefined();
+    expect(unknown.summary).not.toContain('按年限最早 2026-11-24');
+    expect(unknown.summary).toContain('法定住所年限的最早日期待确认');
+    const known = (renewalPending: boolean) =>
+      nat({ ...request, trips: [{ ...trip, renewalPending }] });
+    expect(known(true).summary).toContain('按年限最早 2026-11-24');
+    expect(known(false).summary).toContain('按年限最早 2031-11-10');
+  });
+
+  test.each([
+    [undefined, 'UNKNOWN', undefined, 'UNKNOWN', undefined],
+    [false, 'FUTURE', '2036-11-10', 'FUTURE', '2036-11-10'],
+    [true, 'MET', '2027-04-03', 'UNKNOWN', undefined],
+  ] as const)(
+    'legacy evaluateJapan distinguishes omitted renewal evidence from %s',
+    (renewalPending, prStatus, prDate, natStatus, natDate) => {
+      const trip = {
+        departed: '2026-10-01',
+        returned: '2026-11-10',
+        stayExpiry: '2026-10-15',
+        ...(renewalPending === undefined ? {} : { renewalPending }),
+      };
+      const { pathways } = evaluateJapan({
+        ...base,
+        simulationDate: '2027-04-03',
+        trips: [trip],
+      });
+      expect(pathways.map((p) => [p.status, p.earliestDate])).toEqual([
+        [prStatus, prDate],
+        [natStatus, natDate],
+      ]);
+    },
+  );
+
+  test('legacy evaluateJapan restarts both routes on return for an explicit departure without permission', () => {
+    const { pathways } = evaluateJapan({
+      ...base,
+      simulationDate: '2027-04-03',
+      trips: [
+        { departed: '2026-10-01', returned: '2026-11-10', departure: 'none' },
+      ],
+    });
+    expect(pathways.map((path) => [path.status, path.earliestDate])).toEqual([
+      ['FUTURE', '2036-11-10'],
+      ['FUTURE', '2036-11-10'],
+    ]);
   });
 
   test('a spouse 10-year date with trips is only a candidate', () => {
@@ -957,11 +1047,7 @@ describe('task 74: trips after birth', () => {
   const born = (
     bornOn: string,
     simulationDate: string,
-    trip: {
-      departed: string;
-      returned: string;
-      departure?: 'none' | 'deemed' | 'permit';
-    },
+    trip: JpRequest['trips'][number],
   ) =>
     pr({
       simulationDate,
@@ -980,9 +1066,10 @@ describe('task 74: trips after birth', () => {
     const p = born('2026-11-10', '2026-11-24', trip);
     expect(p.status).toBe('NOT_APPLICABLE');
     expect(p.summary).toContain('Q28');
-    expect(born('2026-11-10', '2026-12-02', trip).status).toBe(
-      'NOT_APPLICABLE',
-    );
+    expect(p.summary).toContain('孩子计划于 2026-11-27 出境');
+    const afterReturn = born('2026-11-10', '2026-12-02', trip);
+    expect(afterReturn.status).toBe('NOT_APPLICABLE');
+    expect(afterReturn.summary).toContain('孩子于 2026-11-27 出境');
     // Leaving only after the 60 days (2027-01-09): the usual window.
     expect(
       born('2026-11-10', '2026-11-24', {
@@ -990,6 +1077,17 @@ describe('task 74: trips after birth', () => {
         returned: '2027-02-01',
       }).status,
     ).toBe('MET');
+  });
+
+  test('the newborn filing exception is unconfirmed for a refugee travel document', () => {
+    const result = born('2026-11-10', '2026-11-24', {
+      departed: '2026-11-27',
+      returned: '2026-12-01',
+      departure: 'refugee-travel-document',
+    });
+    expect(result.status).toBe('UNKNOWN');
+    expect(result.summary).toContain('難民旅行証明書');
+    expect(result.pendingDetails).toContain('PD-160');
   });
 
   // Born 2026-11-10: 30 days end on 2026-12-10.

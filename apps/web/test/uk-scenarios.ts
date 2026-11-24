@@ -17,10 +17,13 @@ export const deleteScenario = (id: string) =>
   storage.deleteScenario(ukModule, id);
 export const loadScenario = (scenario: storage.SavedScenario<Draft>) =>
   storage.loadScenario(ukModule, scenario);
-export const rememberResult = (result: CountryResult, locale: Locale) =>
-  storage.rememberResult(ukModule, result, locale);
-export const getRememberedResult = (locale: Locale) =>
-  storage.getRememberedResult(ukModule, locale);
+export const rememberResult = (
+  draft: Draft,
+  result: CountryResult,
+  locale: Locale,
+) => storage.rememberResult(ukModule, draft, result, locale);
+export const getRememberedResult = (draft: Draft, locale: Locale) =>
+  storage.getRememberedResult(ukModule, draft, locale);
 
 export {
   createDraft,
