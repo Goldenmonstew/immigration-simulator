@@ -1363,7 +1363,11 @@ describe('admission, fees and pathway results', () => {
     });
     expect(
       condition(
-        { ...short, simulationDate: '2026-11-22' },
+        {
+          ...short,
+          simulationDate: '2026-11-22',
+          fees: { channel: 'online', onlineCategoryAvailable: 'cleared' },
+        },
         'C40-IMMIGRATION-HISTORY',
       ).status,
     ).toBe('NOT_MET');
@@ -1373,7 +1377,11 @@ describe('admission, fees and pathway results', () => {
     });
     expect(
       condition(
-        { ...long, simulationDate: '2026-11-22' },
+        {
+          ...long,
+          simulationDate: '2026-11-22',
+          fees: { channel: 'online', onlineCategoryAvailable: 'cleared' },
+        },
         'C40-IMMIGRATION-HISTORY',
       ).status,
     ).toBe('NOT_MET');
@@ -3157,6 +3165,216 @@ describe('review86-6 regressions', () => {
       );
     },
   );
+});
+
+describe('review86-7 regressions', () => {
+  test.each([
+    ['complete', 'MET', 'UNKNOWN'],
+    ['missing', 'NOT_MET', 'NOT_MET'],
+  ] as const)(
+    'checks NVC civil documents separately from pending criminal review (%s)',
+    (nvcCivilDocuments, status, approvalStatus) => {
+      const request: UsFullRequest = {
+        ...authorizedConsular,
+        admission: {
+          ...authorizedConsular.admission,
+          decisionOn: '2026-12-10',
+          criminalOtherGround: 'pending',
+          nvcCivilDocuments,
+        },
+      };
+      expect(condition(request, 'C38-CRIMINAL-INADMISSIBILITY')).toMatchObject({
+        filingStatus: 'NOT_APPLICABLE',
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-269'],
+      });
+      expect(condition(request, 'NVC-CIVIL-DOCUMENTS').status).toBe(status);
+      const result = path(request);
+      expect(result).toMatchObject({ status, approvalStatus });
+      expect(result.earliestDate).toBe(
+        status === 'MET' ? time.simulationDate : undefined,
+      );
+      expect(result.approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test.each([
+    [undefined, undefined, 'UNKNOWN', 'UNKNOWN'],
+    ['2026-11-30', undefined, 'UNKNOWN', 'UNKNOWN'],
+    ['2026-12-01', undefined, 'MET', 'FUTURE'],
+    ['2026-12-10', '2026-11-30', 'UNKNOWN', 'UNKNOWN'],
+    ['2026-12-10', '2026-12-01', 'MET', 'FUTURE'],
+    ['2026-12-10', '2026-12-11', 'UNKNOWN', 'UNKNOWN'],
+    ['2026-12-10', undefined, 'MET', 'FUTURE'],
+  ] as const)(
+    'checks former party membership at formal visa application (%s, %s)',
+    (decisionOn, interviewOn, securityStatus, approvalStatus) => {
+      const request: UsFullRequest = {
+        ...authorizedConsular,
+        admission: {
+          ...authorizedConsular.admission,
+          decisionOn,
+          interviewOn,
+          party: {
+            membership: 'former',
+            endedOn: '2024-12-01',
+            ageEnded: 30,
+            rulingParty: false,
+            noSecurityThreat: true,
+          },
+        },
+      };
+      expect(condition(request, 'C39-SECURITY')).toMatchObject({
+        filingStatus: 'NOT_APPLICABLE',
+        status: securityStatus,
+      });
+      const result = path(request);
+      expect(result).toMatchObject({
+        status: 'MET',
+        earliestDate: time.simulationDate,
+        approvalStatus,
+      });
+      expect(result.approvalEarliestDate).toBe(
+        approvalStatus === 'FUTURE' ? decisionOn : undefined,
+      );
+      if (interviewOn === '2026-12-01') {
+        expect(
+          path({ ...request, simulationDate: '2026-12-02' }),
+        ).toMatchObject({
+          approvalStatus: 'FUTURE',
+          approvalEarliestDate: decisionOn,
+        });
+      }
+    },
+  );
+
+  test.each([
+    [undefined, 'UNKNOWN'],
+    ['2026-12-01', 'NOT_MET'],
+    ['2026-12-02', 'MET'],
+  ] as const)(
+    'uses the formal visa application date for the juvenile CIMT exception (%s)',
+    (decisionOn, status) => {
+      const request: UsFullRequest = {
+        ...authorizedConsular,
+        admission: {
+          ...authorizedConsular.admission,
+          decisionOn,
+          crime: {
+            ...noCrime,
+            convictionCount: 1,
+            cimtCount: 1,
+            cimtAgeAtOffense: 17,
+            cimtOffenseOrReleaseOn: '2021-12-01',
+            cimtMaximumMonths: 24,
+            cimtSentenceMonths: 7,
+          },
+        },
+      };
+      expect(condition(request, 'C38-CRIMINAL-INADMISSIBILITY')).toMatchObject({
+        filingStatus: 'NOT_APPLICABLE',
+        status,
+      });
+      expect(path(request).status).toBe('MET');
+    },
+  );
+
+  test('uses the I-485 receipt for the domestic filing-date exceptions', () => {
+    const request = {
+      ...withAdmission({
+        i693SignedOn: '2026-11-23',
+        unlawfulDeparture: { leftOn: '2016-11-23', qualifyingDays: 400 },
+        party: {
+          membership: 'former',
+          endedOn: '2024-11-23',
+          ageEnded: 30,
+          rulingParty: false,
+          noSecurityThreat: true,
+        },
+        crime: {
+          ...noCrime,
+          convictionCount: 1,
+          cimtCount: 1,
+          cimtAgeAtOffense: 17,
+          cimtOffenseOrReleaseOn: '2021-11-22',
+          cimtMaximumMonths: 24,
+          cimtSentenceMonths: 7,
+        },
+      }),
+      simulationDate: '2026-11-22',
+    };
+    for (const id of [
+      'C36-HEALTH',
+      'C38-CRIMINAL-INADMISSIBILITY',
+      'C39-SECURITY',
+      'C40-IMMIGRATION-HISTORY',
+    ]) {
+      expect(condition(request, id).status).toBe('MET');
+    }
+    expect(path(request)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-11-23',
+      approvalStatus: 'FUTURE',
+      approvalEarliestDate: '2026-11-23',
+    });
+  });
+
+  test('rechecks the same I-693 for validity at adjustment adjudication', () => {
+    const request: UsFullRequest = {
+      ...withAdmission({
+        i693SignedOn: '2022-11-01',
+        decisionOn: '2024-11-04',
+      }),
+      simulationDate: '2024-10-31',
+      support: { ...support, jointSponsor: 'cleared' },
+    };
+    expect(condition(request, 'C36-HEALTH')).toMatchObject({
+      filingStatus: 'MET',
+      status: 'NOT_MET',
+    });
+    const result = path(request);
+    expect(result).toMatchObject({
+      status: 'MET',
+      earliestDate: request.simulationDate,
+      approvalStatus: 'NOT_MET',
+    });
+    expect(result.approvalEarliestDate).toBeUndefined();
+  });
+
+  test('retains the consular decision date for the unlawful-presence bar after an earlier interview', () => {
+    const request: UsFullRequest = {
+      ...authorizedConsular,
+      admission: {
+        ...authorizedConsular.admission,
+        interviewOn: '2026-11-30',
+        decisionOn: '2026-12-10',
+        unlawfulDeparture: { leftOn: '2016-12-01', qualifyingDays: 400 },
+      },
+    };
+    expect(condition(request, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
+      filingStatus: 'NOT_APPLICABLE',
+      status: 'MET',
+    });
+    expect(path(request)).toMatchObject({
+      status: 'MET',
+      earliestDate: time.simulationDate,
+      approvalStatus: 'FUTURE',
+      approvalEarliestDate: '2026-12-10',
+    });
+  });
+
+  test('selects the domestic public-charge rules by the I-485 postmark', () => {
+    const request: UsFullRequest = {
+      ...withAdmission({ decisionOn: '2026-09-28' }),
+      simulationDate: '2026-09-21',
+      fees: { ...p7.fees, filingOn: '2026-09-17' },
+    };
+    expect(condition(request, 'C37-PUBLIC-CHARGE')).toMatchObject({
+      filingStatus: 'NOT_APPLICABLE',
+      status: 'MET',
+      explanation: expect.stringContaining('The prior policy'),
+    });
+  });
 });
 
 describe('filing and evidence exceptions', () => {

@@ -419,6 +419,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       ? nvcOpening
       : undefined;
   const adjustmentReceipt = receiptOn(nvcFilingDate ?? date);
+  const interviewOn = admission?.interviewOn;
   const decisionOn = admission?.decisionOn;
   let decision: IsoDate | undefined = adjustmentReceipt;
   if (consularApplication) {
@@ -426,7 +427,10 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
     decision =
       decisionOn &&
       decisionOn >= adjustmentReceipt &&
-      decisionOn !== nvcFilingDate
+      decisionOn !== nvcFilingDate &&
+      (!interviewOn ||
+        (interviewOn <= decisionOn &&
+          (!nvcFilingDate || interviewOn > nvcFilingDate)))
         ? decisionOn
         : undefined;
   } else if (decisionOn && decisionOn > adjustmentReceipt) {

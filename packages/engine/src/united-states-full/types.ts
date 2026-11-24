@@ -365,7 +365,9 @@ export interface UsAdmissionAnswers {
   visaAtDecision?: UsVisaAvailability;
   /** Final Action Dates by YYYY-MM, using the month of adjudication. */
   visaAtDecisionByMonth?: Partial<Record<string, UsVisaAvailability>>;
-  /** Adjudication date to assess, after the interview for a consular case. */
+  /** Formal immigrant visa application at interview, when distinct from the decision date. */
+  interviewOn?: IsoDate;
+  /** Adjudication date to assess. For consular cases without interviewOn, both stages share this date. */
   decisionOn?: IsoDate;
   qualifyingBasis?: UsReview;
   /** Status of the underlying petition, including an I-140 with an unknown receipt date. */
@@ -453,7 +455,7 @@ export interface UsMilitaryAnswers {
 
 export interface UsFeeAnswers {
   channel?: 'online' | 'paper';
-  /** Fee schedule date based on the form's filing or postmark rule. */
+  /** Filing or postmark date for fees and for I-485 public-charge policy applicability. */
   filingOn?: IsoDate;
   relief?: 'none' | 'waiver' | 'reduced';
   household?: UsHousehold;

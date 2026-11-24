@@ -409,6 +409,14 @@ export const unitedStatesFullSources = {
       'https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf',
     ),
   ],
+  adjustmentEligibility: [
+    usc('SRC-309', '1255', '(a)'),
+    source(
+      'SRC-309',
+      '8 CFR 103.2(b)(1), eligibility at filing through adjudication',
+      'https://www.ecfr.gov/current/title-8/section-103.2#p-103.2(b)(1)',
+    ),
+  ],
   consularFiling: [
     source(
       'SRC-309',
@@ -436,6 +444,11 @@ export const unitedStatesFullSources = {
   consularDocuments: [
     source(
       'SRC-309',
+      'DOS Civil Documents, Court and Prison Records and Police Certificates',
+      'https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-5-collect-financial-evidence-and-other-supporting-documents/step-7-collect-civil-documents.html',
+    ),
+    source(
+      'SRC-309',
       'DOS Submit Documents, Step 9 and Documentarily Complete',
       'https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-8-scan-collected-documents/step-9-upload-and-submit-scanned-documents.html',
     ),
@@ -443,6 +456,13 @@ export const unitedStatesFullSources = {
       'SRC-309',
       'DOS Civil Documents FAQs, I can’t get one of the required civil documents',
       'https://travel.state.gov/content/travel/en/us-visas/immigrate/civil-documents-faq.html',
+    ),
+  ],
+  consularExecution: [
+    source(
+      'SRC-309',
+      '22 CFR 42.67(a)(3), oath and signature on Form DS-260 at interview',
+      'https://www.ecfr.gov/current/title-22/section-42.67#p-42.67(a)(3)',
     ),
   ],
   consularInterview: [
@@ -479,7 +499,7 @@ export const unitedStatesFullSources = {
   ],
   publicCharge: [
     usc('SRC-311', '1182', '(a)(4)'),
-    source('SRC-313', '91 FR 45324; applicability dates and public benefits'),
+    source('SRC-313', '91 FR 45324, DATES and § I.D, Implementation'),
     source(
       'SRC-313',
       '9 FAM 302.8-2(B), including (6) for exemptions',
@@ -501,7 +521,7 @@ export const unitedStatesFullSources = {
       'https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20260923-CriminalInadmissibility.pdf',
     ),
   ],
-  security: [usc('SRC-311', '1182', '(a)(3)')],
+  security: [usc('SRC-311', '1182', '(a)(3), including (D)(ii)–(iv)')],
   consularSecurity: [
     source(
       'SRC-311',

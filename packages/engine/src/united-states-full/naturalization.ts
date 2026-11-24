@@ -40,7 +40,7 @@ export function multipleConvictionBar(crime?: UsCrime): Answer {
 
 export function partyCheck(
   party: UsPartyMembership | undefined,
-  date: IsoDate,
+  date: IsoDate | undefined,
   naturalizing: boolean,
 ): Answer {
   if (!party?.membership) return undefined;
@@ -62,6 +62,7 @@ export function partyCheck(
       return true;
     if (!party.endedOn || (!naturalizing && party.rulingParty === undefined))
       return undefined;
+    if (!date) return any(undefined, reviewed(party.waiver));
     const years = naturalizing
       ? law.naturalizationYears
       : party.rulingParty

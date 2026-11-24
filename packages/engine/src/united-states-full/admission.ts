@@ -52,7 +52,7 @@ function medicalEvidenceCheck(
 
 function criminalGrounds(
   a: UsAdmissionAnswers | undefined,
-  date: string,
+  applicationDate: IsoDate | undefined,
 ): Answer[] {
   const crime = a?.crime;
   const rule = v.crime.value;
@@ -61,8 +61,9 @@ function criminalGrounds(
     crime?.cimtAgeAtOffense === undefined
       ? undefined
       : crime.cimtAgeAtOffense < rule.juvenileAge,
-    crime?.cimtOffenseOrReleaseOn
-      ? date > afterYears(crime.cimtOffenseOrReleaseOn, rule.juvenileYears)
+    crime?.cimtOffenseOrReleaseOn && applicationDate
+      ? applicationDate >
+          afterYears(crime.cimtOffenseOrReleaseOn, rule.juvenileYears)
       : undefined,
   );
   const cimt =
@@ -117,13 +118,21 @@ export function admissionChecks(
   request: UsFullRequest,
   a: UsAdmissionAnswers | undefined,
   scope: 'immigrant' | 'return' | 'humanitarian' = 'immigrant',
-  consularDecision?: IsoDate,
+  receipt = request.simulationDate,
+  decision?: IsoDate,
 ) {
   const check = checksFor(request);
   const date = request.simulationDate;
-  const adjustment = a?.process === 'adjustment';
+  const adjustment = scope === 'immigrant' && a?.process === 'adjustment';
+  const adjustmentSources = adjustment ? s.adjustmentEligibility : [];
   const consular = a?.process === 'consular';
-  const consularInterview = consular && scope === 'immigrant';
+  const consularVisa = consular && scope === 'immigrant';
+  const approvalOnly = consularVisa ? 'NOT_APPLICABLE' : undefined;
+  const applicationDate = consularVisa
+    ? decision && (a.interviewOn ?? decision)
+    : receipt;
+  const approvalDate = adjustment ? (decision ?? receipt) : receipt;
+  const publicChargeDate = adjustment ? (request.fees?.filingOn ?? date) : date;
   const humanitarian = scope === 'humanitarian';
   const optionalMedicalForm =
     humanitarian && request.humanitarian?.status === 'refugee';
@@ -162,7 +171,8 @@ export function admissionChecks(
         : undefined,
     };
   };
-  const party = scope === 'return' ? true : partyCheck(a?.party, date, false);
+  const party =
+    scope === 'return' ? true : partyCheck(a?.party, applicationDate, false);
   const security =
     a?.securityGround === 'clear'
       ? true
@@ -170,14 +180,23 @@ export function admissionChecks(
         ? false
         : undefined;
   const health = [reviewed(a?.classAHealth), reviewed(a?.vaccines)];
+  const healthGrounds = optionalMedicalForm
+    ? health
+    : ordinaryWaiver(health, a?.healthWaiver);
+  const medicalAtFiling = medicalEvidenceCheck(a, receipt, adjustment);
   const medical = assessGround(
-    optionalMedicalForm ? health : ordinaryWaiver(health, a?.healthWaiver),
-    optionalMedicalForm
-      ? reviewed(a?.medicalEvidence)
-      : medicalEvidenceCheck(a, date, adjustment || humanitarian),
+    healthGrounds,
+    all(
+      adjustment ? medicalAtFiling : true,
+      medicalEvidenceCheck(
+        a,
+        approvalDate,
+        adjustment || (humanitarian && !optionalMedicalForm),
+      ),
+    ),
   );
   const criminal = assessGround(
-    criminalGrounds(a, date),
+    criminalGrounds(a, applicationDate),
     not(a?.drugTraffickingBar),
   );
   const securityResult = assessGround(
@@ -186,19 +205,18 @@ export function admissionChecks(
       ? undefined
       : a.securityGround !== 'nonwaivable',
   );
+  const immigrationGrounds = (bar: Answer) => [
+    falseClaim,
+    not(a?.unlawfulReentryBar),
+    ...ordinaryWaiver([bar, noFraud, other], a?.immigrationWaiver),
+  ];
+  const barAtFiling = adjustment ? unlawfulPresence(a, receipt) : true;
+  const barAtDecision = unlawfulPresence(
+    a,
+    consularVisa ? decision : approvalDate,
+  );
   const immigrationResult = assessGround(
-    [
-      falseClaim,
-      not(a?.unlawfulReentryBar),
-      ...ordinaryWaiver(
-        [
-          unlawfulPresence(a, consularInterview ? consularDecision : date),
-          noFraud,
-          other,
-        ],
-        a?.immigrationWaiver,
-      ),
-    ],
+    immigrationGrounds(all(barAtFiling, barAtDecision)),
     true,
   );
   return [
@@ -207,9 +225,11 @@ export function admissionChecks(
       '健康、移民体检与疫苗',
       'Health, immigrant medical exam and vaccination',
       medical.answer,
-      consularInterview ? [...s.health, ...s.consularHealth] : s.health,
+      consularVisa
+        ? [...s.health, ...s.consularHealth]
+        : [...s.health, ...adjustmentSources],
       'PD-275',
-      consularInterview
+      consularVisa
         ? [
             '收到面谈通知后安排指定医生体检。健康结论、疫苗及体检材料在签证核准前核对。',
             'Arrange the panel physician exam after receiving the interview notice. Health findings, vaccination and the exam report are checked before visa issuance.',
@@ -218,7 +238,9 @@ export function admissionChecks(
             '核对 Class A 传染病、伴有有害行为的疾病、药物滥用、适龄疫苗及当前有效的体检材料。新冠疫苗已从清单移除。',
             'Check Class A infectious diseases, disorders with harmful behavior, drug abuse, age-appropriate vaccination and currently valid medical evidence. COVID-19 vaccination was removed from the list.',
           ],
-      consularInterview ? 'NOT_APPLICABLE' : medical.filingStatus,
+      adjustment
+        ? checkStatus(all(medicalAtFiling, ...healthGrounds))
+        : (approvalOnly ?? medical.filingStatus),
     ),
     {
       ...check(
@@ -240,7 +262,7 @@ export function admissionChecks(
                 '领馆采用国务院 FAM 口径。需由领馆个案判断现金维持补助和长期机构护理等因素。',
                 'The consulate applies State Department FAM guidance and assesses factors including cash support and long-term institutional care.',
               ]
-            : date < v.publicCharge.value.effective
+            : publicChargeDate < v.publicCharge.value.effective
               ? [
                   '按原政策综合评估，重点核对现金维持补助和政府出资长期机构护理。',
                   'The prior policy weighs the overall circumstances, including cash income maintenance and publicly funded long-term institutional care.',
@@ -263,32 +285,36 @@ export function admissionChecks(
       '犯罪、毒品、贩运及洗钱事由',
       'Criminal, drug, trafficking and money laundering grounds',
       criminal.answer,
-      s.criminal,
+      consularVisa
+        ? [...s.criminal, ...s.consularExecution, ...s.consularInterview]
+        : [...s.criminal, ...adjustmentSources],
       humanitarian ? ['PD-269', 'PD-275'] : 'PD-269',
       [
         '确认移民法罪名分类、轻罪或未成年例外、合计刑期、毒品与无需定罪的贩运或洗钱事由。',
         'Confirm immigration-law classifications, petty or juvenile exceptions, aggregate sentences, controlled substances and trafficking or money laundering grounds that can apply without a conviction.',
       ],
-      criminal.filingStatus,
+      approvalOnly ?? criminal.filingStatus,
     ),
     check(
       'C39-SECURITY',
       '国家安全、出口管制及极权党籍',
       'National security, export controls and totalitarian-party membership',
       securityResult.answer,
-      consularInterview ? [...s.security, ...s.consularSecurity] : s.security,
+      consularVisa
+        ? [...s.security, ...s.consularExecution, ...s.consularSecurity]
+        : [...s.security, ...adjustmentSources],
       'PD-275',
       undefined,
-      consularInterview ? 'NOT_APPLICABLE' : securityResult.filingStatus,
+      approvalOnly ?? securityResult.filingStatus,
     ),
     check(
       'C40-IMMIGRATION-HISTORY',
       '移民欺诈、虚称公民、非法居留及再入境',
       'Immigration fraud, false citizenship, unlawful presence and reentry',
       immigrationResult.answer,
-      s.immigrationBars,
+      [...s.immigrationBars, ...adjustmentSources],
       humanitarian ? ['PD-274', 'PD-275'] : 'PD-274',
-      consularInterview
+      consularVisa
         ? [
             '在签证裁决日核对非法居留禁令是否届满，以及其他移民史不准入事由和可用豁免。',
             'At visa adjudication, check whether the unlawful-presence bar has expired and assess other immigration-history grounds and available waivers.',
@@ -297,7 +323,9 @@ export function admissionChecks(
             '按合资格非法居留天数与离境日期计算禁令；另核对虚称公民、递解、非法再入境及可用豁免。',
             'Use qualifying unlawful-presence days and the departure date to assess the bars. Separately check false citizenship claims, removal, unlawful reentry and available waivers.',
           ],
-      consularInterview ? 'NOT_APPLICABLE' : immigrationResult.filingStatus,
+      adjustment
+        ? checkStatus(all(...immigrationGrounds(barAtFiling)))
+        : (approvalOnly ?? immigrationResult.filingStatus),
     ),
   ];
 }
@@ -491,8 +519,8 @@ export function adjustmentChecks(
             s.consularDocuments,
             'PD-272',
             [
-              '递件须备齐适用的民事文件或所需的缺件说明。若以说明递件，签证核准前仍须由领馆确认能否接受缺件。',
-              'Prepare the required civil documents or the applicable statements of non-availability for submission. If you submit a statement, the consular officer must confirm whether the visa can be issued without the document.',
+              '递件须备齐适用的民事文件，包括法院、监狱和警方记录，或所需的缺件说明。若以说明递件，签证核准前仍须由领馆确认能否接受缺件。',
+              'Prepare the required civil documents, including applicable court, prison, and police records, or statements of non-availability. If you submit a statement, the consular officer must confirm whether the visa can be issued without the document.',
             ],
             civilDocuments === 'nonavailability-explained' ? 'MET' : undefined,
           ),
@@ -521,7 +549,7 @@ export function adjustmentChecks(
             'NOT_APPLICABLE',
           ),
         ]),
-    ...admissionChecks(request, a, 'immigrant', decision),
+    ...admissionChecks(request, a, 'immigrant', receipt, decision),
   ];
 }
 
