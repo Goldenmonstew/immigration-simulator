@@ -118,6 +118,8 @@ export interface IrelandTreatyResidence {
   };
   document?: {
     inState?: boolean;
+    /** Category printed on the current card under this EU or WA route. */
+    currentCardCategory?: 'ordinary' | 'permanent';
     /** For renewal, confirms the existing card, permission letter where required and applicable checklist evidence. */
     identityAndResidenceEvidence?: boolean;
     currentCardExpiresOn?: IsoDate;
@@ -559,6 +561,7 @@ export function treatyResidence(
   dob: IsoDate | undefined,
   renewal: boolean,
   renewalInState: boolean | undefined,
+  registrationValidity: boolean | undefined,
 ) {
   const { add, L, day } = a;
   const d = r.document;
@@ -725,7 +728,10 @@ export function treatyResidence(
   const document = all(
     renewal ? renewalInState : d?.inState,
     d?.identityAndResidenceEvidence,
-    renewal ? true : beforeExpiry,
+    renewal ? all(
+      registrationValidity,
+      d?.currentCardCategory === undefined ? undefined : d.currentCardCategory === 'permanent',
+    ) : beforeExpiry,
     notification,
   );
   const cleared =
@@ -741,8 +747,8 @@ export function treatyResidence(
       'D06',
       document,
       renewal ? L(
-        '按 Stamp 4EUFam 续期清单核对身份、居住材料及适用的住址和离境通知。卡片到期日另按 IRP 续期窗口核对（PD-338）。',
-        'Check identity and residence evidence under the Stamp 4EUFam renewal checklist and any required address and absence notices. The IRP renewal window checks the card expiry separately (PD-338).',
+        '续办须持现有 EU 永久居留卡。按 Stamp 4EUFam 续期清单核对身份、居住材料及适用的住址和离境通知，并按 IRP 续期窗口核对卡面到期日（PD-338）。',
+        'Renewal requires an existing EU permanent residence card. Check identity and residence evidence, any required address and absence notices, and the expiry of the current card under the IRP renewal window (PD-338).',
       ) : L(
         `EU 本人用 EUTR2，非欧盟家属用 EUTR3。核对现有卡到期、住址及超过 ${p.absenceNoticeMonths} 个月的离境通知（另有 ${p.absenceNoticeDays} 日通知期限）。证件与实体权利分别判断（PD-338）。`,
         `Use EUTR2 for the EU applicant or EUTR3 for non-EU family. Check card expiry, address and notice for absences beyond ${p.absenceNoticeMonths} month(s), due within a further ${p.absenceNoticeDays} days. Document and substantive right are separate (PD-338).`,
@@ -782,8 +788,8 @@ export function treatyResidence(
       'E03',
       all(document, review, exam, d?.extraFeeRequested ? undefined : true),
       renewal ? L(
-        '按 Withdrawal Agreement Beneficiary 续期清单核对身份、居住材料和适用的审查。卡片到期日另按 IRP 续期窗口核对（PD-338、PD-339）。',
-        'Check identity and residence evidence and any applicable review under the Withdrawal Agreement Beneficiary renewal checklist. The IRP renewal window checks the card expiry separately (PD-338, PD-339).',
+        '续办须持现有 WA 永久居留证件。按 Withdrawal Agreement Beneficiary 续期清单核对身份、居住材料和适用的审查，并按 IRP 续期窗口核对卡面到期日（PD-338、PD-339）。',
+        'Renewal requires an existing WA permanent residence document. Check identity and residence evidence, any applicable review, and the expiry of the current card under the IRP renewal window (PD-338, PD-339).',
       ) : L(
         `按身份选择 EUTR2／EUTR3，核对旧证、材料及公共利益审查；WA 文件费 €${p.waFee}，证件通常 ${p.documentYears} 年续期（PD-338、PD-339）。`,
         `Use EUTR2 or EUTR3 by status. Check the former card, evidence and public interest review. WA documents cost €${p.waFee} and normally renew after ${p.documentYears} years (PD-338, PD-339).`,

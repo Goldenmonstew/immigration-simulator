@@ -1,7 +1,7 @@
 import { irelandFull2026_11 as full } from '@uk-immigration/policy-data';
 import { addDays } from '../dates';
 import type { IsoDate } from '../types';
-import { all, character, registeredMonths } from './common';
+import { all, character, permissionValidity, registeredMonths } from './common';
 import type {
   IrelandAssessment,
   IrelandCharacter,
@@ -38,7 +38,7 @@ export interface IrelandLtr {
   canContinueEmployment?: boolean;
   termsComplied?: boolean;
   pastBreachUnderReview?: boolean;
-  /** For renewal, confirms that the applicant still holds the LTR permission being renewed. */
+  /** On renewal, confirm the applicant's current LTR grant as principal or dependant. */
   validPermission?: boolean;
   residenceAndApplicationEvidence?: boolean;
   character?: IrelandCharacter;
@@ -163,10 +163,10 @@ export function longTermResidence(
       ),
     );
   }
-  const validPermission =
-    registration?.validPermission === false && registration.renewalPending
-      ? undefined
-      : all(data.validPermission, registration?.validPermission ?? true);
+  const validPermission = all(
+    data.validPermission,
+    registration?.validPermission === undefined ? true : permissionValidity(registration),
+  );
   add(
     'C04',
     renewal ? all(

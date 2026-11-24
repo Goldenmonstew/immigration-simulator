@@ -42,6 +42,7 @@ export interface IrelandFamily {
   sponsorNaturalisedOn?: IsoDate;
   /** Earliest online renewal on or after becoming eligible for this route. */
   nextRenewalOn?: IsoDate;
+  /** Confirms that the applicant already holds the relevant family permission. */
   establishedFamilyPermission?: boolean;
   /** Lawful residence in the State under a qualifying dependent permission. */
   dependentPeriods?: IrelandResidencePeriod[];
@@ -207,6 +208,7 @@ function familyRenewal(
     irishSpouse ? 'B21' : 'FAMILY-RENEWAL',
     all(
       inState,
+      data.establishedFamilyPermission,
       app?.familyEvidenceComplete,
       jointAddress ? all(data.livingTogether, app?.addressEvidence) : true,
       app?.renewalInsuranceRequired === true
@@ -231,18 +233,42 @@ function familyApplication(
   data: IrelandFamily,
   dob?: IsoDate,
   inState?: boolean,
+  returnOn?: IsoDate,
 ) {
   const { add, L, day } = a;
   const app = data.application ?? {};
-  const date = app.date ?? day;
+  const channel = app.channel;
+  const inStateDeFacto = channel === 'de-facto-in-state';
+  const inStateConversion = channel === 'spouse-in-state' || inStateDeFacto;
+  const filedOn = app.date ?? day;
+  const date = inStateConversion && returnOn && returnOn > filedOn ? returnOn : filedOn;
   const versions = p.versions.value;
   const current = date >= versions.currentFrom;
   const revised = date >= versions.revisedFrom;
-  const channel = app.channel;
-  const specialised =
-    channel === 'spouse-in-state' ||
-    channel === 'de-facto-in-state' ||
-    channel === 'de-facto-overseas';
+  const specialised = inStateConversion || channel === 'de-facto-overseas';
+  function addApplicationCheck(
+    id: 'B14' | 'B21' | 'B22',
+    eligible: boolean | undefined,
+    explanation: string,
+    pendingDetails: string[],
+  ) {
+    if (!inStateConversion) {
+      add(id, eligible, explanation, pendingDetails);
+      return;
+    }
+    const waitingForReturn = inState === false && returnOn !== undefined;
+    const present = waitingForReturn ? false : inState === true ? true : undefined;
+    const presence = waitingForReturn
+      ? L(`预计返爱日为 ${returnOn}。`, `Expected return to Ireland: ${returnOn}.`)
+      : L('须在爱尔兰共和国境内递交。', 'File while present in the Republic of Ireland.');
+    add(
+      id,
+      eligible === true ? present : eligible,
+      `${explanation} ${presence}`,
+      pendingDetails,
+      waitingForReturn && eligible === true ? { availableOn: returnOn } : true,
+    );
+  }
   const category = data.sponsorCategory;
   const rel = data.relationship;
   const n = p.relationship.value;
@@ -261,12 +287,11 @@ function familyApplication(
         : wait && revised
           ? date >= wait
           : undefined;
-  const inStateDeFacto = channel === 'de-facto-in-state';
-  add(
+  addApplicationCheck(
     'B14',
     all(
       inStateDeFacto
-        ? all(inState, data.sponsorLawfulAndResident)
+        ? data.sponsorLawfulAndResident
         : any(
             data.sponsorLawfulAndResident,
             all(data.sponsorIrish, data.intendsToLiveTogetherInState),
@@ -554,7 +579,7 @@ function familyApplication(
   );
   const insurance = app.insurance;
   if (channel === 'spouse-in-state') {
-    add(
+    addApplicationCheck(
       'B21',
       all(
         data.sponsorIrish,
@@ -626,9 +651,9 @@ function familyApplication(
       character(app.sponsorCharacter),
     );
     if (channel === 'de-facto-in-state') {
-      add(
+      addApplicationCheck(
         'B22',
-        all(base, livingTogether, inState, data.sponsorLawfulAndResident, app.entryOrConversionValid),
+        all(base, livingTogether, data.sponsorLawfulAndResident, app.entryOrConversionValid),
         L(
           `需合法境内渠道、私保及近 ${e.clearanceLookbackYears} 年相关外国的警察证明，签发距递交不超过 ${e.clearanceValidityMonths} 个月。获准通常为 ${n.deFactoGrantYears} 年 Stamp 4。`,
           `Use an eligible in-State channel with private insurance and police certificates for relevant foreign countries in the past ${e.clearanceLookbackYears} years, issued within ${e.clearanceValidityMonths} months. The usual grant is a ${n.deFactoGrantYears}-year Stamp 4.`,
@@ -671,6 +696,7 @@ export function independentFamily(
   dob?: IsoDate,
   inState?: boolean,
   renewalOpens?: IsoDate,
+  returnOn?: IsoDate,
 ) {
   if (data.application?.registrationStage === 'renewal') {
     familyRenewal(a, data, inState);
@@ -815,7 +841,7 @@ export function independentFamily(
       ['PD-329'],
     );
   }
-  if (data.application) familyApplication(a, data, dob, inState);
+  if (data.application) familyApplication(a, data, dob, inState, returnOn);
 }
 
 export function directFamily(
@@ -823,6 +849,7 @@ export function directFamily(
   data: IrelandFamily,
   dob?: IsoDate,
   inState?: boolean,
+  returnOn?: IsoDate,
 ) {
   const relation = data.relationship;
   a.add(
@@ -854,5 +881,5 @@ export function directFamily(
             data.application.channel === 'spouse-in-state',
   );
   if (isFirstFamilyRegistration(data)) firstFamilyRegistration(a, data, inState);
-  else familyApplication(a, { ...data, sponsorCategory: 'A' }, dob, inState);
+  else familyApplication(a, { ...data, sponsorCategory: 'A' }, dob, inState, returnOn);
 }

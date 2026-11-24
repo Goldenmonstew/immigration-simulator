@@ -1,7 +1,7 @@
 import { irelandFull2026_11 as full } from '@uk-immigration/policy-data';
 import type { CountryCheck, CountryPathway } from '../country-result';
 import { addDays, addMonths, daysBetween } from '../dates';
-import type { IePathway, IePermission } from '../ireland';
+import type { IePathway, IePermission, IePermissionKind } from '../ireland';
 import { afterYears, monthSpan } from '../pilot';
 import { textFor } from '../rule';
 import type { IsoDate, Locale } from '../types';
@@ -16,7 +16,7 @@ export interface IrelandResidencePeriod {
 
 export interface IrelandRegistration {
   basis?: 'required' | 'exempt' | 'minister-directed';
-  /** Evaluate the checklist for an existing grant instead of applying for a work Stamp 4 upgrade. */
+  /** Evaluate first registration or the renewal of an existing grant. */
   stage?: 'first' | 'renewal';
   checklistComplete?: boolean;
   /** Expiry printed on the current IRP, distinct from the registration or appointment date. */
@@ -198,16 +198,37 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
 
 export type IrelandAssessment = ReturnType<typeof assessment>;
 
+function activePermissions(permissions: IePermission[], day: IsoDate) {
+  return permissions.filter(
+    ({ kind, from, to }) => kind !== 'ni-residence' && from <= day && (!to || day <= to),
+  );
+}
+
+export function currentPermissionMatches(
+  permissions: IePermission[],
+  day: IsoDate,
+  kinds: readonly IePermissionKind[],
+) {
+  const active = activePermissions(permissions, day);
+  if (!active.length || active.some(({ kind }) => kind === 'other')) return undefined;
+  if (active.every(({ kind }) => kinds.includes(kind))) return true;
+  if (active.every(({ kind }) => !kinds.includes(kind))) return false;
+  return undefined;
+}
+
+export function permissionValidity(input: IrelandRegistration | undefined) {
+  return input?.validPermission === false && input.renewalPending
+    ? undefined
+    : input?.validPermission;
+}
+
 export function renewalWindow(
   a: IrelandAssessment,
   inState: boolean | undefined,
   expiry: IsoDate | undefined,
   permissions: IePermission[],
 ) {
-  const active = permissions.filter(
-    ({ kind, from, to }) =>
-      kind !== 'ni-residence' && from <= a.day && (!to || a.day <= to),
-  );
+  const active = activePermissions(permissions, a.day);
   const expires = expiry ?? (active.length === 1 ? active[0].to : undefined);
   const weeks = full.registration.value.earlyRenewalWeeks;
   const opens = expires && addDays(expires, -weeks * 7);
@@ -260,14 +281,10 @@ export function registration(
         : input?.basis === 'required'
           ? false
           : undefined;
-  const permission =
-    input?.validPermission === false && input.renewalPending
-      ? undefined
-      : input?.validPermission;
   if (!checkedByChecklist) a.add(
     'B01',
     all(
-      requirePermission ? permission : true,
+      requirePermission ? permissionValidity(input) : true,
       exempt === true
         ? true
         : all(

@@ -4,7 +4,14 @@ import { evaluateIreland } from '../ireland';
 import type { IeRequest, IeStamp4Route } from '../ireland';
 import { textFor } from '../rule';
 import type { IsoDate } from '../types';
-import { all, assessment, registration, renewalWindow } from './common';
+import {
+  all,
+  assessment,
+  currentPermissionMatches,
+  permissionValidity,
+  registration,
+  renewalWindow,
+} from './common';
 import type { IrelandRegistration } from './common';
 import {
   directFamily,
@@ -82,6 +89,15 @@ const titles = {
   ],
 } as const;
 
+const workRenewalKinds = [
+  'stamp1',
+  'stamp1-csep',
+  'stamp1-gep',
+  'stamp1-ict',
+  'stamp1g-graduate',
+  'stamp4',
+] as const;
+
 export type IrelandFullPathwayId = keyof typeof titles;
 
 export interface IrelandFullRequest extends Omit<IeRequest, 'stamp4Route'> {
@@ -117,6 +133,16 @@ export function evaluateIrelandFull(
   const renewal = family?.application?.registrationStage === 'renewal';
   const inState =
     currentLocation === undefined ? undefined : currentLocation === 'state';
+  const returnOn = inState === false
+    ? request.trips
+      .filter(({ departed, returned }) => departed <= day && day < returned)
+      .map(({ returned }) => returned)
+      .sort()
+      .at(-1)
+    : undefined;
+  const registrationValidity = request.registration?.validPermission === undefined
+    ? true
+    : permissionValidity(request.registration);
   const timeline = (stamp4Route: IeStamp4Route) =>
     evaluateIreland({ ...request, stamp4Route });
   const legacyNaturalisation = options.some(
@@ -157,18 +183,26 @@ export function evaluateIrelandFull(
       ? renewalWindow(
           a,
           treatyRenewal ? treatyInState : inState,
-          request.registration?.irpExpiresOn ?? treatyDocument?.currentCardExpiresOn,
-          request.permissions,
+          (treatyRenewal ? treatyDocument?.currentCardExpiresOn : undefined) ??
+            request.registration?.irpExpiresOn,
+          treatyRenewal ? [] : request.permissions,
         )
       : undefined;
     switch (id) {
       case 'IE-STAMP4-21':
       case 'IE-STAMP4-57': {
         if (workRegistration) {
-          a.add('IRP-CHECKLIST', all(
-            workRegistration === 'first' ? inState : true,
-            request.registration?.checklistComplete,
-          ));
+          a.add(
+            'IRP-CHECKLIST',
+            all(
+              workRegistration === 'first'
+                ? inState
+                : currentPermissionMatches(request.permissions, day, workRenewalKinds),
+              request.registration?.checklistComplete,
+            ),
+            undefined,
+            workRegistration === 'renewal' ? ['PD-321'] : undefined,
+          );
           break;
         }
         const group = id === 'IE-STAMP4-21' ? 'csep' : 'gep';
@@ -183,6 +217,7 @@ export function evaluateIrelandFull(
           dob,
           inState,
           opens,
+          returnOn,
         );
         break;
       case 'IE-STAMP5':
@@ -192,10 +227,14 @@ export function evaluateIrelandFull(
           request.stamp5 ?? {},
           inState,
           request.registration?.checklistComplete,
+          stamp5Renewal ? all(
+            registrationValidity,
+            currentPermissionMatches(request.permissions, day, ['stamp5']),
+          ) : undefined,
         );
         break;
       case 'IE-STAMP4-IRISH-FAMILY':
-        directFamily(a, family ?? {}, dob, inState);
+        directFamily(a, family ?? {}, dob, inState, returnOn);
         break;
       case 'IE-LTR-PRINCIPAL':
       case 'IE-LTR-FAMILY':
@@ -217,6 +256,7 @@ export function evaluateIrelandFull(
           dob,
           treatyRenewal,
           treatyInState,
+          registrationValidity,
         );
         break;
       default:

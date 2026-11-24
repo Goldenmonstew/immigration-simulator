@@ -377,6 +377,7 @@ export function wcatt(
   data: IrelandWcatt,
   inState: boolean | undefined,
   renewalChecklistComplete: boolean | undefined,
+  validStamp5: boolean | undefined,
 ) {
   const { add, L } = a;
   const limit = pilot.values.wcattAbsenceMonths.value;
@@ -390,6 +391,7 @@ export function wcatt(
     add(
       'B28',
       all(
+        validStamp5,
         renewalChecklistComplete,
         data.grantReceived ?? true,
         data.passportAndIrpEvidence ?? true,
@@ -400,8 +402,8 @@ export function wcatt(
         data.longestAnnualAbsenceMonths === undefined ? true : travel,
       ),
       L(
-        '按 Stamp 5 续期清单核对当前护照、Stamp、IRP、批准信及现有许可附带的条件。',
-        'Check the current passport, stamp, IRP, approval letter and conditions of the existing permission under the Stamp 5 renewal checklist.',
+        '确认目前持有有效 Stamp 5，并按续期清单核对护照、IRP、批准信和许可条件。',
+        'Confirm that the current Stamp 5 permission is valid and check the passport, IRP, approval letter and permission conditions under the renewal checklist.',
       ),
       ['PD-321', 'PD-333', 'PD-334'],
     );

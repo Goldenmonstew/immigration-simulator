@@ -1083,7 +1083,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - **SRC-382** Eligibility；What is e-Vetting?。
 - **SRC-383** Act ss4–5、9、19；S.I. 421/2025 regs. 1–5。
 - **SRC-095** Guide 的 Reckonable Residence for Refugees or people with international protection、70 Days Absence Rule 及 Document requirements for minors。难民专项区分递交前一年与此前累计期，并说明部长可按个案豁免。
-- **SRC-097** Eligibility、How do I renew my Without Condition As To Time permission? 及 What are the conditions attached to my Stamp 5 permission。Stamp 5 线上 IRP 续期材料另见 SRC-384 的 Stamp 5 Renewals 清单。
+- **SRC-097** Eligibility、If your application is successful（许可可能被撤销）、How do I renew my Without Condition As To Time permission? 及 What are the conditions attached to my Stamp 5 permission。Stamp 5 线上 IRP 续期材料另见 SRC-384 的 Stamp 5 Renewals 清单。
 - **SRC-384** Stamp 1、Stamp 1G (1)、Stamp 3 (3)、Stamp 4 (1)–(4)、(7)–(8)、(12)、Stamp 5、Stamp 4 EUFam 与 WA 的登记及续期清单。在线续期 When should I submit a Renewal Application? 载明在共和国境内递交、IRP 到期前 12 周开放。Introduction 包含线上更换 Stamp 类别。
 - **SRC-385** Policy Document Archive；main changes。
 - **SRC-386** Financial Thresholds for Spouses, Civil Partners and De Facto Partners；Table 1。
@@ -1091,15 +1091,15 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
   - `2026-11-23-ie-family-2016.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2021/04/Policy-document-on-Non-EEA-family-reunification.pdf)。
   - `2026-11-23-ie-family-2025.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/11/FINAL-PDF-Revised-Family-Reunification-Policy.pdf)。
   - `2026-11-23-ie-family-2026.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/06/Family-Reunification-Policy-12-June-2026.pdf)。
-- **SRC-388** 境内 de facto 的 Am I eligible? 要求双方已合法居住。境外 de facto 的 Who can sponsor me?、Police clearance、Medical insurance 与 What happens when I arrive in Ireland? 覆盖担保、申请与入境后的登记。爱尔兰公民配偶的 Recently entered the State on a D (Join Family) Visa or were given a Join family stamp by border control 指向首次登记清单。
+- **SRC-388** 境内 de facto 的 Am I eligible? 要求双方已合法居住。爱尔兰公民配偶的 Am I eligible?、Where you have permission to be in Ireland 载明境内转换须核对申请人在境内及适用的许可或入境依据。境外 de facto 的 Who can sponsor me?、Police clearance、Medical insurance 与 What happens when I arrive in Ireland? 覆盖担保、申请与入境后的登记。爱尔兰公民配偶的 Recently entered the State on a D (Join Family) Visa or were given a Join family stamp by border control 指向首次登记清单。
 - **SRC-389** Irish citizens；What is a qualifying family member?；Permanent Residence Card/Certificate。
-- **SRC-390** regs. 2–6、9–20，其中 reg. 12(1)(b) 为非欧盟家属与 EU 公民合规居留，reg. 12(4) 为保留权利后的居留；Schedules 1、5–8。
+- **SRC-390** regs. 2–6、8–20，其中 reg. 8 为普通家属居留证件，reg. 12(1)(b) 为非欧盟家属与 EU 公民合规居留，reg. 12(4) 为保留权利后的居留，reg. 15(1)–(3)、(8)–(9) 分别涉及家属首次申请永久居留卡及其续期与失效；Schedules 1、5–8。
 - **SRC-391** EUTR2 证书、EUTR3 永久卡、EUTR5 权利保留；EUTR3 pp2–3。
   - `2026-11-23-ie-eu-eutr2-leaflet.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/05/Explanatory-leaflet-for-Form-EUTR2.pdf)。
   - `2026-11-23-ie-eu-eutr2.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/05/Form-EUTR2.pdf)。
   - `2026-11-23-ie-eu-eutr3-2026.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/09/Explanatory-leaflet-for-Form-EUTR3-updated-August-2026.pdf)。
   - `2026-11-23-ie-eu-eutr5-leaflet.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/05/Explanatory-leaflet-for-Form-EUTR5.pdf)。
-- **SRC-392** S.I. regs. 2–7、10–12、14–23，其中 reg. 10(3)–(4) 为非欧盟非英国籍家属及过渡前后的可计居留和失权；Agreement Arts. 9–10、13、15–17。
+- **SRC-392** S.I. regs. 2–7、10–12、14–23，其中 reg. 10(3)–(4) 为非欧盟非英国籍家属及过渡前后的可计居留和失权，regs. 11–12 涉及永久居留证件的首次签发与续期；Agreement Arts. 9–10、13、15–17。
   - `2026-11-23-ie-wa-agreement.pdf` 对应 [官方 PDF](https://assets.publishing.service.gov.uk/media/5daaab7fed915d42a05eea12/Agreement_on_the_withdrawal_of_the_United_Kingdom_of_Great_Britain_and_Northern_Ireland_from_the_European_Union_and_the_European_Atomic_Energy_Community.pdf)。
   - `2026-11-23-ie-wa-brexit-faq.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2022/03/Impact-of-Brexit-on-UK-Nationals-in-Ireland-and-their-non-EEA-national-family-members-March-2022.pdf)。
 - **SRC-393** Act ss2–4、9、18、21–24、36(2)(a)、47–48、55；S.I. 444/2024 reg. 7、Parts 6–8、Schedule 1；S.I. 643/2025 Schedule 8。

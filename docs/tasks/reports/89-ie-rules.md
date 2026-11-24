@@ -328,3 +328,31 @@ PROGRESS 687 对应建议提交 `Fix: 修正爱尔兰续期条件与免登记旅
 ### 4. 发现与建议
 
 任务 99 在预测递交日旁显示相关材料有效期。若材料在预测日前失效，提示更新材料，并用实际递交日及更新后的资料重算。无 IRP 的入籍问卷应允许填写经核实的合法居留区间，说明所填区间须覆盖出境日、境外行程和返爱日。
+
+## 第六轮审核修正（review89-6）
+
+### 1. 做了什么
+
+PROGRESS 688 对应建议提交 `Fix: 核对爱尔兰续期证件类别及境内转换返爱日（review89-6）`。
+
+| 路径 | 判定与来源 |
+|---|---|
+| EU／WA 永久证件续期 | `eu.document.currentCardCategory` 和 `wa.document.currentCardCategory` 确认现卡类别。D06／E03 对普通卡和明确无效的许可给 `NOT_MET`，类别待确认为 `UNKNOWN`，均无递交日。有效永久证件可按续期清单办理，卡面到期日进入续期窗口，已知失权及正式限制仍核对。见 SRC-390 regs. 8、12(6)、15(1)–(3)、15(8)–(9)，SRC-392 S.I. 728/2020 regs. 10–12，SRC-384 对应续期清单及 PD-321、PD-338。 |
+| Stamp 5 与 LTR 续期 | Stamp 5 的 B28 核当前许可记录确有 Stamp 5，明确无效的许可即使卡面仍在窗口内也无法通过。LTR 的 C04 核申请人当前主申请人或家属 LTR 许可，C08 核上一许可期证明，两条 LTR 路径均核对已知的 IRP 失效。到期后续期待决且正式延续待证时按 PD-321 处理。见 SRC-097 的许可撤销段落及续期 FAQ、SRC-384 Stamp 5 续期清单、SRC-398 的 LTR 续期及家属 FAQ，另见 PD-335。 |
+| 普通就业与家庭续期 | 普通就业续期用当前许可中的 Stamp 1、毕业生 Stamp 1G 或 Stamp 4 核适用清单。家庭续期用 `family.establishedFamilyPermission` 核对申请人当前是否持有对应的家庭许可。两者通过 B01 核对许可有效性。见 SRC-384 适用 Stamp 的 Renewals 清单、PD-321 和 PD-329。 |
+| 境内配偶及 de facto 转换 | B14、B21／B22 核递交时人在爱尔兰共和国。合格输入在境内为 `MET`，短期出境且有返爱日为 `FUTURE`，最早为返爱日。境外但返爱日不明时为 `UNKNOWN`，不给递交日。境内 de facto 的警察证明按拟递交日核有效期。见 SRC-388 两条境内路径的 Am I eligible?、Police clearance，另见 PD-330。 |
+
+### 2. 怎么验证的
+
+- 新增六组回归在 `2ab5d9d` 的实现上均复现问题。覆盖普通卡、永久卡、类别未知及许可无效，Stamp 5 被撤销或类别不符，以及同一份有效 Stamp 1 在爱尔兰境内、短期出境且返爱日已知、返爱日未知及实际返爱后的状态和最早日期。LTR 主申请人及家属、普通家庭续期也核对缺失或不适用的许可。
+- `pnpm --filter @uk-immigration/engine exec vitest run test/ireland-full.test.ts test/ireland.test.ts` 通过 150 项，包含六条旧 `evaluateIreland` 时间路径对照。
+- `pnpm lint && pnpm typecheck && VITEST_MAX_WORKERS=2 pnpm test && pnpm build` 退出码 0。默认并发下英国随机测试 seed `1455489211` 超过 5 秒限制，限并发重跑通过。engine 3,320 项通过、文案导出 1 项默认跳过，game 1,336 项、web 659 项、policy-data 23 项、error-report 2 项通过。Next.js 生成 27 个静态页面。
+- `git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+改动留在工作树，由 Fable 提交。页面接线、浏览器 E2E 和部署属于后续任务。
+
+### 4. 发现与建议
+
+**交接页面任务 99**。第六轮审核中，CSEP 申请人自 `2025-05-20` 受雇，许可区间未填结束日，IRP 于 `2027-01-31` 到期。就业升级预测的最早递交日为 `2027-02-20`。推进模拟日并沿用旧卡后，续期窗口和路径成为 `UNKNOWN`。当预测日跨过 IRP 到期日时，页面应在日期旁显示这一前提，提示届时需要有效许可或正式延续证明，再用更新的许可和实际递交日重算。见 SRC-096 的 Stamp 4 升级、SRC-384 的线上续期窗口及 PD-321。

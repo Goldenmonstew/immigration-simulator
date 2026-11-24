@@ -449,7 +449,7 @@ const conditions = {
     'Stamp 5 登记、护照期限与续期',
     'Stamp 5 registration, passport expiry and renewal',
     [
-      ['SRC-097', 'Introduction; renewal FAQ and conditions of permission'],
+      ['SRC-097', 'Introduction; If your application is successful; renewal FAQ and conditions of permission'],
       ['SRC-384', 'Stamp 5 Registrations and Renewals'],
     ],
   ],
@@ -549,7 +549,7 @@ const conditions = {
     '永久居留证明、地址与通知',
     'Permanent residence documents, address and notifications',
     [
-      ['SRC-390', 'regs. 11(2), 14–15 and Schedules 5–8'],
+      ['SRC-390', 'regs. 8, 11(2), 14–15 and Schedules 5–8'],
       ['SRC-391', 'EUTR2 and EUTR3'],
       ['SRC-384', 'Stamp 4EUFAM Registrations and Renewals: Renewals'],
     ],
