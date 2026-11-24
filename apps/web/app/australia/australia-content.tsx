@@ -5,6 +5,7 @@ import { PolicyStatus } from '../../components/policy-status';
 import { SavedScenarios } from '../../components/saved-scenarios';
 import { useTranslation } from '../../i18n/locale';
 import { australiaModule } from '../../lib/australia-module';
+import { gameArt, gameAsset } from '../../lib/game-country';
 import { countryPath } from '../../lib/site-countries';
 import styles from '../site.module.css';
 
@@ -30,6 +31,17 @@ export default function AustraliaContent() {
           </Link>
           <Link href={countryPath('au', 'policy')}>{t('site.policy')}</Link>
         </div>
+        <Link className={styles.gameEntry} href={countryPath('au', 'game')}>
+          <span
+            className={styles.gameBanner}
+            style={{
+              backgroundImage: `url("${gameAsset('au', gameArt.au.banner)}")`,
+            }}
+            aria-hidden="true"
+          />
+          <span className={styles.gameEntryTitle}>{t('au.game.entry')}</span>
+          <span className={styles.gameEntryDesc}>{t('au.game.entryDesc')}</span>
+        </Link>
         <section className={styles.section}>
           <h2>{t('home.before')}</h2>
           <p>{t('au.prepare')}</p>
