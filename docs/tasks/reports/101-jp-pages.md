@@ -858,3 +858,76 @@ PD-136 已登记返日与重新上陆日不一致、续期处分日待核时的�
 ### 4. 发现与建议
 
 日本 Playwright 用例已纳入现有 PR 的 `pnpm e2e`。真实浏览器中的同页切换、历史恢复和东京跨午夜仍待 CI 验证。
+
+## 第二十二轮审核修正（review101-22）
+
+### 1. 做了什么
+
+建议提交 `Fix: 日本新草稿明确保存三态答案，跨日保留待确认出境计划（review101-22）`。进度编号 812。
+
+新建日本草稿带有 `answerFormat: 'explicit'`。本机草稿、编辑历史、命名方案和分享链接按问卷字段定义写入 `true`、`false` 或 `null`。政策评估继续使用原有的未知证据表示。仅含待确认答案的可选证据组回读后仍待填写。同趟行程借用的答案仍按来源记录计算。
+
+みなし行程在勾选路径时就记录「待确认」，即使出境日还没到、问题尚未显示。改动原出境日会清除旧声明，并重新等待确认。跨日后，只有旧格式且缺少 `alreadyDeparted` 的原行程沿用历史日期推定。旧稿已保存的「是」「否」或「待确认」继续按原值读取。共享存储和分享函数通过日本模块提供的读写方法处理这些值。英国模块沿用原格式。
+
+**日本问卷三态字段清单**
+
+按路线、证据组和列表行展开，共 **191 个字段位置，129 个不同的末级字段名**。表中的 `current` 和 `historical` 分别代表当期及历史快照，`[]` 代表每个已添加的记录。一体化在留卡的 `integratedCard.requested` 是可选证据组中的必答是非题，空项显示「请选择」。日期、选项和普通复选框沿用各自原有的值。
+
+| 问卷位置 | 是／否／待确认字段 |
+|---|---|
+| 共同出入境历史 `trips[]` | `reentryPermit`、`specialPermanentResident`、`renewalPending` |
+| 永住路线 `child` | `bornInJapan` |
+| 永住路线 `child-birth` | `bornInJapan`、`withoutLanding`、`acquisitionAccepted`、`plansToStayPastPermitlessPeriod`、`heldAnotherStatus` |
+| 永住路线 `hsp70`、`hsp80` | `maintained` |
+| 上述两条路线各自的 `current` 和 `historical` | `qualifyingActivity`、`complete`、`multipleGraduateFields`、`equivalentResearch`、`foreignQualification`、`japanHigherEducation`、`advancedProject`、`designatedUniversity`、`regionalEmployer`、`designatedFinance` |
+| 永住路线 `j-skip` | `remainedRecognised` |
+| `j-skip` 的 `current` 和 `historical` | `qualifyingActivity`、`confirmed` |
+| 永住路线 `regional-regeneration` | `planRecognised`、`institutionInArea`、`designatedInstitutionAndContract`、`activityQualified`、`comparableJapanesePay`、`qualifyingTechnologyEducation`、`designatedItQualification`、`recognisedContribution` |
+| 永住路线 `structural-zone` | `recognisedZone`、`designatedBusiness`、`recognisedContribution` |
+| 永住路线 `japan-contribution` | `recognisedContribution`、`designatedCategoryEvidence`、`oldSocialLifeClear` |
+| 永住证据 `prIdentity` | `japaneseCitizen`、`inJapan`、`status.valid`、`status.timelyRenewalPending`、`status.heldThreeYearPeriodOnTransitionDay`、`status.firstApplicationAfterTransition`、`status.authorityConfirmedLongest`、`status.fitsCurrentCriteria`、`status.businessManager.subjectToRevisedCriteria`、`status.businessManager.officeInJapan`、`status.businessManager.confirmedB2`、`status.businessManager.relevantGraduateDegree`、`status.businessManager.planProfessionallyConfirmed`、`family.genuineMarriage`、`family.confirmedStatutoryFamily`、`internationalProtectionConfirmed` |
+| 永住证据 `prConduct` | `goodConductConfirmed`、`nationalInterestConfirmed`、`absenceReasonsConfirmedReasonable`、`japanMainHomeIntended`、`contributionEvidence`、`statusActivitiesCompliant`、`residenceCardDutiesCompliant`、`actualAddressAndRegister`、`publicHealthCleared`、`otherLandingGroundsCleared` |
+| 永住证据 `prFinances` | `livelihoodConfirmed`、`householdIncomeConfirmed`、`pendingOnIncomeReviewDate`、`pensionComparisonConfirmed`、`publicBurdenConfirmedAcceptable`、`humanitarianCircumstances` |
+| 永住证据 `prLanguage` | `qualifyingHspApplicantOrFamily`、`otherLanguageExemptionConfirmed`、`raisingParentB1Confirmed`、`japaneseB1Confirmed`、`integrationKnowledgeConfirmed`、`schoolChildren[].authorityAccepted` |
+| 永住证据 `prFiling` | `guarantorDocumentsReady`、`guarantorAcceptedOrWaived`、`documentsReady`、`photoReady`、`photoRequiredByAuthority`、`integratedCard.immigrationChargeApplies`、`integratedCard.jLisChargeApplies`、`integratedCard.electronicCertificate` |
+| 帰化路线 `spouse` | `stillJapaneseSpouse` |
+| 帰化路线 `article-6-former-national-child` | `biologicalChildOfFormerNational` |
+| 帰化路线 `article-6-japan-birth` | `bornInJapan`、`biologicalParentBornInJapan`、`authorityConfirmsOverseasBirthBranch` |
+| 帰化路线 `article-8-japanese-child` | `biologicalChildOfJapaneseNational` |
+| 帰化路线 `article-8-adopted-child` | `adoptedByJapaneseNational`、`adoptedWhileMinorUnderHomeLaw` |
+| 帰化路线 `article-8-former-national` | `lostJapaneseNationality`、`lostAfterNaturalising` |
+| 帰化路线 `article-8-stateless-from-birth` | `bornInJapan`、`statelessSinceBirth`、`domiciledContinuouslySinceBirth` |
+| 帰化路线 `article-9-special-merit` | `specialMeritConfirmed`、`dietApproval` |
+| 帰化证据 `natDomicile` | `japaneseCitizen`、`inJapan`、`lawfulDomicile`、`capacityUnderHomeLaw`、`goodConductConfirmed`、`livelihoodConfirmed` |
+| 帰化证据 `natIntegration` | `cannotLoseNationalityByOwnChoice`、`ministerialExceptionConfirmed`、`constitutionalConditionConfirmed`、`integratedIntoJapanConfirmed`、`japaneseLanguage.authorityConfirmed`、`requiredInterviewAndAssessmentComplete` |
+| 帰化证据 `natFiling` | `residenceEvidenceReady`、`healthInsuranceEvidenceReady`、`motivationReady`、`oathReady`、`plansToLiveInJapan`、`filedAtJurisdictionalBureau`、`writtenDocumentsAndTranslationsReady` |
+| 三条再入国路线共用 | `stayIndefinite`、`timelyRenewalPending`、`specialPermanentResident`、`lawfulStatus`、`permitVoided`、`travelDocumentLost`、`expiryCertificateObtained` |
+| 再入国 `ordinary` 的其他字段 | `excludedStatusOrDetention`、`inJapanWhenApplying`、`intendsReturn`、`passportOrApprovedAlternative`、`residentCardOrCertificate`、`permit.extensionApproved`、`onlineConcurrentEligibleApplication`、`previouslyUsedSingleEntry`、`consularExtension` |
+| 再入国 `deemed` 的其他字段 | `alreadyDeparted`、`temporaryVisitor`、`passportValid`、`residentCardOrCertificate`、`formalPermitRequired`、`declaredIntentAtDeparture` |
+| 再入国 `refugee-travel-document` 的其他字段 | `refugeeRecognition`、`hasJapaneseTravelDocument`、`permit.extensionApproved`、`permit.entryDeadlineNotSpecified`、`consularExtension` |
+
+### 2. 怎么验证的
+
+在干净的 `fable/101-jp-pages`、`b8262551` 上先运行 `VITEST_MAX_WORKERS=2 pnpm -r --workspace-concurrency=1 --filter @uk-immigration/policy-data --filter @uk-immigration/engine --filter web test`，5,443 项通过，1 项既有测试跳过。另从该版本的日本引擎和网页测试捕获 1,117 次实际评估调用（旧日本引擎 160、完整引擎 678、网页适配器 279）。分别用原输入和原设备时钟在基线及修正后回放，逐次比较完整结果对象，两次差异数均为 0。除下表中两种新建计划的修正外，历轮已覆盖的结论与 b8262551 一致。
+
+东京时区组件回放从实际问卷录入，模拟日均设为 11-26，出境日均为 11-23。在出境日期过后打开本机结果和分享链接，并从两个入口返回编辑。
+
+| 录入操作 | b8262551 | 修正后 |
+|---|---|---|
+| 11-23 23:59 保留默认「待确认」 | 草稿缺少出境状态。跨日后两种结果都显示实际出境。编辑时实际声明可填，出境确认问题消失。 | 草稿写入 `null`。两种结果都提示确认是否按计划出境。编辑保留「待确认」，实际声明隐藏。 |
+| 11-22 23:59 提前录入计划 | 出境确认问题尚未显示。到 11-24 后出现同一误判。 | 问题尚未显示时也保存 `null`。到 11-24 后，本机和分享的提示、编辑字段与上行一致。 |
+| 11-23 23:59 明确选「否」 | 草稿写入 `false`。跨日仍需确认，编辑保留「否」，实际声明隐藏。 | 本机和分享保留相同结论。改选「是」后可录入实际声明。 |
+
+第 1–15 轮按本报告第十六轮的复现表回放。第 16–21 轮另覆盖已持普通许可和新申请、旧方案四个入口、撤销无出境假设、柜台日及首次补日期、标签页可见性和午夜、同页历史与双标签页、明确选否和语言切换。临时 jsdom 挂载真实页面，保留基线旧稿的原始字段。两版分别通过 20 项历轮组件检查及上表 3 项基线／修正对照。其中英国结果页的链接监听、可见性和语言切换也通过了两版对照。
+
+对清单中的 191 个位置分别测试默认待确认、是、否，共 573 组写入与回读断言。仓库单测另从本机草稿、命名方案和分享原始 JSON 核对三态值，并验证完整回读。有具体含义的 `notifiedOn: null` 和尚未填写的必答字段也保持各自语义。
+
+设置 `VITEST_MAX_WORKERS=2` 后，`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 整条命令退出码为 0。全仓 **6,795 项单测通过，1 项既有测试跳过**（error-report 2、policy-data 23、engine 4,602、game 1,348、web 820）。静态构建生成 32 页，离线清单和 sitemap 的 22 条路径一致，日本五页均有 HTML 正文。`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+按要求未提交。前后均运行 `pnpm --filter e2e exec playwright test tests/japan.spec.ts --workers=1`。基线收集 9 项，修正后收集 11 项，均在执行页面步骤前因 macOS 拒绝 Chromium 注册 Mach 端口（`Permission denied (1100)`）而退出。内置浏览器宿主也无法连接。本机的结果提示、编辑及分享回读证据来自实际 React 组件的 jsdom 回放，未取得真实浏览器 E2E 通过记录或截图。
+
+### 4. 发现与建议
+
+现有 CI 的日本 Playwright 用例已包含默认待确认、提前录入和明确选否三种场景，真实浏览器结果待 CI 验证。

@@ -15,6 +15,7 @@ import {
   type JpPrCommonEvidence,
   type JpNaturalisationEvidence,
 } from '@uk-immigration/engine';
+import { readJapanAnswers } from './japan-stored-answers';
 import type { TranslationKey } from '../i18n';
 import type { CountryDraft, DraftReadMode } from './country-module';
 import { today, validDate } from './questionnaire';
@@ -30,8 +31,8 @@ import {
   type JapanField,
 } from './japan-fields';
 
-export interface JapanDraft
-  extends CountryDraft, Omit<JpFullRequest, 'locale'> {
+export interface JapanDraft extends CountryDraft, Omit<JpFullRequest, 'locale'> {
+  answerFormat?: 'explicit';
   permanentResidence: { routes: JpFullPrRoute[]; evidence: JpPrCommonEvidence };
   naturalisation: {
     routes: JpFullNaturalisationRoute[];
@@ -47,6 +48,7 @@ export interface JapanDraft
 export function createJapanDraft(): JapanDraft {
   return {
     version: 1,
+    answerFormat: 'explicit',
     step: 0,
     completed: false,
     simulationDate: today(),
@@ -220,14 +222,15 @@ export function japanDepartureStatus(
   const current = today();
   const asOf = draft.simulationDate < current ? draft.simulationDate : current;
   const due = !!departureOn && departureOn <= asOf;
-  const answered = alreadyDeparted !== undefined;
+  const legacyDateOnly =
+    draft.answerFormat === undefined && alreadyDeparted === undefined;
   const departed =
-    due && (answered ? alreadyDeparted === true : departureOn < asOf);
-  const pending = due && answered && !departed && departureOn < current;
+    due && (legacyDateOnly ? departureOn < asOf : alreadyDeparted === true);
+  const pending = due && !legacyDateOnly && !departed && departureOn < current;
   return {
     date: departureOn,
     departed,
-    askIfDeparted: due && (departureOn === asOf || answered),
+    askIfDeparted: due && (departureOn === asOf || !legacyDateOnly),
     hint: departed
       ? 'jp.result.confirmDeparture'
       : pending
@@ -760,6 +763,7 @@ export function decodeJapanDraft(
   if (
     !isRecord(value) ||
     value.version !== 1 ||
+    (value.answerFormat !== undefined && value.answerFormat !== 'explicit') ||
     typeof value.step !== 'number' ||
     !Number.isInteger(value.step) ||
     value.step < 0 ||
@@ -780,7 +784,7 @@ export function decodeJapanDraft(
     !validRoutes(value.reentry, travelRouteFields)
   )
     return undefined;
-  let draft = value as unknown as JapanDraft;
+  let draft = readJapanAnswers(value as unknown as JapanDraft);
   // Discard older declarations when the departure still needs confirmation.
   const deemed = draft.reentry.find((route) => route.route === 'deemed');
   if (deemed && japanDepartureStatus(draft, deemed).askIfDeparted)

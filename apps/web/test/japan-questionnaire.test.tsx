@@ -11,7 +11,12 @@ import { LocaleContext } from '../i18n/locale';
 import { japanSteps, type JapanDraft } from '../lib/japan-draft';
 import { japanModule as jp } from '../lib/japan-module';
 import { decodeDraft, encodeDraft } from '../lib/share';
-import { draftStorage, loadScenario, readScenarios } from '../lib/storage';
+import {
+  draftStorage,
+  loadScenario,
+  readScenarios,
+  saveScenario,
+} from '../lib/storage';
 
 const fields = new Map<
   string,
@@ -52,6 +57,87 @@ function form(
     </LocaleContext>,
   );
 }
+
+test('new Japanese drafts, saved plans and shares persist pending, yes and no across nested questions', () => {
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  const draft: JapanDraft = {
+    ...jp.createDraft(),
+    simulationDate: '2026-11-24',
+    completed: true,
+    stayStart: '2020-01-01',
+    trips: [{ departed: '2024-05-01', returned: '2024-05-05' }],
+    permanentResidence: {
+      routes: [{ route: 'hsp70', statusStart: '2020-01-01' }],
+      evidence: {
+        status: { kind: 'businessManager', valid: false },
+        schoolChildren: [{}],
+        addressNotices: [{ eventOn: '2026-01-05', notifiedOn: null }],
+      },
+    },
+    naturalisation: {
+      routes: [{ route: 'article-8-japanese-child' }],
+      evidence: { japaneseCitizen: true },
+    },
+    reentry: [{ route: 'deemed', alreadyDeparted: null }],
+  };
+  draftStorage(jp, draft);
+  saveScenario(jp, 'answers', draft);
+  const encoded = encodeDraft(jp, draft);
+  const saved = JSON.parse(storage.get('jp-immigration-draft-v1')!);
+  expect(saved).toMatchObject({
+    trips: [
+      {
+        reentryPermit: null,
+        specialPermanentResident: null,
+        renewalPending: null,
+      },
+    ],
+    permanentResidence: {
+      routes: [
+        {
+          maintained: null,
+          current: { complete: null },
+          historical: { complete: null },
+        },
+      ],
+      evidence: {
+        status: { valid: false, businessManager: { officeInJapan: null } },
+        schoolChildren: [{ authorityAccepted: null }],
+        integratedCard: { electronicCertificate: null },
+      },
+    },
+    naturalisation: {
+      routes: [{ biologicalChildOfJapaneseNational: null }],
+      evidence: {
+        japaneseCitizen: true,
+        japaneseLanguage: { authorityConfirmed: null },
+      },
+    },
+    reentry: [
+      {
+        alreadyDeparted: null,
+        lawfulStatus: null,
+        declaredIntentAtDeparture: null,
+      },
+    ],
+  });
+  expect(saved.permanentResidence.evidence.integratedCard).not.toHaveProperty(
+    'requested',
+  );
+  expect(
+    JSON.parse(storage.get('jp-immigration-scenarios-v1')!)[0].draft,
+  ).toEqual(saved);
+  expect(
+    JSON.parse(Buffer.from(encoded, 'base64url').toString()).draft,
+  ).toEqual(saved);
+  expect(draftStorage(jp).draft).toEqual(draft);
+  expect(readScenarios(jp).scenarios[0].draft).toEqual(draft);
+  expect(decodeDraft(jp, encoded)).toEqual(draft);
+});
 
 test('ordinary permit edits keep lawful status only for the date the answer describes', () => {
   let draft: JapanDraft = {
@@ -378,6 +464,7 @@ test.each(['ordinary', 'deemed', 'refugee-travel-document'] as const)(
       reentry: [
         {
           route,
+          ...(route === 'deemed' && { alreadyDeparted: true }),
           departureOn: '2024-04-01',
           stayExpiresOn: '2024-04-03',
           returnOn: '2024-04-07',
@@ -418,6 +505,7 @@ test('loading, refreshing and sharing an old named plan agree about a renewal pe
     savedAt: '2026-11-24',
     draft: {
       ...jp.createDraft(),
+      answerFormat: undefined,
       completed: true,
       simulationDate: '2026-11-24',
       reentry: [
@@ -834,6 +922,7 @@ test('a new landing before departure has a field error even without a separate r
     reentry: [
       {
         route: 'deemed',
+        alreadyDeparted: true,
         departureOn: '2024-04-01',
         newLandingOn: '2024-03-31',
       },
@@ -896,12 +985,20 @@ test.each(['ordinary', 'deemed', 'refugee-travel-document'] as const)(
   '%s accepts a future return plan and flags a future landing as an invalid fact',
   (route) => {
     const simulationDate = '2026-11-24';
+    const departureAnswer = route === 'deemed' ? { alreadyDeparted: null } : {};
     const planned: JapanDraft = {
       ...jp.createDraft(),
       simulationDate,
       step: 6,
       completed: true,
-      reentry: [{ route, departureOn: '2026-11-26', returnOn: '2026-11-27' }],
+      reentry: [
+        {
+          route,
+          ...departureAnswer,
+          departureOn: '2026-11-26',
+          returnOn: '2026-11-27',
+        },
+      ],
     };
     expect(jp.validateStep(planned)).toEqual({});
     expect(decodeDraft(jp, encodeDraft(jp, planned))).toEqual(planned);
@@ -931,7 +1028,12 @@ test.each(['ordinary', 'deemed', 'refugee-travel-document'] as const)(
     const actual = {
       ...planned,
       reentry: [
-        { route, departureOn: simulationDate, newLandingOn: simulationDate },
+        {
+          route,
+          ...(route === 'deemed' && { alreadyDeparted: true }),
+          departureOn: simulationDate,
+          newLandingOn: simulationDate,
+        },
       ],
     };
     expect(jp.validateStep(actual)).toEqual({});
@@ -970,6 +1072,7 @@ test('a comparison can retain the original planned return only as a valid date',
     reentry: [
       {
         route: 'deemed',
+        alreadyDeparted: null,
         departureOn: '2026-11-26',
         returnOn: '2026-11-28',
         comparisonHistoryReturnOn: '2026-11-27',
@@ -1291,8 +1394,13 @@ test.each([
     answerField('departureOn', '2026-11-23');
     expect(draft.reentry[0]).toEqual({
       route: 'deemed',
+      alreadyDeparted: null,
       departureOn: '2026-11-23',
     });
+    expect(form(draft)).not.toContain(
+      'id="jp-travel-deemed-declaredIntentAtDeparture"',
+    );
+    answerField('alreadyDeparted', 'yes');
     answerField('declaredIntentAtDeparture', answer);
     expect(decodeDraft(jp, encodeDraft(jp, draft))?.reentry[0]).toMatchObject({
       alreadyDeparted: true,
@@ -1469,6 +1577,7 @@ test('a same-day plan drops the actual declaration from the form, share and asse
   expect(continuity()).toBe('MET');
   const legacy = {
     ...draft,
+    answerFormat: undefined,
     reentry: draft.reentry.map((route) => ({
       ...route,
       alreadyDeparted: undefined,
@@ -1609,7 +1718,7 @@ test('deselecting residence gives the same shared and compared return assessment
   const payload = JSON.parse(
     atob(encoded.replaceAll('-', '+').replaceAll('_', '/')),
   );
-  expect(payload.draft).toEqual(fresh);
+  expect(payload.draft).toEqual(jp.storedAnswers!.encode(fresh));
   const shared = decodeDraft(jp, encoded)!;
   const older = encodeDraft({ ...jp, activeAnswers: undefined }, switched);
   expect(decodeDraft(jp, older)).toEqual(fresh);
@@ -1870,7 +1979,7 @@ test('opening a Japanese share preserves a different stored draft, including its
   const draft: JapanDraft = {
     ...jp.createDraft(),
     completed: true,
-    reentry: [{ route: 'deemed' }],
+    reentry: [{ route: 'deemed', alreadyDeparted: null }],
   };
   const other = JSON.stringify({
     ...draft,
@@ -1889,37 +1998,45 @@ test('opening a Japanese share preserves a different stored draft, including its
   expect(saved).toBe(other);
   saved = null;
   expect(readPageResult(jp, 'en', share).draft).toEqual(draft);
-  expect(saved).toBe(JSON.stringify(draft));
+  expect(JSON.parse(saved!)).toEqual(jp.storedAnswers!.encode(draft));
 });
 
-test('reading the same Japanese result across local midnight reassesses the actual departure', () => {
-  vi.useFakeTimers({ toFake: ['Date'] });
-  vi.setSystemTime(new Date(2026, 10, 22, 23, 59));
-  const country = { ...jp, run: vi.fn(jp.run) };
-  const draft: JapanDraft = {
-    ...jp.createDraft(),
-    simulationDate: '2026-11-26',
-    completed: true,
-    reentry: [
-      { route: 'deemed', departureOn: '2026-11-23', returnOn: '2026-11-27' },
-    ],
-  };
-  draftStorage(country, draft);
-  const read = () =>
-    readPageResult(country, 'en').result!.columns[0].pathways[0];
-  const planned = read();
-  expect(planned.status).toBe('UNKNOWN');
-  expect(planned.summary).toContain('Planned departure on 2026-11-23');
-  expect(read()).toBe(planned);
-  vi.setSystemTime(new Date(2026, 10, 23, 0, 1));
-  expect(read().summary).toContain('Planned departure on 2026-11-23');
-  vi.setSystemTime(new Date(2026, 10, 24, 0, 1));
-  const actual = read();
-  expect(actual.status).toBe('UNKNOWN');
-  expect(actual.summary).toContain('when you departed on 2026-11-23');
-  expect(read()).toBe(actual);
-  expect(country.run).toHaveBeenCalledTimes(3);
-});
+test.each([undefined, 'explicit'] as const)(
+  'a missing departure answer across local midnight uses its draft format (%s)',
+  (answerFormat) => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 10, 22, 23, 59));
+    const country = { ...jp, run: vi.fn(jp.run) };
+    const draft: JapanDraft = {
+      ...jp.createDraft(),
+      answerFormat,
+      simulationDate: '2026-11-26',
+      completed: true,
+      reentry: [
+        { route: 'deemed', departureOn: '2026-11-23', returnOn: '2026-11-27' },
+      ],
+    };
+    draftStorage(country, draft);
+    const read = () =>
+      readPageResult(country, 'en').result!.columns[0].pathways[0];
+    const planned = read();
+    expect(planned.status).toBe('UNKNOWN');
+    expect(planned.summary).toContain('Planned departure on 2026-11-23');
+    expect(read()).toBe(planned);
+    vi.setSystemTime(new Date(2026, 10, 23, 0, 1));
+    expect(read().summary).toContain('Planned departure on 2026-11-23');
+    vi.setSystemTime(new Date(2026, 10, 24, 0, 1));
+    const nextDay = read();
+    expect(nextDay.status).toBe('UNKNOWN');
+    expect(nextDay.summary).toContain(
+      answerFormat
+        ? 'whether you left that day'
+        : 'when you departed on 2026-11-23',
+    );
+    expect(read()).toBe(nextDay);
+    expect(country.run).toHaveBeenCalledTimes(3);
+  },
+);
 
 test('residence and talent questions keep evidence for the assessed counter day after sharing', () => {
   const requested = '2027-04-03';

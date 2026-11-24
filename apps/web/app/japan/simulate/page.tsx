@@ -90,6 +90,12 @@ function editTravelField(
     delete next.hasJapaneseTravelDocument;
   }
   if (next.route !== 'deemed') return next;
+  if (
+    key === 'departureOn' &&
+    !route.departureOn &&
+    next.alreadyDeparted === undefined
+  )
+    next.alreadyDeparted = null;
   if (key === 'alreadyDeparted' && value === undefined)
     next.alreadyDeparted = null;
   if (departureChanged) {
@@ -98,7 +104,7 @@ function editTravelField(
     delete next.passportValid;
     delete next.formalPermitRequired;
     delete next.residentCardOrCertificate;
-    delete next.alreadyDeparted;
+    next.alreadyDeparted = null;
   }
   if (
     departureChanged ||
@@ -356,6 +362,10 @@ function JapanStep({ draft: stored, errors, update: save }: StepProps) {
                     const checked = routes[group].some(
                       (r) => r.route === route,
                     );
+                    const newRoute =
+                      route === 'deemed'
+                        ? { route, alreadyDeparted: null }
+                        : { route };
                     const id = 'jp-route-' + group + '-' + route;
                     return (
                       <label key={route}>
@@ -367,7 +377,7 @@ function JapanStep({ draft: stored, errors, update: save }: StepProps) {
                             setRoutes(
                               group,
                               event.target.checked
-                                ? [...routes[group], { route }]
+                                ? [...routes[group], newRoute]
                                 : routes[group].filter(
                                     (r) => r.route !== route,
                                   ),

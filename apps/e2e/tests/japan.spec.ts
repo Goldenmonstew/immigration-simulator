@@ -483,7 +483,14 @@ test('returning to results after another tab submits uses the same draft for dis
   const encoded = new URLSearchParams(shared.hash.slice(1)).get('s')!;
   expect(
     JSON.parse(Buffer.from(encoded, 'base64url').toString()).draft.reentry,
-  ).toEqual([{ route: 'deemed', departureOn: departure }]);
+  ).toMatchObject([
+    {
+      route: 'deemed',
+      departureOn: departure,
+      alreadyDeparted: null,
+      passportValid: null,
+    },
+  ]);
 });
 
 const departure = '2026-11-23';
@@ -674,50 +681,86 @@ test('a shared result keeps its scenario for comparison and editing after anothe
 test.describe('device in Japan', () => {
   test.use({ timezoneId: 'Asia/Tokyo' });
 
-  test('answering no on departure day still requires confirmation after midnight', async ({
-    page,
-  }) => {
-    await page.clock.install({ time: new Date('2026-11-23T23:59:00+09:00') });
-    await page.goto(path('simulate'));
-    await page.locator('#jp-simulationDate').fill('2026-11-26');
-    await page.locator('#jp-route-travel-deemed').check();
-    const form = questionnaire(page);
-    const next = form.getByRole('button', {
-      name: zhCN['form.continue'],
-      exact: true,
+  for (const { name, entry, answer } of [
+    {
+      name: 'default pending on departure day',
+      entry: '2026-11-23',
+      answer: '',
+    },
+    { name: 'a plan entered one day ahead', entry: '2026-11-22', answer: '' },
+    { name: 'explicit no on departure day', entry: '2026-11-23', answer: 'no' },
+  ]) {
+    test(`${name} still requires departure confirmation after midnight locally and when shared`, async ({
+      page,
+      context,
+      browser,
+    }) => {
+      const start = new Date(entry + 'T23:59:00+09:00');
+      const after = new Date('2026-11-24T00:01:00+09:00');
+      await page.clock.install({ time: start });
+      await page.goto(path('simulate'));
+      await page.locator('#jp-simulationDate').fill('2026-11-26');
+      await page.locator('#jp-route-travel-deemed').check();
+      const submit = (tab: Page) =>
+        questionnaire(tab).locator('button[type="submit"]').click();
+      const departed = (tab: Page) =>
+        tab.locator('#jp-travel-deemed-alreadyDeparted');
+      const declaration = (tab: Page) =>
+        tab.locator('#jp-travel-deemed-declaredIntentAtDeparture');
+      await submit(page);
+      await page.locator('#jp-travel-deemed-departureOn').fill(departure);
+      if (entry === departure) await expect(departed(page)).toHaveValue('');
+      else await expect(departed(page)).toHaveCount(0);
+      if (answer) await departed(page).selectOption(answer);
+      await submit(page);
+      const hint = (
+        key: 'plannedDeparture' | 'unconfirmedDeparture' | 'confirmDeparture',
+      ) => zhCN[`jp.result.${key}`].replace('{date}', departure);
+      await expect(page.getByRole('main')).toContainText(
+        hint('plannedDeparture'),
+      );
+      const stored = await page.evaluate(
+        (key) => JSON.parse(localStorage.getItem(key)!),
+        draftKey,
+      );
+      expect(stored.reentry[0].alreadyDeparted).toBe(answer ? false : null);
+      await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+      const link = await copyResult(page);
+      await page.clock.fastForward(after.getTime() - start.getTime());
+
+      const receiver = await browser.newPage({
+        timezoneId: 'Asia/Tokyo',
+        locale: 'zh-CN',
+      });
+      try {
+        await receiver.clock.setFixedTime(after);
+        await receiver.goto(link);
+        await expect(
+          receiver.getByText(zhCN['share.loaded'], { exact: true }),
+        ).toBeVisible();
+        for (const tab of [page, receiver]) {
+          const main = tab.getByRole('main');
+          await expect(main).toContainText(hint('unconfirmedDeparture'));
+          await expect(main).not.toContainText(hint('confirmDeparture'));
+          await main
+            .getByRole('link', { name: zhCN['result.edit'], exact: true })
+            .first()
+            .click();
+          await submit(tab);
+          await expect(departed(tab)).toHaveValue(answer);
+          await expect(declaration(tab)).toHaveCount(0);
+        }
+        await departed(page).selectOption('yes');
+        await expect(declaration(page)).toBeVisible();
+        await submit(page);
+        await expect(page.getByRole('main')).toContainText(
+          hint('confirmDeparture'),
+        );
+      } finally {
+        await receiver.close();
+      }
     });
-    const results = form.getByRole('button', {
-      name: zhCN['form.results'],
-      exact: true,
-    });
-    await next.click();
-    await page.locator('#jp-travel-deemed-departureOn').fill(departure);
-    const departed = page.locator('#jp-travel-deemed-alreadyDeparted');
-    const declaration = page.locator(
-      '#jp-travel-deemed-declaredIntentAtDeparture',
-    );
-    await departed.selectOption('no');
-    await results.click();
-    const main = page.getByRole('main');
-    const hint = (
-      key: 'plannedDeparture' | 'unconfirmedDeparture' | 'confirmDeparture',
-    ) => zhCN[`jp.result.${key}`].replace('{date}', departure);
-    await expect(main).toContainText(hint('plannedDeparture'));
-    await page.clock.fastForward('01:01');
-    await expect(main).toContainText(hint('unconfirmedDeparture'));
-    await expect(main).not.toContainText(hint('confirmDeparture'));
-    await main
-      .getByRole('link', { name: zhCN['result.edit'], exact: true })
-      .first()
-      .click();
-    await next.click();
-    await expect(departed).toHaveValue('no');
-    await expect(declaration).toHaveCount(0);
-    await departed.selectOption('yes');
-    await expect(declaration).toBeVisible();
-    await results.click();
-    await expect(main).toContainText(hint('confirmDeparture'));
-  });
+  }
 
   for (const shared of [true, false]) {
     test(`a continuously visible Japanese ${shared ? 'shared' : 'local'} result keeps its scenario at device midnight`, async ({

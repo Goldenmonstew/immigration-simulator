@@ -66,7 +66,13 @@ export function QuestionnaireShell<D extends CountryDraft, K>({
       if (linked) {
         next = { ...next, completed: false };
         window.history.replaceState(
-          { ...window.history.state, resultEdit: { hash, draft: next } },
+          {
+            ...window.history.state,
+            resultEdit: {
+              hash,
+              draft: country.storedAnswers?.encode(next) ?? next,
+            },
+          },
           '',
         );
       }
@@ -86,7 +92,10 @@ export function QuestionnaireShell<D extends CountryDraft, K>({
       window.history.replaceState(
         {
           ...window.history.state,
-          resultEdit: { hash: editHash, draft },
+          resultEdit: {
+            hash: editHash,
+            draft: country.storedAnswers?.encode(draft) ?? draft,
+          },
         },
         '',
       );

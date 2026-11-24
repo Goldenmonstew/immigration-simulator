@@ -17,6 +17,7 @@ import {
   validateJapanStep,
   type JapanDraft,
 } from './japan-draft';
+import { readJapanAnswers, storeJapanAnswers } from './japan-stored-answers';
 import { japanPolicy } from './japan-policy';
 import { japanWhatIf, type JapanWhatIf } from './japan-whatif';
 
@@ -92,6 +93,7 @@ export const japanModule: CountryModule<JapanDraft, JapanWhatIf> = {
   id: 'jp',
   version: 1,
   createDraft: createJapanDraft,
+  storedAnswers: { encode: storeJapanAnswers, decode: readJapanAnswers },
   activeAnswers: activeJapanAnswers,
   restoreStoredDraft: restoreStoredJapanDraft,
   validateStep: validateJapanStep,

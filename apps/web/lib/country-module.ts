@@ -23,6 +23,10 @@ export interface CountryModule<D extends CountryDraft, K> {
   id: CountryId;
   version: number;
   createDraft(): D;
+  storedAnswers?: {
+    encode(draft: D): object;
+    decode(stored: D): D;
+  };
   // Project an editable draft onto the answers used for assessment and sharing.
   activeAnswers?(draft: D): D;
   // Return a new draft when a local correction needs to be persisted.

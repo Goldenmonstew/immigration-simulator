@@ -6,17 +6,18 @@ import type {
 
 type ShareModule<D extends CountryDraft> = Pick<
   CountryModule<D, never>,
-  'id' | 'version' | 'decodeDraft' | 'activeAnswers'
+  'id' | 'version' | 'decodeDraft' | 'activeAnswers' | 'storedAnswers'
 >;
 
 export function encodeDraft<D extends CountryDraft>(
   country: ShareModule<D>,
   draft: D,
 ): string {
+  const active = country.activeAnswers?.(draft) ?? draft;
   const envelope = {
     country: country.id,
     v: country.version,
-    draft: country.activeAnswers?.(draft) ?? draft,
+    draft: country.storedAnswers?.encode(active) ?? active,
   };
   const bytes = new TextEncoder().encode(JSON.stringify(envelope));
   const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join(

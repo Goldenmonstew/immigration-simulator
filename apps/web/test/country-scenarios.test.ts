@@ -155,6 +155,7 @@ test.each([
     vi.setSystemTime(new Date(firstRead + 'T12:00:00Z'));
     const original = {
       ...japanModule.createDraft(),
+      answerFormat: undefined,
       completed: true,
       step: 6,
       simulationDate: '2026-10-10',
