@@ -111,6 +111,7 @@ export const items = caItems;
 export const recipes = caRecipes;
 export const festivals = caFestivals;
 export const achievements = hooks.caAchievements;
+export const { nextStep } = hooks;
 export { caCharacters, caRules };
 export {
   aipFee,

@@ -1,0 +1,168 @@
+import { existsSync } from 'node:fs';
+import * as React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { afterEach, beforeAll, expect, test, vi } from 'vitest';
+import type { Locale } from '@uk-immigration/engine';
+import * as ca from '@uk-immigration/game/ca';
+import { caGameArt } from '@uk-immigration/game/ca/presentation';
+import { CountryAssessmentColumns } from '../components/result-view';
+import { LocaleContext } from '../i18n/locale';
+import { t, withCount } from '../i18n';
+import { canadaModule } from '../lib/canada-module';
+import { decodeDraft } from '../lib/share';
+import { sitePagePaths, siteCountries } from '../lib/site-countries';
+import {
+  caCountry,
+  caShell,
+  gameDraft,
+  itemIcon,
+} from '../app/canada/game/shell';
+import town from '../public/game/canada/town.json';
+
+type State = ReturnType<typeof ca.newGame>;
+afterEach(() => vi.unstubAllGlobals());
+beforeAll(async () => {
+  for (const { id } of ca.characters) await ca.loadCharacter(id);
+});
+
+const render = (node: React.ReactNode, locale: Locale = 'zh-CN') =>
+  renderToStaticMarkup(
+    <LocaleContext value={{ locale, setLocale: () => {} }}>
+      {node}
+    </LocaleContext>,
+  );
+function settle(state: State) {
+  while (state.pendingEvent)
+    state = ca.resolve(state, ca.currentEvent(state)!.choices[0].id);
+  return state;
+}
+
+test('Canada has a game page, entries and its own save and sound keys', () => {
+  expect(siteCountries.find(({ id }) => id === 'ca')?.hasGame).toBe(true);
+  expect(sitePagePaths).toContain('/canada/game');
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, value: string) => storage.set(key, value),
+  });
+  const state = ca.newGame('citizen', 4, 'zh-CN');
+  expect(caShell.gameStorage('citizen', state).available).toBe(true);
+  expect([...storage.keys()]).toEqual(['ca-immigration-life-v3:citizen']);
+  expect(caShell.previewGameSave('citizen').state).toEqual(state);
+  expect(caShell.previewGameSave('graduate')).toEqual({
+    state: undefined,
+    available: true,
+  });
+  caCountry.sound.setMuted(false);
+  expect(storage.get('ca-immigration-life-muted')).toBe('false');
+});
+
+test.each(['citizen', 'graduate'])(
+  'the ending link restores the %s timeline on the Canada result page',
+  (id) => {
+    const state = settle(ca.newGame(id, 4, 'en'));
+    const href = caCountry.resultHref(state);
+    expect(href.startsWith('/canada/result#s=')).toBe(true);
+    const draft = decodeDraft(canadaModule, href.split('#s=')[1], true)!;
+    expect(draft).toEqual(gameDraft(state));
+    expect(draft.completed).toBe(true);
+    expect([...draft.goals].sort()).toEqual([...state.timeline.goals].sort());
+    const shown = canadaModule.run(draft, 'en').columns[0].pathways;
+    expect(shown.map(({ id, status }) => [id, status])).toEqual(
+      state.result.columns[0].pathways
+        .filter((pathway) => state.timeline.goals.includes(pathway.id))
+        .map(({ id, status }) => [id, status]),
+    );
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'the status bar, progress bars and assessment speak Canadian residence in %s',
+  (locale) => {
+    const state = ca.newGame('citizen', 4, locale);
+    const hud = render(<caShell.StatusBar state={state} />, locale);
+    expect(hud).toContain('CA$18,000');
+    expect(hud).toContain(t('game.english', locale));
+    expect(hud).toContain(
+      withCount(t('ca.game.visa', locale), 'count', ca.visaMonthsLeft(state)),
+    );
+    const bars = render(
+      <caShell.ProgressBars state={state} onOpen={vi.fn()} />,
+      locale,
+    );
+    expect(bars).toContain(t('ca.game.citColumn', locale));
+    expect(bars).toContain(
+      t('country.status.FUTURE', locale).replace('{date}', '2027-06-22'),
+    );
+    const office = settle(ca.enter(settle(state), 'council'));
+    let menu: React.ReactNode;
+    function Probe() {
+      menu = caShell.LocationMenu({
+        state: { ...office, day: { ...office.day, minute: 600 } },
+        location: 'council',
+        onChange: vi.fn(),
+      });
+      return menu;
+    }
+    const html = render(<Probe />, locale);
+    let columns: React.ReactElement | undefined;
+    React.Children.forEach(menu, function find(node) {
+      if (!React.isValidElement<{ children?: React.ReactNode }>(node)) return;
+      if (node.type === CountryAssessmentColumns) columns = node;
+      React.Children.forEach(node.props.children, find);
+    });
+    expect(columns).toBeDefined();
+    if (locale === 'en') expect(hud + bars).not.toMatch(/[㐀-鿿]/);
+    expect(html).toContain('town-ca.current-law-2026-11-heading');
+  },
+);
+
+test('the IRCC office lists the next steps on each route', () => {
+  const graduate = settle(ca.newGame('graduate', 4, 'zh-CN'));
+  const visa = { ...graduate, day: { ...graduate.day, minute: 600 } };
+  const html = render(
+    <caShell.LocationMenu state={visa} location="visa" onChange={vi.fn()} />,
+  );
+  expect(html).toContain('递交大西洋项目申请前还要');
+  expect(html).toContain('CELPIP');
+  const citizen = settle(ca.newGame('citizen', 4, 'en'));
+  expect(ca.nextStep(citizen)?.en).toContain('2027-06-22');
+});
+
+test('every item, character and townsperson has existing art', () => {
+  const art = (path: string) =>
+    existsSync(new URL(`../public${path}`, import.meta.url));
+  for (const item of ca.items)
+    expect(art(itemIcon(item.id)), item.id).toBe(true);
+  for (const id of [
+    ...ca.characters.map((c) => c.id),
+    ...ca.npcs.map((n) => n.id),
+  ]) {
+    expect(caGameArt.cast[id], id).toBeDefined();
+    for (const face of ['neutral', 'happy', 'worried'])
+      expect(art(caShell.portraitPath(id, face)), id).toBe(true);
+    expect(art(caShell.spritePath(id)), id).toBe(true);
+  }
+  expect(art(caShell.townBanner)).toBe(true);
+  for (const sign of caGameArt.shopSigns)
+    expect(art(caShell.signPath(sign))).toBe(true);
+});
+
+test('the town map has every place, schedule stop and garden plot', () => {
+  const layer = (name: string) =>
+    town.layers.find((l) => l.name === name)!.objects!;
+  const places = new Set(layer('places').map((o) => o.name));
+  const anchors = new Set(layer('anchors').map((o) => o.name));
+  expect([...places].sort()).toEqual(ca.places.map((p) => p.id).sort());
+  for (const npc of ca.npcs)
+    for (const rule of npc.schedule)
+      for (const { at } of rule.stops)
+        if (at !== 'away')
+          expect(places.has(at) || anchors.has(at), `${npc.id}: ${at}`).toBe(
+            true,
+          );
+  expect(layer('plots')).toHaveLength(6);
+  const [spawn] = layer('spawn');
+  const home = layer('places').find((o) => o.name === 'home')!;
+  expect([spawn.x, spawn.y - 16]).toEqual([home.x, home.y]);
+});

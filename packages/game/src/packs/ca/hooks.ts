@@ -14,6 +14,7 @@ import type {
 import { caBalance as b } from './balance';
 import { caCharacters } from './characters';
 import {
+  caRules,
   pathwayOf,
   readyToFile,
   type CaEffect,
@@ -282,6 +283,84 @@ export function afterQuarter(state: CaState): void {
   ];
   for (const [due, id] of letters)
     if (due && !state.eventQueue.includes(id)) state.eventQueue.push(id);
+}
+
+/** The next step on the character's route, shown at the IRCC office. */
+export function nextStep(state: CaState): Text | undefined {
+  const flags = state.flags;
+  if (citizenRoute(state)) {
+    if (flags.includes('cit-ceremony-invited')) return;
+    if (flags.includes('cit-test-passed'))
+      return t(
+        '考试通过了，等 IRCC 寄来宣誓仪式通知。',
+        'You passed. Watch the post for the oath ceremony invitation.',
+      );
+    if (flags.includes('cit-test-invited')) return;
+    if (flags.includes('cit-applied'))
+      return t(
+        '申请已受理，等 IRCC 寄来入籍考试通知。',
+        'Your application is in. Watch the post for the test invitation.',
+      );
+    if (readyToFile(state)) return;
+    const date = caRules.progress(state).cit.earliestDate;
+    return date
+      ? t(
+          `实际居住天数最早 ${date} 满足，到时再来签署入籍申请。`,
+          `Your physical presence is met from ${date}; come back then to sign.`,
+        )
+      : t(
+          '入籍还有条件没满足，去移民顾问事务所看看评估。',
+          'Some citizenship requirements are not met yet; ask the consultant for an assessment.',
+        );
+  }
+  if (readyToFile(state)) return;
+  const atlantic = state.timeline.atlantic;
+  const steps: Text[] = [];
+  if (!atlantic?.offer)
+    steps.push(
+      t(
+        `在医院把事业做到 ${b.offerCareer}，向人事部要长期聘书`,
+        `reach career ${b.offerCareer} and ask hospital HR for a permanent offer`,
+      ),
+    );
+  else if (!atlantic.settlementPlanGivenToEmployer)
+    steps.push(
+      t(
+        '去安家服务中心做安家计划',
+        'make a settlement plan at the newcomer centre',
+      ),
+    );
+  else if (flags.includes('endorsement-requested'))
+    steps.push(t('等省担保信寄到', 'wait for the endorsement letter'));
+  else if (!atlantic.endorsement || atlantic.endorsement.expires < state.date)
+    steps.push(
+      t(
+        '请医院人事部申请省担保',
+        'ask hospital HR to apply for the endorsement',
+      ),
+    );
+  if (!flags.includes('language-tested'))
+    steps.push(t('在社区学院考 CELPIP', 'sit CELPIP at the community college'));
+  if (!flags.includes('police-certificate'))
+    steps.push(
+      flags.includes('police-requested')
+        ? t('等无犯罪证明寄到', 'wait for the police certificate')
+        : t(
+            '在图书馆申请无犯罪证明',
+            'request the police certificate at the library',
+          ),
+    );
+  if (!steps.length)
+    steps.push(
+      t(
+        '去移民顾问事务所看看还差什么',
+        'ask the consultant what is still missing',
+      ),
+    );
+  return {
+    zhCN: `递交大西洋项目申请前还要：${steps.map((step) => step.zhCN).join('；')}。`,
+    en: `Before you can file for the Atlantic program: ${steps.map((step) => step.en).join('; ')}.`,
+  };
 }
 
 export function shopStock(state: CaState, place: PlaceId) {
