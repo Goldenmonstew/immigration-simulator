@@ -1,53 +1,190 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+import { en } from '../../web/i18n/en';
+import { zhCN } from '../../web/i18n/zh-CN';
+import { countryPath } from '../../web/lib/site-countries';
+import { noHorizontalScroll } from './helpers';
 
-test('Japan calculator works out permanent residence for a spouse', async ({
+const path = (sub = '') => countryPath('jp', sub);
+type Dict = Record<keyof typeof zhCN, string>;
+
+async function begin(page: Page, dict: Dict) {
+  await page.goto('/');
+  await page.locator('a[href="' + path() + '"]').click();
+  if (dict === en) await page.getByRole('button', { name: 'English' }).click();
+  await page
+    .locator('main a[href="' + path('simulate') + '"]')
+    .first()
+    .click();
+  await expect(page.getByRole('progressbar')).toBeVisible();
+  await page.getByRole('button', { name: dict['form.continue'] }).click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await page.locator('#jp-simulationDate').fill('2027-04-03');
+  await page.locator('#jp-stayStart').fill('2014-04-01');
+}
+
+test('a Japanese questionnaire restores its step, shares its pending assessment and focuses the chosen condition', async ({
+  page,
+  context,
+  browser,
+}) => {
+  await begin(page, zhCN);
+  await page.locator('#jp-dateOfBirth').fill('1990-01-01');
+  await page.locator('#jp-route-nat-general').check();
+  const next = page.getByRole('button', { name: zhCN['form.continue'] });
+  await next.click();
+  const progress = page.getByRole('progressbar');
+  await expect(progress).toHaveAttribute('aria-valuenow', '2');
+  await page.reload();
+  await expect(progress).toHaveAttribute('aria-valuenow', '2');
+  await next.click();
+  await page.locator('#jp-nat-general-homeMajorityAge').fill('18');
+  await page.getByRole('button', { name: zhCN['form.results'] }).click();
+
+  await expect(page).toHaveURL(path('result'));
+  await expect(
+    page.getByRole('heading', { name: '一般帰化', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', {
+      name: zhCN['country.status.UNKNOWN'],
+      exact: true,
+    }),
+  ).toBeVisible();
+  const result = page.getByRole('region', {
+    name: '日本现行及已公布规则',
+    exact: true,
+  });
+  await expect(
+    result
+      .locator('[data-status="UNKNOWN"]')
+      .getByText('日语会话、阅读与书写', { exact: true }),
+  ).toBeVisible();
+  await expect(result).toContainText('PD-364');
+  const original = await result.innerText();
+
+  await page.getByLabel(zhCN['scenarios.name']).fill('帰化咨询');
+  await page.getByRole('button', { name: zhCN['scenarios.save'] }).click();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: '帰化咨询' })).toBeVisible();
+
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.getByRole('button', { name: zhCN['share.copy'] }).click();
+  await expect(
+    page.getByText(zhCN['share.copied'], { exact: true }),
+  ).toBeVisible();
+  const url = await page.evaluate(() => navigator.clipboard.readText());
+  expect(new URL(url).pathname).toBe(path('result'));
+  expect(new URL(url).hash).toMatch(/^#s=.+/);
+  const receiver = await browser.newContext();
+  try {
+    const shared = await receiver.newPage();
+    await shared.goto(url);
+    await expect(shared.getByText(zhCN['share.loaded'])).toBeVisible();
+    await expect(
+      shared.getByRole('region', { name: '日本现行及已公布规则', exact: true }),
+    ).toHaveText(original, { useInnerText: true });
+  } finally {
+    await receiver.close();
+  }
+
+  const gaps = page.getByRole('region', {
+    name: zhCN['gap.title'],
+    exact: true,
+  });
+  await gaps.getByRole('button', { name: zhCN['gap.more'] }).click();
+  await gaps.locator('a[href$="?focus=natJapanese"]').click();
+  await expect(page.locator('#jp-whatif-nat-japanese')).toBeFocused();
+});
+
+test('English mobile questionnaire compares filing dates and shows Japanese policy sources', async ({
   page,
 }) => {
-  await page.goto('/');
-  await page.getByRole('link', { name: '日本：开始计算' }).click();
-  await expect(page).toHaveURL(/\/japan/);
-
-  // Submitting without dates moves focus to the linked summary.
-  await page.getByRole('button', { name: '计算' }).click();
-  const summary = page
-    .getByRole('alert')
-    .filter({ hasText: '请先修正标红的项目' });
-  await expect(summary).toBeFocused();
-  // Neither route has a default: the user must pick them.
+  await page.setViewportSize({ width: 375, height: 812 });
+  await begin(page, en);
+  await page.locator('#jp-route-travel-ordinary').check();
+  await noHorizontalScroll(page);
+  const next = page.getByRole('button', { name: en['form.continue'] });
+  await next.click();
+  await next.click();
+  const field = (key: string) => page.locator('#jp-travel-ordinary-' + key);
+  await field('departureOn').fill('2027-04-12');
+  await field('returnOn').fill('2027-04-19');
+  await field('permit-effectiveOn').fill('2027-04-05');
+  await field('permit-expiresOn').fill('2028-04-04');
+  for (const key of [
+    'lawfulStatus',
+    'inJapanWhenApplying',
+    'intendsReturn',
+    'passportOrApprovedAlternative',
+    'residentCardOrCertificate',
+    'stayIndefinite',
+  ]) {
+    await field(key).selectOption('yes');
+  }
+  for (const key of ['excludedStatusOrDetention', 'permitVoided']) {
+    await field(key).selectOption('no');
+  }
+  await field('visits').selectOption('multiple');
+  await field('channel').selectOption('counter');
+  await noHorizontalScroll(page);
+  await page.getByRole('button', { name: en['form.results'] }).click();
+  await expect(page).toHaveURL(path('result'));
   await expect(
-    summary.getByRole('link', { name: /适用的永住许可路线/ }),
+    page.getByRole('heading', {
+      name: 'Ordinary re-entry permit',
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
-    summary.getByRole('link', { name: /适用的帰化路线/ }),
+    page.getByRole('heading', { name: en['country.status.MET'], exact: true }),
   ).toBeVisible();
-  await summary.getByRole('link', { name: /在日本连续在留的开始日/ }).click();
-  await expect(page.locator('#jp-stay-start')).toBeFocused();
-
-  await page.getByLabel('模拟日期').fill('2026-11-22');
-  await page.getByLabel('在日本连续在留的开始日').fill('2025-10-01');
-  await page.getByLabel('适用的永住许可路线').selectOption('spouse');
-  await page.getByLabel('开始实际婚姻生活的日期').fill('2023-12-01');
-  await page.getByLabel('适用的帰化路线').selectOption('general');
-  await page.getByLabel('出生日期').fill('1990-05-05');
-  await page.getByLabel('我的本国法成年年龄不超过 18 岁').check();
-  await page.getByRole('button', { name: '计算' }).click();
-
-  await expect(page.getByRole('heading', { name: '计算结果' })).toBeFocused();
-  // Married 3 years and in Japan 1 year, before the 2027-04-01 guideline.
-  const pr = page.locator('[data-pathway="JP-PR"]');
-  await expect(pr).toContainText('最早 2026-12-01 满足时间条件');
-  await expect(pr).toContainText('2028-12-01');
-  // Naturalisation follows the 10-year practice: 2025-10-01 + 10 years.
+  const result = page.getByRole('region', {
+    name: 'Japan’s current and published rules',
+    exact: true,
+  });
+  await result
+    .locator('summary')
+    .filter({ hasText: /^Met\s*\(/ })
+    .click();
   await expect(
-    page.locator('[data-pathway="JP-NATURALISATION"]'),
-  ).toContainText('最早 2035-10-01 满足时间条件');
+    result.getByText('Ordinary permit eligibility and documents', {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(result.locator('time[datetime="2027-04-05"]')).toBeVisible();
+  await noHorizontalScroll(page);
   const { violations } = await new AxeBuilder({ page }).analyze();
   expect(
     violations.filter((v) => v.impact === 'serious' || v.impact === 'critical'),
   ).toEqual([]);
 
-  await page.getByRole('button', { name: 'English' }).click();
-  await expect(page.getByRole('heading', { name: 'Results' })).toBeVisible();
-  await expect(pr).toContainText('Time requirements met from 2026-12-01');
+  await page
+    .getByRole('link', { name: en['whatif.title'], exact: true })
+    .first()
+    .click();
+  const comparison = page
+    .getByText(en['result.earliest'], { exact: true })
+    .locator('xpath=following-sibling::dd[1]');
+  await expect(comparison).toHaveText('2027-04-05→2027-04-05');
+  await page.locator('#jp-whatif-date').fill('2027-04-06');
+  await expect(comparison).toHaveText('2027-04-05→2027-04-06');
+  await noHorizontalScroll(page);
+
+  await page.goto(path('policy'));
+  const sources = page.getByRole('region', { name: en['policyPage.sources'] });
+  await expect(sources.locator('[data-source="SRC-461"] a')).toHaveAttribute(
+    'href',
+    /^https:\/\/www\.moj\.go\.jp\//,
+  );
+  await expect(sources.locator('[data-source="SRC-001"]')).toHaveCount(0);
+  await page
+    .getByRole('region', { name: en['policyPage.rules'] })
+    .locator('summary')
+    .last()
+    .click();
+  await expect(
+    page.locator('[data-rule="jp.reentry.ordinary-validity"]'),
+  ).toBeVisible();
+  await noHorizontalScroll(page);
 });

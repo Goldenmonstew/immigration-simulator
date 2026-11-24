@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { countryPath, nonUkCountries } from '../../web/lib/site-countries';
+import { countryPath, sitePagePaths } from '../../web/lib/site-countries';
 import { completedDraft, startGame } from './helpers';
 
 async function seriousViolations(page: Page) {
@@ -10,13 +10,10 @@ async function seriousViolations(page: Page) {
     .map((v) => `${v.id}: ${v.nodes.length} × ${v.nodes[0]?.target.join(' ')}`);
 }
 
-for (const path of [
-  '/',
-  ...['', 'simulate', 'policy', 'about', 'game'].map((sub) =>
-    countryPath('uk', sub),
-  ),
-  ...nonUkCountries.map(({ id }) => countryPath(id)),
-]) {
+for (const path of sitePagePaths.filter(
+  (path) =>
+    ![countryPath('uk', 'result'), countryPath('uk', 'whatif')].includes(path),
+)) {
   test(`no serious accessibility violations on ${path}`, async ({ page }) => {
     await page.goto(path);
     await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
