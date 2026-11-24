@@ -85,6 +85,7 @@ export const canadaFull2026_11 = {
         lookbackYearsEE: 10,
         stayMonths: 6,
         currentCertificateMonths: 6,
+        atlanticUsualCertificateYears: 1,
         dubaiCertificateMonths: 3,
         biometricsMinAge: 14,
         biometricsMaxAge: 79,
@@ -108,7 +109,8 @@ export const canadaFull2026_11 = {
         { srcId: 'SRC-274', locator: 'Guide 5289, Police certificates' },
         {
           srcId: 'SRC-279',
-          locator: 'IMM 0155, p.4 item 19 Police Certificates and Clearances',
+          locator:
+            'IMM 0155, p.4 item 19; AIP Apply for permanent residence, Police certificates and clearances, paragraphs 1–2 (279e)',
         },
       ],
     },
@@ -288,6 +290,24 @@ export const canadaFull2026_11 = {
     familyChildAge: {
       value: 22,
       sources: [{ srcId: 'SRC-261', locator: 'IRPR s.2: dependent child' }],
+    },
+    childConsentAgeLimit: {
+      value: 18,
+      sources: [
+        {
+          srcId: 'SRC-274',
+          locator: 'IMM 5533, p.6 item 3, For Minor Child(ren) (274g)',
+        },
+        {
+          srcId: 'SRC-266',
+          locator:
+            "IMM 0199 and IMM 5690, p.3 item 10, Children's Information (266h/i)",
+        },
+        {
+          srcId: 'SRC-279',
+          locator: "IMM 0155, p.4 item 18, Children's Information (279b)",
+        },
+      ],
     },
     familyUndertaking: {
       value: { partnerYears: 3, childYears: 10, childEndAge: 25 },

@@ -181,6 +181,10 @@ export interface DependentChildAnswers {
   unmarriedAndUnpartnered?: boolean;
   dependentBeforeCutoffAndContinuing?: boolean;
   unableToSupportSelfDueToCondition?: boolean;
+  /** Required consent or court documents are ready. False means missing or under review. */
+  custodyAndConsentReady?: boolean;
+  /** Established authority for this child, including sole authority or both legal parents joining. */
+  relocationAuthority?: 'no-separate-consent-required' | 'prohibited';
 }
 
 export function dependentChildEligible(
@@ -197,9 +201,27 @@ export function dependentChildEligible(
       );
 }
 
+function minorRelocationConsent(
+  birth: IsoDate | undefined,
+  federalDocumentDate: IsoDate,
+  answers: DependentChildAnswers,
+) {
+  if (!birth) return undefined;
+  if (
+    fullYears(birth, federalDocumentDate) >=
+    ca.values.childConsentAgeLimit.value
+  )
+    return true;
+  if (answers.relocationAuthority === 'prohibited') return false;
+  if (answers.relocationAuthority === 'no-separate-consent-required')
+    return true;
+  return answers.custodyAndConsentReady || undefined;
+}
+
 export function accompanyingChildrenEligible(
   members: FederalMember[] | undefined,
   lockIn: IsoDate | undefined,
+  federalDocumentDate: IsoDate,
   soleChildAnswers?: DependentChildAnswers,
 ) {
   if (!members) return undefined;
@@ -213,10 +235,13 @@ export function accompanyingChildrenEligible(
       // The original family questionnaire has one child answer, with no member ID.
       const answers =
         children.length === 1 ? { ...soleChildAnswers, ...member } : member;
-      const eligible = dependentChildEligible(
-        member.dateOfBirth,
-        lockIn,
-        answers,
+      const eligible = all(
+        dependentChildEligible(member.dateOfBirth, lockIn, answers),
+        minorRelocationConsent(
+          member.dateOfBirth,
+          federalDocumentDate,
+          answers,
+        ),
       );
       return member.accompanying || eligible === true ? eligible : undefined;
     }),

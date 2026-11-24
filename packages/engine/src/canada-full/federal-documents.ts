@@ -232,11 +232,6 @@ export function policeDocuments(
           : undefined;
       // 'until' is the first day no longer staying in that country.
       if (!stay.currentCountry) return certificateIssued >= end;
-      if (
-        certificateIssued <
-        addMonths(receivedOn, -police.currentCertificateMonths)
-      )
-        return false;
       if (!stay.certificateExpires && stay.issuer === 'dubai-police') {
         const anniversary = addMonths(
           certificateIssued,
@@ -247,7 +242,23 @@ export function policeDocuments(
           ? undefined
           : receivedOn < anniversary;
       }
-      return true;
+      if (procedure === 'atlantic' && supplementReceivedOn) {
+        const anniversary = addYears(
+          certificateIssued,
+          police.atlanticUsualCertificateYears,
+        );
+        if (
+          receivedOn < anniversary ||
+          (receivedOn === anniversary && stay.certificateExpires)
+        )
+          return true;
+        // IRCC describes the year as usual validity, without defining exceptions or the last day.
+        return undefined;
+      }
+      return (
+        certificateIssued >=
+        addMonths(receivedOn, -police.currentCertificateMonths)
+      );
     }),
   );
 }

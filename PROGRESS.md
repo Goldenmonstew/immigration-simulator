@@ -487,3 +487,4 @@
 | # | 改动描述 | 涉及文件 |
 |---|---|---|
 | 570 | 任务 85 第八轮审核修正（review85-8）。R26 按 IRCC 收到该份补件的日期核对现居国警证的签发窗口和机关效期。经济类 R25、家庭担保 R74 按各项目锁龄日和审理期间的逐人事实核对随行子女。补公开入口回归，报告列出十条路径和 R36 已知风险。 | packages/engine/src/canada-full/{atlantic,family,federal-documents,federal,pnp,quebec,shared}.ts、packages/engine/test/canada-{atlantic,family,federal,quebec}-full.test.ts、docs/pending-details.md、docs/tasks/reports/85-ca-rules.md |
+| 571 | 任务 85 第九轮审核修正（review85-9）。七条初次永居路径逐名核对随行未成年子女的监护同意。AIP 应要求补交的现居国警证按通常一年及签发机关效期核对。补公开入口回归、官方快照与 PD-245，记录 R36 年龄豁免风险。 | packages/engine/src/canada-full/{shared,family,federal,federal-documents}.ts、packages/engine/test/canada-{family,federal,atlantic,quebec}-full.test.ts、packages/policy-data/src/parameters/canada-2026-11.ts、policy-sources/、docs/{SOURCES,pending-details}.md、docs/tasks/reports/85-ca-rules.md |

@@ -61,7 +61,7 @@
 | `CA-R22` | 犯罪及严重犯罪的准入审查 | SRC-261 |
 | `CA-R23` | 公共健康、安全及 excessive demand | SRC-261、SRC-266 |
 | `CA-R24` | 移民体检及复用决定 | SRC-261、SRC-266 |
-| `CA-R25` | 生计、虚报、不合规与家属范围 | SRC-261 |
+| `CA-R25` | 生计、虚报、不合规与家属范围，含随行子女 | SRC-261、SRC-266、SRC-274、SRC-279 |
 | `CA-R26` | 警证与 PR 生物识别 | SRC-261、SRC-266、SRC-274、SRC-277、SRC-279 |
 | `CA-R27` | 联邦费用与付款 | SRC-261、SRC-264 |
 | `CA-R28` | 联邦费用与付款 | SRC-261、SRC-264 |
@@ -110,7 +110,7 @@
 | `CA-R71` | 担保人身份、居住与既有担保 | SRC-261、SRC-274 |
 | `CA-R72` | 持续担保资格、债务及禁项 | SRC-261、SRC-274 |
 | `CA-R73` | 伴侣关系、年龄及真实性 | SRC-261、SRC-274 |
-| `CA-R74` | 受抚养子女与先前申报 | SRC-261、SRC-274 |
+| `CA-R74` | 受抚养子女、随行未成年人监护同意与先前申报 | SRC-261、SRC-266、SRC-274、SRC-279 |
 | `CA-R75` | 担保类别与境内身份 | SRC-261、SRC-274 |
 | `CA-R76` | 联邦担保承诺与收入 | SRC-261、SRC-274 |
 | `CA-R77` | 魁省担保资格与承诺 | SRC-261、SRC-275 |
@@ -501,3 +501,37 @@ FSW 申请人获邀时恰好 67 分，若仅因递交前生日降到 66 分，R3
 ## 风险
 
 R36 仍可能将 FSW 获邀时恰好 67 分、递交前仅因生日降至 66 分的个案判为 `NOT_MET`。分数依据 SRC-267a “Selection factors” 及 SRC-261b，IRPR ss.76(1)(a)(iv)、81。IRCC 公共政策 “Conditions” 允许获授权官员对符合条件的个案给予豁免。本轮按审核意见记录该风险，R36 保持原判定。[IRCC 获邀后年龄豁免政策](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)
+
+## 第九轮审核修正（review85-9）
+
+### 1. 做了什么
+
+建议提交 `Fix: 逐名核对随行未成年子女监护同意并修正 AIP 补交警证效期（review85-9）`。对应 PROGRESS 第 571 条。
+
+家庭担保 R74 与六条经济类路径的 R25 共用逐名子女检查。受抚养资格沿用各项目锁龄日，监护文件按联邦申请收件时是否未满 18 岁核对，准备申请时按模拟日核对。每名需要另一位法定家长同意的随行子女，有同意或准许迁居的法院文件时为 `MET`。仅附说明待审、缺件或权限不明为 `UNKNOWN`（PD-245）。已明确禁止迁居为 `NOT_MET`。已有证据确认可单独决定迁居、另一位法定家长是担保人或双方均随行时，满足此项。依据 SRC-274g，IMM 5533 **第 6 页第 3 项**，以及 SRC-266h/i 第 3 页第 10 项和 SRC-279b 第 4 页第 18 项。[IRCC 配偶担保清单](https://www.canada.ca/content/dam/ircc/documents/pdf/english/kits/forms/imm5533/01-09-2022/imm5533e.pdf)
+
+逐人答案放在 `federal.members`。只有一名随行子女的伴侣担保也可读取原有的 `family.child.custodyAndConsentReady`。多名子女不能共用这个答案。`false` 表示缺件，明确禁止迁居用 `relocationAuthority: 'prohibited'`。
+
+AIP 的 R26 对应要求补交的现居国警证采用本申请的逐份补件回执。警证通常自签发日起一年有效，同时核对签发机关的较短效期。已知收件时过期为 `NOT_MET`。恰满一年而证上末日不明，或超过通常一年且 IRCC 是否接受仍不明时，为 `UNKNOWN`，已登记 PD-245。AIP 随初次申请提交的警证及其他路径仍按上一轮口径核对。依据 SRC-279e “Police certificates and clearances” 第 1–2 段、SRC-279b 第 4 页第 19 项及 SRC-266g/k。[IRCC AIP 申请指引](https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/atlantic-immigration/how-to-immigrate/permanent-residence.html)
+
+### 2. 怎么验证的
+
+在 `34e709f` 上先运行家庭担保及 AIP 的新回归，观察到 12 项失败，其中包括审核的两个复现输入。修正后的回归从公开入口 `evaluateCanadaFull` 分别断言单项及路径。
+
+| 复现条件 | 单项与路径结果 |
+|---|---|
+| 魁省外配偶担保，2026-10-20 收件，随行子女出生于 2016-01-01 | 文件齐备时，R74 与家庭担保均为 `MET`。缺件待审或答案缺失时，均为 `UNKNOWN`。明确无权迁居时，均为 `NOT_MET`。 |
+| 两名随行未成年子女，第一名材料齐备 | 第二名材料齐备、缺件、明确禁止迁居时，R74 与家庭担保依次为 `MET`、`UNKNOWN`、`NOT_MET`。 |
+| AIP 于 2026-06-10 递交，现居国警证 2026-02-01 签发、2027-02-01 到期，IRCC 于 2026-10-20 收到补件 | R26 与 AIP 均为 `MET`。迪拜警证在证上末日收件两者均为 `MET`，末日后收件两者均为 `NOT_MET`。 |
+
+经济类 R25 另覆盖 FSW、CEC、FST、PNP（Base 和 Enhanced）、魁省技术移民及 AIP 的三种监护材料状态。R26 跨路径测试使用同一签发日及补件日，确认六个月以上、通常一年以内的现居国警证仅在 AIP 补件分支适用一年口径。
+
+设置 `VITEST_MAX_WORKERS=2` 后执行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码为 0。全仓 5,463 项测试通过，1 项既有测试跳过，构建生成 27 个静态页面。两份新增官方快照的 SHA-256 与 SRC-274g、SRC-279e 的登记值一致。`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+按要求留在工作区，未提交。与 `34e709f` 比对，原时间入口 `evaluateCanada`、旧版参数、原时间测试和加拿大页面调用均无差异。
+
+### 4. 发现与建议
+
+审核风险第 2 项仍在。FSW 获邀时恰好 67 分，若在递交前仅因生日降至 66 分，R36 仍可能输出 `NOT_MET`。选拔分依据 SRC-267a “Selection factors” 及 SRC-261b，IRPR ss.76(1)(a)(iv)、81。获授权官员可依公共政策 “Conditions” 审查符合条件的个案并给予年龄豁免。本轮仅记录该风险。[IRCC 获邀后年龄豁免公共政策](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)

@@ -66,7 +66,6 @@ export interface FamilyAnswers {
   child?: DependentChildAnswers & {
     parentageConfirmed?: boolean;
     priorDisclosureExamOrExceptionConfirmed?: boolean;
-    custodyAndConsentReady?: boolean;
   };
   applicationClass?: 'family' | 'inland';
   cohabitingInCanada?: boolean;
@@ -132,6 +131,10 @@ export function familyChecks({ req, L, check }: Context): Item[] {
   const qc = f.quebec;
   const filing = filingDatesForRoute(req, 'CA-FAMILY');
   const date = filing.federal ?? req.simulationDate;
+  const childDocumentDate =
+    filing.childAgeLockIn ??
+    receivedBy(filing.federal, req.simulationDate) ??
+    req.simulationDate;
   const provDate = filing.provincial ?? req.simulationDate;
   const fundTable = v.familyQuebecIncome.value;
   const currentQuebecTable =
@@ -457,6 +460,7 @@ export function familyChecks({ req, L, check }: Context): Item[] {
             accompanyingChildrenEligible(
               req.federal?.members,
               filing.childAgeLockIn,
+              childDocumentDate,
               partner ? child : undefined,
             ),
             partner ||
@@ -471,8 +475,8 @@ export function familyChecks({ req, L, check }: Context): Item[] {
               ),
           ),
       L(
-        `核对先前申报、移民检查及适用例外。直接担保和随行的子女均在完整申请收件日锁龄。当日未满 ${v.familyChildAge.value} 岁者，审理期间须持续无配偶或同居伴侣。已达该年龄者，须自该年龄前持续经济依赖父母，且因身心状况无法自立。`,
-        `Check prior declaration, examination and applicable exceptions. Age locks at complete receipt for both directly sponsored and accompanying children. A child under ${v.familyChildAge.value} on that date must remain unmarried and without a common-law partner throughout processing. Older children must have depended on parental financial support since before that age and remain unable to support themselves due to a physical or mental condition.`,
+        `核对先前申报、移民检查及适用例外。直接担保和随行的子女均在完整申请收件日锁龄。当日未满 ${v.familyChildAge.value} 岁者，审理期间须持续无配偶或同居伴侣。已达该年龄者，须自该年龄前持续经济依赖父母，且因身心状况无法自立。联邦申请中每名未满 ${v.childConsentAgeLimit.value} 岁、需要另一位法定家长同意的子女，须有其同意或准许迁居的法院文件。仅提供缺件说明时，等待审查。`,
+        `Check prior declaration, examination and applicable exceptions. Age locks at complete receipt for both directly sponsored and accompanying children. A child under ${v.familyChildAge.value} on that date must remain unmarried and without a common-law partner throughout processing. Older children must have depended on parental financial support since before that age and remain unable to support themselves due to a physical or mental condition. For each immigrating child under ${v.childConsentAgeLimit.value} on the federal application who needs the other legal parent's consent, check that consent or a court document permitting relocation. An explanation for missing documents awaits review.`,
       ),
       [
         ref('SRC-261', 'IRPR ss.2, 25.1, 117(9)–(11), 125'),
@@ -480,6 +484,7 @@ export function familyChecks({ req, L, check }: Context): Item[] {
           'SRC-274',
           'Guide 5289: Definitions of dependent children; Step 5, incomplete applications',
         ),
+        ...v.childConsentAgeLimit.sources,
       ],
       ['PD-245', 'PD-255'],
     ),

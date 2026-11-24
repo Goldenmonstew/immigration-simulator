@@ -138,6 +138,7 @@ describe('Québec PSTQ selection and federal filing', () => {
             relationship: 'child',
             accompanying: true,
             unmarriedAndUnpartnered: true,
+            custodyAndConsentReady: true,
             otherAdmissibility: 'clear',
             exam: {
               instructionOn: date,

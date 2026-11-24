@@ -195,6 +195,76 @@ test('R74 evaluates each accompanying sibling from their own answers', () => {
   }
 });
 
+const accompanyingMinor: FederalMember = {
+  ...person,
+  relationship: 'child',
+  dateOfBirth: '2016-01-01',
+  accompanying: true,
+  unmarriedAndUnpartnered: true,
+  otherAdmissibility: 'clear',
+  exam: { disposition: 'exempt' },
+};
+
+test.each([
+  [{ custodyAndConsentReady: true }, 'MET'],
+  [{ custodyAndConsentReady: false }, 'UNKNOWN'],
+  [{}, 'UNKNOWN'],
+  [{ relocationAuthority: 'prohibited' }, 'NOT_MET'],
+  [{ relocationAuthority: 'no-separate-consent-required' }, 'MET'],
+] as const)(
+  'R74 and spousal sponsorship: sole accompanying minor %j → %s',
+  (answer, expected) => {
+    const result = filedFamily(
+      { child: { ...base.child, ...answer } },
+      undefined,
+      undefined,
+      undefined,
+      [accompanyingMinor],
+    );
+    const check = result.checks.find((c) => c.id === 'CA-R74')!;
+    expect(check.status).toBe(expected);
+    expect(result.status).toBe(expected);
+    if (expected === 'UNKNOWN')
+      expect(check.pendingDetails).toContain('PD-245');
+  },
+);
+
+test.each([
+  [{ custodyAndConsentReady: true }, 'MET'],
+  [{}, 'UNKNOWN'],
+  [{ relocationAuthority: 'prohibited' }, 'NOT_MET'],
+] as const)(
+  'R74 and spousal sponsorship: second minor’s own evidence %j → %s',
+  (answer, expected) => {
+    const result = filedFamily(
+      { child: { ...base.child, custodyAndConsentReady: true } },
+      undefined,
+      undefined,
+      undefined,
+      [
+        { ...accompanyingMinor, custodyAndConsentReady: true },
+        { ...accompanyingMinor, dateOfBirth: '2018-06-01', ...answer },
+      ],
+    );
+    expect(result.checks.find((c) => c.id === 'CA-R74')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  },
+);
+
+test.each([
+  ['2008-10-20', 'MET'],
+  ['2008-10-21', 'UNKNOWN'],
+] as const)(
+  'R74 checks minority at federal filing for a child born %s → %s',
+  (dateOfBirth, expected) => {
+    const result = filedFamily({}, undefined, undefined, undefined, [
+      { ...accompanyingMinor, dateOfBirth },
+    ]);
+    expect(result.checks.find((c) => c.id === 'CA-R74')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  },
+);
+
 test('R74 locks child age on confirmed complete receipt, including a later resubmission', () => {
   const child: FamilyAnswers = {
     relationship: 'child',

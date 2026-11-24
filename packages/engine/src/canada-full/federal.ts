@@ -445,7 +445,12 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
         misrepresentationCleared(a, filed, req.simulationDate),
         cleared(a.protectionAndCompliance),
         familyScope,
-        family || accompanyingChildrenEligible(a.members, childAgeLockIn),
+        family ||
+          accompanyingChildrenEligible(
+            a.members,
+            childAgeLockIn,
+            receivedBy(filed, req.simulationDate) ?? req.simulationDate,
+          ),
       ),
       L(
         `分别核对非社会救助生计安排、保护身份和合规决定。虚报禁期自境外最终认定或境内遣返令执行日起 ${criminal.misrepresentationYears} 年。核对模拟日是否仍在禁期内，以及 PR 申请是否在禁期内递交。未随行家属按关系、监护及正式决定核对。`,
@@ -454,14 +459,15 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
         (family
           ? ''
           : L(
-              ' 随行子女以本项目完整申请的收件日锁龄。低于年龄上限者须持续无配偶或同居伴侣，已达上限者核对持续经济依赖及身心状况。',
-              ' For each accompanying child, use the age at complete receipt for the applicable program stage. Children under the age limit must remain unmarried and without a common-law partner. For older children, check continued financial dependency and the disabling condition.',
+              ' 随行子女以本项目完整申请的收件日锁龄。低于年龄上限者须持续无配偶或同居伴侣，已达上限者核对持续经济依赖及身心状况。联邦申请中每名需要另一位法定家长同意的随行未成年人，须有其同意或准许迁居的法院文件。缺件待审时，监护同意仍待确认。',
+              ' For each accompanying child, use the age at complete receipt for the applicable program stage. Children under the age limit must remain unmarried and without a common-law partner. For older children, check continued financial dependency and the disabling condition. For each accompanying minor who needs the other legal parent’s consent, check that consent or a court document permitting relocation. Missing documents awaiting review leave consent unconfirmed.',
             )),
       [
         ref(
           'SRC-261',
           'IRPA ss.39–42, especially s.40(2)(a), (3); IRPR ss.1(3), 2 (dependent child), 23, 25.1(1), (3)–(5), 70(1)(e), 72(1), 125',
         ),
+        ...(family ? [] : ca.values.childConsentAgeLimit.sources),
       ],
       ['PD-243', 'PD-245'],
     ),
@@ -483,10 +489,19 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
           biometrics(p, principalDob(p), date),
         ),
       ),
-      L(
-        `现居国警证以 IRCC 收到该份证书的日期核对：随申请提交用本路径联邦收件日，补交用本路径的补件收件日。证书须在此前 ${ca.values.federalPolice.value.currentCertificateMonths} 个月内签发，且符合签发机关注明的效期。原居国警证可在到期后使用，须覆盖最后一次符合条件的停留。需要 IRCC 索证信时，随申请上传说明，等候发信及补件；香港警方直送的警证以 IRCC 对该份警证的收件回执确认。AIP 可先递交申请。另核本次 PR 生物识别。`,
-        `Use the date IRCC received the current-country certificate for this application, whether at initial filing or as a supplement. It must have been issued within the previous ${ca.values.federalPolice.value.currentCertificateMonths} months and must meet the issuer’s validity limit. An expired former-country certificate can qualify if it covers the last qualifying stay. Where IRCC requires a request letter, upload the explanation with the application and await the letter and certificate. For Hong Kong, confirm IRCC received the certificate from the police. AIP permits initial filing without all certificates. Check PR biometrics separately.`,
-      ),
+      (procedure === 'atlantic'
+        ? L(
+            `现居国警证随 AIP 申请递交时，须在此前 ${ca.values.federalPolice.value.currentCertificateMonths} 个月内签发。也可应 IRCC 要求补交，此时按该份证书的补件收件日核效期，通常自签发日起 ${ca.values.federalPolice.value.atlanticUsualCertificateYears} 年有效。另核签发机关效期。超出通常期限、能否接受尚未明确时，等待 IRCC 确认。`,
+            `At initial AIP filing, a current-country certificate must have been issued within the previous ${ca.values.federalPolice.value.currentCertificateMonths} months. It can also be submitted on request. At receipt of that supplement, check the usual validity of ${ca.values.federalPolice.value.atlanticUsualCertificateYears} year from issue and the issuer’s expiry. Acceptance beyond the usual period needs IRCC confirmation.`,
+          )
+        : L(
+            `现居国警证以 IRCC 收到该份证书的日期核对。证书须在本申请或补件收件日前 ${ca.values.federalPolice.value.currentCertificateMonths} 个月内签发，并符合签发机关效期。`,
+            `At receipt of the application or supplement, the current-country certificate must have been issued within the previous ${ca.values.federalPolice.value.currentCertificateMonths} months and meet the issuer’s validity limit.`,
+          )) +
+        L(
+          ' 原居国警证可在到期后使用，须覆盖最后一次符合条件的停留。需要 IRCC 索证信时，随申请上传说明，等候发信及补件。香港警方直送的警证以 IRCC 对该份警证的收件回执确认。另核本次 PR 生物识别。',
+          ' An expired former-country certificate can qualify if it covers the last qualifying stay. Where IRCC requires a request letter, upload the explanation with the application and await the letter and certificate. For Hong Kong, confirm IRCC received the certificate from the police. Check PR biometrics separately.',
+        ),
       [
         ref('SRC-261', 'IRPA ss.10.01, 16; IRPR Part 1, Division 2.1'),
         ...ca.values.federalPolice.sources,

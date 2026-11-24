@@ -73,7 +73,14 @@ describe('Atlantic Immigration Program', () => {
     ['dubai-police', '2026-07-01', undefined, '2026-10-01', 'UNKNOWN'],
     ['dubai-police', '2026-07-01', undefined, '2026-10-20', 'NOT_MET'],
     [undefined, '2026-04-20', '2027-04-20', '2026-10-20', 'MET'],
-    [undefined, '2026-04-20', '2027-04-20', '2026-10-21', 'NOT_MET'],
+    [undefined, '2026-04-20', '2027-04-20', '2026-10-21', 'MET'],
+    [undefined, '2026-02-01', '2027-02-01', '2026-10-20', 'MET'],
+    [undefined, '2026-02-01', undefined, '2026-10-20', 'MET'],
+    [undefined, '2025-10-20', '2026-10-20', '2026-10-20', 'MET'],
+    [undefined, '2025-10-20', undefined, '2026-10-20', 'UNKNOWN'],
+    [undefined, '2025-10-20', undefined, '2026-10-21', 'UNKNOWN'],
+    [undefined, '2025-10-20', '2026-10-20', '2026-10-21', 'NOT_MET'],
+    [undefined, '2025-10-20', '2027-10-20', '2026-10-21', 'UNKNOWN'],
   ] as const)(
     'R26 and AIP: %s current certificate issued %s, expires %s, supplement received %s → %s',
     (
@@ -95,6 +102,7 @@ describe('Atlantic Immigration Program', () => {
           applications: { 'CA-AIP': { ...filed, filedOn: undefined } },
           principal: {
             ...person,
+            definitiveChecklistSatisfied: undefined,
             exam: { disposition: 'exempt' },
             foreignStays: [
               {

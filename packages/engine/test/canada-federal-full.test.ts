@@ -298,20 +298,46 @@ describe('initial PR federal checks', () => {
       '2026-10-20',
     ],
   ] as const)(
-    'R25 on %s uses the child’s age at complete receipt and continuing relationship status (%j)',
+    'R25 on %s checks locked-in age, continuing dependency and minor relocation consent (%j)',
     (id, stage, filedOn) => {
-      for (const [unmarriedAndUnpartnered, expected] of [
-        [true, 'MET'],
-        [false, 'NOT_MET'],
-        [undefined, 'UNKNOWN'],
+      for (const [child, expected] of [
+        [{ dateOfBirth: '2004-10-01', unmarriedAndUnpartnered: true }, 'MET'],
+        [
+          { dateOfBirth: '2004-10-01', unmarriedAndUnpartnered: false },
+          'NOT_MET',
+        ],
+        [{ dateOfBirth: '2004-10-01' }, 'UNKNOWN'],
+        [
+          {
+            dateOfBirth: '2016-01-01',
+            unmarriedAndUnpartnered: true,
+            custodyAndConsentReady: true,
+          },
+          'MET',
+        ],
+        [
+          {
+            dateOfBirth: '2016-01-01',
+            unmarriedAndUnpartnered: true,
+            custodyAndConsentReady: false,
+          },
+          'UNKNOWN',
+        ],
+        [
+          {
+            dateOfBirth: '2016-01-01',
+            unmarriedAndUnpartnered: true,
+            relocationAuthority: 'prohibited',
+          },
+          'NOT_MET',
+        ],
       ] as const) {
         const member: FederalMember = {
           ...person,
           relationship: 'child',
           accompanying: true,
           otherAdmissibility: 'clear',
-          dateOfBirth: '2004-10-01',
-          unmarriedAndUnpartnered,
+          ...child,
           dependentBeforeCutoffAndContinuing: false,
         };
         const route = result(id, {
@@ -520,6 +546,16 @@ describe('initial PR federal checks', () => {
       certificateIssued: '2026-10-22',
       supplementReceipts: { [id]: '2026-10-23' },
     };
+    expect(
+      assess([
+        {
+          ...current,
+          certificateIssued: '2026-04-20',
+          certificateExpires: '2027-04-20',
+          supplementReceipts: { [id]: '2026-11-01' },
+        },
+      ]),
+    ).toBe(id === 'CA-AIP' ? 'MET' : 'NOT_MET');
     expect(
       assess([{ ...current, certificateIssued: '2026-04-20' }, confirmed]),
     ).toBe('MET');
