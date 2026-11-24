@@ -134,16 +134,16 @@ export function evaluateIrelandFull(
   const renewal = family?.application?.registrationStage === 'renewal';
   const inState =
     currentLocation === undefined ? undefined : currentLocation === 'state';
-  const returnOn = inState === false
-    ? request.trips
-      .filter(({ departed, returned }) => departed <= day && day < returned)
-      .map(({ returned }) => returned)
-      .sort()
-      .at(-1)
-    : undefined;
+  const returnOn = request.trips
+    .filter(({ departed, returned }) => departed <= day && (
+      inState === false ? day < returned : inState === true && day === returned
+    ))
+    .map(({ returned }) => returned)
+    .sort()
+    .at(-1);
+  const confirmedPermission = permissionValidity(request.registration);
   const registrationValidity = request.registration?.validPermission === undefined
-    ? true
-    : permissionValidity(request.registration);
+    ? true : confirmedPermission;
   const currentPermissions = activePermissions(request.permissions, day);
   const irpExpiresOn = request.registration?.irpExpiresOn;
   const familyReturn = returnOn
@@ -158,6 +158,22 @@ export function evaluateIrelandFull(
               !request.permissions.some(({ kind, from }) => kind !== 'ni-residence' && from <= day)),
       }
     : undefined;
+  const app = family?.application;
+  const returnEvidence = app?.entryOrConversionOnReturn;
+  const confirmedReturn = familyReturn && returnEvidence?.date === familyReturn.date && returnEvidence.valid;
+  const permissionCoversToday = irpExpiresOn
+    ? day <= irpExpiresOn
+    : confirmedPermission === true || currentPermissions.some(({ kind }) => kind !== 'protection-applicant');
+  const inStateSpouseEntry = app?.channel === 'spouse-in-state'
+    ? app.spouseInStateEntry ?? (
+        confirmedReturn ? 'with-permission'
+          : familyReturn && !familyReturn.currentPermissionCoversReturn ? undefined
+          : request.registration?.renewalPending && confirmedPermission !== true ? undefined
+          : confirmedPermission === false ? 'spouse-unit'
+          : permissionCoversToday ? 'with-permission' : undefined
+      )
+    : undefined;
+  const familyFiling = { returning: familyReturn, spouseEntry: inStateSpouseEntry } as const;
   const timeline = (stamp4Route: IeStamp4Route) =>
     evaluateIreland({ ...request, stamp4Route });
   const legacyNaturalisation = options.some(
@@ -231,7 +247,7 @@ export function evaluateIrelandFull(
           dob,
           inState,
           renewalDates?.opens,
-          familyReturn,
+          familyFiling,
         );
         break;
       case 'IE-STAMP5':
@@ -248,7 +264,7 @@ export function evaluateIrelandFull(
         );
         break;
       case 'IE-STAMP4-IRISH-FAMILY':
-        directFamily(a, family ?? {}, dob, inState, familyReturn);
+        directFamily(a, family ?? {}, dob, inState, familyFiling);
         break;
       case 'IE-LTR-PRINCIPAL':
       case 'IE-LTR-FAMILY':

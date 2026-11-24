@@ -221,6 +221,63 @@ describe('Ireland full naturalisation', () => {
     expect(route.earliestDate).toBeUndefined();
   });
 
+  test.each(['IE-NATURALISATION', 'IE-SPOUSE'] as const)(
+    '%s counts documented residence without a Stamp for an exempt applicant',
+    (id) => {
+      const from = '2020-01-01';
+      const requiredYears = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
+      const request = {
+        ...naturalisationApplications[id],
+        registration: { basis: 'exempt' },
+        permissions: [],
+        citizenship: {
+          ...citizen,
+          spouse,
+          residence: [{ from, basis: 'reckonable' }],
+          residenceEvidence: {
+            requiredYears,
+            years: requiredYears.map((year) => ({ year, strong: 1, supporting: 1 })),
+          },
+          unregisteredResidenceEvidence: [{ from, to: day }],
+        },
+      } satisfies Partial<IrelandFullRequest>;
+      expect(checks(id, request, {
+        A04: 'MET', A08: 'MET', 'NAT-CONTINUOUS': 'MET', 'NAT-ABSENCES': 'MET', 'NAT-PRIOR': 'MET',
+      })).toMatchObject({ status: 'MET', earliestDate: day });
+      expect(checks(id, {
+        ...request,
+        citizenship: { ...request.citizenship, unregisteredResidenceEvidence: [{ from, to: '2026-11-22' }] },
+      }, { 'NAT-CONTINUOUS': 'UNKNOWN', 'NAT-PRIOR': 'MET' }))
+        .toMatchObject({ status: 'UNKNOWN', earliestDate: undefined, pendingDetails: expect.arrayContaining(['PD-323']) });
+      expect(checks(id, {
+        ...request,
+        citizenship: { ...request.citizenship, unregisteredResidenceEvidence: undefined },
+      }, { A08: 'MET', 'NAT-CONTINUOUS': 'UNKNOWN', 'NAT-PRIOR': 'UNKNOWN' }))
+        .toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+    },
+  );
+
+  test.each([
+    ['IE-MINOR-BORN-IN-STATE', 'A04'],
+    ['IE-MINOR-NATURALISED-PARENT', 'A04'],
+    ['IE-IRISH-ASSOCIATIONS', 'A04'],
+    ['IE-PROTECTION', 'A20'],
+    ['IE-PUBLIC-SERVICE', 'A04'],
+  ] as const)('%s uses verified unregistered residence when no separate residence timeline is entered', (id, check) => {
+    expect(checks(id, {
+      ...naturalisationApplications[id],
+      registration: { basis: 'exempt' },
+      permissions: [],
+      citizenship: {
+        ...naturalisationFacts,
+        residence: undefined,
+        unregisteredResidenceEvidence: [{ from: residenceFrom, to: day }],
+        association: { ...naturalisationFacts.association, waiverGranted: false },
+        publicService: { ...naturalisationFacts.publicService, waiverGranted: false },
+      },
+    }, { [check]: 'MET' })).toBeDefined();
+  });
+
   test('birthday and missing filing evidence do not turn into eligibility', () => {
     const route = checks(
       ordinary,
@@ -1504,6 +1561,55 @@ describe('Ireland family Stamp 4', () => {
     );
   });
 
+  test('Irish spouse applicants use the financial checks for their filing channel', () => {
+    const application = {
+      ...familyApplication,
+      channel: 'spouse-in-state',
+      applicantCharacter: good,
+      grossTaxYears: [10000, 10000, 10000],
+      chieflyOnStateSupportYears: 2,
+      housing: { kind: 'excluded-public' },
+    } satisfies NonNullable<IrelandFamily['application']>;
+    const withPermission = {
+      permissions: [{ kind: 'stamp1', from: '2025-01-01' }],
+      family: { ...family, application },
+    } satisfies Partial<IrelandFullRequest>;
+    const conversion = checks(direct, withPermission, { B14: 'MET', B21: 'MET' });
+    expect(conversion).toMatchObject({ status: 'MET', earliestDate: day });
+    for (const id of ['B16', 'B17', 'B19']) expect(checkOf(conversion.checks, id)).toBeUndefined();
+    expect(checks(direct, {
+      ...withPermission,
+      family: { ...family, application: { ...application, familyEvidenceComplete: undefined } },
+    }, { B21: 'UNKNOWN' })).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+
+    const withoutPermission = {
+      permissions: [],
+      registration: { ...registration, validPermission: false },
+      family: { ...family, application: { ...application, spouseUnitUndueBurdenCleared: true } },
+    } satisfies Partial<IrelandFullRequest>;
+    const shortfall = checks(direct, withoutPermission, { B14: 'MET', B16: 'MET', B17: 'NOT_MET', B21: 'MET' });
+    expect(shortfall).toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+    expect(checkOf(shortfall.checks, 'B19')).toBeUndefined();
+    const meetsSpouseUnit = { ...withoutPermission.family.application, grossTaxYears: [10000, 15000, 15000] };
+    expect(checks(direct, {
+      ...withoutPermission,
+      family: { ...family, application: meetsSpouseUnit },
+    }, { B16: 'MET', B17: 'MET' })).toMatchObject({ status: 'MET', earliestDate: day });
+    expect(checks(direct, {
+      ...withoutPermission,
+      family: { ...family, application: { ...meetsSpouseUnit, spouseUnitUndueBurdenCleared: undefined } },
+    }, { B16: 'UNKNOWN', B17: 'MET' })).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+    expect(checks(direct, {
+      ...withoutPermission,
+      registration: { ...withoutPermission.registration, renewalPending: true },
+    }, { B14: 'UNKNOWN', B21: 'UNKNOWN' }))
+      .toMatchObject({ status: 'UNKNOWN', earliestDate: undefined, pendingDetails: expect.arrayContaining(['PD-330']) });
+    expect(checks(direct, {
+      family: { ...family, application: { ...meetsSpouseUnit, channel: 'ordinary' } },
+    }, { B16: 'NOT_MET', B17: 'NOT_MET', B19: 'NOT_MET' }))
+      .toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+  });
+
   test.each([
     ['spouse-in-state', 'spouse', 'B21'],
     ['de-facto-in-state', 'de-facto', 'B22'],
@@ -1574,17 +1680,29 @@ describe('Ireland family Stamp 4', () => {
       [returned, false, 'NOT_MET'],
       ['2026-11-27', true, 'UNKNOWN'],
     ] as const) {
-      expect(result(direct, {
+      const before = {
         ...expired,
         registration: expiredCard,
         family: {
           ...request.family,
           application: {
             ...request.family.application,
+            entryOrConversionValid: undefined,
             entryOrConversionOnReturn: { date, valid },
           },
         },
-      })).toMatchObject({ status, earliestDate: status === 'FUTURE' ? returned : undefined });
+      };
+      expect(result(direct, before)).toMatchObject({ status, earliestDate: status === 'FUTURE' ? returned : undefined });
+      const after = {
+        ...before,
+        simulationDate: returned,
+        currentLocation: 'state',
+        permissions: [...expired.permissions, { ...permission, from: returned }],
+        registration: { ...registration, registrationDate: returned },
+      } satisfies Partial<IrelandFullRequest>;
+      const afterStatus = status === 'FUTURE' ? 'MET' : status;
+      expect(checks(direct, after, { B14: afterStatus, [check]: afterStatus }))
+        .toMatchObject({ status: afterStatus, earliestDate: afterStatus === 'MET' ? returned : undefined });
     }
   });
 
@@ -1872,20 +1990,6 @@ describe('Ireland family Stamp 4', () => {
       direct,
       { family: { ...family, application: { ...gross, date: '2026-06-12' } } },
       { B17: 'NOT_MET' },
-    );
-    checks(
-      direct,
-      {
-        family: {
-          ...family,
-          application: {
-            ...gross,
-            channel: 'spouse-in-state',
-            date: '2026-06-12',
-          },
-        },
-      },
-      { B17: 'UNKNOWN' },
     );
     checks(
       direct,

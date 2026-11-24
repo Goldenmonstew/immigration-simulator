@@ -465,7 +465,7 @@ export const irelandFull2026_11 = {
         { srcId: 'SRC-386', locator: 'Financial Thresholds and Table 1' },
         {
           srcId: 'SRC-388',
-          locator: 'Financial requirements; Who can sponsor me?',
+          locator: 'Irish spouse scheme: Am I eligible? — Where you do not have permission to be in Ireland; Overseas de facto: Who can sponsor me?',
         },
       ],
     },

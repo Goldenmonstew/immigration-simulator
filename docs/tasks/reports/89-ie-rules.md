@@ -383,3 +383,30 @@ PROGRESS 689 对应建议提交 `Fix: 统一爱尔兰续期许可时间线并核
 ### 4. 发现与建议
 
 **交接页面任务 99**。显示完整版 `summary` 中跨到期日的说明，提醒用户用届时持有的许可或正式延续证明更新资料并按实际递交日重算。境内转换问卷采集可核对的返爱日，以及必要时按该日期确认的入境及转换依据 `family.application.entryOrConversionOnReturn`。该字段的日期须对应本次行程。共用来源表在英国政策页的展示见任务 89 总结。
+
+## 第八轮审核修正（review89-8）
+
+### 1. 做了什么
+
+PROGRESS 690 对应建议提交 `Fix: 修正爱尔兰免登记入籍计时、境内配偶入口及返爱日重算（review89-8）`。
+
+| 路径 | 判定与来源 |
+|---|---|
+| 免登记入籍居住 | 一般及配偶入籍将 `unregisteredResidenceEvidence` 覆盖的已核实居住日期用于 `NAT-CONTINUOUS` 和 `NAT-PRIOR`，同时按原口径计算 `NAT-ABSENCES`。有实际居住记录时对照其范围。居住已申报但合法可计范围缺证时，按 PD-323 给 `UNKNOWN`。其他入籍分支也可用该证明建立居住时间线。逐年证明评分 A08 独立核对。见 SRC-091 ss15(1)(c)、15A(1)(e)–(f)、15C 及 SRC-095 Guide 的 Reckonable Residence for Citizens of an EEA country, Switzerland or the UK。 |
+| 境内配偶／民事伴侣 | B14／B21 按选定入口核对资格和材料。持有效许可的入口核对财力及共同住址证明。配偶事务组以 B17 核对过去三年合计 €40,000 的收入，排除国家福利，以 B16 核对个案过度负担。入口或个案条件未确认时按 PD-330 处理。普通境外团聚继续按政策版本核对收入及适用住房要求。见 SRC-388 Am I eligible? 的两个小节、SRC-384 首次登记清单及 SRC-387 June 2026 §§5.5、9–10。 |
+| 配偶及 de facto 返爱日 | 返爱前预测和实际返爱当天重算均读取本次行程日期对应的 `entryOrConversionOnReturn`。确认有效的输入可从 `FUTURE` 转为 `MET`，明确无效的输入为 `NOT_MET`，日期不符且无其他已确认依据时为 `UNKNOWN`。见 SRC-388 两条境内路径的 Am I eligible?、SRC-384 登记 FAQ 的 Travel and Re-Entry Visas 及 PD-330。 |
+
+### 2. 怎么验证的
+
+- `VITEST_MAX_WORKERS=2 pnpm --filter @uk-immigration/engine exec vitest run test/ireland-full.test.ts test/ireland.test.ts` 通过 161 项。覆盖无 Stamp 的七条入籍分支、居住佐证截止日、境内配偶两种入口与普通境外团聚的对照、两条境内伴侣路径返爱前及当天的状态和日期，以及旧计时引擎的回归。
+- 从 `ed7f009` 读取旧 `evaluateIreland`，对六组居住时间线、五个 Stamp 选项及中英文逐项比对。60 个输入的完整结果一致。
+- 设置 `VITEST_MAX_WORKERS=2` 后运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码为 0。engine 3,331 项通过、文案导出 1 项默认跳过。game 1,336 项、web 659 项、policy-data 23 项、error-report 2 项通过。Next.js 生成 27 个静态页面。
+- `git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+改动留在 `fable/89-ie-rules` 工作树，供 Fable 提交。任务 99 的页面接线、浏览器 E2E 和部署留待后续。
+
+### 4. 发现与建议
+
+任务 99 采集已核实的免登记合法居住起止日，并区分两种境内配偶入口。短期 C 签、申请庇护或登记被拒等情况可用 `family.application.spouseInStateEntry: 'spouse-unit'` 明确选择入口。`grossTaxYears` 在该入口填写剔除国家福利后的收入，`spouseUnitUndueBurdenCleared` 用于已确认的个案负担条件。申请人返爱当天重算时保留对应本次行程的日期证据。参见 PD-323、PD-330。

@@ -3,7 +3,7 @@ import {
   irelandFull2026_11 as full,
 } from '@uk-immigration/policy-data';
 import { addDays, addYears, daysBetween } from '../dates';
-import { evaluateIreland, permissionValidity, RECKONABLE } from '../ireland';
+import { evaluateIreland, evaluateIrelandTimeline, permissionValidity, RECKONABLE } from '../ireland';
 import type { IeRequest, IeTrip } from '../ireland';
 import { Days } from '../pilot';
 import type { IsoDate } from '../types';
@@ -390,6 +390,7 @@ function minorResidence(
 function spouseClock(
   req: IeRequest,
   s: NonNullable<IrelandCitizenship['spouse']>,
+  evidence: Parameters<typeof evaluateIrelandTimeline>[1],
 ) {
   const postings = mergePeriods(s.postingPeriods ?? [], req.simulationDate);
   const trips = req.trips.flatMap((trip) => {
@@ -405,7 +406,7 @@ function spouseClock(
       segments.push({ departed: addDays(from, -1), returned: trip.returned });
     return segments;
   });
-  return evaluateIreland({
+  return evaluateIrelandTimeline({
     ...req,
     stamp4Route: 'none',
     trips,
@@ -416,7 +417,7 @@ function spouseClock(
         kind: 'ni-residence' as const,
       })),
     ],
-  }).pathways[1];
+  }, evidence).pathways[1];
 }
 
 export function naturalisation(
@@ -437,7 +438,14 @@ export function naturalisation(
   const associated = route === 'IE-IRISH-ASSOCIATIONS';
   const protection = route === 'IE-PROTECTION';
   const publicService = route === 'IE-PUBLIC-SERVICE';
-  const residence = residenceWithTrips(c, req);
+  const exemptRegistration = registration?.basis === 'exempt';
+  const unregistered = c.unregisteredResidenceEvidence;
+  const residence = residenceWithTrips(
+    exemptRegistration && c.residence === undefined && unregistered !== undefined
+      ? { ...c, residence: unregistered.map((period) => ({ ...period, basis: 'reckonable' })) }
+      : c,
+    req,
+  );
   const adultAge = ageAtLeast(dob, day, p.age.value.adult);
   const appropriateAge =
     isMinor || parent
@@ -529,11 +537,21 @@ export function naturalisation(
   if (route === 'IE-NATURALISATION' || isSpouse) {
     const spouseWithoutDate = isSpouse && !req.marriedOn;
     const clockRequest = spouseWithoutDate ? { ...req, marriedOn: day } : req;
+    const evidence = exemptRegistration && (residence !== undefined || !req.permissions.length)
+      ? {
+          possible: residence?.filter(({ basis }) => basis !== 'excluded'),
+          confirmed: (residence ?? []).filter(({ basis }) => basis === 'reckonable')
+            .flatMap(({ from, to }) => (unregistered ?? []).map((period) => ({
+              from: period.from > from ? period.from : from,
+              to: to && to < period.to ? to : period.to,
+            }))),
+        }
+      : undefined;
     const original =
       isSpouse && spouse?.postingPeriods?.length
-        ? spouseClock(clockRequest, spouse)
-        : spouseWithoutDate
-          ? evaluateIreland(clockRequest).pathways[1]
+        ? spouseClock(clockRequest, spouse, evidence)
+        : evidence || spouseWithoutDate
+          ? evaluateIrelandTimeline(clockRequest, evidence).pathways[isSpouse ? 1 : 0]
           : legacy!.pathways[isSpouse ? 1 : 0];
     const clock = { ...original, checks: [...original.checks] };
     const waivedIndexes = ['marriage', 'continuous', 'continuous', 'prior'].map(
@@ -584,9 +602,9 @@ export function naturalisation(
     }
     const ids = ['NAT-CONTINUOUS', 'NAT-ABSENCES', 'NAT-PRIOR'];
     const pending = [
-      ['PD-114', 'PD-321'],
+      ['PD-114', 'PD-321', ...(evidence ? ['PD-323'] : [])],
       ['PD-111'],
-      ['PD-112', 'PD-113', 'PD-114'],
+      ['PD-112', 'PD-113', 'PD-114', ...(evidence ? ['PD-323'] : [])],
     ];
     a.time(
       clock,

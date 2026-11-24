@@ -27,6 +27,11 @@ interface FamilyReturn {
   currentPermissionCoversReturn: boolean;
 }
 
+interface FamilyFiling {
+  returning?: FamilyReturn;
+  spouseEntry?: 'with-permission' | 'spouse-unit';
+}
+
 export interface IrelandFamily {
   relationship?: FamilyRelationship;
   relationshipValidAndGenuine?: boolean;
@@ -74,11 +79,16 @@ export interface IrelandFamily {
       | 'spouse-in-state'
       | 'de-facto-in-state'
       | 'de-facto-overseas';
-    /** Confirm the approved entry, or the applicant's eligible lawful status for an in-State conversion. */
+    /** Confirm the approved entry or eligibility to use the selected in-State channel. */
     entryOrConversionValid?: boolean;
     /** Confirm a basis for re-entry and lawful status eligible for conversion on this return date. */
     entryOrConversionOnReturn?: { date: IsoDate; valid: boolean };
+    /** Select the Spouse Unit for the special cases listed by ISD, including short-stay visas and refused registration. */
+    spouseInStateEntry?: FamilyFiling['spouseEntry'];
+    /** Case-specific evidence that remaining in the State would not create an undue burden under the Spouse Unit scheme. */
+    spouseUnitUndueBurdenCleared?: boolean;
     sponsorResponsible?: boolean;
+    /** Earned gross income by tax year. For the Spouse Unit, exclude State welfare benefits. */
     grossTaxYears?: number[];
     previousTaxYearNet?: number;
     minorChildren?: number;
@@ -238,24 +248,27 @@ function familyRenewal(
 function familyApplication(
   a: IrelandAssessment,
   data: IrelandFamily,
-  dob?: IsoDate,
-  inState?: boolean,
-  tripReturn?: FamilyReturn,
+  dob: IsoDate | undefined,
+  inState: boolean | undefined,
+  filing: FamilyFiling,
 ) {
   const { add, L, day } = a;
   const app = data.application ?? {};
   const channel = app.channel;
+  const inStateSpouse = channel === 'spouse-in-state';
+  const spouseEntry = inStateSpouse ? filing.spouseEntry : undefined;
   const inStateDeFacto = channel === 'de-facto-in-state';
-  const inStateConversion = channel === 'spouse-in-state' || inStateDeFacto;
-  const returning = inStateConversion ? tripReturn : undefined;
+  const inStateConversion = inStateSpouse || inStateDeFacto;
+  const returning = inStateConversion ? filing.returning : undefined;
   const returnOn = returning?.date;
   const returnEvidence = app.entryOrConversionOnReturn;
   const entryOrConversion = !returning || returning.currentPermissionCoversReturn
     ? app.entryOrConversionValid
     : undefined;
-  const eligibleBasis = returning && returnEvidence?.date === returning.date
-    ? returnEvidence.valid
-    : entryOrConversion;
+  const eligibleBasis = all(
+    inStateSpouse && spouseEntry === undefined ? undefined : true,
+    returning && returnEvidence?.date === returning.date ? returnEvidence.valid : entryOrConversion,
+  );
   const filedOn = app.date ?? day;
   const date = returnOn && returnOn > filedOn ? returnOn : filedOn;
   const versions = p.versions.value;
@@ -386,7 +399,17 @@ function familyApplication(
   const reliance = app.chieflyOnStateSupportYears;
   const relianceMet =
     reliance === undefined ? undefined : reliance < inc.relianceYears;
-  add(
+  if (spouseEntry === 'spouse-unit') {
+    add(
+      'B16',
+      app.spouseUnitUndueBurdenCleared,
+      L(
+        '配偶事务组逐案核对申请人获准留下后是否会成为国家的过度负担（PD-330）。',
+        'The Spouse of Irish National Unit assesses whether granting permission would create an undue burden on the State (PD-330).',
+      ),
+      ['PD-330'],
+    );
+  } else if (!inStateSpouse) add(
     'B16',
     all(
       app.sponsorResponsible,
@@ -437,7 +460,17 @@ function familyApplication(
               app.incomeMaintained,
             )
           : undefined;
-  if (category !== 'C' || children === 0 || children === undefined) {
+  if (spouseEntry === 'spouse-unit') {
+    add(
+      'B17',
+      adultIncome === undefined ? undefined : adultIncome >= inc.specializedCategoryA,
+      L(
+        `配偶事务组核对爱尔兰公民配偶或民事伴侣过去 ${inc.taxYearsA} 年合计至少 €${inc.specializedCategoryA} 的收入，国家福利不计。`,
+        `The Spouse of Irish National Unit checks that the Irish spouse or civil partner earned at least €${inc.specializedCategoryA} over the last ${inc.taxYearsA} years, excluding State welfare benefits.`,
+      ),
+      ['PD-330'],
+    );
+  } else if (!inStateSpouse && (category !== 'C' || children === 0 || children === undefined)) {
     add(
       'B17',
       gross === false && app.verifiedSavingsMaySupplement ? undefined : gross,
@@ -452,7 +485,7 @@ function familyApplication(
       ['PD-329', 'PD-330', 'PD-331'],
     );
   }
-  if (category === 'C' && children !== undefined && children > 0) {
+  if (!inStateSpouse && category === 'C' && children !== undefined && children > 0) {
     const threshold =
       inc.categoryCWithChildren[
         Math.min(children, inc.categoryCWithChildren.length) - 1
@@ -478,7 +511,7 @@ function familyApplication(
     );
   }
 
-  if (current) {
+  if (current && !inStateSpouse) {
     const h = app.housing;
     const n = p.housing.value;
     const lived =
@@ -599,7 +632,7 @@ function familyApplication(
     false,
   );
   const insurance = app.insurance;
-  if (channel === 'spouse-in-state') {
+  if (inStateSpouse) {
     addApplicationCheck(
       'B21',
       all(
@@ -607,13 +640,18 @@ function familyApplication(
         partner && rel !== 'de-facto',
         livingTogether,
         app.addressEvidence,
-        firstRegistrationInsurance(insurance),
+        spouseEntry === 'with-permission'
+          ? all(app.familyEvidenceComplete, firstRegistrationInsurance(insurance))
+          : spouseEntry === 'spouse-unit' ? true : undefined,
         character(app.applicantCharacter),
-        returning ? eligibleBasis : true,
+        eligibleBasis,
       ),
-      L(
-        `核对爱尔兰公民合法配偶／民事伴侣、同址及首次登记保险（通常 ${e.firstRegistrationInsuranceMonths} 个月，较短许可按全段）。专门境内案参见 PD-330。`,
-        `Check the Irish spouse or civil partner, joint address and first-registration insurance (normally ${e.firstRegistrationInsuranceMonths} months or the full shorter permission). See PD-330 for the dedicated in-State route.`,
+      spouseEntry === 'spouse-unit' ? L(
+        '配偶事务组按专门清单核对配偶关系、同址、品格和申请材料（PD-330）。',
+        'The Spouse of Irish National Unit uses its own checklist for the relationship, joint address, character and application documents (PD-330).',
+      ) : L(
+        `持有效许可者核对配偶关系、双方身份、同址和财力证明，以及首次登记所需保险（通常 ${e.firstRegistrationInsuranceMonths} 个月，较短许可按全段）。申请入口待核实见 PD-330。`,
+        `Applicants with valid permission need proof of the relationship, both identities, joint address and financial means, plus first-registration insurance (normally ${e.firstRegistrationInsuranceMonths} months or the full shorter permission). See PD-330 when the channel is unconfirmed.`,
       ),
       ['PD-330'],
     );
@@ -718,7 +756,7 @@ export function independentFamily(
   dob?: IsoDate,
   inState?: boolean,
   renewalOpens?: IsoDate,
-  tripReturn?: FamilyReturn,
+  filing: FamilyFiling = {},
 ) {
   if (data.application?.registrationStage === 'renewal') {
     familyRenewal(a, data, inState);
@@ -863,7 +901,7 @@ export function independentFamily(
       ['PD-329'],
     );
   }
-  if (data.application) familyApplication(a, data, dob, inState, tripReturn);
+  if (data.application) familyApplication(a, data, dob, inState, filing);
 }
 
 export function directFamily(
@@ -871,7 +909,7 @@ export function directFamily(
   data: IrelandFamily,
   dob?: IsoDate,
   inState?: boolean,
-  tripReturn?: FamilyReturn,
+  filing: FamilyFiling = {},
 ) {
   const relation = data.relationship;
   a.add(
@@ -903,5 +941,5 @@ export function directFamily(
             data.application.channel === 'spouse-in-state',
   );
   if (isFirstFamilyRegistration(data)) firstFamilyRegistration(a, data, inState);
-  else familyApplication(a, { ...data, sponsorCategory: 'A' }, dob, inState, tripReturn);
+  else familyApplication(a, { ...data, sponsorCategory: 'A' }, dob, inState, filing);
 }

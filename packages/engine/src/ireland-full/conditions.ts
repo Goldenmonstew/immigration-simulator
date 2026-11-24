@@ -332,6 +332,7 @@ const conditions = {
     [
       ['SRC-387', 'June 2026 §§9.1–9.7, 10.2–10.6'],
       ['SRC-386', 'Introduction'],
+      ['SRC-388', 'Irish spouse scheme: Am I eligible? — Where you do not have permission to be in Ireland'],
     ],
   ],
   B17: [
@@ -340,6 +341,7 @@ const conditions = {
     [
       ['SRC-387', 'June 2026 §§10.7–10.14 and November 2025 §10'],
       ['SRC-386', 'Financial thresholds'],
+      ['SRC-388', 'Irish spouse scheme: Am I eligible? — Where you do not have permission to be in Ireland'],
     ],
   ],
   B18: [
