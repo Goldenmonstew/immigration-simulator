@@ -35,6 +35,7 @@ import {
   backlogCredits,
   nationalityIncomeCheck,
   settlementChecks,
+  tenYearResidence,
   type GrSettlementAnswers,
 } from './greece-settlement';
 import {
@@ -615,6 +616,23 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
       earliestDate &&
       earliestDate > req.simulationDate
     ) {
+      if (
+        id === 'GR-TEN-YEAR' &&
+        req.tenYear?.basis === 'residence' &&
+        req.tenYear.stage !== 'renewal' &&
+        tenYearResidence({ ...req, simulationDate: earliestDate }) !== true
+      ) {
+        const index = rules.findIndex((check) => check.id === 'TY-01');
+        summary = c.L(
+          '现有许可记录无法证明在预计递件日仍满足连续居留条件。请先续期或补充衔接的许可记录，再核对递件日。',
+          'The permit record does not establish continuous qualifying residence on the projected filing date. Renew the permit or supply the missing permit records before confirming a filing date.',
+        );
+        rules[index] = {
+          ...rules[index],
+          status: 'UNKNOWN',
+          explanation: summary,
+        };
+      }
       if (incomeIndex >= 0) {
         const income = nationalityIncomeCheck(
           { ...req, simulationDate: earliestDate },

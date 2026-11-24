@@ -150,6 +150,29 @@ test.each([
   },
 );
 
+test.each([
+  [undefined, 'UNKNOWN'],
+  ['possible-risk', 'UNKNOWN'],
+  ['entry-refused', 'NOT_MET'],
+  ['cleared', 'MET'],
+] as const)(
+  'Ε.1 initial grant checks public health (%s) on either visa route',
+  (publicHealth, status) => {
+    for (const entry of ['national-visa', 'short-stay'] as const) {
+      const path = route('GR-WORK', {
+        simulationDate: '2024-11-23',
+        entry,
+        work: blue,
+        publicHealth,
+      });
+      expect(path.checks.find((item) => item.id === 'C-04')?.status).toBe(
+        status,
+      );
+      expect(path.status).toBe(status);
+    }
+  },
+);
+
 test('residence and age waits use the actual anniversary and require every other condition', () => {
   const familyTcn: Family = {
     ...reunion,
@@ -738,9 +761,9 @@ test('joint researcher filing still requires genuine family documents and distin
 });
 
 test.each([
-  ['short-stay', 'cleared', 'MET', 'MET', 'MET'],
-  ['short-stay', 'possible-risk', 'MET', 'UNKNOWN', 'UNKNOWN'],
-  ['short-stay', 'entry-refused', 'MET', 'NOT_MET', 'NOT_MET'],
+  ['short-stay', 'cleared', 'UNKNOWN', 'MET', 'UNKNOWN'],
+  ['short-stay', 'possible-risk', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN'],
+  ['short-stay', 'entry-refused', 'UNKNOWN', 'NOT_MET', 'NOT_MET'],
   ['unlawful', 'cleared', 'NOT_MET', 'MET', 'NOT_MET'],
 ] as const)(
   'Ο.1 joint Blue Card filing with %s entry and %s health assessment',
@@ -758,14 +781,45 @@ test.each([
     expect(result.checks.find((item) => item.id === 'FT-01')?.status).toBe(
       'MET',
     );
-    expect(result.checks.find((item) => item.id === 'C-02')).toMatchObject({
+    const entryCheck = result.checks.find((item) => item.id === 'C-02');
+    expect(entryCheck).toMatchObject({
       status: entryStatus,
       sources: expect.arrayContaining([
         expect.objectContaining({ srcId: 'SRC-376' }),
       ]),
     });
+    if (entryStatus === 'UNKNOWN') {
+      expect(entryCheck?.pendingDetails).toEqual(['PD-319']);
+      expect(result.pendingDetails).toContain('PD-319');
+    }
     expect(result.checks.find((item) => item.id === 'C-04')?.status).toBe(
       healthStatus,
+    );
+    expect(result.status).toBe(status);
+  },
+);
+
+test.each([
+  [false, 'UNKNOWN'],
+  [undefined, 'UNKNOWN'],
+  [true, 'MET'],
+] as const)(
+  'Ο.1 joint short-stay filing with sponsor Blue Card validity %s',
+  (sponsorPermitValid, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      entry: 'short-stay',
+      familyTcn: {
+        ...reunion,
+        sponsor: 'blue-card',
+        jointInitialApplication: true,
+        sponsorPermitValid,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'FT-01')?.status).toBe(
+      'MET',
+    );
+    expect(result.checks.find((item) => item.id === 'C-02')?.status).toBe(
+      status,
     );
     expect(result.status).toBe(status);
   },

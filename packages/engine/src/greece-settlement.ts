@@ -479,7 +479,9 @@ export function backlogCredits(r: GrFullRequest): GrPermit[] {
     }));
 }
 
-function tenYearResidence(r: GrFullRequest): boolean | IsoDate | undefined {
+export function tenYearResidence(
+  r: GrFullRequest,
+): boolean | IsoDate | undefined {
   const legacy = r.simulationDate < v.workReformEffective.value;
   if (legacy && r.tenYear?.legacyTenLawfulYears) return true;
   if (!r.permits) return legacy ? r.tenYear?.legacyTenLawfulYears : undefined;

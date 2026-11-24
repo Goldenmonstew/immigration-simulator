@@ -375,3 +375,27 @@ PROGRESS 第 660 条对应一组修正。建议提交名为 `Fix: 修正希腊�
 ### 4. 发现与建议
 
 PD-319 已补记特殊就业及投资者仅知担保大类时的同步递件问题，并保留已获难民身份者的专门程序。个案需补查适用的具体许可和递件依据。
+
+## 第九轮审核修正（review88-9）
+
+### 1. 做了什么
+
+PROGRESS 第 661 条。建议提交名为 `Fix: 修正希腊首签卫生检查、蓝卡家属短停与 Μ.2 递件日判断（review88-9）`。
+
+- **首签公共卫生（C-04）**。合法短停与持 D 签递件均核对公共卫生。Β.5 购房与 Ε.1 蓝卡主申请人的对照覆盖四种结论。在其余材料齐备时，漏答或风险待认定为 `UNKNOWN`，因公共卫生被拒入境为 `NOT_MET`，卫生审查已通过为 `MET`。风险待认定沿用 PD-302。[SRC-086 第 8(d) 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=14) · [ΜΙΤΟΣ 蓝卡短停首签条件 3](https://en.mitos.gov.gr/index.php/%CE%94%CE%94%3AResidence_permit_of_a_highly_qualified_employee_%28%E2%80%98E.1%E2%80%99%29_following_admission_with_a_uniform_visa_or_visa-free_regime_%E2%80%93_Initial_granting)
+- **蓝卡家属（C-02、FT-01）**。主卡待批时，两份完整申请可同步审理，FT-01 为 `MET`。家属凭合法短停同步递件的依据仍待确认，C-02 为 `UNKNOWN`，已登记 PD-319。主卡已签发后，家属凭合法短停首签的 C-02 为 `MET`。[SRC-086 第 42(3) 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=35) · [SRC-376 条件 2–3、材料 1–3](https://en.mitos.gov.gr/index.php/%CE%94%CE%94%3AResidence_permit_for_family_members_of_a_highly_qualified_residence_permit_holder_%28%E2%80%98E.1%E2%80%99%29_%E2%80%93_Initial_granting)
+- **Μ.2 普通首签（TY-01）**。取居留与融入两项等待期中较晚的日期，再用同一套连续居留规则核对该日。审核案例的许可止于 2027-11-24，融入条件到 2028-11-24 才满足，路径现为 `UNKNOWN`，不输出最早递件日，并提示先续期或补充许可记录。补入衔接许可且有效期恰好覆盖 2028-11-24 后，路径为 `FUTURE`，推进至当天为 `MET`。[SRC-087 修法第 38 条，第 161(1)(a) 条](https://api.et.gr/apiFEK/1/2026/17/pdf#page=40)
+
+### 2. 怎么验证的
+
+在基线 `bdcae33d` 上先加入公开入口回归，14 项失败，覆盖三条审核意见。修正后运行 `VITEST_MAX_WORKERS=2 pnpm --filter @uk-immigration/engine exec vitest run test/greece-property-family.test.ts test/greece-work-family.test.ts test/greece-settlement.test.ts`，278 项通过。蓝卡家属回归同时覆盖现行及旧版同步递件字段，并独立核对 C-02、FT-01 和路径结论。
+
+设置 `VITEST_MAX_WORKERS=2` 后，串行执行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码 0。共 5,570 项测试通过（error-report 2、policy-data 23、engine 3,537、game 1,348、web 660），既有文案导出测试按配置跳过 1 项。静态导出完成 27/27 页，已核实 `apps/web/out/greece.html` 非空。`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+按要求保留未提交的工作树。时间版 `evaluateGreece` 及其原测试、共用结果结构、网页目录与基线无差异。此次验收在本地完成，未运行浏览器 e2e 或部署。
+
+### 4. 发现与建议
+
+PD-319 待补的证据是主管机关明确接受蓝卡主申请待批时，家属凭合法短停同步递交首签的手续依据。Μ.2 案例需要补充个人续期或许可记录，适用条款见 SRC-087 第 38 条。

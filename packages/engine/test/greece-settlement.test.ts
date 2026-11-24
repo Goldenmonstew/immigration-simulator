@@ -357,6 +357,38 @@ describe('M.2 acquisition and conversion', () => {
         .status,
     ).toBe('NOT_MET');
   });
+  test('the M.2 residence record must cover the projected filing date, including the expiry day', () => {
+    const permit = {
+      kind: 'regular',
+      from: '2016-11-24',
+      to: '2027-11-24',
+    } as const;
+    const integration = {
+      basis: 'residence',
+      continuousFrom: permit.from,
+      includesStudyOrDisputedGap: false,
+    } as const;
+    const path = full(ty, { permits: [permit], integration });
+    expect(path.status).toBe('UNKNOWN');
+    expect(path.earliestDate).toBeUndefined();
+    expect(path.checks.find((c) => c.id === 'TY-01')).toMatchObject({
+      status: 'UNKNOWN',
+      explanation: expect.stringContaining('续期'),
+    });
+    const filing = '2028-11-24';
+    const renewal = {
+      kind: 'regular',
+      from: '2027-11-25',
+      to: filing,
+    } as const;
+    const covered = { permits: [permit, renewal], integration };
+    expect(full(ty, covered)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: filing,
+    });
+    expect(full(ty, { ...covered, simulationDate: filing }).status).toBe('MET');
+  });
+
   test('the original article 161 integration and conversion rules apply before commencement', () => {
     const r = {
       simulationDate: '2026-02-05',

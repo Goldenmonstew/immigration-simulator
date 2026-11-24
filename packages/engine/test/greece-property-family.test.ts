@@ -613,6 +613,21 @@ describe('property and family reviews through evaluateGreeceFull', () => {
   }
 
   test.each([
+    [undefined, 'UNKNOWN'],
+    ['possible-risk', 'UNKNOWN'],
+    ['entry-refused', 'NOT_MET'],
+    ['cleared', 'MET'],
+  ] as const)(
+    'Β.5 initial purchase checks public health (%s) on either visa route',
+    (publicHealth, status) => {
+      for (const entry of ['national-visa', 'short-stay'] as const) {
+        const path = full('GR-GOLDEN-VISA', { entry, publicHealth });
+        verify(path, 'C-04', status);
+      }
+    },
+  );
+
+  test.each([
     [false, 'NOT_MET'],
     [undefined, 'UNKNOWN'],
     [true, 'MET'],

@@ -529,11 +529,16 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
   return checks;
 }
 
-function sponsorPermitForFiling(f: FamilyAnswers, L: GrContext['L']) {
-  const joint =
+export function isJointInitialApplication(f: FamilyAnswers) {
+  return (
     f.stage === 'initial' &&
     (f.jointInitialApplication ??
-      (f.sponsor === 'blue-card' && f.jointBlueCardApplication));
+      (f.sponsor === 'blue-card' && f.jointBlueCardApplication))
+  );
+}
+
+function sponsorPermitForFiling(f: FamilyAnswers, L: GrContext['L']) {
+  const joint = isJointInitialApplication(f);
   if (joint) {
     switch (f.sponsor) {
       case 'blue-card':

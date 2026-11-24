@@ -4,6 +4,7 @@ import { addMonths, addYears } from './dates';
 import type { GrFullPathwayId, GrFullRequest } from './greece-full';
 import { ageOn, all, insuranceMet } from './greece-rules';
 import type { GrContext } from './greece-rules';
+import { isJointInitialApplication } from './greece-work-family';
 import type { IsoDate } from './types';
 
 const p = greeceFull2026_11.values;
@@ -322,7 +323,13 @@ export function commonChecks(
     (work && !renewal) ||
     (reunion && req.familyTcn?.stage === 'initial');
   if (initialEntry) {
-    const blueCardFamily = reunion && req.familyTcn?.sponsor === 'blue-card';
+    const family = req.familyTcn;
+    const blueCardFamily = reunion && family?.sponsor === 'blue-card';
+    const unconfirmedShortStay =
+      blueCardFamily &&
+      entry === 'short-stay' &&
+      isJointInitialApplication(family) &&
+      !family.sponsorPermitValid;
     const shortStayOk =
       initialGold ||
       greekFamily ||
@@ -341,7 +348,7 @@ export function commonChecks(
         break;
       case 'short-stay':
         if (!work || (kind && (kind === 'E1' || req.work?.admission)))
-          allowed = shortStayOk;
+          allowed = unconfirmedShortStay ? undefined : shortStayOk;
         break;
       case 'national-visa':
       case 'permit':
@@ -363,7 +370,10 @@ export function commonChecks(
           ...(blueCardFamily
             ? [
                 grSource('F16', 'arts. 42(1)–(3), 86(1)'),
-                grSource('F60', 'procedure 517141, condition 2, documents 1–3'),
+                grSource(
+                  'F60',
+                  'procedure 517141, conditions 2–3, documents 1–3',
+                ),
               ]
             : []),
           ...(initialGold
@@ -376,13 +386,14 @@ export function commonChecks(
         initialGold && entry === 'outside'
           ? `境外可凭合规授权书递件。自递件起 ${p.investorEntryMonths.value} 个月内须入境补录指纹及欠交的保险凭证。`
           : blueCardFamily
-            ? '蓝卡家属单独或同步首签，均可持团聚 D 签、申根短期签证或凭免签入境证明，在合法停留期内递件。'
+            ? '家属可持团聚 D 签递件。主卡已签发时，家属也可凭申根短期签证或免签入境证明在合法停留期内递件。主卡待批时，须核实合法短停能否用于同步首签。'
             : '核对申请类别对应的入境签证、免签或准许转换的居留证件。境外邀请阶段尚需核实实际入境文件。',
         initialGold && entry === 'outside'
           ? `A qualifying mandate allows filing before entry. Enter within ${p.investorEntryMonths.value} months of filing to submit biometrics and any outstanding insurance evidence.`
           : blueCardFamily
-            ? 'For a separate or joint initial Blue Card family application, the family member may file during a lawful stay with a family D visa, a uniform short-stay visa or evidence of visa-free entry.'
+            ? 'A family member may file with a family D visa. Once the Blue Card is issued, the family member may also file during a lawful short stay with a uniform visa or evidence of visa-free entry. Confirm whether short-stay entry permits joint filing while the Blue Card is pending.'
             : 'Check the visa for this purpose, lawful short stay or qualifying change of status. An invitation from abroad still requires entry documents for the permit.',
+        unconfirmedShortStay ? ['PD-319'] : undefined,
       ),
     );
   }
@@ -392,6 +403,7 @@ export function commonChecks(
     initialEntry &&
     (reunion ||
       entry === 'national-visa' ||
+      entry === 'short-stay' ||
       entry === 'outside' ||
       entry === undefined)
   ) {
