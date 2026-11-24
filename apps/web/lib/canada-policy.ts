@@ -26,11 +26,31 @@ const set: PolicyRuleSet = {
   ],
 };
 
+// A PR date one residence window before the policy date.
+const windowBefore =
+  String(Number(ca.asOf.slice(0, 4)) - v.prWindowYears.value) +
+  ca.asOf.slice(4);
+
 // Each branch of the engine reports the conditions it assesses. Together
 // these branches reach every condition, with its sources and pending details.
-const branches: Omit<CaFullRequest, 'simulationDate' | 'locale'>[] = [
+const branches: (Omit<CaFullRequest, 'simulationDate' | 'locale'> & {
+  simulationDate?: string;
+})[] = [
   {},
   { permanentResident: ca.asOf, trips: [], temporaryPeriods: [] },
+  // Rolling windows (PD-089, PD-090) and a 29 February date (PD-091).
+  {
+    simulationDate: '2028-02-29',
+    permanentResident: windowBefore,
+    trips: [],
+    temporaryPeriods: [],
+  },
+  // From the next federal fee adjustment neither the published schedule nor
+  // the current Québec income table applies (PD-258).
+  {
+    simulationDate: v.federalFees.value.nextAdjustment,
+    family: { quebec: true },
+  },
   {
     residence: {
       caf: { route: 'pr-member' },
@@ -55,7 +75,7 @@ const branches: Omit<CaFullRequest, 'simulationDate' | 'locale'>[] = [
 function conditions() {
   const rules = new Map<string, RuleMeta>();
   for (const branch of branches) {
-    const request = { ...branch, simulationDate: ca.asOf };
+    const request = { simulationDate: ca.asOf, ...branch };
     const zh = evaluateCanadaFull(request).columns[0].pathways;
     const en = evaluateCanadaFull({ ...request, locale: 'en' }).columns[0]
       .pathways;
@@ -78,7 +98,11 @@ function conditions() {
             )
           )
             rule.sources.push(source);
-        for (const pending of check.pendingDetails ?? [])
+        // The time baseline's details belong to the condition that shows it.
+        for (const pending of [
+          ...(check.pendingDetails ?? []),
+          ...(check.timeBaseline?.pendingDetails ?? []),
+        ])
           if (!rule.pendingDetails.includes(pending))
             rule.pendingDetails.push(pending);
         rules.set(check.id, rule);

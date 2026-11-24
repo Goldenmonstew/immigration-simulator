@@ -870,6 +870,22 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
+// review95-1 risk 1: pending details that need a later fee year, a PR older
+// than the window or a 29 February date are listed on the policy page too.
+test('policy conditions list pending details from later fee years and the time baselines', () => {
+  const rules = ca.policy.rules[ca.policy.displayedRuleSets[0].id];
+  const pending = (id: string) =>
+    rules.find((rule) => rule.id === id)!.pendingDetails;
+  for (const id of ['CA-R27', 'CA-R28', 'CA-R80'])
+    expect(pending(id), id).toContain('PD-258');
+  expect(pending('CA-R02')).toEqual(
+    expect.arrayContaining(['PD-089', 'PD-091']),
+  );
+  expect(pending('CA-R08')).toEqual(
+    expect.arrayContaining(['PD-090', 'PD-091']),
+  );
+});
+
 test('the policy page lists Canadian routes, all conditions and only Canadian sources', () => {
   expect(t('ca.policy.pageTitle')).toBe('加拿大政策依据');
   expect(t('ca.policy.pageTitle', 'en')).toBe('Policy basis for Canada');

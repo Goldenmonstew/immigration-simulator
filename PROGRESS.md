@@ -534,6 +534,7 @@
 | 581 | 任务 95 审核修正（review95-1 问题 3、建议 3 部分）。魁省担保群组标签写明“现有承诺及本次新增，每组一行”，避免首次担保人按“确认没有记录”漏算表 B；家庭担保申请类别改为“家庭类（Family Class）”；报税年份提示说明签署日不是 1 月 1 日时也列出签署当年。 | apps/web/i18n/countries/canada{,-form}.ts、apps/web/test/canada.test.tsx |
 | 582 | 任务 95 审核修正（review95-1 问题 4、建议 2）。加拿大路径已满足或不适用时不再显示“时间条件”与“仅按时间条件推算的日期”，也不显示“最早可申请日期：尚无法确定”；时间基线只在推算出未来日期时给出日期；不推算日期的未成年入籍与初次 PR 路径不显示日期行。结果页与对比页同时生效。 | apps/web/lib/canada-module.ts、apps/web/test/canada.test.tsx |
 | 583 | 任务 95 审核修正（review95-1 问题 6）。加拿大对比旋钮按对应问题校验整数与等级上限，通过校验的对比都能生成可打开的分享链接；清空旋钮会清除对应答案；改公民考试结果时去掉旧答对题数；问卷未填出境记录时不追加单趟，改为提示先补记录；CA-R31 不再跳到语言等级，未填邀请轮次时 CRS 跳转落在说明上。 | apps/web/lib/canada-{whatif,fields}.ts、apps/web/app/canada/whatif/controls.tsx、apps/web/i18n/countries/canada.ts、apps/web/test/canada.test.tsx |
+| 584 | 任务 95 审核修正（review95-1 风险 1）。加拿大政策页条件采样增加下一次联邦费表调整日（含魁省担保）与 2028-02-29、PR 早于一个居住窗口的分支，并收集条件时间基线的待定细节；CA-R27、R28、R80 列出 PD-258，CA-R02 列出 PD-089、PD-091，CA-R08 列出 PD-090、PD-091。 | apps/web/lib/canada-policy.ts、apps/web/test/canada.test.tsx |
 | 590 | 任务 86：核对并登记美国完整版官方快照、哈希及来源网址，追加 PD-260–279。 | docs/SOURCES.md、docs/pending-details.md、policy-sources/、apps/web/lib/sources.ts |
 | 591 | 任务 86：登记美国完整版出处、日期参数、数字门槛及费用。 | packages/policy-data/src/{index.ts,parameters/united-states-2026-11.ts} |
 | 592 | 任务 86：提供美国九路径完整版 CountryResult，接入既有时间计算，增加资格、审查与费用条件、回归测试及页面接线交接。 | packages/engine/src/{index.ts,united-states-full/}、packages/engine/test/united-states-full.test.ts、docs/tasks/reports/86-us-rules.md |
