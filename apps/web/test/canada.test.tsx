@@ -12,7 +12,7 @@ import { t, type TranslationKey } from '../i18n';
 import { en } from '../i18n/en';
 import { LocaleContext } from '../i18n/locale';
 import { zhCN } from '../i18n/zh-CN';
-import type { CanadaDraft } from '../lib/canada-draft';
+import { canadaRequest, type CanadaDraft } from '../lib/canada-draft';
 import {
   canadaGoals,
   canadaSteps,
@@ -288,6 +288,52 @@ test('hidden routes and groups stay out of the engine, validation and share link
     'ca-federal-applications-CA-EE-FSW-biometricPayers': 'ca.error.integer',
   });
 });
+
+// review95-1 #1: the form asks for a percentage, the engine compares a fraction.
+test.each([
+  [1, 0.01, 'NOT_MET'],
+  [33.33, 0.3333, 'NOT_MET'],
+  [33.34, 0.3334, 'MET'],
+  [100, 1, 'MET'],
+] as const)(
+  'an equity share of %s%% reaches the engine as %s',
+  (percent, fraction, status) => {
+    const draft: CanadaDraft = {
+      ...ca.createDraft(),
+      simulationDate: '2026-11-24',
+      goals: ['CA-PNP'],
+      answers: {
+        pnp: {
+          stream: 'other',
+          nomination: 'valid',
+          nominationIssued: '2026-06-01',
+          nominationExpires: '2027-06-01',
+          intendsNominatingProvince: true,
+          investment: 'business',
+          equityShare: percent,
+          equityInvestment: 0,
+          activeOngoingManagement: true,
+          noRedemptionOption: true,
+          capitalInActiveBusinessInNominatingProvince: true,
+          investmentExceptionDocumented: true,
+        },
+        federal: { applications: { 'CA-PNP': { filedOn: '2026-10-01' } } },
+      },
+    };
+    expect(canadaRequest(draft, 'zh-CN').pnp?.equityShare).toBeCloseTo(
+      fraction,
+      10,
+    );
+    // The draft and its share link keep the percentage the user entered.
+    expect(
+      decodeDraft(ca, encodeDraft(ca, draft))?.answers.pnp?.equityShare,
+    ).toBe(percent);
+    expect(
+      pathway(draft, 'CA-PNP').checks.find(({ id }) => id === 'CA-R45')
+        ?.status,
+    ).toBe(status);
+  },
+);
 
 test('the result lists only chosen routes, with a future date, a met case and a pending case', () => {
   const draft = residencyDraft();

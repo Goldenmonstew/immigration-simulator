@@ -45,7 +45,17 @@ export function canadaRequest(
   locale: Locale,
 ): CaFullRequest {
   const { answers } = activeCanadaAnswers(draft);
-  return { ...answers, simulationDate: draft.simulationDate, locale };
+  const { pnp } = answers;
+  return {
+    ...answers,
+    // The form asks for a percentage; the engine compares a fraction with
+    // the one-third share in IRPR s87(5)–(6) (SRC-261).
+    ...(pnp?.equityShare !== undefined && {
+      pnp: { ...pnp, equityShare: pnp.equityShare / 100 },
+    }),
+    simulationDate: draft.simulationDate,
+    locale,
+  };
 }
 
 function activeRecord(fields: CanadaField[], record: Answers, goals: string[]) {
