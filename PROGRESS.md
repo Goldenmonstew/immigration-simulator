@@ -611,6 +611,8 @@
 | 717 | 任务 90 第五轮审核修正（review90-5）：R03 分开已结束月份的缴费和未来预测，同一岗位分行调薪保留工龄，候选决定日核对在职。R07 将非暂时性离境的逐证失效纳入入籍时间线。补公开入口回归并记录任务 100 字段语义。 | packages/engine/src/germany{,-full,-mobility}.ts、packages/engine/test/germany-{mobility,citizenship}.test.ts、docs/pending-details.md、docs/tasks/reports/90-de-rules.md |
 | 720 | 任务 100：德国完整版国家模块、问卷字段、草稿迁移、对比旋钮与政策目录，首页／问卷／结果／对比／政策页接入 `evaluateGermanyFull`；旧只算时间页面由新页面接管（Gemini 4 Argon 实现，额度中断后由 Fable 接手完成）。政策页标题按国家通用（同任务 93）。 | apps/web/lib/germany-{draft,fields,module,policy,policy-rules,whatif}.ts、删除 apps/web/lib/germany.ts、apps/web/app/germany/、apps/web/components/policy-page.tsx、apps/web/i18n/{zh-CN,en,countries/germany*}.ts、apps/web/lib/site-countries.ts |
 | 721 | 任务 100：德国页面单测与双语 e2e；修正样例草稿缺技术人员资格字段、入籍路径状态与对比渲染断言。 | apps/web/test/germany.test.tsx、apps/e2e/tests/germany.spec.ts |
+| 722 | 任务 100：逐份文书下的出境记录在未填时也可"确认无此项记录"，否则 § 51 文书存续条件只能停在待确认。 | apps/web/app/germany/simulate/evidence-fields.tsx |
+| 723 | 任务 100：按真实字段重写德国 e2e（问卷两步按单测样例填写、结果页路径与状态、首页英文标题），两条用例在浏览器中通过。 | apps/e2e/tests/germany.spec.ts |
 | 740 | 任务 91：登记日本完整版使用的官方法条、指南、手续费及办事材料，校对调研哈希，补 PD-360–379 与网页来源索引。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 741 | 任务 91：加入永住审查过渡、许可期间、教育与证据窗口、人才分值、帰化特例、再入国和手续费参数。 | packages/policy-data/src/{index.ts,parameters/japan-2026-11.ts} |
 | 742 | 任务 91：新增日本完整版评估入口，复用原时间结果，逐项检查永住、帰化与再入国并补边界测试。 | packages/engine/src/{index.ts,japan-full*.ts}、packages/engine/test/japan-full.test.ts、docs/tasks/reports/91-jp-rules.md |

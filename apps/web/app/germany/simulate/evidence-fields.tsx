@@ -137,7 +137,7 @@ function Question({
           >
             {t('de.form.add')} · {label}
           </button>
-          {supportsUnknown && !rows.length && (
+          {(supportsUnknown || value === undefined) && !rows.length && (
             <button
               type="button"
               className={form.copyRow}
