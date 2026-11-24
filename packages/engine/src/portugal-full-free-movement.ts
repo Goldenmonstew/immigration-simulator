@@ -50,52 +50,74 @@ function freeMovementContinuity({ req }: PtFullContext, at: IsoDate) {
     req.trips.map((t) => ({ ...t, reason: undefined, accepted: undefined }))
   ).filter((trip) => trip.departed < at && trip.returned > from);
   let justified = 0;
-  const ordinary: { from: string; to: string }[] = [];
-  let uncertain = false;
+  const ordinary: { from: IsoDate; to: IsoDate; exemptionRuledOut: boolean }[] =
+    [];
   for (const trip of trips) {
     const start = trip.departed < from ? from : trip.departed;
     const end = trip.returned > at ? at : trip.returned;
     if (trip.reason === 'military' && trip.accepted === true) continue;
-    if (end <= addMonths(start, limits.ordinaryMonths)) {
-      ordinary.push({ from: start, to: end });
-      continue;
-    }
-    if (trip.reason === 'ordinary' || trip.accepted === false) return false;
     if (
       trip.reason === 'justified' &&
-      end > addMonths(start, limits.justifiedMonths)
-    )
-      return false;
-    if (trip.reason === 'justified' && trip.accepted === true) justified += 1;
-    else uncertain = true;
+      trip.accepted === true &&
+      end > addMonths(start, limits.ordinaryMonths)
+    ) {
+      if (end > addMonths(start, limits.justifiedMonths)) return false;
+      justified += 1;
+      continue;
+    }
+    ordinary.push({
+      from: start,
+      to: end,
+      exemptionRuledOut:
+        trip.reason === 'ordinary' ||
+        trip.accepted === false ||
+        (trip.reason === 'justified' &&
+          end > addMonths(start, limits.justifiedMonths)),
+    });
   }
   if (justified > limits.maxJustifiedAbsences) return false;
-  // Leave borderline cumulative absences to the authority. Short trips
-  // safely below the minimum number of days in six months can be counted.
-  const [threshold] = monthSpan(limits.ordinaryMonths);
-  const cumulativeUnclear =
-    ordinary.length > 1 &&
-    ordinary.some((trip) => {
-      const end = addYears(trip.from, limits.ordinaryWindowYears);
-      const days = ordinary.reduce((total, candidate) => {
-        const from = candidate.from < trip.from ? trip.from : candidate.from;
-        const to = candidate.to > end ? end : candidate.to;
-        return total + (to > from ? daysBetween(from, to) : 0);
-      }, 0);
-      return (
-        days > threshold &&
-        ordinary.filter(
-          (candidate) => candidate.from < end && candidate.to > trip.from,
-        ).length > 1
-      );
-    });
-  const continuity = uncertain || cumulativeUnclear ? undefined : true;
-  const thirdCountry = e.applicant === 'third-country-family';
-  const joint =
-    thirdCountry && e.basis !== 'retained-family' ? e.livedWithSponsor : true;
+  let uncertain = false;
+  // Section 9.2 of the Commission guidance counts absences by residence anniversary.
+  const [minimumDays, maximumDays] = monthSpan(limits.ordinaryMonths);
+  for (
+    let offset = 0, start = from;
+    start < at;
+    start = addYears(from, offset)
+  ) {
+    offset += limits.ordinaryWindowYears;
+    const end = addYears(from, offset);
+    const segments = ordinary.filter(
+      (trip) => trip.from < end && trip.to > start,
+    );
+    let total = 0;
+    let confirmedOrdinaryDays = 0;
+    for (const trip of segments) {
+      const a = trip.from < start ? start : trip.from;
+      const b = trip.to > end ? end : trip.to;
+      if (b > addMonths(a, limits.ordinaryMonths)) {
+        if (trip.exemptionRuledOut) return false;
+        uncertain = true;
+      }
+      const days = daysBetween(a, b);
+      total += days;
+      if (trip.exemptionRuledOut) confirmedOrdinaryDays += days;
+    }
+    if (segments.length > 1) {
+      if (confirmedOrdinaryDays > maximumDays) return false;
+      if (total > minimumDays) uncertain = true;
+    }
+  }
+  const needsSponsor =
+    e.applicant === 'third-country-family' && e.basis !== 'retained-family';
+  const sharedPeriod =
+    e.qualifyingResidenceWithSponsor ??
+    (e.historicalBasisReview === 'clear' ||
+    e.sponsorResidenceBasisEstablished === true
+      ? true
+      : undefined);
   return all(
-    continuity,
-    joint,
+    uncertain ? undefined : true,
+    needsSponsor ? sharedPeriod : true,
     compare(e.expulsionExecuted, (value) => !value),
   );
 }
@@ -259,7 +281,8 @@ function earlyFamily(e: PtFreeMovementEvidence | undefined): Verdict {
       )
     : undefined;
   return all(
-    worker?.livedWithWorker,
+    worker?.residedInPortugalWithWorker ??
+      (worker?.livedWithWorker === true ? true : undefined),
     any(
       worker?.workerEarlyRight,
       all(
@@ -424,17 +447,19 @@ export function freeMovementResidence(ctx: PtFullContext) {
       continuity,
       compare(eligibleOn, (date) => date <= at),
     ),
-    '连续合法居留、出境及共同居住',
-    'Continuous lawful residence, absences and shared residence',
+    '连续合法居留与出境',
+    'Continuous lawful residence and absences',
     [
       ...p.freeMovementYears.sources,
       ...p.freeMovementAbsence.sources,
       law('art. 10(7)'),
+      src('SRC-493', 'C-244/13, paras. 36–38, 47 and operative part (1)'),
+      src('SRC-494', 'ss. 2.2.2.1, 9.1–9.2 and n. 236'),
     ],
     ['PD-396'],
     L(
-      `通常须连续 ${p.freeMovementYears.value} 年。每年不超过 ${p.freeMovementAbsence.value.ordinaryMonths} 个连续月、必要兵役或一次不超过 ${p.freeMovementAbsence.value.justifiedMonths} 个连续月的正当离境可保留连续性。`,
-      `The ordinary period is ${p.freeMovementYears.value} continuous years. Up to ${p.freeMovementAbsence.value.ordinaryMonths} consecutive months per year, required military service, or one justified absence up to ${p.freeMovementAbsence.value.justifiedMonths} consecutive months can preserve continuity.`,
+      `通常须连续 ${p.freeMovementYears.value} 年。普通离境按合法居留起始日的周年分年度累计，每年最多 ${p.freeMovementAbsence.value.ordinaryMonths} 个月。必要兵役或一次不超过 ${p.freeMovementAbsence.value.justifiedMonths} 个连续月的正当离境可保留连续性。普通家属路径需核对双方在葡萄牙的合资格居留期是否重叠，配偶可分址居住。`,
+      `The ordinary period is ${p.freeMovementYears.value} continuous years. Ordinary absences total up to ${p.freeMovementAbsence.value.ordinaryMonths} months in each year measured from the anniversary of lawful residence. Compulsory military service or one justified absence up to ${p.freeMovementAbsence.value.justifiedMonths} consecutive months can preserve continuity. For the ordinary family route, verify the overlapping qualifying residence in Portugal. Spouses may live at different addresses.`,
     ),
   );
   const checks = [
@@ -518,8 +543,8 @@ export function freeMovementResidence(ctx: PtFullContext) {
           check(
             'F06',
             earlyFamily(e),
-            '工作者同住家属提前取得永久权',
-            'Early permanent residence for family living with a worker',
+            '与工作者同期居葡的家属提前取得永久权',
+            'Early permanent residence for family residing in Portugal with the worker',
             p.workerFamilyResidenceYears.sources,
             ['PD-396'],
           ),

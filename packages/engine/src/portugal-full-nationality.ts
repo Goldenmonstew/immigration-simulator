@@ -3,17 +3,21 @@ import {
   all,
   any,
   compare,
+  fullContext,
   nationalityLaw,
   p,
   reviewed,
   src,
+  time,
 } from './portugal-full-common';
 import type { PtFullContext, Verdict } from './portugal-full-common';
 import type {
   PtNationalityCrime,
   PtNationalityEvidence,
 } from './portugal-full-types';
+import { evaluatePortugal } from './portugal';
 import type { PtPathway } from './portugal';
+import type { CountryPathway } from './country-result';
 import type { IsoDate } from './types';
 
 const newLaw = (locator: string) => src('SRC-120', locator);
@@ -199,7 +203,10 @@ function nationalityFee(
   ];
 }
 
-export function naturalisation(ctx: PtFullContext, pilot: PtPathway) {
+export function naturalisation(
+  ctx: PtFullContext,
+  pilot: PtPathway,
+): CountryPathway {
   const { req, at, L, check, pathway, pilotChecks } = ctx;
   const law = nationalityLaw(at, req.pendingApplication);
   const filing =
@@ -482,13 +489,46 @@ export function naturalisation(ctx: PtFullContext, pilot: PtPathway) {
     !req.pendingApplication &&
     checks[0].status === 'NOT_MET' &&
     (checks[0].id === 'PT-A01' || checks[0].id === 'PT-A12');
-  return pathway(pilot.id, title, waitingForAge ? checks.slice(1) : checks, {
-    pilot,
-    timing,
-    timeChecks: [qualifyingTime],
-    waits: waitingForAge ? [{ check: checks[0], until: adultOn }] : [],
-    notes: alternative ? [alternative, ...notes] : notes,
-  });
+  const current = pathway(
+    pilot.id,
+    title,
+    waitingForAge ? checks.slice(1) : checks,
+    {
+      pilot,
+      timing,
+      timeChecks: [qualifyingTime],
+      waits: waitingForAge ? [{ check: checks[0], until: adultOn }] : [],
+      notes: alternative ? [alternative, ...notes] : notes,
+    },
+  );
+  const projectedAt = current.earliestDate;
+  if (
+    old &&
+    waitingForAge &&
+    current.status === 'FUTURE' &&
+    projectedAt &&
+    projectedAt >= time.lawInForce.value
+  ) {
+    const projectionRequest = { ...req, simulationDate: projectedAt };
+    const projected = naturalisation(
+      fullContext(projectionRequest),
+      evaluatePortugal(projectionRequest).pathways[0],
+    );
+    return {
+      ...projected,
+      status: projected.status === 'MET' ? 'FUTURE' : projected.status,
+      earliestDate:
+        projected.status === 'MET' ? projectedAt : projected.earliestDate,
+      summary:
+        L(
+          `尚未递交。预计成年日 ${projectedAt} 将适用新国籍法，下列条件按该日复算（SRC-120 第 7–8 条）。`,
+          `No application is on file. The new nationality law will apply on the projected adulthood date of ${projectedAt}. The checks below use that date (SRC-120, arts. 7–8).`,
+        ) +
+        ' ' +
+        projected.summary,
+    };
+  }
+  return current;
 }
 
 export function partnerNationality(ctx: PtFullContext) {

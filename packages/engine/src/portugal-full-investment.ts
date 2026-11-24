@@ -446,6 +446,11 @@ export function investmentResidence(
         : undefined;
   const invested = compare(e?.investedOn, (date) => date <= at);
   const newRegime = at >= p.ariInvestmentReform.value;
+  const sponsorGrant =
+    e?.sponsorAriStatus === 'pending'
+      ? undefined
+      : (compare(e?.sponsorAriStatus, (status) => status === 'approved') ??
+        e?.sponsorAriValid);
   return pathway(
     id,
     title,
@@ -459,7 +464,7 @@ export function investmentResidence(
           compare(e?.visaRefusalGround, (value) => !value),
           family
             ? all(
-                e.sponsorAriValid,
+                sponsorGrant,
                 e.familyEvidenceAccepted,
                 e.relationshipContinues === false ? false : true,
               )
@@ -476,6 +481,7 @@ export function investmentResidence(
               foreignLaw(
                 'Lei 61/2025 art. 2 (Lei 23/2007 arts. 98(1), (3)(c), 99, 103(2)), pp4–6',
               ),
+              ariGuide('Reagrupamento Familiar'),
               ariFaq('FAQ 11'),
             ]
           : [
@@ -486,9 +492,12 @@ export function investmentResidence(
         family ? ['PD-392'] : ['PD-391'],
         family
           ? L(
-              '核对合法入境、有效证件、担保人的有效 ARI 和家庭团聚资格。ARI 家属适用法定等待期豁免。',
-              'Verify lawful entry, valid documents, a valid sponsor ARI and eligibility for family reunification. ARI family members are exempt from the statutory waiting period.',
-            )
+              '核对合法入境、有效证件和家庭团聚资格。ARI 家属享有法定等待期豁免，可以与主申请人同步递交。家属最终获批取决于主案获批。',
+              'Verify lawful entry, valid documents and family reunification eligibility. ARI family members are exempt from the waiting period and may file at the same time as the investor. Their grant depends on approval of the investor’s application.',
+            ) +
+              (e.sponsorAriStatus === 'pending'
+                ? L(' 主案待批。', ' The principal application is pending.')
+                : '')
           : L(
               `条文列有效申根签证及自首次入境起 ${entryLimit} 天办理；免签和首入境起点须向 AIMA 确认。`,
               `The law lists a valid Schengen visa and regularisation within ${entryLimit} days of first entry. Confirm visa-free cases and the starting event with AIMA.`,

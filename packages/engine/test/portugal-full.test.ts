@@ -494,6 +494,141 @@ describe('review92-1', () => {
   });
 });
 
+describe('review92-2', () => {
+  test.each([
+    ['pending', false, 'UNKNOWN', undefined],
+    ['approved', undefined, 'MET', '2026-11-23'],
+    ['refused', false, 'NOT_MET', undefined],
+  ] as const)(
+    'ARI family filed simultaneously with a %s sponsor case',
+    (sponsorAriStatus, sponsorAriValid, status, earliestDate) => {
+      const request = {
+        residence: {
+          ...residence,
+          means: { officialAssessment: 'clear' as const },
+        },
+        investment: {
+          ...investment,
+          holder: 'family' as const,
+          sponsorAriStatus,
+          sponsorAriValid,
+          familyEvidenceAccepted: true,
+          firstEntry: undefined,
+          regularizedOn: undefined,
+          investment: undefined,
+        },
+      };
+      statuses(D, request, { D01: status });
+      expect(pathway(D, request)).toMatchObject({ status, earliestDate });
+    },
+  );
+
+  test.each([
+    [undefined, 'clear', 'MET', '2023-01-01'],
+    [true, 'clear', 'MET', '2023-01-01'],
+    [false, 'clear', 'NOT_MET', undefined],
+    [undefined, 'pending', 'UNKNOWN', undefined],
+  ] as const)(
+    'a spouse at a different address with overlapping residence %s and review %s',
+    (
+      qualifyingResidenceWithSponsor,
+      historicalBasisReview,
+      status,
+      earliestDate,
+    ) => {
+      const request = {
+        freeMovement: {
+          ...freeMovement,
+          applicant: 'third-country-family' as const,
+          relationship: 'spouse' as const,
+          relationshipVerified: true,
+          sponsorEligible: true,
+          accompaniesOrJoins: true,
+          continuousResidenceFrom: '2018-01-01',
+          livedWithSponsor: false,
+          qualifyingResidenceWithSponsor,
+          historicalBasisReview,
+        },
+      };
+      statuses(F, request, { F02: status });
+      expect(pathway(F, request)).toMatchObject({ status, earliestDate });
+    },
+  );
+
+  test.each([
+    ['2018-01-01', 'MET', '2023-01-01'],
+    ['2018-07-01', 'NOT_MET', undefined],
+  ] as const)(
+    'accumulates ordinary trips by the anniversary of %s',
+    (continuousResidenceFrom, status, earliestDate) => {
+      const request = {
+        freeMovement: {
+          ...freeMovement,
+          continuousResidenceFrom,
+          absences: [
+            {
+              departed: '2021-08-01',
+              returned: '2021-12-01',
+              reason: 'ordinary' as const,
+            },
+            {
+              departed: '2022-02-01',
+              returned: '2022-06-01',
+              reason: 'ordinary' as const,
+            },
+          ],
+        },
+      };
+      statuses(F, request, { F02: status });
+      expect(pathway(F, request)).toMatchObject({ status, earliestDate });
+    },
+  );
+
+  test('allocates a single trip crossing a residence anniversary to both years', () => {
+    const request = {
+      freeMovement: {
+        ...freeMovement,
+        continuousResidenceFrom: '2018-10-01',
+        absences: [
+          {
+            departed: '2021-06-01',
+            returned: '2022-02-01',
+            reason: 'ordinary' as const,
+          },
+        ],
+      },
+    };
+    statuses(F, request, { F02: 'MET' });
+    expect(pathway(F, request)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2023-10-01',
+    });
+  });
+
+  test.each(['2026-05-19', '2026-06-01'])(
+    'rechecks an unfiled naturalisation application under the law in force on %s',
+    (adulthood) => {
+      const request = {
+        simulationDate: '2026-05-01',
+        birthDate: adulthood.replace('2026', '2008'),
+        emancipation: 'none' as const,
+        route: 'cplp' as const,
+        permits: [{ kind: 'temporary' as const, from: '2020-01-01' }],
+        nationality,
+      };
+      const onAdulthood = { ...request, simulationDate: adulthood };
+      statuses(A, request, { A01: 'MET', A02: 'NOT_MET', A10: 'UNKNOWN' });
+      const projected = pathway(A, request);
+      expect(projected).toMatchObject({
+        status: 'UNKNOWN',
+        earliestDate: undefined,
+      });
+      expect(projected.checks).toEqual(pathway(A, onAdulthood).checks);
+      expect(projected.summary).toContain(adulthood);
+    },
+  );
+});
+
 describe('country result and existing time checks', () => {
   test('all pathways have unique scoped checks, sources and localized explanations', () => {
     const patch = {
@@ -1963,6 +2098,40 @@ describe('F · free movement', () => {
     };
     statuses(F, { freeMovement: family }, { F01: 'MET', F06: 'MET' });
     expect(pathway(F, { freeMovement: family }).status).toBe('MET');
+    const derivative = {
+      ...family.earlyFamily,
+      livedWithWorker: false,
+      residedInPortugalWithWorker: true,
+      workerDiedWhileWorking: false,
+    };
+    for (const [workerEarlyRight, status] of [
+      [undefined, 'UNKNOWN'],
+      [true, 'MET'],
+      [false, 'NOT_MET'],
+    ] as const) {
+      const request = {
+        freeMovement: {
+          ...family,
+          earlyFamily: { ...derivative, workerEarlyRight },
+        },
+      };
+      statuses(F, request, { F06: status });
+      expect(pathway(F, request).status).toBe(status);
+    }
+    statuses(
+      F,
+      {
+        freeMovement: {
+          ...family,
+          earlyFamily: {
+            ...derivative,
+            workerEarlyRight: true,
+            residedInPortugalWithWorker: false,
+          },
+        },
+      },
+      { F06: 'NOT_MET' },
+    );
     expect(
       pathway(F, {
         freeMovement: { ...family, relationshipVerified: undefined },

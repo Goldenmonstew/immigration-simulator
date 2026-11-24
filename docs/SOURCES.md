@@ -167,6 +167,8 @@
 | SRC-490 | LAW | 葡萄牙 · Portaria 208/2017，投资低密度地区 | https://files.diariodarepublica.pt/1s/2017/07/13400/0373103734.pdf | 2017-07-13 | 2026-11-23 | `policy-sources/2017-07-13-pt-portaria-208-2017.pdf`（sha256 `198e8b1b26f3d543baca4379d8d9e0503ea8cea23ca0c2fa7c0e75890be867ce`） | archived |
 | SRC-491 | LAW | 葡萄牙 · Lei 53/2023，通用拒绝与 EU Blue Card | https://files.diariodarepublica.pt/1s/2023/08/16900/0000700024.pdf | 2023-08-31 | 2026-11-23 | `policy-sources/2023-08-31-pt-lei-53-2023.pdf`（sha256 `ccecec4830450cfa9ce34909aa4a5836df78cffd2368162f18d1b47a99bc318b`） | archived |
 | SRC-492 | LAW | 葡萄牙 · Lei 69/2026，总体规划 | https://files.diariodarepublica.pt/1s/2026/11/22400/0000200050.pdf | 2026-11-18 | 2026-11-23 | `policy-sources/2026-11-18-pt-lei-69-2026.pdf`（sha256 `50c387cb53ba61c4d263bafc9a9c6c0b45d79f23eb97a4c630953d42984801f9`） | archived |
+| SRC-493 | LAW | 欧盟法院 · Ogieriakhi，C-244/13，第三国配偶的永久居留权 | https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62013CJ0244 | 2014-07-10 | 2026-11-24 | `policy-sources/2014-07-10-pt-cjeu-c-244-13.pdf`（sha256 `5d818b90c74050a290d259aca87b753900b8b66a7719aacc9be8ad28adae14cd`） | archived |
+| SRC-494 | GUIDANCE | 欧委会 · C/2023/1392，欧盟公民及其家属自由流动指引 | https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng | 2023-12-22 | 2026-11-24 | `policy-sources/2023-12-22-pt-eu-free-movement-guidance.pdf`（sha256 `fc3c76bbfc117d29c6f8f6061d3c51a181b759b2ce7eeb366ff55cce37390430`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -1066,6 +1068,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ## SRC-126 AIMA 页面
 
+- ARI 页 `Reagrupamento Familiar` 段明确允许家属与投资人同时递交，家属的授予取决于投资人主案获批。
 - ARI 页面：第 1 年停留不少于 7 天，"nos anos subsequentes"（此后各年）不少于 14 天；这是简写，AIMA 常见问题第 24 问与 SRC-124 art. 65-C 都写每个 2 年期 14 天，试点按 2 年期计（PD-148）；同页写明符合 art. 80 的持有人获发投资类永久居留（Autorização de Residência para Atividade de Investimento Permanente），不适用因出境注销的规定（引 DR 84/2007 art. 65-K）；另写 ARI 自证件签发日起有效 2 年。永久居留页面：持临时居留许可至少 5 年，证件 5 年换发。ERLD 页面：申请前紧邻 5 年合法、不间断居留。《Direito de Residência》：非欧盟国民的居留权在居留卡到期后 6 个月内仍然保留（引 DR 84/2007 art. 63 n.º 14）；2025-06-30 前到期的卡另延至 2026-04-15（PD-145）。
 - AIMA《Perguntas frequentes – Autorização de Residência para Investimento (ARI)》已在 SRC-481 归档。第 24 问列第 1 年 7 天、此后每个 2 年期 14 天，与 art. 65-C 一致。
 
@@ -1226,3 +1229,15 @@ art. 2 修改外国人法 arts. 77、81、121-I、121-J，扩展蓝卡欧盟累�
 附件“国籍”段为政策规划，未发布国籍考试、生计或宣誓参数。
 
 - `policy-sources/2026-11-18-pt-lei-69-2026.pdf` → <https://files.diariodarepublica.pt/1s/2026/11/22400/0000200050.pdf>
+
+## SRC-493 欧盟法院 · Ogieriakhi（C-244/13）
+
+§§36–38、47 与主文第 1 点说明，配偶婚姻存续且双方在同一东道国满足适用居留条件时，分址居住不影响第三国配偶取得永久居留权。
+
+- `policy-sources/2014-07-10-pt-cjeu-c-244-13.pdf` → <https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62013CJ0244>
+
+## SRC-494 欧委会 · 自由流动指引（C/2023/1392）
+
+§2.2.2.1（p12）说明配偶可在同一东道国分址居住。§9.2 与注 236（p46）说明普通缺席在每个合法居留年度内累计，以合法居留起始日的周年为新年度起点。
+
+- `policy-sources/2023-12-22-pt-eu-free-movement-guidance.pdf` → <https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng/pdf>

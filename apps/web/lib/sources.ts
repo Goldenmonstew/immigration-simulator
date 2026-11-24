@@ -234,6 +234,9 @@ export const sourceUrls: Record<string, string> = {
     'https://files.diariodarepublica.pt/1s/2023/08/16900/0000700024.pdf',
   'SRC-492':
     'https://files.diariodarepublica.pt/1s/2026/11/22400/0000200050.pdf',
+  'SRC-493':
+    'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62013CJ0244',
+  'SRC-494': 'https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng',
   'SRC-110': 'https://laws.e-gov.go.jp/law/326CO0000000319',
   'SRC-111': 'https://laws.e-gov.go.jp/law/325AC0000000147',
   'SRC-112': 'https://laws.e-gov.go.jp/law/129AC0000000089',

@@ -196,7 +196,9 @@ export type PtInvestment =
 export interface PtInvestmentEvidence {
   operation?: 'grant' | 'renew' | 'convert' | 'replace-permanent';
   holder?: 'investor' | 'family';
-  /** The sponsor currently holds a valid residence permit under art. 90-A. */
+  /** Sponsor's initial ARI decision for a family grant, including simultaneous filings. */
+  sponsorAriStatus?: 'approved' | 'pending' | 'refused';
+  /** Whether the sponsor holds a valid ARI, used when no initial decision status is supplied. */
   sponsorAriValid?: boolean;
   relationshipContinues?: boolean;
   /** The family evidence establishes eligibility for reunification, including any applicable age or dependency requirements. */
@@ -262,6 +264,7 @@ export interface PtFreeMovementEvidence {
   permanentRightAcquiredOn?: IsoDate;
   basis?: 'ordinary' | 'retained-family' | 'early-worker' | 'early-family';
   applicant?: 'eu-eea-swiss' | 'third-country-family' | 'andorra' | 'other';
+  /** Sponsor eligibility during the period in which the family claim derives from the sponsor. */
   sponsorEligible?: boolean;
   relationship?:
     'spouse' | 'partner' | 'descendant' | 'ascendant' | 'other-family';
@@ -272,6 +275,9 @@ export interface PtFreeMovementEvidence {
   /** Dependency during qualifying residence, where required. */
   dependant?: boolean;
   continuousResidenceFrom?: IsoDate;
+  /** Whether both people had qualifying residence in Portugal throughout the required derived period. */
+  qualifyingResidenceWithSponsor?: boolean;
+  /** @deprecated A shared address is not a criterion. Use qualifyingResidenceWithSponsor. */
   livedWithSponsor?: boolean;
   absences?: (PtTrip & {
     reason?: 'ordinary' | 'military' | 'justified';
@@ -289,6 +295,7 @@ export interface PtFreeMovementEvidence {
     | 'retained-worker';
   identityAtEntryValid?: boolean;
   enrolledInRecognizedSchool?: boolean;
+  /** Sponsor's qualifying basis throughout the overlapping residence in Portugal. */
   sponsorResidenceBasisEstablished?: boolean;
   sufficientResources?: boolean;
   healthInsuranceRequired?: boolean;
@@ -315,6 +322,9 @@ export interface PtFreeMovementEvidence {
     returnsWeekly?: boolean;
   };
   earlyFamily?: {
+    /** The family member resided in Portugal with the worker at the qualifying event. */
+    residedInPortugalWithWorker?: boolean;
+    /** @deprecated Use residedInPortugalWithWorker to record residence in the same country. */
     livedWithWorker?: boolean;
     workerEarlyRight?: boolean;
     workerDiedWhileWorking?: boolean;
