@@ -261,6 +261,7 @@ const gold: UsFullRequest = {
   admission: {
     ...admission,
     process: 'consular',
+    nvcDs260: 'submitted',
     nvcCivilDocuments: 'complete',
   },
   fees: { channel: 'online' },
@@ -1392,7 +1393,9 @@ describe('admission, fees and pathway results', () => {
   test('consular cases omit adjustment discretion and a future bulletin keeps the decision unknown', () => {
     const consular = withAdmission({
       process: 'consular',
+      nvcDs260: 'submitted',
       nvcCivilDocuments: 'complete',
+      decisionOn: time.simulationDate,
       adjustmentBasis: 'employment',
       visaAtDecision: 'future-bulletin',
       publicCharge: 'pending',
@@ -2264,7 +2267,9 @@ describe('review86-2 regressions', () => {
       admission: {
         ...preference.admission,
         process: 'consular',
+        nvcDs260: 'submitted',
         nvcCivilDocuments: 'complete',
+        decisionOn: '2026-10-31',
         visaAtFilingByMonth: { '2026-10': 'unavailable' },
       },
     };
@@ -2272,6 +2277,7 @@ describe('review86-2 regressions', () => {
       status: 'MET',
       earliestDate: '2026-10-31',
       approvalStatus: 'MET',
+      approvalEarliestDate: '2026-10-31',
     });
   });
 
@@ -2695,6 +2701,7 @@ const authorizedConsular: UsFullRequest = {
     ...admission,
     process: 'consular',
     petitionStatus: 'approved',
+    nvcDs260: 'submitted',
     nvcCivilDocuments: 'complete',
   },
 };
@@ -2731,6 +2738,7 @@ describe('review86-4 regressions', () => {
         ...e.admission,
         process: 'consular',
         petitionStatus: 'approved',
+        nvcDs260: 'submitted',
         nvcCivilDocuments: 'complete',
         visaAtFiling: 'unavailable',
         nvcFilingOpensOn: opensOn,
@@ -2800,7 +2808,11 @@ describe('review86-4 regressions', () => {
     (id, overrides) => {
       const request: UsFullRequest = {
         ...consular,
-        admission: { ...consular.admission, ...overrides },
+        admission: {
+          ...consular.admission,
+          decisionOn: '2026-12-10',
+          ...overrides,
+        },
       };
       expect(condition(request, id)).toMatchObject({
         filingStatus: 'NOT_APPLICABLE',
@@ -3006,6 +3018,7 @@ describe('review86-5 regressions', () => {
         admission: {
           ...authorizedConsular.admission,
           nvcCivilDocuments,
+          decisionOn: '2026-12-10',
           medicalEvidence:
             nvcCivilDocuments === 'nonavailability-explained'
               ? 'cleared'
@@ -3024,8 +3037,97 @@ describe('review86-5 regressions', () => {
       expect(result.approvalEarliestDate).toBeUndefined();
     },
   );
+});
+
+describe('review86-6 regressions', () => {
+  test.each([
+    ['not-submitted', 'NOT_MET', 'NOT_MET'],
+    [undefined, 'UNKNOWN', 'UNKNOWN'],
+    ['submitted', 'MET', 'UNKNOWN'],
+  ] as const)(
+    'requires DS-260 submission even if civil documents are ready (%s)',
+    (nvcDs260, status, approvalStatus) => {
+      const request: UsFullRequest = {
+        ...authorizedConsular,
+        admission: {
+          ...authorizedConsular.admission,
+          nvcDs260,
+          decisionOn: '2026-12-10',
+          medicalEvidence: 'pending',
+        },
+      };
+      expect(condition(request, 'NVC-DS-260').status).toBe(status);
+      const result = path(request);
+      expect(result).toMatchObject({ status, approvalStatus });
+      expect(result.earliestDate).toBe(
+        status === 'MET' ? time.simulationDate : undefined,
+      );
+      expect(result.approvalEarliestDate).toBeUndefined();
+      if (nvcDs260 === undefined)
+        expect(condition(request, 'NVC-DS-260').pendingDetails).toEqual([
+          'PD-272',
+        ]);
+    },
+  );
+
+  test.each([undefined, '2026-11-22'] as const)(
+    'keeps approval unknown without a consular decision on or after filing (%s)',
+    (decisionOn) => {
+      const request: UsFullRequest = {
+        ...authorizedConsular,
+        admission: { ...authorizedConsular.admission, decisionOn },
+      };
+      expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        filingStatus: 'MET',
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-272'],
+      });
+      const result = path(request);
+      expect(result).toMatchObject({
+        status: 'MET',
+        earliestDate: time.simulationDate,
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(result.approvalEarliestDate).toBeUndefined();
+    },
+  );
 
   test.each([
+    ['filed-with-i485', 'available', 'MET', 'UNKNOWN'],
+    ['pending', 'available', 'MET', 'UNKNOWN'],
+    ['pending', 'unavailable', 'NOT_MET', 'NOT_MET'],
+  ] as const)(
+    'checks SIJ filing after entry without inspection (%s, %s)',
+    (petitionStatus, visaAtFiling, status, approvalStatus) => {
+      const request: UsFullRequest = {
+        ...p7,
+        family: undefined,
+        support: undefined,
+        admission: {
+          ...admission,
+          adjustmentBasis: 'sij',
+          qualifyingBasis: 'pending',
+          petitionStatus,
+          legalEntry: 'without-inspection',
+          visaAtFiling,
+          publicCharge: undefined,
+        },
+      };
+      expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        filingStatus: status,
+        status: approvalStatus,
+      });
+      const result = path(request);
+      expect(result).toMatchObject({ status, approvalStatus });
+      expect(result.earliestDate).toBe(
+        status === 'MET' ? time.simulationDate : undefined,
+      );
+      expect(result.approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test.each([
+    [undefined, 'UNKNOWN', 'UNKNOWN'],
     ['2026-11-30', 'NOT_MET', 'NOT_MET'],
     ['2026-12-01', 'MET', 'FUTURE'],
     ['2026-12-10', 'MET', 'FUTURE'],
@@ -3041,12 +3143,15 @@ describe('review86-5 regressions', () => {
         },
       };
       expect(condition(request, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
-        filingStatus: 'NOT_MET',
+        filingStatus: 'NOT_APPLICABLE',
         status: immigrationStatus,
       });
       const result = path(request);
-      expect(result).toMatchObject({ status: 'NOT_MET', approvalStatus });
-      expect(result.earliestDate).toBeUndefined();
+      expect(result).toMatchObject({
+        status: 'MET',
+        earliestDate: time.simulationDate,
+        approvalStatus,
+      });
       expect(result.approvalEarliestDate).toBe(
         approvalStatus === 'FUTURE' ? decisionOn : undefined,
       );

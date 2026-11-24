@@ -355,6 +355,8 @@ export interface UsAdmissionAnswers {
   visaAtFiling?: UsVisaAvailability;
   /** Confirmed future opening date for NVC submission, when not yet authorized. */
   nvcFilingOpensOn?: IsoDate;
+  /** CEAC submission of Form DS-260 for all visa applicants included in the case. */
+  nvcDs260?: 'submitted' | 'not-submitted';
   /** Readiness of required civil documents for all applicants, after country-specific exceptions. */
   nvcCivilDocuments?: 'complete' | 'missing' | 'nonavailability-explained';
   /** USCIS filing chart by YYYY-MM; required for a receipt in a different month. */

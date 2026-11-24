@@ -238,3 +238,33 @@ PROGRESS 597 对应建议提交 `Fix: 修正美国返美日期、I-140 与领馆
 ### 4. 发现与建议
 
 后续问卷可分别采集 NVC 授权、民事文件状态与面谈后的裁决日。现有 `decisionOn` 即为裁决时点输入。NVC 安排面谈的时间取决于个案和领馆档期，缺日期时按 PD-272 待确认。
+
+## 第六轮审核修正（review86-6）
+
+### 1. 做了什么
+
+PROGRESS 598 对应建议提交 `Fix: 修正美国领馆递件与裁决及 SIJ 同时递交（review86-6）`，附 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+| 领馆阶段 | 国务院流程与条件 | 引擎判定与来源 |
+|---|---|---|
+| NVC 递件 | NVC 授权后支付适用的移民签证和担保审查费用。在 CEAC 提交各申请人的 DS-260，再提交所需民事文件及适用的 I-864 和财务证据。 | C33 核对 NVC 授权或确认的未来开放日。`nvcDs260: 'submitted'` 同时提供适用费用已处理的依据，因为 CEAC 在处理费用后才开放 DS-260。`'not-submitted'` 为 `NOT_MET`，未填为 `UNKNOWN`，两者均省略递件日期。民事文件及适用的 I-864 独立核对。见 SRC-309 Pay Fees Step 3、Online Application Step 6、CEAC FAQs 的 IV Application 与 Civil Documents 栏、Submit Documents Step 9，PD-272。 |
+| 面谈 | NVC 审核材料齐备后，按领馆档期及适用名额安排面谈。申请人完成指定医生体检，携带 DS-260 确认页、照片、民事文件正本或认证副本，在领事官员面谈时正式提出签证申请。 | C36 的体检和疫苗结论用于核准。面谈档期及到场材料由个案通知确认。见 SRC-309 Online Application Step 6 和 Submit Documents 的 Documentarily Complete 段、SRC-312 Prepare for the Interview Step 10 与 Applicant Interview Step 11，PD-272、PD-275。 |
+| 签证裁决 | 领事官员在面谈后判断签发资格，按适用的 Final Action Dates 核对名额，并核对准入事由及安全审查。 | C33 使用明确的 `decisionOn` 和适用的裁决月排期。缺裁决日且其余条件没有明确阻碍时，核准为 `UNKNOWN`，省略核准日。未来 NVC 开放日仍须早于裁决日。C40 仅在核准阶段按裁决日核对非法居留禁令，NVC 递件可在禁令届满前完成。见 SRC-309 Visa Bulletin、SRC-311 8 U.S.C. §1182(a)、§1182(a)(9)(B)(i) 及 9 FAM 504.8-3、SRC-312 Applicant Interview Step 11，PD-272、PD-274、PD-275。 |
+
+- **SIJ 境内调整。** 在排期可用且其他递交条件齐备时，未查验入境者可与 I-360 同时递交 I-485，也可在 I-360 待决时递交。两个状态均为递交 `MET`、核准 `UNKNOWN`，省略核准日期。I-360 获批后按法定假释处理入境条件，再检查其余核准条件。见 SRC-309 8 U.S.C. §1255(h)(1) 与 I-485 Instructions p21，PD-272。
+- **跨阶段禁令回归。** 模拟日 `2026-11-23` 的 NVC 递件为 `MET`。有明确裁决日时，禁令届满前核准为 `NOT_MET`，届满当日和之后为 `FUTURE`。未填裁决日时，递件仍为 `MET`，核准为 `UNKNOWN`。
+
+### 2. 怎么验证的
+
+- 设置 `VITEST_MAX_WORKERS=2` 后，`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0。全仓 5,432 项测试通过，1 项既有用例跳过。静态构建生成 27 个页面，包含 `/united-states`。
+- 修正前跑美国完整版测试，新增断言复现缺裁决日、SIJ 同时递交和领馆 C40 的错误判定。
+- 验收覆盖美国新旧入口及上一轮的计划返美、缺历史 I-140 收件日、已获批 SIJ、缺必需民事文件，以及未来 NVC 开放日与裁决日分离。
+- `git diff --check` 通过。对照 `e289d09` 核实旧 `evaluateUnitedStates`、旧专项测试和美国页面入口无差异。I-485 Instructions 快照的 SHA-256 与 SRC-309 登记一致。
+
+### 3. 没做或没验证的
+
+- 改动留在 `fable/86-us-rules` 工作树供 Fable 提交。本轮未跑浏览器 e2e。面谈日期、到场文件及 NVC 的资料齐备通知由个案确认，引擎未新增独立输入。
+
+### 4. 发现与建议
+
+页面接入时可按上表采集 CEAC 的 DS-260 提交状态和面谈后的裁决日，并分别展示 NVC 递件与签证核准结果。NVC 已安排面谈时，面谈通知上的日期用于赴约，`decisionOn` 用于核准评估。

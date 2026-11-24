@@ -407,10 +407,11 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
     request.pathway === 'US-EMPLOYMENT' ||
     request.pathway === 'US-ADJUSTMENT';
   const admission = request.admission;
+  const consularApplication =
+    immigrantApplication && admission?.process === 'consular';
   const nvcOpening = admission?.nvcFilingOpensOn;
   const nvcFilingDate =
-    immigrantApplication &&
-    admission?.process === 'consular' &&
+    consularApplication &&
     (admission.visaAtFiling === 'unavailable' ||
       admission.visaAtFiling === 'future-bulletin') &&
     nvcOpening &&
@@ -419,12 +420,18 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       : undefined;
   const adjustmentReceipt = receiptOn(nvcFilingDate ?? date);
   const decisionOn = admission?.decisionOn;
-  const decision =
-    decisionOn && decisionOn > adjustmentReceipt
-      ? decisionOn
-      : nvcFilingDate
-        ? undefined
-        : adjustmentReceipt;
+  let decision: IsoDate | undefined = adjustmentReceipt;
+  if (consularApplication) {
+    // A confirmed future opening still precedes NVC review and the interview.
+    decision =
+      decisionOn &&
+      decisionOn >= adjustmentReceipt &&
+      decisionOn !== nvcFilingDate
+        ? decisionOn
+        : undefined;
+  } else if (decisionOn && decisionOn > adjustmentReceipt) {
+    decision = decisionOn;
+  }
   let eligibility: FilingTiming = {
     status: 'MET',
     earliestDate: nvcFilingDate,

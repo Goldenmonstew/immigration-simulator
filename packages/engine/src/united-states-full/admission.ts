@@ -117,7 +117,7 @@ export function admissionChecks(
   request: UsFullRequest,
   a: UsAdmissionAnswers | undefined,
   scope: 'immigrant' | 'return' | 'humanitarian' = 'immigrant',
-  consularDates?: { receipt: IsoDate; decision?: IsoDate },
+  consularDecision?: IsoDate,
 ) {
   const check = checksFor(request);
   const date = request.simulationDate;
@@ -141,14 +141,6 @@ export function admissionChecks(
       ? a.falseCitizenshipException
       : not(a?.falseCitizenship);
   const other = reviewed(a?.otherInadmissibility);
-  const immigrationAt = (on: IsoDate | undefined) => [
-    falseClaim,
-    not(a?.unlawfulReentryBar),
-    ...ordinaryWaiver(
-      [unlawfulPresence(a, on), noFraud, other],
-      a?.immigrationWaiver,
-    ),
-  ];
   const { waiver, waiverFiling } = request.humanitarian ?? {};
   const waiverDecision = waiver === 'not-needed' ? false : reviewed(waiver);
   const waiverMaterials =
@@ -195,7 +187,18 @@ export function admissionChecks(
       : a.securityGround !== 'nonwaivable',
   );
   const immigrationResult = assessGround(
-    immigrationAt(consularDates ? consularDates.decision : date),
+    [
+      falseClaim,
+      not(a?.unlawfulReentryBar),
+      ...ordinaryWaiver(
+        [
+          unlawfulPresence(a, consularInterview ? consularDecision : date),
+          noFraud,
+          other,
+        ],
+        a?.immigrationWaiver,
+      ),
+    ],
     true,
   );
   return [
@@ -285,13 +288,16 @@ export function admissionChecks(
       immigrationResult.answer,
       s.immigrationBars,
       humanitarian ? ['PD-274', 'PD-275'] : 'PD-274',
-      [
-        '按合资格非法居留天数与离境日期计算禁令；另核对虚称公民、递解、非法再入境及可用豁免。',
-        'Use qualifying unlawful-presence days and the departure date to assess the bars. Separately check false citizenship claims, removal, unlawful reentry and available waivers.',
-      ],
-      consularDates
-        ? checkStatus(all(...immigrationAt(consularDates.receipt)))
-        : immigrationResult.filingStatus,
+      consularInterview
+        ? [
+            '在签证裁决日核对非法居留禁令是否届满，以及其他移民史不准入事由和可用豁免。',
+            'At visa adjudication, check whether the unlawful-presence bar has expired and assess other immigration-history grounds and available waivers.',
+          ]
+        : [
+            '按合资格非法居留天数与离境日期计算禁令；另核对虚称公民、递解、非法再入境及可用豁免。',
+            'Use qualifying unlawful-presence days and the departure date to assess the bars. Separately check false citizenship claims, removal, unlawful reentry and available waivers.',
+          ],
+      consularInterview ? 'NOT_APPLICABLE' : immigrationResult.filingStatus,
     ),
   ];
 }
@@ -329,6 +335,8 @@ export function adjustmentChecks(
   const a = request.admission;
   const basis = a?.adjustmentBasis;
   const petition = a?.petitionStatus;
+  const awaitingPetition =
+    petition === 'pending' || petition === 'filed-with-i485';
   const usesFamilyClassification =
     request.pathway === 'US-FAMILY' ||
     (basis === 'family-preference' && request.family !== undefined);
@@ -362,9 +370,12 @@ export function adjustmentChecks(
         ),
       )
     : undefined;
-  const approvedSij = basis === 'sij' && petition === 'approved';
-  const entry =
-    approvedSij || a?.legalEntry === 'admitted' || a?.legalEntry === 'paroled'
+  const sijFiling =
+    a?.process === 'adjustment' &&
+    basis === 'sij' &&
+    (petition === 'approved' || awaitingPetition);
+  const entryAtFiling =
+    sijFiling || a?.legalEntry === 'admitted' || a?.legalEntry === 'paroled'
       ? true
       : a?.legalEntry === 'without-inspection'
         ? basis === 'vawa'
@@ -388,8 +399,6 @@ export function adjustmentChecks(
   const i140FiledOn = usesI140 ? employment?.i140FiledOn : undefined;
   const inconsistentI140Date =
     i140FiledOn !== undefined && i140FiledOn > request.simulationDate;
-  const awaitingPetition =
-    petition === 'pending' || petition === 'filed-with-i485';
   const concurrent =
     a?.process === 'adjustment'
       ? usesFamilyClassification ||
@@ -414,8 +423,13 @@ export function adjustmentChecks(
     : all(
         filingBasis,
         visaAtFiling,
-        consular ? true : a?.process === 'adjustment' ? entry : undefined,
+        consular
+          ? true
+          : a?.process === 'adjustment'
+            ? entryAtFiling
+            : undefined,
       );
+  const ds260 = a?.nvcDs260;
   const civilDocuments = a?.nvcCivilDocuments;
   return [
     check(
@@ -453,6 +467,18 @@ export function adjustmentChecks(
     ),
     ...(consular
       ? [
+          check(
+            'NVC-DS-260',
+            'NVC 费用与 DS-260 提交',
+            'NVC fees and DS-260 submission',
+            ds260 === undefined ? undefined : ds260 === 'submitted',
+            s.consularApplication,
+            'PD-272',
+            [
+              '适用费用经 NVC 处理后，须在 CEAC 提交本案各签证申请人的 DS-260，才能上传民事文件。',
+              'Once NVC has processed the applicable fees, submit Form DS-260 in CEAC for each visa applicant in the case before uploading civil documents.',
+            ],
+          ),
           check(
             'NVC-CIVIL-DOCUMENTS',
             'NVC 必需民事文件',
@@ -495,12 +521,7 @@ export function adjustmentChecks(
             'NOT_APPLICABLE',
           ),
         ]),
-    ...admissionChecks(
-      request,
-      a,
-      'immigrant',
-      consular ? { receipt, decision } : undefined,
-    ),
+    ...admissionChecks(request, a, 'immigrant', decision),
   ];
 }
 

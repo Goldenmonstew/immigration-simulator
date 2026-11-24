@@ -416,6 +416,23 @@ export const unitedStatesFullSources = {
       'https://travel.state.gov/content/travel/en/us-visas/immigrate/national-visa-center.html',
     ),
   ],
+  consularApplication: [
+    source(
+      'SRC-309',
+      'DOS Pay Fees, Step 3',
+      'https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-1-submit-a-petition/step-3-pay-fees.html',
+    ),
+    source(
+      'SRC-309',
+      'DOS Online Application, Step 6',
+      'https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-5-collect-financial-evidence-and-other-supporting-documents/step-6-complete-online-visa-application.html',
+    ),
+    source(
+      'SRC-309',
+      'DOS CEAC FAQs, IV Application and Civil Documents columns',
+      'https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-1-submit-a-petition/step-2-begin-nvc-processing/ceac-faqs.html',
+    ),
+  ],
   consularDocuments: [
     source(
       'SRC-309',
