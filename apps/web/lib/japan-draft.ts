@@ -29,7 +29,10 @@ export interface JapanDraft
     routes: JpFullNaturalisationRoute[];
     evidence: JpNaturalisationEvidence;
   };
-  reentry: (JpFullReentryRequest & { declarationForDepartureOn?: string })[];
+  reentry: (JpFullReentryRequest & {
+    alreadyDeparted?: boolean;
+    declarationForDepartureOn?: string;
+  })[];
 }
 
 export function createJapanDraft(): JapanDraft {
@@ -130,14 +133,24 @@ export function hasJapanResidenceRoute(draft: JapanDraft): boolean {
   );
 }
 
-export function canConfirmJapanDeparture(
-  draft: Pick<JapanDraft, 'simulationDate'>,
+export function japanDepartureTiming(
+  simulationDate: string,
   departureOn?: string,
-): boolean {
+) {
+  const current = today();
+  const asOf = simulationDate < current ? simulationDate : current;
+  if (!departureOn || departureOn > asOf) return 'future';
+  return departureOn === asOf ? 'same-day' : 'past';
+}
+
+export function canConfirmJapanDeparture(
+  draft: JapanDraft,
+  route: JapanDraft['reentry'][number],
+) {
+  const timing = japanDepartureTiming(draft.simulationDate, route.departureOn);
   return (
-    !!departureOn &&
-    departureOn <= today() &&
-    departureOn <= draft.simulationDate
+    timing === 'past' ||
+    (timing === 'same-day' && route.alreadyDeparted === true)
   );
 }
 
@@ -151,7 +164,7 @@ export function clearUnconfirmedJapanDeclaration(
   if (
     deemed?.declaredIntentAtDeparture === undefined ||
     (deemed.declarationForDepartureOn === deemed.departureOn &&
-      canConfirmJapanDeparture(draft, deemed.departureOn))
+      canConfirmJapanDeparture(draft, deemed))
   )
     return draft;
   return {
@@ -391,7 +404,7 @@ function checkStep(draft: JapanDraft, step: number, submitting: boolean) {
         if (
           route.route === 'deemed' &&
           route.declaredIntentAtDeparture !== undefined &&
-          !canConfirmJapanDeparture(draft, route.departureOn)
+          !canConfirmJapanDeparture(draft, route)
         )
           errors[prefix + '-declaredIntentAtDeparture'] =
             'jp.form.declarationError';
@@ -467,6 +480,14 @@ export function decodeJapanDraft(value: unknown): JapanDraft | undefined {
     draft = { ...draft, step: 6 };
   if (!japanSteps(draft).some(({ step }) => step === draft.step))
     return undefined;
+  // Same-day shares created before the departure question need fresh confirmation.
+  const deemed = draft.reentry.find((route) => route.route === 'deemed');
+  if (
+    deemed &&
+    japanDepartureTiming(draft.simulationDate, deemed.departureOn) ===
+      'same-day'
+  )
+    draft = clearUnconfirmedJapanDeclaration(draft);
   // Validate containers before checking date relationships across their rows.
   if (titles.some((_, i) => Object.keys(checkStep(draft, i, false)).length))
     return undefined;

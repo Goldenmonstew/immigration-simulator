@@ -100,7 +100,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
               onClick={() => setLocale('zh-CN')}
             >
               <span className={styles.fullLabel}>{t('site.chinese')}</span>{' '}
-              <span className={styles.compactLabel}>
+              <span
+                className={styles.compactLabel}
+                aria-hidden={locale === 'zh-CN' || undefined}
+              >
                 {t('site.chineseShort')}
               </span>
             </button>

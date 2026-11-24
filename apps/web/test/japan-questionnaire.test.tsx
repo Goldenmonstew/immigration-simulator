@@ -304,6 +304,10 @@ test.each([
       });
       fields.get('jp-travel-deemed-' + field)!({ target: { value } });
     };
+    expect(form(draft)).not.toContain(
+      'id="jp-travel-deemed-declaredIntentAtDeparture"',
+    );
+    answerField('alreadyDeparted', 'yes');
     answerField('declaredIntentAtDeparture', answer);
     const adjusted = jp.whatif.apply(draft, {
       ...jp.whatif.initial(draft),
@@ -328,6 +332,70 @@ test.each([
     });
   },
 );
+
+test('a same-day plan drops the actual declaration from the form, share and assessment', () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-11-24T12:00:00Z'));
+  let draft: JapanDraft = {
+    ...jp.createDraft(),
+    step: 6,
+    completed: true,
+    reentry: [
+      {
+        route: 'deemed',
+        departureOn: '2026-11-24',
+        returnOn: '2026-11-25',
+        stayIndefinite: true,
+        lawfulStatus: true,
+        passportValid: true,
+        residentCardOrCertificate: true,
+        formalPermitRequired: false,
+        permitVoided: false,
+      },
+    ],
+  };
+  function answer(name: string, value: string) {
+    form(draft, (patch) => {
+      draft = { ...draft, ...patch };
+    });
+    fields.get('jp-travel-deemed-' + name)!({ target: { value } });
+  }
+  const shared = () => decodeDraft(jp, encodeDraft(jp, draft))!;
+  const continuity = () =>
+    jp
+      .run(shared(), 'en')
+      .columns[0].pathways[0].checks.find(
+        (c) => c.id === 'jp.reentry.return-continuity',
+      )?.status;
+  answer('alreadyDeparted', 'yes');
+  answer('declaredIntentAtDeparture', 'yes');
+  expect(continuity()).toBe('MET');
+  const legacy = {
+    ...draft,
+    reentry: draft.reentry.map((route) => ({
+      ...route,
+      alreadyDeparted: undefined,
+    })),
+  };
+  for (const restored of [
+    jp.restoreStoredDraft!(legacy),
+    decodeDraft(jp, encodeDraft(jp, legacy))!,
+  ]) {
+    expect(restored.reentry[0].departureOn).toBe('2026-11-24');
+    expect(JSON.stringify(restored.reentry[0])).not.toContain(
+      'declaredIntentAtDeparture',
+    );
+  }
+  answer('alreadyDeparted', 'no');
+  expect(form(shared())).toContain('Planned departure on 2026-11-24');
+  expect(fields.has('jp-travel-deemed-declaredIntentAtDeparture')).toBe(false);
+  expect(JSON.stringify(draft.reentry[0])).not.toContain(
+    'declaredIntentAtDeparture',
+  );
+  expect(shared().reentry[0]).not.toHaveProperty('declaredIntentAtDeparture');
+  expect(shared().reentry[0]).not.toHaveProperty('declarationForDepartureOn');
+  expect(continuity()).toBe('UNKNOWN');
+});
 
 test('a travel-only questionnaire goes straight to route details and restores older trip-history drafts there', () => {
   const draft: JapanDraft = {

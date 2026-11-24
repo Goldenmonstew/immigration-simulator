@@ -272,7 +272,6 @@ export const natRouteFields = {
 } satisfies Record<JpFullNaturalisationRoute['route'], JapanField[]>;
 
 const travelCommon = [
-  date('departureOn'),
   date('returnOn'),
   date('stayExpiresOn'),
   ...flags('stayIndefinite', 'timelyRenewalPending'),
@@ -299,6 +298,7 @@ const consular = [
 ];
 export const travelRouteFields = {
   ordinary: [
+    date('departureOn'),
     ...travelCommon,
     ...flags(
       'excludedStatusOrDetention',
@@ -317,6 +317,8 @@ export const travelRouteFields = {
     ...consular,
   ],
   deemed: [
+    date('departureOn'),
+    bool('alreadyDeparted'),
     ...travelCommon,
     bool('temporaryVisitor'),
     integer('originalStayMonths'),
@@ -328,6 +330,7 @@ export const travelRouteFields = {
     ),
   ],
   'refugee-travel-document': [
+    date('departureOn'),
     ...travelCommon,
     ...flags('refugeeRecognition', 'hasJapaneseTravelDocument'),
     group('permit', [

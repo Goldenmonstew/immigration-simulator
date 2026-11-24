@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
 import type { JpFullReentryRequest } from '@uk-immigration/engine';
+import { prEvidence } from '../../../packages/engine/test/japan-pr-fixture';
 import { japanFull2026_11 } from '@uk-immigration/policy-data';
 import JapanPage from '../app/japan/page';
 import JapanPolicyPage from '../app/japan/policy/page';
@@ -1050,6 +1051,79 @@ test.each([
       }
     }
     expect(baseline.trips[0].departure).toBe('deemed');
+  },
+);
+
+test.each([
+  ['2024-04-05', undefined, 'NOT_MET', '2034-04-07', undefined],
+  ['2024-04-08', undefined, 'MET', '2027-04-03', '2027-04-05'],
+  [undefined, undefined, 'UNKNOWN', undefined, undefined],
+  ['2024-04-08', '2024-04-07', 'NOT_MET', '2034-04-07', undefined],
+  ['2024-04-08', '2024-04-09', 'UNKNOWN', undefined, undefined],
+] as const)(
+  'shared deemed return and general PR use decision %s and new landing %s',
+  (renewalDecisionOn, newLandingOn, status, timeEarliestDate, earliestDate) => {
+    const stayExpiry = '2024-04-03';
+    const scenario: JapanDraft = {
+      ...travelDraft(),
+      dateOfBirth: '1990-05-01',
+      permanentResidence: {
+        routes: [
+          {
+            route: 'general',
+            statusStart: '2014-04-01',
+            newStatusStart: '2014-04-01',
+          },
+        ],
+        evidence: prEvidence,
+      },
+      trips: [
+        {
+          departed: aprilTrip.departureOn,
+          returned: aprilTrip.returnOn,
+          departure: 'deemed',
+          stayExpiry,
+          renewalPending: true,
+        },
+      ],
+      reentry: [
+        {
+          ...deemedTrip,
+          stayExpiresOn: stayExpiry,
+          timelyRenewalPending: true,
+          renewalDecisionOn,
+          newLandingOn,
+        },
+      ],
+    };
+    const shared = decodeDraft(jp, encodeDraft(jp, scenario))!;
+    const [pr, deemed] = jp.run(shared, 'en').columns[0].pathways;
+    expect(
+      deemed.checks.find((c) => c.id === 'jp.reentry.return-continuity')
+        ?.status,
+    ).toBe(status);
+    expect(
+      pr.checks.find((c) => c.id === 'jp.pr.continuous-stay')?.status,
+    ).toBe(status);
+    expect(pr.timeEarliestDate).toBe(timeEarliestDate);
+    expect(pr.earliestDate).toBe(earliestDate);
+    if (status === 'NOT_MET') {
+      const onRestartedAnniversary: JapanDraft = {
+        ...shared,
+        applicationDate: timeEarliestDate,
+        permanentResidence: {
+          ...shared.permanentResidence,
+          evidence: {
+            ...prEvidence,
+            status: { ...prEvidence.status, expiresOn: '2034-04-30' },
+          },
+        },
+      };
+      expect(
+        jp.run(onRestartedAnniversary, 'en').columns[0].pathways[0]
+          .earliestDate,
+      ).toBe('2034-04-07');
+    }
   },
 );
 

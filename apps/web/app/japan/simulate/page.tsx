@@ -6,6 +6,7 @@ import { useTranslation } from '../../../i18n/locale';
 import {
   canConfirmJapanDeparture,
   hasJapanResidenceRoute,
+  japanDepartureTiming,
   japanSteps,
   withJapanFilingDate,
   type JapanDraft,
@@ -66,8 +67,11 @@ function JapanStep({ draft, errors, update }: StepProps) {
         route.route
       ];
       const planned =
+        route.route === 'deemed' && !canConfirmJapanDeparture(draft, route);
+      const sameDay =
         route.route === 'deemed' &&
-        !canConfirmJapanDeparture(draft, route.departureOn);
+        japanDepartureTiming(draft.simulationDate, route.departureOn) ===
+          'same-day';
       return (
         <section key={route.route} className={styles.section}>
           <h2>{routeLabel(group, route.route)}</h2>
@@ -77,13 +81,11 @@ function JapanStep({ draft, errors, update }: StepProps) {
             )}
           {fields.length ? (
             <EvidenceFields
-              fields={
-                planned
-                  ? fields.filter(
-                      (field) => field.name !== 'declaredIntentAtDeparture',
-                    )
-                  : fields
-              }
+              fields={fields.filter(
+                (field) =>
+                  (field.name !== 'alreadyDeparted' || sameDay) &&
+                  (field.name !== 'declaredIntentAtDeparture' || !planned),
+              )}
               prefix={'jp-' + group + '-' + route.route}
               values={route}
               errors={errors}
@@ -101,6 +103,13 @@ function JapanStep({ draft, errors, update }: StepProps) {
                           value === undefined ? undefined : r.departureOn,
                       };
                     if (key === 'departureOn' && value !== r.departureOn)
+                      return {
+                        ...next,
+                        alreadyDeparted: undefined,
+                        declaredIntentAtDeparture: undefined,
+                        declarationForDepartureOn: undefined,
+                      };
+                    if (key === 'alreadyDeparted' && value !== true)
                       return {
                         ...next,
                         declaredIntentAtDeparture: undefined,

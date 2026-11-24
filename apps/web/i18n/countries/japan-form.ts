@@ -936,7 +936,10 @@ const messages = {
     '是否已取得再入国许可期限证明？',
     'Have you obtained a certificate of re-entry permit validity?',
   ],
-  'jp.field.newLandingOn': ['重新上陆日期', 'Date of new landing'],
+  'jp.field.newLandingOn': [
+    '如果本次返日以新身份上陆，实际重新上陆日期是哪一天？',
+    'If you landed under a new status on this return, on what date did you land?',
+  ],
   'jp.field.permit': [
     '签发的许可或旅行证件',
     'Issued permit or travel document',
@@ -1012,6 +1015,10 @@ const messages = {
   'jp.field.formalPermitRequired': [
     '是否被要求取得普通再入国许可？',
     'Are you required to obtain an ordinary re-entry permit?',
+  ],
+  'jp.field.alreadyDeparted': [
+    '当天是否已经出境？',
+    'Have you already departed on that day?',
   ],
   'jp.field.declaredIntentAtDeparture': [
     '实际出境时，是否已向入管表明将返日？',

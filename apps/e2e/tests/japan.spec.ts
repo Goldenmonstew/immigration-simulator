@@ -33,7 +33,9 @@ async function begin(page: Page, dict: Dict) {
   if (dict === en) {
     const header = page.getByRole('banner');
     await expect(
-      header.getByRole('button', { name: '中文 ZH', exact: true }),
+      header
+        .getByRole('button', { name: '中文', exact: true })
+        .getByText('中', { exact: true }),
     ).toBeVisible();
     await header
       .getByRole('button', { name: 'English EN', exact: true })

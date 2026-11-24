@@ -60,6 +60,10 @@ export interface JpTrip {
    * was still pending when leaving (art. 20(6), FAQ Q61). Omitted = unknown.
    */
   renewalPending?: boolean;
+  /** Decision on the matching re-entry record. Null means the date is still unknown. */
+  renewalDecisionOn?: IsoDate | null;
+  /** Landing under a new status, reported for this return (SRC-116). */
+  newLandingOn?: IsoDate;
   /**
    * How the traveller left: without re-entry permission, with deemed
    * re-entry or on an ordinary permit (SRC-116; for newborns FAQ Q28).
@@ -188,10 +192,17 @@ export function jpStayLimit(
 // SRC-110 art. 20(6), SRC-116 Q61: a return inside the special period
 // can preserve the stay only if a timely application was pending.
 const latestStayLimit = (t: JpTrip) =>
-  jpStayLimit({
-    stayExpiry: t.stayExpiry,
-    renewalPending: t.renewalPending ?? true,
-  });
+  jpStayLimit(
+    { stayExpiry: t.stayExpiry, renewalPending: t.renewalPending ?? true },
+    t.renewalDecisionOn ?? undefined,
+  );
+
+// SRC-116, 再入国許可 paras 2–4. Different dates do not establish how this return was made.
+export const jpReturnOnPreviousStatus = (
+  returned?: IsoDate,
+  newLandingOn?: IsoDate,
+) =>
+  !newLandingOn ? true : newLandingOn === returned ? false : undefined;
 
 const missingPermission = (t: JpTrip, departure = t.departure) =>
   !departure || (departure === 'permit' && t.reentryPermit === undefined);
@@ -209,6 +220,8 @@ export function jpTripLapses(
   specialResident = t.specialPermanentResident,
 ): boolean | undefined {
   // SRC-116, 再入国許可 paras 2–4 and 永住者の在留資格について p5.
+  const previousStatus = jpReturnOnPreviousStatus(t.returned, t.newLandingOn);
+  if (previousStatus === false) return true;
   if (departure === 'none') return true;
   if (departure === 'permit' && t.reentryPermit === false) return true;
   const stayLimit = latestStayLimit(t);
@@ -227,10 +240,10 @@ export function jpTripLapses(
   if (
     t.stayExpiry &&
     t.returned > t.stayExpiry &&
-    t.renewalPending === undefined
+    (t.renewalPending === undefined || t.renewalDecisionOn === null)
   )
     return undefined;
-  return false;
+  return previousStatus === true ? false : undefined;
 }
 
 const metOf = (state: Verdict) =>
@@ -395,6 +408,11 @@ export function evaluateJapanTimeline(
           ? 'MET'
           : 'FUTURE';
   const lapseNotes = lapsed.map((t) => {
+    if (t.newLandingOn === t.returned)
+      return L(
+        `本次于 ${t.returned} 以新身份上陆，连续在留从该日重新起算。`,
+        ` You landed under a new status on ${t.returned}. The unbroken stay starts again on that date.`,
+      );
     if (t.departure === 'none')
       return L(
         `${t.departed} 未持再入国许可出境，连续在留从返日的 ${t.returned} 重新起算。`,
@@ -407,6 +425,11 @@ export function evaluateJapanTimeline(
       );
     const limit = latestStayLimit(t);
     if (limit && t.returned > limit) {
+      if (t.renewalDecisionOn && t.renewalPending)
+        return L(
+          `续期处分日为 ${t.renewalDecisionOn}，原在留最迟至 ${limit}。连续在留从返日的 ${t.returned} 重新起算。`,
+          ` The renewal decision was on ${t.renewalDecisionOn}. The previous stay ended by ${limit}, so the unbroken stay starts again on return on ${t.returned}.`,
+        );
       if (t.renewalPending === undefined)
         return L(
           `${t.departed} 出境，${t.returned} 返日。即使出境时有待决的按期续期申请，返日也已晚于 ${limit}，连续在留从 ${t.returned} 重新起算。`,
@@ -445,11 +468,17 @@ export function evaluateJapanTimeline(
       ...v.deemedReentryYears.sources,
     );
   const needsRenewalEvidence = (t: JpTrip) =>
-    t.renewalPending === undefined && t.stayExpiry && t.returned > t.stayExpiry;
+    (t.renewalPending === undefined || t.renewalDecisionOn === null) &&
+    t.stayExpiry && t.returned > t.stayExpiry;
   if (uncertainTrips.some(needsRenewalEvidence))
     continuitySources.push(...v.renewalPendingMonths.sources);
   for (const t of uncertainTrips) {
     const departure = departureOf(t);
+    if (t.newLandingOn && t.newLandingOn !== t.returned)
+      lapseNotes.push(L(
+        `重新上陆日 ${t.newLandingOn} 与返日 ${t.returned} 不同，请核对本次返日所用身份。`,
+        ` The new landing date ${t.newLandingOn} differs from the return on ${t.returned}. Confirm the status used for this return.`,
+      ));
     if (!departure)
       lapseNotes.push(
         L(
@@ -475,7 +504,12 @@ export function evaluateJapanTimeline(
           ` Confirm whether you were a special permanent resident on departure on ${t.departed} to check whether your return on ${t.returned} was within the deemed re-entry period.`,
         ),
       );
-    if (needsRenewalEvidence(t))
+    if (needsRenewalEvidence(t) && t.renewalPending === true)
+      lapseNotes.push(L(
+        `请核对按期续期申请的处分日，以确认 ${t.returned} 返日时原在留是否仍有效。`,
+        ` Check the decision date for the timely renewal application to confirm whether the previous stay still covered the return on ${t.returned}.`,
+      ));
+    else if (needsRenewalEvidence(t))
       lapseNotes.push(
         L(
           `对于 ${t.departed} 出境、${t.returned} 返日的行程，请确认出境时是否有按期提出且仍待决定的更新或变更申请。能否接续之前的在留取决于这项证据。`,
@@ -491,9 +525,18 @@ export function evaluateJapanTimeline(
     '年限按周年计：起算日 N 年后的同一天起算满足（2 月 29 日起算的取 3 月 1 日）；按民法初日不算入的严格读法可能晚一天，审查实际怎么数没有公开。须本人在日本递交，整天在境外的日子不作为递交日（PD-130）。',
     'Years run to the anniversary: N years after the start date counts as met (from 29 February, 1 March). On the strict Civil Code reading, which leaves out the first day, it could be a day later; how the authorities count is not published. You apply in person in Japan, so a day spent wholly abroad is not an application date (PD-130).',
   );
+  const renewalAssumption = req.trips.some((t) => t.renewalDecisionOn !== undefined)
+    ? L(
+        `同趟行程有按期续期申请时，特别期间截至处分日与原期限届满后 ${v.renewalPendingMonths.value} 个月中的较早日。处分日待核且影响返日判断时，连续性待确认。`,
+        ` For a matching trip with a timely renewal, the special period ends at the earlier of the decision and ${v.renewalPendingMonths.value} months after the original expiry. Continuity is unconfirmed if it depends on a missing decision date.`,
+      )
+    : L(
+        `出境时有待决的按期续期申请，按获准且在原期限届满后 ${v.renewalPendingMonths.value} 个月内返回估算。`,
+        ` For a timely renewal pending at departure, the projection assumes approval and allows up to ${v.renewalPendingMonths.value} months after the original expiry.`,
+      );
   const reentry = L(
-    `未持再入国许可出境，或持普通许可出境但逾期返日的，在留从返日重新起算。使用みなし再入国许可，通常须在出境后 ${v.deemedReentryYears.value} 年内返回。特別永住者为 ${specialDeemedYears} 年（含届满日）。如有在留期限，须同时核对。出境时有待决的按期续期申请，按获准且在原期限届满后 ${v.renewalPendingMonths.value} 个月内返回估算。未填在留期限时，假设它没有先到期（PD-136）。`,
-    `If you left without re-entry permission or your ordinary permit expired before return, the stay starts again when you return. With deemed re-entry you must return within ${count(v.deemedReentryYears.value, 'year')} of departure, or ${count(specialDeemedYears, 'year')} for a special permanent resident, including the anniversary. Any applicable period of stay must also cover the return. For a timely renewal pending at departure, the projection assumes approval and allows up to ${v.renewalPendingMonths.value} months after the original expiry. A blank period of stay is assumed not to have ended before return (PD-136).`,
+    `未持再入国许可出境，或持普通许可出境但逾期返日的，在留从返日重新起算。使用みなし再入国许可，通常须在出境后 ${v.deemedReentryYears.value} 年内返回。特別永住者为 ${specialDeemedYears} 年（含届满日）。如有在留期限，须同时核对。${renewalAssumption}未填在留期限时，假设它没有先到期（PD-136）。`,
+    `If you left without re-entry permission or your ordinary permit expired before return, the stay starts again when you return. With deemed re-entry you must return within ${count(v.deemedReentryYears.value, 'year')} of departure, or ${count(specialDeemedYears, 'year')} for a special permanent resident, including the anniversary. Any applicable period of stay must also cover the return.${renewalAssumption} A blank period of stay is assumed not to have ended before return (PD-136).`,
   ) + (legacyTimeOnly && req.trips.some((t) => !t.departure)
     ? L(
         '旧版时间计算中，未填出境方式的行程根据普通许可是否标为有效区分普通和みなし。',

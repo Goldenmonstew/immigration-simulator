@@ -16,13 +16,13 @@ export interface JpFullRequest extends JpFullContext {
 }
 
 type DeemedRoute = Extract<JpFullReentryRequest, { route: 'deemed' }>;
+const sameTrip = (trip: JpTrip, route: JpFullReentryRequest) =>
+  trip.departed === route.departureOn &&
+  trip.returned === (route.returnOn ?? route.newLandingOn);
 const sameDeemedTrip = (
   trip: JpTrip,
   route: JpFullReentryRequest,
-): route is DeemedRoute =>
-  route.route === 'deemed' &&
-  trip.departed === route.departureOn &&
-  trip.returned === route.returnOn;
+): route is DeemedRoute => route.route === 'deemed' && sameTrip(trip, route);
 
 /** Reconcile departure status (SRC-442 art. 23(2)) and permit evidence for the same itinerary. */
 export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
@@ -36,6 +36,13 @@ export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
     sameDeemedTrip(trip, route) &&
     (trip.departure === 'deemed' || route.declaredIntentAtDeparture === true);
   const history = trips.map((trip) => {
+    const landings = routes.filter(
+      (route) => route.newLandingOn && sameTrip(trip, route),
+    );
+    const landing =
+      landings.find((route) => route.newLandingOn !== trip.returned) ??
+      landings[0];
+    if (landing) trip = { ...trip, newLandingOn: landing.newLandingOn };
     const matched = routes.filter((route) => matches(trip, route));
     if (!matched.length) return trip;
     const answers = new Set([
@@ -50,10 +57,17 @@ export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
     };
   });
   const reentry = routes.map((route) => {
-    const trip = history.find((trip) => matches(trip, route));
-    return trip
-      ? { ...route, specialPermanentResident: trip.specialPermanentResident }
-      : route;
+    const trip = history.find((trip) => sameTrip(trip, route));
+    if (!trip) return route;
+    if (trip.newLandingOn)
+      route = { ...route, newLandingOn: trip.newLandingOn };
+    if (!matches(trip, route)) return route;
+    return {
+      ...route,
+      specialPermanentResident: trip.specialPermanentResident,
+      stayExpiresOn: route.stayExpiresOn ?? trip.stayExpiry,
+      timelyRenewalPending: route.timelyRenewalPending ?? trip.renewalPending,
+    };
   });
   // Resolve the evidence while the original itinerary still matches. A comparison
   // can subsequently change the return date for the re-entry route alone.
@@ -69,6 +83,16 @@ export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
     const eligible = answers.size === 1 ? [...answers][0] : undefined;
     // A failed deemed departure does not invalidate an independently reported ordinary permit.
     if (trip.departure === 'permit' && eligible !== true) return trip;
+    // SRC-110 art. 20(6), SRC-116 Q61. Both assessments use the same
+    // original stay and decision, including a decision date still unknown.
+    const stay = matched[0];
+    if (stay.stayExpiresOn)
+      trip = {
+        ...trip,
+        stayExpiry: stay.stayExpiresOn,
+        renewalPending: stay.timelyRenewalPending,
+        renewalDecisionOn: stay.renewalDecisionOn ?? null,
+      };
     if (eligible === false) return { ...trip, departure: 'none' as const };
     // Even with valid documents the history may already prove the return was late.
     if (eligible === true || jpTripLapses(trip, 'deemed') === true)

@@ -39,7 +39,7 @@ function run(draft: JapanDraft, locale: Locale) {
       );
   const deemed = confirmed.reentry.find((route) => route.route === 'deemed');
   if (deemed?.departureOn && deemed.declaredIntentAtDeparture === undefined) {
-    const hint = canConfirmJapanDeparture(confirmed, deemed.departureOn)
+    const hint = canConfirmJapanDeparture(confirmed, deemed)
       ? 'jp.result.confirmDeparture'
       : 'jp.result.plannedDeparture';
     const pathway = result.columns[0].pathways.find(

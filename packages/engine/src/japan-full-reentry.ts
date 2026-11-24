@@ -3,7 +3,7 @@ import {
   japanImmigrationGuidance,
 } from '@uk-immigration/policy-data';
 import { addMonths, addYears } from './dates';
-import { jpOfficeClosed, jpStayLimit } from './japan';
+import { jpOfficeClosed, jpReturnOnPreviousStatus, jpStayLimit } from './japan';
 import {
   all,
   assemblePathway,
@@ -198,7 +198,7 @@ export function assessJapanReentry(
     return item;
   };
   const departure = route.departureOn;
-  const returned = route.returnOn;
+  const returned = route.returnOn ?? route.newLandingOn;
   const stay = route.stayExpiresOn;
   const renewedLimit = jpStayLimit(
     { stayExpiry: stay, renewalPending: true },
@@ -681,7 +681,9 @@ export function assessJapanReentry(
     excluded(route.permitVoided),
     entryUnused,
   );
+  const previousStatus = jpReturnOnPreviousStatus(returned, route.newLandingOn);
   const validity = all(
+    previousStatus,
     departurePermission,
     returned && permit?.expiresOn && returned <= permit.expiresOn
       ? true
@@ -715,6 +717,17 @@ export function assessJapanReentry(
             '出境时所需的再入国条件仍待确认。',
             ' The required re-entry conditions at departure are unconfirmed.',
           );
+  const landingNotice = !route.newLandingOn
+    ? ''
+    : previousStatus === false
+      ? L(
+          `本次于 ${route.newLandingOn} 以新身份上陆，原在留中断。`,
+          ` You landed under a new status on ${route.newLandingOn}, ending the previous stay.`,
+        )
+      : L(
+          `请核对重新上陆日 ${route.newLandingOn} 与本次返日日期，确认返日所用身份。`,
+          ` Check the new landing date ${route.newLandingOn} against this return date to confirm the status used.`,
+        );
   r(
     'return-continuity',
     '返日及在留连续性',
@@ -725,8 +738,8 @@ export function assessJapanReentry(
       japanImmigrationGuidance.lossOfPermanentResidence,
       ...(usesStay ? old.renewalPendingMonths.sources : []),
     ],
-    `${documentNotice}${route.route === 'deemed' ? '凭みなし再入国继续原在留身份，须在出境时表明再入国意图。' : ''}遗失须核对官方期限证明，许可失效后原身份不能靠原许可恢复。${route.newLandingOn ? `已填重新上陆日 ${route.newLandingOn}。` : ''}`,
-    `${documentNotice ? `${documentNotice} ` : ''}${route.route === 'deemed' ? 'Continuity under deemed re-entry requires declaring your intent to return at departure. ' : ''}Check official validity evidence if documents are lost. An expired permit cannot restore the previous status.${route.newLandingOn ? ` New landing reported on ${route.newLandingOn}.` : ''}`,
+    `${documentNotice}${route.route === 'deemed' ? '凭みなし再入国继续原在留身份，须在出境时表明再入国意图。' : ''}遗失须核对官方期限证明，许可失效后原身份不能靠原许可恢复。${landingNotice}`,
+    `${documentNotice ? `${documentNotice} ` : ''}${route.route === 'deemed' ? 'Continuity under deemed re-entry requires declaring your intent to return at departure. ' : ''}Check official validity evidence if documents are lost. An expired permit cannot restore the previous status.${landingNotice}`,
     ['PD-136', 'PD-379'],
   );
 

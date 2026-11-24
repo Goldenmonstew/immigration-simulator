@@ -98,10 +98,12 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
     );
     const pr = compared.permanentResidence;
     const nat = compared.naturalisation;
-    const deemed = compared.reentry.find((item) => item.route === 'deemed');
     // Match the baseline itinerary before a control separates the two records.
     const travel =
-      deemed && (knobs.noTrips || knobs.returns.deemed !== deemed.returnOn)
+      knobs.noTrips ||
+      compared.reentry.some(
+        (item) => knobs.returns[item.route] !== item.returnOn,
+      )
         ? resolveJapanDeemedTripStatuses(compared.trips, compared.reentry)
         : compared;
     return {

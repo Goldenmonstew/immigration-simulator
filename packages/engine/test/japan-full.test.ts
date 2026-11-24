@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { prEvidence } from './japan-pr-fixture';
 import { evaluateJapan, evaluateJapanFull } from '../src';
 import type {
   JpFullNaturalisationRoute,
@@ -21,55 +22,6 @@ const base = {
 } satisfies JpFullRequest;
 
 const general = { route: 'general', statusStart: '2022-04-01' } as const;
-const prEvidence = {
-  japaneseCitizen: false,
-  inJapan: true,
-  status: {
-    kind: 'engineer',
-    expiresOn: '2028-04-01',
-    grantedPeriodMonths: 60,
-    fitsCurrentCriteria: true,
-  },
-  family: { relativeStatus: 'other', relation: 'other' },
-  protectionRecognition: 'none',
-  internationalProtectionConfirmed: false,
-  goodConductConfirmed: true,
-  criminalHistory: 'none',
-  nationalInterestConfirmed: true,
-  statusActivitiesCompliant: true,
-  residenceCardDutiesCompliant: true,
-  affiliationNotices: [],
-  tax: 'on-time',
-  pension: 'lawful-exemption',
-  publicHealthInsurance: 'on-time',
-  addressNotices: [],
-  actualAddressAndRegister: true,
-  livelihoodConfirmed: true,
-  householdIncomeConfirmed: true,
-  pensionComparisonConfirmed: true,
-  publicBurdenConfirmedAcceptable: true,
-  publicHealthCleared: true,
-  otherLandingGroundsCleared: true,
-  guarantor: 'japanese-resident',
-  guarantorDocumentsReady: true,
-  japaneseB1Confirmed: true,
-  integrationKnowledgeConfirmed: true,
-  schoolChildren: [
-    { bornOn: '2015-04-02', attendance: 'primary-or-junior-high' },
-  ],
-  filer: 'self',
-  documentsReady: true,
-  photoReady: true,
-  specialPermission: { kind: 'none' },
-  feeReduction: 'not-requested',
-  integratedCard: {
-    requested: true,
-    immigrationChargeApplies: true,
-    jLisChargeApplies: true,
-    electronicCertificate: true,
-  },
-} satisfies JpPrCommonEvidence;
-
 const natEvidence = {
   japaneseCitizen: false,
   inJapan: true,
@@ -1779,6 +1731,28 @@ describe('re-entry and travel documents', () => {
     returnOn: '2027-10-02',
     stayExpiresOn: '2028-10-02',
   } as const;
+
+  test('an ordinary permit cannot preserve the prior stay on a new landing', () => {
+    const returned = '2026-10-07';
+    const request: JpFullRequest = {
+      ...base,
+      trips: [
+        {
+          departed: ordinary.departureOn,
+          returned,
+          departure: 'permit',
+          reentryPermit: true,
+        },
+      ],
+      permanentResidence: { routes: [general], evidence: prEvidence },
+      reentry: [{ ...ordinary, returnOn: undefined, newLandingOn: returned }],
+    };
+    const [pr, travel] = evaluateJapanFull(request).columns[0].pathways;
+    expect(status(travel, 'return-continuity')).toBe('NOT_MET');
+    expect(status(pr, 'continuous-stay')).toBe('NOT_MET');
+    expect(pr.timeEarliestDate).toBe('2036-10-07');
+    expect(pr.earliestDate).toBeUndefined();
+  });
 
   test.each([
     {
