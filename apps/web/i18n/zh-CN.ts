@@ -302,10 +302,6 @@ export const zhCN = {
   'hub.uk.paths': '定居 ILR · 现行法律与改革对比',
   'hub.uk.desc':
     '评估 Skilled Worker、BN(O)、Global Talent、家庭、保护与 10 年长居等路线的定居条件，并排对比现行 Immigration Rules 与已公布改革。',
-  'hub.au.code': 'AU',
-  'hub.au.paths': '转永居 PR · 回头签 RRV · 入籍',
-  'hub.au.desc':
-    '核对 191 和香港类别（189／191）的持签或居住时长、186 TRT 的持签时长、为担保雇主全职工作的时长及申请年龄，以及伴侣签永久阶段（801／100）的等待期。也核对回头签 RRV 的在境天数和入籍的居住时间。',
   'hub.nz.code': 'NZ',
   'hub.nz.paths': '永久居民 PRV · 旅行条件 · 入籍',
   'hub.nz.desc':
