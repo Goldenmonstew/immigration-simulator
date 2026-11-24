@@ -3,7 +3,7 @@ import type { TranslationKey } from '../i18n';
 export const siteCountries = [
   { id: 'uk', slug: 'uk', nameKey: 'uk.name', hasGame: true },
   { id: 'au', slug: 'australia', nameKey: 'au.name', hasGame: false },
-  { id: 'nz', slug: 'new-zealand', nameKey: 'nz.name', hasGame: false },
+  { id: 'nz', slug: 'new-zealand', nameKey: 'nz.name', hasGame: true },
   { id: 'ca', slug: 'canada', nameKey: 'ca.name', hasGame: false },
   { id: 'us', slug: 'united-states', nameKey: 'us.name', hasGame: false },
   { id: 'es', slug: 'spain', nameKey: 'es.name', hasGame: false },
@@ -39,7 +39,7 @@ export function countryPath(
 const calculatorPages = ['', 'simulate', 'result', 'whatif', 'policy'];
 const pagesByCountry: Partial<Record<CountryId, string[]>> = {
   uk: [...calculatorPages, 'about', 'game'],
-  nz: calculatorPages,
+  nz: [...calculatorPages, 'game'],
   jp: [...calculatorPages, 'game'],
 };
 
