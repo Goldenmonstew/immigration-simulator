@@ -8,11 +8,11 @@ import { t } from '../i18n';
 import type { CountryModule } from './country-module';
 import {
   activeJapanAnswers,
-  canConfirmJapanDeparture,
   clearUnconfirmedJapanDeclaration,
   createJapanDraft,
   decodeJapanDraft,
   invalidJapanFactStep,
+  japanDepartureStatus,
   restoreStoredJapanDraft,
   validateJapanStep,
   type JapanDraft,
@@ -52,10 +52,11 @@ function run(draft: JapanDraft, locale: Locale) {
   if (shortCircuit)
     return { policyAsOf: japanFull2026_11.asOf, columns: [], shortCircuit };
   const deemed = confirmed.reentry.find((route) => route.route === 'deemed');
+  const departure = deemed && japanDepartureStatus(confirmed, deemed);
   const itineraries = japanTripOccurrences(
     confirmed,
-    deemed?.departureOn
-      ? { route: deemed, departed: canConfirmJapanDeparture(confirmed, deemed) }
+    deemed?.departureOn && departure
+      ? { route: deemed, departed: departure.departed }
       : undefined,
   );
   const result = evaluateJapanFull({ ...confirmed, locale }, itineraries);
@@ -71,19 +72,17 @@ function run(draft: JapanDraft, locale: Locale) {
     (route) => route.route === 'deemed',
   );
   if (
+    departure &&
     deemedJourney?.departureOn &&
     deemedJourney.declaredIntentAtDeparture === undefined
   ) {
-    const hint = deemedJourney.occurrence.departed
-      ? 'jp.result.confirmDeparture'
-      : 'jp.result.plannedDeparture';
     const pathway = result.columns[0].pathways.find(
       (item) => item.id === 'jp.reentry.deemed',
     );
     if (pathway)
       pathway.summary = [
         pathway.summary,
-        t(hint, locale).replace('{date}', deemedJourney.departureOn),
+        t(departure.hint, locale).replace('{date}', deemedJourney.departureOn),
       ].join(' ');
   }
   return result;

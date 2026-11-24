@@ -1499,6 +1499,22 @@ test('a same-day plan drops the actual declaration from the form, share and asse
       expect(continuity(restored)).toBe('UNKNOWN');
     }
   }
+  for (const restored of [jp.restoreStoredDraft!(draft), shared()]) {
+    expect(restored.reentry[0].alreadyDeparted).toBe(false);
+    expect(form(restored)).toContain('whether you left that day');
+    expect(fields.has('jp-travel-deemed-alreadyDeparted')).toBe(true);
+    expect(fields.has('jp-travel-deemed-declaredIntentAtDeparture')).toBe(false);
+    const result = jp.run(restored, 'en').columns[0].pathways[0];
+    expect(result.summary).toContain('whether you left that day');
+    expect(continuity(restored)).toBe('UNKNOWN');
+  }
+  answer('alreadyDeparted', '');
+  expect(shared().reentry[0].alreadyDeparted).toBeNull();
+  expect(form(shared())).toContain('whether you left that day');
+  expect(fields.has('jp-travel-deemed-declaredIntentAtDeparture')).toBe(false);
+  answer('alreadyDeparted', 'yes');
+  answer('declaredIntentAtDeparture', 'yes');
+  expect(continuity()).toBe('MET');
 });
 
 test('a travel-only questionnaire goes straight to route details and restores older trip-history drafts there', () => {

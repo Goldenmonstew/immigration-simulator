@@ -10,10 +10,9 @@ import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
 import {
   activeJapanAnswers,
-  canConfirmJapanDeparture,
   changedJapanAnswer,
   hasJapanResidenceRoute,
-  japanDepartureTiming,
+  japanDepartureStatus,
   japanSteps,
   datedJapanAnswers,
   ordinaryAnswersForDate,
@@ -91,6 +90,8 @@ function editTravelField(
     delete next.hasJapaneseTravelDocument;
   }
   if (next.route !== 'deemed') return next;
+  if (key === 'alreadyDeparted' && value === undefined)
+    next.alreadyDeparted = null;
   if (departureChanged) {
     delete next.lawfulStatus;
     delete next.temporaryVisitor;
@@ -179,12 +180,10 @@ function JapanStep({ draft: stored, errors, update: save }: StepProps) {
         route.route === 'ordinary'
           ? ordinaryFilingDays(draft, route)
           : undefined;
-      const planned =
-        route.route === 'deemed' && !canConfirmJapanDeparture(draft, route);
-      const sameDay =
-        route.route === 'deemed' &&
-        japanDepartureTiming(draft.simulationDate, route.departureOn) ===
-          'same-day';
+      const departure =
+        route.route === 'deemed'
+          ? japanDepartureStatus(draft, route)
+          : undefined;
       return (
         <section key={route.route} className={styles.section}>
           <h2>{routeLabel(group, route.route)}</h2>
@@ -220,10 +219,11 @@ function JapanStep({ draft: stored, errors, update: save }: StepProps) {
               fields={fields.filter(
                 (field) =>
                   (field.name !== 'alreadyDeparted' ||
-                    sameDay ||
+                    departure?.askIfDeparted ||
                     errors['jp-travel-deemed-departureOn'] ===
                       'jp.error.futureFact') &&
-                  (field.name !== 'declaredIntentAtDeparture' || !planned),
+                  (field.name !== 'declaredIntentAtDeparture' ||
+                    departure?.departed),
               )}
               prefix={'jp-' + group + '-' + route.route}
               values={route}
@@ -255,13 +255,8 @@ function JapanStep({ draft: stored, errors, update: save }: StepProps) {
           ) : (
             <p>{t('jp.form.noExtra')}</p>
           )}
-          {planned && route.departureOn && (
-            <p>
-              {t('jp.result.plannedDeparture').replace(
-                '{date}',
-                route.departureOn,
-              )}
-            </p>
+          {departure?.date && !departure.departed && (
+            <p>{t(departure.hint).replace('{date}', departure.date)}</p>
           )}
         </section>
       );

@@ -31,30 +31,50 @@ export function ResultPage<D extends CountryDraft, K>({
   const { t, locale } = useTranslation();
   const p = punct(locale);
   const [page, setPage] = useState<ResultPageState<D> & { mock?: boolean }>();
-  const displayedSource = useRef<D | string | undefined>(undefined);
+  const displayedScenario = useRef<{ hash: string; source?: D | string }>(
+    undefined,
+  );
   useEffect(() => {
-    const open = (hash: string) => {
-      const encoded = new URLSearchParams(hash.slice(1)).get('s');
+    const read = (linkHash?: string) => {
+      const hash = linkHash ?? window.location.hash;
+      const current = displayedScenario.current;
+      const refresh =
+        country.id === 'jp' &&
+        current &&
+        (linkHash === undefined || linkHash === current.hash);
+      const source = refresh
+        ? current.source
+        : new URLSearchParams(hash.slice(1)).get('s');
+      if (source === undefined) return;
       const previewId = new URLSearchParams(window.location.search).get('mock');
       const example =
-        encoded === null && previewId && preview?.(previewId, locale);
+        source === null && previewId && preview?.(previewId, locale);
       if (example) {
-        displayedSource.current = undefined;
+        displayedScenario.current = undefined;
         setPage({ result: example, mock: true });
       } else {
-        const next = readPageResult(country, locale, encoded);
-        displayedSource.current = encoded ?? next.draft;
+        const next = readPageResult(
+          country,
+          locale,
+          source,
+          refresh ? 'refresh' : 'result',
+        );
+        if (!refresh)
+          displayedScenario.current =
+            country.id === 'jp'
+              ? { hash, source: source ?? next.draft }
+              : undefined;
         setPage(next);
       }
     };
-    const openLocation = () => open(window.location.hash);
-    openLocation();
+    read();
     if (country.id !== 'jp') {
+      const openLocation = () => read(window.location.hash);
       window.addEventListener('hashchange', openLocation);
       return () => window.removeEventListener('hashchange', openLocation);
     }
 
-    const stopWatching = watchScenarioHash(open);
+    const stopWatching = watchScenarioHash(read);
     let timer: number;
     const scheduleMidnight = () => {
       const now = new Date();
@@ -65,9 +85,7 @@ export function ResultPage<D extends CountryDraft, K>({
     function refresh() {
       window.clearTimeout(timer);
       if (document.visibilityState !== 'visible') return;
-      const source = displayedSource.current;
-      if (source !== undefined)
-        setPage(readPageResult(country, locale, source, 'refresh'));
+      read();
       scheduleMidnight();
     }
     if (document.visibilityState === 'visible') scheduleMidnight();
@@ -185,7 +203,8 @@ export function ResultPage<D extends CountryDraft, K>({
           country={country}
           draft={result ? draft : undefined}
           onLoad={(next) => {
-            displayedSource.current = next;
+            if (country.id === 'jp')
+              displayedScenario.current = { hash: '', source: next };
             setPage(readPageResult(country, locale, next));
           }}
         />

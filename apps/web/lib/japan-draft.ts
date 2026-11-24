@@ -38,7 +38,8 @@ export interface JapanDraft
     evidence: JpNaturalisationEvidence;
   };
   reentry: (JpFullReentryRequest & {
-    alreadyDeparted?: boolean;
+    // Null records an explicit "to confirm"; older drafts can omit the question.
+    alreadyDeparted?: boolean | null;
     declarationForDepartureOn?: string;
   })[];
 }
@@ -212,25 +213,27 @@ export function hasJapanResidenceRoute(draft: JapanDraft): boolean {
   );
 }
 
-export function japanDepartureTiming(
-  simulationDate: string,
-  departureOn?: string,
+export function japanDepartureStatus(
+  draft: JapanDraft,
+  { departureOn, alreadyDeparted }: JapanDraft['reentry'][number],
 ) {
   const current = today();
-  const asOf = simulationDate < current ? simulationDate : current;
-  if (!departureOn || departureOn > asOf) return 'future';
-  return departureOn === asOf ? 'same-day' : 'past';
-}
-
-export function canConfirmJapanDeparture(
-  draft: JapanDraft,
-  route: JapanDraft['reentry'][number],
-) {
-  const timing = japanDepartureTiming(draft.simulationDate, route.departureOn);
-  return (
-    timing === 'past' ||
-    (timing === 'same-day' && route.alreadyDeparted === true)
-  );
+  const asOf = draft.simulationDate < current ? draft.simulationDate : current;
+  const due = !!departureOn && departureOn <= asOf;
+  const answered = alreadyDeparted !== undefined;
+  const departed =
+    due && (answered ? alreadyDeparted === true : departureOn < asOf);
+  const pending = due && answered && !departed && departureOn < current;
+  return {
+    date: departureOn,
+    departed,
+    askIfDeparted: due && (departureOn === asOf || answered),
+    hint: departed
+      ? 'jp.result.confirmDeparture'
+      : pending
+        ? 'jp.result.unconfirmedDeparture'
+        : 'jp.result.plannedDeparture',
+  } as const;
 }
 
 // A date-tagged answer from an older draft could still describe a planned departure.
@@ -244,7 +247,7 @@ export function clearUnconfirmedJapanDeclaration(
     deemed?.declaredIntentAtDeparture === undefined ||
     (deemed.alreadyDeparted === true &&
       deemed.declarationForDepartureOn === deemed.departureOn &&
-      canConfirmJapanDeparture(draft, deemed))
+      japanDepartureStatus(draft, deemed).departed)
   )
     return draft;
   return {
@@ -387,6 +390,7 @@ function checkFields(
           errors[id] = 'jp.form.required';
         break;
       case 'boolean':
+        if (field.name === 'alreadyDeparted' && value === null) break;
         if (typeof value !== 'boolean') errors[id] = 'jp.form.required';
         break;
       case 'notice':
@@ -636,7 +640,7 @@ function checkStep(
         if (
           route.route === 'deemed' &&
           route.declaredIntentAtDeparture !== undefined &&
-          !canConfirmJapanDeparture(draft, route)
+          !japanDepartureStatus(draft, route).departed
         )
           errors[prefix + '-declaredIntentAtDeparture'] =
             'jp.form.declarationError';
@@ -777,13 +781,9 @@ export function decodeJapanDraft(
   )
     return undefined;
   let draft = value as unknown as JapanDraft;
-  // Same-day shares created before the departure question need fresh confirmation.
+  // Discard older declarations when the departure still needs confirmation.
   const deemed = draft.reentry.find((route) => route.route === 'deemed');
-  if (
-    deemed &&
-    japanDepartureTiming(draft.simulationDate, deemed.departureOn) ===
-      'same-day'
-  )
+  if (deemed && japanDepartureStatus(draft, deemed).askIfDeparted)
     draft = clearUnconfirmedJapanDeclaration(draft);
   // Validate containers before checking date relationships across their rows.
   if (titles.some((_, i) => Object.keys(checkStep(draft, i, false)).length))

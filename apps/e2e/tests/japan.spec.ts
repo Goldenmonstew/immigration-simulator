@@ -674,6 +674,51 @@ test('a shared result keeps its scenario for comparison and editing after anothe
 test.describe('device in Japan', () => {
   test.use({ timezoneId: 'Asia/Tokyo' });
 
+  test('answering no on departure day still requires confirmation after midnight', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-11-23T23:59:00+09:00') });
+    await page.goto(path('simulate'));
+    await page.locator('#jp-simulationDate').fill('2026-11-26');
+    await page.locator('#jp-route-travel-deemed').check();
+    const form = questionnaire(page);
+    const next = form.getByRole('button', {
+      name: zhCN['form.continue'],
+      exact: true,
+    });
+    const results = form.getByRole('button', {
+      name: zhCN['form.results'],
+      exact: true,
+    });
+    await next.click();
+    await page.locator('#jp-travel-deemed-departureOn').fill(departure);
+    const departed = page.locator('#jp-travel-deemed-alreadyDeparted');
+    const declaration = page.locator(
+      '#jp-travel-deemed-declaredIntentAtDeparture',
+    );
+    await departed.selectOption('no');
+    await results.click();
+    const main = page.getByRole('main');
+    const hint = (
+      key: 'plannedDeparture' | 'unconfirmedDeparture' | 'confirmDeparture',
+    ) => zhCN[`jp.result.${key}`].replace('{date}', departure);
+    await expect(main).toContainText(hint('plannedDeparture'));
+    await page.clock.fastForward('01:01');
+    await expect(main).toContainText(hint('unconfirmedDeparture'));
+    await expect(main).not.toContainText(hint('confirmDeparture'));
+    await main
+      .getByRole('link', { name: zhCN['result.edit'], exact: true })
+      .first()
+      .click();
+    await next.click();
+    await expect(departed).toHaveValue('no');
+    await expect(declaration).toHaveCount(0);
+    await departed.selectOption('yes');
+    await expect(declaration).toBeVisible();
+    await results.click();
+    await expect(main).toContainText(hint('confirmDeparture'));
+  });
+
   for (const shared of [true, false]) {
     test(`a continuously visible Japanese ${shared ? 'shared' : 'local'} result keeps its scenario at device midnight`, async ({
       page,
@@ -706,7 +751,17 @@ test.describe('device in Japan', () => {
       expect(await page.evaluate(() => document.visibilityState)).toBe(
         'visible',
       );
+      await page.getByRole('button', { name: 'English', exact: true }).click();
+      await expect(main).toContainText(
+        en['jp.result.plannedDeparture'].replace('{date}', departure),
+      );
       await page.clock.fastForward('01:01');
+      await expect(main).toContainText(
+        en['jp.result.confirmDeparture'].replace('{date}', departure),
+      );
+      await page
+        .getByRole('button', { name: en['site.chinese'], exact: true })
+        .click();
       await expect(main).toContainText(
         zhCN['jp.result.confirmDeparture'].replace('{date}', departure),
       );
