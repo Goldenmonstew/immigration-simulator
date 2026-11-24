@@ -297,7 +297,7 @@ function Question({
           ) : (
             field.options.map((option) => (
               <option key={option} value={option}>
-                {t(`es.option.${option}`)}
+                {t(`es.option.${field.optionLabels?.[option] ?? option}`)}
               </option>
             ))
           )}

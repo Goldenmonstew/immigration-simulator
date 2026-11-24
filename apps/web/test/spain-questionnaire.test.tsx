@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, expect, test, vi } from 'vitest';
+import { ES_FULL_TARGETS } from '@uk-immigration/engine';
 import SpainSimulatePage from '../app/spain/simulate/page';
 import { LocaleContext } from '../i18n/locale';
 import { readPageResult } from '../lib/page-result';
@@ -257,4 +258,58 @@ test('record completeness and a notarial suspension after grant must be answered
   ).toEqual({});
   // Before a grant, the question stays optional.
   expect(es.validateStep({ ...granted, nationality: {} })).toEqual({});
+});
+
+test('labels shared across questions read correctly in each place', () => {
+  const row = {} as never;
+  const draft: SpainDraft = {
+    ...history(),
+    targets: [...ES_FULL_TARGETS],
+    residence: {
+      periods: [row],
+      tripDetails: [row],
+      resources: { income: [row] },
+    },
+  };
+  const step = (n: number, locale: 'zh-CN' | 'en' = 'en') =>
+    renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        {SpainSimulatePage().props.children({
+          draft: { ...draft, step: n },
+          errors: {},
+          update: () => {},
+        })}
+      </LocaleContext>,
+    );
+  const option = (html: string, id: string, value: string) =>
+    html.match(
+      new RegExp(`<select id="${id}"[^]*?<option value="${value}">([^<]*)<`),
+    )?.[1];
+  const label = (html: string, id: string) =>
+    html.match(new RegExp(`<label for="${id}">([^<]*)<`))?.[1];
+
+  const free = step(6);
+  expect(label(free, 'es-fm-relationship')).toBe(
+    'Family relationship with the EU or Spanish sponsor (U02/U03)',
+  );
+  expect(option(free, 'es-fm-relationship', 'ascendant')).toBe(
+    'Dependent direct ascendant',
+  );
+  expect(free).toContain('work accident or occupational disease');
+
+  const residence = step(3);
+  expect(label(residence, 'es-res-insurance-kind')).toBe('Health cover type');
+  expect(residence).toContain('Income type');
+  expect(residence).toContain('Permit or stay category');
+  expect(residence).toContain('Ordinary absence (no exception claimed)');
+  expect(residence).not.toContain('or ordinary absence');
+  expect(residence).toContain('Retirement (Spanish contributory pension)');
+
+  const nationality = step(2);
+  expect(nationality).toContain('Exam centre outside Spain');
+  expect(nationality).toContain('Other country (not exempt)');
+  expect(step(4)).toContain('Employer type');
+  expect(step(4)).toContain('Relationship category');
+  expect(step(6)).toContain('Retirement (early free-movement acquisition)');
+  expect(step(3, 'zh-CN')).not.toContain('散星');
 });

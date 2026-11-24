@@ -669,3 +669,4 @@
 | 638 | 任务 97 审核修正（review97-1 风险 4）。西班牙问卷「居留与出入境记录是否完整」改为必答；已填获批通知日时，「是否在等待公证停钟确认」须答是或否，避免留空被引擎当作确定值。 | apps/web/lib/spain-{draft,fields}.ts、apps/web/app/spain/simulate/evidence-fields.tsx、apps/web/test/spain{,-questionnaire}.test.tsx |
 | 639 | 任务 97 审核修正（review97-1 风险 5）。西班牙结果页把不决定路径结论的费用、办卡、获批后手续与分支明细折叠在专属标题下，不再沿用「其他路径的条件」；自由流动永久居留已取得时，在结论下注明取得日。 | apps/web/components/result-view.tsx、apps/web/lib/spain-module.ts、apps/web/i18n/countries/spain.ts、apps/web/test/spain.test.tsx |
 | 640 | 任务 97 审核修正（review97-1 风险 2）。离线缓存版本递增为 2026-11-24-es，已安装旧版的设备会重新安装并缓存新增的西班牙子页。 | apps/web/public/sw.js、apps/web/test/about-page.test.tsx |
+| 641 | 任务 97 审核修正（review97-1 建议 1）。修正西班牙问卷错别字与英文空格；自由流动关系改用 U02／U03 专属标签；医保、雇主、收入、居留阶段与亲属关系的类别各用专属标签；普通离境、提前退休、境外考点、受扶养直系尊亲属等跨字段共用的选项改用本处措辞。 | apps/web/lib/spain-fields.ts、apps/web/app/spain/simulate/evidence-fields.tsx、apps/web/i18n/countries/spain-form.ts、apps/web/test/spain-questionnaire.test.tsx |

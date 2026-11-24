@@ -10,6 +10,7 @@ type Suffix<P extends string> =
     : never;
 export type SpainFieldName = Suffix<'field'>;
 export type SpainOption = Suffix<'option'>;
+type OptionLabels = Partial<Record<SpainOption, SpainOption>>;
 
 export type SpainField = {
   name: string;
@@ -22,7 +23,12 @@ export type SpainField = {
   requiredWith?: string;
 } & (
   | { type: 'boolean' | 'date' | 'number' | 'integer' | 'date-list' }
-  | { type: 'choice'; options: readonly SpainOption[] }
+  | {
+      type: 'choice';
+      options: readonly SpainOption[];
+      /** Wording for a value whose shared label reads wrongly here. */
+      optionLabels?: OptionLabels;
+    }
   | {
       type: 'multi-choice';
       options: readonly SpainOption[];
@@ -63,7 +69,30 @@ const choice = (
   name: SpainFieldName,
   options: readonly SpainOption[],
   required = false,
-): SpainField => ({ name, label: name, type: 'choice', options, required });
+  optionLabels?: OptionLabels,
+): SpainField => ({
+  name,
+  label: name,
+  type: 'choice',
+  options,
+  required,
+  optionLabels,
+});
+// A field named `kind` or similar whose label must say what it classifies.
+const labelled = (
+  name: string,
+  label: SpainFieldName,
+  options: readonly SpainOption[],
+  required = false,
+  optionLabels?: OptionLabels,
+): SpainField => ({
+  name,
+  label,
+  type: 'choice',
+  options,
+  required,
+  optionLabels,
+});
 const multiChoice = (
   name: SpainFieldName,
   options: readonly SpainOption[],
@@ -243,7 +272,7 @@ export const spainNatSections = {
     ...flags('schoolOrCareCertificateIfRequired', 'integrationDecision'),
     group('examBooking', [
       date('date'),
-      choice('deleCountry', ['ES', 'OTHER']),
+      choice('deleCountry', ['ES', 'OTHER'], false, { OTHER: 'exam-abroad' }),
       choice('deleLevel', cefrLevels),
       date('ccseRetakeFrom'),
     ]),
@@ -292,7 +321,7 @@ export const applicationFeeFields: SpainField[] = [
 ];
 
 export const healthCoverFields: SpainField[] = [
-  choice('kind', ['public', 'private', 'none', 'other']),
+  labelled('kind', 'coverKind', ['public', 'private', 'none', 'other']),
   ...flags('entitledOrAuthorized', 'equivalentCoverage'),
   date('validFrom'),
   date('validTo'),
@@ -303,8 +332,9 @@ export const familyResourcesFields: SpainField[] = [
   integer('familySize', 1),
   number('eligibleMonthlyIncome'),
   list('income', [
-    choice(
+    labelled(
       'kind',
+      'incomeKind',
       [
         'gross-pay',
         'net-business',
@@ -395,8 +425,9 @@ export const spainResidenceSections = {
       date('from', true),
       date('to'),
       choice('territory', ['spain', 'other-eu'], true),
-      choice(
+      labelled(
         'kind',
+        'periodKind',
         [
           'residence',
           'study',
@@ -418,7 +449,12 @@ export const spainResidenceSections = {
     list('tripDetails', [
       date('departed', true),
       date('returned', true),
-      choice('reason', ['ordinary', 'work', 'force-majeure', 'cooperation']),
+      choice(
+        'reason',
+        ['ordinary', 'work', 'force-majeure', 'cooperation'],
+        false,
+        { ordinary: 'ordinary-absence' },
+      ),
       ...flags('exceptionDocumented', 'irregularExit', 'outsideEu'),
     ]),
     group('blueMobility', [
@@ -502,7 +538,7 @@ export const spainMobilitySections = {
         ),
         number('annualGrossSalary'),
         group('employer', [
-          choice('kind', ['individual', 'company']),
+          labelled('kind', 'employerKind', ['individual', 'company']),
           ...flags('taxAndSocialSecurityCurrent', 'projectAndPayrollSupported'),
           integer('householdSize', 1),
           number('monthlyResourcesAfterGrossSalary'),
@@ -536,10 +572,7 @@ export const spainMobilitySections = {
           'specificPerformanceAccepted',
         ),
       ]),
-      group('healthCover', [
-        ...healthCoverFields,
-        bool('coversFamilyMember'),
-      ]),
+      group('healthCover', [...healthCoverFields, bool('coversFamilyMember')]),
       group('fee', applicationFeeFields),
       ...flags(
         'separateWorkFeeRequired',
@@ -556,7 +589,7 @@ export const spainMobilitySections = {
       date('principalFiledOn'),
       choice('principalDecision', ['granted', 'refused', 'pending']),
       group('relationship', [
-        choice('kind', [
+        labelled('kind', 'relationshipKind', [
           'spouse',
           'partner',
           'child',
@@ -715,13 +748,18 @@ const freeMovementPeriodFields: SpainField[] = [
 const freeMovementTripFields: SpainField[] = [
   date('departed', true),
   date('returned', true),
-  choice('reason', [
-    'ordinary',
-    'military',
-    'important',
-    'cooperation-or-eu-study',
-    'unconfirmed',
-  ]),
+  choice(
+    'reason',
+    [
+      'ordinary',
+      'military',
+      'important',
+      'cooperation-or-eu-study',
+      'unconfirmed',
+    ],
+    false,
+    { ordinary: 'ordinary-absence' },
+  ),
 ];
 
 export const spainFreeMovementSections = {
@@ -733,15 +771,21 @@ export const spainFreeMovementSections = {
       'transitionalEuRegimeConfirmed',
       'accompanyingOrJoining',
     ),
-    choice('relationship', [
-      'spouse',
-      'registered-partner',
-      'descendant',
-      'ascendant',
-      'extended-relative',
-      'durable-partner',
-      'other',
-    ]),
+    labelled(
+      'relationship',
+      'fmRelationship',
+      [
+        'spouse',
+        'registered-partner',
+        'descendant',
+        'ascendant',
+        'extended-relative',
+        'durable-partner',
+        'other',
+      ],
+      false,
+      { ascendant: 'fm-ascendant' },
+    ),
     ...flags(
       'relationshipDocumented',
       'studentSponsor',
@@ -765,11 +809,7 @@ export const spainFreeMovementSections = {
     ...flags('noExecutedExpulsion', 'continuityAccepted'),
   ],
   fmRetentionEarly: [
-    choice('retainedEvent', [
-      'sponsor-death',
-      'child-in-education',
-      'divorce',
-    ]),
+    choice('retainedEvent', ['sponsor-death', 'child-in-education', 'divorce']),
     date('eventDate'),
     date('divorceProceedingsStartedOn'),
     bool('eventReported'),
@@ -781,13 +821,18 @@ export const spainFreeMovementSections = {
       'exceptionalHardshipProved',
       'retainedStatusAccepted',
     ),
-    choice('earlyBasis', [
-      'retirement',
-      'incapacity',
-      'cross-border',
-      'worker-family',
-      'death-at-work',
-    ]),
+    choice(
+      'earlyBasis',
+      [
+        'retirement',
+        'incapacity',
+        'cross-border',
+        'worker-family',
+        'death-at-work',
+      ],
+      false,
+      { retirement: 'early-retirement' },
+    ),
     date('workStopped'),
     date('employmentFrom'),
     bool('qualifiedWorker'),
