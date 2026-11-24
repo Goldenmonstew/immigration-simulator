@@ -29,8 +29,16 @@ const good = {
   tenYear: { ...tenYearDocuments, basis: 'residence', residesInGreece: true },
 } satisfies GrFullRequest;
 
+function request(route: Route, r: Partial<GrFullRequest>): GrFullRequest {
+  const req = { ...good, ...r };
+  if (route === lt)
+    return { ...req, longTerm: { stage: 'initial', ...req.longTerm } };
+  if (route === ty)
+    return { ...req, tenYear: { stage: 'initial', ...req.tenYear } };
+  return { ...req, nationality: { stage: 'application', ...req.nationality } };
+}
 function rules(route: Route, r: Partial<GrFullRequest>) {
-  return settlementChecks(route, { ...good, ...r }, grContext('en'));
+  return settlementChecks(route, request(route, r), grContext('en'));
 }
 function check(route: Route, id: string, r: Partial<GrFullRequest> = {}) {
   return rules(route, r).find((c) => c.id === id)!;
@@ -39,17 +47,22 @@ function status(route: Route, id: string, r: Partial<GrFullRequest> = {}) {
   return check(route, id, r).status;
 }
 function full(route: Route, r: Partial<GrFullRequest>) {
-  return evaluateGreeceFull({
-    ...good,
-    citizenship: 'third-country',
-    entry: 'permit',
-    passport: { kind: 'exception-granted' },
-    changes: [],
-    biometrics: 'provided',
-    ...r,
-    tenYear: { ...tenYearDocuments, ...(r.tenYear ?? good.tenYear) },
-    pathways: [route],
-  }).columns[0].pathways[0];
+  return evaluateGreeceFull(
+    request(route, {
+      citizenship: 'third-country',
+      entry: 'permit',
+      passport: { kind: 'exception-granted' },
+      changes: [],
+      biometrics: 'provided',
+      ...r,
+      tenYear: {
+        ...tenYearDocuments,
+        residesInGreece: true,
+        ...(r.tenYear ?? good.tenYear),
+      },
+      pathways: [route],
+    }),
+  ).columns[0].pathways[0];
 }
 const incomes = (years: number[], taxableEur: number, dependants = 0) =>
   Object.fromEntries(years.map((y) => [y, { taxableEur, dependants }]));
@@ -251,7 +264,12 @@ describe('M.1 long-term grant and retention', () => {
     ).toBe('MET');
   });
   test('A2 requires both marks; the history-only sitting accepts modern A2 or legacy A', () => {
-    const base = { basis: 'a2', a2Total: 50, a2SectionsAtPassMark: 4 } as const;
+    const base = {
+      basis: 'a2',
+      a2ExamOn: day,
+      a2Total: 50,
+      a2SectionsAtPassMark: 4,
+    } as const;
     expect(
       status(lt, 'LT-04', { integration: base, birthDate: '2010-11-23' }),
     ).toBe('MET');
@@ -277,6 +295,7 @@ describe('M.1 long-term grant and retention', () => {
     );
     const hist = {
       basis: 'history',
+      a2ExamOn: day,
       greekLevel: 'A2',
       historyPoints: 10,
     } as const;
@@ -330,6 +349,27 @@ describe('M.1 long-term grant and retention', () => {
       }),
     ).toBe('NOT_MET');
   });
+  test.each(['a2', 'history'] as const)(
+    '%s raw results need the sitting date',
+    (basis) => {
+      const integration = {
+        basis,
+        greekLevel: 'A2',
+        historyPoints: 10,
+        a2Total: 50,
+        a2SectionsAtPassMark: 4,
+      } as const;
+      for (const [a2ExamOn, expected] of [
+        [undefined, 'UNKNOWN'],
+        [day, 'MET'],
+      ] as const) {
+        const path = full(lt, { integration: { ...integration, a2ExamOn } });
+        expect(path.checks.find((item) => item.id === 'LT-04')?.status).toBe(
+          expected,
+        );
+      }
+    },
+  );
   test('a declared historical twelve-year total settles the integration check without a start date', () => {
     for (const [legacyTwelveLawfulYears, expected] of [
       [false, 'NOT_MET'],
@@ -704,7 +744,7 @@ describe('M.2 acquisition and conversion', () => {
         tenYear: { ...e, residesInGreece: undefined },
         entry: 'permit',
       }),
-    ).toBe('MET');
+    ).toBe('UNKNOWN');
     expect(
       status(ty, 'TY-01', {
         tenYear: { ...e, schoolCompletedOn: '2008-05-12' },
@@ -734,6 +774,19 @@ describe('M.2 acquisition and conversion', () => {
         },
       }),
     ).toBe('MET');
+  });
+  test('current permits do not settle residence in Greece or a disputed continuity record', () => {
+    for (const tenYear of [
+      { ...good.tenYear, residesInGreece: undefined },
+      { ...good.tenYear, disputedPermitGap: true },
+    ]) {
+      const result = full(ty, { tenYear });
+      expect(result.checks.find((item) => item.id === 'TY-01')?.status).toBe(
+        'UNKNOWN',
+      );
+      expect(result.status).toBe('UNKNOWN');
+      expect(result.earliestDate).toBeUndefined();
+    }
   });
   test('continuous absence of exactly two years bars M.2; future travel does not', () => {
     for (const [returned, expected] of [
@@ -852,6 +905,7 @@ describe('ΚΕΙ naturalisation', () => {
     },
   );
   const satisfactory: NonNullable<GrFullRequest['nationality']> = {
+    stage: 'application',
     permit: 'listed',
     convictions: [],
     removalOrStatusProceedings: false,
@@ -869,6 +923,44 @@ describe('ΚΕΙ naturalisation', () => {
     feeClass: 'ordinary',
     lastRejection: 'none',
   };
+  test.each(['oral', 'written'] as const)(
+    'the filing date cannot establish a %s examination date',
+    (exam) => {
+      const answers = {
+        ...satisfactory,
+        exam,
+        languagePoints: 40,
+        knowledgePoints: 30,
+        oralPassed: true,
+        certifiedLearningDisability: false,
+        barredFromExam: false,
+      };
+      for (const [examOn, expected] of [
+        [undefined, 'UNKNOWN'],
+        [day, 'MET'],
+      ] as const) {
+        const path = full(nat, { nationality: { ...answers, examOn } });
+        expect(path.checks.find((item) => item.id === 'NAT-05')?.status).toBe(
+          expected,
+        );
+        expect(path.status).toBe(expected);
+      }
+    },
+  );
+  test('missing procedure cannot confirm M.1, M.2 or naturalisation eligibility', () => {
+    for (const [id, patch] of [
+      [lt, { longTerm: { ...good.longTerm, stage: undefined } }],
+      [ty, { tenYear: { ...good.tenYear, stage: undefined } }],
+      [nat, { nationality: { ...satisfactory, stage: undefined } }],
+    ] as const) {
+      const path = full(id, patch);
+      expect(
+        path.checks.find((item) => item.id.endsWith('-STAGE'))?.status,
+      ).toBe('UNKNOWN');
+      expect(path.status).toBe('UNKNOWN');
+      expect(path.earliestDate).toBeUndefined();
+    }
+  });
   test('naturalisation counts only evidenced diplomatic or consular spouse postings on the three- and seven-year routes', () => {
     const returned = '2026-11-23';
     const posting = {
@@ -1116,6 +1208,7 @@ describe('ΚΕΙ naturalisation', () => {
         nationality: {
           ...satisfactory,
           exam: 'written',
+          examOn: day,
           languagePoints,
           knowledgePoints,
           barredFromExam: false,
@@ -1134,6 +1227,7 @@ describe('ΚΕΙ naturalisation', () => {
     const nationality = {
       ...satisfactory,
       exam: 'oral' as const,
+      examOn: '2025-09-01',
       oralPassed: true,
       certifiedLearningDisability: false,
       barredFromExam: false,
@@ -1150,21 +1244,33 @@ describe('ΚΕΙ naturalisation', () => {
       status: 'NOT_MET',
       explanation: expect.stringContaining('2026-08-01'),
     });
-    // Residence matures just after the reform lifts the bar. The fifth tax record counts at New Year.
-    const before = full(nat, review);
-    expect(before).toMatchObject({
+    expect(full(nat, review).status).toBe('NOT_MET');
+    expect(full(nat, { ...review, simulationDate: '2026-01-01' }).status).toBe(
+      'NOT_MET',
+    );
+    // A sitting after the reform uses the amended disability threshold.
+    const newSitting = { ...nationality, examOn: '2025-09-02' };
+    expect(full(nat, { ...review, nationality: newSitting })).toMatchObject({
       status: 'FUTURE',
       earliestDate: '2026-01-01',
     });
-    expect(full(nat, { ...review, simulationDate: '2025-09-03' }).status).toBe(
-      'UNKNOWN',
-    );
-    expect(full(nat, { ...review, simulationDate: '2026-01-01' }).status).toBe(
-      'MET',
-    );
+    expect(
+      full(nat, {
+        ...review,
+        nationality: newSitting,
+        simulationDate: '2025-09-03',
+      }).status,
+    ).toBe('UNKNOWN');
+    expect(
+      full(nat, {
+        ...review,
+        nationality: newSitting,
+        simulationDate: '2026-01-01',
+      }).status,
+    ).toBe('MET');
     const after = full(nat, {
       nationality: {
-        ...nationality,
+        ...newSitting,
         incomeByTaxYear: incomes([2019, 2020, 2021, 2022, 2023], 5500),
       },
       simulationDate: '2025-09-02',
@@ -1330,6 +1436,7 @@ describe('ΚΕΙ naturalisation', () => {
         status(nat, 'NAT-05', {
           nationality: {
             exam: 'written',
+            examOn: day,
             languagePoints,
             knowledgePoints,
             barredFromExam: false,
@@ -1341,6 +1448,7 @@ describe('ΚΕΙ naturalisation', () => {
   test('oral accommodation distinguishes age/disability from actually passing; Greek education exempts', () => {
     const oral = {
       exam: 'oral',
+      examOn: day,
       oralPassed: true,
       barredFromExam: false,
       disabilityPercent: 66,
@@ -1437,6 +1545,32 @@ describe('ΚΕΙ naturalisation', () => {
         nationality: { taxAndSocialInsuranceCurrent: false },
       }),
     ).toBe('NOT_MET');
+  });
+  test('historic disability income uses evidenced welfare only when taxable income alone is insufficient', () => {
+    for (const [taxableEur, welfareEur, expected] of [
+      [5200, undefined, 'UNKNOWN'],
+      [5200, 0, 'NOT_MET'],
+      [5200, 300, 'MET'],
+      [5500, undefined, 'MET'],
+    ] as const) {
+      const result = full(nat, {
+        simulationDate: '2023-11-23',
+        route: 'three-year',
+        nationality: {
+          disabilityPercent: 67,
+          taxAndSocialInsuranceCurrent: true,
+          incomeByTaxYear: Object.fromEntries(
+            [2020, 2021, 2022].map((year) => [
+              year,
+              { taxableEur, welfareEur, dependants: 0 },
+            ]),
+          ),
+        },
+      });
+      expect(result.checks.find((check) => check.id === 'NAT-07')?.status).toBe(
+        expected,
+      );
+    }
   });
   test('five qualifying years in seven need not be the most recent five; twelve-year route needs seven qualifying years', () => {
     const base = {

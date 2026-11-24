@@ -337,6 +337,7 @@ test('naturalisation refiling across the reform retains the citizenship-code wai
     permits: [{ kind: 'regular', from: '2016-01-01' }],
     trips: [],
     nationality: {
+      stage: 'application',
       permit: 'listed',
       convictions: [],
       removalOrStatusProceedings: false,

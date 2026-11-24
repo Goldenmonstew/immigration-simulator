@@ -159,7 +159,7 @@ export interface GrSettlementAnswers {
     removalOrStatusProceedings?: boolean;
     exam?:
       'certificate' | 'written' | 'oral' | 'school-exemption' | 'not-passed';
-    /** The sitting date when different from the filing date used in the simulation. */
+    /** Actual sitting date for raw written or oral examination results. */
     examOn?: IsoDate;
     /** Issued PEGP or documentary proof of the statutory educational exemption. */
     knowledgeDocumentReady?: boolean;
@@ -265,10 +265,14 @@ function integrationMet(r: GrFullRequest): boolean | IsoDate | undefined {
     case 'a2':
     case 'history': {
       if (e.basis === 'a2' && e.a2Certificate === true) return true;
-      const age = ageOn(r.birthDate, e.a2ExamOn ?? r.simulationDate);
+      const age = ageOn(r.birthDate, e.a2ExamOn);
       const eligibleForSitting = all(
-        !e.a2ExamOn || e.a2ExamOn <= r.simulationDate,
-        age === undefined ? undefined : age >= p.a2ExamAge,
+        e.a2ExamOn === undefined ? undefined : e.a2ExamOn <= r.simulationDate,
+        underAgeOn(r.birthDate, r.simulationDate, p.a2ExamAge)
+          ? false
+          : age === undefined
+            ? undefined
+            : age >= p.a2ExamAge,
       );
       if (e.basis === 'history')
         return all(
@@ -307,7 +311,11 @@ function integrationMet(r: GrFullRequest): boolean | IsoDate | undefined {
       return r.simulationDate >= v.workReformEffective.value;
     case 'none':
       return false;
-    default:
+    case 'school':
+    case 'greek-language-degree-abroad':
+    case 'pegp':
+    case 'family-pr':
+    case 'expatriate-card':
       return true;
   }
 }
@@ -370,6 +378,19 @@ function orderMet(r: GrFullRequest) {
 
 function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   const e = r.longTerm ?? {};
+  if (!e.stage)
+    return [
+      c.check(
+        'LT-STAGE',
+        '长期居留申请阶段',
+        'Long-term residence procedure',
+        undefined,
+        [
+          migration('144–146, 149'),
+          grSource('F21', 'art. 57(1)–(3), pp. 34–35'),
+        ],
+      ),
+    ];
   const p = v.longTermCard.value;
   const eu = e.continuousOutsideEuMonths;
   let retained: boolean | undefined;
@@ -558,6 +579,7 @@ export function backlogCredits(r: GrFullRequest): GrPermit[] {
 function tenYearResidence(r: GrFullRequest): boolean | IsoDate | undefined {
   const legacy = r.simulationDate < v.workReformEffective.value;
   if (legacy && r.tenYear?.legacyTenLawfulYears) return true;
+  if (r.tenYear?.disputedPermitGap) return undefined;
   if (!r.permits) return legacy ? r.tenYear?.legacyTenLawfulYears : undefined;
   const byDate = [...r.permits].sort((a, b) => a.from.localeCompare(b.from));
   const periods = byDate.map((p, i) => {
@@ -589,12 +611,7 @@ function tenYearResidence(r: GrFullRequest): boolean | IsoDate | undefined {
   }
   const sure = qualifyingDate(false);
   if (sure && sure <= r.simulationDate) return true;
-  if (
-    sure === null ||
-    r.tenYear?.disputedPermitGap ||
-    qualifyingDate(true) !== sure
-  )
-    return undefined;
+  if (sure === null || qualifyingDate(true) !== sure) return undefined;
   return sure ?? false;
 }
 
@@ -620,6 +637,16 @@ function conversionAbsences(r: GrFullRequest) {
 
 function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   const e = r.tenYear ?? {};
+  if (!e.stage)
+    return [
+      c.check(
+        'TY-STAGE',
+        '十年许可申请阶段',
+        'Ten-year permit procedure',
+        undefined,
+        tenYearLaw,
+      ),
+    ];
   const p = v.tenYearCard.value;
   const renewal = e.stage === 'renewal';
   const youth = e.basis === 'birth-school';
@@ -632,14 +659,6 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       e.greekGrades === undefined ? undefined : e.greekGrades >= p.grades,
       underAgeOn(r.birthDate, e.schoolCompletedOn, p.beforeAge),
     );
-    const activePermit = r.permits?.some(
-      (permit) =>
-        permit.from <= r.simulationDate &&
-        (!permit.to || permit.to >= r.simulationDate),
-    );
-    const residence =
-      e.residesInGreece ??
-      (r.entry === 'permit' && activePermit ? true : undefined);
     let eligible = ordinary ? tenYearResidence(r) : undefined;
     if (youth) {
       eligible = any(e.bornInGreece, schooling);
@@ -675,8 +694,8 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
         '确定性居留、出生或学籍',
         'Definitive permits, birth or schooling',
         typeof eligible === 'string'
-          ? residence && eligible
-          : all(residence, eligible),
+          ? e.residesInGreece && eligible
+          : all(e.residesInGreece, eligible),
         [
           ...tenYearLaw,
           grSource('F36', 'arts. 45(16), (20), 52(1)'),
@@ -888,7 +907,9 @@ function economicIntegration(r: GrFullRequest, c: GrContext) {
       continue;
     }
     if (disability !== undefined && disability >= disabilityCutoff) {
-      if (record.taxableEur + (record.welfareEur ?? 0) >= p.disability)
+      if (record.taxableEur >= p.disability) qualifying++;
+      else if (record.welfareEur === undefined) unresolved++;
+      else if (record.taxableEur + record.welfareEur >= p.disability)
         qualifying++;
     } else if (year < p.firstYear || year > p.lastYear) {
       unresolved++;
@@ -950,6 +971,16 @@ function nationalityIncomeCheck(r: GrFullRequest, c: GrContext) {
 
 function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   const e = r.nationality ?? {};
+  if (!e.stage)
+    return [
+      c.check(
+        'NAT-STAGE',
+        '归化申请或宣誓',
+        'Naturalisation application or oath',
+        undefined,
+        [citizenship('5–7, 9(1)')],
+      ),
+    ];
   const p = v.naturalisationScreen.value;
   const exam = v.naturalisationExam.value;
   const filing = e.pendingApplicationFiledOn ?? r.simulationDate;
@@ -1004,19 +1035,22 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       : e.greekSecondaryGrades >= exam.secondaryGrades,
     e.greekTaughtUniversityDegree,
   );
-  const examOn = e.examOn ?? filing;
-  const currentExamOptions = examOn >= v.naturalisationReformFrom.value;
-  const order = examinationOrders.find((rule) => rule.from <= examOn);
+  const examOn = e.examOn;
+  const currentExamOptions =
+    examOn === undefined
+      ? undefined
+      : examOn >= v.naturalisationReformFrom.value;
+  const order = examOn && examinationOrders.find((rule) => rule.from <= examOn);
   const examYearAge =
     r.birthDate &&
-    c.filingYear(r.simulationDate, e.examOn ?? e.pendingApplicationFiledOn) -
-      Number(r.birthDate.split('-')[0]);
+    examOn &&
+    Number(examOn.split('-')[0]) - Number(r.birthDate.split('-')[0]);
   const oral = any(
     typeof examYearAge === 'number' ? examYearAge >= exam.oralAge : undefined,
     e.disabilityPercent === undefined
       ? undefined
-      : currentExamOptions
-        ? e.disabilityPercent >= exam.disabilityPercent
+      : e.disabilityPercent === exam.disabilityPercent
+        ? currentExamOptions
         : e.disabilityPercent > exam.disabilityPercent,
     e.certifiedLearningDisability,
   );
@@ -1039,7 +1073,7 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       break;
     case 'written': {
       if (!order) {
-        uncertainWrittenScore = true;
+        uncertainWrittenScore = examOn !== undefined;
         knowledge = e.barredFromExam === true ? false : undefined;
         break;
       }
@@ -1067,8 +1101,11 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       knowledge = false;
       break;
   }
-  if ((e.exam === 'written' || e.exam === 'oral') && examOn > filing)
-    knowledge = false;
+  if (e.exam === 'written' || e.exam === 'oral')
+    knowledge = all(
+      knowledge,
+      examOn === undefined ? undefined : examOn <= filing,
+    );
   const rejected = e.lastRejection;
   const reapplyOn =
     rejected && rejected !== 'none'
@@ -1165,10 +1202,8 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       'Exam format and education exemption',
       e.exam === 'oral'
         ? oral
-        : e.exam === 'written' && !currentExamOptions
-          ? oral === undefined
-            ? undefined
-            : !oral
+        : e.exam === 'written'
+          ? any(currentExamOptions, oral === undefined ? undefined : !oral)
           : e.exam === 'school-exemption'
             ? school
             : e.exam === undefined
@@ -1179,8 +1214,8 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
         grSource('F33', 'art. 96'),
         ...(order ? [grSource(order.file, order.format)] : []),
       ],
-      `按考试年减出生年计算已满 ${exam.oralAge} 岁、认证残障 ${currentExamOptions ? '≥' : '>'}${exam.disabilityPercent}% 或有学习障碍证明适用口试；完成 ${exam.schoolGrades} 个年级或 ${exam.secondaryGrades} 个中学年级、或取得希腊高校希腊语学位可免试。`,
-      `The oral procedure applies from age ${exam.oralAge} by calendar year, with certified disability ${currentExamOptions ? 'of at least' : 'above'} ${exam.disabilityPercent}% or a certified learning disability. ${exam.schoolGrades} Greek school grades, ${exam.secondaryGrades} secondary grades or a Greek-taught Greek university degree can exempt the exam.`,
+      `按实际考试年减出生年计算已满 ${exam.oralAge} 岁、达到当期认证残障标准（新法 ≥${exam.disabilityPercent}%，旧法 >${exam.disabilityPercent}%）或有学习障碍证明适用口试；完成 ${exam.schoolGrades} 个年级或 ${exam.secondaryGrades} 个中学年级、或取得希腊高校希腊语学位可免试。`,
+      `The oral procedure applies from age ${exam.oralAge} in the actual examination year, with a certified learning disability or disability above ${exam.disabilityPercent}% (at least ${exam.disabilityPercent}% under the amended law). ${exam.schoolGrades} Greek school grades, ${exam.secondaryGrades} secondary grades or a Greek-taught Greek university degree can exempt the exam.`,
     ),
     nationalityIncomeCheck(r, c),
     c.check(

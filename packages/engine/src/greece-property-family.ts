@@ -439,11 +439,21 @@ function investorFees(a: GoldenVisaAnswers, on: IsoDate): number | undefined {
 }
 
 function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
-  const a = req.goldenVisa ?? {};
+  const a = req.goldenVisa;
+  if (!a?.stage)
+    return [
+      c.check(
+        'GV-STAGE',
+        '投资许可申请阶段',
+        'Investor permit application stage',
+        undefined,
+        [grSource('F21', 'art. 31(2)–(3)'), grSource('F59', 'art. 2, §§2–3')],
+        '请选择本次申请是首次签发还是续期。',
+        'Select initial grant or renewal for this application.',
+      ),
+    ];
   const sim = req.simulationDate;
-  const renewal = a.stage
-    ? a.stage === 'renewal'
-    : req.permits?.some((q) => q.kind === 'investor' && q.from <= sim) === true;
+  const renewal = a.stage === 'renewal';
   const historical = sim < p.gvReformEffective.value;
   const legacy = a.regime === 'legacy-card' || a.regime === 'transition';
   const current = a.regime === 'current' && !historical;
@@ -495,6 +505,12 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         ? minimum(a.mainAreaSqm, investment.minMainAreaSqm)
         : undefined;
   const areaMet = any(specialTier, standardArea);
+  const constructionEvidence = any(
+    a.kind === undefined
+      ? lease || transfer || undefined
+      : a.kind !== 'construction',
+    a.constructionDocumentsReady,
+  );
   const property = all(
     priceMet,
     a.title === undefined ? undefined : a.title !== 'ineligible',
@@ -526,8 +542,11 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       a.use === 'long-tourist-sublet-with-services'
     ) {
       if (legacy) use = oldTerms;
-      else if (renewal && a.originalGrantTier)
-        use = a.originalGrantTier !== 'conversion';
+      else if (renewal)
+        use =
+          a.originalGrantTier === undefined
+            ? lease || undefined
+            : a.originalGrantTier !== 'conversion';
       else if (
         a.kind === 'standard' ||
         a.kind === 'construction' ||
@@ -602,7 +621,7 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       a.notarialEvidence,
       !(companyLease || a.title === 'wholly-owned-eu-company') ||
         a.companyOwnershipDocumentsReady,
-      a.kind !== 'construction' || a.constructionDocumentsReady,
+      constructionEvidence,
       receiptOnly ? acceptsReceipt : registration,
       e9,
       !lease || (uncertainLeaseEvidence ? undefined : a.eotLeaseAcknowledgment),
@@ -737,9 +756,7 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       'GV-07',
       '申请及制卡费用',
       'Filing and card costs',
-      a.family?.some((member) => member.birthDate === undefined)
-        ? undefined
-        : true,
+      a.family?.every((member) => member.birthDate !== undefined) || undefined,
       p.gvFees.sources,
       `主申请 €${fee.main}，每张制卡 €${fee.card}。随行成人 €${fee.adultFamily}，未成年人 €${fee.minor}，转独立卡 €${fee.independentChild}，每人领事 D 签 €${fee.visaD}。${amountZh}`,
       `Investor €${fee.main}, each card €${fee.card}. Adult dependant €${fee.adultFamily}, minor €${fee.minor}, independent card €${fee.independentChild}, national visa €${fee.visaD} per person. ${amountEn}`,
@@ -759,22 +776,22 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         'Continued investment and renewal evidence',
         all(
           a.retainsInvestment,
-          a.kind !== 'construction' || a.constructionDocumentsReady,
+          constructionEvidence,
           !currentDocuments || lease || legacy || a.renewalUseDeclarationsReady,
-          a.title !== 'ineligible',
+          a.title === undefined ? undefined : a.title !== 'ineligible',
           e9,
           !currentDocuments ||
             any(
               a.registrationProofSubmittedAtGrant,
               receiptOnly ? false : registration,
             ),
-          legacy || historical
-            ? true
-            : (a.originalGrantTier ?? a.kind) === undefined
-              ? undefined
-              : (a.originalGrantTier ?? a.kind) === 'listed'
-                ? a.listedRestorationComplete
-                : true,
+          any(
+            legacy || historical,
+            a.originalGrantTier === undefined
+              ? lease || undefined
+              : a.originalGrantTier !== 'listed',
+            a.listedRestorationComplete,
+          ),
         ),
         [
           grSource('F23', 'art. 64, art. 100(4),(7Α),(8)'),
@@ -914,11 +931,8 @@ function greekKin(a: GreekFamilyAnswers, req: GrFullRequest): Answer {
       const at = originalCard ? a.initialCardGrantedOn : on;
       const minor = (dob: IsoDate | undefined): Answer => {
         if (!dob || !on) return;
-        if (at === undefined) {
-          // Someone still under age cannot have aged out during the original card.
-          if (dob > on) return false;
-          return fullYears(dob, on) < family.minorAge ? true : undefined;
-        }
+        if (dob > on) return false;
+        if (!at) return;
         return dob <= at && at <= on && fullYears(dob, at) < family.minorAge;
       };
       return all(
@@ -1060,11 +1074,7 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       reformed || insuranceMet(req.insurance, 'either'),
       reformed ||
         all(
-          a.historicalConversionDocumentsReady ??
-            all(
-              a.priorCardExpiry ? true : undefined,
-              req.tenYear?.travelDocumentPagesReady,
-            ),
+          a.historicalConversionDocumentsReady,
           req.tenYear?.travelDocumentPagesReady !== false,
         ),
     );
@@ -1093,9 +1103,10 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
   }
   if (a.stage === 'retained' || (a.stage === 'permanent' && a.retention)) {
     const r = a.retention ?? {};
-    const filed = r.applicationDate ?? sim;
+    const filed =
+      r.applicationDate ?? (a.stage === 'retained' ? sim : undefined);
     const onTime =
-      r.eventDate === undefined
+      r.eventDate === undefined || filed === undefined
         ? undefined
         : r.eventDate <= filed &&
           filed <= sim &&
@@ -1116,7 +1127,7 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
               a.retainedRightDocumentsReady,
               r.basis !== 'custody',
               retainedGround(r, true),
-              beforeOrOn(r.eventDate, filed),
+              filed === undefined ? undefined : beforeOrOn(r.eventDate, filed),
               beforeOrOn(filed, sim),
             ),
         [
@@ -1508,17 +1519,18 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         ? true
         : maximum(a.maxSeriousAbsenceMonths, eu.seriousAbsenceMonths),
     );
-    const earlyDate = early === true ? a.early?.eventDate : undefined;
-    const acquired =
-      earlyDate && (!anniversary || earlyDate < anniversary)
-        ? earlyDate
-        : anniversary;
-    // Before two years could have elapsed, no history of post-acquisition absence is needed.
+    // The ordinary anniversary sets a lower bound only when an earlier
+    // acquisition is excluded, or is itself too recent to have been lost.
+    const tooRecentForLoss = (date: IsoDate | undefined) =>
+      date !== undefined && sim <= addYears(date, eu.lossYears);
+    const noTimeForLoss =
+      tooRecentForLoss(anniversary) &&
+      (early === false ||
+        tooRecentForLoss(a.early?.eventDate ?? a.residenceFrom));
     const retainedPermanentRight =
       a.stage === 'permanent' &&
       a.longestAbsenceAfterPrYears === undefined &&
-      acquired &&
-      sim <= addYears(acquired, eu.lossYears)
+      noTimeForLoss
         ? true
         : maximum(a.longestAbsenceAfterPrYears, eu.lossYears);
     checks.push(

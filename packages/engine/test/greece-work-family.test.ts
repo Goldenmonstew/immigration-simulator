@@ -48,6 +48,7 @@ const blue: Work = {
   permanentAddressAvailable: true,
 };
 const reunion: Family = {
+  otherResidencePermitGranted: false,
   relationshipCertificateIssuedOn: '2026-11-01',
   unchangedFamilyDeclaration: true,
   birthRecordProvesAge: true,
@@ -270,6 +271,7 @@ test('Ο.2 distinguishes the investor child permit from the five-year residence 
       member: 'child',
       sponsor: 'investor',
       previousFamilyCard: true,
+      otherResidencePermitGranted: false,
       autonomousBasis: 'child',
       familyResidenceYears: 5,
     },
@@ -296,6 +298,7 @@ test('Ο.2 distinguishes the investor child permit from the five-year residence 
 });
 
 const fiveYearConversion: Family = {
+  otherResidencePermitGranted: false,
   stage: 'autonomous',
   autonomousBasis: 'residence',
   sponsor: 'ordinary',
@@ -326,7 +329,9 @@ describe('Ο.2 filing evidence under articles 24 and 90', () => {
       const result = route('GR-FAMILY-TCN', {
         simulationDate,
         familyTcn: spouse,
-        permits: [{ kind: 'regular', from: '2022-01-10' }],
+        permits: [
+          { kind: 'regular', from: '2022-01-10', issuedOn: '2022-01-10' },
+        ],
       });
       expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
         status === 'MET' ? 'MET' : 'NOT_MET',
@@ -371,11 +376,139 @@ describe('Ο.2 filing evidence under articles 24 and 90', () => {
     ).toBe('MET');
   });
 
+  test.each(['2026-11-01', '2026-11-24'])(
+    'a first Ο.1 with only a validity start cannot date a five-year conversion on %s',
+    (simulationDate) => {
+      const permit = {
+        kind: 'regular',
+        purpose: 'family-reunification',
+        from: '2021-11-10',
+      } as const;
+      const request = { simulationDate, familyTcn: spouse, permits: [permit] };
+      const missing = route('GR-FAMILY-TCN', request);
+      expect(missing.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+        'UNKNOWN',
+      );
+      expect(missing.status).toBe('UNKNOWN');
+      expect(missing.earliestDate).toBeUndefined();
+      expect(
+        route('GR-FAMILY-TCN', {
+          ...request,
+          permits: [{ ...permit, issuedOn: '2022-01-10' }],
+        }),
+      ).toMatchObject({ status: 'FUTURE', earliestDate: '2027-01-10' });
+    },
+  );
+
+  test.each([
+    [undefined, 'UNKNOWN'],
+    [false, 'MET'],
+    [true, 'NOT_MET'],
+  ] as const)(
+    'Ο.2 asks about other grants independently of the first family card (%s)',
+    (answer, status) => {
+      const familyTcn = {
+        ...spouse,
+        familyResidenceFrom: '2021-01-01',
+        firstFamilyPermitIssuedOn: '2021-01-10',
+        otherResidencePermitGranted: answer,
+      };
+      const partialCard = {
+        kind: 'regular',
+        purpose: 'family-reunification',
+        from: '2021-01-01',
+      } as const;
+      for (const permits of [undefined, [partialCard]]) {
+        const result = route('GR-FAMILY-TCN', {
+          simulationDate: '2026-11-24',
+          permits,
+          familyTcn,
+        });
+        expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+          status,
+        );
+        expect(result.status).toBe(status);
+        expect(result.earliestDate).toBeUndefined();
+        expect(
+          route('GR-FAMILY-TCN', {
+            familyTcn,
+            permits,
+            permitHistoryComplete: true,
+          }).status,
+        ).toBe(answer === true ? 'NOT_MET' : 'MET');
+      }
+    },
+  );
+
+  test('elapsed time since the first family grant alone cannot prove uninterrupted residence', () => {
+    const result = route('GR-FAMILY-TCN', {
+      familyTcn: {
+        ...fiveYearConversion,
+        familyResidenceYears: undefined,
+      },
+    });
+    expect(result.status).toBe('UNKNOWN');
+  });
+
+  test('the same applicant’s Ε.4 renewal blocks Ο.2 even with a negative other-grants answer', () => {
+    const req = {
+      ...base,
+      simulationDate: '2026-11-24',
+      familyTcn: fiveYearConversion,
+      work: { permit: 'E4', stage: 'renewal', taxesSettledDuringPermit: true },
+      currentCardExpiresOn: '2026-12-30',
+      pathways: ['GR-WORK', 'GR-FAMILY-TCN'],
+    } satisfies GrFullRequest;
+    const [work, family] = evaluateGreeceFull(req).columns[0].pathways;
+    expect(work.status).toBe('MET');
+    expect(family.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(family.status).toBe('NOT_MET');
+    expect(
+      route('GR-FAMILY-TCN', {
+        familyTcn: fiveYearConversion,
+        work: { permit: 'E4', stage: 'initial' },
+      }).status,
+    ).toBe('MET');
+  });
+
+  test.each([
+    { work: { permit: 'E1', stage: 'renewal' } },
+    { goldenVisa: { stage: 'renewal' } },
+    { longTerm: { stage: 'reacquisition' } },
+    { tenYear: { stage: 'renewal', hasPriorCard: true } },
+    { greekFamily: { stage: 'renewal' } },
+    { euFamily: { stage: 'permanent-renewal' } },
+    { permits: [{ kind: 'study', from: '2023-11-24' }] },
+    {
+      blueCardMobility: {
+        priorMemberPeriods: [
+          {
+            issuer: 'greece',
+            kind: 'researcher',
+            from: '2020-01-01',
+            through: '2021-01-10',
+          },
+        ],
+      },
+    },
+  ] satisfies Partial<GrFullRequest>[])(
+    'a Greek grant entered on another route blocks Ο.2: %o',
+    (grant) => {
+      expect(
+        route('GR-FAMILY-TCN', { ...grant, familyTcn: fiveYearConversion })
+          .status,
+      ).toBe('NOT_MET');
+    },
+  );
+
   test('an expired first card proves the original grant, but the later residence must also be documented', () => {
     const familyTcn: Family = { ...spouse, familyResidenceFrom: undefined };
     const first = {
       kind: 'regular',
       from: '2019-01-01',
+      issuedOn: '2019-01-01',
       to: '2021-12-31',
     } as const;
     expect(route('GR-FAMILY-TCN', { familyTcn, permits: [first] }).status).toBe(
@@ -435,7 +568,7 @@ describe('Ο.2 filing evidence under articles 24 and 90', () => {
         simulationDate: '2026-11-24',
         familyTcn: {
           ...spouse,
-          otherResidencePermitGranted: undefined,
+          otherResidencePermitGranted: false,
           firstFamilyPermitIssuedOn: '2020-11-24',
           familyResidenceFrom: '2020-11-24',
         },
@@ -454,7 +587,12 @@ describe('Ο.2 filing evidence under articles 24 and 90', () => {
     [undefined, 'UNKNOWN'],
   ] as const)('prior mobility period with issuer %s', (issuer, expected) => {
     const result = route('GR-FAMILY-TCN', {
-      familyTcn: { ...fiveYearConversion },
+      permits: [],
+      permitHistoryComplete: true,
+      familyTcn: {
+        ...fiveYearConversion,
+        otherResidencePermitGranted: undefined,
+      },
       blueCardMobility: {
         priorMemberPeriods: [
           {
@@ -721,6 +859,7 @@ test('Ο.2 uses combined Blue Card family residence and the final years in Greec
     sponsor: 'blue-card',
     member: 'spouse',
     previousFamilyCard: true,
+    otherResidencePermitGranted: false,
     autonomousBasis: 'residence',
     familyResidenceFrom: '2025-01-01',
     blueFamilyResidenceFrom: '2021-11-23',
@@ -753,6 +892,7 @@ test.each([
       familyTcn: {
         stage: 'autonomous',
         autonomousBasis: 'residence',
+        otherResidencePermitGranted: false,
         sponsor: 'blue-card',
         member: 'spouse',
         previousFamilyCard: true,
@@ -790,6 +930,7 @@ test.each([
       familyTcn: {
         stage: 'autonomous',
         autonomousBasis: 'residence',
+        otherResidencePermitGranted: false,
         member: 'spouse',
         previousFamilyCard: true,
         sponsor,
@@ -1351,6 +1492,7 @@ test.each(['residence', 'divorce'] as const)(
         sponsor: 'ordinary',
         previousFamilyCard: true,
         autonomousBasis,
+        otherResidencePermitGranted: false,
         relationshipAndDocumentsGenuine: true,
         yearsSinceFirstFamilyPermit: 5,
         familyResidenceYears: 5,
@@ -2408,4 +2550,30 @@ describe('Gr third-country family', () => {
       ).map((x) => x.id),
     ).toEqual(['FT-06', 'FT-07']);
   });
+});
+
+test('a pre-reform domestic visa switch needs the actual expiry to establish validity', () => {
+  const req = {
+    simulationDate: '2025-11-24',
+    entry: 'national-visa',
+    work: {
+      ...employed,
+      admission: 'domestic-switch',
+      switchVisa: { kind: 'standalone-Z' },
+    },
+  } satisfies Partial<GrFullRequest>;
+  const current = route('GR-WORK', req);
+  expect(current.checks.find((check) => check.id === 'WK-06')?.status).toBe(
+    'UNKNOWN',
+  );
+  const known = route('GR-WORK', {
+    ...req,
+    work: {
+      ...req.work,
+      switchVisa: { ...req.work.switchVisa, expiresOn: '2025-12-01' },
+    },
+  });
+  expect(known.checks.find((check) => check.id === 'WK-06')?.status).toBe(
+    'MET',
+  );
 });

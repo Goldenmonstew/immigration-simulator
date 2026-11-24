@@ -322,6 +322,7 @@ describe('Β.5 property and family conditions', () => {
     const listed: Partial<Investor> = {
       stage: 'renewal',
       kind: 'listed',
+      originalGrantTier: 'listed',
       retainsInvestment: true,
       listedRestorationComplete: true,
     };
@@ -906,10 +907,91 @@ describe('property and family reviews through evaluateGreeceFull', () => {
   ) {
     const check = path.checks.find((x) => x.id === rule);
     expect(check?.status, rule).toBe(status === 'FUTURE' ? 'NOT_MET' : status);
-    if (earliestDate) expect(check?.explanation, rule).toContain(earliestDate);
+    if (status === 'FUTURE')
+      expect(check?.explanation, rule).toContain(earliestDate);
     expect(path.status).toBe(status);
     expect(path.earliestDate).toBe(earliestDate);
   }
+
+  test('Β.5 requires the application stage even with a previous investor card on record', () => {
+    for (const permits of [
+      undefined,
+      [],
+      [{ kind: 'investor', from: '2021-01-10', to: '2026-12-10' }],
+    ] satisfies GrFullRequest['permits'][]) {
+      verify(
+        full('GR-GOLDEN-VISA', {
+          permits,
+          goldenVisa: { ...investor, stage: undefined },
+        }),
+        'GV-STAGE',
+        'UNKNOWN',
+      );
+    }
+  });
+
+  test('Ν cannot exclude loss since an undated or unconfirmed earlier acquisition using the ordinary anniversary', () => {
+    for (const early of [
+      undefined,
+      { basis: 'occupational-incapacity', eventDate: '2022-01-01' },
+    ] satisfies EU['early'][]) {
+      verify(
+        full('GR-EU-FAMILY-PR', { euFamily: { ...european, early } }),
+        'EF-03',
+        'UNKNOWN',
+      );
+      verify(
+        full('GR-EU-FAMILY-PR', {
+          euFamily: { ...european, early, longestAbsenceAfterPrYears: 0 },
+        }),
+        'EF-03',
+        'MET',
+      );
+    }
+  });
+
+  test('Ο.3 conversion checks the child at the original grant and the prior retained-right filing on its actual date', () => {
+    const relative: Greek = {
+      ...greek,
+      relationship: 'parent-of-resident-greek-minor',
+      greekRelativeBirthDate: '2019-01-01',
+    };
+    verify(
+      full('GR-GREEK-FAMILY-PR', { greekFamily: relative }),
+      'GF-01',
+      'UNKNOWN',
+    );
+    verify(
+      full('GR-GREEK-FAMILY-PR', {
+        greekFamily: { ...relative, initialCardGrantedOn: '2020-01-01' },
+      }),
+      'GF-01',
+      'MET',
+    );
+    const retention: NonNullable<Greek['retention']> = {
+      basis: 'widowhood',
+      eventDate: '2026-10-01',
+      greeceResidenceFrom: '2021-01-01',
+      livelihood: 'employment',
+    };
+    verify(
+      full('GR-GREEK-FAMILY-PR', {
+        greekFamily: { ...greek, retention },
+      }),
+      'GF-04',
+      'UNKNOWN',
+    );
+    verify(
+      full('GR-GREEK-FAMILY-PR', {
+        greekFamily: {
+          ...greek,
+          retention: { ...retention, applicationDate: '2026-11-01' },
+        },
+      }),
+      'GF-04',
+      'MET',
+    );
+  });
 
   test.each([
     [0, 'MET'],
@@ -1384,6 +1466,7 @@ describe('property and family reviews through evaluateGreeceFull', () => {
           goldenVisa: {
             ...investor,
             stage: 'renewal',
+            originalGrantTier: 'standard',
             retainsInvestment: true,
             registrationProofSubmittedAtGrant: true,
             family: [
@@ -1677,11 +1760,55 @@ describe('property and family reviews through evaluateGreeceFull', () => {
       goldenVisa: {
         ...investor,
         stage: 'renewal',
+        originalGrantTier: 'standard',
         retainsInvestment: true,
         ...answers,
       },
     });
   }
+
+  test('Β.5 uses the original grant to assess restoration and office use, and checks construction evidence where the kind is unknown', () => {
+    verify(
+      renewInvestment({
+        originalGrantTier: undefined,
+        listedRestorationComplete: false,
+      }),
+      'GV-08',
+      'UNKNOWN',
+    );
+    verify(
+      renewInvestment({
+        originalGrantTier: 'listed',
+        listedRestorationComplete: false,
+      }),
+      'GV-08',
+      'NOT_MET',
+    );
+    verify(
+      renewInvestment({
+        originalGrantTier: undefined,
+        listedRestorationComplete: true,
+      }),
+      'GV-08',
+      'MET',
+      renewalDate,
+    );
+    verify(
+      renewInvestment({
+        originalGrantTier: undefined,
+        use: 'business-office',
+      }),
+      'GV-04',
+      'UNKNOWN',
+    );
+    verify(renewInvestment({ kind: undefined }), 'GV-08', 'UNKNOWN');
+    verify(
+      renewInvestment({ kind: undefined, constructionDocumentsReady: true }),
+      'GV-08',
+      'MET',
+      renewalDate,
+    );
+  });
 
   test.each([
     [true, undefined, 'MET'],
@@ -2076,6 +2203,22 @@ describe('property and family reviews through evaluateGreeceFull', () => {
       'MET',
     );
   });
+  test('the old card expiry and passport pages do not prove the historical Μ.2 dossier contains the former card', () => {
+    verify(
+      full('GR-GREEK-FAMILY-PR', {
+        simulationDate: '2026-02-05',
+        greekFamily: {
+          ...greek,
+          residenceFrom: '2020-02-05',
+          longestConsecutiveAbsenceYears: 0,
+          historicalConversionDocumentsReady: undefined,
+        },
+        tenYear: { travelDocumentPagesReady: true },
+      }),
+      'GF-03',
+      'UNKNOWN',
+    );
+  });
   test.each([
     ['standard', 'MET'],
     ['conversion', 'NOT_MET'],
@@ -2118,7 +2261,9 @@ describe('property and family reviews through evaluateGreeceFull', () => {
         goldenVisa: {
           stage: 'renewal',
           regime: 'current',
+          originalGrantTier: 'standard',
           kind: 'standard',
+          title: 'sole',
           renewalUseDeclarationsReady: true,
           retainsInvestment: true,
           registrationProofSubmittedAtGrant: true,
@@ -2136,6 +2281,7 @@ describe('property and family reviews through evaluateGreeceFull', () => {
     expect(renewal.earliestDate).toBe(simulationDate);
     verify(renew({ retainsInvestment: false }), 'GV-08', 'NOT_MET');
     verify(renew({ retainsInvestment: undefined }), 'GV-08', 'UNKNOWN');
+    verify(renew({ title: undefined }), 'GV-08', 'UNKNOWN');
     verify(renew({ title: 'ineligible' }), 'GV-08', 'NOT_MET');
     verify(
       renew({ title: 'ineligible', retainsInvestment: undefined }),

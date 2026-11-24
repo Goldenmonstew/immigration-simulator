@@ -191,17 +191,9 @@ function cardCheck(req: GrFullRequest, c: GrContext) {
   );
 }
 
-function initialInvestor(req: GrFullRequest) {
-  return req.goldenVisa?.stage
-    ? req.goldenVisa.stage === 'initial'
-    : !req.permits?.some(
-        (x) => x.kind === 'investor' && x.from <= req.simulationDate,
-      );
-}
-
 export function overseasInvestorFiling(req: GrFullRequest) {
   return (
-    initialInvestor(req) &&
+    req.goldenVisa?.stage === 'initial' &&
     req.entry === 'outside' &&
     req.overseasInvestorMandate === true &&
     !req.goldenVisa?.overseasFilingDate
@@ -399,13 +391,13 @@ function procedureFor(
 ): CommonProcedure | undefined {
   switch (id) {
     case 'GR-LONG-TERM':
-      return procedures[id][req.longTerm?.stage ?? 'initial'];
+      return req.longTerm?.stage && procedures[id][req.longTerm.stage];
     case 'GR-GOLDEN-VISA':
-      return procedures[id][initialInvestor(req) ? 'initial' : 'renewal'];
+      return req.goldenVisa?.stage && procedures[id][req.goldenVisa.stage];
     case 'GR-NATIONALITY':
-      return procedures[id][req.nationality?.stage ?? 'application'];
+      return req.nationality?.stage && procedures[id][req.nationality.stage];
     case 'GR-TEN-YEAR':
-      return procedures[id][req.tenYear?.stage ?? 'initial'];
+      return req.tenYear?.stage && procedures[id][req.tenYear.stage];
     case 'GR-GREEK-FAMILY-PR':
       return procedures[id][req.greekFamily?.stage ?? 'unspecified'];
     case 'GR-EU-FAMILY-PR':

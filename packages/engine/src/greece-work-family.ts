@@ -1,6 +1,7 @@
 import { greeceFull2026_11, grSource } from '@uk-immigration/policy-data';
 import type { CountryCheck } from './country-result';
 import { addDays, addMonths, addYears } from './dates';
+import { applicantPermitHistory } from './greece-permit-history';
 import type { GrFullRequest } from './greece-full';
 import { ageOn, all, any, insuranceMet, type GrContext } from './greece-rules';
 import type { IsoDate } from './types';
@@ -507,8 +508,7 @@ function workChecks(
           break;
         case 'national-visa': {
           const expiry = w.switchVisa?.expiresOn;
-          if (!reformed)
-            quota = expiry === undefined || req.simulationDate <= expiry;
+          if (!reformed) quota = expiry && req.simulationDate <= expiry;
           else if (w.switchVisa?.kind === 'leads-to-permit') quota = false;
           else
             quota =
@@ -867,106 +867,10 @@ function familyMember(f: FamilyAnswers, req: GrFullRequest): Filing {
   );
 }
 
-interface IssuedPermit {
-  purpose: 'family' | 'other' | 'unconfirmed';
-  issuedOn?: IsoDate;
-  validity?: { from: IsoDate; to?: IsoDate };
-}
-
-/** Applicant grants only. Sponsor permits, visa stays and unissued applications do not belong here. */
-function applicantPermitHistory(
-  req: GrFullRequest,
-  f: FamilyAnswers,
-): IssuedPermit[] {
-  const history: IssuedPermit[] = [];
-  for (const permit of req.permits ?? []) {
-    if (permit.kind === 'temporary') continue;
-    const purpose =
-      permit.kind !== 'regular' || permit.purpose === 'other'
-        ? 'other'
-        : permit.purpose === 'family-reunification' ||
-            f.otherResidencePermitGranted === false
-          ? 'family'
-          : 'unconfirmed';
-    history.push({
-      purpose,
-      issuedOn: permit.issuedOn ?? permit.from,
-      validity: { from: permit.from, to: permit.to },
-    });
-  }
-  for (const renewal of req.backlogRenewals ?? [])
-    history.push({
-      purpose: renewal.category === 'family' ? 'family' : 'other',
-      issuedOn: renewal.permitEffectiveOn,
-    });
-  const mobility = req.blueCardMobility;
-  if (mobility?.greekBlueCardFrom)
-    history.push({ purpose: 'other', issuedOn: mobility.greekBlueCardFrom });
-  else if (mobility?.greekBlueCardThrough)
-    history.push(
-      mobility.greekBlueCardThrough <= req.simulationDate
-        ? { purpose: 'other' }
-        : { purpose: 'unconfirmed' },
-    );
-  for (const period of mobility?.priorMemberPeriods ?? []) {
-    if (period.issuer !== 'other-member-state')
-      history.push({
-        purpose: period.issuer === 'greece' ? 'other' : 'unconfirmed',
-        issuedOn: period.from,
-      });
-  }
-  if (req.greekFamily?.initialCardGrantedOn)
-    history.push({
-      purpose: 'other',
-      issuedOn: req.greekFamily.initialCardGrantedOn,
-    });
-  if (f.firstFamilyPermitIssuedOn)
-    history.push({ purpose: 'family', issuedOn: f.firstFamilyPermitIssuedOn });
-  if (
-    f.otherResidencePermitGranted ||
-    f.previousAutonomousChildCard ||
-    req.tenYear?.hasPriorCard ||
-    req.tenYear?.cardExpiresOn ||
-    req.longTerm?.convertingTenYearCard ||
-    req.longTerm?.formerBlueCardEndorsement ||
-    req.longTerm?.lossReason ||
-    req.longTerm?.category === 'investor' ||
-    req.longTerm?.category === 'study' ||
-    req.nationality?.permit === 'investor' ||
-    req.goldenVisa?.regime === 'legacy-card' ||
-    req.goldenVisa?.originalGrantTier ||
-    req.goldenVisa?.registrationProofSubmittedAtGrant === true ||
-    req.greekFamily?.priorCardExpiry ||
-    req.greekFamily?.ordinaryRenewalDocumentsReady ||
-    req.greekFamily?.retainedRightDocumentsReady ||
-    req.euFamily?.priorCardIssued ||
-    req.euFamily?.priorCardExpiry ||
-    req.integration?.basis === 'family-pr' ||
-    req.work?.sameJobOnGreekHighlyQualifiedPermit ||
-    (req.work?.blueCardYears ?? 0) > 0
-  )
-    history.push({ purpose: 'other' });
-  if (
-    req.longTerm?.category === 'ordinary' ||
-    req.nationality?.permit === 'listed' ||
-    req.nationality?.permit === 'other-definitive'
-  )
-    history.push({ purpose: 'unconfirmed' });
-  // A protection decision alone does not specify the grant date of a residence document.
-  if (req.grantedProtection)
-    history.push({
-      purpose: 'unconfirmed',
-      issuedOn: req.grantedProtection.grantedOn,
-    });
-  return history.filter(
-    (record) => !record.issuedOn || record.issuedOn <= req.simulationDate,
-  );
-}
-
 function autonomousResidenceDue(
   f: FamilyAnswers,
   today: IsoDate,
-  history: IssuedPermit[],
+  history: ReturnType<typeof applicantPermitHistory>,
 ): Filing {
   const limits = p.familyAutonomy.value;
   const residence = residenceDue(
@@ -975,12 +879,14 @@ function autonomousResidenceDue(
     limits.residenceYears,
     today,
   );
-  const cards = history.filter(
-    (record) => record.purpose === 'family' && record.validity,
-  );
-  const firstRecordedCard = cards
-    .flatMap((record) => record.issuedOn ?? [])
-    .sort()[0];
+  const cards = history
+    .flatMap((record) =>
+      record.purpose === 'family' && record.validity
+        ? [{ ...record.validity, issuedOn: record.issuedOn }]
+        : [],
+    )
+    .sort((a, b) => b.from.localeCompare(a.from));
+  const firstRecordedCard = cards.at(-1)?.issuedOn;
   // An original grant date or a duration verified from the series of cards takes
   // precedence over inferring the first grant from a possibly partial history.
   const permitPeriod = residenceDue(
@@ -995,22 +901,14 @@ function autonomousResidenceDue(
   // If residence was not separately reported, use only connected card periods
   // reaching the filing date. An isolated expired card proves its grant, not later residence.
   let coveredFrom: IsoDate | undefined;
-  const validity = cards
-    .flatMap((card) => card.validity ?? [])
-    .sort((a, b) => b.from.localeCompare(a.from));
-  for (const card of validity) {
+  for (const card of cards) {
     const lastRequiredDay = coveredFrom ? addDays(coveredFrom, -1) : today;
     if (card.from <= today && (!card.to || card.to >= lastRequiredDay))
       coveredFrom = card.from;
   }
   const documentedResidence =
     residence ??
-    residenceDue(
-      coveredFrom,
-      f.yearsSinceFirstFamilyPermit,
-      limits.residenceYears,
-      today,
-    );
+    residenceDue(coveredFrom, undefined, limits.residenceYears, today);
   const domestic =
     f.member === 'child'
       ? residence
@@ -1080,15 +978,16 @@ function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
       return undefined;
     }
     case 'residence': {
-      const history = applicantPermitHistory(req, f);
+      const history = applicantPermitHistory(req);
       const onlyFamilyPermits = history.some(
         (record) => record.purpose === 'other',
       )
         ? false
-        : history.some((record) => record.purpose === 'unconfirmed') &&
-            f.otherResidencePermitGranted !== false
-          ? undefined
-          : true;
+        : f.otherResidencePermitGranted === false ||
+            (req.permitHistoryComplete === true &&
+              !history.some((record) => record.purpose === 'unconfirmed'))
+          ? true
+          : undefined;
       const member =
         f.member &&
         (f.member === 'spouse' ||
@@ -1368,8 +1267,8 @@ function familyChecks(
           grSource('F21', 'art. 24(1.1)(α), (1.2)(α–δ), (1.3)–(1.4), p. 17'),
           grSource('F36', 'art. 29 (art. 95(2))'),
         ],
-        `配偶、登记伴侣凭首张团聚许可签发日起算，成年子女按在希居留计算。满 ${a.residenceYears} 年转换时，须从未因家庭团聚以外的事由获发居留许可。记录仅注明“普通许可”时，请核实签发事由。蓝卡家属可合计成员国居留，但最后 ${a.blueGreekYears} 年须在希腊。丧偶须交担保人死亡登记，离婚、婚姻撤销或伴侣解约须交相应决定或解约登记。丧偶前在希至少 ${a.bereavementYears} 年，婚姻或登记伴侣关系解除前须持续至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年。普通 Ο.1 子女从 ${a.adultAge} 岁起可凭家属卡转自主卡，满 ${a.childRenewalAge} 岁续卡须出示原自主卡。投资者子女从 ${p.familyMembers.value.investorChildLimit} 岁起可凭原家属卡转 ${p.gvFamily.value.independentYears} 年独立卡。特殊困难须提供证明。Ο.2 最长 ${a.cardYears} 年。`,
-        `For a spouse or registered partner, count from the first family permit grant. For an adult child, count residence in Greece. Applicants converting after ${a.residenceYears} years on family permits must never have been granted a residence permit for another purpose. Confirm the purpose of any permit recorded only as regular. Blue Card families can count residence in other Member States if the final ${a.blueGreekYears} years were in Greece. Provide the civil death record, divorce or annulment decision or registered dissolution as applicable. Alternatives include ${a.bereavementYears} year before bereavement, a marriage or registered partnership of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before dissolution, or documented exceptional hardship. Ordinary Ο.1 children can convert their family card at ${a.adultAge} and renew at ${a.childRenewalAge} with the previous autonomous card. Investors’ children can convert their family card at ${p.familyMembers.value.investorChildLimit} for ${p.gvFamily.value.independentYears} years. Autonomous residence runs for up to ${a.cardYears} years.`,
+        `配偶、登记伴侣凭首张团聚许可签发日起算，成年子女按在希居留计算。满 ${a.residenceYears} 年转换时，须从未因家庭团聚以外的事由获发居留许可。请核实完整许可历史或明确回答是否获发其他许可。仅有生效日时，请补首卡签发日或卡件证实的年数。蓝卡家属可合计成员国居留，但最后 ${a.blueGreekYears} 年须在希腊。丧偶须交担保人死亡登记，离婚、婚姻撤销或伴侣解约须交相应决定或解约登记。丧偶前在希至少 ${a.bereavementYears} 年，婚姻或登记伴侣关系解除前须持续至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年。普通 Ο.1 子女从 ${a.adultAge} 岁起可凭家属卡转自主卡，满 ${a.childRenewalAge} 岁续卡须出示原自主卡。投资者子女从 ${p.familyMembers.value.investorChildLimit} 岁起可凭原家属卡转 ${p.gvFamily.value.independentYears} 年独立卡。特殊困难须提供证明。Ο.2 最长 ${a.cardYears} 年。`,
+        `For a spouse or registered partner, count from the first family permit grant. For an adult child, count residence in Greece. Applicants converting after ${a.residenceYears} years on family permits must never have been granted a residence permit for another purpose. Confirm the complete permit history or whether any other permit was granted. If only validity is recorded, supply the original grant date or the years evidenced by the cards. Blue Card families can count residence in other Member States if the final ${a.blueGreekYears} years were in Greece. Provide the civil death record, divorce or annulment decision or registered dissolution as applicable. Alternatives include ${a.bereavementYears} year before bereavement, a marriage or registered partnership of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before dissolution, or documented exceptional hardship. Ordinary Ο.1 children can convert their family card at ${a.adultAge} and renew at ${a.childRenewalAge} with the previous autonomous card. Investors’ children can convert their family card at ${p.familyMembers.value.investorChildLimit} for ${p.gvFamily.value.independentYears} years. Autonomous residence runs for up to ${a.cardYears} years.`,
       ),
     );
   } else {

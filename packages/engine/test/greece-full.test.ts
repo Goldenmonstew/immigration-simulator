@@ -27,7 +27,13 @@ const base = {
     expectedDeparture: '2033-05-12',
     expiresOn: '2033-08-12',
   },
-  longTerm: { category: 'ordinary', passportHistory: 'complete' },
+  longTerm: {
+    stage: 'initial',
+    category: 'ordinary',
+    passportHistory: 'complete',
+  },
+  goldenVisa: { stage: 'initial' },
+  nationality: { stage: 'application' },
   residenceIncome: { netEur: 12880, dependants: 0, regularAndDocumented: true },
   integration: { basis: 'language', greekLevel: 'B1' },
 } satisfies GrFullRequest;
@@ -361,6 +367,7 @@ describe('long-term eligibility through the public entry point', () => {
       const req = {
         ...base,
         locale,
+        goldenVisa: { stage: 'renewal' as const },
         permits: [
           ...base.permits,
           { kind: 'investor' as const, from: '2020-11-11', to: '2026-11-11' },
@@ -746,6 +753,7 @@ describe.each([
       'checks the projected tax window with records for %j',
       (years, projectedStatus) => {
         const nationality = {
+          stage: 'application',
           permit: 'listed',
           convictions: [],
           removalOrStatusProceedings: false,
@@ -784,7 +792,11 @@ describe.each([
 test('birth and continuous residence exempt only the general time requirement', () => {
   const p = path('GR-NATIONALITY', {
     permits: [],
-    nationality: { bornAndContinuouslyResident: true, exam: 'not-passed' },
+    nationality: {
+      stage: 'application',
+      bornAndContinuouslyResident: true,
+      exam: 'not-passed',
+    },
   });
   expect(p.checks.find((c) => c.id === 'NAT-BIRTH-EXEMPTION')?.status).toBe(
     'MET',
@@ -858,4 +870,57 @@ test('a simulation before the archived Migration Code requests the rules in forc
       (x) => x.id === 'GR-LAW-DATE',
     ),
   ).toBe(false);
+});
+
+test('two renewal cards cannot share an unlabelled expiry date', () => {
+  const request = {
+    ...base,
+    pathways: ['GR-WORK', 'GR-LONG-TERM'],
+    currentCardExpiresOn: '2026-12-30',
+    work: { permit: 'E4', stage: 'renewal', taxesSettledDuringPermit: true },
+    longTerm: { stage: 'renewal' },
+  } satisfies GrFullRequest;
+  const result = evaluateGreeceFull(request);
+  for (const route of result.columns[0].pathways)
+    expect(
+      route.checks.find((check) => check.id === 'C-07-window')?.status,
+    ).toBe('UNKNOWN');
+});
+
+test('a protected resident confirms a possible article 144(2A) exclusion for a trip that changes the filing date', () => {
+  const grantedProtection = {
+    claimedOn: '2019-11-24',
+    grantedOn: '2020-04-10',
+  };
+  const request = {
+    grantedProtection,
+    permits: [{ kind: 'regular', from: '2020-04-10' }],
+    trips: [{ departed: '2024-04-10', returned: '2024-04-12' }],
+  } satisfies Partial<GrFullRequest>;
+  const result = path('GR-LONG-TERM', request);
+  expect(
+    result.checks.find((check) => check.id === 'GR-LONG-TERM-TIME')?.status,
+  ).toBe('UNKNOWN');
+  expect(result.status).toBe('UNKNOWN');
+  expect(result.earliestDate).toBeUndefined();
+  expect(
+    path('GR-LONG-TERM', {
+      ...request,
+      grantedProtection: {
+        ...grantedProtection,
+        priorResidenceExcludedThrough: 'none',
+      },
+    }).status,
+  ).toBe('MET');
+});
+
+test('a future investor card cannot supply the expiry for a current renewal', () => {
+  const result = path('GR-GOLDEN-VISA', {
+    goldenVisa: { stage: 'renewal' },
+    permits: [{ kind: 'investor', from: '2026-12-01', to: '2031-12-01' }],
+  });
+  expect(
+    result.checks.find((check) => check.id === 'GR-GOLDEN-VISA-TIME')?.status,
+  ).toBe('UNKNOWN');
+  expect(result.earliestDate).toBeUndefined();
 });
