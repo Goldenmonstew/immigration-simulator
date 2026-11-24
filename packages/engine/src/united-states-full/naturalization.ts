@@ -98,7 +98,7 @@ function exemption(
   request: UsFullRequest,
   age: number,
   residence: number,
-  date = request.simulationDate,
+  date: IsoDate,
 ): Answer {
   const oldEnough = request.dateOfBirth && afterYears(request.dateOfBirth, age);
   return all(
@@ -183,9 +183,15 @@ export function naturalizationChecks(
   const age = request.dateOfBirth
     ? date >= afterYears(request.dateOfBirth, legacy.minAge.value)
     : undefined;
-  const language = v.englishExemptions.value.map((rule) =>
-    exemption(request, rule.age, rule.lprYears),
-  );
+  const languageAt = (on: IsoDate) =>
+    any(
+      ...v.englishExemptions.value.map((rule) =>
+        exemption(request, rule.age, rule.lprYears, on),
+      ),
+    );
+  const languageAtReceipt = languageAt(receipt);
+  const uncertainLanguage =
+    languageAtReceipt !== languageAt(possiblePaperReceipt);
   const englishWaived =
     a?.disability?.requested === true
       ? all(disabilityClaim(request), reviewed(a.disability.englishWaived))
@@ -204,7 +210,7 @@ export function naturalizationChecks(
       : a?.english === 'failed'
         ? false
         : undefined,
-    ...language,
+    uncertainLanguage ? undefined : languageAtReceipt,
     englishWaived,
   );
   const civics = v.civicsTest.value;
@@ -320,12 +326,17 @@ export function naturalizationChecks(
       '英语读写与口语',
       'English reading, writing and speaking',
       english,
-      s.english,
-      'PD-275',
-      [
-        `需要通过现场评估，或符合年龄／居美年限或医学例外。读、写各最多 ${v.englishTest.value.sentences} 句，分别答对 ${v.englishTest.value.correct} 句。`,
-        `Meet the interview standard or an age/residence or medical exception. Reading and writing each require ${v.englishTest.value.correct} correct sentence out of up to ${v.englishTest.value.sentences}.`,
-      ],
+      [...s.english, ...s.paperReceipt],
+      uncertainLanguage ? 'PD-271' : 'PD-275',
+      uncertainLanguage && english === undefined
+        ? [
+            '纸质与网上收件日跨越英语豁免的年龄门槛。请确认实际收件日。',
+            'The paper and online receipt dates straddle the age threshold for an English exemption. Confirm the actual receipt date.',
+          ]
+        : [
+            `需要通过现场评估，或符合年龄／居美年限或医学例外。读、写各最多 ${v.englishTest.value.sentences} 句，分别答对 ${v.englishTest.value.correct} 句。`,
+            `Meet the interview standard or an age/residence or medical exception. Reading and writing each require ${v.englishTest.value.correct} correct sentence out of up to ${v.englishTest.value.sentences}.`,
+          ],
       'NOT_APPLICABLE',
     ),
     check(

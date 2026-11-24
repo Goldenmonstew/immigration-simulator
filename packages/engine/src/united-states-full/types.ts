@@ -374,6 +374,8 @@ export interface UsAdmissionAnswers {
   qualifyingBasis?: UsReview;
   /** Status of the underlying petition, including an I-140 with an unknown receipt date. */
   petitionStatus?: 'filed-with-i485' | 'pending' | 'approved';
+  /** Actual receipt date for an underlying petition other than I-140. */
+  petitionFiledOn?: IsoDate;
   legalEntry?: 'admitted' | 'paroled' | 'without-inspection';
   adjustmentBasis?:
     | 'immediate-relative'
@@ -424,7 +426,7 @@ export interface UsAdmissionAnswers {
   /** Whether INA 212(a)(9)(C) still bars this applicant after any case-specific relief. */
   unlawfulReentryBar?: boolean;
   otherInadmissibility?: UsReview;
-  /** Replaces the aggregate answer. Use INA 212(a) suffixes for grounds without a dedicated input, after any individual waiver. */
+  /** INA 212(a) findings after individual waivers. They replace the aggregate review only when they clear every applicable ground without a dedicated input. */
   otherInadmissibilityByGround?: Partial<
     Record<
       | `${UsOtherInadmissibilityParagraph}`

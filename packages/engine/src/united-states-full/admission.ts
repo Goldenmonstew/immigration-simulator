@@ -128,6 +128,21 @@ function admissionExemptions(
   }
 }
 
+function matchesGround(ground: string, provision: string): boolean {
+  return ground === provision || ground.startsWith(`${provision}(`);
+}
+
+function petitionApprovalUnconfirmed(
+  status: UsAdmissionAnswers['petitionStatus'],
+  filedOn?: IsoDate,
+): boolean {
+  return (
+    status === 'pending' ||
+    status === 'filed-with-i485' ||
+    (status === undefined && filedOn !== undefined)
+  );
+}
+
 export function admissionChecks(
   request: UsFullRequest,
   a: UsAdmissionAnswers | undefined,
@@ -158,26 +173,49 @@ export function admissionChecks(
   const optionalMedicalForm =
     humanitarian && request.humanitarian?.status === 'refugee';
   const exemptions = admissionExemptions(scope, a);
-  const exemptionSources = exemptions?.sources ?? [];
+  const pendingSij =
+    adjustment &&
+    a.adjustmentBasis === 'sij' &&
+    petitionApprovalUnconfirmed(a.petitionStatus, a.petitionFiledOn);
+  const exemptionSources =
+    (pendingSij ? v.sijAdmissionExemptions : exemptions)?.sources ?? [];
   const isExempt = (ground: string) =>
-    exemptions?.value.some(
-      (exemption) => ground === exemption || ground.startsWith(`${exemption}(`),
-    ) ?? false;
+    exemptions?.value.some((exemption) => matchesGround(ground, exemption));
+  const assessExemption = (ground: string, answer: Answer): Answer => {
+    if (isExempt(ground)) return true;
+    if (
+      pendingSij &&
+      answer !== true &&
+      v.sijAdmissionExemptions.value.some((exemption) =>
+        matchesGround(ground, exemption),
+      )
+    )
+      return undefined;
+    return answer;
+  };
   const publicExempt = isExempt('4(A)') || a?.publicChargeExempt === true;
-  const publicResult = publicExempt ? true : reviewed(a?.publicCharge);
-  const noFraud = isExempt('6(C)(i)') || not(a?.immigrationFraud);
-  const falseClaim = isExempt('6(C)(ii)')
+  const publicResult = publicExempt
     ? true
-    : a?.falseCitizenship === true
+    : assessExemption('4(A)', reviewed(a?.publicCharge));
+  const falseClaim = assessExemption(
+    '6(C)(ii)',
+    a?.falseCitizenship === true
       ? a.falseCitizenshipException
-      : not(a?.falseCitizenship);
-  const otherGrounds = a?.otherInadmissibilityByGround;
-  const identifiedGrounds = Object.entries(otherGrounds ?? {}).map(
-    ([ground, finding]) => isExempt(ground) || reviewed(finding),
+      : not(a?.falseCitizenship),
   );
-  const ordinaryImmigrationGrounds = otherGrounds
-    ? [noFraud]
-    : [noFraud, reviewed(a?.otherInadmissibility)];
+  const otherGrounds = Object.entries(a?.otherInadmissibilityByGround ?? {});
+  const identifiedGrounds = otherGrounds.flatMap(([ground, finding]) =>
+    finding === undefined ? [] : [assessExemption(ground, reviewed(finding))],
+  );
+  const completeReview = v.otherImmigrationGrounds.value.every(
+    (ground) =>
+      isExempt(ground) ||
+      otherGrounds.some(
+        ([provision, finding]) =>
+          finding === 'cleared' && matchesGround(ground, provision),
+      ),
+  );
+  const otherReview = completeReview ? true : reviewed(a?.otherInadmissibility);
   const { waiver, waiverFiling } = request.humanitarian ?? {};
   const waiverDecision = waiver === 'not-needed' ? false : reviewed(waiver);
   const waiverMaterials =
@@ -249,17 +287,21 @@ export function admissionChecks(
       ? undefined
       : a.securityGround !== 'nonwaivable',
   );
-  const immigrationGrounds = (bar: Answer) => [
-    falseClaim,
-    not(a?.unlawfulReentryBar),
-    ...ordinaryWaiver(
-      [bar, ...ordinaryImmigrationGrounds],
+  const immigrationGrounds = (bar: Answer) => {
+    const [presence, fraud, other] = ordinaryWaiver(
+      [bar, not(a?.immigrationFraud), otherReview],
       a?.immigrationWaiver,
-    ),
-    ...identifiedGrounds,
-  ];
+    );
+    return [
+      falseClaim,
+      not(a?.unlawfulReentryBar),
+      assessExemption('9(B)', presence),
+      assessExemption('6(C)(i)', fraud),
+      other,
+      ...identifiedGrounds,
+    ];
+  };
   const presenceAt = (on: IsoDate | undefined) => {
-    if (isExempt('9(B)')) return true;
     const presence = unlawfulPresence(a, on);
     return (adjustment || consularVisa) &&
       a?.adjustmentBasis === 'vawa' &&
@@ -315,31 +357,36 @@ export function admissionChecks(
           ...(adjustment ? s.publicChargeExemptions : []),
           ...exemptionSources,
         ],
-        consular ? 'PD-273' : 'PD-261',
+        pendingSij ? 'PD-274' : consular ? 'PD-273' : 'PD-261',
         publicExempt
           ? [
               '该类别免公共负担审查。',
               'This category is exempt from public charge review.',
             ]
-          : consular
+          : pendingSij && publicResult === undefined
             ? [
-                '领馆采用国务院 FAM 口径。需由领馆个案判断现金维持补助和长期机构护理等因素。',
-                'The consulate applies State Department FAM guidance and assesses factors including cash support and long-term institutional care.',
+                '公共负担例外待 SIJ 分类获批后确认。',
+                'Confirm the public charge exemption after SIJ classification is approved.',
               ]
-            : publicChargeDate < v.publicCharge.value.effective
+            : consular
               ? [
-                  '按原政策综合评估，重点核对现金维持补助和政府出资长期机构护理。',
-                  'The prior policy weighs the overall circumstances, including cash income maintenance and publicly funded long-term institutional care.',
+                  '领馆采用国务院 FAM 口径。需由领馆个案判断现金维持补助和长期机构护理等因素。',
+                  'The consulate applies State Department FAM guidance and assesses factors including cash support and long-term institutional care.',
                 ]
-              : a?.benefits === 'post-change-means-tested'
+              : publicChargeDate < v.publicCharge.value.effective
                 ? [
-                    '生效日后申领、获批或领取的资检福利可纳入 DHS 的全貌审查，结果取决于个案。',
-                    'DHS may consider means-tested benefits applied for, approved or received since the effective date. The outcome depends on the whole case.',
+                    '按原政策综合评估，重点核对现金维持补助和政府出资长期机构护理。',
+                    'The prior policy weighs the overall circumstances, including cash income maintenance and publicly funded long-term institutional care.',
                   ]
-                : [
-                    'DHS 综合评估年龄、健康、家庭、财务和技能。生效日前的福利按旧口径核对。',
-                    'DHS weighs age, health, family, finances and skills. Pre-effective-date benefits are assessed using the prior standards.',
-                  ],
+                : a?.benefits === 'post-change-means-tested'
+                  ? [
+                      '生效日后申领、获批或领取的资检福利可纳入 DHS 的全貌审查，结果取决于个案。',
+                      'DHS may consider means-tested benefits applied for, approved or received since the effective date. The outcome depends on the whole case.',
+                    ]
+                  : [
+                      'DHS 综合评估年龄、健康、家庭、财务和技能。生效日前的福利按旧口径核对。',
+                      'DHS weighs age, health, family, finances and skills. Pre-effective-date benefits are assessed using the prior standards.',
+                    ],
         scope === 'return' && !publicExempt ? undefined : 'NOT_APPLICABLE',
       ),
       ...(publicExempt ? { applicable: false } : {}),
@@ -376,17 +423,27 @@ export function admissionChecks(
       '移民欺诈、虚称公民、非法居留及再入境',
       'Immigration fraud, false citizenship, unlawful presence and reentry',
       immigrationResult.answer,
-      [...s.immigrationBars, ...adjustmentSources, ...exemptionSources],
+      [
+        ...s.immigrationBars,
+        ...s.otherImmigrationGrounds,
+        ...adjustmentSources,
+        ...exemptionSources,
+      ],
       humanitarian ? ['PD-274', 'PD-275'] : 'PD-274',
-      consularVisa
+      pendingSij && immigrationResult.answer === undefined
         ? [
-            '在签证裁决日核对非法居留禁令是否届满，以及其他移民史不准入事由和可用豁免。',
-            'At visa adjudication, check whether the unlawful-presence bar has expired and assess other immigration-history grounds and available waivers.',
+            'SIJ 归类待决。须待分类获批才能确认法定例外，仍须核对独立的不准入事由。',
+            'SIJ classification is pending. Confirm statutory exemptions after classification is approved and assess independent inadmissibility grounds separately.',
           ]
-        : [
-            '按申请类别核对适用的移民史事由。若适用非法居留禁令，按合资格天数与离境日期计算。非法再入境及个案豁免另行核对。',
-            'Check the immigration-history grounds that apply to this category. Where the unlawful-presence bar applies, use qualifying days and the departure date. Check unlawful reentry and individual waivers separately.',
-          ],
+        : consularVisa
+          ? [
+              '在签证裁决日核对非法居留禁令是否届满，以及其他移民史不准入事由和可用豁免。',
+              'At visa adjudication, check whether the unlawful-presence bar has expired and assess other immigration-history grounds and available waivers.',
+            ]
+          : [
+              '按申请类别核对适用的移民史事由。若适用非法居留禁令，按合资格天数与离境日期计算。非法再入境及个案豁免另行核对。',
+              'Check the immigration-history grounds that apply to this category. Where the unlawful-presence bar applies, use qualifying days and the departure date. Check unlawful reentry and individual waivers separately.',
+            ],
       adjustment
         ? checkStatus(all(...immigrationGrounds(barAtFiling)))
         : (approvalOnly ?? immigrationResult.filingStatus),
@@ -427,8 +484,6 @@ export function adjustmentChecks(
   const a = request.admission;
   const basis = a?.adjustmentBasis;
   const petition = a?.petitionStatus;
-  const awaitingPetition =
-    petition === 'pending' || petition === 'filed-with-i485';
   const usesFamilyClassification =
     request.pathway === 'US-FAMILY' ||
     (basis === 'family-preference' && request.family !== undefined);
@@ -465,7 +520,8 @@ export function adjustmentChecks(
   const sijFiling =
     a?.process === 'adjustment' &&
     basis === 'sij' &&
-    (petition === 'approved' || awaitingPetition);
+    (petition === 'approved' ||
+      petitionApprovalUnconfirmed(petition, a.petitionFiledOn));
   const entryAtFiling =
     sijFiling || a?.legalEntry === 'admitted' || a?.legalEntry === 'paroled'
       ? true
@@ -489,8 +545,13 @@ export function adjustmentChecks(
     employment?.category === 'eb3';
   const usesI140 = employmentBasis && (i140Category || !employment?.category);
   const i140FiledOn = usesI140 ? employment?.i140FiledOn : undefined;
-  const inconsistentI140Date =
-    i140FiledOn !== undefined && i140FiledOn > request.simulationDate;
+  const petitionFiledOn = i140FiledOn ?? a?.petitionFiledOn;
+  const awaitingPetition = petitionApprovalUnconfirmed(
+    petition,
+    petitionFiledOn,
+  );
+  const inconsistentPetitionDate =
+    petitionFiledOn !== undefined && petitionFiledOn > request.simulationDate;
   const concurrent =
     a?.process === 'adjustment'
       ? usesFamilyClassification ||
@@ -510,7 +571,7 @@ export function adjustmentChecks(
   const filingBasis = awaitingPetition
     ? all(concurrent, a?.qualifyingBasis === 'pending' ? true : qualifyingBasis)
     : qualifyingBasis;
-  const filing = inconsistentI140Date
+  const filing = inconsistentPetitionDate
     ? undefined
     : all(
         filingBasis,
@@ -528,7 +589,7 @@ export function adjustmentChecks(
       'C33-VISA-AND-ENTRY',
       '移民类别、签证名额与入境查验',
       'Immigrant basis, visa availability and admission or parole',
-      inconsistentI140Date
+      inconsistentPetitionDate
         ? undefined
         : all(
             filing,
@@ -541,10 +602,10 @@ export function adjustmentChecks(
         ...(usesFamilyClassification ? s.relationship : []),
       ],
       'PD-272',
-      inconsistentI140Date
+      inconsistentPetitionDate
         ? [
-            '已填的 I-140 实际收件日晚于模拟日。请核对收件日和请愿状态。',
-            'The reported I-140 receipt is after the simulation date. Verify the receipt date and petition status.',
+            '所填基础请愿案的实际收件日晚于模拟日。请核对收件日和请愿状态。',
+            'The reported underlying petition receipt is after the simulation date. Verify the receipt date and petition status.',
           ]
         : decisionMonth === undefined
           ? [

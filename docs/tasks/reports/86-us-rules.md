@@ -375,3 +375,28 @@ PROGRESS 601 建议统一提交为 `Fix: 修正美国体检递交、入籍年龄
 ### 4. 发现与建议
 
 - 已知其他准入事由的法律分类时，调用方可用可选的 `otherInadmissibilityByGround` 逐项提供结论并让规则筛选不适用的条款。只有综合审查结论时继续填 `otherInadmissibility`。VAWA 的非法居留例外可填 `vawaUnlawfulPresenceException`，缺少所需个案证据时登记 PD-274。
+
+## 第十轮审核修正（review86-10）
+
+### 1. 做了什么
+
+PROGRESS 602 建议统一提交为 `Fix: 修正美国准入审查、请愿核准与英语豁免（review86-10）`，附 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+- **C40 分项准入审查。** 综合审查待定时，空表及部分分项均返回 `UNKNOWN`。适用事由已全部逐项排除或已获适用豁免时可通过。综合审查已经明确时继续用该结论覆盖未填的分项，明确填报的各项照常核对。依据为 SRC-311 8 U.S.C. §1182(a)(5)–(10) 及 PD-274。
+- **C33 基础请愿。** 已知收件日、获批状态留空或待决时，按同时递交规则判断递交。符合递交条件的案件核准为 `UNKNOWN`，省略核准日期。I-140 使用 `employment.i140FiledOn`，其他基础请愿可使用 `admission.petitionFiledOn`。依据为 SRC-309 8 CFR §245.2(a)(2)(i)(A)–(C)、7 USCIS-PM A.6(A)、I-485 Instructions p3 及 PD-272。
+- **C03 英语豁免。** 55/15、50/20 的年龄按 N-400 收件日判断。渠道待定且纸件与网申跨过生日、影响豁免结论时为 `UNKNOWN`。依据为 SRC-081 1 USCIS-PM B.6(E)、SRC-082 N-400 Instructions p8、SRC-291 8 U.S.C. §1423(b)(2)、SRC-292 12 USCIS-PM E.2(B)(1) 及 PD-271。
+- **SIJ 同件递交。** 名额可用且满足其余 C33 条件时，可在 I-360 待决期间递交 I-485。官方未明确说明待决分类如何确认个案准入例外，因此依赖法定例外的 C40 递交和核准审查均为 `UNKNOWN`，依赖例外的 C37 公共负担核准审查亦待确认。分类获批后适用例外。已确认的非法再入境等独立事由仍可判 `NOT_MET`。依据为 SRC-309 8 U.S.C. §1255(h)(1)–(2)、I-485 Instructions p21 及 PD-274。
+
+### 2. 怎么验证的
+
+- 设置 `VITEST_MAX_WORKERS=2` 后运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码 0。全仓 5,471 项测试通过，其中 Engine 3,438 项，1 项既有测试跳过。静态构建生成 27 个页面，包含 `/united-states`。
+- 新增回归覆盖综合审查待定下的空表、部分分项和完整清单，I-140 及 I-130 仅有收件日时的递交和核准，英语豁免的纸件及网申跨生日，以及 SIJ 同件递交、分类待决、获批和独立障碍。
+- `git diff --check` 通过。对照 `73f9eb9c`，旧 `evaluateUnitedStates` 的实现、时间参数、专项测试及美国网页入口一致。
+
+### 3. 没做或没验证的
+
+- 改动保留在 `fable/86-us-rules` 工作树，供 Fable 提交。浏览器端到端留待 PR 验收。
+
+### 4. 发现与建议
+
+- 已有综合审查结论时仍可填写 `otherInadmissibility`。使用分项时，上级法条的明确结论可覆盖其子条款，单独核对一条子条款只能覆盖该条款。

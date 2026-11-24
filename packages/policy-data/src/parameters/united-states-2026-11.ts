@@ -236,6 +236,11 @@ export const unitedStatesFullSources = {
   english: [
     usc('SRC-291', '1423', '(a)–(b)'),
     pm('SRC-292', 12, 'E', 2, '(A)–(C)'),
+    source(
+      'SRC-082',
+      'N-400 Instructions p8, Naturalization Testing and Exceptions',
+      'https://www.uscis.gov/sites/default/files/document/forms/n-400instr.pdf#page=8',
+    ),
   ],
   civics: [
     pm('SRC-292', 12, 'E', 2, '(A)(2), (C)(2)'),
@@ -535,6 +540,7 @@ export const unitedStatesFullSources = {
     ),
   ],
   immigrationBars: [usc('SRC-311', '1182', '(a)(6), (a)(9), (i)')],
+  otherImmigrationGrounds: [usc('SRC-311', '1182', '(a)(5)–(10)')],
   sijAdmissionExemptions: [usc('SRC-309', '1255', '(h)(2)(A)')],
   vawaAdmissionExemptions: [
     usc('SRC-311', '1182', '(a)(4)(E)(i), (a)(6)(A)(ii), (a)(9)(B)(iii)(IV)'),
@@ -798,6 +804,31 @@ export const unitedStatesFull2026_11 = {
     publicCharge: parameter(
       { effective: '2026-09-18', minimumBondUsd: 1000, bondReviewYears: 5 },
       s.publicCharge,
+    ),
+    otherImmigrationGrounds: parameter(
+      [
+        '5(A)(i)',
+        '5(B)',
+        '5(C)',
+        '6(A)(i)',
+        '6(B)',
+        '6(D)',
+        '6(E)(i)',
+        '6(F)(i)',
+        '6(G)',
+        '7(A)(i)',
+        '8(A)',
+        '8(B)',
+        '9(A)(i)',
+        '9(A)(ii)',
+        '10(A)',
+        '10(B)',
+        '10(C)(i)',
+        '10(C)(ii)',
+        '10(D)',
+        '10(E)',
+      ] as const,
+      s.otherImmigrationGrounds,
     ),
     sijAdmissionExemptions: parameter(
       ['4', '5(A)', '6(A)', '6(C)', '6(D)', '7(A)', '9(B)'],

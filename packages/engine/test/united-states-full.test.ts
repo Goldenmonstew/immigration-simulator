@@ -3777,6 +3777,195 @@ describe('review86-9 regressions', () => {
   );
 });
 
+describe('review86-10 regressions', () => {
+  test.each([
+    ['I-140', withEmployment({ i140FiledOn: '2026-07-01' })],
+    [
+      'I-130',
+      { ...f, admission: { ...f.admission, petitionFiledOn: '2026-07-01' } },
+    ],
+  ] satisfies [string, UsFullRequest][])(
+    'C33 permits adjustment filing with an %s receipt but unknown approval',
+    (_, request) => {
+      expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        filingStatus: 'MET',
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-272'],
+      });
+      const result = path(request);
+      expect(result).toMatchObject({
+        status: 'MET',
+        earliestDate: time.simulationDate,
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(result.approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test('C40 requires comprehensive coverage when the aggregate review is pending', () => {
+    const complete = {
+      '5': 'cleared',
+      '6': 'cleared',
+      '7': 'cleared',
+      '8': 'cleared',
+      '9': 'cleared',
+      '10': 'cleared',
+    } as const;
+    for (const otherInadmissibilityByGround of [
+      {},
+      { '9(A)': 'cleared' },
+      { ...complete, '10': undefined, '10(A)': 'cleared' },
+    ] as const) {
+      const request: UsFullRequest = {
+        ...f,
+        admission: {
+          ...f.admission,
+          petitionStatus: 'approved',
+          otherInadmissibility: 'pending',
+          otherInadmissibilityByGround,
+        },
+      };
+      expect(condition(request, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
+        filingStatus: 'UNKNOWN',
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-274'],
+      });
+      const result = path(request);
+      expect(result).toMatchObject({
+        status: 'UNKNOWN',
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(result.earliestDate).toBeUndefined();
+      expect(result.approvalEarliestDate).toBeUndefined();
+    }
+    expect(
+      condition(
+        withAdmission({
+          otherInadmissibility: 'pending',
+          otherInadmissibilityByGround: complete,
+        }),
+        'C40-IMMIGRATION-HISTORY',
+      ),
+    ).toMatchObject({ filingStatus: 'MET', status: 'MET' });
+    expect(
+      condition(
+        withAdmission({
+          adjustmentBasis: 'sij',
+          petitionStatus: 'approved',
+          otherInadmissibility: 'pending',
+          otherInadmissibilityByGround: {
+            ...complete,
+            '5': undefined,
+            '5(B)': 'cleared',
+            '5(C)': 'cleared',
+            '6': undefined,
+            '6(B)': 'cleared',
+            '6(E)': 'cleared',
+            '6(F)': 'cleared',
+            '6(G)': 'cleared',
+            '7': undefined,
+            '9': undefined,
+            '9(A)(i)': 'cleared',
+            '9(A)(ii)': 'cleared',
+          },
+        }),
+        'C40-IMMIGRATION-HISTORY',
+      ),
+    ).toMatchObject({ filingStatus: 'MET', status: 'MET' });
+  });
+
+  test.each([
+    ['55/15', '1971-11-23', 16],
+    ['50/20', '1976-11-23', 21],
+  ] as const)(
+    'C03 evaluates %s on the N-400 receipt date',
+    (_, birth, years) => {
+      const request: UsFullRequest = {
+        ...withNatural({ english: 'failed', lprResidenceYears: years }),
+        simulationDate: '2026-11-22',
+        dateOfBirth: birth,
+      };
+      const paper: UsFullRequest = { ...request, fees: { channel: 'paper' } };
+      expect(path(paper).earliestDate).toBe('2026-11-23');
+      expect(condition(paper, 'C03-ENGLISH').status).toBe('MET');
+      expect(
+        condition({ ...request, fees: { channel: 'online' } }, 'C03-ENGLISH')
+          .status,
+      ).toBe('NOT_MET');
+      expect(
+        condition(
+          { ...request, fees: { onlineCategoryAvailable: 'pending' } },
+          'C03-ENGLISH',
+        ),
+      ).toMatchObject({ status: 'UNKNOWN', pendingDetails: ['PD-271'] });
+    },
+  );
+
+  test.each([
+    { petitionStatus: 'filed-with-i485' },
+    { petitionStatus: 'pending' },
+    { petitionFiledOn: '2026-07-01' },
+  ] as const)(
+    'SIJ with petition evidence %j can file under C33 while C40 awaits a finding',
+    (petition) => {
+      const request = withAdmission({
+        adjustmentBasis: 'sij',
+        ...petition,
+        qualifyingBasis: 'pending',
+        legalEntry: 'without-inspection',
+        publicCharge: 'barred',
+        immigrationFraud: true,
+        falseCitizenship: true,
+        unlawfulDeparture: { leftOn: '2026-01-01', qualifyingDays: 365 },
+        otherInadmissibilityByGround: { '6(D)': 'barred' },
+      });
+      expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        filingStatus: 'MET',
+        status: 'UNKNOWN',
+      });
+      expect(condition(request, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
+        filingStatus: 'UNKNOWN',
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-274'],
+      });
+      expect(condition(request, 'C37-PUBLIC-CHARGE')).toMatchObject({
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-274'],
+      });
+      const result = path(request);
+      expect(result).toMatchObject({
+        status: 'UNKNOWN',
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(result.earliestDate).toBeUndefined();
+      expect(result.approvalEarliestDate).toBeUndefined();
+      expect(
+        path({
+          ...request,
+          admission: {
+            ...request.admission,
+            petitionStatus: 'approved',
+            qualifyingBasis: 'cleared',
+          },
+        }),
+      ).toMatchObject({
+        status: 'MET',
+        approvalStatus: 'MET',
+        approvalEarliestDate: time.simulationDate,
+      });
+      expect(
+        condition(
+          {
+            ...request,
+            admission: { ...request.admission, unlawfulReentryBar: true },
+          },
+          'C40-IMMIGRATION-HISTORY',
+        ),
+      ).toMatchObject({ filingStatus: 'NOT_MET', status: 'NOT_MET' });
+    },
+  );
+});
+
 describe('filing and evidence exceptions', () => {
   test('I-751 on Monday after a Sunday filing cutoff depends on the channel', () => {
     const caseInput = { ...conditions, permanentResident: '2024-11-23' };
