@@ -504,6 +504,7 @@
 | 511 | 任务 93：补充澳大利亚完整版模块单测、政策页来源测试、双语 E2E 用例与任务报告。 | apps/web/test/{australia,policy-page}.test.tsx、apps/e2e/tests/australia.spec.ts、docs/tasks/reports/93-au-pages.md |
 | 512 | 任务 93：e2e 对比页预期改为引擎实际日期 2030-01-01（只录入 2026-01-01 起的 189，四年合法居留到 2030-01-01）。 | apps/e2e/tests/australia.spec.ts |
 | 513 | 任务 93：政策页标题与参数千分位改为按国家通用（非英国读 `<国家>.policy.pageTitle`），其余国家页面只需加文案键，不再逐国改组件。 | apps/web/components/policy-page.tsx |
+| 520 | 任务 103：新增澳大利亚人生模拟内容包。维多利亚州虚构海滨小镇金合欢湾的 18 个地点、8 位镇民（排班、对话、礼物）、2 位原创角色（菲律宾护士持 491 走 191，香港毕业生持 485 走 191 香港偏远地区类别）、日常与系统事件、澳大利亚日/澳新军团日/海鸥队总决赛/农业展、道具与菜谱；季度按南半球季节。评估、时间里程碑、报税（评税通知按财年记入）、移民体检与无犯罪证明、出境、签证到期与 191 申请费交给澳大利亚完整版引擎的适配器；补内容包单测。 | packages/game/package.json、packages/game/src/packs/au/、packages/game/test/au-pack.test.ts |
 | 530 | 任务 84：登记新西兰完整版适用的官方快照、SHA-256、网址与条文，记录档案中的未决政策和个案判断。 | policy-sources/*-nz-*、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
 | 531 | 任务 84：登记 nz.current-law 参数集，分别保存居留、入籍、技术、家庭、投资和宗教路径的数字、日期、费率及来源。 | packages/policy-data/src/{index,types,parameters/index,parameters/new-zealand-2026-11}.ts |
 | 532 | 任务 84：新增十条新西兰路径的双语 CountryResult 入口、逐人材料核对和条件边界测试，保留旧时间引擎。 | packages/engine/src/{index,new-zealand-{checks,full,resident,skilled,family}}.ts、packages/engine/test/new-zealand-*.test.ts、docs/tasks/reports/84-nz-rules.md |
