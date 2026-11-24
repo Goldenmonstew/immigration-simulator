@@ -1,11 +1,11 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-test('the Australia pilot works out dates from a visa record', async ({
+test('Australia calculator works out dates from a visa record', async ({
   page,
 }) => {
   await page.goto('/');
-  await page.getByRole('link', { name: '打开澳大利亚试点' }).click();
+  await page.getByRole('link', { name: '澳大利亚：开始计算' }).click();
   await expect(page).toHaveURL(/\/australia/);
 
   // Submitting without a date of birth moves focus to the linked summary.

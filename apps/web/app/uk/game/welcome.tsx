@@ -7,9 +7,11 @@ import styles from './game.module.css';
 
 // No game code here, so the page's static HTML already has the title and
 // town banner (the largest paint) before the game scripts arrive.
-export function WelcomeIntro() {
+export function WelcomeIntro({
+  banner = townBanner,
+}: { banner?: string } = {}) {
   const { t, locale } = useTranslation();
-  preload(townBanner, { as: 'image', fetchPriority: 'high' });
+  preload(banner, { as: 'image', fetchPriority: 'high' });
   return (
     <div className={styles.welcomeIntro}>
       <div>
@@ -23,18 +25,18 @@ export function WelcomeIntro() {
       </div>
       <div
         className={styles.townBanner}
-        style={{ backgroundImage: `url("${townBanner}")` }}
+        style={{ backgroundImage: `url("${banner}")` }}
         aria-hidden="true"
       />
     </div>
   );
 }
 
-export function WelcomeLoading() {
+export function WelcomeLoading({ banner }: { banner?: string } = {}) {
   const { t } = useTranslation();
   return (
     <section className={styles.welcome}>
-      <WelcomeIntro />
+      <WelcomeIntro banner={banner} />
       <p role="status">{t('game.loading')}</p>
     </section>
   );

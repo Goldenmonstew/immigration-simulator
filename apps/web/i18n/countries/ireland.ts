@@ -1,13 +1,13 @@
 export const zhCN = {
   'ie.name': '爱尔兰',
-  'ie.entryLink': '打开爱尔兰试点',
+  'ie.entryLink': '打开爱尔兰模拟器',
   'ie.entryDesc':
     '按居留许可（Stamp）与出入境记录，计算入籍、配偶入籍与 Stamp 4／Stamp 5 的时间节点。',
-  'ie.title': '爱尔兰：入籍、配偶入籍与 Stamp 4 的时间（试点）',
+  'ie.title': '爱尔兰：入籍、配偶入籍与 Stamp 4 的时间',
   'ie.intro':
     '按你在爱尔兰的居留许可（Stamp）和出入境记录，计算只看时间的几个节点：入籍（递交前 1 年连续居住，加此前 8 年内累计 4 年，缺席的 70 天规则）、爱尔兰公民配偶或民事伴侣的入籍，以及移民服务署（ISD）政策下的 Stamp 4 升级与 Stamp 5。',
   'ie.scope':
-    '试点只检查法条与 ISD 指南写明的时间条件；品格、意愿、入籍仪式、费用与证明材料不检查，结果里逐项列出。Stamp 4 与 Stamp 5 是 ISD 的行政政策，不是法条。2026 年公布的修法草案（General Scheme）会延长入籍年限，但尚未成为法律，结果只作提示、不进入计算。所填内容只在你的浏览器里计算，不保存、不上传。',
+    '这里只检查法条与 ISD 指南写明的时间条件；品格、意愿、入籍仪式、费用与证明材料不检查，结果里逐项列出。Stamp 4 与 Stamp 5 是 ISD 的行政政策，不是法条。2026 年公布的修法草案（General Scheme）会延长入籍年限，但尚未成为法律，结果只作提示、不进入计算。所填内容只在你的浏览器里计算，不保存、不上传。',
   'ie.basics': '基本信息',
   'ie.simulationDate': '模拟日期',
   'ie.simulationDateHint':
@@ -53,7 +53,7 @@ export const zhCN = {
   'ie.addTrip': '添加出境记录',
   'ie.spouse': '配偶或民事伴侣',
   'ie.marriedOn': '与爱尔兰公民结婚或登记民事伴侣的日期（不适用可留空）',
-  'ie.marriedOnHint': '填写后另算配偶入籍（s15A）；须同住，本试点不检查。',
+  'ie.marriedOnHint': '填写后另算配偶入籍（s15A）；须同住，这里不检查。',
   'ie.stamp4': 'Stamp 4 与 Stamp 5',
   'ie.stamp4Route': '要计算的许可',
   'ie.stamp4Route.choose': '请选择',
@@ -78,14 +78,14 @@ export const zhCN = {
 
 export const en: Record<keyof typeof zhCN, string> = {
   'ie.name': 'Ireland',
-  'ie.entryLink': 'Open the Ireland pilot',
+  'ie.entryLink': 'Open Ireland',
   'ie.entryDesc':
     'Use your immigration permissions (stamps) and travel record to work out the dates for naturalisation, naturalisation as a spouse, and Stamp 4 or Stamp 5.',
-  'ie.title': 'Ireland: dates for naturalisation, spouses and Stamp 4 (pilot)',
+  'ie.title': 'Ireland: dates for naturalisation, spouses and Stamp 4',
   'ie.intro':
     'From your Irish immigration permissions (stamps) and trips, this works out the steps that depend on time alone: naturalisation (one year of continuous residence before applying plus four years in the eight before that, with the 70-day absence rule), naturalisation as the spouse or civil partner of an Irish citizen, and the Stamp 4 upgrade and Stamp 5 under Immigration Service Delivery (ISD) policy.',
   'ie.scope':
-    'The pilot checks only the time requirements in the law and ISD guidance. It does not check character, intention to reside, the ceremony, fees or proofs; each result lists them. Stamp 4 and Stamp 5 are ISD policy, not statute. The draft bill published in 2026 (General Scheme) would lengthen the periods for naturalisation but is not law yet, so results only mention it. Your entries are processed in your browser and are not saved or uploaded.',
+    'This checks only the time requirements in the law and ISD guidance. It does not check character, intention to reside, the ceremony, fees or proofs; each result lists them. Stamp 4 and Stamp 5 are ISD policy, not statute. The draft bill published in 2026 (General Scheme) would lengthen the periods for naturalisation but is not law yet, so results only mention it. Your entries are processed in your browser and are not saved or uploaded.',
   'ie.basics': 'About you',
   'ie.simulationDate': 'Simulation date',
   'ie.simulationDateHint':
@@ -137,7 +137,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.marriedOn':
     'Date you married or registered a civil partnership with an Irish citizen (leave blank if not)',
   'ie.marriedOnHint':
-    'With a date, naturalisation as a spouse (s15A) is worked out too; you must live together, which this pilot does not check.',
+    'With a date, naturalisation as a spouse (s15A) is worked out too; you must live together, which is not checked here.',
   'ie.stamp4': 'Stamp 4 and Stamp 5',
   'ie.stamp4Route': 'Permission to work out',
   'ie.stamp4Route.choose': 'Choose one',

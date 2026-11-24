@@ -1,13 +1,13 @@
 export const zhCN = {
   'jp.name': '日本',
-  'jp.entryLink': '打开日本试点',
+  'jp.entryLink': '打开日本模拟器',
   'jp.entryDesc':
     '按在留开始日、在留资格与出入境记录，计算永住许可与帰化的时间节点，以及再入国许可失效对连续在留的影响。',
-  'jp.title': '日本：永住许可与帰化的时间（试点）',
+  'jp.title': '日本：永住许可与帰化的时间',
   'jp.intro':
     '按你在日本的在留开始日、在留资格和出入境记录，计算两个只看时间的节点：永住许可（永住許可）与帰化（入籍）。出境超过再入国许可期限会使在留资格消灭、连续在留重新起算，也一并算入。',
   'jp.scope':
-    '试点只检查入管法、国籍法与出入国在留管理庁指南写明的时间条件；素行、收入、纳税与年金、高度人才点数、日语与融入等不检查，结果里逐项列出。永住指南自 2027-04-01 起改版（配偶者等年限延长、新增出境标准），按递交日分别计算；原文没说清的计法会标出。所填内容只在你的浏览器里计算，不保存、不上传。',
+    '这里只检查入管法、国籍法与出入国在留管理庁指南写明的时间条件；素行、收入、纳税与年金、高度人才点数、日语与融入等不检查，结果里逐项列出。永住指南自 2027-04-01 起改版（配偶者等年限延长、新增出境标准），按递交日分别计算；原文没说清的计法会标出。所填内容只在你的浏览器里计算，不保存、不上传。',
   'jp.basics': '基本信息',
   'jp.simulationDate': '模拟日期',
   'jp.simulationDateHint': '按这一天判断（按递交日），默认今天。',
@@ -109,14 +109,14 @@ export const zhCN = {
 
 export const en: Record<keyof typeof zhCN, string> = {
   'jp.name': 'Japan',
-  'jp.entryLink': 'Open the Japan pilot',
+  'jp.entryLink': 'Open Japan',
   'jp.entryDesc':
     'Use the start of your stay, your status and travel record to work out the dates for permanent residence and naturalisation, and how a lapsed re-entry permit breaks your stay.',
-  'jp.title': 'Japan: dates for permanent residence and naturalisation (pilot)',
+  'jp.title': 'Japan: dates for permanent residence and naturalisation',
   'jp.intro':
     'From when your stay in Japan began, your status and your trips, this works out two steps that depend on time alone: permanent residence (永住許可) and naturalisation (帰化). A trip past your re-entry permit ends your status and starts the stay again, and that is counted too.',
   'jp.scope':
-    'The pilot checks only the time requirements in the Immigration Control Act, the Nationality Act and the Immigration Services Agency guidelines. It does not check conduct, income, taxes and pensions, highly skilled points, Japanese language or integration; each result lists them. The permanent residence guideline changes from 2027-04-01 (longer periods for spouses and others, and a new test for absences), so dates are worked out by application date; open questions are flagged. Your entries are processed in your browser and are not saved or uploaded.',
+    'This checks only the time requirements in the Immigration Control Act, the Nationality Act and the Immigration Services Agency guidelines. It does not check conduct, income, taxes and pensions, highly skilled points, Japanese language or integration; each result lists them. The permanent residence guideline changes from 2027-04-01 (longer periods for spouses and others, and a new test for absences), so dates are worked out by application date; open questions are flagged. Your entries are processed in your browser and are not saved or uploaded.',
   'jp.basics': 'About you',
   'jp.simulationDate': 'Simulation date',
   'jp.simulationDateHint':

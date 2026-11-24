@@ -80,13 +80,13 @@
 | SRC-060 | LAW | Statement of Changes in Immigration Rules HC 590（2024-03-14）Implementation：2024-04-04 前签发 CoS 的 Skilled Worker 申请按 2024-04-03 的规则审理 | https://www.gov.uk/government/publications/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024-accessible-version | 2024-03-14 | 2026-11-20 | `policy-sources/2024-03-14-hc590-statement-of-changes-accessible.html`（sha256 `c538acdbce21a3f9cd49c99689efd8134c4f6b9bdbfca6646a01017826ce5ef8`） | archived |
 | SRC-061 | LAW | Australian Citizenship Act 2007（Compilation No. 37，2026-06-04；一般资格 s21(2)，一般居住要求 s22） | https://www.legislation.gov.au/C2007A00020/2026-06-04/2026-06-04/text/original/epub/OEBPS/document_1/document_1.html （登记版本：https://www.legislation.gov.au/C2007A00020/2026-06-04/2026-06-04/text ；现行版入口：https://www.legislation.gov.au/C2007A00020/latest/text ） | 2026-06-04 | 2026-11-21 | `policy-sources/2026-06-04-au-australian-citizenship-act-2007-compilation-37.html`（sha256 `75fe3d5ae7abb63837f9348123cfe94baa0cbbda13693d0779da17e4d6aeacab`） | archived |
 | SRC-062 | LAW | Migration Regulations 1994（Compilation No. 291，2026-11-03）Volume 1（reg 1.03 定义；Schedule 1 item 1139）与 Volume 2（Schedule 2：100、155、186、189、190、191、801） | https://www.legislation.gov.au/F1996B03551/2026-11-03/2026-11-03/text/original/epub/OEBPS/document_1/document_1.html ；https://www.legislation.gov.au/F1996B03551/2026-11-03/2026-11-03/text/original/epub/OEBPS/document_2/document_2.html （登记版本：https://www.legislation.gov.au/F1996B03551/2026-11-03/2026-11-03/text ；现行版入口：https://www.legislation.gov.au/F1996B03551/latest/text ） | 2026-11-03 | 2026-11-21 | `policy-sources/2026-11-03-au-migration-regulations-1994-compilation-291-vol1.html`（sha256 `fc8ed8facbe2ac35cc28385f014ec15d4b9ebf122f4534ac6e3c01c48e3192f3`）；`policy-sources/2026-11-03-au-migration-regulations-1994-compilation-291-vol2.html`（sha256 `cb7187a13efa7a73f20da21c1e2743e94aff950abe8250d8e6af01c0ac00e0a8`） | archived |
-| SRC-063 | GUIDANCE | Department of Home Affairs：Skilled Regional visa（subclass 191）Regional Provisional Visas stream | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-regional-191/regional-provisional | —（动态页面） | 2026-11-21 | `policy-sources/2026-11-21-au-191-regional-provisional-stream.html`（sha256 `07d09a632a0d95bef34e23f755e31f7aafc088be9b62ee615633cce239bfc02d`） | archived |
-| SRC-064 | GUIDANCE | Department of Home Affairs：Employer Nomination Scheme visa（subclass 186）Temporary Residence Transition stream | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/employer-nomination-scheme-186/temporary-residence-transition-stream | —（动态页面） | 2026-11-21 | `policy-sources/2026-11-21-au-186-temporary-residence-transition-stream.html`（sha256 `391aca298eb2a556682e583e43d2d9de1d32ce223bd2ece8ef4ecb5db5b9b4d9`） | archived |
-| SRC-065 | GUIDANCE | Department of Home Affairs：Partner visa（subclass 801）永久阶段 | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/partner-onshore/permanent-801 | —（动态页面） | 2026-11-21 | `policy-sources/2026-11-21-au-801-partner-permanent.html`（sha256 `31b63e4b5bc7a2153a76a4bb845c22760253a39a377e45fd1cdea57821aff706`） | archived |
-| SRC-066 | GUIDANCE | Department of Home Affairs：Resident Return visa（subclasses 155 和 157） | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/resident-return-visa-155-157 | —（动态页面） | 2026-11-21 | `policy-sources/2026-11-21-au-resident-return-visa-155-157.html`（sha256 `af071d452dd84af5dbcbd3672dd41f8745da6021476e0c4af5ba024b35e7bfb3`） | archived |
-| SRC-067 | GUIDANCE | Department of Home Affairs：Become an Australian citizen（by conferral）——永久居民 | https://immi.homeaffairs.gov.au/citizenship/become-a-citizen/permanent-resident | —（动态页面） | 2026-11-21 | `policy-sources/2026-11-21-au-citizenship-permanent-resident.html`（sha256 `312c97ec6555e1007a3557412cf96fde445f1e57915cfb7e73418e3e4cbb049d`） | archived |
+| SRC-063 | GUIDANCE | Department of Home Affairs：Skilled Regional visa（subclass 191）Regional Provisional Visas stream | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-regional-191/regional-provisional | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-191-regional-provisional.html`（sha256 `612bd2717774a52da492e7aa491a4474ffc2077a18d2ca2724fe05679e89bde2`） | archived |
+| SRC-064 | GUIDANCE | Department of Home Affairs：Employer Nomination Scheme visa（subclass 186）Temporary Residence Transition stream | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/employer-nomination-scheme-186/temporary-residence-transition-stream | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-186-trt.html`（sha256 `fd07d36cea2163df7356a0e791233b3bfe912f0c815073d0640fa8fbaa0a394d`） | archived |
+| SRC-065 | GUIDANCE | Department of Home Affairs：Partner visa（subclass 801）永久阶段 | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/partner-onshore/permanent-801 | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-801-partner-perm.html`（sha256 `3a3c032788ef353b5954bf9dc63a3a426769c6152e4fe1099fb75a6de827b451`） | archived |
+| SRC-066 | GUIDANCE | Department of Home Affairs：Resident Return visa（subclasses 155 和 157） | https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/resident-return-visa-155-157 | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-155-157-rrv.html`（sha256 `f3c72b157f077a55ec72b056ba8cc4b925f36b4a0365b9e9c68602992138f0de`） | archived |
+| SRC-067 | GUIDANCE | Department of Home Affairs：Become an Australian citizen（by conferral）——永久居民 | https://immi.homeaffairs.gov.au/citizenship/become-a-citizen/permanent-resident | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-citizenship-permanent-resident.html`（sha256 `2037bbd1680192ef6c460f0732e861fb3357ed0793046e3970655d63b5ee41c7`） | archived |
 | SRC-068 | GUIDANCE | Department of Home Affairs Standard Operating Procedure：General residence requirement and permanent resident status（依 FOI 申请 FA 25/08/01434 公开，部分删节，23 页） | https://www.homeaffairs.gov.au/foi/files/2025/fa-250801434-document-released.PDF | PDF 2025-09-15 | 2026-11-21 | `policy-sources/2025-09-15-au-sop-general-residence-requirement-foi.pdf`（sha256 `4fce927e1b93f2b296f899ffd096b9ec44659b083906d60112f67ad6d22be8b0`） | archived |
-| SRC-069 | LAW | Migration Act 1958（Compilation No. 172，2026-10-08）Volume 1：签证何时终止（s82） | https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text/original/epub/OEBPS/document_1/document_1.html （登记版本：https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text ；现行版入口：https://www.legislation.gov.au/C1958A00062/latest/text ） | 2026-10-08 | 2026-11-21 | `policy-sources/2026-10-08-au-migration-act-1958-compilation-172-vol1.html`（sha256 `52a074ece7fdf107db0802e2079a71870d33f75aeabb91b2ecb842537330d29b`） | archived |
+| SRC-069 | LAW | Migration Act 1958（Compilation No. 172，2026-10-08）Volume 1：境内递交限制与豁免（ss 41、46、48）、签证终止（s 82） | https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text/original/epub/OEBPS/document_1/document_1.html （登记版本：https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text ；现行版入口：https://www.legislation.gov.au/C1958A00062/latest/text ） | 2026-10-08 | 2026-11-21 | `policy-sources/2026-10-08-au-migration-act-1958-compilation-172-vol1.html`（sha256 `52a074ece7fdf107db0802e2079a71870d33f75aeabb91b2ecb842537330d29b`） | archived |
 | SRC-070 | LAW | Citizenship Act 1977（新西兰，Version as at 2026-06-06；s8 citizenship by grant） | https://www.legislation.govt.nz/act/public/1977/61/en/latest/ （登记版本 PDF：https://www.legislation.govt.nz/act/public/1977/61/en/2026-06-06.pdf ） | 2026-06-06 | 2026-11-21 | `policy-sources/2026-06-06-nz-citizenship-act-1977-s8.html`（sha256 `f9a43233fabbbbedf29b4b9e56d2c49d2d66f99fd1ae12a865e954132db3be2c`） | archived |
 | SRC-071 | LAW | Immigration Act 2009（新西兰，Version as at 2026-07-10；s73 永久居民签证、s74 居民签证与旅行条件） | https://www.legislation.govt.nz/act/public/2009/51/en/latest/ | 2026-07-10 | 2026-11-21 | `policy-sources/2026-07-10-nz-immigration-act-2009-ss73-74.html`（sha256 `850fa60bc0927ba64dcdf43f7cf9541a193b5760e7bc9f9eba2ba6fbffaec649`） | archived |
 | SRC-072 | LAW | Immigration New Zealand Operational Manual（Immigration Instructions）：RV2.5 永久居民签证（2024-06-23 生效）、RV2.10 有投资条件的居民签证转永居（2022-09-19）、RV1.15 证据（2012-11-26）、R5.66 居民签证的旅行条件（2026-08-12）、RV1.5 居民签证何时失效（2011-11-07）、RV1.20 随同申请人（2026-08-12） | https://www.immigration.govt.nz/opsmanual/30505.htm ；https://www.immigration.govt.nz/opsmanual/46181.htm ；https://www.immigration.govt.nz/opsmanual/45649.htm ；https://www.immigration.govt.nz/opsmanual/44894.htm ；https://www.immigration.govt.nz/opsmanual/42631.htm ；https://www.immigration.govt.nz/opsmanual/45650.htm | 见标题 | 2026-11-21 | `policy-sources/2024-06-23-nz-immigration-instructions-rv2-5.html`（sha256 `ae9c55ff6541067f080a52716d7dad82d4658d8b450f510ca04d9e523dc15bed`）；`policy-sources/2022-09-19-nz-immigration-instructions-rv2-10.html`（sha256 `72afede60ccfa7ec2fd75848103442ec444f955878cebf6c3d0487427b483afb`）；`policy-sources/2012-11-26-nz-immigration-instructions-rv1-15.html`（sha256 `c622973856d8b9998ed1b98df1c66a5d8e7c781ec5061292607580f7ea67faa5`）；`policy-sources/2026-08-12-nz-immigration-instructions-r5-66.html`（sha256 `654a93b52da6eba0121832b884735104c17b889b75cb2fd3636d5cffcb096d1d`）；`policy-sources/2011-11-07-nz-immigration-instructions-rv1-5.html`（sha256 `4666d0fbedbf0c4661fc2b0a71e25d3fa8deedec53b9f1e3326d296ea022d3f4`）；`policy-sources/2026-08-12-nz-immigration-instructions-rv1-20.html`（sha256 `4a93ba2c2a08e3f38073616f7ad42060eebb76d26efeecc98f58bb2e4ccb3505`） | archived |
@@ -120,8 +120,8 @@
 | SRC-101 | LAW | Staatsangehörigkeitsgesetz（StAG，德国国籍法），gesetze-im-internet 现行汇编（Stand：Zuletzt geändert durch Art. 3 G v. 21.7.2026, BGBl. 2026 I Nr. 221）：§ 9 德国人配偶入籍、§ 10 一般入籍（Abs. 3 已删除）、§ 12b 居住中断、§ 40a 过渡规定 | https://www.gesetze-im-internet.de/stag/BJNR005830913.html | 2026-07-21（最近修改法签署日） | 2026-11-22 | `policy-sources/2026-11-22-de-stag-full.html`（sha256 `5539ac4ccb8cac6ac615d677c492c5d98a0e4edd6d0c98e27d40ce184bf31156`） | archived |
 | SRC-102 | LAW | 德国期间计算：BGB § 187 Fristbeginn、§ 188 Fristende、§ 191 Berechnung von Zeiträumen；VwVfG § 31 Fristen und Termine（gesetze-im-internet 单条页面） | https://www.gesetze-im-internet.de/bgb/__187.html ；https://www.gesetze-im-internet.de/bgb/__188.html ；https://www.gesetze-im-internet.de/bgb/__191.html ；https://www.gesetze-im-internet.de/vwvfg/__31.html | —（单条页面无版本日） | 2026-11-22 | `policy-sources/2026-11-22-de-bgb-187.html`（sha256 `8a1f3c70ceb349b44b3f995bf7d3ffc26d7a2b512ea77c384eb87c44cd961369`）；`policy-sources/2026-11-22-de-bgb-188.html`（sha256 `b80b9e0feb801a7e7b984b5294e37bba247080a1122b7af59d4dab21ebbd807e`）；`policy-sources/2026-11-22-de-bgb-191.html`（sha256 `30e5ed07deb62753f108e27c6a5bfecc90f01c3bc28704b833c9c15a38fb0538`）；`policy-sources/2026-11-22-de-vwvfg-31.html`（sha256 `80c85b5876c22e6aa1a19ecfa943a00a281f05336e148fe95a4201ff4e278345`） | archived |
 | SRC-103 | LAW | Asylgesetz § 55 Aufenthaltsgestattung（gesetze-im-internet 单条页面，GEAS 改造后的现行文本）：Abs. 3 庇护程序期间只在获承认或获国际保护后计入 | https://www.gesetze-im-internet.de/asylvfg_1992/__55.html | —（单条页面无版本日） | 2026-11-22 | `policy-sources/2026-11-22-de-asylg-55.html`（sha256 `88da857fd21bb069fbf953d6b2d48c828a43ab8e89589ac5e15641dd3d0286fc`） | archived |
-| SRC-104 | LAW | 取消 3 年快速入籍：已公布法令 BGBl. 2025 I Nr. 256（Gesetz zur Änderung des Staatsangehörigkeitsgesetzes sowie weiterer Vorschriften，2025-10-27 签署、2025-10-29 公布，原文未能存档）；议会草案 BT-Drs. 21/537（政府草案及理由）；BMI 立法程序页（进度与公布日）；部长讲话 Bulletin Nr. 89-5（内政部长 2025-10-08 在联邦议院，只作背景） | https://dserver.bundestag.de/btd/21/005/2100537.pdf ；https://www.bmi.bund.de/SharedDocs/gesetzgebungsverfahren/DE/VII5/gesetz-6-aenderung-des-staatsangehoerigkeitsrechts.html ；https://www.bundesregierung.de/resource/blob/975954/2388128/f26afadd67ac33455496c4e532b4afcc/89-5-bmi-aenderung-staatsangehoerigeitsrecht-bt-data.pdf?download=1 ；https://www.recht.bund.de/bgbl/1/2025/256/VO.html （未存档） | 2025-06-23；2025-10-08；公布 2025-10-29 | 2026-11-22 | `policy-sources/2025-06-23-de-bt-drs-21-537-stag-entwurf.pdf`（sha256 `98fa18c46c5ef381e7178af5f54ab8350b4302315edbbdb0d864fe6d8808af54`）；`policy-sources/2026-11-22-de-bmi-gesetzgebung-stag-2025.html`（sha256 `45022a73049f34c6f906dd0cfe0a3909dda6db58de0e6fc2e64a02eae99364dd`）；`policy-sources/2025-10-08-de-breg-bulletin-89-5-stag.pdf`（sha256 `69e1db0aad2a36560df46040295f11ca8dcea0ca3242a7af276e6c3cd4e73ba4`） | archived（BGBl. 原文未存档，见备注） |
-| SRC-105 | LAW | 国籍法现代化法（StARModG）：已公布法令 BGBl. 2024 I Nr. 104（2024-06-27 施行，原文未能存档）；议会草案 BT-Drs. 20/9044（政府草案，含 § 12b 修改理由） | https://dserver.bundestag.de/btd/20/090/2009044.pdf ；https://www.recht.bund.de/bgbl/1/2024/104/VO.html （未存档） | 2023-11-01 | 2026-11-22 | `policy-sources/2023-11-01-de-bt-drs-20-9044-starmodg-entwurf.pdf`（sha256 `db7fdf4bd2a95fe83473a9668b508f72232c0dc838c3401fec8b5c5b4315a30d`） | archived（BGBl. 原文未存档，见备注） |
+| SRC-104 | LAW | 取消 3 年快速入籍：已公布法令 BGBl. 2025 I Nr. 256（Gesetz zur Änderung des Staatsangehörigkeitsgesetzes sowie weiterer Vorschriften，2025-10-27 签署、2025-10-29 公布，本次已补入公报原文）；议会草案 BT-Drs. 21/537（政府草案及理由）；BMI 立法程序页（进度与公布日）；部长讲话 Bulletin Nr. 89-5（内政部长 2025-10-08 在联邦议院，只作背景） | https://dserver.bundestag.de/btd/21/005/2100537.pdf ；https://www.bmi.bund.de/SharedDocs/gesetzgebungsverfahren/DE/VII5/gesetz-6-aenderung-des-staatsangehoerigkeitsrechts.html ；https://www.bundesregierung.de/resource/blob/975954/2388128/f26afadd67ac33455496c4e532b4afcc/89-5-bmi-aenderung-staatsangehoerigeitsrecht-bt-data.pdf?download=1 ；https://www.recht.bund.de/bgbl/1/2025/256/VO.html （入口页未单独存档） ；https://www.recht.bund.de/bgbl/1/2025/256/regelungstext.pdf?__blob=publicationFile&v=3 | 2025-06-23；2025-10-08；公布 2025-10-29 | 2026-11-22；公报原文 2026-11-23 | `policy-sources/2025-06-23-de-bt-drs-21-537-stag-entwurf.pdf`（sha256 `98fa18c46c5ef381e7178af5f54ab8350b4302315edbbdb0d864fe6d8808af54`）；`policy-sources/2026-11-22-de-bmi-gesetzgebung-stag-2025.html`（sha256 `45022a73049f34c6f906dd0cfe0a3909dda6db58de0e6fc2e64a02eae99364dd`）；`policy-sources/2025-10-08-de-breg-bulletin-89-5-stag.pdf`（sha256 `69e1db0aad2a36560df46040295f11ca8dcea0ca3242a7af276e6c3cd4e73ba4`）；`policy-sources/2026-11-23-de-bundesgesetzblatt-2025-256.pdf`（sha256 `4cc6e0230eb43983978d74f57dd246aaca97fcdb778d84d6219961b464c4d00c`） | archived |
+| SRC-105 | LAW | 国籍法现代化法（StARModG）：已公布法令 BGBl. 2024 I Nr. 104（2024-06-27 施行，本次已补入公报原文）；议会草案 BT-Drs. 20/9044（政府草案，含 § 12b 修改理由） | https://dserver.bundestag.de/btd/20/090/2009044.pdf ；https://www.recht.bund.de/bgbl/1/2024/104/VO.html （入口页未单独存档） ；https://www.recht.bund.de/bgbl/1/2024/104/regelungstext.pdf?__blob=publicationFile | 2023-11-01 | 2026-11-22；公报原文 2026-11-23 | `policy-sources/2023-11-01-de-bt-drs-20-9044-starmodg-entwurf.pdf`（sha256 `db7fdf4bd2a95fe83473a9668b508f72232c0dc838c3401fec8b5c5b4315a30d`）；`policy-sources/2026-11-23-de-bundesgesetzblatt-2024-104.pdf`（sha256 `f83b710a968ef811c12aa65355094377f0e18d77d816ac1e4ef187a1caffe050`） | archived |
 | SRC-106 | GUIDANCE | BMI《Anwendungshinweise zum Staatsangehörigkeitsgesetz》（AH-StAG 2025，Stand 1. Mai 2025，146 页；早于 § 10 Abs. 3 删除） | https://www.bmi.bund.de/SharedDocs/downloads/DE/veroeffentlichungen/themen/verfassung/staatsangehoerigkeit/2505_anwendungshinweise-staatsangehoerigkeit.pdf?__blob=publicationFile&v=6 | 2025-05-01 | 2026-11-22 | `policy-sources/2025-05-01-de-bmi-anwendungshinweise-stag.pdf`（sha256 `95dc87965f3c604f1e00c18bb3d531fef4d293e366ca1096a486a6f227a4ecd6`） | archived |
 | SRC-107 | GUIDANCE | BMI《Anwendungshinweise zum Fachkräfteeinwanderungsgesetz》更新版（按 2024-06-01 起的法律状态，277 页） | https://www.bmi.bund.de/SharedDocs/downloads/DE/veroeffentlichungen/themen/migration/anwendungshinweise-fachkraefteeinwanderungsgesetz.pdf?__blob=publicationFile&v=5 | 2024-05-28（PDF 生成日） | 2026-11-22 | `policy-sources/2024-05-28-de-bmi-anwendungshinweise-feg.pdf`（sha256 `c5ae086f09bab3d3972f53cc3fc70ad1c30f868dfbeb6dd6a86e96e90b7d49df`） | archived |
 | SRC-108 | GUIDANCE | Allgemeine Verwaltungsvorschrift zum Aufenthaltsgesetz（AVwV-AufenthG，2009-10-26，GMBl 2009 Nr. 42–61，390 页；条文编号按 2009 年版，部分过时） | https://www.verwaltungsvorschriften-im-internet.de/pdf/BMI-MI3-20091026-SF-A001.pdf | 2009-10-26 | 2026-11-22 | `policy-sources/2009-10-26-de-avwv-aufenthg.pdf`（sha256 `c6e02d7c930e6a2492370f2a1a367bb6fddfb9104eec6af426fd9baf730b2777`） | archived |
@@ -144,6 +144,85 @@
 | SRC-125 | GUIDANCE | 里斯本检察院（PGD Lisboa）编纂版（非官方公报文本，仅交叉核对）：Decreto Regulamentar 84/2007（列至 DR 1/2024）art. 63 续期；Código Civil art. 279、296 期间计算 | https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=940&tabela=leis ；https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=775&tabela=leis | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-pgdlisboa-dr-84-2007-consolidado.html`（sha256 `8c0509aba4b9cf5f98fcb0f0f39742d91917e6500626ddd2302cd4a5f6a1f49f`）；`policy-sources/2026-11-22-pt-pgdlisboa-codigo-civil.html`（sha256 `1134e2bc2feb5ca33aaafd4e7f6c34d55b847ec3f389d8ea9cc1c7613eeaf538`） | archived |
 | SRC-126 | GUIDANCE | AIMA（移民与庇护署）页面：投资居留许可 ARI（art. 90-A）、永久居留（art. 80）、欧盟长期居民 ERLD（art. 125）；《Esclarecimento: Direito de Residência》（2025-10-17） | https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a ；https://aima.gov.pt/pt/viver/autorizacao-de-residencia-permanente-art-80-o ；https://aima.gov.pt/pt/viver/aquisicao-do-estatuto-de-residente-de-longa-duracao-erld-art-125-o ；https://aima.gov.pt/pt/noticias/direito-de-residencia | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-aima-ari-art-90-a.html`（sha256 `759f939a21c33b9a228b1f85146c37b65db06127d8f3c6378474fd9465197d37`）；`policy-sources/2026-11-22-pt-aima-ar-permanente-art-80.html`（sha256 `739864b9a7789f04abe2502b87d991cd6b89bee22b381518a73a0aa6a8ad04ef`）；`policy-sources/2026-11-22-pt-aima-erld-art-125.html`（sha256 `188f74257278bb429fe5977e8ee73c6fddeb3c7fc966f0ab1756ad553c4f9f5e`）；`policy-sources/2025-10-17-pt-aima-direito-de-residencia.html`（sha256 `93937c52620f1a21cf5acce152f5850131b5483b073ef67ed4d9dd07785cb036`） | archived |
 | SRC-127 | GUIDANCE | 葡萄牙政府关于新国籍法的说明：司法部新闻《Lei da Nacionalidade: novas regras entram em vigor a 19 de maio》（2026-05-19）；司法部入籍指南《Reside legalmente em Portugal há pelo menos 5 anos》（2026-11-22 抓取，仍按旧法写 5 年，已过时）；部长会议公报（2026-10-29，第 2 项通过国籍条例 Decreto-Lei） | https://justica.gov.pt/Noticias/Lei-da-Nacionalidade-novas-regras-entram-em-vigor-a-19-de-maio ；https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/Reside-legalmente-em-Portugal-ha-pelo-menos-5-anos ；https://www.portugal.gov.pt/pt/gc25/governo/comunicados-do-conselho-de-ministros/comunicado-do-conselho-de-ministros-de-29-de-outubro-de-2026 | 见标题 | 2026-11-22 | `policy-sources/2026-05-19-pt-justica-noticia-lei-nacionalidade.html`（sha256 `667814f2bcfdc424689f8bd24dcf4378abfdd7124d8f2402a30116a395183c4a`）；`policy-sources/2026-11-22-pt-justica-guia-reside-5-anos.html`（sha256 `1eb2c2027170a3a4f7d5f4458e08e7ac42096c08fb12b3220d3e4708cfc702d4`）；`policy-sources/2026-10-29-pt-gov-comunicado-cm.html`（sha256 `7e5d433eed2dba88a608d27a9712b2966e14637a3f0601e31e50ddd8fffd2f1e`） | archived |
+| SRC-410 | LAW | Aufenthaltsverordnung（签发、处理、证件收费及境内申请） | https://www.gesetze-im-internet.de/aufenthv/BJNR294510004.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-aufenthv.html`（sha256 `f59699a4f234c135525b15508d7a738fbd2b96ce203f04f4dde6aff3b43c9368`） | archived |
+| SRC-411 | LAW | Einbürgerungstestverordnung 与联邦政府入籍收费答复 | https://dserver.bundestag.de/btd/20/085/2008575.pdf ；https://www.gesetze-im-internet.de/einbtestv/__5.html ；https://www.gesetze-im-internet.de/einbtestv/BJNR164900008.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bt-20-8575.pdf`（sha256 `2bd51091715fa45310d04d7b2ae0c1b8bc9d1ba891d3262f96a60788c8b415c0`）；`policy-sources/2026-11-23-de-einbtestv-5.html`（sha256 `a4a2765e8c04f1f06c1953a4f16f99530044d87b82b4be8258e48b9979a2e701`）；`policy-sources/2026-11-23-de-einbtestv.html`（sha256 `2d4c0751f052c46beb5de29ae17f700018b88c7bae46de921693da5ee2852e09`） | archived |
+| SRC-412 | LAW | Integrationskursverordnung（整合课程、考试与费用） | https://www.gesetze-im-internet.de/intv/BJNR337000004.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-intv.html`（sha256 `0a4d351ab1acb276752581d1ff3cc26cbe85f57f21668aab9a83ca4207a1f9d0`） | archived |
+| SRC-413 | LAW | Bundesmeldegesetz（入住登记和住所证明） | https://www.gesetze-im-internet.de/bmg/BJNR108410013.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bmg.html`（sha256 `c24fd8d1160ed6197957677d9d0bffeea6e25122006107b87b66eb045fef3d91`） | archived |
+| SRC-414 | GUIDANCE | 柏林 LEA：Einbürgerung | https://service.berlin.de/dienstleistung/318998/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-einbuergerung.html`（sha256 `dccfc4f442e727dedab5660711fcb40e585335ee87972ba558568349f74b45ad`） | archived |
+| SRC-415 | GUIDANCE | 柏林 LEA：生计审查与家庭需要 | https://service.berlin.de/dienstleistung/354205/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-lebensunterhalt.html`（sha256 `3a5c8b256f6631687754c14e0a9990a8c63c6861aee8d1ba29fe2e8cae048d26`） | archived |
+| SRC-416 | GUIDANCE | 柏林 LEA：辅助保护者定居 | https://service.berlin.de/dienstleistung/352770/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-subsidiaer.html`（sha256 `f6c88636c399898ff16397a3534c5fa2b10f19e1c9d37bde412045cb8e65f37d`） | archived |
+| SRC-417 | GUIDANCE | 柏林 LEA：企业经营者定居 | https://service.berlin.de/dienstleistung/326564/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-selbstaendige.html`（sha256 `80847281493629b3919fd352082c4f38eb60067ddf9342f1d79d57477fc1a8e0`） | archived |
+| SRC-418 | GUIDANCE | 柏林 LEA：子女定居 | https://service.berlin.de/dienstleistung/324863/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-kinder.html`（sha256 `2a6956a55229243868c941321fada34e143527282f3477876fc0548e17d987ed`） | archived |
+| SRC-419 | GUIDANCE | 柏林 LEA：一般定居 | https://service.berlin.de/dienstleistung/121864/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-allgemein.html`（sha256 `affbc74703ad239268048fa150557ac141b8402c7ec29f080599146561f87dc2`） | archived |
+| SRC-420 | LAW | 欧盟蓝卡年度公告与联邦政府蓝卡指南 | https://www.bundesanzeiger.de/pub/publication/6yuuiNCa7LgGKapMrQK/content/6yuuiNCa7LgGKapMrQK/BAnz%20AT%2004.12.2024%20B2.pdf ；https://www.bundesanzeiger.de/pub/publication/REViP4bN6jVdpGxPaiQ/content/REViP4bN6jVdpGxPaiQ/BAnz%20AT%2018.12.2025%20B3.pdf?inline= ；https://www.make-it-in-germany.com/en/visa-recognition/visa-types/eu-blue-card ；https://www.make-it-in-germany.com/fileadmin/1_Rebrush_2022/a_Fachkraefte/PDF-Dateien/3_Visum_u_Aufenthalt/Visagrafik_DE/Visum_Blaue_Karte_DE.pdf | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-banz-2025-b2-blaue-karte.pdf`（sha256 `94d6acc095c1552c24f312f46f08c39e20b08614cf760234dcf63b8962ac8035`）；`policy-sources/2026-11-23-de-banz-2026-b3-blaue-karte.pdf`（sha256 `8524b487983b3169780d7a6a43b0a252d2fc894f85873b79e461782788443359`）；`policy-sources/2026-11-23-de-mig-blue-card.html`（sha256 `5d3acfb4f47ca1398d1bf816fc529c3ee3dafad077141925dd1df93405e12db0`）；`policy-sources/2026-11-23-de-mig-blue-card.pdf`（sha256 `db66bcc9c89139a14aaf2df1784f24bff3bb6f12453118f5b5dad4a3e8e4c53e`） | archived |
+| SRC-421 | GUIDANCE | 联邦政府 Make it in Germany：Niederlassungserlaubnis | https://www.make-it-in-germany.com/de/ankommen-bleiben/dauerhaft-in-deutschland/niederlassungserlaubnis | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-mig-niederlassung.html`（sha256 `5911fc677405996f74d6c9a78781abf64041c0d853ac81d68b3d14cc10a1d32b`） | archived |
+| SRC-422 | LAW | FreizügG/EU（自由流动及永久居住权） | https://www.gesetze-im-internet.de/freiz_gg_eu_2004/BJNR198600004.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-freizuegg.html`（sha256 `4010331cd271bc0fd567da66800308e3ada3bb44151364b48d7882e2f79fb95c`） | archived |
+| SRC-423 | LAW | SGB VI §§ 35、235（法定退休年龄） | https://www.gesetze-im-internet.de/sgb_6/__235.html ；https://www.gesetze-im-internet.de/sgb_6/__35.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-sgb-vi-235.html`（sha256 `7e28241d059e66b768e49e975d76c7eff5f653e651c7377d2fc1ea904434837d`）；`policy-sources/2026-11-23-de-sgb-vi-35.html`（sha256 `a052a5b5df1022621ea30ee4037a49df4aa1e5866b958f2d7bceb5222102b76b`） | archived |
+| SRC-424 | LAW | BZRG §§ 46、51、52（前科消除与使用限制） | https://www.gesetze-im-internet.de/bzrg/__46.html ；https://www.gesetze-im-internet.de/bzrg/__51.html ；https://www.gesetze-im-internet.de/bzrg/__52.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bzrg-46.html`（sha256 `9d2a3ca683d8e74681292904a93aa51855b2d8b5876ce473369417f1c866581b`）；`policy-sources/2026-11-23-de-bzrg-51.html`（sha256 `a3b0a67578dcd312767f41a843782aa0324ba9e6cb8a8c30b65dedf71e81e1f7`）；`policy-sources/2026-11-23-de-bzrg-52.html`（sha256 `2bdc30d4afbc8f2a6ece95b8d569ce2713577cb529b46ea1b7f97d77f37c0d70`） | archived |
+| SRC-425 | LAW | SVBezGrV 2024、2026 与 2026 年 Fachkräfte 工资公告 | https://www.bundesanzeiger.de/pub/publication/qiidOUvOxBc4NVmtxPl/content/qiidOUvOxBc4NVmtxPl/BAnz%20AT%2018.12.2025%20B2.pdf ；https://www.gesetze-im-internet.de/svbezgrv_2024/BJNR1420A0023.html ；https://www.gesetze-im-internet.de/svbezgrv_2026/BJNR1160A0025.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-banz-2026-b2-fachkraft.pdf`（sha256 `6e7110e6782b737c3de7c977886829d02b138acd31bb94dfdbe0ea84dbefc88d`）；`policy-sources/2026-11-23-de-svbezgrv-2024.html`（sha256 `e7218d20be250401d80f3bc2caed41c4051dbfc8625238662d7958a8212ad4c2`）；`policy-sources/2026-11-23-de-svbezgrv-2026.html`（sha256 `42648823e666322dc826642665bf6c46ab6682e7e7e1a3dff6b03c08bc71f9fb`） | archived |
+| SRC-426 | LAW | BMAS、RBSFV 2026、SGB XII § 28a（家庭需求标准） | https://www.bmas.de/DE/Arbeit/Grundsicherung-fuer-Arbeitsuchende/Leistungen-und-Bedarfe-in-der-Grundsicherung-fuer-Arbeitsuchende/leistungen-und-bedarfe-in-der-grundsicherung-fuer-arbeitsuchende-art.html ；https://www.gesetze-im-internet.de/rbsfv_2026/RBSFV_2026.pdf ；https://www.gesetze-im-internet.de/sgb_12/__28a.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bmas-regelbedarf.html`（sha256 `9961824dd1a9bfb89dd08067db65120af6b3799105623587d5ee895a70f55c1c`）；`policy-sources/2026-11-23-de-rbsfv-2026.pdf`（sha256 `570caca83a1ad1ee255c3c6967c49edfd5172f154f3abb834c181a01190c2c07`）；`policy-sources/2026-11-23-de-sgb-28a.html`（sha256 `dd753f9581a3d31c6c9101215ba676239ba698888a16ca899e0cab577a4c42a5`） | archived |
+| SRC-427 | GUIDANCE | 柏林 LEA：德国公民家属定居 | https://service.berlin.de/dienstleistung/327012/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-de-familie.html`（sha256 `3f1538e561ce8fae5cc14a9a45a8d3fc35c13f79e8382712925f318ebb6e6b20`） | archived |
+| SRC-428 | GUIDANCE | 柏林 LEA：难民定居与两档生计 | https://service.berlin.de/dienstleistung/326554/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-fluechtlinge.html`（sha256 `0fd3b333d8642f2a155a37f3f123e91dc37e0faa53ea405b0db4dbc59f7837b1`） | archived |
+| SRC-429 | GUIDANCE | 柏林 LEA：Daueraufenthalt–EU | https://service.berlin.de/dienstleistung/324281/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-daueraufenthalt-eu.html`（sha256 `a5d1af9fa2db3c3717bf861df56c5532f7882dc56f2703721a23dbdb607cee45`） | archived |
+| SRC-430 | GUIDANCE | 柏林 LEA：Fachkräfte 定居 | https://service.berlin.de/dienstleistung/326558/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-fachkraefte.html`（sha256 `c9e81c580e7a3d2b0fa5a261d31e9466260a527a0624271f654ae31b76841b87`） | archived |
+| SRC-431 | GUIDANCE | 柏林 LEA：蓝卡定居 | https://service.berlin.de/dienstleistung/326556/ | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-berlin-blaue-karte.html`（sha256 `8085c5495222ef591f9974ee1c1a9169d265e5257263dd0fe6a030fb15c97b82`） | archived |
+| SRC-432 | GUIDANCE | BAMF：LiD 实施说明及整合课程结业标准 | https://www.bamf.de/SharedDocs/Anlagen/DE/Integration/Integrationskurse/Lehrkraefte/konzeption-fuer-die-zusatzqualifizierung-von-lehrkraeften-neu-pdf.pdf?__blob=publicationFile&v=6 ；https://www.bamf.de/SharedDocs/Anlagen/DE/Integration/Integrationskurse/Kurstraeger/Traegerrundschreiben/Anlagen/2023/traegerrundschreiben-20230425-03-anlage2.pdf?__blob=publicationFile&v=3 | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bamf-daz-abschluss.pdf`（sha256 `cbe90c2b7b72106e7ecd74b422fb2e6f06f1707303a647b4fe50c787b11abbec`）；`policy-sources/2026-11-23-de-bamf-lid.pdf`（sha256 `a88d4672c0a7a25855bc9ae15a4032786818301aae94927700c5f09da774d929`） | archived |
+| SRC-433 | LAW | PAuswGebV 与 2026 年身份证收费修正 | https://www.recht.bund.de/bgbl/1/2026/31/regelungstext.pdf?__blob=publicationFile ；https://www.gesetze-im-internet.de/pauswgebv/__1.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bgbl-ausweis-2026-31.pdf`（sha256 `534eb11e7d599dd95408f2921669866c0275ea5baeb08a3ee06b9920e607e11e`）；`policy-sources/2026-11-23-de-pauswgebv.html`（sha256 `bf93f5f60aac7f5af5aef8611dd780292dc0b24aecde5e1aedd48fccc199b6b0`） | archived |
+| SRC-434 | LAW | 2017 年居留收费调整的议会资料与公报索引、2023 年加急收费公报 | https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F%2A%5B%40attr_id%3D%27I_2017_47_inhaltsverz%27%5D ；https://dserver.bundestag.de/btd/18/120/1812050.pdf ；https://dserver.bundestag.de/btd/18/124/1812402.pdf ；https://www.recht.bund.de/bgbl/1/2023/290/regelungstext.pdf?__blob=publicationFile&v=2 | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bgbl-gebuehren-2017-index.html`（sha256 `a41c791aa5da3b433bf50f15b738655b4e8a8c19f68acdc9fc7b374816e33079`）；`policy-sources/2026-11-23-de-bt-18-12050.pdf`（sha256 `af2d3347907aff18effc5c956a6a311940625fd32550b4da2ec60fe9bbf0a587`）；`policy-sources/2026-11-23-de-gebuehren-2017-beschluss.pdf`（sha256 `95f583794218a8e430ab5315338b1976627c91ce2667b6d2e6ab52f5ca3a9044`）；`policy-sources/2026-11-23-de-bundesgesetzblatt-2023-290.pdf`（sha256 `e37326bf049797cf32211cc64149f5f4295ff6ae5147c422b8a02fd6cf5d8f1f`） | archived |
+| SRC-435 | LAW | BVerwG 1 C 12.10、1 C 21.09（家庭生计） | https://www.bverwg.de/160811U1C12.10.0 ；https://www.bverwg.de/161110U1C21.09.0 | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bverwg-1c12-10.html`（sha256 `3f730ce90292ca27194791124e4dd12955d0b11f5ca9d9e69f93bcc8a5ea4cd2`）；`policy-sources/2026-11-23-de-bverwg-1c21-09.html`（sha256 `92cb8f3189a6aebc14204206e6f5e9c2bbd89a48f59e1f568a8c08cedef7a6b5`） | archived |
+| SRC-436 | LAW | SGB VI §§ 159、160（年度养老计费上限） | https://www.gesetze-im-internet.de/sgb_6/__159.html ；https://www.gesetze-im-internet.de/sgb_6/__160.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-sgb-vi-159.html`（sha256 `2bfe5d624e0ecf4bf433bcaa18115c8b5ae0b2ffdc6862aac9c2fa507a75856e`）；`policy-sources/2026-11-23-de-sgb-vi-160.html`（sha256 `890e35ad160afed9b4b6c188758e5f19814e6b8473aa86ccffe64797a1cdaebe`） | archived |
+| SRC-437 | LAW | 指令 2003/109/EG（欧盟长期居民，合并文本） | https://publications.europa.eu/resource/cellar/9d5fe9f4-69bd-11f1-ae88-01aa75ed71a1.0005.02/DOC_1 | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-eu-2003-109-de.html`（sha256 `47037d0a9ad615ecc937ba192ab93b2c6aecf110e7fbb342335fa171991e410c`） | archived |
+| SRC-438 | LAW | BGBl. 2022 I S. 2817 及 2026 I Nr. 111、221、318（移民法修正及生效） | https://www.recht.bund.de/bgbl/1/2026/111/regelungstext.pdf?__blob=publicationFile ；https://www.recht.bund.de/bgbl/1/2026/221/regelungstext.pdf?__blob=publicationFile ；https://www.recht.bund.de/bgbl/1/2026/318/regelungstext.pdf?__blob=publicationFile ；https://rvrecht.deutsche-rentenversicherung.de/SharedDocs/rvRecht/05_Normen_und_Vertraege/02_A-B/AufenthG/0026/0026_2023_01_01.html | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bundesgesetzblatt-2026-111.pdf`（sha256 `6ad22e70448c22a448a47c7a778b131a7ac662f99780c5fd982c6b63b930cb29`）；`policy-sources/2026-11-23-de-bundesgesetzblatt-2026-221.pdf`（sha256 `be483ae5386c79ef3257a0e5fce30e6ee2466947818987ba69f37c0eef308ee9`）；`policy-sources/2026-11-23-de-bundesgesetzblatt-2026-318.pdf`（sha256 `3a84d8721375b4aef2943b099535afb7c61d14db6209049725f3ef18ca140beb`） | archived（2026 年公报）／todo（旧版 § 26 网页快照，原文已在线核对） |
+| SRC-439 | LAW | BGBl. 2023 I Nr. 217（技术移民法改革与生效） | https://www.recht.bund.de/bgbl/1/2023/217/regelungstext.pdf?__blob=publicationFile | 见法令版本或页面 | 2026-11-23 | `policy-sources/2026-11-23-de-bundesgesetzblatt-2023-217.pdf`（sha256 `f48f96a825e5c059b06ed9db7ead791860e00f6f4ff88d6bdfd2ee9ad4e937c0`） | archived |
+| SRC-440 | LAW | 入管法施行规则 | https://laws.e-gov.go.jp/api/2/law_data/356M50000010054_20261001_508M60000010047?response_format=xml&law_full_text_format=xml（法令页面：https://laws.e-gov.go.jp/law/356M50000010054） | 见快照 | 2026-11-23 | `policy-sources/2026-10-01-jp-egov-nyukanho-sekokisoku-current.xml`（sha256 `af8add5f029901391c4b954dc7034812138b2996bf84d4eb26e084058ab0b0fd`） | archived |
+| SRC-441 | LAW | 入管法 2027-04-01 施行版 | https://laws.e-gov.go.jp/api/2/law_data/326CO0000000319_20270401_506AC0000000060?response_format=xml&law_full_text_format=xml | 见快照 | 2026-11-23 | `policy-sources/2027-04-01-jp-egov-nyukanho-unenforced-r6-60.xml`（sha256 `dc9e71f60bb5a357c14d65ff1d90813f443459fbc4c4b53aca289aabed8001f2`） | archived |
+| SRC-442 | LAW | 入管特例法 | https://laws.e-gov.go.jp/api/2/law_data/403AC0000000071_20260614_507AC0000000039?response_format=xml&law_full_text_format=xml（法令页面：https://laws.e-gov.go.jp/law/403AC0000000071） | 见快照 | 2026-11-23 | `policy-sources/2026-06-14-jp-egov-tokureiho-current.xml`（sha256 `a9b6197ff993e90b1e8640c67a4ece0e341817aa5f63d31bbab02a7f8ccdf5a5`） | archived |
+| SRC-443 | LAW | 入管法施行令与手续费版本 | https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178?response_format=xml&law_full_text_format=xml；https://laws.e-gov.go.jp/api/2/law_revisions/410CO0000000178；https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20240610_506CO0000000197?response_format=xml&law_full_text_format=xml；https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20250401_507CO0000000027?response_format=xml&law_full_text_format=xml；https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20260701_508CO0000000177?response_format=xml&law_full_text_format=xml；https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20270401_507CO0000000341?response_format=xml&law_full_text_format=xml（法令页面：https://laws.e-gov.go.jp/law/410CO0000000178） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-nyukanho-sekorei.xml`（sha256 `7e5b02bc067d900e4f01308ce27edcc9527ddb07eacb64d5350dcf6d28db3377`）；`policy-sources/2026-11-23-jp-egov-nyukanho-sekorei-revisions.json`（sha256 `dcb5c5254d338608fb09da4a9fe2d01616b9b90c4006f3152db9d913ed8d11c4`）；`policy-sources/2024-06-10-jp-egov-nyukanho-sekorei-fees.xml`（sha256 `d824c8fa6f4318b1c0df92996ad58008b3eceb6a623636d1c467e39beb0271c5`）；`policy-sources/2025-04-01-jp-egov-nyukanho-sekorei-fees.xml`（sha256 `b109d101e776fac24d995917e43c7b1b790c3bfec2464464a681ceb903a60fff`）；`policy-sources/2026-07-01-jp-egov-nyukanho-sekorei-fees.xml`（sha256 `8da5503d1eefbbc286a05d49243e55efdcb99dd48cea189445af3d5e0a711332`）；`policy-sources/2027-04-01-jp-egov-nyukanho-sekorei-fees.xml`（sha256 `0c42bdf09b45dad0c8aff2d01f61e14a58d6976a3bf71150f02e025552ac632a`） | archived |
+| SRC-444 | GUIDANCE | 入管厅手续费改定及减额 | https://www.moj.go.jp/isa/01_00644.html；https://www.moj.go.jp/isa/10_00273.html；https://www.moj.go.jp/isa/applications/faq/01_00650.html；https://www.moj.go.jp/isa/content/001469198.pdf；https://www.moj.go.jp/isa/content/001469270.pdf；https://www.moj.go.jp/isa/11_00053.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-fees-reform.html`（sha256 `e16a58a93cb5051552a28f808d34018533437dcb6dd88b7e7cd41af19d6f3e86`）；`policy-sources/2026-11-23-jp-isa-fees-waivers.html`（sha256 `78a3d5f3a9e9005ff9abfdb8481c5d8584ab5d5c3e810679371bd9a57c8bc4a5`）；`policy-sources/2026-11-23-jp-isa-fees-qa.html`（sha256 `ebddf702055c527883610b4b2f9d6099efab040920fc52f08ee3fff17a7d1c3e`）；`policy-sources/2026-10-01-jp-isa-fees-flyer.pdf`（sha256 `0b42be3a289914476c4135850c5be99456f728d790d740b569279c7ef02b511b`）；`policy-sources/2026-11-23-jp-isa-fee-reduction-guidelines.pdf`（sha256 `2bcc9a7213882ea156c046480bd50db314f81128ecee87d2ac64b103fa131625`）；`policy-sources/2026-11-23-jp-isa-fees-2025.html`（sha256 `f003400b74364324176614bc588d7fa16f45960d0a40163d98973475a4ea1d12`） | archived |
+| SRC-445 | GUIDANCE | 法务省帰化許可申請与法务局手引 | https://www.moj.go.jp/ONLINE/NATIONALITY/6-2.html；https://houmukyoku.moj.go.jp/kofu/page000001_00305.pdf；https://houmukyoku.moj.go.jp/tokyo/page000001_00885.html；https://houmukyoku.moj.go.jp/shizuoka/content/000135122.pdf | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-moj-kika-application.html`（sha256 `1dac47475fa318b6cabea21baa60c4730804bd128a9cb1c57dfdaa646549de9a`）；`policy-sources/2026-11-22-jp-moj-kika-tebiki-r8-4.pdf`（sha256 `f55c0b8ba570e7c772786fbcf4a0ba927ce05dd487681278458c0baff599d0ab`）；`policy-sources/2026-11-23-jp-tokyo-kika.html`（sha256 `4d3beb1caa3739deff95f57ef5bd27fca6efb183b1a08ba1fba8b634eac307cf`）；`policy-sources/2026-11-23-jp-shizuoka-kika-interview.pdf`（sha256 `a5a1b510bad670636a38267fe1e5b7dc4d1cd294466c44a53f3c7696b15a40ad`） | archived |
+| SRC-446 | LAW | 国籍法施行规则 | https://laws.e-gov.go.jp/api/2/law_data/359M50000010039?response_format=xml&law_full_text_format=xml（法令页面：https://laws.e-gov.go.jp/law/359M50000010039） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-kokusekiho-sekokisoku.xml`（sha256 `19629c5df6571a0473b8807182ccf7259ed5b94324a257a6eeb743924bf509d9`） | archived |
+| SRC-447 | LAW | 戸籍法 | https://laws.e-gov.go.jp/api/2/law_data/322AC0000000224?response_format=xml&law_full_text_format=xml（法令页面：https://laws.e-gov.go.jp/law/322AC0000000224） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-kosekiho.xml`（sha256 `fe556fe18dfb32b280e2bf84b3c9d83e015dfc13bfbb631772ca59f43aed588d`） | archived |
+| SRC-448 | LAW | 高度専門職省令与积分表 | https://laws.e-gov.go.jp/api/2/law_data/426M60000010037?response_format=xml&law_full_text_format=xml；https://www.moj.go.jp/isa/content/001447348.pdf；https://www.moj.go.jp/isa/applications/resources/newimmiact_3_qa.html（法令页面：https://laws.e-gov.go.jp/law/426M60000010037） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-hsp-ordinance.xml`（sha256 `1334eda824310ff7d24c4b5f2d62f3e327f3d99be6de61ca6b171dd6b2298721`）；`policy-sources/2026-11-23-jp-isa-hsp-points.pdf`（sha256 `02159933596a25097f4749e94cbb2dc67b06a3c56fadef4010af879b64661f3a`）；`policy-sources/2026-11-23-jp-isa-hsp-qa.html`（sha256 `0d18fc0216069bd4ec6cdad9648cf47c264a2aa70b2f384d52f2afb3159c5149`） | archived |
+| SRC-449 | LAW | 特別高度人材省令与 J-Skip 手续 | https://laws.e-gov.go.jp/api/2/law_data/505M60000010025?response_format=xml&law_full_text_format=xml；https://www.moj.go.jp/isa/applications/resources/nyuukokukanri01_00009.html；https://www.moj.go.jp/isa/10_00226.html；https://www.moj.go.jp/isa/10_00227.html；https://www.moj.go.jp/isa/10_00228.html（法令页面：https://laws.e-gov.go.jp/law/505M60000010025） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-j-skip-ordinance.xml`（sha256 `bbddab4873b4cd3a19a892ca3677918ff60022983102f9f0e36eca83b8085490`）；`policy-sources/2026-11-23-jp-isa-j-skip.html`（sha256 `1a5ba12bfc065a98cfb7f19da12067b5e3af1f2fee9930b5eb7dc7452099b5b1`）；`policy-sources/2026-11-23-jp-isa-pr-j-skip-menu.html`（sha256 `0520b2dc94cc243409f7e6382de84ce214fc7e50bf3580d9bad0de12af81d882`）；`policy-sources/2026-11-23-jp-isa-pr-j-skip-recognized.html`（sha256 `0aca9b4d7d38272799c92293c69088e85d54f07b5223a32a9749ed0dad02893f`）；`policy-sources/2026-11-23-jp-isa-pr-j-skip-retro.html`（sha256 `8f31a02c7ac766776dd2a54472468478af3569fcea4e3f65f967d5f0981dfa0b`） | archived |
+| SRC-450 | GUIDANCE | 永住工作及家族材料清单 | https://www.moj.go.jp/isa/content/001436512.pdf；https://www.moj.go.jp/isa/content/001422055.pdf；https://www.moj.go.jp/isa/applications/procedures/zairyu_eijyu01.html；https://www.moj.go.jp/isa/applications/procedures/zairyu_eijyu02.html；https://www.moj.go.jp/isa/applications/procedures/zairyu_eijyu03.html；https://www.moj.go.jp/isa/applications/procedures/nyuukokukanri07_00131.html；https://www.moj.go.jp/isa/applications/procedures/nyuukokukanri07_00132.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-pr-work-evidence.pdf`（sha256 `55c97d0d711593051cd4210583d15d338354167b749e1099487a4a4727540298`）；`policy-sources/2026-11-23-jp-isa-pr-family-evidence.pdf`（sha256 `15b2d3d3ab29825ed7eec4cff35f86f3786783b809ff66498b4ac989b0474f7d`）；`policy-sources/2026-11-23-jp-isa-pr-family.html`（sha256 `c890c3cace34023d5abfa6fa798e947dc9217a25bd0074c97f0d11855ffa1b64`）；`policy-sources/2026-11-23-jp-isa-pr-teijusha.html`（sha256 `8afeab12ae2d67ef1ba18b6e6cb0310906de603df241d4170764f5a4e1641759`）；`policy-sources/2026-11-23-jp-isa-pr-regular.html`（sha256 `4be64690278b192a925051cd28a62f1826f8bc1a1613ba2142c7771c04456a72`）；`policy-sources/2026-11-23-jp-isa-pr-hsp-menu.html`（sha256 `1b7808c1466f6e1e36858c3366d57abb2f9503f38b7bf1b973954a71f868aa36`）；`policy-sources/2026-11-23-jp-isa-pr-hsp80-other.html`（sha256 `dd48bfbc512edf117db1510c52fa365c2a03e051ff74219972e643d63c6513ef`） | archived |
+| SRC-451 | GUIDANCE | 在留资格取得与新生儿 | https://www.moj.go.jp/isa/applications/procedures/16-10.html；https://www.moj.go.jp/isa/publications/faq/newimmiact_4_q-and-a_page3.html；https://www.moj.go.jp/isa/applications/status/spouseorchildofpermanentresident.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-status-acquisition.html`（sha256 `e9de07d5716fa409ddda052a0a69fce5c6e29a9ba7045231f6472c2de99f36bd`）；`policy-sources/2026-11-23-jp-isa-resident-card-qa.html`（sha256 `c51ccb59114cb8d56abc050fc4fde90cc99c87ecbc5780c073beea88316db911`）；`policy-sources/2026-11-23-jp-isa-pr-spouse-status.html`（sha256 `3a14e39c33c3069b1471dec3e3b290e437c8fd990df1b1ee8166d602ccac8a23`） | archived |
+| SRC-452 | LAW | 上陆许可基准省令与経営・管理改定 | https://laws.e-gov.go.jp/api/2/law_data/402M50000010016?response_format=xml&law_full_text_format=xml；https://www.moj.go.jp/isa/applications/resources/10_00237.html（法令页面：https://laws.e-gov.go.jp/law/402M50000010016） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-landing-criteria.xml`（sha256 `e1365027b82aa3cf329ec14619036a2d589be42acf27de1e91569465c75181aa`）；`policy-sources/2026-11-23-jp-isa-business-manager.html`（sha256 `1087c4e6965bd9f0c852fe572a5946c01bf93b5b4f4add79f75fa4887828bede`） | archived |
+| SRC-453 | GUIDANCE | 対日貢献旧指南 | https://www.moj.go.jp/isa/applications/resources/nyukan_nyukan36.html；https://www.moj.go.jp/isa/content/930002484.pdf | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-pr-contribution.html`（sha256 `bd4395efb73b938f161c06abbcfe7cc35f18dee4dd22861dd43c073ec3aab5cd`）；`policy-sources/2026-11-23-jp-isa-pr-contribution-old.pdf`（sha256 `f9d89bcc192c837840e33a21fb5a01e011d1d1ee9b22f9bf4fc5cea4b2c29147`） | archived |
+| SRC-454 | LAW | 学校教育法与外国儿童就学 | https://laws.e-gov.go.jp/api/2/law_data/322AC0000000026?response_format=xml&law_full_text_format=xml；https://www.mext.go.jp/a_menu/shotou/clarinet/004/1415154_00003.htm（法令页面：https://laws.e-gov.go.jp/law/322AC0000000026） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-school-education.xml`（sha256 `3d8ee77a18ba5208a8f6ef924a82d666649bb32f255add96dbe48c050c835c30`）；`policy-sources/2026-11-23-jp-mext-foreign-children-school.html`（sha256 `cfc25a1397ab74906e91ba57fe4b7261c9b25be49271908cf0780592840a4175`） | archived |
+| SRC-455 | GUIDANCE | 在留申請在线范围与支付 | https://www.moj.go.jp/isa/content/001351658.pdf；https://www.moj.go.jp/isa/11_00107.html | 见快照 | 2026-11-23 | `policy-sources/2026-01-05-jp-isa-online-scope.pdf`（sha256 `b5e5d38f577f0eec672e75454727c3fb3057187d4ea7b4a6af67cdac2416c1b1`）；`policy-sources/2026-11-23-jp-isa-online-fees.html`（sha256 `91b47c821cc7b16baaa3bd3da00509fcc8cc25801cde19508d2af85be52b2161`） | archived |
+| SRC-456 | GUIDANCE | 生活・就労ガイドブック | https://www.moj.go.jp/isa/support/portal/guidebook_all.html；https://www.moj.go.jp/isa/content/930004717.pdf | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-kikin-japanese-guide.html`（sha256 `12ce5adc7f13a43176f910a201515101be19654ffb942e1311e76a5ba9ccc1fa`）；`policy-sources/2026-11-23-jp-isa-guidebook-entry.pdf`（sha256 `0f0c1aeb1e7f4b4a55ff5e90a9a1397386cdb1763f8598a0fa937362b184e407`） | archived |
+| SRC-457 | GUIDANCE | 特定在留カード | https://www.moj.go.jp/isa/tokutei.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-integrated-card.html`（sha256 `20899c13634a6ac1e78f96671e160817668bcfcb262a32cfbb9195c7c3512a0e`） | archived |
+| SRC-458 | LAW | 特定活動告示与就労资格资料 | https://www.moj.go.jp/isa/policies/bill/nyukan_hourei_h02.html；https://www.moj.go.jp/isa/content/001360125.pdf；https://www.moj.go.jp/isa/content/001436513.pdf；https://www.moj.go.jp/isa/content/001389017.pdf；https://www.moj.go.jp/isa/applications/status/designatedactivities07.html；https://www.moj.go.jp/isa/applications/status/designatedactivities08.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-isa-designated-activities-notice.html`（sha256 `a3aeed02a8d91c2d478476187c28e1ba1fbd05838856e5bfdae87aa267f26127`）；`policy-sources/2026-11-23-jp-isa-designated-activities-notice.pdf`（sha256 `469bfb3a883ecf35b1839a16f36f42e5731a419b981730f380901edcd6de3fe3`）；`policy-sources/2026-11-23-jp-isa-designated-work.pdf`（sha256 `6c79d7c145e07dc5ec7f08e23cf639ec188355d076b687e81b51d5b6eb2907b9`）；`policy-sources/2026-11-23-jp-isa-designated-activities-list.pdf`（sha256 `af12f5689945ea7a1d14074474d0197c6c824bffbc5d630436fbd411b0a0adb8`）；`policy-sources/2026-11-23-jp-isa-designated-research.html`（sha256 `9e4a0efd8dd5ba26fd3dd03b730562e2feb8bf78e9bc49d0af45951c10da591d`）；`policy-sources/2026-11-23-jp-isa-designated-information-processing.html`（sha256 `6295193bb424b6338e9659256d062fc7e2efc5a134aa0f69dfd804f365221218`） | archived |
+| SRC-459 | GUIDANCE | 東京・広島法務局帰化证据清单 | https://houmukyoku.moj.go.jp/tokyo/page000001_00891.html；https://houmukyoku.moj.go.jp/hiroshima/page000001_01045.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-tokyo-kika-evidence.html`（sha256 `15f04d088ea9df3147e7a91105dbfc198675471dcccaf19ac3fe090d7f413e32`）；`policy-sources/2026-11-23-jp-hiroshima-kika-china-evidence.html`（sha256 `df0b98c9475e7f6b58992ba158bdb50f8f14945ee31c27410bee550379503d52`） | archived |
+| SRC-460 | GUIDANCE | 国籍法官方参考英译 | https://www.japaneselawtranslation.go.jp/ja/laws/download/4713/14/s25Aa001470504je16.0_r4A102.pdf | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-moj-nationality-translation.pdf`（sha256 `e46ba90d41e379e07dda8aea025bfa5e404c5e3be0ba138066237647bd418a80`） | archived |
+| SRC-461 | GUIDANCE | 普通再入国与難民旅行証明書手续 | https://www.moj.go.jp/isa/immigration/procedures/16-5.html；https://www.moj.go.jp/isa/refugee/procedures/16-7.html；https://www.moj.go.jp/isa/refugee/procedures/ryokou_00001.html | 见快照 | 2026-11-23 | `policy-sources/2026-11-22-jp-isa-reentry-application.html`（sha256 `efa1298369ebf91eca0fd8608def5948474a0fadc47bd2f16d0f71f6b96e2319`）；`policy-sources/2026-11-23-jp-isa-refugee-travel-application.html`（sha256 `1ef3e798ca2d99df68372c7d955691517d35a1b2e537506e292fe08b0184b3c2`）；`policy-sources/2026-11-23-jp-isa-refugee-travel.html`（sha256 `a7b2f2e22116e420bcbc16309ee8d151cd374ee57a28ba41e5bc72a47e437baf`） | archived |
+| SRC-462 | LAW | 驻外领事费用 | https://laws.e-gov.go.jp/api/2/law_data/327CO0000000074?response_format=xml&law_full_text_format=xml；https://laws.e-gov.go.jp/api/2/law_data/327M50000020004?response_format=xml&law_full_text_format=xml（法令页面：https://laws.e-gov.go.jp/law/327CO0000000074） | 见快照 | 2026-11-23 | `policy-sources/2026-11-23-jp-egov-consular-fees-order.xml`（sha256 `763b555edbae194526b78fcd9afe1214cfb94f1dbcd236eef6ae41058399d956`）；`policy-sources/2026-11-23-jp-egov-consular-fees-regulation.xml`（sha256 `fb6cc2334119170f9f4d89cd54dfcf83aab987b04a83dc57af0e145632df8a45`） | archived |
+
+| SRC-200 | LAW | Migration Regulations 1994（Compilation 292，卷 1–3） | https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text （正文分卷：https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text/original/epub/OEBPS/document_1/document_1.html https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text/original/epub/OEBPS/document_2/document_2.html https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text/original/epub/OEBPS/document_3/document_3.html） | 2026-11-12 | 2026-11-23 | `policy-sources/2026-11-12-au-migration-regulations-1994-vol1.html`（sha256 `8bd51e1c4db77f7fabeae91e722504253851b701950dafc6a7ee2cf4bcd883c6`）、`policy-sources/2026-11-12-au-migration-regulations-1994-vol2.html`（sha256 `895af717db009d1b024983727620f02361b7df9f0cf4ab66a134acf87f0d316a`）、`policy-sources/2026-11-12-au-migration-regulations-1994-vol3.html`（sha256 `4b40e5acf24e31ea8774505041010eeb9ac07a99866751cfd30125d0634b103e`） | archived |
+| SRC-201 | LAW | LIN 19/210 技术签证及格线 | https://www.legislation.gov.au/F2019L01400/2019-10-31/2019-10-31/text/original/epub/OEBPS/document_1/document_1.html | 2019-10-31 | 2026-11-23 | `policy-sources/2019-10-31-au-lin-19-210-pool-pass-marks.html`（sha256 `972c72c93c43f657ad14efd8eb5e7332ef98a76990d8dc63f20535a0527580c6`） | archived |
+| SRC-202 | LAW | LIN 22/022 指定偏远地区 | https://www.legislation.gov.au/F2022L00231/2022-03-02/2022-03-02/text/original/epub/OEBPS/document_1/document_1.html | 2022-03-02 | 2026-11-23 | `policy-sources/2022-03-02-au-lin-22-022-designated-regional-areas.html`（sha256 `86d620e57c6f3e938062a9ebae517b3dd5591084100cb3e97dd0ac12159179a0`） | archived |
+| SRC-203 | LAW | LIN 19/216 雇主提名类别豁免 | https://www.legislation.gov.au/F2019L01404/2024-12-07/2024-12-07/text/original/epub/OEBPS/document_1/document_1.html | 2024-12-07 | 2026-11-23 | `policy-sources/2024-12-07-au-lin-19-216-186-exemptions.html`（sha256 `c9888cd702725fca145d1573f97e8d605a34953a4d68a612d3bfe23adebdfdde`） | archived |
+| SRC-204 | LAW | Migration (Skilling Australians Fund) Charges Regulations 2018 | https://www.legislation.gov.au/F2018L01092/2024-12-07/2024-12-07/text/original/epub/OEBPS/document_1/document_1.html | 2024-12-07 | 2026-11-23 | `policy-sources/2024-12-07-au-saf-charges-regulations-2018.html`（sha256 `6ab40dcc0bc214a542357a7db126fbaa10622fafdd6b81fc27b41c3d1d726d1f`） | archived |
+| SRC-205 | LAW | LIN 25/014 Functional English | https://www.legislation.gov.au/F2025L00904/2025-08-06/2025-08-06/text/original/epub/OEBPS/document_1/document_1.html | 2025-08-06 | 2026-11-23 | `policy-sources/2025-08-06-au-lin-25-014-functional-english.html`（sha256 `3b7bab57ffeb4aa8c7138b909e519fe822a651c05dce6d1ee4df60c390823e9a`） | archived |
+| SRC-206 | LAW | LIN 25/016 英语考试、成绩与护照 | https://www.legislation.gov.au/F2025L00905/2025-08-06/2025-08-06/text/original/epub/OEBPS/document_1/document_1.html | 2025-08-06 | 2026-11-23 | `policy-sources/2025-08-06-au-lin-25-016-language-tests-scores-passports.html`（sha256 `ddf1bd3e693591a6b876c44302a2d47ec7dd232af76683f9054067914047fd89`） | archived |
+| SRC-207 | LAW | LIN 19/051 技术职业与评估机构 | https://www.legislation.gov.au/F2019L00278/2026-03-28/2026-03-28/text/original/epub/OEBPS/document_1/document_1.html | 2026-03-28 | 2026-11-23 | `policy-sources/2026-03-28-au-lin-19-051-skilled-occupations.html`（sha256 `be0a63a30b3e2d5b0b60654f9e8c101ddf5230d8604317ff122b6701d24cb4d5`） | archived |
+| SRC-208 | LAW | LIN 24/089 雇主提名职业清单 | https://www.legislation.gov.au/F2024L01618/2026-03-28/2026-03-28/text/original/epub/OEBPS/document_1/document_1.html | 2026-03-28 | 2026-11-23 | `policy-sources/2026-03-28-au-lin-24-089-186-csol-occupations.html`（sha256 `ad71f913ab0aeb6a157aa4f215e2f9e90c0d2cbde65ac497becbd8c83ca2922c`） | archived |
+| SRC-209 | LAW | Australian Citizenship Regulation 2016 | https://www.legislation.gov.au/F2016L01916/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html | 2026-07-01 | 2026-11-23 | `policy-sources/2026-07-01-au-citizenship-regulation-2016.html`（sha256 `a321c5d59388fa3294996dc4aa3cbb44f4943e7ab89b01921f59222cd44271cf`） | archived |
+| SRC-210 | LAW | IMMI 18/033 市场年薪 | https://www.legislation.gov.au/F2018L00284/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html | 2026-07-01 | 2026-11-23 | `policy-sources/2026-07-01-au-immi-18-033-amsr-annual-earnings.html`（sha256 `84cb1092d5fb0eb4864f04d141f9245ee96b285154924b72b5193ffa657790bc`） | archived |
+| SRC-211 | LAW | Migration Act 1958（Compilation 172，卷 2） | https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text/original/epub/OEBPS/document_2/document_2.html | 2026-10-08 | 2026-11-23 | `policy-sources/2026-10-08-au-migration-act-1958-vol2.html`（sha256 `85cfa9c63bfebe5a85e2c2e84f7f69e66f38bcf77a522072a29c0f7796f6875c`） | archived |
+| SRC-212 | LAW | Fair Work Regulations 2009 | https://www.legislation.gov.au/F2009L02356/2026-11-01/2026-11-01/text/original/epub/OEBPS/document_1/document_1.html | 2026-11-01 | 2026-11-23 | `policy-sources/2026-11-01-au-fair-work-regulations-2009.html`（sha256 `175e98d98e660b54732442fc45a206ec5946a3873d9101587c8fd40e927f760b`） | archived |
+| SRC-213 | LAW | Health Insurance Act 1973 | https://www.legislation.gov.au/C2004A00101/2026-11-04/2026-11-04/text/original/epub/OEBPS/document_1/document_1.html | 2026-11-04 | 2026-11-23 | `policy-sources/2026-11-04-au-health-insurance-act-1973-vol1.html`（sha256 `a76febada28d2ccddca89e373a526074a2f21389cb599030f797c7f4c10e5713`） | archived |
+| SRC-214 | GUIDANCE | 内政部雇主提名薪资要求 | https://immi.homeaffairs.gov.au/visas/employing-and-sponsoring-someone/sponsoring-workers/nominating-a-position/salary-requirements | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-salary-requirements.html`（sha256 `8866e256c8c38dda8ddebd68f6f37ee98503a63941873cf0a252bad7495d501f`） | archived |
+| SRC-215 | GUIDANCE | 内政部入籍面试与考试 | https://immi.homeaffairs.gov.au/citizenship/test-and-interview/learn-about-citizenship-interview-and-test | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-citizenship-test.html`（sha256 `77e0f6b06bc8c0b177f6967638699585dc59a37d57055327f6c11456279d363a`） | archived |
+| SRC-216 | GUIDANCE | 内政部新西兰公民直接入籍指引 | https://immi.homeaffairs.gov.au/entering-and-leaving-australia/new-zealand-citizens/pathway-to-permanent-resident-and-citizenship | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-citizenship-nz-direct.html`（sha256 `729192a53dabb7f10f030aaed001d58ac1fbe90e890da75d806d45079876b853`） | archived |
+| SRC-217 | GUIDANCE | 内政部 Form 1298i（07/26） | https://immi.homeaffairs.gov.au/form-listing/forms/1298i.pdf | 07/26 | 2026-11-23 | `policy-sources/2026-11-23-au-immi-citizenship-form1298i.pdf`（sha256 `41a646d8f048ef930a0c6920381c90de1b049e05ca3ace637b8de259aaede0c6`） | archived |
+| SRC-218 | GUIDANCE | 内政部 Significant Cost Threshold | https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/health/protecting-health-care-and-community-services | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-health-sct.html`（sha256 `04d980fecff773faf2f5d4d4b9244ca243035f861bb188ac4e74bae882377a79`） | archived |
+| SRC-219 | GUIDANCE | 内政部 Health waiver | https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/health/health-waiver | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-health-waiver.html`（sha256 `5da24d2679f3183ab87327e83a55fe5daf135c8755621d0ef159642489ab32a7`） | archived |
+| SRC-220 | GUIDANCE | 内政部签证品格审查 | https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/character | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-character.html`（sha256 `436634c6fc24670761e86baef17c7d82040d22c9452908f692fe1570cc97772d`） | archived |
+| SRC-221 | GUIDANCE | 内政部签证费率 | https://immi.homeaffairs.gov.au/visas/getting-a-visa/fees-and-charges/current-visa-pricing | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-visa-fees-pricing.html`（sha256 `c2a74843b61c5da7a6f5ecfcc341b45e8d2ab8da5ab5151f3879496706ae8f34`） | archived |
+| SRC-225 | GUIDANCE | 内政部技术移民职业评估 | https://immi.homeaffairs.gov.au/visas/working-in-australia/skills-assessment | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-skills-assessment.html`（sha256 `42c9875accba8edc3898927f8aed6cd5b4fcf20d5bbcfb93ea470aa876b3cb5c`） | archived |
+| SRC-226 | GUIDANCE | 内政部 Competent English 考试和成绩 | https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/english-language/competent-english | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-english-competent.html`（sha256 `89b69eaa9ef88fdc05222fcbe936179595350d833076d856578e479e5a077cb5`） | archived |
+| SRC-229 | GUIDANCE | IELTS 官方成绩说明（Overall band score） | https://ielts.org/take-a-test/your-results/ielts-scoring-in-detail | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-ielts-scoring-in-detail.html`（sha256 `0b611e3fd51650e8e3e675075bf2e5deebc815c55ff961001c385568763554e4`） | archived |
 | SRC-320 | LAW | BOE · LO 4/2000，外国人组织法 | https://www.boe.es/buscar/act.php?id=BOE-A-2000-544 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-lo4-2000.html`（sha256 `f19cbf7f1ceb94fe9ec699240b41afe1ee65f7ff90382c6eece43feaee1e99b2`） | archived |
 | SRC-321 | LAW | BOE · RD 1004/2015，入籍程序条例 | https://www.boe.es/eli/es/rd/2015/11/06/1004/con | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-rd1004.html`（sha256 `71ab38547fa498590082790162795e46dc329181dda57081525390f843d591ab`） | archived |
 | SRC-322 | LAW | BOE · Orden JUS/1625/2016，入籍办理及附件；BOE · Resolución 7/11/2022，考试豁免表 | https://www.boe.es/eli/es/o/2016/09/30/jus1625/con ；https://www.boe.es/diario_boe/txt.php?id=BOE-A-2022-19664 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-orden-jus1625.html`（sha256 `7270a7e8f679393e94d90734bbb0677ddf871284089c378b2bfb4fa9ebcf03f1`）；`policy-sources/2026-11-23-es-orden-dispensa.html`（sha256 `a41530c0371f394314885c367e367b56d3732c03e25d9985e71726c0d4818edd`） | archived |
@@ -681,21 +760,31 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ## SRC-063 191 Regional Provisional Visas stream
 
+任务 83 重新抓取同一官方页面。2026-11-21 历史快照为 `policy-sources/2026-11-21-au-191-regional-provisional-stream.html`（sha256 `07d09a632a0d95bef34e23f755e31f7aafc088be9b62ee615633cce239bfc02d`）。
+
 - `Eligibility → Have an eligible visa`：申请时须持 491 或 494，且已持有满 3 年。`Satisfy the income requirement`：没有最低收入要求，须提供合格签证 5 年中 3 个财年的 ATO 评估通知。页面内容以 JSON 嵌在 HTML 中，按小节标题定位。
 
 ## SRC-064 186 Temporary Residence Transition stream
+
+任务 83 重新抓取同一官方页面。2026-11-21 历史快照为 `policy-sources/2026-11-21-au-186-temporary-residence-transition-stream.html`（sha256 `391aca298eb2a556682e583e43d2d9de1d32ce223bd2ece8ef4ecb5db5b9b4d9`）。
 
 - `Eligibility → Have 2 years eligible sponsored employment in the 3 years prior to your application`：全职、在澳、持 457／482 或合格 bridging visa 期间、在获批职业内。年龄小节写明通常须未满 45 岁，并列出豁免类别。`Have this visa`：申请时须是 457 或 482 的主签证持有人，或持因 457、482、186、187 申请获发的 bridging visa，且上一份实质签证是 457／482。
 
 ## SRC-065 801 Partner（permanent）
 
+任务 83 重新抓取同一官方页面。2026-11-21 历史快照为 `policy-sources/2026-11-21-au-801-partner-permanent.html`（sha256 `31b63e4b5bc7a2153a76a4bb845c22760253a39a377e45fd1cdea57821aff706`）。
+
 - `Eligibility → Visa requirements`：须持 820（或 445），自递交 820 与 801 申请起满 2 年才进入永久阶段评估；部分情形可不满 2 年获批。
 
 ## SRC-066 Resident Return visa 155／157
 
+任务 83 重新抓取同一官方页面。2026-11-21 历史快照为 `policy-sources/2026-11-21-au-resident-return-visa-155-157.html`（sha256 `af071d452dd84af5dbcbd3672dd41f8745da6021476e0c4af5ba024b35e7bfb3`）。
+
 - `Eligibility → Meet our residence, substantial ties, or member of the family unit requirements` 中的 `Option 1: Present in Australia for 2 of the last 5 years`：2 年按 730 个累计在澳日计算，5 年从 RRV 递交日倒数；入境日与出境日都计为在澳，同日出入境只计一天，在澳的部分日按整日计。符合者获 5 年旅行便利。
 
 ## SRC-067 入籍（永久居民）
+
+任务 83 重新抓取同一官方页面。2026-11-21 历史快照为 `policy-sources/2026-11-21-au-citizenship-permanent-resident.html`（sha256 `312c97ec6555e1007a3557412cf96fde445f1e57915cfb7e73418e3e4cbb049d`）。
 
 - `Residence requirement → Meet the general residence requirement`：申请前 4 年持有效签证在澳，最后 12 个月持永久签证，4 年内出境合计不超过 12 个月，其中最后 12 个月不超过 90 天。符合条件的 SCV 444 持有人与部分新西兰 189 签证持有人另有起算方式，试点不建模。官方 Residence Calculator（https://immi.homeaffairs.gov.au/help-support/tools/residence-calculator ）只作估算参考。
 
@@ -708,6 +797,8 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-069 Migration Act 1958
 
 - 快照取 legislation.gov.au 该版本 EPUB 的第 1 个正文文件，版本 Compilation No. 172（Compilation date 2026-10-08）。
+- ss 41(2)(a)、41(2A)、46(1A)(a)–(d) 规定，申请人自最近一次入境以来所持签证若附有禁止取得拟申请签证的条件，境内递交时须已获豁免。SRC-200 卷 3 Sch 8 列出条件 8503、8534、8535、8540 各自限制的签证，卷 2 第 600.612 条要求 Sponsored Family 类 600 签证附加 8503。
+- ss 5(1)、46(1)(d)(i)、48(1)、(1A) 规定，在 migration zone 内没有实质签证，最近一次入境后本人或他人代为申请的签证遭法定拒签，或其签证按列明条款被撤销时，只能申请 reg 2.12 列明的类别。拒签尚在复审也计入。拒发过桥签或依据 ss 501、501A、501B 作出的拒签不计入此项。撤签限 ss 109、116、133A、133C、134、137J、137Q。ss 48(1B)–(3) 规定视为连续在境内的情形，包括持过桥签离境并再入境。
 - `s82(2)`：另一份实质签证（特殊目的签证除外）生效时，原实质签证终止；`s82(2AA)` 另有船员签证的例外。`s82(3)`：其他签证（特殊目的签证、船员签证除外）生效时，bridging visa 终止。引擎据此让每份签证在下一份（实质签证，或对 bridging visa 而言任何签证）生效前一天结束，同日生效的按录入顺序；问卷不收特殊目的签证、船员签证和 ETA。`s68(4)` 下部分 bridging visa 可恢复生效，试点不建模。
 - `s82(5)`–`(6)`：带有效期旅行便利的签证，期满时不在澳，或期满后离境，即终止。引擎对旅行便利为 5 年的永久签证（100.511、186.511、189.511、190.511、191.511、801.511），按完整出入境记录判断：期满当天结束时不在澳（包括尚未入境）即在当天终止，否则在期满后第一次出境当天终止。
 
@@ -932,7 +1023,8 @@ SRC-090 BOE · Ley 39/2015 行政程序法 PDF。
 
 ## SRC-104 取消 3 年快速入籍
 
-- BGBl. 2025 I Nr. 256 原文（<https://www.recht.bund.de/bgbl/1/2025/256/VO.html>）对脚本请求返回 403，未能存档；调研时在浏览器中读了第 1 条（"§ 10 Absatz 3 wird gestrichen."）和第 6 条第 1 款（公布次日生效），公布日 2025-10-29，即 2025-10-30 生效。该法没有关于已递交申请的过渡条款（PD-129）。
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2025-256.pdf` → <https://www.recht.bund.de/bgbl/1/2025/256/regelungstext.pdf?__blob=publicationFile&v=3>
+- BGBl. 2025 I Nr. 256 原文（<https://www.recht.bund.de/bgbl/1/2025/256/VO.html>）在第 19 阶段对脚本请求返回 403；任务 90 已补存上列原刊。此前调研时在浏览器中读了第 1 条（"§ 10 Absatz 3 wird gestrichen."）和第 6 条第 1 款（公布次日生效），公布日 2025-10-29，即 2025-10-30 生效。该法没有关于已递交申请的过渡条款（PD-129）。
 - `policy-sources/2025-06-23-de-bt-drs-21-537-stag-entwurf.pdf` → <https://dserver.bundestag.de/btd/21/005/2100537.pdf>
 - `policy-sources/2025-10-08-de-breg-bulletin-89-5-stag.pdf` → <https://www.bundesregierung.de/resource/blob/975954/2388128/f26afadd67ac33455496c4e532b4afcc/89-5-bmi-aenderung-staatsangehoerigeitsrecht-bt-data.pdf?download=1>
 - BT-Drs. 21/537（PDF 12 页，`p<N>` 为物理页序）：p5 第 1 条只删除 § 10 Abs. 3；p6 立法理由回顾 StARModG 2024-06-27 施行前的规定；草案第 2 条（p5）与理由（p10）写"公布次日生效"。
@@ -941,7 +1033,8 @@ SRC-090 BOE · Ley 39/2015 行政程序法 PDF。
 
 ## SRC-105 国籍法现代化法（StARModG）
 
-- BGBl. 2024 I Nr. 104 原文（<https://www.recht.bund.de/bgbl/1/2024/104/VO.html>，更正见 BGBl. 2025 I Nr. 98）对脚本请求返回 403，未能存档；施行日 2024-06-27 取自 SRC-106 封面与 SRC-104 BT-Drs. 21/537 p6。
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2024-104.pdf` → <https://www.recht.bund.de/bgbl/1/2024/104/regelungstext.pdf?__blob=publicationFile>
+- BGBl. 2024 I Nr. 104 原文（<https://www.recht.bund.de/bgbl/1/2024/104/VO.html>，更正见 BGBl. 2025 I Nr. 98）在第 19 阶段对脚本请求返回 403；任务 90 已补存上列原刊。施行日 2024-06-27 取自 SRC-106 封面与 SRC-104 BT-Drs. 21/537 p6。
 - `policy-sources/2023-11-01-de-bt-drs-20-9044-starmodg-entwurf.pdf` → <https://dserver.bundestag.de/btd/20/090/2009044.pdf>
 - BT-Drs. 20/9044（PDF 80 页）p40（Zu Nummer 10）：§ 12b Abs. 1 Satz 5 过半规则的理由——从使境外合计超过一半的那次中断之后重新起算；§ 12b Abs. 2 中断前居住的折算由 5 年降为 3 年，过半情形同样适用。§ 12b 的修改内容与现行汇编（SRC-101）一致，未与 BGBl. 正式文本逐字比对。
 
@@ -972,8 +1065,8 @@ SRC-090 BOE · Ley 39/2015 行政程序法 PDF。
 - `第22条第2項`：永住许可须素行善良、有独立生计且其永住合于日本国利益；法律本身没有年数，年数都来自指南（SRC-113、SRC-114）。日本人、永住者、特別永住者的配偶者或子免除第1、2号。`第22条第4項`：许可自交付在留卡时生效。
 - `第22条の2`：因出生等未经上陆手续在日本在留的外国人，第2項须自出生等之日起 30 日以内申请取得在留资格，第4項把永住者资格的取得准用第22条。
 - `第26条第3項`：再入国许可的有效期自生效日起不超过 5 年；`第26条第5項`：在外延长每次不超过 1 年，且自生效日起不超过 6 年。
-- `第26条の2第2項`：みなし再入国许可的有效期为出国日起 1 年，在留期限早于此的到在留期限为止；`第3項`：不能延长。特別永住者为 2 年（入管特例法第23条第2項，未存档，试点不涵盖）。
-- 令和6年法律第60号（2027-04-01 施行）改写第22条第2項措辞并新增永住取消事由，令和8年法律第32号只改第26条第1項的引用条号；都不涉及时间规则（调研时对比 e-Gov 未施行版本，未存档）。
+- `第26条の2第2項`：みなし再入国许可的有效期为出国日起 1 年，在留期限早于此的到在留期限为止；`第3項`：不能延长。特別永住者为 2 年（入管特例法第23条第2項，SRC-442）。
+- 令和6年法律第60号（2027-04-01 施行）改写第22条第2項措辞并新增永住取消事由，令和8年法律第32号只改第26条第1項的引用条号；新版条文见 SRC-441。
 
 ## SRC-111 国籍法
 
@@ -981,6 +1074,8 @@ SRC-090 BOE · Ley 39/2015 行政程序法 PDF。
 - `第5条第1項第1号`：引き続き五年以上日本に住所を有すること；`第2号`：十八歳以上で本国法によつて行為能力を有すること。
 - `第7条`（日本国民の配偶者，免除第5条第1項第1、2号）：前段为连续 3 年以上在日本有住所或居所、且现在日本有住所；后段为婚姻之日起满 3 年、且连续 1 年以上在日本有住所。
 - `第10条第2項`：帰化自官报告示之日生效。e-Gov 修订历史显示国籍法没有未施行修订。
+
+- 第5条第1項第3–6号与第2項、第6–9条、第18条：完整版的品格、生计、失籍、宪法遵守、简易及特别功劳归化与申报。
 
 ## SRC-112 民法与年龄计算
 
@@ -1004,8 +1099,9 @@ SRC-090 BOE · Ley 39/2015 行政程序法 PDF。
 - `第2の5(6)`（PDF p7）：原则连续在留 10 年以上，其中以就労資格或居住資格连续 5 年以上；申请时起过去 10 年内，无合理理由单次出国半年以上不在、或通算 2 年 6 个月以上不在的，原则上消极评价。`注2`（PDF p5）：就労資格不含技能実習、育成就労、特定技能1号、企業内転勤与部分特定活動；哪些特定活動算就労资格见 `第5の2`（PDF p12）。
 - `第3の1`（PDF p9）：配偶者实体婚姻生活 5 年以上且连续在留 3 年以上；实子等连续在留 3 年以上。`第3の2`、`第3の3`：定住者 5 年、难民认定后 5 年。`第3の6`、`第3の7`、`第3の8`：高度人才 70 点 3 年、80 点 1 年、特別高度人材 1 年。
 - `第5の1`（PDF p12，锚点 `#midashi05`）：特定活動中"特例的、かつ、一時的"的在留不计入"10 年"，例子有继续就职活动、就职内定者、本邦大学毕业后起业活动的留学生、难民认定等手续中、因本国情势不安获准在留者；没有说这些期间前后的在留能否接续（PD-134）。2026-02-24 版没有这一条。
-- `第6`（PDF p13）：本次改定适用于令和9年（2027 年）4 月 1 日以后的申请。
+- `第6`（PDF p13）：本次改定适用于令和9年（2027 年）4 月 1 日以后的申请。2026-04-01 至 2026-09-30 递交的收入及公共负担两项，以 2026-10-01 仍在审为新版适用条件（同条、SRC-115 第69号）。
 - 适用说明（【お知らせ】）：2026-03-31 前申请的适用 2026-02-24 版；2026-04-01 至 2027-03-31 申请的仍适用 2026-02-24 版（收入部分另按新版第2の4(2)、第2の5(7)）；2027-04-01 起申请的适用新版。
+- `第2の3–5`（PDF p3–9）：品格、生计、国益、最长在留期间三年过渡（p7 注4）、日语与规则、就学。第3注5（PDF p10）列特别许可的捷径排除，第4（PDF p11）列贡献类别。
 - `policy-sources/2026-10-01-jp-isa-pr-guideline-r8-10-01.pdf` → <https://www.moj.go.jp/isa/content/001471577.pdf>
 
 ## SRC-115 永住指南公众意见答复
@@ -1095,6 +1191,118 @@ SRC-090 BOE · Ley 39/2015 行政程序法 PDF。
 - 司法部新闻（2026-05-19）："Regulamentação complementar"一节写明新规定 2026-05-19 施行，在审程序继续适用旧文本，新规定只适用于施行后递交的申请；正文列出 7 年、10 年。
 - 司法部入籍指南页（2026-11-22 抓取）标题与正文仍写居住满 5 年，是旧法内容，不作为现行规则的依据。
 - 部长会议公报（2026-10-29）第 2 项：通过实施新国籍法的 Decree-Law；截至 2026-11-22 未见公布，新法下居留起算的证明方式待条例明确（PD-140）。
+
+## SRC-200 Migration Regulations 1994（Compilation 292，卷 1–3）
+
+任务 83 复用 SRC-061、SRC-068、SRC-069 同版本快照及 SRC-062 的原时间算法定位。SRC-063–067 的一级来源表列最新抓取，各条备注保留早期快照。
+
+卷 1 收录 regs 1.03、1.20J–KC、2.03A、5.19 和 Schedule 1 的递交条件与费用。卷 2 收录 100、155、157、186、189、190、191、309、801。卷 3 收录 820、858 及 Schedules 3–6D、8。
+
+卷 1 reg 2.12(a)、(b)、(s) 分别列出境内配偶 UK、BS 及州提名 SN。Sch 1 items 1113、1114B、1124B、1128、1137–1139、1214C 界定本引擎涉及的境内签证类别。s 48 适用时，境内配偶合并递交另按 item 1124B(3)(e)、(3A) 核对既往指定拒签、随件表格及声明。
+
+卷 2 第 100.221(2)(c)、801.221(2)(d) 条从普通合并递交日计算两年。两类的 (2A)(a)–(c) 均从部长依 s 351、501J 或已废止 s 417 作出临时签证决定之日计算两年。等待期例外见 100.221(5)–(7)、801.221(6A)–(7)，永久阶段提名或持续担保见 100.226(a)–(b)、801.221(2)(b)、(2A)。
+
+- `policy-sources/2026-11-12-au-migration-regulations-1994-vol1.html` → <https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text/original/epub/OEBPS/document_1/document_1.html>
+- `policy-sources/2026-11-12-au-migration-regulations-1994-vol2.html` → <https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text/original/epub/OEBPS/document_2/document_2.html>
+- `policy-sources/2026-11-12-au-migration-regulations-1994-vol3.html` → <https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text/original/epub/OEBPS/document_3/document_3.html>
+
+## SRC-201 LIN 19/210 技术签证及格线
+
+s 6 规定打分签证的 pool mark 与 pass mark。
+
+## SRC-202 LIN 22/022 指定偏远地区
+
+Schedules 1–2 按州与邮编界定地区。491 按获签时的地区，494 按相关提名时的地区判断（SRC-200 Sch 8 cond 8579）。
+
+## SRC-203 LIN 19/216 雇主提名类别豁免
+
+ss 4–7 按通道分别规定年龄、技能评估及工作经验的例外。
+
+## SRC-204 Migration (Skilling Australians Fund) Charges Regulations 2018
+
+s 6 规定雇主提名培训税的营业额分界与费率。
+
+## SRC-205 LIN 25/014 Functional English
+
+s 6 与 Schedule 1 规定可选的护照、教育经历及考试证明。
+
+## SRC-206 LIN 25/016 英语考试、成绩与护照
+
+ss 7–10、Schedules 1–3 按考试日期、考种和等级给出各单科门槛。
+
+## SRC-207 LIN 19/051 技术职业与评估机构
+
+职业及评估机构按签证类别核对 MLTSSL 与 STSOL。
+
+## SRC-208 LIN 24/089 雇主提名职业清单
+
+职业表与附加限制用于 186 Direct Entry。
+
+## SRC-209 Australian Citizenship Regulation 2016
+
+Schedule 3 按申请类别、优惠资格与费用豁免区分入籍收费。
+
+## SRC-210 IMMI 18/033 市场年薪
+
+指定年收入金额见 Part 2，annual market salary rate 的举证方法见 Part 3 s 7。
+
+## SRC-211 Migration Act 1958（Compilation 172，卷 2）
+
+s 501(6)–(7A) 区分品格测试、刑罚与裁量，信息变更及签证终止见已登记的卷 1（SRC-069）。
+
+## SRC-212 Fair Work Regulations 2009
+
+reg 2.13 给出 high income threshold 调整公式。当前年度澳元公告尚待核实，见 PD-206。
+
+## SRC-213 Health Insurance Act 1973
+
+s 3(1) 定义 Australian resident，Medicare 资格与健康 PIC 分别判断。
+
+## SRC-214 内政部雇主提名薪资要求
+
+Salary requirements 小节列出适用财年的 CSIT、AMSR 与保证年收入的关系。
+
+## SRC-215 内政部入籍面试与考试
+
+About the test 与 Pass the test 小节列出考试题数、价值观题和及格要求。
+
+## SRC-216 内政部新西兰公民直接入籍指引
+
+Direct pathway to Australian citizenship 小节解释 SCV 持有人的永久居留起算。
+
+## SRC-217 内政部 Form 1298i（07/26）
+
+p1–2 列出入籍费用、优惠卡与豁免，页码按 PDF 物理页序。
+
+- `policy-sources/2026-11-23-au-immi-citizenship-form1298i.pdf` → <https://immi.homeaffairs.gov.au/form-listing/forms/1298i.pdf>
+
+## SRC-218 内政部 Significant Cost Threshold
+
+Significant healthcare and community service costs 小节解释 MOC 的评估期限及费用门槛。
+
+## SRC-219 内政部 Health waiver
+
+Health waiver 小节说明 PIC 4007 的个案审查和不可豁免的健康条件。
+
+## SRC-220 内政部签证品格审查
+
+Police certificates 与 Character requirements 小节说明刑事记录、警方证明和审查程序。
+
+## SRC-221 内政部签证费率
+
+Current visa pricing 提供费用入口，法定费率按 SRC-200 Schedule 1 和 reg 2.12C 核对。
+
+## SRC-225 内政部技术移民职业评估
+
+Visas 下的 General Skilled Migration (GSM) visas 小节说明，按 *Thapa* [2021] FCCA 686 的现行办理口径，指定职业的合格职评可在 60 天邀请期内取得。递交时提供职评。条文的获邀时点见 SRC-200 189.222(1)、190.212(1)。
+
+## SRC-226 内政部 Competent English 考试和成绩
+
+表 2 的 TOEFL iBT 行列出 2023-07-26 至 2024-05-04（含首尾）对澳大利亚签证停认，并列出旧版口语最低 21 分。SRC-206 s 10(5)(c) 的对应分数是 18。两者影响结果的区间见 PD-200。
+
+## SRC-229 IELTS 官方成绩说明
+
+Understanding IELTS test scores 下的 Overall band score 小节说明，成绩单总分取听、说、读、写四科均值，舍入到最近的 0.5 分，恰在中点时向上舍入。澳大利亚 Functional English 的 IELTS 门槛见 SRC-205 s 4、s 6(c)、Sch 1 第 2、3 行，旧成绩见 s 7(1)–(2)。
 
 ## SRC-320 BOE · LO 4/2000，外国人组织法
 
@@ -1371,3 +1579,365 @@ SRC-348 TJUE · C-432/20 判决官方公报摘要。
 SRC-349 BOE · RDL 3/2004，IPREM 制定机制。
 
 - `policy-sources/2026-11-23-es-iprem-ley-base.html` → <https://www.boe.es/buscar/act.php?id=BOE-A-2004-12010>
+
+## SRC-440 入管法施行规则
+
+- 第22、24、25、29条の4、別表第2。
+- `policy-sources/2026-10-01-jp-egov-nyukanho-sekokisoku-current.xml` → <https://laws.e-gov.go.jp/api/2/law_data/356M50000010054_20261001_508M60000010047?response_format=xml&law_full_text_format=xml>
+
+## SRC-441 入管法 2027-04-01 施行版
+
+- 第22条第2項，永住义务；第22条の4、第22条の6，许可后的取消及变更。
+- `policy-sources/2027-04-01-jp-egov-nyukanho-unenforced-r6-60.xml` → <https://laws.e-gov.go.jp/api/2/law_data/326CO0000000319_20270401_506AC0000000060?response_format=xml&law_full_text_format=xml>
+
+## SRC-442 入管特例法
+
+- 第4条及第23条，特別永住取得分流及再入国。
+- `policy-sources/2026-06-14-jp-egov-tokureiho-current.xml` → <https://laws.e-gov.go.jp/api/2/law_data/403AC0000000071_20260614_507AC0000000039?response_format=xml&law_full_text_format=xml>
+
+## SRC-443 入管法施行令与手续费版本
+
+- 第25条及附则；历史及未来版本按收件日核对。
+- `policy-sources/2026-11-23-jp-egov-nyukanho-sekorei.xml` → <https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-11-23-jp-egov-nyukanho-sekorei-revisions.json` → <https://laws.e-gov.go.jp/api/2/law_revisions/410CO0000000178>
+- `policy-sources/2024-06-10-jp-egov-nyukanho-sekorei-fees.xml` → <https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20240610_506CO0000000197?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2025-04-01-jp-egov-nyukanho-sekorei-fees.xml` → <https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20250401_507CO0000000027?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-07-01-jp-egov-nyukanho-sekorei-fees.xml` → <https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20260701_508CO0000000177?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2027-04-01-jp-egov-nyukanho-sekorei-fees.xml` → <https://laws.e-gov.go.jp/api/2/law_data/410CO0000000178_20270401_507CO0000000341?response_format=xml&law_full_text_format=xml>
+
+## SRC-444 入管厅手续费改定及减额
+
+- 收费告知、减免与困难人道资料、Q&A Q11、价目单与旧版变更。
+- `policy-sources/2026-11-23-jp-isa-fees-reform.html` → <https://www.moj.go.jp/isa/01_00644.html>
+- `policy-sources/2026-11-23-jp-isa-fees-waivers.html` → <https://www.moj.go.jp/isa/10_00273.html>
+- `policy-sources/2026-11-23-jp-isa-fees-qa.html` → <https://www.moj.go.jp/isa/applications/faq/01_00650.html>
+- `policy-sources/2026-10-01-jp-isa-fees-flyer.pdf` → <https://www.moj.go.jp/isa/content/001469198.pdf>
+- `policy-sources/2026-11-23-jp-isa-fee-reduction-guidelines.pdf` → <https://www.moj.go.jp/isa/content/001469270.pdf>
+- `policy-sources/2026-11-23-jp-isa-fees-2025.html` → <https://www.moj.go.jp/isa/11_00053.html>
+
+## SRC-445 法务省帰化許可申請与法务局手引
+
+- 提出方法、收费、动机书、语言、面谈与附件。法务局手引页码以 PDF 物理页为准。
+- `policy-sources/2026-11-23-jp-moj-kika-application.html` → <https://www.moj.go.jp/ONLINE/NATIONALITY/6-2.html>
+- `policy-sources/2026-11-22-jp-moj-kika-tebiki-r8-4.pdf` → <https://houmukyoku.moj.go.jp/kofu/page000001_00305.pdf>
+- `policy-sources/2026-11-23-jp-tokyo-kika.html` → <https://houmukyoku.moj.go.jp/tokyo/page000001_00885.html>
+- `policy-sources/2026-11-23-jp-shizuoka-kika-interview.pdf` → <https://houmukyoku.moj.go.jp/shizuoka/content/000135122.pdf>
+
+## SRC-446 国籍法施行规则
+
+- 第2条，递交、证明与宣誓。
+- `policy-sources/2026-11-23-jp-egov-kokusekiho-sekokisoku.xml` → <https://laws.e-gov.go.jp/api/2/law_data/359M50000010039?response_format=xml&law_full_text_format=xml>
+
+## SRC-447 戸籍法
+
+- 第49条出生届；第102条の2帰化届。
+- `policy-sources/2026-11-23-jp-egov-kosekiho.xml` → <https://laws.e-gov.go.jp/api/2/law_data/322AC0000000224?response_format=xml&law_full_text_format=xml>
+
+## SRC-448 高度専門職省令与积分表
+
+- 第1条第1項第1–3号各表、积分表 PDF p3（印刷 p2）及注、Q&A Q4–9、49。
+- `policy-sources/2026-11-23-jp-egov-hsp-ordinance.xml` → <https://laws.e-gov.go.jp/api/2/law_data/426M60000010037?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-11-23-jp-isa-hsp-points.pdf` → <https://www.moj.go.jp/isa/content/001447348.pdf>
+- `policy-sources/2026-11-23-jp-isa-hsp-qa.html` → <https://www.moj.go.jp/isa/applications/resources/newimmiact_3_qa.html>
+
+## SRC-449 特別高度人材省令与 J-Skip 手续
+
+- 省令本则、附则及官方说明和永住认定与回溯两分支。
+- `policy-sources/2026-11-23-jp-egov-j-skip-ordinance.xml` → <https://laws.e-gov.go.jp/api/2/law_data/505M60000010025?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-11-23-jp-isa-j-skip.html` → <https://www.moj.go.jp/isa/applications/resources/nyuukokukanri01_00009.html>
+- `policy-sources/2026-11-23-jp-isa-pr-j-skip-menu.html` → <https://www.moj.go.jp/isa/10_00226.html>
+- `policy-sources/2026-11-23-jp-isa-pr-j-skip-recognized.html` → <https://www.moj.go.jp/isa/10_00227.html>
+- `policy-sources/2026-11-23-jp-isa-pr-j-skip-retro.html` → <https://www.moj.go.jp/isa/10_00228.html>
+
+## SRC-450 永住工作及家族材料清单
+
+- 概要税务、年金、医疗、第18–21行；常见分支的材料窗口。
+- `policy-sources/2026-11-23-jp-isa-pr-work-evidence.pdf` → <https://www.moj.go.jp/isa/content/001436512.pdf>
+- `policy-sources/2026-11-23-jp-isa-pr-family-evidence.pdf` → <https://www.moj.go.jp/isa/content/001422055.pdf>
+- `policy-sources/2026-11-23-jp-isa-pr-family.html` → <https://www.moj.go.jp/isa/applications/procedures/zairyu_eijyu01.html>
+- `policy-sources/2026-11-23-jp-isa-pr-teijusha.html` → <https://www.moj.go.jp/isa/applications/procedures/zairyu_eijyu02.html>
+- `policy-sources/2026-11-23-jp-isa-pr-regular.html` → <https://www.moj.go.jp/isa/applications/procedures/zairyu_eijyu03.html>
+- `policy-sources/2026-11-23-jp-isa-pr-hsp-menu.html` → <https://www.moj.go.jp/isa/applications/procedures/nyuukokukanri07_00131.html>
+- `policy-sources/2026-11-23-jp-isa-pr-hsp80-other.html` → <https://www.moj.go.jp/isa/applications/procedures/nyuukokukanri07_00132.html>
+
+## SRC-451 在留资格取得与新生儿
+
+- 在留資格取得「必要書類」、居民管理 Q&A 及永住者亲属资格。
+- `policy-sources/2026-11-23-jp-isa-status-acquisition.html` → <https://www.moj.go.jp/isa/applications/procedures/16-10.html>
+- `policy-sources/2026-11-23-jp-isa-resident-card-qa.html` → <https://www.moj.go.jp/isa/publications/faq/newimmiact_4_q-and-a_page3.html>
+- `policy-sources/2026-11-23-jp-isa-pr-spouse-status.html` → <https://www.moj.go.jp/isa/applications/status/spouseorchildofpermanentresident.html>
+
+## SRC-452 上陆许可基准省令与経営・管理改定
+
+- 省令各资格表，経営・管理改定后的基准与更新过渡。
+- `policy-sources/2026-11-23-jp-egov-landing-criteria.xml` → <https://laws.e-gov.go.jp/api/2/law_data/402M50000010016?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-11-23-jp-isa-business-manager.html` → <https://www.moj.go.jp/isa/applications/resources/10_00237.html>
+
+## SRC-453 対日貢献旧指南
+
+- 附 PDF 逐类别条件；旧指南适用至 SRC-114 的完整新版切换日。
+- `policy-sources/2026-11-23-jp-isa-pr-contribution.html` → <https://www.moj.go.jp/isa/applications/resources/nyukan_nyukan36.html>
+- `policy-sources/2026-11-23-jp-isa-pr-contribution-old.pdf` → <https://www.moj.go.jp/isa/content/930002484.pdf>
+
+## SRC-454 学校教育法与外国儿童就学
+
+- 学校教育法第17条及就学指引「基本的な考え方」。
+- `policy-sources/2026-11-23-jp-egov-school-education.xml` → <https://laws.e-gov.go.jp/api/2/law_data/322AC0000000026?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-11-23-jp-mext-foreign-children-school.html` → <https://www.mext.go.jp/a_menu/shotou/clarinet/004/1415154_00003.htm>
+
+## SRC-455 在留申請在线范围与支付
+
+- 在线申请的适用范围、再入国在线手续和指定支付处理费用。
+- `policy-sources/2026-01-05-jp-isa-online-scope.pdf` → <https://www.moj.go.jp/isa/content/001351658.pdf>
+- `policy-sources/2026-11-23-jp-isa-online-fees.html` → <https://www.moj.go.jp/isa/11_00107.html>
+
+## SRC-456 生活・就労ガイドブック
+
+- 目录及第1章入国・在留手続；新版永住制度理解的内容参考。
+- `policy-sources/2026-11-23-jp-isa-kikin-japanese-guide.html` → <https://www.moj.go.jp/isa/support/portal/guidebook_all.html>
+- `policy-sources/2026-11-23-jp-isa-guidebook-entry.pdf` → <https://www.moj.go.jp/isa/content/930004717.pdf>
+
+## SRC-457 特定在留カード
+
+- 「手数料」；功能、电子证书及附加费。
+- `policy-sources/2026-11-23-jp-isa-integrated-card.html` → <https://www.moj.go.jp/isa/tokutei.html>
+
+## SRC-458 特定活動告示与就労资格资料
+
+- 第36・37号及别表第6–8；以及可计入就労资格的资料和指定研究、信息处理说明。
+- `policy-sources/2026-11-23-jp-isa-designated-activities-notice.html` → <https://www.moj.go.jp/isa/policies/bill/nyukan_hourei_h02.html>
+- `policy-sources/2026-11-23-jp-isa-designated-activities-notice.pdf` → <https://www.moj.go.jp/isa/content/001360125.pdf>
+- `policy-sources/2026-11-23-jp-isa-designated-work.pdf` → <https://www.moj.go.jp/isa/content/001436513.pdf>
+- `policy-sources/2026-11-23-jp-isa-designated-activities-list.pdf` → <https://www.moj.go.jp/isa/content/001389017.pdf>
+- `policy-sources/2026-11-23-jp-isa-designated-research.html` → <https://www.moj.go.jp/isa/applications/status/designatedactivities07.html>
+- `policy-sources/2026-11-23-jp-isa-designated-information-processing.html` → <https://www.moj.go.jp/isa/applications/status/designatedactivities08.html>
+
+## SRC-459 東京・広島法務局帰化证据清单
+
+- 分国籍及办理局的纳税、社会保险、居住等证据窗口。
+- `policy-sources/2026-11-23-jp-tokyo-kika-evidence.html` → <https://houmukyoku.moj.go.jp/tokyo/page000001_00891.html>
+- `policy-sources/2026-11-23-jp-hiroshima-kika-china-evidence.html` → <https://houmukyoku.moj.go.jp/hiroshima/page000001_01045.html>
+
+## SRC-460 国籍法官方参考英译
+
+- 第6条 p3；以 SRC-111 日文为准。
+- `policy-sources/2026-11-23-jp-moj-nationality-translation.pdf` → <https://www.japaneselawtranslation.go.jp/ja/laws/download/4713/14/s25Aa001470504je16.0_r4A102.pdf>
+
+## SRC-461 普通再入国与難民旅行証明書手续
+
+- 審査基準、手数料、オンライン申請及旅行证件的适用。
+- 再入国許可申請「申請期間」「受付時間」「オンライン申請」分别说明出境前递交、平日窗口受理和在线合并申请条件。
+- `policy-sources/2026-11-22-jp-isa-reentry-application.html` → <https://www.moj.go.jp/isa/immigration/procedures/16-5.html>
+- `policy-sources/2026-11-23-jp-isa-refugee-travel-application.html` → <https://www.moj.go.jp/isa/refugee/procedures/16-7.html>
+- `policy-sources/2026-11-23-jp-isa-refugee-travel.html` → <https://www.moj.go.jp/isa/refugee/procedures/ryokou_00001.html>
+
+## SRC-462 驻外领事费用
+
+- 领事费政令第1条第1項第5・6号，及省令本则与别表。
+- `policy-sources/2026-11-23-jp-egov-consular-fees-order.xml` → <https://laws.e-gov.go.jp/api/2/law_data/327CO0000000074?response_format=xml&law_full_text_format=xml>
+- `policy-sources/2026-11-23-jp-egov-consular-fees-regulation.xml` → <https://laws.e-gov.go.jp/api/2/law_data/327M50000020004?response_format=xml&law_full_text_format=xml>
+
+## 德国完整版登记备注（第 20 阶段，任务 90）
+
+SRC-100、101、103、106–108 复用已有快照。SRC-104、105 的议会材料继续保留，本次补入已公布的法令正文。柏林 LEA 的办事标准按当地范围使用。以下逐项列出快照对应的网址。
+
+### SRC-410 Aufenthaltsverordnung（签发、处理、证件收费及境内申请）
+
+对应 AufenthV §§ 39、41 的境内申请条件，以及 §§ 44–53 的费率、预缴、未成年人及减免。
+
+- `policy-sources/2026-11-23-de-aufenthv.html` → <https://www.gesetze-im-internet.de/aufenthv/BJNR294510004.html>
+
+### SRC-411 Einbürgerungstestverordnung 与联邦政府入籍收费答复
+
+EinbTestV §§ 1–5 规定入籍考试构成、联邦考点费用和生效。BT-Drs. 20/8575 对问题 34 的答复载明欧元收费的起算期间。
+
+- `policy-sources/2026-11-23-de-bt-20-8575.pdf` → <https://dserver.bundestag.de/btd/20/085/2008575.pdf>
+- `policy-sources/2026-11-23-de-einbtestv-5.html` → <https://www.gesetze-im-internet.de/einbtestv/__5.html>
+- `policy-sources/2026-11-23-de-einbtestv.html` → <https://www.gesetze-im-internet.de/einbtestv/BJNR164900008.html>
+
+### SRC-412 Integrationskursverordnung（整合课程、考试与费用）
+
+IntV §§ 9、17、20 涵盖课程分担、减免和结业考试。
+
+- `policy-sources/2026-11-23-de-intv.html` → <https://www.gesetze-im-internet.de/intv/BJNR337000004.html>
+
+### SRC-413 Bundesmeldegesetz（入住登记和住所证明）
+
+BMG §§ 17、19、27 涵盖通常登记期限、住房提供者的证明及例外。
+
+- `policy-sources/2026-11-23-de-bmg.html` → <https://www.gesetze-im-internet.de/bmg/BJNR108410013.html>
+
+### SRC-414 柏林 LEA：Einbürgerung
+
+使用 Voraussetzungen 和 Nachweis der staatsbürgerlichen Kenntnisse 两节，限当地受理和证明材料。
+
+- `policy-sources/2026-11-23-de-berlin-einbuergerung.html` → <https://service.berlin.de/dienstleistung/318998/>
+
+### SRC-415 柏林 LEA：生计审查与家庭需要
+
+使用 Voraussetzungen、Krankenversicherung 和 Erforderliche Unterlagen，结合家庭成员与可计净收入评估需要。
+
+- `policy-sources/2026-11-23-de-berlin-lebensunterhalt.html` → <https://service.berlin.de/dienstleistung/354205/>
+
+### SRC-416 柏林 LEA：辅助保护者定居
+
+使用 Voraussetzungen，区分辅助保护的裁量定居与 § 26 Abs. 3 请求权。
+
+- `policy-sources/2026-11-23-de-berlin-subsidiaer.html` → <https://service.berlin.de/dienstleistung/352770/>
+
+### SRC-417 柏林 LEA：企业经营者定居
+
+使用 Voraussetzungen，核对实际企业经营、持续性及证明。
+
+- `policy-sources/2026-11-23-de-berlin-selbstaendige.html` → <https://service.berlin.de/dienstleistung/326564/>
+
+### SRC-418 柏林 LEA：子女定居
+
+使用 Voraussetzungen 中 16 岁生日和成年家庭居留分支。
+
+- `policy-sources/2026-11-23-de-berlin-kinder.html` → <https://service.berlin.de/dienstleistung/324863/>
+
+### SRC-419 柏林 LEA：一般定居
+
+使用 Voraussetzungen 交叉核对 § 9 的语言、知识、住房、养老与许可。
+
+- `policy-sources/2026-11-23-de-berlin-allgemein.html` → <https://service.berlin.de/dienstleistung/121864/>
+
+### SRC-420 欧盟蓝卡年度公告与联邦政府蓝卡指南
+
+两份 BAnz 公告的 p1 分别覆盖 2025 和 2026 年；联邦指南用于岗位、认可、合同和低工资档。2024 年按 SRC-425 的当年计费上限核算。
+
+- `policy-sources/2026-11-23-de-banz-2025-b2-blaue-karte.pdf` → <https://www.bundesanzeiger.de/pub/publication/6yuuiNCa7LgGKapMrQK/content/6yuuiNCa7LgGKapMrQK/BAnz%20AT%2004.12.2024%20B2.pdf>
+- `policy-sources/2026-11-23-de-banz-2026-b3-blaue-karte.pdf` → <https://www.bundesanzeiger.de/pub/publication/REViP4bN6jVdpGxPaiQ/content/REViP4bN6jVdpGxPaiQ/BAnz%20AT%2018.12.2025%20B3.pdf?inline=>
+- `policy-sources/2026-11-23-de-mig-blue-card.html` → <https://www.make-it-in-germany.com/en/visa-recognition/visa-types/eu-blue-card>
+- `policy-sources/2026-11-23-de-mig-blue-card.pdf` → <https://www.make-it-in-germany.com/fileadmin/1_Rebrush_2022/a_Fachkraefte/PDF-Dateien/3_Visum_u_Aufenthalt/Visagrafik_DE/Visum_Blaue_Karte_DE.pdf>
+
+### SRC-421 联邦政府 Make it in Germany：Niederlassungserlaubnis
+
+使用联邦政府定居指南各路径的小节交叉核对一般、技术人员和蓝卡定居。
+
+- `policy-sources/2026-11-23-de-mig-niederlassung.html` → <https://www.make-it-in-germany.com/de/ankommen-bleiben/dauerhaft-in-deutschland/niederlassungserlaubnis>
+
+### SRC-422 FreizügG/EU（自由流动及永久居住权）
+
+FreizügG/EU §§ 2–6、12 区分自由流动权源、通常及提前取得、永久居住权证明与失权。
+
+- `policy-sources/2026-11-23-de-freizuegg.html` → <https://www.gesetze-im-internet.de/freiz_gg_eu_2004/BJNR198600004.html>
+
+### SRC-423 SGB VI §§ 35、235（法定退休年龄）
+
+§ 35 Satz 2 与 § 235 Abs. 2 的出生年表确定普通难民档的退休节点。
+
+- `policy-sources/2026-11-23-de-sgb-vi-235.html` → <https://www.gesetze-im-internet.de/sgb_6/__235.html>
+- `policy-sources/2026-11-23-de-sgb-vi-35.html` → <https://www.gesetze-im-internet.de/sgb_6/__35.html>
+
+### SRC-424 BZRG §§ 46、51、52（前科消除与使用限制）
+
+BZRG §§ 46、51、52 适用于是否已到消除期以及能否使用境外或既有裁判，结合 StAG § 12a 核对。
+
+- `policy-sources/2026-11-23-de-bzrg-46.html` → <https://www.gesetze-im-internet.de/bzrg/__46.html>
+- `policy-sources/2026-11-23-de-bzrg-51.html` → <https://www.gesetze-im-internet.de/bzrg/__51.html>
+- `policy-sources/2026-11-23-de-bzrg-52.html` → <https://www.gesetze-im-internet.de/bzrg/__52.html>
+
+### SRC-425 SVBezGrV 2024、2026 与 2026 年 Fachkräfte 工资公告
+
+SVBezGrV § 4 与生效条款规定年度计费基数，2026 年 BAnz B2 的 p1 为首次技术人员许可的金额。
+
+- `policy-sources/2026-11-23-de-banz-2026-b2-fachkraft.pdf` → <https://www.bundesanzeiger.de/pub/publication/qiidOUvOxBc4NVmtxPl/content/qiidOUvOxBc4NVmtxPl/BAnz%20AT%2018.12.2025%20B2.pdf>
+- `policy-sources/2026-11-23-de-svbezgrv-2024.html` → <https://www.gesetze-im-internet.de/svbezgrv_2024/BJNR1420A0023.html>
+- `policy-sources/2026-11-23-de-svbezgrv-2026.html` → <https://www.gesetze-im-internet.de/svbezgrv_2026/BJNR1160A0025.html>
+
+### SRC-426 BMAS、RBSFV 2026、SGB XII § 28a（家庭需求标准）
+
+RBSFV 2026 §§ 1–2、BMAS 的 2026 Regelbedarf 表与 SGB XII § 28a 为基本需求定档和按年调整依据。
+
+- `policy-sources/2026-11-23-de-bmas-regelbedarf.html` → <https://www.bmas.de/DE/Arbeit/Grundsicherung-fuer-Arbeitsuchende/Leistungen-und-Bedarfe-in-der-Grundsicherung-fuer-Arbeitsuchende/leistungen-und-bedarfe-in-der-grundsicherung-fuer-arbeitsuchende-art.html>
+- `policy-sources/2026-11-23-de-rbsfv-2026.pdf` → <https://www.gesetze-im-internet.de/rbsfv_2026/RBSFV_2026.pdf>
+- `policy-sources/2026-11-23-de-sgb-28a.html` → <https://www.gesetze-im-internet.de/sgb_12/__28a.html>
+
+### SRC-427 柏林 LEA：德国公民家属定居
+
+使用 Voraussetzungen、Krankenversicherung，结合 SRC-435 的家庭收入判例。
+
+- `policy-sources/2026-11-23-de-berlin-de-familie.html` → <https://service.berlin.de/dienstleistung/327012/>
+
+### SRC-428 柏林 LEA：难民定居与两档生计
+
+使用 Gesicherter Lebensunterhalt durch eigenes Einkommen 的两档定义，仅适用于柏林资料所述情形。
+
+- `policy-sources/2026-11-23-de-berlin-fluechtlinge.html` → <https://service.berlin.de/dienstleistung/326554/>
+
+### SRC-429 柏林 LEA：Daueraufenthalt–EU
+
+使用 Voraussetzungen 下的 Altersversorgung、Krankenversicherung 等小节及 Gebühren。
+
+- `policy-sources/2026-11-23-de-berlin-daueraufenthalt-eu.html` → <https://service.berlin.de/dienstleistung/324281/>
+
+### SRC-430 柏林 LEA：Fachkräfte 定居
+
+使用 Voraussetzungen 中的 Arbeitsplatz、Altersversorgung 和语言条件。
+
+- `policy-sources/2026-11-23-de-berlin-fachkraefte.html` → <https://service.berlin.de/dienstleistung/326558/>
+
+### SRC-431 柏林 LEA：蓝卡定居
+
+使用 Voraussetzungen，核对持卡、合格就业、缴费和德语档。
+
+- `policy-sources/2026-11-23-de-berlin-blaue-karte.html` → <https://service.berlin.de/dienstleistung/326556/>
+
+### SRC-432 BAMF：LiD 实施说明及整合课程结业标准
+
+ZQ DaZ 的章节 Abschluss des Integrationskurses（印刷页 180）说明 LiD 结业成绩；Durchführungshinweise Nr. 4、12 说明外部考生费用。
+
+- `policy-sources/2026-11-23-de-bamf-daz-abschluss.pdf` → <https://www.bamf.de/SharedDocs/Anlagen/DE/Integration/Integrationskurse/Lehrkraefte/konzeption-fuer-die-zusatzqualifizierung-von-lehrkraeften-neu-pdf.pdf?__blob=publicationFile&v=6>
+- `policy-sources/2026-11-23-de-bamf-lid.pdf` → <https://www.bamf.de/SharedDocs/Anlagen/DE/Integration/Integrationskurse/Kurstraeger/Traegerrundschreiben/Anlagen/2023/traegerrundschreiben-20230425-03-anlage2.pdf?__blob=publicationFile&v=3>
+
+### SRC-433 PAuswGebV 与 2026 年身份证收费修正
+
+PAuswGebV § 1 Abs. 1 与 2026 I Nr. 31 Art. 4、10 共同确定身份证两档费率和生效日。
+
+- `policy-sources/2026-11-23-de-bgbl-ausweis-2026-31.pdf` → <https://www.recht.bund.de/bgbl/1/2026/31/regelungstext.pdf?__blob=publicationFile>
+- `policy-sources/2026-11-23-de-pauswgebv.html` → <https://www.gesetze-im-internet.de/pauswgebv/__1.html>
+
+### SRC-434 2017 年居留收费调整的议会资料与公报索引、2023 年加急收费公报
+
+2017 年原刊正文未取得，使用公报目录及 BT-Drs. 18/12050 Art. 2–3 与委员会报告。加急附加费以 2023 I Nr. 290 Art. 3、13 为据。§ 35 未成年特例的历史起算仍列 PD-359。
+
+- `policy-sources/2026-11-23-de-bgbl-gebuehren-2017-index.html` → <https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F%2A%5B%40attr_id%3D%27I_2017_47_inhaltsverz%27%5D>
+- `policy-sources/2026-11-23-de-bt-18-12050.pdf` → <https://dserver.bundestag.de/btd/18/120/1812050.pdf>
+- `policy-sources/2026-11-23-de-gebuehren-2017-beschluss.pdf` → <https://dserver.bundestag.de/btd/18/124/1812402.pdf>
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2023-290.pdf` → <https://www.recht.bund.de/bgbl/1/2023/290/regelungstext.pdf?__blob=publicationFile&v=2>
+
+### SRC-435 BVerwG 1 C 12.10、1 C 21.09（家庭生计）
+
+1 C 12.10、1 C 21.09 的 Leitsätze 和 Entscheidungsgründe 涵盖特定德国家属的家庭缺口及供养范围。
+
+- `policy-sources/2026-11-23-de-bverwg-1c12-10.html` → <https://www.bverwg.de/160811U1C12.10.0>
+- `policy-sources/2026-11-23-de-bverwg-1c21-09.html` → <https://www.bverwg.de/161110U1C21.09.0>
+
+### SRC-436 SGB VI §§ 159、160（年度养老计费上限）
+
+SGB VI §§ 159、160 规定养老计费上限的调整和年度条例。
+
+- `policy-sources/2026-11-23-de-sgb-vi-159.html` → <https://www.gesetze-im-internet.de/sgb_6/__159.html>
+- `policy-sources/2026-11-23-de-sgb-vi-160.html` → <https://www.gesetze-im-internet.de/sgb_6/__160.html>
+
+### SRC-437 指令 2003/109/EG（欧盟长期居民，合并文本）
+
+欧盟出版局合并文本 Art. 3–7、9 涵盖适用范围和长期居民资格。跨成员国折算须同时满足德国转置条文。
+
+- `policy-sources/2026-11-23-de-eu-2003-109-de.html` → <https://publications.europa.eu/resource/cellar/9d5fe9f4-69bd-11f1-ae88-01aa75ed71a1.0005.02/DOC_1>
+
+### SRC-438 BGBl. 2022 I S. 2817 及 2026 I Nr. 111、221、318（移民法修正及生效）
+
+2022 I S. 2817 Art. 2 Nr. 1、Art. 4 修改 § 26 Abs. 3。自 2023-01-01 起，两档均核对 BAMF 的 Widerruf／Rücknahme 通知。普通档自 2026-06-12 起增加 Entzug，§ 52 的辅助保护引文同步更新。见 2026 I Nr. 111 Art. 2 Nr. 12、Art. 7 Nr. 2、Art. 13 Abs. 2。Nr. 221、318 保留档案的后续修法版本。
+
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2026-111.pdf` → <https://www.recht.bund.de/bgbl/1/2026/111/regelungstext.pdf?__blob=publicationFile>
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2026-221.pdf` → <https://www.recht.bund.de/bgbl/1/2026/221/regelungstext.pdf?__blob=publicationFile>
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2026-318.pdf` → <https://www.recht.bund.de/bgbl/1/2026/318/regelungstext.pdf?__blob=publicationFile>
+
+### SRC-439 BGBl. 2023 I Nr. 217（技术移民法改革与生效）
+
+2023 I Nr. 217 Art. 1 Nr. 7、Art. 2 Nr. 12、Art. 12 规定蓝卡和技术人员定居改革的分段施行。
+
+- `policy-sources/2026-11-23-de-bundesgesetzblatt-2023-217.pdf` → <https://www.recht.bund.de/bgbl/1/2023/217/regelungstext.pdf?__blob=publicationFile>

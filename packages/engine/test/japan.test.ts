@@ -820,7 +820,7 @@ describe('review70-7', () => {
     };
     for (const p of [pr(req), nat(req)]) {
       expect(p.earliestDate).toBe('2036-11-29');
-      expect(p.summary).toContain('超出试点的 10 年计算范围');
+      expect(p.summary).toContain('超出本计算的 10 年范围');
       expect(p.summary).not.toContain('2036-11-30');
     }
   });
@@ -833,7 +833,7 @@ describe('review70-7', () => {
       trips: [{ departed: '2027-04-04', returned: '2027-04-11' }],
     });
     expect(p.earliestDate).toBe('2027-04-03');
-    expect(p.summary).toContain('超出试点的 10 年计算范围');
+    expect(p.summary).toContain('超出本计算的 10 年范围');
     expect(p.summary).not.toContain('2036-11-23');
   });
 

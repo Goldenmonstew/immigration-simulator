@@ -1,13 +1,13 @@
 export const zhCN = {
   'ca.name': '加拿大',
-  'ca.entryLink': '打开加拿大试点',
+  'ca.entryLink': '打开加拿大模拟器',
   'ca.entryDesc':
     '按成为永久居民的日期与出入境记录，计算维持永居的居住义务与入籍实际居住的时间节点。',
-  'ca.title': '加拿大：维持永居与入籍的时间（试点）',
+  'ca.title': '加拿大：维持永居与入籍的时间',
   'ca.intro':
     '按你成为加拿大永久居民的日期、此前的临时身份和出入境记录，计算两个只看时间的节点：维持永久居民身份的居住义务，以及入籍的实际居住天数。永居本身怎么拿（Express Entry 打分、省提名、担保等）不在范围内。',
   'ca.scope':
-    '试点只检查法律写明的天数条件；报税、语言、公民考试、禁止情形等不检查，结果里逐项列出。网上申请请以账户内的官方计算器为准。所填内容只在你的浏览器里计算，不保存、不上传。',
+    '这里只检查法律写明的天数条件；报税、语言、公民考试、禁止情形等不检查，结果里逐项列出。网上申请请以账户内的官方计算器为准。所填内容只在你的浏览器里计算，不保存、不上传。',
   'ca.basics': '基本信息',
   'ca.simulationDate': '模拟日期',
   'ca.simulationDateHint': '按这一天判断（入籍按签署申请的日期），默认今天。',
@@ -37,15 +37,15 @@ export const zhCN = {
 
 export const en: Record<keyof typeof zhCN, string> = {
   'ca.name': 'Canada',
-  'ca.entryLink': 'Open the Canada pilot',
+  'ca.entryLink': 'Open Canada',
   'ca.entryDesc':
     'Use the date you became a permanent resident and your travel record to work out the residency obligation and the physical presence for citizenship.',
   'ca.title':
-    'Canada: dates for keeping permanent residence and for citizenship (pilot)',
+    'Canada: dates for keeping permanent residence and for citizenship',
   'ca.intro':
     'From the date you became a Canadian permanent resident, your status before that and your trips, this works out two steps that depend on time alone: the residency obligation for keeping permanent resident status, and the physical presence for citizenship. How you get permanent residence (Express Entry points, provincial nomination, sponsorship and so on) is out of scope.',
   'ca.scope':
-    'The pilot checks only the day counts written in the law. It does not check tax filing, language, the citizenship test, prohibitions or other requirements; each result lists them. For an online application, the official calculator in your account takes precedence. Your entries are processed in your browser and are not saved or uploaded.',
+    'This checks only the day counts written in the law. It does not check tax filing, language, the citizenship test, prohibitions or other requirements; each result lists them. For an online application, the official calculator in your account takes precedence. Your entries are processed in your browser and are not saved or uploaded.',
   'ca.basics': 'About you',
   'ca.simulationDate': 'Simulation date',
   'ca.simulationDateHint':

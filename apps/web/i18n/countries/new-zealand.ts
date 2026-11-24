@@ -1,13 +1,13 @@
 export const zhCN = {
   'nz.name': '新西兰',
-  'nz.entryLink': '打开新西兰试点',
+  'nz.entryLink': '打开新西兰模拟器',
   'nz.entryDesc':
     '按居民签证与出入境记录，计算旅行条件到期日、永久居民签证和入籍在境天数的时间节点。',
-  'nz.title': '新西兰：永久居民签证与入籍的时间（试点）',
+  'nz.title': '新西兰：永久居民签证与入籍的时间',
   'nz.intro':
     '按你在新西兰的居民签证和出入境记录，计算只看时间的三个节点：居民签证的旅行条件何时到期、永久居民签证（PRV）的在境天数，以及入籍的在境天数。居民签证本身能否获批（技术移民打分、雇主、投资等）不在范围内。',
   'nz.scope':
-    '试点只检查移民局操作手册和入籍法写明的时间条件；品格、英语、居民签证附加条件等不检查，结果里逐项列出。所填内容只在你的浏览器里计算，不保存、不上传。',
+    '这里只检查移民局操作手册和入籍法写明的时间条件；品格、英语、居民签证附加条件等不检查，结果里逐项列出。所填内容只在你的浏览器里计算，不保存、不上传。',
   'nz.basics': '基本信息',
   'nz.simulationDate': '模拟日期',
   'nz.simulationDateHint': '按这一天判断，默认今天。',
@@ -52,15 +52,15 @@ export const zhCN = {
 
 export const en: Record<keyof typeof zhCN, string> = {
   'nz.name': 'New Zealand',
-  'nz.entryLink': 'Open the New Zealand pilot',
+  'nz.entryLink': 'Open New Zealand',
   'nz.entryDesc':
     'Use your resident visa and travel record to work out when your travel conditions end and the dates for the permanent resident visa and citizenship presence.',
   'nz.title':
-    'New Zealand: dates for the permanent resident visa and citizenship (pilot)',
+    'New Zealand: dates for the permanent resident visa and citizenship',
   'nz.intro':
     'From your New Zealand resident visa and trips, this works out three steps that depend on time alone: when your resident visa travel conditions end, the days needed for a permanent resident visa, and the presence requirement for citizenship. Whether you can get a resident visa (Skilled Migrant points, employers, investment and so on) is out of scope.',
   'nz.scope':
-    'The pilot checks only the time requirements written in the immigration instructions and the Citizenship Act. It does not check character, English, conditions on your resident visa or other requirements; each result lists them. Your entries are processed in your browser and are not saved or uploaded.',
+    'This checks only the time requirements written in the immigration instructions and the Citizenship Act. It does not check character, English, conditions on your resident visa or other requirements; each result lists them. Your entries are processed in your browser and are not saved or uploaded.',
   'nz.basics': 'About you',
   'nz.simulationDate': 'Simulation date',
   'nz.simulationDateHint':

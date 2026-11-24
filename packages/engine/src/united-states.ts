@@ -467,8 +467,8 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
         title,
         status: 'UNKNOWN',
         summary: L(
-          '你单独递交 I-829（未纳入投资人的申请）：现行条文没有写单独递交的家属何时递交，本试点不判断；请按投资人的递交期准备，并以 USCIS 说明为准（8 CFR 216.6(a)(1)(ii)）。',
-          'You file your own I-829 rather than being included in the investor’s: the current rule does not say when a family member filing separately must file, so this pilot does not work it out; plan around the investor’s filing period and check USCIS guidance (8 CFR 216.6(a)(1)(ii)).',
+          '你单独递交 I-829（未纳入投资人的申请）：现行条文没有写单独递交的家属何时递交，本计算不判断；请按投资人的递交期准备，并以 USCIS 说明为准（8 CFR 216.6(a)(1)(ii)）。',
+          'You file your own I-829 rather than being included in the investor’s: the current rule does not say when a family member filing separately must file, so this calculator does not work it out; plan around the investor’s filing period and check USCIS guidance (8 CFR 216.6(a)(1)(ii)).',
         ),
         checks: [],
         notChecked: [],
@@ -649,8 +649,8 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
               )
             : paperOnly
               ? L(
-                  `随投资人一并递交时，递交期按投资人取得条件身份的日期 ${req.principalConditional} 计算；单独递交的期限本试点不判断（8 CFR 216.6(a)(1)(ii)）。`,
-                  `Filing together with the investor, the period follows the date the investor became a conditional resident, ${req.principalConditional}; this pilot does not work out the period for a separate petition (8 CFR 216.6(a)(1)(ii)).`,
+                  `随投资人一并递交时，递交期按投资人取得条件身份的日期 ${req.principalConditional} 计算；单独递交的期限本计算不判断（8 CFR 216.6(a)(1)(ii)）。`,
+                  `Filing together with the investor, the period follows the date the investor became a conditional resident, ${req.principalConditional}; this calculator does not work out the period for a separate petition (8 CFR 216.6(a)(1)(ii)).`,
                 )
               : L(
                   `你在父母取得条件身份当天或之后 ${v.childConcurrentDays.value} 天内取得，纳入父母的 I-751 一并递交，递交期按父母的日期 ${req.principalConditional} 计算（8 CFR 216.4(a)(2)）。`,

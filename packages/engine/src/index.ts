@@ -33,6 +33,8 @@ export {
   familyIncomeThreshold,
   onProtection,
 } from './rules/current-law';
+export { AU_FULL_PATHWAYS, evaluateAustraliaFull } from './australia-full';
+export type { AuFullPathId, AuFullRequest } from './australia-full';
 export {
   AU_PERMANENT_SUBCLASSES,
   AU_TEMPORARY_SUBCLASSES,
@@ -158,6 +160,25 @@ export type {
   JpResult,
   JpTrip,
 } from './japan';
+export { evaluateJapanFull } from './japan-full';
+export type { JpFullRequest } from './japan-full';
+export type {
+  JpFullCheck,
+  JpFullPathway,
+  JpFullResult,
+} from './japan-full-shared';
+export type {
+  JpFullPrRequest,
+  JpFullPrRoute,
+  JpPrCommonEvidence,
+} from './japan-full-pr';
+export type {
+  JpFullNaturalisationRequest,
+  JpFullNaturalisationRoute,
+  JpNaturalisationEvidence,
+} from './japan-full-naturalisation';
+export type { JpFullReentryRequest } from './japan-full-reentry';
+export type { JpHspSnapshot, JpJSkipSnapshot } from './japan-full-talent';
 export { NZ_RESIDENT_CATEGORIES, evaluateNewZealand } from './new-zealand';
 export type {
   NzPathway,
@@ -184,3 +205,5 @@ export type {
   AuTrip,
   AuVisa,
 } from './australia';
+export { DE_FULL_ROUTES, evaluateGermanyFull } from './germany-full';
+export type { DeFullRequest, DeFullRoute } from './germany-full';
