@@ -125,10 +125,11 @@ export function actionAvailable(
   action: GrActivity,
   { affordable }: GrTools,
 ): boolean | undefined {
+  // Fees added in actionDetails count towards what the player can afford.
   if (action.id === 'settle')
     return (
       pathwayOf(state.result, 'pr')?.status === 'MET' &&
-      affordable(state, action.effects)
+      state.stats.money >= settleFees(state)
     );
   if (action.id === 'naturalise')
     return (
@@ -154,7 +155,7 @@ export function actionAvailable(
       !state.flags.includes('quarter-visa-renewed') &&
       addMonths(state.date, b.monthsPerQuarter) > early &&
       state.date <= late &&
-      affordable(state, action.effects)
+      state.stats.money >= renewalFees(state).fee + renewalFees(state).fine
     );
   }
   if (
