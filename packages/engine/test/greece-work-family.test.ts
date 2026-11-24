@@ -546,6 +546,35 @@ test.each([
 );
 
 test.each([
+  [undefined, false, 'NOT_MET'],
+  [false, false, 'NOT_MET'],
+  [false, true, 'MET'],
+  [false, undefined, 'UNKNOWN'],
+  [true, false, 'MET'],
+  [true, undefined, 'MET'],
+] as const)(
+  'Ο.1 initial Blue Card family: joint filing %s, currently valid card %s',
+  (jointBlueCardApplication, sponsorPermitValid, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      entry: 'national-visa',
+      familyTcn: {
+        ...reunion,
+        sponsor: 'blue-card',
+        sponsorLawfulYears: 0,
+        sponsorPermitLeadsToPermanentResidence: false,
+        sponsorPermitValid,
+        jointBlueCardApplication,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'FT-01')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
   [1, 'NOT_MET'],
   [2, 'MET'],
   [undefined, 'UNKNOWN'],

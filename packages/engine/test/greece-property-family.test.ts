@@ -36,6 +36,7 @@ const investor: Investor = {
   payer: 'applicant',
   notarialEvidence: true,
   registeredTransferEvidence: true,
+  e9DeclarationCopy: true,
   use: 'residential-or-long-let',
   worksInGreeceUnderThisPermit: false,
   family: [],
@@ -639,6 +640,7 @@ describe('property and family reviews through evaluateGreeceFull', () => {
   test('Β.5 accepts a registration application receipt on the decision effective date, including pending filings', () => {
     const goldenVisa = {
       ...investor,
+      e9DeclarationCopy: false,
       registeredTransferEvidence: 'application-receipt',
     } as const;
     verify(
@@ -660,6 +662,137 @@ describe('property and family reviews through evaluateGreeceFull', () => {
       'MET',
     );
   });
+
+  test.each([
+    ['2025-11-10', 'MET'],
+    ['2025-11-11', 'NOT_MET'],
+  ] as const)(
+    'Β.5 applies the Ε9 requirement by filing date (%s)',
+    (simulationDate, status) => {
+      verify(
+        full('GR-GOLDEN-VISA', {
+          simulationDate,
+          goldenVisa: { ...investor, e9DeclarationCopy: false },
+        }),
+        'GV-03',
+        status,
+      );
+    },
+  );
+
+  test.each([
+    [true, 'MET'],
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'Β.5 initial property declaration Ε9 (%s)',
+    (e9DeclarationCopy, status) => {
+      for (const kind of ['standard', 'conversion'] as const) {
+        const result = full('GR-GOLDEN-VISA', {
+          goldenVisa: {
+            ...investor,
+            kind,
+            qualifyingValueEur: kind === 'conversion' ? 250000 : 800000,
+            conversionComplete: true,
+            conversionActDate: '2024-04-05',
+            e9DeclarationCopy,
+          },
+        });
+        verify(result, 'GV-03', status);
+      }
+    },
+  );
+
+  test.each([
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+    [true, 'MET'],
+    ['application-receipt', 'MET'],
+    ['lawyer-application-certificate', 'MET'],
+  ] as const)(
+    'Β.5 initial tourist lease registration (%s) with no Ε9',
+    (registeredTransferEvidence, status) => {
+      verify(
+        full('GR-GOLDEN-VISA', {
+          goldenVisa: {
+            ...investor,
+            title: 'qualifying-tourist-lease',
+            e9DeclarationCopy: false,
+            registeredTransferEvidence,
+          },
+        }),
+        'GV-03',
+        status,
+      );
+    },
+  );
+
+  const renewalDate = '2031-11-23';
+  function renewInvestment(answers: Partial<Investor>) {
+    return full('GR-GOLDEN-VISA', {
+      simulationDate: renewalDate,
+      permits: [{ kind: 'investor', from: '2026-12-01', to: '2031-12-01' }],
+      currentCardExpiresOn: '2031-12-01',
+      passport: { kind: 'exception-granted' },
+      goldenVisa: {
+        ...investor,
+        stage: 'renewal',
+        retainsInvestment: true,
+        ...answers,
+      },
+    });
+  }
+
+  test.each([
+    [true, undefined, 'MET'],
+    [false, true, 'MET'],
+    [false, 'application-receipt', 'NOT_MET'],
+    [false, 'lawyer-application-certificate', 'NOT_MET'],
+    [false, false, 'NOT_MET'],
+    [false, undefined, 'UNKNOWN'],
+    [undefined, 'application-receipt', 'UNKNOWN'],
+    [undefined, true, 'MET'],
+  ] as const)(
+    'Β.5 renewal registration proof at grant %s and evidence at renewal %s',
+    (registrationProofSubmittedAtGrant, registeredTransferEvidence, status) => {
+      for (const facts of [
+        { kind: 'standard' },
+        { kind: 'conversion' },
+        { title: 'qualifying-tourist-lease', e9DeclarationCopy: false },
+      ] as const) {
+        const result = renewInvestment({
+          ...facts,
+          registrationProofSubmittedAtGrant,
+          registeredTransferEvidence,
+        });
+        expect(result.checks.find((item) => item.id === 'GV-08')?.status).toBe(
+          status,
+        );
+        expect(result.status).toBe(status);
+        expect(result.earliestDate).toBe(
+          status === 'MET' ? renewalDate : undefined,
+        );
+      }
+    },
+  );
+
+  test.each([
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'Β.5 renewal requires Ε9 for ownership (%s)',
+    (e9DeclarationCopy, status) => {
+      for (const kind of ['standard', 'conversion'] as const) {
+        verify(renewInvestment({ kind, e9DeclarationCopy }), 'GV-08', status);
+      }
+      expect(
+        renewInvestment({
+          title: 'qualifying-tourist-lease',
+          e9DeclarationCopy,
+        }).status,
+      ).toBe('MET');
+    },
+  );
 
   test('Β.5 conversion uses the certified permit, file update or revision date and the filing date', () => {
     const converted: Investor = {
@@ -1033,6 +1166,8 @@ describe('property and family reviews through evaluateGreeceFull', () => {
           regime: 'current',
           kind: 'standard',
           retainsInvestment: true,
+          registrationProofSubmittedAtGrant: true,
+          e9DeclarationCopy: true,
           family: [],
           use: 'residential-or-long-let',
           worksInGreeceUnderThisPermit: false,

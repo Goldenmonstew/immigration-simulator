@@ -52,9 +52,13 @@ interface GoldenVisaAnswers {
     | 'ineligible';
   /** Objective value recorded for an inheritance or parental gift. */
   assessedValueEur?: number;
-  /** True includes a lawyer's proof of completed registration. False means no registration evidence. */
+  /** Evidence for this filing. True includes a lawyer's proof of completed registration. */
   registeredTransferEvidence?:
     boolean | 'application-receipt' | 'lawyer-application-certificate';
+  /** At renewal, was proof of completed registration already submitted at the initial grant? */
+  registrationProofSubmittedAtGrant?: boolean;
+  /** Copy of the investor's Ε9 declaration for this filing. */
+  e9DeclarationCopy?: boolean;
   builtOrBuildingPermit?: boolean;
   mainAreaSqm?: number;
   /** Whether the main spaces had been converted to housing by filing. */
@@ -327,13 +331,28 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
   const transfer =
     a.acquisition === 'inheritance' || a.acquisition === 'parental-gift';
   const lease = a.title === 'qualifying-tourist-lease';
+  const filingDate = renewal ? sim : (a.overseasFilingDate ?? sim);
+  const currentDocuments = filingDate >= p.gvConversionDecisionEffective.value;
+  const e9 =
+    !currentDocuments ||
+    any(a.title === undefined ? undefined : lease, a.e9DeclarationCopy);
+  const e9Zh =
+    currentDocuments && !lease
+      ? '产权投资须提供投资者的 Ε9 房产申报表副本。'
+      : '';
+  const e9En =
+    currentDocuments && !lease
+      ? ' For property ownership, provide a copy of the investor’s Ε9 property declaration.'
+      : '';
+  const registration = a.registeredTransferEvidence;
+  const receiptOnly = typeof registration === 'string';
   const acquisitionKnown = lease || a.acquisition !== undefined;
   const conversion =
     !lease &&
     !transfer &&
     (a.kind === 'conversion' || a.kind === 'factory-conversion');
   const specialTier = conversion
-    ? conversionTier(a, a.overseasFilingDate ?? sim)
+    ? conversionTier(a, filingDate)
     : !lease && !transfer && a.kind === 'listed';
   const price = transfer ? a.assessedValueEur : a.qualifyingValueEur;
   const standardPrice = meetsStandardPrice(a, price);
@@ -443,23 +462,27 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
   if (!renewal) {
     // Article 3 of KYA 214926/2025 also admits application receipts for earlier pending filings.
     const acceptsReceipt = sim >= p.gvConversionDecisionEffective.value;
-    const registration =
-      typeof a.registeredTransferEvidence === 'string'
-        ? acceptsReceipt
-        : a.registeredTransferEvidence;
-    const transferEvidence = all(a.notarialEvidence, registration);
+    const acquisitionEvidence = all(
+      a.notarialEvidence,
+      receiptOnly ? acceptsReceipt : registration,
+      e9,
+    );
     const registrationZh = acceptsReceipt
       ? '须提供登记凭证、登记申请回执或律师对登记或登记申请的证明。'
-      : '须提供已完成登记的凭证或律师对该登记的证明。';
+      : lease
+        ? '须提供已完成租约登记的凭证。'
+        : '须提供已完成登记的凭证或律师对该登记的证明。';
     const registrationEn = acceptsReceipt
       ? ' Provide proof of registration, the registration application receipt, or a lawyer’s certificate confirming either.'
-      : ' Provide proof of completed registration or a lawyer’s certificate confirming registration.';
+      : lease
+        ? ' Provide proof of completed lease registration.'
+        : ' Provide proof of completed registration or a lawyer’s certificate confirming registration.';
     const adultOn =
       req.birthDate && addYears(req.birthDate, p.gvFees.value.minorAge);
     const transferMet =
-      transferEvidence === true
+      acquisitionEvidence === true
         ? adultOn && (adultOn <= sim || adultOn)
-        : transferEvidence;
+        : acquisitionEvidence;
     checks.push(
       c.check(
         'GV-03',
@@ -473,28 +496,33 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
                 a.fullyPaidAndConditionsReleased,
                 a.payment === undefined ? undefined : a.payment !== 'other',
                 a.payer === undefined ? undefined : a.payer !== 'other',
-                a.notarialEvidence,
-                lease || registration,
+                acquisitionEvidence,
               ),
         [
           grSource(
             'F23',
             'art. 64, art. 100(1)(ε),(3),(5),(6),(11), pp. 1198–1200',
           ),
-          grSource('F21', 'art. 31(2.1)(β)–(γ), (2.3)(β)–(γ)'),
+          grSource('F21', 'art. 31, §§2.1(β–γ), 2.2(β–στ), 2.3(β–γ)'),
           grSource(
             'F59',
-            'art. 2, §§2.1(γ), 2.3(γ), 2.6(γ), 2.7(γ); arts. 3–4',
+            'art. 2, §§2.1(β,γ,ζ), 2.2(β–ε), 2.3(γ,στ), 2.6(γ,η), 2.7(γ,ζ); arts. 3–4',
           ),
         ],
         (transfer
           ? '成年继承人或受父母赠与人应提供公证估值，公证材料须列明房产此前的用卡记录。'
-          : '确认价款付清、解除条件已撤销、付款渠道和汇款人合规，且已核对原业主用卡记录。') +
-          (lease ? '' : registrationZh),
+          : lease
+            ? '提供合格旅游租约、公证人的租金及付款证明和希腊国家旅游组织的知悉证明。'
+            : '确认价款付清、解除条件已撤销、付款渠道和汇款人合规，且已核对原业主用卡记录。') +
+          registrationZh +
+          e9Zh,
         (transfer
           ? 'An adult heir or recipient of a parental gift must document the assessed value and prior investor-card use in the notarial record.'
-          : 'Confirm full payment, released conditions, a qualifying bank channel and payer, and the seller’s investor-card record.') +
-          (lease ? '' : registrationEn),
+          : lease
+            ? 'Provide the qualifying tourist lease, the notary’s certificate documenting the rent and payment, and acknowledgment from the Greek National Tourism Organisation.'
+            : 'Confirm full payment, released conditions, a qualifying bank channel and payer, and the seller’s investor-card record.') +
+          registrationEn +
+          e9En,
         !transfer && a.payer === undefined ? ['PD-307'] : undefined,
       ),
     );
@@ -565,14 +593,26 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
     ),
   );
   if (renewal) {
+    const registrationZh = currentDocuments
+      ? '首签未交正式登记凭证者，续期须补登记凭证或律师对已完成登记的证明。'
+      : '';
+    const registrationEn = currentDocuments
+      ? ' If proof of completed registration was missing at the initial grant, supply it at renewal. A lawyer’s certificate confirming registration is accepted.'
+      : '';
     checks.push(
       c.check(
         'GV-08',
-        '保留投资与保护建筑修复',
-        'Continued investment and listed-building restoration',
+        '保留投资与续期材料',
+        'Continued investment and renewal evidence',
         all(
           a.retainsInvestment,
           a.title !== 'ineligible',
+          e9,
+          !currentDocuments ||
+            any(
+              a.registrationProofSubmittedAtGrant,
+              receiptOnly ? false : registration,
+            ),
           legacy || historical
             ? true
             : a.kind === undefined
@@ -584,9 +624,10 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         [
           grSource('F23', 'art. 64, art. 100(4),(7Α),(8)'),
           grSource('F21', 'art. 31(3)(α), p. 16505'),
+          grSource('F59', 'art. 2, §3(α,δ,ε,η); arts. 3–4'),
         ],
-        `须保留产权或租约。保护建筑首次续期前须完成修复，否则罚 €${p.gvFines.value.listedRestoration}；离境不阻碍续期。`,
-        `Keep title or the lease. Listed buildings require full restoration by first renewal, with a €${p.gvFines.value.listedRestoration} fine for breach. Absence does not prevent renewal.`,
+        `须保留产权或租约。${registrationZh}${e9Zh}保护建筑首次续期前须完成修复，否则罚 €${p.gvFines.value.listedRestoration}；离境不阻碍续期。`,
+        `Keep title or the lease.${registrationEn}${e9En} Listed buildings require full restoration by first renewal, with a €${p.gvFines.value.listedRestoration} fine for breach. Absence does not prevent renewal.`,
       ),
     );
   }

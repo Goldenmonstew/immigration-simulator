@@ -69,6 +69,8 @@ interface FamilyAnswers {
   sponsorPermitLeadsToPermanentResidence?: boolean;
   /** Whether the sponsor currently holds qualifying residence for Ο.1. */
   sponsorPermitValid?: boolean;
+  /** The complete initial family and sponsor's Blue Card applications are filed together. */
+  jointBlueCardApplication?: boolean;
   /** Personal net income excludes social assistance and other household members' income. */
   sponsorPersonalNetEur?: number;
   /** At renewal, evidence of compliance must cover both the sponsor and applicant. */
@@ -531,6 +533,8 @@ function familySponsor(f: FamilyAnswers, today: IsoDate): Filing {
     (f.sponsorPermitDurationYears === 0 ? false : undefined);
   if (f.stage === 'renewal') return all(f.sponsor && true, validPermit);
   if (!f.sponsor) return undefined;
+  if (f.sponsor === 'blue-card')
+    return f.jointBlueCardApplication === true || validPermit;
   if (f.sponsor !== 'ordinary') return true;
   if (f.formedLegallyInGreece) return validPermit;
   return allDue(
@@ -730,7 +734,7 @@ function familyChecks(
   const sponsorRefs = [
     grSource(
       'F16',
-      'arts. 42(2), 56(5), 83(1)–(2), 84(1), 87(1), 88(1)(ε), 92, 112(1)',
+      'arts. 42(2)–(4), 56(5), 83(1)–(2), 84(1), 87(1), 88(1)(ε), 92, 112(1)',
     ),
     grSource('F36', 'arts. 20, 29'),
     grSource('F21', 'art. 23(I), (II)'),
@@ -758,10 +762,14 @@ function familyChecks(
         familySponsor(f, req.simulationDate),
         sponsorRefs,
         initial
-          ? `普通担保人须合法居住满 ${p.familySponsor.value.years} 年，现持许可仍有效，且签发期限至少 ${p.familySponsor.value.permitYears} 年、可通往永久居留。未满年限时填写连续居住起始日，以计算可递件日期。确认随行类别或在希合法组建家庭的专门程序。`
+          ? f.sponsor === 'blue-card'
+            ? '家属在担保人获批蓝卡后单独递件，须确认蓝卡仍有效。两份完整申请同步递交时可同时审理、决定。'
+            : `普通担保人须合法居住满 ${p.familySponsor.value.years} 年，现持许可仍有效，且签发期限至少 ${p.familySponsor.value.permitYears} 年、可通往永久居留。未满年限时填写连续居住起始日，以计算可递件日期。确认随行类别或在希合法组建家庭的专门程序。`
           : '请确认担保人现仍持有合资格的居留身份。担保人居留已终止时，家属可另按 Ο.2 的条件核对自主居留权。',
         initial
-          ? `An ordinary sponsor needs ${p.familySponsor.value.years} years of lawful residence and a currently valid permit issued for at least ${p.familySponsor.value.permitYears} years with a prospect of permanent residence. Supply the residence start date to calculate a future filing date. Identify any simultaneous-family or domestic family-formation procedure.`
+          ? f.sponsor === 'blue-card'
+            ? 'If the family files separately after the sponsor has received a Blue Card, confirm the card is still valid. Complete applications filed together are decided together.'
+            : `An ordinary sponsor needs ${p.familySponsor.value.years} years of lawful residence and a currently valid permit issued for at least ${p.familySponsor.value.permitYears} years with a prospect of permanent residence. Supply the residence start date to calculate a future filing date. Identify any simultaneous-family or domestic family-formation procedure.`
           : 'Confirm that the sponsor still holds qualifying residence. If that residence has ended, assess any independent right under Ο.2 separately.',
       ),
     );
