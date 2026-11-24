@@ -357,6 +357,8 @@ export interface UsEmploymentAnswers {
   permCertifiedOn?: IsoDate;
   /** Actual receipt date of the underlying I-140, on or before the simulation date. */
   i140FiledOn?: IsoDate;
+  /** Priority date of this petition if it is not available from the PERM or I-140 receipt. */
+  priorityDate?: IsoDate;
   prevailingWageUsd?: number;
   profferedWageUsd?: number;
   recruitmentAndFeesCompliant?: boolean;
@@ -383,18 +385,26 @@ export interface UsEmploymentAnswers {
   officerStatementAccepted?: UsReview;
   /** One entry for each legally required year from the priority date. */
   wageYears?: {
-    /** Calendar year of these amounts. Financial periods with other dates can use through. */
+    /** Calendar year of these amounts. Defaults to the year of through, if supplied. */
     year?: number;
     /** Last date represented by all amounts in this entry, inclusive. */
     through?: IsoDate;
+    /** First date of the wages and net income, for evidence specific to the prorated period. */
+    from?: IsoDate;
     paidUsd?: number;
     netIncomeUsd?: number;
     netCurrentAssetsUsd?: number;
   }[];
-  /** Whether the annual records cover the full required period. False means some records are missing. */
+  /** Whether the required initial financial evidence covers the period through wagePeriodThrough. */
   wagePeriodComplete?: boolean;
   /** Last date covered by the annual records. Defaults to the simulation date. */
   wagePeriodThrough?: IsoDate;
+  priorityYearProration?: {
+    /** Case-specific acceptance of proration by USCIS. */
+    finding: UsReview;
+    /** Established amount for the prorated priority-date year, if available. */
+    profferedWageUsd?: number;
+  };
   abilityToPayTotality?: UsReview;
   internationalAward?: boolean;
   extraordinaryEvidenceCount?: number;

@@ -1198,6 +1198,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 20 CFR §656.12(b) 禁止雇主向员工索取或收取取得 PERM 的雇主应付费用。(c) 规定相关证据可触发调查，并可能导致驳回、撤销或禁止申办。认证最终效力须按个案决定确认。[20 CFR §656.12(b)–(c)](https://www.ecfr.gov/current/title-20/section-656.12#p-656.12(b))
 - 普通 PERM 认证也核对认证职位的工资与劳动条件，见 20 CFR §§656.10(c)(1)、656.24(b)(3)。雇员职业分类与雇主实际支付能力由 USCIS 在 I-140 审查，见 SRC-302，8 CFR §204.5(g)(2)、(k)、(l)。I-140 待决时符合职业转换的支付能力证明期间从优先日到 I-140 递交日，见存档的 6 USCIS-PM E.4(D)(5)。[USCIS PA-2024-01，pp1–2](https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20240105-AbilityToPay.pdf)
 - 8 CFR §204.5(g)(2) 和 6 USCIS-PM E.4(A)–(B) 按适用期间核对工资支付、年度报告、联邦纳税申报及审计财务报表。历史阶段使用对应年度及截至该阶段的金额。后出具的文件可证明已发生的历史事实，所载较晚期间的付款或短缺归入相应阶段。见 [8 CFR §204.5(g)(2)](https://www.ecfr.gov/current/title-8/section-204.5#p-204.5(g)(2))、[6 USCIS-PM E.4](https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-4)。
+- 8 CFR §204.5(d) 以 DOL 收件日确定普通 PERM 的优先日，Schedule A 和无需 DOL 劳工认证的请愿用 USCIS 的 I-140 合规收件日。6 USCIS-PM E.4(A)(4) 核对雇用至少 100 名工人时经接受的财务主管声明。(C)(1)–(3) 分别核对实付工资、净收入或净流动资产及全貌证据。(D)(1) 与注 24 说明首年可按比例核算，实付工资和净收入须有优先日后适用期间的证明，年度末净流动资产按其余额核对。[8 CFR §204.5(d)](https://www.ecfr.gov/current/title-8/section-204.5#p-204.5(d)) · [6 USCIS-PM E.4](https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-4)
 - 20 CFR §656.17(a)、(c) 的 ETA-9089 允许电子或邮寄。电子递交使用 [DOL FLAG，PERM Filing Process](https://flag.dol.gov/programs/PERM)。
 
 ## SRC-306 职业分类与 EB-1A、EB-2 NIW 证据

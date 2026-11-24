@@ -438,66 +438,157 @@ function permRecruitment(a: UsEmploymentAnswers, i140Date?: IsoDate): Answer {
   );
 }
 
-function abilityToPay(request: UsFullRequest, through: IsoDate): Answer {
-  const a = request.employment;
-  const proffered = a?.profferedWageUsd;
-  const officer = all(
-    atLeast(a?.employerEmployees, v.pay.value.financialOfficerMinEmployees),
-    reviewed(a?.officerStatementAccepted),
+type WageYear = NonNullable<UsEmploymentAnswers['wageYears']>[number];
+
+function wageEvidence(
+  proffered: number,
+  { paidUsd, netIncomeUsd, netCurrentAssetsUsd }: WageYear,
+): Answer {
+  const coversShortfall = (amount: number | undefined): Answer =>
+    paidUsd === undefined
+      ? atLeast(amount, proffered) === true || undefined
+      : atLeast(amount, proffered - paidUsd);
+  return any(
+    atLeast(paidUsd, proffered),
+    coversShortfall(netIncomeUsd),
+    coversShortfall(netCurrentAssetsUsd),
   );
-  const coverage = a?.wagePeriodThrough ?? request.simulationDate;
-  const stageYear = through.slice(0, 4);
-  const coverageYear = coverage.slice(0, 4);
-  const years = a?.wageYears;
-  const annual = years?.flatMap(
-    ({
-      year,
-      through: recordedThrough,
-      paidUsd,
-      netIncomeUsd,
-      netCurrentAssetsUsd,
-    }) => {
-      const calendarYear = year === undefined ? undefined : String(year);
-      if (calendarYear && calendarYear > stageYear) return [];
-      const cutoff =
-        recordedThrough ??
-        (calendarYear === undefined
+}
+
+function annualPay(
+  a: UsEmploymentAnswers,
+  coverage: IsoDate,
+  through: IsoDate,
+): Answer {
+  const { profferedWageUsd: proffered, wageYears, priorityYearProration } = a;
+  if (proffered === undefined || !wageYears?.length) return undefined;
+
+  const ordinaryPerm =
+    (a.category === 'eb2-perm' || a.category === 'eb3') &&
+    a.perm !== 'schedule-a';
+  const priorityDate =
+    (ordinaryPerm
+      ? a.permRecruitment?.laborCertificationFiledOn
+      : a.i140FiledOn) ?? a.priorityDate;
+  if (priorityDate && priorityDate > through) return undefined;
+
+  // A PERM certification or I-140 receipt bounds the latest possible priority
+  // date but cannot prove when the DOL received the PERM application.
+  const latestPriority =
+    priorityDate ??
+    [a.permCertifiedOn, a.i140FiledOn].filter(Boolean).sort()[0];
+
+  const initialEvidence =
+    (a.wagePeriodComplete === true && through <= coverage) || undefined;
+  const stageYear = Number(through.slice(0, 4));
+  const dated = wageYears.some(
+    ({ year, through }) => year !== undefined || through !== undefined,
+  );
+  if (!dated) {
+    if (latestPriority && Number(latestPriority.slice(0, 4)) < stageYear)
+      return undefined;
+    // Legacy undated evidence for a single year.
+    const summary = all(
+      initialEvidence,
+      ...wageYears.map((row) =>
+        through < coverage && wageYears.length !== 1
           ? undefined
-          : calendarYear === coverageYear
-            ? coverage
-            : `${calendarYear}-12-31`);
-      // Keep the legacy single-row summary. Multiple undated rows cannot be
-      // assigned to a historical stage by list order.
-      const undatedAtStage =
-        !cutoff && through < coverage && years.length !== 1;
-      if (
-        undatedAtStage ||
-        (cutoff && cutoff > through) ||
-        proffered === undefined
-      )
-        return [undefined];
-      const coversShortfall = (amount: number | undefined): Answer =>
-        paidUsd === undefined
-          ? atLeast(amount, proffered) === true || undefined
-          : atLeast(amount, proffered - paidUsd);
-      return [
-        any(
-          atLeast(paidUsd, proffered),
-          coversShortfall(netIncomeUsd),
-          coversShortfall(netCurrentAssetsUsd),
-        ),
-      ];
-    },
+          : wageEvidence(proffered, row),
+      ),
+    );
+    return summary === false &&
+      priorityDate &&
+      !priorityDate.endsWith('-01-01') &&
+      priorityYearProration?.finding !== 'barred'
+      ? undefined
+      : summary;
+  }
+
+  if (!latestPriority || latestPriority > through) return undefined;
+  const firstYear = Number(latestPriority.slice(0, 4));
+
+  const byYear = new Map<number, { row: WageYear; cutoff: IsoDate }[]>();
+  for (const row of wageYears) {
+    const year =
+      row.year ?? (row.through ? Number(row.through.slice(0, 4)) : undefined);
+    if (year === undefined) continue;
+    const cutoff =
+      row.through ??
+      (String(year) === coverage.slice(0, 4) ? coverage : `${year}-12-31`);
+    if (cutoff > through || (priorityDate && cutoff < priorityDate)) continue;
+    const records = byYear.get(year) ?? [];
+    records.push({ row, cutoff });
+    byYear.set(year, records);
+  }
+
+  const annual: Answer[] = [];
+  for (let year = firstYear; year <= stageYear; year++) {
+    const records = byYear.get(year);
+    if (!records) return undefined;
+    const latest = records.reduce(
+      (latest, { cutoff }) => (cutoff > latest ? cutoff : latest),
+      records[0].cutoff,
+    );
+    const current = records.filter(({ cutoff }) => cutoff === latest);
+    const fullWage = any(
+      ...current.map(({ row }) => wageEvidence(proffered, row)),
+    );
+    if (
+      year !== firstYear ||
+      fullWage === true ||
+      priorityDate?.endsWith('-01-01')
+    ) {
+      annual.push(fullWage);
+      continue;
+    }
+
+    const proration = reviewed(priorityYearProration?.finding);
+    if (proration !== true || !priorityDate) {
+      annual.push(proration === false ? fullWage : undefined);
+      continue;
+    }
+    // E.4(D)(1) illustrates a whole-month proportion. For other start dates,
+    // use the case's established amount because no partial-month method is specified.
+    const prorated =
+      priorityYearProration?.profferedWageUsd ??
+      (priorityDate.endsWith('-01')
+        ? (proffered * (13 - Number(priorityDate.slice(5, 7)))) / 12
+        : undefined);
+    const postPriority = current.filter(
+      ({ row }) =>
+        row.from === priorityDate &&
+        (row.paidUsd !== undefined || row.netIncomeUsd !== undefined),
+    );
+    annual.push(
+      prorated !== undefined && postPriority.length
+        ? any(
+            ...postPriority.map(({ row, cutoff }) =>
+              wageEvidence(prorated, {
+                ...row,
+                netCurrentAssetsUsd:
+                  cutoff === `${year}-12-31`
+                    ? row.netCurrentAssetsUsd
+                    : undefined,
+              }),
+            ),
+          )
+        : undefined,
+    );
+  }
+  return all(initialEvidence, priorityDate ? true : undefined, ...annual);
+}
+
+function abilityToPay(request: UsFullRequest, through: IsoDate): Answer {
+  const a = request.employment ?? {};
+  const officer = all(
+    atLeast(a.employerEmployees, v.pay.value.financialOfficerMinEmployees),
+    reviewed(a.officerStatementAccepted),
   );
-  const records = annual?.length
-    ? all(
-        a?.wagePeriodComplete === true && through <= coverage
-          ? true
-          : undefined,
-        ...annual,
-      )
-    : undefined;
-  return any(officer, records, reviewed(a?.abilityToPayTotality));
+  return any(
+    officer,
+    annualPay(a, a.wagePeriodThrough ?? request.simulationDate, through),
+    reviewed(a.abilityToPayTotality),
+  );
 }
 
 export function employmentChecks(

@@ -1798,8 +1798,12 @@ describe('review86-1 regressions', () => {
   });
 
   test('I-485 does not restart PERM validity after a timely I-140', () => {
+    const historical = {
+      permCertifiedOn: '2025-06-01',
+      abilityToPayTotality: 'cleared',
+    } as const;
     const approved = withEmployment(
-      { permCertifiedOn: '2025-06-01', i140FiledOn: '2025-07-01' },
+      { ...historical, i140FiledOn: '2025-07-01' },
       'approved',
     );
     expect(condition(approved, 'C28-OFFER-PERM').status).toBe('MET');
@@ -1808,10 +1812,7 @@ describe('review86-1 regressions', () => {
       approvalStatus: 'MET',
       earliestDate: time.simulationDate,
     });
-    const missing = withEmployment(
-      { permCertifiedOn: '2025-06-01' },
-      'approved',
-    );
+    const missing = withEmployment(historical, 'approved');
     expect(condition(missing, 'C28-OFFER-PERM')).toMatchObject({
       status: 'MET',
       filingStatus: 'MET',
@@ -2771,7 +2772,7 @@ describe('review86-4 regressions', () => {
     const request: UsFullRequest = {
       ...withEmployment({
         i140FiledOn: '2026-07-01',
-        wagePeriodThrough: '2027-01-05',
+        abilityToPayTotality: 'cleared',
       }),
       admission: {
         ...e.admission,
@@ -2990,7 +2991,11 @@ describe('review86-5 regressions', () => {
   test('an approved I-140 establishes historical PERM compliance without a receipt date', () => {
     const request: UsFullRequest = {
       ...e,
-      employment: { ...employment, permCertifiedOn: '2025-10-01' },
+      employment: {
+        ...employment,
+        permCertifiedOn: '2025-10-01',
+        abilityToPayTotality: 'cleared',
+      },
       admission: { ...e.admission, petitionStatus: 'approved' },
     };
     expect(condition(request, 'C33-VISA-AND-ENTRY').status).toBe('MET');
@@ -8041,6 +8046,7 @@ describe('review86-23 regressions', () => {
           ...filed.employment,
           permCertifiedOn: '2025-10-01',
           i140FiledOn: '2026-02-09',
+          abilityToPayTotality: 'cleared',
         },
         admission: {
           ...filed.admission,
@@ -8199,6 +8205,7 @@ describe('review86-24 regressions', () => {
         ...filed,
         employment: {
           ...filed.employment,
+          priorityDate: '2025-01-01',
           wageYears: [
             { year: 2025, through, paidUsd: 60000 },
             { year: 2026, ...shortfall },
@@ -8217,7 +8224,7 @@ describe('review86-24 regressions', () => {
     },
   );
 
-  test('does not use a later annual wage payment to prove earlier ability to pay', () => {
+  test('keeps both stages unknown when the priority year is missing', () => {
     const request: UsFullRequest = {
       ...filed,
       employment: {
@@ -8227,11 +8234,13 @@ describe('review86-24 regressions', () => {
     };
     expect(path(request)).toMatchObject({
       status: 'UNKNOWN',
-      approvalStatus: 'MET',
+      approvalStatus: 'UNKNOWN',
     });
+    expect(path(request).approvalEarliestDate).toBeUndefined();
+    expect(path(request).pendingDetails).toContain('PD-277');
   });
 
-  test('keeps undated multi-year evidence unknown at an earlier stage', () => {
+  test('keeps unassigned annual evidence unknown in a multi-year case', () => {
     const request: UsFullRequest = {
       ...filed,
       employment: {
@@ -8241,7 +8250,7 @@ describe('review86-24 regressions', () => {
     };
     expect(path(request)).toMatchObject({
       status: 'UNKNOWN',
-      approvalStatus: 'NOT_MET',
+      approvalStatus: 'UNKNOWN',
     });
   });
 
@@ -8250,9 +8259,11 @@ describe('review86-24 regressions', () => {
     ['2026-11-23', 30, 'MET'],
     ['2026-11-23', 180, 'MET'],
     ['2026-11-23', 181, 'UNKNOWN'],
-    ['2026-11-23', 237, 'UNKNOWN'],
+    ['2026-11-23', 204, 'UNKNOWN'],
+    ['2026-11-23', 205, 'NOT_MET'],
+    ['2026-11-23', 237, 'NOT_MET'],
   ] as const)(
-    'uses the cumulative count only to establish an earlier cap (%s, %s)',
+    'bounds the cumulative count at an earlier decision (%s, %s)',
     (through, total, approvalStatus) => {
       const decisionOn = '2026-10-30';
       const request: UsFullRequest = {
@@ -8261,6 +8272,7 @@ describe('review86-24 regressions', () => {
           ...filed.employment,
           permCertifiedOn: '2025-10-01',
           i140FiledOn: '2026-02-09',
+          abilityToPayTotality: 'cleared',
         },
         admission: {
           ...filed.admission,
@@ -8432,4 +8444,149 @@ describe('review86-24 regressions', () => {
     };
     expect(condition(request, 'C19-REPLACEMENT').status).toBe('MET');
   });
+});
+
+describe('review86-25 regressions', () => {
+  const request = {
+    ...e,
+    employment: {
+      ...e.employment,
+      permRecruitment: { laborCertificationFiledOn: '2025-07-01' },
+      permCertifiedOn: '2025-09-01',
+      i140FiledOn: '2025-10-01',
+    },
+    admission: {
+      ...e.admission,
+      i485FiledOn: '2026-08-04',
+      decisionOn: '2026-11-23',
+      lawfulNonimmigrantStatusAtFiling: true,
+      visaAtFilingByMonth: { '2026-08': 'available' },
+    },
+  } satisfies UsFullRequest;
+
+  const current = { through: '2026-08-04', paidUsd: 60000 };
+  const first = {
+    year: 2025,
+    from: '2025-07-01',
+    paidUsd: 45000,
+    netIncomeUsd: 0,
+    netCurrentAssetsUsd: 0,
+  };
+
+  test.each([
+    [undefined, 'UNKNOWN'],
+    [{ employerEmployees: 100, officerStatementAccepted: 'cleared' }, 'MET'],
+    [{ abilityToPayTotality: 'cleared' }, 'MET'],
+  ] as const)(
+    'requires the priority year unless independent evidence establishes ability (%j)',
+    (independent, status) => {
+      const missing = {
+        ...request,
+        employment: {
+          ...request.employment,
+          ...independent,
+          wageYears: [current],
+        },
+      };
+      expect(condition(missing, 'C29-ABILITY-TO-PAY').status).toBe(status);
+      expect(path(missing)).toMatchObject({ status, approvalStatus: status });
+    },
+  );
+
+  test('does not count a pre-priority year in place of a missing intervening year', () => {
+    const missing = {
+      ...request,
+      employment: {
+        ...request.employment,
+        permRecruitment: { laborCertificationFiledOn: '2024-07-01' },
+        wageYears: [
+          { year: 2023, paidUsd: 60000 },
+          { year: 2024, paidUsd: 60000 },
+          current,
+        ],
+      },
+    };
+    expect(condition(missing, 'C29-ABILITY-TO-PAY').status).toBe('UNKNOWN');
+    expect(path(missing).approvalEarliestDate).toBeUndefined();
+  });
+
+  test.each([
+    [undefined, 'UNKNOWN'],
+    ['pending', 'UNKNOWN'],
+    ['barred', 'NOT_MET'],
+    ['cleared', 'MET'],
+  ] as const)('uses proration only once accepted (%s)', (finding, status) => {
+    const prorated = {
+      ...request,
+      employment: {
+        ...request.employment,
+        priorityYearProration: finding === undefined ? undefined : { finding },
+        wageYears: [first, current],
+      },
+    };
+    expect(condition(prorated, 'C29-ABILITY-TO-PAY').status).toBe(status);
+    expect(path(prorated)).toMatchObject({ status, approvalStatus: status });
+    expect(path(prorated).approvalEarliestDate).toBe(
+      status === 'MET' ? request.admission.decisionOn : undefined,
+    );
+  });
+
+  test.each([
+    [{ paidUsd: 30000 }, 'MET'],
+    [{ paidUsd: 29999 }, 'NOT_MET'],
+    [{ paidUsd: 15000, netIncomeUsd: 15000 }, 'MET'],
+    [{ paidUsd: 15000, netCurrentAssetsUsd: 15000 }, 'MET'],
+    [
+      {
+        paidUsd: undefined,
+        netIncomeUsd: undefined,
+        netCurrentAssetsUsd: 30000,
+      },
+      'UNKNOWN',
+    ],
+    [
+      { paidUsd: 15000, netIncomeUsd: 10000, netCurrentAssetsUsd: 10000 },
+      'NOT_MET',
+    ],
+    [{ from: undefined, paidUsd: 5000, netIncomeUsd: 40000 }, 'UNKNOWN'],
+  ] as const)(
+    'uses post-priority amounts and separately tests year-end assets (%j)',
+    (amounts, status) => {
+      const prorated = {
+        ...request,
+        employment: {
+          ...request.employment,
+          priorityYearProration: { finding: 'cleared' as const },
+          wageYears: [{ ...first, ...amounts }, current],
+        },
+      };
+      expect(condition(prorated, 'C29-ABILITY-TO-PAY').status).toBe(status);
+    },
+  );
+
+  test.each([
+    [undefined, 'UNKNOWN'],
+    [29000, 'MET'],
+  ] as const)(
+    'uses the confirmed prorated wage for a partial month (%s)',
+    (wage, status) => {
+      const priorityDate = '2025-07-15';
+      const prorated = {
+        ...request,
+        employment: {
+          ...request.employment,
+          permRecruitment: { laborCertificationFiledOn: priorityDate },
+          priorityYearProration: {
+            finding: 'cleared' as const,
+            profferedWageUsd: wage,
+          },
+          wageYears: [
+            { ...first, from: priorityDate, paidUsd: 29000 },
+            current,
+          ],
+        },
+      };
+      expect(condition(prorated, 'C29-ABILITY-TO-PAY').status).toBe(status);
+    },
+  );
 });

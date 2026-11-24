@@ -419,6 +419,8 @@ export const unitedStatesFullSources = {
   pay: [
     source('SRC-302', '8 CFR 204.5(g)(2)'),
     pm('SRC-305', 6, 'E', 4, '(A)–(C)'),
+    source('SRC-302', '8 CFR 204.5(d)'),
+    pm('SRC-305', 6, 'E', 4, '(D)(1)'),
   ],
   selfPetition: [
     source('SRC-302', '8 CFR 204.5(h), (k)'),
