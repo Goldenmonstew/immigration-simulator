@@ -24,6 +24,16 @@ const memoryResults = new Map<
   }
 >();
 
+// Checking for an existing draft must not restore or migrate its contents.
+export function hasDraft(country: StorageCountry) {
+  const key = storageKey(country, 'draft');
+  try {
+    return localStorage.getItem(key) !== null;
+  } catch {
+    return memoryDrafts.has(key);
+  }
+}
+
 // A single storage boundary handles unavailable storage and invalid JSON.
 export function draftStorage<D extends CountryDraft>(
   country: DraftModule<D>,

@@ -281,7 +281,7 @@ test('a Japanese questionnaire restores its step, shares its pending assessment 
   await gaps
     .getByRole('button', { name: zhCN['gap.more'], exact: true })
     .click();
-  await gaps.locator('a[href$="?focus=natJapanese"]').click();
+  await gaps.locator('a[href*="?focus=natJapanese"]').click();
   await expect(page.locator('#jp-whatif-nat-japanese')).toBeFocused();
 });
 
@@ -486,12 +486,12 @@ test('returning to results after another tab submits uses the same draft for dis
   ).toEqual([{ route: 'deemed', departureOn: departure }]);
 });
 
-test('a shared Japanese result updates its departure prompt when the tab becomes visible after midnight', async ({
-  page,
-}) => {
-  const departure = '2026-11-23';
-  const key = 'jp-immigration-draft-v1';
-  const shared = Buffer.from(
+const departure = '2026-11-23';
+const draftKey = 'jp-immigration-draft-v1';
+const deemedShare =
+  path('result') +
+  '#s=' +
+  Buffer.from(
     JSON.stringify({
       country: 'jp',
       v: 1,
@@ -510,8 +510,13 @@ test('a shared Japanese result updates its departure prompt when the tab becomes
       },
     }),
   ).toString('base64url');
+
+test('a shared result keeps its scenario for comparison and editing after another tab saves a draft', async ({
+  page,
+  context,
+}) => {
   await page.clock.setFixedTime(new Date('2026-11-23T23:59:00Z'));
-  await page.goto(path('result') + '#s=' + shared);
+  await page.goto(deemedShare);
   const main = page.getByRole('main');
   const planned = zhCN['jp.result.plannedDeparture'].replace(
     '{date}',
@@ -522,13 +527,46 @@ test('a shared Japanese result updates its departure prompt when the tab becomes
     departure,
   );
   await expect(main).toContainText(planned);
-  const edited = await page.evaluate((key) => {
-    const draft = JSON.parse(localStorage.getItem(key)!);
-    draft.reentry[0].departureOn = '2026-11-22';
-    const encoded = JSON.stringify(draft);
-    localStorage.setItem(key, encoded);
-    return encoded;
-  }, key);
+  const other = await context.newPage();
+  await other.goto(path('simulate'));
+  await other.locator('#jp-route-travel-deemed').uncheck();
+  await other.locator('#jp-route-travel-ordinary').check();
+  await questionnaire(other)
+    .getByRole('button', { name: zhCN['form.continue'], exact: true })
+    .click();
+  await questionnaire(other)
+    .getByRole('button', { name: zhCN['form.results'], exact: true })
+    .click();
+  await expect(
+    assessment(other, zhCN).getByRole('heading', {
+      name: '普通再入国許可',
+      exact: true,
+    }),
+  ).toBeVisible();
+  const stored = () =>
+    other.evaluate((key) => localStorage.getItem(key), draftKey);
+  const edited = await stored();
+  expect(JSON.parse(edited!).reentry).toEqual([{ route: 'ordinary' }]);
+
+  await main
+    .getByRole('link', { name: zhCN['whatif.title'], exact: true })
+    .first()
+    .click();
+  await expect(
+    assessment(page, zhCN).getByRole('heading', {
+      name: 'みなし再入国許可',
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(page.locator('#jp-whatif-deemed')).toHaveValue('2026-11-27');
+  await expect(page.locator('#jp-whatif-ordinary')).toHaveCount(0);
+  expect(await stored()).toBe(edited);
+  await main
+    .getByRole('link', { name: zhCN['whatif.back'], exact: true })
+    .click();
+  await expect(main).toContainText(planned);
+  expect(await stored()).toBe(edited);
+
   const setVisibility = (state: DocumentVisibilityState) =>
     page.evaluate((state) => {
       Object.defineProperty(document, 'visibilityState', {
@@ -543,7 +581,59 @@ test('a shared Japanese result updates its departure prompt when the tab becomes
   await setVisibility('visible');
   await expect(main).toContainText(actual);
   await expect(main).not.toContainText(planned);
-  expect(await page.evaluate((key) => localStorage.getItem(key), key)).toBe(
-    edited,
+  expect(await stored()).toBe(edited);
+
+  await main
+    .getByRole('link', { name: zhCN['result.edit'], exact: true })
+    .last()
+    .click();
+  await expect(page.locator('#jp-route-travel-deemed')).toBeChecked();
+  await expect(page.locator('#jp-route-travel-ordinary')).not.toBeChecked();
+  await questionnaire(page)
+    .getByRole('button', { name: zhCN['form.continue'], exact: true })
+    .click();
+  await expect(page.locator('#jp-travel-deemed-departureOn')).toHaveValue(
+    departure,
   );
+  await page.locator('#jp-travel-deemed-returnOn').fill('2026-11-28');
+  await page.reload();
+  await expect(page.locator('#jp-travel-deemed-returnOn')).toHaveValue(
+    '2026-11-28',
+  );
+  expect(await stored()).toBe(edited);
+  await questionnaire(page)
+    .getByRole('button', { name: zhCN['form.results'], exact: true })
+    .click();
+  await expect(
+    assessment(page, zhCN).getByRole('heading', {
+      name: 'みなし再入国許可',
+      exact: true,
+    }),
+  ).toBeVisible();
+  expect(JSON.parse((await stored())!).reentry).toMatchObject([
+    { route: 'deemed', returnOn: '2026-11-28' },
+  ]);
+});
+
+test.describe('device in Japan', () => {
+  test.use({ timezoneId: 'Asia/Tokyo' });
+
+  test('a continuously visible Japanese result updates at device midnight', async ({
+    page,
+  }) => {
+    await page.clock.install({ time: new Date('2026-11-23T23:59:00+09:00') });
+    await page.goto(deemedShare);
+    const main = page.getByRole('main');
+    const planned = zhCN['jp.result.plannedDeparture'].replace(
+      '{date}',
+      departure,
+    );
+    await expect(main).toContainText(planned);
+    expect(await page.evaluate(() => document.visibilityState)).toBe('visible');
+    await page.clock.fastForward('01:01');
+    await expect(main).toContainText(
+      zhCN['jp.result.confirmDeparture'].replace('{date}', departure),
+    );
+    await expect(main).not.toContainText(planned);
+  });
 });

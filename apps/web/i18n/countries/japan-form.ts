@@ -1,4 +1,8 @@
 const messages = {
+  'jp.form.editResult': [
+    '正在编辑这份结果。点击「查看结果」后，修改会保存为本机草稿。',
+    'You are editing this result. Choose “View results” to save your changes as the draft on this device.',
+  ],
   'jp.form.optionalGroup': [
     '本组可留空。如果填写了组内资料，请同时完成标星号的项目。',
     'You can leave this group blank. If you enter details, also complete the fields marked with an asterisk.',

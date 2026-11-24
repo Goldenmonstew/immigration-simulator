@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { CountryResult, Locale } from '@uk-immigration/engine';
 import { PrincipalAssessment, ResultView } from './result-view';
+import { ResultScenarioHash } from './gap-summary';
 import { ShareLink } from './share-link';
 import { SavedScenarios } from './saved-scenarios';
 import { useTranslation } from '../i18n/locale';
@@ -11,6 +12,7 @@ import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
 import type { CountryDraft, CountryModule } from '../lib/country-module';
 import { readPageResult, type ResultPageState } from '../lib/page-result';
+import { encodeDraft, rememberResultEdit } from '../lib/share';
 import styles from '../app/site.module.css';
 
 export { readPageResult };
@@ -40,22 +42,45 @@ export function ResultPage<D extends CountryDraft, K>({
       );
     };
     const open = () => load('result');
-    const refresh = () => {
-      if (document.visibilityState === 'visible') load('refresh');
-    };
     open();
     window.addEventListener('hashchange', open);
-    if (country.id === 'jp')
-      document.addEventListener('visibilitychange', refresh);
+    if (country.id !== 'jp')
+      return () => window.removeEventListener('hashchange', open);
+
+    let timer: number;
+    const scheduleMidnight = () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      timer = window.setTimeout(refresh, midnight.getTime() - now.getTime());
+    };
+    function refresh() {
+      window.clearTimeout(timer);
+      if (document.visibilityState !== 'visible') return;
+      load('refresh');
+      scheduleMidnight();
+    }
+    if (document.visibilityState === 'visible') scheduleMidnight();
+    document.addEventListener('visibilitychange', refresh);
     return () => {
+      window.clearTimeout(timer);
       window.removeEventListener('hashchange', open);
-      if (country.id === 'jp')
-        document.removeEventListener('visibilitychange', refresh);
+      document.removeEventListener('visibilitychange', refresh);
     };
   }, [country, locale, preview]);
 
   const { draft, result, shared, mock, correction } = page ?? {};
   const principalResult = draft && country.principal?.(draft, locale);
+  const scenarioHash =
+    country.id === 'jp' && draft
+      ? `#${shared ? 's' : 'draft'}=${encodeDraft(country, draft)}`
+      : '';
+  const compareHref = countryPath(country.id, 'whatif') + scenarioHash;
+  const editHref = countryPath(country.id, 'simulate') + scenarioHash;
+  const startEdit =
+    scenarioHash && draft
+      ? () => rememberResultEdit(scenarioHash, draft)
+      : undefined;
 
   return (
     <main id="main" className={styles.main}>
@@ -77,32 +102,32 @@ export function ResultPage<D extends CountryDraft, K>({
             </p>
           )}
           {draft && <ShareLink country={country} draft={draft} />}
-          <ResultView
-            country={country}
-            result={result}
-            mock={mock}
-            draft={draft}
-            actions={
-              <div
-                className={`${styles.actions} ${styles.topActions} ${styles.noPrint}`}
-              >
-                {!result.shortCircuit && (
+          <ResultScenarioHash value={scenarioHash}>
+            <ResultView
+              country={country}
+              result={result}
+              mock={mock}
+              draft={draft}
+              actions={
+                <div
+                  className={`${styles.actions} ${styles.topActions} ${styles.noPrint}`}
+                >
+                  {!result.shortCircuit && (
+                    <Link className={styles.secondary} href={compareHref}>
+                      {t('whatif.title')}
+                    </Link>
+                  )}
                   <Link
                     className={styles.secondary}
-                    href={countryPath(country.id, 'whatif')}
+                    href={editHref}
+                    onNavigate={startEdit}
                   >
-                    {t('whatif.title')}
+                    {t('result.edit')}
                   </Link>
-                )}
-                <Link
-                  className={styles.secondary}
-                  href={countryPath(country.id, 'simulate')}
-                >
-                  {t('result.edit')}
-                </Link>
-              </div>
-            }
-          />
+                </div>
+              }
+            />
+          </ResultScenarioHash>
           {principalResult && (
             <PrincipalAssessment
               country={country}
@@ -119,16 +144,14 @@ export function ResultPage<D extends CountryDraft, K>({
               {t('result.print')}
             </button>
             {!result.shortCircuit && (
-              <Link
-                className={styles.secondary}
-                href={countryPath(country.id, 'whatif')}
-              >
+              <Link className={styles.secondary} href={compareHref}>
                 {t('whatif.title')}
               </Link>
             )}
             <Link
               className={styles.button}
-              href={countryPath(country.id, 'simulate')}
+              href={editHref}
+              onNavigate={startEdit}
             >
               {t('result.edit')}
             </Link>
@@ -140,7 +163,8 @@ export function ResultPage<D extends CountryDraft, K>({
           <p>{correction ?? t('result.empty')}</p>
           <Link
             className={styles.button}
-            href={countryPath(country.id, 'simulate')}
+            href={editHref}
+            onNavigate={startEdit}
           >
             {t(correction && draft ? 'result.edit' : 'home.start')}
           </Link>

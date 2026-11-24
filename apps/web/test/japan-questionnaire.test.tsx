@@ -1850,6 +1850,32 @@ test.each([
   },
 );
 
+test('opening a Japanese share preserves a different stored draft, including its original step', () => {
+  const draft: JapanDraft = {
+    ...jp.createDraft(),
+    completed: true,
+    reentry: [{ route: 'deemed' }],
+  };
+  const other = JSON.stringify({
+    ...draft,
+    step: 1,
+    reentry: [{ route: 'ordinary' }],
+  });
+  let saved: string | null = other;
+  vi.stubGlobal('localStorage', {
+    getItem: () => saved,
+    setItem: (_key: string, value: string) => {
+      saved = value;
+    },
+  });
+  const share = encodeDraft(jp, draft);
+  expect(readPageResult(jp, 'en', share).draft).toEqual(draft);
+  expect(saved).toBe(other);
+  saved = null;
+  expect(readPageResult(jp, 'en', share).draft).toEqual(draft);
+  expect(saved).toBe(JSON.stringify(draft));
+});
+
 test('reading the same Japanese result across local midnight reassesses the actual departure', () => {
   vi.useFakeTimers({ toFake: ['Date'] });
   vi.setSystemTime(new Date(2026, 10, 22, 23, 59));

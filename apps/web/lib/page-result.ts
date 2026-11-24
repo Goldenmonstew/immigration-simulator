@@ -4,6 +4,7 @@ import { decodeDraft } from './share';
 import {
   draftStorage,
   getRememberedResult,
+  hasDraft,
   rememberResult,
   resultDeviceDay,
 } from './storage';
@@ -41,8 +42,11 @@ export function readPageResult<D extends CountryDraft, K>(
     const cached =
       !shared && getRememberedResult(country, draft, locale, deviceDay);
     const result = cached || country.run(draft, locale);
-    // A shared tab becoming visible must not import its draft over later edits.
-    const importing = shared && mode !== 'refresh';
+    // A Japanese share can open or reopen while another tab owns the local draft.
+    const importing =
+      shared &&
+      mode !== 'refresh' &&
+      (country.id !== 'jp' || !hasDraft(country));
     if (importing) draftStorage(country, draft);
     if (!cached && (importing || source === null))
       rememberResult(country, draft, result, locale, deviceDay);

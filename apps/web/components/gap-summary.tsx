@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useId, useState } from 'react';
+import { createContext, useContext, useId, useState } from 'react';
 import type { CountryPathway } from '@uk-immigration/engine';
 import { withCount } from '../i18n';
 import { useTranslation } from '../i18n/locale';
@@ -12,6 +12,8 @@ import type { CountryDraft, CountryModule } from '../lib/country-module';
 import { rememberWhatIfTarget } from '../lib/whatif';
 import site from '../app/site.module.css';
 import styles from '../app/uk/result/result.module.css';
+
+export const ResultScenarioHash = createContext('');
 
 export function GapSummary<D extends CountryDraft, K>({
   country,
@@ -28,6 +30,7 @@ export function GapSummary<D extends CountryDraft, K>({
   dependant?: boolean;
 }) {
   const { t, locale } = useTranslation();
+  const scenarioHash = useContext(ResultScenarioHash);
   const p = punct(locale);
   const id = useId();
   const [expanded, setExpanded] = useState(false);
@@ -121,7 +124,7 @@ export function GapSummary<D extends CountryDraft, K>({
                   {focus && (
                     <Link
                       className={`${styles.gapAction} ${site.noPrint}`}
-                      href={`${countryPath(country.id, 'whatif')}?focus=${focus}`}
+                      href={`${countryPath(country.id, 'whatif')}?focus=${focus}${scenarioHash}`}
                       scroll={false}
                       onClick={() =>
                         rememberWhatIfTarget(country.id, {

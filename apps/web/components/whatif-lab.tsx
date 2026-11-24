@@ -17,6 +17,7 @@ import { readPageResult } from '../lib/page-result';
 import { displayedColumns } from '../lib/policy';
 import { countryPath } from '../lib/site-countries';
 import { draftStorage } from '../lib/storage';
+import { linkedResultDraft } from '../lib/share';
 import {
   diffPathways,
   parseWhatIfFocus,
@@ -190,11 +191,13 @@ function WhatIfLab<D extends CountryDraft, K>({
   draft,
   before,
   target,
+  backHref,
 }: {
   country: CountryModule<D, K>;
   draft: D;
   before: CountryResult;
   target?: WhatIfTarget;
+  backHref: string;
 }) {
   const { t, locale } = useTranslation();
   const controls = country.whatif;
@@ -263,9 +266,7 @@ function WhatIfLab<D extends CountryDraft, K>({
             >
               {t('whatif.reset')}
             </button>
-            <Link href={countryPath(country.id, 'result')}>
-              {t('whatif.back')}
-            </Link>
+            <Link href={backHref}>{t('whatif.back')}</Link>
           </div>
         </section>
         <div
@@ -337,14 +338,17 @@ export function WhatIfView<D extends CountryDraft, K>({
   country,
   draft,
   target,
+  resultHash = '',
 }: {
   country: CountryModule<D, K>;
   draft?: D;
   target?: WhatIfTarget;
+  resultHash?: string;
 }) {
   const { t, locale } = useTranslation();
   const page = draft && readPageResult(country, locale, draft);
   const before = page?.result;
+  const backHref = countryPath(country.id, 'result') + resultHash;
   if (!page?.draft || !before)
     return (
       <div className={site.narrow}>
@@ -367,10 +371,7 @@ export function WhatIfView<D extends CountryDraft, K>({
           <p className={site.notice}>{t('whatif.unsupported')}</p>
           <p>{before.shortCircuit.message}</p>
           <ShareLink country={country} draft={page.draft} />
-          <Link
-            className={site.secondary}
-            href={countryPath(country.id, 'result')}
-          >
+          <Link className={site.secondary} href={backHref}>
             {t('whatif.back')}
           </Link>
         </div>
@@ -380,6 +381,7 @@ export function WhatIfView<D extends CountryDraft, K>({
           draft={page.draft}
           before={before}
           target={target}
+          backHref={backHref}
         />
       )}
     </>
@@ -403,12 +405,15 @@ function StoredWhatIfPage<D extends CountryDraft, K>({
   const [draft, setDraft] = useState<D>();
   const [ready, setReady] = useState(false);
   const [target, setTarget] = useState<WhatIfTarget>();
+  const [resultHash, setResultHash] = useState('');
   const loaded = useRef<CountryModule<D, K> | undefined>(undefined);
   useEffect(() => {
     if (loaded.current === country) return;
     loaded.current = country;
-    setDraft(draftStorage(country).draft);
     const url = new URL(window.location.href);
+    const linked = linkedResultDraft(country, url.hash);
+    setDraft(linked ? linked.draft : draftStorage(country).draft);
+    setResultHash(linked?.resultHash ?? '');
     setTarget(
       takeWhatIfTarget(
         country.id,
@@ -431,7 +436,12 @@ function StoredWhatIfPage<D extends CountryDraft, K>({
   return (
     <main id="main" className={site.main}>
       {ready ? (
-        <WhatIfView country={country} draft={draft} target={target} />
+        <WhatIfView
+          country={country}
+          draft={draft}
+          target={target}
+          resultHash={resultHash}
+        />
       ) : (
         <p role="status">{t('result.loading')}</p>
       )}

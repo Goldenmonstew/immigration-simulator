@@ -14,6 +14,7 @@ import { useTranslation } from '../i18n/locale';
 import type { CountryDraft, CountryModule } from '../lib/country-module';
 import { countryPath } from '../lib/site-countries';
 import { draftStorage } from '../lib/storage';
+import { linkedResultDraft, takeResultEdit } from '../lib/share';
 import site from '../app/site.module.css';
 import form from '../app/simulate/form.module.css';
 
@@ -36,26 +37,54 @@ export function QuestionnaireShell<D extends CountryDraft, K>({
   const router = useRouter();
   const [draft, setDraft] = useState<D>();
   const [available, setAvailable] = useState(true);
+  const [editingResult, setEditingResult] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const heading = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    const stored = draftStorage(country);
-    const restored = country.decodeDraft(stored.draft);
-    const next = restored ?? country.createDraft();
+    const hash = window.location.hash;
+    const linked = linkedResultDraft(country, hash);
+    const savedEdit = linked && window.history.state?.resultEdit;
+    const resumed =
+      savedEdit?.hash === hash && country.decodeDraft(savedEdit.draft);
+    const stored = linked ? undefined : draftStorage(country);
+    const restored = linked
+      ? resumed || country.decodeDraft(takeResultEdit(hash)) || linked.draft
+      : country.decodeDraft(stored?.draft);
+    let next = restored ?? country.createDraft();
     // Reopening a result starts at the first step for editing.
     const visible = steps(next);
-    setDraft(
-      next.completed || !visible.some(({ step }) => step === next.step)
-        ? { ...next, step: visible[0].step }
-        : next,
-    );
-    setAvailable(stored.available);
+    if (
+      !resumed &&
+      (next.completed || !visible.some(({ step }) => step === next.step))
+    )
+      next = { ...next, step: visible[0].step };
+    if (linked) {
+      next = { ...next, completed: false };
+      window.history.replaceState(
+        { ...window.history.state, resultEdit: { hash, draft: next } },
+        '',
+      );
+    }
+    setEditingResult(!!linked);
+    setDraft(next);
+    setAvailable(stored?.available ?? true);
   }, [country, steps]);
 
   useEffect(() => {
-    if (draft) setAvailable(draftStorage(country, draft).available);
-  }, [country, draft]);
+    if (!draft) return;
+    if (editingResult) {
+      window.history.replaceState(
+        {
+          ...window.history.state,
+          resultEdit: { hash: window.location.hash, draft },
+        },
+        '',
+      );
+    } else {
+      setAvailable(draftStorage(country, draft).available);
+    }
+  }, [country, draft, editingResult]);
   useEffect(() => {
     heading.current?.focus();
   }, [draft?.step]);
@@ -118,7 +147,13 @@ export function QuestionnaireShell<D extends CountryDraft, K>({
           {t(sequence[position].title)}
         </h1>
         <p role="status" className={available ? form.saved : site.notice}>
-          {t(available ? 'form.saved' : 'form.storageUnavailable')}
+          {t(
+            editingResult
+              ? 'jp.form.editResult'
+              : available
+                ? 'form.saved'
+                : 'form.storageUnavailable',
+          )}
         </p>
         <form onSubmit={submit} noValidate autoComplete="off">
           {Object.keys(errors).length > 0 && (
