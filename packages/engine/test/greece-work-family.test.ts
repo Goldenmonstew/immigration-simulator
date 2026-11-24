@@ -205,6 +205,73 @@ test('Ο.2 uses combined Blue Card family residence and the final years in Greec
   ).toBe('MET');
 });
 
+test.each([
+  [1, 5, 'NOT_MET'],
+  [2, 4, 'NOT_MET'],
+  [2, 5, 'MET'],
+  [4, undefined, 'UNKNOWN'],
+  [undefined, 4, 'NOT_MET'],
+  [5, undefined, 'MET'],
+] as const)(
+  'Ο.2 Blue Card family with %s Greek years and %s EU years',
+  (familyResidenceYears, blueFamilyYearsInEU, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      familyTcn: {
+        stage: 'autonomous',
+        autonomousBasis: 'residence',
+        sponsor: 'blue-card',
+        member: 'spouse',
+        previousFamilyCard: true,
+        familyResidenceYears,
+        blueFamilyYearsInEU,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
+  ['blue-card', '2023-01-01', undefined, undefined, 'UNKNOWN', undefined],
+  ['blue-card', '2023-01-01', 4, undefined, 'NOT_MET', undefined],
+  ['blue-card', '2023-01-01', undefined, '2022-01-01', 'FUTURE', '2027-01-01'],
+  ['blue-card', '2025-01-01', undefined, undefined, 'NOT_MET', undefined],
+  [undefined, '2023-01-01', 5, undefined, 'UNKNOWN', undefined],
+  [undefined, '2025-01-01', 5, undefined, 'NOT_MET', undefined],
+  [undefined, undefined, 1, undefined, 'NOT_MET', undefined],
+] as const)(
+  'Ο.2 sponsor %s, Greek residence since %s, EU total %s years or since %s',
+  (
+    sponsor,
+    familyResidenceFrom,
+    blueFamilyYearsInEU,
+    blueFamilyResidenceFrom,
+    status,
+    earliestDate,
+  ) => {
+    const result = route('GR-FAMILY-TCN', {
+      familyTcn: {
+        stage: 'autonomous',
+        autonomousBasis: 'residence',
+        member: 'spouse',
+        previousFamilyCard: true,
+        sponsor,
+        familyResidenceFrom,
+        blueFamilyYearsInEU,
+        blueFamilyResidenceFrom,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+      status === 'FUTURE' ? 'NOT_MET' : status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBe(earliestDate);
+  },
+);
+
 test('employment filing can defer the insurance registration certificate and Blue Card address', () => {
   const req: Partial<GrFullRequest> = {
     simulationDate: '2024-11-23',
@@ -237,6 +304,88 @@ test('employment filing can defer the insurance registration certificate and Blu
 });
 
 test.each([
+  ['regulated-recognised', 'MET'],
+  ['unregulated-documented', 'MET'],
+  ['previously-verified-in-Greece', 'MET'],
+  ['missing', 'NOT_MET'],
+  [undefined, 'UNKNOWN'],
+] as const)(
+  'Ε.1 renewal needs credentials for the current job (%s)',
+  (qualification, status) => {
+    const result = route('GR-WORK', {
+      simulationDate: '2024-11-23',
+      currentCardExpiresOn: '2024-12-01',
+      work: {
+        ...blue,
+        stage: 'renewal',
+        contractMonths: 12,
+        grossAnnualEur: 60000,
+        taxesSettledDuringPermit: true,
+        qualification,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'WK-02')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
+  [undefined, 1, 'MET'],
+  [true, undefined, 'MET'],
+  [false, 6, 'NOT_MET'],
+  [undefined, 0, 'NOT_MET'],
+  [undefined, undefined, 'UNKNOWN'],
+] as const)(
+  'Ε.4 renewal requires a current contract (%s, fixed term %s months)',
+  (hasCurrentEmploymentContract, contractMonths, status) => {
+    const result = route('GR-WORK', {
+      currentCardExpiresOn: '2026-12-01',
+      work: {
+        ...employed,
+        stage: 'renewal',
+        taxesSettledDuringPermit: true,
+        hasCurrentEmploymentContract,
+        contractMonths,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'WK-04')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
+  [3, 'MET'],
+  [4, 'UNKNOWN'],
+  [6, 'UNKNOWN'],
+  [7, 'NOT_MET'],
+] as const)(
+  'Ε.1 cumulative unemployment of %s months with unknown Blue Card service',
+  (interruptionMonths, status) => {
+    const result = route('GR-WORK', {
+      currentCardExpiresOn: '2026-12-01',
+      work: {
+        permit: 'E1',
+        stage: 'renewal',
+        blueRenewalInterruption: 'unemployment',
+        interruptionMonths,
+        taxesSettledDuringPermit: true,
+      },
+    });
+    expect(
+      result.checks.find((item) => item.id === 'WK-07-INTERRUPTION')?.status,
+    ).toBe(status);
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
   ['2024-05-01', 'UNKNOWN'],
   ['2024-05-02', 'MET'],
 ] as const)(
@@ -266,6 +415,7 @@ test.each([
       familyTcn: {
         ...reunion,
         stage: 'renewal',
+        sponsorPermitValid: true,
         housingDocument: 'none',
         formedLegallyInGreece,
         priorYearTaxAndInsuranceEvidence,
@@ -281,6 +431,83 @@ test.each([
     );
     expect(result.status).toBe(status);
     expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
+  [true, 1, false, 'MET'],
+  [false, 2, true, 'NOT_MET'],
+  [undefined, 2, true, 'UNKNOWN'],
+  [undefined, 0, false, 'NOT_MET'],
+] as const)(
+  'Ο.1 renewal follows the current sponsor status (%s, issued term %s, permanent prospect %s)',
+  (
+    sponsorPermitValid,
+    sponsorPermitDurationYears,
+    sponsorPermitLeadsToPermanentResidence,
+    status,
+  ) => {
+    const result = route('GR-FAMILY-TCN', {
+      currentCardExpiresOn: '2026-12-01',
+      familyTcn: {
+        ...reunion,
+        stage: 'renewal',
+        sponsorPermitValid,
+        sponsorPermitDurationYears,
+        sponsorPermitLeadsToPermanentResidence,
+        sponsorLawfulYears: 0,
+        familyLifeContinues: true,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'FT-01')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
+  [1, 'NOT_MET'],
+  [2, 'MET'],
+  [undefined, 'UNKNOWN'],
+] as const)(
+  'Ο.1 initial sponsor with %s completed years and no start date',
+  (sponsorLawfulYears, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      familyTcn: { ...reunion, sponsorLawfulYears },
+    });
+    expect(result.checks.find((item) => item.id === 'FT-01')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
+  [4, undefined, 'NOT_MET', undefined],
+  [5, undefined, 'MET', undefined],
+  [undefined, undefined, 'UNKNOWN', undefined],
+  [4, '2022-01-01', 'FUTURE', '2027-01-01'],
+] as const)(
+  'Ο.2 ordinary spouse with %s years and start date %s',
+  (familyResidenceYears, familyResidenceFrom, status, earliestDate) => {
+    const result = route('GR-FAMILY-TCN', {
+      familyTcn: {
+        ...reunion,
+        stage: 'autonomous',
+        autonomousBasis: 'residence',
+        previousFamilyCard: true,
+        familyResidenceYears,
+        familyResidenceFrom,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+      status === 'FUTURE' ? 'NOT_MET' : status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBe(earliestDate);
   },
 );
 
@@ -526,6 +753,18 @@ describe('Gr employment routes', () => {
       work('WK-07-INTERRUPTION', { ...leave, protectedLeaveAccepted: true })
         .status,
     ).toBe('MET');
+    for (const [qualification, status] of [
+      ['missing', 'NOT_MET'],
+      [undefined, 'UNKNOWN'],
+    ] as const) {
+      expect(
+        work('WK-07-INTERRUPTION', {
+          ...leave,
+          protectedLeaveAccepted: true,
+          qualification,
+        }).status,
+      ).toBe(status);
+    }
   });
   test('terms and fees distinguish first issue, renewal and the exceptional recruitment procedure', () => {
     expect(work('WK-08').explanation).toContain('3 years');
@@ -575,7 +814,7 @@ describe('Gr third-country family', () => {
         grContext(),
       ).every((x) => x.status === 'MET'),
     ).toBe(true);
-    expect(family('FT-01', { sponsorLawfulYears: 1 }).status).toBe('UNKNOWN');
+    expect(family('FT-01', { sponsorLawfulYears: 1 }).status).toBe('NOT_MET');
     expect(family('FT-01', { sponsorPermitDurationYears: 1 }).status).toBe(
       'NOT_MET',
     );
@@ -731,7 +970,7 @@ describe('Gr third-country family', () => {
     };
     expect(family('FT-07', spouse).status).toBe('MET');
     expect(family('FT-07', { ...spouse, familyResidenceYears: 4 }).status).toBe(
-      'UNKNOWN',
+      'NOT_MET',
     );
     expect(
       family('FT-07', {

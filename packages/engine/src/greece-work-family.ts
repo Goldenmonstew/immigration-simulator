@@ -15,9 +15,12 @@ interface WorkAnswers {
     expiresOn?: IsoDate;
   };
   contractMonths?: number;
+  /** Ε.4 renewal can also rely on an open-ended employment contract. */
+  hasCurrentEmploymentContract?: boolean;
   grossAnnualEur?: number;
   payBasis?: 'monthly' | 'daily';
   grossPayEur?: number;
+  /** Credentials for the current position, including prior verification that still applies. */
   qualification?:
     | 'regulated-recognised'
     | 'unregulated-documented'
@@ -59,8 +62,11 @@ interface FamilyAnswers {
     | 'excluded';
   sponsorLawfulYears?: number;
   sponsorLawfulFrom?: IsoDate;
+  /** Original permit term. A zero term denotes that the sponsor has no permit. */
   sponsorPermitDurationYears?: number;
   sponsorPermitLeadsToPermanentResidence?: boolean;
+  /** Whether the sponsor still holds qualifying residence at Ο.1 renewal. */
+  sponsorPermitValid?: boolean;
   /** Personal net income excludes social assistance and other household members' income. */
   sponsorPersonalNetEur?: number;
   /** At renewal, evidence of compliance must cover both the sponsor and applicant. */
@@ -113,8 +119,7 @@ function residenceDue(
   today: IsoDate,
 ): Filing {
   if (from) return dueOn(addYears(from, required), today);
-  // Completed years can establish eligibility but do not identify the next anniversary.
-  return years !== undefined && years >= required ? true : undefined;
+  return atLeast(years, required);
 }
 
 function allDue(...facts: Filing[]): Filing {
@@ -215,30 +220,37 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
   const project = !isBlue && w.admission === 'strategic-project';
   const reformed = req.simulationDate >= p.workReformEffective.value;
   const contracts = p.workContractMonths.value;
+  const qualified =
+    w.qualification === undefined ? undefined : w.qualification !== 'missing';
   if (isBlue && renewal && w.blueRenewalInterruption) {
     const limits = p.workBlueInterruption.value;
     const unemployment = w.blueRenewalInterruption === 'unemployment';
-    const months = unemployment
-      ? w.blueCardYears === undefined
+    const months = w.interruptionMonths;
+    const withinLimit =
+      months === undefined
         ? undefined
-        : w.blueCardYears >= limits.serviceYears
-          ? limits.longerServiceMonths
-          : limits.shortServiceMonths
-      : limits.protectedLeaveMonths;
+        : unemployment
+          ? any(
+              months <= limits.shortServiceMonths,
+              all(
+                months <= limits.longerServiceMonths,
+                atLeast(w.blueCardYears, limits.serviceYears),
+              ),
+            )
+          : months <= limits.protectedLeaveMonths;
     checks.push(
       check(
         'WK-07-INTERRUPTION',
         '蓝卡就业中断与续期保护',
         'Protection during an interruption of Blue Card employment',
         all(
-          months === undefined || w.interruptionMonths === undefined
-            ? undefined
-            : w.interruptionMonths <= months,
+          withinLimit,
           unemployment || w.protectedLeaveAccepted,
+          unemployment || qualified,
         ),
         p.workBlueInterruption.sources,
-        `累计失业保护期按持卡是否满 ${limits.serviceYears} 年分别为 ${limits.longerServiceMonths} 或 ${limits.shortServiceMonths} 个月。疾病、残障或育儿假造成的暂时中断最多 ${limits.protectedLeaveMonths} 个月，由主管机关决定。`,
-        `Cumulative unemployment can last up to ${limits.longerServiceMonths} months after ${limits.serviceYears} years on the card, or ${limits.shortServiceMonths} months earlier. An interruption for illness, disability or parental leave of up to ${limits.protectedLeaveMonths} months requires an authority decision.`,
+        `累计失业保护期按持卡是否满 ${limits.serviceYears} 年分别为 ${limits.longerServiceMonths} 或 ${limits.shortServiceMonths} 个月。疾病、残障或育儿假造成的暂时中断最多 ${limits.protectedLeaveMonths} 个月，由主管机关决定；岗位所需的职业资格仍须有效。`,
+        `Cumulative unemployment can last up to ${limits.longerServiceMonths} months after ${limits.serviceYears} years on the card, or ${limits.shortServiceMonths} months earlier. An interruption for illness, disability or parental leave of up to ${limits.protectedLeaveMonths} months requires an authority decision and the qualifications for the job must remain valid.`,
       ),
     );
   } else if (isBlue) {
@@ -264,19 +276,13 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
         'WK-02',
         '高技能合同与职业资格',
         'Highly qualified contract and credentials',
-        all(
-          atLeast(w.contractMonths, contracts.blue),
-          renewal ||
-            (w.qualification === undefined
-              ? undefined
-              : w.qualification !== 'missing'),
-        ),
+        all(atLeast(w.contractMonths, contracts.blue), qualified),
         [
-          grSource('F16', 'art. 31(1)(α–γ), (3)'),
+          grSource('F16', 'arts. 31(1)(α–γ), (3), 36(1)(β)'),
           grSource('F21', 'art. 4(1), (5)'),
         ],
-        `合同至少 ${contracts.blue} 个月。首次申请须提供受监管职业的执业资格或其他职业的高级资历；已在对应希腊许可中核验的证明可复用。`,
-        `A highly qualified contract of at least ${contracts.blue} months is required. Initial applications need recognition for regulated professions or relevant higher qualifications for other jobs. Prior verification on the qualifying Greek permit counts.`,
+        `合同至少 ${contracts.blue} 个月。首签和续期均须具备现岗位所需的执业资格或高级资历。此前希腊许可核验的资格对现岗位仍有效时，可复用该证明。`,
+        `A highly qualified contract of at least ${contracts.blue} months is required. At issue and renewal, the applicant needs recognition for a regulated profession or relevant higher qualifications for other jobs. Prior verification on a Greek permit counts if it still applies to the current job.`,
       ),
     );
     if (!renewal) {
@@ -307,14 +313,19 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
       : contracts.employeeBeforeReform;
     const floor =
       w.payBasis && wageFloor(req.simulationDate, w.payBasis === 'daily');
+    const contract = renewal
+      ? (w.hasCurrentEmploymentContract ??
+        (w.contractMonths === undefined ? undefined : w.contractMonths > 0))
+      : atLeast(w.contractMonths, months);
     checks.push(
       check(
         'WK-04',
         '受雇合同与最低工资',
         'Employment contract and minimum wage',
-        all(atLeast(w.contractMonths, months), atLeast(w.grossPayEur, floor)),
+        all(contract, atLeast(w.grossPayEur, floor)),
         [
           ...p.workContractMonths.sources,
+          grSource('F21', 'art. 7(1)(α), (4)(α)'),
           ...(w.payBasis === 'daily'
             ? p.minimumDailyGrossEur
             : p.minimumMonthlyGrossEur
@@ -325,8 +336,8 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
           ).sources,
           ...p.wage2024GrossEur.sources,
         ],
-        `合同至少 ${months} 个月。按全职雇员月薪或体力劳动者日薪比较${floor === undefined ? '；请核对工资类别及当期费率' : `，相应毛额下限 €${floor}`}。`,
-        `The contract must cover at least ${months} months. Compare full-time monthly employee pay or daily manual-worker pay${floor === undefined ? ' once the rate and period are known' : ` with a gross minimum of €${floor}`}.`,
+        `${renewal ? '续期须有现行劳动合同。' : `合同至少 ${months} 个月。`}按全职雇员月薪或体力劳动者日薪比较${floor === undefined ? '；请核对工资类别及当期费率' : `，相应毛额下限 €${floor}`}。`,
+        `${renewal ? 'Renewal requires a current employment contract.' : `The contract must cover at least ${months} months.`} Compare full-time monthly employee pay or daily manual-worker pay${floor === undefined ? ' once the rate and period are known' : ` with a gross minimum of €${floor}`}.`,
       ),
     );
   }
@@ -498,14 +509,16 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
 }
 
 function familySponsor(f: FamilyAnswers, today: IsoDate): Filing {
-  if (!f.sponsor || f.sponsor === 'refugee') return undefined;
+  if (f.sponsor === 'refugee') return undefined;
   if (f.sponsor === 'excluded') return false;
-  if (
-    f.stage === 'renewal' ||
-    f.formedLegallyInGreece ||
-    f.sponsor !== 'ordinary'
-  )
-    return true;
+  if (f.stage === 'renewal')
+    return all(
+      f.sponsor && true,
+      f.sponsorPermitValid ??
+        (f.sponsorPermitDurationYears === 0 ? false : undefined),
+    );
+  if (!f.sponsor) return undefined;
+  if (f.formedLegallyInGreece || f.sponsor !== 'ordinary') return true;
   return allDue(
     residenceDue(
       f.sponsorLawfulFrom,
@@ -587,6 +600,48 @@ function familyMember(f: FamilyAnswers, req: GrFullRequest): Filing {
   );
 }
 
+function autonomousResidenceDue(f: FamilyAnswers, today: IsoDate): Filing {
+  const limits = p.familyAutonomy.value;
+  const domestic = residenceDue(
+    f.familyResidenceFrom,
+    f.familyResidenceYears,
+    limits.residenceYears,
+    today,
+  );
+  if (domestic === true || (f.sponsor && f.sponsor !== 'blue-card'))
+    return domestic;
+
+  // Greek residence also counts toward the Member State total under article 42(6).
+  const acrossEU = residenceDue(
+    f.blueFamilyResidenceFrom,
+    f.blueFamilyYearsInEU,
+    limits.residenceYears,
+    today,
+  );
+  const finalGreek = residenceDue(
+    f.familyResidenceFrom,
+    f.familyResidenceYears,
+    limits.blueGreekYears,
+    today,
+  );
+  const mobility = allDue(acrossEU, finalGreek);
+  if (
+    mobility === undefined &&
+    (typeof acrossEU === 'string' || typeof finalGreek === 'string')
+  )
+    return false; // An outstanding period is known, but its combined end date is not.
+  if (
+    typeof domestic === 'string' &&
+    typeof mobility === 'string' &&
+    domestic <= mobility
+  )
+    return domestic;
+  if (f.sponsor === 'blue-card' || domestic === mobility) return mobility;
+
+  // With no sponsor category, both possible routes must agree before we can date eligibility.
+  return mobility === true || mobility === undefined ? undefined : false;
+}
+
 function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
   const a = p.familyAutonomy.value;
   const age = ageOn(req.birthDate, req.simulationDate);
@@ -607,42 +662,14 @@ function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
           : f.previousAutonomousChildCard,
       );
     case 'residence': {
-      let duration = residenceDue(
-        f.familyResidenceFrom,
-        f.familyResidenceYears,
-        a.residenceYears,
-        req.simulationDate,
-      );
-      if (
-        f.sponsor === 'blue-card' &&
-        (f.blueFamilyResidenceFrom || f.blueFamilyYearsInEU !== undefined)
-      ) {
-        const viaMobility = allDue(
-          residenceDue(
-            f.blueFamilyResidenceFrom,
-            f.blueFamilyYearsInEU,
-            a.residenceYears,
-            req.simulationDate,
-          ),
-          residenceDue(
-            f.familyResidenceFrom,
-            f.familyResidenceYears,
-            a.blueGreekYears,
-            req.simulationDate,
-          ),
-        );
-        if (
-          viaMobility === true ||
-          (typeof viaMobility === 'string' &&
-            duration !== true &&
-            (typeof duration !== 'string' || viaMobility < duration))
-        )
-          duration = viaMobility;
-      }
       const member =
         f.member &&
         (f.member === 'spouse' || (f.member === 'child' && adulthood));
-      return allDue(f.previousFamilyCard, duration, member);
+      return allDue(
+        f.previousFamilyCard,
+        autonomousResidenceDue(f, req.simulationDate),
+        member,
+      );
     }
     case 'bereavement':
       return all(
@@ -686,7 +713,10 @@ function familyChecks(
   const isAutonomous = f.stage === 'autonomous';
   const initial = f.stage === 'initial';
   const sponsorRefs = [
-    grSource('F16', 'arts. 42(2), 56(5), 83(1)–(2), 84(1), 87(1), 92, 112(1)'),
+    grSource(
+      'F16',
+      'arts. 42(2), 56(5), 83(1)–(2), 84(1), 87(1), 88(1)(ε), 92, 112(1)',
+    ),
     grSource('F36', 'arts. 20, 29'),
     grSource('F21', 'art. 23(I), (II)'),
   ];
@@ -714,10 +744,10 @@ function familyChecks(
         sponsorRefs,
         initial
           ? `普通担保人合法居住满 ${p.familySponsor.value.years} 年，持有效期至少 ${p.familySponsor.value.permitYears} 年且允许取得永久居留的卡。未满年限时填写连续居住起始日，以计算可递件日期。确认随行类别或在希合法组建家庭的专门程序。`
-          : '家属续期随担保人的有效居留身份办理。',
+          : '请确认担保人现仍持有合资格的居留身份。担保人居留已终止时，家属可另按 Ο.2 的条件核对自主居留权。',
         initial
           ? `An ordinary sponsor needs ${p.familySponsor.value.years} years of lawful residence and a permit issued for at least ${p.familySponsor.value.permitYears} years with a prospect of permanent residence. Supply the residence start date to calculate a future filing date. Identify any simultaneous-family or domestic family-formation procedure.`
-          : 'Renewal follows the sponsor’s residence status.',
+          : 'Confirm that the sponsor still holds qualifying residence. If that residence has ended, assess any independent right under Ο.2 separately.',
       ),
     );
     if (!initial) {
@@ -863,8 +893,8 @@ function familyChecks(
         'Autonomous family residence (Ο.2)',
         autonomous(f, req),
         [...p.familyAutonomy.sources, grSource('F36', 'art. 29 (art. 95(2))')],
-        `持家属卡满 ${a.residenceYears} 年的配偶或成年子女可申请。丧偶前在希至少 ${a.bereavementYears} 年，离婚前婚姻至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年；另核对成年子女专用卡和有证据的特殊困难。Ο.2 最长 ${a.cardYears} 年。`,
-        `Spouses or adult children with ${a.residenceYears} years on family permits can apply. Alternatives include ${a.bereavementYears} year before bereavement, marriage of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before divorce, the child permit on adulthood, or documented exceptional hardship. Autonomous residence runs for up to ${a.cardYears} years.`,
+        `持家属卡满 ${a.residenceYears} 年的配偶或成年子女可申请。蓝卡家属可合计成员国居留，但最后 ${a.blueGreekYears} 年须在希腊。丧偶前在希至少 ${a.bereavementYears} 年，离婚前婚姻至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年；另核对成年子女专用卡和有证据的特殊困难。Ο.2 最长 ${a.cardYears} 年。`,
+        `Spouses or adult children with ${a.residenceYears} years on family permits can apply. Blue Card families can count residence in other Member States if the final ${a.blueGreekYears} years were in Greece. Alternatives include ${a.bereavementYears} year before bereavement, marriage of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before divorce, the child permit on adulthood, or documented exceptional hardship. Autonomous residence runs for up to ${a.cardYears} years.`,
       ),
     );
   } else {

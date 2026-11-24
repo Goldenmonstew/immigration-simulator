@@ -513,6 +513,7 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         'Continued investment and listed-building restoration',
         all(
           a.retainsInvestment,
+          a.title !== 'ineligible',
           legacy || historical
             ? true
             : a.kind === undefined

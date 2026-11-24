@@ -496,3 +496,4 @@
 | # | 改动描述 | 涉及文件 |
 |---|---|---|
 | 653 | 任务 88 审核修正（review88-1）：修正八条希腊路径的等待日期、历史规则、递件材料、跨国及积压居留；补齐归化双日期、笔试边界和投资取得方式与用途。等待条件在说明中给出日期，路径汇总为 FUTURE，已补公开入口回归。 | packages/engine/src/greece-*.ts、packages/engine/test/greece-*.test.ts、packages/policy-data/src/parameters/greece-2026-11.ts、apps/web/lib/sources.ts、policy-sources、docs/{SOURCES,pending-details,tasks/reports/88-gr-rules}.md |
+| 654 | 任务 88 第二轮审核修正（review88-2）：核对八条路径的持续条件，修正担保人居留、职业资格及续期材料。已知年数直接判断，预测递件日复核护照。报告列出逐路径清单及公开入口对照结果。 | packages/engine/src/greece-{common,full,property-family,settlement,work-family}.ts、packages/engine/test/greece-{full,property-family,settlement,work-family}.test.ts、docs/tasks/reports/88-gr-rules.md |

@@ -21,10 +21,10 @@ const base = {
   insurance: { kind: 'public', coversFamily: true },
   passport: {
     kind: 'recognised',
-    issuedOn: '2018-03-14',
+    issuedOn: '2023-08-13',
     blankPages: 2,
-    expectedDeparture: '2027-05-12',
-    expiresOn: '2027-08-12',
+    expectedDeparture: '2033-05-12',
+    expiresOn: '2033-08-12',
   },
   longTerm: { category: 'ordinary', passportHistory: 'complete' },
   residenceIncome: { netEur: 12880, dependants: 0, regularAndDocumented: true },
@@ -110,6 +110,20 @@ describe('long-term eligibility through the public entry point', () => {
     const future = path(id, { permits });
     expect(future.status).toBe('FUTURE');
     expect(future.earliestDate).toBe('2029-01-31');
+    const needsPassport = path(id, {
+      permits,
+      passport: {
+        ...base.passport,
+        expectedDeparture: '2027-05-12',
+        expiresOn: '2027-08-12',
+      },
+    });
+    expect(needsPassport.checks.find((x) => x.id === 'C-01')).toMatchObject({
+      status: 'UNKNOWN',
+      explanation: expect.stringContaining('2029-01-31'),
+    });
+    expect(needsPassport.status).toBe('UNKNOWN');
+    expect(needsPassport.earliestDate).toBeUndefined();
     const unresolved = path(id, { permits, integration: undefined });
     expect(unresolved.status).toBe('UNKNOWN');
     expect(unresolved.earliestDate).toBeUndefined();
@@ -362,7 +376,7 @@ describe('common permit rules', () => {
     for (const patch of [
       { issuedOn: '2016-11-22' },
       { blankPages: 1 },
-      { expiresOn: '2027-08-11' },
+      { expiresOn: '2033-08-11' },
     ]) {
       expect(check('C-01', { passport: { ...pass, ...patch } }).status).toBe(
         'NOT_MET',

@@ -826,23 +826,58 @@ describe('review88-1 through evaluateGreeceFull', () => {
     );
   });
   test('current investment renewal verifies continued title without the original acquisition dossier', () => {
-    const renewal = full('GR-GOLDEN-VISA', {
-      permits: [{ kind: 'investor', from: '2024-09-01', to: '2026-12-01' }],
-      currentCardExpiresOn: '2026-12-01',
-      goldenVisa: {
-        stage: 'renewal',
-        regime: 'current',
-        kind: 'standard',
-        retainsInvestment: true,
-        family: [],
-        use: 'residential-or-long-let',
-        worksInGreeceUnderThisPermit: false,
-      },
-    });
+    const renew = (patch: Partial<Investor> = {}) =>
+      full('GR-GOLDEN-VISA', {
+        permits: [{ kind: 'investor', from: '2024-09-01', to: '2026-12-01' }],
+        currentCardExpiresOn: '2026-12-01',
+        goldenVisa: {
+          stage: 'renewal',
+          regime: 'current',
+          kind: 'standard',
+          retainsInvestment: true,
+          family: [],
+          use: 'residential-or-long-let',
+          worksInGreeceUnderThisPermit: false,
+          ...patch,
+        },
+      });
+    const renewal = renew();
     expect(renewal.checks.find((x) => x.id === 'GV-08')?.status).toBe('MET');
     expect(renewal.checks.map((x) => x.id)).not.toContain('GV-03');
     expect(renewal.status).toBe('MET');
     expect(renewal.earliestDate).toBe(simulationDate);
+    verify(renew({ retainsInvestment: false }), 'GV-08', 'NOT_MET');
+    verify(renew({ retainsInvestment: undefined }), 'GV-08', 'UNKNOWN');
+    verify(renew({ title: 'ineligible' }), 'GV-08', 'NOT_MET');
+    verify(
+      renew({ title: 'ineligible', retainsInvestment: undefined }),
+      'GV-08',
+      'NOT_MET',
+    );
+  });
+  test('both permanent family rights use the known post-acquisition absence without requiring a start date', () => {
+    for (const [years, status] of [
+      [2, 'MET'],
+      [2.01, 'NOT_MET'],
+      [undefined, 'UNKNOWN'],
+    ] as const) {
+      const residence = {
+        stage: 'maintain',
+        longestAbsenceAfterPrYears: years,
+      } as const;
+      verify(
+        full('GR-GREEK-FAMILY-PR', { greekFamily: residence }),
+        'GF-05',
+        status,
+      );
+      verify(
+        full('GR-EU-FAMILY-PR', {
+          euFamily: { ...residence, shamOrFraud: false },
+        }),
+        'EF-03',
+        status,
+      );
+    }
   });
   test('Ο.3 first filing accepts the explicitly deferred public insurance application receipt', () => {
     verify(

@@ -91,6 +91,7 @@ export interface GrSettlementAnswers {
     continuousOutsideEuMonths?: number;
     continuousOutsideGreeceYears?: number;
     formerBlueCardEndorsement?: boolean;
+    /** Other member-state status or a loss ground apart from the separately assessed public-order finding. */
     otherMemberStateLongTermOrRevocationGround?: boolean;
   };
   tenYear?: {
@@ -245,12 +246,11 @@ function integrationMet(r: GrFullRequest): boolean | IsoDate | undefined {
           : e.historyPoints >= p.history,
       );
     case 'residence': {
-      if (
-        r.simulationDate < v.workReformEffective.value &&
-        e.legacyTwelveLawfulYears
-      )
-        return true;
-      if (!e.continuousFrom) return undefined;
+      const legacyTotal =
+        r.simulationDate < v.workReformEffective.value
+          ? e.legacyTwelveLawfulYears
+          : undefined;
+      if (legacyTotal || !e.continuousFrom) return legacyTotal;
       if (e.includesStudyOrDisputedGap !== false) return undefined;
       const date = addYears(e.continuousFrom, p.consecutiveYears);
       return date <= r.simulationDate || date;
@@ -393,20 +393,19 @@ function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       'LT-06',
       '申请材料与费用',
       'Application evidence and fees',
-      renewal
-        ? true
-        : e.passportHistory === 'missing' || e.passportHistory === undefined
-          ? undefined
-          : true,
+      e.passportHistory === undefined ||
+        (!renewal && e.passportHistory === 'missing')
+        ? undefined
+        : e.passportHistory !== 'missing',
       [
         migration('171(1)(στ), 171(2)(a)–(b)'),
-        grSource('F21', 'arts. 1, 57(1)(a)'),
+        grSource('F21', renewal ? 'arts. 1, 57(2)(a)' : 'arts. 1, 57(1)(a)'),
       ],
       renewal
-        ? `换卡免申请费，印卡 €${p.cardFee}。`
+        ? `换卡须提交过去 ${pilot.longTermYears.value} 年所有旅行证件的全部内页，或已获机关认可的替代记录。免申请费，印卡 €${p.cardFee}。`
         : `核对过去 ${pilot.longTermYears.value} 年的全部护照内页或获机关接受的替代记录。首次申请 €${p.initialFee}，由 Μ.2 转入 €${p.exemptFee}，印卡 €${p.cardFee}。`,
       renewal
-        ? `Card renewal carries a €${fee} application fee plus €${p.cardFee} printing.`
+        ? `For renewal, provide all pages of the travel documents covering the last ${pilot.longTermYears.value} years or an accepted official substitute. The application fee is €${fee} plus €${p.cardFee} for printing.`
         : `Verify every passport page for the last ${pilot.longTermYears.value} years or an accepted official substitute. Initial applications cost €${p.initialFee}, conversion from M.2 €${p.exemptFee}, plus €${p.cardFee} for printing.`,
     ),
   );
@@ -429,6 +428,7 @@ function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       renewal
         ? all(
             retained,
+            orderMet(r),
             e.continuousOutsideGreeceYears === undefined
               ? undefined
               : e.continuousOutsideGreeceYears <= p.lossGreeceYears,
@@ -441,8 +441,9 @@ function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
         migration('43(4), 145(5), 146, 148(1)'),
         grSource('F36', 'art. 36, art. 148(1)'),
       ],
-      `审批通常 ${p.decisionMonths} 个月，可延 ${p.extensionMonths} 个月。卡期 ${p.validYears} 年；获批后连续离欧满 ${p.lossEuMonths} 月或离希超 ${p.lossGreeceYears} 年影响身份。前蓝卡特别注记可连续离欧 ${v.formerBlueCardEuAbsenceMonths.value} 月；另核查撤销事由。`,
-      `Decision period ${p.decisionMonths} months with a possible ${p.extensionMonths}-month extension. The card lasts ${p.validYears} years. After grant, ${p.lossEuMonths} consecutive months outside the EU or more than ${p.lossGreeceYears} years outside Greece affects retention. The former Blue Card endorsement permits ${v.formerBlueCardEuAbsenceMonths.value} months outside the EU. Check other loss grounds.`,
+      `审批通常 ${p.decisionMonths} 个月，可延 ${p.extensionMonths} 个月。卡期 ${p.validYears} 年；获批后连续离欧满 ${p.lossEuMonths} 月或离希超 ${p.lossGreeceYears} 年影响身份。前蓝卡特别注记可连续离欧 ${v.formerBlueCardEuAbsenceMonths.value} 月。换卡时核查公共秩序威胁、是否已取得其他成员国长期身份，以及其他法定丧失事由。`,
+      `Decision period ${p.decisionMonths} months with a possible ${p.extensionMonths}-month extension. The card lasts ${p.validYears} years. After grant, ${p.lossEuMonths} consecutive months outside the EU or more than ${p.lossGreeceYears} years outside Greece affects retention. The former Blue Card endorsement permits ${v.formerBlueCardEuAbsenceMonths.value} months outside the EU. At renewal check the public-order finding, long-term status acquired in another member state and other statutory grounds for loss.`,
+      renewal && r.publicOrder === 'review' ? ['PD-301'] : undefined,
     ),
     c.check(
       'LT-08',
@@ -620,12 +621,14 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
     r.residenceIncome?.netEur !== undefined
   )
     pending.push('PD-304');
-  const renewalMet =
+  const renewalMet = all(
+    e.hasPriorCard,
     e.basis === undefined
       ? undefined
       : conversion
-        ? all(e.hasPriorCard, absent, income)
-        : all(e.hasPriorCard, orderMet(r));
+        ? all(absent, income)
+        : orderMet(r),
+  );
   checks.push(
     c.check(
       'TY-04',

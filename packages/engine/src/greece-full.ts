@@ -18,6 +18,7 @@ import type { GrPathway, GrPathwayId, GrPermit, GrRequest } from './greece';
 import {
   commonChecks,
   ordinaryRenewalWindow,
+  passportCheck,
   type GrCommonAnswers,
 } from './greece-common';
 import {
@@ -599,7 +600,7 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
       );
       earliestDate = jointTime?.earliestDate;
     }
-    const status =
+    let status: CountryPathway['status'] =
       blocked ||
       jointTime?.status === 'NOT_MET' ||
       jointTime?.status === 'NOT_APPLICABLE'
@@ -609,6 +610,23 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
           : waits.length > 0 || jointTime?.status === 'FUTURE'
             ? 'FUTURE'
             : 'MET';
+    let summary =
+      jointTime && jointTime !== time ? jointTime.summary : undefined;
+    if (
+      status === 'FUTURE' &&
+      earliestDate &&
+      earliestDate > req.simulationDate
+    ) {
+      const index = rules.findIndex((check) => check.id === 'C-01');
+      if (index >= 0) {
+        const document = passportCheck(id, req, c, earliestDate);
+        if (document.status === 'UNKNOWN') {
+          rules[index] = document;
+          status = 'UNKNOWN';
+          summary = document.explanation;
+        }
+      }
+    }
     const checks = [...timing, ...rules];
     return {
       id,
@@ -618,9 +636,7 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
       earliestDate:
         status === 'FUTURE' || status === 'MET' ? earliestDate : undefined,
       assumptions: time?.assumptions ?? [],
-      ...(jointTime && jointTime !== time
-        ? { summary: jointTime.summary }
-        : {}),
+      ...(summary ? { summary } : {}),
       pendingDetails: [
         ...new Set([
           ...(time?.pendingDetails ?? []),

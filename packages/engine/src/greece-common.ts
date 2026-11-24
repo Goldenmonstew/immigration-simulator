@@ -44,12 +44,15 @@ export interface GrCommonAnswers {
   renewalForceMajeure?: 'approved' | 'pending' | 'none';
 }
 
-function passportCheck(
+export function passportCheck(
+  id: GrFullPathwayId,
   req: GrFullRequest,
   c: GrContext,
-  identityOnly: boolean,
-  nationality: boolean,
+  filingDate: IsoDate,
 ) {
+  const nationality = id === 'GR-NATIONALITY';
+  const identityOnly =
+    nationality || id === 'GR-EU-FAMILY-PR' || id === 'GR-GREEK-FAMILY-PR';
   const doc = req.passport;
   const rules = p.passport.value;
   let met: boolean | undefined;
@@ -59,9 +62,7 @@ function passportCheck(
   if (doc?.kind === 'exception-pending') uncertain = true;
   if (doc?.kind === 'recognised') {
     const valid =
-      doc.expiresOn === undefined
-        ? undefined
-        : doc.expiresOn >= req.simulationDate;
+      doc.expiresOn === undefined ? undefined : doc.expiresOn >= filingDate;
     met = identityOnly
       ? valid
       : all(
@@ -71,8 +72,8 @@ function passportCheck(
             : doc.blankPages >= rules.blankPages,
           doc.issuedOn === undefined
             ? undefined
-            : doc.issuedOn >= addYears(req.simulationDate, -rules.issueYears) &&
-                doc.issuedOn <= req.simulationDate,
+            : doc.issuedOn >= addYears(filingDate, -rules.issueYears) &&
+                doc.issuedOn <= filingDate,
           doc.expectedDeparture === undefined || doc.expiresOn === undefined
             ? undefined
             : doc.expiresOn >=
@@ -80,16 +81,27 @@ function passportCheck(
         );
     uncertain = !identityOnly && doc.expectedDeparture === undefined;
   }
+  const sources = nationality
+    ? [grSource('F34', 'ΚΕΙ art. 6(1)(a)')]
+    : identityOnly
+      ? [grSource('F21', 'arts. 25, 59'), grSource('F02', 'art. 10')]
+      : p.passport.sources;
+  if (filingDate > req.simulationDate && met !== true)
+    return c.check(
+      'C-01',
+      '递件日的旅行证件',
+      'Travel document on the filing date',
+      undefined,
+      sources,
+      `现有证件在预计递件日 ${filingDate} 不符合要求。请补充届时有效的换发证件或获认可的替代证明。`,
+      `The current document will not qualify on the projected filing date, ${filingDate}. Provide evidence of a replacement or an accepted substitute valid on that date.`,
+    );
   return c.check(
     'C-01',
     '有效旅行证件或获准的无护照例外',
     'Valid travel document or recognised passport exemption',
     met,
-    nationality
-      ? [grSource('F34', 'ΚΕΙ art. 6(1)(a)')]
-      : identityOnly
-        ? [grSource('F21', 'arts. 25, 59'), grSource('F02', 'art. 10')]
-        : p.passport.sources,
+    sources,
     identityOnly
       ? '核对有效身份证明或已获认可的替代证件。'
       : `核对认可的证件、最近 ${rules.issueYears} 年签发、至少 ${rules.blankPages} 个空白页及预计离境后 ${rules.remainingMonths} 个月的有效期。无明确离境基准或例外未获认定时需核实。`,
@@ -283,12 +295,10 @@ export function commonChecks(
   const filedOn = nat && req.nationality?.pendingApplicationFiledOn;
   const checks = [
     passportCheck(
-      filedOn && filedOn <= req.simulationDate
-        ? { ...req, simulationDate: filedOn }
-        : req,
+      id,
+      req,
       c,
-      nat || euFamily || greekFamily,
-      nat,
+      filedOn && filedOn <= req.simulationDate ? filedOn : req.simulationDate,
     ),
   ];
   if (nat) return checks;

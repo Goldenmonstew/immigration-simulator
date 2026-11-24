@@ -201,7 +201,61 @@ describe('M.1 long-term grant and retention', () => {
       }),
     ).toBe('NOT_MET');
   });
-  test('a renewal only tests continued status and the print fee', () => {
+  test('a declared historical twelve-year total settles the integration check without a start date', () => {
+    for (const [legacyTwelveLawfulYears, expected] of [
+      [false, 'NOT_MET'],
+      [true, 'MET'],
+      [undefined, 'UNKNOWN'],
+    ] as const) {
+      const result = full(lt, {
+        simulationDate: '2026-02-05',
+        integration: { basis: 'residence', legacyTwelveLawfulYears },
+      });
+      expect(result.checks.find((c) => c.id === 'LT-04')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+      if (expected !== 'MET') expect(result.earliestDate).toBeUndefined();
+    }
+  });
+  test('renewal checks the passport history and continued status with an adverse or unresolved public-order finding', () => {
+    const renewal = {
+      stage: 'renewal',
+      passportHistory: 'complete',
+      continuousOutsideEuMonths: 0,
+      continuousOutsideGreeceYears: 0,
+      otherMemberStateLongTermOrRevocationGround: false,
+    } as const;
+    const request = { longTerm: renewal, currentCardExpiresOn: '2026-12-01' };
+    for (const [passportHistory, expected] of [
+      ['complete', 'MET'],
+      ['official-substitute', 'MET'],
+      ['missing', 'NOT_MET'],
+      [undefined, 'UNKNOWN'],
+    ] as const) {
+      const result = full(lt, {
+        ...request,
+        longTerm: { ...renewal, passportHistory },
+      });
+      expect(result.checks.find((c) => c.id === 'LT-06')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    }
+    for (const [publicOrder, expected] of [
+      ['clear', 'MET'],
+      ['adverse', 'NOT_MET'],
+      ['review', 'UNKNOWN'],
+      [undefined, 'UNKNOWN'],
+    ] as const) {
+      const result = full(lt, { ...request, publicOrder });
+      expect(result.checks.find((c) => c.id === 'LT-07')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    }
+  });
+  test('a renewal only tests retained status and renewal documents', () => {
     const e = {
       stage: 'renewal',
       continuousOutsideEuMonths: 11,
@@ -441,6 +495,14 @@ describe('M.2 acquisition and conversion', () => {
       }),
     ).toBe('NOT_MET'); // 150 + 157.
   });
+  test('a missing prior card prevents renewal on either basis even when the category is unanswered', () => {
+    const result = full(ty, {
+      tenYear: { stage: 'renewal', hasPriorCard: false, cardExpiresOn: day },
+    });
+    expect(result.checks.find((c) => c.id === 'TY-04')?.status).toBe('NOT_MET');
+    expect(result.status).toBe('NOT_MET');
+    expect(result.earliestDate).toBeUndefined();
+  });
   test('residence M.2 conversion needs a previous card, final five years of absences and income; school-card renewal does not', () => {
     const e = {
       stage: 'renewal',
@@ -501,6 +563,29 @@ describe('ΚΕΙ naturalisation', () => {
     feeClass: 'ordinary',
     lastRejection: 'none',
   };
+  test.each([
+    [day, '2027-02-01', 'UNKNOWN', 'UNKNOWN', undefined],
+    [day, '2027-08-15', 'MET', 'FUTURE', '2027-08-15'],
+    ['2027-08-15', '2027-02-01', 'NOT_MET', 'NOT_MET', undefined],
+    ['2027-08-15', '2032-02-01', 'MET', 'MET', '2027-08-15'],
+  ] as const)(
+    'reapplication on %s with a passport expiring on %s',
+    (simulationDate, expiresOn, documentStatus, status, earliestDate) => {
+      const path = full(nat, {
+        simulationDate,
+        passport: { kind: 'recognised', expiresOn },
+        permits: [{ kind: 'regular', from: '2016-01-01', to: '2027-12-01' }],
+        nationality: { ...satisfactory, lastRejection: '2026-08-15' },
+      });
+      const document = path.checks.find((c) => c.id === 'C-01');
+      expect(document?.status).toBe(documentStatus);
+      if (documentStatus === 'UNKNOWN')
+        expect(document?.explanation).toContain('2027-08-15');
+      expect(path.status).toBe(status);
+      expect(path.earliestDate).toBe(earliestDate);
+    },
+  );
+
   test('a twelve-year residence wait extends past the ten-year horizon of the time-only entry', () => {
     const path = full(nat, {
       route: 'twelve-year',
@@ -595,6 +680,7 @@ describe('ΚΕΙ naturalisation', () => {
     const filing = '2025-08-01';
     const r = {
       simulationDate: '2027-02-01',
+      passport: { kind: 'recognised' as const, expiresOn: filing },
       permits: [{ kind: 'regular' as const, from: '2019-02-01' }],
       nationality: {
         ...satisfactory,
@@ -604,6 +690,7 @@ describe('ΚΕΙ naturalisation', () => {
       },
     };
     const path = full(nat, r);
+    expect(path.checks.find((c) => c.id === 'C-01')?.status).toBe('MET');
     expect(path.checks.find((c) => c.id === 'NAT-TIME-RESIDENCE')?.status).toBe(
       'NOT_MET',
     );
