@@ -509,7 +509,10 @@ function adjustmentBar(
   if (immediate === true || category === 'vawa' || category === 'sij')
     return other;
   const violations = a?.qualifyingViolationsDays;
-  if (violations === 0) return other;
+  const employmentStatus =
+    category !== 'employment' ||
+    (a?.lawfulNonimmigrantStatusAtFiling ?? a?.legalEntry !== 'paroled');
+  if (violations === 0 && employmentStatus) return other;
   const kCategory =
     category === 'employment'
       ? employment?.category
@@ -531,7 +534,7 @@ function adjustmentBar(
     violations === undefined ? undefined : violations === 0,
     k,
   );
-  return all(other, status);
+  return all(other, status, any(employmentStatus, k));
 }
 
 export function adjustmentChecks(
@@ -733,8 +736,8 @@ export function adjustmentChecks(
               s.adjustmentBars,
               'PD-274',
               [
-                `合资格职业类按最近一次合法入境后的违规累计最多 ${v.adjustment.value.kDays} 天；假释返美不重置。其他禁令须分别检查。`,
-                `Eligible employment applicants may have up to ${v.adjustment.value.kDays} violation days since the last lawful admission. Parole does not reset the count. Check independent bars separately.`,
+                `职业类须核对递交时的合法非移民身份或适用例外。合资格职业类按最近一次合法入境后的违规累计最多 ${v.adjustment.value.kDays} 天。假释返美不重置。其他禁令须分别检查。`,
+                `For employment-based adjustment, check lawful nonimmigrant status at filing or an applicable exception. Eligible applicants may have up to ${v.adjustment.value.kDays} violation days since the last lawful admission. Parole does not reset the count. Check independent bars separately.`,
               ],
             ),
             check(

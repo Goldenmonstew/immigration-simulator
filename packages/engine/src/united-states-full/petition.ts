@@ -81,19 +81,6 @@ export function reportedAgeAtLeast(
   return undefined;
 }
 
-function familyPetitionerAtFiling(request: UsFullRequest, receipt?: IsoDate) {
-  const family = request.family;
-  const naturalized = family?.petitionerNaturalizedOn;
-  return (
-    family?.petitionerAtFiling ??
-    (naturalized && receipt
-      ? naturalized <= receipt
-        ? 'citizen'
-        : 'lpr'
-      : family?.petitioner)
-  );
-}
-
 export function currentFamilyPetitioner(request: UsFullRequest) {
   const family = request.family;
   const naturalized = family?.petitionerNaturalizedOn;
@@ -140,11 +127,22 @@ export function immediateRelative(
         : family.beneficiaryAge,
       limit,
     );
-  const atFiling = familyPetitionerAtFiling(request, petitionReceipt);
   const naturalized = family.petitionerNaturalizedOn;
+  const atFiling =
+    family.petitionerAtFiling ??
+    (naturalized && petitionReceipt
+      ? naturalized <= petitionReceipt
+        ? 'citizen'
+        : 'lpr'
+      : admission?.petitionFiledOn
+        ? undefined
+        : family.petitioner);
+  const adultAtFiling = petitionReceipt
+    ? ageAtLeast(petitionReceipt)
+    : undefined;
   if (atFiling === 'lpr') {
     // An adult at the original receipt was not initially classified as F2A.
-    if (petitionReceipt && ageAtLeast(petitionReceipt) === true) return false;
+    if (adultAtFiling === true) return false;
     if (naturalized) {
       if (
         naturalized > request.simulationDate ||
@@ -163,11 +161,12 @@ export function immediateRelative(
       ? true
       : undefined;
   }
-  if (atFiling !== 'citizen') return undefined;
-  if (petitionReceipt) {
-    const adult = ageAtLeast(petitionReceipt);
-    if (adult !== undefined) return !adult;
+  if (atFiling === undefined && petitioner === 'citizen') {
+    if (adultAtFiling === true) return false;
+    if (ageAtLeast(request.simulationDate) === false) return true;
   }
+  if (atFiling !== 'citizen') return undefined;
+  if (adultAtFiling !== undefined) return !adultAtFiling;
   // Without a receipt date, a child still under the limit cannot have aged out at filing.
   if (ageAtLeast(request.simulationDate) === false) return true;
   return typeof family.cspaAge === 'number'

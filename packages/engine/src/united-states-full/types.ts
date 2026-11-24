@@ -295,6 +295,7 @@ export interface UsEmploymentAnswers {
   permRecruitment?: {
     stateJobOrderDays?: number;
     advertisements?: number;
+    /** For Schedule A, provide only the notice timing. */
     mandatoryRecruitmentDaysBeforeFiling?: number[];
     noticeWorkdays?: number;
     professional?: boolean;
@@ -397,6 +398,9 @@ export interface UsAdmissionAnswers {
   entryException?: UsReview;
   otherAdjustmentBar?: 'none' | 'vwp' | 'barred' | 'review';
   qualifyingViolationsDays?: number;
+  /** Lawful nonimmigrant status at I-485 filing, separate from parole or lawful admission. */
+  lawfulNonimmigrantStatusAtFiling?: boolean;
+  /** Presence pursuant to a lawful admission on the I-485 filing date for INA 245(k). */
   lawfulAdmissionFor245k?: boolean;
   discretion?: UsReview;
   classAHealth?: UsReview;

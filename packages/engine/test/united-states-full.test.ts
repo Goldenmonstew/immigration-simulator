@@ -5127,8 +5127,12 @@ describe('review86-14 regressions', () => {
       },
       'approved',
     );
-    expect(condition(request, 'C28-OFFER-PERM').status).toBe('MET');
-    expect(path(request).approvalStatus).toBe('MET');
+    expect(condition(request, 'C28-OFFER-PERM')).toMatchObject({
+      status: 'UNKNOWN',
+      filingStatus: 'UNKNOWN',
+      pendingDetails: ['PD-277'],
+    });
+    expect(path(request).approvalStatus).toBe('UNKNOWN');
   });
 
   test('derives spouse citizenship duration and age when party membership ended', () => {
@@ -5182,6 +5186,162 @@ describe('review86-14 regressions', () => {
     expect(path(request)).toMatchObject({
       status: 'MET',
       approvalStatus: 'MET',
+    });
+  });
+});
+
+describe('review86-15 regressions', () => {
+  test.each([
+    [30, undefined, 'MET'],
+    [180, undefined, 'MET'],
+    [14, false, 'NOT_MET'],
+    [14, true, 'NOT_MET'],
+    [181, undefined, 'NOT_MET'],
+    [30, false, 'NOT_MET'],
+    [undefined, undefined, 'UNKNOWN'],
+    [undefined, true, 'UNKNOWN'],
+  ] as const)(
+    'Schedule A concurrent filing with notice %s days before filing and compliance %s is %s',
+    (days, compliant, expected) => {
+      const request = withEmployment(
+        {
+          category: 'eb3',
+          perm: 'schedule-a',
+          permCertifiedOn: undefined,
+          recruitmentAndFeesCompliant: compliant,
+          permRecruitment: {
+            noticeWorkdays: 10,
+            employerPaidPermCosts: true,
+            mandatoryRecruitmentDaysBeforeFiling:
+              days === undefined ? undefined : [days],
+          },
+        },
+        'filed-with-i485',
+      );
+      for (const pathway of ['US-EMPLOYMENT', 'US-ADJUSTMENT'] as const) {
+        const input = { ...request, pathway };
+        const offer = condition(input, 'C28-OFFER-PERM');
+        expect(offer.status).toBe(expected);
+        if (expected === 'UNKNOWN')
+          expect(offer.pendingDetails).toEqual(['PD-277']);
+        const result = path(input);
+        expect(result.status).toBe(expected);
+        expect(result.earliestDate).toBe(
+          expected === 'MET' ? time.simulationDate : undefined,
+        );
+        expect(result.approvalStatus).toBe(
+          expected === 'NOT_MET' ? 'NOT_MET' : 'UNKNOWN',
+        );
+        expect(result.approvalEarliestDate).toBeUndefined();
+      }
+    },
+  );
+
+  test.each([
+    [undefined, undefined, 'UNKNOWN'],
+    ['citizen', undefined, 'MET'],
+    ['lpr', undefined, 'UNKNOWN'],
+    [undefined, '2024-01-01', 'NOT_MET'],
+  ] as const)(
+    'historical I-130 with petitioner status %s and naturalization date %s is %s',
+    (petitionerAtFiling, petitionerNaturalizedOn, expected) => {
+      for (const pathway of ['US-FAMILY', 'US-ADJUSTMENT'] as const) {
+        const request: UsFullRequest = {
+          ...f,
+          pathway,
+          dateOfBirth: '1999-05-01',
+          family: {
+            ...family,
+            relationship: 'unmarried-child',
+            childRelationship: 'biological',
+            beneficiaryAge: 27,
+            petitionerAtFiling,
+            petitionerNaturalizedOn,
+          },
+          admission: {
+            ...admission,
+            petitionFiledOn: '2018-05-01',
+            adjustmentBasis: 'family-preference',
+            visaAtFiling: 'unavailable',
+            visaAtDecision: 'unavailable',
+          },
+        };
+        const visa = condition(request, 'C33-VISA-AND-ENTRY');
+        expect(visa).toMatchObject({
+          status: expected,
+          filingStatus: expected,
+        });
+        if (expected === 'UNKNOWN')
+          expect(visa.pendingDetails).toEqual(['PD-272']);
+        const result = path(request);
+        const date = expected === 'MET' ? time.simulationDate : undefined;
+        expect(result.status).toBe(expected);
+        expect(result.approvalStatus).toBe(expected);
+        expect(result.earliestDate).toBe(date);
+        expect(result.approvalEarliestDate).toBe(date);
+      }
+    },
+  );
+
+  test.each([
+    [false, undefined, 'none', 'NOT_MET'],
+    [false, undefined, undefined, 'NOT_MET'],
+    [undefined, undefined, 'none', 'UNKNOWN'],
+    [false, true, 'none', 'MET'],
+  ] as const)(
+    'paroled EB-2 with 245(k) lawful admission %s, lawful status %s and other bar %s is %s',
+    (
+      lawfulAdmissionFor245k,
+      lawfulNonimmigrantStatusAtFiling,
+      otherAdjustmentBar,
+      expected,
+    ) => {
+      for (const pathway of ['US-EMPLOYMENT', 'US-ADJUSTMENT'] as const) {
+        const request: UsFullRequest = {
+          ...e,
+          pathway,
+          admission: {
+            ...e.admission,
+            legalEntry: 'paroled',
+            qualifyingViolationsDays: 0,
+            lawfulAdmissionFor245k,
+            lawfulNonimmigrantStatusAtFiling,
+            otherAdjustmentBar,
+          },
+        };
+        expect(condition(request, 'C33-VISA-AND-ENTRY').status).toBe('MET');
+        const bars = condition(request, 'C34-ADJUSTMENT-BARS');
+        expect(bars.status).toBe(expected);
+        if (expected === 'UNKNOWN')
+          expect(bars.pendingDetails).toEqual(['PD-274']);
+        const result = path(request);
+        const date = expected === 'MET' ? time.simulationDate : undefined;
+        expect(result.status).toBe(expected);
+        expect(result.approvalStatus).toBe(expected);
+        expect(result.earliestDate).toBe(date);
+        expect(result.approvalEarliestDate).toBe(date);
+      }
+    },
+  );
+
+  test.each([
+    ['EB-2', e],
+    ['EB-5', eb5],
+  ] as const)('applies a confirmed 245(k) exception to %s', (_, input) => {
+    const request: UsFullRequest = {
+      ...input,
+      admission: {
+        ...input.admission,
+        lawfulNonimmigrantStatusAtFiling: false,
+        lawfulAdmissionFor245k: true,
+      },
+    };
+    expect(condition(request, 'C34-ADJUSTMENT-BARS').status).toBe('MET');
+    expect(path(request)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'MET',
+      earliestDate: time.simulationDate,
+      approvalEarliestDate: time.simulationDate,
     });
   });
 });

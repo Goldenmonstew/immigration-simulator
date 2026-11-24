@@ -1188,7 +1188,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-pm-v6-e-ch4.html` → <https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-4>
 - `policy-sources/2026-11-23-us-pm-v6-e-ch6.html` → <https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-6>
 - 20 CFR §656.30(b)(1) 和 6 USCIS-PM E.6(B)(1) 按用于 I-140 的收件日计算 PERM 有效期。
-- Schedule A 的工资认定和张贴通知见 20 CFR §§656.10(d)、656.15(b)，雇主承担的相关费用见 §656.12(b)。普通劳动力市场招聘步骤见 §656.17(e)。
+- Schedule A 须遵守 20 CFR §656.10(d)(1)、(2)(ii)、(3)(iv)、(6) 和 §656.15(b)(2)。通知须在递交前 30–180 天发出。无合格工会代表时，须至少连续张贴 10 个工作日。工资认定见 §656.15(b)，雇主承担的相关费用见 §656.12(b)，普通劳动力市场招聘步骤见 §656.17(e)。
 - 20 CFR §656.17(a)、(c) 的 ETA-9089 允许电子或邮寄。电子递交使用 [DOL FLAG，PERM Filing Process](https://flag.dol.gov/programs/PERM)。
 
 ## SRC-306 职业分类与 EB-1A、EB-2 NIW 证据
@@ -1223,6 +1223,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 8 U.S.C. §1255(h)(1) 在适用 §1255(a) 时，将获批的 SIJ 视为已获准假释入境。I-485 Instructions p21「Special Immigrant Juvenile (Form I-360)」允许名额可用时与 I-360 同时递交 I-485，或在 I-360 待决时递交。核准仍须取得 SIJ 分类。
 - 8 U.S.C. §1255(h)(2)(A) 对 SIJ 调整排除 §1182(a)(4)、(5)(A)、(6)(A)、(6)(C)、(6)(D)、(7)(A) 和 (9)(B)。(6)(C) 包含移民欺诈／虚假陈述及虚称美国公民。(9)(C) 的非法再入境仍属适用事由，按 §1255(h)(2)(B) 核对个案豁免。见 [8 U.S.C. §1255(h)](https://uscode.house.gov/us/usc/t8/s1255/#h)。
 - 8 CFR §245.1(b)(4)–(6)、(10) 中的 SIJ 例外适用于身份中断和相关就业违规，其他禁令仍须核对。8 U.S.C. §1255(k)(1)–(2) 对指定职业类别核对递交时的合法入境条件和该次合法入境后的累计违规。见 [8 U.S.C. §1255(k)](https://uscode.house.gov/us/usc/t8/s1255/#k)。
+- 8 U.S.C. §1255(c)(7) 与 8 CFR §245.1(b)(9) 要求职业调整申请人在 I-485 递交时具有合法非移民身份，适用 §1255(k) 或其他法定例外的个案按其依据判定。单有 parole 可以满足 §1255(a) 的入境条件。8 CFR §245.1(d)(1)(ii)、(v) 分列非移民身份与有效 parole，其中 §245.1(d)(1) 定义用于 §245(c)(2)。见 [8 U.S.C. §1255(a)、(c)(7)](https://uscode.house.gov/us/usc/t8/s1255/)。
 - 8 CFR §245.2(a)(2)(i)(A)–(C)、8 U.S.C. §1255(n) 及 I-485 Instructions pp3、17–21 规定适用即时亲属、亲属优先、I-140、EB-5、VAWA 和 SIJ 等类别的同时递交。7 USCIS-PM A.6(A)、(C)(4)–(5) 要求核对基础请愿案及递交月、裁决月两阶段的名额。I-485 Instructions p11 Item 9 要求按适用情形随件递交 I-693 或疫苗记录。
 - 7 USCIS-PM A.6(A)「Verify Underlying Basis to Adjust Status」要求裁决前调取并核验基础请愿案。I-485 Instructions p3「When Should I File Form I-485?」区分基础请愿已获批与可同时递交的类别。基础请愿获批依据缺失时，境内按同时递交规则核对递交，核准待确认请愿决定。
 - I-485 Instructions p2「Who May File Form I-485?」要求递交时实际身处美国，各移民类别另有适用条件。该递交时点也适用于使用 I-485 的 INA 209 难民与庇护调整。累计在美要求仍于裁决时核对，见 SRC-314。见 [I-485 Instructions p2](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=2)。

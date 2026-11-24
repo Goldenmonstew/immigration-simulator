@@ -340,21 +340,24 @@ export function supportChecks(
 
 function permRecruitment(a: UsEmploymentAnswers): Answer {
   const record = a.permRecruitment;
-  if (!record) return a.recruitmentAndFeesCompliant;
   const law = v.perm.value;
+  const timing = record?.mandatoryRecruitmentDaysBeforeFiling;
+  const timingCompliant = timing?.length
+    ? timing.every((days) => days >= law.minDays && days <= law.maxDays)
+    : undefined;
   if (a.perm === 'schedule-a')
     return all(
-      atLeast(record.noticeWorkdays, law.noticeWorkdays) ??
+      a.recruitmentAndFeesCompliant !== false,
+      timingCompliant,
+      atLeast(record?.noticeWorkdays, law.noticeWorkdays) ??
         a.recruitmentAndFeesCompliant,
-      record.employerPaidPermCosts ?? a.recruitmentAndFeesCompliant,
+      record?.employerPaidPermCosts ?? a.recruitmentAndFeesCompliant,
     );
-  const timing = record.mandatoryRecruitmentDaysBeforeFiling;
+  if (!record) return a.recruitmentAndFeesCompliant;
   return all(
     atLeast(record.stateJobOrderDays, law.orderDays),
     atLeast(record.advertisements, law.advertisements),
-    timing?.length
-      ? timing.every((days) => days >= law.minDays && days <= law.maxDays)
-      : undefined,
+    timingCompliant,
     atLeast(record.noticeWorkdays, law.noticeWorkdays),
     record.professional === true
       ? all(
@@ -455,10 +458,15 @@ export function employmentChecks(request: UsFullRequest, receipt: IsoDate) {
         all(offer, certification),
         s.perm,
         'PD-277',
-        [
-          'PERM 有效期按使用它的 I-140 收件日核对。拟递交 I-140 时使用预计收件日。',
-          'Check PERM validity on the date USCIS received the I-140 using it. For a prospective I-140, use the expected receipt date.',
-        ],
+        a.perm === 'schedule-a'
+          ? [
+              `Schedule A 须在递交前 ${v.perm.value.minDays}–${v.perm.value.maxDays} 天发出通知，并核对张贴及雇主费用。`,
+              `For Schedule A, confirm notice ${v.perm.value.minDays}–${v.perm.value.maxDays} days before filing, posting, and employer-paid costs.`,
+            ]
+          : [
+              'PERM 有效期按使用它的 I-140 收件日核对。拟递交 I-140 时使用预计收件日。',
+              'Check PERM validity on the date USCIS received the I-140 using it. For a prospective I-140, use the expected receipt date.',
+            ],
         petitionApproved ? checkStatus(offer) : undefined,
       ),
       check(
