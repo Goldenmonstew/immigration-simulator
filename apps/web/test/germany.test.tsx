@@ -479,3 +479,80 @@ test('Germany questionnaire renders steps and activeGermanyAnswers strips inacti
   expect(cleaned.marriedOn).toBeUndefined();
   expect(cleaned.citizenship).toEqual({});
 });
+
+const condition = (
+  result: ReturnType<typeof de.run>,
+  route: string,
+  id: string,
+) =>
+  result.columns[0].pathways
+    .find((pathway) => pathway.id === route)
+    ?.checks.find((check) => check.id === id);
+
+test('criminal fines and mixed sentences require their day-rate lists instead of crashing the result (review100-1 #1)', () => {
+  const base: GermanyDraft = { ...sampleDraft(), step: 4 };
+  for (const [record, list] of [
+    [{ kind: 'fines' }, 'dayRates'],
+    [{ kind: 'mixed-sentences', prisonDays: 30 }, 'fineDayRates'],
+  ] as const) {
+    const draft = {
+      ...base,
+      citizenship: { criminalRecord: record },
+    } as unknown as GermanyDraft;
+    expect(validateGermanyStep(draft)).toHaveProperty(
+      `de-nat-criminalRecord-${list}`,
+      'de.form.required',
+    );
+    // A completed draft missing the list goes back to step 4 instead of running.
+    expect(
+      restoreStoredGermanyDraft({ ...draft, step: 5 }, true),
+    ).toMatchObject({ completed: false, step: 4 });
+  }
+  const run = (criminalRecord: object) =>
+    condition(
+      de.run(
+        { ...base, citizenship: { criminalRecord } } as GermanyDraft,
+        'zh-CN',
+      ),
+      'DE-R07',
+      'DE-C52',
+    )?.status;
+  // A confirmed empty list stays unknown; prison days alone are evaluated.
+  expect(run({ kind: 'fines', dayRates: [] })).toBe('UNKNOWN');
+  expect(
+    run({
+      kind: 'mixed-sentences',
+      prisonDays: 30,
+      fineDayRates: [],
+      judgmentFoundHateMotive: false,
+      allCustodySuspendedAndRemitted: true,
+    }),
+  ).toBe('MET');
+});
+
+test('historical worker answers are only required when a worker category applies (review100-1 #7)', () => {
+  const step4 = (historicalWorker: object) =>
+    validateGermanyStep({
+      ...sampleDraft(),
+      step: 4,
+      citizenship: { incomeException: 'legacy-worker', historicalWorker },
+    } as unknown as GermanyDraft);
+  expect(step4({ kind: 'none' })).toEqual({});
+  expect(step4({ kind: 'west-agreement' })).toEqual({
+    'de-nat-historicalWorker-applicant': 'de.form.required',
+  });
+  expect(step4({ kind: 'west-agreement', applicant: 'worker' })).toEqual({});
+});
+
+test('migrated legacy drafts are checked step by step and reopen at the failing step (review100-1 #8)', () => {
+  const legacy = decodeGermanyDraft({
+    simulationDate: '2026-11-23',
+    settlementRoute: 'general',
+    permits: [],
+    trips: [],
+  });
+  expect(legacy).toMatchObject({ completed: false, step: 0 });
+  expect(validateGermanyStep(legacy!)).toEqual({
+    'de-firstEntry': 'de.form.required',
+  });
+});

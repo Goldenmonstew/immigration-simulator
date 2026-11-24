@@ -756,7 +756,9 @@ export function decodeGermanyDraft(
 ): GermanyDraft | undefined {
   if (!isRecord(value)) return undefined;
   if (!('version' in value)) {
-    return migrateLegacyGermanyDraft(value);
+    // A migrated draft is only complete if every visible step passes.
+    const migrated = migrateLegacyGermanyDraft(value);
+    return migrated && restoreStoredGermanyDraft(migrated);
   }
   if (
     value.version !== 1 ||

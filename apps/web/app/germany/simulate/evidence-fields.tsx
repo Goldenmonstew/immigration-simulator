@@ -218,7 +218,10 @@ function Question({
     const isInt = field.type === 'integer-list';
     return (
       <fieldset className={form.fieldset}>
-        <legend className={form.legend}>{label}</legend>
+        <legend className={form.legend}>
+          {label}
+          {field.required && ' *'}
+        </legend>
         {hint && <p className={form.hint}>{hint}</p>}
         {items.map((item, i) => {
           const itemId = `${id}-${i}`;

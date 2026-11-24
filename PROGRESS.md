@@ -614,6 +614,7 @@
 | 722 | 任务 100：逐份文书下的出境记录在未填时也可"确认无此项记录"，否则 § 51 文书存续条件只能停在待确认。 | apps/web/app/germany/simulate/evidence-fields.tsx |
 | 723 | 任务 100：按真实字段重写德国 e2e（问卷两步按单测样例填写、结果页路径与状态、首页英文标题），两条用例在浏览器中通过。 | apps/e2e/tests/germany.spec.ts |
 | 724 | 任务 100：任务报告（问卷步骤与字段、对比旋钮、旧链接处理、验证结果）。 | docs/tasks/reports/100-de-pages.md |
+| 725 | 任务 100 审核修正（review100-1 问题 1、7、8）：刑事记录选罚金或罚金与自由刑并存时日额列表必填（可确认为无），不再在结果页崩溃；历史劳工类别选「无 / 不适用」时不再强制申请人身份；旧版只算时间草稿迁移后逐步校验，不完整时回到出错步骤。 | apps/web/lib/germany-{fields,draft}.ts、apps/web/app/germany/simulate/evidence-fields.tsx、apps/web/test/germany.test.tsx |
 | 740 | 任务 91：登记日本完整版使用的官方法条、指南、手续费及办事材料，校对调研哈希，补 PD-360–379 与网页来源索引。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 741 | 任务 91：加入永住审查过渡、许可期间、教育与证据窗口、人才分值、帰化特例、再入国和手续费参数。 | packages/policy-data/src/{index.ts,parameters/japan-2026-11.ts} |
 | 742 | 任务 91：新增日本完整版评估入口，复用原时间结果，逐项检查永住、帰化与再入国并补边界测试。 | packages/engine/src/{index.ts,japan-full*.ts}、packages/engine/test/japan-full.test.ts、docs/tasks/reports/91-jp-rules.md |

@@ -111,11 +111,13 @@ const integer = (
 });
 const integerList = (
   name: GermanyFieldName,
+  required = false,
   when?: GermanyField['when'],
 ): GermanyField => ({
   name,
   label: name,
   type: 'integer-list',
+  required,
   when,
 });
 const numberList = (name: GermanyFieldName): GermanyField => ({
@@ -812,9 +814,19 @@ export const citizenshipSections = {
     ...flags('livesWithPartnerAndMinorChild', 'exceptionForecastAccepted'),
     group('historicalWorker', [
       choice('kind', ['west-agreement', 'east-contract', 'none'], true),
-      actualDate('workerArrivedOn'),
-      choice('applicant', ['worker', 'spouse'], true),
-      bool('spouseJoinedInConnection'),
+      actualDate(
+        'workerArrivedOn',
+        false,
+        'workerArrivedOn',
+        undefined,
+        (r) => r.kind !== 'none',
+      ),
+      choice('applicant', ['worker', 'spouse'], true, (r) => r.kind !== 'none'),
+      bool(
+        'spouseJoinedInConnection',
+        false,
+        (r) => r.kind !== 'none' && r.applicant === 'spouse',
+      ),
     ]),
     bool('benefitsNotAttributable'),
   ],
@@ -873,9 +885,9 @@ export const citizenshipSections = {
         false,
         (r) => r.kind === 'foreign-record' || r.kind === 'security-measure',
       ),
-      integerList('dayRates', (r) => r.kind === 'fines'),
+      integerList('dayRates', true, (r) => r.kind === 'fines'),
       integer('lowerCombinedDayRates', false, (r) => r.kind === 'fines'),
-      integerList('fineDayRates', (r) => r.kind === 'mixed-sentences'),
+      integerList('fineDayRates', true, (r) => r.kind === 'mixed-sentences'),
       integer('prisonDays', true, (r) => r.kind === 'mixed-sentences'),
       bool(
         'allCustodySuspendedAndRemitted',
