@@ -48,6 +48,19 @@ function Question({
   const set = (next: unknown) => change(field.name, next);
   const label = t(`de.field.${field.label}`);
   const hint = field.hint && t(`de.form.${field.hint}`);
+  // Errors on a whole group or list are announced and focused on its fieldset.
+  const listError = errors[id];
+  const listProps = {
+    id,
+    tabIndex: -1,
+    'aria-invalid': listError ? (true as const) : undefined,
+    'aria-describedby': listError ? `${id}-error` : undefined,
+  };
+  const listMessage = listError && (
+    <p id={`${id}-error`} className={form.error}>
+      {t(listError)}
+    </p>
+  );
 
   const nested = (
     definitions: GermanyField[],
@@ -78,8 +91,9 @@ function Question({
   if (field.type === 'group') {
     const record = (value ?? {}) as object;
     return (
-      <fieldset className={form.entry}>
+      <fieldset className={form.entry} {...listProps}>
         <legend>{label}</legend>
+        {listMessage}
         {field.fields.some((child) => child.required) && (
           <p className={form.hint}>{t('de.form.optionalGroup')}</p>
         )}
@@ -94,9 +108,10 @@ function Question({
     // Every list keeps "not answered" apart from "confirmed none".
     const rows = (value ?? []) as object[];
     return (
-      <fieldset className={form.fieldset}>
+      <fieldset className={form.fieldset} {...listProps}>
         <legend className={form.legend}>{label}</legend>
         {hint && <p className={form.hint}>{hint}</p>}
+        {listMessage}
         {rows.map((row, i) => (
           <fieldset key={i} className={form.entry}>
             <legend>
@@ -157,16 +172,19 @@ function Question({
   if (field.type === 'choice-list') {
     const items = (value ?? []) as string[];
     return (
-      <fieldset className={form.fieldset}>
+      <fieldset className={form.fieldset} {...listProps}>
         <legend className={form.legend}>{label}</legend>
         {hint && <p className={form.hint}>{hint}</p>}
+        {listMessage}
         {items.map((item, i) => {
           const itemId = `${id}-${i}`;
           return (
             <div key={i} className={form.entry}>
-              <Field id={itemId} label={`${label} ${i + 1}`} error={errors[id]}>
+              <Field id={itemId} label={`${label} ${i + 1}`}>
                 <select
                   id={itemId}
+                  aria-invalid={listProps['aria-invalid']}
+                  aria-describedby={listProps['aria-describedby']}
                   value={item}
                   onChange={(event) =>
                     set(
@@ -213,30 +231,40 @@ function Question({
   }
 
   if (field.type === 'number-list' || field.type === 'integer-list') {
+    // A new or cleared row stays empty (NaN) until a number is entered.
     const items = (value ?? []) as number[];
     const isInt = field.type === 'integer-list';
+    const invalid = (item: number) =>
+      !Number.isFinite(item) ||
+      item < 0 ||
+      (isInt && !Number.isSafeInteger(item));
     return (
-      <fieldset className={form.fieldset}>
+      <fieldset className={form.fieldset} {...listProps}>
         <legend className={form.legend}>
           {label}
           {field.required && ' *'}
         </legend>
         {hint && <p className={form.hint}>{hint}</p>}
+        {listMessage}
         {items.map((item, i) => {
           const itemId = `${id}-${i}`;
           return (
             <div key={i} className={form.entry}>
-              <Field id={itemId} label={`${label} ${i + 1}`} error={errors[id]}>
+              <Field id={itemId} label={`${label} ${i + 1}`}>
                 <input
                   id={itemId}
+                  aria-invalid={
+                    listError && invalid(item) ? (true as const) : undefined
+                  }
+                  aria-describedby={listProps['aria-describedby']}
                   type="number"
                   min={0}
                   step={isInt ? 1 : 'any'}
-                  value={String(item)}
+                  value={Number.isNaN(item) ? '' : String(item)}
                   onChange={(event) => {
                     const num =
                       event.target.value === ''
-                        ? 0
+                        ? Number.NaN
                         : Number(event.target.value);
                     set(items.map((old, idx) => (idx === i ? num : old)));
                   }}
@@ -265,7 +293,7 @@ function Question({
           <button
             type="button"
             className={site.secondary}
-            onClick={() => set([...items, 0])}
+            onClick={() => set([...items, Number.NaN])}
           >
             {t('de.form.add')} · {label}
           </button>

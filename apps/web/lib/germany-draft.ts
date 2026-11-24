@@ -694,6 +694,14 @@ function mapAnswers(
       result[key] = value.map((row) =>
         isRecord(row) ? mapAnswers(row, field.fields, writing) : row,
       );
+    } else if (
+      writing &&
+      (field.type === 'number-list' || field.type === 'integer-list') &&
+      Array.isArray(value)
+    ) {
+      // Unfinished empty rows are not saved; a list of them reads as unanswered.
+      const filled = value.filter((item) => !Number.isNaN(item));
+      result[key] = filled.length || !value.length ? filled : undefined;
     } else if (field.type === 'group' && isRecord(value)) {
       const group = mapAnswers(value, field.fields, writing);
       // A group holding only pending answers reads back as unanswered.

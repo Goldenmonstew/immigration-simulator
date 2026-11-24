@@ -13,6 +13,7 @@ import {
   createGermanyDraft,
   decodeGermanyDraft,
   restoreStoredGermanyDraft,
+  storeGermanyAnswers,
   validateGermanyStep,
   type GermanyDraft,
 } from '../lib/germany-draft';
@@ -1153,4 +1154,50 @@ test('What-if clears date-bound confirmations, reads route-specific answers and 
   expect(r07).not.toContain('id="de-whatif-german"');
   expect(r07).not.toContain('id="de-whatif-contributions"');
   expect(controls(['R03'])).toContain('id="de-whatif-salary"');
+});
+
+test('number lists start empty, report errors on the list and the questionnaire classes exist (review100-1 #9, risk 4)', () => {
+  const draft = {
+    ...sampleDraft(),
+    step: 4,
+    citizenship: { criminalRecord: { kind: 'fines', dayRates: [Number.NaN] } },
+  } as unknown as GermanyDraft;
+  const errors = validateGermanyStep(draft);
+  expect(errors).toEqual({
+    'de-nat-criminalRecord-dayRates': 'de.form.integerError',
+  });
+  const html = renderToStaticMarkup(
+    <LocaleContext value={{ locale: 'zh-CN', setLocale: () => {} }}>
+      {GermanySimulatePage().props.children({
+        draft,
+        errors,
+        update: () => {},
+      })}
+    </LocaleContext>,
+  );
+  expect(html).toMatch(
+    /<fieldset[^>]* id="de-nat-criminalRecord-dayRates" tabindex="-1" aria-invalid="true" aria-describedby="de-nat-criminalRecord-dayRates-error">/,
+  );
+  expect(html.split('请填写不小于 0 的整数。').length - 1).toBe(1);
+  expect(html).toMatch(
+    /<input id="de-nat-criminalRecord-dayRates-0" aria-invalid="true" aria-describedby="de-nat-criminalRecord-dayRates-error"[^>]* value=""/,
+  );
+  expect(html).toContain('<details open="" class="_evidence_');
+  const sections = renderToStaticMarkup(
+    <LocaleContext value={{ locale: 'zh-CN', setLocale: () => {} }}>
+      {GermanySimulatePage().props.children({
+        draft: { ...sampleDraft(), step: 3 },
+        errors: {},
+        update: () => {},
+      })}
+    </LocaleContext>,
+  );
+  expect(sections).toContain('<section class="_section_');
+
+  // An unfinished empty row is not saved.
+  const stored = storeGermanyAnswers({
+    ...sampleDraft(),
+    common: { housing: { householdAges: [5, Number.NaN] } },
+  }) as GermanyDraft;
+  expect(stored.common?.housing?.householdAges).toEqual([5]);
 });

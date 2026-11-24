@@ -75,7 +75,7 @@ function GermanyStep({ draft, errors, update }: StepProps) {
     });
 
   return (
-    <>
+    <div className={styles.steps}>
       <p className={form.hint}>{t('de.form.optional')}</p>
 
       {draft.step === 0 && (
@@ -324,7 +324,7 @@ function GermanyStep({ draft, errors, update }: StepProps) {
           />
         </>
       )}
-    </>
+    </div>
   );
 }
 
