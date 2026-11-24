@@ -147,6 +147,9 @@ test('the Blue Card holder sees the missing integration requirement', () => {
     grCountry.missingRules(gr.newGame('spouse', 4, 'en'), 'pr'),
   ).toBeUndefined();
   const state = gr.newGame('bluecard', 4, 'en');
+  expect(grCountry.placeNote!(state, 'visa')?.en).toBe(
+    'Blue Card valid to 2026-09-14; renew from 2026-07-14, or late until 2026-12-14.',
+  );
   expect(grCountry.missingRules(state, 'pr')).toEqual([
     'Greek language, history and culture',
   ]);

@@ -173,6 +173,22 @@ export const grCountry: GameCountry<GrKinds> = {
       </>
     );
   },
+  placeNote(state, place) {
+    if (place !== 'visa') return undefined;
+    const expiry = state.timeline.currentCardExpiresOn;
+    if (grGame.isBlueCard(state)) {
+      const { early, late } = grGame.renewalWindow(expiry);
+      return {
+        zhCN: `蓝卡到 ${expiry}；${early} 起可递交续期，逾期补交截至 ${late}。`,
+        en: `Blue Card valid to ${expiry}; renew from ${early}, or late until ${late}.`,
+      };
+    }
+    const date = grGame.pathwayOf(state.result, 'pr')?.earliestDate;
+    return {
+      zhCN: `Ο.3 居留卡到 ${expiry}。条件满足后可在这里申请 Μ.3 永久居留卡${date ? `（最早 ${date}）` : ''}。`,
+      en: `Ο.3 card valid to ${expiry}. Apply here for the Μ.3 permanent card once you qualify${date ? ` (from ${date})` : ''}.`,
+    };
+  },
   loadTownCanvas: () => import('./town-canvas'),
 };
 
