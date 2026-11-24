@@ -661,3 +661,4 @@
 | 780 | 任务 102：政策页组件原样取自澳大利亚分支，非英国国家读本国 `<id>.policy.pageTitle` 标题，参数千分位对所有非英国国家开启。 | apps/web/components/policy-page.tsx、PROGRESS.md |
 | 781 | 任务 102：葡萄牙完整版页面接入 `evaluatePortugalFull`：首页、按所选路径显示的九步问卷（名单可区分未答与确认没有，隐藏分支答案不评估不分享）、结果（只列所选路径，通用说明不再重复条件标题）、六个对比旋钮、政策页（108 个条件静态列出并由单测与引擎对齐，只含葡萄牙来源）；旧只算时间单页由新首页接管，`hub.pt.*` 移入葡萄牙字典，离线缓存版本更新。 | apps/web/lib/portugal-{fields,draft,module,whatif,policy,policy-rules}.ts、apps/web/app/portugal/、apps/web/i18n/countries/portugal{,-form,-module}.ts、apps/web/i18n/{zh-CN,en}.ts、apps/web/lib/site-countries.ts、apps/web/public/sw.js、apps/web/test/{portugal,about-page}.test.tsx、删除 apps/web/lib/portugal.ts、PROGRESS.md |
 | 782 | 任务 102：葡萄牙 e2e 改为完整版流程：中文填问卷到结果、刷新恢复步骤、出境名单须确认、保存情景、分享链接在新上下文还原同一结果、从缺口跳到对比控件；英文 375 px 走伴侣路径，对比页改日期后最早日期变化，政策页标题、来源与条件。 | apps/e2e/tests/portugal.spec.ts、PROGRESS.md |
+| 783 | 任务 102 报告：按 commit 列改动、问卷步骤与字段、对比旋钮、旧链接处理、验收与走查结果、未做事项及发现与建议。 | docs/tasks/reports/102-pt-pages.md、PROGRESS.md |
