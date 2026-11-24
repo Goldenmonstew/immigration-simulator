@@ -660,3 +660,4 @@
 | 816 | 任务 101 第二十六轮审核修正（review101-26）。日本对比与分享仅在消费拟递交日的路径附加假设递交日说明；みなし再入国与已生效普通再入国许可不附加该说明，在其余输入未变时保留「与当前情景相同」。补只选みなし与已生效普通许可的对比及分享回读回归。 | apps/web/lib/japan-module.ts、apps/web/test/{japan.test.tsx,japan-questionnaire.test.tsx}、docs/tasks/reports/101-jp-pages.md |
 | 619 | 任务 96：美国首页与分步问卷取代原时间单页。九条路径各按所选路径显示步骤，覆盖 `evaluateUnitedStatesFull` 的全部输入；校验同年度工资记录重叠与累计倒退、未接受按比例核算时优先年度须从 1 月 1 日起，职业类 I-485 须明确基础请愿状态。结果另列核准阶段，对比、分享、方案与政策页接入共用组件，政策页条件与来源由引擎输出汇总。 | apps/web/{lib/united-states-*.ts,app/united-states/,i18n/countries/united-states*.ts,i18n/{zh-CN,en}.ts,lib/site-countries.ts,public/sw.js,test/{united-states,about-page}.test.tsx}，删除 apps/web/lib/united-states.ts |
 | 619.1 | 任务 96：美国 e2e 改为完整版流程：中文返美路径填完问卷、保存方案、分享链接在新上下文还原同一结果、对比页改返美日后日期变化；英文手机宽度走一般入籍，从缺口跳到英语考试旋钮，政策页核对标题、来源与条件。 | apps/e2e/tests/united-states.spec.ts |
+| 619.2 | 任务 96：报告列出问卷步骤与字段、对比旋钮、旧页面处理、验证结果与范围外建议。 | docs/tasks/reports/96-us-pages.md |
