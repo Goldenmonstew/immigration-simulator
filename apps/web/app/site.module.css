@@ -480,8 +480,16 @@
     line-height: 1.2;
     white-space: nowrap;
   }
-  .header .fullLabel {
+  .header a .fullLabel {
     display: none;
+  }
+  .header button .fullLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   .header .compactLabel {
     display: inline;

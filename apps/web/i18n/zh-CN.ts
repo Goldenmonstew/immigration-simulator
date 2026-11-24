@@ -270,7 +270,7 @@ export const zhCN = {
   'policyPage.sources': '来源清单',
   'policyPage.bestYears': '{window} 年中满足 {required} 年',
   'policyPage.applicationsFrom': '适用于申请日自',
-  'site.chineseShort': '中',
+  'site.chineseShort': 'ZH',
   'site.shortName': '移民模拟',
   'uk.name': '英国',
   'site.name': '移民路径模拟',

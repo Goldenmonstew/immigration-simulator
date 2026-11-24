@@ -131,6 +131,19 @@ test('locale renders the shell title, engine result, principal and What-if expla
     expect(html).not.toContain('My Immigration Path');
   expect(english).toContain('lang="en" aria-pressed="true"');
   expect(chinese).toContain('lang="zh-CN" aria-pressed="true"');
+  for (const [html, chineseName] of [
+    [chinese, '中文'],
+    [english, 'Chinese'],
+  ]) {
+    const buttons =
+      html.match(/<button\b[^>]* lang="(?:zh-CN|en)"[^>]*>.*?<\/button>/g) ??
+      [];
+    expect(buttons.map((button) => button.replace(/<[^>]+>/g, ''))).toEqual([
+      `${chineseName} ZH`,
+      'English EN',
+    ]);
+    for (const button of buttons) expect(button).not.toContain('aria-label=');
+  }
   for (const result of [
     runSimulation(draft, 'en'),
     runPrincipalSimulation(draft, 'en')!,

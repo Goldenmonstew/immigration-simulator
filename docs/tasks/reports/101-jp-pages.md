@@ -263,3 +263,10 @@
 2. **验证**　设置 `VITEST_MAX_WORKERS=2` 后，`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码为 0，6,196 项单测通过，1 项跳过。回读英国首页和日本结果页的静态 HTML，两个按钮的无障碍名称均包含各自的全称和缩写。
 3. **待验证**　Playwright 已识别目标用例。当前沙箱启动 Chromium 时，macOS 拒绝注册 Mach 端口（`Permission denied (1100)`），修正后的浏览器断言和 axe 扫描待 Fable 复跑。
 4. **发现与建议**　无其他范围外问题。
+
+## 第二次语言按钮无障碍修正
+
+1. **改动**　英国及各国共用的页头已移除两个语言按钮的 `aria-label`。桌面名称取自可见全称。手机显示 `ZH`、`EN`，读屏名称保留全称和中间的空格。中文界面的中文按钮名称为 `中文 ZH`，英文界面为 `Chinese ZH`。已更新双语单测和日本问卷的桌面、手机 E2E 断言。建议提交信息为 `Fix: 让共享页头语言按钮从可见文字和读屏全称生成名称`。
+2. **验证**　设置 `VITEST_MAX_WORKERS=2` 后，`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码为 0。6,196 项单测通过，1 项跳过，32 个页面和路由完成预渲染。回读英国首页与日本结果页的导出 HTML，确认按钮文字及分隔空格正确。
+3. **待验证**　已复跑日本手机问卷的 Playwright 用例。macOS 在 Chromium 启动时拒绝注册 Mach 端口（`Permission denied (1100)`），浏览器断言、axe 扫描与截图仍待 Fable 验证。改动按要求留在工作树，未提交。
+4. **发现与建议**　无范围外问题。

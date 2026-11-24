@@ -30,11 +30,15 @@ async function begin(page: Page, dict: Dict) {
   const main = page.getByRole('main');
   await page.goto('/');
   await main.locator('a[href="' + path() + '"]').click();
-  if (dict === en)
-    await page
-      .getByRole('banner')
-      .getByRole('button', { name: 'English (EN)', exact: true })
+  if (dict === en) {
+    const header = page.getByRole('banner');
+    await expect(
+      header.getByRole('button', { name: '中文 ZH', exact: true }),
+    ).toBeVisible();
+    await header
+      .getByRole('button', { name: 'English EN', exact: true })
       .click();
+  }
   await main
     .getByRole('link', { name: dict['home.start'], exact: true })
     .click();
@@ -57,6 +61,12 @@ test('a Japanese questionnaire restores its step, shares its pending assessment 
   browser,
 }) => {
   await begin(page, zhCN);
+  const header = page.getByRole('banner');
+  for (const name of ['中文', 'English']) {
+    await expect(
+      header.getByRole('button', { name, exact: true }),
+    ).toBeVisible();
+  }
   await page.locator('#jp-route-nat-general').check();
   await page.locator('#jp-dateOfBirth').fill('1990-01-01');
   await page.locator('#jp-stayStart').fill('2014-04-01');
@@ -148,8 +158,11 @@ test('English mobile questionnaire compares filing dates and shows Japanese poli
     ['ZH', 'Chinese'],
     ['EN', 'English'],
   ]) {
-    const button = header.getByRole('button', { name: `${full} (${short})` });
-    await expect(button).toHaveText(short, { useInnerText: true });
+    const button = header.getByRole('button', {
+      name: `${full} ${short}`,
+      exact: true,
+    });
+    await expect(button.getByText(short, { exact: true })).toBeVisible();
   }
   await page.locator('#jp-route-travel-ordinary').check();
   await noHorizontalScroll(page);
