@@ -577,6 +577,57 @@ test('the result lists only chosen routes, with a future date, a met case and a 
   });
 });
 
+// review95-1 #4 and suggestion 2: a met, inapplicable or undated route has no
+// time-only rows and no undetermined earliest date.
+test('settled and undated routes show no time rows or undetermined date', () => {
+  const met = { ...residencyDraft(), simulationDate: '2027-12-31' };
+  const never: CanadaDraft = {
+    ...residencyDraft(),
+    answers: {
+      ...residencyDraft().answers,
+      residence: { ...residencyDraft().answers.residence, prStatus: 'never' },
+    },
+  };
+  const family: CanadaDraft = {
+    ...residencyDraft(),
+    goals: ['CA-FAMILY'],
+    answers: { residence: { prStatus: 'never' } },
+  };
+  for (const [draft, id, status] of [
+    [met, 'CA-RESIDENCY', 'MET'],
+    [never, 'CA-RESIDENCY', 'NOT_APPLICABLE'],
+    [family, 'CA-FAMILY', 'UNKNOWN'],
+  ] as const) {
+    const assessment = pathway(draft, id);
+    expect(assessment.status, id).toBe(status);
+    expect(assessment.timeStatus).toBeUndefined();
+    expect(assessment.timeEarliestDate).toBeUndefined();
+    const html = render(
+      <ResultView country={ca} result={ca.run(draft, 'zh-CN')} draft={draft} />,
+    );
+    for (const key of [
+      'country.timeConditions',
+      'country.timeDate',
+      'result.earliest',
+    ] as const)
+      expect(html, `${id} ${key}`).not.toContain(t(key));
+    const lab = render(<WhatIfView country={ca} draft={draft} />);
+    expect(lab).toContain(t('whatif.unchanged'));
+    expect(lab).not.toContain(t('result.earliest'));
+    expect(lab).not.toContain(t('country.timeDate'));
+  }
+  // A projected date is still shown for a route that will be met.
+  expect(
+    render(
+      <ResultView
+        country={ca}
+        result={ca.run(residencyDraft(), 'zh-CN')}
+        draft={residencyDraft()}
+      />,
+    ),
+  ).toContain(t('result.earliest'));
+});
+
 test('comparison controls change only the moved answers and move the date', () => {
   const draft = residencyDraft();
   const { whatif } = ca;

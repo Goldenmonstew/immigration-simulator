@@ -16,6 +16,8 @@ import {
 import { canadaPolicy } from './canada-policy';
 import { canadaWhatIf, type CanadaWhatIf } from './canada-whatif';
 
+const datedGoals = ['CA-RESIDENCY', 'CA-CITIZENSHIP'];
+
 // The engine assesses every route; the page shows the routes the user chose.
 function run(draft: CanadaDraft, locale: Locale): CountryResult {
   const result = evaluateCanadaFull(canadaRequest(draft, locale));
@@ -26,10 +28,13 @@ function run(draft: CanadaDraft, locale: Locale): CountryResult {
       pathways: column.pathways
         .filter((pathway) => draft.goals.includes(pathway.id))
         .map((pathway) => {
-          const time = pathway.checks.find(
-            (check) => check.timeBaseline,
-          )?.timeBaseline;
-          // Show the time-only date when other requirements change the outcome.
+          const settled =
+            pathway.status === 'MET' || pathway.status === 'NOT_APPLICABLE';
+          const time = settled
+            ? undefined
+            : pathway.checks.find((check) => check.timeBaseline)?.timeBaseline;
+          // Show the time-only result when other requirements change the
+          // outcome, and its date only when it is a projection.
           const timeDiffers =
             time &&
             (time.status !== pathway.status ||
@@ -38,7 +43,14 @@ function run(draft: CanadaDraft, locale: Locale): CountryResult {
             ...pathway,
             ...(timeDiffers && {
               timeStatus: time.status,
-              timeEarliestDate: time.earliestDate,
+              ...(time.status === 'FUTURE' && {
+                timeEarliestDate: time.earliestDate,
+              }),
+            }),
+            // Only residence and citizenship project a date. A null travel
+            // date leaves out the date row for settled and undated routes.
+            ...((settled || !datedGoals.includes(pathway.id)) && {
+              travelDate: null,
             }),
             // Fees, card and travel document steps are guidance, not gaps.
             checks: pathway.checks.map((check) => ({
