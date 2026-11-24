@@ -14,6 +14,7 @@ import {
   s,
   v,
 } from './check';
+import type { Answer } from './check';
 import type {
   UsFullRequest,
   UsInvestmentAnswers,
@@ -240,15 +241,15 @@ export function travelChecks(request: UsFullRequest) {
   const birthday = birth ? afterYears(birth, reg.renewAge) : undefined;
   const expiry = a?.cardExpiresOn;
   const filed = a?.replacementFiledOn;
-  const needsAgeReplacement =
-    birthday &&
-    birthday <= date &&
-    request.permanentResident &&
-    request.permanentResident < birthday &&
-    expiry &&
-    birth
+  const needsAgeReplacement = all(
+    birthday ? birthday <= date : undefined,
+    birthday && request.permanentResident
+      ? request.permanentResident < birthday
+      : undefined,
+    expiry && birth
       ? expiry >= afterYears(birth, address.expiresBeforeAge)
-      : false;
+      : undefined,
+  );
   const ageReplacement =
     needsAgeReplacement && birthday
       ? filed === 'not-filed'
@@ -258,9 +259,7 @@ export function travelChecks(request: UsFullRequest) {
             filed <= addDays(birthday, reg.reRegisterDays) &&
             filed <= date
           : undefined
-      : birth && expiry && request.permanentResident
-        ? true
-        : undefined;
+      : not(needsAgeReplacement);
   const expiryReplacement =
     request.conditional && request.conditional !== 'none'
       ? false
@@ -305,50 +304,54 @@ export function travelChecks(request: UsFullRequest) {
               ? true
               : undefined,
         );
-  const noTravel = trips?.length === 0 && a?.returnDocument === undefined;
-  const route = a?.returnDocument;
-  const issuance = a?.permitIssuedOn;
-  const permitFiledInUs =
-    a?.permitFiledOn && request.trips
-      ? !returnFromTrip(request.trips, a.permitFiledOn) &&
-        a.permitAppliedInUs !== false
-      : a?.permitAppliedInUs;
-  const permitLaw = v.reentryPermit.value;
-  const permitTerm =
-    a?.permitRestrictedToOneYear === undefined
-      ? undefined
-      : a.permitRestrictedToOneYear
-        ? permitLaw.restrictedYears
-        : permitLaw.years;
-  const permitExpiry =
-    a?.permitExpiresOn ??
-    (issuance && permitTerm !== undefined
-      ? afterYears(issuance, permitTerm)
-      : undefined);
-  const permitValid =
-    trip && issuance && permitExpiry
-      ? issuance <= trip.returned && trip.returned < permitExpiry
-      : undefined;
-  const document = noTravel
-    ? true
-    : all(
-        route === 'reentry-permit'
-          ? permitValid === undefined
-            ? a?.documentValidAtReturn
-            : all(a?.documentValidAtReturn ?? permitValid, permitValid)
-          : a?.documentValidAtReturn,
-        route === 'green-card'
-          ? not(oneYear)
-          : route === 'reentry-permit'
-            ? all(permitFiledInUs, a?.permitBiometricsInUs)
-            : route === 'sb1'
-              ? reviewed(a?.sb1OutsideControl)
-              : route === 'continuous-journey'
-                ? a?.continuousJourneyStartedInTime
-                : route === 'none'
-                  ? false
-                  : undefined,
-      );
+  const noTravel = trips?.length === 0;
+  let document: Answer;
+  if (noTravel) {
+    document = true;
+  } else if (a?.returnDocument === 'reentry-permit') {
+    const issuance = a.permitIssuedOn;
+    const permitFiledInUs =
+      a.permitFiledOn && request.trips
+        ? !returnFromTrip(request.trips, a.permitFiledOn) &&
+          a.permitAppliedInUs !== false
+        : a.permitAppliedInUs;
+    const permitLaw = v.reentryPermit.value;
+    const permitTerm =
+      a.permitRestrictedToOneYear === undefined
+        ? undefined
+        : a.permitRestrictedToOneYear
+          ? permitLaw.restrictedYears
+          : permitLaw.years;
+    const permitExpiry =
+      a.permitExpiresOn ??
+      (issuance && permitTerm !== undefined
+        ? afterYears(issuance, permitTerm)
+        : undefined);
+    const permitValid =
+      trip && issuance && permitExpiry
+        ? issuance <= trip.returned && trip.returned < permitExpiry
+        : undefined;
+    document = all(
+      a.documentValidAtReturn ?? permitValid,
+      permitValid ?? true,
+      permitFiledInUs,
+      a.permitBiometricsInUs,
+    );
+  } else {
+    const route = a?.returnDocument;
+    document = all(
+      a?.documentValidAtReturn,
+      route === 'green-card'
+        ? not(oneYear)
+        : route === 'sb1'
+          ? reviewed(a?.sb1OutsideControl)
+          : route === 'continuous-journey'
+            ? a?.continuousJourneyStartedInTime
+            : route === 'none'
+              ? false
+              : undefined,
+    );
+  }
   return {
     seekingAdmission,
     returnedOn: trip?.returned,

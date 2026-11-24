@@ -42,6 +42,7 @@ export function partyCheck(
   party: UsPartyMembership | undefined,
   date: IsoDate | undefined,
   naturalizing: boolean,
+  birth?: IsoDate,
 ): Answer {
   if (!party?.membership) return undefined;
   if (party.membership === 'none') return true;
@@ -58,8 +59,13 @@ export function partyCheck(
     return not(party.functionary);
   if (naturalizing && party.exception === 'unknowing') return true;
   if (party.membership === 'former') {
-    if (party.ageEnded !== undefined && party.ageEnded < law.minimumAge)
-      return true;
+    const endedAsMinor =
+      party.ageEnded !== undefined
+        ? party.ageEnded < law.minimumAge
+        : birth && party.endedOn
+          ? party.endedOn < afterYears(birth, law.minimumAge)
+          : undefined;
+    if (endedAsMinor) return true;
     if (!party.endedOn || (!naturalizing && party.rulingParty === undefined))
       return undefined;
     if (!date) return any(undefined, reviewed(party.waiver));
@@ -74,7 +80,7 @@ export function partyCheck(
         ? true
         : any(party.noSecurityThreat, reviewed(party.waiver));
     }
-    if (party.ageEnded === undefined) return undefined;
+    if (endedAsMinor === undefined) return undefined;
   }
   return naturalizing ? false : reviewed(party.waiver);
 }
@@ -183,9 +189,11 @@ export function naturalizationChecks(
     : spouse
       ? legacy.spouseYears.value
       : legacy.naturalizationYears.value;
-  const age = request.dateOfBirth
-    ? date >= afterYears(request.dateOfBirth, legacy.minAge.value)
-    : undefined;
+  const age = hostilities
+    ? true
+    : request.dateOfBirth
+      ? date >= afterYears(request.dateOfBirth, legacy.minAge.value)
+      : undefined;
   const languageAt = (on: IsoDate) =>
     any(
       ...v.englishExemptions.value.map((rule) =>
@@ -282,17 +290,24 @@ export function naturalizationChecks(
     noFinalOrder,
     conditionsExempt || a?.conditionalStatusResolved !== undefined || undefined,
   );
+  const marital = spouse ? a?.spouse : undefined;
+  const citizenshipSince = spouse
+    ? request.marriage?.spouseCitizenSince
+    : undefined;
   const spouseAtFiling = all(
-    a?.spouse?.validMarriage,
-    reviewed(a?.spouse?.livedTogetherRequiredPeriod),
-    a?.spouse?.spouseCitizenRequiredPeriod,
+    marital?.validMarriage,
+    reviewed(marital?.livedTogetherRequiredPeriod),
+    marital?.spouseCitizenRequiredPeriod ??
+      (citizenshipSince
+        ? receipt >= afterYears(citizenshipSince, legacy.spouseYears.value)
+        : undefined),
   );
   return [
     check(
       'C01-AGE',
       '入籍最低年龄',
       'Minimum age for naturalization',
-      hostilities ? true : age,
+      age,
       [...s.age, ...(military ? s.military : [])],
       'PD-279',
       hostilities
@@ -375,7 +390,7 @@ export function naturalizationChecks(
         'C05-N648',
         '医学残障考试例外',
         'Medical disability exception for testing',
-        disabilityClaim(request),
+        a?.disability?.requested === true ? disabilityClaim(request) : true,
         s.disability,
         'PD-275',
         [
@@ -383,6 +398,7 @@ export function naturalizationChecks(
           `For N-648, a qualified physician or clinical psychologist must certify a qualifying impairment lasting or expected to last at least ${v.disabilityMonths.value} months. USCIS decides which tests are excused.`,
         ],
       ),
+      ...(a?.disability?.requested !== true ? { applicable: false } : {}),
       informational: true as const,
     },
     check(
@@ -425,7 +441,10 @@ export function naturalizationChecks(
       'C09-ATTACHMENT',
       '宪法依附与极权党籍',
       'Constitutional attachment and totalitarian-party membership',
-      all(a?.constitutionalAttachment, partyCheck(a?.party, date, true)),
+      all(
+        a?.constitutionalAttachment,
+        partyCheck(a?.party, date, true, request.dateOfBirth),
+      ),
       s.attachment,
       'PD-275',
     ),
@@ -468,7 +487,7 @@ export function naturalizationChecks(
             'C13-MARITAL-UNION',
             '有效婚姻、配偶公民身份和共同生活',
             'Valid marriage, spouse’s citizenship and marital union',
-            all(spouseAtFiling, a?.spouse?.marriageAndCitizenshipThroughOath),
+            all(spouseAtFiling, marital?.marriageAndCitizenshipThroughOath),
             s.spouse,
             'PD-274',
             [

@@ -233,7 +233,12 @@ export interface UsTravelAnswers {
 }
 
 export interface UsFamilyAnswers {
+  /** Petitioner's current status. */
   petitioner?: 'citizen' | 'lpr';
+  /** Status at the underlying I-130 receipt, if different from or not established by the current status. */
+  petitionerAtFiling?: 'citizen' | 'lpr';
+  /** Actual U.S. naturalization date of the I-130 petitioner. */
+  petitionerNaturalizedOn?: IsoDate;
   relationship?:
     'spouse' | 'unmarried-child' | 'married-child' | 'parent' | 'sibling';
   petitionerAge?: number;
@@ -244,8 +249,8 @@ export interface UsFamilyAnswers {
   custodyYears?: number;
   livedTogetherYears?: number;
   relationshipValid?: UsReview;
-  /** CSPA age using the applicable visa chart and seek-to-acquire rule, if determined. */
-  cspaAge?: number;
+  /** Confirmed CSPA age for the classification being assessed, or pending case-specific determination. */
+  cspaAge?: number | 'pending';
   priorMarriageLprSince?: IsoDate | 'not-applicable';
   priorMarriageException?: UsReview;
   marriageDuringRemoval?: boolean;
@@ -344,6 +349,8 @@ export interface UsEmploymentAnswers {
     fundsAndWire?: UsReview;
   };
   priorMarriageFraud?: boolean;
+  /** Whether the applicant filed the I-140 on their own behalf. */
+  i140SelfPetition?: boolean;
   relativePetitioner?: boolean;
   relativeOwnershipPct?: number;
 }

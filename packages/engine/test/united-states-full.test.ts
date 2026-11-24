@@ -4897,3 +4897,291 @@ test('replacement applies within six months and when the card is lost', () => {
     ).status,
   ).toBe('MET');
 });
+
+describe('review86-14 regressions', () => {
+  test.each(['US-EMPLOYMENT', 'US-ADJUSTMENT'] as const)(
+    'EB-5 in %s needs no I-864 sponsor or employer relationship answers',
+    (pathway) => {
+      const request: UsFullRequest = {
+        ...eb5,
+        pathway,
+        employment: {
+          ...eb5.employment,
+          relativePetitioner: undefined,
+          relativeOwnershipPct: undefined,
+        },
+      };
+      for (const id of [
+        'C25-SUPPORT-INCOME',
+        'C26-SPONSOR',
+        'C27-SUPPORT-EXEMPTION',
+      ]) {
+        expect(condition(request, id)).toMatchObject({
+          status: 'MET',
+          applicable: false,
+        });
+      }
+      expect(path(request)).toMatchObject({
+        status: 'MET',
+        earliestDate: time.simulationDate,
+        approvalStatus: 'MET',
+        approvalEarliestDate: time.simulationDate,
+      });
+      const unrelatedAnswers: UsFullRequest = {
+        ...request,
+        employment: {
+          ...request.employment,
+          relativePetitioner: true,
+          relativeOwnershipPct: 100,
+        },
+        support: { exemption: 'quarters', exemptionEvidence: 'barred' },
+      };
+      expect(path(unrelatedAnswers)).toEqual(path(request));
+    },
+  );
+
+  const adultChild: UsFullRequest = {
+    ...f,
+    dateOfBirth: '1999-05-01',
+    family: {
+      ...family,
+      relationship: 'unmarried-child',
+      childRelationship: 'biological',
+      beneficiaryAge: 27,
+    },
+    admission: {
+      ...admission,
+      petitionFiledOn: '2022-07-01',
+      adjustmentBasis: 'family-preference',
+      visaAtFiling: 'unavailable',
+      visaAtDecision: 'unavailable',
+    },
+  };
+  const expectFamilyOutcome = (
+    request: UsFullRequest,
+    expected: 'MET' | 'NOT_MET' | 'UNKNOWN',
+  ) => {
+    expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+      filingStatus: expected,
+      status: expected,
+    });
+    const result = path(request);
+    expect(result.status).toBe(expected);
+    expect(result.approvalStatus).toBe(expected);
+    const date = expected === 'MET' ? time.simulationDate : undefined;
+    expect(result.earliestDate).toBe(date);
+    expect(result.approvalEarliestDate).toBe(date);
+  };
+
+  test.each(['US-FAMILY', 'US-ADJUSTMENT'] as const)(
+    'adult F1 in %s uses DOB and actual I-130 receipt even with no CSPA age',
+    (pathway) => {
+      expectFamilyOutcome({ ...adultChild, pathway }, 'NOT_MET');
+    },
+  );
+
+  test.each([
+    ['2020-04-30', 'MET'],
+    ['2020-05-01', 'NOT_MET'],
+    ['2024-01-01', 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'F2A conversion on %s assesses age on that day',
+    (on, expected) => {
+      const converted: UsFullRequest = {
+        ...adultChild,
+        family: {
+          ...adultChild.family,
+          petitionerAtFiling: 'lpr',
+          petitionerNaturalizedOn: on,
+        },
+        admission: { ...adultChild.admission, petitionFiledOn: '2018-05-01' },
+      };
+      for (const pathway of ['US-FAMILY', 'US-ADJUSTMENT'] as const) {
+        expectFamilyOutcome({ ...converted, pathway }, expected);
+      }
+    },
+  );
+
+  test('derives I-130 filing status from naturalization and separates a case-specific CSPA finding', () => {
+    const converted: UsFullRequest = {
+      ...adultChild,
+      family: {
+        ...adultChild.family,
+        petitioner: undefined,
+        petitionerNaturalizedOn: '2024-01-01',
+      },
+      admission: { ...adultChild.admission, petitionFiledOn: '2018-05-01' },
+    };
+    expectFamilyOutcome(converted, 'NOT_MET');
+    expectFamilyOutcome(
+      { ...converted, family: { ...converted.family, cspaAge: 'pending' } },
+      'UNKNOWN',
+    );
+    expectFamilyOutcome(
+      { ...converted, family: { ...converted.family, cspaAge: 20 } },
+      'MET',
+    );
+    expectFamilyOutcome(
+      {
+        ...converted,
+        family: {
+          ...converted.family,
+          petitioner: 'lpr',
+          petitionerAtFiling: 'lpr',
+          petitionerNaturalizedOn: undefined,
+        },
+      },
+      'NOT_MET',
+    );
+  });
+
+  test('does not need the missing naturalization date when the child is still under the age limit', () => {
+    expectFamilyOutcome(
+      {
+        ...adultChild,
+        dateOfBirth: '2006-05-01',
+        family: {
+          ...adultChild.family,
+          petitionerAtFiling: 'lpr',
+          beneficiaryAge: undefined,
+        },
+        admission: { ...adultChild.admission, petitionFiledOn: '2024-01-01' },
+      },
+      'MET',
+    );
+  });
+
+  test('uses proved I-864 applicability and does not treat missing employer facts as no relation', () => {
+    const self: UsFullRequest = {
+      ...eb1a,
+      employment: {
+        ...eb1a.employment,
+        i140SelfPetition: true,
+        relativePetitioner: undefined,
+        relativeOwnershipPct: undefined,
+      },
+    };
+    const id = 'C27-SUPPORT-EXEMPTION';
+    expect(condition(self, id)).toMatchObject({
+      status: 'MET',
+      applicable: false,
+    });
+    expect(path(self).status).toBe('MET');
+    const noRelativeEmployer = withEmployment({}, 'approved');
+    expect(condition(noRelativeEmployer, id)).toMatchObject({
+      status: 'MET',
+      applicable: false,
+    });
+    for (const employment of [
+      { relativePetitioner: undefined },
+      { relativeOwnershipPct: undefined },
+    ]) {
+      expect(condition(withEmployment(employment, 'approved'), id).status).toBe(
+        'UNKNOWN',
+      );
+    }
+    expect(
+      condition(withEmployment({ relativeOwnershipPct: 5 }, 'approved'), id)
+        .applicable,
+    ).toBeUndefined();
+  });
+
+  test('uses known primary petitioner identity and regular income without a separate active-duty answer', () => {
+    const request: UsFullRequest = {
+      ...f,
+      family: { ...family, petitionerAge: 30 },
+      support: {
+        ...support,
+        sponsorAge: undefined,
+        sponsorStatus: undefined,
+        exemption: undefined,
+        activeDuty: undefined,
+      },
+    };
+    expect(condition(request, 'C25-SUPPORT-INCOME').status).toBe('MET');
+    expect(condition(request, 'C26-SPONSOR').status).toBe('MET');
+    expect(path(request)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'MET',
+    });
+    const incomeOnlyAtActiveRate: UsFullRequest = {
+      ...request,
+      support: {
+        ...request.support,
+        household: { region: 'contiguous', size: 2, incomeUsd: 23000 },
+      },
+    };
+    expect(condition(incomeOnlyAtActiveRate, 'C25-SUPPORT-INCOME').status).toBe(
+      'UNKNOWN',
+    );
+  });
+
+  test('Schedule A uses notice and employer costs without ordinary PERM recruitment fields', () => {
+    const request = withEmployment(
+      {
+        perm: 'schedule-a',
+        permCertifiedOn: undefined,
+        recruitmentAndFeesCompliant: undefined,
+        permRecruitment: { noticeWorkdays: 10, employerPaidPermCosts: true },
+      },
+      'approved',
+    );
+    expect(condition(request, 'C28-OFFER-PERM').status).toBe('MET');
+    expect(path(request).approvalStatus).toBe('MET');
+  });
+
+  test('derives spouse citizenship duration and age when party membership ended', () => {
+    const request: UsFullRequest = {
+      ...spouse,
+      naturalization: {
+        ...spouse.naturalization,
+        disability: undefined,
+        spouse: {
+          ...spouse.naturalization?.spouse,
+          spouseCitizenRequiredPeriod: undefined,
+        },
+      },
+    };
+    expect(condition(request, 'C05-N648').applicable).toBe(false);
+    expect(condition(request, 'C13-MARITAL-UNION').status).toBe('MET');
+    const birth = '2007-05-01';
+    for (const [endedOn, status] of [
+      ['2023-04-30', 'MET'],
+      ['2023-05-01', 'NOT_MET'],
+    ] as const) {
+      const former = withNatural({ party: { membership: 'former', endedOn } });
+      expect(
+        condition({ ...former, dateOfBirth: birth }, 'C09-ATTACHMENT').status,
+      ).toBe(status);
+    }
+  });
+
+  test('an empty trip history makes return-specific document answers immaterial', () => {
+    const request: UsFullRequest = {
+      ...t,
+      trips: [],
+      travel: {
+        ...travel,
+        returnDocument: 'none',
+        documentValidAtReturn: false,
+        abandonment: undefined,
+      },
+    };
+    expect(condition(request, 'C22-RETURN-DOCUMENT').status).toBe('MET');
+    expect(condition(request, 'C22-RESIDENCE-INTENT').status).toBe('MET');
+    expect(path(request).status).toBe('MET');
+  });
+
+  test('does not require a waiver answer when all applicable humanitarian grounds are clear', () => {
+    const request: UsFullRequest = {
+      ...h,
+      humanitarian: { ...human, waiver: undefined },
+    };
+    expect(condition(request, 'C42-HUMANITARIAN-WAIVER').status).toBe('MET');
+    expect(path(request)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'MET',
+    });
+  });
+});

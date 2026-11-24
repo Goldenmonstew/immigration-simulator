@@ -19,7 +19,12 @@ export function adjustmentCategory(request: UsFullRequest): AdjustmentCategory {
   if (pathway !== 'US-ADJUSTMENT') return undefined;
 
   const basis = admission?.adjustmentBasis;
-  const familyEvidence = Boolean(family?.petitioner || family?.relationship);
+  const familyEvidence = Boolean(
+    family?.petitioner ||
+    family?.petitionerAtFiling ||
+    family?.petitionerNaturalizedOn ||
+    family?.relationship,
+  );
   if (basis)
     return isFamilyCategory(basis) && familyEvidence ? 'family' : basis;
   const employmentEvidence = Boolean(
@@ -76,6 +81,29 @@ export function reportedAgeAtLeast(
   return undefined;
 }
 
+function familyPetitionerAtFiling(request: UsFullRequest, receipt?: IsoDate) {
+  const family = request.family;
+  const naturalized = family?.petitionerNaturalizedOn;
+  return (
+    family?.petitionerAtFiling ??
+    (naturalized && receipt
+      ? naturalized <= receipt
+        ? 'citizen'
+        : 'lpr'
+      : family?.petitioner)
+  );
+}
+
+export function currentFamilyPetitioner(request: UsFullRequest) {
+  const family = request.family;
+  const naturalized = family?.petitionerNaturalizedOn;
+  if (naturalized && naturalized <= request.simulationDate) return 'citizen';
+  return (
+    family?.petitioner ??
+    (family?.petitionerAtFiling === 'citizen' ? 'citizen' : undefined)
+  );
+}
+
 export function immediateRelative(
   request: UsFullRequest,
   category: AdjustmentCategory,
@@ -84,33 +112,67 @@ export function immediateRelative(
   if (category === undefined || category === 'ambiguous') return undefined;
   if (category !== 'family') return category === 'immediate-relative';
   const { family, admission } = request;
-  if (!family?.petitioner || !family.relationship) return undefined;
-  if (family.petitioner !== 'citizen') return false;
-  if (family.relationship === 'spouse') return true;
-  const petitionReceipt = admission?.petitionFiledOn ?? receipt;
+  if (!family?.relationship) return undefined;
+  const petitioner = currentFamilyPetitioner(request);
+  if (petitioner === 'lpr') return false;
+  if (family.relationship === 'spouse')
+    return petitioner === 'citizen' || undefined;
+  const petitionReceipt =
+    admission?.petitionFiledOn ??
+    (admission?.petitionStatus === 'filed-with-i485' ? receipt : undefined);
   if (family.relationship === 'parent')
-    return reportedAgeAtLeast(
-      request.simulationDate,
-      petitionReceipt,
-      family.petitionerAge,
-      v.familyAge.value.adultSponsor,
-    );
+    return petitioner === 'citizen'
+      ? reportedAgeAtLeast(
+          request.simulationDate,
+          petitionReceipt ?? receipt,
+          family.petitionerAge,
+          v.familyAge.value.adultSponsor,
+        )
+      : undefined;
   if (family.relationship !== 'unmarried-child') return false;
   const limit = v.familyAge.value.child;
-  if (family.cspaAge !== undefined) return family.cspaAge < limit;
-  const agedOut = beneficiaryAtLeastAge(
-    request,
-    petitionReceipt,
-    family.beneficiaryAge,
-    limit,
-  );
-  if (agedOut === false) return true;
-  if (
-    !admission?.petitionFiledOn &&
-    admission?.petitionStatus === 'filed-with-i485'
-  )
-    return agedOut === true ? false : undefined;
-  return undefined;
+  const ageAtLeast = (on: IsoDate) =>
+    beneficiaryAtLeastAge(
+      request,
+      on,
+      request.dateOfBirth && petitionReceipt
+        ? undefined
+        : family.beneficiaryAge,
+      limit,
+    );
+  const atFiling = familyPetitionerAtFiling(request, petitionReceipt);
+  const naturalized = family.petitionerNaturalizedOn;
+  if (atFiling === 'lpr') {
+    // An adult at the original receipt was not initially classified as F2A.
+    if (petitionReceipt && ageAtLeast(petitionReceipt) === true) return false;
+    if (naturalized) {
+      if (
+        naturalized > request.simulationDate ||
+        (petitionReceipt && naturalized < petitionReceipt)
+      )
+        return undefined;
+      const adult = ageAtLeast(naturalized);
+      if (adult === false) return true;
+      // Use an established case-specific conversion CSPA age where applicable.
+      if (family.cspaAge === 'pending') return undefined;
+      if (typeof family.cspaAge === 'number') return family.cspaAge < limit;
+      return adult === true ? false : undefined;
+    }
+    return petitioner === 'citizen' &&
+      ageAtLeast(request.simulationDate) === false
+      ? true
+      : undefined;
+  }
+  if (atFiling !== 'citizen') return undefined;
+  if (petitionReceipt) {
+    const adult = ageAtLeast(petitionReceipt);
+    if (adult !== undefined) return !adult;
+  }
+  // Without a receipt date, a child still under the limit cannot have aged out at filing.
+  if (ageAtLeast(request.simulationDate) === false) return true;
+  return typeof family.cspaAge === 'number'
+    ? family.cspaAge < limit
+    : undefined;
 }
 
 export function underlyingPetitionApproved(a?: UsAdmissionAnswers): boolean {

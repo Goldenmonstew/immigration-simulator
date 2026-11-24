@@ -22,7 +22,13 @@ export function feeChecks(
   const consular = v.consularFees.value;
   const eb5 = v.eb5Fees.value;
   const rates = date < eb5.effective ? eb5.old : eb5.current;
-  const immigration = request.admission?.process;
+  const immigrantApplication =
+    request.pathway === 'US-FAMILY' ||
+    request.pathway === 'US-EMPLOYMENT' ||
+    request.pathway === 'US-ADJUSTMENT';
+  const immigration = immigrantApplication
+    ? request.admission?.process
+    : undefined;
   const military = request.pathway === 'US-MILITARY';
   const refugee =
     request.pathway === 'US-HUMANITARIAN' &&
@@ -54,7 +60,11 @@ export function feeChecks(
   const paperOnly = (amount: number) =>
     channel === 'online' ? undefined : amount;
   const lookup = (amounts: { online: number; paper: number }) =>
-    channel ? amounts[channel] : undefined;
+    channel
+      ? amounts[channel]
+      : amounts.online === amounts.paper
+        ? amounts.paper
+        : undefined;
   const baseline = poverty(a?.household);
   const povertyLaw = v.poverty.value;
   const currentPoverty =
@@ -73,7 +83,8 @@ export function feeChecks(
       : undefined;
 
   const relief = (allowsWaiver: boolean, allowsReduction = false): Answer => {
-    if (a?.relief === undefined) return undefined;
+    if (a?.relief === undefined)
+      return allowsWaiver || allowsReduction ? undefined : true;
     if (a.relief === 'none') return true;
     if (a.relief === 'reduced')
       return all(
@@ -222,20 +233,6 @@ export function feeChecks(
     case 'US-FAMILY': {
       reliefStatus = relief(false);
       checks.push(fee('I130', 'I-130', lookup(law.i130)));
-      const exempt = supportExemption(request, category);
-      if (exempt !== true)
-        checks.push(
-          fee(
-            'I864',
-            'I-864',
-            immigration === 'consular' && exempt === false
-              ? consular.i864
-              : immigration === 'adjustment'
-                ? law.i864
-                : undefined,
-            [...s.fee, ...s.consularFee],
-          ),
-        );
       break;
     }
     case 'US-EMPLOYMENT': {
@@ -280,7 +277,9 @@ export function feeChecks(
         );
       } else {
         const base = lookup(law.i140);
-        const self = e?.category === 'eb1a' || e?.category === 'eb2-niw';
+        const self =
+          e?.i140SelfPetition ??
+          (e?.category === 'eb1a' || e?.category === 'eb2-niw');
         const surcharge = self
           ? law.i140AsylumProgram.small
           : e?.employerNonprofit
@@ -307,6 +306,22 @@ export function feeChecks(
     case 'US-ADJUSTMENT':
     case 'US-HUMANITARIAN':
       break;
+  }
+  if (isFamilyCategory(category) || category === 'employment') {
+    const exempt = supportExemption(request, category);
+    if (exempt !== true)
+      checks.push(
+        fee(
+          'I864',
+          'I-864',
+          immigration === 'consular' && exempt === false
+            ? consular.i864
+            : immigration === 'adjustment'
+              ? law.i864
+              : undefined,
+          [...s.fee, ...s.consularFee],
+        ),
+      );
   }
   if (immigration === 'adjustment' || request.pathway === 'US-HUMANITARIAN') {
     const child =

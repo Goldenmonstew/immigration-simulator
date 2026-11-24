@@ -43,13 +43,12 @@ function medicalEvidenceCheck(
   adjustment: boolean,
 ): Answer {
   const law = v.medical.value;
-  const signed = a?.i693SignedOn;
-  const signedValid =
-    adjustment && signed
-      ? signed <= date &&
-        (signed >= law.previousSignatureCutoff ||
-          date <= afterYears(signed, law.previousValidityYears))
-      : true;
+  const signed = adjustment ? a?.i693SignedOn : undefined;
+  const signedValid = signed
+    ? signed <= date &&
+      (signed >= law.previousSignatureCutoff ||
+        date <= afterYears(signed, law.previousValidityYears))
+    : true;
   const linked =
     adjustment && date >= law.applicationLinkedFrom
       ? not(a?.i693LinkedToAnotherClosedCase)
@@ -220,12 +219,14 @@ export function admissionChecks(
   const publicResult = publicExempt
     ? true
     : assessExemption('4(A)', reviewed(a?.publicCharge));
-  const falseClaim = assessExemption(
-    '6(C)(ii)',
-    a?.falseCitizenship === true
-      ? a.falseCitizenshipException
-      : not(a?.falseCitizenship),
-  );
+  const falseClaim = isExempt('6(C)(ii)')
+    ? true
+    : assessExemption(
+        '6(C)(ii)',
+        a?.falseCitizenship === true
+          ? a.falseCitizenshipException
+          : not(a?.falseCitizenship),
+      );
   const otherGrounds = Object.entries(a?.otherInadmissibilityByGround ?? {});
   const identifiedGrounds = otherGrounds.flatMap(([ground, finding]) =>
     finding === undefined ? [] : [assessExemption(ground, reviewed(finding))],
@@ -249,7 +250,7 @@ export function admissionChecks(
   const otherReview = unexplainedSijBar
     ? undefined
     : completeReview || aggregateReview;
-  const { waiver, waiverFiling } = request.humanitarian ?? {};
+  const { waiver, waiverFiling } = (humanitarian && request.humanitarian) || {};
   const waiverDecision = waiver === 'not-needed' ? false : reviewed(waiver);
   const waiverMaterials =
     waiverFiling !== undefined
@@ -277,7 +278,9 @@ export function admissionChecks(
     };
   };
   const party =
-    scope === 'return' ? true : partyCheck(a?.party, applicationDate, false);
+    scope === 'return'
+      ? true
+      : partyCheck(a?.party, applicationDate, false, request.dateOfBirth);
   const security =
     a?.securityGround === 'clear'
       ? true
@@ -322,7 +325,7 @@ export function admissionChecks(
   );
   const immigrationGrounds = (bar: Answer) => {
     const [presence, fraud, other] = ordinaryWaiver(
-      [bar, not(a?.immigrationFraud), otherReview],
+      [bar, isExempt('6(C)(i)') ? true : not(a?.immigrationFraud), otherReview],
       a?.immigrationWaiver,
     );
     return [
@@ -335,6 +338,7 @@ export function admissionChecks(
     ];
   };
   const presenceAt = (on: IsoDate | undefined) => {
+    if (isExempt('9(B)')) return true;
     const presence = unlawfulPresence(a, on);
     return (adjustment || consularVisa) &&
       category === 'vawa' &&
@@ -493,6 +497,7 @@ function adjustmentBar(
   immediate: Answer,
   employment: UsFullRequest['employment'],
 ): Answer {
+  if (category === '245i') return reviewed(a?.entryException);
   const other =
     a?.otherAdjustmentBar === 'none'
       ? true
@@ -501,8 +506,10 @@ function adjustmentBar(
         : a?.otherAdjustmentBar === 'vwp'
           ? immediate
           : undefined;
-  const exempt = any(immediate, category === 'vawa' || category === 'sij');
+  if (immediate === true || category === 'vawa' || category === 'sij')
+    return other;
   const violations = a?.qualifyingViolationsDays;
+  if (violations === 0) return other;
   const kCategory =
     category === 'employment'
       ? employment?.category
@@ -511,17 +518,20 @@ function adjustmentBar(
           ? true
           : undefined
       : false;
-  const k = all(
-    kCategory,
-    a?.lawfulAdmissionFor245k,
-    atMost(violations, v.adjustment.value.kDays),
-  );
+  const k =
+    kCategory === false
+      ? false
+      : all(
+          kCategory,
+          a?.lawfulAdmissionFor245k,
+          atMost(violations, v.adjustment.value.kDays),
+        );
   const status = any(
-    exempt,
+    immediate,
     violations === undefined ? undefined : violations === 0,
     k,
   );
-  return category === '245i' ? reviewed(a?.entryException) : all(other, status);
+  return all(other, status);
 }
 
 export function adjustmentChecks(
@@ -543,23 +553,32 @@ export function adjustmentChecks(
   const simulationMonth = request.simulationDate.slice(0, 7);
   const receiptMonth = receipt.slice(0, 7);
   const decisionMonth = decision?.slice(0, 7);
-  const filingChart =
-    a?.process === 'adjustment'
-      ? (a.visaAtFilingByMonth?.[receiptMonth] ??
-        (receiptMonth === simulationMonth ? a.visaAtFiling : undefined))
-      : a?.visaAtFiling;
   const visaAtFiling = consular
-    ? receipt > request.simulationDate || availability(filingChart)
-    : any(immediate, availability(filingChart));
-  const visaAtDecision = decisionMonth
-    ? any(
-        immediate,
-        availability(
-          a?.visaAtDecisionByMonth?.[decisionMonth] ??
-            (decisionMonth === simulationMonth ? a?.visaAtDecision : undefined),
-        ),
-      )
-    : undefined;
+    ? receipt > request.simulationDate || availability(a.visaAtFiling)
+    : a?.process === 'adjustment'
+      ? immediate === true
+        ? true
+        : any(
+            immediate,
+            availability(
+              a.visaAtFilingByMonth?.[receiptMonth] ??
+                (receiptMonth === simulationMonth ? a.visaAtFiling : undefined),
+            ),
+          )
+      : undefined;
+  const visaAtDecision = !decisionMonth
+    ? undefined
+    : immediate === true
+      ? true
+      : any(
+          immediate,
+          availability(
+            a?.visaAtDecisionByMonth?.[decisionMonth] ??
+              (decisionMonth === simulationMonth
+                ? a?.visaAtDecision
+                : undefined),
+          ),
+        );
   const sijFiling =
     a?.process === 'adjustment' &&
     category === 'sij' &&
@@ -704,31 +723,35 @@ export function adjustmentChecks(
             civilDocuments === 'nonavailability-explained' ? 'MET' : undefined,
           ),
         ]
-      : [
-          check(
-            'C34-ADJUSTMENT-BARS',
-            '境内调整禁令及 INA 245(k) 例外',
-            'Adjustment bars and INA 245(k) exception',
-            adjustmentBar(a, category, immediate, employment),
-            s.adjustmentBars,
-            'PD-274',
-            [
-              `合资格职业类按最近一次合法入境后的违规累计最多 ${v.adjustment.value.kDays} 天；假释返美不重置。其他禁令须分别检查。`,
-              `Eligible employment applicants may have up to ${v.adjustment.value.kDays} violation days since the last lawful admission. Parole does not reset the count. Check independent bars separately.`,
-            ],
-          ),
-          check(
-            'C35-DISCRETION',
-            '境内调整身份裁量',
-            'Discretionary adjustment of status',
-            reviewed(a?.discretion),
-            s.discretion,
-            'PD-270',
-            undefined,
-            'NOT_APPLICABLE',
-          ),
-        ]),
-    ...admissionChecks(request, 'immigrant', timing, category),
+      : a?.process === 'adjustment'
+        ? [
+            check(
+              'C34-ADJUSTMENT-BARS',
+              '境内调整禁令及 INA 245(k) 例外',
+              'Adjustment bars and INA 245(k) exception',
+              adjustmentBar(a, category, immediate, employment),
+              s.adjustmentBars,
+              'PD-274',
+              [
+                `合资格职业类按最近一次合法入境后的违规累计最多 ${v.adjustment.value.kDays} 天；假释返美不重置。其他禁令须分别检查。`,
+                `Eligible employment applicants may have up to ${v.adjustment.value.kDays} violation days since the last lawful admission. Parole does not reset the count. Check independent bars separately.`,
+              ],
+            ),
+            check(
+              'C35-DISCRETION',
+              '境内调整身份裁量',
+              'Discretionary adjustment of status',
+              reviewed(a?.discretion),
+              s.discretion,
+              'PD-270',
+              undefined,
+              'NOT_APPLICABLE',
+            ),
+          ]
+        : []),
+    ...(a?.process
+      ? admissionChecks(request, 'immigrant', timing, category)
+      : []),
   ];
 }
 
@@ -770,6 +793,21 @@ export function humanitarianChecks(
         ? all(a.refugeeDefinitionOrDerivative, not(a.firmlyResettled))
         : undefined,
   );
+  const admission = admissionChecks(request, 'humanitarian', {
+    receipt,
+    decision:
+      approvalRequirementDate && approvalRequirementDate > decision
+        ? approvalRequirementDate
+        : decision,
+  });
+  const waiver = a?.waiver;
+  const waiverResult =
+    waiver === 'not-needed' ||
+    (waiver === undefined &&
+      a?.waiverFiling === undefined &&
+      admission.every((item) => item.status === 'MET'))
+      ? true
+      : reviewed(waiver);
   return [
     {
       ...check(
@@ -806,7 +844,7 @@ export function humanitarianChecks(
       'C42-HUMANITARIAN-WAIVER',
       'INA 209(c) 豁免适用性',
       'INA 209(c) exemptions and waivers',
-      a?.waiver === 'not-needed' ? true : reviewed(a?.waiver),
+      waiverResult,
       s.humanitarianWaiver,
       'PD-275',
       [
@@ -815,12 +853,6 @@ export function humanitarianChecks(
       ],
       'NOT_APPLICABLE',
     ),
-    ...admissionChecks(request, 'humanitarian', {
-      receipt,
-      decision:
-        approvalRequirementDate && approvalRequirementDate > decision
-          ? approvalRequirementDate
-          : decision,
-    }),
+    ...admission,
   ];
 }

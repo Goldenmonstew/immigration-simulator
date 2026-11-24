@@ -341,10 +341,15 @@ export const unitedStatesFullSources = {
     ),
   ],
   relationship: [
-    usc('SRC-302', '1151', '(b)(2)(A)(i), (f)'),
+    usc('SRC-302', '1151', '(b)(2)(A)(i), (f)(1)–(2)'),
     usc('SRC-302', '1153', '(a), (h)'),
     usc('SRC-079', '1101', '(b)(1)'),
     pm('SRC-302', 6, 'B', 7, '(A)'),
+    source(
+      'SRC-302',
+      '9 FAM 502.1-1(D)(7)(1)–(2), conversion of petition status',
+      'https://fam.state.gov/FAM/09FAM/09FAM050201.html#M502_1_1_D_7',
+    ),
   ],
   petitionBars: [
     usc('SRC-302', '1154', '(a)(1), (c), (g)'),
@@ -370,11 +375,16 @@ export const unitedStatesFullSources = {
   supportExemption: [
     source('SRC-303', '8 CFR 213a.2(a)(2)(i)–(ii)'),
     usc('SRC-303', '1183a', '(a)(3), (f)'),
+    source(
+      'SRC-303',
+      'I-864 Instructions p3, Other Applicants Not Required to Submit Form I-864, items 1–2',
+      'https://www.uscis.gov/sites/default/files/document/forms/i-864instr.pdf#page=3',
+    ),
   ],
   perm: [
     source(
       'SRC-305',
-      '20 CFR 656.10(d), 656.12(b), 656.17(e), 656.30(b), 656.40',
+      '20 CFR 656.10(d), 656.12(b), 656.15(b), 656.17(e), 656.30(b), 656.40',
     ),
     pm('SRC-305', 6, 'E', 6, '(B)(1)'),
     usc('SRC-302', '1153', '(b)(2)–(3)'),
