@@ -265,6 +265,36 @@
 | SRC-277 | GUIDANCE | StatCan LICO、IRCC 递交、警证与 offer | https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1110024101 ；https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/apply-permanent-residence.html ；https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/police-certificates.html ；https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/job-offer.html | 见登记备注 | 2026-11-23 | `policy-sources/2026-11-23-ca-statcan-lico.html`（sha256 `a99311387bcdf23dd46c984e538e0fe0e76d460ea69d449959bc5b21d63a9745`）；`policy-sources/2026-11-23-ca-ee-apply.html`（sha256 `7c4feffe0b94c550d9977f36cc9f2b701a9929f0af89defe7fced076d4bb725f`）；`policy-sources/2026-11-23-ca-ee-police.html`（sha256 `3594bedcb6aeb337a5b60bdff813a7ed2ac71bfa7b1d70225ab9920b831f3b37`）；`policy-sources/2026-11-23-ca-ee-job-offers.html`（sha256 `956b48c4270a07c3fb102eab094a96707085c5d7ef51e10a6299a53d0b9626c3`） | archived |
 | SRC-278 | LAW | Québec Gazette 魁省移民法规及 MIFI 法文要求 | https://www.publicationsduquebec.gouv.qc.ca/fileadmin/gazette/pdf_encrypte/lois_reglements/2026F/88289.pdf ；https://www.publicationsduquebec.gouv.qc.ca/fileadmin/gazette/pdf_encrypte/lois_reglements/2023F/80921.pdf ；https://www.publicationsduquebec.gouv.qc.ca/fileadmin/gazette/pdf_encrypte/lois_reglements/2024F/84053.pdf ；https://www.quebec.ca/immigration/permanente/travailleurs-qualifies/programme-selection-travailleurs-qualifies/exigences | 见登记备注 | 2026-11-23 | `policy-sources/2026-11-23-ca-quebec-gazette.pdf`（sha256 `5f1de6ab7848e70585aa6a6c832076821a2a135254578c2f679022e3b50f47bd`）；`policy-sources/2026-11-23-ca-quebec-pstq-gazette.pdf`（sha256 `2be483980917c019ab4642fe04fa937e66a40fadd048f92a6f2eb2541f3a9cb3`）；`policy-sources/2026-11-23-ca-quebec-procedure-gazette.pdf`（sha256 `48a9755e2af0dd56e365ec6bd6e0bb03e18d126545a8adfef10603991090480a`）；`policy-sources/2026-11-23-ca-quebec-req-fr.html`（sha256 `87d9add9162d701acbb87330a1aa112fb624df0d8b1b294efb5c7111754e5086`） | archived |
 | SRC-279 | GUIDANCE | OINP 雇主、AIP 清单、IRCC 医师政策及 Canada Gazette PNP 修订 | https://www.ontario.ca/page/oinp-employer-guide?redirect_id=page%2Fontario-immigrant-nominee-program-oinp-employer-guide&redirect_year=2026?redirect_id=page%2Foinp-employer-job-offer-streams-employer-guide&redirect_year=2026 ；https://www.canada.ca/content/dam/ircc/documents/pdf/english/kits/forms/imm0155/01-01-2025/imm0155e.pdf ；https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/public-policies/physicians-4-2023.html ；https://gazette.gc.ca/rp-pr/p2/2026/2026-04-08/html/sor-dors63-eng.html ；https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/atlantic-immigration/how-to-immigrate/permanent-residence.html | 见登记备注 | 2026-11-23、2026-11-24 | `policy-sources/2026-11-23-ca-ontario-employer-guide.html`（sha256 `7a327281ebb14cafbd7d5190f128dc9a4606aec861c07b0f0ce85fa6a80b441b`）；`policy-sources/2026-11-23-ca-aip-checklist.pdf`（sha256 `46d2b3382608340ac4e720d9d4e0e6f03b94ac89c562d21722d48da10a79726f`）；`policy-sources/2026-11-23-ca-ee-doctors.html`（sha256 `65d69065ca547193b7a8a8ec6d14491e42811d3f81bacb2d133c66a4e13d4659`）；`policy-sources/2026-11-23-ca-pnp-gazette.html`（sha256 `79feee7fbe0e76969c7ff66f10f53f0be0c3d4f7fd5b88655da44280b5c1c12d`）；`policy-sources/2026-05-28-ca-aip-pr-application.html`（sha256 `a5387d051f00c547d53d63aa7eacdf94fe8a8880309b10b670c1222f0cbd8d25`） | archived |
+| SRC-290 | LAW | 入籍年龄、合法取得永居及归化撤销 | https://uscode.house.gov/us/usc/t8/s1445/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-10-us-usc-8usc1445.html`（sha256 `812bfb329c81b15dcfc5d90996be0e6f1b6226974dafeb9bd9de67e45498c3cf`）；`policy-sources/2026-11-10-us-usc-8usc1429.html`（sha256 `ed99af9c919475e4c7848626d02266b8745be436dd0d8dd54de95b738f52cd7e`）；`policy-sources/2026-11-10-us-usc-8usc1451.html`（sha256 `f68f393b8e7ce48fefcb205b09f21833c339db2417d92fc0101453adb3ad5196`）；`policy-sources/2026-11-21-us-pm-v12-g-ch2.html`（sha256 `2ca4af382f59969a32662291c54236eb7651523f8c45086247156888b671f577`） | archived |
+| SRC-291 | LAW | 英语、公民知识及医学例外 | https://uscode.house.gov/us/usc/t8/s1423/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-usc-8usc1423.html`（sha256 `48f4fcb1ff4ac6807537b67410f7aa5973434419355b2c7cde915dcd5bc8bb47`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part312.xml`（sha256 `769a5406055d33e6645b82cc342587a57515abd961946db52af6805ea1f3ad65`） | archived |
+| SRC-292 | GUIDANCE | USCIS 入籍考试、N-648 与新题库 | https://www.uscis.gov/policy-manual/volume-12-part-e-chapter-2 | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-pm-v12-e-ch2.html`（sha256 `f2f36e7645ec37677311d781d9ae635f59b8318dd311d42d79599ea2fab501ca`）；`policy-sources/2026-11-23-us-pm-v12-e-ch3.html`（sha256 `3d9711d265eb01289bb5da7e5e7610bb082e9e93a1aa5eb37f327b08b1ee0429`）；`policy-sources/2025-10-20-us-pa-civics-test.pdf`（sha256 `f6637683b416c59230c926832bf1d4c7a82aff98dd01467c62ffb9ef0a1ecb65`） | archived |
+| SRC-293 | GUIDANCE | USCIS 良好品格、整体审查及公共福利备忘录 | https://www.uscis.gov/policy-manual/volume-12-part-f-chapter-2 | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-pm-v12-f-ch2.html`（sha256 `073798278a2c8a5b740cc7030731baf4ffe9e497cc2716087ed1e0dd3ab866d5`）；`policy-sources/2026-11-23-us-pm-v12-f-ch4.html`（sha256 `863a9ee9d707edfc2fc199ba10adeca2d1aeaabf76e77e989388b276e4a276b0`）；`policy-sources/2026-11-23-us-pm-v12-f-ch5.html`（sha256 `6a8a5171072dcaffb39d0dd1d6e49f7bc3ae97278261c0581665b940d6acc47c`）；`policy-sources/2025-08-15-us-pm-602-0188-gmc.pdf`（sha256 `ef541130d34b923dde90d365e9a14fed32672212d5dcbe1d0721ec10b62f0551`）；`policy-sources/2026-11-04-us-pm-602-0201-gmc-benefits.pdf`（sha256 `5f34559ce5cf120ba08b9811fbf08379438319d287857a16cc9bbe10d808ff9d`） | archived |
+| SRC-294 | LAW | 宪法依附、党籍与兵役豁免禁令 | https://uscode.house.gov/us/usc/t8/s1424/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-usc-8usc1424.html`（sha256 `374a4c8dd7539fca68f9e6ef018d13a45a8928b65abbefbb4cafd3db36903f6f`）；`policy-sources/2026-11-23-us-usc-8usc1425.html`（sha256 `53d0c9146dc3a4bfa08a5435b17b788570a017c2bdde31d5de2c83a7f3277c6f`）；`policy-sources/2026-11-23-us-usc-8usc1426.html`（sha256 `ea2f44f507072c3d934ea78464d051066a6dd8a4372c1568b54c2a0b69c153e6`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part313.xml`（sha256 `98f920ebc91bf18fd8e81ee08e079cd14293377edf2df8b9fecead0a1666d4be`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part315.xml`（sha256 `5df6edbeb2efd7dd4b63d2f060b3996d0d2f3cf82857e1fbc08adf6e7d55e98e`） | archived |
+| SRC-295 | GUIDANCE | Selective Service 登记与入籍 | https://www.sss.gov/register/who-needs-to-register/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-sss-who-must-register.html`（sha256 `94f7f6d6318f9e1b956d6a899d83cce2f7d44bad4497ff4a39d6aa54748ccd7c`）；`policy-sources/2026-11-23-us-pm-v12-d-ch7.html`（sha256 `017ecdded969314bda67bd1cdbce9057ddca678ba49f7eb10b4dcfc6f5a8b5f1`）；`policy-sources/2026-11-23-us-usc-50usc3802.html`（sha256 `da35a0d174dc68d2ce22c99b0f4b87010c913c9dc317a31d47ded84ab5fc95f8`） | archived |
+| SRC-296 | LAW | 入籍宣誓及修正 | https://uscode.house.gov/us/usc/t8/s1448/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-usc-8usc1448.html`（sha256 `3e74e05a70f488c15f1e1586b30cdddd41ead21b4790210015c8be8a34d3f805`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part337.xml`（sha256 `ce47cbc011966780b9a05f37817aaeba973641ea1faf375a0e493dc68d58f874`）；`policy-sources/2026-11-23-us-pm-v12-j-ch2.html`（sha256 `ab8cb74fb2559f09ba5df79eb2efbd8d54968545e4d07ce99b81e531ca57aee3`）；`policy-sources/2026-11-23-us-pm-v12-j-ch3.html`（sha256 `2279a1c224a364b6aafeeb71999b0ac84ebb487cd8c9cf0cad944def43fd11dd`） | archived |
+| SRC-297 | GUIDANCE | 婚姻取消条件、联名与豁免 | https://www.uscis.gov/sites/default/files/document/forms/i-751instr.pdf | 见各快照 | 2026-11-23 | `policy-sources/2026-11-21-us-i751instr.pdf`（sha256 `eb5ecf1ef00c5a65d8455267010bd9808f358a028c86f15bbbdbd5da74cd11db`）；`policy-sources/2026-11-21-us-pm-v6-i-ch2.html`（sha256 `8ab95426a738d01cb35a3644b18d6054c0a97f0e0b1b19cc6addae655ecb097c`）；`policy-sources/2026-11-21-us-pm-v6-i-ch3.html`（sha256 `6e64cf29a5b29cb9647bd32d22dcd5bc0e700b331324c769456409935036ddb7`） | archived |
+| SRC-298 | GUIDANCE | EB-5 条件移除、持续投资与就业 | https://www.uscis.gov/policy-manual/volume-6-part-g-chapter-7 | 见各快照 | 2026-11-23 | `policy-sources/2026-11-21-us-pm-v6-g-ch7.html`（sha256 `a4c15c551c4e9aca1618f9569ea6192d5eb39b9651cfffdbb9937d2a317e837d`）；`policy-sources/2026-11-23-us-i829instr.pdf`（sha256 `9579d5c925995bc050244c67c99eec4962d8bbd27c3f55c312ba056af497565f`） | archived |
+| SRC-299 | LAW | 外国人登记、随身携证、换卡与地址申报 | https://uscode.house.gov/us/usc/t8/s1304/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-usc-8usc1304.html`（sha256 `234b45be0f556dbaf99dc24e7930a2d9be8bccdd06f241c0f8ce5ff54873e13a`）；`policy-sources/2026-11-23-us-usc-8usc1305.html`（sha256 `735f0fcddc3127c88d0aebfffcbc02f32e4d43d8b7fadb8e0f3dcd79281e83b6`）；`policy-sources/2026-11-23-us-usc-8usc1306.html`（sha256 `28a78d3fd681ceb28940da1d7242f71742bbd1245f4dc4e7b4ff4c4355b53352`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part264.xml`（sha256 `c1385db84c998b0a9dd7fd00e29aebf3109b53a7e64c48b04b4883fb6e7d86ef`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part265.xml`（sha256 `8808c90603732642ae87b826d0e862e02619f09433e4819a0e15fb42701152ed`）；`policy-sources/2026-11-23-us-alienregistration.html`（sha256 `a510f7542eb52e66d9a459dbef2d0bc27eb6590b82d79147b4e533826e2f5d3e`） | archived |
+| SRC-300 | LAW | 返美、回美证及 SB-1 | https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=223 | 见各快照 | 2026-11-23 | `policy-sources/2026-11-19-us-ecfr-8cfr-part223.xml`（sha256 `4ea74fe7da03719d5c92f9f1487d86db506c90188cf85ca57cea10b19e695fc0`）；`policy-sources/2026-11-19-us-ecfr-22cfr42.22.xml`（sha256 `6f12bbbacd1e23c5a72ef0334b2af5e2b1b3c5679f154ec43839b7ba89a5763f`）；`policy-sources/2026-11-21-us-9fam502.7.html`（sha256 `c69a119ccb3e947e4eb7f0d0e6a092af1c88b2c957c27f1de30329ac50d417fb`）；`policy-sources/2026-11-23-us-i131instr.pdf`（sha256 `e1ea4fb3b6db9640abb9eea09d8ee681339ace46e84ed2d189c5c4b5fc110393`） | archived |
+| SRC-301 | LAW | 境内递解事由 | https://uscode.house.gov/us/usc/t8/s1227/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-10-us-usc-8usc1227.html`（sha256 `f4977abf48f750a0cc27ef47c013235bde023f3b2a5c63e5c37da154a700a61d`） | archived |
+| SRC-302 | LAW | 亲属资格、CSPA、签证分类及申请禁令 | https://uscode.house.gov/us/usc/t8/s1151/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-usc-8usc1151.html`（sha256 `ff01cb85fce6aa2d59bace7e113038e56ee10212abbc6a5cb2ac7e549bff2605`）；`policy-sources/2026-11-23-us-usc-8usc1153.html`（sha256 `e7562f70a23a5a078f22118746d2a63e2905f74f399354d71d833b8cb30b0fc9`）；`policy-sources/2026-11-23-us-usc-8usc1154.html`（sha256 `9103d4a5f017745017a3eed76e5401d3a3d4d332d07c3d548b342051fd02557e`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part204.xml`（sha256 `d7253eb4e3c24e59d15da61a568636543c93c9cda6f4aeb13a9e10bc321c1532`）；`policy-sources/2026-11-23-us-pm-v6-b-ch7.html`（sha256 `9ed3a01f598b89712fb9a715c5c937ffecea3568d215b42c5cc1c69ac86682aa`）；`policy-sources/2026-11-24-us-9fam502.1.html`（sha256 `750fe9820d2056a60fb5f508f48196ce43013fe88853dfa4ac0cb8eccb730ddc`） | archived |
+| SRC-303 | LAW | I-864 担保、替代资产及豁免 | https://uscode.house.gov/us/usc/t8/s1183a/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-usc-8usc1183a.html`（sha256 `c9e7af152bb89f0d02e46c14e6fb097ec0ceabe60d7f17d1157d73efd93bf8e6`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part213a.xml`（sha256 `9755cca107669634e18785be6086f4f2421b623801d22fcb4da74ca775a2dff7`）；`policy-sources/2026-11-23-us-i864instr.pdf`（sha256 `be54e93f712da6422ad740cf34d6e0f2640377792cf47c2f30dc347b6d0f0e08`） | archived |
+| SRC-304 | GUIDANCE | HHS 贫困指引及 USCIS 地区表 | https://www.federalregister.gov/documents/full_text/text/2026/01/15/2026-00755.txt | 见各快照 | 2026-11-23 | `policy-sources/2026-01-15-us-fr-2026-00755-hhs-poverty.txt`（sha256 `fbddaefee61048aace09f738186dc3b4350cbdf885053e6b61bd0a9230214614`）；`policy-sources/2026-11-23-us-i864p.html`（sha256 `144b4ad33dc35a101d4fe9ddcc3200ce8cd96f538cee981250ccfa6ed3b6650e`） | archived |
+| SRC-305 | LAW | PERM 工作及招聘、工资、支付能力 | https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-20.xml?part=656 | 见各快照 | 2026-11-23 | `policy-sources/2026-11-19-us-ecfr-20cfr-part656.xml`（sha256 `7286a291ac21bb6cfcc26a176bc548997981c731c875e98968b129411f55a56e`）；`policy-sources/2026-11-23-us-pm-v6-e-ch4.html`（sha256 `384b425ae24592d0f97ac31cb02c2489bd59db52999960eee0815c4280d2f086`）；`policy-sources/2026-11-23-us-pm-v6-e-ch6.html`（sha256 `94b0699c6bf275923a0d9c5fbdb38b769fc852c1509270efc46e5ff10f5d8a48`） | archived |
+| SRC-306 | GUIDANCE | 职业分类与 EB-1A、EB-2 NIW 证据 | https://www.uscis.gov/policy-manual/volume-6-part-f-chapter-2 | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-pm-v6-f-ch2.html`（sha256 `31c61c1d3d540a9a328efd1a4acddbe9f3affdf7c57f603f28bdeb787f2fbc0f`）；`policy-sources/2026-11-23-us-pm-v6-f-ch5.html`（sha256 `7f4e88707fdd65a469f324849bd68b7bc5d1a0a9f2ac3c48ddc703d2a7d54c06`） | archived |
+| SRC-307 | GUIDANCE | EB-5 投资、就业、资金来源及项目 | https://www.uscis.gov/policy-manual/volume-6-part-g-chapter-2 | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-pm-v6-g-ch2.html`（sha256 `f8c193cc259c8446c5b4bbed90948a3c52b2b674f198eb0b93ac14983ee65787`）；`policy-sources/2026-11-23-us-pm-v6-g-ch4.html`（sha256 `456ae747e7419c8ab6587c7496a36d50c90e13fb2032d27274d94cf181b93490`）；`policy-sources/2026-11-23-us-i526instr.pdf`（sha256 `caba62ddaa234cd9860bd13fc5d1b1d5d86ec7186469cdfba46149d6004ca3cf`）；`policy-sources/2026-11-23-us-i526einstr.pdf`（sha256 `060abc212ed8d8926544afcedc2a696a4e31e2207ce7aac124eda588d5774bfa`） | archived |
+| SRC-308 | POLICY | Gold Card 行政令与 I-140G | https://www.federalregister.gov/documents/full_text/html/2025/09/24/2025-18602.html | 见各快照 | 2026-11-23 | `policy-sources/2025-09-24-us-fr-eo14351-gold-card.html`（sha256 `ae1e9df53c0a5cd5d8b391fa7379b605f8c8ef415336125317841e9c81ff267d`）；`policy-sources/2026-11-23-us-i140g.html`（sha256 `6c033d8aeb0800365ceb306a1f5e44c1dbdb9ea37ab701c9637c7876560e3810`）；`policy-sources/2026-11-23-us-i140ginstr.pdf`（sha256 `99ad461d4ead1a06447fab47d62939beea0c85400e13c395c64e6776a0185d05`） | archived |
+| SRC-309 | LAW | 境内调整身份、签证名额、例外与基础转换 | https://uscode.house.gov/us/usc/t8/s1255/ | 见各快照 | 2026-11-24 | `policy-sources/2026-11-23-us-usc-8usc1255.html`（sha256 `90299c46d8d5774a900b46e9b124fe65cf97036b37e013e2b040347bbf774aec`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part245.xml`（sha256 `5e9dfd8efa0ceef2977745ac8b2202d807afbd8b6bbc30e710910fbca71dfe59`）；`policy-sources/2026-11-23-us-pm-v7-a-ch6.html`（sha256 `3de0704893e8b5bff8597095c8fd65d7af0c5d8ebe869926a999cf90b53d2d87`）；`policy-sources/2026-11-23-us-visa-availability.html`（sha256 `fb55a8388c2779da33742bf4d5e99221bee8afcccb8e8b7e6ca1808f338fba1e`）；`policy-sources/2026-11-23-us-i485instr.pdf`（sha256 `ed6a97aa2924bacebf443be6382bd506c24bd79e7c431f17d4eea7d9553e0daf`）；`policy-sources/2026-11-24-us-pm-v7-a-ch8.html`（sha256 `baac2549c781fb9886c7221cce67560a696a629a02a6a1035564dfaba2c29c55`） | archived |
+| SRC-310 | GUIDANCE | 境内调整身份的裁量 | https://www.uscis.gov/sites/default/files/document/policy-alerts/05.21.2026_Discretionary_Adjudication_of_Adjustment_of_Status_Applications_PM-602-0199.pdf | 见各快照 | 2026-11-23 | `policy-sources/2026-05-21-us-pm-602-0199-aos-discretion.pdf`（sha256 `7e3c112420141d80255431d91f4bfc17af502325ac574eb38b432d9484b95692`）；`policy-sources/2026-11-23-us-pm-v7-a-ch10.html`（sha256 `9e7d1d3f4e3d564156ce2d677484b0b34d66184d6423dd32dd81e938166663e6`） | archived |
+| SRC-311 | LAW | 不予入境、非法居留、犯罪与安全 | https://uscode.house.gov/us/usc/t8/s1182/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-usc-8usc1182.html`（sha256 `0f8020a4e1c6c9f4f6fd24a0dd2307e5fe65d810137ba0d69db49e52f1cce99e`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part212.xml`（sha256 `1f465506a0fd171e8ca31663365b8f09c2c1714be29727c424ca79718d1b635f`）；`policy-sources/2026-09-23-us-pa-criminal-inadmissibility.pdf`（sha256 `f0db075adf1628801122143770c5439feec7786b1c18d3b1f79f6f1b7a84d0d7`）；`policy-sources/2026-11-24-us-9fam504.8.html`（sha256 `ea56b5fc301a90e6870349a82be0aab92f0a4ab3a01d9860d55521a19a7fb444`） | archived |
+| SRC-312 | LAW | 体检、疫苗与 I-693 有效性 | https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-42.xml?part=34 | 见各快照 | 2026-11-24 | `policy-sources/2026-11-19-us-ecfr-42cfr-part34.xml`（sha256 `2442f2bd9704951715570a8b63c06d8c5012840376cd00209577e8f470def27f`）；`policy-sources/2025-06-11-us-pa-i693-validity.pdf`（sha256 `19c2e2ebd3a942439fa27ec9dd95b3fe82dbbc737e7169c60fbc16a08ff83aad`）；`policy-sources/2026-11-23-us-pm-v8-b-ch9.html`（sha256 `bef7681daa0eed0e9433c837cb9b21c5b9168110e90d9b6fb3b79c3d87237211`）；`policy-sources/2026-11-23-us-i693instr.pdf`（sha256 `734f0b3070596d3f706e0da32f66feb3c60dee21d353e8ad3e151be6a40767cf`）；`policy-sources/2026-11-23-us-9fam302.2.html`（sha256 `2e232490a4bb30f03b1e119c6106af17f691323bda7fd1560dd1ca8888e105dc`）；`policy-sources/2026-11-24-us-i693.html`（sha256 `41e3d1f141f8f4e59e4806ce18fd1df6b864b2ec094128f72193ff0831e43cff`） | archived |
+| SRC-313 | LAW | DHS 公共负担与领馆 FAM 对照 | https://www.federalregister.gov/documents/full_text/html/2026/07/20/2026-14539.html | 见各快照 | 2026-11-23 | `policy-sources/2026-07-20-us-fr-2026-14539-public-charge.html`（sha256 `e718bcbdbdf577c2beabd7457310e7336777ee7ecdb0c3450fcf0ddb72bbfd46`）；`policy-sources/2026-08-18-us-pa-public-charge.pdf`（sha256 `f420be8cfa76bf2ce1a510939c5db622480f8719942be9e8f4590f171103ea63`）；`policy-sources/2026-11-23-us-pm-v8-g-ch11.html`（sha256 `0360c83fae97695e0d019d455efb320795ba7efe421e91bb4ac268fcf239647d`）；`policy-sources/2026-11-23-us-9fam302.8.html`（sha256 `c09b8b71637f755a521f246ff0be22ecac8c277ce7ccf60111889f45afc1de15`）；`policy-sources/2026-11-24-us-i485.pdf`（sha256 `796eefb646ae1be6a6bd4c3eb52d0798fb06a209a7ee5317b14cdfcaf10dce18`） | archived |
+| SRC-314 | LAW | 难民、庇护调整身份与 INA 209(c) | https://uscode.house.gov/us/usc/t8/s1159/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-10-us-usc-8usc1159.html`（sha256 `1c42430977f7af86d7f94e5068c43dca227f87e131a5b002f016f03749dc636c`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part209.xml`（sha256 `216c32c0eb65cde6c5dd1ab74b9d6d6396e226deb9b0049b77af427b355e706f`）；`policy-sources/2026-11-23-us-pm-v7-l-ch2.html`（sha256 `41ab74a66b31ce6edcd67c6b8341db1876555293875a80ca076f6a18d17ce14c`）；`policy-sources/2026-11-23-us-pm-v7-l-ch3.html`（sha256 `00402355d551e9a779af52405a8fefa7ed6b559321aaf0487a3fdd39d88ce420`）；`policy-sources/2026-11-23-us-pm-v7-m-ch2.html`（sha256 `36db6bb567384d28e61dfb1ec48885fda719aadfe2d97b80e56a95360747504f`）；`policy-sources/2026-11-23-us-pm-v7-m-ch3.html`（sha256 `a2776c945242abd9be22e038ac703d1b536c1203a0f136bf4ff77da26f7f488a`） | archived |
+| SRC-315 | LAW | 军人入籍 INA 328、329 | https://uscode.house.gov/us/usc/t8/s1439/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-10-us-usc-8usc1439.html`（sha256 `db551f1270f7b87956d3963b7d38641a98ffabc0d300a88d1999c96187f5a1e9`）；`policy-sources/2026-11-23-us-usc-8usc1440.html`（sha256 `1b572cee7d7532857e34429098d5cdfee4c1c1f6f1c26d82eb00007ba0247ef2`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part328.xml`（sha256 `9fce72e00780051222ee9f225f83745446a0d8a631bd05da66734cea38d3c2c5`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part329.xml`（sha256 `8347744e7da91d2172450c323aa213b4f0e36f9ad217f8117c10595a69d724aa`）；`policy-sources/2026-11-23-us-pm-v12-i-ch2.html`（sha256 `166e6c38b0a3a48c4d89903129376ffb0093e5761e4354c380c704817763c1d7`）；`policy-sources/2026-11-23-us-pm-v12-i-ch3.html`（sha256 `7160846917dd69fe3828aa898a45656f5785a82d615d40865a83abff6c70ce2c`） | archived |
+| SRC-316 | GUIDANCE | USCIS 费用与减免表 | https://www.uscis.gov/sites/default/files/document/forms/g-1055.pdf | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-g1055.pdf`（sha256 `62fc594c543f1023fef4ade756e936d8c50fb6c4102997dbb3a86f67ebf45623`）；`policy-sources/2026-11-23-us-i912instr.pdf`（sha256 `d1cb9f27aedd1102666cfd58c9e1b28cfbbf8277376422f193ab6cfa43274de3`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part106.xml`（sha256 `1fa7114a39364197e234ed909dd6870cb535a5dc88a3062a1a69d8fb9a719df2`） | archived |
+| SRC-317 | LAW | 领馆办理费用 | https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-22.xml?section=22.1 | 见各快照 | 2026-11-23 | `policy-sources/2026-11-19-us-ecfr-22cfr22.1.xml`（sha256 `e92313c52e721dac29b32ad4c78ccbcf699ffdbc650a2048249fecd351fb7eea`） | archived |
+| SRC-318 | LAW | EB-5 费用生效调整 | https://www.federalregister.gov/documents/full_text/text/2026/09/30/2026-20016.txt | 见各快照 | 2026-11-23 | `policy-sources/2026-09-30-us-fr-2026-20016-eb5-fee-rule.txt`（sha256 `73ff337ef7f191dd493189a2e10cbc8f616944a43cac6fe1c154cd5de79b823c`） | archived |
+| SRC-319 | LAW | H.R. 1 基准费率与 FY2027 调整 | https://www.federalregister.gov/documents/full_text/html/2026/04/29/2026-08333.html | 见各快照 | 2026-11-23 | `policy-sources/2026-04-29-us-fr-2026-08333-hr1-fees.html`（sha256 `aa3d9488dd2a18e8be0a744ce76ca70018aa6e83dfcff7f4a6cd3312e1b7c4d1`）；`policy-sources/2026-10-01-us-fr-2026-20187-hr1-fees-fy2027.html`（sha256 `6343c4f3d3e4fb214b699481522ca489b84e896b91c395a829d8acc30195d4dd`） | archived |
 | SRC-320 | LAW | BOE · LO 4/2000，外国人组织法 | https://www.boe.es/buscar/act.php?id=BOE-A-2000-544 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-lo4-2000.html`（sha256 `f19cbf7f1ceb94fe9ec699240b41afe1ee65f7ff90382c6eece43feaee1e99b2`） | archived |
 | SRC-321 | LAW | BOE · RD 1004/2015，入籍程序条例 | https://www.boe.es/eli/es/rd/2015/11/06/1004/con | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-rd1004.html`（sha256 `71ab38547fa498590082790162795e46dc329181dda57081525390f843d591ab`） | archived |
 | SRC-322 | LAW | BOE · Orden JUS/1625/2016，入籍办理及附件；BOE · Resolución 7/11/2022，考试豁免表 | https://www.boe.es/eli/es/o/2016/09/30/jus1625/con ；https://www.boe.es/diario_boe/txt.php?id=BOE-A-2022-19664 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-orden-jus1625.html`（sha256 `7270a7e8f679393e94d90734bbb0677ddf871284089c378b2bfb4fa9ebcf03f1`）；`policy-sources/2026-11-23-es-orden-dispensa.html`（sha256 `a41530c0371f394314885c367e367b56d3732c03e25d9985e71726c0d4818edd`） | archived |
@@ -1006,6 +1036,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-081 USCIS Policy Manual
 
 - `Vol 12 Part D Ch 3(C)(1)`：离境超过 180 天、不满 365 天推定中断；`(C)(2)`：365 天以上自动中断，示例 2010-01-01 离境、2011-01-02 返美，最早 2015-01-03（须反驳推定），无推定的最早 2015-07-06；注 24：离境日与返美日不算在境外。`Ch 4(A)`：30 个月即 913 天，离境日与返美日都算实际在美。`Ch 6(D)`：提前递交期从首次满足连续居住之日的前一天往回数 90 天，示例 2010-06-10 → 2010-03-12。`Vol 1 Part B Ch 6(E)`：以"天"表述的递交期，最后一天是周六、周日或联邦假日的，纸质递交在下一个工作日结束前送达仍算按时；网上递交不顺延；不以天数表述的资格期限不顺延。`Part G Ch 3`：(A)–(B) 3 年连续居住、婚姻同住到递交日（法规写到面谈日，USCIS 按法条），(D) 18 个月即 548 天，(E) 提前递交只放宽连续居住，结婚满 3 年等其他条件须在递交时满足。
+- `Vol 12 Part D Ch 6(D)` 与 SRC-080 `8 CFR 316.2(a)(5)`、`316.5(b)(1)(i)`、`334.2(b)` 规定，符合提前递交且三个月辖区居住期落在法定居住期内时，改按面谈前的辖区居住核对。一般及配偶路径分别适用 INA 316(a) 和 319(a)。
 
 ## SRC-082 USCIS 页面
 
@@ -1013,8 +1044,9 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-21-us-n400instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/n-400instr.pdf>
 - `policy-sources/2024-09-12-us-cpr-joint-filing-fact-sheet.pdf` → <https://www.uscis.gov/sites/default/files/document/fact-sheets/OP%26S_Family-BasedCPR_JointFiling.pdf>
 - 联名递交事实单（PDF 4 页，2024-09-12）：p2 条件居民子女在父母取得身份当天或之后 90 天内取得的，可纳入父母的 I-751；须单独递交的子女（如晚于父母 90 天以上取得）可随时递交，不必等到两周年前 90 天，前提是没有最终递解令。
-- N-400 填表说明（PDF 29 页）：p3 提前 90 天递交；p18 实际居住表写"递交前所需连续居住期间内"在美的天数（913／548 天），与 PD-092 的保守计法相关。
+- N-400 填表说明（PDF 29 页）：p3 提前 90 天递交；p8「Naturalization Testing and Exceptions」按 N-400 收件日核对英语豁免的 50 岁／累计在美 LPR 居住 20 年、55 岁／累计在美 LPR 居住 15 年；p18 实际居住表写"递交前所需连续居住期间内"在美的天数（913／548 天），与 PD-092 的保守计法相关。
 - I-829 表格页：Where to File 只列邮寄地址（Dallas Lockbox）；`Forms Available to File Online` 列有 I-751、没有 I-829，即 I-829 只能纸质递交，USCIS 只在工作日收纸质件（SRC-081 Vol 1 Part B Ch 6(E)）。
+- [Forms Available to File Online，Upload Completed PDF Online，Form I-485](https://www.uscis.gov/file-online/forms-available-to-file-online) 分列可单独网申的亲属、职业和 VAWA 类别，以及可同包网申的 I-130、I-140。I-130 同包需律师或获认可的代表，I-140 同包另允许符合条件的自请人。VAWA 可在 I-360 已递交后单独网申 I-485。清单未列难民／庇护、SIJ 或 EB-5 类 I-485。Form N-400 栏规定申请减费或免缴费的用纸申。I-751 栏列 PDF 网申，I-912 栏亦列可与 I-751 一并上传。
 - `International Travel as a Permanent Resident`：离境超过 1 年须有回美证，回美证有效期 2 年；在外超过 2 年可考虑申请返美居民签证 SB-1。
 
 ## SRC-083 Real Decreto 1155/2024（外国人法实施条例）
@@ -1451,6 +1483,289 @@ Visas 下的 General Skilled Migration (GSM) visas 小节说明，按 *Thapa* [2
 ## SRC-229 IELTS 官方成绩说明
 
 Understanding IELTS test scores 下的 Overall band score 小节说明，成绩单总分取听、说、读、写四科均值，舍入到最近的 0.5 分，恰在中点时向上舍入。澳大利亚 Functional English 的 IELTS 门槛见 SRC-205 s 4、s 6(c)、Sch 1 第 2、3 行，旧成绩见 s 7(1)–(2)。
+
+## SRC-290 入籍年龄、合法取得永居及归化撤销
+
+- `policy-sources/2026-11-10-us-usc-8usc1445.html` → <https://uscode.house.gov/us/usc/t8/s1445/>
+- `policy-sources/2026-11-10-us-usc-8usc1429.html` → <https://uscode.house.gov/us/usc/t8/s1429/>
+- `policy-sources/2026-11-10-us-usc-8usc1451.html` → <https://uscode.house.gov/us/usc/t8/s1451/>
+- `policy-sources/2026-11-21-us-pm-v12-g-ch2.html` → <https://www.uscis.gov/policy-manual/volume-12-part-g-chapter-2>，(A)–(C) 区分配偶入籍的递交条件与持续至宣誓的条件。
+
+## SRC-291 英语、公民知识及医学例外
+
+- `policy-sources/2026-11-23-us-usc-8usc1423.html` → <https://uscode.house.gov/us/usc/t8/s1423/>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part312.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=312>
+
+## SRC-292 USCIS 入籍考试、N-648 与新题库
+
+- `policy-sources/2026-11-23-us-pm-v12-e-ch2.html` → <https://www.uscis.gov/policy-manual/volume-12-part-e-chapter-2>
+- `policy-sources/2026-11-23-us-pm-v12-e-ch3.html` → <https://www.uscis.gov/policy-manual/volume-12-part-e-chapter-3>
+- `policy-sources/2025-10-20-us-pa-civics-test.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20251020-CivicsTest.pdf>
+- PA-2025-24 p2，*Policy Highlights*：USCIS 对 2025-10-20 起递交的 N-400 应用新版题库，普通考生须答对 12 题，更早递交适用旧题库的 6 题门槛。收件日依据见 SRC-081 1 USCIS-PM B.6(E)。
+- 12 USCIS-PM E.2(A)(2)、(C)(2) 的 *Special Consideration* 规定，年满 65 岁及在美累计至少 20 年 LPR 居住两项均须在 N-400 递交时满足。收件日同样采用 SRC-081 1 USCIS-PM B.6(E)。
+- 12 USCIS-PM E.3(I)(1) 的 *Passing the English and Civics Requirements* 说明 N-648 不充分后通过两项考试的处理。
+
+## SRC-293 USCIS 良好品格、整体审查及公共福利备忘录
+
+- `policy-sources/2026-11-23-us-pm-v12-f-ch2.html` → <https://www.uscis.gov/policy-manual/volume-12-part-f-chapter-2>
+- `policy-sources/2026-11-23-us-pm-v12-f-ch4.html` → <https://www.uscis.gov/policy-manual/volume-12-part-f-chapter-4>
+- `policy-sources/2026-11-23-us-pm-v12-f-ch5.html` → <https://www.uscis.gov/policy-manual/volume-12-part-f-chapter-5>
+- `policy-sources/2025-08-15-us-pm-602-0188-gmc.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-alerts/08.15.2025-Restoring_a_Rigorous_Holistic_and_Comprehensive_Good_Moral_Character_Evaluation_Standard-PM-602-0188.pdf>
+- `policy-sources/2026-11-04-us-pm-602-0201-gmc-benefits.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-alerts/11.04.2026-GMC_PublicBenefits_PM-602-0201.pdf>，pp2–5。
+
+## SRC-294 宪法依附、党籍与兵役豁免禁令
+
+- `policy-sources/2026-11-23-us-usc-8usc1424.html` → <https://uscode.house.gov/us/usc/t8/s1424/>
+- `policy-sources/2026-11-23-us-usc-8usc1425.html` → <https://uscode.house.gov/us/usc/t8/s1425/>
+- `policy-sources/2026-11-23-us-usc-8usc1426.html` → <https://uscode.house.gov/us/usc/t8/s1426/>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part313.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=313>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part315.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=315>
+
+## SRC-295 Selective Service 登记与入籍
+
+- `policy-sources/2026-11-23-us-sss-who-must-register.html` → <https://www.sss.gov/register/who-needs-to-register/>
+- `policy-sources/2026-11-23-us-pm-v12-d-ch7.html` → <https://www.uscis.gov/policy-manual/volume-12-part-d-chapter-7>
+- `policy-sources/2026-11-23-us-usc-50usc3802.html` → <https://uscode.house.gov/us/usc/t50/s3802/>
+
+## SRC-296 入籍宣誓及修正
+
+- `policy-sources/2026-11-23-us-usc-8usc1448.html` → <https://uscode.house.gov/us/usc/t8/s1448/>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part337.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=337>
+- `policy-sources/2026-11-23-us-pm-v12-j-ch2.html` → <https://www.uscis.gov/policy-manual/volume-12-part-j-chapter-2>
+- `policy-sources/2026-11-23-us-pm-v12-j-ch3.html` → <https://www.uscis.gov/policy-manual/volume-12-part-j-chapter-3>
+
+## SRC-297 婚姻取消条件、联名与豁免
+
+- `policy-sources/2026-11-21-us-i751instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-751instr.pdf>
+- `policy-sources/2026-11-21-us-pm-v6-i-ch2.html` → <https://www.uscis.gov/policy-manual/volume-6-part-i-chapter-2>
+- `policy-sources/2026-11-21-us-pm-v6-i-ch3.html` → <https://www.uscis.gov/policy-manual/volume-6-part-i-chapter-3>
+
+## SRC-298 EB-5 条件移除、持续投资与就业
+
+- `policy-sources/2026-11-21-us-pm-v6-g-ch7.html` → <https://www.uscis.gov/policy-manual/volume-6-part-g-chapter-7>
+- `policy-sources/2026-11-23-us-i829instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-829instr.pdf>
+
+## SRC-299 外国人登记、随身携证、换卡与地址申报
+
+- `policy-sources/2026-11-23-us-usc-8usc1304.html` → <https://uscode.house.gov/us/usc/t8/s1304/>
+- `policy-sources/2026-11-23-us-usc-8usc1305.html` → <https://uscode.house.gov/us/usc/t8/s1305/>
+- `policy-sources/2026-11-23-us-usc-8usc1306.html` → <https://uscode.house.gov/us/usc/t8/s1306/>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part264.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=264>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part265.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=265>
+- `policy-sources/2026-11-23-us-alienregistration.html` → <https://www.uscis.gov/alienregistration>
+- 地址申报期限从搬家日起算。达到规定年龄后的重新登记及换卡分别按生日和现有卡的到期日核对。见 [8 U.S.C. §1305(a)](https://uscode.house.gov/us/usc/t8/s1305/)、[8 U.S.C. §1302(b)](https://uscode.house.gov/us/usc/t8/s1302/) 和 [8 CFR §264.5(b)(8)](https://www.ecfr.gov/current/title-8/section-264.5#p-264.5(b)(8))。
+
+## SRC-300 返美、回美证及 SB-1
+
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part223.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=223>
+- `policy-sources/2026-11-19-us-ecfr-22cfr42.22.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-22.xml?section=42.22>
+- `policy-sources/2026-11-21-us-9fam502.7.html` → <https://fam.state.gov/FAM/09FAM/09FAM050207.html>
+- `policy-sources/2026-11-23-us-i131instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-131instr.pdf>
+- 8 CFR §223.2(b)(1) 和 I-131 Instructions p4「Reentry Permit」要求在美国递交回美证申请。§223.2(b)(2)(i)–(ii) 另列难民旅行证通常在美国递交及可裁量接受的境外递交情形。见 [8 CFR §223.2](https://www.ecfr.gov/current/title-8/section-223.2#p-223.2(b))。
+- 8 CFR §§223.1(a)、223.3(a)(1) 以返美时的回美证有效期为准。核对同一回美证的 I-131 收件、签发和返美日期。收件日与签发或返美日期冲突时，须核对个案证件与收据。见 [8 CFR §223.3(a)](https://www.ecfr.gov/current/title-8/section-223.3#p-223.3(a))。
+- I-131A 在 USCIS 网上付费，表格须在使领馆当面递交。DS-117 向办理该案的使领馆提交，SB-1 的后续 DS-260 按使领馆通知办理。见 [I-131A Payment，Before You Start The Payment Process](https://my.uscis.gov/accounts/travel-document/start/overview)、[Returning Resident Visas，Required Documentation 与 Step 2](https://travel.state.gov/content/travel/en/us-visas/immigrate/returning-resident.html)。
+
+## SRC-301 境内递解事由
+
+- `policy-sources/2026-11-10-us-usc-8usc1227.html` → <https://uscode.house.gov/us/usc/t8/s1227/>
+
+## SRC-302 亲属资格、CSPA、签证分类及申请禁令
+
+- `policy-sources/2026-11-23-us-usc-8usc1151.html` → <https://uscode.house.gov/us/usc/t8/s1151/>
+- `policy-sources/2026-11-23-us-usc-8usc1153.html` → <https://uscode.house.gov/us/usc/t8/s1153/>
+- `policy-sources/2026-11-23-us-usc-8usc1154.html` → <https://uscode.house.gov/us/usc/t8/s1154/>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part204.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=204>
+- `policy-sources/2026-11-23-us-pm-v6-b-ch7.html` → <https://www.uscis.gov/policy-manual/volume-6-part-b-chapter-7>
+- 8 U.S.C. §1151(f)(1) 以 I-130 收件日核对公民子女年龄，§1151(f)(2) 以父母入籍日核对由 F2A 转即时亲属的年龄。领馆对特定巡回区的个案例外及 timely seek-to-acquire 处理见 [9 FAM 502.1-1(D)(7)(1)–(2)](https://fam.state.gov/FAM/09FAM/09FAM050201.html#M502_1_1_D_7)，快照 `policy-sources/2026-11-24-us-9fam502.1.html`。
+- 8 U.S.C. §1154(b) 规定 USCIS 调查并认定请愿所述事实及分类资格后批准请愿。前婚、婚姻欺诈、递解程序中结婚和 Adam Walsh 的请愿限制见 §1154(a)(1)、(c)、(g) 及 8 CFR §204.2(a)(1)。EB-1B、EB-1C 的 I-140 分类证据见 8 CFR §204.5(i)(3)、(j)(2)–(3)、(5)。SIJ 的原裁定及 DHS 同意见 8 CFR §204.11(b)–(d)，请愿获批后的自动撤销情形见 §204.11(j)。[8 U.S.C. §1154](https://uscode.house.gov/us/usc/t8/s1154/) · [8 CFR §204.11](https://www.ecfr.gov/current/title-8/section-204.11)
+
+## SRC-303 I-864 担保、替代资产及豁免
+
+- `policy-sources/2026-11-23-us-usc-8usc1183a.html` → <https://uscode.house.gov/us/usc/t8/s1183a/>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part213a.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=213a>
+- `policy-sources/2026-11-23-us-i864instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-864instr.pdf>
+- I-864 Instructions p3 的 Other Applicants Not Required to Submit Form I-864 items 1–2 列出无适用亲属申请人／持股人、自行递交 I-140 及 I-526／I-526E 的不适用情形。pp8、14 的服役收入门槛只适用担保人请愿的配偶或未婚未满 21 岁子女（INA §101(b)(1)，8 U.S.C. §1183a(f)(3)）。p16 载资产补足倍数。
+
+- 8 CFR §213a.2(a)(1)(v)(A) 的通常收入规则使用正式提出移民签证或调整申请时适用的 Poverty Guidelines 及当年预计收入。另见 §213a.2(a)(1)(v)(B) 个案补证后重核收入的规则、§213a.2(c)(1) 的主担保人资格。 [8 CFR §213a.2(a)(1)(v)](https://www.ecfr.gov/current/title-8/section-213a.2#p-213a.2(a)(1)(v))
+
+## SRC-304 HHS 贫困指引及 USCIS 地区表
+
+- `policy-sources/2026-01-15-us-fr-2026-00755-hhs-poverty.txt` → <https://www.federalregister.gov/documents/full_text/text/2026/01/15/2026-00755.txt>
+- `policy-sources/2026-11-23-us-i864p.html` → <https://www.uscis.gov/i-864p>
+
+## SRC-305 PERM 工作及招聘、工资、支付能力
+
+- `policy-sources/2026-11-19-us-ecfr-20cfr-part656.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-20.xml?part=656>
+- `policy-sources/2026-11-23-us-pm-v6-e-ch4.html` → <https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-4>
+- `policy-sources/2026-11-23-us-pm-v6-e-ch6.html` → <https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-6>
+- 20 CFR §656.30(b)(1) 和 6 USCIS-PM E.6(B)(1) 按用于 I-140 的收件日计算 PERM 有效期。
+- 20 CFR §656.10(d)(1)(i)–(ii)、(2)(ii)、(3)(iv)、(6) 和 §656.15(b)(2) 规定通知有管辖权的工会代表。无该代表时，须在递交前 30–180 天的窗口内连续张贴至少 10 个工作日。工会通知也适用该窗口。Schedule A 按 USCIS 的 I-140 收件日核对，§656.15(e) 规定 DHS 对原通知与职业资格的认定为最终决定。工资认定见 §656.15(b)，雇主承担的相关费用见 §656.12(b)。[DOL PERM FAQ，Posting Timeframe，p1](https://www.dol.gov/sites/dolgov/files/ETA/oflc/pdfs/perm_faqs_2-21-06.pdf#page=1)
+- 普通 PERM 的招聘及通知窗口按 DOL 的 ETA-9089 递交日核对。州就业订单的 30 天刊登期及强制广告见 20 CFR §656.17(e)(1)(i)(A)–(B)、(e)(2)(i)–(ii)，等待期用订单结束日计算。DOL 认证涵盖招聘及其结果，见 §§656.17(g)、656.24(b)–(d)。[DOL BALCA PERM Digest，Recruitment，Timing of Recruitment](https://www.dol.gov/agencies/oalj/PUBLIC/INA/REFERENCES/REFERENCE_WORKS/BALCA_PERM_DIGEST)
+- 20 CFR §656.12(b) 禁止雇主向员工索取或收取取得 PERM 的雇主应付费用。(c) 规定相关证据可触发调查，并可能导致驳回、撤销或禁止申办。认证最终效力须按个案决定确认。[20 CFR §656.12(b)–(c)](https://www.ecfr.gov/current/title-20/section-656.12#p-656.12(b))
+- 普通 PERM 认证也核对认证职位的工资与劳动条件，见 20 CFR §§656.10(c)(1)、656.24(b)(3)。雇员职业分类与雇主实际支付能力由 USCIS 在 I-140 审查，见 SRC-302，8 CFR §204.5(g)(2)、(k)、(l)。I-140 待决时符合职业转换的支付能力证明期间从优先日到 I-140 递交日，见存档的 6 USCIS-PM E.4(D)(5)。[USCIS PA-2024-01，pp1–2](https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20240105-AbilityToPay.pdf)
+- 8 CFR §204.5(g)(2) 和 6 USCIS-PM E.4(A)–(B) 按适用期间核对工资支付、年度报告、联邦纳税申报及审计财务报表。历史阶段使用对应年度及截至该阶段的金额。后出具的文件可证明已发生的历史事实，所载较晚期间的付款或短缺归入相应阶段。见 [8 CFR §204.5(g)(2)](https://www.ecfr.gov/current/title-8/section-204.5#p-204.5(g)(2))、[6 USCIS-PM E.4](https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-4)。
+- 8 CFR §204.5(d) 以 DOL 收件日确定普通 PERM 的优先日，Schedule A 和无需 DOL 劳工认证的请愿用 USCIS 的 I-140 合规收件日。6 USCIS-PM E.4(A)(4) 核对雇用至少 100 名工人时经接受的财务主管声明。(C)(1)–(3) 分别核对实付工资、净收入或净流动资产及全貌证据。(D)(1) 与注 24 说明首年可按比例核算，实付工资和净收入须有优先日后适用期间的证明，年度末净流动资产按其余额核对。[8 CFR §204.5(d)](https://www.ecfr.gov/current/title-8/section-204.5#p-204.5(d)) · [6 USCIS-PM E.4](https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-4)
+- 20 CFR §656.17(a)、(c) 的 ETA-9089 允许电子或邮寄。电子递交使用 [DOL FLAG，PERM Filing Process](https://flag.dol.gov/programs/PERM)。
+
+## SRC-306 职业分类与 EB-1A、EB-2 NIW 证据
+
+- `policy-sources/2026-11-23-us-pm-v6-f-ch2.html` → <https://www.uscis.gov/policy-manual/volume-6-part-f-chapter-2>
+- `policy-sources/2026-11-23-us-pm-v6-f-ch5.html` → <https://www.uscis.gov/policy-manual/volume-6-part-f-chapter-5>
+
+## SRC-307 EB-5 投资、就业、资金来源及项目
+
+- `policy-sources/2026-11-23-us-pm-v6-g-ch2.html` → <https://www.uscis.gov/policy-manual/volume-6-part-g-chapter-2>
+- `policy-sources/2026-11-23-us-pm-v6-g-ch4.html` → <https://www.uscis.gov/policy-manual/volume-6-part-g-chapter-4>
+- `policy-sources/2026-11-23-us-i526instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-526instr.pdf>
+- `policy-sources/2026-11-23-us-i526einstr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-526einstr.pdf>
+- I-526 Instructions p9 Item 5 允许以有依据的商业计划证明将创造合资格岗位。INA §203(b)(5)(A)(i) 规定预计持续投资期。
+- [I-526](https://www.uscis.gov/i-526) 与 [I-526E](https://www.uscis.gov/i-526e) 的 *Where to File* 指向邮寄地址，SRC-082 网申清单未列两表。
+
+## SRC-308 Gold Card 行政令与 I-140G
+
+- `policy-sources/2025-09-24-us-fr-eo14351-gold-card.html` → <https://www.federalregister.gov/documents/full_text/html/2025/09/24/2025-18602.html>
+- `policy-sources/2026-11-23-us-i140g.html` → <https://www.uscis.gov/i-140g>
+- `policy-sources/2026-11-23-us-i140ginstr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-140ginstr.pdf>
+- I-140G Instructions p3 Items 1–3 规定个人或企业主申请的赠与额，以及每位随行配偶或子女各加 USD 1,000,000。
+- I-140G Instructions pp1–2 分列原请愿资金证据、处理费、领馆面谈后的实际汇款及签发前的汇款凭证。请愿批准可沿用原资金认定，实际足额转账由领馆流程核对。
+- I-140G 的 *Where to File* 与 *When to File* 规定，登记获接纳并收到 USCIS 通知后，只能通过 USCIS 账户递交。
+
+## SRC-309 境内调整身份、签证名额与例外
+
+- `policy-sources/2026-11-23-us-usc-8usc1255.html` → <https://uscode.house.gov/us/usc/t8/s1255/>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part245.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=245>
+- `policy-sources/2026-11-23-us-pm-v7-a-ch6.html` → <https://www.uscis.gov/policy-manual/volume-7-part-a-chapter-6>
+- `policy-sources/2026-11-24-us-pm-v7-a-ch8.html` → <https://www.uscis.gov/policy-manual/volume-7-part-a-chapter-8>
+- `policy-sources/2026-11-23-us-visa-availability.html` → <https://www.uscis.gov/green-card/green-card-processes-and-procedures/visa-availability-and-priority-dates>
+- `policy-sources/2026-11-23-us-i485instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf>
+- 8 U.S.C. §1255(h)(1) 在适用 §1255(a) 时，将获批的 SIJ 视为已获准假释入境。I-485 Instructions p21「Special Immigrant Juvenile (Form I-360)」允许名额可用时与 I-360 同时递交 I-485，或在 I-360 待决时递交。核准仍须取得 SIJ 分类。
+- 8 U.S.C. §1255(h)(2)(A) 对 SIJ 调整排除 §1182(a)(4)、(5)(A)、(6)(A)、(6)(C)、(6)(D)、(7)(A) 和 (9)(B)。(6)(C) 包含移民欺诈／虚假陈述及虚称美国公民。(9)(C) 的非法再入境仍属适用事由，按 §1255(h)(2)(B) 核对个案豁免。见 [8 U.S.C. §1255(h)](https://uscode.house.gov/us/usc/t8/s1255/#h)。
+- 8 CFR §245.1(b)(4)–(6)、(10) 中的 SIJ 例外适用于身份中断和相关就业违规，其他禁令仍须核对。8 U.S.C. §1255(k)(1)–(2) 对指定职业类别核对递交时的合法入境条件和该次合法入境后的累计违规。见 [8 U.S.C. §1255(k)](https://uscode.house.gov/us/usc/t8/s1255/#k)。
+- 8 U.S.C. §1255(c)(7) 与 8 CFR §245.1(b)(9) 要求职业调整申请人在 I-485 递交时具有合法非移民身份，适用 §1255(k) 或其他法定例外的个案按其依据判定。单有 parole 可以满足 §1255(a) 的入境条件。8 CFR §245.1(d)(1)(ii)、(v) 分列非移民身份与有效 parole，其中 §245.1(d)(1) 定义用于 §245(c)(2)。见 [8 U.S.C. §1255(a)、(c)(7)](https://uscode.house.gov/us/usc/t8/s1255/)。
+- 8 CFR §245.2(a)(2)(i)(A)–(C)、8 U.S.C. §1255(n) 及 I-485 Instructions pp3、17–21 规定适用即时亲属、亲属优先、I-140、EB-5、VAWA 和 SIJ 等类别的同时递交。7 USCIS-PM A.6(A)、(C)(4)–(5) 要求核对基础请愿案及递交月、裁决月两阶段的名额。I-485 Instructions p11 Item 9 要求按适用情形随件递交 I-693 或疫苗记录。
+- 7 USCIS-PM A.6(C)(4)–(5) 分别以原 I-485 递交和最终裁决的日期判断名额。已按适用排期表适当递交后，名额倒退时 USCIS 暂缓核准至名额重新可用。[7 USCIS-PM A.6(C)](https://www.uscis.gov/policy-manual/volume-7-part-a-chapter-6)
+- 7 USCIS-PM A.8(A)(1)–(4)、(C)、(E) 分别规定原资格与待决申请须保持连续、新基础在请求转换时须有可用名额，以及获准后由替换请愿支持 I-485。模型核对已获准的转换，并用原请愿及原收件月的指定表核对首次递交，用替换请愿及裁决月名额核对核准。见 [7 USCIS-PM A.8](https://www.uscis.gov/policy-manual/volume-7-part-a-chapter-8)。
+- 7 USCIS-PM A.8(C) 要求用替换类别的文件证明新基础资格。(D) 规定以新 I-140 转到不同职业类别时，INA §204(j) 的 180 天从换基请求起重计。原 I-485 收件日与替换 I-140 适用的职业转换起日须分别记录。见 [7 USCIS-PM A.8(C)–(D)](https://www.uscis.gov/policy-manual/volume-7-part-a-chapter-8)。
+- 7 USCIS-PM A.6(A)「Verify Underlying Basis to Adjust Status」要求裁决前调取并核验基础请愿案。I-485 Instructions p3「When Should I File Form I-485?」区分基础请愿已获批与可同时递交的类别。基础请愿获批依据缺失时，境内按同时递交规则核对递交，核准待确认请愿决定。
+- 7 USCIS-PM A.6(B)「Determine Ongoing Eligibility」及 8 CFR §245.25(a) 要求以获批的雇主职业请愿为依据递交 I-485 和裁决时，确认获批请愿及工作邀约仍有效、申请人拟接受该邀约。持续工资支付能力见 SRC-302，8 CFR §204.5(g)(2)。[8 CFR §245.25(a)](https://www.ecfr.gov/current/title-8/section-245.25#p-245.25(a))
+- INA §204(j)（SRC-302，8 U.S.C. §1154(j)）、8 CFR §245.25(a)(2)–(3)、(b) 与 I-485 Instructions pp10、19 规定 I-485 待决满 180 天可凭同类或相似的真实新邀约提交 Supplement J，裁决时请愿须获批且有效。I-140 待决时的支付能力审查见 SRC-305，6 USCIS-PM E.4(D)(5)。[8 CFR §245.25(a)(2)](https://www.ecfr.gov/current/title-8/section-245.25#p-245.25(a)(2))
+- I-485 Instructions p10 Item 8 的说明要求 EB-1A 和 NIW 的适用申请人在调整时确认拟继续请愿所述领域，并按递交方式提供签署声明。NIW 医师服务与相应证明见 p19。I-526／I-526E 与 I-485 的衔接见 p20，适用 7 USCIS-PM A.6(A)–(B) 的基础有效性与持续资格检查。[I-485 Instructions p10](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=10)
+- I-485 Instructions p10 Item 8 要求依赖工作邀约的职业移民主申请人在 I-140 已获批后首次递交 I-485 时随件提交 Supplement J。I-140 与 I-485 同时递交或 I-140 仍待决时可先递交 I-485，USCIS 可在裁决中要求补交。[I-485 Instructions p10 Item 8](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=10)
+- I-485 Instructions p2「Who May File Form I-485?」要求递交时实际身处美国，各移民类别另有适用条件。该递交时点也适用于使用 I-485 的 INA 209 难民与庇护调整。累计在美要求仍于裁决时核对，见 SRC-314。见 [I-485 Instructions p2](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=2)。
+- 8 U.S.C. §1255(a)(2) 要求境内调整申请人具备准入资格。一般规则要求在 I-485 递交时符合资格并持续至裁决。I-485 Instructions pp11–12 Item 10 列明需随件提交的适用法院及警方文件。见 [8 CFR §103.2(b)(1)，Demonstrating eligibility](https://www.ecfr.gov/current/title-8/section-103.2#p-103.2(b)(1))、[I-485 Instructions](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=11)。
+- 8 CFR §245.2(a)(4)(ii)(A)–(D) 与 I-485 Instructions p14「If You Leave the United States While Your Application Is Pending」规定待决期间的离境后果。无适用例外时，INA §245 申请视为放弃。例外包括事先获批的 Advance Parole 和符合规定的查验返美、维持适用 H/L/K/V 非移民身份并满足返美条件，以及按 INA §244(f)(3) 获准旅行并以 TPS 查验入境。递解程序中离境须按 §245.2(a)(4)(ii)(A) 核对。INA §209 适用难民旅行证件，Registry 适用不同的待决旅行规则，均见 p14。参见 SRC-300，8 CFR §§223.1(b)、223.2(b)(2)。[8 CFR §245.2(a)(4)(ii)](https://www.ecfr.gov/current/title-8/section-245.2#p-245.2(a)(4)(ii)) · [I-485 Instructions p14](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=14)
+- 7 USCIS-PM B.4(B)、B.6(B)–(C)、B.8(E) 分别说明合法身份维持的截止点、待决期间未经授权就业与 §245(k) 的核对口径。普通非移民身份在正确递交后到期本身不构成调整禁令。适用 §245(c)(8) 的待决申请人仍须确认就业授权。职业例外核对 §245(k) 的累计期间。法条对照 8 U.S.C. §1255(c)(2)、(7)–(8)、(k)，8 CFR §§245.1(b)(10)、274a.12(c)(9)。[7 USCIS-PM B.4](https://www.uscis.gov/policy-manual/volume-7-part-b-chapter-4) · [7 USCIS-PM B.6](https://www.uscis.gov/policy-manual/volume-7-part-b-chapter-6) · [7 USCIS-PM B.8](https://www.uscis.gov/policy-manual/volume-7-part-b-chapter-8)
+- §1255(k)(1)–(2) 的适用期间从同一次相关合法入境起算。较晚截止日的合资格累计可作较早裁决日的上界。若较晚总数超过法定上限，而案卷无法确认何时越线，应核对裁决日的实际累计。见 [8 U.S.C. §1255(k)](https://uscode.house.gov/us/usc/t8/s1255/)、[7 USCIS-PM B.8(E)](https://www.uscis.gov/policy-manual/volume-7-part-b-chapter-8)。
+- 8 CFR §103.2(b)(1) 分别要求递交时和裁决时满足相应条件。§245.2(a)(4)(ii)(A)–(D) 限于待决期间的离境。引擎只有日期时，按已确定的时间顺序判定。同日记录的先后若会改变结论，待核案卷。7 USCIS-PM B.8(E) 按适用合法入境后的违规日合计，递交后符合条件的未经授权就业仍计入。历史累计只能建立已覆盖期间的事实，核准所需的额外期间依记录确认。见 [8 CFR §103.2(b)(1)](https://www.ecfr.gov/current/title-8/section-103.2#p-103.2(b)(1))、[§245.2(a)(4)(ii)](https://www.ecfr.gov/current/title-8/section-245.2#p-245.2(a)(4)(ii)) 与 [7 USCIS-PM B.8(E)](https://www.uscis.gov/policy-manual/volume-7-part-b-chapter-8)。
+- 8 CFR §103.2(b)(6)、(13) 涉及撤回申请、逾期不答复及缺席通知所致的程序后果。7 USCIS-PM A.6(B) 检查主申请人与衍生申请人的持续资格。亲属分类变化及合法例外见 SRC-302，8 U.S.C. §§1151(b)、(f)、1153(d)、(h)、1154(a)、(l)，及 8 CFR §205.1(a)(3)。K-1 申请的原婚姻已结束时，依 INA §245(d) 及 *Matter of Sesay*, 25 I&N Dec. 431, 439–40，核对是否已和原请愿人及时缔结善意婚姻。[8 CFR §103.2(b)](https://www.ecfr.gov/current/title-8/section-103.2#p-103.2(b)) · [8 CFR §205.1](https://www.ecfr.gov/current/title-8/section-205.1) · [EOIR，Matter of Sesay](https://www.justice.gov/sites/default/files/eoir/legacy/2014/07/25/3707.pdf)
+- 其他 I-485 类别的持续条件按专门依据认定。T、U 类见 8 U.S.C. §1255(l)–(m)，8 CFR §§245.23、245.24。Diversity Visa 的签发与调整截止见 SRC-302，8 U.S.C. §1154(a)(1)(I)(ii)(II) 及 I-485 Instructions「Diversity Visa Program」。其他特别法与衍生资格参见 I-485 Instructions「Additional Instructions」。[8 CFR §245.23](https://www.ecfr.gov/current/title-8/section-245.23) · [8 CFR §245.24](https://www.ecfr.gov/current/title-8/section-245.24)
+- 国务院说明 NVC 在请愿案获批后通知申请人付款和递件，即时亲属同样由 NVC 发出通知。受排期限制的申请人按适用的 Dates for Filing 和收到的 NVC 说明递件，核准用 Final Action Dates。见 [National Visa Center，What happens after USCIS sends my petition to the NVC?](https://travel.state.gov/content/travel/en/us-visas/immigrate/national-visa-center.html)、[Visa Bulletin，Dates for Filing](https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin/2026/visa-bulletin-for-september-2026.html)。
+- 国务院的请愿类移民签证流程先由 USCIS 核准请愿，再移交 NVC 建档并发出欢迎信。C28、C31、C33、C37 与 C40 共用这一证据口径，将同一领馆案的 NVC 递件授权和 CEAC 的 DS-260 提交记录合用，确认基础请愿已获批。见 [NVC Processing，Step 2](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-1-submit-a-petition/step-2-begin-nvc-processing.html)、[Online Application，Step 6](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-5-collect-financial-evidence-and-other-supporting-documents/step-6-complete-online-visa-application.html)。
+- NVC 处理适用费用后，CEAC 才开放 DS-260。提交本案各申请人的 DS-260 后才可上传其民事文件。见 [Pay Fees，Step 3](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-1-submit-a-petition/step-3-pay-fees.html)、[Online Application，Step 6](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-5-collect-financial-evidence-and-other-supporting-documents/step-6-complete-online-visa-application.html)、[CEAC FAQs，IV Application 与 Civil Documents 栏](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-1-submit-a-petition/step-2-begin-nvc-processing/ceac-faqs.html)。
+- DS-260 在领事面谈时经宣誓或确认和生物识别签名后正式提出。行政审查可能使核准裁决晚于面谈日。见 [22 CFR §42.67(a)(3)，Oath and signature on Form DS-260](https://www.ecfr.gov/current/title-22/section-42.67#p-42.67(a)(3))、[Online Application，Step 6](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-5-collect-financial-evidence-and-other-supporting-documents/step-6-complete-online-visa-application.html)、[After the Interview，Administrative Processing](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-10-prepare-for-the-interview/step-12-after-the-interview.html)。
+- NVC 审完签证申请、适用的 I-864 和支持文件，才发 documentarily complete 通知。适用的法庭、监狱及警方记录在递件阶段收集。见 [Submit Documents，Documentarily Complete](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-8-scan-collected-documents/step-9-upload-and-submit-scanned-documents.html)、[Civil Documents，Court and Prison Records、Police Certificates](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-5-collect-financial-evidence-and-other-supporting-documents/step-7-collect-civil-documents.html)。
+- CEAC 的必需民事文件有缺件时无法递交。适用国家互惠表的不可取得例外，或按要求补交书面缺件说明后，仍由领馆判断能否签发。见 [Submit Documents，Step 9](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-8-scan-collected-documents/step-9-upload-and-submit-scanned-documents.html)、[Civil Documents FAQs，I can’t get one of the required civil documents、The “Submit” button isn’t working](https://travel.state.gov/content/travel/en/us-visas/immigrate/civil-documents-faq.html)。
+
+## SRC-310 境内调整身份的裁量
+
+- `policy-sources/2026-05-21-us-pm-602-0199-aos-discretion.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-alerts/05.21.2026_Discretionary_Adjudication_of_Adjustment_of_Status_Applications_PM-602-0199.pdf>
+- `policy-sources/2026-11-23-us-pm-v7-a-ch10.html` → <https://www.uscis.gov/policy-manual/volume-7-part-a-chapter-10>
+
+## SRC-311 不予入境、非法居留、犯罪与安全
+
+- `policy-sources/2026-11-23-us-usc-8usc1182.html` → <https://uscode.house.gov/us/usc/t8/s1182/>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part212.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=212>
+- `policy-sources/2026-09-23-us-pa-criminal-inadmissibility.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20260923-CriminalInadmissibility.pdf>
+- 8 U.S.C. §1182(a) 规定签证及准入资格。§1182(a)(9)(B)(i)(I)–(II) 的非法居留禁令按离境后再次寻求入境的时点核对。领馆路径按裁决日核对是否届满，NVC 材料递交条件见 SRC-309 Submit Documents Step 9。
+- C40 其他事由清单对应 8 U.S.C. §1182(a)(5)(A)–(C)、(6)(A)(i)、(6)(B)、(6)(D)–(G)、(7)(A)、(8)(A)–(B)、(9)(A) 及 (10)(A)–(E)。虚假陈述、虚称美国公民、非法居留及非法再入境由独立答案核对。逐项结论可按整条条款提供，单一子条款结论仅覆盖该子条款。
+- §1182(a)(4)(E)(i) 排除 VAWA 自请人的公共负担事由。USCIS 对已获批 VAWA 自请人的境内调整按已免除 (6)(A)(i) 的未经查验入境事由处理。(9)(B)(iii)(IV) 的非法居留例外要求证实虐待或极端残酷与违反非移民签证条件之间有实质联系。(9)(C)(iii) 的非法再入境豁免须单独获准，欺诈／虚假陈述可按 §1182(i) 申请个案豁免。见 [Form I-601 Instructions pp14–15，Approved VAWA Self-Petitioners](https://www.uscis.gov/sites/default/files/document/forms/i-601instr.pdf#page=14)。
+- 8 U.S.C. §1182(a)(2)(A)(ii)(I) 的未成年 CIMT 例外在领馆审查中以正式签证申请日核对，从犯罪或获释（取较晚者）起须超过法定期限。§1182(a)(3)(D)(iii)(I)–(II) 的原党籍例外以正式申请日核对期限，并要求没有安全威胁。境内调整的原党籍期限以 I-485 收件日核对。见 [8 U.S.C. §1182](https://uscode.house.gov/us/usc/t8/s1182/)、[9 FAM 302.3-2(B)(7)，Minor Exception](https://fam.state.gov/FAM/09FAM/09FAM030203.html)、[8 USCIS-PM F.3，Past Membership 与注 63](https://www.uscis.gov/policy-manual/volume-8-part-f-chapter-3)。
+- `policy-sources/2026-11-24-us-9fam504.8.html`。签证裁决官完成确定签发资格所需的安全核查。见 [9 FAM 504.8-3，Clearing Immigrant Visa Applicants](https://fam.state.gov/FAM/09FAM/09FAM050408.html#M504_8_3)。
+
+## SRC-312 体检、疫苗与 I-693 有效性
+
+- `policy-sources/2026-11-19-us-ecfr-42cfr-part34.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-42.xml?part=34>
+- `policy-sources/2025-06-11-us-pa-i693-validity.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20250611-I-693Validity.pdf>
+- `policy-sources/2026-11-24-us-i693.html` → <https://www.uscis.gov/i-693>
+- Form I-693 页首明确规定 2024-12-02 起将所需 I-693 或部分疫苗记录随 I-485 递交。PA-2025-08 p2 记载 2024-12-10 发布含该要求的 I-485 改版，并说明此前曾在递交后以 RFE 补取材料。两日期分别用于随件要求生效和改版发布。PA-2025-08 对个案绑定有效性的更新自 2025-06-11 起适用于待决或新递交的案件。
+- PA-2025-08 pp1–2 说明 USCIS 可在裁决时要求新的 I-693，即使已随件递交的原件仍有效。原件按适用的 I-485 收件要求核对，补交版本按裁决时的个案有效性核对。见 [PA-2025-08](https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20250611-I-693Validity.pdf)。
+- 旧版 I-485 Instructions 的 Item 10 允许随 I-485 交体检报告或在递交后补交。按该时点，待确认的体检报告、Class A 健康结论和疫苗记录均在核准时核对。见 [2022 年版 I-485 Instructions，Item 10](https://www.uscis.gov/sites/default/files/document/forms/Version_Preliminar_Edicion_12-23-22_USCIS_RECHAZARA_EL_FORMULARIO_SI_SE_PRESENTA_ANTES_DEL_12-23-22_Instrucciones_del_Formulario_I-485.pdf)。
+- `policy-sources/2026-11-23-us-pm-v8-b-ch9.html` → <https://www.uscis.gov/policy-manual/volume-8-part-b-chapter-9>
+- `policy-sources/2026-11-23-us-i693instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-693instr.pdf>
+- I-693 Instructions pp7–8，FAQ Items 1–5 分别说明一般完整体检和难民、特定庇护衍生申请人、K 签证持有人以及符合条件的 Operation Allies Welcome 入境者可沿用境外体检的情形。适用时，部分 I-693 含 Parts 1–5、7、10。是否仍需部分表取决于适用类别和境外记录。见 [I-693 Instructions FAQ](https://www.uscis.gov/sites/default/files/document/forms/i-693instr.pdf#page=7)。
+- `policy-sources/2026-11-23-us-9fam302.2.html` → <https://fam.state.gov/FAM/09FAM/09FAM030202.html>
+- 国务院要求在 NVC 发出面谈通知后安排指定医生体检。面谈阶段带照片和已递交的民事文件正本或认证副本。见 [Appointment，Medical Examination、What Do I Need to Bring to the Interview](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-10-prepare-for-the-interview/appointment.html)、[Prepare for the Interview，Step 10](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-10-prepare-for-the-interview.html)。
+- 领事官员在面谈后决定是否符合签证资格。NVC 确认所需资料齐备后再安排面谈，具体安排取决于签证名额及领馆提供的档期。见 [Applicant Interview，Step 11](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-10-prepare-for-the-interview/step-11-applicant-interview.html)、[Submit Documents，Documentarily Complete](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-8-scan-collected-documents/step-9-upload-and-submit-scanned-documents.html)。
+
+## SRC-313 DHS 公共负担与领馆 FAM 对照
+
+- `policy-sources/2026-07-20-us-fr-2026-14539-public-charge.html` → <https://www.federalregister.gov/documents/full_text/html/2026/07/20/2026-14539.html>
+- `policy-sources/2026-08-18-us-pa-public-charge.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20260818-PublicCharge.pdf>
+- `policy-sources/2026-11-23-us-pm-v8-g-ch11.html` → <https://www.uscis.gov/policy-manual/volume-8-part-g-chapter-11>
+- `policy-sources/2026-11-23-us-9fam302.8.html` → <https://fam.state.gov/FAM/09FAM/09FAM030208.html>
+- 境内调整适用的 DHS 公共负担规则按 I-485 邮戳或电子递交日期确定。跨生效日待决的案件按适用的递交日期口径裁决。见 [91 FR 45324，DATES 与 § I.D，Implementation](https://www.govinfo.gov/content/pkg/FR-2026-07-20/pdf/2026-14539.pdf)。
+- `policy-sources/2026-11-24-us-i485.pdf`。91 FR 45408 第 M 节确认法定豁免继续适用，并以 USCIS Policy Manual 和表单提供豁免清单。领馆适用 9 FAM 302.8-2(B)(6) 的豁免及其中的 I-864 例外。见 [Form I-485 p18，Part 9 Item 56](https://www.uscis.gov/sites/default/files/document/forms/i-485.pdf#page=18)、[9 FAM 302.8-2(B)(6)](https://fam.state.gov/FAM/09FAM/09FAM030208.html#M302_8_2_B_6)。
+
+Form I-485 Part 9 Item 56 列出的境内调整公共负担豁免类别如下。
+
+- VAWA 自请人、SIJ、符合条件的阿富汗或伊拉克国民、庇护者、难民。
+- INA §245(m) 的 U 类调整。按其他依据调整的申请人须在递交和裁决时均持有效 U 身份。
+- INA §245(l) 的 T 类调整。按其他依据调整的申请人须在递交和裁决时持有效 T 身份，或有仍待决且已具备初步资格的 I-914。
+- Cuban Adjustment Act、该法下遭虐待的配偶或子女、Haitian Refugee Immigration Fairness Act 的衍生身份、该法下遭虐待的衍生配偶或子女、IRCA §202 的古巴和海地入境者。
+- Lautenberg 假释入境者、Foreign Operations, Export Financing, and Related Programs 法案下符合条件的越南／柬埔寨／老挝国民、INA §249 下自 1972 年 1 月 1 日前持续居住的 Registry 申请人、Amerasian Homecoming Act、符合条件的波兰或匈牙利假释入境者。
+- NACARA §203 的尼加拉瓜及其他中美洲申请人、INA §289 下出生于加拿大的美国印第安人或法定 Texas Band of Kickapoo Indians 成员、FY2020 NDAA §7611 的 Liberian Refugee Immigration Fairness 申请人。
+
+## SRC-314 难民、庇护调整身份与 INA 209(c)
+
+- `policy-sources/2026-11-10-us-usc-8usc1159.html` → <https://uscode.house.gov/us/usc/t8/s1159/>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part209.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=209>
+- `policy-sources/2026-11-23-us-pm-v7-l-ch2.html` → <https://www.uscis.gov/policy-manual/volume-7-part-l-chapter-2>
+- `policy-sources/2026-11-23-us-pm-v7-l-ch3.html` → <https://www.uscis.gov/policy-manual/volume-7-part-l-chapter-3>
+- `policy-sources/2026-11-23-us-pm-v7-m-ch2.html` → <https://www.uscis.gov/policy-manual/volume-7-part-m-chapter-2>
+- `policy-sources/2026-11-23-us-pm-v7-m-ch3.html` → <https://www.uscis.gov/policy-manual/volume-7-part-m-chapter-3>
+- 8 U.S.C. §1159(c) 及 7 USCIS-PM L.3(A)、M.3(A) 对难民和庇护调整排除 §1182(a)(4)、(5)、(7)(A)。同法允许对其他适用事由作个案豁免，其中毒品贩运 (2)(C) 及指定安全事由 (3)(A)、(B)、(C)、(E) 除外。
+- 难民调整要求难民身份未被终止。庇护调整在裁决时核对是否仍符合难民定义，或仍具备主庇护人的合资格配偶／子女关系，以及是否已在外国稳定安置。另核对累计在美时间与相应例外。SRC-314，8 U.S.C. §1159(a)–(b)、7 USCIS-PM L.2(B)–(E)、M.2(A)–(E)。[7 USCIS-PM L.2](https://www.uscis.gov/policy-manual/volume-7-part-l-chapter-2) · [7 USCIS-PM M.2](https://www.uscis.gov/policy-manual/volume-7-part-m-chapter-2)
+- [Form I-602，Where to File](https://www.uscis.gov/i-602) 规定与 I-485 同件时邮寄，I-485 已递交时送相应审理办公室。
+
+## SRC-315 军人入籍 INA 328、329
+
+- `policy-sources/2026-11-10-us-usc-8usc1439.html` → <https://uscode.house.gov/us/usc/t8/s1439/>
+- `policy-sources/2026-11-23-us-usc-8usc1440.html` → <https://uscode.house.gov/us/usc/t8/s1440/>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part328.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=328>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part329.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=329>
+- `policy-sources/2026-11-23-us-pm-v12-i-ch2.html` → <https://www.uscis.gov/policy-manual/volume-12-part-i-chapter-2>
+- `policy-sources/2026-11-23-us-pm-v12-i-ch3.html` → <https://www.uscis.gov/policy-manual/volume-12-part-i-chapter-3>
+- [Naturalization Through Military Service，Application Process](https://www.uscis.gov/military/naturalization-through-military-service) 允许军人纸交或网申 N-400，并说明在役 N-426 与离役 DD-214／NGB-22 的证明方式。
+
+## SRC-316 USCIS 费用与减免表
+
+- `policy-sources/2026-11-23-us-g1055.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/g-1055.pdf>
+- `policy-sources/2026-11-23-us-i912instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-912instr.pdf>
+- `policy-sources/2026-11-19-us-ecfr-8cfr-part106.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=106>
+- G-1055 p30 的 N-336 行列明适格 I-912 豁免为 USD 0。
+
+## SRC-317 领馆办理费用
+
+- `policy-sources/2026-11-19-us-ecfr-22cfr22.1.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-22.xml?section=22.1>
+- 22 CFR §22.1 第 35(a) 项 *Determining Returning Resident Status* 对应 DS-117，费用 USD 180。第 32–34 项对应其他移民签证服务。
+
+## SRC-318 EB-5 费用生效调整
+
+- `policy-sources/2026-09-30-us-fr-2026-20016-eb5-fee-rule.txt` → <https://www.federalregister.gov/documents/full_text/text/2026/09/30/2026-20016.txt>
+
+## SRC-319 H.R. 1 基准费率与 FY2027 调整
+
+- `policy-sources/2026-04-29-us-fr-2026-08333-hr1-fees.html` → <https://www.federalregister.gov/documents/full_text/html/2026/04/29/2026-08333.html>
+- `policy-sources/2026-10-01-us-fr-2026-20187-hr1-fees-fy2027.html` → <https://www.federalregister.gov/documents/full_text/html/2026/10/01/2026-20187.html>
+
+### 任务 86 交叉核对
+
+- SRC-079 复用 INA 101(a)(13)(C)、101(f)、216、216A、316、319(a)。SRC-080 复用 8 CFR 211.1、211.3、216、316、319、334。SRC-290 卷 12 G.2(A)–(C) 区分递交日前同住及持续到宣誓的有效婚姻与配偶公民身份。SRC-082 复用原 N-400 与 I-751 时间来源。
+- SRC-298 的取消条件手册为卷 6 G.7，G.5 是区域中心项目表。旧投资期规则与 RIA 后投资规则分别按原始移民申请递交日使用。
+- SRC-304 使用 HHS 地区指引与 USCIS 地区表。I-864P 同页首个未标地区表的旧值未采用。
+- SRC-312 使用 USCIS 与联邦法规快照确认体检和疫苗要求。CDC 技术指引的独立原始抓取受阻，个别年龄／剂量交医师核对。
+- SRC-314 的 7 USCIS-PM L.2(B) 与 M.2(A) 在裁决时核对一年实际在美。SRC-315 的 12 USCIS-PM I.3 表将二战指定期列至 1946-12-31。
+- SRC-316 的 G-1055（11/19/26，物理页码）：p2 USCIS Immigrant Fee，p4 G-325R，p5 I-90，p9 I-130 / I-131A，p10 I-140，pp15–16 I-485，p17 I-526 / I-526E，p22 I-751，p26 I-829，pp27–28 I-907，p30 N-336 / N-400，Appendix B 为 I-131 与口岸假释费。N-336 明列纸申及网申两种金额。SRC-318 最终规则将 EB-5 新费应用于生效日及之后邮戳件。SRC-319 91 FR 62541–62542 区分庇护续期工卡加收费与假释／TPS 续期加收费，二者在该次调整均未上涨。
 
 ## SRC-320 BOE · LO 4/2000，外国人组织法
 

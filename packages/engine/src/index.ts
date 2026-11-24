@@ -260,3 +260,6 @@ export type {
 export type { NzResidentAnswers } from './new-zealand-resident';
 export type { NzSkilledAnswers } from './new-zealand-skilled';
 export type { NzFamilyAnswers } from './new-zealand-family';
+
+export { evaluateUnitedStatesFull } from './united-states-full';
+export type * from './united-states-full';

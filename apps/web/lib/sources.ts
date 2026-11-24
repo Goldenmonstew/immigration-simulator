@@ -594,4 +594,46 @@ export const sourceUrls: Record<string, string> = {
     'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:C_202301392',
   'SRC-378': 'https://api.et.gr/apiFEK/1/2021/81/pdf',
   'SRC-379': 'https://api.et.gr/apiFEK/1/1983/25/pdf',
+  'SRC-290': 'https://uscode.house.gov/us/usc/t8/s1445/',
+  'SRC-291': 'https://uscode.house.gov/us/usc/t8/s1423/',
+  'SRC-292': 'https://www.uscis.gov/policy-manual/volume-12-part-e-chapter-2',
+  'SRC-293': 'https://www.uscis.gov/policy-manual/volume-12-part-f-chapter-2',
+  'SRC-294': 'https://uscode.house.gov/us/usc/t8/s1424/',
+  'SRC-295': 'https://www.sss.gov/register/who-needs-to-register/',
+  'SRC-296': 'https://uscode.house.gov/us/usc/t8/s1448/',
+  'SRC-297':
+    'https://www.uscis.gov/sites/default/files/document/forms/i-751instr.pdf',
+  'SRC-298': 'https://www.uscis.gov/policy-manual/volume-6-part-g-chapter-7',
+  'SRC-299': 'https://uscode.house.gov/us/usc/t8/s1304/',
+  'SRC-300':
+    'https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=223',
+  'SRC-301': 'https://uscode.house.gov/us/usc/t8/s1227/',
+  'SRC-302': 'https://uscode.house.gov/us/usc/t8/s1151/',
+  'SRC-303': 'https://uscode.house.gov/us/usc/t8/s1183a/',
+  'SRC-304':
+    'https://www.federalregister.gov/documents/full_text/text/2026/01/15/2026-00755.txt',
+  'SRC-305':
+    'https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-20.xml?part=656',
+  'SRC-306': 'https://www.uscis.gov/policy-manual/volume-6-part-f-chapter-2',
+  'SRC-307': 'https://www.uscis.gov/policy-manual/volume-6-part-g-chapter-2',
+  'SRC-308':
+    'https://www.federalregister.gov/documents/full_text/html/2025/09/24/2025-18602.html',
+  'SRC-309': 'https://uscode.house.gov/us/usc/t8/s1255/',
+  'SRC-310':
+    'https://www.uscis.gov/sites/default/files/document/policy-alerts/05.21.2026_Discretionary_Adjudication_of_Adjustment_of_Status_Applications_PM-602-0199.pdf',
+  'SRC-311': 'https://uscode.house.gov/us/usc/t8/s1182/',
+  'SRC-312':
+    'https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-42.xml?part=34',
+  'SRC-313':
+    'https://www.federalregister.gov/documents/full_text/html/2026/07/20/2026-14539.html',
+  'SRC-314': 'https://uscode.house.gov/us/usc/t8/s1159/',
+  'SRC-315': 'https://uscode.house.gov/us/usc/t8/s1439/',
+  'SRC-316':
+    'https://www.uscis.gov/sites/default/files/document/forms/g-1055.pdf',
+  'SRC-317':
+    'https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-22.xml?section=22.1',
+  'SRC-318':
+    'https://www.federalregister.gov/documents/full_text/text/2026/09/30/2026-20016.txt',
+  'SRC-319':
+    'https://www.federalregister.gov/documents/full_text/html/2026/04/29/2026-08333.html',
 };
