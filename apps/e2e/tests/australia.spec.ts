@@ -12,6 +12,14 @@ const questionnaire = (page: Page) => page.locator('main form');
 const assessment = (page: Page, dict: Dict) =>
   page.getByRole('region', { name: dict['au.policy.title'], exact: true });
 
+// New drafts leave the travel history unanswered until confirmed.
+async function confirmNoTrips(page: Page, dict: Dict) {
+  await page
+    .getByRole('group', { name: dict['au.field.trips'], exact: true })
+    .getByRole('button', { name: dict['au.form.noRecords'], exact: true })
+    .click();
+}
+
 async function copyResult(page: Page) {
   const share = page.getByRole('region', {
     name: zhCN['share.copy'],
@@ -52,6 +60,7 @@ test('Australia questionnaire flows to results, saves and shares scenarios, and 
     .click();
   await page.locator('#au-visas-0-subclass').selectOption('189');
   await page.locator('#au-visas-0-from').fill('2026-01-01');
+  await confirmNoTrips(page, zhCN);
 
   const next = questionnaire(page).getByRole('button', {
     name: zhCN['form.continue'],
@@ -78,9 +87,7 @@ test('Australia questionnaire flows to results, saves and shares scenarios, and 
   await page.locator('#au-citizenship-identity').selectOption('confirmed');
   await page.locator('#au-citizenship-securityBar').selectOption('no');
   await page.locator('#au-citizenship-currentCriminalBar').selectOption('no');
-  await page
-    .locator('#au-citizenship-lastPrisonSentence')
-    .selectOption('none');
+  await page.locator('#au-citizenship-lastPrisonSentence').selectOption('none');
   await page
     .getByRole('checkbox', { name: zhCN['au.form.neverOption'] })
     .check();
@@ -134,9 +141,7 @@ test('Australia questionnaire flows to results, saves and shares scenarios, and 
     const shared = await receiver.newPage();
     await shared.goto(sharedUrl);
     await expect(
-      shared
-        .getByRole('main')
-        .getByText(zhCN['share.loaded'], { exact: true }),
+      shared.getByRole('main').getByText(zhCN['share.loaded'], { exact: true }),
     ).toBeVisible();
     await expect(assessment(shared, zhCN)).toHaveText(originalText, {
       useInnerText: true,
@@ -197,6 +202,7 @@ test('English mobile flow checks horizontal overflow, accessibility and Australi
     .click();
   await page.locator('#au-visas-0-subclass').selectOption('189');
   await page.locator('#au-visas-0-from').fill('2025-01-01');
+  await confirmNoTrips(page, en);
   await noHorizontalScroll(page);
 
   const next = questionnaire(page).getByRole('button', {

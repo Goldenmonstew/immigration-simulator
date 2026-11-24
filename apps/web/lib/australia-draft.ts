@@ -14,6 +14,7 @@ import {
   feeFields,
   innovationFields,
   nominationFields,
+  partnerApplicationField,
   partnerFields,
   publicInterestFields,
   regionalFields,
@@ -35,7 +36,6 @@ export function createAustraliaDraft(): AustraliaDraft {
     step: 0,
     completed: false,
     simulationDate: today(),
-    trips: [],
   };
 }
 
@@ -58,8 +58,7 @@ export function australiaSteps(draft: AustraliaDraft) {
       step === 6 ||
       !p ||
       (step === 2 && (p === 'AU-186-TRT' || p === 'AU-186-DE')) ||
-      (step === 3 &&
-        (p === 'AU-189-PT' || p === 'AU-190' || p === 'AU-858')) ||
+      (step === 3 && (p === 'AU-189-PT' || p === 'AU-190' || p === 'AU-858')) ||
       (step === 4 &&
         (p === 'AU-191' || p === 'AU-189-HK' || p === 'AU-191-HK')) ||
       (step === 5 && (p === 'AU-PARTNER' || p === 'AU-RRV'));
@@ -71,228 +70,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-// Convert form-friendly fields into the exact engine request shape.
+// Answers on steps hidden by the selected pathway stay in the local draft,
+// but they are neither assessed nor shared.
+const stepAnswers: Record<number, (keyof AustraliaDraft)[]> = {
+  2: ['employer'],
+  3: ['skills', 'innovation'],
+  4: ['regional'],
+  5: ['partnerApplication', 'partner', 'rrv'],
+};
+
 export function activeAustraliaAnswers(draft: AustraliaDraft): AustraliaDraft {
-  const next: AustraliaDraft = { ...draft };
-
-  if (next.english) {
-    const eng = { ...next.english } as Record<string, unknown>;
-    if (isRecord(eng.test)) {
-      const test = { ...eng.test };
-      const parts = [
-        test.listening,
-        test.reading,
-        test.writing,
-        test.speaking,
-      ];
-      if (parts.every((n) => typeof n === 'number' && Number.isFinite(n))) {
-        test.components = parts as [number, number, number, number];
-      } else if (
-        Array.isArray(test.components) &&
-        test.components.length === 4 &&
-        test.components.every((n) => typeof n === 'number')
-      ) {
-        const [l, r, w, s] = test.components as number[];
-        test.listening ??= l;
-        test.reading ??= r;
-        test.writing ??= w;
-        test.speaking ??= s;
-      } else {
-        delete test.components;
-      }
-      eng.test = typeof test.name === 'string' ? test : undefined;
-    }
-    next.english = eng as AustraliaDraft['english'];
-  }
-
-  if (next.employer) {
-    const emp = { ...next.employer };
-    if (emp.assessment && !emp.assessment.kind) delete emp.assessment;
-    next.employer = emp;
-  }
-
-  if (next.skills) {
-    const sk = { ...next.skills } as Record<string, unknown>;
-    const inv189 =
-      sk.invitation189 ??
-      (isRecord(sk.invitations) ? sk.invitations['AU-189-PT'] : undefined);
-    const inv190 =
-      sk.invitation190 ??
-      (isRecord(sk.invitations) ? sk.invitations['AU-190'] : undefined);
-    const cleanInv = (val: unknown) => {
-      if (val === 'awaiting') return 'awaiting' as const;
-      if (isRecord(val) && typeof val.issued === 'string' && validDate(val.issued))
-        return val as { issued: string; deadline?: string; score?: number };
-      return undefined;
-    };
-    const c189 = cleanInv(inv189);
-    const c190 = cleanInv(inv190);
-    if (c189 !== undefined || c190 !== undefined) {
-      sk.invitations = {
-        ...(c189 !== undefined ? { 'AU-189-PT': c189 } : {}),
-        ...(c190 !== undefined ? { 'AU-190': c190 } : {}),
-      };
-    } else {
-      delete sk.invitations;
-    }
-
-    const occ189 =
-      typeof sk.occupationInInvitation189 === 'boolean'
-        ? sk.occupationInInvitation189
-        : isRecord(sk.occupationInInvitation)
-          ? sk.occupationInInvitation['AU-189-PT']
-          : undefined;
-    const occ190 =
-      typeof sk.occupationInInvitation190 === 'boolean'
-        ? sk.occupationInInvitation190
-        : isRecord(sk.occupationInInvitation)
-          ? sk.occupationInInvitation['AU-190']
-          : undefined;
-    if (typeof occ189 === 'boolean' || typeof occ190 === 'boolean') {
-      sk.occupationInInvitation = {
-        ...(typeof occ189 === 'boolean' ? { 'AU-189-PT': occ189 } : {}),
-        ...(typeof occ190 === 'boolean' ? { 'AU-190': occ190 } : {}),
-      };
-    } else {
-      delete sk.occupationInInvitation;
-    }
-
-    if (isRecord(sk.assessment) && !sk.assessment.kind) delete sk.assessment;
-    if (isRecord(sk.points)) {
-      const pts = { ...sk.points };
-      if (
-        isRecord(pts.australianStudy) &&
-        typeof pts.australianStudy.qualifying !== 'boolean'
-      ) {
-        delete pts.australianStudy;
-      }
-      sk.points = pts;
-    }
-    next.skills = sk as AustraliaDraft['skills'];
-  }
-
-  if (next.innovation) {
-    const inn = { ...next.innovation } as Record<string, unknown>;
-    if (
-      isRecord(inn.invitation) &&
-      (typeof inn.invitation.issued !== 'string' ||
-        !validDate(inn.invitation.issued))
-    ) {
-      delete inn.invitation;
-    }
-    next.innovation = inn as AustraliaDraft['innovation'];
-  }
-
-  const pApp = next.partnerApplication;
-  const pObj = (next.partner ? { ...next.partner } : {}) as Record<
-    string,
-    unknown
-  >;
-  const lodged =
-    (typeof pObj.partnerLodged === 'string' && pObj.partnerLodged) ||
-    pApp?.lodged;
-  const stream =
-    (pObj.stream as 'onshore' | 'offshore' | undefined) ?? pApp?.stream;
-  const longTerm =
-    typeof pObj.longTermRelationship === 'boolean'
-      ? pObj.longTermRelationship
-      : pApp?.longTermRelationship;
-  if (stream) pObj.stream = stream;
-  if (lodged && validDate(lodged) && (stream === 'onshore' || stream === 'offshore')) {
-    next.partnerApplication = {
-      lodged,
-      stream,
-      ...(typeof longTerm === 'boolean'
-        ? { longTermRelationship: longTerm }
-        : {}),
-    };
-  } else {
-    delete next.partnerApplication;
-  }
-  if (
-    isRecord(pObj.temporaryGrant) &&
-    pObj.temporaryGrant.basis !== 'ordinary' &&
-    pObj.temporaryGrant.basis !== 'ministerial'
-  ) {
-    delete pObj.temporaryGrant;
-  }
-  if (Object.keys(pObj).length > 0) {
-    next.partner = pObj as AustraliaDraft['partner'];
-  }
-
-  if (next.citizenship) {
-    const cit = { ...next.citizenship } as Record<string, unknown>;
-    if (
-      isRecord(cit.scv) &&
-      (typeof cit.scv.firstGrant !== 'string' || !validDate(cit.scv.firstGrant))
-    ) {
-      delete cit.scv;
-    }
-    if (
-      isRecord(cit.test) &&
-      (typeof cit.test.correct !== 'number' ||
-        typeof cit.test.valuesCorrect !== 'number')
-    ) {
-      delete cit.test;
-    }
-    if (
-      isRecord(cit.lastPrisonSentence) &&
-      (typeof cit.lastPrisonSentence.months !== 'number' ||
-        typeof cit.lastPrisonSentence.firstFreeDay !== 'string' ||
-        !validDate(cit.lastPrisonSentence.firstFreeDay))
-    ) {
-      delete cit.lastPrisonSentence;
-    }
-    next.citizenship = cit as AustraliaDraft['citizenship'];
-  }
-
-  if (next.publicInterest) {
-    const pic = { ...next.publicInterest } as Record<string, unknown>;
-    if (isRecord(pic.integrity)) {
-      const info = pic.integrity;
-      const hasAllRequired =
-        typeof info.identityEstablished === 'boolean' &&
-        typeof info.accurateDocuments === 'boolean' &&
-        (info.lastIdentityRefusal === null ||
-          (typeof info.lastIdentityRefusal === 'string' &&
-            validDate(info.lastIdentityRefusal))) &&
-        (info.lastDocumentRefusal === null ||
-          (typeof info.lastDocumentRefusal === 'string' &&
-            validDate(info.lastDocumentRefusal)));
-      const definiteFailure =
-        info.identityEstablished === false ||
-        (info.accurateDocuments === false &&
-          info.documentWaiver !== 'granted' &&
-          info.documentWaiver !== 'pending');
-      if (!hasAllRequired && !definiteFailure) {
-        delete pic.integrity;
-      } else if (!hasAllRequired && definiteFailure) {
-        pic.integrity = {
-          identityEstablished: info.identityEstablished !== false,
-          accurateDocuments: info.accurateDocuments !== false,
-          lastIdentityRefusal:
-            typeof info.lastIdentityRefusal === 'string'
-              ? info.lastIdentityRefusal
-              : null,
-          lastDocumentRefusal:
-            typeof info.lastDocumentRefusal === 'string'
-              ? info.lastDocumentRefusal
-              : null,
-          ...(info.documentWaiver
-            ? { documentWaiver: info.documentWaiver }
-            : {}),
-        };
-      }
-    }
-    if (
-      isRecord(pic.sponsoredStudy) &&
-      typeof pic.sponsoredStudy.applies !== 'boolean'
-    ) {
-      delete pic.sponsoredStudy;
-    }
-    next.publicInterest = pic as AustraliaDraft['publicInterest'];
-  }
-
+  const visible = new Set(australiaSteps(draft).map(({ step }) => step));
+  const next = { ...draft };
+  for (const [step, keys] of Object.entries(stepAnswers))
+    if (!visible.has(Number(step))) for (const key of keys) delete next[key];
   return next;
 }
 
@@ -341,10 +132,7 @@ function checkFields(
           errors[id] = 'au.error.date';
         break;
       case 'status-date':
-        if (
-          field.literals.some((lit) => lit === value)
-        )
-          break;
+        if (field.literals.some((lit) => lit === value)) break;
         if (typeof value !== 'string' || !validDate(value))
           errors[id] = 'au.error.date';
         break;
@@ -362,6 +150,22 @@ function checkFields(
           !Number.isSafeInteger(value)
         )
           errors[id] = 'au.form.integerError';
+        break;
+      case 'scores':
+        if (
+          !Array.isArray(value) ||
+          value.length !== 4 ||
+          value.some(
+            (n) =>
+              n !== null &&
+              (typeof n !== 'number' ||
+                !Number.isFinite(n) ||
+                (required && n < 0)),
+          )
+        )
+          errors[id] = 'au.form.numberError';
+        else if (required && value.includes(null))
+          errors[id] = 'au.form.scoresError';
         break;
       case 'year-list':
         if (
@@ -429,12 +233,7 @@ export function checkAustraliaStep(
   switch (step) {
     case 0:
       checkFields(step0Fields, draft, 'au', submitting, errors);
-      order(
-        errors,
-        'au-dateOfBirth',
-        draft.dateOfBirth,
-        draft.simulationDate,
-      );
+      order(errors, 'au-dateOfBirth', draft.dateOfBirth, draft.simulationDate);
       order(
         errors,
         'au-firstArrival',
@@ -444,7 +243,7 @@ export function checkAustraliaStep(
       );
       if (Array.isArray(draft.visas)) {
         draft.visas.forEach((visa, i) => {
-          if (! isRecord(visa)) return;
+          if (!isRecord(visa)) return;
           if (!allSubclasses.has(visa.subclass))
             errors[`au-visas-${i}-subclass`] = 'au.form.required';
           order(errors, `au-visas-${i}-to`, visa.from, visa.to);
@@ -469,19 +268,14 @@ export function checkAustraliaStep(
     case 1:
       if (draft.english !== undefined) {
         if (!isRecord(draft.english)) errors['au-english'] = 'au.form.required';
-        else {
-          const eng = { ...draft.english } as Record<string, unknown>;
-          if (isRecord(eng.test) && Array.isArray(eng.test.components)) {
-            if (
-              eng.test.components.length !== 4 ||
-              eng.test.components.some(
-                (n) => typeof n !== 'number' || !Number.isFinite(n) || n < 0,
-              )
-            )
-              errors['au-english-test-listening'] = 'au.form.numberError';
-          }
-          checkFields(englishFields, eng, 'au-english', submitting, errors);
-        }
+        else
+          checkFields(
+            englishFields,
+            draft.english,
+            'au-english',
+            submitting,
+            errors,
+          );
       }
       if (
         draft.secondInstalmentPaid !== undefined &&
@@ -548,49 +342,28 @@ export function checkAustraliaStep(
       if (draft.skills !== undefined) {
         if (!isRecord(draft.skills)) errors['au-skills'] = 'au.form.required';
         else {
-          const sk = {
-            ...draft.skills,
-            ...(draft.skills.invitations?.['AU-189-PT'] !== undefined
-              ? { invitation189: draft.skills.invitations['AU-189-PT'] }
-              : {}),
-            ...(draft.skills.invitations?.['AU-190'] !== undefined
-              ? { invitation190: draft.skills.invitations['AU-190'] }
-              : {}),
-            ...(draft.skills.occupationInInvitation?.['AU-189-PT'] !== undefined
-              ? {
-                  occupationInInvitation189:
-                    draft.skills.occupationInInvitation['AU-189-PT'],
-                }
-              : {}),
-            ...(draft.skills.occupationInInvitation?.['AU-190'] !== undefined
-              ? {
-                  occupationInInvitation190:
-                    draft.skills.occupationInInvitation['AU-190'],
-                }
-              : {}),
-          };
-          checkFields(skillsFields, sk, 'au-skills', submitting, errors);
+          checkFields(
+            skillsFields,
+            draft.skills,
+            'au-skills',
+            submitting,
+            errors,
+          );
           order(
             errors,
             'au-skills-assessment-expires',
             draft.skills.assessment?.issued,
             draft.skills.assessment?.expires,
           );
-          if (isRecord(sk.invitation189)) {
-            order(
-              errors,
-              'au-skills-invitation189-deadline',
-              sk.invitation189.issued,
-              sk.invitation189.deadline,
-            );
-          }
-          if (isRecord(sk.invitation190)) {
-            order(
-              errors,
-              'au-skills-invitation190-deadline',
-              sk.invitation190.issued,
-              sk.invitation190.deadline,
-            );
+          for (const id of ['AU-189-PT', 'AU-190'] as const) {
+            const invitation = draft.skills.invitations?.[id];
+            if (isRecord(invitation))
+              order(
+                errors,
+                `au-skills-invitations-${id}-deadline`,
+                invitation.issued,
+                invitation.deadline,
+              );
           }
         }
       }
@@ -631,42 +404,17 @@ export function checkAustraliaStep(
       }
       break;
     case 5: {
-      if (
-        draft.partnerApplication !== undefined &&
-        !isRecord(draft.partnerApplication)
-      ) {
-        errors['au-partner-partnerLodged'] = 'au.error.date';
-      }
-      if (
-        draft.partner !== undefined ||
-        draft.partnerApplication !== undefined
-      ) {
-        if (draft.partner !== undefined && !isRecord(draft.partner)) {
-          errors['au-partner'] = 'au.form.required';
-        } else {
-          const combined = {
-            ...draft.partner,
-            ...(draft.partnerApplication?.lodged !== undefined
-              ? { partnerLodged: draft.partnerApplication.lodged }
-              : {}),
-            ...(draft.partnerApplication?.stream !== undefined
-              ? { stream: draft.partnerApplication.stream }
-              : {}),
-            ...(draft.partnerApplication?.longTermRelationship !== undefined
-              ? {
-                  longTermRelationship:
-                    draft.partnerApplication.longTermRelationship,
-                }
-              : {}),
-          };
+      checkFields([partnerApplicationField], draft, 'au', submitting, errors);
+      if (draft.partner !== undefined) {
+        if (!isRecord(draft.partner)) errors['au-partner'] = 'au.form.required';
+        else
           checkFields(
             partnerFields,
-            combined,
+            draft.partner,
             'au-partner',
             submitting,
             errors,
           );
-        }
       }
       if (draft.rrv !== undefined) {
         if (!isRecord(draft.rrv)) errors['au-rrv'] = 'au.form.required';
@@ -721,7 +469,11 @@ export function migrateLegacyAuForm(
   )
     return undefined;
   const visas = value.visas.flatMap((v) => {
-    if (!isRecord(v) || typeof v.subclass !== 'string' || typeof v.from !== 'string')
+    if (
+      !isRecord(v) ||
+      typeof v.subclass !== 'string' ||
+      typeof v.from !== 'string'
+    )
       return [];
     return [
       {
@@ -767,26 +519,17 @@ export function migrateLegacyAuForm(
       ? { sponsoredFullTime: value.sponsoredFullTime }
       : {}),
     ...(value.partner
-      ? {
-          partner: {
-            stream,
-            ...(lodged ? { partnerLodged: lodged } : {}),
-            ...(typeof value.longTermRelationship === 'boolean'
-              ? { longTermRelationship: value.longTermRelationship }
-              : {}),
-          },
-          ...(lodged
-            ? {
-                partnerApplication: {
-                  lodged,
-                  stream,
-                  ...(typeof value.longTermRelationship === 'boolean'
-                    ? { longTermRelationship: value.longTermRelationship }
-                    : {}),
-                },
-              }
-            : {}),
-        }
+      ? lodged
+        ? {
+            partnerApplication: {
+              lodged,
+              stream,
+              ...(typeof value.longTermRelationship === 'boolean'
+                ? { longTermRelationship: value.longTermRelationship }
+                : {}),
+            },
+          }
+        : { partner: { stream } }
       : {}),
     ...(value.hongKong
       ? {

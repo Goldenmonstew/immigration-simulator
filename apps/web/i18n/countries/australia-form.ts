@@ -41,6 +41,7 @@ export const auFormZh = {
   'au.form.required': '请完成此必填项。',
   'au.form.numberError': '请输入零或正数。',
   'au.form.integerError': '请输入零或正整数。',
+  'au.form.scoresError': '请填写全部四科分数，或四科都留空。',
   'au.form.yearError': '请输入四位财年结束年份（例如 2026）。',
   'au.form.allPathways': '同时评估全部 11 条路径',
   'au.form.simulationDateHint':
@@ -110,6 +111,7 @@ export const auFormZh = {
   'au.field.name': '考试种类',
   'au.field.date': '考试日期',
   'au.field.format': '考试中心与重考形式',
+  'au.field.components': '四科分数（听力、阅读、写作、口语）',
   'au.field.listening': '听力（Listening）分数',
   'au.field.reading': '阅读（Reading）分数',
   'au.field.writing': '写作（Writing）分数',
@@ -132,8 +134,7 @@ export const auFormZh = {
     '186 是否属于宗教工作者提名免缴第二期签证费类别',
   'au.field.employerAnnualTurnover': '186 担保雇主年度营业额（AUD，算 SAF 税）',
   'au.field.regionalPosition': '186 TRT 提名岗位是否位于指定偏远地区',
-  'au.field.paperReturnApplication':
-    '155 / 157 返程签证是否获准以纸质方式递交',
+  'au.field.paperReturnApplication': '155 / 157 返程签证是否获准以纸质方式递交',
   'au.field.partnerCategory': '配偶签合并递交时的 Schedule 1 费率类别',
   'au.field.concessionCard': '入籍申请人的优惠卡资格',
   'au.field.includedWithResponsibleParent':
@@ -169,11 +170,13 @@ export const auFormZh = {
   'au.field.acceptedMarketRate': '经认可的同岗年度市场薪资 AMSR（AUD）',
   'au.field.licensing': '工作所在地规定的执业注册、牌照或会员资格',
 
+  'au.field.invitations': '189 / 190 书面邀请',
   'au.field.invitation189': '189 打分类书面邀请状态',
   'au.field.invitation190': '190 州担保书面邀请状态',
   'au.field.deadline': '邀请函截止递交日期',
   'au.field.score': '邀请函列明的声明分数',
   'au.field.occupationList': '提名职业所在的法定职业清单',
+  'au.field.occupationInInvitation': '申请职业与邀请函所列职业是否一致',
   'au.field.occupationInInvitation189': '189 申请职业是否与 189 邀请函所列一致',
   'au.field.occupationInInvitation190': '190 申请职业是否与 190 邀请函所列一致',
   'au.field.nomination': '190 州或领地政府提名状态',
@@ -184,7 +187,8 @@ export const auFormZh = {
   'au.field.pointsEducation': '最高获认可学历类别',
   'au.field.specialistStudyYears':
     '在澳完成的 STEM 指定研究型硕士或博士学习学制年数',
-  'au.field.australianStudy': '澳大利亚学习要求（Australian study requirement）',
+  'au.field.australianStudy':
+    '澳大利亚学习要求（Australian study requirement）',
   'au.field.qualifying':
     '是否在持准许学习签证期间完成 CRICOS 注册的英语授课学位、文凭或技工课程',
   'au.field.academicYears': '完成课程的注册学制年数（Academic years）',
@@ -216,8 +220,11 @@ export const auFormZh = {
   'au.field.hongKongRegionalException':
     '191 香港地区通道：191.231(3) 文书指定例外类别',
 
+  'au.field.partnerApplication':
+    '已递交的配偶签合并申请（820/801 或 309/100，尚未递交可留空）',
   'au.field.partnerLodged': '配偶签合并申请（820/801 或 309/100）递交日期',
   'au.field.stream': '配偶签递交通道',
+  'au.field.proposedStream': '尚未合并递交时：拟递交的配偶签通道',
   'au.field.longTermRelationship':
     '合并递交时是否已满足法定长期伴侣关系（满 3 年，或有共同受抚养子女满 2 年）',
   'au.field.relationship': '伴侣关系类别',
@@ -252,8 +259,7 @@ export const auFormZh = {
   'au.field.relevantSentenceMonths':
     '担保人就指定相关罪行被判处的累计刑期（月）',
   'au.field.sponsorOffenceException': '担保人重大犯罪记录的法定例外裁量结论',
-  'au.field.consentToDisclosure':
-    '担保人是否同意向申请人披露相关犯罪记录',
+  'au.field.consentToDisclosure': '担保人是否同意向申请人披露相关犯罪记录',
   'au.field.sponsorPoliceCheckIfRequested':
     '担保人是否已按要求提供澳大利亚及海外警方证明',
   'au.field.sponsorshipApprovedInForce': '首阶段配偶担保是否已获批且仍有效',
@@ -315,7 +321,8 @@ export const auFormZh = {
   'au.field.citizenshipTest': '入籍考试（Citizenship test）状态与成绩',
   'au.field.correct': '入籍考试答对总题数（满分 20，及格 15）',
   'au.field.valuesCorrect': '澳大利亚价值观分项答对题数（满分 5，须全对）',
-  'au.field.citizenshipCharacter': '成年入籍申请人的良好品格（Good character）认定',
+  'au.field.citizenshipCharacter':
+    '成年入籍申请人的良好品格（Good character）认定',
   'au.field.policeCertificatesIfRequired':
     '是否已按要求提供入籍所需的警方核查同意与海外无犯罪证明',
   'au.field.identity': '内政部对入籍申请人身份核验（s 24(3)）的认定',
@@ -326,7 +333,8 @@ export const auFormZh = {
     '曾被判处严重监禁刑（12 个月及以上）的释放记录（s 24(6)(c)–(d)）',
   'au.field.months': '被判处的监禁刑期（月）',
   'au.field.firstFreeDay': '刑满或假释条件结束后的首个完全自由日',
-  'au.field.seriousRepeatOffender': '是否属于法定严重累犯（serious repeat offender）',
+  'au.field.seriousRepeatOffender':
+    '是否属于法定严重累犯（serious repeat offender）',
   'au.field.mostRecentCessation': '曾丧失澳大利亚公民身份的最近一次失籍日期',
   'au.field.intention': '在澳大利亚居住或保持紧密持续联系的意图',
   'au.field.inAustraliaAtApproval':
@@ -368,14 +376,13 @@ export const auFormZh = {
     '是否受 Schedule 5 cl 5001 驱逐出境或品格撤签/拒签的永久返澳限制',
   'au.field.removedOn': '曾被依法强制遣返（Schedule 5 cl 5002）的遣返日期',
   'au.field.removalWaiver': '强制遣返未满 12 个月时的个案豁免状态',
-  'au.field.sponsoredStudy':
-    '外交或政府资助学生返澳条件（Schedule 5 cl 5010）',
+  'au.field.sponsoredStudy': '外交或政府资助学生返澳条件（Schedule 5 cl 5010）',
   'au.field.applies': '本人是否属于受 cl 5010 约束的外交或外国政府资助学生',
   'au.field.courseMonths': '获资助课程的总时长（月）',
-  'au.field.yearsOutsideSinceCeasing': '结束或停止该课程后在澳大利亚境外累计年数',
+  'au.field.yearsOutsideSinceCeasing':
+    '结束或停止该课程后在澳大利亚境外累计年数',
   'au.field.support': '资助国政府或主管部长对本次签证申请的支持或豁免决定',
-  'au.field.temporaryInsurance':
-    '当前临时签证期间的 8501 医疗保险维持情况',
+  'au.field.temporaryInsurance': '当前临时签证期间的 8501 医疗保险维持情况',
 
   'au.option.491': '491 偏远地区技术移民（临时）',
   'au.option.494': '494 偏远地区雇主担保（临时）',
@@ -438,14 +445,16 @@ export const auFormZh = {
   'au.option.E': 'E 级',
 
   'au.option.ordinary': '普通标准类别',
-  'au.option.qualifying-current-300': '现持有效 300（未婚夫妻）签证转境内 820/801',
+  'au.option.qualifying-current-300':
+    '现持有效 300（未婚夫妻）签证转境内 820/801',
   'au.option.qualifying-former-300': '曾持 300 签证按规定转境内 820/801',
   'au.option.holder': '本人持有合资格优惠卡',
   'au.option.listed-dependant': '作为优惠卡上列明的受抚养人（仅未成年适用）',
 
   'au.option.academic': '大学学术岗位豁免（University academic）',
   'au.option.science': '政府科研机构科学人员豁免（Scientific researcher）',
-  'au.option.regional-doctor': '偏远地区执业医生豁免（Regional medical practitioner）',
+  'au.option.regional-doctor':
+    '偏远地区执业医生豁免（Regional medical practitioner）',
   'au.option.legacy-457': '2017-04-18 老 457 持有人过渡类别（2024-06-30 截止）',
   'au.option.transitional-457': '过渡 457 工人类别（未满 50 岁）',
   'au.option.high-income-457-482': '457 / 482 高薪年龄豁免（需逐年核对 FWHIT）',
@@ -469,7 +478,8 @@ export const auFormZh = {
   'au.option.MLTSSL': '中长期战略技能清单（MLTSSL）',
   'au.option.STSOL': '短期技能职业清单（STSOL）',
   'au.option.active': '已获正式提名且仍有效',
-  'au.option.diplomaTradeOrAssessed': '澳大利亚文凭 / 技工资格或职评认可学历（10 分）',
+  'au.option.diplomaTradeOrAssessed':
+    '澳大利亚文凭 / 技工资格或职评认可学历（10 分）',
   'au.option.bachelor': '学士学位（含荣誉学士或硕士，15 分）',
   'au.option.doctorate': '博士学位（20 分）',
   'au.option.competent': '伴侣具 Competent English（5 分）',
@@ -507,7 +517,8 @@ export const auFormZh = {
   'au.option.qualifying-155': '家庭成员已持有效 155 或具备独立 155 资格',
   'au.option.qualifying-157': '家庭成员已持有效 157 或具备独立 157 资格',
 
-  'au.option.incapacity-claimed': '主张永久或长期身心丧失行为能力（s 21(3) 待认定）',
+  'au.option.incapacity-claimed':
+    '主张永久或长期身心丧失行为能力（s 21(3) 待认定）',
   'au.option.incapacity-confirmed': '已确认符合 s 21(3) 身心丧失能力免考分支',
   'au.option.sensory-claimed': '主张永久失聪、失语或失明（s 21(4) 待认定）',
   'au.option.sensory-confirmed': '已确认符合 s 21(4) 永久感官障碍免考分支',
@@ -590,6 +601,8 @@ export const auFormEn: Record<keyof typeof auFormZh, string> = {
   'au.form.required': 'Complete this required field.',
   'au.form.numberError': 'Enter zero or a positive number.',
   'au.form.integerError': 'Enter zero or a positive whole number.',
+  'au.form.scoresError':
+    'Enter all four component scores, or leave all four blank.',
   'au.form.yearError': 'Enter a four-digit income year end (for example 2026).',
   'au.form.allPathways': 'Assess and compare all 11 pathways',
   'au.form.simulationDateHint':
@@ -613,7 +626,8 @@ export const auFormEn: Record<keyof typeof auFormZh, string> = {
   'au.section.skills':
     '189 / 190 invitations, skills assessment and Schedule 6D points',
   'au.section.innovation': '858 National Innovation visa criteria',
-  'au.section.regional': '191 Regional Provisional and Hong Kong stream criteria',
+  'au.section.regional':
+    '191 Regional Provisional and Hong Kong stream criteria',
   'au.section.partner': 'Partner migration (820→801 / 309→100)',
   'au.section.rrv': 'Resident Return visa (155 / 157)',
   'au.section.citizenship': 'Australian citizenship by conferral',
@@ -670,6 +684,8 @@ export const auFormEn: Record<keyof typeof auFormZh, string> = {
   'au.field.name': 'Test type',
   'au.field.date': 'Test date',
   'au.field.format': 'Test centre and sitting format',
+  'au.field.components':
+    'Component scores (listening, reading, writing, speaking)',
   'au.field.listening': 'Listening score',
   'au.field.reading': 'Reading score',
   'au.field.writing': 'Writing score',
@@ -744,11 +760,14 @@ export const auFormEn: Record<keyof typeof auFormZh, string> = {
   'au.field.licensing':
     'Mandatory occupational licence, registration or membership',
 
+  'au.field.invitations': 'Written invitations for 189 and 190',
   'au.field.invitation189': '189 Points-tested written invitation status',
   'au.field.invitation190': '190 Skilled Nominated written invitation status',
   'au.field.deadline': 'Invitation lodgement deadline',
   'au.field.score': 'Points score stated in the invitation',
   'au.field.occupationList': 'Statutory skilled occupation list',
+  'au.field.occupationInInvitation':
+    'Nominated occupation matches the occupation in the invitation',
   'au.field.occupationInInvitation189':
     '189 nominated occupation matches the 189 written invitation',
   'au.field.occupationInInvitation190':
@@ -803,7 +822,11 @@ export const auFormEn: Record<keyof typeof auFormZh, string> = {
 
   'au.field.partnerLodged':
     'Combined partner visa application (820/801 or 309/100) lodgement date',
+  'au.field.partnerApplication':
+    'Combined partner application already lodged (820/801 or 309/100; leave blank if not lodged)',
   'au.field.stream': 'Partner visa stream',
+  'au.field.proposedStream':
+    'If not yet lodged: partner stream for the proposed application',
   'au.field.longTermRelationship':
     'Already in a statutory long-term partner relationship at combined lodgement (3 years, or 2 years with a shared dependent child)',
   'au.field.relationship': 'Partner relationship type',
@@ -1037,7 +1060,8 @@ export const auFormEn: Record<keyof typeof auFormZh, string> = {
   'au.option.none': 'None / not applicable',
   'au.option.qualifying-refusal':
     'Qualifying visa refusal under s 48 (including under review)',
-  'au.option.qualifying-cancellation': 'Qualifying visa cancellation under s 48',
+  'au.option.qualifying-cancellation':
+    'Qualifying visa cancellation under s 48',
   'au.option.instrument-confirmed':
     'Confirmed under an instrument-specified exemption class',
   'au.option.claimed': 'Exemption claimed, pending verification',
@@ -1115,7 +1139,8 @@ export const auFormEn: Record<keyof typeof auFormZh, string> = {
   'au.option.active': 'Formal nomination active and not withdrawn',
   'au.option.diplomaTradeOrAssessed':
     'Australian diploma / trade qualification or assessed award (10 points)',
-  'au.option.bachelor': 'Bachelor degree (including honours or master’s, 15 points)',
+  'au.option.bachelor':
+    'Bachelor degree (including honours or master’s, 15 points)',
   'au.option.doctorate': 'Doctorate degree (20 points)',
   'au.option.competent': 'Partner has Competent English (5 points)',
   'au.option.skilled':
@@ -1173,7 +1198,8 @@ export const auFormEn: Record<keyof typeof auFormZh, string> = {
   'au.option.retest-pending': 'Test not yet passed, resit pending',
   'au.option.no-known-record':
     'Self-reported clean record (official character check still required)',
-  'au.option.record': 'Adverse record requiring individual character assessment',
+  'au.option.record':
+    'Adverse record requiring individual character assessment',
   'au.option.reside': 'Will reside or continue to reside in Australia',
   'au.option.links-confirmed':
     'Planning to live abroad with confirmed close and continuing association',

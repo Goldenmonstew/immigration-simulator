@@ -14,6 +14,7 @@ import {
   feeFields,
   innovationFields,
   nominationFields,
+  partnerApplicationField,
   partnerFields,
   publicInterestFields,
   regionalFields,
@@ -57,43 +58,6 @@ function AustraliaStep({ draft, errors, update }: StepProps) {
     update({
       employer: Object.keys(updated).length ? updated : undefined,
     });
-  };
-
-  const partnerView = {
-    ...draft.partner,
-    ...(draft.partnerApplication?.lodged !== undefined
-      ? { partnerLodged: draft.partnerApplication.lodged }
-      : {}),
-    ...(draft.partnerApplication?.stream !== undefined
-      ? { stream: draft.partnerApplication.stream }
-      : {}),
-    ...(draft.partnerApplication?.longTermRelationship !== undefined
-      ? {
-          longTermRelationship: draft.partnerApplication.longTermRelationship,
-        }
-      : {}),
-  };
-
-  const skillsView = {
-    ...draft.skills,
-    ...(draft.skills?.invitations?.['AU-189-PT'] !== undefined
-      ? { invitation189: draft.skills.invitations['AU-189-PT'] }
-      : {}),
-    ...(draft.skills?.invitations?.['AU-190'] !== undefined
-      ? { invitation190: draft.skills.invitations['AU-190'] }
-      : {}),
-    ...(draft.skills?.occupationInInvitation?.['AU-189-PT'] !== undefined
-      ? {
-          occupationInInvitation189:
-            draft.skills.occupationInInvitation['AU-189-PT'],
-        }
-      : {}),
-    ...(draft.skills?.occupationInInvitation?.['AU-190'] !== undefined
-      ? {
-          occupationInInvitation190:
-            draft.skills.occupationInInvitation['AU-190'],
-        }
-      : {}),
   };
 
   return (
@@ -208,9 +172,7 @@ function AustraliaStep({ draft, errors, update }: StepProps) {
                     } else {
                       delete base[stream];
                     }
-                    setNominations(
-                      Object.keys(base).length ? base : undefined,
-                    );
+                    setNominations(Object.keys(base).length ? base : undefined);
                   }}
                 />
               </section>
@@ -225,7 +187,7 @@ function AustraliaStep({ draft, errors, update }: StepProps) {
             <h2>{t('au.section.skills')}</h2>
             <EvidenceFields
               fields={skillsFields}
-              values={skillsView}
+              values={draft.skills ?? {}}
               prefix="au-skills"
               errors={errors}
               change={(key, value) => updateGroup('skills', key, value)}
@@ -262,22 +224,20 @@ function AustraliaStep({ draft, errors, update }: StepProps) {
           <section className={styles.section}>
             <h2>{t('au.section.partner')}</h2>
             <EvidenceFields
+              fields={[partnerApplicationField]}
+              values={draft}
+              prefix="au"
+              errors={errors}
+              change={(key, value) =>
+                update({ [key]: value } as Partial<AustraliaDraft>)
+              }
+            />
+            <EvidenceFields
               fields={partnerFields}
-              values={partnerView}
+              values={draft.partner ?? {}}
               prefix="au-partner"
               errors={errors}
-              change={(key, value) => {
-                const nextPartner = updateAnswer(
-                  partnerView as Record<string, unknown>,
-                  key,
-                  value,
-                );
-                update({
-                  partner: Object.keys(nextPartner).length
-                    ? (nextPartner as AustraliaDraft['partner'])
-                    : undefined,
-                });
-              }}
+              change={(key, value) => updateGroup('partner', key, value)}
             />
           </section>
           <section className={styles.section}>
@@ -312,9 +272,7 @@ function AustraliaStep({ draft, errors, update }: StepProps) {
               values={draft.publicInterest ?? {}}
               prefix="au-publicInterest"
               errors={errors}
-              change={(key, value) =>
-                updateGroup('publicInterest', key, value)
-              }
+              change={(key, value) => updateGroup('publicInterest', key, value)}
             />
           </section>
         </>

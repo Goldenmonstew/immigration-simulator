@@ -102,22 +102,10 @@ function Question({
 
   if (field.type === 'union-group') {
     const isLiteral =
-      typeof value === 'string' &&
-      field.literals.some((lit) => lit === value);
+      typeof value === 'string' && field.literals.some((lit) => lit === value);
     const isObj = isRecord(value);
     const mode = isLiteral ? (value as string) : isObj ? 'details' : '';
     const record = (isObj ? value : {}) as Record<string, unknown>;
-    if (
-      field.name === 'test' &&
-      Array.isArray(record.components) &&
-      record.components.length === 4
-    ) {
-      const [l, r, w, s] = record.components as number[];
-      record.listening ??= l;
-      record.reading ??= r;
-      record.writing ??= w;
-      record.speaking ??= s;
-    }
     return (
       <fieldset className={form.entry}>
         <legend>{label}</legend>
@@ -147,27 +135,7 @@ function Question({
             values={record}
             prefix={id}
             errors={errors}
-            change={(name, answer) => {
-              const updated = updateAnswer(record, name, answer);
-              if (field.name === 'test') {
-                const parts = [
-                  updated.listening,
-                  updated.reading,
-                  updated.writing,
-                  updated.speaking,
-                ];
-                if (
-                  parts.every(
-                    (n) => typeof n === 'number' && Number.isFinite(n),
-                  )
-                ) {
-                  updated.components = parts;
-                } else {
-                  delete updated.components;
-                }
-              }
-              set(updated);
-            }}
+            change={(name, answer) => set(updateAnswer(record, name, answer))}
           />
         )}
       </fieldset>
@@ -212,10 +180,7 @@ function Question({
             type="button"
             className={site.secondary}
             onClick={() =>
-              set([
-                ...rows,
-                field.name === 'visas' ? { subclass: '482' } : {},
-              ])
+              set([...rows, field.name === 'visas' ? { subclass: '482' } : {}])
             }
           >
             {t('au.form.add')} · {label}
@@ -234,6 +199,50 @@ function Question({
             </button>
           )}
         </div>
+      </fieldset>
+    );
+  }
+
+  if (field.type === 'scores') {
+    // Engine order: listening, reading, writing, speaking.
+    const scores = (
+      Array.isArray(value) ? value : [null, null, null, null]
+    ) as (number | null)[];
+    const parts = ['listening', 'reading', 'writing', 'speaking'] as const;
+    return (
+      <fieldset
+        className={form.entry}
+        aria-describedby={errors[id] ? `${id}-error` : undefined}
+      >
+        <legend>{label}</legend>
+        {errors[id] && (
+          <p id={`${id}-error`} className={form.error}>
+            {t(errors[id])}
+          </p>
+        )}
+        {parts.map((part, i) => (
+          <Field key={part} id={`${id}-${i}`} label={t(`au.field.${part}`)}>
+            <input
+              id={`${id}-${i}`}
+              type="number"
+              min={0}
+              step="any"
+              aria-invalid={errors[id] ? true : undefined}
+              aria-describedby={errors[id] ? `${id}-error` : undefined}
+              value={scores[i] === null ? '' : String(scores[i])}
+              onChange={(e) => {
+                const next = scores.map((old, idx) =>
+                  idx === i
+                    ? e.target.value === ''
+                      ? null
+                      : Number(e.target.value)
+                    : old,
+                );
+                set(next.every((n) => n === null) ? undefined : next);
+              }}
+            />
+          </Field>
+        ))}
       </fieldset>
     );
   }
@@ -281,10 +290,7 @@ function Question({
             type="button"
             className={site.secondary}
             onClick={() =>
-              set([
-                ...years,
-                years.length ? (years.at(-1) ?? 2025) + 1 : 2024,
-              ])
+              set([...years, years.length ? (years.at(-1) ?? 2025) + 1 : 2024])
             }
           >
             {t('au.form.add')} · {label}
