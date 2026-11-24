@@ -667,3 +667,4 @@
 | 631 | 任务 97：接入西班牙完整版首页、七步动态问卷、结果页、What-if 对比页与政策依据页。 | apps/web/app/spain/spain-content.tsx、apps/web/app/spain/simulate/{page,evidence-fields}.tsx、apps/web/app/spain/{result,policy}/page.tsx、apps/web/app/spain/whatif/{page,controls}.tsx |
 | 632 | 任务 97：补充西班牙完整版页面单元测试、双语与移动端 e2e 用例及任务报告。 | apps/web/test/spain.test.tsx、apps/e2e/tests/spain.spec.ts、docs/tasks/reports/97-es-pages.md |
 | 633 | 任务 97：政策页标题改为"西班牙政策依据"（政策页组件按国家通用，同任务 93），补标题单测；顺带用 prettier 格式化本任务两个文件。 | apps/web/components/policy-page.tsx、apps/web/i18n/countries/spain-module.ts、apps/web/test/spain.test.tsx |
+| 640 | 任务 107：新增西班牙人生模拟内容包。瓦伦西亚海边虚构街区维拉马尔的 19 个地点（含海滩、防波堤、橙树广场、市场、欧洽塔铺、代办所、外国人事务办公室、民事登记处）、7 位镇民与 1 位家人（排班、对话、礼物）、2 位原创角色（菲律宾厨师走两年入籍、青田来的出口专员走国内长期居留）、日常与系统事件、三王游行/法雅节/圣胡安之夜/瓦伦西亚日、道具与本地菜谱。评估交给西班牙完整版引擎的适配器（入籍费按递交日缴纳），CCSE、DELE、海牙认证、padrón、cita previa、出境与居留卡到期（含长居的到期后递交期）进入时间线；补内容包单测。 | packages/game/package.json、packages/game/src/packs/es/、packages/game/test/es-pack.test.ts |
