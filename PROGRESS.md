@@ -528,6 +528,7 @@
 | 575 | 任务 95：e2e 覆盖加拿大问卷到结果、方案保存、分享还原、条件跳转对比、英文手机宽度与政策来源。 | apps/e2e/tests/canada.spec.ts |
 | 576 | 任务 95：报告列出问卷步骤与字段、对比旋钮、旧入口处理和验证结果。 | docs/tasks/reports/95-ca-pages.md |
 | 577 | 任务 95：政策页组件按国家读 `<国家>.policy.pageTitle`（与任务 93 相同改动），加拿大标题生效。 | apps/web/components/policy-page.tsx |
+| 578 | 任务 95 审核修正（review95-1 问题 2、建议 1）。加拿大模块提供 `activeAnswers`：只把可见步骤、可见分组和已选路径的答案送入引擎、逐步校验与分享链接，本机草稿仍保留隐藏答案。取消魁省或路径后残留的半成品不再让结果页崩溃，也不再卡住第 5 步。 | apps/web/lib/canada-{draft,module}.ts、apps/web/test/canada.test.tsx |
 | 590 | 任务 86：核对并登记美国完整版官方快照、哈希及来源网址，追加 PD-260–279。 | docs/SOURCES.md、docs/pending-details.md、policy-sources/、apps/web/lib/sources.ts |
 | 591 | 任务 86：登记美国完整版出处、日期参数、数字门槛及费用。 | packages/policy-data/src/{index.ts,parameters/united-states-2026-11.ts} |
 | 592 | 任务 86：提供美国九路径完整版 CountryResult，接入既有时间计算，增加资格、审查与费用条件、回归测试及页面接线交接。 | packages/engine/src/{index.ts,united-states-full/}、packages/engine/test/united-states-full.test.ts、docs/tasks/reports/86-us-rules.md |

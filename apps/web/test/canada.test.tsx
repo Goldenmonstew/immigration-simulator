@@ -238,6 +238,57 @@ test('drafts round-trip in their envelope and reject malformed answers', () => {
     expect(ca.decodeDraft(bad)).toBeUndefined();
 });
 
+// review95-1 #2: answers left on hidden steps, groups or routes stay local.
+test('hidden routes and groups stay out of the engine, validation and share links', () => {
+  const draft: CanadaDraft = {
+    ...ca.createDraft(),
+    step: 10,
+    completed: true,
+    simulationDate: '2026-11-24',
+    goals: ['CA-FAMILY'],
+    answers: {
+      // Quebec was answered, a blank group row added, then Quebec turned off.
+      family: { quebec: false, province: { sponsoredGroups: [{}] as never } },
+      // Partial records left on steps for routes that are no longer chosen.
+      trips: [{} as never],
+      pnp: {
+        stream: 'ontario-workforce',
+        ontario: { language: { date: '2026-01-01' } as never },
+      },
+      express: { invitation: { revoked: true } as never },
+      federal: {
+        applications: {
+          'CA-FAMILY': { signed: true },
+          'CA-EE-FSW': { biometricPayers: 1.5 },
+        },
+      },
+    },
+  };
+  expect(() => ca.run(draft, 'zh-CN')).not.toThrow();
+  const active = {
+    family: { quebec: false },
+    federal: { applications: { 'CA-FAMILY': { signed: true } } },
+  };
+  expect(ca.activeAnswers?.(draft).answers).toEqual(active);
+  // The device keeps the hidden answers so a route chosen again reopens them.
+  expect(ca.decodeDraft(draft)).toEqual(draft);
+  const shared = decodeDraft(ca, encodeDraft(ca, draft))!;
+  expect(shared.answers).toEqual(active);
+  expect(() => ca.run(shared, 'zh-CN')).not.toThrow();
+  // A deselected route's application no longer blocks step 5.
+  for (const step of [4, 5, 10])
+    expect(ca.validateStep({ ...draft, step }), String(step)).toEqual({});
+  expect(
+    ca.validateStep({
+      ...draft,
+      step: 4,
+      goals: ['CA-FAMILY', 'CA-EE-FSW'],
+    }),
+  ).toEqual({
+    'ca-federal-applications-CA-EE-FSW-biometricPayers': 'ca.error.integer',
+  });
+});
+
 test('the result lists only chosen routes, with a future date, a met case and a pending case', () => {
   const draft = residencyDraft();
   const result = ca.run(draft, 'zh-CN');

@@ -5,6 +5,7 @@ import {
 } from '@uk-immigration/engine';
 import type { CountryModule } from './country-module';
 import {
+  activeCanadaAnswers,
   CANADA_DRAFT_VERSION,
   canadaRequest,
   createCanadaDraft,
@@ -56,6 +57,7 @@ export const canadaModule: CountryModule<CanadaDraft, CanadaWhatIf> = {
   id: 'ca',
   version: CANADA_DRAFT_VERSION,
   createDraft: createCanadaDraft,
+  activeAnswers: activeCanadaAnswers,
   validateStep: validateCanadaStep,
   decodeDraft: decodeCanadaDraft,
   run,

@@ -44,7 +44,48 @@ export function canadaRequest(
   draft: CanadaDraft,
   locale: Locale,
 ): CaFullRequest {
-  return { ...draft.answers, simulationDate: draft.simulationDate, locale };
+  const { answers } = activeCanadaAnswers(draft);
+  return { ...answers, simulationDate: draft.simulationDate, locale };
+}
+
+function activeRecord(fields: CanadaField[], record: Answers, goals: string[]) {
+  const active: Answers = {};
+  for (const field of fields) {
+    const value = activeValue(field, record[field.name], goals);
+    if (value !== undefined) active[field.name] = value;
+  }
+  return active;
+}
+
+function activeValue(field: CanadaField, value: unknown, goals: string[]) {
+  if (field.type === 'group' && isRecord(value))
+    return activeRecord(field.fields, value, goals);
+  if (field.type === 'list' && Array.isArray(value))
+    return value.map((row: Answers) => activeRecord(field.fields, row, goals));
+  if (field.type === 'routes' && isRecord(value)) {
+    const routes: Answers = {};
+    for (const route of goals)
+      if (value[route] !== undefined)
+        routes[route] = activeValue(field.field, value[route], goals);
+    return Object.keys(routes).length ? routes : undefined;
+  }
+  return value;
+}
+
+// The questionnaire keeps answers on steps, groups and routes the user has
+// since hidden. Only the visible answers are assessed, checked and shared.
+export function activeCanadaAnswers(draft: CanadaDraft): CanadaDraft {
+  let answers: Answers = {};
+  for (const step of canadaStepsFor(draft))
+    for (const section of visibleSections(step, draft)) {
+      const source = answersAt(draft.answers, section.path);
+      if (source === undefined) continue;
+      answers = withAnswersAt(answers, section.path, {
+        ...answersAt(answers, section.path),
+        ...activeRecord(section.fields, source, draft.goals),
+      });
+    }
+  return { ...draft, answers };
 }
 
 export function answersAt(answers: object, path: string[]) {
@@ -181,10 +222,11 @@ export function validateCanadaStep(draft: CanadaDraft): Errors {
       errors['ca-simulationDate'] = 'ca.error.date';
     if (!draft.goals.length) errors['ca-goals'] = 'ca.error.goals';
   }
+  const { answers } = activeCanadaAnswers(draft);
   for (const section of visibleSections(step, draft))
     checkFields(
       section.fields,
-      answersAt(draft.answers, section.path),
+      answersAt(answers, section.path),
       sectionId(section.path),
       errors,
     );
