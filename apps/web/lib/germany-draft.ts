@@ -21,6 +21,7 @@ import {
   permitFields,
   settlementRouteFields,
   titleReviewFields,
+  tripFields,
   type GermanyField,
 } from './germany-fields';
 import { today, validDate } from './questionnaire';
@@ -137,66 +138,107 @@ export function germanySteps(draft: GermanyDraft) {
   });
 }
 
+// Route sections also ask answers kept outside `settlement`.
+const outsideSettlement = new Set([
+  'trainedInGermany',
+  'blueCardEmploymentMonths',
+  'germanB1',
+  'germanC1',
+  'blueCard',
+  'freedom',
+]);
+type DetailRoute = keyof typeof settlementRouteFields;
+const settlementFields = (routes: readonly DetailRoute[]) =>
+  routes
+    .flatMap(
+      (route) => settlementRouteFields[route] as unknown as GermanyField[],
+    )
+    .filter((field) => !outsideSettlement.has(field.name));
+const allCommonFields = Object.values(commonSections).flat();
+const allSettlementFields = settlementFields(
+  Object.keys(settlementRouteFields) as DetailRoute[],
+);
+const citizenshipFields = (routes: readonly DeFullRoute[]) => [
+  ...Object.values(citizenshipSections).flat(),
+  ...(['R08', 'R16', 'R17'] as const)
+    .filter((route) => routes.includes(route))
+    .flatMap(
+      (route) => citizenshipRouteFields[route] as unknown as GermanyField[],
+    )
+    .filter(
+      (field) =>
+        field.name !== 'marriedOn' && field.name !== 'spouseGermanSince',
+    ),
+];
+const allCitizenshipFields = citizenshipFields(['R08', 'R16', 'R17']);
+
+// Keep only the answers a visible question owns.
+function keep<T>(record: T | undefined, fields: GermanyField[]): T {
+  const values = (record ?? {}) as Record<string, unknown>;
+  const kept: Record<string, unknown> = {};
+  for (const field of fields) {
+    const value = values[field.name];
+    if (value === undefined || (field.when && !field.when(values))) continue;
+    kept[field.name] =
+      field.type === 'group' && isRecord(value)
+        ? keep(value, field.fields)
+        : field.type === 'list' && Array.isArray(value)
+          ? value.map((row) => (isRecord(row) ? keep(row, field.fields) : row))
+          : value;
+  }
+  return kept as T;
+}
+
 export function activeGermanyAnswers(draft: GermanyDraft): GermanyDraft {
   const visible = new Set(germanySteps(draft).map(({ step }) => step));
-  const detailRoutes = new Set(selectedSettlementDetailRoutes(draft));
+  const detailRoutes = selectedSettlementDetailRoutes(draft);
+  const has = (route: DetailRoute) => detailRoutes.includes(route);
   const hasHistory = visible.has(1);
   const hasCommon = visible.has(2);
-  const hasCitizenship = visible.has(4);
-  const hasFees = visible.has(5);
-  const permits = hasHistory
-    ? draft.permits?.map((p) => {
-        const clean = { ...p };
-        if (!hasEndDate(p.kind)) {
-          delete clean.to;
-          delete clean.renewing;
-        }
-        if (p.kind !== 'resettlement') delete clean.protectedResettlement;
-        return clean;
-      })
-    : undefined;
+  const r08 = draft.routes.includes('R08');
+  const mobility = draft.mobility ?? {};
   return {
     ...draft,
     firstEntry:
       hasHistory || draft.routes.includes('R11')
         ? draft.firstEntry || undefined
         : undefined,
-    permits,
-    trips: hasHistory ? draft.trips : undefined,
-    contributionMonths:
-      hasCommon || detailRoutes.has('R02')
-        ? draft.contributionMonths
-        : undefined,
-    trainedInGermany:
-      hasCommon || detailRoutes.has('R02') ? draft.trainedInGermany : undefined,
-    germanB1: hasCommon || detailRoutes.has('R03') ? draft.germanB1 : undefined,
-    germanC1: hasCommon || detailRoutes.has('R05') ? draft.germanC1 : undefined,
-    blueCardEmploymentMonths: detailRoutes.has('R03')
+    permits: hasHistory
+      ? draft.permits?.map((permit) => keep(permit, permitFields))
+      : undefined,
+    trips: hasHistory
+      ? draft.trips?.map((trip) => keep(trip, tripFields))
+      : undefined,
+    contributionMonths: hasCommon ? draft.contributionMonths : undefined,
+    trainedInGermany: has('R02') ? draft.trainedInGermany : undefined,
+    germanB1: has('R03') ? draft.germanB1 : undefined,
+    germanC1: has('R05') ? draft.germanC1 : undefined,
+    blueCardEmploymentMonths: has('R03')
       ? draft.blueCardEmploymentMonths
       : undefined,
-    marriedOn:
-      hasCitizenship && draft.routes.includes('R08')
-        ? draft.marriedOn
-        : undefined,
-    spouseGermanSince:
-      hasCitizenship && draft.routes.includes('R08')
-        ? draft.spouseGermanSince
-        : undefined,
-    common: hasCommon || hasCitizenship ? (draft.common ?? {}) : {},
-    settlement: visible.has(3) ? (draft.settlement ?? {}) : {},
+    marriedOn: r08 ? draft.marriedOn : undefined,
+    spouseGermanSince: r08 ? draft.spouseGermanSince : undefined,
+    common: hasCommon ? keep(draft.common, allCommonFields) : {},
+    settlement: keep(draft.settlement, settlementFields(detailRoutes)),
     mobility: {
-      ...(hasHistory && draft.mobility?.titles !== undefined
-        ? { titles: draft.mobility.titles }
+      ...(hasHistory && mobility.titles !== undefined
+        ? {
+            titles: mobility.titles.map((title) =>
+              keep(title, titleReviewFields),
+            ),
+          }
         : {}),
-      ...(detailRoutes.has('R03') && draft.mobility?.blueCard
-        ? { blueCard: draft.mobility.blueCard }
+      ...(has('R03') && mobility.blueCard
+        ? { blueCard: keep(mobility.blueCard, blueCardFields) }
         : {}),
-      ...(detailRoutes.has('R18') && draft.mobility?.freedom
-        ? { freedom: draft.mobility.freedom }
+      ...(has('R18') && mobility.freedom
+        ? { freedom: keep(mobility.freedom, freeMovementFields) }
         : {}),
     },
-    citizenship: hasCitizenship ? (draft.citizenship ?? {}) : {},
-    fees: hasFees ? (draft.fees ?? {}) : {},
+    citizenship: visible.has(4)
+      ? keep(draft.citizenship, citizenshipFields(draft.routes))
+      : {},
+    fees: visible.has(5) ? keep(draft.fees, feeFields) : {},
   };
 }
 
@@ -644,6 +686,7 @@ function mapAnswers(
   for (const field of fields) {
     const key = field.name;
     const value = result[key];
+    if (writing && field.when && !field.when(result)) continue;
     if (field.type === 'boolean' && !field.required) {
       if (writing && value === undefined) result[key] = null;
       else if (!writing && value === null) delete result[key];
@@ -651,22 +694,16 @@ function mapAnswers(
       result[key] = value.map((row) =>
         isRecord(row) ? mapAnswers(row, field.fields, writing) : row,
       );
-    } else if (field.type === 'group') {
-      if (!isRecord(value) && !(writing && value === undefined)) continue;
-      const group = mapAnswers(value ?? {}, field.fields, writing);
-      if (Object.keys(group).length) result[key] = group;
-      else if (isRecord(value) && Object.keys(value).length) delete result[key];
+    } else if (field.type === 'group' && isRecord(value)) {
+      const group = mapAnswers(value, field.fields, writing);
+      // A group holding only pending answers reads back as unanswered.
+      if (writing || Object.keys(group).length || !Object.keys(value).length)
+        result[key] = group;
+      else delete result[key];
     }
   }
   return result;
 }
-
-const allCommonFields = Object.values(commonSections).flat();
-const allSettlementFields = Object.values(settlementRouteFields).flat();
-const allCitizenshipFields = [
-  ...Object.values(citizenshipSections).flat(),
-  ...Object.values(citizenshipRouteFields).flat(),
-];
 
 function mapMobility(
   mobility: GermanyDraft['mobility'],
@@ -691,22 +728,24 @@ function mapMobility(
   };
 }
 
+// Each answered object writes its own pending yes/no questions as null.
 export function storeGermanyAnswers(draft: GermanyDraft): object {
   if (draft.answerFormat !== 'explicit') return draft;
+  const write = (record: object | undefined, fields: GermanyField[]) =>
+    record && Object.keys(record).length
+      ? mapAnswers(record, fields, true)
+      : record;
   return {
     ...draft,
     permits: draft.permits?.map((p) => mapAnswers(p, permitFields, true)),
-    common: draft.common
-      ? mapAnswers(draft.common, allCommonFields, true)
-      : draft.common,
-    settlement: draft.settlement
-      ? mapAnswers(draft.settlement, allSettlementFields, true)
-      : draft.settlement,
+    common: write(draft.common, allCommonFields),
+    settlement: write(
+      draft.settlement,
+      settlementFields(selectedSettlementDetailRoutes(draft)),
+    ),
     mobility: mapMobility(draft.mobility, true),
-    citizenship: draft.citizenship
-      ? mapAnswers(draft.citizenship, allCitizenshipFields, true)
-      : draft.citizenship,
-    fees: draft.fees ? mapAnswers(draft.fees, feeFields, true) : draft.fees,
+    citizenship: write(draft.citizenship, citizenshipFields(draft.routes)),
+    fees: write(draft.fees, feeFields),
   };
 }
 

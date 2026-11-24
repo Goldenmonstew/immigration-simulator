@@ -864,3 +864,77 @@ test('the policy page shows the full-time work exception in months (review100-1 
     expect(row).not.toMatch(/年|years/);
   }
 });
+
+test('answers hidden by deselected routes or earlier choices are not assessed or shared (review100-1 #6)', () => {
+  const base = sampleDraft();
+  // germanB1 is only asked for the Blue Card route.
+  const r01 = { ...base, routes: ['R01'], germanB1: true } as GermanyDraft;
+  r01.common = { ...r01.common, provenGerman: undefined };
+  expect(activeGermanyAnswers(r01).germanB1).toBeUndefined();
+  expect(condition(de.run(r01, 'zh-CN'), 'DE-R01', 'DE-C08')?.status).toBe(
+    'UNKNOWN',
+  );
+
+  // Citizenship alone hides the common settlement step and its budget.
+  const r07: GermanyDraft = {
+    ...base,
+    routes: ['R07'],
+    citizenship: { withoutSgbIIorXII: true },
+  };
+  expect(activeGermanyAnswers(r07).common).toEqual({});
+  expect(condition(de.run(r07, 'zh-CN'), 'DE-R07', 'DE-C49')?.status).toBe(
+    'UNKNOWN',
+  );
+  expect(condition(de.run(base, 'zh-CN'), 'DE-R07', 'DE-C49')).toBeDefined();
+
+  const pruned = activeGermanyAnswers({
+    ...base,
+    routes: ['R07', 'R18'],
+    settlement: { ...base.settlement, childEducation: 'school' },
+    citizenship: {
+      incomeException: 'none',
+      fullTime: { workingFullTimeNow: true, monthsInWindow: 24 },
+      spouse: { status: 'continuing' },
+      family: { relation: 'child' },
+      discretionary: { accommodation: true },
+      germanEvidence: 'B1',
+    },
+    fees: { reduction: 'ordinary', assessedFee: 20 },
+  });
+  expect(pruned.settlement).toEqual({});
+  expect(pruned.citizenship).toEqual({
+    incomeException: 'none',
+    germanEvidence: 'B1',
+  });
+  expect(pruned.fees).toEqual({ reduction: 'ordinary' });
+
+  // Stored answers only write each object's own fields.
+  const minimal: GermanyDraft = {
+    ...createGermanyDraft(),
+    simulationDate: '2026-11-23',
+    completed: true,
+    step: 5,
+    firstEntry: '2022-05-23',
+    routes: ['R01'],
+    permits: [{ kind: 'skilled', from: '2022-05-23' }],
+  };
+  const stored = JSON.parse(
+    new TextDecoder().decode(
+      Uint8Array.from(
+        atob(
+          encodeDraft(de, minimal).replaceAll('-', '+').replaceAll('_', '/'),
+        ),
+        (c) => c.charCodeAt(0),
+      ),
+    ),
+  ).draft;
+  expect(stored.settlement).toEqual({});
+  expect(stored.mobility).toEqual({});
+  expect(stored.permits).toEqual([
+    { kind: 'skilled', from: '2022-05-23', renewing: null },
+  ]);
+  expect(decodeDraft(de, encodeDraft(de, minimal))).toEqual(
+    activeGermanyAnswers(minimal),
+  );
+  expect(encodeDraft(de, minimal).length).toBeLessThan(1000);
+});

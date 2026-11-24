@@ -494,7 +494,7 @@ export const deFormZh = {
   'de.field.certificateHandedOver':
     '入籍证书（Einbürgerungsurkunde）已正式交付（程序提示）',
   'de.field.sustainableHouseholdSupport':
-    '本人及受扶养家属生计可持续保障（或留空并由家庭预算核算）',
+    '本人及受扶养家属生计可持续保障（同时评估定居路径时，可留空并按定居通用条件中的家庭预算核算）',
   'de.field.withoutSgbIIorXII': '未领取 SGB II（Bürgergeld）或 SGB XII 福利',
   'de.field.incomeException':
     '领取 SGB II / XII 时的法定生计例外类别（§ 10 Abs. 1 Nr. 3a–c）',
@@ -1566,7 +1566,7 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
   'de.field.certificateHandedOver':
     'Naturalisation certificate (Einbürgerungsurkunde) delivered (procedural step)',
   'de.field.sustainableHouseholdSupport':
-    'Sustainable livelihood for the applicant and dependants confirmed (or leave blank to calculate from the household budget)',
+    'Sustainable livelihood for the applicant and dependants confirmed (when a settlement route is also assessed, leave blank to calculate from the household budget in the common settlement conditions)',
   'de.field.withoutSgbIIorXII':
     'No reliance on SGB II (Bürgergeld) or SGB XII benefits',
   'de.field.incomeException':
