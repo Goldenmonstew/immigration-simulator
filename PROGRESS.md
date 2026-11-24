@@ -662,3 +662,4 @@
 | 619.1 | 任务 96：美国 e2e 改为完整版流程：中文返美路径填完问卷、保存方案、分享链接在新上下文还原同一结果、对比页改返美日后日期变化；英文手机宽度走一般入籍，从缺口跳到英语考试旋钮，政策页核对标题、来源与条件。 | apps/e2e/tests/united-states.spec.ts |
 | 619.2 | 任务 96：报告列出问卷步骤与字段、对比旋钮、旧页面处理、验证结果与范围外建议。 | docs/tasks/reports/96-us-pages.md |
 | 619.3 | 任务 96：政策页组件按国家读 `<国家>.policy.pageTitle`（与任务 93 相同改动），美国标题生效。 | apps/web/components/policy-page.tsx |
+| 619.4 | 任务 96 审核修正（review96-1）：美国问卷字段按引擎在该路径和依据下是否读取来显示、裁剪与必填。领馆案件保留裁决月排期表；基础请愿状态只在职业类境内调整必填；雇主代申的 EB-1A／NIW 保留雇主人数与非营利；亲属路径选 VAWA、职业路径选 SIJ 时不再问请愿步骤；从职业依据换基时可填原依据的调整禁令字段；面谈日只问领馆；一般绿卡不显示空的取消条件步骤。 | apps/web/lib/united-states-fields.ts、apps/web/i18n/countries/united-states-form.ts、apps/web/test/united-states.test.tsx |

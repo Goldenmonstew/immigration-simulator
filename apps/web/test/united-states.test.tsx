@@ -163,7 +163,7 @@ test('answers for questions that are not shown stay out of the assessment and th
   expect(decodeDraft(us, encodeDraft(us, draft))).toEqual(travelDraft());
 });
 
-test('the pathway, the green card date and the petition status are required', () => {
+test('the pathway, the green card date and the employment petition status are required', () => {
   const fresh = us.createDraft();
   expect(unitedStatesSteps(fresh)).toHaveLength(1);
   expect(us.validateStep(fresh)).toEqual({ 'us-pathway': 'us.error.required' });
@@ -185,9 +185,7 @@ test('the pathway, the green card date and the petition status are required', ()
   expect(unitedStatesSteps(family).map(({ step }) => step)).toEqual([
     0, 1, 7, 10, 11, 12, 13,
   ]);
-  expect(us.validateStep({ ...family, step: 10 })).toEqual({
-    'us-admission-petitionStatus': 'us.error.required',
-  });
+  expect(us.validateStep({ ...family, step: 10 })).toEqual({});
   expect(
     us.validateStep({
       ...family,
@@ -529,4 +527,144 @@ test('the policy page lists every condition, United States sources only, under a
   expect(html).toContain('data-rule="US-C29-ABILITY-TO-PAY"');
   expect(html).toContain('data-source="SRC-315"');
   expect(html).not.toContain('undefined');
+});
+
+const immigrantDraft = (
+  pathway: 'US-FAMILY' | 'US-EMPLOYMENT' | 'US-ADJUSTMENT',
+  admission: UsDraft['admission'],
+  extra: Partial<UsDraft> = {},
+): UsDraft => ({
+  ...us.createDraft(),
+  simulationDate: '2026-11-21',
+  step: 10,
+  pathway,
+  admission,
+  ...extra,
+});
+
+test('questions are shown, kept and required where the engine reads them (review96-1)', () => {
+  // A consular decision in a later month uses that month's chart (#1).
+  const consular = immigrantDraft(
+    'US-FAMILY',
+    {
+      process: 'consular',
+      decisionOn: '2026-12-10',
+      visaAtFilingByMonth: [{ month: '2026-11', availability: 'available' }],
+      visaAtDecisionByMonth: [{ month: '2026-12', availability: 'available' }],
+    },
+    { family: { petitioner: 'lpr', relationship: 'spouse' } },
+  );
+  const consularRequest = unitedStatesRequest(consular, 'en').admission;
+  expect(consularRequest?.visaAtDecisionByMonth).toEqual({
+    '2026-12': 'available',
+  });
+  expect(consularRequest).not.toHaveProperty('visaAtFilingByMonth');
+  // The petition status can stay open unless a blank answer would date an
+  // employment petition from the I-485 receipt (#3).
+  expect(us.validateStep(consular)).toEqual({});
+  for (const adjustmentBasis of ['245i', 'other'] as const)
+    expect(
+      us.validateStep(
+        immigrantDraft('US-ADJUSTMENT', {
+          process: 'adjustment',
+          adjustmentBasis,
+        }),
+      ),
+    ).toEqual({});
+  expect(
+    us.validateStep(immigrantDraft('US-EMPLOYMENT', { process: 'adjustment' })),
+  ).toEqual({ 'us-admission-petitionStatus': 'us.error.required' });
+  expect(
+    us.validateStep(
+      immigrantDraft('US-ADJUSTMENT', {
+        process: 'adjustment',
+        adjustmentBasis: 'employment',
+      }),
+    ),
+  ).toEqual({ 'us-admission-petitionStatus': 'us.error.required' });
+  // An employer filing for an EB-1A or NIW beneficiary pays by employer size (#4).
+  const eb1a = immigrantDraft(
+    'US-EMPLOYMENT',
+    { process: 'consular' },
+    {
+      employment: {
+        category: 'eb1a',
+        i140SelfPetition: false,
+        employerEmployees: 50,
+        employerNonprofit: false,
+      },
+      fees: { channel: 'paper', relief: 'none' },
+    },
+  );
+  expect(unitedStatesRequest(eb1a, 'en').employment).toMatchObject({
+    employerEmployees: 50,
+    employerNonprofit: false,
+  });
+  expect(
+    pathwayOf(eb1a).checks.find((check) => check.id === 'US-C44-I140')?.status,
+  ).toBe('MET');
+  const selfPetition = unitedStatesRequest(
+    { ...eb1a, employment: { ...eb1a.employment, i140SelfPetition: true } },
+    'en',
+  ).employment;
+  expect(selfPetition).not.toHaveProperty('employerEmployees');
+  expect(selfPetition).not.toHaveProperty('employerNonprofit');
+  // VAWA on the family path and SIJ on the employment path replace the petition (#10).
+  const steps = (draft: UsDraft) =>
+    unitedStatesSteps(draft).map(({ step }) => step);
+  expect(
+    steps(
+      immigrantDraft('US-FAMILY', {
+        process: 'adjustment',
+        adjustmentBasis: 'vawa',
+      }),
+    ),
+  ).toEqual([0, 1, 10, 11, 12, 13]);
+  expect(
+    steps(
+      immigrantDraft('US-EMPLOYMENT', {
+        process: 'adjustment',
+        adjustmentBasis: 'sij',
+      }),
+    ),
+  ).toEqual([0, 1, 10, 11, 12, 13]);
+  // A transfer from an employment basis checks that basis's adjustment bars (risk 1).
+  const transfer = (qualifyingBasisAtFiling?: 'cleared') =>
+    unitedStatesRequest(
+      immigrantDraft('US-FAMILY', {
+        process: 'adjustment',
+        lawfulNonimmigrantStatusAtFiling: true,
+        lawfulAdmissionFor245k: true,
+        i485BasisTransfer: {
+          originalPetition: {
+            adjustmentBasis: 'employment',
+            qualifyingBasisAtFiling,
+          },
+        },
+      }),
+      'en',
+    ).admission;
+  expect(transfer()).toMatchObject({
+    lawfulNonimmigrantStatusAtFiling: true,
+    lawfulAdmissionFor245k: true,
+  });
+  expect(transfer('cleared')).not.toHaveProperty(
+    'lawfulNonimmigrantStatusAtFiling',
+  );
+  // The interview date is read for consular cases only (suggestion 4).
+  const interview = (process: 'adjustment' | 'consular') =>
+    unitedStatesRequest(
+      immigrantDraft('US-FAMILY', { process, interviewOn: '2027-01-05' }),
+      'en',
+    ).admission;
+  expect(interview('adjustment')).not.toHaveProperty('interviewOn');
+  expect(interview('consular')).toHaveProperty('interviewOn', '2027-01-05');
+  // A regular green card has no removal-of-conditions step.
+  expect(
+    steps({
+      ...us.createDraft(),
+      pathway: 'US-CONDITIONS',
+      conditional: 'none',
+    }),
+  ).toEqual([0, 1, 13]);
 });

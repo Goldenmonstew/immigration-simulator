@@ -144,12 +144,20 @@ export const isConsular = (draft: UsAnswers) =>
 export const isI485 = (draft: UsAnswers) =>
   draft.pathway === 'US-HUMANITARIAN' ||
   (isImmigrant(draft) && process(draft) === 'adjustment');
+// A VAWA basis on the family path and an SIJ basis on the employment path
+// replace the I-130 or I-140 petition in the engine.
 export const hasFamilyPetition = (draft: UsAnswers) =>
-  draft.pathway === 'US-FAMILY' ||
+  (draft.pathway === 'US-FAMILY' && basis(draft) !== 'vawa') ||
   (draft.pathway === 'US-ADJUSTMENT' && familyBases.includes(basis(draft)));
 export const hasEmploymentPetition = (draft: UsAnswers) =>
-  draft.pathway === 'US-EMPLOYMENT' ||
+  (draft.pathway === 'US-EMPLOYMENT' && basis(draft) !== 'sij') ||
   (draft.pathway === 'US-ADJUSTMENT' && basis(draft) === 'employment');
+// A blank petition status on an employment-based I-485 would date the
+// petition from the I-485 receipt.
+const isEmploymentAdjustment = (draft: UsAnswers) =>
+  isImmigrant(draft) &&
+  process(draft) === 'adjustment' &&
+  hasEmploymentPetition(draft);
 
 const inDraft =
   (test: (draft: UsAnswers) => boolean) =>
@@ -164,7 +172,8 @@ const forCategories =
   ({ draft }: FieldContext) =>
     values.includes(category(draft) as string);
 const employerCategories = ['eb1b', 'eb1c', 'eb2-perm', 'eb3'];
-const i140Categories = [...employerCategories, 'eb1a', 'eb2-niw'];
+const selfPetitionCategories = ['eb1a', 'eb2-niw'];
+const i140Categories = [...employerCategories, ...selfPetitionCategories];
 const onlyAdjustment = inDraft(
   (draft) => isImmigrant(draft) && process(draft) === 'adjustment',
 );
@@ -528,6 +537,13 @@ function onlyFamilyPathway(draft: UsAnswers) {
 // Step 8. Employment-based and investor petitions.
 const employer = forCategories(...employerCategories);
 const perm = forCategories('eb2-perm', 'eb3');
+// The I-140 fee on the employment path depends on the employer, including an
+// employer filing for an EB-1A or NIW beneficiary.
+const employerFee = (context: FieldContext) =>
+  context.draft.pathway === 'US-EMPLOYMENT' &&
+  (employer(context) ||
+    (forCategories(...selfPetitionCategories)(context) &&
+      context.record.i140SelfPetition === false));
 export const employmentFields: UsField[] = [
   choice(
     'category',
@@ -549,8 +565,10 @@ export const employmentFields: UsField[] = [
   }),
   bool('relativePetitioner', { hint: 'relativePetitioner' }),
   number('relativeOwnershipPct'),
-  integer('employerEmployees', { when: employer }),
-  bool('employerNonprofit', { when: employer }),
+  integer('employerEmployees', {
+    when: (context) => employer(context) || employerFee(context),
+  }),
+  bool('employerNonprofit', { when: employerFee }),
   bool('employmentOffer', { when: employer }),
   bool('initialSupplementJIncluded', {
     hint: 'initialSupplementJ',
@@ -699,14 +717,17 @@ export const humanitarianFields: UsField[] = [
 
 // Step 10. Adjustment of status or consular processing.
 const visaOptions = ['available', 'unavailable', 'future-bulletin'] as const;
-const monthTable = (name: UsFieldLabel) =>
+const monthTable = (
+  name: UsFieldLabel,
+  when: (context: FieldContext) => boolean,
+) =>
   list(
     name,
     [
       field('month')('month', { required: true }),
       choice('availability', visaOptions, { required: true }),
     ],
-    { when: onlyAdjustment },
+    { when },
   );
 export const pendingEventFields: UsField[] = [
   date('on', { required: true, label: 'eventOn' }),
@@ -742,12 +763,25 @@ export const pendingEventFields: UsField[] = [
     when: inRecord('kind', ['unauthorized-employment']),
   }),
 ];
+// A transfer from an employment basis checks that basis's bars at filing
+// unless the original basis is confirmed.
+const fromEmploymentBasis = (draft: UsAnswers) => {
+  const original = get(draft, [
+    'admission',
+    'i485BasisTransfer',
+    'originalPetition',
+  ]);
+  return (
+    get(original, ['adjustmentBasis']) === 'employment' &&
+    get(original, ['qualifyingBasisAtFiling']) !== 'cleared'
+  );
+};
 const i485Events = list('i485PendingEvents', pendingEventFields, {
   hint: 'i485PendingEvents',
 });
 export const processFields: UsField[] = [
   choice('petitionStatus', ['filed-with-i485', 'pending', 'approved'], {
-    required: true,
+    required: isEmploymentAdjustment,
     hint: 'petitionStatus',
   }),
   date('petitionFiledOn', { hint: 'petitionFiledOn' }),
@@ -767,10 +801,12 @@ export const processFields: UsField[] = [
       when: onlyConsular,
     },
   ),
-  monthTable('visaAtFilingByMonth'),
+  // Consular filing uses current availability; every decision uses the
+  // decision month's chart.
+  monthTable('visaAtFilingByMonth', onlyAdjustment),
   choice('visaAtDecision', visaOptions, { hint: 'visaAtDecision' }),
-  monthTable('visaAtDecisionByMonth'),
-  date('interviewOn', { label: 'visaInterviewOn' }),
+  monthTable('visaAtDecisionByMonth', inDraft(isImmigrant)),
+  date('interviewOn', { label: 'visaInterviewOn', when: onlyConsular }),
   date('decisionOn', { hint: 'decisionOn' }),
   choice('legalEntry', ['admitted', 'paroled', 'without-inspection'], {
     when: onlyAdjustment,
@@ -787,7 +823,9 @@ export const processFields: UsField[] = [
     (name) =>
       bool(name as UsFieldLabel, {
         when: (context: FieldContext) =>
-          onlyAdjustment(context) && hasEmploymentPetition(context.draft),
+          onlyAdjustment(context) &&
+          (hasEmploymentPetition(context.draft) ||
+            fromEmploymentBasis(context.draft)),
       }),
   ),
   review('discretion', { when: onlyAdjustment }),
@@ -1039,7 +1077,9 @@ export const usStepDefinitions: UsStep[] = [
   },
   {
     title: 'conditions',
-    when: onPath('US-CONDITIONS'),
+    when: (draft) =>
+      draft.pathway === 'US-CONDITIONS' &&
+      (draft.conditional === 'marriage' || draft.conditional === 'investor'),
     sections: [
       {
         path: ['conditions', 'marriage'],

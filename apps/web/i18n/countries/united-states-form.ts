@@ -1149,8 +1149,8 @@ const messages = {
     'File Form I-485 in the U.S., or apply for an immigrant visa through NVC and a consulate.',
   ],
   'us.hint.adjustmentBasis': [
-    '亲属或职业路径只在 VAWA 或 SIJ 依据时需要另选。',
-    'For family or employment pathways, choose this only for a VAWA or SIJ basis.',
+    '亲属路径只在 VAWA 依据、职业路径只在 SIJ 依据时需要另选。',
+    'For the family pathway, choose this only for a VAWA basis. For the employment pathway, choose it only for an SIJ basis.',
   ],
   'us.hint.permanentResident': [
     '条件绿卡也填你本人取得条件身份的那天。',
