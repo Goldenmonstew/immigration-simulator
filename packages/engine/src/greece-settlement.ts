@@ -4,11 +4,12 @@ import {
   greeceFull2026_11,
 } from '@uk-immigration/policy-data';
 import type { CountryCheck } from './country-result';
-import { addDays, addMonths, addYears } from './dates';
+import { addDays, addMonths, addYears, daysBetween } from './dates';
 import type { GrPermit } from './greece';
 import type { GrFullRequest } from './greece-full';
 import { wageFloor } from './greece-work-family';
 import {
+  absencePeriods,
   ageOn,
   all,
   any,
@@ -16,7 +17,7 @@ import {
   underAgeOn,
   type GrContext,
 } from './greece-rules';
-import { Days, monthSpan } from './pilot';
+import { monthSpan } from './pilot';
 import type { IsoDate } from './types';
 
 interface IntegrationEvidence {
@@ -42,7 +43,10 @@ interface IntegrationEvidence {
   a2Total?: number;
   a2SectionsAtPassMark?: number;
   historyPoints?: number;
+  /** First day of the claimed continuous lawful residence in Greece. */
   continuousFrom?: IsoDate;
+  /** Evidence that the reported travel did not interrupt the qualifying period. */
+  continuityDuringTravelConfirmed?: boolean;
   includesStudyOrDisputedGap?: boolean;
   /** Documented twelve years of lawful residence under former article 145(2)(γ). */
   legacyTwelveLawfulYears?: boolean;
@@ -103,6 +107,8 @@ export interface GrSettlementAnswers {
     /** All travel-document pages evidencing the qualifying absence, or the permit issued by the other state. */
     lossEvidenceReady?: boolean;
     convertingTenYearCard?: boolean;
+    /** Actual acquisition date of Greek long-term status, independent of subsequent card renewals. */
+    statusGrantedOn?: IsoDate;
     /** Months outside the EU and years outside Greece since acquiring long-term status. */
     continuousOutsideEuMonths?: number;
     continuousOutsideGreeceYears?: number;
@@ -114,6 +120,8 @@ export interface GrSettlementAnswers {
     stage?: 'initial' | 'renewal';
     basis?: 'residence' | 'birth-school' | 'unaccompanied-minor';
     residesInGreece?: boolean;
+    /** Start of verified qualifying residence in Greece, including the assessment of any absences. */
+    qualifyingResidenceFrom?: IsoDate;
     bornInGreece?: boolean;
     greekGrades?: number;
     /** Date the qualifying Greek school grades were completed. */
@@ -304,6 +312,14 @@ function integrationMet(r: GrFullRequest): boolean | IsoDate | undefined {
       if (legacyTotal || !e.continuousFrom) return legacyTotal;
       if (e.includesStudyOrDisputedGap !== false) return undefined;
       const date = addYears(e.continuousFrom, p.consecutiveYears);
+      const filing = date > r.simulationDate ? date : r.simulationDate;
+      if (
+        r.trips &&
+        absencePeriods(r.trips, addYears(filing, -p.consecutiveYears), filing)
+          .length &&
+        !e.continuityDuringTravelConfirmed
+      )
+        return undefined;
       return date <= r.simulationDate || date;
     }
     case 'second-chance-school':
@@ -334,7 +350,11 @@ function integrationCheck(r: GrFullRequest, c: GrContext, id: string) {
       : integrationLaw,
     `可提交认可学历、身份或语言证书。Α2 全科和历史单科应试者均须年满 ${p.a2ExamAge} 岁。全科须满 ${p.total} 分且至少 ${p.sections} 项达 ${p.sectionPercent}%（€${p.fullFee}），持语证仅考历史须满 ${p.history} 分（€${p.historyFee}）。${legacy ? '原第 145(2)(γ) 条接受合法居留' : '连续合法居留'} ${p.consecutiveYears} 年也可举证，学习期与续卡断档须核实。`,
     `Provide recognised education, status or language evidence. Candidates for the full A2 or history-only exam must be at least ${p.a2ExamAge}. The full exam requires ${p.total} points and ${p.sections} sections at ${p.sectionPercent}% (€${p.fullFee}). With a language certificate, history requires ${p.history} points (€${p.historyFee}). The ${p.consecutiveYears}-year option requires ${legacy ? 'documented lawful residence under former article 145(2)(γ)' : 'an uninterrupted lawful record'}. Study and disputed renewal gaps need review.`,
-    met === undefined && r.integration?.includesStudyOrDisputedGap
+    met === undefined &&
+      r.integration?.basis === 'residence' &&
+      (r.integration.includesStudyOrDisputedGap ||
+        (r.integration.continuousFrom &&
+          r.integration.includesStudyOrDisputedGap === false))
       ? ['PD-305']
       : undefined,
   );
@@ -428,6 +448,34 @@ function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
     ];
   }
   const renewal = e.stage === 'renewal';
+  const sinceGrant =
+    renewal &&
+    r.trips &&
+    e.statusGrantedOn &&
+    e.statusGrantedOn <= r.simulationDate
+      ? absencePeriods(r.trips, e.statusGrantedOn, r.simulationDate)
+      : undefined;
+  const greekAbsence = e.continuousOutsideGreeceYears;
+  const reportedWithinLimit =
+    greekAbsence === undefined ? undefined : greekAbsence <= p.lossGreeceYears;
+  const recordedWithinLimit = sinceGrant?.every(
+    (a) => a.until <= addYears(a.from, p.lossGreeceYears),
+  );
+  const withinGreeceLimit =
+    reportedWithinLimit === false || recordedWithinLimit === false
+      ? false
+      : (reportedWithinLimit ?? recordedWithinLimit);
+  // A Greek departure gives no destination. It bounds, but does not prove,
+  // an EU absence. An independently reported EU duration remains applicable.
+  if (
+    eu === undefined &&
+    sinceGrant?.every((a) =>
+      e.formerBlueCardEndorsement
+        ? a.until <= addMonths(a.from, v.formerBlueCardEuAbsenceMonths.value)
+        : a.until < addMonths(a.from, p.lossEuMonths),
+    )
+  )
+    retained = true;
   const checks: CountryCheck[] = [];
   if (!renewal) {
     const eligible =
@@ -526,9 +574,7 @@ function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
         ? all(
             retained,
             orderMet(r),
-            e.continuousOutsideGreeceYears === undefined
-              ? undefined
-              : e.continuousOutsideGreeceYears <= p.lossGreeceYears,
+            withinGreeceLimit,
             e.otherMemberStateLongTermOrRevocationGround === undefined
               ? undefined
               : !e.otherMemberStateLongTermOrRevocationGround,
@@ -610,27 +656,36 @@ function tenYearResidence(r: GrFullRequest): boolean | IsoDate | undefined {
     }
   }
   const sure = qualifyingDate(false);
-  if (sure && sure <= r.simulationDate) return true;
-  if (sure === null || qualifyingDate(true) !== sure) return undefined;
-  return sure ?? false;
+  if (
+    sure === null ||
+    ((!sure || sure > r.simulationDate) && qualifyingDate(true) !== sure)
+  )
+    return undefined;
+  if (!sure) return false;
+  const filing = sure > r.simulationDate ? sure : r.simulationDate;
+  const start = addYears(filing, -v.tenYearCard.value.years);
+  const confirmed = r.tenYear?.qualifyingResidenceFrom;
+  if (confirmed && !legacy && confirmed > start)
+    return addYears(confirmed, v.tenYearCard.value.years);
+  if (
+    (!confirmed || confirmed > start) &&
+    r.trips &&
+    absencePeriods(r.trips, start, filing).length
+  )
+    return undefined;
+  return sure <= r.simulationDate || sure;
 }
 
 function conversionAbsences(r: GrFullRequest) {
   const expiry = r.tenYear?.cardExpiresOn ?? r.currentCardExpiresOn;
   if (!expiry || !r.trips) return undefined;
   const start = addYears(expiry, -pilot.longTermYears.value);
-  const end = addDays(expiry, -1);
-  const days = new Days(start, end);
-  const away = new Array<boolean>(days.count).fill(false);
-  for (const trip of r.trips) {
-    const first = trip.departed < start ? start : addDays(trip.departed, 1);
-    const last = trip.returned >= expiry ? end : addDays(trip.returned, -1);
-    if (first > last) continue;
-    if (last >= addDays(addMonths(first, pilot.singleAbsenceMonths.value), -1))
+  let total = 0;
+  for (const period of absencePeriods(r.trips, start, expiry)) {
+    if (period.until >= addMonths(period.from, pilot.singleAbsenceMonths.value))
       return false;
-    days.mark(away, first, last);
+    total += daysBetween(period.from, period.until);
   }
-  const total = away.filter(Boolean).length;
   const [min, max] = monthSpan(pilot.totalAbsenceMonths.value);
   return total > max ? false : total <= min ? true : undefined;
 }
@@ -703,10 +758,10 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
         ],
         formerMinor
           ? `申请时须已成年、居住在希腊，有主管机关的无人陪伴入境证明，并在 ${p.beforeAge} 岁前完成 ${p.legacySecondaryGrades} 个希腊中学年级。修法后新申须证明生效日正在读中学。`
-          : `申请人须居住在希腊。普通通道须${legacy ? '' : '连续'}持确定性居留许可满 ${p.years} 年。${legacy ? '' : '第 52(1) 条涵盖的积压续期，从申请日计至新卡生效日。'}出生或学籍通道须在希出生，或在 ${p.beforeAge} 岁前完成希腊学校 ${p.grades} 个年级。`,
+          : `申请人须居住在希腊。普通通道须${legacy ? '' : '连续'}持确定性许可并在希合法居留满 ${p.years} 年。资格期内有离境时，请核实实际合格居留的起日。${legacy ? '' : '第 52(1) 条涵盖的积压续期，从申请日计至新卡生效日。'}出生或学籍通道须在希出生，或在 ${p.beforeAge} 岁前完成希腊学校 ${p.grades} 个年级。`,
         formerMinor
           ? `An adult residing in Greece must document entry as an unaccompanied minor and completion of ${p.legacySecondaryGrades} Greek secondary grades before age ${p.beforeAge}. New applications after the reform require secondary enrolment on its commencement date.`
-          : `The applicant must reside in Greece. The ordinary route requires ${p.years}${legacy ? '' : ' continuous'} years on definitive permits. ${legacy ? '' : 'Qualifying article 52(1) renewal time counts from filing through the effective date of the new permit. '}The alternative requires birth in Greece or ${p.grades} grades of Greek school before age ${p.beforeAge}.`,
+          : `The applicant must reside in Greece. The ordinary route requires ${p.years}${legacy ? '' : ' continuous'} years of lawful residence in Greece on definitive permits. Where travel overlaps this period, verify the qualifying residence start. ${legacy ? '' : 'Qualifying article 52(1) renewal time counts from filing through the effective date of the new permit. '}The alternative requires birth in Greece or ${p.grades} grades of Greek school before age ${p.beforeAge}.`,
         ordinary && eligible === undefined && r.permits !== undefined
           ? ['PD-312']
           : undefined,
@@ -799,21 +854,39 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       pending,
     ),
   );
-  const noTwoYearAbsence = r.trips?.every((t) => {
-    const end = t.returned < r.simulationDate ? t.returned : r.simulationDate;
-    return end < addYears(t.departed, p.absenceYears);
-  });
-  checks.push(
-    c.check(
-      'TY-05',
-      '连续离希时长',
-      'Consecutive absence from Greece',
-      noTwoYearAbsence,
-      tenYearLaw,
-      `递交或维持时不得连续离希满 ${p.absenceYears} 年。`,
-      `No continuous absence of ${p.absenceYears} years by the assessment date.`,
-    ),
-  );
+  if (!conversion) {
+    // Article 161(3) governs initial grants; (7) governs the specified renewals.
+    // For birth/school grants the order requests the travel record preceding filing.
+    const start = renewal
+      ? expiry && addYears(expiry, -p.years)
+      : addYears(
+          r.simulationDate,
+          ordinary && !legacy ? -p.years : -p.absenceYears,
+        );
+    const longAbsence =
+      r.trips &&
+      absencePeriods(r.trips).some((period) => {
+        // This limit uses the departure anniversary, as on the travel document.
+        const departed = addDays(period.from, -1);
+        const from = start && start > departed ? start : departed;
+        const until =
+          period.until < r.simulationDate ? period.until : r.simulationDate;
+        return until >= addYears(from, p.absenceYears);
+      });
+    checks.push(
+      c.check(
+        'TY-05',
+        '资格期内连续离希时长',
+        'Consecutive absence within the qualifying period',
+        longAbsence === undefined || (longAbsence && !start)
+          ? undefined
+          : !longAbsence,
+        [...tenYearLaw, grSource('F21', 'art. 58(1)(ζ), p. 35')],
+        `本手续的资格期内不得连续离希满 ${p.absenceYears} 年。首签另核递件前的旅行证件。`,
+        `No continuous absence of ${p.absenceYears} years within the period for this procedure. Initial applicants also provide the travel documents preceding filing.`,
+      ),
+    );
+  }
   checks.push(
     c.check(
       'TY-06',

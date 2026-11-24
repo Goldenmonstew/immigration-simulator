@@ -804,6 +804,86 @@ describe('M.2 acquisition and conversion', () => {
     ).toBe('MET');
     expect(status(ty, 'TY-05', { trips: undefined })).toBe('UNKNOWN');
   });
+  test('ordinary M.2 initial filing counts only absence inside the qualifying decade', () => {
+    const request = {
+      simulationDate: '2026-11-24',
+      permits: [{ kind: 'regular', from: '2016-03-01' }],
+      tenYear: { ...good.tenYear, stage: 'initial' },
+      integration: { basis: 'pegp' },
+    } satisfies Partial<GrFullRequest>;
+    const run = (
+      departed: string,
+      returned: string,
+      qualifyingResidenceFrom?: string,
+    ) =>
+      full(ty, {
+        ...request,
+        tenYear: { ...request.tenYear, qualifyingResidenceFrom },
+        trips: [{ departed, returned }],
+      });
+    for (const returned of ['2015-03-01', '2016-11-24']) {
+      const result = run('2012-01-01', returned);
+      expect(result.checks.find((c) => c.id === 'TY-05')?.status).toBe('MET');
+      expect(result.status).toBe('MET');
+    }
+    // Only the part from 2016-11-24 falls inside the decade. It is shorter than
+    // two years, but the card alone does not settle the separate residence test.
+    const overlap = run('2012-01-01', '2017-09-01');
+    expect(overlap.checks.find((c) => c.id === 'TY-05')?.status).toBe('MET');
+    expect(overlap.status).toBe('UNKNOWN');
+    expect(run('2012-01-01', '2017-09-01', '2016-03-01').status).toBe('MET');
+    expect(run('2012-01-01', '2018-11-24', '2016-03-01').status).toBe(
+      'NOT_MET',
+    );
+  });
+  test('M.2 conversion and birth/school renewal use their own card windows', () => {
+    const tenYear = {
+      stage: 'renewal',
+      hasPriorCard: true,
+      cardExpiresOn: day,
+    } as const;
+    const run = (
+      basis: 'residence' | 'birth-school',
+      departed: string,
+      returned: string,
+    ) =>
+      full(ty, {
+        tenYear: { ...tenYear, basis },
+        trips: [{ departed, returned }],
+      });
+    expect(run('residence', '2017-01-01', '2020-01-01').status).toBe('MET');
+    expect(run('birth-school', '2012-01-01', '2015-01-01').status).toBe('MET');
+    expect(run('birth-school', '2017-01-01', '2020-01-01').status).toBe(
+      'NOT_MET',
+    );
+  });
+  test('the residence-based integration alternative checks travel only in its own qualifying period', () => {
+    const integration = {
+      basis: 'residence',
+      continuousFrom: '2010-01-01',
+      includesStudyOrDisputedGap: false,
+    } as const;
+    for (const route of [lt, ty] as const) {
+      const id = route === lt ? 'LT-04' : 'TY-02';
+      const inside = [{ departed: '2015-01-01', returned: '2016-09-01' }];
+      expect(status(route, id, { integration, trips: inside })).toBe('UNKNOWN');
+      expect(
+        status(route, id, {
+          integration: {
+            ...integration,
+            continuityDuringTravelConfirmed: true,
+          },
+          trips: inside,
+        }),
+      ).toBe('MET');
+      expect(
+        status(route, id, {
+          integration,
+          trips: [{ departed: '2012-01-01', returned: '2014-11-23' }],
+        }),
+      ).toBe('MET');
+    }
+  });
   test('conversion at expiry counts full days in the last five years; an uncertain ten-month total stays unknown', () => {
     const tenYear = {
       stage: 'renewal',

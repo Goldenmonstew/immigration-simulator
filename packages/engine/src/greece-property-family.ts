@@ -1,9 +1,17 @@
 import { greeceFull2026_11, grSource } from '@uk-immigration/policy-data';
 import type { CountryCheck } from './country-result';
-import { addDays, addMonths, addYears, fullYears } from './dates';
+import { addDays, addMonths, addYears, daysBetween, fullYears } from './dates';
+import { monthSpan } from './pilot';
 import { overseasInvestorFiling } from './greece-common';
 import type { GrFullRequest } from './greece-full';
-import { ageOn, all, any, insuranceMet, underAgeOn } from './greece-rules';
+import {
+  absencePeriods,
+  ageOn,
+  all,
+  any,
+  insuranceMet,
+  underAgeOn,
+} from './greece-rules';
 import type { GrContext } from './greece-rules';
 import type { IsoDate } from './types';
 
@@ -143,6 +151,8 @@ interface FamilyResidence {
   residenceFrom?: IsoDate;
   qualifyingResidenceDocumented?: boolean;
   priorCardExpiry?: IsoDate;
+  /** Actual acquisition of the permanent right, if known. */
+  permanentRightAcquiredOn?: IsoDate;
   // Longest continuous absence since acquiring permanent residence.
   longestAbsenceAfterPrYears?: number;
   retention?: Retention;
@@ -321,6 +331,175 @@ function yearsBy(
   years: number,
 ): Answer {
   return from && end ? addYears(from, years) <= end : undefined;
+}
+
+type FamilyTrips = NonNullable<GrFullRequest['trips']>;
+
+// SRC-377 §9.2 counts ordinary absences cumulatively in each residence year.
+function ordinaryTripsWithinLimit(
+  trips: FamilyTrips,
+  from: IsoDate,
+  until: IsoDate,
+): Answer {
+  const [min, max] = monthSpan(eu.ordinaryAbsenceMonths);
+  let result: Answer = true;
+  for (let year = 0; addYears(from, year) < until; year++) {
+    const start = addYears(from, year);
+    const next = addYears(from, year + 1);
+    const periods = absencePeriods(trips, start, next < until ? next : until);
+    if (periods.length === 1) {
+      const period = periods[0];
+      if (period.until > addMonths(period.from, eu.ordinaryAbsenceMonths))
+        return false;
+    } else {
+      const days = periods.reduce(
+        (total, period) => total + daysBetween(period.from, period.until),
+        0,
+      );
+      if (days > max) return false;
+      if (days > min) result = undefined;
+    }
+  }
+  return result;
+}
+
+// Dated travel can corroborate a summary or expose an absence whose reason is missing.
+function familyTripContinuity(
+  trips: FamilyTrips,
+  from: IsoDate,
+  until: IsoDate,
+  exception?: GreekFamilyAnswers['extendedAbsence'],
+  exceptionMonths?: number,
+): Answer {
+  const ordinary = trips.filter((t) => t.familyAbsenceReason === 'ordinary');
+  const unknown = trips.filter(
+    (t) => !t.familyAbsenceReason && t.returned > from && t.departed < until,
+  );
+  const serious = absencePeriods(
+    trips.filter((t) => t.familyAbsenceReason === 'serious-reason'),
+    from,
+    until,
+  );
+  if (
+    serious.length > eu.seriousAbsences ||
+    serious.some((t) => t.until > addMonths(t.from, eu.seriousAbsenceMonths))
+  )
+    return false;
+  const definite = ordinaryTripsWithinLimit(ordinary, from, until);
+  if (
+    !unknown.length ||
+    definite === false ||
+    exception === 'compulsory-service'
+  )
+    return definite;
+  const inclusive = ordinaryTripsWithinLimit(
+    [...ordinary, ...unknown],
+    from,
+    until,
+  );
+  if (inclusive === true || exception === 'ordinary') return inclusive;
+  if (
+    exception === 'single-serious-reason' &&
+    !serious.length &&
+    exceptionMonths !== undefined &&
+    exceptionMonths <= eu.seriousAbsenceMonths
+  ) {
+    // This answer confirms that all excess was one serious absence. Check that
+    // removing one eligible trip can actually account for the reported excess.
+    const possible = unknown.some((t) => {
+      const [period] = absencePeriods([t], from, until);
+      return (
+        period &&
+        period.until <= addMonths(period.from, exceptionMonths) &&
+        ordinaryTripsWithinLimit(
+          [...ordinary, ...unknown.filter((x) => x !== t)],
+          from,
+          until,
+        ) === true
+      );
+    });
+    if (possible) return true;
+  }
+  return undefined;
+}
+
+function consecutiveAbsenceWithin(
+  req: GrFullRequest,
+  from: IsoDate | undefined,
+  years: number,
+  reported: Answer,
+  strict = false,
+  until = req.simulationDate,
+): Answer {
+  if (!from || from > until || !req.trips) return reported;
+  const periods = absencePeriods(req.trips, from, until);
+  const exceeded = periods.some((period) => {
+    const limit = addYears(period.from, years);
+    return strict ? period.until >= limit : period.until > limit;
+  });
+  return !exceeded && (reported ?? true);
+}
+
+function heldAfterAcquisition(
+  req: GrFullRequest,
+  years: number,
+  reportedYears: number | undefined,
+  earliest: IsoDate | undefined,
+  latest: IsoDate | undefined,
+): Answer {
+  const reported = maximum(reportedYears, years);
+  if (reported === false || !req.trips) return reported;
+  if (latest && consecutiveAbsenceWithin(req, latest, years, true) === false)
+    return false;
+  const possibleFrom = earliest ?? req.trips.map((t) => t.departed).sort()[0];
+  if (consecutiveAbsenceWithin(req, possibleFrom, years, true) === false)
+    return undefined;
+  return reported ?? (earliest ? true : undefined);
+}
+
+// A return can begin a later five-year period. Only use a completed alternative
+// when the applicant documents qualifying residence and the later right can still subsist.
+function jointResidenceWindow(
+  a: Pick<FamilyResidence, 'residenceFrom' | 'qualifyingResidenceDocumented'>,
+  req: GrFullRequest,
+  years: number,
+  lossYears: number,
+  greek?: GreekFamilyAnswers,
+) {
+  const start = a.residenceFrom;
+  const assess = (from: IsoDate | undefined) => {
+    const anniversary = from && addYears(from, years);
+    const until =
+      anniversary && anniversary < req.simulationDate
+        ? anniversary
+        : req.simulationDate;
+    const continuity =
+      req.trips && from
+        ? familyTripContinuity(
+            req.trips,
+            from,
+            until,
+            greek?.extendedAbsence,
+            greek?.extendedAbsenceMonths,
+          )
+        : true;
+    return { from, anniversary, until, continuity };
+  };
+  const first = assess(start);
+  const held = (window: ReturnType<typeof assess>) =>
+    window.continuity === true &&
+    consecutiveAbsenceWithin(req, window.anniversary, lossYears, true) === true;
+  if (!start || !req.trips || !a.qualifyingResidenceDocumented || held(first))
+    return first;
+  for (const returned of [
+    ...new Set(req.trips.map((t) => t.returned)),
+  ].sort()) {
+    if (returned <= start || addYears(returned, years) > req.simulationDate)
+      continue;
+    const later = assess(returned);
+    if (held(later)) return later;
+  }
+  return first;
 }
 
 function meetsStandardPrice(
@@ -851,11 +1030,57 @@ function security(order: GrFullRequest['publicOrder']): Answer {
   if (order === 'adverse') return false;
 }
 
-function retainedGround(r: Retention, greek: boolean): Answer {
+function residenceBeforeEvent(
+  req: GrFullRequest,
+  from: IsoDate | undefined,
+  event: IsoDate | undefined,
+  marriageFrom?: IsoDate,
+  widowhood = false,
+): Answer {
+  const years = p.familyRetention.value.inGreeceYears;
+  const start =
+    from && marriageFrom && marriageFrom > from ? marriageFrom : from;
+  const elapsed = yearsBy(start, event, years);
+  if (!elapsed || !start || !event || !req.trips) return elapsed;
+  const window = widowhood ? addYears(event, -years) : start;
+  const periods = absencePeriods(req.trips, window, event);
+  if (!periods.length) return true;
+  // The domestic year can occur anywhere within the marriage before dissolution.
+  let presentFrom = window;
+  for (const period of periods) {
+    if (addYears(presentFrom, years) <= period.from) return true;
+    presentFrom = period.until;
+  }
+  if (addYears(presentFrom, years) <= event) return true;
+  // The event provisions require residence in Greece. Card-validity exceptions
+  // do not independently establish this year. Time spent in Greece during a
+  // marriage can also be shown by several periods, without double-counting trips.
+  if (!widowhood) {
+    const awayDays = periods.reduce(
+      (sum, period) => sum + daysBetween(period.from, period.until),
+      0,
+    );
+    const [, longestYear] = monthSpan(years * 12);
+    if (daysBetween(window, event) - awayDays >= longestYear) return true;
+  }
+  return undefined;
+}
+
+function retainedGround(
+  r: Retention,
+  greek: boolean,
+  req: GrFullRequest,
+): Answer {
   const t = p.familyRetention.value;
   const durationEnd =
     r.basis === 'divorce' ? r.divorceDurationEnd : r.eventDate;
-  const inGreece = yearsBy(r.greeceResidenceFrom, durationEnd, t.inGreeceYears);
+  const inGreece = residenceBeforeEvent(
+    req,
+    r.greeceResidenceFrom,
+    durationEnd,
+    r.basis === 'divorce' ? r.marriageFrom : undefined,
+    r.basis === 'widowhood',
+  );
   switch (r.basis) {
     case 'widowhood':
       return inGreece;
@@ -1018,6 +1243,7 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
     const expiry = a.priorCardExpiry ?? req.currentCardExpiresOn;
     const siblingAtExpiry =
       expiry === undefined ? undefined : ageOn(req.birthDate, expiry);
+    const from = a.initialCardGrantedOn ?? a.residenceFrom;
     checks.push(
       c.check(
         'GF-08',
@@ -1036,6 +1262,15 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
                 ? undefined
                 : !a.siblingExtensionAlreadyGranted,
             ),
+          req.trips && from
+            ? familyTripContinuity(
+                req.trips,
+                from,
+                expiry && expiry < sim ? expiry : sim,
+                a.extendedAbsence,
+                a.extendedAbsenceMonths,
+              ) === true || undefined
+            : true,
           a.ordinaryRenewalDocumentsReady,
           insuranceMet(req.insurance, 'either', true),
         ),
@@ -1050,6 +1285,14 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
     );
   }
   if (a.stage === 'permanent') {
+    const window = jointResidenceWindow(
+      a,
+      req,
+      family.residenceYears,
+      family.interruptionYears,
+      a,
+    );
+    const { anniversary, until: at, continuity: dated } = window;
     const ordinary = maximum(
       a.maxAnnualAbsenceMonths,
       eu.ordinaryAbsenceMonths,
@@ -1059,15 +1302,53 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       a.extendedAbsence === 'compulsory-service' ||
       (a.extendedAbsence === 'single-serious-reason' &&
         maximum(a.extendedAbsenceMonths, eu.seriousAbsenceMonths) === true);
-    const allowedAbsence = ordinary === true || extended ? true : undefined;
+    const summaryCovered =
+      ordinary === true ||
+      extended ||
+      (a.maxAnnualAbsenceMonths === undefined &&
+        a.extendedAbsence === undefined &&
+        !!req.trips &&
+        !!a.residenceFrom);
+    const allowedAbsence = summaryCovered && dated === true ? true : undefined;
     const tolerableGap = !reformed
-      ? a.longestConsecutiveAbsenceYears === undefined
-        ? undefined
-        : a.longestConsecutiveAbsenceYears < p.tenYearCard.value.absenceYears
+      ? all(
+          consecutiveAbsenceWithin(
+            req,
+            window.from,
+            p.tenYearCard.value.absenceYears,
+            a.longestConsecutiveAbsenceYears === undefined
+              ? undefined
+              : a.longestConsecutiveAbsenceYears <
+                  p.tenYearCard.value.absenceYears,
+            true,
+            at,
+          ),
+          consecutiveAbsenceWithin(
+            req,
+            addYears(sim, -p.tenYearCard.value.absenceYears),
+            p.tenYearCard.value.absenceYears,
+            true,
+            true,
+          ),
+        )
       : a.priorCardExpiry && sim <= a.priorCardExpiry
         ? true
-        : maximum(a.interruptionAfterExpiryYears, family.interruptionYears);
+        : consecutiveAbsenceWithin(
+            req,
+            a.priorCardExpiry && addDays(a.priorCardExpiry, 1),
+            family.interruptionYears,
+            maximum(a.interruptionAfterExpiryYears, family.interruptionYears),
+          );
+    // Automatic conversion at expiry and an actual permanent grant are distinct.
+    // If the old card chronology cannot resolve a long intervening trip, verify the right.
+    const survived = consecutiveAbsenceWithin(
+      req,
+      a.permanentRightAcquiredOn ?? anniversary,
+      family.interruptionYears,
+      true,
+    );
     const documented = all(
+      !reformed || survived || (a.permanentRightAcquiredOn ? false : undefined),
       a.qualifyingResidenceDocumented,
       tolerableGap,
       allowedAbsence,
@@ -1078,8 +1359,6 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
           req.tenYear?.travelDocumentPagesReady !== false,
         ),
     );
-    const anniversary =
-      a.residenceFrom && addYears(a.residenceFrom, family.residenceYears);
     checks.push(
       c.check(
         'GF-03',
@@ -1097,7 +1376,9 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         reformed
           ? `Establish ${family.residenceYears} years of qualifying residence together. A residence interruption of up to ${family.interruptionYears} years after card expiry preserves conversion. Verify absences during those years.`
           : `Under the earlier law, ${family.residenceYears} years of qualifying residence together lead to Μ.2. Verify the former family card, full insurance, consecutive absences and all travel-document pages for the ${p.tenYearCard.value.absenceYears} years before filing.`,
-        ordinary === false && !extended ? ['PD-314'] : undefined,
+        (ordinary === false && !extended) || dated !== true
+          ? ['PD-314']
+          : undefined,
       ),
     );
   }
@@ -1119,20 +1400,20 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         reformed
           ? all(
               a.retainedRightDocumentsReady,
-              retainedGround(r, true),
+              retainedGround(r, true, req),
               retainedLivelihood(r, req),
               onTime,
             )
           : all(
               a.retainedRightDocumentsReady,
               r.basis !== 'custody',
-              retainedGround(r, true),
+              retainedGround(r, true, req),
               filed === undefined ? undefined : beforeOrOn(r.eventDate, filed),
               beforeOrOn(filed, sim),
             ),
         [
           grSource('F36', 'art. 27(2), art. 93(11)(α)–(γ)'),
-          grSource('F16', 'arts. 90, 93(11)'),
+          grSource('F16', 'arts. 90, 93(7),(11)'),
           grSource('F21', 'art. 24(2)(α–ε), pp. 16498–16499'),
         ],
         reformed
@@ -1153,7 +1434,13 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         security(req.publicOrder),
         a.stage === 'maintain'
           ? reformed &&
-              maximum(a.longestAbsenceAfterPrYears, family.interruptionYears)
+              heldAfterAcquisition(
+                req,
+                family.interruptionYears,
+                a.longestAbsenceAfterPrYears,
+                a.permanentRightAcquiredOn ?? a.residenceFrom,
+                a.permanentRightAcquiredOn,
+              )
           : true,
       ),
       [grSource('F36', 'art. 28, art. 93Α(3)–(4)'), grSource('F16', 'art. 93')],
@@ -1257,7 +1544,12 @@ function earlyRight(e: EuFamilyAnswers['early'], sim: IsoDate): Answer {
   return all(beforeOrOn(end, sim), e.livedTogetherAtEvent, basis);
 }
 
-function euFamilyLink(a: EuFamilyAnswers, req: GrFullRequest): Answer {
+function euFamilyLink(
+  a: EuFamilyAnswers,
+  req: GrFullRequest,
+  ordinaryFrom: IsoDate | undefined,
+  acquired: IsoDate | undefined,
+): Answer {
   if (a.stage === 'retained' && a.schooling)
     return a.schooling.applicant === undefined
       ? undefined
@@ -1293,20 +1585,15 @@ function euFamilyLink(a: EuFamilyAnswers, req: GrFullRequest): Answer {
       let end = a.retention?.eventDate ?? req.simulationDate;
       if (a.stage === 'permanent') {
         // Count care up to acquisition; the claim can be made after the child reaches majority.
-        const anniversary =
-          a.residenceFrom && addYears(a.residenceFrom, eu.residenceYears);
-        if (anniversary && anniversary <= end) end = addDays(anniversary, -1);
-        if (
-          a.early?.eventDate &&
-          a.early.eventDate < end &&
-          earlyRight(a.early, req.simulationDate)
-        )
-          end = a.early.eventDate;
+        if (acquired && acquired <= end)
+          end =
+            a.early?.eventDate === acquired &&
+            earlyRight(a.early, req.simulationDate)
+              ? acquired
+              : addDays(acquired, -1);
       }
       return all(
-        a.residenceFrom
-          ? beforeOrOn(care?.childBirthDate, a.residenceFrom)
-          : true,
+        ordinaryFrom ? beforeOrOn(care?.childBirthDate, ordinaryFrom) : true,
         underAgeOn(care?.childBirthDate, end, eu.minorAge),
         any(
           care?.residenceBasis === undefined
@@ -1353,6 +1640,25 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         'Select first issue or renewal of an ordinary or permanent card, retention after a family event, or continued permanent status.',
       ),
     ];
+  const window =
+    a.stage === 'permanent'
+      ? jointResidenceWindow(a, req, eu.residenceYears, eu.lossYears)
+      : undefined;
+  const anniversary = window?.anniversary;
+  const early = earlyRight(a.early, sim);
+  const earlyDate = early === true ? a.early?.eventDate : undefined;
+  const earlyHeld =
+    earlyDate && consecutiveAbsenceWithin(req, earlyDate, eu.lossYears, true);
+  // Where an early right was lost, a later completed ordinary period can establish a new one.
+  const relyOnEarly =
+    !!earlyDate &&
+    (!anniversary || earlyDate <= anniversary || window?.continuity !== true) &&
+    (earlyHeld === true ||
+      !anniversary ||
+      anniversary > sim ||
+      window?.continuity !== true);
+  const acquired =
+    a.permanentRightAcquiredOn ?? (relyOnEarly ? earlyDate : anniversary);
   if (!existingPermanent) {
     checks.push(
       c.check(
@@ -1362,7 +1668,7 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         all(
           a.qualifyingNonGreekEuSponsor ??
             a.qualifyingNonGreekEuSponsorAndRelationship,
-          euFamilyLink(a, req),
+          euFamilyLink(a, req, window?.from ?? a.residenceFrom, acquired),
           a.sponsorExercisedTreatyRights,
           a.qualifyingResidenceDocumented,
         ),
@@ -1426,10 +1732,11 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         r?.separationOn,
         p.familyRetention.value.marriageYears,
       ),
-      yearsBy(
+      residenceBeforeEvent(
+        req,
         r?.greeceResidenceFrom,
         r?.separationOn,
-        p.familyRetention.value.inGreeceYears,
+        r?.marriageFrom,
       ),
     );
     const finances =
@@ -1439,6 +1746,7 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
           ? false
           : undefined;
     const appliesToSpouse = a.stage === 'renewal' && partner;
+    const residenceStart = a.residenceFrom ?? a.arrivedOn;
     const due = a.arrivedOn && addMonths(a.arrivedOn, eu.initialFilingMonths);
     const afterFineDeadline =
       a.arrivedOn && sim > addYears(a.arrivedOn, eu.lateYears);
@@ -1456,6 +1764,15 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
           ? timelyInitial
           : all(
               a.relationship === undefined ? undefined : true,
+              req.trips && residenceStart
+                ? familyTripContinuity(
+                    req.trips,
+                    residenceStart,
+                    a.priorCardExpiry && a.priorCardExpiry < sim
+                      ? a.priorCardExpiry
+                      : sim,
+                  ) === true || undefined
+                : true,
               !article59Family ||
                 (a.permanentRightAcquired === undefined
                   ? undefined
@@ -1487,9 +1804,6 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       ),
     );
   }
-  const anniversary =
-    a.residenceFrom && addYears(a.residenceFrom, eu.residenceYears);
-  const early = earlyRight(a.early, sim);
   if (a.stage === 'permanent') {
     const ordinary = beforeOrOn(anniversary, sim);
     checks.push(
@@ -1512,27 +1826,47 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       (a.priorCardExpiry === undefined
         ? undefined
         : sim <= addYears(a.priorCardExpiry, eu.lateYears));
+    const onlyDated =
+      !!req.trips &&
+      !!a.residenceFrom &&
+      a.maxOrdinaryAnnualAbsenceMonths === undefined &&
+      a.seriousAbsenceCount === undefined &&
+      a.maxSeriousAbsenceMonths === undefined;
     const absences = all(
-      maximum(a.maxOrdinaryAnnualAbsenceMonths, eu.ordinaryAbsenceMonths),
-      maximum(a.seriousAbsenceCount, eu.seriousAbsences),
-      a.seriousAbsenceCount === 0
-        ? true
-        : maximum(a.maxSeriousAbsenceMonths, eu.seriousAbsenceMonths),
+      onlyDated ||
+        maximum(a.maxOrdinaryAnnualAbsenceMonths, eu.ordinaryAbsenceMonths),
+      onlyDated || maximum(a.seriousAbsenceCount, eu.seriousAbsences),
+      onlyDated ||
+        a.seriousAbsenceCount === 0 ||
+        maximum(a.maxSeriousAbsenceMonths, eu.seriousAbsenceMonths),
+      window ? window.continuity : true,
     );
     // The ordinary anniversary sets a lower bound only when an earlier
     // acquisition is excluded, or is itself too recent to have been lost.
     const tooRecentForLoss = (date: IsoDate | undefined) =>
       date !== undefined && sim <= addYears(date, eu.lossYears);
-    const noTimeForLoss =
-      tooRecentForLoss(anniversary) &&
-      (early === false ||
-        tooRecentForLoss(a.early?.eventDate ?? a.residenceFrom));
+    const noTimeForLoss = a.permanentRightAcquiredOn
+      ? a.permanentRightAcquiredOn <= sim &&
+        tooRecentForLoss(a.permanentRightAcquiredOn)
+      : tooRecentForLoss(anniversary) &&
+        (early === false ||
+          tooRecentForLoss(a.early?.eventDate ?? a.residenceFrom));
     const retainedPermanentRight =
       a.stage === 'permanent' &&
       a.longestAbsenceAfterPrYears === undefined &&
       noTimeForLoss
         ? true
-        : maximum(a.longestAbsenceAfterPrYears, eu.lossYears);
+        : heldAfterAcquisition(
+            req,
+            eu.lossYears,
+            a.longestAbsenceAfterPrYears,
+            a.permanentRightAcquiredOn ??
+              (a.stage === 'permanent' && early !== undefined
+                ? acquired
+                : a.residenceFrom),
+            a.permanentRightAcquiredOn ??
+              (a.stage === 'permanent' ? acquired : undefined),
+          );
     checks.push(
       c.check(
         'EF-03',
@@ -1541,13 +1875,13 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         existingPermanent
           ? retainedPermanentRight
           : all(
-              absences,
+              relyOnEarly || absences,
               retainedPermanentRight,
               timely === false ? amendedLateFiling || undefined : timely,
             ),
         [
           grSource('F02', 'arts. 13(2)–(3),17(2),(4),18'),
-          grSource('F61', '§§9.1.2, 12.3'),
+          grSource('F61', '§§9.1–9.3, 12.3'),
           grSource('F64', 'art. 42(10), p. 2302; art. 47'),
         ],
         `取得前每年普通离境最多 ${eu.ordinaryAbsenceMonths} 个月，强制兵役除外；一次重大理由最多 ${eu.seriousAbsenceMonths} 个月。取得后连续离境超过 ${eu.lossYears} 年丧失权利。${amendedLateFiling ? '已领旧卡者按到期日核对逾期罚款。' : '旧制逾期过久须核实发卡。'}从未领卡者可用其他材料证明合格居留。`,
@@ -1571,7 +1905,7 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
           school.childStillEnrolledInGreece,
         )
       : all(
-          retainedGround(r, false),
+          retainedGround(r, false, req),
           retainedLivelihood(r, req),
           r.basis === 'access-in-greece'
             ? underAgeOn(r.childBirthDate, sim, eu.minorAge)
@@ -1584,7 +1918,7 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         'Retained right after a family event',
         all(qualifies, beforeOrOn(r.eventDate, sim)),
         [
-          grSource('F02', 'arts. 11(2)–(3),12(2),15, pp. 2981–2984'),
+          grSource('F02', 'arts. 10(2),11(2)–(3),12(2),15, pp. 2981–2984'),
           grSource('F21', 'art. 59(7)(α)–(δ)'),
         ],
         school

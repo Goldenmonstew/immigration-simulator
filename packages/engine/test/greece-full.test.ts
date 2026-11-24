@@ -316,6 +316,90 @@ describe('long-term eligibility through the public entry point', () => {
     expect(tooLittle.earliestDate).toBeUndefined();
   });
 
+  test('Article 43 assesses the final Greek residence independently of the Member State total', () => {
+    const blueCardMobility: NonNullable<GrFullRequest['blueCardMobility']> = {
+      usedLongTermMobility: true,
+      greekBlueCardFrom: '2024-11-23',
+      priorMemberPeriods: [
+        { kind: 'blue-card', from: '2021-11-23', through: '2024-11-22' },
+      ],
+      otherMemberTrips: [],
+    };
+    const input = { permits: [], blueCardMobility };
+    const longTrip = { departed: '2025-01-01', returned: '2025-08-01' };
+    expect(path(id, { ...input, trips: [longTrip] }).status).toBe('UNKNOWN');
+    expect(
+      path(id, {
+        ...input,
+        trips: [longTrip],
+        blueCardMobility: {
+          ...blueCardMobility,
+          greekResidenceFrom: '2024-11-23',
+        },
+      }).status,
+    ).toBe('MET');
+    expect(
+      path(id, {
+        ...input,
+        trips: [{ departed: '2019-01-01', returned: '2021-11-23' }],
+      }).status,
+    ).toBe('MET');
+  });
+
+  test('a future return cannot lengthen the absence before filing', () => {
+    expect(
+      path(id, {
+        trips: [{ departed: '2026-11-10', returned: '2028-01-01' }],
+      }).status,
+    ).toBe('MET');
+    const pastBreak = { departed: '2020-01-01', returned: '2021-11-24' };
+    expect(path(id, { trips: [pastBreak] })).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-11-24',
+    });
+    expect(
+      path(id, { trips: [pastBreak], simulationDate: '2026-11-24' }).status,
+    ).toBe('MET');
+  });
+
+  test('M.1 retention considers only recorded Greek absences since the status grant', () => {
+    const input: Partial<GrFullRequest> = {
+      currentCardExpiresOn: '2026-12-01',
+      longTerm: {
+        stage: 'renewal',
+        passportHistory: 'complete',
+        statusGrantedOn: '2017-01-01',
+        otherMemberStateLongTermOrRevocationGround: false,
+        continuousOutsideEuMonths: 0,
+        continuousOutsideGreeceYears: 0,
+      },
+    };
+    const after = { departed: '2018-01-01', returned: '2024-02-01' };
+    expect(path(id, { ...input, trips: [after] }).status).toBe('NOT_MET');
+    expect(
+      path(id, {
+        ...input,
+        trips: [{ departed: '2010-01-01', returned: '2017-01-01' }],
+      }).status,
+    ).toBe('MET');
+    for (const [formerBlueCardEndorsement, expected] of [
+      [true, 'MET'],
+      [false, 'UNKNOWN'],
+    ] as const) {
+      expect(
+        path(id, {
+          ...input,
+          longTerm: {
+            ...input.longTerm,
+            formerBlueCardEndorsement,
+            continuousOutsideEuMonths: undefined,
+          },
+          trips: [{ departed: '2024-01-01', returned: '2025-02-01' }],
+        }).status,
+      ).toBe(expected);
+    }
+  });
+
   test('confirmed Article 52 backlog periods also bridge the two cards for M.1', () => {
     const union = path(id, {
       permits: [
@@ -789,6 +873,47 @@ describe.each([
   },
 );
 
+test('nationality uses only full absence days before the actual filing', () => {
+  const id = 'GR-NATIONALITY';
+  const nationality = {
+    stage: 'application',
+    pendingApplicationFiledOn: '2025-11-23',
+  } as const;
+  const assess = (trips: GrFullRequest['trips']) =>
+    condition(id, id + '-TIME', { nationality, trips }).status;
+  expect(assess([{ departed: '2017-01-01', returned: '2018-11-23' }])).toBe(
+    'MET',
+  );
+  expect(assess([{ departed: '2017-01-01', returned: '2018-11-24' }])).toBe(
+    'UNKNOWN',
+  );
+  expect(assess([{ departed: '2025-11-22', returned: '2026-02-01' }])).toBe(
+    'MET',
+  );
+});
+
+test('reported travel since birth requires verification unless the ordinary nationality window qualifies', () => {
+  const id = 'GR-NATIONALITY';
+  const nationality = {
+    stage: 'application',
+    bornAndContinuouslyResident: true,
+  } as const;
+  const trips = [{ departed: '2010-01-01', returned: '2014-01-01' }];
+  expect(
+    condition(id, 'NAT-BIRTH-EXEMPTION', { nationality, permits: [], trips })
+      .status,
+  ).toBe('UNKNOWN');
+  expect(condition(id, id + '-TIME', { nationality, trips }).status).toBe(
+    'MET',
+  );
+  expect(
+    condition(id, 'NAT-BIRTH-EXEMPTION', {
+      nationality,
+      trips: [{ departed: '1981-01-01', returned: base.birthDate }],
+    }).status,
+  ).toBe('MET');
+});
+
 test('birth and continuous residence exempt only the general time requirement', () => {
   const p = path('GR-NATIONALITY', {
     permits: [],
@@ -887,6 +1012,70 @@ test('two renewal cards cannot share an unlabelled expiry date', () => {
     ).toBe('UNKNOWN');
 });
 
+test('Ε.4 and Μ.2 retain their own renewal windows when filed together', () => {
+  const request = {
+    ...base,
+    simulationDate: '2026-11-24',
+    currentCardExpiresOn: '2026-12-30',
+    work: { permit: 'E4', stage: 'renewal', taxesSettledDuringPermit: true },
+    tenYear: { stage: 'renewal', cardExpiresOn: '2027-01-15' },
+    pathways: ['GR-WORK', 'GR-TEN-YEAR'],
+  } satisfies GrFullRequest;
+  const [work, tenYear] = evaluateGreeceFull(request).columns[0].pathways;
+  expect(work.status).toBe('MET');
+  for (const [route, opens] of [
+    [work, '2026-10-30'],
+    [tenYear, '2026-11-15'],
+  ] as const) {
+    expect(
+      route.checks.find((check) => check.id === 'C-07-window'),
+    ).toMatchObject({
+      status: 'MET',
+      explanation: expect.stringContaining(opens),
+    });
+  }
+  const ambiguous = evaluateGreeceFull({
+    ...request,
+    longTerm: { stage: 'renewal' },
+  }).columns[0].pathways;
+  expect(
+    ambiguous.map(
+      (route) => route.checks.find((c) => c.id === 'C-07-window')?.status,
+    ),
+  ).toEqual(['UNKNOWN', 'MET']);
+});
+
+test('dated investor and family grants leave the unlabelled expiry for the employment renewal', () => {
+  const result = evaluateGreeceFull({
+    ...base,
+    currentCardExpiresOn: '2026-12-30',
+    renewalForceMajeure: 'none',
+    permits: [
+      { kind: 'investor', from: '2021-06-01', to: '2026-06-01' },
+      {
+        kind: 'regular',
+        purpose: 'family-reunification',
+        from: '2024-04-01',
+        to: '2026-04-01',
+      },
+    ],
+    goldenVisa: { stage: 'renewal' },
+    familyTcn: { stage: 'renewal' },
+    euFamily: { stage: 'permanent-renewal', priorCardExpiry: '2027-01-01' },
+    work: { permit: 'E4', stage: 'renewal', taxesSettledDuringPermit: true },
+    pathways: ['GR-GOLDEN-VISA', 'GR-FAMILY-TCN', 'GR-WORK'],
+  });
+  const [golden, family, work] = result.columns[0].pathways;
+  expect(
+    golden.checks.find((c) => c.id === 'GR-GOLDEN-VISA-TIME')?.status,
+  ).toBe('NOT_MET');
+  expect(family.checks.find((c) => c.id === 'C-07-window')).toMatchObject({
+    status: 'NOT_MET',
+    explanation: expect.stringContaining('2026-02-01'),
+  });
+  expect(work.status).toBe('MET');
+});
+
 test('a protected resident confirms a possible article 144(2A) exclusion for a trip that changes the filing date', () => {
   const grantedProtection = {
     claimedOn: '2019-11-24',
@@ -897,6 +1086,14 @@ test('a protected resident confirms a possible article 144(2A) exclusion for a t
     permits: [{ kind: 'regular', from: '2020-04-10' }],
     trips: [{ departed: '2024-04-10', returned: '2024-04-12' }],
   } satisfies Partial<GrFullRequest>;
+  expect(
+    path('GR-LONG-TERM', {
+      ...request,
+      trips: [
+        { departed: '2020-04-01', returned: grantedProtection.grantedOn },
+      ],
+    }).status,
+  ).toBe('MET');
   const result = path('GR-LONG-TERM', request);
   expect(
     result.checks.find((check) => check.id === 'GR-LONG-TERM-TIME')?.status,

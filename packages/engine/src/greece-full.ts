@@ -14,9 +14,15 @@ import {
   blueMobilityTiming,
   type GrBlueCardMobility,
 } from './greece-blue-mobility';
-import { evaluateGreece, evaluateGreeceWithNationalityCredit } from './greece';
-import type { GrPathway, GrPathwayId, GrPermit, GrRequest } from './greece';
-import { applicantPermitHistory } from './greece-permit-history';
+import { greeceFilingPeriods } from './greece';
+import { recordedCardExpiry } from './greece-permit-history';
+import type {
+  GrPathway,
+  GrPathwayId,
+  GrPermit,
+  GrRequest,
+  GrTrip,
+} from './greece';
 import {
   commonChecks,
   ordinaryRenewalWindow,
@@ -27,6 +33,7 @@ import {
   type GrPropertyFamilyAnswers,
 } from './greece-property-family';
 import {
+  absencePeriods,
   grContext,
   type GrContext,
   type GrEntry,
@@ -69,6 +76,10 @@ export interface GrFullRequest
     GrPropertyFamilyAnswers,
     GrWorkFamilyAnswers {
   simulationDate: IsoDate;
+  trips?: (GrTrip & {
+    /** Classification of this absence under the Greek or EU family continuity rules. */
+    familyAbsenceReason?: 'ordinary' | 'compulsory-service' | 'serious-reason';
+  })[];
   /** The time model uses validity dates. The full model can also use the grant on the card. */
   permits?: (GrPermit & {
     issuedOn?: IsoDate;
@@ -103,6 +114,26 @@ const timeIds = {
   'GR-GOLDEN-VISA': ['GV-TIME-RENEWAL', 'GV-TIME-LATE'],
 } as const;
 
+function bornResidentExemption(req: GrFullRequest) {
+  return (
+    req.route === 'general' &&
+    req.nationality?.bornAndContinuouslyResident === true
+  );
+}
+
+function birthResidenceNeedsReview(req: GrFullRequest) {
+  const filing =
+    req.nationality?.pendingApplicationFiledOn ?? req.simulationDate;
+  return !!(
+    absencePeriods(req.trips ?? [], req.birthDate, filing).length ||
+    req.nationality?.diplomaticSpouse?.periods.some(
+      (period) =>
+        period.from < filing &&
+        (!req.birthDate || period.through >= req.birthDate),
+    )
+  );
+}
+
 function timeRoute(
   id: GrFullPathwayId,
   req: GrFullRequest,
@@ -112,10 +143,7 @@ function timeRoute(
       return req.longTerm?.stage === 'initial' ? id : undefined;
     case 'GR-NATIONALITY':
       return req.nationality?.stage === 'application' &&
-        !(
-          req.route === 'general' &&
-          req.nationality?.bornAndContinuouslyResident
-        )
+        (!bornResidentExemption(req) || birthResidenceNeedsReview(req))
         ? id
         : undefined;
     case 'GR-GOLDEN-VISA':
@@ -229,12 +257,8 @@ function goldenRenewalTime(
   original: GrPathway | undefined,
   c: GrContext,
 ): GrPathway | undefined {
-  const card = applicantPermitHistory(req)
-    .flatMap((record) => record.validity ?? [])
-    .filter((x) => x.kind === 'investor' && x.from <= req.simulationDate)
-    .sort((a, b) => a.from.localeCompare(b.from))
-    .at(-1);
-  const expiry = req.currentCardExpiresOn ?? card?.to;
+  const expiry =
+    req.currentCardExpiresOn ?? recordedCardExpiry(req, 'investor');
   if (!expiry) return undefined;
   const window = ordinaryRenewalWindow(req, expiry, c);
   if (
@@ -344,7 +368,7 @@ function timeChecks(
             ? ['PD-305']
             : pending.filter((pd) => pd === (i === 0 ? 'PD-101' : 'PD-102'))
           : id === 'GR-NATIONALITY'
-            ? pending.filter((pd) => pd === 'PD-109')
+            ? pending.filter((pd) => pd === 'PD-109' || pd === 'PD-106')
             : [],
       ),
     ) ?? [];
@@ -422,7 +446,7 @@ function laterNationalityDate(
   time: GrPathway,
   c: GrContext,
   evaluateOn = (date: IsoDate) =>
-    evaluateGreece({ ...base, simulationDate: date }).pathways[2],
+    greeceFilingPeriods({ ...base, simulationDate: date }).pathways[2],
   serviceMilestones: IsoDate[] = [],
 ): GrPathway {
   if (time.status !== 'NOT_MET') return time;
@@ -477,7 +501,7 @@ function nationalityWithPosting(
       trips.push({ departed, returned });
   }
   const base = { ...req, trips };
-  const ordinary = evaluateGreece(base).pathways[2];
+  const ordinary = greeceFilingPeriods(base).pathways[2];
   const completed = posting.yearInGreeceCompletedOn;
   if (
     req.route === 'twelve-year' ||
@@ -485,7 +509,7 @@ function nationalityWithPosting(
     completed === 'not-completed'
   )
     return ordinary;
-  const withPosting = evaluateGreeceWithNationalityCredit(base, {
+  const withPosting = greeceFilingPeriods(base, {
     periods: posting.periods,
     usableFrom: completed ?? req.simulationDate,
   }).pathways[2];
@@ -539,7 +563,7 @@ function pilotTimes(req: GrFullRequest, required: GrPathwayId[], c: GrContext) {
       trips: req.trips ?? [],
       route: req.route ?? ('general' as const),
     };
-    times = evaluateGreece(base).pathways;
+    times = greeceFilingPeriods(base).pathways;
     const filed = req.nationality?.pendingApplicationFiledOn;
     if (required.includes('GR-NATIONALITY')) {
       const posting = req.nationality?.diplomaticSpouse;
@@ -550,7 +574,7 @@ function pilotTimes(req: GrFullRequest, required: GrPathwayId[], c: GrContext) {
               posting,
               c,
             )
-          : evaluateGreece({ ...base, simulationDate: date }).pathways[2];
+          : greeceFilingPeriods({ ...base, simulationDate: date }).pathways[2];
       const milestones = (posting?.periods ?? []).map((p) =>
         addYears(p.from, policy.values.nationalityYears.value[base.route]),
       );
@@ -584,7 +608,7 @@ function pilotTimes(req: GrFullRequest, required: GrPathwayId[], c: GrContext) {
         exclusionApplies && answer !== 'none' ? answer : undefined,
       );
       if (permits !== req.permits) {
-        const lt = evaluateGreece({ ...base, permits }).pathways[0];
+        const lt = greeceFilingPeriods({ ...base, permits }).pathways[0];
         if (req.grantedProtection)
           lt.checks[0].sources.push(
             ...policy.values.originalProtectionFullCreditMonths.sources,
@@ -597,21 +621,14 @@ function pilotTimes(req: GrFullRequest, required: GrPathwayId[], c: GrContext) {
       // Compare both readings only when a reported trip could engage article
       // 144(2A). An empty trip history already rules out that event.
       if (exclusionApplies && answer === undefined) {
-        const lastTrip = req.trips
-          ?.filter(
-            (trip) =>
-              trip.departed <= req.simulationDate &&
-              (!protection || trip.returned >= protection.grantedOn),
-          )
-          .map((trip) =>
-            trip.returned > req.simulationDate
-              ? req.simulationDate
-              : trip.returned,
-          )
-          .sort()
-          .at(-1);
-        if (lastTrip) {
-          const possible = evaluateGreece({
+        const abroad = absencePeriods(
+          req.trips ?? [],
+          protection?.grantedOn,
+          addDays(req.simulationDate, 1),
+        ).at(-1);
+        if (abroad) {
+          const lastTrip = addDays(abroad.until, -1);
+          const possible = greeceFilingPeriods({
             ...base,
             permits: longTermPeriods(req, req.permits, lastTrip),
           }).pathways[0];
@@ -659,25 +676,34 @@ function evaluateFilingOnDate(
   let time: GrPathway | undefined;
   let timing: CountryCheck[] = [];
   const needed = timeRoute(id, req);
-  if (needed) {
+  if (needed)
     time = routeTiming(needed, req, times ?? pilotTimes(req, [needed], c), c);
-    timing = timeChecks(needed, time, c);
-  } else if (
+  if (
     id === 'GR-NATIONALITY' &&
-    req.nationality?.stage === 'application'
+    req.nationality?.stage === 'application' &&
+    bornResidentExemption(req) &&
+    time?.status !== 'MET'
   ) {
+    // The ordinary seven-year route can independently qualify; a disputed
+    // exemption alone cannot establish either eligibility or an earliest date.
+    time = undefined;
     rules.push(
       c.check(
         'NAT-BIRTH-EXEMPTION',
         '在希出生并持续居住',
         'Born and continuously resident in Greece',
-        true,
+        needed ? undefined : true,
         [grSource('F34', 'ΚΕΙ art. 5(1)(δ)'), grSource('F35', 'p2')],
-        '已声明在希腊出生并持续居住，适用一般居住年限豁免。',
-        'Continuous residence in Greece since birth exempts the applicant from the general residence period.',
+        needed
+          ? '出生至递件日之间有境外居住记录，须核实是否仍符合持续在希居住的豁免。'
+          : '已声明在希腊出生并持续居住，适用一般居住年限豁免。',
+        needed
+          ? 'Verify whether the recorded absences since birth preserve continuous residence for the exemption.'
+          : 'Continuous residence in Greece since birth exempts the applicant from the general residence period.',
+        needed ? ['PD-106'] : undefined,
       ),
     );
-  }
+  } else if (needed) timing = timeChecks(needed, time, c);
   // A reporting fine (C-06) does not bar filing. Use the combined timing result
   // because ordinary and late renewal windows are alternatives.
   const gates = [
@@ -738,22 +764,61 @@ function filingUnderApplicableLaw(
   return { filing, on, waitsFromReview };
 }
 
-export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
-  // A single unlabelled expiry cannot be assigned to two different renewal cards.
-  if (
-    req.currentCardExpiresOn &&
+function renewalCardRequest(req: GrFullRequest) {
+  const familyExpiry =
+    req.familyTcn?.stage === 'renewal'
+      ? recordedCardExpiry(req, 'family-reunification')
+      : undefined;
+  const renewals = [
+    ['GR-WORK', req.work?.stage, undefined],
+    ['GR-LONG-TERM', req.longTerm?.stage, undefined],
+    ['GR-FAMILY-TCN', req.familyTcn?.stage, familyExpiry],
     [
-      req.work?.stage,
-      req.familyTcn?.stage,
+      'GR-GOLDEN-VISA',
       req.goldenVisa?.stage,
-      req.longTerm?.stage,
-      req.tenYear?.stage,
+      req.goldenVisa?.stage === 'renewal'
+        ? recordedCardExpiry(req, 'investor')
+        : undefined,
+    ],
+    ['GR-TEN-YEAR', req.tenYear?.stage, req.tenYear?.cardExpiresOn],
+    [
+      'GR-GREEK-FAMILY-PR',
       req.greekFamily?.stage,
-      req.euFamily?.stage,
-    ].filter((stage) => stage === 'renewal' || stage === 'permanent-renewal')
-      .length > 1
-  )
-    req = { ...req, currentCardExpiresOn: undefined };
+      req.greekFamily?.priorCardExpiry,
+    ],
+    ['GR-EU-FAMILY-PR', req.euFamily?.stage, req.euFamily?.priorCardExpiry],
+  ] as const;
+  const active = renewals.filter(
+    ([, stage]) => stage === 'renewal' || stage === 'permanent-renewal',
+  );
+  const missing = active.filter(([, , expiry]) => !expiry);
+  return (id: GrFullPathwayId): GrFullRequest => {
+    // Assign the unlabelled date once, after accounting for all declared renewals.
+    let currentCardExpiresOn =
+      active.length <= 1 || (missing.length === 1 && missing[0][0] === id)
+        ? req.currentCardExpiresOn
+        : undefined;
+    if (id === 'GR-FAMILY-TCN') currentCardExpiresOn ??= familyExpiry;
+    if (
+      id === 'GR-EU-FAMILY-PR' &&
+      (req.euFamily?.stage === 'renewal' ||
+        req.euFamily?.stage === 'permanent-renewal') &&
+      req.euFamily.priorCardIssued !== false &&
+      !req.euFamily.priorCardExpiry &&
+      currentCardExpiresOn
+    )
+      return {
+        ...req,
+        euFamily: { ...req.euFamily, priorCardExpiry: currentCardExpiresOn },
+      };
+    return currentCardExpiresOn === req.currentCardExpiresOn
+      ? req
+      : { ...req, currentCardExpiresOn };
+  };
+}
+
+export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
+  const requestFor = renewalCardRequest(req);
   const c = grContext(req.locale);
   const ids = req.pathways ?? (Object.keys(titles) as GrFullPathwayId[]);
   const required = ids
@@ -818,7 +883,7 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
     }
     const { filing, on, waitsFromReview } = filingUnderApplicableLaw(
       id,
-      req,
+      requestFor(id),
       scope,
       times,
     );

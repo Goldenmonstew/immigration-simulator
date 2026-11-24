@@ -449,6 +449,65 @@ describe('Ο.2 filing evidence under articles 24 and 90', () => {
     });
     expect(result.status).toBe('UNKNOWN');
   });
+  test('Ο.2 needs actual Greek residence when travel overlaps its five-year card evidence', () => {
+    const request = {
+      simulationDate: '2026-11-24',
+      familyTcn: { ...spouse, familyResidenceFrom: undefined },
+      permits: [
+        {
+          kind: 'regular',
+          purpose: 'family-reunification',
+          from: '2021-11-10',
+          issuedOn: '2021-11-10',
+          to: '2027-02-01',
+        },
+      ],
+    } satisfies Partial<GrFullRequest>;
+    const run = (
+      departed: string,
+      returned: string,
+      familyResidenceYears?: number,
+    ) =>
+      route('GR-FAMILY-TCN', {
+        ...request,
+        familyTcn: { ...request.familyTcn, familyResidenceYears },
+        trips: [{ departed, returned }],
+      });
+    const overlap = run('2023-02-01', '2024-01-15');
+    expect(overlap.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+      'UNKNOWN',
+    );
+    expect(overlap.status).toBe('UNKNOWN');
+    expect(overlap.earliestDate).toBeUndefined();
+    expect(run('2023-02-01', '2024-01-15', 4).status).toBe('NOT_MET');
+    expect(run('2023-02-01', '2024-01-15', 5).status).toBe('MET');
+    expect(run('2023-02-01', '2023-02-09').status).toBe('MET');
+    expect(run('2020-02-01', '2021-11-24').status).toBe('MET');
+    expect(run('2026-11-24', '2027-06-01').status).toBe('MET');
+  });
+  test('Ο.2 widowhood examines residence before death independently of later travel', () => {
+    const familyTcn = {
+      ...spouse,
+      autonomousBasis: 'bereavement',
+      familyResidenceFrom: '2020-01-01',
+      sponsorDiedOn: '2025-11-24',
+      relationshipAndDocumentsGenuine: true,
+    } as const;
+    const trips = [{ departed: '2024-12-01', returned: '2025-10-01' }];
+    expect(route('GR-FAMILY-TCN', { familyTcn, trips }).status).toBe('UNKNOWN');
+    expect(
+      route('GR-FAMILY-TCN', {
+        familyTcn: { ...familyTcn, familyResidenceYears: 1 },
+        trips,
+      }).status,
+    ).toBe('MET');
+    expect(
+      route('GR-FAMILY-TCN', {
+        familyTcn,
+        trips: [{ departed: '2025-12-01', returned: '2026-10-01' }],
+      }).status,
+    ).toBe('MET');
+  });
 
   test('the same applicant’s Ε.4 renewal blocks Ο.2 even with a negative other-grants answer', () => {
     const req = {

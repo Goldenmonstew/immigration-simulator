@@ -1,11 +1,10 @@
-import type { GrPermit } from './greece';
 import type { GrFullRequest } from './greece-full';
 import type { IsoDate } from './types';
 
 interface ApplicantPermit {
   purpose: 'family' | 'other' | 'unconfirmed';
   issuedOn?: IsoDate;
-  validity?: GrPermit;
+  validity?: NonNullable<GrFullRequest['permits']>[number];
 }
 
 /** Applicant grants as of the assessment day. A validity period does not date the grant. */
@@ -157,4 +156,22 @@ export function applicantPermitHistory(req: GrFullRequest): ApplicantPermit[] {
   )
     history.push({ purpose: 'unconfirmed' });
   return history;
+}
+
+/** Expiry of the latest effective, issued card identified for this renewal. */
+export function recordedCardExpiry(
+  req: GrFullRequest,
+  card: 'investor' | 'family-reunification',
+) {
+  return applicantPermitHistory(req)
+    .flatMap((record) => record.validity ?? [])
+    .filter(
+      (permit) =>
+        permit.from <= req.simulationDate &&
+        (card === 'investor'
+          ? permit.kind === 'investor'
+          : permit.kind === 'regular' && permit.purpose === card),
+    )
+    .sort((a, b) => a.from.localeCompare(b.from))
+    .at(-1)?.to;
 }

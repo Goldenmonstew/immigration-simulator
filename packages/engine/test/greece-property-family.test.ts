@@ -913,6 +913,219 @@ describe('property and family reviews through evaluateGreeceFull', () => {
     expect(path.earliestDate).toBe(earliestDate);
   }
 
+  test('Ν counts only the residence years before acquisition and honours documented trip exceptions', () => {
+    const run = (trips: GrFullRequest['trips']) =>
+      full('GR-EU-FAMILY-PR', { trips });
+    const long = { departed: '2023-12-01', returned: '2024-08-05' };
+    verify(
+      run([{ departed: '2017-01-01', returned: '2021-11-23' }]),
+      'EF-03',
+      'MET',
+    );
+    verify(run([long]), 'EF-03', 'UNKNOWN');
+    verify(
+      run([{ ...long, familyAbsenceReason: 'ordinary' }]),
+      'EF-03',
+      'NOT_MET',
+    );
+    for (const familyAbsenceReason of [
+      'compulsory-service',
+      'serious-reason',
+    ] as const)
+      verify(run([{ ...long, familyAbsenceReason }]), 'EF-03', 'MET');
+    verify(
+      run([
+        {
+          departed: '2022-12-01',
+          returned: '2023-04-01',
+          familyAbsenceReason: 'ordinary',
+        },
+        {
+          departed: '2023-06-01',
+          returned: '2023-10-01',
+          familyAbsenceReason: 'ordinary',
+        },
+      ]),
+      'EF-03',
+      'NOT_MET',
+    );
+    verify(
+      run([
+        {
+          departed: '2023-08-01',
+          returned: '2024-03-01',
+          familyAbsenceReason: 'ordinary',
+        },
+      ]),
+      'EF-03',
+      'MET',
+    );
+  });
+
+  test('Μ.3 resolves travel in the claimed joint residence period and after expiry separately', () => {
+    const run = (trips: GrFullRequest['trips'], extra: Partial<Greek> = {}) =>
+      full('GR-GREEK-FAMILY-PR', {
+        trips,
+        greekFamily: { ...greek, ...extra },
+      });
+    const long = { departed: '2023-12-01', returned: '2024-08-05' };
+    verify(
+      run([{ departed: '2016-01-01', returned: '2021-11-22' }]),
+      'GF-03',
+      'MET',
+    );
+    verify(run([long]), 'GF-03', 'UNKNOWN');
+    verify(
+      run([{ ...long, familyAbsenceReason: 'compulsory-service' }]),
+      'GF-03',
+      'MET',
+    );
+    verify(
+      run([{ departed: '2021-01-01', returned: '2026-02-02' }], {
+        residenceFrom: '2015-11-23',
+        priorCardExpiry: '2024-01-01',
+        interruptionAfterExpiryYears: 0,
+      }),
+      'GF-03',
+      'NOT_MET',
+    );
+  });
+
+  test('permanent family rights assess only consecutive days after actual acquisition', () => {
+    const acquired = {
+      stage: 'maintain',
+      permanentRightAcquiredOn: '2023-01-01',
+      longestAbsenceAfterPrYears: 0,
+    } as const;
+    for (const [returned, status] of [
+      ['2025-01-01', 'MET'],
+      ['2025-01-02', 'NOT_MET'],
+    ] as const) {
+      const trips = [{ departed: '2017-11-23', returned }];
+      verify(
+        full('GR-GREEK-FAMILY-PR', { greekFamily: acquired, trips }),
+        'GF-05',
+        status,
+      );
+      verify(
+        full('GR-EU-FAMILY-PR', {
+          euFamily: { ...acquired, shamOrFraud: false },
+          trips,
+        }),
+        'EF-03',
+        status,
+      );
+    }
+  });
+
+  test('a later documented five-year period can qualify a family after an earlier interruption', () => {
+    const residenceFrom = '2012-01-01';
+    const trips = [
+      {
+        departed: '2012-03-01',
+        returned: '2016-05-01',
+        familyAbsenceReason: 'ordinary',
+      },
+    ] as const;
+    verify(
+      full('GR-GREEK-FAMILY-PR', {
+        greekFamily: { ...greek, residenceFrom },
+        trips: [...trips],
+      }),
+      'GF-03',
+      'MET',
+    );
+    verify(
+      full('GR-EU-FAMILY-PR', {
+        euFamily: { ...european, residenceFrom },
+        trips: [...trips],
+      }),
+      'EF-03',
+      'MET',
+    );
+    verify(
+      full('GR-EU-FAMILY-PR', {
+        euFamily: {
+          ...european,
+          residenceFrom,
+          relationship: 'primary-carer-of-mobile-eu-minor',
+          primaryCare: {
+            childBirthDate: '2001-01-01',
+            residenceBasis: 'permanent',
+          },
+        },
+        trips: [...trips],
+      }),
+      'EF-01',
+      'NOT_MET',
+    );
+  });
+
+  test('a long absence between the joint-residence anniversary and the first Μ.3 filing needs a grant date', () => {
+    const base = {
+      ...greek,
+      residenceFrom: '2010-01-01',
+      priorCardExpiry: '2026-12-15',
+    };
+    const trips = [{ departed: '2022-02-01', returned: '2025-01-01' }];
+    verify(
+      full('GR-GREEK-FAMILY-PR', { greekFamily: base, trips }),
+      'GF-03',
+      'UNKNOWN',
+    );
+    verify(
+      full('GR-GREEK-FAMILY-PR', {
+        greekFamily: { ...base, permanentRightAcquiredOn: '2021-01-01' },
+        trips,
+      }),
+      'GF-03',
+      'NOT_MET',
+    );
+  });
+
+  test('Ν uses a qualified occupational event independently of the applicant’s earlier five-year absences', () => {
+    const euFamily = {
+      ...european,
+      residenceFrom: '2020-01-01',
+      early: {
+        basis: 'occupational-incapacity',
+        eventDate: '2025-01-01',
+        livedTogetherAtEvent: true,
+      },
+    } as const;
+    const trips = [
+      {
+        departed: '2020-02-01',
+        returned: '2022-10-01',
+        familyAbsenceReason: 'ordinary',
+      },
+    ] as const;
+    verify(
+      full('GR-EU-FAMILY-PR', { euFamily, trips: [...trips] }),
+      'EF-03',
+      'MET',
+    );
+  });
+
+  test('Ν uses both bounds when an earlier acquisition is possible', () => {
+    const euFamily = {
+      ...european,
+      residenceFrom: '2012-01-01',
+      early: undefined,
+      longestAbsenceAfterPrYears: 0,
+    };
+    const run = (departed: string, returned: string) =>
+      full('GR-EU-FAMILY-PR', {
+        euFamily,
+        trips: [
+          { departed, returned, familyAbsenceReason: 'compulsory-service' },
+        ],
+      });
+    verify(run('2022-01-01', '2025-01-01'), 'EF-03', 'NOT_MET');
+    verify(run('2015-01-01', '2017-06-01'), 'EF-03', 'UNKNOWN');
+    verify(run('2006-01-01', '2010-01-01'), 'EF-03', 'MET');
+  });
+
   test('Β.5 requires the application stage even with a previous investor card on record', () => {
     for (const permits of [
       undefined,

@@ -1,7 +1,11 @@
 import { greeceFull2026_11 } from '@uk-immigration/policy-data';
-import { addDays, addMonths, addYears, daysBetween } from './dates';
+import { addDays, addYears, daysBetween } from './dates';
 import type { GrPathway, GrTrip } from './greece';
-import type { GrContext } from './greece-rules';
+import {
+  absencePeriods,
+  residenceBreaks,
+  type GrContext,
+} from './greece-rules';
 import { Days, HORIZON_YEARS, monthSpan } from './pilot';
 import type { IsoDate } from './types';
 
@@ -10,6 +14,8 @@ export interface GrBlueCardMobility {
   usedLongTermMobility?: boolean;
   greekBlueCardFrom?: IsoDate;
   greekBlueCardThrough?: IsoDate;
+  /** Established start of continuous lawful residence in Greece on the Greek Blue Card. */
+  greekResidenceFrom?: IsoDate;
   /** Qualifying residence before the current Greek Blue Card, including earlier periods in Greece. */
   priorMemberPeriods?: {
     from: IsoDate;
@@ -92,17 +98,11 @@ export function blueMobilityTiming(
     runStart.push(weight ? (runStart[i - 1] ?? i) : i + 1);
   }
   const trips = [...greekTrips, ...mobility.otherMemberTrips];
+  const breaks = residenceBreaks(trips, rule.singleAbsenceMonths);
   const away: boolean[] = [];
-  const longAbsence: boolean[] = [];
-  for (const trip of trips) {
-    const first = addDays(trip.departed, 1);
-    const last = addDays(trip.returned, -1);
-    days.mark(away, first, last);
-    if (trip.returned >= addMonths(first, rule.singleAbsenceMonths))
-      days.mark(longAbsence, first, last);
-  }
+  for (const trip of trips)
+    days.mark(away, addDays(trip.departed, 1), addDays(trip.returned, -1));
   const absenceDays = days.sums((i) => away[i]);
-  const longDays = days.sums((i) => longAbsence[i]);
   const [min, max] = monthSpan(rule.totalAbsenceMonths);
   const greekAnniversary = addYears(from, rule.greekYears);
   for (let i = days.index(sim); i < days.count; i++) {
@@ -124,15 +124,37 @@ export function blueMobilityTiming(
       date >= greekAnniversary &&
       (!mobility.greekBlueCardThrough || date <= mobility.greekBlueCardThrough);
     const absence = absenceDays[i] - absenceDays[start];
-    const withinSingle = longDays[i] === longDays[start];
+    const withinSingle =
+      !absence ||
+      !breaks.some((a) => a.returned > days.date(start) && a.reachedOn <= date);
     const withinTotal =
       absence <= min ? true : absence > max ? false : undefined;
+    // Article 43(3) relaxes absences for the Member State total in (2)(a).
+    // Card validity alone does not establish the separate Greek residence in (2)(b).
+    const greekResidence = mobility.greekResidenceFrom
+      ? date >= addYears(mobility.greekResidenceFrom, rule.greekYears)
+      : !absencePeriods(greekTrips, addYears(date, -rule.greekYears), date)
+          .length || undefined;
     if (date === sim) {
-      checks[0].met = enough && held;
+      checks[0].met = enough && held && greekResidence;
       checks[1].met = withinSingle;
       checks[2].met = withinTotal;
     }
-    if (!enough || !held || !withinSingle || withinTotal === false) continue;
+    if (
+      !enough ||
+      !held ||
+      greekResidence === false ||
+      !withinSingle ||
+      withinTotal === false
+    )
+      continue;
+    if (greekResidence === undefined) {
+      result.summary = L(
+        '最后一段希腊蓝卡有效期内有离境记录。请核实以蓝卡在希连续合法居留的实际起日。',
+        'Travel overlaps the final Greek Blue Card period. Confirm when continuous lawful residence in Greece on that card began.',
+      );
+      return result;
+    }
     if (withinTotal === undefined || mobility.usedLongTermMobility !== true) {
       if (withinTotal === undefined) {
         result.pendingDetails = ['PD-305'];

@@ -1,5 +1,6 @@
 import { greece2026_11 as gr } from '@uk-immigration/policy-data';
 import { addDays, addMonths, addYears, daysBetween } from './dates';
+import { residenceBreaks } from './greece-rules';
 import { Days, HORIZON_YEARS, monthSpan } from './pilot';
 import type { PilotPathway, PilotResult, PilotStatus } from './pilot';
 import { textFor } from './rule';
@@ -56,18 +57,28 @@ export type GrResult = PilotResult<GrPathwayId>;
 const v = gr.values;
 type Verdict = 'yes' | 'maybe' | 'no';
 
-export function evaluateGreece(req: GrRequest): GrResult {
-  return evaluateGreeceWithNationalityCredit(req);
+interface NationalityCredit {
+  periods: { from: IsoDate; through: IsoDate }[];
+  usableFrom: IsoDate;
 }
 
-/** Used by the full evaluator for Citizenship Code article 5(1)(δ). Credit applies only to past residence. */
-export function evaluateGreeceWithNationalityCredit(
+export function evaluateGreece(req: GrRequest): GrResult {
+  return evaluatePeriods(req);
+}
+
+/** The full model assesses the recorded absence as of each candidate filing date. */
+export function greeceFilingPeriods(
   req: GrRequest,
-  credit?: {
-    periods: { from: IsoDate; through: IsoDate }[];
-    usableFrom: IsoDate;
-  },
+  credit?: NationalityCredit,
+) {
+  return evaluatePeriods(req, { credit });
+}
+
+function evaluatePeriods(
+  req: GrRequest,
+  filing?: { credit?: NationalityCredit },
 ): GrResult {
+  const credit = filing?.credit;
   const L = textFor(req);
   const sim = req.simulationDate;
   const longest = Math.max(...Object.values(v.nationalityYears.value));
@@ -174,11 +185,18 @@ export function evaluateGreeceWithNationalityCredit(
     const sureFrom = halfCredit(['regular']);
     // Golden visa time is neither excluded nor confirmed (PD-101).
     const maybeFrom = halfCredit(['regular', 'investor']);
+    const breaks =
+      filing && residenceBreaks(req.trips, v.singleAbsenceMonths.value);
     const absences = (start: IsoDate, to: IsoDate) => ({
       start,
-      long: tripsIn(start, to).filter(
-        (t) => t.returned > addMonths(t.departed, v.singleAbsenceMonths.value),
-      ),
+      long: breaks
+        ? breaks.filter(
+            (a) => a.returned > start && a.reachedOn <= addDays(to, 1),
+          )
+        : tripsIn(start, to).filter(
+            (t) =>
+              t.returned > addMonths(t.departed, v.singleAbsenceMonths.value),
+          ),
       absent: days.total(sums.away, start, to),
     });
     const facts = (d: IsoDate) => {
@@ -457,12 +475,12 @@ export function evaluateGreeceWithNationalityCredit(
     const absences = window
       ? req.trips.filter((t) => {
           if (t.departed > window.to || t.returned < window.from) return false;
-          if (!otherAbsences) return true;
+          if (!otherAbsences && !filing) return true;
           const first = addDays(t.departed, 1);
           const last = addDays(t.returned, -1);
           return (
             days.total(
-              otherAbsences,
+              otherAbsences ?? sums.away,
               first > window.from ? first : window.from,
               last < window.to ? last : window.to,
             ) > 0
@@ -522,7 +540,14 @@ export function evaluateGreeceWithNationalityCredit(
             `递交前 ${years} 年一直合法居留（普通许可或黄金签证；国家签证待确认，学习不计），递交当天持普通许可或黄金签证`,
             `Legal residence throughout the ${years} years before applying (ordinary permits or golden visa; national visas uncertain, study not counted), and an ordinary permit or golden visa on the application day`,
           ),
-          met: settledOn(sim) ? true : lawfulOn(sim) ? undefined : false,
+          met:
+            filing && earliest === sim && absences.length
+              ? undefined
+              : settledOn(sim)
+                ? true
+                : lawfulOn(sim)
+                  ? undefined
+                  : false,
           sources: [
             ...v.nationalityYears.sources,
             { srcId: 'SRC-086', locator: 'άρθ. 123 παρ. 6 (p82)' },

@@ -1,9 +1,16 @@
 import { greeceFull2026_11, grSource } from '@uk-immigration/policy-data';
 import type { CountryCheck } from './country-result';
-import { addDays, addMonths, addYears } from './dates';
+import { addDays, addMonths, addYears, daysBetween } from './dates';
 import { applicantPermitHistory } from './greece-permit-history';
 import type { GrFullRequest } from './greece-full';
-import { ageOn, all, any, insuranceMet, type GrContext } from './greece-rules';
+import {
+  absencePeriods,
+  ageOn,
+  all,
+  any,
+  insuranceMet,
+  type GrContext,
+} from './greece-rules';
 import type { IsoDate } from './types';
 
 interface WorkAnswers {
@@ -132,12 +139,12 @@ interface FamilyAnswers {
   /** First Greek family-reunification grant, or completed years evidenced by the family permits. */
   firstFamilyPermitIssuedOn?: IsoDate;
   yearsSinceFirstFamilyPermit?: number;
-  /** Uninterrupted family residence in Greece, including the current period. */
+  /** Start of actual uninterrupted family residence in Greece, distinct from a permit date. */
   familyResidenceFrom?: IsoDate;
   blueFamilyYearsInEU?: number;
   /** First day of continuous qualifying family residence across Member States, including Greece. */
   blueFamilyResidenceFrom?: IsoDate;
-  /** Without dates, familyResidenceYears on the bereavement basis is residence before death. */
+  /** On the bereavement basis, familyResidenceYears is verified residence before death. */
   sponsorDiedOn?: IsoDate;
   /** Periods up to commencement of proceedings or consensual dissolution. */
   priorMarriageYears?: number;
@@ -869,9 +876,10 @@ function familyMember(f: FamilyAnswers, req: GrFullRequest): Filing {
 
 function autonomousResidenceDue(
   f: FamilyAnswers,
-  today: IsoDate,
+  req: GrFullRequest,
   history: ReturnType<typeof applicantPermitHistory>,
 ): Filing {
+  const today = req.simulationDate;
   const limits = p.familyAutonomy.value;
   const residence = residenceDue(
     f.familyResidenceFrom,
@@ -906,9 +914,26 @@ function autonomousResidenceDue(
     if (card.from <= today && (!card.to || card.to >= lastRequiredDay))
       coveredFrom = card.from;
   }
-  const documentedResidence =
-    residence ??
-    residenceDue(coveredFrom, undefined, limits.residenceYears, today);
+  // Article 90(1) requires residence in Greece. It does not say which trips may
+  // be counted as such residence solely on the strength of an unexpired card.
+  let documentedResidence = residence;
+  if (documentedResidence === undefined && coveredFrom) {
+    const anniversary = addYears(coveredFrom, limits.residenceYears);
+    const filing = anniversary > today ? anniversary : today;
+    const absences = absencePeriods(req.trips ?? [], coveredFrom, filing);
+    const windowStart = addYears(filing, -limits.residenceYears);
+    // The domestic provision asks for completed years. If enough time remains
+    // even after excluding every recorded day abroad, no absence credit is needed.
+    const absentDays = absences.reduce(
+      (total, period) => total + daysBetween(period.from, period.until),
+      0,
+    );
+    if (
+      !absences.some((period) => period.until > windowStart) ||
+      absentDays <= daysBetween(anniversary, filing)
+    )
+      documentedResidence = dueOn(anniversary, today);
+  }
   const domestic =
     f.member === 'child'
       ? residence
@@ -997,20 +1022,28 @@ function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
         f.previousFamilyCard ??
           (history.some((record) => record.purpose === 'family') || undefined),
         onlyFamilyPermits,
-        autonomousResidenceDue(f, req.simulationDate, history),
+        autonomousResidenceDue(f, req, history),
         member,
       );
     }
-    case 'bereavement':
+    case 'bereavement': {
+      let beforeDeath = atLeast(f.familyResidenceYears, a.bereavementYears);
+      if (f.sponsorDiedOn && f.familyResidenceFrom) {
+        const start = addYears(f.sponsorDiedOn, -a.bereavementYears);
+        if (f.familyResidenceFrom > start) beforeDeath = false;
+        else if (
+          !req.trips ||
+          !absencePeriods(req.trips, start, f.sponsorDiedOn).length
+        )
+          beforeDeath = true;
+      }
       return all(
         f.previousFamilyCard,
         f.relationshipAndDocumentsGenuine,
         f.sponsorDiedOn === undefined || f.sponsorDiedOn <= req.simulationDate,
-        f.sponsorDiedOn && f.familyResidenceFrom
-          ? addYears(f.familyResidenceFrom, a.bereavementYears) <=
-              f.sponsorDiedOn
-          : atLeast(f.familyResidenceYears, a.bereavementYears),
+        beforeDeath,
       );
+    }
     case 'divorce':
       return all(
         f.previousFamilyCard,
@@ -1267,8 +1300,8 @@ function familyChecks(
           grSource('F21', 'art. 24(1.1)(α), (1.2)(α–δ), (1.3)–(1.4), p. 17'),
           grSource('F36', 'art. 29 (art. 95(2))'),
         ],
-        `配偶、登记伴侣凭首张团聚许可签发日起算，成年子女按在希居留计算。满 ${a.residenceYears} 年转换时，须从未因家庭团聚以外的事由获发居留许可。请核实完整许可历史或明确回答是否获发其他许可。仅有生效日时，请补首卡签发日或卡件证实的年数。蓝卡家属可合计成员国居留，但最后 ${a.blueGreekYears} 年须在希腊。丧偶须交担保人死亡登记，离婚、婚姻撤销或伴侣解约须交相应决定或解约登记。丧偶前在希至少 ${a.bereavementYears} 年，婚姻或登记伴侣关系解除前须持续至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年。普通 Ο.1 子女从 ${a.adultAge} 岁起可凭家属卡转自主卡，满 ${a.childRenewalAge} 岁续卡须出示原自主卡。投资者子女从 ${p.familyMembers.value.investorChildLimit} 岁起可凭原家属卡转 ${p.gvFamily.value.independentYears} 年独立卡。特殊困难须提供证明。Ο.2 最长 ${a.cardYears} 年。`,
-        `For a spouse or registered partner, count from the first family permit grant. For an adult child, count residence in Greece. Applicants converting after ${a.residenceYears} years on family permits must never have been granted a residence permit for another purpose. Confirm the complete permit history or whether any other permit was granted. If only validity is recorded, supply the original grant date or the years evidenced by the cards. Blue Card families can count residence in other Member States if the final ${a.blueGreekYears} years were in Greece. Provide the civil death record, divorce or annulment decision or registered dissolution as applicable. Alternatives include ${a.bereavementYears} year before bereavement, a marriage or registered partnership of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before dissolution, or documented exceptional hardship. Ordinary Ο.1 children can convert their family card at ${a.adultAge} and renew at ${a.childRenewalAge} with the previous autonomous card. Investors’ children can convert their family card at ${p.familyMembers.value.investorChildLimit} for ${p.gvFamily.value.independentYears} years. Autonomous residence runs for up to ${a.cardYears} years.`,
+        `配偶、登记伴侣凭首张团聚许可签发日起算，成年子女按在希居留计算。满 ${a.residenceYears} 年转换时，须从未因家庭团聚以外的事由获发居留许可。请核实完整许可历史或明确回答是否获发其他许可。仅有生效日时，请补首卡签发日或卡件证实的年数。仅凭卡期推算且资格期内有离境时，请补经核实的实际在希居留起日或年数。蓝卡家属可合计成员国居留，但最后 ${a.blueGreekYears} 年须在希腊。丧偶须交担保人死亡登记，离婚、婚姻撤销或伴侣解约须交相应决定或解约登记。丧偶前在希至少 ${a.bereavementYears} 年，婚姻或登记伴侣关系解除前须持续至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年。普通 Ο.1 子女从 ${a.adultAge} 岁起可凭家属卡转自主卡，满 ${a.childRenewalAge} 岁续卡须出示原自主卡。投资者子女从 ${p.familyMembers.value.investorChildLimit} 岁起可凭原家属卡转 ${p.gvFamily.value.independentYears} 年独立卡。特殊困难须提供证明。Ο.2 最长 ${a.cardYears} 年。`,
+        `For a spouse or registered partner, count from the first family permit grant. For an adult child, count residence in Greece. Applicants converting after ${a.residenceYears} years on family permits must never have been granted a residence permit for another purpose. Confirm the complete permit history or whether any other permit was granted. If only validity is recorded, supply the original grant date or the years evidenced by the cards. If travel overlaps residence inferred only from cards, supply the verified start or duration of residence in Greece. Blue Card families can count residence in other Member States if the final ${a.blueGreekYears} years were in Greece. Provide the civil death record, divorce or annulment decision or registered dissolution as applicable. Alternatives include ${a.bereavementYears} year before bereavement, a marriage or registered partnership of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before dissolution, or documented exceptional hardship. Ordinary Ο.1 children can convert their family card at ${a.adultAge} and renew at ${a.childRenewalAge} with the previous autonomous card. Investors’ children can convert their family card at ${p.familyMembers.value.investorChildLimit} for ${p.gvFamily.value.independentYears} years. Autonomous residence runs for up to ${a.cardYears} years.`,
       ),
     );
   } else {

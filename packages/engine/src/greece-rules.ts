@@ -1,7 +1,8 @@
 import { greeceFull2026_11 } from '@uk-immigration/policy-data';
 import type { SourceRef } from '@uk-immigration/policy-data';
 import type { CountryCheck } from './country-result';
-import { fullYears } from './dates';
+import { addDays, addMonths, fullYears } from './dates';
+import type { GrTrip } from './greece';
 import { textFor } from './rule';
 import type { IsoDate, Locale } from './types';
 
@@ -35,6 +36,36 @@ export interface GrInsurance {
 }
 
 type Answer = boolean | undefined;
+
+/** Full days abroad within [from, until). Departure and return days are in Greece. */
+export function absencePeriods(
+  trips: GrTrip[],
+  from?: IsoDate,
+  until?: IsoDate,
+) {
+  const periods: { from: IsoDate; until: IsoDate }[] = [];
+  for (const trip of [...trips].sort((a, b) =>
+    a.departed.localeCompare(b.departed),
+  )) {
+    const first =
+      from && trip.departed < from ? from : addDays(trip.departed, 1);
+    const end = until && until < trip.returned ? until : trip.returned;
+    if (first >= end) continue;
+    const last = periods.at(-1);
+    if (last && first <= last.until) {
+      if (end > last.until) last.until = end;
+    } else periods.push({ from: first, until: end });
+  }
+  return periods;
+}
+
+// Articles 43(3) and 144(3): a disqualifying stay breaks continuity until
+// return. The break can first affect a filing once the single limit is reached.
+export function residenceBreaks(trips: GrTrip[], months: number) {
+  return absencePeriods(trips)
+    .map((a) => ({ reachedOn: addMonths(a.from, months), returned: a.until }))
+    .filter((a) => a.reachedOn <= a.returned);
+}
 
 export function all(...answers: Answer[]): Answer {
   return answers.includes(false)
