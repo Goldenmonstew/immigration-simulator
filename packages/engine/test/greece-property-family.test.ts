@@ -925,8 +925,9 @@ describe('property and family reviews through evaluateGreeceFull', () => {
     verify(run([long]), 'EF-03', 'UNKNOWN');
     verify(
       run([{ ...long, familyAbsenceReason: 'ordinary' }]),
-      'EF-03',
-      'NOT_MET',
+      'EF-02',
+      'FUTURE',
+      '2029-08-05',
     );
     for (const familyAbsenceReason of [
       'compulsory-service',
@@ -946,8 +947,9 @@ describe('property and family reviews through evaluateGreeceFull', () => {
           familyAbsenceReason: 'ordinary',
         },
       ]),
-      'EF-03',
-      'NOT_MET',
+      'EF-02',
+      'FUTURE',
+      '2028-04-01',
     );
     verify(
       run([
@@ -1016,6 +1018,118 @@ describe('property and family reviews through evaluateGreeceFull', () => {
         status,
       );
     }
+  });
+
+  test.each(['2026-11-24', '2027-09-30', '2027-10-01'] as const)(
+    'a documented return opens a new joint residence window on %s',
+    (simulationDate) => {
+      const trips = [
+        {
+          departed: '2022-01-01',
+          returned: '2022-10-01',
+          familyAbsenceReason: 'ordinary',
+        },
+      ] satisfies GrFullRequest['trips'];
+      const due = '2027-10-01';
+      const status = simulationDate < due ? 'FUTURE' : 'MET';
+      const earliest = status === 'FUTURE' ? due : undefined;
+      const priorCardExpiry = '2027-12-10';
+      verify(
+        full('GR-EU-FAMILY-PR', {
+          simulationDate,
+          trips,
+          euFamily: { ...european, priorCardExpiry },
+        }),
+        'EF-02',
+        status,
+        earliest,
+      );
+      verify(
+        full('GR-GREEK-FAMILY-PR', {
+          simulationDate,
+          trips,
+          greekFamily: { ...greek, priorCardExpiry },
+        }),
+        'GF-03',
+        status,
+        earliest,
+      );
+    },
+  );
+
+  test('Ν can qualify again on a documented return after losing an early right', () => {
+    const run = (simulationDate: string) =>
+      full('GR-EU-FAMILY-PR', {
+        simulationDate,
+        euFamily: {
+          ...european,
+          residenceFrom: '2019-01-01',
+          priorCardExpiry: '2032-12-10',
+          early: {
+            basis: 'occupational-incapacity',
+            eventDate: '2019-06-01',
+            livedTogetherAtEvent: true,
+          },
+        },
+        trips: [
+          {
+            departed: '2020-01-01',
+            returned: '2022-10-01',
+            familyAbsenceReason: 'ordinary',
+          },
+        ],
+      });
+    verify(run('2026-11-24'), 'EF-02', 'FUTURE', '2027-10-01');
+    verify(run('2027-10-01'), 'EF-02', 'MET');
+  });
+
+  test.each([
+    ['2027-05-02', 'MET'],
+    ['2027-05-03', 'UNKNOWN'],
+    ['2027-08-01', 'UNKNOWN'],
+  ] as const)(
+    'Ν checks a single serious absence across the anniversary through %s',
+    (returned, status) => {
+      const path = full('GR-EU-FAMILY-PR', {
+        simulationDate: returned,
+        euFamily: { ...european, priorCardExpiry: '2027-12-10' },
+        trips: [
+          {
+            departed: '2026-05-01',
+            returned,
+            familyAbsenceReason: 'serious-reason',
+          },
+        ],
+      });
+      verify(path, 'EF-03', status);
+      if (status === 'UNKNOWN') expect(path.pendingDetails).toContain('PD-315');
+    },
+  );
+
+  test('Ν resolves a disputed serious absence once a separate period qualifies', () => {
+    const run = (
+      simulationDate: string,
+      maxSeriousAbsenceMonths: number,
+    ) =>
+      full('GR-EU-FAMILY-PR', {
+        simulationDate,
+        passport: { kind: 'exception-granted' },
+        euFamily: {
+          ...european,
+          maxSeriousAbsenceMonths,
+          priorCardExpiry: '2033-12-10',
+        },
+        trips: [
+          {
+            departed: '2026-05-01',
+            returned: '2027-08-01',
+            familyAbsenceReason: 'serious-reason',
+          },
+        ],
+      });
+    verify(run('2027-08-01', 15), 'EF-03', 'UNKNOWN');
+    verify(run('2032-07-31', 12), 'EF-03', 'UNKNOWN');
+    verify(run('2032-08-01', 12), 'EF-03', 'MET');
   });
 
   test('a later documented five-year period can qualify a family after an earlier interruption', () => {

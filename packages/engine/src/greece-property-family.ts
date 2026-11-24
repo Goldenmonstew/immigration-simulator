@@ -457,16 +457,23 @@ function heldAfterAcquisition(
   return reported ?? (earliest ? true : undefined);
 }
 
-// A return can begin a later five-year period. Only use a completed alternative
-// when the applicant documents qualifying residence and the later right can still subsist.
+// A documented return can start a new qualifying period after an interruption.
 function jointResidenceWindow(
   a: Pick<FamilyResidence, 'residenceFrom' | 'qualifyingResidenceDocumented'>,
   req: GrFullRequest,
   years: number,
   lossYears: number,
+  canProjectReturn: boolean,
   greek?: GreekFamilyAnswers,
 ) {
   const start = a.residenceFrom;
+  const longSeriousAbsences = greek
+    ? []
+    : absencePeriods(
+        (req.trips ?? []).filter(
+          (t) => t.familyAbsenceReason === 'serious-reason',
+        ),
+      ).filter((t) => t.until > addMonths(t.from, eu.seriousAbsenceMonths));
   const assess = (from: IsoDate | undefined) => {
     const anniversary = from && addYears(from, years);
     const until =
@@ -483,23 +490,55 @@ function jointResidenceWindow(
             greek?.extendedAbsenceMonths,
           )
         : true;
-    return { from, anniversary, until, continuity };
+    // SRC-350 art. 13(2)–(3) does not allocate a single over-limit absence
+    // straddling acquisition between the qualifying and retention periods.
+    const crossingSeriousAbsence =
+      !!anniversary &&
+      continuity !== false &&
+      longSeriousAbsences.some(
+        (t) => t.from < anniversary && anniversary < t.until,
+      );
+    return {
+      from,
+      anniversary,
+      until,
+      continuity: crossingSeriousAbsence ? undefined : continuity,
+      crossingSeriousAbsence,
+    };
   };
   const first = assess(start);
-  const held = (window: ReturnType<typeof assess>) =>
-    window.continuity === true &&
-    consecutiveAbsenceWithin(req, window.anniversary, lossYears, true) === true;
-  if (!start || !req.trips || !a.qualifyingResidenceDocumented || held(first))
-    return first;
-  for (const returned of [
-    ...new Set(req.trips.map((t) => t.returned)),
-  ].sort()) {
-    if (returned <= start || addYears(returned, years) > req.simulationDate)
-      continue;
-    const later = assess(returned);
-    if (held(later)) return later;
+  if (!start || !req.trips || !a.qualifyingResidenceDocumented) return first;
+  // A Greek family may have received its permanent grant after the anniversary.
+  const grantDateUnclear =
+    greek &&
+    !greek.permanentRightAcquiredOn &&
+    req.simulationDate >= p.workReformEffective.value;
+  let uncertain: typeof first | undefined;
+  const returns = req.trips
+    .map((t) => t.returned)
+    .filter((date) => date > start);
+  for (const from of [start, ...new Set(returns.sort())]) {
+    const window = from === start ? first : assess(from);
+    const retained = consecutiveAbsenceWithin(
+      req,
+      window.anniversary,
+      lossYears,
+      true,
+    );
+    const held = all(
+      window.continuity,
+      retained || (grantDateUnclear ? undefined : false),
+    );
+    if (held === true) {
+      // A later completed window proves eligibility today. A future window
+      // cannot establish the earliest date while an earlier claim is unresolved.
+      if (window.anniversary && window.anniversary > req.simulationDate)
+        return uncertain ?? (canProjectReturn ? window : first);
+      return window;
+    }
+    if (held === undefined) uncertain ??= window;
   }
-  return first;
+  return uncertain ?? first;
 }
 
 function meetsStandardPrice(
@@ -1290,6 +1329,7 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       req,
       family.residenceYears,
       family.interruptionYears,
+      !a.permanentRightAcquiredOn,
       a,
     );
     const { anniversary, until: at, continuity: dated } = window;
@@ -1640,12 +1680,18 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         'Select first issue or renewal of an ordinary or permanent card, retention after a family event, or continued permanent status.',
       ),
     ];
+  const early = earlyRight(a.early, sim);
   const window =
     a.stage === 'permanent'
-      ? jointResidenceWindow(a, req, eu.residenceYears, eu.lossYears)
+      ? jointResidenceWindow(
+          a,
+          req,
+          eu.residenceYears,
+          eu.lossYears,
+          early !== undefined && !a.permanentRightAcquiredOn,
+        )
       : undefined;
   const anniversary = window?.anniversary;
-  const early = earlyRight(a.early, sim);
   const earlyDate = early === true ? a.early?.eventDate : undefined;
   const earlyHeld =
     earlyDate && consecutiveAbsenceWithin(req, earlyDate, eu.lossYears, true);
@@ -1811,7 +1857,7 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         'EF-02',
         '五年居留或提早取得权利',
         'Residence period or early acquisition',
-        ordinary === false && early === false
+        ordinary === false && (early === false || earlyHeld === false)
           ? anniversary
           : any(ordinary, early),
         [grSource('F02', 'arts. 13(1),14(1)–(4),15, pp. 2982–2984')],
@@ -1832,11 +1878,13 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       a.maxOrdinaryAnnualAbsenceMonths === undefined &&
       a.seriousAbsenceCount === undefined &&
       a.maxSeriousAbsenceMonths === undefined;
+    const disputedAbsence = window?.crossingSeriousAbsence && !relyOnEarly;
     const absences = all(
       onlyDated ||
         maximum(a.maxOrdinaryAnnualAbsenceMonths, eu.ordinaryAbsenceMonths),
       onlyDated || maximum(a.seriousAbsenceCount, eu.seriousAbsences),
       onlyDated ||
+        disputedAbsence ||
         a.seriousAbsenceCount === 0 ||
         maximum(a.maxSeriousAbsenceMonths, eu.seriousAbsenceMonths),
       window ? window.continuity : true,
@@ -1884,9 +1932,14 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
           grSource('F61', '§§9.1–9.3, 12.3'),
           grSource('F64', 'art. 42(10), p. 2302; art. 47'),
         ],
-        `取得前每年普通离境最多 ${eu.ordinaryAbsenceMonths} 个月，强制兵役除外；一次重大理由最多 ${eu.seriousAbsenceMonths} 个月。取得后连续离境超过 ${eu.lossYears} 年丧失权利。${amendedLateFiling ? '已领旧卡者按到期日核对逾期罚款。' : '旧制逾期过久须核实发卡。'}从未领卡者可用其他材料证明合格居留。`,
-        `Before acquisition, ordinary absences total at most ${eu.ordinaryAbsenceMonths} months annually, apart from compulsory service and one serious absence up to ${eu.seriousAbsenceMonths} months. After acquisition, absence over ${eu.lossYears} consecutive years ends the right. ${amendedLateFiling ? 'Use the former card expiry to determine the late fine.' : 'A late filing under the earlier law may need review.'} Applicants never issued a card can document qualifying residence by other means.`,
-        a.stage === 'permanent' && timely === false && !amendedLateFiling
+        disputedAbsence
+          ? `同一次重大事由离境跨过 ${eu.residenceYears} 年居住期届满日，全程超过 ${eu.seriousAbsenceMonths} 个月。须核实该次离境对取得永久权的影响。`
+          : `取得前每年普通离境最多 ${eu.ordinaryAbsenceMonths} 个月，强制兵役除外；一次重大理由最多 ${eu.seriousAbsenceMonths} 个月。取得后连续离境超过 ${eu.lossYears} 年丧失权利。${amendedLateFiling ? '已领旧卡者按到期日核对逾期罚款。' : '旧制逾期过久须核实发卡。'}从未领卡者可用其他材料证明合格居留。`,
+        disputedAbsence
+          ? `One serious absence spans the ${eu.residenceYears}-year anniversary and exceeds ${eu.seriousAbsenceMonths} months in total. Verify how it affects acquisition of permanent residence.`
+          : `Before acquisition, ordinary absences total at most ${eu.ordinaryAbsenceMonths} months annually, apart from compulsory service and one serious absence up to ${eu.seriousAbsenceMonths} months. After acquisition, absence over ${eu.lossYears} consecutive years ends the right. ${amendedLateFiling ? 'Use the former card expiry to determine the late fine.' : 'A late filing under the earlier law may need review.'} Applicants never issued a card can document qualifying residence by other means.`,
+        disputedAbsence ||
+          (a.stage === 'permanent' && timely === false && !amendedLateFiling)
           ? ['PD-315']
           : undefined,
       ),

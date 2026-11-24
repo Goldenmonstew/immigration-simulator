@@ -836,6 +836,38 @@ describe('M.2 acquisition and conversion', () => {
       'NOT_MET',
     );
   });
+  test.each([
+    ['2023-11-24', '2026-10-24', 'UNKNOWN'],
+    ['2021-10-24', '2023-10-24', 'UNKNOWN'],
+    ['2024-10-24', '2026-10-23', 'MET'],
+    ['2024-11-25', '2027-01-01', 'MET'],
+    ['2024-11-24', '2026-11-24', 'NOT_MET'],
+  ] as const)(
+    'birth/school M.2 initial filing with travel from %s to %s is %s',
+    (departed, returned, expected) => {
+      for (const evidence of [
+        { bornInGreece: true },
+        {
+          bornInGreece: false,
+          greekGrades: 6,
+          schoolCompletedOn: '2008-05-11',
+        },
+      ]) {
+        const result = full(ty, {
+          simulationDate: '2026-11-24',
+          tenYear: { basis: 'birth-school', ...evidence },
+          trips: [{ departed, returned }],
+        });
+        const absence = result.checks.find((item) => item.id === 'TY-05');
+        expect(absence?.status).toBe(expected);
+        expect(result.status).toBe(expected);
+        if (expected === 'UNKNOWN') {
+          expect(absence?.pendingDetails).toContain('PD-312');
+          expect(result.earliestDate).toBeUndefined();
+        }
+      }
+    },
+  );
   test('M.2 conversion and birth/school renewal use their own card windows', () => {
     const tenYear = {
       stage: 'renewal',

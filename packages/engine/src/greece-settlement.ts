@@ -856,34 +856,44 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   );
   if (!conversion) {
     // Article 161(3) governs initial grants; (7) governs the specified renewals.
-    // For birth/school grants the order requests the travel record preceding filing.
     const start = renewal
       ? expiry && addYears(expiry, -p.years)
       : addYears(
           r.simulationDate,
           ordinary && !legacy ? -p.years : -p.absenceYears,
         );
-    const longAbsence =
-      r.trips &&
-      absencePeriods(r.trips).some((period) => {
-        // This limit uses the departure anniversary, as on the travel document.
-        const departed = addDays(period.from, -1);
-        const from = start && start > departed ? start : departed;
-        const until =
-          period.until < r.simulationDate ? period.until : r.simulationDate;
-        return until >= addYears(from, p.absenceYears);
-      });
+    let absenceMet: boolean | undefined = r.trips && true;
+    for (const { from, until } of absencePeriods(
+      r.trips ?? [],
+      undefined,
+      r.simulationDate,
+    )) {
+      // This limit uses the departure anniversary, as on the travel document.
+      const departed = addDays(from, -1);
+      if (until < addYears(departed, p.absenceYears)) continue;
+      if (start && until >= addYears(start, p.absenceYears)) {
+        absenceMet = false;
+        break;
+      }
+      // Article 58(1)(ζ) sets the document window. Article 161 does not say
+      // how it limits an already known absence for a birth/school initial grant.
+      if (!start || (youth && !renewal)) absenceMet = undefined;
+    }
+    const disputed = youth && !renewal && r.trips && absenceMet === undefined;
     checks.push(
       c.check(
         'TY-05',
         '资格期内连续离希时长',
         'Consecutive absence within the qualifying period',
-        longAbsence === undefined || (longAbsence && !start)
-          ? undefined
-          : !longAbsence,
+        absenceMet,
         [...tenYearLaw, grSource('F21', 'art. 58(1)(ζ), p. 35')],
-        `本手续的资格期内不得连续离希满 ${p.absenceYears} 年。首签另核递件前的旅行证件。`,
-        `No continuous absence of ${p.absenceYears} years within the period for this procedure. Initial applicants also provide the travel documents preceding filing.`,
+        disputed
+          ? `已知一次连续离希满 ${p.absenceYears} 年。出生或学籍首签只要求递件前 ${p.absenceYears} 年的旅行证件，超出该范围的已知离境如何计入，须向主管机关核实。`
+          : `本手续的资格期内不得连续离希满 ${p.absenceYears} 年。首签另核递件前的旅行证件。`,
+        disputed
+          ? `A known continuous absence reached ${p.absenceYears} years. Birth or school applicants must provide travel documents for the ${p.absenceYears} years before filing. The authority must confirm how to count the absence outside that period.`
+          : `No continuous absence of ${p.absenceYears} years within the period for this procedure. Initial applicants also provide the travel documents preceding filing.`,
+        disputed ? ['PD-312'] : undefined,
       ),
     );
   }
