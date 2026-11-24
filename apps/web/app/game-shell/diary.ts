@@ -1,0 +1,146 @@
+import type { LogEntry, Text } from '@uk-immigration/game/core';
+import type { GameCountry, GameKinds, State } from './types';
+
+// Presentation metadata only: the core log intentionally has no day field.
+export type DayMemory = Pick<
+  LogEntry,
+  'year' | 'quarter' | 'text' | 'statDeltas'
+> & {
+  day: number;
+  key: string;
+  count: number;
+};
+export type ChangeSource = 'action' | 'observe' | 'fast' | 'resolve';
+
+export function resolvedOutcomeText(
+  before: { outcome?: { text?: Text } },
+  after: { outcome?: { kind: string; text?: Text } },
+) {
+  if (after.outcome && ['sleep', 'travel'].includes(after.outcome.kind)) return;
+  const text = after.outcome?.text;
+  // The core keeps the last outcome across events without a result of their own.
+  return text && JSON.stringify(text) !== JSON.stringify(before.outcome?.text)
+    ? text
+    : undefined;
+}
+
+export function createDiary<K extends GameKinds>(c: GameCountry<K>) {
+  const { game } = c;
+  return {
+    resolvedOutcomeText,
+    groupedMemories,
+    recordMemories(
+      diary: DayMemory[],
+      before: State<K>,
+      after: State<K>,
+      source: ChangeSource,
+    ): DayMemory[] {
+      const added: DayMemory[] = [];
+      let day = before.day.index;
+      for (const entry of after.log.slice(before.log.length)) {
+        if (entry.kind !== 'action' && entry.kind !== 'event') continue;
+        // fastForward emits work/class, then weekend rest/relax, then festival.
+        // Events stop it, so event choices are recorded by their own transition.
+        if (source === 'fast') {
+          if (entry.id === 'work' || entry.id === 'class') day = 0;
+          if (entry.id === 'rest') day = 1;
+          if (entry.id === 'festival') day = 2;
+        }
+        added.push({
+          ...entry,
+          day,
+          key: `${entry.kind}:${entry.id}:${entry.choiceId ?? ''}`,
+          count: 1,
+        });
+      }
+      const out = after.outcome;
+      const result = source === 'resolve' && resolvedOutcomeText(before, after);
+      if (
+        result &&
+        !added.some(
+          (entry) => JSON.stringify(entry.text) === JSON.stringify(result),
+        )
+      )
+        added.push({
+          year: before.year,
+          quarter: before.quarter,
+          day,
+          key: `result:${before.pendingEvent}`,
+          text: result,
+          count: 1,
+        });
+      if (
+        source === 'action' &&
+        out &&
+        !added.length &&
+        !['sleep', 'travel'].includes(out.kind)
+      ) {
+        const npc = game.npcs.find((n) => n.id === out.npc);
+        const labels: Record<string, Text> = {
+          talk: {
+            zhCN: `和${npc?.name.zhCN ?? ''}聊天`,
+            en: `Talked with ${npc?.name.en ?? ''}`,
+          },
+          gift: {
+            zhCN: `送礼给${npc?.name.zhCN ?? ''}`,
+            en: `A gift for ${npc?.name.en ?? ''}`,
+          },
+          harvest: c.diaryText.harvest,
+          catch: c.diaryText.catch,
+        };
+        const label = labels[out.kind] ?? out.text;
+        if (label) {
+          const goods = Object.entries(out.items ?? {}).map(([id, n]) => ({
+            name: game.items.find((i) => i.id === id)?.name,
+            n,
+          }));
+          const text = Object.fromEntries(
+            (['zhCN', 'en'] as const).map((locale) => [
+              locale,
+              label[locale] +
+                (goods.length
+                  ? ` · ${goods.map(({ name, n }) => `${name?.[locale] ?? (locale === 'en' ? 'Item' : '物品')} ${n > 0 ? '+' : ''}${n}`).join(', ')}`
+                  : ''),
+            ]),
+          ) as Text;
+          added.push({
+            year: before.year,
+            quarter: before.quarter,
+            day,
+            key: `${out.kind}:${out.npc ?? ''}:${JSON.stringify(out.items ?? {})}`,
+            text,
+            statDeltas: out.statDeltas,
+            count: 1,
+          });
+        }
+      }
+      return [...diary, ...added];
+    },
+  };
+}
+
+export function groupedMemories(
+  diary: DayMemory[],
+  year: number,
+  quarter: number,
+) {
+  return [0, 1, 2].map((day) => {
+    const grouped = new Map<string, DayMemory>();
+    for (const entry of diary.filter(
+      (m) => m.year === year && m.quarter === quarter && m.day === day,
+    )) {
+      const key = `${entry.key}:${entry.text.en}`;
+      const existing = grouped.get(key);
+      if (existing) {
+        existing.count += entry.count;
+        for (const [stat, value] of Object.entries(entry.statDeltas ?? {})) {
+          const k = stat as keyof NonNullable<DayMemory['statDeltas']>;
+          existing.statDeltas![k] =
+            (existing.statDeltas![k] ?? 0) + (value ?? 0);
+        }
+      } else
+        grouped.set(key, { ...entry, statDeltas: { ...entry.statDeltas } });
+    }
+    return [...grouped.values()];
+  });
+}

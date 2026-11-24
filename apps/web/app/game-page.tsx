@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { gameAsset, gameArt, type GameCountryId } from '../lib/game-country';
 import styles from './uk/game/game.module.css';
-import { WelcomeLoading } from './uk/game/welcome';
+import { WelcomeLoading } from './game-shell/welcome';
 
 const gameClients = {
   uk: dynamic(() => import('./uk/game/game-client'), {
@@ -16,6 +16,7 @@ function GameLoading({ country }: { country: GameCountryId }) {
   return (
     <div className={styles.game}>
       <WelcomeLoading
+        country={country}
         banner={gameAsset(country, `${gameArt[country].town}/town-banner.png`)}
       />
     </div>

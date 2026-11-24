@@ -2,6 +2,8 @@
 export const ukGameArt = {
   root: '/game',
   town: '/assets/meadow-town',
+  townMap: '/town.json',
+  homeMap: '/home.json',
   defaultResident: 'skilled-worker',
   residents: [
     'skilled-worker',
