@@ -18,12 +18,26 @@ export const zhCN = {
     'BGBl. 2026 I Nr. 111 修订 AufenthG § 26 Abs. 3，自 2026-06-12 起区分难民定居普通档与加速档对 BAMF 剥夺（Entzug）、废止与撤回通知的核查标准。',
   'de.whatif.date': '模拟日期',
   'de.whatif.noTrips': '假设居留期间没有出境记录',
-  'de.whatif.german': '已获认可的德语等级（CEFR）',
-  'de.whatif.knowledge': 'LiD 或入籍考试答对题数（0–33）',
+  'de.whatif.dateHint':
+    '改动日期后，按原模拟日确认的「有效期覆盖模拟日」、§ 81 续期效力和决定日持有蓝卡改按待确认处理。',
+  'de.whatif.factAfterDate':
+    '这个日期早于问卷中已发生事项的日期（如首次入境或许可起始日），请改晚，或回到问卷修改。',
+  'de.whatif.noTripsHint':
+    '清空出境记录、逐份文书与自由流动的离境记录；在德长大子女的境外上学天数按 0 计；欧盟长期居留的离欧区间按前一段居留类别计入。',
+  'de.whatif.mixed': '保持问卷中的原答案',
+  'de.whatif.provenGerman': '定居：已获认可的德语等级（CEFR）',
+  'de.whatif.knowledge': '定居：LiD 考试答对题数（0–33）',
   'de.whatif.contributions': '法定或可比养老保险已缴月数',
   'de.whatif.blueCardMonths': '欧盟蓝卡合格就业并同期缴费月数',
   'de.whatif.salary': '决定日可计税前年薪（欧元）',
-  'de.whatif.livelihood': '家庭生计稳定且不依赖 SGB II / XII 福利',
+  'de.whatif.livelihoodConfirmed':
+    '定居：家庭生计稳定且不依赖 SGB II / XII 福利',
+  'de.whatif.blueCardItemised':
+    '蓝卡就业月数按问卷中的逐段就业记录计算；如需调整，请回到问卷修改就业记录。',
+  'de.whatif.natGerman': '入籍：德语证明等级（CEFR）',
+  'de.whatif.natKnowledge': '入籍：入籍考试或 LiD 答对题数（0–33）',
+  'de.whatif.natLivelihood':
+    '入籍：本人及家属生计可持续保障，且未领取 SGB II / XII 福利',
   'de.whatif.invalidDate': '请填写有效的模拟日期。',
   'de.whatif.invalidMonths': '请填写不小于 0 的整数月数。',
   'de.whatif.invalidScore': '请填写 0 至 33 之间的整数题数。',
@@ -57,17 +71,30 @@ export const en: Record<keyof typeof zhCN, string> = {
     'BGBl. 2026 I Nr. 111 amended AufenthG § 26 Abs. 3 from 2026-06-12, distinguishing ordinary and accelerated refugee settlement checks for BAMF deprivation, revocation and withdrawal notifications.',
   'de.whatif.date': 'Simulation date',
   'de.whatif.noTrips': 'Assume no trips abroad during residence',
-  'de.whatif.german': 'Recognised German language level (CEFR)',
-  'de.whatif.knowledge':
-    'Correct answers in the LiD or naturalisation test (0–33)',
+  'de.whatif.dateHint':
+    'After a date change, confirmations made for the original date (validity covering the simulation date, § 81 continuation and holding the Blue Card on the decision date) are treated as pending.',
+  'de.whatif.factAfterDate':
+    'This date is before a fact recorded in the questionnaire (such as first entry or a permit start). Choose a later date or edit the questionnaire.',
+  'de.whatif.noTripsHint':
+    'Clears trips, per-document departures and free movement absences; counts no school days abroad for a child raised in Germany; periods outside the EU for EU long-term residence count under the preceding status.',
+  'de.whatif.mixed': 'Keep the questionnaire answers',
+  'de.whatif.provenGerman': 'Settlement: recognised German level (CEFR)',
+  'de.whatif.knowledge': 'Settlement: correct answers in the LiD test (0–33)',
   'de.whatif.contributions':
     'Months of statutory or comparable pension contributions',
   'de.whatif.blueCardMonths':
     'Months of qualifying EU Blue Card employment with pension contributions',
   'de.whatif.salary':
     'Countable annual gross salary on the decision date (EUR)',
-  'de.whatif.livelihood':
-    'Sustainable household livelihood without SGB II / XII benefits',
+  'de.whatif.livelihoodConfirmed':
+    'Settlement: sustainable household livelihood without SGB II / XII benefits',
+  'de.whatif.blueCardItemised':
+    'Blue Card employment months come from the itemised employment record. Edit those records in the questionnaire to change them.',
+  'de.whatif.natGerman': 'Naturalisation: German evidence level (CEFR)',
+  'de.whatif.natKnowledge':
+    'Naturalisation: correct answers in the naturalisation test or LiD (0–33)',
+  'de.whatif.natLivelihood':
+    'Naturalisation: sustainable livelihood for the applicant and dependants without SGB II / XII benefits',
   'de.whatif.invalidDate': 'Enter a valid simulation date.',
   'de.whatif.invalidMonths': 'Enter a whole number of months of 0 or more.',
   'de.whatif.invalidScore':

@@ -1,21 +1,32 @@
-import type { CefrLevel } from '@uk-immigration/engine';
+import type { CefrLevel, DeFullRoute } from '@uk-immigration/engine';
 import { GermanyWhatIfControls } from '../app/germany/whatif/controls';
 import type { TranslationKey } from '../i18n';
-import { activeGermanyAnswers, type GermanyDraft } from './germany-draft';
+import {
+  activeGermanyAnswers,
+  germanySteps,
+  validateGermanyStep,
+  type GermanyDraft,
+} from './germany-draft';
 import { validDate } from './questionnaire';
 import type { CountryWhatIf } from './whatif';
 
 export type GermanyWhatIfLevel = CefrLevel | 'none';
+/** The answers cannot be shown as one value; keep them unchanged. */
+export const MIXED = 'mixed';
+type Mixed = typeof MIXED;
 
 export interface GermanyWhatIf {
   simulationDate: string;
   noTrips: boolean;
-  provenGerman?: GermanyWhatIfLevel;
+  provenGerman?: GermanyWhatIfLevel | Mixed;
   orientationScore?: number;
   contributionMonths?: number;
   blueCardMonths?: number;
   annualGrossSalary?: number;
-  livelihoodConfirmed?: boolean;
+  livelihoodConfirmed?: boolean | Mixed;
+  natGerman?: GermanyWhatIfLevel | Mixed;
+  natScore?: number;
+  natLivelihood?: boolean | Mixed;
 }
 
 export const germanyFocusControls = {
@@ -27,6 +38,9 @@ export const germanyFocusControls = {
   blueCardMonths: 'de-whatif-blue-card-months',
   salary: 'de-whatif-salary',
   livelihood: 'de-whatif-livelihood',
+  natGerman: 'de-whatif-nat-german',
+  natKnowledge: 'de-whatif-nat-knowledge',
+  natLivelihood: 'de-whatif-nat-livelihood',
 };
 
 const focusByCondition: Record<string, keyof typeof germanyFocusControls> = {
@@ -57,24 +71,23 @@ const focusByCondition: Record<string, keyof typeof germanyFocusControls> = {
   'DE-C08': 'german',
   'DE-C20': 'german',
   'DE-C36-language': 'german',
-  'DE-C50': 'german',
+  'DE-C50': 'natGerman',
   'DE-C09': 'knowledge',
-  'DE-C51': 'knowledge',
-  'DE-C61-guidance': 'knowledge',
+  'DE-C51': 'natKnowledge',
+  'DE-C61-guidance': 'natKnowledge',
   'DE-C05': 'contributions',
   'DE-C17': 'contributions',
   'DE-C30-pension': 'contributions',
   'DE-C19-months': 'blueCardMonths',
   'DE-C21-pay': 'salary',
-  'DE-C16-initial': 'salary',
   'DE-C03': 'livelihood',
   'DE-C25': 'livelihood',
   'DE-C26': 'livelihood',
   'DE-C29-income': 'livelihood',
   'DE-C36-livelihood': 'livelihood',
   'DE-C42-maintenance': 'livelihood',
-  'DE-C49': 'livelihood',
-  'DE-C60': 'livelihood',
+  'DE-C49': 'natLivelihood',
+  'DE-C60': 'natLivelihood',
 };
 
 const cefrOrder: GermanyWhatIfLevel[] = [
@@ -94,6 +107,135 @@ const atLeastLevel = (
     ? undefined
     : cefrOrder.indexOf(level) >= cefrOrder.indexOf(target);
 
+// Routes whose general German check reads the common certificate (C08).
+const commonLevelRoutes: DeFullRoute[] = [
+  'R01',
+  'R02',
+  'R04',
+  'R05',
+  'R05-fast',
+  'R06',
+  'R09',
+  'R12',
+  'R14',
+  'R15',
+];
+// Routes whose livelihood check reads the common confirmation (C03).
+const commonLivelihoodRoutes: DeFullRoute[] = [
+  'R01',
+  'R02',
+  'R03',
+  'R04',
+  'R06',
+  'R09',
+  'R10',
+  'R12',
+  'R13',
+  'R14',
+  'R15',
+];
+const citizenshipLivelihoodRoutes: DeFullRoute[] = ['R07', 'R08', 'R16'];
+
+type Decision = 'accepted' | 'refused' | 'pending';
+const decided = (value?: Decision) =>
+  value === 'accepted' ? true : value === 'refused' ? false : undefined;
+const decision = (value?: boolean): Decision | undefined =>
+  value === undefined ? undefined : value ? 'accepted' : 'refused';
+
+/** One answer shared by the selected routes, or MIXED when they differ. */
+function shared<T>(values: T[]): T | Mixed | undefined {
+  return values.every((value) => value === values[0]) ? values[0] : MIXED;
+}
+
+function settlementGerman(draft: GermanyDraft) {
+  const proven = draft.common?.provenGerman;
+  const routes = draft.routes;
+  const levels: (GermanyWhatIfLevel | undefined)[] = [];
+  if (routes.some((route) => commonLevelRoutes.includes(route)))
+    levels.push(
+      proven ?? (draft.germanC1 ? 'C1' : draft.germanB1 ? 'B1' : undefined),
+    );
+  if (routes.includes('R03')) {
+    const language = draft.mobility?.blueCard?.language;
+    levels.push(
+      (language === 'below-A1' ? 'none' : language) ??
+        proven ??
+        (draft.germanB1 ? 'B1' : undefined),
+    );
+  }
+  const child = routes.includes('R11')
+    ? draft.settlement?.childLanguageB1
+    : undefined;
+  if (routes.includes('R11') && child === undefined) levels.push(proven);
+  const level = shared(levels);
+  if (child === undefined) return level;
+  return level !== undefined &&
+    level !== MIXED &&
+    atLeastLevel(level, 'B1') === child
+    ? level
+    : MIXED;
+}
+
+function settlementLivelihood(draft: GermanyDraft) {
+  const routes = draft.routes;
+  const common = draft.common ?? {};
+  const settlement = draft.settlement ?? {};
+  // A blank confirmation may still be decided by the budget or benefits.
+  const confirmed =
+    common.livelihoodConfirmed ??
+    (common.household || common.benefits ? MIXED : undefined);
+  const values: (boolean | Mixed | undefined)[] = [];
+  if (routes.some((route) => commonLivelihoodRoutes.includes(route)))
+    values.push(confirmed);
+  if (routes.includes('R06')) values.push(settlement.euRegularIncome);
+  if (routes.includes('R11'))
+    values.push(settlement.childSecureLivelihood ?? confirmed);
+  if (routes.includes('R05'))
+    values.push(decided(settlement.refugeeIncome?.ordinaryDecision));
+  if (routes.includes('R05-fast'))
+    values.push(decided(settlement.refugeeIncome?.acceleratedDecision));
+  if (routes.includes('R15')) {
+    const maintenance = settlement.formerSpouseMaintenance;
+    values.push(
+      maintenance === 'own-funds-enforceable-and-sufficient'
+        ? true
+        : maintenance === 'insufficient' || maintenance === 'third-party'
+          ? false
+          : undefined,
+    );
+  }
+  return shared(values);
+}
+
+function citizenshipLivelihood(draft: GermanyDraft) {
+  const nat = draft.citizenship ?? {};
+  const values: (boolean | Mixed | undefined)[] = [];
+  if (draft.routes.some((route) => citizenshipLivelihoodRoutes.includes(route)))
+    values.push(
+      nat.sustainableHouseholdSupport ??
+        (draft.common?.household ? MIXED : undefined),
+      nat.withoutSgbIIorXII,
+    );
+  if (draft.routes.includes('R17'))
+    values.push(nat.discretionary?.sustainableSupportIncludingInsurance);
+  return shared(values);
+}
+
+// Assuming no absence, a period outside the EU continues the status held before it.
+function withoutAbsences(periods: { kind: string; from: string }[]) {
+  const sorted = [...periods].sort((a, b) => a.from.localeCompare(b.from));
+  return sorted.map((period, i) => {
+    if (period.kind !== 'outside-eu') return period;
+    const status =
+      sorted
+        .slice(0, i)
+        .reverse()
+        .find((other) => other.kind !== 'outside-eu') ??
+      sorted.slice(i + 1).find((other) => other.kind !== 'outside-eu');
+    return status ? { ...period, kind: status.kind } : period;
+  });
+}
+
 export const germanyWhatIf: CountryWhatIf<GermanyDraft, GermanyWhatIf> = {
   focusControls: germanyFocusControls,
   focusForRule(id) {
@@ -102,137 +244,137 @@ export const germanyWhatIf: CountryWhatIf<GermanyDraft, GermanyWhatIf> = {
   },
   initial(stored) {
     const draft = activeGermanyAnswers(stored);
-    const common = draft.common ?? {};
     const nat = draft.citizenship ?? {};
-    const blue = draft.mobility?.blueCard;
-    const natLevel =
-      nat.germanEvidence &&
-      nat.germanEvidence !== 'accepted-equivalent' &&
-      nat.germanEvidence !== 'pending'
-        ? nat.germanEvidence
-        : undefined;
-    const blueLevel = blue?.language === 'below-A1' ? 'none' : blue?.language;
-    const provenGerman =
-      common.provenGerman ??
-      blueLevel ??
-      natLevel ??
-      (draft.germanC1 ? 'C1' : draft.germanB1 ? 'B1' : undefined);
-    const natScore =
-      nat.knowledge && 'correct' in nat.knowledge
-        ? nat.knowledge.correct
-        : undefined;
+    const evidence = nat.germanEvidence;
     return {
       simulationDate: draft.simulationDate,
       noTrips: false,
-      provenGerman,
-      orientationScore: common.orientationScore ?? natScore,
+      provenGerman: settlementGerman(draft),
+      orientationScore: draft.common?.orientationScore,
       contributionMonths: draft.contributionMonths,
       blueCardMonths: draft.blueCardEmploymentMonths,
-      annualGrossSalary:
-        blue?.countableAnnualGross ??
-        draft.settlement?.initialSkilledPermit?.annualGrossSalary,
-      livelihoodConfirmed:
-        common.livelihoodConfirmed ?? nat.sustainableHouseholdSupport,
+      annualGrossSalary: draft.mobility?.blueCard?.countableAnnualGross,
+      livelihoodConfirmed: settlementLivelihood(draft),
+      natGerman:
+        evidence === 'accepted-equivalent' || evidence === 'pending'
+          ? MIXED
+          : evidence,
+      natScore:
+        nat.knowledge && 'correct' in nat.knowledge
+          ? nat.knowledge.correct
+          : undefined,
+      natLivelihood: citizenshipLivelihood(draft),
     };
   },
   apply(stored, knobs) {
     const draft = activeGermanyAnswers(stored);
     const base = germanyWhatIf.initial(draft);
+    const routes = draft.routes;
     const common = { ...draft.common };
     const settlement = { ...draft.settlement };
     const mobility = { ...draft.mobility };
     const citizenship = { ...draft.citizenship };
+    const changed = <K extends keyof GermanyWhatIf>(key: K) =>
+      knobs[key] !== base[key] && knobs[key] !== MIXED;
+    let { germanB1, germanC1 } = draft;
 
-    if (knobs.provenGerman !== base.provenGerman) {
-      common.provenGerman = knobs.provenGerman;
-      citizenship.germanEvidence = knobs.provenGerman;
-      if (mobility.blueCard || draft.routes.includes('R03')) {
+    if (changed('provenGerman')) {
+      const level = knobs.provenGerman as GermanyWhatIfLevel | undefined;
+      common.provenGerman = level;
+      germanB1 = atLeastLevel(level, 'B1');
+      germanC1 = atLeastLevel(level, 'C1');
+      if (routes.includes('R03'))
         mobility.blueCard = {
           ...mobility.blueCard,
-          language:
-            knobs.provenGerman === 'none' ? 'below-A1' : knobs.provenGerman,
-          fastTrack: atLeastLevel(knobs.provenGerman, 'B1'),
+          language: level === 'none' ? 'below-A1' : level,
+          fastTrack: germanB1,
         };
-      }
-      if (draft.routes.includes('R11')) {
-        settlement.childLanguageB1 = atLeastLevel(knobs.provenGerman, 'B1');
-      }
+      if (routes.includes('R11')) settlement.childLanguageB1 = germanB1;
     }
 
-    if (knobs.orientationScore !== base.orientationScore) {
+    // The score replaces a pending or other knowledge answer.
+    if (changed('orientationScore')) {
       common.orientationScore = knobs.orientationScore;
-      citizenship.knowledge =
-        knobs.orientationScore === undefined
-          ? undefined
-          : { kind: 'naturalisation-test', correct: knobs.orientationScore };
+      delete common.knowledgeEvidence;
     }
 
-    if (knobs.livelihoodConfirmed !== base.livelihoodConfirmed) {
-      common.livelihoodConfirmed = knobs.livelihoodConfirmed;
-      if (knobs.livelihoodConfirmed !== undefined) {
-        common.benefits = knobs.livelihoodConfirmed
-          ? 'none-or-permitted'
-          : 'disqualifying-entitlement';
-      }
-      settlement.euRegularIncome = knobs.livelihoodConfirmed;
-      settlement.childSecureLivelihood = knobs.livelihoodConfirmed;
-      if (draft.routes.includes('R05') || draft.routes.includes('R05-fast')) {
-        const decision =
-          knobs.livelihoodConfirmed === undefined
-            ? undefined
-            : knobs.livelihoodConfirmed
-              ? 'accepted'
-              : 'refused';
+    if (changed('livelihoodConfirmed')) {
+      const confirmed = knobs.livelihoodConfirmed as boolean | undefined;
+      common.livelihoodConfirmed = confirmed;
+      // Unknown must not fall back to a recorded benefit classification.
+      if (confirmed === undefined) delete common.benefits;
+      settlement.euRegularIncome = confirmed;
+      settlement.childSecureLivelihood = confirmed;
+      if (routes.includes('R05') || routes.includes('R05-fast'))
         settlement.refugeeIncome = {
           ...settlement.refugeeIncome,
-          ordinaryDecision: decision,
-          acceleratedDecision: decision,
+          ...(routes.includes('R05') && {
+            ordinaryDecision: decision(confirmed),
+          }),
+          ...(routes.includes('R05-fast') && {
+            acceleratedDecision: decision(confirmed),
+          }),
         };
-      }
-      if (draft.routes.includes('R15')) {
-        settlement.formerSpouseMaintenance =
-          knobs.livelihoodConfirmed === undefined
-            ? undefined
-            : knobs.livelihoodConfirmed
-              ? 'own-funds-enforceable-and-sufficient'
-              : 'insufficient';
-      }
-      citizenship.sustainableHouseholdSupport = knobs.livelihoodConfirmed;
-      citizenship.withoutSgbIIorXII = knobs.livelihoodConfirmed;
-      if (citizenship.discretionary || draft.routes.includes('R17')) {
+      settlement.formerSpouseMaintenance =
+        confirmed === undefined
+          ? undefined
+          : confirmed
+            ? 'own-funds-enforceable-and-sufficient'
+            : 'insufficient';
+    }
+
+    if (changed('natGerman'))
+      citizenship.germanEvidence = knobs.natGerman as
+        GermanyWhatIfLevel | undefined;
+
+    if (changed('natScore'))
+      citizenship.knowledge =
+        knobs.natScore === undefined
+          ? undefined
+          : {
+              kind:
+                citizenship.knowledge?.kind === 'lid'
+                  ? 'lid'
+                  : 'naturalisation-test',
+              correct: knobs.natScore,
+            };
+
+    if (changed('natLivelihood')) {
+      const supported = knobs.natLivelihood as boolean | undefined;
+      citizenship.sustainableHouseholdSupport = supported;
+      citizenship.withoutSgbIIorXII = supported;
+      if (routes.includes('R17'))
         citizenship.discretionary = {
           ...citizenship.discretionary,
-          sustainableSupportIncludingInsurance: knobs.livelihoodConfirmed,
+          sustainableSupportIncludingInsurance: supported,
         };
-      }
     }
 
-    if (knobs.annualGrossSalary !== base.annualGrossSalary) {
-      if (mobility.blueCard || draft.routes.includes('R03')) {
+    if (changed('annualGrossSalary'))
+      mobility.blueCard = {
+        ...mobility.blueCard,
+        countableAnnualGross: knobs.annualGrossSalary,
+      };
+
+    // Confirmations made for the original date are open again on another date.
+    if (knobs.simulationDate !== draft.simulationDate) {
+      mobility.titles = mobility.titles?.map((title) => ({
+        ...title,
+        validTo: title.validTo === null ? undefined : title.validTo,
+        continuingUnder81:
+          title.continuingUnder81 === true
+            ? undefined
+            : title.continuingUnder81,
+      }));
+      if (mobility.blueCard?.cardHeldAtDecision === true)
         mobility.blueCard = {
           ...mobility.blueCard,
-          countableAnnualGross: knobs.annualGrossSalary,
+          cardHeldAtDecision: undefined,
         };
-      }
-      if (settlement.initialSkilledPermit) {
-        settlement.initialSkilledPermit = {
-          ...settlement.initialSkilledPermit,
-          annualGrossSalary: knobs.annualGrossSalary,
-        };
-      }
-    }
-
-    const blueCardMonthsChanged = knobs.blueCardMonths !== base.blueCardMonths;
-    if (blueCardMonthsChanged && mobility.blueCard?.employment) {
-      const rest = { ...mobility.blueCard };
-      delete rest.employment;
-      mobility.blueCard = rest;
     }
 
     if (knobs.noTrips) {
-      if (mobility.titles) {
-        mobility.titles = mobility.titles.map((t) => ({ ...t, trips: [] }));
-      }
+      mobility.titles = mobility.titles?.map((t) => ({ ...t, trips: [] }));
       if (mobility.freedom) {
         mobility.freedom = {
           ...mobility.freedom,
@@ -241,45 +383,41 @@ export const germanyWhatIf: CountryWhatIf<GermanyDraft, GermanyWhatIf> = {
           subsequentTrips: [],
         };
       }
+      if (routes.includes('R11')) settlement.childForeignSchoolDays = 0;
+      const periods = settlement.euMobility?.periods;
+      if (periods)
+        settlement.euMobility = {
+          ...settlement.euMobility,
+          periods: withoutAbsences(periods) as typeof periods,
+        };
     }
 
     return activeGermanyAnswers({
       ...draft,
       simulationDate: knobs.simulationDate,
       trips: knobs.noTrips ? [] : draft.trips,
-      permits: knobs.noTrips
-        ? draft.permits?.map((p) => {
-            const copy = { ...p };
-            delete copy.trips;
-            return copy;
-          })
-        : draft.permits,
       contributionMonths: knobs.contributionMonths,
       blueCardEmploymentMonths: knobs.blueCardMonths,
-      germanB1:
-        knobs.provenGerman !== base.provenGerman
-          ? atLeastLevel(knobs.provenGerman, 'B1')
-          : draft.germanB1,
-      germanC1:
-        knobs.provenGerman !== base.provenGerman
-          ? atLeastLevel(knobs.provenGerman, 'C1')
-          : draft.germanC1,
+      germanB1,
+      germanC1,
       common,
       settlement,
       mobility,
       citizenship,
     });
   },
-  validate(_draft, knobs) {
+  validate(draft, knobs) {
     const errors: Record<string, TranslationKey> = {};
     if (!validDate(knobs.simulationDate)) errors.date = 'de.whatif.invalidDate';
-    if (
-      knobs.orientationScore !== undefined &&
-      (!Number.isSafeInteger(knobs.orientationScore) ||
-        knobs.orientationScore < 0 ||
-        knobs.orientationScore > 33)
-    )
-      errors.knowledge = 'de.whatif.invalidScore';
+    for (const [key, score] of [
+      ['knowledge', knobs.orientationScore],
+      ['natKnowledge', knobs.natScore],
+    ] as const)
+      if (
+        score !== undefined &&
+        (!Number.isSafeInteger(score) || score < 0 || score > 33)
+      )
+        errors[key] = 'de.whatif.invalidScore';
     if (
       knobs.contributionMonths !== undefined &&
       (!Number.isSafeInteger(knobs.contributionMonths) ||
@@ -296,6 +434,13 @@ export const germanyWhatIf: CountryWhatIf<GermanyDraft, GermanyWhatIf> = {
       (!Number.isFinite(knobs.annualGrossSalary) || knobs.annualGrossSalary < 0)
     )
       errors.salary = 'de.whatif.invalidSalary';
+    // With valid knobs, a step can only fail on facts after the new date.
+    if (!Object.keys(errors).length)
+      for (const { step } of germanySteps(draft))
+        if (Object.keys(validateGermanyStep({ ...draft, step })).length) {
+          errors.date = 'de.whatif.factAfterDate';
+          break;
+        }
     return errors;
   },
   Controls: GermanyWhatIfControls,

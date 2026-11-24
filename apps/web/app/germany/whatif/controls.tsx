@@ -2,31 +2,37 @@
 
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
-import type { GermanyDraft } from '../../../lib/germany-draft';
+import {
+  hasGermanyCitizenshipStep,
+  hasGermanyCommonStep,
+  type GermanyDraft,
+} from '../../../lib/germany-draft';
 import {
   germanyFocusControls as ids,
+  MIXED,
   type GermanyWhatIf,
-  type GermanyWhatIfLevel,
 } from '../../../lib/germany-whatif';
 import type { WhatIfControlsProps } from '../../../lib/whatif';
 import styles from '../../uk/whatif/whatif.module.css';
 
-const germanLevels: GermanyWhatIfLevel[] = [
-  'none',
-  'A1',
-  'A2',
-  'B1',
-  'B2',
-  'C1',
-  'C2',
-];
+const germanLevels = ['none', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
+type NumberKnob =
+  | 'orientationScore'
+  | 'natScore'
+  | 'contributionMonths'
+  | 'blueCardMonths'
+  | 'annualGrossSalary';
 
 export function GermanyWhatIfControls({
+  afterDraft,
   knobs,
   update,
   errors,
 }: WhatIfControlsProps<GermanyDraft, GermanyWhatIf>) {
   const { t } = useTranslation();
+  const settlement = hasGermanyCommonStep(afterDraft);
+  const citizenship = hasGermanyCitizenshipStep(afterDraft);
+  const blueCard = afterDraft.routes.includes('R03');
   function error(field: string) {
     return (
       errors[field] && (
@@ -34,6 +40,95 @@ export function GermanyWhatIfControls({
           {t(errors[field])}
         </p>
       )
+    );
+  }
+  // Shown only while the selected routes hold different answers.
+  const mixed = (value: unknown) =>
+    value === MIXED && <option value={MIXED}>{t('de.whatif.mixed')}</option>;
+  function level(field: 'provenGerman' | 'natGerman', id: string) {
+    const value = knobs[field];
+    return (
+      <div className={styles.field}>
+        <label htmlFor={id}>{t(`de.whatif.${field}`)}</label>
+        <select
+          id={id}
+          value={value ?? ''}
+          onChange={(e) =>
+            update({
+              [field]:
+                e.target.value === ''
+                  ? undefined
+                  : (e.target.value as GermanyWhatIf[typeof field]),
+            })
+          }
+        >
+          {mixed(value)}
+          <option value="">{t('form.unknown')}</option>
+          {germanLevels.map((lvl) => (
+            <option key={lvl} value={lvl}>
+              {t(`de.option.${lvl}`)}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+  function yesNo(field: 'livelihoodConfirmed' | 'natLivelihood', id: string) {
+    const value = knobs[field];
+    return (
+      <div className={styles.field}>
+        <label htmlFor={id}>{t(`de.whatif.${field}`)}</label>
+        <select
+          id={id}
+          value={value === undefined ? '' : String(value)}
+          onChange={(e) => {
+            const answer = e.target.value;
+            update({
+              [field]:
+                answer === ''
+                  ? undefined
+                  : answer === MIXED
+                    ? MIXED
+                    : answer === 'true',
+            });
+          }}
+        >
+          {mixed(value)}
+          <option value="">{t('form.unknown')}</option>
+          <option value="true">{t('form.yes')}</option>
+          <option value="false">{t('form.no')}</option>
+        </select>
+      </div>
+    );
+  }
+  function count(
+    field: NumberKnob,
+    id: string,
+    label: TranslationKey,
+    errorKey: string,
+    max?: number,
+  ) {
+    return (
+      <div className={styles.field}>
+        <label htmlFor={id}>{t(label)}</label>
+        <input
+          id={id}
+          type="number"
+          min="0"
+          max={max}
+          step={field === 'annualGrossSalary' ? 'any' : '1'}
+          value={knobs[field] ?? ''}
+          onChange={(e) =>
+            update({
+              [field]:
+                e.target.value === '' ? undefined : Number(e.target.value),
+            })
+          }
+          aria-invalid={!!errors[errorKey]}
+          aria-describedby={errors[errorKey] ? `${errorKey}-error` : undefined}
+        />
+        {error(errorKey)}
+      </div>
     );
   }
   return (
@@ -46,144 +141,67 @@ export function GermanyWhatIfControls({
           value={knobs.simulationDate}
           onChange={(e) => update({ simulationDate: e.target.value })}
           aria-invalid={!!errors.date}
-          aria-describedby={errors.date ? 'date-error' : undefined}
+          aria-describedby={
+            errors.date
+              ? 'de-whatif-date-hint date-error'
+              : 'de-whatif-date-hint'
+          }
         />
+        <p id="de-whatif-date-hint">{t('de.whatif.dateHint')}</p>
         {error('date')}
       </div>
 
-      <div className={styles.field}>
-        <label htmlFor={ids.german}>{t('de.whatif.german')}</label>
-        <select
-          id={ids.german}
-          value={knobs.provenGerman ?? ''}
-          onChange={(e) =>
-            update({
-              provenGerman:
-                e.target.value === ''
-                  ? undefined
-                  : (e.target.value as GermanyWhatIfLevel),
-            })
-          }
-        >
-          <option value="">{t('form.unknown')}</option>
-          {germanLevels.map((lvl) => (
-            <option key={lvl} value={lvl}>
-              {t(`de.option.${lvl}` as TranslationKey)}
-            </option>
-          ))}
-        </select>
-      </div>
+      {settlement && (
+        <>
+          {level('provenGerman', ids.german)}
+          {count(
+            'orientationScore',
+            ids.knowledge,
+            'de.whatif.knowledge',
+            'knowledge',
+            33,
+          )}
+          {count(
+            'contributionMonths',
+            ids.contributions,
+            'de.whatif.contributions',
+            'contributions',
+          )}
+          {yesNo('livelihoodConfirmed', ids.livelihood)}
+        </>
+      )}
 
-      <div className={styles.field}>
-        <label htmlFor={ids.knowledge}>{t('de.whatif.knowledge')}</label>
-        <input
-          id={ids.knowledge}
-          type="number"
-          min="0"
-          max="33"
-          step="1"
-          value={knobs.orientationScore ?? ''}
-          onChange={(e) =>
-            update({
-              orientationScore:
-                e.target.value === '' ? undefined : Number(e.target.value),
-            })
-          }
-          aria-invalid={!!errors.knowledge}
-          aria-describedby={errors.knowledge ? 'knowledge-error' : undefined}
-        />
-        {error('knowledge')}
-      </div>
+      {blueCard &&
+        (afterDraft.mobility?.blueCard?.employment ? (
+          <div className={styles.field}>
+            <p id={ids.blueCardMonths} tabIndex={-1}>
+              {t('de.whatif.blueCardItemised')}
+            </p>
+          </div>
+        ) : (
+          count(
+            'blueCardMonths',
+            ids.blueCardMonths,
+            'de.whatif.blueCardMonths',
+            'blueCardMonths',
+          )
+        ))}
+      {blueCard &&
+        count('annualGrossSalary', ids.salary, 'de.whatif.salary', 'salary')}
 
-      <div className={styles.field}>
-        <label htmlFor={ids.contributions}>
-          {t('de.whatif.contributions')}
-        </label>
-        <input
-          id={ids.contributions}
-          type="number"
-          min="0"
-          step="1"
-          value={knobs.contributionMonths ?? ''}
-          onChange={(e) =>
-            update({
-              contributionMonths:
-                e.target.value === '' ? undefined : Number(e.target.value),
-            })
-          }
-          aria-invalid={!!errors.contributions}
-          aria-describedby={
-            errors.contributions ? 'contributions-error' : undefined
-          }
-        />
-        {error('contributions')}
-      </div>
-
-      <div className={styles.field}>
-        <label htmlFor={ids.blueCardMonths}>
-          {t('de.whatif.blueCardMonths')}
-        </label>
-        <input
-          id={ids.blueCardMonths}
-          type="number"
-          min="0"
-          step="1"
-          value={knobs.blueCardMonths ?? ''}
-          onChange={(e) =>
-            update({
-              blueCardMonths:
-                e.target.value === '' ? undefined : Number(e.target.value),
-            })
-          }
-          aria-invalid={!!errors.blueCardMonths}
-          aria-describedby={
-            errors.blueCardMonths ? 'blueCardMonths-error' : undefined
-          }
-        />
-        {error('blueCardMonths')}
-      </div>
-
-      <div className={styles.field}>
-        <label htmlFor={ids.salary}>{t('de.whatif.salary')}</label>
-        <input
-          id={ids.salary}
-          type="number"
-          min="0"
-          step="any"
-          value={knobs.annualGrossSalary ?? ''}
-          onChange={(e) =>
-            update({
-              annualGrossSalary:
-                e.target.value === '' ? undefined : Number(e.target.value),
-            })
-          }
-          aria-invalid={!!errors.salary}
-          aria-describedby={errors.salary ? 'salary-error' : undefined}
-        />
-        {error('salary')}
-      </div>
-
-      <div className={styles.field}>
-        <label htmlFor={ids.livelihood}>{t('de.whatif.livelihood')}</label>
-        <select
-          id={ids.livelihood}
-          value={
-            knobs.livelihoodConfirmed === undefined
-              ? ''
-              : String(knobs.livelihoodConfirmed)
-          }
-          onChange={(e) =>
-            update({
-              livelihoodConfirmed:
-                e.target.value === '' ? undefined : e.target.value === 'true',
-            })
-          }
-        >
-          <option value="">{t('form.unknown')}</option>
-          <option value="true">{t('form.yes')}</option>
-          <option value="false">{t('form.no')}</option>
-        </select>
-      </div>
+      {citizenship && (
+        <>
+          {level('natGerman', ids.natGerman)}
+          {count(
+            'natScore',
+            ids.natKnowledge,
+            'de.whatif.natKnowledge',
+            'natKnowledge',
+            33,
+          )}
+          {yesNo('natLivelihood', ids.natLivelihood)}
+        </>
+      )}
 
       <label className={styles.checkbox}>
         <input
@@ -191,9 +209,11 @@ export function GermanyWhatIfControls({
           type="checkbox"
           checked={knobs.noTrips}
           onChange={(e) => update({ noTrips: e.target.checked })}
+          aria-describedby="de-whatif-trips-hint"
         />
         {t('de.whatif.noTrips')}
       </label>
+      <p id="de-whatif-trips-hint">{t('de.whatif.noTripsHint')}</p>
     </>
   );
 }

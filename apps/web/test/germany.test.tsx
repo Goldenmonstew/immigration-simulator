@@ -75,7 +75,7 @@ function sampleDraft(): GermanyDraft {
       titles: [
         {
           kind: 'skilled',
-          validTo: null,
+          validTo: '2028-05-22',
           noOtherLossEvent: true,
           trips: [],
         },
@@ -937,4 +937,220 @@ test('answers hidden by deselected routes or earlier choices are not assessed or
     activeGermanyAnswers(minimal),
   );
   expect(encodeDraft(de, minimal).length).toBeLessThan(1000);
+});
+
+test('What-if validates facts against the new date and each knob changes only its own answers (review100-1 #5)', () => {
+  const draft = sampleDraft();
+  const knobs = de.whatif.initial(draft);
+  const compare = (next: Partial<typeof knobs>, from = draft) =>
+    de.run(
+      de.whatif.apply(from, { ...de.whatif.initial(from), ...next }),
+      'zh-CN',
+    );
+
+  // An earlier date conflicts with the first entry: the date control explains it.
+  expect(
+    de.whatif.validate(
+      de.whatif.apply(draft, { ...knobs, simulationDate: '2022-01-01' }),
+      { ...knobs, simulationDate: '2022-01-01' },
+    ),
+  ).toEqual({ date: 'de.whatif.factAfterDate' });
+
+  // A score replaces a pending or school knowledge answer.
+  const pending: GermanyDraft = {
+    ...draft,
+    common: {
+      ...draft.common,
+      knowledgeEvidence: 'pending',
+      orientationScore: undefined,
+    },
+  };
+  expect(condition(de.run(pending, 'zh-CN'), 'DE-R01', 'DE-C09')?.status).toBe(
+    'UNKNOWN',
+  );
+  expect(
+    condition(compare({ orientationScore: 30 }, pending), 'DE-R01', 'DE-C09')
+      ?.status,
+  ).toBe('MET');
+
+  // Settlement and citizenship knobs are separate, so step 4 can change on its own.
+  expect(knobs).toMatchObject({
+    provenGerman: 'B1',
+    livelihoodConfirmed: true,
+    natGerman: undefined,
+    // The household budget answers C49 until a value is chosen.
+    natLivelihood: 'mixed',
+  });
+  expect(
+    condition(de.run(draft, 'zh-CN'), 'DE-R07', 'DE-C49')?.status,
+  ).not.toBe('MET');
+  const natural = compare({ natLivelihood: true, natGerman: 'B1' });
+  expect(condition(natural, 'DE-R07', 'DE-C49')?.status).toBe('MET');
+  expect(condition(natural, 'DE-R07', 'DE-C50')?.status).toBe('MET');
+  expect(de.whatif.focusForRule('DE-C49', 'DE-R07')).toBe('natLivelihood');
+  expect(de.whatif.focusForRule('DE-C50', 'DE-R07')).toBe('natGerman');
+  expect(de.whatif.focusForRule('DE-C51', 'DE-R07')).toBe('natKnowledge');
+
+  // Clearing livelihood also clears the benefit classification.
+  const refused: GermanyDraft = {
+    ...draft,
+    common: {
+      ...draft.common,
+      livelihoodConfirmed: false,
+      benefits: 'disqualifying-entitlement',
+      household: undefined,
+    },
+  };
+  expect(condition(de.run(refused, 'zh-CN'), 'DE-R01', 'DE-C03')?.status).toBe(
+    'NOT_MET',
+  );
+  expect(
+    condition(
+      compare({ livelihoodConfirmed: undefined }, refused),
+      'DE-R01',
+      'DE-C03',
+    )?.status,
+  ).toBe('UNKNOWN');
+
+  // Blue Card months keep the itemised employment, so the job check is unchanged.
+  const blue: GermanyDraft = {
+    ...createGermanyDraft(),
+    completed: true,
+    step: 3,
+    simulationDate: '2026-11-23',
+    firstEntry: '2023-01-01',
+    routes: ['R03'],
+    permits: [{ kind: 'blue-card', from: '2023-01-01' }],
+    trips: [],
+    mobility: {
+      blueCard: {
+        employment: [
+          {
+            firstMonth: '2023-01',
+            lastMonth: '2025-12',
+            startedOn: '2023-01-01',
+            endedOn: '2025-12-31',
+            countableAnnualGross: 60000,
+            qualifyingWork: true,
+            pensionForSameMonths: true,
+          },
+        ],
+      },
+    },
+  };
+  expect(condition(de.run(blue, 'zh-CN'), 'DE-R03', 'DE-C21-job')?.status).toBe(
+    'NOT_MET',
+  );
+  const months = de.whatif.apply(blue, {
+    ...de.whatif.initial(blue),
+    blueCardMonths: 27,
+  });
+  expect(months.mobility?.blueCard?.employment).toHaveLength(1);
+  expect(
+    condition(de.run(months, 'zh-CN'), 'DE-R03', 'DE-C21-job')?.status,
+  ).toBe('NOT_MET');
+});
+
+test('What-if clears date-bound confirmations, reads route-specific answers and shows knobs for the chosen routes (review100-1 risks 1, 5, suggestion 2)', () => {
+  const draft: GermanyDraft = {
+    ...sampleDraft(),
+    routes: ['R01', 'R03', 'R07'],
+    mobility: {
+      titles: [
+        {
+          kind: 'skilled',
+          validTo: null,
+          continuingUnder81: true,
+          noOtherLossEvent: true,
+        },
+      ],
+      blueCard: { cardHeldAtDecision: true, language: 'C1' },
+    },
+  };
+  const knobs = de.whatif.initial(draft);
+  const same = de.whatif.apply(draft, knobs);
+  expect(same.mobility?.titles?.[0]).toMatchObject({
+    validTo: null,
+    continuingUnder81: true,
+  });
+  expect(same.mobility?.blueCard?.cardHeldAtDecision).toBe(true);
+  const later = de.whatif.apply(draft, {
+    ...knobs,
+    simulationDate: '2027-06-01',
+  });
+  expect(later.mobility?.titles?.[0].validTo).toBeUndefined();
+  expect(later.mobility?.titles?.[0].continuingUnder81).toBeUndefined();
+  expect(later.mobility?.blueCard?.cardHeldAtDecision).toBeUndefined();
+
+  // Different German levels for R01 and the Blue Card keep both answers.
+  expect(knobs.provenGerman).toBe('mixed');
+  expect(same.common?.provenGerman).toBe('B1');
+  expect(same.mobility?.blueCard?.language).toBe('C1');
+  const unified = de.whatif.apply(draft, { ...knobs, provenGerman: 'B2' });
+  expect(unified.common?.provenGerman).toBe('B2');
+  expect(unified.mobility?.blueCard?.language).toBe('B2');
+
+  // Route-specific livelihood answers are shown when only that route is chosen.
+  const only = (routes: GermanyDraft['routes'], patch: Partial<GermanyDraft>) =>
+    de.whatif.initial({ ...sampleDraft(), routes, common: {}, ...patch });
+  expect(
+    only(['R05'], {
+      settlement: { refugeeIncome: { ordinaryDecision: 'accepted' } },
+    }).livelihoodConfirmed,
+  ).toBe(true);
+  expect(
+    only(['R11'], { settlement: { childSecureLivelihood: false } })
+      .livelihoodConfirmed,
+  ).toBe(false);
+  expect(
+    only(['R17'], {
+      citizenship: {
+        discretionary: { sustainableSupportIncludingInsurance: true },
+      },
+    }).natLivelihood,
+  ).toBe(true);
+
+  // Assuming no trips also clears foreign school days and periods outside the EU.
+  const abroad: GermanyDraft = {
+    ...sampleDraft(),
+    routes: ['R06', 'R11'],
+    settlement: {
+      childForeignSchoolDays: 40,
+      euMobility: {
+        periods: [
+          { kind: 'other-eu-blue', from: '2021-01-01', until: '2022-01-01' },
+          { kind: 'outside-eu', from: '2022-01-01', until: '2022-03-01' },
+          { kind: 'german-blue', from: '2022-03-01', until: '2026-11-23' },
+        ],
+      },
+    },
+  };
+  const noTrips = de.whatif.apply(abroad, {
+    ...de.whatif.initial(abroad),
+    noTrips: true,
+  });
+  expect(noTrips.settlement?.childForeignSchoolDays).toBe(0);
+  expect(noTrips.settlement?.euMobility?.periods?.map((p) => p.kind)).toEqual([
+    'other-eu-blue',
+    'other-eu-blue',
+    'german-blue',
+  ]);
+
+  // Knobs follow the selected routes.
+  const controls = (routes: GermanyDraft['routes']) =>
+    renderToStaticMarkup(
+      <LocaleContext value={{ locale: 'zh-CN', setLocale: () => {} }}>
+        <WhatIfView country={de} draft={{ ...sampleDraft(), routes }} />
+      </LocaleContext>,
+    );
+  const r01 = controls(['R01']);
+  expect(r01).toContain('id="de-whatif-livelihood"');
+  expect(r01).not.toContain('id="de-whatif-nat-livelihood"');
+  expect(r01).not.toContain('id="de-whatif-salary"');
+  expect(r01).not.toContain('id="de-whatif-blue-card-months"');
+  const r07 = controls(['R07']);
+  expect(r07).toContain('id="de-whatif-nat-german"');
+  expect(r07).not.toContain('id="de-whatif-german"');
+  expect(r07).not.toContain('id="de-whatif-contributions"');
+  expect(controls(['R03'])).toContain('id="de-whatif-salary"');
 });
