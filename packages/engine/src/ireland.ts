@@ -160,7 +160,11 @@ const unregisteredResidenceSource = {
 /** The full assessment can also count documented residence without a Stamp. */
 export function evaluateIrelandTimeline(
   req: IeRequest,
-  residenceEvidence?: { confirmed: EvidencePeriod[]; possible?: EvidencePeriod[] },
+  residenceEvidence?: {
+    confirmed: EvidencePeriod[];
+    possible?: EvidencePeriod[];
+    projectOngoing?: boolean;
+  },
 ): IeResult {
   const L = textFor(req);
   const sim = req.simulationDate;
@@ -190,6 +194,9 @@ export function evaluateIrelandTimeline(
   }
   for (const { from, to } of residenceEvidence?.possible ?? []) {
     days.mark(possibleWithoutStamp, from, to && to < sim ? to : sim);
+  }
+  if (residenceEvidence?.projectOngoing) {
+    days.mark(withoutStamp, addDays(sim, 1), undefined);
   }
   // Departure and return days are not absences (s15C(5); ISD guide).
   const away = flags();
@@ -467,8 +474,12 @@ export function evaluateIrelandTimeline(
             ]
           : []),
         ...(residenceEvidence ? [L(
-          '免登记居住仅按证据覆盖的日期计入，最晚计至模拟日。',
-          'Residence without registration counts only for the dates the evidence covers, through the simulation date at the latest.',
+          '截至模拟日的免登记居住按证据实际覆盖的日期计入。',
+          'Through the simulation date, residence without registration counts for the dates covered by evidence.',
+        )] : []),
+        ...(residenceEvidence?.projectOngoing ? [L(
+          '免登记居住的预测以继续合法居住为前提，实际递交时须提供届时的居住证明。',
+          'The projection assumes lawful residence continues. Provide up-to-date residence evidence when you apply.',
         )] : []),
         projection,
       ],

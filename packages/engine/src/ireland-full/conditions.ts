@@ -324,7 +324,10 @@ const conditions = {
   B15: [
     '合格关系、年龄、照护授权与同住',
     'Qualifying relationship, age, parental consent and cohabitation',
-    [['SRC-387', 'June 2026 §§7.2–7.16, 7.21–7.27']],
+    [
+      ['SRC-387', 'June 2026 §§5.5, 7.2–7.16 (especially §7.11), 7.21–7.27'],
+      ['SRC-388', 'In-State Irish spouse and de facto schemes: Am I eligible?'],
+    ],
   ],
   B16: [
     '担保义务、福利及储蓄',
@@ -381,7 +384,7 @@ const conditions = {
     '爱尔兰公民配偶／民事伴侣境内登记',
     'Irish spouse or civil partner registration in Ireland',
     [
-      ['SRC-388', 'Irish spouse and civil partner scheme: Am I eligible?; Recently entered the State on a D (Join Family) Visa'],
+      ['SRC-388', 'Irish spouse and civil partner scheme: Am I eligible?; How do I apply? — Recently entered the State on a D (Join Family) Visa; Resident in the State on an existing permission'],
       ['SRC-384', 'Stamp 4 (3), First Time Registrations and Renewals'],
       ['SRC-384', 'Online renewal: When should I submit a Renewal Application?'],
     ],

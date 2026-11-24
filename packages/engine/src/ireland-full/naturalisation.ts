@@ -545,6 +545,9 @@ export function naturalisation(
               from: period.from > from ? period.from : from,
               to: to && to < period.to ? to : period.to,
             }))),
+          projectOngoing: residence?.some(({ basis, from, to }) =>
+            basis === 'reckonable' && from <= day && to === undefined,
+          ) && covers(unregistered ?? [], day, day),
         }
       : undefined;
     const original =

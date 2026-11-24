@@ -350,12 +350,16 @@ function familyApplication(
     rel === undefined
       ? undefined
       : rel === 'spouse' || rel === 'civil-partner' || rel === 'de-facto';
+  const priorPartnerGrant = partner || rel === undefined ? app.differentPartnerGrantOn : undefined;
+  const confirmInStateHistory = inStateConversion && priorPartnerGrant !== undefined;
   let sponsorHistory: boolean | undefined = app.priorSponsorshipHistoryComplete;
-  if (app.differentPartnerGrantOn && (partner || rel === undefined)) {
+  if (confirmInStateHistory) {
+    sponsorHistory = undefined;
+  } else if (priorPartnerGrant) {
     const standard =
-      date >= afterYears(app.differentPartnerGrantOn, n.changeSponsorYears);
+      date >= afterYears(priorPartnerGrant, n.changeSponsorYears);
     const dedicated =
-      date >= afterYears(app.differentPartnerGrantOn, n.specializedChangeYears);
+      date >= afterYears(priorPartnerGrant, n.specializedChangeYears);
     sponsorHistory = !current
       ? undefined
       : channel === 'de-facto-overseas' && standard !== dedicated
@@ -391,7 +395,10 @@ function familyApplication(
     L(
       `核对关系真实自愿、伴侣双方已成年；de facto 通常须共同生活 ${n.deFactoYears} 年。子女须核年龄、依赖及监护同意。`,
       `Check a genuine, freely formed relationship and that both partners are adults. De facto partners generally need ${n.deFactoYears} years of cohabitation. Check age, dependency and custody consent for a child.`,
-    ),
+    ) + (confirmInStateHistory ? L(
+      ' 此前为另一位伴侣获批的许可须由 ISD 确认对本次境内转换的影响（PD-330）。',
+      ' Ask ISD how a previous grant for a different partner affects this in-State conversion (PD-330).',
+    ) : ''),
     ['PD-330'],
   );
 
@@ -641,7 +648,7 @@ function familyApplication(
         livingTogether,
         app.addressEvidence,
         spouseEntry === 'with-permission'
-          ? all(app.familyEvidenceComplete, firstRegistrationInsurance(insurance))
+          ? app.familyEvidenceComplete
           : spouseEntry === 'spouse-unit' ? true : undefined,
         character(app.applicantCharacter),
         eligibleBasis,
@@ -650,8 +657,8 @@ function familyApplication(
         '配偶事务组按专门清单核对配偶关系、同址、品格和申请材料（PD-330）。',
         'The Spouse of Irish National Unit uses its own checklist for the relationship, joint address, character and application documents (PD-330).',
       ) : L(
-        `持有效许可者核对配偶关系、双方身份、同址和财力证明，以及首次登记所需保险（通常 ${e.firstRegistrationInsuranceMonths} 个月，较短许可按全段）。申请入口待核实见 PD-330。`,
-        `Applicants with valid permission need proof of the relationship, both identities, joint address and financial means, plus first-registration insurance (normally ${e.firstRegistrationInsuranceMonths} months or the full shorter permission). See PD-330 when the channel is unconfirmed.`,
+        '持有效 IRP 线上换签时，核对现有 IRP、配偶关系、双方身份、同址及财力证明。申请入口待核实见 PD-330。',
+        'For an online change of permission, check the current IRP and proof of the relationship, both identities, joint address and financial means. See PD-330 when the channel is unconfirmed.',
       ),
       ['PD-330'],
     );
