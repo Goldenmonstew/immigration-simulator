@@ -753,25 +753,90 @@ describe('resident travel conditions and subsequent residence', () => {
     residentVisa: { granted: '2025-10-01', category: 'general' },
     trips: [],
   };
-  const openTripTravel: Travel = {
+  const initialTravel: Travel = {
     action: 'initial',
-    currentlyInNz: false,
     firstEntryClass: 'standard',
     passportCoversInitialConditions: true,
   };
+  const openTripTravel = { ...initialTravel, currentlyInNz: false };
   it.each([
-    ['unconfirmed grant location', {}, 'UNKNOWN'],
+    ['unreported current location', {}, {}, 'UNKNOWN'],
+    ['currently onshore', { currentlyInNz: true }, {}, 'MET'],
+    [
+      'unconfirmed grant location while abroad',
+      { currentlyInNz: false },
+      {},
+      'UNKNOWN',
+    ],
     [
       'offshore grant and no first entry',
-      { grantLocation: 'offshore', firstResidentEntry: null },
+      {
+        currentlyInNz: false,
+        grantLocation: 'offshore',
+        firstResidentEntry: null,
+      },
+      {},
       'NOT_MET',
     ],
-    ['onshore grant before leaving', { grantLocation: 'onshore' }, 'MET'],
+    [
+      'onshore grant before leaving',
+      { currentlyInNz: false, grantLocation: 'onshore' },
+      {},
+      'MET',
+    ],
+    [
+      'arrival on another visa after the first-entry deadline',
+      { currentlyInNz: true, grantLocation: 'offshore' },
+      { firstArrival: '2026-11-01' },
+      'NOT_MET',
+    ],
   ] as const)(
-    'checks initial entry on an open trip with %s',
-    (_label, evidence, status) => {
-      const path = travel({ ...openTripTravel, ...evidence }, openTripRecord);
+    'checks first entry and multiple-entry conditions for %s',
+    (_label, evidence, record, status) => {
+      const path = evaluateNewZealandFull({
+        ...base,
+        ...openTripRecord,
+        ...record,
+        resident: { travel: { ...initialTravel, ...evidence } },
+      }).columns[0].pathways.find((p) => p.id === 'NZ-TRAVEL')!;
       expectOutcome(path, 'NZ-P1-1', status);
+      expect(check(path, 'NZ-P1-1-TRAVEL').status).toBe(status);
+      if (status === 'NOT_MET')
+        expect(check(path, 'NZ-P1-1-TRAVEL').explanation).toContain('从未生效');
+    },
+  );
+
+  it.each([
+    ['2025-10-01', undefined, 'UNKNOWN'],
+    ['2025-10-01', '2025-10-01', 'MET'],
+    ['2025-10-02', undefined, 'MET'],
+  ] as const)(
+    'checks an offshore grant with return on %s and reported resident entry %s',
+    (returned, firstResidentEntry, status) => {
+      const path = travel(
+        { ...openTripTravel, grantLocation: 'offshore', firstResidentEntry },
+        { ...openTripRecord, trips: [{ departed: '2025-09-01', returned }] },
+      );
+      expectOutcome(path, 'NZ-P1-1', status);
+      expect(check(path, 'NZ-P1-1-TRAVEL').status).toBe(status);
+    },
+  );
+
+  it.each([
+    ['2026-09-30', 'standard', 'UNKNOWN', 'FUTURE', '2026-09-30'],
+    ['2026-10-01', 'standard', 'NOT_MET', 'NOT_MET', undefined],
+    ['2026-09-30', undefined, 'UNKNOWN', 'UNKNOWN', undefined],
+  ] as const)(
+    'checks a planned first arrival on %s with entry class %s',
+    (firstArrival, firstEntryClass, checkStatus, pathStatus, earliest) => {
+      const path = travel(
+        { ...openTripTravel, grantLocation: 'offshore', firstEntryClass },
+        { ...openTripRecord, firstArrival, simulationDate: '2026-09-01' },
+      );
+      expect(check(path, 'NZ-P1-1').status).toBe(checkStatus);
+      expect(check(path, 'NZ-P1-1-TRAVEL').status).toBe(checkStatus);
+      expect(path.status).toBe(pathStatus);
+      expect(path.earliestDate).toBe(earliest);
     },
   );
 

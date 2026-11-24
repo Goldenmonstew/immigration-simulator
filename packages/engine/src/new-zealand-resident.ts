@@ -37,6 +37,7 @@ interface TravelEvidence {
   parentTravelEnd?: string;
   /** Location when the visa was granted, including grants on a departure day. */
   grantLocation?: 'onshore' | 'offshore';
+  /** First entry on this visa, including a confirmed return after a same-day grant. Null means no entry yet. */
   firstResidentEntry?: string | null;
   /** Current location if an open trip has no return date yet. */
   currentlyInNz?: boolean;
@@ -236,7 +237,7 @@ function residentRecord(ctx: NzContext, a: NzResidentAnswers) {
   const inferredFirst = inferFirstResidentDay(
     req,
     t,
-    openTrip && !lapsedAfterFirstEntryWindow,
+    onshore !== true && !tripOnDate && !lapsedAfterFirstEntryWindow,
   );
   const first =
     t.firstResidentEntry === null
@@ -473,40 +474,44 @@ function travelPath(
       ),
     };
   const initial = action === 'initial';
-  const standardTimeChecks = r.standardTimeline ? old?.checks : undefined;
-  const initialEntry = standardTimeChecks?.find((check) =>
-    check.sources.some((source) => source.locator === 'R5.66.1(a)'),
-  );
-  const pendingEntry = r.entryValid === true && !!r.first && r.first > ctx.date;
+  const plannedEntry = r.first && r.first > ctx.date ? r.first : undefined;
   const awaitingFirstEntry =
-    t.firstResidentEntry === null && (!r.deadline || ctx.date <= r.deadline);
+    (plannedEntry && r.entryValid !== false) ||
+    (t.firstResidentEntry === null && (!r.deadline || ctx.date <= r.deadline));
+  const firstEntryMet = initial && awaitingFirstEntry ? undefined : r.entered;
   checks.push(
     ctx.check(
       'NZ-P1-1',
       '首次居民入境',
       'First resident entry',
-      (pendingEntry || awaitingFirstEntry) && initial
-        ? undefined
-        : (initialEntry?.met ?? r.entered),
+      firstEntryMet,
       ref('SRC-072', 'R5.66(c), R5.66.1, R5.66.5(b)–(c); RV1.5(b), (d)'),
-      `核对首次居民入境日${r.first ?? '（待确认）'}与境外获批首入期限${r.deadline ?? '（见签证或父母条件）'}。若获签与离境同日，或尚未返新的行程可能覆盖获签日，须确认获签时的所在地或实际首入日。再次申请须曾以居民身份入境。`,
-      `Check first resident entry ${r.first ?? '(unconfirmed)'} against the offshore entry deadline ${r.deadline ?? '(see the visa or parent’s conditions)'}. If the grant was on a departure day or may have occurred during an ongoing absence, confirm the location at grant or actual first resident entry. A further application requires prior resident entry.`,
+      `核对抵新日或境内获签日${r.first ?? '（待确认）'}与境外获批首入期限${r.deadline ?? '（见签证或父母条件）'}。若获签与出入境同日，或行程可能覆盖获签日，须确认获签时的所在地或实际首次凭居民签入境的日期。再次申请须曾以居民身份入境。`,
+      `Check the arrival or onshore grant date ${r.first ?? '(unconfirmed)'} against the offshore first-entry deadline ${r.deadline ?? '(see the visa or parent’s conditions)'}. If the holder travelled on the grant day or may have been overseas at grant, confirm the location at grant or the first entry on this visa. A further application requires prior resident entry.`,
       'PD-222',
     ),
   );
   if (initial) {
+    const travelDate = plannedEntry ?? ctx.date;
+    const travelPeriodValid = all(
+      not(r.expired),
+      r.end === undefined ? undefined : travelDate <= r.end,
+      !r.lapse || travelDate < r.lapse,
+    );
     checks.push(
       ctx.check(
         'NZ-P1-1-TRAVEL',
         '多次往返条件',
         'Multiple-entry conditions',
-        all(
-          not(r.expired),
-          r.end === undefined ? undefined : ctx.date <= r.end,
-        ),
-        ref('SRC-072', 'R5.66.5; RV1.5(a)–(b)'),
-        `按签证与行程核对旅行条件末日 ${r.end ?? '待确认'}。末日后不能凭原条件往返；仍在境内的居民可继续居留，离境或在境外到期会使签证失效。`,
-        `Last travel day: ${r.end ?? 'unknown'}. After this day the holder may remain onshore, but cannot re-enter on these conditions. Leaving without valid travel conditions, or being overseas at expiry, ends the visa.`,
+        all(firstEntryMet, travelPeriodValid),
+        ref('SRC-072', 'R5.66.5(a)–(c); RV1.5(a)–(b)'),
+        firstEntryMet === false
+          ? '错过首次居民入境期限的签证，其多次往返条件从未生效。'
+          : `首次居民入境后，按签证与行程核对旅行条件末日 ${r.end ?? '待确认'}。末日后仍在境内的居民可继续居留，离境或在境外到期会使签证失效。`,
+        firstEntryMet === false
+          ? 'If the first-entry deadline is missed, the multiple-entry conditions on this visa never take effect.'
+          : `After first resident entry, check the last travel day: ${r.end ?? 'unknown'}. After this day the holder may remain onshore. Leaving without valid travel conditions, or being overseas at expiry, ends the visa.`,
+        firstEntryMet === undefined ? 'PD-222' : undefined,
       ),
     );
     // Currency of the passport is a condition of the original grant.
@@ -522,16 +527,22 @@ function travelPath(
       ),
     );
     const path = finish();
-    if (pendingEntry && checks.slice(1).every((c) => c.status === 'MET'))
+    if (
+      plannedEntry &&
+      r.entryValid &&
+      travelPeriodValid &&
+      t.passportCoversInitialConditions
+    )
       return {
         ...path,
         status: 'FUTURE',
-        earliestDate: r.first,
+        earliestDate: plannedEntry,
         assumptions: old?.assumptions ?? [],
       };
     return {
       ...path,
       assumptions:
+        firstEntryMet === false ||
         t.firstEntryClass === 'aip-child' ||
         t.firstEntryClass === 'pacific-quota'
           ? []
