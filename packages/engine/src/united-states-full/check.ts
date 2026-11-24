@@ -4,6 +4,8 @@ import {
 } from '@uk-immigration/policy-data';
 import type { SourceRef } from '@uk-immigration/policy-data';
 import { textFor } from '../rule';
+import type { IsoDate } from '../types';
+import type { UsTrip } from '../united-states';
 import type {
   UsFullCheck,
   UsFullRequest,
@@ -33,6 +35,20 @@ export const atLeast = (actual: number | undefined, minimum: number): Answer =>
   actual === undefined ? undefined : actual >= minimum;
 export const atMost = (actual: number | undefined, maximum: number): Answer =>
   actual === undefined ? undefined : actual <= maximum;
+
+export function returnFromTrip(
+  trips: UsTrip[] | undefined,
+  date: IsoDate,
+): IsoDate | undefined {
+  return trips?.reduce<IsoDate | undefined>((latestReturn, trip) => {
+    // With date-only inputs, resume filing on the return day after arrival.
+    if (trip.departed <= date && date < trip.returned)
+      return !latestReturn || trip.returned > latestReturn
+        ? trip.returned
+        : latestReturn;
+    return latestReturn;
+  }, undefined);
+}
 
 export function poverty(household?: UsHousehold): number | undefined {
   if (!household?.region || !household.size) return undefined;

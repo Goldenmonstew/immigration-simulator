@@ -4012,18 +4012,22 @@ describe('review86-11 regressions', () => {
 
   test.each(
     matrix.flatMap(([petitionStatus, petitionFiledOn, ...expected]) =>
-      scenarios.map(([process, authorization, nvcDs260, column]) => ({
-        petitionStatus,
-        petitionFiledOn,
-        process,
-        authorization,
-        nvcDs260,
-        c33: column === undefined ? blocked : expected[column],
-      })),
+      scenarios.flatMap(([process, authorization, nvcDs260, column]) =>
+        (['explicit', 'inferred'] as const).map((basisSource) => ({
+          basisSource,
+          petitionStatus,
+          petitionFiledOn,
+          process,
+          authorization,
+          nvcDs260,
+          c33: column === undefined ? blocked : expected[column],
+        })),
+      ),
     ),
   )(
-    'C33 $process: petition=$petitionStatus receipt=$petitionFiledOn NVC=$authorization DS-260=$nvcDs260',
+    'C33 $basisSource $process: petition=$petitionStatus receipt=$petitionFiledOn NVC=$authorization DS-260=$nvcDs260',
     ({
+      basisSource,
       petitionStatus,
       petitionFiledOn,
       process,
@@ -4034,9 +4038,11 @@ describe('review86-11 regressions', () => {
       const consular = process === 'consular';
       const decisionOn = consular ? '2026-12-10' : time.simulationDate;
       const request: UsFullRequest = {
-        ...f,
+        ...p7,
         admission: {
           ...admission,
+          adjustmentBasis:
+            basisSource === 'explicit' ? 'immediate-relative' : undefined,
           process,
           petitionStatus,
           petitionFiledOn,
@@ -4181,6 +4187,223 @@ describe('review86-11 regressions', () => {
       approvalEarliestDate: time.simulationDate,
     });
   });
+});
+
+describe('review86-12 regressions', () => {
+  test('C33 derives the petition requirement for a U.S. citizen spouse in the generic path', () => {
+    const request = withAdmission({
+      adjustmentBasis: undefined,
+      petitionStatus: undefined,
+      petitionFiledOn: undefined,
+      visaAtFiling: undefined,
+      visaAtDecision: undefined,
+    });
+    expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+      filingStatus: 'MET',
+      status: 'UNKNOWN',
+    });
+    expect(path(request)).toMatchObject({
+      status: 'MET',
+      earliestDate: time.simulationDate,
+      approvalStatus: 'UNKNOWN',
+    });
+    expect(path(request).approvalEarliestDate).toBeUndefined();
+  });
+
+  test('C33 uses the reported I-140 in the generic path and leaves unclassified approval undated', () => {
+    const request: UsFullRequest = {
+      ...withAdmission({
+        adjustmentBasis: undefined,
+        petitionStatus: undefined,
+      }),
+      family: undefined,
+    };
+    const withI140: UsFullRequest = {
+      ...request,
+      employment: { i140FiledOn: '2026-07-01' },
+    };
+    for (const input of [request, withI140]) {
+      expect(condition(input, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        filingStatus: 'MET',
+        status: 'UNKNOWN',
+      });
+      expect(path(input)).toMatchObject({
+        status: 'MET',
+        earliestDate: time.simulationDate,
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(path(input).approvalEarliestDate).toBeUndefined();
+    }
+    const approved: UsFullRequest = {
+      ...withI140,
+      admission: { ...withI140.admission, petitionStatus: 'approved' },
+    };
+    expect(path(approved)).toMatchObject({
+      approvalStatus: 'MET',
+      approvalEarliestDate: time.simulationDate,
+    });
+  });
+
+  test('an inferred family petition leaves an unspecified entry exception pending', () => {
+    const request = withAdmission({
+      adjustmentBasis: undefined,
+      legalEntry: 'without-inspection',
+    });
+    expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+      filingStatus: 'UNKNOWN',
+      status: 'UNKNOWN',
+    });
+    expect(path(request).earliestDate).toBeUndefined();
+    expect(path(request).approvalEarliestDate).toBeUndefined();
+  });
+
+  const trip = { departed: '2026-11-20', returned: '2026-12-01' } as const;
+
+  test('C33 projects the family I-485 receipt and approval from the return date', () => {
+    const request: UsFullRequest = { ...f, trips: [trip] };
+    expect(condition(request, 'TIME-I485-PRESENCE')).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining(trip.returned),
+    });
+    expect(condition(request, 'C33-VISA-AND-ENTRY').filingStatus).toBe('MET');
+    expect(path(request)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: trip.returned,
+      approvalStatus: 'FUTURE',
+      approvalEarliestDate: trip.returned,
+    });
+    expect(path({ ...request, simulationDate: trip.returned })).toMatchObject({
+      status: 'MET',
+      earliestDate: trip.returned,
+      approvalStatus: 'MET',
+      approvalEarliestDate: trip.returned,
+    });
+  });
+
+  test('C33 rechecks the paper receipt date after return using the new filing and decision month', () => {
+    const request: UsFullRequest = {
+      ...e,
+      trips: [
+        { departed: '2026-11-30', returned: '2026-12-02' },
+        { departed: '2026-11-20', returned: '2026-11-28' },
+      ],
+    };
+    const missingCharts = path(request);
+    expect(missingCharts).toMatchObject({
+      status: 'UNKNOWN',
+      approvalStatus: 'UNKNOWN',
+    });
+    expect(missingCharts.earliestDate).toBeUndefined();
+    expect(missingCharts.approvalEarliestDate).toBeUndefined();
+    expect(
+      path({
+        ...request,
+        admission: {
+          ...request.admission,
+          visaAtFilingByMonth: { '2026-12': 'available' },
+          visaAtDecisionByMonth: { '2026-12': 'available' },
+        },
+      }),
+    ).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-12-02',
+      approvalStatus: 'FUTURE',
+      approvalEarliestDate: '2026-12-02',
+    });
+  });
+
+  test.each([f, h])(
+    'requires an itinerary for the $pathway I-485',
+    (request) => {
+      const result = path({ ...request, trips: undefined });
+      expect(result).toMatchObject({
+        status: 'UNKNOWN',
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(result.earliestDate).toBeUndefined();
+      expect(result.approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test.each([
+    [365, trip.returned],
+    [363, '2026-12-02'],
+  ])(
+    'projects humanitarian filing and approval from return with %s days accrued',
+    (presenceDays, approvalEarliestDate) => {
+      expect(
+        path({ ...h, humanitarian: { ...human, presenceDays }, trips: [trip] }),
+      ).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: trip.returned,
+        approvalStatus: 'FUTURE',
+        approvalEarliestDate,
+      });
+    },
+  );
+
+  test.each([n, spouse, m, conditions, i829])(
+    'does not impose an I-485 filing-location condition on $pathway',
+    (request) => {
+      const result = path({ ...request, trips: [trip] });
+      expect(result.status).toBe('MET');
+      expect(result.earliestDate).toBe(time.simulationDate);
+    },
+  );
+
+  test('C22 corroborates the historical I-131 receipt location against the trip', () => {
+    const request: UsFullRequest = {
+      ...t,
+      travel: {
+        ...travel,
+        returnDocument: 'reentry-permit',
+        permitAppliedInUs: true,
+        permitBiometricsInUs: true,
+        permitFiledOn: '2026-02-01',
+      },
+    };
+    expect(condition(request, 'C22-RETURN-DOCUMENT').status).toBe('NOT_MET');
+    expect(path(request).earliestDate).toBeUndefined();
+    expect(
+      condition(
+        {
+          ...request,
+          travel: { ...request.travel, permitFiledOn: '2025-12-15' },
+        },
+        'C22-RETURN-DOCUMENT',
+      ).status,
+    ).toBe('MET');
+  });
+
+  test.each([undefined, 'approved'] as const)(
+    'C37 uses the VAWA consular approval evidence (petition status %s)',
+    (petitionStatus) => {
+      const request: UsFullRequest = {
+        ...authorizedConsular,
+        pathway: 'US-ADJUSTMENT',
+        trips: [trip],
+        admission: {
+          ...authorizedConsular.admission,
+          adjustmentBasis: 'vawa',
+          petitionStatus,
+          publicCharge: undefined,
+          decisionOn: '2026-12-10',
+          visaAtDecisionByMonth: { '2026-12': 'available' },
+        },
+      };
+      expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        filingStatus: 'MET',
+        status: 'MET',
+      });
+      expect(condition(request, 'C37-PUBLIC-CHARGE').applicable).toBe(false);
+      expect(path(request)).toMatchObject({
+        status: 'MET',
+        earliestDate: time.simulationDate,
+        approvalStatus: 'FUTURE',
+        approvalEarliestDate: '2026-12-10',
+      });
+    },
+  );
 });
 
 describe('filing and evidence exceptions', () => {

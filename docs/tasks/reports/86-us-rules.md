@@ -415,17 +415,21 @@ PROGRESS 603 建议提交为 `Fix: 修正美国基础请愿核准与 SIJ 准入�
 
 各格为 **C33 递交／核准**。假定类别依赖基础请愿，类别本身的证据齐备，境内允许同件递交且名额与入境条件满足，领馆裁决时点有效且裁决月名额可用。收件日「有」指不晚于模拟日的实际收件日。授权留空列适用于缺当前授权及未获确认的未来开放日。
 
-| 请愿状态 | 历史收件日 | 境内 | 领馆已授权／DS-260 已提交 | 领馆已授权／DS-260 留空或未提交 | 领馆授权留空／DS-260 已提交 | 领馆授权留空／DS-260 留空或未提交 | 领馆明确未授权／任意 DS-260 状态 |
-|---|---|---|---|---|---|---|---|
-| 获批 | 无 | MET／MET | MET／MET | MET／MET | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | NOT_MET／NOT_MET |
-| 获批 | 有 | MET／MET | MET／MET | MET／MET | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | NOT_MET／NOT_MET |
-| 待决 | 无 | MET／UNKNOWN | MET／MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET |
-| 待决 | 有 | MET／UNKNOWN | MET／MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET |
-| 同件递交 | 无 | MET／UNKNOWN | MET／MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET |
-| 同件递交 | 有 | MET／UNKNOWN | MET／MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET |
-| 留空 | 无 | MET／UNKNOWN | MET／MET | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | NOT_MET／NOT_MET |
-| 留空 | 有 | MET／UNKNOWN | MET／MET | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | NOT_MET／NOT_MET |
+| 类别来源（显式／推断／无法推断） | 请愿状态 | 历史收件日 | 境内 | 领馆已授权／DS-260 已提交 | 领馆已授权／DS-260 留空或未提交 | 领馆授权留空／DS-260 已提交 | 领馆授权留空／DS-260 留空或未提交 | 领馆明确未授权／任意 DS-260 状态 |
+|---|---|---|---|---|---|---|---|---|
+| 显式／推断 | 获批 | 无 | MET／MET | MET／MET | MET／MET | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | NOT_MET／NOT_MET |
+| 显式／推断 | 获批 | 有 | MET／MET | MET／MET | MET／MET | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | NOT_MET／NOT_MET |
+| 显式／推断 | 待决 | 无 | MET／UNKNOWN | MET／MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET |
+| 显式／推断 | 待决 | 有 | MET／UNKNOWN | MET／MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET |
+| 显式／推断 | 同件递交 | 无 | MET／UNKNOWN | MET／MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET |
+| 显式／推断 | 同件递交 | 有 | MET／UNKNOWN | MET／MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET | NOT_MET／NOT_MET |
+| 显式／推断 | 留空 | 无 | MET／UNKNOWN | MET／MET | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | NOT_MET／NOT_MET |
+| 显式／推断 | 留空 | 有 | MET／UNKNOWN | MET／MET | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | NOT_MET／NOT_MET |
+| 无法推断 | 留空 | 无 | MET／UNKNOWN | MET／MET（可确认获批） | MET／UNKNOWN | UNKNOWN／UNKNOWN | UNKNOWN／UNKNOWN | NOT_MET／NOT_MET |
 
+- 类别可由专用路径或所填类别明确给出。通用路径可从亲属请愿人或关系、职业分类或 I-140 收件日推断。显式和推断的请愿类适用相同的递交及核准判定。矛盾类别资料仍须核对，暂不据此确认即时亲属或可同件递交。
+- 「无法推断」行对应显式类别、分类依据和基础请愿证据均缺失，但已提供其余适用的递交资料。仅填合资格结论时，核准为 `UNKNOWN`。NVC 授权与 DS-260 提交齐备时，可以确认本案有已获批的基础请愿，按获批证据行处理。依据见 SRC-302、SRC-309、PD-272。
+- 境内栏按已在美国的实际或推算收件日评估。确认将在境外行程后返美时，另按返美日、所选渠道及收件月份推算。
 - 路径汇总还要核对独立的 DS-260 检查。提交状态留空时，该检查两阶段为 `UNKNOWN`。明确未提交时，两阶段为 `NOT_MET`。汇总中已知的不满足优先，任一阶段为 `UNKNOWN` 或 `NOT_MET` 时省略该阶段日期。其余条件已确认且裁决日在未来时，领馆核准汇总为 `FUTURE`，给裁决日期。
 - 明确未授权列假定无已确认的未来 NVC 开放日。已确认的未来开放日仍可作为递交候选日。晚于模拟日的实际请愿收件日属于时点冲突，两阶段 C33 为 `UNKNOWN`。境内无法确认可同件递交且缺获批证据时，递交亦待确认。依据见 PD-272。
 
@@ -442,3 +446,41 @@ PROGRESS 603 建议提交为 `Fix: 修正美国基础请愿核准与 SIJ 准入�
 ### 4. 发现与建议
 
 - 领馆证据须来自同一请愿案。只知道历史收件日或只掌握一项 NVC 记录时，仍需核对请愿决定。
+
+## 第十二轮审核修正（review86-12）
+
+### 1. 做了什么
+
+PROGRESS 604 建议提交为 `Fix: 修正美国调整身份类别、境内收件与 VAWA 获批判定（review86-12）`，附 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+- **C33 类别识别。** 通用调整路径在类别留空时，从亲属请愿人或关系、职业分类或 I-140 收件日识别基础请愿，沿用上节组合表和可同时递交规则。识别为美国公民配偶且缺获批证据时，递交为 `MET`，核准为 `UNKNOWN`，无核准日期。只有合资格结论、无法确认具体依据时，核准同样待确认。上节组合表已补类别来源和无法推断的情形。见 SRC-302 8 U.S.C. §§1151(b)(2)(A)(i)、1153(a)–(b)，SRC-309 8 CFR §245.2(a)(2)(i)、7 USCIS-PM A.6(A)，PD-272。
+- **C33 境内收件。** 已填行程显示模拟日或原定收件日在境外时，按返美日期和递交渠道重算。审核复现中，2026-11-23 的在美递交条件为 `NOT_MET`，以 2026-12-01 为收件候选日时，路径递交和核准均为 `FUTURE`，两项日期均为 2026-12-01。受排期限制的案件按新的收件月和裁决月核对。行程缺资料时，境内收件条件为 `UNKNOWN`。见 SRC-309 I-485 Instructions p2、7 USCIS-PM A.6(C)(4)–(5)，SRC-081 1 USCIS-PM B.6(E)，PD-272。
+- **C37 领馆 VAWA。** C33 与 C37 共用获批证据判断。明确获批，或同案同时有 NVC 递件授权与 DS-260 提交记录时，C37 公共负担豁免生效。审核复现的两种填法均在 2026-11-23 可递件，核准为 `FUTURE`，日期为 2026-12-10。见 SRC-309 DOS NVC Processing Step 2、Online Application Step 6，SRC-311 8 U.S.C. §1182(a)(4)(E)(i)。
+
+#### 其他递交地点条件
+
+| 路径或表格 | 核对结果 | 出处 |
+|---|---|---|
+| P8 难民／庇护 I-485 | 按返美日和纸质收件日核对在美递交。累计实际在美时间归裁决阶段，预测时跳过已填离境行程。 | SRC-309 I-485 Instructions p2，SRC-314 7 USCIS-PM L.2(B)、M.2(A)，PD-274。 |
+| P1／P2 普通及公民配偶 N-400 | 核对递交前累计实际在美、连续居住及适用辖区居住。短期出境的回归继续按这些条件评估。 | SRC-079 8 U.S.C. §§1427(a)、1430(a)，SRC-080 8 CFR §316.2(a)(3)–(5)，SRC-081 12 USCIS-PM D.3–D.4，SRC-082 N-400 Instructions。 |
+| P9 军人 N-400 | 按服役路径核对荣誉服役、入伍地点、身份及适用居住抵算。服役路径设有境外办理条款。 | SRC-315 8 U.S.C. §§1439、1440 及 12 USCIS-PM I.2–I.3。 |
+| P3 I-751／I-829 | 法规允许在境外递交。按适用要求返美参加面谈。 | SRC-080 8 CFR §216.4(a)(4)、§216.6(a)(3)。 |
+| P4 I-131 回美证 | 递交时须在美国。C22 可用新增的美国专用输入 `permitFiledOn` 与已填行程核对历史收件地点，并继续接受原有在美递交及境内生物识别证据。P4 汇总日期仍为返美日期。 | SRC-300 8 CFR §223.2(b)(1)、I-131 Instructions p4，PD-274。 |
+| P4 I-90 换卡 | C19 核对换卡义务与已递交记录。I-90 说明另列申请人在境外时的生物识别安排。 | SRC-299 8 CFR §264.5，另核对 [I-90 Instructions p2](https://www.uscis.gov/sites/default/files/document/forms/i-90instr.pdf#page=2)。 |
+| DS-260、DS-117、I-131A | 领馆相关表格各按 NVC 或使领馆流程递交。 | SRC-309 DOS Online Application Step 6，SRC-300 22 CFR §42.22(a) 及 I-131A Payment 递交说明。 |
+| I-131 Advance Parole 与难民旅行证 | 基于待决 I-485 的 Advance Parole 核对境内申请类别。难民旅行证原则上在美国递交，法规可裁量接受境外申请。引擎现有辅助费用项用于估费。 | SRC-300 I-131 Instructions p7、8 CFR §223.2(b)(2)。 |
+| I-601A 临时非法居留豁免 | 须在美国递交及提供所需生物识别。C40 使用个案豁免证据评估准入，I-601A 是独立申请流程。 | SRC-311 [8 CFR §212.7(e)(3)(i)、(6)](https://www.ecfr.gov/current/title-8/section-212.7#p-212.7(e))。 |
+
+### 2. 怎么验证的
+
+- 设置 `VITEST_MAX_WORKERS=2` 后运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码 0。全仓 5,656 项测试通过，其中 Engine 3,623 项，1 项既有用例跳过。构建生成 27 个静态页面，包含 `/united-states`。
+- 专项回归断言两条审核复现的阶段状态及日期。组合表按显式类别和亲属事实推断分别运行，并覆盖 I-140 推断、类别不明、跨月／纸质收件、行程留空、难民调整、回美证收件证据和 VAWA 的两种获批证据。
+- `git diff --check` 通过。对照 `09d3cb50`，旧 `evaluateUnitedStates` 实现、时间参数、专项测试、共用结果结构及网页一致。待定事项仅更新 PD-272、PD-274。
+
+### 3. 没做或没验证的
+
+- 改动留在 `fable/86-us-rules` 工作树供 Fable 提交。浏览器端到端留待 PR 验收。
+
+### 4. 发现与建议
+
+- 行程只有日期精度。推算时从出境日到返美前一日按境外处理，返美当日须在实际入境后递交。调用方可用空行程列表明确确认无相关行程。

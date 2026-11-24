@@ -414,6 +414,13 @@ export const unitedStatesFullSources = {
       'https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf',
     ),
   ],
+  adjustmentFilingPresence: [
+    source(
+      'SRC-309',
+      'I-485 Instructions p2, Who May File Form I-485?',
+      'https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=2',
+    ),
+  ],
   adjustmentEligibility: [
     usc('SRC-309', '1255', '(a)'),
     source(

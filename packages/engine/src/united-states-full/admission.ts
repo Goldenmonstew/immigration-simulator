@@ -1,4 +1,4 @@
-import { addDays } from '../dates';
+import { addDays, daysBetween } from '../dates';
 import { afterYears } from '../pilot';
 import type { IsoDate } from '../types';
 import {
@@ -9,6 +9,7 @@ import {
   checksFor,
   checkStatus,
   not,
+  returnFromTrip,
   reviewed,
   s,
   v,
@@ -114,12 +115,23 @@ function unlawfulPresence(
   return not(departure.voluntaryBeforeProceedings);
 }
 
+function underlyingPetitionApproved(
+  a: UsAdmissionAnswers | undefined,
+): boolean {
+  return (
+    a?.petitionStatus === 'approved' ||
+    (a?.process === 'consular' &&
+      a.visaAtFiling === 'available' &&
+      a.nvcDs260 === 'submitted')
+  );
+}
+
 function admissionExemptions(
   scope: 'immigrant' | 'return' | 'humanitarian',
   a: UsAdmissionAnswers | undefined,
 ) {
   if (scope === 'humanitarian') return v.humanitarianAdmissionExemptions;
-  if (scope !== 'immigrant' || a?.petitionStatus !== 'approved') return;
+  if (scope !== 'immigrant' || !a || !underlyingPetitionApproved(a)) return;
   if (a.adjustmentBasis === 'sij' && a.process === 'adjustment')
     return v.sijAdmissionExemptions;
   if (a.adjustmentBasis === 'vawa') {
@@ -495,14 +507,27 @@ export function adjustmentChecks(
   const a = request.admission;
   const basis = a?.adjustmentBasis;
   const petition = a?.petitionStatus;
+  const petitionApproved = underlyingPetitionApproved(a);
+  const { family, employment } = request;
+  const familyEvidence = Boolean(family?.petitioner || family?.relationship);
+  const employmentEvidence = Boolean(
+    employment?.category || employment?.i140FiledOn,
+  );
+  const inferFromFacts =
+    basis === undefined && request.pathway === 'US-ADJUSTMENT';
   const usesFamilyClassification =
     request.pathway === 'US-FAMILY' ||
-    (basis === 'family-preference' && request.family !== undefined);
+    (basis === 'family-preference' && family !== undefined) ||
+    (inferFromFacts && familyEvidence && !employmentEvidence);
+  const employmentBasis =
+    basis === 'employment' ||
+    (basis === undefined && request.pathway === 'US-EMPLOYMENT') ||
+    (inferFromFacts && employmentEvidence && !familyEvidence);
   const immediate: Answer = usesFamilyClassification
-    ? immediateRelative(request.family)
+    ? immediateRelative(family)
     : basis
       ? basis === 'immediate-relative'
-      : request.pathway === 'US-EMPLOYMENT'
+      : employmentBasis
         ? false
         : undefined;
   const availability = (value?: UsAdmissionAnswers['visaAtFiling']): Answer =>
@@ -531,7 +556,7 @@ export function adjustmentChecks(
   const sijFiling =
     a?.process === 'adjustment' &&
     basis === 'sij' &&
-    (petition === 'approved' ||
+    (petitionApproved ||
       petitionApprovalUnconfirmed(petition, a.petitionFiledOn));
   const entryAtFiling =
     sijFiling || a?.legalEntry === 'admitted' || a?.legalEntry === 'paroled'
@@ -545,10 +570,6 @@ export function adjustmentChecks(
               ? undefined
               : false
         : undefined;
-  const employment = request.employment;
-  const employmentBasis =
-    basis === 'employment' ||
-    (basis === undefined && request.pathway === 'US-EMPLOYMENT');
   const i140Category =
     employment?.category === 'eb1a' ||
     employment?.category === 'eb2-niw' ||
@@ -570,11 +591,11 @@ export function adjustmentChecks(
     basis === 'vawa' ||
     basis === 'sij';
   const requiresPetition =
-    familyOrSpecialPetition || employmentBasis || awaitingPetition;
+    familyOrSpecialPetition ||
+    employmentBasis ||
+    awaitingPetition ||
+    (inferFromFacts && (familyEvidence || employmentEvidence));
   const ds260 = a?.nvcDs260;
-  const nvcApprovalEvidence =
-    consular && a.visaAtFiling === 'available' && ds260 === 'submitted';
-  const petitionApproved = petition === 'approved' || nvcApprovalEvidence;
   const concurrent =
     a?.process === 'adjustment' &&
     (familyOrSpecialPetition ||
@@ -595,6 +616,8 @@ export function adjustmentChecks(
       ? true
       : qualifyingBasis,
   );
+  const presenceAtReceipt =
+    request.trips && !returnFromTrip(request.trips, receipt);
   const filing = inconsistentPetitionDate
     ? undefined
     : all(
@@ -603,7 +626,7 @@ export function adjustmentChecks(
         consular
           ? true
           : a?.process === 'adjustment'
-            ? entryAtFiling
+            ? all(entryAtFiling, presenceAtReceipt)
             : undefined,
       );
   const civilDocuments = a?.nvcCivilDocuments;
@@ -616,7 +639,9 @@ export function adjustmentChecks(
         ? undefined
         : all(
             filing,
-            petitionApproved || !requiresPetition ? qualifyingBasis : undefined,
+            petitionApproved || (basis !== undefined && !requiresPetition)
+              ? qualifyingBasis
+              : undefined,
             visaAtDecision,
           ),
       [
@@ -627,7 +652,7 @@ export function adjustmentChecks(
               ...s.consularApplication,
               ...s.consularInterview,
             ]
-          : []),
+          : s.adjustmentFilingPresence),
         ...(usesFamilyClassification ? s.relationship : []),
       ],
       'PD-272',
@@ -713,11 +738,27 @@ export function humanitarianChecks(request: UsFullRequest, receipt: IsoDate) {
   const refugee = a?.status === 'refugee';
   const law = v.humanitarian.value;
   const presence = atLeast(a?.presenceDays, law.presenceDays);
-  const approvalRequirementDate =
-    a?.presenceDays !== undefined && presence === false
-      ? addDays(request.simulationDate, law.presenceDays - a.presenceDays)
-      : undefined;
+  let approvalRequirementDate: IsoDate | undefined;
+  if (a?.presenceDays !== undefined && presence === false) {
+    let accrualFrom = addDays(request.simulationDate, 1);
+    let remaining = law.presenceDays - a.presenceDays;
+    const trips = [...(request.trips ?? [])].sort((first, second) =>
+      first.departed.localeCompare(second.departed),
+    );
+    for (const trip of trips) {
+      if (trip.returned <= accrualFrom) continue;
+      const daysBeforeDeparture = Math.max(
+        0,
+        daysBetween(accrualFrom, trip.departed),
+      );
+      if (remaining <= daysBeforeDeparture) break;
+      remaining -= daysBeforeDeparture;
+      accrualFrom = trip.returned;
+    }
+    approvalRequirementDate = addDays(accrualFrom, remaining - 1);
+  }
   const statusAtFiling = all(
+    request.trips && !returnFromTrip(request.trips, receipt),
     a?.statusRetained,
     not(a?.alreadyLpr),
     refugee
@@ -737,8 +778,8 @@ export function humanitarianChecks(request: UsFullRequest, receipt: IsoDate) {
         'PD-274',
         approvalRequirementDate
           ? [
-              `在 I-485 裁决时须累积至少一年实际在美时间。若模拟日后持续在美，预计于 ${approvalRequirementDate} 满足。`,
-              `Accumulate at least one year of U.S. physical presence by I-485 adjudication. If you remain in the U.S. after the simulation date, you meet it on ${approvalRequirementDate}.`,
+              `在 I-485 裁决时须累积至少一年实际在美时间。按所填行程推算，假定其余日期在美国，预计于 ${approvalRequirementDate} 满足。`,
+              `Accumulate at least one year of U.S. physical presence by I-485 adjudication. With the reported trips and continued presence otherwise, the projected date is ${approvalRequirementDate}.`,
             ]
           : [
               '在 I-485 裁决时须累积至少一年实际在美时间。难民自抵美日起算永居，庇护者自核准日前一年起算永居。',
@@ -753,7 +794,7 @@ export function humanitarianChecks(request: UsFullRequest, receipt: IsoDate) {
       '难民或庇护资格与裁量',
       'Refugee or asylum status and discretion',
       all(statusAtFiling, refugee ? true : reviewed(a?.discretion)),
-      s.humanitarian,
+      [...s.humanitarian, ...s.adjustmentFilingPresence],
       'PD-274',
       undefined,
       checkStatus(statusAtFiling),

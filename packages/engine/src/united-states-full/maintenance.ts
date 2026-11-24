@@ -9,6 +9,7 @@ import {
   checksFor,
   checkStatus,
   not,
+  returnFromTrip,
   reviewed,
   s,
   v,
@@ -307,6 +308,11 @@ export function travelChecks(request: UsFullRequest) {
   const noTravel = trips?.length === 0 && a?.returnDocument === undefined;
   const route = a?.returnDocument;
   const issuance = a?.permitIssuedOn;
+  const permitFiledInUs =
+    a?.permitFiledOn && request.trips
+      ? !returnFromTrip(request.trips, a.permitFiledOn) &&
+        a.permitAppliedInUs !== false
+      : a?.permitAppliedInUs;
   const permitLaw = v.reentryPermit.value;
   const permitTerm =
     a?.permitRestrictedToOneYear === undefined
@@ -334,7 +340,7 @@ export function travelChecks(request: UsFullRequest) {
         route === 'green-card'
           ? not(oneYear)
           : route === 'reentry-permit'
-            ? all(a?.permitAppliedInUs, a?.permitBiometricsInUs)
+            ? all(permitFiledInUs, a?.permitBiometricsInUs)
             : route === 'sb1'
               ? reviewed(a?.sb1OutsideControl)
               : route === 'continuous-journey'

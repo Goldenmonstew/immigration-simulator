@@ -1154,6 +1154,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-19-us-ecfr-22cfr42.22.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-22.xml?section=42.22>
 - `policy-sources/2026-11-21-us-9fam502.7.html` → <https://fam.state.gov/FAM/09FAM/09FAM050207.html>
 - `policy-sources/2026-11-23-us-i131instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-131instr.pdf>
+- 8 CFR §223.2(b)(1) 和 I-131 Instructions p4「Reentry Permit」要求在美国递交回美证申请。§223.2(b)(2)(i)–(ii) 另列难民旅行证通常在美国递交及可裁量接受的境外递交情形。见 [8 CFR §223.2](https://www.ecfr.gov/current/title-8/section-223.2#p-223.2(b))。
 - I-131A 在 USCIS 网上付费，表格须在使领馆当面递交。DS-117 向办理该案的使领馆提交，SB-1 的后续 DS-260 按使领馆通知办理。见 [I-131A Payment，Before You Start The Payment Process](https://my.uscis.gov/accounts/travel-document/start/overview)、[Returning Resident Visas，Required Documentation 与 Step 2](https://travel.state.gov/content/travel/en/us-visas/immigrate/returning-resident.html)。
 
 ## SRC-301 境内递解事由
@@ -1222,6 +1223,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 8 CFR §245.1(b)(4)–(6)、(10) 中的 SIJ 例外适用于身份中断和相关就业违规，其他禁令仍须核对。
 - 8 CFR §245.2(a)(2)(i)(A)–(C)、8 U.S.C. §1255(n) 及 I-485 Instructions pp3、17–21 规定适用即时亲属、亲属优先、I-140、EB-5、VAWA 和 SIJ 等类别的同时递交。7 USCIS-PM A.6(A)、(C)(4)–(5) 要求核对基础请愿案及递交月、裁决月两阶段的名额。I-485 Instructions p11 Item 9 要求按适用情形随件递交 I-693 或疫苗记录。
 - 7 USCIS-PM A.6(A)「Verify Underlying Basis to Adjust Status」要求裁决前调取并核验基础请愿案。I-485 Instructions p3「When Should I File Form I-485?」区分基础请愿已获批与可同时递交的类别。基础请愿获批依据缺失时，境内按同时递交规则核对递交，核准待确认请愿决定。
+- I-485 Instructions p2「Who May File Form I-485?」要求递交时实际身处美国，各移民类别另有适用条件。该递交时点也适用于使用 I-485 的 INA 209 难民与庇护调整。累计在美要求仍于裁决时核对，见 SRC-314。见 [I-485 Instructions p2](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=2)。
 - 8 U.S.C. §1255(a)(2) 要求境内调整申请人具备准入资格。一般规则要求在 I-485 递交时符合资格并持续至裁决。I-485 Instructions pp11–12 Item 10 列明需随件提交的适用法院及警方文件。见 [8 CFR §103.2(b)(1)，Demonstrating eligibility](https://www.ecfr.gov/current/title-8/section-103.2#p-103.2(b)(1))、[I-485 Instructions](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=11)。
 - 国务院说明 NVC 在请愿案获批后通知申请人付款和递件，即时亲属同样由 NVC 发出通知。受排期限制的申请人按适用的 Dates for Filing 和收到的 NVC 说明递件，核准用 Final Action Dates。见 [National Visa Center，What happens after USCIS sends my petition to the NVC?](https://travel.state.gov/content/travel/en/us-visas/immigrate/national-visa-center.html)、[Visa Bulletin，Dates for Filing](https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin/2026/visa-bulletin-for-september-2026.html)。
 - 国务院的请愿类移民签证流程先由 USCIS 核准请愿，再移交 NVC 建档并发出欢迎信。C33 据此将同一领馆案的 NVC 递件授权和 CEAC 的 DS-260 提交记录合用，确认基础请愿已获批。见 [NVC Processing，Step 2](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-1-submit-a-petition/step-2-begin-nvc-processing.html)、[Online Application，Step 6](https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-5-collect-financial-evidence-and-other-supporting-documents/step-6-complete-online-visa-application.html)。

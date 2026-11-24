@@ -215,6 +215,8 @@ export interface UsTravelAnswers {
   returnDocument?:
     'green-card' | 'reentry-permit' | 'sb1' | 'continuous-journey' | 'none';
   documentValidAtReturn?: boolean;
+  /** Actual USCIS receipt date for a previously filed I-131 reentry permit. */
+  permitFiledOn?: IsoDate;
   permitAppliedInUs?: boolean;
   permitIssuedOn?: IsoDate;
   permitExpiresOn?: IsoDate;

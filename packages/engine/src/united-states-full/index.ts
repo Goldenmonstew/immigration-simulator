@@ -17,7 +17,7 @@ import {
   adjustmentChecks,
   humanitarianChecks,
 } from './admission';
-import { checksFor, checkStatus, reviewed, s } from './check';
+import { checksFor, checkStatus, returnFromTrip, reviewed, s } from './check';
 import { feeChecks } from './fees';
 import { familyChecks, employmentChecks, supportChecks } from './immigration';
 import { conditionChecks, travelChecks } from './maintenance';
@@ -440,7 +440,50 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
     nvcOpening > date
       ? nvcOpening
       : undefined;
-  const adjustmentReceipt = receiptOn(nvcFilingDate ?? date);
+  const i485 =
+    (immigrantApplication && admission?.process === 'adjustment') ||
+    request.pathway === 'US-HUMANITARIAN';
+  let filingCandidate = nvcFilingDate ?? date;
+  let adjustmentReceipt = receiptOn(filingCandidate);
+  if (i485) {
+    let returnOn = returnFromTrip(request.trips, adjustmentReceipt);
+    while (returnOn) {
+      filingCandidate = returnOn;
+      adjustmentReceipt = receiptOn(filingCandidate);
+      returnOn = returnFromTrip(request.trips, adjustmentReceipt);
+    }
+    if (filingCandidate > date || returnFromTrip(request.trips, date)) {
+      timingChecks.push(
+        check(
+          'TIME-I485-PRESENCE',
+          'I-485 收件时身处美国',
+          'Physical presence in the U.S. when filing I-485',
+          false,
+          s.adjustmentFilingPresence,
+          undefined,
+          [
+            `须在返美后递交。按所填行程和递交渠道，最早可于 ${adjustmentReceipt} 在境内收件。`,
+            `File after returning to the United States. Based on the reported trips and filing method, the earliest in-country receipt is ${adjustmentReceipt}.`,
+          ],
+        ),
+      );
+    } else if (!request.trips) {
+      timingChecks.push(
+        check(
+          'TIME-I485-PRESENCE',
+          'I-485 收件时身处美国',
+          'Physical presence in the U.S. when filing I-485',
+          undefined,
+          s.adjustmentFilingPresence,
+          request.pathway === 'US-HUMANITARIAN' ? 'PD-274' : 'PD-272',
+          [
+            '请填写出境和返美日期，或确认没有相关行程。',
+            'Provide departure and return dates, or confirm there are no relevant trips.',
+          ],
+        ),
+      );
+    }
+  }
   const interviewOn = admission?.interviewOn;
   const decisionOn = admission?.decisionOn;
   let decision: IsoDate | undefined = adjustmentReceipt;
@@ -460,7 +503,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   }
   let eligibility: FilingTiming = {
     status: 'MET',
-    earliestDate: nvcFilingDate,
+    earliestDate: filingCandidate > date ? filingCandidate : undefined,
   };
   let requirements: UsFullCheck[];
   switch (request.pathway) {
