@@ -338,8 +338,15 @@ export const malaysiaFull2026_11 = {
         { srcId: 'SRC-518', locator: '准证 p3' },
       ],
     },
+    // Renewed every `everyYears` once the maximum term is reached.
     mm2hRenewalFeeRm: {
-      value: { platinum: 5_000, gold: 3_000, silver: 1_500, sez: 300 },
+      value: {
+        platinum: 5_000,
+        gold: 3_000,
+        silver: 1_500,
+        sez: 300,
+        everyYears: 5,
+      },
       sources: [
         { srcId: 'SRC-517', locator: '续签 p6、p11、p16' },
         { srcId: 'SRC-518', locator: '续签 p5' },
@@ -349,7 +356,11 @@ export const malaysiaFull2026_11 = {
     // Children under `childUnconditionalAge`; older children up to
     // `childMaxAge` if single and not working.
     mm2hDependants: {
-      value: { childUnconditionalAge: 21, childMaxAge: 34 },
+      value: {
+        childUnconditionalAge: 21,
+        childMaxAge: 34,
+        childMaxAgeOther: 35,
+      },
       sources: [
         { srcId: 'SRC-517', locator: '受养人 p4、p9、p14' },
         { srcId: 'SRC-521', locator: 'Dependents' },
@@ -420,13 +431,22 @@ export const malaysiaFull2026_11 = {
         contractMonths: 3,
         maxMonths: 48,
         excludedNationality: 'IL',
+        initialMinMonths: 3,
+        initialMaxMonths: 12,
+        renewals: 3,
+        renewalMonths: 12,
+        childUnderAge: 18,
         processingFeeRm: 1_080,
         dependantFeeRm: 540,
         passFeeQuarterRm: 90,
+        passFeeQuarterMonths: 3,
         passFeeYearRm: 360,
       },
       sources: [
-        { srcId: 'SRC-528', locator: 'v11 Section A Q4、Q7–Q10 p2、Q13 p3' },
+        {
+          srcId: 'SRC-528',
+          locator: 'v11 Section A Q4、Q7–Q10 p2、Q13、Q16 p3',
+        },
         { srcId: 'SRC-528', locator: 'v11 Section B Q3 p4' },
         { srcId: 'SRC-528', locator: 'v11 Section D Q1–Q2 p14' },
       ],
@@ -439,10 +459,13 @@ export const malaysiaFull2026_11 = {
         successionPlanFrom: '2027-01-01',
         revised: { category1: 20_000, category2: 10_000, category3: 5_000 },
         previous: { category1: 10_000, category2: 5_000, category3: 3_000 },
+        minPassMonths: 1,
         maxPassMonths: 60,
+        childUnderAge: 18,
       },
       sources: [
         { srcId: 'SRC-527', locator: 'At a Glance、EP 特征 p3' },
+        { srcId: 'SRC-527', locator: '主要变化 p4' },
         { srcId: 'SRC-527', locator: '雇佣期 p5' },
         { srcId: 'SRC-527', locator: '分类表 p6' },
       ],
