@@ -222,7 +222,7 @@ export function createHud<K extends GameKinds>(c: GameCountry<K>) {
                 />
               </span>
             )}
-            <small>{c.outcomeLabel(bars[id].outcome, t)}</small>
+            <small>{c.outcomeLabel(bars[id], t)}</small>
             {c.missingRules(state, id) && (
               <small className={styles.missingRules}>
                 {t('game.missingRules').replace(

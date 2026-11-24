@@ -12,7 +12,7 @@ export function createArt(art: GameArt, asset: (path: string) => string) {
     art.cast?.[id] ?? (art.residents.includes(id) ? id : art.defaultResident);
   return {
     portraitIds: art.residents,
-    townBanner: `${artRoot}/town-banner.png`,
+    townBanner: asset(art.banner),
     portraitPath(id: string, expression = 'neutral') {
       const face =
         expressions.find((value) => value === expression) ?? 'neutral';

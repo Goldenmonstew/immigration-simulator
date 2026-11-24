@@ -253,7 +253,7 @@ export function createQuarterSummary<K extends GameKinds>(
                       }}
                     />
                   </span>
-                  <small>{c.outcomeLabel(next[id].outcome, t)}</small>
+                  <small>{c.outcomeLabel(next[id], t)}</small>
                 </div>
               ))}
             </div>

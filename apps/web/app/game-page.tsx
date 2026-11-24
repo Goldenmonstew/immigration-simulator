@@ -10,6 +10,10 @@ const gameClients = {
     ssr: false,
     loading: () => <GameLoading country="uk" />,
   }),
+  jp: dynamic(() => import('./japan/game/game-client'), {
+    ssr: false,
+    loading: () => <GameLoading country="jp" />,
+  }),
 } satisfies Record<GameCountryId, React.ComponentType>;
 
 function GameLoading({ country }: { country: GameCountryId }) {
@@ -17,7 +21,7 @@ function GameLoading({ country }: { country: GameCountryId }) {
     <div className={styles.game}>
       <WelcomeLoading
         country={country}
-        banner={gameAsset(country, `${gameArt[country].town}/town-banner.png`)}
+        banner={gameAsset(country, gameArt[country].banner)}
       />
     </div>
   );

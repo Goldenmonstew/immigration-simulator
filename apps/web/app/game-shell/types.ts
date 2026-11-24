@@ -80,8 +80,9 @@ export interface SoundModule {
 /** Asset paths relative to the country's art root. */
 export interface GameArt {
   root: string;
-  /** Folder with the banner, portraits and signs. */
+  /** Folder with the portraits and signs. */
   town: string;
+  banner: string;
   townMap: string;
   homeMap: string;
   defaultResident: string;
@@ -122,7 +123,10 @@ export interface GameCountry<K extends GameKinds> {
   stats: readonly string[];
   /** Progress bars, in display order. */
   ruleColumns: readonly { id: K['rule']; label: TranslationKey }[];
-  outcomeLabel(outcome: K['decision'], t: Translate): string;
+  outcomeLabel(
+    progress: { outcome: K['decision']; earliestDate?: string },
+    t: Translate,
+  ): string;
   /** Requirements still unknown for one column, if the column lists them. */
   missingRules(state: State<K>, id: K['rule']): string[] | undefined;
   visaStatus(state: State<K>): VisaStatus;

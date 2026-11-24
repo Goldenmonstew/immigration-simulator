@@ -105,7 +105,7 @@ export const ukCountry: GameCountry<UkKinds> = {
   moneyMeter: 10000,
   stats: ['money', 'mood', 'health', 'english', 'career'],
   ruleColumns: ukGame.ukGameRuleColumns,
-  outcomeLabel: (outcome, t) => t(`outcome.${outcome}`),
+  outcomeLabel: ({ outcome }, t) => t(`outcome.${outcome}`),
   missingRules: (state, id) =>
     ukGame.progress(state)[id].outcome === 'INSUFFICIENT_INFORMATION'
       ? state.result.byRuleSet[id]!.rules.filter(

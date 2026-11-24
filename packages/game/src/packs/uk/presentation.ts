@@ -2,6 +2,7 @@
 export const ukGameArt = {
   root: '/game',
   town: '/assets/meadow-town',
+  banner: '/assets/meadow-town/town-banner.png',
   townMap: '/town.json',
   homeMap: '/home.json',
   defaultResident: 'skilled-worker',
