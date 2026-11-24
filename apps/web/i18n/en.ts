@@ -277,6 +277,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'policyPage.pathways': 'Assessment pathways',
   'country.timeConditions': 'Time requirements',
   'country.timeDate': 'Date based on time requirements alone',
+  'country.departure': 'Departure date',
+  'country.returnDeadline': 'Return deadline',
   'country.check.requirement': 'Requirement',
   'country.check.factor': 'Assessment factor',
   'country.check.information': 'Procedural information',

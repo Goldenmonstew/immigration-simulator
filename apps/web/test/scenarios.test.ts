@@ -55,11 +55,11 @@ test('loading replaces the current draft and clears the previous result; deletin
   saveScenario('B', { ...draft, simulationDate: '2030-01-01' });
   const [first, second] = readScenarios().scenarios;
   draftStorage(second.draft);
-  rememberResult(runSimulation(second.draft), 'zh-CN');
-  expect(getRememberedResult('zh-CN')).toBeDefined();
+  rememberResult(second.draft, runSimulation(second.draft), 'zh-CN');
+  expect(getRememberedResult(second.draft, 'zh-CN')).toBeDefined();
   loadScenario(first);
   expect(draftStorage().draft).toEqual(first.draft);
-  expect(getRememberedResult('zh-CN')).toBeUndefined();
+  expect(getRememberedResult(second.draft, 'zh-CN')).toBeUndefined();
   expect(deleteScenario(second.id).scenarios).toEqual([first]);
   expect(readScenarios().scenarios).toEqual([first]);
   expect(JSON.parse(storage.get('uk-immigration-scenarios-v1')!)).toHaveLength(

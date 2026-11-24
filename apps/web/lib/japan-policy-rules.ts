@@ -466,6 +466,7 @@ export const japanRules = [
     'jp.reentry.ordinary-validity',
     [
       ...full.reentry.sources,
+      ...time.renewalPendingMonths.sources,
       ref('SRC-110', '第26条'),
       ref('SRC-116', '再入国許可'),
       ref('SRC-461', '再入国許可申請「審査基準」「必要書類」'),
@@ -483,6 +484,7 @@ export const japanRules = [
   rule(
     'jp.reentry.return-continuity',
     [
+      ...time.renewalPendingMonths.sources,
       ref('SRC-110', '第26条'),
       ref('SRC-116', '再入国許可'),
       ref('SRC-461', '再入国許可申請「審査基準」「必要書類」'),

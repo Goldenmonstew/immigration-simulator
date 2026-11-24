@@ -95,7 +95,7 @@ export function QuestionnaireShell<D extends CountryDraft, K>({
     const completed = { ...draft, completed: true };
     const result = country.run(completed, locale);
     draftStorage(country, completed);
-    rememberResult(country, result, locale);
+    rememberResult(country, completed, result, locale);
     router.push(countryPath(country.id, 'result'));
   };
   return (

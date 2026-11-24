@@ -46,6 +46,121 @@ export function createJapanDraft(): JapanDraft {
   };
 }
 
+export function withJapanFilingDate(
+  draft: JapanDraft,
+  applicationDate: string | undefined,
+  simulationDate = draft.simulationDate,
+): JapanDraft {
+  const next = clearPlannedJapanDeclaration({
+    ...draft,
+    simulationDate,
+    applicationDate,
+  });
+  const filingChanged =
+    (applicationDate ?? simulationDate) !==
+    (draft.applicationDate ?? draft.simulationDate);
+  if (!filingChanged) return next;
+
+  const pr = draft.permanentResidence;
+  const nat = draft.naturalisation;
+  const status = pr.evidence.status;
+  const datedNotices = (notices: JpPrCommonEvidence['addressNotices']) =>
+    notices?.map((notice) =>
+      notice.notifiedOn === null
+        ? { ...notice, notifiedOn: undefined }
+        : notice,
+    );
+  return {
+    ...next,
+    reentry: next.reentry.map((route) =>
+      route.route === 'ordinary'
+        ? {
+            ...route,
+            inJapanWhenApplying: undefined,
+            lawfulStatus: undefined,
+            onlineConcurrentEligibleApplication: undefined,
+          }
+        : route,
+    ),
+    permanentResidence: {
+      routes: pr.routes.map((route) => {
+        if (route.route === 'hsp70' || route.route === 'hsp80')
+          return {
+            ...route,
+            current: undefined,
+            historical: undefined,
+            maintained: undefined,
+          };
+        if (route.route === 'j-skip')
+          return {
+            ...route,
+            current: undefined,
+            historical: undefined,
+            remainedRecognised: undefined,
+          };
+        return route;
+      }),
+      evidence: {
+        ...pr.evidence,
+        inJapan: undefined,
+        status: status && {
+          ...status,
+          valid: undefined,
+          timelyRenewalPending:
+            status.timelyRenewalPending === false ? false : undefined,
+        },
+        affiliationNotices: datedNotices(pr.evidence.affiliationNotices),
+        addressNotices: datedNotices(pr.evidence.addressNotices),
+      },
+    },
+    naturalisation: {
+      ...nat,
+      evidence: {
+        ...nat.evidence,
+        inJapan: undefined,
+        lawfulDomicile: undefined,
+      },
+    },
+  };
+}
+
+export function hasJapanResidenceRoute(draft: JapanDraft): boolean {
+  return !!(
+    draft.permanentResidence.routes.length || draft.naturalisation.routes.length
+  );
+}
+
+export function canConfirmJapanDeparture(
+  draft: Pick<JapanDraft, 'simulationDate'>,
+  departureOn?: string,
+): boolean {
+  return (
+    !!departureOn &&
+    departureOn <= today() &&
+    departureOn <= draft.simulationDate
+  );
+}
+
+// Version-one local drafts may have recorded a declaration for a planned trip.
+export function clearPlannedJapanDeclaration(draft: JapanDraft): JapanDraft {
+  const deemed = Array.isArray(draft.reentry)
+    ? draft.reentry.find((route) => route?.route === 'deemed')
+    : undefined;
+  if (
+    deemed?.declaredIntentAtDeparture === undefined ||
+    canConfirmJapanDeparture(draft, deemed.departureOn)
+  )
+    return draft;
+  return {
+    ...draft,
+    reentry: draft.reentry.map((route) =>
+      route === deemed
+        ? { ...deemed, declaredIntentAtDeparture: undefined }
+        : route,
+    ),
+  };
+}
+
 const titles = [
   'jp.form.step0',
   'jp.form.step1',
@@ -58,12 +173,14 @@ const titles = [
 export function japanSteps(draft: JapanDraft) {
   return titles.flatMap((title, step) => {
     const enabled =
-      step < 2 ||
-      (step <= 4
-        ? draft.permanentResidence.routes.length
-        : step === 5
-          ? draft.naturalisation.routes.length
-          : draft.reentry.length);
+      step === 0 ||
+      (step === 1
+        ? hasJapanResidenceRoute(draft)
+        : step <= 4
+          ? draft.permanentResidence.routes.length
+          : step === 5
+            ? draft.naturalisation.routes.length
+            : draft.reentry.length);
     return enabled ? [{ step, title }] : [];
   });
 }
@@ -159,14 +276,14 @@ function checkStep(draft: JapanDraft, step: number, submitting: boolean) {
   };
   switch (step) {
     case 0:
-      fields(basicFields, draft, 'jp');
+      fields(basicFields(hasJapanResidenceRoute(draft)), draft, 'jp');
       if (
         submitting &&
         !pr.routes.length &&
         !nat.routes.length &&
         !reentry.length
       )
-        errors['jp-route-pr-general'] = 'jp.form.routeError';
+        errors['jp-routes'] = 'jp.form.routeError';
       break;
     case 1:
       fields([tripList], draft, 'jp');
@@ -177,11 +294,17 @@ function checkStep(draft: JapanDraft, step: number, submitting: boolean) {
         if (trip.renewalPending && !trip.stayExpiry)
           errors[prefix + 'stayExpiry'] = 'jp.error.date';
         const limit =
-          trip.stayExpiry && validDate(trip.stayExpiry) && jpStayLimit(trip);
+          trip.stayExpiry &&
+          validDate(trip.stayExpiry) &&
+          jpStayLimit({
+            stayExpiry: trip.stayExpiry,
+            renewalPending: trip.renewalPending ?? true,
+          });
         if (limit && validDate(trip.departed) && trip.departed > limit)
-          errors[prefix + 'stayExpiry'] = trip.renewalPending
-            ? 'jp.error.specialPeriod'
-            : 'jp.error.order';
+          errors[prefix + 'stayExpiry'] =
+            trip.renewalPending !== false
+              ? 'jp.error.specialPeriod'
+              : 'jp.error.order';
         if (
           draft.trips
             .slice(0, i)
@@ -192,12 +315,6 @@ function checkStep(draft: JapanDraft, step: number, submitting: boolean) {
             )
         )
           errors[prefix + 'departed'] = 'jp.error.overlap';
-        if (
-          pr.routes.some((r) => r.route === 'child-birth') &&
-          trip.departure &&
-          trip.reentryPermit !== (trip.departure === 'permit')
-        )
-          errors[prefix + 'departure'] = 'jp.form.tripPermitError';
       });
       break;
     case 2:
@@ -264,18 +381,15 @@ function checkStep(draft: JapanDraft, step: number, submitting: boolean) {
       for (const route of reentry) {
         const prefix = 'jp-travel-' + route.route;
         fields(travelRouteFields[route.route], route, prefix);
-        if (!submitting) continue;
-        order(prefix + '-returnOn', route.departureOn, route.returnOn);
         if (
           route.route === 'deemed' &&
           route.declaredIntentAtDeparture !== undefined &&
-          (!route.departureOn ||
-            route.departureOn > draft.simulationDate ||
-            (draft.applicationDate &&
-              route.departureOn > draft.applicationDate))
+          !canConfirmJapanDeparture(draft, route.departureOn)
         )
           errors[prefix + '-declaredIntentAtDeparture'] =
             'jp.form.declarationError';
+        if (!submitting) continue;
+        order(prefix + '-returnOn', route.departureOn, route.returnOn);
         if (route.route !== 'deemed' && route.permit) {
           order(
             prefix + '-permit-expiresOn',
@@ -336,7 +450,14 @@ export function decodeJapanDraft(value: unknown): JapanDraft | undefined {
     !validRoutes(value.reentry, travelRouteFields)
   )
     return undefined;
-  const draft = value as unknown as JapanDraft;
+  let draft = value as unknown as JapanDraft;
+  // Older travel-only drafts could be saved on the shared trip-history step.
+  if (
+    draft.step === 1 &&
+    draft.reentry.length &&
+    !hasJapanResidenceRoute(draft)
+  )
+    draft = { ...draft, step: 6 };
   if (!japanSteps(draft).some(({ step }) => step === draft.step))
     return undefined;
   // Validate containers before checking date relationships across their rows.

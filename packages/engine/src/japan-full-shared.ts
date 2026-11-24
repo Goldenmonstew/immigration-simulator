@@ -5,8 +5,8 @@ import type {
   CountryPathway,
   CountryResult,
 } from './country-result';
-import { addDays, addYears } from './dates';
-import { evaluateJapan, jpOfficeClosed, jpStayLimit } from './japan';
+import { addDays } from './dates';
+import { evaluateJapan, jpOfficeClosed, jpTripLapses } from './japan';
 import type { JpNaturalisationRequest, JpPrRequest, JpRequest } from './japan';
 import { afterYears } from './pilot';
 import type { PilotCheck, PilotPathway, PilotStatus } from './pilot';
@@ -201,21 +201,20 @@ export function pilotFor(
 }
 
 export function continuity(req: JpFullContext, date: IsoDate) {
-  const lapsed = req.trips.filter((trip) => {
-    const limit = jpStayLimit(trip);
-    return (
-      (limit !== undefined && trip.returned > limit) ||
-      (!trip.reentryPermit &&
-        trip.returned > addYears(trip.departed, old.deemedReentryYears.value))
-    );
-  });
+  const lapsed = req.trips.filter((t) => jpTripLapses(t) === true);
+  const uncertain = req.trips.filter((t) => jpTripLapses(t) === undefined);
+  const latestReturn = (start: IsoDate, t: JpRequest['trips'][number]) =>
+    t.departed < date && t.returned > start ? t.returned : start;
+  const stay = lapsed.reduce(latestReturn, req.stayStart);
+  const possibleRestart = uncertain.reduce(latestReturn, stay);
   return {
-    stay: lapsed
-      .filter((t) => t.departed < date)
-      .reduce(
-        (start, t) => (t.returned > start ? t.returned : start),
-        req.stayStart,
-      ),
+    yearsSince: (from: IsoDate, years: number) => {
+      if (date < afterYears(from > stay ? from : stay, years)) return false;
+      return date >=
+        afterYears(from > possibleRestart ? from : possibleRestart, years)
+        ? true
+        : undefined;
+    },
     abroad: req.trips.some((t) => t.departed < date && date < t.returned),
     hasTripsSince: (since: IsoDate) =>
       req.trips.some(
@@ -227,7 +226,7 @@ export function continuity(req: JpFullContext, date: IsoDate) {
 export function assemblePathway(
   id: string,
   title: string,
-  date: IsoDate,
+  filingDate: IsoDate | undefined,
   checks: JpFullCheck[],
   L: JpText,
   pilot?: PilotPathway,
@@ -267,7 +266,7 @@ export function assemblePathway(
     title,
     checks,
     status,
-    ...(status === 'MET' ? { earliestDate: date } : {}),
+    ...(status === 'MET' && filingDate ? { earliestDate: filingDate } : {}),
     ...(pilot
       ? { timeStatus: pilot.status, timeEarliestDate: pilot.earliestDate }
       : {}),

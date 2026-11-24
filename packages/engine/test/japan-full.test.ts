@@ -154,6 +154,43 @@ describe('permanent residence', () => {
     ).toBe('MET');
   });
 
+  test.each([
+    [undefined, 'UNKNOWN', 'UNKNOWN'],
+    [false, 'NOT_MET', 'NOT_MET'],
+    [true, 'MET', 'UNKNOWN'],
+  ] as const)(
+    'residence and naturalisation retain renewal evidence at departure: %s',
+    (renewalPending, expectedPr, expectedNat) => {
+      const trip = {
+        departed: '2026-10-01',
+        stayExpiry: '2026-10-15',
+        returned: '2026-11-10',
+        renewalPending,
+      };
+      const request = { trips: [trip], stayStart: '2012-04-01' };
+      const result = pr(general, prEvidence, request);
+      expect(status(result, 'continuous-stay')).toBe(expectedPr);
+      expect(result.status).toBe(expectedPr);
+      if (renewalPending === undefined) {
+        expect(result.timeStatus).toBe('UNKNOWN');
+        expect(result.timeEarliestDate).toBeUndefined();
+        expect(result.earliestDate).toBeUndefined();
+        expect(condition(result, 'continuous-stay').sources).toContainEqual(
+          expect.objectContaining({
+            srcId: 'SRC-116',
+            locator: expect.stringContaining('Q61'),
+          }),
+        );
+      }
+      const residence = nat(
+        { route: 'article-6-long-residence' },
+        natEvidence,
+        request,
+      );
+      expect(status(residence, 'long-residence')).toBe(expectedNat);
+    },
+  );
+
   test('moves Saturday filing to the next open day and preserves the time result', () => {
     const result = pr(general, prEvidence, { simulationDate: '2027-04-03' });
     expect(result).toMatchObject({
@@ -813,6 +850,41 @@ describe('highly skilled routes', () => {
     maintained: true,
     current: snapshot,
   } as const;
+  test.each(['en', 'zh-CN'] as const)(
+    'a closed counter gives dates for both replacement points records and confirms the corrected filing in %s',
+    (locale) => {
+      const saturday = '2027-04-03';
+      const monday = '2027-04-05';
+      const route = {
+        ...hsp70,
+        mode: 'retrospective',
+        current: { on: saturday, confirmedPoints: 80 },
+        historical: { on: '2024-04-03', confirmedPoints: 80 },
+      } as const;
+      const shifted = pr(route, prEvidence, {
+        applicationDate: saturday,
+        locale,
+      });
+      expect(shifted.status).toBe('UNKNOWN');
+      expect(shifted.earliestDate).toBeUndefined();
+      expect(shifted.summary).toContain(
+        locale === 'en' ? 'in the questionnaire' : '在问卷中',
+      );
+      expect(shifted.summary).toContain(monday);
+      expect(shifted.summary).toContain('2024-04-05');
+
+      const corrected = pr(
+        {
+          ...route,
+          current: { on: monday, confirmedPoints: 80 },
+          historical: { on: '2024-04-05', confirmedPoints: 80 },
+        },
+        prEvidence,
+        { applicationDate: monday, locale },
+      );
+      expect(corrected).toMatchObject({ status: 'MET', earliestDate: monday });
+    },
+  );
   test('70 points, the birthday band, salary minimum and continuous history', () => {
     const result = pr(hsp70);
     expect(condition(result, 'hsp-current-points')).toMatchObject({
@@ -1678,6 +1750,59 @@ describe('re-entry and travel documents', () => {
       ),
     ).toBe('MET');
   });
+  test.each([
+    [undefined, 'UNKNOWN'],
+    [false, 'NOT_MET'],
+    [true, 'MET'],
+  ] as const)(
+    'a return during the special period with renewal %s gives %s',
+    (renewal, expected) => {
+      const trip = {
+        departureOn: '2026-10-01',
+        returnOn: '2026-11-10',
+        stayExpiresOn: '2026-10-15',
+        stayIndefinite: false,
+        timelyRenewalPending: renewal,
+        renewalDecisionOn: renewal ? '2026-11-20' : undefined,
+      };
+      const ordinaryResult = reentry({
+        ...ordinary,
+        ...trip,
+        permit: { effectiveOn: '2026-09-25', expiresOn: '2026-11-15' },
+      });
+      const deemedResult = reentry({ ...deemed, ...trip });
+      expect(status(ordinaryResult, 'ordinary-validity')).toBe(expected);
+      expect(status(deemedResult, 'deemed-validity')).toBe(expected);
+      for (const result of [ordinaryResult, deemedResult])
+        expect(status(result, 'return-continuity')).toBe(expected);
+    },
+  );
+
+  test('unknown renewal preserves definite permit and special-period limits', () => {
+    const trip = {
+      departureOn: '2026-10-01',
+      returnOn: '2026-11-10',
+      stayExpiresOn: '2026-10-15',
+      stayIndefinite: false,
+    };
+    const permitExpired = reentry({
+      ...ordinary,
+      ...trip,
+      permit: { effectiveOn: '2026-09-25', expiresOn: '2026-10-10' },
+    });
+    expect(status(permitExpired, 'ordinary-validity')).toBe('MET');
+    expect(status(permitExpired, 'return-continuity')).toBe('NOT_MET');
+    for (const input of [
+      { ...deemed, ...trip, returnOn: '2026-12-16' },
+      { ...deemed, ...trip, departureOn: '2025-10-01' },
+      { ...deemed, ...trip, renewalDecisionOn: '2026-11-09' },
+    ]) {
+      const result = reentry(input);
+      expect(status(result, 'deemed-validity')).toBe('NOT_MET');
+      expect(status(result, 'return-continuity')).toBe('NOT_MET');
+    }
+  });
+
   test('deemed term ends at the earlier date including a pending-renewal period', () => {
     expect(reentry(deemed).status).toBe('MET');
     expect(

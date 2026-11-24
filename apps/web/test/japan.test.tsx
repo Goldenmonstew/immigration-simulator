@@ -3,6 +3,7 @@ import { expect, test } from 'vitest';
 import type { JpFullReentryRequest } from '@uk-immigration/engine';
 import { japanFull2026_11 } from '@uk-immigration/policy-data';
 import JapanPage from '../app/japan/page';
+import { JapanWhatIfControls } from '../app/japan/whatif/controls';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
 import sitemap from '../app/sitemap';
 import { ResultView } from '../components/result-view';
@@ -93,7 +94,13 @@ test('versioned drafts round-trip inside their country envelope, including negat
 
 test('step validation requires residence and a selected pathway, then validates trip dates', () => {
   const fresh = jp.createDraft();
-  expect(jp.validateStep(fresh)).toHaveProperty('jp-stayStart');
+  expect(jp.validateStep(fresh)).toEqual({ 'jp-routes': 'jp.form.routeError' });
+  expect(
+    jp.validateStep({
+      ...fresh,
+      permanentResidence: { routes: [{ route: 'child' }], evidence: {} },
+    }),
+  ).toHaveProperty('jp-stayStart');
   expect(jp.validateStep({ ...fresh, stayStart: '2014-04-01' })).not.toEqual(
     {},
   );
@@ -307,18 +314,133 @@ test('a planned deemed departure leaves the declaration pending and labels the p
   );
 });
 
-test('the date knob changes the filing date without replacing the original questionnaire', () => {
+test('moving the filing date clears ordinary permit evidence for the original date', () => {
   const baseline = travelDraft();
+  baseline.reentry = [
+    { ...ordinary, onlineConcurrentEligibleApplication: true },
+  ];
   const initial = jp.whatif.initial(baseline);
   const knobs = { ...initial, applicationDate: '2027-04-06' };
   const after = jp.whatif.apply(baseline, knobs);
   expect(jp.whatif.validate(after, knobs)).toEqual({});
-  expect(jp.run(after, 'en').columns[0].pathways[0].earliestDate).toBe(
-    '2027-04-06',
-  );
+  const compared = jp.run(after, 'en').columns[0].pathways[0];
+  expect(compared.status).toBe('UNKNOWN');
+  expect(compared.earliestDate).toBeUndefined();
+  expect(after.reentry[0]).toMatchObject({
+    lawfulStatus: undefined,
+    inJapanWhenApplying: undefined,
+    onlineConcurrentEligibleApplication: undefined,
+    channel: 'counter',
+    permit: ordinary.permit,
+  });
   expect(jp.run(baseline, 'en').columns[0].pathways[0].earliestDate).toBe(
     '2027-04-05',
   );
+});
+
+test('the filing date knob clears dated residence and talent answers without altering the original evidence', () => {
+  const baseline: JapanDraft = {
+    ...jp.createDraft(),
+    simulationDate: '2026-11-24',
+    stayStart: '2010-01-01',
+    permanentResidence: {
+      routes: [
+        {
+          route: 'hsp70',
+          statusStart: '2015-01-01',
+          mode: 'recognised',
+          current: { on: '2026-11-24', confirmedPoints: 80 },
+          historical: { on: '2023-11-24', confirmedPoints: 70 },
+          recognisedOn: '2022-01-01',
+          recognisedPoints: 70,
+          maintained: true,
+        },
+        {
+          route: 'j-skip',
+          current: { on: '2026-11-24', confirmed: true },
+          historical: { on: '2025-11-24', confirmed: true },
+          remainedRecognised: true,
+        },
+      ],
+      evidence: {
+        inJapan: true,
+        status: {
+          kind: 'engineer',
+          valid: true,
+          expiresOn: '2026-11-30',
+          timelyRenewalPending: false,
+        },
+        pendingOnIncomeReviewDate: true,
+        addressNotices: [
+          { eventOn: '2026-11-12', notifiedOn: null },
+          { eventOn: '2026-09-01', notifiedOn: '2026-09-02' },
+        ],
+      },
+    },
+    naturalisation: {
+      routes: [{ route: 'general' }],
+      evidence: { inJapan: true, lawfulDomicile: true },
+    },
+  };
+  const original = structuredClone(baseline);
+  const initial = jp.whatif.initial(baseline);
+  const knobs = { ...initial, applicationDate: '2026-12-01' };
+  const adjusted = jp.whatif.apply(baseline, knobs);
+  const pr = (draft: JapanDraft) => jp.run(draft, 'en').columns[0].pathways[0];
+  const check = (draft: JapanDraft, key: string) =>
+    pr(draft).checks.find((item) => item.id === key)?.status;
+  expect(check(baseline, 'jp.pr.lawful-filing-status')).toBe('MET');
+  expect(check(adjusted, 'jp.pr.lawful-filing-status')).toBe('NOT_MET');
+  expect(pr(adjusted).earliestDate).toBeUndefined();
+  expect(check(adjusted, 'jp.pr.hsp-current-points')).toBe('UNKNOWN');
+  expect(adjusted.permanentResidence.evidence).toMatchObject({
+    pendingOnIncomeReviewDate: true,
+    addressNotices: [
+      { eventOn: '2026-11-12', notifiedOn: undefined },
+      { eventOn: '2026-09-01', notifiedOn: '2026-09-02' },
+    ],
+  });
+  expect(adjusted.permanentResidence.routes).toMatchObject([
+    {
+      current: undefined,
+      historical: undefined,
+      maintained: undefined,
+      recognisedOn: '2022-01-01',
+      recognisedPoints: 70,
+    },
+    {
+      current: undefined,
+      historical: undefined,
+      remainedRecognised: undefined,
+    },
+  ]);
+  expect(adjusted.naturalisation.evidence).toMatchObject({
+    inJapan: undefined,
+    lawfulDomicile: undefined,
+  });
+  expect(jp.whatif.apply(baseline, initial).permanentResidence).toEqual(
+    original.permanentResidence,
+  );
+  expect(baseline).toEqual(original);
+  const renewed = structuredClone(baseline);
+  renewed.permanentResidence.evidence.status!.timelyRenewalPending = true;
+  const comparedRenewal = jp.whatif.apply(renewed, knobs);
+  expect(
+    comparedRenewal.permanentResidence.evidence.status?.timelyRenewalPending,
+  ).toBeUndefined();
+  expect(check(comparedRenewal, 'jp.pr.lawful-filing-status')).toBe('UNKNOWN');
+  const html = renderToStaticMarkup(
+    <LocaleContext value={{ locale: 'en', setLocale: () => {} }}>
+      <JapanWhatIfControls
+        afterDraft={adjusted}
+        knobs={knobs}
+        update={() => {}}
+        errors={{}}
+      />
+    </LocaleContext>,
+  );
+  expect(html).toContain('aria-describedby="jp-whatif-date-hint"');
+  expect(html).toContain('Set the new filing date in the questionnaire');
 });
 
 test('language, household evidence and travel knobs update only the comparison', () => {

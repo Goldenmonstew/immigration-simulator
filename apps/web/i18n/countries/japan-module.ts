@@ -10,6 +10,8 @@ export const zhCN = {
   'jp.policy.guidelineSummary':
     '按递交日期适用新版指南，核对在留、出境、语言、生活规则与适龄子女就学等事项。',
   'jp.whatif.date': '拟递交日期',
+  'jp.whatif.dateEvidence':
+    '改动递交日后，需要重新确认与原日期绑定的证据，例如当天是否在日本、在留是否有效、高度人材积分。要补录，请在问卷中先设定新递交日，再填写相应证据。',
   'jp.whatif.prJapanese': '入管已认可永住所需的日语能力',
   'jp.whatif.natJapanese': '法务局已认可帰化所需的日语能力',
   'jp.whatif.interview': '已完成法务局面谈及适用评估',
@@ -40,6 +42,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'jp.policy.guidelineSummary':
     'The filing date determines when the new guidance applies to residence, absences, Japanese language, knowledge of everyday rules and school attendance.',
   'jp.whatif.date': 'Proposed filing date',
+  'jp.whatif.dateEvidence':
+    'Changing the filing date clears evidence tied to the previous date, such as presence in Japan, lawful status and highly skilled points. Set the new filing date in the questionnaire before entering the evidence for your route.',
   'jp.whatif.prJapanese':
     'Immigration has confirmed Japanese ability for permanent residence',
   'jp.whatif.natJapanese':

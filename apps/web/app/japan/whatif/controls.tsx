@@ -67,8 +67,13 @@ export function JapanWhatIfControls({
           value={knobs.applicationDate}
           onChange={(e) => update({ applicationDate: e.target.value })}
           aria-invalid={!!errors.date}
-          aria-describedby={errors.date ? 'date-error' : undefined}
+          aria-describedby={
+            errors.date
+              ? 'jp-whatif-date-hint date-error'
+              : 'jp-whatif-date-hint'
+          }
         />
+        <p id="jp-whatif-date-hint">{t('jp.whatif.dateEvidence')}</p>
         {error('date')}
       </div>
       {!!afterDraft.permanentResidence.routes.length && (

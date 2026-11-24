@@ -17,10 +17,13 @@ async function begin(page: Page, dict: Dict) {
     .first()
     .click();
   await expect(page.getByRole('progressbar')).toBeVisible();
-  await page.getByRole('button', { name: dict['form.continue'] }).click();
+  await page.locator('form button[type="submit"]').click();
   await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.locator('#jp-routes')).toBeFocused();
+  await expect(page.locator('#jp-routes')).toHaveAccessibleDescription(
+    dict['jp.form.routeError'],
+  );
   await page.locator('#jp-simulationDate').fill('2027-04-03');
-  await page.locator('#jp-stayStart').fill('2014-04-01');
 }
 
 test('a Japanese questionnaire restores its step, shares its pending assessment and focuses the chosen condition', async ({
@@ -29,8 +32,9 @@ test('a Japanese questionnaire restores its step, shares its pending assessment 
   browser,
 }) => {
   await begin(page, zhCN);
-  await page.locator('#jp-dateOfBirth').fill('1990-01-01');
   await page.locator('#jp-route-nat-general').check();
+  await page.locator('#jp-dateOfBirth').fill('1990-01-01');
+  await page.locator('#jp-stayStart').fill('2014-04-01');
   const next = page.getByRole('button', { name: zhCN['form.continue'] });
   await next.click();
   const progress = page.getByRole('progressbar');
@@ -105,7 +109,7 @@ test('English mobile questionnaire compares filing dates and shows Japanese poli
   await page.locator('#jp-route-travel-ordinary').check();
   await noHorizontalScroll(page);
   const next = page.getByRole('button', { name: en['form.continue'] });
-  await next.click();
+  await expect(page.locator('#jp-stayStart')).toHaveCount(0);
   await next.click();
   const field = (key: string) => page.locator('#jp-travel-ordinary-' + key);
   await field('departureOn').fill('2027-04-12');
@@ -168,7 +172,9 @@ test('English mobile questionnaire compares filing dates and shows Japanese poli
     .locator('xpath=following-sibling::dd[1]');
   await expect(comparison).toHaveText('2027-04-05→2027-04-05');
   await page.locator('#jp-whatif-date').fill('2027-04-06');
-  await expect(comparison).toHaveText('2027-04-05→2027-04-06');
+  await expect(comparison).toHaveText(
+    '2027-04-05→' + en['result.undetermined'],
+  );
   await noHorizontalScroll(page);
 
   await page.goto(path('policy'));
@@ -187,4 +193,65 @@ test('English mobile questionnaire compares filing dates and shows Japanese poli
     page.locator('[data-rule="jp.reentry.ordinary-validity"]'),
   ).toBeVisible();
   await noHorizontalScroll(page);
+});
+
+test('returning to results after another tab submits uses the same draft for display and sharing', async ({
+  page,
+  context,
+}) => {
+  await begin(page, zhCN);
+  const ordinary = '#jp-route-travel-ordinary';
+  await page.locator(ordinary).check();
+  await page.getByRole('button', { name: zhCN['form.continue'] }).click();
+  await page.getByRole('button', { name: zhCN['form.results'] }).click();
+  await expect(
+    page.getByRole('heading', { name: '普通再入国許可', exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole('link', { name: zhCN['whatif.title'], exact: true })
+    .first()
+    .click();
+  const back = page.getByRole('link', {
+    name: zhCN['whatif.back'],
+    exact: true,
+  });
+  await expect(back).toBeVisible();
+
+  const other = await context.newPage();
+  await other.goto(path('simulate'));
+  await other.locator(ordinary).uncheck();
+  await other.locator('#jp-route-travel-deemed').check();
+  await other.getByRole('button', { name: zhCN['form.continue'] }).click();
+  const departure = '2027-04-12';
+  await other.locator('#jp-travel-deemed-departureOn').fill(departure);
+  await expect(
+    other.locator('#jp-travel-deemed-declaredIntentAtDeparture'),
+  ).toHaveCount(0);
+  await expect(
+    other.getByText(
+      zhCN['jp.result.plannedDeparture'].replace('{date}', departure),
+    ),
+  ).toBeVisible();
+  await other.getByRole('button', { name: zhCN['form.results'] }).click();
+  const deemed = { name: 'みなし再入国許可', exact: true };
+  await expect(other.getByRole('heading', deemed)).toBeVisible();
+
+  await back.click();
+  await expect(page.getByRole('heading', deemed)).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: '普通再入国許可', exact: true }),
+  ).toHaveCount(0);
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.bringToFront();
+  await page.getByRole('button', { name: zhCN['share.copy'] }).click();
+  await expect(
+    page.getByText(zhCN['share.copied'], { exact: true }),
+  ).toBeVisible();
+  const shared = new URL(
+    await page.evaluate(() => navigator.clipboard.readText()),
+  );
+  const encoded = new URLSearchParams(shared.hash.slice(1)).get('s')!;
+  expect(
+    JSON.parse(Buffer.from(encoded, 'base64url').toString()).draft.reentry,
+  ).toEqual([{ route: 'deemed', departureOn: departure }]);
 });

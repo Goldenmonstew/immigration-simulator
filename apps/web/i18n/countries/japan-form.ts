@@ -3,10 +3,6 @@ const messages = {
     '本组可留空。如果填写了组内资料，请同时完成标星号的项目。',
     'You can leave this group blank. If you enter details, also complete the fields marked with an asterisk.',
   ],
-  'jp.form.tripPermitError': [
-    '请核对孩子的出境方式与普通再入国许可记录。',
-    'Check the child’s departure method against the ordinary re-entry permit record.',
-  ],
   'jp.form.step0': ['模拟日期与申请路径', 'Dates and routes to assess'],
   'jp.form.step1': ['出境记录', 'Trips abroad'],
   'jp.form.step2': [
@@ -35,8 +31,8 @@ const messages = {
     'Enter the facts you know. Fields marked with an asterisk are required. Other evidence can be left open for confirmation.',
   ],
   'jp.form.baseline': [
-    '未另填递交日期时，以模拟日期评估。',
-    'If you leave the filing date blank, the assessment uses the simulation date.',
+    '留空时按模拟日期评估。改动评估所用的递交日后，请重新确认当天的在日情况、合法在留及适用的高度人材证据。',
+    'Leave blank to use the simulation date. If the filing date changes, confirm presence in Japan, lawful status and any applicable highly skilled evidence for the new date.',
   ],
   'jp.form.history': [
     '添加每次离境和返日的日期，包括需要纳入计算的计划行程。没有出境记录可直接继续。',
@@ -223,8 +219,8 @@ const messages = {
     'Period of stay expiry at departure',
   ],
   'jp.field.reentryPermit': [
-    '是否持普通再入国许可出境并在许可有效期内返回？',
-    'Did you leave on an ordinary re-entry permit and return within its validity?',
+    '返日时是否持有仍在有效期内的普通再入国许可？',
+    'Did you hold a valid ordinary re-entry permit when you returned?',
   ],
   'jp.field.renewalPending': [
     '出境时，是否已按期申请续期或变更并仍在等待决定？',

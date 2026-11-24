@@ -1,12 +1,16 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
-import type { CountryPathway } from '@uk-immigration/engine';
+import type {
+  CountryPathway,
+  JpFullReentryRequest,
+} from '@uk-immigration/engine';
 import { esP31IndividualAPartnerArrivesTogether as partner } from '../../../packages/policy-data/fixtures/es-p31-individual-a-partner-arrives-together';
 import { ResultView } from '../components/result-view';
 import { PolicyPage } from '../components/policy-page';
 import type { CountryPolicy, PolicyRuleSet } from '../lib/policy';
 import { WhatIfView } from '../components/whatif-lab';
 import { t } from '../i18n';
+import { japanModule } from '../lib/japan-module';
 import type { CountryModule } from '../lib/country-module';
 import { ukModule } from '../lib/uk-module';
 import {
@@ -129,6 +133,7 @@ test('the UK date control shows a missing assessment in both columns when depend
   );
   const outcomeRow = `<dt>${t('whatif.outcome')}</dt>`;
   expect(baseline.split(outcomeRow)).toHaveLength(3);
+  expect(baseline).toContain(`<dt>${t('result.earliest')}</dt>`);
 
   const date = '2024-11-23';
   const adjusted = renderToStaticMarkup(
@@ -146,6 +151,107 @@ test('the UK date control shows a missing assessment in both columns when depend
     expect(column).toContain(t('result.missingAssessment'));
     expect(column).not.toContain(outcomeRow);
   }
+});
+
+test.each([
+  {
+    route: {
+      route: 'deemed',
+      departureOn: '2025-09-02',
+      returnOn: '2025-09-30',
+      stayIndefinite: true,
+      lawfulStatus: true,
+      passportValid: true,
+      residentCardOrCertificate: true,
+      formalPermitRequired: false,
+      declaredIntentAtDeparture: true,
+      permitVoided: false,
+    },
+    kind: 'departure',
+    expected: '2025-09-02',
+  },
+  {
+    route: {
+      route: 'refugee-travel-document',
+      departureOn: '2025-09-02',
+      returnOn: '2025-09-30',
+      refugeeRecognition: true,
+      hasJapaneseTravelDocument: true,
+      permitVoided: false,
+      permit: {
+        effectiveOn: '2025-04-01',
+        expiresOn: '2027-04-01',
+        entryDeadline: '2025-10-01',
+      },
+    },
+    kind: 'returnDeadline',
+    expected: '2025-10-01',
+  },
+] satisfies {
+  route: JpFullReentryRequest;
+  kind: 'departure' | 'returnDeadline';
+  expected: string;
+}[])(
+  'shows the $kind in both views for a completed journey',
+  ({ route, kind, expected }) => {
+    const travelDraft = {
+      ...japanModule.createDraft(),
+      simulationDate: '2025-11-01',
+      stayStart: '2020-01-01',
+      completed: true,
+      reentry: [route],
+    };
+    const result = japanModule.run(travelDraft, 'zh-CN');
+    const pathway = result.columns[0].pathways[0];
+    expect(pathway.status).toBe('MET');
+    expect(pathway.earliestDate).toBeUndefined();
+    expect(pathway.travelDate).toEqual({ kind, date: expected });
+    const resultHtml = renderToStaticMarkup(
+      <ResultView country={japanModule} result={result} draft={travelDraft} />,
+    );
+    const whatifHtml = renderToStaticMarkup(
+      <WhatIfView country={japanModule} draft={travelDraft} />,
+    );
+    const label = `<dt>${t(`country.${kind}`)}</dt>`;
+    for (const html of [resultHtml, whatifHtml]) {
+      expect(html).toContain(label);
+      expect(html).not.toContain(`<dt>${t('result.earliest')}</dt>`);
+    }
+    expect(resultHtml.split(label)[1]).toMatch(
+      new RegExp(`^<dd><time dateTime="${expected}">${expected}</time></dd>`),
+    );
+    expect(
+      whatifHtml
+        .split(label)[1]
+        .split('</dd>')[0]
+        .match(new RegExp(expected, 'g')),
+    ).toHaveLength(2);
+  },
+);
+
+test('a refugee document with an unconfirmed entry limit has no confirmed return deadline', () => {
+  const result = japanModule.run(
+    {
+      ...japanModule.createDraft(),
+      simulationDate: '2025-11-01',
+      reentry: [
+        {
+          route: 'refugee-travel-document',
+          permit: { effectiveOn: '2025-04-01', expiresOn: '2027-04-01' },
+        },
+      ],
+    },
+    'en',
+  );
+  const pathway = result.columns[0].pathways[0];
+  expect(pathway.travelDate).toEqual({
+    kind: 'returnDeadline',
+    date: undefined,
+  });
+  expect(
+    pathway.checks.find((row) => row.id === 'jp.reentry.return-continuity')
+      ?.explanation,
+  ).not.toContain('2027-04-01');
 });
 
 test('path columns keep their checks, pending details and country-specific links', () => {

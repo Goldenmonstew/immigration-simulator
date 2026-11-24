@@ -252,6 +252,8 @@ export const zhCN = {
   'policyPage.pathways': '评估路径',
   'country.timeConditions': '时间条件',
   'country.timeDate': '仅按时间条件推算的日期',
+  'country.departure': '出境日',
+  'country.returnDeadline': '返日期限',
   'country.check.requirement': '申请条件',
   'country.check.factor': '审查因素',
   'country.check.information': '办理提示',

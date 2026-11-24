@@ -1,7 +1,12 @@
 import type { JpFullReentryRequest } from '@uk-immigration/engine';
 import { JapanWhatIfControls } from '../app/japan/whatif/controls';
 import type { TranslationKey } from '../i18n';
-import { japanSteps, validateJapanStep, type JapanDraft } from './japan-draft';
+import {
+  japanSteps,
+  validateJapanStep,
+  withJapanFilingDate,
+  type JapanDraft,
+} from './japan-draft';
 import { validDate } from './questionnaire';
 import type { CountryWhatIf } from './whatif';
 
@@ -75,14 +80,16 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
     };
   },
   apply(draft, knobs) {
-    const pr = draft.permanentResidence;
-    const nat = draft.naturalisation;
+    const compared = withJapanFilingDate(
+      draft,
+      !draft.applicationDate && knobs.applicationDate === draft.simulationDate
+        ? undefined
+        : knobs.applicationDate,
+    );
+    const pr = compared.permanentResidence;
+    const nat = compared.naturalisation;
     return {
-      ...draft,
-      applicationDate:
-        !draft.applicationDate && knobs.applicationDate === draft.simulationDate
-          ? undefined
-          : knobs.applicationDate,
+      ...compared,
       trips: knobs.noTrips ? [] : draft.trips,
       permanentResidence: {
         ...pr,
@@ -109,7 +116,7 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
           requiredInterviewAndAssessmentComplete: knobs.interview,
         },
       },
-      reentry: draft.reentry.map((item) => ({
+      reentry: compared.reentry.map((item) => ({
         ...item,
         returnOn: knobs.returns[item.route] || undefined,
       })),

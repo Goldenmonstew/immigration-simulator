@@ -50,7 +50,7 @@ export function ResultPage<D extends CountryDraft, K>({
           ) {
             const nextResult = country.run(incoming, locale);
             draftStorage(country, incoming);
-            rememberResult(country, nextResult, locale);
+            rememberResult(country, incoming, nextResult, locale);
             setDraft(incoming);
             setResult(nextResult);
             setShared(true);
@@ -70,7 +70,8 @@ export function ResultPage<D extends CountryDraft, K>({
         if (draft?.completed) {
           setDraft(draft);
           setResult(
-            getRememberedResult(country, locale) ?? country.run(draft, locale),
+            getRememberedResult(country, draft, locale) ??
+              country.run(draft, locale),
           );
         }
       }

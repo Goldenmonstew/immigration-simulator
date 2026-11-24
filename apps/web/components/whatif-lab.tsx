@@ -10,6 +10,7 @@ import {
   type CountryModule,
   checkLabelStatus,
   isDecisionOutcome,
+  pathwayDate,
   pathwayTitle,
 } from '../lib/country-module';
 import { displayedColumns } from '../lib/policy';
@@ -69,9 +70,9 @@ function Comparison({
             ? [[t('result.pathway'), years(before), years(after)]]
             : []),
           [
-            t('result.earliest'),
-            before?.earliestDate ?? t('result.undetermined'),
-            after?.earliestDate ?? t('result.undetermined'),
+            t(pathwayDate(after ?? before).label),
+            pathwayDate(before).date ?? t('result.undetermined'),
+            pathwayDate(after).date ?? t('result.undetermined'),
           ],
           ...(before?.timeEarliestDate || after?.timeEarliestDate
             ? [

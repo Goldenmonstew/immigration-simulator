@@ -456,11 +456,44 @@ export function assessJapanPr(
   return scheduleFiling(
     assessJapanPrOnDate(req, route, e),
     L,
-    (applicationDate) =>
-      assessJapanPrOnDate({ ...req, applicationDate }, route, {
+    (applicationDate) => {
+      const filing = assessJapanPrOnDate({ ...req, applicationDate }, route, {
         ...e,
         status: e.status && { ...e.status, valid: undefined },
-      }),
+      });
+      if (
+        (route.route === 'hsp70' ||
+          route.route === 'hsp80' ||
+          route.route === 'j-skip') &&
+        filing.checks.some(
+          (item) =>
+            (item.id.startsWith('jp.pr.hsp-') ||
+              item.id.startsWith('jp.pr.j-skip-')) &&
+            item.status === 'UNKNOWN',
+        )
+      ) {
+        const years =
+          route.route === 'j-skip'
+            ? full.jSkip.value.stayYears
+            : old.highlySkilledYears.value[route.route];
+        const past = afterYears(applicationDate, -years);
+        filing.summary +=
+          L(
+            `请在问卷中把拟递交日改为 ${applicationDate}，再填写该日的${route.route === 'j-skip' ? 'J-Skip 资格' : '高度人材积分'}证据。`,
+            ` Set the proposed filing date in the questionnaire to ${applicationDate}, then enter the ${route.route === 'j-skip' ? 'J-Skip eligibility' : 'highly skilled points'} evidence for that day.`,
+          ) +
+          (route.mode === 'retrospective'
+            ? L(
+                `回溯证明还需补录 ${past} 的历史证据。`,
+                ` For retrospective proof, also enter historical evidence for ${past}.`,
+              )
+            : L(
+                '请重新确认认定后持续符合条件。',
+                ' Reconfirm that the requirements have been maintained since recognition.',
+              ));
+      }
+      return filing;
+    },
   );
 }
 
@@ -1634,8 +1667,7 @@ function assessJapanPrOnDate(
       restriction.title,
       barred
         ? grant
-          ? date >=
-            afterYears(grant > history.stay ? grant : history.stay, years)
+          ? history.yearsSince(grant, years)
           : undefined
         : specialPermission
           ? true

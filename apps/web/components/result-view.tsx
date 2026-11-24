@@ -19,6 +19,7 @@ import { routeGroupNames, routeLabel } from '../i18n/routes';
 import {
   checkLabelStatus,
   isDecisionOutcome,
+  pathwayDate,
   pathwayTitle,
   type CountryDraft,
   type CountryModule,
@@ -255,6 +256,7 @@ function PathwayAssessment<D extends CountryDraft, K>({
   const { t, locale } = useTranslation();
   const p = punct(locale);
   const basis = basisRule(assessment);
+  const primaryDate = pathwayDate(assessment);
   const shorter = shorterPathwaysNotUsed(assessment);
   const eligible =
     assessment.status === 'LIKELY_ELIGIBLE' || assessment.status === 'MET';
@@ -370,12 +372,10 @@ function PathwayAssessment<D extends CountryDraft, K>({
           </div>
         ) : (
           <div>
-            <dt>{t('result.earliest')}</dt>
+            <dt>{t(primaryDate.label)}</dt>
             <dd>
-              {assessment.earliestDate ? (
-                <time dateTime={assessment.earliestDate}>
-                  {assessment.earliestDate}
-                </time>
+              {primaryDate.date ? (
+                <time dateTime={primaryDate.date}>{primaryDate.date}</time>
               ) : (
                 t('result.undetermined')
               )}

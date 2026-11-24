@@ -209,6 +209,15 @@ describe('re-entry permits', () => {
     expect(p.summary).toContain('2031-03-01');
   });
 
+  test('an explicitly expired ordinary permit breaks a short trip without treating it as deemed re-entry', () => {
+    const trip = { departed: '2020-03-01', returned: '2020-03-20', reentryPermit: false };
+    const ordinary = pr({ ...lapsing, trips: [{ ...trip, departure: 'permit' }], locale: 'en' });
+    expect(ordinary.earliestDate).toBe('2030-03-20');
+    expect(ordinary.summary).toContain('ordinary re-entry permit');
+    expect(ordinary.summary).not.toContain('deemed permit');
+    expect(pr({ ...lapsing, trips: [trip] }).checks[0].met).toBe(true);
+  });
+
   test('a regular re-entry permit keeps the stay past a year', () => {
     const p = pr({
       ...lapsing,
@@ -365,7 +374,10 @@ describe('review70-1', () => {
     } as const;
     const trip = { departed: '2026-02-01', returned: '2026-04-01' };
     expect(pr({ ...base2, trips: [trip] }).status).toBe('MET');
-    const p = pr({ ...base2, trips: [{ ...trip, stayExpiry: '2026-03-01' }] });
+    const p = pr({
+      ...base2,
+      trips: [{ ...trip, stayExpiry: '2026-03-01', renewalPending: false }],
+    });
     // The stay starts again on 2026-04-01: 10 years on 2036-04-01.
     expect(p.status).toBe('FUTURE');
     expect(p.earliestDate).toBe('2036-04-01');
@@ -383,6 +395,7 @@ describe('review70-1', () => {
           returned: '2026-04-01',
           reentryPermit: true,
           stayExpiry: '2026-03-01',
+          renewalPending: false,
         },
       ],
     });
@@ -540,7 +553,7 @@ describe('review70-2', () => {
     // Naturalisation still sees a trip in the 10 years.
     expect(nat(pending).status).toBe('UNKNOWN');
     // Without the pending renewal the status ended on 2027-04-20.
-    const lapsed = pr({ ...req, trips: [trip] });
+    const lapsed = pr({ ...req, trips: [{ ...trip, renewalPending: false }] });
     expect(lapsed.status).toBe('FUTURE');
     expect(lapsed.earliestDate).toBe('2037-04-30');
     // A pending renewal keeps the status 2 months after expiry, no longer.
@@ -551,6 +564,26 @@ describe('review70-2', () => {
     });
     expect(late.summary).toContain('2027-06-20');
     expect(late.summary).toContain('2027-06-21 重新起算');
+  });
+
+  test('a missing renewal answer only clouds continuity when the two possible limits differ', () => {
+    const trip = {
+      departed: '2027-04-15',
+      returned: '2027-04-30',
+      stayExpiry: '2027-04-20',
+    };
+    const request = { simulationDate: '2027-07-01', trips: [trip] };
+    for (const pathway of [pr(request), nat(request)]) {
+      expect(pathway.status).toBe('UNKNOWN');
+      expect(pathway.checks[0].met).toBeUndefined();
+      expect(pathway.earliestDate).toBeUndefined();
+      expect(pathway.summary).toContain('请确认出境时');
+    }
+    const returningOn = (returned: string) =>
+      pr({ ...request, trips: [{ ...trip, returned }] });
+    expect(returningOn('2027-04-20').status).toBe('MET');
+    expect(returningOn('2027-06-20').status).toBe('UNKNOWN');
+    expect(returningOn('2027-06-21').earliestDate).toBe('2037-06-21');
   });
 
   test('a spouse 10-year date with trips is only a candidate', () => {

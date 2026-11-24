@@ -196,8 +196,8 @@ function assessJapanNaturalisationOnDate(
   const earlier =
     domicileStart < residenceStart ? domicileStart : residenceStart;
   const continuous = (start: IsoDate, years: number) => {
-    const from = start > history.stay ? start : history.stay;
-    if (date < afterYears(from, years)) return false;
+    const met = history.yearsSince(start, years);
+    if (met !== true) return met;
     return history.hasTripsSince(afterYears(date, -years)) ? undefined : true;
   };
   const pilot =

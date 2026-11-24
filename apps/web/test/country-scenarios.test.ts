@@ -1,5 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import type { CountryResult } from '@uk-immigration/engine';
+import type { CountryDraft } from '../lib/country-module';
 import { decodeDraft, encodeDraft } from '../lib/share';
 import {
   deleteScenario,
@@ -11,6 +12,7 @@ import {
   saveScenario,
 } from '../lib/storage';
 import { ukModule } from '../lib/uk-module';
+import { japanModule } from '../lib/japan-module';
 
 const encodeJson = (value: unknown) =>
   Buffer.from(JSON.stringify(value), 'utf8').toString('base64url');
@@ -91,10 +93,10 @@ test('existing UK drafts and scenarios stay accessible alongside another country
   const [scenario] = saveScenario(other, 'Other', otherDraft).scenarios;
   expect(readScenarios(other).scenarios).toEqual([scenario]);
   const result: CountryResult = { policyAsOf: '2026-11-01', columns: [] };
-  rememberResult(other, result, 'en');
+  rememberResult(other, otherDraft, result, 'en');
   loadScenario(ukModule, legacy);
-  expect(getRememberedResult(other, 'en')).toBe(result);
-  expect(getRememberedResult(ukModule, 'en')).toBeUndefined();
+  expect(getRememberedResult(other, otherDraft, 'en')).toBe(result);
+  expect(getRememberedResult(ukModule, draft, 'en')).toBeUndefined();
   deleteScenario(other, scenario.id);
   expect(readScenarios(other).scenarios).toEqual([]);
   expect(readScenarios(ukModule).scenarios).toEqual([legacy]);
@@ -104,4 +106,73 @@ test('existing UK drafts and scenarios stay accessible alongside another country
     available: false,
   });
   expect(draftStorage(other)).toEqual({ draft: otherDraft, available: false });
+});
+
+test.each([ukModule, japanModule])(
+  'a $id result cache misses when another tab replaces answers for the same date',
+  (country) => {
+    const storage = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value),
+    });
+    const first = { ...country.createDraft(), completed: true };
+    const second =
+      country.id === 'jp'
+        ? { ...first, reentry: [{ route: 'deemed' }] }
+        : { ...first, screening: { criminality: 'yes' } };
+    const result: CountryResult = {
+      policyAsOf: first.simulationDate,
+      columns: [],
+    };
+    draftStorage(country, first);
+    rememberResult(country, first, result, 'en');
+    const restored = draftStorage<CountryDraft>(country).draft!;
+    expect(getRememberedResult(country, restored, 'en')).toBe(result);
+
+    storage.set(country.id + '-immigration-draft-v1', JSON.stringify(second));
+    const latest = draftStorage<CountryDraft>(country).draft!;
+    expect(latest).toEqual(second);
+    expect(getRememberedResult(country, latest, 'en')).toBeUndefined();
+  },
+);
+
+test('a legacy local Japan plan keeps the trip but drops a premature declaration before resharing', () => {
+  const original = {
+    ...japanModule.createDraft(),
+    completed: true,
+    step: 6,
+    simulationDate: '2026-10-01',
+    reentry: [
+      {
+        route: 'deemed' as const,
+        departureOn: '2026-10-02',
+        returnOn: '2026-10-10',
+        declaredIntentAtDeparture: true,
+      },
+    ],
+  };
+  vi.stubGlobal('localStorage', {
+    getItem: () => JSON.stringify(original),
+    setItem: () => {},
+  });
+  const local = draftStorage(japanModule).draft!;
+  expect(
+    decodeDraft(japanModule, encodeDraft(japanModule, original)),
+  ).toBeUndefined();
+  expect(local.reentry).toEqual([
+    { ...original.reentry[0], declaredIntentAtDeparture: undefined },
+  ]);
+  expect(decodeDraft(japanModule, encodeDraft(japanModule, local))).toEqual(
+    local,
+  );
+  expect(
+    loadScenario(japanModule, {
+      id: 'old',
+      name: 'saved',
+      savedAt: '2026-10-01',
+      draft: original,
+    }),
+  ).toEqual(local);
+  expect(original.reentry[0].declaredIntentAtDeparture).toBe(true);
 });

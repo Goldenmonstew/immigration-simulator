@@ -75,9 +75,9 @@ const list = (name: FieldName, fields: JapanField[]): JapanField => ({
   fields,
 });
 
-export const basicFields = [
+export const basicFields = (hasResidenceRoute: boolean) => [
   date('simulationDate', true),
-  date('stayStart', true),
+  ...(hasResidenceRoute ? [date('stayStart', true)] : []),
   date('applicationDate', false, 'applicationDate', 'baseline'),
   date('dateOfBirth'),
 ];

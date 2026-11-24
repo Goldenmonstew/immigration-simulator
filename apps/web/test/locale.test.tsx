@@ -164,13 +164,13 @@ test('locale renders the shell title, engine result, principal and What-if expla
 test('a remembered result is only reused for its original locale', () => {
   const draft = familyDraft();
   const chinese = runSimulation(draft, 'zh-CN');
-  rememberResult(chinese, 'zh-CN');
-  expect(getRememberedResult('zh-CN')).toBe(chinese);
-  expect(getRememberedResult('en')).toBeUndefined();
+  rememberResult(draft, chinese, 'zh-CN');
+  expect(getRememberedResult(draft, 'zh-CN')).toBe(chinese);
+  expect(getRememberedResult(draft, 'en')).toBeUndefined();
   const english = runSimulation(draft, 'en');
-  rememberResult(english, 'en');
-  expect(getRememberedResult('en')).toBe(english);
-  expect(getRememberedResult('zh-CN')).toBeUndefined();
+  rememberResult(draft, english, 'en');
+  expect(getRememberedResult(draft, 'en')).toBe(english);
+  expect(getRememberedResult(draft, 'zh-CN')).toBeUndefined();
 });
 
 test.each(shortCircuitKeys)(

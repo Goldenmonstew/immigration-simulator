@@ -68,15 +68,6 @@ function Question({
           answer !== 'businessManager'
         )
           updated = updateAnswer(updated, 'businessManager', undefined);
-        if (field.name === 'trips' && name === 'departure' && answer)
-          updated = updateAnswer(updated, 'reentryPermit', answer === 'permit');
-        if (
-          field.name === 'trips' &&
-          name === 'reentryPermit' &&
-          'departure' in updated &&
-          (answer === undefined || (updated.departure === 'permit') !== answer)
-        )
-          updated = updateAnswer(updated, 'departure', undefined);
         replace(updated);
       }}
     />

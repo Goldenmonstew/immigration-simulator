@@ -43,7 +43,8 @@ export interface JpTrip {
   returned: IsoDate;
   /**
    * Left on a regular re-entry permit (再入国許可) and came back while it was
-   * valid; otherwise the deemed permit (みなし再入国許可) applies.
+   * valid. When departure is explicitly 'permit', false means the ordinary
+   * permit had expired by return. Otherwise the time model assumes deemed re-entry.
    */
   reentryPermit?: boolean;
   /**
@@ -53,7 +54,7 @@ export interface JpTrip {
   stayExpiry?: IsoDate;
   /**
    * A renewal or change of status was applied for before `stayExpiry` and
-   * was still pending when leaving (art. 20(6), FAQ Q61).
+   * was still pending when leaving (art. 20(6), FAQ Q61). Omitted = unknown.
    */
   renewalPending?: boolean;
   /**
@@ -150,6 +151,7 @@ interface Need {
   state: Verdict;
   text: string;
   sources: SourceRef[];
+  renewalUnconfirmed?: boolean;
 }
 
 /**
@@ -164,6 +166,27 @@ export const jpStayLimit = (
   t.stayExpiry && t.renewalPending
     ? addMonths(t.stayExpiry, v.renewalPendingMonths.value)
     : t.stayExpiry;
+
+// SRC-110 art. 20(6), SRC-116 Q61: a return inside the special period
+// can preserve the stay only if a timely application was pending.
+const latestStayLimit = (t: JpTrip) =>
+  jpStayLimit({
+    stayExpiry: t.stayExpiry,
+    renewalPending: t.renewalPending ?? true,
+  });
+
+export function jpTripLapses(t: JpTrip): boolean | undefined {
+  // SRC-116, ordinary re-entry: return within the permit's validity.
+  if (t.departure === 'permit' && t.reentryPermit === false) return true;
+  if (
+    !t.reentryPermit &&
+    t.returned > addYears(t.departed, v.deemedReentryYears.value)
+  )
+    return true;
+  if (!t.stayExpiry || t.returned <= t.stayExpiry) return false;
+  if (t.returned > latestStayLimit(t)!) return true;
+  return t.renewalPending === undefined ? undefined : false;
+}
 
 const metOf = (state: Verdict) =>
   state === 'yes' ? true : state === 'no' ? false : undefined;
@@ -248,28 +271,16 @@ export function evaluateJapan(req: JpRequest): JpResult {
   // The status ends on a trip past the period of stay, or past the deemed
   // permit's year without a regular permit (art. 26-2(2)); the stay starts
   // again on return (PD-136).
-  const pastExpiry = (t: JpTrip) => {
-    const limit = jpStayLimit(t);
-    return !!limit && t.returned > limit;
-  };
-  const lapsed = req.trips
-    .filter(
-      (t) =>
-        pastExpiry(t) ||
-        (!t.reentryPermit &&
-          t.returned > addYears(t.departed, v.deemedReentryYears.value)),
-    )
-    .sort((a, b) => (a.departed < b.departed ? -1 : 1));
-  /** First day of the stay that is unbroken on `d`. */
-  const stayFrom = (d: IsoDate) =>
-    lapsed
-      .filter((t) => t.departed < d)
-      .reduce((s, t) => (t.returned > s ? t.returned : s), req.stayStart);
-  /** `from`, or the start of the unbroken stay if later. */
-  const since = (d: IsoDate, from: IsoDate) => {
-    const stay = stayFrom(d);
-    return from > stay ? from : stay;
-  };
+  const lapsed = req.trips.filter((t) => jpTripLapses(t) === true);
+  const uncertainRenewals = req.trips.filter(
+    (t) => jpTripLapses(t) === undefined,
+  );
+  /** First day of the stay, counting the specified lapses before `d`. */
+  const stayFrom = (d: IsoDate, trips = lapsed, start = req.stayStart) =>
+    trips.reduce(
+      (s, t) => (t.departed < d && t.returned > s ? t.returned : s),
+      start,
+    );
   /** Abroad all day on `d`: applications are made in person in Japan. */
   const abroad = (d: IsoDate) =>
     req.trips.some((t) => t.departed < d && d < t.returned);
@@ -326,17 +337,36 @@ export function evaluateJapan(req: JpRequest): JpResult {
         : earliest === sim
           ? 'MET'
           : 'FUTURE';
-  const lapseNotes = lapsed.map((t) =>
-    pastExpiry(t)
-      ? L(
-          `${t.departed} 至 ${t.returned} 的出境在 ${jpStayLimit(t)} 之后才返回（在留期限${t.renewalPending ? `届满后 ${v.renewalPendingMonths.value} 个月，更新申请中` : ''}），在留资格消灭，连续在留从 ${t.returned} 重新起算。`,
-          ` The trip from ${t.departed} to ${t.returned} came back after ${jpStayLimit(t)} (${t.renewalPending ? `${v.renewalPendingMonths.value} months after your period of stay ended, with a renewal pending` : 'the end of your period of stay'}), so the status ended and the unbroken stay starts again on ${t.returned}.`,
-        )
-      : L(
-          `${t.departed} 至 ${t.returned} 的出境没有再入国许可、超过みなし再入国许可的 ${v.deemedReentryYears.value} 年期限，在留资格消灭，连续在留从 ${t.returned} 重新起算。`,
-          ` The trip from ${t.departed} to ${t.returned} had no re-entry permit and went past the ${v.deemedReentryYears.value}-year deemed permit, so the status ended and the unbroken stay starts again on ${t.returned}.`,
-        ),
-  );
+  const lapseNotes = lapsed.map((t) => {
+    if (t.departure === 'permit' && t.reentryPermit === false)
+      return L(
+        `${t.departed} 持普通再入国许可出境，但 ${t.returned} 返日时许可已过期，连续在留从 ${t.returned} 重新起算。`,
+        ` You left on an ordinary re-entry permit on ${t.departed}, but it was no longer valid on return. The unbroken stay starts again on ${t.returned}.`,
+      );
+    const limit = latestStayLimit(t);
+    if (limit && t.returned > limit) {
+      if (t.renewalPending === undefined)
+        return L(
+          `${t.departed} 出境，${t.returned} 返日。即使出境时有待决的按期续期申请，返日也已晚于 ${limit}，连续在留从 ${t.returned} 重新起算。`,
+          ` The trip from ${t.departed} to ${t.returned} ended after ${limit} even allowing for a timely pending renewal. The unbroken stay starts again on ${t.returned}.`,
+        );
+      return L(
+        `${t.departed} 至 ${t.returned} 的出境在 ${limit} 之后才返回（在留期限${t.renewalPending ? `届满后 ${v.renewalPendingMonths.value} 个月，更新申请中` : ''}），在留资格消灭，连续在留从 ${t.returned} 重新起算。`,
+        ` The trip from ${t.departed} to ${t.returned} came back after ${limit} (${t.renewalPending ? `${v.renewalPendingMonths.value} months after your period of stay ended, with a renewal pending` : 'the end of your period of stay'}), so the status ended and the unbroken stay starts again on ${t.returned}.`,
+      );
+    }
+    return L(
+      `${t.departed} 至 ${t.returned} 的出境没有再入国许可、超过みなし再入国许可的 ${v.deemedReentryYears.value} 年期限，在留资格消灭，连续在留从 ${t.returned} 重新起算。`,
+      ` The trip from ${t.departed} to ${t.returned} had no re-entry permit and went past the ${v.deemedReentryYears.value}-year deemed permit, so the status ended and the unbroken stay starts again on ${t.returned}.`,
+    );
+  });
+  for (const t of uncertainRenewals)
+    lapseNotes.push(
+      L(
+        `对于 ${t.departed} 出境、${t.returned} 返日的行程，请确认出境时是否有按期提出且仍待决定的更新或变更申请。能否接续之前的在留取决于这项证据。`,
+        ` For the trip from ${t.departed} to ${t.returned}, confirm whether a timely renewal or change application was pending at departure to determine whether the earlier stay counts.`,
+      ),
+    );
   const projection = L(
     '最早日期假设模拟日之后一直在日本（已录入的未来出境除外），在留资格按时更新，婚姻等身份持续。',
     'Projected dates assume you stay in Japan after the simulation date (apart from trips you entered), renew your status on time and stay married where that counts.',
@@ -346,8 +376,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
     'Years run to the anniversary: N years after the start date counts as met (from 29 February, 1 March). On the strict Civil Code reading, which leaves out the first day, it could be a day later; how the authorities count is not published. You apply in person in Japan, so a day spent wholly abroad is not an application date (PD-130).',
   );
   const reentry = L(
-    `出境没有勾选"持再入国许可"的，按みなし再入国许可：须在出国日 ${v.deemedReentryYears.value} 年后的同一天之前返回；填了出境时的在留期限的，返回日也不能晚于该期限（勾选的同样；出境时更新申请中的，为期限届满后 ${v.renewalPendingMonths.value} 个月，假设结果为许可）。超过即在留资格消灭、连续在留从返回日重新起算；没填在留期限的假设它没有先到期，勾选的按在许可有效期内返回计（PD-136）。`,
-    `A trip without "re-entry permit" ticked uses the deemed permit: you must be back by the same date ${v.deemedReentryYears.value} year after leaving; if you entered the period of stay you held when leaving, you must also be back by its last day (ticked or not; with a renewal pending when you left, ${v.renewalPendingMonths.value} months after it, assuming the renewal is granted). Otherwise the status ends and the unbroken stay starts again when you return. Without a period of stay entered, it is taken not to have ended first, and a ticked trip is taken as returning while the permit was valid (PD-136).`,
+    `已说明持普通许可出境但逾期返日的，在留从返日重新起算。其他未勾选普通许可的行程按みなし再入国许可：须在出国日 ${v.deemedReentryYears.value} 年后的同一天之前返回；填了出境时的在留期限的，返回日也不能晚于该期限（勾选的同样；出境时更新申请中的，为期限届满后 ${v.renewalPendingMonths.value} 个月，假设结果为许可）。超过即在留资格消灭、连续在留从返回日重新起算；没填在留期限的假设它没有先到期，勾选的按在许可有效期内返回计（PD-136）。`,
+    `If you left on an ordinary permit that expired before return, the stay starts again on return. Other trips without "re-entry permit" ticked use the deemed permit: you must be back by the same date ${v.deemedReentryYears.value} year after leaving; if you entered the period of stay you held when leaving, you must also be back by its last day (ticked or not; with a renewal pending when you left, ${v.renewalPendingMonths.value} months after it, assuming the renewal is granted). Otherwise the status ends and the unbroken stay starts again when you return. Without a period of stay entered, it is taken not to have ended first, and a ticked trip is taken as returning while the permit was valid (PD-136).`,
   );
   const inJapan = (sources: SourceRef[]): PilotCheck[] =>
     abroad(sim)
@@ -589,9 +619,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
   } else {
     const pr = req.pr;
     const special = pr.route !== 'general';
-    const needs = (d: IsoDate): Need[] => {
+    const needsFrom = (d: IsoDate, stay: IsoDate): Need[] => {
       const g = guideline(d);
-      const stay = stayFrom(d);
       const stayNeed = (years: number, sources: SourceRef[]): Need => ({
         years,
         stay: true,
@@ -631,7 +660,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
               ? (pr.newStatusStart ?? pr.statusStart)
               : pr.statusStart;
           const none = start === 'none';
-          const from = since(d, none ? stay : start);
+          const from = none || start < stay ? stay : start;
           const statusYears = v.prStatusYears.value;
           return [
             excluded.length
@@ -706,7 +735,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
             stayNeed(v.childStayYears.value[g], v.childStayYears.sources),
           ];
         default: {
-          const from = since(d, pr.statusStart);
+          const from = pr.statusStart > stay ? pr.statusStart : stay;
           const need = (
             years: number,
             sources: SourceRef[],
@@ -746,6 +775,28 @@ export function evaluateJapan(req: JpRequest): JpResult {
           ];
         }
       }
+    };
+    const needs = (d: IsoDate): Need[] => {
+      const stay = stayFrom(d);
+      const current = needsFrom(d, stay);
+      const ifLapsed = stayFrom(d, uncertainRenewals, stay);
+      if (ifLapsed === stay) return current;
+      const afterLapse = needsFrom(d, ifLapsed);
+      return current.map((need, i) => {
+        const other = afterLapse[i];
+        const uncertain = need.state !== other.state;
+        if (!uncertain && need.text === other.text) return need;
+        return {
+          ...need,
+          state: uncertain ? 'maybe' : need.state,
+          renewalUnconfirmed: uncertain,
+          text: L(
+            `若按期续期且在留得以接续，需${need.text}。若在留中断，需${other.text}。`,
+            `With continuity under a timely pending renewal, the requirement is ${need.text}. If the stay lapsed, the requirement is ${other.text}.`,
+          ),
+          sources: [...need.sources, ...v.renewalPendingMonths.sources],
+        };
+      });
     };
     /** Years of stay checked for absences under the old guideline. */
     const stayYears = (d: IsoDate) =>
@@ -808,7 +859,13 @@ export function evaluateJapan(req: JpRequest): JpResult {
       : '';
     /** Why the date `d` is uncertain. */
     const reason = (d: IsoDate) => {
-      if (needs(d).some((n) => n.state === 'maybe'))
+      const conditions = needs(d);
+      if (conditions.some((n) => n.renewalUnconfirmed))
+        return L(
+          '能否计入出境前的在留，取决于出境时有无待决的按期续期或变更申请。',
+          ' and whether the stay before departure counts depends on whether a timely renewal or change application was pending.',
+        );
+      if (conditions.some((n) => n.state === 'maybe'))
         return guideline(d) === 'new'
           ? L(
               '但其中有不计入 10 年的期间；新版指南不计入这些期间，但没有说之前与之后的在留能否接续计算（PD-134）。',

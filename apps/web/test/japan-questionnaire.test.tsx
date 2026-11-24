@@ -1,0 +1,223 @@
+import { isValidElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { afterEach, expect, test, vi } from 'vitest';
+import JapanSimulatePage from '../app/japan/simulate/page';
+import { LocaleContext } from '../i18n/locale';
+import { japanSteps, type JapanDraft } from '../lib/japan-draft';
+import { japanModule as jp } from '../lib/japan-module';
+import { decodeDraft, encodeDraft } from '../lib/share';
+
+const fields = new Map<
+  string,
+  (event: { target: { value: string } }) => void
+>();
+vi.mock('../app/simulate/field', async (original) => {
+  const { Field } = await original<typeof import('../app/simulate/field')>();
+  return {
+    Field: (props: Parameters<typeof Field>[0]) => {
+      if (
+        isValidElement<{
+          onChange: (event: { target: { value: string } }) => void;
+        }>(props.children)
+      )
+        fields.set(props.id, props.children.props.onChange);
+      return <Field {...props} />;
+    },
+  };
+});
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+function form(
+  draft: JapanDraft,
+  update: (patch: Partial<JapanDraft>) => void = () => {},
+  errors = jp.validateStep(draft),
+) {
+  fields.clear();
+  return renderToStaticMarkup(
+    <LocaleContext value={{ locale: 'en', setLocale: () => {} }}>
+      {JapanSimulatePage().props.children({
+        draft,
+        errors,
+        update,
+      })}
+    </LocaleContext>,
+  );
+}
+
+test('birth departure method and return within permit validity can be answered and edited independently', () => {
+  let draft: JapanDraft = {
+    ...jp.createDraft(),
+    step: 1,
+    stayStart: '2026-10-01',
+    permanentResidence: {
+      routes: [{ route: 'child-birth', bornOn: '2026-10-01' }],
+      evidence: {},
+    },
+    trips: [{ departed: '2026-10-15', returned: '2026-12-01' }],
+  };
+  function answer(key: string, value: string) {
+    form(draft, (patch) => {
+      draft = { ...draft, ...patch };
+    });
+    fields.get('jp-trips-0-' + key)!({ target: { value } });
+  }
+  answer('departure', 'permit');
+  expect(draft.trips[0]).not.toHaveProperty('reentryPermit');
+  answer('reentryPermit', 'no');
+  expect(draft.trips[0]).toMatchObject({
+    departure: 'permit',
+    reentryPermit: false,
+  });
+  expect(jp.validateStep(draft)).toEqual({});
+  expect(
+    decodeDraft(jp, encodeDraft(jp, { ...draft, completed: true }))?.trips,
+  ).toEqual(draft.trips);
+  answer('departure', '');
+  expect(draft.trips[0].reentryPermit).toBe(false);
+});
+
+test('selecting To confirm removes a previous explicit negative renewal answer before evaluation', () => {
+  let draft: JapanDraft = {
+    ...jp.createDraft(),
+    step: 1,
+    simulationDate: '2026-11-24',
+    stayStart: '2013-01-01',
+    permanentResidence: {
+      routes: [
+        {
+          route: 'general',
+          statusStart: '2016-10-01',
+          newStatusStart: '2016-10-01',
+        },
+      ],
+      evidence: {},
+    },
+    trips: [
+      {
+        departed: '2026-10-01',
+        returned: '2026-11-10',
+        stayExpiry: '2026-10-15',
+        reentryPermit: true,
+        renewalPending: false,
+      },
+    ],
+  };
+  expect(jp.run(draft, 'en').columns[0].pathways[0].timeEarliestDate).toBe(
+    '2036-11-10',
+  );
+  form(draft, (patch) => {
+    draft = { ...draft, ...patch };
+  });
+  fields.get('jp-trips-0-renewalPending')!({ target: { value: '' } });
+  expect(draft.trips[0]).not.toHaveProperty('renewalPending');
+  expect(jp.validateStep(draft)).toEqual({});
+  expect(
+    decodeDraft(jp, encodeDraft(jp, { ...draft, completed: true }))?.trips,
+  ).toEqual(draft.trips);
+  const assessed = jp.run(draft, 'en').columns[0].pathways[0];
+  expect(assessed.timeStatus).toBe('UNKNOWN');
+  expect(assessed.timeEarliestDate).toBeUndefined();
+  expect(assessed.summary).toContain('confirm whether a timely renewal');
+});
+
+test.each([
+  ['2026-11-24', '2027-04-26', '2027-04-19'],
+  ['2027-04-26', '2027-04-18', '2027-04-19'],
+])(
+  'the declaration requires departure by both today (%s) and the simulation date (%s)',
+  (today, simulationDate, departureOn) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(today + 'T12:00:00Z'));
+    const draft: JapanDraft = {
+      ...jp.createDraft(),
+      simulationDate,
+      step: 6,
+      reentry: [
+        { route: 'deemed', departureOn, declaredIntentAtDeparture: true },
+      ],
+    };
+    expect(jp.validateStep(draft)).toHaveProperty(
+      'jp-travel-deemed-declaredIntentAtDeparture',
+    );
+    for (const completed of [true, false])
+      expect(
+        decodeDraft(jp, encodeDraft(jp, { ...draft, completed })),
+      ).toBeUndefined();
+    const planned = {
+      ...draft,
+      reentry: [{ route: 'deemed' as const, departureOn }],
+    };
+    const html = form(planned);
+    expect(html).toContain('Planned departure on ' + departureOn);
+    expect(html).not.toContain(
+      'id="jp-travel-deemed-declaredIntentAtDeparture"',
+    );
+    const route = jp.run(draft, 'en').columns[0].pathways[0];
+    expect(route.summary).toContain('Planned departure on ' + departureOn);
+    expect(
+      route.checks.find((c) => c.id === 'jp.reentry.deemed-eligibility')
+        ?.status,
+    ).toBe('UNKNOWN');
+  },
+);
+
+test('an earlier filing for a separate route preserves a declaration made on an actual departure', () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-11-24T12:00:00Z'));
+  const draft: JapanDraft = {
+    ...jp.createDraft(),
+    step: 6,
+    completed: true,
+    stayStart: '2013-01-01',
+    permanentResidence: { routes: [{ route: 'child' }], evidence: {} },
+    reentry: [
+      {
+        route: 'deemed',
+        departureOn: '2026-11-24',
+        declaredIntentAtDeparture: true,
+      },
+    ],
+  };
+  const adjusted = jp.whatif.apply(draft, {
+    ...jp.whatif.initial(draft),
+    applicationDate: '2026-11-01',
+  });
+  expect(adjusted.reentry[0]).toHaveProperty('declaredIntentAtDeparture', true);
+  expect(jp.validateStep(adjusted)).toEqual({});
+  expect(decodeDraft(jp, encodeDraft(jp, adjusted))?.reentry).toEqual(
+    draft.reentry,
+  );
+  expect(form(adjusted)).toContain(
+    'id="jp-travel-deemed-declaredIntentAtDeparture"',
+  );
+});
+
+test('a travel-only questionnaire goes straight to route details and restores older trip-history drafts there', () => {
+  const draft: JapanDraft = {
+    ...jp.createDraft(),
+    reentry: [{ route: 'ordinary' }],
+  };
+  expect(jp.validateStep(draft)).toEqual({});
+  expect(form(draft)).not.toContain('id="jp-stayStart"');
+  expect(japanSteps(draft).map(({ step }) => step)).toEqual([0, 6]);
+  expect(jp.decodeDraft({ ...draft, step: 1 })).toEqual({ ...draft, step: 6 });
+  draft.naturalisation.routes.push({ route: 'general', homeMajorityAge: 18 });
+  expect(jp.validateStep(draft)).toHaveProperty('jp-stayStart');
+  expect(form(draft)).toContain('id="jp-stayStart"');
+  expect(japanSteps(draft).map(({ step }) => step)).toEqual([0, 1, 5, 6]);
+});
+
+test('the empty-selection error describes the focusable group containing all three route families', () => {
+  const draft = jp.createDraft();
+  expect(jp.validateStep(draft)).toEqual({ 'jp-routes': 'jp.form.routeError' });
+  const html = form(draft);
+  expect(html).toMatch(
+    /<fieldset id="jp-routes"[^>]*tabindex="-1"[^>]*aria-invalid="true"[^>]*aria-describedby="jp-routes-error"[^>]*>.*id="jp-routes-error".*id="jp-route-pr-general".*id="jp-route-nat-general".*id="jp-route-travel-ordinary".*<\/fieldset>/s,
+  );
+  const selected = { ...draft, reentry: [{ route: 'deemed' as const }] };
+  const corrected = form(selected, undefined, jp.validateStep(draft));
+  expect(corrected).not.toContain('jp-routes-error');
+  expect(corrected).not.toContain('aria-invalid="true"');
+});

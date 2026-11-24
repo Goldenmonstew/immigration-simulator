@@ -3,7 +3,13 @@
 import { QuestionnaireShell } from '../../../components/questionnaire-shell';
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
-import { japanSteps, type JapanDraft } from '../../../lib/japan-draft';
+import {
+  canConfirmJapanDeparture,
+  hasJapanResidenceRoute,
+  japanSteps,
+  withJapanFilingDate,
+  type JapanDraft,
+} from '../../../lib/japan-draft';
 import {
   basicFields,
   natRouteFields,
@@ -39,6 +45,8 @@ function JapanStep({ draft, errors, update }: StepProps) {
   const routeLabel = (group: RouteGroup, route: string) =>
     t(`jp.${group}.${route}` as TranslationKey);
   const routes = { pr: pr.routes, nat: nat.routes, travel: draft.reentry };
+  const residence = hasJapanResidenceRoute(draft);
+  const routeError = !residence && !draft.reentry.length && errors['jp-routes'];
   // Required answers remain blank while a route is being edited. The shell
   // validates each selected route before any request is sent to the engine.
   const setRoutes = (group: RouteGroup, selected: { route: string }[]) => {
@@ -57,6 +65,9 @@ function JapanStep({ draft, errors, update }: StepProps) {
       const fields = (routeFields[group] as Record<string, JapanField[]>)[
         route.route
       ];
+      const planned =
+        route.route === 'deemed' &&
+        !canConfirmJapanDeparture(draft, route.departureOn);
       return (
         <section key={route.route} className={styles.section}>
           <h2>{routeLabel(group, route.route)}</h2>
@@ -66,21 +77,45 @@ function JapanStep({ draft, errors, update }: StepProps) {
             )}
           {fields.length ? (
             <EvidenceFields
-              fields={fields}
+              fields={
+                planned
+                  ? fields.filter(
+                      (field) => field.name !== 'declaredIntentAtDeparture',
+                    )
+                  : fields
+              }
               prefix={'jp-' + group + '-' + route.route}
               values={route}
               errors={errors}
               change={(key, value) =>
                 setRoutes(
                   group,
-                  routes[group].map((r) =>
-                    r.route === route.route ? updateAnswer(r, key, value) : r,
-                  ),
+                  routes[group].map((r) => {
+                    if (r.route !== route.route) return r;
+                    const next = updateAnswer(r, key, value);
+                    return r.route === 'deemed' &&
+                      key === 'departureOn' &&
+                      value !== r.departureOn
+                      ? updateAnswer(
+                          next,
+                          'declaredIntentAtDeparture',
+                          undefined,
+                        )
+                      : next;
+                  }),
                 )
               }
             />
           ) : (
             <p>{t('jp.form.noExtra')}</p>
+          )}
+          {planned && route.departureOn && (
+            <p>
+              {t('jp.result.plannedDeparture').replace(
+                '{date}',
+                route.departureOn,
+              )}
+            </p>
           )}
         </section>
       );
@@ -136,58 +171,76 @@ function JapanStep({ draft, errors, update }: StepProps) {
       {draft.step === 0 && (
         <>
           <EvidenceFields
-            fields={basicFields}
+            fields={basicFields(residence)}
             values={draft}
             prefix="jp"
             errors={errors}
-            change={(key, value) =>
-              update({
-                [key]:
-                  value ??
-                  (key === 'simulationDate' || key === 'stayStart'
-                    ? ''
-                    : undefined),
-              })
-            }
+            change={(key, value) => {
+              if (key === 'applicationDate' || key === 'simulationDate') {
+                const dates = {
+                  ...draft,
+                  [key]: value ?? (key === 'simulationDate' ? '' : undefined),
+                };
+                update(
+                  withJapanFilingDate(
+                    draft,
+                    dates.applicationDate,
+                    dates.simulationDate,
+                  ),
+                );
+              } else
+                update({
+                  [key]: value ?? (key === 'stayStart' ? '' : undefined),
+                });
+            }}
           />
-          <p>{t('jp.form.scope')}</p>
-          {(['pr', 'nat', 'travel'] as const).map((group) => (
-            <fieldset key={group} className={form.fieldset}>
-              <legend className={form.legend}>{t(`jp.form.${group}`)}</legend>
-              {group === 'pr' && errors['jp-route-pr-general'] && (
-                <p id="jp-routes-error" className={form.error}>
-                  {t(errors['jp-route-pr-general'])}
-                </p>
-              )}
-              <div className={form.checkboxes}>
-                {Object.keys(routeFields[group]).map((route) => {
-                  const checked = routes[group].some((r) => r.route === route);
-                  const id = 'jp-route-' + group + '-' + route;
-                  return (
-                    <label key={route}>
-                      <input
-                        type="checkbox"
-                        id={id}
-                        checked={checked}
-                        aria-describedby={
-                          errors[id] ? 'jp-routes-error' : undefined
-                        }
-                        onChange={(event) =>
-                          setRoutes(
-                            group,
-                            event.target.checked
-                              ? [...routes[group], { route }]
-                              : routes[group].filter((r) => r.route !== route),
-                          )
-                        }
-                      />
-                      {routeLabel(group, route)}
-                    </label>
-                  );
-                })}
-              </div>
-            </fieldset>
-          ))}
+          <fieldset
+            id="jp-routes"
+            className={form.fieldset}
+            tabIndex={-1}
+            aria-invalid={routeError ? true : undefined}
+            aria-describedby={routeError ? 'jp-routes-error' : undefined}
+          >
+            <legend className={form.legend}>{t('jp.form.scope')}</legend>
+            {routeError && (
+              <p id="jp-routes-error" className={form.error}>
+                {t(routeError)}
+              </p>
+            )}
+            {(['pr', 'nat', 'travel'] as const).map((group) => (
+              <fieldset key={group} className={form.fieldset}>
+                <legend className={form.legend}>{t(`jp.form.${group}`)}</legend>
+                <div className={form.checkboxes}>
+                  {Object.keys(routeFields[group]).map((route) => {
+                    const checked = routes[group].some(
+                      (r) => r.route === route,
+                    );
+                    const id = 'jp-route-' + group + '-' + route;
+                    return (
+                      <label key={route}>
+                        <input
+                          type="checkbox"
+                          id={id}
+                          checked={checked}
+                          onChange={(event) =>
+                            setRoutes(
+                              group,
+                              event.target.checked
+                                ? [...routes[group], { route }]
+                                : routes[group].filter(
+                                    (r) => r.route !== route,
+                                  ),
+                            )
+                          }
+                        />
+                        {routeLabel(group, route)}
+                      </label>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            ))}
+          </fieldset>
         </>
       )}
       {draft.step === 1 && (

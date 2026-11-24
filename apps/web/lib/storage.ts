@@ -3,7 +3,7 @@ import type { CountryDraft, CountryModule } from './country-module';
 
 type DraftModule<D extends CountryDraft> = Pick<
   CountryModule<D, never>,
-  'id' | 'version' | 'createDraft'
+  'id' | 'version' | 'createDraft' | 'restoreStoredDraft'
 >;
 type StorageCountry = Pick<DraftModule<CountryDraft>, 'id' | 'version'>;
 
@@ -14,7 +14,7 @@ function storageKey(country: StorageCountry, kind: 'draft' | 'scenarios') {
 const memoryDrafts = new Map<string, CountryDraft>();
 const memoryResults = new Map<
   string,
-  { result: CountryResult; locale: Locale }
+  { result: CountryResult; locale: Locale; draftJSON: string }
 >();
 
 // A single storage boundary handles unavailable storage and invalid JSON.
@@ -39,8 +39,8 @@ export function draftStorage<D extends CountryDraft>(
       const saved = localStorage.getItem(key);
       const parsed: D | undefined = saved ? JSON.parse(saved) : undefined;
       if (parsed?.version === country.version) {
-        draft = parsed;
-        memoryDrafts.set(key, parsed);
+        draft = country.restoreStoredDraft?.(parsed) ?? parsed;
+        memoryDrafts.set(key, draft);
       }
     }
     return { draft, available: true };
@@ -51,17 +51,25 @@ export function draftStorage<D extends CountryDraft>(
 
 export function rememberResult(
   country: StorageCountry,
+  draft: CountryDraft,
   result: CountryResult,
   locale: Locale,
 ): void {
-  memoryResults.set(storageKey(country, 'draft'), { result, locale });
+  memoryResults.set(storageKey(country, 'draft'), {
+    result,
+    locale,
+    draftJSON: JSON.stringify(draft),
+  });
 }
 export function getRememberedResult(
   country: StorageCountry,
+  draft: CountryDraft,
   locale: Locale,
 ): CountryResult | undefined {
   const cached = memoryResults.get(storageKey(country, 'draft'));
-  return cached?.locale === locale ? cached.result : undefined;
+  return cached?.locale === locale && cached.draftJSON === JSON.stringify(draft)
+    ? cached.result
+    : undefined;
 }
 
 export interface SavedScenario<D extends CountryDraft> {
@@ -148,7 +156,9 @@ export function loadScenario<D extends CountryDraft>(
   scenario: SavedScenario<D>,
 ): D {
   // What-if share links can contain drafts marked incomplete after an edit.
-  const next = { ...scenario.draft, completed: true };
+  const restored =
+    country.restoreStoredDraft?.(scenario.draft) ?? scenario.draft;
+  const next = { ...restored, completed: true };
   draftStorage(country, next);
   return next;
 }
