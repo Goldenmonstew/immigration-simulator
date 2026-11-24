@@ -508,6 +508,7 @@
 | 521 | 任务 103：接入 `/australia/game`。用已有 CC0 瓦片拼出金合欢湾地图（主街、滨海路、海滨草坪、社区菜园、车站、沙滩与码头），澳大利亚场景子类绘制沙滩、码头与鹈鹕、彩色浴场小屋、红黄旗与救生塔、木板屋铁皮回廊与晾衣架、酒店铁花回廊、招牌、凉亭、纪念碑、公共烧烤台、公告板、海鸥和四个节日的装饰，季节色按南半球；原创像素横幅。澳大利亚国家配置提供澳元、澳式口语、签证剩余月数、191 进度与时间里程碑、结果页草稿与评估视图。注册美术根与加载器，集合入口与澳大利亚首页出现人生模拟，离线清单加入游戏页并更新缓存版本；补中英文案与网页单测。共用外壳未改动。 | apps/web/app/australia/{game/,australia-content.tsx}、apps/web/app/game-page.tsx、apps/web/public/game/australia/、apps/web/{lib/{game-country,site-countries}.ts,public/sw.js,i18n/countries/australia{,-game}.ts}、apps/web/test/{australia-game,about-page}.test.tsx |
 | 522 | 任务 103：无犯罪证明说明按 SRC-220 参数写"超过 17 岁、通常要求"，体检说明不写死 PIC 编号（191 适用的健康条件由引擎按路径给出）。 | packages/game/src/packs/au/town.ts |
 | 523 | 任务 103：新增澳大利亚游戏 e2e。静态页横幅与标题、两位角色、澳大利亚首页入口；选角色进入小镇走到瞭望长椅完成活动；快进首个秋季看到小结并进入第 1 年第 3 季、存档日期 2026-06-01；英文界面显示签证剩余月数、澳式口语与澳元；375 宽度用地点抽屉走到海滨草坪且无横向滚动。 | apps/e2e/tests/australia-game.spec.ts |
+| 524 | 任务 103：报告，含角色、地点、镇民、节日、活动清单与地图草图说明。 | docs/tasks/reports/103-au-game.md |
 | 530 | 任务 84：登记新西兰完整版适用的官方快照、SHA-256、网址与条文，记录档案中的未决政策和个案判断。 | policy-sources/*-nz-*、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
 | 531 | 任务 84：登记 nz.current-law 参数集，分别保存居留、入籍、技术、家庭、投资和宗教路径的数字、日期、费率及来源。 | packages/policy-data/src/{index,types,parameters/index,parameters/new-zealand-2026-11}.ts |
 | 532 | 任务 84：新增十条新西兰路径的双语 CountryResult 入口、逐人材料核对和条件边界测试，保留旧时间引擎。 | packages/engine/src/{index,new-zealand-{checks,full,resident,skilled,family}}.ts、packages/engine/test/new-zealand-*.test.ts、docs/tasks/reports/84-nz-rules.md |
