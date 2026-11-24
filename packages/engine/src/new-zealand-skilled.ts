@@ -621,7 +621,7 @@ function smcPath(ctx: NzContext, input: NzSkilledAnswers) {
 }
 
 const holdsWorkRouteVisa = (visa?: NzFilingVisa) =>
-  visa === undefined
+  visa === undefined || visa === 'other'
     ? undefined
     : [
         'work',

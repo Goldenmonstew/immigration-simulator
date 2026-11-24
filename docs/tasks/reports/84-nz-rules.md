@@ -249,3 +249,34 @@ PROGRESS 第 537 项。建议提交 `Fix: 统一新西兰居民签证递交检�
 ### 4. 发现与建议
 
 问卷接入完整版时，在 `common.residenceFiling` 填主申的 `filingFromOverseas`、`currentVisa`、`statutoryBar`，随行人使用本人的 `residenceFiling`。同日获签与离境可填写 `travel.grantLocation` 或实际 `firstResidentEntry`。同表永居使用各自的居民签及行程记录。
+
+## 第六轮审核修正（review84-6）
+
+### 1. 做了什么
+
+PROGRESS 第 538 项。建议提交 `Fix: 修正新西兰未返程时的居民首入判定与未核实签证检查（review84-6）`。
+
+申请人于 2020-01-01 首次抵新，居民签获批日为 2025-10-01，模拟日为 2026-11-23。申请人目前在境外，已返程行程表为空，已确认护照满足初始旅行条件。三组回归仅改变获签地点与首次居民入境资料。依据为 SRC-072 R5.66.1(a)、(c)、R5.66.5(b)–(c)。[INZ R5.66](https://www.immigration.govt.nz/opsmanual/44894.htm)
+
+| 已知事实 | 首入条件 NZ-P1-1 | 旅行路径 NZ-TRAVEL | 最早日期 |
+|---|---|---|---|
+| 获签地点与首入均未确认 | UNKNOWN | UNKNOWN | 无 |
+| 确认境外获签，至今未首入，已过首入期限 | NOT_MET | NOT_MET | 无 |
+| 确认在新西兰境内获签，随后离境 | MET | MET | 2026-11-23 |
+
+绿名单 Tier 2、护理和运输行业分别核对了境内递交时将 `currentVisa` 填为 `other` 和完全省略该字段两种情况。其余条件齐备时，共用条件 `NZ-RESIDENCE-FILING`、类别条件（Tier 2 的 `NZ-P5-1` 或行业的 `NZ-P6-VISA`）和路径均为 UNKNOWN，最早日期留空。依据为 SRC-071 s71(1)、(4)，SRC-237 SR5.5(b)(i)，SRC-238 SR6.5(b)(i)、SR7.5(b)(i)。[Tier 2](https://www.immigration.govt.nz/opsmanual/77820.htm) · [护理](https://www.immigration.govt.nz/opsmanual/78790.htm) · [运输](https://www.immigration.govt.nz/opsmanual/79666.htm)
+
+### 2. 怎么验证的
+
+- 先用新断言在修正前复现 5 项失败，涉及 P1、Tier 2（含旧字段填法）、护理和运输。修正后设置 `VITEST_MAX_WORKERS=2` 运行 `pnpm --filter @uk-immigration/engine test test/new-zealand-resident.test.ts test/new-zealand-skilled.test.ts test/new-zealand-full.test.ts`，158 项通过。
+- 首入回归另核对了获签前的返程、获签后且模拟日前的返程，以及仅有未来行程的情况。已确认的签证失效日若恰为首入期限次日，仍不能证明曾以居民身份入境。此前针对已知实际失效日核算永居宽限期的用例同时通过（SRC-072 R5.66.1(c)、R5.66.5(c)、RV1.5(b)、RV2.5(a)）。
+- 设置 `VITEST_MAX_WORKERS=2` 后运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，整链退出码为 0。全仓 5,501 项通过（引擎 3,468、游戏 1,348、网页 660、policy-data 23、error-report 2），1 项既有测试跳过。生产构建生成 27/27 个静态页面，`test -s apps/web/out/new-zealand.html` 通过。
+- `git diff --exit-code f693e0b -- packages/engine/src/new-zealand.ts packages/engine/test/new-zealand.test.ts apps/web/app/new-zealand/new-zealand-content.tsx` 退出码为 0。时间版 `evaluateNewZealand`、其测试和网页调用入口均与上轮提交一致。
+
+### 3. 没做或没验证的
+
+按要求保留未提交的工作树。浏览器端到端测试和部署不在本轮验收范围内。
+
+### 4. 发现与建议
+
+未返程期间缺少获签地点或实际首入资料的处理已补入 PD-222，境内递交时签证类别未核实的处理已补入 PD-220。

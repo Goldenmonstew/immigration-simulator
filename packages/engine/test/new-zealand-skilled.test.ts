@@ -47,7 +47,6 @@ const period: Period = {
 };
 const sector: Sector = {
   category: 'care',
-  currentVisa: 'work',
   periods: [period],
   distinctMonthsAndEarningsVerified: true,
   accrualStarted: '2024-11-23',
@@ -55,7 +54,6 @@ const sector: Sector = {
 const green: Green = {
   tier: 'straight',
   rowRequirementsVerified: true,
-  currentVisa: 'work',
 };
 
 function result(
@@ -198,24 +196,29 @@ describe('SMC, Green List and sector residence', () => {
   ] as const)(
     '%s compares the same application onshore and offshore',
     (_name, pathId, input, workVisaCheck) => {
-      for (const [filingFromOverseas, currentVisa] of [
-        [false, 'work'],
-        [false, 'interim-work-renewal'],
-        [true, 'none'],
+      for (const [filing, filingStatus, visaStatus] of [
+        [{ filingFromOverseas: false, currentVisa: 'work' }, 'MET', 'MET'],
+        [
+          { filingFromOverseas: false, currentVisa: 'interim-work-renewal' },
+          'NOT_MET',
+          'NOT_MET',
+        ],
+        [{ filingFromOverseas: true, currentVisa: 'none' }, 'MET', 'NOT_MET'],
+        [
+          { filingFromOverseas: false, currentVisa: 'other' },
+          'UNKNOWN',
+          'UNKNOWN',
+        ],
+        [{ filingFromOverseas: false }, 'UNKNOWN', 'UNKNOWN'],
       ] as const) {
-        const path = pathway(input, pathId, {
-          filing: { filingFromOverseas, currentVisa },
-        });
-        const filingStatus =
-          currentVisa === 'interim-work-renewal' ? 'NOT_MET' : 'MET';
-        const status =
-          workVisaCheck && currentVisa !== 'work' ? 'NOT_MET' : filingStatus;
+        const path = pathway(input, pathId, { filing });
+        const status = workVisaCheck ? visaStatus : filingStatus;
         expect(
           path.checks.find((c) => c.id === 'NZ-RESIDENCE-FILING')?.status,
         ).toBe(filingStatus);
         if (workVisaCheck)
           expect(path.checks.find((c) => c.id === workVisaCheck)?.status).toBe(
-            currentVisa === 'work' ? 'MET' : 'NOT_MET',
+            visaStatus,
           );
         expect(path.status).toBe(status);
         expect(path.earliestDate).toBe(
@@ -609,7 +612,7 @@ describe('SMC, Green List and sector residence', () => {
       input(high, { currentVisa: 'other' }),
       'NZ-GREEN-LIST',
       'NZ-P5-1',
-      'NOT_MET',
+      'UNKNOWN',
       {},
     );
     expect(

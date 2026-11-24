@@ -157,7 +157,11 @@ export interface NzResidentAnswers {
 const hasDate = (d: string | undefined, by: string) =>
   d === undefined ? undefined : d <= by;
 
-function inferFirstResidentDay(req: NzContext['time'], t: TravelEvidence) {
+function inferFirstResidentDay(
+  req: NzContext['time'],
+  t: TravelEvidence,
+  openTripMayCoverGrant: boolean,
+) {
   const granted = req.residentVisa?.granted;
   if (!granted) return undefined;
   if (t.grantLocation === 'onshore') return granted;
@@ -176,6 +180,14 @@ function inferFirstResidentDay(req: NzContext['time'], t: TravelEvidence) {
       return t.firstResidentEntry;
     return undefined;
   }
+  // Without a return after grant, the current absence could already have begun at grant.
+  if (
+    openTripMayCoverGrant &&
+    !req.trips?.some(
+      ({ returned }) => granted < returned && returned <= req.simulationDate,
+    )
+  )
+    return undefined;
   if (t.grantLocation === 'offshore')
     return req.firstArrival === granted ||
       req.trips?.some((trip) => trip.returned === granted)
@@ -189,11 +201,19 @@ function residentRecord(ctx: NzContext, a: NzResidentAnswers) {
   const t = a.travel ?? {};
   const granted = req.residentVisa?.granted;
   const trips = req.trips;
-  const inferredFirst = inferFirstResidentDay(req, t);
-  const first =
-    t.firstResidentEntry === null
-      ? undefined
-      : (t.firstResidentEntry ?? inferredFirst);
+  const tripOnDate = trips?.find(
+    (trip) => trip.departed <= ctx.date && ctx.date <= trip.returned,
+  );
+  // A completed-trip list alone cannot tell us whether the person has left again.
+  const onshore =
+    not(ctx.answers.residenceFiling?.filingFromOverseas) ??
+    t.currentlyInNz ??
+    (tripOnDate
+      ? tripOnDate.departed === ctx.date || tripOnDate.returned === ctx.date
+      : req.firstArrival && req.firstArrival >= ctx.date
+        ? req.firstArrival === ctx.date
+        : undefined);
+  const openTrip = onshore === false && !tripOnDate;
   let deadline =
     granted && t.firstEntryClass === 'standard'
       ? addDays(afterYears(granted, time.firstEntryYears.value), -1)
@@ -205,6 +225,23 @@ function residentRecord(ctx: NzContext, a: NzResidentAnswers) {
       typeof t.parentFirstEntry === 'object'
         ? t.parentFirstEntry.deadline
         : undefined;
+  // R5.66.1(c), R5.66.5(c), RV1.5(b): an unused offshore visa would already
+  // have lapsed the day after its first-entry deadline.
+  const expiredOn = a.prv?.expiredOn;
+  const lapsedAfterFirstEntryWindow =
+    deadline &&
+    expiredOn &&
+    expiredOn <= ctx.date &&
+    expiredOn > addDays(deadline, 1);
+  const inferredFirst = inferFirstResidentDay(
+    req,
+    t,
+    openTrip && !lapsedAfterFirstEntryWindow,
+  );
+  const first =
+    t.firstResidentEntry === null
+      ? undefined
+      : (t.firstResidentEntry ?? inferredFirst);
   const entryValid =
     first && granted
       ? first === granted ||
@@ -233,21 +270,8 @@ function residentRecord(ctx: NzContext, a: NzResidentAnswers) {
           !req.permanentResidentVisa || req.permanentResidentVisa >= date,
       )
       .sort()[0];
-  const tripOnDate = trips?.find(
-    (trip) => trip.departed <= ctx.date && ctx.date <= trip.returned,
-  );
-  // A completed-trip list alone cannot tell us whether the person has left again.
-  const onshore =
-    not(ctx.answers.residenceFiling?.filingFromOverseas) ??
-    t.currentlyInNz ??
-    (tripOnDate
-      ? tripOnDate.departed === ctx.date || tripOnDate.returned === ctx.date
-      : req.firstArrival && req.firstArrival >= ctx.date
-        ? req.firstArrival === ctx.date
-        : undefined);
-  const openTrip = onshore === false && !tripOnDate;
   const offshoreAfterEnd = end && end < ctx.date && openTrip;
-  const datedLapse = a.prv?.expiredOn ?? tripLapse;
+  const datedLapse = expiredOn ?? tripLapse;
   const lapse =
     offshoreAfterEnd && datedLapse && datedLapse > ctx.date
       ? undefined
@@ -464,9 +488,9 @@ function travelPath(
       (pendingEntry || awaitingFirstEntry) && initial
         ? undefined
         : (initialEntry?.met ?? r.entered),
-      ref('SRC-072', 'R5.66(c), R5.66.1, R5.66.5(b)–(c); RV1.5(d)'),
-      `核对首次居民入境日${r.first ?? '（待确认）'}与境外获批首入期限${r.deadline ?? '（见签证或父母条件）'}。若获签与离境同日，须确认获签时的所在地或实际首入日。再次申请须曾以居民身份入境。`,
-      `Check first resident entry ${r.first ?? '(unconfirmed)'} against the offshore entry deadline ${r.deadline ?? '(see the visa or parent’s conditions)'}. For a grant on a departure day, confirm the location at grant or actual first resident entry. A further application requires prior resident entry.`,
+      ref('SRC-072', 'R5.66(c), R5.66.1, R5.66.5(b)–(c); RV1.5(b), (d)'),
+      `核对首次居民入境日${r.first ?? '（待确认）'}与境外获批首入期限${r.deadline ?? '（见签证或父母条件）'}。若获签与离境同日，或尚未返新的行程可能覆盖获签日，须确认获签时的所在地或实际首入日。再次申请须曾以居民身份入境。`,
+      `Check first resident entry ${r.first ?? '(unconfirmed)'} against the offshore entry deadline ${r.deadline ?? '(see the visa or parent’s conditions)'}. If the grant was on a departure day or may have occurred during an ongoing absence, confirm the location at grant or actual first resident entry. A further application requires prior resident entry.`,
       'PD-222',
     ),
   );

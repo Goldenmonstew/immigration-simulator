@@ -748,6 +748,58 @@ describe('RV1.20 joint PRV application', () => {
 });
 
 describe('resident travel conditions and subsequent residence', () => {
+  const openTripRecord: Partial<NzFullRequest> = {
+    firstArrival: '2020-01-01',
+    residentVisa: { granted: '2025-10-01', category: 'general' },
+    trips: [],
+  };
+  const openTripTravel: Travel = {
+    action: 'initial',
+    currentlyInNz: false,
+    firstEntryClass: 'standard',
+    passportCoversInitialConditions: true,
+  };
+  it.each([
+    ['unconfirmed grant location', {}, 'UNKNOWN'],
+    [
+      'offshore grant and no first entry',
+      { grantLocation: 'offshore', firstResidentEntry: null },
+      'NOT_MET',
+    ],
+    ['onshore grant before leaving', { grantLocation: 'onshore' }, 'MET'],
+  ] as const)(
+    'checks initial entry on an open trip with %s',
+    (_label, evidence, status) => {
+      const path = travel({ ...openTripTravel, ...evidence }, openTripRecord);
+      expectOutcome(path, 'NZ-P1-1', status);
+    },
+  );
+
+  it.each([
+    ['2025-09-01', '2025-09-10', 'UNKNOWN'],
+    ['2025-11-01', '2025-11-10', 'MET'],
+    ['2026-12-01', '2026-12-10', 'UNKNOWN'],
+  ] as const)(
+    'checks whether a return on %s–%s rules out being abroad at grant',
+    (departed, returned, status) => {
+      const path = travel(openTripTravel, {
+        ...openTripRecord,
+        trips: [{ departed, returned }],
+      });
+      expectOutcome(path, 'NZ-P1-1', status);
+    },
+  );
+
+  it('keeps first entry unconfirmed if the visa lapsed just after its first-entry deadline', () => {
+    const path = travel(openTripTravel, openTripRecord, {
+      ...prvReady,
+      expiredOn: '2026-10-01',
+    });
+    expect(check(path, 'NZ-P1-1').status).toBe('UNKNOWN');
+    expect(path.status).toBe('NOT_MET');
+    expect(path.earliestDate).toBeUndefined();
+  });
+
   const reviewRecord: Partial<NzFullRequest> = {
     firstArrival: '2018-01-01',
     residentVisa: { granted: '2018-01-01', category: 'general' },
