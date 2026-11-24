@@ -31,18 +31,26 @@ import {
   type JapanField,
 } from './japan-fields';
 
-export interface JapanDraft extends CountryDraft, Omit<JpFullRequest, 'locale'> {
+interface JapanReturnRecord {
+  // The actual-or-planned return date was already in the past when entered.
+  recordedReturnOn?: string;
+}
+
+export interface JapanDraft
+  extends CountryDraft, Omit<JpFullRequest, 'locale'> {
   answerFormat?: 'explicit';
+  trips: (JpFullRequest['trips'][number] & JapanReturnRecord)[];
   permanentResidence: { routes: JpFullPrRoute[]; evidence: JpPrCommonEvidence };
   naturalisation: {
     routes: JpFullNaturalisationRoute[];
     evidence: JpNaturalisationEvidence;
   };
-  reentry: (JpFullReentryRequest & {
-    // Null records an explicit "to confirm"; older drafts can omit the question.
-    alreadyDeparted?: boolean | null;
-    declarationForDepartureOn?: string;
-  })[];
+  reentry: (JpFullReentryRequest &
+    JapanReturnRecord & {
+      // Null records an explicit "to confirm"; older drafts can omit the question.
+      alreadyDeparted?: boolean | null;
+      declarationForDepartureOn?: string;
+    })[];
 }
 
 export function createJapanDraft(): JapanDraft {
@@ -215,21 +223,65 @@ export function hasJapanResidenceRoute(draft: JapanDraft): boolean {
   );
 }
 
+function hasRecordedJapanReturn(
+  draft: JapanDraft,
+  route: JapanDraft['reentry'][number],
+  asOf: string,
+) {
+  const duringTrip = (on?: string) =>
+    !!on && !!route.departureOn && route.departureOn <= on && on <= asOf;
+  const hasReturnFact = (
+    record: JapanReturnRecord & { newLandingOn?: string },
+    returned?: string,
+  ) =>
+    duringTrip(record.newLandingOn) ||
+    (record.recordedReturnOn === returned && duringTrip(returned));
+  if (hasReturnFact(route, route.returnOn)) return true;
+  if (
+    hasJapanResidenceRoute(draft) &&
+    draft.trips.some(
+      (trip) =>
+        sameJapanTrip(trip, route) && hasReturnFact(trip, trip.returned),
+    )
+  )
+    return true;
+  return draft.reentry.some(
+    (other) =>
+      sameJapanTrip(
+        { departed: other.departureOn, returned: japanTripReturnOn(other) },
+        route,
+      ) && hasReturnFact(other, other.returnOn),
+  );
+}
+
 export function japanDepartureStatus(
   draft: JapanDraft,
-  { departureOn, alreadyDeparted }: JapanDraft['reentry'][number],
+  route: JapanDraft['reentry'][number],
 ) {
+  const { departureOn, alreadyDeparted } = route;
   const current = today();
   const asOf = draft.simulationDate < current ? draft.simulationDate : current;
   const due = !!departureOn && departureOn <= asOf;
   const legacyDateOnly =
     draft.answerFormat === undefined && alreadyDeparted === undefined;
+  const actualDeclaration =
+    due &&
+    !legacyDateOnly &&
+    alreadyDeparted !== false &&
+    route.route === 'deemed' &&
+    typeof route.declaredIntentAtDeparture === 'boolean' &&
+    route.declarationForDepartureOn === departureOn;
   const departed =
-    due && (legacyDateOnly ? departureOn < asOf : alreadyDeparted === true);
+    due &&
+    (alreadyDeparted ??
+      (actualDeclaration ||
+        (legacyDateOnly && departureOn < asOf) ||
+        hasRecordedJapanReturn(draft, route, asOf)));
   const pending = due && !legacyDateOnly && !departed && departureOn < current;
   return {
     date: departureOn,
     departed,
+    actualDeclaration,
     askIfDeparted: due && (departureOn === asOf || !legacyDateOnly),
     hint: departed
       ? 'jp.result.confirmDeparture'
@@ -248,9 +300,7 @@ export function clearUnconfirmedJapanDeclaration(
     : undefined;
   if (
     deemed?.declaredIntentAtDeparture === undefined ||
-    (deemed.alreadyDeparted === true &&
-      deemed.declarationForDepartureOn === deemed.departureOn &&
-      japanDepartureStatus(draft, deemed).departed)
+    japanDepartureStatus(draft, deemed).actualDeclaration
   )
     return draft;
   return {

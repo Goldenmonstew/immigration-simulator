@@ -33,6 +33,7 @@ import {
   type JapanField,
 } from '../../../lib/japan-fields';
 import { japanModule } from '../../../lib/japan-module';
+import { today } from '../../../lib/questionnaire';
 import form from '../../simulate/form.module.css';
 import styles from './questionnaire.module.css';
 import { EvidenceFields, updateAnswer } from './evidence-fields';
@@ -49,6 +50,13 @@ interface StepProps {
   update: (patch: Partial<JapanDraft>) => void;
 }
 
+// A return set for today can still be a plan. Only a past entry is evidence by itself.
+function recordedReturnOn(date: string | undefined, draft: JapanDraft) {
+  return date && date < today() && date <= draft.simulationDate
+    ? date
+    : undefined;
+}
+
 function editTravelField(
   draft: JapanDraft,
   route: JapanDraft['reentry'][number],
@@ -57,6 +65,8 @@ function editTravelField(
   displayed: JapanDraft['reentry'][number],
 ) {
   const next = updateAnswer(route, key, value);
+  if (key === 'returnOn')
+    next.recordedReturnOn = recordedReturnOn(next.returnOn, draft);
   const departureChanged =
     key === 'departureOn' && changedJapanAnswer(route.departureOn, value);
   if (
@@ -110,7 +120,7 @@ function editTravelField(
     departureChanged ||
     (key === 'alreadyDeparted' &&
       changedJapanAnswer(route.alreadyDeparted, value) &&
-      value !== true)
+      value === false)
   ) {
     delete next.declaredIntentAtDeparture;
     delete next.declarationForDepartureOn;
@@ -418,7 +428,14 @@ function JapanStep({ draft: stored, errors, update: save }: StepProps) {
             prefix="jp"
             errors={errors}
             change={(_, value, row) => {
-              const next = value as typeof trips;
+              const next = value as JapanDraft['trips'];
+              if (row?.field === 'returned') {
+                const trip = next[row.index];
+                next[row.index] = {
+                  ...trip,
+                  recordedReturnOn: recordedReturnOn(trip.returned, draft),
+                };
+              }
               saveTravel(
                 row
                   ? editJapanTripAnswer(next, active.reentry, {

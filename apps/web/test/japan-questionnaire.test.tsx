@@ -1422,6 +1422,194 @@ test('a recorded return without a departure date uses historical departure wordi
   ).toContain('were a special permanent resident at departure');
 });
 
+test('backfilling departure preserves an actual new landing locally and in a share', () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-11-26T12:00:00Z'));
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, value: string) => storage.set(key, value),
+  });
+  let draft: JapanDraft = {
+    ...jp.createDraft(),
+    step: 6,
+    reentry: [{ route: 'deemed', alreadyDeparted: null }],
+  };
+  const field = 'jp-travel-deemed-';
+  function answer(name: string, value: string) {
+    form(draft, (patch) => {
+      draft = { ...draft, ...patch };
+    });
+    fields.get(field + name)!({ target: { value } });
+  }
+  answer('newLandingOn', '2026-11-24');
+  for (const hasDepartureDate of [false, true]) {
+    if (hasDepartureDate) answer('departureOn', '2026-11-23');
+    expect(jp.validateStep(draft)).toEqual({});
+    const submitted = { ...draft, completed: true };
+    draftStorage(jp, submitted);
+    for (const source of [null, encodeDraft(jp, submitted)]) {
+      const page = readPageResult(jp, 'zh-CN', source);
+      expect(page.shared).toBe(source !== null);
+      const travel = page.result!.columns[0].pathways[0];
+      expect(
+        travel.checks.find((c) => c.id === 'jp.reentry.return-continuity')
+          ?.explanation,
+      ).toContain('本次于 2026-11-24 以新身份上陆，原在留中断');
+      expect(
+        travel.checks.find((c) => c.id === 'jp.reentry.deemed-eligibility')
+          ?.status,
+      ).toBe('UNKNOWN');
+      if (hasDepartureDate) {
+        expect(travel.summary).toContain(
+          t('jp.result.confirmDeparture', 'zh-CN').replace(
+            '{date}',
+            '2026-11-23',
+          ),
+        );
+        expect(travel.summary).not.toContain('是否已经出境');
+      }
+      expect(page.draft!.reentry[0].alreadyDeparted).toBeNull();
+      form(page.draft!);
+      expect(fields.has(field + 'declaredIntentAtDeparture')).toBe(
+        hasDepartureDate,
+      );
+    }
+  }
+});
+
+test.each(['yes', 'no'])(
+  'a dated actual declaration (%s) survives a pending departure answer',
+  (answer) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-26T12:00:00Z'));
+    let draft: JapanDraft = {
+      ...jp.createDraft(),
+      step: 6,
+      completed: true,
+      reentry: [
+        { route: 'deemed', departureOn: '2026-11-23', alreadyDeparted: true },
+      ],
+    };
+    function edit(name: string, value: string) {
+      form(draft, (patch) => {
+        draft = { ...draft, ...patch };
+      });
+      fields.get('jp-travel-deemed-' + name)!({ target: { value } });
+    }
+    edit('declaredIntentAtDeparture', answer);
+    edit('alreadyDeparted', '');
+    for (const restored of [
+      jp.restoreStoredDraft!(draft),
+      decodeDraft(jp, encodeDraft(jp, draft))!,
+    ]) {
+      expect(restored.reentry[0]).toMatchObject({
+        alreadyDeparted: null,
+        declaredIntentAtDeparture: answer === 'yes',
+        declarationForDepartureOn: '2026-11-23',
+      });
+      form(restored);
+      expect(fields.has('jp-travel-deemed-declaredIntentAtDeparture')).toBe(
+        true,
+      );
+      expect(
+        jp.run(restored, 'en').columns[0].pathways[0].summary,
+      ).not.toContain('whether you left');
+    }
+  },
+);
+
+test('only a past return recorded as of the simulation day establishes departure', () => {
+  vi.useFakeTimers();
+  const readAt = new Date('2026-11-26T12:00:00Z');
+  for (const [entry, simulationDate, actual] of [
+    ['2026-11-22', '2026-11-26', false],
+    ['2026-11-24', '2026-11-26', false],
+    ['2026-11-26', '2026-11-22', false],
+    ['2026-11-26', '2026-11-26', true],
+  ] as const) {
+    vi.setSystemTime(new Date(entry + 'T12:00:00Z'));
+    let draft: JapanDraft = {
+      ...jp.createDraft(),
+      simulationDate,
+      step: 6,
+      completed: true,
+      reentry: [{ route: 'deemed', alreadyDeparted: null }],
+    };
+    for (const [name, value] of [
+      ['returnOn', '2026-11-24'],
+      ['departureOn', '2026-11-23'],
+    ]) {
+      form(draft, (patch) => {
+        draft = { ...draft, ...patch };
+      });
+      fields.get('jp-travel-deemed-' + name)!({ target: { value } });
+    }
+    vi.setSystemTime(readAt);
+    draft.simulationDate = '2026-11-26';
+    for (const restored of [
+      jp.restoreStoredDraft!(draft),
+      decodeDraft(jp, encodeDraft(jp, draft))!,
+    ]) {
+      form(restored);
+      expect(fields.has('jp-travel-deemed-declaredIntentAtDeparture')).toBe(
+        actual,
+      );
+      expect(jp.run(restored, 'en').columns[0].pathways[0].summary).toContain(
+        actual
+          ? 'when you departed on 2026-11-23'
+          : 'whether you left that day',
+      );
+    }
+  }
+});
+
+test('only the matching active trip history supplies a recorded return to the deemed route', () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-11-26T12:00:00Z'));
+  let draft: JapanDraft = {
+    ...generalTripDraft(),
+    step: 1,
+    simulationDate: '2026-11-26',
+    trips: [{ departed: '2026-11-23', returned: '' }],
+    reentry: [
+      {
+        route: 'deemed',
+        departureOn: '2026-11-23',
+        returnOn: '2026-11-24',
+        alreadyDeparted: null,
+      },
+    ],
+  };
+  form(draft, (patch) => {
+    draft = { ...draft, ...patch };
+  });
+  fields.get('jp-trips-0-returned')!({ target: { value: '2026-11-24' } });
+  const route = draft.reentry[0];
+  const scenarios: [JapanDraft, boolean][] = [
+    [draft, true],
+    [{ ...draft, permanentResidence: { routes: [], evidence: {} } }, false],
+    [{ ...draft, reentry: [{ ...route, departureOn: '2026-11-22' }] }, false],
+  ];
+  for (const [candidate, expected] of scenarios) {
+    const page = readPageResult(
+      jp,
+      'en',
+      encodeDraft(jp, { ...candidate, completed: true, step: 6 }),
+    );
+    form(page.draft!);
+    expect(fields.has('jp-travel-deemed-declaredIntentAtDeparture')).toBe(
+      expected,
+    );
+    const deemed = page.result!.columns[0].pathways.find(
+      (p) => p.id === 'jp.reentry.deemed',
+    )!;
+    expect(deemed.summary).toContain(
+      expected ? 'when you departed' : 'whether you left',
+    );
+  }
+});
+
 test('a same-day departure answer controls the shared PR summary and re-entry details', () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date('2026-11-24T12:00:00Z'));
