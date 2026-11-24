@@ -45,7 +45,7 @@ export interface GrCommonAnswers {
   renewalForceMajeure?: 'approved' | 'pending' | 'none';
 }
 
-export function passportCheck(
+function passportCheck(
   id: GrFullPathwayId,
   req: GrFullRequest,
   c: GrContext,
@@ -87,16 +87,6 @@ export function passportCheck(
     : identityOnly
       ? [grSource('F21', 'arts. 25, 59'), grSource('F02', 'art. 10')]
       : p.passport.sources;
-  if (filingDate > req.simulationDate && met !== true)
-    return c.check(
-      'C-01',
-      '递件日的旅行证件',
-      'Travel document on the filing date',
-      undefined,
-      sources,
-      `现有证件在预计递件日 ${filingDate} 不符合要求。请补充届时有效的换发证件或获认可的替代证明。`,
-      `The current document will not qualify on the projected filing date, ${filingDate}. Provide evidence of a replacement or an accepted substitute valid on that date.`,
-    );
   return c.check(
     'C-01',
     '有效旅行证件或获准的无护照例外',

@@ -19,7 +19,6 @@ import type { GrPathway, GrPathwayId, GrPermit, GrRequest } from './greece';
 import {
   commonChecks,
   ordinaryRenewalWindow,
-  passportCheck,
   type GrCommonAnswers,
 } from './greece-common';
 import {
@@ -34,9 +33,7 @@ import {
 } from './greece-rules';
 import {
   backlogCredits,
-  nationalityIncomeCheck,
   settlementChecks,
-  tenYearResidence,
   type GrSettlementAnswers,
 } from './greece-settlement';
 import {
@@ -481,7 +478,7 @@ function pilotTimes(req: GrFullRequest, required: GrPathwayId[], c: GrContext) {
   return times;
 }
 
-function filingConditions(
+function evaluateFilingOnDate(
   id: GrFullPathwayId,
   req: GrFullRequest,
   scope: CountryCheck,
@@ -512,60 +509,25 @@ function filingConditions(
       ),
     );
   }
-  // Address changes carry their own fine. The old time assessment already combines alternative
-  // renewal windows and distinguishes a future date from an unresolved interpretation.
-  const incomeIndex =
-    id === 'GR-NATIONALITY' && !req.nationality?.pendingApplicationFiledOn
-      ? rules.findIndex((check) => check.id === 'NAT-07')
-      : -1;
-  const fixedGates = rules.filter(
-    (check, index) => check.id !== 'C-06' && index !== incomeIndex,
-  );
-  const canProject = fixedGates.every(
-    (check) => check.status === 'MET' || c.waitDates.has(check),
-  );
-  const waits = fixedGates
-    .map((check) => c.waitDates.get(check))
-    .filter((date) => date !== undefined);
-  let earliestDate = [
-    ...waits,
-    ...(time?.earliestDate ? [time.earliestDate] : []),
-  ]
-    .sort()
-    .at(-1);
-  // The period counted today may end before another requirement (e.g. a refiling ban) matures.
-  let jointTime = time;
-  if (
-    needed &&
-    time?.earliestDate &&
-    earliestDate &&
-    earliestDate > time.earliestDate &&
-    canProject
-  ) {
-    const onOpening = { ...req, simulationDate: earliestDate };
-    jointTime = routeTiming(
-      needed,
-      onOpening,
-      pilotTimes(onOpening, [needed], c),
-      c,
-    );
-    earliestDate = jointTime?.earliestDate;
-  }
-  const candidate = [...c.filingDates.values()];
-  if (earliestDate) candidate.push(earliestDate);
+  // A reporting fine (C-06) does not bar filing. Use the combined timing result
+  // because ordinary and late renewal windows are alternatives.
+  const gates = [
+    ...rules.filter((check) => check.id !== 'C-06'),
+    ...timing.filter((check) => check.id === id + '-TIME'),
+  ];
+  const status: CountryCheck['status'] = gates.some(
+    (check) => check.status === 'NOT_MET',
+  )
+    ? 'NOT_MET'
+    : gates.some((check) => check.status === 'UNKNOWN')
+      ? 'UNKNOWN'
+      : 'MET';
   return {
-    rules,
-    timing,
+    checks: [...timing, ...rules],
+    status,
     time,
-    jointTime,
-    needed,
-    canProject,
-    incomeIndex,
-    waits,
-    earliestDate,
-    candidate: candidate.sort().at(-1),
+    candidate: [...c.filingDates.values()].sort().at(-1),
     filingDates: c.filingDates,
-    waitDates: c.waitDates,
     calendarChanges: c.calendarChanges,
   };
 }
@@ -576,22 +538,10 @@ function filingUnderApplicableLaw(
   scope: CountryCheck,
   times: GrPathway[],
 ) {
-  const initial = filingConditions(id, req, scope, times);
+  let filing = evaluateFilingOnDate(id, req, scope, times);
+  let on = req.simulationDate;
+  let horizon = filing.candidate;
   const waitsFromReview = new Map<string, IsoDate>();
-  const firstCandidate = initial.candidate;
-  if (
-    !firstCandidate ||
-    ![...grPolicyEffectiveDates, ...initial.calendarChanges].some(
-      (date) => req.simulationDate < date && date <= firstCandidate,
-    )
-  )
-    return {
-      initial,
-      filing: initial,
-      projectedOn: undefined,
-      waitsFromReview,
-    };
-
   const milestones = [...grPolicyEffectiveDates];
   if (id === 'GR-LONG-TERM' || id === 'GR-TEN-YEAR') {
     // A recorded grant can bring a newly creditable period into the calculation.
@@ -600,10 +550,7 @@ function filingUnderApplicableLaw(
     if (id === 'GR-LONG-TERM' && req.grantedProtection)
       milestones.push(req.grantedProtection.grantedOn);
   }
-  let filing = initial;
-  let on = req.simulationDate;
-  let horizon = firstCandidate;
-  while (on < horizon) {
+  while (filing.status !== 'MET' && horizon && on < horizon) {
     // Try an earlier opening without discarding later changes if it is still blocked.
     on = [
       ...milestones,
@@ -613,20 +560,13 @@ function filingUnderApplicableLaw(
     ]
       .filter((date) => date > on)
       .sort()[0];
-    for (const [check, due] of filing.filingDates)
-      waitsFromReview.set(check.id, due < on ? due : on);
-    filing = filingConditions(id, { ...req, simulationDate: on }, scope);
-    if (
-      filing.rules.every(
-        (check) => check.id === 'C-06' || check.status === 'MET',
-      ) &&
-      (!filing.needed || filing.time?.status === 'MET')
-    )
-      break;
+    for (const [checkId, due] of filing.filingDates)
+      waitsFromReview.set(checkId, due < on ? due : on);
+    filing = evaluateFilingOnDate(id, { ...req, simulationDate: on }, scope);
     if (filing.candidate && filing.candidate > horizon)
       horizon = filing.candidate;
   }
-  return { initial, filing, projectedOn: on, waitsFromReview };
+  return { filing, on, waitsFromReview };
 }
 
 export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
@@ -692,105 +632,29 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
         pendingDetails: ['PD-300'],
       };
     }
-    const { initial, filing, projectedOn, waitsFromReview } =
-      filingUnderApplicableLaw(id, req, scope, times);
-    const {
-      rules,
-      timing,
-      time,
-      jointTime,
-      needed,
-      canProject,
-      incomeIndex,
-      waits,
-      waitDates,
-    } = filing;
-    const earliestDate = projectedOn ?? filing.earliestDate;
-    let summary =
-      jointTime && jointTime !== time ? jointTime.summary : undefined;
-    if (
-      (canProject || projectedOn) &&
-      (!needed ||
-        jointTime?.status === 'MET' ||
-        jointTime?.status === 'FUTURE') &&
-      earliestDate &&
-      earliestDate > req.simulationDate
-    ) {
-      if (
-        id === 'GR-TEN-YEAR' &&
-        req.tenYear?.basis === 'residence' &&
-        req.tenYear.stage !== 'renewal' &&
-        req.tenYear.residesInGreece !== false &&
-        (!projectedOn ||
-          (req.permits?.length &&
-            req.permits.every(
-              (permit) => permit.to && permit.to < earliestDate,
-            ))) &&
-        tenYearResidence({ ...req, simulationDate: earliestDate }) !== true
-      ) {
-        const index = rules.findIndex((check) => check.id === 'TY-01');
-        summary = c.L(
-          '现有许可记录无法证明在预计递件日仍满足连续居留条件。请先续期或补充衔接的许可记录，再核对递件日。',
-          'The permit record does not establish continuous qualifying residence on the projected filing date. Renew the permit or supply the missing permit records before confirming a filing date.',
-        );
-        rules[index] = {
-          ...rules[index],
-          status: 'UNKNOWN',
-          explanation: summary,
-        };
-      }
-      if (incomeIndex >= 0) {
-        const income = projectedOn
-          ? rules[incomeIndex]
-          : nationalityIncomeCheck({ ...req, simulationDate: earliestDate }, c);
-        const filing = c.L(
-          `按预计递件日 ${earliestDate} 核对税年材料。`,
-          `Tax years are assessed as of the projected filing date, ${earliestDate}. `,
-        );
-        rules[incomeIndex] = {
-          ...income,
-          explanation: filing + income.explanation,
-        };
-        if (income.status !== 'MET') summary = rules[incomeIndex].explanation;
-      }
-      const index = rules.findIndex((check) => check.id === 'C-01');
-      if (
-        index >= 0 &&
-        (!projectedOn ||
-          initial.rules.find((check) => check.id === 'C-01')?.status === 'MET')
-      ) {
-        const document = passportCheck(id, req, c, earliestDate);
-        if (document.status === 'UNKNOWN') {
-          rules[index] = document;
-          summary = document.explanation;
-        }
-      }
-    }
-    const gates = rules.filter((check) => check.id !== 'C-06');
-    const blocked = gates.some(
-      (check) => check.status === 'NOT_MET' && !waitDates.has(check),
+    const { filing, on, waitsFromReview } = filingUnderApplicableLaw(
+      id,
+      req,
+      scope,
+      times,
     );
-    const unknown = gates.some((check) => check.status === 'UNKNOWN');
-    const status: CountryPathway['status'] =
-      blocked ||
-      jointTime?.status === 'NOT_MET' ||
-      jointTime?.status === 'NOT_APPLICABLE'
-        ? 'NOT_MET'
-        : unknown || (needed && !jointTime) || jointTime?.status === 'UNKNOWN'
-          ? 'UNKNOWN'
-          : projectedOn || waits.length > 0 || jointTime?.status === 'FUTURE'
-            ? 'FUTURE'
-            : 'MET';
-    const checks = [...timing, ...rules];
-    if (projectedOn) {
-      const projected = c.L(
-        `按预计递件日 ${projectedOn} 适用的规定核对。`,
-        `Assessed under the law in force on the projected filing date, ${projectedOn}.`,
+    const { checks, time } = filing;
+    const projected = on > req.simulationDate;
+    const status =
+      filing.status === 'MET' && projected ? 'FUTURE' : filing.status;
+    let summary: string | undefined;
+    if (projected) {
+      summary = c.L(
+        `已按候选递件日 ${on} 核对时间与申请资格。`,
+        `Timing and eligibility were assessed on the candidate filing date, ${on}.`,
       );
-      summary = summary ? projected + ' ' + summary : projected;
       for (const check of checks) {
+        if (check.status !== 'MET') {
+          check.explanation = summary + ' ' + check.explanation;
+          continue;
+        }
         const date = waitsFromReview.get(check.id);
-        if (!date || check.status !== 'MET') continue;
+        if (!date) continue;
         check.status = 'NOT_MET';
         if (check.id === id + '-TIME')
           check.explanation = c.L(
@@ -810,13 +674,16 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
       status,
       checks,
       earliestDate:
-        status === 'FUTURE' || status === 'MET' ? earliestDate : undefined,
+        status === 'FUTURE'
+          ? on
+          : status === 'MET'
+            ? time?.earliestDate
+            : undefined,
       assumptions: time?.assumptions ?? [],
       ...(summary ? { summary } : {}),
       pendingDetails: [
         ...new Set([
           ...(time?.pendingDetails ?? []),
-          ...(jointTime?.pendingDetails ?? []),
           ...checks.flatMap((check) => check.pendingDetails ?? []),
         ]),
       ],

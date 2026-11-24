@@ -484,9 +484,7 @@ export function backlogCredits(r: GrFullRequest): GrPermit[] {
     }));
 }
 
-export function tenYearResidence(
-  r: GrFullRequest,
-): boolean | IsoDate | undefined {
+function tenYearResidence(r: GrFullRequest): boolean | IsoDate | undefined {
   const legacy = r.simulationDate < v.workReformEffective.value;
   if (legacy && r.tenYear?.legacyTenLawfulYears) return true;
   if (!r.permits) return legacy ? r.tenYear?.legacyTenLawfulYears : undefined;
@@ -787,7 +785,7 @@ function economicIntegration(r: GrFullRequest, c: GrContext) {
       : undefined;
 }
 
-export function nationalityIncomeCheck(r: GrFullRequest, c: GrContext) {
+function nationalityIncomeCheck(r: GrFullRequest, c: GrContext) {
   const e = r.nationality ?? {};
   const exam = v.naturalisationExam.value;
   const financial = economicIntegration(r, c);

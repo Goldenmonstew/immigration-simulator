@@ -465,14 +465,17 @@ describe('M.2 acquisition and conversion', () => {
       continuousFrom: permit.from,
       includesStudyOrDisputedGap: false,
     } as const;
-    const path = full(ty, { permits: [permit], integration });
-    expect(path.status).toBe('UNKNOWN');
+    const filing = '2028-11-24';
+    const records = { permits: [permit], integration };
+    const path = full(ty, records);
+    const filed = full(ty, { ...records, simulationDate: filing });
+    expect(filed.status).toBe('NOT_MET');
+    expect(path.status).toBe(filed.status);
     expect(path.earliestDate).toBeUndefined();
     expect(path.checks.find((c) => c.id === 'TY-01')).toMatchObject({
-      status: 'UNKNOWN',
-      explanation: expect.stringContaining('续期'),
+      status: filed.status,
+      explanation: expect.stringContaining(filing),
     });
-    const filing = '2028-11-24';
     const renewal = {
       kind: 'regular',
       from: '2027-11-25',
@@ -794,7 +797,7 @@ describe('ΚΕΙ naturalisation', () => {
     lastRejection: 'none',
   };
   test.each([
-    [day, '2027-02-01', 'UNKNOWN', 'UNKNOWN', undefined],
+    [day, '2027-02-01', 'NOT_MET', 'NOT_MET', undefined],
     [day, '2027-08-15', 'MET', 'FUTURE', '2027-08-15'],
     ['2027-08-15', '2027-02-01', 'NOT_MET', 'NOT_MET', undefined],
     ['2027-08-15', '2032-02-01', 'MET', 'MET', '2027-08-15'],
@@ -809,7 +812,7 @@ describe('ΚΕΙ naturalisation', () => {
       });
       const document = path.checks.find((c) => c.id === 'C-01');
       expect(document?.status).toBe(documentStatus);
-      if (documentStatus === 'UNKNOWN')
+      if (simulationDate === day && documentStatus === 'NOT_MET')
         expect(document?.explanation).toContain('2027-08-15');
       expect(path.status).toBe(status);
       expect(path.earliestDate).toBe(earliestDate);

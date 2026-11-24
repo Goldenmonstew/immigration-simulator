@@ -206,6 +206,87 @@ test.each([
   },
 );
 
+test.each([
+  ['2008-07-16', 'MET'],
+  ['2008-07-15', 'NOT_MET'],
+  ['2008-07-01', 'NOT_MET'],
+] as const)(
+  'Ο.1 renewal checks a child born on %s when the window opens under the same law',
+  (birthDate, filingStatus) => {
+    const filing = '2026-07-15';
+    const facts: Partial<GrFullRequest> = {
+      birthDate,
+      currentCardExpiresOn: '2026-09-15',
+      familyTcn: {
+        stage: 'renewal',
+        sponsor: 'ordinary',
+        sponsorPermitValid: true,
+        member: 'child',
+        unmarriedChildWithCustodyAndConsent: true,
+        adultChildIncapacityDependencyProved: false,
+        priorYearTaxAndInsuranceEvidence: true,
+        relationshipAndDocumentsGenuine: true,
+        familyLifeContinues: true,
+      },
+    };
+    const forecast = assess('GR-FAMILY-TCN', '2026-06-20', facts);
+    const filed = assess('GR-FAMILY-TCN', filing, facts);
+    expect(filed.status).toBe(filingStatus);
+    for (const route of [filed, forecast])
+      expect(route.checks.find((c) => c.id === 'FT-05')?.status).toBe(
+        filed.status,
+      );
+    expect(forecast.status).toBe(
+      filed.status === 'MET' ? 'FUTURE' : filed.status,
+    );
+    expect(forecast.earliestDate).toBe(
+      filed.status === 'MET' ? filing : undefined,
+    );
+  },
+);
+
+test.each([
+  [undefined, 'UNKNOWN'],
+  [0, 'MET'],
+] as const)(
+  'Μ.3 checks the interruption after card expiry (%s) on the next-day residence anniversary',
+  (interruptionAfterExpiryYears, filingStatus) => {
+    const filing = '2026-11-24';
+    const facts: Partial<GrFullRequest> = {
+      greekFamily: {
+        stage: 'permanent',
+        relationship: 'spouse',
+        registeredInGreece: true,
+        genuineRelationship: true,
+        qualifyingResidenceDocumented: true,
+        residenceFrom: '2021-11-24',
+        priorCardExpiry: '2026-11-23',
+        maxAnnualAbsenceMonths: 0,
+        longestConsecutiveAbsenceYears: 0,
+        interruptionAfterExpiryYears,
+      },
+    };
+    const forecast = assess('GR-GREEK-FAMILY-PR', '2026-10-30', facts);
+    const filed = assess('GR-GREEK-FAMILY-PR', filing, facts);
+    expect(filed.checks.find((c) => c.id === 'GF-03')?.status).toBe(
+      filingStatus,
+    );
+    expect(filed.status).toBe(filingStatus);
+    if (filed.status === 'MET') {
+      expect(forecast).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: filing,
+      });
+    } else {
+      expect(forecast.checks.find((c) => c.id === 'GF-03')?.status).toBe(
+        filed.status,
+      );
+      expect(forecast.status).toBe(filed.status);
+      expect(forecast.earliestDate).toBeUndefined();
+    }
+  },
+);
+
 test('Ε.4 renewal projected across the reform uses the card duration at filing', () => {
   const facts: Partial<GrFullRequest> = {
     currentCardExpiresOn: '2026-04-06',

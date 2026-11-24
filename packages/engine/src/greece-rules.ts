@@ -91,11 +91,9 @@ export function grContext(locale?: Locale) {
     if (!recordedDate) calendarChanges.add(`${year + 1}-01-01`);
     return year;
   }
-  // Only a known wait can clear a NOT_MET check on a predictable date.
-  const waitDates = new Map<CountryCheck, IsoDate>();
   // A dated requirement can survive a change in law even when another fact
   // in the same check prevents a positive forecast under today's law.
-  const filingDates = new Map<CountryCheck, IsoDate>();
+  const filingDates = new Map<string, IsoDate>();
   function whenDue(eligible: Answer, due: IsoDate | undefined, today: IsoDate) {
     if (due && due > today) return { eligible, due };
     return eligible && (due ? true : undefined);
@@ -137,15 +135,13 @@ export function grContext(locale?: Locale) {
         ? { pendingDetails }
         : {}),
     };
-    if (typeof met === 'string') waitDates.set(result, met);
     const due = typeof fact === 'object' ? fact.due : met;
-    if (typeof due === 'string') filingDates.set(result, due);
+    if (typeof due === 'string') filingDates.set(id, due);
     return result;
   }
   return {
     check,
     L,
-    waitDates,
     whenDue,
     filingDates,
     filingYear,

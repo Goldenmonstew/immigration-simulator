@@ -110,19 +110,25 @@ describe('long-term eligibility through the public entry point', () => {
     const future = path(id, { permits });
     expect(future.status).toBe('FUTURE');
     expect(future.earliestDate).toBe('2029-01-31');
-    const needsPassport = path(id, {
+    const expiringPassport = {
       permits,
       passport: {
         ...base.passport,
         expectedDeparture: '2027-05-12',
         expiresOn: '2027-08-12',
       },
+    };
+    const needsPassport = path(id, expiringPassport);
+    const filed = path(id, {
+      ...expiringPassport,
+      simulationDate: '2029-01-31',
     });
+    expect(filed.status).toBe('NOT_MET');
     expect(needsPassport.checks.find((x) => x.id === 'C-01')).toMatchObject({
-      status: 'UNKNOWN',
+      status: filed.status,
       explanation: expect.stringContaining('2029-01-31'),
     });
-    expect(needsPassport.status).toBe('UNKNOWN');
+    expect(needsPassport.status).toBe(filed.status);
     expect(needsPassport.earliestDate).toBeUndefined();
     const unresolved = path(id, { permits, integration: undefined });
     expect(unresolved.status).toBe('UNKNOWN');

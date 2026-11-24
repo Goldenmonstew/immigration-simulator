@@ -1167,7 +1167,13 @@ describe('property and family reviews through evaluateGreeceFull', () => {
       [
         'GR-GREEK-FAMILY-PR',
         'GF-03',
-        { greekFamily: { ...greek, residenceFrom: '2021-11-24' } },
+        {
+          greekFamily: {
+            ...greek,
+            residenceFrom: '2021-11-24',
+            priorCardExpiry: '2026-11-24',
+          },
+        },
       ],
       [
         'GR-EU-FAMILY-PR',
@@ -1176,19 +1182,7 @@ describe('property and family reviews through evaluateGreeceFull', () => {
       ],
     ] as const) {
       verify(full(id, patch), rule, 'FUTURE', '2026-11-24');
-      verify(
-        full(id, {
-          ...patch,
-          simulationDate: '2026-11-24',
-          greekFamily: {
-            ...greek,
-            residenceFrom: '2021-11-24',
-            priorCardExpiry: '2026-11-24',
-          },
-        }),
-        rule,
-        'MET',
-      );
+      verify(full(id, { ...patch, simulationDate: '2026-11-24' }), rule, 'MET');
     }
   });
   test('investment limits and incapacity exception use the law on the simulation date', () => {
