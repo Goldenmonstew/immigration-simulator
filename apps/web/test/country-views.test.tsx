@@ -163,6 +163,7 @@ test.each([
       passportValid: true,
       residentCardOrCertificate: true,
       formalPermitRequired: false,
+      alreadyDeparted: true,
       declaredIntentAtDeparture: true,
       declarationForDepartureOn: '2025-09-02',
       permitVoided: false,

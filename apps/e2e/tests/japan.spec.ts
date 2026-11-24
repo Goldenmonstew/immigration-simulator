@@ -38,7 +38,7 @@ async function begin(page: Page, dict: Dict) {
         .getByText('中', { exact: true }),
     ).toBeVisible();
     await header
-      .getByRole('button', { name: 'English EN', exact: true })
+      .getByRole('button', { name: 'English', exact: true })
       .click();
   }
   await main
@@ -156,14 +156,11 @@ test('English mobile questionnaire compares filing dates and shows Japanese poli
   await page.setViewportSize({ width: 375, height: 812 });
   await begin(page, en);
   const header = page.getByRole('banner');
-  for (const [short, full] of [
-    ['ZH', 'Chinese'],
+  for (const [short, name] of [
+    ['ZH', 'Chinese ZH'],
     ['EN', 'English'],
   ]) {
-    const button = header.getByRole('button', {
-      name: `${full} ${short}`,
-      exact: true,
-    });
+    const button = header.getByRole('button', { name, exact: true });
     await expect(button.getByText(short, { exact: true })).toBeVisible();
   }
   await page.locator('#jp-route-travel-ordinary').check();

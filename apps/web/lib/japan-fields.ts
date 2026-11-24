@@ -92,6 +92,7 @@ export const tripFields = [
   } satisfies JapanField,
   date('stayExpiry', false, 'stayExpiry', 'tripExpiry'),
   bool('renewalPending'),
+  date('renewalDecisionOn', false, 'renewalDecisionOn', 'renewalDecisionHint'),
 ];
 export const tripList = {
   name: 'trips',
@@ -275,7 +276,7 @@ const travelCommon = [
   date('returnOn'),
   date('stayExpiresOn'),
   ...flags('stayIndefinite', 'timelyRenewalPending'),
-  date('renewalDecisionOn'),
+  date('renewalDecisionOn', false, 'renewalDecisionOn', 'renewalDecisionHint'),
   ...flags(
     'specialPermanentResident',
     'lawfulStatus',

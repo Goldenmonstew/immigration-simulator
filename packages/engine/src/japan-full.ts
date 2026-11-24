@@ -17,6 +17,8 @@ export interface JpFullRequest extends JpFullContext {
 
 type DeemedRoute = Extract<JpFullReentryRequest, { route: 'deemed' }>;
 const sameTrip = (trip: JpTrip, route: JpFullReentryRequest) =>
+  !!trip.departed &&
+  !!trip.returned &&
   trip.departed === route.departureOn &&
   trip.returned === (route.returnOn ?? route.newLandingOn);
 const sameDeemedTrip = (
@@ -24,18 +26,53 @@ const sameDeemedTrip = (
   route: JpFullReentryRequest,
 ): route is DeemedRoute => route.route === 'deemed' && sameTrip(trip, route);
 
+/** A renewal decision belongs to the trip. An edit can also clear the date. */
+export function shareJapanRenewalDecisions<T extends JpFullReentryRequest>(
+  trips: JpTrip[],
+  routes: T[],
+  edited?: JpTrip | T['route'],
+) {
+  const history = trips.map((trip) => {
+    if (trip === edited) return trip;
+    const matching = routes.filter((route) => sameTrip(trip, route));
+    const changed = matching.find((route) => route.route === edited);
+    const date = changed
+      ? changed.renewalDecisionOn
+      : (trip.renewalDecisionOn ??
+        matching.find((r) => r.renewalDecisionOn)?.renewalDecisionOn);
+    return date === trip.renewalDecisionOn
+      ? trip
+      : { ...trip, renewalDecisionOn: date };
+  });
+  const reentry = routes.map((route) => {
+    const trip = history.find((trip) => sameTrip(trip, route));
+    if (
+      !trip ||
+      route.renewalDecisionOn === (trip.renewalDecisionOn ?? undefined)
+    )
+      return route;
+    return { ...route, renewalDecisionOn: trip.renewalDecisionOn ?? undefined };
+  });
+  return { trips: history, reentry };
+}
+
 /** Reconcile departure status (SRC-442 art. 23(2)) and permit evidence for the same itinerary. */
 export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
   trips: JpTrip[],
   routes: T[],
 ) {
+  const shared = shareJapanRenewalDecisions(trips, routes);
   const matches = (
     trip: JpTrip,
     route: JpFullReentryRequest,
   ): route is DeemedRoute =>
     sameDeemedTrip(trip, route) &&
     (trip.departure === 'deemed' || route.declaredIntentAtDeparture === true);
-  const history = trips.map((trip) => {
+  const history = shared.trips.map((trip) => {
+    // SRC-110 art. 20(6), SRC-116 Q61. A full assessment needs the
+    // actual decision when return falls within the possible special period.
+    if (trip.stayExpiry && trip.renewalPending && !trip.renewalDecisionOn)
+      trip = { ...trip, renewalDecisionOn: null };
     const landings = routes.filter(
       (route) => route.newLandingOn && sameTrip(trip, route),
     );
@@ -56,7 +93,7 @@ export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
         answers.size === 1 ? [...answers][0] : undefined,
     };
   });
-  const reentry = routes.map((route) => {
+  const reentry = shared.reentry.map((route) => {
     const trip = history.find((trip) => sameTrip(trip, route));
     if (!trip) return route;
     if (trip.newLandingOn)
@@ -66,6 +103,7 @@ export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
       ...route,
       specialPermanentResident: trip.specialPermanentResident,
       stayExpiresOn: route.stayExpiresOn ?? trip.stayExpiry,
+      historyStayExpiry: trip.stayExpiry,
       timelyRenewalPending: route.timelyRenewalPending ?? trip.renewalPending,
     };
   });
@@ -85,11 +123,15 @@ export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
     if (trip.departure === 'permit' && eligible !== true) return trip;
     // SRC-110 art. 20(6), SRC-116 Q61. Both assessments use the same
     // original stay and decision, including a decision date still unknown.
-    const stay = matched[0];
+    const stay =
+      matched.find(
+        (route) => trip.stayExpiry && route.stayExpiresOn !== trip.stayExpiry,
+      ) ?? matched[0];
     if (stay.stayExpiresOn)
       trip = {
         ...trip,
-        stayExpiry: stay.stayExpiresOn,
+        stayExpiry: trip.stayExpiry ?? stay.stayExpiresOn,
+        reentryStayExpiry: stay.stayExpiresOn,
         renewalPending: stay.timelyRenewalPending,
         renewalDecisionOn: stay.renewalDecisionOn ?? null,
       };

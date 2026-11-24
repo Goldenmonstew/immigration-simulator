@@ -1,5 +1,6 @@
 'use client';
 
+import { shareJapanRenewalDecisions } from '@uk-immigration/engine';
 import { QuestionnaireShell } from '../../../components/questionnaire-shell';
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
@@ -45,7 +46,11 @@ function JapanStep({ draft, errors, update }: StepProps) {
   const nat = draft.naturalisation;
   const routeLabel = (group: RouteGroup, route: string) =>
     t(`jp.${group}.${route}` as TranslationKey);
-  const routes = { pr: pr.routes, nat: nat.routes, travel: draft.reentry };
+  const { trips, reentry } = shareJapanRenewalDecisions(
+    draft.trips,
+    draft.reentry,
+  );
+  const routes = { pr: pr.routes, nat: nat.routes, travel: reentry };
   const residence = hasJapanResidenceRoute(draft);
   const routeError = !residence && !draft.reentry.length && errors['jp-routes'];
   // Required answers remain blank while a route is being edited. The shell
@@ -59,7 +64,16 @@ function JapanStep({ draft, errors, update }: StepProps) {
       update({
         naturalisation: { ...nat, routes: selected as typeof nat.routes },
       });
-    else update({ reentry: selected as typeof draft.reentry });
+    else {
+      const next = selected as typeof reentry;
+      const edited = next.find(
+        (route) =>
+          route.renewalDecisionOn !==
+          reentry.find((previous) => previous.route === route.route)
+            ?.renewalDecisionOn,
+      );
+      update(shareJapanRenewalDecisions(trips, next, edited?.route));
+    }
   };
   const routeQuestions = (group: RouteGroup) =>
     routes[group].map((route) => {
@@ -99,6 +113,8 @@ function JapanStep({ draft, errors, update }: StepProps) {
                     if (key === 'declaredIntentAtDeparture')
                       return {
                         ...next,
+                        alreadyDeparted:
+                          value === undefined ? r.alreadyDeparted : true,
                         declarationForDepartureOn:
                           value === undefined ? undefined : r.departureOn,
                       };
@@ -262,10 +278,20 @@ function JapanStep({ draft, errors, update }: StepProps) {
           <p>{t('jp.form.history')}</p>
           <EvidenceFields
             fields={[tripList]}
-            values={draft}
+            values={{ trips }}
             prefix="jp"
             errors={errors}
-            change={(key, value) => update({ [key]: value })}
+            change={(_, value) => {
+              const next = value as typeof trips;
+              const edited =
+                next.length === trips.length
+                  ? next.find(
+                      (trip, i) =>
+                        trip.renewalDecisionOn !== trips[i].renewalDecisionOn,
+                    )
+                  : undefined;
+              update(shareJapanRenewalDecisions(next, reentry, edited));
+            }}
           />
         </>
       )}

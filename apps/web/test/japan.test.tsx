@@ -319,6 +319,7 @@ test('a planned deemed departure leaves continuity pending and a shared negative
     ...deemed,
     departureOn: departed,
     returnOn: '2024-04-07',
+    alreadyDeparted: true,
     declaredIntentAtDeparture: false,
     declarationForDepartureOn: departed,
   };
@@ -360,6 +361,7 @@ const deemedTrip = {
   passportValid: true,
   residentCardOrCertificate: true,
   formalPermitRequired: false,
+  alreadyDeparted: true,
   declaredIntentAtDeparture: true,
   declarationForDepartureOn: aprilTrip.departureOn,
   permitVoided: false,
@@ -903,6 +905,69 @@ test('language, household evidence and travel knobs update only the comparison',
   expect(draft).toEqual(original);
 });
 
+test.each(['zh-CN', 'en'] as const)(
+  'conflicting stay expiries remain unconfirmed in shared results and comparisons (%s)',
+  (locale) => {
+    const historyExpiry = '2024-04-03';
+    const reentryExpiry = '2024-04-10';
+    const draft: JapanDraft = {
+      ...travelDraft(),
+      dateOfBirth: '1990-05-01',
+      permanentResidence: {
+        routes: [
+          {
+            route: 'general',
+            statusStart: '2014-04-01',
+            newStatusStart: '2014-04-01',
+          },
+        ],
+        evidence: prEvidence,
+      },
+      trips: [
+        {
+          departed: aprilTrip.departureOn,
+          returned: aprilTrip.returnOn,
+          departure: 'deemed',
+          stayExpiry: historyExpiry,
+          renewalPending: false,
+        },
+      ],
+      reentry: [{ ...deemedTrip, stayExpiresOn: reentryExpiry }],
+    };
+    const compared = jp.whatif.apply(draft, {
+      ...jp.whatif.initial(draft),
+      returns: { deemed: '2024-04-08' },
+    });
+    for (const scenario of [draft, compared]) {
+      const shared = decodeDraft(jp, encodeDraft(jp, scenario))!;
+      const [pr, deemed] = jp.run(shared, locale).columns[0].pathways;
+      expect(
+        pr.checks.find((c) => c.id === 'jp.pr.continuous-stay')?.status,
+      ).toBe('UNKNOWN');
+      expect(pr.timeEarliestDate).toBeUndefined();
+      expect(pr.earliestDate).toBeUndefined();
+      const notice = locale === 'en' ? 'Check both records' : '请核对两处记录';
+      expect(pr.summary).toContain(notice);
+      for (const id of [
+        'jp.reentry.deemed-validity',
+        'jp.reentry.return-continuity',
+      ]) {
+        const check = deemed.checks.find((c) => c.id === id)!;
+        expect(check.status).toBe('UNKNOWN');
+        expect(check.explanation).toContain(notice);
+        expect(check.explanation).toContain(historyExpiry);
+        expect(check.explanation).toContain(reentryExpiry);
+      }
+    }
+    draft.trips[0].stayExpiry = reentryExpiry;
+    const [pr, deemed] = jp.run(draft, locale).columns[0].pathways;
+    expect(pr.earliestDate).toBe('2027-04-05');
+    expect(
+      deemed.checks.find((c) => c.id === 'jp.reentry.return-continuity')?.status,
+    ).toBe('MET');
+  },
+);
+
 test.each([
   ['matching special status', '2025-10-01', true, undefined, 'MET'],
   ['matching ordinary status', '2025-10-01', false, undefined, 'NOT_MET'],
@@ -937,6 +1002,7 @@ test.each([
           residentCardOrCertificate: true,
           formalPermitRequired: false,
           stayIndefinite: true,
+          alreadyDeparted: true,
           declaredIntentAtDeparture: true,
           declarationForDepartureOn: departed,
           permitVoided: false,

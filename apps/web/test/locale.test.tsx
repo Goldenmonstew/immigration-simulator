@@ -143,8 +143,12 @@ test('locale renders the shell title, engine result, principal and What-if expla
       'English EN',
     ]);
     for (const button of buttons) expect(button).not.toContain('aria-label=');
-    if (html === chinese)
+    expect(buttons[1]).toMatch(/<span[^>]* aria-hidden="true">EN<\/span>/);
+    if (html === chinese) {
       expect(buttons[0]).toMatch(/<span[^>]* aria-hidden="true">中<\/span>/);
+    } else {
+      expect(buttons[0]).not.toContain('aria-hidden="true"');
+    }
   }
   for (const result of [
     runSimulation(draft, 'en'),

@@ -28,6 +28,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const policyLink = sitePagePaths.includes(policyPage)
     ? policyPage
     : countryPath('uk', 'policy');
+  const languages = [
+    ['zh-CN', t('site.chinese'), t('site.chineseShort')],
+    ['en', 'English', 'EN'],
+  ] as const;
   useEffect(() => {
     let details: [HTMLDetailsElement, boolean][] | undefined;
     const beforePrint = () => {
@@ -93,29 +97,23 @@ export function SiteShell({ children }: { children: ReactNode }) {
             role="group"
             aria-label={t('site.language')}
           >
-            <button
-              type="button"
-              lang="zh-CN"
-              aria-pressed={locale === 'zh-CN'}
-              onClick={() => setLocale('zh-CN')}
-            >
-              <span className={styles.fullLabel}>{t('site.chinese')}</span>{' '}
-              <span
-                className={styles.compactLabel}
-                aria-hidden={locale === 'zh-CN' || undefined}
+            {languages.map(([language, full, short]) => (
+              <button
+                key={language}
+                type="button"
+                lang={language}
+                aria-pressed={locale === language}
+                onClick={() => setLocale(language)}
               >
-                {t('site.chineseShort')}
-              </span>
-            </button>
-            <button
-              type="button"
-              lang="en"
-              aria-pressed={locale === 'en'}
-              onClick={() => setLocale('en')}
-            >
-              <span className={styles.fullLabel}>English</span>{' '}
-              <span className={styles.compactLabel}>EN</span>
-            </button>
+                <span className={styles.fullLabel}>{full}</span>{' '}
+                <span
+                  className={styles.compactLabel}
+                  aria-hidden={full.toLowerCase().includes(short.toLowerCase())}
+                >
+                  {short}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </header>

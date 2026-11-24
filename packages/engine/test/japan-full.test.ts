@@ -214,24 +214,26 @@ describe('permanent residence', () => {
   });
 
   test.each([
-    [undefined, 'UNKNOWN', 'UNKNOWN'],
-    [false, 'NOT_MET', 'NOT_MET'],
-    [true, 'MET', 'UNKNOWN'],
+    [undefined, undefined, 'UNKNOWN', 'UNKNOWN'],
+    [false, undefined, 'NOT_MET', 'NOT_MET'],
+    [true, undefined, 'UNKNOWN', 'UNKNOWN'],
+    [true, '2026-11-11', 'MET', 'UNKNOWN'],
   ] as const)(
-    'residence and naturalisation retain renewal evidence at departure: %s',
-    (renewalPending, expectedPr, expectedNat) => {
+    'residence and naturalisation retain renewal evidence at departure: %s, decision %s',
+    (renewalPending, renewalDecisionOn, expectedPr, expectedNat) => {
       const trip = {
         departure: 'deemed' as const,
         departed: '2026-10-01',
         stayExpiry: '2026-10-15',
         returned: '2026-11-10',
         renewalPending,
+        renewalDecisionOn,
       };
       const request = { trips: [trip], stayStart: '2012-04-01' };
       const result = pr(general, prEvidence, request);
       expect(status(result, 'continuous-stay')).toBe(expectedPr);
       expect(result.status).toBe(expectedPr);
-      if (renewalPending === undefined) {
+      if (expectedPr === 'UNKNOWN') {
         expect(result.timeStatus).toBe('UNKNOWN');
         expect(result.timeEarliestDate).toBeUndefined();
         expect(result.earliestDate).toBeUndefined();

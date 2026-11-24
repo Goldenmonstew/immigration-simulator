@@ -154,7 +154,7 @@ export function canConfirmJapanDeparture(
   );
 }
 
-// Older drafts stored a bare answer, which could have been entered before departure.
+// A date-tagged answer from an older draft could still describe a planned departure.
 export function clearUnconfirmedJapanDeclaration(
   draft: JapanDraft,
 ): JapanDraft {
@@ -163,7 +163,8 @@ export function clearUnconfirmedJapanDeclaration(
     : undefined;
   if (
     deemed?.declaredIntentAtDeparture === undefined ||
-    (deemed.declarationForDepartureOn === deemed.departureOn &&
+    (deemed.alreadyDeparted === true &&
+      deemed.declarationForDepartureOn === deemed.departureOn &&
       canConfirmJapanDeparture(draft, deemed))
   )
     return draft;
@@ -259,6 +260,13 @@ function checkFields(
       case 'notice':
       case 'status-date':
       case 'date':
+        // Shared comparisons can store a pending trip decision as null.
+        if (
+          id.startsWith('jp-trips-') &&
+          field.name === 'renewalDecisionOn' &&
+          value === null
+        )
+          break;
         if (field.type === 'notice' && value === null) break;
         if (field.type === 'status-date' && value === 'none') break;
         if (typeof value !== 'string' || !validDate(value))
@@ -410,6 +418,7 @@ function checkStep(draft: JapanDraft, step: number, submitting: boolean) {
             'jp.form.declarationError';
         if (!submitting) continue;
         order(prefix + '-returnOn', route.departureOn, route.returnOn);
+        order(prefix + '-newLandingOn', route.departureOn, route.newLandingOn);
         if (route.route !== 'deemed' && route.permit) {
           order(
             prefix + '-permit-expiresOn',

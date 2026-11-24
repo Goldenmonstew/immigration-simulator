@@ -119,6 +119,10 @@ const messages = {
     '填出境时获准在留的最后一天。留空表示在返日前未到期，或属于无限期在留。',
     'Enter the last day of the stay permitted at departure. A blank means it did not end before your return or your stay is indefinite.',
   ],
+  'jp.form.renewalDecisionHint': [
+    '填写入管对这次续期或变更作出处分的日期。日期待确认时留空。',
+    'Enter the date the immigration authority decided this renewal or change application. Leave it blank if the date is unconfirmed.',
+  ],
   'jp.form.noticeHint': [
     '已申报请填日期。明确尚未申报可勾选下方选项，其余情况留空。',
     'Enter the date if filed. Tick the box if you know it remains unreported. Otherwise leave it blank.',

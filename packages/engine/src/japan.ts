@@ -55,12 +55,14 @@ export interface JpTrip {
    * end before the return (a permanent resident has none).
    */
   stayExpiry?: IsoDate;
+  /** Expiry recorded for the matching deemed re-entry, retained in comparisons. */
+  reentryStayExpiry?: IsoDate;
   /**
    * A renewal or change of status was applied for before `stayExpiry` and
    * was still pending when leaving (art. 20(6), FAQ Q61). Omitted = unknown.
    */
   renewalPending?: boolean;
-  /** Decision on the matching re-entry record. Null means the date is still unknown. */
+  /** Decision on the timely renewal or change application. Null means the date is still unknown. */
   renewalDecisionOn?: IsoDate | null;
   /** Landing under a new status, reported for this return (SRC-116). */
   newLandingOn?: IsoDate;
@@ -197,6 +199,14 @@ const latestStayLimit = (t: JpTrip) =>
     t.renewalDecisionOn ?? undefined,
   );
 
+export function jpStayExpiryConflict(history?: IsoDate, reentry?: IsoDate) {
+  if (!history || !reentry || history === reentry) return;
+  return [
+    `同一趟行程的共同出境记录填写的在留届满日为 ${history}，みなし再入国记录填写的是 ${reentry}。请核对两处记录。`,
+    `The trip history gives ${history} as the expiry of stay, and the deemed re-entry record gives ${reentry}. Check both records to confirm the expiry date.`,
+  ] as const;
+}
+
 // SRC-116, 再入国許可 paras 2–4. Different dates do not establish how this return was made.
 export const jpReturnOnPreviousStatus = (
   returned?: IsoDate,
@@ -224,7 +234,8 @@ export function jpTripLapses(
   if (previousStatus === false) return true;
   if (departure === 'none') return true;
   if (departure === 'permit' && t.reentryPermit === false) return true;
-  const stayLimit = latestStayLimit(t);
+  const expiryConflict = jpStayExpiryConflict(t.stayExpiry, t.reentryStayExpiry);
+  const stayLimit = expiryConflict ? undefined : latestStayLimit(t);
   if (stayLimit && t.returned > stayLimit) return true;
   // SRC-110 art. 26-2(2); SRC-442 art. 23(2) substitutes two years.
   if (departure === 'deemed' && pastOrdinaryDeemedTerm(t)) {
@@ -238,9 +249,10 @@ export function jpTripLapses(
   if (missingPermission(t, departure))
     return t.returned > latestPossibleReentry(t) ? true : undefined;
   if (
-    t.stayExpiry &&
-    t.returned > t.stayExpiry &&
-    (t.renewalPending === undefined || t.renewalDecisionOn === null)
+    expiryConflict ||
+    (t.stayExpiry &&
+      t.returned > t.stayExpiry &&
+      (t.renewalPending === undefined || t.renewalDecisionOn === null))
   )
     return undefined;
   return previousStatus === true ? false : undefined;
@@ -423,7 +435,9 @@ export function evaluateJapanTimeline(
         `${t.departed} 持普通再入国许可出境，但 ${t.returned} 返日时许可已过期，连续在留从 ${t.returned} 重新起算。`,
         ` You left on an ordinary re-entry permit on ${t.departed}, but it was no longer valid on return. The unbroken stay starts again on ${t.returned}.`,
       );
-    const limit = latestStayLimit(t);
+    const limit = jpStayExpiryConflict(t.stayExpiry, t.reentryStayExpiry)
+      ? undefined
+      : latestStayLimit(t);
     if (limit && t.returned > limit) {
       if (t.renewalDecisionOn && t.renewalPending)
         return L(
@@ -459,7 +473,12 @@ export function evaluateJapanTimeline(
     )
   )
     continuitySources.push(specialDeemedSource);
-  if (uncertainTrips.some((t) => missingPermission(t, departureOf(t))))
+  if (
+    uncertainTrips.some((t) =>
+      missingPermission(t, departureOf(t)) ||
+      jpStayExpiryConflict(t.stayExpiry, t.reentryStayExpiry),
+    )
+  )
     continuitySources.push(
       {
         srcId: 'SRC-116',
@@ -474,6 +493,8 @@ export function evaluateJapanTimeline(
     continuitySources.push(...v.renewalPendingMonths.sources);
   for (const t of uncertainTrips) {
     const departure = departureOf(t);
+    const expiryConflict = jpStayExpiryConflict(t.stayExpiry, t.reentryStayExpiry);
+    if (expiryConflict) lapseNotes.push(L(...expiryConflict));
     if (t.newLandingOn && t.newLandingOn !== t.returned)
       lapseNotes.push(L(
         `重新上陆日 ${t.newLandingOn} 与返日 ${t.returned} 不同，请核对本次返日所用身份。`,
@@ -504,6 +525,7 @@ export function evaluateJapanTimeline(
           ` Confirm whether you were a special permanent resident on departure on ${t.departed} to check whether your return on ${t.returned} was within the deemed re-entry period.`,
         ),
       );
+    if (expiryConflict) continue;
     if (needsRenewalEvidence(t) && t.renewalPending === true)
       lapseNotes.push(L(
         `请核对按期续期申请的处分日，以确认 ${t.returned} 返日时原在留是否仍有效。`,

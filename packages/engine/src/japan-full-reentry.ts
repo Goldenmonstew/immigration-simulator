@@ -3,7 +3,12 @@ import {
   japanImmigrationGuidance,
 } from '@uk-immigration/policy-data';
 import { addMonths, addYears } from './dates';
-import { jpOfficeClosed, jpReturnOnPreviousStatus, jpStayLimit } from './japan';
+import {
+  jpOfficeClosed,
+  jpReturnOnPreviousStatus,
+  jpStayExpiryConflict,
+  jpStayLimit,
+} from './japan';
 import {
   all,
   assemblePathway,
@@ -68,6 +73,8 @@ export type JpFullReentryRequest = JpTravelDates &
       }
     | {
         route: 'deemed';
+        /** Expiry recorded in the matching trip history, retained in comparisons. */
+        historyStayExpiry?: IsoDate;
         temporaryVisitor?: boolean;
         originalStayMonths?: number;
         passportValid?: boolean;
@@ -200,6 +207,9 @@ export function assessJapanReentry(
   const departure = route.departureOn;
   const returned = route.returnOn ?? route.newLandingOn;
   const stay = route.stayExpiresOn;
+  const expiryConflict = route.route === 'deemed'
+    ? jpStayExpiryConflict(route.historyStayExpiry, stay)
+    : undefined;
   const renewedLimit = jpStayLimit(
     { stayExpiry: stay, renewalPending: true },
     route.renewalDecisionOn,
@@ -216,17 +226,18 @@ export function assessJapanReentry(
       : undefined;
   }
   const withinStay = (on?: IsoDate) => {
-    if (!on) return undefined;
+    if (!on || expiryConflict) return undefined;
     if (!stay || !renewedLimit) return indefinite ? true : undefined;
     return renewalAnswer(on <= stay, on <= renewedLimit);
   };
   const limitedByStay = (end?: IsoDate) => {
-    if (!end) return undefined;
+    if (!end || expiryConflict) return undefined;
     if (!stay || !renewedLimit) return indefinite ? end : undefined;
     return renewalAnswer(earlier(end, stay), earlier(end, renewedLimit));
   };
   // Without the decision date the special period supplies an upper bound only.
   const renewalNotice = (latestPermitEnd?: IsoDate) => {
+    if (expiryConflict) return L(...expiryConflict);
     if (
       !stay ||
       !renewedLimit ||
