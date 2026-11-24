@@ -335,10 +335,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.nz.paths': 'Permanent Resident Visa · Travel conditions · Citizenship',
   'hub.nz.desc':
     'Find when resident visa travel conditions expire. Check how long you have held a resident visa and how many days you have spent in New Zealand for a Permanent Resident Visa (PRV), and count your days in New Zealand for citizenship.',
-  'hub.ca.code': 'CA',
-  'hub.ca.paths': 'PR residency obligation · Citizenship',
-  'hub.ca.desc':
-    'Check the day count for keeping permanent resident status and the days of physical presence in Canada for citizenship. The citizenship calculation includes eligible days spent in Canada before permanent residence.',
   'hub.us.code': 'US',
   'hub.us.paths': 'Naturalization · Removing conditions · Trips abroad',
   'hub.us.desc':

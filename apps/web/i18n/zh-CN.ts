@@ -310,10 +310,6 @@ export const zhCN = {
   'hub.nz.paths': '永久居民 PRV · 旅行条件 · 入籍',
   'hub.nz.desc':
     '计算居民签证旅行条件的到期日，核对转永久居民签证（PRV）所需的持签时长和在境天数，以及入籍所需的在境天数。',
-  'hub.ca.code': 'CA',
-  'hub.ca.paths': '永居居住义务 · 入籍',
-  'hub.ca.desc':
-    '核对维持永久居民身份所需的居住天数，以及入籍所需的在加拿大天数。入籍计算包含可计入的永居前在境时间。',
   'hub.us.code': 'US',
   'hub.us.paths': '入籍 · 条件绿卡转正 · 离境时长',
   'hub.us.desc':
