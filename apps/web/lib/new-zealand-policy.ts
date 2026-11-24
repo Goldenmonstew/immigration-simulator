@@ -29,6 +29,47 @@ const recent = {
   residentVisa: { granted: '2025-11-01', category: 'general' as const },
   trips: [],
 };
+// A joint PRV application projected to the date the principal qualifies.
+const joint = (child: object): NzFullRequest => ({
+  simulationDate: date,
+  dateOfBirth: '1990-01-01',
+  ...recent,
+  common: {
+    character: 'clear',
+    identityDocuments: true,
+    requiredFeePaid: true,
+    residenceFiling: {
+      currentVisa: 'other-eligible-temporary-or-resident',
+      statutoryBar: 'none',
+      atImmigrationControlArea: false,
+      hasOmittedRelationshipVisaDependant: false,
+    },
+    dependants: [
+      {
+        relation: 'child',
+        dateOfBirth: '2002-02-01',
+        single: true,
+        hasOwnChildren: false,
+        financiallyDependent: true,
+        identityDocuments: true,
+        character: 'clear',
+        prvApplication: {
+          ...recent,
+          linkedToJointPrincipal: true,
+          travel: onshore,
+          prv: { ...ready, role: 'linked' },
+        },
+        ...child,
+      },
+    ],
+  },
+  resident: {
+    prv: ready,
+    travel: { ...onshore, firstEntryClass: 'standard' },
+  },
+});
+// Later requests reach branches with their own sources; the first request
+// that returns a condition gives its title.
 const requests: NzFullRequest[] = [
   { simulationDate: date },
   {
@@ -58,43 +99,19 @@ const requests: NzFullRequest[] = [
     simulationDate: date,
     skilled: { smc: { route: 'trades' }, green: { tier: 'straight' } },
   },
-  // A joint PRV application projected to the date the principal qualifies.
+  // The older child ages out by the projected date.
+  joint({}),
+  // A younger child: the common date cannot be confirmed (PD-222).
+  joint({ dateOfBirth: '2012-01-01', relocationAuthority: 'right-evidenced' }),
+  // A pre-reform SMC invitation (SR3.5.15), the historical dairy-worker
+  // character exception (RV4.20.10) and filing at the border (R2.40.2).
   {
     simulationDate: date,
-    dateOfBirth: '1990-01-01',
-    ...recent,
-    common: {
-      character: 'clear',
-      identityDocuments: true,
-      requiredFeePaid: true,
-      residenceFiling: {
-        currentVisa: 'other-eligible-temporary-or-resident',
-        statutoryBar: 'none',
-        atImmigrationControlArea: false,
-        hasOmittedRelationshipVisaDependant: false,
-      },
-      dependants: [
-        {
-          relation: 'child',
-          dateOfBirth: '2002-02-01',
-          single: true,
-          hasOwnChildren: false,
-          financiallyDependent: true,
-          identityDocuments: true,
-          character: 'clear',
-          prvApplication: {
-            ...recent,
-            linkedToJointPrincipal: true,
-            travel: onshore,
-            prv: { ...ready, role: 'linked' },
-          },
-        },
-      ],
-    },
     resident: {
-      prv: ready,
-      travel: { ...onshore, firstEntryClass: 'standard' },
+      travel: { action: 'subsequent', filipinoDairyExceptionClaimed: true },
     },
+    skilled: { smc: { invitedOn: recent.firstArrival } },
+    common: { residenceFiling: { atImmigrationControlArea: true } },
   },
 ];
 

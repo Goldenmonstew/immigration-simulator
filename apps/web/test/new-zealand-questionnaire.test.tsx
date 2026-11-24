@@ -1,7 +1,13 @@
+import {
+  evaluateNewZealandFull,
+  type NzFullRequest,
+} from '@uk-immigration/engine';
 import { isValidElement, type ReactElement, type ReactNode } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test, vi } from 'vitest';
 import NewZealandSimulatePage from '../app/new-zealand/simulate/page';
 import { NzWhatIfControls } from '../app/new-zealand/whatif/controls';
+import { ResultView } from '../components/result-view';
 import { t, type TranslationKey } from '../i18n';
 import {
   nzStepDefinitions,
@@ -9,6 +15,7 @@ import {
   type NzDraft,
 } from '../lib/new-zealand-draft';
 import { newZealandModule as nz } from '../lib/new-zealand-module';
+import { newZealandPolicy } from '../lib/new-zealand-policy';
 import { decodeDraft, encodeDraft } from '../lib/share';
 
 // Components read the locale through useTranslation; a plain function lets the
@@ -370,6 +377,147 @@ test('comparison controls follow the pay conditions, model IELTS for an OET resu
     target: { value: '42.5', valueAsNumber: 42.5 },
   });
   expect(updates).toEqual([{ hourlyPay: undefined }, { hourlyPay: 42.5 }]);
+});
+
+test('pathways a held PRV replaces show no date, and fees, levy, oath and home purchase are procedural information', () => {
+  const held = withAnswers(residentDraft(['travel', 'prv']), {
+    trips: [],
+    permanentResidentVisa: '2022-02-01',
+  });
+  const result = nz.run(held, 'zh-CN');
+  for (const path of result.columns[0].pathways)
+    expect(path).toMatchObject({ status: 'NOT_APPLICABLE', travelDate: null });
+  const html = renderToStaticMarkup(
+    <ResultView country={nz} result={result} draft={held} />,
+  );
+  expect(html).not.toContain(t('result.earliest'));
+
+  const information = [
+    'NZ-P1-FEE',
+    'NZ-P2-7',
+    'NZ-P3-7-FEE',
+    'NZ-P3-7-OATH',
+    'NZ-P4-FEE',
+    'NZ-P5-4',
+    'NZ-P6-3',
+    'NZ-P7-FEE',
+    'NZ-P8-5',
+    'NZ-P9-4',
+    'NZ-P9-HOME',
+    'NZ-P10-2',
+    'NZ-C6-LEVY',
+  ];
+  const all = residentDraft([
+    'travel',
+    'prv',
+    'citizenship',
+    'smc',
+    'green',
+    'sector',
+    'partner',
+    'parent',
+    'investor',
+    'religious',
+  ]);
+  const every = withAnswers(all, {
+    trips: [],
+    resident: { ...all.answers.resident, travel: { action: 'variation' } },
+    family: { investment: { route: 'active' } },
+  });
+  const checks = pathways(every).flatMap((path) => path.checks);
+  expect(
+    information.filter((id) => !checks.some((check) => check.id === id)),
+  ).toEqual([]);
+  for (const check of checks)
+    expect(check.kind, check.id).toBe(
+      information.includes(check.id) ? 'information' : undefined,
+    );
+});
+
+test('the policy page lists the sources and pending details of every branch the results can show', () => {
+  const rules = new Map(
+    newZealandPolicy.rules['nz.current-law'].map((rule) => [rule.id, rule]),
+  );
+  const joint = residentDraft(['prv']).answers;
+  const requests: NzFullRequest[] = [
+    // Pre-reform SMC invitation, dairy-worker character exception, border filing.
+    {
+      simulationDate: '2026-11-23',
+      resident: {
+        travel: { action: 'subsequent', filipinoDairyExceptionClaimed: true },
+      },
+      skilled: { smc: { invitedOn: '2025-11-01' } },
+      common: { residenceFiling: { atImmigrationControlArea: true } },
+    },
+    // A joint PRV whose common date cannot be confirmed.
+    {
+      ...joint,
+      simulationDate: '2026-11-23',
+      firstArrival: '2025-11-01',
+      residentVisa: { granted: '2025-11-01', category: 'general' },
+      trips: [],
+      resident: {
+        prv,
+        travel: {
+          currentlyInNz: true,
+          restrictedEntry: false,
+          firstEntryClass: 'standard',
+        },
+      },
+      common: {
+        ...joint.common,
+        dependants: [
+          {
+            relation: 'child',
+            dateOfBirth: '2012-01-01',
+            relocationAuthority: 'right-evidenced',
+            single: true,
+            hasOwnChildren: false,
+            financiallyDependent: true,
+            identityDocuments: true,
+            character: 'clear',
+            prvApplication: {
+              firstArrival: '2025-11-01',
+              residentVisa: { granted: '2025-11-01', category: 'general' },
+              trips: [],
+              linkedToJointPrincipal: true,
+              travel: { currentlyInNz: true, restrictedEntry: false },
+              prv: { ...prv, role: 'linked' },
+            },
+          },
+        ],
+      },
+    },
+    { ...joint, trips: [], simulationDate: '2026-11-23' },
+  ];
+  const missing: string[] = [];
+  for (const request of requests)
+    for (const path of evaluateNewZealandFull(request).columns[0].pathways)
+      for (const check of path.checks) {
+        if (/^NZ-P2-(PARTNER|CHILD)-\d+$/.test(check.id)) continue;
+        const rule = rules.get(check.id);
+        for (const source of check.sources)
+          if (
+            !rule?.sources.some(
+              (known) =>
+                known.srcId === source.srcId &&
+                known.locator === source.locator,
+            ) ||
+            !(source.srcId in newZealandPolicy.sourceUrls)
+          )
+            missing.push(`${check.id} ${source.srcId} ${source.locator}`);
+        for (const pd of check.pendingDetails ?? [])
+          if (!rule?.pendingDetails.includes(pd))
+            missing.push(`${check.id} ${pd}`);
+      }
+  expect(missing).toEqual([]);
+  // The branches named in review94-1.
+  expect(rules.get('NZ-P4-1')?.pendingDetails).toContain('PD-226');
+  expect(rules.get('NZ-C2')?.pendingDetails).toContain('PD-221');
+  expect(rules.get('NZ-P2-JOINT-DATE')?.pendingDetails).toContain('PD-222');
+  expect(rules.get('NZ-FAMILY-FILING')?.sources.map((s) => s.srcId)).toContain(
+    'SRC-252',
+  );
 });
 
 test('answers that contradict an earlier step are flagged on the later question', () => {
