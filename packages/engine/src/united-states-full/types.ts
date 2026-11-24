@@ -282,10 +282,29 @@ export interface UsSupportAnswers {
 }
 
 export interface UsEmploymentAnswers {
-  category?: 'eb2-perm' | 'eb3' | 'eb1a' | 'eb2-niw' | 'eb5' | 'gold-card';
+  category?:
+    | 'eb1a'
+    | 'eb1b'
+    | 'eb1c'
+    | 'eb2-perm'
+    | 'eb2-niw'
+    | 'eb3'
+    | 'eb5'
+    | 'gold-card';
   categoryQualifications?: UsReview;
   /** A valid offer for the petitioned job that the beneficiary intends to accept. */
   employmentOffer?: boolean;
+  jobPortability?: {
+    /** Actual receipt date of the properly filed I-485 still pending on this I-140 basis. */
+    i485PendingSince?: IsoDate;
+    /** The petitioned offer was valid and the beneficiary intended to accept it when filing I-485. */
+    originalOfferValidAtFiling?: boolean;
+    /** A bona fide permanent, full-time offer that the beneficiary and employer intend to carry out. */
+    newOffer?: boolean;
+    sameOrSimilarOccupation?: UsReview;
+    /** Actual submission date of the Supplement J portability request for this offer. */
+    supplementJFiledOn?: IsoDate;
+  };
   perm?: 'certified' | 'schedule-a' | 'pending' | 'none';
   permCertifiedOn?: IsoDate;
   /** Actual receipt date of the underlying I-140, on or before the simulation date. */
@@ -314,7 +333,7 @@ export interface UsEmploymentAnswers {
   employerEmployees?: number;
   employerNonprofit?: boolean;
   officerStatementAccepted?: UsReview;
-  /** One entry for each covered year from the priority date. */
+  /** One entry for each legally required year from the priority date. */
   wageYears?: {
     paidUsd: number;
     netIncomeUsd?: number;
@@ -326,6 +345,7 @@ export interface UsEmploymentAnswers {
   extraordinaryEvidenceCount?: number;
   comparableEvidenceAccepted?: UsReview;
   extraordinaryFinalMerits?: UsReview;
+  /** Intent to continue the petitioned work or endeavor, with applicable evidence. */
   continuesWorkInField?: boolean;
   benefitsUnitedStates?: boolean;
   degree?: 'advanced' | 'bachelor' | 'other';
@@ -356,6 +376,8 @@ export interface UsEmploymentAnswers {
     processingFundsUsd?: number;
     includedPeople?: number;
     fundsAndWire?: UsReview;
+    /** Evidence of the full transfer to Commerce for visa issuance. */
+    giftTransferred?: UsReview;
   };
   priorMarriageFraud?: boolean;
   /** Whether the applicant filed the I-140 on their own behalf. */
@@ -389,6 +411,7 @@ export interface UsAdmissionAnswers {
   interviewOn?: IsoDate;
   /** Adjudication date to assess. For consular cases without interviewOn, both stages share this date. */
   decisionOn?: IsoDate;
+  /** Current eligibility under the basis, including any material changes since petition approval. */
   qualifyingBasis?: UsReview;
   /** Status of the underlying petition, including a still-valid approval with an unknown receipt date. */
   petitionStatus?: 'filed-with-i485' | 'pending' | 'approved';

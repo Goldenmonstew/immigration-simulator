@@ -231,11 +231,13 @@ export function feeChecks(
       break;
     }
     case 'US-FAMILY': {
+      if (!isFamilyCategory(category)) break;
       reliefStatus = relief(false);
       checks.push(fee('I130', 'I-130', lookup(law.i130)));
       break;
     }
     case 'US-EMPLOYMENT': {
+      if (category !== 'employment') break;
       reliefStatus = relief(false);
       const e = request.employment;
       if (e?.category === 'eb5') {

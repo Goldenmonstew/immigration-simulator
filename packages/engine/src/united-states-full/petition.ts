@@ -12,13 +12,88 @@ type AdjustmentBasis = NonNullable<UsAdmissionAnswers['adjustmentBasis']>;
 export type AdjustmentCategory =
   AdjustmentBasis | 'family' | 'ambiguous' | undefined;
 
+type EmploymentCategory = NonNullable<UsEmploymentAnswers['category']>;
+
+const employmentBars = ['employmentPetitionBars'] as const;
+const employerPetition = [
+  ...employmentBars,
+  'employmentClassification',
+] as const;
+const certifiedPerm = ['permRecruitment', 'permWage'] as const;
+const permPetition = [
+  ...employerPetition,
+  ...certifiedPerm,
+  'permFiling',
+] as const;
+
+// Each row is limited to facts decided by the authority on the same case.
+// See the approval table in docs/tasks/reports/86-us-rules.md for the SRC locators.
+const approvalFacts = {
+  dolPerm: certifiedPerm,
+  i130: ['familyRelationshipHistory', 'familyPetitionBars'],
+  employment: {
+    eb1a: [...employmentBars, 'eb1aEvidence', 'eb1aMerits'],
+    eb1b: employerPetition,
+    eb1c: employerPetition,
+    'eb2-perm': permPetition,
+    'eb2-niw': [...employmentBars, 'niwEvidence', 'niwMerits'],
+    eb3: permPetition,
+    eb5: [
+      ...employmentBars,
+      'investmentAmount',
+      'investmentProject',
+      'investmentJobs',
+    ],
+    'gold-card': [...employmentBars, 'goldPetition'],
+  } satisfies Record<EmploymentCategory, readonly string[]>,
+  i360Sij: ['sijClassification'],
+  i360Vawa: ['vawaClassification'],
+} as const;
+
+type ApprovalFact =
+  | (typeof approvalFacts.employment)[EmploymentCategory][number]
+  | (typeof approvalFacts)[Exclude<
+      keyof typeof approvalFacts,
+      'employment'
+    >][number];
+
+export function preapprovedFacts(
+  request: UsFullRequest,
+  category: AdjustmentCategory,
+): ReadonlySet<ApprovalFact> {
+  const { admission, employment, simulationDate } = request;
+  const job = category === 'employment' ? employment?.category : undefined;
+  const facts = new Set<ApprovalFact>();
+  if ((job === 'eb2-perm' || job === 'eb3') && employment?.perm === 'certified')
+    approvalFacts.dolPerm.forEach((fact) => facts.add(fact));
+
+  const filedOn =
+    (isI140Category(job) ? employment?.i140FiledOn : undefined) ??
+    admission?.petitionFiledOn;
+  if (
+    !underlyingPetitionApproved(admission) ||
+    (filedOn && filedOn > simulationDate)
+  )
+    return facts;
+
+  if (job) approvalFacts.employment[job].forEach((fact) => facts.add(fact));
+  if (isFamilyCategory(category))
+    approvalFacts.i130.forEach((fact) => facts.add(fact));
+  if (category === 'sij')
+    approvalFacts.i360Sij.forEach((fact) => facts.add(fact));
+  if (category === 'vawa')
+    approvalFacts.i360Vawa.forEach((fact) => facts.add(fact));
+  return facts;
+}
+
 export function adjustmentCategory(request: UsFullRequest): AdjustmentCategory {
   const { admission, family, employment, pathway } = request;
-  if (pathway === 'US-FAMILY') return 'family';
-  if (pathway === 'US-EMPLOYMENT') return 'employment';
+  const basis = admission?.adjustmentBasis;
+  if (pathway === 'US-FAMILY') return basis === 'vawa' ? basis : 'family';
+  if (pathway === 'US-EMPLOYMENT')
+    return basis === 'sij' ? basis : 'employment';
   if (pathway !== 'US-ADJUSTMENT') return undefined;
 
-  const basis = admission?.adjustmentBasis;
   const familyEvidence = Boolean(
     family?.petitioner ||
     family?.petitionerAtFiling ||
@@ -49,6 +124,8 @@ export function isI140Category(
 ): boolean {
   return (
     category === 'eb1a' ||
+    category === 'eb1b' ||
+    category === 'eb1c' ||
     category === 'eb2-niw' ||
     category === 'eb2-perm' ||
     category === 'eb3'
@@ -95,6 +172,7 @@ export function immediateRelative(
   request: UsFullRequest,
   category: AdjustmentCategory,
   receipt: IsoDate,
+  facts: ReturnType<typeof preapprovedFacts>,
 ): Answer {
   if (category === undefined || category === 'ambiguous') return undefined;
   if (category !== 'family') return category === 'immediate-relative';
@@ -109,12 +187,13 @@ export function immediateRelative(
     (admission?.petitionStatus === 'filed-with-i485' ? receipt : undefined);
   if (family.relationship === 'parent')
     return petitioner === 'citizen'
-      ? reportedAgeAtLeast(
+      ? (reportedAgeAtLeast(
           request.simulationDate,
           petitionReceipt ?? receipt,
           family.petitionerAge,
           v.familyAge.value.adultSponsor,
-        )
+        ) ??
+          (facts.has('familyRelationshipHistory') || undefined))
       : undefined;
   if (family.relationship !== 'unmarried-child') return false;
   const limit = v.familyAge.value.child;

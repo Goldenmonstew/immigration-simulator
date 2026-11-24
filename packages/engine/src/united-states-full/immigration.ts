@@ -25,9 +25,14 @@ import {
   underlyingPetitionApproved,
 } from './petition';
 import type { AdjustmentCategory } from './petition';
+import type { preapprovedFacts } from './petition';
 import type { UsEmploymentAnswers, UsFullRequest } from './types';
 
-export function familyChecks(request: UsFullRequest, receipt: IsoDate) {
+export function familyChecks(
+  request: UsFullRequest,
+  receipt: IsoDate,
+  facts: ReturnType<typeof preapprovedFacts>,
+) {
   const check = checksFor(request);
   const a = request.family;
   const date =
@@ -38,6 +43,8 @@ export function familyChecks(request: UsFullRequest, receipt: IsoDate) {
   const law = v.familyAge.value;
   const petitioner = currentFamilyPetitioner(request);
   const citizen = petitioner === 'citizen';
+  const history = facts.has('familyRelationshipHistory') || undefined;
+  const barsCovered = facts.has('familyPetitionBars') || undefined;
   const relation =
     a?.relationship === 'married-child'
       ? petitioner && citizen
@@ -49,7 +56,7 @@ export function familyChecks(request: UsFullRequest, receipt: IsoDate) {
               date,
               a.petitionerAge,
               law.adultSponsor,
-            ),
+            ) ?? history,
           )
         : a?.relationship
           ? petitioner !== undefined || undefined
@@ -102,7 +109,7 @@ export function familyChecks(request: UsFullRequest, receipt: IsoDate) {
       'C23-RELATIONSHIP',
       '亲属类别、年龄与关系效力',
       'Family classification, age and valid relationship',
-      all(relation, child, reviewed(a?.relationshipValid)),
+      all(relation, child ?? history, reviewed(a?.relationshipValid)),
       s.relationship,
       'PD-272',
       [
@@ -114,7 +121,12 @@ export function familyChecks(request: UsFullRequest, receipt: IsoDate) {
       'C24-PETITION-BARS',
       '前婚担保、婚姻欺诈与 Adam Walsh 禁令',
       'Prior marriage, marriage fraud and Adam Walsh petition bars',
-      all(marriageBars, not(a?.priorMarriageFraud), reviewed(a?.adamWalsh)),
+      all(
+        a?.relationship ? true : undefined,
+        marriageBars ?? barsCovered,
+        not(a?.priorMarriageFraud) ?? barsCovered,
+        a?.adamWalsh === undefined ? barsCovered : reviewed(a.adamWalsh),
+      ),
       s.petitionBars,
       'PD-274',
     ),
@@ -406,7 +418,11 @@ function abilityToPay(request: UsFullRequest): Answer {
   return any(officer, records, reviewed(a?.abilityToPayTotality));
 }
 
-export function employmentChecks(request: UsFullRequest, receipt: IsoDate) {
+export function employmentChecks(
+  request: UsFullRequest,
+  receipt: IsoDate,
+  facts: ReturnType<typeof preapprovedFacts>,
+) {
   const check = checksFor(request);
   const a = request.employment ?? {};
   const date = request.simulationDate;
@@ -426,12 +442,19 @@ export function employmentChecks(request: UsFullRequest, receipt: IsoDate) {
       'EMPLOYMENT-MARRIAGE-FRAUD',
       '既往婚姻欺诈批准禁令',
       'Prior marriage fraud petition bar',
-      not(a?.priorMarriageFraud),
+      not(a.priorMarriageFraud) ??
+        (facts.has('employmentPetitionBars') || undefined),
       s.petitionBars,
       'PD-274',
     ),
   ];
-  if (category === 'eb2-perm' || category === 'eb3') {
+  if (
+    category === 'eb1b' ||
+    category === 'eb1c' ||
+    category === 'eb2-perm' ||
+    category === 'eb3'
+  ) {
+    const needsPerm = category === 'eb2-perm' || category === 'eb3';
     const priorI140 = petitionAlreadyFiled || a.i140FiledOn !== undefined;
     const inconsistentI140Date =
       a.i140FiledOn !== undefined && a.i140FiledOn > date;
@@ -456,54 +479,112 @@ export function employmentChecks(request: UsFullRequest, receipt: IsoDate) {
           : a.perm === 'none'
             ? false
             : undefined;
-    const offer = petitionApproved
-      ? inconsistentI140Date
+    const classification = facts.has('employmentClassification')
+      ? true
+      : reviewed(a.categoryQualifications);
+    const perm =
+      !needsPerm || facts.has('permFiling')
+        ? true
+        : all(
+            certification,
+            wages ?? (facts.has('permWage') || undefined),
+            facts.has('permRecruitment')
+              ? a.recruitmentAndFeesCompliant !== false
+              : permRecruitment(a, inconsistentI140Date ? undefined : i140Date),
+          );
+    const portability =
+      admission?.process === 'adjustment' ? a.jobPortability : undefined;
+    const pendingSince = portability?.i485PendingSince;
+    const requestedOn = portability?.supplementJFiledOn;
+    const pendingDays = v.portability.value.pendingDays;
+    const port =
+      portability &&
+      all(
+        pendingSince && pendingSince <= date
+          ? daysBetween(pendingSince, date) >= pendingDays
+          : undefined,
+        pendingSince && requestedOn && requestedOn <= date
+          ? daysBetween(pendingSince, requestedOn) >= pendingDays
+          : undefined,
+        portability.originalOfferValidAtFiling,
+        portability.newOffer,
+        reviewed(portability.sameOrSimilarOccupation),
+      );
+    const offerAtFiling = portability
+      ? (portability.originalOfferValidAtFiling ??
+        (a.employmentOffer === true || undefined))
+      : a.employmentOffer;
+    const currentOffer = portability
+      ? all(offerAtFiling, any(a.employmentOffer, port))
+      : a.employmentOffer;
+    const offer =
+      petitionApproved && inconsistentI140Date
         ? undefined
-        : a.employmentOffer
-      : all(
-          a.employmentOffer,
-          reviewed(a.categoryQualifications),
-          wages,
-          permRecruitment(a, inconsistentI140Date ? undefined : i140Date),
-          certification,
-        );
+        : all(currentOffer, classification, perm);
     return [
       ...based,
       check(
         'C28-OFFER-PERM',
-        '永久全职工作、职业资格及 PERM',
-        'Permanent full-time offer, category qualifications and PERM',
+        needsPerm ? '永久全职工作、职业资格及 PERM' : '永久职位与职业资格',
+        needsPerm
+          ? 'Permanent full-time offer, category qualifications and PERM'
+          : 'Permanent offer and category qualifications',
         offer,
-        petitionApproved ? [...s.perm, ...s.approvedEmployment] : s.perm,
+        [
+          ...(needsPerm ? s.perm : s.employerClassification),
+          ...(facts.has('employmentClassification')
+            ? s.approvedEmployment
+            : []),
+          ...(portability ? s.portability : []),
+        ],
         'PD-277',
-        petitionApproved
+        portability
           ? [
-              '本案请愿获批已确认当时的劳工认证和分类条件。请核实获批职位的工作邀约仍有效。',
-              'The approved petition establishes the labor certification and classification requirements at filing. Confirm the job offer based on the approved petition is still valid.',
+              `原邀约须在 I-485 递交时有效。待决满 ${pendingDays} 天后，可为真实的同类或相似职位提交 Supplement J。`,
+              `The original offer must have been valid at I-485 filing. Submit Supplement J for a bona fide offer in the same or a similar occupation after ${pendingDays} days pending.`,
             ]
-          : a.perm === 'schedule-a'
+          : facts.has('employmentClassification')
             ? [
-                `Schedule A 在 I-140 收件前 ${v.perm.value.minDays}–${v.perm.value.maxDays} 天通知有管辖权的工会代表；无代表时在该窗口内连续张贴至少 ${v.perm.value.noticeWorkdays} 个工作日。另核对雇主承担费用。`,
-                `For Schedule A, notify the applicable bargaining representative ${v.perm.value.minDays}–${v.perm.value.maxDays} days before I-140 receipt. Where there is no representative, post for at least ${v.perm.value.noticeWorkdays} consecutive business days within that window. Verify employer-paid costs separately.`,
+                '本案请愿获批已确认当时的分类条件和适用的劳工认证。请核实工作邀约仍有效。',
+                'The approved petition establishes classification and any applicable labor certification requirements at filing. Confirm that the job offer is still valid.',
               ]
-            : [
-                '按 ETA-9089 收件日核对招聘与通知。PERM 有效期按实际或预计的 I-140 收件日核对。',
-                'Check recruitment and notice against ETA-9089 receipt. Check PERM validity against actual or expected I-140 receipt.',
-              ],
-        petitionApproved ? checkStatus(offer) : undefined,
+            : !needsPerm
+              ? undefined
+              : a.perm === 'schedule-a'
+                ? [
+                    `Schedule A 在 I-140 收件前 ${v.perm.value.minDays}–${v.perm.value.maxDays} 天通知有管辖权的工会代表；无代表时在该窗口内连续张贴至少 ${v.perm.value.noticeWorkdays} 个工作日。另核对雇主承担费用。`,
+                    `For Schedule A, notify the applicable bargaining representative ${v.perm.value.minDays}–${v.perm.value.maxDays} days before I-140 receipt. Where there is no representative, post for at least ${v.perm.value.noticeWorkdays} consecutive business days within that window. Verify employer-paid costs separately.`,
+                  ]
+                : [
+                    '按 ETA-9089 收件日核对招聘与通知。PERM 有效期按实际或预计的 I-140 收件日核对。',
+                    'Check recruitment and notice against ETA-9089 receipt. Check PERM validity against actual or expected I-140 receipt.',
+                  ],
+        portability && !(petitionApproved && inconsistentI140Date)
+          ? checkStatus(all(offerAtFiling, classification, perm))
+          : petitionApproved
+            ? checkStatus(offer)
+            : undefined,
       ),
       check(
         'C29-ABILITY-TO-PAY',
         '雇主持续支付承诺工资',
         'Employer’s continuing ability to pay the proffered wage',
-        abilityToPay(request),
-        s.pay,
+        port === true && facts.has('employmentClassification')
+          ? true
+          : abilityToPay(request),
+        portability ? [...s.pay, ...s.portability] : s.pay,
         'PD-277',
       ),
     ];
   }
   if (category === 'eb1a' || category === 'eb2-niw') {
     const law = v.selfPetition.value;
+    const approvedEvidence = facts.has(
+      category === 'eb1a' ? 'eb1aEvidence' : 'niwEvidence',
+    );
+    const approvedMerits = facts.has(
+      category === 'eb1a' ? 'eb1aMerits' : 'niwMerits',
+    );
     const primary =
       category === 'eb1a'
         ? any(
@@ -540,13 +621,17 @@ export function employmentChecks(request: UsFullRequest, receipt: IsoDate) {
         category === 'eb1a' ? a.extraordinaryFinalMerits : a.niwDetermination,
       ),
     );
+    const continuingWork = all(
+      a.continuesWorkInField,
+      category === 'eb1a' ? (a.benefitsUnitedStates ?? true) : true,
+    );
     return [
       ...based,
       check(
         'C30-SELF-PETITION-EVIDENCE',
         '自申类别基础证据',
         'Initial evidence for the self-petition classification',
-        primary,
+        approvedEvidence ? true : primary,
         s.selfPetition,
         'PD-277',
       ),
@@ -554,11 +639,18 @@ export function employmentChecks(request: UsFullRequest, receipt: IsoDate) {
         'C30-SELF-PETITION-MERITS',
         'EB-1A 终局审查或 NIW 国家利益',
         'EB-1A final merits or NIW national interest',
-        merits,
-        s.selfPetition,
+        approvedMerits ? continuingWork : merits,
+        approvedMerits
+          ? [...s.selfPetition, ...s.approvedSelfPetition]
+          : s.selfPetition,
         'PD-277',
-        undefined,
-        checkStatus(factsAtFiling),
+        approvedMerits
+          ? [
+              '已获批的原分类与终局审查可沿用。请确认仍拟从事原请愿的领域或工作计划，并具备适用的意向证明。',
+              'The petition approval establishes the original classification and merits. Confirm intent to continue the petitioned work or endeavor and the applicable evidence of intent.',
+            ]
+          : undefined,
+        checkStatus(approvedMerits ? continuingWork : factsAtFiling),
       ),
     ];
   }
@@ -604,54 +696,72 @@ export function employmentChecks(request: UsFullRequest, receipt: IsoDate) {
         'C31-INVESTMENT-AMOUNT',
         'EB-5 投资本金门槛',
         'Minimum EB-5 capital investment',
-        current && minimum !== undefined
-          ? atLeast(input?.capitalUsd, minimum)
-          : undefined,
+        facts.has('investmentAmount')
+          ? true
+          : current && minimum !== undefined
+            ? atLeast(input?.capitalUsd, minimum)
+            : undefined,
         s.eb5,
         'PD-264',
-        [
-          `本版标准项目 USD ${law.standardUsd}，合资格 TEA 或基建 USD ${law.reducedUsd}。自 ${law.firstAdjustment} 起需核对新门槛。`,
-          `This schedule uses USD ${law.standardUsd} for standard projects and USD ${law.reducedUsd} for eligible TEA or infrastructure projects. Confirm the new amounts from ${law.firstAdjustment}.`,
-        ],
+        facts.has('investmentAmount')
+          ? [
+              '沿用获批投资请愿对本金的认定。',
+              'The approved investor petition establishes the original capital requirement.',
+            ]
+          : [
+              `本版标准项目 USD ${law.standardUsd}，合资格 TEA 或基建 USD ${law.reducedUsd}。自 ${law.firstAdjustment} 起需核对新门槛。`,
+              `This schedule uses USD ${law.standardUsd} for standard projects and USD ${law.reducedUsd} for eligible TEA or infrastructure projects. Confirm the new amounts from ${law.firstAdjustment}.`,
+            ],
       ),
       check(
         'C31-INVESTMENT-PROJECT',
         '合法资金、在险期限与合资格项目',
         'Lawful funds, at-risk period and qualifying project',
-        all(
-          reviewed(input?.lawfullySourcedFunds),
-          input?.atRisk,
-          input?.qualifiesAsNewEnterprise,
-          sustainment,
-          input?.regionalCenter === false
-            ? true
-            : input?.regionalCenter
-              ? input.projectFiled
-              : undefined,
-        ),
+        facts.has('investmentProject')
+          ? true
+          : all(
+              reviewed(input?.lawfullySourcedFunds),
+              input?.atRisk,
+              input?.qualifiesAsNewEnterprise,
+              sustainment,
+              input?.regionalCenter === false
+                ? true
+                : input?.regionalCenter
+                  ? input.projectFiled
+                  : undefined,
+            ),
         s.eb5,
         'PD-278',
-        [
-          `初次申请核对资金预计持续在险至少 ${law.sustainmentYears} 年。`,
-          `The initial petition evaluates whether the capital is expected to remain at risk for at least ${law.sustainmentYears} years.`,
-        ],
+        facts.has('investmentProject')
+          ? [
+              '沿用原资金及项目认定，并在 C33 核对当前投资基础和重大变化。',
+              'The original funds and project determinations carry forward. C33 checks the current investment basis and material changes.',
+            ]
+          : [
+              `初次申请核对资金预计持续在险至少 ${law.sustainmentYears} 年。`,
+              `The initial petition evaluates whether the capital is expected to remain at risk for at least ${law.sustainmentYears} years.`,
+            ],
       ),
       check(
         'C31-INVESTMENT-JOBS',
         '合资格岗位与工时',
         'Qualifying job creation and hours',
-        jobs,
+        facts.has('investmentJobs') ? true : jobs,
         [...s.eb5, ...s.eb5JobPlan],
         'PD-278',
         [
-          '初次申请可用已创造的合资格岗位，或有证据支持的招聘计划。',
-          'The initial petition can use qualifying jobs already created or a documented job creation plan.',
+          '初次请愿可用已创造的合资格岗位或经记录的招聘计划。已获批时仍须确认投资基础继续有效。',
+          'The initial petition can use qualifying jobs already created or a documented job creation plan. An approved petition still requires a continuing qualifying investment basis.',
         ],
       ),
     ];
   }
   if (category === 'gold-card') {
     const gold = a.gold;
+    const approvedGold = facts.has('goldPetition');
+    const consular = admission?.process
+      ? admission.process === 'consular'
+      : undefined;
     const law = v.gold.value;
     const principalGift =
       gold?.donor === 'individual'
@@ -669,20 +779,24 @@ export function employmentChecks(request: UsFullRequest, receipt: IsoDate) {
           gold.includedPeople * law.feePerPersonUsd,
         )
       : undefined;
+    const giftAmount =
+      gift === undefined ? undefined : atLeast(gold?.giftUsd, gift);
     return [
       ...based,
       check(
         'C32-GOLD-PROCESS',
         'Gold Card 预登记与领馆流程',
         'Gold Card preregistration and consular process',
-        all(
-          gold?.registrationAccepted,
-          request.admission?.process
-            ? request.admission.process === 'consular'
-            : undefined,
-          request.fees?.channel ? request.fees.channel === 'online' : undefined,
-          reviewed(gold?.fundsAndWire),
-        ),
+        approvedGold
+          ? consular
+          : all(
+              gold?.registrationAccepted,
+              consular,
+              request.fees?.channel
+                ? request.fees.channel === 'online'
+                : undefined,
+              reviewed(gold?.fundsAndWire),
+            ),
         s.gold,
         'PD-276',
       ),
@@ -690,21 +804,26 @@ export function employmentChecks(request: UsFullRequest, receipt: IsoDate) {
         'C32-GOLD-GIFT',
         'Gold Card 赠与及按人计处理费',
         'Gold Card gift and per-person processing fee',
-        all(
-          gift === undefined ? undefined : atLeast(gold?.giftUsd, gift),
-          processingFunds,
-        ),
+        approvedGold
+          ? all(reviewed(gold?.giftTransferred), giftAmount ?? true)
+          : all(giftAmount, processingFunds),
         s.gold,
         'PD-276',
-        gift === undefined
+        approvedGold && gift === undefined
           ? [
-              `主申请人个人赠与 USD ${law.personGiftUsd} 或企业代捐 USD ${law.companyGiftUsd}，每位随行配偶或子女另加 USD ${law.dependentGiftUsd}，处理费为每人 USD ${law.feePerPersonUsd}。`,
-              `The principal's gift is USD ${law.personGiftUsd} for self-petitioners or USD ${law.companyGiftUsd} for corporate petitioners. Add USD ${law.dependentGiftUsd} per accompanying spouse or child and a processing fee of USD ${law.feePerPersonUsd} per person.`,
+              '核对领馆签发前已向 Department of Commerce 汇足赠与款并提交凭证。',
+              'Confirm the full transfer to the Department of Commerce and proof of payment before visa issuance.',
             ]
-          : [
-              `按赠与方及人数，需赠与 USD ${gift}，另付每人 USD ${law.feePerPersonUsd} 处理费。`,
-              `The donor type and number of applicants require a gift of USD ${gift} and a processing fee of USD ${law.feePerPersonUsd} per person.`,
-            ],
+          : gift === undefined
+            ? [
+                `主申请人个人赠与 USD ${law.personGiftUsd} 或企业代捐 USD ${law.companyGiftUsd}，每位随行配偶或子女另加 USD ${law.dependentGiftUsd}，处理费为每人 USD ${law.feePerPersonUsd}。`,
+                `The principal's gift is USD ${law.personGiftUsd} for self-petitioners or USD ${law.companyGiftUsd} for corporate petitioners. Add USD ${law.dependentGiftUsd} per accompanying spouse or child and a processing fee of USD ${law.feePerPersonUsd} per person.`,
+              ]
+            : [
+                `按赠与方及人数，需赠与 USD ${gift}，另付每人 USD ${law.feePerPersonUsd} 处理费。`,
+                `The donor type and number of applicants require a gift of USD ${gift} and a processing fee of USD ${law.feePerPersonUsd} per person.`,
+              ],
+        approvedGold ? checkStatus(giftAmount ?? true) : undefined,
       ),
       check(
         'C32-GOLD-ALLOCATION',

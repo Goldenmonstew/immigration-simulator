@@ -22,7 +22,11 @@ import { feeChecks } from './fees';
 import { familyChecks, employmentChecks, supportChecks } from './immigration';
 import { conditionChecks, travelChecks } from './maintenance';
 import { militaryChecks, naturalizationChecks } from './naturalization';
-import { adjustmentCategory, isFamilyCategory } from './petition';
+import {
+  adjustmentCategory,
+  isFamilyCategory,
+  preapprovedFacts,
+} from './petition';
 import type { AdjustmentCategory } from './petition';
 import type {
   UsFullCheck,
@@ -634,19 +638,21 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
     }
     case 'US-FAMILY':
     case 'US-EMPLOYMENT':
-    case 'US-ADJUSTMENT':
+    case 'US-ADJUSTMENT': {
+      const facts = preapprovedFacts(request, category);
       requirements = [
         ...(category === 'family'
-          ? familyChecks(request, applicationReceipt)
+          ? familyChecks(request, applicationReceipt, facts)
           : []),
         ...(category === 'employment' &&
         (request.pathway === 'US-EMPLOYMENT' || request.employment?.category)
-          ? employmentChecks(request, applicationReceipt)
+          ? employmentChecks(request, applicationReceipt, facts)
           : []),
         ...supportChecks(request, category, applicationReceipt),
-        ...adjustmentChecks(request, category, admissionTiming),
+        ...adjustmentChecks(request, category, admissionTiming, facts),
       ];
       break;
+    }
     case 'US-HUMANITARIAN':
       requirements = humanitarianChecks(request, admissionTiming);
       break;

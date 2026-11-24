@@ -384,7 +384,7 @@ export const unitedStatesFullSources = {
   perm: [
     source(
       'SRC-305',
-      '20 CFR 656.10(d)(1)(i)–(ii), (2)(ii), (3)(iv), (6), 656.12(b), 656.15(b), (e), 656.17(e), 656.30(b), 656.40',
+      '20 CFR 656.10(c)(1), (d)(1)(i)–(ii), (2)(ii), (3)(iv), (6), 656.12(b), 656.15(b), (e), 656.17(e), 656.24(b)–(d), 656.30(b), 656.40',
     ),
     pm('SRC-305', 6, 'E', 6, '(B)(1)'),
     usc('SRC-302', '1153', '(b)(2)–(3)'),
@@ -398,6 +398,17 @@ export const unitedStatesFullSources = {
     ),
     pm('SRC-309', 7, 'A', 6, '(B)'),
   ],
+  employerClassification: [
+    source('SRC-302', '8 CFR 204.5(i)(3), (j)(2)–(3), (5)'),
+  ],
+  portability: [
+    usc('SRC-302', '1154', '(j)'),
+    source(
+      'SRC-309',
+      '8 CFR 245.25(a)(2)–(3), (b); I-485 Instructions pp10, 19',
+      'https://www.ecfr.gov/current/title-8/section-245.25#p-245.25(a)(2)',
+    ),
+  ],
   pay: [
     source('SRC-302', '8 CFR 204.5(g)(2)'),
     pm('SRC-305', 6, 'E', 4, '(A)–(C)'),
@@ -406,6 +417,13 @@ export const unitedStatesFullSources = {
     source('SRC-302', '8 CFR 204.5(h), (k)'),
     pm('SRC-306', 6, 'F', 2, '(B)'),
     pm('SRC-306', 6, 'F', 5, '(D)'),
+  ],
+  approvedSelfPetition: [
+    source(
+      'SRC-309',
+      'I-485 Instructions p10, evidence of intent for EB-1A and NIW',
+      'https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=10',
+    ),
   ],
   eb5: [usc('SRC-302', '1153', '(b)(5)(A)–(D), (F)'), pm('SRC-307', 6, 'G', 2)],
   eb5JobPlan: [
@@ -779,6 +797,7 @@ export const unitedStatesFull2026_11 = {
       s.perm,
     ),
     pay: parameter({ financialOfficerMinEmployees: 100 }, s.pay),
+    portability: parameter({ pendingDays: 180 }, s.portability),
     selfPetition: parameter(
       {
         extraordinaryEvidence: 3,

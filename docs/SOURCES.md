@@ -1169,6 +1169,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-19-us-ecfr-8cfr-part204.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=204>
 - `policy-sources/2026-11-23-us-pm-v6-b-ch7.html` → <https://www.uscis.gov/policy-manual/volume-6-part-b-chapter-7>
 - 8 U.S.C. §1151(f)(1) 以 I-130 收件日核对公民子女年龄，§1151(f)(2) 以父母入籍日核对由 F2A 转即时亲属的年龄。领馆对特定巡回区的个案例外及 timely seek-to-acquire 处理见 [9 FAM 502.1-1(D)(7)(1)–(2)](https://fam.state.gov/FAM/09FAM/09FAM050201.html#M502_1_1_D_7)，快照 `policy-sources/2026-11-24-us-9fam502.1.html`。
+- 8 U.S.C. §1154(b) 规定 USCIS 调查并认定请愿所述事实及分类资格后批准请愿。前婚、婚姻欺诈、递解程序中结婚和 Adam Walsh 的请愿限制见 §1154(a)(1)、(c)、(g) 及 8 CFR §204.2(a)(1)。EB-1B、EB-1C 的 I-140 分类证据见 8 CFR §204.5(i)(3)、(j)(2)–(3)、(5)。SIJ 的原裁定及 DHS 同意见 8 CFR §204.11(b)–(d)，请愿获批后的自动撤销情形见 §204.11(j)。[8 U.S.C. §1154](https://uscode.house.gov/us/usc/t8/s1154/) · [8 CFR §204.11](https://www.ecfr.gov/current/title-8/section-204.11)
 
 ## SRC-303 I-864 担保、替代资产及豁免
 
@@ -1190,6 +1191,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 20 CFR §656.30(b)(1) 和 6 USCIS-PM E.6(B)(1) 按用于 I-140 的收件日计算 PERM 有效期。
 - 20 CFR §656.10(d)(1)(i)–(ii)、(2)(ii)、(3)(iv)、(6) 和 §656.15(b)(2) 规定通知有管辖权的工会代表。无该代表时，须在递交前 30–180 天的窗口内连续张贴至少 10 个工作日。工会通知也适用该窗口。Schedule A 按 USCIS 的 I-140 收件日核对，§656.15(e) 规定 DHS 对原通知与职业资格的认定为最终决定。工资认定见 §656.15(b)，雇主承担的相关费用见 §656.12(b)。[DOL PERM FAQ，Posting Timeframe，p1](https://www.dol.gov/sites/dolgov/files/ETA/oflc/pdfs/perm_faqs_2-21-06.pdf#page=1)
 - 普通 PERM 的招聘及通知窗口按 DOL 的 ETA-9089 递交日核对。州就业订单的 30 天刊登期及强制广告见 20 CFR §656.17(e)(1)(i)(A)–(B)、(e)(2)(i)–(ii)，等待期用订单结束日计算。DOL 认证涵盖招聘及其结果，见 §§656.17(g)、656.24(b)–(d)。[DOL BALCA PERM Digest，Recruitment，Timing of Recruitment](https://www.dol.gov/agencies/oalj/PUBLIC/INA/REFERENCES/REFERENCE_WORKS/BALCA_PERM_DIGEST)
+- 普通 PERM 认证也核对认证职位的工资与劳动条件，见 20 CFR §§656.10(c)(1)、656.24(b)(3)。雇员职业分类与雇主实际支付能力由 USCIS 在 I-140 审查，见 SRC-302，8 CFR §204.5(g)(2)、(k)、(l)。I-140 待决时符合职业转换的支付能力证明期间从优先日到 I-140 递交日，见存档的 6 USCIS-PM E.4(D)(5)。[USCIS PA-2024-01，pp1–2](https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20240105-AbilityToPay.pdf)
 - 20 CFR §656.17(a)、(c) 的 ETA-9089 允许电子或邮寄。电子递交使用 [DOL FLAG，PERM Filing Process](https://flag.dol.gov/programs/PERM)。
 
 ## SRC-306 职业分类与 EB-1A、EB-2 NIW 证据
@@ -1212,6 +1214,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-i140g.html` → <https://www.uscis.gov/i-140g>
 - `policy-sources/2026-11-23-us-i140ginstr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-140ginstr.pdf>
 - I-140G Instructions p3 Items 1–3 规定个人或企业主申请的赠与额，以及每位随行配偶或子女各加 USD 1,000,000。
+- I-140G Instructions pp1–2 分列原请愿资金证据、处理费、领馆面谈后的实际汇款及签发前的汇款凭证。请愿批准可沿用原资金认定，实际足额转账由领馆流程核对。
 - I-140G 的 *Where to File* 与 *When to File* 规定，登记获接纳并收到 USCIS 通知后，只能通过 USCIS 账户递交。
 
 ## SRC-309 境内调整身份、签证名额与例外
@@ -1228,6 +1231,8 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 8 CFR §245.2(a)(2)(i)(A)–(C)、8 U.S.C. §1255(n) 及 I-485 Instructions pp3、17–21 规定适用即时亲属、亲属优先、I-140、EB-5、VAWA 和 SIJ 等类别的同时递交。7 USCIS-PM A.6(A)、(C)(4)–(5) 要求核对基础请愿案及递交月、裁决月两阶段的名额。I-485 Instructions p11 Item 9 要求按适用情形随件递交 I-693 或疫苗记录。
 - 7 USCIS-PM A.6(A)「Verify Underlying Basis to Adjust Status」要求裁决前调取并核验基础请愿案。I-485 Instructions p3「When Should I File Form I-485?」区分基础请愿已获批与可同时递交的类别。基础请愿获批依据缺失时，境内按同时递交规则核对递交，核准待确认请愿决定。
 - 7 USCIS-PM A.6(B)「Determine Ongoing Eligibility」及 8 CFR §245.25(a) 要求以获批的雇主职业请愿为依据递交 I-485 和裁决时，确认获批请愿及工作邀约仍有效、申请人拟接受该邀约。持续工资支付能力见 SRC-302，8 CFR §204.5(g)(2)。[8 CFR §245.25(a)](https://www.ecfr.gov/current/title-8/section-245.25#p-245.25(a))
+- INA §204(j)（SRC-302，8 U.S.C. §1154(j)）、8 CFR §245.25(a)(2)–(3)、(b) 与 I-485 Instructions pp10、19 规定 I-485 待决满 180 天可凭同类或相似的真实新邀约提交 Supplement J，裁决时请愿须获批且有效。I-140 待决时的支付能力审查见 SRC-305，6 USCIS-PM E.4(D)(5)。[8 CFR §245.25(a)(2)](https://www.ecfr.gov/current/title-8/section-245.25#p-245.25(a)(2))
+- I-485 Instructions p10 Item 8 的说明要求 EB-1A 和 NIW 的适用申请人在调整时确认拟继续请愿所述领域，并按递交方式提供签署声明。NIW 医师服务与相应证明见 p19。I-526／I-526E 与 I-485 的衔接见 p20，适用 7 USCIS-PM A.6(A)–(B) 的基础有效性与持续资格检查。[I-485 Instructions p10](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=10)
 - I-485 Instructions p2「Who May File Form I-485?」要求递交时实际身处美国，各移民类别另有适用条件。该递交时点也适用于使用 I-485 的 INA 209 难民与庇护调整。累计在美要求仍于裁决时核对，见 SRC-314。见 [I-485 Instructions p2](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=2)。
 - 8 U.S.C. §1255(a)(2) 要求境内调整申请人具备准入资格。一般规则要求在 I-485 递交时符合资格并持续至裁决。I-485 Instructions pp11–12 Item 10 列明需随件提交的适用法院及警方文件。见 [8 CFR §103.2(b)(1)，Demonstrating eligibility](https://www.ecfr.gov/current/title-8/section-103.2#p-103.2(b)(1))、[I-485 Instructions](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=11)。
 - 国务院说明 NVC 在请愿案获批后通知申请人付款和递件，即时亲属同样由 NVC 发出通知。受排期限制的申请人按适用的 Dates for Filing 和收到的 NVC 说明递件，核准用 Final Action Dates。见 [National Visa Center，What happens after USCIS sends my petition to the NVC?](https://travel.state.gov/content/travel/en/us-visas/immigrate/national-visa-center.html)、[Visa Bulletin，Dates for Filing](https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin/2026/visa-bulletin-for-september-2026.html)。

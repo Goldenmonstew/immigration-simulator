@@ -230,6 +230,10 @@ const withEmployment = (
   employment: { ...employment, ...overrides },
   admission: { ...e.admission, petitionStatus },
 });
+const pendingPetition = (request: UsFullRequest): UsFullRequest => ({
+  ...request,
+  admission: { ...request.admission, petitionStatus: 'pending' },
+});
 const eb1a = withEmployment(
   {
     category: 'eb1a',
@@ -263,6 +267,7 @@ const gold: UsFullRequest = {
       giftUsd: 1000000,
       processingFundsUsd: 15000,
       fundsAndWire: 'cleared',
+      giftTransferred: 'cleared',
     },
   }),
   admission: {
@@ -620,43 +625,43 @@ const cases: CheckCase[] = [
   {
     id: 'C30-SELF-PETITION-EVIDENCE',
     met: eb1a,
-    other: {
+    other: pendingPetition({
       ...eb1a,
       employment: { ...eb1a.employment, extraordinaryEvidenceCount: 2 },
-    },
+    }),
     otherStatus: 'NOT_MET',
   },
   {
     id: 'C30-SELF-PETITION-MERITS',
     met: eb1a,
-    other: {
+    other: pendingPetition({
       ...eb1a,
       employment: { ...eb1a.employment, extraordinaryFinalMerits: 'pending' },
-    },
+    }),
     otherStatus: 'UNKNOWN',
   },
   {
     id: 'C31-INVESTMENT-AMOUNT',
     met: eb5,
-    other: { ...eb5, simulationDate: '2027-01-01' },
+    other: pendingPetition({ ...eb5, simulationDate: '2027-01-01' }),
     otherStatus: 'UNKNOWN',
   },
   {
     id: 'C31-INVESTMENT-PROJECT',
     met: eb5,
-    other: {
+    other: pendingPetition({
       ...eb5,
       employment: {
         ...eb5.employment,
         investment: { ...eb5.employment!.investment, atRisk: false },
       },
-    },
+    }),
     otherStatus: 'NOT_MET',
   },
   {
     id: 'C31-INVESTMENT-JOBS',
     met: eb5,
-    other: {
+    other: pendingPetition({
       ...eb5,
       employment: {
         ...eb5.employment,
@@ -666,7 +671,7 @@ const cases: CheckCase[] = [
           jobCreationPlan: 'none',
         },
       },
-    },
+    }),
     otherStatus: 'NOT_MET',
   },
   {
@@ -1304,7 +1309,7 @@ describe('residence documents and qualifying categories', () => {
     ).toBe('MET');
     expect(
       condition(
-        {
+        pendingPetition({
           ...eb5,
           employment: {
             ...eb5.employment,
@@ -1314,7 +1319,7 @@ describe('residence documents and qualifying categories', () => {
               capitalUsd: 1049999,
             },
           },
-        },
+        }),
         'C31-INVESTMENT-AMOUNT',
       ).status,
     ).toBe('NOT_MET');
@@ -1965,10 +1970,10 @@ describe('review86-1 regressions', () => {
       sustainmentYears: 0.5,
       qualifyingJobs: 0,
     };
-    const unproven: UsFullRequest = {
+    const unproven = pendingPetition({
       ...eb5,
       employment: { ...eb5.employment, investment: facts },
-    };
+    });
     expect(condition(unproven, 'C31-INVESTMENT-PROJECT')).toMatchObject({
       status: 'UNKNOWN',
       pendingDetails: ['PD-278'],
@@ -1997,7 +2002,7 @@ describe('review86-1 regressions', () => {
     expect(condition(plan, 'C31-INVESTMENT-JOBS').status).toBe('MET');
     expect(path(plan)).toMatchObject({
       status: 'MET',
-      approvalStatus: 'MET',
+      approvalStatus: 'UNKNOWN',
       earliestDate: time.simulationDate,
     });
     const removal = {
@@ -4781,11 +4786,15 @@ describe('filing and evidence exceptions', () => {
       employerPaidPermCosts: true,
     } satisfies NonNullable<UsEmploymentAnswers['permRecruitment']>;
     expect(
-      condition(withEmployment({ permRecruitment }), 'C28-OFFER-PERM').status,
-    ).toBe('MET');
+      condition(
+        withEmployment({ perm: 'pending', permRecruitment }),
+        'C28-OFFER-PERM',
+      ).status,
+    ).toBe('UNKNOWN');
     expect(
       condition(
         withEmployment({
+          perm: 'pending',
           permRecruitment: {
             ...permRecruitment,
             stateJobOrder: { from: '2026-03-04', through: '2026-04-02' },
@@ -4797,6 +4806,7 @@ describe('filing and evidence exceptions', () => {
     expect(
       condition(
         withEmployment({
+          perm: 'pending',
           permRecruitment: { ...permRecruitment, extraDistinctSteps: 2 },
         }),
         'C28-OFFER-PERM',
@@ -4805,6 +4815,7 @@ describe('filing and evidence exceptions', () => {
     expect(
       condition(
         withEmployment({
+          perm: 'pending',
           permRecruitment: {
             ...permRecruitment,
             qualifiedAvailableUsWorker: undefined,
@@ -5574,3 +5585,498 @@ test.each(adjustmentFixtures)(
     );
   },
 );
+
+describe('review86-17 regressions', () => {
+  const today = time.simulationDate;
+  const met = {
+    status: 'MET',
+    approvalStatus: 'MET',
+    earliestDate: today,
+    approvalEarliestDate: today,
+  };
+  const familyEntries = ['US-FAMILY', 'US-ADJUSTMENT'] as const;
+  const employmentEntries = ['US-EMPLOYMENT', 'US-ADJUSTMENT'] as const;
+
+  test.each(familyEntries)(
+    'I-130 approval covers historical relationship and petition bars in %s',
+    (pathway) => {
+      const approved = {
+        ...f,
+        pathway,
+        family: {
+          petitioner: 'citizen',
+          relationship: 'spouse',
+          relationshipValid: 'cleared',
+        },
+      } satisfies UsFullRequest;
+      expect(path({ ...f, pathway })).toMatchObject(met);
+      expect(condition(approved, 'C24-PETITION-BARS').status).toBe('MET');
+      expect(path(approved)).toMatchObject(met);
+      expect(
+        condition(pendingPetition(approved), 'C24-PETITION-BARS').status,
+      ).toBe('UNKNOWN');
+
+      const adoption: UsFullRequest = {
+        ...approved,
+        family: {
+          ...approved.family,
+          relationship: 'unmarried-child',
+          childRelationship: 'adopted',
+        },
+      };
+      const adoptionHistory: UsFullRequest = {
+        ...adoption,
+        family: {
+          ...adoption.family,
+          relationshipEstablishedAtAge: 8,
+          custodyYears: 2,
+          livedTogetherYears: 2,
+        },
+      };
+      expect(path(adoptionHistory)).toMatchObject(met);
+      expect(condition(adoption, 'C23-RELATIONSHIP').status).toBe('MET');
+      expect(path(adoption)).toMatchObject(met);
+
+      for (const [family, status] of [
+        [{ relationshipValid: undefined }, 'UNKNOWN'],
+        [{ relationshipValid: 'barred' }, 'NOT_MET'],
+        [{ priorMarriageFraud: true }, 'NOT_MET'],
+        [{ adamWalsh: 'pending' }, 'UNKNOWN'],
+      ] as const) {
+        const result = path({
+          ...approved,
+          family: { ...approved.family, ...family },
+        });
+        expect(result).toMatchObject({ status, approvalStatus: status });
+        expect(result.earliestDate).toBeUndefined();
+        expect(result.approvalEarliestDate).toBeUndefined();
+      }
+    },
+  );
+
+  test.each(employmentEntries)(
+    'DOL certification covers recruitment but preserves other I-140 requirements in %s',
+    (pathway) => {
+      const details = {
+        category: 'eb3',
+        perm: 'certified',
+        permCertifiedOn: '2026-10-01',
+        i140FiledOn: '2026-11-02',
+      } as const;
+      const full = { ...withEmployment(details, 'pending'), pathway };
+      const minimal = {
+        ...full,
+        employment: {
+          ...full.employment,
+          recruitmentAndFeesCompliant: undefined,
+          prevailingWageUsd: undefined,
+        },
+      };
+      for (const input of [full, minimal]) {
+        expect(condition(input, 'C28-OFFER-PERM').status).toBe('MET');
+        expect(condition(input, 'C33-VISA-AND-ENTRY')).toMatchObject({
+          filingStatus: 'MET',
+          status: 'UNKNOWN',
+        });
+        expect(path(input)).toMatchObject({
+          status: 'MET',
+          approvalStatus: 'UNKNOWN',
+          earliestDate: today,
+        });
+        expect(path(input).approvalEarliestDate).toBeUndefined();
+      }
+      for (const [employment, status] of [
+        [{ permCertifiedOn: '2025-10-01' }, 'NOT_MET'],
+        [{ i140FiledOn: undefined }, 'UNKNOWN'],
+        [{ categoryQualifications: undefined }, 'UNKNOWN'],
+        [{ employmentOffer: false }, 'NOT_MET'],
+      ] as const) {
+        const input = {
+          ...minimal,
+          employment: { ...minimal.employment, ...employment },
+        };
+        expect(condition(input, 'C28-OFFER-PERM').status).toBe(status);
+        expect(path(input)).toMatchObject({ status, approvalStatus: status });
+        expect(path(input).earliestDate).toBeUndefined();
+        expect(path(input).approvalEarliestDate).toBeUndefined();
+      }
+      const missingPay = {
+        ...minimal,
+        employment: { ...minimal.employment, profferedWageUsd: undefined },
+      };
+      expect(condition(missingPay, 'C29-ABILITY-TO-PAY').status).toBe(
+        'UNKNOWN',
+      );
+      expect(path(missingPay).earliestDate).toBeUndefined();
+    },
+  );
+
+  test.each([
+    ['eb1b', undefined],
+    ['eb1c', undefined],
+    ['eb2-perm', 'certified'],
+    ['eb3', 'certified'],
+    ['eb3', 'schedule-a'],
+  ] as const)(
+    'approved employer I-140 carries classification and any certification (%s, %s)',
+    (category, perm) => {
+      const full = withEmployment({ category, perm }, 'approved');
+      const minimal: UsFullRequest = {
+        ...full,
+        employment: {
+          category,
+          employmentOffer: true,
+          abilityToPayTotality: 'cleared',
+          relativePetitioner: false,
+          relativeOwnershipPct: 0,
+        },
+      };
+      for (const pathway of employmentEntries) {
+        expect(path({ ...full, pathway })).toMatchObject(met);
+        expect(path({ ...minimal, pathway })).toMatchObject(met);
+        expect(
+          condition({ ...minimal, pathway }, 'C28-OFFER-PERM'),
+        ).toMatchObject({ status: 'MET', filingStatus: 'MET' });
+        expect(
+          condition({ ...pendingPetition(minimal), pathway }, 'C28-OFFER-PERM')
+            .status,
+        ).toBe('UNKNOWN');
+        const lostOffer = {
+          ...minimal,
+          pathway,
+          employment: { ...minimal.employment, employmentOffer: false },
+        };
+        expect(path(lostOffer)).toMatchObject({
+          status: 'NOT_MET',
+          approvalStatus: 'NOT_MET',
+        });
+        expect(path(lostOffer).approvalEarliestDate).toBeUndefined();
+      }
+    },
+  );
+
+  test.each([
+    ['EB-1A', eb1a],
+    [
+      'EB-2 NIW',
+      withEmployment(
+        {
+          category: 'eb2-niw',
+          i140SelfPetition: true,
+          degree: 'advanced',
+          niwProngs: {
+            nationalImportance: true,
+            wellPositioned: true,
+            waiverBeneficial: true,
+          },
+          niwDetermination: 'cleared',
+          continuesWorkInField: true,
+        },
+        'approved',
+      ),
+    ],
+  ] as const)(
+    '%s approval covers petition evidence and merits, with current intent checked',
+    (_, full) => {
+      for (const pathway of employmentEntries) {
+        expect(path({ ...full, pathway })).toMatchObject(met);
+        const {
+          category,
+          i140SelfPetition,
+          relativePetitioner,
+          relativeOwnershipPct,
+          benefitsUnitedStates,
+        } = full.employment!;
+        const minimal = {
+          ...full,
+          pathway,
+          employment: {
+            category,
+            i140SelfPetition,
+            relativePetitioner,
+            relativeOwnershipPct,
+            benefitsUnitedStates,
+            continuesWorkInField: true,
+          },
+        };
+        expect(condition(minimal, 'C30-SELF-PETITION-EVIDENCE').status).toBe(
+          'MET',
+        );
+        expect(condition(minimal, 'C30-SELF-PETITION-MERITS')).toMatchObject({
+          status: 'MET',
+          filingStatus: 'MET',
+        });
+        expect(path(minimal)).toMatchObject(met);
+        expect(
+          condition(pendingPetition(minimal), 'C30-SELF-PETITION-EVIDENCE')
+            .status,
+        ).toBe('UNKNOWN');
+        for (const [continuesWorkInField, status] of [
+          [false, 'NOT_MET'],
+          [undefined, 'UNKNOWN'],
+        ] as const) {
+          const result = path({
+            ...minimal,
+            employment: { ...minimal.employment, continuesWorkInField },
+          });
+          expect(result).toMatchObject({ status, approvalStatus: status });
+          expect(result.earliestDate).toBeUndefined();
+          expect(result.approvalEarliestDate).toBeUndefined();
+        }
+      }
+    },
+  );
+
+  test.each([false, true])(
+    'EB-5 approval covers the initial petition (regional center %s)',
+    (regionalCenter) => {
+      const ids = [
+        'C31-INVESTMENT-AMOUNT',
+        'C31-INVESTMENT-PROJECT',
+        'C31-INVESTMENT-JOBS',
+      ];
+      for (const pathway of employmentEntries) {
+        const full = {
+          ...eb5,
+          pathway,
+          employment: {
+            ...eb5.employment,
+            investment: {
+              ...eb5.employment!.investment,
+              regionalCenter,
+              projectFiled: regionalCenter,
+            },
+          },
+        };
+        const minimal = { ...full, employment: { category: 'eb5' as const } };
+        expect(path(full)).toMatchObject(met);
+        expect(path(minimal)).toMatchObject(met);
+        for (const id of ids) {
+          expect(condition(minimal, id).status).toBe('MET');
+          expect(condition(pendingPetition(minimal), id).status).toBe(
+            'UNKNOWN',
+          );
+        }
+        for (const [qualifyingBasis, status] of [
+          ['barred', 'NOT_MET'],
+          ['pending', 'UNKNOWN'],
+        ] as const) {
+          const result = path({
+            ...minimal,
+            admission: { ...minimal.admission, qualifyingBasis },
+          });
+          expect(result).toMatchObject({ status, approvalStatus: status });
+          expect(result.earliestDate).toBeUndefined();
+          expect(result.approvalEarliestDate).toBeUndefined();
+        }
+      }
+    },
+  );
+
+  test.each([
+    ['vawa', 'US-FAMILY'],
+    ['sij', 'US-EMPLOYMENT'],
+  ] as const)(
+    'approved I-360 establishes %s without original petition details',
+    (adjustmentBasis, dedicated) => {
+      for (const pathway of [dedicated, 'US-ADJUSTMENT'] as const) {
+        const input: UsFullRequest = {
+          ...time,
+          pathway,
+          fees: f.fees,
+          admission: {
+            ...admission,
+            adjustmentBasis,
+            legalEntry: 'without-inspection',
+            publicCharge: undefined,
+          },
+        };
+        expect(condition(input, 'C33-VISA-AND-ENTRY')).toMatchObject({
+          status: 'MET',
+          filingStatus: 'MET',
+        });
+        expect(condition(input, 'C37-PUBLIC-CHARGE').applicable).toBe(false);
+        expect(path(input)).toMatchObject(met);
+        const backlogged = {
+          ...input,
+          admission: {
+            ...input.admission,
+            visaAtDecision: 'unavailable' as const,
+          },
+        };
+        expect(path(backlogged)).toMatchObject({
+          status: 'MET',
+          approvalStatus: 'NOT_MET',
+          earliestDate: today,
+        });
+        expect(path(backlogged).approvalEarliestDate).toBeUndefined();
+        expect(
+          path(pendingPetition(input)).approvalEarliestDate,
+        ).toBeUndefined();
+      }
+    },
+  );
+
+  test.each(employmentEntries)(
+    'approved I-140G preserves the consular transfer requirement in %s',
+    (pathway) => {
+      const full = {
+        ...gold,
+        pathway,
+        admission: {
+          ...gold.admission,
+          adjustmentBasis: 'employment',
+          petitionStatus: 'approved',
+        },
+      } satisfies UsFullRequest;
+      const minimal = {
+        ...full,
+        employment: {
+          category: 'gold-card',
+          relativePetitioner: false,
+          relativeOwnershipPct: 0,
+          gold: { giftTransferred: 'cleared' },
+        },
+      } satisfies UsFullRequest;
+      const expected = {
+        status: 'MET',
+        approvalStatus: 'UNKNOWN',
+        earliestDate: today,
+      };
+      expect(path(full)).toMatchObject(expected);
+      expect(path(minimal)).toMatchObject(expected);
+      expect(path(minimal).approvalEarliestDate).toBeUndefined();
+      expect(condition(minimal, 'C32-GOLD-GIFT')).toMatchObject({
+        status: 'MET',
+        filingStatus: 'MET',
+      });
+      const unconfirmedTransfer = {
+        ...minimal,
+        employment: { ...minimal.employment, gold: undefined },
+      };
+      expect(condition(unconfirmedTransfer, 'C32-GOLD-GIFT')).toMatchObject({
+        status: 'UNKNOWN',
+        filingStatus: 'MET',
+        pendingDetails: ['PD-276'],
+      });
+    },
+  );
+
+  const portability = {
+    i485PendingSince: '2026-05-27',
+    originalOfferValidAtFiling: true,
+    newOffer: true,
+    sameOrSimilarOccupation: 'cleared',
+    supplementJFiledOn: today,
+  } as const;
+  const worker = withEmployment(
+    {
+      category: 'eb3',
+      i140FiledOn: '2026-05-27',
+      permCertifiedOn: '2026-05-01',
+      employmentOffer: false,
+      wageYears: undefined,
+      abilityToPayTotality: undefined,
+      officerStatementAccepted: undefined,
+    },
+    'approved',
+  );
+  const portedWorker = {
+    ...worker,
+    employment: { ...worker.employment, jobPortability: portability },
+  };
+
+  test.each(employmentEntries)(
+    'uses a timely same-or-similar offer under INA §204(j) in %s',
+    (pathway) => {
+      expect(path({ ...worker, pathway }).approvalStatus).toBe('NOT_MET');
+      const approved = { ...portedWorker, pathway };
+      expect(condition(approved, 'C28-OFFER-PERM')).toMatchObject({
+        status: 'MET',
+        filingStatus: 'MET',
+      });
+      expect(condition(approved, 'C29-ABILITY-TO-PAY').status).toBe('MET');
+      expect(path(approved)).toMatchObject(met);
+
+      const pending = pendingPetition(approved);
+      expect(condition(pending, 'C28-OFFER-PERM').status).toBe('MET');
+      expect(condition(pending, 'C29-ABILITY-TO-PAY').status).toBe('UNKNOWN');
+      const documented = {
+        ...pending,
+        employment: {
+          ...pending.employment,
+          abilityToPayTotality: 'cleared' as const,
+        },
+      };
+      expect(path(documented)).toMatchObject({
+        status: 'MET',
+        approvalStatus: 'UNKNOWN',
+        earliestDate: today,
+      });
+      expect(path(documented).approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test.each([
+    [
+      'day before eligibility',
+      { i485PendingSince: '2026-05-28' },
+      'MET',
+      'NOT_MET',
+    ],
+    [
+      'early Supplement J',
+      { supplementJFiledOn: '2026-11-22' },
+      'MET',
+      'NOT_MET',
+    ],
+    [
+      'unconfirmed Supplement J',
+      { supplementJFiledOn: undefined },
+      'MET',
+      'UNKNOWN',
+    ],
+    ['no new offer', { newOffer: false }, 'MET', 'NOT_MET'],
+    ['unrelated role', { sameOrSimilarOccupation: 'barred' }, 'MET', 'NOT_MET'],
+    [
+      'classification to be reviewed',
+      { sameOrSimilarOccupation: 'pending' },
+      'MET',
+      'UNKNOWN',
+    ],
+    [
+      'no original offer at filing',
+      { originalOfferValidAtFiling: false },
+      'NOT_MET',
+      'NOT_MET',
+    ],
+  ] as const)(
+    'keeps the INA §204(j) filing and approval requirements separate (%s)',
+    (_, answers, filingStatus, status) => {
+      for (const pathway of employmentEntries) {
+        const input: UsFullRequest = {
+          ...portedWorker,
+          pathway,
+          employment: {
+            ...portedWorker.employment,
+            abilityToPayTotality: 'cleared',
+            jobPortability: { ...portability, ...answers },
+          },
+        };
+        expect(condition(input, 'C28-OFFER-PERM')).toMatchObject({
+          status,
+          filingStatus,
+        });
+        const result = path(input);
+        expect(result).toMatchObject({
+          status: filingStatus,
+          approvalStatus: status,
+        });
+        expect(result.earliestDate).toBe(
+          filingStatus === 'MET' ? today : undefined,
+        );
+        expect(result.approvalEarliestDate).toBeUndefined();
+      }
+    },
+  );
+});

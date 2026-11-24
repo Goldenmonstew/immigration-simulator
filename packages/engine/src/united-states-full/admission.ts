@@ -26,7 +26,7 @@ import {
   isI140Category,
   underlyingPetitionApproved,
 } from './petition';
-import type { AdjustmentCategory } from './petition';
+import type { AdjustmentCategory, preapprovedFacts } from './petition';
 import type { UsAdmissionAnswers, UsFullRequest, UsReview } from './types';
 
 function waived(grounds: Answer[], decision: Answer): Answer[] {
@@ -123,14 +123,12 @@ function unlawfulPresence(
 function admissionExemptions(
   scope: 'immigrant' | 'return' | 'humanitarian',
   process: UsAdmissionAnswers['process'],
-  category: AdjustmentCategory,
-  petitionApproved: boolean,
+  facts?: ReturnType<typeof preapprovedFacts>,
 ) {
   if (scope === 'humanitarian') return v.humanitarianAdmissionExemptions;
-  if (scope !== 'immigrant' || !petitionApproved) return;
-  if (category === 'sij' && process === 'adjustment')
+  if (facts?.has('sijClassification') && process === 'adjustment')
     return v.sijAdmissionExemptions;
-  if (category === 'vawa') {
+  if (facts?.has('vawaClassification')) {
     if (process === 'adjustment') return v.vawaAdjustmentAdmissionExemptions;
     if (process === 'consular') return v.vawaConsularAdmissionExemptions;
   }
@@ -162,6 +160,7 @@ export function admissionChecks(
   scope: 'immigrant' | 'return' | 'humanitarian',
   { receipt, decision, postmark }: AdmissionTiming,
   category?: AdjustmentCategory,
+  facts?: ReturnType<typeof preapprovedFacts>,
 ) {
   const check = checksFor(request);
   const a = scope === 'return' ? request.travel?.admission : request.admission;
@@ -186,17 +185,11 @@ export function admissionChecks(
   const humanitarian = scope === 'humanitarian';
   const optionalMedicalForm =
     humanitarian && request.humanitarian?.status === 'refugee';
-  const petitionApproved = underlyingPetitionApproved(a);
-  const exemptions = admissionExemptions(
-    scope,
-    a?.process,
-    category,
-    petitionApproved,
-  );
+  const exemptions = admissionExemptions(scope, a?.process, facts);
   const pendingSij =
     adjustment &&
     category === 'sij' &&
-    !petitionApproved &&
+    !facts?.has('sijClassification') &&
     petitionApprovalUnconfirmed(a.petitionStatus, a.petitionFiledOn);
   const exemptionSources =
     (pendingSij ? v.sijAdmissionExemptions : exemptions)?.sources ?? [];
@@ -340,9 +333,7 @@ export function admissionChecks(
   const presenceAt = (on: IsoDate | undefined) => {
     if (isExempt('9(B)')) return true;
     const presence = unlawfulPresence(a, on);
-    return (adjustment || consularVisa) &&
-      category === 'vawa' &&
-      petitionApproved
+    return (adjustment || consularVisa) && facts?.has('vawaClassification')
       ? any(presence, reviewed(a?.vawaUnlawfulPresenceException))
       : presence;
   };
@@ -541,6 +532,7 @@ export function adjustmentChecks(
   request: UsFullRequest,
   category: AdjustmentCategory,
   timing: AdmissionTiming,
+  facts: ReturnType<typeof preapprovedFacts>,
 ) {
   const { receipt, decision } = timing;
   const check = checksFor(request);
@@ -549,7 +541,7 @@ export function adjustmentChecks(
   const petitionApproved = underlyingPetitionApproved(a);
   const { employment } = request;
   const familyBasis = isFamilyCategory(category);
-  const immediate = immediateRelative(request, category, receipt);
+  const immediate = immediateRelative(request, category, receipt, facts);
   const availability = (value?: UsAdmissionAnswers['visaAtFiling']): Answer =>
     value === 'available' ? true : value === 'unavailable' ? false : undefined;
   const consular = a?.process === 'consular';
@@ -585,7 +577,7 @@ export function adjustmentChecks(
   const sijFiling =
     a?.process === 'adjustment' &&
     category === 'sij' &&
-    (petitionApproved ||
+    (facts.has('sijClassification') ||
       petitionApprovalUnconfirmed(petition, a.petitionFiledOn));
   const entryAtFiling =
     sijFiling || a?.legalEntry === 'admitted' || a?.legalEntry === 'paroled'
@@ -753,7 +745,7 @@ export function adjustmentChecks(
           ]
         : []),
     ...(a?.process
-      ? admissionChecks(request, 'immigrant', timing, category)
+      ? admissionChecks(request, 'immigrant', timing, category, facts)
       : []),
   ];
 }
