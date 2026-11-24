@@ -107,6 +107,35 @@ describe('required facts at filing', () => {
     expiredOn: '2026-10-01',
     formerResidentIssue: 'none',
   };
+  it('allows a former resident to lodge alone at the border under RV4', () => {
+    const common = {
+      ...base.common,
+      residenceFiling: {
+        atImmigrationControlArea: true,
+        dependentChildrenUnlawfullyInNz: [{ dateOfBirth: '2008-10-01' }],
+      },
+    };
+    const alone = travel(subsequent, { common }, former);
+    expectOutcome(alone, 'NZ-FAMILY-FILING', 'MET');
+    expect(alone.checks.some((c) => c.id === 'NZ-R5-125')).toBe(false);
+    const joint = travel(
+      subsequent,
+      {
+        common: {
+          ...common,
+          dependants: [
+            {
+              relation: 'partner',
+              partnershipRequirementsMet: true,
+              identityDocuments: true,
+            },
+          ],
+        },
+      },
+      former,
+    );
+    expectOutcome(joint, 'NZ-FAMILY-FILING', 'NOT_MET');
+  });
   it.each([true, false, undefined])(
     'uses the actual payment answer (%s) for each application',
     (requiredFeePaid) => {
@@ -390,23 +419,78 @@ describe('RV1.20 joint PRV application', () => {
     },
   };
 
-  it('uses the separately granted child’s own date, including when another child already qualifies', () => {
-    const alone = prv(prvReady, { ...recent, dateOfBirth: child.dateOfBirth });
-    const joint = together([linkedChild, child]);
-    expect(check(joint, 'NZ-P2-CHILD-1').status).toBe('MET');
-    expect(check(joint, 'NZ-P2-CHILD-2').status).toBe('NOT_MET');
-    expect(check(joint, 'NZ-P2-1').status).toBe('MET');
-    expect(joint.status).toBe('FUTURE');
-    expect(joint.earliestDate).toBe('2027-11-01');
-    expect([joint.status, joint.earliestDate]).toEqual([
-      alone.status,
-      alone.earliestDate,
-    ]);
+  it.each([undefined, '2025-11-01'])(
+    'projects the independently granted child’s date with firstResidentEntry = %s',
+    (firstResidentEntry) => {
+      const travel = { ...application.travel, firstResidentEntry };
+      const alone = pathway(
+        'NZ-PRV',
+        { prv: prvReady, travel },
+        {
+          ...recent,
+          dateOfBirth: child.dateOfBirth,
+        },
+      );
+      const family = [
+        linkedChild,
+        { ...child, prvApplication: { ...application, travel } },
+      ];
+      const joint = together(family);
+      expect(check(joint, 'NZ-P2-CHILD-1').status).toBe('MET');
+      expect(check(joint, 'NZ-P2-CHILD-2').status).toBe('NOT_MET');
+      expect(check(joint, 'NZ-P2-1').status).toBe('MET');
+      for (const path of [alone, joint]) {
+        expect(path.status).toBe('FUTURE');
+        expect(path.earliestDate).toBe('2027-11-01');
+      }
+      expectOutcome(
+        together(family, { simulationDate: '2027-11-01' }),
+        'NZ-P2-CHILD-2',
+        'MET',
+        '2027-11-01',
+      );
+    },
+  );
+
+  it.each([undefined, '2027-11-03'])(
+    'preserves the joint date before the recorded trip causes expiry (expiredOn = %s)',
+    (expiredOn) => {
+      const result = together({
+        ...child,
+        prvApplication: {
+          ...application,
+          trips: [{ departed: '2027-11-02', returned: '2027-11-06' }],
+          prv: { ...prvReady, expiredOn },
+        },
+      });
+      expect(check(result, 'NZ-P2-CHILD-1').status).toBe('NOT_MET');
+      expect(result.status).toBe('FUTURE');
+      expect(result.earliestDate).toBe('2027-11-01');
+    },
+  );
+
+  it('uses the reported first resident entry when the travel history suggests an earlier date', () => {
+    const family = {
+      ...child,
+      prvApplication: {
+        ...application,
+        travel: {
+          ...application.travel,
+          firstEntryClass: 'standard' as const,
+          firstResidentEntry: '2026-02-01',
+        },
+      },
+    };
     expectOutcome(
-      together([linkedChild, child], { simulationDate: '2027-11-01' }),
-      'NZ-P2-CHILD-2',
+      together(family, { simulationDate: '2027-11-01' }),
+      'NZ-P2-CHILD-1',
+      'NOT_MET',
+    );
+    expectOutcome(
+      together(family, { simulationDate: '2028-02-01' }),
+      'NZ-P2-CHILD-1',
       'MET',
-      '2027-11-01',
+      '2028-02-01',
     );
   });
 

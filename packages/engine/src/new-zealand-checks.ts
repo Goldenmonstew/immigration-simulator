@@ -158,7 +158,7 @@ export interface NzCommonAnswers extends Omit<NzPersonAnswers, 'dateOfBirth'> {
   dependants?: NzDependantAnswers[];
   residenceFiling?: {
     atImmigrationControlArea?: boolean;
-    /** For a first resident visa at the border: Australian citizen or holder of an Australian permanent residence visa, R2.40.2(a). */
+    /** Eligibility for separate Australian residence on arrival (R5.30.1), outside the modelled first residence categories. */
     eligibleForFirstResidenceAtControlArea?: boolean;
     /** Any omitted partner or dependent child holding or applying for temporary entry on the basis of their relationship to the principal. */
     hasOmittedRelationshipVisaDependant?: boolean;
@@ -657,11 +657,6 @@ export function createNzContext(
   }
 
   const filing = answers.residenceFiling;
-  const singleApplicant = answers.dependants && answers.dependants.length === 0;
-  const validFirstBorderFiling = all(
-    filing?.eligibleForFirstResidenceAtControlArea,
-    singleApplicant,
-  );
 
   function residenceFamilyFiling(kind: ResidenceFiling): CountryCheck {
     if (filing?.atImmigrationControlArea)
@@ -669,12 +664,15 @@ export function createNzContext(
         'NZ-FAMILY-FILING',
         '入境管制区递交资格',
         'Eligibility to lodge at an immigration control area',
-        kind === 'first'
-          ? validFirstBorderFiling
-          : kind === 'subsequent' && singleApplicant,
-        [{ srcId: 'SRC-230', locator: 'R2.40.2(a), (b)(ii); RV1.10.10' }],
-        '入境管制区每份申请仅限一人。首次申请居民签证者须为澳大利亚公民或持澳大利亚永久居民签证。前新西兰居民可在此申请再次居民签证。',
-        'Each border application covers one person. A first resident visa applicant must be an Australian citizen or Australian permanent visa holder. Former New Zealand residents may apply here for a subsequent resident visa.',
+        kind === 'subsequent' &&
+          answers.dependants &&
+          answers.dependants.length === 0,
+        [
+          { srcId: 'SRC-230', locator: 'R2.40.2(a), (b)(i)–(ii); RV1.10.10' },
+          { srcId: 'SRC-252', locator: 'R5.30.1(a)–(b)' },
+        ],
+        '前新西兰居民可在入境管制区单人递交再次居民签申请。澳籍或澳永居人士可在到埠时另申居民签。所选常规居民类别须按该类别规定的方式递交。',
+        'Former New Zealand residents can apply alone at the border for a subsequent resident visa. Residence on arrival for Australians is a separate application. Use the prescribed filing procedure for the selected residence category.',
       );
     return check(
       'NZ-FAMILY-FILING',
@@ -749,10 +747,7 @@ export function createNzContext(
         'There is no general home ownership, floor area, address registration or private insurance threshold. Sponsorship, cohabitation, Parent Boost insurance and investment contact obligations depend on the category.',
       ),
     ];
-    if (
-      date >= p.unlawfulChildRuleFrom.value &&
-      !(filing?.atImmigrationControlArea && validFirstBorderFiling === true)
-    ) {
+    if (date >= p.unlawfulChildRuleFrom.value) {
       const children = filing?.dependentChildrenUnlawfullyInNz;
       // R5.125(b) lifts this bar only if every affected child meets the exception.
       const exceptions =
@@ -772,13 +767,10 @@ export function createNzContext(
           'NZ-R5-125',
           '在新西兰非法居留的受抚养子女',
           'Dependent children unlawfully in New Zealand',
-          any(
-            all(filing?.atImmigrationControlArea, validFirstBorderFiling),
-            exceptions,
-          ),
+          exceptions,
           [
             ...p.unlawfulChildRuleFrom.sources,
-            { srcId: 'SRC-230', locator: 'R2.40.2(a), (b)(ii)' },
+            { srcId: 'SRC-252', locator: 'R5.30.1(a)–(b)' },
           ],
           `核对所有申请人的亲生及收养受抚养子女，包括未随行子女。普通递交时，每名在新西兰非法居留的子女均须未满 ${p.childRemovalAge.value} 岁，且申请人能证明无权将其迁出监护或探视权授予国（未授予这些权利时为居住国），才可适用例外。`,
           `Include every applicant’s biological or adopted dependent children, even if not applying. At ordinary lodgement, each child unlawfully in New Zealand must be under ${p.childRemovalAge.value} and the applicant must demonstrate no right of removal from the country granting custody or visitation rights, or the country of residence if no such rights were granted.`,

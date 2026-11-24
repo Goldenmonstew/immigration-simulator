@@ -183,3 +183,35 @@ PROGRESS 第 535 项。建议提交 `Fix: 修正新西兰永居家庭同表日�
 - 每位同表子女或伴侣各填 `common.dependants[].prvApplication`，用 `prv.role` 区分原主申、原随同者及须独立评估的情况。独立获签者填写本人持签、首入、行程及附加条件。随同者填写与原主申的关联；RV1.20(a)(ii) 规定的投资者子女须核实适用身份及已持 Dependent Child Resident Visa 入境。
 - `common.residenceFiling.hasOmittedRelationshipVisaDependant` 询问是否仍漏列基于与主申的关系持有或正在申请临时签证的伴侣或受抚养子女。填写空随行名单之后仍须回答。
 - `common.residenceFiling.eligibleForFirstResidenceAtControlArea` 在首次居民签申请人申报入境管制区递交时询问其是否为澳大利亚公民或持澳大利亚永久居民签证。单人递交由随行名单核实。在新西兰非法居留的受抚养子女另按全体申请人填写，包括未随行子女。
+
+## 第四轮审核修正（review84-4）
+
+### 1. 做了什么
+
+PROGRESS 第 536 项。建议提交 `Fix: 修正新西兰同表永居预测和 Tier 1 递交资格（review84-4）`。下表以 2026-11-23 为模拟日，申请人的其余必要条件均已满足。
+
+| 回归情形 | 路径状态 | 最早日期 | 依据 |
+|---|---|---|---|
+| P2 独立获居民签的子女，首入日由行程推导或显式填写同一天 2025-11-01；单独申请及与家人同表 | FUTURE | 2027-11-01，届日重算同表为 MET | SRC-072 RV1.20、RV2.5(a)–(c)、RV2.5.1 |
+| P2 子女此后离境，签证按行程于 2027-11-03 失效；另外显式填写同一失效日 | FUTURE | 两种填法均为 2027-11-01 | SRC-072 RV1.5、RV2.5 |
+| P5 Tier 1，同一软件工程师岗位，境外申请或境内持有效工签 | MET | 2026-11-23 | SRC-071 s71(1)(a)–(b)、SRC-237 SR4.5 |
+| P5 境内持 `interim-work-renewal` 或 `other-interim-work` | NOT_MET | 无 | SRC-071 s71(4)–(5)、SRC-230 RA5(a)–(b) |
+| P5 境内签证未填或仅填“其他”，或所在地和签证都未填 | UNKNOWN | 无 | SRC-071 s71(1)、(4)；PD-220 |
+| P5 以澳籍或澳永居身份主张在管制区单人递交，另有成年受抚养子女在新西兰非法居留 | NOT_MET | 无。递交方式及 R5.125 两项均为 NOT_MET；若确认没有此类子女，R5.125 为 MET，递交方式仍为 NOT_MET | SRC-237 SR4.5(c)、SRC-230 R2.40.2、SRC-252 R5.125(c)(iii)、R5.30.1 |
+| P1 符合 RV4 的前居民在管制区递交，对照单人和两人同表 | 单人 MET，同表 NOT_MET | 单人为 2026-11-23，同表无日期 | SRC-230 R2.40.2(a)(iii)、(b)(ii)，SRC-252 R5.125(c)(ii) |
+
+P2 核对了首入、旅行条件截止日、当前所在地及失效日的显式与推导取值。修复前，首入日和失效日都有“填入同一天即失去预测”的复现。现按实际日期比较；若显式首入日与行程不同，按申报日期核对持签和入境条件。P5 的管制区回归覆盖澳籍或澳永居资格已确认、未填、明确不符三种输入。
+
+### 2. 怎么验证的
+
+- `VITEST_MAX_WORKERS=2 pnpm --filter @uk-immigration/engine test test/new-zealand-skilled.test.ts test/new-zealand-full.test.ts test/new-zealand-resident.test.ts` 通过 129 项。回归同时核对条件、路径状态和最早日期。
+- 设置 `VITEST_MAX_WORKERS=2` 后运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，整链退出码 0。全仓 5,462 项通过（引擎 3,429、游戏 1,348、网页 660、policy-data 23、error-report 2），1 项既有测试跳过。静态构建生成 27/27 页，`test -s apps/web/out/new-zealand.html` 通过。
+- `git diff --quiet 3814605 -- packages/engine/src/new-zealand.ts packages/engine/test/new-zealand.test.ts apps/web/app/new-zealand/new-zealand-content.tsx` 退出码 0。两份新增 INZ 快照经 `shasum -a 256` 核对，与 SRC-230、SRC-252 的登记值一致。
+
+### 3. 没做或没验证的
+
+按要求未提交。SRC-071 链接已定位到第 71 条。立法站直接下载该条时返回 HTTP 202 空正文，本地另存了载明同一禁令及部长酌情权的 INZ RA5(a)–(b) 官方快照。
+
+### 4. 发现与建议
+
+问卷接入 P5 时可用 `skilled.green.filingFromOverseas` 确认是否从境外递交，用 `currentVisa` 记录递交当天的签证。PD-220 记录了资料不足时的判断，PD-234 记录了到埠居民签例外的适用范围。

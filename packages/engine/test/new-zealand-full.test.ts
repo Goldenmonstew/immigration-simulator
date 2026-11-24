@@ -457,7 +457,11 @@ test('housing is informational and a statutory levy exemption affects the budget
 const tierOne: NzFullRequest = {
   ...time,
   skilled: {
-    green: { tier: 'straight', rowRequirementsVerified: true },
+    green: {
+      tier: 'straight',
+      rowRequirementsVerified: true,
+      currentVisa: 'work',
+    },
     job: {
       occupationCode: '261313',
       occupationMatch: true,
@@ -676,7 +680,7 @@ test.each([
   },
 );
 
-test('R5.125 starts on the effective day, exempts control-area lodgement and leaves an unknown venue open if decisive', () => {
+test('R5.125 applies to Tier 1 from its effective day even if the filing venue is omitted', () => {
   const affected = {
     hasOmittedRelationshipVisaDependant: false,
     dependentChildrenUnlawfullyInNz: [{ dateOfBirth: '2008-10-01' }],
@@ -696,59 +700,33 @@ test('R5.125 starts on the effective day, exempts control-area lodgement and lea
   expect(checkOn('2026-11-12')?.status).toBe('NOT_MET');
   const unknownVenue = tierOnePath({ residenceFiling: affected });
   expect(unknownVenue.checks.find((c) => c.id === 'NZ-R5-125')?.status).toBe(
-    'UNKNOWN',
+    'NOT_MET',
   );
-  expect(unknownVenue.status).toBe('UNKNOWN');
+  expect(unknownVenue.status).toBe('NOT_MET');
   expect(unknownVenue.earliestDate).toBeUndefined();
-  const border = tierOnePath({
-    residenceFiling: {
-      ...affected,
-      atImmigrationControlArea: true,
-      eligibleForFirstResidenceAtControlArea: true,
-    },
-  });
-  expect(border.checks.some((c) => c.id === 'NZ-R5-125')).toBe(false);
-  expect(border.status).toBe('MET');
-  expect(border.earliestDate).toBe(date);
 });
 
-test.each([
-  [true, 'MET'],
-  [undefined, 'UNKNOWN'],
-  [false, 'NOT_MET'],
-] as const)(
-  'R2.40.2 checks first-time border eligibility (%s) and a single applicant',
-  (eligible, status) => {
-    const filing = {
-      atImmigrationControlArea: true,
-      eligibleForFirstResidenceAtControlArea: eligible,
-      dependentChildrenUnlawfullyInNz: [{ dateOfBirth: '2008-10-01' }],
-    };
-    for (const children of [filing.dependentChildrenUnlawfullyInNz, []]) {
+test.each([true, undefined, false])(
+  'Tier 1 requires online filing regardless of eligibility for residence on arrival (%s)',
+  (eligibleForFirstResidenceAtControlArea) => {
+    for (const children of [[{ dateOfBirth: '2008-10-01' }], []]) {
       const path = tierOnePath({
         residenceFiling: {
-          ...filing,
+          ...base.residenceFiling,
+          atImmigrationControlArea: true,
+          eligibleForFirstResidenceAtControlArea,
           dependentChildrenUnlawfullyInNz: children,
         },
       });
       expect(path.checks.find((c) => c.id === 'NZ-FAMILY-FILING')?.status).toBe(
-        status,
+        'NOT_MET',
       );
       expect(path.checks.find((c) => c.id === 'NZ-R5-125')?.status).toBe(
-        eligible ? undefined : children.length ? status : 'MET',
+        children.length ? 'NOT_MET' : 'MET',
       );
-      expect(path.status).toBe(status);
-      expect(path.earliestDate).toBe(eligible ? date : undefined);
+      expect(path.status).toBe('NOT_MET');
+      expect(path.earliestDate).toBeUndefined();
     }
-    const joint = tierOnePath({
-      residenceFiling: filing,
-      dependants: [{ ...child, dateOfBirth: '2002-11-23' }],
-    });
-    expect(joint.checks.find((c) => c.id === 'NZ-FAMILY-FILING')?.status).toBe(
-      'NOT_MET',
-    );
-    expect(joint.status).toBe('NOT_MET');
-    expect(joint.earliestDate).toBeUndefined();
   },
 );
 

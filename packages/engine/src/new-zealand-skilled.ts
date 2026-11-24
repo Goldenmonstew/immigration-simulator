@@ -19,6 +19,8 @@ type Visa =
   | 'WI21'
   | 'WI22'
   | 'other';
+type CurrentVisa =
+  Visa | 'other-eligible-temporary-or-resident' | 'limited' | 'transit';
 
 interface Employment {
   occupationCode?: string;
@@ -129,7 +131,7 @@ interface WorkPeriod extends WageLock {
 }
 
 interface WorkResidenceAnswers extends WageLock {
-  currentVisa?: Visa;
+  currentVisa?: CurrentVisa;
   periods?: WorkPeriod[];
   distinctMonthsAndEarningsVerified?: boolean;
   maintainedRemovedOccupation?: boolean;
@@ -142,6 +144,8 @@ export interface NzSkilledAnswers {
   smc?: SmcAnswers;
   green?: WorkResidenceAnswers & {
     tier?: 'straight' | 'work';
+    /** Where the applicant will lodge their Straight to Residence application. */
+    filingFromOverseas?: boolean;
     rowRequirementsVerified?: boolean;
     telecomLevelThreeCertificate?: boolean;
     contractorRelevantYears?: number;
@@ -616,10 +620,21 @@ function smcPath(ctx: NzContext, input: NzSkilledAnswers) {
   );
 }
 
-const visaAllowsLodgement = (visa?: Visa) =>
+const visaAllowsLodgement = (visa?: CurrentVisa) =>
   visa === undefined
     ? undefined
     : ['work', 'critical-purpose-work', 'WI21', 'WI22'].includes(visa);
+
+function straightToResidenceVisa(
+  visa?: CurrentVisa,
+  filingFromOverseas?: boolean,
+) {
+  if (visa === undefined || visa === 'other')
+    return filingFromOverseas ? true : undefined;
+  return (
+    visa === 'other-eligible-temporary-or-resident' || visaAllowsLodgement(visa)
+  );
+}
 
 function roadTransition(t: TransportHistory = {}) {
   const timely = (d?: string) =>
@@ -816,7 +831,7 @@ function greenPath(ctx: NzContext, input: NzSkilledAnswers) {
   ];
   const visa =
     tier === 'straight'
-      ? true
+      ? straightToResidenceVisa(g.currentVisa, g.filingFromOverseas)
       : tier === 'work'
         ? visaAllowsLodgement(g.currentVisa)
         : undefined;
@@ -826,9 +841,13 @@ function greenPath(ctx: NzContext, input: NzSkilledAnswers) {
       '层级与申请时签证',
       'Tier and visa at lodgement',
       visa,
-      greenRef('SR4.5, SR5.5(b)(i)'),
-      '直通居留可从海外递交；工签转居留在递交时须持有效工签或有工作条件的关键目的访客签。',
-      'Straight to Residence accepts offshore offers. Work to Residence requires a work visa or a critical purpose visitor visa with work conditions at lodgement.',
+      [
+        ...greenRef('SR4.5(b)–(c), SR5.5(b)(i)'),
+        ...ref('SRC-071', 's71(1)(a)–(b), (4)–(5)'),
+        ...ref('SRC-230', 'RA5(a)–(b)'),
+      ],
+      '直通居留使用指定在线表格。可从境外申请，境内须持符合递交资格的临时签证或居民签证。持 Interim、Limited 或 Transit Visa 时无法递交普通居民签申请。工签转居留在递交时须持有效工签或有工作条件的关键目的访客签。',
+      'Use the approved online form for Straight to Residence. Apply from offshore or with an eligible temporary or resident visa onshore. Holders of interim, limited or transit visas cannot lodge an ordinary residence application. Work to Residence requires a work visa or a critical purpose visitor visa with work conditions at lodgement.',
     ),
   );
   if (tier === 'straight') {

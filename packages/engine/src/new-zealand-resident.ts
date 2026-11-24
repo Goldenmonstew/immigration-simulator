@@ -167,15 +167,16 @@ function residentRecord(ctx: NzContext, a: NzResidentAnswers) {
   const abroadAtGrant =
     granted &&
     trips?.find((trip) => trip.departed < granted && granted < trip.returned);
+  const inferredFirst =
+    granted &&
+    req.firstArrival &&
+    (req.firstArrival > granted
+      ? req.firstArrival
+      : trips && (abroadAtGrant ? abroadAtGrant.returned : granted));
   const first =
     t.firstResidentEntry === null
       ? undefined
-      : (t.firstResidentEntry ??
-        (granted &&
-          req.firstArrival &&
-          (req.firstArrival > granted
-            ? req.firstArrival
-            : trips && (abroadAtGrant ? abroadAtGrant.returned : granted))));
+      : (t.firstResidentEntry ?? inferredFirst);
   let deadline =
     granted && t.firstEntryClass === 'standard'
       ? addDays(afterYears(granted, time.firstEntryYears.value), -1)
@@ -290,10 +291,11 @@ function residentRecord(ctx: NzContext, a: NzResidentAnswers) {
     knownPresence &&
     !openTrip &&
     (first === granted || t.firstEntryClass === 'standard') &&
-    t.firstResidentEntry === undefined &&
+    first !== undefined &&
+    first === inferredFirst &&
     t.firstEntryClass !== 'pacific-quota' &&
     t.firstEntryClass !== 'aip-child' &&
-    a.prv?.expiredOn === undefined;
+    datedLapse === tripLapse;
   return {
     first,
     granted,

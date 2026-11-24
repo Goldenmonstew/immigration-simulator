@@ -50,7 +50,11 @@ const sector: Sector = {
   distinctMonthsAndEarningsVerified: true,
   accrualStarted: '2024-11-23',
 };
-const green: Green = { tier: 'straight', rowRequirementsVerified: true };
+const green: Green = {
+  tier: 'straight',
+  rowRequirementsVerified: true,
+  currentVisa: 'work',
+};
 
 function result(
   skilled: NzSkilledAnswers,
@@ -422,6 +426,44 @@ describe('SMC, Green List and sector residence', () => {
       check(greenInput({ contractorRelevantYears: 9 }, j), 'NZ-P5-2').status,
     ).toBe('NOT_MET');
   });
+  it.each([
+    ['offshore', true, undefined, 'MET'],
+    ['onshore work visa', false, 'work', 'MET'],
+    [
+      'another eligible onshore temporary or resident visa',
+      false,
+      'other-eligible-temporary-or-resident',
+      'MET',
+    ],
+    [
+      'onshore Interim Visa during renewal',
+      false,
+      'interim-work-renewal',
+      'NOT_MET',
+    ],
+    ['onshore other Interim Visa', false, 'other-interim-work', 'NOT_MET'],
+    [
+      'Interim Visa with no location supplied',
+      undefined,
+      'other-interim-work',
+      'NOT_MET',
+    ],
+    ['limited visa', false, 'limited', 'NOT_MET'],
+    ['transit visa', false, 'transit', 'NOT_MET'],
+    ['onshore visa not identified', false, 'other', 'UNKNOWN'],
+    ['onshore visa omitted', false, undefined, 'UNKNOWN'],
+    ['location and visa omitted', undefined, undefined, 'UNKNOWN'],
+  ] as const)(
+    'checks Tier 1 lodgement for %s',
+    (_label, filingFromOverseas, currentVisa, status) => {
+      expectDecision(
+        greenInput({ filingFromOverseas, currentVisa }),
+        'NZ-GREEN-LIST',
+        'NZ-P5-1',
+        status,
+      );
+    },
+  );
   it('combines eligible Tier 2 and high-pay months but excludes ordinary care months and WI21 experience', () => {
     const g: Partial<Green> = {
       tier: 'work',
