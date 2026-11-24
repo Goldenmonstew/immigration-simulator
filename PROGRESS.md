@@ -588,6 +588,7 @@
 | 673 | 任务 88 第二十一轮审核修正（review88-21）。希腊家属卡及 Μ.1 按资格窗口优先核算逐次行程。Ν、Μ.3 仅在中断后重算居留周年，补同段汇总、短途返希及汇总覆盖期间的公开入口回归，并与 45f9526 逐输入对照。 | packages/engine/src/greece-{property-family,settlement}.ts、packages/engine/test/greece-{property-family,settlement}.test.ts、docs/tasks/reports/88-gr-rules.md |
 | 674 | 任务 88 第二十二轮审核修正（review88-22）。Μ.1 换卡和重获保留获权后离欧汇总，以连续离希日期核上界；Ν 和 Ο.3 按申报事由、适用期间与行程核对离境，部分行程无法解释的超限汇总继续参与判断。补公开入口回归并与 93e5a8d 回放历轮原输入。 | packages/engine/src/greece-{property-family,settlement}.ts、packages/engine/test/greece-{property-family,settlement}.test.ts、docs/tasks/reports/88-gr-rules.md |
 | 675 | 任务 88 第二十三轮审核修正（review88-23）。Μ.1、Ν 和 Ο.3／Μ.3 按汇总覆盖期核对行程，以日数范围匹配小数月。补换卡与重获、返希后重新届满、获权前后离境的公开入口回归，并与 5527ce8c 回放历轮审核。 | packages/engine/src/greece-{rules,settlement,property-family}.ts、packages/engine/test/greece-{settlement,property-family}.test.ts、docs/tasks/reports/88-gr-rules.md |
+| 676 | 任务 98：政策页标题与参数千分位按国家通用（与任务 93 相同的 `policy-page.tsx`），非英国国家读 `<国家>.policy.pageTitle`。 | apps/web/components/policy-page.tsx |
 | 680 | 任务 89：登记爱尔兰完整版官方快照、来源及待定细节，保留现有入籍与 Stamp 来源。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 681 | 任务 89：登记爱尔兰完整版的年龄、证明、许可、家庭、长期居留和条约居留参数及原文定位。 | packages/policy-data/src/{index,parameters/ireland-2026-11}.ts |
 | 682 | 任务 89：实现 16 条爱尔兰完整版评估，合并原有时间条件与法定资格、材料、费用和待确认事项，补双语 ID、边界及组合测试和交接报告。 | packages/engine/src/{index.ts,ireland-full/}、packages/engine/test/ireland-full.test.ts、docs/tasks/reports/89-ie-rules.md |
