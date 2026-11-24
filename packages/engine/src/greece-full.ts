@@ -7,10 +7,19 @@ import type {
   CountryPathway,
   CountryResult,
 } from './country-result';
-import { addDays } from './dates';
+import { addDays, addMonths, addYears } from './dates';
+import { HORIZON_YEARS } from './pilot';
+import {
+  blueMobilityTiming,
+  type GrBlueCardMobility,
+} from './greece-blue-mobility';
 import { evaluateGreece } from './greece';
 import type { GrPathway, GrPathwayId, GrPermit, GrRequest } from './greece';
-import { commonChecks, type GrCommonAnswers } from './greece-common';
+import {
+  commonChecks,
+  ordinaryRenewalWindow,
+  type GrCommonAnswers,
+} from './greece-common';
 import {
   propertyFamilyChecks,
   type GrPropertyFamilyAnswers,
@@ -22,6 +31,7 @@ import {
   type GrInsurance,
 } from './greece-rules';
 import {
+  backlogCredits,
   settlementChecks,
   type GrSettlementAnswers,
 } from './greece-settlement';
@@ -64,6 +74,7 @@ export interface GrFullRequest
   insurance?: GrInsurance;
   /** Omit to return all eight routes. An absent answer differs from an empty history. */
   pathways?: GrFullPathwayId[];
+  blueCardMobility?: GrBlueCardMobility;
   /** For M.1 only. The permit periods after grant belong in the ordinary permit history. */
   grantedProtection?: {
     claimedOn: IsoDate;
@@ -110,49 +121,167 @@ function timeRoute(
   }
 }
 
-function protectionPeriods(req: GrFullRequest, permits: GrPermit[]) {
+function longTermPeriods(req: GrFullRequest, permits: GrPermit[]) {
+  const credits = backlogCredits(req);
   const protection = req.grantedProtection;
-  if (
-    !protection ||
-    req.simulationDate < policy.values.protectionCreditFrom.value ||
-    protection.grantedOn > req.simulationDate
-  )
-    return permits;
-  const regular = permits
-    .filter((x) => x.kind === 'regular')
-    .sort((a, b) => a.from.localeCompare(b.from));
-  const credited = regular.map((x, i) => ({
-    ...x,
-    to: x.to ?? (regular[i + 1] && addDays(regular[i + 1].from, -1)),
-  }));
-  if (protection.claimedOn < protection.grantedOn) {
-    credited.push({
+  const reformed =
+    req.simulationDate >= policy.values.protectionCreditFrom.value;
+  let excludedThrough: IsoDate | undefined;
+  if (protection && protection.grantedOn <= req.simulationDate) {
+    if (reformed) excludedThrough = protection.priorResidenceExcludedThrough;
+    if (protection.claimedOn < protection.grantedOn) {
+      const fullCredit =
+        reformed ||
+        protection.grantedOn >
+          addMonths(
+            protection.claimedOn,
+            policy.values.originalProtectionFullCreditMonths.value,
+          );
+      // The pilot already weights a study day as half a day of residence.
+      credits.push({
+        kind: fullCredit ? 'regular' : 'study',
+        from: protection.claimedOn,
+        to: addDays(protection.grantedOn, -1),
+      });
+    }
+  }
+  if (req.blueCardMobility?.greekBlueCardFrom)
+    credits.push({
       kind: 'regular',
-      from: protection.claimedOn,
-      to: addDays(protection.grantedOn, -1),
+      from: req.blueCardMobility.greekBlueCardFrom,
+      to: req.blueCardMobility.greekBlueCardThrough,
     });
-  }
+  if (!credits.length && !excludedThrough) return permits;
+  // Resolve open original cards before inserting credits so the latter cannot shorten a card.
+  const periods = permits.map((period) => {
+    if (period.to) return period;
+    const next = permits
+      .filter((x) => x.kind === period.kind && x.from > period.from)
+      .map((x) => x.from)
+      .sort()[0];
+    return { ...period, to: next && addDays(next, -1) };
+  });
   const merged: GrPermit[] = [];
-  for (const period of credited.sort((a, b) => a.from.localeCompare(b.from))) {
-    const last = merged.at(-1);
-    if (!last || (last.to && addDays(last.to, 1) < period.from))
-      merged.push({ ...period });
-    else if (!period.to || (last.to && period.to > last.to))
-      last.to = period.to;
+  for (const kind of ['regular', 'study', 'investor', 'temporary'] as const) {
+    for (const period of [...periods, ...credits]
+      .filter((x) => x.kind === kind)
+      .sort((a, b) => a.from.localeCompare(b.from))) {
+      const last = merged.at(-1);
+      if (
+        last?.kind === kind &&
+        (!last.to || addDays(last.to, 1) >= period.from)
+      ) {
+        if (!period.to || (last.to && period.to > last.to)) last.to = period.to;
+      } else merged.push({ ...period });
+    }
   }
-  const periods = [...permits.filter((x) => x.kind !== 'regular'), ...merged];
-  const excludedThrough = protection.priorResidenceExcludedThrough;
   return excludedThrough && excludedThrough <= req.simulationDate
-    ? periods
-        .filter((period) => !period.to || period.to > excludedThrough)
-        .map((period) => ({
-          ...period,
+    ? merged
+        .filter((x) => !x.to || x.to > excludedThrough)
+        .map((x) => ({
+          ...x,
           from:
-            period.from <= excludedThrough
-              ? addDays(excludedThrough, 1)
-              : period.from,
+            x.from <= excludedThrough ? addDays(excludedThrough, 1) : x.from,
         }))
-    : periods;
+    : merged;
+}
+
+function filedNationalityTime(
+  req: GrFullRequest,
+  path: GrPathway,
+  c: GrContext,
+): GrPathway {
+  const filed = req.nationality?.pendingApplicationFiledOn;
+  if (!filed) return path;
+  if (filed > req.simulationDate)
+    return {
+      ...path,
+      status: 'UNKNOWN',
+      earliestDate: undefined,
+      checks: [],
+      summary: c.L(
+        '待决申请的递交日期须在模拟日或之前。',
+        'The pending application must have been filed on or before the review date.',
+      ),
+    };
+  const met = path.checks[0]?.met;
+  const status =
+    met === false ? 'NOT_MET' : met === undefined ? 'UNKNOWN' : path.status;
+  return {
+    ...path,
+    status,
+    earliestDate: status === 'MET' ? filed : undefined,
+    summary: c.L(
+      `以实际递交日 ${filed} 核对居留年限。`,
+      `Residence is assessed on the actual filing date, ${filed}.`,
+    ),
+  };
+}
+
+function goldenRenewalTime(
+  req: GrFullRequest,
+  original: GrPathway | undefined,
+  c: GrContext,
+): GrPathway | undefined {
+  const card = req.permits
+    ?.filter((x) => x.kind === 'investor' && x.from <= req.simulationDate)
+    .sort((a, b) => a.from.localeCompare(b.from))
+    .at(-1);
+  const expiry = req.currentCardExpiresOn ?? card?.to;
+  if (!expiry) return original;
+  const window = ordinaryRenewalWindow(req, expiry, c);
+  if (
+    original &&
+    original.status !== 'NOT_APPLICABLE' &&
+    original.status !== 'UNKNOWN' &&
+    req.simulationDate >= policy.values.workReformEffective.value &&
+    !req.currentCardExpiresOn &&
+    !(req.simulationDate > window.late && req.renewalForceMajeure)
+  )
+    return original;
+  const status =
+    typeof window.met === 'string'
+      ? 'FUTURE'
+      : window.met === undefined
+        ? 'UNKNOWN'
+        : window.met
+          ? 'MET'
+          : 'NOT_MET';
+  const checks = [
+    {
+      text: c.L(
+        `正常续期窗口 ${window.early} 至 ${expiry}`,
+        `Ordinary renewal window ${window.early} to ${expiry}`,
+      ),
+      met: req.simulationDate >= window.early && req.simulationDate <= expiry,
+      sources: window.sources,
+    },
+  ];
+  const late = req.simulationDate > expiry;
+  return {
+    id: 'GR-GOLDEN-VISA',
+    title: c.L('投资者续期', 'Investor renewal'),
+    status,
+    earliestDate:
+      status === 'MET'
+        ? req.simulationDate
+        : status === 'FUTURE'
+          ? window.early
+          : undefined,
+    summary: window.text,
+    checks: late
+      ? [
+          ...checks,
+          {
+            text: window.text,
+            met: typeof window.met === 'boolean' ? window.met : undefined,
+            sources: window.sources,
+          },
+        ]
+      : checks,
+    assumptions: [],
+    notChecked: [],
+  };
 }
 
 function specialChecks(
@@ -180,11 +309,12 @@ function timeChecks(
   c: GrContext,
 ): CountryCheck[] {
   const source =
-    id === 'GR-LONG-TERM'
+    time?.checks[0]?.sources ??
+    (id === 'GR-LONG-TERM'
       ? policy.values.longTermYears.sources
       : id === 'GR-NATIONALITY'
         ? policy.values.nationalityYears.sources
-        : policy.values.renewalWindowMonths.sources;
+        : policy.values.renewalWindowMonths.sources);
   const pending = time?.pendingDetails ?? [];
   const checks =
     time?.checks.map((item, i) =>
@@ -192,11 +322,19 @@ function timeChecks(
         timeIds[id][i],
         item.text,
         item.text,
-        item.met,
+        item.met === false && time.status === 'FUTURE'
+          ? time.earliestDate
+          : item.met,
         item.sources,
         item.text,
         item.text,
-        id === 'GR-LONG-TERM' ? [i === 0 ? 'PD-101' : 'PD-102'] : ['PD-109'],
+        id === 'GR-LONG-TERM'
+          ? time.pendingDetails?.includes('PD-305')
+            ? ['PD-305']
+            : pending.filter((pd) => pd === (i === 0 ? 'PD-101' : 'PD-102'))
+          : id === 'GR-NATIONALITY'
+            ? ['PD-109']
+            : [],
       ),
     ) ?? [];
   const explanation =
@@ -208,11 +346,11 @@ function timeChecks(
   const met =
     time?.status === 'MET'
       ? true
-      : time?.status === 'NOT_MET' ||
-          time?.status === 'FUTURE' ||
-          time?.status === 'NOT_APPLICABLE'
-        ? false
-        : undefined;
+      : time?.status === 'FUTURE'
+        ? time.earliestDate
+        : time?.status === 'NOT_MET' || time?.status === 'NOT_APPLICABLE'
+          ? false
+          : undefined;
   checks.push(
     c.check(
       id + '-TIME',
@@ -223,19 +361,87 @@ function timeChecks(
       explanation,
       explanation,
       pending.filter((pd) =>
-        ['PD-101', 'PD-102', 'PD-106', 'PD-109'].includes(pd),
+        ['PD-101', 'PD-102', 'PD-106', 'PD-109', 'PD-305'].includes(pd),
       ),
     ),
   );
   return checks;
 }
 
-export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
-  const c = grContext(req.locale);
-  const ids = req.pathways ?? (Object.keys(titles) as GrFullPathwayId[]);
-  const required = ids
-    .map((id) => timeRoute(id, req))
-    .filter((id) => id !== undefined);
+function routeTiming(
+  id: GrPathwayId,
+  req: GrFullRequest,
+  times: GrPathway[],
+  c: GrContext,
+) {
+  let time: GrPathway | undefined;
+  if (
+    (req.trips !== undefined || id === 'GR-GOLDEN-VISA') &&
+    (req.route !== undefined || id !== 'GR-NATIONALITY')
+  )
+    time = times.find((path) => path.id === id);
+  if (id === 'GR-GOLDEN-VISA') time = goldenRenewalTime(req, time, c);
+  if (
+    id === 'GR-LONG-TERM' &&
+    req.blueCardMobility &&
+    req.blueCardMobility.usedLongTermMobility !== false &&
+    time?.status !== 'MET'
+  ) {
+    const mobile = blueMobilityTiming(
+      req.blueCardMobility,
+      req.trips,
+      req.simulationDate,
+      c,
+    );
+    if (
+      !time ||
+      time.status === 'NOT_MET' ||
+      mobile.status === 'MET' ||
+      (mobile.status === 'FUTURE' &&
+        (!time.earliestDate || mobile.earliestDate! < time.earliestDate)) ||
+      (mobile.status === 'UNKNOWN' && time.status !== 'UNKNOWN')
+    )
+      time = mobile;
+  }
+  return time;
+}
+
+function laterNationalityDate(
+  base: GrRequest,
+  time: GrPathway,
+  c: GrContext,
+): GrPathway {
+  if (time.status !== 'NOT_MET') return time;
+  const years = policy.values.nationalityYears.value[base.route];
+  const horizon = addYears(base.simulationDate, HORIZON_YEARS);
+  // Beyond the pilot horizon, eligibility can first arise on a residence anniversary
+  // or on receiving a qualifying title after a stretch of lawful residence.
+  const candidates = base.permits.flatMap((permit) => [
+    permit.from,
+    addYears(permit.from, years),
+  ]);
+  for (const date of [...new Set(candidates)]
+    .filter((d) => d > horizon)
+    .sort()) {
+    const future = evaluateGreece({ ...base, simulationDate: date })
+      .pathways[2];
+    if (future.status === 'UNKNOWN') return { ...future, checks: time.checks };
+    if (!future.earliestDate) continue;
+    const earliestDate = future.earliestDate;
+    return {
+      ...future,
+      status: 'FUTURE',
+      checks: time.checks,
+      summary: c.L(
+        `合法居留满 ${years} 年的最早递交日是 ${earliestDate}。`,
+        `The earliest application date with ${years} years of legal residence is ${earliestDate}.`,
+      ),
+    };
+  }
+  return time;
+}
+
+function pilotTimes(req: GrFullRequest, required: GrPathwayId[], c: GrContext) {
   let times: GrPathway[] = [];
   if (required.length && req.permits) {
     const base = {
@@ -245,14 +451,39 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
       route: req.route ?? ('general' as const),
     };
     times = evaluateGreece(base).pathways;
+    const filed = req.nationality?.pendingApplicationFiledOn;
+    if (filed && required.includes('GR-NATIONALITY')) {
+      const nat = evaluateGreece({ ...base, simulationDate: filed })
+        .pathways[2];
+      times[2] = filedNationalityTime(req, nat, c);
+    } else if (required.includes('GR-NATIONALITY')) {
+      times[2] = laterNationalityDate(base, times[2], c);
+    }
     if (required.includes('GR-LONG-TERM')) {
-      const permits = protectionPeriods(req, req.permits);
+      const permits = longTermPeriods(req, req.permits);
       if (permits !== req.permits) {
         const lt = evaluateGreece({ ...base, permits }).pathways[0];
+        if (req.grantedProtection)
+          lt.checks[0].sources.push(
+            ...policy.values.originalProtectionFullCreditMonths.sources,
+            ...policy.values.protectionCreditFrom.sources,
+          );
+        if (backlogCredits(req).length)
+          lt.checks[0].sources.push(...policy.values.backlogFilingFrom.sources);
         times = [lt, ...times.filter((path) => path.id !== lt.id)];
       }
     }
   }
+  return times;
+}
+
+export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
+  const c = grContext(req.locale);
+  const ids = req.pathways ?? (Object.keys(titles) as GrFullPathwayId[]);
+  const required = ids
+    .map((id) => timeRoute(id, req))
+    .filter((id) => id !== undefined);
+  const times = pilotTimes(req, required, c);
   const pathways: CountryPathway[] = ids.map((id) => {
     const nationality = id === 'GR-NATIONALITY';
     const inScope =
@@ -285,6 +516,30 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
         checks: [scope],
         assumptions: [],
       };
+    if (
+      req.simulationDate < policy.values.migrationCodeFrom.value &&
+      !nationality &&
+      id !== 'GR-EU-FAMILY-PR'
+    ) {
+      const version = c.check(
+        'GR-LAW-DATE',
+        '模拟日适用的移民法版本',
+        'Migration law on the simulation date',
+        undefined,
+        policy.values.migrationCodeFrom.sources,
+        '此模拟日早于本规则集覆盖的移民法典，须按当时有效的规定核实。',
+        'This date predates the Migration Code covered here. Verify the provisions in force at that time.',
+        ['PD-300'],
+      );
+      return {
+        id,
+        title: c.L(titles[id][0], titles[id][1]),
+        status: 'UNKNOWN',
+        checks: [scope, version],
+        assumptions: [],
+        pendingDetails: ['PD-300'],
+      };
+    }
     const rules = [
       scope,
       ...commonChecks(id, req, c),
@@ -294,11 +549,7 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
     let timing: CountryCheck[] = [];
     const needed = timeRoute(id, req);
     if (needed) {
-      if (
-        (req.trips !== undefined || id === 'GR-GOLDEN-VISA') &&
-        (req.route !== undefined || id !== 'GR-NATIONALITY')
-      )
-        time = times.find((path) => path.id === id);
+      time = routeTiming(needed, req, times, c);
       timing = timeChecks(needed, time, c);
     } else if (id === 'GR-NATIONALITY' && req.nationality?.stage !== 'oath') {
       rules.push(
@@ -316,16 +567,46 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
     // Address changes carry their own fine. The old time assessment already combines alternative
     // renewal windows and distinguishes a future date from an unresolved interpretation.
     const gates = rules.filter((check) => check.id !== 'C-06');
+    const blocked = gates.some(
+      (check) => check.status === 'NOT_MET' && !c.waitDates.has(check),
+    );
+    const unknown = gates.some((check) => check.status === 'UNKNOWN');
+    const waits = gates
+      .map((check) => c.waitDates.get(check))
+      .filter((date) => date !== undefined);
+    let earliestDate = [
+      ...waits,
+      ...(time?.earliestDate ? [time.earliestDate] : []),
+    ]
+      .sort()
+      .at(-1);
+    // The period counted today may end before another requirement (e.g. a refiling ban) matures.
+    let jointTime = time;
+    if (
+      needed &&
+      time?.earliestDate &&
+      earliestDate &&
+      earliestDate > time.earliestDate &&
+      !blocked &&
+      !unknown
+    ) {
+      const onOpening = { ...req, simulationDate: earliestDate };
+      jointTime = routeTiming(
+        needed,
+        onOpening,
+        pilotTimes(onOpening, [needed], c),
+        c,
+      );
+      earliestDate = jointTime?.earliestDate;
+    }
     const status =
-      gates.some((check) => check.status === 'NOT_MET') ||
-      time?.status === 'NOT_MET' ||
-      time?.status === 'NOT_APPLICABLE'
+      blocked ||
+      jointTime?.status === 'NOT_MET' ||
+      jointTime?.status === 'NOT_APPLICABLE'
         ? 'NOT_MET'
-        : gates.some((check) => check.status === 'UNKNOWN') ||
-            (needed && !time) ||
-            time?.status === 'UNKNOWN'
+        : unknown || (needed && !jointTime) || jointTime?.status === 'UNKNOWN'
           ? 'UNKNOWN'
-          : time?.status === 'FUTURE'
+          : waits.length > 0 || jointTime?.status === 'FUTURE'
             ? 'FUTURE'
             : 'MET';
     const checks = [...timing, ...rules];
@@ -335,13 +616,15 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
       status,
       checks,
       earliestDate:
-        status === 'FUTURE' || status === 'MET'
-          ? time?.earliestDate
-          : undefined,
+        status === 'FUTURE' || status === 'MET' ? earliestDate : undefined,
       assumptions: time?.assumptions ?? [],
+      ...(jointTime && jointTime !== time
+        ? { summary: jointTime.summary }
+        : {}),
       pendingDetails: [
         ...new Set([
           ...(time?.pendingDetails ?? []),
+          ...(jointTime?.pendingDetails ?? []),
           ...checks.flatMap((check) => check.pendingDetails ?? []),
         ]),
       ],

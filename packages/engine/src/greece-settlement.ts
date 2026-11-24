@@ -5,6 +5,7 @@ import {
 } from '@uk-immigration/policy-data';
 import type { CountryCheck } from './country-result';
 import { addDays, addMonths, addYears } from './dates';
+import type { GrPermit } from './greece';
 import type { GrFullRequest } from './greece-full';
 import { wageFloor } from './greece-work-family';
 import { ageOn, all, any, insuranceMet, type GrContext } from './greece-rules';
@@ -14,6 +15,7 @@ import type { IsoDate } from './types';
 interface IntegrationEvidence {
   basis:
     | 'school'
+    | 'second-chance-school'
     | 'greek-degree'
     | 'greek-language-degree-abroad'
     | 'language'
@@ -31,6 +33,8 @@ interface IntegrationEvidence {
   historyPoints?: number;
   continuousFrom?: IsoDate;
   includesStudyOrDisputedGap?: boolean;
+  /** Documented twelve years of lawful residence under former article 145(2)(γ). */
+  legacyTwelveLawfulYears?: boolean;
 }
 
 interface ResidenceIncome {
@@ -56,6 +60,19 @@ type Conviction = {
 };
 
 export interface GrSettlementAnswers {
+  /** Renewals granted under article 52(1); permitEffectiveOn is the date printed on the issued card. */
+  backlogRenewals?: {
+    filedOn: IsoDate;
+    permitEffectiveOn: IsoDate;
+    category:
+      | 'employment'
+      | 'services-or-project'
+      | 'family'
+      | 'autonomous-family'
+      | 'other';
+    typeAReceipt: boolean;
+    pendingAtCommencement: boolean;
+  }[];
   integration?: IntegrationEvidence;
   residenceIncome?: ResidenceIncome;
   longTerm?: {
@@ -84,6 +101,9 @@ export interface GrSettlementAnswers {
     greekGrades?: number;
     ageAtSchoolCompletion?: number;
     disputedPermitGap?: boolean;
+    /** Former article 161(1)(a) required ten years of lawful residence and economic/social integration. */
+    legacyTenLawfulYears?: boolean;
+    legacyEconomicAndSocialIntegration?: boolean;
     cardExpiresOn?: IsoDate;
     hasPriorCard?: boolean;
   };
@@ -102,6 +122,8 @@ export interface GrSettlementAnswers {
     removalOrStatusProceedings?: boolean;
     exam?:
       'certificate' | 'written' | 'oral' | 'school-exemption' | 'not-passed';
+    /** The sitting date when different from the filing date used in the simulation. */
+    examOn?: IsoDate;
     languagePoints?: number;
     knowledgePoints?: number;
     oralPassed?: boolean;
@@ -130,7 +152,7 @@ export interface GrSettlementAnswers {
       | 'evidence-pending'
       | 'unexplained-spending'
       | 'benefits-only-without-special-reason';
-    /** Filing year for tax evidence on a still-pending file reviewed on the simulation date. */
+    /** Formal eligibility is fixed on filing. The economic assessment uses the law on review. */
     pendingApplicationFiledOn?: IsoDate;
     integrationAssessment?: 'accepted' | 'adverse' | 'evidence-only';
     civilStatusProof?:
@@ -154,6 +176,7 @@ const migration = (article: string) =>
   grSource('F16', 'Migration Code art. ' + article);
 const citizenship = (article: string) => grSource('F34', 'ΚΕΙ art. ' + article);
 const tenYearLaw = [
+  migration('161(1)–(3), original text, pp. 4200–4201'),
   grSource('F36', 'art. 38, Migration Code art. 161(1), (3)–(7)'),
 ];
 const integrationLaw = [
@@ -163,7 +186,34 @@ const integrationLaw = [
   grSource('F46', 'Prerequisites and cost'),
 ];
 
-function integrationMet(r: GrFullRequest): boolean | undefined {
+const examinationOrders = [
+  {
+    from: v.examCurrentRulesFrom.value,
+    file: 'F56',
+    marking: 'art. 8(1) (written), (2) (oral), pp. 23393–23394',
+    format: 'arts. 2, 6',
+  },
+  {
+    from: v.examWrittenRulesFrom.value,
+    file: 'F30',
+    marking: 'art. 7(1) (written), (2) (oral), p. 9379',
+    format: 'arts. 2, 5',
+  },
+  {
+    from: v.examInterimRulesFrom.value,
+    file: 'F55',
+    marking: 'art. 7, written and oral marking',
+    format: 'arts. 2, 5',
+  },
+  {
+    from: v.examPreviousRulesFrom.value,
+    file: 'F19',
+    marking: 'art. 7, written and oral marking',
+    format: 'arts. 2, 5',
+  },
+] as const;
+
+function integrationMet(r: GrFullRequest): boolean | IsoDate | undefined {
   const e = r.integration;
   if (!e) return undefined;
   const p = v.settlementIntegration.value;
@@ -194,14 +244,20 @@ function integrationMet(r: GrFullRequest): boolean | undefined {
           ? undefined
           : e.historyPoints >= p.history,
       );
-    case 'residence':
+    case 'residence': {
+      if (
+        r.simulationDate < v.workReformEffective.value &&
+        e.legacyTwelveLawfulYears
+      )
+        return true;
       if (!e.continuousFrom) return undefined;
-      if (addYears(e.continuousFrom, p.consecutiveYears) > r.simulationDate)
-        return false;
-      return e.includesStudyOrDisputedGap === undefined ||
-        e.includesStudyOrDisputedGap
-        ? undefined
-        : true;
+      if (e.includesStudyOrDisputedGap !== false) return undefined;
+      const date = addYears(e.continuousFrom, p.consecutiveYears);
+      return date <= r.simulationDate || date;
+    }
+    case 'second-chance-school':
+    case 'greek-degree':
+      return r.simulationDate >= v.workReformEffective.value;
     case 'none':
       return false;
     default:
@@ -212,14 +268,15 @@ function integrationMet(r: GrFullRequest): boolean | undefined {
 function integrationCheck(r: GrFullRequest, c: GrContext, id: string) {
   const p = v.settlementIntegration.value;
   const met = integrationMet(r);
+  const legacy = r.simulationDate < v.workReformEffective.value;
   return c.check(
     id,
     '希腊语及历史文化融入',
     'Greek language, history and culture',
     met,
     integrationLaw,
-    `可提交认可学历、身份或语言证书；全科 Α2 须满 ${p.total} 分且至少 ${p.sections} 项达 ${p.sectionPercent}%（€${p.fullFee}），持语证仅考历史须满 ${p.history} 分（€${p.historyFee}）。连续居留 ${p.consecutiveYears} 年也可举证，学习期与续卡断档须核实。`,
-    `Provide recognised education, status or language evidence. The full A2 exam requires ${p.total} points and ${p.sections} sections at ${p.sectionPercent}% (€${p.fullFee}). With a language certificate, history requires ${p.history} points (€${p.historyFee}). The ${p.consecutiveYears}-year residence alternative requires an uninterrupted record; study and disputed renewal gaps need review.`,
+    `可提交认可学历、身份或语言证书；全科 Α2 须满 ${p.total} 分且至少 ${p.sections} 项达 ${p.sectionPercent}%（€${p.fullFee}），持语证仅考历史须满 ${p.history} 分（€${p.historyFee}）。${legacy ? '原第 145(2)(γ) 条接受合法居留' : '连续合法居留'} ${p.consecutiveYears} 年也可举证，学习期与续卡断档须核实。`,
+    `Provide recognised education, status or language evidence. The full A2 exam requires ${p.total} points and ${p.sections} sections at ${p.sectionPercent}% (€${p.fullFee}). With a language certificate, history requires ${p.history} points (€${p.historyFee}). The ${p.consecutiveYears}-year option requires ${legacy ? 'documented lawful residence under former article 145(2)(γ)' : 'an uninterrupted lawful record'}. Study and disputed renewal gaps need review.`,
     met === undefined && r.integration?.includesStudyOrDisputedGap
       ? ['PD-305']
       : undefined,
@@ -230,6 +287,7 @@ function incomeMet(r: GrFullRequest): boolean | undefined {
   const e = r.residenceIncome;
   if (e?.regularAndDocumented === false || e?.netEur === 0) return false;
   if (e?.netEur === undefined || e.dependants === undefined) return undefined;
+  if (r.simulationDate < v.incomeMethodEffective.value) return undefined;
   const monthly = wageFloor(r.simulationDate);
   if (monthly === undefined) return undefined;
   const base = monthly * v.annualPayPeriods.value;
@@ -242,6 +300,7 @@ function incomeMet(r: GrFullRequest): boolean | undefined {
 }
 
 const incomeSources = [
+  migration('144(1)(a), original text, p. 4194'),
   grSource('F38', 'art. 179, art. 144(1)(a)'),
   grSource('F26', 'art. 3'),
   grSource('F22', 'ministerial decision 25058/2024, operative point α'),
@@ -398,23 +457,68 @@ function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   return checks;
 }
 
-function tenYearResidence(r: GrFullRequest) {
-  if (!r.permits) return undefined;
-  const start = addYears(r.simulationDate, -v.tenYearCard.value.years);
-  const days = new Days(start, r.simulationDate);
-  const sure = new Array<boolean>(days.count).fill(false);
-  const possible = [...sure];
+export function backlogCredits(r: GrFullRequest): GrPermit[] {
+  const effective = v.workReformEffective.value;
+  if (r.simulationDate < effective) return [];
+  return (r.backlogRenewals ?? [])
+    .filter(
+      (b) =>
+        b.category !== 'other' &&
+        b.typeAReceipt &&
+        b.pendingAtCommencement &&
+        b.filedOn >= v.backlogFilingFrom.value &&
+        b.filedOn <= effective &&
+        b.permitEffectiveOn >= effective &&
+        b.permitEffectiveOn <= r.simulationDate,
+    )
+    .map((b) => ({
+      kind: 'regular',
+      from: b.filedOn,
+      to: b.permitEffectiveOn,
+    }));
+}
+
+function tenYearResidence(r: GrFullRequest): boolean | IsoDate | undefined {
+  const legacy = r.simulationDate < v.workReformEffective.value;
+  if (legacy && r.tenYear?.legacyTenLawfulYears) return true;
+  if (!r.permits) return legacy ? r.tenYear?.legacyTenLawfulYears : undefined;
   const byDate = [...r.permits].sort((a, b) => a.from.localeCompare(b.from));
-  for (const [i, p] of byDate.entries()) {
-    const next = byDate.slice(i + 1).find((n) => n.kind === p.kind);
-    const end = p.to ?? (next && addDays(next.from, -1));
-    if (p.kind === 'temporary') continue;
-    days.mark(possible, p.from, end);
-    if (p.kind !== 'study') days.mark(sure, p.from, end);
+  const periods = byDate.map((p, i) => {
+    const next = byDate
+      .slice(i + 1)
+      .find((n) => n.kind === p.kind && n.from > p.from);
+    return { ...p, to: p.to ?? (next && addDays(next.from, -1)) };
+  });
+  const eligible = [...periods, ...backlogCredits(r)]
+    .filter((p) => p.kind !== 'temporary')
+    .sort((a, b) => a.from.localeCompare(b.from));
+  function qualifyingDate(includeStudy: boolean) {
+    const runs: { from: IsoDate; to?: IsoDate }[] = [];
+    for (const period of eligible) {
+      if (period.kind === 'study' && !includeStudy) continue;
+      const run = runs.at(-1);
+      if (!run || (run.to && addDays(run.to, 1) < period.from))
+        runs.push({ from: period.from, to: period.to });
+      else if (run.to && (!period.to || run.to < period.to)) run.to = period.to;
+    }
+    for (const [i, run] of runs.entries()) {
+      if (run.to && run.to < r.simulationDate) continue;
+      const date = addYears(run.from, v.tenYearCard.value.years);
+      // Credited time before a break can satisfy the original article 161(1)(a).
+      // Request the established total if the continuous stretch is insufficient.
+      if (legacy && i > 0 && date > r.simulationDate) return null;
+      if (!run.to || date <= run.to) return date;
+    }
   }
-  if (sure.every(Boolean)) return true;
-  if (possible.every(Boolean) || r.tenYear?.disputedPermitGap) return undefined;
-  return false;
+  const sure = qualifyingDate(false);
+  if (sure && sure <= r.simulationDate) return true;
+  if (
+    sure === null ||
+    r.tenYear?.disputedPermitGap ||
+    qualifyingDate(true) !== sure
+  )
+    return undefined;
+  return sure ?? false;
 }
 
 function conversionAbsences(r: GrFullRequest) {
@@ -434,11 +538,7 @@ function conversionAbsences(r: GrFullRequest) {
   }
   const total = away.filter(Boolean).length;
   const [min, max] = monthSpan(pilot.totalAbsenceMonths.value);
-  return total > max
-    ? false
-    : total <= min && expiry <= r.simulationDate
-      ? true
-      : undefined;
+  return total > max ? false : total <= min ? true : undefined;
 }
 
 function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
@@ -447,6 +547,7 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   const renewal = e.stage === 'renewal';
   const youth = e.basis === 'birth-school';
   const ordinary = e.basis === 'residence';
+  const legacy = r.simulationDate < v.workReformEffective.value;
   const checks: CountryCheck[] = [];
   if (!renewal) {
     const schooling = all(
@@ -473,16 +574,29 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
         'TY-01',
         '确定性居留、出生或学籍',
         'Definitive permits, birth or schooling',
-        all(residence, eligible),
-        tenYearLaw,
-        `申请人须居住在希腊。普通通道须连续持确定性居留许可满 ${p.years} 年。出生或学籍通道须在希出生，或在 ${p.beforeAge} 岁前完成希腊学校 ${p.grades} 个年级。`,
-        `The applicant must reside in Greece. The ordinary route requires ${p.years} continuous years on definitive permits. The alternative requires birth in Greece or ${p.grades} grades of Greek school before age ${p.beforeAge}.`,
+        typeof eligible === 'string'
+          ? residence && eligible
+          : all(residence, eligible),
+        [...tenYearLaw, grSource('F36', 'art. 52(1), pp. 483–484')],
+        `申请人须居住在希腊。普通通道须${legacy ? '' : '连续'}持确定性居留许可满 ${p.years} 年。${legacy ? '' : '第 52(1) 条涵盖的积压续期，从申请日计至新卡生效日。'}出生或学籍通道须在希出生，或在 ${p.beforeAge} 岁前完成希腊学校 ${p.grades} 个年级。`,
+        `The applicant must reside in Greece. The ordinary route requires ${p.years}${legacy ? '' : ' continuous'} years on definitive permits. ${legacy ? '' : 'Qualifying article 52(1) renewal time counts from filing through the effective date of the new permit. '}The alternative requires birth in Greece or ${p.grades} grades of Greek school before age ${p.beforeAge}.`,
         ordinary && eligible === undefined && r.permits !== undefined
           ? ['PD-312']
           : undefined,
       ),
     );
-    if (!youth) checks.push(integrationCheck(r, c, 'TY-02'));
+    if (!youth)
+      checks.push(
+        legacy
+          ? c.check(
+              'TY-02',
+              '经济与社会融入',
+              'Economic and social integration',
+              e.legacyEconomicAndSocialIntegration,
+              [migration('161(1)(a), original text'), citizenship('5Α(1)(δ)')],
+            )
+          : integrationCheck(r, c, 'TY-02'),
+      );
     checks.push(
       c.check(
         'TY-03',
@@ -493,18 +607,12 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       ),
     );
   }
-  const conversion = ordinary && renewal;
+  const conversion = renewal && (ordinary || (legacy && youth));
   const absent = conversion ? conversionAbsences(r) : undefined;
-  const income = conversion ? incomeMet(r) : undefined;
+  const income = legacy ? true : conversion ? incomeMet(r) : undefined;
   const pending: string[] = [];
   const expiry = e.cardExpiresOn ?? r.currentCardExpiresOn;
-  if (
-    conversion &&
-    absent === undefined &&
-    r.trips &&
-    expiry &&
-    expiry <= r.simulationDate
-  )
+  if (conversion && absent === undefined && r.trips && expiry)
     pending.push('PD-102');
   if (
     conversion &&
@@ -523,10 +631,18 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       'TY-04',
       '到期转换或续期',
       'Conversion or renewal at expiry',
-      renewal ? renewalMet : true,
+      renewal && conversion && renewalMet && expiry && expiry > r.simulationDate
+        ? expiry
+        : renewal
+          ? renewalMet
+          : true,
       [...tenYearLaw, ...incomeSources],
-      `普通 Μ.2 到期时查最后 ${pilot.longTermYears.value} 年离境和 Μ.1 收入，达标后凭旧卡转 Μ.1；否则可申请其他类别。出生或学籍类每 ${p.years} 年续卡，查连续离境与公共秩序。`,
-      `Ordinary M.2 holders may convert at expiry with their previous card, qualifying absences over the final ${pilot.longTermYears.value} years and M.1 income. Others may seek a different category. Birth/school cards renew every ${p.years} years subject to absence and public-order rules.`,
+      legacy
+        ? `依原第 161(3) 条，到期时凭旧卡核查最后 ${pilot.longTermYears.value} 年离境后转 Μ.1。`
+        : `普通 Μ.2 到期时查最后 ${pilot.longTermYears.value} 年离境和 Μ.1 收入，达标后凭旧卡转 Μ.1；否则可申请其他类别。出生或学籍类每 ${p.years} 年续卡，查连续离境与公共秩序。`,
+      legacy
+        ? `Former article 161(3) allows conversion at expiry on the previous card and qualifying absences over the final ${pilot.longTermYears.value} years.`
+        : `Ordinary M.2 holders may convert at expiry with their previous card, qualifying absences over the final ${pilot.longTermYears.value} years and M.1 income. Others may seek a different category. Birth/school cards renew every ${p.years} years subject to absence and public-order rules.`,
       pending,
     ),
   );
@@ -563,24 +679,32 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   return checks;
 }
 
-function convictionClear(r: GrFullRequest) {
+function convictionClear(r: GrFullRequest, filing: IsoDate) {
   const records = r.nationality?.convictions;
   if (!records) return undefined;
   const p = v.naturalisationScreen.value;
-  const cutoff = addYears(r.simulationDate, -p.criminalLookbackYears);
-  return all(
-    ...records.map((k) => {
-      if (!k.final || k.sentenceMonths < p.listedSentenceMonths) return true;
-      if (k.offence === 'classification-pending') return undefined;
-      if (k.offence === 'listed') return false;
-      return !(
-        k.offence === 'other-intentional' &&
-        k.offenceDate >= cutoff &&
-        k.offenceDate <= r.simulationDate &&
-        k.sentenceMonths >= p.intentionalSentenceMonths
-      );
-    }),
-  );
+  const cutoff = addYears(filing, -p.criminalLookbackYears);
+  let firstClear = filing;
+  let classificationPending = false;
+  for (const k of records) {
+    if (!k.final || k.sentenceMonths < p.listedSentenceMonths) continue;
+    if (k.offence === 'listed') return false;
+    if (k.offence === 'classification-pending') classificationPending = true;
+    if (
+      k.offence === 'other-intentional' &&
+      k.offenceDate >= cutoff &&
+      k.offenceDate <= filing &&
+      k.sentenceMonths >= p.intentionalSentenceMonths
+    ) {
+      if (r.nationality?.pendingApplicationFiledOn) return false;
+      let clears = addDays(addYears(k.offenceDate, p.criminalLookbackYears), 1);
+      if (addYears(clears, -p.criminalLookbackYears) <= k.offenceDate)
+        clears = addDays(clears, 1);
+      if (clears > firstClear) firstClear = clears;
+    }
+  }
+  if (classificationPending) return undefined;
+  return firstClear === filing || firstClear;
 }
 
 function economicIntegration(r: GrFullRequest) {
@@ -657,7 +781,8 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   const e = r.nationality ?? {};
   const p = v.naturalisationScreen.value;
   const exam = v.naturalisationExam.value;
-  const age = ageOn(r.birthDate, r.simulationDate);
+  const filing = e.pendingApplicationFiledOn ?? r.simulationDate;
+  const adultOn = r.birthDate && addYears(r.birthDate, p.adultAge);
   const oathStage = e.stage === 'oath';
   const deadline =
     e.publicationDate && addYears(e.publicationDate, p.oathYears);
@@ -692,7 +817,7 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       : e.shortRouteBasis === undefined
         ? undefined
         : e.shortRouteBasis !== 'none';
-  const clear = convictionClear(r);
+  const clear = convictionClear(r, filing);
   const school = any(
     e.greekSchoolGrades === undefined
       ? undefined
@@ -702,17 +827,24 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       : e.greekSecondaryGrades >= exam.secondaryGrades,
     e.greekTaughtUniversityDegree,
   );
+  const examOn = e.examOn ?? filing;
+  const currentExamOptions = examOn >= v.naturalisationReformFrom.value;
+  const order = examinationOrders.find((rule) => rule.from <= examOn);
   const examYearAge =
     r.birthDate &&
-    Number(r.simulationDate.split('-')[0]) - Number(r.birthDate.split('-')[0]);
+    Number(examOn.split('-')[0]) - Number(r.birthDate.split('-')[0]);
   const oral = any(
     typeof examYearAge === 'number' ? examYearAge > exam.oralAge : undefined,
     e.disabilityPercent === undefined
       ? undefined
-      : e.disabilityPercent >= exam.disabilityPercent,
+      : currentExamOptions
+        ? e.disabilityPercent >= exam.disabilityPercent
+        : e.disabilityPercent > exam.disabilityPercent,
     e.certifiedLearningDisability,
   );
   let knowledge: boolean | undefined;
+  let uncertainWrittenScore = false;
+  const languageMinimum = (exam.languageMax * exam.languagePercent) / 100;
   switch (e.exam) {
     case 'certificate':
       knowledge = true;
@@ -728,12 +860,27 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       );
       break;
     case 'written': {
-      const l = e.languagePoints;
-      const k = e.knowledgePoints;
+      if (!order) {
+        uncertainWrittenScore = true;
+        knowledge = e.barredFromExam === true ? false : undefined;
+        break;
+      }
+      const language = e.languagePoints;
+      const knowledgePoints = e.knowledgePoints;
+      uncertainWrittenScore =
+        language !== undefined &&
+        language >= languageMinimum &&
+        language < exam.language;
       knowledge = all(
-        l === undefined ? undefined : l >= exam.language,
-        k === undefined ? undefined : k >= exam.knowledge,
-        l === undefined || k === undefined ? undefined : l + k >= exam.total,
+        language === undefined || uncertainWrittenScore
+          ? undefined
+          : language >= languageMinimum,
+        knowledgePoints === undefined
+          ? undefined
+          : knowledgePoints >= exam.knowledge,
+        language === undefined || knowledgePoints === undefined
+          ? undefined
+          : language + knowledgePoints >= exam.total,
         e.barredFromExam === undefined ? undefined : !e.barredFromExam,
       );
       break;
@@ -742,17 +889,24 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       knowledge = false;
       break;
   }
+  if ((e.exam === 'written' || e.exam === 'oral') && examOn > filing)
+    knowledge = false;
   const financial = economicIntegration(r);
   const holistic = r.simulationDate >= v.economicCircularFrom.value;
   const years = r.route && v.naturalisationIncomeYears.value[r.route];
   const income = v.naturalisationIncome.value;
   const rejected = e.lastRejection;
+  const reapplyOn =
+    rejected && rejected !== 'none'
+      ? addYears(rejected, p.rejectionYears)
+      : undefined;
   const cooling =
-    rejected === 'none' || e.preReformObjectionException
+    rejected === 'none' ||
+    (filing >= v.naturalisationReformFrom.value &&
+      e.preReformObjectionException)
       ? true
-      : rejected
-        ? addYears(rejected, p.rejectionYears) <= r.simulationDate
-        : undefined;
+      : reapplyOn &&
+        (reapplyOn <= filing || (!e.pendingApplicationFiledOn && reapplyOn));
   const fees = v.naturalisationFees.value;
   const reduced =
     e.feeClass === 'reduced' ||
@@ -770,7 +924,8 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       'NAT-01',
       '递交时已成年',
       'Adult on filing',
-      age === undefined ? undefined : age >= p.adultAge,
+      adultOn &&
+        (adultOn <= filing || (!e.pendingApplicationFiledOn && adultOn)),
       [citizenship('5(1)(a)')],
       `递交当日须年满 ${p.adultAge} 岁。`,
       `You must be at least ${p.adultAge} on filing.`,
@@ -814,9 +969,17 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       'Π.Ε.Γ.Π. 证书或法定免试',
       'PEGP certificate or educational exemption',
       knowledge,
-      [citizenship('7(1)–(4)'), grSource('F30', 'arts. 2, 4–5')],
-      `笔试须语言 ≥${exam.language}、知识 ≥${exam.knowledge}、合计 ≥${exam.total}。特殊口试也须通过；可提交认可的学历免试。`,
-      `Written examination minima are ${exam.language} for language, ${exam.knowledge} for knowledge and ${exam.total} overall. The oral route also requires a pass. Qualifying education exempts the exam.`,
+      [
+        citizenship('7(1)–(4)'),
+        ...(order ? [grSource(order.file, order.marking)] : []),
+      ],
+      order
+        ? `笔试语言满分 ${exam.languageMax}，法典要求至少 ${exam.languagePercent}%。语言达到 ${languageMinimum} 分但不足口试明列的 ${exam.language} 分时，须核实笔试折算（PD-309）。知识至少 ${exam.knowledge} 分，合计至少 ${exam.total} 分。特殊口试须通过，认可学历可免试。`
+        : '需核对考试当期的评分规定或已取得的合格证书。',
+      order
+        ? `The written language paper has ${exam.languageMax} points. The code requires ${exam.languagePercent}%. A score from ${languageMinimum} up to but excluding the explicit oral threshold of ${exam.language} needs confirmation (PD-309). Knowledge requires ${exam.knowledge} and the total ${exam.total}. The oral route requires a pass. Qualifying education exempts the exam.`
+        : 'Verify the marking rules in force on the examination date or provide a pass certificate.',
+      uncertainWrittenScore ? ['PD-309'] : undefined,
     ),
     c.check(
       'NAT-06',
@@ -824,18 +987,22 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       'Exam format and education exemption',
       e.exam === 'oral'
         ? oral
-        : e.exam === 'school-exemption'
-          ? school
-          : e.exam === undefined
+        : e.exam === 'written' && !currentExamOptions
+          ? oral === undefined
             ? undefined
-            : true,
+            : !oral
+          : e.exam === 'school-exemption'
+            ? school
+            : e.exam === undefined
+              ? undefined
+              : true,
       [
         citizenship('7(3)–(4)'),
         grSource('F33', 'art. 96'),
-        grSource('F30', 'arts. 2, 5'),
+        ...(order ? [grSource(order.file, order.format)] : []),
       ],
-      `以出生年计算超过 ${exam.oralAge} 岁、认证残障 ≥${exam.disabilityPercent}% 或有学习障碍证明可口试；完成 ${exam.schoolGrades} 个年级或 ${exam.secondaryGrades} 个中学年级、或取得希腊高校希腊语学位可免试。`,
-      `An oral test is available above age ${exam.oralAge} by calendar year, with certified disability of at least ${exam.disabilityPercent}% or a certified learning disability. ${exam.schoolGrades} Greek school grades, ${exam.secondaryGrades} secondary grades or a Greek-taught Greek university degree can exempt the exam.`,
+      `以出生年计算超过 ${exam.oralAge} 岁、认证残障 ${currentExamOptions ? '≥' : '>'}${exam.disabilityPercent}% 或有学习障碍证明适用口试；完成 ${exam.schoolGrades} 个年级或 ${exam.secondaryGrades} 个中学年级、或取得希腊高校希腊语学位可免试。`,
+      `The oral procedure applies above age ${exam.oralAge} by calendar year, with certified disability ${currentExamOptions ? 'of at least' : 'above'} ${exam.disabilityPercent}% or a certified learning disability. ${exam.schoolGrades} Greek school grades, ${exam.secondaryGrades} secondary grades or a Greek-taught Greek university degree can exempt the exam.`,
     ),
     c.check(
       'NAT-07',

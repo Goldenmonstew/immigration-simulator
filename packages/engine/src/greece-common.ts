@@ -37,6 +37,9 @@ export interface GrCommonAnswers {
   missedFingerprintAppointments?: number;
   /** Consular or duly legalised/notarised mandate to file an investment application before entry. */
   overseasInvestorMandate?: boolean;
+  deferredInitialEvidence?: (
+    'public-insurance-application' | 'public-hospital-certificate'
+  )[];
   currentCardExpiresOn?: IsoDate;
   renewalForceMajeure?: 'approved' | 'pending' | 'none';
 }
@@ -182,6 +185,61 @@ function cardCheck(req: GrFullRequest, c: GrContext) {
   );
 }
 
+function initialInvestor(req: GrFullRequest) {
+  return req.goldenVisa?.stage
+    ? req.goldenVisa.stage === 'initial'
+    : !req.permits?.some(
+        (x) => x.kind === 'investor' && x.from <= req.simulationDate,
+      );
+}
+
+export function overseasInvestorFiling(req: GrFullRequest) {
+  return (
+    initialInvestor(req) &&
+    req.entry === 'outside' &&
+    req.overseasInvestorMandate === true &&
+    !req.goldenVisa?.overseasFilingDate
+  );
+}
+
+export function ordinaryRenewalWindow(
+  req: GrFullRequest,
+  expiry: IsoDate,
+  c: GrContext,
+) {
+  const current = req.simulationDate >= p.workReformEffective.value;
+  const early = addMonths(expiry, -p.renewalWindowMonths.value);
+  const late = addMonths(
+    expiry,
+    current ? p.lateRenewalMonths.value : p.originalLateRenewal.value.months,
+  );
+  const met =
+    req.simulationDate < early
+      ? early
+      : req.simulationDate <= late
+        ? true
+        : req.renewalForceMajeure === 'pending'
+          ? undefined
+          : req.renewalForceMajeure === 'approved';
+  const fine = current
+    ? c.L(
+        `每逾期一个月 €${p.lateFinePerMonthEur.value}`,
+        `€${p.lateFinePerMonthEur.value} per late month`,
+      )
+    : c.L(
+        `逾期罚款 €${p.originalLateRenewal.value.fineEur}`,
+        `a late fee of €${p.originalLateRenewal.value.fineEur}`,
+      );
+  const sources = current
+    ? [...p.renewalWindowMonths.sources, ...p.workReformEffective.sources]
+    : p.originalLateRenewal.sources;
+  const text = c.L(
+    `自 ${early} 可递交，逾期截至 ${late}，${fine}。超过期限需认可的不可抗力理由。`,
+    `File from ${early}, or late through ${late} with ${fine}. A later filing needs accepted force majeure.`,
+  );
+  return { met, early, late, sources, text };
+}
+
 function renewalCheck(id: GrFullPathwayId, req: GrFullRequest, c: GrContext) {
   const expiry =
     (id === 'GR-TEN-YEAR' && req.tenYear?.cardExpiresOn) ||
@@ -196,29 +254,15 @@ function renewalCheck(id: GrFullPathwayId, req: GrFullRequest, c: GrContext) {
       '须在卡片到期前申请换卡，第 11(1) 条的一般续期窗口不适用。',
       'Apply before the card expires. Article 146(2) excludes the ordinary renewal window.',
     );
-  const early = expiry && addMonths(expiry, -p.renewalWindowMonths.value);
-  const late = expiry && addMonths(expiry, p.lateRenewalMonths.value);
-  const expired = late && req.simulationDate > late;
-  const met =
-    !early || !late
-      ? undefined
-      : expired
-        ? req.renewalForceMajeure === 'pending'
-          ? undefined
-          : req.renewalForceMajeure === 'approved'
-        : req.simulationDate >= early;
+  const window = expiry && ordinaryRenewalWindow(req, expiry, c);
   return c.check(
     'C-07-window',
     '居留卡续期递交窗口',
     'Residence card renewal window',
-    met,
-    p.renewalWindowMonths.sources,
-    early && late
-      ? `自 ${early} 可递交，逾期截至 ${late}，每逾期一个月 €${p.lateFinePerMonthEur.value}；超过期限需认可的不可抗力理由。`
-      : '请填写当前卡片到期日。',
-    early && late
-      ? `File from ${early}, or late through ${late} at €${p.lateFinePerMonthEur.value} per late month. A later filing needs accepted force majeure.`
-      : 'Enter the expiry date on the current card.',
+    window ? window.met : undefined,
+    window ? window.sources : p.renewalWindowMonths.sources,
+    window ? window.text : '请填写当前卡片到期日。',
+    window ? window.text : 'Enter the expiry date on the current card.',
   );
 }
 
@@ -236,7 +280,17 @@ export function commonChecks(
     (euFamily && req.euFamily?.stage === 'maintain')
   )
     return [];
-  const checks = [passportCheck(req, c, nat || euFamily || greekFamily, nat)];
+  const filedOn = nat && req.nationality?.pendingApplicationFiledOn;
+  const checks = [
+    passportCheck(
+      filedOn && filedOn <= req.simulationDate
+        ? { ...req, simulationDate: filedOn }
+        : req,
+      c,
+      nat || euFamily || greekFamily,
+      nat,
+    ),
+  ];
   if (nat) return checks;
   const work = id === 'GR-WORK';
   const reunion = id === 'GR-FAMILY-TCN';
@@ -250,13 +304,8 @@ export function commonChecks(
       : id === 'GR-LONG-TERM'
         ? req.longTerm?.stage === 'renewal'
         : id === 'GR-TEN-YEAR' && req.tenYear?.stage === 'renewal';
-  const initialGold =
-    gold &&
-    (req.goldenVisa?.stage === 'initial' ||
-      (!req.goldenVisa?.stage &&
-        !req.permits?.some(
-          (x) => x.kind === 'investor' && x.from <= req.simulationDate,
-        )));
+  const initialGold = gold && initialInvestor(req);
+  const overseas = initialGold && overseasInvestorFiling(req);
   const initialEntry =
     initialGold ||
     (greekFamily && req.greekFamily?.stage === 'initial') ||
@@ -274,6 +323,7 @@ export function commonChecks(
         if (initialGold) allowed = req.overseasInvestorMandate;
         else if (greekFamily) allowed = false;
         break;
+      case 'receipt':
       case 'restricted-permit':
         if (initialGold) allowed = true;
         break;
@@ -298,7 +348,12 @@ export function commonChecks(
         [
           grSource('F16', 'arts. 8(b), 10(1),(11), 12, 84, 93, 100'),
           grSource('F36', 'arts. 13, 21'),
-          ...(initialGold ? [grSource('F23', 'art. 64, art. 100(1)(a)')] : []),
+          ...(initialGold
+            ? [
+                grSource('F23', 'art. 64, art. 100(1)(a)'),
+                grSource('F21', 'art. 31(2.1, 2.3)(α)'),
+              ]
+            : []),
         ],
         initialGold && entry === 'outside'
           ? `境外可凭合规授权书递件。自递件起 ${p.investorEntryMonths.value} 个月内须入境补录指纹及欠交的保险凭证。`
@@ -315,19 +370,26 @@ export function commonChecks(
     initialEntry &&
     (entry === 'national-visa' || entry === 'outside' || entry === undefined)
   ) {
+    const deferred =
+      req.deferredInitialEvidence?.includes('public-hospital-certificate') &&
+      req.publicHealth === undefined;
     checks.push(
       c.check(
         'C-04',
         '首次入境公共卫生要求',
         'Public health at first entry',
-        req.publicHealth === 'cleared'
+        req.publicHealth === 'cleared' || deferred
           ? true
           : req.publicHealth === 'entry-refused'
             ? false
             : undefined,
-        [grSource('F16', 'arts. 8(d), 176(11)')],
-        '需确认首次入境的公共卫生结论。可能的风险须由主管机关认定。',
-        'Confirm public health clearance for first entry. A possible risk requires a decision by the competent authority.',
+        [grSource('F16', 'arts. 8(d), 10(9), 176(11)')],
+        deferred
+          ? `首次递件后 ${p.initialEvidenceMonths.value} 个月内补交公立医院证明。`
+          : '需确认首次入境的公共卫生结论。可能的风险须由主管机关认定。',
+        deferred
+          ? `Supply the public hospital certificate within ${p.initialEvidenceMonths.value} months of filing.`
+          : 'Confirm public health clearance for first entry. A possible risk requires a decision by the competent authority.',
         req.publicHealth === 'possible-risk' ? ['PD-302'] : [],
       ),
     );
@@ -344,16 +406,44 @@ export function commonChecks(
         'C-05',
         '医疗保险凭证',
         'Health insurance evidence',
-        insuranceMet(req.insurance, mode),
-        p.privateInsurance.sources,
-        '私保须核对全年三项年度保额、最高自付比例及有无免赔和除外条款。公保按许可类别核对。',
-        'Check all three annual limits, maximum copay, deductibles, exclusions and duration for private coverage. Public coverage depends on the permit category.',
+        overseas || insuranceMet(req.insurance, mode),
+        overseas
+          ? [...p.privateInsurance.sources, ...p.investorEntryMonths.sources]
+          : p.privateInsurance.sources,
+        overseas
+          ? `可由代理人递件，须在递件后 ${p.investorEntryMonths.value} 个月内入境并补交合格医保凭证。`
+          : '私保须核对全年三项年度保额、最高自付比例及有无免赔和除外条款。公保按许可类别核对。',
+        overseas
+          ? `Filing by mandate is permitted. Enter and provide qualifying insurance within ${p.investorEntryMonths.value} months of filing.`
+          : 'Check all three annual limits, maximum copay, deductibles, exclusions and duration for private coverage. Public coverage depends on the permit category.',
         req.insurance?.kind === 'gap' ? ['PD-303'] : [],
       ),
     );
   }
   if (!euFamily) checks.push(changeCheck(req, c));
-  checks.push(cardCheck(req, c));
+  if (overseas || (initialGold && req.goldenVisa?.overseasFilingDate)) {
+    const filed = req.goldenVisa?.overseasFilingDate;
+    const completed = req.goldenVisa?.overseasEvidenceCompletedOn;
+    const deadline = filed && addMonths(filed, p.investorEntryMonths.value);
+    const met =
+      overseas ||
+      (filed && deadline && completed
+        ? completed >= filed &&
+          completed <= deadline &&
+          completed <= req.simulationDate
+        : undefined);
+    checks.push(
+      c.check(
+        'C-07',
+        '入境及补交制卡材料',
+        'Entry and outstanding card evidence',
+        met,
+        p.investorEntryMonths.sources,
+        `境外首次递件可延后提交指纹，入境、保险与生物识别材料须在递件后 ${p.investorEntryMonths.value} 个月内完成。`,
+        `Biometrics may follow the initial overseas filing. Complete entry, insurance and biometrics within ${p.investorEntryMonths.value} months of filing.`,
+      ),
+    );
+  } else checks.push(cardCheck(req, c));
   if (renewal) checks.push(renewalCheck(id, req, c));
   return checks;
 }

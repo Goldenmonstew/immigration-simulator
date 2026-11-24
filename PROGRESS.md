@@ -490,3 +490,9 @@
 | 650 | 任务 88：登记希腊官方原件及哈希，复用 SRC-086–089，补充 SRC-350–372 与 PD-300–319；核实投资过渡交割、旧房短租和入籍经济融入通函。 | policy-sources/*-gr-*、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
 | 651 | 任务 88：按国家登记希腊完整版参数；工资、考试、保险、家庭构成、投资、期限与费用保留逐条法规定位。 | packages/policy-data/src/{types,index,parameters/index,parameters/greece-2026-11}.ts |
 | 652 | 任务 88：增加 evaluateGreeceFull，按八条路径和申请阶段评估通用及专属条件，复用原时间算法；以双语、手算边界、整条路径和旧版兼容用例验证。 | packages/engine/src/{index,greece-full,greece-rules,greece-common,greece-settlement,greece-property-family,greece-work-family}.ts、packages/engine/test/greece-*.test.ts、docs/tasks/reports/88-gr-rules.md |
+
+## 2026-11-24
+
+| # | 改动描述 | 涉及文件 |
+|---|---|---|
+| 653 | 任务 88 审核修正（review88-1）：修正八条希腊路径的等待日期、历史规则、递件材料、跨国及积压居留；补齐归化双日期、笔试边界和投资取得方式与用途。等待条件在说明中给出日期，路径汇总为 FUTURE，已补公开入口回归。 | packages/engine/src/greece-*.ts、packages/engine/test/greece-*.test.ts、packages/policy-data/src/parameters/greece-2026-11.ts、apps/web/lib/sources.ts、policy-sources、docs/{SOURCES,pending-details,tasks/reports/88-gr-rules}.md |

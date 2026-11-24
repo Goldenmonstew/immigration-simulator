@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import type { GrFullRequest } from '../src/greece-full';
+import { evaluateGreeceFull, type GrFullRequest } from '../src';
 import { grContext } from '../src/greece-rules';
 import {
   workFamilyChecks,
@@ -14,6 +14,12 @@ const base = {
   birthDate: '1996-11-23',
   entry: 'national-visa',
   insurance: { kind: 'public', coversFamily: true },
+  citizenship: 'third-country',
+  passport: { kind: 'exception-granted' },
+  publicHealth: 'cleared',
+  publicOrder: 'clear',
+  biometrics: 'provided',
+  changes: [],
 } satisfies GrFullRequest;
 const employed: Work = {
   permit: 'E4',
@@ -80,6 +86,203 @@ function family(
   if (!check) throw new Error(`missing ${id}`);
   return check;
 }
+
+function route(
+  id: 'GR-WORK' | 'GR-FAMILY-TCN',
+  request: Partial<GrFullRequest>,
+) {
+  return evaluateGreeceFull({ ...base, ...request, pathways: [id] }).columns[0]
+    .pathways[0];
+}
+
+test.each([
+  ['2026-11-23', 'standalone-Z', 'FUTURE', '2026-12-01'],
+  ['2026-12-01', 'standalone-Z', 'MET', undefined],
+  ['2026-12-02', 'standalone-Z', 'NOT_MET', undefined],
+  ['2026-12-01', 'leads-to-permit', 'NOT_MET', undefined],
+] as const)(
+  'an Ε.4 switch on a %s national visa (%s) needs the qualifying visa at expiry',
+  (simulationDate, kind, status, earliestDate) => {
+    const result = route('GR-WORK', {
+      simulationDate,
+      entry: 'national-visa',
+      work: {
+        ...employed,
+        admission: 'domestic-switch',
+        quotaAvailable: false,
+        switchVisa: { kind, expiresOn: '2026-12-01' },
+      },
+    });
+    const check = result.checks.find((item) => item.id === 'WK-06');
+    expect(check?.status).toBe(status === 'FUTURE' ? 'NOT_MET' : status);
+    if (earliestDate) expect(check?.explanation).toContain(earliestDate);
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBe(earliestDate);
+  },
+);
+
+test.each([
+  [true, 'MET'],
+  [false, 'NOT_MET'],
+  [undefined, 'UNKNOWN'],
+] as const)(
+  'a lawful short-stay Ε.1 switch uses the available quota (%s)',
+  (quotaAvailable, status) => {
+    const result = route('GR-WORK', {
+      simulationDate: '2024-11-23',
+      entry: 'short-stay',
+      work: {
+        ...blue,
+        admission: 'domestic-switch',
+        grossAnnualEur: 60000,
+        quotaAvailable,
+      },
+    });
+    for (const id of ['C-02', 'WK-03']) {
+      expect(result.checks.find((item) => item.id === id)?.status).toBe('MET');
+    }
+    expect(result.checks.find((item) => item.id === 'WK-06')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test('residence and age waits use the actual anniversary and require every other condition', () => {
+  const familyTcn: Family = {
+    ...reunion,
+    sponsorLawfulFrom: '2024-12-10',
+    sponsorLawfulYears: undefined,
+  };
+  const application = { familyTcn, birthDate: '2008-11-24' };
+  const pending = route('GR-FAMILY-TCN', application);
+  expect(pending.checks.find((item) => item.id === 'FT-01')).toMatchObject({
+    status: 'NOT_MET',
+    explanation: expect.stringContaining('2026-12-10'),
+  });
+  expect(pending.checks.find((item) => item.id === 'FT-05')).toMatchObject({
+    status: 'NOT_MET',
+    explanation: expect.stringContaining('2026-11-24'),
+  });
+  expect(pending).toMatchObject({
+    status: 'FUTURE',
+    earliestDate: '2026-12-10',
+  });
+  expect(
+    route('GR-FAMILY-TCN', { ...application, simulationDate: '2026-12-10' })
+      .status,
+  ).toBe('MET');
+  const blocked = route('GR-FAMILY-TCN', {
+    ...application,
+    familyTcn: { ...familyTcn, housingDocument: 'none' },
+  });
+  expect(blocked.status).toBe('NOT_MET');
+  expect(blocked.earliestDate).toBeUndefined();
+});
+
+test('Ο.2 uses combined Blue Card family residence and the final years in Greece', () => {
+  const familyTcn: Family = {
+    stage: 'autonomous',
+    sponsor: 'blue-card',
+    member: 'spouse',
+    previousFamilyCard: true,
+    autonomousBasis: 'residence',
+    familyResidenceFrom: '2025-01-01',
+    blueFamilyResidenceFrom: '2021-11-23',
+  };
+  const result = route('GR-FAMILY-TCN', { familyTcn });
+  expect(result.checks.find((item) => item.id === 'FT-07')).toMatchObject({
+    status: 'NOT_MET',
+    explanation: expect.stringContaining('2027-01-01'),
+  });
+  expect(result).toMatchObject({
+    status: 'FUTURE',
+    earliestDate: '2027-01-01',
+  });
+  expect(
+    route('GR-FAMILY-TCN', { familyTcn, simulationDate: '2027-01-01' }).status,
+  ).toBe('MET');
+});
+
+test('employment filing can defer the insurance registration certificate and Blue Card address', () => {
+  const req: Partial<GrFullRequest> = {
+    simulationDate: '2024-11-23',
+    entry: 'short-stay',
+    deferredInitialEvidence: ['public-insurance-application'],
+    insurance: undefined,
+    work: {
+      ...blue,
+      admission: 'domestic-switch',
+      permanentAddressAvailable: false,
+    },
+  };
+  const filed = route('GR-WORK', req);
+  expect(filed.status).toBe('MET');
+  expect(filed.earliestDate).toBeUndefined();
+  expect(filed.checks.find((item) => item.id === 'WK-07')).toMatchObject({
+    status: 'MET',
+    explanation: expect.stringContaining('6'),
+  });
+  const renewal = route('GR-WORK', {
+    ...req,
+    currentCardExpiresOn: '2024-12-01',
+    work: { ...req.work, stage: 'renewal', taxesSettledDuringPermit: true },
+  });
+  expect(renewal.checks.find((item) => item.id === 'WK-07')?.status).toBe(
+    'UNKNOWN',
+  );
+  expect(renewal.status).toBe('UNKNOWN');
+  expect(renewal.earliestDate).toBeUndefined();
+});
+
+test.each([
+  ['2024-05-01', 'UNKNOWN'],
+  ['2024-05-02', 'MET'],
+] as const)(
+  'employer turnover is evaluated under the order in force on %s',
+  (simulationDate, status) => {
+    const result = route('GR-WORK', {
+      simulationDate,
+      work: { ...employed, contractMonths: 12 },
+    });
+    expect(result.checks.find((item) => item.id === 'WK-05')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
+  [false, true, 'MET'],
+  [true, false, 'NOT_MET'],
+  [true, undefined, 'UNKNOWN'],
+] as const)(
+  'Ο.1 renewal checks the family tax record, including domestic formation (%s, %s)',
+  (formedLegallyInGreece, priorYearTaxAndInsuranceEvidence, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      currentCardExpiresOn: '2026-12-01',
+      familyTcn: {
+        ...reunion,
+        stage: 'renewal',
+        housingDocument: 'none',
+        formedLegallyInGreece,
+        priorYearTaxAndInsuranceEvidence,
+        familyLifeContinues: true,
+      },
+    });
+    expect(result.checks.map((item) => item.id)).not.toContain('FT-03');
+    expect(result.checks.find((item) => item.id === 'FT-02')?.status).toBe(
+      status,
+    );
+    expect(result.checks.find((item) => item.id === 'FT-08')?.status).toBe(
+      'MET',
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
 
 describe('Gr employment routes', () => {
   test('the request needs a permit category, and a complete Ε.4 application has no outstanding route checks', () => {
@@ -241,8 +444,11 @@ describe('Gr employment routes', () => {
       work('WK-06', { ...project, ...blue, quotaAvailable: false }).status,
     ).toBe('NOT_MET');
     expect(
-      work('WK-INVITATION-AGE', {}, { birthDate: '2008-11-23' }).status,
-    ).toBe('NOT_MET');
+      work('WK-INVITATION-AGE', {}, { birthDate: '2008-11-23' }),
+    ).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining('2026-11-24'),
+    });
     expect(
       work('WK-INVITATION-AGE', {}, { birthDate: '2008-11-22' }).status,
     ).toBe('MET');
@@ -264,7 +470,7 @@ describe('Gr employment routes', () => {
     ).toBe('NOT_MET');
     expect(
       work('WK-07', { ...blue, permanentAddressAvailable: false }).status,
-    ).toBe('NOT_MET');
+    ).toBe('MET');
     const renewal = {
       stage: 'renewal' as const,
       taxesSettledDuringPermit: true,
@@ -341,6 +547,24 @@ describe('Gr employment routes', () => {
   });
 });
 
+test.each([
+  ['2024-09-16', 'UNKNOWN'],
+  ['2024-09-17', 'MET'],
+] as const)(
+  'family income uses the annual pay calculation in force on %s',
+  (simulationDate, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      simulationDate,
+      familyTcn: reunion,
+    });
+    expect(result.checks.find((item) => item.id === 'FT-02')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
 describe('Gr third-country family', () => {
   test('starts on complete initial application, switches to the appropriate procedure for excluded or protected sponsors', () => {
     expect(family('FT-STAGE', { stage: undefined }).status).toBe('UNKNOWN');
@@ -351,7 +575,7 @@ describe('Gr third-country family', () => {
         grContext(),
       ).every((x) => x.status === 'MET'),
     ).toBe(true);
-    expect(family('FT-01', { sponsorLawfulYears: 1 }).status).toBe('NOT_MET');
+    expect(family('FT-01', { sponsorLawfulYears: 1 }).status).toBe('UNKNOWN');
     expect(family('FT-01', { sponsorPermitDurationYears: 1 }).status).toBe(
       'NOT_MET',
     );
@@ -454,9 +678,10 @@ describe('Gr third-country family', () => {
       family('FT-05', { ...child, adultChildIncapacityDependencyProved: true })
         .status,
     ).toBe('MET');
-    expect(family('FT-05', {}, { birthDate: '2008-11-24' }).status).toBe(
-      'NOT_MET',
-    );
+    expect(family('FT-05', {}, { birthDate: '2008-11-24' })).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining('2026-11-24'),
+    });
     expect(family('FT-05', { soleEligibleSpouse: false }).status).toBe(
       'NOT_MET',
     );
@@ -506,7 +731,7 @@ describe('Gr third-country family', () => {
     };
     expect(family('FT-07', spouse).status).toBe('MET');
     expect(family('FT-07', { ...spouse, familyResidenceYears: 4 }).status).toBe(
-      'NOT_MET',
+      'UNKNOWN',
     );
     expect(
       family('FT-07', {

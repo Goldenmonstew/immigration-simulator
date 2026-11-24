@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { evaluateGreeceFull } from '../src';
 import { grContext } from '../src/greece-rules';
 import { settlementChecks } from '../src/greece-settlement';
 import type { GrFullRequest } from '../src/greece-full';
@@ -30,6 +31,18 @@ function check(route: Route, id: string, r: Partial<GrFullRequest> = {}) {
 }
 function status(route: Route, id: string, r: Partial<GrFullRequest> = {}) {
   return check(route, id, r).status;
+}
+function full(route: Route, r: Partial<GrFullRequest>) {
+  return evaluateGreeceFull({
+    ...good,
+    citizenship: 'third-country',
+    entry: 'permit',
+    passport: { kind: 'exception-granted' },
+    changes: [],
+    biometrics: 'provided',
+    ...r,
+    pathways: [route],
+  }).columns[0].pathways[0];
 }
 const incomes = (years: number[], taxableEur: number, dependants = 0) =>
   Object.fromEntries(years.map((y) => [y, { taxableEur, dependants }]));
@@ -99,6 +112,27 @@ describe('M.1 long-term grant and retention', () => {
     expect(status(lt, 'LT-02', { ...r, simulationDate: '2026-04-01' })).toBe(
       'UNKNOWN',
     );
+  });
+  test('the income method and expanded integration credentials apply from their own commencement dates', () => {
+    const historical = full(lt, { simulationDate: '2024-09-16' });
+    const income = historical.checks.find((c) => c.id === 'LT-02');
+    expect(income?.status).toBe('UNKNOWN');
+    expect(income?.pendingDetails).toContain('PD-304');
+    expect(historical.status).toBe('UNKNOWN');
+    expect(historical.earliestDate).toBeUndefined();
+    expect(full(lt, { simulationDate: '2024-09-17' })).toMatchObject({
+      status: 'MET',
+      earliestDate: '2024-09-17',
+    });
+    for (const basis of ['second-chance-school', 'greek-degree'] as const) {
+      expect(
+        full(lt, { simulationDate: '2026-02-05', integration: { basis } })
+          .status,
+      ).toBe('NOT_MET');
+      expect(
+        full(lt, { simulationDate: '2026-02-06', integration: { basis } }),
+      ).toMatchObject({ status: 'MET', earliestDate: '2026-02-06' });
+    }
   });
   test('the archived 2024 wage is also usable for a historical previous tax year', () => {
     expect(
@@ -205,6 +239,109 @@ describe('M.1 long-term grant and retention', () => {
 });
 
 describe('M.2 acquisition and conversion', () => {
+  test('a qualifying backlog renewal bridges the two E.4 cards under article 52(1)', () => {
+    const permits: GrFullRequest['permits'] = [
+      { kind: 'regular', from: '2016-11-01', to: '2023-09-01' },
+      { kind: 'regular', from: '2026-05-01' },
+    ];
+    const backlog = {
+      filedOn: '2023-08-28',
+      permitEffectiveOn: '2026-05-01',
+      category: 'employment',
+      typeAReceipt: true,
+      pendingAtCommencement: true,
+    } as const;
+    const path = full(ty, { permits, backlogRenewals: [backlog] });
+    expect(path.checks.find((c) => c.id === 'TY-01')).toMatchObject({
+      status: 'MET',
+    });
+    expect(path.status).toBe('MET');
+    expect(path.earliestDate).toBeUndefined();
+    for (const patch of [
+      { filedOn: '2021-12-31' },
+      { pendingAtCommencement: false },
+      { typeAReceipt: false },
+      { category: 'other' },
+    ] as const) {
+      const later = full(ty, {
+        permits,
+        backlogRenewals: [{ ...backlog, ...patch }],
+      });
+      expect(later.checks.find((c) => c.id === 'TY-01')).toMatchObject({
+        status: 'NOT_MET',
+        explanation: expect.stringContaining('2036-05-01'),
+      });
+      expect(later).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: '2036-05-01',
+      });
+    }
+  });
+  test('the latest of the ten-year and twelve-year integration anniversaries controls the filing date', () => {
+    const path = full(ty, {
+      permits: [{ kind: 'regular', from: '2016-11-24' }],
+      integration: {
+        basis: 'residence',
+        continuousFrom: '2016-11-24',
+        includesStudyOrDisputedGap: false,
+      },
+    });
+    expect(path.checks.find((c) => c.id === 'TY-01')).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining('2026-11-24'),
+    });
+    expect(path.checks.find((c) => c.id === 'TY-02')).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining('2028-11-24'),
+    });
+    expect(path).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2028-11-24',
+    });
+    expect(
+      full(ty, { permits: [{ kind: 'regular', from: '2016-11-24', to: day }] })
+        .status,
+    ).toBe('NOT_MET');
+  });
+  test('the original article 161 integration and conversion rules apply before commencement', () => {
+    const r = {
+      simulationDate: '2026-02-05',
+      permits: [{ kind: 'regular' as const, from: '2015-01-01' }],
+      tenYear: { ...good.tenYear, legacyEconomicAndSocialIntegration: true },
+      integration: { basis: 'none' as const },
+    };
+    const prior = full(ty, r);
+    expect(prior.checks.find((c) => c.id === 'TY-02')?.status).toBe('MET');
+    expect(prior.status).toBe('MET');
+    expect(prior.earliestDate).toBeUndefined();
+    expect(full(ty, { ...r, simulationDate: '2026-02-06' }).status).toBe(
+      'NOT_MET',
+    );
+    const renewal = {
+      stage: 'renewal',
+      basis: 'residence',
+      cardExpiresOn: '2026-02-05',
+      hasPriorCard: true,
+    } as const;
+    expect(
+      full(ty, {
+        ...r,
+        tenYear: renewal,
+        currentCardExpiresOn: renewal.cardExpiresOn,
+        residenceIncome: undefined,
+      }).status,
+    ).toBe('MET');
+    const expiry = '2026-12-01';
+    const upcoming = full(ty, {
+      tenYear: { ...renewal, cardExpiresOn: expiry },
+      currentCardExpiresOn: expiry,
+    });
+    expect(upcoming.checks.find((c) => c.id === 'TY-04')).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining(expiry),
+    });
+    expect(upcoming).toMatchObject({ status: 'FUTURE', earliestDate: expiry });
+  });
   test('ten years on definitive permits, study ambiguity and integration', () => {
     for (const c of rules(ty, {})) expect(c.status, c.id).toBe('MET');
     expect(
@@ -364,6 +501,227 @@ describe('ΚΕΙ naturalisation', () => {
     feeClass: 'ordinary',
     lastRejection: 'none',
   };
+  test('a twelve-year residence wait extends past the ten-year horizon of the time-only entry', () => {
+    const path = full(nat, {
+      route: 'twelve-year',
+      permits: [
+        { kind: 'regular', from: '2019-01-01', to: '2025-12-31' },
+        { kind: 'regular', from: day },
+      ],
+      nationality: {
+        ...satisfactory,
+        permit: 'other-definitive',
+        incomeByTaxYear: incomes(
+          [2019, 2020, 2021, 2022, 2023, 2024, 2025],
+          5500,
+        ),
+      },
+    });
+    expect(
+      path.checks.find((c) => c.id === 'NAT-TIME-RESIDENCE'),
+    ).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining('2038-11-23'),
+    });
+    expect(path).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2038-11-23',
+    });
+  });
+
+  test('rejection on 15 August 2026 sets the first refiling date one year later', () => {
+    const nationality = {
+      ...satisfactory,
+      lastRejection: '2026-08-15',
+      preReformObjectionException: false,
+    };
+    const path = full(nat, { nationality });
+    expect(path.checks.find((c) => c.id === 'NAT-11')).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining('2027-08-15'),
+    });
+    expect(path).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2027-08-15',
+    });
+    const expired = full(nat, {
+      nationality,
+      permits: [{ kind: 'regular', from: '2016-01-01', to: '2027-08-14' }],
+    });
+    expect(
+      expired.checks.find((c) => c.id === 'NAT-11')?.explanation,
+    ).toContain('2027-08-15');
+    expect(expired.status).toBe('NOT_MET');
+    expect(expired.earliestDate).toBeUndefined();
+    const anniversary = full(nat, {
+      simulationDate: '2027-08-15',
+      nationality,
+    });
+    expect(anniversary.checks.find((c) => c.id === 'NAT-11')?.status).toBe(
+      'MET',
+    );
+    expect(anniversary).toMatchObject({
+      status: 'MET',
+      earliestDate: '2027-08-15',
+    });
+  });
+  test('the last day in the criminal lookback can include leap day', () => {
+    const nationality = {
+      ...satisfactory,
+      convictions: [
+        {
+          final: true,
+          offence: 'other-intentional' as const,
+          offenceDate: '2018-02-28',
+          sentenceMonths: 12,
+        },
+      ],
+      incomeByTaxYear: incomes([2022, 2023, 2024, 2025, 2026], 6000),
+    };
+    const blocked = full(nat, { nationality, simulationDate: '2028-02-29' });
+    expect(blocked.checks.find((c) => c.id === 'NAT-03')).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining('2028-03-01'),
+    });
+    expect(blocked).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2028-03-01',
+    });
+    expect(
+      full(nat, { nationality, simulationDate: '2028-03-01' }),
+    ).toMatchObject({ status: 'MET', earliestDate: '2028-03-01' });
+  });
+  test('a pending file retains the filing date for residence, majority and the criminal lookback', () => {
+    const filing = '2025-08-01';
+    const r = {
+      simulationDate: '2027-02-01',
+      permits: [{ kind: 'regular' as const, from: '2019-02-01' }],
+      nationality: {
+        ...satisfactory,
+        pendingApplicationFiledOn: filing,
+        disabilityPercent: 0,
+        incomeByTaxYear: incomes([2020, 2021, 2022, 2023, 2024], 1000),
+      },
+    };
+    const path = full(nat, r);
+    expect(path.checks.find((c) => c.id === 'NAT-TIME-RESIDENCE')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(path.checks.find((c) => c.id === 'NAT-07')?.status).toBe('MET');
+    expect(path.status).toBe('NOT_MET');
+    expect(path.earliestDate).toBeUndefined();
+    const underage = full(nat, {
+      ...r,
+      birthDate: '2007-08-02',
+      nationality: {
+        ...r.nationality,
+        convictions: [
+          {
+            final: true,
+            offence: 'other-intentional',
+            offenceDate: '2016-02-01',
+            sentenceMonths: 12,
+          },
+        ],
+        lastRejection: '2025-01-01',
+      },
+    });
+    for (const id of ['NAT-01', 'NAT-03', 'NAT-11'])
+      expect(underage.checks.find((c) => c.id === id)?.status).toBe('NOT_MET');
+    expect(underage.earliestDate).toBeUndefined();
+  });
+  test.each([
+    [39.59, 31, 'NOT_MET'],
+    [39.6, 31, 'UNKNOWN'],
+    [39.9, 31, 'UNKNOWN'],
+    [39.9, 30, 'NOT_MET'],
+    [40, 30, 'MET'],
+  ] as const)(
+    'written PEGP language %s, knowledge %s: %s',
+    (languagePoints, knowledgePoints, status) => {
+      const path = full(nat, {
+        nationality: {
+          ...satisfactory,
+          exam: 'written',
+          languagePoints,
+          knowledgePoints,
+          barredFromExam: false,
+        },
+      });
+      const result = path.checks.find((c) => c.id === 'NAT-05');
+      expect(result?.status).toBe(status);
+      expect(result?.pendingDetails).toEqual(
+        status === 'UNKNOWN' ? ['PD-309'] : undefined,
+      );
+      expect(path.status).toBe(status);
+      expect(path.earliestDate).toBe(status === 'MET' ? day : undefined);
+    },
+  );
+  test('the oral disability boundary and historic objections exception start with law 5225', () => {
+    const nationality = {
+      ...satisfactory,
+      exam: 'oral' as const,
+      oralPassed: true,
+      certifiedLearningDisability: false,
+      barredFromExam: false,
+      lastRejection: '2025-08-01',
+      preReformObjectionException: true,
+    };
+    const before = full(nat, { nationality, simulationDate: '2025-09-01' });
+    expect(before.checks.find((c) => c.id === 'NAT-06')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(before.checks.find((c) => c.id === 'NAT-11')).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining('2026-08-01'),
+    });
+    expect(before.status).toBe('NOT_MET');
+    expect(before.earliestDate).toBeUndefined();
+    const after = full(nat, {
+      nationality: {
+        ...nationality,
+        incomeByTaxYear: incomes([2019, 2020, 2021, 2022, 2023], 5500),
+      },
+      simulationDate: '2025-09-02',
+    });
+    for (const id of ['NAT-05', 'NAT-06', 'NAT-11'])
+      expect(after.checks.find((c) => c.id === id)?.status).toBe('MET');
+    expect(after).toMatchObject({ status: 'MET', earliestDate: '2025-09-02' });
+  });
+  test.each([
+    ['2024-03-03', undefined],
+    ['2024-03-04', '20240201368.pdf'],
+    ['2024-08-04', '20240201368.pdf'],
+    ['2024-08-05', '20240204555.pdf'],
+    ['2025-03-09', '20240204555.pdf'],
+    ['2025-03-10', '20250201093.pdf'],
+    ['2026-04-23', '20250201093.pdf'],
+    ['2026-04-24', '20260202319.pdf'],
+  ] as const)(
+    'the written exam uses the marking order in force on %s',
+    (examOn, officialFile) => {
+      const path = full(nat, {
+        nationality: {
+          ...satisfactory,
+          exam: 'written',
+          examOn,
+          languagePoints: 40,
+          knowledgePoints: 30,
+          certifiedLearningDisability: false,
+          barredFromExam: false,
+        },
+      });
+      const result = path.checks.find((c) => c.id === 'NAT-05');
+      expect(result?.status).toBe(officialFile ? 'MET' : 'UNKNOWN');
+      if (officialFile)
+        expect(result?.sources.some((s) => s.url?.endsWith(officialFile))).toBe(
+          true,
+        );
+      else expect(result?.pendingDetails).toContain('PD-309');
+      expect(path.status).toBe(officialFile ? 'MET' : 'UNKNOWN');
+      expect(path.earliestDate).toBe(officialFile ? day : undefined);
+    },
+  );
   test('all twelve citizenship conditions have sourced results in both languages', () => {
     const r = { ...good, nationality: satisfactory };
     const en = rules(nat, r);
@@ -424,7 +782,10 @@ describe('ΚΕΙ naturalisation', () => {
       check(nat, 'NAT-03', {
         nationality: { convictions: [{ ...record, ...over }] },
       });
-    expect(testRecord({}).status).toBe('NOT_MET');
+    expect(testRecord({})).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining('2026-11-24'),
+    });
     expect(testRecord({ final: false }).status).toBe('MET');
     expect(
       status(nat, 'NAT-03', {

@@ -9,6 +9,7 @@ export type GrEntry =
   | 'permit'
   | 'national-visa'
   | 'short-stay'
+  /** Migration Code article 10(8) or (11) application receipt. */
   | 'receipt'
   | 'outside'
   | 'unlawful'
@@ -83,11 +84,13 @@ export function insuranceMet(
 
 export function grContext(locale?: Locale) {
   const L = textFor({ locale });
+  // Only a known wait can clear a NOT_MET check on a predictable date.
+  const waitDates = new Map<CountryCheck, IsoDate>();
   function check(
     id: string,
     zhTitle: string,
     enTitle: string,
-    met: Answer,
+    met: Answer | IsoDate,
     sources: SourceRef[],
     zhExplanation?: string,
     enExplanation?: string,
@@ -103,17 +106,25 @@ export function grContext(locale?: Locale) {
               `More information is needed to assess ${enTitle}.`,
             )
           : title;
-    return {
+    const result: CountryCheck = {
       id,
       title,
-      status: met === undefined ? 'UNKNOWN' : met ? 'MET' : 'NOT_MET',
-      explanation,
+      status: met === undefined ? 'UNKNOWN' : met === true ? 'MET' : 'NOT_MET',
+      explanation:
+        typeof met === 'string' && !explanation.includes(met)
+          ? L(
+              `${explanation} 最早日期为 ${met}。`,
+              `${explanation} Earliest date: ${met}.`,
+            )
+          : explanation,
       sources,
       ...(met === undefined && pendingDetails?.length
         ? { pendingDetails }
         : {}),
     };
+    if (typeof met === 'string') waitDates.set(result, met);
+    return result;
   }
-  return { check, L };
+  return { check, L, waitDates };
 }
 export type GrContext = ReturnType<typeof grContext>;

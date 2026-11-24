@@ -1,13 +1,19 @@
 import { greeceFull2026_11, grSource } from '@uk-immigration/policy-data';
 import type { CountryCheck } from './country-result';
-import { addYears } from './dates';
+import { addDays, addYears } from './dates';
 import type { GrFullRequest } from './greece-full';
 import { ageOn, all, any, insuranceMet, type GrContext } from './greece-rules';
+import type { IsoDate } from './types';
 
 interface WorkAnswers {
   permit?: 'E1' | 'E4';
   stage?: 'initial' | 'renewal';
   admission?: 'ordinary' | 'domestic-switch' | 'strategic-project';
+  /** For a domestic switch from a national visa. A standalone Z visa does not lead to its own permit. */
+  switchVisa?: {
+    kind: 'standalone-Z' | 'leads-to-permit';
+    expiresOn?: IsoDate;
+  };
   contractMonths?: number;
   grossAnnualEur?: number;
   payBasis?: 'monthly' | 'daily';
@@ -17,6 +23,7 @@ interface WorkAnswers {
     | 'unregulated-documented'
     | 'previously-verified-in-Greece'
     | 'missing';
+  /** The permanent address is due by issue of the Blue Card. */
   permanentAddressAvailable?: boolean;
   employerApproval?: boolean;
   employer?: 'private-individual' | 'agriculture' | 'business' | 'agency';
@@ -51,10 +58,12 @@ interface FamilyAnswers {
     | 'refugee'
     | 'excluded';
   sponsorLawfulYears?: number;
+  sponsorLawfulFrom?: IsoDate;
   sponsorPermitDurationYears?: number;
   sponsorPermitLeadsToPermanentResidence?: boolean;
-  sponsorPersonalNetEur?: number;
   /** Personal net income excludes social assistance and other household members' income. */
+  sponsorPersonalNetEur?: number;
+  /** At renewal, evidence of compliance must cover both the sponsor and applicant. */
   priorYearTaxAndInsuranceEvidence?: boolean;
   stableIncome?: boolean;
   spouseIncluded?: boolean;
@@ -74,7 +83,11 @@ interface FamilyAnswers {
   previousFamilyCard?: boolean;
   previousAutonomousChildCard?: boolean;
   familyResidenceYears?: number;
+  /** Uninterrupted family residence in Greece, including the current period. */
+  familyResidenceFrom?: IsoDate;
   blueFamilyYearsInEU?: number;
+  /** First day of continuous qualifying family residence across Member States, including Greece. */
+  blueFamilyResidenceFrom?: IsoDate;
   priorMarriageYears?: number;
   priorMarriageYearsInGreece?: number;
   hardshipDocumented?: boolean;
@@ -87,6 +100,33 @@ export interface GrWorkFamilyAnswers {
 
 const p = greeceFull2026_11.values;
 type Answer = boolean | undefined;
+type Filing = Answer | IsoDate;
+
+function dueOn(earliest: IsoDate, today: IsoDate): true | IsoDate {
+  return earliest <= today ? true : earliest;
+}
+
+function residenceDue(
+  from: IsoDate | undefined,
+  years: number | undefined,
+  required: number,
+  today: IsoDate,
+): Filing {
+  if (from) return dueOn(addYears(from, required), today);
+  // Completed years can establish eligibility but do not identify the next anniversary.
+  return years !== undefined && years >= required ? true : undefined;
+}
+
+function allDue(...facts: Filing[]): Filing {
+  if (facts.includes(false)) return false;
+  if (facts.includes(undefined)) return undefined;
+  return (
+    facts
+      .filter((fact): fact is IsoDate => typeof fact === 'string')
+      .sort()
+      .at(-1) ?? true
+  );
+}
 
 function atLeast(value: number | undefined, limit: number | undefined): Answer {
   return value === undefined || limit === undefined
@@ -113,7 +153,7 @@ export function wageFloor(date: string, daily = false) {
   return undefined;
 }
 
-function employerFinance(w: WorkAnswers) {
+function employerFinance(w: WorkAnswers, reformed: boolean) {
   const limits = p.workEmployer.value;
   const smallEmployer =
     w.employer === 'private-individual' || w.employer === 'agriculture';
@@ -130,11 +170,13 @@ function employerFinance(w: WorkAnswers) {
     w.taxEvidenceSupportsContractPay,
     w.permit === 'E1' || w.occupationMatchesBusiness,
     w.employer !== 'agency' ||
-      all(
-        atLeast(w.agencyCapitalEur, limits.agencyCapital),
-        w.agencyManagementClear,
-        w.hostContractAndTaxEvidence,
-      ),
+      (reformed
+        ? all(
+            atLeast(w.agencyCapitalEur, limits.agencyCapital),
+            w.agencyManagementClear,
+            w.hostContractAndTaxEvidence,
+          )
+        : undefined),
   );
 }
 
@@ -224,16 +266,17 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
         'Highly qualified contract and credentials',
         all(
           atLeast(w.contractMonths, contracts.blue),
-          w.qualification === undefined
-            ? undefined
-            : w.qualification !== 'missing',
+          renewal ||
+            (w.qualification === undefined
+              ? undefined
+              : w.qualification !== 'missing'),
         ),
         [
           grSource('F16', 'art. 31(1)(α–γ), (3)'),
           grSource('F21', 'art. 4(1), (5)'),
         ],
-        `合同至少 ${contracts.blue} 个月。受监管职业须认可执业资格，其他职业须提供相关高级资历；已由希腊在对应高技能许可中核验的证明可复用。`,
-        `A highly qualified contract of at least ${contracts.blue} months is required. Provide recognition for regulated professions or relevant higher qualifications for other jobs. Prior verification on the qualifying Greek permit counts.`,
+        `合同至少 ${contracts.blue} 个月。首次申请须提供受监管职业的执业资格或其他职业的高级资历；已在对应希腊许可中核验的证明可复用。`,
+        `A highly qualified contract of at least ${contracts.blue} months is required. Initial applications need recognition for regulated professions or relevant higher qualifications for other jobs. Prior verification on the qualifying Greek permit counts.`,
       ),
     );
     if (!renewal) {
@@ -289,31 +332,62 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
   }
   if (!renewal) {
     if ((isBlue || (w.admission && !isSwitch)) && !project) {
+      const knownThreshold =
+        req.simulationDate >= p.workEmployerEffective.value;
       checks.push(
         check(
           'WK-05',
           '雇主财务能力',
           'Employer financial capacity',
-          employerFinance(w),
-          p.workEmployer.sources,
-          `上年税单须支持合同工资。蓝卡和企业每名 €${p.workEmployer.value.business}，普通个人或农业雇主每名 €${p.workEmployer.value.individualOrAgriculture}。普通岗位须匹配业务；派遣机构另须满足 €${p.workEmployer.value.agencyCapital} 资本及管理层、用工方审查。`,
-          `Last year's tax evidence must support the offered wages. The Blue Card and business threshold is €${p.workEmployer.value.business}, or €${p.workEmployer.value.individualOrAgriculture} for an ordinary private or agricultural employer. Ordinary jobs must match the activity. Agencies also require €${p.workEmployer.value.agencyCapital} capital, management clearance and host evidence.`,
+          knownThreshold ? employerFinance(w, reformed) : undefined,
+          [...p.workEmployer.sources, ...p.workEmployerEffective.sources],
+          !knownThreshold
+            ? '须核实模拟日适用的雇主财务门槛。'
+            : `上年税单须支持合同工资。蓝卡和企业每名 €${p.workEmployer.value.business}，普通个人或农业雇主每名 €${p.workEmployer.value.individualOrAgriculture}。普通岗位须匹配业务。派遣机构自 ${p.workReformEffective.value} 起可按专门程序申请，需核实 €${p.workEmployer.value.agencyCapital} 资本、管理层和用工方材料。`,
+          !knownThreshold
+            ? 'Verify the employer threshold in force on the simulation date.'
+            : `Last year's tax evidence must support the offered wages. The Blue Card and business threshold is €${p.workEmployer.value.business}, or €${p.workEmployer.value.individualOrAgriculture} for an ordinary private or agricultural employer. Ordinary jobs must match the activity. Agency sponsorship from ${p.workReformEffective.value} requires €${p.workEmployer.value.agencyCapital} capital, management clearance and host evidence.`,
+          !knownThreshold || (w.employer === 'agency' && !reformed)
+            ? ['PD-317']
+            : undefined,
         ),
       );
     }
-    const projectWithinLimit =
-      w.projectWorkersTotal === undefined
-        ? undefined
-        : w.projectWorkersTotal <= p.workEmployer.value.projectWorkers;
-    const quota = project
-      ? all(reformed, w.projectCertified, projectWithinLimit)
-      : isSwitch
-        ? req.entry === undefined ||
-          req.entry === 'restricted-permit' ||
-          req.entry === 'receipt'
+    let quota: Filing = w.quotaAvailable;
+    if (project) {
+      const withinLimit =
+        w.projectWorkersTotal === undefined
           ? undefined
-          : req.entry === 'permit'
-        : w.quotaAvailable;
+          : w.projectWorkersTotal <= p.workEmployer.value.projectWorkers;
+      quota = all(reformed, w.projectCertified, withinLimit);
+    } else if (isSwitch) {
+      switch (req.entry) {
+        case 'permit':
+          quota = true;
+          break;
+        case 'national-visa': {
+          const expiry = w.switchVisa?.expiresOn;
+          if (!reformed)
+            quota = expiry === undefined || req.simulationDate <= expiry;
+          else if (w.switchVisa?.kind === 'leads-to-permit') quota = false;
+          else
+            quota =
+              expiry &&
+              req.simulationDate <= expiry &&
+              dueOn(expiry, req.simulationDate);
+          break;
+        }
+        case 'short-stay':
+          quota = isBlue && w.quotaAvailable;
+          break;
+        case 'outside':
+        case 'unlawful':
+          quota = false;
+          break;
+        default:
+          quota = undefined;
+      }
+    }
     checks.push(
       check(
         'WK-06',
@@ -321,13 +395,13 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
         'Admission quota and recruitment approval',
         w.admission === undefined
           ? undefined
-          : all(quota, isSwitch || w.employerApproval),
+          : allDue(quota, isSwitch || w.employerApproval),
         [
           grSource('F16', 'arts. 12, 26, 32, 33(3)'),
           grSource('F36', 'arts. 13, 17, 18, 21 (arts. 12(3), 61(6)–(7))'),
         ],
-        `请用当地工种配额与批准决定核对。境内 Ε.4 须持可转换许可；获认证的战略或公共工程最多邀请 ${p.workEmployer.value.projectWorkers} 人。`,
-        `Check the local occupation quota and recruitment approval. An Ε.4 switch requires a convertible permit. A certified strategic or public project can invite up to ${p.workEmployer.value.projectWorkers} people.`,
+        `Ε.1 在合法短停期间可凭合同递交，岗位计入配额。可转换的居留许可或长期签证按第 12(3) 条办理；自 ${p.workReformEffective.value} 起，独立 Ζ 类签证在到期时转换，通往居留卡的 D 签须先领卡。认证战略或公共工程自该日起最多邀请 ${p.workEmployer.value.projectWorkers} 人。`,
+        `An Ε.1 applicant may file with a contract during a lawful short stay. The job counts towards the quota. Article 12(3) covers switches from eligible permits or long-stay visas. From ${p.workReformEffective.value} a standalone Z visa can be switched at expiry, whereas a visa leading to a permit requires that permit first. A certified strategic or public project can then invite up to ${p.workEmployer.value.projectWorkers} people.`,
       ),
     );
     if (
@@ -342,8 +416,10 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
           'Age for recruitment from abroad',
           req.birthDate === undefined
             ? undefined
-            : req.simulationDate >
-                addYears(req.birthDate, p.workInvitationAge.value),
+            : dueOn(
+                addDays(addYears(req.birthDate, p.workInvitationAge.value), 1),
+                req.simulationDate,
+              ),
           p.workInvitationAge.sources,
           `第 26(6) 条要求受邀人超过 ${p.workInvitationAge.value} 岁。`,
           `Article 26(6) requires the recruited worker to be over ${p.workInvitationAge.value}.`,
@@ -351,34 +427,42 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
       );
     }
   }
+  const deferred =
+    !renewal &&
+    req.deferredInitialEvidence?.includes('public-insurance-application') ===
+      true;
   const cover = renewal
     ? insuranceMet(req.insurance, 'work')
-    : any(w.insuranceApplicationFiled, insuranceMet(req.insurance, 'work'));
+    : any(
+        w.insuranceApplicationFiled ??
+          (deferred && req.insurance?.kind !== 'uninsured' ? true : undefined),
+        insuranceMet(req.insurance, 'work'),
+      );
   checks.push(
     check(
       'WK-07',
       '工作医保、地址和续期税单',
       'Employment insurance, address and renewal tax record',
-      all(
-        cover,
-        !isBlue || w.permanentAddressAvailable,
-        !renewal || w.taxesSettledDuringPermit,
-      ),
+      all(cover, !renewal || w.taxesSettledDuringPermit),
       [
-        grSource('F16', 'art. 31(1)(ε, ζ)'),
+        grSource('F16', 'arts. 10(9), 31(1)(ε, ζ)'),
         grSource('F21', 'arts. 2(δ), 4(3), (5), 7(3)–(4)'),
       ],
-      '首签须提交公保登记申请或参保证明。蓝卡发卡时要有永久地址。续期核查原卡期间医保及纳税义务，医保断档须核实失业或不可抗力证明。',
-      'Show public insurance registration or active cover at first issue. A permanent address is due by Blue Card issue. Renewals require cover and tax compliance during the previous permit. Insurance gaps need unemployment or force majeure evidence.',
+      `首签核对公保登记申请或参保证明。按第 10(9) 条递件后，须在 ${p.initialEvidenceMonths.value} 个月内补交欠缺的参保申请凭证。蓝卡申请人须申报已知住址，最迟在发卡时提供永久地址。续期核查原卡期间医保及纳税义务。`,
+      `Show public insurance registration or active cover at first issue. Article 10(9) allows ${p.initialEvidenceMonths.value} months after filing to supply the outstanding registration certificate. Blue Card applicants must disclose any known address and provide the permanent address by issue. Renewals require cover and tax compliance during the previous permit.`,
       renewal && cover === undefined && req.insurance ? ['PD-303'] : undefined,
     ),
   );
   const validity = p.workValidity.value;
-  const years = renewal
+  const years = !reformed
     ? isBlue
-      ? validity.blueRenewalYears
-      : validity.employeeRenewalYears
-    : validity.initialYears;
+      ? validity.blueBeforeReformYears
+      : validity.employeeBeforeReformYears
+    : renewal
+      ? isBlue
+        ? validity.blueRenewalYears
+        : validity.employeeRenewalYears
+      : validity.initialYears;
   const fees = p.workFees.value;
   checks.push(
     check(
@@ -387,14 +471,16 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
       'Permit stage and duration',
       true,
       p.workValidity.sources,
-      `请选择首签或续签。自 ${p.workReformEffective.value} 起，${w.permit} ${renewal ? '续签' : '首次'}有效期 ${years} 年。${isBlue ? `短合同加 ${validity.blueShortContractExtraMonths} 个月，上限 ${years} 年；护照有效期也影响发卡时长。` : ''}`,
-      `Specify initial issue or renewal. From ${p.workReformEffective.value} the ${w.permit} ${renewal ? 'renewal' : 'initial permit'} lasts ${years} years.${isBlue ? ` For a shorter contract add ${validity.blueShortContractExtraMonths} months, up to ${years} years. Passport validity can affect the period issued.` : ''}`,
+      `按模拟日法律，${w.permit} ${renewal ? '续签' : '首次'}有效期 ${years} 年。${isBlue ? `短合同加 ${validity.blueShortContractExtraMonths} 个月，上限 ${years} 年；护照有效期也影响发卡时长。` : ''}`,
+      `On the simulation date the ${w.permit} ${renewal ? 'renewal' : 'initial permit'} lasts ${years} years.${isBlue ? ` For a shorter contract add ${validity.blueShortContractExtraMonths} months, up to ${years} years. Passport validity can affect the period issued.` : ''}`,
     ),
   );
   const invitation =
     !renewal && w.admission !== undefined && !isSwitch && !isBlue
       ? project
-        ? fees.projectInvitation
+        ? reformed
+          ? fees.projectInvitation
+          : undefined
         : fees.invitation
       : undefined;
   checks.push(
@@ -404,19 +490,29 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
       'Employer and applicant fees and timing',
       true,
       p.workFees.sources,
-      `许可 €${fees.permit}，制卡 €${fees.print}。需国家签证时另付 €${fees.visa}。${invitation === undefined ? '' : `雇主每人邀请费 €${invitation}，不退。`}${isBlue ? `蓝卡完整申请的审理时限为 ${fees.blueDecisionDays} 天。` : `领馆决定后 ${fees.consulateNotificationDays} 天内通知主管机关，主管机关再于 ${fees.employerNotificationDays} 天内通知雇主。`}`,
-      `Permit €${fees.permit}, printing €${fees.print}. A national visa, when required, costs €${fees.visa}.${invitation === undefined ? '' : ` The employer pays a non-refundable €${invitation} per recruit.`}${isBlue ? ` A complete Blue Card application has a ${fees.blueDecisionDays}-day decision period.` : ` Following a decision, the consulate has ${fees.consulateNotificationDays} days to notify the authority, which has ${fees.employerNotificationDays} days to inform the employer.`}`,
+      `许可 €${fees.permit}，制卡 €${fees.print}。需国家签证时另付 €${fees.visa}。${invitation === undefined ? '' : `雇主每人邀请费 €${invitation}，不退。`}${isBlue ? `蓝卡完整申请的审理时限为 ${fees.blueDecisionDays} 天。` : reformed && !renewal ? `领馆决定后 ${fees.consulateNotificationDays} 天内通知主管机关，主管机关再于 ${fees.employerNotificationDays} 天内通知雇主。` : ''}`,
+      `Permit €${fees.permit}, printing €${fees.print}. A national visa, when required, costs €${fees.visa}.${invitation === undefined ? '' : ` The employer pays a non-refundable €${invitation} per recruit.`}${isBlue ? ` A complete Blue Card application has a ${fees.blueDecisionDays}-day decision period.` : reformed && !renewal ? ` Following a decision, the consulate has ${fees.consulateNotificationDays} days to notify the authority, which has ${fees.employerNotificationDays} days to inform the employer.` : ''}`,
     ),
   );
   return checks;
 }
 
-function familySponsor(f: FamilyAnswers): Answer {
+function familySponsor(f: FamilyAnswers, today: IsoDate): Filing {
   if (!f.sponsor || f.sponsor === 'refugee') return undefined;
   if (f.sponsor === 'excluded') return false;
-  if (f.formedLegallyInGreece || f.sponsor !== 'ordinary') return true;
-  return all(
-    atLeast(f.sponsorLawfulYears, p.familySponsor.value.years),
+  if (
+    f.stage === 'renewal' ||
+    f.formedLegallyInGreece ||
+    f.sponsor !== 'ordinary'
+  )
+    return true;
+  return allDue(
+    residenceDue(
+      f.sponsorLawfulFrom,
+      f.sponsorLawfulYears,
+      p.familySponsor.value.years,
+      today,
+    ),
     atLeast(f.sponsorPermitDurationYears, p.familySponsor.value.permitYears),
     f.sponsorPermitLeadsToPermanentResidence,
   );
@@ -424,7 +520,8 @@ function familySponsor(f: FamilyAnswers): Answer {
 
 function familyIncome(f: FamilyAnswers, date: string) {
   // The gross minimum wage is an upper bound on take-home pay, not a rejection threshold.
-  const floor = wageFloor(date);
+  const knownMethod = date >= p.incomeMethodEffective.value;
+  const floor = knownMethod ? wageFloor(date) : undefined;
   const spousePercent = f.spouseIncluded
     ? p.familySponsor.value.spousePercent
     : 0;
@@ -451,17 +548,26 @@ function familyIncome(f: FamilyAnswers, date: string) {
         : undefined;
   return {
     ceiling,
-    result: all(f.priorYearTaxAndInsuranceEvidence, f.stableIncome, comparison),
-    netUnresolved: enough === false && f.sponsorPersonalNetEur !== 0,
+    result: all(
+      knownMethod ? f.priorYearTaxAndInsuranceEvidence : undefined,
+      f.stableIncome,
+      comparison,
+    ),
+    netUnresolved:
+      !knownMethod || (enough === false && f.sponsorPersonalNetEur !== 0),
   };
 }
 
-function familyMember(f: FamilyAnswers, req: GrFullRequest): Answer {
+function familyMember(f: FamilyAnswers, req: GrFullRequest): Filing {
   const age = ageOn(req.birthDate, req.simulationDate);
   if (!f.member || !f.sponsor) return undefined;
   if (f.member === 'spouse')
-    return all(
-      atLeast(age, p.familyMembers.value.adultAge),
+    return allDue(
+      req.birthDate &&
+        dueOn(
+          addYears(req.birthDate, p.familyMembers.value.adultAge),
+          req.simulationDate,
+        ),
       f.soleEligibleSpouse,
     );
   if (f.member === 'ascendant') return f.sponsor === 'investor';
@@ -481,36 +587,62 @@ function familyMember(f: FamilyAnswers, req: GrFullRequest): Answer {
   );
 }
 
-function autonomous(f: FamilyAnswers, age: number | undefined): Answer {
+function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
   const a = p.familyAutonomy.value;
+  const age = ageOn(req.birthDate, req.simulationDate);
+  const adulthood =
+    req.birthDate &&
+    dueOn(
+      addYears(req.birthDate, p.familyMembers.value.adultAge),
+      req.simulationDate,
+    );
   switch (f.autonomousBasis) {
     case 'child':
       if (age === undefined || !f.member) return undefined;
-      return (
-        f.member === 'child' &&
-        age >= p.familyMembers.value.adultAge &&
-        age < a.finalChildAge &&
-        (age < a.childRenewalAge || f.sponsor === 'investor'
+      return allDue(
+        f.member === 'child' && age < a.finalChildAge,
+        adulthood,
+        age < a.childRenewalAge || f.sponsor === 'investor'
           ? f.previousFamilyCard
-          : f.previousAutonomousChildCard)
+          : f.previousAutonomousChildCard,
       );
     case 'residence': {
-      const duration =
-        f.sponsor === 'blue-card'
-          ? any(
-              atLeast(f.familyResidenceYears, a.residenceYears),
-              all(
-                atLeast(f.blueFamilyYearsInEU, a.residenceYears),
-                atLeast(f.familyResidenceYears, a.blueGreekYears),
-              ),
-            )
-          : atLeast(f.familyResidenceYears, a.residenceYears);
-      const member = !f.member
-        ? undefined
-        : f.member === 'spouse' ||
-          (f.member === 'child' &&
-            atLeast(age, p.familyMembers.value.adultAge));
-      return all(f.previousFamilyCard, duration, member);
+      let duration = residenceDue(
+        f.familyResidenceFrom,
+        f.familyResidenceYears,
+        a.residenceYears,
+        req.simulationDate,
+      );
+      if (
+        f.sponsor === 'blue-card' &&
+        (f.blueFamilyResidenceFrom || f.blueFamilyYearsInEU !== undefined)
+      ) {
+        const viaMobility = allDue(
+          residenceDue(
+            f.blueFamilyResidenceFrom,
+            f.blueFamilyYearsInEU,
+            a.residenceYears,
+            req.simulationDate,
+          ),
+          residenceDue(
+            f.familyResidenceFrom,
+            f.familyResidenceYears,
+            a.blueGreekYears,
+            req.simulationDate,
+          ),
+        );
+        if (
+          viaMobility === true ||
+          (typeof viaMobility === 'string' &&
+            duration !== true &&
+            (typeof duration !== 'string' || viaMobility < duration))
+        )
+          duration = viaMobility;
+      }
+      const member =
+        f.member &&
+        (f.member === 'spouse' || (f.member === 'child' && adulthood));
+      return allDue(f.previousFamilyCard, duration, member);
     }
     case 'bereavement':
       return all(
@@ -554,7 +686,7 @@ function familyChecks(
   const isAutonomous = f.stage === 'autonomous';
   const initial = f.stage === 'initial';
   const sponsorRefs = [
-    grSource('F16', 'arts. 42(2), 56(5), 83(1)–(2), 84(1), 92, 112(1)'),
+    grSource('F16', 'arts. 42(2), 56(5), 83(1)–(2), 84(1), 87(1), 92, 112(1)'),
     grSource('F36', 'arts. 20, 29'),
     grSource('F21', 'art. 23(I), (II)'),
   ];
@@ -578,13 +710,32 @@ function familyChecks(
         'FT-01',
         '担保人资格与先期居留',
         'Sponsor permit and prior residence',
-        familySponsor(f),
+        familySponsor(f, req.simulationDate),
         sponsorRefs,
-        `普通担保人合法居住满 ${p.familySponsor.value.years} 年，持有效期至少 ${p.familySponsor.value.permitYears} 年且允许取得永久居留的卡。确认蓝卡、投资等随行类别或在希合法组成家庭的专门程序。`,
-        `An ordinary sponsor needs ${p.familySponsor.value.years} years of lawful residence and a permit issued for at least ${p.familySponsor.value.permitYears} years with a prospect of permanent residence. Identify any simultaneous-family or domestic family-formation procedure.`,
+        initial
+          ? `普通担保人合法居住满 ${p.familySponsor.value.years} 年，持有效期至少 ${p.familySponsor.value.permitYears} 年且允许取得永久居留的卡。未满年限时填写连续居住起始日，以计算可递件日期。确认随行类别或在希合法组建家庭的专门程序。`
+          : '家属续期随担保人的有效居留身份办理。',
+        initial
+          ? `An ordinary sponsor needs ${p.familySponsor.value.years} years of lawful residence and a permit issued for at least ${p.familySponsor.value.permitYears} years with a prospect of permanent residence. Supply the residence start date to calculate a future filing date. Identify any simultaneous-family or domestic family-formation procedure.`
+          : 'Renewal follows the sponsor’s residence status.',
       ),
     );
-    if (
+    if (!initial) {
+      checks.push(
+        check(
+          'FT-02',
+          '担保人与家属的续期税保凭证',
+          'Renewal tax and insurance evidence for the sponsor and applicant',
+          f.priorYearTaxAndInsuranceEvidence,
+          [
+            grSource('F16', 'art. 87(1)–(2)'),
+            grSource('F21', 'art. 23(I)(4)(β–γ), (II)(2)(β–γ), p. 16498'),
+          ],
+          '普通团聚及在希组建家庭的续期都须核对担保人与家属的税务履行凭证及医保资格。',
+          'Both ordinary and domestically formed families must show tax compliance and insurance entitlement for the sponsor and applicant at renewal.',
+        ),
+      );
+    } else if (
       f.sponsor &&
       f.sponsor !== 'special-employment' &&
       !f.formedLegallyInGreece
@@ -599,13 +750,14 @@ function familyChecks(
           income.result,
           [
             ...p.familySponsor.sources,
+            ...p.incomeMethodEffective.sources,
             ...p.annualPayPeriods.sources,
             ...p.minimumMonthlyGrossEur.sources,
             ...p.previousMonthlyGrossEur.sources,
             ...p.wage2024GrossEur.sources,
           ],
-          `上年个人纳税及社保记录须支持经常性净收入，剔除社会救助。配偶加 ${sponsor.spousePercent}%，每名子女加 ${sponsor.childPercent}%，父母均在希合法居住免子女加计。${income.ceiling === undefined ? '请补充家庭构成。' : `按现有毛薪计算的充分金额为 €${income.ceiling}，低于该数时仍需核实适用年度净额。`}`,
-          `Show personal recurring net income and last year's tax and insurance record, excluding social assistance. Add ${sponsor.spousePercent}% for a spouse and ${sponsor.childPercent}% per child unless both parents lawfully reside in Greece. ${income.ceiling === undefined ? 'Confirm the family composition.' : `€${income.ceiling} is a sufficient upper bound based on gross wages. Below that bound verify the applicable annual net wage.`}`,
+          `担保人须有经常性个人净收入，剔除社会救助。配偶加 ${sponsor.spousePercent}%，每名子女加 ${sponsor.childPercent}%，父母均在希合法居住免子女加计。${income.ceiling === undefined ? '请核对家庭构成及当期适用的年度净额算法。' : `按现有毛薪计算的充分金额为 €${income.ceiling}，低于该数时仍需核实适用年度净额。`}`,
+          `Show personal recurring net income, excluding social assistance. Add ${sponsor.spousePercent}% for a spouse and ${sponsor.childPercent}% per child unless both parents lawfully reside in Greece. ${income.ceiling === undefined ? 'Confirm household composition and the annual net wage calculation then in force.' : `€${income.ceiling} is a sufficient upper bound based on gross wages. Below that bound verify the applicable annual net wage.`}`,
           income.netUnresolved ? ['PD-304'] : undefined,
         ),
       );
@@ -642,7 +794,7 @@ function familyChecks(
         all(insuranceMet(req.insurance, 'either'), req.insurance?.coversFamily),
         [
           grSource('F16', 'art. 84(2)(γ)'),
-          grSource('F21', 'art. 23(I)(1)(ε), (4)(β)'),
+          grSource('F21', 'art. 23(I)(1)(ε), (4)(β), (II)(2)(β)'),
           ...p.privateInsurance.sources,
         ],
         '核对公保家属资格或合规保单，须覆盖担保人及拟团聚家属。',
@@ -669,7 +821,7 @@ function familyChecks(
         'FT-05',
         '团聚成员及入境手续',
         'Eligible family member and admission procedure',
-        all(familyMember(f, req), admission),
+        allDue(familyMember(f, req), admission),
         [
           grSource('F16', 'arts. 4(λε), 42, 84(1), (3), 86(3), 92'),
           grSource('F36', 'arts. 9(2), 29'),
@@ -709,7 +861,7 @@ function familyChecks(
         'FT-07',
         '家属转自主居留 Ο.2',
         'Autonomous family residence (Ο.2)',
-        autonomous(f, age),
+        autonomous(f, req),
         [...p.familyAutonomy.sources, grSource('F36', 'art. 29 (art. 95(2))')],
         `持家属卡满 ${a.residenceYears} 年的配偶或成年子女可申请。丧偶前在希至少 ${a.bereavementYears} 年，离婚前婚姻至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年；另核对成年子女专用卡和有证据的特殊困难。Ο.2 最长 ${a.cardYears} 年。`,
         `Spouses or adult children with ${a.residenceYears} years on family permits can apply. Alternatives include ${a.bereavementYears} year before bereavement, marriage of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before divorce, the child permit on adulthood, or documented exceptional hardship. Autonomous residence runs for up to ${a.cardYears} years.`,

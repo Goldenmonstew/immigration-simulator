@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { evaluateGreeceFull } from '../src';
 import { propertyFamilyChecks } from '../src/greece-property-family';
 import type { GrPropertyFamilyAnswers } from '../src/greece-property-family';
 import type { GrFullRequest } from '../src/greece-full';
@@ -26,6 +27,7 @@ const investor: Investor = {
   zone: 'named-high-cost',
   qualifyingValueEur: 800000,
   title: 'sole',
+  acquisition: 'purchase',
   propertyCount: 1,
   builtOrBuildingPermit: true,
   mainAreaSqm: 120,
@@ -359,7 +361,10 @@ describe('Ο.3 and Μ.3 Greek citizen family', () => {
   });
   test('five-year inclusive anniversary, actual residence interruption and unresolved longer absences', () => {
     expect(gf('GF-03', {}).status).toBe('MET');
-    expect(gf('GF-03', { residenceFrom: '2021-11-24' }).status).toBe('NOT_MET');
+    expect(gf('GF-03', { residenceFrom: '2021-11-24' })).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining('2026-11-24'),
+    });
     expect(gf('GF-03', { maxAnnualAbsenceMonths: 7 })).toMatchObject({
       status: 'UNKNOWN',
       pendingDetails: ['PD-314'],
@@ -455,7 +460,10 @@ describe('Ν EU family', () => {
       'NOT_MET',
     );
     expect(ef('EF-02', {}).status).toBe('MET');
-    expect(ef('EF-02', { residenceFrom: '2021-11-24' }).status).toBe('NOT_MET');
+    expect(ef('EF-02', { residenceFrom: '2021-11-24' })).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining('2026-11-24'),
+    });
   });
   test('early retirement: over three years and at least twelve working months', () => {
     const early: NonNullable<EU['early']> = {
@@ -551,5 +559,301 @@ describe('Ν EU family', () => {
       ef('EF-06', { priorCardExpiry: '2026-11-22' }).explanation,
     ).toContain('up to €150');
     expect(ef('EF-06', { rightsDocumentsReady: false }).status).toBe('NOT_MET');
+  });
+});
+
+describe('review88-1 through evaluateGreeceFull', () => {
+  const full = (
+    id: Parameters<typeof propertyFamilyChecks>[0],
+    patch: Partial<GrFullRequest> = {},
+  ) =>
+    evaluateGreeceFull({
+      simulationDate,
+      locale: 'en',
+      pathways: [id],
+      citizenship: 'third-country',
+      birthDate: '1985-11-23',
+      passport: {
+        kind: 'recognised',
+        issuedOn: '2021-01-01',
+        expiresOn: '2030-01-01',
+        expectedDeparture: '2027-01-01',
+        blankPages: 2,
+      },
+      insurance,
+      publicOrder: 'clear',
+      biometrics: 'awaiting-appointment',
+      publicHealth: 'cleared',
+      entry: 'permit',
+      greekFamily: greek,
+      goldenVisa: investor,
+      euFamily: european,
+      ...patch,
+    }).columns[0].pathways[0];
+  function verify(
+    path: ReturnType<typeof full>,
+    rule: string,
+    status: 'MET' | 'NOT_MET' | 'UNKNOWN' | 'FUTURE',
+    earliestDate?: string,
+  ) {
+    const check = path.checks.find((x) => x.id === rule);
+    expect(check?.status, rule).toBe(status === 'FUTURE' ? 'NOT_MET' : status);
+    if (earliestDate) expect(check?.explanation, rule).toContain(earliestDate);
+    expect(path.status).toBe(status);
+    expect(path.earliestDate).toBe(earliestDate);
+  }
+
+  test('2. Athens purchase filed by an overseas representative can receive a receipt before cover and biometrics', () => {
+    const req = {
+      entry: 'outside',
+      overseasInvestorMandate: true,
+      insurance: { kind: 'uninsured' },
+      biometrics: undefined,
+    } as const;
+    const filing = full('GR-GOLDEN-VISA', req);
+    for (const rule of ['C-02', 'C-05', 'C-07', 'GV-06'])
+      verify(filing, rule, 'MET');
+    expect(filing.checks.find((x) => x.id === 'GV-06')?.explanation).toContain(
+      'before grant',
+    );
+    expect(filing.checks.find((x) => x.id === 'GV-01')?.explanation).toContain(
+      'single property purchase or qualifying tourist lease',
+    );
+    const goldenVisa = {
+      ...investor,
+      overseasFilingDate: '2025-11-23',
+      overseasEvidenceCompletedOn: simulationDate,
+    };
+    const decision = { ...req, goldenVisa, entry: 'receipt' } as const;
+    verify(full('GR-GOLDEN-VISA', decision), 'GV-06', 'NOT_MET');
+    verify(full('GR-GOLDEN-VISA', { ...decision, insurance }), 'C-07', 'MET');
+    verify(
+      full('GR-GOLDEN-VISA', {
+        ...decision,
+        insurance,
+        simulationDate: '2026-11-24',
+        goldenVisa: {
+          ...goldenVisa,
+          overseasEvidenceCompletedOn: '2026-11-24',
+        },
+      }),
+      'C-07',
+      'NOT_MET',
+    );
+  });
+
+  test.each(['inheritance', 'parental-gift'] as const)(
+    'adult %s uses registered assessed value instead of a purchase payment',
+    (acquisition) => {
+      const transfer = {
+        ...investor,
+        acquisition,
+        assessedValueEur: 800000,
+        registeredTransferEvidence: true,
+        fullyPaidAndConditionsReleased: false,
+        payment: undefined,
+        payer: undefined,
+        qualifyingValueEur: undefined,
+      };
+      const run = (
+        a: Partial<Investor> = {},
+        req: Partial<GrFullRequest> = {},
+      ) =>
+        full('GR-GOLDEN-VISA', { goldenVisa: { ...transfer, ...a }, ...req });
+      verify(run(), 'GV-01', 'MET');
+      verify(run(), 'GV-03', 'MET');
+      verify(run({ assessedValueEur: 799999 }), 'GV-01', 'NOT_MET');
+      verify(run({ assessedValueEur: undefined }), 'GV-01', 'UNKNOWN');
+      verify(
+        run({ registeredTransferEvidence: undefined }),
+        'GV-03',
+        'UNKNOWN',
+      );
+      verify(run({ acquisition: undefined }), 'GV-03', 'UNKNOWN');
+      verify(run({ title: undefined }), 'GV-03', 'UNKNOWN');
+      verify(
+        run({}, { birthDate: '2008-11-24' }),
+        'GV-03',
+        'FUTURE',
+        '2026-11-24',
+      );
+    },
+  );
+
+  test.each([
+    ['sharing-economy-short-let', 'NOT_MET'],
+    ['short-sublet', 'NOT_MET'],
+    ['sublet-terms-unknown', 'UNKNOWN'],
+    ['long-tourist-sublet-with-services', 'MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'property use %s has an independent filing outcome',
+    (use, status) => {
+      verify(
+        full('GR-GOLDEN-VISA', { goldenVisa: { ...investor, use } }),
+        'GV-04',
+        status,
+      );
+    },
+  );
+
+  test('6. departure of EU parent on 1 October preserves residence for the child and actual custodian until studies end', () => {
+    const retention = {
+      basis: 'custody',
+      eventDate: '2026-10-01',
+      livelihood: 'none',
+    } as const;
+    const schooling = {
+      sponsorEvent: 'departure',
+      applicant: 'parent-with-actual-custody',
+      childResidesInGreece: true,
+      childStillEnrolledInGreece: true,
+    } as const;
+    const run = (facts: Partial<NonNullable<EU['schooling']>>) =>
+      full('GR-EU-FAMILY-PR', {
+        euFamily: {
+          ...european,
+          stage: 'retained',
+          retention,
+          schooling: { ...schooling, ...facts },
+        },
+      });
+    verify(run({}), 'EF-04', 'MET');
+    verify(run({ sponsorEvent: 'death', applicant: 'child' }), 'EF-04', 'MET');
+    verify(run({ applicant: undefined }), 'EF-04', 'UNKNOWN');
+    verify(run({ applicant: 'other' }), 'EF-04', 'NOT_MET');
+    verify(run({ childResidesInGreece: false }), 'EF-04', 'NOT_MET');
+    verify(run({ childStillEnrolledInGreece: undefined }), 'EF-04', 'UNKNOWN');
+    verify(run({ childStillEnrolledInGreece: false }), 'EF-04', 'NOT_MET');
+  });
+  test('both family permanent residence clocks mature at the five-year anniversary', () => {
+    for (const [id, rule, patch] of [
+      [
+        'GR-GREEK-FAMILY-PR',
+        'GF-03',
+        { greekFamily: { ...greek, residenceFrom: '2021-11-24' } },
+      ],
+      [
+        'GR-EU-FAMILY-PR',
+        'EF-02',
+        { euFamily: { ...european, residenceFrom: '2021-11-24' } },
+      ],
+    ] as const) {
+      verify(full(id, patch), rule, 'FUTURE', '2026-11-24');
+      verify(
+        full(id, {
+          ...patch,
+          simulationDate: '2026-11-24',
+          greekFamily: {
+            ...greek,
+            residenceFrom: '2021-11-24',
+            priorCardExpiry: '2026-11-24',
+          },
+        }),
+        rule,
+        'MET',
+      );
+    }
+  });
+  test('investment limits and incapacity exception use the law on the simulation date', () => {
+    const historical = {
+      ...investor,
+      originalConditionsStillMet: true,
+      qualifyingValueEur: 500000,
+      use: 'short-sublet',
+    } as const;
+    verify(
+      full('GR-GOLDEN-VISA', {
+        goldenVisa: historical,
+        simulationDate: '2024-04-04',
+      }),
+      'GV-10',
+      'MET',
+    );
+    const changed = full('GR-GOLDEN-VISA', {
+      goldenVisa: historical,
+      simulationDate: '2024-04-05',
+    });
+    verify(changed, 'GV-01', 'NOT_MET');
+    verify(changed, 'GV-04', 'NOT_MET');
+    const goldenVisa = {
+      ...investor,
+      family: [
+        {
+          kind: 'child',
+          age: 25,
+          convertingPreviousFamilyCard: false,
+          incapacityDocumentedAndLivingAsDependant: true,
+        },
+      ],
+    } satisfies Investor;
+    verify(
+      full('GR-GOLDEN-VISA', { goldenVisa, simulationDate: '2026-02-05' }),
+      'GV-09',
+      'NOT_MET',
+    );
+    verify(
+      full('GR-GOLDEN-VISA', { goldenVisa, simulationDate: '2026-02-06' }),
+      'GV-09',
+      'MET',
+    );
+  });
+  test('Greek family conversion before the reform requires health cover under the earlier Μ.2 provisions', () => {
+    const greekFamily = {
+      ...greek,
+      residenceFrom: '2021-02-05',
+      priorCardExpiry: '2026-03-31',
+      longestConsecutiveAbsenceYears: 0,
+    };
+    const uninsured = { kind: 'uninsured' } as const;
+    verify(
+      full('GR-GREEK-FAMILY-PR', {
+        greekFamily,
+        insurance: uninsured,
+        simulationDate: '2026-02-05',
+      }),
+      'GF-03',
+      'NOT_MET',
+    );
+    verify(
+      full('GR-GREEK-FAMILY-PR', {
+        greekFamily,
+        insurance: uninsured,
+        simulationDate: '2026-02-06',
+      }),
+      'GF-03',
+      'MET',
+    );
+  });
+  test('current investment renewal verifies continued title without the original acquisition dossier', () => {
+    const renewal = full('GR-GOLDEN-VISA', {
+      permits: [{ kind: 'investor', from: '2024-09-01', to: '2026-12-01' }],
+      currentCardExpiresOn: '2026-12-01',
+      goldenVisa: {
+        stage: 'renewal',
+        regime: 'current',
+        kind: 'standard',
+        retainsInvestment: true,
+        family: [],
+        use: 'residential-or-long-let',
+        worksInGreeceUnderThisPermit: false,
+      },
+    });
+    expect(renewal.checks.find((x) => x.id === 'GV-08')?.status).toBe('MET');
+    expect(renewal.checks.map((x) => x.id)).not.toContain('GV-03');
+    expect(renewal.status).toBe('MET');
+    expect(renewal.earliestDate).toBe(simulationDate);
+  });
+  test('Ο.3 first filing accepts the explicitly deferred public insurance application receipt', () => {
+    verify(
+      full('GR-GREEK-FAMILY-PR', {
+        greekFamily: { ...greek, stage: 'initial' },
+        entry: 'short-stay',
+        insurance: undefined,
+        deferredInitialEvidence: ['public-insurance-application'],
+      }),
+      'GF-02',
+      'MET',
+    );
   });
 });

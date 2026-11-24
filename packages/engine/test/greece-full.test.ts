@@ -148,6 +148,162 @@ describe('long-term eligibility through the public entry point', () => {
     ).toBe('NOT_MET');
   });
 
+  test('Article 43 long-term mobility combines the German and Greek Blue Cards only for M.1', () => {
+    const mobility: NonNullable<GrFullRequest['blueCardMobility']> = {
+      usedLongTermMobility: true,
+      greekBlueCardFrom: '2024-11-23',
+      priorMemberPeriods: [
+        { kind: 'blue-card', from: '2021-11-23', through: '2024-11-22' },
+      ],
+      otherMemberTrips: [],
+    };
+    const permits = [{ kind: 'regular' as const, from: '2024-11-23' }];
+    const assess = (
+      simulationDate: string,
+      changes: Partial<typeof mobility> = {},
+    ) =>
+      path(id, {
+        simulationDate,
+        permits,
+        blueCardMobility: { ...mobility, ...changes },
+      });
+    const eligible = assess(day);
+    expect(eligible).toMatchObject({ status: 'MET', earliestDate: day });
+    for (const key of [
+      'LT-TIME-RESIDENCE',
+      'LT-TIME-SINGLE-ABSENCE',
+      'LT-TIME-TOTAL-ABSENCE',
+      id + '-TIME',
+    ]) {
+      expect(eligible.checks.find((x) => x.id === key)).toMatchObject({
+        status: 'MET',
+        sources: expect.arrayContaining([
+          expect.objectContaining({
+            srcId: 'SRC-086',
+            locator: expect.stringContaining('43(2)'),
+          }),
+        ]),
+      });
+    }
+    const shortGreek = assess('2026-11-22', {
+      priorMemberPeriods: [
+        { kind: 'researcher', from: '2020-11-23', through: '2024-11-22' },
+      ],
+    });
+    expect(shortGreek).toMatchObject({ status: 'FUTURE', earliestDate: day });
+    expect(
+      shortGreek.checks.find((x) => x.id === 'LT-TIME-RESIDENCE'),
+    ).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining(day),
+    });
+    expect(assess(day, { usedLongTermMobility: false })).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2029-11-23',
+    });
+    expect(assess(day, { otherMemberTrips: undefined }).status).toBe('UNKNOWN');
+    const gap = assess(day, {
+      priorMemberPeriods: [
+        { kind: 'blue-card', from: '2021-11-23', through: '2024-11-21' },
+      ],
+    });
+    expect(gap).toMatchObject({ status: 'FUTURE', earliestDate: '2029-11-23' });
+    const absent = assess(day, {
+      otherMemberTrips: [{ departed: '2022-01-01', returned: '2023-02-01' }],
+    });
+    expect(absent.earliestDate! > day).toBe(true);
+    expect(
+      path('GR-NATIONALITY', {
+        permits,
+        blueCardMobility: mobility,
+      }).checks.find((x) => x.id === 'NAT-TIME-RESIDENCE'),
+    ).toMatchObject({
+      status: 'NOT_MET',
+      explanation: expect.stringContaining('2031-11-23'),
+    });
+  });
+
+  test('Article 43 uses the separate absence limits and half-weights study in another Member State', () => {
+    const mobile: NonNullable<GrFullRequest['blueCardMobility']> = {
+      usedLongTermMobility: true,
+      greekBlueCardFrom: '2024-11-23',
+      greekBlueCardThrough: day,
+      priorMemberPeriods: [
+        { kind: 'student', from: '2015-01-01', through: '2024-11-22' },
+      ],
+      otherMemberTrips: [{ departed: '2021-01-01', returned: '2021-08-01' }],
+    };
+    const run = (blueCardMobility: typeof mobile) =>
+      path(id, { permits: [], blueCardMobility });
+    expect(run(mobile)).toMatchObject({ status: 'MET', earliestDate: day });
+    const tooLong = run({
+      ...mobile,
+      otherMemberTrips: [{ departed: '2020-12-31', returned: '2022-01-01' }],
+    });
+    expect(
+      tooLong.checks.find((x) => x.id === 'LT-TIME-SINGLE-ABSENCE')?.status,
+    ).toBe('NOT_MET');
+    expect(tooLong.status).toBe('NOT_MET');
+    expect(tooLong.earliestDate).toBeUndefined();
+    const tooLittle = run({
+      ...mobile,
+      priorMemberPeriods: [
+        { kind: 'student', from: '2021-11-23', through: '2024-11-22' },
+      ],
+    });
+    expect(
+      tooLittle.checks.find((x) => x.id === 'LT-TIME-RESIDENCE')?.status,
+    ).toBe('NOT_MET');
+    expect(tooLittle.status).toBe('NOT_MET');
+    expect(tooLittle.earliestDate).toBeUndefined();
+  });
+
+  test('confirmed Article 52 backlog periods also bridge the two cards for M.1', () => {
+    const union = path(id, {
+      permits: [
+        { kind: 'regular', from: '2016-11-01', to: '2023-09-01' },
+        { kind: 'regular', from: '2026-05-01' },
+      ],
+      backlogRenewals: [
+        {
+          filedOn: '2023-08-31',
+          permitEffectiveOn: '2026-05-01',
+          category: 'employment',
+          typeAReceipt: true,
+          pendingAtCommencement: true,
+        },
+      ],
+    });
+    expect(union).toMatchObject({ status: 'MET', earliestDate: day });
+    expect(
+      union.checks.find((x) => x.id === 'LT-TIME-RESIDENCE'),
+    ).toMatchObject({
+      status: 'MET',
+      sources: expect.arrayContaining([
+        expect.objectContaining({ locator: expect.stringContaining('52(1)') }),
+      ]),
+    });
+  });
+
+  test('the original protection rule gives half credit before the June 2026 amendment', () => {
+    const result = path(id, {
+      simulationDate: '2026-06-11',
+      permits: [{ kind: 'regular', from: '2021-12-11' }],
+      grantedProtection: { claimedOn: '2020-12-11', grantedOn: '2021-12-11' },
+    });
+    expect(result).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-06-12',
+    });
+    expect(
+      path(id, {
+        simulationDate: '2026-06-12',
+        permits: [{ kind: 'regular', from: '2021-12-11' }],
+        grantedProtection: { claimedOn: '2020-12-11', grantedOn: '2021-12-11' },
+      }),
+    ).toMatchObject({ status: 'MET', earliestDate: '2026-06-12' });
+  });
+
   test('the original, bilingual time checks are reproduced, including a late golden-visa renewal', () => {
     for (const locale of ['zh-CN', 'en'] as const) {
       const req = {
@@ -422,4 +578,71 @@ test('birth and continuous residence exempt only the general time requirement', 
   );
   expect(p.checks.some((c) => c.id === 'GR-NATIONALITY-TIME')).toBe(false);
   expect(p.status).toBe('NOT_MET');
+});
+
+test.each([
+  [day, '2027-03-01', 'FUTURE', '2027-01-01'],
+  ['2027-01-01', '2027-03-01', 'MET', undefined],
+  ['2025-06-23', '2025-04-01', 'NOT_MET', undefined],
+  ['2025-05-01', '2025-04-01', 'MET', undefined],
+  ['2026-02-05', '2025-12-05', 'NOT_MET', undefined],
+  ['2026-02-06', '2025-12-05', 'MET', undefined],
+] as const)(
+  'E.4 renewal on %s applies the window for the simulation date, expiry %s',
+  (simulationDate, currentCardExpiresOn, status, earliestDate) => {
+    const result = path('GR-WORK', {
+      simulationDate,
+      currentCardExpiresOn,
+      renewalForceMajeure: 'none',
+      work: {
+        permit: 'E4',
+        stage: 'renewal',
+        contractMonths: 12,
+        payBasis: 'monthly',
+        grossPayEur: 1500,
+        taxesSettledDuringPermit: true,
+      },
+    });
+    const check = result.checks.find((x) => x.id === 'C-07-window');
+    expect(check?.status).toBe(status === 'FUTURE' ? 'NOT_MET' : status);
+    if (earliestDate) expect(check?.explanation).toContain(earliestDate);
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBe(earliestDate);
+  },
+);
+
+test('B.5 uses the historical grace period through the full entry only', () => {
+  const request = {
+    ...base,
+    simulationDate: '2025-06-23',
+    permits: [
+      { kind: 'investor' as const, from: '2020-04-01', to: '2025-04-01' },
+    ],
+  };
+  const result = path('GR-GOLDEN-VISA', {
+    ...request,
+    goldenVisa: { stage: 'renewal' },
+    renewalForceMajeure: 'none',
+  });
+  expect(
+    result.checks.find((x) => x.id === 'GR-GOLDEN-VISA-TIME')?.status,
+  ).toBe('NOT_MET');
+  expect(result.status).toBe('NOT_MET');
+  expect(result.earliestDate).toBeUndefined();
+  expect(evaluateGreece(request).pathways[1].status).toBe('MET');
+});
+
+test('a simulation before the archived Migration Code requests the rules in force on that day', () => {
+  const result = path('GR-WORK', { simulationDate: '2024-03-30' });
+  expect(result.checks.find((x) => x.id === 'GR-LAW-DATE')).toMatchObject({
+    status: 'UNKNOWN',
+    pendingDetails: ['PD-300'],
+  });
+  expect(result.status).toBe('UNKNOWN');
+  expect(result.earliestDate).toBeUndefined();
+  expect(
+    path('GR-WORK', { simulationDate: '2024-03-31' }).checks.some(
+      (x) => x.id === 'GR-LAW-DATE',
+    ),
+  ).toBe(false);
 });
