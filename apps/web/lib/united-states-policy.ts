@@ -96,6 +96,11 @@ const samples: UsFullRequest[] = [
   })),
   immigrant('US-FAMILY', 'adjustment', {
     family: { petitioner: 'citizen', relationship: 'spouse' },
+    admission: {
+      process: 'adjustment',
+      decisionOn: '2027-06-01',
+      i485PendingEvents: [{ on: '2027-02-01', kind: 'procedure' }],
+    },
     trips: [
       {
         departed: '2027-01-01',
@@ -128,6 +133,10 @@ const samples: UsFullRequest[] = [
     simulationDate: date,
     dateOfBirth: '1990-01-01',
     humanitarian: { status: 'refugee' },
+    admission: {
+      decisionOn: '2027-06-01',
+      i485PendingEvents: [{ on: '2027-02-01', kind: 'procedure' }],
+    },
     fees: { travelForm: 'refugee-document' },
   },
 ];

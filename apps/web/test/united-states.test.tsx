@@ -20,6 +20,7 @@ import { usStepDefinitions, type UsField } from '../lib/united-states-fields';
 import { unitedStatesModule as us } from '../lib/united-states-module';
 import { japanModule } from '../lib/japan-module';
 import { sourceUrls } from '../lib/sources';
+import { gapRules } from '../lib/gap-summary';
 
 const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
   renderToStaticMarkup(
@@ -434,16 +435,21 @@ test('removing conditions before the window shows the earliest filing date and t
       t('country.status.UNKNOWN', 'en'),
     ),
   );
-  // Moving the assessment date into the window meets the filing timing.
+  // Moving the assessment date into the window meets the filing timing. The
+  // outcome stays open while approval requirements are (review96-1 #6).
   const knobs = us.whatif.initial(draft);
   const later = us.whatif.apply(draft, {
     ...knobs,
     simulationDate: '2027-03-10',
   });
   expect(pathwayOf(later)).toMatchObject({
-    status: 'MET',
+    status: 'UNKNOWN',
+    approvalStatus: 'UNKNOWN',
     earliestDate: '2027-03-10',
   });
+  expect(pathwayOf(later).summary).toContain(
+    t('us.result.approval').replace('{status}', t('country.status.UNKNOWN')),
+  );
 });
 
 test('month and ground tables become records for the engine', () => {
@@ -503,7 +509,9 @@ test('the policy page lists every condition, United States sources only, under a
   const rules = us.policy.rules['us.current-law-2026-11'];
   const ids = rules.map((rule) => rule.id);
   expect(new Set(ids).size).toBe(ids.length);
-  expect(ids).toHaveLength(104);
+  // Including the pending-I-485 condition (review96-1 #7).
+  expect(ids).toHaveLength(105);
+  expect(ids).toContain('US-I485-PENDING-ELIGIBILITY');
   for (const rule of rules) {
     expect(rule.titleEn, rule.id).toBeTruthy();
     expect(rule.sources.length, rule.id).toBeGreaterThan(0);
@@ -885,4 +893,99 @@ test('comparison controls drive the engine and keep answers tied to the assessme
   expect(controls(travelDraft())).toContain(
     'aria-describedby="us-whatif-date-hint"',
   );
+});
+
+test('results show the approval stage and keep procedural notes out of the gaps (review96-1)', () => {
+  const noCrime = {
+    unclassifiedRecord: false,
+    cimtCount: 0,
+    convictionCount: 0,
+    combinedSentenceMonths: 0,
+    confinementDays: 0,
+    controlledSubstance: 'none',
+    duiCount: 0,
+  } as const;
+  // Every filing requirement is met; the English test was failed (#6).
+  const failedEnglish: UsDraft = {
+    ...naturalizationDraft,
+    simulationDate: '2026-11-23',
+    permanentResident: '2018-03-01',
+    stateResidenceFrom: '2018-03-01',
+    naturalization: {
+      lawfulAdmission: 'cleared',
+      removalProcess: 'none',
+      residenceThroughOath: true,
+      lprResidenceYears: 8,
+      english: 'failed',
+      civics: 'passed',
+      disability: { requested: false },
+      goodMoralCharacter: 'cleared',
+      murderConviction: false,
+      aggravatedFelonyConvictedOn: 'none',
+      persecutionBar: false,
+      statutoryPeriodCrime: noCrime,
+      otherGmcBar: 'cleared',
+      falseOralTestimony: false,
+      benefitsAndSupport: 'clear',
+      constitutionalAttachment: true,
+      party: { membership: 'none' },
+      selectiveService: 'registered',
+      warDesertionOrAlienageExemption: 'cleared',
+      oath: 'willing',
+      titlesRenounced: true,
+      truthfulApplication: true,
+    },
+    fees: { channel: 'paper', relief: 'none' },
+  };
+  const failed = pathwayOf(failedEnglish);
+  expect(failed).toMatchObject({
+    status: 'NOT_MET',
+    approvalStatus: 'NOT_MET',
+    earliestDate: '2026-11-23',
+  });
+  expect(failed.summary).toBe(
+    '所填资料满足已评估的递交条件。' +
+      t('us.result.approval').replace('{status}', t('country.status.NOT_MET')),
+  );
+  const failedHtml = render(
+    <ResultView
+      country={us}
+      result={us.run(failedEnglish, 'zh-CN')}
+      draft={failedEnglish}
+    />,
+  );
+  expect(failedHtml).not.toContain(t('gap.met'));
+  expect(failedHtml).toContain('?focus=english');
+  // Fees and other procedural notes are not gaps (#6).
+  const notes = travelDraft();
+  delete notes.travel!.registration;
+  delete notes.travel!.feeForm;
+  const pathway = pathwayOf(notes);
+  expect(pathway.status).toBe('FUTURE');
+  const kind = (id: string) =>
+    pathway.checks.find((check) => check.id === id)?.kind;
+  expect(kind('US-C18-REGISTRATION')).toBe('information');
+  expect(kind('US-TIME-TRAVEL')).toBe('requirement');
+  for (const check of pathway.checks)
+    if (/^US-C4[45]-/.test(check.id))
+      expect(check.kind, check.id).toBe('information');
+  expect(gapRules(pathway)).toEqual([]);
+  // The return date is named as the planned return (#6).
+  expect(pathway.summary).toContain(
+    t('us.result.returnOn').replace('{date}', '2026-12-20'),
+  );
+  // Pending details use the country wording, not the UK one (#6).
+  const pendingHtml = render(
+    <ResultView
+      country={us}
+      result={us.run(naturalizationDraft, 'zh-CN')}
+      draft={naturalizationDraft}
+    />,
+  );
+  expect(pendingHtml).toContain(t('pilot.pending'));
+  expect(pendingHtml).not.toContain(t('gap.pending'));
+  expect(pendingHtml).not.toContain(t('result.pendingDetails'));
+  // Chinese sentences are joined without a space (suggestion 4).
+  for (const draft of [travelDraft(), naturalizationDraft, failedEnglish])
+    expect(pathwayOf(draft).summary).not.toMatch(/。 /);
 });
