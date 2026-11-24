@@ -2,6 +2,7 @@
 
 import type { SourceRef } from '@uk-immigration/policy-data';
 import { RuleSetStatus } from './policy-status';
+import type { TranslationKey } from '../i18n';
 import { useTranslation } from '../i18n/locale';
 import { punct } from '../i18n/punctuation';
 import {
@@ -120,11 +121,9 @@ export function PolicyPage({
     <main id="main" className={site.main}>
       <h1>
         {t(
-          country.id === 'jp'
-            ? 'jp.policy.pageTitle'
-            : country.id === 'au'
-              ? 'au.policy.pageTitle'
-              : 'policyPage.title',
+          country.id === 'uk'
+            ? 'policyPage.title'
+            : (`${country.id}.policy.pageTitle` as TranslationKey),
         )}
       </h1>
       <section className={site.section} aria-labelledby="rule-sets-heading">
@@ -208,9 +207,7 @@ export function PolicyPage({
                         <td data-label={t('policyPage.value')}>
                           <ParameterValue
                             value={parameter.value}
-                            groupNumbers={
-                              country.id === 'jp' || country.id === 'au'
-                            }
+                            groupNumbers={country.id !== 'uk'}
                           />
                         </td>
                         <td data-label={t('result.sources')}>
