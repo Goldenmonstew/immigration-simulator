@@ -375,4 +375,39 @@ export const sourceUrls: Record<string, string> = {
   'SRC-348':
     'https://curia.europa.eu/jcms/upload/docs/application/pdf/2022-01/cp220010es.pdf',
   'SRC-349': 'https://www.boe.es/buscar/act.php?id=BOE-A-2004-12010',
+  'SRC-260': 'https://laws-lois.justice.gc.ca/eng/XML/C-29.xml',
+  'SRC-261': 'https://laws-lois.justice.gc.ca/eng/XML/I-2.5.xml',
+  'SRC-262':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/adult-minor/who.html',
+  'SRC-263':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/become-canadian-citizen/eligibility/language-proof.html',
+  'SRC-264': 'https://ircc.canada.ca/english/information/fees/fees.asp',
+  'SRC-265':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/permanent-residents/status.html',
+  'SRC-266':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/admissibility-enforcement/inadmissibility/reasons.html',
+  'SRC-267':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/who-can-apply/federal-skilled-workers.html',
+  'SRC-268':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/proof-funds.html',
+  'SRC-269':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/ministerial-instructions/express-entry-application-management-system.html',
+  'SRC-270':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/atlantic-immigration/how-to-immigrate/eligibility.html',
+  'SRC-271':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/provincial-nominees.html',
+  'SRC-272': 'https://www.ontario.ca/laws/regulation/170422',
+  'SRC-273':
+    'https://www.quebec.ca/en/immigration/permanent/skilled-workers/skilled-worker-selection-program/requirements',
+  'SRC-274':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/family-sponsorship/spouse-partner-children/eligibility.html',
+  'SRC-275':
+    'https://www.quebec.ca/en/immigration/permanent/sponsor-family-member/sponsoring-spouse-conjugal-partner',
+  'SRC-276':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/rounds-invitations/category-based-selection.html',
+  'SRC-277': 'https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1110024101',
+  'SRC-278':
+    'https://www.publicationsduquebec.gouv.qc.ca/fileadmin/gazette/pdf_encrypte/lois_reglements/2026F/88289.pdf',
+  'SRC-279':
+    'https://www.ontario.ca/page/oinp-employer-guide?redirect_id=page%2Fontario-immigrant-nominee-program-oinp-employer-guide&redirect_year=2026?redirect_id=page%2Foinp-employer-job-offer-streams-employer-guide&redirect_year=2026',
 };

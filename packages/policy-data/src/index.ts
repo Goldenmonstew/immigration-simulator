@@ -25,7 +25,7 @@ export {
   auCharges,
 } from './parameters/australia-2026-11';
 export { newZealand2026_11 } from './parameters/new-zealand-2026-11';
-export { canada2026_11 } from './parameters/canada-2026-11';
+export { canada2026_11, canadaFull2026_11 } from './parameters/canada-2026-11';
 export { unitedStates2026_11 } from './parameters/united-states-2026-11';
 export { spain2026_11, spainFull2026_11 } from './parameters/spain-2026-11';
 export { greece2026_11 } from './parameters/greece-2026-11';
