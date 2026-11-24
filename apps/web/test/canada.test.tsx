@@ -370,6 +370,17 @@ test('typed codes drop surrounding spaces and an extension asks for its date', (
   expect(html).toMatch(new RegExp(`id="${extension}"[^>]* required=""`));
 });
 
+// review95-1 #3 and suggestion 3: labels say what the engine counts.
+test('Quebec sponsored groups include the new group and the other labels match the form', () => {
+  expect(t('ca.field.sponsoredGroups')).toContain('本次新增');
+  expect(t('ca.field.sponsoredGroups', 'en')).toContain('this new');
+  expect(t('ca.option.applicationClass.family')).toBe('家庭类（Family Class）');
+  expect(t('ca.option.applicationClass.family', 'en')).toBe('Family class');
+  // Signing on any day but 1 January lists the signing year too.
+  expect(t('ca.form.taxYearsHint')).toContain('签署当年');
+  expect(t('ca.form.taxYearsHint', 'en')).toContain('signing year');
+});
+
 test('drafts round-trip in their envelope and reject malformed answers', () => {
   const draft: CanadaDraft = {
     ...residencyDraft(),

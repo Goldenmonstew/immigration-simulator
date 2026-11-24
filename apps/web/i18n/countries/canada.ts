@@ -38,7 +38,8 @@ export const zhCN = {
     '每次离开加拿大填一行，计划中的出行也可以填。没有出境时请点“确认没有记录”，否则居住天数无法计算。',
   'ca.form.periodsHint':
     '在加拿大以访客、学生、工作者或受保护人身份合法停留的期间，每段一行。没有身份或等待难民申请决定的时间不要填。',
-  'ca.form.taxYearsHint': '按签署日前的日历年列出，未列出的年份不影响结果。',
+  'ca.form.taxYearsHint':
+    '按签署日（未填时按模拟日期）之前的计算期间列出日历年；签署日不是 1 月 1 日时也列出签署当年。未列出的年份不影响结果。',
   'ca.form.tupleHint': '请填写全部数值，或全部留空。',
   'ca.form.add': '添加',
   'ca.form.remove': '删除',
@@ -134,7 +135,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ca.form.periodsHint':
     'Add a row for each period you were in Canada lawfully as a visitor, student, worker or protected person. Do not include time without status or waiting on a refugee claim.',
   'ca.form.taxYearsHint':
-    'Calendar years before the signing date. Years not listed do not affect the result.',
+    'Calendar years in the period before the signing date (or the simulation date if none), including the signing year unless you sign on 1 January. Years not listed do not affect the result.',
   'ca.form.tupleHint': 'Fill in every value, or leave them all blank.',
   'ca.form.add': 'Add',
   'ca.form.remove': 'Remove',
