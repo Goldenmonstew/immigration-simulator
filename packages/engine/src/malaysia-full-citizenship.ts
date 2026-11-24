@@ -28,7 +28,8 @@ const amendment = v.constitutionAmendment2025;
 /**
  * Residence under the Second Schedule Part III s.20: permanent residence
  * counts; short absences and those for health or government service count;
- * time on a pass, and other long absences, need the Minister's consent.
+ * time on a pass and long absences for study need the Minister's consent;
+ * other long absences do not count.
  */
 function residence(ctx: MyContext, until: IsoDate) {
   const { req } = ctx;
@@ -88,8 +89,8 @@ function residenceText(ctx: MyContext, r: Residence) {
         : '') +
     (r.longTrips
       ? L(
-          `有 ${r.longTrips} 次 ${v.shortAbsenceMonths.value} 个月或更长的出境，除健康或公务原因外不计入。`,
-          ` ${r.longTrips} absence(s) of ${v.shortAbsenceMonths.value} months or more do not count unless for health or government service.`,
+          `有 ${r.longTrips} 次 ${v.shortAbsenceMonths.value} 个月或更长的出境，健康或公务原因计入，教育原因须部长批准，其他原因不计入。`,
+          ` ${r.longTrips} absence(s) of ${v.shortAbsenceMonths.value} months or more: those for health or government service count, study needs the Minister’s approval, and others do not count.`,
         )
       : '')
   );
