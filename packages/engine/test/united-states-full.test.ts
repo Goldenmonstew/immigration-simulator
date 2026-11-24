@@ -196,6 +196,7 @@ const employment: UsEmploymentAnswers = {
   category: 'eb2-perm',
   categoryQualifications: 'cleared',
   employmentOffer: true,
+  initialSupplementJIncluded: true,
   perm: 'certified',
   permCertifiedOn: '2026-05-27',
   recruitmentAndFeesCompliant: true,
@@ -5726,6 +5727,7 @@ describe('review86-17 regressions', () => {
         employment: {
           category,
           employmentOffer: true,
+          initialSupplementJIncluded: true,
           abilityToPayTotality: 'cleared',
           relativePetitioner: false,
           relativeOwnershipPct: 0,
@@ -5984,6 +5986,10 @@ describe('review86-17 regressions', () => {
   const portedWorker = {
     ...worker,
     employment: { ...worker.employment, jobPortability: portability },
+    admission: {
+      ...worker.admission,
+      visaAtFilingByMonth: { '2026-05': 'available' as const },
+    },
   };
 
   test.each(employmentEntries)(
@@ -6079,4 +6085,441 @@ describe('review86-17 regressions', () => {
       }
     },
   );
+});
+
+describe('review86-18 regressions', () => {
+  const today = time.simulationDate;
+  const employmentEntries = ['US-EMPLOYMENT', 'US-ADJUSTMENT'] as const;
+  const expectStages = (
+    request: UsFullRequest,
+    status: 'MET' | 'NOT_MET' | 'UNKNOWN',
+    approvalStatus = status,
+  ) => {
+    const result = path(request);
+    expect(result).toMatchObject({ status, approvalStatus });
+    expect(result.earliestDate).toBe(status === 'MET' ? today : undefined);
+    expect(result.approvalEarliestDate).toBe(
+      approvalStatus === 'MET' ? today : undefined,
+    );
+  };
+  const ordinaryPerm = {
+    category: 'eb3',
+    perm: 'certified',
+    permCertifiedOn: '2026-10-01',
+    i140FiledOn: '2026-11-02',
+  } as const;
+
+  test.each([
+    [
+      'detailed costs only',
+      {
+        recruitmentAndFeesCompliant: undefined,
+        permRecruitment: { employerPaidPermCosts: false },
+      },
+    ],
+    [
+      'noncompliant summary',
+      {
+        recruitmentAndFeesCompliant: false,
+        permRecruitment: { employerPaidPermCosts: true },
+      },
+    ],
+    [
+      'noncompliant detail despite a cleared summary',
+      { permRecruitment: { employerPaidPermCosts: false } },
+    ],
+    [
+      'untimely notice',
+      {
+        permRecruitment: {
+          laborCertificationFiledOn: '2026-10-01',
+          notice: { method: 'union', notifiedOn: '2026-09-28' },
+        },
+      },
+    ],
+  ] satisfies [string, Partial<UsEmploymentAnswers>][])(
+    'DOL certification preserves reported %s',
+    (_, conflict) => {
+      for (const pathway of employmentEntries) {
+        const request = {
+          ...withEmployment({ ...ordinaryPerm, ...conflict }, 'pending'),
+          pathway,
+        };
+        expect(condition(request, 'C28-OFFER-PERM').status).toBe('NOT_MET');
+        expectStages(request, 'NOT_MET');
+      }
+    },
+  );
+
+  test('I-130 approval preserves reported family history and petition bars', () => {
+    for (const pathway of ['US-FAMILY', 'US-ADJUSTMENT'] as const) {
+      const spouse = {
+        ...f,
+        pathway,
+        family: { ...family, priorMarriageFraud: true },
+      };
+      expect(condition(spouse, 'C24-PETITION-BARS').status).toBe('NOT_MET');
+      expectStages(spouse, 'NOT_MET');
+      const stepchild: UsFullRequest = {
+        ...f,
+        pathway,
+        family: {
+          ...family,
+          relationship: 'unmarried-child',
+          childRelationship: 'step',
+          relationshipEstablishedAtAge: 19,
+        },
+      };
+      expect(condition(stepchild, 'C23-RELATIONSHIP').status).toBe('NOT_MET');
+      expectStages(stepchild, 'NOT_MET');
+    }
+  });
+
+  const approvedEmployerConflicts = [
+    [
+      'EB-1B classification',
+      { category: 'eb1b', categoryQualifications: 'barred' },
+    ],
+    [
+      'EB-1C classification',
+      { category: 'eb1c', categoryQualifications: 'barred' },
+    ],
+    [
+      'EB-2 PERM wage',
+      { ...ordinaryPerm, category: 'eb2-perm', prevailingWageUsd: 61000 },
+    ],
+    [
+      'EB-3 PERM costs',
+      {
+        ...ordinaryPerm,
+        recruitmentAndFeesCompliant: undefined,
+        permRecruitment: { employerPaidPermCosts: false },
+      },
+    ],
+    [
+      'Schedule A costs',
+      {
+        ...ordinaryPerm,
+        perm: 'schedule-a',
+        permRecruitment: { employerPaidPermCosts: false },
+      },
+    ],
+    [
+      'Schedule A notice window',
+      {
+        ...ordinaryPerm,
+        perm: 'schedule-a',
+        permRecruitment: {
+          notice: { method: 'union', notifiedOn: '2026-10-31' },
+        },
+      },
+    ],
+  ] satisfies [string, Partial<UsEmploymentAnswers>][];
+  test.each(approvedEmployerConflicts)(
+    'approved I-140 preserves the reported %s conflict',
+    (_, conflict) => {
+      for (const pathway of employmentEntries) {
+        const request = { ...withEmployment(conflict, 'approved'), pathway };
+        expect(condition(request, 'C28-OFFER-PERM')).toMatchObject({
+          status: 'NOT_MET',
+          filingStatus: 'NOT_MET',
+        });
+        expectStages(request, 'NOT_MET');
+      }
+    },
+  );
+
+  test('a case-specific review of PERM validity leaves both stages unresolved', () => {
+    for (const pathway of employmentEntries) {
+      for (const petition of ['pending', 'approved'] as const) {
+        const request = {
+          ...withEmployment(
+            { ...ordinaryPerm, permCertificationValidity: 'pending' },
+            petition,
+          ),
+          pathway,
+        };
+        expect(condition(request, 'C28-OFFER-PERM')).toMatchObject({
+          status: 'UNKNOWN',
+          pendingDetails: ['PD-277'],
+        });
+        expectStages(request, 'UNKNOWN');
+      }
+    }
+  });
+
+  test.each([
+    [
+      'EB-1A insufficient initial evidence',
+      { ...eb1a.employment, extraordinaryEvidenceCount: 2 },
+      'C30-SELF-PETITION-EVIDENCE',
+    ],
+    [
+      'EB-1A adverse final merits',
+      { ...eb1a.employment, extraordinaryFinalMerits: 'barred' },
+      'C30-SELF-PETITION-MERITS',
+    ],
+    [
+      'NIW adverse individual prong',
+      {
+        category: 'eb2-niw',
+        continuesWorkInField: true,
+        niwProngs: { nationalImportance: false },
+      },
+      'C30-SELF-PETITION-MERITS',
+    ],
+  ] satisfies [string, Partial<UsEmploymentAnswers>, string][])(
+    '%s survives petition approval',
+    (_, conflict, id) => {
+      for (const pathway of employmentEntries) {
+        const request = { ...withEmployment(conflict, 'approved'), pathway };
+        expect(condition(request, id).status).toBe('NOT_MET');
+        expectStages(request, 'NOT_MET');
+      }
+    },
+  );
+
+  test.each([false, true])(
+    'EB-5 approval preserves adverse project and capital evidence (regional center %s)',
+    (regionalCenter) => {
+      const investment = {
+        ...eb5.employment!.investment,
+        regionalCenter,
+        projectFiled: regionalCenter,
+      };
+      for (const pathway of employmentEntries) {
+        for (const [details, id] of [
+          [{ lawfullySourcedFunds: 'barred' }, 'C31-INVESTMENT-PROJECT'],
+          [{ capitalUsd: 1 }, 'C31-INVESTMENT-AMOUNT'],
+          [
+            { qualifyingJobs: 0, jobCreationPlan: 'none' },
+            'C31-INVESTMENT-JOBS',
+          ],
+        ] as const) {
+          const request: UsFullRequest = {
+            ...eb5,
+            pathway,
+            employment: {
+              ...eb5.employment,
+              investment: { ...investment, ...details },
+            },
+            admission: { ...eb5.admission, petitionFiledOn: '2026-05-27' },
+          };
+          expect(condition(request, id).status).toBe('NOT_MET');
+          expectStages(request, 'NOT_MET');
+        }
+      }
+    },
+  );
+
+  test.each([
+    ['vawa', 'US-FAMILY'],
+    ['sij', 'US-EMPLOYMENT'],
+  ] as const)(
+    'approved I-360 retains an adverse %s basis finding',
+    (adjustmentBasis, dedicated) => {
+      for (const pathway of [dedicated, 'US-ADJUSTMENT'] as const) {
+        const request: UsFullRequest = {
+          ...time,
+          pathway,
+          fees: f.fees,
+          admission: {
+            ...admission,
+            adjustmentBasis,
+            qualifyingBasis: 'barred',
+          },
+        };
+        expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+          status: 'NOT_MET',
+          filingStatus: 'NOT_MET',
+        });
+        expectStages(request, 'NOT_MET');
+      }
+    },
+  );
+
+  test.each([
+    [{ fundsAndWire: 'barred' }, 'C32-GOLD-PROCESS'],
+    [{ processingFundsUsd: 1 }, 'C32-GOLD-GIFT'],
+  ] as const)(
+    'I-140G approval preserves adverse evidence about %s',
+    (conflict, id) => {
+      for (const pathway of employmentEntries) {
+        const request: UsFullRequest = {
+          ...gold,
+          pathway,
+          employment: {
+            ...gold.employment,
+            gold: { ...gold.employment?.gold, ...conflict },
+          },
+          admission: {
+            ...gold.admission,
+            adjustmentBasis: 'employment',
+            petitionStatus: 'approved',
+          },
+        };
+        expect(condition(request, id).status).toBe('NOT_MET');
+        expectStages(request, 'NOT_MET');
+      }
+    },
+  );
+
+  test.each(employmentEntries)(
+    'only the principal with an approved employer petition needs Supplement J with the initial packet in %s',
+    (pathway) => {
+      for (const [included, status] of [
+        [false, 'NOT_MET'],
+        [undefined, 'UNKNOWN'],
+        [true, 'MET'],
+      ] as const) {
+        const request = {
+          ...withEmployment(
+            { ...ordinaryPerm, initialSupplementJIncluded: included },
+            'approved',
+          ),
+          pathway,
+        };
+        expect(condition(request, 'C28-OFFER-PERM').status).toBe('MET');
+        expect(condition(request, 'I485-INITIAL-SUPPLEMENT-J').status).toBe(
+          status,
+        );
+        expectStages(request, status);
+      }
+      for (const petitionStatus of [
+        'pending',
+        'filed-with-i485',
+        'approved',
+      ] as const) {
+        const request: UsFullRequest = {
+          ...withEmployment(
+            { ...ordinaryPerm, initialSupplementJIncluded: false },
+            petitionStatus,
+          ),
+          pathway,
+        };
+        if (petitionStatus === 'filed-with-i485')
+          request.employment!.i140FiledOn = undefined;
+        if (petitionStatus === 'approved')
+          request.admission!.i485ApplicantRole = 'derivative';
+        expect(
+          path(request).checks.some(
+            (item) => item.id === 'US-I485-INITIAL-SUPPLEMENT-J',
+          ),
+        ).toBe(false);
+        expectStages(
+          request,
+          'MET',
+          petitionStatus === 'approved' ? 'MET' : 'UNKNOWN',
+        );
+      }
+    },
+  );
+
+  test.each(employmentEntries)(
+    'C33 keeps the original filing month when current visa charts retrogress in %s',
+    (pathway) => {
+      const approved = withEmployment(
+        {
+          ...ordinaryPerm,
+          i140FiledOn: '2026-05-27',
+          permCertifiedOn: '2026-05-01',
+          employmentOffer: false,
+          initialSupplementJIncluded: undefined,
+          jobPortability: {
+            i485PendingSince: '2026-05-27',
+            originalOfferValidAtFiling: true,
+            newOffer: true,
+            sameOrSimilarOccupation: 'cleared',
+            supplementJFiledOn: today,
+          },
+        },
+        'approved',
+      );
+      for (const [history, finalAction, filingStatus, status] of [
+        ['available', 'unavailable', 'MET', 'NOT_MET'],
+        ['available', 'available', 'MET', 'MET'],
+        ['unavailable', 'available', 'NOT_MET', 'NOT_MET'],
+        [undefined, 'available', 'UNKNOWN', 'UNKNOWN'],
+      ] as const) {
+        const request: UsFullRequest = {
+          ...approved,
+          pathway,
+          admission: {
+            ...approved.admission,
+            visaAtFiling: 'unavailable',
+            visaAtFilingByMonth: { '2026-05': history },
+            visaAtDecision: finalAction,
+          },
+        };
+        expect(condition(request, 'C28-OFFER-PERM')).toMatchObject({
+          status: 'MET',
+          filingStatus: 'MET',
+        });
+        expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+          filingStatus,
+          status,
+        });
+        expectStages(request, filingStatus, status);
+      }
+    },
+  );
+
+  test('an actual I-485 receipt month also applies without a portability request', () => {
+    const approved = withEmployment(
+      {
+        ...ordinaryPerm,
+        i140FiledOn: '2026-10-19',
+        initialSupplementJIncluded: undefined,
+      },
+      'approved',
+    );
+    for (const pathway of employmentEntries) {
+      const request: UsFullRequest = {
+        ...approved,
+        pathway,
+        admission: {
+          ...approved.admission,
+          i485FiledOn: '2026-10-23',
+          visaAtFiling: 'unavailable',
+          visaAtFilingByMonth: { '2026-10': 'available' },
+          visaAtDecision: 'unavailable',
+        },
+      };
+      expectStages(request, 'MET', 'NOT_MET');
+      expect(
+        path(request).checks.some(
+          (item) => item.id === 'US-I485-INITIAL-SUPPLEMENT-J',
+        ),
+      ).toBe(false);
+    }
+  });
+
+  test('a pending I-485 does not roll the current decision into the next paper receipt month', () => {
+    const request: UsFullRequest = {
+      ...withEmployment(
+        {
+          ...ordinaryPerm,
+          i140FiledOn: '2026-10-19',
+          initialSupplementJIncluded: undefined,
+        },
+        'approved',
+      ),
+      simulationDate: '2026-10-31',
+      admission: {
+        ...e.admission,
+        i485FiledOn: '2026-10-23',
+        visaAtFiling: 'available',
+        visaAtDecision: 'available',
+        visaAtDecisionByMonth: { '2026-11': 'unavailable' },
+      },
+    };
+    for (const pathway of employmentEntries) {
+      expect(path({ ...request, pathway })).toMatchObject({
+        status: 'MET',
+        approvalStatus: 'MET',
+        earliestDate: '2026-10-31',
+        approvalEarliestDate: '2026-10-31',
+      });
+    }
+  });
 });

@@ -533,20 +533,22 @@ export function adjustmentChecks(
   category: AdjustmentCategory,
   timing: AdmissionTiming,
   facts: ReturnType<typeof preapprovedFacts>,
+  filedI485On?: IsoDate,
 ) {
   const { receipt, decision } = timing;
+  const filingReceipt = filedI485On ?? receipt;
   const check = checksFor(request);
   const a = request.admission;
   const petition = a?.petitionStatus;
   const petitionApproved = underlyingPetitionApproved(a);
   const { employment } = request;
   const familyBasis = isFamilyCategory(category);
-  const immediate = immediateRelative(request, category, receipt, facts);
+  const immediate = immediateRelative(request, category, filingReceipt, facts);
   const availability = (value?: UsAdmissionAnswers['visaAtFiling']): Answer =>
     value === 'available' ? true : value === 'unavailable' ? false : undefined;
   const consular = a?.process === 'consular';
   const simulationMonth = request.simulationDate.slice(0, 7);
-  const receiptMonth = receipt.slice(0, 7);
+  const receiptMonth = filingReceipt.slice(0, 7);
   const decisionMonth = decision?.slice(0, 7);
   const visaAtFiling = consular
     ? receipt > request.simulationDate || availability(a.visaAtFiling)
@@ -630,8 +632,9 @@ export function adjustmentChecks(
       ? true
       : qualifyingBasis,
   );
-  const presenceAtReceipt =
-    request.trips && !returnFromTrip(request.trips, receipt);
+  const presenceAtReceipt = request.trips
+    ? !returnFromTrip(request.trips, filingReceipt)
+    : filedI485On !== undefined || undefined;
   const filing = inconsistentPetitionDate
     ? undefined
     : all(

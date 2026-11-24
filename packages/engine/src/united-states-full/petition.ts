@@ -1,11 +1,12 @@
 import { afterYears } from '../pilot';
 import type { IsoDate } from '../types';
-import { v } from './check';
+import { reviewed, v } from './check';
 import type { Answer } from './check';
 import type {
   UsAdmissionAnswers,
   UsEmploymentAnswers,
   UsFullRequest,
+  UsReview,
 } from './types';
 
 type AdjustmentBasis = NonNullable<UsAdmissionAnswers['adjustmentBasis']>;
@@ -27,6 +28,7 @@ const permPetition = [
 ] as const;
 
 // Each row is limited to facts decided by the authority on the same case.
+// Coverage supplies missing evidence. A reported failure still applies.
 // See the approval table in docs/tasks/reports/86-us-rules.md for the SRC locators.
 const approvalFacts = {
   dolPerm: certifiedPerm,
@@ -49,6 +51,14 @@ const approvalFacts = {
   i360Sij: ['sijClassification'],
   i360Vawa: ['vawaClassification'],
 } as const;
+
+export function carryForward(
+  covered: boolean,
+  answer: Answer | UsReview,
+): Answer {
+  if (answer === undefined) return covered || undefined;
+  return typeof answer === 'string' ? reviewed(answer) : answer;
+}
 
 type ApprovalFact =
   | (typeof approvalFacts.employment)[EmploymentCategory][number]
@@ -187,13 +197,15 @@ export function immediateRelative(
     (admission?.petitionStatus === 'filed-with-i485' ? receipt : undefined);
   if (family.relationship === 'parent')
     return petitioner === 'citizen'
-      ? (reportedAgeAtLeast(
-          request.simulationDate,
-          petitionReceipt ?? receipt,
-          family.petitionerAge,
-          v.familyAge.value.adultSponsor,
-        ) ??
-          (facts.has('familyRelationshipHistory') || undefined))
+      ? carryForward(
+          facts.has('familyRelationshipHistory'),
+          reportedAgeAtLeast(
+            request.simulationDate,
+            petitionReceipt ?? receipt,
+            family.petitionerAge,
+            v.familyAge.value.adultSponsor,
+          ),
+        )
       : undefined;
   if (family.relationship !== 'unmarried-child') return false;
   const limit = v.familyAge.value.child;

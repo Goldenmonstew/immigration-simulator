@@ -384,7 +384,7 @@ export const unitedStatesFullSources = {
   perm: [
     source(
       'SRC-305',
-      '20 CFR 656.10(c)(1), (d)(1)(i)–(ii), (2)(ii), (3)(iv), (6), 656.12(b), 656.15(b), (e), 656.17(e), 656.24(b)–(d), 656.30(b), 656.40',
+      '20 CFR 656.10(c)(1), (d)(1)(i)–(ii), (2)(ii), (3)(iv), (6), 656.12(b)–(c), 656.15(b), (e), 656.17(e), 656.24(b)–(d), 656.30(b), 656.40',
     ),
     pm('SRC-305', 6, 'E', 6, '(B)(1)'),
     usc('SRC-302', '1153', '(b)(2)–(3)'),
@@ -407,6 +407,13 @@ export const unitedStatesFullSources = {
       'SRC-309',
       '8 CFR 245.25(a)(2)–(3), (b); I-485 Instructions pp10, 19',
       'https://www.ecfr.gov/current/title-8/section-245.25#p-245.25(a)(2)',
+    ),
+  ],
+  initialSupplementJ: [
+    source(
+      'SRC-309',
+      'I-485 Instructions p10, Item 8',
+      'https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=10',
     ),
   ],
   pay: [

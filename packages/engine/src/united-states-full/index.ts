@@ -445,9 +445,20 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   const i485 =
     (immigrantApplication && admission?.process === 'adjustment') ||
     request.pathway === 'US-HUMANITARIAN';
+  const recordedI485Receipt =
+    immigrantApplication && admission?.process === 'adjustment'
+      ? (admission.i485FiledOn ??
+        (category === 'employment'
+          ? request.employment?.jobPortability?.i485PendingSince
+          : undefined))
+      : undefined;
+  const filedI485On =
+    recordedI485Receipt && recordedI485Receipt <= date
+      ? recordedI485Receipt
+      : undefined;
   let filingCandidate = nvcFilingDate ?? date;
-  let applicationReceipt = receiptOn(filingCandidate);
-  if (i485) {
+  let applicationReceipt = filedI485On ? date : receiptOn(filingCandidate);
+  if (i485 && !filedI485On) {
     let returnOn =
       returnFromTrip(request.trips, applicationReceipt) ??
       returnFromTrip(request.trips, filingCandidate);
@@ -502,7 +513,10 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
           (!nvcFilingDate || interviewOn > nvcFilingDate)))
         ? decisionOn
         : undefined;
-  } else if (decisionOn && decisionOn > applicationReceipt) {
+  } else if (
+    decisionOn &&
+    (filedI485On ? decisionOn >= filedI485On : decisionOn > applicationReceipt)
+  ) {
     decision = decisionOn;
   }
   const filingOn = request.fees?.filingOn;
@@ -646,10 +660,16 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
           : []),
         ...(category === 'employment' &&
         (request.pathway === 'US-EMPLOYMENT' || request.employment?.category)
-          ? employmentChecks(request, applicationReceipt, facts)
+          ? employmentChecks(request, applicationReceipt, facts, filedI485On)
           : []),
         ...supportChecks(request, category, applicationReceipt),
-        ...adjustmentChecks(request, category, admissionTiming, facts),
+        ...adjustmentChecks(
+          request,
+          category,
+          admissionTiming,
+          facts,
+          filedI485On,
+        ),
       ];
       break;
     }
@@ -666,7 +686,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   if (filingChannel) requirements.push(filingChannel);
   const { status: timing } = eligibility;
   const candidate = eligibility.earliestDate ?? date;
-  const receipt = receiptOn(candidate);
+  const receipt = filedI485On ? date : receiptOn(candidate);
   if (receipt !== candidate) {
     timingChecks.push(
       check(

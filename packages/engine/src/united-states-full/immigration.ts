@@ -19,6 +19,7 @@ import type { Answer } from './check';
 import { jobsCheck } from './maintenance';
 import {
   beneficiaryAtLeastAge,
+  carryForward,
   currentFamilyPetitioner,
   isFamilyCategory,
   reportedAgeAtLeast,
@@ -43,20 +44,23 @@ export function familyChecks(
   const law = v.familyAge.value;
   const petitioner = currentFamilyPetitioner(request);
   const citizen = petitioner === 'citizen';
-  const history = facts.has('familyRelationshipHistory') || undefined;
-  const barsCovered = facts.has('familyPetitionBars') || undefined;
+  const history = facts.has('familyRelationshipHistory');
+  const barsCovered = facts.has('familyPetitionBars');
   const relation =
     a?.relationship === 'married-child'
       ? petitioner && citizen
       : a?.relationship === 'parent' || a?.relationship === 'sibling'
         ? all(
             petitioner ? citizen : undefined,
-            reportedAgeAtLeast(
-              request.simulationDate,
-              date,
-              a.petitionerAge,
-              law.adultSponsor,
-            ) ?? history,
+            carryForward(
+              history,
+              reportedAgeAtLeast(
+                request.simulationDate,
+                date,
+                a.petitionerAge,
+                law.adultSponsor,
+              ),
+            ),
           )
         : a?.relationship
           ? petitioner !== undefined || undefined
@@ -102,14 +106,25 @@ export function familyChecks(
               reviewed(a.removalMarriageException),
             )
           : undefined;
-    marriageBars = all(priorMarriage, removalMarriage);
+    marriageBars = all(
+      a.priorMarriageException === 'pending'
+        ? priorMarriage
+        : carryForward(barsCovered, priorMarriage),
+      a.removalMarriageException === 'pending'
+        ? removalMarriage
+        : carryForward(barsCovered, removalMarriage),
+    );
   }
   return [
     check(
       'C23-RELATIONSHIP',
       '亲属类别、年龄与关系效力',
       'Family classification, age and valid relationship',
-      all(relation, child ?? history, reviewed(a?.relationshipValid)),
+      all(
+        relation,
+        carryForward(history, child),
+        reviewed(a?.relationshipValid),
+      ),
       s.relationship,
       'PD-272',
       [
@@ -123,9 +138,9 @@ export function familyChecks(
       'Prior marriage, marriage fraud and Adam Walsh petition bars',
       all(
         a?.relationship ? true : undefined,
-        marriageBars ?? barsCovered,
-        not(a?.priorMarriageFraud) ?? barsCovered,
-        a?.adamWalsh === undefined ? barsCovered : reviewed(a.adamWalsh),
+        marriageBars,
+        carryForward(barsCovered, not(a?.priorMarriageFraud)),
+        carryForward(barsCovered, a?.adamWalsh),
       ),
       s.petitionBars,
       'PD-274',
@@ -365,7 +380,7 @@ function permRecruitment(a: UsEmploymentAnswers, i140Date?: IsoDate): Answer {
     ? undefined
     : notice?.method === 'union' && notice.notifiedOn
       ? inWindow(notice.notifiedOn)
-      : notice?.method === 'posting' && notice.businessDates?.length
+      : notice?.method === 'posting' && notice.businessDates !== undefined
         ? new Set(notice.businessDates.filter(inWindow)).size >=
           law.noticeWorkdays
         : undefined;
@@ -379,6 +394,7 @@ function permRecruitment(a: UsEmploymentAnswers, i140Date?: IsoDate): Answer {
   const order = record.stateJobOrder;
   const ads = record.advertisementDates;
   return all(
+    a.recruitmentAndFeesCompliant !== false,
     order && daysBetween(order.from, order.through) + 1 >= law.orderDays,
     receipt && order ? inWindow(order.through) : undefined,
     atLeast(ads?.length, law.advertisements),
@@ -422,6 +438,7 @@ export function employmentChecks(
   request: UsFullRequest,
   receipt: IsoDate,
   facts: ReturnType<typeof preapprovedFacts>,
+  filedI485On?: IsoDate,
 ) {
   const check = checksFor(request);
   const a = request.employment ?? {};
@@ -432,7 +449,7 @@ export function employmentChecks(
     admission?.petitionStatus === 'pending' || petitionApproved;
   const prospectivePetitionReceipt =
     admission?.process === 'adjustment'
-      ? receipt
+      ? (filedI485On ?? receipt)
       : request.fees?.channel === 'paper'
         ? nextUsBusinessDay(date)
         : date;
@@ -442,8 +459,10 @@ export function employmentChecks(
       'EMPLOYMENT-MARRIAGE-FRAUD',
       '既往婚姻欺诈批准禁令',
       'Prior marriage fraud petition bar',
-      not(a.priorMarriageFraud) ??
-        (facts.has('employmentPetitionBars') || undefined),
+      carryForward(
+        facts.has('employmentPetitionBars'),
+        not(a.priorMarriageFraud),
+      ),
       s.petitionBars,
       'PD-274',
     ),
@@ -479,19 +498,25 @@ export function employmentChecks(
           : a.perm === 'none'
             ? false
             : undefined;
-    const classification = facts.has('employmentClassification')
-      ? true
-      : reviewed(a.categoryQualifications);
+    const classification = carryForward(
+      facts.has('employmentClassification'),
+      a.categoryQualifications,
+    );
     const perm =
-      !needsPerm || facts.has('permFiling')
-        ? true
-        : all(
-            certification,
-            wages ?? (facts.has('permWage') || undefined),
-            facts.has('permRecruitment')
-              ? a.recruitmentAndFeesCompliant !== false
-              : permRecruitment(a, inconsistentI140Date ? undefined : i140Date),
-          );
+      !needsPerm ||
+      all(
+        a.perm === 'pending'
+          ? undefined
+          : carryForward(facts.has('permFiling'), certification),
+        a.permCertificationValidity === undefined
+          ? true
+          : reviewed(a.permCertificationValidity),
+        carryForward(facts.has('permWage'), wages),
+        carryForward(
+          facts.has('permRecruitment'),
+          permRecruitment(a, inconsistentI140Date ? undefined : i140Date),
+        ),
+      );
     const portability =
       admission?.process === 'adjustment' ? a.jobPortability : undefined;
     const pendingSince = portability?.i485PendingSince;
@@ -517,10 +542,14 @@ export function employmentChecks(
     const currentOffer = portability
       ? all(offerAtFiling, any(a.employmentOffer, port))
       : a.employmentOffer;
-    const offer =
-      petitionApproved && inconsistentI140Date
-        ? undefined
-        : all(currentOffer, classification, perm);
+    const petitionDates =
+      petitionApproved && inconsistentI140Date ? undefined : true;
+    const offer = all(currentOffer, classification, perm, petitionDates);
+    const needsInitialSupplementJ =
+      admission?.process === 'adjustment' &&
+      admission.i485ApplicantRole !== 'derivative' &&
+      !filedI485On &&
+      petitionApproved;
     return [
       ...based,
       check(
@@ -559,12 +588,28 @@ export function employmentChecks(
                     '按 ETA-9089 收件日核对招聘与通知。PERM 有效期按实际或预计的 I-140 收件日核对。',
                     'Check recruitment and notice against ETA-9089 receipt. Check PERM validity against actual or expected I-140 receipt.',
                   ],
-        portability && !(petitionApproved && inconsistentI140Date)
-          ? checkStatus(all(offerAtFiling, classification, perm))
+        portability
+          ? checkStatus(all(offerAtFiling, classification, perm, petitionDates))
           : petitionApproved
             ? checkStatus(offer)
             : undefined,
       ),
+      ...(needsInitialSupplementJ
+        ? [
+            check(
+              'I485-INITIAL-SUPPLEMENT-J',
+              '首次递交 I-485 随附 Supplement J',
+              'Supplement J with the initial I-485',
+              a.initialSupplementJIncluded,
+              s.initialSupplementJ,
+              'PD-277',
+              [
+                '雇主担保 I-140 已获批时，主申请人须将签署的 Supplement J 随首次 I-485 提交。',
+                'The principal applicant must include a signed Supplement J with the initial I-485 when the employer-sponsored I-140 has already been approved.',
+              ],
+            ),
+          ]
+        : []),
       check(
         'C29-ABILITY-TO-PAY',
         '雇主持续支付承诺工资',
@@ -615,15 +660,12 @@ export function employmentChecks(
             a.niwProngs?.wellPositioned,
             a.niwProngs?.waiverBeneficial,
           );
+    const determination =
+      category === 'eb1a' ? a.extraordinaryFinalMerits : a.niwDetermination;
     const merits = all(
-      factsAtFiling,
-      reviewed(
-        category === 'eb1a' ? a.extraordinaryFinalMerits : a.niwDetermination,
-      ),
-    );
-    const continuingWork = all(
-      a.continuesWorkInField,
-      category === 'eb1a' ? (a.benefitsUnitedStates ?? true) : true,
+      carryForward(approvedMerits, factsAtFiling),
+      carryForward(approvedMerits, determination),
+      approvedMerits ? a.continuesWorkInField : true,
     );
     return [
       ...based,
@@ -631,7 +673,7 @@ export function employmentChecks(
         'C30-SELF-PETITION-EVIDENCE',
         '自申类别基础证据',
         'Initial evidence for the self-petition classification',
-        approvedEvidence ? true : primary,
+        carryForward(approvedEvidence, primary),
         s.selfPetition,
         'PD-277',
       ),
@@ -639,7 +681,7 @@ export function employmentChecks(
         'C30-SELF-PETITION-MERITS',
         'EB-1A 终局审查或 NIW 国家利益',
         'EB-1A final merits or NIW national interest',
-        approvedMerits ? continuingWork : merits,
+        merits,
         approvedMerits
           ? [...s.selfPetition, ...s.approvedSelfPetition]
           : s.selfPetition,
@@ -650,7 +692,7 @@ export function employmentChecks(
               'The petition approval establishes the original classification and merits. Confirm intent to continue the petitioned work or endeavor and the applicable evidence of intent.',
             ]
           : undefined,
-        checkStatus(approvedMerits ? continuingWork : factsAtFiling),
+        checkStatus(approvedMerits ? merits : factsAtFiling),
       ),
     ];
   }
@@ -690,17 +732,19 @@ export function employmentChecks(
         : input?.project
           ? law.reducedUsd
           : undefined;
+    const approvedProject = facts.has('investmentProject');
     return [
       ...based,
       check(
         'C31-INVESTMENT-AMOUNT',
         'EB-5 投资本金门槛',
         'Minimum EB-5 capital investment',
-        facts.has('investmentAmount')
-          ? true
-          : current && minimum !== undefined
+        carryForward(
+          facts.has('investmentAmount'),
+          current && minimum !== undefined
             ? atLeast(input?.capitalUsd, minimum)
             : undefined,
+        ),
         s.eb5,
         'PD-264',
         facts.has('investmentAmount')
@@ -717,19 +761,20 @@ export function employmentChecks(
         'C31-INVESTMENT-PROJECT',
         '合法资金、在险期限与合资格项目',
         'Lawful funds, at-risk period and qualifying project',
-        facts.has('investmentProject')
-          ? true
-          : all(
-              reviewed(input?.lawfullySourcedFunds),
-              input?.atRisk,
-              input?.qualifiesAsNewEnterprise,
-              sustainment,
-              input?.regionalCenter === false
-                ? true
-                : input?.regionalCenter
-                  ? input.projectFiled
-                  : undefined,
-            ),
+        all(
+          carryForward(approvedProject, input?.lawfullySourcedFunds),
+          carryForward(approvedProject, input?.atRisk),
+          carryForward(approvedProject, input?.qualifiesAsNewEnterprise),
+          carryForward(approvedProject, sustainment),
+          carryForward(
+            approvedProject,
+            input?.regionalCenter === false
+              ? true
+              : input?.regionalCenter
+                ? input.projectFiled
+                : undefined,
+          ),
+        ),
         s.eb5,
         'PD-278',
         facts.has('investmentProject')
@@ -746,7 +791,7 @@ export function employmentChecks(
         'C31-INVESTMENT-JOBS',
         '合资格岗位与工时',
         'Qualifying job creation and hours',
-        facts.has('investmentJobs') ? true : jobs,
+        carryForward(facts.has('investmentJobs'), jobs),
         [...s.eb5, ...s.eb5JobPlan],
         'PD-278',
         [
@@ -781,22 +826,25 @@ export function employmentChecks(
       : undefined;
     const giftAmount =
       gift === undefined ? undefined : atLeast(gold?.giftUsd, gift);
+    const giftAtFiling = all(
+      carryForward(approvedGold, giftAmount),
+      carryForward(approvedGold, processingFunds),
+    );
     return [
       ...based,
       check(
         'C32-GOLD-PROCESS',
         'Gold Card 预登记与领馆流程',
         'Gold Card preregistration and consular process',
-        approvedGold
-          ? consular
-          : all(
-              gold?.registrationAccepted,
-              consular,
-              request.fees?.channel
-                ? request.fees.channel === 'online'
-                : undefined,
-              reviewed(gold?.fundsAndWire),
-            ),
+        all(
+          consular,
+          carryForward(approvedGold, gold?.registrationAccepted),
+          approvedGold ||
+            (request.fees?.channel
+              ? request.fees.channel === 'online'
+              : undefined),
+          carryForward(approvedGold, gold?.fundsAndWire),
+        ),
         s.gold,
         'PD-276',
       ),
@@ -805,8 +853,8 @@ export function employmentChecks(
         'Gold Card 赠与及按人计处理费',
         'Gold Card gift and per-person processing fee',
         approvedGold
-          ? all(reviewed(gold?.giftTransferred), giftAmount ?? true)
-          : all(giftAmount, processingFunds),
+          ? all(reviewed(gold?.giftTransferred), giftAtFiling)
+          : giftAtFiling,
         s.gold,
         'PD-276',
         approvedGold && gift === undefined
@@ -823,7 +871,7 @@ export function employmentChecks(
                 `按赠与方及人数，需赠与 USD ${gift}，另付每人 USD ${law.feePerPersonUsd} 处理费。`,
                 `The donor type and number of applicants require a gift of USD ${gift} and a processing fee of USD ${law.feePerPersonUsd} per person.`,
               ],
-        approvedGold ? checkStatus(giftAmount ?? true) : undefined,
+        approvedGold ? checkStatus(giftAtFiling) : undefined,
       ),
       check(
         'C32-GOLD-ALLOCATION',

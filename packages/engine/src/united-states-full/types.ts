@@ -294,6 +294,8 @@ export interface UsEmploymentAnswers {
   categoryQualifications?: UsReview;
   /** A valid offer for the petitioned job that the beneficiary intends to accept. */
   employmentOffer?: boolean;
+  /** Whether the required, signed Supplement J accompanies the initial I-485. */
+  initialSupplementJIncluded?: boolean;
   jobPortability?: {
     /** Actual receipt date of the properly filed I-485 still pending on this I-140 basis. */
     i485PendingSince?: IsoDate;
@@ -306,6 +308,8 @@ export interface UsEmploymentAnswers {
     supplementJFiledOn?: IsoDate;
   };
   perm?: 'certified' | 'schedule-a' | 'pending' | 'none';
+  /** Case-specific finding on whether a reported certification remains valid. */
+  permCertificationValidity?: UsReview;
   permCertifiedOn?: IsoDate;
   /** Actual receipt date of the underlying I-140, on or before the simulation date. */
   i140FiledOn?: IsoDate;
@@ -393,6 +397,10 @@ type UsOtherInadmissibilityParagraph = 5 | 6 | 7 | 8 | 9 | 10;
 export interface UsAdmissionAnswers {
   /** Bare prospective applications have no favourable discretionary finding yet. */
   process?: 'adjustment' | 'consular';
+  /** Actual USCIS receipt date of this properly filed I-485. */
+  i485FiledOn?: IsoDate;
+  /** Role in an employment-based I-485. Defaults to principal. */
+  i485ApplicantRole?: 'principal' | 'derivative';
   /** USCIS filing chart for the simulation month, or NVC authorization to submit consular documents. */
   visaAtFiling?: UsVisaAvailability;
   /** Confirmed future opening date for NVC submission, when not yet authorized. */
