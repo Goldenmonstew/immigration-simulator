@@ -1,7 +1,7 @@
 /* global self, caches, fetch, URL, Response */
 
 const CACHE_PREFIX = 'uk-immigration-pwa-';
-const CACHE_NAME = `${CACHE_PREFIX}2026-11-23-v5`;
+const CACHE_NAME = `${CACHE_PREFIX}2026-11-24-nz`;
 // The site may live under a base path (GitHub Pages): take it from the scope.
 const BASE = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 const at = (path) => `${BASE}${path}`;
