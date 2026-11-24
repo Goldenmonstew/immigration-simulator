@@ -77,6 +77,20 @@ function AustraliaStep({ draft, errors, update }: StepProps) {
               } as Partial<AustraliaDraft>)
             }
           />
+          {/* A comparison assumption stays visible and can be withdrawn. */}
+          {draft.noTrips !== undefined && (
+            <div className={form.checkboxes}>
+              <label>
+                <input
+                  id="au-noTrips"
+                  type="checkbox"
+                  checked={draft.noTrips}
+                  onChange={(e) => update({ noTrips: e.target.checked })}
+                />
+                {t('au.form.noTripsAssumed')}
+              </label>
+            </div>
+          )}
         </section>
       )}
 

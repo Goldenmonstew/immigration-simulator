@@ -32,7 +32,10 @@ export const auModuleZh = {
   'au.whatif.citizenshipTest': '入籍考试通过情况（达标且价值观题全对）',
   'au.whatif.health': '移民体检结论（PIC 4005 / 4007）',
   'au.whatif.invalidSalary': '请输入零或正数金额（AUD）。',
-  'au.whatif.invalidDates': '调整后的模拟日期格式无效。',
+  'au.whatif.invalidDates':
+    '调整后的模拟日期无效，或早于问卷中的出生日期等其他日期。',
+  'au.whatif.noNomination':
+    '问卷中没有 186 雇主提名记录，调整薪资不会改变结果。请先在问卷的雇主担保一步填写提名。',
   'au.result.finishQuestionnaire':
     '请返回问卷，完成必填项目并修正有误日期后再查看结果。',
 } as const;
@@ -78,7 +81,10 @@ export const auModuleEn: Record<keyof typeof auModuleZh, string> = {
     'Citizenship test passed (overall and values questions)',
   'au.whatif.health': 'Immigration health assessment (PIC 4005 / 4007)',
   'au.whatif.invalidSalary': 'Enter an amount in AUD of zero or above.',
-  'au.whatif.invalidDates': 'Enter a valid simulation date.',
+  'au.whatif.invalidDates':
+    'Enter a valid simulation date that is not before your date of birth or other dates in the questionnaire.',
+  'au.whatif.noNomination':
+    'There is no 186 employer nomination in the questionnaire, so changing the salary has no effect. Add the nomination in the employer step first.',
   'au.result.finishQuestionnaire':
     'Return to the questionnaire and complete the required fields to view your results.',
 };

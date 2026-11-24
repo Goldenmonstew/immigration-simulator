@@ -52,6 +52,8 @@ export const auFormZh = {
   'au.form.visasHint':
     '按时间顺序填写每一份澳洲签证（含过桥签；不填 ETA、特殊目的签或船员签）。新的实质签证生效即终止前一份签证；仍有效或已被新签终止的签证到期日可留空。',
   'au.form.tripsHint': '每次离开澳大利亚填一行，计划中的出行也可填入。',
+  'au.form.noTripsAssumed':
+    '按没有离境记录评估（来自对比页的假设），上面的出境记录暂不计入。取消勾选后按所填记录评估。',
   'au.form.nominationsHint':
     '按提名书所列类别填写。确认没有提名时可点击“确认无提名记录”；已填写其中一类提名而另一类留空时，未填类别按无提名处理。',
   'au.form.noNominations': '确认无 186 雇主提名记录',
@@ -617,6 +619,8 @@ export const auFormEn: Record<keyof typeof auFormZh, string> = {
     'Enter each Australian visa in date order, including bridging visas (exclude ETAs, special purpose visas and maritime crew visas). A new substantive visa ends an earlier one; leave the end date blank if the visa is still in effect or was ended by a later grant.',
   'au.form.tripsHint':
     'Add a row for each trip outside Australia, including planned trips.',
+  'au.form.noTripsAssumed':
+    'Assess as if there were no trips (an assumption from the comparison page); the trips above are not counted. Untick to use them.',
   'au.form.nominationsHint':
     'Enter nominations by the stream named in the nomination. Click “Confirm no 186 nominations” if none exist; if one stream is filled and the other is left blank, the blank stream is treated as having no nomination.',
   'au.form.noNominations': 'Confirm no 186 nominations',

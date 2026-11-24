@@ -20,11 +20,16 @@ const healthOptions = [
 ] as const;
 
 export function AustraliaWhatIfControls({
+  afterDraft,
   knobs,
   update,
   errors,
 }: WhatIfControlsProps<AustraliaDraft, AustraliaWhatIf>) {
   const { t } = useTranslation();
+  const nominations = afterDraft.employer?.nominations;
+  const nominated = !!(
+    nominations?.['AU-186-TRT'] || nominations?.['AU-186-DE']
+  );
 
   function error(field: string) {
     return (
@@ -101,8 +106,18 @@ export function AustraliaWhatIfControls({
             })
           }
           aria-invalid={!!errors.salary}
-          aria-describedby={errors.salary ? 'salary-error' : undefined}
+          aria-describedby={
+            [
+              nominated ? '' : 'au-whatif-salary-hint',
+              errors.salary ? 'salary-error' : '',
+            ]
+              .filter(Boolean)
+              .join(' ') || undefined
+          }
         />
+        {!nominated && (
+          <p id="au-whatif-salary-hint">{t('au.whatif.noNomination')}</p>
+        )}
         {error('salary')}
       </div>
 
