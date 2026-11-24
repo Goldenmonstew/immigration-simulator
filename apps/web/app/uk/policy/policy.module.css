@@ -54,8 +54,13 @@
 }
 .parameters .valueTable th,
 .parameters .valueTable td {
-  padding: 2px 12px 2px 0;
+  padding: 2px 8px 2px 0;
   border-bottom: 1px solid #e3e3e3;
+  overflow-wrap: normal;
+}
+/* Keep short CJK column names such as 听力 on one line. */
+.parameters .valueTable th {
+  word-break: keep-all;
 }
 .group {
   margin: 16px 0;
@@ -155,6 +160,12 @@
   }
   .parameters .valueTable td::before {
     content: none;
+  }
+  .parameters .valueTable th {
+    word-break: normal;
+  }
+  .parameters dd {
+    margin-inline-start: 12px;
   }
 }
 

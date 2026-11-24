@@ -152,6 +152,10 @@ test('component scores are stored as the engine tuple without rewriting the draf
   expect(au.validateStep(draft)).toEqual({
     'au-english-test-components': 'au.form.scoresError',
   });
+  // The questionnaire focuses the first error by id: here the score group.
+  expect(form(draft, () => {}, au.validateStep(draft))).toMatch(
+    /<fieldset id="au-english-test-components" tabindex="-1"[^>]*aria-describedby="au-english-test-components-error"/,
+  );
   expect(au.decodeDraft(draft)).toEqual(draft);
 });
 

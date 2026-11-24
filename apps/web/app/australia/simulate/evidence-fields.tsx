@@ -213,7 +213,10 @@ function Question({
     ) as (number | null)[];
     const parts = ['listening', 'reading', 'writing', 'speaking'] as const;
     return (
+      // The fieldset takes focus when the shell jumps to this error.
       <fieldset
+        id={id}
+        tabIndex={-1}
         className={form.entry}
         aria-describedby={errors[id] ? `${id}-error` : undefined}
       >
