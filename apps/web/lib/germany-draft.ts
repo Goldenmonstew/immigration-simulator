@@ -39,8 +39,6 @@ export function createGermanyDraft(): GermanyDraft {
     completed: false,
     simulationDate: today(),
     routes: [],
-    permits: [],
-    trips: [],
     common: {},
     settlement: {},
     mobility: {},
@@ -147,7 +145,7 @@ export function activeGermanyAnswers(draft: GermanyDraft): GermanyDraft {
   const hasCitizenship = visible.has(4);
   const hasFees = visible.has(5);
   const permits = hasHistory
-    ? (draft.permits ?? []).map((p) => {
+    ? draft.permits?.map((p) => {
         const clean = { ...p };
         if (!hasEndDate(p.kind)) {
           delete clean.to;
@@ -164,7 +162,7 @@ export function activeGermanyAnswers(draft: GermanyDraft): GermanyDraft {
         ? draft.firstEntry || undefined
         : undefined,
     permits,
-    trips: hasHistory ? (draft.trips ?? []) : undefined,
+    trips: hasHistory ? draft.trips : undefined,
     contributionMonths:
       hasCommon || detailRoutes.has('R02')
         ? draft.contributionMonths

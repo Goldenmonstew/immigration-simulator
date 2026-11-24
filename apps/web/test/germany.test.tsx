@@ -556,3 +556,66 @@ test('migrated legacy drafts are checked step by step and reopen at the failing 
     'de-firstEntry': 'de.form.required',
   });
 });
+
+test('residence history lists start unanswered so "no trips" differs from "not sure" (review100-1 #2)', () => {
+  const fresh = createGermanyDraft();
+  expect(fresh.permits).toBeUndefined();
+  expect(fresh.trips).toBeUndefined();
+
+  const status = (draft: Partial<GermanyDraft>, route: string, id: string) =>
+    condition(
+      de.run(
+        {
+          ...fresh,
+          simulationDate: '2026-11-23',
+          ...draft,
+        } as GermanyDraft,
+        'zh-CN',
+      ),
+      route,
+      id,
+    )?.status;
+  const r01 = {
+    routes: ['R01'],
+    firstEntry: '2021-01-01',
+    permits: [{ kind: 'skilled', from: '2021-01-01' }],
+  } as Partial<GermanyDraft>;
+  expect(status(r01, 'DE-R01', 'DE-C13')).toBe('UNKNOWN');
+  expect(status({ ...r01, trips: [] }, 'DE-R01', 'DE-C13')).toBe('MET');
+  expect(
+    status(
+      { routes: ['R00'], firstEntry: '2022-05-23' },
+      'DE-R00',
+      'DE-C63-time',
+    ),
+  ).toBe('UNKNOWN');
+  expect(
+    status({ routes: ['R03'], firstEntry: '2022-05-23' }, 'DE-R03', 'DE-C19'),
+  ).toBe('UNKNOWN');
+
+  // Every history list, including trips under a single document, can be
+  // confirmed empty and returned to pending.
+  const step1 = (draft: Partial<GermanyDraft>) =>
+    renderToStaticMarkup(
+      <LocaleContext value={{ locale: 'zh-CN', setLocale: () => {} }}>
+        {GermanySimulatePage().props.children({
+          draft: { ...fresh, routes: ['R01'], step: 1, ...draft },
+          errors: {},
+          update: () => {},
+        })}
+      </LocaleContext>,
+    );
+  const count = (html: string, text: string) => html.split(text).length - 1;
+  const unanswered = step1({
+    mobility: { titles: [{ kind: 'skilled' }] },
+  });
+  expect(count(unanswered, '确认无此项记录')).toBe(3);
+  expect(unanswered).not.toContain('已确认为无记录。');
+  const confirmed = step1({
+    permits: [],
+    trips: [],
+    mobility: { titles: [{ kind: 'skilled', trips: [] }] },
+  });
+  expect(count(confirmed, '已确认为无记录。')).toBe(3);
+  expect(count(confirmed, '恢复为待确认')).toBe(3);
+});

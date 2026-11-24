@@ -76,16 +76,39 @@ test('Germany questionnaire, result, what-if comparison, share link, and saved s
   await add('de.field.permits').click();
   await page.locator('#de-permits-0-kind').selectOption('skilled');
   await page.locator('#de-permits-0-from').fill('2022-05-23');
+  // Trips start unanswered; confirming none can be undone.
+  const trips = form
+    .getByRole('group', { name: zhCN['de.field.trips'], exact: true })
+    .first();
+  const button = (scope: typeof trips, key: keyof typeof zhCN) =>
+    scope.getByRole('button', { name: zhCN[key], exact: true });
+  await button(trips, 'de.form.noRecords').click();
+  await expect(trips.getByText(zhCN['de.form.emptyConfirmed'])).toBeVisible();
+  await button(trips, 'de.form.resetRecords').click();
+  await expect(trips.getByText(zhCN['de.form.emptyConfirmed'])).toHaveCount(0);
+  await button(trips, 'de.form.noRecords').click();
   await add('de.field.titles').click();
   await page.locator('#de-titles-0-kind').selectOption('skilled');
   await page.locator('#de-titles-0-noOtherLossEvent').selectOption('yes');
-  await form
-    .getByRole('checkbox', { name: zhCN['de.form.validAtSimulation'] })
-    .check();
-  await form
-    .getByRole('group', { name: `${zhCN['de.field.titles']} 1`, exact: true })
-    .getByRole('button', { name: zhCN['de.form.noRecords'], exact: true })
+  await page.locator('#de-titles-0-validTo').fill('2028-05-22');
+  const title = form.getByRole('group', {
+    name: `${zhCN['de.field.titles']} 1`,
+    exact: true,
+  });
+  // Removing the only trip under a document returns it to unanswered.
+  await title
+    .getByRole('button', {
+      name: `${zhCN['de.form.add']} · ${zhCN['de.field.trips']}`,
+      exact: true,
+    })
     .click();
+  await title
+    .getByRole('group', { name: `${zhCN['de.field.trips']} 1`, exact: true })
+    .getByRole('button', { name: zhCN['de.form.remove'], exact: true })
+    .click();
+  await button(title, 'de.form.noRecords').click();
+  await expect(title.getByText(zhCN['de.form.emptyConfirmed'])).toBeVisible();
+  await expect(button(title, 'de.form.resetRecords')).toBeVisible();
   await next.click();
 
   // Step 2: common statutory requirements (open each section and fill)

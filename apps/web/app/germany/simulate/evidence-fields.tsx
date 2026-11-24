@@ -91,9 +91,8 @@ function Question({
   }
 
   if (field.type === 'list') {
+    // Every list keeps "not answered" apart from "confirmed none".
     const rows = (value ?? []) as object[];
-    const requiredList = field.name === 'permits' || field.name === 'trips';
-    const supportsUnknown = !requiredList;
     return (
       <fieldset className={form.fieldset}>
         <legend className={form.legend}>{label}</legend>
@@ -111,7 +110,7 @@ function Question({
               className={form.remove}
               onClick={() =>
                 set(
-                  supportsUnknown && rows.length === 1
+                  rows.length === 1
                     ? undefined
                     : rows.filter((_, index) => index !== i),
                 )
@@ -121,7 +120,7 @@ function Question({
             </button>
           </fieldset>
         ))}
-        {supportsUnknown && Array.isArray(value) && !rows.length && (
+        {Array.isArray(value) && !rows.length && (
           <p>{t('de.form.emptyConfirmed')}</p>
         )}
         <div className={site.actions}>
@@ -137,7 +136,7 @@ function Question({
           >
             {t('de.form.add')} · {label}
           </button>
-          {(supportsUnknown || value === undefined) && !rows.length && (
+          {!rows.length && (
             <button
               type="button"
               className={form.copyRow}

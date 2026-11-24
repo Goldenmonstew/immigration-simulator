@@ -154,7 +154,7 @@ function GermanyStep({ draft, errors, update }: StepProps) {
                   mobility: updateAnswer(draft.mobility ?? {}, 'titles', value),
                 });
               } else {
-                update({ [key]: value ?? [] });
+                update({ [key]: value });
               }
             }}
           />
