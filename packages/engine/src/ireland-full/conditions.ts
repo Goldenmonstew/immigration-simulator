@@ -190,7 +190,7 @@ const conditions = {
   'IRP-RENEWAL-WINDOW': [
     'IRP 线上续期开放日',
     'IRP online renewal opening date',
-    [['SRC-384', 'Online renewal: When should I submit a Renewal Application?']],
+    [['SRC-384', 'Online renewal: Introduction; When should I submit a Renewal Application?']],
   ],
   'IRP-CHECKLIST': [
     '适用 Stamp 的登记清单',

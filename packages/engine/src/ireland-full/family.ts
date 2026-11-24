@@ -30,6 +30,7 @@ interface FamilyReturn {
 interface FamilyFiling {
   returning?: FamilyReturn;
   spouseEntry?: 'with-permission' | 'spouse-unit';
+  spousePermissionValid?: boolean;
 }
 
 export interface IrelandFamily {
@@ -267,6 +268,7 @@ function familyApplication(
     : undefined;
   const eligibleBasis = all(
     inStateSpouse && spouseEntry === undefined ? undefined : true,
+    spouseEntry === 'with-permission' ? filing.spousePermissionValid : true,
     returning && returnEvidence?.date === returning.date ? returnEvidence.valid : entryOrConversion,
   );
   const filedOn = app.date ?? day;
@@ -657,8 +659,8 @@ function familyApplication(
         '配偶事务组按专门清单核对配偶关系、同址、品格和申请材料（PD-330）。',
         'The Spouse of Irish National Unit uses its own checklist for the relationship, joint address, character and application documents (PD-330).',
       ) : L(
-        '持有效 IRP 线上换签时，核对现有 IRP、配偶关系、双方身份、同址及财力证明。申请入口待核实见 PD-330。',
-        'For an online change of permission, check the current IRP and proof of the relationship, both identities, joint address and financial means. See PD-330 when the channel is unconfirmed.',
+        '线上换签须有现行有效的已登记许可。核对 IRP、配偶关系、双方身份、同址及财力证明。续期待决时须核实现行许可（PD-330）。',
+        'Changing permission online requires a current, valid registered permission. Check the IRP and proof of the relationship, both identities, joint address and financial means. If a renewal is pending, confirm current permission (PD-330).',
       ),
       ['PD-330'],
     );

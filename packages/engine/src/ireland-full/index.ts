@@ -173,7 +173,15 @@ export function evaluateIrelandFull(
           : permissionCoversToday ? 'with-permission' : undefined
       )
     : undefined;
-  const familyFiling = { returning: familyReturn, spouseEntry: inStateSpouseEntry } as const;
+  const spousePermissionInvalid = request.registration?.validPermission === false ||
+    (irpExpiresOn !== undefined && irpExpiresOn < day);
+  const familyFiling = {
+    returning: familyReturn,
+    spouseEntry: inStateSpouseEntry,
+    spousePermissionValid: spousePermissionInvalid
+      ? request.registration?.renewalPending ? undefined : false
+      : true,
+  };
   const timeline = (stamp4Route: IeStamp4Route) =>
     evaluateIreland({ ...request, stamp4Route });
   const legacyNaturalisation = options.some(
@@ -187,6 +195,8 @@ export function evaluateIrelandFull(
     const familyPath = directFamilyPath || id === 'IE-STAMP4-INDEPENDENT-FAMILY';
     const familyRenewal = familyPath && renewal;
     const familyFirst = familyPath && isFirstFamilyRegistration(family);
+    const spouseConversion = familyPath && !familyRenewal && !familyFirst &&
+      inStateSpouseEntry === 'with-permission';
     const workPath = id === 'IE-STAMP4-21' || id === 'IE-STAMP4-57';
     const workRegistration = workPath ? request.registration?.stage : undefined;
     const ltrPath = id === 'IE-LTR-PRINCIPAL' || id === 'IE-LTR-FAMILY';
@@ -204,6 +214,7 @@ export function evaluateIrelandFull(
     let applicable: boolean | undefined = true;
     const isRenewal =
       familyRenewal ||
+      spouseConversion ||
       (id === 'IE-STAMP4-INDEPENDENT-FAMILY' && !familyFirst &&
         !family?.change && family?.nextRenewalOn !== undefined) ||
       (workPath && workRegistration !== 'first') ||
@@ -213,7 +224,9 @@ export function evaluateIrelandFull(
     const renewalDates = isRenewal
       ? renewalWindow(
           a,
-          treatyRenewal ? treatyInState : inState,
+          // The conversion checks account for presence on the confirmed return date.
+          spouseConversion ? (inState === true || familyReturn ? true : undefined)
+            : treatyRenewal ? treatyInState : inState,
           (treatyRenewal ? treatyDocument?.currentCardExpiresOn : undefined) ?? irpExpiresOn,
           treatyRenewal ? [] : currentPermissions,
         )

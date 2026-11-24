@@ -1649,26 +1649,81 @@ describe('Ireland family Stamp 4', () => {
       .toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
   });
 
+  const spouseConversionApplication = {
+    ...familyApplication,
+    channel: 'spouse-in-state',
+    spouseInStateEntry: 'with-permission',
+    applicantCharacter: good,
+  } satisfies NonNullable<IrelandFamily['application']>;
+  const spouseConversion = {
+    permissions: [{ kind: 'stamp1', from: '2025-01-01', to: '2027-06-01' }],
+    registration: { ...registration, irpExpiresOn: '2027-06-01' },
+    family: { ...family, application: spouseConversionApplication },
+  } satisfies Partial<IrelandFullRequest>;
+
+  test.each([
+    [day, 'FUTURE', 'NOT_MET'],
+    ['2027-03-08', 'FUTURE', 'NOT_MET'],
+    ['2027-03-09', 'MET', 'MET'],
+  ] as const)('Irish spouse online conversion uses the current IRP renewal window on %s', (simulationDate, status, windowStatus) => {
+    expect(checks(direct, { ...spouseConversion, simulationDate }, {
+      B21: 'MET', 'IRP-RENEWAL-WINDOW': windowStatus,
+    })).toMatchObject({ status, earliestDate: '2027-03-09' });
+  });
+
+  test.each([
+    ['2027-03-06', '2027-03-09'],
+    ['2027-03-12', '2027-03-12'],
+  ] as const)('Irish spouse online conversion accounts for the return on %s and the IRP opening date', (returned, earliestDate) => {
+    expect(checks(direct, {
+      ...spouseConversion,
+      simulationDate: '2027-03-05',
+      currentLocation: 'elsewhere',
+      trips: [{ departed: '2027-03-04', returned }],
+    }, { B21: 'NOT_MET', 'IRP-RENEWAL-WINDOW': 'NOT_MET' }))
+      .toMatchObject({ status: 'FUTURE', earliestDate });
+  });
+
+  test.each([
+    [{ validPermission: false }, 'NOT_MET'],
+    [{ irpExpiresOn: '2026-11-15' }, 'NOT_MET'],
+    [{ irpExpiresOn: '2026-11-15', validPermission: false }, 'NOT_MET'],
+    [{ irpExpiresOn: '2026-11-15', validPermission: false, renewalPending: true }, 'UNKNOWN'],
+  ] as const)('Irish spouse online conversion checks current permission (%j)', (permission, status) => {
+    const conversion = checks(direct, {
+      ...spouseConversion,
+      registration: { ...spouseConversion.registration, ...permission },
+    }, { B14: status, B21: status });
+    expect(conversion).toMatchObject({ status, earliestDate: undefined });
+    if (status === 'UNKNOWN') expect(conversion.pendingDetails).toContain('PD-330');
+  });
+
+  test('Irish spouse online conversion needs a confirmed IRP expiry to calculate its window', () => {
+    const conversion = checks(direct, {
+      ...spouseConversion,
+      permissions: [{ kind: 'stamp1', from: '2025-01-01' }],
+      registration: { ...registration, irpExpiresOn: undefined },
+    }, { 'IRP-RENEWAL-WINDOW': 'UNKNOWN' });
+    expect(conversion).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+    expect(conversion.pendingDetails).toContain('PD-321');
+  });
+
   test.each([
     [undefined, 'UNKNOWN'],
     [{ coversRequiredPeople: false }, 'NOT_MET'],
   ] as const)('Irish spouse online conversion and first registration use different insurance checks (%j)', (insurance, firstStatus) => {
-    const application = {
-      ...familyApplication,
-      channel: 'spouse-in-state',
-      spouseInStateEntry: 'with-permission',
-      applicantCharacter: good,
-      insurance,
-    } satisfies NonNullable<IrelandFamily['application']>;
+    const application = { ...spouseConversionApplication, insurance };
     expect(checks(direct, {
       permissions: [{ kind: 'stamp1', from: '2025-01-01', to: '2027-01-01' }],
       family: { ...family, application },
-    }, { B21: 'MET' })).toMatchObject({ status: 'MET', earliestDate: day });
-    expect(checks(direct, {
+    }, { B21: 'MET', 'IRP-RENEWAL-WINDOW': 'MET' })).toMatchObject({ status: 'MET', earliestDate: day });
+    const first = checks(direct, {
       permissions: [],
       registration: undefined,
       family: { ...family, application: { ...application, channel: 'spouse-registration', registrationStage: 'first' } },
-    }, { B21: firstStatus })).toMatchObject({ status: firstStatus, earliestDate: undefined });
+    }, { B21: firstStatus });
+    expect(first).toMatchObject({ status: firstStatus, earliestDate: undefined });
+    expect(checkOf(first.checks, 'IRP-RENEWAL-WINDOW')).toBeUndefined();
   });
 
   test('a previous grant for a different partner needs individual confirmation for in-State conversion', () => {

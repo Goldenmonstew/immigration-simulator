@@ -438,3 +438,30 @@ PROGRESS 691 对应建议提交 `Fix: 修正爱尔兰免登记入籍预测、配
 ### 4. 发现与建议
 
 任务 99 可分别采集免登记居住区间是否仍开放及已核实证明的截止日。展示预测日时保留持续合法居住的前提，并在实际递交日用更新后的证据重算。旧担保适用性留待 ISD 确认，见 PD-330。
+
+## 第十轮审核修正（review89-10）
+
+### 1. 做了什么
+
+PROGRESS 692 对应建议提交 `Fix: 修正爱尔兰境内配偶线上换签窗口及许可有效性（review89-10）`。
+
+| 路径 | 判定与来源 |
+|---|---|
+| 境内配偶线上换签 | `with-permission` 共用 `renewalWindow`。材料与资格齐备时，IRP 到期前 12 周开放，开放前返回 `FUTURE` 和开放日，开放当天返回 `MET`。如需返爱，取开放日和有有效依据的返爱日中较晚的日期。见 SRC-384 在线续期的 Introduction 和 When should I submit a Renewal Application?，以及 SRC-388 的 How do I apply? 下 Resident in the State on an existing permission。 |
+| 所选线上入口与许可状态 | 模拟日明确无有效许可或 IRP 已过期，且无待决续期时，B14 和 B21 为 `NOT_MET`。续期待决且当前有效许可有待核实时为 `UNKNOWN`，最早日期留空。到期日不能确认时，窗口按 PD-321 给 `UNKNOWN`。见 SRC-388 的 How do I apply? 下 Resident in the State on an existing permission，以及 PD-321、PD-330。 |
+| 首次登记 | 首次登记继续按 SRC-384 Stamp 4 (3) 的 First Time Registrations 核对保险。 |
+
+### 2. 怎么验证的
+
+- 在 `a1bb2d0` 的实现上运行新增回归用例，复现缺少窗口检查，以及明确失效或待确认的许可仍通过 B14。回归覆盖开放前一天和开放当天、返爱日与开放日的先后、许可明确失效、IRP 过期、续期待决、到期日缺失及首次登记保险对照。
+- 核对旧 `evaluateIreland`、爱尔兰试点页面调用和政策参数与 `a1bb2d0` 一致。
+- 设置 `VITEST_MAX_WORKERS=2` 后运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码为 0。全仓 5,366 项测试通过，1 项既有文案导出用例默认跳过。Next.js 生成 27 个静态页面。
+- `git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+改动留在 `fable/89-ie-rules` 工作树供 Fable 提交。浏览器 E2E 和部署未执行。
+
+### 4. 发现与建议
+
+第十轮审核另记录了英国政策页展示共用爱尔兰来源的问题，已在任务 89 总结中记录。
