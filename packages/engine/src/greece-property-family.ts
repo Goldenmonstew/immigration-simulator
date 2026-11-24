@@ -5,6 +5,7 @@ import { monthSpan } from './pilot';
 import { overseasInvestorFiling } from './greece-common';
 import type { GrFullRequest } from './greece-full';
 import {
+  absenceEvidence,
   absencePeriods,
   ageOn,
   all,
@@ -202,7 +203,7 @@ interface GreekFamilyAnswers extends Omit<FamilyResidence, 'stage'> {
   historicalConversionDocumentsReady?: boolean;
   // Longest absence over the declared joint residence for historical Article 161(1)(δ),(2).
   longestConsecutiveAbsenceYears?: number;
-  // Annual maximum over the whole declared residence, using residence anniversaries.
+  // Annual maximum over the declared residence before acquisition, using residence anniversaries.
   maxAnnualAbsenceMonths?: number;
   // All time beyond the ordinary limit is attributable to this exemption.
   extendedAbsence?: 'compulsory-service' | 'single-serious-reason' | 'ordinary';
@@ -276,7 +277,7 @@ interface EuFamilyAnswers extends Omit<FamilyResidence, 'stage'> {
     childResidesInGreece?: boolean;
     childStillEnrolledInGreece?: boolean;
   };
-  // These pre-acquisition summaries cover the whole declared residence history.
+  // These summaries cover the declared residence up to acquisition, when known.
   // The ordinary annual maximum excludes military service and the serious-reason absence.
   maxOrdinaryAnnualAbsenceMonths?: number;
   seriousAbsenceCount?: number;
@@ -365,10 +366,7 @@ function* annualAbsences(
     const next = addYears(residenceFrom, year + 1);
     if (next <= from) continue;
     const windowStart = start < from ? from : start;
-    yield {
-      windowStart,
-      periods: absencePeriods(trips, windowStart, next < until ? next : until),
-    };
+    yield absenceEvidence(trips, windowStart, next < until ? next : until);
   }
 }
 
@@ -477,28 +475,13 @@ function accountsForAnnualMonths(
   if (!months || (months <= eu.ordinaryAbsenceMonths && summary !== undefined))
     return true;
   if (!start) return false;
-  const departures = new Set(trips.map((t) => t.departed));
-  for (const { windowStart, periods } of annualAbsences(trips, start, end)) {
-    if (periods.length === 1) {
-      const [period] = periods;
-      const departure = addDays(period.from, -1);
-      const from =
-        departures.has(departure) && departure >= windowStart
-          ? departure
-          : period.from;
-      if (
-        period.until >= addMonths(from, Math.ceil(months)) &&
-        (months <= eu.ordinaryAbsenceMonths ||
-          ordinaryPeriodsWithinLimit(periods) === false)
-      )
-        return true;
-    } else if (periods.length > 1) {
-      const days = periods.reduce(
-        (sum, t) => sum + daysBetween(t.from, t.until),
-        0,
-      );
-      if (days >= monthSpan(Math.ceil(months))[1]) return true;
-    }
+  for (const year of annualAbsences(trips, start, end)) {
+    if (
+      year.fitsMonths(months, 'annual-total') &&
+      (months <= eu.ordinaryAbsenceMonths ||
+        ordinaryPeriodsWithinLimit(year.periods) === false)
+    )
+      return true;
   }
   return false;
 }
@@ -514,16 +497,10 @@ function singleSeriousTrip(
   const candidates = trips.filter((t) => {
     if (t.familyAbsenceReason && t.familyAbsenceReason !== 'serious-reason')
       return false;
-    const from = start && start > t.departed ? start : t.departed;
-    const until = end < t.returned ? end : t.returned;
-    if (from >= until) return false;
-    if (months === undefined) return true;
-    const firstDayAbroad =
-      start && start > t.departed ? start : addDays(from, 1);
+    const trip = absenceEvidence([t], start, end);
     return (
-      Number.isInteger(months) &&
-      addMonths(from, months) <= until &&
-      until <= addMonths(firstDayAbroad, months)
+      trip.periods.length > 0 &&
+      (months === undefined || trip.fitsMonths(months, 'whole-trip'))
     );
   });
   return candidates.length === 1 ? candidates[0] : undefined;
@@ -536,6 +513,14 @@ function withSeriousReason(
   return trips.map((t) =>
     t === single ? { ...t, familyAbsenceReason: 'serious-reason' } : t,
   );
+}
+
+function preAcquisitionEnd(
+  a: Pick<FamilyResidence, 'permanentRightAcquiredOn'>,
+  simulationDate: IsoDate,
+) {
+  const acquired = a.permanentRightAcquiredOn;
+  return acquired && acquired < simulationDate ? acquired : simulationDate;
 }
 
 function greekFamilyTravel(
@@ -552,7 +537,7 @@ function greekFamilyTravel(
   };
   if (!req.trips?.length) return history;
   const start = a.residenceFrom ?? a.initialCardGrantedOn;
-  const end = req.simulationDate;
+  const end = preAcquisitionEnd(a, req.simulationDate);
   const trips = req.trips.filter(
     (t) => (!start || t.returned > start) && t.departed < end,
   );
@@ -587,14 +572,12 @@ function greekFamilyTravel(
   const serious = trips.filter((t) => t.familyAbsenceReason === reason);
   const months = a.extendedAbsenceMonths;
   if (serious.length) {
-    const periods = absencePeriods(serious, start, end);
-    history.conflictingReasons ||= periods.length > eu.seriousAbsences;
+    const evidence = absenceEvidence(serious, start, end);
+    history.conflictingReasons ||= evidence.periods.length > eu.seriousAbsences;
     history.unlocated ||=
       months !== undefined &&
       months > eu.seriousAbsenceMonths &&
-      !periods.some(
-        (t) => t.until >= addMonths(addDays(t.from, -1), Math.ceil(months)),
-      );
+      !evidence.fitsMonths(months, 'trip');
   } else {
     const single = singleSeriousTrip(trips, start, end, months);
     if (single) history.trips = withSeriousReason(req.trips, single);
@@ -603,7 +586,11 @@ function greekFamilyTravel(
   return history;
 }
 
-function euFamilyTravel(req: GrFullRequest, a: EuFamilyAnswers): FamilyTravel {
+function euFamilyTravel(
+  req: GrFullRequest,
+  a: EuFamilyAnswers,
+  end = preAcquisitionEnd(a, req.simulationDate),
+): FamilyTravel {
   const months = a.maxSeriousAbsenceMonths;
   const count = a.seriousAbsenceCount;
   const history: FamilyTravel = {
@@ -618,20 +605,19 @@ function euFamilyTravel(req: GrFullRequest, a: EuFamilyAnswers): FamilyTravel {
   };
   if (!req.trips?.length) return history;
   const start = a.residenceFrom ?? a.arrivedOn;
-  const end = req.simulationDate;
   const ordinary = req.trips.filter(
     (t) => t.familyAbsenceReason === 'ordinary',
   );
   const seriousTrips = req.trips.filter(
     (t) => t.familyAbsenceReason === 'serious-reason',
   );
-  const serious = absencePeriods(seriousTrips, start, end);
+  const serious = absenceEvidence(seriousTrips, start, end);
   history.conflictingReasons =
-    (count !== undefined && serious.length > count) ||
+    (count !== undefined && serious.periods.length > count) ||
     (a.maxOrdinaryAnnualAbsenceMonths === 0 &&
-      absencePeriods(ordinary, start, end).length > 0);
+      absenceEvidence(ordinary, start, end).periods.length > 0);
   if (
-    !serious.length &&
+    !serious.periods.length &&
     count === 1 &&
     months !== undefined &&
     months <= eu.seriousAbsenceMonths &&
@@ -645,15 +631,8 @@ function euFamilyTravel(req: GrFullRequest, a: EuFamilyAnswers): FamilyTravel {
     months !== undefined &&
     months > 0 &&
     (months > eu.seriousAbsenceMonths || history.summary === undefined) &&
-    !serious.some(
-      (t) =>
-        t.until >=
-        addMonths(
-          t.from > (start ?? '') ? addDays(t.from, -1) : t.from,
-          Math.ceil(months),
-        ),
-    );
-  if (missingSeriousMonths && count === serious.length)
+    !serious.fitsMonths(months, 'trip');
+  if (missingSeriousMonths && count === serious.periods.length)
     history.conflictingReasons = true;
   history.unlocated =
     !accountsForAnnualMonths(
@@ -665,7 +644,7 @@ function euFamilyTravel(req: GrFullRequest, a: EuFamilyAnswers): FamilyTravel {
     ) ||
     (count !== undefined &&
       (count > eu.seriousAbsences || history.summary === undefined) &&
-      serious.length < count) ||
+      serious.periods.length < count) ||
     missingSeriousMonths;
   return history;
 }
@@ -707,20 +686,33 @@ function consecutiveAbsenceWithin(
   req: GrFullRequest,
   from: IsoDate | undefined,
   years: number,
-  reported: Answer,
+  reportedYearsOrFallback: number | Answer,
   strict = false,
   until = req.simulationDate,
 ): Answer {
+  const reported =
+    typeof reportedYearsOrFallback === 'number'
+      ? strict
+        ? reportedYearsOrFallback < years
+        : reportedYearsOrFallback <= years
+      : reportedYearsOrFallback;
   if (!req.trips || (!req.trips.length && reported !== undefined))
     return reported;
-  const periods = absencePeriods(req.trips, from, until);
-  const exceeded = periods.some((period) => {
+  const evidence = absenceEvidence(req.trips, from, until);
+  const exceeded = evidence.periods.some((period) => {
     const limit = addYears(period.from, years);
     return strict ? period.until >= limit : period.until > limit;
   });
   if (exceeded) return from ? false : undefined;
-  // The declared period can include an unlisted absence.
-  return reported === false ? undefined : true;
+  // A summary can describe an unlisted absence, but only within its reporting window.
+  if (
+    reported === false ||
+    (from &&
+      typeof reportedYearsOrFallback === 'number' &&
+      !evidence.fitsMonths(reportedYearsOrFallback * 12, 'window'))
+  )
+    return undefined;
+  return true;
 }
 
 function historicalConsecutiveAbsence(
@@ -759,41 +751,7 @@ function tripsAccountForYears(
   until: IsoDate,
   years: number,
 ) {
-  return absencePeriods(req.trips ?? [], from, until).some((period) =>
-    spanCoversYears(period.from, period.until, years),
-  );
-}
-
-function spanCoversYears(from: IsoDate, until: IsoDate, years: number) {
-  const whole = Math.floor(years);
-  const anniversary = addYears(from, whole);
-  const yearDays = daysBetween(anniversary, addYears(from, whole + 1));
-  return daysBetween(anniversary, until) >= (years - whole) * yearDays;
-}
-
-function postEventAbsenceWithin(
-  req: GrFullRequest,
-  from: IsoDate | undefined,
-  years: number,
-  reportedYears: number | undefined,
-  fallback?: Answer,
-): Answer {
-  const within = consecutiveAbsenceWithin(
-    req,
-    from,
-    years,
-    maximum(reportedYears, years) ?? fallback,
-  );
-  if (
-    within === true &&
-    req.trips?.length &&
-    from &&
-    reportedYears !== undefined &&
-    reportedYears > 0 &&
-    !spanCoversYears(from, req.simulationDate, reportedYears)
-  )
-    return undefined;
-  return within;
+  return absenceEvidence(req.trips ?? [], from, until).fitsMonths(years * 12);
 }
 
 function heldAfterAcquisition(
@@ -810,7 +768,7 @@ function heldAfterAcquisition(
   if (latest && consecutiveAbsenceWithin(req, latest, years, true) === false)
     return false;
   return (
-    postEventAbsenceWithin(req, earliest, years, reportedYears) === true ||
+    consecutiveAbsenceWithin(req, earliest, years, reportedYears) === true ||
     undefined
   );
 }
@@ -1704,7 +1662,9 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
     const { anniversary, until: at, continuity: dated } = window;
     // Article 93(7) lists the protected absences. Other cases need confirmation (PD-314).
     const wholePeriod =
-      !!window.from && window.from === a.residenceFrom && at === sim;
+      !!window.from &&
+      window.from === a.residenceFrom &&
+      at >= preAcquisitionEnd(a, sim);
     const continuity = windowContinuity(
       history,
       window.from ? dated : undefined,
@@ -1724,7 +1684,7 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         )
       : a.priorCardExpiry && sim <= a.priorCardExpiry && !req.trips?.length
         ? true
-        : postEventAbsenceWithin(
+        : consecutiveAbsenceWithin(
             req,
             a.priorCardExpiry && addDays(a.priorCardExpiry, 1),
             family.interruptionYears,
@@ -1736,12 +1696,11 @@ function greekChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       a.longestAbsenceAfterPrYears,
       family.interruptionYears,
     );
-    const survived = postEventAbsenceWithin(
+    const survived = consecutiveAbsenceWithin(
       req,
       a.permanentRightAcquiredOn ?? anniversary,
       family.interruptionYears,
-      a.longestAbsenceAfterPrYears,
-      true,
+      a.longestAbsenceAfterPrYears ?? true,
     );
     const knownGrantPeriod =
       !!a.permanentRightAcquiredOn ||
@@ -2234,17 +2193,30 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       (a.priorCardExpiry === undefined
         ? undefined
         : sim <= addYears(a.priorCardExpiry, eu.lateYears));
+    // SRC-377 §9.2: a completed qualifying period can establish the ordinary
+    // acquisition date even before a card records it. Check the summary in
+    // that period before accepting the candidate found from the dated trips.
+    const preGrant =
+      !a.permanentRightAcquiredOn &&
+      a.qualifyingResidenceDocumented &&
+      window?.continuity === true &&
+      anniversary &&
+      anniversary < sim
+        ? euFamilyTravel(req, a, anniversary)
+        : history;
     const disputedAbsence = !!window?.disputedReturn && !relyOnEarly;
     const coversWholePeriod =
-      !!window?.from && window.from === a.residenceFrom && window.until === sim;
+      !!window?.from &&
+      window.from === a.residenceFrom &&
+      window.until >= preAcquisitionEnd(a, sim);
     const summaryNeedsDates =
       a.stage === 'permanent' &&
       !relyOnEarly &&
       !coversWholePeriod &&
-      history.summary === false &&
-      (history.unlocated || !req.trips?.length);
+      preGrant.summary === false &&
+      (preGrant.unlocated || !req.trips?.length);
     const absences = windowContinuity(
-      history,
+      preGrant,
       window?.from ? window.continuity : undefined,
       coversWholePeriod,
     );

@@ -1083,6 +1083,147 @@ describe('property and family reviews through evaluateGreeceFull', () => {
     );
   });
 
+  test.each(['2026-11-24', '2027-08-17'])(
+    'Ν and Μ.3 can locate 6.5 ordinary months and date the new anniversary on %s',
+    (simulationDate) => {
+      const facts = {
+        simulationDate,
+        trips: [
+          {
+            departed: '2022-02-01',
+            returned: '2022-08-17',
+            familyAbsenceReason: 'ordinary',
+          },
+        ],
+      } satisfies Partial<GrFullRequest>;
+      const due = '2027-08-17';
+      const expected = simulationDate < due ? 'FUTURE' : 'MET';
+      const date = simulationDate < due ? due : undefined;
+      verify(
+        full('GR-EU-FAMILY-PR', {
+          ...facts,
+          euFamily: {
+            ...european,
+            priorCardExpiry: '2028-12-10',
+            maxOrdinaryAnnualAbsenceMonths: 6.5,
+            seriousAbsenceCount: 0,
+          },
+        }),
+        'EF-02',
+        expected,
+        date,
+      );
+      verify(
+        full('GR-GREEK-FAMILY-PR', {
+          ...facts,
+          greekFamily: {
+            ...greek,
+            priorCardExpiry: '2027-12-10',
+            maxAnnualAbsenceMonths: 6.5,
+          },
+        }),
+        'GF-03',
+        expected,
+        date,
+      );
+    },
+  );
+
+  test.each([
+    ['2025-11-23', 'ordinary', '2026-05-01', 'MET'],
+    [undefined, 'ordinary', '2026-05-01', 'MET'],
+    ['2025-11-23', 'serious-reason', '2026-05-01', 'UNKNOWN'],
+    ['2025-11-23', 'ordinary', '2028-03-03', 'NOT_MET'],
+  ] as const)(
+    'Ν first permanent card (recorded grant %s) separates a pre-grant %s trip from a post-grant serious absence until %s',
+    (permanentRightAcquiredOn, familyAbsenceReason, returned, status) => {
+      const path = full('GR-EU-FAMILY-PR', {
+        simulationDate: returned > '2026-11-24' ? returned : '2026-11-24',
+        euFamily: {
+          ...european,
+          residenceFrom: '2020-11-23',
+          permanentRightAcquiredOn,
+          maxOrdinaryAnnualAbsenceMonths: 1,
+          seriousAbsenceCount: 0,
+          priorCardExpiry: '2028-12-10',
+        },
+        trips: [
+          {
+            departed: '2023-04-01',
+            returned: '2023-05-01',
+            familyAbsenceReason,
+          },
+          {
+            departed: '2026-03-01',
+            returned,
+            familyAbsenceReason: 'serious-reason',
+          },
+        ],
+      });
+      verify(path, 'EF-03', status);
+    },
+  );
+
+  test('a fractional whole-trip summary identifies the one unclassified serious absence', () => {
+    const trips = [{ departed: '2022-02-01', returned: '2022-08-17' }];
+    for (const [months, expected] of [
+      [6.5, 'MET'],
+      [0.5, 'UNKNOWN'],
+    ] as const) {
+      verify(
+        full('GR-GREEK-FAMILY-PR', {
+          trips,
+          greekFamily: {
+            ...greek,
+            maxAnnualAbsenceMonths: 6.5,
+            extendedAbsence: 'single-serious-reason',
+            extendedAbsenceMonths: months,
+          },
+        }),
+        'GF-03',
+        expected,
+      );
+      verify(
+        full('GR-EU-FAMILY-PR', {
+          trips,
+          euFamily: {
+            ...european,
+            maxOrdinaryAnnualAbsenceMonths: 0,
+            seriousAbsenceCount: 1,
+            maxSeriousAbsenceMonths: months,
+          },
+        }),
+        'EF-03',
+        expected,
+      );
+    }
+  });
+
+  test('an annual fractional summary can be split between two ordinary trips in one residence year', () => {
+    const path = full('GR-EU-FAMILY-PR', {
+      simulationDate: '2026-11-24',
+      euFamily: {
+        ...european,
+        priorCardExpiry: '2028-12-10',
+        maxOrdinaryAnnualAbsenceMonths: 6.5,
+        seriousAbsenceCount: 0,
+      },
+      trips: [
+        {
+          departed: '2022-02-01',
+          returned: '2022-05-01',
+          familyAbsenceReason: 'ordinary',
+        },
+        {
+          departed: '2022-06-01',
+          returned: '2022-09-17',
+          familyAbsenceReason: 'ordinary',
+        },
+      ],
+    });
+    verify(path, 'EF-02', 'FUTURE', '2027-09-17');
+  });
+
   test('Ν only dates the next anniversary when ordinary trips account for the reported annual maximum', () => {
     const short = {
       departed: '2025-04-01',

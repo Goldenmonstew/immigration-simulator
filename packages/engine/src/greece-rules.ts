@@ -1,8 +1,9 @@
 import { greeceFull2026_11 } from '@uk-immigration/policy-data';
 import type { SourceRef } from '@uk-immigration/policy-data';
 import type { CountryCheck } from './country-result';
-import { addDays, addMonths, fullYears } from './dates';
+import { addDays, addMonths, daysBetween, fullYears } from './dates';
 import type { GrTrip } from './greece';
+import { monthSpan } from './pilot';
 import { textFor } from './rule';
 import type { IsoDate, Locale } from './types';
 
@@ -57,6 +58,62 @@ export function absencePeriods(
     } else periods.push({ from: first, until: end });
   }
   return periods;
+}
+
+const [shortestMonth, longestMonth] = monthSpan(1);
+
+// All comparisons, including counts, use only the declared reporting window.
+// Calendar bounds test whether the dates can explain a summary. The legal
+// thresholds are assessed separately using full days abroad.
+export function absenceEvidence(
+  trips: GrTrip[],
+  from: IsoDate | undefined,
+  until: IsoDate,
+) {
+  const periods = absencePeriods(trips, from, until);
+  function fitsMonths(
+    months: number,
+    measure:
+      | 'continuous'
+      | 'trip'
+      | 'whole-trip'
+      | 'annual-total'
+      | 'window' = 'continuous',
+  ) {
+    const whole = Math.floor(months);
+    const fraction = months - whole;
+    const minimumExtraDays = fraction * shortestMonth;
+    if (months === 0 && measure !== 'whole-trip') return true;
+    if (measure === 'window')
+      return (
+        !!from && daysBetween(addMonths(from, whole), until) >= minimumExtraDays
+      );
+    // Family travel summaries may use the departure-to-return interval.
+    // Its departure boundary must not reach back into a preceding window.
+    const tripStart = (firstDay: IsoDate) =>
+      firstDay === from ? firstDay : addDays(firstDay, -1);
+    if (measure === 'annual-total' && periods.length > 1) {
+      const days = periods.reduce(
+        (sum, period) =>
+          sum + daysBetween(tripStart(period.from), period.until),
+        0,
+      );
+      return days >= monthSpan(whole)[0] + minimumExtraDays;
+    }
+    return periods.some((period) => {
+      const start =
+        measure === 'continuous' ? period.from : tripStart(period.from);
+      const remaining = daysBetween(addMonths(start, whole), period.until);
+      if (remaining < minimumExtraDays) return false;
+      // Assign a missing reason only if the whole trip can have this duration.
+      return (
+        measure !== 'whole-trip' ||
+        daysBetween(addMonths(period.from, whole), period.until) <=
+          fraction * longestMonth
+      );
+    });
+  }
+  return { periods, fitsMonths };
 }
 
 // Articles 43(3) and 144(3): a disqualifying stay breaks continuity until

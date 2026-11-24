@@ -502,6 +502,40 @@ describe('M.1 long-term grant and retention', () => {
       }
     },
   );
+  test.each([
+    ['2023-06-01', '2023-06-17', 0.5, 'MET', 'NOT_MET'],
+    ['2023-01-01', '2024-01-19', 12.5, 'NOT_MET', 'MET'],
+    ['2023-06-01', '2023-06-08', 0.5, 'UNKNOWN', 'UNKNOWN'],
+  ] as const)(
+    'M.1 compares %s to %s with %s reported months outside the EU',
+    (departed, returned, months, renewal, reacquisition) => {
+      for (const [stage, rule, expected] of [
+        ['renewal', 'LT-07', renewal],
+        ['reacquisition', 'LT-REACQUISITION', reacquisition],
+      ] as const) {
+        const path = full(lt, {
+          simulationDate: '2026-11-24',
+          currentCardExpiresOn: '2026-12-01',
+          trips: [{ departed, returned }],
+          longTerm: {
+            stage,
+            statusGrantedOn: '2021-12-01',
+            passportHistory: 'complete',
+            formerBlueCardEndorsement: false,
+            otherMemberStateLongTermOrRevocationGround: false,
+            continuousOutsideGreeceYears: months / 12,
+            continuousOutsideEuMonths: months,
+            lossReason: 'absence-from-eu',
+            lossEvidenceReady: true,
+          },
+        });
+        expect(path.checks.find((check) => check.id === rule)?.status).toBe(
+          expected,
+        );
+        expect(path.status).toBe(expected);
+      }
+    },
+  );
   test('M.1 flags reported post-grant absences longer than any recorded Greek absence', () => {
     const longTerm = {
       passportHistory: 'complete',
