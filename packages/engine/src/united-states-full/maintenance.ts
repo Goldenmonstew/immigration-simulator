@@ -10,7 +10,7 @@ import {
   checksFor,
   checkStatus,
   not,
-  returnFromTrip,
+  physicalPresenceAtReceipt,
   reviewed,
   s,
   v,
@@ -311,8 +311,11 @@ export function travelChecks(request: UsFullRequest) {
     const issuance = a.permitIssuedOn;
     const permitFiledInUs =
       a.permitFiledOn && request.trips
-        ? !returnFromTrip(request.trips, a.permitFiledOn) &&
-          a.permitAppliedInUs !== false
+        ? all(
+            physicalPresenceAtReceipt(request.trips, a.permitFiledOn) ??
+              a.permitAppliedInUs,
+            a.permitAppliedInUs !== false,
+          )
         : a.permitAppliedInUs;
     const permitLaw = v.reentryPermit.value;
     const permitTerm =

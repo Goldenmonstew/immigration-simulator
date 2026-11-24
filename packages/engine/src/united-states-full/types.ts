@@ -68,19 +68,25 @@ export interface UsFullTrip extends UsTrip {
 export type UsI485PendingEvent =
   | {
       on: IsoDate;
-      kind:
-        | 'qualifying-basis'
-        | 'admissibility'
-        | 'procedure'
-        | 'nonimmigrant-status-expiry';
+      kind: 'qualifying-basis' | 'procedure' | 'nonimmigrant-status-expiry';
       /** Case-specific effect through decision, accounting for any applicable exception or transfer. Examples include loss of a qualifying relationship, withdrawn job offer, abandonment of a proposed endeavor, refugee status termination or a missed required interview. */
       finding?: UsReview;
     }
   | {
       on: IsoDate;
+      kind: 'admissibility';
+      /** Identifies the newly arising ground when the corresponding admission answer is also supplied. */
+      ground?: 'immigrationFraud' | 'falseCitizenship' | 'unlawfulReentryBar';
+      /** Case-specific effect through adjudication, including applicable exceptions. */
+      finding?: UsReview;
+    }
+  | {
+      on: IsoDate;
       kind: 'unauthorized-employment';
-      /** Non-overlapping total qualifying violation days since the relevant lawful admission, through this event. */
+      /** Non-overlapping total since the relevant lawful admission, through this event unless a later coverage date is given. */
       qualifyingViolationsDays?: number;
+      /** Confirmed coverage of the cumulative record. Use the decision date only if the record covers adjudication. */
+      qualifyingViolationsThrough?: IsoDate;
       /** Case-specific exception when the modeled statutory exemptions do not resolve eligibility. */
       exception?: UsReview;
     };
@@ -382,6 +388,8 @@ export interface UsEmploymentAnswers {
   }[];
   /** Whether the annual records cover the full required period. False means some records are missing. */
   wagePeriodComplete?: boolean;
+  /** Last date covered by the annual records. Defaults to the simulation date. */
+  wagePeriodThrough?: IsoDate;
   abilityToPayTotality?: UsReview;
   internationalAward?: boolean;
   extraordinaryEvidenceCount?: number;
@@ -442,7 +450,7 @@ export interface UsAdmissionAnswers {
   process?: 'adjustment' | 'consular';
   /** Actual USCIS receipt date of this properly filed I-485. */
   i485FiledOn?: IsoDate;
-  /** Events that occurred after receipt and are assessed through the decision date. */
+  /** Additional dated evidence for the pending I-485, including the onset of admissibility grounds. */
   i485PendingEvents?: readonly UsI485PendingEvent[];
   /** Role in an employment-based I-485. Defaults to principal. */
   i485ApplicantRole?: 'principal' | 'derivative';
@@ -504,6 +512,7 @@ export interface UsAdmissionAnswers {
     | 'other';
   entryException?: UsReview;
   otherAdjustmentBar?: 'none' | 'vwp' | 'barred' | 'review';
+  /** Qualifying violation days at I-485 filing. Report later employment and its cumulative records under i485PendingEvents. */
   qualifyingViolationsDays?: number;
   /** Lawful nonimmigrant status at I-485 filing, separate from parole or lawful admission. */
   lawfulNonimmigrantStatusAtFiling?: boolean;
@@ -564,8 +573,9 @@ export interface UsAdmissionAnswers {
 
 export interface UsHumanitarianAnswers {
   status?: 'refugee' | 'asylee';
-  /** Qualifying days after refugee admission or asylum grant, as of the simulation date. */
+  /** Qualifying days after refugee admission or asylum grant, through presenceThrough or the simulation date. */
   presenceDays?: number;
+  presenceThrough?: IsoDate;
   statusRetained?: boolean;
   alreadyLpr?: boolean;
   refugeeDefinitionOrDerivative?: boolean;
@@ -630,6 +640,7 @@ export interface UsFullRequest extends Partial<
   pathway: UsFullPathwayId;
   /** Date on which eligibility to file or return is tested. */
   simulationDate: IsoDate;
+  /** Omit if travel history is unknown. An empty array confirms no travel. */
   trips?: UsFullTrip[];
   naturalization?: UsNaturalizationAnswers;
   conditions?: UsConditionsAnswers;

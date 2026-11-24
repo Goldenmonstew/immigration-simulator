@@ -3,6 +3,7 @@ import {
   unitedStatesFullSources,
 } from '@uk-immigration/policy-data';
 import type { SourceRef } from '@uk-immigration/policy-data';
+import { daysBetween } from '../dates';
 import { textFor } from '../rule';
 import type { IsoDate } from '../types';
 import type { UsTrip } from '../united-states';
@@ -36,6 +37,14 @@ export const atLeast = (actual: number | undefined, minimum: number): Answer =>
 export const atMost = (actual: number | undefined, maximum: number): Answer =>
   actual === undefined ? undefined : actual <= maximum;
 
+export function cumulativeDaysAt(total: number, through: IsoDate, on: IsoDate) {
+  const difference = daysBetween(through, on);
+  return {
+    minimum: Math.max(0, total + Math.min(0, difference)),
+    maximum: total + Math.max(0, difference),
+  };
+}
+
 export function returnFromTrip(
   trips: UsTrip[] | undefined,
   date: IsoDate,
@@ -48,6 +57,21 @@ export function returnFromTrip(
         : latestReturn;
     return latestReturn;
   }, undefined);
+}
+
+export function physicalPresenceAtReceipt(
+  trips: UsTrip[],
+  date: IsoDate,
+): Answer {
+  if (
+    trips.some(({ departed, returned }) => departed < date && date < returned)
+  )
+    return false;
+  return trips.some(
+    ({ departed, returned }) => departed === date || returned === date,
+  )
+    ? undefined
+    : true;
 }
 
 export function poverty(household?: UsHousehold): number | undefined {

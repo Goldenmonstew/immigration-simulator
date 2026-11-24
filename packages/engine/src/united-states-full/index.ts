@@ -729,9 +729,10 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       ...i485PendencyChecks(
         request,
         filingReceipt,
-        approvalDate,
+        decisionOn ? decision : approvalDate,
         category,
         facts,
+        filedI485On !== undefined,
       ),
     );
   }

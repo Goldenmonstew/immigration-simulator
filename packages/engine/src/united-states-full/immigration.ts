@@ -438,7 +438,7 @@ function permRecruitment(a: UsEmploymentAnswers, i140Date?: IsoDate): Answer {
   );
 }
 
-function abilityToPay(request: UsFullRequest): Answer {
+function abilityToPay(request: UsFullRequest, through: IsoDate): Answer {
   const a = request.employment;
   const proffered = a?.profferedWageUsd;
   const officer = all(
@@ -460,7 +460,13 @@ function abilityToPay(request: UsFullRequest): Answer {
     },
   );
   const records = annual?.length
-    ? all(a?.wagePeriodComplete === true ? true : undefined, ...annual)
+    ? all(
+        a?.wagePeriodComplete === true &&
+          through <= (a.wagePeriodThrough ?? request.simulationDate)
+          ? true
+          : undefined,
+        ...annual,
+      )
     : undefined;
   return any(officer, records, reviewed(a?.abilityToPayTotality));
 }
@@ -601,12 +607,23 @@ export function employmentChecks(
       !filedI485On &&
       !transfer &&
       petitionApproved;
-    const pay = abilityToPay(request);
     const approvedEmployment = facts.has('employmentClassification');
+    const payAtReceipt = abilityToPay(request, receipt);
+    const pay = abilityToPay(
+      request,
+      port === true &&
+        !petitionApproved &&
+        !inconsistentI140Date &&
+        a.i140FiledOn
+        ? a.i140FiledOn
+        : (decision ?? receipt),
+    );
     const payAtDecision =
       port === true ? carryForward(approvedEmployment, pay) : pay;
     const payAtFiling =
-      portability && filedI485On ? carryForward(approvedEmployment, pay) : pay;
+      portability && filedI485On
+        ? carryForward(approvedEmployment, payAtReceipt)
+        : payAtReceipt;
     const original = originalEmploymentAtFiling(transfer);
     const offerCheck = petitionChecksFor(
       request,

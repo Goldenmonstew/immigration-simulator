@@ -8,7 +8,9 @@ import {
   atMost,
   checksFor,
   checkStatus,
+  cumulativeDaysAt,
   not,
+  physicalPresenceAtReceipt,
   returnFromTrip,
   reviewed,
   s,
@@ -144,14 +146,86 @@ function unlawfulPresence(
   if (departure === 'none') return true;
   if (!departure || !date || departure.leftOn > date) return undefined;
   const law = v.unlawfulPresence.value;
+  const afterDeparture = date > departure.leftOn;
   if (departure.qualifyingDays >= law.longDays)
-    return date >= afterYears(departure.leftOn, law.longBarYears);
+    return afterDeparture
+      ? date >= afterYears(departure.leftOn, law.longBarYears)
+      : undefined;
   if (
     departure.qualifyingDays <= law.shortDays ||
     date >= afterYears(departure.leftOn, law.shortBarYears)
   )
     return true;
-  return not(departure.voluntaryBeforeProceedings);
+  return not(departure.voluntaryBeforeProceedings) === true
+    ? true
+    : afterDeparture
+      ? not(departure.voluntaryBeforeProceedings)
+      : undefined;
+}
+
+const immigrationEventGrounds = [
+  'immigrationFraud',
+  'falseCitizenship',
+  'unlawfulReentryBar',
+] as const;
+
+function immigrationAnswersAt(
+  a: UsAdmissionAnswers | undefined,
+  on: IsoDate | undefined,
+) {
+  const events = a?.i485PendingEvents?.filter(
+    (event) => event.kind === 'admissibility',
+  );
+  if (!events?.length) return a;
+  const adverse = immigrationEventGrounds.filter(
+    (ground) => a?.[ground] === true,
+  );
+  const otherAdverse =
+    a?.classAHealth === 'barred' ||
+    a?.vaccines === 'barred' ||
+    a?.publicCharge === 'barred' ||
+    a?.criminalOtherGround === 'barred' ||
+    all(...criminalGrounds(a, on)) === false ||
+    a?.drugTraffickingBar === true ||
+    a?.securityGround === 'nonwaivable' ||
+    a?.securityGround === 'other-bar' ||
+    (a?.unlawfulDeparture !== undefined && a.unlawfulDeparture !== 'none') ||
+    a?.otherInadmissibility === 'barred' ||
+    Object.values(a?.otherInadmissibilityByGround ?? {}).includes('barred');
+  const undifferentiated = events.filter(
+    (event) => event.ground === undefined && event.finding === 'barred',
+  );
+  const stage = { ...a };
+  for (const ground of adverse) {
+    const dated = events.reduce<IsoDate | undefined>(
+      (earliest, event) =>
+        event.ground === ground && (!earliest || event.on < earliest)
+          ? event.on
+          : earliest,
+      undefined,
+    );
+    // An unlabelled finding can date the sole reported ground. Mixed records need a ground identifier.
+    const inferred =
+      !otherAdverse && adverse.length === 1 && undifferentiated.length === 1
+        ? undifferentiated[0]
+        : undefined;
+    const occurredOn = dated ?? inferred?.on;
+    if (occurredOn)
+      stage[ground] = !on || on === occurredOn ? undefined : occurredOn < on;
+  }
+  return stage;
+}
+
+function i485FilingPresence(
+  request: UsFullRequest,
+  receipt: IsoDate,
+  filedI485On?: IsoDate,
+): Answer {
+  const trips = request.trips;
+  if (!trips) return filedI485On !== undefined || undefined;
+  return filedI485On
+    ? physicalPresenceAtReceipt(trips, receipt)
+    : !returnFromTrip(trips, receipt);
 }
 
 function admissionExemptions(
@@ -302,12 +376,14 @@ export function admissionChecks(
     category === 'sij' &&
     !sij &&
     petitionApprovalUnconfirmed(a.petitionStatus, a.petitionFiledOn);
-  const current = admissionGrounds(
-    a,
-    exemptions,
-    pendingSij,
-    (adjustment || consularVisa) && vawa === true,
-  );
+  const immigrationAt = (on?: IsoDate) =>
+    admissionGrounds(
+      adjustment || humanitarian ? immigrationAnswersAt(a, on) : a,
+      exemptions,
+      pendingSij,
+      (adjustment || consularVisa) && vawa === true,
+    );
+  const current = immigrationAt(approvalDate);
   const transfer = adjustment ? a.i485BasisTransfer : undefined;
   const original = transfer?.originalPetition;
   const originalConfirmed = original?.qualifyingBasisAtFiling === 'cleared';
@@ -335,12 +411,14 @@ export function admissionChecks(
     : undefined;
   const atFiling = originalAdmission
     ? admissionGrounds(
-        originalAdmission,
+        immigrationAnswersAt(originalAdmission, receipt),
         originalExemptions,
         originalSijUnconfirmed,
         originalVawa,
       )
-    : current;
+    : adjustment || humanitarian
+      ? immigrationAt(receipt)
+      : current;
   const exemptionSources =
     (pendingSij ? v.sijAdmissionExemptions : exemptions)?.sources ?? [];
   const { publicExempt, publicResult } = current;
@@ -435,9 +513,9 @@ export function admissionChecks(
         ? (originalExemptions?.sources ?? [])
         : [];
   const immigrationResult = assessGround(
-    transfer
+    adjustment
       ? [...immigrationAtFiling, ...current.immigration(barAtDecision)]
-      : current.immigration(all(barAtFiling, barAtDecision)),
+      : current.immigration(barAtDecision),
     true,
   );
   return [
@@ -575,8 +653,10 @@ export function admissionChecks(
       adjustment
         ? checkStatus(all(...immigrationAtFiling))
         : humanitarian
-          ? assessGround(current.immigration(current.presenceAt(receipt)), true)
-              .filingStatus
+          ? assessGround(
+              atFiling.immigration(atFiling.presenceAt(receipt)),
+              true,
+            ).filingStatus
           : approvalOnly,
     ),
   ];
@@ -754,9 +834,11 @@ export function adjustmentChecks(
       ? true
       : qualifyingBasis,
   );
-  const presenceAtReceipt = request.trips
-    ? !returnFromTrip(request.trips, filingReceipt)
-    : filedI485On !== undefined || undefined;
+  const presenceAtReceipt = i485FilingPresence(
+    request,
+    filingReceipt,
+    filedI485On,
+  );
   const filing = transfer
     ? all(
         filedI485On && (!original?.filedOn || original.filedOn <= filedI485On)
@@ -940,12 +1022,18 @@ export function humanitarianChecks(
   const refugee = a?.status === 'refugee';
   const law = v.humanitarian.value;
   const presenceDays = a?.presenceDays;
-  const presenceNow = atLeast(presenceDays, law.presenceDays);
+  const through = a?.presenceThrough ?? request.simulationDate;
   let projectedPresenceOn: IsoDate | undefined;
-  if (presenceDays !== undefined && presenceNow === false) {
+  if (
+    presenceDays !== undefined &&
+    presenceDays < law.presenceDays &&
+    through === request.simulationDate &&
+    !request.admission?.decisionOn &&
+    request.trips
+  ) {
     let accrualFrom = addDays(request.simulationDate, 1);
     let remaining = law.presenceDays - presenceDays;
-    const trips = [...(request.trips ?? [])].sort((first, second) =>
+    const trips = [...request.trips].sort((first, second) =>
       first.departed.localeCompare(second.departed),
     );
     for (const trip of trips) {
@@ -960,27 +1048,23 @@ export function humanitarianChecks(
     }
     projectedPresenceOn = addDays(accrualFrom, remaining - 1);
   }
-  const approvalRequirementDate = request.admission?.decisionOn
-    ? undefined
-    : projectedPresenceOn;
-  // The reported total is as of simulation. Each earlier day can reduce it by at most one.
+  const approvalRequirementDate = projectedPresenceOn;
+  const range =
+    decision && presenceDays !== undefined
+      ? cumulativeDaysAt(presenceDays, through, decision)
+      : undefined;
   const presence =
-    !decision || presenceDays === undefined
-      ? undefined
-      : decision < request.simulationDate
-        ? presenceNow === false
-          ? false
-          : atLeast(
-              presenceDays - daysBetween(decision, request.simulationDate),
-              law.presenceDays,
-            ) || undefined
-        : projectedPresenceOn
-          ? decision >= projectedPresenceOn
-          : presenceNow;
+    projectedPresenceOn && decision
+      ? decision >= projectedPresenceOn
+      : !range
+        ? undefined
+        : range.minimum >= law.presenceDays
+          ? true
+          : range.maximum < law.presenceDays
+            ? false
+            : undefined;
   const statusAtFiling = all(
-    request.trips
-      ? !returnFromTrip(request.trips, receipt)
-      : filedI485On !== undefined || undefined,
+    i485FilingPresence(request, receipt, filedI485On),
     a?.statusRetained,
     not(a?.alreadyLpr),
     refugee
