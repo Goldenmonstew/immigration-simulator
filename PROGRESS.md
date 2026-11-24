@@ -495,3 +495,4 @@
 |---|---|---|
 | 687 | 任务 89 第五轮审核修正（review89-5）：按现有许可和续期证明评估 LTR、Stamp 5 与 EU／WA 续卡，支持无 IRP 的整趟旅行居留佐证并验证合并、拆段录入一致，向任务 99 交接预测日材料有效期。 | packages/engine/src/ireland-full/{conditions,index,ltr,naturalisation,treaty,work}.ts、packages/engine/test/ireland-full.test.ts、docs/{SOURCES,pending-details,tasks/reports/89-ie-rules}.md |
 | 688 | 任务 89 第六轮审核修正（review89-6）：核对现有证件类别及许可有效性，境内伴侣转换按返爱日评估，补续期与短期出境回归，向任务 99 交接预测日跨过 IRP 到期的风险。 | packages/engine/src/ireland-full/{common,conditions,family,index,ltr,treaty,work}.ts、packages/engine/test/ireland-full.test.ts、docs/{SOURCES,pending-details,tasks/reports/89-ie-rules}.md |
+| 689 | 任务 89 第七轮审核修正（review89-7）：续期共用许可结束日推断，境内伴侣转换核对返爱当天的入境及许可依据，跨到期日的预测注明有效许可前提并交接任务 99。 | packages/engine/src/ireland-full/{common,conditions,family,index}.ts、packages/engine/test/ireland-full.test.ts、docs/{SOURCES,pending-details,tasks/reports/89-ie-rules}.md |

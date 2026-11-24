@@ -1084,7 +1084,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - **SRC-383** Act ss4–5、9、19；S.I. 421/2025 regs. 1–5。
 - **SRC-095** Guide 的 Reckonable Residence for Refugees or people with international protection、70 Days Absence Rule 及 Document requirements for minors。难民专项区分递交前一年与此前累计期，并说明部长可按个案豁免。
 - **SRC-097** Eligibility、If your application is successful（许可可能被撤销）、How do I renew my Without Condition As To Time permission? 及 What are the conditions attached to my Stamp 5 permission。Stamp 5 线上 IRP 续期材料另见 SRC-384 的 Stamp 5 Renewals 清单。
-- **SRC-384** Stamp 1、Stamp 1G (1)、Stamp 3 (3)、Stamp 4 (1)–(4)、(7)–(8)、(12)、Stamp 5、Stamp 4 EUFam 与 WA 的登记及续期清单。在线续期 When should I submit a Renewal Application? 载明在共和国境内递交、IRP 到期前 12 周开放。Introduction 包含线上更换 Stamp 类别。
+- **SRC-384** Stamp 1、Stamp 1G (1)、Stamp 3 (3)、Stamp 4 (1)–(4)、(7)–(8)、(12)、Stamp 5、Stamp 4 EUFam 与 WA 的登记及续期清单。在线续期 When should I submit a Renewal Application? 载明在共和国境内递交、IRP 到期前 12 周开放。Introduction 包含线上更换 Stamp 类别。登记 FAQ 的 Travel and Re-Entry Visas 区分持有效 IRP 返爱与紧急返爱签证，并要求后者的许可覆盖到计划返爱日。
 - **SRC-385** Policy Document Archive；main changes。
 - **SRC-386** Financial Thresholds for Spouses, Civil Partners and De Facto Partners；Table 1。
 - **SRC-387** June 2026 §§2–10、12–17 和 Appendices C–E，其中 §6.2 为居住或拟居住在爱尔兰的爱尔兰公民担保人；November 2025 §§7、10、16；2016 §§16–17。

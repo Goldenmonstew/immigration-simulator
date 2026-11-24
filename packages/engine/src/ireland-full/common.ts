@@ -1,6 +1,7 @@
 import { irelandFull2026_11 as full } from '@uk-immigration/policy-data';
 import type { CountryCheck, CountryPathway } from '../country-result';
 import { addDays, addMonths, daysBetween } from '../dates';
+import { permissionValidity as permissionTimeline } from '../ireland';
 import type { IePathway, IePermission, IePermissionKind } from '../ireland';
 import { afterYears, monthSpan } from '../pilot';
 import { textFor } from '../rule';
@@ -198,18 +199,16 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
 
 export type IrelandAssessment = ReturnType<typeof assessment>;
 
-function activePermissions(permissions: IePermission[], day: IsoDate) {
-  return permissions.filter(
+export function activePermissions(permissions: IePermission[], day: IsoDate) {
+  return permissionTimeline(permissions).filter(
     ({ kind, from, to }) => kind !== 'ni-residence' && from <= day && (!to || day <= to),
   );
 }
 
 export function currentPermissionMatches(
-  permissions: IePermission[],
-  day: IsoDate,
+  active: IePermission[],
   kinds: readonly IePermissionKind[],
 ) {
-  const active = activePermissions(permissions, day);
   if (!active.length || active.some(({ kind }) => kind === 'other')) return undefined;
   if (active.every(({ kind }) => kinds.includes(kind))) return true;
   if (active.every(({ kind }) => !kinds.includes(kind))) return false;
@@ -226,9 +225,8 @@ export function renewalWindow(
   a: IrelandAssessment,
   inState: boolean | undefined,
   expiry: IsoDate | undefined,
-  permissions: IePermission[],
+  active: IePermission[],
 ) {
-  const active = activePermissions(permissions, a.day);
   const expires = expiry ?? (active.length === 1 ? active[0].to : undefined);
   const weeks = full.registration.value.earlyRenewalWeeks;
   const opens = expires && addDays(expires, -weeks * 7);
@@ -249,7 +247,7 @@ export function renewalWindow(
     ['PD-321'],
     waiting && opens ? { availableOn: opens } : true,
   );
-  return opens;
+  return { opens, expires };
 }
 
 export function character(facts?: IrelandCharacter) {

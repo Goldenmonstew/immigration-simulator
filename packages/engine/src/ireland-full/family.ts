@@ -22,6 +22,11 @@ const p = full.family;
 type FamilyRelationship =
   'spouse' | 'civil-partner' | 'de-facto' | 'child' | 'other';
 
+interface FamilyReturn {
+  date: IsoDate;
+  currentPermissionCoversReturn: boolean;
+}
+
 export interface IrelandFamily {
   relationship?: FamilyRelationship;
   relationshipValidAndGenuine?: boolean;
@@ -71,6 +76,8 @@ export interface IrelandFamily {
       | 'de-facto-overseas';
     /** Confirm the approved entry, or the applicant's eligible lawful status for an in-State conversion. */
     entryOrConversionValid?: boolean;
+    /** Confirm a basis for re-entry and lawful status eligible for conversion on this return date. */
+    entryOrConversionOnReturn?: { date: IsoDate; valid: boolean };
     sponsorResponsible?: boolean;
     grossTaxYears?: number[];
     previousTaxYearNet?: number;
@@ -233,15 +240,24 @@ function familyApplication(
   data: IrelandFamily,
   dob?: IsoDate,
   inState?: boolean,
-  returnOn?: IsoDate,
+  tripReturn?: FamilyReturn,
 ) {
   const { add, L, day } = a;
   const app = data.application ?? {};
   const channel = app.channel;
   const inStateDeFacto = channel === 'de-facto-in-state';
   const inStateConversion = channel === 'spouse-in-state' || inStateDeFacto;
+  const returning = inStateConversion ? tripReturn : undefined;
+  const returnOn = returning?.date;
+  const returnEvidence = app.entryOrConversionOnReturn;
+  const entryOrConversion = !returning || returning.currentPermissionCoversReturn
+    ? app.entryOrConversionValid
+    : undefined;
+  const eligibleBasis = returning && returnEvidence?.date === returning.date
+    ? returnEvidence.valid
+    : entryOrConversion;
   const filedOn = app.date ?? day;
-  const date = inStateConversion && returnOn && returnOn > filedOn ? returnOn : filedOn;
+  const date = returnOn && returnOn > filedOn ? returnOn : filedOn;
   const versions = p.versions.value;
   const current = date >= versions.currentFrom;
   const revised = date >= versions.revisedFrom;
@@ -259,7 +275,12 @@ function familyApplication(
     const waitingForReturn = inState === false && returnOn !== undefined;
     const present = waitingForReturn ? false : inState === true ? true : undefined;
     const presence = waitingForReturn
-      ? L(`预计返爱日为 ${returnOn}。`, `Expected return to Ireland: ${returnOn}.`)
+      ? eligibleBasis === undefined
+        ? L(
+            '须核对返爱当天可用于入境及境内转换的有效依据（PD-330）。',
+            'Confirm a valid basis for re-entry and in-State conversion on the return date (PD-330).',
+          )
+        : L(`预计返爱日为 ${returnOn}。`, `Expected return to Ireland: ${returnOn}.`)
       : L('须在爱尔兰共和国境内递交。', 'File while present in the Republic of Ireland.');
     add(
       id,
@@ -297,7 +318,7 @@ function familyApplication(
             all(data.sponsorIrish, data.intendsToLiveTogetherInState),
           ),
       waiting,
-      app.entryOrConversionValid,
+      eligibleBasis,
     ),
     inStateDeFacto ? L(
       '境内 de facto 转换要求申请人与担保人已在爱尔兰合法居住，并核对申请人的现有许可是否允许转换。',
@@ -588,6 +609,7 @@ function familyApplication(
         app.addressEvidence,
         firstRegistrationInsurance(insurance),
         character(app.applicantCharacter),
+        returning ? eligibleBasis : true,
       ),
       L(
         `核对爱尔兰公民合法配偶／民事伴侣、同址及首次登记保险（通常 ${e.firstRegistrationInsuranceMonths} 个月，较短许可按全段）。专门境内案参见 PD-330。`,
@@ -653,7 +675,7 @@ function familyApplication(
     if (channel === 'de-facto-in-state') {
       addApplicationCheck(
         'B22',
-        all(base, livingTogether, data.sponsorLawfulAndResident, app.entryOrConversionValid),
+        all(base, livingTogether, data.sponsorLawfulAndResident, eligibleBasis),
         L(
           `需合法境内渠道、私保及近 ${e.clearanceLookbackYears} 年相关外国的警察证明，签发距递交不超过 ${e.clearanceValidityMonths} 个月。获准通常为 ${n.deFactoGrantYears} 年 Stamp 4。`,
           `Use an eligible in-State channel with private insurance and police certificates for relevant foreign countries in the past ${e.clearanceLookbackYears} years, issued within ${e.clearanceValidityMonths} months. The usual grant is a ${n.deFactoGrantYears}-year Stamp 4.`,
@@ -696,7 +718,7 @@ export function independentFamily(
   dob?: IsoDate,
   inState?: boolean,
   renewalOpens?: IsoDate,
-  returnOn?: IsoDate,
+  tripReturn?: FamilyReturn,
 ) {
   if (data.application?.registrationStage === 'renewal') {
     familyRenewal(a, data, inState);
@@ -841,7 +863,7 @@ export function independentFamily(
       ['PD-329'],
     );
   }
-  if (data.application) familyApplication(a, data, dob, inState, returnOn);
+  if (data.application) familyApplication(a, data, dob, inState, tripReturn);
 }
 
 export function directFamily(
@@ -849,7 +871,7 @@ export function directFamily(
   data: IrelandFamily,
   dob?: IsoDate,
   inState?: boolean,
-  returnOn?: IsoDate,
+  tripReturn?: FamilyReturn,
 ) {
   const relation = data.relationship;
   a.add(
@@ -881,5 +903,5 @@ export function directFamily(
             data.application.channel === 'spouse-in-state',
   );
   if (isFirstFamilyRegistration(data)) firstFamilyRegistration(a, data, inState);
-  else familyApplication(a, { ...data, sponsorCategory: 'A' }, dob, inState, returnOn);
+  else familyApplication(a, { ...data, sponsorCategory: 'A' }, dob, inState, tripReturn);
 }

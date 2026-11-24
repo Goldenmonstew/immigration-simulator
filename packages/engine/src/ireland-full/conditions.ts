@@ -318,6 +318,7 @@ const conditions = {
       ['SRC-387', 'June 2026 §§2–6, especially §6.2'],
       ['SRC-409', 'Eligibility'],
       ['SRC-388', 'Am I eligible?; Overseas de facto: Who can sponsor me?'],
+      ['SRC-384', 'Registration FAQ: Travel and Re-Entry Visas'],
     ],
   ],
   B15: [

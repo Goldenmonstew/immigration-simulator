@@ -5,6 +5,7 @@ import type { IeRequest, IeStamp4Route } from '../ireland';
 import { textFor } from '../rule';
 import type { IsoDate } from '../types';
 import {
+  activePermissions,
   all,
   assessment,
   currentPermissionMatches,
@@ -143,6 +144,20 @@ export function evaluateIrelandFull(
   const registrationValidity = request.registration?.validPermission === undefined
     ? true
     : permissionValidity(request.registration);
+  const currentPermissions = activePermissions(request.permissions, day);
+  const irpExpiresOn = request.registration?.irpExpiresOn;
+  const familyReturn = returnOn
+    ? {
+        date: returnOn,
+        currentPermissionCoversReturn:
+          registrationValidity === true &&
+          (!irpExpiresOn || returnOn <= irpExpiresOn) &&
+          (currentPermissions.length > 0
+            ? currentPermissions.every(({ to }) => !to || returnOn <= to)
+            : irpExpiresOn !== undefined &&
+              !request.permissions.some(({ kind, from }) => kind !== 'ni-residence' && from <= day)),
+      }
+    : undefined;
   const timeline = (stamp4Route: IeStamp4Route) =>
     evaluateIreland({ ...request, stamp4Route });
   const legacyNaturalisation = options.some(
@@ -179,13 +194,12 @@ export function evaluateIrelandFull(
       stamp5Renewal ||
       ltrRenewal ||
       treatyRenewal;
-    const opens = isRenewal
+    const renewalDates = isRenewal
       ? renewalWindow(
           a,
           treatyRenewal ? treatyInState : inState,
-          (treatyRenewal ? treatyDocument?.currentCardExpiresOn : undefined) ??
-            request.registration?.irpExpiresOn,
-          treatyRenewal ? [] : request.permissions,
+          (treatyRenewal ? treatyDocument?.currentCardExpiresOn : undefined) ?? irpExpiresOn,
+          treatyRenewal ? [] : currentPermissions,
         )
       : undefined;
     switch (id) {
@@ -197,7 +211,7 @@ export function evaluateIrelandFull(
             all(
               workRegistration === 'first'
                 ? inState
-                : currentPermissionMatches(request.permissions, day, workRenewalKinds),
+                : currentPermissionMatches(currentPermissions, workRenewalKinds),
               request.registration?.checklistComplete,
             ),
             undefined,
@@ -216,8 +230,8 @@ export function evaluateIrelandFull(
           family ?? {},
           dob,
           inState,
-          opens,
-          returnOn,
+          renewalDates?.opens,
+          familyReturn,
         );
         break;
       case 'IE-STAMP5':
@@ -229,12 +243,12 @@ export function evaluateIrelandFull(
           request.registration?.checklistComplete,
           stamp5Renewal ? all(
             registrationValidity,
-            currentPermissionMatches(request.permissions, day, ['stamp5']),
+            currentPermissionMatches(currentPermissions, ['stamp5']),
           ) : undefined,
         );
         break;
       case 'IE-STAMP4-IRISH-FAMILY':
-        directFamily(a, family ?? {}, dob, inState, returnOn);
+        directFamily(a, family ?? {}, dob, inState, familyReturn);
         break;
       case 'IE-LTR-PRINCIPAL':
       case 'IE-LTR-FAMILY':
@@ -297,7 +311,21 @@ export function evaluateIrelandFull(
         : workRegistration === 'renewal'
           ? L('现有许可续期', 'Renewal of existing permission')
           : L(titles[id][0], titles[id][1]);
-    return a.finish(id, title, applicable);
+    const result = a.finish(id, title, applicable);
+    const expiry = renewalDates?.expires;
+    if (
+      result.status === 'FUTURE' &&
+      result.earliestDate &&
+      expiry &&
+      result.earliestDate > expiry
+    ) {
+      const note = L(
+        `预测递交日晚于本次计算使用的到期日 ${expiry}，届时须持有有效许可或正式延续证明（PD-321）。`,
+        `The projected filing date is after the expiry date used for this assessment (${expiry}). You must hold valid permission or official proof of extension on the filing date (PD-321).`,
+      );
+      result.summary = result.summary ? `${result.summary} ${note}` : note;
+    }
+    return result;
   });
   return {
     policyAsOf: irelandFull2026_11.asOf,

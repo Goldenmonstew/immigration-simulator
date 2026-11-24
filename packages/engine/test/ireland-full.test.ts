@@ -917,6 +917,50 @@ describe('Ireland work upgrades, registration and Stamp 5', () => {
     })).toMatchObject({ status: 'FUTURE', earliestDate: '2027-06-10' });
   });
 
+  test('a work upgrade forecast after IRP expiry explains the need for valid permission', () => {
+    const request = {
+      permissions: [{ kind: 'stamp1-csep', from: '2025-05-20' }],
+      employmentStart: '2025-05-20',
+      registration: { ...registration, irpExpiresOn: '2027-01-31' },
+      work,
+    } satisfies Partial<IrelandFullRequest>;
+    const forecast = result(id, request);
+    expect(forecast).toMatchObject({ status: 'FUTURE', earliestDate: '2027-02-20' });
+    expect(forecast.summary).toContain('2027-01-31');
+    expect(forecast.summary).toContain('valid permission');
+    expect(result(id, { ...request, locale: 'zh-CN' }).summary).toContain('有效许可');
+    expect(result(id, {
+      ...request,
+      registration: { ...request.registration, irpExpiresOn: '2027-02-20' },
+    }).summary).not.toContain('valid permission');
+    expect(checks(id, {
+      ...request,
+      simulationDate: '2027-02-20',
+      work: { ...work, employerLetterOn: '2027-02-10' },
+    }, { 'IRP-RENEWAL-WINDOW': 'UNKNOWN' })).toMatchObject({
+      status: 'UNKNOWN', earliestDate: undefined,
+    });
+  });
+
+  test.each([
+    ['IE-STAMP4-57', 'student', 'stamp1-gep', 'IRP-CHECKLIST'],
+    ['IE-STAMP5', 'stamp4', 'stamp5', 'B28'],
+  ] as const)('%s renewal infers the old permission end before selecting the current Stamp', (path, oldKind, kind, check) => {
+    const previous = { kind: oldKind, from: '2022-01-01' };
+    const current = { kind, from: '2025-01-01', to: '2026-12-01' };
+    for (const irpExpiresOn of [current.to, undefined]) {
+      const request = {
+        registration: { ...registration, stage: 'renewal', checklistComplete: true, irpExpiresOn },
+        permissions: [previous, current],
+      } satisfies Partial<IrelandFullRequest>;
+      const implicit = checks(path, request, { [check]: 'MET', 'IRP-RENEWAL-WINDOW': 'MET' });
+      expect(implicit).toMatchObject({ status: 'MET', earliestDate: day });
+      expect(implicit).toEqual(result(path, {
+        ...request, permissions: [{ ...previous, to: '2024-12-31' }, current],
+      }));
+    }
+  });
+
   test.each(['stamp1', 'stamp1g-graduate', 'stamp4'] as const)(
     'ordinary %s renewal applies its registration checklist and IRP opening date',
     (kind) => {
@@ -1501,6 +1545,47 @@ describe('Ireland family Stamp 4', () => {
       ...request, currentLocation: 'elsewhere', trips: trip,
       family: { ...request.family, application: { ...request.family.application, entryOrConversionValid: undefined } },
     }, { B14: 'UNKNOWN' })).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+
+    const abroad = { ...request, currentLocation: 'elsewhere', trips: trip } as const;
+    const permission = request.permissions[0];
+    const expired = { ...abroad, permissions: [{ ...permission, to: '2026-11-26' }] };
+    const expiredCard = { ...registration, irpExpiresOn: '2026-11-26' };
+    for (const input of [
+      expired,
+      { ...abroad, permissions: [{ ...permission, to: '2026-11-22' }] },
+      { ...abroad, permissions: [{ kind: permission.kind, from: permission.from }], registration: expiredCard },
+      { ...abroad, permissions: [
+        { kind: permission.kind, from: permission.from },
+        { kind: 'other', from: '2026-11-27' },
+      ] },
+    ] satisfies Partial<IrelandFullRequest>[]) {
+      const blocked = checks(direct, input, { B14: 'UNKNOWN', [check]: 'UNKNOWN' });
+      expect(blocked).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+      expect(blocked.pendingDetails).toContain('PD-330');
+    }
+    expect(result(direct, {
+      ...abroad, permissions: [{ ...permission, to: returned }],
+      registration: { ...registration, irpExpiresOn: returned },
+    })).toMatchObject({ status: 'FUTURE', earliestDate: returned });
+    expect(result(direct, { ...abroad, permissions: [] }))
+      .toMatchObject({ status: 'FUTURE', earliestDate: returned });
+    for (const [date, valid, status] of [
+      [returned, true, 'FUTURE'],
+      [returned, false, 'NOT_MET'],
+      ['2026-11-27', true, 'UNKNOWN'],
+    ] as const) {
+      expect(result(direct, {
+        ...expired,
+        registration: expiredCard,
+        family: {
+          ...request.family,
+          application: {
+            ...request.family.application,
+            entryOrConversionOnReturn: { date, valid },
+          },
+        },
+      })).toMatchObject({ status, earliestDate: status === 'FUTURE' ? returned : undefined });
+    }
   });
 
   const spouseRenewal: IrelandFamily = {
