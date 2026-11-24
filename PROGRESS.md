@@ -525,6 +525,7 @@
 | 572 | 任务 85 第十轮审核修正（review85-10）。R74 按锁龄日为直接担保的主申请子女核对监护同意。AIP 首次递交的现居国警证超过六个月至满一年当日，且仍在签发机关效期内，R26 判为 UNKNOWN 并登记 PD-245。补公开入口的单项、路径和日期边界回归。 | packages/engine/src/canada-full/{family,shared,federal-documents,federal}.ts、packages/engine/test/canada-{family,atlantic,federal}-full.test.ts、docs/pending-details.md、docs/tasks/reports/85-ca-rules.md |
 | 573 | 任务 85 第十一轮审核修正（review85-11）。确认持有 PR 且取得日期留空时，七条首次永居路径均为 NOT_APPLICABLE。补公开入口回归，覆盖模拟日当天取得、次日取得及其他条件齐备的 AIP。 | packages/engine/src/canada-full/index.ts、packages/engine/test/canada-{federal,atlantic}-full.test.ts、docs/tasks/reports/85-ca-rules.md |
 | 574 | 任务 95：加拿大首页与分步问卷取代原只算时间的单页，覆盖 evaluateCanadaFull 的全部输入；结果、对比、分享、方案与政策页使用加拿大模块，集合入口改为完整版范围，五页纳入离线与 sitemap 清单。 | apps/web/app/canada/、apps/web/lib/canada-{fields,draft,module,policy,whatif}.ts、删除 apps/web/lib/canada.ts、apps/web/i18n/{countries/canada{,-form}.ts,zh-CN.ts,en.ts}、apps/web/{lib/site-countries.ts,public/sw.js,test/{canada,about-page}.test.tsx} |
+| 575 | 任务 95：e2e 覆盖加拿大问卷到结果、方案保存、分享还原、条件跳转对比、英文手机宽度与政策来源。 | apps/e2e/tests/canada.spec.ts |
 | 590 | 任务 86：核对并登记美国完整版官方快照、哈希及来源网址，追加 PD-260–279。 | docs/SOURCES.md、docs/pending-details.md、policy-sources/、apps/web/lib/sources.ts |
 | 591 | 任务 86：登记美国完整版出处、日期参数、数字门槛及费用。 | packages/policy-data/src/{index.ts,parameters/united-states-2026-11.ts} |
 | 592 | 任务 86：提供美国九路径完整版 CountryResult，接入既有时间计算，增加资格、审查与费用条件、回归测试及页面接线交接。 | packages/engine/src/{index.ts,united-states-full/}、packages/engine/test/united-states-full.test.ts、docs/tasks/reports/86-us-rules.md |
