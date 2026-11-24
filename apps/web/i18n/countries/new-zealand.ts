@@ -35,7 +35,7 @@ export const zhCN = {
   'nz.whatif.lastReturn': '最近一次出境的返回日期',
   'nz.whatif.englishScore': '主申请人的英语考试总分',
   'nz.whatif.englishHint':
-    '问卷已填考试时只改分数；没有考试记录时，按在模拟日线下参加 IELTS 计算。',
+    '问卷已填 IELTS、TOEFL、PTE 或 Cambridge 时只改分数；没有考试记录或填的是按等级评分的 OET 时，按在模拟日线下参加 IELTS 计算。',
   'nz.whatif.invalid':
     '对比后的资料不完整或日期无效，请调整旋钮或返回问卷修改。',
 } as const;
@@ -76,7 +76,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'nz.whatif.lastReturn': 'Return date of your latest trip',
   'nz.whatif.englishScore': 'Principal applicant’s overall English test score',
   'nz.whatif.englishHint':
-    'With a test in your answers only the score changes. Without one, an in-person IELTS on the simulation date is assumed.',
+    'With an IELTS, TOEFL, PTE or Cambridge result in your answers only the score changes. Without a test, or with a graded OET result, an in-person IELTS on the simulation date is assumed.',
   'nz.whatif.invalid':
     'The compared answers are incomplete or have an invalid date. Adjust the controls or return to the questionnaire.',
 };

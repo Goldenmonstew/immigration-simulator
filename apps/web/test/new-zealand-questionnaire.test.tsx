@@ -1,6 +1,7 @@
 import { isValidElement, type ReactElement, type ReactNode } from 'react';
 import { expect, test, vi } from 'vitest';
 import NewZealandSimulatePage from '../app/new-zealand/simulate/page';
+import { NzWhatIfControls } from '../app/new-zealand/whatif/controls';
 import { t, type TranslationKey } from '../i18n';
 import {
   nzStepDefinitions,
@@ -286,6 +287,89 @@ test('the PRV base commitment can confirm that no family members are included', 
       .filter((n) => n.type === 'button')
       .map((n) => n.text),
   ).toEqual([`${t('nz.form.addValue')} · ${t('nz.f.nzDaysInEachPriorYear')}`]);
+});
+
+test('comparison controls follow the pay conditions, model IELTS for an OET result and need a valid return date', () => {
+  for (const id of [
+    'NZ-P4-3',
+    'NZ-P4-4',
+    'NZ-P4-5',
+    'NZ-P5-2',
+    'NZ-P6-1',
+    'NZ-P6-2',
+  ])
+    expect(nz.whatif.focusForRule(id, 'NZ-SMC'), id).toBe('pay');
+  expect(nz.whatif.focusForRule('NZ-P4-2', 'NZ-SMC')).toBeUndefined();
+
+  const oet = withAnswers(residentDraft(['smc']), {
+    trips: [],
+    common: {
+      ...residentDraft(['smc']).answers.common,
+      english: {
+        method: 'test',
+        test: 'oet',
+        grades: ['C', 'C', 'C', 'C'],
+        date: '2026-01-01',
+        inPerson: true,
+      },
+    },
+  });
+  const initial = nz.whatif.initial(oet);
+  expect(initial.englishScore).toBeUndefined();
+  expect(nz.whatif.apply(oet, initial).answers).toEqual(oet.answers);
+  const scored = nz.whatif.apply(oet, { ...initial, englishScore: 8 });
+  expect(scored.answers.common?.english).toEqual({
+    method: 'test',
+    test: 'ielts',
+    inPerson: true,
+    date: '2026-11-23',
+    score: 8,
+  });
+  const c3 = (draft: NzDraft) =>
+    pathways(draft)[0].checks.find((check) => check.id === 'NZ-C3')?.status;
+  expect([c3(oet), c3(scored)]).toEqual(['NOT_MET', 'MET']);
+
+  const trips = withAnswers(residentDraft(['citizenship']), {
+    trips: [{ departed: '2026-05-01', returned: '2026-10-15' }],
+  });
+  const knobs = nz.whatif.initial(trips);
+  const lastReturn = (value?: string) => {
+    const changed = { ...knobs, lastReturn: value };
+    return nz.whatif.validate(nz.whatif.apply(trips, changed), changed);
+  };
+  expect(lastReturn(undefined)).toEqual({ lastReturn: 'nz.error.date' });
+  expect(lastReturn('2026-02-30')).toEqual({ lastReturn: 'nz.error.date' });
+  expect(lastReturn('2026-04-01')).toEqual({ lastReturn: 'nz.error.order' });
+  expect(lastReturn('2026-10-01')).toEqual({});
+  // Assuming no trips leaves no return date to check.
+  expect(
+    nz.whatif.validate(trips, {
+      ...knobs,
+      noTrips: true,
+      lastReturn: undefined,
+    }),
+  ).toEqual({});
+
+  // Partly typed numbers have no value yet.
+  const updates: object[] = [];
+  const controls = flat(
+    expand(
+      <NzWhatIfControls
+        afterDraft={residentDraft(['smc'])}
+        knobs={nz.whatif.initial(residentDraft(['smc']))}
+        errors={{}}
+        update={(patch) => updates.push(patch)}
+      />,
+    ),
+  );
+  const pay = controls.find((n) => n.props.id === 'nz-whatif-pay')!;
+  (pay.props.onChange as Handler)({
+    target: { value: '1e', valueAsNumber: Number.NaN },
+  });
+  (pay.props.onChange as Handler)({
+    target: { value: '42.5', valueAsNumber: 42.5 },
+  });
+  expect(updates).toEqual([{ hourlyPay: undefined }, { hourlyPay: 42.5 }]);
 });
 
 test('answers that contradict an earlier step are flagged on the later question', () => {

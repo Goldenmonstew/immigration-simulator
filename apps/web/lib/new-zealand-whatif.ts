@@ -47,11 +47,14 @@ const focusByCondition: Record<string, keyof typeof nzFocusControls> = {
   'NZ-P3-1-PRESENCE': 'trips',
   'NZ-C3': 'english',
   'NZ-P3-5': 'citizenshipEnglish',
-  'NZ-P4-2': 'pay',
+  // Conditions that compare the job's hourly pay with a wage threshold.
   'NZ-P4-3': 'pay',
+  'NZ-P4-4': 'pay',
+  'NZ-P4-5': 'pay',
   'NZ-P5-2': 'pay',
   'NZ-P5-3-JOB': 'pay',
   'NZ-P6-1': 'pay',
+  'NZ-P6-2': 'pay',
   'NZ-P7-1': 'partner',
   'NZ-P9-1': 'invested',
 };
@@ -69,14 +72,21 @@ export function lastTripIndex(draft: NzDraft) {
   );
 }
 
+// OET is assessed on its four grades, so a score control cannot change it.
+function scoredTest(draft: NzDraft) {
+  const english = draft.answers.common?.english;
+  return english?.method === 'test' && english.test !== 'oet'
+    ? english
+    : undefined;
+}
+
 function initial(draft: NzDraft): NzWhatIf {
   const { answers } = draft;
-  const english = answers.common?.english;
   return {
     date: draft.simulationDate,
     noTrips: false,
     lastReturn: answers.trips?.[lastTripIndex(draft)]?.returned,
-    englishScore: english?.method === 'test' ? english.score : undefined,
+    englishScore: scoredTest(draft)?.score,
     citizenshipEnglish: answers.resident?.citizenship?.english,
     hourlyPay: answers.skilled?.job?.hourlyPay,
     partnerMonths: answers.family?.partner?.monthsTogetherAfterBothAdult,
@@ -96,17 +106,13 @@ export const nzWhatIf: CountryWhatIf<NzDraft, NzWhatIf> = {
     else if (last >= 0 && knobs.lastReturn)
       answers.trips![last].returned = knobs.lastReturn;
     if (knobs.englishScore !== start.englishScore) {
-      const english = answers.common?.english;
-      // Without a recorded test, assume an in-person IELTS on the simulation date.
-      const test: NzEnglishEvidence =
-        english?.method === 'test'
-          ? english
-          : {
-              method: 'test',
-              test: 'ielts',
-              inPerson: true,
-              date: knobs.date,
-            };
+      // Without a scored test, assume an in-person IELTS on the simulation date.
+      const test: NzEnglishEvidence = scoredTest(draft) ?? {
+        method: 'test',
+        test: 'ielts',
+        inPerson: true,
+        date: knobs.date,
+      };
       answers.common = {
         ...answers.common,
         english: { ...test, score: knobs.englishScore },
@@ -150,13 +156,12 @@ export const nzWhatIf: CountryWhatIf<NzDraft, NzWhatIf> = {
     const errors: Record<string, TranslationKey> = {};
     if (!validDate(knobs.date)) errors.date = 'nz.error.date';
     const trip = draft.answers.trips?.[lastTripIndex(draft)];
-    if (
-      !knobs.noTrips &&
-      knobs.lastReturn &&
-      (!validDate(knobs.lastReturn) ||
-        (trip && knobs.lastReturn < trip.departed))
-    )
-      errors.lastReturn = 'nz.error.order';
+    if (!knobs.noTrips && trip) {
+      if (!knobs.lastReturn || !validDate(knobs.lastReturn))
+        errors.lastReturn = 'nz.error.date';
+      else if (knobs.lastReturn < trip.departed)
+        errors.lastReturn = 'nz.error.order';
+    }
     for (const [key, value] of [
       ['english', knobs.englishScore],
       ['pay', knobs.hourlyPay],

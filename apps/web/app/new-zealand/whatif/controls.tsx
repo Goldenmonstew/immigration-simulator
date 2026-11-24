@@ -56,14 +56,11 @@ export function NzWhatIfControls({
         min="0"
         step="any"
         value={knobs[knob] ?? ''}
-        onChange={(event) =>
-          update({
-            [knob]:
-              event.target.value === ''
-                ? undefined
-                : event.target.valueAsNumber,
-          })
-        }
+        onChange={(event) => {
+          // Empty or partly typed numbers have no value yet.
+          const value = event.target.valueAsNumber;
+          update({ [knob]: Number.isNaN(value) ? undefined : value });
+        }}
         aria-invalid={errors[key] ? true : undefined}
         aria-describedby={described(key, !!hint)}
       />
