@@ -22,6 +22,7 @@ import { feeChecks } from './fees';
 import { familyChecks, employmentChecks, supportChecks } from './immigration';
 import { conditionChecks, travelChecks } from './maintenance';
 import { militaryChecks, naturalizationChecks } from './naturalization';
+import { i485PendencyChecks } from './pendency';
 import {
   adjustmentCategory,
   isFamilyCategory,
@@ -540,6 +541,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
     earliestDate: filingCandidate > date ? filingCandidate : undefined,
   };
   let requirements: UsFullCheck[];
+  const facts = preapprovedFacts(request, category);
   switch (request.pathway) {
     case 'US-NATURALIZATION':
     case 'US-SPOUSE': {
@@ -663,7 +665,6 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
     case 'US-FAMILY':
     case 'US-EMPLOYMENT':
     case 'US-ADJUSTMENT': {
-      const facts = preapprovedFacts(request, category);
       requirements = [
         ...(category === 'family'
           ? familyChecks(request, filingReceipt, facts)
@@ -723,6 +724,17 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
         : earliest,
     immigrantApplication || i485 ? (decision ?? receipt) : receipt,
   );
+  if (i485 && decision) {
+    requirements.push(
+      ...i485PendencyChecks(
+        request,
+        filingReceipt,
+        approvalDate,
+        category,
+        facts,
+      ),
+    );
+  }
   const combine = (filing: boolean): PilotStatus => {
     if (timing === 'NOT_APPLICABLE') return timing;
     const statuses = requirements.flatMap((item) =>

@@ -157,12 +157,12 @@ function unlawfulPresence(
 function admissionExemptions(
   scope: 'immigrant' | 'return' | 'humanitarian',
   process: UsAdmissionAnswers['process'],
-  facts?: ReturnType<typeof preapprovedFacts>,
+  classification: { sij?: boolean; vawa?: boolean },
 ) {
   if (scope === 'humanitarian') return v.humanitarianAdmissionExemptions;
-  if (facts?.has('sijClassification') && process === 'adjustment')
+  if (classification.sij && process === 'adjustment')
     return v.sijAdmissionExemptions;
-  if (facts?.has('vawaClassification')) {
+  if (classification.vawa) {
     if (process === 'adjustment') return v.vawaAdjustmentAdmissionExemptions;
     if (process === 'consular') return v.vawaConsularAdmissionExemptions;
   }
@@ -181,6 +181,84 @@ function petitionApprovalUnconfirmed(
     status === 'filed-with-i485' ||
     (status === undefined && filedOn !== undefined)
   );
+}
+
+function admissionGrounds(
+  a: UsAdmissionAnswers | undefined,
+  exemptions: ReturnType<typeof admissionExemptions>,
+  pendingSij: boolean,
+  vawa: boolean,
+) {
+  const isExempt = (ground: string) =>
+    exemptions?.value.some((exemption) => matchesGround(ground, exemption));
+  const assessExemption = (ground: string, answer: Answer): Answer => {
+    if (isExempt(ground)) return true;
+    if (
+      pendingSij &&
+      answer !== true &&
+      v.sijAdmissionExemptions.value.some(
+        (exemption) =>
+          matchesGround(ground, exemption) || matchesGround(exemption, ground),
+      )
+    )
+      return undefined;
+    return answer;
+  };
+  const publicExempt = isExempt('4(A)') || a?.publicChargeExempt === true;
+  const publicResult = publicExempt
+    ? true
+    : assessExemption('4(A)', reviewed(a?.publicCharge));
+  const falseClaim = assessExemption(
+    '6(C)(ii)',
+    a?.falseCitizenship === true
+      ? a.falseCitizenshipException
+      : not(a?.falseCitizenship),
+  );
+  const otherGrounds = Object.entries(a?.otherInadmissibilityByGround ?? {});
+  const identifiedGrounds = otherGrounds.flatMap(([ground, finding]) =>
+    finding === undefined ? [] : [assessExemption(ground, reviewed(finding))],
+  );
+  const aggregateReview = reviewed(a?.otherInadmissibility);
+  const completeReview = v.otherImmigrationGrounds.value.every(
+    (ground) =>
+      isExempt(ground) ||
+      otherGrounds.some(
+        ([provision, finding]) =>
+          (finding === 'cleared' || (pendingSij && finding !== undefined)) &&
+          matchesGround(ground, provision),
+      ),
+  );
+  // Until SIJ is approved, an unexplained aggregate bar may include an exempt ground.
+  const unexplainedSijBar =
+    pendingSij &&
+    aggregateReview === false &&
+    (!completeReview ||
+      !otherGrounds.some(([, finding]) => finding === 'barred'));
+  const otherReview = unexplainedSijBar
+    ? undefined
+    : completeReview || aggregateReview;
+  const presenceAt = (on: IsoDate | undefined) => {
+    if (isExempt('9(B)')) return true;
+    const presence = unlawfulPresence(a, on);
+    return vawa
+      ? any(presence, reviewed(a?.vawaUnlawfulPresenceException))
+      : presence;
+  };
+  const immigration = (bar: Answer) => {
+    const [presence, fraud, other] = ordinaryWaiver(
+      [bar, isExempt('6(C)(i)') ? true : not(a?.immigrationFraud), otherReview],
+      a?.immigrationWaiver,
+    );
+    return [
+      falseClaim,
+      not(a?.unlawfulReentryBar),
+      assessExemption('9(B)', presence),
+      assessExemption('6(C)(i)', fraud),
+      other,
+      ...identifiedGrounds,
+    ];
+  };
+  return { publicExempt, publicResult, presenceAt, immigration };
 }
 
 type AdmissionTiming = {
@@ -216,64 +294,56 @@ export function admissionChecks(
   const publicChargeDate = adjustment ? (postmark ?? receipt) : receipt;
   const humanitarian = scope === 'humanitarian';
   const refugee = humanitarian && request.humanitarian?.status === 'refugee';
-  const exemptions = admissionExemptions(scope, a?.process, facts);
+  const sij = facts?.has('sijClassification');
+  const vawa = facts?.has('vawaClassification');
+  const exemptions = admissionExemptions(scope, a?.process, { sij, vawa });
   const pendingSij =
     adjustment &&
     category === 'sij' &&
-    !facts?.has('sijClassification') &&
+    !sij &&
     petitionApprovalUnconfirmed(a.petitionStatus, a.petitionFiledOn);
+  const current = admissionGrounds(
+    a,
+    exemptions,
+    pendingSij,
+    (adjustment || consularVisa) && vawa === true,
+  );
+  const transfer = adjustment ? a.i485BasisTransfer : undefined;
+  const original = transfer?.originalPetition;
+  const originalConfirmed = original?.qualifyingBasisAtFiling === 'cleared';
+  const originalSij = original?.adjustmentBasis === 'sij';
+  const originalSijUnconfirmed =
+    original?.adjustmentBasis === undefined ||
+    (originalSij &&
+      !originalConfirmed &&
+      original.qualifyingBasisAtFiling !== 'barred');
+  const originalVawa =
+    original?.adjustmentBasis === 'vawa' && originalConfirmed;
+  const originalExemptions = admissionExemptions(scope, a?.process, {
+    sij: originalSij && originalConfirmed,
+    vawa: originalVawa,
+  });
+  const originalAdmission = transfer
+    ? {
+        ...a,
+        healthWaiver: original?.healthWaiverAtFiling,
+        criminalWaiver: original?.criminalWaiverAtFiling,
+        immigrationWaiver: original?.immigrationWaiverAtFiling,
+        vawaUnlawfulPresenceException:
+          original?.vawaUnlawfulPresenceExceptionAtFiling,
+      }
+    : undefined;
+  const atFiling = originalAdmission
+    ? admissionGrounds(
+        originalAdmission,
+        originalExemptions,
+        originalSijUnconfirmed,
+        originalVawa,
+      )
+    : current;
   const exemptionSources =
     (pendingSij ? v.sijAdmissionExemptions : exemptions)?.sources ?? [];
-  const isExempt = (ground: string) =>
-    exemptions?.value.some((exemption) => matchesGround(ground, exemption));
-  const assessExemption = (ground: string, answer: Answer): Answer => {
-    if (isExempt(ground)) return true;
-    if (
-      pendingSij &&
-      answer !== true &&
-      v.sijAdmissionExemptions.value.some(
-        (exemption) =>
-          matchesGround(ground, exemption) || matchesGround(exemption, ground),
-      )
-    )
-      return undefined;
-    return answer;
-  };
-  const publicExempt = isExempt('4(A)') || a?.publicChargeExempt === true;
-  const publicResult = publicExempt
-    ? true
-    : assessExemption('4(A)', reviewed(a?.publicCharge));
-  const falseClaim = isExempt('6(C)(ii)')
-    ? true
-    : assessExemption(
-        '6(C)(ii)',
-        a?.falseCitizenship === true
-          ? a.falseCitizenshipException
-          : not(a?.falseCitizenship),
-      );
-  const otherGrounds = Object.entries(a?.otherInadmissibilityByGround ?? {});
-  const identifiedGrounds = otherGrounds.flatMap(([ground, finding]) =>
-    finding === undefined ? [] : [assessExemption(ground, reviewed(finding))],
-  );
-  const aggregateReview = reviewed(a?.otherInadmissibility);
-  const completeReview = v.otherImmigrationGrounds.value.every(
-    (ground) =>
-      isExempt(ground) ||
-      otherGrounds.some(
-        ([provision, finding]) =>
-          (finding === 'cleared' || (pendingSij && finding !== undefined)) &&
-          matchesGround(ground, provision),
-      ),
-  );
-  // Until SIJ is approved, an unexplained aggregate bar may include an exempt ground.
-  const unexplainedSijBar =
-    pendingSij &&
-    aggregateReview === false &&
-    (!completeReview ||
-      !otherGrounds.some(([, finding]) => finding === 'barred'));
-  const otherReview = unexplainedSijBar
-    ? undefined
-    : completeReview || aggregateReview;
+  const { publicExempt, publicResult } = current;
   const { waiver, waiverFiling } = (humanitarian && request.humanitarian) || {};
   const waiverDecision = waiver === 'not-needed' ? false : reviewed(waiver);
   const waiverMaterials =
@@ -315,13 +385,18 @@ export function admissionChecks(
   const healthGrounds = refugee
     ? health
     : ordinaryWaiver(health, a?.healthWaiver);
+  const healthAtFiling = originalAdmission
+    ? ordinaryWaiver(health, originalAdmission.healthWaiver)
+    : healthGrounds;
   const i693 =
     adjustment || humanitarian
       ? i693Checks(a, receipt, approvalDate, filedI485On)
       : undefined;
   const medicalAtFiling = i693 ? i693.filing : true;
   const medical = assessGround(
-    healthGrounds,
+    originalAdmission && i693?.requiredAtFiling
+      ? [...healthAtFiling, ...healthGrounds]
+      : healthGrounds,
     all(medicalAtFiling, i693 ? i693.decision : reviewed(a?.medicalEvidence)),
     medicalAtFiling,
   );
@@ -329,43 +404,40 @@ export function admissionChecks(
     i693 && !i693.requiredAtFiling
       ? 'MET'
       : adjustment
-        ? checkStatus(all(medicalAtFiling, ...healthGrounds))
+        ? checkStatus(all(medicalAtFiling, ...healthAtFiling))
         : (approvalOnly ?? medical.filingStatus);
+  const crime = criminalGrounds(a, applicationDate);
+  const crimeAtFiling = originalAdmission
+    ? criminalGrounds(originalAdmission, applicationDate)
+    : crime;
   const criminal = assessGround(
-    criminalGrounds(a, applicationDate),
+    originalAdmission ? [...crimeAtFiling, ...crime] : crime,
     not(a?.drugTraffickingBar),
   );
+  const criminalFiling = all(not(a?.drugTraffickingBar), ...crimeAtFiling);
   const securityResult = assessGround(
     [security, party],
     a?.securityGround === undefined || a.securityGround === 'pending'
       ? undefined
       : a.securityGround !== 'nonwaivable',
   );
-  const immigrationGrounds = (bar: Answer) => {
-    const [presence, fraud, other] = ordinaryWaiver(
-      [bar, isExempt('6(C)(i)') ? true : not(a?.immigrationFraud), otherReview],
-      a?.immigrationWaiver,
-    );
-    return [
-      falseClaim,
-      not(a?.unlawfulReentryBar),
-      assessExemption('9(B)', presence),
-      assessExemption('6(C)(i)', fraud),
-      other,
-      ...identifiedGrounds,
-    ];
-  };
-  const presenceAt = (on: IsoDate | undefined) => {
-    if (isExempt('9(B)')) return true;
-    const presence = unlawfulPresence(a, on);
-    return (adjustment || consularVisa) && facts?.has('vawaClassification')
-      ? any(presence, reviewed(a?.vawaUnlawfulPresenceException))
-      : presence;
-  };
-  const barAtFiling = adjustment ? presenceAt(receipt) : true;
-  const barAtDecision = presenceAt(approvalDate);
+  const barAtFiling = adjustment ? atFiling.presenceAt(receipt) : true;
+  const barAtDecision = current.presenceAt(approvalDate);
+  const immigrationAtFiling = atFiling.immigration(barAtFiling);
+  const originalExemptionSources =
+    transfer &&
+    (originalSij ||
+      (originalSijUnconfirmed && immigrationAtFiling.includes(undefined))) &&
+    !pendingSij &&
+    exemptions !== v.sijAdmissionExemptions
+      ? v.sijAdmissionExemptions.sources
+      : transfer && originalExemptions !== exemptions
+        ? (originalExemptions?.sources ?? [])
+        : [];
   const immigrationResult = assessGround(
-    immigrationGrounds(all(barAtFiling, barAtDecision)),
+    transfer
+      ? [...immigrationAtFiling, ...current.immigration(barAtDecision)]
+      : current.immigration(all(barAtFiling, barAtDecision)),
     true,
   );
   return [
@@ -457,7 +529,9 @@ export function admissionChecks(
         '确认移民法罪名分类、轻罪或未成年例外、合计刑期、毒品与无需定罪的贩运或洗钱事由。',
         'Confirm immigration-law classifications, petty or juvenile exceptions, aggregate sentences, controlled substances and trafficking or money laundering grounds that can apply without a conviction.',
       ],
-      approvalOnly ?? criminal.filingStatus,
+      originalAdmission && criminalFiling !== criminal.answer
+        ? checkStatus(criminalFiling)
+        : (approvalOnly ?? criminal.filingStatus),
     ),
     check(
       'C39-SECURITY',
@@ -481,6 +555,7 @@ export function admissionChecks(
         ...s.otherImmigrationGrounds,
         ...adjustmentSources,
         ...exemptionSources,
+        ...originalExemptionSources,
       ],
       humanitarian ? ['PD-274', 'PD-275'] : 'PD-274',
       pendingSij && immigrationResult.answer === undefined
@@ -498,9 +573,9 @@ export function admissionChecks(
               'Check the immigration-history grounds that apply to this category. Where the unlawful-presence bar applies, use qualifying days and the departure date. Check unlawful reentry and individual waivers separately.',
             ],
       adjustment
-        ? checkStatus(all(...immigrationGrounds(barAtFiling)))
+        ? checkStatus(all(...immigrationAtFiling))
         : humanitarian
-          ? assessGround(immigrationGrounds(presenceAt(receipt)), true)
+          ? assessGround(current.immigration(current.presenceAt(receipt)), true)
               .filingStatus
           : approvalOnly,
     ),

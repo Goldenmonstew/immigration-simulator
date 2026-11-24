@@ -7485,3 +7485,443 @@ describe('review86-21 regressions', () => {
     ).toMatchObject({ filingStatus: 'MET', status: 'NOT_MET' });
   });
 });
+
+describe('review86-22 regressions', () => {
+  const filed = {
+    ...e,
+    admission: {
+      ...e.admission,
+      i485FiledOn: '2026-08-03',
+      decisionOn: '2026-11-23',
+      lawfulNonimmigrantStatusAtFiling: true,
+      visaAtFilingByMonth: { '2026-08': 'available' },
+    },
+  } satisfies UsFullRequest;
+  const absence = { departed: '2026-09-01', returned: '2026-09-08' } as const;
+
+  test.each([
+    ['no departure', [], 'MET'],
+    ['travel evidence not supplied', [absence], 'UNKNOWN'],
+    [
+      'travel authorization pending',
+      [
+        {
+          ...absence,
+          i485Travel: { route: 'advance-parole', evidence: 'pending' },
+        },
+      ],
+      'UNKNOWN',
+    ],
+    [
+      'applicable nonimmigrant exception',
+      [
+        {
+          ...absence,
+          i485Travel: { route: 'nonimmigrant', evidence: 'cleared' },
+        },
+      ],
+      'MET',
+    ],
+    [
+      'qualifying advance parole return',
+      [
+        {
+          ...absence,
+          i485Travel: { route: 'advance-parole', evidence: 'cleared' },
+        },
+      ],
+      'MET',
+    ],
+    [
+      'authorized TPS return',
+      [{ ...absence, i485Travel: { route: 'tps', evidence: 'cleared' } }],
+      'MET',
+    ],
+    [
+      'no applicable exception',
+      [{ ...absence, i485Travel: { route: 'none' } }],
+      'NOT_MET',
+    ],
+    [
+      'departure during removal proceedings',
+      [
+        {
+          ...absence,
+          i485Travel: {
+            route: 'advance-parole',
+            evidence: 'cleared',
+            inRemovalProceedings: true,
+          },
+        },
+      ],
+      'NOT_MET',
+    ],
+    [
+      'return after decision',
+      [
+        {
+          departed: absence.departed,
+          returned: '2026-11-24',
+          i485Travel: { route: 'advance-parole', evidence: 'cleared' },
+        },
+      ],
+      'UNKNOWN',
+    ],
+  ] as const)('checks pending I-485 travel: %s', (_, trips, approvalStatus) => {
+    const request = { ...filed, trips: [...trips] };
+    const result = path(request);
+    expect(result).toMatchObject({ status: 'MET', approvalStatus });
+    expect(result.approvalEarliestDate).toBe(
+      approvalStatus === 'MET' ? '2026-11-23' : undefined,
+    );
+    if (trips.length) {
+      expect(condition(request, 'I485-PENDING-TRAVEL')).toMatchObject({
+        filingStatus: 'NOT_APPLICABLE',
+        status: approvalStatus,
+      });
+    }
+  });
+
+  test('checks every pending trip and excludes trips outside the receipt-to-decision window', () => {
+    const allowed = {
+      ...absence,
+      i485Travel: { route: 'nonimmigrant', evidence: 'cleared' },
+    } as const;
+    const request: UsFullRequest = {
+      ...filed,
+      trips: [
+        { departed: '2026-07-01', returned: '2026-07-07' },
+        allowed,
+        {
+          departed: '2026-11-24',
+          returned: '2026-11-27',
+          i485Travel: { route: 'none' },
+        },
+      ],
+    };
+    expect(path(request).approvalStatus).toBe('MET');
+    expect(
+      path({
+        ...request,
+        trips: [
+          ...(request.trips ?? []),
+          { departed: '2026-10-01', returned: '2026-10-08' },
+        ],
+      }).approvalStatus,
+    ).toBe('UNKNOWN');
+    expect(
+      path({
+        ...request,
+        trips: [
+          ...(request.trips ?? []),
+          {
+            departed: '2026-10-01',
+            returned: '2026-10-08',
+            i485Travel: { route: 'none' },
+          },
+        ],
+      }).approvalStatus,
+    ).toBe('NOT_MET');
+  });
+
+  test.each(['refugee', 'asylee'] as const)(
+    'does not apply section 245 abandonment to a section 209 %s',
+    (status) => {
+      const request: UsFullRequest = {
+        ...h,
+        admission: { ...h.admission, i485FiledOn: '2026-08-03' },
+        humanitarian: {
+          ...human,
+          status,
+          refugeeDefinitionOrDerivative: true,
+          firmlyResettled: false,
+          discretion: 'cleared',
+        },
+        trips: [{ ...absence, i485Travel: { route: 'none' } }],
+      };
+      expect(path(request)).toMatchObject({
+        status: 'MET',
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(
+        path({
+          ...request,
+          trips: [
+            {
+              ...absence,
+              i485Travel: {
+                route: 'refugee-travel-document',
+                evidence: 'cleared',
+              },
+            },
+          ],
+        }),
+      ).toMatchObject({ status: 'MET', approvalStatus: 'MET' });
+    },
+  );
+
+  test.each([
+    ['US-FAMILY', f],
+    ['US-ADJUSTMENT', p7],
+    ['EB-1A', eb1a],
+    ['EB-5', eb5],
+    ['INA 209', h],
+  ] as const)(
+    'checks a dated change in the qualifying basis for %s only at approval',
+    (_, fixture) => {
+      const request: UsFullRequest = {
+        ...fixture,
+        ...(fixture.support
+          ? { support: { ...fixture.support, sponsorAge: 25 } }
+          : {}),
+        admission: {
+          ...fixture.admission,
+          i485FiledOn: '2026-08-03',
+          visaAtFilingByMonth: { '2026-08': 'available' },
+          lawfulNonimmigrantStatusAtFiling: true,
+          i485PendingEvents: [
+            { on: '2026-07-31', kind: 'qualifying-basis', finding: 'barred' },
+            { on: '2026-11-24', kind: 'qualifying-basis', finding: 'barred' },
+          ],
+        },
+      };
+      expect(path(request)).toMatchObject({
+        status: 'MET',
+        approvalStatus: 'MET',
+      });
+      const result = path({
+        ...request,
+        admission: {
+          ...request.admission,
+          i485PendingEvents: [
+            { on: '2026-11-23', kind: 'qualifying-basis', finding: 'barred' },
+          ],
+        },
+      });
+      expect(result).toMatchObject({
+        status: 'MET',
+        approvalStatus: 'NOT_MET',
+      });
+      expect(result.approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test('distinguishes ordinary status expiration from unauthorized employment under INA 245(k)', () => {
+    expect(
+      path({
+        ...filed,
+        admission: {
+          ...filed.admission,
+          i485PendingEvents: [
+            { on: '2026-09-08', kind: 'nonimmigrant-status-expiry' },
+          ],
+        },
+      }),
+    ).toMatchObject({ status: 'MET', approvalStatus: 'MET' });
+    for (const [qualifyingViolationsDays, approvalStatus] of [
+      [180, 'MET'],
+      [181, 'NOT_MET'],
+      [undefined, 'UNKNOWN'],
+    ] as const) {
+      expect(
+        path({
+          ...filed,
+          admission: {
+            ...filed.admission,
+            i485PendingEvents: [
+              {
+                on: '2026-09-08',
+                kind: 'unauthorized-employment',
+                qualifyingViolationsDays,
+              },
+            ],
+          },
+        }),
+      ).toMatchObject({ status: 'MET', approvalStatus });
+    }
+    expect(
+      path({
+        ...f,
+        support: { ...support, sponsorAge: 25 },
+        admission: {
+          ...f.admission,
+          i485FiledOn: '2026-08-03',
+          i485PendingEvents: [
+            {
+              on: '2026-09-08',
+              kind: 'unauthorized-employment',
+              qualifyingViolationsDays: 181,
+            },
+          ],
+        },
+      }),
+    ).toMatchObject({ status: 'MET', approvalStatus: 'MET' });
+  });
+
+  const originalSij = {
+    adjustmentBasis: 'sij',
+    filedOn: '2026-07-15',
+    qualifyingBasisAtFiling: 'cleared',
+    visaAtFiling: 'available',
+  } as const;
+
+  test('keeps a pending procedural finding separate from filing and outside consular cases', () => {
+    const request: UsFullRequest = {
+      ...filed,
+      admission: {
+        ...filed.admission,
+        i485PendingEvents: [{ on: '2026-09-08', kind: 'procedure' }],
+      },
+    };
+    expect(path(request)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'UNKNOWN',
+    });
+    expect(
+      condition(request, 'I485-PENDING-ELIGIBILITY').pendingDetails,
+    ).toContain('PD-274');
+    expect(
+      path({
+        ...request,
+        admission: { ...request.admission, process: 'consular' },
+      }).checks.some(({ id }) => id === 'US-I485-PENDING-ELIGIBILITY'),
+    ).toBe(false);
+  });
+
+  test.each([undefined, '2026-10-01'] as const)(
+    'applies the original SIJ exemption to filing when transfer approval is %s',
+    (approvedOn) => {
+      const request: UsFullRequest = {
+        ...filed,
+        admission: {
+          ...filed.admission,
+          falseCitizenship: true,
+          falseCitizenshipException: false,
+          i485BasisTransfer: { originalPetition: originalSij, approvedOn },
+        },
+      };
+      expect(condition(request, 'C33-VISA-AND-ENTRY').filingStatus).toBe('MET');
+      expect(condition(request, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
+        filingStatus: 'MET',
+        status: 'NOT_MET',
+      });
+      expect(path(request)).toMatchObject({
+        status: 'MET',
+        approvalStatus: 'NOT_MET',
+      });
+      expect(path(request).approvalEarliestDate).toBeUndefined();
+      const ineligible = {
+        ...request,
+        admission: { ...request.admission, unlawfulReentryBar: true },
+      };
+      expect(
+        condition(ineligible, 'C40-IMMIGRATION-HISTORY').filingStatus,
+      ).toBe('NOT_MET');
+    },
+  );
+
+  test('does not grant the replacement SIJ exemption to the original employment filing', () => {
+    const request: UsFullRequest = {
+      ...filed,
+      admission: {
+        ...filed.admission,
+        adjustmentBasis: 'sij',
+        falseCitizenship: true,
+        falseCitizenshipException: false,
+        i485BasisTransfer: {
+          approvedOn: '2026-10-01',
+          originalPetition: { ...originalSij, adjustmentBasis: 'employment' },
+        },
+      },
+    };
+    expect(condition(request, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
+      filingStatus: 'NOT_MET',
+      status: 'NOT_MET',
+    });
+    expect(path(request)).toMatchObject({
+      status: 'NOT_MET',
+      approvalStatus: 'NOT_MET',
+    });
+  });
+
+  test('keeps a potentially exempt original ground unknown until the original basis is confirmed', () => {
+    const request: UsFullRequest = {
+      ...filed,
+      admission: {
+        ...filed.admission,
+        falseCitizenship: true,
+        falseCitizenshipException: false,
+        i485BasisTransfer: {},
+      },
+    };
+    expect(condition(request, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
+      filingStatus: 'UNKNOWN',
+      status: 'NOT_MET',
+    });
+    expect(path(request)).toMatchObject({
+      status: 'UNKNOWN',
+      approvalStatus: 'NOT_MET',
+    });
+  });
+
+  test('applies public charge only at decision and uses the replacement category', () => {
+    const request: UsFullRequest = {
+      ...filed,
+      admission: {
+        ...filed.admission,
+        publicCharge: 'barred',
+        i485BasisTransfer: {
+          originalPetition: originalSij,
+          approvedOn: '2026-10-01',
+        },
+      },
+    };
+    expect(condition(request, 'C37-PUBLIC-CHARGE')).toMatchObject({
+      filingStatus: 'NOT_APPLICABLE',
+      status: 'NOT_MET',
+    });
+    expect(path(request)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'NOT_MET',
+    });
+  });
+
+  test('uses case-specific admissibility waivers only for their corresponding basis', () => {
+    const request: UsFullRequest = {
+      ...filed,
+      admission: {
+        ...filed.admission,
+        classAHealth: 'barred',
+        criminalOtherGround: 'barred',
+        immigrationFraud: true,
+        healthWaiver: 'barred',
+        criminalWaiver: 'barred',
+        immigrationWaiver: 'barred',
+        i485BasisTransfer: {
+          approvedOn: '2026-10-01',
+          originalPetition: {
+            ...originalSij,
+            adjustmentBasis: 'immediate-relative',
+            healthWaiverAtFiling: 'cleared',
+            criminalWaiverAtFiling: 'cleared',
+            immigrationWaiverAtFiling: 'cleared',
+          },
+        },
+      },
+    };
+    for (const check of [
+      'C36-HEALTH',
+      'C38-CRIMINAL-INADMISSIBILITY',
+      'C40-IMMIGRATION-HISTORY',
+    ]) {
+      expect(condition(request, check)).toMatchObject({
+        filingStatus: 'MET',
+        status: 'NOT_MET',
+      });
+    }
+    expect(path(request)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'NOT_MET',
+    });
+  });
+});

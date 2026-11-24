@@ -1,5 +1,5 @@
 import type { IsoDate } from '../types';
-import type { UsRequest } from '../united-states';
+import type { UsRequest, UsTrip } from '../united-states';
 import type {
   CountryCheck,
   CountryColumn,
@@ -47,6 +47,43 @@ export interface UsFullResult extends CountryResult {
 export type UsRegion = 'contiguous' | 'alaska' | 'hawaii';
 /** A finding or legally qualified evidence. Use pending for facts still requiring substantiation. */
 export type UsReview = 'cleared' | 'barred' | 'pending';
+
+export interface UsFullTrip extends UsTrip {
+  /** Evidence for this specific departure and return while I-485 is pending. */
+  i485Travel?: {
+    route:
+      | 'advance-parole'
+      | 'nonimmigrant'
+      | 'tps'
+      | 'refugee-travel-document'
+      | 'other-209'
+      | 'none';
+    /** A cleared finding confirms all conditions of the route, including any required authorization before departure and qualifying inspection and return. Use none only when no route applies. */
+    evidence?: UsReview;
+    /** Exclusion, deportation or removal proceedings at departure. */
+    inRemovalProceedings?: boolean;
+  };
+}
+
+export type UsI485PendingEvent =
+  | {
+      on: IsoDate;
+      kind:
+        | 'qualifying-basis'
+        | 'admissibility'
+        | 'procedure'
+        | 'nonimmigrant-status-expiry';
+      /** Case-specific effect through decision, accounting for any applicable exception or transfer. Examples include loss of a qualifying relationship, withdrawn job offer, abandonment of a proposed endeavor, refugee status termination or a missed required interview. */
+      finding?: UsReview;
+    }
+  | {
+      on: IsoDate;
+      kind: 'unauthorized-employment';
+      /** Non-overlapping total qualifying violation days since the relevant lawful admission, through this event. */
+      qualifyingViolationsDays?: number;
+      /** Case-specific exception when the modeled statutory exemptions do not resolve eligibility. */
+      exception?: UsReview;
+    };
 
 export interface UsHousehold {
   region?: UsRegion;
@@ -405,6 +442,8 @@ export interface UsAdmissionAnswers {
   process?: 'adjustment' | 'consular';
   /** Actual USCIS receipt date of this properly filed I-485. */
   i485FiledOn?: IsoDate;
+  /** Events that occurred after receipt and are assessed through the decision date. */
+  i485PendingEvents?: readonly UsI485PendingEvent[];
   /** Role in an employment-based I-485. Defaults to principal. */
   i485ApplicantRole?: 'principal' | 'derivative';
   /** USCIS filing chart for the simulation month, or NVC authorization to submit consular documents. */
@@ -447,6 +486,11 @@ export interface UsAdmissionAnswers {
       /** Availability under the original petition on the chart designated for the I-485 receipt month. */
       visaAtFiling?: UsVisaAvailability;
       entryException?: UsReview;
+      /** Case-specific waivers on the original adjustment basis at receipt. */
+      healthWaiverAtFiling?: UsReview;
+      criminalWaiverAtFiling?: UsReview;
+      immigrationWaiverAtFiling?: UsReview;
+      vawaUnlawfulPresenceExceptionAtFiling?: UsReview;
     };
   };
   legalEntry?: 'admitted' | 'paroled' | 'without-inspection';
@@ -581,11 +625,12 @@ export interface UsFeeAnswers {
 }
 
 export interface UsFullRequest extends Partial<
-  Omit<UsRequest, 'simulationDate'>
+  Omit<UsRequest, 'simulationDate' | 'trips'>
 > {
   pathway: UsFullPathwayId;
   /** Date on which eligibility to file or return is tested. */
   simulationDate: IsoDate;
+  trips?: UsFullTrip[];
   naturalization?: UsNaturalizationAnswers;
   conditions?: UsConditionsAnswers;
   travel?: UsTravelAnswers;

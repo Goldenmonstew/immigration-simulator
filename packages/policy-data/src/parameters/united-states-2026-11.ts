@@ -475,6 +475,35 @@ export const unitedStatesFullSources = {
       'https://www.ecfr.gov/current/title-8/section-103.2#p-103.2(b)(1)',
     ),
   ],
+  adjustmentPendingTravel: [
+    source(
+      'SRC-309',
+      '8 CFR 245.2(a)(4)(ii)(A)–(D)',
+      'https://www.ecfr.gov/current/title-8/section-245.2#p-245.2(a)(4)(ii)',
+    ),
+    source(
+      'SRC-309',
+      'I-485 Instructions p14, If You Leave the United States While Your Application Is Pending',
+      'https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=14',
+    ),
+  ],
+  humanitarianPendingTravel: [
+    source('SRC-300', '8 CFR 223.1(b), 223.2(b)(2)'),
+    source(
+      'SRC-309',
+      'I-485 Instructions p14, INA 209 pending travel',
+      'https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=14',
+    ),
+  ],
+  adjustmentOngoingEligibility: [
+    pm('SRC-309', 7, 'A', 6, '(B)'),
+    source('SRC-309', '8 CFR 103.2(b)(1), (6), (13)'),
+  ],
+  adjustmentPendingEmployment: [
+    usc('SRC-309', '1255', '(c)(8), (i), (k)'),
+    pm('SRC-309', 7, 'B', 6, '(B)–(C)'),
+    pm('SRC-309', 7, 'B', 8, '(E)'),
+  ],
   consularFiling: [
     source(
       'SRC-309',
