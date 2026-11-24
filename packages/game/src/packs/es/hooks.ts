@@ -167,7 +167,7 @@ export function afterAction(
     if (random(next) < b.citaChance) {
       setFlags(next, ['cita-booked']);
       next.outcome.text = t(
-        '刷新到第七次，一个空位跳了出来。你抢下它，截图存好：外国人事务办公室，带 EX-11 和护照。',
+        '刷新到第七次，一个空位跳了出来。你抢下它，截图存好：外国人办公室，带 EX-11 和护照。',
         'On the seventh refresh a slot appears. You grab it and save a screenshot: immigration office, bring the EX-11 and your passport.',
       );
     } else
@@ -380,7 +380,7 @@ export const esAchievements: Achievement<
     id: 'es-cita',
     name: t('抢到 cita previa', 'Got a cita previa'),
     description: t(
-      '在图书馆抢到外国人事务办公室的预约。',
+      '在图书馆抢到外国人办公室的预约。',
       'Booked an immigration office appointment at the library.',
     ),
     check: (state) => state.flags.includes('cita-booked'),

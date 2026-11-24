@@ -27,7 +27,7 @@ export const esPlaces: Place[] = [
   { id: 'home', name: t('公寓', 'Flat'), kind: 'building' },
   {
     id: 'work',
-    name: t('港区（La Marina）', 'La Marina harbour'),
+    name: t('港区', 'La Marina harbour'),
     kind: 'building',
     hours: { opens: 540, closes: 1200, dayKinds: ['workday'] },
   },
@@ -57,7 +57,7 @@ export const esPlaces: Place[] = [
   },
   {
     id: 'cafe',
-    name: t('埃尔米尼娅欧洽塔铺', 'Orxateria Hermínia'),
+    name: t('欧洽塔铺', 'Orxateria Hermínia'),
     kind: 'building',
     hours: { opens: 600, closes: 1290 },
   },
@@ -81,7 +81,7 @@ export const esPlaces: Place[] = [
   },
   {
     id: 'visa',
-    name: t('外国人事务办公室', 'Immigration office'),
+    name: t('外国人办公室', 'Immigration office'),
     kind: 'building',
     hours: { opens: 540, closes: 840, dayKinds: ['workday'] },
   },
@@ -470,7 +470,7 @@ export const esActions: EsActivity[] = [
     id: 'cita-previa',
     place: 'library',
     label: t(
-      '用图书馆的电脑抢外国人事务办公室的 cita previa',
+      '用图书馆的电脑抢外国人办公室的 cita previa',
       'Try for an immigration office cita previa on the library computers',
     ),
     note: t(

@@ -1,9 +1,11 @@
 import { esFormZh, esFormEn } from './spain-form';
 import { zhCN as moduleZh, en as moduleEn } from './spain-module';
+import { esGameZh, esGameEn } from './spain-game';
 
 export const zhCN = {
   ...esFormZh,
   ...moduleZh,
+  ...esGameZh,
   'es.name': '西班牙',
   'es.entryLink': '打开西班牙模拟器',
   'es.entryDesc':
@@ -26,6 +28,7 @@ export const zhCN = {
 export const en: Record<keyof typeof zhCN, string> = {
   ...esFormEn,
   ...moduleEn,
+  ...esGameEn,
   'es.name': 'Spain',
   'es.entryLink': 'Open Spain simulator',
   'es.entryDesc':

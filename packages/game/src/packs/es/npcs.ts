@@ -413,7 +413,7 @@ export const esNpcs: EsNpc[] = [
         'Sit, sit. Forms, copies, photos, one at a time. In Spanish paperwork, patience matters more than documents.',
       ],
       [
-        '外国人事务办公室只看预约。没有 cita previa，门口的保安连门都不让你进。',
+        '外国人办公室只看预约。没有 cita previa，门口的保安连门都不让你进。',
         'The immigration office runs on appointments. Without a cita previa, the guard won’t let you past the door.',
       ],
       [
