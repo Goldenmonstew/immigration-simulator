@@ -1,105 +1,132 @@
+import { usFormEn, usFormZh } from './united-states-form';
+
 export const zhCN = {
+  ...usFormZh,
   'us.name': '美国',
-  'us.entryLink': '打开美国模拟器',
-  'us.entryDesc':
-    '按绿卡日期与出入境记录，计算入籍、配偶入籍、取消绿卡条件与离境时长的时间节点。',
-  'us.title': '美国：入籍与绿卡的时间',
+  'hub.us.code': 'US',
+  'hub.us.paths': '入籍 · 绿卡维持与返美 · 亲属、职业与人道移民',
+  'hub.us.desc':
+    '逐项核对入籍、取消条件、返美、亲属与职业移民、调整身份及难民庇护转永居的法定条件。比较不同情形的递交与核准日期，查看待确认事项与官方依据。',
+  'us.title': '美国入籍、绿卡与移民路径模拟',
   'us.intro':
-    '按你的绿卡日期和出入境记录，计算只看时间的几个节点：一般入籍、美国公民配偶入籍、条件绿卡的取消条件递交期，以及离境多久会影响凭绿卡回美。绿卡本身怎么拿（亲属、雇主、投资类别与排期）不在范围内。',
+    '选择一条路径，逐项核对法定条件，查看递交与核准的最早日期，以及还需要补充哪些资料。',
   'us.scope':
-    '这里只检查法律与 USCIS 政策手册写明的时间条件；英语与公民考试、品行、是否放弃居住等不检查，结果里逐项列出。所填内容只在你的浏览器里计算，不保存、不上传。',
-  'us.basics': '基本信息',
-  'us.simulationDate': '模拟日期',
-  'us.simulationDateHint': '按这一天判断（入籍按递交日），默认今天。',
-  'us.dateOfBirth': '出生日期',
-  'us.greenCard': '绿卡',
-  'us.permanentResident': '取得永久居民身份的日期（绿卡上的 Resident Since）',
-  'us.permanentResidentHint': '条件绿卡也填你本人取得条件身份的那天。',
-  'us.conditional': '绿卡类型',
-  'us.conditional.none': '一般绿卡',
-  'us.conditional.marriage': '婚姻条件绿卡（须递交 I-751）',
-  'us.conditional.investor': '投资条件绿卡（须递交 I-829）',
-  'us.stateResidenceFrom': '开始住在现在所在州或 USCIS 辖区的日期（可留空）',
-  'us.role': '你的条件绿卡是',
-  'us.role.choose': '请选择',
-  'us.role.principal': '本人凭婚姻或投资取得',
-  'us.roleHint':
-    '配偶或子女随父母、投资人取得的，按是否与对方一并递交取消条件申请选择。',
-  'us.role.joint': '随父母或投资人取得，一并递交',
-  'us.role.separate': '随父母或投资人取得，单独递交',
-  'us.principalSince': '主申请人取得条件绿卡的日期',
-  'us.married': '我与美国公民结婚并同住',
-  'us.marriedOn': '结婚日期',
-  'us.spouseCitizenSince': '配偶成为美国公民的日期（出生即是公民可留空）',
-  'us.trips': '出境记录',
-  'us.tripsHint': '取得绿卡后每次离开美国填一行，计划中的出行也可以填。',
-  'us.trip': '出境 {n}',
-  'us.departed': '离开美国的日期',
-  'us.returned': '回到美国的日期',
-  'us.addTrip': '添加出境记录',
-  'us.remove': '删除',
-  'us.submit': '计算',
-  'us.errorSummary': '请先修正标红的项目。',
+    '涵盖一般入籍、公民配偶入籍、军人入籍、取消条件、永久居民身份维持与返美、亲属移民、职业与投资移民（含 Gold Card）、调整身份或领馆移民签证，以及难民与受庇护者转永居。递交与核准分开评估，费用单独列出。',
+  'us.outOfScope':
+    '不包括 T 签证、U 签证、多元化签证抽签（DV）、Registry 及其他特别立法类别；签证排期与个案裁量按你填写的资料评估。',
+  'us.prepare':
+    '准备绿卡、出入境日期及与所选路径有关的材料，例如入籍考试结果、婚姻证明、I-130 或 I-140 收件通知、雇主财务资料、Visa Bulletin 排期、体检和刑事记录。还没有结论的事项可以留空。',
+  'us.privacy':
+    '问卷在浏览器内计算，草稿与保存的方案留在这台设备。分享链接包含所填资料，拿到链接的人可以还原问卷。',
+  'us.policy.pageTitle': '美国政策依据',
+  'us.policy.title': '美国现行规则',
+  'us.policy.change.civics': '入籍公民知识考试启用新题库',
+  'us.policy.change.civics.summary':
+    '按 N-400 收件日适用新版考试：题库 {bank} 题，问 {asked} 题，答对 {correct} 题通过。之前收件的申请沿用旧版考试。',
+  'us.policy.change.poverty': '2026 年贫困线生效',
+  'us.policy.change.poverty.summary':
+    '费用减免按新的贫困线核对；I-864 自 {i864} 起使用 2026 年标准。',
+  'us.policy.change.hr1': 'H.R. 1 附加费调整',
+  'us.policy.change.hr1.summary':
+    '庇护、工卡、TPS、假释和 I-94 等附加费按生效日适用新费率。',
+  'us.policy.change.eb5': 'EB-5 申请费调整',
+  'us.policy.change.eb5.summary':
+    'I-526、I-526E、I-829 及区域中心诚信费按收件日适用新费率。',
+  'us.result.approval': '核准阶段：{status}。',
+  'us.whatif.date': '评估日期',
+  'us.whatif.dateHint':
+    '按这一天判断能否递交或返美。改动后请核对与日期有关的答案，例如面谈和裁决日。',
+  'us.whatif.noTrips': '假设没有出境记录',
+  'us.whatif.returnOn': '最近一次返美日期',
+  'us.whatif.income': 'I-864 担保家庭年收入（美元）',
+  'us.whatif.decisionOn': '预计裁决日',
+  'us.whatif.invalid': '调整后的答案与问卷资料冲突，请核对日期和行程。',
+  'us.error.required': '请回答这一项。',
+  'us.error.entered': '请填写，或改选其他选项。',
   'us.error.date': '请填写有效日期。',
+  'us.error.month': '请填写有效月份。',
+  'us.error.number': '请填写零或正数。',
+  'us.error.integer': '请填写整数。',
   'us.error.order': '这个日期不能早于开始的日期。',
   'us.error.beforeGreenCard': '只填取得绿卡之后的出境。',
-  'us.error.role': '请选择你的条件绿卡是怎样取得的。',
+  'us.error.overlap': '这次出境与前面的出境日期重叠。',
   'us.error.principalOrder': '主申请人的日期不能晚于你取得绿卡的日期。',
+  'us.error.wageYear': '日期须在这条记录的年度内。',
+  'us.error.wageOverlap':
+    '同一年度的两条记录期间重叠。请合并，或拆成不重叠的期间；年初至今的累计记录请使用相同的开始日。',
+  'us.error.wageCumulative':
+    '同一开始日的累计工资不能随截止日期减少，请核对金额。',
+  'us.error.wageProration':
+    '未获 USCIS 接受按比例核算时，优先日所在年度的记录须从 1 月 1 日开始，以便计入优先日前的亏损。',
+  'us.error.ground': '请按 INA 212(a) 款项填写，例如 6 或 6(C)。',
+  'us.error.duplicate': '这一项与前面的记录重复。',
+  'us.error.consularPetition':
+    '领馆程序不能与 I-485 一同递交请愿，请选择待审或已获批。',
 } as const;
 
 export const en: Record<keyof typeof zhCN, string> = {
+  ...usFormEn,
   'us.name': 'United States',
-  'us.entryLink': 'Open the United States',
-  'us.entryDesc':
-    'Use your green card date and travel record to work out the dates for naturalization, naturalization as the spouse of a citizen, removing conditions and time abroad.',
-  'us.title': 'United States: dates for naturalization and your green card',
+  'hub.us.code': 'US',
+  'hub.us.paths':
+    'Naturalization · Keeping a green card · Family, employment and humanitarian immigration',
+  'hub.us.desc':
+    'Check the requirements for naturalization, removing conditions, returning, family and employment immigration, adjustment of status and refugee or asylee adjustment. Compare filing and approval dates and see outstanding items and official sources.',
+  'us.title': 'U.S. naturalization, green card and immigration pathways',
   'us.intro':
-    'From your green card date and trips, this works out the steps that depend on time alone: general naturalization, naturalization as the spouse of a U.S. citizen, the filing period for removing conditions, and how long you can be away and still return on your green card. How you get a green card (family, employment and investment categories, priority dates) is out of scope.',
+    'Choose a pathway, check each requirement and see the earliest filing and approval dates, and what information you still need.',
   'us.scope':
-    'This checks only the time requirements in the law and the USCIS Policy Manual. It does not check the English and civics tests, good moral character, abandonment of residence or other requirements; each result lists them. Your entries are processed in your browser and are not saved or uploaded.',
-  'us.basics': 'About you',
-  'us.simulationDate': 'Simulation date',
-  'us.simulationDateHint':
-    'Results are worked out for this date (for naturalization, the filing date). It starts as today.',
-  'us.dateOfBirth': 'Date of birth',
-  'us.greenCard': 'Green card',
-  'us.permanentResident':
-    'Date you became a permanent resident (Resident Since on the card)',
-  'us.permanentResidentHint':
-    'For a conditional green card, enter the date you yourself got conditional status.',
-  'us.conditional': 'Green card type',
-  'us.conditional.none': 'Regular green card',
-  'us.conditional.marriage': 'Conditional, based on marriage (file I-751)',
-  'us.conditional.investor': 'Conditional, based on investment (file I-829)',
-  'us.stateResidenceFrom':
-    'Date you started living in your current state or USCIS district (optional)',
-  'us.role': 'You got your conditional green card',
-  'us.role.choose': 'Choose one',
-  'us.role.principal': 'Yourself, through marriage or investment',
-  'us.roleHint':
-    'A spouse or child who got the card with a parent or the investor chooses by whether they file together with that person.',
-  'us.role.joint': 'With a parent or the investor, filing together',
-  'us.role.separate': 'With a parent or the investor, filing separately',
-  'us.principalSince':
-    'Date the principal applicant got their conditional green card',
-  'us.married': 'I am married to and living with a U.S. citizen',
-  'us.marriedOn': 'Date of marriage',
-  'us.spouseCitizenSince':
-    'Date your spouse became a U.S. citizen (leave blank if a citizen by birth)',
-  'us.trips': 'Trips abroad',
-  'us.tripsHint':
-    'Add a row for each time you left the United States after getting your green card. You can include planned trips.',
-  'us.trip': 'Trip {n}',
-  'us.departed': 'Date you left the United States',
-  'us.returned': 'Date you came back to the United States',
-  'us.addTrip': 'Add a trip',
-  'us.remove': 'Remove',
-  'us.submit': 'Work out dates',
-  'us.errorSummary': 'Fix the items marked in red first.',
+    'Covers general naturalization, naturalization as the spouse of a citizen, military naturalization, removing conditions, keeping permanent residence and returning, family immigration, employment and investor immigration (including the Gold Card), adjustment of status or consular immigrant visas, and refugee and asylee adjustment. Filing and approval are assessed separately, and fees are listed on their own.',
+  'us.outOfScope':
+    'T visas, U visas, the Diversity Visa lottery (DV), Registry and other special legislation categories are not covered. Visa availability and discretionary findings are taken from your answers.',
+  'us.prepare':
+    'Have your green card, travel dates and documents for your pathway ready, such as naturalization test results, marriage records, I-130 or I-140 receipt notices, employer financial records, Visa Bulletin dates, medical and criminal records. You can leave unresolved items blank.',
+  'us.privacy':
+    'Calculations run in your browser. Drafts and saved scenarios stay on this device. Anyone with a share link can read the answers it contains.',
+  'us.policy.pageTitle': 'Policy basis for the United States',
+  'us.policy.title': 'Current U.S. rules',
+  'us.policy.change.civics': 'New naturalization civics test',
+  'us.policy.change.civics.summary':
+    'The new test applies by N-400 receipt date: a bank of {bank} questions, {asked} asked and {correct} correct answers to pass. Earlier receipts keep the previous test.',
+  'us.policy.change.poverty': '2026 poverty guidelines take effect',
+  'us.policy.change.poverty.summary':
+    'Fee relief uses the new guidelines. Form I-864 uses the 2026 figures from {i864}.',
+  'us.policy.change.hr1': 'H.R. 1 fee adjustment',
+  'us.policy.change.hr1.summary':
+    'New amounts apply from the effective date to asylum, work permit, TPS, parole and I-94 fees.',
+  'us.policy.change.eb5': 'EB-5 fee adjustment',
+  'us.policy.change.eb5.summary':
+    'New amounts apply by receipt date to Forms I-526, I-526E and I-829 and the regional center integrity fee.',
+  'us.result.approval': 'Approval stage: {status}.',
+  'us.whatif.date': 'Assessment date',
+  'us.whatif.dateHint':
+    'Eligibility to file or return is tested on this date. Check date-related answers such as interview and decision dates after changing it.',
+  'us.whatif.noTrips': 'Assume no trips abroad',
+  'us.whatif.returnOn': 'Most recent return date',
+  'us.whatif.income': 'I-864 sponsor household income (USD per year)',
+  'us.whatif.decisionOn': 'Expected decision date',
+  'us.whatif.invalid':
+    'The changed answers conflict with the questionnaire. Check the dates and trips.',
+  'us.error.required': 'Answer this question.',
+  'us.error.entered': 'Enter a value, or choose another option.',
   'us.error.date': 'Enter a valid date.',
+  'us.error.month': 'Enter a valid month.',
+  'us.error.number': 'Enter zero or a positive number.',
+  'us.error.integer': 'Enter a whole number.',
   'us.error.order': 'This date cannot be before the start date.',
   'us.error.beforeGreenCard': 'Enter only trips after you got your green card.',
-  'us.error.role': 'Choose how you got your conditional green card.',
+  'us.error.overlap': 'This trip overlaps an earlier one.',
   'us.error.principalOrder':
     'The principal applicant’s date cannot be after the date you got your green card.',
+  'us.error.wageYear': 'The date must be within this entry’s year.',
+  'us.error.wageOverlap':
+    'Two entries for the same year overlap. Combine them or split them into periods that do not overlap. Year-to-date entries should share the same start date.',
+  'us.error.wageCumulative':
+    'Year-to-date wages from the same start date cannot fall as the end date moves later. Check the amounts.',
+  'us.error.wageProration':
+    'Unless USCIS accepts proration, entries for the priority-date year must start on 1 January so that losses before the priority date are included.',
+  'us.error.ground': 'Use an INA 212(a) paragraph, such as 6 or 6(C).',
+  'us.error.duplicate': 'This repeats an earlier entry.',
+  'us.error.consularPetition':
+    'A consular case cannot have a petition filed with an I-485. Choose pending or approved.',
 };
