@@ -199,3 +199,27 @@ Fable 已将第二轮修正提交到 `fable/92-pt-rules`，提交为 `56c753d`�
 ### 4. 发现与建议
 
 页面接线时分别记录 ARI 历史审批、当前许可有效性，以及退休前离境的日期、原因和例外是否获认可。
+
+## 第五轮审核修正（review92-5）
+
+### 1. 做了什么
+
+建议提交信息为 `Fix: 按触发日核对葡萄牙提前永久居留资格（review92-5）`，对应 PROGRESS 第 777 项。提交附 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+- `F05` 统一按退休日 `retiredOn`、永久失能停工日 `ceasedWorkOn` 或在另一成员国开始工作日 `otherMemberStateWorkFrom` 核对适用的居留和工作年限。跨境分支在居住及工作同时满三年当天转换可满足年限，提前转换后继续居葡无法补足转换前的年限。触发日缺失且其他资格成立时为 `UNKNOWN`。符合条件后，以触发日作为取得日。依据 SRC-478 art. 11(1)(a)–(c)、(2)–(6)（pp5719–5720）。
+- `F02-EARLY-CONTINUITY` 在同一函数中复用 `F02` 的离境算法，截至相应触发日计算。永久失能停工前有超额普通离境且无豁免时，路径为 `NOT_MET`。跨过触发日的离境只按触发日前的部分核对取得条件。按原有规则检查已执行驱逐，并适用相应分支的伴侣或工伤、职业病待遇豁免。依据 SRC-478 arts. 10(4)、(7)、11(1)、(4)、(6)（pp5719–5720）和 SRC-494 §9.2、注 236（pp45–46）。更新 PD-397 记录触发日和资格证据，离境换算及例外证据沿用 PD-396。
+
+### 2. 怎么验证的
+
+- 设置 `VITEST_MAX_WORKERS=2` 后运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码 0。全仓 5,367 项测试通过、1 项既有测试跳过。构建生成 27 个静态页面，包含葡萄牙页面。
+- 在 `2e4e0c2` 基线上运行 `VITEST_MAX_WORKERS=2 pnpm --filter @uk-immigration/engine test test/portugal-full.test.ts -t review92-5`，新增 10 项中有 8 项复现状态或取得日错误。
+- 修正后运行 `VITEST_MAX_WORKERS=2 pnpm --filter @uk-immigration/engine test test/portugal.test.ts test/portugal-full.test.ts`，182 项通过。
+- `git diff --check` 通过。对照 `2e4e0c2`，原 `evaluatePortugal` 的源码、参数、测试及葡萄牙页面调用的差异为空。
+
+### 3. 没做或没验证的
+
+改动留在 `fable/92-pt-rules` 工作树，供 Fable 提交。本轮验收范围为 lint、类型检查、自动化测试和构建。
+
+### 4. 发现与建议
+
+页面接线时采集永久失能停工日和到另一成员国开始工作的日期，同时核实跨境工作者继续在葡萄牙居住及返葡频率。触发日或合资格期间的证据不完整时，沿用 PD-396、397。

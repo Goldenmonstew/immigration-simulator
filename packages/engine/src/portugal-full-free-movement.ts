@@ -1,4 +1,4 @@
-import { addMonths, addYears, daysBetween, fullYears } from './dates';
+import { addDays, addMonths, addYears, daysBetween, fullYears } from './dates';
 import { monthSpan } from './pilot';
 import { all, any, compare, p, reviewed, src } from './portugal-full-common';
 import type { PtFullContext, Verdict } from './portugal-full-common';
@@ -252,59 +252,77 @@ function retainFamily(
   }
 }
 
-function earlyWorker(ctx: PtFullContext): Verdict {
+function earlyWorker(ctx: PtFullContext) {
   const { at, req } = ctx;
   const e = req.freeMovement?.earlyWorker;
+  if (!e?.reason) return undefined;
+
   const rule = p.workerEarlyResidence.value;
-  const residence = e?.continuousResidenceFrom;
-  const work = e?.creditedWorkFrom;
-  if (e?.reason === 'retirement') {
-    const { retiredOn } = e;
-    const retirement = e.selfEmployedWithoutPension
-      ? retiredOn
-        ? compare(
-            req.birthDate,
-            (date) => retiredOn >= addYears(date, rule.selfEmployedAge),
-          )
-        : undefined
-      : e.retirementQualifies;
-    const required = retiredOn
-      ? all(
-          compare(
-            residence,
-            (date) => retiredOn > addYears(date, rule.retirementResidenceYears),
-          ),
-          compare(
-            work,
-            (date) => retiredOn >= addMonths(date, rule.workMonths),
-          ),
-        )
-      : undefined;
-    return all(
-      compare(retiredOn, (date) => date <= at),
-      retirement,
-      any(e.portuguesePartnerException, required),
-    );
+  const residence = e.continuousResidenceFrom;
+  const work = e.creditedWorkFrom;
+  let triggerOn: IsoDate | undefined;
+  let residenceMetOn: IsoDate | undefined;
+  let workMetOn: IsoDate | undefined;
+  let waiver: Verdict = false;
+  let eventQualifies: Verdict = true;
+  switch (e.reason) {
+    case 'retirement': {
+      const { retiredOn } = e;
+      triggerOn = retiredOn;
+      residenceMetOn =
+        residence &&
+        addDays(addYears(residence, rule.retirementResidenceYears), 1);
+      workMetOn = work && addMonths(work, rule.workMonths);
+      waiver = e.portuguesePartnerException;
+      if (e.selfEmployedWithoutPension) {
+        const pensionAgeOn =
+          req.birthDate && addYears(req.birthDate, rule.selfEmployedAge);
+        eventQualifies = retiredOn
+          ? compare(pensionAgeOn, (date) => date <= retiredOn)
+          : undefined;
+      } else {
+        eventQualifies = e.retirementQualifies;
+      }
+      break;
+    }
+    case 'permanent-disability':
+      triggerOn = e.ceasedWorkOn;
+      residenceMetOn =
+        residence &&
+        addDays(addYears(residence, rule.disabilityResidenceYears), 1);
+      waiver = any(e.portuguesePartnerException, e.occupationalBenefit);
+      break;
+    case 'cross-border':
+      triggerOn = e.otherMemberStateWorkFrom;
+      residenceMetOn = residence && addYears(residence, rule.crossBorderYears);
+      workMetOn = work && addYears(work, rule.crossBorderYears);
+      eventQualifies = all(e.otherMemberStateWork, e.returnsWeekly);
+      break;
   }
-  if (e?.reason === 'permanent-disability') {
-    return any(
-      e.portuguesePartnerException,
-      e.occupationalBenefit,
-      compare(
-        residence,
-        (date) => at > addYears(date, rule.disabilityResidenceYears),
-      ),
-    );
-  }
-  if (e?.reason === 'cross-border') {
-    return all(
-      e.otherMemberStateWork,
-      e.returnsWeekly,
-      compare(residence, (date) => at >= addYears(date, rule.crossBorderYears)),
-      compare(work, (date) => at >= addYears(date, rule.crossBorderYears)),
-    );
-  }
-  return undefined;
+
+  const durations = triggerOn
+    ? all(
+        compare(residenceMetOn, (date) => date <= triggerOn),
+        e.reason === 'permanent-disability' ||
+          compare(workMetOn, (date) => date <= triggerOn),
+      )
+    : undefined;
+  const continuity = triggerOn
+    ? freeMovementContinuity(ctx, residence, triggerOn > at ? at : triggerOn)
+    : undefined;
+
+  return {
+    triggerOn,
+    qualifies: all(
+      compare(triggerOn, (date) => date <= at),
+      eventQualifies,
+      any(waiver, durations),
+    ),
+    continuity: all(
+      compare(req.freeMovement?.expulsionExecuted, (value) => !value),
+      any(waiver, continuity),
+    ),
+  };
 }
 
 function earlyFamily(e: PtFreeMovementEvidence | undefined): Verdict {
@@ -441,10 +459,7 @@ export function freeMovementResidence(ctx: PtFullContext) {
     );
   }
   const early = basis === 'early-worker' || basis === 'early-family';
-  const retirement =
-    basis === 'early-worker' && e?.earlyWorker?.reason === 'retirement'
-      ? e.earlyWorker
-      : undefined;
+  const worker = basis === 'early-worker' ? earlyWorker(ctx) : undefined;
   const from = e?.continuousResidenceFrom;
   const eligibleOn =
     !early && from
@@ -480,14 +495,6 @@ export function freeMovementResidence(ctx: PtFullContext) {
     ctx,
     otherFamilyInScope ? reviewed(e.otherFamilyPermission) : true,
   );
-  const hasContinuity = compare(e?.expulsionExecuted, (value) => !value);
-  const retirementContinuity = retirement?.retiredOn
-    ? freeMovementContinuity(
-        ctx,
-        retirement.continuousResidenceFrom,
-        retirement.retiredOn > at ? at : retirement.retiredOn,
-      )
-    : undefined;
   const ordinaryTime = check(
     'F02',
     all(
@@ -536,19 +543,16 @@ export function freeMovementResidence(ctx: PtFullContext) {
       ? [
           check(
             'F02-EARLY-CONTINUITY',
-            retirement
-              ? all(
-                  hasContinuity,
-                  any(retirement.portuguesePartnerException, retirementContinuity),
-                )
-              : hasContinuity,
-            retirement ? '退休前的连续居留与出境' : '连续居留无已执行驱逐',
-            retirement
-              ? 'Continuous residence and absences before retirement'
+            worker
+              ? worker.continuity
+              : compare(e?.expulsionExecuted, (value) => !value),
+            worker ? '触发日前的连续居留与出境' : '连续居留无已执行驱逐',
+            worker
+              ? 'Continuous residence and absences before the qualifying event'
               : 'Continuity without executed expulsion',
-            retirement
+            worker
               ? [
-                  law('arts. 10(4), (7), 11(1)(a), (4), pp5719–5720'),
+                  law('arts. 10(4), (7), 11(1), (4), (6), pp5719–5720'),
                   src('SRC-494', 's. 9.2 and n. 236, pp45–46'),
                 ]
               : [law('art. 10(7), p5719')],
@@ -590,22 +594,20 @@ export function freeMovementResidence(ctx: PtFullContext) {
       ? [
           check(
             'F05',
-            earlyWorker(ctx),
+            worker?.qualifies,
             '工作者提前取得永久权',
             'Early permanent residence for workers',
-            retirement
+            e?.earlyWorker?.reason === 'retirement'
               ? [
                   ...p.workerEarlyResidence.sources,
                   src('SRC-495', 'C-32/19, paras. 38–39, 44'),
                 ]
               : p.workerEarlyResidence.sources,
             ['PD-396', 'PD-397'],
-            retirement
-              ? L(
-                  '按停止工作的退休日核对当时的退休资格、合资格工作及连续居留。请提供退休日及相关证据。',
-                  'Verify retirement eligibility, qualifying work and continuous residence at the date work ceased. Provide the retirement date and supporting evidence.',
-                )
-              : undefined,
+            L(
+              '请提供退休或永久失能停工日，或开始在另一成员国工作的日期，并核实截至当日适用的居留、工作和事件资格。',
+              'Provide the date work ceased due to retirement or permanent incapacity, or the date work in another Member State began. Verify the applicable residence, work and event requirements as of that date.',
+            ),
           ),
         ]
       : []),
@@ -622,7 +624,7 @@ export function freeMovementResidence(ctx: PtFullContext) {
         ]
       : []),
   ];
-  const acquisitionDate = eligibleOn ?? retirement?.retiredOn;
+  const acquisitionDate = eligibleOn ?? worker?.triggerOn;
   const acquired =
     acquisitionDate &&
     acquisitionDate <= at &&

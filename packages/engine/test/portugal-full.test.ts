@@ -754,6 +754,109 @@ describe('review92-3', () => {
   });
 });
 
+describe('review92-5', () => {
+  const crossBorder: NonNullable<PtFullRequest['freeMovement']> = {
+    ...freeMovement,
+    basis: 'early-worker',
+    earlyWorker: {
+      reason: 'cross-border',
+      continuousResidenceFrom: '2023-01-01',
+      creditedWorkFrom: '2023-01-01',
+      otherMemberStateWork: true,
+      returnsWeekly: true,
+    },
+  };
+
+  test.each([
+    ['2026-01-01', '2026-01-01', 'MET', '2026-01-01'],
+    ['2026-01-01', '2026-11-23', 'MET', '2026-01-01'],
+    ['2025-01-01', '2026-11-23', 'NOT_MET', undefined],
+    ['2026-01-01', '2025-12-31', 'NOT_MET', undefined],
+    [undefined, '2026-11-23', 'UNKNOWN', undefined],
+  ] as const)(
+    'assesses work and residence before the cross-border start %s as of %s',
+    (otherMemberStateWorkFrom, simulationDate, status, earliestDate) => {
+      const request: Partial<PtFullRequest> = {
+        simulationDate,
+        freeMovement: {
+          ...crossBorder,
+          earlyWorker: {
+            ...crossBorder.earlyWorker,
+            otherMemberStateWorkFrom,
+          },
+        },
+      };
+      statuses(F, request, { F05: status });
+      expect(pathway(F, request)).toMatchObject({ status, earliestDate });
+    },
+  );
+
+  test('cross-border work requires continuous residence and its own qualifying work period', () => {
+    const earlyWorker = {
+      ...crossBorder.earlyWorker,
+      otherMemberStateWorkFrom: '2026-01-01',
+    };
+    const shortWork = {
+      freeMovement: {
+        ...crossBorder,
+        earlyWorker: { ...earlyWorker, creditedWorkFrom: '2023-01-02' },
+      },
+    };
+    statuses(F, shortWork, { F05: 'NOT_MET' });
+    expect(pathway(F, shortWork)).toMatchObject({
+      status: 'NOT_MET',
+      earliestDate: undefined,
+    });
+
+    const interruptedResidence: Partial<PtFullRequest> = {
+      freeMovement: {
+        ...crossBorder,
+        earlyWorker: { ...earlyWorker, portuguesePartnerException: true },
+        absences: [
+          {
+            departed: '2023-04-01',
+            returned: '2023-12-01',
+            reason: 'ordinary',
+          },
+        ],
+      },
+    };
+    statuses(F, interruptedResidence, { 'F02-EARLY-CONTINUITY': 'NOT_MET' });
+    expect(pathway(F, interruptedResidence)).toMatchObject({
+      status: 'NOT_MET',
+      earliestDate: undefined,
+    });
+  });
+
+  test.each([
+    ['2026-02-01', '2024-04-01', '2024-12-01', 'NOT_MET', 'MET', undefined],
+    ['2026-02-01', '2025-11-01', '2026-08-01', 'MET', 'MET', '2026-02-01'],
+    ['2026-01-01', '2025-11-01', '2026-08-01', 'MET', 'NOT_MET', undefined],
+    [undefined, '2025-11-01', '2026-08-01', 'UNKNOWN', 'UNKNOWN', undefined],
+  ] as const)(
+    'assesses incapacity at cessation on %s with absence from %s to %s',
+    (ceasedWorkOn, departed, returned, continuity, duration, earliestDate) => {
+      const request: Partial<PtFullRequest> = {
+        freeMovement: {
+          ...freeMovement,
+          basis: 'early-worker',
+          absences: [{ departed, returned, reason: 'ordinary' }],
+          earlyWorker: {
+            reason: 'permanent-disability',
+            ceasedWorkOn,
+            continuousResidenceFrom: '2024-01-01',
+            portuguesePartnerException: false,
+            occupationalBenefit: false,
+          },
+        },
+      };
+      const status = continuity === 'MET' ? duration : continuity;
+      statuses(F, request, { F05: duration, 'F02-EARLY-CONTINUITY': continuity });
+      expect(pathway(F, request)).toMatchObject({ status, earliestDate });
+    },
+  );
+});
+
 describe('review92-4', () => {
   test('two short training trips fit within the ordinary annual allowance', () => {
     const request: Partial<PtFullRequest> = {
@@ -2367,11 +2470,12 @@ describe('F · free movement', () => {
           ...retirement,
           earlyWorker: {
             reason: 'permanent-disability',
+            ceasedWorkOn: '2026-11-22',
             occupationalBenefit: true,
           },
         },
       },
-      { F05: 'MET' },
+      { F05: 'MET', 'F02-EARLY-CONTINUITY': 'MET' },
     );
     statuses(
       F,

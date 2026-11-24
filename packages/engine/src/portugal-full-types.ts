@@ -322,11 +322,16 @@ export interface PtFreeMovementEvidence {
     retiredOn?: IsoDate;
     retirementQualifies?: boolean;
     selfEmployedWithoutPension?: boolean;
+    /** Date the worker stopped working due to permanent incapacity. */
+    ceasedWorkOn?: IsoDate;
     continuousResidenceFrom?: IsoDate;
+    /** Start of the qualifying work period, including any periods credited by law. */
     creditedWorkFrom?: IsoDate;
     portuguesePartnerException?: boolean;
     occupationalBenefit?: boolean;
     otherMemberStateWork?: boolean;
+    /** Date the worker started working in another Member State while retaining residence in Portugal. */
+    otherMemberStateWorkFrom?: IsoDate;
     returnsWeekly?: boolean;
   };
   earlyFamily?: {
