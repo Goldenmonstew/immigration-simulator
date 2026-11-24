@@ -66,77 +66,94 @@ test('Germany questionnaire, result, what-if comparison, share link, and saved s
   await page.reload();
   await expect(progress).toHaveAttribute('aria-valuenow', '2');
 
-  await form
-    .getByRole('button', {
-      name: `${zhCN['de.form.add']} · ${zhCN['de.field.permits']}`,
-      exact: true,
-    })
-    .click();
+  const add = (field: keyof typeof zhCN) =>
+    form
+      .getByRole('button', {
+        name: `${zhCN['de.form.add']} · ${zhCN[field]}`,
+        exact: true,
+      })
+      .first();
+  await add('de.field.permits').click();
   await page.locator('#de-permits-0-kind').selectOption('skilled');
   await page.locator('#de-permits-0-from').fill('2022-05-23');
+  await add('de.field.titles').click();
+  await page.locator('#de-titles-0-kind').selectOption('skilled');
+  await page.locator('#de-titles-0-noOtherLossEvent').selectOption('yes');
+  await form
+    .getByRole('checkbox', { name: zhCN['de.form.validAtSimulation'] })
+    .check();
+  await form
+    .getByRole('group', { name: `${zhCN['de.field.titles']} 1`, exact: true })
+    .getByRole('button', { name: zhCN['de.form.noRecords'], exact: true })
+    .click();
   await next.click();
 
-  // Step 2: common statutory requirements (open each details section and fill)
+  // Step 2: common statutory requirements (open each section and fill)
+  await expect(progress).toHaveAttribute('aria-valuenow', '3');
   for (const summary of await form.locator('details > summary').all()) {
     await summary.click();
   }
-  await page
-    .locator('#de-common-currentStatusKind')
-    .selectOption('residence-permit');
-  await page
-    .locator('#de-common-currentTitleSection')
-    .selectOption('§ 18b AufenthG');
+  const select = (id: string, value: string) =>
+    page.locator(`#de-common-${id}`).selectOption(value);
   for (const id of [
-    '#de-common-applicationCoveredByStatusOrFiction',
-    '#de-common-hasActiveResidenceTitle',
-    '#de-common-livelihoodConfirmed',
-    '#de-common-orientationTestPassed',
-    '#de-common-permittedToWork',
-    '#de-common-professionalLicenceIfNeeded',
-    '#de-common-noPublicSafetyThreat',
-    '#de-common-adequateHousing',
-    '#de-common-passportOrSubstituteHeld',
-    '#de-common-identityAndNationalityClarified',
-    '#de-common-registeredAddressHeld',
-    '#de-common-registrationInTime',
-    '#de-common-noExpulsionInterest',
+    'identityEstablished',
+    'nationalityEstablishedOrNotRequired',
+    'capableOrRepresented',
+    'evidenceAndAttendance',
+    'livelihoodConfirmed',
+    'household-sustainable',
+    'household-scopeAndDeductionsConfirmed',
+    'employmentAuthorisedOrNotRequired',
+    'permanentProfessionalPermissionOrNotRequired',
+    'housing-qualityAndOccupancyConfirmed',
   ]) {
-    await page.locator(id).selectOption('yes');
+    await select(id, 'yes');
   }
-  await page.locator('#de-common-benefits').selectOption('none-or-permitted');
-  await page.locator('#de-common-provenGerman').selectOption('B1');
-  await page.locator('#de-common-orientationScore').fill('22');
-  await page.locator('#de-common-contributionMonths').fill('60');
+  await select('passport', 'valid');
+  await select('entry', 'required-visa-and-disclosed');
+  await select('security', 'no-known-ground');
+  await select('address', 'registered');
+  await select('transition', 'ordinary');
+  await select('benefits', 'none-or-permitted');
+  await select('provenGerman', 'B1');
+  await add('de.field.members').click();
+  await select('household-members-0', 'single');
+  await add('de.field.insurance').click();
+  await select('insurance-0', 'statutory');
+  for (const [id, value] of [
+    ['household-countableMonthlyIncome', '1243'],
+    ['household-warmRent', '550'],
+    ['household-additionalNeeds', '50'],
+    ['household-uncoveredPremiums', '80'],
+    ['housing-localMinimumM2', '46'],
+    ['housing-usableM2', '46'],
+    ['orientationScore', '15'],
+    ['contributionMonths', '60'],
+  ]) {
+    await page.locator(`#de-common-${id}`).fill(value);
+  }
   await next.click();
 
-  // Step 4: citizenship requirements (leave unconfirmed so R07 is UNKNOWN)
-  await next.click();
-
-  // Step 5: fees -> submit to results
-  await form
-    .getByRole('button', { name: zhCN['form.results'], exact: true })
-    .click();
+  // Remaining steps (citizenship, fees) stay unconfirmed -> submit to results
+  const results = form.getByRole('button', {
+    name: zhCN['form.results'],
+    exact: true,
+  });
+  while (!(await results.isVisible())) await next.click();
+  await results.click();
 
   await expect(page).toHaveURL(path('result'));
   const result = assessment(page, zhCN);
-  await expect(
-    result.getByRole('heading', {
-      name: zhCN['de.route.R01'],
-      exact: true,
-    }),
-  ).toBeVisible();
-  await expect(
-    result.getByRole('heading', {
-      name: zhCN['country.status.FUTURE'],
-      exact: true,
-    }),
-  ).toBeVisible();
-  await expect(
-    result.getByRole('heading', {
-      name: zhCN['country.status.UNKNOWN'],
-      exact: true,
-    }),
-  ).toBeVisible();
+  for (const name of [
+    '一般定居许可',
+    zhCN['country.status.FUTURE'].replace('{date}', '2027-05-23'),
+    '一般入籍',
+    zhCN['country.status.NOT_MET'],
+  ]) {
+    await expect(
+      result.getByRole('heading', { name, exact: true }).first(),
+    ).toBeVisible();
+  }
   await expect(result.locator('time[datetime="2027-05-23"]')).toBeVisible();
   const originalText = await result.innerText();
 
@@ -193,9 +210,7 @@ test('English mobile layout and Germany policy sources', async ({ page }) => {
   await page.goto(path());
   const header = page.getByRole('banner');
   await header.getByRole('button', { name: 'English', exact: true }).click();
-  await expect(page.locator('h1')).toContainText(
-    'Germany Permanent Residence & Naturalisation Checker',
-  );
+  await expect(page.locator('h1')).toHaveText(en['de.title']);
   await noHorizontalScroll(page);
 
   await page.goto(path('policy'));
