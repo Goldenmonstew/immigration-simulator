@@ -351,10 +351,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.gr.paths': 'Long-term residence · Golden visa · Naturalisation',
   'hub.gr.desc':
     'Use your permits, including golden visas, and travel record to check residence periods for long-term residence (Μ1) and the 7-, 3- and 12-year naturalisation tracks, plus golden visa (Β.5) renewal timing.',
-  'hub.ie.code': 'IE',
-  'hub.ie.paths': 'Stamp 4 / 5 · Naturalisation · Spouse route',
-  'hub.ie.desc':
-    'Use your stamps and travel record to check time requirements for a Stamp 4 upgrade, Stamp 5 (96 months), general naturalisation and naturalisation as the spouse or civil partner of an Irish citizen.',
   'hub.pt.code': 'PT',
   'hub.pt.paths':
     'Naturalisation · Permanent residence · EU long-term · Golden visa',

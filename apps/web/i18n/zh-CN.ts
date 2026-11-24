@@ -326,10 +326,6 @@ export const zhCN = {
   'hub.gr.paths': '长期居留 · 黄金签证续期 · 入籍',
   'hub.gr.desc':
     '按居留许可（含黄金签证）与出入境记录，核对长期居留（Μ1）和 7 年、3 年或 12 年入籍路线的居住时间，以及黄金签证（Β.5）的续期时段。',
-  'hub.ie.code': 'IE',
-  'hub.ie.paths': 'Stamp 4 / 5 · 入籍 · 配偶入籍',
-  'hub.ie.desc':
-    '按各段 Stamp 居留许可与出入境记录，核对 Stamp 4 升级、Stamp 5（满 96 个月）、一般入籍及爱尔兰公民配偶或民事伴侣入籍的时间条件。',
   'hub.pt.code': 'PT',
   'hub.pt.paths': '入籍 · 永久居留 · 欧盟长居 · 黄金签证',
   'hub.pt.desc':
