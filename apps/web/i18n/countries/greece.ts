@@ -1,7 +1,9 @@
 import { grFormEn, grFormZh } from './greece-form';
+import { grGameEn, grGameZh } from './greece-game';
 
 export const zhCN = {
   ...grFormZh,
+  ...grGameZh,
   'gr.name': '希腊',
   'gr.title': '希腊居留与入籍模拟',
   'gr.intro':
@@ -61,6 +63,7 @@ export const zhCN = {
 
 export const en: Record<keyof typeof zhCN, string> = {
   ...grFormEn,
+  ...grGameEn,
   'gr.name': 'Greece',
   'gr.title': 'Greek residence and citizenship simulator',
   'gr.intro':

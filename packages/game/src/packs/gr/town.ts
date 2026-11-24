@@ -31,7 +31,7 @@ export const grPlaces: Place[] = [
   },
   {
     id: 'college',
-    name: t('社区中心希腊语班', 'Community centre Greek class'),
+    name: t('社区希腊语班', 'Greek class'),
     kind: 'building',
     hours: { opens: 600, closes: 1290 },
   },
@@ -61,25 +61,25 @@ export const grPlaces: Place[] = [
   },
   {
     id: 'shop',
-    name: t('阿尔迪特小超市', 'Ardit’s mini market'),
+    name: t('阿尔迪特超市', 'Ardit’s mini market'),
     kind: 'building',
     hours: { opens: 480, closes: 1260 },
   },
   {
     id: 'council',
-    name: t('萨纳西斯会计师事务所', 'Thanasis’s accounting office'),
+    name: t('会计师事务所', 'Accountant’s office'),
     kind: 'building',
     hours: { opens: 540, closes: 1080, dayKinds: ['workday', 'weekend'] },
   },
   {
     id: 'kep',
-    name: t('KEP 市民服务中心', 'KEP citizens’ service centre'),
+    name: t('KEP 服务中心', 'KEP service centre'),
     kind: 'building',
     hours: { opens: 480, closes: 900, dayKinds: ['workday'] },
   },
   {
     id: 'visa',
-    name: t('大区移民局办事处', 'Migration office'),
+    name: t('移民局办事处', 'Migration office'),
     kind: 'building',
     hours: { opens: 480, closes: 870, dayKinds: ['workday'] },
   },
@@ -106,7 +106,7 @@ export const grPlaces: Place[] = [
       id,
       kind: 'outdoor',
       name: [
-        t('市立菜园', 'Municipal vegetable gardens'),
+        t('市立菜园', 'Municipal gardens'),
         t('港口防波堤', 'Harbour breakwater'),
         t('报亭告示板', 'Kiosk noticeboard'),
         t('圣尼古拉广场', 'Agios Nikolaos square'),
