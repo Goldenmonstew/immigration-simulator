@@ -168,7 +168,7 @@ test('Australia questionnaire flows to results, saves and shares scenarios, and 
   // 2030-01-01: passing the citizenship test gives that date, and moving the date there turns it MET.
   await page.locator('#au-whatif-cit-test').selectOption('true');
   const comparison = assessment(page, zhCN)
-    .getByText(zhCN['result.earliest'], { exact: true })
+    .getByText(zhCN['au.result.earliest'], { exact: true })
     .locator('xpath=following-sibling::dd[1]');
   await expect(comparison).toHaveText(
     `${zhCN['result.undetermined']}→2030-01-01`,
