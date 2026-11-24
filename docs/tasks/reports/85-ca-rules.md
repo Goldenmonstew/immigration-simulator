@@ -535,3 +535,27 @@ AIP 的 R26 对应要求补交的现居国警证采用本申请的逐份补件�
 ### 4. 发现与建议
 
 审核风险第 2 项仍在。FSW 获邀时恰好 67 分，若在递交前仅因生日降至 66 分，R36 仍可能输出 `NOT_MET`。选拔分依据 SRC-267a “Selection factors” 及 SRC-261b，IRPR ss.76(1)(a)(iv)、81。获授权官员可依公共政策 “Conditions” 审查符合条件的个案并给予年龄豁免。本轮仅记录该风险。[IRCC 获邀后年龄豁免公共政策](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)
+
+## 第十轮审核修正（review85-10）
+
+### 1. 做了什么
+
+建议提交 `Fix: 修正直接担保子女监护判断与 AIP 首次递交警证效期（review85-10）`。对应 PROGRESS 第 572 条。
+
+R74 复用逐名监护判断，以完整申请收件日锁龄。直接担保的主申请子女在锁龄日已满 18 岁，免核监护文件。未成年人缺件待审为 `UNKNOWN`，已有单独迁居权限为 `MET`，明确禁止迁居为 `NOT_MET`。移民官审查缺件说明的依据见 SRC-274c，Guide 5289 Step 5 “If you’re sponsoring dependent children” 第 3 项。[IRCC 家庭担保指南](https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/guide-5289-sponsor-your-spouse-common-law-partner-conjugal-partner-dependent-child-complete-guide.html) · [IMM 5534 第 2 页第 6 项](https://www.canada.ca/content/dam/ircc/documents/pdf/english/kits/forms/imm5534/01-09-2022/imm5534e.pdf#page=2)
+
+R26 以 AIP 首次申请收件日核对随附的现居国警证。符合签发机关效期时，签发不超过六个月为 `MET`，超过六个月至满一年当日为 `UNKNOWN`。收件时已过证载末日或签发已超过一年为 `NOT_MET`。通用窗口与 AIP 通常效期在首次递交时如何适用，已登记 PD-245。依据为 SRC-266g “For the country where you currently reside” 第 1 段及 SRC-279e “Police certificates and clearances” 第 2 段。[IRCC 通用警证指引](https://www.canada.ca/en/immigration-refugees-citizenship/services/application/medical-police/police-certificates/when.html) · [IRCC AIP 申请指引](https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/atlantic-immigration/how-to-immigrate/permanent-residence.html)
+
+### 2. 怎么验证的
+
+在基线 `c7a6200` 上，新增的 14 个公开入口用例有 9 个失败。另复现了只填证载末日且首次收件时已经过期，结果仍返回 `UNKNOWN` 的情形。修正后，即使缺少签发日，也可凭已过的证载末日判为 `NOT_MET`。最终的 15 个新增用例均通过。`VITEST_MAX_WORKERS=2 pnpm --filter @uk-immigration/engine test test/canada --reporter=dot` 通过 8 个文件、253 项测试。每个新增用例通过 `evaluateCanadaFull` 同时断言 R74 与 `CA-FAMILY` 或 R26 与 `CA-AIP`。其中，2026-10-20 完整收件时当天满 18 岁的子女免核，次日才满 18 岁且缺件的子女仍为 `UNKNOWN`。同日随申请递交 2026-02-01 签发、2027-02-01 到期的现居国警证为 `UNKNOWN`，已有回归验证同一份警证应要求在同日补交为 `MET`。
+
+设置 `VITEST_MAX_WORKERS=2` 后运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码为 0。全仓 5,478 项测试通过、1 项既有测试跳过，构建生成 27 个静态页面。`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+按要求保留在工作区，未提交。原时间入口 `evaluateCanada`、原时间测试及加拿大页面调用与 `c7a6200` 无差异，原时间测试已通过。
+
+### 4. 发现与建议
+
+审核风险第 2 项留待单独处理。FSW 申请人获邀后因生日失分时，R36 仍可能漏判可由官员审查的年龄豁免，详见本报告第九轮第 4 节。

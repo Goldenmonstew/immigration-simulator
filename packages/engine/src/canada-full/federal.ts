@@ -491,8 +491,8 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
       ),
       (procedure === 'atlantic'
         ? L(
-            `现居国警证随 AIP 申请递交时，须在此前 ${ca.values.federalPolice.value.currentCertificateMonths} 个月内签发。也可应 IRCC 要求补交，此时按该份证书的补件收件日核效期，通常自签发日起 ${ca.values.federalPolice.value.atlanticUsualCertificateYears} 年有效。另核签发机关效期。超出通常期限、能否接受尚未明确时，等待 IRCC 确认。`,
-            `At initial AIP filing, a current-country certificate must have been issued within the previous ${ca.values.federalPolice.value.currentCertificateMonths} months. It can also be submitted on request. At receipt of that supplement, check the usual validity of ${ca.values.federalPolice.value.atlanticUsualCertificateYears} year from issue and the issuer’s expiry. Acceptance beyond the usual period needs IRCC confirmation.`,
+            `现居国警证须在签发机关的效期内送达。随 AIP 申请首次递交时，签发不超过 ${ca.values.federalPolice.value.currentCertificateMonths} 个月符合通用指引。超过该窗口、截至签发满 ${ca.values.federalPolice.value.atlanticUsualCertificateYears} 年当天，IRCC 未说明通用窗口与 AIP 通常效期何者适用，结果待确认。首次递交时已超过两项期限则不符合。应要求补交时，按 IRCC 收到该份警证之日核对 AIP 通常效期，超期能否接受须由 IRCC 确认。`,
+            `A current-country certificate must reach IRCC within the issuer’s validity period. At initial AIP filing, a certificate issued within the previous ${ca.values.federalPolice.value.currentCertificateMonths} months meets the general guidance. From the end of that window through the ${ca.values.federalPolice.value.atlanticUsualCertificateYears}-year anniversary of issue, IRCC does not specify which period applies. A certificate outside both periods at initial filing fails the validity check. For a requested supplement, check the usual AIP validity period on the date IRCC received the certificate. Acceptance beyond that period needs IRCC confirmation.`,
           )
         : L(
             `现居国警证以 IRCC 收到该份证书的日期核对。证书须在本申请或补件收件日前 ${ca.values.federalPolice.value.currentCertificateMonths} 个月内签发，并符合签发机关效期。`,

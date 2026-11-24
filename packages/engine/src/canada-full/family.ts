@@ -7,6 +7,7 @@ import {
   any,
   dependentChildEligible,
   filingDatesForRoute,
+  minorRelocationConsent,
   receivedBy,
   ref,
   type Context,
@@ -218,6 +219,7 @@ export function familyChecks({ req, L, check }: Context): Item[] {
             )
           : undefined;
   const child = f.child;
+  const childBirth = req.dateOfBirth ?? req.federal?.principal?.dateOfBirth;
   const isFamilyClass =
     f.applicationClass === undefined
       ? undefined
@@ -466,12 +468,16 @@ export function familyChecks({ req, L, check }: Context): Item[] {
             partner ||
               all(
                 dependentChildEligible(
-                  req.dateOfBirth ?? req.federal?.principal?.dateOfBirth,
+                  childBirth,
                   filing.childAgeLockIn,
                   child,
                 ),
                 child?.parentageConfirmed,
-                child?.custodyAndConsentReady,
+                minorRelocationConsent(
+                  childBirth,
+                  filing.childAgeLockIn,
+                  child,
+                ),
               ),
           ),
       L(
@@ -482,7 +488,7 @@ export function familyChecks({ req, L, check }: Context): Item[] {
         ref('SRC-261', 'IRPR ss.2, 25.1, 117(9)–(11), 125'),
         ref(
           'SRC-274',
-          'Guide 5289: Definitions of dependent children; Step 5, incomplete applications',
+          'Guide 5289: Definitions of dependent children; Step 5, incomplete applications and “If you’re sponsoring dependent children”, bullet 3 (274c)',
         ),
         ...v.childConsentAgeLimit.sources,
       ],

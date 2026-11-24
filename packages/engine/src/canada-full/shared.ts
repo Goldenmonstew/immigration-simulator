@@ -201,21 +201,21 @@ export function dependentChildEligible(
       );
 }
 
-function minorRelocationConsent(
+export function minorRelocationConsent(
   birth: IsoDate | undefined,
-  federalDocumentDate: IsoDate,
-  answers: DependentChildAnswers,
+  federalDocumentDate: IsoDate | undefined,
+  answers: DependentChildAnswers | undefined,
 ) {
-  if (!birth) return undefined;
+  if (!birth || !federalDocumentDate) return undefined;
   if (
     fullYears(birth, federalDocumentDate) >=
     ca.values.childConsentAgeLimit.value
   )
     return true;
-  if (answers.relocationAuthority === 'prohibited') return false;
-  if (answers.relocationAuthority === 'no-separate-consent-required')
+  if (answers?.relocationAuthority === 'prohibited') return false;
+  if (answers?.relocationAuthority === 'no-separate-consent-required')
     return true;
-  return answers.custodyAndConsentReady || undefined;
+  return answers?.custodyAndConsentReady || undefined;
 }
 
 export function accompanyingChildrenEligible(

@@ -209,14 +209,12 @@ export function policeDocuments(
           (certificateIssued && certificateIssued > filing)
         )
           return undefined;
-        if (!certificateIssued || stay.missing) {
-          if (
-            outstandingPoliceRequest ||
-            (procedure === 'atlantic' && stay.missing)
-          )
-            return undefined;
-          return stay.missing ? false : checklist;
-        }
+        if (stay.missing)
+          return outstandingPoliceRequest || procedure === 'atlantic'
+            ? undefined
+            : false;
+        // At initial AIP filing, a printed expiry can rule out a certificate even without its issue date.
+        if (!certificateIssued && procedure !== 'atlantic') return checklist;
       }
       const receivedOn = supplementReceivedOn ?? filing;
       if (
@@ -225,11 +223,13 @@ export function policeDocuments(
         receivedOn > stay.certificateExpires
       )
         return false;
-      // IRCC may receive the requested certificate directly from the issuer.
-      if (!certificateIssued)
+      if (!certificateIssued) {
+        if (!supplementReceivedOn) return checklist;
+        // IRCC may receive the requested certificate directly from the issuer.
         return requestLetterStage || stay.issuer === 'hong-kong-police'
           ? true
           : undefined;
+      }
       // 'until' is the first day no longer staying in that country.
       if (!stay.currentCountry) return certificateIssued >= end;
       if (!stay.certificateExpires && stay.issuer === 'dubai-police') {
@@ -242,23 +242,27 @@ export function policeDocuments(
           ? undefined
           : receivedOn < anniversary;
       }
-      if (procedure === 'atlantic' && supplementReceivedOn) {
-        const anniversary = addYears(
-          certificateIssued,
-          police.atlanticUsualCertificateYears,
-        );
-        if (
-          receivedOn < anniversary ||
-          (receivedOn === anniversary && stay.certificateExpires)
-        )
-          return true;
-        // IRCC describes the year as usual validity, without defining exceptions or the last day.
-        return undefined;
-      }
-      return (
+      if (
         certificateIssued >=
         addMonths(receivedOn, -police.currentCertificateMonths)
+      )
+        return true;
+      if (procedure !== 'atlantic') return false;
+
+      const anniversary = addYears(
+        certificateIssued,
+        police.atlanticUsualCertificateYears,
       );
+      // At initial filing, the general and AIP guidance overlap without specifying precedence (PD-245).
+      if (!supplementReceivedOn)
+        return receivedOn > anniversary ? false : undefined;
+      if (
+        receivedOn < anniversary ||
+        (receivedOn === anniversary && stay.certificateExpires)
+      )
+        return true;
+      // IRCC does not define exceptions or the last valid day for a requested supplement.
+      return undefined;
     }),
   );
 }

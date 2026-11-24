@@ -265,6 +265,45 @@ test.each([
   },
 );
 
+test.each([
+  ['2007-01-01', {}, 'MET'],
+  ['2008-10-20', { custodyAndConsentReady: false }, 'MET'],
+  ['2008-10-21', { custodyAndConsentReady: false }, 'UNKNOWN'],
+  ['2016-01-01', { custodyAndConsentReady: false }, 'UNKNOWN'],
+  [
+    '2016-01-01',
+    { relocationAuthority: 'no-separate-consent-required' },
+    'MET',
+  ],
+  [
+    '2016-01-01',
+    { custodyAndConsentReady: true, relocationAuthority: 'prohibited' },
+    'NOT_MET',
+  ],
+] as const)(
+  'R74 and direct child sponsorship: born %s, custody evidence %j → %s',
+  (dateOfBirth, evidence, expected) => {
+    const result = filedFamily(
+      {
+        relationship: 'child',
+        completeApplicationReceived: '2026-10-20',
+        child: {
+          ...base.child,
+          parentageConfirmed: true,
+          unmarriedAndUnpartnered: true,
+          ...evidence,
+        },
+      },
+      dateOfBirth,
+    );
+    const check = result.checks.find((c) => c.id === 'CA-R74')!;
+    expect(check.status).toBe(expected);
+    expect(result.status).toBe(expected);
+    if (expected === 'UNKNOWN')
+      expect(check.pendingDetails).toContain('PD-245');
+  },
+);
+
 test('R74 locks child age on confirmed complete receipt, including a later resubmission', () => {
   const child: FamilyAnswers = {
     relationship: 'child',

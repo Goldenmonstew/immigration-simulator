@@ -582,13 +582,13 @@ describe('initial PR federal checks', () => {
     const stale = { ...current, certificateIssued: '2026-04-19' };
     expect(
       assess([stale, confirmed], { definitiveChecklistSatisfied: true }),
-    ).toBe('NOT_MET');
+    ).toBe(id === 'CA-AIP' ? 'UNKNOWN' : 'NOT_MET');
     expect(
       assess([stale, { ...past, missing: true }], {
         definitiveChecklistSatisfied: false,
         outstandingPoliceRequest: true,
       }),
-    ).toBe('NOT_MET');
+    ).toBe(id === 'CA-AIP' ? 'UNKNOWN' : 'NOT_MET');
     expect(assess([{ ...past, certificateIssued: '2020-12-31' }])).toBe(
       'NOT_MET',
     );

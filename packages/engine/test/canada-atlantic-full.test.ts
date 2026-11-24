@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { evaluateCanadaFull } from '../src';
 import type { AtlanticAnswers } from '../src/canada-full/atlantic';
 import type { WorkPeriod } from '../src/canada-full/express';
+import type { PoliceStay } from '../src/canada-full/federal-documents';
 import { federal, filed, person } from './canada-federal-fixture';
 
 const when = '2026-11-23';
@@ -65,7 +66,61 @@ function rule(n: number, change: Partial<AtlanticAnswers> = {}) {
     .columns[0].pathways.find((p) => p.id === 'CA-AIP')!
     .checks.find((c) => c.id === 'CA-R' + n)!;
 }
+function filedAipWithCurrentCertificate(
+  applicationDate: string,
+  certificate: Pick<
+    PoliceStay,
+    'issuer' | 'certificateIssued' | 'certificateExpires' | 'supplementReceipts'
+  >,
+) {
+  return evaluateCanadaFull({
+    simulationDate: when,
+    atlantic: {
+      ...base,
+      applicationDate,
+      workHistory: [{ ...job, from: '2024-01-01', to: '2025-12-31' }],
+    },
+    federal: {
+      ...federal,
+      applications: { 'CA-AIP': { ...filed, filedOn: undefined } },
+      principal: {
+        ...person,
+        definitiveChecklistSatisfied: undefined,
+        exam: { disposition: 'exempt' },
+        foreignStays: [
+          { from: '2021-01-01', currentCountry: true, ...certificate },
+        ],
+      },
+    },
+  }).columns[0].pathways.find((p) => p.id === 'CA-AIP')!;
+}
+
 describe('Atlantic Immigration Program', () => {
+  test.each([
+    ['2026-07-01', '2026-10-20', 'MET'],
+    ['2026-04-20', undefined, 'MET'],
+    ['2026-04-19', undefined, 'UNKNOWN'],
+    ['2026-02-01', '2027-02-01', 'UNKNOWN'],
+    ['2025-10-20', '2026-10-20', 'UNKNOWN'],
+    ['2025-10-19', '2027-10-19', 'NOT_MET'],
+    ['2026-07-01', '2026-10-19', 'NOT_MET'],
+    ['2026-02-01', '2026-10-19', 'NOT_MET'],
+    [undefined, '2026-10-19', 'NOT_MET'],
+  ] as const)(
+    'R26 and initial AIP filing: current certificate issued %s, expires %s → %s',
+    (certificateIssued, certificateExpires, expected) => {
+      const result = filedAipWithCurrentCertificate('2026-10-20', {
+        certificateIssued,
+        certificateExpires,
+      });
+      const check = result.checks.find((c) => c.id === 'CA-R26')!;
+      expect(check.status).toBe(expected);
+      expect(result.status).toBe(expected);
+      if (expected === 'UNKNOWN')
+        expect(check.pendingDetails).toContain('PD-245');
+    },
+  );
+
   test.each([
     ['dubai-police', '2026-07-01', '2026-10-01', '2026-09-20', 'MET'],
     ['dubai-police', '2026-07-01', '2026-10-01', '2026-10-01', 'MET'],
@@ -90,33 +145,12 @@ describe('Atlantic Immigration Program', () => {
       supplementReceivedOn,
       expected,
     ) => {
-      const result = evaluateCanadaFull({
-        simulationDate: when,
-        atlantic: {
-          ...base,
-          applicationDate: '2026-06-10',
-          workHistory: [{ ...job, from: '2024-01-01', to: '2025-12-31' }],
-        },
-        federal: {
-          ...federal,
-          applications: { 'CA-AIP': { ...filed, filedOn: undefined } },
-          principal: {
-            ...person,
-            definitiveChecklistSatisfied: undefined,
-            exam: { disposition: 'exempt' },
-            foreignStays: [
-              {
-                from: '2021-01-01',
-                currentCountry: true,
-                issuer,
-                certificateIssued,
-                certificateExpires,
-                supplementReceipts: { 'CA-AIP': supplementReceivedOn },
-              },
-            ],
-          },
-        },
-      }).columns[0].pathways.find((p) => p.id === 'CA-AIP')!;
+      const result = filedAipWithCurrentCertificate('2026-06-10', {
+        issuer,
+        certificateIssued,
+        certificateExpires,
+        supplementReceipts: { 'CA-AIP': supplementReceivedOn },
+      });
       expect(result.checks.find((c) => c.id === 'CA-R26')?.status).toBe(
         expected,
       );
