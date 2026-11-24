@@ -8,7 +8,7 @@ import {
   isNaturalization,
 } from '../../../lib/united-states-fields';
 import {
-  latestTrip,
+  hasReturnControl,
   unitedStatesFocusControls as ids,
   type UnitedStatesWhatIf,
 } from '../../../lib/united-states-whatif';
@@ -61,27 +61,39 @@ export function UnitedStatesWhatIfControls({
     id: string,
     key: string,
     label: TranslationKey,
+    hint?: TranslationKey,
   ) => (
     <div className={styles.field}>
       <label htmlFor={id}>{t(label)}</label>
+      {hint && (
+        <p id={`${id}-hint`} className={styles.hint}>
+          {t(hint)}
+        </p>
+      )}
       <input
         id={id}
         type="date"
         value={knobs[field] ?? ''}
         onChange={(event) => update({ [field]: event.target.value })}
         aria-invalid={errors[key] ? true : undefined}
-        aria-describedby={described(key)}
+        aria-describedby={
+          [hint && `${id}-hint`, described(key)].filter(Boolean).join(' ') ||
+          undefined
+        }
       />
       {error(key)}
     </div>
   );
-  const travel =
-    afterDraft.pathway === 'US-TRAVEL' &&
-    latestTrip(afterDraft.trips) !== undefined;
+  const returnControl = hasReturnControl(afterDraft, knobs.noTrips);
   return (
     <>
-      {date('simulationDate', ids.date, 'date', 'us.whatif.date')}
-      <p className={styles.hint}>{t('us.whatif.dateHint')}</p>
+      {date(
+        'simulationDate',
+        ids.date,
+        'date',
+        'us.whatif.date',
+        'us.whatif.dateHint',
+      )}
       <label className={styles.checkbox}>
         <input
           id={ids.trips}
@@ -91,9 +103,16 @@ export function UnitedStatesWhatIfControls({
         />
         {t('us.whatif.noTrips')}
       </label>
-      {travel &&
-        !knobs.noTrips &&
+      {returnControl &&
         date('returnOn', ids.returnOn, 'returnOn', 'us.whatif.returnOn')}
+      {/* Links for the return checks land here when there is no trip. */}
+      {!returnControl &&
+        afterDraft.pathway === 'US-TRAVEL' &&
+        !knobs.noTrips && (
+          <p id={ids.returnOn} tabIndex={-1} className={styles.hint}>
+            {t('us.whatif.noReturnTrip')}
+          </p>
+        )}
       {isNaturalization(afterDraft) && (
         <>
           {select('english', ids.english, 'us.field.english')}

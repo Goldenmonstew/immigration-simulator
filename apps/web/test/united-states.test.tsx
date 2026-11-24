@@ -6,6 +6,7 @@ import { GET as offlinePages } from '../app/offline-pages.json/route';
 import sitemap from '../app/sitemap';
 import Home from '../app/page';
 import { ResultView } from '../components/result-view';
+import { UnitedStatesWhatIfControls } from '../app/united-states/whatif/controls';
 import { t } from '../i18n';
 import { usFormEn, usFormZh } from '../i18n/countries/united-states-form';
 import { LocaleContext } from '../i18n/locale';
@@ -338,7 +339,7 @@ test('a planned return in the future gives the return date, which the comparison
       us.whatif.apply(travelDraft(), { ...knobs, returnOn: '2026-10-01' }),
       { ...knobs, returnOn: '2026-10-01' },
     ),
-  ).toEqual({ date: 'us.whatif.invalid' });
+  ).toEqual({ returnOn: 'us.error.order' });
 });
 
 test('a completed return meets the assessed requirements', () => {
@@ -747,4 +748,141 @@ test('wage and trip checks read the records as the engine does (review96-1)', ()
       ],
     }),
   ).toEqual({ 'us-trips-0-departed': 'us.error.entered' });
+});
+
+test('comparison controls drive the engine and keep answers tied to the assessment date (review96-1)', () => {
+  const f2a = (admission: UsDraft['admission']) =>
+    immigrantDraft(
+      'US-FAMILY',
+      {
+        process: 'adjustment',
+        petitionStatus: 'approved',
+        decisionOn: '2027-02-01',
+        ...admission,
+      },
+      { family: { petitioner: 'lpr', relationship: 'spouse' } },
+    );
+  const decisionMonths = (draft: UsDraft) =>
+    unitedStatesRequest(draft, 'en').admission?.visaAtDecisionByMonth;
+  const visa = (draft: UsDraft) =>
+    pathwayOf(draft).checks.find(
+      (check) => check.id === 'US-C33-VISA-AND-ENTRY',
+    )?.status;
+  // The decision-month chart drives the knob and the engine (#2).
+  const charted = f2a({
+    visaAtDecisionByMonth: [{ month: '2027-02', availability: 'unavailable' }],
+  });
+  const knobs = us.whatif.initial(charted);
+  expect(knobs.visaAtDecision).toBe('unavailable');
+  const available = us.whatif.apply(charted, {
+    ...knobs,
+    visaAtDecision: 'available',
+  });
+  expect(decisionMonths(available)).toEqual({ '2027-02': 'available' });
+  expect(visa(charted)).toBe('NOT_MET');
+  expect(visa(available)).not.toBe('NOT_MET');
+  const blank = f2a({});
+  expect(us.whatif.initial(blank).visaAtDecision).toBeUndefined();
+  expect(
+    decisionMonths(
+      us.whatif.apply(blank, {
+        ...us.whatif.initial(blank),
+        visaAtDecision: 'available',
+      }),
+    ),
+  ).toEqual({ '2027-02': 'available' });
+  // A later decision date keeps the availability the knob shows (#2).
+  const sameMonth = f2a({
+    decisionOn: '2026-11-30',
+    visaAtDecision: 'available',
+  });
+  const sameKnobs = us.whatif.initial(sameMonth);
+  expect(sameKnobs.visaAtDecision).toBe('available');
+  expect(
+    decisionMonths(
+      us.whatif.apply(sameMonth, { ...sameKnobs, decisionOn: '2027-01-15' }),
+    ),
+  ).toEqual({ '2027-01': 'available' });
+  // Answers for the assessment date stay with that date when it moves (risk 5).
+  const bound = f2a({
+    decisionOn: undefined,
+    visaAtFiling: 'available',
+    visaAtDecision: 'available',
+  });
+  const moved = us.whatif.apply(bound, {
+    ...us.whatif.initial(bound),
+    simulationDate: '2027-01-10',
+    visaAtDecision: undefined,
+  });
+  expect(moved.admission).toMatchObject({
+    visaAtFilingByMonth: [{ month: '2026-11', availability: 'available' }],
+    visaAtDecisionByMonth: [{ month: '2026-11', availability: 'available' }],
+  });
+  expect(moved.admission).not.toHaveProperty('visaAtFiling');
+  expect(moved.admission).not.toHaveProperty('visaAtDecision');
+  const refugee: UsDraft = {
+    ...us.createDraft(),
+    simulationDate: '2026-11-21',
+    pathway: 'US-HUMANITARIAN',
+    humanitarian: { status: 'refugee', presenceDays: 300 },
+  };
+  expect(
+    us.whatif.apply(refugee, {
+      ...us.whatif.initial(refugee),
+      simulationDate: '2027-01-10',
+    }).humanitarian,
+  ).toMatchObject({ presenceDays: 300, presenceThrough: '2026-11-21' });
+  const wages = employmentDraft({ wageYears: [{ year: 2026, paidUsd: 1 }] });
+  expect(
+    us.whatif.apply(wages, {
+      ...us.whatif.initial(wages),
+      simulationDate: '2027-01-10',
+    }).employment,
+  ).toMatchObject({ wagePeriodThrough: '2026-11-21' });
+  // Untouched controls leave the result as it is.
+  for (const draft of [
+    travelDraft(),
+    naturalizationDraft,
+    charted,
+    blank,
+    sameMonth,
+    bound,
+    refugee,
+    wages,
+  ])
+    expect(
+      us.run(us.whatif.apply(draft, us.whatif.initial(draft)), 'en'),
+    ).toEqual(us.run(draft, 'en'));
+  // A cleared return date is an error, not the old date (#8).
+  const travelKnobs = us.whatif.initial(travelDraft());
+  expect(
+    us.whatif.validate(
+      us.whatif.apply(travelDraft(), { ...travelKnobs, returnOn: '' }),
+      { ...travelKnobs, returnOn: '' },
+    ),
+  ).toEqual({ returnOn: 'us.error.date' });
+  // Without a trip, the return-date link lands on an explanation (risk 2).
+  const noTrip = { ...travelDraft(), trips: undefined };
+  expect(us.whatif.focusForRule('US-TIME-TRAVEL', 'US-TRAVEL')).toBe(
+    'returnOn',
+  );
+  const controls = (draft: UsDraft) =>
+    render(
+      <UnitedStatesWhatIfControls
+        afterDraft={draft}
+        knobs={us.whatif.initial(draft)}
+        errors={{}}
+        update={() => {}}
+      />,
+    );
+  expect(controls(noTrip)).toMatch(
+    /<p id="us-whatif-return" tabindex="-1"[^>]*>问卷里没有出入境记录/,
+  );
+  expect(controls(travelDraft())).toContain(
+    'id="us-whatif-return" type="date"',
+  );
+  // The date hint is announced with the date (suggestion 4).
+  expect(controls(travelDraft())).toContain(
+    'aria-describedby="us-whatif-date-hint"',
+  );
 });

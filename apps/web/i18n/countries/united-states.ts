@@ -38,6 +38,8 @@ export const zhCN = {
     '按这一天判断能否递交或返美。改动后请核对与日期有关的答案，例如面谈和裁决日。',
   'us.whatif.noTrips': '假设没有出境记录',
   'us.whatif.returnOn': '最近一次返美日期',
+  'us.whatif.noReturnTrip':
+    '问卷里没有出入境记录，没有可调整的返美日期。可以勾选“假设没有出境记录”，或回到问卷补填出境和返美日期。',
   'us.whatif.income': 'I-864 担保家庭年收入（美元）',
   'us.whatif.decisionOn': '预计裁决日',
   'us.whatif.invalid': '调整后的答案与问卷资料冲突，请核对日期和行程。',
@@ -104,6 +106,8 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Eligibility to file or return is tested on this date. Check date-related answers such as interview and decision dates after changing it.',
   'us.whatif.noTrips': 'Assume no trips abroad',
   'us.whatif.returnOn': 'Most recent return date',
+  'us.whatif.noReturnTrip':
+    'The questionnaire has no trips, so there is no return date to change. Tick “Assume no trips abroad”, or add the departure and return dates in the questionnaire.',
   'us.whatif.income': 'I-864 sponsor household income (USD per year)',
   'us.whatif.decisionOn': 'Expected decision date',
   'us.whatif.invalid':
