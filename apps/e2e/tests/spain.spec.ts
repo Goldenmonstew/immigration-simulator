@@ -76,10 +76,21 @@ test('Spanish questionnaire assesses pathways, saves scenarios, shares links and
     })
     .click();
   await page.locator('#es-permits-0-from').fill('2022-01-01');
-  await page
-    .getByRole('group', { name: zhCN['es.field.trips'], exact: true })
-    .getByRole('button', { name: zhCN['es.form.noRecords'], exact: true })
-    .click();
+  await page.locator('#es-permits-0-study').selectOption('no');
+  // The last record can be removed and an empty list can return to unconfirmed.
+  const trips = page.getByRole('group', {
+    name: zhCN['es.field.trips'],
+    exact: true,
+  });
+  const tripButton = (name: string) =>
+    trips.getByRole('button', { name, exact: true });
+  await tripButton(`${zhCN['es.form.add']} · ${zhCN['es.field.trips']}`).click();
+  await tripButton(zhCN['es.form.remove']).click();
+  await expect(page.locator('#es-trips-0-departed')).toHaveCount(0);
+  await tripButton(zhCN['es.form.noRecords']).click();
+  await tripButton(zhCN['es.form.resetRecords']).click();
+  await tripButton(zhCN['es.form.noRecords']).click();
+  await expect(trips).toContainText(zhCN['es.form.emptyConfirmed']);
   await page.reload();
   await expect(progress).toHaveAttribute('aria-valuenow', '2');
   await expect(page.locator('#es-permits-0-from')).toHaveValue('2022-01-01');
@@ -105,6 +116,28 @@ test('Spanish questionnaire assesses pathways, saves scenarios, shares links and
     await page.locator(`#es-res-${id}`).selectOption('yes');
   }
   await page.locator('#es-res-securityDecision').selectOption('clear');
+  // A blank holiday row is kept across a reload, then removed.
+  const holidays = page.getByRole('group', {
+    name: zhCN['es.field.officeHolidays'],
+    exact: true,
+  });
+  await holidays
+    .getByRole('button', {
+      name: `${zhCN['es.form.add']} · ${zhCN['es.field.officeHolidays']}`,
+      exact: true,
+    })
+    .click();
+  await page.reload();
+  await expect(progress).toHaveAttribute('aria-valuenow', '4');
+  await page
+    .locator('summary')
+    .filter({ hasText: zhCN['es.form.resCommon'] })
+    .click();
+  await expect(page.locator('#es-res-thirdCountryRegime')).toHaveValue('yes');
+  await expect(page.locator('#es-res-officeHolidays-0')).toHaveValue('');
+  await holidays
+    .getByRole('button', { name: zhCN['es.form.remove'], exact: true })
+    .click();
   await page
     .locator('summary')
     .filter({ hasText: zhCN['es.form.resNational'] })
@@ -203,6 +236,7 @@ test('English mobile questionnaire compares dates on what-if and shows Spanish p
     })
     .click();
   await page.locator('#es-permits-0-from').fill('2022-01-01');
+  await page.locator('#es-permits-0-study').selectOption('no');
   await page
     .getByRole('group', { name: en['es.field.trips'], exact: true })
     .getByRole('button', { name: en['es.form.noRecords'], exact: true })

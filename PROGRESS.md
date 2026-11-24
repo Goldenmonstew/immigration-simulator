@@ -662,3 +662,4 @@
 | 631 | 任务 97：接入西班牙完整版首页、七步动态问卷、结果页、What-if 对比页与政策依据页。 | apps/web/app/spain/spain-content.tsx、apps/web/app/spain/simulate/{page,evidence-fields}.tsx、apps/web/app/spain/{result,policy}/page.tsx、apps/web/app/spain/whatif/{page,controls}.tsx |
 | 632 | 任务 97：补充西班牙完整版页面单元测试、双语与移动端 e2e 用例及任务报告。 | apps/web/test/spain.test.tsx、apps/e2e/tests/spain.spec.ts、docs/tasks/reports/97-es-pages.md |
 | 633 | 任务 97：政策页标题改为"西班牙政策依据"（政策页组件按国家通用，同任务 93），补标题单测；顺带用 prettier 格式化本任务两个文件。 | apps/web/components/policy-page.tsx、apps/web/i18n/countries/spain-module.ts、apps/web/test/spain.test.tsx |
+| 634 | 任务 97 审核修正（review97-1 问题 1、5、6）。西班牙问卷第 1、2 步顶层答案可清回待确认，最后一条记录可删除；居留许可是否学习改为必答；官方假日空白行在填写中保留，校验错误落在对应输入框并补 aria 属性。 | apps/web/app/spain/simulate/{page,evidence-fields}.tsx、apps/web/lib/spain-{draft,fields}.ts、apps/web/test/spain{,-questionnaire}.test.tsx、apps/e2e/tests/spain.spec.ts |

@@ -124,7 +124,7 @@ function SpainStep({ draft, errors, update }: StepProps) {
             prefix="es"
             errors={errors}
             change={(key, value) =>
-              update(updateAnswer(draft, key, value))
+              update({ [key]: value } as Partial<SpainDraft>)
             }
           />
         </>
@@ -137,7 +137,7 @@ function SpainStep({ draft, errors, update }: StepProps) {
             prefix="es-nat"
             errors={errors}
             change={(key, value) =>
-              update(updateAnswer(draft, key, value))
+              update({ [key]: value } as Partial<SpainDraft>)
             }
           />
           {renderSections(

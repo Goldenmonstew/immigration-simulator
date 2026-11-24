@@ -32,7 +32,7 @@ function longTermMetDraft(): SpainDraft {
     simulationDate: '2026-11-23',
     targets: ['L', 'N', 'E'],
     timeRecordsComplete: true,
-    permits: [{ from: '2017-01-01' }],
+    permits: [{ from: '2017-01-01', study: false }],
     trips: [],
     route: 'general',
     residence: {
@@ -181,7 +181,7 @@ test('step validation checks targets, simulation date and date ordering across s
     ...fresh,
     step: 1,
     targets: ['L'] as SpainDraft['targets'],
-    permits: [{ from: '2024-05-10', to: '2024-05-01' }],
+    permits: [{ from: '2024-05-10', to: '2024-05-01', study: false }],
     trips: [{ departed: '2024-08-10', returned: '2024-08-01' }],
   };
   expect(es.validateStep(step1)).toEqual({
@@ -191,7 +191,7 @@ test('step validation checks targets, simulation date and date ordering across s
   expect(
     es.validateStep({
       ...step1,
-      permits: [{ from: '2024-05-01', to: '2024-05-10' }],
+      permits: [{ from: '2024-05-01', to: '2024-05-10', study: false }],
       trips: [{ departed: '2024-08-01', returned: '2024-08-10' }],
     }),
   ).toEqual({});

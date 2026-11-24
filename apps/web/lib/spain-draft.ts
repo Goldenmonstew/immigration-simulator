@@ -211,11 +211,15 @@ function checkFields(
           errors[id] = 'es.form.required';
         break;
       case 'date-list':
-        if (
-          !Array.isArray(value) ||
-          !value.every((item) => typeof item === 'string' && validDate(item))
-        )
+        if (!Array.isArray(value)) {
           errors[id] = 'es.error.date';
+          break;
+        }
+        // A blank row may still be in progress until the step is submitted.
+        value.forEach((item, i) => {
+          if (typeof item !== 'string' || ((required || item) && !validDate(item)))
+            errors[`${id}-${i}`] = 'es.error.date';
+        });
         break;
       case 'boolean':
         if (typeof value !== 'boolean') errors[id] = 'es.form.required';
@@ -368,7 +372,7 @@ function migrateLegacySpainForm(
           {
             from: row.from,
             ...(typeof row.to === 'string' && row.to ? { to: row.to } : {}),
-            ...(row.study === true ? { study: true } : {}),
+            study: row.study === true,
           },
         ]
       : [],

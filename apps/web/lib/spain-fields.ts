@@ -99,7 +99,7 @@ export const spainStep0Fields: SpainField[] = [
 
 export const spainHistoryFields: SpainField[] = [
   bool('timeRecordsComplete'),
-  list('permits', [date('from', true), date('to'), bool('study')]),
+  list('permits', [date('from', true), date('to'), bool('study', true)]),
   list('trips', [date('departed', true), date('returned', true)]),
 ];
 

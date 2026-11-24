@@ -145,10 +145,14 @@ function Question({
             <Field
               id={`${id}-${i}`}
               label={`${label} ${i + 1}`}
-              error={errors[id]}
+              error={errors[`${id}-${i}`]}
             >
               <input
                 id={`${id}-${i}`}
+                aria-invalid={errors[`${id}-${i}`] ? true : undefined}
+                aria-describedby={
+                  errors[`${id}-${i}`] ? `${id}-${i}-error` : undefined
+                }
                 type="date"
                 value={item}
                 onChange={(event) =>
