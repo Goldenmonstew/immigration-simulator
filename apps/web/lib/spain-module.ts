@@ -14,8 +14,14 @@ import { spainWhatIf, type SpainWhatIf } from './spain-whatif';
 
 function run(draft: SpainDraft, locale: Locale) {
   const active = activeSpainAnswers(draft);
+  const { schooling } = active.residence;
   return evaluateSpainFull({
     ...active,
+    // Notice dates apply child by child, so an unconfirmed list stays unconfirmed.
+    residence:
+      schooling && !schooling.children
+        ? { ...active.residence, schooling: undefined }
+        : active.residence,
     locale,
   });
 }

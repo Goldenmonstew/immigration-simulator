@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, expect, test, vi } from 'vitest';
 import SpainSimulatePage from '../app/spain/simulate/page';
 import { LocaleContext } from '../i18n/locale';
+import { readPageResult } from '../lib/page-result';
+import { encodeDraft } from '../lib/share';
 import type { SpainDraft } from '../lib/spain-draft';
 import { spainModule as es } from '../lib/spain-module';
 
@@ -133,4 +135,32 @@ test('a blank office holiday row survives reload and is flagged on its own input
   );
   expect(html.match(/id="es-res-officeHolidays-1-error"/g)).toHaveLength(1);
   expect(html.match(/Enter a valid date/g)).toHaveLength(1);
+});
+
+test('schooling dates without a confirmed child list are assessed as unconfirmed', () => {
+  const draft: SpainDraft = {
+    ...es.createDraft(),
+    step: 3,
+    completed: true,
+    simulationDate: '2026-11-24',
+    targets: ['L'],
+    timeRecordsComplete: true,
+    permits: [{ from: '2017-01-01', study: false }],
+    trips: [],
+    residence: {
+      nationalAlternatives: [],
+      // The page can save the dates before the child list is answered.
+      schooling: {
+        noticeDate: '2026-10-01',
+        cureDeadline: '2026-11-02',
+      } as NonNullable<SpainDraft['residence']['schooling']>,
+    },
+  };
+  expect(es.validateStep(draft)).toEqual({});
+  const lt = es.run(draft, 'en').columns[0].pathways[0];
+  expect(lt.checks.find((check) => check.id === 'ES-L13')?.status).toBe(
+    'UNKNOWN',
+  );
+  const shared = readPageResult(es, 'en', encodeDraft(es, draft));
+  expect(shared.result?.columns[0].pathways[0].id).toBe('ES-LONG-TERM');
 });
