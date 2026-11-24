@@ -214,3 +214,20 @@ export type {
 } from './australia';
 export { DE_FULL_ROUTES, evaluateGermanyFull } from './germany-full';
 export type { DeFullRequest, DeFullRoute } from './germany-full';
+export { evaluateIrelandFull } from './ireland-full';
+export type {
+  IrelandBurden,
+  IrelandCharacter,
+  IrelandCitizenship,
+  IrelandFamily,
+  IrelandFullPathwayId,
+  IrelandFullRequest,
+  IrelandLtr,
+  IrelandRegistration,
+  IrelandResidencePeriod,
+  IrelandTreatyActivity,
+  IrelandTreatyResidence,
+  IrelandWcatt,
+  IrelandWorkPermit,
+  IrelandWorkUpgrade,
+} from './ireland-full';

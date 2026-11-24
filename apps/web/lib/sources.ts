@@ -410,4 +410,52 @@ export const sourceUrls: Record<string, string> = {
     'https://www.publicationsduquebec.gouv.qc.ca/fileadmin/gazette/pdf_encrypte/lois_reglements/2026F/88289.pdf',
   'SRC-279':
     'https://www.ontario.ca/page/oinp-employer-guide?redirect_id=page%2Fontario-immigrant-nominee-program-oinp-employer-guide&redirect_year=2026?redirect_id=page%2Foinp-employer-job-offer-streams-employer-guide&redirect_year=2026',
+  'SRC-380': 'https://www.irishstatutebook.ie/eli/2011/si/569/made/en/print',
+  'SRC-381':
+    'https://www.irishimmigration.ie/how-to-become-a-citizen/become-an-irish-citizen-by-naturalisation/proofs-of-identity-and-residence/',
+  'SRC-382':
+    'https://www.irishimmigration.ie/how-to-become-a-citizen/become-an-irish-citizen-by-naturalisation/citizenship-applicants-guide-to-an-garda-siochana-national-vetting-bureau-e-vetting/',
+  'SRC-383': 'https://revisedacts.lawreform.ie/eli/2004/act/1/revised/en/html',
+  'SRC-384':
+    'https://www.irishimmigration.ie/registering-your-immigration-permission/how-to-renew-your-current-permission/renewing-your-registration-permission-if-you-live-in-the-republic-of-ireland/',
+  'SRC-385':
+    'https://www.irishimmigration.ie/coming-to-join-family-in-ireland/policy-document-archive/',
+  'SRC-386':
+    'https://www.irishimmigration.ie/coming-to-join-family-in-ireland/financial-thresholds/',
+  'SRC-387':
+    'https://www.irishimmigration.ie/wp-content/uploads/2026/06/Family-Reunification-Policy-12-June-2026.pdf',
+  'SRC-388':
+    'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/spouse-civil-partner-of-irish-national-scheme/',
+  'SRC-389':
+    'https://www.irishimmigration.ie/coming-to-join-family-in-ireland/joining-an-eea-or-swiss-national/eu-treaty-rights/',
+  'SRC-390': 'https://www.irishstatutebook.ie/eli/2015/si/548/made/en/print',
+  'SRC-391':
+    'https://www.irishimmigration.ie/wp-content/uploads/2026/09/Explanatory-leaflet-for-Form-EUTR3-updated-August-2026.pdf',
+  'SRC-392': 'https://www.irishstatutebook.ie/eli/2020/si/728/made/en/print',
+  'SRC-393': 'https://www.irishstatutebook.ie/eli/2024/act/17/enacted/en/print',
+  'SRC-394':
+    'https://enterprise.gov.ie/en/what-we-do/workplace-and-skills/employment-permits/permit-types/critical-skills-employment-permit/',
+  'SRC-395':
+    'https://home-affairs.ec.europa.eu/system/files/2022-06/20221_directive_2003109ec_duration_of_absence_and_loss_of_the_long-term_resident_status%20%281%29.pdf',
+  'SRC-397':
+    'https://enterprise.gov.ie/en/what-we-do/workplace-and-skills/employment-permits/latest-updates/',
+  'SRC-398':
+    'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/long-term-residency/',
+  'SRC-399':
+    'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/immigration-guidelines-for-victims-of-domestic-abuse/',
+  'SRC-400':
+    'https://www.irishimmigration.ie/apply-for-irish-citizenship-by-irish-descent-or-irish-associations/',
+  'SRC-401': 'https://www.irishstatutebook.ie/eli/1985/act/2/enacted/en/print',
+  'SRC-402': 'https://revisedacts.lawreform.ie/eli/1966/act/21/revised/en/html',
+  'SRC-404':
+    'https://enterprise.gov.ie/en/publications/publication-files/employment-permits-minimum-annual-remuneration-outcome-of-the-roadmap-review-2025.pdf',
+  'SRC-405':
+    'https://www.irishimmigration.ie/registering-your-immigration-permission/how-to-register-your-immigration-permission-for-the-first-time/registration-requirements-for-minors/',
+  'SRC-406':
+    'https://www.irishimmigration.ie/preclearance-and-entry-visas-fees/',
+  'SRC-407': 'https://www.irishstatutebook.ie/eli/isbc/2024_17.html',
+  'SRC-408':
+    'https://www.irishstatutebook.ie/eli/2026/act/9/enacted/en/print.html',
+  'SRC-409':
+    'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/family-dependents/',
 };
