@@ -62,6 +62,10 @@ type Ordinary = Extract<JpFullReentryRequest, { route: 'ordinary' }>;
 const requestedDay = (draft: Dates) =>
   draft.applicationDate ?? draft.simulationDate;
 
+export function changedJapanAnswer(previous: unknown, next: unknown) {
+  return previous !== undefined && previous !== '' && previous !== next;
+}
+
 export function ordinaryFilingDays(draft: Dates, route: Ordinary) {
   const requested = requestedDay(draft);
   if (!validDate(requested)) return undefined;
@@ -85,23 +89,33 @@ export function ordinaryAnswersForDate(
   const days = ordinaryFilingDays(draft, route);
   const recorded = ordinaryFilingDays(previous, original);
   if (route.lawfulStatus !== undefined) {
-    if (!days?.statusDate || recorded?.statusEvidenceOn !== days.statusDate)
+    if (
+      changedJapanAnswer(
+        original.lawfulStatusOn ?? recorded?.statusEvidenceOn,
+        days?.statusDate,
+      )
+    )
       route = { ...route, lawfulStatus: undefined, lawfulStatusOn: undefined };
-    else if (days.statusEvidenceOn !== days.statusDate)
+    else if (days && days.statusEvidenceOn !== days.statusDate)
       route = { ...route, lawfulStatusOn: days.statusDate };
   }
   if (
     route.inJapanWhenApplying !== undefined ||
     route.excludedStatusOrDetention !== undefined
   ) {
-    if (!days || recorded?.filingEvidenceOn !== days.date)
+    if (
+      changedJapanAnswer(
+        original.filingEvidenceOn ?? recorded?.filingEvidenceOn,
+        days?.date,
+      )
+    )
       route = {
         ...route,
         inJapanWhenApplying: undefined,
         excludedStatusOrDetention: undefined,
         filingEvidenceOn: undefined,
       };
-    else if (days.filingEvidenceOn !== days.date)
+    else if (days && days.filingEvidenceOn !== days.date)
       route = { ...route, filingEvidenceOn: days.date };
   }
   return route;
@@ -113,7 +127,7 @@ export function datedJapanAnswers(
 ): JapanDraft {
   const reentry = draft.reentry.map((route) => {
     if (route.route !== 'ordinary') return route;
-    if (requestedDay(draft) !== requestedDay(previous))
+    if (changedJapanAnswer(requestedDay(previous), requestedDay(draft)))
       route = { ...route, onlineConcurrentEligibleApplication: undefined };
     return ordinaryAnswersForDate(draft, route, previous);
   });
@@ -121,7 +135,12 @@ export function datedJapanAnswers(
     draft = { ...draft, reentry };
   if (!hasJapanResidenceRoute(draft)) return draft;
   const day = residenceFilingDay(draft);
-  if (day === (previous.residenceEvidenceOn ?? requestedDay(previous))) {
+  if (
+    !changedJapanAnswer(
+      previous.residenceEvidenceOn ?? requestedDay(previous),
+      day,
+    )
+  ) {
     return day !== (draft.residenceEvidenceOn ?? requestedDay(draft))
       ? { ...draft, residenceEvidenceOn: day }
       : draft;
@@ -139,14 +158,17 @@ export function datedJapanAnswers(
           (next.route === 'hsp70' ||
             next.route === 'hsp80' ||
             next.route === 'j-skip') &&
-          requestedDay(draft) !== requestedDay(previous)
+          changedJapanAnswer(requestedDay(previous), requestedDay(draft))
         ) {
           const past = day && japanTalentHistoricalDate(next.route, day);
           return {
             ...next,
-            current: next.current?.on === day ? next.current : undefined,
-            historical:
-              next.historical?.on === past ? next.historical : undefined,
+            current: changedJapanAnswer(next.current?.on, day)
+              ? undefined
+              : next.current,
+            historical: changedJapanAnswer(next.historical?.on, past)
+              ? undefined
+              : next.historical,
           };
         }
         return next;
@@ -675,6 +697,22 @@ export function restoreStoredJapanDraft(
   forResult = false,
 ): JapanDraft {
   let confirmed = datedJapanAnswers(clearUnconfirmedJapanDeclaration(draft));
+  // Older forms could store permit validity without recording the departure method.
+  if (
+    confirmed.trips.some(
+      (trip) => !trip.departure && trip.reentryPermit !== undefined,
+    )
+  ) {
+    confirmed = {
+      ...confirmed,
+      trips: confirmed.trips.map((trip) => {
+        if (trip.departure || trip.reentryPermit === undefined) return trip;
+        const next = { ...trip };
+        delete next.reentryPermit;
+        return next;
+      }),
+    };
+  }
   // Older travel-only drafts could be saved on the shared trip-history step.
   if (
     confirmed.step === 1 &&

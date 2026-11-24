@@ -4,6 +4,7 @@ import { japanFull2026_11 } from '@uk-immigration/policy-data';
 import { Field } from '../../simulate/field';
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
+import { changedJapanAnswer } from '../../../lib/japan-draft';
 import type { JapanField } from '../../../lib/japan-fields';
 import form from '../../simulate/form.module.css';
 import site from '../../site.module.css';
@@ -78,41 +79,40 @@ function Question({
       prefix={key}
       errors={errors}
       change={(name, answer) => {
+        const changed = changedJapanAnswer(
+          (display as Record<string, unknown>)[name],
+          answer,
+        );
         const changedReference =
           (field.name === 'current' || field.name === 'historical') &&
           name === 'on' &&
-          answer !== (record as { on?: string }).on;
+          changed;
         let updated = updateAnswer(
           changedReference ? {} : record,
           name,
           answer,
         );
-        if (
-          field.name === 'trips' &&
-          answer !== (record as Record<string, unknown>)[name]
-        ) {
-          if (name === 'returned')
+        if (field.name === 'trips' && changed) {
+          if (
+            name === 'returned' ||
+            name === 'departed' ||
+            name === 'departure'
+          )
             updated = updateAnswer(updated, 'reentryPermit', undefined);
           if (name === 'departed') {
             updated = updateAnswer(updated, 'departure', undefined);
             updated = updateAnswer(updated, 'renewalPending', undefined);
+          }
+          if (name === 'departed' || name === 'departure') {
             updated = updateAnswer(
               updated,
               'specialPermanentResident',
               undefined,
             );
-            updated = updateAnswer(updated, 'reentryPermit', undefined);
           }
         }
-        if (field.name === 'trips' && name === 'departure') {
-          updated = updateAnswer(updated, 'reentryPermit', undefined);
-          updated = updateAnswer(
-            updated,
-            'specialPermanentResident',
-            undefined,
-          );
-        }
         if (
+          changed &&
           field.name === 'status' &&
           name === 'kind' &&
           answer !== 'businessManager'

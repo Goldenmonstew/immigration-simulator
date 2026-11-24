@@ -19,7 +19,7 @@ export function readPageResult<D extends CountryDraft, K>(
   country: CountryModule<D, K>,
   locale: Locale,
   source: D | string | null = null,
-  mode: 'result' | 'preview' = 'result',
+  mode: 'result' | 'preview' | 'refresh' = 'result',
 ): ResultPageState<D> {
   const shared = typeof source === 'string';
   function assess(draft?: D): ResultPageState<D> {
@@ -41,8 +41,10 @@ export function readPageResult<D extends CountryDraft, K>(
     const cached =
       !shared && getRememberedResult(country, draft, locale, deviceDay);
     const result = cached || country.run(draft, locale);
-    if (shared) draftStorage(country, draft);
-    if (!cached && (shared || source === null))
+    // A shared tab becoming visible must not import its draft over later edits.
+    const importing = shared && mode !== 'refresh';
+    if (importing) draftStorage(country, draft);
+    if (!cached && (importing || source === null))
       rememberResult(country, draft, result, locale, deviceDay);
     return { draft, result, shared };
   }

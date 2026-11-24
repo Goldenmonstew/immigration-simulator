@@ -26,7 +26,7 @@ export function ResultPage<D extends CountryDraft, K>({
   const p = punct(locale);
   const [page, setPage] = useState<ResultPageState<D> & { mock?: boolean }>();
   useEffect(() => {
-    const load = () => {
+    const load = (mode: 'result' | 'refresh') => {
       const encoded = new URLSearchParams(window.location.hash.slice(1)).get(
         's',
       );
@@ -36,12 +36,22 @@ export function ResultPage<D extends CountryDraft, K>({
       setPage(
         example
           ? { result: example, mock: true }
-          : readPageResult(country, locale, encoded),
+          : readPageResult(country, locale, encoded, mode),
       );
     };
-    load();
-    window.addEventListener('hashchange', load);
-    return () => window.removeEventListener('hashchange', load);
+    const open = () => load('result');
+    const refresh = () => {
+      if (document.visibilityState === 'visible') load('refresh');
+    };
+    open();
+    window.addEventListener('hashchange', open);
+    if (country.id === 'jp')
+      document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('hashchange', open);
+      if (country.id === 'jp')
+        document.removeEventListener('visibilitychange', refresh);
+    };
   }, [country, locale, preview]);
 
   const { draft, result, shared, mock, correction } = page ?? {};

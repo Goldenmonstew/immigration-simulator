@@ -1957,3 +1957,179 @@ test('residence and talent questions keep evidence for the assessed counter day 
   expect(check('jp.pr.filing-in-japan')).toBe('MET');
   expect(check('jp.nat.lawful-domicile')).toBe('MET');
 });
+
+function editField(draft: JapanDraft, id: string, value: string) {
+  let next = draft;
+  form(draft, (patch) => {
+    next = { ...draft, ...patch };
+  });
+  fields.get(id)!({ target: { value } });
+  return next;
+}
+
+test('entering points before the first reference date keeps the evidence in the shared HSP result', () => {
+  const requested = '2027-04-03';
+  const candidate = '2027-04-05';
+  const historical = '2024-04-05';
+  let draft: JapanDraft = {
+    ...generalTripDraft(),
+    step: 2,
+    completed: true,
+    applicationDate: requested,
+    permanentResidence: {
+      routes: [
+        {
+          route: 'hsp70',
+          mode: 'retrospective',
+          maintained: true,
+          statusStart: '2014-01-01',
+        },
+      ],
+      evidence: prEvidence,
+    },
+    trips: [],
+  };
+  const answer = (name: string, value: string) => {
+    draft = editField(draft, 'jp-pr-hsp70-' + name, value);
+  };
+  const shared = () => readPageResult(jp, 'en', encodeDraft(jp, draft));
+
+  for (const [group, date] of [
+    ['historical', historical],
+    ['current', candidate],
+  ]) {
+    answer(group + '-confirmedPoints', '80');
+    answer(group + '-on', date);
+    answer(group + '-on', date);
+  }
+  expect(shared().draft?.permanentResidence.routes[0]).toMatchObject({
+    current: { on: candidate, confirmedPoints: 80 },
+    historical: { on: historical, confirmedPoints: 80 },
+  });
+  const path = () => shared().result!.columns[0].pathways[0];
+  expect(
+    path().checks.find((c) => c.id === 'jp.pr.hsp-current-points')?.status,
+  ).toBe('MET');
+  expect(path()).toMatchObject({ status: 'MET', earliestDate: candidate });
+
+  answer('current-on', '2027-04-06');
+  answer('current-on', candidate);
+  expect(shared().draft?.permanentResidence.routes[0]).toMatchObject({
+    current: { on: candidate },
+    historical: { on: historical, confirmedPoints: 80 },
+  });
+  expect(
+    path().checks.find((c) => c.id === 'jp.pr.hsp-current-points')?.status,
+  ).toBe('UNKNOWN');
+  expect(path().earliestDate).toBeUndefined();
+  answer('current-confirmedPoints', '80');
+  expect(path()).toMatchObject({ status: 'MET', earliestDate: candidate });
+});
+
+test('the first trip dates preserve earlier answers and a replacement resets only its dependent answers', () => {
+  let draft = generalTripDraft();
+  draft.trips = [
+    {
+      departed: '',
+      returned: '',
+      departure: 'permit',
+      reentryPermit: false,
+      renewalPending: false,
+    },
+  ];
+  const answer = (key: string, value: string) => {
+    draft = editField(draft, 'jp-trips-0-' + key, value);
+  };
+  answer('departed', '2026-10-01');
+  answer('returned', '2026-11-10');
+  answer('departure', 'permit');
+  expect(draft.trips[0]).toMatchObject({
+    departure: 'permit',
+    reentryPermit: false,
+    renewalPending: false,
+  });
+  answer('returned', '2026-11-11');
+  expect(draft.trips[0].reentryPermit).toBeUndefined();
+  expect(draft.trips[0].renewalPending).toBe(false);
+  answer('departed', '2026-10-02');
+  expect(draft.trips[0].departure).toBeUndefined();
+  expect(draft.trips[0].renewalPending).toBeUndefined();
+});
+
+test.each(['ordinary', 'deemed', 'refugee-travel-document'] as const)(
+  'the first %s departure date retains answers entered before the date',
+  (route) => {
+    let draft: JapanDraft = {
+      ...jp.createDraft(),
+      step: 6,
+      simulationDate: '2026-11-24',
+      reentry: [
+        {
+          route,
+          timelyRenewalPending: false,
+          specialPermanentResident: false,
+          lawfulStatus: true,
+          ...(route === 'ordinary' && {
+            permit: { effectiveOn: '2025-01-01' },
+          }),
+          ...(route === 'refugee-travel-document' && {
+            refugeeRecognition: true,
+          }),
+        },
+      ],
+    };
+    const answer = (value: string) => {
+      draft = editField(draft, 'jp-travel-' + route + '-departureOn', value);
+    };
+    answer('2026-11-20');
+    expect(draft.reentry[0]).toMatchObject({
+      timelyRenewalPending: false,
+      specialPermanentResident: false,
+      ...(route === 'refugee-travel-document'
+        ? { refugeeRecognition: true }
+        : { lawfulStatus: true }),
+    });
+    answer('2026-11-21');
+    expect(draft.reentry[0].timelyRenewalPending).toBeUndefined();
+    expect(draft.reentry[0].specialPermanentResident).toBeUndefined();
+    if (draft.reentry[0].route === 'refugee-travel-document')
+      expect(draft.reentry[0].refugeeRecognition).toBeUndefined();
+    else expect(draft.reentry[0].lawfulStatus).toBeUndefined();
+  },
+);
+
+test('filing evidence binds to the first available date and undated talent answers survive a filing date edit', () => {
+  let draft: JapanDraft = {
+    ...jp.createDraft(),
+    simulationDate: '',
+    permanentResidence: {
+      routes: [{ route: 'j-skip', current: { on: '', confirmed: false } }],
+      evidence: { inJapan: false },
+    },
+    reentry: [
+      {
+        route: 'ordinary',
+        channel: 'counter',
+        onlineConcurrentEligibleApplication: false,
+        lawfulStatus: true,
+        inJapanWhenApplying: false,
+      },
+    ],
+  };
+  draft = editField(draft, 'jp-simulationDate', '2027-04-03');
+  expect(draft.residenceEvidenceOn).toBe('2027-04-05');
+  expect(draft.permanentResidence.evidence.inJapan).toBe(false);
+  expect(draft.reentry[0]).toMatchObject({
+    onlineConcurrentEligibleApplication: false,
+    lawfulStatus: true,
+    lawfulStatusOn: '2027-04-05',
+    inJapanWhenApplying: false,
+    filingEvidenceOn: '2027-04-05',
+  });
+  draft = editField(draft, 'jp-applicationDate', '2027-04-06');
+  expect(draft.permanentResidence.evidence.inJapan).toBeUndefined();
+  expect(draft.reentry[0].lawfulStatus).toBeUndefined();
+  expect(draft.permanentResidence.routes[0]).toMatchObject({
+    current: { on: '', confirmed: false },
+  });
+});

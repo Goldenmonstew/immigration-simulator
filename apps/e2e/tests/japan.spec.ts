@@ -485,3 +485,65 @@ test('returning to results after another tab submits uses the same draft for dis
     JSON.parse(Buffer.from(encoded, 'base64url').toString()).draft.reentry,
   ).toEqual([{ route: 'deemed', departureOn: departure }]);
 });
+
+test('a shared Japanese result updates its departure prompt when the tab becomes visible after midnight', async ({
+  page,
+}) => {
+  const departure = '2026-11-23';
+  const key = 'jp-immigration-draft-v1';
+  const shared = Buffer.from(
+    JSON.stringify({
+      country: 'jp',
+      v: 1,
+      draft: {
+        version: 1,
+        step: 0,
+        completed: true,
+        simulationDate: '2026-11-26',
+        stayStart: '',
+        trips: [],
+        permanentResidence: { routes: [], evidence: {} },
+        naturalisation: { routes: [], evidence: {} },
+        reentry: [
+          { route: 'deemed', departureOn: departure, returnOn: '2026-11-27' },
+        ],
+      },
+    }),
+  ).toString('base64url');
+  await page.clock.setFixedTime(new Date('2026-11-23T23:59:00Z'));
+  await page.goto(path('result') + '#s=' + shared);
+  const main = page.getByRole('main');
+  const planned = zhCN['jp.result.plannedDeparture'].replace(
+    '{date}',
+    departure,
+  );
+  const actual = zhCN['jp.result.confirmDeparture'].replace(
+    '{date}',
+    departure,
+  );
+  await expect(main).toContainText(planned);
+  const edited = await page.evaluate((key) => {
+    const draft = JSON.parse(localStorage.getItem(key)!);
+    draft.reentry[0].departureOn = '2026-11-22';
+    const encoded = JSON.stringify(draft);
+    localStorage.setItem(key, encoded);
+    return encoded;
+  }, key);
+  const setVisibility = (state: DocumentVisibilityState) =>
+    page.evaluate((state) => {
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        value: state,
+      });
+      document.dispatchEvent(new Event('visibilitychange'));
+    }, state);
+  await setVisibility('hidden');
+  await page.clock.setFixedTime(new Date('2026-11-24T00:01:00Z'));
+  await expect(main).toContainText(planned);
+  await setVisibility('visible');
+  await expect(main).toContainText(actual);
+  await expect(main).not.toContainText(planned);
+  expect(await page.evaluate((key) => localStorage.getItem(key), key)).toBe(
+    edited,
+  );
+});

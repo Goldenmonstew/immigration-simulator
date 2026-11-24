@@ -11,6 +11,7 @@ import { useTranslation } from '../../../i18n/locale';
 import {
   activeJapanAnswers,
   canConfirmJapanDeparture,
+  changedJapanAnswer,
   hasJapanResidenceRoute,
   japanDepartureTiming,
   japanSteps,
@@ -54,11 +55,17 @@ function editTravelField(
   route: JapanDraft['reentry'][number],
   key: string,
   value: unknown,
+  displayed: JapanDraft['reentry'][number],
 ) {
   const next = updateAnswer(route, key, value);
-  if (['departureOn', 'returnOn', 'newLandingOn'].includes(key))
+  const departureChanged =
+    key === 'departureOn' && changedJapanAnswer(route.departureOn, value);
+  if (
+    departureChanged ||
+    ((key === 'returnOn' || key === 'newLandingOn') &&
+      changedJapanAnswer(displayed[key], value))
+  )
     delete next.comparisonHistoryReturnOn;
-  const departureChanged = key === 'departureOn' && value !== route.departureOn;
   if (departureChanged) {
     delete next.timelyRenewalPending;
     delete next.specialPermanentResident;
@@ -92,7 +99,12 @@ function editTravelField(
     delete next.residentCardOrCertificate;
     delete next.alreadyDeparted;
   }
-  if (departureChanged || (key === 'alreadyDeparted' && value !== true)) {
+  if (
+    departureChanged ||
+    (key === 'alreadyDeparted' &&
+      changedJapanAnswer(route.alreadyDeparted, value) &&
+      value !== true)
+  ) {
     delete next.declaredIntentAtDeparture;
     delete next.declarationForDepartureOn;
   }
@@ -227,7 +239,13 @@ function JapanStep({ draft: stored, errors, update: save }: StepProps) {
                       r.route === 'deemed' ||
                       r.route === 'refugee-travel-document'
                     )
-                      return editTravelField(draft, r, key, value);
+                      return editTravelField(
+                        draft,
+                        r,
+                        key,
+                        value,
+                        reentry[index],
+                      );
                     return updateAnswer(r, key, value);
                   }),
                   { route: route.route, field: key },
