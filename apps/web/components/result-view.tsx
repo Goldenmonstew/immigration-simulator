@@ -410,7 +410,13 @@ function PathwayAssessment<D extends CountryDraft, K>({
             (rule) => !assessment.decidedBy!.includes(rule.id),
           ) && (
             <details className={styles.otherPathways}>
-              <summary>{t('result.otherPathways')}</summary>
+              <summary>
+                {t(
+                  country.id === 'es'
+                    ? 'es.result.otherChecks'
+                    : 'result.otherPathways',
+                )}
+              </summary>
               <RuleGroups
                 rules={assessment.checks.filter(
                   (rule) => !assessment.decidedBy!.includes(rule.id),

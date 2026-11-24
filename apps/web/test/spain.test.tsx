@@ -392,3 +392,47 @@ test.each(['zh-CN', 'en'] as const)(
     }
   },
 );
+
+test.each(['zh-CN', 'en'] as const)(
+  'fees and follow-up steps are labelled as such, and a held permanent right shows when it was acquired (%s)',
+  (locale) => {
+    const draft: SpainDraft = {
+      ...es.createDraft(),
+      completed: true,
+      simulationDate: '2026-11-24',
+      targets: ['U'],
+      timeRecordsComplete: true,
+      trips: [],
+      freeMovement: {
+        person: 'eu-eea-swiss',
+        residenceFrom: '2017-01-01',
+        noExecutedExpulsion: true,
+        history: [{ from: '2017-01-01', basis: 'employment', documented: true }],
+        noOfficialRestriction: true,
+      },
+    };
+    const result = es.run(draft, locale);
+    expect(result.columns[0].pathways[0]).toMatchObject({
+      status: 'MET',
+      earliestDate: '2026-11-24',
+      pathwayCompletionDate: '2022-01-01',
+    });
+    const html = render(
+      <ResultView country={es} result={result} draft={draft} />,
+      locale,
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? 'Permanent residence was acquired on 2022-01-01.'
+        : '已于 2022-01-01 取得永久居留权。',
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? 'Fees, cards, post-grant steps and branch details (these do not decide this pathway)'
+        : '费用、办卡、获批后手续与分支明细（不决定本路径结论）',
+    );
+    expect(html).not.toContain(
+      locale === 'en' ? 'Other pathways (shows why' : '其他路径的条件',
+    );
+  },
+);

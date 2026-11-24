@@ -19,6 +19,9 @@ export const zhCN = {
     '问卷在浏览器本地计算，草稿与保存的情景仅留在这台设备。分享链接包含所填资料，收到链接的人可以还原并查看同一情景。',
   'es.result.finishQuestionnaire':
     '请返回问卷，完成所选路径的必填项目后再查看结果。',
+  'es.result.otherChecks':
+    '费用、办卡、获批后手续与分支明细（不决定本路径结论）',
+  'es.result.acquiredOn': '已于 {date} 取得永久居留权。',
   'es.error.date': '请填写有效日期。',
   'es.error.order': '结束或返回日期不能早于开始或离开日期。',
 } as const;
@@ -42,6 +45,9 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Calculations run locally in your browser. Drafts and saved scenarios stay on this device. Anyone with a share link can load and inspect the answers it contains.',
   'es.result.finishQuestionnaire':
     'Return to the questionnaire and complete the required fields for your selected pathways to see your result.',
+  'es.result.otherChecks':
+    'Fees, cards, post-grant steps and branch details (these do not decide this pathway)',
+  'es.result.acquiredOn': 'Permanent residence was acquired on {date}.',
   'es.error.date': 'Enter a valid date.',
   'es.error.order': 'The end or return date cannot be before the start or departure date.',
 };
