@@ -528,6 +528,7 @@
 | 575 | 任务 95：e2e 覆盖加拿大问卷到结果、方案保存、分享还原、条件跳转对比、英文手机宽度与政策来源。 | apps/e2e/tests/canada.spec.ts |
 | 576 | 任务 95：报告列出问卷步骤与字段、对比旋钮、旧入口处理和验证结果。 | docs/tasks/reports/95-ca-pages.md |
 | 577 | 任务 95：政策页组件按国家读 `<国家>.policy.pageTitle`（与任务 93 相同改动），加拿大标题生效。 | apps/web/components/policy-page.tsx |
+| 580 | 任务 105：新增加拿大人生模拟内容包。哈利法克斯港边的虚构街区枫港：19 个地点、7 位镇民与 1 位室友（排班、对话、礼物）、2 位原创角色（已是永久居民、等入籍的检验技师；持毕业生工作许可、走大西洋移民项目的护理助理）、日常与系统事件、传统日/维多利亚日/加拿大日/感恩节、道具与菜谱。评估交给加拿大完整版引擎：进度条按居住天数时钟或已满足条件数，聘书、安家计划、省担保、CELPIP、警证、入籍签署与考试、宣誓、AIP 递交写回引擎答案，费用取 policy-data；补内容包单测。 | packages/game/package.json、packages/game/src/packs/ca/、packages/game/test/ca-pack.test.ts |
 | 590 | 任务 86：核对并登记美国完整版官方快照、哈希及来源网址，追加 PD-260–279。 | docs/SOURCES.md、docs/pending-details.md、policy-sources/、apps/web/lib/sources.ts |
 | 591 | 任务 86：登记美国完整版出处、日期参数、数字门槛及费用。 | packages/policy-data/src/{index.ts,parameters/united-states-2026-11.ts} |
 | 592 | 任务 86：提供美国九路径完整版 CountryResult，接入既有时间计算，增加资格、审查与费用条件、回归测试及页面接线交接。 | packages/engine/src/{index.ts,united-states-full/}、packages/engine/test/united-states-full.test.ts、docs/tasks/reports/86-us-rules.md |
