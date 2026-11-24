@@ -20,6 +20,8 @@ export const zhCN = {
     '永住許可涵盖一般、家族、高度人材及特别路径。帰化涵盖一般条件和国籍法的特别条款。再入国包括普通许可、みなし再入国許可和难民旅行证件。评估使用与递交日相应的规则，分别显示时间条件和完整申请条件。',
   'jp.error.date': '请填写有效日期。',
   'jp.error.futureFact': '已发生事项的日期不能晚于模拟日期。',
+  'jp.error.departureConflict':
+    '这趟行程已记录实际返日或重新上陆，但出境问题选了「否」。请核对出境答案和返日记录。',
   'jp.result.finishQuestionnaire':
     '请返回问卷，完成所选路径的必填项目后再查看结果。',
   'jp.result.correctFutureFact':
@@ -61,6 +63,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'jp.error.date': 'Enter a valid date.',
   'jp.error.futureFact':
     'An event that has already occurred must be dated on or before the simulation date.',
+  'jp.error.departureConflict':
+    'This trip has a recorded return or new landing in Japan, but the departure answer is “No”. Check the departure answer and the return record.',
   'jp.result.finishQuestionnaire':
     'Return to the questionnaire and complete the required fields for your selected routes to see your result.',
   'jp.result.correctFutureFact':

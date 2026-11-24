@@ -32,7 +32,7 @@ import {
 } from './japan-fields';
 
 interface JapanReturnRecord {
-  // The actual-or-planned return date was already in the past when entered.
+  // A return entered as a past fact in the questionnaire, independent of what-if dates.
   recordedReturnOn?: string;
 }
 
@@ -229,19 +229,19 @@ function hasRecordedJapanReturn(
   asOf: string,
 ) {
   const duringTrip = (on?: string) =>
-    !!on && !!route.departureOn && route.departureOn <= on && on <= asOf;
+    !!on &&
+    validDate(on) &&
+    !!route.departureOn &&
+    route.departureOn <= on &&
+    on <= asOf;
   const hasReturnFact = (
     record: JapanReturnRecord & { newLandingOn?: string },
-    returned?: string,
-  ) =>
-    duringTrip(record.newLandingOn) ||
-    (record.recordedReturnOn === returned && duringTrip(returned));
-  if (hasReturnFact(route, route.returnOn)) return true;
+  ) => duringTrip(record.newLandingOn) || duringTrip(record.recordedReturnOn);
+  if (hasReturnFact(route)) return true;
   if (
     hasJapanResidenceRoute(draft) &&
     draft.trips.some(
-      (trip) =>
-        sameJapanTrip(trip, route) && hasReturnFact(trip, trip.returned),
+      (trip) => sameJapanTrip(trip, route) && hasReturnFact(trip),
     )
   )
     return true;
@@ -250,7 +250,7 @@ function hasRecordedJapanReturn(
       sameJapanTrip(
         { departed: other.departureOn, returned: japanTripReturnOn(other) },
         route,
-      ) && hasReturnFact(other, other.returnOn),
+      ) && hasReturnFact(other),
   );
 }
 
@@ -271,16 +271,18 @@ export function japanDepartureStatus(
     route.route === 'deemed' &&
     typeof route.declaredIntentAtDeparture === 'boolean' &&
     route.declarationForDepartureOn === departureOn;
+  const recordedReturn = due && hasRecordedJapanReturn(draft, route, asOf);
   const departed =
     due &&
     (alreadyDeparted ??
       (actualDeclaration ||
         (legacyDateOnly && departureOn < asOf) ||
-        hasRecordedJapanReturn(draft, route, asOf)));
+        recordedReturn));
   const pending = due && !legacyDateOnly && !departed && departureOn < current;
   return {
     date: departureOn,
     departed,
+    conflictingReturn: alreadyDeparted === false && recordedReturn,
     actualDeclaration,
     askIfDeparted: due && (departureOn === asOf || !legacyDateOnly),
     hint: departed
@@ -371,7 +373,16 @@ export function activeJapanAnswers(draft: JapanDraft): JapanDraft {
     reentry: draft.reentry.map((route) => {
       if (trips.some((trip) => sameJapanTrip(trip, route))) return route;
       const active = { ...route };
-      delete active.comparisonHistoryReturnOn;
+      // The original return distinguishes trips leaving on the same day even
+      // when a hypothetical return now coincides with a different record.
+      const anotherRecordOnDeparture =
+        route.departureOn &&
+        (trips.some((trip) => trip.departed === route.departureOn) ||
+          draft.reentry.some(
+            (other) =>
+              other !== route && other.departureOn === route.departureOn,
+          ));
+      if (!anotherRecordOnDeparture) delete active.comparisonHistoryReturnOn;
       if (active.route === 'deemed') delete active.historyStayExpiry;
       return active;
     }),
@@ -686,17 +697,22 @@ function checkStep(
         fields(travelRouteFields[route.route], route, prefix);
         if (
           route.comparisonHistoryReturnOn !== undefined &&
+          route.comparisonHistoryReturnOn !== '' &&
           (typeof route.comparisonHistoryReturnOn !== 'string' ||
             !validDate(route.comparisonHistoryReturnOn))
         )
           errors[prefix + '-returnOn'] = 'jp.error.date';
-        if (
-          route.route === 'deemed' &&
-          route.declaredIntentAtDeparture !== undefined &&
-          !japanDepartureStatus(draft, route).departed
-        )
-          errors[prefix + '-declaredIntentAtDeparture'] =
-            'jp.form.declarationError';
+        if (route.route === 'deemed') {
+          const departure = japanDepartureStatus(draft, route);
+          if (checkActualDates && departure.conflictingReturn)
+            errors[prefix + '-alreadyDeparted'] = 'jp.error.departureConflict';
+          if (
+            route.declaredIntentAtDeparture !== undefined &&
+            !departure.departed
+          )
+            errors[prefix + '-declaredIntentAtDeparture'] =
+              'jp.form.declarationError';
+        }
         if (!submitting) continue;
         order(prefix + '-returnOn', route.departureOn, route.returnOn);
         order(prefix + '-newLandingOn', route.departureOn, route.newLandingOn);
@@ -728,6 +744,12 @@ export function validateJapanStep(draft: JapanDraft) {
 export function invalidJapanFactStep(draft: JapanDraft) {
   for (const step of japanSteps(draft)) {
     const errors = Object.values(checkStep(draft, step.step, false, true));
+    if (errors.includes('jp.error.departureConflict'))
+      return {
+        ...step,
+        reason: 'departure-conflict',
+        message: 'jp.error.departureConflict',
+      } as const;
     if (errors.includes('jp.error.filingAfterPermit'))
       return {
         ...step,

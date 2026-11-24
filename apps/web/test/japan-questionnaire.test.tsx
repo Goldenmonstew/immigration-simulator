@@ -498,6 +498,39 @@ test.each(['ordinary', 'deemed', 'refugee-travel-document'] as const)(
   },
 );
 
+async function copyJapanShare(draft: JapanDraft) {
+  const writeText = vi
+    .fn<(url: string) => Promise<void>>()
+    .mockResolvedValue(undefined);
+  vi.stubGlobal('window', { location: { origin: 'https://example.test' } });
+  vi.stubGlobal('navigator', { clipboard: { writeText } });
+  let copy: (() => Promise<void>) | undefined;
+  function findCopy(node: ReactNode) {
+    Children.forEach(node, (child) => {
+      if (
+        !isValidElement<{
+          children?: ReactNode;
+          onClick?: () => Promise<void>;
+        }>(child)
+      )
+        return;
+      if (child.type === 'button') copy = child.props.onClick;
+      else findCopy(child.props.children);
+    });
+  }
+  function Probe() {
+    const share = ShareLink({ country: jp, draft });
+    findCopy(share);
+    return share;
+  }
+  renderToStaticMarkup(<Probe />);
+  expect(copy).toBeDefined();
+  await copy!();
+  const url = new URL(writeText.mock.calls[0][0]);
+  expect(url.pathname).toMatch(/\/japan\/result$/);
+  return new URLSearchParams(url.hash.slice(1)).get('s')!;
+}
+
 test('loading, refreshing and sharing an old named plan agree about a renewal pending at departure', async () => {
   const plan = {
     id: 'legacy',
@@ -577,36 +610,7 @@ test('loading, refreshing and sharing an old named plan agree about a renewal pe
   expect(JSON.parse(storage.get(draftKey)!)).toEqual(corrected);
   expect(readPageResult(jp, 'en').result).toEqual(jp.run(corrected, 'en'));
 
-  const writeText = vi
-    .fn<(url: string) => Promise<void>>()
-    .mockResolvedValue(undefined);
-  vi.stubGlobal('window', { location: { origin: 'https://example.test' } });
-  vi.stubGlobal('navigator', { clipboard: { writeText } });
-  let copy: (() => Promise<void>) | undefined;
-  function findCopy(node: ReactNode) {
-    Children.forEach(node, (child) => {
-      if (
-        !isValidElement<{
-          children?: ReactNode;
-          onClick?: () => Promise<void>;
-        }>(child)
-      )
-        return;
-      if (child.type === 'button') copy = child.props.onClick;
-      else findCopy(child.props.children);
-    });
-  }
-  function Probe() {
-    const share = ShareLink({ country: jp, draft: corrected });
-    findCopy(share);
-    return share;
-  }
-  renderToStaticMarkup(<Probe />);
-  expect(copy).toBeDefined();
-  await copy!();
-  const url = new URL(writeText.mock.calls[0][0]);
-  expect(url.pathname).toMatch(/\/japan\/result$/);
-  const encoded = new URLSearchParams(url.hash.slice(1)).get('s')!;
+  const encoded = await copyJapanShare(corrected);
   expect(decodeDraft(jp, encoded, true)).toEqual(corrected);
   expect(readPageResult(jp, 'en', encoded)).toEqual({
     draft: corrected,
@@ -1563,6 +1567,167 @@ test('only a past return recorded as of the simulation day establishes departure
     }
   }
 });
+
+test.each(['deemed', 'ordinary', 'history'] as const)(
+  'changing only the comparison return date preserves departure evidenced by the %s record in the copied share',
+  async (source) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-26T12:00:00Z'));
+    const departure = '2026-11-23';
+    const returned = '2026-11-24';
+    const assumedReturn = '2026-11-27';
+    let draft: JapanDraft = {
+      ...(source === 'history' ? generalTripDraft() : jp.createDraft()),
+      simulationDate: '2026-11-26',
+      step: source === 'history' ? 1 : 6,
+      trips:
+        source === 'history' ? [{ departed: departure, returned: '' }] : [],
+      reentry: [
+        {
+          route: 'deemed',
+          departureOn: departure,
+          alreadyDeparted: null,
+          returnOn: source === 'deemed' ? undefined : returned,
+        },
+      ],
+    };
+    if (source === 'ordinary')
+      draft.reentry.push({ route: 'ordinary', departureOn: departure });
+    const field =
+      source === 'history'
+        ? 'jp-trips-0-returned'
+        : 'jp-travel-' + source + '-returnOn';
+    draft = { ...editField(draft, field, returned), completed: true };
+    const hint = t('jp.result.confirmDeparture', 'zh-CN').replace(
+      '{date}',
+      departure,
+    );
+    const before = readPageResult(jp, 'zh-CN', draft);
+    expect(
+      before.result!.columns[0].pathways.find(
+        (p) => p.id === 'jp.reentry.deemed',
+      )!.summary,
+    ).toContain(hint);
+    const knobs = jp.whatif.initial(draft);
+    knobs.returns.deemed = assumedReturn;
+    const html = renderToStaticMarkup(
+      <WhatIfView
+        country={{ ...jp, whatif: { ...jp.whatif, initial: () => knobs } }}
+        draft={draft}
+      />,
+    );
+    expect(html).toContain(hint);
+    expect(html).toContain(t('share.copy', 'zh-CN'));
+    const compared = jp.whatif.apply(draft, knobs);
+    const shared = readPageResult(jp, 'zh-CN', await copyJapanShare(compared));
+    expect(shared.shared).toBe(true);
+    expect(shared.draft!.reentry[0]).toMatchObject({
+      departureOn: departure,
+      returnOn: assumedReturn,
+      alreadyDeparted: null,
+    });
+    const deemed = shared.result!.columns[0].pathways.find(
+      (p) => p.id === 'jp.reentry.deemed',
+    )!;
+    expect(deemed.summary).toContain(hint);
+    expect(
+      deemed.checks.find((c) => c.id === 'jp.reentry.deemed-eligibility')
+        ?.status,
+    ).toBe('UNKNOWN');
+    if (source === 'deemed') {
+      const otherTrip = editField(
+        shared.draft!,
+        'jp-travel-deemed-departureOn',
+        '2026-11-22',
+      );
+      expect(jp.run(otherTrip, 'en').columns[0].pathways[0].summary).toContain(
+        'whether you left that day',
+      );
+    }
+  },
+);
+
+test.each(['2026-11-27', undefined])(
+  'matching another trip by changing only the comparison return date from %s cannot borrow its actual return',
+  async (originalReturn) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-26T12:00:00Z'));
+    const departureOn = '2026-11-23';
+    const ordinaryReturn = '2026-11-24';
+    let draft: JapanDraft = {
+      ...jp.createDraft(),
+      step: 6,
+      reentry: [
+        {
+          route: 'deemed',
+          departureOn,
+          alreadyDeparted: null,
+          returnOn: originalReturn,
+        },
+        { route: 'ordinary', departureOn },
+      ],
+    };
+    draft = {
+      ...editField(draft, 'jp-travel-ordinary-returnOn', ordinaryReturn),
+      completed: true,
+    };
+    const knobs = jp.whatif.initial(draft);
+    knobs.returns.deemed = ordinaryReturn;
+    const compared = jp.whatif.apply(draft, knobs);
+    for (const source of [draft, compared, await copyJapanShare(compared)]) {
+      const page = readPageResult(jp, 'en', source);
+      const deemed = page.result!.columns[0].pathways.find(
+        (p) => p.id === 'jp.reentry.deemed',
+      )!;
+      expect(deemed.summary).toContain('whether you left that day');
+    }
+  },
+);
+
+test.each(['newLandingOn', 'returnOn'])(
+  'an actual %s recorded after a negative departure answer requires a field correction before assessment',
+  (actualField) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-23T12:00:00Z'));
+    const prefix = 'jp-travel-deemed-';
+    const departureAnswer = prefix + 'alreadyDeparted';
+    let draft: JapanDraft = {
+      ...jp.createDraft(),
+      simulationDate: '2026-11-26',
+      step: 6,
+      reentry: [{ route: 'deemed', departureOn: '2026-11-23' }],
+    };
+    draft = editField(draft, departureAnswer, 'no');
+    draft = editField(draft, prefix + 'returnOn', '2026-11-25');
+    vi.setSystemTime(new Date('2026-11-26T12:00:00Z'));
+    expect(jp.validateStep(draft)).toEqual({});
+    draft = editField(draft, prefix + actualField, '2026-11-24');
+    expect(jp.validateStep(draft)).toEqual({
+      [departureAnswer]: 'jp.error.departureConflict',
+    });
+    expect(form(draft)).toContain('id="' + departureAnswer + '-error"');
+    const submitted = { ...draft, completed: true };
+    for (const source of [submitted, encodeDraft(jp, submitted)]) {
+      const page = readPageResult(jp, 'en', source);
+      expect(page.result).toBeUndefined();
+      expect(page.correction).toBeTruthy();
+    }
+    draft = editField(draft, departureAnswer, 'yes');
+    expect(jp.validateStep(draft)).toEqual({});
+    const page = readPageResult(
+      jp,
+      'en',
+      encodeDraft(jp, { ...draft, completed: true }),
+    );
+    expect(page.draft?.reentry[0]).toMatchObject({
+      alreadyDeparted: true,
+      [actualField]: '2026-11-24',
+    });
+    expect(page.result!.columns[0].pathways[0].summary).toContain(
+      'when you departed on 2026-11-23',
+    );
+  },
+);
 
 test('only the matching active trip history supplies a recorded return to the deemed route', () => {
   vi.useFakeTimers();

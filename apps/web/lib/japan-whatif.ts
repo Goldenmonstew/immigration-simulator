@@ -1,5 +1,5 @@
 import {
-  sameJapanTrip,
+  japanTripReturnOn,
   type JpFullReentryRequest,
 } from '@uk-immigration/engine';
 import { JapanWhatIfControls } from '../app/japan/whatif/controls';
@@ -131,13 +131,10 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
       reentry: compared.reentry.map((item) => {
         const returnOn = knobs.returns[item.route] || undefined;
         if (item.returnOn === returnOn) return item;
-        const baseline = compared.trips.find((trip) =>
-          sameJapanTrip(trip, item),
-        );
         return {
           ...item,
           returnOn,
-          comparisonHistoryReturnOn: baseline?.returned,
+          comparisonHistoryReturnOn: japanTripReturnOn(item) ?? '',
         };
       }),
     });
@@ -160,7 +157,8 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
       for (const { step } of japanSteps(draft)) {
         const issues = validateJapanStep({ ...draft, step });
         if (Object.keys(issues).length) {
-          errors.date = issues['jp-applicationDate'] ?? 'jp.whatif.invalidDates';
+          errors.date =
+            issues['jp-applicationDate'] ?? 'jp.whatif.invalidDates';
           break;
         }
       }

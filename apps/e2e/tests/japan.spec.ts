@@ -610,6 +610,16 @@ test('a shared result keeps its scenario for comparison and editing after anothe
     other.evaluate((key) => localStorage.getItem(key), draftKey);
   const edited = await stored();
   expect(JSON.parse(edited!).reentry).toEqual([{ route: 'ordinary' }]);
+  const skipToMain = async () => {
+    const url = page.url();
+    const skip = page.getByRole('link', { name: zhCN['site.skip'] });
+    await skip.focus();
+    await skip.press('Enter');
+    await expect(main).toBeFocused();
+    await expect(page).toHaveURL(url);
+  };
+  await skipToMain();
+  await expect(main).toContainText(planned);
 
   await main
     .getByRole('link', { name: zhCN['whatif.title'], exact: true })
@@ -622,6 +632,9 @@ test('a shared result keeps its scenario for comparison and editing after anothe
     }),
   ).toBeVisible();
   await expect(page.locator('#jp-whatif-deemed')).toHaveValue('2026-11-27');
+  await page.locator('#jp-whatif-deemed').fill('2026-11-29');
+  await skipToMain();
+  await expect(page.locator('#jp-whatif-deemed')).toHaveValue('2026-11-29');
   await expect(page.locator('#jp-whatif-ordinary')).toHaveCount(0);
   expect(await stored()).toBe(edited);
   await main
@@ -659,6 +672,7 @@ test('a shared result keeps its scenario for comparison and editing after anothe
     departure,
   );
   await page.locator('#jp-travel-deemed-returnOn').fill('2026-11-28');
+  await skipToMain();
   await page.reload();
   await expect(page.locator('#jp-travel-deemed-returnOn')).toHaveValue(
     '2026-11-28',

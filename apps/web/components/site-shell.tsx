@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import { useTranslation } from '../i18n/locale';
 import {
   countryPath,
@@ -15,11 +15,24 @@ import styles from '../app/site.module.css';
 import game from '../app/uk/game/game.module.css';
 import { asset } from '../lib/asset';
 
+function focusMain(event: MouseEvent<HTMLAnchorElement>) {
+  const main = document.getElementById('main');
+  if (!main) return;
+  // Keep the scenario fragment and its edit history while skipping the header.
+  event.preventDefault();
+  main.tabIndex = -1;
+  main.focus({ preventScroll: true });
+  main.scrollIntoView({ block: 'start' });
+}
+
 export function SiteShell({ children }: { children: ReactNode }) {
   const { t, locale, setLocale } = useTranslation();
   const pathname = usePathname();
   const cleanPath = (pathname ?? '/').replace(/\/+$/, '') || '/';
   const isGame = cleanPath === '/game' || cleanPath.endsWith('/game');
+  const isJapanScenario = ['result', 'simulate', 'whatif'].some(
+    (page) => cleanPath === countryPath('jp', page),
+  );
   const firstSegment = cleanPath.split('/')[1] ?? '';
   const currentCountry = siteCountries.find(
     (country) => country.slug === firstSegment,
@@ -61,7 +74,11 @@ export function SiteShell({ children }: { children: ReactNode }) {
   return (
     <div className={isGame ? game.theme : styles.shell}>
       <title>{t('site.name')}</title>
-      <a className={styles.skip} href="#main">
+      <a
+        className={styles.skip}
+        href="#main"
+        onClick={isJapanScenario ? focusMain : undefined}
+      >
         {t('site.skip')}
       </a>
       <header className={isGame ? game.siteHeader : styles.header}>

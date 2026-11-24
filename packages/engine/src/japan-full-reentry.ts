@@ -37,7 +37,7 @@ import {
 interface JpTravelDates {
   departureOn?: IsoDate;
   returnOn?: IsoDate;
-  /** Original itinerary when a comparison changes only the route’s return. */
+  /** Original return used to match the trip in a comparison. An empty string preserves a blank original date. */
   comparisonHistoryReturnOn?: IsoDate;
   stayExpiresOn?: IsoDate;
   /** The underlying status has no period of stay, as for permanent residents. */

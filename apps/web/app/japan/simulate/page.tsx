@@ -78,6 +78,8 @@ function editTravelField(
   if (departureChanged) {
     delete next.timelyRenewalPending;
     delete next.specialPermanentResident;
+    // A comparison's hidden return fact belongs to the original departure.
+    if (route.recordedReturnOn !== route.returnOn) delete next.recordedReturnOn;
   }
   if (route.route === 'ordinary' && next.route === 'ordinary') {
     const days = ordinaryFilingDays(draft, next);
