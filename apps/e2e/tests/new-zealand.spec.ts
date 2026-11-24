@@ -89,10 +89,10 @@ async function fillCitizenship(page: Page, dict: Dict, mobile = false) {
   if (mobile) await noHorizontalScroll(page);
   await next(page, dict, 'form.continue');
 
+  // Citizenship alone ends with the fee: health and family steps are not used.
   await page.locator('#nz-common-requiredFeePaid').selectOption('yes');
-  await next(page, dict, 'form.continue');
-  await next(page, dict, 'form.continue');
-  await expect(progress).toHaveAttribute('aria-valuenow', '8');
+  await expect(progress).toHaveAttribute('aria-valuenow', '6');
+  await expect(progress).toHaveAttribute('aria-valuemax', '6');
   await next(page, dict, 'form.results');
   await expect(page).toHaveURL(path('result'));
 }

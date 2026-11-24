@@ -62,6 +62,12 @@ export const nzFormZh = {
   'nz.error.order': '这个日期不能早于开始的日期。',
   'nz.error.beforeBirth': '首次入境日不能早于出生日期。',
   'nz.error.prvOrder': '永久居民签证获批日不能早于居民签证获批日。',
+  'nz.error.inNzConflict':
+    '与「居民签证与出入境」一步中「目前在新西兰境内」的回答不一致，请修改其中一项。',
+  'nz.error.overseasConflict':
+    '与前面「目前在新西兰境内」或「递交时在新西兰境内」的回答不一致，请修改其中一项。',
+  'nz.error.deportationConflict':
+    '与「永久居民签证（PRV）」一步中「驱逐责任」的回答不一致，请修改其中一项。',
 
   'nz.f.simulationDate': '模拟日期',
   'nz.f.dateOfBirth': '出生日期',
@@ -716,6 +722,12 @@ export const nzFormEn: Record<keyof typeof nzFormZh, string> = {
     'Your first arrival cannot be before your date of birth.',
   'nz.error.prvOrder':
     'The permanent resident visa cannot be granted before the resident visa.',
+  'nz.error.inNzConflict':
+    'This does not match your answer to “Currently in New Zealand” in the resident visa and travel step. Change one of them.',
+  'nz.error.overseasConflict':
+    'This does not match your earlier answer to “Currently in New Zealand” or “In New Zealand when applying”. Change one of them.',
+  'nz.error.deportationConflict':
+    'This does not match your answer to “Liability for deportation” in the permanent resident visa step. Change one of them.',
 
   'nz.f.simulationDate': 'Simulation date',
   'nz.f.dateOfBirth': 'Date of birth',

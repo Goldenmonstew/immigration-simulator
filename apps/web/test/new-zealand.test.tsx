@@ -196,11 +196,10 @@ test('drafts round-trip in the New Zealand envelope and malformed drafts are rej
 
 test('steps follow the chosen pathways and validate required answers', () => {
   const fresh = nz.createDraft();
+  // Health and family questions appear once a visa pathway is chosen.
   expect(nzSteps(fresh).map(({ title }) => title)).toEqual([
     'nz.step.basics',
     'nz.step.filing',
-    'nz.step.health',
-    'nz.step.family',
   ]);
   expect(nz.validateStep(fresh)).toEqual({ 'nz-goals': 'nz.form.goalError' });
   expect(nz.validateStep({ ...fresh, simulationDate: '2026-02-30' })).toEqual({
@@ -251,8 +250,8 @@ test('steps follow the chosen pathways and validate required answers', () => {
   expect(
     english({ method: 'test', test: 'oet', grades: ['A', null, null, null] }),
   ).toEqual({ 'nz-common-english-grades': 'nz.form.tupleError' });
-  expect(english({ score: 7 })).toEqual({
-    'nz-common-english-method': 'nz.form.required',
+  expect(english({ method: 'test', score: 7 })).toEqual({
+    'nz-common-english-test': 'nz.form.required',
   });
   expect(english({ method: 'test', test: 'ielts', score: -1 })).toEqual({
     'nz-common-english-score': 'nz.form.numberError',

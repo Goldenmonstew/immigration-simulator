@@ -3,6 +3,7 @@
 import type { TranslationKey } from '../../../i18n';
 import { nzFormZh } from '../../../i18n/countries/new-zealand-form';
 import { useTranslation } from '../../../i18n/locale';
+import { withoutHidden } from '../../../lib/new-zealand-draft';
 import type { NzField, NzOption } from '../../../lib/new-zealand-fields';
 import { Field } from '../../simulate/field';
 import form from '../../simulate/form.module.css';
@@ -24,9 +25,11 @@ const optionKey = (field: { set?: string }, option: NzOption) =>
   key(`nz.o.${field.set ? field.set + '.' : ''}${option}`);
 
 export function NzFields(props: FieldsProps) {
+  const change = (record: Answers) =>
+    props.change(withoutHidden(props.fields, record));
   return props.fields.map((field) =>
     !field.when || field.when(props.values) ? (
-      <Question key={field.name} {...props} field={field} />
+      <Question key={field.name} {...props} change={change} field={field} />
     ) : null,
   );
 }
@@ -55,7 +58,10 @@ function Question({
     undefined;
   const legend = (
     <>
-      <legend className={form.legend}>{label}</legend>
+      <legend className={form.legend}>
+        {label}
+        {field.required && ' *'}
+      </legend>
       {hint && (
         <p id={`${id}-hint`} className={form.hint}>
           {hint}
@@ -90,7 +96,7 @@ function Question({
   if (field.type === 'list') {
     const rows = (value ?? []) as Answers[];
     return (
-      <fieldset className={form.fieldset}>
+      <fieldset className={form.fieldset} aria-describedby={described}>
         {legend}
         {rows.map((row, i) => (
           <fieldset key={i} className={form.entry}>
@@ -204,6 +210,7 @@ function Question({
         id={id}
         tabIndex={-1}
         className={form.fieldset}
+        aria-invalid={error ? true : undefined}
         aria-describedby={described}
       >
         {legend}
@@ -260,14 +267,33 @@ function Question({
             </Field>
           );
         })}
+        {field.type === 'numbers' &&
+          field.none &&
+          Array.isArray(value) &&
+          !items.length && <p>{t('nz.form.emptyConfirmed')}</p>}
         {field.type === 'numbers' && (
-          <button
-            type="button"
-            className={site.secondary}
-            onClick={() => update([...items, null])}
-          >
-            {t('nz.form.addValue')} · {label}
-          </button>
+          <div className={site.actions}>
+            <button
+              type="button"
+              className={site.secondary}
+              onClick={() => update([...items, null])}
+            >
+              {t('nz.form.addValue')} · {label}
+            </button>
+            {field.none && !items.length && (
+              <button
+                type="button"
+                className={form.copyRow}
+                onClick={() => set(value === undefined ? [] : undefined)}
+              >
+                {t(
+                  value === undefined
+                    ? 'nz.form.noRecords'
+                    : 'nz.form.resetRecords',
+                )}
+              </button>
+            )}
+          </div>
         )}
       </fieldset>
     );
@@ -337,7 +363,11 @@ function Question({
           disabled={usesAlternative}
           value={usesAlternative ? '' : String(shown ?? '')}
           onChange={(event) => {
-            const text = event.target.value;
+            // Codes pasted with spaces would not match the occupation tables.
+            const text =
+              field.type === 'text'
+                ? event.target.value.trim()
+                : event.target.value;
             set(
               text === ''
                 ? undefined
