@@ -497,3 +497,4 @@
 | # | 改动描述 | 涉及文件 |
 |---|---|---|
 | 594 | 任务 86 第二轮审核修正（review86-2）：核对九路径，补足核准日期、纸申默认与跨月排期，分开返美义务提示和人道豁免的递交、核准结论，并补回归。 | packages/engine/src/united-states-full/、packages/engine/test/united-states-full.test.ts、packages/policy-data/src/parameters/united-states-2026-11.ts、docs/pending-details.md、docs/tasks/reports/86-us-rules.md |
+| 595 | 任务 86 第三轮审核修正（review86-3）：核对九路径的缺失和待确认输入，修正不可用网申、同时递交的核准判定、裁决月排期及 N-400 辖区居住，补两阶段回归。 | packages/engine/src/{united-states.ts,united-states-full/}、packages/engine/test/united-states-full.test.ts、packages/policy-data/src/parameters/united-states-2026-11.ts、docs/{SOURCES,pending-details}.md、docs/tasks/reports/86-us-rules.md |

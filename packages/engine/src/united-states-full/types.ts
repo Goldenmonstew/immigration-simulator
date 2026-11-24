@@ -88,6 +88,8 @@ export interface UsNaturalizationAnswers {
   lawfulAdmission?: UsReview;
   removalProcess?: 'none' | 'pending' | 'final';
   residenceThroughOath?: boolean;
+  /** N-400 examination date, when known, for the early-filing district rule. */
+  interviewOn?: IsoDate;
   /** True when conditions were removed; false for a pending petition with status maintained. */
   conditionalStatusResolved?: boolean;
   /** Total time living in the U.S. while an LPR, measured at N-400 filing. */
@@ -355,7 +357,13 @@ export interface UsAdmissionAnswers {
   visaAtFilingByMonth?: Partial<Record<string, UsVisaAvailability>>;
   /** Final Action Dates status as of the simulation date. */
   visaAtDecision?: UsVisaAvailability;
+  /** Final Action Dates by YYYY-MM, using the month of adjudication. */
+  visaAtDecisionByMonth?: Partial<Record<string, UsVisaAvailability>>;
+  /** Adjudication date to assess, when known. */
+  decisionOn?: IsoDate;
   qualifyingBasis?: UsReview;
+  /** Status of the petition underlying this adjustment, where applicable. */
+  petitionStatus?: 'filed-with-i485' | 'pending' | 'approved';
   legalEntry?: 'admitted' | 'paroled' | 'without-inspection';
   adjustmentBasis?:
     | 'immediate-relative'

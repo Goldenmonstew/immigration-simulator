@@ -2,19 +2,22 @@ import {
   unitedStates2026_11,
   unitedStatesFull2026_11,
 } from '@uk-immigration/policy-data';
-import { addDays } from '../dates';
+import { addDays, addMonths } from '../dates';
 import { afterYears } from '../pilot';
 import type { PilotStatus } from '../pilot';
 import { textFor } from '../rule';
 import type { IsoDate } from '../types';
-import { evaluateUnitedStates, nextUsBusinessDay } from '../united-states';
+import {
+  evaluateUnitedStatesTiming,
+  nextUsBusinessDay,
+} from '../united-states';
 import type { UsPathway } from '../united-states';
 import {
   admissionChecks,
   adjustmentChecks,
   humanitarianChecks,
 } from './admission';
-import { checksFor, reviewed, s } from './check';
+import { checksFor, checkStatus, reviewed, s } from './check';
 import { feeChecks } from './fees';
 import { familyChecks, employmentChecks, supportChecks } from './immigration';
 import { conditionChecks, travelChecks } from './maintenance';
@@ -109,7 +112,10 @@ const naturalizationTime = [
   ],
 ] as const;
 
-function legacyPathway(req: UsFullRequest) {
+function legacyPathway(
+  req: UsFullRequest,
+  receiptOn: (candidate: IsoDate) => IsoDate,
+) {
   if (
     req.pathway !== 'US-NATURALIZATION' &&
     req.pathway !== 'US-SPOUSE' &&
@@ -128,13 +134,16 @@ function legacyPathway(req: UsFullRequest) {
   )
     return undefined;
   // The pilot takes a common request. Select only the calculation that uses the supplied inputs.
-  return evaluateUnitedStates({
-    ...req,
-    permanentResident,
-    dateOfBirth: dateOfBirth ?? req.simulationDate,
-    conditional: conditional ?? 'none',
-    trips: trips ?? [],
-  }).pathways.find((path) => path.id === req.pathway);
+  return evaluateUnitedStatesTiming(
+    {
+      ...req,
+      permanentResident,
+      dateOfBirth: dateOfBirth ?? req.simulationDate,
+      conditional: conditional ?? 'none',
+      trips: trips ?? [],
+    },
+    naturalization ? receiptOn : undefined,
+  ).pathways.find((path) => path.id === req.pathway);
 }
 
 function timeChecks(
@@ -160,7 +169,8 @@ function timeChecks(
   if (req.pathway !== 'US-NATURALIZATION' && !spouse) return [];
   return naturalizationTime.flatMap(([id, zh, en, sources, pd], index) => {
     // Age is calculated in the full assessment, including the military exception.
-    if (id === 'C01-AGE' || (!spouse && index >= 5)) return [];
+    if (id === 'C01-AGE' || id === 'C14-DISTRICT' || (!spouse && index >= 5))
+      return [];
     const prior = legacy?.checks[index];
     const missingCitizenshipDate =
       id === 'TIME-SPOUSE-CITIZENSHIP'
@@ -236,7 +246,12 @@ function conditionsTiming(
       special: !!single || late,
     };
   };
-  if (investor || req.fees?.channel === 'paper') return onChannel(true);
+  if (
+    investor ||
+    req.fees?.channel === 'paper' ||
+    (!req.fees?.channel && req.fees?.onlineCategoryAvailable === 'barred')
+  )
+    return onChannel(true);
   const online = onChannel(false);
   if (req.fees?.channel === 'online') return online;
   const paper = onChannel(true);
@@ -246,8 +261,7 @@ function conditionsTiming(
     : { status: 'UNKNOWN', special: online.special || paper.special };
 }
 
-function defaultsToPaper(request: UsFullRequest): boolean {
-  if (request.fees?.channel) return false;
+function requiresPaper(request: UsFullRequest): boolean {
   if (request.pathway === 'US-HUMANITARIAN') return true;
   if (
     request.pathway === 'US-NATURALIZATION' ||
@@ -257,35 +271,143 @@ function defaultsToPaper(request: UsFullRequest): boolean {
       request.fees?.relief === 'waiver' || request.fees?.relief === 'reduced'
     );
   }
+  if (request.pathway === 'US-CONDITIONS')
+    return request.conditional === 'investor';
   return (
     request.admission?.process === 'adjustment' &&
     (request.pathway === 'US-FAMILY' ||
       request.pathway === 'US-EMPLOYMENT' ||
       request.pathway === 'US-ADJUSTMENT') &&
-    (request.fees?.onlineCategoryAvailable === 'barred' ||
-      request.admission.adjustmentBasis === 'sij' ||
-      (request.pathway === 'US-EMPLOYMENT' &&
-        request.employment?.category === 'eb5'))
+    (request.admission.adjustmentBasis === 'sij' ||
+      (request.admission.adjustmentBasis === 'vawa' &&
+        request.admission.petitionStatus === 'filed-with-i485') ||
+      (request.employment?.category === 'eb5' &&
+        (request.pathway === 'US-EMPLOYMENT' ||
+          request.admission.adjustmentBasis === 'employment')))
   );
+}
+
+function onlineFilingCheck(request: UsFullRequest, paperOnly: boolean) {
+  if (
+    request.fees?.channel !== 'online' ||
+    request.pathway === 'US-TRAVEL' ||
+    (request.pathway === 'US-CONDITIONS' &&
+      request.conditional !== 'marriage') ||
+    (request.pathway === 'US-ADJUSTMENT' &&
+      request.admission?.process === 'consular')
+  )
+    return undefined;
+  const category = request.fees.onlineCategoryAvailable;
+  const available =
+    paperOnly || category === 'barred'
+      ? false
+      : category === 'pending' ||
+          (request.admission?.process === 'adjustment' &&
+            category === undefined)
+        ? undefined
+        : true;
+  const check = checksFor(request);
+  return check(
+    'FILING-CHANNEL',
+    '所选 USCIS 网申渠道',
+    'Selected USCIS online filing channel',
+    available,
+    s.onlineFiling,
+    'PD-267',
+    available === false
+      ? [
+          '所选网申渠道不可用。请选择适用的递交渠道。',
+          'The selected online channel is unavailable. Use a channel that accepts this application.',
+        ]
+      : undefined,
+  );
+}
+
+function districtCheck(
+  request: UsFullRequest,
+  receipt: IsoDate,
+  anniversary?: IsoDate,
+) {
+  const check = checksFor(request);
+  const started = request.stateResidenceFrom;
+  const months = time.stateResidenceMonths.value;
+  const complete = started ? addMonths(started, months) : undefined;
+  const early =
+    started !== undefined &&
+    complete !== undefined &&
+    anniversary !== undefined &&
+    receipt >= started &&
+    receipt < complete &&
+    receipt < anniversary &&
+    complete <= anniversary;
+  const interview = request.naturalization?.interviewOn;
+  const met =
+    complete === undefined
+      ? undefined
+      : early
+        ? interview
+          ? interview >= complete
+          : undefined
+        : request.simulationDate >= complete;
+  const filingStatus =
+    early || (complete !== undefined && receipt >= complete)
+      ? 'MET'
+      : checkStatus(met);
+  const due =
+    early && met && interview && interview > request.simulationDate
+      ? interview
+      : met === false && filingStatus === 'MET' && !early
+        ? complete
+        : undefined;
+  return {
+    ...check(
+      'C14-DISTRICT',
+      '州或 USCIS 辖区居住',
+      'Residence in the state or USCIS district',
+      due ? false : met,
+      s.earlyDistrict,
+      'PD-096',
+      early && complete
+        ? [
+            `符合提前递交规则时，按面谈前 ${months} 个日历月核对辖区居住。若持续居住，最早于 ${complete} 住满，面谈日须另行确认。`,
+            `For eligible early filing, verify ${months} calendar months of district residence before the examination. Continued residence reaches the minimum on ${complete}; confirm the examination date.`,
+          ]
+        : complete
+          ? [
+              `截至递交日须在本辖区住满 ${months} 个日历月（${complete}）。`,
+              `Complete ${months} calendar months of district residence by filing (${complete}).`,
+            ]
+          : undefined,
+      filingStatus,
+    ),
+    ...(due ? { approvalRequirementDate: due } : {}),
+  };
 }
 
 export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   const L = textFor(request);
   const check = checksFor(request);
-  const legacy = legacyPathway(request);
-  const timingChecks = timeChecks(request, legacy);
   const date = request.simulationDate;
-  const paperDefault = defaultsToPaper(request);
+  const paperOnly = requiresPaper(request);
+  const paperDefault =
+    !request.fees?.channel &&
+    (paperOnly || request.fees?.onlineCategoryAvailable === 'barred');
   const paper =
     (request.fees?.channel === 'paper' || paperDefault) &&
     request.pathway !== 'US-TRAVEL' &&
     request.pathway !== 'US-CONDITIONS' &&
-    !(
-      request.pathway === 'US-ADJUSTMENT' &&
-      request.admission?.process === 'consular'
-    );
+    request.admission?.process !== 'consular';
   const receiptOn = (candidate: IsoDate) =>
     paper ? nextUsBusinessDay(candidate) : candidate;
+  const legacy = legacyPathway(request, receiptOn);
+  const timingChecks = timeChecks(request, legacy);
+  const filingChannel = onlineFilingCheck(request, paperOnly);
+  const adjustmentReceipt = receiptOn(date);
+  const decisionOn = request.admission?.decisionOn;
+  const decision =
+    decisionOn && decisionOn > adjustmentReceipt
+      ? decisionOn
+      : adjustmentReceipt;
   let eligibility: FilingTiming = { status: 'MET' };
   let requirements: UsFullCheck[];
   switch (request.pathway) {
@@ -299,12 +421,21 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
         earliestDate: legacy?.earliestDate,
       };
       requirements = naturalizationChecks(request);
-      if (request.permanentResident) {
-        const years =
-          request.pathway === 'US-SPOUSE'
-            ? time.spouseYears
-            : time.naturalizationYears;
-        const anniversary = afterYears(request.permanentResident, years.value);
+      const years =
+        request.pathway === 'US-SPOUSE'
+          ? time.spouseYears
+          : time.naturalizationYears;
+      const anniversary = request.permanentResident
+        ? afterYears(request.permanentResident, years.value)
+        : undefined;
+      requirements.push(
+        districtCheck(
+          request,
+          receiptOn(eligibility.earliestDate ?? date),
+          anniversary,
+        ),
+      );
+      if (anniversary) {
         requirements.push({
           ...check(
             'TIME-LPR-APPROVAL',
@@ -395,7 +526,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
                 ...request,
                 simulationDate: travel.returnedOn ?? request.simulationDate,
               },
-              request.travel?.admission ?? {},
+              request.travel?.admission,
               'return',
             )
           : []),
@@ -406,19 +537,19 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       requirements = [
         ...familyChecks(request),
         ...supportChecks(request),
-        ...adjustmentChecks(request, receiptOn(date)),
+        ...adjustmentChecks(request, adjustmentReceipt, decision),
       ];
       break;
     case 'US-EMPLOYMENT':
       requirements = [
         ...employmentChecks(request),
         ...supportChecks(request),
-        ...adjustmentChecks(request, receiptOn(date)),
+        ...adjustmentChecks(request, adjustmentReceipt, decision),
       ];
       break;
     case 'US-ADJUSTMENT':
       requirements = [
-        ...adjustmentChecks(request, receiptOn(date)),
+        ...adjustmentChecks(request, adjustmentReceipt, decision),
         ...supportChecks(request),
       ];
       break;
@@ -432,6 +563,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       ];
       break;
   }
+  if (filingChannel) requirements.push(filingChannel);
   const { status: timing } = eligibility;
   const candidate = eligibility.earliestDate ?? date;
   const receipt = receiptOn(candidate);
@@ -456,7 +588,11 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       item.approvalRequirementDate && item.approvalRequirementDate > earliest
         ? item.approvalRequirementDate
         : earliest,
-    receipt,
+    request.pathway === 'US-FAMILY' ||
+      request.pathway === 'US-EMPLOYMENT' ||
+      request.pathway === 'US-ADJUSTMENT'
+      ? decision
+      : receipt,
   );
   const combine = (filing: boolean): PilotStatus => {
     if (timing === 'NOT_APPLICABLE') return timing;

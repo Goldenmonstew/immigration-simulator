@@ -229,7 +229,7 @@ export const unitedStatesFullSources = {
   onlineFiling: [
     source(
       'SRC-082',
-      'Forms Available to File Online, Upload a Completed PDF, Form I-485 and Form N-400',
+      'Forms Available to File Online, Upload a Completed PDF, Forms I-485, I-751 and N-400',
       'https://www.uscis.gov/file-online/forms-available-to-file-online',
     ),
   ],
@@ -297,6 +297,11 @@ export const unitedStatesFullSources = {
   district: [
     ...unitedStates2026_11.values.stateResidenceMonths.sources,
     usc('SRC-290', '1451', '(a)'),
+  ],
+  earlyDistrict: [
+    ...unitedStates2026_11.values.stateResidenceMonths.sources,
+    source('SRC-080', '8 CFR 316.5(b)(1)(i), 334.2(b)'),
+    pm('SRC-081', 12, 'D', 6, '(D)'),
   ],
   marriage: [usc('SRC-079', '1186a', '(a), (d)'), pm('SRC-297', 6, 'I', 2)],
   marriageWaiver: [
@@ -395,8 +400,14 @@ export const unitedStatesFullSources = {
     ),
   ],
   adjustment: [
-    usc('SRC-309', '1255', '(a), (h), (i)'),
-    pm('SRC-309', 7, 'A', 6, '(C)'),
+    usc('SRC-309', '1255', '(a), (h), (i), (n)'),
+    source('SRC-309', '8 CFR 245.2(a)(2)(i)(A)–(C)'),
+    pm('SRC-309', 7, 'A', 6, '(A), (C)'),
+    source(
+      'SRC-309',
+      'I-485 Instructions pp3, 17–21',
+      'https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf',
+    ),
   ],
   adjustmentBars: [
     usc('SRC-309', '1255', '(c), (d), (k), (n)'),
@@ -410,6 +421,11 @@ export const unitedStatesFullSources = {
     usc('SRC-311', '1182', '(a)(1), (g)'),
     source('SRC-312', '42 CFR 34.2–34.3; PA-2025-08 p1'),
     pm('SRC-312', 8, 'B', 9),
+    source(
+      'SRC-309',
+      'I-485 Instructions p11, Item 9',
+      'https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf',
+    ),
   ],
   publicCharge: [
     usc('SRC-311', '1182', '(a)(4)'),

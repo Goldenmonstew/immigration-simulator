@@ -125,14 +125,14 @@ export function conditionChecks(request: UsFullRequest) {
     a?.filing === 'joint'
       ? a.spouseJoins
       : a?.filing === 'separate-child'
-        ? request.separatePetition === true ||
-          !!(
-            request.principalConditional &&
-            request.permanentResident &&
-            daysBetween(
-              request.principalConditional,
-              request.permanentResident,
-            ) > legacy.childConcurrentDays.value
+        ? any(
+            request.separatePetition,
+            request.principalConditional && request.permanentResident
+              ? daysBetween(
+                  request.principalConditional,
+                  request.permanentResident,
+                ) > legacy.childConcurrentDays.value
+              : undefined,
           )
         : a?.filing
           ? reviewed(a.waiverBasis)
@@ -174,14 +174,20 @@ function deportabilityCheck(a?: UsTravelAnswers) {
   const law = v.deportability.value;
   const cimt = facts.singleCimt;
   const first = cimt
-    ? cimt.possibleSentenceMonths >= law.cimtSentenceMonths &&
-      cimt.committedOn >= cimt.admittedOn &&
-      cimt.committedOn <=
-        afterYears(
-          cimt.admittedOn,
-          cimt.sWitness ? law.witnessYears : law.cimtYears,
-        )
-    : false;
+    ? all(
+        cimt.possibleSentenceMonths >= law.cimtSentenceMonths,
+        cimt.committedOn >= cimt.admittedOn,
+        any(
+          cimt.committedOn <= afterYears(cimt.admittedOn, law.cimtYears),
+          all(
+            cimt.sWitness,
+            cimt.committedOn <= afterYears(cimt.admittedOn, law.witnessYears),
+          ),
+        ),
+      )
+    : facts.independentCimtCount === 0
+      ? false
+      : undefined;
   const drug =
     facts.controlledSubstance === 'none'
       ? true
@@ -321,7 +327,9 @@ export function travelChecks(request: UsFullRequest) {
     ? true
     : all(
         route === 'reentry-permit'
-          ? all(a?.documentValidAtReturn ?? permitValid, permitValid ?? true)
+          ? permitValid === undefined
+            ? a?.documentValidAtReturn
+            : all(a?.documentValidAtReturn ?? permitValid, permitValid)
           : a?.documentValidAtReturn,
         route === 'green-card'
           ? not(oneYear)

@@ -22,8 +22,12 @@ import {
 } from './naturalization';
 import type { UsAdmissionAnswers, UsFullRequest, UsReview } from './types';
 
-function waived(result: Answer, waiver?: UsReview): Answer {
-  return result === false && waiver !== undefined ? reviewed(waiver) : result;
+function waived(grounds: Answer[], decision: Answer): Answer[] {
+  return grounds.map((ground) => (ground === false ? decision : ground));
+}
+
+function ordinaryWaiver(grounds: Answer[], waiver?: UsReview): Answer[] {
+  return waiver === undefined ? grounds : waived(grounds, reviewed(waiver));
 }
 
 function medicalEvidenceCheck(
@@ -46,10 +50,10 @@ function medicalEvidenceCheck(
   return all(reviewed(a?.medicalEvidence), signedValid, linked);
 }
 
-function criminalCheck(
+function criminalGrounds(
   a: UsAdmissionAnswers | undefined,
   date: string,
-): Answer {
+): Answer[] {
   const crime = a?.crime;
   const rule = v.crime.value;
   const juvenile = all(
@@ -73,20 +77,22 @@ function criminalCheck(
       : crime?.controlledSubstance
         ? false
         : undefined;
-  const noCrime = all(
-    cimt,
-    drug,
-    not(multipleConvictionBar(crime)),
-    reviewed(a?.criminalOtherGround),
-    crime?.unclassifiedRecord === false ? true : undefined,
-  );
   const waiver =
     crime?.controlledSubstance === 'other' ||
     (crime?.controlledSubstance === 'single-simple-cannabis' &&
       atMost(crime.cannabisGrams, rule.cannabisGrams) === false)
       ? 'barred'
       : a?.criminalWaiver;
-  return waived(noCrime, waiver);
+  return ordinaryWaiver(
+    [
+      cimt,
+      drug,
+      not(multipleConvictionBar(crime)),
+      reviewed(a?.criminalOtherGround),
+      crime?.unclassifiedRecord === false ? true : undefined,
+    ],
+    waiver,
+  );
 }
 
 function unlawfulPresence(
@@ -109,7 +115,7 @@ function unlawfulPresence(
 
 export function admissionChecks(
   request: UsFullRequest,
-  a = request.admission,
+  a: UsAdmissionAnswers | undefined,
   scope: 'immigrant' | 'return' | 'humanitarian' = 'immigrant',
 ) {
   const check = checksFor(request);
@@ -127,14 +133,14 @@ export function admissionChecks(
       ? a.falseCitizenshipException
       : not(a?.falseCitizenship);
   const other = reviewed(a?.otherInadmissibility);
-  const immigration = all(
+  const immigration = [
     falseClaim,
     not(a?.unlawfulReentryBar),
-    waived(
-      all(unlawfulPresence(a, date), noFraud, other),
+    ...ordinaryWaiver(
+      [unlawfulPresence(a, date), noFraud, other],
       a?.immigrationWaiver,
     ),
-  );
+  ];
   const { waiver, waiverFiling } = request.humanitarian ?? {};
   const waiverDecision = waiver === 'not-needed' ? false : reviewed(waiver);
   const waiverMaterials =
@@ -145,12 +151,14 @@ export function admissionChecks(
         : waiver === 'not-needed'
           ? false
           : undefined;
-  const assessGround = (ground: Answer, prerequisite: Answer = true) => {
-    const needsWaiver = humanitarian && ground === false;
+  const assessGround = (grounds: Answer[], prerequisite: Answer) => {
     return {
-      answer: all(prerequisite, needsWaiver ? waiverDecision : ground),
+      answer: all(
+        prerequisite,
+        ...(humanitarian ? waived(grounds, waiverDecision) : grounds),
+      ),
       filingStatus: humanitarian
-        ? checkStatus(all(prerequisite, needsWaiver ? waiverMaterials : ground))
+        ? checkStatus(all(prerequisite, ...waived(grounds, waiverMaterials)))
         : undefined,
     };
   };
@@ -161,22 +169,24 @@ export function admissionChecks(
       : a?.securityGround === 'nonwaivable' || a?.securityGround === 'other-bar'
         ? false
         : undefined;
-  const health = all(reviewed(a?.classAHealth), reviewed(a?.vaccines));
+  const health = [reviewed(a?.classAHealth), reviewed(a?.vaccines)];
   const medical = assessGround(
-    optionalMedicalForm ? health : waived(health, a?.healthWaiver),
+    optionalMedicalForm ? health : ordinaryWaiver(health, a?.healthWaiver),
     optionalMedicalForm
       ? reviewed(a?.medicalEvidence)
       : medicalEvidenceCheck(a, date, adjustment || humanitarian),
   );
   const criminal = assessGround(
-    criminalCheck(a, date),
+    criminalGrounds(a, date),
     not(a?.drugTraffickingBar),
   );
   const securityResult = assessGround(
-    all(security, party),
-    a?.securityGround !== 'nonwaivable',
+    [security, party],
+    a?.securityGround === undefined || a.securityGround === 'pending'
+      ? undefined
+      : a.securityGround !== 'nonwaivable',
   );
-  const immigrationResult = assessGround(immigration);
+  const immigrationResult = assessGround(immigration, true);
   return [
     check(
       'C36-HEALTH',
@@ -287,7 +297,11 @@ function adjustmentBar(a?: UsAdmissionAnswers, immediate?: Answer): Answer {
   return basis === '245i' ? reviewed(a?.entryException) : all(other, status);
 }
 
-export function adjustmentChecks(request: UsFullRequest, receipt: IsoDate) {
+export function adjustmentChecks(
+  request: UsFullRequest,
+  receipt: IsoDate,
+  decision: IsoDate,
+) {
   const check = checksFor(request);
   const a = request.admission;
   const basis = a?.adjustmentBasis;
@@ -304,16 +318,19 @@ export function adjustmentChecks(request: UsFullRequest, receipt: IsoDate) {
   const availability = (value?: UsAdmissionAnswers['visaAtFiling']): Answer =>
     value === 'available' ? true : value === 'unavailable' ? false : undefined;
   const consular = a?.process === 'consular';
+  const simulationMonth = request.simulationDate.slice(0, 7);
   const receiptMonth = receipt.slice(0, 7);
+  const decisionMonth = decision.slice(0, 7);
   const filingChart =
     a?.process === 'adjustment'
       ? (a.visaAtFilingByMonth?.[receiptMonth] ??
-        (receiptMonth === request.simulationDate.slice(0, 7)
-          ? a.visaAtFiling
-          : undefined))
+        (receiptMonth === simulationMonth ? a.visaAtFiling : undefined))
       : a?.visaAtFiling;
+  const decisionChart =
+    a?.visaAtDecisionByMonth?.[decisionMonth] ??
+    (decisionMonth === simulationMonth ? a?.visaAtDecision : undefined);
   const visaAtFiling = any(immediate, availability(filingChart));
-  const visaAtDecision = any(immediate, availability(a?.visaAtDecision));
+  const visaAtDecision = any(immediate, availability(decisionChart));
   const entry =
     a?.legalEntry === 'admitted' || a?.legalEntry === 'paroled'
       ? true
@@ -326,8 +343,49 @@ export function adjustmentChecks(request: UsFullRequest, receipt: IsoDate) {
               ? undefined
               : false
         : undefined;
+  const employment = request.employment;
+  const employmentBasis =
+    basis === 'employment' ||
+    (basis === undefined && request.pathway === 'US-EMPLOYMENT');
+  const i140Category =
+    employment?.category === 'eb1a' ||
+    employment?.category === 'eb2-niw' ||
+    employment?.category === 'eb2-perm' ||
+    employment?.category === 'eb3';
+  const i140Status =
+    employmentBasis && (i140Category || !employment?.category)
+      ? employment?.i140Status
+      : undefined;
+  const petition = a?.petitionStatus ?? i140Status;
+  const awaitingPetition =
+    petition === 'pending' || petition === 'filed-with-i485';
+  const concurrent =
+    a?.process === 'adjustment'
+      ? usesFamilyClassification ||
+        basis === 'immediate-relative' ||
+        basis === 'family-preference' ||
+        basis === 'vawa' ||
+        basis === 'sij' ||
+        (employmentBasis &&
+          (i140Category ||
+            i140Status !== undefined ||
+            employment?.category === 'eb5')) ||
+        undefined
+      : consular
+        ? false
+        : undefined;
+  const qualifyingBasis = reviewed(a?.qualifyingBasis);
+  const filingBasis = awaitingPetition
+    ? all(
+        concurrent,
+        a?.qualifyingBasis === 'pending' ? true : qualifyingBasis,
+        i140Status === 'pending' && employment?.i140FiledOn
+          ? employment.i140FiledOn <= receipt
+          : true,
+      )
+    : qualifyingBasis;
   const filing = all(
-    reviewed(a?.qualifyingBasis),
+    filingBasis,
     visaAtFiling,
     consular ? true : a?.process === 'adjustment' ? entry : undefined,
   );
@@ -336,14 +394,18 @@ export function adjustmentChecks(request: UsFullRequest, receipt: IsoDate) {
       'C33-VISA-AND-ENTRY',
       '移民类别、签证名额与入境查验',
       'Immigrant basis, visa availability and admission or parole',
-      all(filing, visaAtDecision),
+      all(
+        filing,
+        awaitingPetition ? undefined : qualifyingBasis,
+        visaAtDecision,
+      ),
       usesFamilyClassification
         ? [...s.adjustment, ...s.relationship]
         : s.adjustment,
       'PD-272',
       [
-        `境内按 USCIS 收件月份（${receiptMonth}）指定表确认能否递交。领馆材料按 NVC 通知提交。受排期限制的案件须在裁决时有 Final Action Dates 名额。未满龄或 CSPA 锁龄的美国公民未婚子女可能属于即时亲属。`,
-        `Use the USCIS chart designated for the receipt month (${receiptMonth}), or NVC authorization to submit consular documents. A numerically limited case needs a current Final Action Date at decision. An unmarried child of a U.S. citizen may qualify as an immediate relative based on age or CSPA protection.`,
+        `境内按 USCIS 收件月份（${receiptMonth}）指定表确认能否递交，领馆材料按 NVC 通知提交。允许同时递交的案件仍须等基础请愿案获批。受排期限制的案件按裁决月份（${decisionMonth}）的 Final Action Dates 确认名额。未满龄或 CSPA 锁龄的美国公民未婚子女可能属于即时亲属。`,
+        `Use the USCIS chart designated for the receipt month (${receiptMonth}), or NVC authorization to submit consular documents. Where concurrent filing is allowed, approval still depends on approval of the underlying petition. For numerically limited cases, use the Final Action Dates for the decision month (${decisionMonth}). An unmarried child of a U.S. citizen may qualify as an immediate relative based on age or CSPA protection.`,
       ],
       checkStatus(filing),
     ),
@@ -373,7 +435,7 @@ export function adjustmentChecks(request: UsFullRequest, receipt: IsoDate) {
             'NOT_APPLICABLE',
           ),
         ]),
-    ...admissionChecks(request),
+    ...admissionChecks(request, a),
   ];
 }
 

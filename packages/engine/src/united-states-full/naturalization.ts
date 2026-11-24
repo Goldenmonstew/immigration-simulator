@@ -183,11 +183,15 @@ export function naturalizationChecks(request: UsFullRequest) {
   const englishWaived =
     a?.disability?.requested === true
       ? all(disabilityClaim(request), reviewed(a.disability.englishWaived))
-      : false;
+      : a?.disability?.requested === false
+        ? false
+        : undefined;
   const civicsWaived =
     a?.disability?.requested === true
       ? all(disabilityClaim(request), reviewed(a.disability.civicsWaived))
-      : false;
+      : a?.disability?.requested === false
+        ? false
+        : undefined;
   const english = any(
     a?.english === 'passed'
       ? true

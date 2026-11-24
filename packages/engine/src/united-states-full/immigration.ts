@@ -75,14 +75,16 @@ export function familyChecks(request: UsFullRequest) {
       : true;
   const spouse = a?.relationship === 'spouse';
   const prior = a?.priorMarriageLprSince;
-  const priorMarriage =
-    !spouse || citizen || prior === 'not-applicable'
+  const priorMarriage = !a?.relationship
+    ? undefined
+    : !spouse || citizen || prior === 'not-applicable'
       ? true
       : prior && afterYears(prior, law.priorMarriageYears) <= date
         ? true
         : reviewed(a?.priorMarriageException);
-  const removalMarriage =
-    !spouse || a?.marriageDuringRemoval === false
+  const removalMarriage = !a?.relationship
+    ? undefined
+    : !spouse || a?.marriageDuringRemoval === false
       ? true
       : a?.marriageDuringRemoval
         ? any(
@@ -133,7 +135,9 @@ export function i864Required(request: UsFullRequest): Answer {
     if (job?.relativePetitioner === true) return true;
     if (job?.relativeOwnershipPct !== undefined)
       return (
-        job.relativeOwnershipPct >= v.sponsor.value.qualifyingFamilyOwnershipPct
+        job.relativeOwnershipPct >=
+          v.sponsor.value.qualifyingFamilyOwnershipPct ||
+        (job.relativePetitioner === false ? false : undefined)
       );
     return undefined;
   }
