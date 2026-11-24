@@ -532,6 +532,7 @@
 | 581 | 任务 105：接入 `/canada/game`。用已有 CC0 瓦片拼出枫港地图（彩色排屋、港湾医院、IRCC 办公室、海港街、农夫市集、海滨广场、社区菜园、木栈道、钓鱼码头、渡轮码头与灯塔），加拿大场景子类绘制彩色护墙板与屋顶、医院 H 标、枫叶旗、龙虾笼与龙虾船、马斯科卡椅、往返渡轮、夜里扫光的灯塔、冬季屋顶积雪与四个节日装饰（冰场与枫糖太妃槽、风筝、国旗横幅与烟花、百家宴长桌与南瓜），原创像素横幅；加拿大国家配置提供加元、身份证件倒计时、永久居民/入籍两列进度、IRCC 办公室下一步提示、结果页草稿与评估视图。注册美术根与加载器，集合入口与加拿大首页出现人生模拟，离线清单加入游戏页并更新缓存版本；补中英文案与网页单测。 | apps/web/app/canada/{game/,canada-content.tsx}、apps/web/app/game-page.tsx、apps/web/public/game/canada/、apps/web/{lib/{game-country,site-countries}.ts,public/sw.js,i18n/countries/canada{,-game}.ts}、apps/web/test/{canada-game,about-page}.test.tsx、packages/game/src/packs/ca/{hooks,index}.ts |
 | 582 | 任务 105：新增加拿大游戏 e2e。静态页横幅与标题、两位角色、加拿大首页入口；选角色进入小镇走到海滨长椅完成活动；快进首个春季看到小结并进入第 1 年第 3 季；英文界面显示身份证件倒计时、英语属性与加元；375 宽度用地点抽屉走到钓鱼码头且无横向滚动。 | apps/e2e/tests/canada-game.spec.ts |
 | 583 | 任务 105：野生蓝莓的物品图标原先借用了鱼的图，改用通用物品图标。 | apps/web/app/canada/game/shell.tsx |
+| 584 | 任务 105：报告，含角色、地点、镇民、节日、活动清单、地图草图、共享文件改动与验证结果。 | docs/tasks/reports/105-ca-game.md |
 | 590 | 任务 86：核对并登记美国完整版官方快照、哈希及来源网址，追加 PD-260–279。 | docs/SOURCES.md、docs/pending-details.md、policy-sources/、apps/web/lib/sources.ts |
 | 591 | 任务 86：登记美国完整版出处、日期参数、数字门槛及费用。 | packages/policy-data/src/{index.ts,parameters/united-states-2026-11.ts} |
 | 592 | 任务 86：提供美国九路径完整版 CountryResult，接入既有时间计算，增加资格、审查与费用条件、回归测试及页面接线交接。 | packages/engine/src/{index.ts,united-states-full/}、packages/engine/test/united-states-full.test.ts、docs/tasks/reports/86-us-rules.md |
