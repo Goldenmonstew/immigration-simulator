@@ -102,26 +102,36 @@ export function fullContext(req: PtFullRequest) {
       pilot?: PtPathway;
       /** Time state from a chosen alternate calculation or stage. */
       timing?: { status: CountryPathway['status']; earliestDate?: IsoDate };
+      waits?: { check: CountryCheck; until: IsoDate }[];
       notes?: CountryCheck[];
       applicable?: Verdict;
     } = {},
   ): CountryPathway => {
     const timing = options.timing ?? options.pilot;
+    const waits = options.waits ?? [];
+    const applicableChecks = [
+      ...checks,
+      ...(timing?.status === 'FUTURE' ? [] : (options.timeChecks ?? [])),
+    ];
+    const dates = waits.map(({ until }) => until);
+    if (timing?.earliestDate) dates.push(timing.earliestDate);
+    const earliestDate = dates.sort().at(-1);
     const status =
       options.applicable === false || timing?.status === 'NOT_APPLICABLE'
         ? 'NOT_APPLICABLE'
-        : checks.some((c) => c.status === 'NOT_MET') ||
+        : applicableChecks.some((c) => c.status === 'NOT_MET') ||
             timing?.status === 'NOT_MET'
           ? 'NOT_MET'
-          : checks.some((c) => c.status === 'UNKNOWN') ||
+          : applicableChecks.some((c) => c.status === 'UNKNOWN') ||
               timing?.status === 'UNKNOWN'
             ? 'UNKNOWN'
-            : timing?.status === 'FUTURE'
+            : timing?.status === 'FUTURE' || waits.length
               ? 'FUTURE'
               : 'MET';
     const allChecks = [
       ...(options.timeChecks ?? []),
       ...checks,
+      ...waits.map((wait) => wait.check),
       ...(options.notes ?? []),
     ];
     const pendingDetails = [
@@ -131,7 +141,7 @@ export function fullContext(req: PtFullRequest) {
       ]),
     ];
     const summary =
-      timing?.status === 'FUTURE' && status !== 'FUTURE'
+      (timing?.status === 'FUTURE' || waits.length) && status !== 'FUTURE'
         ? L(
             '下列时间项为居留时间预测。完整资格同时取决于其他条件。',
             'The time checks below provide a residence projection. Full eligibility also depends on the other requirements.',
@@ -168,9 +178,9 @@ export function fullContext(req: PtFullRequest) {
       checks: allChecks,
       earliestDate:
         status === 'MET'
-          ? (timing?.earliestDate ?? at)
+          ? (earliestDate ?? at)
           : status === 'FUTURE'
-            ? timing?.earliestDate
+            ? earliestDate
             : undefined,
       assumptions: options.pilot?.assumptions ?? [],
       ...(pendingDetails.length ? { pendingDetails } : {}),

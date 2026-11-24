@@ -196,7 +196,10 @@ export type PtInvestment =
 export interface PtInvestmentEvidence {
   operation?: 'grant' | 'renew' | 'convert' | 'replace-permanent';
   holder?: 'investor' | 'family';
+  /** The sponsor currently holds a valid residence permit under art. 90-A. */
+  sponsorAriValid?: boolean;
   relationshipContinues?: boolean;
+  /** The family evidence establishes eligibility for reunification, including any applicable age or dependency requirements. */
   familyEvidenceAccepted?: boolean;
   entry?: 'schengen-visa' | 'visa-free' | 'other-legal' | 'irregular';
   lawfullyInPortugal?: boolean;
@@ -263,7 +266,10 @@ export interface PtFreeMovementEvidence {
   relationship?:
     'spouse' | 'partner' | 'descendant' | 'ascendant' | 'other-family';
   relationshipVerified?: boolean;
+  /** Individual residence permission for an art. 3(2) other-family case. */
+  otherFamilyPermission?: PtOfficialReview;
   accompaniesOrJoins?: boolean;
+  /** Dependency during qualifying residence, where required. */
   dependant?: boolean;
   continuousResidenceFrom?: IsoDate;
   livedWithSponsor?: boolean;

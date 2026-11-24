@@ -3,22 +3,23 @@ import { monthSpan } from './pilot';
 import { all, any, compare, p, reviewed, src } from './portugal-full-common';
 import type { PtFullContext, Verdict } from './portugal-full-common';
 import type { PtFreeMovementEvidence } from './portugal-full-types';
+import type { IsoDate } from './types';
 
 const law = (locator: string) => src('SRC-478', locator);
 
 function familyEligibility(
-  ctx: PtFullContext,
-  e?: PtFreeMovementEvidence,
+  { req }: PtFullContext,
+  at: IsoDate,
   join = true,
 ): Verdict {
+  const e = req.freeMovement;
   const kind = e?.relationship;
   const relation =
     kind === 'descendant'
       ? any(
           compare(
-            ctx.req.birthDate,
-            (date) =>
-              ctx.at < addYears(date, p.freeMovementDescendantAge.value),
+            req.birthDate,
+            (date) => at < addYears(date, p.freeMovementDescendantAge.value),
           ),
           e?.dependant,
         )
@@ -27,9 +28,7 @@ function familyEligibility(
         : kind === 'spouse' || kind === 'partner'
           ? true
           : kind === 'other-family'
-            ? e?.relationshipVerified === true
-              ? true
-              : undefined
+            ? reviewed(e?.otherFamilyPermission)
             : undefined;
   return all(
     relation,
@@ -39,14 +38,12 @@ function familyEligibility(
   );
 }
 
-function freeMovementTime(ctx: PtFullContext) {
-  const { req, at } = ctx;
+function freeMovementContinuity({ req }: PtFullContext, at: IsoDate) {
   const e = req.freeMovement;
   const from = e?.continuousResidenceFrom;
   const limits = p.freeMovementAbsence.value;
   if (e?.expulsionExecuted === true) return false;
   if (!from) return undefined;
-  if (at < addYears(from, p.freeMovementYears.value)) return false;
 
   const trips = (
     e?.absences ??
@@ -103,9 +100,14 @@ function freeMovementTime(ctx: PtFullContext) {
   );
 }
 
-function historicalBasis(ctx: PtFullContext) {
+function historicalBasis(
+  ctx: PtFullContext,
+  at: IsoDate,
+  individualPermission: Verdict,
+) {
   const e = ctx.req.freeMovement;
-  if (e?.historicalBasisReview) return reviewed(e.historicalBasisReview);
+  if (e?.historicalBasisReview)
+    return all(reviewed(e.historicalBasisReview), individualPermission);
   if (e?.identityAtEntryValid === false) return undefined; // Arts. 4(4), 21 allow other proof.
   const insurance =
     e?.healthInsuranceRequired === false
@@ -126,10 +128,57 @@ function historicalBasis(ctx: PtFullContext) {
             : basis === 'family'
               ? all(
                   e?.sponsorResidenceBasisEstablished,
-                  familyEligibility(ctx, e),
+                  familyEligibility(ctx, at),
                 )
               : undefined;
-  return all(e?.identityAtEntryValid, facts);
+  return all(e?.identityAtEntryValid, facts, individualPermission);
+}
+
+function retentionCheck(
+  ctx: PtFullContext,
+  acquired: IsoDate | undefined,
+  applicant: PtFreeMovementEvidence['applicant'],
+) {
+  const { req, at, check, L } = ctx;
+  const e = req.freeMovement;
+  const years = p.freeMovementAbsence.value.lossYears;
+  const familyMonths = p.freeMovementFamilyCardAbsenceMonths.value;
+  let retained: Verdict;
+  if (acquired && acquired <= at) {
+    retained = true;
+    for (const trip of e?.absences ?? req.trips) {
+      const start = trip.departed < acquired ? acquired : trip.departed;
+      const end = trip.returned > at ? at : trip.returned;
+      if (end <= addYears(start, years)) continue;
+      if (
+        applicant === 'eu-eea-swiss' ||
+        end > addMonths(start, familyMonths)
+      ) {
+        retained = false;
+        break;
+      }
+      retained = undefined;
+    }
+  }
+  return check(
+    'F02-RETENTION',
+    all(
+      compare(acquired, (date) => date <= at),
+      retained,
+      e?.expulsionExecuted === true ? false : true,
+    ),
+    '已取得永久权及取得后离境',
+    'Existing permanent right and subsequent absence',
+    [
+      ...p.freeMovementAbsence.sources,
+      ...p.freeMovementFamilyCardAbsenceMonths.sources,
+    ],
+    ['PD-396'],
+    L(
+      `取得后的一般丧失门槛为连续离境超过 ${years} 年。第三国家属离境超过该门槛且未超过 ${familyMonths} 个月时，两条规定的适用待确认。`,
+      `The general loss threshold is more than ${years} continuous years abroad after acquisition. For third-country family members, the rules overlap above that threshold through ${familyMonths} months and need confirmation.`,
+    ),
+  );
 }
 
 function retainFamily(
@@ -316,40 +365,36 @@ export function freeMovementResidence(ctx: PtFullContext) {
     ),
     freeMovementFee(ctx),
   ];
-  if (e?.operation === 'retain') {
+  if (e?.operation === 'retain' || e?.permanentRightAcquiredOn) {
     const prior = e.permanentRightAcquiredOn;
-    const limit = p.freeMovementAbsence.value.lossYears;
-    const loss =
-      prior &&
-      (e.absences ?? req.trips).some((trip) => {
-        const start = trip.departed < prior ? prior : trip.departed;
-        const end = trip.returned > at ? at : trip.returned;
-        return end > addYears(start, limit);
-      });
     return pathway(
       id,
       title,
-      [
-        check(
-          'F02-RETENTION',
-          all(
-            compare(prior, (date) => date <= at),
-            compare(loss, (value) => !value),
-          ),
-          '已取得永久权及取得后离境',
-          'Existing permanent right and subsequent absence',
-          [law('art. 10(3), (5), p5719'), ...p.freeMovementAbsence.sources],
-          ['PD-396'],
-          L(
-            `取得后，连续离开葡萄牙超过 ${limit} 年丧失永久权。`,
-            `After acquisition, more than ${limit} continuous years outside Portugal causes loss of the permanent right.`,
-          ),
-        ),
-        restrictions,
-      ],
-      { notes },
+      [retentionCheck(ctx, prior, applicant), restrictions],
+      {
+        applicable: applicant !== 'other',
+        timing:
+          prior && prior <= at
+            ? { status: 'MET', earliestDate: prior }
+            : undefined,
+        notes,
+      },
     );
   }
+  const early = basis === 'early-worker' || basis === 'early-family';
+  const eligibleOn =
+    !early && e?.continuousResidenceFrom
+      ? addYears(e.continuousResidenceFrom, p.freeMovementYears.value)
+      : undefined;
+  const qualifyingAt = eligibleOn ?? at;
+  const continuity = early
+    ? undefined
+    : freeMovementContinuity(ctx, qualifyingAt > at ? at : qualifyingAt);
+  const waiting =
+    eligibleOn &&
+    eligibleOn > at &&
+    continuity === true &&
+    freeMovementContinuity(ctx, eligibleOn) === true;
   const familyBasis =
     applicant === 'third-country-family' ||
     basis === 'early-family' ||
@@ -360,13 +405,38 @@ export function freeMovementResidence(ctx: PtFullContext) {
       : applicant === 'andorra'
         ? undefined
         : familyBasis
-          ? familyEligibility(ctx, e, basis === 'ordinary')
+          ? familyEligibility(ctx, qualifyingAt, basis === 'ordinary')
           : applicant === 'eu-eea-swiss'
             ? true
             : undefined;
-  const historical = historicalBasis(ctx);
-  const early = basis === 'early-worker' || basis === 'early-family';
+  const otherFamilyInScope =
+    e?.relationship === 'other-family' &&
+    (familyBasis || e.residenceBasis === 'family');
+  const historical = historicalBasis(
+    ctx,
+    qualifyingAt,
+    otherFamilyInScope ? reviewed(e.otherFamilyPermission) : true,
+  );
   const hasContinuity = compare(e?.expulsionExecuted, (value) => !value);
+  const ordinaryTime = check(
+    'F02',
+    all(
+      continuity,
+      compare(eligibleOn, (date) => date <= at),
+    ),
+    '连续合法居留、出境及共同居住',
+    'Continuous lawful residence, absences and shared residence',
+    [
+      ...p.freeMovementYears.sources,
+      ...p.freeMovementAbsence.sources,
+      law('art. 10(7)'),
+    ],
+    ['PD-396'],
+    L(
+      `通常须连续 ${p.freeMovementYears.value} 年。每年不超过 ${p.freeMovementAbsence.value.ordinaryMonths} 个连续月、必要兵役或一次不超过 ${p.freeMovementAbsence.value.justifiedMonths} 个连续月的正当离境可保留连续性。`,
+      `The ordinary period is ${p.freeMovementYears.value} continuous years. Up to ${p.freeMovementAbsence.value.ordinaryMonths} consecutive months per year, required military service, or one justified absence up to ${p.freeMovementAbsence.value.justifiedMonths} consecutive months can preserve continuity.`,
+    ),
+  );
   const checks = [
     check(
       'F01',
@@ -379,10 +449,15 @@ export function freeMovementResidence(ctx: PtFullContext) {
         src('SRC-484', 'Quem pode requerer'),
       ],
       ['PD-396'],
-      L(
-        `直系后代未满 ${p.freeMovementDescendantAge.value} 岁可按年龄分支核对；成年受养关系、其他家属及安道尔适用范围可能需专门确认。`,
-        `Direct descendants under ${p.freeMovementDescendantAge.value} can use the age branch. Adult dependency, other relatives and Andorran cases may need individual confirmation.`,
-      ),
+      familyBasis && otherFamilyInScope
+        ? L(
+            '须核实主管机关依个人情形作出的居留准许。亲属关系证明单独无法确认资格。',
+            'Verify the authority’s individual residence permission. Relationship evidence alone cannot establish eligibility.',
+          )
+        : L(
+            `直系后代未满 ${p.freeMovementDescendantAge.value} 岁可按年龄分支核对；成年受养关系、其他家属及安道尔适用范围可能需专门确认。`,
+            `Direct descendants under ${p.freeMovementDescendantAge.value} can use the age branch. Adult dependency, other relatives and Andorran cases may need individual confirmation.`,
+          ),
     ),
     ...(early
       ? [
@@ -395,24 +470,9 @@ export function freeMovementResidence(ctx: PtFullContext) {
             ['PD-396'],
           ),
         ]
-      : [
-          check(
-            'F02',
-            freeMovementTime(ctx),
-            '连续合法居留、出境及共同居住',
-            'Continuous lawful residence, absences and shared residence',
-            [
-              ...p.freeMovementYears.sources,
-              ...p.freeMovementAbsence.sources,
-              law('art. 10(7)'),
-            ],
-            ['PD-396'],
-            L(
-              `通常须连续 ${p.freeMovementYears.value} 年。每年不超过 ${p.freeMovementAbsence.value.ordinaryMonths} 个连续月、必要兵役或一次不超过 ${p.freeMovementAbsence.value.justifiedMonths} 个连续月的正当离境可保留连续性。`,
-              `The ordinary period is ${p.freeMovementYears.value} continuous years. Up to ${p.freeMovementAbsence.value.ordinaryMonths} consecutive months per year, required military service, or one justified absence up to ${p.freeMovementAbsence.value.justifiedMonths} consecutive months can preserve continuity.`,
-            ),
-          ),
-        ]),
+      : waiting
+        ? []
+        : [ordinaryTime]),
     ...(basis === 'early-family'
       ? []
       : [
@@ -421,8 +481,8 @@ export function freeMovementResidence(ctx: PtFullContext) {
             historical,
             '申请前的自由流动合法居留基础',
             'Lawful free-movement residence before acquisition',
-            [law('arts. 2(f), 6–9, pp5717–5719')],
-            ['PD-397'],
+            [law('arts. 2(f), 3(2)–(3), 6–9, pp5717–5719')],
+            otherFamilyInScope ? ['PD-396'] : ['PD-397'],
             L(
               '按居留期间的工作、学习、资源或家庭来源核对。非经济活动及学习的医保取决于互惠。',
               'Check work, study, resources or family status during the qualifying residence. Health insurance for inactive people and students depends on reciprocity.',
@@ -465,10 +525,24 @@ export function freeMovementResidence(ctx: PtFullContext) {
           ),
         ]
       : []),
-    restrictions,
   ];
-  return pathway(id, title, checks, {
-    applicable: applicant !== 'other',
-    notes,
-  });
+  const acquired =
+    eligibleOn && eligibleOn <= at && checks.every((c) => c.status === 'MET')
+      ? eligibleOn
+      : undefined;
+  return pathway(
+    id,
+    title,
+    [
+      ...checks,
+      ...(acquired ? [retentionCheck(ctx, acquired, applicant)] : []),
+      restrictions,
+    ],
+    {
+      applicable: applicant !== 'other',
+      timing: acquired ? { status: 'MET', earliestDate: acquired } : undefined,
+      waits: waiting ? [{ check: ordinaryTime, until: eligibleOn }] : [],
+      notes,
+    },
+  );
 }

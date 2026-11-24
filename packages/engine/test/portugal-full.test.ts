@@ -151,6 +151,349 @@ const statuses = (
     expect(byId[`PT-${rule}`], rule).toBe(status);
 };
 
+describe('review92-1', () => {
+  test.each([
+    [true, true, 'MET', '2026-11-23'],
+    [undefined, true, 'UNKNOWN', undefined],
+    [true, undefined, 'UNKNOWN', undefined],
+    [false, true, 'NOT_MET', undefined],
+    [true, false, 'NOT_MET', undefined],
+  ] as const)(
+    'ARI family grant with sponsor %s and accepted relationship %s',
+    (sponsorAriValid, familyEvidenceAccepted, status, earliestDate) => {
+      const request = {
+        residence: {
+          ...residence,
+          means: { officialAssessment: 'clear' as const },
+        },
+        investment: {
+          ...investment,
+          holder: 'family' as const,
+          sponsorAriValid,
+          familyEvidenceAccepted,
+          firstEntry: undefined,
+          regularizedOn: undefined,
+          investment: undefined,
+          investedOn: undefined,
+          investmentEvidenceAccepted: undefined,
+        },
+      };
+      statuses(D, request, { D01: status });
+      const path = pathway(D, request);
+      expect(path.status).toBe(status);
+      expect(path.earliestDate).toBe(earliestDate);
+      expect(path.checks.some(({ id }) => /^PT-D0[56]/.test(id))).toBe(false);
+    },
+  );
+
+  test('first EU permanent certificate uses absence rules after the acquisition date', () => {
+    const request = {
+      route: 'eu' as const,
+      freeMovement: {
+        ...freeMovement,
+        continuousResidenceFrom: '2018-01-01',
+        historicalBasisReview: undefined,
+        identityAtEntryValid: true,
+        residenceBasis: 'worker' as const,
+        absences: [
+          {
+            departed: '2024-01-01',
+            returned: '2024-09-01',
+            reason: 'ordinary' as const,
+          },
+        ],
+      },
+    };
+    statuses(F, request, {
+      F01: 'MET',
+      F02: 'MET',
+      F03: 'MET',
+      'F02-RETENTION': 'MET',
+    });
+    expect(pathway(F, request)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2023-01-01',
+    });
+    const loss = {
+      ...request,
+      freeMovement: {
+        ...request.freeMovement,
+        absences: [
+          {
+            departed: '2024-01-01',
+            returned: '2026-01-02',
+            reason: 'ordinary' as const,
+          },
+        ],
+      },
+    };
+    statuses(F, loss, { F02: 'MET', 'F02-RETENTION': 'NOT_MET' });
+    expect(pathway(F, loss)).toMatchObject({
+      status: 'NOT_MET',
+      earliestDate: undefined,
+    });
+  });
+
+  const descendant = {
+    ...freeMovement,
+    applicant: 'third-country-family' as const,
+    continuousResidenceFrom: '2019-01-01',
+    relationship: 'descendant' as const,
+    relationshipVerified: true,
+    sponsorEligible: true,
+    accompaniesOrJoins: true,
+    livedWithSponsor: true,
+    dependant: false,
+    historicalBasisReview: undefined,
+    residenceBasis: 'family' as const,
+    identityAtEntryValid: true,
+    sponsorResidenceBasisEstablished: true,
+  };
+
+  test('first third-country family card uses the descendant age at acquisition', () => {
+    const request = { birthDate: '2004-08-02', freeMovement: descendant };
+    statuses(F, request, {
+      F01: 'MET',
+      F02: 'MET',
+      F03: 'MET',
+      'F02-RETENTION': 'MET',
+    });
+    expect(pathway(F, request)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2024-01-01',
+    });
+  });
+
+  test.each([
+    ['2024-01-01', 'MET', '2021-11-23'],
+    ['2024-04-01', 'UNKNOWN', undefined],
+    ['2024-07-01', 'UNKNOWN', undefined],
+    ['2024-07-02', 'NOT_MET', undefined],
+  ] as const)(
+    'third-country family retention with absence until %s',
+    (returned, status, earliestDate) => {
+      const request = {
+        freeMovement: {
+          ...descendant,
+          operation: 'retain' as const,
+          permanentRightAcquiredOn: '2021-11-23',
+          absences: [{ departed: '2022-01-01', returned }],
+        },
+      };
+      statuses(F, request, { 'F02-RETENTION': status });
+      const path = pathway(F, request);
+      expect(path).toMatchObject({ status, earliestDate });
+      if (status === 'UNKNOWN') expect(path.pendingDetails).toContain('PD-396');
+    },
+  );
+
+  test.each([
+    [undefined, 'UNKNOWN', undefined],
+    ['clear', 'MET', '2024-01-01'],
+    ['barred', 'NOT_MET', undefined],
+  ] as const)(
+    'other-family permission %s controls eligibility and historical basis',
+    (otherFamilyPermission, status, earliestDate) => {
+      const request = {
+        freeMovement: {
+          ...descendant,
+          relationship: 'other-family' as const,
+          otherFamilyPermission,
+        },
+      };
+      statuses(F, request, { F01: status, F03: status });
+      expect(pathway(F, request)).toMatchObject({ status, earliestDate });
+    },
+  );
+
+  test.each([
+    [1000, 'MET', '2026-11-23'],
+    [400, 'NOT_MET', undefined],
+    [undefined, 'UNKNOWN', undefined],
+  ] as const)(
+    'employment renewal uses confirmed net income of %s',
+    (monthlyEligibleEur, status, earliestDate) => {
+      const request = {
+        renewal,
+        residence: {
+          ...residence,
+          means: {
+            sources: ['employment' as const],
+            stable: true,
+            monthlyEligibleEur,
+            confirmedMonthlyMinimumEur: 818.8,
+            supportedMonths: 12,
+          },
+        },
+      };
+      statuses(E, request, { E01: 'MET', E02: status });
+      expect(pathway(E, request)).toMatchObject({ status, earliestDate });
+    },
+  );
+
+  test.each([
+    [undefined, 'UNKNOWN', undefined],
+    [true, 'MET', '2026-11-23'],
+    [false, 'NOT_MET', undefined],
+  ] as const)(
+    'old CPLP language presumption with birthplace %s',
+    (bornInOfficialPortugueseCountry, status, earliestDate) => {
+      const request = {
+        route: 'cplp' as const,
+        pendingApplication: '2026-02-01',
+        nationality: {
+          ...nationality,
+          bornInOfficialPortugueseCountry,
+          language: { kind: 'none' as const },
+        },
+      };
+      statuses(A, request, { A13: status });
+      expect(pathway(A, request)).toMatchObject({ status, earliestDate });
+      if (status === 'UNKNOWN') {
+        expect(condition(A, 'A13', request).explanation).toContain(
+          'born in a country',
+        );
+      }
+    },
+  );
+
+  test('known renewal, free-movement and partner waiting dates require clear substantive conditions', () => {
+    const ordinary = {
+      simulationDate: '2026-10-23',
+      residence,
+      renewal,
+    };
+    statuses(E, ordinary, { E01: 'NOT_MET', E02: 'MET' });
+    expect(pathway(E, ordinary)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-10-24',
+    });
+    const expelled = {
+      ...ordinary,
+      renewal: { ...renewal, servingSentence: true, expulsionOrdered: true },
+    };
+    expect(pathway(E, expelled)).toMatchObject({
+      status: 'NOT_MET',
+      earliestDate: undefined,
+    });
+
+    const movement = {
+      freeMovement: { ...freeMovement, continuousResidenceFrom: '2021-11-24' },
+    };
+    statuses(F, movement, { F02: 'NOT_MET' });
+    expect(pathway(F, movement)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-11-24',
+    });
+    const missingBasis = {
+      freeMovement: {
+        ...movement.freeMovement,
+        historicalBasisReview: undefined,
+      },
+    };
+    expect(pathway(F, missingBasis)).toMatchObject({
+      status: 'UNKNOWN',
+      earliestDate: undefined,
+    });
+
+    const marriage = {
+      partner: {
+        ...partner,
+        relationshipFrom: '2023-11-23',
+        commonPortugueseChild: true,
+      },
+      nationality,
+    };
+    statuses(G, marriage, { G01: 'NOT_MET' });
+    expect(pathway(G, marriage)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-11-24',
+    });
+    const pending = {
+      ...marriage,
+      partner: { ...marriage.partner, pendingApplication: '2026-05-18' },
+    };
+    expect(pathway(G, pending)).toMatchObject({
+      status: 'NOT_MET',
+      earliestDate: undefined,
+    });
+  });
+
+  test('known Blue Card and international protection waiting dates use the applicable residence facts', () => {
+    const blue = {
+      residence,
+      longTerm: {
+        ...longTerm,
+        basis: 'blue-card' as const,
+        blueCard: {
+          issuedByPortugal: true,
+          staysVerified: true,
+          continuousQualifyingEuFrom: '2021-11-24',
+          continuousPortugueseBlueCardFrom: '2024-11-25',
+          euAbsences: [],
+        },
+      },
+    };
+    statuses(C, blue, { C01: 'MET', C03: 'NOT_MET' });
+    expect(pathway(C, blue)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-11-25',
+    });
+    const protection = {
+      residence,
+      longTerm: {
+        ...longTerm,
+        basis: 'international-protection' as const,
+        protectionApplicationDate: '2021-11-23',
+        qualifyingProtectionGranted: true,
+        protectionContinuityVerified: true,
+        protectionWithdrawal: 'clear' as const,
+      },
+    };
+    statuses(C, protection, { C01: 'NOT_MET', C02: 'MET' });
+    expect(pathway(C, protection)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-11-24',
+    });
+    const unknown = {
+      ...protection,
+      longTerm: { ...protection.longTerm, protectionWithdrawal: undefined },
+    };
+    expect(pathway(C, unknown)).toMatchObject({
+      status: 'UNKNOWN',
+      earliestDate: undefined,
+    });
+  });
+
+  test('prospective adulthood and ARI conversion wait without overriding the substantive checks', () => {
+    const minor = {
+      simulationDate: '2026-04-15',
+      birthDate: '2008-04-16',
+      emancipation: 'none' as const,
+      nationality,
+    };
+    statuses(A, minor, { A02: 'MET', A12: 'NOT_MET' });
+    expect(pathway(A, minor)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-04-16',
+    });
+
+    const conversion = {
+      investment: { operation: 'convert' as const },
+      permits: [{ kind: 'golden-visa' as const, from: '2022-11-22' }],
+      residence,
+    };
+    expect(pathway(B, conversion)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2027-11-23',
+    });
+    expect(pathway(D, conversion)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2027-11-23',
+    });
+  });
+});
+
 describe('country result and existing time checks', () => {
   test('all pathways have unique scoped checks, sources and localized explanations', () => {
     const patch = {
@@ -1113,12 +1456,12 @@ describe('D · investment residence', () => {
       { kind: 'golden-visa' as const, from: '2024-01-23', to: '2026-12-31' },
     ];
     const evidence = {
-      ...investment,
       operation: 'renew' as const,
       holder: 'family' as const,
       relationshipContinues: true,
       familyEvidenceAccepted: true,
       maintenance: 'maintained' as const,
+      documentsReady: true,
     };
     const request = {
       residence: resources,
@@ -1138,7 +1481,9 @@ describe('D · investment residence', () => {
     expect(condition(D, 'D07-STAY', request).sources).toEqual(
       original.checks[1].sources,
     );
-    expect(pathway(D, request).status).toBe('MET');
+    const path = pathway(D, request);
+    expect(path).toMatchObject({ status: 'MET', earliestDate: '2026-11-23' });
+    expect(path.checks.some(({ id }) => /^PT-D0[156]/.test(id))).toBe(false);
     statuses(
       D,
       {
@@ -1331,6 +1676,23 @@ describe('E · ordinary temporary renewal', () => {
 });
 
 describe('F · free movement', () => {
+  test('other-family permission does not apply to an EU resident relying on their own work', () => {
+    const request = {
+      freeMovement: {
+        ...freeMovement,
+        historicalBasisReview: undefined,
+        identityAtEntryValid: true,
+        residenceBasis: 'worker' as const,
+        relationship: 'other-family' as const,
+      },
+    };
+    statuses(F, request, { F01: 'MET', F03: 'MET' });
+    expect(pathway(F, request)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2026-11-23',
+    });
+  });
+
   test('ordinary five years, lawful basis, public restrictions, registration and age-specific charges', () => {
     const request = { route: 'eu' as const, freeMovement };
     expect(pathway(F, request).status).toBe('MET');

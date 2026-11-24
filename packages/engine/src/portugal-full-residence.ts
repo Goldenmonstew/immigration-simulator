@@ -28,14 +28,21 @@ export function means(
   ctx: PtFullContext,
   id: string,
   routeSource: ReturnType<typeof src>,
-  standard?: 'permanent' | 'long-term',
+  standard?: 'permanent' | 'long-term' | 'employment-renewal',
 ) {
   const { req, at, L, check } = ctx;
   const e = req.residence?.means;
-  const months = p.residenceMeansMonths.value;
-  const coverage = standard
-    ? compare(e?.supportedMonths, (n) => n >= months)
-    : undefined;
+  const employment = standard === 'employment-renewal';
+  const months = employment
+    ? p.purposeMeans.value.ordinaryMonths
+    : p.residenceMeansMonths.value;
+  const coverage = employment
+    ? e?.supportedMonths !== undefined && e.supportedMonths >= months
+      ? true
+      : undefined
+    : standard
+      ? compare(e?.supportedMonths, (n) => n >= months)
+      : undefined;
   const solidarity =
     standard === 'long-term'
       ? compare(e?.solidarityReliance, (value) => !value)
@@ -92,7 +99,9 @@ export function means(
     [
       routeSource,
       ...p.householdWeights.sources,
-      ...(standard ? p.residenceMeansMonths.sources : p.purposeMeans.sources),
+      ...(standard && !employment
+        ? p.residenceMeansMonths.sources
+        : p.purposeMeans.sources),
       src('SRC-475', 'Montante / Forma de comprovar'),
       ...(reference === undefined
         ? []
@@ -106,16 +115,21 @@ export function means(
                 : []),
           ]),
     ],
-    ['PD-385', ...(!standard && id.startsWith('E') ? ['PD-395'] : [])],
-    (standard
+    ['PD-385', ...(id.startsWith('E') ? ['PD-395'] : [])],
+    (employment
       ? L(
-          `资源须至少保障 ${months} 个月，并按个案核实可计收入、净额及稳定性。`,
-          `Resources must cover at least ${months} months. Confirm countable income, net amounts and stability for this case.`,
+          `按已确认的个案净额门槛和稳定性核对。${months} 个月的覆盖可用于判定，较短期间须另行核实。`,
+          `Use the confirmed individual net threshold and stability of resources. Evidence covering ${months} months can be assessed here. Confirm shorter periods individually.`,
         )
-      : L(
-          '按许可目的核对可用资源、收入证据与减免。',
-          'Confirm available resources, income evidence and relief for the particular permit purpose.',
-        )) +
+      : standard
+        ? L(
+            `资源须至少保障 ${months} 个月，并按个案核实可计收入、净额及稳定性。`,
+            `Resources must cover at least ${months} months. Confirm countable income, net amounts and stability for this case.`,
+          )
+        : L(
+            '按许可目的核对可用资源、收入证据与减免。',
+            'Confirm available resources, income evidence and relief for the particular permit purpose.',
+          )) +
       (standard === 'long-term'
         ? L(
             ' 须可维持生活而无须依赖团结子系统。',
@@ -429,10 +443,10 @@ export function permanentResidence(ctx: PtFullContext, pilot: PtPathway) {
         ),
       ],
       {
-        timeChecks: issues,
         applicable: !isFreeMovement(ctx),
-        notes:
-          operation === 'replace'
+        notes: [
+          ...issues,
+          ...(operation === 'replace'
             ? [
                 check(
                   'B07-REPLACE-DOCUMENTS',
@@ -447,7 +461,8 @@ export function permanentResidence(ctx: PtFullContext, pilot: PtPathway) {
                 ),
                 fee,
               ]
-            : [],
+            : []),
+        ],
       },
     );
 
@@ -506,13 +521,22 @@ export function permanentResidence(ctx: PtFullContext, pilot: PtPathway) {
       basicPortuguese(ctx, 'B05', false),
       generalRefusal(ctx, 'B02-GENERAL', true),
     ],
-    { pilot, timeChecks, notes: [documents, fee] },
+    {
+      pilot,
+      timeChecks: timeChecks.slice(0, 1),
+      notes: [...timeChecks.slice(1), documents, fee],
+    },
   );
 }
 
-function regularLongTermAbsences(ctx: PtFullContext): Verdict {
-  const { req, at } = ctx;
-  const start = addYears(at, -time.longTermYears.value);
+function regularLongTermAbsences(
+  { req }: PtFullContext,
+  at: IsoDate,
+  residenceFrom?: IsoDate,
+): Verdict {
+  const window = addYears(at, -time.longTermYears.value);
+  const start =
+    residenceFrom && residenceFrom > window ? residenceFrom : window;
   const trips = req.trips.filter(
     (trip) =>
       trip.departed < at &&
@@ -535,9 +559,8 @@ function regularLongTermAbsences(ctx: PtFullContext): Verdict {
   return total <= low ? true : total > high ? false : undefined;
 }
 
-function blueCardTime(ctx: PtFullContext) {
+function blueCardTime(ctx: PtFullContext, at: IsoDate) {
   const e = ctx.req.longTerm?.blueCard;
-  const { at, check, L } = ctx;
   const rule = p.blueCard.value;
   const window = addYears(at, -rule.euYears);
   const trips = e?.euAbsences
@@ -564,7 +587,7 @@ function blueCardTime(ctx: PtFullContext) {
           ? false
           : undefined;
   const old = at < rule.from;
-  const valid = old
+  return old
     ? undefined
     : all(
         e?.issuedByPortugal,
@@ -580,18 +603,6 @@ function blueCardTime(ctx: PtFullContext) {
         single,
         totalOk,
       );
-  return check(
-    'C03',
-    valid,
-    '蓝卡欧盟累计及葡萄牙蓝卡年限',
-    'EU Blue Card qualifying residence and Portuguese Blue Card period',
-    p.blueCard.sources,
-    ['PD-389'],
-    L(
-      `核对欧盟 ${rule.euYears} 年、紧接申请前持葡萄牙蓝卡 ${rule.portugalYears} 年，离开欧盟单次少于 ${rule.singleAbsenceMonths} 个月且合计不超过 ${rule.totalAbsenceMonths} 个月。混合许可须确认其可计时间。`,
-      `Check ${rule.euYears} EU years, ${rule.portugalYears} immediately preceding years on a Portuguese Blue Card, and absences from the EU shorter than ${rule.singleAbsenceMonths} months each and no more than ${rule.totalAbsenceMonths} in total. Confirm how mixed permits count.`,
-    ),
-  );
 }
 
 function longTermLoss(ctx: PtFullContext, hasStatus: boolean): Verdict {
@@ -700,7 +711,7 @@ export function longTermResidence(ctx: PtFullContext, pilot: PtPathway) {
           '仅因法定缺席丧失身份',
           'Status lost only because of a statutory absence',
           [
-            foreignLaw('art. 131(7), (11), p103'),
+            foreignLaw('art. 131(4)–(5), p104'),
             ...p.longTermRecoveryDecisionMonths.sources,
           ],
           ['PD-147'],
@@ -735,13 +746,23 @@ export function longTermResidence(ctx: PtFullContext, pilot: PtPathway) {
       ],
       {
         applicable: !isFreeMovement(ctx),
-        timeChecks: hasStatus ? pilotChecks(pilot, ['C10-PILOT-ABSENCE']) : [],
-        notes: operation === 'replace' ? [documents, fee] : [],
+        notes: [
+          ...(hasStatus ? pilotChecks(pilot, ['C10-PILOT-ABSENCE']) : []),
+          ...(operation === 'replace' ? [documents, fee] : []),
+        ],
       },
     );
 
   const blue = e?.basis === 'blue-card';
   const protection = e?.basis === 'international-protection';
+  const protectionEligibleOn =
+    e?.protectionApplicationDate &&
+    addDays(addYears(e.protectionApplicationDate, time.longTermYears.value), 1);
+  const protectionFacts = all(
+    e?.qualifyingProtectionGranted,
+    e?.protectionContinuityVerified,
+    regularLongTermAbsences(ctx, at, e?.protectionApplicationDate),
+  );
   const selectedTime = blue
     ? check(
         'C01',
@@ -755,13 +776,8 @@ export function longTermResidence(ctx: PtFullContext, pilot: PtPathway) {
       ? check(
           'C01',
           all(
-            e?.qualifyingProtectionGranted,
-            e?.protectionContinuityVerified,
-            compare(
-              e?.protectionApplicationDate,
-              (date) => at > addYears(date, time.longTermYears.value),
-            ),
-            regularLongTermAbsences(ctx),
+            protectionFacts,
+            compare(protectionEligibleOn, (date) => at >= date),
           ),
           '获保护申请起算的连续合法居留',
           'Continuous lawful residence from the successful protection application',
@@ -773,6 +789,53 @@ export function longTermResidence(ctx: PtFullContext, pilot: PtPathway) {
           ),
         )
       : undefined;
+  const rule = p.blueCard.value;
+  const card = e?.blueCard;
+  const blueEligibleOn =
+    card?.continuousPortugueseBlueCardFrom && card.continuousQualifyingEuFrom
+      ? [
+          addYears(card.continuousPortugueseBlueCardFrom, rule.portugalYears),
+          addYears(card.continuousQualifyingEuFrom, rule.euYears),
+        ].sort()[1]
+      : undefined;
+  const blueCheck = blue
+    ? check(
+        'C03',
+        blueCardTime(ctx, at),
+        '蓝卡欧盟累计及葡萄牙蓝卡年限',
+        'EU Blue Card qualifying residence and Portuguese Blue Card period',
+        p.blueCard.sources,
+        ['PD-389'],
+        L(
+          `核对欧盟 ${rule.euYears} 年、紧接申请前持葡萄牙蓝卡 ${rule.portugalYears} 年，离开欧盟单次少于 ${rule.singleAbsenceMonths} 个月且合计不超过 ${rule.totalAbsenceMonths} 个月。混合许可须确认其可计时间。`,
+          `Check ${rule.euYears} EU years, ${rule.portugalYears} immediately preceding years on a Portuguese Blue Card, and absences from the EU shorter than ${rule.singleAbsenceMonths} months each and no more than ${rule.totalAbsenceMonths} in total. Confirm how mixed permits count.`,
+        ),
+      )
+    : undefined;
+  const waits = [];
+  if (
+    blueCheck &&
+    blueEligibleOn &&
+    blueEligibleOn > at &&
+    at >= rule.from &&
+    blueCardTime(ctx, blueEligibleOn) === true
+  ) {
+    waits.push({ check: blueCheck, until: blueEligibleOn });
+  }
+  if (
+    protection &&
+    selectedTime &&
+    protectionEligibleOn &&
+    protectionEligibleOn > at &&
+    protectionFacts === true &&
+    regularLongTermAbsences(
+      ctx,
+      protectionEligibleOn,
+      e?.protectionApplicationDate,
+    ) === true
+  ) {
+    waits.push({ check: selectedTime, until: protectionEligibleOn });
+  }
   const category = check(
     'C01-CATEGORY',
     compare(e?.currentCategory, (category) => category === 'qualifying'),
@@ -803,7 +866,9 @@ export function longTermResidence(ctx: PtFullContext, pilot: PtPathway) {
     pilot.title,
     [
       category,
-      ...(selectedTime ? [selectedTime] : []),
+      ...(selectedTime && !waits.some(({ check }) => check === selectedTime)
+        ? [selectedTime]
+        : []),
       ...(protection
         ? [
             check(
@@ -816,7 +881,9 @@ export function longTermResidence(ctx: PtFullContext, pilot: PtPathway) {
             ),
           ]
         : []),
-      ...(blue ? [blueCardTime(ctx)] : []),
+      ...(blueCheck && !waits.some(({ check }) => check === blueCheck)
+        ? [blueCheck]
+        : []),
       resource,
       coverage,
       accommodation,
@@ -832,6 +899,7 @@ export function longTermResidence(ctx: PtFullContext, pilot: PtPathway) {
     ],
     {
       applicable: !isFreeMovement(ctx),
+      waits,
       ...(selectedTime ? {} : { pilot, timeChecks: baseTime }),
       notes: [documents, fee],
     },
@@ -880,20 +948,21 @@ export function ordinaryRenewal(ctx: PtFullContext) {
     opens && deadline ? date >= opens && date <= deadline : undefined;
   const late = deadline && date > deadline;
   const lateAccepted = late ? e?.lateSubmissionAccepted : false;
-  const valid =
-    e?.residencePermitCancelled || (e?.servingSentence && e.expulsionOrdered)
-      ? false
-      : late
-        ? lateAccepted
-        : inWindow;
+  const permitUsable = all(
+    compare(e?.residencePermitCancelled, (value) => !value),
+    e?.servingSentence ? compare(e.expulsionOrdered, (value) => !value) : true,
+  );
+  const valid = all(permitUsable, late ? lateAccepted : inWindow);
   const state = !card
     ? 'NOT_MET'
     : valid === true
       ? 'MET'
       : valid === undefined
         ? 'UNKNOWN'
-        : opens && date < opens && !e?.filedOn && !e?.residencePermitCancelled
-          ? 'FUTURE'
+        : opens && date < opens && !e?.filedOn && permitUsable !== false
+          ? permitUsable === true
+            ? 'FUTURE'
+            : 'UNKNOWN'
           : 'NOT_MET';
   const purpose =
     e?.purpose === 'study'
@@ -956,7 +1025,7 @@ export function ordinaryRenewal(ctx: PtFullContext) {
   ];
   const window = check(
     'E01',
-    valid ?? (!card ? false : undefined),
+    !card ? false : state === 'UNKNOWN' ? undefined : valid,
     '临时许可及续期窗口',
     'Temporary title and renewal window',
     [
@@ -980,7 +1049,12 @@ export function ordinaryRenewal(ctx: PtFullContext) {
     'PT-TEMPORARY-RENEWAL',
     L('一般临时居留续期', 'Ordinary temporary residence renewal'),
     [
-      means(ctx, 'E02', foreignLaw('art. 78(2)(a), p66')),
+      means(
+        ctx,
+        'E02',
+        foreignLaw('art. 78(2)(a), p66'),
+        e?.purpose === 'employment' ? 'employment-renewal' : undefined,
+      ),
       housing(ctx, 'E03', [
         foreignLaw('art. 78(2)(b), p66'),
         residenceReg('DR 84/2007 art. 63(1)(c)'),

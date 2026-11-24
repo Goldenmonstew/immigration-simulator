@@ -233,9 +233,11 @@ export function investmentResidence(
     sources: p.aimaInvestmentFees.sources,
   });
   if (converting) {
-    const link = operation === 'replace-permanent' ? permanentCard : card;
-    const qualified =
-      permanent.status === 'MET'
+    const replacing = operation === 'replace-permanent';
+    const link = replacing ? permanentCard : card;
+    const qualified = replacing
+      ? reviewed(r?.statusCancellation)
+      : permanent.status === 'MET'
         ? true
         : permanent.status === 'NOT_MET'
           ? false
@@ -243,8 +245,12 @@ export function investmentResidence(
     const conversion = check(
       'D10',
       all(link, qualified),
-      '投资类永久居留及普通永久条件',
-      'Permanent investment residence and the permanent-residence requirements',
+      replacing
+        ? '已有投资类永久居留及正式注销决定'
+        : '投资类永久居留及普通永久条件',
+      replacing
+        ? 'Existing permanent investment residence and formal cancellation decision'
+        : 'Permanent investment residence and the permanent-residence requirements',
       [
         residenceReg('DR 84/2007 art. 65-K'),
         foreignLaw('art. 80, p67'),
@@ -252,13 +258,20 @@ export function investmentResidence(
         ariFaq('FAQ 28–29'),
       ],
       ['PD-394'],
-      L(
-        '适用 B 路径的永久居留检查；投资类永居适用专门的缺席规则。',
-        'See the permanent-residence pathway for the applicable checks. Permanent investment residence has special absence rules.',
-      ),
+      replacing
+        ? undefined
+        : L(
+            '适用 B 路径的永久居留检查；投资类永居适用专门的缺席规则。',
+            'See the permanent-residence pathway for the applicable checks. Permanent investment residence has special absence rules.',
+          ),
     );
-    return pathway(id, title, [conversion], {
+    const waitUntil =
+      link && !replacing && permanent.status === 'FUTURE'
+        ? permanent.earliestDate
+        : undefined;
+    return pathway(id, title, waitUntil ? [] : [conversion], {
       applicable,
+      waits: waitUntil ? [{ check: conversion, until: waitUntil }] : [],
       notes: [
         check(
           'D10-TERMS',
@@ -339,10 +352,10 @@ export function investmentResidence(
           ? false
           : undefined;
     const timing =
-      pilot.status === 'NOT_APPLICABLE'
-        ? { status: 'UNKNOWN' as const }
-        : undefined;
-    const timeChecks = pilotChecks(pilot, ['D07-WINDOW', 'D07-STAY']);
+      !card && !permanentCard ? { status: 'UNKNOWN' as const } : undefined;
+    const timeChecks = card
+      ? pilotChecks(pilot, ['D07-WINDOW', 'D07-STAY'])
+      : [];
     if (!timeChecks.length)
       timeChecks.push(
         check(
@@ -417,9 +430,11 @@ export function investmentResidence(
     ? reviewed(e.entryReview)
     : e?.entry === 'irregular'
       ? false
-      : e?.entry === 'schengen-visa'
-        ? entryTiming
-        : undefined;
+      : family && e?.entry
+        ? true
+        : e?.entry === 'schengen-visa'
+          ? entryTiming
+          : undefined;
   const conviction =
     e?.qualifyingConviction === false
       ? true
@@ -442,20 +457,42 @@ export function investmentResidence(
           e?.lawfullyInPortugal,
           r?.travelDocumentValid,
           compare(e?.visaRefusalGround, (value) => !value),
-          family ? undefined : e?.holder === 'investor' ? true : undefined,
+          family
+            ? all(
+                e.sponsorAriValid,
+                e.familyEvidenceAccepted,
+                e.relationshipContinues === false ? false : true,
+              )
+            : e?.holder === 'investor'
+              ? true
+              : undefined,
         ),
-        '身份、合法入境及办理期限',
-        'Identity, lawful entry and regularisation deadline',
-        [
-          ...p.ariEntryDays.sources,
-          foreignLaw('arts. 4(2)(a), 77(1)(b)–(c), 90-A(1)(a)–(c)'),
-          ariGuide('Documentos e requisitos gerais'),
-        ],
-        ['PD-391'],
-        L(
-          `条文列有效申根签证及自首次入境起 ${entryLimit} 天办理；免签和首入境起点须向 AIMA 确认。`,
-          `The law lists a valid Schengen visa and regularisation within ${entryLimit} days of first entry. Confirm visa-free cases and the starting event with AIMA.`,
-        ),
+        family ? '合法入境及 ARI 家庭团聚资格' : '身份、合法入境及办理期限',
+        family
+          ? 'Lawful entry and ARI family reunification eligibility'
+          : 'Identity, lawful entry and regularisation deadline',
+        family
+          ? [
+              foreignLaw(
+                'Lei 61/2025 art. 2 (Lei 23/2007 arts. 98(1), (3)(c), 99, 103(2)), pp4–6',
+              ),
+              ariFaq('FAQ 11'),
+            ]
+          : [
+              ...p.ariEntryDays.sources,
+              foreignLaw('arts. 4(2)(a), 77(1)(b)–(c), 90-A(1)(a)–(c)'),
+              ariGuide('Documentos e requisitos gerais'),
+            ],
+        family ? ['PD-392'] : ['PD-391'],
+        family
+          ? L(
+              '核对合法入境、有效证件、担保人的有效 ARI 和家庭团聚资格。ARI 家属适用法定等待期豁免。',
+              'Verify lawful entry, valid documents, a valid sponsor ARI and eligibility for family reunification. ARI family members are exempt from the statutory waiting period.',
+            )
+          : L(
+              `条文列有效申根签证及自首次入境起 ${entryLimit} 天办理；免签和首入境起点须向 AIMA 确认。`,
+              `The law lists a valid Schengen visa and regularisation within ${entryLimit} days of first entry. Confirm visa-free cases and the starting event with AIMA.`,
+            ),
       ),
       resource,
       accommodation,
@@ -488,39 +525,41 @@ export function investmentResidence(
       ),
       generalRefusal(ctx, 'D03-GENERAL'),
       coverage,
-      ...(legacy
-        ? [legacy]
-        : [
-            check(
-              'D05',
-              newRegime
-                ? all(
-                    invested,
-                    e?.commercialVehicleQualified,
-                    e?.investmentEvidenceAccepted,
-                    compare(e?.realEstateExposure, (value) => !value),
+      ...(family
+        ? []
+        : legacy
+          ? [legacy]
+          : [
+              check(
+                'D05',
+                newRegime
+                  ? all(
+                      invested,
+                      e?.commercialVehicleQualified,
+                      e?.investmentEvidenceAccepted,
+                      compare(e?.realEstateExposure, (value) => !value),
+                    )
+                  : undefined,
+                '投资已完成、渠道合规且无房地产用途',
+                'Completed investment through a qualifying vehicle with no real-estate exposure',
+                [investmentLaw(), residenceReg('DR 84/2007 arts. 65-A, 65-D')],
+                ['PD-393', 'PD-394'],
+              ),
+              ...(validInvestment && newRegime
+                ? [investmentOption(ctx, validInvestment)].filter(
+                    (c) => c !== undefined,
                   )
-                : undefined,
-              '投资已完成、渠道合规且无房地产用途',
-              'Completed investment through a qualifying vehicle with no real-estate exposure',
-              [investmentLaw(), residenceReg('DR 84/2007 arts. 65-A, 65-D')],
-              ['PD-393', 'PD-394'],
-            ),
-            ...(validInvestment && newRegime
-              ? [investmentOption(ctx, validInvestment)].filter(
-                  (c) => c !== undefined,
-                )
-              : [
-                  check(
-                    'D06',
-                    undefined,
-                    '合资格投资方式',
-                    'Qualifying investment option',
-                    [investmentLaw()],
-                    ['PD-393', 'PD-394'],
-                  ),
-                ]),
-          ]),
+                : [
+                    check(
+                      'D06',
+                      undefined,
+                      '合资格投资方式',
+                      'Qualifying investment option',
+                      [investmentLaw()],
+                      ['PD-393', 'PD-394'],
+                    ),
+                  ]),
+            ]),
     ],
     { applicable, notes: [documents, fee] },
   );

@@ -282,7 +282,7 @@ export const portugalFull2026_11 = {
     purposeMeans: input(
       { ordinaryMonths: 12, housingFactor: 0.5, housingAndMealsFactor: 0.1 },
       'SRC-473',
-      'Portaria 1563/2007 arts. 5, 7 (only the specified study, training and voluntary categories)',
+      'Portaria 1563/2007 arts. 5(1)–(6), 7; reductions apply to the specified categories',
     ),
     incomeEvidenceMonths: input(
       { employee: 3, serviceContract: 6 },
@@ -345,12 +345,12 @@ export const portugalFull2026_11 = {
         lossEuMonths: 24,
       },
       'SRC-491',
-      'Lei 53/2023 arts. 2, 8 (Lei 23/2007 arts. 121-I, 121-J)',
+      'Lei 53/2023 arts. 2, 10, gazette p24 (Lei 23/2007 arts. 121-I, 121-J)',
     ),
     longTermRecoveryDecisionMonths: input(
       3,
       foreigners,
-      'Lei 23/2007 art. 131(7), (11), p103',
+      'Lei 23/2007 art. 131(4)–(5), p104',
     ),
     ariEntryDays: input(90, foreigners, 'Lei 23/2007 art. 90-A(1)(b)–(c), p72'),
     ariDocumentAge: input(
@@ -423,6 +423,11 @@ export const portugalFull2026_11 = {
       },
       freeMovement,
       'Lei 37/2006 art. 10(4)–(5), p5719',
+    ),
+    freeMovementFamilyCardAbsenceMonths: input(
+      30,
+      freeMovement,
+      'Lei 37/2006 art. 17(4), p5721',
     ),
     freeMovementRegistration: input(
       { initialMonths: 3, registrationDays: 30 },

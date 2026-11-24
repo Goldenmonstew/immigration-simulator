@@ -1,4 +1,4 @@
-import { addMonths, addYears } from './dates';
+import { addDays, addMonths, addYears } from './dates';
 import {
   all,
   any,
@@ -32,8 +32,14 @@ function oldPortuguese(
   e: PtNationalityEvidence | undefined,
   portugueseNational: Verdict,
 ): Verdict {
-  if (portugueseNational && e?.bornInOfficialPortugueseCountry) return true;
-  const proof = e?.language;
+  const presumption = all(
+    portugueseNational,
+    e?.bornInOfficialPortugueseCountry,
+  );
+  return any(presumption, oldPortugueseProof(e?.language));
+}
+
+function oldPortugueseProof(proof: PtNationalityEvidence['language']): Verdict {
   if (proof?.kind === 'none')
     return proof.accommodationRequested ? undefined : false;
   switch (proof?.kind) {
@@ -43,7 +49,7 @@ function oldPortuguese(
       return true;
     case 'recognized-ple-test':
     case 'foreign-portuguese-school':
-      return proof.recognized === true ? true : undefined;
+      return proof.recognized;
     case 'portuguese-school':
       return all(
         proof.recognized,
@@ -295,7 +301,17 @@ export function naturalisation(ctx: PtFullContext, pilot: PtPathway) {
             oldLaw('art. 6(1)(c), p8'),
             ...p.oldPortugueseEvidence.sources,
             ...p.basicPortuguese.sources,
+            regulation('art. 25(9), p42'),
           ],
+          ['PD-380'],
+          portugueseNational &&
+            e?.bornInOfficialPortugueseCountry === undefined &&
+            e?.language?.kind === 'none'
+            ? L(
+                '请确认申请人是否出生于以葡萄牙语为官方语言的国家。',
+                'Confirm whether the applicant was born in a country where Portuguese is an official language.',
+              )
+            : undefined,
         ),
         check(
           'A14',
@@ -458,7 +474,21 @@ export function naturalisation(ctx: PtFullContext, pilot: PtPathway) {
   // earlier application was short. Keep that projection on its own check.
   const timing =
     old && timeChecks.length > 1 ? { status: 'NOT_MET' as const } : undefined;
-  return pathway(pilot.id, title, checks, { pilot, timing, timeChecks, notes });
+  const [qualifyingTime, alternative] = timeChecks;
+  const adultOn = req.birthDate && addYears(req.birthDate, p.adulthood.value);
+  const waitingForAge =
+    adultOn &&
+    adultOn > at &&
+    !req.pendingApplication &&
+    checks[0].status === 'NOT_MET' &&
+    (checks[0].id === 'PT-A01' || checks[0].id === 'PT-A12');
+  return pathway(pilot.id, title, waitingForAge ? checks.slice(1) : checks, {
+    pilot,
+    timing,
+    timeChecks: [qualifyingTime],
+    waits: waitingForAge ? [{ check: checks[0], until: adultOn }] : [],
+    notes: alternative ? [alternative, ...notes] : notes,
+  });
 }
 
 export function partnerNationality(ctx: PtFullContext) {
@@ -486,21 +516,24 @@ export function partnerNationality(ctx: PtFullContext) {
     ]);
   const lawSrc = old ? oldLaw : newLaw;
   const since = e?.relationshipFrom;
-  const duration = compare(
-    since,
-    (from) => filing > addYears(from, p.relationshipYears.value),
-  );
-  const citizenshipTiming =
-    e?.portuguesePartner === true &&
-    e.partnerPortugueseSince &&
-    since &&
-    (e.partnerPortugueseSince <= since ||
-      filing > addYears(e.partnerPortugueseSince, p.relationshipYears.value))
+  const eligibleOn =
+    since && addDays(addYears(since, p.relationshipYears.value), 1);
+  const duration = compare(eligibleOn, (date) => filing >= date);
+  const portugueseSince = e?.partnerPortugueseSince;
+  const citizen =
+    e?.portuguesePartner === false
+      ? false
+      : (compare(portugueseSince, (date) => date <= filing) ??
+        e?.portuguesePartner);
+  const citizenshipTiming = all(
+    citizen,
+    portugueseSince &&
+      since &&
+      (portugueseSince <= since ||
+        filing > addYears(portugueseSince, p.relationshipYears.value))
       ? true
-      : e?.portuguesePartner === false ||
-          (e?.partnerPortugueseSince && e.partnerPortugueseSince > filing)
-        ? false
-        : undefined;
+      : undefined,
+  );
   const relationship = all(e?.current, duration, citizenshipTiming);
   const civil = e?.kind === 'civil-partnership';
   const noRelationship = e?.kind === 'none';
@@ -511,7 +544,7 @@ export function partnerNationality(ctx: PtFullContext) {
       : filing > addYears(from, p.oppositionYears.value.relationship),
   );
   const exception =
-    e?.current === true && e.portuguesePartner === true
+    e?.current === true && citizen === true
       ? any(e.commonPortugueseChild, exemptionByTime)
       : undefined;
   const connection = exception === true ? true : reviewed(e?.connectionReview);
@@ -548,11 +581,21 @@ export function partnerNationality(ctx: PtFullContext) {
       `The relationship must still subsist at declaration and exceed ${p.relationshipYears.value} years. Check registration, judicial recognition or later acquisition of Portuguese nationality where relevant.`,
     ),
   );
+  const waitingForRelationship =
+    !e?.pendingApplication &&
+    eligibleOn &&
+    eligibleOn > at &&
+    knownRelationship &&
+    all(
+      e?.current,
+      citizenshipTiming,
+      civil ? e?.courtRecognition : e?.registrationAccepted,
+    ) === true;
   return pathway(
     id,
     title,
     [
-      main,
+      ...(waitingForRelationship ? [] : [main]),
       check(
         'G03-CRIME',
         conviction,
@@ -620,6 +663,7 @@ export function partnerNationality(ctx: PtFullContext) {
       ),
     ],
     {
+      waits: waitingForRelationship ? [{ check: main, until: eligibleOn }] : [],
       notes: [
         check(
           'G06',
