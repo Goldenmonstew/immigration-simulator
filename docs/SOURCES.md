@@ -1083,6 +1083,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - **SRC-382** Eligibility；What is e-Vetting?。
 - **SRC-383** Act ss4–5、9、19；S.I. 421/2025 regs. 1–5。
 - **SRC-095** Guide 的 Reckonable Residence for Refugees or people with international protection、70 Days Absence Rule 及 Document requirements for minors。难民专项区分递交前一年与此前累计期，并说明部长可按个案豁免。
+- **SRC-097** Eligibility、How do I renew my Without Condition As To Time permission? 及 What are the conditions attached to my Stamp 5 permission。Stamp 5 线上 IRP 续期材料另见 SRC-384 的 Stamp 5 Renewals 清单。
 - **SRC-384** Stamp 1、Stamp 1G (1)、Stamp 3 (3)、Stamp 4 (1)–(4)、(7)–(8)、(12)、Stamp 5、Stamp 4 EUFam 与 WA 的登记及续期清单。在线续期 When should I submit a Renewal Application? 载明在共和国境内递交、IRP 到期前 12 周开放。Introduction 包含线上更换 Stamp 类别。
 - **SRC-385** Policy Document Archive；main changes。
 - **SRC-386** Financial Thresholds for Spouses, Civil Partners and De Facto Partners；Table 1。
@@ -1108,7 +1109,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
   - `2026-11-23-ie-eu-commission-ltr.pdf` 对应 [官方 PDF](https://ec.europa.eu/commission/presscorner/api/files/attachment/872342/COM_2022_650_1_EN_ACT_part1_v5.pdf)。
   - `2026-11-23-ie-eu-emn-query-ltr.pdf` 对应 [官方 PDF](https://home-affairs.ec.europa.eu/system/files/2022-06/20221_directive_2003109ec_duration_of_absence_and_loss_of_the_long-term_resident_status%20%281%29.pdf)。
 - **SRC-397** Minimum Annual Remuneration updates。
-- **SRC-398** Eligibility、Conditions、FAQ；申请表 p1 与 §§3–6；医师说明 Permission to Change Immigration Status。
+- **SRC-398** Eligibility、Conditions、FAQ；申请表 p1 与 §§3–6；医师说明 Permission to Change Immigration Status。How do I renew my Long Term Residency permission? 核对持有 LTR 期间的居住及工作证明，并单列领取经收入评估福利者的续期渠道。家属首办材料见 Can my spouse/dependent apply for Long Term Residence?。
   - `2026-11-23-ie-ltr-doctors.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2021/05/SHOs-and-registrars-with-5-years-work.pdf)。
   - `2026-11-23-ie-ltr-form.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2023/07/Long-Term-Residency-Application-Form.pdf)。
 - **SRC-399** Independent immigration permission。
@@ -1119,7 +1120,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - **SRC-402** s63：overcrowding。
 - **SRC-404** Indexation。
   - `2026-11-23-ie-permit-roadmap.pdf` 对应 [官方 PDF](https://enterprise.gov.ie/en/publications/publication-files/employment-permits-minimum-annual-remuneration-outcome-of-the-roadmap-review-2025.pdf)。
-- **SRC-405** Registration requirements for minors。
+- **SRC-405** Registration requirements for minors；Registering for the first time at 16 years of age 与 Minors (under 16 years) travelling to and from Ireland。免登记情形的入籍连续居住仍按 SRC-091 ss15B–15C 核对。
 - **SRC-406** Visa Fees；Visa fee exemptions。
 - **SRC-407** Employment Permits Act 2024；S.I. 444/2024 legislative history。
 - **SRC-408** ss203、286、295。

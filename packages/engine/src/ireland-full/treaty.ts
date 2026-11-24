@@ -118,6 +118,7 @@ export interface IrelandTreatyResidence {
   };
   document?: {
     inState?: boolean;
+    /** For renewal, confirms the existing card, permission letter where required and applicable checklist evidence. */
     identityAndResidenceEvidence?: boolean;
     currentCardExpiresOn?: IsoDate;
     filedOn?: IsoDate;
@@ -588,11 +589,12 @@ export function treatyResidence(
       ? [{ leftOn: postGrant.from, returnedOn: postGrant.returnedOn }]
       : []),
   ];
+  const lossFrom = acquired ?? (renewal ? postGrant?.from : undefined);
   const lastLoss =
-    acquired &&
+    lossFrom &&
     mergePeriods(
       trips.map(({ leftOn, returnedOn }) => ({
-        from: leftOn < acquired ? acquired : leftOn,
+        from: leftOn < lossFrom ? lossFrom : leftOn,
         to: returnedOn ? addDays(returnedOn, -1) : undefined,
       })),
       addDays(day, -1),
@@ -624,6 +626,7 @@ export function treatyResidence(
           `Check free-movement nationality or family status. Descendants are under ${p.descendantAge} or dependent. Student, permitted family member and returning citizen cases need separate confirmation (PD-336).`,
         ),
     wa ? ['PD-338'] : ['PD-336'],
+    !renewal || (wa && (afterLoss !== undefined || r.wa?.recognisedWaScope === false)),
   );
   const recorded = activities?.filter((period) => period.from <= day);
   const basis =
@@ -651,7 +654,7 @@ export function treatyResidence(
         `Check the early rules for retirement (more than ${p.retirementResidenceYears} years of residence and ${p.retirementWorkMonths} months of prior work), permanent incapacity (normally more than ${p.incapacityResidenceYears} years), frontier work (prior residence and work for ${p.frontierYears} years), or death while working.`,
       ),
       ['PD-336', 'PD-338'],
-      !wa && !holder,
+      !wa && !holder && !renewal,
     );
   }
   if (acquisition === 'retained') {
@@ -663,7 +666,7 @@ export function treatyResidence(
         `Check retained rights after death, departure or dissolution, a personal basis and continuous residence. The usual non-EU divorce limb requires ${p.retainedRelationYears} years of relationship including ${p.retainedInStateYears} in the State, with custody, hardship or access alternatives (PD-338).`,
       ),
       ['PD-336', 'PD-338'],
-      !wa && !holder,
+      !wa && !holder && !renewal,
     );
   }
   const ordinaryMet = day < p.euFrom && !wa ? undefined : ordinary.met;
@@ -676,7 +679,7 @@ export function treatyResidence(
         `Check ${p.ordinaryYears} continuous years of lawful residence, normally allowing ${p.absenceMonths} months away per ${p.absenceWindowMonths} months. One important absence can last ${p.importantAbsenceMonths} months. Compulsory military service is considered separately (PD-337).`,
       ),
       ['PD-337'],
-      acquisition === 'ordinary',
+      acquisition === 'ordinary' && !renewal,
     );
   }
   const retainsRight = afterLoss ? all(requalified, wa ? scope : true) : true;
@@ -684,7 +687,7 @@ export function treatyResidence(
     add(
       'E02',
       all(
-        holder
+        holder || (renewal && postGrant)
           ? true
           : acquisition === 'early'
             ? early
@@ -698,6 +701,7 @@ export function treatyResidence(
         `Combine lawful EU and WA residence across transition. The ordinary requirement is ${p.ordinaryYears} continuous years. Absence exceeding ${lossYears} consecutive years after acquisition causes loss (PD-337, PD-338).`,
       ),
       ['PD-337', 'PD-338'],
+      !renewal || afterLoss !== undefined,
     );
   }
   const card = d?.currentCardExpiresOn;
@@ -714,7 +718,10 @@ export function treatyResidence(
   const notification =
     r.role === 'citizen' || r.nonEuFamily === false
       ? true
-      : all(d?.addressAndStatusNotified, d?.prolongedAbsenceNotified);
+      : all(
+          d?.addressAndStatusNotified ?? (renewal ? true : undefined),
+          d?.prolongedAbsenceNotified ?? (renewal ? true : undefined),
+        );
   const document = all(
     renewal ? renewalInState : d?.inState,
     d?.identityAndResidenceEvidence,
@@ -728,6 +735,7 @@ export function treatyResidence(
         ? false
         : undefined;
   const exam = d?.examRequested ? d.examDone : true;
+  const review = renewal && d?.publicInterest === undefined ? true : cleared;
   if (!wa) {
     add(
       'D06',
@@ -744,7 +752,7 @@ export function treatyResidence(
     );
     add(
       'D07',
-      all(cleared, exam),
+      all(review, exam),
       L(
         `核对正式限制与公共利益审查。入境 ${p.healthReviewMonths} 个月内若依法要求，才另核公共卫生体检；旧定罪不自动排除。`,
         `Check official restrictions and public interest review. A public health exam is assessed if directed within ${p.healthReviewMonths} months of entry. A past conviction does not automatically disqualify.`,
@@ -772,7 +780,7 @@ export function treatyResidence(
   } else {
     add(
       'E03',
-      all(document, cleared, exam, d?.extraFeeRequested ? undefined : true),
+      all(document, review, exam, d?.extraFeeRequested ? undefined : true),
       renewal ? L(
         '按 Withdrawal Agreement Beneficiary 续期清单核对身份、居住材料和适用的审查。卡片到期日另按 IRP 续期窗口核对（PD-338、PD-339）。',
         'Check identity and residence evidence and any applicable review under the Withdrawal Agreement Beneficiary renewal checklist. The IRP renewal window checks the card expiry separately (PD-338, PD-339).',

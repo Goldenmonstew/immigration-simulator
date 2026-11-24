@@ -38,6 +38,7 @@ const conditions = {
       ['SRC-091', 'ss15(1)(c), 15A(1)(e)–(f), 15B(1)(c), 15C, 16(1), 16A'],
       ['SRC-093', 's295'],
       ['SRC-095', 'Time That Does Not Count; 70 Days Absence Rule'],
+      ['SRC-405', 'Registration requirements for minors; Minors travelling to and from Ireland'],
     ],
   ],
   A05: [
@@ -448,7 +449,7 @@ const conditions = {
     'Stamp 5 登记、护照期限与续期',
     'Stamp 5 registration, passport expiry and renewal',
     [
-      ['SRC-097', 'Introduction'],
+      ['SRC-097', 'Introduction; renewal FAQ and conditions of permission'],
       ['SRC-384', 'Stamp 5 Registrations and Renewals'],
     ],
   ],
@@ -475,12 +476,12 @@ const conditions = {
   C04: [
     'LTR 许可合规及居住材料',
     'LTR compliance and residence evidence',
-    [['SRC-398', 'Eligibility, required documents and form §§3–6']],
+    [['SRC-398', 'Eligibility, required documents, form §§3–6 and renewal FAQ']],
   ],
   C05: [
     'LTR 福利与公帑负担',
     'LTR benefits and undue burden',
-    [['SRC-398', 'FAQ: What does an undue burden on the State mean?']],
+    [['SRC-398', 'Undue burden and renewal FAQs']],
   ],
   C06: [
     'LTR 品格、案情及披露',

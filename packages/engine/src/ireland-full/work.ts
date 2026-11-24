@@ -373,11 +373,40 @@ export function workUpgrade(
 
 export function wcatt(
   a: IrelandAssessment,
-  clock: IePathway,
+  clock: IePathway | undefined,
   data: IrelandWcatt,
   inState: boolean | undefined,
+  renewalChecklistComplete: boolean | undefined,
 ) {
   const { add, L } = a;
+  const limit = pilot.values.wcattAbsenceMonths.value;
+  const travel =
+    data.longestAnnualAbsenceMonths === undefined
+      ? undefined
+      : data.longestAnnualAbsenceMonths <= limit
+        ? true
+        : data.exceptionalTravelConfirmed;
+  if (!clock) {
+    add(
+      'B28',
+      all(
+        renewalChecklistComplete,
+        data.grantReceived ?? true,
+        data.passportAndIrpEvidence ?? true,
+        data.termsComplied ?? true,
+        data.character ? character(data.character) : true,
+        data.burden ? undueBurden(data.burden, false) : true,
+        data.employmentEfforts ?? true,
+        data.longestAnnualAbsenceMonths === undefined ? true : travel,
+      ),
+      L(
+        '按 Stamp 5 续期清单核对当前护照、Stamp、IRP、批准信及现有许可附带的条件。',
+        'Check the current passport, stamp, IRP, approval letter and conditions of the existing permission under the Stamp 5 renewal checklist.',
+      ),
+      ['PD-321', 'PD-333', 'PD-334'],
+    );
+    return;
+  }
   a.time(clock, ['WCATT-TIME'], [['PD-114', 'PD-118', 'PD-321']]);
   add(
     'B24',
@@ -406,13 +435,6 @@ export function wcatt(
     ['PD-333'],
   );
   const months = full.wcatt.value.bankMonths;
-  const limit = pilot.values.wcattAbsenceMonths.value;
-  const travel =
-    data.longestAnnualAbsenceMonths === undefined
-      ? undefined
-      : data.longestAnnualAbsenceMonths <= limit
-        ? true
-        : data.exceptionalTravelConfirmed;
   add(
     'B27',
     all(

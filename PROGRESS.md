@@ -488,3 +488,9 @@
 | 684 | 任务 89 第二轮审核修正（review89-2）：按续期清单和申请地点评估普通家庭续期，统一拟返爱担保资格，修正 EU／WA 家属可计居留和 WA 失权后适用范围，补回归与排查清单。 | packages/engine/src/ireland-full/{conditions,family,index,treaty}.ts、packages/engine/test/ireland-full.test.ts、docs/{SOURCES,pending-details,tasks/reports/89-ie-rules}.md |
 | 685 | 任务 89 第三轮审核修正（review89-3）：按 IRP 到期日计算线上续期开放日，分开入籍最后一年、此前居住与正式豁免，按获准入境后的清单评估首次登记，并核对境内 de facto 双方合法居住。 | packages/engine/src/ireland-full/{common,conditions,family,index,naturalisation}.ts、packages/engine/test/ireland-full.test.ts、packages/policy-data/src/parameters/ireland-2026-11.ts、docs/{SOURCES,pending-details,tasks/reports/89-ie-rules}.md |
 | 686 | 任务 89 第四轮审核修正（review89-4）：统一适用条件与已知开放日的汇总，续期必需材料缺失时不出日期，按许可和出入境对齐入籍居住区间，补全 16 条路径回归并向任务 99 交接材料有效期风险。 | packages/engine/src/{ireland.ts,ireland-full/}、packages/engine/test/ireland-full.test.ts、docs/{pending-details,tasks/reports/89-ie-rules}.md |
+
+## 2026-11-24
+
+| # | 改动描述 | 涉及文件 |
+|---|---|---|
+| 687 | 任务 89 第五轮审核修正（review89-5）：按现有许可和续期证明评估 LTR、Stamp 5 与 EU／WA 续卡，支持无 IRP 的整趟旅行居留佐证并验证合并、拆段录入一致，向任务 99 交接预测日材料有效期。 | packages/engine/src/ireland-full/{conditions,index,ltr,naturalisation,treaty,work}.ts、packages/engine/test/ireland-full.test.ts、docs/{SOURCES,pending-details,tasks/reports/89-ie-rules}.md |

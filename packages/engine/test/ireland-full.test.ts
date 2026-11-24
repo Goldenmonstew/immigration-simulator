@@ -750,6 +750,42 @@ describe('Ireland full naturalisation', () => {
       .toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
   });
 
+  test('an Irish-born child without a registration record needs lawful cover for the whole trip', () => {
+    const id = 'IE-MINOR-BORN-IN-STATE';
+    const from = '2021-04-01';
+    const trip = { departed: '2026-08-01', returned: '2026-08-15' };
+    const request = {
+      dateOfBirth: from,
+      birthplace: 'state',
+      registration: { basis: 'exempt', validPermission: true },
+      permissions: [],
+      trips: [trip],
+    } satisfies Partial<IrelandFullRequest>;
+    for (const [unregisteredResidenceEvidence, status] of [
+      [[{ from: trip.departed, to: trip.returned }], 'MET'],
+      [[{ from: '2026-08-02', to: '2026-08-14' }], 'UNKNOWN'],
+      [undefined, 'UNKNOWN'],
+    ] satisfies [IrelandCitizenship['unregisteredResidenceEvidence'], CountryCheck['status']][]) {
+      const citizenship: IrelandCitizenship = {
+        ...naturalisationFacts,
+        unregisteredResidenceEvidence,
+        residence: [{ from, basis: 'reckonable' }],
+      };
+      const merged = checks(id, { ...request, citizenship }, { A04: status });
+      expect(merged).toMatchObject({ status, earliestDate: status === 'MET' ? day : undefined });
+      expect(checks(id, {
+        ...request,
+        citizenship: {
+          ...citizenship,
+          residence: [
+            { from, to: trip.departed, basis: 'reckonable' },
+            { from: trip.returned, basis: 'reckonable' },
+          ],
+        },
+      }, { A04: status })).toEqual(merged);
+    }
+  });
+
   test('confirmed overseas Irish appointment and waiver are both required', () => {
     const id = 'IE-PUBLIC-SERVICE';
     const publicService = {
@@ -1179,7 +1215,7 @@ describe('Ireland work upgrades, registration and Stamp 5', () => {
       ).status,
     ).toBe('MET');
     expect(checks(stamp, {
-      registration: { ...registration, irpExpiresOn: '2027-08-01' },
+      registration: { ...registration, irpExpiresOn: '2027-08-01', checklistComplete: true },
       stamp5: { ...stamp5, passportExpiresOn: '2027-08-01', renewWithPassport: true },
     }, { 'IRP-RENEWAL-WINDOW': 'NOT_MET' })).toMatchObject({
       status: 'FUTURE', earliestDate: '2027-05-09',
@@ -1215,6 +1251,20 @@ describe('Ireland work upgrades, registration and Stamp 5', () => {
       },
       { B27: 'MET' },
     );
+  });
+
+  test('Stamp 5 IRP renewal uses its current checklist without the first application clock or bank statements', () => {
+    for (const [checklistComplete, status] of [
+      [true, 'MET'], [false, 'NOT_MET'], [undefined, 'UNKNOWN'],
+    ] as const) {
+      const path = checks('IE-STAMP5', {
+        permissions: [{ kind: 'stamp5', from: '2026-01-01', to: '2026-12-01' }],
+        registration: { stage: 'renewal', checklistComplete },
+        stamp5: { grantReceived: true },
+      }, { B28: status, 'IRP-RENEWAL-WINDOW': 'MET' });
+      expect(checkOf(path.checks, 'WCATT-TIME')).toBeUndefined();
+      expect(path).toMatchObject({ status, earliestDate: status === 'MET' ? day : undefined });
+    }
   });
 });
 
@@ -1988,7 +2038,6 @@ const ltr: IrelandLtr = {
   feePaidOn: day,
   familyOrRenewalFeeConfirmed: true,
   maintenance: {
-    renewal: true,
     largestCalendarYearAbsenceDays: 90,
     tripsPermittedOrExceptionConfirmed: true,
     workEffortsAndResidence: true,
@@ -1998,11 +2047,45 @@ const ltr: IrelandLtr = {
 
 describe('Ireland Long Term Residency', () => {
   test.each(['IE-LTR-PRINCIPAL', 'IE-LTR-FAMILY'] as const)(
+    '%s renews using the current grant and previous grant evidence without first application history',
+    (id) => {
+      const request = {
+        permissions: [{
+          kind: id === 'IE-LTR-PRINCIPAL' ? 'stamp4' : 'stamp3',
+          from: '2021-12-01',
+          to: '2026-12-01',
+        }],
+        registration: { stage: 'renewal', irpExpiresOn: '2026-12-01' },
+        ltr: {
+          validPermission: true,
+          family: id === 'IE-LTR-FAMILY' ? {
+            eligibleDependentRelationship: true,
+            principalHoldsLtr: true,
+          } : undefined,
+          maintenance: { previousGrantYearsEvidence: true },
+        },
+      } satisfies Partial<IrelandFullRequest>;
+      const path = checks(id, request, { C04: 'MET', C08: 'MET', 'IRP-RENEWAL-WINDOW': 'MET' });
+      expect(path).toMatchObject({ status: 'MET', earliestDate: day });
+      expect(checkOf(path.checks, 'C01')).toBeUndefined();
+      expect(checkOf(path.checks, 'C03')).toBeUndefined();
+      expect(checks(id, {
+        ...request,
+        ltr: { ...request.ltr, validPermission: undefined },
+      }, { C04: 'UNKNOWN' })).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+      expect(checks(id, {
+        ...request,
+        ltr: { ...request.ltr, burden: { benefit: 'means-tested' } },
+      }, { C05: 'UNKNOWN' })).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+    },
+  );
+
+  test.each(['IE-LTR-PRINCIPAL', 'IE-LTR-FAMILY'] as const)(
     '%s renewal uses the current IRP opening date',
     (id) => {
       const request = {
         simulationDate: '2027-05-08',
-        registration: { ...registration, irpExpiresOn: '2027-08-01' },
+        registration: { ...registration, stage: 'renewal', irpExpiresOn: '2027-08-01' },
         ltr: {
           ...ltr,
           family: {
@@ -2232,6 +2315,28 @@ const permanentCard: IrelandTreatyResidence = {
 describe('Ireland EU Treaty Rights and the Withdrawal Agreement', () => {
   const id = 'IE-EU-PERMANENT';
   const waId = 'IE-WA-PERMANENT';
+
+  test.each([
+    [id, 'eu', 'D06', 'D08'],
+    [waId, 'wa', 'E03', 'E02'],
+  ] as const)('%s renews an existing card without re-proving acquisition', (path, key, check, right) => {
+    const document = { currentCardExpiresOn: '2026-12-01', identityAndResidenceEvidence: true };
+    const request = {
+      registration: { stage: 'renewal' },
+      [key]: { document },
+    } satisfies Partial<IrelandFullRequest>;
+    expect(checks(path, request, { [check]: 'MET', 'IRP-RENEWAL-WINDOW': 'MET' }))
+      .toMatchObject({ status: 'MET', earliestDate: day });
+    expect(checks(path, {
+      ...request,
+      [key]: { document: { ...document, publicInterest: 'restricting-order' } },
+    }, { 'TREATY-RESTRICTION': 'NOT_MET' }))
+      .toMatchObject({ status: 'NOT_MET', earliestDate: undefined });
+    expect(checks(path, {
+      ...request,
+      [key]: { document: { ...document, postGrantAbsence: { from: '2019-01-01', returnedOn: '2025-01-01' } } },
+    }, { [right]: 'UNKNOWN' })).toMatchObject({ status: 'UNKNOWN', earliestDate: undefined });
+  });
 
   test.each([
     [id, 'eu', 'D06'],
@@ -2878,7 +2983,7 @@ test('each of the 16 paths withholds a filing date for a failed or unknown appli
       family: { ...family, application: { ...familyApplication, familyEvidenceComplete: value } },
     })],
     'IE-LTR-PRINCIPAL': ['C08', (value) => ({
-      ltr: { ...ltr, maintenance: { ...ltr.maintenance, previousGrantYearsEvidence: value } },
+      ltr: { ...ltr, maintenance: { ...ltr.maintenance, renewal: true, previousGrantYearsEvidence: value } },
     })],
     'IE-LTR-FAMILY': ['C07', (value) => ({
       ltr: { ...dependantLtr, family: { ...dependantLtr.family, principalHoldsLtr: value } },

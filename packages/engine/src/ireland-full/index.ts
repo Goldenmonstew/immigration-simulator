@@ -136,8 +136,12 @@ export function evaluateIrelandFull(
     const euPath = id === 'IE-EU-PERMANENT';
     const waPath = id === 'IE-WA-PERMANENT';
     const treatyDocument = euPath ? request.eu?.document : waPath ? request.wa?.document : undefined;
-    const irpRenewal = request.registration?.stage === 'renewal';
-    const ltrRenewal = ltrPath && (irpRenewal || request.ltr?.maintenance?.renewal === true);
+    const stage = request.registration?.stage;
+    const irpRenewal = stage === 'renewal';
+    const ltrRenewal = ltrPath && (irpRenewal ||
+      (stage === undefined && request.ltr?.maintenance?.renewal === true));
+    const stamp5Renewal = id === 'IE-STAMP5' && (irpRenewal ||
+      (stage === undefined && request.stamp5?.renewWithPassport === true));
     const treatyRenewal = (euPath || waPath) && irpRenewal;
     const treatyInState = inState ?? treatyDocument?.inState;
     let applicable: boolean | undefined = true;
@@ -146,7 +150,7 @@ export function evaluateIrelandFull(
       (id === 'IE-STAMP4-INDEPENDENT-FAMILY' && !familyFirst &&
         !family?.change && family?.nextRenewalOn !== undefined) ||
       (workPath && workRegistration !== 'first') ||
-      (id === 'IE-STAMP5' && (irpRenewal || request.stamp5?.renewWithPassport === true)) ||
+      stamp5Renewal ||
       ltrRenewal ||
       treatyRenewal;
     const opens = isRenewal
@@ -182,7 +186,13 @@ export function evaluateIrelandFull(
         );
         break;
       case 'IE-STAMP5':
-        wcatt(a, timeline('wcatt').pathways[2], request.stamp5 ?? {}, inState);
+        wcatt(
+          a,
+          stamp5Renewal ? undefined : timeline('wcatt').pathways[2],
+          request.stamp5 ?? {},
+          inState,
+          request.registration?.checklistComplete,
+        );
         break;
       case 'IE-STAMP4-IRISH-FAMILY':
         directFamily(a, family ?? {}, dob, inState);
@@ -195,6 +205,7 @@ export function evaluateIrelandFull(
           request.ltr ?? {},
           inState,
           ltrRenewal,
+          request.registration,
         );
         break;
       case 'IE-EU-PERMANENT':
@@ -236,7 +247,7 @@ export function evaluateIrelandFull(
         birthplace === 'state',
         irishSpouseExemption,
         !directFamilyPath || familyRenewal,
-        familyFirst,
+        familyFirst || ltrRenewal || stamp5Renewal,
       );
     }
     const title = familyRenewal

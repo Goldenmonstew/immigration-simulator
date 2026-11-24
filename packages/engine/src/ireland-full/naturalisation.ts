@@ -65,6 +65,8 @@ export interface IrelandCitizenship {
   residence?: (IrelandResidencePeriod & {
     basis: 'reckonable' | 'excluded' | 'uncertain';
   })[];
+  /** Verified dates of reckonable legal residence without an IRP, including any trip being supported. */
+  unregisteredResidenceEvidence?: (IrelandResidencePeriod & { to: IsoDate })[];
   spouse?: {
     relationship?: 'spouse' | 'civil-partner' | 'de-facto' | 'ended';
     irishCitizen?: boolean;
@@ -186,36 +188,61 @@ function tripPeriods(trips: IeTrip[]) {
   }));
 }
 
-function residenceWithTrips(residence: IrelandCitizenship['residence'], req: IeRequest) {
+function residenceWithTrips(c: IrelandCitizenship, req: IeRequest) {
+  let residence = c.residence;
   if (!residence || !req.trips.length) return residence;
   const day = req.simulationDate;
   const away = mergePeriods(tripPeriods(req.trips), day);
-  const present = residence.filter(({ basis }) => basis !== 'excluded');
-  const confirmed = residence.filter(({ basis }) => basis === 'reckonable');
-  const ranges = mergePeriods(present, day);
+  const ranges = mergePeriods(residence.filter(({ basis }) => basis !== 'excluded'), day);
   const permissions = permissionValidity(req.permissions);
   const reckonable = permissions.filter(({ kind }) => RECKONABLE.includes(kind));
   const excluded = [
     ...residence.filter(({ basis }) => basis === 'excluded'),
     ...permissions.filter(({ kind }) => kind === 'ni-residence'),
   ];
+  const supported = away.map(({ from, to }) => {
+    const departed = addDays(from, -1);
+    const returned = addDays(to, 1);
+    return covers(reckonable, departed, returned) ||
+      covers(c.unregisteredResidenceEvidence ?? [], departed, returned);
+  });
+
+  // A merged residence period does not itself establish legal cover while abroad.
+  for (const [i, { from, to }] of away.entries()) {
+    if (supported[i] || !covers(ranges, addDays(from, -1), addDays(to, 1))) continue;
+    residence = residence.flatMap((period): NonNullable<IrelandCitizenship['residence']> => {
+      if (period.basis !== 'reckonable' || period.from > to ||
+        (period.to && period.to < from)) return [period];
+      return [
+        ...(period.from < from ? [{ ...period, to: addDays(from, -1) }] : []),
+        {
+          from: period.from > from ? period.from : from,
+          to: period.to && period.to < to ? period.to : to,
+          basis: 'uncertain',
+        },
+        ...(!period.to || period.to > to ? [{ ...period, from: addDays(to, 1) }] : []),
+      ];
+    });
+  }
+  const confirmed = residence.filter(({ basis }) => basis === 'reckonable');
   const gaps: NonNullable<IrelandCitizenship['residence']> = [];
   for (let i = 1; i < ranges.length; i++) {
     const departed = ranges[i - 1].to;
     const returned = ranges[i].from;
     const from = addDays(departed, 1);
     const to = addDays(returned, -1);
+    const trip = away.findIndex((period) => period.from <= from && period.to >= to);
     if (
-      !covers(away, from, to) ||
+      trip === -1 ||
       excluded.some(
         (period) => period.from <= to && (!period.to || period.to >= from),
       )
     ) continue;
     // Travel explains the physical gap. Count it as legally covered only
-    // when reckonable residence on both sides and permission throughout agree.
+    // when reckonable residence on both sides and legal cover throughout agree.
     const basis = covers(confirmed, departed, departed) &&
       covers(confirmed, returned, returned) &&
-      covers(reckonable, departed, returned)
+      supported[trip]
       ? 'reckonable'
       : 'uncertain';
     gaps.push({ from, to, basis });
@@ -410,7 +437,7 @@ export function naturalisation(
   const associated = route === 'IE-IRISH-ASSOCIATIONS';
   const protection = route === 'IE-PROTECTION';
   const publicService = route === 'IE-PUBLIC-SERVICE';
-  const residence = residenceWithTrips(c.residence, req);
+  const residence = residenceWithTrips(c, req);
   const adultAge = ageAtLeast(dob, day, p.age.value.adult);
   const appropriateAge =
     isMinor || parent

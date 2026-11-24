@@ -5,6 +5,7 @@ import { all, character, registeredMonths } from './common';
 import type {
   IrelandAssessment,
   IrelandCharacter,
+  IrelandRegistration,
   IrelandResidencePeriod,
 } from './common';
 import { undueBurden } from './work';
@@ -37,6 +38,7 @@ export interface IrelandLtr {
   canContinueEmployment?: boolean;
   termsComplied?: boolean;
   pastBreachUnderReview?: boolean;
+  /** For renewal, confirms that the applicant still holds the LTR permission being renewed. */
   validPermission?: boolean;
   residenceAndApplicationEvidence?: boolean;
   character?: IrelandCharacter;
@@ -52,6 +54,7 @@ export interface IrelandLtr {
     largestCalendarYearAbsenceDays?: number;
     tripsPermittedOrExceptionConfirmed?: boolean;
     workEffortsAndResidence?: boolean;
+    /** Residence and, for principal applicants, work evidence from the previous LTR grant. */
     previousGrantYearsEvidence?: boolean;
     renewal?: boolean;
   };
@@ -139,9 +142,10 @@ export function longTermResidence(
   data: IrelandLtr,
   inState: boolean | undefined,
   renewal: boolean,
+  registration: IrelandRegistration | undefined,
 ) {
   const { add, L, day } = a;
-  if (!family) {
+  if (!family && !renewal) {
     principalResidence(a, data);
     add(
       'C03',
@@ -159,20 +163,33 @@ export function longTermResidence(
       ),
     );
   }
+  const validPermission =
+    registration?.validPermission === false && registration.renewalPending
+      ? undefined
+      : all(data.validPermission, registration?.validPermission ?? true);
   add(
     'C04',
-    all(
+    renewal ? all(
+      validPermission,
+      data.pastBreachUnderReview ? undefined : data.termsComplied ?? true,
+      registration?.passportValid ?? true,
+      registration?.addressCurrent ?? true,
+      registration?.checklistComplete ?? true,
+    ) : all(
       data.validPermission,
       data.pastBreachUnderReview ? undefined : data.termsComplied,
       data.residenceAndApplicationEvidence,
     ),
-    L(
+    renewal ? L(
+      '核对现有 LTR 许可、登记和当前许可所附条件。上一许可期的证明见 C08。',
+      'Check the existing LTR permission, registration and any conditions of the current grant. See C08 for evidence from the previous grant.',
+    ) : L(
       '核对有效许可、历次合规、表格、护照与登记、就业／依亲和实际居住材料。',
       'Check permission, compliance, form, passports and registration, work or dependency and actual residence evidence.',
     ),
     ['PD-321', 'PD-335'],
   );
-  add(
+  if (!renewal || data.burden) add(
     'C05',
     undueBurden(data.burden, true),
     L(
@@ -181,7 +198,7 @@ export function longTermResidence(
     ),
     ['PD-333'],
   );
-  add(
+  if (!renewal || data.character) add(
     'C06',
     character(data.character),
     L(
@@ -192,28 +209,34 @@ export function longTermResidence(
   if (family) {
     const f = data.family;
     const overlaps: IrelandResidencePeriod[] = [];
-    for (const applicant of f?.dependentRegisteredPeriods ?? []) {
-      for (const principal of f?.principalQualifyingPeriods ?? []) {
-        const from =
-          applicant.from > principal.from ? applicant.from : principal.from;
-        const to = [applicant.to ?? day, principal.to ?? day].sort()[0];
-        if (from <= to) overlaps.push({ from, to });
+    if (!renewal) {
+      for (const applicant of f?.dependentRegisteredPeriods ?? []) {
+        for (const principal of f?.principalQualifyingPeriods ?? []) {
+          const from =
+            applicant.from > principal.from ? applicant.from : principal.from;
+          const to = [applicant.to ?? day, principal.to ?? day].sort()[0];
+          if (from <= to) overlaps.push({ from, to });
+        }
       }
     }
-    const months =
-      f?.dependentRegisteredPeriods && f.principalQualifyingPeriods
+    const qualifyingHistory = renewal
+      ? true
+      : f?.dependentRegisteredPeriods && f.principalQualifyingPeriods
         ? registeredMonths(overlaps, day, p.months)
         : undefined;
     add(
       'C07',
       all(
         inState,
-        data.validPermission,
+        renewal ? validPermission : data.validPermission,
         f?.eligibleDependentRelationship,
         f?.principalHoldsLtr,
-        months,
+        qualifyingHistory,
       ),
-      L(
+      renewal ? L(
+        '核对依亲关系仍适用及担保人仍持 LTR Stamp 4。上一许可期的居住证明见 C08（PD-335）。',
+        'Check that the family relationship still qualifies and that the principal still holds LTR Stamp 4. See C08 for residence evidence from the previous grant (PD-335).',
+      ) : L(
         `主申请人须持 LTR Stamp 4，家属在同一合格期间合法登记累计 ${p.months} 个月，且在境内递交（PD-335）。`,
         `The principal must hold LTR Stamp 4. The dependant needs ${p.months} months of lawful overlapping registration and must apply in the State (PD-335).`,
       ),
@@ -222,9 +245,11 @@ export function longTermResidence(
   }
   const m = data.maintenance;
   if (m || renewal) {
+    const hasTravelEvidence = m?.largestCalendarYearAbsenceDays !== undefined ||
+      m?.tripsPermittedOrExceptionConfirmed !== undefined;
     const travel =
       m?.largestCalendarYearAbsenceDays === undefined
-        ? undefined
+        ? m?.tripsPermittedOrExceptionConfirmed
         : m.largestCalendarYearAbsenceDays <= p.travelDays
           ? m.tripsPermittedOrExceptionConfirmed
           : m.tripsPermittedOrExceptionConfirmed === true
@@ -233,8 +258,8 @@ export function longTermResidence(
     add(
       'C08',
       all(
-        travel,
-        family && renewal ? true : m?.workEffortsAndResidence,
+        renewal && !hasTravelEvidence ? true : travel,
+        renewal ? family || (m?.workEffortsAndResidence ?? true) : m?.workEffortsAndResidence,
         renewal ? m?.previousGrantYearsEvidence : true,
       ),
       L(
