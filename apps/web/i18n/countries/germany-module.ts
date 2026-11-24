@@ -21,7 +21,7 @@ export const zhCN = {
   'de.whatif.dateHint':
     '改动日期后，按原模拟日确认的「有效期覆盖模拟日」、§ 81 续期效力和决定日持有蓝卡改按待确认处理。',
   'de.whatif.factAfterDate':
-    '这个日期早于问卷中已发生事项的日期（如首次入境或许可起始日），请改晚，或回到问卷修改。',
+    '这个日期早于问卷中已发生事项的日期（如首次入境日），请改晚，或回到问卷修改。',
   'de.whatif.noTripsHint':
     '清空出境记录、逐份文书与自由流动的离境记录；在德长大子女的境外上学天数按 0 计；欧盟长期居留的离欧区间按前一段居留类别计入。',
   'de.whatif.mixed': '保持问卷中的原答案',
@@ -74,7 +74,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.whatif.dateHint':
     'After a date change, confirmations made for the original date (validity covering the simulation date, § 81 continuation and holding the Blue Card on the decision date) are treated as pending.',
   'de.whatif.factAfterDate':
-    'This date is before a fact recorded in the questionnaire (such as first entry or a permit start). Choose a later date or edit the questionnaire.',
+    'This date is before a fact recorded in the questionnaire (such as the first entry). Choose a later date or edit the questionnaire.',
   'de.whatif.noTripsHint':
     'Clears trips, per-document departures and free movement absences; counts no school days abroad for a child raised in Germany; periods outside the EU for EU long-term residence count under the preceding status.',
   'de.whatif.mixed': 'Keep the questionnaire answers',
