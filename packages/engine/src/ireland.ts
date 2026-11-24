@@ -98,7 +98,7 @@ type Verdict = 'yes' | 'maybe' | 'no';
 // (Stamp 2 and 2A, no permission, awaiting a protection decision) leave in.
 // Stamp 1A mixes training with work, so the study exclusion (s16A(1)(b))
 // may reach it; `other` is unknown (PD-114).
-const RECKONABLE: IePermissionKind[] = [
+export const RECKONABLE: IePermissionKind[] = [
   'stamp0',
   'stamp1',
   'stamp1-csep',
@@ -131,7 +131,41 @@ const WCATT: IePermissionKind[] = [
   'stamp5',
 ];
 
+export function permissionValidity(permissions: IePermission[]): IePermission[] {
+  // An open-ended permission is renewed until the next one starts. An Irish
+  // permission can still cover the days before and after a stay in Northern Ireland.
+  return permissions.map((permission) => {
+    const next = permissions
+      .filter(
+        (other) =>
+          other.from > permission.from &&
+          (permission.kind === 'ni-residence' || other.kind !== 'ni-residence'),
+      )
+      .map((other) => other.from)
+      .sort()[0];
+    return { ...permission, to: permission.to ?? (next && addDays(next, -1)) };
+  });
+}
+
 export function evaluateIreland(req: IeRequest): IeResult {
+  return evaluateIrelandTimeline(req);
+}
+
+type EvidencePeriod = Pick<IePermission, 'from' | 'to'>;
+const unregisteredResidenceSource = {
+  srcId: 'SRC-095',
+  locator: 'Guide: Reckonable Residence for Citizens of an EEA country, Switzerland or the UK',
+};
+
+/** The full assessment can also count documented residence without a Stamp. */
+export function evaluateIrelandTimeline(
+  req: IeRequest,
+  residenceEvidence?: {
+    confirmed: EvidencePeriod[];
+    possible?: EvidencePeriod[];
+    projectOngoing?: boolean;
+  },
+): IeResult {
   const L = textFor(req);
   const sim = req.simulationDate;
   const first = [
@@ -147,19 +181,22 @@ export function evaluateIreland(req: IeRequest): IeResult {
   const byKind = Object.fromEntries(
     IE_PERMISSION_KINDS.map((k) => [k, flags()]),
   ) as Record<IePermissionKind, boolean[]>;
-  // One permission at a time: one without an end date is renewed on time
-  // until the next permission starts. A stay in Northern Ireland only
-  // overrides the days it overlaps; it does not end an Irish permission.
-  for (const p of req.permissions) {
-    const next = req.permissions
-      .filter(
-        (q) =>
-          q.from > p.from &&
-          (p.kind === 'ni-residence' || q.kind !== 'ni-residence'),
-      )
-      .map((q) => q.from)
-      .sort()[0];
-    days.mark(byKind[p.kind], p.from, p.to ?? (next && addDays(next, -1)));
+  for (const p of permissionValidity(req.permissions)) {
+    days.mark(byKind[p.kind], p.from, p.to);
+  }
+  const withoutStamp = residenceEvidence ? flags() : [];
+  const possibleWithoutStamp = residenceEvidence ? flags() : [];
+  for (const { from, to } of residenceEvidence?.confirmed ?? []) {
+    days.mark(withoutStamp, from, to && to < sim ? to : sim);
+  }
+  if (residenceEvidence && residenceEvidence.possible === undefined) {
+    days.mark(possibleWithoutStamp, first, sim);
+  }
+  for (const { from, to } of residenceEvidence?.possible ?? []) {
+    days.mark(possibleWithoutStamp, from, to && to < sim ? to : sim);
+  }
+  if (residenceEvidence?.projectOngoing) {
+    days.mark(withoutStamp, addDays(sim, 1), undefined);
   }
   // Departure and return days are not absences (s15C(5); ISD guide).
   const away = flags();
@@ -248,13 +285,15 @@ export function evaluateIreland(req: IeRequest): IeResult {
     // Living in Northern Ireland: residence in the island of Ireland for
     // s15A only, and no residence in the State even on an unexpired Irish
     // permission (s15(1)(c)).
-    const inState = (kinds: IePermissionKind[]) => {
+    const inState = (kinds: IePermissionKind[], possible = false) => {
       const held = holds(kinds);
-      return (i: number) => (ni[i] ? route === 'spouse' : held(i));
+      return (i: number) => ni[i]
+        ? route === 'spouse'
+        : held(i) || withoutStamp[i] === true || (possible && possibleWithoutStamp[i] === true);
     };
     const reckonable = inState(RECKONABLE);
     const sure = days.sums(reckonable);
-    const maybe = days.sums(inState([...RECKONABLE, ...UNCERTAIN]));
+    const maybe = days.sums(inState([...RECKONABLE, ...UNCERTAIN], true));
     const absent = route === 'spouse' ? offIsland : away;
     const absentSums = days.sums((i) => absent[i]);
     const sureHome = days.sums((i) => reckonable(i) && !absent[i]);
@@ -307,10 +346,13 @@ export function evaluateIreland(req: IeRequest): IeResult {
                 `${p.away} days absent in that year, which needs the Minister to accept exceptional circumstances (PD-111)`,
               ),
             !p.sure &&
-              L(
+              (residenceEvidence ? L(
+                '可计的合法居住证明待确认（PD-323）',
+                'evidence of reckonable lawful residence needs confirmation (PD-323)',
+              ) : L(
                 '计入了待确认的许可（PD-114）',
                 'counting permissions whose status is uncertain (PD-114)',
-              ),
+              )),
             p.strict < p.need &&
               L(
                 `此前 ${windowYears} 年按较宽口径计（计入待确认的许可、不扣出境、闰日不另加天，PD-112、PD-113）`,
@@ -364,7 +406,10 @@ export function evaluateIreland(req: IeRequest): IeResult {
             )),
       checks: [
         {
-          text: L(
+          text: residenceEvidence ? L(
+            `核对递交前 ${year} 年（${f.from} 至 ${f.to}）及递交当天的可计合法居住，包括经核实的免登记居住。`,
+            `Check reckonable lawful residence in the ${year} year before filing (${f.from} to ${f.to}) and on the filing date, including verified residence without registration.`,
+          ) : L(
             `递交前 ${year} 年（${f.from} 至 ${f.to}）每天都持计入入籍的许可${spouse ? '或在北爱尔兰合法居住' : ''}，递交当天也是（学生 Stamp 2／2A、等待国际保护决定的期间与许可之间的空档不计）`,
             `A reckonable permission${spouse ? ' or lawful residence in Northern Ireland' : ''} on every day of the year before applying (${f.from} to ${f.to}) and on the application day (student Stamp 2 or 2A, time waiting for a protection decision and gaps between permissions do not count)`,
           ),
@@ -378,6 +423,7 @@ export function evaluateIreland(req: IeRequest): IeResult {
               locator:
                 'Guide: Time That Does Not Count; Permissions that do not count',
             },
+            ...(residenceEvidence ? [unregisteredResidenceSource] : []),
           ],
         },
         {
@@ -394,7 +440,10 @@ export function evaluateIreland(req: IeRequest): IeResult {
           sources: [...v.absenceDays.sources, v.exceptionalDays.sources[0]],
         },
         {
-          text: L(
+          text: residenceEvidence ? L(
+            `此前 ${windowYears} 年（${f.priorFrom} 至 ${f.priorTo}）已确认可计居住 ${f.strict} 天，所需为 ${f.need} 天（较宽口径 ${f.wide} 天）。`,
+            `${f.strict} confirmed days of reckonable residence in the preceding ${windowYears} years (${f.priorFrom} to ${f.priorTo}); ${f.need} days are needed (${f.wide} on the wide reading).`,
+          ) : L(
             `此前 ${windowYears} 年（${f.priorFrom} 至 ${f.priorTo}）持计入许可且在境内 ${f.strict} 天，须 ${priorDays} 天、期间每个 2 月 29 日另加 1 天，共 ${f.need} 天（较宽口径 ${f.wide} 天）`,
             `${f.strict} days on a reckonable permission and in Ireland in the ${windowYears} years before that (${f.priorFrom} to ${f.priorTo}); ${priorDays} days are needed plus one for each 29 February in them, ${f.need} in all (${f.wide} on the wide reading)`,
           ),
@@ -403,6 +452,7 @@ export function evaluateIreland(req: IeRequest): IeResult {
           sources: [
             v.priorWindowYears.sources[spouse ? 1 : 0],
             v.priorResidenceDays.sources[spouse ? 2 : 1],
+            ...(residenceEvidence ? [unregisteredResidenceSource] : []),
           ],
         },
       ],
@@ -423,6 +473,14 @@ export function evaluateIreland(req: IeRequest): IeResult {
               ),
             ]
           : []),
+        ...(residenceEvidence ? [L(
+          '截至模拟日的免登记居住按证据实际覆盖的日期计入。',
+          'Through the simulation date, residence without registration counts for the dates covered by evidence.',
+        )] : []),
+        ...(residenceEvidence?.projectOngoing ? [L(
+          '免登记居住的预测以继续合法居住为前提，实际递交时须提供届时的居住证明。',
+          'The projection assumes lawful residence continues. Provide up-to-date residence evidence when you apply.',
+        )] : []),
         projection,
       ],
       pendingDetails: [
@@ -432,6 +490,7 @@ export function evaluateIreland(req: IeRequest): IeResult {
         'PD-113',
         ...(has(UNCERTAIN) ? ['PD-114'] : []),
         ...(spouse ? ['PD-115'] : []),
+        ...(residenceEvidence ? ['PD-323'] : []),
         'PD-119',
       ],
     };

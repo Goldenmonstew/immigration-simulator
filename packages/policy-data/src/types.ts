@@ -23,6 +23,12 @@ export type RuleSetId = (typeof RULE_SET_IDS)[number] | `${string}.${string}`;
 /** Each country's rule sets, in registration order (contracts §13). */
 export const RULE_SET_IDS_BY_COUNTRY = {
   uk: RULE_SET_IDS,
+  de: ['de.current-law-2026-11'],
+  au: ['au.current-law-2026-11'],
+  es: ['es.current-law'],
+  ca: ['ca.current-law-2026-11'],
+  nz: ['nz.current-law'],
+  gr: ['gr.current-law-2026-11'],
 } as const satisfies Record<string, readonly RuleSetId[]>;
 
 export interface Parameter<T> {
@@ -46,7 +52,15 @@ export interface DatedEnglishRequirement {
 }
 
 /** Declare parameter sets with `satisfies ParameterSet` so value names stay typed. */
-export interface ParameterSet {
+export interface ParameterSet<
+  Value =
+    | number
+    | string
+    | BestYears
+    | DatedEnglishRequirement
+    | string[]
+    | Record<string, number>,
+> {
   ruleSetId: RuleSetId;
   /**
    * The rule set whose values (and their sources) this one carries over by
@@ -55,15 +69,5 @@ export interface ParameterSet {
   basedOn?: RuleSetId;
   /** Date (YYYY-MM-DD) the values were last checked against their sources. */
   asOf: string;
-  values: Record<
-    string,
-    Parameter<
-      | number
-      | string
-      | BestYears
-      | DatedEnglishRequirement
-      | string[]
-      | Record<string, number>
-    >
-  >;
+  values: Record<string, Parameter<Value>>;
 }
