@@ -1,13 +1,13 @@
 export const zhCN = {
   'gr.name': '希腊',
-  'gr.entryLink': '打开希腊试点',
+  'gr.entryLink': '打开希腊模拟器',
   'gr.entryDesc':
     '按居留许可（含黄金签证）与出入境记录，计算长期居留、黄金签证续期与入籍的时间节点。',
-  'gr.title': '希腊：长期居留、黄金签证续期与入籍的时间（试点）',
+  'gr.title': '希腊：长期居留、黄金签证续期与入籍的时间',
   'gr.intro':
     '按你在希腊的居留许可（含黄金签证）和出入境记录，计算三个只看时间的节点：长期居留（Μ1）、黄金签证（Β.5）的续期期间，以及入籍的居留年限。投资金额门槛与入籍考试不在范围内。',
   'gr.scope':
-    '试点只检查移民法典与国籍法典写明的时间条件；收入、保险、融入、语言考试等不检查，结果里逐项列出。黄金签证期间能否计入长期居留等原文没说清的地方会标出。所填内容只在你的浏览器里计算，不保存、不上传。',
+    '这里只检查移民法典与国籍法典写明的时间条件；收入、保险、融入、语言考试等不检查，结果里逐项列出。黄金签证期间能否计入长期居留等原文没说清的地方会标出。所填内容只在你的浏览器里计算，不保存、不上传。',
   'gr.basics': '基本信息',
   'gr.simulationDate': '模拟日期',
   'gr.simulationDateHint': '按这一天判断（按递交日），默认今天。',
@@ -47,15 +47,15 @@ export const zhCN = {
 
 export const en: Record<keyof typeof zhCN, string> = {
   'gr.name': 'Greece',
-  'gr.entryLink': 'Open the Greece pilot',
+  'gr.entryLink': 'Open Greece',
   'gr.entryDesc':
     'Use your residence permits (golden visa included) and travel record to work out the dates for long-term residence, golden visa renewal and naturalisation.',
   'gr.title':
-    'Greece: dates for long-term residence, golden visa renewal and naturalisation (pilot)',
+    'Greece: dates for long-term residence, golden visa renewal and naturalisation',
   'gr.intro':
     'From your Greek residence permits (golden visa included) and trips, this works out three steps that depend on time alone: long-term residence (Μ1), the golden visa (Β.5) renewal period, and the years of residence for naturalisation. Investment thresholds and the naturalisation exam are out of scope.',
   'gr.scope':
-    'The pilot checks only the time requirements in the Migration Code and the Citizenship Code. It does not check income, insurance, integration, language exams or other requirements; each result lists them, and open questions such as whether golden visa time counts towards long-term residence are flagged. Your entries are processed in your browser and are not saved or uploaded.',
+    'This checks only the time requirements in the Migration Code and the Citizenship Code. It does not check income, insurance, integration, language exams or other requirements; each result lists them, and open questions such as whether golden visa time counts towards long-term residence are flagged. Your entries are processed in your browser and are not saved or uploaded.',
   'gr.basics': 'About you',
   'gr.simulationDate': 'Simulation date',
   'gr.simulationDateHint':

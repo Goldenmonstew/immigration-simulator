@@ -172,7 +172,7 @@ const TITLES: DePermitKind[] = [
   'eu-long-term',
 ];
 
-const KIND_NAMES: Record<DePermitKind, [string, string]> = {
+export const KIND_NAMES: Record<DePermitKind, [string, string]> = {
   study: ['学习许可', 'a study permit'],
   training: ['职业培训许可', 'a vocational training permit'],
   skilled: ['技术工人许可', 'a skilled worker permit'],
@@ -390,6 +390,23 @@ export const needed = (
   return any.length ? { all, any } : { all: conds, any: [] };
 };
 export function evaluateGermany(req: DeRequest): DeResult {
+  return evaluateGermanyTimeline(req);
+}
+
+/** Confirmed dates supplied only by the full assessment. The timeline still
+ * checks the title, trips and subsequent breaks on each projected date. */
+export function evaluateGermanyTimeline(
+  req: DeRequest,
+  confirmed: {
+    employmentWindows?: { from: IsoDate; until: IsoDate }[];
+    countedResidenceSince?: IsoDate;
+    naturalisationTitleLosses?: {
+      from: IsoDate;
+      to?: IsoDate;
+      uncertain: boolean;
+    }[];
+  } = {},
+): DeResult {
   const L = textFor(req);
   const N = ([zh, en]: [string, string]) => L(zh, en);
   const sim = req.simulationDate;
@@ -593,12 +610,12 @@ export function evaluateGermany(req: DeRequest): DeResult {
       : '';
     if (e.mobility)
       return L(
-        `你的${N(KIND_NAMES[e.kind])}可能已因 ${tripText(e)} 的出境失效：若这段时间是按欧盟学生或研究人员流动（指令 2016/801）在其他成员国学习或研究，许可不失效（§ 51 Abs. 1a Satz 2），否则在 ${e.by} 之后失效，试点无法判断（见"出境与居留失效"）。${earlier}`,
-        `Your ${N(KIND_NAMES[e.kind]).replace(/^an? /, '')} may have lapsed on the trip ${tripText(e)}: it does not lapse if you were studying or doing research in another member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2), otherwise it lapsed after ${e.by}, which this pilot cannot tell (see “Trips abroad and loss of residence”).${earlier}`,
+        `你的${N(KIND_NAMES[e.kind])}可能已因 ${tripText(e)} 的出境失效：若这段时间是按欧盟学生或研究人员流动（指令 2016/801）在其他成员国学习或研究，许可不失效（§ 51 Abs. 1a Satz 2），否则在 ${e.by} 之后失效，本计算无法判断（见"出境与居留失效"）。${earlier}`,
+        `Your ${N(KIND_NAMES[e.kind]).replace(/^an? /, '')} may have lapsed on the trip ${tripText(e)}: it does not lapse if you were studying or doing research in another member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2), otherwise it lapsed after ${e.by}, which this calculator cannot tell (see “Trips abroad and loss of residence”).${earlier}`,
       );
     return L(
-      `你持有的欧盟长期居留可能已因 ${tripText(e)} 的出境失效：这段时间若都在欧盟以外，许可在 ${e.euBy} 之后失效（§ 51 Abs. 9 Satz 1 Nr. 3），在其他欧盟国家的不失效，试点无法判断（见"出境与居留失效"）。${earlier}`,
-      `Your EU long-term residence may have lapsed on the trip ${tripText(e)}: if all of that time was outside the EU it lapsed after ${e.euBy} (§ 51 Abs. 9 Satz 1 Nr. 3); time in other EU countries does not count against it, which this pilot cannot tell (see “Trips abroad and loss of residence”).${earlier}`,
+      `你持有的欧盟长期居留可能已因 ${tripText(e)} 的出境失效：这段时间若都在欧盟以外，许可在 ${e.euBy} 之后失效（§ 51 Abs. 9 Satz 1 Nr. 3），在其他欧盟国家的不失效，本计算无法判断（见"出境与居留失效"）。${earlier}`,
+      `Your EU long-term residence may have lapsed on the trip ${tripText(e)}: if all of that time was outside the EU it lapsed after ${e.euBy} (§ 51 Abs. 9 Satz 1 Nr. 3); time in other EU countries does not count against it, which this calculator cannot tell (see “Trips abroad and loss of residence”).${earlier}`,
     );
   };
   /** "If C, and A or B, it could be d", with every reading it rests on. */
@@ -825,12 +842,22 @@ export function evaluateGermany(req: DeRequest): DeResult {
       if (need === undefined || entered === undefined) return undefined;
       const r = route === 'blue-card' ? c.run[days.index(d)] : -1;
       const from = r >= 0 && days.date(r) > sim ? days.date(r) : sim;
+      if (route === 'blue-card' && from === sim && confirmed.employmentWindows)
+        return sim;
       return addMonths(from, Math.max(0, need - entered));
     };
     const missing = need !== undefined && entered === undefined;
     const meets = (d: IsoDate, allow: Allow) => {
       const by = countedBy(d);
-      return timeOK(d, allow) && (!by || d >= by);
+      return (
+        timeOK(d, allow) &&
+        (!by || d >= by) &&
+        (route !== 'blue-card' ||
+          !confirmed.employmentWindows ||
+          confirmed.employmentWindows.some(
+            ({ from, until }) => from <= d && d < until,
+          ))
+      );
     };
     const timeEarliest = firstDate((d) => time(d) !== 'no');
     const earliest = missing ? undefined : firstDate((d) => meets(d, NONE));
@@ -994,8 +1021,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
         summary:
           doubtText(simIndex) +
           L(
-            '仍有效的话，它可以与定居许可并持，本试点不计算并持的情形；已失效的话，须重新取得居留许可后再计时。',
-            ' If it is still valid it can be held together with a settlement permit, which this pilot does not work out; if it has lapsed, the count starts again with a new residence permit.',
+            '仍有效的话，它可以与定居许可并持，本计算不计算并持的情形；已失效的话，须重新取得居留许可后再计时。',
+            ' If it is still valid it can be held together with a settlement permit, which this calculator does not work out; if it has lapsed, the count starts again with a new residence permit.',
           ),
         checks: [doubtCheck(simIndex)],
         notChecked: [],
@@ -1013,8 +1040,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
                 'You already hold a settlement permit on the simulation date.',
               )
             : L(
-                '模拟日你持有欧盟长期居留。它可以与定居许可并持，两者的出境失效规则不同（§ 51 Abs. 1 Nr. 7 与 Abs. 9），本试点不计算并持的情形。',
-                'You hold EU long-term residence on the simulation date. It can be held together with a settlement permit, and the two lapse differently on trips abroad (§ 51 Abs. 1 Nr. 7 and Abs. 9); this pilot does not work out holding both.',
+                '模拟日你持有欧盟长期居留。它可以与定居许可并持，两者的出境失效规则不同（§ 51 Abs. 1 Nr. 7 与 Abs. 9），本计算不计算并持的情形。',
+                'You hold EU long-term residence on the simulation date. It can be held together with a settlement permit, and the two lapse differently on trips abroad (§ 51 Abs. 1 Nr. 7 and Abs. 9); this calculator does not work out holding both.',
               ),
         checks: [],
         notChecked: [],
@@ -1034,8 +1061,8 @@ export function evaluateGermany(req: DeRequest): DeResult {
                 'You hold asylum or refugee status (Section 5) on the simulation date. Its settlement permit is under § 26, not the general route § 9: choose the asylum and refugee route (§ 26 Abs. 3) instead.',
               )
             : L(
-                `模拟日你持有${N(KIND_NAMES[held])}（第 5 节）。这类许可的定居许可按 § 26 Abs. 4 办理（属裁量，本试点不计算${held === 'resettlement' ? '；按 § 23 Abs. 2 接收的，也可按接收承诺直接发定居许可' : ''}），不适用一般路径 § 9。`,
-                `You hold ${N(KIND_NAMES[held])} (Section 5) on the simulation date. Its settlement permit is under § 26 Abs. 4 (at discretion, not worked out by this pilot${held === 'resettlement' ? '; on admission under § 23 Abs. 2 it can also be granted directly as promised' : ''}), not the general route § 9.`,
+                `模拟日你持有${N(KIND_NAMES[held])}（第 5 节）。这类许可的定居许可按 § 26 Abs. 4 办理（属裁量，本计算不计算${held === 'resettlement' ? '；按 § 23 Abs. 2 接收的，也可按接收承诺直接发定居许可' : ''}），不适用一般路径 § 9。`,
+                `You hold ${N(KIND_NAMES[held])} (Section 5) on the simulation date. Its settlement permit is under § 26 Abs. 4 (at discretion, not worked out by this calculator${held === 'resettlement' ? '; on admission under § 23 Abs. 2 it can also be granted directly as promised' : ''}), not the general route § 9.`,
               ),
         checks: [
           {
@@ -1377,17 +1404,27 @@ export function evaluateGermany(req: DeRequest): DeResult {
     // unbroken stretch, the stretch before it (first and last day). With
     // `lapsed`, a title a trip may have ended is taken as ended: no lawful
     // residence until the next permit.
+    const losses = confirmed.naturalisationTitleLosses ?? [];
+    const uncertainDepartures = losses.filter((loss) => loss.uncertain);
     const runsWith = (lapsed: boolean) => {
       const run = new Array<number>(days.count).fill(-1);
       const before = new Map<number, [number, number]>();
       let start = -1;
       let last: [number, number] = [0, -1];
       let cut = -1;
+      const absentTitle: boolean[] = [];
+      for (const loss of losses) {
+        if (!loss.uncertain || lapsed)
+          days.mark(absentTitle, loss.from, loss.to);
+      }
       for (let i = 0; i < days.count; i++) {
         const k = kinds[i];
         const n = tripOn[i];
         const lawful =
-          !!k && (k !== 'asylum' || recognised) && !(lapsed && doubt[i]);
+          !!k &&
+          !absentTitle[i] &&
+          (k !== 'asylum' || recognised) &&
+          !(lapsed && doubt[i]);
         if (!lawful || (n >= 0 && (longTrip[n] || n === cut))) {
           if (start >= 0) last = [start, i - 1];
           start = -1;
@@ -1413,7 +1450,10 @@ export function evaluateGermany(req: DeRequest): DeResult {
     };
     type Runs = ReturnType<typeof runsWith>;
     const sureRuns = runsWith(true);
-    const notLapsedRuns = doubtful.length ? runsWith(false) : sureRuns;
+    const notLapsedRuns =
+      doubtful.length || uncertainDepartures.length
+        ? runsWith(false)
+        : sureRuns;
     // § 12b Abs. 2: residence before an interruption may be counted, up to
     // 3 years (2 for spouses, and only while married: AH-StAG Nr. 9.1
     // Rdn. 5), at discretion (PD-128).
@@ -1441,10 +1481,16 @@ export function evaluateGermany(req: DeRequest): DeResult {
       if (TITLES.includes(kd) || kd === 'integration') return held;
       return kd === 'temporary' && held && allow.has('permit');
     };
+    const confirmedDue =
+      confirmed.countedResidenceSince &&
+      afterYears(confirmed.countedResidenceSince, years);
+    const simulationIndex = days.index(sim);
     const residenceOK = (d: IsoDate, allow: Allow): boolean => {
       const R = allow.has('lapse') ? notLapsedRuns : sureRuns;
       const k = days.index(d);
       if (k < 1 || R.run[k] < 0 || !holdsOK(k, allow)) return false;
+      if (confirmedDue && R.run[k] === R.run[simulationIndex])
+        return d >= confirmedDue;
       const r = R.run[k - 1];
       if (r < 0) return false;
       const need = daysBetween(addYears(d, -years), d);
@@ -1484,7 +1530,12 @@ export function evaluateGermany(req: DeRequest): DeResult {
         ? needed(conds, meets, possible)
         : undefined;
     const phrase: Partial<Record<Cond, [string, string]>> = {
-      lapse: lapsePhrase,
+      lapse: uncertainDepartures.length
+        ? [
+            '已录入的出境均未使所持许可失效（需核实逐证例外）',
+            'the recorded departures did not end the residence title, subject to confirmation of the applicable exceptions',
+          ]
+        : lapsePhrase,
       pending: [
         '只凭等待中的续期申请也算持有 § 10 Abs. 1 Satz 1 Nr. 2 要求的许可（有争议），且模拟日之后续期获批或申请仍在等待（§ 81 Abs. 4，PD-124）',
         'holding only a pending renewal application counts as holding the permit § 10 Abs. 1 Satz 1 Nr. 2 requires (which is disputed), and after the simulation date the renewal is granted or still pending (§ 81 Abs. 4, PD-124)',
@@ -1542,6 +1593,9 @@ export function evaluateGermany(req: DeRequest): DeResult {
             ...v.naturalisationAbsenceMonths.sources,
             stAG('§ 10 Abs. 1 Satz 1 Nr. 2', '10'),
             stAG('§ 12b Abs. 1 Satz 5', '12b'),
+            ...(losses.length
+              ? [aufenthG('§ 51 Abs. 1 Nr. 6, Abs. 1a, 2, 4, 7, 9', '51')]
+              : []),
             { srcId: 'SRC-106', locator: 'Nr. 12b.1.5 Rdn. 23 (p98)' },
             { srcId: 'SRC-105', locator: 'BT-Drs. 20/9044 (p40)' },
             ...(asylum
@@ -1604,15 +1658,15 @@ export function evaluateGermany(req: DeRequest): DeResult {
         ...(sim < fiveFrom
           ? [
               L(
-                `模拟日早于 ${fiveFrom}：当时适用 StARModG 之前的旧法，年限不同；本试点只按现行法计算。`,
-                `The simulation date is before ${fiveFrom}: the law before the StARModG applied then, with different periods; this pilot uses current law only.`,
+                `模拟日早于 ${fiveFrom}：当时适用 StARModG 之前的旧法，年限不同；本计算只按现行法计算。`,
+                `The simulation date is before ${fiveFrom}: the law before the StARModG applied then, with different periods; this calculator uses current law only.`,
               ),
             ]
           : sim < turbo
             ? [
                 L(
-                  `模拟日早于 ${turbo}：当时还有 3 年路径（须特别融入成绩与 C1 德语），本试点只按现行法计算；${turbo} 前已递交、尚未决定的 3 年申请如何处理，法律没有规定（PD-129）。`,
-                  `The simulation date is before ${turbo}: a 3-year route then existed (with special integration achievements and German at C1); this pilot uses current law only, and the law does not say what happens to 3-year applications made before ${turbo} and still undecided (PD-129).`,
+                  `模拟日早于 ${turbo}：当时还有 3 年路径（须特别融入成绩与 C1 德语），本计算只按现行法计算；${turbo} 前已递交、尚未决定的 3 年申请如何处理，法律没有规定（PD-129）。`,
+                  `The simulation date is before ${turbo}: a 3-year route then existed (with special integration achievements and German at C1); this calculator uses current law only, and the law does not say what happens to 3-year applications made before ${turbo} and still undecided (PD-129).`,
                 ),
               ]
             : []),
@@ -1620,6 +1674,12 @@ export function evaluateGermany(req: DeRequest): DeResult {
       ],
       pendingDetails: [
         'PD-120',
+        ...(possible &&
+        uncertainDepartures.some((d) => d.from <= possible) &&
+        why &&
+        [...why.all, ...why.any].includes('lapse')
+          ? ['PD-353']
+          : []),
         ...(why && [...why.all, ...why.any].includes('permit')
           ? ['PD-122']
           : []),
@@ -1695,23 +1755,23 @@ export function evaluateGermany(req: DeRequest): DeResult {
             ? [
                 euUnsure.length &&
                   L(
-                    `${euUnsure.map(trip).join('、')} 持欧盟长期居留离开德国较久：若这段时间都在欧盟以外，许可会在期限届满后失效（§ 51 Abs. 9 Satz 1 Nr. 3）；在其他欧盟国家的不失效，试点无法判断。`,
-                    `On EU long-term residence you are away ${euUnsure.map(trip).join(', ')}: if all of that time is outside the EU the title lapses once the deadline has passed (§ 51 Abs. 9 Satz 1 Nr. 3); time in other EU countries does not count against it, which this pilot cannot tell.`,
+                    `${euUnsure.map(trip).join('、')} 持欧盟长期居留离开德国较久：若这段时间都在欧盟以外，许可会在期限届满后失效（§ 51 Abs. 9 Satz 1 Nr. 3）；在其他欧盟国家的不失效，本计算无法判断。`,
+                    `On EU long-term residence you are away ${euUnsure.map(trip).join(', ')}: if all of that time is outside the EU the title lapses once the deadline has passed (§ 51 Abs. 9 Satz 1 Nr. 3); time in other EU countries does not count against it, which this calculator cannot tell.`,
                   ),
                 renewalUnsure.length &&
                   L(
-                    `${renewalUnsure.map(trip).join('、')} 的返回日在原许可到期之后，续期还在等待决定：原许可只延续到决定作出（§ 81 Abs. 4）。续期获批或申请仍在等待的话，按检查项里的期限判断（一般 ${v.lapseMonths.value} 个月，欧盟蓝卡 ${v.blueCardLapseMonths.value} 个月）；否则许可在到期后已失效（§ 51 Abs. 1 Nr. 1），试点无法判断。`,
-                    `For ${renewalUnsure.map(trip).join(', ')} you come back after the old permit ran out while the renewal is pending: the permit only continues until the decision (§ 81 Abs. 4). If the renewal is granted or still pending, the limit in the check below applies (usually ${v.lapseMonths.value} months, ${v.blueCardLapseMonths.value} on an EU Blue Card); otherwise the permit lapsed when it ran out (§ 51 Abs. 1 Nr. 1), which this pilot cannot tell.`,
+                    `${renewalUnsure.map(trip).join('、')} 的返回日在原许可到期之后，续期还在等待决定：原许可只延续到决定作出（§ 81 Abs. 4）。续期获批或申请仍在等待的话，按检查项里的期限判断（一般 ${v.lapseMonths.value} 个月，欧盟蓝卡 ${v.blueCardLapseMonths.value} 个月）；否则许可在到期后已失效（§ 51 Abs. 1 Nr. 1），本计算无法判断。`,
+                    `For ${renewalUnsure.map(trip).join(', ')} you come back after the old permit ran out while the renewal is pending: the permit only continues until the decision (§ 81 Abs. 4). If the renewal is granted or still pending, the limit in the check below applies (usually ${v.lapseMonths.value} months, ${v.blueCardLapseMonths.value} on an EU Blue Card); otherwise the permit lapsed when it ran out (§ 51 Abs. 1 Nr. 1), which this calculator cannot tell.`,
                   ),
                 mobilityUnsure.length &&
                   L(
-                    `${mobilityUnsure.map(trip).join('、')} 持学习或研究许可在外超过期限：若这段时间是按欧盟学生或研究人员流动（指令 2016/801）在其他成员国学习或研究，许可不失效（§ 51 Abs. 1a Satz 2）；否则许可在期限后失效，试点无法判断。`,
-                    `On a study or research permit you are away past the limit for ${mobilityUnsure.map(trip).join(', ')}: it does not lapse if you were studying or doing research in another member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2); otherwise it lapsed after the limit, which this pilot cannot tell.`,
+                    `${mobilityUnsure.map(trip).join('、')} 持学习或研究许可在外超过期限：若这段时间是按欧盟学生或研究人员流动（指令 2016/801）在其他成员国学习或研究，许可不失效（§ 51 Abs. 1a Satz 2）；否则许可在期限后失效，本计算无法判断。`,
+                    `On a study or research permit you are away past the limit for ${mobilityUnsure.map(trip).join(', ')}: it does not lapse if you were studying or doing research in another member state under Directive (EU) 2016/801 (§ 51 Abs. 1a Satz 2); otherwise it lapsed after the limit, which this calculator cannot tell.`,
                   ),
                 afterUnsure.length &&
                   L(
-                    `${afterUnsure.map(trip).join('、')} 出境时是否仍持有许可，取决于之前那次出境是否已使许可失效，试点无法判断。`,
-                    `Whether you still held the title when you left for ${afterUnsure.map(trip).join(', ')} depends on whether an earlier trip had ended it, which this pilot cannot tell.`,
+                    `${afterUnsure.map(trip).join('、')} 出境时是否仍持有许可，取决于之前那次出境是否已使许可失效，本计算无法判断。`,
+                    `Whether you still held the title when you left for ${afterUnsure.map(trip).join(', ')} depends on whether an earlier trip had ended it, which this calculator cannot tell.`,
                   ),
               ]
                 .filter(Boolean)

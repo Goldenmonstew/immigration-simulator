@@ -1,13 +1,13 @@
 export const zhCN = {
   'de.name': '德国',
-  'de.entryLink': '打开德国试点',
+  'de.entryLink': '打开德国模拟器',
   'de.entryDesc':
     '按居留许可与出入境记录，计算定居许可、欧盟长期居留与入籍的时间节点，以及长期出境何时使许可失效。',
-  'de.title': '德国：定居许可、欧盟长期居留与入籍的时间（试点）',
+  'de.title': '德国：定居许可、欧盟长期居留与入籍的时间',
   'de.intro':
     '按你在德国的居留许可和出入境记录，计算只看时间的几个节点：定居许可（Niederlassungserlaubnis）、欧盟长期居留（Daueraufenthalt-EU）、入籍（Einbürgerung），以及长期出境何时使许可失效。签证与居留许可本身能否获批不在范围内。',
   'de.scope':
-    '试点只检查居留法与国籍法写明的时间条件；生计、德语、住房、入籍考试等不检查，结果里逐项列出。法律没说清的计法会标出。所填内容只在你的浏览器里计算，不保存、不上传。',
+    '这里只检查居留法与国籍法写明的时间条件；生计、德语、住房、入籍考试等不检查，结果里逐项列出。法律没说清的计法会标出。所填内容只在你的浏览器里计算，不保存、不上传。',
   'de.basics': '基本信息',
   'de.simulationDate': '模拟日期',
   'de.simulationDateHint':
@@ -92,15 +92,15 @@ export const zhCN = {
 
 export const en: Record<keyof typeof zhCN, string> = {
   'de.name': 'Germany',
-  'de.entryLink': 'Open the Germany pilot',
+  'de.entryLink': 'Open Germany',
   'de.entryDesc':
     'Use your residence permits and travel record to work out the dates for a settlement permit, EU long-term residence and naturalisation, and when a long trip ends your permit.',
   'de.title':
-    'Germany: dates for settlement, EU long-term residence and naturalisation (pilot)',
+    'Germany: dates for settlement, EU long-term residence and naturalisation',
   'de.intro':
     'From your German residence permits and trips, this works out the steps that depend on time alone: a settlement permit (Niederlassungserlaubnis), EU long-term residence (Daueraufenthalt-EU), naturalisation (Einbürgerung), and when a long trip ends your permit. Whether a visa or residence permit is granted in the first place is out of scope.',
   'de.scope':
-    'The pilot checks only the time requirements in the Residence Act and the Nationality Act. It does not check livelihood, German, housing, the naturalisation test or other requirements; each result lists them, and counting the law leaves open is flagged. Your entries are processed in your browser and are not saved or uploaded.',
+    'This checks only the time requirements in the Residence Act and the Nationality Act. It does not check livelihood, German, housing, the naturalisation test or other requirements; each result lists them, and counting the law leaves open is flagged. Your entries are processed in your browser and are not saved or uploaded.',
   'de.basics': 'About you',
   'de.simulationDate': 'Simulation date',
   'de.simulationDateHint':

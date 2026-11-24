@@ -18,6 +18,7 @@ import {
   type GameState,
   type PlaceId,
   graduateNextStep,
+  type StatKey,
 } from '@uk-immigration/game';
 import { isPlaceOpen } from './session';
 import styles from './game.module.css';
@@ -30,7 +31,7 @@ export function EffectHints({ effects }: { effects: Effect[] }) {
       {effects.map((effect, index) => (
         <span key={index}>
           {effect.type === 'stat'
-            ? `${t(`game.${effect.key}`)} ${signed(effect.delta, effect.key)}`
+            ? `${t(`game.${effect.key as StatKey}`)} ${signed(effect.delta, effect.key as StatKey)}`
             : effect.type === 'money'
               ? signed(effect.delta, 'money')
               : effect.type === 'item'

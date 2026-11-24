@@ -1,6 +1,8 @@
-import { evaluate, type Locale } from '@uk-immigration/engine';
+import type { Locale } from '@uk-immigration/engine';
 import {
   characters,
+  ukGameContent,
+  ukGameDraft,
   currentEvent,
   items,
   recipes,
@@ -14,7 +16,7 @@ import {
 } from '@uk-immigration/game';
 import { createDraft, type Draft } from '../../../lib/questionnaire';
 import type { DayMemory } from './diary';
-import { asset } from '../../../lib/asset';
+import { ukArt, ukAsset, ukStorageKey } from './country';
 
 export function visibleResidents(state: GameState, interior: boolean) {
   return townsfolk(state)
@@ -44,11 +46,7 @@ export function withGameLocale(state: GameState, locale: Locale): GameState {
   return {
     ...state,
     locale,
-    result: evaluate({
-      simulationDate: state.date,
-      timeline: state.timeline,
-      locale,
-    }),
+    result: ukGameContent.rules.evaluate({ ...state, locale }),
   };
 }
 
@@ -59,55 +57,27 @@ export const statKeys: StatKey[] = [
   'english',
   'career',
 ];
-const residentIds = [
-  'skilled-worker',
-  'hong-kong-bno',
-  'family-partner',
-  'graduate',
-  'margaret',
-  'priya',
-  'ade',
-  'helen',
-  'dave',
-  'rahman',
-  'lina',
-  'gareth',
-  'jamie',
-  'ka-ning-partner',
-  'ka-ning-child',
-  'yao-flatmate',
-  'maeve',
-];
 export const spritePath = (id: string) =>
-  asset(
-    `/game/assets/urban/${residentIds.includes(id) ? id : 'skilled-worker'}.png`,
+  ukAsset(
+    `/assets/urban/${ukArt.residents.includes(id) ? id : ukArt.defaultResident}.png`,
   );
-export const cropIds = [
-  'potato',
-  'strawberry',
-  'tomato',
-  'cucumber',
-  'turnip',
-  'corn',
-  'sunflower',
-  'tulip',
-];
+export const cropIds = ukArt.crops;
 export const itemIcon = (id: string) => {
   if (id === 'community-lunch-photo')
-    return asset('/game/assets/items/community-lunch-photo.svg');
+    return ukAsset('/assets/items/community-lunch-photo.svg');
   const crop = id.replace(/^seed-/, '');
-  if (cropIds.includes(crop)) return asset(`/game/assets/crops/${crop}.png`);
+  if (cropIds.includes(crop)) return ukAsset(`/assets/crops/${crop}.png`);
   if (['tea', 'biscuits', 'flowers', 'cake'].includes(id))
-    return asset(`/game/assets/items/${id}.png`);
+    return ukAsset(`/assets/items/${id}.png`);
   const item = items.find((item) => item.id === id);
   if (item?.kind === 'fish')
-    return asset(`/game/assets/meadow-town/fish/${id}.svg`);
+    return ukAsset(`/assets/meadow-town/fish/${id}.svg`);
   if (item?.kind === 'junk')
-    return asset(`/game/assets/meadow-town/junk/${id}.svg`);
+    return ukAsset(`/assets/meadow-town/junk/${id}.svg`);
   if (recipes.some((recipe) => recipe.makes === id))
-    return asset(`/game/assets/meadow-town/dishes/${id}.svg`);
-  if (item?.kind === 'food') return asset('/game/assets/items/meal.png');
-  return asset('/game/assets/indoor/item.png');
+    return ukAsset(`/assets/meadow-town/dishes/${id}.svg`);
+  if (item?.kind === 'food') return ukAsset('/assets/items/meal.png');
+  return ukAsset('/assets/indoor/item.png');
 };
 
 export function endingMemories(state: GameState) {
@@ -223,8 +193,7 @@ export interface GameSave {
   quarterStart?: GameState['stats'];
 }
 
-const saveKey = (characterId: string) =>
-  `uk-immigration-life-v3:${characterId}`;
+const saveKey = (characterId: string) => ukStorageKey(`v3:${characterId}`);
 
 // Event IDs can only be checked after the player selects the character.
 export function hasKnownEvents(state: GameState): boolean {
@@ -319,11 +288,7 @@ export function previewGameSave(characterId: string): GameSave {
         typeof state.pendingEvent !== 'string')
     )
       return { state: undefined, available: false };
-    state.result = evaluate({
-      simulationDate: state.date,
-      timeline: state.timeline,
-      locale: state.locale,
-    });
+    state.result = ukGameContent.rules.evaluate(state);
     const validDiary =
       Array.isArray(savedDiary) &&
       savedDiary.every(
@@ -374,13 +339,6 @@ export function gameStorage(
 export function gameDraft(state: GameState): Draft {
   return {
     ...createDraft(),
-    timeline: state.timeline,
-    simulationDate: state.date,
-    completed: true,
-    screening: {
-      criminality: state.timeline.criminalRecord.length ? 'yes' : 'no',
-      breach: state.timeline.immigrationBreaches.length ? 'yes' : 'no',
-      debt: state.timeline.governmentDebt?.outstanding ? 'yes' : 'no',
-    },
+    ...ukGameDraft(state),
   };
 }

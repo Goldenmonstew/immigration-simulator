@@ -168,6 +168,72 @@ export const jpStayLimit = (
 const metOf = (state: Verdict) =>
   state === 'yes' ? true : state === 'no' ? false : undefined;
 
+const listed = new Set(v.nationalHolidays.value);
+const listedYears = new Set(
+  v.nationalHolidays.value.map((d) => d.slice(0, 4)),
+);
+const dayOfWeek = (d: IsoDate) => new Date(`${d}T00:00:00Z`).getUTCDay();
+/**
+ * National holidays by the holidays law (art. 2, 3) for a year with no
+ * almanac list: those sure without the equinoxes, and those once the
+ * predicted equinoxes are added.
+ */
+const byLaw = (year: string) => {
+  const monday = (month: string, nth: number) => {
+    let d = `${year}-${month}-01`;
+    while (dayOfWeek(d) !== 1) d = addDays(d, 1);
+    return addDays(d, 7 * (nth - 1));
+  };
+  const base = [
+    ...v.fixedHolidays.value.map((md) => `${year}-${md}`),
+    ...Object.entries(v.mondayHolidays.value).map(([m, n]) => monday(m, n)),
+  ];
+  // Substitute day after a Sunday holiday (art. 3(2)) and a day between
+  // two holidays (art. 3(3)).
+  const withRest = (days: IsoDate[]) => {
+    const set = new Set(days);
+    for (const d of days) {
+      if (dayOfWeek(d) === 0) {
+        let x = addDays(d, 1);
+        while (days.includes(x)) x = addDays(x, 1);
+        set.add(x);
+      }
+      if (days.includes(addDays(d, 2)) && !days.includes(addDays(d, 1)))
+        set.add(addDays(d, 1));
+    }
+    return set;
+  };
+  return {
+    sure: withRest(base),
+    withEquinox: withRest([
+      ...base,
+      ...v.predictedEquinoxes.value.filter((d) => d.startsWith(year)),
+    ]),
+  };
+};
+const lawYears = new Set(
+  v.predictedEquinoxes.value.map((d) => d.slice(0, 4)),
+);
+/**
+ * Offices closed on `d` (休日法 第1条): maybe for a day that is a holiday
+ * only if the predicted equinox holds, or any weekday in a year neither
+ * listed nor predicted.
+ */
+export const jpOfficeClosed = (d: IsoDate): Verdict => {
+  const md = d.slice(5);
+  const year = d.slice(0, 4);
+  if (
+    [0, 6].includes(dayOfWeek(d)) ||
+    md >= v.yearEndClosureFrom.value ||
+    md <= v.yearEndClosureTo.value
+  )
+    return 'yes';
+  if (listedYears.has(year)) return listed.has(d) ? 'yes' : 'no';
+  if (!lawYears.has(year)) return 'maybe';
+  const law = byLaw(year);
+  return law.sure.has(d) ? 'yes' : law.withEquinox.has(d) ? 'maybe' : 'no';
+};
+
 export function evaluateJapan(req: JpRequest): JpResult {
   const L = textFor(req);
   const sim = req.simulationDate;
@@ -296,71 +362,6 @@ export function evaluateJapan(req: JpRequest): JpResult {
           },
         ]
       : [];
-  const listed = new Set(v.nationalHolidays.value);
-  const listedYears = new Set(
-    v.nationalHolidays.value.map((d) => d.slice(0, 4)),
-  );
-  const dayOfWeek = (d: IsoDate) => new Date(`${d}T00:00:00Z`).getUTCDay();
-  /**
-   * National holidays by the holidays law (art. 2, 3) for a year with no
-   * almanac list: those sure without the equinoxes, and those once the
-   * predicted equinoxes are added.
-   */
-  const byLaw = (year: string) => {
-    const monday = (month: string, nth: number) => {
-      let d = `${year}-${month}-01`;
-      while (dayOfWeek(d) !== 1) d = addDays(d, 1);
-      return addDays(d, 7 * (nth - 1));
-    };
-    const base = [
-      ...v.fixedHolidays.value.map((md) => `${year}-${md}`),
-      ...Object.entries(v.mondayHolidays.value).map(([m, n]) => monday(m, n)),
-    ];
-    // Substitute day after a Sunday holiday (art. 3(2)) and a day between
-    // two holidays (art. 3(3)).
-    const withRest = (days: IsoDate[]) => {
-      const set = new Set(days);
-      for (const d of days) {
-        if (dayOfWeek(d) === 0) {
-          let x = addDays(d, 1);
-          while (days.includes(x)) x = addDays(x, 1);
-          set.add(x);
-        }
-        if (days.includes(addDays(d, 2)) && !days.includes(addDays(d, 1)))
-          set.add(addDays(d, 1));
-      }
-      return set;
-    };
-    return {
-      sure: withRest(base),
-      withEquinox: withRest([
-        ...base,
-        ...v.predictedEquinoxes.value.filter((d) => d.startsWith(year)),
-      ]),
-    };
-  };
-  const lawYears = new Set(
-    v.predictedEquinoxes.value.map((d) => d.slice(0, 4)),
-  );
-  /**
-   * Offices closed on `d` (休日法 第1条): maybe for a day that is a holiday
-   * only if the predicted equinox holds, or any weekday in a year neither
-   * listed nor predicted.
-   */
-  const closed = (d: IsoDate): Verdict => {
-    const md = d.slice(5);
-    const year = d.slice(0, 4);
-    if (
-      [0, 6].includes(dayOfWeek(d)) ||
-      md >= v.yearEndClosureFrom.value ||
-      md <= v.yearEndClosureTo.value
-    )
-      return 'yes';
-    if (listedYears.has(year)) return listed.has(d) ? 'yes' : 'no';
-    if (!lawYears.has(year)) return 'maybe';
-    const law = byLaw(year);
-    return law.sure.has(d) ? 'yes' : law.withEquinox.has(d) ? 'maybe' : 'no';
-  };
   /**
    * When `d` is (or may be) a closed day, the next open day on which `ok`
    * (the pathway's own test: in Japan, requirements met) also holds. ISA
@@ -373,17 +374,17 @@ export function evaluateJapan(req: JpRequest): JpResult {
     office: 'isa' | 'bureau',
     candidate = false,
   ) => {
-    const state = closed(d);
+    const state = jpOfficeClosed(d);
     if (state === 'no') return '';
     // Only a day that passed the checks, within the search horizon.
     const end = addDays(sim, horizon);
     let open: IsoDate | undefined;
     for (let x = addDays(d, 1); !open && x <= end; x = addDays(x, 1))
-      if (closed(x) !== 'yes' && ok(x)) open = x;
+      if (jpOfficeClosed(x) !== 'yes' && ok(x)) open = x;
     const where = !open
       ? L(
-          '之后可递交的开放日超出试点的 10 年计算范围',
-          'the next open day you could file on is beyond the 10 years the pilot looks ahead',
+          '之后可递交的开放日超出本计算的 10 年范围',
+          'the next open day you could file on is beyond the 10 years the calculator looks ahead',
         )
       : office === 'isa'
         ? L(
@@ -407,7 +408,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
             `${d} 按国立天文台的预测是春分日或秋分日（或因此成为休日），若正式公布为休日，${where}。`,
             ` ${d} is a predicted equinox day (or a holiday because of one); if it is confirmed as a holiday, ${where}.`,
           )) +
-      (open && closed(open) === 'maybe'
+      (open && jpOfficeClosed(open) === 'maybe'
         ? L(
             `${open} 按国立天文台的预测历推算，若正式公布为休日，则顺延到其后的开放日（PD-130）。`,
             ` ${open} rests on the predicted calendar; if it is confirmed as a holiday, it moves to the next open day (PD-130).`,
@@ -428,15 +429,17 @@ export function evaluateJapan(req: JpRequest): JpResult {
     // at least past the days surely closed; a day that may be closed (the
     // equinox of a year not yet listed) leaves it open until an open day.
     let deadline = raw;
-    while (closed(deadline) === 'yes') deadline = addDays(deadline, 1);
-    const exact = closed(deadline) === 'no';
+    while (jpOfficeClosed(deadline) === 'yes')
+      deadline = addDays(deadline, 1);
+    const exact = jpOfficeClosed(deadline) === 'no';
     let latest = deadline;
-    while (latest < sim && closed(latest) !== 'no') latest = addDays(latest, 1);
+    while (latest < sim && jpOfficeClosed(latest) !== 'no')
+      latest = addDays(latest, 1);
     // Counting the birth day as the first of the days (a city's example)
     // ends a day earlier; where that changes the answer, it is uncertain
     // (PD-130).
     let early = addDays(raw, -1);
-    while (closed(early) === 'yes') early = addDays(early, 1);
+    while (jpOfficeClosed(early) === 'yes') early = addDays(early, 1);
     // The child's first trip abroad after birth. Leaving within the days a
     // newborn may stay without a status, and without a re-entry permit,
     // needs no application: the child lands anew on return (art. 22-2(1),
@@ -456,7 +459,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
         : undefined;
     const lastDay = out && out.departed < deadline ? out.departed : deadline;
     const canFile = (x: IsoDate) =>
-      x <= lastDay && closed(x) !== 'yes' && !abroad(x);
+      x <= lastDay && jpOfficeClosed(x) !== 'yes' && !abroad(x);
     let fileOn: IsoDate | undefined = sim < born ? born : sim;
     while (fileOn && !canFile(fileOn))
       fileOn = fileOn < lastDay ? addDays(fileOn, 1) : undefined;
@@ -477,7 +480,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
     // The only day left before leaving is a predicted holiday: if it is
     // confirmed, there is none (PD-130, PD-160).
     let sureOn = fileOn;
-    while (sureOn && !(canFile(sureOn) && closed(sureOn) === 'no'))
+    while (sureOn && !(canFile(sureOn) && jpOfficeClosed(sureOn) === 'no'))
       sureOn = sureOn < lastDay ? addDays(sureOn, 1) : undefined;
     const onlyPredicted = !!out && !!fileOn && !sureOn;
     const status: PilotStatus = noNeed
@@ -486,8 +489,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
         ? 'UNKNOWN'
         : timeStatus;
     const when = L(
-      `出生之日起 ${days} 日为 ${raw}${deadline === raw ? '' : `，遇行政机关休日顺延至 ${deadline}`}${early === deadline ? '' : `；若连出生当天算作第 1 天，到 ${early} 为止，按这一天递交更稳妥（PD-130）`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `；${deadline} 是否为春分日或秋分日（或因此成为休日）要到前一年 2 月才正式公布，期限可能再顺延（PD-130）` : `；试点没有收录 ${deadline.slice(0, 4)} 年的国民の祝日，期限可能再顺延（PD-130）`}`,
-      `${days} days from birth is ${raw}${deadline === raw ? '' : `, moved to ${deadline} past days the offices are closed`}${early === deadline ? '' : `; counting the birth day as the first, it ends on ${early}, the safer day to file by (PD-130)`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `; whether ${deadline} is an equinox day (or a holiday because of one) is fixed only in February of the year before, so it may move later still (PD-130)` : `; the pilot does not cover national holidays for ${deadline.slice(0, 4)}, so it may move later still (PD-130)`}`,
+      `出生之日起 ${days} 日为 ${raw}${deadline === raw ? '' : `，遇行政机关休日顺延至 ${deadline}`}${early === deadline ? '' : `；若连出生当天算作第 1 天，到 ${early} 为止，按这一天递交更稳妥（PD-130）`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `；${deadline} 是否为春分日或秋分日（或因此成为休日）要到前一年 2 月才正式公布，期限可能再顺延（PD-130）` : `；本计算没有收录 ${deadline.slice(0, 4)} 年的国民の祝日，期限可能再顺延（PD-130）`}`,
+      `${days} days from birth is ${raw}${deadline === raw ? '' : `, moved to ${deadline} past days the offices are closed`}${early === deadline ? '' : `; counting the birth day as the first, it ends on ${early}, the safer day to file by (PD-130)`}${exact ? '' : lawYears.has(deadline.slice(0, 4)) ? `; whether ${deadline} is an equinox day (or a holiday because of one) is fixed only in February of the year before, so it may move later still (PD-130)` : `; the calculator does not cover national holidays for ${deadline.slice(0, 4)}, so it may move later still (PD-130)`}`,
     );
     const late = L(
       '已持有其他在留资格的，可改选"实子等（在留资格变更）"按在留年限计算；还没有在留资格的，请尽快联系地方出入国在留管理局。',
