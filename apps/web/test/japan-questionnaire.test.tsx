@@ -268,6 +268,143 @@ test('editing one shared answer leaves other explicit disagreements visible unti
   });
 });
 
+test.each(['ordinary', 'deemed', 'refugee-travel-document'] as const)(
+  '%s flags a pre-departure decision on an application marked pending at departure',
+  (route) => {
+    const draft: JapanDraft = {
+      ...jp.createDraft(),
+      step: 6,
+      completed: true,
+      simulationDate: '2026-11-24',
+      reentry: [
+        {
+          route,
+          departureOn: '2024-04-01',
+          stayExpiresOn: '2024-04-03',
+          returnOn: '2024-04-07',
+          timelyRenewalPending: true,
+          renewalDecisionOn: '2024-03-29',
+        },
+      ],
+    };
+    const prefix = 'jp-travel-' + route + '-';
+    expect(jp.validateStep(draft)).toEqual({
+      [prefix + 'timelyRenewalPending']: 'jp.error.renewalBeforeDeparture',
+      [prefix + 'renewalDecisionOn']: 'jp.error.renewalBeforeDeparture',
+    });
+    expect(form(draft)).toContain(prefix + 'renewalDecisionOn-error');
+    expect(decodeDraft(jp, encodeDraft(jp, draft))).toBeUndefined();
+    expect(jp.restoreStoredDraft!(draft)).toEqual({
+      ...draft,
+      completed: false,
+    });
+    expect(jp.run(draft, 'en').shortCircuit?.reason).toBe(
+      'renewal-before-departure',
+    );
+
+    // Day-only dates allow a decision later on departure day.
+    draft.reentry[0].renewalDecisionOn = '2024-04-01';
+    expect(jp.validateStep(draft)).toEqual({});
+    // A later decision alone does not establish the application was pending at departure.
+    draft.reentry[0].timelyRenewalPending = false;
+    draft.reentry[0].renewalDecisionOn = '2024-04-05';
+    expect(decodeDraft(jp, encodeDraft(jp, draft))).toEqual(draft);
+  },
+);
+
+test.each([true, false])(
+  'matching history and re-entry answers expose a renewal chronology error (decision in history: %s)',
+  (decisionInHistory) => {
+    const draft = generalTripDraft();
+    const departed = '2024-04-01';
+    const returned = '2024-04-07';
+    const decision = '2024-03-29';
+    draft.completed = true;
+    draft.trips = [
+      {
+        departed,
+        returned,
+        stayExpiry: '2024-04-03',
+        ...(decisionInHistory
+          ? { renewalDecisionOn: decision }
+          : { renewalPending: true }),
+      },
+    ];
+    draft.reentry = [
+      {
+        route: 'ordinary',
+        departureOn: departed,
+        returnOn: returned,
+        ...(decisionInHistory
+          ? { timelyRenewalPending: true }
+          : { renewalDecisionOn: decision }),
+      },
+    ];
+    for (const [step, field] of [
+      [
+        1,
+        'jp-trips-0-' +
+          (decisionInHistory ? 'renewalDecisionOn' : 'renewalPending'),
+      ],
+      [
+        6,
+        'jp-travel-ordinary-' +
+          (decisionInHistory ? 'timelyRenewalPending' : 'renewalDecisionOn'),
+      ],
+    ] as const)
+      expect(jp.validateStep({ ...draft, step })).toEqual({
+        [field]: 'jp.error.renewalBeforeDeparture',
+      });
+    expect(decodeDraft(jp, encodeDraft(jp, draft))).toBeUndefined();
+
+    draft.reentry[0].returnOn = '2024-04-08';
+    expect(jp.validateStep(draft)).toEqual({});
+    expect(decodeDraft(jp, encodeDraft(jp, draft))).toEqual(draft);
+  },
+);
+
+test.each([false, true])(
+  'renewal chronology uses explicit evidence across re-entry routes even when copies disagree (with history: %s)',
+  (withHistory) => {
+    const draft = generalTripDraft();
+    const departureOn = '2024-04-01';
+    const returnOn = '2024-04-07';
+    draft.step = 6;
+    draft.completed = true;
+    draft.trips = withHistory
+      ? [
+          {
+            departed: departureOn,
+            returned: returnOn,
+            stayExpiry: '2024-04-03',
+            renewalPending: false,
+            renewalDecisionOn: '2024-04-05',
+          },
+        ]
+      : [];
+    if (!withHistory) draft.permanentResidence.routes = [];
+    draft.reentry = [
+      { route: 'ordinary', departureOn, returnOn, timelyRenewalPending: true },
+      {
+        route: 'deemed',
+        departureOn,
+        newLandingOn: returnOn,
+        renewalDecisionOn: '2024-03-29',
+      },
+    ];
+    expect(jp.validateStep(draft)).toEqual({
+      'jp-travel-ordinary-timelyRenewalPending':
+        'jp.error.renewalBeforeDeparture',
+      'jp-travel-deemed-renewalDecisionOn': 'jp.error.renewalBeforeDeparture',
+    });
+    expect(decodeDraft(jp, encodeDraft(jp, draft))).toBeUndefined();
+
+    draft.reentry[1].newLandingOn = '2024-04-08';
+    expect(jp.validateStep(draft)).toEqual({});
+    expect(decodeDraft(jp, encodeDraft(jp, draft))).toBeDefined();
+  },
+);
+
 test('both forms display, edit and clear the renewal decision for the same itinerary', () => {
   let draft = generalTripDraft();
   const trip = draft.trips[0];
@@ -453,6 +590,50 @@ test('a new landing before departure has a field error even without a separate r
   expect(decodeDraft(jp, encodeDraft(jp, draft))).toEqual(draft);
 });
 
+test.each([
+  ['2026-11-24', undefined, true, true],
+  ['2026-11-24', '2026-12-01', true, true],
+  ['2026-11-26', undefined, false, true],
+  ['2026-11-27', undefined, false, false],
+] as const)(
+  'shared PR result describes the trip as of %s, with filing date %s',
+  (simulationDate, applicationDate, plannedDeparture, plannedReturn) => {
+    const draft: JapanDraft = {
+      ...generalTripDraft(),
+      simulationDate,
+      applicationDate,
+      completed: true,
+      trips: [
+        { departed: '2026-11-26', returned: '2026-11-27', departure: 'none' },
+      ],
+    };
+    expect(jp.validateStep(draft)).toEqual({});
+    const restored = decodeDraft(jp, encodeDraft(jp, draft))!;
+    const zh = jp.run(restored, 'zh-CN').columns[0].pathways[0].summary;
+    const en = jp.run(restored, 'en').columns[0].pathways[0].summary;
+    expect(zh).toContain(
+      plannedDeparture
+        ? '计划于 2026-11-26 不持再入国许可出境'
+        : '于 2026-11-26 未持再入国许可出境',
+    );
+    expect(en).toContain(
+      plannedDeparture
+        ? 'You plan to leave without re-entry permission on 2026-11-26'
+        : 'You left without re-entry permission on 2026-11-26',
+    );
+    expect(zh).toContain(
+      plannedReturn
+        ? '若按计划于 2026-11-27 返日，连续在留将从该日重新起算'
+        : '连续在留从返日的 2026-11-27 重新起算',
+    );
+    expect(en).toContain(
+      plannedReturn
+        ? 'If you return as planned on 2026-11-27, your unbroken stay would restart'
+        : 'The unbroken stay restarted on return on 2026-11-27',
+    );
+  },
+);
+
 test.each(['ordinary', 'deemed', 'refugee-travel-document'] as const)(
   '%s accepts a future return plan and flags a future landing as an invalid fact',
   (route) => {
@@ -525,6 +706,9 @@ test('a comparison can retain the original planned return only as a valid date',
     ...jp.createDraft(),
     simulationDate: '2026-11-24',
     completed: true,
+    stayStart: '2016-04-01',
+    permanentResidence: { routes: [{ route: 'child' }], evidence: {} },
+    trips: [{ departed: '2026-11-26', returned: '2026-11-27' }],
     reentry: [
       {
         route: 'deemed',
@@ -945,6 +1129,123 @@ test('a travel-only questionnaire goes straight to route details and restores ol
   expect(jp.validateStep(draft)).toHaveProperty('jp-stayStart');
   expect(form(draft)).toContain('id="jp-stayStart"');
   expect(japanSteps(draft).map(({ step }) => step)).toEqual([0, 1, 5, 6]);
+});
+
+test('deselecting residence gives the same shared and compared return assessment as a fresh ordinary permit questionnaire', () => {
+  const ordinary: JapanDraft['reentry'][number] = {
+    route: 'ordinary',
+    departureOn: '2026-11-26',
+    returnOn: '2026-11-27',
+    lawfulStatus: true,
+    inJapanWhenApplying: true,
+    intendsReturn: true,
+    excludedStatusOrDetention: false,
+    passportOrApprovedAlternative: true,
+    residentCardOrCertificate: true,
+    stayIndefinite: true,
+    visits: 'multiple',
+    channel: 'counter',
+    permitVoided: false,
+    permit: {
+      effectiveOn: '2026-11-24',
+      expiresOn: '2027-11-24',
+      extensionApproved: false,
+    },
+  };
+  const fresh: JapanDraft = {
+    ...jp.createDraft(),
+    simulationDate: '2026-11-24',
+    completed: true,
+    step: 6,
+    reentry: [ordinary],
+  };
+  const selected: JapanDraft = {
+    ...fresh,
+    stayStart: '2010-05-10',
+    trips: [
+      {
+        departed: ordinary.departureOn!,
+        returned: ordinary.returnOn!,
+        departure: 'none',
+        renewalDecisionOn: '2026-11-20',
+      },
+    ],
+    permanentResidence: {
+      routes: [
+        {
+          route: 'general',
+          statusStart: '2011-05-10',
+          newStatusStart: '2011-05-10',
+        },
+      ],
+      evidence: { applicantAnnualIncomeYen: 5456789 },
+    },
+  };
+  const path = (draft: JapanDraft) =>
+    jp
+      .run(draft, 'en')
+      .columns[0].pathways.find((p) => p.id === 'jp.reentry.ordinary')!;
+  const continuity = (draft: JapanDraft) =>
+    path(draft).checks.find((c) => c.id === 'jp.reentry.return-continuity')
+      ?.status;
+  expect(continuity(selected)).toBe('NOT_MET');
+
+  let switched: JapanDraft = {
+    ...selected,
+    permanentResidence: { ...selected.permanentResidence, routes: [] },
+  };
+  expect(japanSteps(switched).map(({ step }) => step)).toEqual([0, 6]);
+  const html = form(switched, (patch) => {
+    switched = { ...switched, ...patch };
+  });
+  expect(html).toMatch(
+    /id="jp-travel-ordinary-renewalDecisionOn"[^>]*value=""/,
+  );
+  fields.get('jp-travel-ordinary-intendsReturn')!({ target: { value: 'yes' } });
+  expect(switched.trips).toEqual(selected.trips);
+  expect(switched.reentry).toEqual(fresh.reentry);
+  const encoded = encodeDraft(jp, switched);
+  const payload = JSON.parse(
+    atob(encoded.replaceAll('-', '+').replaceAll('_', '/')),
+  );
+  expect(payload.draft).toEqual(fresh);
+  const shared = decodeDraft(jp, encoded)!;
+  const older = encodeDraft({ ...jp, activeAnswers: undefined }, switched);
+  expect(decodeDraft(jp, older)).toEqual(fresh);
+  const actual = path(shared);
+  expect(continuity(shared)).toBe('MET');
+  expect(actual.earliestDate).toBe('2026-11-24');
+  expect(actual).toEqual(path(fresh));
+  expect(path(switched)).toEqual(actual);
+  const knobs = {
+    ...jp.whatif.initial(switched),
+    returns: { ordinary: '2026-11-28' },
+  };
+  expect(knobs.prIncome).toBeUndefined();
+  const compared = jp.whatif.apply(switched, knobs);
+  expect(jp.whatif.validate(compared, knobs)).toEqual({});
+  expect(decodeDraft(jp, encodeDraft(jp, compared))).toEqual({
+    ...fresh,
+    reentry: [{ ...ordinary, returnOn: '2026-11-28' }],
+  });
+  expect(path(compared)).toEqual(path(jp.whatif.apply(fresh, knobs)));
+});
+
+test('shared trip history remains visible to either residence family and inactive family evidence stays local', () => {
+  const both = generalTripDraft();
+  both.permanentResidence.evidence = { householdIncomeConfirmed: true };
+  both.naturalisation = {
+    routes: [{ route: 'general', homeMajorityAge: 18 }],
+    evidence: { livelihoodConfirmed: true },
+  };
+  for (const group of ['permanentResidence', 'naturalisation'] as const) {
+    const one = { ...both, [group]: { ...both[group], routes: [] } };
+    const restored = decodeDraft(jp, encodeDraft(jp, one))!;
+    expect(restored[group].evidence).toEqual({});
+    expect(restored.trips).toEqual(both.trips);
+    expect(restored.stayStart).toBe(both.stayStart);
+    expect(jp.decodeDraft(one)?.[group].evidence).toEqual(both[group].evidence);
+  }
 });
 
 test('the empty-selection error describes the focusable group containing all three route families', () => {

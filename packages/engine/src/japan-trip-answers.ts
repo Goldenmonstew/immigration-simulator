@@ -1,12 +1,14 @@
 import type { JpTrip } from './japan';
 import type { JpFullReentryRequest } from './japan-full-reentry';
 
+export const japanTripReturnOn = (route: JpFullReentryRequest) =>
+  route.comparisonHistoryReturnOn ?? route.returnOn ?? route.newLandingOn;
+
 export const sameJapanTrip = (trip: JpTrip, route: JpFullReentryRequest) =>
   !!trip.departed &&
   !!trip.returned &&
   trip.departed === route.departureOn &&
-  trip.returned ===
-    (route.comparisonHistoryReturnOn ?? route.returnOn ?? route.newLandingOn);
+  trip.returned === japanTripReturnOn(route);
 
 export const japanTripAnswerFields = [
   ['stayExpiry', 'stayExpiresOn'],

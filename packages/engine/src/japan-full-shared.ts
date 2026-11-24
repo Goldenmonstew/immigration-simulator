@@ -132,8 +132,7 @@ export function fromPilot(
 export function filingContext(req: JpFullContext) {
   const date = req.applicationDate ?? req.simulationDate;
   const L = textFor(req);
-  const input = { ...req, simulationDate: date };
-  return { date, L, input };
+  return { date, L };
 }
 
 export function nextCounterFilingDay(date: IsoDate) {
@@ -191,12 +190,16 @@ export function pilotFor(
   req: JpFullContext,
   selection: { pr: JpPrRequest } | { naturalisation: JpNaturalisationRequest },
 ): PilotPathway {
-  const { date, input } = filingContext(req);
+  const { date } = filingContext(req);
   const defaults = {
     pr: { route: 'child' },
     naturalisation: { route: 'general', dateOfBirth: req.dateOfBirth ?? date },
   } satisfies Pick<JpRequest, 'pr' | 'naturalisation'>;
-  const result = evaluateJapanTimeline({ ...input, ...defaults, ...selection });
+  const result = evaluateJapanTimeline(
+    { ...req, ...defaults, ...selection },
+    false,
+    date,
+  );
   return result.pathways['pr' in selection ? 0 : 1];
 }
 

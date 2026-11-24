@@ -955,7 +955,7 @@ function assessJapanPrOnDate(
     incomeOn === true ? e.householdIncomeConfirmed : undefined,
     v.incomeReview.sources,
     `${incomeEvidence(e, L)} 官方基准金额、持续期间及口径待确认。${incomeOn === undefined ? ' 另须确认改定日是否仍在审。' : ''}`,
-    `${incomeEvidence(e, (_zh, en) => en)} The comparison amount, sustained period and calculation details require confirmation.${incomeOn === undefined ? ' Confirm that the application was pending on the revision date.' : ''}`,
+    `${incomeEvidence(e, (_zh, en) => en)} The comparison amount, sustained period and calculation details require confirmation.${incomeOn === undefined ? ' Check whether the application is still pending on the revision date.' : ''}`,
     'PD-361',
   );
   const pension = factor(
@@ -1504,8 +1504,8 @@ function assessJapanPrOnDate(
         'J-Skip recognition or retrospective criteria',
         earlier,
         v.jSkip.sources,
-        `核对在 ${past} 前已认定并持续持有，或在该基准日已达到标准。`,
-        `Confirm recognition by ${past} that was maintained, or that the criteria were met on that reference date.`,
+        `核对是否自 ${past} 或更早起持续持有认定，或在该基准日符合标准。`,
+        `Check for continuous recognition from ${past} or earlier, or eligibility on that reference date.`,
         ['PD-375'],
       );
       if (now === true && earlier === true && newer)

@@ -1,4 +1,5 @@
 import {
+  japanTripReturnOn,
   jpStayLimit,
   shareJapanTripAnswers,
   type JpFullRequest,
@@ -207,6 +208,40 @@ export function japanSteps(draft: JapanDraft) {
   });
 }
 
+// The local questionnaire may keep answers for a route the user deselected.
+// Only evidence from currently visible steps can leave that editing context.
+export function activeJapanAnswers(draft: JapanDraft): JapanDraft {
+  const visible = japanSteps(draft).map(({ step }) => step);
+  const history = visible.includes(1);
+  const deemed = draft.reentry.some((route) => route.route === 'deemed');
+  return {
+    ...draft,
+    stayStart: history ? draft.stayStart : '',
+    trips: history
+      ? draft.trips.map((trip) => {
+          if (deemed || trip.reentryStayExpiry === undefined) return trip;
+          const active = { ...trip };
+          delete active.reentryStayExpiry;
+          return active;
+        })
+      : [],
+    permanentResidence: visible.includes(2)
+      ? draft.permanentResidence
+      : { routes: [], evidence: {} },
+    naturalisation: visible.includes(5)
+      ? draft.naturalisation
+      : { routes: [], evidence: {} },
+    reentry: history
+      ? draft.reentry
+      : draft.reentry.map((route) => {
+          const active = { ...route };
+          delete active.comparisonHistoryReturnOn;
+          if (active.route === 'deemed') delete active.historyStayExpiry;
+          return active;
+        }),
+  };
+}
+
 type Errors = Record<string, TranslationKey>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -317,13 +352,63 @@ function checkFields(
   }
 }
 
+function checkTripRenewals(draft: JapanDraft, step: number, errors: Errors) {
+  const records = [
+    ...draft.trips.map((trip, index) => ({
+      departed: trip.departed,
+      returned: trip.returned,
+      pending: trip.renewalPending,
+      decision: trip.renewalDecisionOn,
+      pendingField: `jp-trips-${index}-renewalPending`,
+      decisionField: `jp-trips-${index}-renewalDecisionOn`,
+      step: 1,
+    })),
+    ...draft.reentry.map((route) => ({
+      departed: route.departureOn,
+      returned: japanTripReturnOn(route),
+      pending: route.timelyRenewalPending,
+      decision: route.renewalDecisionOn,
+      pendingField: `jp-travel-${route.route}-timelyRenewalPending`,
+      decisionField: `jp-travel-${route.route}-renewalDecisionOn`,
+      step: 6,
+    })),
+  ];
+  // Check the entered answers themselves, even when conflicting copies cannot be shared.
+  for (const decided of records) {
+    if (
+      !decided.decision ||
+      !validDate(decided.decision) ||
+      !decided.departed ||
+      !validDate(decided.departed) ||
+      decided.decision >= decided.departed
+    )
+      continue;
+    for (const pending of records) {
+      if (pending.pending !== true) continue;
+      if (
+        decided !== pending &&
+        (!decided.returned ||
+          !validDate(decided.returned) ||
+          pending.departed !== decided.departed ||
+          pending.returned !== decided.returned)
+      )
+        continue;
+      if (decided.step === step)
+        errors[decided.decisionField] ??= 'jp.error.renewalBeforeDeparture';
+      if (pending.step === step)
+        errors[pending.pendingField] ??= 'jp.error.renewalBeforeDeparture';
+    }
+  }
+}
+
 function checkStep(
-  draft: JapanDraft,
+  stored: JapanDraft,
   step: number,
   submitting: boolean,
   checkActualDates = submitting,
 ) {
   const errors: Errors = {};
+  const draft = checkActualDates ? activeJapanAnswers(stored) : stored;
   const { permanentResidence: pr, naturalisation: nat } = draft;
   const { trips, reentry } =
     checkActualDates && (step === 1 || step === 6)
@@ -478,6 +563,8 @@ function checkStep(
       }
       break;
   }
+  if (checkActualDates && (step === 1 || step === 6))
+    checkTripRenewals(draft, step, errors);
   return errors;
 }
 
@@ -486,17 +573,27 @@ export function validateJapanStep(draft: JapanDraft) {
 }
 
 // Older local results and saved scenarios can be opened without questionnaire submission.
-export function futureJapanFactStep(draft: JapanDraft) {
-  return japanSteps(draft).find(({ step }) =>
-    Object.values(checkStep(draft, step, false, true)).includes(
-      'jp.error.futureFact',
-    ),
-  );
+export function invalidJapanFactStep(draft: JapanDraft) {
+  for (const step of japanSteps(draft)) {
+    const errors = Object.values(checkStep(draft, step.step, false, true));
+    if (errors.includes('jp.error.futureFact'))
+      return {
+        ...step,
+        reason: 'future-fact-date',
+        message: 'jp.result.correctFutureFact',
+      } as const;
+    if (errors.includes('jp.error.renewalBeforeDeparture'))
+      return {
+        ...step,
+        reason: 'renewal-before-departure',
+        message: 'jp.result.correctRenewalAtDeparture',
+      } as const;
+  }
 }
 
 export function restoreStoredJapanDraft(draft: JapanDraft): JapanDraft {
   const confirmed = clearUnconfirmedJapanDeclaration(draft);
-  const invalid = confirmed.completed && futureJapanFactStep(confirmed);
+  const invalid = confirmed.completed && invalidJapanFactStep(confirmed);
   return invalid
     ? { ...confirmed, completed: false, step: invalid.step }
     : confirmed;

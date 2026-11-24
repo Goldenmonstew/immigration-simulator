@@ -20,6 +20,8 @@ export interface CountryModule<D extends CountryDraft, K> {
   id: CountryId;
   version: number;
   createDraft(): D;
+  // Project an editable draft onto the answers used for assessment and sharing.
+  activeAnswers?(draft: D): D;
   // Return a new draft when a local correction needs to be persisted.
   restoreStoredDraft?(draft: D): D;
   validateStep(draft: D): Record<string, TranslationKey>;

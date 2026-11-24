@@ -288,7 +288,11 @@ export const natRouteFields = {
 const travelCommon = [
   date('returnOn'),
   date('stayExpiresOn'),
-  ...flags('stayIndefinite', 'timelyRenewalPending'),
+  bool('stayIndefinite'),
+  {
+    ...bool('timelyRenewalPending'),
+    label: 'renewalPending',
+  } satisfies JapanField,
   actualDate(
     'renewalDecisionOn',
     false,

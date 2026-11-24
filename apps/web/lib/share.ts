@@ -2,14 +2,18 @@ import type { CountryDraft, CountryModule } from './country-module';
 
 type ShareModule<D extends CountryDraft> = Pick<
   CountryModule<D, never>,
-  'id' | 'version' | 'decodeDraft'
+  'id' | 'version' | 'decodeDraft' | 'activeAnswers'
 >;
 
 export function encodeDraft<D extends CountryDraft>(
   country: ShareModule<D>,
   draft: D,
 ): string {
-  const envelope = { country: country.id, v: country.version, draft };
+  const envelope = {
+    country: country.id,
+    v: country.version,
+    draft: country.activeAnswers?.(draft) ?? draft,
+  };
   const bytes = new TextEncoder().encode(JSON.stringify(envelope));
   const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join(
     '',
@@ -37,7 +41,8 @@ export function decodeDraft<D extends CountryDraft>(
     if ('country' in value || 'v' in value) {
       if (value.country !== country.id || value.v !== country.version)
         return undefined;
-      return country.decodeDraft(value.draft);
+      const draft = country.decodeDraft(value.draft);
+      return draft && (country.activeAnswers?.(draft) ?? draft);
     }
     // Before country envelopes, only UK questionnaires produced share links.
     return country.id === 'uk' ? country.decodeDraft(value) : undefined;

@@ -234,8 +234,8 @@ const messages = {
     'Did you hold a valid ordinary re-entry permit when you returned?',
   ],
   'jp.field.renewalPending': [
-    '出境时，是否已按期申请续期或变更并仍在等待决定？',
-    'Was a timely renewal or change application still pending at departure?',
+    '出境时，是否有按期提出且仍待决定的续期或变更申请？',
+    'Is a timely renewal or change application still pending at the time of departure?',
   ],
   'jp.field.statusStart': [
     '连续持有旧指南认可的就労或居住资格的起始日',

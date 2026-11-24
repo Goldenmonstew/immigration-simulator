@@ -22,6 +22,10 @@ export const zhCN = {
   'jp.error.futureFact': '已发生事项的日期不能晚于模拟日期。',
   'jp.result.correctFutureFact':
     '请在问卷的「{step}」中核对日期。有一项已发生事项晚于模拟日期。',
+  'jp.error.renewalBeforeDeparture':
+    '这次申请的处分日早于出境日。请核对处分日期和出境时是否仍在等待决定。',
+  'jp.result.correctRenewalAtDeparture':
+    '请在问卷的「{step}」中核对续期或变更记录。所填处分日早于出境日，但你填写了出境时仍在等待决定。',
   'jp.error.order': '这个日期不能早于开始的日期。',
   'jp.error.specialPeriod':
     '更新申请中也只能在在留期限届满后 2 个月内离开日本，请核对日期。',
@@ -55,6 +59,10 @@ export const en: Record<keyof typeof zhCN, string> = {
     'An event that has already occurred must be dated on or before the simulation date.',
   'jp.result.correctFutureFact':
     'Review the dates in “{step}”. A recorded event is dated after the simulation date.',
+  'jp.error.renewalBeforeDeparture':
+    'The decision predates departure. Check the decision date and the application status at departure.',
+  'jp.result.correctRenewalAtDeparture':
+    'Review the renewal or change application in “{step}”. The decision predates departure, but the application is marked as still pending at departure.',
   'jp.error.order': 'This date cannot be before the start date.',
   'jp.error.specialPeriod':
     'Even with a renewal pending you can leave only within 2 months after your period of stay ended; check the dates.',

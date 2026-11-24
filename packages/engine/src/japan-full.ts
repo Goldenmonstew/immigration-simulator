@@ -27,12 +27,12 @@ const labels = {
   stayExpiry: ['在留届满日', 'expiry of stay'],
   renewalPending: [
     '出境时续期是否仍待决',
-    'whether renewal was pending at departure',
+    'renewal status at departure',
   ],
   renewalDecisionOn: ['续期处分日', 'renewal decision date'],
   specialPermanentResident: [
     '出境时的特別永住者身份',
-    'whether you were a special permanent resident at departure',
+    'special permanent resident status at departure',
   ],
   newLandingOn: ['实际重新上陆日', 'actual new landing date'],
   departure: [

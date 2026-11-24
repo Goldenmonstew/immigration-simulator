@@ -6,6 +6,7 @@ import {
 import { JapanWhatIfControls } from '../app/japan/whatif/controls';
 import type { TranslationKey } from '../i18n';
 import {
+  activeJapanAnswers,
   japanSteps,
   validateJapanStep,
   withJapanFilingDate,
@@ -73,7 +74,8 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
     id === 'jp.reentry.return-continuity'
       ? returnFocusByPath[pathwayId]
       : focusByCondition[id],
-  initial(draft) {
+  initial(stored) {
+    const draft = activeJapanAnswers(stored);
     const pr = draft.permanentResidence.evidence;
     const nat = draft.naturalisation.evidence;
     return {
@@ -92,7 +94,7 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
   },
   apply(draft, knobs) {
     const compared = withJapanFilingDate(
-      draft,
+      activeJapanAnswers(draft),
       !draft.applicationDate && knobs.applicationDate === draft.simulationDate
         ? undefined
         : knobs.applicationDate,
@@ -100,7 +102,7 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
     const pr = compared.permanentResidence;
     const nat = compared.naturalisation;
     const travel = shareJapanTripAnswers(compared.trips, compared.reentry);
-    return {
+    return activeJapanAnswers({
       ...compared,
       trips: knobs.noTrips ? [] : travel.trips,
       permanentResidence: {
@@ -140,15 +142,13 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
           comparisonHistoryReturnOn: baseline?.returned,
         };
       }),
-    };
+    });
   },
   validate(draft, knobs) {
     const errors: Record<string, TranslationKey> = {};
     if (!validDate(knobs.applicationDate)) errors.date = 'jp.error.date';
-    if (
-      knobs.prIncome !== undefined &&
-      (!Number.isSafeInteger(knobs.prIncome) || knobs.prIncome < 0)
-    )
+    const income = draft.permanentResidence.evidence.applicantAnnualIncomeYen;
+    if (income !== undefined && (!Number.isSafeInteger(income) || income < 0))
       errors.income = 'jp.whatif.invalidIncome';
     for (const item of draft.reentry) {
       if (

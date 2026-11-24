@@ -5,6 +5,7 @@ import { QuestionnaireShell } from '../../../components/questionnaire-shell';
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
 import {
+  activeJapanAnswers,
   canConfirmJapanDeparture,
   hasJapanResidenceRoute,
   japanDepartureTiming,
@@ -46,7 +47,11 @@ function JapanStep({ draft, errors, update }: StepProps) {
   const nat = draft.naturalisation;
   const routeLabel = (group: RouteGroup, route: string) =>
     t(`jp.${group}.${route}` as TranslationKey);
-  const { trips, reentry } = shareJapanTripAnswers(draft.trips, draft.reentry);
+  const active = activeJapanAnswers(draft);
+  const { trips, reentry } = shareJapanTripAnswers(
+    active.trips,
+    active.reentry,
+  );
   const routes = { pr: pr.routes, nat: nat.routes, travel: reentry };
   const residence = hasJapanResidenceRoute(draft);
   const routeError = !residence && !draft.reentry.length && errors['jp-routes'];
@@ -69,15 +74,14 @@ function JapanStep({ draft, errors, update }: StepProps) {
       const next = selected as typeof reentry;
       const travel = next.find((route) => route.route === edited?.route);
       const previous = reentry.find((route) => route.route === edited?.route);
-      update(
-        shareJapanTripAnswers(
-          trips,
-          next,
-          edited && travel && previous
-            ? { travel, previous, field: edited.field }
-            : undefined,
-        ),
+      const shared = shareJapanTripAnswers(
+        trips,
+        next,
+        edited && travel && previous
+          ? { travel, previous, field: edited.field }
+          : undefined,
       );
+      update(residence ? shared : { reentry: shared.reentry });
     }
   };
   const routeQuestions = (group: RouteGroup) =>

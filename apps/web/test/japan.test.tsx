@@ -83,7 +83,7 @@ test('all five Japan pages are exported in the offline and sitemap lists', async
 test('versioned drafts round-trip inside their country envelope, including negative and unknown evidence', () => {
   const draft = travelDraft();
   const encoded = encodeDraft(jp, draft);
-  expect(decodeDraft(jp, encoded)).toEqual(draft);
+  expect(decodeDraft(jp, encoded)).toEqual({ ...draft, stayStart: '' });
   expect(decodeDraft(ukModule, encoded)).toBeUndefined();
   expect(
     decodeDraft(jp, encodeDraft(ukModule, ukModule.createDraft())),
@@ -121,7 +121,12 @@ test('step validation requires residence and a selected pathway, then validates 
     reentryPermit: false,
   };
   const validateTrips = (trips: JapanDraft['trips']) =>
-    jp.validateStep({ ...draft, step: 1, trips });
+    jp.validateStep({
+      ...draft,
+      step: 1,
+      trips,
+      permanentResidence: { routes: [{ route: 'child' }], evidence: {} },
+    });
   expect(
     validateTrips([
       trip,

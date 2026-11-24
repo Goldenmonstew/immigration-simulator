@@ -87,6 +87,31 @@ const condition = (path: JpFullPathway, suffix: string) =>
 const status = (path: JpFullPathway, suffix: string) =>
   condition(path, suffix).status;
 
+test.each(['zh-CN', 'en'] as const)(
+  'projects absences to the filing date using the original simulation date (%s)',
+  (locale) => {
+    const request = {
+      simulationDate: '2027-04-01',
+      applicationDate: '2027-04-08',
+      trips: [{ departed: '2027-04-04', returned: '2027-04-07', departure: 'deemed' }],
+      locale,
+    } satisfies Partial<JpFullRequest>;
+    const residence = pr(general, prEvidence, request);
+    expect(condition(residence, 'total-absence').explanation).toContain(
+      locale === 'en' ? 'Projected through 2027-04-08' : '按所填行程推算至 2027-04-08',
+    );
+    expect(condition(residence, 'total-absence').explanation).toContain(
+      locale === 'en' ? '2 days abroad' : '合计 2 天',
+    );
+    expect(residence.summary).toContain(
+      locale === 'en' ? 'would meet the time requirements' : '拟递交日（2027-04-08）预计满足',
+    );
+    expect(nat({ route: 'general' }, natEvidence, request).summary).toContain(
+      locale === 'en' ? 'would have 1 trip abroad' : '按所填行程预计，',
+    );
+  },
+);
+
 describe('deemed re-entry on a trip in the shared history', () => {
   const departed = '2024-04-01';
   const evaluateTrip = (
@@ -150,7 +175,9 @@ describe('deemed re-entry on a trip in the shared history', () => {
         });
         if (travel === 'UNKNOWN')
           expect(nat.summary).toContain(
-            'whether you were a special permanent resident',
+            historyStatus === true && routeStatus === false
+              ? 'special permanent resident status at departure'
+              : 'whether you were a special permanent resident',
           );
       }
     },
@@ -1745,6 +1772,99 @@ describe('re-entry and travel documents', () => {
     expect(status(pr, 'continuous-stay')).toBe('NOT_MET');
     expect(status(travel, 'return-continuity')).toBe('NOT_MET');
     expect(condition(travel, 'return-continuity').explanation).toContain('this route was not used');
+  });
+
+  test('planned travel uses conditional departure and return notices even for a later filing date', () => {
+    const trip = {
+      departed: '2028-07-01',
+      returned: '2028-12-02',
+      departure: 'none',
+    } as const;
+    const request: JpFullRequest = {
+      ...base,
+      applicationDate: '2028-08-01',
+      trips: [trip],
+      permanentResidence: { routes: [general] },
+      reentry: [
+        { ...ordinary, departureOn: trip.departed, returnOn: trip.returned },
+        {
+          route: 'refugee-travel-document',
+          departureOn: trip.departed,
+          returnOn: trip.returned,
+          permit: {
+            effectiveOn: '2027-10-01',
+            expiresOn: '2029-10-01',
+            entryDeadline: '2028-12-01',
+          },
+        },
+      ],
+    };
+    for (const locale of ['zh-CN', 'en'] as const) {
+      const [residence, permit, document] = evaluateJapanFull({
+        ...request,
+        locale,
+      }).columns[0].pathways;
+      expect(residence.summary).toContain(
+        locale === 'en'
+          ? 'You expect to be abroad on the proposed filing date'
+          : '按行程计划，拟递交日',
+      );
+      const details = condition(permit, 'return-continuity').explanation;
+      expect(details).toContain(
+        locale === 'en'
+          ? 'would not be met at departure'
+          : '届时无法满足出境所需的再入国条件',
+      );
+      expect(details).toContain(
+        locale === 'en'
+          ? 'planned departure uses a different route'
+          : '计划采用的出境方式与这条路径不同',
+      );
+      expect(condition(document, 'return-continuity').explanation).toContain(
+        locale === 'en'
+          ? 'planned return would be after the designated entry deadline'
+          : '计划返日将晚于证件指定的入境期限',
+      );
+    }
+  });
+
+  test('a decision and a new landing each use their own date in the engine result', () => {
+    const trip = {
+      departed: '2027-03-28',
+      returned: '2027-04-05',
+      departure: 'deemed',
+      stayExpiry: '2027-03-31',
+      renewalPending: true,
+      renewalDecisionOn: '2027-04-02',
+    } as const;
+    for (const locale of ['zh-CN', 'en'] as const) {
+      const result = (simulationDate: string) =>
+        pr(general, {}, { trips: [trip], locale, simulationDate }).summary;
+      expect(result('2027-04-01')).toContain(
+        locale === 'en'
+          ? 'If the renewal decision is made on 2027-04-02'
+          : '若于 2027-04-02 作出续期处分',
+      );
+      expect(result('2027-04-02')).toContain(
+        locale === 'en'
+          ? 'The renewal decision was on 2027-04-02'
+          : '续期处分日为 2027-04-02',
+      );
+      const route = reentry(
+        {
+          ...ordinary,
+          departureOn: trip.departed,
+          newLandingOn: trip.returned,
+          returnOn: trip.returned,
+        },
+        { locale, simulationDate: '2027-04-01' },
+      );
+      expect(condition(route, 'return-continuity').explanation).toContain(
+        locale === 'en'
+          ? 'Landing under a new status on 2027-04-05 would end'
+          : '若于 2027-04-05 以新身份上陆，原在留将中断',
+      );
+    }
   });
 
   test('an ordinary permit cannot preserve the prior stay on a new landing', () => {

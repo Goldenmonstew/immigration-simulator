@@ -5,6 +5,7 @@ import {
 import { addMonths, addYears } from './dates';
 import {
   type JpTrip,
+  jpNewLandingNote,
   jpOfficeClosed,
   jpReturnOnPreviousStatus,
   jpStayExpiryConflict,
@@ -225,6 +226,8 @@ export function assessJapanReentry(
   };
   const departure = route.departureOn;
   const returned = route.returnOn ?? route.newLandingOn;
+  const plannedDeparture = departure && departure > req.simulationDate;
+  const plannedReturn = returned && returned > req.simulationDate;
   const stay = route.stayExpiresOn;
   const expiryConflict =
     route.route === 'deemed'
@@ -513,8 +516,8 @@ export function assessJapanReentry(
       returned <= original
     )
       documentNotice = L(
-        '返日在原许可期限内。',
-        'The return falls within the original permit period.',
+        `${plannedReturn ? '计划' : ''}返日在原许可期限内。`,
+        `The ${plannedReturn ? 'planned return would fall' : 'return fell'} within the original permit period.`,
       );
     if (route.visits && date >= fees.historicalFrom) {
       if (route.channel === 'counter')
@@ -578,8 +581,8 @@ export function assessJapanReentry(
     );
     if (route.specialPermanentResident === undefined && !verifiedLimit)
       documentNotice = L(
-        `返日截止日待确认。${term}请核对出境时的身份及适用的在留期限。`,
-        `The return deadline is unconfirmed. ${term} Confirm whether you were a special permanent resident at departure and check any applicable expiry of stay.`,
+        `返日截止日待确认。${term}请核对${plannedDeparture ? '计划' : ''}出境时的身份及适用的在留期限。`,
+        `The return deadline is unconfirmed. ${term} Confirm whether you ${plannedDeparture ? 'will be' : 'were'} a special permanent resident at departure and check any applicable expiry of stay.`,
       );
     documentNotice = [
       documentNotice,
@@ -681,8 +684,8 @@ export function assessJapanReentry(
     );
     if (!route.permitVoided && validLimit && withinEntryDeadline === false) {
       documentNotice = L(
-        `返日晚于证件指定的入境期限 ${entryLimit}。`,
-        `The return was after the designated entry deadline of ${entryLimit}.`,
+        `${plannedReturn ? '计划返日将' : '返日'}晚于证件指定的入境期限 ${entryLimit}。`,
+        `The ${plannedReturn ? 'planned return would be' : 'return was'} after the designated entry deadline of ${entryLimit}.`,
       );
     }
     if (date >= fees.historicalFrom)
@@ -747,8 +750,8 @@ export function assessJapanReentry(
     withinEntryDeadline !== false
   )
     documentNotice = L(
-      `返日晚于法定延期上限 ${missedExtensionLimit}。`,
-      `The return was after the statutory extension limit of ${missedExtensionLimit}.`,
+      `${plannedReturn ? '计划返日将' : '返日'}晚于法定延期上限 ${missedExtensionLimit}。`,
+      `The ${plannedReturn ? 'planned return would be' : 'return was'} after the statutory extension limit of ${missedExtensionLimit}.`,
     );
   if (!documentNotice && verifiedLimit && departurePermission)
     documentNotice = deadlineNotice(verifiedLimit);
@@ -756,28 +759,37 @@ export function assessJapanReentry(
     documentNotice +=
       departurePermission === false
         ? L(
-            '出境时所需的再入国条件未满足。',
-            ' The required re-entry conditions at departure were not met.',
+            plannedDeparture
+              ? '按目前计划，届时无法满足出境所需的再入国条件。'
+              : '出境时所需的再入国条件未满足。',
+            plannedDeparture
+              ? ' Under this plan the required re-entry conditions would not be met at departure.'
+              : ' The required re-entry conditions at departure were not met.',
           )
         : L(
-            '出境时所需的再入国条件仍待确认。',
-            ' The required re-entry conditions at departure are unconfirmed.',
+            plannedDeparture
+              ? '计划出境时能否满足再入国条件仍待确认。'
+              : '出境时所需的再入国条件仍待确认。',
+            plannedDeparture
+              ? ' Confirm whether the required re-entry conditions will be met at the planned departure.'
+              : ' The required re-entry conditions at departure are unconfirmed.',
           );
   if (!usedRoute)
     documentNotice += L(
-      '共同出境记录显示本次未使用这条路径，不能凭这份证件确认本次接续在留。',
-      ' The trip history records that this route was not used at departure. Holding this document does not establish continuity under this route.',
+      plannedDeparture
+        ? '计划采用的出境方式与这条路径不同，届时不能凭这份证件确认接续在留。'
+        : '共同出境记录显示本次未使用这条路径，不能凭这份证件确认本次接续在留。',
+      plannedDeparture
+        ? ' The planned departure uses a different route. Holding this document would not establish continuity under this route.'
+        : ' The trip history records that this route was not used at departure. Holding this document does not establish continuity under this route.',
     );
   const landingNotice = !route.newLandingOn
     ? ''
     : previousStatus === false
-      ? L(
-          `本次于 ${route.newLandingOn} 以新身份上陆，原在留中断。`,
-          ` You landed under a new status on ${route.newLandingOn}, ending the previous stay.`,
-        )
+      ? L(...jpNewLandingNote(route.newLandingOn, req.simulationDate))
       : L(
-          `请核对重新上陆日 ${route.newLandingOn} 与本次返日日期，确认返日所用身份。`,
-          ` Check the new landing date ${route.newLandingOn} against this return date to confirm the status used.`,
+          `请核对重新上陆日 ${route.newLandingOn} 与本次返日日期，以确定适用的返日身份。`,
+          ` Check the new landing date ${route.newLandingOn} against this return date to confirm the status for this return.`,
         );
   const returnCheck = r(
     'return-continuity',

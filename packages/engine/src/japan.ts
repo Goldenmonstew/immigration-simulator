@@ -216,6 +216,21 @@ export const jpReturnOnPreviousStatus = (
 ) =>
   !newLandingOn ? true : newLandingOn === returned ? false : undefined;
 
+export function jpNewLandingNote(
+  on: IsoDate,
+  simulationDate: IsoDate,
+): [string, string] {
+  return on > simulationDate
+    ? [
+        `若于 ${on} 以新身份上陆，原在留将中断。`,
+        ` Landing under a new status on ${on} would end the previous stay.`,
+      ]
+    : [
+        `本次于 ${on} 以新身份上陆，原在留中断。`,
+        ` You landed under a new status on ${on}, ending the previous stay.`,
+      ];
+}
+
 const missingPermission = (t: JpTrip, departure = t.departure) =>
   !departure || (departure === 'permit' && t.reentryPermit === undefined);
 // The permit was already effective at departure. Even the special permanent
@@ -339,11 +354,15 @@ export function evaluateJapan(req: JpRequest): JpResult {
 export function evaluateJapanTimeline(
   req: JpRequest,
   legacyTimeOnly = false,
+  sim = req.simulationDate,
 ): JpResult {
   const L = textFor(req);
-  const sim = req.simulationDate;
+  // Filing projections move the calculation date, but never the boundary between facts and plans.
+  const planned = (on: IsoDate) => on > req.simulationDate;
   // To the anniversary, so a 29 February date reaches 1 March.
   const horizon = daysBetween(sim, afterYears(sim, HORIZON_YEARS));
+  const assessmentDayZh = sim === req.simulationDate ? '模拟日' : `拟递交日（${sim}）`;
+  const assessmentDayEn = sim === req.simulationDate ? 'the simulation date' : `the proposed filing date (${sim})`;
   const switchDate = v.newGuidelineFrom.value;
   const lastOld = addDays(switchDate, -1);
   const guideline = (d: IsoDate): Guideline => (d < switchDate ? 'old' : 'new');
@@ -375,10 +394,15 @@ export function evaluateJapanTimeline(
   const ongoing = req.trips.find((t) => t.departed < sim && sim < t.returned);
   const at = ongoing ? ongoing.returned : sim;
   const forecast = ongoing
-    ? L(
-        `模拟日在境外（${ongoing.departed} 至 ${ongoing.returned} 的出境），检查项按计划返回日 ${at} 计算。`,
-        ` You are abroad on the simulation date (the trip from ${ongoing.departed} to ${ongoing.returned}), so the checks are worked out for the planned return on ${at}.`,
-      )
+    ? sim === req.simulationDate
+      ? L(
+          `模拟日在境外，检查项按计划返回日 ${at} 计算。`,
+          ` You are abroad on the simulation date. The checks use your planned return on ${at}.`,
+        )
+      : L(
+          `${planned(sim) ? '按行程计划，拟递交日' : '拟递交日'} ${sim} ${planned(sim) ? '将在' : '在'}境外，检查项按${planned(at) ? '计划' : '实际'}返回日 ${at} 计算。`,
+          ` ${planned(sim) ? 'You expect to be' : 'You were'} abroad on the proposed filing date ${sim}. The checks use your ${planned(at) ? 'planned' : 'recorded'} return on ${at}.`,
+        )
     : '';
   /**
    * Trips under way on any day of [from, to], travel days included; a lapse
@@ -423,57 +447,92 @@ export function evaluateJapanTimeline(
         : earliest === sim
           ? 'MET'
           : 'FUTURE';
-  const lapseNotes = lapsed.map((t) => {
+  const departureNote = (t: JpTrip) => {
+    const methods = {
+      none: [
+        planned(t.departed) ? '不持再入国许可' : '未持再入国许可',
+        ' without re-entry permission',
+      ],
+      permit: ['持普通再入国许可', ' on an ordinary re-entry permit'],
+      deemed: ['使用みなし再入国许可', ' under deemed re-entry'],
+    };
+    const method = departureOf(t);
+    const [zh, en] = method ? methods[method] : ['', ''];
+    return planned(t.departed)
+      ? L(
+          `计划于 ${t.departed} ${zh}出境。`,
+          ` You plan to leave${en} on ${t.departed}.`,
+        )
+      : L(`于 ${t.departed} ${zh}出境。`, ` You left${en} on ${t.departed}.`);
+  };
+  const lapseReason = (t: JpTrip) => {
     if (t.assessedReturn)
       return L(
-        `${t.assessedReturn.explanation} 连续在留从返日的 ${t.returned} 重新起算。`,
-        `${t.assessedReturn.explanation} The unbroken stay starts again on ${t.returned}.`,
+        t.assessedReturn.explanation,
+        ' ' + t.assessedReturn.explanation,
       );
     if (t.newLandingOn === t.returned)
-      return L(
-        `本次于 ${t.returned} 以新身份上陆，连续在留从该日重新起算。`,
-        ` You landed under a new status on ${t.returned}. The unbroken stay starts again on that date.`,
-      );
-    if (t.departure === 'none')
-      return L(
-        `${t.departed} 未持再入国许可出境，连续在留从返日的 ${t.returned} 重新起算。`,
-        ` You left without re-entry permission on ${t.departed}. The unbroken stay starts again on return on ${t.returned}.`,
-      );
+      return L(...jpNewLandingNote(t.newLandingOn, req.simulationDate));
+    if (t.departure === 'none') return '';
     if (t.departure === 'permit' && t.reentryPermit === false)
-      return L(
-        `${t.departed} 持普通再入国许可出境，但 ${t.returned} 返日时许可已过期，连续在留从 ${t.returned} 重新起算。`,
-        ` You left on an ordinary re-entry permit on ${t.departed}, but it was no longer valid on return. The unbroken stay starts again on ${t.returned}.`,
-      );
+      return planned(t.returned)
+        ? L(
+            '按计划返日时，普通许可将不再有效。',
+            ' The ordinary permit would no longer be valid on the planned return date.',
+          )
+        : L(
+            '返日时普通许可已失效。',
+            ' The ordinary permit was no longer valid on return.',
+          );
     const limit = jpStayExpiryConflict(t.stayExpiry, t.reentryStayExpiry)
       ? undefined
       : latestStayLimit(t);
     if (limit && t.returned > limit) {
       if (t.renewalDecisionOn && t.renewalPending)
-        return L(
-          `续期处分日为 ${t.renewalDecisionOn}，原在留最迟至 ${limit}。连续在留从返日的 ${t.returned} 重新起算。`,
-          ` The renewal decision was on ${t.renewalDecisionOn}. The previous stay ended by ${limit}, so the unbroken stay starts again on return on ${t.returned}.`,
-        );
-      if (t.renewalPending === undefined)
-        return L(
-          `${t.departed} 出境，${t.returned} 返日。即使出境时有待决的按期续期申请，返日也已晚于 ${limit}，连续在留从 ${t.returned} 重新起算。`,
-          ` The trip from ${t.departed} to ${t.returned} ended after ${limit} even allowing for a timely pending renewal. The unbroken stay starts again on ${t.returned}.`,
-        );
-      return L(
-        `${t.departed} 至 ${t.returned} 的出境在 ${limit} 之后才返回（在留期限${t.renewalPending ? `届满后 ${v.renewalPendingMonths.value} 个月，更新申请中` : ''}），在留资格消灭，连续在留从 ${t.returned} 重新起算。`,
-        ` The trip from ${t.departed} to ${t.returned} came back after ${limit} (${t.renewalPending ? `${v.renewalPendingMonths.value} months after your period of stay ended, with a renewal pending` : 'the end of your period of stay'}), so the status ended and the unbroken stay starts again on ${t.returned}.`,
-      );
+        return planned(t.renewalDecisionOn)
+          ? L(
+              `若于 ${t.renewalDecisionOn} 作出续期处分，原在留最迟至 ${limit}。`,
+              ` If the renewal decision is made on ${t.renewalDecisionOn}, the previous stay would end by ${limit}.`,
+            )
+          : L(
+              `续期处分日为 ${t.renewalDecisionOn}，原在留最迟至 ${limit}。`,
+              ` The renewal decision was on ${t.renewalDecisionOn}. The last possible day of the previous stay is ${limit}.`,
+            );
+      return t.renewalPending === undefined
+        ? L(
+            `即使有待决的按期续期申请，原在留最迟至 ${limit}。`,
+            ` Even with a timely pending renewal, the last possible day of the previous stay is ${limit}.`,
+          )
+        : L(
+            `原在留最迟至 ${limit}${t.renewalPending ? `（含按期续期待决的 ${v.renewalPendingMonths.value} 个月）` : ''}。`,
+            ` The previous period of stay runs until ${limit}${t.renewalPending ? `, including the ${v.renewalPendingMonths.value} months allowed for a pending renewal` : ''}.`,
+          );
     }
     if (missingPermission(t, departureOf(t)))
       return L(
-        `${t.returned} 返日已超过从 ${t.departed} 出境算起最长可能的许可期限（${latestPossibleReentry(t)}），连续在留从返日重新起算。`,
-        ` The return on ${t.returned} was after ${latestPossibleReentry(t)}, the latest possible permit limit even counting from departure on ${t.departed}. The stay starts again on return.`,
+        `从出境日起算，许可最迟至 ${latestPossibleReentry(t)}。`,
+        ` Counting from departure, the latest possible permit expiry is ${latestPossibleReentry(t)}.`,
       );
     const years =
-      specialResidentOf(t) === false ? v.deemedReentryYears.value : specialDeemedYears;
+      specialResidentOf(t) === false
+        ? v.deemedReentryYears.value
+        : specialDeemedYears;
     return L(
-      `${t.departed} 至 ${t.returned} 的行程超过适用みなし再入国许可最长 ${years} 年的期限，连续在留从 ${t.returned} 重新起算。`,
-      ` The trip from ${t.departed} to ${t.returned} exceeded the maximum applicable deemed re-entry period of ${count(years, 'year')}. The unbroken stay starts again on ${t.returned}.`,
+      `本次适用的みなし再入国期限最长为 ${years} 年。`,
+      ` The applicable deemed re-entry period is at most ${count(years, 'year')}.`,
     );
+  };
+  const lapseNotes = lapsed.map((t) => {
+    const restart = planned(t.returned)
+      ? L(
+          `若按计划于 ${t.returned} 返日，连续在留将从该日重新起算。`,
+          ` If you return as planned on ${t.returned}, your unbroken stay would restart on that date.`,
+        )
+      : L(
+          `连续在留从返日的 ${t.returned} 重新起算。`,
+          ` The unbroken stay restarted on return on ${t.returned}.`,
+        );
+    return departureNote(t) + lapseReason(t) + restart;
   });
   const continuitySources: SourceRef[] = [];
   if (
@@ -501,30 +560,46 @@ export function evaluateJapanTimeline(
   if (uncertainTrips.some(needsRenewalEvidence))
     continuitySources.push(...v.renewalPendingMonths.sources);
   for (const t of uncertainTrips) {
+    lapseNotes.push(
+      departureNote(t),
+      planned(t.returned)
+        ? L(
+            `计划于 ${t.returned} 返日。`,
+            ` You plan to return on ${t.returned}.`,
+          )
+        : L(`于 ${t.returned} 返日。`, ` You returned on ${t.returned}.`),
+    );
     if (t.assessedReturn) {
-      lapseNotes.push(L(t.assessedReturn.explanation, ` ${t.assessedReturn.explanation}`));
+      lapseNotes.push(
+        L(t.assessedReturn.explanation, ` ${t.assessedReturn.explanation}`),
+      );
       continue;
     }
     const departure = departureOf(t);
-    const expiryConflict = jpStayExpiryConflict(t.stayExpiry, t.reentryStayExpiry);
+    const expiryConflict = jpStayExpiryConflict(
+      t.stayExpiry,
+      t.reentryStayExpiry,
+    );
     if (expiryConflict) lapseNotes.push(L(...expiryConflict));
     if (t.newLandingOn && t.newLandingOn !== t.returned)
-      lapseNotes.push(L(
-        `重新上陆日 ${t.newLandingOn} 与返日 ${t.returned} 不同，请核对本次返日所用身份。`,
-        ` The new landing date ${t.newLandingOn} differs from the return on ${t.returned}. Confirm the status used for this return.`,
-      ));
+      lapseNotes.push(
+        L(
+          `填写的重新上陆日 ${t.newLandingOn} 与返日日期不同，请核对返日身份。`,
+          ` The new landing date entered, ${t.newLandingOn}, differs from the return date. Check the status for this return.`,
+        ),
+      );
     if (!departure)
       lapseNotes.push(
         L(
-          `请核对 ${t.departed} 的出境记录，确认是未持许可、使用みなし再入国许可，还是持普通再入国许可出境。若持普通许可，还须核对 ${t.returned} 返日时许可是否有效。未持许可或许可失效时，连续在留从 ${t.returned} 重新起算。`,
-          ` Check the departure record for ${t.departed} to confirm whether you left without permission, with deemed re-entry or with an ordinary re-entry permit. For an ordinary permit, check whether it was valid on return on ${t.returned}. Without permission or after expiry, the stay starts again on ${t.returned}.`,
+          `请核对${planned(t.departed) ? '计划使用的出境方式' : '出境记录中的出境方式'}（无许可、みなし再入国或普通再入国许可）。若持普通许可，还须核对它是否覆盖返日日期。未持许可或许可失效时，连续在留从返日重新起算。`,
+          ` ${planned(t.departed) ? 'Check the planned departure method' : 'Check the departure record to confirm the method used'} (no permission, deemed re-entry or an ordinary re-entry permit). An ordinary permit must cover the return date. Without permission or after expiry, the stay starts again on return.`,
         ),
       );
     else if (departure === 'permit' && t.reentryPermit === undefined)
       lapseNotes.push(
         L(
-          `请核对普通再入国许可在 ${t.returned} 返日时是否仍有效。若已失效，连续在留从该日重新起算。`,
-          ` Check whether the ordinary re-entry permit was still valid on return on ${t.returned}. If it had expired, the stay starts again on that date.`,
+          `请核对普通再入国许可在${planned(t.returned) ? '计划' : ''}返日时是否仍有效。若许可失效，连续在留从返日重新起算。`,
+          ` Check whether the ordinary re-entry permit ${planned(t.returned) ? 'will still be valid on the planned return date' : 'was still valid on return'}. If the permit does not cover the return date, the stay starts again on return.`,
         ),
       );
     else if (
@@ -534,21 +609,23 @@ export function evaluateJapanTimeline(
     )
       lapseNotes.push(
         L(
-          `请确认 ${t.departed} 出境时是否为特別永住者，才能判断 ${t.returned} 返日是否在みなし再入国期限内。`,
-          ` Confirm whether you were a special permanent resident on departure on ${t.departed} to check whether your return on ${t.returned} was within the deemed re-entry period.`,
+          '请确认出境时的特別永住者身份，才能判断返日是否在みなし再入国期限内。',
+          ` Confirm whether you ${planned(t.departed) ? 'will be' : 'were'} a special permanent resident at departure to determine whether the deemed re-entry period covers the return date.`,
         ),
       );
     if (expiryConflict) continue;
     if (needsRenewalEvidence(t) && t.renewalPending === true)
-      lapseNotes.push(L(
-        `请核对按期续期申请的处分日，以确认 ${t.returned} 返日时原在留是否仍有效。`,
-        ` Check the decision date for the timely renewal application to confirm whether the previous stay still covered the return on ${t.returned}.`,
-      ));
+      lapseNotes.push(
+        L(
+          '请核对按期续期申请的处分日，以确认原在留是否覆盖返日日期。',
+          ' Check the decision date for the timely renewal application to confirm whether the previous stay covers the return date.',
+        ),
+      );
     else if (needsRenewalEvidence(t))
       lapseNotes.push(
         L(
-          `对于 ${t.departed} 出境、${t.returned} 返日的行程，请确认出境时是否有按期提出且仍待决定的更新或变更申请。能否接续之前的在留取决于这项证据。`,
-          ` For the trip from ${t.departed} to ${t.returned}, confirm whether a timely renewal or change application was pending at departure to determine whether the earlier stay counts.`,
+          '对于这趟行程，请确认出境时是否有按期提出且仍待决定的更新或变更申请。能否接续之前的在留取决于这项证据。',
+          ` For this trip, confirm whether a timely renewal or change application ${planned(t.departed) ? 'will be' : 'was'} pending at departure to determine whether the earlier stay counts.`,
         ),
       );
   }
@@ -571,7 +648,7 @@ export function evaluateJapanTimeline(
       );
   const reentry = L(
     `未持再入国许可出境，或持普通许可出境但逾期返日的，在留从返日重新起算。使用みなし再入国许可，通常须在出境后 ${v.deemedReentryYears.value} 年内返回。特別永住者为 ${specialDeemedYears} 年（含届满日）。如有在留期限，须同时核对。${renewalAssumption}未填在留期限时，假设它没有先到期（PD-136）。`,
-    `If you left without re-entry permission or your ordinary permit expired before return, the stay starts again when you return. With deemed re-entry you must return within ${count(v.deemedReentryYears.value, 'year')} of departure, or ${count(specialDeemedYears, 'year')} for a special permanent resident, including the anniversary. Any applicable period of stay must also cover the return.${renewalAssumption} A blank period of stay is assumed not to have ended before return (PD-136).`,
+    `If you leave without re-entry permission or your ordinary permit expires before return, the stay starts again when you return. With deemed re-entry you must return within ${count(v.deemedReentryYears.value, 'year')} of departure, or ${count(specialDeemedYears, 'year')} for a special permanent resident, including the anniversary. Any applicable period of stay must also cover the return.${renewalAssumption} A blank period of stay is assumed not to have ended before return (PD-136).`,
   ) + (legacyTimeOnly && req.trips.some((t) => !t.departure)
     ? L(
         '旧版时间计算中，未填出境方式的行程根据普通许可是否标为有效区分普通和みなし。',
@@ -582,10 +659,16 @@ export function evaluateJapanTimeline(
     abroad(sim)
       ? [
           {
-            text: L(
-              '模拟日在日本（须本人在日本递交）',
-              'In Japan on the simulation date (you apply in person in Japan)',
-            ),
+            text:
+              sim === req.simulationDate
+                ? L(
+                    '模拟日在日本（须本人在日本递交）',
+                    'In Japan on the simulation date (you apply in person in Japan)',
+                  )
+                : L(
+                    `拟递交日 ${sim} 在日本（须本人在日本递交）`,
+                    `In Japan on the proposed filing date ${sim} (you apply in person in Japan)`,
+                  ),
             met: false,
             sources,
           },
@@ -681,6 +764,9 @@ export function evaluateJapanTimeline(
       .sort((a, b) => (a.departed < b.departed ? -1 : 1))[0];
     const noStatusUntil = addDays(born, v.birthStayWithoutStatusDays.value);
     const leaves = first && first.departed <= noStatusUntil ? first : undefined;
+    const plannedDeparture = leaves && planned(leaves.departed);
+    const childLeavesZh = plannedDeparture ? '孩子计划于' : '孩子于';
+    const childLeavesEn = plannedDeparture ? 'The child plans to leave' : 'The child left';
     const noNeed = leaves?.departure === 'none';
     // Either permit needs a status first (FAQ Q28 excludes both).
     const unsaid = !!leaves && !leaves.departure;
@@ -735,47 +821,47 @@ export function evaluateJapanTimeline(
         status === 'MET' ? sim : status === 'FUTURE' ? born : undefined,
       summary: noNeed
         ? L(
-            `孩子 ${leaves.departed} 出境，在出生后 ${v.birthStayWithoutStatusDays.value} 日内（到 ${noStatusUntil}）且不持再入国许可：这样出境的不需要申请取得在留资格，回国时重新办理上陆（入管法第22条の2第1項，入管厅 Q&A Q28），本路线不适用。`,
-            `The child leaves on ${leaves.departed}, within ${v.birthStayWithoutStatusDays.value} days of birth (by ${noStatusUntil}) and without a re-entry permit: leaving like this needs no application to acquire status, and the child lands anew on return (art. 22-2(1), ISA Q&A Q28), so this route does not apply.`,
+            `${childLeavesZh} ${leaves.departed} 出境，在出生后 ${v.birthStayWithoutStatusDays.value} 日内（到 ${noStatusUntil}）且不持再入国许可。按此行程，无需申请取得在留资格，返日时须重新办理上陆（入管法第22条の2第1項，入管厅 Q&A Q28），本路线不适用。`,
+            `${childLeavesEn} on ${leaves.departed}, within ${v.birthStayWithoutStatusDays.value} days of birth (by ${noStatusUntil}) and without a re-entry permit. This itinerary requires no application to acquire status. The child must obtain new landing permission on return (art. 22-2(1), ISA Q&A Q28), so this route does not apply.`,
           )
         : unsaid
           ? L(
-              `孩子 ${leaves.departed} 出境（出生后 ${v.birthStayWithoutStatusDays.value} 日内），但没有选择出境方式：不持再入国许可出境的不需要申请（入管厅 Q&A Q28）；持再入国许可或みなし再入国许可出境的须先取得在留资格，在出境前递交。请在出境记录里选择出境方式（PD-160）。`,
-              `The child leaves on ${leaves.departed} (within ${v.birthStayWithoutStatusDays.value} days of birth), but how is not said: leaving without a re-entry permit needs no application (ISA Q&A Q28), while leaving on a re-entry or deemed re-entry permit needs the status first, filed before leaving. Choose how the child leaves in the trip record (PD-160).`,
+              `${childLeavesZh} ${leaves.departed} 出境（出生后 ${v.birthStayWithoutStatusDays.value} 日内），但没有选择出境方式：不持再入国许可出境的不需要申请（入管厅 Q&A Q28）；持再入国许可或みなし再入国许可出境的须先取得在留资格，在出境前递交。请在出境记录里选择出境方式（PD-160）。`,
+              `${childLeavesEn} on ${leaves.departed} (within ${v.birthStayWithoutStatusDays.value} days of birth), but how is not said: leaving without a re-entry permit needs no application (ISA Q&A Q28), while leaving on a re-entry or deemed re-entry permit needs the status first, filed before leaving. Choose how the child leaves in the trip record (PD-160).`,
             )
           : onlyPredicted
             ? L(
-                `孩子 ${out.departed} 出境前唯一可递交的日子 ${fileOn} 按国立天文台的预测是休日；若正式公布为休日，出境前就没有能递交的开放日，而持许可出境须在出境前已取得在留资格，待确认（PD-130、PD-160）。`,
-                `Before the child leaves on ${out.departed}, the only day to file, ${fileOn}, is a predicted holiday; if it is confirmed, no open day is left before leaving, and leaving on a permit needs the status granted first, so it is uncertain (PD-130, PD-160).`,
+                `${childLeavesZh} ${out.departed} 出境。出境前唯一可递交的日子 ${fileOn} 按国立天文台的预测是休日；若正式公布为休日，出境前就没有能递交的开放日，而持许可出境须在出境前已取得在留资格，待确认（PD-130、PD-160）。`,
+                `${childLeavesEn} on ${out.departed}. The only filing day before departure, ${fileOn}, is a predicted holiday; if it is confirmed, no open day is left before leaving, and leaving on a permit needs the status granted first, so it is uncertain (PD-130, PD-160).`,
               ) + late
             : stranded
               ? L(
-                  `孩子 ${out.departed} 持再入国许可（或みなし再入国许可）出境，但出境前的申请期限（${when}）内没有能在日本递交的日子；没有在留资格就无法持再入国许可出境，返回方式不明，待确认（PD-160）。`,
-                  `The child leaves on ${out.departed} on a re-entry or deemed re-entry permit, but there is no day before that within the time allowed (${when}) to file in Japan; without a status the child could not hold a permit, so how it returns is unclear (PD-160).`,
+                  `${childLeavesZh} ${out.departed} 持再入国许可（或みなし再入国许可）出境，但出境前的申请期限（${when}）内没有能在日本递交的日子；没有在留资格就无法持再入国许可出境，返回方式不明，待确认（PD-160）。`,
+                  `${childLeavesEn} on ${out.departed} on a re-entry or deemed re-entry permit, but there is no day before that within the time allowed (${when}) to file in Japan; without a status the child could not hold a permit, so how it returns is unclear (PD-160).`,
                 ) + late
               : status === 'NOT_MET'
                 ? L(
-                    `出生后取得在留资格的申请期限（${when}）已过。`,
-                    `The time to apply to acquire status after birth (${when}) has passed.`,
+                    `${assessmentDayZh}${planned(sim) ? '将超过' : '已超过'}出生后取得在留资格的申请期限（${when}）。`,
+                    `The time to apply to acquire status after birth (${when}) ${planned(sim) ? 'will have passed' : 'has passed'} by ${assessmentDayEn}.`,
                   ) + late
                 : status === 'UNKNOWN' && sim <= deadline
                   ? L(
-                      `出生之日起 ${days} 日按初日不算入到 ${deadline}；若连出生当天算作第 1 天，到 ${early} 为止。入管厅没有写明哪一种，模拟日在这两种期限之间，待确认（PD-130）。`,
-                      `${days} days from birth run to ${deadline} if the birth day is left out, or to ${early} if it counts as the first day; the agency does not say which, and the simulation date falls between them, so it is uncertain (PD-130).`,
+                      `出生之日起 ${days} 日按初日不算入到 ${deadline}；若连出生当天算作第 1 天，到 ${early} 为止。入管厅没有写明哪一种，${assessmentDayZh}在这两种期限之间，待确认（PD-130）。`,
+                      `${days} days from birth run to ${deadline} if the birth day is left out, or to ${early} if it counts as the first day; the agency does not say which, and ${assessmentDayEn} falls between them, so it is uncertain (PD-130).`,
                     )
                   : status === 'UNKNOWN'
                     ? L(
-                        `出生后取得在留资格的申请期限至少到 ${deadline}（${when}），模拟日是否仍在期限内待确认。`,
-                        `The time to apply to acquire status after birth runs at least to ${deadline} (${when}); whether the simulation date is still within it is uncertain.`,
+                        `出生后取得在留资格的申请期限至少到 ${deadline}（${when}），${assessmentDayZh}是否仍在期限内待确认。`,
+                        `The time to apply to acquire status after birth runs at least to ${deadline} (${when}); whether ${assessmentDayEn} is still within it is uncertain.`,
                       ) + late
                     : L(
-                        `在日本出生的，可在申请期限内申请取得永住者资格，不必等在留年限（${when}）${status === 'MET' ? '；模拟日在期限内' : `；出生后（${born} 起）才能递交`}。`,
-                        `Born in Japan, you can apply to acquire permanent resident status within the time allowed, without waiting for years of stay (${when})${status === 'MET' ? '; the simulation date is within it' : `; you can apply from the birth (${born})`}.`,
+                        `在日本出生的，可在申请期限内申请取得永住者资格，不必等在留年限（${when}）${status === 'MET' ? `；${assessmentDayZh}在期限内` : `；出生后（${born} 起）才能递交`}。`,
+                        `Born in Japan, you can apply to acquire permanent resident status within the time allowed, without waiting for years of stay (${when})${status === 'MET' ? `; ${assessmentDayEn} falls within it` : `; you can apply from the birth (${born})`}.`,
                       ) +
                       (out
                         ? L(
-                            `孩子计划 ${out.departed} 持${out.departure === 'deemed' ? 'みなし再入国许可' : '再入国许可'}出境；持许可出境须在出境前已取得在留资格，须在出境前递交并获许可。`,
-                            ` The child is due to leave on ${out.departed} on a ${out.departure === 'deemed' ? 'deemed re-entry permit' : 're-entry permit'}; leaving on a permit needs the status granted before leaving, so file and have it granted before that.`,
+                            `${childLeavesZh} ${out.departed} 持${out.departure === 'deemed' ? 'みなし再入国许可' : '再入国许可'}出境；持许可出境须在出境前已取得在留资格，须在出境前递交并获许可。`,
+                            ` ${childLeavesEn} on ${out.departed} on a ${out.departure === 'deemed' ? 'deemed re-entry permit' : 're-entry permit'}; leaving on a permit needs the status granted before leaving, so file and have it granted before that.`,
                           ) +
                           (fileOn === out.departed
                             ? L(
@@ -993,7 +1079,7 @@ export function evaluateJapanTimeline(
           continuityUnconfirmed: uncertain,
           text: L(
             `若在留接续，需${need.text}。若在留中断，需${other.text}。`,
-            `If the stay continued, the requirement is ${need.text}. If it lapsed, the requirement is ${other.text}.`,
+            `If the stay is continuous, the requirement is ${need.text}. If there is a break, the requirement is ${other.text}.`,
           ),
           sources: [...need.sources, ...continuitySources],
         };
@@ -1073,14 +1159,14 @@ export function evaluateJapanTimeline(
             );
       if (guideline(d) === 'old')
         return L(
-          `但前 ${stayYears(d)} 年里有 ${oldTrips(d).length} 次出境，截至 ${lastOld}（含当日）递交适用的指南没有出境天数标准（PD-132）。`,
-          ` but you have ${count(oldTrips(d).length, 'trip')} abroad in the ${count(stayYears(d), 'year')} before it, and the guideline for applications up to ${lastOld} does not specify a numerical limit on absences (PD-132).`,
+          `但${planned(d) ? '按所填行程预计，' : ''}前 ${stayYears(d)} 年里有 ${oldTrips(d).length} 次出境，截至 ${lastOld}（含当日）递交适用的指南没有出境天数标准（PD-132）。`,
+          ` but you ${planned(d) ? 'would have' : 'have'} ${count(oldTrips(d).length, 'trip')} abroad in the ${count(stayYears(d), 'year')} before it, and the guideline for applications up to ${lastOld} does not specify a numerical limit on absences (PD-132).`,
         );
       const a = absences(d);
       return (
         L(
-          `但前 ${years} 年里${a.maybeLong.length ? `有 ${a.maybeLong.length} 次单次可能达到 ${months} 个月的出境、` : ''}出境合计 ${a.days} 天（连出入境当天 ${a.withTravel} 天）；${switchDate} 起的指南对无合理理由单次出境 ${months} 个月以上或合计 ${total} 个月以上的原则上消极评价，是否有合理理由个案判断（PD-131）。`,
-          ` but in the ${years} years before it you have ${a.maybeLong.length ? `${count(a.maybeLong.length, 'trip')} that may reach ${months} months and ` : ''}${a.days} days abroad in all (${a.withTravel} with travel days); from ${switchDate} the guideline counts against you, unless there is a reasonable reason, one absence of ${months} months or more or ${total} months in total (PD-131).`,
+          `但${planned(d) ? '按所填行程预计，' : ''}前 ${years} 年里${a.maybeLong.length ? `有 ${a.maybeLong.length} 次单次可能达到 ${months} 个月的出境、` : ''}出境合计 ${a.days} 天（连出入境当天 ${a.withTravel} 天）；${switchDate} 起的指南对无合理理由单次出境 ${months} 个月以上或合计 ${total} 个月以上的原则上消极评价，是否有合理理由个案判断（PD-131）。`,
+          ` but in the ${years} years before it you ${planned(d) ? 'would have' : 'have'} ${a.maybeLong.length ? `${count(a.maybeLong.length, 'trip')} that may reach ${months} months and ` : ''}${a.days} days abroad in all (${a.withTravel} with travel days); from ${switchDate} the guideline counts against you, unless there is a reasonable reason, one absence of ${months} months or more or ${total} months in total (PD-131).`,
         ) + applies
       );
     };
@@ -1147,6 +1233,14 @@ export function evaluateJapanTimeline(
             },
           ];
 
+    if (planned(at)) {
+      const projection = L(
+        `按所填行程推算至 ${at}，`,
+        `Projected through ${at} from the itinerary: `,
+      );
+      for (const item of absenceChecks) item.text = projection + item.text;
+    }
+
     pathways.push({
       id: 'JP-PR',
       title: L('永住许可（永住許可）', 'Permanent residence (永住許可)'),
@@ -1155,8 +1249,8 @@ export function evaluateJapanTimeline(
       summary:
         (status === 'MET'
           ? L(
-              '模拟日已满足永住许可的时间条件。',
-              'You meet the time requirements for permanent residence on the simulation date.',
+              `${assessmentDayZh}${planned(sim) ? '预计' : '已'}满足永住许可的时间条件。`,
+              `You ${planned(sim) ? 'would meet' : 'meet'} the time requirements for permanent residence on ${assessmentDayEn}.`,
             ) + filingNote(sim, (x) => verdict(x) === 'yes', 'isa')
           : status === 'FUTURE'
             ? L(
@@ -1352,8 +1446,8 @@ export function evaluateJapanTimeline(
       const days = daysAbroad(addYears(d, -n), addDays(d, -1));
       return found.length
         ? L(
-            `这 ${n} 年里有 ${found.length} 次出境、合计 ${days} 天；法律与官方说明都没有"引き続き"允许多少出境的标准（PD-138）。`,
-            ` In the ${count(n, 'year')} before it you have ${count(found.length, 'trip')} abroad, ${days} days in all; neither the law nor official guidance says how much absence "continuous" allows (PD-138).`,
+            `${planned(d) ? '按所填行程预计，' : ''}这 ${n} 年里有 ${found.length} 次出境、合计 ${days} 天；法律与官方说明都没有"引き続き"允许多少出境的标准（PD-138）。`,
+            ` In the ${count(n, 'year')} before it you ${planned(d) ? 'would have' : 'have'} ${count(found.length, 'trip')} abroad, ${days} days in all; neither the law nor official guidance says how much absence "continuous" allows (PD-138).`,
           )
         : '';
     };
@@ -1381,8 +1475,8 @@ export function evaluateJapanTimeline(
     const main =
       status === 'MET'
         ? L(
-            '模拟日已满足帰化的时间条件。',
-            'You meet the time requirements for naturalisation on the simulation date.',
+            `${assessmentDayZh}${planned(sim) ? '预计' : '已'}满足帰化的时间条件。`,
+            `You ${planned(sim) ? 'would meet' : 'meet'} the time requirements for naturalisation on ${assessmentDayEn}.`,
           ) + filingNote(sim, (x) => verdict(x) === 'yes', 'bureau')
         : status === 'FUTURE'
           ? L(
@@ -1396,8 +1490,8 @@ export function evaluateJapanTimeline(
               ) +
               (youngBefore(possible!)
                 ? L(
-                    `按 ${possible} 递交适用 ${japanAge(possible!)} 岁，那时已满 ${v.naturalisationAge.value} 岁但未满 ${japanAge(possible!)} 岁；${v.naturalisationAgeFrom.value} 起改为 ${v.naturalisationAge.value} 岁，此前递交、之后才审结的申请按哪个年龄审没有写明（PD-161）。`,
-                    ` Applying on ${possible} the age was ${japanAge(possible!)}, and you were ${v.naturalisationAge.value} or over but not yet ${japanAge(possible!)}; from ${v.naturalisationAgeFrom.value} it is ${v.naturalisationAge.value}, and which age applies to an application made before and decided after that is not stated (PD-161).`,
+                    `按 ${possible} 递交适用 ${japanAge(possible!)} 岁，${planned(possible!) ? '届时将' : '那时已'}满 ${v.naturalisationAge.value} 岁但未满 ${japanAge(possible!)} 岁；${v.naturalisationAgeFrom.value} 起改为 ${v.naturalisationAge.value} 岁，此前递交、之后才审结的申请按哪个年龄审没有写明（PD-161）。`,
+                    ` For filing on ${possible}, the age threshold is ${japanAge(possible!)} and you ${planned(possible!) ? 'would be' : 'were'} ${v.naturalisationAge.value} or over but not yet ${japanAge(possible!)}; from ${v.naturalisationAgeFrom.value} it is ${v.naturalisationAge.value}, and which age applies to an application made before and decided after that is not stated (PD-161).`,
                   )
                 : '') +
               practiceNote(possible!) +

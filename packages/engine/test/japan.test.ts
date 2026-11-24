@@ -1070,9 +1070,10 @@ describe('task 74: trips after birth', () => {
     const p = born('2026-11-10', '2026-11-24', trip);
     expect(p.status).toBe('NOT_APPLICABLE');
     expect(p.summary).toContain('Q28');
-    expect(born('2026-11-10', '2026-12-02', trip).status).toBe(
-      'NOT_APPLICABLE',
-    );
+    expect(p.summary).toContain('孩子计划于 2026-11-27 出境');
+    const afterReturn = born('2026-11-10', '2026-12-02', trip);
+    expect(afterReturn.status).toBe('NOT_APPLICABLE');
+    expect(afterReturn.summary).toContain('孩子于 2026-11-27 出境');
     // Leaving only after the 60 days (2027-01-09): the usual window.
     expect(
       born('2026-11-10', '2026-11-24', {
