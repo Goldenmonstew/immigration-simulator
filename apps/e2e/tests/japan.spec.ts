@@ -574,6 +574,23 @@ test('switching Japanese scenario links in one tab restores the selected route, 
   ]);
 });
 
+test.describe('before the page scripts run', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('skipping the header preserves the Japanese scenario fragment', async ({
+    page,
+  }) => {
+    for (const sub of ['result', 'simulate', 'whatif']) {
+      await page.goto(path(sub) + deemedHash);
+      const url = page.url();
+      const skip = page.getByText(zhCN['site.skip'], { exact: true });
+      await skip.focus();
+      await skip.press('Enter');
+      await expect(page).toHaveURL(url);
+    }
+  });
+});
+
 test('a shared result keeps its scenario for comparison and editing after another tab saves a draft', async ({
   page,
   context,
@@ -612,7 +629,7 @@ test('a shared result keeps its scenario for comparison and editing after anothe
   expect(JSON.parse(edited!).reentry).toEqual([{ route: 'ordinary' }]);
   const skipToMain = async () => {
     const url = page.url();
-    const skip = page.getByRole('link', { name: zhCN['site.skip'] });
+    const skip = page.getByRole('button', { name: zhCN['site.skip'] });
     await skip.focus();
     await skip.press('Enter');
     await expect(main).toBeFocused();

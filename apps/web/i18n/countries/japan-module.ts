@@ -27,6 +27,8 @@ export const zhCN = {
   'jp.whatif.invalidDates': '调整后的日期与问卷资料冲突，请核对日期和行程。',
   'jp.result.plannedDeparture':
     '拟于 {date} 出境。请在出境时向入国审查官表明返日意图。',
+  'jp.result.hypotheticalFiling': '本次评估假设于 {date} 递交。',
+  'jp.result.hypotheticalReturn': '本次评估假设于 {date} 返日。',
   'jp.result.unconfirmedDeparture':
     '原计划于 {date} 出境。请在问卷中确认当天是否已经出境。',
   'jp.result.confirmDeparture':
@@ -69,6 +71,10 @@ export const en: Record<keyof typeof zhCN, string> = {
     'The changed dates conflict with the questionnaire. Check the dates and itinerary.',
   'jp.result.plannedDeparture':
     'Planned departure on {date}. Declare the intention to return to the immigration officer at departure.',
+  'jp.result.hypotheticalFiling':
+    'This assessment assumes a filing date of {date}.',
+  'jp.result.hypotheticalReturn':
+    'This assessment assumes a return to Japan on {date}.',
   'jp.result.unconfirmedDeparture':
     'You planned to leave on {date}. Please confirm in the questionnaire whether you left that day.',
   'jp.result.confirmDeparture':

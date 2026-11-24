@@ -156,6 +156,7 @@ export function evaluateJapanFull(
       };
       if (
         !conflicts.length &&
+        original.occurrence.returned === used.occurrence.returned &&
         trip.returned === (used.returnOn ?? used.newLandingOn)
       )
         travel.set(used, evidence.pathway);

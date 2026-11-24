@@ -1568,6 +1568,137 @@ test('only a past return recorded as of the simulation day establishes departure
   }
 });
 
+test.each(['zh-CN', 'en'] as const)(
+  'a past what-if return stays conditional in the comparison and copied share (%s)',
+  async (locale) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-26T12:00:00Z'));
+    const route = 'refugee-travel-document';
+    const draft: JapanDraft = {
+      ...jp.createDraft(),
+      completed: true,
+      simulationDate: '2026-11-26',
+      reentry: [
+        {
+          route,
+          departureOn: '2026-11-23',
+          returnOn: '2026-11-27',
+          permit: {
+            effectiveOn: '2026-01-01',
+            expiresOn: '2027-01-01',
+            entryDeadline: '2026-11-24',
+          },
+        },
+      ],
+    };
+    const knobs = {
+      ...jp.whatif.initial(draft),
+      applicationDate: '2026-11-20',
+      returns: { [route]: '2026-11-25' },
+    };
+    const planned =
+      locale === 'en'
+        ? 'The planned return would be after the designated entry deadline'
+        : '计划返日将晚于证件指定的入境期限';
+    const actual =
+      locale === 'en'
+        ? 'The return was after the designated entry deadline'
+        : '返日晚于证件指定的入境期限';
+    const filing =
+      locale === 'en'
+        ? 'assumes a filing date of 2026-11-20'
+        : '假设于 2026-11-20 递交';
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <WhatIfView
+          country={{ ...jp, whatif: { ...jp.whatif, initial: () => knobs } }}
+          draft={draft}
+        />
+      </LocaleContext>,
+    );
+    expect(html).toContain(planned);
+    expect(html.toLowerCase()).toContain(filing);
+    const compared = jp.whatif.apply(draft, knobs);
+    const result = readPageResult(jp, locale, await copyJapanShare(compared));
+    expect(result.shared).toBe(true);
+    const path = result.result!.columns[0].pathways[0];
+    const continuity = path.checks.find(
+      (c) => c.id === 'jp.reentry.return-continuity',
+    )!;
+    expect(continuity.explanation).toContain(planned);
+    expect(continuity.explanation).not.toContain(actual);
+    expect(path.summary?.toLowerCase()).toContain(filing);
+    const legacyShare = Buffer.from(
+      JSON.stringify({
+        country: jp.id,
+        v: jp.version,
+        draft: {
+          ...draft,
+          reentry: [
+            {
+              ...draft.reentry[0],
+              recordedReturnOn: '2026-11-24',
+              returnOn: '2026-11-25',
+            },
+          ],
+        },
+      }),
+    ).toString('base64url');
+    const legacy = readPageResult(jp, locale, legacyShare);
+    expect(
+      legacy.result!.columns[0].pathways[0].checks.find(
+        (c) => c.id === 'jp.reentry.return-continuity',
+      )!.explanation,
+    ).toContain(planned);
+    // Typing the same past day as an actual return in the questionnaire is independent.
+    const original = editField(
+      { ...result.draft!, step: 6 },
+      'jp-travel-' + route + '-returnOn',
+      '2026-11-24',
+    );
+    const actualReturn = editField(
+      original,
+      'jp-travel-' + route + '-returnOn',
+      '2026-11-25',
+    );
+    expect(
+      jp
+        .run(actualReturn, locale)
+        .columns[0].pathways[0].checks.find(
+          (c) => c.id === 'jp.reentry.return-continuity',
+        )!.explanation,
+    ).toContain(actual);
+  },
+);
+
+test.each(['ordinary', 'deemed', 'refugee-travel-document'] as const)(
+  'the %s return assumption in a share preserves an actual landing',
+  async (route) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-26T12:00:00Z'));
+    const draft: JapanDraft = {
+      ...jp.createDraft(),
+      completed: true,
+      reentry: [
+        { route, departureOn: '2026-11-23', newLandingOn: '2026-11-24' },
+      ],
+    };
+    for (const assumed of ['2026-11-24', '2026-11-25']) {
+      const compared = jp.whatif.apply(draft, {
+        ...jp.whatif.initial(draft),
+        returns: { [route]: assumed },
+      });
+      const page = readPageResult(jp, 'en', await copyJapanShare(compared));
+      const path = page.result!.columns[0].pathways[0];
+      expect(path.summary).toContain('assumes a return to Japan on ' + assumed);
+      expect(
+        path.checks.find((c) => c.id === 'jp.reentry.return-continuity')!
+          .explanation,
+      ).toContain('You landed under a new status on 2026-11-24');
+    }
+  },
+);
+
 test.each(['deemed', 'ordinary', 'history'] as const)(
   'changing only the comparison return date preserves departure evidenced by the %s record in the copied share',
   async (source) => {
@@ -2090,7 +2221,9 @@ test('deselecting residence gives the same shared and compared return assessment
   expect(jp.whatif.validate(compared, knobs)).toEqual({});
   expect(decodeDraft(jp, encodeDraft(jp, compared))).toEqual({
     ...fresh,
-    reentry: [{ ...ordinary, returnOn: '2026-11-28' }],
+    reentry: [
+      { ...ordinary, returnOn: '2026-11-28', hypotheticalReturn: true },
+    ],
   });
   expect(path(compared)).toEqual(path(jp.whatif.apply(fresh, knobs)));
 });

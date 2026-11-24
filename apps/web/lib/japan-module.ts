@@ -1,5 +1,6 @@
 import {
   evaluateJapanFull,
+  isJapanReturnComparison,
   japanTripOccurrences,
   type Locale,
 } from '@uk-immigration/engine';
@@ -62,13 +63,31 @@ function run(draft: JapanDraft, locale: Locale) {
   );
   const result = evaluateJapanFull({ ...confirmed, locale }, itineraries);
   const formatter = new Intl.NumberFormat(locale);
-  for (const pathway of result.columns[0].pathways)
+  for (const pathway of result.columns[0].pathways) {
+    if (confirmed.hypotheticalFiling && confirmed.applicationDate)
+      pathway.summary +=
+        ' ' +
+        t('jp.result.hypotheticalFiling', locale).replace(
+          '{date}',
+          confirmed.applicationDate,
+        );
+    const trip = confirmed.reentry.find(
+      (route) => pathway.id === 'jp.reentry.' + route.route,
+    );
+    if (trip?.returnOn && isJapanReturnComparison(trip))
+      pathway.summary +=
+        ' ' +
+        t('jp.result.hypotheticalReturn', locale).replace(
+          '{date}',
+          trip.returnOn,
+        );
     for (const check of pathway.checks)
       check.explanation = formatCheckAmounts(
         check.id,
         check.explanation,
         formatter,
       );
+  }
   const deemedJourney = itineraries.reentry.find(
     (route) => route.route === 'deemed',
   );

@@ -1,6 +1,7 @@
 import {
   clearJapanPrFilingEvidence,
   clearJapanTalentMaintenance,
+  isJapanReturnComparison,
   japanOrdinaryFiling,
   japanTalentHistoricalDate,
   nextCounterFilingDay,
@@ -39,6 +40,7 @@ interface JapanReturnRecord {
 export interface JapanDraft
   extends CountryDraft, Omit<JpFullRequest, 'locale'> {
   answerFormat?: 'explicit';
+  hypotheticalFiling?: true;
   trips: (JpFullRequest['trips'][number] & JapanReturnRecord)[];
   permanentResidence: { routes: JpFullPrRoute[]; evidence: JpPrCommonEvidence };
   naturalisation: {
@@ -137,6 +139,14 @@ export function datedJapanAnswers(
   previous = draft,
 ): JapanDraft {
   const reentry = draft.reentry.map((route) => {
+    // Older comparisons sometimes kept only the independently recorded return.
+    if (
+      route.recordedReturnOn &&
+      validDate(route.recordedReturnOn) &&
+      route.recordedReturnOn !== route.returnOn &&
+      !isJapanReturnComparison(route)
+    )
+      route = { ...route, comparisonHistoryReturnOn: route.recordedReturnOn };
     if (route.route !== 'ordinary') return route;
     if (changedJapanAnswer(requestedDay(previous), requestedDay(draft)))
       route = { ...route, onlineConcurrentEligibleApplication: undefined };
@@ -212,6 +222,10 @@ export function withJapanFilingDate(
       ...draft,
       simulationDate,
       applicationDate,
+      hypotheticalFiling:
+        applicationDate === draft.applicationDate
+          ? draft.hypotheticalFiling
+          : undefined,
     }),
     draft,
   );
@@ -382,7 +396,13 @@ export function activeJapanAnswers(draft: JapanDraft): JapanDraft {
             (other) =>
               other !== route && other.departureOn === route.departureOn,
           ));
-      if (!anotherRecordOnDeparture) delete active.comparisonHistoryReturnOn;
+      if (!anotherRecordOnDeparture && route.departureOn) {
+        // The departure date stands on its own. Keep the return hypothetical
+        // even when no other record needs its original date for matching.
+        if (route.returnOn && isJapanReturnComparison(route))
+          active.hypotheticalReturn = true;
+        delete active.comparisonHistoryReturnOn;
+      }
       if (active.route === 'deemed') delete active.historyStayExpiry;
       return active;
     }),
@@ -696,6 +716,11 @@ function checkStep(
         const prefix = 'jp-travel-' + route.route;
         fields(travelRouteFields[route.route], route, prefix);
         if (
+          route.hypotheticalReturn !== undefined &&
+          route.hypotheticalReturn !== true
+        )
+          errors[prefix + '-returnOn'] = 'jp.error.date';
+        if (
           route.comparisonHistoryReturnOn !== undefined &&
           route.comparisonHistoryReturnOn !== '' &&
           (typeof route.comparisonHistoryReturnOn !== 'string' ||
@@ -836,6 +861,8 @@ export function decodeJapanDraft(
     !isRecord(value) ||
     value.version !== 1 ||
     (value.answerFormat !== undefined && value.answerFormat !== 'explicit') ||
+    (value.hypotheticalFiling !== undefined &&
+      value.hypotheticalFiling !== true) ||
     typeof value.step !== 'number' ||
     !Number.isInteger(value.step) ||
     value.step < 0 ||

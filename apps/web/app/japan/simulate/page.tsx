@@ -65,16 +65,25 @@ function editTravelField(
   displayed: JapanDraft['reentry'][number],
 ) {
   const next = updateAnswer(route, key, value);
-  if (key === 'returnOn')
+  if (key === 'returnOn') {
     next.recordedReturnOn = recordedReturnOn(next.returnOn, draft);
+    delete next.hypotheticalReturn;
+  }
   const departureChanged =
     key === 'departureOn' && changedJapanAnswer(route.departureOn, value);
   if (
     departureChanged ||
     ((key === 'returnOn' || key === 'newLandingOn') &&
       changedJapanAnswer(displayed[key], value))
-  )
+  ) {
+    if (
+      key !== 'returnOn' &&
+      route.comparisonHistoryReturnOn !== undefined &&
+      next.returnOn
+    )
+      next.hypotheticalReturn = true;
     delete next.comparisonHistoryReturnOn;
+  }
   if (departureChanged) {
     delete next.timelyRenewalPending;
     delete next.specialPermanentResident;

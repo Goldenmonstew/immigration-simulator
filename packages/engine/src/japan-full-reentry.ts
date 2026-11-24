@@ -29,6 +29,7 @@ import type {
 } from './japan-full-shared';
 import type { IsoDate } from './types';
 import {
+  isJapanReturnComparison,
   japanDepartureByRoute,
   type japanTripAnswerFields,
   type JpTripOccurrence,
@@ -37,6 +38,8 @@ import {
 interface JpTravelDates {
   departureOn?: IsoDate;
   returnOn?: IsoDate;
+  /** A what-if return whose original itinerary is no longer needed for matching. */
+  hypotheticalReturn?: true;
   /** Original return used to match the trip in a comparison. An empty string preserves a blank original date. */
   comparisonHistoryReturnOn?: IsoDate;
   stayExpiresOn?: IsoDate;
@@ -839,14 +842,18 @@ export function assessJapanReentry(
         ? ' The planned departure uses a different route. Holding this document would not establish continuity under this route.'
         : ' The trip history records that this route was not used at departure. Holding this document does not establish continuity under this route.',
     );
-  const landingNotice = !route.newLandingOn
-    ? ''
-    : previousStatus === false
-      ? L(...jpNewLandingNote(route.newLandingOn, route.occurrence.returned))
-      : L(
-          `请核对重新上陆日 ${route.newLandingOn} 与本次返日日期，以确定适用的返日身份。`,
-          ` Check the new landing date ${route.newLandingOn} against this return date to confirm the status for this return.`,
-        );
+  let landingNotice = '';
+  if (route.newLandingOn) {
+    const landed =
+      route.occurrence.departed && route.newLandingOn <= req.simulationDate;
+    if (previousStatus === false || (landed && isJapanReturnComparison(route)))
+      landingNotice = L(...jpNewLandingNote(route.newLandingOn, landed));
+    if (previousStatus !== false)
+      landingNotice += L(
+        `请核对重新上陆日 ${route.newLandingOn} 与本次返日日期，以确定适用的返日身份。`,
+        ` Check the new landing date ${route.newLandingOn} against this return date to confirm the status for this return.`,
+      );
+  }
   const returnCheck = r(
     'return-continuity',
     '返日及在留连续性',

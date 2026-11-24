@@ -502,6 +502,8 @@ export const zhCN = {
   'whatif.becameMet': '翻转为满足',
   'whatif.becameUnmet': '翻转为未满足 / 未知',
   'whatif.stillUnmet': '仍未满足',
+  'whatif.becameInapplicable': '不再适用',
+  'whatif.inapplicableCount': '以下条件不再计入已满足、未满足或待确认的项数。',
   'whatif.unchanged': '与当前情景相同',
   'outcome.LIKELY_ELIGIBLE': '可能符合条件',
   'outcome.LIKELY_ELIGIBLE.description':

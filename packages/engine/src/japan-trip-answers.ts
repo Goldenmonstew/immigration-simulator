@@ -12,7 +12,13 @@ export type JapanDeparture =
   'none' | (typeof japanDepartureByRoute)[keyof typeof japanDepartureByRoute];
 
 export const japanTripReturnOn = (route: JpFullReentryRequest) =>
-  route.comparisonHistoryReturnOn ?? route.returnOn ?? route.newLandingOn;
+  route.comparisonHistoryReturnOn ??
+  (route.hypotheticalReturn ? undefined : route.returnOn) ??
+  route.newLandingOn;
+
+export const isJapanReturnComparison = (route: JpFullReentryRequest) =>
+  route.comparisonHistoryReturnOn !== undefined ||
+  route.hypotheticalReturn === true;
 
 export const sameJapanTrip = (
   trip: { departed?: IsoDate; returned?: IsoDate },
@@ -96,13 +102,21 @@ export function japanTripOccurrences(
         confirmation &&
         (routes[index] === confirmation.route ||
           sameJapanTrip(original, confirmation.route));
+      const compared = isJapanReturnComparison(route);
+      // An assumed return can neither establish departure nor erase the original evidence.
+      const occurred = occurrence(
+        route.departureOn,
+        compared
+          ? (route.newLandingOn ?? route.comparisonHistoryReturnOn)
+          : (route.returnOn ?? route.newLandingOn),
+        confirmed ? confirmation.departed : undefined,
+      );
       return {
         ...route,
-        occurrence: occurrence(
-          route.departureOn,
-          route.returnOn ?? route.newLandingOn,
-          confirmed ? confirmation.departed : undefined,
-        ),
+        occurrence:
+          compared && (route.returnOn || !route.newLandingOn)
+            ? { ...occurred, returned: false }
+            : occurred,
       };
     }),
   };

@@ -329,6 +329,66 @@ test('the result view separates a future time milestone, an unknown filing date,
   );
 });
 
+test('moving the proposed filing date before the reform shows checks that leave the comparison counts', () => {
+  const draft: JapanDraft = {
+    ...jp.createDraft(),
+    completed: true,
+    simulationDate: '2026-11-26',
+    applicationDate: '2027-04-06',
+    stayStart: '2014-04-01',
+    permanentResidence: {
+      routes: [
+        {
+          route: 'general',
+          statusStart: '2014-04-01',
+          newStatusStart: '2014-04-01',
+        },
+      ],
+      evidence: { integrationKnowledgeConfirmed: false },
+    },
+  };
+  const id = 'jp.pr.life-rules';
+  const before = jp.run(draft, 'en').columns[0].pathways[0];
+  expect(before.checks.find((rule) => rule.id === id)).toMatchObject({
+    status: 'NOT_MET',
+  });
+  const knobs = { ...jp.whatif.initial(draft), applicationDate: '2027-03-31' };
+  const after = jp.whatif.apply(draft, knobs);
+  const path = jp.run(after, 'en').columns[0].pathways[0];
+  const removed = path.checks.filter(
+    (rule) =>
+      rule.applicable === false &&
+      before.checks.some(
+        (old) => old.id === rule.id && old.applicable !== false,
+      ),
+  );
+  const rule = removed.find((check) => check.id === id)!;
+  expect(rule).toBeDefined();
+  const html = renderToStaticMarkup(
+    <LocaleContext value={{ locale: 'en', setLocale: () => {} }}>
+      <WhatIfView
+        country={{ ...jp, whatif: { ...jp.whatif, initial: () => knobs } }}
+        draft={draft}
+      />
+    </LocaleContext>,
+  );
+  expect(html).toContain(`No longer applicable (${removed.length})</h3>`);
+  expect(html).toContain('Changed to met (1)</h3>');
+  expect(html).toContain('These checks no longer count toward the totals');
+  expect(html).toContain(
+    `data-status="NOT_APPLICABLE"><strong>${rule.title}</strong>`,
+  );
+  expect(html).toContain(rule.explanation);
+  for (const label of [
+    'Changed to met',
+    'Changed to not met / unknown',
+    'Still not met',
+  ]) {
+    const group = html.split(`aria-label="${label}"`)[1].split('</section>')[0];
+    expect(group).not.toContain(id);
+  }
+});
+
 test('a planned deemed departure leaves continuity pending and a shared negative declaration rules it out', () => {
   const draft = travelDraft();
   const deemed = {

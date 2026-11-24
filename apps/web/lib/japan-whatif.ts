@@ -102,6 +102,11 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
     const nat = compared.naturalisation;
     return activeJapanAnswers({
       ...compared,
+      hypotheticalFiling:
+        knobs.applicationDate !==
+        (draft.applicationDate ?? draft.simulationDate)
+          ? true
+          : compared.hypotheticalFiling,
       tripsForReentryOnly: knobs.noTrips || undefined,
       permanentResidence: {
         ...pr,
@@ -134,6 +139,7 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
         return {
           ...item,
           returnOn,
+          hypotheticalReturn: undefined,
           comparisonHistoryReturnOn: japanTripReturnOn(item) ?? '',
         };
       }),

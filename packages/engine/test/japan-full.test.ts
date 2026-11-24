@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { prEvidence } from './japan-pr-fixture';
-import { evaluateJapan, evaluateJapanFull } from '../src';
+import { evaluateJapan, evaluateJapanFull, japanTripOccurrences } from '../src';
 import type {
   JpFullNaturalisationRoute,
   JpFullPathway,
@@ -22,6 +22,33 @@ const base = {
 } satisfies JpFullRequest;
 
 const general = { route: 'general', statusStart: '2022-04-01' } as const;
+
+test.each([
+  ['', '2026-11-25', false],
+  ['2026-11-27', '2026-11-25', false],
+  ['2026-11-24', '2026-11-25', true],
+  ['2026-11-24', undefined, true],
+] as const)(
+  'without a departure date, only the original return %s can establish departure for a comparison with %s',
+  (original, assumed, departed) => {
+    const journeys = japanTripOccurrences({
+      simulationDate: '2026-11-26',
+      trips: [],
+      reentry: [
+        {
+          route: 'ordinary',
+          comparisonHistoryReturnOn: original,
+          returnOn: assumed,
+        },
+      ],
+    });
+    expect(journeys.reentry[0].occurrence).toEqual({
+      departed,
+      returned: false,
+    });
+  },
+);
+
 const natEvidence = {
   japaneseCitizen: false,
   inJapan: true,

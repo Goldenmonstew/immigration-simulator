@@ -50,6 +50,12 @@ function Comparison({
   const { t, locale } = useTranslation();
   const p = punct(locale);
   const diff = diffPathways(before, after);
+  const groups = (
+    ['becameMet', 'becameUnmet', 'stillUnmet', 'becameInapplicable'] as const
+  ).filter(
+    (group) =>
+      group !== 'becameInapplicable' || diff.becameInapplicable.length > 0,
+  );
   const beforeDate = pathwayDate(before);
   const afterDate = pathwayDate(after);
   const primaryDate = afterDate ?? beforeDate;
@@ -129,7 +135,7 @@ function Comparison({
       </dl>
       {after?.summary && <p>{after.summary}</p>}
       {!diff.changed && <p className={site.notice}>{t('whatif.unchanged')}</p>}
-      {(['becameMet', 'becameUnmet', 'stillUnmet'] as const).map((group) => (
+      {groups.map((group) => (
         <section
           key={group}
           className={resultStyles.group}
@@ -141,6 +147,9 @@ function Comparison({
             {diff[group].length}
             {p.closeParen}
           </h3>
+          {group === 'becameInapplicable' && (
+            <p>{t('whatif.inapplicableCount')}</p>
+          )}
           {!diff[group].length ? (
             <p className={site.muted}>{t('result.noGroupRules')}</p>
           ) : (
@@ -149,11 +158,20 @@ function Comparison({
                 <li
                   key={rule.id}
                   className={resultStyles.rule}
-                  data-status={checkLabelStatus[rule.status]}
+                  data-status={
+                    rule.applicable === false
+                      ? 'NOT_APPLICABLE'
+                      : checkLabelStatus[rule.status]
+                  }
                 >
                   <strong>{rule.title}</strong>
                   <div className={styles.ruleMeta}>
-                    {rule.id} · {t(`result.${checkLabelStatus[rule.status]}`)}
+                    {rule.id} ·{' '}
+                    {t(
+                      rule.applicable === false
+                        ? 'country.status.NOT_APPLICABLE'
+                        : `result.${checkLabelStatus[rule.status]}`,
+                    )}
                   </div>
                   <p>{rule.explanation}</p>
                 </li>

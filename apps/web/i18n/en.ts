@@ -503,6 +503,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'whatif.becameMet': 'Changed to met',
   'whatif.becameUnmet': 'Changed to not met / unknown',
   'whatif.stillUnmet': 'Still not met',
+  'whatif.becameInapplicable': 'No longer applicable',
+  'whatif.inapplicableCount':
+    'These checks no longer count toward the totals for met, unmet or unknown conditions.',
   'whatif.unchanged': 'Same as the current scenario',
   'form.unknown': 'Not provided / unsure',
   'form.fixErrors': 'Please check the highlighted fields.',
